@@ -1,7 +1,46 @@
+# 构建上下文排除清单
+# 注意: docker/ 目录必须保留 —— Dockerfile 要从中 COPY entrypoint.sh、
+# Apache 站点配置与 php/*.ini。
+
+# 版本控制（.git 约 170M，镜像内用不到）
 .git
 .gitignore
-*.log
-conf/local/local.json
+.gitattributes
+
+# 文档
+**/*.md
+
+# 编辑器 / 本地开发产物
+.cursor
+.vscode
+.idea
+**/.DS_Store
+**/*.log
+**/*.swp
+
+# 编排文件与本地环境变量（避免把凭据打进镜像层）
 docker-compose.yml
-node_modules
-.DS_Store
+docker-compose.override.yml
+.env
+.env.*
+
+# 本地配置：由 entrypoint 在运行时生成，或通过卷 / 挂载注入。
+# 只排除具体文件，conf/local/ 目录与其中的 README 要保留（镜像里需要这个目录）。
+conf/local/*.json
+conf/local/ENVIRONMENT
+conf/local/VERSION
+conf/custom/*
+conf/keys/device.*
+conf/aphlict/aphlict.custom.json
+
+# 缓存与可重建产物
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/.divinercache
+docs/
+src/.cache
+src/.phutil_module_cache
+support/peast/lib
+support/peast/peast*.tar.gz
+support/peast/peast*.zip
