@@ -1,0 +1,59 @@
+# Phorge (phorge-fork) 一键启动编排
+# 用法:
+#   docker compose up -d --build
+#   然后浏览器访问 http://localhost:8080/ 完成初始管理员注册。
+#
+# 说明:
+#   - Phorge 官方无 Docker 镜像，phorge 服务基于本目录 Dockerfile 自建。
+#   - MySQL 使用 Phorge 要求的若干参数 (sql_mode / max_allowed_packet 等)。
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: phorge-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: phorge
+    command:
+      - --sql-mode=STRICT_ALL_TABLES
+      - --max-allowed-packet=134217728          # 128M，Phorge 要求 >= 32M
+      - --innodb-buffer-pool-size=1600M
+      - --local-infile=0
+      - --ft-min-word-len=3
+    volumes:
+      - phorge-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pphorge"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - "3306:3306"
+
+  phorge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phorge-web
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_USER: root
+      MYSQL_PASS: phorge
+      # 注意: Phorge 要求 base-uri 的域名必须含点号(.)，裸 "localhost" 会被拒绝。
+      # 这里用 127.0.0.1 以便开箱即用；正式部署请改成你的真实域名。
+      PHORGE_BASE_URI: "http://127.0.0.1:8088/"
+      PHORGE_TIMEZONE: "UTC"
+    ports:
+      - "8088:80"
+    volumes:
+      # 持久化仓库存储与本地配置（可选）
+      - phorge-repo:/var/repo
+
+volumes:
+  phorge-db:
+  phorge-repo:
