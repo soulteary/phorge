@@ -4,7 +4,7 @@
 #
 # 流程:
 #   1. 守卫式生成本地配置 conf/local/local.json（已存在则不覆盖）
-#   2. 幂等下发 Gorge 高亮配置   (GORGE_RENDER_URI / GORGE_RENDER_TOKEN)
+#   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_NOTIFICATION_* 通知)
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
 #   4. 升级/初始化数据库 schema  (PHORGE_AUTO_UPGRADE)
 #   5. 以 www-data 启动守护进程  (PHORGE_START_PHD)
@@ -77,11 +77,11 @@ else
     fi
 fi
 
-# ----- 2. 下发 Gorge 高亮配置（非守卫式，刻意与上面相反）-----
-# gorge.render.uri / token 描述的是部署拓扑，应该跟着编排走而不是跟着
-# phorge-conf 卷走：上面那段只在首次生成 local.json 时写入，已经跑过的实例光加
-# 环境变量不会生效。这里每次启动都用 bin/config set 幂等重写一遍，于是换
-# gorge-render 地址或轮换 token 只要改 .env 重启容器，不必删 local.json。
+# ----- 2. 下发 Gorge 服务配置（非守卫式，刻意与上面相反）-----
+# gorge.render.uri / token 与 notification.servers 描述的都是部署拓扑，应该跟着
+# 编排走而不是跟着 phorge-conf 卷走：上面那段只在首次生成 local.json 时写入，
+# 已经跑过的实例光加环境变量不会生效。这里每次启动都用 bin/config set 幂等重写
+# 一遍，于是换服务地址或轮换 token 只要改 .env 重启容器，不必删 local.json。
 #
 # 放在等待数据库之前是安全的：bin/config 不带 --database 时写的是
 # conf/local/local.json（PhabricatorConfigLocalSource），且 bin/config 经由
@@ -126,6 +126,108 @@ if [ -n "${GORGE_RENDER_URI:-}" ] || [ -n "${GORGE_RENDER_TOKEN:-}" ]; then
     # 页面把探活失败报出来。
 else
     echo "[entrypoint] 未设置 GORGE_RENDER_URI，跳过 Gorge 高亮配置。"
+fi
+
+# 通知服务器列表走不了上面的 gorge_config_set：notification.servers 的类型是
+# cluster.notifications（PhabricatorNotificationServersConfigType），值是一个
+# JSON 列表而不是标量，而 `bin/config set <key> <value>` 的位置参数只能表达标量。
+# 改用官方支持的 --stdin（PhabricatorConfigManagementSetWorkflow），把 JSON 从
+# 管道喂进去。其余语义与 gorge_config_set 一致：每次启动幂等重写、失败只告警、
+# 写完修正属主与权限。
+#
+# 这一项没有「改 Web 界面还是改环境变量」的纠结：notification.servers 是
+# setHidden(true) 的配置项，Config 页面上只读，本来就只能落在 local.json 里。
+gorge_notification_set() {
+    # 端口/协议/路径都有默认值，只有两个 host 必填 —— 它们是本机默认值无法猜准
+    # 的部分（见下面对不对称性的说明）。
+    GORGE_NOTIFICATION_ADMIN_HOST="${GORGE_NOTIFICATION_ADMIN_HOST:-}"
+    GORGE_NOTIFICATION_ADMIN_PORT="${GORGE_NOTIFICATION_ADMIN_PORT:-22281}"
+    GORGE_NOTIFICATION_CLIENT_HOST="${GORGE_NOTIFICATION_CLIENT_HOST:-}"
+    GORGE_NOTIFICATION_CLIENT_PORT="${GORGE_NOTIFICATION_CLIENT_PORT:-22280}"
+    GORGE_NOTIFICATION_CLIENT_PROTOCOL="${GORGE_NOTIFICATION_CLIENT_PROTOCOL:-http}"
+    GORGE_NOTIFICATION_CLIENT_PATH="${GORGE_NOTIFICATION_CLIENT_PATH:-}"
+
+    # admin 与 client 缺一不可：校验要求至少各有一条启用的条目，缺任一类就整项
+    # 抛异常。写半条比不写更糟——Phorge 的 Config 页面会一直标红，而且这个配置项
+    # 在界面上只读，改不回来。
+    if [ -z "$GORGE_NOTIFICATION_ADMIN_HOST" ] ||
+       [ -z "$GORGE_NOTIFICATION_CLIENT_HOST" ]; then
+        echo "[entrypoint] 警告: GORGE_NOTIFICATION_ADMIN_HOST 与 GORGE_NOTIFICATION_CLIENT_HOST 必须同时提供，跳过 notification.servers。" >&2
+        return 0
+    fi
+
+    # 端口先在 shell 里挡一道。下面 php 里的 (int) 会把 "abc" 悄悄变成 0，写进去
+    # 类型合法、bin/config 也会报成功，但服务永远连不上，排查要绕一大圈。
+    for gorge_port in "$GORGE_NOTIFICATION_ADMIN_PORT" \
+                      "$GORGE_NOTIFICATION_CLIENT_PORT"; do
+        case "$gorge_port" in
+            ''|*[!0-9]*)
+                echo "[entrypoint] 警告: 通知服务端口 \"$gorge_port\" 不是数字，跳过 notification.servers。" >&2
+                return 0
+                ;;
+        esac
+    done
+
+    export GORGE_NOTIFICATION_ADMIN_HOST GORGE_NOTIFICATION_ADMIN_PORT
+    export GORGE_NOTIFICATION_CLIENT_HOST GORGE_NOTIFICATION_CLIENT_PORT
+    export GORGE_NOTIFICATION_CLIENT_PROTOCOL GORGE_NOTIFICATION_CLIENT_PATH
+
+    # 用 php 的 json_encode 生成而不是 printf 拼字符串，两个理由：
+    #   - port 必须是 JSON 整数。校验用 PhutilTypeSpec::checkMap 声明
+    #     'port' => 'int'，写成字符串 "22281" 会被直接判非法。
+    #   - host 来自环境变量，含引号或反斜杠时拼字符串会拼出非法 JSON。
+    # 管道两端的成败都算数，靠的是脚本开头的 `set -o pipefail`：php 生成失败时
+    # bin/config 会收到空输入，只看后者就只剩一条语焉不详的 JSON 解析错误。
+    if php -r '
+        $client = array(
+            "type"     => "client",
+            "host"     => getenv("GORGE_NOTIFICATION_CLIENT_HOST"),
+            "port"     => (int)getenv("GORGE_NOTIFICATION_CLIENT_PORT"),
+            "protocol" => getenv("GORGE_NOTIFICATION_CLIENT_PROTOCOL"),
+        );
+        // path 只在非空时写入。它只对 client 条目合法（admin 条目带 path 会被
+        // 明确拒绝），而空字符串在 Phorge 侧等价于没有，不如干脆不写这个键。
+        $path = getenv("GORGE_NOTIFICATION_CLIENT_PATH");
+        if ($path !== false && $path !== "") {
+            $client["path"] = $path;
+        }
+        $servers = array(
+            array(
+                "type" => "admin",
+                "host" => getenv("GORGE_NOTIFICATION_ADMIN_HOST"),
+                "port" => (int)getenv("GORGE_NOTIFICATION_ADMIN_PORT"),
+                // admin 固定 http：这一跳只发生在 compose 内网里（phorge 容器到
+                // gorge-notification 容器），中间没有 TLS 终止的余地，服务端的
+                // admin 口也只讲明文 HTTP。client 那一跳才需要跟着反代变。
+                "protocol" => "http",
+            ),
+            $client,
+        );
+        echo json_encode($servers, JSON_UNESCAPED_SLASHES);
+    ' | "$CONFIG_BIN" set notification.servers --stdin; then
+        # 与 gorge_config_set 同样的理由：bin/config 以 root 运行，Apache 与 phd
+        # 以 www-data 运行，属主不对就等于没配。
+        chown www-data:www-data "$CONF_FILE" || true
+        chmod 0640 "$CONF_FILE" || true
+    else
+        # 同样不阻塞容器启动：实时通知是可降级功能，配不上时 Phorge 退回到刷新
+        # 页面才看到通知，站点本身照常可用。最常见的失败是校验没过——两条记录的
+        # "{host}:{port}" 撞车，或 protocol 不是 http/https；bin/config 会把具体
+        # 原因打在上面一行。
+        echo "[entrypoint] 警告: 写入 notification.servers 失败，实时通知不可用。" >&2
+    fi
+
+    return 0
+}
+
+# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
+# 用 || 而不是 &&：只配了一半时要走进去让上面的函数把话说清楚，而不是静默跳过。
+if [ -n "${GORGE_NOTIFICATION_ADMIN_HOST:-}" ] ||
+   [ -n "${GORGE_NOTIFICATION_CLIENT_HOST:-}" ]; then
+    echo "[entrypoint] 下发 Gorge 通知配置 ..."
+    gorge_notification_set
+else
+    echo "[entrypoint] 未设置 GORGE_NOTIFICATION_CLIENT_HOST，跳过实时通知配置。"
 fi
 
 # ----- 3. 等待数据库就绪 -----

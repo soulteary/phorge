@@ -361,6 +361,187 @@ docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
 - **401 `ERR_UNAUTHORIZED`**：两端 token 不一致。注意只改 `.env` 里的
   `GORGE_RENDER_TOKEN` 后必须重启**两个**容器，否则一端还拿着旧值。
 
+## 用 Gorge 做实时通知（可选）
+
+Phorge 的实时通知（页面右上角的小铃铛即时亮起、Conpherence 消息实时到达）依赖一个
+叫 **Aphlict** 的独立通知服务器，上游用 Node.js 写成、由 `bin/aphlict start` 启动。本镜像
+**没装 Node.js**，所以开箱状态下通知只有刷新页面才看得到。
+
+`docker-compose.gorge.yml` 里的 `gorge-notification` 服务是它的替代品：Go 实现，与 Aphlict
+**线兼容**——一样的路径、一样的报文格式、一样不做鉴权。正因为线兼容，接入不需要改任何 PHP
+代码，只是编排加上一段配置下发。镜像 `ghcr.io/soulteary/gorge-notification` 与 `gorge-render`
+同源同标签（共用 `GORGE_IMAGE_TAG`），拉不到时本地构建一条命令即可，见下面「本地构建镜像」。
+
+### 一个进程、两个端口，且两条配置的地址必须不同
+
+这是接这个服务时唯一容易搞错的地方，值得先说清楚。
+
+`notification.servers` 必须同时包含一条 `admin` 和一条 `client` 记录
+（[`PhabricatorNotificationServersConfigType`](src/applications/notification/config/PhabricatorNotificationServersConfigType.php)
+校验，缺任一类直接报错），而这两条记录的**消费者根本不是同一个进程**：
+
+| 记录 | 谁在访问 | 因此 host 要填什么 | 端口要不要发布到宿主 |
+|------|---------|------------------|-------------------|
+| `admin` :22281 | `phorge` 容器里的 PHP（投递消息、查状态） | Compose 内网服务名 `gorge-notification` | **不要**。它不做鉴权，暴露出去等于允许任何人代发通知 |
+| `client` :22280 | **用户的浏览器**（WebSocket） | 用户地址栏里用的那个主机名 / IP | **必须**。否则浏览器根本连不上 |
+
+`client` 那条会被 [`PhabricatorNotificationServerRef::getWebsocketURI()`](src/applications/notification/client/PhabricatorNotificationServerRef.php)
+拼成 `ws://host:port/` 交给页面里的 JS 客户端，所以填 Compose 服务名的话，浏览器做 DNS
+解析时就会失败——服务端一切正常，Config 页面也全绿，只是通知永远不来。配置校验还额外要求
+两条记录的 `host:port` 互不相同，这也是为什么明明是同一个容器，两条记录的 host 也不能写成
+一样的值。
+
+### 用叠加文件启动
+
+和高亮共用同一个叠加文件，两个服务互不依赖，一条命令一起起来：
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d
+```
+
+默认值（`127.0.0.1:22280`）适用于「在 Docker 宿主本机上开浏览器」这一种情况，不改 `.env`
+就能用。别人要从局域网或公网访问时，改两个变量，它们**必须一起改**：
+
+```bash
+# .env —— 假设站点是 https://code.example.com/，用户浏览器解析得到的是同一个域名
+GORGE_NOTIFICATION_CLIENT_HOST=code.example.com   # 写进配置、交给浏览器的地址
+GORGE_NOTIFICATION_CLIENT_BIND=0.0.0.0            # 容器端口发布到宿主的哪张网卡
+```
+
+只改前者的表现是「Config 页面显示服务器正常，但页面收不到通知」（PHP 在内网探活成功，
+浏览器却连不上）；只改后者则是配置里仍写着 `127.0.0.1`，别人的浏览器会去连他们自己的机器。
+
+`entrypoint.sh` 每次启动都会把这些变量拼成下面这样一段 JSON，用
+`bin/config set notification.servers --stdin` 幂等写进 `conf/local/local.json`：
+
+```json
+[
+  {"type": "admin",  "host": "gorge-notification", "port": 22281, "protocol": "http"},
+  {"type": "client", "host": "127.0.0.1",          "port": 22280, "protocol": "http"}
+]
+```
+
+几个细节值得留意：
+
+- 用 `--stdin` 而不是 `bin/config set <key> <value>`，是因为这个配置项是 JSON 列表类型，
+  位置参数只能表达标量。
+- `port` 是 JSON **整数**，写成字符串 `"22281"` 会被校验直接判非法，所以那段 JSON 由
+  `php -r` 的 `json_encode` 生成而不是拼字符串。
+- `notification.servers` 是 `setHidden(true)` 的配置项，Config 页面上**只读**，本来就只能落在
+  `local.json` 里，所以这里的每次启动重写不会覆盖掉谁在界面上的改动。
+- 写入失败只告警、不阻塞容器启动：通知是可降级功能，配不上时站点照常可用，只是回到「刷新
+  页面才看到通知」。
+
+相关可选变量（都有默认值，见 `.env.example`）：
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `GORGE_NOTIFICATION_ADMIN_HOST` | `gorge-notification` | PHP 访问 admin 端口的地址，Compose 内网服务名。 |
+| `GORGE_NOTIFICATION_ADMIN_PORT` | `22281` | admin 端口。与容器内监听端口绑定，改了要同时改叠加文件里的 `environment` 与 `healthcheck`。 |
+| `GORGE_NOTIFICATION_CLIENT_HOST` | `127.0.0.1` | **浏览器**连 WebSocket 的地址。填 Compose 服务名会让浏览器解析失败。 |
+| `GORGE_NOTIFICATION_CLIENT_PORT` | `22280` | 浏览器连的端口，同时也是发布到宿主的端口（容器一侧固定 `22280`）。走反代时填反代的端口（如 `443`），此时那条端口发布应当一并去掉。 |
+| `GORGE_NOTIFICATION_CLIENT_PROTOCOL` | `http` | `http` 或 `https`。决定发给浏览器的是 `ws://` 还是 `wss://`。 |
+| `GORGE_NOTIFICATION_CLIENT_PATH` | 空 | 反代上 WebSocket 路由的路径前缀，如 `/ws/`。只对 `client` 条目合法，`admin` 条目带 `path` 会被校验拒绝。 |
+| `GORGE_NOTIFICATION_CLIENT_BIND` | `127.0.0.1` | client 端口发布到宿主时绑哪张网卡。改成 `0.0.0.0` 才能让其他机器连上。 |
+
+### 走 Traefik 时的填法
+
+叠加 `docker-compose.traefik.yml` 之后，站点走 `https://${TRAEFIK_DOMAIN}/`，浏览器直连
+`22280` 这条路就不成立了：一是端口多半没对外开，二是 HTTPS 页面里发起 `ws://` 连接会被浏览器
+按「混合内容」拒绝。正确做法是让 WebSocket 也从 Traefik 走一条路径路由。
+
+**第一步，在 `.env` 里把 client 条目改成指向 Traefik：**
+
+```bash
+GORGE_NOTIFICATION_CLIENT_HOST=phorge.local   # 与 TRAEFIK_DOMAIN 一致
+GORGE_NOTIFICATION_CLIENT_PORT=443            # Traefik 的 websecure 端口
+GORGE_NOTIFICATION_CLIENT_PROTOCOL=https      # 于是发给浏览器的是 wss://
+GORGE_NOTIFICATION_CLIENT_PATH=/ws/           # 下面那条路由的路径前缀
+```
+
+`admin` 那三项**不用动**：PHP 到 admin 端口这一跳仍然走 Compose 内网，中间没有 Traefik。
+
+**第二步，给 `gorge-notification` 加一条 Traefik 路由，并停掉宿主端口发布。**
+`docker-compose.traefik.yml` 目前只管 `phorge` 一个后端，通知服务的路由放在自己的
+`docker-compose.override.yml` 里（`override` 文件会被 `docker compose` 自动叠加，不必写进
+`-f` 列表）：
+
+```yaml
+# docker-compose.override.yml
+services:
+  gorge-notification:
+    # 这一段不能省。走 Traefik 之后不该再从宿主直连，而且上面把 CLIENT_PORT 改成
+    # 443 之后，叠加文件里那条端口发布会变成「把宿主 443 绑给通知服务」，正好和
+    # Traefik 的 websecure 入口撞车，栈会起不来。
+    # !reset 需要 Docker Compose 2.24.4 或更高版本，与 traefik 叠加文件的要求一致。
+    ports: !reset []
+    labels:
+      - "traefik.enable=true"
+      # 路径前缀要与 GORGE_NOTIFICATION_CLIENT_PATH 完全一致。
+      - "traefik.http.routers.gorge-notification.rule=Host(`${TRAEFIK_DOMAIN:-phorge.local}`) && PathPrefix(`/ws/`)"
+      - "traefik.http.routers.gorge-notification.entrypoints=websecure"
+      - "traefik.http.routers.gorge-notification.tls=true"
+      - "traefik.http.services.gorge-notification.loadbalancer.server.port=22280"
+```
+
+两点说明：
+
+- **不需要 StripPrefix 中间件。** 与 Aphlict 一样，client 端口对**任意路径**都接受 WebSocket
+  升级（上游本来就要用 `/~{instance}/` 这样的路径承载多实例），所以 `/ws/` 原样转发过去即可。
+- **不要给这条路由挂 `phorge-forwardauth` 中间件。** WebSocket 握手带的是浏览器的 Cookie，
+  ForwardAuth 后端未必认；而且通知服务本身不解析身份，走 Aphlict 的订阅模型。若确实需要把它
+  保护起来，应该在网络层做，而不是在这条路由上加认证。
+
+改完两处后重启：
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.traefik.yml \
+  -f docker-compose.gorge.yml up -d
+```
+
+### 本地构建镜像
+
+与 `gorge-render` 是同一个 Dockerfile、同一个上下文，只是换一个 `SERVICE` 构建参数：
+
+```bash
+docker build -t ghcr.io/soulteary/gorge-notification:latest \
+  --build-arg SERVICE=gorge-notification \
+  /path/to/gorge/go
+```
+
+同样地，`-t` 打出的标签要和编排里 `image:` 完全一致；设了 `GORGE_IMAGE_TAG` 就跟着改。
+`ghcr` 对「镜像不存在」和「无权访问」都返回 `403 Forbidden`，拉不下来时先本地构建，别去折腾
+`docker login`。
+
+### 验证与排障
+
+```bash
+# 看写进去的配置（会打印值来自哪个配置源）
+docker compose exec phorge /opt/phorge/phorge/bin/config get notification.servers
+
+# 在通知服务容器内探活（alpine 镜像，用 busybox 的 wget，没有 curl）
+docker compose exec gorge-notification wget -qO- http://127.0.0.1:22281/healthz
+docker compose exec gorge-notification wget -qO- http://127.0.0.1:22281/status/
+```
+
+界面上的确认方式：登录后打开 **Config → Cluster → Notification Servers**，两台服务器都应显示
+正常。最后开两个浏览器窗口用不同账号登录，一方操作（比如在某个 Task 上留言），另一方应当
+立即看到通知，不需要刷新。
+
+- **Config 页面报 "Unable to Connect to Notification Server"**：这是
+  `PhabricatorAphlictSetupCheck` 在探 admin 端口。先确认容器在跑
+  （`docker compose ps gorge-notification`），再确认 `GORGE_NOTIFICATION_ADMIN_HOST`
+  确实是 Compose 服务名而不是 `127.0.0.1`——后者在 phorge 容器里指的是 phorge 自己。
+- **服务器都显示正常，但页面收不到通知**：几乎总是 `client` 条目填了浏览器够不着的地址。
+  打开浏览器开发者工具的 Network → WS，看那个 `ws://` 请求连的是哪儿。
+- **client 端口的 `GET /` 返回 501，这是正常的**，不是故障。
+  `PhabricatorNotificationServerRef::testClient()` 正是拿 501 当健康信号，收到 200 反而会报错。
+  也正因如此，叠加文件里的 `healthcheck` 探的是 admin 端口的 `/healthz`，不是 client 端口。
+- **HTTPS 站点下浏览器控制台报混合内容 / `ws:` 被阻止**：`GORGE_NOTIFICATION_CLIENT_PROTOCOL`
+  还是 `http`，改成 `https` 后重启 phorge 容器。
+- **`bin/config get` 显示配置没写进去**：看容器启动日志里 `[entrypoint] 下发 Gorge 通知配置`
+  那几行，写入失败会打印具体原因。最常见的是两条记录的 `host:port` 撞车。
+
 ## 参考
 
 - [安装指南](src/docs/user/installation_guide.diviner)

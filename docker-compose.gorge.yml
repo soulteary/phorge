@@ -1,18 +1,22 @@
-# Phorge (phorge-fork) Gorge 语法高亮叠加编排（可选）
+# Phorge (phorge-fork) Gorge 服务叠加编排（可选）
 # ------------------------------------------------------------------
-# 用法（在基础一键启动之上叠加 gorge-render）：
+# 用法（在基础一键启动之上叠加 Gorge 的两个服务）：
 #   docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d
 #
 # 说明：
 #   - 本文件是「叠加文件」，不会独立启动；它与 docker-compose.yml 合并生效。
 #     docker-compose.yml 保持完全不变，因此默认的一键启动（不带本文件）不受影响。
-#   - 作用：起一个 gorge-render 容器（基于 Chroma 的语法高亮服务），并把它的
-#     地址与 token 下发给 phorge；phorge 的 entrypoint.sh 会把这两个值幂等写进
-#     conf/local/local.json 的 gorge.render.uri / gorge.render.token。
-#   - 起来之后还有**一步手工切换**：Phorge 默认仍用内置高亮引擎，需要把
+#   - 本文件起两个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
+#     段里对应的 depends_on 与环境变量一起删掉：
+#       gorge-render        基于 Chroma 的语法高亮服务，替换 Phorge 内置高亮器
+#       gorge-notification  与 Aphlict 线兼容的实时通知服务，替换 Node.js 版 aphlict
+#   - 两者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
+#     （gorge.render.uri / gorge.render.token 与 notification.servers）。
+#   - 高亮起来之后还有**一步手工切换**：Phorge 默认仍用内置高亮引擎，需要把
 #     syntax-highlighter.engine 切到 PhabricatorGorgeSyntaxHighlighterEngine
 #     并清一次缓存。命令与原因见 DOCKER.md「用 Gorge 做语法高亮」。
 #     切换独立于编排，是为了让「服务在跑但先不接」和一条命令回滚都成立。
+#     通知**没有**这一步：notification.servers 一写进去就生效。
 #   - 所有可调项都有内置默认值，不写 .env 也能直接跑。
 # ------------------------------------------------------------------
 
@@ -59,7 +63,61 @@ services:
       start_period: 5s
       retries: 3
 
-  # 给已存在的 phorge 服务补充：对 gorge-render 的依赖 + 两个配置用环境变量。
+  # gorge-notification 一个进程同时监听两个端口。这不是实现偏好，是 PHP 侧的硬
+  # 要求：PhabricatorNotificationServersConfigType 校验 notification.servers 时，
+  # 必须同时存在一条启用的 type=admin 与一条启用的 type=client，且两条记录的
+  # "{host}:{port}" 不得重复，缺任一类直接抛异常。
+  #   client :22280  浏览器的 WebSocket 入口（页面里的 JX.Aphlict 连它）
+  #   admin  :22281  PHP 侧投递消息与查状态（POST / 与 GET /status/）
+  # 它与上游 Node.js 版 aphlict 完全线兼容（同样的路径、同样的报文、同样不鉴权），
+  # 所以接入不需要改任何 PHP 代码，全部靠本文件的编排加 entrypoint.sh 的下发。
+  gorge-notification:
+    image: ghcr.io/soulteary/gorge-notification:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-notification
+    restart: unless-stopped
+    environment:
+      # 容器内的监听地址与两个端口。这三项刻意写成字面量而不是 ${...}：它们与
+      # 下面的 ports、healthcheck 是死绑的，改一处就得三处一起改，做成 .env 变量
+      # 只会让人以为改一个地方就够。
+      # 注意别和下面 phorge 段里同名的 GORGE_NOTIFICATION_* 混淆：那一组描述的是
+      # 「PHP 与浏览器看到的地址」，这一组描述的是「容器内部监听哪儿」，两组的
+      # 值在走反向代理时会完全不同。
+      GORGE_NOTIFICATION_LISTEN_ADDR: 0.0.0.0
+      GORGE_NOTIFICATION_CLIENT_PORT: "22280"
+      GORGE_NOTIFICATION_ADMIN_PORT: "22281"
+    ports:
+      # 与 gorge-render 相反，client 端口**必须**映射到宿主：连它的是用户的浏览器
+      # ——Phorge 把 PhabricatorNotificationServerRef::getWebsocketURI() 生成的
+      # ws:// 地址原样发给 JS 客户端，而 compose 的内网服务名在浏览器里解析不了。
+      # admin 端口则刻意不映射：只有同网络的 phorge 容器会访问它，而且为了与
+      # aphlict 保持线兼容它**不做任何鉴权**，暴露到宿主等于允许任何人代发通知。
+      #
+      # 宿主一侧的端口刻意复用 GORGE_NOTIFICATION_CLIENT_PORT —— 就是写进配置、
+      # 交给浏览器的那个端口。直连场景下两者本来就必须相等，共用一个变量就没有
+      # 「改了一个忘了另一个」的余地；容器一侧则固定 22280，与上面的 environment
+      # 对应。走反向代理时这条映射整个不需要，做法见 DOCKER.md。
+      #
+      # 绑定地址默认只绑回环，与 GORGE_NOTIFICATION_CLIENT_HOST 的默认值 127.0.0.1
+      # 配套，够本机开发用。要让局域网或公网的浏览器也能连上，在 .env 里把
+      # GORGE_NOTIFICATION_CLIENT_BIND 改成 0.0.0.0（或某张网卡的地址），并把
+      # GORGE_NOTIFICATION_CLIENT_HOST 改成浏览器实际使用的主机名/IP —— 两者是一起
+      # 改的，只改一个的表现是「Config 页面显示正常但页面收不到通知」。
+      - "${GORGE_NOTIFICATION_CLIENT_BIND:-127.0.0.1}:${GORGE_NOTIFICATION_CLIENT_PORT:-22280}:22280"
+    # 健康探针打 admin 口的 /healthz，返回裸 {"status":"ok"}。
+    # 刻意**不**探 client 口的 GET /：那条路由按 Aphlict 的约定固定返回 501
+    # （PhabricatorNotificationServerRef::testClient() 正是把 501 当作健康信号，
+    # 拿到 200 反而报错），wget 会把 501 判成失败，容器会一直 unhealthy。
+    # 同 gorge-render 用 busybox 的 wget：镜像基于 alpine，没有 curl。镜像里已内置
+    # 同样参数的 HEALTHCHECK，这里显式重复一遍，是为了让下面 phorge 的
+    # service_healthy 依赖不取决于所拉到的镜像标签是否带探针。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:22281/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # 给已存在的 phorge 服务补充：对两个 Gorge 服务的依赖 + 若干配置用环境变量。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
   # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
   # 两个依赖仍然保留），不会整体替换。
@@ -71,6 +129,12 @@ services:
       # 轮询 /healthz。
       gorge-render:
         condition: service_healthy
+      # 等 gorge-notification 健康再起 phorge：entrypoint.sh 写完
+      # notification.servers 就不再探活，而 PhabricatorAphlictSetupCheck 会在
+      # Config 页面把「连不上通知服务器」报成 setup issue。没有这条依赖的话，
+      # phorge 先起来就会白报一次警，得手动刷一下才消失。
+      gorge-notification:
+        condition: service_healthy
     environment:
       # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
       # 守卫式生成块**之外**，所以改 .env 重启容器就生效，不必删 local.json。
@@ -78,3 +142,25 @@ services:
       # gorge-render 判成路由不匹配，返回 404 ERR_NOT_FOUND。
       GORGE_RENDER_URI: ${GORGE_RENDER_URI:-http://gorge-render:8140}
       GORGE_RENDER_TOKEN: ${GORGE_RENDER_TOKEN:-}
+      # --- 下面几项由 entrypoint.sh 拼成 notification.servers 的两条记录 ---
+      # 关键不对称：admin 与 client **必须填不同的地址**，因为消费者根本不是同
+      # 一个进程。
+      #   admin  由 phorge 容器内的 PHP 访问（PhabricatorNotificationClient），
+      #          走 compose 默认网络的服务名就行，它对宿主没有任何映射。
+      #   client 由**用户的浏览器**访问：Phorge 用它拼出 ws:// 地址交给 JS 客户端
+      #          （PhabricatorNotificationServerRef::getWebsocketURI()）。这里填
+      #          compose 服务名会让浏览器 DNS 解析失败，必须填浏览器可达的地址，
+      #          对应端口也因此必须发布到宿主（见上面 gorge-notification.ports）。
+      # 顺带：两条记录的 "{host}:{port}" 必须互不相同，否则配置校验直接拒绝——这
+      # 也是为什么就算两个端口都在同一个容器里，也不能把 host 写成一样的值。
+      GORGE_NOTIFICATION_ADMIN_HOST: ${GORGE_NOTIFICATION_ADMIN_HOST:-gorge-notification}
+      GORGE_NOTIFICATION_ADMIN_PORT: ${GORGE_NOTIFICATION_ADMIN_PORT:-22281}
+      GORGE_NOTIFICATION_CLIENT_HOST: ${GORGE_NOTIFICATION_CLIENT_HOST:-127.0.0.1}
+      GORGE_NOTIFICATION_CLIENT_PORT: ${GORGE_NOTIFICATION_CLIENT_PORT:-22280}
+      # 浏览器到 client 端口这一跳的协议与路径前缀。直连容器时保持默认（http +
+      # 空路径）；前面挂了 Traefik / Nginx 做 TLS 终止时，改成 https 与反代上那条
+      # WebSocket 路由的路径（本仓库的 Traefik 叠加文件里是 /ws/），填法见
+      # DOCKER.md「用 Gorge 做实时通知」。
+      # 只有 client 有 path：admin 条目带 path 会被配置校验明确拒绝。
+      GORGE_NOTIFICATION_CLIENT_PROTOCOL: ${GORGE_NOTIFICATION_CLIENT_PROTOCOL:-http}
+      GORGE_NOTIFICATION_CLIENT_PATH: ${GORGE_NOTIFICATION_CLIENT_PATH:-}
