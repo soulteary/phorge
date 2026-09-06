@@ -38,6 +38,30 @@ final class PhabricatorSyntaxHighlightingConfigOptions
             'You can provide a custom highlighter engine by extending '.
             'class %s.',
             'PhutilSyntaxHighlighterEngine')),
+      $this->newOption('gorge.render.uri', 'string', null)
+        ->setLocked(true)
+        ->setSummary(pht('Base URI of the Gorge render service.'))
+        ->setDescription(
+          pht(
+            'Base URI of the Gorge render service, a standalone service '.
+            'which highlights source code and returns HTML using the same '.
+            'CSS class names Pygments uses.'.
+            "\n\n".
+            'Setting this option does not enable the service by itself. To '.
+            'use it, also set `syntax-highlighter.engine` to `%s`.'.
+            "\n\n".
+            'Do not include a trailing slash: the service routes exactly, '.
+            'and a doubled slash produces an "ERR_NOT_FOUND" error instead '.
+            'of highlighted source.',
+            'PhabricatorGorgeSyntaxHighlighterEngine'))
+        ->addExample('http://gorge-render:8140', pht('Compose service')),
+      $this->newOption('gorge.render.token', 'string', null)
+        ->setHidden(true)
+        ->setDescription(
+          pht(
+            'Service token for the Gorge render service, sent with each '.
+            'request in an "X-Service-Token" header. Leave this empty if '.
+            'the service is configured without a token.')),
       $this->newOption('pygments.enabled', 'bool', false)
         ->setSummary(
           pht('Use Pygments to highlight code?'))
