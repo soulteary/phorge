@@ -2,6 +2,7 @@
 # ------------------------------------------------------------------
 # 用法（在基础一键启动之上叠加 Traefik）：
 #   docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+# 要求 Docker Compose 2.24.4 或更高版本（使用了 !reset 标签）。
 #
 # 说明：
 #   - 本文件是「叠加文件」，不会独立启动；它与 docker-compose.yml 合并生效。
@@ -15,8 +16,8 @@
 #
 # 安全前提（重要）：
 #   接了 Traefik 后，务必保证 phorge 后端只能经由 Traefik 到达，不要再把
-#   PHORGE_HTTP_PORT 暴露到公网。Apache 已默认清洗客户端伪造的 X-Auth-* 头
-#   （见 docker/phorge-apache.conf），Traefik 会重新注入可信头，二者不冲突。
+#   PHORGE_HTTP_PORT 暴露到公网。Traefik 会先清除客户端伪造的 X-Auth-* 头，
+#   再由 ForwardAuth 认证后端重新注入可信身份头。
 #   详见 DOCKER.md「通过 Traefik Forward Auth 运行」。
 # ------------------------------------------------------------------
 
@@ -60,12 +61,11 @@ services:
   # 给已存在的 phorge 服务补充：Traefik 路由标签 + preamble 挂载。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml。
   phorge:
-    # 接入 Traefik 后不再需要把应用端口直接暴露到宿主；改为仅经 Traefik 访问。
+    # 接入 Traefik 后不再把应用端口暴露到宿主，仅允许经 Traefik 访问。
     # 如需临时直连排障，可在 docker-compose.override.yml 里另加 ports。
-    # 注意：compose 无法在叠加文件里「删除」基础文件已声明的 ports，这里通过
-    # 把宿主端口绑到本机回环，避免应用端口暴露到公网（真正的对外入口是 Traefik）。
-    ports:
-      - "127.0.0.1:${PHORGE_HTTP_PORT:-8088}:80"
+    # ports 是具有特殊唯一键的序列；新增一个回环映射不会覆盖基础文件中的公网映射。
+    # 用 !reset 明确清空基础文件的 ports，避免两个映射同时保留。
+    ports: !reset []
     volumes:
       # 挂载 HTTPS 识别 preamble 为容器内的 support/preamble.php。
       # 当 Traefik 以 X-Forwarded-Proto: https 转发时，Phorge 会正确识别 HTTPS，
@@ -77,10 +77,17 @@ services:
       - "traefik.http.routers.phorge.rule=Host(`${TRAEFIK_DOMAIN:-phorge.local}`)"
       - "traefik.http.routers.phorge.entrypoints=websecure"
       - "traefik.http.routers.phorge.tls=true"
-      # 绑定 ForwardAuth 中间件：所有到 phorge 的请求先过认证
-      - "traefik.http.routers.phorge.middlewares=phorge-forwardauth@docker"
+      # 中间件按声明顺序执行：先删除客户端提供的身份头，再执行 ForwardAuth。
+      # 认证成功后，ForwardAuth 会通过 authResponseHeaders 写回可信身份头。
+      - "traefik.http.routers.phorge.middlewares=phorge-strip-auth-headers@docker,phorge-forwardauth@docker"
       # 声明后端端口（容器内 Apache 监听 80）
       - "traefik.http.services.phorge.loadbalancer.server.port=80"
+      # --- 客户端身份头清洗（必须位于 ForwardAuth 之前）---
+      # 空的 customRequestHeaders 值表示删除该头，防止客户端伪造身份；这里不能在
+      # Apache 层清洗，否则也会删除 ForwardAuth 已经注入的可信头。
+      - "traefik.http.middlewares.phorge-strip-auth-headers.headers.customrequestheaders.X-Auth-User="
+      - "traefik.http.middlewares.phorge-strip-auth-headers.headers.customrequestheaders.X-Auth-Email="
+      - "traefik.http.middlewares.phorge-strip-auth-headers.headers.customrequestheaders.X-Auth-Name="
       # --- ForwardAuth 中间件定义（占位，请替换为你的真实认证后端）---
       # address            : 每个进入的请求先被转发到这里做认证
       # authResponseHeaders: 认证通过后，把这些响应头复制到发往 phorge 的请求上

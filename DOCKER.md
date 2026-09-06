@@ -6,7 +6,8 @@
 
 ## 前置要求
 
-- Docker 与 Docker Compose（Compose V2，`docker compose ...`）
+- Docker 与 Docker Compose（Compose V2，`docker compose ...`；Traefik 叠加编排要求
+  Docker Compose 2.24.4 或更高版本，以支持 `!reset` 标签）
 - 无需预装 PHP / MySQL：镜像自建，数据库随 Compose 一起启动
 
 ## 快速启动
@@ -183,8 +184,9 @@ docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
 
 - 新增一个 `traefik` 服务（`web:80` / `websecure:443` 入口、Docker provider、
   可选 dashboard），并定义 `phorge-forwardauth` ForwardAuth 中间件。
-- 给 `phorge` 服务补充路由标签（`Host(${TRAEFIK_DOMAIN})` → websecure，绑定
-  ForwardAuth 中间件），并把应用端口收回到本机回环（对外入口改为 Traefik）。
+- 给 `phorge` 服务补充路由标签（`Host(${TRAEFIK_DOMAIN})` → websecure），按顺序绑定
+  身份头清洗与 ForwardAuth 中间件，并用 `!reset` 移除应用的宿主机端口（对外入口只剩
+  Traefik）。
 - 挂载 `./support/preamble.proxy-https.php` 为容器内 `/opt/phorge/phorge/support/preamble.php`。
 
 相关可选变量（都有默认值，见 `.env.example`）：
@@ -212,12 +214,14 @@ Traefik 做 TLS 终止后，到后端是明文 HTTP，但会带上 `X-Forwarded-
 
 Provider **无条件信任** `X-Auth-User/Email/Name` 头。因此：
 
-- **后端必须只能经由 Traefik 到达**：不要把 `PHORGE_HTTP_PORT` 暴露到公网。叠加文件已
-  把应用端口收到 `127.0.0.1`，对外入口只剩 Traefik。
-- **Apache 默认清洗客户端伪造头**：`docker/phorge-apache.conf` 用 `RequestHeader unset`
-  无条件清除请求方带来的 `X-Auth-*`（需 `mod_headers`，已在 Dockerfile `a2enmod headers`
-  中启用），Traefik 会重新注入可信头，二者不冲突。这是"纵深防御"的一层，**不能**替代
-  "后端只经 Traefik 到达"这个前提。
+- **后端必须只能经由 Traefik 到达**：不要把 `PHORGE_HTTP_PORT` 暴露到公网。叠加文件用
+  `ports: !reset []` 移除基础编排的宿主机端口，对外入口只剩 Traefik。若需要临时直连，
+  请用单独的 override 文件显式添加回环映射，并在排障后移除。
+- **必须先清洗客户端身份头，再执行认证**：路由先经过
+  `phorge-strip-auth-headers`，用空的 `customRequestHeaders` 删除请求方带来的
+  `X-Auth-*`；随后 `phorge-forwardauth` 完成认证，并通过 `authResponseHeaders` 把认证
+  后端返回的可信值写入发往 Phorge 的请求。不要在 Apache 层无条件 `RequestHeader unset`，
+  因为请求到达 Apache 时已经经过 ForwardAuth，那会把可信身份头一并删除。
 - 若 Phorge 仍可被直接访问，攻击者可伪造这些头冒充任意用户——请务必在网络层隔离。
 
 ## 参考

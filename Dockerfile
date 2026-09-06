@@ -92,10 +92,8 @@ RUN set -eux; \
 
 # ------------------------------------------------------------------
 # 4. Apache 站点配置：DocumentRoot 指向 webroot，开启 PATH rewrite
-#    headers: 供 phorge-apache.conf 里 RequestHeader unset 清洗客户端伪造的
-#    X-Auth-* 认证头使用（Traefik Forward Auth 场景，见 DOCKER.md）。
 # ------------------------------------------------------------------
-RUN a2enmod rewrite headers
+RUN a2enmod rewrite
 COPY docker/phorge-apache.conf /etc/apache2/sites-available/000-default.conf
 
 # ------------------------------------------------------------------
