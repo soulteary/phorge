@@ -1,0 +1,91 @@
+# Phorge (phorge-fork) Traefik Forward Auth 叠加编排（可选）
+# ------------------------------------------------------------------
+# 用法（在基础一键启动之上叠加 Traefik）：
+#   docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+#
+# 说明：
+#   - 本文件是「叠加文件」，不会独立启动；它与 docker-compose.yml 合并生效。
+#     docker-compose.yml 保持完全不变，因此默认的一键启动（不带本文件）不受影响。
+#   - 作用：在 phorge 前面放一个 Traefik，作为 TLS 终止 + 反向代理，并挂上
+#     ForwardAuth 中间件。认证通过后，Traefik 会向后端注入
+#     X-Auth-User / X-Auth-Email / X-Auth-Name 头，Phorge 的
+#     "Traefik Auth" Provider（PhabricatorTraefikAuthProvider）据此登录/注册。
+#   - 认证后端（authelia / oauth2-proxy 等）不在本文件范围内，以占位地址给出接入点，
+#     由你按实际认证服务填写（见 .env 的 TRAEFIK_FORWARD_AUTH_ADDRESS）。
+#
+# 安全前提（重要）：
+#   接了 Traefik 后，务必保证 phorge 后端只能经由 Traefik 到达，不要再把
+#   PHORGE_HTTP_PORT 暴露到公网。Apache 已默认清洗客户端伪造的 X-Auth-* 头
+#   （见 docker/phorge-apache.conf），Traefik 会重新注入可信头，二者不冲突。
+#   详见 DOCKER.md「通过 Traefik Forward Auth 运行」。
+# ------------------------------------------------------------------
+
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: phorge-traefik
+    restart: unless-stopped
+    command:
+      # --- Provider：只从 Docker 容器标签读取动态配置 ---
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      # --- entrypoints ---
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # 可选：把明文 HTTP 全量跳转到 HTTPS（如需，取消注释）
+      # - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      # - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      # --- Dashboard（仅排障，默认关闭；置 TRAEFIK_DASHBOARD=true 开启）---
+      - --api.dashboard=${TRAEFIK_DASHBOARD:-false}
+      # 注意：ForwardAuth 中间件属于「动态配置」，不能用上面这些静态 CLI 参数声明，
+      # 只能通过容器标签（labels）或文件 provider 定义。这里定义在 phorge 服务的
+      # labels 上（见下方 phorge.labels 的 phorge-forwardauth 中间件）。
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"
+      # Dashboard（仅本机可达）；开启 TRAEFIK_DASHBOARD 后配合下面 labels 使用
+      - "127.0.0.1:8080:8080"
+    volumes:
+      # 只读挂载 Docker socket，供 Traefik 读取容器标签做服务发现。
+      # 安全敏感：暴露 socket 等于给容器较高权限，生产可改用 socket-proxy。
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      # 可选：把 Traefik Dashboard 也经由自身路由暴露（仅在开启 dashboard 时有意义）
+      - "traefik.enable=${TRAEFIK_DASHBOARD:-false}"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.${TRAEFIK_DOMAIN:-phorge.local}`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls=true"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+
+  # 给已存在的 phorge 服务补充：Traefik 路由标签 + preamble 挂载。
+  # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml。
+  phorge:
+    # 接入 Traefik 后不再需要把应用端口直接暴露到宿主；改为仅经 Traefik 访问。
+    # 如需临时直连排障，可在 docker-compose.override.yml 里另加 ports。
+    # 注意：compose 无法在叠加文件里「删除」基础文件已声明的 ports，这里通过
+    # 把宿主端口绑到本机回环，避免应用端口暴露到公网（真正的对外入口是 Traefik）。
+    ports:
+      - "127.0.0.1:${PHORGE_HTTP_PORT:-8088}:80"
+    volumes:
+      # 挂载 HTTPS 识别 preamble 为容器内的 support/preamble.php。
+      # 当 Traefik 以 X-Forwarded-Proto: https 转发时，Phorge 会正确识别 HTTPS，
+      # 消除 HTTP/HTTPS 不一致告警（见 support/preamble.proxy-https.php）。
+      - ./support/preamble.proxy-https.php:/opt/phorge/phorge/support/preamble.php:ro
+    labels:
+      - "traefik.enable=true"
+      # 路由：按域名匹配，走 websecure(HTTPS) 入口
+      - "traefik.http.routers.phorge.rule=Host(`${TRAEFIK_DOMAIN:-phorge.local}`)"
+      - "traefik.http.routers.phorge.entrypoints=websecure"
+      - "traefik.http.routers.phorge.tls=true"
+      # 绑定 ForwardAuth 中间件：所有到 phorge 的请求先过认证
+      - "traefik.http.routers.phorge.middlewares=phorge-forwardauth@docker"
+      # 声明后端端口（容器内 Apache 监听 80）
+      - "traefik.http.services.phorge.loadbalancer.server.port=80"
+      # --- ForwardAuth 中间件定义（占位，请替换为你的真实认证后端）---
+      # address            : 每个进入的请求先被转发到这里做认证
+      # authResponseHeaders: 认证通过后，把这些响应头复制到发往 phorge 的请求上
+      #                      —— 正是 Phorge Provider 依赖的 X-Auth-User/Email/Name
+      # trustForwardHeader : 信任 X-Forwarded-* 头（供认证后端判断原始请求）
+      - "traefik.http.middlewares.phorge-forwardauth.forwardauth.address=${TRAEFIK_FORWARD_AUTH_ADDRESS:-http://auth-backend:9091/api/verify}"
+      - "traefik.http.middlewares.phorge-forwardauth.forwardauth.authResponseHeaders=${TRAEFIK_AUTH_RESPONSE_HEADERS:-X-Auth-User,X-Auth-Email,X-Auth-Name}"
+      - "traefik.http.middlewares.phorge-forwardauth.forwardauth.trustForwardHeader=true"

@@ -127,6 +127,99 @@ docker compose up -d --build
 - **确认守护进程在跑**：
   `docker compose exec phorge su -s /bin/sh www-data -c "/opt/phorge/phorge/bin/phd status"`。
 
+## 通过 Traefik Forward Auth 运行（可选）
+
+本 fork 内置了一个 **"Traefik Auth"** 认证 Provider（`PhabricatorTraefikAuthProvider`）。
+它的思路是：把认证交给前置的 [Traefik](https://traefik.io/) + ForwardAuth 中间件，
+认证通过后由 Traefik 向后端注入身份头，Phorge 读取这些头完成登录/注册。适合把 Phorge
+接入统一的 SSO（如 authelia / oauth2-proxy）网关，Phorge 本身不处理密码。
+
+### 认证头与用户名推导
+
+Traefik 在认证成功后应向后端注入以下 HTTP 头（Provider 依赖它们）：
+
+| 头 | 含义 | 是否必需 |
+|------|------|----------|
+| `X-Auth-User` | 外部账号唯一标识（用作 external account id，也是用户名兜底值） | **必需**（缺失则拒绝并提示需经 Traefik 访问） |
+| `X-Auth-Email` | 邮箱，用于推导用户名并作为账号邮箱 | 可选 |
+| `X-Auth-Name` | 展示用真实姓名 | 可选 |
+
+**用户名推导规则**（`deriveUsernameFromEmail`）：
+
+1. 若有 `X-Auth-Email`，取其 `@` 之前的本地部分，剔除 `[a-zA-Z0-9._-]` 之外的字符、
+   去掉结尾的点号；若结果非空且通过 `PhabricatorUser::validateUsername()` 校验，则用它做用户名。
+2. 否则（无邮箱 / 本地部分非法）回退使用 `X-Auth-User` 作为用户名。
+
+外部账号的稳定标识始终是 `X-Auth-User`，因此即使邮箱变化也不会重复建号。
+
+### 在后台启用 "Traefik Auth" Provider
+
+Provider 会被 `PhutilClassMapQuery` 自动发现（类映射已登记在
+`src/__phutil_library_map__.php`），无需改代码。但和其它 Provider 一样，需要在
+**Web 后台新建并启用一个实例**后才生效：
+
+1. 以管理员登录，进入 **Auth → Auth Providers**（`/auth/`）。
+2. 点击 **Add Authentication Provider**，选择 **Traefik Auth**，创建实例。
+3. 按需勾选：
+   - **Allow Login**：允许已有账号用该 Provider 登录。
+   - **Allow Registration**：允许首次经该 Provider 的用户自动注册新账号。
+   - **Allow Linking**：允许已有账号绑定该外部身份。
+4. 保存后，登录页会出现 "Traefik Auth" 登录按钮（`GET` 方式跳到登录流程）。
+
+> 首次搭建时若还没有管理员账号，请先按常规流程（`/auth/register/`）创建初始管理员，
+> 再回来启用本 Provider；否则可能出现"无人可管理"的情况。
+
+### 用叠加文件启动
+
+Traefik 相关编排放在独立的叠加文件 `docker-compose.traefik.yml`，**不改动**
+`docker-compose.yml`，因此默认的一键启动不受影响。启用 Traefik：
+
+```bash
+# 可选：在 .env 里设置 TRAEFIK_DOMAIN / TRAEFIK_FORWARD_AUTH_ADDRESS 等
+docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+```
+
+叠加文件做了三件事：
+
+- 新增一个 `traefik` 服务（`web:80` / `websecure:443` 入口、Docker provider、
+  可选 dashboard），并定义 `phorge-forwardauth` ForwardAuth 中间件。
+- 给 `phorge` 服务补充路由标签（`Host(${TRAEFIK_DOMAIN})` → websecure，绑定
+  ForwardAuth 中间件），并把应用端口收回到本机回环（对外入口改为 Traefik）。
+- 挂载 `./support/preamble.proxy-https.php` 为容器内 `/opt/phorge/phorge/support/preamble.php`。
+
+相关可选变量（都有默认值，见 `.env.example`）：
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `TRAEFIK_DOMAIN` | `phorge.local` | 对外域名，Traefik 路由匹配用；**必须含点号**。 |
+| `TRAEFIK_HTTP_PORT` / `TRAEFIK_HTTPS_PORT` | `80` / `443` | Traefik 入口的宿主端口。 |
+| `TRAEFIK_FORWARD_AUTH_ADDRESS` | `http://auth-backend:9091/api/verify`（**占位**） | ForwardAuth 回调的真实认证后端地址，需你自行提供。 |
+| `TRAEFIK_AUTH_RESPONSE_HEADERS` | `X-Auth-User,X-Auth-Email,X-Auth-Name` | 认证通过后从响应复制到后端请求的头名，需与后端实际返回对齐。 |
+| `TRAEFIK_DASHBOARD` | `false` | 是否开启 Traefik Dashboard（仅排障）。 |
+
+> **认证后端需自备**：`TRAEFIK_FORWARD_AUTH_ADDRESS` 只是占位，本 fork 不含具体的
+> 认证服务（authelia / oauth2-proxy 等）。你需要提供一个 ForwardAuth 后端，并保证它在
+> 认证成功时返回 `X-Auth-User`（及可选的 `X-Auth-Email` / `X-Auth-Name`）响应头。
+
+### HTTPS 识别（preamble）
+
+Traefik 做 TLS 终止后，到后端是明文 HTTP，但会带上 `X-Forwarded-Proto: https`。
+挂载的 `support/preamble.php`（即 `support/preamble.proxy-https.php`）会在该头为 `https`
+时设置 `$_SERVER['HTTPS']='on'` 与 `SERVER_PORT=443`，消除 Phorge 的 HTTP/HTTPS 不一致告警。
+配合叠加文件时，建议把 `PHORGE_BASE_URI` 也设为 `https://${TRAEFIK_DOMAIN}/`。
+
+### 安全提醒（务必阅读）
+
+Provider **无条件信任** `X-Auth-User/Email/Name` 头。因此：
+
+- **后端必须只能经由 Traefik 到达**：不要把 `PHORGE_HTTP_PORT` 暴露到公网。叠加文件已
+  把应用端口收到 `127.0.0.1`，对外入口只剩 Traefik。
+- **Apache 默认清洗客户端伪造头**：`docker/phorge-apache.conf` 用 `RequestHeader unset`
+  无条件清除请求方带来的 `X-Auth-*`（需 `mod_headers`，已在 Dockerfile `a2enmod headers`
+  中启用），Traefik 会重新注入可信头，二者不冲突。这是"纵深防御"的一层，**不能**替代
+  "后端只经 Traefik 到达"这个前提。
+- 若 Phorge 仍可被直接访问，攻击者可伪造这些头冒充任意用户——请务必在网络层隔离。
+
 ## 参考
 
 - [安装指南](src/docs/user/installation_guide.diviner)
