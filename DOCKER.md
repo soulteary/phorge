@@ -107,6 +107,14 @@ docker compose up -d --build
   另外，新增 PHP 类还需要先在宿主上 `arc liberate src/` 重新生成
   `src/__phutil_library_map__.php` —— 类映射没更新，重建了镜像也一样 `Class not found`。
 
+  `docker/entrypoint.sh` 也一样被烤进镜像，但它出问题时**一声不吭**：镜像里若是旧版
+  entrypoint，新增的下发逻辑（比如 `notification.servers`、`cluster.mailers`）整段不存在，
+  于是既没有 `DONE Wrote configuration key ...`，也没有任何警告，唯一的线索是启动日志里
+  少了 `[entrypoint] 下发 Gorge ... 配置` 那几行。已有镜像时 `up -d` **不会**自动重建，
+  所以改过 entrypoint 之后必须带 `--build`——本文、`.env.example` 与两个叠加文件里的启动
+  示例一律带上它，就是为了不留这个坑。启动后对着日志数一遍那几行，比事后查
+  「配置为什么没写进去」快得多。
+
 - **旧数据卷迁移断点（升级时最容易卡住的一条）**：`db-init` 用 `MYSQL_ROOT_PASSWORD`
   以 root 连接并对 `MYSQL_USER`（默认 `phorge`）执行 GRANT。**GRANT 要求该账号已存在**。
   全新数据卷由 MySQL 镜像的 `MYSQL_USER` 自动建出，没问题；但若你**沿用旧版的数据卷**
@@ -195,7 +203,7 @@ Traefik 相关编排放在独立的叠加文件 `docker-compose.traefik.yml`，*
 
 ```bash
 # 可选：在 .env 里设置 TRAEFIK_DOMAIN / TRAEFIK_FORWARD_AUTH_ADDRESS 等
-docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d --build
 ```
 
 叠加文件做了三件事：
@@ -262,7 +270,9 @@ Pygments，所以其余文件在 Paste、Differential、Diffusion 里都是无�
 ```bash
 # 1) 起 gorge-render（可选：先在 .env 里改 GORGE_IMAGE_TAG / GORGE_RENDER_TOKEN）
 #    拉镜像失败（403）见下面「本地构建 gorge-render 镜像」
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d
+#    --build 不能省：本地已有旧 phorge 镜像时 up -d 会直接复用它，容器里跑的就是旧版
+#    entrypoint，Gorge 的配置整段不下发且不报任何错（见「常见故障排查」）
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
 
 # 2) 把高亮引擎切到 Gorge
 docker compose exec phorge /opt/phorge/phorge/bin/config set \
@@ -396,7 +406,7 @@ Phorge 的实时通知（页面右上角的小铃铛即时亮起、Conpherence �
 和高亮共用同一个叠加文件，两个服务互不依赖，一条命令一起起来：
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
 ```
 
 默认值（`127.0.0.1:22280`）适用于「在 Docker 宿主本机上开浏览器」这一种情况，不改 `.env`
@@ -496,7 +506,7 @@ services:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.traefik.yml \
-  -f docker-compose.gorge.yml up -d
+  -f docker-compose.gorge.yml up -d --build
 ```
 
 ### 本地构建镜像
@@ -506,8 +516,14 @@ docker compose -f docker-compose.yml -f docker-compose.traefik.yml \
 ```bash
 docker build -t ghcr.io/soulteary/gorge-notification:latest \
   --build-arg SERVICE=gorge-notification \
+  --build-arg PORT=22281 \
   /path/to/gorge/go
 ```
+
+`PORT` 只喂给镜像**内置**的那条 HEALTHCHECK，不影响服务实际监听哪两个口。它的默认值是
+gorge-render 的 8140，漏了这个参数，镜像自带的探针就会一直去敲并不存在的 8140，`docker run`
+直接跑这个镜像会显示 unhealthy。本编排里看不出来——上面的 service 段显式写了自己的
+healthcheck（探 admin 口 22281），正好盖掉它。
 
 同样地，`-t` 打出的标签要和编排里 `image:` 完全一致；设了 `GORGE_IMAGE_TAG` 就跟着改。
 `ghcr` 对「镜像不存在」和「无权访问」都返回 `403 Forbidden`，拉不下来时先本地构建，别去折腾
@@ -541,6 +557,188 @@ docker compose exec gorge-notification wget -qO- http://127.0.0.1:22281/status/
   还是 `http`，改成 `https` 后重启 phorge 容器。
 - **`bin/config get` 显示配置没写进去**：看容器启动日志里 `[entrypoint] 下发 Gorge 通知配置`
   那几行，写入失败会打印具体原因。最常见的是两条记录的 `host:port` 撞车。
+
+## 用 Gorge 发送邮件（可选）
+
+Phorge 的邮件（订阅通知、找回密码、`bin/mail send-test`）由 `cluster.mailers` 里配置的
+mailer 投递。本镜像基于 `php:8.3-apache`，**没装任何 MTA**，也没有默认 mailer，所以开箱
+状态下一封信也发不出去，Config 页面会常驻一条 "Mailers Not Configured"。
+
+`docker-compose.gorge.yml` 里的 `gorge-mailer` 服务补的就是这一块：一个 Go 服务把 SMTP、
+Sendmail、Amazon SES、SendGrid、Mailgun、Postmark 收在同一个 HTTP API
+（`/api/mailer/*`）后面，容器内固定监听 `8110`。Phorge 侧新增了一个
+[`PhabricatorMailGorgeAdapter`](src/applications/metamta/adapter/PhabricatorMailGorgeAdapter.php)，
+在 `cluster.mailers` 里表现为一个 `type: "gorge"` 的条目。镜像
+`ghcr.io/soulteary/gorge-mailer` 与另外两个服务同源同标签（共用 `GORGE_IMAGE_TAG`），拉不到
+时本地构建一条命令即可。
+
+与高亮**不同**，这里没有「手工切引擎」那一步：配置写进 `cluster.mailers` 就生效。
+与高亮和通知都**不同**的是下面这两件事，也是接这个服务时唯一容易踩的地方。
+
+### 两半配置都要填，只填一半的表现是「healthy 但发不出信」
+
+变量分成两组，职责完全不同：
+
+| 组 | 回答的问题 | 有没有默认值 |
+|----|-----------|------------|
+| `GORGE_MAILER_*` | Phorge 怎么找到 gorge-mailer | 有，直接能用 |
+| `MAILER_TYPE` / `SMTP_*` / `MAILER_*` | gorge-mailer 用什么把信发出去 | **没有，必须填** |
+
+只填上面一组时，容器起得来、`/healthz` 返回 200、Compose 报 `healthy`、`bin/config get
+cluster.mailers` 也一切正常——然后每一封信都失败。这是本服务最容易达到、也最难自己看出来
+的状态，所以它有一个独立的信号：`/readyz`。
+
+```text
+/healthz   进程活着、HTTP 栈在服务        -> 容器健康检查探它
+/readyz    至少有一个投递后端配置成功      -> setup check 探它
+```
+
+叠加文件里的 `healthcheck` 刻意探 `/healthz` 而不是 `/readyz`：`phorge` 对它的
+`depends_on` 用的是 `service_healthy`，若探 `/readyz`，一个还没配后端的 `gorge-mailer` 会把
+整个站点堵在启动阶段，而「发不出邮件」不该等同于「站点起不来」。这个状态改由
+[`PhabricatorGorgeMailerSetupCheck`](src/applications/config/check/PhabricatorGorgeMailerSetupCheck.php)
+在 Config 页面报出来，报的时候会把服务端给出的具体原因一起带上。
+
+### `cluster.mailers` 是共享列表，所以 entrypoint 做的是合并
+
+`gorge.render.uri` 与 `notification.servers` 整项都归 Gorge 所有，`entrypoint.sh` 每次启动
+整体重写它们是安全的。`cluster.mailers` 不是：你完全可以在里面手工配自己的 postmark 或
+smtp 条目，整体重写会把它们悄悄抹掉。
+
+所以 `gorge_mailer_set()` 做的是三步合并，而不是覆盖：
+
+1. `bin/config get cluster.mailers` 读出现有列表（只取 `source: local` 那一份，因为
+   `bin/config set` 写的正是 local 源，读写不同源的话一次「合并」就会把数据库里的值复制进
+   `local.json`）；
+2. 剔除 `key` 等于 `GORGE_MAILER_KEY`（默认 `gorge-mailer`）的条目；
+3. 追加本次生成的条目后写回。
+
+第 2 步不只是为了幂等：`cluster.mailers` 的校验明确拒绝重复的 `key`，不剔的话第二次启动
+就会整项写入失败。反过来，**认键不认类型**也意味着你想再手工配一条指向另一个实例的
+`gorge` mailer 时，只要换个 `key`，它就不会被覆盖。
+
+如果读出来的内容解析不了，这一步会直接放弃本次写入并告警——那意味着没看懂你已有的配置，
+此时写回去等于删掉它们。
+
+写进去的条目长这样：
+
+```json
+{
+  "key": "gorge-mailer",
+  "type": "gorge",
+  "inbound": false,
+  "media": ["email"],
+  "options": {
+    "uri": "http://gorge-mailer:8110",
+    "timeout": 30,
+    "supports-message-id": false
+  }
+}
+```
+
+几个细节值得留意：
+
+- **端点与 token 在 `options` 里，没有对应的全局配置项。** mailer 本来就是一条一条配的，
+  多一个全局项只会多一个要查的地方，而且没法描述两个服务。代价是 `uri` 变成必填——写漏了
+  会在写配置时就被拒绝，而不是在发第一封信时才失败。
+- **`"inbound": false` 不能省。** 这个服务只做出站，而 `inbound` 的默认值是 `true`，适配器
+  侧没有覆盖它的钩子，只能在配置里声明。
+- **`supports-message-id` 默认 `false`。** 走 SMTP / Sendmail / SES 时服务自建 MIME、会保留
+  我们指定的 `Message-ID`，走 SendGrid / Postmark 时 provider 通常会覆盖掉。谎报支持的表现
+  是邮件会话在客户端里串不起来，很难察觉，所以按你实际使用的后端来开
+  （`GORGE_MAILER_SUPPORTS_MESSAGE_ID=1`）。
+
+### 用叠加文件启动
+
+```bash
+# 1) 在 .env 里配一个投递后端（这一步不能省，原因见上）
+cat >> .env <<'EOF'
+MAILER_TYPE=smtp
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_PROTOCOL=tls
+SMTP_USER=phorge@example.com
+SMTP_PASSWORD=...
+EOF
+
+# 2) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前两个服务相同，
+#    只是 --build-arg SERVICE=gorge-mailer；--build 同样不能省）
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+
+# 3) 确认配置写进去了，且服务已就绪
+docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.mailers
+docker compose exec gorge-mailer wget -qO- http://127.0.0.1:8110/readyz
+
+# 4) 发一封测试邮件
+echo 'test body' | docker compose exec -T phorge /opt/phorge/phorge/bin/mail send-test \
+  --to you@example.com --mailer gorge-mailer --subject 'gorge test'
+```
+
+`--mailer gorge-mailer` 里的名字就是 `GORGE_MAILER_KEY`。不加这个参数时 Phorge 按 `priority`
+自己挑，配了多个 mailer 时想定向验证哪一个就写哪一个。
+
+相关可选变量（上半组都有默认值，下半组没有，全部见 `.env.example`）：
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `GORGE_MAILER_URI` | `http://gorge-mailer:8110` | Phorge 访问发信服务的基础地址，同时是整段配置的总开关（留空即整段跳过）。**结尾不要带斜杠**。 |
+| `GORGE_MAILER_TOKEN` | 空 | 服务间共享密钥，请求头 `X-Service-Token`，两端必须一致。留空表示不鉴权；这个服务比另外两个更值得设一个值——能往这个口投请求就等于能以你的域名对外发信。 |
+| `GORGE_MAILER_KEY` | `gorge-mailer` | 条目在 `cluster.mailers` 里的 `key`，也是 entrypoint 判断「哪一条归我管」的依据。 |
+| `GORGE_MAILER_TIMEOUT` | `30` | 单次发信的客户端超时（秒）。这一跳占住一个 phd worker，而服务端内部已有有界重试，不宜给大。 |
+| `GORGE_MAILER_PRIORITY` | 空 | 条目的 `priority`，数字越大越优先，必须大于 0。留空表示不写这个键。 |
+| `GORGE_MAILER_SUPPORTS_MESSAGE_ID` | `0` | 取 `1` 时允许 Phorge 指定 `Message-ID`。按实际后端来开，理由见上。 |
+| `GORGE_MAILER_BODY_LIMIT` | `524288` | 单封邮件正文的长度上限（字节），纯文本与 HTML 各自计算，超出按 UTF-8 边界截断。**不是**请求体上限：那一项固定 10MiB、没有开关，附件受它约束。 |
+| `GORGE_MAILER_MAX_RETRIES` | `2` | 单个后端内部重试几次才回退到下一个后端。永久失败立即短路，不重试也不换后端。 |
+| `GORGE_MAILER_RETRY_WAIT` | `2` | 上述每次重试之间等待的秒数。 |
+| `MAILER_TYPE` | 空 | 投递后端：`smtp` / `sendmail` / `ses` / `sendgrid` / `mailgun` / `postmark` / `test`。**留空则 `/readyz` 不通。** |
+| `GORGE_MAILER_CONFIG` | 空 | 一次配多个后端用的 JSON 列表（单行）。配了它，`MAILER_TYPE` 那一组整体不生效。 |
+
+### 本地构建镜像
+
+与另外两个服务是同一个 Dockerfile、同一个上下文，只换 `SERVICE` 构建参数：
+
+```bash
+docker build -t ghcr.io/soulteary/gorge-mailer:latest \
+  --build-arg SERVICE=gorge-mailer \
+  --build-arg PORT=8110 \
+  /path/to/gorge/go
+```
+
+`PORT` 只喂给镜像**内置**的那条 HEALTHCHECK，不影响服务实际监听哪个口（那个由
+`GORGE_LISTEN_ADDR` 决定）。它的默认值是 gorge-render 的 8140，漏了这个参数，镜像自带的
+探针就会一直去敲 8110 上并不存在的 8140，`docker run` 直接跑这个镜像会显示 unhealthy。
+本编排里看不出来——上面的 service 段显式写了自己的 healthcheck，正好盖掉它。
+
+同样地，`-t` 打出的标签要和编排里 `image:` 完全一致；设了 `GORGE_IMAGE_TAG` 就跟着改。
+
+### 验证与排障
+
+```bash
+# 服务端认得哪些后端（要带 token，留空时可省掉 --header）
+docker compose exec gorge-mailer wget -qO- \
+  --header="X-Service-Token: ${GORGE_MAILER_TOKEN}" \
+  http://127.0.0.1:8110/api/mailer/mailers
+
+# 看某封信最后发生了什么（id 由 bin/mail send-test 打印）
+docker compose exec phorge /opt/phorge/phorge/bin/mail show-outbound --id <id>
+```
+
+- **Config 页面报 "Gorge Mailer Service Not Ready"**：服务活着但一个后端都没配，或后端的
+  凭据不完整。issue 正文里带着服务端给出的原因。补齐 `.env` 的下半组变量后重启
+  `gorge-mailer` 容器。
+- **Config 页面报 "Gorge Mailer Service Unreachable"**：容器没起来，或 `GORGE_MAILER_URI`
+  指向了这台服务器够不着的地址。注意在 `phorge` 容器里 `127.0.0.1` 指的是 phorge 自己。
+- **信一直卡在队列里反复重投**：这是**临时**失败的正常表现（连接被拒、provider 限流），
+  队列会继续重试。若是收件人地址非法这类**永久**失败，服务端返回 `ERR_PERMANENT_FAILURE`，
+  PHP 侧会转成 `PhabricatorMetaMTAPermanentFailureException`，该封信直接落 `FAIL` 不再重投。
+  `bin/mail show-outbound` 能看到具体是哪一种。
+- **日志里出现 404 `ERR_NOT_FOUND`**：几乎总是 `GORGE_MAILER_URI` 结尾多了一个斜杠。
+- **401 `ERR_UNAUTHORIZED`**：两端 token 不一致。只改 `.env` 后必须重启**两个**容器。
+- **`bin/config set cluster.mailers` 报 mailer 类型 `gorge` 未知**：类映射没重新生成，
+  `src/__phutil_library_map__.php` 里缺 `PhabricatorMailGorgeAdapter`。改过 PHP 源码后别忘了
+  `docker compose ... up -d --build`——源码是烤进镜像的。
+- **自己手工配的 mailer 不见了**：不该发生，entrypoint 做的是合并而不是覆盖（见上）。真遇到
+  的话看启动日志里 `[entrypoint] 下发 Gorge 发信配置` 那几行，读取失败时它会告警并整段跳过。
 
 ## 参考
 

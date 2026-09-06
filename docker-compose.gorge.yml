@@ -1,23 +1,31 @@
 # Phorge (phorge-fork) Gorge 服务叠加编排（可选）
 # ------------------------------------------------------------------
-# 用法（在基础一键启动之上叠加 Gorge 的两个服务）：
-#   docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d
+# 用法（在基础一键启动之上叠加 Gorge 的三个服务）：
+#   docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
 #
 # 说明：
 #   - 本文件是「叠加文件」，不会独立启动；它与 docker-compose.yml 合并生效。
 #     docker-compose.yml 保持完全不变，因此默认的一键启动（不带本文件）不受影响。
-#   - 本文件起两个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
+#   - 上面那条命令里的 --build 不能省。phorge 是 build 型服务、entrypoint.sh 是烤进
+#     镜像的，本地已存在旧的 phorge 镜像时，不带 --build 的 up -d 会直接复用它，容器里
+#     跑的就是**旧版 entrypoint**：notification.servers 与 cluster.mailers 整段不下发，
+#     而且**不报任何错误**——没有告警、没有失败退出，Config 页面看着也正常。唯一的线索
+#     是启动日志里少了那几行 `[entrypoint] 下发 Gorge ... 配置`。
+#   - 本文件起三个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
 #     段里对应的 depends_on 与环境变量一起删掉：
 #       gorge-render        基于 Chroma 的语法高亮服务，替换 Phorge 内置高亮器
 #       gorge-notification  与 Aphlict 线兼容的实时通知服务，替换 Node.js 版 aphlict
-#   - 两者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
-#     （gorge.render.uri / gorge.render.token 与 notification.servers）。
+#       gorge-mailer        统一 7 种后端的发信服务，作为 cluster.mailers 的一个条目
+#   - 三者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
+#     （gorge.render.uri / gorge.render.token、notification.servers、cluster.mailers）。
 #   - 高亮起来之后还有**一步手工切换**：Phorge 默认仍用内置高亮引擎，需要把
 #     syntax-highlighter.engine 切到 PhabricatorGorgeSyntaxHighlighterEngine
 #     并清一次缓存。命令与原因见 DOCKER.md「用 Gorge 做语法高亮」。
 #     切换独立于编排，是为了让「服务在跑但先不接」和一条命令回滚都成立。
-#     通知**没有**这一步：notification.servers 一写进去就生效。
-#   - 所有可调项都有内置默认值，不写 .env 也能直接跑。
+#     通知与发信**没有**这一步：notification.servers 与 cluster.mailers 一写进去就生效。
+#   - 所有可调项都有内置默认值，不写 .env 也能直接跑。**发信是唯一的例外**：
+#     gorge-mailer 必须至少配一个投递后端（MAILER_TYPE + 对应的 SMTP_* / MAILER_*），
+#     否则它的 /readyz 不通、每一封信都会失败。见 DOCKER.md「用 Gorge 发送邮件」。
 # ------------------------------------------------------------------
 
 services:
@@ -117,7 +125,95 @@ services:
       start_period: 5s
       retries: 3
 
-  # 给已存在的 phorge 服务补充：对两个 Gorge 服务的依赖 + 若干配置用环境变量。
+  # gorge-mailer 把 SMTP / Sendmail / SES / SendGrid / Mailgun / Postmark 收在一个
+  # HTTP API 后面（路由 /api/mailer/*），容器内固定监听 8110。Phorge 侧它只是
+  # cluster.mailers 里的一个条目（type: "gorge"），由 entrypoint.sh 合并写入。
+  #
+  # 与另外两个服务最大的不同：**它需要你自己配一个投递后端**。下面那组 MAILER_* /
+  # SMTP_* 全部留空时服务照样起得来、/healthz 也照样 200（进程是活的），但 /readyz
+  # 会报 503，每一封信都失败。所以 .env 里至少要设 MAILER_TYPE 和它对应的那几项。
+  gorge-mailer:
+    image: ghcr.io/soulteary/gorge-mailer:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-mailer
+    restart: unless-stopped
+    environment:
+      # 监听地址固定 :8110。下面的健康检查与 phorge 的 GORGE_MAILER_URI 默认值都按
+      # 它写死，改这里要三处一起改。
+      GORGE_LISTEN_ADDR: ":8110"
+      # 服务间共享密钥，PHP 客户端以请求头 X-Service-Token 发送，两端必须同值，所以
+      # 这里和 phorge 都取同一个 GORGE_MAILER_TOKEN。留空表示服务端不鉴权：
+      # gorge-mailer 不对宿主暴露端口、只在 compose 内网可达，因此默认留空。
+      # 但它比另外两个服务更值得设一个值——能往这个口投请求就等于能以你的域名对外
+      # 发信，一旦把它接进共享网络，务必设。
+      GORGE_SERVICE_TOKEN: ${GORGE_MAILER_TOKEN:-}
+      # 单封邮件正文（纯文本与 HTML 各自）的长度上限，超出部分按 UTF-8 边界截断，
+      # 不报错。它**不是**整个请求体的上限：那一项固定 10M、不可调，附件走的是它。
+      GORGE_MAILER_BODY_LIMIT: ${GORGE_MAILER_BODY_LIMIT:-524288}
+      # 单个后端内部的重试次数与每次之间的等待秒数（失败到下一个后端之前先自己重试
+      # 这么多次；判定为永久失败时立即短路，既不重试也不换后端）。
+      # 默认值小得刻意：真正权威的重试循环是 Phorge 的 phd worker 队列，凡不是永久
+      # 失败它都会重新投递，这里只用来吸收秒级抖动。整个循环还受请求上下文约束，而
+      # 上面 phorge 段的 GORGE_MAILER_TIMEOUT 默认只等 30 秒——把这两个值调大，结果
+      # 是客户端先超时放弃、服务端还在重试，白占一个 worker。
+      GORGE_MAILER_MAX_RETRIES: ${GORGE_MAILER_MAX_RETRIES:-2}
+      GORGE_MAILER_RETRY_WAIT: ${GORGE_MAILER_RETRY_WAIT:-2}
+
+      # --- 投递后端（二选一的配置方式）---
+      # 方式一：GORGE_MAILER_CONFIG 直接给一段 JSON 列表，可以一次配多个后端，服务端
+      # 按 priority 排序并在失败时依次回退。配了它，下面那组单后端变量就整体不生效。
+      # 例（写在 .env 里要用单行）：
+      #   GORGE_MAILER_CONFIG=[{"key":"primary","type":"smtp","priority":100,
+      #     "options":{"host":"smtp.example.com","port":"587","protocol":"tls",
+      #     "user":"...","password":"..."}}]
+      GORGE_MAILER_CONFIG: ${GORGE_MAILER_CONFIG:-}
+      # 方式二（够用且好读）：MAILER_TYPE 选一种后端，再填它需要的那几项。
+      # 取值：smtp / sendmail / ses / sendgrid / mailgun / postmark / test。
+      # 留空表示一个后端都没配，服务会起来但 /readyz 报 503。
+      # test 后端只把邮件丢掉，用来验证链路通不通，别用在生产上。
+      MAILER_TYPE: ${MAILER_TYPE:-}
+      # 这个 key 是**服务端**给后端起的名字，与 Phorge 侧 cluster.mailers 条目的 key
+      # （GORGE_MAILER_KEY，默认 gorge-mailer）是两回事，不必也不该保持一致。
+      # PHP 客户端不指定 mailerKeys，所以这个名字只在服务端日志和 /api/mailer/mailers
+      # 的返回里出现。
+      MAILER_KEY: ${MAILER_KEY:-}
+      # smtp / sendmail 用
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_PROTOCOL: ${SMTP_PROTOCOL:-}
+      # ses 用
+      MAILER_ACCESS_KEY: ${MAILER_ACCESS_KEY:-}
+      MAILER_SECRET_KEY: ${MAILER_SECRET_KEY:-}
+      MAILER_REGION: ${MAILER_REGION:-}
+      MAILER_ENDPOINT: ${MAILER_ENDPOINT:-}
+      # sendgrid / mailgun 用
+      MAILER_API_KEY: ${MAILER_API_KEY:-}
+      MAILER_DOMAIN: ${MAILER_DOMAIN:-}
+      MAILER_API_HOSTNAME: ${MAILER_API_HOSTNAME:-}
+      # postmark 用
+      MAILER_ACCESS_TOKEN: ${MAILER_ACCESS_TOKEN:-}
+    # 与 gorge-render 同理刻意不声明 ports：只有 phorge 通过 compose 默认网络的服务名
+    # gorge-mailer 调用它。这里比高亮更要紧——它不鉴权时是一个开放的转发器。
+    # 需要在宿主上直连排障时，用 docker-compose.override.yml 另加回环映射：
+    #   services:
+    #     gorge-mailer:
+    #       ports:
+    #         - "127.0.0.1:8110:8110"
+    # 健康探针刻意打 /healthz（进程存活）而不是 /readyz（至少配了一个后端）：下面
+    # phorge 的 depends_on 用的是 service_healthy，若这里探 /readyz，一个还没配后端
+    # 的 gorge-mailer 会把整个站点堵在启动阶段——发不出邮件不该等同于站点起不来。
+    # 「服务活着但一个后端都没配」这个状态由 PhabricatorGorgeMailerSetupCheck 在
+    # Config 页面报出来，那里才是它该出现的地方。
+    # 同样用 busybox 的 wget：镜像基于 alpine，没有 curl。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8110/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # 给已存在的 phorge 服务补充：对三个 Gorge 服务的依赖 + 若干配置用环境变量。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
   # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
   # 两个依赖仍然保留），不会整体替换。
@@ -134,6 +230,13 @@ services:
       # Config 页面把「连不上通知服务器」报成 setup issue。没有这条依赖的话，
       # phorge 先起来就会白报一次警，得手动刷一下才消失。
       gorge-notification:
+        condition: service_healthy
+      # 等 gorge-mailer 健康再起 phorge 的理由与前两条不同，是为了配置写得进去：
+      # entrypoint.sh 用 bin/config set 写 cluster.mailers 时，校验会实例化
+      # PhabricatorMailGorgeAdapter 并检查 options——那一步不联网，所以严格说不等也
+      # 能写成功。真正的收益是启动日志的顺序：服务先健康，phorge 再写配置、再跑
+      # setup check，于是「配置写好了但服务没起来」这种一次性误报不会出现。
+      gorge-mailer:
         condition: service_healthy
     environment:
       # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
@@ -164,3 +267,29 @@ services:
       # 只有 client 有 path：admin 条目带 path 会被配置校验明确拒绝。
       GORGE_NOTIFICATION_CLIENT_PROTOCOL: ${GORGE_NOTIFICATION_CLIENT_PROTOCOL:-http}
       GORGE_NOTIFICATION_CLIENT_PATH: ${GORGE_NOTIFICATION_CLIENT_PATH:-}
+      # --- 下面几项由 entrypoint.sh 拼成 cluster.mailers 里的一个条目 ---
+      # 与上面两组不同，这一组写进的是一个**共享列表**：用户可能自己在
+      # cluster.mailers 里配了 postmark 等条目。entrypoint.sh 因此做的是合并——读出
+      # 现有列表、剔除 key 等于 GORGE_MAILER_KEY 的那一条、再把新条目追加回去。
+      #
+      # GORGE_MAILER_URI 同时也是「整段发信配置的总开关」：它为空时 entrypoint.sh
+      # 整段跳过，cluster.mailers 一个字都不动。
+      # URI 结尾不要带斜杠：客户端按 {uri}/api/mailer/send 拼接，双斜杠会被
+      # gorge-mailer 判成路由不匹配，返回 404 ERR_NOT_FOUND。
+      GORGE_MAILER_URI: ${GORGE_MAILER_URI:-http://gorge-mailer:8110}
+      GORGE_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:-}
+      # 这个条目在 cluster.mailers 里的 key，也是 entrypoint.sh 认定「哪一条归我管」
+      # 的依据：只有 key 等于它的条目会被覆盖。想再手工配一条指向另一个实例的
+      # gorge mailer，换个 key 写进去即可，不会被覆盖掉。
+      GORGE_MAILER_KEY: ${GORGE_MAILER_KEY:-gorge-mailer}
+      # 单次发信请求的客户端超时（秒）。这一跳会占住一个 phd 队列 worker，而服务端
+      # 内部已有自己的有界重试，所以不宜给大。
+      GORGE_MAILER_TIMEOUT: ${GORGE_MAILER_TIMEOUT:-30}
+      # 条目的 priority（数字越大越优先）。留空表示不写这个键，用 Phorge 的默认顺序。
+      # 只有当 cluster.mailers 里还有别的条目、需要指定谁先谁后时才用得上。
+      GORGE_MAILER_PRIORITY: ${GORGE_MAILER_PRIORITY:-}
+      # 是否允许 Phorge 自己指定 Message-ID（取值 1 开启）。默认关：gorge-mailer 后面
+      # 挂着 7 种后端，走 SMTP/SES 时自建 MIME 会保留它，走 SendGrid/Postmark 时
+      # provider 通常会覆盖。谎报支持的表现是邮件会话在客户端里串不起来，很难察觉，
+      # 所以按你实际使用的后端来开。
+      GORGE_MAILER_SUPPORTS_MESSAGE_ID: ${GORGE_MAILER_SUPPORTS_MESSAGE_ID:-0}

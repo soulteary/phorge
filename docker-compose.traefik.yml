@@ -1,7 +1,8 @@
 # Phorge (phorge-fork) Traefik Forward Auth 叠加编排（可选）
 # ------------------------------------------------------------------
 # 用法（在基础一键启动之上叠加 Traefik）：
-#   docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+#   docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d --build
+# --build 不能省，原因见 docker-compose.gorge.yml 顶部说明与 DOCKER.md「常见故障排查」。
 # 要求 Docker Compose 2.24.4 或更高版本（使用了 !reset 标签）。
 #
 # 说明：

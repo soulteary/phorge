@@ -4,7 +4,8 @@
 #
 # 流程:
 #   1. 守卫式生成本地配置 conf/local/local.json（已存在则不覆盖）
-#   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_NOTIFICATION_* 通知)
+#   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_NOTIFICATION_* 通知 /
+#                                 GORGE_MAILER_* 发信)
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
 #   4. 升级/初始化数据库 schema  (PHORGE_AUTO_UPGRADE)
 #   5. 以 www-data 启动守护进程  (PHORGE_START_PHD)
@@ -228,6 +229,168 @@ if [ -n "${GORGE_NOTIFICATION_ADMIN_HOST:-}" ] ||
     gorge_notification_set
 else
     echo "[entrypoint] 未设置 GORGE_NOTIFICATION_CLIENT_HOST，跳过实时通知配置。"
+fi
+
+# 发信配置比上面两项都麻烦一层，麻烦在**它必须是合并而不是覆盖**。
+#
+# gorge.render.* 与 notification.servers 整项都归 Gorge 所有，每次启动整体重写是
+# 安全的；cluster.mailers 不是——它是一个**共享列表**，用户完全可能在里面手工配了
+# postmark、smtp 等自己的条目。整体重写会把它们悄悄抹掉，而且这是一个「重启之后
+# 邮件突然全走另一条路」的静默故障，比配置写不进去难查得多。
+#
+# 所以这里的三步是：读出现有列表 -> 剔除 key 等于我们托管键的那一条 -> 追加本次
+# 生成的条目后写回。剔除同名条目是幂等的关键：cluster.mailers 的校验
+# (PhabricatorClusterMailersConfigType) 明确拒绝重复的 key，不剔就会在第二次启动
+# 时整项写入失败。
+#
+# 其余语义与 gorge_notification_set 一致：JSON 列表只能靠 --stdin 喂进去、每次启动
+# 幂等重写、写完修正属主与权限、失败只告警不阻塞容器。
+gorge_mailer_set() {
+    # 托管键。整段逻辑「认键不认类型」：只有 key 等于它的条目会被覆盖，所以用户
+    # 若想再手工配一条走 gorge 的 mailer（比如指向第二个实例），换个 key 即可，
+    # 不会被这里洗掉。
+    GORGE_MAILER_KEY="${GORGE_MAILER_KEY:-gorge-mailer}"
+    GORGE_MAILER_URI="${GORGE_MAILER_URI:-}"
+    GORGE_MAILER_TOKEN="${GORGE_MAILER_TOKEN:-}"
+    GORGE_MAILER_PRIORITY="${GORGE_MAILER_PRIORITY:-}"
+    GORGE_MAILER_TIMEOUT="${GORGE_MAILER_TIMEOUT:-30}"
+    GORGE_MAILER_SUPPORTS_MESSAGE_ID="${GORGE_MAILER_SUPPORTS_MESSAGE_ID:-0}"
+
+    if [ -z "$GORGE_MAILER_URI" ]; then
+        echo "[entrypoint] 警告: GORGE_MAILER_URI 为空，跳过 cluster.mailers。" >&2
+        return 0
+    fi
+
+    # 数字项先在 shell 里挡一道，理由同通知那段：php 里的 (int) 会把 "abc" 变成 0，
+    # 写进去类型合法、bin/config 也报成功，但 timeout=0 的表现是每封信立刻超时，
+    # priority=0 则会被校验拒绝（要求 > 0），两种都要绕远路才查得到。
+    # 空的 priority 是合法的，表示不写这个键、让 Phorge 用默认顺序。
+    for gorge_number in "$GORGE_MAILER_TIMEOUT" "${GORGE_MAILER_PRIORITY:-0}"; do
+        case "$gorge_number" in
+            ''|*[!0-9]*)
+                echo "[entrypoint] 警告: GORGE_MAILER_TIMEOUT/PRIORITY \"$gorge_number\" 不是数字，跳过 cluster.mailers。" >&2
+                return 0
+                ;;
+        esac
+    done
+
+    # 先把现有值读出来。`bin/config get` 打印的是一个把两个配置源都列出来的 JSON
+    # 结构，下面的 php 只取 source=local 的那一份：
+    #   - bin/config set 不带 --database 时写的正是 local 源，读写必须同源，否则
+    #     一次「合并」就把数据库里的值复制进 local.json，从此改数据库不再生效。
+    #   - cluster.mailers 是 setHidden(true) 的配置项，Config 页面上只读，本来也
+    #     只会落在 local.json 里。
+    # 顺带：get 会顺手探一次数据库（拿 database 源的值），此时数据库多半还没就绪，
+    # 但那个探测在 bin/config 内部是 try/catch 的，失败只会让 database 那条显示成
+    # status=error，不影响我们要的 local 那条。放在等待数据库之前因此是安全的，
+    # 与上面两段保持一致。
+    if ! gorge_mailer_existing="$("$CONFIG_BIN" get cluster.mailers 2>/dev/null)"; then
+        echo "[entrypoint] 警告: 读取 cluster.mailers 失败，跳过 Gorge 发信配置。" >&2
+        return 0
+    fi
+
+    export GORGE_MAILER_KEY GORGE_MAILER_URI GORGE_MAILER_TOKEN
+    export GORGE_MAILER_PRIORITY GORGE_MAILER_TIMEOUT
+    export GORGE_MAILER_SUPPORTS_MESSAGE_ID
+    export GORGE_MAILER_EXISTING="$gorge_mailer_existing"
+
+    # 同样用 php 的 json_encode 生成：priority/timeout 必须是 JSON 整数、inbound
+    # 必须是 JSON 布尔，拼字符串既容易写错类型，也扛不住 uri/token 里的引号。
+    # 管道两端的成败都算数，靠脚本开头的 `set -o pipefail`。
+    if php -r '
+        $key = getenv("GORGE_MAILER_KEY");
+
+        // 解析现有列表。读不到（首次启动、或该键从未设过）就当作空列表，但解析
+        // 失败必须 exit(1) 而不是当作空列表：那意味着我们没看懂用户已有的配置，
+        // 此时写回去等于删掉它们，宁可这次不写。
+        $existing = array();
+        $raw = getenv("GORGE_MAILER_EXISTING");
+        if ($raw !== false && trim($raw) !== "") {
+            $parsed = json_decode($raw, true);
+            if (!is_array($parsed) || !isset($parsed["config"])) {
+                fwrite(STDERR, "看不懂 bin/config get cluster.mailers 的输出。\n");
+                exit(1);
+            }
+            foreach ($parsed["config"] as $entry) {
+                if (!is_array($entry)) {
+                    continue;
+                }
+                if (!isset($entry["source"]) || $entry["source"] !== "local") {
+                    continue;
+                }
+                if (isset($entry["value"]) && is_array($entry["value"])) {
+                    $existing = $entry["value"];
+                }
+            }
+        }
+
+        // 剔除同名托管条目，保留其余所有条目（含它们的相对顺序）。
+        $mailers = array();
+        foreach ($existing as $spec) {
+            if (is_array($spec) && isset($spec["key"]) && $spec["key"] === $key) {
+                continue;
+            }
+            $mailers[] = $spec;
+        }
+
+        $options = array("uri" => getenv("GORGE_MAILER_URI"));
+        // token 留空表示服务端不鉴权，这时干脆不写这个键：适配器的 option 声明是
+        // "optional string"，写一个空串与不写等价，但不写更能表达「没配」。
+        $token = getenv("GORGE_MAILER_TOKEN");
+        if ($token !== false && $token !== "") {
+            $options["token"] = $token;
+        }
+        $options["timeout"] = (int)getenv("GORGE_MAILER_TIMEOUT");
+        // 默认 false：这一个适配器后面挂着 7 种后端，走 SendGrid/Postmark 时
+        // Message-ID 会被 provider 覆盖，谎报支持会让邮件会话串接静默失效。
+        $msgid = getenv("GORGE_MAILER_SUPPORTS_MESSAGE_ID");
+        $options["supports-message-id"] = ($msgid === "1" || $msgid === "true");
+
+        $mailer = array(
+            "key"  => $key,
+            "type" => "gorge",
+            // gorge-mailer 只做出站。inbound 的默认值是 true，而适配器侧没有覆盖
+            // 它的钩子，只能在配置里声明；留着 true 会让 Phorge 把这个 mailer 当
+            // 成收信通道之一去算。
+            "inbound" => false,
+            "media"   => array("email"),
+            "options" => $options,
+        );
+
+        $priority = getenv("GORGE_MAILER_PRIORITY");
+        if ($priority !== false && $priority !== "") {
+            $mailer["priority"] = (int)$priority;
+        }
+
+        $mailers[] = $mailer;
+
+        echo json_encode(array_values($mailers), JSON_UNESCAPED_SLASHES);
+    ' | "$CONFIG_BIN" set cluster.mailers --stdin; then
+        # 与前两段同样的理由：bin/config 以 root 运行，Apache 与 phd 以 www-data
+        # 运行，属主不对就等于没配。
+        chown www-data:www-data "$CONF_FILE" || true
+        chmod 0640 "$CONF_FILE" || true
+    else
+        # 不阻塞容器启动：站点在发不出邮件时照常可用，邮件会留在队列里重投。
+        # 最常见的失败是 mailer 类型 "gorge" 未知——那说明 PhabricatorMailGorgeAdapter
+        # 没被类映射发现（src/__phutil_library_map__.php 没重新生成）；其次是用户
+        # 已有条目里就有一条 key 撞车但我们没剔掉的（不该发生，剔除逻辑见上）。
+        echo "[entrypoint] 警告: 写入 cluster.mailers 失败，Gorge 发信不可用。" >&2
+    fi
+
+    return 0
+}
+
+# 不叠加 docker-compose.gorge.yml 时这个变量不存在，整段等于不执行。
+if [ -n "${GORGE_MAILER_URI:-}" ]; then
+    echo "[entrypoint] 下发 Gorge 发信配置 ..."
+    gorge_mailer_set
+    # 与高亮那段同样不在这里探 gorge-mailer 的 /readyz：叠加编排已用
+    # depends_on.condition=service_healthy 保证了启动顺序，而「服务活着但一个后端
+    # 都没配」这个状态由 PhabricatorGorgeMailerSetupCheck 在 Config 页面报出来，
+    # 不该拖住 Apache 启动。
+else
+    echo "[entrypoint] 未设置 GORGE_MAILER_URI，跳过 Gorge 发信配置。"
 fi
 
 # ----- 3. 等待数据库就绪 -----
