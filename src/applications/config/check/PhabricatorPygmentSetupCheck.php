@@ -59,6 +59,13 @@ final class PhabricatorPygmentSetupCheck extends PhabricatorSetupCheck {
         }
       }
     } else {
+      if (PhabricatorGorgeRenderClient::isConfigured()) {
+        // The Gorge render service already covers the languages Pygments
+        // would add, so this advice is just permanent noise on the config
+        // page.
+        return;
+      }
+
       $summary = pht(
         'Pygments should be installed and enabled '.
         'to provide advanced syntax highlighting.');

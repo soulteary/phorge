@@ -29,6 +29,7 @@ docker compose up -d --build
 - 启动 MySQL，等待其健康后由一次性任务 `db-init` 为普通库用户补齐
   `phabricator_%` 整组库的授权（见 `docker/db-grant.sql`）。
 - 应用容器 `entrypoint.sh` 依次：**守卫式**生成 `conf/local/local.json`（已存在则保留）
+  → 幂等下发 Gorge 高亮配置（仅在叠加 `docker-compose.gorge.yml` 时有值可写）
   → 等待数据库就绪 → 执行 `bin/storage upgrade --force` 初始化 schema
   → 以 `www-data` 启动守护进程 `phd` → 启动 Apache。
 
@@ -68,6 +69,10 @@ docker compose up -d --build
 - **PHP 运行参数**：`docker/php/*.ini` 覆盖到 `/usr/local/etc/php/conf.d/phorge-*.ini`
   （opcache / 内存 / 上传限制），满足 Phorge 的 setup 检查。要单项覆盖，挂载同名文件到该目录即可。
 - **arcanist 依赖**：构建阶段浅克隆到 `/opt/phorge/arcanist`（删掉 `.git`），Phorge 启动时会加载其库。
+- **源码烤进镜像**：`COPY . /opt/phorge/phorge`，**不是**挂载。所以改了本仓库的 PHP 代码后，
+  必须 `docker compose up -d --build` 重建镜像才能生效，光 `restart` 跑的还是旧镜像里的旧代码
+  （见「常见故障排查」里对应那条）。想在开发时免重建，可以自己用
+  `docker-compose.override.yml` 把源码目录挂到该路径上。
 - **Web 根目录**：`/opt/phorge/phorge/webroot`，由 `docker/phorge-apache.conf` 把所有请求
   rewrite 到 `index.php`，Apache 监听 80，映射到宿主 `PHORGE_HTTP_PORT`。
 - **持久化命名卷**：
@@ -88,6 +93,19 @@ docker compose up -d --build
   但如果你在 `.env` 里手动写死了 `PHORGE_BASE_URI`，改端口时记得同步改它，否则 Phorge
   会按旧地址 redirect。注意 `local.json` 只在首次生成，改完 `.env` 需删除 `local.json`
   重新生成或在 Web Config 里改。
+
+- **改了 PHP 代码但没生效 / 报 class not found、Unknown Configuration Option**：镜像用
+  `COPY . /opt/phorge/phorge` 把源码**烤进去了**，容器里跑的是构建那一刻的快照。改完代码只
+  `docker compose restart phorge` 无效，新增的类在镜像里根本不存在，表现就是 `Class not found`；
+  新增的配置项同理，Config 页面会报 "Unknown Configuration Option"，`bin/config set` 会说
+  "Configuration key is unknown"。修法是重建：
+  ```bash
+  docker compose up -d --build phorge
+  # 用了叠加文件时把 -f 都带上，否则叠加的配置会丢：
+  # docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build phorge
+  ```
+  另外，新增 PHP 类还需要先在宿主上 `arc liberate src/` 重新生成
+  `src/__phutil_library_map__.php` —— 类映射没更新，重建了镜像也一样 `Class not found`。
 
 - **旧数据卷迁移断点（升级时最容易卡住的一条）**：`db-init` 用 `MYSQL_ROOT_PASSWORD`
   以 root 连接并对 `MYSQL_USER`（默认 `phorge`）执行 GRANT。**GRANT 要求该账号已存在**。
@@ -223,6 +241,125 @@ Provider **无条件信任** `X-Auth-User/Email/Name` 头。因此：
   后端返回的可信值写入发往 Phorge 的请求。不要在 Apache 层无条件 `RequestHeader unset`，
   因为请求到达 Apache 时已经经过 ForwardAuth，那会把可信身份头一并删除。
 - 若 Phorge 仍可被直接访问，攻击者可伪造这些头冒充任意用户——请务必在网络层隔离。
+
+## 用 Gorge 做语法高亮（可选）
+
+Phorge 自带的高亮器只覆盖几种语言（PHP / Python / Java / JSON），本镜像也**没装**
+Pygments，所以其余文件在 Paste、Differential、Diffusion 里都是无色的。叠加编排文件
+`docker-compose.gorge.yml` 会起一个 `gorge-render` 服务（Go + Chroma），Phorge 把高亮
+请求发给它，覆盖面与 Pygments 相当，但不用在镜像里塞一套 Python 运行时。
+
+镜像 `ghcr.io/soulteary/gorge-render` 由 Gorge 仓库的 release 工作流在打 `v*` tag 时推送，
+容器内固定监听 `8140`，路由 `/api/highlight/*`。**拉不到这个镜像是正常情况**，本地构建一条
+命令即可，见下面「本地构建 gorge-render 镜像」。与 Traefik 叠加文件一样，本文件**不改动**
+`docker-compose.yml`，因此默认的一键启动不受影响。
+
+### 用叠加文件启动
+
+**起服务**和**切引擎**刻意是两步：可以先确认 `gorge-render` 健康再接上去，接了之后不
+满意也能一条命令切回来。
+
+```bash
+# 1) 起 gorge-render（可选：先在 .env 里改 GORGE_IMAGE_TAG / GORGE_RENDER_TOKEN）
+#    拉镜像失败（403）见下面「本地构建 gorge-render 镜像」
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d
+
+# 2) 把高亮引擎切到 Gorge
+docker compose exec phorge /opt/phorge/phorge/bin/config set \
+  syntax-highlighter.engine PhabricatorGorgeSyntaxHighlighterEngine
+
+# 3) 清掉已缓存的渲染结果（不能省，原因见下）
+docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
+```
+
+> **第 3 步不能省**：Phorge 缓存的是**高亮之后的 HTML**，不是源码。Paste 的正文与摘要
+> 存在 `cache_general` 表，Differential 的 changeset 存在自己的缓存表，两者都不会因为
+> 换了引擎而失效。只切引擎不清缓存，已经看过的 Paste 和 diff 会继续吐旧 HTML，很容易
+> 误判成「配置没生效」，转头去反复折腾 URI 和 token。只想清相关的两项可以用
+> `bin/cache purge --caches general,changeset`。切换之后**新建**的 Paste / diff 不受影响，
+> 它们本来就会走新引擎。
+
+叠加文件做了两件事：
+
+- 新增 `gorge-render` 服务，**不声明 `ports`**：它只被 `phorge` 通过 Compose 默认网络的
+  服务名 `gorge-render` 调用，不需要宿主入口。要在宿主上直连排障，用
+  `docker-compose.override.yml` 单独加一条回环映射（如 `127.0.0.1:8140:8140`）。
+- 给 `phorge` 服务补上 `depends_on: gorge-render: service_healthy`，并注入
+  `GORGE_RENDER_URI` / `GORGE_RENDER_TOKEN` 两个环境变量。等健康再启动是为了避免首屏就
+  打到没就绪的高亮服务——那次失败的渲染结果会被缓存下来，反过来又要清一次缓存。
+  正因为有这条依赖，`entrypoint.sh` 里**没有**再自己轮询 `/healthz`。
+
+`entrypoint.sh` 会把这两个环境变量用 `bin/config set` 写进 `conf/local/local.json` 的
+`gorge.render.uri` / `gorge.render.token`。与前面 `MYSQL_*` / `PHORGE_BASE_URI` 那些
+**不同**，这两项刻意放在守卫式生成块之外：它们描述的是部署拓扑，该跟着编排走而不是跟着
+`phorge-conf` 卷走，所以改完 `.env` 直接 `docker compose ... up -d` 就生效，不必删
+`local.json`。环境变量留空时整项跳过，不会写空值也不会删掉你在 Web 界面配好的值。
+
+相关可选变量（都有默认值，见 `.env.example`）：
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `GORGE_RENDER_URI` | `http://gorge-render:8140` | Phorge 访问高亮服务的基础地址。**结尾不要带斜杠**，双斜杠会让服务端路由不匹配，返回 404 `ERR_NOT_FOUND`。 |
+| `GORGE_RENDER_TOKEN` | 空 | 服务间共享密钥，请求头 `X-Service-Token`。同一个值同时下发给两个服务，两端必须一致；留空表示 `gorge-render` 不鉴权（默认它不对宿主暴露端口，可接受）。 |
+| `GORGE_IMAGE_TAG` | `latest` | `ghcr.io/soulteary/gorge-render` 的镜像标签。生产建议钉到具体版本；本地构建时 `docker build -t` 的标签要与它一致。 |
+| `GORGE_RENDER_MAX_BYTES` | `1048576` | 单次高亮的源码大小上限（字节）。超限返回 413，该文件退化为无高亮。 |
+| `GORGE_RENDER_TIMEOUT_SEC` | `15` | 单次高亮的服务端超时（秒）。 |
+
+### 本地构建 gorge-render 镜像
+
+两种情况都需要自己构建，用的是同一条命令：
+
+- **`ghcr.io/soulteary/gorge-render` 拉不下来。** 发布依赖 Gorge 仓库打 `v*` tag，尚未发布
+  时这个镜像就是不存在的。注意 ghcr 对「不存在」和「无权访问」返回的是同一个
+  `403 Forbidden`，所以别按报错去折腾 `docker login`——先本地构建。
+- **你 fork 了 Gorge、改了 Go 代码**，想让 Phorge 用自己的构建而不是上游镜像。
+
+```bash
+# 构建上下文是 gorge 仓库的 go/ 子目录，不是仓库根目录：Dockerfile 在 go/ 下，
+# 一份 Dockerfile 覆盖 go/cmd 下的所有二进制，由 SERVICE 构建参数挑一个。
+docker build -t ghcr.io/soulteary/gorge-render:latest \
+  --build-arg SERVICE=gorge-render \
+  /path/to/gorge/go
+
+# 确认镜像已在本地
+docker images ghcr.io/soulteary/gorge-render
+```
+
+把 `/path/to/gorge/go` 换成你机器上 Gorge 仓库的 `go/` 目录。**Gorge 是独立仓库，不在本仓库
+里**，所以这个路径取决于你 clone 到了哪儿；如果两个仓库是并列的兄弟目录，在 `phorge-fork/`
+下就是 `../gorge/go`。构建耗时约 20 秒（Go 静态编译 + alpine 运行层）。
+
+关键是 `-t` 打出的名字要和编排里 `image:` 的完全一致，这样**不用改任何编排文件**：默认是
+`ghcr.io/soulteary/gorge-render:latest`；若你在 `.env` 里设了 `GORGE_IMAGE_TAG`，`-t` 的标签
+要跟着改成同一个值。构建完镜像就在本地，`docker compose ... up -d` 直接拿来用、不会再去拉；
+但 `docker compose pull` 仍然会去 ghcr 找，那一步照样会 403，跳过它即可。
+
+> 同理，`phorge` 应用镜像里的 PHP 源码也是**烤进镜像**的（见「镜像结构」）。如果你改的是
+> 本仓库的 PHP 代码，别忘了 `docker compose ... up -d --build`。
+
+### 回滚与排障
+
+```bash
+# 切回 Phorge 内置引擎（同样要清缓存，否则看到的还是 Gorge 渲染的旧 HTML）
+docker compose exec phorge /opt/phorge/phorge/bin/config set \
+  syntax-highlighter.engine PhutilDefaultSyntaxHighlighterEngine
+docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
+
+# 看当前生效的引擎与地址（会打印值来自哪个配置源）
+docker compose exec phorge /opt/phorge/phorge/bin/config get syntax-highlighter.engine
+docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.render.uri
+
+# 在高亮服务容器内探活（镜像基于 alpine，用 busybox 的 wget，没有 curl）
+docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
+```
+
+- **切了引擎但页面还是无色**：先看是不是缓存（见上面的 `bin/cache purge`），再看 Config
+  页面的 setup 检查——`PhabricatorGorgeSetupCheck` 会探 `/healthz` 并把不可达报出来。
+- **高亮服务挂了会怎样**：客户端抛 `PhutilSyntaxHighlighterException`，Differential 页面
+  显示高亮失败提示，其余位置回退到无高亮渲染，页面本身不会 500。故障是可见的，不是静默的。
+- **日志里出现 404 `ERR_NOT_FOUND`**：几乎总是 `gorge.render.uri` 结尾多了一个斜杠。
+- **401 `ERR_UNAUTHORIZED`**：两端 token 不一致。注意只改 `.env` 里的
+  `GORGE_RENDER_TOKEN` 后必须重启**两个**容器，否则一端还拿着旧值。
 
 ## 参考
 

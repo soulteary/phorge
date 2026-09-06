@@ -1,0 +1,80 @@
+# Phorge (phorge-fork) Gorge 语法高亮叠加编排（可选）
+# ------------------------------------------------------------------
+# 用法（在基础一键启动之上叠加 gorge-render）：
+#   docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d
+#
+# 说明：
+#   - 本文件是「叠加文件」，不会独立启动；它与 docker-compose.yml 合并生效。
+#     docker-compose.yml 保持完全不变，因此默认的一键启动（不带本文件）不受影响。
+#   - 作用：起一个 gorge-render 容器（基于 Chroma 的语法高亮服务），并把它的
+#     地址与 token 下发给 phorge；phorge 的 entrypoint.sh 会把这两个值幂等写进
+#     conf/local/local.json 的 gorge.render.uri / gorge.render.token。
+#   - 起来之后还有**一步手工切换**：Phorge 默认仍用内置高亮引擎，需要把
+#     syntax-highlighter.engine 切到 PhabricatorGorgeSyntaxHighlighterEngine
+#     并清一次缓存。命令与原因见 DOCKER.md「用 Gorge 做语法高亮」。
+#     切换独立于编排，是为了让「服务在跑但先不接」和一条命令回滚都成立。
+#   - 所有可调项都有内置默认值，不写 .env 也能直接跑。
+# ------------------------------------------------------------------
+
+services:
+  # gorge-render 一个进程承载整个 render 域（路由 /api/highlight/*），容器内
+  # 固定监听 8140。镜像由 gorge 仓库的 release 工作流推到 ghcr，语义化版本标签
+  # 与 latest 都有；生产建议在 .env 里把 GORGE_IMAGE_TAG 钉到具体版本，避免
+  # docker compose pull 悄悄换掉高亮实现。
+  gorge-render:
+    image: ghcr.io/soulteary/gorge-render:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-render
+    restart: unless-stopped
+    environment:
+      # 监听地址固定 :8140。下面的健康检查与 phorge 的 GORGE_RENDER_URI 默认值
+      # 都按它写死，改这里要三处一起改。
+      GORGE_LISTEN_ADDR: ":8140"
+      # 服务间共享密钥，PHP 客户端以请求头 X-Service-Token 发送，两端必须同值，
+      # 所以这里和 phorge 都取同一个 GORGE_RENDER_TOKEN。留空表示服务端不鉴权：
+      # gorge-render 不对宿主暴露端口、只在 compose 内网可达，因此默认留空；
+      # 若把它放到共享网络里，务必设一个值。
+      GORGE_SERVICE_TOKEN: ${GORGE_RENDER_TOKEN:-}
+      # 单次高亮接受的源码大小上限（字节），超限返回 413 ERR_TOO_LARGE，
+      # Phorge 侧表现为该文件回退到无高亮。默认 1MiB。
+      GORGE_RENDER_MAX_BYTES: ${GORGE_RENDER_MAX_BYTES:-1048576}
+      # 单次高亮的服务端超时（秒）。PHP 客户端自己也有超时，两者取小者生效。
+      GORGE_RENDER_TIMEOUT_SEC: ${GORGE_RENDER_TIMEOUT_SEC:-15}
+    # 刻意不声明 ports：高亮服务只被 phorge 通过 compose 默认网络的服务名
+    # gorge-render 调用，不需要宿主入口——少一个对外面，也省掉与 gorge 自己那套
+    # 编排（deploy/compose 里映射了 8140）抢宿主端口。
+    # 需要在宿主上直连排障时，用 docker-compose.override.yml 另加回环映射：
+    #   services:
+    #     gorge-render:
+    #       ports:
+    #         - "127.0.0.1:8140:8140"
+    # 健康探针：/healthz 返回裸 {"status":"ok"}，不套 {data,error} 信封也不校验
+    # token，正是给容器探针用的。用 wget 而不是 curl：镜像基于 alpine，busybox
+    # 自带 wget，没有 curl。
+    # 镜像里已内置了同样参数的 HEALTHCHECK，这里显式重复一遍，是为了让下面
+    # phorge 的 service_healthy 依赖不取决于所拉到的镜像标签是否带探针。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8140/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # 给已存在的 phorge 服务补充：对 gorge-render 的依赖 + 两个配置用环境变量。
+  # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
+  # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
+  # 两个依赖仍然保留），不会整体替换。
+  phorge:
+    depends_on:
+      # 等 gorge-render 健康再起 phorge：容器刚起来时 Phorge 首屏就可能渲染
+      # Paste / Differential，此时打到还没就绪的高亮服务，结果会被缓存下来，
+      # 反倒需要清缓存才能恢复。有了这条依赖，entrypoint.sh 里就不必再自己
+      # 轮询 /healthz。
+      gorge-render:
+        condition: service_healthy
+    environment:
+      # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
+      # 守卫式生成块**之外**，所以改 .env 重启容器就生效，不必删 local.json。
+      # URI 结尾不要带斜杠：客户端按 {uri}/api/highlight/render 拼接，双斜杠会被
+      # gorge-render 判成路由不匹配，返回 404 ERR_NOT_FOUND。
+      GORGE_RENDER_URI: ${GORGE_RENDER_URI:-http://gorge-render:8140}
+      GORGE_RENDER_TOKEN: ${GORGE_RENDER_TOKEN:-}
