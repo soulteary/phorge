@@ -57,6 +57,20 @@ final class HeraldWebhookRequest
         'key_collect' => array(
           'columns' => array('dateCreated'),
         ),
+        // The Gorge webhook service selects claimable rows by status and
+        // orders them by "id", and this table keeps its "sent" rows for a
+        // week, so without this key that poll is a full scan which grows with
+        // the retention window. Nothing in PHP reads it: the daemon path is
+        // driven by the task queue and reaches a request by PHID.
+        //
+        // It is declared here as well as in the autopatch because a key which
+        // exists in the database but not in this list is "surplus", and
+        // "bin/storage adjust" drops surplus keys -- so leaving it out would
+        // make the index disappear on the next adjustment rather than at any
+        // point which would be connected to this change.
+        'key_status' => array(
+          'columns' => array('status', 'id'),
+        ),
       ),
     ) + parent::getConfiguration();
   }
@@ -180,6 +194,18 @@ final class HeraldWebhookRequest
   }
 
   public function queueCall() {
+    // When the Gorge webhook service owns delivery, do not schedule a task:
+    // the service polls this table for "queued" rows and would deliver the
+    // same request the daemon is about to deliver. The row itself is still
+    // written, and is still written by this server -- it is the queue both
+    // sides read, and the service never learns about a request any other way.
+    //
+    // See PhabricatorGorgeWebhookClient::isDeliveryDelegated() for why silent
+    // mode is part of that predicate and stays on this path.
+    if (PhabricatorGorgeWebhookClient::isDeliveryDelegated()) {
+      return $this;
+    }
+
     PhabricatorWorker::scheduleTask(
       'HeraldWebhookWorker',
       array(

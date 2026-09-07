@@ -136,11 +136,28 @@ final class HeraldWebhookCallManagementWorkflow
       } else {
         $request->reload();
 
-        echo tsprintf(
-          "%s\n",
-          pht(
-            'Success, got HTTP %s from webhook.',
-            $request->getErrorCode()));
+        // "Run in process" only reaches the wire while this server is the one
+        // delivering. When delivery has been handed to the Gorge webhook
+        // service, queueCall() above declined to schedule anything and the
+        // request is sitting in the queue waiting to be claimed, so there is
+        // no status code to report yet -- and reporting the empty one as a
+        // success would describe a call which has not happened.
+        if (PhabricatorGorgeWebhookClient::isDeliveryDelegated()) {
+          echo tsprintf(
+            "%s\n",
+            pht(
+              'Queued webhook request ("%s") for delivery by the Gorge '.
+              'webhook service. It is delivered out of process, so the '.
+              'result is not available here; see the request in the web '.
+              'interface for its outcome.',
+              $request->getPHID()));
+        } else {
+          echo tsprintf(
+            "%s\n",
+            pht(
+              'Success, got HTTP %s from webhook.',
+              $request->getErrorCode()));
+        }
       }
     }
 

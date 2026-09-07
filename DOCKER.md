@@ -1006,7 +1006,7 @@ Phorge 把上传的文件（附件、头像、粘贴的图片、Diffusion 里的
 - [`PhabricatorGorgeFileStorageSetupCheck`](src/applications/config/check/PhabricatorGorgeFileStorageSetupCheck.php)
   —— Config 页面上的三个 setup issue（不可达 / 没后端 / 配了但没接上）。
 
-镜像 `ghcr.io/soulteary/gorge-file-storage` 与另外四个服务同源同标签（共用
+镜像 `ghcr.io/soulteary/gorge-file-storage` 与另外五个服务同源同标签（共用
 `GORGE_IMAGE_TAG`），容器内固定监听 `8100`，路由 `/api/file/*`。拉不到时本地构建一条
 命令即可。
 
@@ -1108,9 +1108,10 @@ docker compose exec phorge /opt/phorge/phorge/bin/files engines
 - 给 `phorge` 补上 `depends_on: gorge-file-storage: service_healthy`，并注入
   `GORGE_FILE_URI` / `GORGE_FILE_TOKEN`。
 
-它是五个 Gorge 服务里唯一**有状态**、也是唯一 `depends_on` `mysql` 与 `db-init` 的一个：
-blob 后端要连库，而 `db-init` 才是给普通账号补上 `phabricator_%` 整组库权限的那一步。
-这条依赖链不会成环——`phorge` 等它、它等 `mysql`、`mysql` 不等任何人。
+它和 `gorge-webhook` 是六个 Gorge 服务里**有状态**的两个，也是仅有的两个 `depends_on`
+`mysql` 与 `db-init` 的：blob 后端要连库，而 `db-init` 才是给普通账号补上
+`phabricator_%` 整组库权限的那一步。这条依赖链不会成环——`phorge` 等它、它等 `mysql`、
+`mysql` 不等任何人。（`gorge-webhook` 那边的依赖方向不同，见「用 Gorge 投递 Webhook」。）
 
 它的容器健康检查也与 `gorge-mailer` / `gorge-search` 相反，探的是 `/readyz` 而不是
 `/healthz`：
@@ -1264,6 +1265,213 @@ docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.file.uri
 切、又不丢读取能力的回退路径，只做第 1 步就够了：新文件回到 MySQL，存量的仍从服务里读。
 
 同理，服务容器与 `phorge-files` 卷在这之后**不能删**，除非确认里面没有还被引用的文件。
+
+## 用 Gorge 投递 Webhook（可选）
+
+Herald 的 webhook 是这样跑的：事务编辑器命中规则后，往
+`{namespace}_herald.herald_webhookrequest` 插一行 `status = queued`，再给 `phd` 的任务
+队列派一个 `HeraldWebhookWorker`；worker 取出那一行，用 hook 自己的 HMAC key 给 payload
+签名、`POST` 出去，把结果（`status` / `lastRequestResult` / `lastRequestEpoch` /
+`properties.errorType|errorCode`）写回同一行。
+
+`docker-compose.gorge.yml` 里的 `gorge-webhook` 服务把中间那一段换成 Go：**队列表就是
+接口**，服务自己轮询 `status='queued'` 的行、抢占、签名投递、回写，phorge 一侧只负责继续
+往表里插行。
+
+这让它成为六个服务里唯一一个**不被 phorge 调用**的：
+
+- 前五个服务，PHP 那边配的是「往哪儿发请求」；这里配的 `gorge.webhook.uri` 是「谁接管了
+  投递」——一个开关，不是一个地址。PHP 侧真正会去访问这个地址的只有 Config 页面上的
+  setup check。
+- 因此**它可以在配置完全没写进 phorge 的情况下照样工作**。这不是好事，见下一节。
+
+Phorge 这边新增的是三个类加一个索引，没有改任何核心逻辑，只在两处加了守卫：
+
+- [`PhabricatorGorgeWebhookClient`](src/infrastructure/cluster/PhabricatorGorgeWebhookClient.php)
+  —— 读配置、判断投递是否已交接（`isDeliveryDelegated()`），外加两个诊断接口；
+- [`PhabricatorGorgeWebhookSetupCheck`](src/applications/config/check/PhabricatorGorgeWebhookSetupCheck.php)
+  —— Config 页面上的三个 setup issue（静默模式挡着 / 不可达 / 连不上队列库）；
+- [`PhabricatorHeraldConfigOptions`](src/applications/herald/config/PhabricatorHeraldConfigOptions.php)
+  —— 新增的 Herald 配置组，声明 `gorge.webhook.uri` 与 `gorge.webhook.token`；
+- `resources/sql/autopatches/20260907.herald.01.requeststatuskey.sql`
+  —— 给队列表补一个 `key_status (status, id)` 索引，见下面「为什么要加一个索引」。
+
+守卫在
+[`HeraldWebhookRequest::queueCall()`](src/applications/herald/storage/HeraldWebhookRequest.php)
+（不派任务）和
+[`HeraldWebhookWorker::doWork()`](src/applications/herald/worker/HeraldWebhookWorker.php)
+（已经派出去的任务跑到时直接返回）两处，条件都是同一个 `isDeliveryDelegated()`。
+
+镜像 `ghcr.io/soulteary/gorge-webhook` 与另外五个服务同源同标签（共用 `GORGE_IMAGE_TAG`），
+容器内固定监听 `8160`。
+
+### 危险的方向和别的服务相反：配置没写进去 = 发两次
+
+**这是接这个服务时唯一真正容易踩的地方，请读完再动手。**
+
+文件存储那一节的坑是「配了不生效」——沉默、但无害。这里正好反过来：
+
+| 状态 | 结果 |
+|------|------|
+| 服务在跑 + `gorge.webhook.uri` 已写入 | 只有 Go 投递。正确。 |
+| 服务没跑 + `gorge.webhook.uri` 已写入 | 谁也不投，请求堆在 `queued` 里等服务回来。 |
+| **服务在跑 + `gorge.webhook.uri` 没写入** | **`phd` 和 Go 同时投递同一批行，每个 webhook 发两次。** |
+| 服务没跑 + 没写入 | 原样，`phd` 投递。 |
+
+第三行是唯一一个会造成外部可见错误的组合，而它恰恰是最容易出现的：`gorge.webhook.uri`
+是新增的配置项，需要在 `PhabricatorHeraldConfigOptions` 里声明**并重新生成类映射**
+（宿主上跑 `arc liberate src/`）。映射没跟上时 `bin/config set` 会报
+`Configuration key is unknown`，而 `entrypoint.sh` 里的 `gorge_config_set` 对写入失败
+只打一行警告就放过去。
+
+为此 `entrypoint.sh` 在这一项写失败时会额外打一段把后果说清楚的告警：
+
+```
+[entrypoint] 警告: gorge.webhook.uri 未能写入。
+[entrypoint]   若 gorge-webhook 容器正在运行，phd 与它会同时投递同一批
+[entrypoint]   webhook 请求，导致**每个 webhook 被发送两次**。
+```
+
+看到它就别让服务继续跑：要么按上面说的重新生成类映射再重建镜像，要么先把 `.env` 里的
+`GORGE_WEBHOOK_URI` 清空并停掉 `gorge-webhook`。
+
+同理，`.env` 里的 `GORGE_WEBHOOK_URI` 和叠加文件里的 `gorge-webhook` 段是**一对**，
+要停就两边一起停。
+
+### 全局静默是一个例外：开着的时候这一项等于没配
+
+守卫的条件是「`gorge.webhook.uri` 非空 **且** `phabricator.silent` 未开」，两个条件缺一
+不可。
+
+`phabricator.silent` 是 phorge 自己的配置，Go 服务读不到它——它能看到的只有每条 request
+上记录的 per-request `silent` 标记，那描述的是「这一次事务是不是静默的」，不是「这个站点
+是不是静默的」。所以开着静默还把投递让给 Go，webhook 会照常发出去，正好违反静默模式存在
+的意义。
+
+于是静默场景**继续走 PHP**：`HeraldWebhookWorker` 用 `ERROR_SILENT` 把每个请求标成
+`failed`，而 Go 只取 `queued` 的行，自然碰不到它们。静默模式的行为与接这个服务之前完全
+一致。
+
+这个「配了但因为静默没接管」的状态由 `PhabricatorGorgeWebhookSetupCheck` 在 Config 页面
+报成 **"Gorge Webhook Service Not In Use"**。关掉静默后投递会自己转到 Go，不需要别的操作。
+
+### 为什么要加一个索引
+
+`herald_webhookrequest` 原本只有 `key_phid`、`key_ratelimit`、`key_collect` 三个索引，
+`status` 列上一个都没有——PHP 侧不需要，它是靠任务队列拿到 PHID 再按 PHID 查行的。Go 服务
+换了个方向：它每秒扫一遍 `status='queued'`。而这张表的 `sent` 行由垃圾回收保留 7 天，会
+持续累积，于是那一秒一次的轮询就是一次持续变大的全表扫。
+
+新增的 autopatch 补上 `key_status (status, id)`：
+
+```sql
+ALTER TABLE {$NAMESPACE}_herald.herald_webhookrequest
+  ADD KEY `key_status` (`status`, `id`);
+```
+
+`resources/sql/autopatches/` 按文件名字典序自动发现，所以 `bin/storage upgrade`（容器默认
+`PHORGE_AUTO_UPGRADE=1`，每次启动都跑）会自动应用它，不需要手工执行。
+
+同一个索引也声明在
+[`HeraldWebhookRequest::getConfiguration()`](src/applications/herald/storage/HeraldWebhookRequest.php)
+的 `CONFIG_KEY_SCHEMA` 里，这一步不能省：数据库里有、而 PHP 的 schema 声明里没有的索引会
+被判为 **surplus**，`bin/storage adjust` 会把它删掉——而且是在一个和本次改动毫无关联的时间
+点删掉。
+
+### 用叠加文件启动
+
+```bash
+# 1) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前五个服务相同，
+#    只是 --build-arg SERVICE=gorge-webhook；--build 同样不能省）
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+
+# 2) 确认配置写进去了。这一步不能省 —— 它没写进去就是上面那张表的第三行。
+docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
+
+# 3) 确认服务能连上队列库
+#    首次启动时这里会先失败一小会儿：{namespace}_herald 库是 phorge 容器里的
+#    bin/storage upgrade 建的，在那之前 /readyz 不通、容器显示 unhealthy，这是预期的。
+docker compose exec gorge-webhook wget -qO- http://127.0.0.1:8160/readyz
+
+# 4) 确认索引已经建上
+docker compose exec mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" \
+  -e "SHOW INDEX FROM phabricator_herald.herald_webhookrequest WHERE Key_name='key_status'"
+
+# 5) 建一个 webhook（Herald → Webhooks → Create Webhook），指向一个能观测到请求的地址，
+#    然后制造一次事务（改一个 task 的标题就行），确认接收端**只收到一次**。
+```
+
+第 5 步是这一节唯一真正的验收：双投是运行期行为，配置检查看不出来。
+
+### 本地构建镜像
+
+与前五个服务完全相同，只是 `SERVICE` 换成 `gorge-webhook`：
+
+```bash
+docker build -t ghcr.io/soulteary/gorge-webhook:latest \
+  --build-arg SERVICE=gorge-webhook \
+  /path/to/gorge/go
+```
+
+构建上下文是 `gorge` 仓库的 `go/` 子目录，不是仓库根目录。
+
+### 验证与排障
+
+```bash
+# 队列现状（要带 token，留空时可省掉 --header）
+docker compose exec gorge-webhook wget -qO- \
+  --header="X-Service-Token: $GORGE_WEBHOOK_TOKEN" \
+  http://127.0.0.1:8160/api/webhook/stats
+
+# 服务日志：每次投递与每次失败都在这儿
+docker compose logs -f gorge-webhook
+
+# phd 那边应该**不再**出现 HeraldWebhookWorker 的任务
+docker compose exec phorge /opt/phorge/phorge/bin/phd status
+```
+
+界面上最有用的一页是 Herald → 某个 webhook → **Recent Requests**：那张表直接显示每条
+请求的状态图标、错误类型和错误码，接管前后的字段含义完全一样。
+
+几个容易误判的现象：
+
+- **一排蓝色的 "Queued" 停着不动。** 服务没跑、或者连不上队列库。前者看
+  `docker compose ps`，后者看 `/readyz` 和 `GORGE_WEBHOOK_NAMESPACE` 是不是等于
+  `storage.default-namespace`（默认 `phabricator`）——这一项留空**不等于**用默认值，服务端
+  的默认值是 `phorge`，会连到一个不存在的库。Config 页面上的
+  **"Gorge Webhook Service Not Ready"** 说的就是这件事。
+- **全是 "Failed"，错误码 `In Silent Mode`。** `phabricator.silent` 开着，投递根本没交接，
+  见上面那一节。
+- **接收端每次收到两份一样的 payload。** 就是上面那张表的第三行，先看
+  `bin/config get gorge.webhook.uri`。
+- **`bin/webhook call` 不再打印 HTTP 状态码。** 这是接管后的正常输出。前台模式原本靠
+  `setRunAllTasksInProcess()` 就地投递再读回状态码，交接之后请求是被 Go 异步取走的，
+  命令行拿不到结果，所以改成打印请求的 PHID，让你去 Recent Requests 里看。
+
+### 回滚
+
+一步，而且没有数据后果——队列表的结构和字段含义两边完全一致：
+
+```bash
+# 1) 停掉下发：把 GORGE_WEBHOOK_URI 从 .env 里清空（或整段删掉），
+#    这样 entrypoint.sh 下次启动就不再写 gorge.webhook.uri。
+#    注意：清空它**不会**把已经写进 local.json 的值撤掉，得手工清。
+docker compose exec phorge /opt/phorge/phorge/bin/config set gorge.webhook.uri null
+
+# 2) 停掉服务。顺序不能反 —— 先停服务再清配置的话，中间那段时间两边都不投。
+docker compose stop gorge-webhook
+
+# 3) 确认生效
+docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
+```
+
+清掉配置之后 `phd` 对**新产生的**请求立刻恢复调度。第 1、2 步的顺序不能反，原因就在这里：
+任务是在插行的那一刻由 `queueCall()` 派出去的，只派一次。先停服务再清配置的话，中间那段
+时间产生的行既没有 phd 的任务、又没有 Go 来取，之后谁也不会回头去捡——它们会一直停在
+`queued`，直到 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期把它们删掉。按上面的
+顺序做则不会有这样的行：清配置的那一刻服务还在跑，队列是空的。
+
+新增的 `key_status` 索引留着即可，它不影响 PHP 侧的任何查询。
 
 ## 参考
 

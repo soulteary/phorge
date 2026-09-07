@@ -42,6 +42,31 @@ final class HeraldWebhookWorker
       return;
     }
 
+    // When the Gorge webhook service owns delivery, leave the request alone:
+    // the service polls this table for "queued" rows and this task would
+    // deliver a request it is about to claim, or has already claimed.
+    //
+    // HeraldWebhookRequest::queueCall() normally keeps tasks from being
+    // created at all, so reaching here means either a task which was queued
+    // before the option was set, or "bin/webhook call", which runs the worker
+    // in process and bypasses the queue entirely. Returning hands the request
+    // to the service in both cases: the row stays "queued", which is exactly
+    // what the service claims.
+    //
+    // This has to come after the silent check above and not before it. Silent
+    // mode is a configuration option of this server which the service can not
+    // see, so the request has to be failed here -- and once it is "failed",
+    // the service will not claim it. Guarding first would leave the row
+    // "queued" and get it delivered in silent mode.
+    //
+    // It also comes before every check below it, all of which write a "failed"
+    // status onto the row. Those checks are the service's job once delivery is
+    // delegated, and running them here as well would mean two writers deciding
+    // the fate of one row.
+    if (PhabricatorGorgeWebhookClient::isDeliveryDelegated()) {
+      return;
+    }
+
     $hook = $request->getWebhook();
 
     if ($hook->isDisabled()) {

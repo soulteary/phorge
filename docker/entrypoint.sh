@@ -88,9 +88,15 @@ fi
 # 放在等待数据库之前是安全的：bin/config 不带 --database 时写的是
 # conf/local/local.json（PhabricatorConfigLocalSource），且 bin/config 经由
 # scripts/init/init-setup.php 以 config.optional 方式初始化，数据库连不上也能跑。
+#
+# 函数额外把「这一次到底写没写进去」留在 GORGE_CONFIG_SET_OK 里（1 写成功，0 没写）。
+# 返回码仍恒为 0，调用方不检查它也不受影响；只有 webhook 那一段会读，因为它是唯一
+# 一个「没写进去」比「没配」更危险的配置项，理由见那一段。
 gorge_config_set() {
     gorge_key="$1"
     gorge_value="$2"
+
+    GORGE_CONFIG_SET_OK=0
 
     # 值为空就整项跳过：既不写空值，也不删除已有配置 —— 用户可能在 Web 界面
     # (Config) 手工配过，环境变量缺失不该被理解成「要清掉它」。
@@ -100,6 +106,7 @@ gorge_config_set() {
     fi
 
     if "$CONFIG_BIN" set "$gorge_key" "$gorge_value"; then
+        GORGE_CONFIG_SET_OK=1
         # bin/config 以 root 运行，若 local.json 此前不存在会被建成 root 属主；
         # Apache 与 phd 都以 www-data 运行，读不到就等于没配。属主与权限保持与
         # 上面守卫块写出的文件一致。
@@ -586,6 +593,55 @@ if [ -n "${GORGE_FILE_URI:-}" ] || [ -n "${GORGE_FILE_TOKEN:-}" ]; then
     # 仍由当初写它的引擎读取，所以接上这个服务是一次增量切换，没有要搬的数据。
 else
     echo "[entrypoint] 未设置 GORGE_FILE_URI，跳过 Gorge 文件存储配置。"
+fi
+
+# Webhook 在形式上和文件存储一样：gorge.webhook.uri 与 gorge.webhook.token 都是标量配置
+# 项，整项归 Gorge 所有，走现成的 gorge_config_set 就够了。
+#
+# 语义上它却和上面五段都不同，而且是唯一一个「写失败」比「没配」更糟的：
+#
+#   前五个服务是 phorge 去调用的，配置写不进去，phorge 就继续用自带的实现，最坏结果是
+#   Gorge 那个容器白跑。webhook 不是 —— gorge-webhook 直接轮询 herald_webhookrequest
+#   这张队列表，它压根不看 phorge 的配置。phorge 侧读 gorge.webhook.uri 只是为了决定
+#   「还要不要自己发」（PhabricatorGorgeWebhookClient::isDeliveryDelegated()）。
+#
+#   于是「gorge-webhook 容器在跑 + gorge.webhook.uri 没写进去」= phd 和 Go 同时投递同
+#   一批行，**每个 webhook 发两次**。而这正是本段最可能的失败模式：新增的配置项要在
+#   PhabricatorHeraldConfigOptions 里声明并重新生成类映射（arc liberate src/），映射
+#   没跟上时 bin/config 会报 "Configuration key is unknown"，而 gorge_config_set 只打
+#   一行不起眼的警告就放过去了。
+#
+# 所以这里比其它几段多做一件事：读 GORGE_CONFIG_SET_OK，写失败时补一条把后果说清楚的
+# 告警。仍然不退出容器 —— 站点起不来比 webhook 发两次严重得多，而这个状态可以在启动日志
+# 里看见，也能从 Config 页面上 gorge.webhook.uri 是空的看出来。
+#
+# 另外两点：
+#   - 与文件存储那种「写了不等于生效」相反，这一项**写进去就立刻生效**，没有第二步手工
+#     开关。已经排在 phd 队列里的旧任务也不会重复投递：HeraldWebhookWorker 里有同一个
+#     守卫，跑到就直接返回，把那一行留给 Go。
+#   - 全局静默（phabricator.silent）开着时这一项等于没配：静默是 phorge 自己的配置，Go
+#     读不到，所以守卫要求「已配置 **且** 未静默」，静默场景仍由 phd 按原样失败掉每一个
+#     请求。这一段照写不误，Config 页面的 PhabricatorGorgeWebhookSetupCheck 会把「配了
+#     但因为静默没接管」报出来。
+#
+# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
+if [ -n "${GORGE_WEBHOOK_URI:-}" ] || [ -n "${GORGE_WEBHOOK_TOKEN:-}" ]; then
+    echo "[entrypoint] 下发 Gorge webhook 配置 ..."
+    gorge_config_set 'gorge.webhook.uri' "${GORGE_WEBHOOK_URI:-}"
+    if [ -n "${GORGE_WEBHOOK_URI:-}" ] && [ "${GORGE_CONFIG_SET_OK:-0}" != "1" ]; then
+        echo "[entrypoint] 警告: gorge.webhook.uri 未能写入。" >&2
+        echo "[entrypoint]   若 gorge-webhook 容器正在运行，phd 与它会同时投递同一批" >&2
+        echo "[entrypoint]   webhook 请求，导致**每个 webhook 被发送两次**。" >&2
+        echo "[entrypoint]   处理办法二选一：在宿主上执行 arc liberate src/ 重新生成" >&2
+        echo "[entrypoint]   src/__phutil_library_map__.php 后重建镜像；或先把 .env 里的" >&2
+        echo "[entrypoint]   GORGE_WEBHOOK_URI 清空并停掉 gorge-webhook 服务。" >&2
+    fi
+    gorge_config_set 'gorge.webhook.token' "${GORGE_WEBHOOK_TOKEN:-}"
+    # 与前几段同样不在这里探 gorge-webhook 的 /readyz，而且这里连探都不该探：它的就绪
+    # 条件是能连上 {namespace}_herald 库，而那个库是本脚本后面几步的 bin/storage upgrade
+    # 建的 —— 在这儿等它就是等一件只有自己能做的事。
+else
+    echo "[entrypoint] 未设置 GORGE_WEBHOOK_URI，跳过 Gorge webhook 配置。"
 fi
 
 # ----- 3. 等待数据库就绪 -----

@@ -11,7 +11,7 @@
 #     跑的就是**旧版 entrypoint**：notification.servers 与 cluster.mailers 整段不下发，
 #     而且**不报任何错误**——没有告警、没有失败退出，Config 页面看着也正常。唯一的线索
 #     是启动日志里少了那几行 `[entrypoint] 下发 Gorge ... 配置`。
-#   - 本文件起五个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
+#   - 本文件起六个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
 #     段里对应的 depends_on 与环境变量一起删掉：
 #       gorge-render        基于 Chroma 的语法高亮服务，替换 Phorge 内置高亮器
 #       gorge-notification  与 Aphlict 线兼容的实时通知服务，替换 Node.js 版 aphlict
@@ -20,9 +20,12 @@
 #                           的一个条目（type: gorge）
 #       gorge-file-storage  统一 MySQL blob / 本地磁盘 / S3 的文件存储服务，作为一个
 #                           PhabricatorFileStorageEngine（identifier: gorge）
-#   - 五者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
+#       gorge-webhook       接管 Herald webhook 投递的服务，替换 phd 里的
+#                           HeraldWebhookWorker（它不被 phorge 调用，直接读写队列表）
+#   - 六者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
 #     （gorge.render.uri / gorge.render.token、notification.servers、cluster.mailers、
-#     cluster.search / gorge.search.token、gorge.file.uri / gorge.file.token）。
+#     cluster.search / gorge.search.token、gorge.file.uri / gorge.file.token、
+#     gorge.webhook.uri / gorge.webhook.token）。
 #   - 高亮起来之后还有**一步手工切换**：Phorge 默认仍用内置高亮引擎，需要把
 #     syntax-highlighter.engine 切到 PhabricatorGorgeSyntaxHighlighterEngine
 #     并清一次缓存。命令与原因见 DOCKER.md「用 Gorge 做语法高亮」。
@@ -32,6 +35,10 @@
 #     发现，但 Phorge 原生的 blob 引擎 priority 更小、仍然先拿到每个文件，于是新文件
 #     按大小散落在两套引擎里，**既不生效也不报错**。第二步是把原生引擎关掉，见
 #     DOCKER.md「用 Gorge 做文件存储」。
+#     **webhook 没有这一步，而且方向相反**：gorge.webhook.uri 一写进去，phorge 就立刻
+#     停止调度 HeraldWebhookWorker，投递整个交给 gorge-webhook。要注意的不是「配了不
+#     生效」，而是反过来的「服务在跑但配置没写进去 = 投递两次」，见下面 gorge-webhook
+#     段与 DOCKER.md「用 Gorge 投递 Webhook」。
 #   - 所有可调项都有内置默认值，不写 .env 也能直接跑。**发信与检索是两个例外**，
 #     它们都需要你自己提供一个后端：
 #       gorge-mailer 必须至少配一个投递后端（MAILER_TYPE + 对应的 SMTP_* / MAILER_*），
@@ -41,11 +48,16 @@
 #         建索引**（bin/search init + index --all --force），见 DOCKER.md
 #         「用 Gorge 做全文搜索」。
 #     gorge-file-storage 不属于这两个例外：本文件默认给它挂了一个数据卷并启用本地磁盘
-#     后端，所以开箱就有一个可写的后端、/readyz 直接通。
-#   - gorge-file-storage 是五个服务里唯一**有状态**的一个，也是唯一依赖 mysql 与
-#     db-init 的一个：它的 blob 后端写的是 phorge 自己那张 file_storageblob 表，
-#     本地磁盘后端写的是下面新增的 phorge-files 卷。删这个 service 段之前先确认没有
-#     文件已经落在它里面 —— 引擎标识是按文件存在库里的，服务没了那些文件就读不出来。
+#     后端，所以开箱就有一个可写的后端，不用你配任何东西。
+#     （但它的 /readyz 在**首次**启动时会有一段 503 的窗口，因为默认同时启用的 blob 后端
+#     要等 phorge 建出 {namespace}_file 库。上传不受影响，会下沉到本地磁盘后端。
+#     它和 gorge-webhook 因此都只被 phorge 用 service_started 依赖，见各自的注释。）
+#   - gorge-file-storage 与 gorge-webhook 是六个里**有状态**的两个，也是仅有的两个
+#     依赖 mysql 与 db-init 的：前者的 blob 后端写的是 phorge 自己那张 file_storageblob
+#     表，本地磁盘后端写的是下面新增的 phorge-files 卷；后者读写的是 herald_webhookrequest
+#     这张队列表。删 gorge-file-storage 段之前先确认没有文件已经落在它里面 —— 引擎标识是
+#     按文件存在库里的，服务没了那些文件就读不出来。删 gorge-webhook 段则必须连同 phorge
+#     段里的 GORGE_WEBHOOK_URI 一起删，否则 phorge 会一直以为投递已经交出去了，谁也不发。
 # ------------------------------------------------------------------
 
 services:
@@ -315,8 +327,8 @@ services:
   #
   # 与另外四个服务有两处结构性不同：
   #   - **它有状态。** 本地磁盘后端写下面新增的 phorge-files 卷；blob 后端写的是
-  #     phorge 自己的 {namespace}_file.file_storageblob 表，所以它是这五个服务里唯一
-  #     需要 depends_on mysql 与 db-init 的。
+  #     phorge 自己的 {namespace}_file.file_storageblob 表，所以它和后面的
+  #     gorge-webhook 是这六个服务里仅有的两个需要 depends_on mysql 与 db-init 的。
   #   - **字节不走 JSON 信封。** 写/读文件的请求体与响应体都是原始
   #     application/octet-stream，只有元数据、删除与引擎列表仍是 {data, error}。
   #     PHP 侧对应 PhabricatorGorgeServiceClient::parseBinaryResponse()。
@@ -397,20 +409,20 @@ services:
     #       ports:
     #         - "127.0.0.1:8100:8100"
     #
-    # 健康探针探 /readyz（至少一个后端已启用，且 blob 启用时能 Ping 通库），这与
-    # gorge-mailer / gorge-search 刻意只探 /healthz 的做法相反，两个理由：
-    #   - 本服务开箱就有一个可写后端（上面的本地磁盘），所以「healthy 但没后端」这个
-    #     会把站点堵在启动阶段的状态默认不存在；而发信与检索必须你自己提供后端。
-    #   - 存不了文件比发不出信可见得多：上传、头像、粘贴图片全都当场失败。让站点等它
-    #     就绪，比让用户去踩，更接近你想要的行为。
-    #   代价是：如果你把上面三个后端全部关掉，phorge 就会一直等在 depends_on 上。真要
-    #   这么做（比如临时停用文件写入）就把这里的探针换成 /healthz，或者干脆把整段
-    #   gorge-file-storage 与 phorge 段里对应的 depends_on / 环境变量一起删掉。
+    # 健康探针探 /readyz（至少一个后端已启用，且 blob 启用时能连上 {namespace}_file 库），
+    # 这与 gorge-mailer / gorge-search 刻意只探 /healthz 的做法相反：本服务开箱就有一个
+    # 可写后端（上面的本地磁盘），所以这个探针问的是一个有意义的问题，而不是一个永远
+    # 答不上来的问题。docker ps 上的 healthy/unhealthy 因此能直接读作「blob 后端通不通」。
     #
-    # readyz 刻意**不检查** file_storageblob 表是否存在，那是 phorge 的
-    # bin/storage upgrade 建的，而 phorge 又在 depends_on 上等这个探针——检查表就成了
-    # 死锁。所以首次启动时 blob 后端会短暂写不进去，此时写入按 priority 下沉到本地
-    # 磁盘，不会让上传整体失败。
+    # **但下面 phorge 段刻意没有用 service_healthy 等它**，尽管这个探针本身是有意义的。
+    # 首次启动时它必然为 503：blob 后端的 DSN 带 {namespace}_file 这个库名，而库要等
+    # phorge 的 bin/storage upgrade 建出来。让 phorge 等它就成了死锁，理由与代价见下面
+    # phorge.depends_on 里 gorge-file-storage 那一条的注释。
+    #
+    # 那段 unhealthy 的窗口不影响可用性：blob 写不进去时，写入按 priority 下沉到本地磁盘
+    # 后端，上传照常成功。gorge 侧的 /readyz 也刻意**不检查** file_storageblob 表是否
+    # 存在（compat/phorge/README.md 第 8.7 节把这条列为约定），那是对的 —— 只是不查表
+    # 还不够，DSN 里的库名在 ping 之前就已经把这个依赖引进来了。
     # 同另外四个服务用 busybox 的 wget：镜像基于 alpine，没有 curl。
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8100/readyz"]
@@ -419,7 +431,112 @@ services:
       start_period: 5s
       retries: 3
 
-  # 给已存在的 phorge 服务补充：对五个 Gorge 服务的依赖 + 若干配置用环境变量。
+  # gorge-webhook 接管 Herald 的 webhook 投递（容器内固定监听 :8160）。它是六个服务
+  # 里最特别的一个，因为**它不被 phorge 调用**：
+  #
+  #   - 队列就是数据库。PHP 侧照旧把 webhook request 写进
+  #     {namespace}_herald.herald_webhookrequest，本服务自己轮询 status='queued' 的行，
+  #     抢占、HMAC 签名 POST、再把结果回写同一行。两边之间没有任何 HTTP 调用。
+  #   - 因此 gorge.webhook.uri **不是「服务地址」而是「交接开关」**：phorge 侧读到它
+  #     非空（且未开全局静默）就不再给 HeraldWebhookWorker 派任务，见
+  #     PhabricatorGorgeWebhookClient::isDeliveryDelegated()。
+  #   - 由此得到一条必须记住的失配规则：**这个容器在跑、而 gorge.webhook.uri 没写进
+  #     phorge**，等于 phd 与本服务同时投递同一批行 —— webhook 会发两次。所以本段与
+  #     下面 phorge 段里的 GORGE_WEBHOOK_URI 是一对，要删就两段一起删。
+  #     entrypoint.sh 写失败时会专门为这种情况打一条告警。
+  #
+  # 它和 gorge-file-storage 一样有状态、一样依赖 mysql 与 db-init；下面那个
+  # {namespace}_herald 库的存在性问题是它独有的，见 healthcheck 那段注释。
+  gorge-webhook:
+    image: ghcr.io/soulteary/gorge-webhook:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-webhook
+    restart: unless-stopped
+    depends_on:
+      # 队列在库里，所以等 mysql 健康。与 gorge-file-storage 同理不会成环：这里没有
+      # 让 phorge 等它「健康」（见下面 healthcheck 那段）。
+      mysql:
+        condition: service_healthy
+      # 也要等 db-init：它给普通账号补的是 `phabricator_%` 整组库的权限，没这一步
+      # 连得上 mysql 却看不到 phabricator_herald 库。
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      # 监听地址固定 :8160。下面的健康检查与 phorge 的 GORGE_WEBHOOK_URI 默认值都按它
+      # 写死，改这里要三处一起改。
+      GORGE_LISTEN_ADDR: ":8160"
+      # 服务间共享密钥，两端必须同值。注意它保护的**只是** /api/webhook/stats 与
+      # /api/webhook/hooks 这两个诊断接口（PHP 侧只有 Config 页面的 setup check 会读
+      # 它们），投递本身不经过这个 token —— 投递走数据库，签名用的是每个 hook 自己的
+      # HMAC key。所以这里留空的风险比其它几个服务小：泄露的上限是队列计数。
+      GORGE_SERVICE_TOKEN: ${GORGE_WEBHOOK_TOKEN:-}
+
+      # 下面每一项都用 GORGE_WEBHOOK_ 前缀，这是服务读配置时的**首选名**。无前缀的旧名
+      # （MYSQL_HOST / STORAGE_NAMESPACE / SERVICE_TOKEN …）服务也认，但那是留给独立
+      # 服务时期旧部署的兜底，不该在新编排里用 —— 这个容器里 MYSQL_* 若按无前缀写，就和
+      # phorge 容器里同名却指别的东西的那一组撞了名字（见 docker/entrypoint.sh 的
+      # db_ready）。
+      #
+      # 连库参数取的仍是基础编排里那一组 .env 变量，不另开一份：这不是「服务自己的库」，
+      # 就是 phorge 的库，写错等于接管失败。
+      GORGE_WEBHOOK_MYSQL_HOST: mysql
+      GORGE_WEBHOOK_MYSQL_PORT: "3306"
+      GORGE_WEBHOOK_MYSQL_USER: ${MYSQL_USER:-phorge}
+      GORGE_WEBHOOK_MYSQL_PASS: ${MYSQL_PASSWORD:-phorge}
+      # 库名前缀，必须与 Phorge 的 storage.default-namespace 一致 —— 服务连的是
+      # {namespace}_herald 这个库。Phorge 该配置项的默认值是 phabricator，本编排没有改
+      # 它，所以这里也是 phabricator。**这一项必须显式给值**：服务端的默认值是 phorge，
+      # 靠默认值会连到一个不存在的库，表现是 /readyz 永远不通、队列一直堆着不投递。
+      GORGE_WEBHOOK_NAMESPACE: ${GORGE_WEBHOOK_NAMESPACE:-phabricator}
+
+      # --- 投递行为（都有服务端默认值，留空即用默认）---
+      # 全部留空是刻意的：这几项调错的代价不对称，调小了会放大失败重投的压力，调大了会
+      # 让「事务发生到 webhook 送达」的延迟变长，而默认值是照着 PHP 侧原本的行为定的。
+      # 轮询间隔（毫秒，默认 1000）。
+      GORGE_WEBHOOK_POLL_INTERVAL_MS: ${GORGE_WEBHOOK_POLL_INTERVAL_MS:-}
+      # 单次投递的 HTTP 超时（秒，默认 15），与 PHP 侧 HeraldWebhookWorker 的 15 一致。
+      GORGE_WEBHOOK_DELIVERY_TIMEOUT: ${GORGE_WEBHOOK_DELIVERY_TIMEOUT:-}
+      # 并发投递上限（默认 8）。
+      GORGE_WEBHOOK_MAX_CONCURRENT: ${GORGE_WEBHOOK_MAX_CONCURRENT:-}
+      # 单个 hook 连续失败到多少次进入熔断（默认 10），以及熔断窗口（秒，默认 300）。
+      # 这两项对应 PHP 侧 HeraldWebhook::isInErrorBackoff() 的同名行为。
+      GORGE_WEBHOOK_ERROR_THRESHOLD: ${GORGE_WEBHOOK_ERROR_THRESHOLD:-}
+      GORGE_WEBHOOK_ERROR_BACKOFF_SEC: ${GORGE_WEBHOOK_ERROR_BACKOFF_SEC:-}
+      # 单个失败请求隔多久才重投（秒，默认 60）。它和上面那个熔断窗口是**两个不同的量**：
+      # 这一项管一个 request 的重试节奏，那一项管整个 hook 停投多久。
+      # 60 是照着 PHP 侧来的 —— worker 抛异常后由 PhabricatorWorkerLeaseQuery 的默认重试
+      # 等待接手。独立服务时期没有这一项，失败下一个 tick 就重投，于是十秒就能把一个 hook
+      # 烧进熔断。设成 0 等于退回那个行为，不建议。
+      GORGE_WEBHOOK_RETRY_BACKOFF_SEC: ${GORGE_WEBHOOK_RETRY_BACKOFF_SEC:-}
+      # 一个已被抢占的 request 隔多久才允许另一次尝试接手（秒，默认 30）。它只回答
+      # 「抢到这行的进程死了」这一个问题：正常结束的投递会写回结果并离开队列。
+      # 低于 GORGE_WEBHOOK_DELIVERY_TIMEOUT 时服务端会自动抬到与它相等 —— 租约比一次
+      # 投递还短，等于把 claim 要防的重复投递又放回来了。
+      GORGE_WEBHOOK_CLAIM_LEASE_SEC: ${GORGE_WEBHOOK_CLAIM_LEASE_SEC:-}
+    # 与其余五个服务同理刻意不声明 ports：本服务连 phorge 都不调用它，只有排障时才需要
+    # 宿主入口。要直连时用 docker-compose.override.yml 另加回环映射：
+    #   services:
+    #     gorge-webhook:
+    #       ports:
+    #         - "127.0.0.1:8160:8160"
+    #
+    # 健康探针探 /readyz（能连上 {namespace}_herald 库），与 gorge-file-storage 一致：
+    # 连不上库就等于一条都投不出去，而那个状态从 Herald 界面上看和「服务慢了一拍」完全
+    # 一样（request 都停在蓝色的 Queued 图标上），必须有个地方能看出来。
+    #
+    # **但下面 phorge 段刻意没有用 service_healthy 等它**，这一点和 gorge-file-storage
+    # 相反，理由是首次启动会死锁：{namespace}_herald 这个库是 phorge 容器里的
+    # bin/storage upgrade 建的，而本服务的就绪条件正是 ping 到这个库。让 phorge 等它健康
+    # 就成了「phorge 等服务、服务等只有 phorge 能建的库」。
+    # 所以首次启动时本容器会有一段 unhealthy 的窗口，直到 phorge 跑完 storage upgrade，
+    # 这是预期的，不是故障。同另外五个服务用 busybox 的 wget：镜像基于 alpine，没有 curl。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8160/readyz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # 给已存在的 phorge 服务补充：对六个 Gorge 服务的依赖 + 若干配置用环境变量。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
   # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
   # 两个依赖仍然保留），不会整体替换。
@@ -450,12 +567,39 @@ services:
       # 「服务不可达」。
       gorge-search:
         condition: service_healthy
-      # 等 gorge-file-storage 就绪再起 phorge，理由与前几条都不同：这一条是**功能性**
-      # 的。文件存储引擎在每次上传、每次读取缩略图时都被调用，站点起来之后立刻就会用
-      # 到它；而且这里探的是 /readyz 而不是 /healthz（见上面那一段），所以这条依赖表达
-      # 的是「有一个能写的后端」而不只是「进程活着」。
+      # gorge-file-storage 与下面的 gorge-webhook 是六条依赖里仅有的两条用
+      # service_started 而不是 service_healthy 的，而这个差别对两者都是**必须**的，
+      # 不是偏好：它们的就绪条件都是能连上一个 {namespace}_xxx 库，而那些库都是
+      # phorge 容器里的 bin/storage upgrade 建的。
+      #
+      # 这一条曾经写的是 service_healthy，那是一个**首次启动必然发生的死锁**：
+      # blob 后端的 DSN 是 {namespace}_file（filestorage.FileDSN()），而 go-sql-driver
+      # 会在握手阶段就把库名发过去，库不存在时 Ping 直接拿到
+      # `Error 1049 (42000): Unknown database 'phabricator_file'`，于是 /readyz 一直 503。
+      # 建这个库的是 phorge 的 bin/storage upgrade，而 phorge 正等在这条依赖上。
+      # db-init 帮不上忙：它只发 GRANT（见 docker/db-grant.sql），一个库都不建。
+      #
+      # 换句话说，gorge 侧 Router.Ready 注释里「ping 数据库是安全的，因为数据库服务器是
+      # 一个独立容器」这句只对了一半 —— 独立的是**服务器**，而 DSN 里带的是**库名**。
+      # 那边刻意不查 file_storageblob 表是对的，只是「不查表」还不够。
+      #
+      # 修在编排这一侧而不是改 gorge 的 /readyz 语义，理由是后者会把一个真实有用的信号
+      # 换掉：blob 后端在库建出来之前**确实**写不进去，这正是 /readyz 该报的。而这个中间
+      # 状态本来就有兜底 —— 写入按 priority 下沉到本地磁盘后端（见上面 healthcheck 那段），
+      # 所以 phorge 不必等它。代价只是首次启动时这个容器会有一段 unhealthy 的窗口，
+      # 直到 phorge 跑完 storage upgrade，与下面 gorge-webhook 的情况完全一样。
       gorge-file-storage:
-        condition: service_healthy
+        condition: service_started
+      # gorge-webhook 同理，成因一模一样，只是库名是 {namespace}_herald：
+      # 用 service_healthy 等它，首次启动就死锁在「phorge 等服务、服务等只有 phorge
+      # 能建的库」上。
+      #
+      # 那还留这条依赖做什么？为了顺序：让 gorge-webhook 先于 phorge 被创建，
+      # entrypoint.sh 写 gorge.webhook.uri 时投递的接手方已经在跑，中间不会有一段
+      # 「PHP 已经不发、Go 还没起」的空窗（那段时间里的 request 不会丢，会堆在
+      # queued 里等服务起来，但没必要制造它）。
+      gorge-webhook:
+        condition: service_started
     environment:
       # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
       # 守卫式生成块**之外**，所以改 .env 重启容器就生效，不必删 local.json。
@@ -548,6 +692,22 @@ services:
       # PhabricatorGorgeFileStorageSetupCheck 也会把这个中间状态报出来。
       GORGE_FILE_URI: ${GORGE_FILE_URI:-http://gorge-file-storage:8100}
       GORGE_FILE_TOKEN: ${GORGE_FILE_TOKEN:-}
+      # --- 下面两项由 entrypoint.sh 写进 gorge.webhook.uri / gorge.webhook.token ---
+      # 形式上和 gorge.file.* 一样是两个标量配置项，语义上却是六个服务里唯一一个
+      # **接管开关**：phorge 侧读到 gorge.webhook.uri 非空（且 phabricator.silent 未开）
+      # 就不再给 HeraldWebhookWorker 派任务，投递整个交给 gorge-webhook 容器直接读写
+      # 队列表。所以这里填的地址是「谁接管了」的声明，而不是「往哪儿发请求」——
+      # PHP 侧真正会去访问这个地址的只有 Config 页面的 setup check。
+      #
+      # 由此 GORGE_FILE_URI 那种「配了不等于生效」在这里变成了反过来的一条：
+      # **这一项没写进去、而 gorge-webhook 容器在跑，webhook 就会被发两次**（phd 一次、
+      # Go 一次）。两边是一对，删一个就把另一个也删掉。
+      #
+      # 它同时是整段 webhook 配置的总开关：留空时 entrypoint.sh 整段跳过，
+      # gorge.webhook.uri 一个字都不动，投递留在 phd 手里。
+      # 结尾不要带斜杠：setup check 按 {uri}/healthz、{uri}/readyz 拼接。
+      GORGE_WEBHOOK_URI: ${GORGE_WEBHOOK_URI:-http://gorge-webhook:8160}
+      GORGE_WEBHOOK_TOKEN: ${GORGE_WEBHOOK_TOKEN:-}
 
 # 本叠加文件引入的唯一一个卷。顶层 volumes 与基础 docker-compose.yml 里的那三个
 # （phorge-db / phorge-conf / phorge-repo）合并，不会替换它们。
