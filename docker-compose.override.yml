@@ -1,0 +1,52 @@
+services:
+  # 把容器 MySQL 的 3306 暴露到宿主回环，供宿主机上裸跑的 gorge-file-storage /
+  # gorge-webhook 反向连库（这两个是六个域里唯二有状态、要连 phorge 库的服务）。
+  mysql:
+    ports:
+      - "127.0.0.1:3306:3306"
+
+  # 给容器里的 phorge 叠加：
+  #   1. extra_hosts —— 让 host.docker.internal 在容器内解析到宿主机，phorge 才能
+  #      访问宿主机上裸跑的六个 gorge 服务（不构建 gorge 容器的联调路径）。
+  #   2. 六个域的 GORGE_* 配置项 —— 基础 docker-compose.yml 里没有这些变量（它们本
+  #      来定义在 docker-compose.gorge.yml 叠加文件里，但那会拉起 gorge 容器，与
+  #      「不构建容器」冲突），所以在这里手工补。entrypoint.sh 第 2 步每次启动幂等
+  #      用 bin/config set 下发它们，改动后重启容器即生效，不必删 local.json。
+  phorge:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # --- render 高亮（宿主 :8140）---
+      GORGE_RENDER_URI: "http://host.docker.internal:8140"
+      GORGE_RENDER_TOKEN: "${GORGE_RENDER_TOKEN:-}"
+
+      # --- notification 通知 ---
+      # admin 由 phorge 容器内 PHP 访问，走 host.docker.internal 回宿主；
+      # client 由用户浏览器访问，必须填浏览器可达地址（127.0.0.1），不能是
+      # host.docker.internal —— 浏览器解析不了它。两条记录的 host:port 必须不同。
+      GORGE_NOTIFICATION_ADMIN_HOST: "host.docker.internal"
+      GORGE_NOTIFICATION_ADMIN_PORT: "22281"
+      GORGE_NOTIFICATION_CLIENT_HOST: "127.0.0.1"
+      GORGE_NOTIFICATION_CLIENT_PORT: "22280"
+
+      # --- mailer 发信（宿主 :8110）---
+      GORGE_MAILER_URI: "http://host.docker.internal:8110"
+      GORGE_MAILER_TOKEN: "${GORGE_MAILER_TOKEN:-}"
+
+      # --- search 检索（host/port/protocol 三件套，宿主 :8120）---
+      GORGE_SEARCH_HOST: "host.docker.internal"
+      GORGE_SEARCH_PORT: "8120"
+      GORGE_SEARCH_PROTOCOL: "http"
+      GORGE_SEARCH_TOKEN: "${GORGE_SEARCH_TOKEN:-}"
+
+      # --- file-storage 文件存储（宿主 :8100）---
+      GORGE_FILE_URI: "http://host.docker.internal:8100"
+      GORGE_FILE_TOKEN: "${GORGE_FILE_TOKEN:-}"
+
+      # --- webhook 投递（宿主 :8160）---
+      # 写进去 = 交接开关：phorge 读到它非空就停止用 phd 投递，交给 gorge-webhook。
+      # 因此它必须与宿主机上的 gorge-webhook 服务「同进同退」：只起服务不写这里，或
+      # 只写这里不起服务，都会导致每个 webhook 被发两次 / 一次都不发。暂不联调
+      # webhook 时，删掉下面两行并且不要启动 gorge-webhook。
+      GORGE_WEBHOOK_URI: "http://host.docker.internal:8160"
+      GORGE_WEBHOOK_TOKEN: "${GORGE_WEBHOOK_TOKEN:-}"

@@ -64,7 +64,13 @@ final class PhabricatorMailGorgeAdapter
       $options,
       array(
         'uri' => 'string',
-        'token' => 'optional string',
+        // 'string|null' rather than 'optional string': newDefaultOptions()
+        // below seeds 'token' with null, and that default is merged into the
+        // options before validation, so the key is always present. 'optional
+        // string' permits an absent key but rejects a present null, which
+        // fails every entry that omits a token. This mirrors the SMTP
+        // adapter, which declares its nullable options the same way.
+        'token' => 'string|null',
         'timeout' => 'optional int',
         'supports-message-id' => 'optional bool',
       ));
