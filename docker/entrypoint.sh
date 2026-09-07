@@ -5,7 +5,8 @@
 # 流程:
 #   1. 守卫式生成本地配置 conf/local/local.json（已存在则不覆盖）
 #   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_NOTIFICATION_* 通知 /
-#                                 GORGE_MAILER_* 发信 / GORGE_SEARCH_* 全文检索)
+#                                 GORGE_MAILER_* 发信 / GORGE_SEARCH_* 全文检索 /
+#                                 GORGE_FILE_* 文件存储)
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
 #   4. 升级/初始化数据库 schema  (PHORGE_AUTO_UPGRADE)
 #   5. 以 www-data 启动守护进程  (PHORGE_START_PHD)
@@ -105,11 +106,11 @@ gorge_config_set() {
         chown www-data:www-data "$CONF_FILE" || true
         chmod 0640 "$CONF_FILE" || true
     else
-        # 不让它拖垮容器：高亮是可回退的功能，配置缺失时 Phorge 用内置高亮器。
-        # 最常见的失败是这两个配置项还没在
-        # PhabricatorSyntaxHighlightingConfigOptions 里声明（或类映射未重新生成），
-        # 此时 bin/config 报 "Configuration key is unknown"。
-        echo "[entrypoint] 警告: 写入 $gorge_key 失败，Gorge 高亮可能不生效。" >&2
+        # 不让它拖垮容器：这些配置项对应的都是可回退的功能（配不上就退回 Phorge 自带
+        # 的实现）。最常见的失败是配置项还没在对应的
+        # PhabricatorApplicationConfigOptions 子类里声明、或类映射未重新生成，此时
+        # bin/config 报 "Configuration key is unknown"。
+        echo "[entrypoint] 警告: 写入 $gorge_key 失败，对应的 Gorge 功能可能不生效。" >&2
     fi
 
     return 0
@@ -554,6 +555,37 @@ if [ -n "${GORGE_SEARCH_HOST:-}" ]; then
     # 索引。首次启用要手工跑 init 与全量重建，命令见 DOCKER.md。
 else
     echo "[entrypoint] 未设置 GORGE_SEARCH_HOST，跳过 Gorge 检索配置。"
+fi
+
+# 文件存储回到最简单的那一类：gorge.file.uri 与 gorge.file.token 都是标量配置项，
+# 整项归 Gorge 所有，所以走现成的 gorge_config_set 就够了 —— 不需要 --stdin，也不需要
+# 像 cluster.mailers / cluster.search 那样先读出来再合并。
+#
+# 但要说清楚它和高亮那段的一个区别：写进去**不等于生效**。文件存储引擎靠
+# PhutilClassMapQuery 自动发现，gorge.file.uri 一写上，PhabricatorGorgeFileStorageEngine
+# 就变成「可写」并进入引擎列表；可是 Phorge 原生的 blob 引擎 priority 是 1、比它的 2
+# 更小，仍然先拿到每一个文件。于是新文件按大小散落在两套引擎里，**既不生效也不报错**。
+# 第二步是关掉原生引擎（storage.mysql-engine.max-size 设 0、清空 storage.local-disk.path
+# 与 storage.s3.bucket），命令与理由见 DOCKER.md「用 Gorge 做文件存储」。
+#
+# 这一步刻意**不在这里做**，与高亮的「切引擎」是同一个道理：它是一个有数据后果的决定
+# （决定新文件落到哪儿），应该由操作者显式执行，这样「服务在跑但先不接」和一条命令回滚
+# 都成立。Config 页面上的 PhabricatorGorgeFileStorageSetupCheck 会把这个中间状态报出来，
+# 所以它不会一直悄悄地待着。
+#
+# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
+if [ -n "${GORGE_FILE_URI:-}" ] || [ -n "${GORGE_FILE_TOKEN:-}" ]; then
+    echo "[entrypoint] 下发 Gorge 文件存储配置 ..."
+    gorge_config_set 'gorge.file.uri' "${GORGE_FILE_URI:-}"
+    gorge_config_set 'gorge.file.token' "${GORGE_FILE_TOKEN:-}"
+    # 与前几段同样不在这里探 gorge-file-storage 的 /readyz：叠加编排里 phorge 对它的
+    # depends_on 用的就是 service_healthy，而那个探针探的正是 /readyz，所以到这里它
+    # 已经就绪过了，再等一次是冗余的。
+    #
+    # 也刻意不在这里做任何数据迁移或存量校验：引擎标识是**按文件**存在库里的，已存文件
+    # 仍由当初写它的引擎读取，所以接上这个服务是一次增量切换，没有要搬的数据。
+else
+    echo "[entrypoint] 未设置 GORGE_FILE_URI，跳过 Gorge 文件存储配置。"
 fi
 
 # ----- 3. 等待数据库就绪 -----

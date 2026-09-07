@@ -205,6 +205,39 @@ final class PhabricatorFilesConfigOptions
             "Set this to a valid Amazon S3 bucket to store files there. You ".
             "must also configure S3 access keys in the 'Amazon Web Services' ".
             "group.")),
+      $this->newOption('gorge.file.uri', 'string', null)
+        ->setLocked(true)
+        ->setSummary(pht('Base URI of the Gorge file storage service.'))
+        ->setDescription(
+          pht(
+            'Base URI of the Gorge file storage service, a standalone '.
+            'service which stores file data in MySQL, on local disk or in an '.
+            'S3-compatible object store, and chooses between them on its own '.
+            'side.'.
+            "\n\n".
+            'Setting this option makes the `%s` storage engine writable; it '.
+            'does not make it win. Engines are selected by priority and this '.
+            'one has a higher priority number than the MySQL engine, so new '.
+            'files keep going to MySQL until you also set `%s` to `0` and '.
+            'clear `%s` and `%s`. Files which are already stored elsewhere '.
+            'are unaffected either way: the engine which wrote a file is '.
+            'recorded on the file.'.
+            "\n\n".
+            'Do not include a trailing slash: the service routes exactly, '.
+            'and a doubled slash produces an "ERR_NOT_FOUND" error instead '.
+            'of a file.',
+            'gorge',
+            'storage.mysql-engine.max-size',
+            'storage.local-disk.path',
+            'storage.s3.bucket'))
+        ->addExample('http://gorge-file-storage:8100', pht('Compose service')),
+      $this->newOption('gorge.file.token', 'string', null)
+        ->setHidden(true)
+        ->setDescription(
+          pht(
+            'Service token for the Gorge file storage service, sent with '.
+            'each request in an "X-Service-Token" header. Leave this empty '.
+            'if the service is configured without a token.')),
      $this->newOption('files.enable-imagemagick', 'bool', false)
        ->setBoolOptions(
          array(

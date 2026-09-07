@@ -983,6 +983,288 @@ MySQL 全文检索不需要重建索引就能立刻回来：Ferret 索引由一�
 
 想留一条随时可切的回退路径而不是每次手工改配置，用 `GORGE_SEARCH_KEEP_MYSQL=1`（见上）。
 
+## 用 Gorge 做文件存储（可选）
+
+Phorge 把上传的文件（附件、头像、粘贴的图片、Diffusion 里的二进制 blob）交给一个
+**存储引擎**，引擎决定字节实际落在哪儿。自带的三个是 MySQL blob（`type: blob`，
+默认只收 1MB 以内）、本地磁盘（默认关闭）和 Amazon S3（`PhabricatorS3FileStorageEngine`，
+把 AWS 请求构造全写在 PHP 里）。默认状态下所有文件都挤在 MySQL 里，超过
+`storage.mysql-engine.max-size`（默认 1,000,000 字节）的上传直接失败——另外两个引擎都
+没配，没人肯收，而分块引擎也帮不上：它要求候选引擎至少能收下一个 4MB 的块。
+
+`docker-compose.gorge.yml` 里的 `gorge-file-storage` 服务换一种分法：Go 服务持有三个
+后端（MySQL blob / 本地磁盘 / S3-兼容对象存储）、按 priority 排序并在写入失败时依次
+下沉，Phorge 侧只剩一个薄引擎把字节送上 HTTP。Phorge 这边新增的是三个类，走的是原生
+扩展点，没有改任何核心代码：
+
+- [`PhabricatorGorgeFileStorageEngine`](src/applications/files/engine/PhabricatorGorgeFileStorageEngine.php)
+  —— 存储引擎本体，`identifier` 是 `gorge`、`priority` 是 `2`；
+- [`PhabricatorGorgeFileStorageClient`](src/infrastructure/cluster/PhabricatorGorgeFileStorageClient.php)
+  —— HTTP 客户端，与另外三个客户端共用
+  [`PhabricatorGorgeServiceClient`](src/infrastructure/cluster/PhabricatorGorgeServiceClient.php)
+  的请求构建与 `{data, error}` 信封解析；
+- [`PhabricatorGorgeFileStorageSetupCheck`](src/applications/config/check/PhabricatorGorgeFileStorageSetupCheck.php)
+  —— Config 页面上的三个 setup issue（不可达 / 没后端 / 配了但没接上）。
+
+镜像 `ghcr.io/soulteary/gorge-file-storage` 与另外四个服务同源同标签（共用
+`GORGE_IMAGE_TAG`），容器内固定监听 `8100`，路由 `/api/file/*`。拉不到时本地构建一条
+命令即可。
+
+### 启用是两步，只做第一步等于白做且不报错
+
+**这是接这个服务时唯一真正容易踩的地方，请读完再动手。**
+
+存储引擎靠 `PhutilClassMapQuery` 自动发现，所以 `gorge.file.uri`（由 `entrypoint.sh` 从
+`GORGE_FILE_URI` 写入）一配上，`gorge` 引擎立刻变成「可写」并**并列**出现在引擎表里。
+但它不会因此赢：写文件时 Phorge 调
+[`loadStorageEngines($size)`](src/applications/files/engine/PhabricatorFileStorageEngine.php)，
+按 `priority` **从小到大**把文件依次递给能收下它的引擎，而原生 blob 引擎的 `priority`
+是 `1`，比 `gorge` 的 `2` 更小。
+
+默认配置下的实际效果是：
+
+| 文件大小 | 落在哪个引擎 |
+|---------|------------|
+| ≤ 1,000,000 字节 | `blob`（MySQL，`priority` 1） |
+| 1,000,000 字节 ~ 8MB | `gorge`（`priority` 2） |
+| > 8MB | `chunks` 切成 4MB 一块，**每块**再走上面两行的规则 |
+
+也就是说新文件按大小散落在两套引擎里，**既不生效也不报错**——没有告警、没有失败上传，
+Config 页面也不会因为配置本身有问题而变红。所以第二步是把原生引擎关掉：
+
+```bash
+docker compose exec phorge /opt/phorge/phorge/bin/config set storage.mysql-engine.max-size 0
+# 这两项默认就是空的，配过才需要清
+docker compose exec phorge /opt/phorge/phorge/bin/config set storage.local-disk.path null
+docker compose exec phorge /opt/phorge/phorge/bin/config set storage.s3.bucket null
+```
+
+`storage.mysql-engine.max-size` 设 `0` 会让 blob 引擎的 `canWriteFiles()` 返回 false，
+于是它整个退出候选列表，`gorge` 成为 `priority` 最小的可写引擎。
+
+**切换是安全的增量迁移，不需要搬数据。** 引擎标识与 handle 是**按文件**存在
+`file` 表里的（`storageEngine` / `storageHandle` 两列），读文件时用的是当初写它的那个
+引擎，与 `loadStorageEngines()` 现在会怎么选完全无关。所以：
+
+- 已存文件继续由原来的引擎读取，一个字节都不用动；
+- 回滚就是把上面三项设回去，之后新文件重新落 MySQL，而这期间落在 `gorge` 里的文件
+  仍然读得出来（只要服务还在）。反过来说，**接过这个服务之后就不要再随便删掉那个
+  service 段**，否则那些文件读不出来，而且报的是「读取失败」而不是「配置不对」。
+
+这个「配了但没接上」的中间状态由 `PhabricatorGorgeFileStorageSetupCheck` 在 Config 页面
+报成 **"Gorge File Storage Service Not In Use"**，issue 正文里会列出具体哪些引擎排在
+前面。它存在的唯一理由就是让上面这段沉默变得可见。
+
+### 为什么这个引擎刻意保留 8MB 上限
+
+`PhabricatorFileStorageEngine` 的基类默认 `getFilesizeLimit()` 是 8MB，本引擎**刻意不
+覆盖**它。声明「无上限」看着更像是进步——服务端确实是流式写盘 / 流式传 S3，不需要把整个
+文件读进内存——但那样会静默关掉 Phorge 自己的分块能力：
+[`PhabricatorChunkedFileStorageEngine`](src/applications/files/engine/PhabricatorChunkedFileStorageEngine.php)
+只在**没有**任何非分块引擎肯收这个文件时才接手，一个什么都收的引擎意味着 2GB 的上传会
+变成一个 2GB 的请求体。代价是可续传上传、两侧有界的内存占用，以及服务端一个有界的
+请求体上限（`16M`）。
+
+保留默认值之后，大文件由分块引擎切成 4MB 一块、每块再走这个引擎存进去，服务端照样持有
+全部数据，只是一次一个有界请求。8MB 这个数字不是随便取的：分块引擎要求候选引擎的
+`getFilesizeLimit()` 不小于它的 4MB 块大小，所以往上调是安全的，调到 4MB 以下会让这个
+引擎失去存放分块的资格。
+
+> 旧的 `phorge/src/applications/files/engine/PhabricatorGoFileStorageEngine.php` 把
+> `hasFilesizeLimit()` 写成了 `false`，正是上面说的那个反面例子。
+
+### 用叠加文件启动
+
+```bash
+# 1) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前四个服务相同，
+#    只是 --build-arg SERVICE=gorge-file-storage；--build 同样不能省）
+#    这一步不需要先配后端：本地磁盘后端默认就开着，数据落在新增的 phorge-files 卷里。
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+
+# 2) 确认配置写进去了，且服务已就绪
+docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.file.uri
+docker compose exec gorge-file-storage wget -qO- http://127.0.0.1:8100/readyz
+
+# 3) 关掉原生引擎（这一步不能省，原因见上）
+docker compose exec phorge /opt/phorge/phorge/bin/config set storage.mysql-engine.max-size 0
+
+# 4) 确认引擎表里的顺序对了
+#    界面上：Applications → Files → Storage Engines。那张表按 priority 排序、可写的
+#    高亮，做完第 3 步后 gorge 应该是第一个高亮行，blob 的 Writable 变成 No。
+docker compose exec phorge /opt/phorge/phorge/bin/files engines
+
+# 5) 从 Web UI 上传一个小于 8MB 的文件和一个大于 8MB 的文件，在文件详情页（/F123）
+#    看 "Storage Engine" 那一行：前者应该是 gorge，后者应该是 chunks（它的每一块
+#    再落到 gorge）。
+```
+
+叠加文件做了三件事：
+
+- 新增 `gorge-file-storage` 服务，**不声明 `ports`**：它只被 `phorge` 通过 Compose 默认
+  网络的服务名调用。这里比另外几个更要紧——不鉴权时它是一个能读、写、删站点全部文件的
+  开放接口，而读一个文件只需要一个 handle。
+- 新增 `phorge-files` 卷挂到它的 `/var/gorge/files`，给本地磁盘后端用。**它装的是文件
+  数据本体**，Phorge 侧只存 handle，所以 `docker compose down -v` 会把那些文件真的删掉。
+- 给 `phorge` 补上 `depends_on: gorge-file-storage: service_healthy`，并注入
+  `GORGE_FILE_URI` / `GORGE_FILE_TOKEN`。
+
+它是五个 Gorge 服务里唯一**有状态**、也是唯一 `depends_on` `mysql` 与 `db-init` 的一个：
+blob 后端要连库，而 `db-init` 才是给普通账号补上 `phabricator_%` 整组库权限的那一步。
+这条依赖链不会成环——`phorge` 等它、它等 `mysql`、`mysql` 不等任何人。
+
+它的容器健康检查也与 `gorge-mailer` / `gorge-search` 相反，探的是 `/readyz` 而不是
+`/healthz`：
+
+```text
+/healthz   进程活着、HTTP 栈在服务
+/readyz    至少一个后端已启用（blob 启用时还要能 Ping 通库）  -> 容器健康检查探它
+```
+
+两个理由。一是本服务**开箱就有一个可写后端**，所以「healthy 但一个后端都没配」这个会把
+站点堵在启动阶段的状态默认不存在，而发信与检索必须你自己提供后端。二是存不了文件比发不
+出信可见得多：上传、头像、粘贴图片全都当场失败。代价写在这儿：**如果你把三个后端全部
+关掉，`phorge` 就会一直等在 `depends_on` 上**；真要这么做就把探针换成 `/healthz`，或者
+把整段 `gorge-file-storage` 与 `phorge` 段里对应的 `depends_on` / 环境变量一起删掉。
+
+`/readyz` 刻意**不检查** `file_storageblob` 表是否存在。那张表是 `phorge` 的
+`bin/storage upgrade` 建的，而 `phorge` 又在 `depends_on` 上等这个探针——检查表就成了死锁。
+所以全新数据卷首次启动时 blob 后端会短暂写不进去，此时写入按 priority 下沉到本地磁盘，
+不会让上传整体失败。
+
+几个细节值得留意：
+
+- **字节不走 JSON 信封。** 写和读文件的请求体 / 响应体都是原始
+  `application/octet-stream`；只有「写完返回的 handle」「删除结果」「引擎列表」仍是
+  `{data, error}`。失败**永远**是信封，包括读取路由，所以 PHP 侧
+  `PhabricatorGorgeServiceClient::parseBinaryResponse()` 是**按状态码分支**而不是按 body
+  是否为空——0 字节文件的 200 空 body 是合法的，按 body 判断会让这些文件读不出来。
+- **handle 是复合的。** 引擎存进 `file` 表的是 `engine/handle`（例如
+  `local-disk/ab/cd/8f1e...`），因为后端是服务端在写入时挑的，读的时候必须再说一遍。
+  按第一个斜杠切开：后端标识（`blob` / `local-disk` / `amazon-s3`）里没有斜杠，handle 里
+  有。**这三个标识、handle 格式与 S3 的 key 前缀改了都是静默失效**——存量文件读不出来
+  且不报错。
+- **MIME 类型刻意不发给服务端。** 到达引擎的字节已经过了 storage format，加密过的文件
+  并不是那个类型的数据。Phorge 自带的 S3 引擎也不设 Content-Type。
+- **不指定 `engine`。** 让服务端按 priority 自己挑，并在写失败时下沉到下一个后端——这和
+  `loadStorageEngines()` 在 PHP 侧做的是同一件事。从这边钉死一个后端，只会把一次可恢复
+  的写入失败变成一次失败的上传。
+
+相关可选变量（全部见 `.env.example`）：
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `GORGE_FILE_URI` | `http://gorge-file-storage:8100` | Phorge 访问文件存储服务的基础地址，同时是整段配置的总开关（留空即整段跳过）。**结尾不要带斜杠**。 |
+| `GORGE_FILE_TOKEN` | 空 | 服务间共享密钥，请求头 `X-Service-Token`，两端必须一致。留空表示不鉴权；能往这个口投请求就等于能读写删站点上的任意文件。 |
+| `GORGE_FILE_NAMESPACE` | `phabricator` | blob 后端的库名前缀，**必须**与 Phorge 的 `storage.default-namespace` 一致。留空不等于用默认值（服务端默认是 `phorge`）。填错的表现是静默下沉到本地磁盘。 |
+| `GORGE_FILE_MYSQL_BLOB_MAX_SIZE` | `1048576` | 单个 blob 的字节上限，超过就交给下一个后端。设 `0` 表示不启用 blob 后端。 |
+| `GORGE_FILE_LOCAL_DISK_PATH` | `/var/gorge/files` | 本地磁盘后端在容器内的路径，对应 `phorge-files` 卷。留空表示不启用。 |
+| `GORGE_FILE_S3_BUCKET` / `_S3_REGION` / `_S3_ENDPOINT` / `_S3_ACCESS_KEY` / `_S3_SECRET_KEY` | 空 | S3 / MinIO 后端，五项**全部**填齐才启用。 |
+
+服务端也认无前缀的旧名（`STORAGE_NAMESPACE`、`LOCAL_DISK_PATH`、`S3_BUCKET` …），那是留给
+独立服务时期旧部署的兜底。新部署一律用上面这组带前缀的名字：`.env` 是整套编排共用的，
+无前缀的名字会和数据库那一节的 `MYSQL_*` 挤在同一个命名空间里。
+
+MySQL 的连库参数**不在这一组里**：blob 后端的 `GORGE_FILE_MYSQL_USER` / `_PASS` 在叠加
+文件里直接接到最上面「环境变量」那一节的 `MYSQL_USER` / `MYSQL_PASSWORD` 上，host 与 port
+写成字面量 `mysql:3306`。不另开一组是刻意的——连库参数填错的表现不是报错，而是静默下沉到
+本地磁盘，所以宁可让它与 `phorge` 自己用的那一份共享同一个来源。
+
+### 本地构建镜像
+
+与另外四个服务是同一个 Dockerfile、同一个上下文，只换 `SERVICE` 构建参数：
+
+```bash
+docker build -t ghcr.io/soulteary/gorge-file-storage:latest \
+  --build-arg SERVICE=gorge-file-storage \
+  --build-arg PORT=8100 \
+  /path/to/gorge/go
+```
+
+`PORT` 只喂给镜像**内置**的那条 HEALTHCHECK，不影响服务实际监听哪个口（那个由
+`GORGE_LISTEN_ADDR` 决定）。它的默认值是 gorge-render 的 8140，漏了这个参数，镜像自带的
+探针就会一直去敲并不存在的 8140，`docker run` 直接跑这个镜像会显示 unhealthy。本编排里
+看不出来——上面的 service 段显式写了自己的 healthcheck，正好盖掉它。
+
+同样地，`-t` 打出的标签要和编排里 `image:` 完全一致；设了 `GORGE_IMAGE_TAG` 就跟着改。
+
+### 验证与排障
+
+```bash
+# 界面上：Applications → Files → Storage Engines 是这一节最有用的一页。表按 priority
+# 排序、可写的引擎高亮，所以「gorge 是不是第一个可写引擎」一眼就能看出来。
+# 单个文件落在哪个引擎，看它的详情页 /F123 上的 "Storage Engine" 一行。
+
+# 服务端认得哪些后端、各自的 priority 与大小上限（要带 token，留空时可省掉 --header）
+docker compose exec gorge-file-storage wget -qO- \
+  --header="X-Service-Token: ${GORGE_FILE_TOKEN}" \
+  http://127.0.0.1:8100/api/file/engines
+
+# Phorge 侧认得哪些引擎（顺序即 priority 顺序）
+docker compose exec phorge /opt/phorge/phorge/bin/files engines
+
+# 可选：把存量文件也搬过来。切换本身不需要这一步（见上），需要的是「想让老文件不再
+# 依赖 MySQL / 老磁盘」的时候。先用 --dry-run 看清会动哪些。
+docker compose exec phorge /opt/phorge/phorge/bin/files migrate \
+  --engine gorge --all --dry-run
+```
+
+- **Config 页面报 "Gorge File Storage Service Not In Use"**：配了 URI 但原生引擎还排在
+  前面，新文件按大小散落在两套引擎里。这不是故障，是启用只做了一半，做第二步即可（见上）。
+- **Config 页面报 "Gorge File Storage Service Not Ready"**：服务活着但一个后端都没启用，
+  或 blob 启用了却 Ping 不通库。issue 正文里带着服务端给出的原因。注意本编排里容器健康
+  检查探的就是 `/readyz`，所以这条在 Compose 环境下更可能是在你手工关掉后端之后才出现。
+- **Config 页面报 "Gorge File Storage Service Unreachable"**：容器没起来，或
+  `GORGE_FILE_URI` 指向了这台服务器够不着的地址。注意在 `phorge` 容器里 `127.0.0.1` 指的
+  是 phorge 自己。
+- **上传大文件失败，但小文件正常**：先看 `/api/file/engines` 返回的 `sizeLimit`，再看
+  服务端固定 `16M` 的请求体上限。正常路径下单个请求不会超过 ~8MB（大文件由分块引擎切成
+  4MB 一块），所以撞上 `16M` 说明有人把这个引擎的 `getFilesizeLimit()` 调大了。
+- **日志里出现 404 `ERR_NOT_FOUND`**：几乎总是 `GORGE_FILE_URI` 结尾多了一个斜杠。
+- **401 `ERR_UNAUTHORIZED`**：两端 token 不一致。只改 `.env` 后必须重启**两个**容器。
+- **503 `ERR_NO_ENGINE`**：服务端一个可写后端都没有，与 `/readyz` 报的是同一件事。
+- **图片全变成破图 / 下载全部失败，但上传正常**：读不出来的是**存量**文件。在文件详情页
+  看它的 "Storage Engine"——如果服务端改过后端标识、handle 格式或 S3 key 前缀，存量文件
+  就是这个表现：读不出来且不报配置错误。
+- **`bin/config set gorge.file.uri` 报 "Configuration key is unknown"**：类映射没重新
+  生成，`src/__phutil_library_map__.php` 里缺新增的三个类。改过 PHP 源码后别忘了
+  `docker compose ... up -d --build`——源码是烤进镜像的。启动日志里
+  `[entrypoint] 下发 Gorge 文件存储配置` 那几行会打出具体原因。
+
+**关于 MySQL blob 的双写，有一件事必须知道：** 服务端的 blob 后端写的是
+`{GORGE_FILE_NAMESPACE}_file.file_storageblob`，和 Phorge 原生的
+`PhabricatorMySQLFileStorageEngine` 是**同一张表**，同样用自增 id 当 handle。按上面第二步
+关掉原生引擎之后不会真的并发双写（原生引擎已经不可写了），但两点仍然成立：
+
+- `bin/storage` 的维护操作、`bin/remove destroy` 与垃圾回收仍然会碰这些行，它们不知道行
+  是谁写的；
+- 全新数据卷首次启动时，`bin/storage upgrade` 还没建出这张表，此时 blob 写入会失败并
+  按 priority 下沉到本地磁盘。这是**刻意**的设计（服务端的 `/readyz` 因此不检查表是否
+  存在，否则会与 `phorge` 的 `depends_on` 死锁），表现是最早那几个文件落在
+  `local-disk` 而不是 `blob`，之后自动恢复正常，不需要处理。
+
+### 回滚
+
+```bash
+# 1) 把原生引擎打开，让新文件重新落 MySQL
+docker compose exec phorge /opt/phorge/phorge/bin/config set \
+  storage.mysql-engine.max-size 1000000
+
+# 2) 停掉下发：把 GORGE_FILE_URI 从 .env 里清空（或整段删掉），
+#    这样 entrypoint.sh 下次启动就不再写 gorge.file.uri。
+#    注意：清空它**不会**把已经写进 local.json 的值撤掉，得手工清。
+docker compose exec phorge /opt/phorge/phorge/bin/config set gorge.file.uri null
+
+# 3) 确认生效
+docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.file.uri
+```
+
+**但先想清楚第 2 步。** 清掉 `gorge.file.uri` 会让引擎不再可写，这正是回滚想要的；可是
+它同时让引擎**读不出**已经落在服务里的文件——客户端构造时就会因为缺少配置抛异常。所以
+只有在确认没有文件落在 `gorge` 引擎里（或者你不在乎它们）时才做第 2 步。想留一条随时可
+切、又不丢读取能力的回退路径，只做第 1 步就够了：新文件回到 MySQL，存量的仍从服务里读。
+
+同理，服务容器与 `phorge-files` 卷在这之后**不能删**，除非确认里面没有还被引用的文件。
+
 ## 参考
 
 - [安装指南](src/docs/user/installation_guide.diviner)

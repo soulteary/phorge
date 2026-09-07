@@ -4,13 +4,20 @@
  * Shared HTTP plumbing for the Gorge service clients.
  *
  * Gorge is a set of Go services which each front one piece of infrastructure
- * -- source highlighting, mail delivery, fulltext search -- behind an HTTP
- * API. They are separate binaries reached at separate endpoints, but they all
- * answer the same way: requests are authenticated with an "X-Service-Token"
- * header, and every "/api/" route returns a "{data, error}" envelope in which
- * exactly one of the two keys is populated. The envelope is present on error
- * responses too, so callers should read it before falling back to the HTTP
- * status.
+ * -- source highlighting, mail delivery, fulltext search, file storage --
+ * behind an HTTP API. They are separate binaries reached at separate
+ * endpoints, but they all answer the same way: requests are authenticated
+ * with an "X-Service-Token" header, and an "/api/" route which succeeds with
+ * a value returns a "{data, error}" envelope in which exactly one of the two
+ * keys is populated. Failures always answer with that envelope, on every
+ * route, so callers should read it before falling back to the HTTP status.
+ *
+ * The one exception to the envelope is the file storage service, which
+ * carries file bytes as an "application/octet-stream" body rather than
+ * encoding them into JSON. That is a success-path exception only: those
+ * routes still fail with an envelope, which is why
+ * @{method:parseBinaryResponse} branches on the status code and hands
+ * anything but a 200 to @{method:parseResponseEnvelope}.
  *
  * That common shape is what lives here: building an authenticated request and
  * unwrapping the envelope. Subclasses add the business methods for their own
@@ -160,6 +167,67 @@ abstract class PhabricatorGorgeServiceClient extends Phobject {
     $future->setData(phutil_json_encode($body));
 
     return $future;
+  }
+
+
+  /**
+   * Build an authenticated POST request carrying a raw body.
+   *
+   * File bytes are sent as-is instead of being encoded into JSON, which keeps
+   * the request the same size as the file and keeps neither side holding a
+   * base64 copy of it. Everything the service needs in order to place the
+   * bytes travels in the query string of $uri, so this method only has to
+   * attach the body.
+   *
+   * @param string $uri Absolute URI to request.
+   * @param string $data Raw bytes to send as the request body.
+   * @return HTTPSFuture Unresolved request.
+   */
+  protected function newBinaryRequestFuture($uri, $data) {
+    return $this->newRequestFuture($uri)
+      ->setMethod('POST')
+      ->addHeader('Content-Type', 'application/octet-stream')
+      ->setData($data);
+  }
+
+
+  /**
+   * Read the body of a response which carries raw bytes on success.
+   *
+   * Branching on the status code rather than on whether the body is empty is
+   * the whole point of this method: an empty 200 is the correct response for
+   * reading a zero-byte file, and treating an empty body as a failure would
+   * make those files unreadable. A response which is not a 200 still carries
+   * an envelope, so it is handed to @{method:parseResponseEnvelope} and
+   * reported the same way as every other failure.
+   *
+   * @param string $uri URI which was requested, for diagnostics.
+   * @param wild $result Raw result of an @{class@arcanist:HTTPSFuture}.
+   * @return string Raw response body.
+   */
+  protected static function parseBinaryResponse($uri, $result) {
+    list($status, $body) = $result;
+
+    // Check for an HTTP status before checking for an exception: every
+    // response status is an Exception subclass, including the ones which
+    // describe a perfectly good 200.
+    if ($status instanceof HTTPFutureHTTPResponseStatus) {
+      if ($status->getStatusCode() == 200) {
+        return (string)$body;
+      }
+    }
+
+    static::parseResponseEnvelope($uri, $result);
+
+    // Not reachable in practice: the envelope parser throws for every status
+    // which is not a 200, which is every status which reaches this line. It
+    // is here so that a future change to that method can not turn a failed
+    // read into a silently empty file.
+    throw new Exception(
+      pht(
+        'The %s returned an unexpected response for "%s".',
+        static::getServiceName(),
+        $uri));
   }
 
 

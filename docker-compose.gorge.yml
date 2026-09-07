@@ -11,21 +11,27 @@
 #     跑的就是**旧版 entrypoint**：notification.servers 与 cluster.mailers 整段不下发，
 #     而且**不报任何错误**——没有告警、没有失败退出，Config 页面看着也正常。唯一的线索
 #     是启动日志里少了那几行 `[entrypoint] 下发 Gorge ... 配置`。
-#   - 本文件起四个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
+#   - 本文件起五个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
 #     段里对应的 depends_on 与环境变量一起删掉：
 #       gorge-render        基于 Chroma 的语法高亮服务，替换 Phorge 内置高亮器
 #       gorge-notification  与 Aphlict 线兼容的实时通知服务，替换 Node.js 版 aphlict
 #       gorge-mailer        统一 7 种后端的发信服务，作为 cluster.mailers 的一个条目
 #       gorge-search        统一 ES / Meilisearch 的全文检索服务，作为 cluster.search
 #                           的一个条目（type: gorge）
-#   - 四者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
+#       gorge-file-storage  统一 MySQL blob / 本地磁盘 / S3 的文件存储服务，作为一个
+#                           PhabricatorFileStorageEngine（identifier: gorge）
+#   - 五者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
 #     （gorge.render.uri / gorge.render.token、notification.servers、cluster.mailers、
-#     cluster.search / gorge.search.token）。
+#     cluster.search / gorge.search.token、gorge.file.uri / gorge.file.token）。
 #   - 高亮起来之后还有**一步手工切换**：Phorge 默认仍用内置高亮引擎，需要把
 #     syntax-highlighter.engine 切到 PhabricatorGorgeSyntaxHighlighterEngine
 #     并清一次缓存。命令与原因见 DOCKER.md「用 Gorge 做语法高亮」。
 #     切换独立于编排，是为了让「服务在跑但先不接」和一条命令回滚都成立。
 #     通知与发信**没有**这一步：notification.servers 与 cluster.mailers 一写进去就生效。
+#     **文件存储也有这一步**，而且形式最阴：写了 gorge.file.uri 之后引擎就会自动被
+#     发现，但 Phorge 原生的 blob 引擎 priority 更小、仍然先拿到每个文件，于是新文件
+#     按大小散落在两套引擎里，**既不生效也不报错**。第二步是把原生引擎关掉，见
+#     DOCKER.md「用 Gorge 做文件存储」。
 #   - 所有可调项都有内置默认值，不写 .env 也能直接跑。**发信与检索是两个例外**，
 #     它们都需要你自己提供一个后端：
 #       gorge-mailer 必须至少配一个投递后端（MAILER_TYPE + 对应的 SMTP_* / MAILER_*），
@@ -34,6 +40,12 @@
 #         的实例），否则它的 /readyz 不通、每一次检索都会失败。另外它还有**一步手工
 #         建索引**（bin/search init + index --all --force），见 DOCKER.md
 #         「用 Gorge 做全文搜索」。
+#     gorge-file-storage 不属于这两个例外：本文件默认给它挂了一个数据卷并启用本地磁盘
+#     后端，所以开箱就有一个可写的后端、/readyz 直接通。
+#   - gorge-file-storage 是五个服务里唯一**有状态**的一个，也是唯一依赖 mysql 与
+#     db-init 的一个：它的 blob 后端写的是 phorge 自己那张 file_storageblob 表，
+#     本地磁盘后端写的是下面新增的 phorge-files 卷。删这个 service 段之前先确认没有
+#     文件已经落在它里面 —— 引擎标识是按文件存在库里的，服务没了那些文件就读不出来。
 # ------------------------------------------------------------------
 
 services:
@@ -296,7 +308,118 @@ services:
       start_period: 5s
       retries: 3
 
-  # 给已存在的 phorge 服务补充：对四个 Gorge 服务的依赖 + 若干配置用环境变量。
+  # gorge-file-storage 把 MySQL blob、本地磁盘、S3/MinIO 收在一个 HTTP API
+  # （路由 /api/file/*）后面，容器内固定监听 8100。Phorge 侧它是一个自动被发现的
+  # PhabricatorFileStorageEngine（identifier: gorge），见
+  # src/applications/files/engine/PhabricatorGorgeFileStorageEngine.php。
+  #
+  # 与另外四个服务有两处结构性不同：
+  #   - **它有状态。** 本地磁盘后端写下面新增的 phorge-files 卷；blob 后端写的是
+  #     phorge 自己的 {namespace}_file.file_storageblob 表，所以它是这五个服务里唯一
+  #     需要 depends_on mysql 与 db-init 的。
+  #   - **字节不走 JSON 信封。** 写/读文件的请求体与响应体都是原始
+  #     application/octet-stream，只有元数据、删除与引擎列表仍是 {data, error}。
+  #     PHP 侧对应 PhabricatorGorgeServiceClient::parseBinaryResponse()。
+  gorge-file-storage:
+    image: ghcr.io/soulteary/gorge-file-storage:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-file-storage
+    restart: unless-stopped
+    depends_on:
+      # blob 后端要连库，所以等 mysql 健康。注意这**不会**和 phorge 形成环：
+      # phorge 等 gorge-file-storage 健康、gorge-file-storage 等 mysql 健康，
+      # 而 mysql 不等任何人。
+      mysql:
+        condition: service_healthy
+      # 也要等 db-init：它给普通账号补的是 `phabricator_%` 整组库的权限，没这一步
+      # blob 后端连得上 mysql 却看不到 phabricator_file 库。
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      # 监听地址固定 :8100。下面的健康检查与 phorge 的 GORGE_FILE_URI 默认值都按它
+      # 写死，改这里要三处一起改。
+      GORGE_LISTEN_ADDR: ":8100"
+      # 服务间共享密钥，PHP 客户端以请求头 X-Service-Token 发送，两端必须同值，所以
+      # 这里和 phorge 都取同一个 GORGE_FILE_TOKEN。留空表示服务端不鉴权：
+      # gorge-file-storage 不对宿主暴露端口、只在 compose 内网可达，因此默认留空。
+      # 但它和 gorge-mailer 一样值得设一个值——能往这个口投请求就等于能读写、删除
+      # 站点上的任意文件（读只需要一个 handle）。
+      GORGE_SERVICE_TOKEN: ${GORGE_FILE_TOKEN:-}
+
+      # 下面每一项都用 GORGE_FILE_ 前缀，这是服务读配置时的**首选名**。无前缀的旧名
+      # （MYSQL_HOST / STORAGE_NAMESPACE / S3_BUCKET …）服务也认，但那是留给独立服务
+      # 时期旧部署的兜底，不该在新编排里用——这个容器里 MYSQL_* 若按无前缀写，就和
+      # phorge 容器里同名却指别的东西的那一组撞了名字（见 docker/entrypoint.sh 的
+      # db_ready）。
+      #
+      # --- blob 后端（MySQL）---
+      # 连库参数取的仍是基础编排里那一组 .env 变量，不另开一份：写错的表现不是报错，
+      # 而是 blob 写入失败后**静默下沉**到本地磁盘后端，事后只能靠 file 表里的引擎标识
+      # 才看得出来。与 phorge 段一样把 host/port 写成字面量，它们是 compose 内部拓扑。
+      GORGE_FILE_MYSQL_HOST: mysql
+      GORGE_FILE_MYSQL_PORT: "3306"
+      GORGE_FILE_MYSQL_USER: ${MYSQL_USER:-phorge}
+      GORGE_FILE_MYSQL_PASS: ${MYSQL_PASSWORD:-phorge}
+      # 库名前缀，必须与 Phorge 的 storage.default-namespace 一致 —— blob 后端写的
+      # 是 {namespace}_file.file_storageblob，也就是 Phorge 原生 MySQL 引擎用的**同一张
+      # 表**。Phorge 该配置项的默认值是 phabricator，本编排没有改它，所以这里也是
+      # phabricator。**这一项必须显式给值**：服务端的默认值是 phorge，靠默认值会连到
+      # 一个不存在的库，而表现同样是静默下沉到本地磁盘。
+      GORGE_FILE_NAMESPACE: ${GORGE_FILE_NAMESPACE:-phabricator}
+      # 单个 blob 的大小上限（字节），超过就交给下一个后端。默认 1MiB，与 Phorge 的
+      # storage.mysql-engine.max-size 默认值一致。设成 0 表示不启用 blob 后端。
+      GORGE_FILE_MYSQL_BLOB_MAX_SIZE: ${GORGE_FILE_MYSQL_BLOB_MAX_SIZE:-1048576}
+
+      # --- 本地磁盘后端 ---
+      # 容器内路径，对应下面挂的 phorge-files 卷。这是**默认就可写的那个后端**，也是
+      # gorge-file-storage 不像 gorge-mailer / gorge-search 那样需要你先配后端的原因。
+      # 留空表示不启用本地磁盘后端；这么做之前请确认 blob 或 S3 至少有一个可写，否则
+      # /readyz 不通，而下面 phorge 的 depends_on 探的正是 /readyz。
+      GORGE_FILE_LOCAL_DISK_PATH: ${GORGE_FILE_LOCAL_DISK_PATH:-/var/gorge/files}
+
+      # --- S3 / MinIO 后端 ---
+      # 五项**全部**非空才启用，缺一项就整组不注册（半套配置会造出一个每次请求都失败的
+      # 客户端）。注意 S3 后端的 key 前缀格式是**存量文件的读取依据**，改了以后旧文件
+      # 读不出来且不报错，所以别在有数据之后调整它。
+      GORGE_FILE_S3_BUCKET: ${GORGE_FILE_S3_BUCKET:-}
+      GORGE_FILE_S3_REGION: ${GORGE_FILE_S3_REGION:-}
+      GORGE_FILE_S3_ENDPOINT: ${GORGE_FILE_S3_ENDPOINT:-}
+      GORGE_FILE_S3_ACCESS_KEY: ${GORGE_FILE_S3_ACCESS_KEY:-}
+      GORGE_FILE_S3_SECRET_KEY: ${GORGE_FILE_S3_SECRET_KEY:-}
+    volumes:
+      # 本地磁盘后端的数据目录。这是本叠加文件引入的唯一一个卷，删掉它等于删掉所有
+      # 落在 local-disk 后端的文件——Phorge 侧只存 handle，数据全在这儿。
+      - phorge-files:/var/gorge/files
+    # 与另外四个服务同理刻意不声明 ports：只有 phorge 通过 compose 默认网络的服务名
+    # gorge-file-storage 调用它。不鉴权时它是一个能读写删站点全部文件的开放接口。
+    # 需要在宿主上直连排障时，用 docker-compose.override.yml 另加回环映射：
+    #   services:
+    #     gorge-file-storage:
+    #       ports:
+    #         - "127.0.0.1:8100:8100"
+    #
+    # 健康探针探 /readyz（至少一个后端已启用，且 blob 启用时能 Ping 通库），这与
+    # gorge-mailer / gorge-search 刻意只探 /healthz 的做法相反，两个理由：
+    #   - 本服务开箱就有一个可写后端（上面的本地磁盘），所以「healthy 但没后端」这个
+    #     会把站点堵在启动阶段的状态默认不存在；而发信与检索必须你自己提供后端。
+    #   - 存不了文件比发不出信可见得多：上传、头像、粘贴图片全都当场失败。让站点等它
+    #     就绪，比让用户去踩，更接近你想要的行为。
+    #   代价是：如果你把上面三个后端全部关掉，phorge 就会一直等在 depends_on 上。真要
+    #   这么做（比如临时停用文件写入）就把这里的探针换成 /healthz，或者干脆把整段
+    #   gorge-file-storage 与 phorge 段里对应的 depends_on / 环境变量一起删掉。
+    #
+    # readyz 刻意**不检查** file_storageblob 表是否存在，那是 phorge 的
+    # bin/storage upgrade 建的，而 phorge 又在 depends_on 上等这个探针——检查表就成了
+    # 死锁。所以首次启动时 blob 后端会短暂写不进去，此时写入按 priority 下沉到本地
+    # 磁盘，不会让上传整体失败。
+    # 同另外四个服务用 busybox 的 wget：镜像基于 alpine，没有 curl。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8100/readyz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # 给已存在的 phorge 服务补充：对五个 Gorge 服务的依赖 + 若干配置用环境变量。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
   # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
   # 两个依赖仍然保留），不会整体替换。
@@ -326,6 +449,12 @@ services:
       # 收益是启动日志的顺序，以及 PhabricatorGorgeSearchSetupCheck 不会白报一次
       # 「服务不可达」。
       gorge-search:
+        condition: service_healthy
+      # 等 gorge-file-storage 就绪再起 phorge，理由与前几条都不同：这一条是**功能性**
+      # 的。文件存储引擎在每次上传、每次读取缩略图时都被调用，站点起来之后立刻就会用
+      # 到它；而且这里探的是 /readyz 而不是 /healthz（见上面那一段），所以这条依赖表达
+      # 的是「有一个能写的后端」而不只是「进程活着」。
+      gorge-file-storage:
         condition: service_healthy
     environment:
       # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
@@ -404,3 +533,26 @@ services:
       # 不确定性。要彻底回滚就把 GORGE_SEARCH_HOST 留空并手工把 cluster.search 设回
       # 只有 mysql 一条，命令见 DOCKER.md。
       GORGE_SEARCH_KEEP_MYSQL: ${GORGE_SEARCH_KEEP_MYSQL:-0}
+      # --- 下面两项由 entrypoint.sh 写进 gorge.file.uri / gorge.file.token ---
+      # 与 gorge.render.* 一样是两个标量配置项（不是 cluster.* 那种列表条目），所以
+      # entrypoint.sh 走的是现成的 gorge_config_set。
+      #
+      # GORGE_FILE_URI 是「整段文件存储配置的总开关」：它为空时 entrypoint.sh 整段
+      # 跳过，gorge.file.uri 一个字都不动，引擎也就不会被认为可写。
+      # 结尾不要带斜杠：客户端按 {uri}/api/file/blob 拼接，双斜杠会被
+      # gorge-file-storage 判成路由不匹配，返回 404 ERR_NOT_FOUND。
+      #
+      # 再强调一次：写了它只是让引擎**可写**，不代表新文件会落到这儿。原生 blob 引擎
+      # priority 更小、仍然先拿到每个文件。第二步（关掉原生引擎）见 DOCKER.md
+      # 「用 Gorge 做文件存储」，Config 页面上的
+      # PhabricatorGorgeFileStorageSetupCheck 也会把这个中间状态报出来。
+      GORGE_FILE_URI: ${GORGE_FILE_URI:-http://gorge-file-storage:8100}
+      GORGE_FILE_TOKEN: ${GORGE_FILE_TOKEN:-}
+
+# 本叠加文件引入的唯一一个卷。顶层 volumes 与基础 docker-compose.yml 里的那三个
+# （phorge-db / phorge-conf / phorge-repo）合并，不会替换它们。
+#
+# 命名跟着基础文件用连字符。它装的是落在 local-disk 后端的文件数据本体，Phorge 侧
+# 只存 handle，所以 `docker compose down -v` 会连它一起删掉，那些文件就永久没了。
+volumes:
+  phorge-files:
