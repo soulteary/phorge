@@ -144,6 +144,20 @@ EOTEXT
               ),
             ),
           )),
+      $this->newOption('gorge.search.token', 'string', null)
+        ->setHidden(true)
+        ->setDescription(
+          pht(
+            'Service token for the Gorge search service, sent with each '.
+            'request in an "X-Service-Token" header. Leave this empty if '.
+            'the service is configured without a token.'.
+            "\n\n".
+            'This is a global option rather than an option of the `%s` entry '.
+            'which selects the service, because those entries are validated '.
+            'against a fixed key table with nowhere to put a token. An '.
+            'install which points several entries at several services has to '.
+            'give all of them the same token.',
+            'cluster.search')),
     );
   }
 

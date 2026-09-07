@@ -11,21 +11,29 @@
 #     跑的就是**旧版 entrypoint**：notification.servers 与 cluster.mailers 整段不下发，
 #     而且**不报任何错误**——没有告警、没有失败退出，Config 页面看着也正常。唯一的线索
 #     是启动日志里少了那几行 `[entrypoint] 下发 Gorge ... 配置`。
-#   - 本文件起三个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
+#   - 本文件起四个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
 #     段里对应的 depends_on 与环境变量一起删掉：
 #       gorge-render        基于 Chroma 的语法高亮服务，替换 Phorge 内置高亮器
 #       gorge-notification  与 Aphlict 线兼容的实时通知服务，替换 Node.js 版 aphlict
 #       gorge-mailer        统一 7 种后端的发信服务，作为 cluster.mailers 的一个条目
-#   - 三者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
-#     （gorge.render.uri / gorge.render.token、notification.servers、cluster.mailers）。
+#       gorge-search        统一 ES / Meilisearch 的全文检索服务，作为 cluster.search
+#                           的一个条目（type: gorge）
+#   - 四者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
+#     （gorge.render.uri / gorge.render.token、notification.servers、cluster.mailers、
+#     cluster.search / gorge.search.token）。
 #   - 高亮起来之后还有**一步手工切换**：Phorge 默认仍用内置高亮引擎，需要把
 #     syntax-highlighter.engine 切到 PhabricatorGorgeSyntaxHighlighterEngine
 #     并清一次缓存。命令与原因见 DOCKER.md「用 Gorge 做语法高亮」。
 #     切换独立于编排，是为了让「服务在跑但先不接」和一条命令回滚都成立。
 #     通知与发信**没有**这一步：notification.servers 与 cluster.mailers 一写进去就生效。
-#   - 所有可调项都有内置默认值，不写 .env 也能直接跑。**发信是唯一的例外**：
-#     gorge-mailer 必须至少配一个投递后端（MAILER_TYPE + 对应的 SMTP_* / MAILER_*），
-#     否则它的 /readyz 不通、每一封信都会失败。见 DOCKER.md「用 Gorge 发送邮件」。
+#   - 所有可调项都有内置默认值，不写 .env 也能直接跑。**发信与检索是两个例外**，
+#     它们都需要你自己提供一个后端：
+#       gorge-mailer 必须至少配一个投递后端（MAILER_TYPE + 对应的 SMTP_* / MAILER_*），
+#         否则它的 /readyz 不通、每一封信都会失败。见 DOCKER.md「用 Gorge 发送邮件」。
+#       gorge-search 必须至少配一个搜索后端（ES_HOST 或 MEILI_HOST，指向本编排之外
+#         的实例），否则它的 /readyz 不通、每一次检索都会失败。另外它还有**一步手工
+#         建索引**（bin/search init + index --all --force），见 DOCKER.md
+#         「用 Gorge 做全文搜索」。
 # ------------------------------------------------------------------
 
 services:
@@ -213,7 +221,82 @@ services:
       start_period: 5s
       retries: 3
 
-  # 给已存在的 phorge 服务补充：对三个 Gorge 服务的依赖 + 若干配置用环境变量。
+  # gorge-search 把 Elasticsearch 与 Meilisearch 收在一个 HTTP API（路由
+  # /api/search/*）后面，容器内固定监听 8120。Phorge 侧它是 cluster.search 里的一个
+  # type: "gorge" 条目，由 entrypoint.sh 合并写入，走的是原生的
+  # PhabricatorFulltextStorageEngine 扩展点（PhabricatorGorgeFulltextStorageEngine）。
+  #
+  # 与 gorge-mailer 一样、和另外两个服务不同：**它需要你自己提供一个搜索后端**。
+  # 下面的 ES_* / MEILI_* 全部留空时服务照样起得来、/healthz 也照样 200，但 /readyz
+  # 报 503，每一次检索都失败。
+  #
+  # 后端实例本身刻意**不**放进这个编排：Elasticsearch 的内存与磁盘参数、数据卷、版本
+  # 升级都该由你按自己的规模来定，塞一个默认配置进来只会给人一个不该用在生产上的默认
+  # 值。把 ES_HOST 指向你自己的实例即可；同一台 Docker 宿主上跑的实例可以用
+  # host.docker.internal 或把它接进同一个网络。
+  gorge-search:
+    image: ghcr.io/soulteary/gorge-search:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-search
+    restart: unless-stopped
+    environment:
+      # 监听地址固定 :8120。下面的健康检查与 phorge 的 GORGE_SEARCH_PORT 默认值都按
+      # 它写死，改这里要三处一起改。
+      GORGE_LISTEN_ADDR: ":8120"
+      # 服务间共享密钥，PHP 客户端以请求头 X-Service-Token 发送，两端必须同值，所以
+      # 这里和 phorge 都取同一个 GORGE_SEARCH_TOKEN。留空表示服务端不鉴权：
+      # gorge-search 不对宿主暴露端口、只在 compose 内网可达，因此默认留空。
+      GORGE_SERVICE_TOKEN: ${GORGE_SEARCH_TOKEN:-}
+
+      # --- 搜索后端（二选一的配置方式）---
+      # 方式一：GORGE_SEARCH_BACKENDS 直接给一段 JSON 列表，可以一次配多个后端，服务端
+      # 按角色分派并在失败时依次回退。配了它，下面那组单后端变量就整体不生效。
+      # 例（写在 .env 里要用单行）：
+      #   GORGE_SEARCH_BACKENDS=[{"type":"elasticsearch","hosts":["es-1:9200","es-2:9200"],
+      #     "index":"phabricator","version":7,"roles":["read","write"]}]
+      GORGE_SEARCH_BACKENDS: ${GORGE_SEARCH_BACKENDS:-}
+      # 方式二（够用且好读）：选一种引擎，再填它需要的那几项。
+      # 取值 elasticsearch（留空同义）或 meilisearch。
+      GORGE_SEARCH_ENGINE: ${GORGE_SEARCH_ENGINE:-}
+      # elasticsearch 用。ES_HOST 可以是逗号分隔的多台，服务端自己维护主机健康表。
+      # 留空表示一个后端都没配，服务会起来但 /readyz 报 503。
+      ES_HOST: ${ES_HOST:-}
+      ES_PROTOCOL: ${ES_PROTOCOL:-}
+      # 索引名。默认 phabricator，与 Phorge 的 Elasticsearch 引擎保持一致，所以从
+      # 那个引擎切过来可以复用同一个索引（但 mapping 变了，仍要重建，见 DOCKER.md）。
+      ES_INDEX: ${ES_INDEX:-}
+      # 主版本号，决定 mapping 用哪一套写法。留空取服务端默认值 5；ES 7 / 8 都走
+      # >= 5 的那条分支，填准确的值只是为了日志与将来的分支好读。
+      ES_VERSION: ${ES_VERSION:-}
+      ES_TIMEOUT: ${ES_TIMEOUT:-}
+      # meilisearch 用
+      MEILI_HOST: ${MEILI_HOST:-}
+      MEILI_PROTOCOL: ${MEILI_PROTOCOL:-}
+      MEILI_INDEX: ${MEILI_INDEX:-}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-}
+      MEILI_TIMEOUT: ${MEILI_TIMEOUT:-}
+    # 与 gorge-render / gorge-mailer 同理刻意不声明 ports：只有 phorge 通过 compose
+    # 默认网络的服务名 gorge-search 调用它，不需要宿主入口。而且不鉴权时它是一个能读
+    # 写整个索引的开放接口。
+    # 需要在宿主上直连排障时，用 docker-compose.override.yml 另加回环映射：
+    #   services:
+    #     gorge-search:
+    #       ports:
+    #         - "127.0.0.1:8120:8120"
+    # 健康探针刻意打 /healthz（进程存活）而不是 /readyz（至少配了一个可读后端），
+    # 理由与 gorge-mailer 完全相同：下面 phorge 的 depends_on 用的是 service_healthy，
+    # 若这里探 /readyz，一个还没配后端的 gorge-search 会把整个站点堵在启动阶段——
+    # 搜不了不该等同于站点起不来。「服务活着但一个后端都没配」这个状态由
+    # PhabricatorGorgeSearchSetupCheck 在 Config 页面报出来。
+    # 注意 gorge 仓库自己的 deploy/compose 里探的是 /readyz，那里没有别的服务依赖它。
+    # 同样用 busybox 的 wget：镜像基于 alpine，没有 curl。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8120/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # 给已存在的 phorge 服务补充：对四个 Gorge 服务的依赖 + 若干配置用环境变量。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
   # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
   # 两个依赖仍然保留），不会整体替换。
@@ -237,6 +320,12 @@ services:
       # 能写成功。真正的收益是启动日志的顺序：服务先健康，phorge 再写配置、再跑
       # setup check，于是「配置写好了但服务没起来」这种一次性误报不会出现。
       gorge-mailer:
+        condition: service_healthy
+      # 等 gorge-search 健康再起 phorge，理由与 gorge-mailer 那条相同：entrypoint.sh
+      # 用 bin/config set 写 cluster.search 时校验不联网，所以严格说不等也能写成功；
+      # 收益是启动日志的顺序，以及 PhabricatorGorgeSearchSetupCheck 不会白报一次
+      # 「服务不可达」。
+      gorge-search:
         condition: service_healthy
     environment:
       # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
@@ -293,3 +382,25 @@ services:
       # provider 通常会覆盖。谎报支持的表现是邮件会话在客户端里串不起来，很难察觉，
       # 所以按你实际使用的后端来开。
       GORGE_MAILER_SUPPORTS_MESSAGE_ID: ${GORGE_MAILER_SUPPORTS_MESSAGE_ID:-0}
+      # --- 下面几项由 entrypoint.sh 拼成 cluster.search 里的一个条目 ---
+      # 这里给的是 host / port / protocol 三件套而不是一个 URI，因为 cluster.search
+      # 条目的 hosts 就是这么描述的（与 notification.servers 同理，与 render / mailer
+      # 的 URI 不同）。
+      #
+      # GORGE_SEARCH_HOST 同时也是「整段检索配置的总开关」：它为空时 entrypoint.sh
+      # 整段跳过，cluster.search 一个字都不动。
+      GORGE_SEARCH_HOST: ${GORGE_SEARCH_HOST:-gorge-search}
+      GORGE_SEARCH_PORT: ${GORGE_SEARCH_PORT:-8120}
+      GORGE_SEARCH_PROTOCOL: ${GORGE_SEARCH_PROTOCOL:-http}
+      GORGE_SEARCH_TOKEN: ${GORGE_SEARCH_TOKEN:-}
+      # 是否在 cluster.search 里保留一条 mysql 条目（取值 1 开启）。
+      #
+      # 默认关：写进 cluster.search 的就只有 gorge 一条，MySQL（Ferret）全文检索不再
+      # 被读到。开启后列表变成 [gorge, mysql] —— 两条都可写意味着**双写双索引**，读则
+      # 按列表顺序优先走 gorge、gorge 出错时回落到 MySQL。
+      #
+      # 这是为回滚准备的：Ferret 索引由一个扩展始终维护、不受 cluster.search 影响，
+      # 所以这条 mysql 条目几乎没有额外开销，代价是「这次检索到底由谁回答」多了一层
+      # 不确定性。要彻底回滚就把 GORGE_SEARCH_HOST 留空并手工把 cluster.search 设回
+      # 只有 mysql 一条，命令见 DOCKER.md。
+      GORGE_SEARCH_KEEP_MYSQL: ${GORGE_SEARCH_KEEP_MYSQL:-0}

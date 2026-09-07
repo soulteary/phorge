@@ -7,10 +7,10 @@
  * Mailgun and Postmark with one HTTP API, picking a backend by priority and
  * failing over between them.
  *
- * Requests are authenticated with an "X-Service-Token" header, and every
- * "/api/" route answers with a "{data, error}" envelope in which exactly one
- * of the two keys is populated. The envelope is present on error responses
- * too, so callers should read it before falling back to the HTTP status.
+ * Request building and envelope parsing live in
+ * @{class:PhabricatorGorgeServiceClient}, which all of the Gorge clients
+ * share. This class adds the two mailer routes, serializes messages onto the
+ * wire, and raises "ERR_PERMANENT_FAILURE" as a mail-specific exception.
  *
  * Unlike @{class:PhabricatorGorgeRenderClient}, this client reads nothing
  * from @{class:PhabricatorEnv}: the endpoint and token are injected by
@@ -18,16 +18,30 @@
  * `cluster.mailers` entry which selected it. That keeps mailer configuration
  * in one place and lets an install point two entries at two services.
  */
-final class PhabricatorGorgeMailerClient extends Phobject {
+final class PhabricatorGorgeMailerClient
+  extends PhabricatorGorgeServiceClient {
 
   const PATH_SEND = '/api/mailer/send';
   const PATH_MAILERS = '/api/mailer/mailers';
 
-  private $baseURI;
-  private $token;
-  private $timeout = 30;
+  protected static function getServiceName() {
+    return pht('Gorge mailer service');
+  }
+
+  protected function getDefaultTimeout() {
+    // A slow name lookup is bounded only by this timeout and can not be made
+    // to fail sooner; see the note in
+    // @{method:PhabricatorGorgeServiceClient::newRequestFuture}. It matters
+    // less here than it does for a page render, since a stalled send blocks
+    // one queue worker, but it is why the timeout is a required part of the
+    // mailer options rather than something to leave generous.
+    return 30;
+  }
 
   public function setURI($uri) {
+    // Name the mailer option rather than a configuration key: this endpoint
+    // comes from a `cluster.mailers` entry, so that is where an install has
+    // to go to fix it.
     if (!phutil_nonempty_string($uri)) {
       throw new Exception(
         pht(
@@ -36,25 +50,7 @@ final class PhabricatorGorgeMailerClient extends Phobject {
           'uri'));
     }
 
-    // Trailing slashes matter: the service routes exactly, and a doubled
-    // slash produces an "ERR_NOT_FOUND" envelope rather than a delivery.
-    $this->baseURI = rtrim($uri, '/');
-
-    return $this;
-  }
-
-  public function getURI() {
-    return $this->baseURI;
-  }
-
-  public function setToken($token) {
-    if (!phutil_nonempty_string($token)) {
-      $token = null;
-    }
-
-    $this->token = $token;
-
-    return $this;
+    return parent::setURI($uri);
   }
 
   public function setTimeout($timeout) {
@@ -66,13 +62,7 @@ final class PhabricatorGorgeMailerClient extends Phobject {
       return $this;
     }
 
-    $this->timeout = (int)$timeout;
-
-    return $this;
-  }
-
-  public function getTimeout() {
-    return $this->timeout;
+    return parent::setTimeout((int)$timeout);
   }
 
 
@@ -98,15 +88,11 @@ final class PhabricatorGorgeMailerClient extends Phobject {
       $body['mailerKeys'] = array_values($mailer_keys);
     }
 
-    $uri = $this->baseURI.self::PATH_SEND;
+    $uri = $this->getURI().self::PATH_SEND;
 
-    $future = $this->newRequestFuture($uri)
-      ->setMethod('POST')
-      ->addHeader('Content-Type', 'application/json');
+    $future = $this->newJSONRequestFuture($uri, $body);
 
-    $future->setData(phutil_json_encode($body));
-
-    return $this->parseResponseEnvelope($uri, $future->resolve());
+    return self::parseResponseEnvelope($uri, $future->resolve());
   }
 
 
@@ -118,11 +104,11 @@ final class PhabricatorGorgeMailerClient extends Phobject {
    * @return wild Backend list reported by the service.
    */
   public function getMailers() {
-    $uri = $this->baseURI.self::PATH_MAILERS;
+    $uri = $this->getURI().self::PATH_MAILERS;
 
     $result = $this->newRequestFuture($uri)->resolve();
 
-    return $this->parseResponseEnvelope($uri, $result);
+    return self::parseResponseEnvelope($uri, $result);
   }
 
 
@@ -225,116 +211,32 @@ final class PhabricatorGorgeMailerClient extends Phobject {
 
 
   /**
-   * Unwrap the "{data, error}" envelope of an API response.
+   * Raise "ERR_PERMANENT_FAILURE" as a mail-specific exception.
    *
-   * This mirrors @{method:PhabricatorGorgeRenderClient::parseResponseEnvelope}
-   * -- read the envelope first and only fall back to the status code when it
-   * can not be parsed, because "error.code" says far more than the status --
-   * with one addition: "ERR_PERMANENT_FAILURE" is raised as a
-   * @{class:PhabricatorMetaMTAPermanentFailureException} rather than a plain
-   * exception.
-   *
-   * That distinction is the whole point of the code. Anything else leaves the
-   * message queued for another attempt, which is right for a refused
-   * connection or a throttled provider but wrong for a malformed recipient:
-   * the service has told us that retrying will fail the same way forever, and
-   * this exception is how the mail stack is told to stop and mark the message
-   * as failed.
+   * That distinction is the whole point of the code. Anything else -- every
+   * other envelope error, and every transport failure, which the shared
+   * parser raises as a plain exception -- leaves the message queued for
+   * another attempt, which is right for a refused connection or a throttled
+   * provider but wrong for a malformed recipient: the service has told us
+   * that retrying will fail the same way forever, and this exception is how
+   * the mail stack is told to stop and mark the message as failed.
    *
    * @param string $uri URI which was requested, for diagnostics.
-   * @param wild $result Raw result of an @{class@arcanist:HTTPSFuture}.
-   * @return wild The "data" section of the envelope.
+   * @param string $code Error code from the envelope.
+   * @param string $message Error message from the envelope.
+   * @return Exception Exception to raise.
    */
-  private function parseResponseEnvelope($uri, $result) {
-    list($status, $body) = $result;
-
-    $status_code = null;
-    if ($status instanceof HTTPFutureHTTPResponseStatus) {
-      $status_code = $status->getStatusCode();
-    } else if ($status instanceof Exception) {
-      // The request never produced a response: connection refused, DNS
-      // failure, timeout, and so on. There is no envelope to read, and none
-      // of these are permanent -- the mail should be tried again later.
-      throw new Exception(
+  protected static function newServiceErrorException($uri, $code, $message) {
+    if ($code === 'ERR_PERMANENT_FAILURE') {
+      return new PhabricatorMetaMTAPermanentFailureException(
         pht(
-          'Request to the Gorge mailer service at "%s" failed: %s',
+          'The Gorge mailer service at "%s" permanently rejected this '.
+          'message: %s',
           $uri,
-          $status->getMessage()));
+          $message));
     }
 
-    $envelope = null;
-    try {
-      $envelope = phutil_json_decode($body);
-    } catch (PhutilJSONParserException $ex) {
-      // Continue: this is reported below, with the status code if we have
-      // one, since the status is the more useful diagnostic in that case.
-    }
-
-    if ($envelope !== null) {
-      $error = idx($envelope, 'error');
-      if ($error) {
-        if (!is_array($error)) {
-          $error = array('message' => $error);
-        }
-
-        $error_code = idx($error, 'code', 'UNKNOWN');
-        $error_message = idx($error, 'message', '');
-
-        if ($error_code === 'ERR_PERMANENT_FAILURE') {
-          throw new PhabricatorMetaMTAPermanentFailureException(
-            pht(
-              'The Gorge mailer service at "%s" permanently rejected this '.
-              'message: %s',
-              $uri,
-              $error_message));
-        }
-
-        throw new Exception(
-          pht(
-            'The Gorge mailer service returned an error for "%s" [%s]: %s',
-            $uri,
-            $error_code,
-            $error_message));
-      }
-    }
-
-    if ($status_code !== null && $status_code != 200) {
-      throw new Exception(
-        pht(
-          'The Gorge mailer service returned HTTP %d for "%s": %s',
-          $status_code,
-          $uri,
-          $body));
-    }
-
-    if ($envelope === null) {
-      throw new Exception(
-        pht(
-          'The Gorge mailer service returned an invalid JSON response '.
-          'for "%s".',
-          $uri));
-    }
-
-    return idx($envelope, 'data', array());
-  }
-
-  private function newRequestFuture($uri) {
-    $future = id(new HTTPSFuture($uri))
-      ->addHeader('Accept', 'application/json')
-      ->setTimeout($this->timeout);
-
-    // See the note in PhabricatorGorgeRenderClient::newRequestFuture(): a slow
-    // name lookup is bounded only by this timeout and can not be made to fail
-    // sooner. It matters less here, since a stalled send blocks one queue
-    // worker rather than a page render, but it is why the timeout is a
-    // required part of the mailer options rather than something to leave
-    // generous.
-
-    if ($this->token !== null) {
-      $future->addHeader('X-Service-Token', $this->token);
-    }
-
-    return $future;
+    return parent::newServiceErrorException($uri, $code, $message);
   }
 
 }

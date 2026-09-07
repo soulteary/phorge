@@ -29,7 +29,8 @@ docker compose up -d --build
 - 启动 MySQL，等待其健康后由一次性任务 `db-init` 为普通库用户补齐
   `phabricator_%` 整组库的授权（见 `docker/db-grant.sql`）。
 - 应用容器 `entrypoint.sh` 依次：**守卫式**生成 `conf/local/local.json`（已存在则保留）
-  → 幂等下发 Gorge 高亮配置（仅在叠加 `docker-compose.gorge.yml` 时有值可写）
+  → 幂等下发 Gorge 服务配置（高亮 / 通知 / 发信 / 检索，仅在叠加
+  `docker-compose.gorge.yml` 时有值可写）
   → 等待数据库就绪 → 执行 `bin/storage upgrade --force` 初始化 schema
   → 以 `www-data` 启动守护进程 `phd` → 启动 Apache。
 
@@ -108,7 +109,8 @@ docker compose up -d --build
   `src/__phutil_library_map__.php` —— 类映射没更新，重建了镜像也一样 `Class not found`。
 
   `docker/entrypoint.sh` 也一样被烤进镜像，但它出问题时**一声不吭**：镜像里若是旧版
-  entrypoint，新增的下发逻辑（比如 `notification.servers`、`cluster.mailers`）整段不存在，
+  entrypoint，新增的下发逻辑（比如 `notification.servers`、`cluster.mailers`、
+  `cluster.search`）整段不存在，
   于是既没有 `DONE Wrote configuration key ...`，也没有任何警告，唯一的线索是启动日志里
   少了 `[entrypoint] 下发 Gorge ... 配置` 那几行。已有镜像时 `up -d` **不会**自动重建，
   所以改过 entrypoint 之后必须带 `--build`——本文、`.env.example` 与两个叠加文件里的启动
@@ -739,6 +741,247 @@ docker compose exec phorge /opt/phorge/phorge/bin/mail show-outbound --id <id>
   `docker compose ... up -d --build`——源码是烤进镜像的。
 - **自己手工配的 mailer 不见了**：不该发生，entrypoint 做的是合并而不是覆盖（见上）。真遇到
   的话看启动日志里 `[entrypoint] 下发 Gorge 发信配置` 那几行，读取失败时它会告警并整段跳过。
+
+## 用 Gorge 做全文搜索（可选）
+
+Phorge 默认的全文检索走 MySQL（`cluster.search` 里那条 `type: mysql` 的条目，实现是
+`PhabricatorFerretFulltextStorageEngine`）。它开箱可用，但对中文基本无效：分词按空格
+和标点切，一整句中文会被当成一个词。上游的解法是配一个 Elasticsearch 集群，用
+`PhabricatorElasticFulltextStorageEngine` 直连——那个引擎把 mapping 与查询 DSL 全写在
+PHP 里，改一个分析器就要改 PHP 代码。
+
+`docker-compose.gorge.yml` 里的 `gorge-search` 服务换一种分法：Go 服务持有
+Elasticsearch / Meilisearch 客户端、mapping 与查询构造（含**内置的 CJK 分析链**），
+Phorge 侧只剩一个薄引擎把文档与查询序列化成 HTTP 请求。Phorge 这边新增的是三个类，走
+的是原生扩展点，没有改任何核心代码：
+
+- [`PhabricatorGorgeFulltextStorageEngine`](src/applications/search/fulltextstorage/PhabricatorGorgeFulltextStorageEngine.php)
+  —— `cluster.search` 里 `type: "gorge"` 对应的引擎；
+- [`PhabricatorGorgeSearchHost`](src/infrastructure/cluster/search/PhabricatorGorgeSearchHost.php)
+  —— 条目里 `hosts` 每一项对应的主机，也负责 Config 页面上那一行状态；
+- [`PhabricatorGorgeSearchClient`](src/infrastructure/cluster/PhabricatorGorgeSearchClient.php)
+  —— HTTP 客户端，与高亮、发信两个客户端共用
+  [`PhabricatorGorgeServiceClient`](src/infrastructure/cluster/PhabricatorGorgeServiceClient.php)
+  的请求构建与 `{data, error}` 信封解析。
+
+镜像 `ghcr.io/soulteary/gorge-search` 与另外三个服务同源同标签（共用 `GORGE_IMAGE_TAG`），
+容器内固定监听 `8120`，路由 `/api/search/*`。拉不到时本地构建一条命令即可。
+
+### 三件和前三个服务都不同的事
+
+**一、后端实例要你自己提供。** 这个编排只起 `gorge-search`，**不起** Elasticsearch。ES 的
+内存、磁盘、数据卷与版本升级都得按自己的规模定，塞一个默认配置进来只会给出一个不该用
+在生产上的默认值。所以 `.env` 里必须把 `ES_HOST`（或 `MEILI_HOST`）指向你已有的实例。
+和发信一样，只填上半组变量时容器起得来、`/healthz` 返回 200、Compose 报 `healthy`，然后
+每一次检索都失败——这个状态由
+[`PhabricatorGorgeSearchSetupCheck`](src/applications/config/check/PhabricatorGorgeSearchSetupCheck.php)
+探 `/readyz` 在 Config 页面报出来。
+
+```text
+/healthz   进程活着、HTTP 栈在服务        -> 容器健康检查探它
+/readyz    至少有一个可读的搜索后端        -> setup check 探它
+```
+
+叠加文件里的 `healthcheck` 因此刻意探 `/healthz`：`phorge` 对它的 `depends_on` 用的是
+`service_healthy`，若探 `/readyz`，一个还没配后端的 `gorge-search` 会把整个站点堵在启动
+阶段，而「搜不了」不该等同于「站点起不来」。（Gorge 仓库自己的 `deploy/compose` 里探的
+是 `/readyz`，那边没有别的服务依赖它。）
+
+**二、必须手工建一次索引。** 配置写进去不等于能搜。第一次启用要跑：
+
+```bash
+docker compose exec phorge /opt/phorge/phorge/bin/search init
+docker compose exec phorge /opt/phorge/phorge/bin/search index --all --force
+```
+
+`init` 创建索引与 mapping（已存在则先删再建），`index --all --force` 把现有对象全部灌进
+去。不跑 `index` 的表现是「搜什么都没有结果」，但页面不报错——索引是空的，不是坏的。
+大库上这一步是**小时级**操作，期间检索结果不完整，建议挑低峰期。
+
+**`bin/search ngrams` 在这个引擎下不适用。** 那条命令属于 MySQL/Ferret 那一侧
+（`PhabricatorSearchNgrams` / `PhabricatorFerretEngine`），是给 MySQL 全文检索补中文能力
+的。切到 gorge 引擎之后中文检索靠的是服务端的 CJK 分析链，跟 ngrams 没有关系；旧文档里
+「跑 ngrams 启用中文搜索」那套说法在这里是误导。
+
+**三、`cluster.search` 是共享列表，但没有 `key` 字段。** `cluster.mailers` 的每个条目有
+`key`，所以 `entrypoint.sh` 能精确地只覆盖自己那一条。`cluster.search` 的条目只有
+`type` / `hosts` / `roles` / `port` / `protocol` / `path` / `version` 这几个键（校验用的是
+一张固定表，多写一个键会被拒绝），于是这里托管的是**所有** `type: gorge` 的条目。想手工
+再配一条指向另一个 gorge 实例的条目，请把 `GORGE_SEARCH_HOST` 留空、整段自己配。其他类型
+的条目（比如你手工配的 `elasticsearch`）连相对顺序一起原样保留。
+
+gorge 条目是**插在列表最前面**的，不是追加。读检索走
+[`PhabricatorSearchService::newResultSet()`](src/infrastructure/cluster/search/PhabricatorSearchService.php)，
+它按列表顺序取第一个可读且成功的服务；`mysql` 条目只要还可读，追加就等于 gorge 永远不
+被读到，症状是「配置全绿、服务健康，但中文检索没有任何变化」。
+
+### mysql 那条留不留
+
+`cluster.search` 的**默认值本身**就是一条 `type: mysql`。这个默认值不在任何配置源里，
+所以 `bin/config get cluster.search` 在没写过的机器上会显示 `local` 与 `database` 都
+`unset`——一旦本地源被写上任何值，那条默认条目就整条消失。
+
+默认（`GORGE_SEARCH_KEEP_MYSQL=0`）就是这个效果：写进去的只有 gorge 一条，MySQL 全文检索
+不再被读到。
+
+`GORGE_SEARCH_KEEP_MYSQL=1` 时列表变成 `[gorge, mysql]`：
+
+- 两条都可写 ⇒ **双写双索引**（不过 Ferret 索引本来就由一个扩展始终维护，与
+  `cluster.search` 无关，所以这一半几乎没有额外开销）；
+- 读按顺序优先走 gorge，**gorge 报错时回落到 MySQL**。
+
+这个开关是给回滚用的，两个方向都幂等：从 `1` 翻回 `0` 会把 mysql 条目摘掉，从 `0` 翻回
+`1` 会把它补上，不依赖它此刻是否还在列表里。代价是开着的时候「这一次检索到底由谁回答」
+多了一层不确定性——gorge 偶发失败时用户会拿到一份质量不同的结果，而页面上看不出来。
+
+### 用叠加文件启动
+
+```bash
+# 1) 在 .env 里指一个搜索后端（这一步不能省，原因见上）
+cat >> .env <<'EOF'
+ES_HOST=es.example.com:9200
+ES_VERSION=7
+EOF
+
+# 2) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前三个服务相同，
+#    只是 --build-arg SERVICE=gorge-search；--build 同样不能省）
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+
+# 3) 确认配置写进去了，且服务已就绪
+docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.search
+docker compose exec gorge-search wget -qO- http://127.0.0.1:8120/readyz
+
+# 4) 建索引并全量灌一次（第一次必须做，大库上是小时级操作）
+docker compose exec phorge /opt/phorge/phorge/bin/search init
+docker compose exec phorge /opt/phorge/phorge/bin/search index --all --force
+```
+
+写进去的条目长这样：
+
+```json
+[
+  {
+    "type": "gorge",
+    "hosts": [
+      {
+        "host": "gorge-search",
+        "port": 8120,
+        "protocol": "http",
+        "roles": {"read": true, "write": true}
+      }
+    ]
+  }
+]
+```
+
+几个细节值得留意：
+
+- **只放一个 gorge 条目、读写都给它。** Phorge 的 `cluster.search` 有 read/write 角色与多
+  条目，`gorge-search` 内部的 `backends` 也有 read/write 角色与主机健康表——这两层语义是
+  重叠的。扇出与 failover 全部交给服务端一层做，否则下一个人会在两层里各配一半，而两层
+  的失败表现完全不同。
+- **`port` 是 JSON 整数**，写成字符串 `"8120"` 会被校验直接判非法，所以那段 JSON 由
+  `php -r` 的 `json_encode` 生成而不是拼字符串。
+- **token 不在条目里，走全局隐藏配置项 `gorge.search.token`。** 这不是「两层配置」：端点
+  只有一个家（条目的 `hosts`），密钥只有一个家（这个配置项）。之所以分开，是因为条目的
+  键表是固定的，没有地方放 token。指向多个服务的多个条目只能共用同一个 token。
+- **`path` 不是索引名。** `cluster.search` 的 `path` 在 Elasticsearch 引擎里表示索引名，
+  在这里表示「服务挂在反代的哪个路径前缀下」，通常留空。索引名在服务端配（`ES_INDEX`）。
+
+相关可选变量（上半组都有默认值，下半组没有，全部见 `.env.example`）：
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `GORGE_SEARCH_HOST` | `gorge-search` | Phorge 访问检索服务的主机名，同时是整段配置的总开关（留空即整段跳过）。 |
+| `GORGE_SEARCH_PORT` | `8120` | 端口。与容器内监听端口绑定，改了要同时改叠加文件里的 `environment` 与 `healthcheck`。 |
+| `GORGE_SEARCH_PROTOCOL` | `http` | `http` 或 `https`。走 compose 内网时保持默认。 |
+| `GORGE_SEARCH_TOKEN` | 空 | 服务间共享密钥，请求头 `X-Service-Token`，两端必须一致。留空表示不鉴权；能往这个口投请求就等于能读写整个索引。 |
+| `GORGE_SEARCH_KEEP_MYSQL` | `0` | 取 `1` 时在 `cluster.search` 里保留一条 `mysql` 条目作为双写与读回退，理由见上。 |
+| `ES_HOST` | 空 | Elasticsearch 地址，可逗号分隔多台。**留空则 `/readyz` 不通。** |
+| `ES_INDEX` / `ES_VERSION` / `ES_PROTOCOL` / `ES_TIMEOUT` | 空（服务端默认 `phabricator` / `5` / `http` / `15`） | 索引名、主版本号、协议与超时。 |
+| `MEILI_HOST` / `MEILI_INDEX` / `MEILI_MASTER_KEY` / `MEILI_PROTOCOL` / `MEILI_TIMEOUT` | 空 | 换用 Meilisearch 时填这一组，并把 `GORGE_SEARCH_ENGINE` 设为 `meilisearch`。 |
+| `GORGE_SEARCH_BACKENDS` | 空 | 一次配多个后端用的 JSON 列表（单行）。配了它，`ES_*` / `MEILI_*` 那一组整体不生效。 |
+
+### 本地构建镜像
+
+与另外三个服务是同一个 Dockerfile、同一个上下文，只换 `SERVICE` 构建参数：
+
+```bash
+docker build -t ghcr.io/soulteary/gorge-search:latest \
+  --build-arg SERVICE=gorge-search \
+  --build-arg PORT=8120 \
+  /path/to/gorge/go
+```
+
+`PORT` 只喂给镜像**内置**的那条 HEALTHCHECK，不影响服务实际监听哪个口（那个由
+`GORGE_LISTEN_ADDR` 决定）。它的默认值是 gorge-render 的 8140，漏了这个参数，镜像自带的
+探针就会一直去敲并不存在的 8140，`docker run` 直接跑这个镜像会显示 unhealthy。本编排里
+看不出来——上面的 service 段显式写了自己的 healthcheck，正好盖掉它。
+
+同样地，`-t` 打出的标签要和编排里 `image:` 完全一致；设了 `GORGE_IMAGE_TAG` 就跟着改。
+
+### 验证与排障
+
+```bash
+# 界面上：Config → Cluster → Search Servers 应该出现一行 "Gorge Search"，状态 Okay。
+# 那一行的状态列打的是 /api/search/sane，所以 mapping 不匹配时它会显示 Failed 而不是
+# 假装正常。
+
+# 服务端认得哪些后端（要带 token，留空时可省掉 --header）
+docker compose exec gorge-search wget -qO- \
+  --header="X-Service-Token: ${GORGE_SEARCH_TOKEN}" \
+  http://127.0.0.1:8120/api/search/backends
+
+# 索引存在吗 / mapping 还对得上吗
+docker compose exec gorge-search wget -qO- \
+  --header="X-Service-Token: ${GORGE_SEARCH_TOKEN}" \
+  http://127.0.0.1:8120/api/search/exists
+```
+
+- **Config 页面报 "Gorge Search Service Not Ready"**：服务活着但一个搜索后端都没配，或
+  地址填错。issue 正文里带着服务端给出的原因。注意服务**刻意不拨测**后端来回答
+  `/readyz`——它报的是「配了」而不是「连得上」，一个写错的 ES 地址在这里仍然显示 ready，
+  到查询时才失败。
+- **Config 页面报 "Gorge Search Service Unreachable"**：容器没起来，或 `GORGE_SEARCH_HOST`
+  指向了这台服务器够不着的地址。注意在 `phorge` 容器里 `127.0.0.1` 指的是 phorge 自己。
+- **搜索页面报 "All of the configured Fulltext Search services failed"**：请求到了服务但
+  被拒绝或后端出错。日志里的 `error.code` 说得比状态码清楚：`ERR_SEARCH_FAILED` 是后端
+  报错（ES 连不上、索引不存在），`ERR_UNAUTHORIZED` 是两端 token 不一致，
+  `ERR_BAD_REQUEST` 是请求本身不合法（不该出现，出现了就是 bug）。
+- **搜什么都没有结果，但不报错**：索引是空的，`bin/search index --all --force` 没跑过或
+  没跑完。
+- **Search Servers 那一行显示 Failed，`bin/search init` 又说索引存在**：mapping 与服务端
+  现在会生成的那一套不一致，`indexIsSane()` 返回了 false。这是**升级 gorge-search 之后
+  的正常现象**——分析器改动（比如加上 CJK 子字段）会让所有既有索引都判为 not sane。修法
+  是重跑 `bin/search init` + `bin/search index --all --force`。这一条会明确报错而不是静默
+  退化，是刻意的：CJK 子字段不见了的话中文检索会悄悄变差，报错比不报好。
+- **`bin/config set cluster.search` 报搜索引擎类型 `gorge` 未知**：类映射没重新生成，
+  `src/__phutil_library_map__.php` 里缺 `PhabricatorGorgeFulltextStorageEngine`。改过 PHP
+  源码后别忘了 `docker compose ... up -d --build`——源码是烤进镜像的。
+- **自己手工配的 elasticsearch 条目不见了**：不该发生，entrypoint 只剔除 `type: gorge`
+  与（默认情况下）`type: mysql` 的条目。真遇到的话看启动日志里
+  `[entrypoint] 下发 Gorge 检索配置` 那几行，读取失败时它会告警并整段跳过。
+
+### 回滚
+
+```bash
+# 1) 停掉下发：把 GORGE_SEARCH_HOST 从 .env 里清空（或整段删掉），
+#    这样 entrypoint.sh 下次启动就不再动 cluster.search。
+#    注意：清空它**不会**把已经写进 local.json 的条目撤掉，得手工设回去。
+
+# 2) 手工把 cluster.search 设回只有 MySQL 一条
+echo '[{"type":"mysql","roles":{"read":true,"write":true}}]' | \
+  docker compose exec -T phorge /opt/phorge/phorge/bin/config set cluster.search --stdin
+
+# 3) 确认生效
+docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.search
+```
+
+MySQL 全文检索不需要重建索引就能立刻回来：Ferret 索引由一个扩展始终维护，与
+`cluster.search` 配了什么无关。反过来，之后再切回 gorge 也不必重跑 `index --all`，只要
+这期间没有对象被编辑过——被编辑过的那些在 gorge 那边就是旧的，稳妥起见还是重跑一次。
+
+想留一条随时可切的回退路径而不是每次手工改配置，用 `GORGE_SEARCH_KEEP_MYSQL=1`（见上）。
 
 ## 参考
 

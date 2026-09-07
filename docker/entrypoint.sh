@@ -5,7 +5,7 @@
 # 流程:
 #   1. 守卫式生成本地配置 conf/local/local.json（已存在则不覆盖）
 #   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_NOTIFICATION_* 通知 /
-#                                 GORGE_MAILER_* 发信)
+#                                 GORGE_MAILER_* 发信 / GORGE_SEARCH_* 全文检索)
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
 #   4. 升级/初始化数据库 schema  (PHORGE_AUTO_UPGRADE)
 #   5. 以 www-data 启动守护进程  (PHORGE_START_PHD)
@@ -391,6 +391,169 @@ if [ -n "${GORGE_MAILER_URI:-}" ]; then
     # 不该拖住 Apache 启动。
 else
     echo "[entrypoint] 未设置 GORGE_MAILER_URI，跳过 Gorge 发信配置。"
+fi
+
+# 检索配置与发信一样是**合并而不是覆盖**，但共享的那个列表更麻烦一点：
+#
+#   - cluster.search 的条目**没有 key 字段**（校验用的固定键表只认 type / hosts /
+#     roles / port / protocol / path / version），所以「哪一条归我管」只能认 type。
+#     于是这里托管的是**所有** type=gorge 的条目：想手工再配一条指向另一个 gorge
+#     实例的条目，请把 GORGE_SEARCH_HOST 留空、整段交给自己配，否则会被洗掉。
+#   - 这个配置项的**默认值本身就是一条 mysql 条目**（见
+#     PhabricatorClusterConfigOptions），而 bin/config get 只打印配置源里真正设过
+#     的值，不打印默认值。一旦本地源被写上任何值，那条默认的 mysql 条目就整条消失
+#     ——这正是默认「切到 gorge 就不再走 MySQL 全文检索」的实现方式，不是漏写。
+#     GORGE_SEARCH_KEEP_MYSQL=1 时下面会把它显式写出来，双写两个索引，作为回滚路径。
+#   - gorge 条目**插在列表最前**而不是追加。读检索走
+#     PhabricatorSearchService::newResultSet，它按列表顺序取第一个可读且成功的服务；
+#     mysql 条目只要还可读，追加就等于 gorge 永远不被读到，症状是「配置全绿但中文
+#     检索没有任何变化」。
+#
+# 其余语义与前面两段一致：JSON 列表靠 --stdin 喂进去、每次启动幂等重写、写完修正
+# 属主与权限、失败只告警不阻塞容器。
+gorge_search_set() {
+    GORGE_SEARCH_HOST="${GORGE_SEARCH_HOST:-}"
+    GORGE_SEARCH_PORT="${GORGE_SEARCH_PORT:-8120}"
+    GORGE_SEARCH_PROTOCOL="${GORGE_SEARCH_PROTOCOL:-http}"
+    GORGE_SEARCH_TOKEN="${GORGE_SEARCH_TOKEN:-}"
+    GORGE_SEARCH_KEEP_MYSQL="${GORGE_SEARCH_KEEP_MYSQL:-0}"
+
+    if [ -z "$GORGE_SEARCH_HOST" ]; then
+        echo "[entrypoint] 警告: GORGE_SEARCH_HOST 为空，跳过 cluster.search。" >&2
+        return 0
+    fi
+
+    # 端口先在 shell 里挡一道，理由同前两段：php 里的 (int) 会把 "abc" 变成 0，
+    # 写进去类型合法、bin/config 也报成功，但客户端会去连 host:0，每一次检索都失败。
+    case "$GORGE_SEARCH_PORT" in
+        ''|*[!0-9]*)
+            echo "[entrypoint] 警告: GORGE_SEARCH_PORT \"$GORGE_SEARCH_PORT\" 不是数字，跳过 cluster.search。" >&2
+            return 0
+            ;;
+    esac
+
+    # 先把现有值读出来，只取 source=local 的那一份。理由与 cluster.mailers 那段完全
+    # 相同：bin/config set 不带 --database 写的正是 local 源，读写必须同源。
+    if ! gorge_search_existing="$("$CONFIG_BIN" get cluster.search 2>/dev/null)"; then
+        echo "[entrypoint] 警告: 读取 cluster.search 失败，跳过 Gorge 检索配置。" >&2
+        return 0
+    fi
+
+    export GORGE_SEARCH_HOST GORGE_SEARCH_PORT GORGE_SEARCH_PROTOCOL
+    export GORGE_SEARCH_KEEP_MYSQL
+    export GORGE_SEARCH_EXISTING="$gorge_search_existing"
+
+    # 同样用 php 的 json_encode 生成：port 必须是 JSON 整数（校验声明 'optional
+    # int'，字符串 "8120" 会被直接判非法），roles 必须是 JSON 布尔的字典。
+    # 管道两端的成败都算数，靠脚本开头的 `set -o pipefail`。
+    if php -r '
+        // 解析现有列表。本地源从未设过（status=unset）时 $existing 保持空列表，
+        // 但解析失败必须 exit(1) 而不是当作空列表：那意味着我们没看懂用户已有的
+        // 配置，此时写回去等于删掉它们，宁可这次不写。
+        $existing = array();
+        $raw = getenv("GORGE_SEARCH_EXISTING");
+        if ($raw !== false && trim($raw) !== "") {
+            $parsed = json_decode($raw, true);
+            if (!is_array($parsed) || !isset($parsed["config"])) {
+                fwrite(STDERR, "看不懂 bin/config get cluster.search 的输出。\n");
+                exit(1);
+            }
+            foreach ($parsed["config"] as $entry) {
+                if (!is_array($entry)) {
+                    continue;
+                }
+                if (!isset($entry["source"]) || $entry["source"] !== "local") {
+                    continue;
+                }
+                if (isset($entry["value"]) && is_array($entry["value"])) {
+                    $existing = $entry["value"];
+                }
+            }
+        }
+
+        $keep = getenv("GORGE_SEARCH_KEEP_MYSQL");
+        $keep_mysql = ($keep === "1" || $keep === "true");
+
+        // 剔除所有 type=gorge 的条目（我们托管的，整条重写），以及默认情况下的
+        // mysql 条目。其余条目（比如用户手工配的 elasticsearch）连相对顺序一起保留。
+        $services = array();
+        $has_mysql = false;
+        foreach ($existing as $spec) {
+            if (is_array($spec)) {
+                $type = isset($spec["type"]) ? $spec["type"] : null;
+                if ($type === "gorge") {
+                    continue;
+                }
+                if ($type === "mysql") {
+                    if (!$keep_mysql) {
+                        continue;
+                    }
+                    $has_mysql = true;
+                }
+            }
+            // 非字典条目原样留着：写回时校验会拒绝并把原因打出来，比在这里悄悄
+            // 删掉用户的东西好。
+            $services[] = $spec;
+        }
+
+        // 开关的语义是「列表里有一条可用的 mysql 条目」，不是「保留恰好存在的那
+        // 一条」。这样从 0 翻到 1 真的能把 MySQL 全文检索找回来——否则关掉再开，
+        // 那条 mysql 条目已经在上一次启动时被剔掉，开关就成了单向的。
+        if ($keep_mysql && !$has_mysql) {
+            $services[] = array(
+                "type"  => "mysql",
+                "roles" => array("read" => true, "write" => true),
+            );
+        }
+
+        $gorge = array(
+            "type"  => "gorge",
+            "hosts" => array(
+                array(
+                    "host"     => getenv("GORGE_SEARCH_HOST"),
+                    "port"     => (int)getenv("GORGE_SEARCH_PORT"),
+                    "protocol" => getenv("GORGE_SEARCH_PROTOCOL"),
+                    // 读写都给 gorge。扇出与 failover 全部交给服务端的 backends，
+                    // 不在 Phorge 这一层再配一半，见 DOCKER.md。
+                    "roles"    => array("read" => true, "write" => true),
+                ),
+            ),
+        );
+
+        // 插到最前面，理由见上面那段注释里的第三条。
+        array_unshift($services, $gorge);
+
+        echo json_encode(array_values($services), JSON_UNESCAPED_SLASHES);
+    ' | "$CONFIG_BIN" set cluster.search --stdin; then
+        # 与前几段同样的理由：bin/config 以 root 运行，Apache 与 phd 以 www-data
+        # 运行，属主不对就等于没配。
+        chown www-data:www-data "$CONF_FILE" || true
+        chmod 0640 "$CONF_FILE" || true
+    else
+        # 不阻塞容器启动：检索失效时站点照常可用。最常见的失败是搜索引擎类型
+        # "gorge" 未知——那说明 PhabricatorGorgeFulltextStorageEngine 没被类映射
+        # 发现（src/__phutil_library_map__.php 没重新生成，或镜像没带 --build
+        # 重建）；bin/config 会把合法类型列在上一行。
+        echo "[entrypoint] 警告: 写入 cluster.search 失败，Gorge 检索不可用。" >&2
+    fi
+
+    # token 是标量，走通用的那条路。它与 gorge.render.token 一样是隐藏配置项，
+    # Config 页面上只读。
+    gorge_config_set 'gorge.search.token' "$GORGE_SEARCH_TOKEN"
+
+    return 0
+}
+
+# 不叠加 docker-compose.gorge.yml 时这个变量不存在，整段等于不执行。
+if [ -n "${GORGE_SEARCH_HOST:-}" ]; then
+    echo "[entrypoint] 下发 Gorge 检索配置 ..."
+    gorge_search_set
+    # 与前几段同样不在这里探 gorge-search 的 /readyz，也**刻意不跑 bin/search
+    # init**：建索引要连得上数据库与 Elasticsearch，而这一段跑在等待数据库之前；
+    # 更要紧的是它会删掉并重建索引，放在每次启动的路径上等于一次误启动就丢掉整个
+    # 索引。首次启用要手工跑 init 与全量重建，命令见 DOCKER.md。
+else
+    echo "[entrypoint] 未设置 GORGE_SEARCH_HOST，跳过 Gorge 检索配置。"
 fi
 
 # ----- 3. 等待数据库就绪 -----

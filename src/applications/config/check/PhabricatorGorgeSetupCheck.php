@@ -42,7 +42,7 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
     $health_uri = $uri.'/healthz';
 
     // A host which does not resolve can take longer than this to fail; see the
-    // note in PhabricatorGorgeRenderClient::newRequestFuture() for why that
+    // note in PhabricatorGorgeServiceClient::newRequestFuture() for why that
     // can not be bounded any tighter here.
     $future = id(new HTTPSFuture($health_uri))
       ->setTimeout(5);
