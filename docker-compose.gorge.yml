@@ -61,12 +61,13 @@
 # ------------------------------------------------------------------
 
 services:
-  # gorge-render 一个进程承载整个 render 域（路由 /api/highlight/*），容器内
-  # 固定监听 8140。镜像由 gorge 仓库的 release 工作流推到 ghcr，语义化版本标签
+  # gorge-render 一个进程承载 render 与 diff 两个域（路由 /api/highlight/*、
+  # /api/diff/*），容器内
+  # 固定监听 8140。镜像由 gorge 仓库的 release 工作流推到统一的 ghcr package，版本标签
   # 与 latest 都有；生产建议在 .env 里把 GORGE_IMAGE_TAG 钉到具体版本，避免
   # docker compose pull 悄悄换掉高亮实现。
   gorge-render:
-    image: ghcr.io/soulteary/gorge-render:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:render-${GORGE_RENDER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-latest}}
     container_name: phorge-gorge-render
     restart: unless-stopped
     environment:
@@ -81,9 +82,12 @@ services:
       # 单次高亮接受的源码大小上限（字节），超限返回 413 ERR_TOO_LARGE，
       # Phorge 侧表现为该文件回退到无高亮。默认 1MiB。
       GORGE_RENDER_MAX_BYTES: ${GORGE_RENDER_MAX_BYTES:-1048576}
+      # diff 域与 render 共用此进程，但有独立的输入上限。计算 old 与 new 的
+      # 合计字节数，超限时 Phorge 会记录错误并回退到本地 difference engine。
+      GORGE_DIFF_MAX_BYTES: ${GORGE_DIFF_MAX_BYTES:-1048576}
       # 单次高亮的服务端超时（秒）。PHP 客户端自己也有超时，两者取小者生效。
       GORGE_RENDER_TIMEOUT_SEC: ${GORGE_RENDER_TIMEOUT_SEC:-15}
-    # 刻意不声明 ports：高亮服务只被 phorge 通过 compose 默认网络的服务名
+    # 刻意不声明 ports：render/diff 服务只被 phorge 通过 compose 默认网络的服务名
     # gorge-render 调用，不需要宿主入口——少一个对外面，也省掉与 gorge 自己那套
     # 编排（deploy/compose 里映射了 8140）抢宿主端口。
     # 需要在宿主上直连排障时，用 docker-compose.override.yml 另加回环映射：
