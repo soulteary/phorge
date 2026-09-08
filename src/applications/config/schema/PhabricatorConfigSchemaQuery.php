@@ -50,12 +50,75 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
   }
 
   public function loadActualSchemata() {
+    // When the Gorge database service fronts the cluster, read the actual
+    // schema as a tree from it instead of querying INFORMATION_SCHEMA from the
+    // web tier. When it is not configured, fall back to the native direct-SQL
+    // reflection below.
+    if (PhabricatorGorgeDBClient::isConfigured()) {
+      return $this->loadActualSchemataViaGorge();
+    }
+
     $refs = $this->getRefs();
 
     $schemata = array();
     foreach ($refs as $ref) {
       $schema = $this->loadActualSchemaForServer($ref);
       $schemata[$schema->getRef()->getRefKey()] = $schema;
+    }
+
+    return $schemata;
+  }
+
+  private function loadActualSchemataViaGorge() {
+    $refs = $this->getRefs();
+    $refs_by_key = mpull($refs, null, 'getRefKey');
+
+    $client = new PhabricatorGorgeDBClient();
+    $nodes = $client->getSchemaDiff();
+
+    $schemata = array();
+
+    // The service returns a forest of SchemaNode trees, one per server, each
+    // nested server -> database -> table -> column. Match the top-level node
+    // against the refs we already built from configuration and skip any node
+    // whose ref we do not recognize.
+    foreach ($nodes as $node) {
+      $ref_key = idx($node, 'refKey', '');
+      $ref = idx($refs_by_key, $ref_key);
+      if (!$ref) {
+        continue;
+      }
+
+      $server_schema = id(new PhabricatorConfigServerSchema())
+        ->setRef($ref);
+
+      $children = idx($node, 'children', array());
+      foreach ($children as $db_node) {
+        $database_schema = id(new PhabricatorConfigDatabaseSchema())
+          ->setName(idx($db_node, 'database', ''));
+
+        $table_nodes = idx($db_node, 'children', array());
+        foreach ($table_nodes as $table_node) {
+          $table_schema = id(new PhabricatorConfigTableSchema())
+            ->setName(idx($table_node, 'table', ''));
+
+          $column_nodes = idx($table_node, 'children', array());
+          foreach ($column_nodes as $col_node) {
+            $col_name = idx($col_node, 'column', '');
+            if (phutil_nonempty_string($col_name)) {
+              $column_schema = id(new PhabricatorConfigColumnSchema())
+                ->setName($col_name);
+              $table_schema->addColumn($column_schema);
+            }
+          }
+
+          $database_schema->addTable($table_schema);
+        }
+
+        $server_schema->addDatabase($database_schema);
+      }
+
+      $schemata[$ref_key] = $server_schema;
     }
 
     return $schemata;
@@ -214,6 +277,14 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
   }
 
   public function loadExpectedSchemata() {
+    // When the Gorge database service fronts the cluster, read the expected
+    // charset/collation configuration from it instead of asking the local
+    // storage API. When it is not configured, fall back to the native path
+    // below.
+    if (PhabricatorGorgeDBClient::isConfigured()) {
+      return $this->loadExpectedSchemataViaGorge();
+    }
+
     $refs = $this->getRefs();
 
     $schemata = array();
@@ -223,6 +294,67 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
     }
 
     return $schemata;
+  }
+
+  private function loadExpectedSchemataViaGorge() {
+    $refs = $this->getRefs();
+
+    $client = new PhabricatorGorgeDBClient();
+    $all_charset = $client->getCharsetInfo();
+
+    // Index the per-server charset rows by ref key so each ref can pick up its
+    // own charset/collation, falling back to the utf8mb4 defaults when the
+    // service does not report a row for it.
+    $charset_map = array();
+    foreach ($all_charset as $entry) {
+      $key = idx($entry, 'refKey', '');
+      if (phutil_nonempty_string($key)) {
+        $charset_map[$key] = $entry;
+      }
+    }
+
+    $schemata = array();
+    foreach ($refs as $ref) {
+      $ref_key = $ref->getRefKey();
+      $info = idx($charset_map, $ref_key, null);
+      $schema = $this->buildExpectedSchemaFromCharset($ref, $info);
+      $schemata[$ref_key] = $schema;
+    }
+
+    return $schemata;
+  }
+
+  private function buildExpectedSchemaFromCharset(
+    PhabricatorDatabaseRef $ref,
+    $charset_info = null) {
+
+    if ($charset_info !== null) {
+      $charset_default = idx($charset_info, 'charsetDefault', 'utf8mb4');
+      $collate_text = idx($charset_info, 'collateText', 'utf8mb4_bin');
+      $collate_sort = idx($charset_info, 'collateSort', 'utf8mb4_unicode_ci');
+    } else {
+      $charset_default = 'utf8mb4';
+      $collate_text = 'utf8mb4_bin';
+      $collate_sort = 'utf8mb4_unicode_ci';
+    }
+
+    $specs = id(new PhutilClassMapQuery())
+      ->setAncestorClass(PhabricatorConfigSchemaSpec::class)
+      ->execute();
+
+    $server_schema = id(new PhabricatorConfigServerSchema())
+      ->setRef($ref);
+
+    foreach ($specs as $spec) {
+      $spec
+        ->setUTF8Charset($charset_default)
+        ->setUTF8BinaryCollation($collate_text)
+        ->setUTF8SortingCollation($collate_sort)
+        ->setServer($server_schema)
+        ->buildSchemata($server_schema);
+    }
+
+    return $server_schema;
   }
 
   public function loadExpectedSchemaForServer(PhabricatorDatabaseRef $ref) {

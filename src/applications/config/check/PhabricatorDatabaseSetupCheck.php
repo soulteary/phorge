@@ -12,6 +12,73 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    // When the Gorge database service fronts the cluster, it runs the version,
+    // engine, storage-initialization and patch-status diagnostics against the
+    // hosts and returns them as setup issues, so consume those instead of
+    // opening management connections from the web tier. When it is not
+    // configured, fall back to the native direct-SQL checks below.
+    if (PhabricatorGorgeDBClient::isConfigured()) {
+      $this->executeGorgeChecks();
+      return;
+    }
+
+    $this->executeNativeChecks();
+  }
+
+  private function executeGorgeChecks() {
+    $client = new PhabricatorGorgeDBClient();
+    $issues = $client->getSetupIssues();
+
+    if (!is_array($issues)) {
+      return;
+    }
+
+    // The MySQL-configuration issues (small max_allowed_packet, missing
+    // strict mode, and so on) are surfaced by PhabricatorMySQLSetupCheck; skip
+    // them here so each check owns its own set of keys, matching the native
+    // split where MySQL warnings live in the "MySQL" group.
+    $mysql_keys = self::getMySQLConfigIssueKeys();
+
+    foreach ($issues as $issue_data) {
+      $key = idx($issue_data, 'key', 'gorge.db.unknown');
+
+      if (isset($mysql_keys[$key])) {
+        continue;
+      }
+
+      $issue = $this->newIssue($key)
+        ->setName(idx($issue_data, 'name', $key));
+
+      $summary = idx($issue_data, 'summary');
+      if (phutil_nonempty_string($summary)) {
+        $issue->setSummary($summary);
+      }
+
+      $message = idx($issue_data, 'message');
+      if (phutil_nonempty_string($message)) {
+        $issue->setMessage($message);
+      }
+
+      if (idx($issue_data, 'isFatal')) {
+        $issue->setIsFatal(true);
+      }
+    }
+  }
+
+  private static function getMySQLConfigIssueKeys() {
+    return array(
+      'mysql.max_allowed_packet' => true,
+      'sql_mode.strict' => true,
+      'mysql.ft_stopword_file' => true,
+      'mysql.ft_min_word_len' => true,
+      'mysql.innodb_buffer_pool_size' => true,
+      'mysql.utf8mb4' => true,
+      'mysql.clock' => true,
+      'mysql.local_infile' => true,
+    );
+  }
+
+  private function executeNativeChecks() {
     $host = PhabricatorEnv::getEnvConfig('mysql.host');
     $matches = null;
     if (preg_match('/^([^:]+):(\d+)$/', $host, $matches)) {

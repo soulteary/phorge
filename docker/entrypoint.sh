@@ -762,6 +762,35 @@ else
     # 让原生 SQL 队列由 phd 的 taskmaster 照常消费。这是降级路径。
 fi
 
+# 数据库诊断服务回到最简单的那一类：gorge.db.uri 与 gorge.db.token 都是标量配置项，
+# 整项归 Gorge 所有，走现成的 gorge_config_set 就够了 —— 不需要 --stdin，也不需要像
+# cluster.mailers / cluster.search 那样先读出来再合并。
+#
+# 语义上它是 phorge **主动调用**的那一类（和 render / conduit / file / taskqueue 一样，
+# 不是 webhook 那种接管开关）：PHP 侧 PhabricatorDatabaseRef、两处 SetupCheck 与
+# PhabricatorConfigSchemaQuery 在读到 gorge.db.uri 非空（isConfigured()）时，把「数据库
+# 服务器」控制台的连接/复制状态、schema diff、setup 问题全部改走 gorge-db-api，否则回落
+# 到从 Web 层直接开管理连接的原生实现。写不进去时 phorge 侧继续用自带的直连诊断、不阻塞
+# 容器启动，PhabricatorGorgeDBSetupCheck 会在 Config 页面把探活失败报出来。
+#
+# 环境变量刻意沿用 GORGE_DB_URL / GORGE_DB_TOKEN（与其它域的 *_URI/_TOKEN 命名对齐，
+# 但 db 域历史上用的是 URL），写入的配置键是新范式的 gorge.db.uri / gorge.db.token
+# （不是旧 phorge 那个畸形键）。
+#
+# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
+if [ -n "${GORGE_DB_URL:-}" ] || [ -n "${GORGE_DB_TOKEN:-}" ]; then
+    echo "[entrypoint] 下发 Gorge 数据库服务配置 ..."
+    gorge_config_set 'gorge.db.uri' "${GORGE_DB_URL:-}"
+    gorge_config_set 'gorge.db.token' "${GORGE_DB_TOKEN:-}"
+    # 与前几段同样不在这里探 gorge-db-api 的 /readyz：叠加编排里 phorge 对它用的是
+    # depends_on.condition=service_started（不是 service_healthy），刻意如此 —— gorge-db-api
+    # 的 /readyz 要连上 {namespace}_meta_data 库，而那个库是本脚本后面 bin/storage upgrade
+    # 才建的，用 service_healthy 会与「库还没建」形成启动死锁。就绪状态由 Config 页面的
+    # PhabricatorGorgeDBSetupCheck 报出来。
+else
+    echo "[entrypoint] 未设置 GORGE_DB_URL，跳过 Gorge 数据库服务配置。"
+fi
+
 # ----- 3. 等待数据库就绪 -----
 # 用 PHP mysqli 探测：与 Phorge 实际使用的驱动一致。
 # （不用 mariadb 客户端：它会校验 MySQL 8 的自签名 TLS 证书而失败，需 --skip-ssl）

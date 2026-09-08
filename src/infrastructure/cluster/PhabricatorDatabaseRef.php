@@ -336,7 +336,70 @@ final class PhabricatorDatabaseRef
 
   public static function queryAll() {
     $refs = self::getActiveDatabaseRefs();
+
+    // When the Gorge database service fronts the cluster, read per-server
+    // connection and replica status from it instead of opening a management
+    // connection to every host from the web tier. When it is not configured,
+    // fall back to the native direct-SQL probe below.
+    if (PhabricatorGorgeDBClient::isConfigured()) {
+      return self::queryRefsViaGorge($refs);
+    }
+
     return self::queryRefs($refs);
+  }
+
+  private static function queryRefsViaGorge(array $refs) {
+    $client = new PhabricatorGorgeDBClient();
+    $servers = $client->getServers();
+
+    // Index the service's view of the cluster by ref key ("host:port") so we
+    // can match it against the refs we already built from configuration.
+    $server_map = array();
+    foreach ($servers as $server) {
+      $host = idx($server, 'host', '');
+      $port = idx($server, 'port', 3306);
+      $key = $host.':'.$port;
+      $server_map[$key] = $server;
+    }
+
+    foreach ($refs as $ref) {
+      $ref_key = $ref->getRefKey();
+      $server = idx($server_map, $ref_key);
+
+      if (!$server) {
+        $ref->setConnectionStatus(self::STATUS_FAIL);
+        $ref->setConnectionMessage(
+          pht('Not found in Gorge database service response.'));
+        continue;
+      }
+
+      $status = idx($server, 'connectionStatus', self::STATUS_FAIL);
+      $ref->setConnectionStatus($status);
+      $ref->setConnectionLatency(
+        (float)idx($server, 'connectionLatencySec', 0));
+
+      $conn_msg = idx($server, 'connectionMessage', '');
+      if (phutil_nonempty_string($conn_msg)) {
+        $ref->setConnectionMessage($conn_msg);
+      }
+
+      $replica_status = idx($server, 'replicaStatus');
+      if ($replica_status !== null) {
+        $ref->setReplicaStatus($replica_status);
+      }
+
+      $replica_msg = idx($server, 'replicaMessage', '');
+      if (phutil_nonempty_string($replica_msg)) {
+        $ref->setReplicaMessage($replica_msg);
+      }
+
+      $replica_delay = idx($server, 'replicaDelaySec');
+      if ($replica_delay !== null) {
+        $ref->setReplicaDelay((int)$replica_delay);
+      }
+    }
+
+    return $refs;
   }
 
   private static function queryRefs(array $refs) {

@@ -7,6 +7,17 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    // When the Gorge database service fronts the cluster, it inspects the
+    // per-host MySQL configuration (max_allowed_packet, strict mode, InnoDB
+    // buffer pool, and so on) and returns the results as setup issues, so
+    // consume the MySQL-keyed subset of those instead of opening management
+    // connections from the web tier. When it is not configured, fall back to
+    // the native direct-SQL probes below.
+    if (PhabricatorGorgeDBClient::isConfigured()) {
+      $this->executeGorgeChecks();
+      return;
+    }
+
     $refs = PhabricatorDatabaseRef::getActiveDatabaseRefs();
     foreach ($refs as $ref) {
       try {
@@ -15,6 +26,57 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
         // If we're unable to connect to a host, just skip the checks for it.
         // This can happen if we're restarting during a cluster incident. See
         // T12966 for discussion.
+      }
+    }
+  }
+
+  private static function getMySQLConfigIssueKeys() {
+    return array(
+      'mysql.max_allowed_packet' => true,
+      'sql_mode.strict' => true,
+      'mysql.ft_stopword_file' => true,
+      'mysql.ft_min_word_len' => true,
+      'mysql.innodb_buffer_pool_size' => true,
+      'mysql.utf8mb4' => true,
+      'mysql.clock' => true,
+      'mysql.local_infile' => true,
+    );
+  }
+
+  private function executeGorgeChecks() {
+    $client = new PhabricatorGorgeDBClient();
+    $all_issues = $client->getSetupIssues();
+
+    if (!is_array($all_issues)) {
+      return;
+    }
+
+    // Only the MySQL-configuration issues belong to this check; the remaining
+    // issues (version, engine, storage initialization, patch status) are
+    // surfaced by PhabricatorDatabaseSetupCheck.
+    $my_keys = self::getMySQLConfigIssueKeys();
+
+    foreach ($all_issues as $issue_data) {
+      $key = idx($issue_data, 'key', '');
+      if (!isset($my_keys[$key])) {
+        continue;
+      }
+
+      $issue = $this->newIssue($key)
+        ->setName(idx($issue_data, 'name', $key));
+
+      $summary = idx($issue_data, 'summary');
+      if (phutil_nonempty_string($summary)) {
+        $issue->setSummary($summary);
+      }
+
+      $message = idx($issue_data, 'message');
+      if (phutil_nonempty_string($message)) {
+        $issue->setMessage($message);
+      }
+
+      if (idx($issue_data, 'isFatal')) {
+        $issue->setIsFatal(true);
       }
     }
   }

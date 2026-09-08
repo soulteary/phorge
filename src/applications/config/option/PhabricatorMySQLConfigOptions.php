@@ -56,6 +56,38 @@ final class PhabricatorMySQLConfigOptions
         ->setLocked(true)
         ->setDescription(
           pht('MySQL port to use when connecting to the database.')),
+      $this->newOption('gorge.db.uri', 'string', null)
+        ->setLocked(true)
+        ->setSummary(pht('Base URI of the Gorge database service.'))
+        ->setDescription(
+          pht(
+            'Base URI of the Gorge database service, a standalone service '.
+            'which fronts the MySQL cluster: it owns the cluster topology, '.
+            'connection pooling and schema diagnostics, and exposes them '.
+            'over an authenticated HTTP API at "%s".'.
+            "\n\n".
+            'When this option is set, the database console reads per-server '.
+            'health, schema diffs and setup issues from the service instead '.
+            'of opening management connections to every database host from '.
+            'the web tier: %s, the two database setup checks and %s all '.
+            'switch to the service. When it is empty, each of them falls '.
+            'back to its native direct-SQL implementation, so an install '.
+            'which has not configured the service behaves exactly as before.'.
+            "\n\n".
+            'The health of the service itself is reported on the "%s" page '.
+            'by %s.',
+            '/api/db',
+            'PhabricatorDatabaseRef',
+            'PhabricatorConfigSchemaQuery',
+            'Config',
+            'PhabricatorGorgeDBSetupCheck')),
+      $this->newOption('gorge.db.token', 'string', null)
+        ->setHidden(true)
+        ->setDescription(
+          pht(
+            'Service token for the Gorge database service, sent with each '.
+            'request in an "X-Service-Token" header. Leave this empty if '.
+            'the service is configured without a token.')),
     );
   }
 
