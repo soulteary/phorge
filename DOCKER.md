@@ -1501,6 +1501,80 @@ docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
 
 新增的 `key_status` 索引留着即可，它不影响 PHP 侧的任何查询。
 
+## 用 Gorge 做数据库诊断（可选）
+
+`gorge-db-api` 把数据库服务器健康、schema 差异、MySQL 环境检查与 storage upgrade
+进度收进只读 HTTP API。PHP 侧 `PhabricatorGorgeDBClient` 已接入这些接口；使用 Gorge
+叠加编排后，entrypoint 会把内部地址和 token 写进 `gorge.db.uri` / `gorge.db.token`，
+数据库控制台与相关 setup check 随即切流。URI 未配置时仍走原来的 PHP 直连实现。
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+
+# 容器存活；这个探针不访问数据库。
+docker compose exec gorge-db-api \
+  wget -qO- http://127.0.0.1:8080/healthz
+
+# 服务真正可用：至少一台已配置的 master 可以连接。
+docker compose exec gorge-db-api \
+  wget -qO- http://127.0.0.1:8080/readyz
+
+# PHP 侧已经拿到 compose 内网地址。
+docker compose exec phorge \
+  /opt/phorge/phorge/bin/config get gorge.db.uri
+```
+
+服务默认不发布宿主端口，只允许 `phorge` 通过 Compose 网络访问。它复用基础编排的
+`MYSQL_USER` / `MYSQL_PASSWORD`，host 与 port 固定为 `mysql:3306`。需要配置的变量如下：
+
+| 变量 | 默认值 | 作用 |
+|---|---|---|
+| `GORGE_DB_URL` | `http://gorge-db-api:8080` | PHP 访问 db-api 的内部地址；显式留空可停止切流 |
+| `GORGE_DB_TOKEN` | 空 | 同时下发给服务端与 PHP 客户端的共享 token |
+| `GORGE_DB_IMAGE_TAG` | 空（继承 `GORGE_IMAGE_TAG`） | 统一 package 中 db-api 的标签后缀；实际标签为 `db-api-<值>` |
+| `GORGE_DB_NAMESPACE` | `phabricator` | 库名前缀，必须等于 `storage.default-namespace` |
+| `GORGE_DB_CONFIG_FILE` | 空 | 可选的 Phorge `local.json` 容器内路径；空值使用单节点配置 |
+
+Compose 对 `gorge-db-api` 使用 `/healthz` 健康检查，`phorge` 只以 `service_started`
+依赖它；数据库可达性由 `/readyz` 和 `PhabricatorGorgeDBSetupCheck` 报告。这个区分要保留：
+进程已经启动与数据库诊断已经可用是两种状态，首启迁移期间不应让前者阻塞 Phorge。
+
+默认单节点部署不需要挂配置文件。多节点部署可以让 db-api 读取 Phorge 已生成的
+`cluster.databases`，在 `.env` 设置：
+
+```dotenv
+GORGE_DB_CONFIG_FILE=/opt/phorge/phorge/conf/local/local.json
+```
+
+再用一个本地 `docker-compose.override.yml` 把同一个配置卷只读挂入服务：
+
+```yaml
+services:
+  gorge-db-api:
+    volumes:
+      - phorge-conf:/opt/phorge/phorge/conf/local:ro
+```
+
+首次生成 `local.json` 后重启 `gorge-db-api` 和 `phorge`，让服务重新读取拓扑：
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml \
+  restart gorge-db-api phorge
+```
+
+### 回滚
+
+先在 `.env` 显式留空 `GORGE_DB_URL=`，再清掉已经持久化的 URI 并重启 Phorge：
+
+```bash
+docker compose exec phorge \
+  /opt/phorge/phorge/bin/config set gorge.db.uri null
+docker compose -f docker-compose.yml -f docker-compose.gorge.yml restart phorge
+```
+
+之后数据库控制台恢复 PHP 直连诊断。确认不再需要服务时可以再停掉它；这不会改变数据库，
+因为 db-api 的所有业务路由都是只读的。
+
 ## 参考
 
 - [安装指南](src/docs/user/installation_guide.diviner)
