@@ -3,6 +3,18 @@
 final class PhutilProseDifferenceEngine extends Phobject {
 
   public function getDiff($u, $v) {
+    if (PhabricatorGorgeDiffClient::isEnabled()) {
+      try {
+        return id(new PhabricatorGorgeDiffClient())
+          ->generateProseDiff($u, $v);
+      } catch (Exception $ex) {
+        // Prose diffs are used in page rendering. Keep rendering available if
+        // the optional service can not answer, and retain the exception in the
+        // application log for diagnosis.
+        phlog($ex);
+      }
+    }
+
     return $this->buildDiff($u, $v, 0);
   }
 

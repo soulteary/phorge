@@ -12,11 +12,28 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
     $uri = PhabricatorGorgeRenderClient::getConfiguredURI();
 
     if ($uri === null) {
+      if (PhabricatorEnv::getEnvConfig('gorge.diff.enabled')) {
+        $this->newIssue('gorge.diff.uri-missing')
+          ->setName(pht('Gorge Diff Service Has No URI'))
+          ->setSummary(
+            pht(
+              'Gorge diff computation is enabled, but the shared render '.
+              'service URI is not configured.'))
+          ->setMessage(
+            pht(
+              'Set %s to the base URI of the `gorge-render` service, or '.
+              'disable %s to use the local difference engines.',
+              phutil_tag('tt', array(), 'gorge.render.uri'),
+              phutil_tag('tt', array(), 'gorge.diff.enabled')))
+          ->addRelatedPhabricatorConfig('gorge.render.uri')
+          ->addRelatedPhabricatorConfig('gorge.diff.enabled');
+      }
       return;
     }
 
-    // Deploying the service and routing highlighting to it are two separate
-    // steps, and each has its own issue below. Only ever raise one of them:
+    // Deploying the service and routing either highlighting or diff work to
+    // it are separate steps, and each has its own issue below. Only ever
+    // raise one of them:
     // they are the two halves of a single unfinished setup, in the order the
     // documentation performs them, so reporting both at once would put two
     // banners on the config page for one problem. An unreachable service is
@@ -55,18 +72,18 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
     }
 
     $summary = pht(
-      'The Gorge render service is configured, but does not respond to a '.
-      'health check.');
+      'The Gorge render and diff service is configured, but does not '.
+      'respond to a health check.');
 
     $message = pht(
-      'This software is configured to highlight source code with the Gorge '.
-      'render service at %s, but a request to %s did not succeed:'.
+      'This software is configured to use the Gorge render service at %s, '.
+      'but a request to %s did not succeed:'.
       "\n\n".
       '%s'.
       "\n\n".
-      'Until the service responds, source code will render without syntax '.
-      'highlighting. Check that the service is running and that %s names a '.
-      'host this server can reach.',
+      'Until the service responds, source highlighting and difference '.
+      'generation fall back to their local behavior. Check that the service '.
+      'is running and that %s names a host this server can reach.',
       phutil_tag('tt', array(), $uri),
       phutil_tag('tt', array(), $health_uri),
       phutil_tag('pre', array(), $error),
@@ -77,6 +94,7 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
       ->setSummary($summary)
       ->setMessage($message)
       ->addRelatedPhabricatorConfig('gorge.render.uri')
+      ->addRelatedPhabricatorConfig('gorge.diff.enabled')
       ->addPhabricatorConfig('syntax-highlighter.engine');
 
     return false;
@@ -86,17 +104,18 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
   /**
    * Report a service which is deployed and healthy but not actually in use.
    *
-   * Setting `gorge.render.uri` does not enable the service by itself, and the
-   * orchestration sets that option while leaving the engine switch to the
-   * operator. Without this check that leaves a silent window: the service is
-   * running and nothing is wrong with it, but no code is highlighted by it
-   * and no setup issue says why.
+   * Setting `gorge.render.uri` does not route either capability by itself.
+   * The orchestration sets that option while leaving the highlighting and
+   * diff switches to the operator. Without this check that leaves a silent
+   * window: the service is running and nothing is wrong with it, but no work
+   * reaches it and no setup issue says why.
    *
    * @param string $uri Base URI of the service.
    * @return void
    */
   private function checkEnabled($uri) {
     $engine = PhabricatorEnv::getEnvConfig('syntax-highlighter.engine');
+    $diff_enabled = PhabricatorEnv::getEnvConfig('gorge.diff.enabled');
 
     // Accept a subclass too: the option takes any PhutilSyntaxHighlighterEngine
     // and an install which extends ours is still using the service.
@@ -105,29 +124,38 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
       return;
     }
 
+    if ($diff_enabled) {
+      return;
+    }
+
     $summary = pht(
-      'The Gorge render service is deployed and healthy, but syntax '.
-      'highlighting still runs through a different engine, so nothing ever '.
-      'calls it.');
+      'The Gorge render service is deployed and healthy, but neither syntax '.
+      'highlighting nor difference generation is routed to it.');
 
     $message = pht(
       'This server can reach the Gorge render service at %s, but %s is set '.
-      'to %s, so source code is still highlighted by that engine and the '.
-      'service is never called. Setting %s makes the service available; it '.
-      'does not route highlighting to it.'.
+      'to %s and %s is disabled, so the service is never called. Setting %s '.
+      'makes the service available; it does not route either capability to '.
+      'it.'.
       "\n\n".
-      'To start using it, switch the engine and then discard the render '.
-      'results which are already cached. Purging is not an optional tidying '.
-      'step: what gets cached is the highlighted HTML rather than the source, '.
-      'so Paste bodies and Differential changesets you have already viewed '.
-      'keep their old markup until the cache is dropped, which reads as the '.
-      'switch having had no effect.'.
+      'To use the service for highlighting, switch the engine and then '.
+      'discard the render results which are already cached. Purging is not '.
+      'an optional tidying step: what gets cached is the highlighted HTML '.
+      'rather than the source, so Paste bodies and Differential changesets '.
+      'you have already viewed keep their old markup until the cache is '.
+      'dropped, which reads as the switch having had no effect.'.
+      "\n\n".
+      'Alternatively, enable %s to route unified and prose difference '.
+      'generation to the same service. That switch does not require a cache '.
+      'purge.'.
       "\n\n".
       'To roll back, set %s to %s and purge the cache again.',
       phutil_tag('tt', array(), $uri),
       phutil_tag('tt', array(), 'syntax-highlighter.engine'),
       phutil_tag('tt', array(), $engine),
+      phutil_tag('tt', array(), 'gorge.diff.enabled'),
       phutil_tag('tt', array(), 'gorge.render.uri'),
+      phutil_tag('tt', array(), 'gorge.diff.enabled'),
       phutil_tag('tt', array(), 'syntax-highlighter.engine'),
       phutil_tag('tt', array(), 'PhutilDefaultSyntaxHighlighterEngine'));
 
@@ -145,7 +173,13 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
         hsprintf(
           '<samp>%s $</samp><kbd>./bin/cache purge --all</kbd>',
           PlatformSymbols::getPlatformServerPath()))
+      ->addCommand(
+        hsprintf(
+          '<samp>%s $</samp><kbd>./bin/config set '.
+          'gorge.diff.enabled true</kbd>',
+          PlatformSymbols::getPlatformServerPath()))
       ->addRelatedPhabricatorConfig('syntax-highlighter.engine')
+      ->addRelatedPhabricatorConfig('gorge.diff.enabled')
       ->addRelatedPhabricatorConfig('gorge.render.uri');
   }
 

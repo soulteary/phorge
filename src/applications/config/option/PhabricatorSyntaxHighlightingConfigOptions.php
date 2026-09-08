@@ -62,6 +62,23 @@ final class PhabricatorSyntaxHighlightingConfigOptions
             'Service token for the Gorge render service, sent with each '.
             'request in an "X-Service-Token" header. Leave this empty if '.
             'the service is configured without a token.')),
+      $this->newOption('gorge.diff.enabled', 'bool', false)
+        ->setSummary(pht('Generate text differences with Gorge?'))
+        ->setBoolOptions(
+          array(
+            pht('Use Gorge'),
+            pht('Use Local Difference Engines'),
+          ))
+        ->setDescription(
+          pht(
+            'Route unified and prose difference computation through the '.
+            'diff domain served by `gorge-render`. This domain uses the same '.
+            '`gorge.render.uri` and `gorge.render.token` options as syntax '.
+            'highlighting.'.
+            "\n\n".
+            'If the service is unavailable or returns an invalid response, '.
+            'Phorge records the failure and falls back to its local '.
+            'difference engines.')),
       $this->newOption('pygments.enabled', 'bool', false)
         ->setSummary(
           pht('Use Pygments to highlight code?'))

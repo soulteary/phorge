@@ -69,6 +69,22 @@ final class PhabricatorDifferenceEngine extends Phobject {
    */
   public function generateRawDiffFromFileContent($old, $new) {
 
+    if (PhabricatorGorgeDiffClient::isEnabled()) {
+      try {
+        return id(new PhabricatorGorgeDiffClient())->generateDiff(
+          $old,
+          $new,
+          $this->oldName,
+          $this->newName,
+          $this->getNormalize());
+      } catch (Exception $ex) {
+        // A diff is required for the caller to continue. Preserve the local
+        // engine as a compatibility fallback if the optional service is
+        // unavailable or returns a malformed response.
+        phlog($ex);
+      }
+    }
+
     $options = array();
 
     // Generate diffs with full context.

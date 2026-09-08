@@ -258,9 +258,11 @@ Phorge 自带的高亮器只覆盖几种语言（PHP / Python / Java / JSON）�
 Pygments，所以其余文件在 Paste、Differential、Diffusion 里都是无色的。叠加编排文件
 `docker-compose.gorge.yml` 会起一个 `gorge-render` 服务（Go + Chroma），Phorge 把高亮
 请求发给它，覆盖面与 Pygments 相当，但不用在镜像里塞一套 Python 运行时。
+同一个进程还承载 `/api/diff/*`：可以替换系统 `diff -U65535` 子进程与 PHP 的 prose
+difference engine。高亮与 diff 分别启用，可以独立回滚。
 
-镜像 `ghcr.io/soulteary/gorge-render` 由 Gorge 仓库的 release 工作流在打 `v*` tag 时推送，
-容器内固定监听 `8140`，路由 `/api/highlight/*`。**拉不到这个镜像是正常情况**，本地构建一条
+镜像 `ghcr.io/soulteary/gorge:render-latest` 由 Gorge 仓库的 release 工作流推送，
+容器内固定监听 `8140`，路由 `/api/highlight/*` 与 `/api/diff/*`。拉不到时，本地构建一条
 命令即可，见下面「本地构建 gorge-render 镜像」。与 Traefik 叠加文件一样，本文件**不改动**
 `docker-compose.yml`，因此默认的一键启动不受影响。
 
@@ -291,6 +293,28 @@ docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 > `bin/cache purge --caches general,changeset`。切换之后**新建**的 Paste / diff 不受影响，
 > 它们本来就会走新引擎。
 
+### 用 Gorge 生成 diff
+
+部署 `gorge-render` 不会自动改变差异计算。确认服务健康后，显式打开独立开关：
+
+```bash
+docker compose exec phorge /opt/phorge/phorge/bin/config set \
+  gorge.diff.enabled true
+```
+
+开启后，`PhabricatorDifferenceEngine` 的 unified diff 与
+`PhutilProseDifferenceEngine` 的 prose diff 会分别调用 `/api/diff/generate` 和
+`/api/diff/prose`。请求沿用 `gorge.render.uri` / `gorge.render.token`，不再增加一组
+重复的地址和密钥配置。服务不可达、超时、返回错误或响应不能无损还原输入时，Phorge 会把
+异常写入日志并回退到本地实现，页面与后台任务不会因为可选服务故障而中断。
+
+关闭开关即可回滚，不需要清缓存：
+
+```bash
+docker compose exec phorge /opt/phorge/phorge/bin/config set \
+  gorge.diff.enabled false
+```
+
 叠加文件做了两件事：
 
 - 新增 `gorge-render` 服务，**不声明 `ports`**：它只被 `phorge` 通过 Compose 默认网络的
@@ -313,28 +337,30 @@ docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 |------|--------|------|
 | `GORGE_RENDER_URI` | `http://gorge-render:8140` | Phorge 访问高亮服务的基础地址。**结尾不要带斜杠**，双斜杠会让服务端路由不匹配，返回 404 `ERR_NOT_FOUND`。 |
 | `GORGE_RENDER_TOKEN` | 空 | 服务间共享密钥，请求头 `X-Service-Token`。同一个值同时下发给两个服务，两端必须一致；留空表示 `gorge-render` 不鉴权（默认它不对宿主暴露端口，可接受）。 |
-| `GORGE_IMAGE_TAG` | `latest` | `ghcr.io/soulteary/gorge-render` 的镜像标签。生产建议钉到具体版本；本地构建时 `docker build -t` 的标签要与它一致。 |
+| `GORGE_IMAGE_TAG` | `latest` | Gorge 服务的公共镜像标签。 |
+| `GORGE_RENDER_IMAGE_TAG` | 空（继承 `GORGE_IMAGE_TAG`） | `ghcr.io/soulteary/gorge` 的 render 标签后缀；实际标签为 `render-<值>`，生产可单独钉住本服务。 |
 | `GORGE_RENDER_MAX_BYTES` | `1048576` | 单次高亮的源码大小上限（字节）。超限返回 413，该文件退化为无高亮。 |
+| `GORGE_DIFF_MAX_BYTES` | `1048576` | 单次 diff 的 `old` 与 `new` 合计大小上限（字节）。超限时 Phorge 记录错误并回退到本地实现。 |
 | `GORGE_RENDER_TIMEOUT_SEC` | `15` | 单次高亮的服务端超时（秒）。 |
 
 ### 本地构建 gorge-render 镜像
 
 两种情况都需要自己构建，用的是同一条命令：
 
-- **`ghcr.io/soulteary/gorge-render` 拉不下来。** 发布依赖 Gorge 仓库打 `v*` tag，尚未发布
-  时这个镜像就是不存在的。注意 ghcr 对「不存在」和「无权访问」返回的是同一个
+- **`ghcr.io/soulteary/gorge:render-*` 拉不下来。** 尚未发布对应标签时镜像不存在。
+  注意 ghcr 对「不存在」和「无权访问」返回的是同一个
   `403 Forbidden`，所以别按报错去折腾 `docker login`——先本地构建。
 - **你 fork 了 Gorge、改了 Go 代码**，想让 Phorge 用自己的构建而不是上游镜像。
 
 ```bash
 # 构建上下文是 gorge 仓库的 go/ 子目录，不是仓库根目录：Dockerfile 在 go/ 下，
 # 一份 Dockerfile 覆盖 go/cmd 下的所有二进制，由 SERVICE 构建参数挑一个。
-docker build -t ghcr.io/soulteary/gorge-render:latest \
+docker build -t ghcr.io/soulteary/gorge:render-latest \
   --build-arg SERVICE=gorge-render \
   /path/to/gorge/go
 
 # 确认镜像已在本地
-docker images ghcr.io/soulteary/gorge-render
+docker images ghcr.io/soulteary/gorge
 ```
 
 把 `/path/to/gorge/go` 换成你机器上 Gorge 仓库的 `go/` 目录。**Gorge 是独立仓库，不在本仓库
@@ -342,8 +368,9 @@ docker images ghcr.io/soulteary/gorge-render
 下就是 `../gorge/go`。构建耗时约 20 秒（Go 静态编译 + alpine 运行层）。
 
 关键是 `-t` 打出的名字要和编排里 `image:` 的完全一致，这样**不用改任何编排文件**：默认是
-`ghcr.io/soulteary/gorge-render:latest`；若你在 `.env` 里设了 `GORGE_IMAGE_TAG`，`-t` 的标签
-要跟着改成同一个值。构建完镜像就在本地，`docker compose ... up -d` 直接拿来用、不会再去拉；
+`ghcr.io/soulteary/gorge:render-latest`；若你设置了 `GORGE_RENDER_IMAGE_TAG`（或公共的
+`GORGE_IMAGE_TAG`），`-t` 的标签也要跟着改（例如 `:render-2026.09.08-r5`）。构建完镜像
+就在本地，`docker compose ... up -d` 直接拿来用、不会再去拉；
 但 `docker compose pull` 仍然会去 ghcr 找，那一步照样会 403，跳过它即可。
 
 > 同理，`phorge` 应用镜像里的 PHP 源码也是**烤进镜像**的（见「镜像结构」）。如果你改的是
@@ -360,6 +387,7 @@ docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 # 看当前生效的引擎与地址（会打印值来自哪个配置源）
 docker compose exec phorge /opt/phorge/phorge/bin/config get syntax-highlighter.engine
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.render.uri
+docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.diff.enabled
 
 # 在高亮服务容器内探活（镜像基于 alpine，用 busybox 的 wget，没有 curl）
 docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
