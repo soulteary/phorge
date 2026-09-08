@@ -158,6 +158,38 @@ EOTEXT
             'install which points several entries at several services has to '.
             'give all of them the same token.',
             'cluster.search')),
+      $this->newOption('gorge.taskqueue.uri', 'string', null)
+        ->setLocked(true)
+        ->setSummary(pht('Base URI of the Gorge task queue service.'))
+        ->setDescription(
+          pht(
+            'Base URI of the Gorge task queue service, a standalone service '.
+            'which fronts the worker task queue in place of the local SQL '.
+            'implementation.'.
+            "\n\n".
+            'Unlike the `%s` handover switch, this is an active client: when '.
+            'this option is set, the daemons call the service over HTTP for '.
+            'every queue operation (enqueue, lease, complete, fail, yield, '.
+            'awaken) instead of running those operations against the local '.
+            'database. When it is empty, the queue is driven with SQL exactly '.
+            'as before, so clearing this option is a complete fallback.'.
+            "\n\n".
+            'The service owns the `%s` tables, so it is configured with its '.
+            'own database connection settings and its %s must match this '.
+            'server\'s %s. `%s` probes this address and reports a setup issue '.
+            'when the service does not answer or is not ready.',
+            'gorge.webhook.uri',
+            phutil_tag('tt', array(), '{namespace}_worker'),
+            phutil_tag('tt', array(), 'GORGE_TASKQUEUE_NAMESPACE'),
+            phutil_tag('tt', array(), 'storage.default-namespace'),
+            'PhabricatorGorgeTaskQueueSetupCheck')),
+      $this->newOption('gorge.taskqueue.token', 'string', null)
+        ->setHidden(true)
+        ->setDescription(
+          pht(
+            'Service token for the Gorge task queue service, sent with each '.
+            'request in an "X-Service-Token" header. Leave this empty if '.
+            'the service is configured without a token.')),
     );
   }
 

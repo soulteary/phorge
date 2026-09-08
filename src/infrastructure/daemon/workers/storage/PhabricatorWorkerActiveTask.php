@@ -160,25 +160,55 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
         $worker->executeTask();
       $duration = phutil_microseconds_since($t_start);
 
-      $result = $this->archiveTask(
-        PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
-        $duration);
+      // When the Gorge task queue service owns the queue, tell it the task
+      // completed and let it archive the row; otherwise archive it here with
+      // SQL. notifyGoComplete() returns false when the service is not
+      // configured (or the call fails), which keeps the native path as a
+      // fallback.
+      $go_ok = $this->notifyGoComplete($duration);
+      if (!$go_ok) {
+        $result = $this->archiveTask(
+          PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
+          $duration);
+      } else {
+        $result = id(new PhabricatorWorkerArchiveTask())
+          ->makeEphemeral()
+          ->setID($this->getID())
+          ->setTaskClass($this->getTaskClass())
+          ->setResult(PhabricatorWorkerArchiveTask::RESULT_SUCCESS)
+          ->setDuration($duration);
+      }
       $did_succeed = true;
     } catch (PhabricatorWorkerPermanentFailureException $ex) {
-      $result = $this->archiveTask(
-        PhabricatorWorkerArchiveTask::RESULT_FAILURE,
-        0);
+      $go_ok = $this->notifyGoFail(true);
+      if (!$go_ok) {
+        $result = $this->archiveTask(
+          PhabricatorWorkerArchiveTask::RESULT_FAILURE,
+          0);
+      } else {
+        $result = id(new PhabricatorWorkerArchiveTask())
+          ->makeEphemeral()
+          ->setID($this->getID())
+          ->setTaskClass($this->getTaskClass())
+          ->setResult(PhabricatorWorkerArchiveTask::RESULT_FAILURE)
+          ->setDuration(0);
+      }
       $result->setExecutionException($ex);
     } catch (PhabricatorWorkerYieldException $ex) {
       $this->setExecutionException($ex);
 
-      $this->setLeaseOwner(PhabricatorWorker::YIELD_OWNER);
-
       $retry = $ex->getDuration();
       $retry = max($retry, 5);
 
-      // NOTE: As a side effect, this saves the object.
-      $this->setLeaseDuration($retry);
+      // Yield through the service when it owns the queue; otherwise release
+      // the lease locally by marking the task with the yield owner.
+      $go_ok = $this->notifyGoYield($retry);
+      if (!$go_ok) {
+        $this->setLeaseOwner(PhabricatorWorker::YIELD_OWNER);
+
+        // NOTE: As a side effect, this saves the object.
+        $this->setLeaseDuration($retry);
+      }
 
       $result = $this;
     } catch (Exception $ex) {
@@ -201,8 +231,13 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
         $retry,
         PhabricatorWorkerLeaseQuery::getDefaultWaitBeforeRetry());
 
-      // NOTE: As a side effect, this saves the object.
-      $this->setLeaseDuration($retry);
+      // Report the transient failure to the service when it owns the queue;
+      // otherwise extend the lease locally so the task is retried later.
+      $go_ok = $this->notifyGoFail(false, $retry);
+      if (!$go_ok) {
+        // NOTE: As a side effect, this saves the object.
+        $this->setLeaseDuration($retry);
+      }
 
       $result = $this;
     }
@@ -218,6 +253,78 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
     }
 
     return $result;
+  }
+
+
+  /**
+   * Report task completion to the Gorge task queue service.
+   *
+   * Guarded by @{method:PhabricatorGorgeTaskQueueClient::isConfigured}: when
+   * the service does not own the queue this returns false immediately and the
+   * caller archives the task with SQL. A failed call is also treated as "not
+   * handled" so the native path can still complete the task rather than
+   * leaving it leased.
+   *
+   * @param int $duration Execution duration in microseconds.
+   * @return bool True if the service handled the completion.
+   */
+  private function notifyGoComplete($duration) {
+    if (!PhabricatorGorgeTaskQueueClient::isConfigured()) {
+      return false;
+    }
+
+    try {
+      $client = new PhabricatorGorgeTaskQueueClient();
+      $client->complete($this->getID(), (int)$duration);
+      return true;
+    } catch (Exception $ex) {
+      phlog($ex);
+      return false;
+    }
+  }
+
+  /**
+   * Report task failure to the Gorge task queue service.
+   *
+   * @param bool $permanent True for a permanent failure, false to retry.
+   * @param int|null $retry_wait Seconds before retry, or null for the service
+   *   default.
+   * @return bool True if the service handled the failure.
+   */
+  private function notifyGoFail($permanent, $retry_wait = null) {
+    if (!PhabricatorGorgeTaskQueueClient::isConfigured()) {
+      return false;
+    }
+
+    try {
+      $client = new PhabricatorGorgeTaskQueueClient();
+      $client->fail($this->getID(), $permanent, $retry_wait);
+      return true;
+    } catch (Exception $ex) {
+      phlog($ex);
+      return false;
+    }
+  }
+
+  /**
+   * Report a task yield to the Gorge task queue service.
+   *
+   * @param int $duration Seconds to yield for.
+   * @return bool True if the service handled the yield.
+   */
+  private function notifyGoYield($duration) {
+    if (!PhabricatorGorgeTaskQueueClient::isConfigured()) {
+      return false;
+    }
+
+    try {
+      $client = new PhabricatorGorgeTaskQueueClient();
+      $client->yield($this->getID(), $duration);
+      return true;
+    } catch (Exception $ex) {
+      phlog($ex);
+      return false;
+    }
   }
 
 }

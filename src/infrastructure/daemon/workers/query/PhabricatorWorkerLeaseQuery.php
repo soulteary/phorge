@@ -89,6 +89,16 @@ final class PhabricatorWorkerLeaseQuery extends PhabricatorQuery {
       }
     }
 
+    // When the Gorge task queue service is configured, the queue is driven
+    // through it rather than with SQL here. When it is not configured, fall
+    // through to the native SQL implementation below.
+    if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
+      if ($this->skipLease) {
+        return $this->executeListViaGoService();
+      }
+      return $this->executeLeaseViaGoService();
+    }
+
     $task_table = new PhabricatorWorkerActiveTask();
     $taskdata_table = new PhabricatorWorkerTaskData();
     $lease_ownership_name = $this->getLeaseOwnershipName();
@@ -206,6 +216,144 @@ final class PhabricatorWorkerLeaseQuery extends PhabricatorQuery {
     }
 
     return $tasks;
+  }
+
+  /**
+   * Lease tasks through the Gorge task queue service.
+   *
+   * Mirrors the SQL lease path: the service performs the atomic claim and
+   * returns the leased rows, and this method hydrates the corresponding
+   * @{class:PhabricatorWorkerActiveTask} objects (including their task data)
+   * from the rows the service reports.
+   *
+   * @return map<int, PhabricatorWorkerActiveTask> Leased tasks by ID.
+   */
+  private function executeLeaseViaGoService() {
+    $lease_ownership_name = $this->getLeaseOwnershipName();
+
+    $client = id(new PhabricatorGorgeTaskQueueClient())
+      ->setLeaseOwner($lease_ownership_name);
+    $results = $client->lease($this->limit);
+
+    if (!$results) {
+      return array();
+    }
+
+    $task_table = new PhabricatorWorkerActiveTask();
+    $tasks = array();
+
+    foreach ($results as $row) {
+      $task = $task_table->loadOneWhere('id = %d', idx($row, 'id'));
+      if (!$task) {
+        continue;
+      }
+
+      if (!$this->matchesFilters($task)) {
+        continue;
+      }
+
+      $task->setServerTime(time());
+      $this->loadTaskData($task);
+
+      $tasks[$task->getID()] = $task;
+    }
+
+    return $tasks;
+  }
+
+  /**
+   * List tasks through the Gorge task queue service without leasing them.
+   *
+   * Mirrors the SQL status path used when @{method:setSkipLease} is set: the
+   * service returns the queue rows and this method hydrates them, applying the
+   * same lease-status filter that @{method:withLeasedTasks} selects.
+   *
+   * @return map<int, PhabricatorWorkerActiveTask> Tasks by ID.
+   */
+  private function executeListViaGoService() {
+    $client = new PhabricatorGorgeTaskQueueClient();
+    $results = $client->getTasks($this->limit);
+
+    if (!$results) {
+      return array();
+    }
+
+    $task_table = new PhabricatorWorkerActiveTask();
+    $tasks = array();
+    $now = time();
+
+    foreach ($results as $row) {
+      $task = $task_table->loadOneWhere('id = %d', idx($row, 'id'));
+      if (!$task) {
+        continue;
+      }
+
+      if (!$this->matchesFilters($task)) {
+        continue;
+      }
+
+      if ($this->leased === true) {
+        $owner = $task->getLeaseOwner();
+        $expires = $task->getLeaseExpires();
+        if (!$owner || $expires < $now) {
+          continue;
+        }
+      } else if ($this->leased === false) {
+        if ($task->getLeaseOwner()) {
+          continue;
+        }
+      }
+
+      $task->setServerTime($now);
+      $this->loadTaskData($task);
+
+      $tasks[$task->getID()] = $task;
+    }
+
+    return $tasks;
+  }
+
+  /**
+   * Apply the @{method:withIDs} and @{method:withObjectPHIDs} filters.
+   *
+   * The service leases and lists by queue order and does not know about these
+   * filters, so they are enforced here to keep the Go path selecting the same
+   * tasks the SQL path would.
+   *
+   * @param PhabricatorWorkerActiveTask $task Task to test.
+   * @return bool True if the task passes the configured filters.
+   */
+  private function matchesFilters(PhabricatorWorkerActiveTask $task) {
+    if ($this->ids !== null) {
+      if (!in_array($task->getID(), $this->ids)) {
+        return false;
+      }
+    }
+
+    if ($this->objectPHIDs !== null) {
+      if (!in_array($task->getObjectPHID(), $this->objectPHIDs)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Hydrate a task's data blob from the task data table.
+   *
+   * @param PhabricatorWorkerActiveTask $task Task to populate.
+   * @return void
+   */
+  private function loadTaskData(PhabricatorWorkerActiveTask $task) {
+    $data_id = $task->getDataID();
+    if ($data_id) {
+      $task_data_row = id(new PhabricatorWorkerTaskData())
+        ->loadOneWhere('id = %d', $data_id);
+      if ($task_data_row) {
+        $task->setData($task_data_row->getData());
+      }
+    }
   }
 
   protected function buildCustomWhereClause(

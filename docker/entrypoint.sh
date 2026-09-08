@@ -7,7 +7,8 @@
 #   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_CONDUIT_* 网关 /
 #                                 GORGE_NOTIFICATION_* 通知 /
 #                                 GORGE_MAILER_* 发信 / GORGE_SEARCH_* 全文检索 /
-#                                 GORGE_FILE_* 文件存储)
+#                                 GORGE_FILE_* 文件存储 / GORGE_WEBHOOK_* webhook /
+#                                 GORGE_TASKQUEUE_* 任务队列)
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
 #   4. 升级/初始化数据库 schema  (PHORGE_AUTO_UPGRADE)
 #   5. 以 www-data 启动守护进程  (PHORGE_START_PHD)
@@ -153,6 +154,46 @@ if [ -n "${GORGE_CONDUIT_URI:-}" ] || [ -n "${GORGE_CONDUIT_TOKEN:-}" ]; then
     gorge_config_set 'gorge.conduit.token' "${GORGE_CONDUIT_TOKEN:-}"
     # 与高亮那段同样不在这里探 gorge-conduit 的 /healthz：叠加编排已用
     # depends_on.condition=service_healthy 保证了启动顺序，再等一次是冗余的。
+
+    # ----- 把 conduit 网关上游主机名加进 phabricator.allowed-uris（compat 硬约束）-----
+    # Phorge 用请求的 Host 头匹配站点（PhabricatorPlatformSite::newSiteForRequest），
+    # 只认 phabricator.base-uri / production-uri / allowed-uris 里出现过的 host。
+    # gorge-conduit 网关把 worker.execute 转发到 GORGE_CONDUIT_UPSTREAM_URL（默认
+    # http://phorge:80），于是到达 phorge 的请求带的是 "Host: phorge" —— 与 base-uri
+    # 的 127.0.0.1 不一致，Phorge 返回 "Site Not Found"（HTTP 500），委派的 worker
+    # 任务因此永远 temporary-fail、在 worker_activetask 里被反复重领。把网关上游 host
+    # 显式登记进 allowed-uris 即可放行这条内网回调链路。
+    #
+    # 用 --stdin 而不是位置参数：allowed-uris 是 list<string>，`bin/config set k v`
+    # 的位置参数只能表达标量。allowed-uris 是 setLocked(true) 的配置项，但 locked 只
+    # 在带 --database（写数据库源）时被拒，写 local 源（不带 --database）是允许的 ——
+    # 与上面 phd.taskmasters 同理。
+    GORGE_CONDUIT_UPSTREAM_URL="${GORGE_CONDUIT_UPSTREAM_URL:-http://phorge:80}"
+    export GORGE_CONDUIT_UPSTREAM_URL
+    if gorge_allowed_uris_json="$(php -r '
+        $upstream = getenv("GORGE_CONDUIT_UPSTREAM_URL");
+        $host = parse_url($upstream, PHP_URL_HOST);
+        if (!$host) { exit(1); }
+        $scheme = parse_url($upstream, PHP_URL_SCHEME) ?: "http";
+        $port = parse_url($upstream, PHP_URL_PORT);
+        // allowed-uris 的每一项是一个完整 URI（PhabricatorEnv 里以 base-uri 同样的
+        // 规则解析），只保留 host（含非默认端口）即可，路径固定 "/"。
+        $default = ($scheme === "https") ? 443 : 80;
+        $netloc = $host;
+        if ($port && (int)$port !== $default) { $netloc .= ":".$port; }
+        echo json_encode(array($scheme."://".$netloc."/"), JSON_UNESCAPED_SLASHES);
+    ')"; then
+        if printf '%s' "$gorge_allowed_uris_json" | "$CONFIG_BIN" set --stdin phabricator.allowed-uris; then
+            echo "[entrypoint] 已把 conduit 网关上游 host 登记进 phabricator.allowed-uris：$gorge_allowed_uris_json"
+            chown www-data:www-data "$CONF_FILE" || true
+            chmod 0640 "$CONF_FILE" || true
+        else
+            echo "[entrypoint] 警告: 写入 phabricator.allowed-uris 失败，经 gorge-conduit 网关" >&2
+            echo "[entrypoint]   委派的 worker.execute 可能因 Host 不匹配而 \"Site Not Found\"。" >&2
+        fi
+    else
+        echo "[entrypoint] 警告: 无法从 GORGE_CONDUIT_UPSTREAM_URL 解析 host，跳过 allowed-uris 登记。" >&2
+    fi
 else
     echo "[entrypoint] 未设置 GORGE_CONDUIT_URI，跳过 Gorge conduit 网关配置。"
 fi
@@ -662,6 +703,63 @@ if [ -n "${GORGE_WEBHOOK_URI:-}" ] || [ -n "${GORGE_WEBHOOK_TOKEN:-}" ]; then
     # 建的 —— 在这儿等它就是等一件只有自己能做的事。
 else
     echo "[entrypoint] 未设置 GORGE_WEBHOOK_URI，跳过 Gorge webhook 配置。"
+fi
+
+# Task-queue 在形式上回到最简单的那一类：gorge.taskqueue.uri 与 gorge.taskqueue.token
+# 都是标量配置项，整项归 Gorge 所有，走现成的 gorge_config_set 就够了 —— 不需要 --stdin，
+# 也不需要像 cluster.mailers / cluster.search 那样先读出来再合并。
+#
+# 语义上它是 phorge **主动调用**的那一类（和 render / conduit / file 一样，不是 webhook
+# 那种接管开关）：PHP 侧 PhabricatorWorkerLeaseQuery / PhabricatorWorker /
+# PhabricatorWorkerActiveTask 在读到 gorge.taskqueue.uri 非空（isConfigured()）时，把
+# enqueue / lease / complete / fail / yield / cancel / awaken 全部改走 gorge-taskqueue，
+# 否则回落原生 SQL 队列。写不进去时 phorge 侧继续用自带的 SQL 队列、不阻塞容器启动，
+# PhabricatorGorgeTaskQueueSetupCheck 会在 Config 页面把探活失败报出来。
+#
+# 但它比其它五段多一件必须做的事，见下面 phd taskmaster 那段：taskqueue 必须**替换**而
+# 不是**并存于** phd 的 taskmaster 守护进程。
+#
+# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
+if [ -n "${GORGE_TASKQUEUE_URI:-}" ] || [ -n "${GORGE_TASKQUEUE_TOKEN:-}" ]; then
+    echo "[entrypoint] 下发 Gorge task-queue 配置 ..."
+    gorge_config_set 'gorge.taskqueue.uri' "${GORGE_TASKQUEUE_URI:-}"
+    gorge_config_set 'gorge.taskqueue.token' "${GORGE_TASKQUEUE_TOKEN:-}"
+
+    # ----- phd taskmaster 的「替换而非并存」处理（compat 硬约束）-----
+    # gorge-worker 是 PhabricatorTaskmasterDaemon 搬成的独立进程，它和 phd 里的
+    # taskmaster 都从同一个队列消费。两个消费者虽然都向 gorge-taskqueue 原子 lease、
+    # 同一任务不会被领两次（不会「跑两遍」），但让两套 worker 同时消费同一个队列是
+    # 语义混乱且浪费的：两处执行环境、两处 lease 争抢。compat 要求 Go worker **替换**
+    # 而非并存，所以这里在配置了 gorge.taskqueue 时把 phd 的 taskmaster 池关到 0，把
+    # 队列的消费权完整交给 gorge-worker 容器。
+    #
+    # 为什么用 bin/config set 而不是写守卫块：phd.taskmasters 是 setLocked(true) 的
+    # 配置项，但 locked 只在带 --database（写数据库源）时被拒绝，写 local 源
+    # （bin/config set 不带 --database，即 local.json）是允许的 —— 与 gorge_config_set
+    # 走的是同一条路。这样已经跑过的实例光加环境变量也会在下次启动生效，不必删 local.json。
+    #
+    # 只有 GORGE_TASKQUEUE_URI 非空（真的接管了队列）且未显式关掉开关时才动它：
+    # GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER=0 时保留 taskmaster（灰度对比等场景）。
+    GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER="${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}"
+    if [ -n "${GORGE_TASKQUEUE_URI:-}" ] &&
+       [ "$GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER" = "1" ]; then
+        echo "[entrypoint] 配置了 gorge.taskqueue，禁用 phd 的 taskmaster（phd.taskmasters=0），"
+        echo "[entrypoint]   把队列消费权交给 gorge-worker 容器（替换而非并存）。"
+        if ! "$CONFIG_BIN" set phd.taskmasters 0; then
+            # 不阻塞容器启动，但要把后果说清楚：写不进去时 phd 会照常起 taskmaster，与
+            # gorge-worker 并存。最常见的失败是类映射未重新生成导致该键被判 unknown。
+            echo "[entrypoint] 警告: 写入 phd.taskmasters=0 失败，phd 的 taskmaster 会与" >&2
+            echo "[entrypoint]   gorge-worker 并存消费同一队列（不会重复执行任务，但语义" >&2
+            echo "[entrypoint]   混乱且浪费）。可进容器手动执行 bin/config set phd.taskmasters 0。" >&2
+        else
+            chown www-data:www-data "$CONF_FILE" || true
+            chmod 0640 "$CONF_FILE" || true
+        fi
+    fi
+else
+    echo "[entrypoint] 未设置 GORGE_TASKQUEUE_URI，跳过 Gorge task-queue 配置。"
+    # 没配 taskqueue 时刻意不去动 phd.taskmasters：保持 Phorge 默认（池大小 4），
+    # 让原生 SQL 队列由 phd 的 taskmaster 照常消费。这是降级路径。
 fi
 
 # ----- 3. 等待数据库就绪 -----

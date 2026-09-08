@@ -214,6 +214,32 @@ abstract class PhabricatorWorker extends Phobject {
 
       return $archived;
     } else {
+      // When the Gorge task queue service owns the queue, enqueue through it
+      // and return an ephemeral task carrying the service-assigned ID. When it
+      // is not configured, fall through to the native SQL save.
+      if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
+        $client = new PhabricatorGorgeTaskQueueClient();
+        $result = $client->enqueue($task_class, $data, array(
+          'priority'      => $priority,
+          'objectPHID'    => $object_phid,
+          'containerPHID' => $container_phid,
+          'delayUntil'    => idx($options, 'delayUntil'),
+        ));
+
+        $ephemeral = id(new PhabricatorWorkerActiveTask())
+          ->makeEphemeral()
+          ->setTaskClass($task_class)
+          ->setData($data)
+          ->setPriority($priority)
+          ->setObjectPHID($object_phid)
+          ->setContainerPHID($container_phid);
+        if (isset($result['id'])) {
+          $ephemeral->setID($result['id']);
+        }
+
+        return $ephemeral;
+      }
+
       $task->save();
       return $task;
     }
@@ -307,6 +333,14 @@ abstract class PhabricatorWorker extends Phobject {
    */
   final public static function awakenTaskIDs(array $ids) {
     if (!$ids) {
+      return;
+    }
+
+    // When the Gorge task queue service owns the queue, hand the awaken over
+    // to it; otherwise fall through to the native SQL update below.
+    if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
+      $client = new PhabricatorGorgeTaskQueueClient();
+      $client->awaken($ids);
       return;
     }
 

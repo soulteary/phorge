@@ -585,6 +585,189 @@ services:
       start_period: 5s
       retries: 3
 
+  # gorge-taskqueue 把 Phorge 的 daemon 工作队列搬到一个 HTTP API 后面（路由
+  # /api/queue/*），容器内固定监听 :8090。它拥有 {namespace}_worker 库里的
+  # worker_activetask / worker_taskdata / worker_archivetask 三张表：enqueue 入队、
+  # lease 把行租给 worker、complete/fail/yield/cancel/awaken 推进任务生命周期。
+  # 下面的 gorge-worker 是它唯一的客户端。
+  #
+  # 它与 gorge-webhook / gorge-file-storage 一样**有状态**、一样以数据库为后端：
+  # 队列就是 {namespace}_worker 库，没有它这个服务什么都做不了。因此它也是需要
+  # depends_on mysql 与 db-init 的服务之一。
+  #
+  # 与 webhook 的接管开关不同，taskqueue 是 phorge **主动调用**的：PHP 侧
+  # PhabricatorWorkerLeaseQuery / PhabricatorWorker / PhabricatorWorkerActiveTask
+  # 在读到 gorge.taskqueue.uri 非空时，enqueue / lease / complete / fail / yield /
+  # cancel / awaken 全部改走这个服务，否则回落原生 SQL 队列。
+  #
+  # **硬约束（compat）**：它必须**替换**而不是**并存于** phd 的 taskmaster 守护进程。
+  # 两个消费者虽然都向本服务原子 lease、同一任务不会被领两次，但让 phd 的 taskmaster
+  # 和 gorge-worker 同时消费同一个队列是语义混乱且浪费的（两套执行环境、两处 lease
+  # 争抢）。所以下面 phorge 段的 entrypoint 在配置了 GORGE_TASKQUEUE_URI 时会把
+  # phd.taskmasters 关到 0（见 entrypoint.sh 与 docker/entrypoint 的注释），把队列的
+  # 消费权完整交给 gorge-worker。
+  gorge-taskqueue:
+    image: ghcr.io/soulteary/gorge-taskqueue:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-taskqueue
+    restart: unless-stopped
+    depends_on:
+      # 队列在库里，所以等 mysql 健康。与 gorge-file-storage / gorge-webhook 同理不会
+      # 与 phorge 成环：这里没有让 phorge 等它「健康」（见下面 healthcheck 那段与
+      # phorge.depends_on 里 gorge-taskqueue 那一条）。
+      mysql:
+        condition: service_healthy
+      # 也要等 db-init：它给普通账号补的是 `phabricator_%` 整组库的权限，没这一步
+      # 连得上 mysql 却看不到 phabricator_worker 库。
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      # 监听地址固定 :8090。下面的健康检查与 phorge 的 GORGE_TASKQUEUE_URI 默认值都
+      # 按它写死，改这里要三处一起改。
+      GORGE_LISTEN_ADDR: ":8090"
+      # 服务间共享密钥，PHP 客户端以请求头 X-Service-Token 发送，两端必须同值，所以
+      # 这里和 phorge 都取同一个 GORGE_TASKQUEUE_TOKEN。留空表示服务端不鉴权：
+      # gorge-taskqueue 不对宿主暴露端口、只在 compose 内网可达，因此默认留空。
+      # 但它值得设一个值——能往这个口投请求就等于能操纵整个任务队列（入队、领取、
+      # 归档任意任务），一旦把它接进共享网络，务必设。
+      GORGE_SERVICE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:-}
+      # 队列后端："mysql"（默认）或 "redis"。下面的 GORGE_TASKQUEUE_REDIS_* 只在这里
+      # 是 "redis" 时才被读到。默认走 MySQL，也就是 phorge 自己的 {namespace}_worker 库。
+      GORGE_TASKQUEUE_BACKEND: ${GORGE_TASKQUEUE_BACKEND:-mysql}
+
+      # 下面每一项都用 GORGE_TASKQUEUE_ 前缀，这是服务读配置时的**首选名**。无前缀的
+      # 旧名（MYSQL_HOST / STORAGE_NAMESPACE / QUEUE_BACKEND …）服务也认，但那是留给
+      # 独立服务时期旧部署的兜底，不该在新编排里用——这个容器里 MYSQL_* 若按无前缀写，
+      # 就和 phorge 容器里同名却指别的东西的那一组撞了名字（见 docker/entrypoint.sh 的
+      # db_ready）。
+      #
+      # 连库参数取的仍是基础编排里那一组 .env 变量，不另开一份：这不是「服务自己的库」，
+      # 就是 phorge 的库，写错等于队列接管失败。与 phorge 段一样把 host/port 写成字面量，
+      # 它们是 compose 内部拓扑。
+      # 注意变量名是 GORGE_TASKQUEUE_MYSQL_PASS（PASS，不是 PASSWORD）——与 config.go 的
+      # config.EnvStr("", "GORGE_TASKQUEUE_MYSQL_PASS", "MYSQL_PASS") 对齐。
+      GORGE_TASKQUEUE_MYSQL_HOST: mysql
+      GORGE_TASKQUEUE_MYSQL_PORT: "3306"
+      GORGE_TASKQUEUE_MYSQL_USER: ${MYSQL_USER:-phorge}
+      GORGE_TASKQUEUE_MYSQL_PASS: ${MYSQL_PASSWORD:-phorge}
+      # 库名前缀，必须与 Phorge 的 storage.default-namespace 一致 —— 服务连的是
+      # {namespace}_worker 这个库。Phorge 该配置项的默认值是 phabricator，本编排没有
+      # 改它，所以这里也是 phabricator。**这一项必须显式给值**：服务端的默认值是 phorge，
+      # 靠默认值会连到一个不存在的库，表现是 /readyz 永远不通、队列一直入不了队。
+      GORGE_TASKQUEUE_NAMESPACE: ${GORGE_TASKQUEUE_NAMESPACE:-phabricator}
+
+      # --- Redis 后端（仅 GORGE_TASKQUEUE_BACKEND=redis 时读取）---
+      # 把队列从主库挪到 Redis 的部署才用得上；后端实例本身刻意不放进这个编排，
+      # 指向本编排之外的实例即可。
+      GORGE_TASKQUEUE_REDIS_ADDR: ${GORGE_TASKQUEUE_REDIS_ADDR:-}
+      GORGE_TASKQUEUE_REDIS_PASSWORD: ${GORGE_TASKQUEUE_REDIS_PASSWORD:-}
+      GORGE_TASKQUEUE_REDIS_DB: ${GORGE_TASKQUEUE_REDIS_DB:-0}
+      GORGE_TASKQUEUE_REDIS_KEY_PREFIX: ${GORGE_TASKQUEUE_REDIS_KEY_PREFIX:-gorge:tq:}
+
+      # --- 队列行为（都有服务端默认值，留空即用默认）---
+      # 一个被租出去的任务隔多久才允许另一个 worker 接手（秒，默认 7200 = 2 小时，与
+      # Phorge 的 PhabricatorWorkerLeaseQuery 默认租约一致）；一个临时失败的任务隔多久
+      # 才重新可租（秒，默认 300 = 5 分钟，与 Phorge 的 getWaitBeforeRetry 默认值一致）。
+      GORGE_TASKQUEUE_LEASE_DURATION: ${GORGE_TASKQUEUE_LEASE_DURATION:-7200}
+      GORGE_TASKQUEUE_RETRY_WAIT: ${GORGE_TASKQUEUE_RETRY_WAIT:-300}
+    # 与其余服务同理刻意不声明 ports：只有 phorge 与 gorge-worker 通过 compose 默认
+    # 网络的服务名 gorge-taskqueue 调用它。不鉴权时它是一个能操纵整个队列的开放接口。
+    # 需要在宿主上直连排障时，用 docker-compose.override.yml 另加回环映射：
+    #   services:
+    #     gorge-taskqueue:
+    #       ports:
+    #         - "127.0.0.1:8090:8090"
+    #
+    # 健康探针探 /readyz（能连上 {namespace}_worker 库），与 gorge-webhook /
+    # gorge-file-storage 一致：连不上库就等于一个任务都入不了队、领不出来，而这个
+    # 状态必须有个地方能看出来。
+    #
+    # **但下面 phorge 段刻意没有用 service_healthy 等它**，理由与 gorge-webhook 完全
+    # 相同——首次启动会死锁：{namespace}_worker 这个库是 phorge 容器里的
+    # bin/storage upgrade 建的，而本服务的就绪条件正是 ping 到这个库。让 phorge 等它
+    # 健康就成了「phorge 等服务、服务等只有 phorge 能建的库」。所以首次启动时本容器
+    # 会有一段 unhealthy 的窗口，直到 phorge 跑完 storage upgrade，这是预期的、不是
+    # 故障：taskqueue 侧用 lazy pool + /readyz 未就绪重试容忍库/表暂不存在。
+    # 同其余服务用 busybox 的 wget：镜像基于 alpine，没有 curl。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/readyz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # gorge-worker 是 Phorge 的 taskmaster 守护进程搬成的独立进程，容器内固定监听
+  # :8170。它是上面那条流水线的**客户端**：通过 HTTP 从 gorge-taskqueue 领任务、
+  # 执行、再把每个结果回报（complete / fail / yield），行为与
+  # PhabricatorTaskmasterDaemon 对本地队列做的完全一致。它自己不碰任何数据库，唯一的
+  # 依赖就是 gorge-taskqueue，这也是这两个服务是两个二进制而不是一个的原因。
+  #
+  # 它唯一的 HTTP 路由是 GET /api/worker/stats，健康探针探 /healthz 而不是 /readyz：
+  # 它没有自己的外部存储要证明可达，就绪就等于存活。一个连不上 taskqueue 的 worker
+  # 只是领不到任务、继续重试而已——那是 taskqueue 的问题，由 taskqueue 自己的 /readyz
+  # 报出来，不是重启这个容器的理由。
+  #
+  # 不配 GORGE_WORKER_CONDUIT_URL 时，它只跑自己原生实现的任务类、其余的一概失败。
+  # 把它指向 gorge-conduit（Conduit API 网关）就装上一个兜底 handler，把每一个它不
+  # 认识的任务类经 Conduit 委派回 phorge 的 PHP 后端执行。本编排里 gorge-conduit 段
+  # 存在，所以默认就指过去。
+  gorge-worker:
+    image: ghcr.io/soulteary/gorge-worker:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-worker
+    restart: unless-stopped
+    depends_on:
+      # 它的唯一依赖就是 taskqueue，而且这里可以安全地等 service_healthy：taskqueue
+      # 不像 phorge 那样会与它成环，taskqueue 只依赖 mysql / db-init。等 taskqueue
+      # 就绪（能连上 {namespace}_worker 库）再起 worker，可以避免 worker 起来后对着
+      # 一个还没就绪的队列空转刷日志。首次启动时 taskqueue 要等 phorge 建库，所以这条
+      # 依赖会让 worker 也一并等到库建好，符合预期。
+      gorge-taskqueue:
+        condition: service_healthy
+    environment:
+      # 监听地址固定 :8170。下面的健康检查按它写死，改这里要两处一起改。
+      GORGE_LISTEN_ADDR: ":8170"
+      # 服务间共享密钥。worker 既是 taskqueue 的 HTTP 客户端、又自己暴露 /api/worker/stats，
+      # 所以这里的 GORGE_SERVICE_TOKEN 保护的是它自己的 stats 接口；它调 taskqueue 用的
+      # 是下面的 GORGE_WORKER_TASK_QUEUE_TOKEN。两者默认都取同一个 GORGE_TASKQUEUE_TOKEN，
+      # 因为整条流水线共用一个信任域。
+      GORGE_SERVICE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:-}
+      # 它要领任务的 taskqueue 服务地址与 token。默认按 compose 服务名解析兄弟服务的
+      # :8090；token 必须与 taskqueue 的 GORGE_SERVICE_TOKEN 同值，所以默认取同一个
+      # GORGE_TASKQUEUE_TOKEN。变量名与 config.go 的
+      # config.EnvStr(..., "GORGE_WORKER_TASK_QUEUE_URL", "TASK_QUEUE_URL") 对齐。
+      GORGE_WORKER_TASK_QUEUE_URL: ${GORGE_WORKER_TASK_QUEUE_URL:-http://gorge-taskqueue:8090}
+      GORGE_WORKER_TASK_QUEUE_TOKEN: ${GORGE_WORKER_TASK_QUEUE_TOKEN:-${GORGE_TASKQUEUE_TOKEN:-}}
+      # Conduit 兜底网关：把 worker 不原生支持的任务类委派回 phorge 的 PHP 后端。
+      # 本编排里 gorge-conduit 段固定监听 :8150，所以默认指过去；token 与网关的
+      # GORGE_SERVICE_TOKEN 同值，默认取同一个 GORGE_CONDUIT_TOKEN。留空 URL 则关闭
+      # 兜底，worker 只跑原生任务类。变量名与 config.go 的
+      # config.EnvStr("", "GORGE_WORKER_CONDUIT_URL", "CONDUIT_URL") 对齐。
+      GORGE_WORKER_CONDUIT_URL: ${GORGE_WORKER_CONDUIT_URL:-http://gorge-conduit:8150}
+      GORGE_WORKER_CONDUIT_TOKEN: ${GORGE_WORKER_CONDUIT_TOKEN:-${GORGE_CONDUIT_TOKEN:-}}
+      # --- 领取循环行为（都有服务端默认值，留空即用默认）---
+      # 每次 poll 领多少任务、poll 间隔（毫秒）、同时跑多少个、空闲多久后退避（秒）。
+      GORGE_WORKER_LEASE_LIMIT: ${GORGE_WORKER_LEASE_LIMIT:-4}
+      GORGE_WORKER_POLL_INTERVAL_MS: ${GORGE_WORKER_POLL_INTERVAL_MS:-1000}
+      GORGE_WORKER_MAX_WORKERS: ${GORGE_WORKER_MAX_WORKERS:-4}
+      GORGE_WORKER_IDLE_TIMEOUT_SEC: ${GORGE_WORKER_IDLE_TIMEOUT_SEC:-180}
+      # 逗号分隔的任务类白名单；留空表示 worker 支持的全部任务类。变量名与 config.go 的
+      # config.EnvStr("", "GORGE_WORKER_TASK_CLASS_FILTER", "TASK_CLASS_FILTER") 对齐。
+      GORGE_WORKER_TASK_CLASS_FILTER: ${GORGE_WORKER_TASK_CLASS_FILTER:-}
+    # 与其余服务同理刻意不声明 ports：只有排障时才需要宿主入口访问它的 stats。
+    # 需要直连时用 docker-compose.override.yml 另加回环映射：
+    #   services:
+    #     gorge-worker:
+    #       ports:
+    #         - "127.0.0.1:8170:8170"
+    #
+    # 健康探针探 /healthz（进程存活）而不是 /readyz，理由见上面段首注释：worker 没有
+    # 自己的外部存储，就绪即存活。同其余服务用 busybox 的 wget：镜像基于 alpine，没有 curl。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8170/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
   # 给已存在的 phorge 服务补充：对六个 Gorge 服务的依赖 + 若干配置用环境变量。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
   # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
@@ -654,6 +837,26 @@ services:
       # queued 里等服务起来，但没必要制造它）。
       gorge-webhook:
         condition: service_started
+      # gorge-taskqueue 是第七条依赖，用 service_started 的理由与 gorge-webhook /
+      # gorge-file-storage 那两条**完全相同**：它的就绪条件是能连上 {namespace}_worker
+      # 库，而那个库是 phorge 容器里的 bin/storage upgrade 建的。用 service_healthy 等它
+      # 就成了「phorge 等服务、服务等只有 phorge 能建的库」的首次启动死锁。
+      # db-init 也帮不上忙——它只发 GRANT，一个库都不建。
+      #
+      # 留这条依赖是为了顺序：让 gorge-taskqueue 先于 phorge 被创建，等 phorge 的
+      # entrypoint 写 gorge.taskqueue.uri 时，队列服务已经在跑（哪怕还没就绪），
+      # PhabricatorWorker::scheduleTask 头一次入队就有接手方。首次启动时 taskqueue 会有
+      # 一段 unhealthy 的窗口，直到 storage upgrade 建出 {namespace}_worker 库，这是预期的。
+      gorge-taskqueue:
+        condition: service_started
+      # gorge-worker 是第八条依赖，同样用 service_started。它本身不碰数据库、就绪即存活，
+      # 本可以等它 healthy，但那没意义：worker 起来后若队列还没就绪只是空转重试，不影响
+      # phorge。用 service_started 只为把它先于 phorge 创建，让队列的消费方在 phorge 开始
+      # 入队时已经在跑。注意 worker 是**替换** phd 的 taskmaster 而非并存的——entrypoint
+      # 在配置了 GORGE_TASKQUEUE_URI 时会把 phd.taskmasters 关到 0，见下面 environment 段
+      # 与 docker/entrypoint.sh。
+      gorge-worker:
+        condition: service_started
     environment:
       # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
       # 守卫式生成块**之外**，所以改 .env 重启容器就生效，不必删 local.json。
@@ -669,6 +872,12 @@ services:
       # 判成路由不匹配。
       GORGE_CONDUIT_URI: ${GORGE_CONDUIT_URI:-http://gorge-conduit:8150}
       GORGE_CONDUIT_TOKEN: ${GORGE_CONDUIT_TOKEN:-}
+      # entrypoint.sh 用它解析出 conduit 网关的上游 host，登记进 phabricator.allowed-uris。
+      # gorge-conduit 把 worker.execute 转发到这个地址（默认 http://phorge:80），到达
+      # phorge 的请求 Host 头即此 host；不登记进 allowed-uris 时 Phorge 按 Host 匹配
+      # 站点会失败（"Site Not Found"），委派任务永远 temporary-fail。必须与
+      # gorge-conduit 段的 GORGE_CONDUIT_UPSTREAM_URL 取同一个值（同名 .env 变量兜底）。
+      GORGE_CONDUIT_UPSTREAM_URL: ${GORGE_CONDUIT_UPSTREAM_URL:-http://phorge:80}
       # --- 下面几项由 entrypoint.sh 拼成 notification.servers 的两条记录 ---
       # 关键不对称：admin 与 client **必须填不同的地址**，因为消费者根本不是同
       # 一个进程。
@@ -770,6 +979,27 @@ services:
       # 结尾不要带斜杠：setup check 按 {uri}/healthz、{uri}/readyz 拼接。
       GORGE_WEBHOOK_URI: ${GORGE_WEBHOOK_URI:-http://gorge-webhook:8160}
       GORGE_WEBHOOK_TOKEN: ${GORGE_WEBHOOK_TOKEN:-}
+      # --- 下面几项与 task-queue 接管相关 ---
+      # gorge.taskqueue.uri / gorge.taskqueue.token 是两个标量配置项，整项归 Gorge 所有，
+      # entrypoint.sh 走现成的 gorge_config_set 幂等写入 local.json。
+      #
+      # 语义上它属于 phorge **主动调用**的那一类（和 render / conduit / file 一样），不是
+      # webhook 那种接管开关：PHP 侧 PhabricatorWorkerLeaseQuery / PhabricatorWorker /
+      # PhabricatorWorkerActiveTask 在读到 gorge.taskqueue.uri 非空（isConfigured()）时，
+      # 把 enqueue / lease / complete / fail / yield / cancel / awaken 全部改走
+      # gorge-taskqueue，否则回落原生 SQL 队列。清空这一项并重启即可回滚到原生队列。
+      # URI 结尾不要带斜杠：客户端按 {uri}/api/queue/enqueue 等拼接，双斜杠会被
+      # gorge-taskqueue 判成路由不匹配，返回 404 ERR_NOT_FOUND。
+      #
+      # GORGE_TASKQUEUE_URI 同时是「是否禁用 phd taskmaster」的开关：它非空时 entrypoint
+      # 会把 phd.taskmasters 设为 0（除非 GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER=0），
+      # 让 gorge-worker 独家消费队列，避免 phd 的 taskmaster 与它并存。详见 entrypoint.sh。
+      GORGE_TASKQUEUE_URI: ${GORGE_TASKQUEUE_URI:-http://gorge-taskqueue:8090}
+      GORGE_TASKQUEUE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:-}
+      # 配置了 gorge.taskqueue 时是否在本 phorge 容器里禁用 phd 的 taskmaster 守护进程
+      # （把 phd.taskmasters 设为 0）。默认 1 = 禁用，这是 compat 硬约束要求的「替换而非
+      # 并存」。设 0 可保留 taskmaster（仅在你确知要让 phd 也消费队列、或用于灰度对比时）。
+      GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER: ${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}
 
 # 本叠加文件引入的唯一一个卷。顶层 volumes 与基础 docker-compose.yml 里的那三个
 # （phorge-db / phorge-conf / phorge-repo）合并，不会替换它们。
