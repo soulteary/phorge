@@ -8,7 +8,8 @@
 #                                 GORGE_NOTIFICATION_* 通知 /
 #                                 GORGE_MAILER_* 发信 / GORGE_SEARCH_* 全文检索 /
 #                                 GORGE_FILE_* 文件存储 / GORGE_WEBHOOK_* webhook /
-#                                 GORGE_TASKQUEUE_* 任务队列)
+#                                 GORGE_TASKQUEUE_* 任务队列 /
+#                                 GORGE_DB_* 数据库诊断)
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
 #   4. 升级/初始化数据库 schema  (PHORGE_AUTO_UPGRADE)
 #   5. 以 www-data 启动守护进程  (PHORGE_START_PHD)
@@ -783,10 +784,9 @@ if [ -n "${GORGE_DB_URL:-}" ] || [ -n "${GORGE_DB_TOKEN:-}" ]; then
     gorge_config_set 'gorge.db.uri' "${GORGE_DB_URL:-}"
     gorge_config_set 'gorge.db.token' "${GORGE_DB_TOKEN:-}"
     # 与前几段同样不在这里探 gorge-db-api 的 /readyz：叠加编排里 phorge 对它用的是
-    # depends_on.condition=service_started（不是 service_healthy），刻意如此 —— gorge-db-api
-    # 的 /readyz 要连上 {namespace}_meta_data 库，而那个库是本脚本后面 bin/storage upgrade
-    # 才建的，用 service_healthy 会与「库还没建」形成启动死锁。就绪状态由 Config 页面的
-    # PhabricatorGorgeDBSetupCheck 报出来。
+    # depends_on.condition=service_started（不是 service_healthy），刻意让可选诊断服务的
+    # 数据库可达性不阻塞 Phorge 自身的首次启动与 storage upgrade。就绪状态由 /readyz
+    # 和 Config 页面的 PhabricatorGorgeDBSetupCheck 报出来。
 else
     echo "[entrypoint] 未设置 GORGE_DB_URL，跳过 Gorge 数据库服务配置。"
 fi

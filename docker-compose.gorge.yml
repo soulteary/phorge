@@ -1,6 +1,6 @@
 # Phorge (phorge-fork) Gorge 服务叠加编排（可选）
 # ------------------------------------------------------------------
-# 用法（在基础一键启动之上叠加 Gorge 的三个服务）：
+# 用法（在基础一键启动之上叠加 Gorge 服务）：
 #   docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
 #
 # 说明：
@@ -11,9 +11,10 @@
 #     跑的就是**旧版 entrypoint**：notification.servers 与 cluster.mailers 整段不下发，
 #     而且**不报任何错误**——没有告警、没有失败退出，Config 页面看着也正常。唯一的线索
 #     是启动日志里少了那几行 `[entrypoint] 下发 Gorge ... 配置`。
-#   - 本文件起六个互不依赖的服务，用不上哪个就把对应的 service 段、以及 phorge
+#   - 本文件起一组可独立取舍的服务，用不上哪个就把对应的 service 段、以及 phorge
 #     段里对应的 depends_on 与环境变量一起删掉：
 #       gorge-render        基于 Chroma 的语法高亮服务，替换 Phorge 内置高亮器
+#       gorge-conduit       统一鉴权、限流和审计的 Conduit 反向代理网关
 #       gorge-notification  与 Aphlict 线兼容的实时通知服务，替换 Node.js 版 aphlict
 #       gorge-mailer        统一 7 种后端的发信服务，作为 cluster.mailers 的一个条目
 #       gorge-search        统一 ES / Meilisearch 的全文检索服务，作为 cluster.search
@@ -22,10 +23,14 @@
 #                           PhabricatorFileStorageEngine（identifier: gorge）
 #       gorge-webhook       接管 Herald webhook 投递的服务，替换 phd 里的
 #                           HeraldWebhookWorker（它不被 phorge 调用，直接读写队列表）
-#   - 六者的地址都由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
+#       gorge-taskqueue     接管 Phorge 任务队列的 HTTP 服务
+#       gorge-worker        从 gorge-taskqueue 领取并执行任务的 worker
+#       gorge-db-api        只读的 MySQL 集群、schema 与迁移状态诊断 API
+#   - 消费端配置由 phorge 的 entrypoint.sh 幂等写进 conf/local/local.json
 #     （gorge.render.uri / gorge.render.token、notification.servers、cluster.mailers、
 #     cluster.search / gorge.search.token、gorge.file.uri / gorge.file.token、
-#     gorge.webhook.uri / gorge.webhook.token）。
+#     gorge.webhook.uri / gorge.webhook.token、gorge.taskqueue.uri /
+#     gorge.taskqueue.token、gorge.db.uri / gorge.db.token）。
 #   - 高亮起来之后还有**一步手工切换**：Phorge 默认仍用内置高亮引擎，需要把
 #     syntax-highlighter.engine 切到 PhabricatorGorgeSyntaxHighlighterEngine
 #     并清一次缓存。命令与原因见 DOCKER.md「用 Gorge 做语法高亮」。
@@ -52,10 +57,9 @@
 #     （但它的 /readyz 在**首次**启动时会有一段 503 的窗口，因为默认同时启用的 blob 后端
 #     要等 phorge 建出 {namespace}_file 库。上传不受影响，会下沉到本地磁盘后端。
 #     它和 gorge-webhook 因此都只被 phorge 用 service_started 依赖，见各自的注释。）
-#   - gorge-file-storage 与 gorge-webhook 是六个里**有状态**的两个，也是仅有的两个
-#     依赖 mysql 与 db-init 的：前者的 blob 后端写的是 phorge 自己那张 file_storageblob
-#     表，本地磁盘后端写的是下面新增的 phorge-files 卷；后者读写的是 herald_webhookrequest
-#     这张队列表。删 gorge-file-storage 段之前先确认没有文件已经落在它里面 —— 引擎标识是
+#   - gorge-file-storage 是唯一拥有自己数据卷的服务；它的 blob 后端与 gorge-webhook、
+#     gorge-taskqueue 都会读写 Phorge 的表，gorge-db-api 则只读。四者都依赖 mysql 与
+#     db-init。删 gorge-file-storage 段之前先确认没有文件已经落在它里面 —— 引擎标识是
 #     按文件存在库里的，服务没了那些文件就读不出来。删 gorge-webhook 段则必须连同 phorge
 #     段里的 GORGE_WEBHOOK_URI 一起删，否则 phorge 会一直以为投递已经交出去了，谁也不发。
 # ------------------------------------------------------------------
@@ -768,7 +772,46 @@ services:
       start_period: 5s
       retries: 3
 
-  # 给已存在的 phorge 服务补充：对六个 Gorge 服务的依赖 + 若干配置用环境变量。
+  # gorge-db-api 把 Phorge 对自身 MySQL 集群的只读诊断收进一个 HTTP API：数据库
+  # 健康、schema 差异、环境检查与 storage upgrade 进度都由它现查后返回。它不建库、
+  # 不跑迁移，也不修改业务表。
+  gorge-db-api:
+    image: ghcr.io/soulteary/gorge:db-api-${GORGE_DB_IMAGE_TAG:-${GORGE_IMAGE_TAG:-latest}}
+    container_name: phorge-gorge-db-api
+    restart: unless-stopped
+    depends_on:
+      # 服务要连接基础编排里的 MySQL，并复用 Phorge 普通账号。先等数据库可连接、授权
+      # 完成，避免启动后的第一次诊断落在一个必然失败的窗口里。
+      mysql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      GORGE_LISTEN_ADDR: ":8080"
+      # 同一个值也会下发给 phorge，写进 gorge.db.token。
+      GORGE_SERVICE_TOKEN: ${GORGE_DB_TOKEN:-}
+      # 单节点模式直接复用基础编排的数据库账号；db-api 只执行 SHOW、SELECT 与
+      # INFORMATION_SCHEMA 查询，不需要 DDL 权限。
+      GORGE_DB_MYSQL_HOST: mysql
+      GORGE_DB_MYSQL_PORT: "3306"
+      GORGE_DB_MYSQL_USER: ${MYSQL_USER:-phorge}
+      GORGE_DB_MYSQL_PASS: ${MYSQL_PASSWORD:-phorge}
+      # 必须与 Phorge 的 storage.default-namespace 一致。
+      GORGE_DB_NAMESPACE: ${GORGE_DB_NAMESPACE:-phabricator}
+      # 可选的 Phorge local.json 路径。非空时还要通过 compose override 把该文件只读
+      # 挂载到容器内；服务会从 cluster.databases 读取完整拓扑。默认空值使用上面的单节点。
+      GORGE_DB_CONFIG_FILE: ${GORGE_DB_CONFIG_FILE:-}
+    # 刻意不发布宿主端口：只有 phorge 通过 compose 内网访问它。
+    healthcheck:
+      # 必须探 /healthz，而不是 /readyz：容器健康只表达进程存活，数据库可达性由
+      # /readyz 与 PhabricatorGorgeDBSetupCheck 报告，不能阻塞 Phorge 自身首启。
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # 给已存在的 phorge 服务补充：对 Gorge 服务的依赖 + 若干配置用环境变量。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
   # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
   # 两个依赖仍然保留），不会整体替换。
@@ -804,7 +847,7 @@ services:
       # 「服务不可达」。
       gorge-search:
         condition: service_healthy
-      # gorge-file-storage 与下面的 gorge-webhook 是六条依赖里仅有的两条用
+      # gorge-file-storage 与下面的 gorge-webhook 是前几个依赖里仅有的两条用
       # service_started 而不是 service_healthy 的，而这个差别对两者都是**必须**的，
       # 不是偏好：它们的就绪条件都是能连上一个 {namespace}_xxx 库，而那些库都是
       # phorge 容器里的 bin/storage upgrade 建的。
@@ -856,6 +899,10 @@ services:
       # 在配置了 GORGE_TASKQUEUE_URI 时会把 phd.taskmasters 关到 0，见下面 environment 段
       # 与 docker/entrypoint.sh。
       gorge-worker:
+        condition: service_started
+      # db-api 的 /readyz 会实际探测 MySQL。这里必须只等进程启动，让这个可选诊断面的
+      # 数据库可达性不阻塞 Phorge 自身的首次启动与 storage upgrade。
+      gorge-db-api:
         condition: service_started
     environment:
       # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
@@ -1000,6 +1047,12 @@ services:
       # （把 phd.taskmasters 设为 0）。默认 1 = 禁用，这是 compat 硬约束要求的「替换而非
       # 并存」。设 0 可保留 taskmaster（仅在你确知要让 phd 也消费队列、或用于灰度对比时）。
       GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER: ${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}
+      # --- 下面两项由 entrypoint.sh 写进 gorge.db.uri / gorge.db.token ---
+      # PHP 侧 PhabricatorGorgeDBClient 在 URI 非空时把数据库健康、schema、环境与迁移
+      # 状态诊断改走 db-api；清空 URI 后自动回落到原来的 PHP 实现。
+      # 使用 "-" 而不是 ":-"：在 .env 显式写 GORGE_DB_URL= 可关闭 PHP 切流。
+      GORGE_DB_URL: ${GORGE_DB_URL-http://gorge-db-api:8080}
+      GORGE_DB_TOKEN: ${GORGE_DB_TOKEN:-}
 
 # 本叠加文件引入的唯一一个卷。顶层 volumes 与基础 docker-compose.yml 里的那三个
 # （phorge-db / phorge-conf / phorge-repo）合并，不会替换它们。
