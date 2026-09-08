@@ -103,6 +103,53 @@ services:
       start_period: 5s
       retries: 3
 
+  # gorge-conduit 一个进程承载整个 conduit 域（路由 ANY /api/:method），容器内
+  # 固定监听 8150。它是 Conduit API 的**反向代理网关**：对经过鉴权与限流的请求，
+  # 反代到上游 phorge 容器的 /api/*。与 render 一样是无状态服务，镜像由 gorge
+  # 仓库的 release 工作流推到 ghcr，语义化版本标签与 latest 都有；生产建议在 .env
+  # 里把 GORGE_IMAGE_TAG 钉到具体版本，避免 docker compose pull 悄悄换掉网关实现。
+  gorge-conduit:
+    image: ghcr.io/soulteary/gorge-conduit:${GORGE_IMAGE_TAG:-latest}
+    container_name: phorge-gorge-conduit
+    restart: unless-stopped
+    environment:
+      # 监听地址固定 :8150。下面的健康检查与 phorge 的 GORGE_CONDUIT_URI 默认值
+      # 都按它写死，改这里要三处一起改。
+      GORGE_LISTEN_ADDR: ":8150"
+      # 服务间共享密钥，PHP 客户端以请求头 X-Service-Token 发送，两端必须同值，
+      # 所以这里和 phorge 都取同一个 GORGE_CONDUIT_TOKEN。留空表示网关不鉴权：
+      # gorge-conduit 不对宿主暴露端口、只在 compose 内网可达，因此默认留空；
+      # 若把它放到共享网络里，务必设一个值。
+      GORGE_SERVICE_TOKEN: ${GORGE_CONDUIT_TOKEN:-}
+      # 反代的上游地址：指回本编排里的 phorge 容器（走 compose 默认网络的服务名）。
+      # 结尾不带斜杠：网关按 {upstream}/api/{method} 拼接反代目标。
+      GORGE_CONDUIT_UPSTREAM_URL: ${GORGE_CONDUIT_UPSTREAM_URL:-http://phorge:80}
+      # 反代单次请求的服务端超时（秒）。
+      GORGE_CONDUIT_PROXY_TIMEOUT_SEC: ${GORGE_CONDUIT_PROXY_TIMEOUT_SEC:-30}
+      # 单次请求 body 的大小上限（字节），超限返回 413。默认 8MiB。
+      GORGE_CONDUIT_MAX_BODY_SIZE: ${GORGE_CONDUIT_MAX_BODY_SIZE:-8388608}
+      # IP 令牌桶限流：每 IP 每秒补充的令牌数与突发上限，超限返回 429。
+      GORGE_CONDUIT_RATE_LIMIT_RPS: ${GORGE_CONDUIT_RATE_LIMIT_RPS:-20}
+      GORGE_CONDUIT_RATE_LIMIT_BURST: ${GORGE_CONDUIT_RATE_LIMIT_BURST:-40}
+    # 刻意不声明 ports：网关只被 phorge（以及其它同网络的 Go 服务）通过 compose
+    # 默认网络的服务名 gorge-conduit 调用，不需要宿主入口——少一个对外面，也省掉与
+    # gorge 自己那套编排（deploy/compose 里映射了 8150）抢宿主端口。
+    # 需要在宿主上直连排障时，用 docker-compose.override.yml 另加回环映射：
+    #   services:
+    #     gorge-conduit:
+    #       ports:
+    #         - "127.0.0.1:8150:8150"
+    # 健康探针：/healthz 返回裸 {"status":"ok"}，不套信封也不校验 token，正是给
+    # 容器探针用的。用 wget 而不是 curl：镜像基于 alpine，busybox 自带 wget。
+    # 镜像里已内置了同样参数的 HEALTHCHECK，这里显式重复一遍，是为了让下面
+    # phorge 的 service_healthy 依赖不取决于所拉到的镜像标签是否带探针。
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8150/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
   # gorge-notification 一个进程同时监听两个端口。这不是实现偏好，是 PHP 侧的硬
   # 要求：PhabricatorNotificationServersConfigType 校验 notification.servers 时，
   # 必须同时存在一条启用的 type=admin 与一条启用的 type=client，且两条记录的
@@ -550,6 +597,11 @@ services:
       # 轮询 /healthz。
       gorge-render:
         condition: service_healthy
+      # 等 gorge-conduit 健康再起 phorge：网关是 Conduit API 的反代入口，虽然它
+      # 的上游正是 phorge 自己，但先让网关就绪再写 gorge.conduit.uri，可让启动日志
+      # 顺序干净，也让 PhabricatorGorgeConduitSetupCheck 不会白报一次「服务不可达」。
+      gorge-conduit:
+        condition: service_healthy
       # 等 gorge-notification 健康再起 phorge：entrypoint.sh 写完
       # notification.servers 就不再探活，而 PhabricatorAphlictSetupCheck 会在
       # Config 页面把「连不上通知服务器」报成 setup issue。没有这条依赖的话，
@@ -609,6 +661,14 @@ services:
       # gorge-render 判成路由不匹配，返回 404 ERR_NOT_FOUND。
       GORGE_RENDER_URI: ${GORGE_RENDER_URI:-http://gorge-render:8140}
       GORGE_RENDER_TOKEN: ${GORGE_RENDER_TOKEN:-}
+      # --- conduit 网关（Conduit API 反向代理）---
+      # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json 的
+      # gorge.conduit.uri / gorge.conduit.token，且刻意放在守卫式生成块**之外**，
+      # 所以改 .env 重启容器就生效，不必删 local.json。
+      # URI 结尾不要带斜杠：客户端按 {uri}/api/{method} 拼接，双斜杠会被网关
+      # 判成路由不匹配。
+      GORGE_CONDUIT_URI: ${GORGE_CONDUIT_URI:-http://gorge-conduit:8150}
+      GORGE_CONDUIT_TOKEN: ${GORGE_CONDUIT_TOKEN:-}
       # --- 下面几项由 entrypoint.sh 拼成 notification.servers 的两条记录 ---
       # 关键不对称：admin 与 client **必须填不同的地址**，因为消费者根本不是同
       # 一个进程。

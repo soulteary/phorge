@@ -20,6 +20,10 @@ services:
       GORGE_RENDER_URI: "http://host.docker.internal:8140"
       GORGE_RENDER_TOKEN: "${GORGE_RENDER_TOKEN:-}"
 
+      # --- conduit 网关（宿主 :8150）---
+      GORGE_CONDUIT_URI: "http://host.docker.internal:8150"
+      GORGE_CONDUIT_TOKEN: "${GORGE_CONDUIT_TOKEN:-}"
+
       # --- notification 通知 ---
       # admin 由 phorge 容器内 PHP 访问，走 host.docker.internal 回宿主；
       # client 由用户浏览器访问，必须填浏览器可达地址（127.0.0.1），不能是

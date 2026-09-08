@@ -4,7 +4,8 @@
 #
 # 流程:
 #   1. 守卫式生成本地配置 conf/local/local.json（已存在则不覆盖）
-#   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_NOTIFICATION_* 通知 /
+#   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_CONDUIT_* 网关 /
+#                                 GORGE_NOTIFICATION_* 通知 /
 #                                 GORGE_MAILER_* 发信 / GORGE_SEARCH_* 全文检索 /
 #                                 GORGE_FILE_* 文件存储)
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
@@ -135,6 +136,25 @@ if [ -n "${GORGE_RENDER_URI:-}" ] || [ -n "${GORGE_RENDER_TOKEN:-}" ]; then
     # 页面把探活失败报出来。
 else
     echo "[entrypoint] 未设置 GORGE_RENDER_URI，跳过 Gorge 高亮配置。"
+fi
+
+# conduit 网关和高亮一样是最简单的那一类：gorge.conduit.uri 与 gorge.conduit.token
+# 都是标量配置项，整项归 Gorge 所有，走现成的 gorge_config_set 就够了 —— 不需要
+# --stdin，也不需要像 cluster.mailers / cluster.search 那样先读出来再合并。
+#
+# 语义上它也是 phorge 主动调用的那一类（PhabricatorGorgeConduitClient 经网关转发
+# Conduit 方法调用），所以与高亮同理：写不进去时 phorge 侧的相关调用不可用、但不
+# 阻塞容器启动，PhabricatorGorgeConduitSetupCheck 会在 Config 页面把探活失败报出来。
+#
+# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
+if [ -n "${GORGE_CONDUIT_URI:-}" ] || [ -n "${GORGE_CONDUIT_TOKEN:-}" ]; then
+    echo "[entrypoint] 下发 Gorge conduit 网关配置 ..."
+    gorge_config_set 'gorge.conduit.uri' "${GORGE_CONDUIT_URI:-}"
+    gorge_config_set 'gorge.conduit.token' "${GORGE_CONDUIT_TOKEN:-}"
+    # 与高亮那段同样不在这里探 gorge-conduit 的 /healthz：叠加编排已用
+    # depends_on.condition=service_healthy 保证了启动顺序，再等一次是冗余的。
+else
+    echo "[entrypoint] 未设置 GORGE_CONDUIT_URI，跳过 Gorge conduit 网关配置。"
 fi
 
 # 通知服务器列表走不了上面的 gorge_config_set：notification.servers 的类型是
