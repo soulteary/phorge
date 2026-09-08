@@ -288,8 +288,10 @@ services:
       # 索引名。默认 phabricator，与 Phorge 的 Elasticsearch 引擎保持一致，所以从
       # 那个引擎切过来可以复用同一个索引（但 mapping 变了，仍要重建，见 DOCKER.md）。
       ES_INDEX: ${ES_INDEX:-}
-      # 主版本号，决定 mapping 用哪一套写法。留空取服务端默认值 5；ES 7 / 8 都走
-      # >= 5 的那条分支，填准确的值只是为了日志与将来的分支好读。
+      # 主版本号，决定 mapping 用哪一套写法。留空取服务端默认值 5。
+      # **必须与集群的真实主版本一致**：ES 5 及更早每个文档类型一份 mapping，ES 6 一个
+      # 索引只允许一个类型，ES 7 起类型被移除、改为文档上的 docType 字段。对着 ES 7
+      # 集群填 5，mapping 会被 mapper_parsing_exception 直接拒掉，索引根本建不出来。
       ES_VERSION: ${ES_VERSION:-}
       ES_TIMEOUT: ${ES_TIMEOUT:-}
       # meilisearch 用
