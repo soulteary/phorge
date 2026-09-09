@@ -89,8 +89,8 @@ Gorge 搜索条目，保留其它引擎，列表为空时恢复 MySQL/Ferret。
 docker compose -f docker-compose.legacy.yml up -d --build --remove-orphans
 ```
 
-如果该配置卷此前运行过默认栈，legacy 入口会先撤销受管 Mailer/Search 配置、webhook
-委派和 Gorge task-queue 端点，并把 `phd.taskmasters` 精确恢复为进入 Gorge 前的本地值
+如果该配置卷此前运行过默认栈，legacy 入口会先撤销受管 Mailer/Search、Notification、
+DB API 配置、webhook 委派和 Gorge task-queue 端点，并把 `phd.taskmasters` 精确恢复为进入 Gorge 前的本地值
 （原来未设置则删除覆盖、回到 Phorge 默认值）。清理或恢复失败会阻止 legacy 启动，
 避免出现邮件/搜索仍指向已停止服务、无人投递 webhook 或没有 taskmaster 消费队列的
 半回滚状态。`--remove-orphans` 同时停止并移除默认栈
@@ -1566,7 +1566,8 @@ dc exec phorge \
 
 | 变量 | 默认值 | 作用 |
 |---|---|---|
-| `GORGE_DB_URL` | `http://gorge-db-api:8080` | PHP 访问 db-api 的内部地址；显式留空可停止切流 |
+| `GORGE_DB_MODE` | `enable` | `enable` 使用 db-api；`disable` 由 entrypoint 清理持久化 URI/token 并恢复 PHP 原生诊断 |
+| `GORGE_DB_URL` | `http://gorge-db-api:8080` | PHP 访问 db-api 的内部地址 |
 | `GORGE_DB_TOKEN` | 空 | 同时下发给服务端与 PHP 客户端的共享 token。**生产必须非空**：留空会关闭服务端鉴权，任何能连到它端口的客户端都能读到集群拓扑与各节点状态；Config 页会就此报安全警告（`gorge.db.token.missing`） |
 | `GORGE_DB_IMAGE_TAG` | 空（继承 `GORGE_IMAGE_TAG`） | 统一 package 中 db-api 的标签后缀；实际标签为 `db-api-<值>` |
 | `GORGE_DB_NAMESPACE` | `phabricator` | 库名前缀，必须等于 `storage.default-namespace` |
@@ -1676,15 +1677,13 @@ dc_multi exec gorge-db-api wget -qO- \
 
 ### 回滚
 
-先在 `.env` 显式留空 `GORGE_DB_URL=`，再清掉已经持久化的 URI 并重启 Phorge（单节点用 `dc`，多节点用 `dc_multi`，两者复用同一套 `-f` 组合）：
+在 `.env` 设置 `GORGE_DB_MODE=disable`，再重新创建 Phorge。entrypoint 会清理已经持久化
+的 URI/token（单节点用 `dc`，多节点用 `dc_multi`，两者复用同一套 `-f` 组合）：
 
 ```bash
-dc exec phorge \
-  /opt/phorge/phorge/bin/config set gorge.db.uri null
-dc restart phorge
+dc up -d --build --force-recreate phorge
 # 多节点部署改用带第三个 `-f` 的别名：
-# dc_multi exec phorge /opt/phorge/phorge/bin/config set gorge.db.uri null
-# dc_multi restart phorge
+# dc_multi up -d --build --force-recreate phorge
 ```
 
 之后数据库控制台恢复 PHP 直连诊断。确认不再需要服务时可以再停掉它；这不会改变数据库，

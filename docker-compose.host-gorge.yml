@@ -39,6 +39,7 @@ services:
       GORGE_NOTIFICATION_ADMIN_PORT: "22281"
       GORGE_NOTIFICATION_CLIENT_HOST: "127.0.0.1"
       GORGE_NOTIFICATION_CLIENT_PORT: "22280"
+      GORGE_NOTIFICATION_MODE: enable
 
       # --- mailer 发信（宿主 :8110）---
       GORGE_MAILER_URI: "http://host.docker.internal:8110"

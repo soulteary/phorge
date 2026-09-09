@@ -995,6 +995,7 @@ services:
       # 只有 client 有 path：admin 条目带 path 会被配置校验明确拒绝。
       GORGE_NOTIFICATION_CLIENT_PROTOCOL: ${GORGE_NOTIFICATION_CLIENT_PROTOCOL:-http}
       GORGE_NOTIFICATION_CLIENT_PATH: ${GORGE_NOTIFICATION_CLIENT_PATH:-}
+      GORGE_NOTIFICATION_MODE: enable
       # --- 下面几项由 entrypoint.sh 拼成 cluster.mailers 里的一个条目 ---
       # 与上面两组不同，这一组写进的是一个**共享列表**：用户可能自己在
       # cluster.mailers 里配了 postmark 等条目。entrypoint.sh 因此做的是合并——读出
@@ -1103,9 +1104,10 @@ services:
       # --- 下面两项由 entrypoint.sh 写进 gorge.db.uri / gorge.db.token ---
       # PHP 侧 PhabricatorGorgeDBClient 在 URI 非空时把数据库健康、schema、环境与迁移
       # 状态诊断改走 db-api；清空 URI 后自动回落到原来的 PHP 实现。
-      # 使用 "-" 而不是 ":-"：在 .env 显式写 GORGE_DB_URL= 可关闭 PHP 切流。
-      GORGE_DB_URL: ${GORGE_DB_URL-http://gorge-db-api:8080}
+      GORGE_DB_URL: ${GORGE_DB_URL:-http://gorge-db-api:8080}
       GORGE_DB_TOKEN: ${GORGE_DB_TOKEN:-}
+      # 显式设为 disable 时 entrypoint 会清理已持久化的 URI/token。
+      GORGE_DB_MODE: ${GORGE_DB_MODE:-enable}
 
 # 本叠加文件引入的唯一一个卷。顶层 volumes 与基础 docker-compose.yml 里的那三个
 # （phorge-db / phorge-conf / phorge-repo）合并，不会替换它们。

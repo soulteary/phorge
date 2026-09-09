@@ -307,8 +307,8 @@ fi
 # cluster.notifications（PhabricatorNotificationServersConfigType），值是一个
 # JSON 列表而不是标量，而 `bin/config set <key> <value>` 的位置参数只能表达标量。
 # 改用官方支持的 --stdin（PhabricatorConfigManagementSetWorkflow），把 JSON 从
-# 管道喂进去。其余语义与 gorge_config_set 一致：每次启动幂等重写、失败只告警、
-# 写完修正属主与权限。
+# 管道喂进去。每次启动幂等重写并修正属主与权限；显式 enable/disable 写入失败时
+# 让配置任务失败，避免通知仍指向与编排不一致的服务。
 #
 # 这一项没有「改 Web 界面还是改环境变量」的纠结：notification.servers 是
 # setHidden(true) 的配置项，Config 页面上只读，本来就只能落在 local.json 里。
@@ -327,8 +327,8 @@ gorge_notification_set() {
     # 在界面上只读，改不回来。
     if [ -z "$GORGE_NOTIFICATION_ADMIN_HOST" ] ||
        [ -z "$GORGE_NOTIFICATION_CLIENT_HOST" ]; then
-        echo "[entrypoint] 警告: GORGE_NOTIFICATION_ADMIN_HOST 与 GORGE_NOTIFICATION_CLIENT_HOST 必须同时提供，跳过 notification.servers。" >&2
-        return 0
+        echo "[entrypoint] 错误: GORGE_NOTIFICATION_ADMIN_HOST 与 GORGE_NOTIFICATION_CLIENT_HOST 必须同时提供。" >&2
+        return 1
     fi
 
     # 端口先在 shell 里挡一道。下面 php 里的 (int) 会把 "abc" 悄悄变成 0，写进去
@@ -337,8 +337,8 @@ gorge_notification_set() {
                       "$GORGE_NOTIFICATION_CLIENT_PORT"; do
         case "$gorge_port" in
             ''|*[!0-9]*)
-                echo "[entrypoint] 警告: 通知服务端口 \"$gorge_port\" 不是数字，跳过 notification.servers。" >&2
-                return 0
+                echo "[entrypoint] 错误: 通知服务端口 \"$gorge_port\" 不是数字。" >&2
+                return 1
                 ;;
         esac
     done
@@ -385,24 +385,41 @@ gorge_notification_set() {
         chown www-data:www-data "$CONF_FILE" || true
         chmod 0640 "$CONF_FILE" || true
     else
-        # 同样不阻塞容器启动：实时通知是可降级功能，配不上时 Phorge 退回到刷新
-        # 页面才看到通知，站点本身照常可用。最常见的失败是校验没过——两条记录的
-        # "{host}:{port}" 撞车，或 protocol 不是 http/https；bin/config 会把具体
-        # 原因打在上面一行。
-        echo "[entrypoint] 警告: 写入 notification.servers 失败，实时通知不可用。" >&2
+        echo "[entrypoint] 错误: 写入 notification.servers 失败。" >&2
+        return 1
     fi
 
     return 0
 }
 
-# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
-# 用 || 而不是 &&：只配了一半时要走进去让上面的函数把话说清楚，而不是静默跳过。
-if [ -n "${GORGE_NOTIFICATION_ADMIN_HOST:-}" ] ||
-   [ -n "${GORGE_NOTIFICATION_CLIENT_HOST:-}" ]; then
+# 默认栈与 Gorge overlay 显式 enable，纯 legacy 显式 disable；未指定 MODE 的
+# 旧用法按 host 是否存在决定启用或保留。
+GORGE_NOTIFICATION_MODE="${GORGE_NOTIFICATION_MODE:-auto}"
+case "$GORGE_NOTIFICATION_MODE" in
+    auto)
+        if [ -n "${GORGE_NOTIFICATION_ADMIN_HOST:-}" ] ||
+           [ -n "${GORGE_NOTIFICATION_CLIENT_HOST:-}" ]; then
+            GORGE_NOTIFICATION_MODE=enable
+        else
+            GORGE_NOTIFICATION_MODE=preserve
+        fi
+        ;;
+    enable|disable|preserve)
+        ;;
+    *)
+        echo "[entrypoint] 错误: 未知 GORGE_NOTIFICATION_MODE=$GORGE_NOTIFICATION_MODE。" >&2
+        exit 1
+        ;;
+esac
+
+if [ "$GORGE_NOTIFICATION_MODE" = "disable" ]; then
+    echo "[entrypoint] 撤销 Gorge 通知配置 ..."
+    gorge_config_delete 'notification.servers' || exit 1
+elif [ "$GORGE_NOTIFICATION_MODE" = "enable" ]; then
     echo "[entrypoint] 下发 Gorge 通知配置 ..."
-    gorge_notification_set
+    gorge_notification_set || exit 1
 else
-    echo "[entrypoint] 未设置 GORGE_NOTIFICATION_CLIENT_HOST，跳过实时通知配置。"
+    echo "[entrypoint] GORGE_NOTIFICATION_MODE=preserve，保留现有通知配置。"
 fi
 
 # 发信配置比上面两项都麻烦一层，麻烦在**它必须是合并而不是覆盖**。
@@ -1129,24 +1146,62 @@ fi
 # 不是 webhook 那种接管开关）：PHP 侧 PhabricatorDatabaseRef、两处 SetupCheck 与
 # PhabricatorConfigSchemaQuery 在读到 gorge.db.uri 非空（isConfigured()）时，把「数据库
 # 服务器」控制台的连接/复制状态、schema diff、setup 问题全部改走 gorge-db-api，否则回落
-# 到从 Web 层直接开管理连接的原生实现。写不进去时 phorge 侧继续用自带的直连诊断、不阻塞
-# 容器启动，PhabricatorGorgeDBSetupCheck 会在 Config 页面把探活失败报出来。
+# 到从 Web 层直接开管理连接的原生实现。显式 enable/disable 写入失败时让配置任务失败，
+# 避免网络错误阻止原生诊断回退。
 #
 # 环境变量刻意沿用 GORGE_DB_URL / GORGE_DB_TOKEN（与其它域的 *_URI/_TOKEN 命名对齐，
 # 但 db 域历史上用的是 URL），写入的配置键是新范式的 gorge.db.uri / gorge.db.token
 # （不是旧 phorge 那个畸形键）。
 #
-# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
-if [ -n "${GORGE_DB_URL:-}" ] || [ -n "${GORGE_DB_TOKEN:-}" ]; then
+# 默认栈与 Gorge overlay 显式 enable，纯 legacy 显式 disable；未指定 MODE 的
+# 旧用法按 URL 是否存在决定启用或保留。
+GORGE_DB_MODE="${GORGE_DB_MODE:-auto}"
+case "$GORGE_DB_MODE" in
+    auto)
+        if [ -n "${GORGE_DB_URL:-}" ]; then
+            GORGE_DB_MODE=enable
+        else
+            GORGE_DB_MODE=preserve
+        fi
+        ;;
+    enable|disable|preserve)
+        ;;
+    *)
+        echo "[entrypoint] 错误: 未知 GORGE_DB_MODE=$GORGE_DB_MODE。" >&2
+        exit 1
+        ;;
+esac
+
+if [ "$GORGE_DB_MODE" = "disable" ]; then
+    echo "[entrypoint] 撤销 Gorge 数据库诊断配置 ..."
+    gorge_config_delete 'gorge.db.uri' || exit 1
+    gorge_config_delete 'gorge.db.token' || exit 1
+elif [ "$GORGE_DB_MODE" = "enable" ]; then
+    if [ -z "${GORGE_DB_URL:-}" ]; then
+        echo "[entrypoint] 错误: GORGE_DB_MODE=enable 但 GORGE_DB_URL 为空。" >&2
+        exit 1
+    fi
     echo "[entrypoint] 下发 Gorge 数据库服务配置 ..."
-    gorge_config_set 'gorge.db.uri' "${GORGE_DB_URL:-}"
-    gorge_config_set 'gorge.db.token' "${GORGE_DB_TOKEN:-}"
+    gorge_config_set 'gorge.db.uri' "$GORGE_DB_URL"
+    if [ "${GORGE_CONFIG_SET_OK:-0}" != "1" ]; then
+        echo "[entrypoint] 错误: gorge.db.uri 未能写入。" >&2
+        exit 1
+    fi
+    if [ -n "${GORGE_DB_TOKEN:-}" ]; then
+        gorge_config_set 'gorge.db.token' "$GORGE_DB_TOKEN"
+        if [ "${GORGE_CONFIG_SET_OK:-0}" != "1" ]; then
+            echo "[entrypoint] 错误: gorge.db.token 未能写入。" >&2
+            exit 1
+        fi
+    else
+        gorge_config_delete 'gorge.db.token' || exit 1
+    fi
     # 与前几段同样不在这里探 gorge-db-api 的 /readyz：叠加编排里 phorge 对它用的是
     # depends_on.condition=service_started（不是 service_healthy），刻意让可选诊断服务的
     # 数据库可达性不阻塞 Phorge 自身的首次启动与 storage upgrade。就绪状态由 /readyz
     # 和 Config 页面的 PhabricatorGorgeDBSetupCheck 报出来。
 else
-    echo "[entrypoint] 未设置 GORGE_DB_URL，跳过 Gorge 数据库服务配置。"
+    echo "[entrypoint] GORGE_DB_MODE=preserve，保留现有数据库诊断配置。"
 fi
 
 # ----- 3. 等待数据库就绪 -----
