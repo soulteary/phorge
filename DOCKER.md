@@ -77,9 +77,10 @@ docker compose --profile gitea up -d
 ```
 
 Mailer 与 Search 的一次性配置任务会随 profile 运行；Search 的全量索引仍需由管理员
-显式执行。之后不带 `--profile search` 再运行基础栈时，`phorge-migrate`
-会移除持久化的 Gorge 搜索条目：其它搜索引擎保持不变，列表为空时恢复
-MySQL/Ferret。`gorge-gitea` 在 Gorge r3 之后才合入，启用 `gitea` profile 前必须设置
+显式执行。之后不带相应 profile 再运行基础栈时，`phorge-migrate` 会撤销
+已持久化的受管配置：Mailer 只移除 `GORGE_MAILER_KEY` 命名的条目；Search 移除
+Gorge 搜索条目，保留其它引擎，列表为空时恢复 MySQL/Ferret。
+`gorge-gitea` 在 Gorge r3 之后才合入，启用 `gitea` profile 前必须设置
 `GORGE_GITEA_IMAGE_TAG` 为实际已经发布的构建；默认 `unreleased` 用来阻止误拉 r3。
 已有安装若暂时不准备接入 Gorge，可以继续运行：
 

@@ -376,8 +376,9 @@ fi
 # postmark、smtp 等自己的条目。整体重写会把它们悄悄抹掉，而且这是一个「重启之后
 # 邮件突然全走另一条路」的静默故障，比配置写不进去难查得多。
 #
-# 所以这里的三步是：读出现有列表 -> 剔除 key 等于我们托管键的那一条 -> 追加本次
-# 生成的条目后写回。剔除同名条目是幂等的关键：cluster.mailers 的校验
+# 所以这里先读出现有列表，再剔除 key 等于我们托管键的那一条。
+# enable 模式追加本次生成的条目，disable 模式则直接写回过滤后的列表。
+# 剔除同名条目是幂等的关键：cluster.mailers 的校验
 # (PhabricatorClusterMailersConfigType) 明确拒绝重复的 key，不剔就会在第二次启动
 # 时整项写入失败。
 #
@@ -387,6 +388,7 @@ gorge_mailer_set() {
     # 托管键。整段逻辑「认键不认类型」：只有 key 等于它的条目会被覆盖，所以用户
     # 若想再手工配一条走 gorge 的 mailer（比如指向第二个实例），换个 key 即可，
     # 不会被这里洗掉。
+    GORGE_MAILER_MODE="${GORGE_MAILER_MODE:-auto}"
     GORGE_MAILER_KEY="${GORGE_MAILER_KEY:-gorge-mailer}"
     GORGE_MAILER_URI="${GORGE_MAILER_URI:-}"
     GORGE_MAILER_TOKEN="${GORGE_MAILER_TOKEN:-}"
@@ -394,23 +396,49 @@ gorge_mailer_set() {
     GORGE_MAILER_TIMEOUT="${GORGE_MAILER_TIMEOUT:-30}"
     GORGE_MAILER_SUPPORTS_MESSAGE_ID="${GORGE_MAILER_SUPPORTS_MESSAGE_ID:-0}"
 
-    if [ -z "$GORGE_MAILER_URI" ]; then
-        echo "[entrypoint] 警告: GORGE_MAILER_URI 为空，跳过 cluster.mailers。" >&2
-        return 0
-    fi
+    case "$GORGE_MAILER_MODE" in
+        auto)
+            # 保持历史叠加编排的语义：有 URI 就启用，没有就不触碰
+            # cluster.mailers。默认编排会显式传 enable/disable。
+            if [ -n "$GORGE_MAILER_URI" ]; then
+                GORGE_MAILER_MODE=enable
+            else
+                echo "[entrypoint] 未设置 GORGE_MAILER_URI，跳过 Gorge 发信配置。"
+                return 0
+            fi
+            ;;
+        enable)
+            if [ -z "$GORGE_MAILER_URI" ]; then
+                echo "[entrypoint] 警告: GORGE_MAILER_MODE=enable 但 GORGE_MAILER_URI 为空，跳过 cluster.mailers。" >&2
+                return 0
+            fi
+            ;;
+        disable)
+            ;;
+        preserve)
+            echo "[entrypoint] GORGE_MAILER_MODE=preserve，保留现有 cluster.mailers。"
+            return 0
+            ;;
+        *)
+            echo "[entrypoint] 警告: 未知 GORGE_MAILER_MODE=$GORGE_MAILER_MODE，跳过 cluster.mailers。" >&2
+            return 0
+            ;;
+    esac
 
     # 数字项先在 shell 里挡一道，理由同通知那段：php 里的 (int) 会把 "abc" 变成 0，
     # 写进去类型合法、bin/config 也报成功，但 timeout=0 的表现是每封信立刻超时，
     # priority=0 则会被校验拒绝（要求 > 0），两种都要绕远路才查得到。
     # 空的 priority 是合法的，表示不写这个键、让 Phorge 用默认顺序。
-    for gorge_number in "$GORGE_MAILER_TIMEOUT" "${GORGE_MAILER_PRIORITY:-0}"; do
-        case "$gorge_number" in
-            ''|*[!0-9]*)
-                echo "[entrypoint] 警告: GORGE_MAILER_TIMEOUT/PRIORITY \"$gorge_number\" 不是数字，跳过 cluster.mailers。" >&2
-                return 0
-                ;;
-        esac
-    done
+    if [ "$GORGE_MAILER_MODE" = "enable" ]; then
+        for gorge_number in "$GORGE_MAILER_TIMEOUT" "${GORGE_MAILER_PRIORITY:-0}"; do
+            case "$gorge_number" in
+                ''|*[!0-9]*)
+                    echo "[entrypoint] 警告: GORGE_MAILER_TIMEOUT/PRIORITY \"$gorge_number\" 不是数字，跳过 cluster.mailers。" >&2
+                    return 0
+                    ;;
+            esac
+        done
+    fi
 
     # 先把现有值读出来。`bin/config get` 打印的是一个把两个配置源都列出来的 JSON
     # 结构，下面的 php 只取 source=local 的那一份：
@@ -427,7 +455,7 @@ gorge_mailer_set() {
         return 0
     fi
 
-    export GORGE_MAILER_KEY GORGE_MAILER_URI GORGE_MAILER_TOKEN
+    export GORGE_MAILER_MODE GORGE_MAILER_KEY GORGE_MAILER_URI GORGE_MAILER_TOKEN
     export GORGE_MAILER_PRIORITY GORGE_MAILER_TIMEOUT
     export GORGE_MAILER_SUPPORTS_MESSAGE_ID
     export GORGE_MAILER_EXISTING="$gorge_mailer_existing"
@@ -436,6 +464,7 @@ gorge_mailer_set() {
     # 必须是 JSON 布尔，拼字符串既容易写错类型，也扛不住 uri/token 里的引号。
     # 管道两端的成败都算数，靠脚本开头的 `set -o pipefail`。
     if php -r '
+        $mode = getenv("GORGE_MAILER_MODE");
         $key = getenv("GORGE_MAILER_KEY");
 
         // 解析现有列表。读不到（首次启动、或该键从未设过）就当作空列表，但解析
@@ -471,36 +500,38 @@ gorge_mailer_set() {
             $mailers[] = $spec;
         }
 
-        $options = array("uri" => getenv("GORGE_MAILER_URI"));
-        // token 留空表示服务端不鉴权，这时干脆不写这个键：适配器的 option 声明是
-        // "optional string"，写一个空串与不写等价，但不写更能表达「没配」。
-        $token = getenv("GORGE_MAILER_TOKEN");
-        if ($token !== false && $token !== "") {
-            $options["token"] = $token;
+        if ($mode === "enable") {
+            $options = array("uri" => getenv("GORGE_MAILER_URI"));
+            // token 留空表示服务端不鉴权，这时干脆不写这个键：适配器的 option 声明是
+            // "optional string"，写一个空串与不写等价，但不写更能表达「没配」。
+            $token = getenv("GORGE_MAILER_TOKEN");
+            if ($token !== false && $token !== "") {
+                $options["token"] = $token;
+            }
+            $options["timeout"] = (int)getenv("GORGE_MAILER_TIMEOUT");
+            // 默认 false：这一个适配器后面挂着 7 种后端，走 SendGrid/Postmark 时
+            // Message-ID 会被 provider 覆盖，谎报支持会让邮件会话串接静默失效。
+            $msgid = getenv("GORGE_MAILER_SUPPORTS_MESSAGE_ID");
+            $options["supports-message-id"] = ($msgid === "1" || $msgid === "true");
+
+            $mailer = array(
+                "key"  => $key,
+                "type" => "gorge",
+                // gorge-mailer 只做出站。inbound 的默认值是 true，而适配器侧没有覆盖
+                // 它的钩子，只能在配置里声明；留着 true 会让 Phorge 把这个 mailer 当
+                // 成收信通道之一去算。
+                "inbound" => false,
+                "media"   => array("email"),
+                "options" => $options,
+            );
+
+            $priority = getenv("GORGE_MAILER_PRIORITY");
+            if ($priority !== false && $priority !== "") {
+                $mailer["priority"] = (int)$priority;
+            }
+
+            $mailers[] = $mailer;
         }
-        $options["timeout"] = (int)getenv("GORGE_MAILER_TIMEOUT");
-        // 默认 false：这一个适配器后面挂着 7 种后端，走 SendGrid/Postmark 时
-        // Message-ID 会被 provider 覆盖，谎报支持会让邮件会话串接静默失效。
-        $msgid = getenv("GORGE_MAILER_SUPPORTS_MESSAGE_ID");
-        $options["supports-message-id"] = ($msgid === "1" || $msgid === "true");
-
-        $mailer = array(
-            "key"  => $key,
-            "type" => "gorge",
-            // gorge-mailer 只做出站。inbound 的默认值是 true，而适配器侧没有覆盖
-            // 它的钩子，只能在配置里声明；留着 true 会让 Phorge 把这个 mailer 当
-            // 成收信通道之一去算。
-            "inbound" => false,
-            "media"   => array("email"),
-            "options" => $options,
-        );
-
-        $priority = getenv("GORGE_MAILER_PRIORITY");
-        if ($priority !== false && $priority !== "") {
-            $mailer["priority"] = (int)$priority;
-        }
-
-        $mailers[] = $mailer;
 
         echo json_encode(array_values($mailers), JSON_UNESCAPED_SLASHES);
     ' | "$CONFIG_BIN" set cluster.mailers --stdin; then
@@ -519,8 +550,8 @@ gorge_mailer_set() {
     return 0
 }
 
-# 不叠加 docker-compose.gorge.yml 时这个变量不存在，整段等于不执行。
-if [ -n "${GORGE_MAILER_URI:-}" ]; then
+# 旧编排未提供 MODE 且未叠加 Gorge 时，两个变量都不存在，整段不执行。
+if [ -n "${GORGE_MAILER_MODE:-}" ] || [ -n "${GORGE_MAILER_URI:-}" ]; then
     echo "[entrypoint] 下发 Gorge 发信配置 ..."
     gorge_mailer_set
     # 与高亮那段同样不在这里探 gorge-mailer 的 /readyz：叠加编排已用
@@ -528,7 +559,7 @@ if [ -n "${GORGE_MAILER_URI:-}" ]; then
     # 都没配」这个状态由 PhabricatorGorgeMailerSetupCheck 在 Config 页面报出来，
     # 不该拖住 Apache 启动。
 else
-    echo "[entrypoint] 未设置 GORGE_MAILER_URI，跳过 Gorge 发信配置。"
+    echo "[entrypoint] 未设置 GORGE_MAILER_MODE/GORGE_MAILER_URI，跳过 Gorge 发信配置。"
 fi
 
 # 检索配置与发信一样是**合并而不是覆盖**，但共享的那个列表更麻烦一点：
