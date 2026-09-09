@@ -45,9 +45,19 @@ final class ManiphestGiteaCustomField
       return array();
     }
 
+    // Code supplies defaults only. Keep an administrator definition with the
+    // same raw key authoritative, as it may intentionally use another field
+    // type, caption, or validation contract for existing stored values.
+    $definitions = self::getFieldDefinitions();
+    $configured = PhabricatorEnv::getEnvConfig(
+      'maniphest.custom-field-definitions');
+    foreach ($configured as $key => $spec) {
+      unset($definitions[$key]);
+    }
+
     return PhabricatorStandardCustomField::buildStandardFields(
       $this,
-      self::getFieldDefinitions(),
+      $definitions,
       // These fields are supplied by code, but keep the non-builtin standard
       // field API form used by the former configured definitions. In
       // particular, Conduit, search and export must continue exposing
