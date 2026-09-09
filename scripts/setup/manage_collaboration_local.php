@@ -74,16 +74,24 @@ if ($state !== null) {
   if (isset($state['version']) && $state['version'] === 1 &&
       array_key_exists('applicationsAdded', $state)) {
     // The first state format recorded applications only. Its local baseline
-    // can not be reconstructed, so remove the three collaboration-owned keys
-    // on rollback instead of leaving the installation unable to exit.
+    // can not be reconstructed, so synthesize absent baselines only for the
+    // integrations that legacy configuration shows as active.
     if (!isset($state['localSettings']) ||
         !is_array($state['localSettings'])) {
       $state['localSettings'] = array();
-      foreach (array(
-        'gitea.uri',
+      $legacy_local_keys = array(
         'gorge.diff.enabled',
-        'syntax-highlighter.engine',
-      ) as $key) {
+      );
+      if (strlen((string)getenv('GITEA_BASE_URI'))) {
+        $legacy_local_keys[] = 'gitea.uri';
+      }
+      if (strlen((string)getenv('GORGE_RENDER_URI')) ||
+          (array_key_exists('syntax-highlighter.engine', $config) &&
+           $config['syntax-highlighter.engine'] ===
+            'PhabricatorGorgeSyntaxHighlighterEngine')) {
+        $legacy_local_keys[] = 'syntax-highlighter.engine';
+      }
+      foreach ($legacy_local_keys as $key) {
         $state['localSettings'][$key] = array(
           'present' => false,
           'value' => null,
@@ -128,46 +136,73 @@ $owned_keys = array(
 );
 
 if ($mode === 'collaboration') {
-  if ($state === null) {
-    $local_settings = array();
-    $legacy_profile = isset($config['phorge.product-profile']) &&
-      $config['phorge.product-profile'] === 'collaboration';
+  $legacy_profile = $state === null &&
+    isset($config['phorge.product-profile']) &&
+    $config['phorge.product-profile'] === 'collaboration';
+  $profile_values = array(
+    'gorge.diff.enabled' => false,
+  );
+  $gitea_uri = getenv('GITEA_BASE_URI');
+  if ($gitea_uri !== false && strlen($gitea_uri)) {
+    $profile_values['gitea.uri'] = rtrim($gitea_uri, '/').'/';
+  }
+  if (strlen((string)getenv('GORGE_RENDER_URI'))) {
+    $profile_values['syntax-highlighter.engine'] =
+      'PhabricatorGorgeSyntaxHighlighterEngine';
+  }
+  if ($legacy_profile) {
+    // The stateless implementation can not identify which optional values it
+    // wrote on an earlier boot. Keep existing profile keys active and treat
+    // them as profile-owned so a later rollback removes them.
     foreach ($owned_keys as $key) {
-      $present = !$legacy_profile && array_key_exists($key, $config);
-      $local_settings[$key] = array(
-        'present' => $present,
-        'value' => $present ? $config[$key] : null,
-      );
+      if (!array_key_exists($key, $profile_values) &&
+          array_key_exists($key, $config)) {
+        $profile_values[$key] = $config[$key];
+      }
     }
+  }
 
+  $state_changed = false;
+  if ($state === null) {
     $state = array(
       'version' => 1,
-      'localSettings' => $local_settings,
+      'localSettings' => array(),
       // Filled after Phorge can read the effective database-backed value.
       'applicationsAdded' => null,
       'databaseSettings' => null,
       'uninstalledDatabase' => null,
       'customFieldsDatabase' => null,
     );
+    $state_changed = true;
+  }
 
-    // Install the rollback record before changing local.json.
+  foreach ($profile_values as $key => $value) {
+    if (!array_key_exists($key, $state['localSettings'])) {
+      $present = !$legacy_profile && array_key_exists($key, $config);
+      $state['localSettings'][$key] = array(
+        'present' => $present,
+        'value' => $present ? $config[$key] : null,
+      );
+      $state_changed = true;
+    }
+  }
+
+  // Install every rollback record before changing local.json. If an optional
+  // integration is enabled later, its baseline is appended at that point.
+  if ($state_changed) {
     write_json_object($state_path, $state);
   }
 
   $config['phorge.product-profile'] = 'collaboration';
-  $config['gorge.diff.enabled'] = false;
-
-  $gitea_uri = getenv('GITEA_BASE_URI');
-  if ($gitea_uri !== false && strlen($gitea_uri)) {
-    $config['gitea.uri'] = rtrim($gitea_uri, '/').'/';
-  }
-  if (strlen((string)getenv('GORGE_RENDER_URI'))) {
-    $config['syntax-highlighter.engine'] =
-      'PhabricatorGorgeSyntaxHighlighterEngine';
+  foreach ($profile_values as $key => $value) {
+    $config[$key] = $value;
   }
 } else {
   if ($state !== null) {
     foreach ($owned_keys as $key) {
+      if (!array_key_exists($key, $state['localSettings'])) {
+        continue;
+      }
       $baseline = $state['localSettings'][$key];
       if (!is_array($baseline) || !isset($baseline['present'])) {
         throw new Exception('Collaboration local baseline is invalid.');

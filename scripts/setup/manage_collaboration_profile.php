@@ -272,17 +272,15 @@ if ($mode === 'collaboration') {
     }
   }
 
-  // Update the source which was authoritative before the profile was enabled.
-  // Existing database configuration stays in the database; otherwise local
-  // configuration remains authoritative and no new shadow is introduced.
+  // Keep the application set in the database while collaboration mode is
+  // active. The Applications UI builds transactions from the database entry
+  // itself, so a local-only set could be replaced by a single UI toggle. The
+  // recorded baseline removes this temporary override during rollback.
   $uninstalled_database = $state['uninstalledDatabase'];
   if (!is_array($uninstalled_database)) {
     throw new Exception(pht('Uninstalled application baseline is invalid.'));
   }
-  store_at_original_source(
-    $uninstalled_key,
-    $uninstalled,
-    $uninstalled_database);
+  store_effective_config($uninstalled_key, $uninstalled);
   $custom_fields_database = $state['customFieldsDatabase'];
   if (!is_array($custom_fields_database)) {
     throw new Exception(pht('Custom-field source baseline is invalid.'));

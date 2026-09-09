@@ -1715,11 +1715,12 @@ PHORGE_PRODUCT_PROFILE=full
 
 首次启用时，entrypoint 会在持久化配置卷写入
 `conf/local/collaboration-profile-state.json`：既记录本模式新加入停用集合的应用，也保存
-`gitea.uri`、`gorge.diff.enabled` 和 `syntax-highlighter.engine` 的本地原值及被覆盖的
-数据库原值。再次 `up -d --force-recreate` 后，full 模式仅撤销应用差集并恢复这些配置；
+实际被覆盖的 `gitea.uri`、`gorge.diff.enabled`、`syntax-highlighter.engine` 本地原值及
+被覆盖的数据库原值。再次 `up -d --force-recreate` 后，full 模式仅撤销应用差集并恢复这些配置；
 启用协作模式前已由管理员停用的应用仍保持停用。本地恢复失败时数据库回滚和状态清理会
-被跳过，下次启动可以继续重试。若应用集合或自定义字段原先只存在于 local.json，配置
-更新会写回合并结果并删除协作模式创建的数据库覆盖，避免本地配置永久失效。任务中的
+被跳过，下次启动可以继续重试。应用集合在协作模式期间使用数据库覆盖，保证 Applications
+页面的单次操作不会替换整组停用项；若它或自定义字段原先只存在于 local.json，退出时会
+写回合并结果并删除协作模式创建的数据库覆盖，避免本地配置永久失效。任务中的
 Gitea 链接和历史评论继续保留。最早版本未生成状态文件；直接切换到 full 时，entrypoint
 会把它留下的数字列表迁移为 keyed set，并移除其中由旧协作模式加入的受管应用。
 
