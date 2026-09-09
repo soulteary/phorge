@@ -419,7 +419,8 @@ fi
 # 时整项写入失败。
 #
 # 其余语义与 gorge_notification_set 一致：JSON 列表只能靠 --stdin 喂进去、每次启动
-# 幂等重写、写完修正属主与权限、失败只告警不阻塞容器。
+# 幂等重写、写完修正属主与权限。显式 enable/disable 失败会让配置任务失败，避免持久化
+# 配置与 Compose profile 状态不一致。
 gorge_mailer_set() {
     # 托管键。整段逻辑「认键不认类型」：只有 key 等于它的条目会被覆盖，所以用户
     # 若想再手工配一条走 gorge 的 mailer（比如指向第二个实例），换个 key 即可，
@@ -445,8 +446,8 @@ gorge_mailer_set() {
             ;;
         enable)
             if [ -z "$GORGE_MAILER_URI" ]; then
-                echo "[entrypoint] 警告: GORGE_MAILER_MODE=enable 但 GORGE_MAILER_URI 为空，跳过 cluster.mailers。" >&2
-                return 0
+                echo "[entrypoint] 错误: GORGE_MAILER_MODE=enable 但 GORGE_MAILER_URI 为空。" >&2
+                return 1
             fi
             ;;
         disable)
@@ -456,8 +457,8 @@ gorge_mailer_set() {
             return 0
             ;;
         *)
-            echo "[entrypoint] 警告: 未知 GORGE_MAILER_MODE=$GORGE_MAILER_MODE，跳过 cluster.mailers。" >&2
-            return 0
+            echo "[entrypoint] 错误: 未知 GORGE_MAILER_MODE=$GORGE_MAILER_MODE。" >&2
+            return 1
             ;;
     esac
 
@@ -469,8 +470,8 @@ gorge_mailer_set() {
         for gorge_number in "$GORGE_MAILER_TIMEOUT" "${GORGE_MAILER_PRIORITY:-0}"; do
             case "$gorge_number" in
                 ''|*[!0-9]*)
-                    echo "[entrypoint] 警告: GORGE_MAILER_TIMEOUT/PRIORITY \"$gorge_number\" 不是数字，跳过 cluster.mailers。" >&2
-                    return 0
+                    echo "[entrypoint] 错误: GORGE_MAILER_TIMEOUT/PRIORITY \"$gorge_number\" 不是数字。" >&2
+                    return 1
                     ;;
             esac
         done
@@ -487,8 +488,8 @@ gorge_mailer_set() {
     # status=error，不影响我们要的 local 那条。放在等待数据库之前因此是安全的，
     # 与上面两段保持一致。
     if ! gorge_mailer_existing="$("$CONFIG_BIN" get cluster.mailers 2>/dev/null)"; then
-        echo "[entrypoint] 警告: 读取 cluster.mailers 失败，跳过 Gorge 发信配置。" >&2
-        return 0
+        echo "[entrypoint] 错误: 读取 cluster.mailers 失败。" >&2
+        return 1
     fi
 
     export GORGE_MAILER_MODE GORGE_MAILER_KEY GORGE_MAILER_URI GORGE_MAILER_TOKEN
@@ -576,11 +577,11 @@ gorge_mailer_set() {
         chown www-data:www-data "$CONF_FILE" || true
         chmod 0640 "$CONF_FILE" || true
     else
-        # 不阻塞容器启动：站点在发不出邮件时照常可用，邮件会留在队列里重投。
         # 最常见的失败是 mailer 类型 "gorge" 未知——那说明 PhabricatorMailGorgeAdapter
         # 没被类映射发现（src/__phutil_library_map__.php 没重新生成）；其次是用户
         # 已有条目里就有一条 key 撞车但我们没剔掉的（不该发生，剔除逻辑见上）。
-        echo "[entrypoint] 警告: 写入 cluster.mailers 失败，Gorge 发信不可用。" >&2
+        echo "[entrypoint] 错误: 写入 cluster.mailers 失败。" >&2
+        return 1
     fi
 
     return 0
@@ -589,7 +590,7 @@ gorge_mailer_set() {
 # 旧编排未提供 MODE 且未叠加 Gorge 时，两个变量都不存在，整段不执行。
 if [ -n "${GORGE_MAILER_MODE:-}" ] || [ -n "${GORGE_MAILER_URI:-}" ]; then
     echo "[entrypoint] 下发 Gorge 发信配置 ..."
-    gorge_mailer_set
+    gorge_mailer_set || exit 1
     # 与高亮那段同样不在这里探 gorge-mailer 的 /readyz：叠加编排已用
     # depends_on.condition=service_healthy 保证了启动顺序，而「服务活着但一个后端
     # 都没配」这个状态由 PhabricatorGorgeMailerSetupCheck 在 Config 页面报出来，
@@ -615,7 +616,7 @@ fi
 #     检索没有任何变化」。
 #
 # 其余语义与前面两段一致：JSON 列表靠 --stdin 喂进去、每次启动幂等重写、写完修正
-# 属主与权限、失败只告警不阻塞容器。
+# 属主与权限。显式 enable/disable 失败会让配置任务失败。
 gorge_search_set() {
     GORGE_SEARCH_MODE="${GORGE_SEARCH_MODE:-auto}"
     GORGE_SEARCH_HOST="${GORGE_SEARCH_HOST:-}"
@@ -638,8 +639,8 @@ gorge_search_set() {
             ;;
         enable)
             if [ -z "$GORGE_SEARCH_HOST" ]; then
-                echo "[entrypoint] 警告: GORGE_SEARCH_MODE=enable 但 GORGE_SEARCH_HOST 为空，跳过 cluster.search。" >&2
-                return 0
+                echo "[entrypoint] 错误: GORGE_SEARCH_MODE=enable 但 GORGE_SEARCH_HOST 为空。" >&2
+                return 1
             fi
             ;;
         disable)
@@ -649,8 +650,8 @@ gorge_search_set() {
             return 0
             ;;
         *)
-            echo "[entrypoint] 警告: 未知 GORGE_SEARCH_MODE=$GORGE_SEARCH_MODE，跳过 cluster.search。" >&2
-            return 0
+            echo "[entrypoint] 错误: 未知 GORGE_SEARCH_MODE=$GORGE_SEARCH_MODE。" >&2
+            return 1
             ;;
     esac
 
@@ -659,8 +660,8 @@ gorge_search_set() {
     if [ "$GORGE_SEARCH_MODE" = "enable" ]; then
         case "$GORGE_SEARCH_PORT" in
             ''|*[!0-9]*)
-                echo "[entrypoint] 警告: GORGE_SEARCH_PORT \"$GORGE_SEARCH_PORT\" 不是数字，跳过 cluster.search。" >&2
-                return 0
+                echo "[entrypoint] 错误: GORGE_SEARCH_PORT \"$GORGE_SEARCH_PORT\" 不是数字。" >&2
+                return 1
                 ;;
         esac
     fi
@@ -668,8 +669,8 @@ gorge_search_set() {
     # 先把现有值读出来，只取 source=local 的那一份。理由与 cluster.mailers 那段完全
     # 相同：bin/config set 不带 --database 写的正是 local 源，读写必须同源。
     if ! gorge_search_existing="$("$CONFIG_BIN" get cluster.search 2>/dev/null)"; then
-        echo "[entrypoint] 警告: 读取 cluster.search 失败，跳过 Gorge 检索配置。" >&2
-        return 0
+        echo "[entrypoint] 错误: 读取 cluster.search 失败。" >&2
+        return 1
     fi
 
     export GORGE_SEARCH_MODE GORGE_SEARCH_HOST GORGE_SEARCH_PORT GORGE_SEARCH_PROTOCOL
@@ -775,17 +776,28 @@ gorge_search_set() {
         chown www-data:www-data "$CONF_FILE" || true
         chmod 0640 "$CONF_FILE" || true
     else
-        # 不阻塞容器启动：检索失效时站点照常可用。最常见的失败是搜索引擎类型
-        # "gorge" 未知——那说明 PhabricatorGorgeFulltextStorageEngine 没被类映射
+        # 最常见的失败是搜索引擎类型 "gorge" 未知——那说明
+        # PhabricatorGorgeFulltextStorageEngine 没被类映射
         # 发现（src/__phutil_library_map__.php 没重新生成，或镜像没带 --build
         # 重建）；bin/config 会把合法类型列在上一行。
-        echo "[entrypoint] 警告: 写入 cluster.search 失败，Gorge 检索不可用。" >&2
+        echo "[entrypoint] 错误: 写入 cluster.search 失败。" >&2
+        return 1
     fi
 
     # token 是标量，走通用的那条路。它与 gorge.render.token 一样是隐藏配置项，
     # Config 页面上只读。
     if [ "$GORGE_SEARCH_MODE" = "enable" ]; then
-        gorge_config_set 'gorge.search.token' "$GORGE_SEARCH_TOKEN"
+        if [ -n "$GORGE_SEARCH_TOKEN" ]; then
+            gorge_config_set 'gorge.search.token' "$GORGE_SEARCH_TOKEN"
+            if [ "${GORGE_CONFIG_SET_OK:-0}" != "1" ]; then
+                echo "[entrypoint] 错误: gorge.search.token 未能写入。" >&2
+                return 1
+            fi
+        else
+            gorge_config_delete 'gorge.search.token' || return 1
+        fi
+    else
+        gorge_config_delete 'gorge.search.token' || return 1
     fi
 
     return 0
@@ -794,7 +806,7 @@ gorge_search_set() {
 # 不叠加 docker-compose.gorge.yml 时这个变量不存在，整段等于不执行。
 if [ -n "${GORGE_SEARCH_MODE:-}" ] || [ -n "${GORGE_SEARCH_HOST:-}" ]; then
     echo "[entrypoint] 下发 Gorge 检索配置 ..."
-    gorge_search_set
+    gorge_search_set || exit 1
     # 与前几段同样不在这里探 gorge-search 的 /readyz，也**刻意不跑 bin/search
     # init**：建索引要连得上数据库与 Elasticsearch，而这一段跑在等待数据库之前；
     # 更要紧的是它会删掉并重建索引，放在每次启动的路径上等于一次误启动就丢掉整个
