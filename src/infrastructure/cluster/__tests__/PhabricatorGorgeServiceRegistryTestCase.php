@@ -176,6 +176,52 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testSearchOffSynthesizesMissingNativeRoles() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'off');
+
+    $cases = array(
+      array(
+        'configured' => array('read' => true, 'write' => false),
+        'expected' => array('read' => false, 'write' => true),
+      ),
+      array(
+        'configured' => array('read' => false, 'write' => true),
+        'expected' => array('read' => true, 'write' => false),
+      ),
+    );
+
+    foreach ($cases as $case) {
+      $env->overrideEnvConfig(
+        'cluster.search',
+        array(
+          array(
+            'type' => 'gorge',
+            'hosts' => array(),
+          ),
+          array(
+            'type' => 'mysql',
+            'roles' => $case['configured'],
+          ),
+        ));
+
+      $services = PhabricatorSearchService::newRefs();
+      $this->assertEqual(2, count($services));
+      $fallback = last($services);
+      $this->assertEqual(
+        $case['expected'],
+        idx($fallback->getConfig(), 'roles'));
+      $this->assertEqual(
+        $case['expected']['read'],
+        $fallback->isReadable());
+      $this->assertEqual(
+        $case['expected']['write'],
+        $fallback->isWritable());
+    }
+
+    unset($env);
+  }
+
   public function testSearchFallbackSynthesizesNativeService() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.service-policy', 'fallback');

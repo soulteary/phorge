@@ -211,16 +211,6 @@ class PhabricatorSearchService
                 PhabricatorGorgeFulltextStorageEngine::ENGINE_TYPE);
           }));
 
-      // A deployment generated before this policy existed may contain only
-      // the Gorge entry. "off" means select the native implementation, not
-      // disable search, so provide the normal MySQL service if filtering the
-      // configured Gorge service leaves no destination.
-      if (!$services) {
-        $services[] = array(
-          'type' => 'mysql',
-          'roles' => array('read' => true, 'write' => true),
-        );
-      }
     }
 
     foreach ($services as $config) {
@@ -242,7 +232,7 @@ class PhabricatorSearchService
       $refs[] = $cluster;
     }
 
-    if ($gorge->isFallbackAllowed()) {
+    if ($gorge->isFallbackAllowed() || $gorge->isDisabled()) {
       $has_native_read = false;
       $has_native_write = false;
       foreach ($refs as $ref) {
@@ -256,9 +246,10 @@ class PhabricatorSearchService
         $has_native_write = $has_native_write || $ref->isWritable();
       }
 
-      // A native engine which can only read does not make indexing fallback
-      // viable, and a write-only engine can not answer queries. Fill only the
-      // missing roles so both operations have a real fallback destination.
+      // A native engine which can only read does not make indexing viable,
+      // and a write-only engine can not answer queries. Fill only the missing
+      // roles so both "fallback" and explicit "off" have complete native
+      // destinations.
       if (!$has_native_read || !$has_native_write) {
         $config = array(
           'type' => 'mysql',
