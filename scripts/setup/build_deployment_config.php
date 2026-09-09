@@ -80,10 +80,7 @@ function nullable_env($key) {
   return strlen($value) ? $value : null;
 }
 
-function base_list(array $deployment, array $local, $key) {
-  if (array_key_exists($key, $deployment) && is_array($deployment[$key])) {
-    return $deployment[$key];
-  }
+function local_list(array $local, $key) {
   if (array_key_exists($key, $local) && is_array($local[$key])) {
     return $local[$key];
   }
@@ -144,7 +141,7 @@ if (strlen($upstream)) {
   if ($port && $port !== $default_port) {
     $authority .= ':'.$port;
   }
-  $allowed = base_list($config, $local, 'phabricator.allowed-uris');
+  $allowed = local_list($local, 'phabricator.allowed-uris');
   $uri = $scheme.'://'.$authority.'/';
   if (!in_array($uri, $allowed, true)) {
     $allowed[] = $uri;
@@ -189,7 +186,7 @@ $mailer_mode = env_mode('GORGE_MAILER_MODE', 'GORGE_MAILER_URI');
 if ($mailer_mode !== 'preserve') {
   $key = env_value('GORGE_MAILER_KEY', 'gorge-mailer');
   $mailers = array();
-  foreach (base_list($config, $local, 'cluster.mailers') as $mailer) {
+  foreach (local_list($local, 'cluster.mailers') as $mailer) {
     if (is_array($mailer) && isset($mailer['key']) && $mailer['key'] === $key) {
       continue;
     }
@@ -234,7 +231,7 @@ if ($mailer_mode !== 'preserve') {
 $search_mode = env_mode('GORGE_SEARCH_MODE', 'GORGE_SEARCH_HOST');
 if ($search_mode !== 'preserve') {
   $search = array();
-  foreach (base_list($config, $local, 'cluster.search') as $engine) {
+  foreach (local_list($local, 'cluster.search') as $engine) {
     if (is_array($engine) && isset($engine['type']) &&
         $engine['type'] === 'gorge') {
       continue;
@@ -338,6 +335,8 @@ if ($profile === 'collaboration') {
   $gitea_uri = env_value('GITEA_BASE_URI', '');
   if (strlen($gitea_uri)) {
     $config['gitea.uri'] = rtrim($gitea_uri, '/').'/';
+  } else {
+    unset($config['gitea.uri']);
   }
 } else {
   unset(
@@ -361,7 +360,31 @@ $json .= "\n";
 if (file_put_contents($temporary, $json, LOCK_EX) === false) {
   throw new Exception('Unable to write deployment configuration.');
 }
-chmod($temporary, 0640);
+
+// Publish an inode which is already readable by the runtime user. On the
+// first run, local.json has the ownership established by the entrypoint; on
+// later runs, preserve the ownership of the deployment file being replaced.
+$ownership_source = is_file($deployment_path)
+  ? $deployment_path
+  : $local_path;
+$owner = fileowner($ownership_source);
+$group = filegroup($ownership_source);
+if ($owner === false || $group === false) {
+  @unlink($temporary);
+  throw new Exception('Unable to read deployment configuration ownership.');
+}
+if (fileowner($temporary) !== $owner && !chown($temporary, $owner)) {
+  @unlink($temporary);
+  throw new Exception('Unable to set deployment configuration owner.');
+}
+if (filegroup($temporary) !== $group && !chgrp($temporary, $group)) {
+  @unlink($temporary);
+  throw new Exception('Unable to set deployment configuration group.');
+}
+if (!chmod($temporary, 0640)) {
+  @unlink($temporary);
+  throw new Exception('Unable to set deployment configuration mode.');
+}
 if (!rename($temporary, $deployment_path)) {
   @unlink($temporary);
   throw new Exception('Unable to install deployment configuration.');

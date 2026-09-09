@@ -57,4 +57,93 @@ final class PhabricatorDeploymentConfigBuilderTestCase
     }
   }
 
+  public function testRegenerationRefreshesUserManagedValues() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $script = $root.'/scripts/setup/build_deployment_config.php';
+
+    $directory = Filesystem::createTemporaryDirectory();
+    $local_path = $directory.'/local.json';
+    $deployment_path = $directory.'/deployment.json';
+
+    $local = array(
+      'phabricator.allowed-uris' => array('https://current.example/'),
+      'cluster.mailers' => array(
+        array(
+          'key' => 'current-smtp',
+          'type' => 'smtp',
+        ),
+      ),
+      'cluster.search' => array(
+        array(
+          'type' => 'elasticsearch',
+          'hosts' => array(),
+        ),
+      ),
+    );
+
+    $stale = array(
+      'phabricator.allowed-uris' => array('https://stale.example/'),
+      'cluster.mailers' => array(
+        array(
+          'key' => 'stale-smtp',
+          'type' => 'smtp',
+        ),
+        array(
+          'key' => 'gorge-mailer',
+          'type' => 'gorge',
+        ),
+      ),
+      'cluster.search' => array(
+        array(
+          'type' => 'mysql',
+        ),
+        array(
+          'type' => 'gorge',
+          'hosts' => array(),
+        ),
+      ),
+      'gitea.uri' => 'https://stale-gitea.example/',
+    );
+
+    try {
+      Filesystem::writeFile(
+        $local_path,
+        phutil_json_encode($local));
+      Filesystem::writeFile(
+        $deployment_path,
+        phutil_json_encode($stale));
+
+      execx(
+        'env -i '.
+        'GORGE_CONDUIT_UPSTREAM_URL=http://phorge:80 '.
+        'GORGE_MAILER_MODE=disable '.
+        'GORGE_SEARCH_MODE=disable '.
+        'GITEA_BASE_URI= '.
+        '%s %s collaboration %s %s',
+        PHP_BINARY,
+        $script,
+        $deployment_path,
+        $local_path);
+
+      $config = phutil_json_decode(
+        Filesystem::readFile($deployment_path));
+
+      $this->assertEqual(
+        array(
+          'https://current.example/',
+          'http://phorge/',
+        ),
+        $config['phabricator.allowed-uris']);
+      $this->assertEqual(
+        $local['cluster.mailers'],
+        $config['cluster.mailers']);
+      $this->assertEqual(
+        $local['cluster.search'],
+        $config['cluster.search']);
+      $this->assertFalse(array_key_exists('gitea.uri', $config));
+    } finally {
+      Filesystem::remove($directory);
+    }
+  }
+
 }
