@@ -40,28 +40,215 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
     $mysql_keys = self::getMySQLConfigIssueKeys();
 
     foreach ($issues as $issue_data) {
-      $key = idx($issue_data, 'key', 'gorge.db.unknown');
+      if (!is_array($issue_data)) {
+        throw new Exception(
+          pht(
+            'The Gorge database service returned a malformed setup issue in '.
+            'its "%s" response.',
+            '/api/db/setup-issues'));
+      }
+
+      $key = idx($issue_data, 'issueKey', 'gorge.db.unknown');
 
       if (isset($mysql_keys[$key])) {
         continue;
       }
 
-      $issue = $this->newIssue($key)
-        ->setName(idx($issue_data, 'name', $key));
+      // Build the issue through the shared pure translator (tested directly
+      // against the canonical fixtures) and then apply this check's own group
+      // and registration, so the wire-to-issue mapping stays identical across
+      // both setup checks while grouping stays each check's decision.
+      $issue = PhabricatorGorgeDBClient::newSetupIssueFromRow($issue_data);
+      if ($this->getDefaultGroup()) {
+        $issue->setGroup($this->getDefaultGroup());
+      }
+      $this->addIssue($issue);
+    }
 
-      $summary = idx($issue_data, 'summary');
-      if (phutil_nonempty_string($summary)) {
-        $issue->setSummary($summary);
+    // The service returns only what it can observe: version, engine and
+    // storage-initialization issues. The patch diff, the replication warnings
+    // and the cluster-state agreement check all depend on state Phorge owns —
+    // the canonical patch list, the configured roles, and the local cluster
+    // configuration — so they are reconstructed here from the service's
+    // observations rather than delegated to it.
+    $this->executeGorgePatchCheck();
+    $this->executeGorgeReplicationChecks();
+    $this->executeGorgeClusterStateCheck();
+  }
+
+  /**
+   * Rebuild the `storage.patch` check over the service's migration status.
+   *
+   * The service reports the applied patch keys per master but owns no expected
+   * list; @{class:PhabricatorSQLPatchList} is that canonical list, so the diff
+   * is computed here. A master that is not initialized is left to the
+   * `storage.upgrade` issue the service already emits.
+   */
+  private function executeGorgePatchCheck() {
+    $client = new PhabricatorGorgeDBClient();
+    $statuses = $client->getMigrationStatus();
+
+    if (!is_array($statuses)) {
+      throw new Exception(
+        pht(
+          'The Gorge database service returned a malformed "%s" response: '.
+          'expected a list of migration statuses.',
+          '/api/db/migrations/status'));
+    }
+
+    $all = PhabricatorSQLPatchList::buildAllPatches();
+
+    foreach ($statuses as $status) {
+      if (!is_array($status)) {
+        throw new Exception(
+          pht(
+            'The Gorge database service returned a malformed migration '.
+            'status row in its "%s" response.',
+            '/api/db/migrations/status'));
       }
 
-      $message = idx($issue_data, 'message');
-      if (phutil_nonempty_string($message)) {
-        $issue->setMessage($message);
+      if (!idx($status, 'initialized')) {
+        // Not yet initialized: the service's own "storage.upgrade" issue
+        // covers this, and there is no patch ledger to diff against.
+        continue;
       }
 
-      if (idx($issue_data, 'isFatal')) {
-        $issue->setIsFatal(true);
+      $missing = PhabricatorGorgeDBClient::missingPatchesForStatus(
+        $status,
+        $all);
+      if (!$missing) {
+        continue;
       }
+
+      $ref_key = idx($status, 'refKey', '');
+      $message = pht(
+        'Run the storage upgrade script to upgrade databases (host "%s" is '.
+        'out of date). Missing patches: %s.',
+        $ref_key,
+        implode(', ', $missing));
+
+      $this->newIssue('storage.patch')
+        ->setName(pht('Upgrade MySQL Schema'))
+        ->setIsFatal(true)
+        ->setMessage($message)
+        ->addCommand(
+          hsprintf(
+            '<samp>%s $</samp><kbd>./bin/storage upgrade</kbd>',
+            PlatformSymbols::getPlatformServerPath()));
+
+      // One missing-patch issue is enough to tell the operator to upgrade.
+      return;
+    }
+  }
+
+  /**
+   * Rebuild the replication warnings over the service's per-server view.
+   *
+   * The service fills each ref's replica status from `/api/db/servers` (via
+   * @{method:PhabricatorDatabaseRef::queryActiveRefs}); the role a host is
+   * expected to play is Phorge's own configuration, so the "replicating
+   * master" and "nonreplicating replica" judgements are made here against that
+   * configuration.
+   */
+  private function executeGorgeReplicationChecks() {
+    $refs = PhabricatorDatabaseRef::getActiveDatabaseRefs();
+
+    foreach ($refs as $ref) {
+      switch ($ref->getReplicaStatus()) {
+        case PhabricatorDatabaseRef::REPLICATION_MASTER_REPLICA:
+          $message = pht(
+            'Database host "%s" is configured as a master, but is '.
+            'replicating another host. This is dangerous and can mangle or '.
+            'destroy data. Only replicas should be replicating. Stop '.
+            'replication on the host or adjust configuration.',
+            $ref->getRefKey());
+
+          $this->newIssue('db.master.replicating')
+            ->setName(pht('Replicating Master'))
+            ->setIsFatal(true)
+            ->setMessage($message);
+          break;
+        case PhabricatorDatabaseRef::REPLICATION_REPLICA_NONE:
+        case PhabricatorDatabaseRef::REPLICATION_NOT_REPLICATING:
+          if (!$ref->getIsMaster()) {
+            $message = pht(
+              'Database replica "%s" is listed as a replica, but is not '.
+              'currently replicating. You are vulnerable to data loss if '.
+              'the master fails.',
+              $ref->getRefKey());
+
+            $this->newIssue('db.replica.not-replicating')
+              ->setName(pht('Nonreplicating Replica'))
+              ->setMessage($message);
+          }
+          break;
+      }
+    }
+  }
+
+  /**
+   * Rebuild the `db.state.desync` check over the service's state digest.
+   *
+   * With more than one master, Phorge requires every master to carry the same
+   * committed `cluster.databases` state. The service never returns that state
+   * (it names hosts), only its SHA-256 digest as `clusterStateDigest`; the
+   * expected state is the local configuration, so its digest is computed here
+   * with the same bytes @{method:PhabricatorDatabaseRef::getPartitionStateForCommit}
+   * commits and compared against the reported one.
+   */
+  private function executeGorgeClusterStateCheck() {
+    $masters = PhabricatorDatabaseRef::getAllMasterDatabaseRefs();
+    if (count($masters) <= 1) {
+      return;
+    }
+
+    $client = new PhabricatorGorgeDBClient();
+    $statuses = $client->getMigrationStatus();
+    if (!is_array($statuses)) {
+      return;
+    }
+
+    $expect_state = null;
+    foreach ($masters as $master) {
+      $expect_state = $master->getPartitionStateForCommit();
+      break;
+    }
+    if ($expect_state === null) {
+      return;
+    }
+    $expect_digest = hash('sha256', $expect_state);
+
+    foreach ($statuses as $status) {
+      if (!is_array($status)) {
+        continue;
+      }
+
+      $actual_digest = idx($status, 'clusterStateDigest');
+      if (!phutil_nonempty_string($actual_digest)) {
+        // A master with no committed state row cannot be compared; the native
+        // path treats a missing row the same way (an empty actual state only
+        // mismatches once some master has committed one).
+        continue;
+      }
+
+      if ($actual_digest === $expect_digest) {
+        continue;
+      }
+
+      $ref_key = idx($status, 'refKey', '');
+      $message = pht(
+        'Database host "%s" has a configured cluster state which disagrees '.
+        'with the state on this host ("%s"). Run `bin/storage partition` '.
+        'to commit local state to the cluster. This host may have started '.
+        'with an out-of-date configuration.',
+        $ref_key,
+        php_uname('n'));
+
+      $this->newIssue('db.state.desync')
+        ->setName(pht('Cluster Configuration Out of Sync'))
+        ->setMessage($message)
+        ->setIsFatal(true);
+      return;
     }
   }
 

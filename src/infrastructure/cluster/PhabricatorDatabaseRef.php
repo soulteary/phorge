@@ -352,13 +352,33 @@ final class PhabricatorDatabaseRef
     $client = new PhabricatorGorgeDBClient();
     $servers = $client->getServers();
 
+    if (!is_array($servers)) {
+      throw new Exception(
+        pht(
+          'The Gorge database service returned a malformed "%s" response: '.
+          'expected a list of servers.',
+          '/api/db/servers'));
+    }
+
     // Index the service's view of the cluster by ref key ("host:port") so we
-    // can match it against the refs we already built from configuration.
+    // can match it against the refs we already built from configuration. The
+    // service emits `refKey` directly; fall back to composing it from host and
+    // port only if an older build omits it.
     $server_map = array();
     foreach ($servers as $server) {
-      $host = idx($server, 'host', '');
-      $port = idx($server, 'port', 3306);
-      $key = $host.':'.$port;
+      if (!is_array($server)) {
+        throw new Exception(
+          pht(
+            'The Gorge database service returned a malformed server row in '.
+            'its "%s" response.',
+            '/api/db/servers'));
+      }
+      $key = idx($server, 'refKey');
+      if (!phutil_nonempty_string($key)) {
+        $host = idx($server, 'host', '');
+        $port = idx($server, 'port', 3306);
+        $key = $host.':'.$port;
+      }
       $server_map[$key] = $server;
     }
 
@@ -373,33 +393,60 @@ final class PhabricatorDatabaseRef
         continue;
       }
 
-      $status = idx($server, 'connectionStatus', self::STATUS_FAIL);
-      $ref->setConnectionStatus($status);
-      $ref->setConnectionLatency(
-        (float)idx($server, 'connectionLatencySec', 0));
-
-      $conn_msg = idx($server, 'connectionMessage', '');
-      if (phutil_nonempty_string($conn_msg)) {
-        $ref->setConnectionMessage($conn_msg);
-      }
-
-      $replica_status = idx($server, 'replicaStatus');
-      if ($replica_status !== null) {
-        $ref->setReplicaStatus($replica_status);
-      }
-
-      $replica_msg = idx($server, 'replicaMessage', '');
-      if (phutil_nonempty_string($replica_msg)) {
-        $ref->setReplicaMessage($replica_msg);
-      }
-
-      $replica_delay = idx($server, 'replicaDelaySec');
-      if ($replica_delay !== null) {
-        $ref->setReplicaDelay((int)$replica_delay);
-      }
+      self::applyGorgeServerRow($ref, $server);
     }
 
     return $refs;
+  }
+
+  /**
+   * Copy one `/api/db/servers` row from the Gorge service onto a ref.
+   *
+   * This is the pure translation between the service's wire contract and the
+   * ref's own fields, split out from the network fetch in
+   * @{method:queryRefsViaGorge} so it can be exercised directly against the
+   * canonical contract fixtures without an HTTP round trip. It reads exactly
+   * the camelCase keys the Go `contracts.ServerRef` emits — `connectionStatus`,
+   * `connectionLatencySec`, `connectionMessage`, `replicationStatus`,
+   * `replicaMessage`, `secondsBehindMaster` — and reading the wrong one here
+   * would silently drop the value, which is the regression the fixture test
+   * exists to catch.
+   *
+   * @param PhabricatorDatabaseRef $ref Ref to populate.
+   * @param map<string, wild> $server One decoded server row.
+   * @return void
+   */
+  public static function applyGorgeServerRow(
+    PhabricatorDatabaseRef $ref,
+    array $server) {
+
+    $status = idx($server, 'connectionStatus', self::STATUS_FAIL);
+    $ref->setConnectionStatus($status);
+    $ref->setConnectionLatency(
+      (float)idx($server, 'connectionLatencySec', 0));
+
+    $conn_msg = idx($server, 'connectionMessage', '');
+    if (phutil_nonempty_string($conn_msg)) {
+      $ref->setConnectionMessage($conn_msg);
+    }
+
+    // The service names these fields `replicationStatus` and
+    // `secondsBehindMaster`, matching the wire contract; a reachable master
+    // that is not itself replicating omits `replicationStatus` entirely.
+    $replica_status = idx($server, 'replicationStatus');
+    if ($replica_status !== null) {
+      $ref->setReplicaStatus($replica_status);
+    }
+
+    $replica_msg = idx($server, 'replicaMessage', '');
+    if (phutil_nonempty_string($replica_msg)) {
+      $ref->setReplicaMessage($replica_msg);
+    }
+
+    $replica_delay = idx($server, 'secondsBehindMaster');
+    if ($replica_delay !== null) {
+      $ref->setReplicaDelay((int)$replica_delay);
+    }
   }
 
   private static function queryRefs(array $refs) {

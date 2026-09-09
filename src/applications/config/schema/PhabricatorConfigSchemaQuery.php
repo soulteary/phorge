@@ -73,55 +73,193 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
     $refs = $this->getRefs();
     $refs_by_key = mpull($refs, null, 'getRefKey');
 
+    // The service cannot tell an expected-but-restricted database apart from
+    // an absent one on its own, so pass the databases Phorge expects as an
+    // explicit hint. A restricted one comes back as an accessDenied node; a
+    // genuinely missing one is left to the expected-vs-actual comparison, the
+    // same division the native path makes with its own SHOW TABLES probe.
+    $expected_databases = array();
+    foreach ($refs as $ref) {
+      foreach ($this->getDatabaseNames($ref) as $database_name) {
+        $expected_databases[$database_name] = $database_name;
+      }
+    }
+
+    $params = array();
+    if ($expected_databases) {
+      $params['databases'] = implode(',', array_values($expected_databases));
+    }
+
     $client = new PhabricatorGorgeDBClient();
-    $nodes = $client->getSchemaDiff();
+    $nodes = $client->getSchemaDiff($params);
+
+    if (!is_array($nodes)) {
+      throw new Exception(
+        pht(
+          'The Gorge database service returned a malformed "%s" response: '.
+          'expected a list of schema trees.',
+          '/api/db/schema-diff'));
+    }
 
     $schemata = array();
 
     // The service returns a forest of SchemaNode trees, one per server, each
-    // nested server -> database -> table -> column. Match the top-level node
-    // against the refs we already built from configuration and skip any node
-    // whose ref we do not recognize.
+    // nested server -> database -> table -> column, with the table's indexes
+    // hanging off the table node. Match the top-level node against the refs we
+    // already built from configuration and skip any node whose ref we do not
+    // recognize.
     foreach ($nodes as $node) {
+      if (!is_array($node)) {
+        throw new Exception(
+          pht(
+            'The Gorge database service returned a malformed server node in '.
+            'its "%s" response.',
+            '/api/db/schema-diff'));
+      }
+
       $ref_key = idx($node, 'refKey', '');
       $ref = idx($refs_by_key, $ref_key);
       if (!$ref) {
         continue;
       }
 
-      $server_schema = id(new PhabricatorConfigServerSchema())
-        ->setRef($ref);
-
-      $children = idx($node, 'children', array());
-      foreach ($children as $db_node) {
-        $database_schema = id(new PhabricatorConfigDatabaseSchema())
-          ->setName(idx($db_node, 'database', ''));
-
-        $table_nodes = idx($db_node, 'children', array());
-        foreach ($table_nodes as $table_node) {
-          $table_schema = id(new PhabricatorConfigTableSchema())
-            ->setName(idx($table_node, 'table', ''));
-
-          $column_nodes = idx($table_node, 'children', array());
-          foreach ($column_nodes as $col_node) {
-            $col_name = idx($col_node, 'column', '');
-            if (phutil_nonempty_string($col_name)) {
-              $column_schema = id(new PhabricatorConfigColumnSchema())
-                ->setName($col_name);
-              $table_schema->addColumn($column_schema);
-            }
-          }
-
-          $database_schema->addTable($table_schema);
-        }
-
-        $server_schema->addDatabase($database_schema);
-      }
-
-      $schemata[$ref_key] = $server_schema;
+      $schemata[$ref_key] = self::newServerSchemaFromGorgeNode($ref, $node);
     }
 
     return $schemata;
+  }
+
+  /**
+   * Build one server's schema from a decoded `/api/db/schema-diff` node.
+   *
+   * This is the pure translation from the service's `SchemaNode` tree to
+   * Phorge's own `PhabricatorConfig*Schema` objects, split out from the network
+   * fetch in @{method:loadActualSchemataViaGorge} so it can be exercised
+   * directly against the canonical contract fixtures. It reads exactly the
+   * camelCase keys the Go `contracts.SchemaNode`/`contracts.SchemaKey` emit —
+   * `databaseName`, `tableName`, `columnName`, `characterSet`, `collation`,
+   * `engine`, `columnType`, `nullable`, `autoIncrement`, `accessDenied`, and
+   * the `keys` list's `name`/`columnNames`/`unique`/`indexType` — and dropping
+   * any one of them here is the regression the fixture test catches.
+   *
+   * @param PhabricatorDatabaseRef $ref Ref this node describes.
+   * @param map<string, wild> $node Decoded top-level server node.
+   * @return PhabricatorConfigServerSchema Fully populated server schema.
+   */
+  public static function newServerSchemaFromGorgeNode(
+    PhabricatorDatabaseRef $ref,
+    array $node) {
+
+    $server_schema = id(new PhabricatorConfigServerSchema())
+      ->setRef($ref);
+
+    $children = idx($node, 'children', array());
+    foreach ($children as $db_node) {
+      $database_schema = id(new PhabricatorConfigDatabaseSchema())
+        ->setName(idx($db_node, 'databaseName', ''));
+
+      $db_charset = idx($db_node, 'characterSet');
+      if (phutil_nonempty_string($db_charset)) {
+        $database_schema->setCharacterSet($db_charset);
+      }
+      $db_collation = idx($db_node, 'collation');
+      if (phutil_nonempty_string($db_collation)) {
+        $database_schema->setCollation($db_collation);
+      }
+
+      // A database node the service flagged as existing-but-restricted maps
+      // onto the same accessDenied state the native path sets from its own
+      // SHOW TABLES probe, so the comparison treats it identically.
+      if (idx($db_node, 'accessDenied')) {
+        $database_schema->setAccessDenied(true);
+      }
+
+      $table_nodes = idx($db_node, 'children', array());
+      foreach ($table_nodes as $table_node) {
+        $table_schema = id(new PhabricatorConfigTableSchema())
+          ->setName(idx($table_node, 'tableName', ''));
+
+        // Tables carry collation and engine only; the schema table class has
+        // no character-set setter, matching MySQL's own reflection.
+        $table_collation = idx($table_node, 'collation');
+        if (phutil_nonempty_string($table_collation)) {
+          $table_schema->setCollation($table_collation);
+        }
+        $table_engine = idx($table_node, 'engine');
+        if (phutil_nonempty_string($table_engine)) {
+          $table_schema->setEngine($table_engine);
+        }
+
+        $column_nodes = idx($table_node, 'children', array());
+        foreach ($column_nodes as $col_node) {
+          $col_name = idx($col_node, 'columnName', '');
+          if (!phutil_nonempty_string($col_name)) {
+            continue;
+          }
+
+          $column_schema = id(new PhabricatorConfigColumnSchema())
+            ->setName($col_name);
+
+          $col_charset = idx($col_node, 'characterSet');
+          if (phutil_nonempty_string($col_charset)) {
+            $column_schema->setCharacterSet($col_charset);
+          }
+          $col_collation = idx($col_node, 'collation');
+          if (phutil_nonempty_string($col_collation)) {
+            $column_schema->setCollation($col_collation);
+          }
+          $col_type = idx($col_node, 'columnType');
+          if (phutil_nonempty_string($col_type)) {
+            $column_schema->setColumnType($col_type);
+          }
+          // Nullability and auto_increment are booleans, so read them only
+          // when present rather than defaulting a missing value to false.
+          $nullable = idx($col_node, 'nullable');
+          if ($nullable !== null) {
+            $column_schema->setNullable((bool)$nullable);
+          }
+          $auto_increment = idx($col_node, 'autoIncrement');
+          if ($auto_increment !== null) {
+            $column_schema->setAutoIncrement((bool)$auto_increment);
+          }
+
+          $table_schema->addColumn($column_schema);
+        }
+
+        // The service reflects indexes into the table node's "keys", already
+        // ordered and prefixed the way SHOW INDEXES produces, so each maps
+        // straight onto a KeySchema.
+        $key_nodes = idx($table_node, 'keys', array());
+        foreach ($key_nodes as $key_node) {
+          if (!is_array($key_node)) {
+            continue;
+          }
+
+          $column_names = idx($key_node, 'columnNames', array());
+          if (!is_array($column_names)) {
+            $column_names = array();
+          }
+
+          $key_schema = id(new PhabricatorConfigKeySchema())
+            ->setName(idx($key_node, 'name', ''))
+            ->setColumnNames($column_names)
+            ->setUnique((bool)idx($key_node, 'unique', false));
+
+          $index_type = idx($key_node, 'indexType');
+          if (phutil_nonempty_string($index_type)) {
+            $key_schema->setIndexType($index_type);
+          }
+
+          $table_schema->addKey($key_schema);
+        }
+
+        $database_schema->addTable($table_schema);
+      }
+
+      $server_schema->addDatabase($database_schema);
+    }
+
+    return $server_schema;
   }
 
   private function loadActualSchemaForServer(PhabricatorDatabaseRef $ref) {

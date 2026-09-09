@@ -15,6 +15,22 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
     // the native direct-SQL probes below.
     if (PhabricatorGorgeDBClient::isConfigured()) {
       $this->executeGorgeChecks();
+
+      // The full-text stopword and minimum-word-length checks depend on
+      // Phorge-owned state (the platform's stopword resource and which
+      // fulltext engine is active) that the service does not report, so they
+      // remain native reads even on the service path. They only read global
+      // variables, so no management write is involved.
+      $refs = PhabricatorDatabaseRef::getActiveDatabaseRefs();
+      foreach ($refs as $ref) {
+        try {
+          $this->executeFulltextChecks($ref, $ref->getRefKey());
+        } catch (AphrontConnectionQueryException $ex) {
+          // If we're unable to connect to a host, just skip its checks, the
+          // same way the native path does during a cluster incident.
+        }
+      }
+
       return;
     }
 
@@ -31,11 +47,15 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
   }
 
   private static function getMySQLConfigIssueKeys() {
+    // The full-text keys (mysql.ft_stopword_file, mysql.ft_min_word_len) are
+    // deliberately absent: the service does not report them, so they are not
+    // part of the subset consumed from the service, and are checked natively
+    // even on the service path. Keeping them out here means
+    // PhabricatorDatabaseSetupCheck does not filter a service issue by those
+    // keys either.
     return array(
       'mysql.max_allowed_packet' => true,
       'sql_mode.strict' => true,
-      'mysql.ft_stopword_file' => true,
-      'mysql.ft_min_word_len' => true,
       'mysql.innodb_buffer_pool_size' => true,
       'mysql.utf8mb4' => true,
       'mysql.clock' => true,
@@ -57,27 +77,27 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
     $my_keys = self::getMySQLConfigIssueKeys();
 
     foreach ($all_issues as $issue_data) {
-      $key = idx($issue_data, 'key', '');
+      if (!is_array($issue_data)) {
+        throw new Exception(
+          pht(
+            'The Gorge database service returned a malformed setup issue in '.
+            'its "%s" response.',
+            '/api/db/setup-issues'));
+      }
+
+      $key = idx($issue_data, 'issueKey', '');
       if (!isset($my_keys[$key])) {
         continue;
       }
 
-      $issue = $this->newIssue($key)
-        ->setName(idx($issue_data, 'name', $key));
-
-      $summary = idx($issue_data, 'summary');
-      if (phutil_nonempty_string($summary)) {
-        $issue->setSummary($summary);
+      // Same shared pure translator as PhabricatorDatabaseSetupCheck; this
+      // check owns only the MySQL-configuration keys, and applies its own
+      // (MySQL) group after the mapping.
+      $issue = PhabricatorGorgeDBClient::newSetupIssueFromRow($issue_data);
+      if ($this->getDefaultGroup()) {
+        $issue->setGroup($this->getDefaultGroup());
       }
-
-      $message = idx($issue_data, 'message');
-      if (phutil_nonempty_string($message)) {
-        $issue->setMessage($message);
-      }
-
-      if (idx($issue_data, 'isFatal')) {
-        $issue->setIsFatal(true);
-      }
+      $this->addIssue($issue);
     }
   }
 
@@ -163,128 +183,12 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
         ->addMySQLConfig('sql_mode');
     }
 
-    $is_innodb_fulltext = false;
-    $is_myisam_fulltext = false;
-    if ($this->shouldUseMySQLSearchEngine()) {
-      if (PhabricatorSearchDocument::isInnoDBFulltextEngineAvailable()) {
-        $is_innodb_fulltext = true;
-      } else {
-        $is_myisam_fulltext = true;
-      }
-    }
-
-    if ($is_myisam_fulltext) {
-      $stopword_file = $ref->loadRawMySQLConfigValue('ft_stopword_file');
-      if ($stopword_file === null) {
-        $summary = pht(
-          'Your version of MySQL (on database host "%s") does not support '.
-          'configuration of a stopword file. You will not be able to find '.
-          'search results for common words.',
-          $host_name);
-
-        $message = pht(
-          "Database host \"%s\" does not support the %s option. You will not ".
-          "be able to find search results for common words. You can gain ".
-          "access to this option by upgrading MySQL to a more recent ".
-          "version.\n\n".
-          "You can ignore this warning if you plan to configure Elasticsearch ".
-          "later, or aren't concerned about searching for common words.",
-          $host_name,
-          phutil_tag('tt', array(), 'ft_stopword_file'));
-
-        $this->newIssue('mysql.ft_stopword_file')
-          ->setName(pht('MySQL %s Not Supported', 'ft_stopword_file'))
-          ->setSummary($summary)
-          ->setMessage($message)
-          ->setDatabaseRef($ref)
-          ->addMySQLConfig('ft_stopword_file');
-
-      } else if ($stopword_file == '(built-in)') {
-        $root = dirname(phutil_get_library_root('phabricator'));
-        $stopword_path = $root.'/resources/sql/stopwords.txt';
-        $stopword_path = Filesystem::resolvePath($stopword_path);
-
-        $namespace = PhabricatorEnv::getEnvConfig('storage.default-namespace');
-
-        $summary = pht(
-          'MySQL (on host "%s") is using a default stopword file, which '.
-          'will prevent searching for many common words.',
-          $host_name);
-
-        $message = pht(
-          "Database host \"%s\" is using the builtin stopword file for ".
-          "building search indexes. This can make the search ".
-          "feature less useful.\n\n".
-          "Stopwords are common words which are not indexed and thus can not ".
-          "be searched for. The default stopword file has about 500 words, ".
-          "including various words which you are likely to wish to search ".
-          "for, such as 'various', 'likely', 'wish', and 'zero'.\n\n".
-          "To make search more useful, you can use an alternate stopword ".
-          "file with fewer words. Alternatively, if you aren't concerned ".
-          "about searching for common words, you can ignore this warning. ".
-          "If you later plan to configure Elasticsearch, you can also ignore ".
-          "this warning: this stopword file only affects MySQL fulltext ".
-          "indexes.\n\n".
-          "To choose a different stopword file, add this to your %s file ".
-          "(in the %s section) and then restart %s:\n\n".
-          "%s\n".
-          "(You can also use a different file if you prefer. The file ".
-          "suggested above has about 50 of the most common English words.)",
-          $host_name,
-          phutil_tag('tt', array(), 'my.cnf'),
-          phutil_tag('tt', array(), '[mysqld]'),
-          phutil_tag('tt', array(), 'mysqld'),
-          phutil_tag('pre', array(), 'ft_stopword_file='.$stopword_path));
-
-        $this->newIssue('mysql.ft_stopword_file')
-          ->setName(pht('MySQL is Using Default Stopword File'))
-          ->setSummary($summary)
-          ->setMessage($message)
-          ->setDatabaseRef($ref)
-          ->addMySQLConfig('ft_stopword_file');
-      }
-    }
-
-    if ($is_myisam_fulltext) {
-      $min_len = $ref->loadRawMySQLConfigValue('ft_min_word_len');
-      if ($min_len >= 4) {
-        $namespace = PhabricatorEnv::getEnvConfig('storage.default-namespace');
-
-        $summary = pht(
-          'MySQL is configured (on host "%s") to only index words with at '.
-          'least %d characters.',
-          $host_name,
-          $min_len);
-
-        $message = pht(
-          "Database host \"%s\" is configured to use the default minimum word ".
-          "length when building search indexes, which is 4. This means words ".
-          "which are only 3 characters long will not be indexed and can not ".
-          "be searched for.\n\n".
-          "For example, you will not be able to find search results for words ".
-          "like 'SMS', 'web', or 'DOS'.\n\n".
-          "You can change this setting to 3 to allow these words to be ".
-          "indexed. Alternatively, you can ignore this warning if you are ".
-          "not concerned about searching for 3-letter words. If you later ".
-          "plan to configure Elasticsearch, you can also ignore this warning: ".
-          "only MySQL fulltext search is affected.\n\n".
-          "To reduce the minimum word length to 3, add this to your %s file ".
-          "(in the %s section) and then restart %s:\n\n".
-          "%s\n",
-          $host_name,
-          phutil_tag('tt', array(), 'my.cnf'),
-          phutil_tag('tt', array(), '[mysqld]'),
-          phutil_tag('tt', array(), 'mysqld'),
-          phutil_tag('pre', array(), 'ft_min_word_len=3'));
-
-        $this->newIssue('mysql.ft_min_word_len')
-          ->setName(pht('MySQL is Using Default Minimum Word Length'))
-          ->setSummary($summary)
-          ->setMessage($message)
-          ->setDatabaseRef($ref)
-          ->addMySQLConfig('ft_min_word_len');
-      }
-    }
+    // Full-text configuration (stopword file and minimum word length) depends
+    // on Phorge state the service does not carry — the platform's stopword
+    // resource path and whether the MyISAM or InnoDB fulltext engine is in use
+    // — so it stays a native read here even when the service fronts the
+    // cluster. It only reads global variables, so it remains a read-only probe.
+    $this->executeFulltextChecks($ref, $host_name);
 
     // NOTE: The default value of "innodb_ft_min_token_size" is 3, which is
     // a reasonable value, so we do not warn about it: if it is set to
@@ -408,6 +312,139 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
         ->addMySQLConfig('local_infile');
     }
 
+  }
+
+  /**
+   * Check the full-text stopword file and minimum word length on a host.
+   *
+   * These two checks are shared by the native path and the service path: they
+   * depend on Phorge-owned state the service does not carry (the platform's
+   * bundled stopword file path, and which fulltext engine is active), so they
+   * are always run as native reads. They only read global server variables, so
+   * they are read-only and safe to run against a service-fronted cluster.
+   */
+  private function executeFulltextChecks(
+    PhabricatorDatabaseRef $ref,
+    $host_name) {
+
+    $is_innodb_fulltext = false;
+    $is_myisam_fulltext = false;
+    if ($this->shouldUseMySQLSearchEngine()) {
+      if (PhabricatorSearchDocument::isInnoDBFulltextEngineAvailable()) {
+        $is_innodb_fulltext = true;
+      } else {
+        $is_myisam_fulltext = true;
+      }
+    }
+
+    if (!$is_myisam_fulltext) {
+      return;
+    }
+
+    $stopword_file = $ref->loadRawMySQLConfigValue('ft_stopword_file');
+    if ($stopword_file === null) {
+      $summary = pht(
+        'Your version of MySQL (on database host "%s") does not support '.
+        'configuration of a stopword file. You will not be able to find '.
+        'search results for common words.',
+        $host_name);
+
+      $message = pht(
+        "Database host \"%s\" does not support the %s option. You will not ".
+        "be able to find search results for common words. You can gain ".
+        "access to this option by upgrading MySQL to a more recent ".
+        "version.\n\n".
+        "You can ignore this warning if you plan to configure Elasticsearch ".
+        "later, or aren't concerned about searching for common words.",
+        $host_name,
+        phutil_tag('tt', array(), 'ft_stopword_file'));
+
+      $this->newIssue('mysql.ft_stopword_file')
+        ->setName(pht('MySQL %s Not Supported', 'ft_stopword_file'))
+        ->setSummary($summary)
+        ->setMessage($message)
+        ->setDatabaseRef($ref)
+        ->addMySQLConfig('ft_stopword_file');
+
+    } else if ($stopword_file == '(built-in)') {
+      $root = dirname(phutil_get_library_root('phabricator'));
+      $stopword_path = $root.'/resources/sql/stopwords.txt';
+      $stopword_path = Filesystem::resolvePath($stopword_path);
+
+      $summary = pht(
+        'MySQL (on host "%s") is using a default stopword file, which '.
+        'will prevent searching for many common words.',
+        $host_name);
+
+      $message = pht(
+        "Database host \"%s\" is using the builtin stopword file for ".
+        "building search indexes. This can make the search ".
+        "feature less useful.\n\n".
+        "Stopwords are common words which are not indexed and thus can not ".
+        "be searched for. The default stopword file has about 500 words, ".
+        "including various words which you are likely to wish to search ".
+        "for, such as 'various', 'likely', 'wish', and 'zero'.\n\n".
+        "To make search more useful, you can use an alternate stopword ".
+        "file with fewer words. Alternatively, if you aren't concerned ".
+        "about searching for common words, you can ignore this warning. ".
+        "If you later plan to configure Elasticsearch, you can also ignore ".
+        "this warning: this stopword file only affects MySQL fulltext ".
+        "indexes.\n\n".
+        "To choose a different stopword file, add this to your %s file ".
+        "(in the %s section) and then restart %s:\n\n".
+        "%s\n".
+        "(You can also use a different file if you prefer. The file ".
+        "suggested above has about 50 of the most common English words.)",
+        $host_name,
+        phutil_tag('tt', array(), 'my.cnf'),
+        phutil_tag('tt', array(), '[mysqld]'),
+        phutil_tag('tt', array(), 'mysqld'),
+        phutil_tag('pre', array(), 'ft_stopword_file='.$stopword_path));
+
+      $this->newIssue('mysql.ft_stopword_file')
+        ->setName(pht('MySQL is Using Default Stopword File'))
+        ->setSummary($summary)
+        ->setMessage($message)
+        ->setDatabaseRef($ref)
+        ->addMySQLConfig('ft_stopword_file');
+    }
+
+    $min_len = $ref->loadRawMySQLConfigValue('ft_min_word_len');
+    if ($min_len >= 4) {
+      $summary = pht(
+        'MySQL is configured (on host "%s") to only index words with at '.
+        'least %d characters.',
+        $host_name,
+        $min_len);
+
+      $message = pht(
+        "Database host \"%s\" is configured to use the default minimum word ".
+        "length when building search indexes, which is 4. This means words ".
+        "which are only 3 characters long will not be indexed and can not ".
+        "be searched for.\n\n".
+        "For example, you will not be able to find search results for words ".
+        "like 'SMS', 'web', or 'DOS'.\n\n".
+        "You can change this setting to 3 to allow these words to be ".
+        "indexed. Alternatively, you can ignore this warning if you are ".
+        "not concerned about searching for 3-letter words. If you later ".
+        "plan to configure Elasticsearch, you can also ignore this warning: ".
+        "only MySQL fulltext search is affected.\n\n".
+        "To reduce the minimum word length to 3, add this to your %s file ".
+        "(in the %s section) and then restart %s:\n\n".
+        "%s\n",
+        $host_name,
+        phutil_tag('tt', array(), 'my.cnf'),
+        phutil_tag('tt', array(), '[mysqld]'),
+        phutil_tag('tt', array(), 'mysqld'),
+        phutil_tag('pre', array(), 'ft_min_word_len=3'));
+
+      $this->newIssue('mysql.ft_min_word_len')
+        ->setName(pht('MySQL is Using Default Minimum Word Length'))
+        ->setSummary($summary)
+        ->setMessage($message)
+        ->setDatabaseRef($ref)
+        ->addMySQLConfig('ft_min_word_len');
+    }
   }
 
   protected function shouldUseMySQLSearchEngine() {
