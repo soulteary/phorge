@@ -135,6 +135,16 @@ function store_local_config($key, $value) {
   $source->setKeys(array($key => $value));
 }
 
+function capture_local_config($key) {
+  $source = new PhabricatorConfigLocalSource();
+  $values = $source->getKeys(array($key));
+  $present = array_key_exists($key, $values);
+  return array(
+    'present' => $present,
+    'value' => $present ? $values[$key] : null,
+  );
+}
+
 function delete_database_config($key) {
   $entry = PhabricatorConfigEntry::loadConfigEntry($key);
   if (!$entry->getID() || $entry->getIsDeleted()) {
@@ -277,18 +287,19 @@ if ($mode === 'collaboration') {
   // itself, so a local-only set could be replaced by a single UI toggle. The
   // recorded baseline removes this temporary override during rollback.
   $uninstalled_database = $state['uninstalledDatabase'];
-  if (!is_array($uninstalled_database)) {
+  if (!is_array($uninstalled_database) ||
+      !isset($uninstalled_database['present'])) {
     throw new Exception(pht('Uninstalled application baseline is invalid.'));
   }
   store_effective_config($uninstalled_key, $uninstalled);
+  // Use the same complete temporary override for custom fields. The Config UI
+  // also edits the database entry itself instead of merging a local value.
   $custom_fields_database = $state['customFieldsDatabase'];
-  if (!is_array($custom_fields_database)) {
+  if (!is_array($custom_fields_database) ||
+      !isset($custom_fields_database['present'])) {
     throw new Exception(pht('Custom-field source baseline is invalid.'));
   }
-  store_at_original_source(
-    $fields_key,
-    $fields,
-    $custom_fields_database);
+  store_effective_config($fields_key, $fields);
   foreach ($database_values as $key => $value) {
     store_effective_config($key, $value);
   }
@@ -320,10 +331,6 @@ if ($mode === 'collaboration') {
   }
 
   $added = normalize_application_set($state['applicationsAdded']);
-  foreach ($added as $application => $ignored) {
-    unset($uninstalled[$application]);
-  }
-
   $uninstalled_database = $state['uninstalledDatabase'];
   if ($uninstalled_database === null) {
     // The local phase completed but the collaboration database phase never
@@ -333,9 +340,26 @@ if ($mode === 'collaboration') {
       'value' => null,
     );
   }
-  if (!is_array($uninstalled_database)) {
+  if (!is_array($uninstalled_database) ||
+      !isset($uninstalled_database['present'])) {
     throw new Exception(pht('Uninstalled application baseline is invalid.'));
   }
+  if (!$uninstalled_database['present']) {
+    // A temporary database override protected the profile-owned set from UI
+    // replacement. Merge additions made through the normal local-writing CLI
+    // before removing the profile difference and restoring local authority.
+    $local_uninstalled = capture_local_config($uninstalled_key);
+    if ($local_uninstalled['present']) {
+      foreach (normalize_application_set(
+        $local_uninstalled['value']) as $application => $ignored) {
+        $uninstalled[$application] = true;
+      }
+    }
+  }
+  foreach ($added as $application => $ignored) {
+    unset($uninstalled[$application]);
+  }
+
   store_at_original_source(
     $uninstalled_key,
     $uninstalled,
@@ -348,8 +372,15 @@ if ($mode === 'collaboration') {
       'value' => null,
     );
   }
-  if (!is_array($custom_fields_database)) {
+  if (!is_array($custom_fields_database) ||
+      !isset($custom_fields_database['present'])) {
     throw new Exception(pht('Custom-field source baseline is invalid.'));
+  }
+  if (!$custom_fields_database['present']) {
+    $local_fields = capture_local_config($fields_key);
+    if ($local_fields['present']) {
+      $fields = array_replace($fields, (array)$local_fields['value']);
+    }
   }
   store_at_original_source(
     $fields_key,

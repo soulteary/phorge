@@ -82,7 +82,9 @@ if ($state !== null) {
       $legacy_local_keys = array(
         'gorge.diff.enabled',
       );
-      if (strlen((string)getenv('GITEA_BASE_URI'))) {
+      if (strlen((string)getenv('GITEA_BASE_URI')) ||
+          (array_key_exists('gitea.uri', $config) &&
+           strlen((string)$config['gitea.uri']))) {
         $legacy_local_keys[] = 'gitea.uri';
       }
       if (strlen((string)getenv('GORGE_RENDER_URI')) ||
