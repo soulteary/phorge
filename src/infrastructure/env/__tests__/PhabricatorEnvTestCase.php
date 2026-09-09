@@ -203,6 +203,51 @@ final class PhabricatorEnvTestCase extends PhabricatorTestCase {
     $this->assertTrue($caught instanceof Exception);
   }
 
+  public function testDeploymentConfigContentVersion() {
+    $file = new TempFile('deployment-version.json');
+    $path = (string)$file;
+
+    $old_path = getenv(PhabricatorDeploymentConfigSource::ENV_PATH);
+    $old_control_plane = getenv('PHORGE_CONTROL_PLANE');
+
+    try {
+      putenv(
+        PhabricatorDeploymentConfigSource::ENV_PATH.'='.$path);
+      putenv('PHORGE_CONTROL_PLANE=deployment');
+
+      // These documents have the same size. The version must follow content,
+      // not file size or timestamp metadata.
+      Filesystem::writeFile($path, '{"token":"old"}');
+      $old_version =
+        PhabricatorDeploymentConfigSource::getCurrentConfigVersion();
+
+      Filesystem::writeFile($path, '{"token":"new"}');
+      $new_version =
+        PhabricatorDeploymentConfigSource::getCurrentConfigVersion();
+
+      $this->assertTrue(strlen($old_version) > 0);
+      $this->assertFalse($old_version === $new_version);
+
+      putenv('PHORGE_CONTROL_PLANE=legacy');
+      $this->assertEqual(
+        null,
+        PhabricatorDeploymentConfigSource::getCurrentConfigVersion());
+    } finally {
+      if ($old_path === false) {
+        putenv(PhabricatorDeploymentConfigSource::ENV_PATH);
+      } else {
+        putenv(
+          PhabricatorDeploymentConfigSource::ENV_PATH.'='.$old_path);
+      }
+
+      if ($old_control_plane === false) {
+        putenv('PHORGE_CONTROL_PLANE');
+      } else {
+        putenv('PHORGE_CONTROL_PLANE='.$old_control_plane);
+      }
+    }
+  }
+
   public function testOverrides() {
     $outer = PhabricatorEnv::beginScopedEnv();
 

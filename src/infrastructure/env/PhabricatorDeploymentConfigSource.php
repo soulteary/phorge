@@ -51,6 +51,36 @@ final class PhabricatorDeploymentConfigSource
     return new self($path);
   }
 
+  /**
+   * Return a content version for the deployment configuration on disk.
+   *
+   * Long-running daemon overseers use this value to notice an atomic file
+   * replacement. Do not use metadata like mtime or size here: a credential
+   * rotation may preserve both, particularly when two writes occur in the
+   * same filesystem timestamp interval.
+   */
+  public static function getCurrentConfigVersion() {
+    if (getenv('PHORGE_CONTROL_PLANE') === 'legacy') {
+      return null;
+    }
+
+    $path = self::getConfiguredPath();
+    if (!Filesystem::pathExists($path)) {
+      return null;
+    }
+
+    try {
+      $raw = Filesystem::readFile($path);
+    } catch (FilesystemException $ex) {
+      throw new Exception(
+        pht('Deployment configuration "%s" could not be read.', $path),
+        0,
+        $ex);
+    }
+
+    return sha1($raw);
+  }
+
   public function __construct($path) {
     $this->path = $path;
 
