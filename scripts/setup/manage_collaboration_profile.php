@@ -83,7 +83,10 @@ function load_profile_state($path) {
        !is_array($state['applicationsAdded'])) ||
       !array_key_exists('databaseSettings', $state) ||
       ($state['databaseSettings'] !== null &&
-       !is_array($state['databaseSettings']))) {
+       !is_array($state['databaseSettings'])) ||
+      !array_key_exists('uninstalledDatabase', $state) ||
+      ($state['uninstalledDatabase'] !== null &&
+       !is_array($state['uninstalledDatabase']))) {
     throw new Exception(
       pht('Collaboration profile state file "%s" is invalid.', $path));
   }
@@ -124,6 +127,11 @@ function store_effective_config($key, $value) {
     $source);
 }
 
+function store_local_config($key, $value) {
+  $source = new PhabricatorConfigLocalSource();
+  $source->setKeys(array($key => $value));
+}
+
 function delete_database_config($key) {
   $entry = PhabricatorConfigEntry::loadConfigEntry($key);
   if (!$entry->getID() || $entry->getIsDeleted()) {
@@ -154,6 +162,21 @@ function restore_database_config($key, array $baseline) {
   if ($baseline['present']) {
     store_effective_config($key, $baseline['value']);
   } else {
+    delete_database_config($key);
+  }
+}
+
+function store_uninstalled_config($key, $value, array $database_baseline) {
+  if (!isset($database_baseline['present'])) {
+    throw new Exception(pht('Uninstalled application baseline is invalid.'));
+  }
+  if ($database_baseline['present']) {
+    store_effective_config($key, $value);
+  } else {
+    // Keep local configuration authoritative if the profile did not inherit a
+    // database entry. This also preserves administrator changes made while the
+    // profile was active without leaving a database source shadow behind.
+    store_local_config($key, $value);
     delete_database_config($key);
   }
 }
@@ -206,6 +229,11 @@ if ($mode === 'collaboration') {
     $state_changed = true;
   }
 
+  if ($state['uninstalledDatabase'] === null) {
+    $state['uninstalledDatabase'] = capture_database_config($uninstalled_key);
+    $state_changed = true;
+  }
+
   $database_values = array(
     'gorge.diff.enabled' => false,
   );
@@ -236,10 +264,17 @@ if ($mode === 'collaboration') {
     }
   }
 
-  // Database configuration is the highest-priority source in Phorge. Write
-  // the merged effective values there so an existing Web UI configuration can
-  // not silently replace the profile's local.json values wholesale.
-  store_effective_config($uninstalled_key, $uninstalled);
+  // Update the source which was authoritative before the profile was enabled.
+  // Existing database configuration stays in the database; otherwise local
+  // configuration remains authoritative and no new shadow is introduced.
+  $uninstalled_database = $state['uninstalledDatabase'];
+  if (!is_array($uninstalled_database)) {
+    throw new Exception(pht('Uninstalled application baseline is invalid.'));
+  }
+  store_uninstalled_config(
+    $uninstalled_key,
+    $uninstalled,
+    $uninstalled_database);
   store_effective_config($fields_key, $fields);
   foreach ($database_values as $key => $value) {
     store_effective_config($key, $value);
@@ -258,7 +293,22 @@ if ($mode === 'collaboration') {
     unset($uninstalled[$application]);
   }
 
-  store_effective_config($uninstalled_key, $uninstalled);
+  $uninstalled_database = $state['uninstalledDatabase'];
+  if ($uninstalled_database === null) {
+    // The local phase completed but the collaboration database phase never
+    // ran, so no database override was inherited or created.
+    $uninstalled_database = array(
+      'present' => false,
+      'value' => null,
+    );
+  }
+  if (!is_array($uninstalled_database)) {
+    throw new Exception(pht('Uninstalled application baseline is invalid.'));
+  }
+  store_uninstalled_config(
+    $uninstalled_key,
+    $uninstalled,
+    $uninstalled_database);
   foreach ((array)$state['databaseSettings'] as $key => $baseline) {
     if (!is_array($baseline)) {
       throw new Exception(pht('Database configuration baseline is invalid.'));

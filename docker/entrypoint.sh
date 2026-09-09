@@ -869,6 +869,8 @@ if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
             "$PHORGE_PRODUCT_PROFILE" "$COLLABORATION_STATE_FILE"; then
             echo "[entrypoint] 警告: 合并产品模式有效配置失败，保留状态以便重试。" >&2
         fi
+        chown www-data:www-data "$CONF_FILE" || true
+        chmod 0640 "$CONF_FILE" || true
     else
         echo "[entrypoint] 警告: 本地产品模式配置未完成，跳过数据库配置与状态清理。" >&2
     fi
