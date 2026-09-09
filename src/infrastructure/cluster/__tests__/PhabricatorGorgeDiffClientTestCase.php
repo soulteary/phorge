@@ -62,9 +62,17 @@ final class PhabricatorGorgeDiffClientTestCase extends PhabricatorTestCase {
   }
 
   public function testConduitHTTPErrorDoesNotReturnResult() {
-    $this->assertException(
-      'Exception',
-      array($this, 'parseConduitHTTPError'));
+    $exception = null;
+    try {
+      $this->parseConduitHTTPError();
+    } catch (Exception $ex) {
+      $exception = $ex;
+    }
+
+    $this->assertEqual(true, $exception instanceof Exception);
+    $this->assertEqual(
+      true,
+      strpos($exception->getMessage(), 'returned HTTP 500') !== false);
   }
 
   public function parseConduitHTTPError() {
