@@ -239,6 +239,20 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
         // reconciliation before propagating the control-plane exception.
         // If Gorge committed before losing its response, this update simply
         // finds no active row and the already-archived task remains complete.
+        $defaults = array(
+          'priority' => (int)$this->getPriority(),
+        );
+
+        try {
+          // These follow-ups are still only in memory and have never been
+          // offered to Gorge. Persist them directly before parking the parent
+          // so a completion outage can not silently break a successful task
+          // chain.
+          $worker->flushTaskQueueNatively($defaults);
+        } catch (Throwable $followup_ex) {
+          phlog($followup_ex);
+        }
+
         try {
           $this
             ->setLeaseOwner(self::COMPLETION_PENDING_OWNER)

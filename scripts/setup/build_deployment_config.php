@@ -253,7 +253,7 @@ if ($search_mode !== 'preserve') {
     }
     $keep_mysql =
       (env_value('GORGE_SEARCH_KEEP_MYSQL', '0') === '1') ||
-      ($service_policy === 'off');
+      ($service_policy !== 'required');
     if (!$keep_mysql) {
       $search = array_values(
         array_filter(
@@ -263,7 +263,7 @@ if ($search_mode !== 'preserve') {
               $engine['type'] === 'mysql');
           }));
     }
-    if ($service_policy === 'off' && !$search) {
+    if ($service_policy !== 'required' && !$search) {
       $search[] = array(
         'type' => 'mysql',
         'roles' => array('read' => true, 'write' => true),

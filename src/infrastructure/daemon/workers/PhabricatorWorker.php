@@ -144,6 +144,19 @@ abstract class PhabricatorWorker extends Phobject {
     $data,
     $options = array()) {
 
+    return self::scheduleTaskWithMode(
+      $task_class,
+      $data,
+      $options,
+      $force_native = false);
+  }
+
+  private static function scheduleTaskWithMode(
+    $task_class,
+    $data,
+    array $options,
+    $force_native) {
+
     PhutilTypeSpec::checkMap(
       $options,
       array(
@@ -217,7 +230,8 @@ abstract class PhabricatorWorker extends Phobject {
       // When the Gorge task queue service owns the queue, enqueue through it
       // and return an ephemeral task carrying the service-assigned ID. When it
       // is not configured, fall through to the native SQL save.
-      if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
+      if (!$force_native &&
+          PhabricatorGorgeTaskQueueClient::isConfigured()) {
         try {
           $client = new PhabricatorGorgeTaskQueueClient();
         } catch (Exception $ex) {
@@ -325,12 +339,27 @@ abstract class PhabricatorWorker extends Phobject {
    * @param array<string, mixed> $defaults (optional) Map of default options.
    */
   final public function flushTaskQueue($defaults = array()) {
+    $this->flushTaskQueueWithMode($defaults, $force_native = false);
+  }
+
+  /**
+   * Persist follow-ups directly to SQL without contacting Gorge.
+   *
+   * This is reserved for completion reconciliation after the parent worker
+   * has already succeeded and a Gorge completion report failed before the
+   * in-memory follow-ups could be flushed.
+   */
+  final public function flushTaskQueueNatively($defaults = array()) {
+    $this->flushTaskQueueWithMode($defaults, $force_native = true);
+  }
+
+  private function flushTaskQueueWithMode(array $defaults, $force_native) {
     foreach ($this->getQueuedTasks() as $task) {
       list($class, $data, $options) = $task;
 
       $options = $options + $defaults;
 
-      self::scheduleTask($class, $data, $options);
+      self::scheduleTaskWithMode($class, $data, $options, $force_native);
     }
 
     $this->queuedTasks = array();

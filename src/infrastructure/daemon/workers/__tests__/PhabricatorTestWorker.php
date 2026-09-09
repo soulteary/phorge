@@ -26,6 +26,14 @@ final class PhabricatorTestWorker extends PhabricatorWorker {
   protected function doWork() {
     $data = $this->getTaskData();
 
+    if (idx($data, 'queueFollowup')) {
+      $this->queueTask(
+        'PhabricatorTestWorker',
+        array(
+          'isFollowup' => true,
+        ));
+    }
+
     $duration = idx($data, 'duration');
     if ($duration) {
       usleep($duration * 1000000);

@@ -114,6 +114,26 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testSearchFallbackSynthesizesNativeService() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig(
+      'cluster.search',
+      array(
+        array(
+          'type' => 'gorge',
+          'hosts' => array(),
+        ),
+      ));
+
+    $services = PhabricatorSearchService::newRefs();
+    $this->assertEqual(2, count($services));
+    $config = $services[1]->getConfig();
+    $this->assertEqual('mysql', $config['type']);
+
+    unset($env);
+  }
+
   public function testDatabaseOperationFallbackPolicy() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.db.uri', 'http://gorge-db:8170');

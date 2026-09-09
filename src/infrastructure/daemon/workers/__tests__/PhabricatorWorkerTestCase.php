@@ -56,7 +56,10 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
       'gorge.taskqueue.uri',
       'http://127.0.0.1:1');
 
-    $task = $this->scheduleTask();
+    $task = $this->scheduleTask(
+      array(
+        'queueFollowup' => true,
+      ));
     $task = $this->expectNextLease($task);
 
     // Route only the completion report through the unreachable service. The
@@ -78,6 +81,11 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
       PhabricatorWorkerActiveTask::COMPLETION_PENDING_OWNER,
       $stored_task->getLeaseOwner());
     $this->assertTrue($stored_task->getLeaseExpires() > time());
+
+    $followups = id(new PhabricatorWorkerActiveTask())
+      ->loadAllWhere('id != %d', $task->getID());
+    $this->assertEqual(1, count($followups));
+    $this->assertTrue((bool)head($followups)->getDataID());
 
     unset($env);
   }
