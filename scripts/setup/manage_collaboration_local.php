@@ -53,7 +53,10 @@ function validate_profile_state(array $state) {
       !is_array($state['localSettings']) ||
       !array_key_exists('applicationsAdded', $state) ||
       ($state['applicationsAdded'] !== null &&
-       !is_array($state['applicationsAdded']))) {
+       !is_array($state['applicationsAdded'])) ||
+      !array_key_exists('databaseSettings', $state) ||
+      ($state['databaseSettings'] !== null &&
+       !is_array($state['databaseSettings']))) {
     throw new Exception('Collaboration profile state is invalid.');
   }
 }
@@ -61,6 +64,16 @@ function validate_profile_state(array $state) {
 $config = read_json_object($config_path, true);
 $state = read_json_object($state_path, false);
 if ($state !== null) {
+  // Accept state written by the immediately preceding implementation, before
+  // database-backed Gorge settings became profile-managed.
+  if (isset($state['version']) && $state['version'] === 1 &&
+      isset($state['localSettings']) &&
+      is_array($state['localSettings']) &&
+      array_key_exists('applicationsAdded', $state) &&
+      !array_key_exists('databaseSettings', $state)) {
+    $state['databaseSettings'] = null;
+    write_json_object($state_path, $state);
+  }
   validate_profile_state($state);
 }
 
@@ -86,6 +99,7 @@ if ($mode === 'collaboration') {
       'localSettings' => $local_settings,
       // Filled after Phorge can read the effective database-backed value.
       'applicationsAdded' => null,
+      'databaseSettings' => null,
     );
 
     // Install the rollback record before changing local.json.

@@ -137,17 +137,22 @@ configure_product_profile_local() {
         "$PHORGE_PRODUCT_PROFILE" "$CONF_FILE" \
         "$COLLABORATION_STATE_FILE"; then
         echo "[entrypoint] 警告: 产品模式本地配置失败，保留当前配置。" >&2
-        return 0
+        return 1
     fi
     chown www-data:www-data "$CONF_FILE" || true
     chmod 0640 "$CONF_FILE" || true
 }
 
+PRODUCT_PROFILE_LOCAL_OK=1
 if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ]; then
     echo "[entrypoint] 启用 Phorge 协作模式 ..."
-    configure_product_profile_local
+    if ! configure_product_profile_local; then
+        PRODUCT_PROFILE_LOCAL_OK=0
+    fi
 elif [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
-    configure_product_profile_local
+    if ! configure_product_profile_local; then
+        PRODUCT_PROFILE_LOCAL_OK=0
+    fi
 elif [ "$PHORGE_PRODUCT_PROFILE" != "full" ]; then
     echo "[entrypoint] 警告: 未知 PHORGE_PRODUCT_PROFILE=$PHORGE_PRODUCT_PROFILE，保留当前应用配置。" >&2
 fi
@@ -859,9 +864,13 @@ fi
 # “本次新增停用”的应用补进持久化状态文件，full 模式只恢复这些应用。
 if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
    [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
-    if ! php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
-        "$PHORGE_PRODUCT_PROFILE" "$COLLABORATION_STATE_FILE"; then
-        echo "[entrypoint] 警告: 合并产品模式有效配置失败，保留当前数据库配置。" >&2
+    if [ "$PRODUCT_PROFILE_LOCAL_OK" = "1" ]; then
+        if ! php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
+            "$PHORGE_PRODUCT_PROFILE" "$COLLABORATION_STATE_FILE"; then
+            echo "[entrypoint] 警告: 合并产品模式有效配置失败，保留状态以便重试。" >&2
+        fi
+    else
+        echo "[entrypoint] 警告: 本地产品模式配置未完成，跳过数据库配置与状态清理。" >&2
     fi
     if [ -e "$COLLABORATION_STATE_FILE" ]; then
         chown www-data:www-data "$COLLABORATION_STATE_FILE" || true

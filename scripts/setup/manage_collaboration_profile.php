@@ -80,7 +80,10 @@ function load_profile_state($path) {
       !is_array(idx($state, 'localSettings')) ||
       !array_key_exists('applicationsAdded', $state) ||
       ($state['applicationsAdded'] !== null &&
-       !is_array($state['applicationsAdded']))) {
+       !is_array($state['applicationsAdded'])) ||
+      !array_key_exists('databaseSettings', $state) ||
+      ($state['databaseSettings'] !== null &&
+       !is_array($state['databaseSettings']))) {
     throw new Exception(
       pht('Collaboration profile state file "%s" is invalid.', $path));
   }
@@ -121,6 +124,40 @@ function store_effective_config($key, $value) {
     $source);
 }
 
+function delete_database_config($key) {
+  $entry = PhabricatorConfigEntry::loadConfigEntry($key);
+  if (!$entry->getID() || $entry->getIsDeleted()) {
+    return;
+  }
+
+  $source = PhabricatorContentSource::newForSource(
+    PhabricatorConsoleContentSource::SOURCECONST);
+  PhabricatorConfigEditor::deleteConfig(
+    PhabricatorUser::getOmnipotentUser(),
+    $entry,
+    $source);
+}
+
+function capture_database_config($key) {
+  $entry = PhabricatorConfigEntry::loadConfigEntry($key);
+  $present = (bool)$entry->getID() && !$entry->getIsDeleted();
+  return array(
+    'present' => $present,
+    'value' => $present ? $entry->getValue() : null,
+  );
+}
+
+function restore_database_config($key, array $baseline) {
+  if (!isset($baseline['present'])) {
+    throw new Exception(pht('Database configuration baseline is invalid.'));
+  }
+  if ($baseline['present']) {
+    store_effective_config($key, $baseline['value']);
+  } else {
+    delete_database_config($key);
+  }
+}
+
 function keyed_application_set($value) {
   $result = array();
   foreach ((array)$value as $key => $item) {
@@ -145,6 +182,7 @@ if ($mode === 'collaboration') {
       pht('Collaboration local baseline "%s" does not exist.', $state_path));
   }
 
+  $state_changed = false;
   if ($state['applicationsAdded'] === null) {
     $added = array();
     foreach ($managed_applications as $application) {
@@ -160,6 +198,30 @@ if ($mode === 'collaboration') {
     // config write is safe to retry; a successful write without this record
     // would make a later rollback unable to distinguish administrator choices.
     $state['applicationsAdded'] = $added;
+    $state_changed = true;
+  }
+
+  if ($state['databaseSettings'] === null) {
+    $state['databaseSettings'] = array();
+    $state_changed = true;
+  }
+
+  $database_values = array(
+    'gorge.diff.enabled' => false,
+  );
+  if (strlen((string)getenv('GORGE_RENDER_URI'))) {
+    $database_values['syntax-highlighter.engine'] =
+      'PhabricatorGorgeSyntaxHighlighterEngine';
+  }
+  foreach ($database_values as $key => $value) {
+    if (!array_key_exists($key, $state['databaseSettings'])) {
+      $state['databaseSettings'][$key] = capture_database_config($key);
+      $state_changed = true;
+    }
+  }
+
+  // Persist every database baseline before changing any database value.
+  if ($state_changed) {
     write_profile_state($state_path, $state);
   }
 
@@ -179,6 +241,9 @@ if ($mode === 'collaboration') {
   // not silently replace the profile's local.json values wholesale.
   store_effective_config($uninstalled_key, $uninstalled);
   store_effective_config($fields_key, $fields);
+  foreach ($database_values as $key => $value) {
+    store_effective_config($key, $value);
+  }
 
   echo pht('Applied the collaboration profile to effective configuration.')."\n";
 } else {
@@ -194,6 +259,12 @@ if ($mode === 'collaboration') {
   }
 
   store_effective_config($uninstalled_key, $uninstalled);
+  foreach ((array)$state['databaseSettings'] as $key => $baseline) {
+    if (!is_array($baseline)) {
+      throw new Exception(pht('Database configuration baseline is invalid.'));
+    }
+    restore_database_config($key, $baseline);
+  }
 
   // Delete state only after the database update succeeds. If deletion fails,
   // the next run repeats the same idempotent removal instead of losing the
