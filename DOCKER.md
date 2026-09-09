@@ -57,6 +57,7 @@ docker compose up -d --build
 | `PHORGE_BASE_URI` | `http://127.0.0.1:${PHORGE_HTTP_PORT}/`（默认注释，由 compose 自动拼出） | 站点绝对地址，Phorge 用它生成链接并校验请求的 Host 头。**域名必须含点号**，裸 `localhost` 会被拒绝。改了端口一定要让它联动，否则会 redirect 到错误地址。 |
 | `PHORGE_TIMEZONE` | `UTC` | 站点默认时区（`phabricator.timezone`），取 PHP 时区标识符，如 `Asia/Shanghai`。 |
 | `PHORGE_PRODUCT_PROFILE` | `auto` | `auto` 让新安装使用协作模式、已有安装保持 full；也可显式指定 `collaboration` 或 `full`。结果持久化在只读部署配置中。 |
+| `PHORGE_GORGE_POLICY` | `required` | 已配置 Gorge 服务的失败策略：`required` 直接暴露错误；`fallback` 迁移期允许旧实现并记录 `[gorge-fallback]` 日志；`off` 停用请求路由型服务。 |
 | `PHORGE_DB_NAMESPACE` | `phabricator` | Phorge、db-init 与 file-storage/webhook/taskqueue/db-api 的唯一数据库前缀。已有自定义 `storage.default-namespace` 的安装升级前必须设为相同值；不一致时 entrypoint 会拒绝启动。 |
 | `GORGE_IMAGE_TAG` | `2026.09.09-r3` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
 | `PHORGE_WAIT_DB` | `1` | 是否在启动 Web 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
@@ -76,6 +77,14 @@ docker compose up -d --build
 数据库和 `local.json`；一次生成整份文件并用 `rename(2)` 原子替换，所以 Web 与 daemon
 不会看到“端点已经更新、所有权尚未更新”的中间状态。它包含的部署值在 Config 页面不可写，
 应通过 `.env` 和 Compose 变更。
+
+阶段三默认将 `gorge.service-policy` 设为 `required`：已选中的 Gorge
+服务超时、返回错误或响应非法时，Phorge 不再按请求静默进入旧实现。迁移期间可临时设为
+`fallback`；每次实际进入原生路径都会记录
+`[gorge-fallback] service=... operation=... process_count=...`。稳定一个发布周期且
+日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、db、search、
+file 和 mailer 等请求路由型能力；webhook/taskqueue 的排他消费者仍由各自
+`GORGE_*_MODE` 切换，不能靠全局策略隐式改写。
 
 Webhook 与 task queue 分别使用 `gorge.webhook.owner` 和
 `gorge.taskqueue.owner` 明确选择唯一消费者；URI 只表示端点。默认栈把两者设为

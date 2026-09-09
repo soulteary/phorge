@@ -391,8 +391,17 @@ final class PhabricatorFile extends PhabricatorFileDAO
     $engine_identifier = null;
     $integrity_hash = null;
     $exceptions = array();
+    $fallback_from_gorge = false;
     foreach ($engines as $engine) {
       $engine_class = get_class($engine);
+      $is_gorge = ($engine instanceof PhabricatorGorgeFileStorageEngine);
+
+      if (!$is_gorge && $fallback_from_gorge) {
+        PhabricatorGorgeServiceRegistry::getService('file')
+          ->recordFallback('write');
+        $fallback_from_gorge = false;
+      }
+
       try {
         $result = $file->writeToEngine(
           $engine,
@@ -409,10 +418,15 @@ final class PhabricatorFile extends PhabricatorFileDAO
         // that immediately since it probably needs attention.
         throw $ex;
       } catch (Throwable $ex) {
-        phlog($ex);
+        if ($is_gorge) {
+          $gorge = PhabricatorGorgeServiceRegistry::getService('file');
+          if (!$gorge->isFallbackAllowed()) {
+            throw $ex;
+          }
+          $fallback_from_gorge = true;
+        }
 
-        // If an engine doesn't work, keep trying all the other valid engines
-        // in case something else works.
+        phlog($ex);
         $exceptions[$engine_class] = $ex;
       }
     }

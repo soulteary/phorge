@@ -39,11 +39,12 @@ PHORGE_WAIT_DB="${PHORGE_WAIT_DB:-1}"
 PHORGE_AUTO_UPGRADE="${PHORGE_AUTO_UPGRADE:-1}"
 PHORGE_START_PHD="${PHORGE_START_PHD:-1}"
 PHORGE_PRODUCT_PROFILE="${PHORGE_PRODUCT_PROFILE:-full}"
+PHORGE_GORGE_POLICY="${PHORGE_GORGE_POLICY:-required}"
 PHORGE_CONTAINER_ROLE="${PHORGE_CONTAINER_ROLE:-all}"
 PHORGE_DB_NAMESPACE="${PHORGE_DB_NAMESPACE:-${STORAGE_NAMESPACE:-}}"
 PHORGE_CONTROL_PLANE="${PHORGE_CONTROL_PLANE:-legacy}"
 DEPLOYMENT_CONFIG_FILE="${PHORGE_DEPLOYMENT_CONFIG:-$CONF_DIR/deployment.json}"
-export PHORGE_CONTROL_PLANE
+export PHORGE_CONTROL_PLANE PHORGE_GORGE_POLICY
 
 case "$PHORGE_CONTROL_PLANE" in
     deployment|legacy)
@@ -216,6 +217,16 @@ gorge_config_delete() {
         return 1
     fi
 }
+
+case "$PHORGE_GORGE_POLICY" in
+    required|fallback|off)
+        ;;
+    *)
+        echo "[entrypoint] 未知 PHORGE_GORGE_POLICY=$PHORGE_GORGE_POLICY。" >&2
+        exit 64
+        ;;
+esac
+gorge_config_set 'gorge.service-policy' "$PHORGE_GORGE_POLICY"
 
 # 此处先记录并写入由部署拓扑拥有的本地配置。应用停用列表和 Maniphest 自定义字段
 # 可能由 Web UI 存在数据库配置，而数据库源优先于 local.json；它们要等 schema

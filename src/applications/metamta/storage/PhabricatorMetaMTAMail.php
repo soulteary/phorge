@@ -576,6 +576,12 @@ final class PhabricatorMetaMTAMail
 
     foreach ($config as $spec) {
       $type = $spec['type'];
+      if ($type === 'gorge' &&
+          PhabricatorGorgeServiceRegistry::getService('mailer')
+            ->isDisabled()) {
+        continue;
+      }
+
       if (!isset($adapters[$type])) {
         throw new Exception(
           pht(
@@ -726,7 +732,15 @@ final class PhabricatorMetaMTAMail
     }
 
     $exceptions = array();
+    $fallback_from_gorge = false;
     foreach ($mailers as $mailer) {
+      $is_gorge = ($mailer->getAdapterType() === 'gorge');
+      if (!$is_gorge && $fallback_from_gorge) {
+        PhabricatorGorgeServiceRegistry::getService('mailer')
+          ->recordFallback('send');
+        $fallback_from_gorge = false;
+      }
+
       try {
         $message = $type->newMailMessageEngine()
           ->setMailer($mailer)
@@ -760,6 +774,18 @@ final class PhabricatorMetaMTAMail
 
         throw $ex;
       } catch (Exception $ex) {
+        if ($is_gorge) {
+          $gorge = PhabricatorGorgeServiceRegistry::getService('mailer');
+          if (!$gorge->isFallbackAllowed()) {
+            $this
+              ->setStatus(PhabricatorMailOutboundStatus::STATUS_FAIL)
+              ->setMessage($ex->getMessage())
+              ->save();
+            throw $ex;
+          }
+          $fallback_from_gorge = true;
+        }
+
         $exceptions[] = $ex;
         continue;
       }

@@ -52,4 +52,46 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testServicePolicyResolutionAndFallbackCounts() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig(
+      'gorge.service-policies',
+      array(
+        'search' => 'fallback',
+        'render' => 'off',
+      ));
+
+    $search = PhabricatorGorgeServiceRegistry::getService('search');
+    $render = PhabricatorGorgeServiceRegistry::getService('render');
+    $file = PhabricatorGorgeServiceRegistry::getService('file');
+
+    $this->assertTrue($search->isFallbackAllowed());
+    $this->assertTrue($render->isDisabled());
+    $this->assertTrue($file->isRequired());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    $search->recordFallback('query');
+    $search->recordFallback('query');
+    $this->assertEqual(
+      array('search.query' => 2),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
+  public function testOffDoesNotOverrideExclusiveOwnership() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'off');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+    $this->assertTrue($service->isDisabled());
+    $this->assertTrue($service->isOwnedBy('gorge'));
+    $this->assertTrue(PhabricatorGorgeTaskQueueClient::isConfigured());
+
+    unset($env);
+  }
+
 }

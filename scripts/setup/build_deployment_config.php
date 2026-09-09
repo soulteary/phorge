@@ -110,6 +110,14 @@ $config = read_json_object($deployment_path, true);
 // replaced on every deployment change, so profile and topology can not drift.
 $config['phorge.product-profile'] = $profile;
 
+$service_policy = env_value('PHORGE_GORGE_POLICY', 'required');
+$valid_service_policies = array('required', 'fallback', 'off');
+if (!in_array($service_policy, $valid_service_policies, true)) {
+  throw new Exception(
+    'PHORGE_GORGE_POLICY must be required, fallback, or off.');
+}
+$config['gorge.service-policy'] = $service_policy;
+
 configure_scalar_service(
   $config,
   'GORGE_RENDER_URI',

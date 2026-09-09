@@ -8,9 +8,12 @@ final class PhutilProseDifferenceEngine extends Phobject {
         return id(new PhabricatorGorgeDiffClient())
           ->generateProseDiff($u, $v);
       } catch (Exception $ex) {
-        // Prose diffs are used in page rendering. Keep rendering available if
-        // the optional service can not answer, and retain the exception in the
-        // application log for diagnosis.
+        $service = PhabricatorGorgeServiceRegistry::getService('render');
+        if (!$service->isFallbackAllowed()) {
+          throw $ex;
+        }
+
+        $service->recordFallback('diff.prose');
         phlog($ex);
       }
     }

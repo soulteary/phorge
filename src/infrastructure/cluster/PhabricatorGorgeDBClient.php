@@ -143,7 +143,9 @@ final class PhabricatorGorgeDBClient
    * @return bool True if the service fronts the database cluster.
    */
   public static function isConfigured() {
-    return (self::getConfiguredURI() !== null);
+    $service = PhabricatorGorgeServiceRegistry::getService('db');
+    return !$service->isDisabled() &&
+      (self::getConfiguredURI() !== null);
   }
 
   const KEY_SHOULD_USE = 'cluster.db.gorge.usable';
@@ -182,6 +184,11 @@ final class PhabricatorGorgeDBClient
    * @return bool True if the caller should route through the service.
    */
   public static function shouldUseService() {
+    $service = PhabricatorGorgeServiceRegistry::getService('db');
+    if ($service->isDisabled()) {
+      return false;
+    }
+
     $uri = self::getConfiguredURI();
     if ($uri === null) {
       return false;
@@ -205,9 +212,30 @@ final class PhabricatorGorgeDBClient
     // confirmed-incompatibility signal; any transient/operational failure
     // throws out of here uncached, on purpose.
     $client = new self();
-    $problem = $client->checkContractCompatibility($expected_namespace);
+    try {
+      $problem = $client->checkContractCompatibility($expected_namespace);
+    } catch (Exception $ex) {
+      if (!$service->isFallbackAllowed()) {
+        throw $ex;
+      }
+
+      $service->recordFallback('handshake');
+      phlog($ex);
+      return false;
+    }
+
+    if ($problem !== null && !$service->isFallbackAllowed()) {
+      throw new Exception(
+        pht(
+          'The Gorge database service is required but its contract is not '.
+          'compatible: %s',
+          idx($problem, 'detail', idx($problem, 'summary', 'Unknown error.'))));
+    }
 
     $usable = ($problem === null);
+    if (!$usable) {
+      $service->recordFallback('contract');
+    }
     $cache->setKey(
       $cache_key,
       array(

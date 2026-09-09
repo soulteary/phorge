@@ -237,4 +237,52 @@ final class PhabricatorDeploymentConfigBuilderTestCase
     }
   }
 
+  public function testGorgePolicyDefaultsToRequired() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $script = $root.'/scripts/setup/build_deployment_config.php';
+
+    $directory = Filesystem::createTemporaryDirectory();
+    $local_path = $directory.'/local.json';
+    $deployment_path = $directory.'/deployment.json';
+
+    try {
+      Filesystem::writeFile($local_path, "{}\n");
+      execx(
+        'env -i %s %s full %s %s',
+        PHP_BINARY,
+        $script,
+        $deployment_path,
+        $local_path);
+
+      $config = phutil_json_decode(Filesystem::readFile($deployment_path));
+      $this->assertEqual('required', $config['gorge.service-policy']);
+    } finally {
+      Filesystem::remove($directory);
+    }
+  }
+
+  public function testGorgePolicyCanEnableMigrationFallback() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $script = $root.'/scripts/setup/build_deployment_config.php';
+
+    $directory = Filesystem::createTemporaryDirectory();
+    $local_path = $directory.'/local.json';
+    $deployment_path = $directory.'/deployment.json';
+
+    try {
+      Filesystem::writeFile($local_path, "{}\n");
+      execx(
+        'env -i PHORGE_GORGE_POLICY=fallback %s %s full %s %s',
+        PHP_BINARY,
+        $script,
+        $deployment_path,
+        $local_path);
+
+      $config = phutil_json_decode(Filesystem::readFile($deployment_path));
+      $this->assertEqual('fallback', $config['gorge.service-policy']);
+    } finally {
+      Filesystem::remove($directory);
+    }
+  }
+
 }

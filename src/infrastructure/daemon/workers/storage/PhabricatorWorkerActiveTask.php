@@ -278,6 +278,12 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       $client->complete($this->getID(), (int)$duration);
       return true;
     } catch (Exception $ex) {
+      $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+      if (!$service->isFallbackAllowed()) {
+        throw $ex;
+      }
+
+      $service->recordFallback('complete');
       phlog($ex);
       return false;
     }
@@ -301,6 +307,12 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       $client->fail($this->getID(), $permanent, $retry_wait);
       return true;
     } catch (Exception $ex) {
+      $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+      if (!$service->isFallbackAllowed()) {
+        throw $ex;
+      }
+
+      $service->recordFallback('fail');
       phlog($ex);
       return false;
     }
@@ -322,6 +334,12 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       $client->yield($this->getID(), $duration);
       return true;
     } catch (Exception $ex) {
+      $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+      if (!$service->isFallbackAllowed()) {
+        throw $ex;
+      }
+
+      $service->recordFallback('yield');
       phlog($ex);
       return false;
     }

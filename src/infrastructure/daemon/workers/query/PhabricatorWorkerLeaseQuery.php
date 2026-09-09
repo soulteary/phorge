@@ -93,10 +93,21 @@ final class PhabricatorWorkerLeaseQuery extends PhabricatorQuery {
     // through it rather than with SQL here. When it is not configured, fall
     // through to the native SQL implementation below.
     if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
-      if ($this->skipLease) {
-        return $this->executeListViaGoService();
+      $operation = $this->skipLease ? 'list' : 'lease';
+      try {
+        if ($this->skipLease) {
+          return $this->executeListViaGoService();
+        }
+        return $this->executeLeaseViaGoService();
+      } catch (Exception $ex) {
+        $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+        if (!$service->isFallbackAllowed()) {
+          throw $ex;
+        }
+
+        $service->recordFallback($operation);
+        phlog($ex);
       }
-      return $this->executeLeaseViaGoService();
     }
 
     $task_table = new PhabricatorWorkerActiveTask();

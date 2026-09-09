@@ -201,6 +201,11 @@ class PhabricatorSearchService
     $refs = array();
 
     foreach ($services as $config) {
+      if (idx($config, 'type') === 'gorge' &&
+          PhabricatorGorgeServiceRegistry::getService('search')
+            ->isDisabled()) {
+        continue;
+      }
 
       // Normally, we've validated configuration before we get this far, but
       // make sure we don't fatal if we end up here with a bogus configuration.
@@ -270,10 +275,18 @@ class PhabricatorSearchService
    */
   public static function newResultSet(PhabricatorSavedQuery $query) {
     $exceptions = array();
+    $fallback_from_gorge = false;
     // try all services until one succeeds
     foreach (self::getAllServices() as $service) {
       if (!$service->isReadable()) {
         continue;
+      }
+
+      $is_gorge = (idx($service->getConfig(), 'type') === 'gorge');
+      if (!$is_gorge && $fallback_from_gorge) {
+        PhabricatorGorgeServiceRegistry::getService('search')
+          ->recordFallback('query');
+        $fallback_from_gorge = false;
       }
 
       try {
@@ -288,6 +301,13 @@ class PhabricatorSearchService
         // user: they issued a query with bad syntax.
         throw $ex;
       } catch (Exception $ex) {
+        if ($is_gorge) {
+          $gorge = PhabricatorGorgeServiceRegistry::getService('search');
+          if (!$gorge->isFallbackAllowed()) {
+            throw $ex;
+          }
+          $fallback_from_gorge = true;
+        }
         $exceptions[] = $ex;
       }
     }

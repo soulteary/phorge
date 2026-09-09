@@ -26,6 +26,7 @@ x-phorge-environment: &phorge-environment
   PHORGE_TIMEZONE: ${PHORGE_TIMEZONE:-UTC}
   PHORGE_WAIT_DB: ${PHORGE_WAIT_DB:-1}
   PHORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
+  PHORGE_GORGE_POLICY: ${PHORGE_GORGE_POLICY:-required}
   # 服务端点、profile 与消费者所有权一次写入 deployment.json；Web 和 daemon
   # 将它作为高于数据库配置的只读来源加载。
   PHORGE_CONTROL_PLANE: deployment

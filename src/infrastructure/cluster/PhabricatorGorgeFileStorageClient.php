@@ -75,7 +75,9 @@ final class PhabricatorGorgeFileStorageClient
   }
 
   public static function isConfigured() {
-    return (self::getConfiguredURI() !== null);
+    $service = PhabricatorGorgeServiceRegistry::getService('file');
+    return !$service->isDisabled() &&
+      (self::getConfiguredURI() !== null);
   }
 
 
