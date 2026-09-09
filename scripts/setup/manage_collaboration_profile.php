@@ -296,8 +296,13 @@ if ($mode === 'collaboration') {
     throw new Exception(pht('Uninstalled application baseline is invalid.'));
   }
   if ($state['uninstalledInitial'] === null) {
-    $state['uninstalledInitial'] = normalize_application_set(
+    $initial_uninstalled = normalize_application_set(
       get_original_value($uninstalled_key, $uninstalled_database));
+    foreach (normalize_application_set(
+      $state['applicationsAdded']) as $application => $ignored) {
+      unset($initial_uninstalled[$application]);
+    }
+    $state['uninstalledInitial'] = $initial_uninstalled;
     $state_changed = true;
   }
   if ($state['uninstalledProfile'] === null) {
@@ -414,8 +419,13 @@ if ($mode === 'collaboration') {
     throw new Exception(pht('Uninstalled application baseline is invalid.'));
   }
   if ($state['uninstalledInitial'] === null) {
-    $state['uninstalledInitial'] = normalize_application_set(
+    $initial_uninstalled = normalize_application_set(
       get_original_value($uninstalled_key, $uninstalled_database));
+    foreach (normalize_application_set(
+      $state['applicationsAdded']) as $application => $ignored) {
+      unset($initial_uninstalled[$application]);
+    }
+    $state['uninstalledInitial'] = $initial_uninstalled;
     $state_changed = true;
   }
   if ($state['uninstalledProfile'] === null) {
