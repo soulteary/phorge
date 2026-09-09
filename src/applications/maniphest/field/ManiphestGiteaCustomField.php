@@ -48,7 +48,11 @@ final class ManiphestGiteaCustomField
     return PhabricatorStandardCustomField::buildStandardFields(
       $this,
       self::getFieldDefinitions(),
-      $builtin = true);
+      // These fields are supplied by code, but keep the non-builtin standard
+      // field API form used by the former configured definitions. In
+      // particular, Conduit, search and export must continue exposing
+      // "custom.gitea.*" keys to existing clients and saved queries.
+      $builtin = false);
   }
 
 }

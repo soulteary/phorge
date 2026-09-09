@@ -1499,9 +1499,11 @@ else
     # 文件会被删除，后续启动不再写这些配置。
     if [ -e "$COLLABORATION_STATE_FILE" ]; then
         echo "[entrypoint] 迁移旧协作模式状态到统一控制面 ..."
-        php "$PHORGE_DIR/scripts/setup/manage_collaboration_local.php" \
+        PHORGE_CONTROL_PLANE=legacy \
+            php "$PHORGE_DIR/scripts/setup/manage_collaboration_local.php" \
             full "$CONF_FILE" "$COLLABORATION_STATE_FILE"
-        php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
+        PHORGE_CONTROL_PLANE=legacy \
+            php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
             full "$COLLABORATION_STATE_FILE"
     fi
 

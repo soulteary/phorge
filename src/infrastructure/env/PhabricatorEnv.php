@@ -329,7 +329,7 @@ final class PhabricatorEnv extends Phobject {
     // takes precedence over both local.json and database-backed Config values.
     // The file is optional for source installs and legacy deployments.
     $deployment_source =
-      PhabricatorDeploymentConfigSource::newOptionalSource();
+      PhabricatorDeploymentConfigSource::newOptionalSource($config_optional);
     if ($deployment_source) {
       $deployment_source->setName(
         pht(

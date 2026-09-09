@@ -34,7 +34,7 @@ final class PhabricatorDeploymentConfigSource
     return $path;
   }
 
-  public static function newOptionalSource() {
+  public static function newOptionalSource($config_optional = false) {
     // A shared configuration volume may still contain deployment.json after
     // an operator deliberately starts docker-compose.legacy.yml. The runtime
     // mode is the authority in that case; do not let the retained file keep
@@ -45,6 +45,17 @@ final class PhabricatorDeploymentConfigSource
 
     $path = self::getConfiguredPath();
     if (!Filesystem::pathExists($path)) {
+      // Source installs do not need this file. An explicit deployment control
+      // plane does: falling back to local or database values may reactivate a
+      // native webhook or task-queue consumer. Setup scripts such as
+      // "bin/storage" initialize with optional configuration so a first
+      // install can create the database before the deployment file exists.
+      if (getenv('PHORGE_CONTROL_PLANE') === 'deployment' &&
+          !$config_optional) {
+        throw new Exception(
+          pht('Deployment configuration "%s" does not exist.', $path));
+      }
+
       return null;
     }
 

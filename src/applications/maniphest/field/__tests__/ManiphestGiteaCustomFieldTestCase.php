@@ -15,6 +15,14 @@ final class ManiphestGiteaCustomFieldTestCase extends PhabricatorTestCase {
         'std:maniphest:gitea.commit',
       ),
       mpull($fields, 'getFieldKey'));
+    $this->assertEqual(
+      array(
+        'custom.gitea.repository',
+        'custom.gitea.issue',
+        'custom.gitea.pull-request',
+        'custom.gitea.commit',
+      ),
+      mpull($fields, 'getModernFieldKey'));
 
     unset($env);
   }
