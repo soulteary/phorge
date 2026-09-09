@@ -1659,6 +1659,60 @@ dc restart phorge
 之后数据库控制台恢复 PHP 直连诊断。确认不再需要服务时可以再停掉它；这不会改变数据库，
 因为 db-api 的所有业务路由都是只读的。
 
+## 协作模式与 Gitea（可选）
+
+协作模式保留 Maniphest、Projects、Phriction、Calendar、Chat 等协作能力，把代码
+托管和评审交给 Gitea。它是配置切换，不删除 PHP 类、数据库表或历史对象。
+
+在 `.env` 中设置：
+
+```dotenv
+PHORGE_PRODUCT_PROFILE=collaboration
+GITEA_BASE_URI=https://git.example.com/
+GORGE_RENDER_ENABLE_DIFF=false
+GORGE_GITEA_WEBHOOK_SECRET=<随机共享密钥>
+GORGE_GITEA_CONDUIT_TOKEN=<专用 Conduit bot token>
+GORGE_GITEA_GATEWAY_TOKEN=<GORGE_CONDUIT_TOKEN 的值>
+```
+
+然后用叠加文件重建容器（`restart` 不会应用新增服务、环境变量或挂载）：
+
+```bash
+docker compose --profile gitea \
+  -f docker-compose.yml -f docker-compose.gorge.yml \
+  up -d --force-recreate
+```
+
+entrypoint 会把以下八个应用合并进
+`phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
+Harbormaster、Drydock、Diviner、Paste。同时设置 `gorge.diff.enabled=false`，在已配置
+`GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
+`PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
+`gorge`。
+
+`gitea.uri` 会在顶栏增加 Gitea 入口；Maniphest 增加 repository、issue、pull request、
+commit 四个链接字段。所有写入都采用合并语义，不覆盖已有停用应用或同名自定义字段。
+
+在 Gitea 仓库或组织 Webhook 中，将目标设为：
+
+```text
+https://<对外桥接地址>/webhooks/gitea
+```
+
+密钥与 `GORGE_GITEA_WEBHOOK_SECRET` 相同，只选择 Issues、Pull Request、Push、Release。
+事件标题、正文或提交信息中的 `T123` 会被追加到对应任务时间线。桥接不会反向写 Gitea，
+不会同步 review/comment，也不会冒充 Gitea 用户；专用 Conduit bot 只需查看任务和添加
+评论的权限。用户 SSO、账号绑定和离职回收仍由 Stargate 统一维护。
+
+回到完整模式：
+
+```dotenv
+PHORGE_PRODUCT_PROFILE=full
+```
+
+再次 `up -d --force-recreate` 后，entrypoint 只在确认上一模式由它管理时撤销这八个停用
+项；任务中的 Gitea 链接和历史评论继续保留。
+
 ## 参考
 
 - [安装指南](src/docs/user/installation_guide.diviner)

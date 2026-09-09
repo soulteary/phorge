@@ -47,6 +47,24 @@ final class PhorgeExtensionsConfigOptions
       ->setLocked(true)
       ->setDescription(pht('Allowed Extension Stores to use.'));
 
+    $options[] = $this->newOption(
+      'phorge.product-profile',
+      'string',
+      'full')
+      ->setLocked(true)
+      ->setDescription(
+        pht(
+          'Deployment profile. The "collaboration" profile keeps Maniphest, ' .
+          'projects, documents and chat while an external forge owns code.'));
+
+    $options[] = $this->newOption(
+      'gitea.uri',
+      'string',
+      null)
+      ->setLocked(true)
+      ->setDescription(
+        pht('Base URI of the Gitea instance shown in the global navigation.'));
+
     return $options;
   }
 
