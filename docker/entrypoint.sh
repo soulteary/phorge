@@ -1495,17 +1495,38 @@ if [ "$PHORGE_CONTROL_PLANE" = "legacy" ]; then
     fi
 else
     # 从阶段一升级时，先精确恢复旧控制面保存的数据库/本地基线，再用新的
-    # 运行时 profile 接管。这里仅在旧状态文件确实存在时执行，一次成功后状态
-    # 文件会被删除，后续启动不再写这些配置。
-    if [ -e "$COLLABORATION_STATE_FILE" ]; then
-        echo "[entrypoint] 迁移旧协作模式状态到统一控制面 ..."
+    # 运行时 profile 接管。早期 collaboration 实现没有状态文件，所以也检测
+    # local.json 中的旧 profile；数据库中的无状态 numeric 应用列表由后面的
+    # profile helper 无条件检查。taskqueue 快照也在这里一次性恢复。
+    legacy_local_state="$(php -r '
+        $config = json_decode(@file_get_contents($argv[1]), true);
+        if (!is_array($config)) {
+            exit(0);
+        }
+        $collaboration =
+            (($config["phorge.product-profile"] ?? null) === "collaboration");
+        $taskqueue = !empty($config["gorge.taskqueue.uri"]) &&
+            (($config["phd.taskmasters"] ?? null) === 0);
+        if ($collaboration || $taskqueue) {
+            echo "1";
+        }
+    ' "$CONF_FILE")"
+    if [ -e "$COLLABORATION_STATE_FILE" ] ||
+       [ -e "$TASKQUEUE_STATE_FILE" ] ||
+       [ "$legacy_local_state" = "1" ]; then
+        echo "[entrypoint] 迁移旧控制面状态到统一控制面 ..."
         PHORGE_CONTROL_PLANE=legacy \
             php "$PHORGE_DIR/scripts/setup/manage_collaboration_local.php" \
-            full "$CONF_FILE" "$COLLABORATION_STATE_FILE"
-        PHORGE_CONTROL_PLANE=legacy \
-            php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
-            full "$COLLABORATION_STATE_FILE"
+            full "$CONF_FILE" "$COLLABORATION_STATE_FILE" \
+            "$TASKQUEUE_STATE_FILE"
     fi
+
+    # This helper is also the compatibility detector for the original
+    # stateless collaboration profile: without a state file it normalizes the
+    # numeric uninstalled-application set while preserving keyed admin values.
+    PHORGE_CONTROL_PLANE=legacy \
+        php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
+        full "$COLLABORATION_STATE_FILE"
 
     echo "[entrypoint] 原子生成统一部署配置 $DEPLOYMENT_CONFIG_FILE ..."
     php "$PHORGE_DIR/scripts/setup/build_deployment_config.php" \

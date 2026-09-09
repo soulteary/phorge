@@ -146,4 +146,53 @@ final class PhabricatorDeploymentConfigBuilderTestCase
     }
   }
 
+  public function testLegacyLocalStateMigration() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $script = $root.'/scripts/setup/manage_collaboration_local.php';
+
+    $directory = Filesystem::createTemporaryDirectory();
+    $local_path = $directory.'/local.json';
+    $profile_state_path = $directory.'/profile-state.json';
+    $taskqueue_state_path = $directory.'/taskqueue-state.json';
+
+    $local = array(
+      'phorge.product-profile' => 'collaboration',
+      'gorge.diff.enabled' => false,
+      'gitea.uri' => 'https://gitea.example/',
+      'gorge.taskqueue.uri' => 'http://gorge-taskqueue:8090',
+      'phd.taskmasters' => 0,
+    );
+
+    try {
+      Filesystem::writeFile(
+        $local_path,
+        phutil_json_encode($local));
+      Filesystem::writeFile(
+        $taskqueue_state_path,
+        phutil_json_encode(
+          array(
+            'present' => false,
+            'value' => null,
+          )));
+
+      execx(
+        '%s %s full %s %s %s',
+        PHP_BINARY,
+        $script,
+        $local_path,
+        $profile_state_path,
+        $taskqueue_state_path);
+
+      $config = phutil_json_decode(
+        Filesystem::readFile($local_path));
+      $this->assertEqual('full', $config['phorge.product-profile']);
+      $this->assertFalse(array_key_exists('gorge.diff.enabled', $config));
+      $this->assertFalse(array_key_exists('gitea.uri', $config));
+      $this->assertFalse(array_key_exists('phd.taskmasters', $config));
+      $this->assertFalse(Filesystem::pathExists($taskqueue_state_path));
+    } finally {
+      Filesystem::remove($directory);
+    }
+  }
+
 }

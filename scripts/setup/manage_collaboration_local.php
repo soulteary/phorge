@@ -1,17 +1,19 @@
 #!/usr/bin/env php
 <?php
 
-if ($argc !== 4) {
+if ($argc !== 4 && $argc !== 5) {
   fwrite(
     STDERR,
     "Usage: manage_collaboration_local.php ".
-    "<collaboration|full> <local-config> <state-file>\n");
+    "<collaboration|full> <local-config> <state-file> ".
+    "[taskqueue-state-file]\n");
   exit(1);
 }
 
 $mode = $argv[1];
 $config_path = $argv[2];
 $state_path = $argv[3];
+$taskqueue_state_path = isset($argv[4]) ? $argv[4] : null;
 if ($mode !== 'collaboration' && $mode !== 'full') {
   fwrite(STDERR, "Unknown product profile.\n");
   exit(1);
@@ -81,6 +83,19 @@ function validate_profile_state(array $state) {
 
 $config = read_json_object($config_path, true);
 $state = read_json_object($state_path, false);
+$taskqueue_state = null;
+if ($taskqueue_state_path !== null) {
+  $taskqueue_state = read_json_object($taskqueue_state_path, false);
+  if ($taskqueue_state !== null &&
+      (!array_key_exists('present', $taskqueue_state) ||
+       !is_bool($taskqueue_state['present']) ||
+       ($taskqueue_state['present'] &&
+        (!array_key_exists('value', $taskqueue_state) ||
+         !is_int($taskqueue_state['value']) ||
+         $taskqueue_state['value'] < 0)))) {
+    throw new Exception('Taskqueue configuration state is invalid.');
+  }
+}
 if ($state !== null) {
   $state_upgraded = false;
   if (isset($state['version']) && $state['version'] === 1 &&
@@ -253,4 +268,25 @@ if ($mode === 'collaboration') {
   $config['phorge.product-profile'] = 'full';
 }
 
+if ($taskqueue_state !== null) {
+  if ($taskqueue_state['present']) {
+    $config['phd.taskmasters'] = $taskqueue_state['value'];
+  } else {
+    unset($config['phd.taskmasters']);
+  }
+} else if ($taskqueue_state_path !== null &&
+           !empty($config['gorge.taskqueue.uri']) &&
+           isset($config['phd.taskmasters']) &&
+           $config['phd.taskmasters'] === 0) {
+  // Early Gorge taskqueue integration wrote the managed zero without a
+  // rollback record. The endpoint and zero together identify that value as
+  // deployment-owned; an unrelated administrator zero remains untouched.
+  unset($config['phd.taskmasters']);
+}
+
 write_json_object($config_path, $config);
+if ($taskqueue_state !== null && !unlink($taskqueue_state_path)) {
+  throw new Exception(
+    'Unable to remove taskqueue configuration state: '.
+    $taskqueue_state_path);
+}
