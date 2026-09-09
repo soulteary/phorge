@@ -1,8 +1,8 @@
 # Phorge (phorge-fork) 容器化部署说明
 
-本 fork 提供一套精简的 Docker / Docker Compose 封装，以**单体**方式运行 Phorge：
-一个基于 `php:8.3-apache`（mod_php）的应用容器，加一个 MySQL 8 容器，以及一个
-只跑一次的授权初始化任务。所有可调项都有内置默认值，开箱即可跑。
+本 fork 默认以 Phorge + Gorge 协作栈运行。Phorge 镜像按职责拆成一次性的
+`phorge-migrate`、Apache `phorge` 和 `phorge-daemon`；Gorge 核心服务随默认
+Compose 启动。旧版纯 Phorge 单容器编排保存在 `docker-compose.legacy.yml`。
 
 ## 前置要求
 
@@ -16,7 +16,7 @@
 # 1) 准备环境变量（可选，用于改密码 / 端口 / 域名；不改也能跑）
 cp .env.example .env
 
-# 2) 构建并启动全部服务
+# 2) 构建 Phorge，并启动默认核心服务
 docker compose up -d --build
 
 # 3) 浏览器访问（Host 必须含点号，用 127.0.0.1 而不是 localhost）
@@ -28,11 +28,13 @@ docker compose up -d --build
 - 构建应用镜像（拉取 arcanist、编译 PHP 扩展）。
 - 启动 MySQL，等待其健康后由一次性任务 `db-init` 为普通库用户补齐
   `phabricator_%` 整组库的授权（见 `docker/db-grant.sql`）。
-- 应用容器 `entrypoint.sh` 依次：**守卫式**生成 `conf/local/local.json`（已存在则保留）
-  → 幂等下发 Gorge 服务配置（高亮 / 通知 / 发信 / 检索，仅在叠加
-  `docker-compose.gorge.yml` 时有值可写）
-  → 等待数据库就绪 → 执行 `bin/storage upgrade --force` 初始化 schema
-  → 以 `www-data` 启动守护进程 `phd` → 启动 Apache。
+- `phorge-migrate` 独占本地配置写入和 `bin/storage upgrade --force`。新安装默认
+  选择 `collaboration`；检测到现有 `phabricator_meta_data` 且没有持久化选择时
+  保持 `full`，避免升级自动停用应用。
+- schema 完成后，`phorge` 只运行 Apache，`phorge-daemon` 独立监护 phd；两者
+  不再重复迁移或争写 `local.json`。
+- 默认启动 render、conduit、notification、file-storage、webhook、taskqueue、
+  worker 与 db-api。Gorge 镜像默认锁定 `2026.09.09-r3`，不会跟随 `latest` 漂移。
 
 访问根路径 `/` 会 302 跳到 `/auth/register/` 的初始管理员注册引导页，按向导创建第一个
 账号即可。应用容器带 healthcheck（探测免鉴权的 `/status/`），有 60s `start_period`，
@@ -52,15 +54,34 @@ docker compose up -d --build
 | `PHORGE_HTTP_PORT` | `8088` | 宿主机映射端口，浏览器访问 `http://127.0.0.1:<该端口>/`。 |
 | `PHORGE_BASE_URI` | `http://127.0.0.1:${PHORGE_HTTP_PORT}/`（默认注释，由 compose 自动拼出） | 站点绝对地址，Phorge 用它生成链接并校验请求的 Host 头。**域名必须含点号**，裸 `localhost` 会被拒绝。改了端口一定要让它联动，否则会 redirect 到错误地址。 |
 | `PHORGE_TIMEZONE` | `UTC` | 站点默认时区（`phabricator.timezone`），取 PHP 时区标识符，如 `Asia/Shanghai`。 |
+| `PHORGE_PRODUCT_PROFILE` | `auto` | `auto` 让新安装使用协作模式、已有安装保持 full；也可显式指定 `collaboration` 或 `full`。结果会持久化。 |
+| `GORGE_IMAGE_TAG` | `2026.09.09-r3` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
 | `PHORGE_WAIT_DB` | `1` | 是否在启动 Web 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
-| `PHORGE_AUTO_UPGRADE` | `1` | 是否每次启动自动执行 `bin/storage upgrade --force`。开箱可跑靠它；生产建议关掉，升级前先备份再手工迁移。 |
-| `PHORGE_START_PHD` | `1` | 是否随容器启动守护进程 `phd`（负责仓库拉取、任务队列、邮件投递等），容器内以 `www-data` 运行。 |
+| `PHORGE_AUTO_UPGRADE` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-migrate` 执行。 |
+| `PHORGE_START_PHD` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-daemon` 运行。 |
 
 > 注意：`MYSQL_*` 与 `PHORGE_BASE_URI` / `PHORGE_TIMEZONE` **只在首次生成
 > `conf/local/local.json` 时写入**。该文件由 `phorge-conf` 卷持久化，之后改 `.env`
 > 不会覆盖它。需要按新环境变量重新生成，先删掉再重启：
-> `docker compose exec phorge rm conf/local/local.json && docker compose restart phorge`，
+> `docker compose exec phorge rm conf/local/local.json && docker compose up -d --force-recreate phorge-migrate phorge phorge-daemon`，
 > 或直接在 Web 界面 Config 里改。
+
+需要邮件、搜索或 Gitea 单向事件桥时，显式启用对应 profile：
+
+```bash
+docker compose --profile mailer up -d
+docker compose --profile search up -d
+docker compose --profile gitea up -d
+```
+
+Mailer 与 Search 的一次性配置任务会随 profile 运行；Search 的全量索引仍需由管理员
+显式执行。`gorge-gitea` 在 Gorge r3 之后才合入，启用 `gitea` profile 前必须设置
+`GORGE_GITEA_IMAGE_TAG` 为实际已经发布的构建；默认 `unreleased` 用来阻止误拉 r3。
+已有安装若暂时不准备接入 Gorge，可以继续运行：
+
+```bash
+docker compose -f docker-compose.legacy.yml up -d --build
+```
 
 ## 镜像结构
 
@@ -103,7 +124,7 @@ docker compose up -d --build
   ```bash
   docker compose up -d --build phorge
   # 用了叠加文件时把 -f 都带上，否则叠加的配置会丢：
-  # docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build phorge
+  # docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build phorge
   ```
   另外，新增 PHP 类还需要先在宿主上 `arc liberate src/` 重新生成
   `src/__phutil_library_map__.php` —— 类映射没更新，重建了镜像也一样 `Class not found`。
@@ -276,7 +297,7 @@ difference engine。高亮与 diff 分别启用，可以独立回滚。
 #    拉镜像失败（403）见下面「本地构建 gorge-render 镜像」
 #    --build 不能省：本地已有旧 phorge 镜像时 up -d 会直接复用它，容器里跑的就是旧版
 #    entrypoint，Gorge 的配置整段不下发且不报任何错（见「常见故障排查」）
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
 
 # 2) 把高亮引擎切到 Gorge
 docker compose exec phorge /opt/phorge/phorge/bin/config set \
@@ -436,7 +457,7 @@ Phorge 的实时通知（页面右上角的小铃铛即时亮起、Conpherence �
 和高亮共用同一个叠加文件，两个服务互不依赖，一条命令一起起来：
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
 ```
 
 默认值（`127.0.0.1:22280`）适用于「在 Docker 宿主本机上开浏览器」这一种情况，不改 `.env`
@@ -693,7 +714,7 @@ EOF
 
 # 2) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前两个服务相同，
 #    只是 --build-arg SERVICE=gorge-mailer；--build 同样不能省）
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
 
 # 3) 确认配置写进去了，且服务已就绪
 docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.mailers
@@ -873,7 +894,7 @@ EOF
 
 # 2) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前三个服务相同，
 #    只是 --build-arg SERVICE=gorge-search；--build 同样不能省）
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
 
 # 3) 确认配置写进去了，且服务已就绪
 docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.search
@@ -1107,7 +1128,7 @@ docker compose exec phorge /opt/phorge/phorge/bin/config set storage.s3.bucket n
 # 1) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前四个服务相同，
 #    只是 --build-arg SERVICE=gorge-file-storage；--build 同样不能省）
 #    这一步不需要先配后端：本地磁盘后端默认就开着，数据落在新增的 phorge-files 卷里。
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
 
 # 2) 确认配置写进去了，且服务已就绪
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.file.uri
@@ -1411,7 +1432,7 @@ ALTER TABLE {$NAMESPACE}_herald.herald_webhookrequest
 ```bash
 # 1) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前五个服务相同，
 #    只是 --build-arg SERVICE=gorge-webhook；--build 同样不能省）
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
 
 # 2) 确认配置写进去了。这一步不能省 —— 它没写进去就是上面那张表的第三行。
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
@@ -1511,7 +1532,7 @@ docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
 > 本节命令统一用下面这个别名，`dc` 代表单节点（基础叠加）的两个 `-f`；多节点另有 `dc_multi`，见后文：
 >
 > ```bash
-> alias dc='docker compose -f docker-compose.yml -f docker-compose.gorge.yml'
+> alias dc='docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml'
 > ```
 
 ```bash
@@ -1550,7 +1571,7 @@ Compose 对 `gorge-db-api` 使用 `/healthz` 健康检查，`phorge` 只以 `ser
 > 从这里起，把下面这行别名记在手边，本小节命令都用它：
 >
 > ```bash
-> alias dc_multi='docker compose -f docker-compose.yml -f docker-compose.gorge.yml -f docker-compose.gorge-multinode.yml'
+> alias dc_multi='docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml -f docker-compose.gorge-multinode.yml'
 > ```
 
 #### 做法 A（推荐）：专用只读配置文件 + 只读 DB 账号
@@ -1679,7 +1700,7 @@ GORGE_GITEA_GATEWAY_TOKEN=<GORGE_CONDUIT_TOKEN 的值>
 
 ```bash
 docker compose --profile gitea \
-  -f docker-compose.yml -f docker-compose.gorge.yml \
+  -f docker-compose.legacy.yml -f docker-compose.gorge.yml \
   up -d --force-recreate
 ```
 

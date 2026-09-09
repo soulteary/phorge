@@ -3,8 +3,8 @@
 # Phorge 容器入口脚本
 #
 # 流程:
-#   1. 守卫式生成本地配置 conf/local/local.json（已存在则不覆盖）
-#   2. 幂等下发 Gorge 服务配置   (GORGE_RENDER_* 高亮 / GORGE_CONDUIT_* 网关 /
+#   1. web / daemon 角色直接启动对应前台进程
+#   2. migrate / all 角色守卫式生成本地配置并幂等下发 Gorge 服务配置
 #                                 GORGE_NOTIFICATION_* 通知 /
 #                                 GORGE_MAILER_* 发信 / GORGE_SEARCH_* 全文检索 /
 #                                 GORGE_FILE_* 文件存储 / GORGE_WEBHOOK_* webhook /
@@ -12,8 +12,7 @@
 #                                 GORGE_DB_* 数据库诊断)
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
 #   4. 升级/初始化数据库 schema  (PHORGE_AUTO_UPGRADE)
-#   5. 以 www-data 启动守护进程  (PHORGE_START_PHD)
-#   6. exec 启动 Web 服务（由 CMD 传入）
+#   5. migrate 角色退出；all 角色按旧行为启动 phd 与 Web
 #
 # 各环境变量的含义与默认值见仓库根目录的 .env.example。
 #
@@ -41,6 +40,28 @@ PHORGE_WAIT_DB="${PHORGE_WAIT_DB:-1}"
 PHORGE_AUTO_UPGRADE="${PHORGE_AUTO_UPGRADE:-1}"
 PHORGE_START_PHD="${PHORGE_START_PHD:-1}"
 PHORGE_PRODUCT_PROFILE="${PHORGE_PRODUCT_PROFILE:-full}"
+PHORGE_CONTAINER_ROLE="${PHORGE_CONTAINER_ROLE:-all}"
+PHORGE_DB_NAMESPACE="${PHORGE_DB_NAMESPACE:-${STORAGE_NAMESPACE:-phabricator}}"
+
+# 默认编排把初始化、Web 与守护进程分成三个容器。只有 migrate 角色可以改配置
+# 和 schema，避免 Web/daemon 副本同时执行 storage upgrade 或争写 local.json。
+# all 保留旧镜像入口语义，供 docker-compose.legacy.yml 与直接 docker run 使用。
+case "$PHORGE_CONTAINER_ROLE" in
+    web|daemon)
+        if [ ! -s "$CONF_FILE" ]; then
+            echo "[entrypoint] $PHORGE_CONTAINER_ROLE 角色缺少 $CONF_FILE；请先运行 phorge-migrate。" >&2
+            exit 1
+        fi
+        echo "[entrypoint] 启动 $PHORGE_CONTAINER_ROLE 角色: $*"
+        exec "$@"
+        ;;
+    migrate|all)
+        ;;
+    *)
+        echo "[entrypoint] 未知 PHORGE_CONTAINER_ROLE=$PHORGE_CONTAINER_ROLE。" >&2
+        exit 64
+        ;;
+esac
 
 # ----- 1. 生成本地配置（守卫式）-----
 # 仅当 local.json 不存在或为空时才生成：conf/local 在 compose 里由 phorge-conf
@@ -142,20 +163,6 @@ configure_product_profile_local() {
     chown www-data:www-data "$CONF_FILE" || true
     chmod 0640 "$CONF_FILE" || true
 }
-
-PRODUCT_PROFILE_LOCAL_OK=1
-if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ]; then
-    echo "[entrypoint] 启用 Phorge 协作模式 ..."
-    if ! configure_product_profile_local; then
-        PRODUCT_PROFILE_LOCAL_OK=0
-    fi
-elif [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
-    if ! configure_product_profile_local; then
-        PRODUCT_PROFILE_LOCAL_OK=0
-    fi
-elif [ "$PHORGE_PRODUCT_PROFILE" != "full" ]; then
-    echo "[entrypoint] 警告: 未知 PHORGE_PRODUCT_PROFILE=$PHORGE_PRODUCT_PROFILE，保留当前应用配置。" >&2
-fi
 
 # 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
 if [ -n "${GORGE_RENDER_URI:-}" ] || [ -n "${GORGE_RENDER_TOKEN:-}" ]; then
@@ -850,11 +857,96 @@ else
     echo "[entrypoint] PHORGE_WAIT_DB=$PHORGE_WAIT_DB，跳过数据库就绪探测。"
 fi
 
-# ----- 4. 数据库 schema -----
+# ----- 4. 选择产品模式并更新数据库 schema -----
+# auto 只用于默认编排：有持久化选择时沿用；没有选择时，空数据库视为新安装并
+# 选择 collaboration，已存在的 Phorge 数据库视为升级并保持 full。这个判定发生
+# 在 storage upgrade 之前，否则新安装也会被刚创建的 meta_data 库误判为升级。
+resolve_product_profile() {
+    if [ "$PHORGE_PRODUCT_PROFILE" != "auto" ]; then
+        return 0
+    fi
+
+    saved_profile="$(php -r '
+        $path = $argv[1];
+        $config = is_file($path) ? json_decode(file_get_contents($path), true) : null;
+        $profile = is_array($config) ? ($config["phorge.product-profile"] ?? "") : "";
+        if ($profile === "collaboration" || $profile === "full") {
+            echo $profile;
+        }
+    ' "$CONF_FILE")"
+    if [ -n "$saved_profile" ]; then
+        PHORGE_PRODUCT_PROFILE="$saved_profile"
+        echo "[entrypoint] 沿用已保存的产品模式: $PHORGE_PRODUCT_PROFILE。"
+        return 0
+    fi
+
+    set +e
+    php -r '
+        $connection = @mysqli_connect(
+            $argv[1], $argv[3], $argv[4], null, (int)$argv[2]);
+        if (!$connection) {
+            exit(2);
+        }
+        $name = $argv[5]."_meta_data";
+        $statement = mysqli_prepare(
+            $connection,
+            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA ".
+            "WHERE SCHEMA_NAME = ? LIMIT 1");
+        if (!$statement) {
+            exit(2);
+        }
+        mysqli_stmt_bind_param($statement, "s", $name);
+        if (!mysqli_stmt_execute($statement)) {
+            exit(2);
+        }
+        mysqli_stmt_store_result($statement);
+        exit(mysqli_stmt_num_rows($statement) ? 0 : 1);
+    ' "$MYSQL_HOST" "$MYSQL_PORT" "$MYSQL_USER" "$MYSQL_PASS" \
+        "$PHORGE_DB_NAMESPACE" >/dev/null 2>&1
+    database_status=$?
+    set -e
+
+    case "$database_status" in
+        0)
+            PHORGE_PRODUCT_PROFILE=full
+            echo "[entrypoint] 检测到现有 Phorge 数据库；默认保持 full 模式。"
+            ;;
+        1)
+            PHORGE_PRODUCT_PROFILE=collaboration
+            echo "[entrypoint] 检测到新安装；默认启用 collaboration 模式。"
+            ;;
+        *)
+            echo "[entrypoint] 无法判断安装状态；为避免停用现有应用，回退 full 模式。" >&2
+            PHORGE_PRODUCT_PROFILE=full
+            ;;
+    esac
+}
+
+resolve_product_profile
+
+PRODUCT_PROFILE_LOCAL_OK=1
+if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ]; then
+    echo "[entrypoint] 启用 Phorge 协作模式 ..."
+    if ! configure_product_profile_local; then
+        PRODUCT_PROFILE_LOCAL_OK=0
+    fi
+elif [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
+    if ! configure_product_profile_local; then
+        PRODUCT_PROFILE_LOCAL_OK=0
+    fi
+else
+    echo "[entrypoint] 警告: 未知 PHORGE_PRODUCT_PROFILE=$PHORGE_PRODUCT_PROFILE，保留当前应用配置。" >&2
+fi
+
 if [ "$PHORGE_AUTO_UPGRADE" = "1" ]; then
     echo "[entrypoint] 升级/初始化数据库 schema ..."
-    "$STORAGE_BIN" upgrade --force ||
+    if ! "$STORAGE_BIN" upgrade --force; then
+        if [ "$PHORGE_CONTAINER_ROLE" = "migrate" ]; then
+            echo "[entrypoint] storage upgrade 失败，migrate 角色退出。" >&2
+            exit 1
+        fi
         echo "[entrypoint] 警告: storage upgrade 失败，可进容器执行 bin/storage upgrade 排查。" >&2
+    fi
 else
     echo "[entrypoint] PHORGE_AUTO_UPGRADE=$PHORGE_AUTO_UPGRADE，跳过 storage upgrade。"
 fi
@@ -880,7 +972,12 @@ if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
     fi
 fi
 
-# ----- 5. 守护进程 -----
+if [ "$PHORGE_CONTAINER_ROLE" = "migrate" ]; then
+    echo "[entrypoint] 配置与数据库迁移完成。"
+    exit 0
+fi
+
+# ----- 5. 兼容模式守护进程 -----
 # 必须以 www-data 运行：phd 会在 /var/repo 下创建仓库工作副本，若以 root 运行
 # 会留下 root 属主的文件与 Apache (www-data) 冲突，Phorge 的
 # PhabricatorDaemonsSetupCheck 也会就此告警。

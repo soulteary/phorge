@@ -1,11 +1,11 @@
-# Phorge (phorge-fork) Gorge 服务叠加编排（可选）
+# Phorge (phorge-fork) Gorge 兼容叠加编排
 # ------------------------------------------------------------------
 # 用法（在基础一键启动之上叠加 Gorge 服务）：
-#   docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+#   docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
 #
 # 说明：
-#   - 本文件是「叠加文件」，不会独立启动；它与 docker-compose.yml 合并生效。
-#     docker-compose.yml 保持完全不变，因此默认的一键启动（不带本文件）不受影响。
+#   - 默认 docker-compose.yml 已内置 Gorge 核心服务。本文件保留给旧版
+#     docker-compose.legacy.yml 和自定义部署继续叠加，不要再与默认文件组合。
 #   - 上面那条命令里的 --build 不能省。phorge 是 build 型服务、entrypoint.sh 是烤进
 #     镜像的，本地已存在旧的 phorge 镜像时，不带 --build 的 up -d 会直接复用它，容器里
 #     跑的就是**旧版 entrypoint**：notification.servers 与 cluster.mailers 整段不下发，

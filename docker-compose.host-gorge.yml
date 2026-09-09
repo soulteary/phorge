@@ -1,3 +1,8 @@
+# 在宿主机裸跑 Gorge、只把 Phorge/MySQL 放进容器时使用：
+#   docker compose -f docker-compose.legacy.yml -f docker-compose.host-gorge.yml up -d --build
+#
+# 不使用 Compose 自动加载的 docker-compose.override.yml 文件名，否则它会在普通
+# `docker compose up` 时悄悄把默认核心服务的地址改回 host.docker.internal。
 services:
   # 把容器 MySQL 的 3306 暴露到宿主回环，供宿主机上裸跑的 gorge-file-storage /
   # gorge-webhook 反向连库（这两个是七个域里唯二有状态、要连 phorge 库的服务）。

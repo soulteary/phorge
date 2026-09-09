@@ -100,6 +100,7 @@ COPY docker/phorge-apache.conf /etc/apache2/sites-available/000-default.conf
 # 5. 入口脚本
 # ------------------------------------------------------------------
 COPY --chmod=0755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chmod=0755 docker/phd-foreground.sh /usr/local/bin/phd-foreground
 
 # ------------------------------------------------------------------
 # 6. 拷贝 phorge 源码（当前构建上下文即 phorge-fork）
