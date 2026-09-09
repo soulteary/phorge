@@ -1,0 +1,400 @@
+19	This method is frozen and will eventually be deprecated. New code 
+10	This page documents the commands you can use to interact with 
+8	The name "%s" is not a valid repository short name. Repository 
+7	Almanac service, device, property, network and namespace names 
+7	Option "%s" is of type "%s", but the configured value is not 
+4	Authentication provider configuration is locked, and can not be 
+4	Blueprint "%s" (of type "%s") is not properly implemented: it 
+3	EditEngine ("%s") returned builtin engine configurations, 
+3	Editor pattern "%s" is invalid: the pattern must begin with 
+3	Parameter "%s" must contain a list of transaction descriptions, 
+3	The email address you just clicked a link from is already 
+3	The external service ("%s") you just authenticated with is 
+3	URI "%s" is not a valid fetchable resource. A valid fetchable 
+3	URI "%s" is not a valid linkable resource. A valid linkable 
+2	
+1	After executing under these conditions, this event would 
+1	After executing under these conditions, this event would never 
+1	Attempting to build a repository command (for repository "%s"), 
+1	Attempting to compare a password saved with the "%s" hash. The 
+1	Bad frame length character in Git protocol ("%s"), 
+1	Cat tails are flexible because they contain thousands of tiny 
+1	Cats are stealthy predators and nearly invisible to radar.
+1	Cats have a tail, two feet, between one and three ears, and two 
+1	Cats have five pointy ends.
+1	Cats must eat a diet rich in fish to replace the tiny bones in 
+1	Cats prefer vanilla ice cream.
+1	Cats purr when they are happy, upset, or asleep.
+1	Cats spend most of their time plotting to kill their owner.
+1	Cats use a special type of magnetism to help them land on their 
+1	Cats use their keen sense of smell to avoid feeling empathy.
+1	Cats will often bring you their prey because they feel sorry 
+1	Cats with high self-esteem seek out high perches 
+1	Chart function "%s" emitted a repeatable argument ("%s"), then 
+1	Chart function "%s" emitted an argument specification ("%s") with 
+1	Chart function "%s" emitted an argument specification with no 
+1	Chart function "%s" emitted multiple argument specifications 
+1	Chart function "%s" emitted multiple repeatable argument 
+1	Chart function argument type "%s" is unknown. Valid types 
+1	Chart uses unknown engine key ("%s") and can not be rendered.
+1	Chart with this key does not exist. A chart must be 
+1	Collided mid-air when generating builtin file "%s", but 
+1	Comes in bunches.
+1	Commit hook events depend on repository state which is only available 
+1	Commits which became reachable from a permanent ref while 
+1	Config key "%s" is locked and can only be set in local 
+1	Config option "%s" is invalid. The URI must contain a dot 
+1	Config option "%s" is invalid. The URI must start with 
+1	Config option "%s" is invalid. The timezone identifier must 
+1	Config option "phd.user" is not set. You must set this option 
+1	Configuration Guide: Locked and Hidden Configuration
+1	Configuration defines no task status with special attribute 
+1	Configuration file "%s" exists and is readable, but the content 
+1	Configuration file "%s" exists, but could not be read.
+1	Configuration file does not specify any administrative 
+1	Configuration file does not specify any client servers. This 
+1	Configuration file does not specify any servers. This service 
+1	Configuration file has improper configuration keys at top 
+1	Configuration file is not properly formatted JSON. %s
+1	Configuration file specifies cluster peer "%s" more than 
+1	Configuration file specifies cluster peer ("%s", at index 
+1	Configuration has two statuses both marked with the special 
+1	Configuration is not valid. Maniphest points configuration must 
+1	Configuration is not valid. Maniphest priority configurations 
+1	Configuration key "%s" is of type "%s". Specify it in JSON.
+1	Configuration key "%s" is unknown. Use "bin/config list" to list 
+1	Configuration must be a list of project color specifications.
+1	Configuration must be a list of project icon specifications.
+1	Configuration of the notification server has changed substantially. 
+1	Configuration value "%s" is locked, but has a value in the database.
+1	Configure a connection to an LDAP server so that users can use their 
+1	Configure bulk job __id__ to run silently (without sending 
+1	Configure creation and editing forms for Phortune Account 
+1	Configure creation and editing forms for Phortune Merchants.
+1	Configure creation and editing forms in Fund.
+1	Configure creation and editing forms in Phortune Accounts.
+1	Configure creation and editing forms in Phurl.
+1	Configure creation and editing forms in Ponder Questions.
+1	Constraint "authorPHIDs" to "transaction.search" requires 
+1	Constraint "phids" to "transaction.search" requires nonempty list, 
+1	Contemplate Infinity
+1	Content for object "%s" is already known to this server. It can 
+1	Content object "%s" can not be published because it belongs 
+1	Context object ("%s") has unsupported type. Panels should 
+1	Controller "%s" returned an invalid response from call to "%s". 
+1	Converted hunk %d to "%s" storage (with format "%s").
+1	Cookies set for x.com are also sent for y.x.com. Assuming 
+1	Copied to multiple locations:
+1	Copy "Quack" to Clipboard
+1	Copy/paste to make design maintenance twice as difficult.
+1	Corpus stem of: %s
+1	Corrupt integrity hashes for given files. This is intended 
+1	Corrupting integrity hashes will prevent files from being 
+1	Create **Issue Link** to the Revision, as an "implemented 
+1	Create a URI in a given repository. This transaction type 
+1	Create a bot/script user account, to automate interactions with other 
+1	Create a build artifact.
+1	Create a fanciful list of objects and prismatic donuts.
+1	Create a mailing list user to represent an existing, external 
+1	Create an inventory of physical and virtual hosts and 
+1	Create some work for the interns in Maniphest.
+1	Created in ages long past
+1	Created through child
+1	Crowded Eastern Edge
+1	Cup of Joe
+1	Curtain extension ("%s", of class "%s") did not return a list of 
+1	Curtain extension ("%s", of class "%s") did not return an 
+1	Curtain extension ("%s", of class "%s") returned a list of 
+1	D%s.%s.patch
+1	DANGEROUS. Attempt to salvage file content even if the 
+1	DANGEROUS. Recompute and update integrity hashes, overwriting 
+1	DANGEROUS. Strip integrity hashes from files. This makes 
+1	DATE-TIME "%s" uses "Z" to specify UTC, but also has a TZID 
+1	DELETING OBJECTS OFTEN BREAKS THINGS
+1	DEV: New User State
+1	DEV: Overheated State
+1	DRYRUN: Storage on host "%s" does not exist yet, so it 
+1	DRYRUN: Would apply adjustments.
+1	DRYRUN: Would apply patch "%s" to host "%s".
+1	Dat Boi
+1	Database "%s" is configured as a replica and specifies a 
+1	Database "%s" is configured as a replica, but does not 
+1	Database "%s" is configured as a replica, but specifies a 
+1	Database "%s" is configured as a replica, but there is no 
+1	Database "%s" is specified more than once. Specify each 
+1	Database "%s" is unknown. This script can only dump 
+1	Database cluster configuration describes an invalid 
+1	Database cluster configuration has an invalid host 
+1	Database cluster configuration is invalid: it describes the 
+1	Database cluster configuration is not valid: each entry in the 
+1	Database host "%s" has a configured cluster state which disagrees 
+1	Database host "%s" is configured as a master, but is replicating 
+1	Database initialization on host "%s" applied no patches!
+1	Database records for repository "%s" were destroyed, but this 
+1	Database replica "%s" is listed as a replica, but is not 
+1	Declined to resubscribe %s target(s) because they previously 
+1	Declining to emit response with malformed HTTP header name: %s
+1	Declining to emit response with unsafe HTTP header: %s
+1	Declining to make service call because `phabricator.silent` is 
+1	Declining to synchronize static tables.
+1	Destroying a scoped environment which is not on the top of the 
+1	Ding Ding
+1	Diplomatic Meeting
+1	Disable %s? They will no longer be able to access this server or 
+1	Disable SSH error log.
+1	Disable SSH log.
+1	Disable unsafe option "%s" in PHP configuration.
+1	Disabling the lock log.
+1	Discovered more than %s commits in an empty repository, 
+1	Distinct characters in hash of: %s
+1	Do an implicit string extraction before validating. 
+1	Do not dump data in rebuildable index tables. This means 
+1	Do not install this software on an instance class with 
+1	Do not invoke `%s` after updating sprites
+1	Do not migrate data for files which are larger than a given 
+1	Do not migrate data for files which are smaller than a given 
+1	Do not pull __repository__.
+1	Document path "%s" is not a valid path. The normalized 
+1	Documentation uses `%s`, but should use `%s`.
+1	Done generating sprites - updating map...
+1	Done. Total byte size of affected logs: %s -> %s.
+1	DoorkeeperURIRef display mode "%s" is unknown.
+1	Doubloon
+1	Drag and drop .xhprof files to import them.
+1	Drag and drop fields to change their priority for edits. When a 
+1	Drew the short stick
+1	Drift Aimlessly
+1	Driven Snow
+1	Drop .xhprof Files to Import
+1	Dropping database "%s" on host "%s"...
+1	Drydock resource ("%s") has no Almanac binding PHID, so its 
+1	Drydock working copy lease to create an artifact from.
+1	Dump all data in storage to stdout.
+1	Dump only tables in the named database (or databases, if 
+1	Dump the HTML body of the mail. You can redirect it to a 
+1	Duo API credential ("%s") has no secret key.
+1	Duo API hostname ("%s") is invalid, hostname must be 
+1	Duo enrollment mode ("%s") is not supported.
+1	Duo is not requiring a challenge, which defeats the 
+1	Duo username pairing mode ("%s") is not supported.
+1	Duplicate Special
+1	During the last %s second(s) spent waiting for the lock, %s 
+1	During the last %s second(s) spent waiting for the lock, more 
+1	Dust Detector
+1	E164 of: %s
+1	EMAIL PREFERENCES FOR THIS ROOM
+1	ERROR: The PHP function %s is disabled. You must 
+1	ERROR: You are making a Conduit API request to "%s", but the correct 
+1	ETag for this request was "%s".
+1	EUC-JP
+1	EVENT DESCRIPTION
+1	EXECUTE
+1	EXTRACT
+1	Each item in the list of hints should be a JSON object, but 
+1	Each package provided by a publisher must have a 
+1	Each panel specification must be a map of panel attributes. 
+1	Each tab in a tab group must have a unique key; attempting to add 
+1	Easter
+1	Easter Bunny
+1	Eat Paste
+1	Edge list passed to "withSourcePHIDs(...)" is empty, but it must 
+1	Edge object query must be executed with a nonempty list of 
+1	Edge search must specify a nonempty list of edge types.
+1	Edge transactions must have PHIDs or edge specs as values 
+1	Edge transactions must have destination PHIDs as in edge 
+1	Edge type "%s" ("%d") defines an inverse type ("%d") which 
+1	Edge type "%s" ("%d") defines an inverse type ("%d"), but that 
+1	EditEngine "%s" created or loaded an invalid object: object (of 
+1	EditEngine "%s" created or loaded an invalid object: object must 
+1	Editor method "queuePublishing()" was called, but no publishable 
+1	Editor pattern token list can not be converted into a string: 
+1	Event queries which generate ghost events must include either a 
+1	Executing test code outside of test execution! 
+1	Expect exception for header pairs of: %s
+1	Expected "<mode> <type> <hash> <size>\t<name>", for ls-tree of 
+1	Expected "\\n" at beginning of T_WHITESPACE token at head of 
+1	Expected "\r\n" or "--" after multipart data boundary.
+1	Expected "multipart/form-data" parse to end 
+1	Expected "newArguments()" in class "%s" to return a list of 
+1	Expected "newColumnTransactions()" on "%s" to return "null" or a 
+1	Expected "newExternalCursorStringForResult()"  in class "%s" to 
+1	Expected "newHeaderKeysForObject()" on "%s" to return a 
+1	Expected "newHeadersForObjects()" on "%s" to return a list 
+1	Expected "newInternalCursorFromExternalCursor()" to return an 
+1	Expected "newMenuItemViewList()" to return a list (in class "%s"), 
+1	Expected "newPagingMapFromCursorObject()" to return a map of 
+1	Expected "newResultForPrompt()" to return an object of class "%s", 
+1	Expected "newResultFromChallengeResponse()" to return an object 
+1	Expected "newResultFromIssuedChallenges()" to return null or 
+1	Expected "newSortVectorsForObjects()" on "%s" to return a 
+1	Expected "newTimelineView()" to return an object of class "%s" 
+1	Expected "newTransactionWarning()" to return an object of 
+1	Expected key "%s" in datetime dictionary.
+1	Expected key "%s" with value "%s" in datetime dictionary.
+1	Expected no exception parsing "%s", got: %s
+1	Expected numeric points value, got something else.
+1	Expected object (of class "%s") to return a transaction template 
+1	Expected one exception parsing "%s", got a different 
+1	Expected parameter "%s" to have at most one value, but found 
+1	Expected quoted "--config" injection in Mercurial to throw.
+1	Expected string, got something else.
+1	Expected task data to be a dictionary.
+1	Expected test file "%s" to contain an input section in JSON, 
+1	Expected test file "%s" to contain exactly two sections, 
+1	Expected test file "%s" to contain four parts (message, fields, 
+1	Expected to be passed a result object of class "LiskDAO" in 
+1	Expected to find a Git repository at "%s", but the actual Git 
+1	Expected to find a Git repository at "%s", but there is 
+1	Expected to find a Git repository at "%s", but there is a 
+1	Expected to find a Git repository at "%s", but there is an 
+1	Explicit S3 endpoint to use. This should be the endpoint 
+1	Eye See You
+1	Failed to "json_decode(...)" JSON document after successfully 
+1	Failed to adjust SORT columns!
+1	Failed to append filter "%s" to input stream while processing 
+1	Failed to apply hack to adjust %s search column!
+1	Failed to base64 encode value for key "%s".
+1	Failed to base64_decode() value for key "%s".
+1	Failed to bind to LDAP server (as user "%s").
+1	Failed to bind to LDAP server (without username).
+1	Failed to convert public key into PKCS8 format. If you are 
+1	Failed to create a new ref cursor (for "%s", of type "%s", in 
+1	Failed to create directory "%s" for specified PID file. You 
+1	Failed to create directory "%s" for specified log file (with 
+1	Failed to create new process session!
+1	Failed to digest password: object ("%s") did not return an 
+1	Failed to generate an intracluster proxy URI even though this 
+1	Failed to get LDAP entries from search result.
+1	Failed to gzdeflate() log data!
+1	Failed to imagecopyresampled() image: %s
+1	Failed to imagecreatefromstring() image template data.
+1	Failed to inflate data!
+1	Failed to load a random repository. You may need to generate more 
+1	Failed to load a random user. You may need to generate more 
+1	Failed to load chart with key "%s" after key collision. 
+1	Failed to load commit during transaction finalization!
+1	Failed to load container object for inline comment.
+1	Failed to load content file!
+1	Failed to load external object after collision.
+1	Failed to load favicon template builtin "%s".
+1	Failed to load favicon template with PHID "%s".
+1	Failed to load file object for Git LFS ref "%s"!
+1	Failed to load or generate dimension ID ("%s") for dimension 
+1	Failed to load revision for Herald adapter construction!
+1	Failed to load revision from transaction finalization.
+1	Failed to load the commit because the commit has not been 
+1	Failed to make progress during 1up diff layout.
+1	Failed to make some schema adjustments, detailed above.
+1	Failed to migrate hunk %d: %s
+1	Failed to openssl_decrypt() data: %s
+1	Failed to openssl_encrypt() data: %s
+1	Failed to parse `%s` output in %s: %s
+1	Failed to parse object address ("%s") during processing.
+1	Failed to poll mysqli connection!
+1	Failed to rebuild search index for any documents.
+1	Failed to reconnect to master database and release held write 
+1	Failed to reload commit "%s".
+1	Failed to reload commit ("%s") to fetch commit data.
+1	Failed to reload object identified by monogram "%s" when 
+1	Failed to save builtin avatar image data (imagecopy).
+1	Failed to save builtin avatar image data (imagefill).
+1	Failed to save builtin avatar image data (imagerectangle).
+1	Failed to save builtin avatar image data (imagesetthickness).
+1	Failed to save image data into any format.
+1	Failed to unserialize XHProf profile!
+1	Failed to update search index for document "%s": %s
+1	Failed while trying to read schema status: the database "%s" 
+1	Fetched event "%s".
+1	Fictional hasher unavailable.
+1	Field "%s" expects a list of strings, but received a value of type 
+1	Field "%s" expects a string value, but received a value of type 
+1	Field "%s" has a bulk edit group key ("%s") with no 
+1	Field "%s" is not a standard select field, nor a proxy of a 
+1	Field "%s" occurs twice in commit message!
+1	Field "data_base64" must be non-empty.
+1	Field Absent: %s
+1	Field Present: %s
+1	Field Trip
+1	Field Values
+1	Field label "%s" is parsed by two custom fields: "%s" and 
+1	Field normalization of label "%s".
+1	Field: %s
+1	File "%s" already has an integrity hash.
+1	File "%s" already has the correct integrity hash.
+1	File "%s" does not exist.
+1	File "%s" does not have an integrity hash to strip.
+1	File "%s" does not have chunks!
+1	File "%s" has a valid integrity hash.
+1	File "%s" has an invalid integrity hash!
+1	File "%s" has no stored integrity hash.
+1	File "%s" is invalid: it could not be loaded, or you do not 
+1	File ("%s", with MIME type "%s") can not be transformed into 
+1	File ("%s", with MIME type "%s") is not a viewable image file.
+1	File Attachments
+1	File Metadata
+1	File Mode
+1	File Name
+1	File Not Attached
+1	File PHID "%s" does not correspond to a valid file.
+1	File PHID "%s" is not valid or not visible.
+1	File PHID ("%s") is invalid, or you do not have permission 
+1	File PHID: %s
+1	File Renamed
+1	File Scramble Test Task
+1	File Size
+1	File Sources
+1	File Visibility
+1	File Visibility After Being Attached
+1	File Visibility Before Being Attached
+1	File Visibility Test Task
+1	File attachment mode "%s" (for file "%s") is invalid. Valid 
+1	File attachment mode (for file "%s") is invalid. Expected 
+1	File attachment transaction must have a map of files to 
+1	File content hashing is not available.
+1	File content matching "%s" under "%s"
+1	File data integrity check failed. Dark forces have corrupted 
+1	File data integrity check failed. Use "--salvage" to bypass 
+1	File history passes through a rename from "%s" to "%s".
+1	File is not an uploaded file.
+1	File is too large.
+1	File path copied.
+1	File policy should not scramble when attached to 
+1	File regexps to treat as automatically generated.
+1	File size disagrees with uploaded size.
+1	File size, in bytes.
+1	File storage in Amazon S3 has been partially configured, but you are 
+1	File to create an artifact from.
+1	File to read parameters from, or "-" to read from 
+1	File was only partially transferred, upload did not complete.
+1	File(s) information for a repository at an (optional) path and 
+1	Filename search on a repository.
+1	Files (TTL)
+1	Files attached to objects are visible to users who can view 
+1	Files must have a name.
+1	Filetree Visible
+1	Filetree Width
+1	Filter
+1	Filter By Project
+1	Filter IP
+1	Filter bundle does not affect Mercurial 2.6.2
+1	Filter bundle2 from Mercurial 3.5.1
+1	Find
+1	Find Backers
+1	Find Document:
+1	Find Emoji:
+1	Find Phurl:
+1	Find Project:
+1	Find Rooms
+1	Find Signatures
+1	Find User:
+1	Find all subprojects beneath specified ancestors.
+1	Find calls by specific users.
+1	Find calls to specific methods.
+1	Find calls to stable, unstable, or deprecated methods.
+1	Find changesets attached to a particular diff.
+1	Find commits authored by particular users.
+1	Find commits which affect given packages.
+1	Find commits which are ancestors of a particular ref, 
+1	Find commits with given audit statuses.
+1	Find commits with particular identifiers (usually, hashes). 
+1	Find diffs attached to a particular revision.

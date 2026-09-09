@@ -1,0 +1,19 @@
+Authentication provider configuration is locked, and can not be changed without being unlocked. See the configuration setting %s for details.	认证提供方配置已锁定，未解锁前无法修改。详情请参阅配置项 %s。
+Option "%s" is of type "%s", but the configured value is not a string.	选项 “%s” 的类型为 “%s”，但配置值不是字符串。
+An exception occurred executing Herald rule %s: "%s" Review the Herald transcripts and correct or disable the problematic rule.	执行 Herald 规则 %s 时发生异常：“%s”。请查看 Herald 记录，并修正或禁用有问题的规则。
+An unknown error occurred while evaluating this condition. No additional information is available.	评估此条件时发生未知错误，暂无更多信息。
+Blueprint "%s" (of type "%s") is not properly implemented: %s must actually allocate the resource it returns.	蓝图 “%s”（类型为 “%s”）实现不正确：%s 必须实际分配其返回的资源。
+Configured datasource class "%s" must be a valid subclass of "%s".	已配置的数据源类 “%s” 必须是 “%s” 的有效子类。
+Grace period for daemons to attempt a clean shutdown, in seconds. Defaults to __15__ seconds.	守护进程尝试优雅关闭的宽限时间（秒）。默认值为 __15__ 秒。
+Invalid or unknown object ("%s") for land operation, expected Differential Revision.	用于 land 操作的对象（“%s”）无效或未知，期望为 Differential Revision。
+Object (of class "%s") implements interface "%s", but defines method "%s" incorrectly: this method must return an object of class "%s".	对象（类 “%s”）实现了接口 “%s”，但方法 “%s” 定义不正确：该方法必须返回类 “%s” 的对象。
+Object (of class "%s") implements interface "%s", but must also implement interface "%s".	对象（类 “%s”）实现了接口 “%s”，但还必须实现接口 “%s”。
+Option "%s" is of type "%s", but the configured value is not a list.	选项 “%s” 的类型为 “%s”，但配置值不是列表。
+Output file "%s" already exists. Use "--overwrite" to overwrite.	输出文件 “%s” 已存在。请使用 “--overwrite” 进行覆盖。
+Parent projects and milestones do not support adding members. You can add members directly to any non-parent subproject.	父项目和里程碑不支持添加成员。你可以直接向任意非父级子项目添加成员。
+Stop all daemon processes on this host, even if they belong to another instance.	停止此主机上的所有守护进程，即使它们属于其他实例。
+The authorization server encountered an unexpected condition which prevented it from fulfilling the request.	授权服务器遇到意外情况，导致无法完成该请求。
+This is a draft revision that has not yet been submitted for review.	这是一个尚未提交评审的草稿修订。
+This method has been deprecated since %s in favor of token-based authentication.	此方法自 %s 起已废弃，建议改用基于令牌的认证。
+This method is frozen and will eventually be deprecated. New code should use "differential.revision.edit" instead.	此方法已冻结，后续将被废弃。新代码应改用 “differential.revision.edit”。
+This method is frozen and will eventually be deprecated. New code should use "diffusion.commit.search" instead.	此方法已冻结，后续将被废弃。新代码应改用 “diffusion.commit.search”。

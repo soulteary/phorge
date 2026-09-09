@@ -1,0 +1,20 @@
+(Deprecated.) Search for projects with a given name or hashtag using tokenizer/datasource query matching rules. This is deprecated in favor of the more powerful "query" constraint.	（已弃用）按分词器/数据源查询匹配规则，使用名称或话题标签搜索项目。此方法已弃用，建议改用更强大的 “query” 约束。
+(IMPORTANT) If you attach this file to this object, any user who has permission to view the object will be able to view and download the file!	（重要）如果将该文件附加到此对象，任何有权查看该对象的用户都将能够查看并下载该文件！
+(If given an option, select that this key is "Time Based", not "Counter Based".)	（如有选项，请选择此密钥为 “Time Based”，而非 “Counter Based”。）
+(Some types of token can not be revoked, and you can not revoke tokens which have already expired.)	（某些类型的令牌无法撤销，且已过期的令牌也无法撤销。）
+(This commit affected more than %d files. Only %d are shown here and additional ones are truncated.)	（此提交影响了超过 %d 个文件。这里只显示 %d 个，其余已截断。）
+(This error generally indicates that %s is enabled, but there are no spaces with a "%s" view policy. These settings are contradictory and imply a misconfiguration.)	（此错误通常表示已启用 %s，但不存在视图策略为 “%s” 的空间。这些设置相互矛盾，说明存在配置错误。）
+(This is a placeholder plaintext email body for a test message sent with %s.)	（这是使用 %s 发送测试消息时的纯文本邮件正文占位内容。）
+(WARNING) This file is referenced by this object, but not formally attached to it. Users who can see the object may not be able to see the file.	（警告）该文件被此对象引用，但未正式附加。能看到该对象的用户可能无法看到此文件。
+(You can not terminate your current login session. To terminate it, log out.)	（你不能终止当前登录会话。若要终止，请退出登录。）
+**Legalpad** is a simple application for tracking signatures and legal agreements. At the moment, it is primarily intended to help open source projects keep track of Contributor License Agreements.	**Legalpad** 是一个用于跟踪签名和法律协议的简单应用。目前它主要用于帮助开源项目跟踪贡献者许可协议（CLA）。
+A cat can run seven times faster than a human, but only for a short distance.	猫的奔跑速度可达人类的七倍，但只能维持很短距离。
+A cat's visual, olfactory, and auditory senses, Contribute to their hunting skills and natural defenses.	猫的视觉、嗅觉和听觉有助于其狩猎能力与天然防御。
+A cattail is a wetland plant with an appearance that resembles the tail of a cat.	香蒲是一种湿地植物，外形类似猫尾。
+A challenge has been sent to your phone. Open the Duo application and confirm the challenge, then continue.	验证请求已发送到你的手机。请打开 Duo 应用并确认该请求，然后继续。
+A completed challenge was provided as an answered challenge. The underlying factor is implemented improperly, challenges may not be reused.	一个已完成的挑战被作为已应答挑战提交。底层认证因子实现不正确，挑战不得重复使用。
+A component of the configured PATH can not be used by the webserver: %s	配置的 PATH 中有一个组件无法被 Web 服务器使用：%s
+A container good for 1-7 equally spaced columns. Fixed and Fluid layouts.	适用于 1-7 个等宽列的容器，支持固定布局与流式布局。
+A database host ("%s") and this web host ("%s") disagree on the current time by more than 60 seconds (absolute skew is %s seconds). Check that the current time is set correctly everywhere.	数据库主机（“%s”）与此 Web 主机（“%s”）的当前时间相差超过 60 秒（绝对偏差为 %s 秒）。请检查所有节点的当前时间是否设置正确。
+A flexible rules engine that can notify and act on other actions such as tasks, diffs, and commits.	一个灵活的规则引擎，可对任务、diff、提交等动作执行通知与自动处理。
+A keypair has been generated, and the public key has been added as a recognized key.	已生成密钥对，公钥已添加为受信任密钥。

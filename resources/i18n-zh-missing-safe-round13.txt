@@ -1,0 +1,150 @@
+3	Custom
+3	DRY RUN
+3	Daemons
+3	Dashboard Panels
+3	Deactivate Repository
+3	Decline Authorization
+3	Default Branch
+3	Delete Imported Events
+3	Detach File
+3	Differential
+3	Differential Diffs
+3	Differential Revision
+3	Diffusion
+3	Disable Account
+3	Disable Blueprint
+3	Disable Export
+3	Disable Form
+3	Disable Import
+3	Disable Publishing
+3	Disable URI
+3	Disable Workboard
+3	Disable or restore the import.
+3	Document History
+3	Dominion
+3	Drydock Blueprints
+3	Drydock Lease
+3	Edit Blog Header
+3	Edit Blog Picture
+3	Edit Comment
+3	Edit Commits
+3	Edit Document: %s
+3	Edit Package
+3	Edit Paths
+3	Edit Payment Method
+3	Edit Picture
+3	Edit Policies
+3	Edit Profile
+3	Edit Profile Picture
+3	Edit Related Tasks
+3	Edit Task
+3	Edit Tasks
+3	Edited
+3	Email is required.
+3	Enable Address
+3	Enable Blueprint
+3	Enable Export
+3	Enable Form
+3	Enable Import
+3	Enable URI
+3	Exact Names
+3	Expected Collation
+3	Expected `%s`!
+3	Expected condition value to be an array.
+3	Export %d
+3	External
+3	Factor Name: %s
+3	Failed to load repository cluster service.
+3	Failed! %s
+3	Failures: %s.
+3	Feed
+3	Field
+3	Forbidden
+3	Give Token
+3	Global Search
+3	Harbormaster Build Plans
+3	Harbormaster Build Steps
+3	Harbormaster Buildables
+3	Harbormaster Builds
+3	Herald
+3	Herald Rules
+3	Herald Transcripts
+3	Hi %s
+3	Hide Column
+3	Hold
+3	I/O
+3	IGNORED
+3	INLINE COMMENTS
+3	Identity %d
+3	If Building
+3	Import
+3	Import %d
+3	Importing...
+3	Impossible!
+3	Index
+3	Information
+3	Installation
+3	Invalid Dashboard
+3	Invited
+3	Issues
+3	Item %d
+3	JIRA Issues
+3	Joe
+3	Join Project
+3	Keywords
+3	Language
+3	Languages
+3	Lease %d
+3	Leave Project
+3	Limit
+3	Link Account
+3	Lint: %s
+3	Lock Project
+3	Log In or Register
+3	Login Failure
+3	Login and Registration
+3	Mail
+3	Make Administrator
+3	Manage Portal
+3	Manage User
+3	Maniphest
+3	Mark All Read
+3	Merchant %d
+3	Milestones
+3	Monday
+3	Move Post
+3	Multi-Factor
+3	Must Encrypt
+3	Must pass a PHID.
+3	Networks
+3	New
+3	New Document
+3	New Inline Comment
+3	New Room
+3	New Value
+3	No Owner
+3	No Reviewers
+3	No such document exists.
+3	No user with username "%s" exists.
+3	Normal
+3	Not Allowed
+3	Not Publishing
+3	Nuance Queues
+3	Nuance Sources
+3	Object PHID
+3	Object Rule
+3	PHID
+3	PHP
+3	Package Publishers
+3	Package Versions
+3	Parents
+3	Passwords
+3	Paste
+3	Permanently Unsubscribed
+3	Personal
+3	Phame Blogs
+3	Phame Posts
+3	Phase
+3	Point Limit
+3	Ponder Questions
+3	Preamble

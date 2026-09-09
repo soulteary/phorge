@@ -1,0 +1,20 @@
+A lipsum generator is registered with key "%s". This key is reserved.	已注册一个键为 “%s” 的 lipsum 生成器。该键为保留键。
+A new version of arc is available! You need to upgrade to connect to this server (you are running version %d, the server is running version %d).	有新版本的 arc 可用！你需要升级后才能连接此服务器（你当前版本为 %d，服务器版本为 %d）。
+A passphrase was provided for this private key, but it does not require a passphrase. Check that you supplied the correct key, or omit the passphrase.	已为该私钥提供口令，但此私钥并不需要口令。请检查你是否提供了正确的密钥，或省略口令。
+A password reset link will be sent to your primary email address. Follow the link to set an account password.	密码重置链接将发送到你的主邮箱地址。请按链接设置账户密码。
+A repository operation inherits the policies of the repository it affects.	仓库操作会继承其影响仓库的策略。
+A specified server (at index "%s", on port "%s") has an invalid type ("%s"). Valid types are: admin, client.	指定服务器（索引为 “%s”，端口为 “%s”）的类型（“%s”）无效。有效类型为：admin、client。
+A specified server (at index "%s", on port "%s") specifies a value for "%s", but no value for "%s" or "%s". Servers should only provide an SSL chain if they also provide an SSL key and SSL certificate.	指定服务器（索引为 “%s”，端口为 “%s”）为 “%s” 指定了值，但未为 “%s” 或 “%s” 指定值。仅当服务器同时提供 SSL 密钥和 SSL 证书时，才应提供 SSL 链。
+A specified server (at index "%s", on port "%s") specifies only one of "%s" and "%s". Each server must specify neither (to disable SSL) or specify both (to enable it).	指定服务器（索引为 “%s”，端口为 “%s”）只指定了 “%s” 和 “%s” 之一。每个服务器要么都不指定（禁用 SSL），要么同时指定两者（启用 SSL）。
+A text message with an authorization code will be sent to your primary contact number.	包含授权码的短信将发送到你的主要联系电话。
+A verification email has been sent. Click the link in the email to verify your address.	验证邮件已发送。请点击邮件中的链接验证你的地址。
+API Method "%s" defines a disallowed parameter, "%s". This parameter name is reserved.	API 方法 “%s” 定义了不允许的参数 “%s”。该参数名是保留名称。
+API token "%s" has the wrong format. API tokens should be 32 characters long and begin with one of these prefixes: %s.	API 令牌 “%s” 的格式错误。API 令牌应为 32 个字符，并以以下前缀之一开头：%s。
+API token "%s" has the wrong length. API tokens should be 32 characters long.	API 令牌 “%s” 的长度错误。API 令牌应为 32 个字符。
+Absolute TTL must be in the present or future, but TTL "%s" is in the past.	绝对 TTL 必须是当前或未来时间，但 TTL “%s” 在过去。
+Account email addresses can not be edited once they are created. To change the billing address for an account, disable the old address and then add a new address.	账户邮箱地址创建后不可编辑。要更改账户的账单地址，请先禁用旧地址，再添加新地址。
+Activation complete. Leases are permanent until manually released with:	激活完成。租约将永久保留，直到通过以下方式手动释放：
+Active tasks can not be deleted directly. Use %s to move tasks to the archive.	活动任务不能直接删除。请使用 %s 将任务移入归档。
+Activity "%s" is not currently marked as required, so there is no need to complete it.	活动 “%s” 当前未标记为必需，因此无需完成它。
+Adapter ("%s") is configured for medium "%s", but this is not a supported delivery medium. Supported media are: %s.	适配器（“%s”）配置为介质 “%s”，但该介质不受支持。支持的介质有：%s。
+Add __--master-data__ to the __mysqldump__ command, generating a CHANGE MASTER statement in the output. This option also dumps all data, including caches.	在 __mysqldump__ 命令中添加 __--master-data__，可在输出中生成 CHANGE MASTER 语句。该选项还会导出包括缓存在内的所有数据。

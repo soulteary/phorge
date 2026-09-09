@@ -1,0 +1,800 @@
+19	This method is frozen and will eventually be deprecated. New code 
+10	This page documents the commands you can use to interact with 
+8	The name "%s" is not a valid repository short name. Repository 
+7	Almanac service, device, property, network and namespace names 
+7	Option "%s" is of type "%s", but the configured value is not 
+4	Authentication provider configuration is locked, and can not be 
+4	Blueprint "%s" (of type "%s") is not properly implemented: it 
+3	EditEngine ("%s") returned builtin engine configurations, 
+3	Editor pattern "%s" is invalid: the pattern must begin with 
+3	Parameter "%s" must contain a list of transaction descriptions, 
+3	The email address you just clicked a link from is already 
+3	The external service ("%s") you just authenticated with is 
+3	URI "%s" is not a valid fetchable resource. A valid fetchable 
+3	URI "%s" is not a valid linkable resource. A valid linkable 
+2	
+1	After executing under these conditions, this event would 
+1	After executing under these conditions, this event would never 
+1	Attempting to build a repository command (for repository "%s"), 
+1	Attempting to compare a password saved with the "%s" hash. The 
+1	Bad frame length character in Git protocol ("%s"), 
+1	Cat tails are flexible because they contain thousands of tiny 
+1	Cats are stealthy predators and nearly invisible to radar.
+1	Cats have a tail, two feet, between one and three ears, and two 
+1	Cats have five pointy ends.
+1	Cats must eat a diet rich in fish to replace the tiny bones in 
+1	Cats prefer vanilla ice cream.
+1	Cats purr when they are happy, upset, or asleep.
+1	Cats spend most of their time plotting to kill their owner.
+1	Cats use a special type of magnetism to help them land on their 
+1	Cats use their keen sense of smell to avoid feeling empathy.
+1	Cats will often bring you their prey because they feel sorry 
+1	Cats with high self-esteem seek out high perches 
+1	Chart function "%s" emitted a repeatable argument ("%s"), then 
+1	Chart function "%s" emitted an argument specification ("%s") with 
+1	Chart function "%s" emitted an argument specification with no 
+1	Chart function "%s" emitted multiple argument specifications 
+1	Chart function "%s" emitted multiple repeatable argument 
+1	Chart function argument type "%s" is unknown. Valid types 
+1	Chart uses unknown engine key ("%s") and can not be rendered.
+1	Chart with this key does not exist. A chart must be 
+1	Collided mid-air when generating builtin file "%s", but 
+1	Comes in bunches.
+1	Commit hook events depend on repository state which is only available 
+1	Commits which became reachable from a permanent ref while 
+1	Conduit: Read Certificate
+1	Conduit: Read Certificate Failure
+1	Conference
+1	Config Locked
+1	Config key "%s" is locked and can only be set in local 
+1	Config option "%s" is invalid. The URI must contain a dot 
+1	Config option "%s" is invalid. The URI must start with 
+1	Config option "%s" is invalid. The timezone identifier must 
+1	Config option "phd.user" is not set. You must set this option 
+1	Configuration Guide: Locked and Hidden Configuration
+1	Configuration defines no task status with special attribute 
+1	Configuration file "%s" exists and is readable, but the content 
+1	Configuration file "%s" exists, but could not be read.
+1	Configuration file does not specify any administrative 
+1	Configuration file does not specify any client servers. This 
+1	Configuration file does not specify any servers. This service 
+1	Configuration file has improper configuration keys at top 
+1	Configuration file is not properly formatted JSON. %s
+1	Configuration file specifies cluster peer "%s" more than 
+1	Configuration file specifies cluster peer ("%s", at index 
+1	Configuration has two statuses both marked with the special 
+1	Configuration is not valid. Maniphest points configuration must 
+1	Configuration is not valid. Maniphest priority configurations 
+1	Configuration key "%s" is of type "%s". Specify it in JSON.
+1	Configuration key "%s" is unknown. Use "bin/config list" to list 
+1	Configuration must be a list of project color specifications.
+1	Configuration must be a list of project icon specifications.
+1	Configuration of the notification server has changed substantially. 
+1	Configuration value "%s" is locked, but has a value in the database.
+1	Configure %s
+1	Configure %s OAuth.
+1	Configure Application Forms
+1	Configure Badges Forms
+1	Configure Blog Post Forms
+1	Configure Calendar Event Forms
+1	Configure Calendar Export Forms
+1	Configure Calendar Import Forms
+1	Configure Conpherence Forms
+1	Configure Differential code review.
+1	Configure Diffusion repository browsing.
+1	Configure Editor
+1	Configure JIRA OAuth. NOTE: Only supports JIRA 6.
+1	Configure a connection to an LDAP server so that users can use their 
+1	Configure bulk job __id__ to run silently (without sending 
+1	Configure creation and editing forms for Phortune Account 
+1	Configure creation and editing forms for Phortune Merchants.
+1	Configure creation and editing forms in Fund.
+1	Configure creation and editing forms in Phortune Accounts.
+1	Configure creation and editing forms in Phurl.
+1	Configure creation and editing forms in Ponder Questions.
+1	Consistent Fact
+1	Constant identifying the garbage collector to run.
+1	Constant identifying the garbage collector.
+1	Constants supported by the `%s` constraint:
+1	Constants: Differential
+1	Constraint "%s" is not a valid constraint for this query.
+1	Constraint "authorPHIDs" to "transaction.search" requires 
+1	Constraint "phids" to "transaction.search" requires nonempty list, 
+1	Contemplate Infinity
+1	Content for object "%s" is already known to this server. It can 
+1	Content from the distant past, before content sources existed.
+1	Content generated by CLI administrative tools.
+1	Content imported via Nuance.
+1	Content object "%s" can not be published because it belongs 
+1	Content received via fax (telefacsimile).
+1	Content sent by electronic mail, also known as e-mail.
+1	Context object ("%s") has unsupported type. Panels should 
+1	Controller "%s" returned an invalid response from call to "%s". 
+1	Converted hunk %d to "%s" storage (with format "%s").
+1	Cookies set for x.com are also sent for y.x.com. Assuming 
+1	Copied to multiple locations:
+1	Copy "Quack" to Clipboard
+1	Copy %s
+1	Copy file data instead of moving it: after migrating, do not 
+1	Copy/paste to make design maintenance twice as difficult.
+1	Corpus stem of: %s
+1	Corrupt integrity hashes for given files. This is intended 
+1	Corrupted integrity hash for file "%s".
+1	Corrupting integrity hashes will prevent files from being 
+1	Could not parse attachment %s; only attachments (and mail bodies) 
+1	Could not parse file %s; only files with mimetype text/plain 
+1	Could not parse mail body; only mail bodies (and attachments) 
+1	Create **Issue Link** to the Revision, as an "implemented 
+1	Create New Merchant
+1	Create New Package
+1	Create New Paste
+1	Create New Post
+1	Create New Project
+1	Create New Question
+1	Create New Room
+1	Create New Task
+1	Create New URL
+1	Create Next Milestone
+1	Create Notification Rules
+1	Create Payment Account
+1	Create Payment Provider
+1	Create Product
+1	Create Provider
+1	Create Rule
+1	Create Slowvote
+1	Create Standard User
+1	Create Subproject
+1	Create Subversion Repository
+1	Create Trigger
+1	Create URL
+1	Create a Badge
+1	Create a Blueprint
+1	Create a Countdown
+1	Create a Credential
+1	Create a Device
+1	Create a Diff
+1	Create a Document
+1	Create a Macro
+1	Create a Mock
+1	Create a Network
+1	Create a New Account
+1	Create a Package
+1	Create a Panel
+1	Create a Paste
+1	Create a Phriction document.
+1	Create a Poll
+1	Create a Repository
+1	Create a Room
+1	Create a Service
+1	Create a Space
+1	Create a URI in a given repository. This transaction type 
+1	Create a bot/script user account, to automate interactions with other 
+1	Create a build artifact.
+1	Create a fanciful list of objects and prismatic donuts.
+1	Create a mailing list user to represent an existing, external 
+1	Create a new Differential diff from a raw diff source.
+1	Create a new Differential diff.
+1	Create a new Differential revision.
+1	Create a new Git repository.
+1	Create a new Maniphest task.
+1	Create a new Mercurial repository.
+1	Create a new Revision...
+1	Create a new Subversion repository.
+1	Create a new board with just a backlog column.
+1	Create a new conpherence thread.
+1	Create a new document at
+1	Create a new user for use with automated scripts.
+1	Create a project.
+1	Create a standard user account.
+1	Create a standard user account. These users can log in, 
+1	Create a subproject of an existing project.
+1	Create a task in a workboard column.
+1	Create a web form that submits into a Nuance queue.
+1	Create an artifact of this type by passing `%s` as the 
+1	Create an inventory of physical and virtual hosts and 
+1	Create and update services, and map them to interfaces on 
+1	Create and update software packages.
+1	Create as a subtask of another task.
+1	Create documents and track signatures.
+1	Create easy to remember shortcuts to images and memes.
+1	Create or edit blog posts in Phame.
+1	Create or edit blogs in Phame.
+1	Create or modify a flag.
+1	Create or update a revision with a diff.
+1	Create reusable, memorable, shorter URLs for easy accessibility.
+1	Create some work for the interns in Maniphest.
+1	Create this Document
+1	Created By
+1	Created By Me
+1	Created by %s on %s.
+1	Created in ages long past
+1	Created through child
+1	Creates and edits countdowns.
+1	Creates and edits repositories.
+1	Creates and edits repository URIs.
+1	Creating a new working copy for repository "%s".
+1	Creation of default account for users with no accounts.
+1	Credential "%s" is of unknown type "%s"!
+1	Credential "%s" must provide "%s", but provides "%s"!
+1	Credential ("%s") is not valid.
+1	Credential Already Locked
+1	Credential Author
+1	Credential Locked
+1	Credential Secret (%s)
+1	Credential Store
+1	Credential has no public key!
+1	Credential has noncreateable type "%s"!
+1	Credential is locked
+1	Credential is required!
+1	Credential management and general storage of shared secrets.
+1	Credential required but not configured.
+1	Credential type "%s" is not valid. Valid credential types 
+1	Credit Card or PayPal Account
+1	Credit/Debit Card
+1	Crowded Eastern Edge
+1	Cup of Joe
+1	Current Child Revisions
+1	Current Configuration
+1	Current Default
+1	Current Logo
+1	Current Menu Items
+1	Current Mocks
+1	Current Parent Revisions
+1	Current Parent Tasks
+1	Current Path
+1	Current Revision
+1	Current Setting
+1	Current Subtasks
+1	Current Viewer\'s Projects
+1	Current database namespace used by dumpfile.
+1	Current task assignee, if task is assigned.
+1	Currently Tracking
+1	Currently, there are no configured external auth providers 
+1	Cursor "%s" does not identify a valid object in query "%s".
+1	Cursor %s does not exist or is already reset.
+1	Curtain extension ("%s", of class "%s") did not return a list of 
+1	Curtain extension ("%s", of class "%s") did not return an 
+1	Curtain extension ("%s", of class "%s") returned a list of 
+1	Custom "%s" Policy
+1	Custom Alt Text
+1	Custom Enroll Message
+1	Custom Filter
+1	Custom Maniphest fields.
+1	Custom Owners fields.
+1	Custom Policy...
+1	Custom Projects fields.
+1	Custom Property
+1	Custom Query ("%s")
+1	Custom Service
+1	Custom Trigger
+1	Custom field class "%s" does not exist.
+1	Custom field class "%s" does not implement interface "%s".
+1	Custom instructions included in "Welcome" mail when an 
+1	Custom remarkup rules are now added by subclassing 
+1	Custom text for the message.
+1	Customer Account
+1	Customize Enroll Message
+1	Customize Message
+1	Customize Messages
+1	Customize Query
+1	Customize Query: %s
+1	Customize the logo and wordmark text in the header.
+1	Customized
+1	Customized settings for applications.
+1	Customizes retention policies for garbage collectors.
+1	Cycle detected in resource graph: %s
+1	Cycle master key for encrypted files.
+1	D%s.%s.patch
+1	DANGEROUS
+1	DANGEROUS. Attempt to salvage file content even if the 
+1	DANGEROUS. Recompute and update integrity hashes, overwriting 
+1	DANGEROUS. Strip integrity hashes from files. This makes 
+1	DATA AT RISK
+1	DATA WILL BE PERMANENTLY DESTROYED
+1	DATE-TIME "%s" uses "Z" to specify UTC, but also has a TZID 
+1	DELAY
+1	DELETING OBJECTS OFTEN BREAKS THINGS
+1	DESTROY
+1	DETAILS
+1	DEV: New User State
+1	DEV: Overheated State
+1	DISABLE APPROVAL QUEUE
+1	DOCUMENT
+1	DOCUMENT CONTENT
+1	DOCUMENT DIFF
+1	DRYRUN: Storage on host "%s" does not exist yet, so it 
+1	DRYRUN: Would apply adjustments.
+1	DRYRUN: Would apply patch "%s" to host "%s".
+1	Daemon %d %s [%s] %s
+1	Daemon %s
+1	Daemon Bulk Jobs
+1	Daemon Class
+1	Daemon Details
+1	Daemon Log
+1	Daemon Logs
+1	Daemon Processes
+1	Daemon Running as Wrong User
+1	Daemon was idle for more than %s second(s), 
+1	Daemons Are Not Running
+1	Daemons Not Running
+1	Daemons are already running:
+1	Daemons are configured to run as user "%s" in configuration 
+1	Daemons are initializing the working copy.
+1	Daemons in library __%s__:
+1	Daemons no longer use PID files.
+1	Daily
+1	Daily Routine (Leap)
+1	Daily Routine (PST)
+1	Daily Routine (Post-Adjust)
+1	Daily Routine (Pre-Adjust)
+1	Dangerous
+1	Dangerous Changes
+1	Dark
+1	Dark Mode (Experimental)
+1	DarkConsole
+1	DarkConsole Tab
+1	DarkConsole Visible
+1	DarkConsole is a debugging console for developing and troubleshooting 
+1	Dashboard "%s" is not a valid dashboard which you have 
+1	Dashboard %d
+1	Dashboard Console
+1	Dashboard Panel
+1	Dashboard Panel Containers
+1	Dashboard Used By
+1	Dashboard icon.
+1	Dashboard layout mode.
+1	Dashboard names must not be longer than %s characters.
+1	Dashboards organize panels, creating a cohesive page for 
+1	Dat Boi
+1	Data Cache
+1	Data Export
+1	Data Hash
+1	Database "%s" is configured as a replica and specifies a 
+1	Database "%s" is configured as a replica, but does not 
+1	Database "%s" is configured as a replica, but specifies a 
+1	Database "%s" is configured as a replica, but there is no 
+1	Database "%s" is specified more than once. Specify each 
+1	Database "%s" is unknown. This script can only dump 
+1	Database / Table
+1	Database Not Initialized
+1	Database Value
+1	Database cluster configuration describes an invalid 
+1	Database cluster configuration has an invalid host 
+1	Database cluster configuration is invalid: it describes the 
+1	Database cluster configuration is not valid: each entry in the 
+1	Database configuration.
+1	Database host "%s" has a configured cluster state which disagrees 
+1	Database host "%s" is configured as a master, but is replicating 
+1	Database initialization on host "%s" applied no patches!
+1	Database records for repository "%s" were destroyed, but this 
+1	Database replica "%s" is listed as a replica, but is not 
+1	Database source is not configured properly
+1	Databases
+1	Date Closed
+1	Date Closed (Latest First)
+1	Date Created
+1	Date Format
+1	Date and Time
+1	Date formatting
+1	Date value for "%s" can not be parsed.
+1	Date when the countdown ends.
+1	Datetime formatting
+1	Datetime has no timezone or viewer timezone.
+1	Day is out of query range
+1	Deadline
+1	Deadlocked
+1	Debug
+1	Debugging console for real-time notifications.
+1	December
+1	Decline Code
+1	Decline this authorization? The object will not be able to lease 
+1	Declined to add commit author as auditor: %s.
+1	Declined to add revision author as reviewer: %s.
+1	Declined to resubscribe %s target(s) because they previously 
+1	Declining to apply changes.
+1	Declining to apply storage adjustments.
+1	Declining to emit response with malformed HTTP header name: %s
+1	Declining to emit response with unsafe HTTP header: %s
+1	Declining to invoice.
+1	Declining to make service call because `phabricator.silent` is 
+1	Declining to synchronize static tables.
+1	Default (%s Seconds)
+1	Default Account
+1	Default Alt Text
+1	Default Author
+1	Default Blueprint Edit Policy
+1	Default Blueprint View Policy
+1	Default Build Plan Edit Policy
+1	Default Build Plan View Policy
+1	Default Create Form
+1	Default Edit Badges
+1	Default Join Policy
+1	Default Package Edit Policy
+1	Default Package View Policy
+1	Default Partition
+1	Default Project Profile Image
+1	Default Publisher Edit Policy
+1	Default Push Policy
+1	Default Source Edit Policy
+1	Default Source View Policy
+1	Default Space #2
+1	Default User Profile Image
+1	Default address used when generating mail.
+1	Default create policy for Dashboards.
+1	Default create policy for badges.
+1	Default create policy for blogs.
+1	Default create policy for countdowns.
+1	Default edit policy for badges.
+1	Default edit policy for new countdowns.
+1	Default edit policy for newly created credentials.
+1	Default edit policy for newly created events.
+1	Default edit policy for newly created pastes.
+1	Default edit policy for newly created projects.
+1	Default edit policy for newly created publishers.
+1	Default edit policy for newly created sources.
+1	Default edit policy for newly created spaces.
+1	Default edit policy for newly created tasks.
+1	Default join policy for newly created projects.
+1	Default key for HMAC digests where the key is not important 
+1	Default location to store local copies of repositories.
+1	Default non-pygments syntax highlighter engine.
+1	Default queue.
+1	Default task priority for create flows.
+1	Default text encoding.
+1	Default view policy for new countdowns.
+1	Default view policy for new polls.
+1	Default view policy for newly created credentials.
+1	Default view policy for newly created events.
+1	Default view policy for newly created files.
+1	Default view policy for newly created initiatives.
+1	Default view policy for newly created pastes.
+1	Default view policy for newly created projects.
+1	Default view policy for newly created revisions.
+1	Default view policy for newly created sources.
+1	Default view policy for newly created spaces.
+1	Default view policy for newly created tasks.
+1	Define a cluster by providing a whitelist of host 
+1	Define project subtypes.
+1	Define task subtypes.
+1	Defines a database service for use in a cluster.
+1	Defines a pool of hosts which Drydock can allocate.
+1	Defines a repository service for use in a cluster.
+1	Defines a unstructured custom service.
+1	Delay execution of selected tasks until the specified time.
+1	Delete Address
+1	Delete Authentication Factor
+1	Delete Build Step
+1	Delete Comment
+1	Delete Document?
+1	Delete Events
+1	Delete File
+1	Delete Query
+1	Delete Step
+1	Delete a local configuration value.
+1	Delete all events from this source.
+1	Delete all the events that were imported from this source? 
+1	Delete audit requests matching parameters.
+1	Delete configuration in the database instead of 
+1	Delete property "%s"?
+1	Delete this inline comment?
+1	Delete this menu item?
+1	Deleted After Multiple Copy
+1	Deleted Event
+1	Deleted after being copied to multiple locations:
+1	Deleted event "%s" which is no longer present in the source.
+1	Deleting audit %d...
+1	Deleting surplus local ref "%s" ("%s").
+1	Deliver as email
+1	Deliver as email.
+1	Deliver as notification
+1	Deliver as notification.
+1	Delivery Failed
+1	Delivery of this mail is forced and ignores deliver preferences. 
+1	Delivery reasons are listed from weakest to strongest.
+1	Demonstrates the visual appearance of various Remarkup elements.
+1	Demote a device (or all devices in a service) discarding 
+1	Demoted "%s" from leadership of repository "%s".
+1	Demoting a device can cause the loss of any repository data which 
+1	Deny
+1	Dependent Tasks
+1	Deprecated Call Logs
+1	Deprecated Code
+1	Deprecated Config Source
+1	Deprecated Method
+1	Deprecated Methods
+1	Deprecated alias for "%s".
+1	Deprecated call to setIcon(), use setImageIcon() instead.
+1	Deprecated call to setShade(), use setColor() instead.
+1	Deprecated mysql.host Format
+1	Deprecated.
+1	Depth
+1	Depths
+1	Describe the updates you have made to the diff.
+1	Description Preview
+1	Description of the countdown.
+1	Description of the event.
+1	Design by committee.
+1	Designate %s as your primary contact number?
+1	Desired database namespace for output.
+1	Desktop Only
+1	Destination Beacon
+1	Destroy all facts.
+1	Destroy all unit test data?
+1	Destroy objects without prompting.
+1	Destroyed edge of type "%s" between "%s" and "%s".
+1	Destroyed transaction "%s" on object "%s".
+1	Destroying a scoped environment which is not on the top of the 
+1	Destroying objects may cause related objects to stop working, 
+1	Destroying objects...
+1	Destruction Logs
+1	Detach the file %s from the object %s?
+1	Detached
+1	Details of this transcript have been garbage collected.
+1	Detected user updated from "%s" to "%s".
+1	Determine if code exists in a version control system.
+1	Determine what branches exist for a repository.
+1	Determines whether or not YouTube videos get embedded.
+1	Determines whether or not basic account information is editable.
+1	Determines which URI protocols are valid for links and 
+1	Developer / Debugging
+1	Developer API
+1	Developer Tools
+1	Developer UI Examples
+1	Developer/Test Translations
+1	Device "%s" is already a cluster leader and does not need 
+1	Device "%s" is unrecognized, restricted, or you do not have 
+1	Device %s
+1	Device Disabled
+1	Device Interfaces
+1	Device PHID.
+1	Device Version
+1	Device name is required.
+1	Device status information.
+1	Device status.
+1	Dictionary with various data of the story
+1	Did Not Remove Flag
+1	Did Nothing
+1	Did nothing.
+1	Diff "%s" does not exist!
+1	Diff %s
+1	Diff ("%s") has wrong revision ID ("%s", expected "%s").
+1	Diff Already Attached
+1	Diff Commits
+1	Diff Detail
+1	Diff Fields
+1	Diff Navigation
+1	Diff Preferences
+1	Diff Required
+1	Diff View
+1	Diff adding a tickmark to a checkbox list.
+1	Diff changing a remarkup wiki link target.
+1	Diff content added
+1	Diff content removed
+1	Diff is enormous
+1	Diff may not be empty.
+1	Diff not found.
+1	Diff was not found.
+1	Diff with a removed comma and new trailing content.
+1	Diff with a removed comma.
+1	Diff with new trailing content.
+1	Differential Changeset
+1	Differential Changesets
+1	Differential Diff
+1	Differential Hovercard
+1	Differential Lint Statuses
+1	Differential Parse Cache
+1	Differential Reviewers
+1	Differential Revision Statuses
+1	Differential Unit Statuses
+1	Differential User Guide
+1	Differential View States
+1	Differential is a **code review application** which allows 
+1	Diffs
+1	Diffs are normally shown in a side-by-side layout on large 
+1	Diffusion Auditors
+1	Diffusion Blame
+1	Diffusion Commit
+1	Diffusion Raw Commits
+1	Diffusion Repositories
+1	Diffusion URI action "%s" requires branch!
+1	Diffusion URI action "%s" requires commit!
+1	Diffusion URIs
+1	Diffusion User Guide
+1	Dimension
+1	Dimensions
+1	Ding Ding
+1	Diplomatic Meeting
+1	Direct Award
+1	Direct Parent
+1	Direct Subtask
+1	Directory Not Tracked
+1	Directory that the daemons should use to store log files.
+1	Disable "Re:" Prefix
+1	Disable %s? They will no longer be able to access this server or 
+1	Disable Build Plan
+1	Disable Email "!accept" Action
+1	Disable Email Notifications
+1	Disable Notifications, Feed, and Herald
+1	Disable Number
+1	Disable OAuth Application
+1	Disable Pagespeed
+1	Disable Project Mail
+1	Disable Prototypes
+1	Disable Query
+1	Disable Query?
+1	Disable Recaptcha
+1	Disable SSH error log.
+1	Disable SSH log.
+1	Disable Self Action Mail
+1	Disable Self-Accept
+1	Disable User Account?
+1	Disable Vary Subjects
+1	Disable access log.
+1	Disable developer mode
+1	Disable or activate the URI.
+1	Disable or enable the user.
+1	Disable or restore the export.
+1	Disable reopen
+1	Disable the contact number %s?
+1	Disable the export.
+1	Disable the import.
+1	Disable the lock log.
+1	Disable the rule.
+1	Disable the user.
+1	Disable this URI? It will no longer be observed, fetched, mirrored, 
+1	Disable this binding?
+1	Disable this build plan? It will no longer be executed 
+1	Disable this export? The export URI will no longer function.
+1	Disable this form? Users will no longer be able to use it.
+1	Disable this import? Events from this source will no longer be 
+1	Disable this menu item? It will no longer appear in the menu, but 
+1	Disable unsafe option "%s" in PHP configuration.
+1	Disabled (an administrator has disabled login for this 
+1	Disabled Macros
+1	Disabled Object
+1	Disabled Recipient
+1	Disabled Rules
+1	Disabled Sender
+1	Disabling a workboard hides the board. Objects on the board 
+1	Disabling the lock log.
+1	Disallow Git LFS
+1	Disallow HTTP Basic Auth
+1	Disallow self-accept
+1	Discard Edit
+1	Disconnected
+1	Discover all commits, even if they are ancestors of known 
+1	Discover commits in __repository__.
+1	Discovered more than %s commits in an empty repository, 
+1	Discovering "%s"...
+1	Discovering commits in repository "%s".
+1	Discovering...
+1	Dislike
+1	Dismiss
+1	Dismiss Operation
+1	Dismiss this operation? It will no longer be shown, but logs 
+1	Display Name
+1	Display Preferences
+1	Display events in a certain display format.
+1	Display images with crops.
+1	Display name for the MFA provider.
+1	Display project reviewers.
+1	Display required legal agreements.
+1	Disqus
+1	Distinct characters in hash of: %s
+1	Divider
+1	Diviner
+1	Diviner Atom
+1	Diviner Book
+1	Diviner Books
+1	Diviner Search
+1	Diviner User Guide
+1	Do Not Authorize
+1	Do Not Cancel Order
+1	Do Not Play
+1	Do Not Use HSTS
+1	Do Not Use Pygments
+1	Do an implicit string extraction before validating. 
+1	Do not apply storage adjustments after storage upgrades.
+1	Do not dump data in rebuildable index tables. This means 
+1	Do not install this software on an instance class with 
+1	Do not invoke `%s` after updating sprites
+1	Do not migrate data for files which are larger than a given 
+1	Do not migrate data for files which are smaller than a given 
+1	Do not perform any I/O.
+1	Do not perform any writes.
+1	Do not perform discovery.
+1	Do not play audio.
+1	Do not prompt for confirmation.
+1	Do not pull __repository__.
+1	Do not show as a clone URI.
+1	Do not track unlisted branches.
+1	Do nothing
+1	Do nothing.
+1	Do you want to attach the file %s to the object %s?
+1	Do you want to authorize the external application "%s" to 
+1	Do you want to disable this provider? Users will not be able to 
+1	Do you want to enable this provider? Users will be able to log 
+1	Do you want to enable this provider? Users will be able to use 
+1	Do you want to post your comment anyway?
+1	Document Body
+1	Document Content
+1	Document Deleted
+1	Document Fields
+1	Document Hierarchy
+1	Document History: %s
+1	Document Title.
+1	Document already exists!
+1	Document path "%s" is not a valid path. The normalized 
+1	Document signers
+1	Document this content is for.
+1	Documentation Atoms
+1	Documentation Not Found
+1	Documentation Warnings
+1	Documentation uses `%s`, but should use `%s`.
+1	Documenter
+1	Does Not Allow Registration
+1	Domain
+1	Domain must be unique; another blog already has this domain.
+1	Domain used for reply email addresses.
+1	Dominion setting "%s" is not valid. 
+1	Dominion setting information.
+1	Donate
+1	Done generating sprites - updating map...
+1	Done. Migrated %d keys.
+1	Done. Total byte size of affected logs: %s -> %s.
+1	Doorkeeper
+1	DoorkeeperURIRef display mode "%s" is unknown.
+1	Doubloon
+1	Down
+1	Down Left
+1	Down Right
+1	Download
+1	Download %s Profile
+1	Download Data Export
+1	Download Log
+1	Download Private Key
+1	Download Private Key (%s)
+1	Download URI for the file data.
+1	Download a file from the server.
+1	Download file %s (%s)?
+1	Download from Git LFS
+1	Draft %d
+1	Draft Posts
+1	Drag and Drop:
+1	Drag and drop .ics files to upload them and import them into 
+1	Drag and drop .xhprof files to import them.
+1	Drag and drop fields to change the order in which they appear in 
+1	Drag and drop fields to change their priority for edits. When a 
+1	Drag and drop fields to reorder them.
+1	Drag items in this list to reorder them.
+1	Drew the short stick
+1	Drift Aimlessly
+1	Driven Snow
+1	Drop .ics Files to Import
+1	Drop .xhprof Files to Import
+1	Drop Files to Upload
+1	Drop caches before extracting strings. Slow!
+1	Drop data from readthrough caches.
+1	Dropping database "%s" on host "%s"...
+1	Drydock Authorization
+1	Drydock Authorization %d
+1	Drydock Authorizations
+1	Drydock Console
+1	Drydock Host
+1	Drydock Lease %d
+1	Drydock Leases
+1	Drydock Pool
+1	Drydock Repository Operations
+1	Drydock Resource
+1	Drydock Resource %d
+1	Drydock Resources
+1	Drydock User Guide
+1	Drydock Working Copy
+1	Drydock commands have the same policies as their targets.
+1	Drydock lease PHID "%s" does not correspond to a valid lease.
+1	Drydock resource ("%s") has no Almanac binding PHID, so its 
+1	Drydock working copy lease to create an artifact from.
+1	Drydock: Resource Pool
+1	Drydock: Run Command
+1	Dst
+1	Dump all data in storage to stdout.

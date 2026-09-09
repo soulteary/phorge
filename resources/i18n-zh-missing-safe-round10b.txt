@@ -1,0 +1,140 @@
+3	"From" does not exclude recipients by default.
+3	%s <%s>
+3	%s closed %s.
+3	%s created this project.
+3	%s deleted %s.
+3	%s disabled %s.
+3	%s edited %s.
+3	%s failed!
+3	%s removed %s.
+3	%s resigned from %s.
+3	%s updated the description for %s.
+3	%s updated the name for %s from %s to %s.
+3	%s: %s -> %s
+3	%s: Uses unknown storage engine "%s".
+3	(An Untitled Masterwork)
+3	API Token
+3	Abandoned
+3	Aborted workflow.
+3	Accept Order
+3	Accounts
+3	Acquired
+3	Activate Badge
+3	Activate Blog
+3	Activate Dashboard
+3	Activate Package
+3	Activate Paste
+3	Activate Repository
+3	Active Repositories
+3	Activity Logs
+3	Add Managers
+3	Add Members
+3	Add Participants
+3	Add Recipients
+3	Administrators
+3	Affected Path Index
+3	Affected package owners
+3	Affected packages
+3	Aliases
+3	All Items
+3	All Settings
+3	Almanac Bindings
+3	Almanac Services
+3	Ambiguous Commit
+3	Any
+3	Application Emails
+3	Approve Authorization
+3	Archive Badge
+3	Archive Blog
+3	Archive Dashboard
+3	Archive Package
+3	Archive Paste
+3	Attributes
+3	Audio Behavior
+3	Author PHID
+3	Authored by %s on %s.
+3	Authority
+3	Authorization %d
+3	Authorized By
+3	Auto Review
+3	Automatically Subscribed
+3	Automation
+3	Available
+3	Backers
+3	Bad revision ID.
+3	Base
+3	Basics
+3	Billing Address
+3	Blog
+3	Broken
+3	Browse Packages
+3	Browse Repositories
+3	Browse Viewer
+3	Build Plan
+3	Build Plans
+3	Build Step
+3	Buildable %d
+3	Builtin Image
+3	Bulk Jobs
+3	Cache
+3	Calendar Events
+3	Calendar Exports
+3	Calendar Imports
+3	Call Method
+3	Callsign
+3	Cancel Event
+3	Cart has wrong status ("%s") to call %s.
+3	Change
+3	Change Details
+3	Change Username
+3	Character Set
+3	Charges
+3	Checkered
+3	Checkout
+3	Clear Connection Pool
+3	Closed, Invalid
+3	Column
+3	Commit %s
+3	Company Name
+3	Conduit API Tokens
+3	Configuring Custom Fields
+3	Confirm Password
+3	Connection Error
+3	Contents
+3	Context
+3	Copying failed.
+3	Core
+3	Core Settings
+3	Count Limit
+3	Create Auth Message
+3	Create Blueprint
+3	Create Build
+3	Create Build Plan
+3	Create Buildable
+3	Create Contact Number
+3	Create Countdown
+3	Create Credential
+3	Create Dashboard
+3	Create Device
+3	Create Diff
+3	Create Herald Rule
+3	Create Identity
+3	Create Interface
+3	Create MFA Provider
+3	Create Macro
+3	Create Namespace
+3	Create OAuth Server
+3	Create Panel
+3	Create Portal
+3	Create Property
+3	Create Publisher
+3	Create Queue
+3	Create Repository URI
+3	Create Settings
+3	Create Source
+3	Create Variable
+3	Create Version
+3	Create Webhook
+3	Creation (Newest First)
+3	Creation (Oldest First)
+3	Current Tasks

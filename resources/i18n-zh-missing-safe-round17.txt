@@ -1,0 +1,80 @@
+2	"%s" date can not be parsed.
+2	"%s" is not a valid file PHID.
+2	"%s" token, awarded by %s.
+2	#%d: %s
+2	%s - %s
+2	%s abandoned %s.
+2	%s abandoned this revision.
+2	%s accepted this commit.
+2	%s accepted this revision.
+2	%s activated %s.
+2	%s added %s.
+2	%s added an answer.
+2	%s added inline comments to %s.
+2	%s added inline comments.
+2	%s archived %s.
+2	%s changed %s from %s to %s on %s.
+2	%s changed the status of %s from %s to %s.
+2	%s closed this revision.
+2	%s commandeered %s.
+2	%s commandeered this revision.
+2	%s committed %s (authored by %s).
+2	%s committed %s.
+2	%s created this credential.
+2	%s created this initiative.
+2	%s created this object.
+2	%s created this poll.
+2	%s created this revision.
+2	%s created this room.
+2	%s created this space.
+2	%s created this task.
+2	%s disabled this application.
+2	%s enabled %s.
+2	%s enabled this application.
+2	%s has invited you to join %s.
+2	%s ms
+2	%s planned changes to %s.
+2	%s planned changes to this revision.
+2	%s raised a concern with %s.
+2	%s raised a concern with this commit.
+2	%s reclaimed %s.
+2	%s reclaimed this revision.
+2	%s removed %s on %s.
+2	%s renamed %s.
+2	%s reopened this revision.
+2	%s requested changes to %s.
+2	%s requested changes to this revision.
+2	%s requested review of %s.
+2	%s resigned from this revision.
+2	%s set %s to %s on %s.
+2	%s set the OAuth application notes for this provider.
+2	%s set the subtitle for %s.
+2	%s updated images of %s.
+2	%s updated the OAuth application notes for this provider.
+2	%s updated the description.
+2	%s updated the subtitle for %s.
+2	%s updated the title for this countdown from %s to %s.
+2	%s.%s
+2	%sms
+2	%sus
+2	(Invalid List)
+2	(Masked)
+2	(None.)
+2	(Show Details)
+2	(This message has no HTML body.)
+2	(null)
+2	+%s ms
+2	403 Forbidden
+2	<%s: %s>
+2	<empty>
+2	<none>
+2	A valid email is required.
+2	AFFECTED FILES
+2	APCu
+2	ASSIGNED PHID
+2	ATTACHMENTS
+2	Aborted
+2	Accepted Differential revision
+2	Accepting reviewers
+2	Accessibility
+2	Account Managers

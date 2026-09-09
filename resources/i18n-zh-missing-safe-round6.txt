@@ -1,0 +1,120 @@
+5	Missing or malformed parameter.
+5	NO DAEMONS
+5	Network
+5	Next
+5	Package
+5	Panels
+5	Payment Methods
+5	Plan %d
+5	Policies
+5	Policy
+5	Port
+5	Portals
+5	Profile
+5	Property
+5	Protocol
+5	Publish
+5	Published
+5	Remove
+5	Reopened
+5	Reports
+5	Repository Operation %d
+5	Repository projects
+5	Request
+5	Reset Password
+5	Resigned
+5	Result
+5	Reviewer
+5	Show All Applications
+5	Show additional debugging information.
+5	Submit
+5	Subtype
+5	Test Plan
+5	Total
+5	Unable to Resume Build
+5	Unique
+5	Unit Tests
+5	Unsupported repository type "%s"!
+5	Upload New Picture
+5	Use Picture
+5	Users
+5	View Standalone Graph
+5	Visible
+5	Wait Patiently
+4	  %s
+4	%s accepted %s.
+4	%s created this document.
+4	%s reopened %s.
+4	%s set %s to %s.
+4	%s, %s
+4	...
+4	404 Not Found
+4	Account Details
+4	Actor
+4	Add Build Step
+4	Add Panel
+4	Add subscribers
+4	Address
+4	Affected files
+4	All Daemons
+4	Almanac Properties
+4	Answer
+4	Any Closed Status
+4	Any Open Status
+4	Applications
+4	Assigned
+4	Auth Messages
+4	Authentication
+4	Blueprint
+4	Browse
+4	Browse Projects
+4	Browse Statuses
+4	Build
+4	Buildable
+4	Builds
+4	Bulk Job %d
+4	CANCELLED
+4	Capability not supported.
+4	Catalogs
+4	Change Password
+4	Closed, Resolved
+4	Color
+4	Committer
+4	Complaint
+4	Configure Menu
+4	Constant
+4	Contact Number
+4	Countdown
+4	Create Build Step
+4	Create Network
+4	Create New User
+4	Create Package
+4	Create Repository
+4	Create Space
+4	Data
+4	Database Status
+4	Deleted
+4	Destroyed
+4	Diff
+4	Disable Address
+4	Disable Binding
+4	Disable Provider
+4	Documents
+4	Dry Run
+4	Edit %s
+4	Edit Logo
+4	Email has not been created yet!
+4	Enable Binding
+4	Enable Provider
+4	Event
+4	Example
+4	Example: %s
+4	Examples
+4	Exception
+4	Explicitly Unassigned
+4	External Object
+4	Failed to load file ("%s") returned by "%s".
+4	Form %d
+4	Has MFA
+4	Help
+4	Inline Comments

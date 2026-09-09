@@ -1,0 +1,43 @@
+4	Parent of %s
+4	Public Key
+4	Publishing Disabled
+4	Pusher
+4	Query Overheated
+4	Question
+4	Queued
+4	Real Name
+4	Recent Commits
+4	Recipients
+4	Remote Address
+4	Remove subscribers
+4	Repository PHID
+4	Repository URIs
+4	Rescind Token
+4	Restricted
+4	Revoke
+4	Save Draft
+4	Search...
+4	Send Email
+4	Session
+4	Set Password
+4	Single Use
+4	Spaces
+4	Subscribe
+4	Table
+4	Task
+4	Text
+4	The title can be no longer than %s characters.
+4	URL
+4	Unable to load %s!
+4	Unknown Error
+4	Unknown configuration option type "%s".
+4	Unlimited
+4	Update Diff
+4	Upload Header
+4	User aborted the workflow.
+4	Variable
+4	Verify Email
+4	Versions
+4	WARNING
+4	Working Copy
+4	project

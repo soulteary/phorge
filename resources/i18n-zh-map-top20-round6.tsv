@@ -1,0 +1,20 @@
+Add a text panel to the dashboard to provide instructions or context.	向仪表板添加文本面板，以提供说明或上下文。
+Add project rule value should be a list, but is not (value is "%s").	“添加项目”规则的值应为列表，但当前不是（当前值为 “%s”）。
+Add subscribers rule value should be a list, but is not (value is "%s").	“添加订阅者”规则的值应为列表，但当前不是（当前值为 “%s”）。
+Add this dashboard to the favorites menu in the main menu bar.	将此仪表板添加到主菜单栏的收藏菜单中。
+Add this dashboard to the global favorites menu, visible to all users.	将此仪表板添加到全局收藏菜单，所有用户可见。
+Add this dashboard to the global home menu, visible to all users.	将此仪表板添加到全局主页菜单，所有用户可见。
+Add this dashboard to your list of personal favorite menu items, visible to only you.	将此仪表板添加到你的个人收藏菜单项列表，仅你可见。
+Add this dashboard to your list of personal home menu items, visible to only you.	将此仪表板添加到你的个人主页菜单项列表，仅你可见。
+Adds a test provider to allow you to test payments. This allows users to make purchases by clicking a button without actually paying any money.	添加测试提供方以便测试支付。这允许用户通过点击按钮进行购买，而无需实际支付任何资金。
+Adjacent tab ("%s") was not found on this panel. It may have been removed.	在此面板上未找到相邻标签页（“%s”），它可能已被移除。
+Adjust %s in your PHP configuration to at least 32MB. When set to smaller value, large file uploads may not work properly.	请将 PHP 配置中的 %s 调整到至少 32MB。设置过小可能导致大文件上传无法正常工作。
+Administrative approvals are disabled, so users who register will be able to use their accounts immediately. To enable approvals, configure %s.	管理员审批已禁用，因此注册用户可立即使用账户。要启用审批，请配置 %s。
+Administrative approvals are enabled (in %s), so all new users must have their accounts approved by an administrator.	管理员审批已启用（配置于 %s），因此所有新用户都必须由管理员审批其账户。
+Administrators are limited in their ability to access or edit these accounts after account creation.	账户创建后，管理员访问或编辑这些账户的能力将受到限制。
+Advises this server to look for new commits in a repository as soon as possible. This advice is most useful if you have just pushed new commits to that repository.	通知此服务器尽快在仓库中查找新提交。如果你刚向该仓库推送了新提交，此通知最有用。
+After a time, your efforts fail. You can not adjust your own status as an administrator.	一段时间后，你的尝试失败。你不能调整自己作为管理员的状态。
+After a user passes space policy checks, they must still pass object policy checks.	用户通过空间策略检查后，仍必须通过对象策略检查。
+After editing the PHP configuration, <strong>restart everything for the changes to take effect</strong>. For help with restarting everything, see %s in the documentation.	编辑 PHP 配置后，<strong>请重启所有相关服务以使更改生效</strong>。有关重启所有服务的帮助，请参阅文档中的 %s。
+After entering the key, the application should display a numeric code. Enter that code below to confirm that you have configured the authenticator correctly:	输入密钥后，应用应显示一个数字代码。请在下方输入该代码，以确认你已正确配置认证器：
+After executing under these conditions, this event would never execute again.	在这些条件下执行后，此事件将不再被执行。

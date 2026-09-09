@@ -1,0 +1,19 @@
+This method is frozen and will eventually be deprecated. New code should use "maniphest.edit" instead.	此方法已冻结，后续将被废弃。新代码应改用 “maniphest.edit”。
+This method is frozen and will eventually be deprecated. New code should use "maniphest.search" instead.	此方法已冻结，后续将被废弃。新代码应改用 “maniphest.search”。
+You can not bucket results by required action without specifying "Responsible Users".	未指定“Responsible Users”时，无法按所需操作对结果分桶。
+You can not delete this interface because it is currently in use. One or more services are bound to it.	无法删除此接口，因为它当前正在使用中，已有一个或多个服务绑定到该接口。
+You can not request review of this revision because this revision is already under review and the action would have no effect.	无法请求对此修订进行评审，因为该修订已在评审中，此操作不会产生任何效果。
+You must provide a test plan. Describe the actions you performed to verify the behavior of this change.	你必须提供测试计划，请描述你为验证此变更行为而执行的操作。
+Your Duo account ("%s") is not permitted to access this system. Contact your Duo administrator for help. The Duo preauth API responded with status message ("%s"): %s	你的 Duo 账户（“%s”）无权访问该系统。请联系 Duo 管理员获取帮助。Duo 预认证 API 返回状态信息（“%s”）：%s
+"arc land" never warns that the build is still running or has failed.	“arc land” 从不警告构建仍在运行或已失败。
+"arc land" warns if the build has failed, but ignores the build if it is still running.	若构建已失败，“arc land” 会给出警告；但若构建仍在运行，则会忽略该构建。
+"arc land" warns if the build is still running or has failed.	若构建仍在运行或已失败，“arc land” 会给出警告。
+"arc land" warns if the build is still running, but ignores the build if it has failed.	若构建仍在运行，“arc land” 会给出警告；但若构建已失败，则会忽略该构建。
+%s You have not added authentication providers yet. Use "%s" to add a provider, which will let users register new accounts and log in.	%s 你尚未添加认证提供方。请使用 “%s” 添加提供方，以允许用户注册新账户并登录。
+%s changed %s blocking reviewer(s) for %s, added %s: %s; removed %s: %s.	%s 更改了 %s 对 %s 的阻塞评审者，新增 %s：%s；移除 %s：%s。
+%s changed the copy time limit for this repository from %s seconds to %s seconds.	%s 将该仓库的复制时间限制从 %s 秒更改为 %s 秒。
+%s changed the filesize limit for this repository from %s bytes to %s bytes.	%s 将该仓库的文件大小限制从 %s 字节更改为 %s 字节。
+%s changed the merchant receiving funds from %s from %s to %s.	%s 将 %s 的收款商户从 %s 更改为 %s。
+%s changed the merchant receiving funds from this initiative from %s to %s.	%s 将该计划的收款商户从 %s 更改为 %s。
+%s changed the staging area for this repository from %s to %s.	%s 将该仓库的暂存区从 %s 更改为 %s。
+%s changed the status of %s, a subtask of %s, from %s to %s.	%s 将 %s（%s 的子任务）的状态从 %s 更改为 %s。

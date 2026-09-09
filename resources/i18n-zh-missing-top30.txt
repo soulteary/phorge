@@ -1,0 +1,30 @@
+19	This method is frozen and will eventually be deprecated. New code 
+12	Dec 31, 1969
+10	This page documents the commands you can use to interact with 
+9	%s
+9	%s us
+9	Conpherence
+8	The name "%s" is not a valid repository short name. Repository 
+8	The name can be no longer than %s characters.
+7	Almanac service, device, property, network and namespace names 
+7	Option "%s" is of type "%s", but the configured value is not 
+7	Transactions
+7	Updated
+7	User has not been created yet!
+7	Version
+7	Violet
+6	%s:
+6	(Use Default)
+6	<Unknown: %s>
+6	Add Comment
+6	Always
+6	Amount
+6	Assigned Tasks
+6	Assigned To
+6	Build Log %d
+6	Cancelled
+6	Chart
+6	Collation
+6	Comments
+6	Compare
+6	Configuration

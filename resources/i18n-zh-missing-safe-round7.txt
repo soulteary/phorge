@@ -1,0 +1,120 @@
+4	%s accepted %s.
+4	%s created this document.
+4	%s reopened %s.
+4	%s set %s to %s.
+4	404 Not Found
+4	Account Details
+4	Actor
+4	Add Build Step
+4	Add Panel
+4	Add subscribers
+4	Address
+4	Affected files
+4	All Daemons
+4	Almanac Properties
+4	Answer
+4	Any Closed Status
+4	Any Open Status
+4	Applications
+4	Assigned
+4	Auth Messages
+4	Authentication
+4	Blueprint
+4	Browse
+4	Browse Projects
+4	Browse Statuses
+4	Build
+4	Buildable
+4	Builds
+4	Bulk Job %d
+4	CANCELLED
+4	Capability not supported.
+4	Catalogs
+4	Change Password
+4	Closed, Resolved
+4	Color
+4	Committer
+4	Complaint
+4	Configure Menu
+4	Constant
+4	Contact Number
+4	Countdown
+4	Create Build Step
+4	Create Network
+4	Create New User
+4	Create Package
+4	Create Repository
+4	Create Space
+4	Data
+4	Database Status
+4	Deleted
+4	Destroyed
+4	Diff
+4	Disable Address
+4	Disable Binding
+4	Disable Provider
+4	Documents
+4	Dry Run
+4	Edit %s
+4	Edit Logo
+4	Email has not been created yet!
+4	Enable Binding
+4	Enable Provider
+4	Event
+4	Example
+4	Example: %s
+4	Examples
+4	Exception
+4	Explicitly Unassigned
+4	External Object
+4	Failed to load file ("%s") returned by "%s".
+4	Form %d
+4	Has MFA
+4	Help
+4	Inline Comments
+4	Invite Users
+4	Items
+4	Land Revision
+4	Locked
+4	MFA Providers
+4	Macro
+4	Mail %d
+4	Mode
+4	Move Document
+4	No Permission
+4	No repository "%s" exists!
+4	Note
+4	Object Name
+4	Operations
+4	Owners Packages
+4	Panel
+4	Parent of %s
+4	Pastes
+4	Payment Method
+4	Payment Providers
+4	Pending
+4	Pholio Mocks
+4	Phortune
+4	Phurl
+4	Prevent Dangerous Changes
+4	Prevent Enormous Changes
+4	Products
+4	Project Members
+4	Provider
+4	Public Key
+4	Publishing Disabled
+4	Pusher
+4	Query Overheated
+4	Question
+4	Queued
+4	Real Name
+4	Recent Commits
+4	Recipients
+4	Remote Address
+4	Remove subscribers
+4	Repository PHID
+4	Repository URIs
+4	Rescind Token
+4	Restricted
+4	Revoke
+4	Save Draft

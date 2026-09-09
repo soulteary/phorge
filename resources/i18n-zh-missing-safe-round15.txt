@@ -1,0 +1,107 @@
+3	Joe
+3	Preview
+3	Primary
+3	Profile Menu Item
+3	Provider Type
+3	Publishers
+3	Push Logs
+3	Query ("%s") does not support the Ferret fulltext engine.
+3	Queue
+3	Queues
+3	Received Badges
+3	Recent Activity
+3	Recent Revisions
+3	Refund Order
+3	Reinstate Event
+3	Released
+3	Remove Administrator
+3	Remove Comment
+3	Remove Credential
+3	Remove Payment Method
+3	Remove Trigger
+3	Repository Identities
+3	Revisions
+3	Revoked
+3	Roles
+3	Rooms
+3	Rotate Access Key
+3	Rule Type
+3	Rules
+3	SSH Key %d
+3	SSH Keys
+3	SSH Public Keys
+3	Samples
+3	Save Query
+3	Save Related Tasks
+3	Saved Queries
+3	Search Servers
+3	Search for objects created by specific authors.
+3	Search for objects with given statuses.
+3	Sent
+3	Sessions
+3	Set Credential
+3	Setup Issues
+3	Severity
+3	Short Name
+3	Show All
+3	Show Column
+3	Sky
+3	Smith
+3	Some specified messages do not exist: %s
+3	Source Type
+3	Sources
+3	Start
+3	Start Autopay
+3	Step %d
+3	Stop Autopay
+3	Storage for file "%s" does not support integrity hashing.
+3	Stuff
+3	Subject
+3	Subtypes
+3	Subversion
+3	Table of Contents
+3	Tag
+3	Technical
+3	Temporary Tokens
+3	Terminate
+3	Test
+3	Test Console
+3	Test Mode
+3	There are no repositories.
+3	Thursday
+3	Transaction
+3	Transcripts
+3	Trigger %d
+3	Triggers
+3	Tuesday
+3	Type a username or function...
+3	Type viewer()...
+3	UNCHANGED
+3	URIs
+3	Unable to Abort Build
+3	Unknown grouped transaction type!
+3	Unknown schema issue "%s"!
+3	Unlock Project
+3	Unresolved Setup Issues
+3	Unstable
+3	Unwatch Project
+3	Update Credential
+3	Upload
+3	Use Blueprints
+3	Use the current viewing user.
+3	User Details
+3	User cancelled operation.
+3	Value for "%s" is invalid: "%s".
+3	Verify %s
+3	View All Rules
+3	View Live
+3	Watch Project
+3	Webhook %d
+3	Webserver Config
+3	Wednesday
+3	Wiki Documents
+3	Workboard Columns
+3	You have no accounts!
+3	You must provide an email address.
+3	[Differential]
+3	[Diffusion]

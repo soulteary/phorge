@@ -1,0 +1,20 @@
+%s changed the touch limit for this repository from %s paths to %s paths.	%s 将该仓库的 touch 限制从 %s 个路径更改为 %s 个路径。
+%s class "%s" has an invalid %s property. Edge constants must be positive integers.	%s 类 “%s” 的 %s 属性无效。Edge 常量必须为正整数。
+%s class "%s" has an invalid %s property. PHID constants must be a four character uppercase string.	%s 类 “%s” 的 %s 属性无效。PHID 常量必须是四个字符的大写字符串。
+%s did not throw an exception when instructed to explicitly connect to an external database.	在被明确要求连接外部数据库时，%s 未抛出异常。
+%s edited %s required legal document(s) for %s, added %s: %s; removed %s: %s.	%s 编辑了 %s 对 %s 要求的法律文档，新增 %s：%s；移除 %s：%s。
+%s exited with a zero exit code, but emitted output consistent with failure under OSX.	%s 以零退出码结束，但在 OSX 下输出内容与失败场景一致。
+%s has already succeeded, and will not be repeated. Use "--repeat" to repeat successful tasks.	%s 已经成功完成，不会重复执行。使用 “--repeat” 可重复已成功的任务。
+%s has already succeeded, and will not be retried. Use "--repeat" to repeat successful tasks.	%s 已经成功完成，不会重试。使用 “--repeat” 可重复已成功的任务。
+%s has no visible object on the other side; this likely indicates the Asana task has been deleted.	%s 在另一侧没有可见对象；这通常表示对应的 Asana 任务已被删除。
+%s is already archived, and will not be executed. Use "--retry" to execute archived tasks.	%s 已归档，不会被执行。使用 “--retry” 可执行已归档任务。
+%s marked %s inline comment(s) as done and %s inline comment(s) as not done.	%s 将 %s 条行内评论标记为已完成，并将 %s 条行内评论标记为未完成。
+%s notification(s) about objects which no longer exist or which you can no longer see were discarded.	关于已不存在或你已无权查看对象的 %s 条通知已被丢弃。
+%s reset the copy time limit (%s seconds) for this repository to the default value.	%s 将该仓库的复制时间限制（%s 秒）重置为默认值。
+%s returned this revision to the author for changes because remote builds failed.	由于远程构建失败，%s 已将该修订退回作者以便修改。
+%s set the OAuth application ID for this provider to "%s".	%s 将此提供方的 OAuth 应用 ID 设置为 “%s”。
+%s set the OAuth consumer key for this provider to "%s".	%s 将此提供方的 OAuth consumer key 设置为 “%s”。
+%s set the merchant receiving funds from this initiative to %s.	%s 将该计划的收款商户设置为 %s。
+%s updated %s attached file(s), added %s: %s; removed %s: %s; modified %s: %s.	%s 更新了 %s 个附件，新增 %s：%s；移除 %s：%s；修改 %s：%s。
+%s updated the OAuth application ID for this provider from "%s" to "%s".	%s 将此提供方的 OAuth 应用 ID 从 “%s” 更新为 “%s”。
+%s updated the OAuth consumer key for this provider from "%s" to "%s".	%s 将此提供方的 OAuth consumer key 从 “%s” 更新为 “%s”。

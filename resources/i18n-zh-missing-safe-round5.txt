@@ -1,0 +1,120 @@
+8	The name can be no longer than %s characters.
+5	Add Payment Method
+5	Add Provider
+5	Authored By
+5	Authored Tasks
+5	Badge
+5	Bot
+5	Browse Users
+5	Build %d
+5	Building
+5	Calendar
+5	Colors
+5	Commit
+5	Complete
+5	Contact Numbers
+5	Create Service
+5	Credential has invalid type "%s"!
+5	Custom Fields
+5	Dashboards
+5	Default Space
+5	Differential Revisions
+5	Download File
+5	Duration
+5	Edit Answer
+5	Edit Binding
+5	Edit Document
+5	Edit Panel
+5	Email Address
+5	Flags
+5	Form
+5	From
+5	Global
+5	Grey
+5	Home
+5	Leases
+5	Link
+5	Link External Account
+5	Log Out
+5	Login
+5	Logs
+5	Mail receiver is not a %s.
+5	Mailing List
+5	Make Default
+5	Members
+5	Method
+5	Missing or malformed parameter.
+5	NO DAEMONS
+5	Network
+5	Next
+5	Package
+5	Panels
+5	Payment Methods
+5	Plan %d
+5	Policies
+5	Policy
+5	Port
+5	Portals
+5	Profile
+5	Property
+5	Protocol
+5	Publish
+5	Published
+5	Remove
+5	Reopened
+5	Reports
+5	Repository Operation %d
+5	Repository projects
+5	Request
+5	Reset Password
+5	Resigned
+5	Result
+5	Reviewer
+5	Show All Applications
+5	Show additional debugging information.
+5	Submit
+5	Subtype
+5	Test Plan
+5	Total
+5	Unable to Resume Build
+5	Unique
+5	Unit Tests
+5	Unsupported repository type "%s"!
+5	Upload New Picture
+5	Use Picture
+5	Users
+5	View Standalone Graph
+5	Visible
+5	Wait Patiently
+4	  %s
+4	%s accepted %s.
+4	%s created this document.
+4	%s reopened %s.
+4	%s set %s to %s.
+4	%s, %s
+4	...
+4	404 Not Found
+4	Account Details
+4	Actor
+4	Add Build Step
+4	Add Panel
+4	Add subscribers
+4	Address
+4	Affected files
+4	All Daemons
+4	Almanac Properties
+4	Answer
+4	Any Closed Status
+4	Any Open Status
+4	Applications
+4	Assigned
+4	Auth Messages
+4	Authentication
+4	Blueprint
+4	Browse
+4	Browse Projects
+4	Browse Statuses
+4	Build
+4	Buildable
+4	Builds
+4	Bulk Job %d

@@ -1,0 +1,120 @@
+9	%s
+9	%s us
+8	The name can be no longer than %s characters.
+6	Current Viewer
+6	Default Picture
+6	Deprecated
+6	Document
+6	Email Addresses
+6	Enable
+6	Interface
+6	Messages
+6	NO TASKS
+6	Object Type
+6	Open Tasks
+6	Order
+6	Overview
+6	Owner
+6	Passed
+6	Pink
+6	Reviewers
+6	Running
+6	SKIP
+6	Size
+6	Subprojects
+6	Tasks
+6	Unable to Pause Build
+6	Upload File
+6	Username
+6	Waiting
+6	Webhooks
+5	%s changed %s from %s to %s.
+5	(%s)
+5	<null>
+5	ARCHIVED
+5	Add Payment Method
+5	Add Provider
+5	Allow Dangerous Changes
+5	Allow Enormous Changes
+5	Attached
+5	Author: %s
+5	Authored By
+5	Authored Tasks
+5	Badge
+5	Bot
+5	Browse Users
+5	Build %d
+5	Building
+5	Calendar
+5	Colors
+5	Commit
+5	Complete
+5	Contact Numbers
+5	Create Service
+5	Credential has invalid type "%s"!
+5	Custom Fields
+5	Dashboards
+5	Default Space
+5	Differential Revisions
+5	Download File
+5	Duration
+5	Edit Answer
+5	Edit Binding
+5	Edit Document
+5	Edit Panel
+5	Email Address
+5	Flags
+5	Form
+5	From
+5	Global
+5	Grey
+5	Home
+5	Leases
+5	Link
+5	Link External Account
+5	Log Out
+5	Login
+5	Logs
+5	Mail receiver is not a %s.
+5	Mailing List
+5	Make Default
+5	Members
+5	Method
+5	Missing or malformed parameter.
+5	NO DAEMONS
+5	Network
+5	Next
+5	Package
+5	Panels
+5	Payment Methods
+5	Plan %d
+5	Policies
+5	Policy
+5	Port
+5	Portals
+5	Profile
+5	Property
+5	Protocol
+5	Publish
+5	Published
+5	Remove
+5	Reopened
+5	Reports
+5	Repository Operation %d
+5	Repository projects
+5	Request
+5	Reset Password
+5	Resigned
+5	Result
+5	Reviewer
+5	Show All Applications
+5	Show additional debugging information.
+5	Submit
+5	Subtype
+5	Test Plan
+5	Total
+5	Unable to Resume Build
+5	Unique
+5	Unit Tests
+5	Unsupported repository type "%s"!
+5	Upload New Picture

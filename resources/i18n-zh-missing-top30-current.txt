@@ -1,0 +1,30 @@
+19	This method is frozen and will eventually be deprecated. New code 
+10	This page documents the commands you can use to interact with 
+8	The name "%s" is not a valid repository short name. Repository 
+7	Almanac service, device, property, network and namespace names 
+7	Option "%s" is of type "%s", but the configured value is not 
+4	Authentication provider configuration is locked, and can not be 
+4	Blueprint "%s" (of type "%s") is not properly implemented: it 
+3	EditEngine ("%s") returned builtin engine configurations, 
+3	Editor pattern "%s" is invalid: the pattern must begin with 
+3	Parameter "%s" must contain a list of transaction descriptions, 
+3	The email address you just clicked a link from is already 
+3	The external service ("%s") you just authenticated with is 
+3	URI "%s" is not a valid fetchable resource. A valid fetchable 
+3	URI "%s" is not a valid linkable resource. A valid linkable 
+2	
+2	%s set the OAuth application notes for this provider.
+2	%s set the subtitle for %s.
+2	%s updated images of %s.
+2	%s updated the OAuth application notes for this provider.
+2	%s updated the description.
+2	%s updated the subtitle for %s.
+2	%s updated the title for this countdown from %s to %s.
+2	%s.%s
+2	%sms
+2	%sus
+2	(Invalid List)
+2	(Masked)
+2	(None.)
+2	(Show Details)
+2	(This message has no HTML body.)
