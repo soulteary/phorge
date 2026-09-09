@@ -25,6 +25,7 @@ CONFIG_BIN="$PHORGE_DIR/bin/config"
 CONF_DIR="$PHORGE_DIR/conf/local"
 CONF_FILE="$CONF_DIR/local.json"
 COLLABORATION_STATE_FILE="$CONF_DIR/collaboration-profile-state.json"
+NOTIFICATION_STATE_FILE="$CONF_DIR/gorge-notification-state.json"
 TASKQUEUE_STATE_FILE="$CONF_DIR/gorge-taskqueue-state.json"
 CONFIG_LOCK_FILE="$CONF_DIR/.entrypoint.lock"
 
@@ -392,6 +393,77 @@ gorge_notification_set() {
     return 0
 }
 
+# notification.servers 是一个没有受管 key 的共享整项配置。第一次切到 Gorge 前保存
+# 本地源原值；切回 legacy 时只在快照存在的情况下恢复，避免纯 legacy 首次启动就删掉
+# 管理员原有的 Aphlict 服务配置。
+gorge_notification_capture_state() {
+    if [ -e "$NOTIFICATION_STATE_FILE" ]; then
+        return 0
+    fi
+
+    export CONF_FILE NOTIFICATION_STATE_FILE
+    if ! php -r '
+        $file = getenv("CONF_FILE");
+        $state_file = getenv("NOTIFICATION_STATE_FILE");
+        $config = array();
+        if (is_file($file)) {
+            $config = json_decode(file_get_contents($file), true);
+            if (!is_array($config)) { exit(2); }
+        }
+        $present = array_key_exists("notification.servers", $config);
+        $value = $present ? $config["notification.servers"] : null;
+        if ($present && !is_array($value)) { exit(3); }
+
+        $state = array("present" => $present, "value" => $value);
+        $tmp = $state_file.".tmp";
+        $json = json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
+        if (file_put_contents($tmp, $json) === false || !rename($tmp, $state_file)) {
+            @unlink($tmp);
+            exit(4);
+        }
+    '; then
+        echo "[entrypoint] 错误: 无法保存 notification.servers 原值，拒绝覆盖该配置。" >&2
+        return 1
+    fi
+    chown www-data:www-data "$NOTIFICATION_STATE_FILE" || true
+    chmod 0640 "$NOTIFICATION_STATE_FILE" || true
+}
+
+gorge_notification_restore_state() {
+    if [ ! -f "$NOTIFICATION_STATE_FILE" ]; then
+        echo "[entrypoint] 没有受管通知快照，保留现有 notification.servers。"
+        return 0
+    fi
+
+    notification_json=''
+    if notification_json="$(php -r '
+        $state = json_decode(file_get_contents($argv[1]), true);
+        if (!is_array($state) || !array_key_exists("present", $state)) { exit(2); }
+        if (!$state["present"]) { exit(10); }
+        $value = $state["value"] ?? null;
+        if (!is_array($value)) { exit(2); }
+        echo json_encode($value, JSON_UNESCAPED_SLASHES);
+    ' "$NOTIFICATION_STATE_FILE")"; then
+        if ! printf '%s' "$notification_json" |
+            "$CONFIG_BIN" set notification.servers --stdin; then
+            echo "[entrypoint] 错误: 恢复 notification.servers 失败。" >&2
+            return 1
+        fi
+    else
+        notification_status=$?
+        if [ "$notification_status" = "10" ]; then
+            gorge_config_delete 'notification.servers' || return 1
+        else
+            echo "[entrypoint] 错误: 无法解析 $NOTIFICATION_STATE_FILE。" >&2
+            return 1
+        fi
+    fi
+
+    rm -f -- "$NOTIFICATION_STATE_FILE"
+    chown www-data:www-data "$CONF_FILE" || true
+    chmod 0640 "$CONF_FILE" || true
+}
+
 # 默认栈与 Gorge overlay 显式 enable，纯 legacy 显式 disable；未指定 MODE 的
 # 旧用法按 host 是否存在决定启用或保留。
 GORGE_NOTIFICATION_MODE="${GORGE_NOTIFICATION_MODE:-auto}"
@@ -413,10 +485,11 @@ case "$GORGE_NOTIFICATION_MODE" in
 esac
 
 if [ "$GORGE_NOTIFICATION_MODE" = "disable" ]; then
-    echo "[entrypoint] 撤销 Gorge 通知配置 ..."
-    gorge_config_delete 'notification.servers' || exit 1
+    echo "[entrypoint] 恢复进入 Gorge 前的通知配置 ..."
+    gorge_notification_restore_state || exit 1
 elif [ "$GORGE_NOTIFICATION_MODE" = "enable" ]; then
     echo "[entrypoint] 下发 Gorge 通知配置 ..."
+    gorge_notification_capture_state || exit 1
     gorge_notification_set || exit 1
 else
     echo "[entrypoint] GORGE_NOTIFICATION_MODE=preserve，保留现有通知配置。"
@@ -1130,8 +1203,13 @@ elif [ "$GORGE_TASKQUEUE_MODE" = "enable" ]; then
                 chmod 0640 "$CONF_FILE" || true
             fi
         else
-            # 从「关闭原生 taskmaster」切到灰度并存时，恢复进入 Gorge 前的值。
-            gorge_taskqueue_restore_taskmasters || exit 1
+            # 只有确实由此前 enable 路径创建过快照时才恢复。没有快照意味着当前
+            # phd.taskmasters（包括显式 0）属于用户，不能因 URI 随后写入而误删。
+            if [ -f "$TASKQUEUE_STATE_FILE" ]; then
+                gorge_taskqueue_restore_taskmasters || exit 1
+            else
+                echo "[entrypoint] 未禁用原生 taskmaster，保留现有 phd.taskmasters。"
+            fi
         fi
     fi
 else
