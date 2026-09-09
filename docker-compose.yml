@@ -140,11 +140,11 @@ services:
       db-init:
         condition: service_completed_successfully
       gorge-render:
-        condition: service_healthy
+        condition: service_started
       gorge-conduit:
-        condition: service_healthy
+        condition: service_started
       gorge-notification:
-        condition: service_healthy
+        condition: service_started
       gorge-file-storage:
         condition: service_started
       gorge-webhook:
@@ -200,21 +200,21 @@ services:
       phorge-migrate:
         condition: service_completed_successfully
       gorge-render:
-        condition: service_healthy
+        condition: service_started
       gorge-conduit:
-        condition: service_healthy
+        condition: service_started
       gorge-notification:
-        condition: service_healthy
+        condition: service_started
       gorge-file-storage:
-        condition: service_healthy
+        condition: service_started
       gorge-webhook:
-        condition: service_healthy
+        condition: service_started
       gorge-taskqueue:
-        condition: service_healthy
+        condition: service_started
       gorge-worker:
-        condition: service_healthy
+        condition: service_started
       gorge-db-api:
-        condition: service_healthy
+        condition: service_started
     environment:
       <<: *phorge-environment
       PHORGE_CONTAINER_ROLE: web
@@ -244,9 +244,9 @@ services:
       phorge-migrate:
         condition: service_completed_successfully
       gorge-taskqueue:
-        condition: service_healthy
+        condition: service_started
       gorge-worker:
-        condition: service_healthy
+        condition: service_started
     environment:
       <<: *phorge-environment
       PHORGE_CONTAINER_ROLE: daemon
@@ -267,7 +267,7 @@ services:
       phorge-migrate:
         condition: service_completed_successfully
       gorge-mailer:
-        condition: service_healthy
+        condition: service_started
     environment:
       <<: *phorge-environment
       PHORGE_CONTAINER_ROLE: migrate
@@ -290,7 +290,7 @@ services:
       phorge-migrate:
         condition: service_completed_successfully
       gorge-search:
-        condition: service_healthy
+        condition: service_started
     environment:
       <<: *phorge-environment
       PHORGE_CONTAINER_ROLE: migrate

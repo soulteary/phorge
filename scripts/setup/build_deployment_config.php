@@ -160,7 +160,18 @@ if (strlen($upstream)) {
 $notification_mode = env_mode(
   'GORGE_NOTIFICATION_MODE',
   'GORGE_NOTIFICATION_ADMIN_HOST');
-if ($notification_mode === 'enable') {
+$notification_policy = $service_policy;
+$service_policy_overrides = isset($config['gorge.service-policies'])
+  ? $config['gorge.service-policies']
+  : array();
+if (is_array($service_policy_overrides) &&
+    isset($service_policy_overrides['notification'])) {
+  $notification_policy = $service_policy_overrides['notification'];
+}
+
+if ($notification_policy === 'off') {
+  unset($config['notification.servers']);
+} else if ($notification_mode === 'enable') {
   $admin_host = env_value('GORGE_NOTIFICATION_ADMIN_HOST', '');
   $client_host = env_value('GORGE_NOTIFICATION_CLIENT_HOST', '');
   if (!strlen($admin_host) || !strlen($client_host)) {

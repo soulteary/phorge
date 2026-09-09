@@ -397,8 +397,7 @@ services:
     restart: unless-stopped
     depends_on:
       # blob 后端要连库，所以等 mysql 健康。注意这**不会**和 phorge 形成环：
-      # phorge 等 gorge-file-storage 健康、gorge-file-storage 等 mysql 健康，
-      # 而 mysql 不等任何人。
+      # phorge 只等 gorge-file-storage 容器启动，不等它健康。
       mysql:
         condition: service_healthy
       # 也要等 db-init：它给普通账号补的是 `phabricator_%` 整组库的权限，没这一步
@@ -725,13 +724,10 @@ services:
     container_name: phorge-gorge-worker
     restart: unless-stopped
     depends_on:
-      # 它的唯一依赖就是 taskqueue，而且这里可以安全地等 service_healthy：taskqueue
-      # 不像 phorge 那样会与它成环，taskqueue 只依赖 mysql / db-init。等 taskqueue
-      # 就绪（能连上 {namespace}_worker 库）再起 worker，可以避免 worker 起来后对着
-      # 一个还没就绪的队列空转刷日志。首次启动时 taskqueue 要等 phorge 建库，所以这条
-      # 依赖会让 worker 也一并等到库建好，符合预期。
+      # 只等 taskqueue 容器启动，不等健康：首次安装要由 Phorge migration 建 worker
+      # 数据库，而 fallback/off 也必须能在队列服务故障时启动 Phorge。
       gorge-taskqueue:
-        condition: service_healthy
+        condition: service_started
     environment:
       # 监听地址固定 :8170。下面的健康检查按它写死，改这里要两处一起改。
       GORGE_LISTEN_ADDR: ":8170"
@@ -859,46 +855,26 @@ services:
       start_period: 5s
       retries: 3
 
-  # 给已存在的 phorge 服务补充：对 Gorge 服务的依赖 + 若干配置用环境变量。
+  # 给已存在的 phorge 服务补充：对 Gorge 服务的创建顺序 + 若干配置用环境变量。
   # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
   # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
   # 两个依赖仍然保留），不会整体替换。
   phorge:
     depends_on:
-      # 等 gorge-render 健康再起 phorge：容器刚起来时 Phorge 首屏就可能渲染
-      # Paste / Differential，此时打到还没就绪的高亮服务，结果会被缓存下来，
-      # 反倒需要清缓存才能恢复。有了这条依赖，entrypoint.sh 里就不必再自己
-      # 轮询 /healthz。
+      # 这里只约束容器创建顺序，不把 Gorge 健康状态变成 Phorge 的启动门槛。
+      # required 在请求边界显式失败；fallback/off 必须能在 Gorge 故障时启动。
       gorge-render:
-        condition: service_healthy
-      # 等 gorge-conduit 健康再起 phorge：网关是 Conduit API 的反代入口，虽然它
-      # 的上游正是 phorge 自己，但先让网关就绪再写 gorge.conduit.uri，可让启动日志
-      # 顺序干净，也让 PhabricatorGorgeConduitSetupCheck 不会白报一次「服务不可达」。
+        condition: service_started
       gorge-conduit:
-        condition: service_healthy
-      # 等 gorge-notification 健康再起 phorge：entrypoint.sh 写完
-      # notification.servers 就不再探活，而 PhabricatorAphlictSetupCheck 会在
-      # Config 页面把「连不上通知服务器」报成 setup issue。没有这条依赖的话，
-      # phorge 先起来就会白报一次警，得手动刷一下才消失。
+        condition: service_started
       gorge-notification:
-        condition: service_healthy
-      # 等 gorge-mailer 健康再起 phorge 的理由与前两条不同，是为了配置写得进去：
-      # entrypoint.sh 用 bin/config set 写 cluster.mailers 时，校验会实例化
-      # PhabricatorMailGorgeAdapter 并检查 options——那一步不联网，所以严格说不等也
-      # 能写成功。真正的收益是启动日志的顺序：服务先健康，phorge 再写配置、再跑
-      # setup check，于是「配置写好了但服务没起来」这种一次性误报不会出现。
+        condition: service_started
       gorge-mailer:
-        condition: service_healthy
-      # 等 gorge-search 健康再起 phorge，理由与 gorge-mailer 那条相同：entrypoint.sh
-      # 用 bin/config set 写 cluster.search 时校验不联网，所以严格说不等也能写成功；
-      # 收益是启动日志的顺序，以及 PhabricatorGorgeSearchSetupCheck 不会白报一次
-      # 「服务不可达」。
+        condition: service_started
       gorge-search:
-        condition: service_healthy
-      # gorge-file-storage 与下面的 gorge-webhook 是前几个依赖里仅有的两条用
-      # service_started 而不是 service_healthy 的，而这个差别对两者都是**必须**的，
-      # 不是偏好：它们的就绪条件都是能连上一个 {namespace}_xxx 库，而那些库都是
-      # phorge 容器里的 bin/storage upgrade 建的。
+        condition: service_started
+      # 以下有状态服务同样只约束创建顺序，不以健康状态阻塞 Phorge。它们的就绪条件
+      # 都依赖由 phorge 的 bin/storage upgrade 创建的 {namespace}_xxx 数据库。
       #
       # 这一条曾经写的是 service_healthy，那是一个**首次启动必然发生的死锁**：
       # blob 后端的 DSN 是 {namespace}_file（filestorage.FileDSN()），而 go-sql-driver

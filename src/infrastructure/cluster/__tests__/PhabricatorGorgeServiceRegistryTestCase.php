@@ -94,6 +94,31 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testNotificationOffSuppressesConfiguredServers() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'off');
+    $env->overrideEnvConfig(
+      'notification.servers',
+      array(
+        array(
+          'type' => 'admin',
+          'host' => 'gorge-notification',
+          'port' => 22281,
+          'protocol' => 'http',
+        ),
+        array(
+          'type' => 'client',
+          'host' => '127.0.0.1',
+          'port' => 22280,
+          'protocol' => 'http',
+        ),
+      ));
+
+    $this->assertEqual(array(), PhabricatorNotificationServerRef::newRefs());
+
+    unset($env);
+  }
+
   public function testSearchOffSynthesizesNativeService() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.service-policy', 'off');
