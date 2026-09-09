@@ -168,6 +168,9 @@ services:
       GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER: ${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}
       GORGE_DB_URL: ${GORGE_DB_URL-http://gorge-db-api:8080}
       GORGE_DB_TOKEN: ${GORGE_DB_TOKEN:-}
+      # 基础栈未启用 search profile 时，撤销上次 profile 写入的 Gorge
+      # 搜索条目，并在没有其它搜索引擎时恢复 MySQL/Ferret。
+      GORGE_SEARCH_MODE: disable
     command: ["/bin/true"]
 
   phorge:
@@ -273,6 +276,7 @@ services:
       PHORGE_CONTAINER_ROLE: migrate
       PHORGE_AUTO_UPGRADE: "0"
       PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-auto}
+      GORGE_SEARCH_MODE: enable
       GORGE_SEARCH_HOST: ${GORGE_SEARCH_HOST:-gorge-search}
       GORGE_SEARCH_PORT: ${GORGE_SEARCH_PORT:-8120}
       GORGE_SEARCH_PROTOCOL: ${GORGE_SEARCH_PROTOCOL:-http}

@@ -220,7 +220,7 @@ if [ -n "${GORGE_CONDUIT_URI:-}" ] || [ -n "${GORGE_CONDUIT_TOKEN:-}" ]; then
     # 在带 --database（写数据库源）时被拒，写 local 源（不带 --database）是允许的 ——
     # 与上面 phd.taskmasters 同理。
     GORGE_CONDUIT_UPSTREAM_URL="${GORGE_CONDUIT_UPSTREAM_URL:-http://phorge:80}"
-    export GORGE_CONDUIT_UPSTREAM_URL
+    export GORGE_CONDUIT_UPSTREAM_URL CONF_FILE
     if gorge_allowed_uris_json="$(php -r '
         $upstream = getenv("GORGE_CONDUIT_UPSTREAM_URL");
         $host = parse_url($upstream, PHP_URL_HOST);
@@ -232,7 +232,25 @@ if [ -n "${GORGE_CONDUIT_URI:-}" ] || [ -n "${GORGE_CONDUIT_TOKEN:-}" ]; then
         $default = ($scheme === "https") ? 443 : 80;
         $netloc = $host;
         if ($port && (int)$port !== $default) { $netloc .= ":".$port; }
-        echo json_encode(array($scheme."://".$netloc."/"), JSON_UNESCAPED_SLASHES);
+        $uri = $scheme."://".$netloc."/";
+
+        // local.json 里可能已经有迁移域名或内网别名。allowed-uris 是一个
+        // 整体写回的列表，所以只能在现有 local 值后追加并去重，不能用
+        // 单元素列表覆盖。解析失败时宁可跳过本次写入，也不丢用户配置。
+        $file = getenv("CONF_FILE");
+        $config = array();
+        if (is_file($file)) {
+            $config = json_decode(file_get_contents($file), true);
+            if (!is_array($config)) { exit(2); }
+        }
+        $allowed = isset($config["phabricator.allowed-uris"])
+            ? $config["phabricator.allowed-uris"]
+            : array();
+        if (!is_array($allowed)) { exit(2); }
+        if (!in_array($uri, $allowed, true)) {
+            $allowed[] = $uri;
+        }
+        echo json_encode(array_values($allowed), JSON_UNESCAPED_SLASHES);
     ')"; then
         if printf '%s' "$gorge_allowed_uris_json" | "$CONFIG_BIN" set --stdin phabricator.allowed-uris; then
             echo "[entrypoint] 已把 conduit 网关上游 host 登记进 phabricator.allowed-uris：$gorge_allowed_uris_json"
@@ -243,7 +261,7 @@ if [ -n "${GORGE_CONDUIT_URI:-}" ] || [ -n "${GORGE_CONDUIT_TOKEN:-}" ]; then
             echo "[entrypoint]   委派的 worker.execute 可能因 Host 不匹配而 \"Site Not Found\"。" >&2
         fi
     else
-        echo "[entrypoint] 警告: 无法从 GORGE_CONDUIT_UPSTREAM_URL 解析 host，跳过 allowed-uris 登记。" >&2
+        echo "[entrypoint] 警告: 无法解析 conduit 上游或合并现有 allowed-uris，跳过登记。" >&2
     fi
 else
     echo "[entrypoint] 未设置 GORGE_CONDUIT_URI，跳过 Gorge conduit 网关配置。"
@@ -532,25 +550,53 @@ fi
 # 其余语义与前面两段一致：JSON 列表靠 --stdin 喂进去、每次启动幂等重写、写完修正
 # 属主与权限、失败只告警不阻塞容器。
 gorge_search_set() {
+    GORGE_SEARCH_MODE="${GORGE_SEARCH_MODE:-auto}"
     GORGE_SEARCH_HOST="${GORGE_SEARCH_HOST:-}"
     GORGE_SEARCH_PORT="${GORGE_SEARCH_PORT:-8120}"
     GORGE_SEARCH_PROTOCOL="${GORGE_SEARCH_PROTOCOL:-http}"
     GORGE_SEARCH_TOKEN="${GORGE_SEARCH_TOKEN:-}"
     GORGE_SEARCH_KEEP_MYSQL="${GORGE_SEARCH_KEEP_MYSQL:-0}"
 
-    if [ -z "$GORGE_SEARCH_HOST" ]; then
-        echo "[entrypoint] 警告: GORGE_SEARCH_HOST 为空，跳过 cluster.search。" >&2
-        return 0
-    fi
-
-    # 端口先在 shell 里挡一道，理由同前两段：php 里的 (int) 会把 "abc" 变成 0，
-    # 写进去类型合法、bin/config 也报成功，但客户端会去连 host:0，每一次检索都失败。
-    case "$GORGE_SEARCH_PORT" in
-        ''|*[!0-9]*)
-            echo "[entrypoint] 警告: GORGE_SEARCH_PORT \"$GORGE_SEARCH_PORT\" 不是数字，跳过 cluster.search。" >&2
+    case "$GORGE_SEARCH_MODE" in
+        auto)
+            # 保持历史叠加编排的语义：有 host 就启用，没有就不触碰
+            # cluster.search。默认编排会显式传 enable/disable，以便 profile
+            # 停用后能撤销已持久化的 Gorge 条目。
+            if [ -n "$GORGE_SEARCH_HOST" ]; then
+                GORGE_SEARCH_MODE=enable
+            else
+                echo "[entrypoint] 未设置 GORGE_SEARCH_HOST，跳过 Gorge 检索配置。"
+                return 0
+            fi
+            ;;
+        enable)
+            if [ -z "$GORGE_SEARCH_HOST" ]; then
+                echo "[entrypoint] 警告: GORGE_SEARCH_MODE=enable 但 GORGE_SEARCH_HOST 为空，跳过 cluster.search。" >&2
+                return 0
+            fi
+            ;;
+        disable)
+            ;;
+        preserve)
+            echo "[entrypoint] GORGE_SEARCH_MODE=preserve，保留现有 cluster.search。"
+            return 0
+            ;;
+        *)
+            echo "[entrypoint] 警告: 未知 GORGE_SEARCH_MODE=$GORGE_SEARCH_MODE，跳过 cluster.search。" >&2
             return 0
             ;;
     esac
+
+    # 端口先在 shell 里挡一道，理由同前两段：php 里的 (int) 会把 "abc" 变成 0，
+    # 写进去类型合法、bin/config 也报成功，但客户端会去连 host:0，每一次检索都失败。
+    if [ "$GORGE_SEARCH_MODE" = "enable" ]; then
+        case "$GORGE_SEARCH_PORT" in
+            ''|*[!0-9]*)
+                echo "[entrypoint] 警告: GORGE_SEARCH_PORT \"$GORGE_SEARCH_PORT\" 不是数字，跳过 cluster.search。" >&2
+                return 0
+                ;;
+        esac
+    fi
 
     # 先把现有值读出来，只取 source=local 的那一份。理由与 cluster.mailers 那段完全
     # 相同：bin/config set 不带 --database 写的正是 local 源，读写必须同源。
@@ -559,7 +605,7 @@ gorge_search_set() {
         return 0
     fi
 
-    export GORGE_SEARCH_HOST GORGE_SEARCH_PORT GORGE_SEARCH_PROTOCOL
+    export GORGE_SEARCH_MODE GORGE_SEARCH_HOST GORGE_SEARCH_PORT GORGE_SEARCH_PROTOCOL
     export GORGE_SEARCH_KEEP_MYSQL
     export GORGE_SEARCH_EXISTING="$gorge_search_existing"
 
@@ -591,11 +637,14 @@ gorge_search_set() {
             }
         }
 
+        $mode = getenv("GORGE_SEARCH_MODE");
+        $enable = ($mode === "enable");
         $keep = getenv("GORGE_SEARCH_KEEP_MYSQL");
-        $keep_mysql = ($keep === "1" || $keep === "true");
+        $keep_mysql = $enable && ($keep === "1" || $keep === "true");
 
-        // 剔除所有 type=gorge 的条目（我们托管的，整条重写），以及默认情况下的
-        // mysql 条目。其余条目（比如用户手工配的 elasticsearch）连相对顺序一起保留。
+        // type=gorge 的条目由这个部署开关整体托管，启用和停用时都先
+        // 剔除旧值。启用且未要求 fallback 时同时剔除 mysql；停用时保留
+        // mysql 及其它条目（比如用户手工配的 elasticsearch）的相对顺序。
         $services = array();
         $has_mysql = false;
         foreach ($existing as $spec) {
@@ -604,7 +653,7 @@ gorge_search_set() {
                 if ($type === "gorge") {
                     continue;
                 }
-                if ($type === "mysql") {
+                if ($enable && $type === "mysql") {
                     if (!$keep_mysql) {
                         continue;
                     }
@@ -626,22 +675,31 @@ gorge_search_set() {
             );
         }
 
-        $gorge = array(
-            "type"  => "gorge",
-            "hosts" => array(
-                array(
-                    "host"     => getenv("GORGE_SEARCH_HOST"),
-                    "port"     => (int)getenv("GORGE_SEARCH_PORT"),
-                    "protocol" => getenv("GORGE_SEARCH_PROTOCOL"),
-                    // 读写都给 gorge。扇出与 failover 全部交给服务端的 backends，
-                    // 不在 Phorge 这一层再配一半，见 DOCKER.md。
-                    "roles"    => array("read" => true, "write" => true),
+        if ($enable) {
+            $gorge = array(
+                "type"  => "gorge",
+                "hosts" => array(
+                    array(
+                        "host"     => getenv("GORGE_SEARCH_HOST"),
+                        "port"     => (int)getenv("GORGE_SEARCH_PORT"),
+                        "protocol" => getenv("GORGE_SEARCH_PROTOCOL"),
+                        // 读写都给 gorge。扇出与 failover 全部交给服务端的 backends，
+                        // 不在 Phorge 这一层再配一半，见 DOCKER.md。
+                        "roles"    => array("read" => true, "write" => true),
+                    ),
                 ),
-            ),
-        );
+            );
 
-        // 插到最前面，理由见上面那段注释里的第三条。
-        array_unshift($services, $gorge);
+            // 插到最前面，理由见上面那段注释里的第三条。
+            array_unshift($services, $gorge);
+        } else if (!$services) {
+            // 禁用默认编排托管的 Gorge 检索后，若没有其它用户配置，
+            // 显式恢复 Phorge 的 MySQL/Ferret 默认引擎。
+            $services[] = array(
+                "type"  => "mysql",
+                "roles" => array("read" => true, "write" => true),
+            );
+        }
 
         echo json_encode(array_values($services), JSON_UNESCAPED_SLASHES);
     ' | "$CONFIG_BIN" set cluster.search --stdin; then
@@ -659,13 +717,15 @@ gorge_search_set() {
 
     # token 是标量，走通用的那条路。它与 gorge.render.token 一样是隐藏配置项，
     # Config 页面上只读。
-    gorge_config_set 'gorge.search.token' "$GORGE_SEARCH_TOKEN"
+    if [ "$GORGE_SEARCH_MODE" = "enable" ]; then
+        gorge_config_set 'gorge.search.token' "$GORGE_SEARCH_TOKEN"
+    fi
 
     return 0
 }
 
 # 不叠加 docker-compose.gorge.yml 时这个变量不存在，整段等于不执行。
-if [ -n "${GORGE_SEARCH_HOST:-}" ]; then
+if [ -n "${GORGE_SEARCH_MODE:-}" ] || [ -n "${GORGE_SEARCH_HOST:-}" ]; then
     echo "[entrypoint] 下发 Gorge 检索配置 ..."
     gorge_search_set
     # 与前几段同样不在这里探 gorge-search 的 /readyz，也**刻意不跑 bin/search
@@ -673,7 +733,7 @@ if [ -n "${GORGE_SEARCH_HOST:-}" ]; then
     # 更要紧的是它会删掉并重建索引，放在每次启动的路径上等于一次误启动就丢掉整个
     # 索引。首次启用要手工跑 init 与全量重建，命令见 DOCKER.md。
 else
-    echo "[entrypoint] 未设置 GORGE_SEARCH_HOST，跳过 Gorge 检索配置。"
+    echo "[entrypoint] 未设置 GORGE_SEARCH_MODE/GORGE_SEARCH_HOST，跳过 Gorge 检索配置。"
 fi
 
 # 文件存储回到最简单的那一类：gorge.file.uri 与 gorge.file.token 都是标量配置项，

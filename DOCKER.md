@@ -28,9 +28,11 @@ docker compose up -d --build
 - 构建应用镜像（拉取 arcanist、编译 PHP 扩展）。
 - 启动 MySQL，等待其健康后由一次性任务 `db-init` 为普通库用户补齐
   `phabricator_%` 整组库的授权（见 `docker/db-grant.sql`）。
-- `phorge-migrate` 独占本地配置写入和 `bin/storage upgrade --force`。新安装默认
-  选择 `collaboration`；检测到现有 `phabricator_meta_data` 且没有持久化选择时
-  保持 `full`，避免升级自动停用应用。
+- `phorge-migrate` 独占 `bin/storage upgrade --force`。它与 Mailer/Search 可选配置
+  任务都会写 `local.json`，entrypoint 通过 `phorge-conf` 共享卷上的排他锁
+  将所有写入串行化。新安装默认选择 `collaboration`；检测到现有
+  `phabricator_meta_data` 且没有持久化选择时保持 `full`，避免升级自动
+  停用应用。
 - schema 完成后，`phorge` 只运行 Apache，`phorge-daemon` 独立监护 phd；两者
   不再重复迁移或争写 `local.json`。
 - 默认启动 render、conduit、notification、file-storage、webhook、taskqueue、
@@ -75,7 +77,9 @@ docker compose --profile gitea up -d
 ```
 
 Mailer 与 Search 的一次性配置任务会随 profile 运行；Search 的全量索引仍需由管理员
-显式执行。`gorge-gitea` 在 Gorge r3 之后才合入，启用 `gitea` profile 前必须设置
+显式执行。之后不带 `--profile search` 再运行基础栈时，`phorge-migrate`
+会移除持久化的 Gorge 搜索条目：其它搜索引擎保持不变，列表为空时恢复
+MySQL/Ferret。`gorge-gitea` 在 Gorge r3 之后才合入，启用 `gitea` profile 前必须设置
 `GORGE_GITEA_IMAGE_TAG` 为实际已经发布的构建；默认 `unreleased` 用来阻止误拉 r3。
 已有安装若暂时不准备接入 Gorge，可以继续运行：
 
