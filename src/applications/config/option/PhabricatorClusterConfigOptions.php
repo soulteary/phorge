@@ -167,22 +167,42 @@ EOTEXT
             'which fronts the worker task queue in place of the local SQL '.
             'implementation.'.
             "\n\n".
-            'Unlike the `%s` handover switch, this is an active client: when '.
-            'this option is set, the daemons call the service over HTTP for '.
+            'This is an active client endpoint: while `%s` selects Gorge, '.
+            'the daemons call the service over HTTP for '.
             'every queue operation (enqueue, lease, complete, fail, yield, '.
             'awaken) instead of running those operations against the local '.
-            'database. When it is empty, the queue is driven with SQL exactly '.
-            'as before, so clearing this option is a complete fallback.'.
+            'database. The default deployment changes owner, endpoint and '.
+            '`%s` together. In legacy `%s` mode only, clearing this endpoint '.
+            'selects the local SQL implementation again.'.
             "\n\n".
             'The service owns the `%s` tables, so it is configured with its '.
             'own database connection settings and its %s must match this '.
             'server\'s %s. `%s` probes this address and reports a setup issue '.
             'when the service does not answer or is not ready.',
-            'gorge.webhook.uri',
+            'gorge.taskqueue.owner',
+            'phd.taskmasters',
+            'auto',
             phutil_tag('tt', array(), '{namespace}_worker'),
             phutil_tag('tt', array(), 'GORGE_TASKQUEUE_NAMESPACE'),
             phutil_tag('tt', array(), 'storage.default-namespace'),
             'PhabricatorGorgeTaskQueueSetupCheck')),
+      $this->newOption('gorge.taskqueue.owner', 'enum', 'auto')
+        ->setLocked(true)
+        ->setEnumOptions(
+          array(
+            'auto' => pht('Infer From Endpoint (Legacy)'),
+            'phorge' => pht('Phorge'),
+            'gorge' => pht('Gorge'),
+          ))
+        ->setSummary(pht('Select the worker queue owner.'))
+        ->setDescription(
+          pht(
+            'Select which runtime owns worker queue operations. The default ' .
+            'deployment sets this explicitly and changes it atomically with ' .
+            'the endpoint. `%s` keeps the legacy behavior in which a ' .
+            'configured `%s` selects Gorge.',
+            'auto',
+            'gorge.taskqueue.uri')),
       $this->newOption('gorge.taskqueue.token', 'string', null)
         ->setHidden(true)
         ->setDescription(

@@ -151,6 +151,58 @@ final class PhabricatorEnvTestCase extends PhabricatorTestCase {
     $this->assertTrue($caught instanceof Exception);
   }
 
+  public function testDeploymentConfigSource() {
+    $file = new TempFile('deployment.json');
+    Filesystem::writeFile(
+      $file,
+      phutil_json_encode(
+        array(
+          'gorge.webhook.owner' => 'gorge',
+          'phd.taskmasters' => 0,
+        )));
+
+    $source = new PhabricatorDeploymentConfigSource((string)$file);
+
+    $this->assertEqual(
+      array(
+        'gorge.webhook.owner' => 'gorge',
+        'phd.taskmasters' => 0,
+      ),
+      $source->getAllKeys());
+    $this->assertFalse($source->canWrite());
+
+    $database = new PhabricatorConfigDictionarySource(
+      array('gorge.webhook.owner' => 'phorge'));
+    $stack = id(new PhabricatorConfigStackSource())
+      ->pushSource($database)
+      ->pushSource($source);
+
+    $this->assertEqual(
+      array('gorge.webhook.owner' => 'gorge'),
+      $stack->getKeys(array('gorge.webhook.owner')));
+
+    // Writes still reach the normal writable source, but can not shadow the
+    // deployment-owned value until this source is removed on the next boot.
+    $stack->setKeys(array('gorge.webhook.owner' => 'phorge'));
+    $this->assertEqual(
+      array('gorge.webhook.owner' => 'gorge'),
+      $stack->getKeys(array('gorge.webhook.owner')));
+  }
+
+  public function testDeploymentConfigRejectsList() {
+    $file = new TempFile('deployment-list.json');
+    Filesystem::writeFile($file, '["not", "an", "object"]');
+
+    $caught = null;
+    try {
+      new PhabricatorDeploymentConfigSource((string)$file);
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+  }
+
   public function testOverrides() {
     $outer = PhabricatorEnv::beginScopedEnv();
 

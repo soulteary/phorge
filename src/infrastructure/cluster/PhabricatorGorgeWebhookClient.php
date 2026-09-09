@@ -31,7 +31,8 @@ final class PhabricatorGorgeWebhookClient
   const PATH_HOOKS = '/api/webhook/hooks';
 
   public function __construct() {
-    $uri = self::getConfiguredURI();
+    $service = PhabricatorGorgeServiceRegistry::getService('webhook');
+    $uri = $service->getConfiguredURI();
 
     if ($uri === null) {
       throw new Exception(
@@ -42,8 +43,7 @@ final class PhabricatorGorgeWebhookClient
     }
 
     $this->setURI($uri);
-    $this->setToken(
-      PhabricatorEnv::getEnvConfigIfExists('gorge.webhook.token'));
+    $this->setToken($service->getConfiguredToken());
   }
 
   protected static function getServiceName() {
@@ -70,15 +70,8 @@ final class PhabricatorGorgeWebhookClient
    *   the service is not configured.
    */
   public static function getConfiguredURI() {
-    $uri = PhabricatorEnv::getEnvConfigIfExists('gorge.webhook.uri');
-
-    if (!phutil_nonempty_string($uri)) {
-      return null;
-    }
-
-    // Trailing slashes matter: the service routes exactly, and a doubled
-    // slash produces an "ERR_NOT_FOUND" envelope rather than a result.
-    return rtrim($uri, '/');
+    return PhabricatorGorgeServiceRegistry::getService('webhook')
+      ->getConfiguredURI();
   }
 
   public static function isConfigured() {
@@ -114,7 +107,8 @@ final class PhabricatorGorgeWebhookClient
    * @return bool True if the service owns delivery.
    */
   public static function isDeliveryDelegated() {
-    if (!self::isConfigured()) {
+    $service = PhabricatorGorgeServiceRegistry::getService('webhook');
+    if (!$service->isOwnedBy('gorge')) {
       return false;
     }
 

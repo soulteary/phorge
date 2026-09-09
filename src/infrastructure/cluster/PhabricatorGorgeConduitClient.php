@@ -29,7 +29,8 @@ final class PhabricatorGorgeConduitClient
   extends PhabricatorGorgeServiceClient {
 
   public function __construct() {
-    $uri = self::getConfiguredURI();
+    $service = PhabricatorGorgeServiceRegistry::getService('conduit');
+    $uri = $service->getConfiguredURI();
 
     if ($uri === null) {
       throw new Exception(
@@ -40,8 +41,7 @@ final class PhabricatorGorgeConduitClient
     }
 
     $this->setURI($uri);
-    $this->setToken(
-      PhabricatorEnv::getEnvConfigIfExists('gorge.conduit.token'));
+    $this->setToken($service->getConfiguredToken());
   }
 
   protected static function getServiceName() {
@@ -65,15 +65,8 @@ final class PhabricatorGorgeConduitClient
    *   the service is not configured.
    */
   public static function getConfiguredURI() {
-    $uri = PhabricatorEnv::getEnvConfigIfExists('gorge.conduit.uri');
-
-    if (!phutil_nonempty_string($uri)) {
-      return null;
-    }
-
-    // Trailing slashes matter: the gateway routes exactly, and a doubled
-    // slash produces a route mismatch rather than a forwarded call.
-    return rtrim($uri, '/');
+    return PhabricatorGorgeServiceRegistry::getService('conduit')
+      ->getConfiguredURI();
   }
 
   public static function isConfigured() {

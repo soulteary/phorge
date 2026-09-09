@@ -59,7 +59,8 @@ final class PhabricatorGorgeDBClient
   const CONTRACT_MINOR_MIN = 1;
 
   public function __construct() {
-    $uri = self::getConfiguredURI();
+    $service = PhabricatorGorgeServiceRegistry::getService('db');
+    $uri = $service->getConfiguredURI();
 
     if ($uri === null) {
       throw new Exception(
@@ -70,8 +71,7 @@ final class PhabricatorGorgeDBClient
     }
 
     $this->setURI($uri);
-    $this->setToken(
-      PhabricatorEnv::getEnvConfigIfExists('gorge.db.token'));
+    $this->setToken($service->getConfiguredToken());
   }
 
   protected static function getServiceName() {
@@ -126,15 +126,8 @@ final class PhabricatorGorgeDBClient
    *   the service is not configured.
    */
   public static function getConfiguredURI() {
-    $uri = PhabricatorEnv::getEnvConfigIfExists('gorge.db.uri');
-
-    if (!phutil_nonempty_string($uri)) {
-      return null;
-    }
-
-    // Trailing slashes matter: the service routes exactly, and a doubled
-    // slash produces an "ERR_NOT_FOUND" envelope rather than a result.
-    return rtrim($uri, '/');
+    return PhabricatorGorgeServiceRegistry::getService('db')
+      ->getConfiguredURI();
   }
 
   /**

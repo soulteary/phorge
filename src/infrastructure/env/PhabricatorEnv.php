@@ -324,6 +324,20 @@ final class PhabricatorEnv extends Phobject {
       }
     }
 
+    // Deployment configuration is the final persistent source. It describes
+    // the topology this process is actually running in, so it intentionally
+    // takes precedence over both local.json and database-backed Config values.
+    // The file is optional for source installs and legacy deployments.
+    $deployment_source =
+      PhabricatorDeploymentConfigSource::newOptionalSource();
+    if ($deployment_source) {
+      $deployment_source->setName(
+        pht(
+          "Deployment Config '%s'",
+          $deployment_source->getReadablePath()));
+      $stack->pushSource($deployment_source);
+    }
+
     // Drop the config cache one final time to make sure we're getting clean
     // reads now that we've finished building the stack.
     self::dropConfigCache();

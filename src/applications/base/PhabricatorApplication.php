@@ -81,6 +81,14 @@ abstract class PhabricatorApplication
       return true;
     }
 
+    // Product profiles are runtime deployment policy, not administrator
+    // preference. Keep the user's uninstalled-application set untouched and
+    // apply the profile as an additional gate, so switching back to "full"
+    // never needs a three-way database configuration rollback.
+    if (PhorgeProductProfile::disablesApplication(get_class($this))) {
+      return false;
+    }
+
     $prototypes = PhabricatorEnv::getEnvConfig('phabricator.show-prototypes');
     if (!$prototypes && $this->isPrototype()) {
       return false;

@@ -7,12 +7,31 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+    if (!$service->isOwnedBy('gorge')) {
+      return;
+    }
+
     $uri = PhabricatorGorgeTaskQueueClient::getConfiguredURI();
 
-    // The first stage is implicit: if the service is not configured, the
-    // daemon drives the queue with SQL as it always has, so there is nothing
-    // to report.
     if ($uri === null) {
+      $this->newIssue('gorge.taskqueue.owner-without-endpoint')
+        ->setName(pht('Gorge Owns Queue Without an Endpoint'))
+        ->setSummary(
+          pht(
+            'Queue ownership is assigned to Gorge, but no task queue ' .
+            'endpoint is configured.'))
+        ->setMessage(
+          pht(
+            'Set `%s` to a reachable task queue service, or atomically set ' .
+            '`%s` back to `%s`. Phorge deliberately does not fall back to ' .
+            'SQL while Gorge owns the queue, because that would reactivate ' .
+            'a second consumer.',
+            'gorge.taskqueue.uri',
+            'gorge.taskqueue.owner',
+            'phorge'))
+        ->addRelatedPhabricatorConfig('gorge.taskqueue.owner')
+        ->addRelatedPhabricatorConfig('gorge.taskqueue.uri');
       return;
     }
 

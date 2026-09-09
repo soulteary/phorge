@@ -25,6 +25,23 @@ final class PhabricatorHeraldConfigOptions
 
   public function getOptions() {
     return array(
+      $this->newOption('gorge.webhook.owner', 'enum', 'auto')
+        ->setLocked(true)
+        ->setEnumOptions(
+          array(
+            'auto' => pht('Infer From Endpoint (Legacy)'),
+            'phorge' => pht('Phorge'),
+            'gorge' => pht('Gorge'),
+          ))
+        ->setSummary(pht('Select the Herald webhook delivery owner.'))
+        ->setDescription(
+          pht(
+            'Select exactly one consumer for Herald webhook requests. The ' .
+            'default deployment writes an explicit owner through its ' .
+            'read-only deployment configuration. `%s` preserves the older ' .
+            'behavior in which a nonempty `%s` implicitly selected Gorge.',
+            'auto',
+            'gorge.webhook.uri')),
       $this->newOption('gorge.webhook.uri', 'string', null)
         ->setLocked(true)
         ->setSummary(pht('Base URI of the Gorge webhook service.'))
@@ -34,12 +51,12 @@ final class PhabricatorHeraldConfigOptions
             'which delivers Herald webhook requests in place of the `%s` '.
             'daemon worker.'.
             "\n\n".
-            'Unlike the other `%s` options, this one is not the address of a '.
-            'service which is called to do a piece of work: it is a handover '.
-            'switch. The service does not receive requests from this server '.
+            'Delivery ownership is selected independently with `%s`. In ' .
+            'legacy `%s` mode, this address also acts as the handover switch. ' .
+            'The service does not receive requests from this server '.
             'at all. It polls the `%s` table directly, claims the rows in '.
-            '`%s` status and writes the outcome back to them, so setting this '.
-            'option is how this server is told to stop scheduling `%s` tasks '.
+            '`%s` status and writes the outcome back to them, so selecting '.
+            'Gorge as owner stops this server from scheduling `%s` tasks '.
             'and leave those rows alone. Delivery moves whether or not the '.
             'address is reachable, which is why `%s` probes it and reports a '.
             'setup issue when it does not answer.'.
@@ -47,15 +64,17 @@ final class PhabricatorHeraldConfigOptions
             'The handover is not complete while `%s` is enabled. Silent mode '.
             'is configuration of this server and the service can not read it, '.
             'so a silent install keeps delivering through the daemon, which '.
-            'fails each request instead of sending it. Clearing this option '.
-            'moves delivery back the same way, and requests which are still '.
-            'in `%s` status are picked up by the daemon from then on.'.
+            'fails each request instead of sending it. Set the owner to '.
+            '`phorge` before stopping Gorge; in legacy `auto` mode, clearing '.
+            'this endpoint performs the same handback. Requests which are '.
+            'still in `%s` status are picked up by the daemon from then on.'.
             "\n\n".
             'Do not include a trailing slash: the service routes exactly, '.
             'and a doubled slash produces an "ERR_NOT_FOUND" error instead '.
             'of a result.',
             'HeraldWebhookWorker',
-            'gorge',
+            'gorge.webhook.owner',
+            'auto',
             'herald_webhookrequest',
             'queued',
             'HeraldWebhookWorker',
