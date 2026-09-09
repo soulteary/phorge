@@ -152,6 +152,10 @@ final class PhabricatorFeedStoryPublisher extends Phobject {
         'key' => (string)$chrono_key,
         'type' => 'notification',
         'subscribers' => $subscribed_phids,
+        // This payload is durable and may be retried after a response-path
+        // failure. Keep the broadcast identifier stable across every attempt
+        // so browser leaders can deduplicate the same feed event.
+        'uniqueID' => hash('sha256', 'feed.notification/'.$chrono_key),
       );
     }
 
