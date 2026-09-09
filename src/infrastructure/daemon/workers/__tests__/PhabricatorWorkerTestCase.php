@@ -27,6 +27,27 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
     $this->expectNextLease($task, pht('Leasing should work.'));
   }
 
+  public function testTaskQueuePreflightFailureCanFallback() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+    $env->overrideEnvConfig('gorge.taskqueue.uri', null);
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+
+    $task = $this->scheduleTask();
+    $this->assertTrue((bool)$task->getID());
+    $stored_task = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertTrue($stored_task instanceof PhabricatorWorkerActiveTask);
+    $this->assertEqual(
+      array('taskqueue.enqueue' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
   public function testMultipleLease() {
     $task = $this->scheduleTask();
 

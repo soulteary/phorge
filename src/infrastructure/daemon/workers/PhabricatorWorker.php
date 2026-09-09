@@ -220,12 +220,6 @@ abstract class PhabricatorWorker extends Phobject {
       if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
         try {
           $client = new PhabricatorGorgeTaskQueueClient();
-          $result = $client->enqueue($task_class, $data, array(
-            'priority'      => $priority,
-            'objectPHID'    => $object_phid,
-            'containerPHID' => $container_phid,
-            'delayUntil'    => idx($options, 'delayUntil'),
-          ));
         } catch (Exception $ex) {
           $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
           if (!$service->isFallbackAllowed()) {
@@ -234,10 +228,22 @@ abstract class PhabricatorWorker extends Phobject {
 
           $service->recordFallback('enqueue');
           phlog($ex);
-          $result = null;
+          $client = null;
         }
 
-        if ($result !== null) {
+        if ($client !== null) {
+          // Do not catch failures after beginning this request. Gorge may
+          // have committed the task before the response was lost, and a SQL
+          // fallback would then enqueue the same work twice. Cross-path
+          // fallback is safe only for the constructor failure above, which
+          // happens before any request is transmitted.
+          $result = $client->enqueue($task_class, $data, array(
+            'priority'      => $priority,
+            'objectPHID'    => $object_phid,
+            'containerPHID' => $container_phid,
+            'delayUntil'    => idx($options, 'delayUntil'),
+          ));
+
           $ephemeral = id(new PhabricatorWorkerActiveTask())
             ->makeEphemeral()
             ->setTaskClass($task_class)
