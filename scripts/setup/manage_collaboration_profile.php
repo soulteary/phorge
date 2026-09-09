@@ -299,7 +299,25 @@ if ($mode === 'collaboration') {
 } else {
   $state = load_profile_state($state_path);
   if ($state === null) {
-    echo pht('No collaboration profile state exists; no applications changed.')."\n";
+    if ($uninstalled !== $keyed_uninstalled) {
+      // The initial profile wrote a numeric list and had no rollback state.
+      // Numeric managed entries belong to that profile; valid keyed entries
+      // remain administrator choices. Normalize any other legacy values too.
+      foreach ($managed_applications as $application) {
+        if (!isset($keyed_uninstalled[$application])) {
+          unset($uninstalled[$application]);
+        }
+      }
+      $database_baseline = capture_database_config($uninstalled_key);
+      store_at_original_source(
+        $uninstalled_key,
+        $uninstalled,
+        $database_baseline);
+      echo pht('Normalized the legacy uninstalled application set.')."\n";
+    } else {
+      echo pht(
+        'No collaboration profile state exists; no applications changed.')."\n";
+    }
     exit(0);
   }
 
