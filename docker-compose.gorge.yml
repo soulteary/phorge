@@ -792,18 +792,32 @@ services:
         condition: service_completed_successfully
     environment:
       GORGE_LISTEN_ADDR: ":8080"
-      # 同一个值也会下发给 phorge，写进 gorge.db.token。
+      # 同一个值也会下发给 phorge，写进 gorge.db.token。生产必须非空：留空会关闭
+      # 服务端鉴权，任何能连到 :8080 的客户端都能读到集群拓扑与各节点状态。
       GORGE_SERVICE_TOKEN: ${GORGE_DB_TOKEN:-}
-      # 单节点模式直接复用基础编排的数据库账号；db-api 只执行 SHOW、SELECT 与
-      # INFORMATION_SCHEMA 查询，不需要 DDL 权限。
+      # 单节点默认直接复用基础编排的数据库账号，方便开箱即用。db-api 只执行 SHOW、
+      # SELECT 与 INFORMATION_SCHEMA 查询，不需要 DDL 权限——所以生产环境不应让它
+      # 复用 root / MYSQL_USER 这种全权限账号。为它建一个最小权限只读账号并改用它：
+      #
+      #   CREATE USER 'gorge_dbapi_ro'@'%' IDENTIFIED BY '...';
+      #   GRANT SELECT ON `information_schema`.* TO 'gorge_dbapi_ro'@'%';
+      #   GRANT SELECT ON `phabricator_meta_data`.* TO 'gorge_dbapi_ro'@'%';
+      #   GRANT SHOW VIEW ON *.* TO 'gorge_dbapi_ro'@'%';
+      #   GRANT REPLICATION CLIENT ON *.* TO 'gorge_dbapi_ro'@'%';
+      #
+      # 然后把 GORGE_DB_MYSQL_USER / _PASS 指向它（见 DOCKER.md「用 Gorge 做数据库
+      # 诊断」一节，含 MySQL 8 / MariaDB 最小权限集验证说明与多节点专用配置文件示例）。
       GORGE_DB_MYSQL_HOST: mysql
       GORGE_DB_MYSQL_PORT: "3306"
-      GORGE_DB_MYSQL_USER: ${MYSQL_USER:-phorge}
-      GORGE_DB_MYSQL_PASS: ${MYSQL_PASSWORD:-phorge}
+      GORGE_DB_MYSQL_USER: ${GORGE_DB_MYSQL_USER:-${MYSQL_USER:-phorge}}
+      GORGE_DB_MYSQL_PASS: ${GORGE_DB_MYSQL_PASS:-${MYSQL_PASSWORD:-phorge}}
       # 必须与 Phorge 的 storage.default-namespace 一致。
       GORGE_DB_NAMESPACE: ${GORGE_DB_NAMESPACE:-phabricator}
-      # 可选的 Phorge local.json 路径。非空时还要通过 compose override 把该文件只读
-      # 挂载到容器内；服务会从 cluster.databases 读取完整拓扑。默认空值使用上面的单节点。
+      # 可选的 Phorge local.json 路径。非空时 db-api fail closed（文件缺失/JSON 非法/
+      # 无可用 master 会启动失败，而不是退回单节点），且要通过第三个 compose override
+      # 把配置文件只读挂入容器；服务从 cluster.databases 读取完整拓扑。默认空值用上面
+      # 的单节点。多节点建议挂一份只含 namespace/节点/角色/分区/只读账号引用的专用文件，
+      # 而不是整份 local.json——见 DOCKER.md。
       GORGE_DB_CONFIG_FILE: ${GORGE_DB_CONFIG_FILE:-}
     # 刻意不发布宿主端口：只有 phorge 通过 compose 内网访问它。
     healthcheck:

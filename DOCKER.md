@@ -1530,7 +1530,7 @@ docker compose exec phorge \
 | 变量 | 默认值 | 作用 |
 |---|---|---|
 | `GORGE_DB_URL` | `http://gorge-db-api:8080` | PHP 访问 db-api 的内部地址；显式留空可停止切流 |
-| `GORGE_DB_TOKEN` | 空 | 同时下发给服务端与 PHP 客户端的共享 token |
+| `GORGE_DB_TOKEN` | 空 | 同时下发给服务端与 PHP 客户端的共享 token。**生产必须非空**：留空会关闭服务端鉴权，任何能连到它端口的客户端都能读到集群拓扑与各节点状态；Config 页会就此报安全警告（`gorge.db.token.missing`） |
 | `GORGE_DB_IMAGE_TAG` | 空（继承 `GORGE_IMAGE_TAG`） | 统一 package 中 db-api 的标签后缀；实际标签为 `db-api-<值>` |
 | `GORGE_DB_NAMESPACE` | `phabricator` | 库名前缀，必须等于 `storage.default-namespace` |
 | `GORGE_DB_CONFIG_FILE` | 空 | 可选的 Phorge `local.json` 容器内路径；空值使用单节点配置 |
@@ -1539,32 +1539,107 @@ Compose 对 `gorge-db-api` 使用 `/healthz` 健康检查，`phorge` 只以 `ser
 依赖它；数据库可达性由 `/readyz` 和 `PhabricatorGorgeDBSetupCheck` 报告。这个区分要保留：
 进程已经启动与数据库诊断已经可用是两种状态，首启迁移期间不应让前者阻塞 Phorge。
 
-默认单节点部署不需要挂配置文件。多节点部署可以让 db-api 读取 Phorge 已生成的
-`cluster.databases`，在 `.env` 设置：
+默认单节点部署不需要挂配置文件。多节点部署要让 db-api 读到集群拓扑，有两种做法，都要**新建第三个 override 文件**——本节所有命令因此都带三个 `-f`（`docker-compose.yml`、`docker-compose.gorge.yml`、以及下面这个多节点 override，约定名为 `docker-compose.gorge-multinode.yml`）。缺了第三个 `-f`，挂载和环境变量都不会生效，服务会静默退回单节点。
 
-```dotenv
-GORGE_DB_CONFIG_FILE=/opt/phorge/phorge/conf/local/local.json
+> 从这里起，把下面这行别名记在手边，后续命令都用它：
+>
+> ```bash
+> alias dc='docker compose -f docker-compose.yml -f docker-compose.gorge.yml -f docker-compose.gorge-multinode.yml'
+> ```
+
+#### 做法 A（推荐）：专用只读配置文件 + 只读 DB 账号
+
+不要长期把整份 `local.json` 挂进 db-api。它含有远超 db-api 所需的东西（所有应用密钥、mailer 凭据、第三方 token……），而 db-api 只需要 `cluster.databases`、命名空间，和一组只读的连接凭据引用。为它单独写一份最小配置文件，例如仓库里的 `deploy/gorge-db-cluster.json`：
+
+```json
+{
+  "storage.default-namespace": "phabricator",
+  "mysql.user": "gorge_dbapi_ro",
+  "cluster.databases": [
+    {"host": "mysql-master-1", "port": 3306, "role": "master", "partition": ["default"]},
+    {"host": "mysql-master-2", "port": 3306, "role": "master", "partition": ["maniphest"]},
+    {"host": "mysql-replica-1", "port": 3306, "role": "replica"}
+  ]
+}
 ```
 
-再用一个本地 `docker-compose.override.yml` 把同一个配置卷只读挂入服务：
+这份文件只描述 namespace / 节点 / 角色 / 分区，以及要用哪个账号连（`mysql.user`），密码由环境变量 `GORGE_DB_MYSQL_PASS` 提供而**不写进文件**。它不含任何应用密钥，可以安全地放进部署仓库、以只读方式挂载、长期存在。
+
+db-api 的所有业务路由都是只读的——它只跑 `SHOW` / `SELECT` / `INFORMATION_SCHEMA` 与读 `patch_status` / `hoststate`——所以**不要让它复用 root 或 `MYSQL_USER` 这种 ALL PRIVILEGES 账号**。为它建一个最小权限的只读账号（在每个被诊断的节点上执行；先在 MySQL 8 与 MariaDB 上各验证一遍下面这组权限足够、且不多给）：
+
+```sql
+CREATE USER 'gorge_dbapi_ro'@'%' IDENTIFIED BY 'a-strong-secret';
+-- 读取库/表/列/索引元信息（schema-diff / schema-issues / charset-info）
+GRANT SELECT ON `information_schema`.* TO 'gorge_dbapi_ro'@'%';
+-- 读取迁移状态：{namespace}_meta_data.patch_status 与多 master 同步表 hoststate
+GRANT SELECT ON `phabricator\_meta\_data`.* TO 'gorge_dbapi_ro'@'%';
+-- 读取视图定义（部分 INFORMATION_SCHEMA 查询需要）
+GRANT SHOW VIEW ON *.* TO 'gorge_dbapi_ro'@'%';
+-- 复制状态：SHOW REPLICA STATUS 需要 REPLICATION CLIENT（MariaDB 亦同名）
+GRANT REPLICATION CLIENT ON *.* TO 'gorge_dbapi_ro'@'%';
+FLUSH PRIVILEGES;
+```
+
+> 权限说明：`REPLICATION CLIENT` 只暴露复制状态，不含数据；没有它时 db-api 会把该节点标成 `replication-client`（一个去授权即可解决的状态，不是故障）。**不要**授予 `PROCESS`、`SUPER`、`RELOAD` 或任何写权限。上面这组请务必在 MySQL 8 与 MariaDB 两种目标上都实测确认后再固化到文档/脚本，两者对 `information_schema` 的可见性与 `SHOW REPLICA/SLAVE STATUS` 的权限判定略有差异。
+
+`docker-compose.gorge-multinode.yml` 把这份专用文件只读挂入，并指向只读账号：
 
 ```yaml
 services:
   gorge-db-api:
+    environment:
+      # 指向容器内的专用配置文件（做法 A）。
+      GORGE_DB_CONFIG_FILE: /etc/gorge/gorge-db-cluster.json
+      # 只读账号的密码单独下发，不写进配置文件。
+      GORGE_DB_MYSQL_PASS: ${GORGE_DB_RO_PASSWORD:-}
+    volumes:
+      # 只读挂载，且只挂这一份最小文件，不是整个 conf 目录。
+      - ./deploy/gorge-db-cluster.json:/etc/gorge/gorge-db-cluster.json:ro
+```
+
+#### 做法 B（备选）：挂 Phorge 生成的 local.json
+
+若不想维护第二份文件，也可以直接让 db-api 读 Phorge 已生成的 `cluster.databases`。这条路省事，但代价是把整份 `local.json`（含所有密钥）暴露给 db-api 进程——**务必只读挂载，并清楚这份文件的敏感范围**，且仍应把 `mysql.user` 指向上面的只读账号而非 root：
+
+```yaml
+services:
+  gorge-db-api:
+    environment:
+      GORGE_DB_CONFIG_FILE: /opt/phorge/phorge/conf/local/local.json
     volumes:
       - phorge-conf:/opt/phorge/phorge/conf/local:ro
 ```
 
-首次生成 `local.json` 后重启 `gorge-db-api` 和 `phorge`，让服务重新读取拓扑：
+#### 应用配置与重启
+
+`GORGE_DB_CONFIG_FILE` 非空时 db-api **fail closed**：文件缺失、JSON 非法、字段类型错、或没有任何可用 master，都会让服务启动失败并在日志里说明，而不是悄悄退回单节点。这是刻意的——一份坏的集群描述必须被看见，而不是被降级掩盖。
+
+首次生成配置后，或每次给 `gorge-db-api` 新增挂载 / 环境变量之后，用 `--force-recreate` 重建容器让它带上新配置，**不要用 `restart`**：`restart` 只是重启进程，不会应用新的 volume 或 environment，服务会带着旧配置起来、看起来没报错却读的是老拓扑。
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml \
-  restart gorge-db-api phorge
+dc up -d --force-recreate gorge-db-api
+# 若同时改了 phorge 侧配置，再让 phorge 重新读一次：
+dc up -d --force-recreate phorge
 ```
+
+重建后确认拓扑与契约都对：
+
+```bash
+# 服务能连到某台 master。
+dc exec gorge-db-api wget -qO- http://127.0.0.1:8080/readyz
+
+# 契约元信息：contractVersion / namespace / topologySource=file / 能力列表。
+# 带 token（留空时可省掉 --header），token 只能走 header，不能放 query。
+dc exec gorge-db-api wget -qO- \
+  --header="X-Service-Token: $GORGE_DB_TOKEN" \
+  http://127.0.0.1:8080/api/db/meta
+```
+
+`namespace` 必须与 Phorge 的 `storage.default-namespace` 一致、`contractVersion` 的 major 必须被这套 Phorge 认得——不一致时 `PhabricatorGorgeDBSetupCheck` 会在 Config 页报致命 setup issue，控制台继续走原生 SQL。
 
 ### 回滚
 
-先在 `.env` 显式留空 `GORGE_DB_URL=`，再清掉已经持久化的 URI 并重启 Phorge：
+先在 `.env` 显式留空 `GORGE_DB_URL=`，再清掉已经持久化的 URI 并重启 Phorge（多节点部署带上第三个 `-f docker-compose.gorge-multinode.yml`）：
 
 ```bash
 docker compose exec phorge \

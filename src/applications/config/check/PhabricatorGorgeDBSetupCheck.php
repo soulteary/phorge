@@ -27,7 +27,98 @@ final class PhabricatorGorgeDBSetupCheck extends PhabricatorSetupCheck {
       return;
     }
 
-    $this->checkReady($uri);
+    $this->checkToken();
+
+    if (!$this->checkReady($uri)) {
+      return;
+    }
+
+    $this->checkContract($uri);
+  }
+
+
+  /**
+   * Warn when the service is enabled without a shared token.
+   *
+   * The database console reads server health, schema and setup issues from
+   * the service, and while none of those routes writes, they do report the
+   * cluster's topology and per-node status — exactly the map an attacker
+   * probing the network would want. An empty token disables the service's
+   * authentication entirely, so anything that can reach the service's port
+   * can read that map. A production deployment must set one.
+   */
+  private function checkToken() {
+    $token = PhabricatorEnv::getEnvConfigIfExists('gorge.db.token');
+    if (phutil_nonempty_string($token)) {
+      return;
+    }
+
+    $summary = pht(
+      'The Gorge database service is enabled without a shared token, so its '.
+      'diagnostic endpoints are unauthenticated.');
+
+    $message = pht(
+      'This software fronts the database cluster with the Gorge database '.
+      'service, but %s is not set. An empty token disables the service\'s '.
+      'authentication: any client that can reach its port can read the '.
+      'cluster topology, per-server health and schema reports the service '.
+      'exposes. None of those routes writes, but they are still a detailed '.
+      'map of your database tier.'.
+      "\n\n".
+      'Set %s to a shared secret and configure the service with the same '.
+      'value (its %s environment variable) so the two authenticate to each '.
+      'other. This is required for any deployment where the service\'s port '.
+      'is reachable by anything other than this server.',
+      phutil_tag('tt', array(), 'gorge.db.token'),
+      phutil_tag('tt', array(), 'gorge.db.token'),
+      phutil_tag('tt', array(), 'GORGE_SERVICE_TOKEN'));
+
+    $this->newIssue('gorge.db.token.missing')
+      ->setName(pht('Gorge Database Service Has No Token'))
+      ->setSummary($summary)
+      ->setMessage($message)
+      ->addRelatedPhabricatorConfig('gorge.db.token');
+  }
+
+
+  /**
+   * Verify the service speaks a contract this install can read.
+   *
+   * Before the console trusts the service's data, it confirms the service's
+   * contract major version matches what this software reads and that the
+   * service was configured for the same namespace. A mismatch on either is a
+   * fatal setup issue: reading the wrong version's fields or a different
+   * install's databases is worse than falling back, so the console keeps
+   * using native SQL until the service is aligned.
+   *
+   * @param string $uri Base URI of the service.
+   */
+  private function checkContract($uri) {
+    $expected_namespace = PhabricatorEnv::getEnvConfig(
+      'storage.default-namespace');
+
+    try {
+      $client = new PhabricatorGorgeDBClient();
+      $problem = $client->checkContractCompatibility($expected_namespace);
+    } catch (Exception $ex) {
+      // Reaching the capability endpoint failed even though /readyz answered
+      // a moment ago. checkReady already reports an unreachable/not-ready
+      // service, so do not double-report here; the console's own fallback
+      // covers it.
+      return;
+    }
+
+    if ($problem === null) {
+      return;
+    }
+
+    $this->newIssue('gorge.db.contract')
+      ->setName(pht('Gorge Database Service Contract Mismatch'))
+      ->setSummary($problem['summary'])
+      ->setMessage($problem['detail'])
+      ->setIsFatal(true)
+      ->addRelatedPhabricatorConfig('gorge.db.uri')
+      ->addRelatedPhabricatorConfig('storage.default-namespace');
   }
 
 
@@ -156,24 +247,36 @@ final class PhabricatorGorgeDBSetupCheck extends PhabricatorSetupCheck {
       "\n\n".
       '%s'.
       "\n\n".
-      'Readiness here means the service can connect to the master database. '.
-      'It is configured with its own connection settings (%s, %s, %s, %s and '.
-      '%s), and %s must name the same prefix as %s does on this side, because '.
-      'the service selects the %s database on connect.'.
+      'Readiness here means one thing only: the service could open a '.
+      'connection to a configured master and ping it. It deliberately does '.
+      'NOT verify the namespace, that any %s table exists, or that migrations '.
+      'have run — those are checked separately, and requiring them here would '.
+      'deadlock first boot, since %s is created by "bin/storage upgrade" in '.
+      'the Phorge container, which starts after the service. The probe even '.
+      'connects without naming a database so the ping succeeds before Phorge '.
+      'has been set up.'.
+      "\n\n".
+      'The service is configured with its own connection settings (%s, %s, '.
+      '%s, %s and %s); a not-ready result means it could not reach a master '.
+      'with them, so check that they name a host this install\'s MySQL '.
+      'answers on. The namespace still has to match (%s must equal %s on this '.
+      'side) for the console to read the right databases, but that is not '.
+      'what this probe failed on.'.
       "\n\n".
       'While the service is in this state, the database console can not load '.
       'its data, exactly as if the service were down.',
       phutil_tag('tt', array(), $uri),
       phutil_tag('tt', array(), $ready_uri),
       phutil_tag('pre', array(), $reason),
+      phutil_tag('tt', array(), '{namespace}_meta_data'),
+      phutil_tag('tt', array(), '{namespace}_meta_data'),
       phutil_tag('tt', array(), 'GORGE_DB_MYSQL_HOST'),
       phutil_tag('tt', array(), 'GORGE_DB_MYSQL_PORT'),
       phutil_tag('tt', array(), 'GORGE_DB_MYSQL_USER'),
       phutil_tag('tt', array(), 'GORGE_DB_MYSQL_PASS'),
       phutil_tag('tt', array(), 'GORGE_DB_NAMESPACE'),
       phutil_tag('tt', array(), 'GORGE_DB_NAMESPACE'),
-      phutil_tag('tt', array(), 'storage.default-namespace'),
-      phutil_tag('tt', array(), '{namespace}_meta_data'));
+      phutil_tag('tt', array(), 'storage.default-namespace'));
 
     $this->newIssue('gorge.db.notready')
       ->setName(pht('Gorge Database Service Not Ready'))
