@@ -25,6 +25,7 @@ PHD_BIN="$PHORGE_DIR/bin/phd"
 CONFIG_BIN="$PHORGE_DIR/bin/config"
 CONF_DIR="$PHORGE_DIR/conf/local"
 CONF_FILE="$CONF_DIR/local.json"
+COLLABORATION_STATE_FILE="$CONF_DIR/collaboration-profile-state.json"
 
 # 数据库就绪探测的重试次数（每次间隔 3 秒）
 DB_WAIT_RETRIES=60
@@ -127,47 +128,14 @@ gorge_config_set() {
     return 0
 }
 
-# 此处只写由部署拓扑拥有的本地配置。应用停用列表和 Maniphest 自定义字段可能由
-# Web UI 存在数据库配置，而数据库源优先于 local.json；它们要等 schema 就绪后由
-# manage_collaboration_profile.php 基于有效配置合并，不能在这里直接改 local.json。
+# 此处先记录并写入由部署拓扑拥有的本地配置。应用停用列表和 Maniphest 自定义字段
+# 可能由 Web UI 存在数据库配置，而数据库源优先于 local.json；它们要等 schema
+# 就绪后由 manage_collaboration_profile.php 基于有效配置合并。
 configure_product_profile_local() {
-    export CONF_FILE PHORGE_PRODUCT_PROFILE GITEA_BASE_URI GORGE_RENDER_URI
-    if ! php -r '
-        $file = getenv("CONF_FILE");
-        $raw = @file_get_contents($file);
-        $config = json_decode($raw, true);
-        if (!is_array($config)) {
-            fwrite(STDERR, "local.json is not a JSON object.\n");
-            exit(1);
-        }
-
-        $profile = getenv("PHORGE_PRODUCT_PROFILE");
-        $config["phorge.product-profile"] = $profile;
-
-        if ($profile === "collaboration") {
-            $config["gorge.diff.enabled"] = false;
-
-            $gitea_uri = getenv("GITEA_BASE_URI");
-            if ($gitea_uri !== false && strlen($gitea_uri)) {
-                $config["gitea.uri"] = rtrim($gitea_uri, "/")."/";
-            }
-            if (strlen((string)getenv("GORGE_RENDER_URI"))) {
-                // syntax-highlighter.engine is a class config: "gorge" is not
-                // a valid wire value. This is the registered Gorge engine.
-                $config["syntax-highlighter.engine"] =
-                    "PhabricatorGorgeSyntaxHighlighterEngine";
-            }
-        }
-
-        $tmp = $file.".product-profile.tmp";
-        $json = json_encode(
-            $config,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
-        if (file_put_contents($tmp, $json) === false || !rename($tmp, $file)) {
-            @unlink($tmp);
-            exit(1);
-        }
-    '; then
+    export GITEA_BASE_URI GORGE_RENDER_URI
+    if ! php "$PHORGE_DIR/scripts/setup/manage_collaboration_local.php" \
+        "$PHORGE_PRODUCT_PROFILE" "$CONF_FILE" \
+        "$COLLABORATION_STATE_FILE"; then
         echo "[entrypoint] 警告: 产品模式本地配置失败，保留当前配置。" >&2
         return 0
     fi
@@ -888,8 +856,7 @@ fi
 
 # 应用安装状态既可以来自 local.json，也可以由管理员在 Web UI 写进优先级更高的
 # 数据库配置。schema 就绪后再读取有效配置、写回合并结果；协作模式首次启用时把
-# “本次新增停用”的应用记在持久化状态文件里，full 模式只恢复这些应用。
-COLLABORATION_STATE_FILE="$CONF_DIR/collaboration-profile-state.json"
+# “本次新增停用”的应用补进持久化状态文件，full 模式只恢复这些应用。
 if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
    [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
     if ! php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \

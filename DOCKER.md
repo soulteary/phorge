@@ -1714,9 +1714,10 @@ PHORGE_PRODUCT_PROFILE=full
 ```
 
 首次启用时，entrypoint 会在持久化配置卷写入
-`conf/local/collaboration-profile-state.json`，只记录本模式新加入停用集合的应用。再次
-`up -d --force-recreate` 后，full 模式仅撤销这份差集；启用协作模式前已由管理员停用的
-应用仍保持停用。任务中的 Gitea 链接和历史评论继续保留。
+`conf/local/collaboration-profile-state.json`：既记录本模式新加入停用集合的应用，也保存
+`gitea.uri`、`gorge.diff.enabled` 和 `syntax-highlighter.engine` 的本地原值。再次
+`up -d --force-recreate` 后，full 模式仅撤销应用差集并恢复这些本地配置；启用协作模式
+前已由管理员停用的应用仍保持停用。任务中的 Gitea 链接和历史评论继续保留。
 
 ## 参考
 

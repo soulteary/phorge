@@ -77,7 +77,10 @@ function load_profile_state($path) {
   $state = json_decode(Filesystem::readFile($path), true);
   if (!is_array($state) ||
       idx($state, 'version') !== 1 ||
-      !is_array(idx($state, 'applicationsAdded'))) {
+      !is_array(idx($state, 'localSettings')) ||
+      !array_key_exists('applicationsAdded', $state) ||
+      ($state['applicationsAdded'] !== null &&
+       !is_array($state['applicationsAdded']))) {
     throw new Exception(
       pht('Collaboration profile state file "%s" is invalid.', $path));
   }
@@ -118,17 +121,37 @@ function store_effective_config($key, $value) {
     $source);
 }
 
+function keyed_application_set($value) {
+  $result = array();
+  foreach ((array)$value as $key => $item) {
+    if (is_string($key) && $item) {
+      $result[$key] = true;
+    }
+  }
+  return $result;
+}
+
 $uninstalled_key = 'phabricator.uninstalled-applications';
 $fields_key = 'maniphest.custom-field-definitions';
+$raw_uninstalled = PhabricatorEnv::getEnvConfig($uninstalled_key);
+$keyed_uninstalled = keyed_application_set($raw_uninstalled);
 $uninstalled = normalize_application_set(
-  PhabricatorEnv::getEnvConfig($uninstalled_key));
+  $raw_uninstalled);
 
 if ($mode === 'collaboration') {
   $state = load_profile_state($state_path);
   if ($state === null) {
+    throw new Exception(
+      pht('Collaboration local baseline "%s" does not exist.', $state_path));
+  }
+
+  if ($state['applicationsAdded'] === null) {
     $added = array();
     foreach ($managed_applications as $application) {
-      if (!isset($uninstalled[$application])) {
+      // Only a keyed entry is a valid administrator-defined uninstall. A
+      // numeric entry came from the initial, broken profile implementation
+      // and must be treated as something this profile added.
+      if (!isset($keyed_uninstalled[$application])) {
         $added[$application] = true;
       }
     }
@@ -136,10 +159,7 @@ if ($mode === 'collaboration') {
     // Record the baseline before changing database configuration. A failed
     // config write is safe to retry; a successful write without this record
     // would make a later rollback unable to distinguish administrator choices.
-    $state = array(
-      'version' => 1,
-      'applicationsAdded' => $added,
-    );
+    $state['applicationsAdded'] = $added;
     write_profile_state($state_path, $state);
   }
 
