@@ -25,6 +25,7 @@ CONFIG_BIN="$PHORGE_DIR/bin/config"
 CONF_DIR="$PHORGE_DIR/conf/local"
 CONF_FILE="$CONF_DIR/local.json"
 COLLABORATION_STATE_FILE="$CONF_DIR/collaboration-profile-state.json"
+TASKQUEUE_STATE_FILE="$CONF_DIR/gorge-taskqueue-state.json"
 CONFIG_LOCK_FILE="$CONF_DIR/.entrypoint.lock"
 
 # 数据库就绪探测的重试次数（每次间隔 3 秒）
@@ -131,8 +132,8 @@ fi
 # scripts/init/init-setup.php 以 config.optional 方式初始化，数据库连不上也能跑。
 #
 # 函数额外把「这一次到底写没写进去」留在 GORGE_CONFIG_SET_OK 里（1 写成功，0 没写）。
-# 返回码仍恒为 0，调用方不检查它也不受影响；只有 webhook 那一段会读，因为它是唯一
-# 一个「没写进去」比「没配」更危险的配置项，理由见那一段。
+# 返回码仍恒为 0，调用方不检查它也不受影响；webhook 与 taskqueue 会读取
+# GORGE_CONFIG_SET_OK，因为这两个域的配置同时决定消费者所有权，理由见对应段落。
 gorge_config_set() {
     gorge_key="$1"
     gorge_value="$2"
@@ -836,22 +837,22 @@ fi
 # Webhook 在形式上和文件存储一样：gorge.webhook.uri 与 gorge.webhook.token 都是标量配置
 # 项，整项归 Gorge 所有，走现成的 gorge_config_set 就够了。
 #
-# 语义上它却和上面五段都不同，而且是唯一一个「写失败」比「没配」更糟的：
+# 语义上它却和上面五段都不同，而且「写失败」比「没配」更糟：
 #
 #   前五个服务是 phorge 去调用的，配置写不进去，phorge 就继续用自带的实现，最坏结果是
 #   Gorge 那个容器白跑。webhook 不是 —— gorge-webhook 直接轮询 herald_webhookrequest
 #   这张队列表，它压根不看 phorge 的配置。phorge 侧读 gorge.webhook.uri 只是为了决定
 #   「还要不要自己发」（PhabricatorGorgeWebhookClient::isDeliveryDelegated()）。
 #
-#   于是「gorge-webhook 容器在跑 + gorge.webhook.uri 没写进去」= phd 和 Go 同时投递同
-#   一批行，**每个 webhook 发两次**。而这正是本段最可能的失败模式：新增的配置项要在
+#   于是「gorge-webhook 容器在跑 + gorge.webhook.uri 没写进去」= phd 和 Go 同时竞争同
+#   一批行，产生重复投递竞态（部分请求可能发送两次）。而这正是本段最危险的失败模式：
+#   新增的配置项要在
 #   PhabricatorHeraldConfigOptions 里声明并重新生成类映射（arc liberate src/），映射
-#   没跟上时 bin/config 会报 "Configuration key is unknown"，而 gorge_config_set 只打
-#   一行不起眼的警告就放过去了。
+#   没跟上时 bin/config 会报 "Configuration key is unknown"。默认栈会读取
+#   GORGE_CONFIG_SET_OK 并让迁移失败，不允许继续进入所有权不确定的状态。
 #
-# 所以这里比其它几段多做一件事：读 GORGE_CONFIG_SET_OK，写失败时补一条把后果说清楚的
-# 告警。仍然不退出容器 —— 站点起不来比 webhook 发两次严重得多，而这个状态可以在启动日志
-# 里看见，也能从 Config 页面上 gorge.webhook.uri 是空的看出来。
+# 所以这里比其它几段多做一件事：读 GORGE_CONFIG_SET_OK。默认栈写失败时必须退出，
+# 让 Web 与 daemon 都停在迁移依赖上，避免在委派所有权不确定时继续启动。
 #
 # 另外两点：
 #   - 与文件存储那种「写了不等于生效」相反，这一项**写进去就立刻生效**，没有第二步手工
@@ -862,24 +863,50 @@ fi
 #     请求。这一段照写不误，Config 页面的 PhabricatorGorgeWebhookSetupCheck 会把「配了
 #     但因为静默没接管」报出来。
 #
-# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
-if [ -n "${GORGE_WEBHOOK_URI:-}" ] || [ -n "${GORGE_WEBHOOK_TOKEN:-}" ]; then
-    echo "[entrypoint] 下发 Gorge webhook 配置 ..."
-    gorge_config_set 'gorge.webhook.uri' "${GORGE_WEBHOOK_URI:-}"
-    if [ -n "${GORGE_WEBHOOK_URI:-}" ] && [ "${GORGE_CONFIG_SET_OK:-0}" != "1" ]; then
-        echo "[entrypoint] 警告: gorge.webhook.uri 未能写入。" >&2
-        echo "[entrypoint]   若 gorge-webhook 容器正在运行，phd 与它会同时投递同一批" >&2
-        echo "[entrypoint]   webhook 请求，导致**每个 webhook 被发送两次**。" >&2
-        echo "[entrypoint]   处理办法二选一：在宿主上执行 arc liberate src/ 重新生成" >&2
-        echo "[entrypoint]   src/__phutil_library_map__.php 后重建镜像；或先把 .env 里的" >&2
-        echo "[entrypoint]   GORGE_WEBHOOK_URI 清空并停掉 gorge-webhook 服务。" >&2
+# 默认栈显式使用 enable，legacy 栈显式使用 disable。旧叠加编排未设
+# MODE 时保持历史语义：有 URI 就启用 Gorge，没有则不触碰现有配置。
+GORGE_WEBHOOK_MODE="${GORGE_WEBHOOK_MODE:-auto}"
+case "$GORGE_WEBHOOK_MODE" in
+    auto)
+        if [ -n "${GORGE_WEBHOOK_URI:-}" ]; then
+            GORGE_WEBHOOK_MODE=enable
+        else
+            GORGE_WEBHOOK_MODE=preserve
+        fi
+        ;;
+    enable|disable|preserve)
+        ;;
+    *)
+        echo "[entrypoint] 警告: 未知 GORGE_WEBHOOK_MODE=$GORGE_WEBHOOK_MODE，保留现有 webhook 配置。" >&2
+        GORGE_WEBHOOK_MODE=preserve
+        ;;
+esac
+
+if [ "$GORGE_WEBHOOK_MODE" = "disable" ]; then
+    echo "[entrypoint] 撤销 Gorge webhook 委派，恢复 Phorge 原生投递 ..."
+    gorge_config_delete 'gorge.webhook.uri' || exit 1
+    gorge_config_delete 'gorge.webhook.token' || exit 1
+elif [ "$GORGE_WEBHOOK_MODE" = "enable" ]; then
+    if [ -z "${GORGE_WEBHOOK_URI:-}" ]; then
+        echo "[entrypoint] 错误: GORGE_WEBHOOK_MODE=enable 但 GORGE_WEBHOOK_URI 为空。" >&2
+        exit 1
     fi
-    gorge_config_set 'gorge.webhook.token' "${GORGE_WEBHOOK_TOKEN:-}"
+    echo "[entrypoint] 下发 Gorge webhook 配置 ..."
+    gorge_config_set 'gorge.webhook.uri' "$GORGE_WEBHOOK_URI"
+    if [ "${GORGE_CONFIG_SET_OK:-0}" != "1" ]; then
+        echo "[entrypoint] 错误: gorge.webhook.uri 未能写入；拒绝在委派状态不确定时启动。" >&2
+        exit 1
+    fi
+    if [ -n "${GORGE_WEBHOOK_TOKEN:-}" ]; then
+        gorge_config_set 'gorge.webhook.token' "$GORGE_WEBHOOK_TOKEN"
+    else
+        gorge_config_delete 'gorge.webhook.token' || exit 1
+    fi
     # 与前几段同样不在这里探 gorge-webhook 的 /readyz，而且这里连探都不该探：它的就绪
     # 条件是能连上 {namespace}_herald 库，而那个库是本脚本后面几步的 bin/storage upgrade
     # 建的 —— 在这儿等它就是等一件只有自己能做的事。
 else
-    echo "[entrypoint] 未设置 GORGE_WEBHOOK_URI，跳过 Gorge webhook 配置。"
+    echo "[entrypoint] GORGE_WEBHOOK_MODE=preserve，保留现有 webhook 配置。"
 fi
 
 # Task-queue 在形式上回到最简单的那一类：gorge.taskqueue.uri 与 gorge.taskqueue.token
@@ -890,8 +917,8 @@ fi
 # 那种接管开关）：PHP 侧 PhabricatorWorkerLeaseQuery / PhabricatorWorker /
 # PhabricatorWorkerActiveTask 在读到 gorge.taskqueue.uri 非空（isConfigured()）时，把
 # enqueue / lease / complete / fail / yield / cancel / awaken 全部改走 gorge-taskqueue，
-# 否则回落原生 SQL 队列。写不进去时 phorge 侧继续用自带的 SQL 队列、不阻塞容器启动，
-# PhabricatorGorgeTaskQueueSetupCheck 会在 Config 页面把探活失败报出来。
+# 否则回落原生 SQL 队列。但队列端点与 taskmaster 开关必须原子地成功：默认栈写不进去
+# 时会让迁移失败，而不是继续进入零消费者或双消费者状态。
 #
 # 但它比其它五段多一件必须做的事，见下面 phd taskmaster 那段：taskqueue 必须**替换**而
 # 不是**并存于** phd 的 taskmaster 守护进程。
@@ -915,19 +942,139 @@ case "$GORGE_TASKQUEUE_MODE" in
         ;;
 esac
 
+# 第一次把原生 taskmaster 池关到 0 前，保存本地配置是否存在及其原值。
+# 快照文件位于同一个持久化配置卷；重复启动不会覆盖它，因此退出 Gorge 时可以
+# 精确恢复管理员原来的池大小，而不是一律回到内建默认值 4。
+gorge_taskqueue_capture_taskmasters() {
+    if [ -e "$TASKQUEUE_STATE_FILE" ]; then
+        return 0
+    fi
+
+    export CONF_FILE TASKQUEUE_STATE_FILE
+    if ! php -r '
+        $file = getenv("CONF_FILE");
+        $state_file = getenv("TASKQUEUE_STATE_FILE");
+        $config = array();
+        if (is_file($file)) {
+            $config = json_decode(file_get_contents($file), true);
+            if (!is_array($config)) { exit(2); }
+        }
+
+        $present = array_key_exists("phd.taskmasters", $config);
+        $value = $present ? $config["phd.taskmasters"] : null;
+
+        // 兼容已经运行过本 PR 早期版本、但尚未生成快照的配置。URI 与 0
+        // 同时存在时把 0 视为部署写入值，回滚应删除它而不是固化为用户基线。
+        if ($present && $value === 0 &&
+            !empty($config["gorge.taskqueue.uri"])) {
+            $present = false;
+            $value = null;
+        }
+        if ($present && (!is_int($value) || $value < 0)) { exit(3); }
+
+        $state = array("present" => $present, "value" => $value);
+        $tmp = $state_file.".tmp";
+        $json = json_encode($state, JSON_PRETTY_PRINT)."\n";
+        if (file_put_contents($tmp, $json) === false || !rename($tmp, $state_file)) {
+            @unlink($tmp);
+            exit(4);
+        }
+    '; then
+        echo "[entrypoint] 错误: 无法保存 phd.taskmasters 原值，拒绝覆盖该配置。" >&2
+        return 1
+    fi
+    chown www-data:www-data "$TASKQUEUE_STATE_FILE" || true
+    chmod 0640 "$TASKQUEUE_STATE_FILE" || true
+}
+
+gorge_taskqueue_restore_taskmasters() {
+    taskmasters_action='preserve'
+    taskmasters_value=''
+
+    if [ -f "$TASKQUEUE_STATE_FILE" ]; then
+        if taskmasters_value="$(php -r '
+            $state = json_decode(file_get_contents($argv[1]), true);
+            if (!is_array($state) || !array_key_exists("present", $state)) { exit(2); }
+            if (!$state["present"]) { exit(10); }
+            $value = $state["value"] ?? null;
+            if (!is_int($value) || $value < 0) { exit(2); }
+            echo $value;
+        ' "$TASKQUEUE_STATE_FILE")"; then
+            taskmasters_action='set'
+        else
+            taskmasters_status=$?
+            if [ "$taskmasters_status" = "10" ]; then
+                taskmasters_action='delete'
+            else
+                echo "[entrypoint] 错误: 无法解析 $TASKQUEUE_STATE_FILE，保留 phd.taskmasters。" >&2
+                return 1
+            fi
+        fi
+    else
+        # 兼容早期版本：当 Gorge URI 与 0 同时存在时，0 是旧入口脚本写入的；
+        # 没有这个特征则无法证明配置归部署所有，宁可保留用户值。
+        if php -r '
+            $config = json_decode(@file_get_contents($argv[1]), true);
+            if (!is_array($config)) { exit(1); }
+            $managed = !empty($config["gorge.taskqueue.uri"]) &&
+                (($config["phd.taskmasters"] ?? null) === 0);
+            exit($managed ? 0 : 1);
+        ' "$CONF_FILE"; then
+            taskmasters_action='delete'
+        fi
+    fi
+
+    case "$taskmasters_action" in
+        set)
+            echo "[entrypoint] 恢复 phd.taskmasters=$taskmasters_value。"
+            if ! "$CONFIG_BIN" set phd.taskmasters "$taskmasters_value"; then
+                echo "[entrypoint] 错误: 恢复 phd.taskmasters 失败。" >&2
+                return 1
+            fi
+            ;;
+        delete)
+            gorge_config_delete 'phd.taskmasters' || return 1
+            ;;
+        preserve)
+            echo "[entrypoint] 没有受管 taskmaster 快照，保留现有 phd.taskmasters。"
+            ;;
+    esac
+
+    if [ -f "$TASKQUEUE_STATE_FILE" ]; then
+        rm -f -- "$TASKQUEUE_STATE_FILE"
+    fi
+    chown www-data:www-data "$CONF_FILE" || true
+    chmod 0640 "$CONF_FILE" || true
+}
+
 if [ "$GORGE_TASKQUEUE_MODE" = "disable" ]; then
     echo "[entrypoint] 撤销 Gorge task-queue 配置，恢复 Phorge 原生队列 ..."
-    gorge_config_delete 'gorge.taskqueue.uri' || true
-    gorge_config_delete 'gorge.taskqueue.token' || true
-    # 删除部署写入的 0，让配置回到 Phorge 默认池大小 4。
-    gorge_config_delete 'phd.taskmasters' || true
+    gorge_taskqueue_restore_taskmasters || exit 1
+    gorge_config_delete 'gorge.taskqueue.uri' || exit 1
+    gorge_config_delete 'gorge.taskqueue.token' || exit 1
 elif [ "$GORGE_TASKQUEUE_MODE" = "enable" ]; then
     if [ -z "${GORGE_TASKQUEUE_URI:-}" ]; then
         echo "[entrypoint] 警告: GORGE_TASKQUEUE_MODE=enable 但 GORGE_TASKQUEUE_URI 为空，保留现有队列配置。" >&2
     else
+        GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER="${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}"
+        if [ "$GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER" = "1" ]; then
+            gorge_taskqueue_capture_taskmasters || exit 1
+        fi
         echo "[entrypoint] 下发 Gorge task-queue 配置 ..."
         gorge_config_set 'gorge.taskqueue.uri' "${GORGE_TASKQUEUE_URI:-}"
-        gorge_config_set 'gorge.taskqueue.token' "${GORGE_TASKQUEUE_TOKEN:-}"
+        if [ "${GORGE_CONFIG_SET_OK:-0}" != "1" ]; then
+            echo "[entrypoint] 错误: gorge.taskqueue.uri 未能写入；拒绝关闭原生 taskmaster。" >&2
+            exit 1
+        fi
+        if [ -n "${GORGE_TASKQUEUE_TOKEN:-}" ]; then
+            gorge_config_set 'gorge.taskqueue.token' "$GORGE_TASKQUEUE_TOKEN"
+            if [ "${GORGE_CONFIG_SET_OK:-0}" != "1" ]; then
+                echo "[entrypoint] 错误: gorge.taskqueue.token 未能写入；拒绝切换队列所有权。" >&2
+                exit 1
+            fi
+        else
+            gorge_config_delete 'gorge.taskqueue.token' || exit 1
+        fi
 
         # ----- phd taskmaster 的「替换而非并存」处理（compat 硬约束）-----
         # gorge-worker 是 PhabricatorTaskmasterDaemon 搬成的独立进程，它和 phd 里的
@@ -943,23 +1090,19 @@ elif [ "$GORGE_TASKQUEUE_MODE" = "enable" ]; then
         # 走的是同一条路。这样已经跑过的实例光加环境变量也会在下次启动生效，不必删 local.json。
         #
         # GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER=0 时保留 taskmaster（灰度对比等场景）。
-        GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER="${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}"
         if [ "$GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER" = "1" ]; then
             echo "[entrypoint] 配置了 gorge.taskqueue，禁用 phd 的 taskmaster（phd.taskmasters=0），"
             echo "[entrypoint]   把队列消费权交给 gorge-worker 容器（替换而非并存）。"
             if ! "$CONFIG_BIN" set phd.taskmasters 0; then
-                # 不阻塞容器启动，但要把后果说清楚：写不进去时 phd 会照常起 taskmaster，与
-                # gorge-worker 并存。最常见的失败是类映射未重新生成导致该键被判 unknown。
-                echo "[entrypoint] 警告: 写入 phd.taskmasters=0 失败，phd 的 taskmaster 会与" >&2
-                echo "[entrypoint]   gorge-worker 并存消费同一队列（不会重复执行任务，但语义" >&2
-                echo "[entrypoint]   混乱且浪费）。可进容器手动执行 bin/config set phd.taskmasters 0。" >&2
+                echo "[entrypoint] 错误: 写入 phd.taskmasters=0 失败；拒绝让两套消费者并存。" >&2
+                exit 1
             else
                 chown www-data:www-data "$CONF_FILE" || true
                 chmod 0640 "$CONF_FILE" || true
             fi
         else
-            # 从「关闭原生 taskmaster」切到灰度并存时，不能留下上次写入的 0。
-            gorge_config_delete 'phd.taskmasters' || true
+            # 从「关闭原生 taskmaster」切到灰度并存时，恢复进入 Gorge 前的值。
+            gorge_taskqueue_restore_taskmasters || exit 1
         fi
     fi
 else

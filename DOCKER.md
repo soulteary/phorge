@@ -89,6 +89,11 @@ Gorge 搜索条目，保留其它引擎，列表为空时恢复 MySQL/Ferret。
 docker compose -f docker-compose.legacy.yml up -d --build
 ```
 
+如果该配置卷此前运行过默认栈，legacy 入口会先撤销 webhook 委派和 Gorge
+task-queue 端点，并把 `phd.taskmasters` 精确恢复为进入 Gorge 前的本地值（原来未设置
+则删除覆盖、回到 Phorge 默认值）。清理或恢复失败会阻止 legacy 启动，避免出现无人投递
+webhook 或没有 taskmaster 消费队列的半回滚状态。
+
 ## 镜像结构
 
 - **基础镜像**：`php:8.3-apache`（mod_php）。构建时安装并编译 Phorge 需要的 PHP 扩展
@@ -1360,7 +1365,7 @@ Phorge 这边新增的是三个类加一个索引，没有改任何核心逻辑�
 镜像 `ghcr.io/soulteary/gorge:webhook-*` 与另外五个服务同源同标签（共用 `GORGE_IMAGE_TAG`），
 容器内固定监听 `8160`。
 
-### 危险的方向和别的服务相反：配置没写进去 = 发两次
+### 危险的方向和别的服务相反：配置没写进去会产生重复投递竞态
 
 **这是接这个服务时唯一真正容易踩的地方，请读完再动手。**
 
@@ -1370,25 +1375,22 @@ Phorge 这边新增的是三个类加一个索引，没有改任何核心逻辑�
 |------|------|
 | 服务在跑 + `gorge.webhook.uri` 已写入 | 只有 Go 投递。正确。 |
 | 服务没跑 + `gorge.webhook.uri` 已写入 | 谁也不投，请求堆在 `queued` 里等服务回来。 |
-| **服务在跑 + `gorge.webhook.uri` 没写入** | **`phd` 和 Go 同时投递同一批行，每个 webhook 发两次。** |
+| **服务在跑 + `gorge.webhook.uri` 没写入** | **`phd` 和 Go 竞争同一批行，部分请求可能重复投递。** |
 | 服务没跑 + 没写入 | 原样，`phd` 投递。 |
 
 第三行是唯一一个会造成外部可见错误的组合，而它恰恰是最容易出现的：`gorge.webhook.uri`
 是新增的配置项，需要在 `PhabricatorHeraldConfigOptions` 里声明**并重新生成类映射**
 （宿主上跑 `arc liberate src/`）。映射没跟上时 `bin/config set` 会报
-`Configuration key is unknown`，而 `entrypoint.sh` 里的 `gorge_config_set` 对写入失败
-只打一行警告就放过去。
+`Configuration key is unknown`。默认栈不能在所有权不确定时继续启动。
 
-为此 `entrypoint.sh` 在这一项写失败时会额外打一段把后果说清楚的告警：
+为此 `entrypoint.sh` 在这一项写失败时会让迁移任务退出：
 
 ```
-[entrypoint] 警告: gorge.webhook.uri 未能写入。
-[entrypoint]   若 gorge-webhook 容器正在运行，phd 与它会同时投递同一批
-[entrypoint]   webhook 请求，导致**每个 webhook 被发送两次**。
+[entrypoint] 错误: gorge.webhook.uri 未能写入；拒绝在委派状态不确定时启动。
 ```
 
-看到它就别让服务继续跑：要么按上面说的重新生成类映射再重建镜像，要么先把 `.env` 里的
-`GORGE_WEBHOOK_URI` 清空并停掉 `gorge-webhook`。
+默认栈此时会阻止 Web 与 daemon 启动。应按上面说的重新生成类映射再重建镜像；历史
+叠加编排则应先停掉 `gorge-webhook`，再清理 `gorge.webhook.uri`。
 
 同理，`.env` 里的 `GORGE_WEBHOOK_URI` 和叠加文件里的 `gorge-webhook` 段是**一对**，
 要停就两边一起停。
