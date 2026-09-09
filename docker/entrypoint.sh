@@ -25,6 +25,7 @@ CONFIG_BIN="$PHORGE_DIR/bin/config"
 CONF_DIR="$PHORGE_DIR/conf/local"
 CONF_FILE="$CONF_DIR/local.json"
 COLLABORATION_STATE_FILE="$CONF_DIR/collaboration-profile-state.json"
+CONFIG_LOCK_FILE="$CONF_DIR/.entrypoint.lock"
 
 # 数据库就绪探测的重试次数（每次间隔 3 秒）
 DB_WAIT_RETRIES=60
@@ -62,6 +63,17 @@ case "$PHORGE_CONTAINER_ROLE" in
         exit 64
         ;;
 esac
+
+# migrate 与 all 角色会重写共享 phorge-conf 卷中的 local.json。同时启用
+# mailer/search 等 profile 时，多个一次性配置容器可能并发执行；
+# PhabricatorConfigLocalSource 的读-改-写没有内建锁，因此必须把整个配置与
+# profile 合并过程串行化。锁文件位于共享卷，flock 在进程异常退出时
+# 会由内核自动释放，不会留下需要手工清理的哨兵状态。
+mkdir -p "$CONF_DIR"
+exec {CONFIG_LOCK_FD}>"$CONFIG_LOCK_FILE"
+echo "[entrypoint] 等待 Phorge 配置写入锁 ..."
+flock --exclusive "$CONFIG_LOCK_FD"
+echo "[entrypoint] 已获取 Phorge 配置写入锁。"
 
 # ----- 1. 生成本地配置（守卫式）-----
 # 仅当 local.json 不存在或为空时才生成：conf/local 在 compose 里由 phorge-conf
@@ -971,6 +983,12 @@ if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
         chmod 0640 "$COLLABORATION_STATE_FILE" || true
     fi
 fi
+
+# all 角色接下来会 exec 长期运行的 Web 进程。在进入运行阶段前显式
+# 关闭文件描述符，避免 Apache 继承它并在整个容器生命周期内持有锁。
+flock --unlock "$CONFIG_LOCK_FD"
+exec {CONFIG_LOCK_FD}>&-
+echo "[entrypoint] 已释放 Phorge 配置写入锁。"
 
 if [ "$PHORGE_CONTAINER_ROLE" = "migrate" ]; then
     echo "[entrypoint] 配置与数据库迁移完成。"

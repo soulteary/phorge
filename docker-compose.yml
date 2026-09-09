@@ -114,8 +114,10 @@ services:
     # 一次已发布的构建，不能误用不含该二进制的公共 r3 版本。
     image: ghcr.io/soulteary/gorge:gitea-${GORGE_GITEA_IMAGE_TAG:-unreleased}
 
-  # 唯一允许写 local.json 和执行 storage upgrade 的一次性任务。它在迁移前
-  # 判定新装/升级：新装默认 collaboration，旧库无显式记录时保持 full。
+  # 基础配置与 schema 迁移任务。它在迁移前判定新装/升级：
+  # 新装默认 collaboration，旧库无显式记录时保持 full。
+  # mailer/search profile 还会启动各自的追加配置任务；所有 migrate 角色由
+  # entrypoint 通过 phorge-conf 卷上的 flock 串行化，避免并发覆盖 local.json。
   phorge-migrate:
     <<: *phorge-runtime
     container_name: phorge-migrate
