@@ -42,4 +42,59 @@ final class PhabricatorGorgeDiffClientTestCase extends PhabricatorTestCase {
       'same new suffix');
   }
 
+  public function testConduitHTTPResponseStatusIsNotTransportFailure() {
+    $body = phutil_json_encode(
+      array(
+        'result' => 'pong',
+        'error_code' => null,
+        'error_info' => null,
+      ));
+
+    $status = new HTTPFutureHTTPResponseStatus(
+      200,
+      $body,
+      array());
+
+    $result = $this->invokeConduitResponseParser(
+      array($status, $body, array()));
+
+    $this->assertEqual('pong', $result);
+  }
+
+  public function testConduitHTTPErrorDoesNotReturnResult() {
+    $this->assertException(
+      'Exception',
+      array($this, 'parseConduitHTTPError'));
+  }
+
+  public function parseConduitHTTPError() {
+    $body = phutil_json_encode(
+      array(
+        'result' => 'unexpected',
+        'error_code' => null,
+        'error_info' => null,
+      ));
+
+    $status = new HTTPFutureHTTPResponseStatus(
+      500,
+      $body,
+      array());
+
+    $this->invokeConduitResponseParser(
+      array($status, $body, array()));
+  }
+
+  private function invokeConduitResponseParser(array $result) {
+    $method = new ReflectionMethod(
+      'PhabricatorGorgeConduitClient',
+      'parseConduitResponse');
+    $method->setAccessible(true);
+
+    return $method->invoke(
+      null,
+      'http://gorge-conduit/api/conduit.ping',
+      $result);
+  }
+
+
 }
