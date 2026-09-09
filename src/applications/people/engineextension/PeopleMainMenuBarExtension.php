@@ -46,9 +46,27 @@ final class PeopleMainMenuBarExtension
       ->setNoCSS(true)
       ->setAuralLabel(pht('Account Menu'));
 
-    return array(
-      $user_menu,
-    );
+    $menus = array();
+
+    // In the collaboration profile Gitea owns code. Keep its entry next to
+    // the account menu so users do not have to hunt through Applications,
+    // but do not expose external navigation during a partial (for example,
+    // pre-MFA) session.
+    $gitea_uri = PhabricatorEnv::getEnvConfig('gitea.uri');
+    if ($this->getIsFullSession() && $gitea_uri) {
+      $menus[] = id(new PHUIButtonView())
+        ->setTag('a')
+        ->setHref($gitea_uri)
+        ->setIcon('fa-code-fork')
+        ->addClass('phabricator-core-user-menu')
+        ->setNoCSS(true)
+        ->setTooltip(pht('Open Gitea'))
+        ->setAuralLabel(pht('Open Gitea'));
+    }
+
+    $menus[] = $user_menu;
+
+    return $menus;
   }
 
   private function newDropdown(

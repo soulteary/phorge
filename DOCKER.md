@@ -1659,6 +1659,71 @@ dc restart phorge
 之后数据库控制台恢复 PHP 直连诊断。确认不再需要服务时可以再停掉它；这不会改变数据库，
 因为 db-api 的所有业务路由都是只读的。
 
+## 协作模式与 Gitea（可选）
+
+协作模式保留 Maniphest、Projects、Phriction、Calendar、Chat 等协作能力，把代码
+托管和评审交给 Gitea。它是配置切换，不删除 PHP 类、数据库表或历史对象。
+
+在 `.env` 中设置：
+
+```dotenv
+PHORGE_PRODUCT_PROFILE=collaboration
+GITEA_BASE_URI=https://git.example.com/
+GORGE_RENDER_ENABLE_DIFF=false
+GORGE_GITEA_WEBHOOK_SECRET=<随机共享密钥>
+GORGE_GITEA_CONDUIT_TOKEN=<专用 Conduit bot token>
+GORGE_GITEA_GATEWAY_TOKEN=<GORGE_CONDUIT_TOKEN 的值>
+```
+
+然后用叠加文件重建容器（`restart` 不会应用新增服务、环境变量或挂载）：
+
+```bash
+docker compose --profile gitea \
+  -f docker-compose.yml -f docker-compose.gorge.yml \
+  up -d --force-recreate
+```
+
+entrypoint 会把以下八个应用合并进
+`phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
+Harbormaster、Drydock、Diviner、Paste。同时设置 `gorge.diff.enabled=false`，在已配置
+`GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
+`PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
+`gorge`。
+
+`gitea.uri` 会在顶栏增加 Gitea 入口；Maniphest 增加 repository、issue、pull request、
+commit 四个链接字段。应用集合使用 Phorge 要求的 `{应用类名: true}` keyed set。
+entrypoint 会在数据库 schema 就绪后读取实际生效值（包括 Web UI 写入的数据库配置），
+再把合并结果写回最高优先级的数据库配置，因此不会被已有数据库值整项覆盖；同名自定义
+字段也保持管理员定义。
+
+在 Gitea 仓库或组织 Webhook 中，将目标设为：
+
+```text
+https://<对外桥接地址>/webhooks/gitea
+```
+
+密钥与 `GORGE_GITEA_WEBHOOK_SECRET` 相同，只选择 Issues、Pull Request、Push、Release。
+事件标题、正文或提交信息中的 `T123` 会被追加到对应任务时间线。桥接不会反向写 Gitea，
+不会同步 review/comment，也不会冒充 Gitea 用户；专用 Conduit bot 只需查看任务和添加
+评论的权限。用户 SSO、账号绑定和离职回收仍由 Stargate 统一维护。
+
+回到完整模式：
+
+```dotenv
+PHORGE_PRODUCT_PROFILE=full
+```
+
+首次启用时，entrypoint 会在持久化配置卷写入
+`conf/local/collaboration-profile-state.json`：既记录本模式新加入停用集合的应用，也保存
+实际被覆盖的 `gitea.uri`、`gorge.diff.enabled`、`syntax-highlighter.engine` 本地原值及
+被覆盖的数据库原值。再次 `up -d --force-recreate` 后，full 模式仅撤销应用差集并恢复这些配置；
+启用协作模式前已由管理员停用的应用仍保持停用。本地恢复失败时数据库回滚和状态清理会
+被跳过，下次启动可以继续重试。应用集合和自定义字段在协作模式期间使用完整数据库覆盖，
+保证管理页面的单次操作不会替换整组配置；退出时会基于启用前快照做三方合并，同时保留
+local.json 和管理页面中的新增、修改与删除，再写回原始来源并删除临时数据库覆盖。任务中的
+Gitea 链接和历史评论继续保留。最早版本未生成状态文件；直接切换到 full 时，entrypoint
+会把它留下的数字列表迁移为 keyed set，并移除其中由旧协作模式加入的受管应用。
+
 ## 参考
 
 - [安装指南](src/docs/user/installation_guide.diviner)

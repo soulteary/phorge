@@ -25,6 +25,7 @@ PHD_BIN="$PHORGE_DIR/bin/phd"
 CONFIG_BIN="$PHORGE_DIR/bin/config"
 CONF_DIR="$PHORGE_DIR/conf/local"
 CONF_FILE="$CONF_DIR/local.json"
+COLLABORATION_STATE_FILE="$CONF_DIR/collaboration-profile-state.json"
 
 # 数据库就绪探测的重试次数（每次间隔 3 秒）
 DB_WAIT_RETRIES=60
@@ -39,6 +40,7 @@ PHORGE_TIMEZONE="${PHORGE_TIMEZONE:-UTC}"
 PHORGE_WAIT_DB="${PHORGE_WAIT_DB:-1}"
 PHORGE_AUTO_UPGRADE="${PHORGE_AUTO_UPGRADE:-1}"
 PHORGE_START_PHD="${PHORGE_START_PHD:-1}"
+PHORGE_PRODUCT_PROFILE="${PHORGE_PRODUCT_PROFILE:-full}"
 
 # ----- 1. 生成本地配置（守卫式）-----
 # 仅当 local.json 不存在或为空时才生成：conf/local 在 compose 里由 phorge-conf
@@ -125,6 +127,35 @@ gorge_config_set() {
 
     return 0
 }
+
+# 此处先记录并写入由部署拓扑拥有的本地配置。应用停用列表和 Maniphest 自定义字段
+# 可能由 Web UI 存在数据库配置，而数据库源优先于 local.json；它们要等 schema
+# 就绪后由 manage_collaboration_profile.php 基于有效配置合并。
+configure_product_profile_local() {
+    export GITEA_BASE_URI GORGE_RENDER_URI
+    if ! php "$PHORGE_DIR/scripts/setup/manage_collaboration_local.php" \
+        "$PHORGE_PRODUCT_PROFILE" "$CONF_FILE" \
+        "$COLLABORATION_STATE_FILE"; then
+        echo "[entrypoint] 警告: 产品模式本地配置失败，保留当前配置。" >&2
+        return 1
+    fi
+    chown www-data:www-data "$CONF_FILE" || true
+    chmod 0640 "$CONF_FILE" || true
+}
+
+PRODUCT_PROFILE_LOCAL_OK=1
+if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ]; then
+    echo "[entrypoint] 启用 Phorge 协作模式 ..."
+    if ! configure_product_profile_local; then
+        PRODUCT_PROFILE_LOCAL_OK=0
+    fi
+elif [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
+    if ! configure_product_profile_local; then
+        PRODUCT_PROFILE_LOCAL_OK=0
+    fi
+elif [ "$PHORGE_PRODUCT_PROFILE" != "full" ]; then
+    echo "[entrypoint] 警告: 未知 PHORGE_PRODUCT_PROFILE=$PHORGE_PRODUCT_PROFILE，保留当前应用配置。" >&2
+fi
 
 # 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
 if [ -n "${GORGE_RENDER_URI:-}" ] || [ -n "${GORGE_RENDER_TOKEN:-}" ]; then
@@ -826,6 +857,27 @@ if [ "$PHORGE_AUTO_UPGRADE" = "1" ]; then
         echo "[entrypoint] 警告: storage upgrade 失败，可进容器执行 bin/storage upgrade 排查。" >&2
 else
     echo "[entrypoint] PHORGE_AUTO_UPGRADE=$PHORGE_AUTO_UPGRADE，跳过 storage upgrade。"
+fi
+
+# 应用安装状态既可以来自 local.json，也可以由管理员在 Web UI 写进优先级更高的
+# 数据库配置。schema 就绪后再读取有效配置、写回合并结果；协作模式首次启用时把
+# “本次新增停用”的应用补进持久化状态文件，full 模式只恢复这些应用。
+if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
+   [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
+    if [ "$PRODUCT_PROFILE_LOCAL_OK" = "1" ]; then
+        if ! php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
+            "$PHORGE_PRODUCT_PROFILE" "$COLLABORATION_STATE_FILE"; then
+            echo "[entrypoint] 警告: 合并产品模式有效配置失败，保留状态以便重试。" >&2
+        fi
+        chown www-data:www-data "$CONF_FILE" || true
+        chmod 0640 "$CONF_FILE" || true
+    else
+        echo "[entrypoint] 警告: 本地产品模式配置未完成，跳过数据库配置与状态清理。" >&2
+    fi
+    if [ -e "$COLLABORATION_STATE_FILE" ]; then
+        chown www-data:www-data "$COLLABORATION_STATE_FILE" || true
+        chmod 0640 "$COLLABORATION_STATE_FILE" || true
+    fi
 fi
 
 # ----- 5. 守护进程 -----

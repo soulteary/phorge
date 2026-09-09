@@ -91,6 +91,8 @@ services:
       GORGE_DIFF_MAX_BYTES: ${GORGE_DIFF_MAX_BYTES:-1048576}
       # 单次高亮的服务端超时（秒）。PHP 客户端自己也有超时，两者取小者生效。
       GORGE_RENDER_TIMEOUT_SEC: ${GORGE_RENDER_TIMEOUT_SEC:-15}
+      # 协作模式关闭 Phorge 的 diff 客户端后，也可在服务端彻底不注册 diff 路由。
+      GORGE_RENDER_ENABLE_DIFF: ${GORGE_RENDER_ENABLE_DIFF:-true}
     # 刻意不声明 ports：render/diff 服务只被 phorge 通过 compose 默认网络的服务名
     # gorge-render 调用，不需要宿主入口——少一个对外面，也省掉与 gorge 自己那套
     # 编排（deploy/compose 里映射了 8140）抢宿主端口。
@@ -824,6 +826,34 @@ services:
       # 必须探 /healthz，而不是 /readyz：容器健康只表达进程存活，数据库可达性由
       # /readyz 与 PhabricatorGorgeDBSetupCheck 报告，不能阻塞 Phorge 自身首启。
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  # Gitea 到 Maniphest 的单向事件桥。Gitea 从宿主或反代访问 8180，桥接服务通过
+  # 内网的 gorge-conduit 写任务评论；它从不以 Gitea 用户身份写入，身份归 Stargate。
+  gorge-gitea:
+    image: ghcr.io/soulteary/gorge:gitea-${GORGE_GITEA_IMAGE_TAG:-${GORGE_IMAGE_TAG:-latest}}
+    container_name: phorge-gorge-gitea
+    restart: unless-stopped
+    profiles: ["gitea"]
+    depends_on:
+      gorge-conduit:
+        condition: service_healthy
+    environment:
+      GORGE_LISTEN_ADDR: ":8180"
+      GORGE_SERVICE_TOKEN: ${GORGE_GITEA_SERVICE_TOKEN:-}
+      GORGE_GITEA_BASE_URL: ${GITEA_BASE_URI:-}
+      GORGE_GITEA_WEBHOOK_SECRET: ${GORGE_GITEA_WEBHOOK_SECRET:-}
+      GORGE_GITEA_CONDUIT_URL: ${GORGE_GITEA_CONDUIT_URL:-http://gorge-conduit:8150}
+      GORGE_GITEA_CONDUIT_TOKEN: ${GORGE_GITEA_CONDUIT_TOKEN:-}
+      GORGE_GITEA_GATEWAY_TOKEN: ${GORGE_GITEA_GATEWAY_TOKEN:-${GORGE_CONDUIT_TOKEN:-}}
+      GORGE_GITEA_TIMEOUT_SEC: ${GORGE_GITEA_TIMEOUT_SEC:-15}
+    ports:
+      - "${GORGE_GITEA_PORT:-8180}:8180"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8180/healthz"]
       interval: 10s
       timeout: 3s
       start_period: 5s
