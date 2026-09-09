@@ -151,7 +151,8 @@ final class PhabricatorGorgeWebhookSetupCheck extends PhabricatorSetupCheck {
       "\n\n".
       '%s'.
       "\n\n".
-      'Setting %s stops this server from delivering webhooks itself, so '.
+      'Assigning %s to %s stops this server from delivering webhooks itself, '.
+      'so '.
       'while the service is down no webhook is delivered at all. Requests '.
       'are still recorded and simply stay in %s status, which the Herald '.
       'interface shows as an ordinary queued request, so nothing else will '.
@@ -159,20 +160,29 @@ final class PhabricatorGorgeWebhookSetupCheck extends PhabricatorSetupCheck {
       'the garbage collector reaches them first.'.
       "\n\n".
       'Check that the service is running and that %s names a host this '.
-      'server can reach. To hand delivery back to the daemon in the '.
-      'meantime, clear %s.',
+      'server can reach. To hand delivery back in the default deployment, '.
+      'set %s to %s and recreate the Phorge containers. This regenerates '.
+      'one deployment configuration which assigns %s to %s and clears %s '.
+      'together. If another deployment system owns these settings, make '.
+      'those same changes atomically in its configuration source.',
       phutil_tag('tt', array(), $uri),
       phutil_tag('tt', array(), $health_uri),
       phutil_tag('pre', array(), $error),
-      phutil_tag('tt', array(), 'gorge.webhook.uri'),
+      phutil_tag('tt', array(), 'gorge.webhook.owner'),
+      phutil_tag('tt', array(), 'gorge'),
       phutil_tag('tt', array(), 'queued'),
       phutil_tag('tt', array(), 'gorge.webhook.uri'),
+      phutil_tag('tt', array(), 'GORGE_WEBHOOK_MODE'),
+      phutil_tag('tt', array(), 'disable'),
+      phutil_tag('tt', array(), 'gorge.webhook.owner'),
+      phutil_tag('tt', array(), 'phorge'),
       phutil_tag('tt', array(), 'gorge.webhook.uri'));
 
     $this->newIssue('gorge.webhook.unreachable')
       ->setName(pht('Gorge Webhook Service Unreachable'))
       ->setSummary($summary)
       ->setMessage($message)
+      ->addRelatedPhabricatorConfig('gorge.webhook.owner')
       ->addRelatedPhabricatorConfig('gorge.webhook.uri');
 
     return false;
