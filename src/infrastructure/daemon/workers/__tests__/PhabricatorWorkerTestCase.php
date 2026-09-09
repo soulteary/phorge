@@ -90,6 +90,64 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
     unset($env);
   }
 
+  public function testCompletionFallbackPersistsFollowupNatively() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask(
+      array(
+        'queueFollowup' => true,
+      ));
+    $task = $this->expectNextLease($task);
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $result = $task->executeTask();
+    $this->assertTrue($result->isArchived());
+
+    $followups = id(new PhabricatorWorkerActiveTask())
+      ->loadAllWhere('id != %d', $task->getID());
+    $this->assertEqual(1, count($followups));
+
+    unset($env);
+  }
+
+  public function testFailedFollowupPersistenceDoesNotParkParent() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask(
+      array(
+        'queueFollowup' => true,
+        'invalidFollowup' => true,
+      ));
+    $task = $this->expectNextLease($task);
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $caught = null;
+    try {
+      $task->executeTask();
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+    $stored_task = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertTrue(
+      $stored_task->getLeaseOwner() !==
+        PhabricatorWorkerActiveTask::COMPLETION_PENDING_OWNER);
+
+    unset($env);
+  }
+
   public function testMultipleLease() {
     $task = $this->scheduleTask();
 

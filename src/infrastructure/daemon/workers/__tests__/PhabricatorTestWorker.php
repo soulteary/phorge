@@ -27,11 +27,17 @@ final class PhabricatorTestWorker extends PhabricatorWorker {
     $data = $this->getTaskData();
 
     if (idx($data, 'queueFollowup')) {
+      $options = array();
+      if (idx($data, 'invalidFollowup')) {
+        $options['invalid.option'] = true;
+      }
+
       $this->queueTask(
         'PhabricatorTestWorker',
         array(
           'isFollowup' => true,
-        ));
+        ),
+        $options);
     }
 
     $duration = idx($data, 'duration');

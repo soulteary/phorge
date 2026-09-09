@@ -243,15 +243,12 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
           'priority' => (int)$this->getPriority(),
         );
 
-        try {
-          // These follow-ups are still only in memory and have never been
-          // offered to Gorge. Persist them directly before parking the parent
-          // so a completion outage can not silently break a successful task
-          // chain.
-          $worker->flushTaskQueueNatively($defaults);
-        } catch (Throwable $followup_ex) {
-          phlog($followup_ex);
-        }
+        // These follow-ups are still only in memory and have never been
+        // offered to Gorge. Persist them directly before parking the parent
+        // so a completion outage can not silently break a successful task
+        // chain. If persistence fails, let that exception escape and do not
+        // park the parent: the chain must remain recoverable.
+        $worker->flushTaskQueueNatively($defaults);
 
         try {
           $this
@@ -266,6 +263,15 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       }
 
       if (!$go_ok) {
+        // Fallback completion means the service is already known to be
+        // unavailable. Persist every follow-up natively before archiving the
+        // parent; archiving first would make a failed follow-up enqueue
+        // impossible to regenerate.
+        $defaults = array(
+          'priority' => (int)$this->getPriority(),
+        );
+        $worker->flushTaskQueueNatively($defaults);
+
         $result = $this->archiveTask(
           PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
           $duration);
@@ -281,10 +287,12 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       // NOTE: If this throws, we don't want it to cause the task to fail
       // again, so execute it out here and just let the exception escape.
       // Default the new task priority to our own priority.
-      $defaults = array(
-        'priority' => (int)$this->getPriority(),
-      );
-      $worker->flushTaskQueue($defaults);
+      if ($go_ok) {
+        $defaults = array(
+          'priority' => (int)$this->getPriority(),
+        );
+        $worker->flushTaskQueue($defaults);
+      }
     }
 
     return $result;
