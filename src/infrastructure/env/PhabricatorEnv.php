@@ -168,6 +168,8 @@ final class PhabricatorEnv extends Phobject {
   }
 
   public static function setLocaleCode($locale_code) {
+    $locale_code = self::normalizeLocaleCode($locale_code);
+
     if (!$locale_code) {
       return;
     }
@@ -177,9 +179,17 @@ final class PhabricatorEnv extends Phobject {
     }
 
     try {
-      $locale = PhutilLocale::loadLocale($locale_code);
-      $translations = PhutilTranslation::getTranslationMapForLocale(
-        $locale_code);
+      if ($locale_code === 'zh_CN') {
+        // Chinese locale is provided by Phorge (PhabricatorChineseLocale);
+        // phutil may not discover it via loadAllLocales/loadLocale.
+        $locale = new PhabricatorChineseLocale();
+        $translation = new PhabricatorChineseTranslation();
+        $translations = $translation->getTranslationMap();
+      } else {
+        $locale = PhutilLocale::loadLocale($locale_code);
+        $translations = PhutilTranslation::getTranslationMapForLocale(
+          $locale_code);
+      }
 
       $override = self::getEnvConfig('translation.override');
       if (!is_array($override)) {
@@ -194,6 +204,23 @@ final class PhabricatorEnv extends Phobject {
     } catch (Exception $ex) {
       // Just ignore this; the user likely has an out-of-date locale code.
     }
+  }
+
+  private static function normalizeLocaleCode($locale_code) {
+    if (!is_string($locale_code)) {
+      return $locale_code;
+    }
+
+    $locale_code = str_replace('-', '_', $locale_code);
+    if ($locale_code === 'zh_CN') {
+      return $locale_code;
+    }
+
+    if (substr($locale_code, 0, 3) === 'zh_') {
+      return 'zh_CN';
+    }
+
+    return $locale_code;
   }
 
   private static function buildConfigurationSourceStack(

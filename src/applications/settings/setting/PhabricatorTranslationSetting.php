@@ -28,7 +28,15 @@ final class PhabricatorTranslationSetting
 
   public function assertValidValue($value) {
     $locales = PhutilLocale::loadAllLocales();
-    return isset($locales[$value]);
+    if (isset($locales[$value])) {
+      return true;
+    }
+    // Chinese locale is provided by Phorge (PhabricatorChineseLocale) and
+    // may not be in phutil's loadAllLocales() result.
+    if ($value === 'zh_CN') {
+      return true;
+    }
+    return false;
   }
 
   protected function getSelectOptionGroups() {
@@ -57,6 +65,13 @@ final class PhabricatorTranslationSetting
     if (!$is_dev) {
       unset($groups['limited']);
       unset($groups['test']);
+    }
+
+    // Always show Chinese (zh_CN); PhutilLocale::loadAllLocales() may only
+    // return locales from the phutil library, so zh_CN is not in the list.
+    if (!isset($groups['normal']['zh_CN'])) {
+      $chinese_locale = new PhabricatorChineseLocale();
+      $groups['normal']['zh_CN'] = $chinese_locale->getLocaleName();
     }
 
     // This can't be in the cache since these pht calls
@@ -129,6 +144,14 @@ final class PhabricatorTranslationSetting
       // strings and don't caveat its completeness.
       if (substr($code, 0, 3) == 'en_') {
         $groups['normal'][$code] = $name;
+        continue;
+      }
+
+      // Merge all Chinese variants into the single built-in zh_CN option.
+      if (substr($code, 0, 3) == 'zh_') {
+        if ($code === 'zh_CN') {
+          $groups['normal'][$code] = $name;
+        }
         continue;
       }
 

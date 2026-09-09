@@ -105,7 +105,13 @@ final class PhorgeInternationalizationValidator extends Phobject {
       // If Phorge config is hosed then just don't check translation.override
     }
     foreach ($all_translations as $locale_code => $translations) {
-      if (!isset($locales[$locale_code]) && $locale_code != $override_key) {
+      $is_known_locale = isset($locales[$locale_code]);
+      if ($locale_code === 'zh_CN') {
+        // Chinese locale is provided by Phorge and may not be discovered by
+        // PhutilLocale::loadAllLocales().
+        $is_known_locale = true;
+      }
+      if (!$is_known_locale && $locale_code != $override_key) {
         $errors[] = pht(
           'Translations are defined for the locale `%s`, '.
           'which is not recognized.',
