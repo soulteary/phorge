@@ -151,6 +151,143 @@ final class PhabricatorEnvTestCase extends PhabricatorTestCase {
     $this->assertTrue($caught instanceof Exception);
   }
 
+  public function testDeploymentConfigSource() {
+    $file = new TempFile('deployment.json');
+    Filesystem::writeFile(
+      $file,
+      phutil_json_encode(
+        array(
+          'gorge.webhook.owner' => 'gorge',
+          'phd.taskmasters' => 0,
+        )));
+
+    $source = new PhabricatorDeploymentConfigSource((string)$file);
+
+    $this->assertEqual(
+      array(
+        'gorge.webhook.owner' => 'gorge',
+        'phd.taskmasters' => 0,
+      ),
+      $source->getAllKeys());
+    $this->assertFalse($source->canWrite());
+
+    $database = new PhabricatorConfigDictionarySource(
+      array('gorge.webhook.owner' => 'phorge'));
+    $stack = id(new PhabricatorConfigStackSource())
+      ->pushSource($database)
+      ->pushSource($source);
+
+    $this->assertEqual(
+      array('gorge.webhook.owner' => 'gorge'),
+      $stack->getKeys(array('gorge.webhook.owner')));
+
+    // Writes still reach the normal writable source, but can not shadow the
+    // deployment-owned value until this source is removed on the next boot.
+    $stack->setKeys(array('gorge.webhook.owner' => 'phorge'));
+    $this->assertEqual(
+      array('gorge.webhook.owner' => 'gorge'),
+      $stack->getKeys(array('gorge.webhook.owner')));
+  }
+
+  public function testDeploymentConfigRejectsList() {
+    $file = new TempFile('deployment-list.json');
+    Filesystem::writeFile($file, '["not", "an", "object"]');
+
+    $caught = null;
+    try {
+      new PhabricatorDeploymentConfigSource((string)$file);
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+  }
+
+  public function testDeploymentConfigContentVersion() {
+    $file = new TempFile('deployment-version.json');
+    $path = (string)$file;
+
+    $old_path = getenv(PhabricatorDeploymentConfigSource::ENV_PATH);
+    $old_control_plane = getenv('PHORGE_CONTROL_PLANE');
+
+    try {
+      putenv(
+        PhabricatorDeploymentConfigSource::ENV_PATH.'='.$path);
+      putenv('PHORGE_CONTROL_PLANE=deployment');
+
+      // These documents have the same size. The version must follow content,
+      // not file size or timestamp metadata.
+      Filesystem::writeFile($path, '{"token":"old"}');
+      $old_version =
+        PhabricatorDeploymentConfigSource::getCurrentConfigVersion();
+
+      Filesystem::writeFile($path, '{"token":"new"}');
+      $new_version =
+        PhabricatorDeploymentConfigSource::getCurrentConfigVersion();
+
+      $this->assertTrue(strlen($old_version) > 0);
+      $this->assertFalse($old_version === $new_version);
+
+      putenv('PHORGE_CONTROL_PLANE=legacy');
+      $this->assertEqual(
+        null,
+        PhabricatorDeploymentConfigSource::getCurrentConfigVersion());
+    } finally {
+      if ($old_path === false) {
+        putenv(PhabricatorDeploymentConfigSource::ENV_PATH);
+      } else {
+        putenv(
+          PhabricatorDeploymentConfigSource::ENV_PATH.'='.$old_path);
+      }
+
+      if ($old_control_plane === false) {
+        putenv('PHORGE_CONTROL_PLANE');
+      } else {
+        putenv('PHORGE_CONTROL_PLANE='.$old_control_plane);
+      }
+    }
+  }
+
+  public function testDeploymentConfigIsRequiredByDeploymentMode() {
+    $file = new TempFile('deployment-missing.json');
+    $path = (string)$file.'.missing';
+
+    $old_path = getenv(PhabricatorDeploymentConfigSource::ENV_PATH);
+    $old_control_plane = getenv('PHORGE_CONTROL_PLANE');
+
+    try {
+      putenv(
+        PhabricatorDeploymentConfigSource::ENV_PATH.'='.$path);
+      putenv('PHORGE_CONTROL_PLANE=deployment');
+
+      $caught = null;
+      try {
+        PhabricatorDeploymentConfigSource::newOptionalSource();
+      } catch (Exception $ex) {
+        $caught = $ex;
+      }
+
+      $this->assertTrue($caught instanceof Exception);
+      $this->assertEqual(
+        null,
+        PhabricatorDeploymentConfigSource::newOptionalSource(
+          $config_optional = true));
+    } finally {
+      if ($old_path === false) {
+        putenv(PhabricatorDeploymentConfigSource::ENV_PATH);
+      } else {
+        putenv(
+          PhabricatorDeploymentConfigSource::ENV_PATH.'='.$old_path);
+      }
+
+      if ($old_control_plane === false) {
+        putenv('PHORGE_CONTROL_PLANE');
+      } else {
+        putenv('PHORGE_CONTROL_PLANE='.$old_control_plane);
+      }
+    }
+  }
+
   public function testOverrides() {
     $outer = PhabricatorEnv::beginScopedEnv();
 

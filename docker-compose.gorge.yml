@@ -1077,8 +1077,8 @@ services:
       # 结尾不要带斜杠：setup check 按 {uri}/healthz、{uri}/readyz 拼接。
       GORGE_WEBHOOK_URI: ${GORGE_WEBHOOK_URI:-http://gorge-webhook:8160}
       GORGE_WEBHOOK_TOKEN: ${GORGE_WEBHOOK_TOKEN:-}
-      # 基础 legacy 编排会显式 disable；叠加本文件时必须夺回所有权。
-      GORGE_WEBHOOK_MODE: enable
+      # 叠加时默认夺回所有权；显式 disable 前必须先停掉 gorge-webhook 消费者。
+      GORGE_WEBHOOK_MODE: ${GORGE_WEBHOOK_MODE:-enable}
       # --- 下面几项与 task-queue 接管相关 ---
       # gorge.taskqueue.uri / gorge.taskqueue.token 是两个标量配置项，整项归 Gorge 所有，
       # entrypoint.sh 走现成的 gorge_config_set 幂等写入 local.json。
@@ -1096,7 +1096,7 @@ services:
       # 让 gorge-worker 独家消费队列，避免 phd 的 taskmaster 与它并存。详见 entrypoint.sh。
       GORGE_TASKQUEUE_URI: ${GORGE_TASKQUEUE_URI:-http://gorge-taskqueue:8090}
       GORGE_TASKQUEUE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:-}
-      GORGE_TASKQUEUE_MODE: enable
+      GORGE_TASKQUEUE_MODE: ${GORGE_TASKQUEUE_MODE:-enable}
       # 配置了 gorge.taskqueue 时是否在本 phorge 容器里禁用 phd 的 taskmaster 守护进程
       # （把 phd.taskmasters 设为 0）。默认 1 = 禁用，这是 compat 硬约束要求的「替换而非
       # 并存」。设 0 可保留 taskmaster（仅在你确知要让 phd 也消费队列、或用于灰度对比时）。

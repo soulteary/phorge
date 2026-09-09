@@ -29,12 +29,12 @@ docker compose up -d --build
 - 启动 MySQL，等待其健康后由一次性任务 `db-init` 为普通库用户补齐
   `phabricator_%` 整组库的授权（见 `docker/db-grant.sql`）。
 - `phorge-migrate` 独占 `bin/storage upgrade --force`。它与 Mailer/Search 可选配置
-  任务都会写 `local.json`，entrypoint 通过 `phorge-conf` 共享卷上的排他锁
-  将所有写入串行化。新安装默认选择 `collaboration`；检测到现有
+  任务通过 `phorge-conf` 共享卷上的排他锁串行运行，并原子替换
+  `deployment.json`。新安装默认选择 `collaboration`；检测到现有
   `phabricator_meta_data` 且没有持久化选择时保持 `full`，避免升级自动
   停用应用。
 - schema 完成后，`phorge` 只运行 Apache，`phorge-daemon` 独立监护 phd；两者
-  不再重复迁移或争写 `local.json`。
+  只读部署配置，不再迁移或争写配置。
 - 默认启动 render、conduit、notification、file-storage、webhook、taskqueue、
   worker 与 db-api。Gorge 镜像默认锁定 `2026.09.09-r3`，不会跟随 `latest` 漂移。
 
@@ -56,7 +56,7 @@ docker compose up -d --build
 | `PHORGE_HTTP_PORT` | `8088` | 宿主机映射端口，浏览器访问 `http://127.0.0.1:<该端口>/`。 |
 | `PHORGE_BASE_URI` | `http://127.0.0.1:${PHORGE_HTTP_PORT}/`（默认注释，由 compose 自动拼出） | 站点绝对地址，Phorge 用它生成链接并校验请求的 Host 头。**域名必须含点号**，裸 `localhost` 会被拒绝。改了端口一定要让它联动，否则会 redirect 到错误地址。 |
 | `PHORGE_TIMEZONE` | `UTC` | 站点默认时区（`phabricator.timezone`），取 PHP 时区标识符，如 `Asia/Shanghai`。 |
-| `PHORGE_PRODUCT_PROFILE` | `auto` | `auto` 让新安装使用协作模式、已有安装保持 full；也可显式指定 `collaboration` 或 `full`。结果会持久化。 |
+| `PHORGE_PRODUCT_PROFILE` | `auto` | `auto` 让新安装使用协作模式、已有安装保持 full；也可显式指定 `collaboration` 或 `full`。结果持久化在只读部署配置中。 |
 | `PHORGE_DB_NAMESPACE` | `phabricator` | Phorge、db-init 与 file-storage/webhook/taskqueue/db-api 的唯一数据库前缀。已有自定义 `storage.default-namespace` 的安装升级前必须设为相同值；不一致时 entrypoint 会拒绝启动。 |
 | `GORGE_IMAGE_TAG` | `2026.09.09-r3` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
 | `PHORGE_WAIT_DB` | `1` | 是否在启动 Web 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
@@ -68,6 +68,27 @@ docker compose up -d --build
 > 不会覆盖它。需要按新环境变量重新生成，先删掉再重启：
 > `docker compose exec phorge rm conf/local/local.json && docker compose up -d --force-recreate phorge-migrate phorge phorge-daemon`，
 > 或直接在 Web 界面 Config 里改。
+
+### 统一部署控制面
+
+默认栈将服务端点、token、产品 profile 和消费者所有权写入
+`conf/local/deployment.json`。这个文件作为只读配置源加载，优先级高于 Web Config
+数据库和 `local.json`；一次生成整份文件并用 `rename(2)` 原子替换，所以 Web 与 daemon
+不会看到“端点已经更新、所有权尚未更新”的中间状态。它包含的部署值在 Config 页面不可写，
+应通过 `.env` 和 Compose 变更。
+
+Webhook 与 task queue 分别使用 `gorge.webhook.owner` 和
+`gorge.taskqueue.owner` 明确选择唯一消费者；URI 只表示端点。默认栈把两者设为
+`gorge`，legacy 模式设为 `phorge`。源码安装和旧 overlay 未设置 owner 时仍支持
+`auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+
+Gorge 的九个接入域由 `PhabricatorGorgeServiceRegistry` 统一登记。默认控制面不再逐项
+调用 `bin/config set`，也不再用 `collaboration-profile-state.json` 长期维护应用和字段
+的三方合并；从阶段一升级时若检测到旧状态文件，会先恢复原始管理员配置，再一次性迁移。
+
+后文仍保留 `docker-compose.legacy.yml + docker-compose.gorge.yml` 的逐服务说明。其中提到
+entrypoint 写 `local.json` 的操作只属于兼容控制面；默认 `docker-compose.yml` 使用上述
+`deployment.json`，服务协议与环境变量含义不变。
 
 需要邮件、搜索或 Gitea 单向事件桥时，显式启用对应 profile：
 
@@ -1706,26 +1727,24 @@ GORGE_GITEA_CONDUIT_TOKEN=<专用 Conduit bot token>
 GORGE_GITEA_GATEWAY_TOKEN=<GORGE_CONDUIT_TOKEN 的值>
 ```
 
-然后用叠加文件重建容器（`restart` 不会应用新增服务、环境变量或挂载）：
+然后启用默认编排的 Gitea profile（`restart` 不会应用新增服务、环境变量或挂载）：
 
 ```bash
 docker compose --profile gitea \
-  -f docker-compose.legacy.yml -f docker-compose.gorge.yml \
   up -d --force-recreate
 ```
 
-entrypoint 会把以下八个应用合并进
+运行时 profile 会停用以下八个应用，而不改管理员的
 `phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
-Harbormaster、Drydock、Diviner、Paste。同时设置 `gorge.diff.enabled=false`，在已配置
+Harbormaster、Drydock、Diviner、Paste。部署配置同时设置
+`gorge.diff.enabled=false`，在已配置
 `GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
 `PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
 `gorge`。
 
 `gitea.uri` 会在顶栏增加 Gitea 入口；Maniphest 增加 repository、issue、pull request、
-commit 四个链接字段。应用集合使用 Phorge 要求的 `{应用类名: true}` keyed set。
-entrypoint 会在数据库 schema 就绪后读取实际生效值（包括 Web UI 写入的数据库配置），
-再把合并结果写回最高优先级的数据库配置，因此不会被已有数据库值整项覆盖；同名自定义
-字段也保持管理员定义。
+commit 四个内建链接字段。字段沿用旧生成配置的 `std:maniphest:gitea.*` key，因此现有值
+不需要数据迁移；管理员的其它自定义字段和停用应用配置保持原样。
 
 在 Gitea 仓库或组织 Webhook 中，将目标设为：
 
@@ -1744,16 +1763,10 @@ https://<对外桥接地址>/webhooks/gitea
 PHORGE_PRODUCT_PROFILE=full
 ```
 
-首次启用时，entrypoint 会在持久化配置卷写入
-`conf/local/collaboration-profile-state.json`：既记录本模式新加入停用集合的应用，也保存
-实际被覆盖的 `gitea.uri`、`gorge.diff.enabled`、`syntax-highlighter.engine` 本地原值及
-被覆盖的数据库原值。再次 `up -d --force-recreate` 后，full 模式仅撤销应用差集并恢复这些配置；
-启用协作模式前已由管理员停用的应用仍保持停用。本地恢复失败时数据库回滚和状态清理会
-被跳过，下次启动可以继续重试。应用集合和自定义字段在协作模式期间使用完整数据库覆盖，
-保证管理页面的单次操作不会替换整组配置；退出时会基于启用前快照做三方合并，同时保留
-local.json 和管理页面中的新增、修改与删除，再写回原始来源并删除临时数据库覆盖。任务中的
-Gitea 链接和历史评论继续保留。最早版本未生成状态文件；直接切换到 full 时，entrypoint
-会把它留下的数字列表迁移为 keyed set，并移除其中由旧协作模式加入的受管应用。
+重新创建 `phorge-migrate` 后，统一控制面会原子切换到 full：运行时应用门控和内建 Gitea
+字段立即撤销，不需要写数据库或做三方合并。任务中已经存储的 Gitea 字段值和历史评论继续
+保留。从旧版协作控制面首次升级时，entrypoint 会消费并删除旧的
+`collaboration-profile-state.json`，精确恢复其保存的管理员基线后再交给新控制面。
 
 ## 参考
 

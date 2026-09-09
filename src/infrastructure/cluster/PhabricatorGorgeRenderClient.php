@@ -19,7 +19,8 @@ final class PhabricatorGorgeRenderClient
   const PATH_LANGUAGES = '/api/highlight/languages';
 
   public function __construct() {
-    $uri = self::getConfiguredURI();
+    $service = PhabricatorGorgeServiceRegistry::getService('render');
+    $uri = $service->getConfiguredURI();
 
     if ($uri === null) {
       throw new Exception(
@@ -30,7 +31,7 @@ final class PhabricatorGorgeRenderClient
     }
 
     $this->setURI($uri);
-    $this->setToken(PhabricatorEnv::getEnvConfigIfExists('gorge.render.token'));
+    $this->setToken($service->getConfiguredToken());
   }
 
   protected static function getServiceName() {
@@ -57,15 +58,8 @@ final class PhabricatorGorgeRenderClient
    *   the service is not configured.
    */
   public static function getConfiguredURI() {
-    $uri = PhabricatorEnv::getEnvConfigIfExists('gorge.render.uri');
-
-    if (!phutil_nonempty_string($uri)) {
-      return null;
-    }
-
-    // Trailing slashes matter: the service routes exactly, and a doubled
-    // slash produces an "ERR_NOT_FOUND" envelope rather than a highlight.
-    return rtrim($uri, '/');
+    return PhabricatorGorgeServiceRegistry::getService('render')
+      ->getConfiguredURI();
   }
 
   public static function isConfigured() {

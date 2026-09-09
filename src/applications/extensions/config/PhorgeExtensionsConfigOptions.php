@@ -55,7 +55,9 @@ final class PhorgeExtensionsConfigOptions
       ->setDescription(
         pht(
           'Deployment profile. The "collaboration" profile keeps Maniphest, ' .
-          'projects, documents and chat while an external forge owns code.'));
+          'projects, documents and chat while an external forge owns code. ' .
+          'The deployment configuration source owns this value in the ' .
+          'default container stack.'));
 
     $options[] = $this->newOption(
       'gitea.uri',

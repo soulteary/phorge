@@ -33,7 +33,8 @@ final class PhabricatorGorgeFileStorageClient
   const PATH_ENGINES = '/api/file/engines';
 
   public function __construct() {
-    $uri = self::getConfiguredURI();
+    $service = PhabricatorGorgeServiceRegistry::getService('file');
+    $uri = $service->getConfiguredURI();
 
     if ($uri === null) {
       throw new Exception(
@@ -44,7 +45,7 @@ final class PhabricatorGorgeFileStorageClient
     }
 
     $this->setURI($uri);
-    $this->setToken(PhabricatorEnv::getEnvConfigIfExists('gorge.file.token'));
+    $this->setToken($service->getConfiguredToken());
   }
 
   protected static function getServiceName() {
@@ -69,15 +70,8 @@ final class PhabricatorGorgeFileStorageClient
    *   the service is not configured.
    */
   public static function getConfiguredURI() {
-    $uri = PhabricatorEnv::getEnvConfigIfExists('gorge.file.uri');
-
-    if (!phutil_nonempty_string($uri)) {
-      return null;
-    }
-
-    // Trailing slashes matter: the service routes exactly, and a doubled
-    // slash produces an "ERR_NOT_FOUND" envelope rather than a file.
-    return rtrim($uri, '/');
+    return PhabricatorGorgeServiceRegistry::getService('file')
+      ->getConfiguredURI();
   }
 
   public static function isConfigured() {

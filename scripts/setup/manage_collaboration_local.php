@@ -1,17 +1,20 @@
 #!/usr/bin/env php
 <?php
 
-if ($argc !== 4) {
+if ($argc < 4 || $argc > 6) {
   fwrite(
     STDERR,
     "Usage: manage_collaboration_local.php ".
-    "<collaboration|full> <local-config> <state-file>\n");
+    "<collaboration|full> <local-config> <state-file> ".
+    "[taskqueue-state-file] [notification-state-file]\n");
   exit(1);
 }
 
 $mode = $argv[1];
 $config_path = $argv[2];
 $state_path = $argv[3];
+$taskqueue_state_path = isset($argv[4]) ? $argv[4] : null;
+$notification_state_path = isset($argv[5]) ? $argv[5] : null;
 if ($mode !== 'collaboration' && $mode !== 'full') {
   fwrite(STDERR, "Unknown product profile.\n");
   exit(1);
@@ -33,6 +36,8 @@ function read_json_object($path, $required) {
 }
 
 function write_json_object($path, array $value) {
+  $owner = file_exists($path) ? fileowner($path) : null;
+  $group = file_exists($path) ? filegroup($path) : null;
   $temporary = $path.'.tmp.'.getmypid();
   $json = json_encode(
     $value,
@@ -40,7 +45,22 @@ function write_json_object($path, array $value) {
   if (file_put_contents($temporary, $json, LOCK_EX) === false) {
     throw new Exception('Unable to write JSON file: '.$path);
   }
-  chmod($temporary, 0640);
+  if ($owner !== null && $owner !== false &&
+      fileowner($temporary) !== $owner &&
+      !chown($temporary, $owner)) {
+    @unlink($temporary);
+    throw new Exception('Unable to preserve JSON file owner: '.$path);
+  }
+  if ($group !== null && $group !== false &&
+      filegroup($temporary) !== $group &&
+      !chgrp($temporary, $group)) {
+    @unlink($temporary);
+    throw new Exception('Unable to preserve JSON file group: '.$path);
+  }
+  if (!chmod($temporary, 0640)) {
+    @unlink($temporary);
+    throw new Exception('Unable to set JSON file mode: '.$path);
+  }
   if (!rename($temporary, $path)) {
     @unlink($temporary);
     throw new Exception('Unable to install JSON file: '.$path);
@@ -81,6 +101,31 @@ function validate_profile_state(array $state) {
 
 $config = read_json_object($config_path, true);
 $state = read_json_object($state_path, false);
+$taskqueue_state = null;
+if ($taskqueue_state_path !== null) {
+  $taskqueue_state = read_json_object($taskqueue_state_path, false);
+  if ($taskqueue_state !== null &&
+      (!array_key_exists('present', $taskqueue_state) ||
+       !is_bool($taskqueue_state['present']) ||
+       ($taskqueue_state['present'] &&
+        (!array_key_exists('value', $taskqueue_state) ||
+         !is_int($taskqueue_state['value']) ||
+         $taskqueue_state['value'] < 0)))) {
+    throw new Exception('Taskqueue configuration state is invalid.');
+  }
+}
+$notification_state = null;
+if ($notification_state_path !== null) {
+  $notification_state = read_json_object($notification_state_path, false);
+  if ($notification_state !== null &&
+      (!array_key_exists('present', $notification_state) ||
+       !is_bool($notification_state['present']) ||
+       ($notification_state['present'] &&
+        (!array_key_exists('value', $notification_state) ||
+         !is_array($notification_state['value']))))) {
+    throw new Exception('Notification configuration state is invalid.');
+  }
+}
 if ($state !== null) {
   $state_upgraded = false;
   if (isset($state['version']) && $state['version'] === 1 &&
@@ -253,4 +298,38 @@ if ($mode === 'collaboration') {
   $config['phorge.product-profile'] = 'full';
 }
 
+if ($taskqueue_state !== null) {
+  if ($taskqueue_state['present']) {
+    $config['phd.taskmasters'] = $taskqueue_state['value'];
+  } else {
+    unset($config['phd.taskmasters']);
+  }
+} else if ($taskqueue_state_path !== null &&
+           !empty($config['gorge.taskqueue.uri']) &&
+           isset($config['phd.taskmasters']) &&
+           $config['phd.taskmasters'] === 0) {
+  // Early Gorge taskqueue integration wrote the managed zero without a
+  // rollback record. The endpoint and zero together identify that value as
+  // deployment-owned; an unrelated administrator zero remains untouched.
+  unset($config['phd.taskmasters']);
+}
+
+if ($notification_state !== null) {
+  if ($notification_state['present']) {
+    $config['notification.servers'] = $notification_state['value'];
+  } else {
+    unset($config['notification.servers']);
+  }
+}
+
 write_json_object($config_path, $config);
+if ($taskqueue_state !== null && !unlink($taskqueue_state_path)) {
+  throw new Exception(
+    'Unable to remove taskqueue configuration state: '.
+    $taskqueue_state_path);
+}
+if ($notification_state !== null && !unlink($notification_state_path)) {
+  throw new Exception(
+    'Unable to remove notification configuration state: '.
+    $notification_state_path);
+}

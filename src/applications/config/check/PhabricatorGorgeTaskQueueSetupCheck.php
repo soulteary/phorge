@@ -7,12 +7,31 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+    if (!$service->isOwnedBy('gorge')) {
+      return;
+    }
+
     $uri = PhabricatorGorgeTaskQueueClient::getConfiguredURI();
 
-    // The first stage is implicit: if the service is not configured, the
-    // daemon drives the queue with SQL as it always has, so there is nothing
-    // to report.
     if ($uri === null) {
+      $this->newIssue('gorge.taskqueue.owner-without-endpoint')
+        ->setName(pht('Gorge Owns Queue Without an Endpoint'))
+        ->setSummary(
+          pht(
+            'Queue ownership is assigned to Gorge, but no task queue ' .
+            'endpoint is configured.'))
+        ->setMessage(
+          pht(
+            'Set `%s` to a reachable task queue service, or atomically set ' .
+            '`%s` back to `%s`. Phorge deliberately does not fall back to ' .
+            'SQL while Gorge owns the queue, because that would reactivate ' .
+            'a second consumer.',
+            'gorge.taskqueue.uri',
+            'gorge.taskqueue.owner',
+            'phorge'))
+        ->addRelatedPhabricatorConfig('gorge.taskqueue.owner')
+        ->addRelatedPhabricatorConfig('gorge.taskqueue.uri');
       return;
     }
 
@@ -63,25 +82,43 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       "\n\n".
       '%s'.
       "\n\n".
-      'Setting %s routes queue operations (enqueue, lease, complete, fail) '.
+      'Assigning %s to %s routes queue operations (enqueue, lease, '.
+      'complete, fail) '.
       'through the service instead of the local SQL queue, so while the '.
       'service is down the daemons can not lease or complete work and the '.
       'queue stalls.'.
       "\n\n".
       'Check that the service is running and that %s names a host this '.
-      'server can reach. To hand the queue back to the daemons in the '.
-      'meantime, clear %s and the native SQL path resumes.',
+      'server can reach. To hand the queue back in the default deployment, '.
+      'stop the %s consumers, set %s to %s, rerun %s without starting its '.
+      'dependencies, and restart Phorge the same way. This regenerates '.
+      'one deployment configuration which assigns %s to %s, clears %s and '.
+      'removes its %s override together, allowing the previous or default '.
+      'native taskmaster pool to resume. Do not restart those consumers '.
+      'while native taskmasters are active. If another deployment system owns '.
+      'these settings, make the equivalent owner, endpoint and taskmaster '.
+      'changes atomically in its configuration source.',
       phutil_tag('tt', array(), $uri),
       phutil_tag('tt', array(), $health_uri),
       phutil_tag('pre', array(), $error),
+      phutil_tag('tt', array(), 'gorge.taskqueue.owner'),
+      phutil_tag('tt', array(), 'gorge'),
       phutil_tag('tt', array(), 'gorge.taskqueue.uri'),
+      phutil_tag('tt', array(), 'gorge-worker'),
+      phutil_tag('tt', array(), 'GORGE_TASKQUEUE_MODE'),
+      phutil_tag('tt', array(), 'disable'),
+      phutil_tag('tt', array(), 'phorge-migrate'),
+      phutil_tag('tt', array(), 'gorge.taskqueue.owner'),
+      phutil_tag('tt', array(), 'phorge'),
       phutil_tag('tt', array(), 'gorge.taskqueue.uri'),
-      phutil_tag('tt', array(), 'gorge.taskqueue.uri'));
+      phutil_tag('tt', array(), 'phd.taskmasters'));
 
     $this->newIssue('gorge.taskqueue.unreachable')
       ->setName(pht('Gorge Task Queue Service Unreachable'))
       ->setSummary($summary)
       ->setMessage($message)
+      ->addRelatedPhabricatorConfig('gorge.taskqueue.owner')
+      ->addRelatedPhabricatorConfig('phd.taskmasters')
       ->addRelatedPhabricatorConfig('gorge.taskqueue.uri');
 
     return false;

@@ -4,12 +4,8 @@
 #
 # 流程:
 #   1. web / daemon 角色直接启动对应前台进程
-#   2. migrate / all 角色守卫式生成本地配置并幂等下发 Gorge 服务配置
-#                                 GORGE_NOTIFICATION_* 通知 /
-#                                 GORGE_MAILER_* 发信 / GORGE_SEARCH_* 全文检索 /
-#                                 GORGE_FILE_* 文件存储 / GORGE_WEBHOOK_* webhook /
-#                                 GORGE_TASKQUEUE_* 任务队列 /
-#                                 GORGE_DB_* 数据库诊断)
+#   2. migrate / all 角色守卫式生成本地配置；默认控制面原子生成只读的
+#      deployment.json，legacy 控制面保持逐项下发 Gorge 配置
 #   3. 等待数据库就绪            (PHORGE_WAIT_DB)
 #   4. 升级/初始化数据库 schema  (PHORGE_AUTO_UPGRADE)
 #   5. migrate 角色退出；all 角色按旧行为启动 phd 与 Web
@@ -45,6 +41,18 @@ PHORGE_START_PHD="${PHORGE_START_PHD:-1}"
 PHORGE_PRODUCT_PROFILE="${PHORGE_PRODUCT_PROFILE:-full}"
 PHORGE_CONTAINER_ROLE="${PHORGE_CONTAINER_ROLE:-all}"
 PHORGE_DB_NAMESPACE="${PHORGE_DB_NAMESPACE:-${STORAGE_NAMESPACE:-}}"
+PHORGE_CONTROL_PLANE="${PHORGE_CONTROL_PLANE:-legacy}"
+DEPLOYMENT_CONFIG_FILE="${PHORGE_DEPLOYMENT_CONFIG:-$CONF_DIR/deployment.json}"
+export PHORGE_CONTROL_PLANE
+
+case "$PHORGE_CONTROL_PLANE" in
+    deployment|legacy)
+        ;;
+    *)
+        echo "[entrypoint] 未知 PHORGE_CONTROL_PLANE=$PHORGE_CONTROL_PLANE。" >&2
+        exit 64
+        ;;
+esac
 
 # 默认编排把初始化、Web 与守护进程分成三个容器。只有 migrate 角色可以改配置
 # 和 schema，避免 Web/daemon 副本同时执行 storage upgrade 或争写 local.json。
@@ -53,6 +61,11 @@ case "$PHORGE_CONTAINER_ROLE" in
     web|daemon)
         if [ ! -s "$CONF_FILE" ]; then
             echo "[entrypoint] $PHORGE_CONTAINER_ROLE 角色缺少 $CONF_FILE；请先运行 phorge-migrate。" >&2
+            exit 1
+        fi
+        if [ "$PHORGE_CONTROL_PLANE" = "deployment" ] &&
+           [ ! -s "$DEPLOYMENT_CONFIG_FILE" ]; then
+            echo "[entrypoint] $PHORGE_CONTAINER_ROLE 角色缺少 $DEPLOYMENT_CONFIG_FILE；拒绝回退旧控制面。" >&2
             exit 1
         fi
         echo "[entrypoint] 启动 $PHORGE_CONTAINER_ROLE 角色: $*"
@@ -122,7 +135,13 @@ else
     fi
 fi
 
-# ----- 2. 下发 Gorge 服务配置（非守卫式，刻意与上面相反）-----
+# ----- 2. 兼容控制面 -----
+# 默认栈使用后文一次原子替换的 deployment.json。这里保留旧控制面，供
+# docker-compose.legacy.yml、旧 Gorge overlay 和直接 docker run 使用；这条路径
+# 仍按原来的逐项配置语义运行，不会因镜像升级被悄悄切换。
+if [ "$PHORGE_CONTROL_PLANE" = "legacy" ]; then
+
+# 下发 Gorge 服务配置（非守卫式，刻意与上面相反）
 # gorge.render.uri / token 与 notification.servers 描述的都是部署拓扑，应该跟着
 # 编排走而不是跟着 phorge-conf 卷走：上面那段只在首次生成 local.json 时写入，
 # 已经跑过的实例光加环境变量不会生效。这里每次启动都用 bin/config set 幂等重写
@@ -1282,6 +1301,8 @@ else
     echo "[entrypoint] GORGE_DB_MODE=preserve，保留现有数据库诊断配置。"
 fi
 
+fi # PHORGE_CONTROL_PLANE=legacy
+
 # ----- 3. 等待数据库就绪 -----
 # 用 PHP mysqli 探测：与 Phorge 实际使用的驱动一致。
 # （不用 mariadb 客户端：它会校验 MySQL 8 的自签名 TLS 证书而失败，需 --skip-ssl）
@@ -1358,14 +1379,24 @@ resolve_product_profile() {
         return 0
     fi
 
+    profile_deployment_path="$DEPLOYMENT_CONFIG_FILE"
+    if [ "$PHORGE_CONTROL_PLANE" = "legacy" ]; then
+        profile_deployment_path=''
+    fi
     saved_profile="$(php -r '
-        $path = $argv[1];
-        $config = is_file($path) ? json_decode(file_get_contents($path), true) : null;
-        $profile = is_array($config) ? ($config["phorge.product-profile"] ?? "") : "";
-        if ($profile === "collaboration" || $profile === "full") {
-            echo $profile;
+        foreach (array($argv[1], $argv[2]) as $path) {
+            $config = is_file($path)
+                ? json_decode(file_get_contents($path), true)
+                : null;
+            $profile = is_array($config)
+                ? ($config["phorge.product-profile"] ?? "")
+                : "";
+            if ($profile === "collaboration" || $profile === "full") {
+                echo $profile;
+                exit(0);
+            }
         }
-    ' "$CONF_FILE")"
+    ' "$profile_deployment_path" "$CONF_FILE")"
     if [ -n "$saved_profile" ]; then
         PHORGE_PRODUCT_PROFILE="$saved_profile"
         echo "[entrypoint] 沿用已保存的产品模式: $PHORGE_PRODUCT_PROFILE。"
@@ -1416,18 +1447,20 @@ resolve_product_profile() {
 
 resolve_product_profile
 
+if [ "$PHORGE_PRODUCT_PROFILE" != "collaboration" ] &&
+   [ "$PHORGE_PRODUCT_PROFILE" != "full" ]; then
+    echo "[entrypoint] 未知 PHORGE_PRODUCT_PROFILE=$PHORGE_PRODUCT_PROFILE。" >&2
+    exit 64
+fi
+
 PRODUCT_PROFILE_LOCAL_OK=1
-if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ]; then
-    echo "[entrypoint] 启用 Phorge 协作模式 ..."
+if [ "$PHORGE_CONTROL_PLANE" = "legacy" ]; then
+    if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ]; then
+        echo "[entrypoint] 启用 Phorge 协作模式 ..."
+    fi
     if ! configure_product_profile_local; then
         PRODUCT_PROFILE_LOCAL_OK=0
     fi
-elif [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
-    if ! configure_product_profile_local; then
-        PRODUCT_PROFILE_LOCAL_OK=0
-    fi
-else
-    echo "[entrypoint] 警告: 未知 PHORGE_PRODUCT_PROFILE=$PHORGE_PRODUCT_PROFILE，保留当前应用配置。" >&2
 fi
 
 if [ "$PHORGE_AUTO_UPGRADE" = "1" ]; then
@@ -1443,11 +1476,9 @@ else
     echo "[entrypoint] PHORGE_AUTO_UPGRADE=$PHORGE_AUTO_UPGRADE，跳过 storage upgrade。"
 fi
 
-# 应用安装状态既可以来自 local.json，也可以由管理员在 Web UI 写进优先级更高的
-# 数据库配置。schema 就绪后再读取有效配置、写回合并结果；协作模式首次启用时把
-# “本次新增停用”的应用补进持久化状态文件，full 模式只恢复这些应用。
-if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
-   [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
+# 旧控制面需要用三方合并维护应用与字段。默认控制面把应用门控和 Gitea 字段变成
+# 运行时代码，并让 deployment.json 覆盖数据库源，不再写数据库配置。
+if [ "$PHORGE_CONTROL_PLANE" = "legacy" ]; then
     if [ "$PRODUCT_PROFILE_LOCAL_OK" = "1" ]; then
         if ! php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
             "$PHORGE_PRODUCT_PROFILE" "$COLLABORATION_STATE_FILE"; then
@@ -1462,6 +1493,49 @@ if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
         chown www-data:www-data "$COLLABORATION_STATE_FILE" || true
         chmod 0640 "$COLLABORATION_STATE_FILE" || true
     fi
+else
+    # 从阶段一升级时，先精确恢复旧控制面保存的数据库/本地基线，再用新的
+    # 运行时 profile 接管。早期 collaboration 实现没有状态文件，所以也检测
+    # local.json 中的旧 profile；数据库中的无状态 numeric 应用列表由后面的
+    # profile helper 无条件检查。taskqueue 快照也在这里一次性恢复。
+    legacy_local_state="$(php -r '
+        $config = json_decode(@file_get_contents($argv[1]), true);
+        if (!is_array($config)) {
+            exit(0);
+        }
+        $collaboration =
+            (($config["phorge.product-profile"] ?? null) === "collaboration");
+        $taskqueue = !empty($config["gorge.taskqueue.uri"]) &&
+            (($config["phd.taskmasters"] ?? null) === 0);
+        if ($collaboration || $taskqueue) {
+            echo "1";
+        }
+    ' "$CONF_FILE")"
+    if [ -e "$COLLABORATION_STATE_FILE" ] ||
+       [ -e "$TASKQUEUE_STATE_FILE" ] ||
+       [ -e "$NOTIFICATION_STATE_FILE" ] ||
+       [ "$legacy_local_state" = "1" ]; then
+        echo "[entrypoint] 迁移旧控制面状态到统一控制面 ..."
+        PHORGE_CONTROL_PLANE=legacy \
+            php "$PHORGE_DIR/scripts/setup/manage_collaboration_local.php" \
+            full "$CONF_FILE" "$COLLABORATION_STATE_FILE" \
+            "$TASKQUEUE_STATE_FILE" "$NOTIFICATION_STATE_FILE"
+    fi
+
+    # This helper is also the compatibility detector for the original
+    # stateless collaboration profile: without a state file it normalizes the
+    # numeric uninstalled-application set while preserving keyed admin values.
+    PHORGE_CONTROL_PLANE=legacy \
+        php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
+        full "$COLLABORATION_STATE_FILE"
+    chown www-data:www-data "$CONF_FILE" || true
+    chmod 0640 "$CONF_FILE" || true
+
+    echo "[entrypoint] 原子生成统一部署配置 $DEPLOYMENT_CONFIG_FILE ..."
+    php "$PHORGE_DIR/scripts/setup/build_deployment_config.php" \
+        "$PHORGE_PRODUCT_PROFILE" "$DEPLOYMENT_CONFIG_FILE" "$CONF_FILE"
+    chown www-data:www-data "$DEPLOYMENT_CONFIG_FILE" || true
+    chmod 0640 "$DEPLOYMENT_CONFIG_FILE" || true
 fi
 
 # all 角色接下来会 exec 长期运行的 Web 进程。在进入运行阶段前显式

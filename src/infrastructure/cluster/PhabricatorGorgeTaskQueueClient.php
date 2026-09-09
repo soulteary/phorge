@@ -41,7 +41,8 @@ final class PhabricatorGorgeTaskQueueClient
   private $leaseOwner;
 
   public function __construct() {
-    $uri = self::getConfiguredURI();
+    $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+    $uri = $service->getConfiguredURI();
 
     if ($uri === null) {
       throw new Exception(
@@ -52,8 +53,7 @@ final class PhabricatorGorgeTaskQueueClient
     }
 
     $this->setURI($uri);
-    $this->setToken(
-      PhabricatorEnv::getEnvConfigIfExists('gorge.taskqueue.token'));
+    $this->setToken($service->getConfiguredToken());
   }
 
   protected static function getServiceName() {
@@ -79,15 +79,8 @@ final class PhabricatorGorgeTaskQueueClient
    *   the service is not configured.
    */
   public static function getConfiguredURI() {
-    $uri = PhabricatorEnv::getEnvConfigIfExists('gorge.taskqueue.uri');
-
-    if (!phutil_nonempty_string($uri)) {
-      return null;
-    }
-
-    // Trailing slashes matter: the service routes exactly, and a doubled
-    // slash produces an "ERR_NOT_FOUND" envelope rather than a result.
-    return rtrim($uri, '/');
+    return PhabricatorGorgeServiceRegistry::getService('taskqueue')
+      ->getConfiguredURI();
   }
 
   /**
@@ -102,7 +95,8 @@ final class PhabricatorGorgeTaskQueueClient
    * @return bool True if the service owns the task queue.
    */
   public static function isConfigured() {
-    return (self::getConfiguredURI() !== null);
+    return PhabricatorGorgeServiceRegistry::getService('taskqueue')
+      ->isOwnedBy('gorge');
   }
 
 
