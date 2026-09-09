@@ -259,10 +259,14 @@ if ($search_mode !== 'preserve') {
       $search,
       array(
         'type' => 'gorge',
-        'hosts' => array($host),
-        'port' => env_uint('GORGE_SEARCH_PORT', '8120'),
-        'protocol' => env_value('GORGE_SEARCH_PROTOCOL', 'http'),
-        'roles' => array('read' => true, 'write' => true),
+        'hosts' => array(
+          array(
+            'host' => $host,
+            'port' => env_uint('GORGE_SEARCH_PORT', '8120'),
+            'protocol' => env_value('GORGE_SEARCH_PROTOCOL', 'http'),
+            'roles' => array('read' => true, 'write' => true),
+          ),
+        ),
       ));
     $config['gorge.search.token'] = nullable_env('GORGE_SEARCH_TOKEN');
   } else {
