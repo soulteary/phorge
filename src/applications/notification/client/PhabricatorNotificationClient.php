@@ -27,14 +27,33 @@ final class PhabricatorNotificationClient extends Phobject {
 
     shuffle($servers);
 
+    $exceptions = array();
     foreach ($servers as $server) {
       try {
         $server->postMessage($data);
         return;
       } catch (Exception $ex) {
-        // Just ignore any issues here.
+        $exceptions[] = $ex;
       }
     }
+
+    if (!$exceptions) {
+      return;
+    }
+
+    $service =
+      PhabricatorGorgeServiceRegistry::getService('notification');
+    if ($service->isFallbackAllowed()) {
+      $service->recordFallback('publish');
+      foreach ($exceptions as $ex) {
+        phlog($ex);
+      }
+      return;
+    }
+
+    throw new PhutilAggregateException(
+      pht('Unable to publish to any notification server.'),
+      $exceptions);
   }
 
   public static function isEnabled() {

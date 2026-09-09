@@ -119,6 +119,43 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testNotificationPublishFailurePolicy() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig(
+      'notification.servers',
+      array(
+        array(
+          'type' => 'admin',
+          'host' => '127.0.0.1',
+          'port' => 1,
+          'protocol' => 'http',
+        ),
+      ));
+
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache->deleteKey(PhabricatorNotificationServerRef::KEY_REFS);
+
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $caught = null;
+    try {
+      PhabricatorNotificationClient::tryToPostMessage(array());
+    } catch (PhutilAggregateException $ex) {
+      $caught = $ex;
+    }
+    $this->assertTrue($caught instanceof PhutilAggregateException);
+
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    PhabricatorNotificationClient::tryToPostMessage(array());
+    $this->assertEqual(
+      array('notification.publish' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    $cache->deleteKey(PhabricatorNotificationServerRef::KEY_REFS);
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
   public function testSearchOffSynthesizesNativeService() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.service-policy', 'off');
