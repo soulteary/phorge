@@ -94,4 +94,24 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testSearchOffSynthesizesNativeService() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'off');
+    $env->overrideEnvConfig(
+      'cluster.search',
+      array(
+        array(
+          'type' => 'gorge',
+          'hosts' => array(),
+        ),
+      ));
+
+    $services = PhabricatorSearchService::newRefs();
+    $this->assertEqual(1, count($services));
+    $config = $services[0]->getConfig();
+    $this->assertEqual('mysql', $config['type']);
+
+    unset($env);
+  }
+
 }

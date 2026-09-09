@@ -17,12 +17,7 @@ final class PhabricatorGorgeHighlightFuture extends FutureProxy {
         $this->uri,
         $result);
     } catch (Exception $ex) {
-      // Rethrow as a highlighter exception rather than logging and returning
-      // unhighlighted source: PhutilSyntaxHighlighterEngine and
-      // DifferentialChangesetParser both catch this class, and the latter
-      // uses it to tell the viewer that highlighting failed instead of
-      // quietly rendering a colorless page.
-      throw new PhutilSyntaxHighlighterException($ex->getMessage());
+      throw $this->newPolicyException($ex);
     }
 
     $html = null;
@@ -31,11 +26,12 @@ final class PhabricatorGorgeHighlightFuture extends FutureProxy {
     }
 
     if (!is_string($html)) {
-      throw new PhutilSyntaxHighlighterException(
+      $ex = new Exception(
         pht(
           'The Gorge render service returned a response for "%s" with no '.
           'usable "html" field.',
           $this->uri));
+      throw $this->newPolicyException($ex);
     }
 
     if ($this->scrub && strlen($html)) {
@@ -43,6 +39,26 @@ final class PhabricatorGorgeHighlightFuture extends FutureProxy {
     }
 
     return phutil_safe_html($html);
+  }
+
+  /**
+   * Convert a service failure into the signal expected by the selected
+   * deployment policy.
+   *
+   * The generic syntax engine catches PhutilSyntaxHighlighterException and
+   * invokes its local highlighter. Only the explicit migration fallback may
+   * produce that exception. In required mode the original service exception
+   * escapes that catch boundary, so an outage can not become a silent local
+   * render.
+   */
+  private function newPolicyException(Exception $ex) {
+    $service = PhabricatorGorgeServiceRegistry::getService('render');
+    if (!$service->isFallbackAllowed()) {
+      return $ex;
+    }
+
+    $service->recordFallback('highlight');
+    return new PhutilSyntaxHighlighterException($ex->getMessage());
   }
 
 }

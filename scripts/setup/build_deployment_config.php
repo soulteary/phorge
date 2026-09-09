@@ -251,7 +251,10 @@ if ($search_mode !== 'preserve') {
     if (!strlen($host)) {
       throw new Exception('GORGE_SEARCH_HOST is required in enable mode.');
     }
-    if (env_value('GORGE_SEARCH_KEEP_MYSQL', '0') !== '1') {
+    $keep_mysql =
+      (env_value('GORGE_SEARCH_KEEP_MYSQL', '0') === '1') ||
+      ($service_policy === 'off');
+    if (!$keep_mysql) {
       $search = array_values(
         array_filter(
           $search,
@@ -259,6 +262,12 @@ if ($search_mode !== 'preserve') {
             return !(is_array($engine) && isset($engine['type']) &&
               $engine['type'] === 'mysql');
           }));
+    }
+    if ($service_policy === 'off' && !$search) {
+      $search[] = array(
+        'type' => 'mysql',
+        'roles' => array('read' => true, 'write' => true),
+      );
     }
     array_unshift(
       $search,

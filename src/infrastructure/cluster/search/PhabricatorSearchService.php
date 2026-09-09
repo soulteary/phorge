@@ -200,13 +200,30 @@ class PhabricatorSearchService
     $engines = self::loadAllFulltextStorageEngines();
     $refs = array();
 
-    foreach ($services as $config) {
-      if (idx($config, 'type') === 'gorge' &&
-          PhabricatorGorgeServiceRegistry::getService('search')
-            ->isDisabled()) {
-        continue;
-      }
+    $gorge = PhabricatorGorgeServiceRegistry::getService('search');
+    if ($gorge->isDisabled()) {
+      $services = array_values(
+        array_filter(
+          $services,
+          function($config) {
+            return !(is_array($config) &&
+              idx($config, 'type') ===
+                PhabricatorGorgeFulltextStorageEngine::ENGINE_TYPE);
+          }));
 
+      // A deployment generated before this policy existed may contain only
+      // the Gorge entry. "off" means select the native implementation, not
+      // disable search, so provide the normal MySQL service if filtering the
+      // configured Gorge service leaves no destination.
+      if (!$services) {
+        $services[] = array(
+          'type' => 'mysql',
+          'roles' => array('read' => true, 'write' => true),
+        );
+      }
+    }
+
+    foreach ($services as $config) {
       // Normally, we've validated configuration before we get this far, but
       // make sure we don't fatal if we end up here with a bogus configuration.
       if (!isset($engines[$config['type']])) {

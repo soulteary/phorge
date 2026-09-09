@@ -42,4 +42,47 @@ final class PhabricatorGorgeDiffClientTestCase extends PhabricatorTestCase {
       'same new suffix');
   }
 
+  public function testHighlightFallbackPolicy() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+
+    try {
+      $this->newFailingHighlightFuture()->resolve();
+      $this->assertFailure(pht('Expected highlighting to fail.'));
+    } catch (PhutilSyntaxHighlighterException $ex) {
+      $this->assertEqual(
+        array('render.highlight' => 1),
+        PhabricatorGorgeServiceSpec::getFallbackCounts());
+    }
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
+  public function testHighlightRequiredPolicy() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+
+    $caught = null;
+    try {
+      $this->newFailingHighlightFuture()->resolve();
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+    $this->assertFalse(
+      $caught instanceof PhutilSyntaxHighlighterException);
+
+    unset($env);
+  }
+
+  private function newFailingHighlightFuture() {
+    $result = array(new Exception('render unavailable'), '');
+    return new PhabricatorGorgeHighlightFuture(
+      new ImmediateFuture($result),
+      'http://gorge-render:8140/api/highlight/render');
+  }
+
 }
