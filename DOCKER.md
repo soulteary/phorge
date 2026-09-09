@@ -1508,19 +1508,25 @@ docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
 叠加编排后，entrypoint 会把内部地址和 token 写进 `gorge.db.uri` / `gorge.db.token`，
 数据库控制台与相关 setup check 随即切流。URI 未配置时仍走原来的 PHP 直连实现。
 
+> 本节命令统一用下面这个别名，`dc` 代表单节点（基础叠加）的两个 `-f`；多节点另有 `dc_multi`，见后文：
+>
+> ```bash
+> alias dc='docker compose -f docker-compose.yml -f docker-compose.gorge.yml'
+> ```
+
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+dc up -d --build
 
 # 容器存活；这个探针不访问数据库。
-docker compose exec gorge-db-api \
+dc exec gorge-db-api \
   wget -qO- http://127.0.0.1:8080/healthz
 
 # 服务真正可用：至少一台已配置的 master 可以连接。
-docker compose exec gorge-db-api \
+dc exec gorge-db-api \
   wget -qO- http://127.0.0.1:8080/readyz
 
 # PHP 侧已经拿到 compose 内网地址。
-docker compose exec phorge \
+dc exec phorge \
   /opt/phorge/phorge/bin/config get gorge.db.uri
 ```
 
@@ -1539,12 +1545,12 @@ Compose 对 `gorge-db-api` 使用 `/healthz` 健康检查，`phorge` 只以 `ser
 依赖它；数据库可达性由 `/readyz` 和 `PhabricatorGorgeDBSetupCheck` 报告。这个区分要保留：
 进程已经启动与数据库诊断已经可用是两种状态，首启迁移期间不应让前者阻塞 Phorge。
 
-默认单节点部署不需要挂配置文件。多节点部署要让 db-api 读到集群拓扑，有两种做法，都要**新建第三个 override 文件**——本节所有命令因此都带三个 `-f`（`docker-compose.yml`、`docker-compose.gorge.yml`、以及下面这个多节点 override，约定名为 `docker-compose.gorge-multinode.yml`）。缺了第三个 `-f`，挂载和环境变量都不会生效，服务会静默退回单节点。
+默认单节点部署不需要挂配置文件。多节点部署要让 db-api 读到集群拓扑，有两种做法，都要**新建第三个 override 文件**——本小节所有命令因此改用 `dc_multi`，它在上面 `dc` 的两个 `-f`（`docker-compose.yml`、`docker-compose.gorge.yml`）之外再叠一个多节点 override（约定名为 `docker-compose.gorge-multinode.yml`）。缺了第三个 `-f`，挂载和环境变量都不会生效，服务会静默退回单节点。
 
-> 从这里起，把下面这行别名记在手边，后续命令都用它：
+> 从这里起，把下面这行别名记在手边，本小节命令都用它：
 >
 > ```bash
-> alias dc='docker compose -f docker-compose.yml -f docker-compose.gorge.yml -f docker-compose.gorge-multinode.yml'
+> alias dc_multi='docker compose -f docker-compose.yml -f docker-compose.gorge.yml -f docker-compose.gorge-multinode.yml'
 > ```
 
 #### 做法 A（推荐）：专用只读配置文件 + 只读 DB 账号
@@ -1617,20 +1623,20 @@ services:
 首次生成配置后，或每次给 `gorge-db-api` 新增挂载 / 环境变量之后，用 `--force-recreate` 重建容器让它带上新配置，**不要用 `restart`**：`restart` 只是重启进程，不会应用新的 volume 或 environment，服务会带着旧配置起来、看起来没报错却读的是老拓扑。
 
 ```bash
-dc up -d --force-recreate gorge-db-api
+dc_multi up -d --force-recreate gorge-db-api
 # 若同时改了 phorge 侧配置，再让 phorge 重新读一次：
-dc up -d --force-recreate phorge
+dc_multi up -d --force-recreate phorge
 ```
 
 重建后确认拓扑与契约都对：
 
 ```bash
 # 服务能连到某台 master。
-dc exec gorge-db-api wget -qO- http://127.0.0.1:8080/readyz
+dc_multi exec gorge-db-api wget -qO- http://127.0.0.1:8080/readyz
 
 # 契约元信息：contractVersion / namespace / topologySource=file / 能力列表。
 # 带 token（留空时可省掉 --header），token 只能走 header，不能放 query。
-dc exec gorge-db-api wget -qO- \
+dc_multi exec gorge-db-api wget -qO- \
   --header="X-Service-Token: $GORGE_DB_TOKEN" \
   http://127.0.0.1:8080/api/db/meta
 ```
@@ -1639,12 +1645,15 @@ dc exec gorge-db-api wget -qO- \
 
 ### 回滚
 
-先在 `.env` 显式留空 `GORGE_DB_URL=`，再清掉已经持久化的 URI 并重启 Phorge（多节点部署带上第三个 `-f docker-compose.gorge-multinode.yml`）：
+先在 `.env` 显式留空 `GORGE_DB_URL=`，再清掉已经持久化的 URI 并重启 Phorge（单节点用 `dc`，多节点用 `dc_multi`，两者复用同一套 `-f` 组合）：
 
 ```bash
-docker compose exec phorge \
+dc exec phorge \
   /opt/phorge/phorge/bin/config set gorge.db.uri null
-docker compose -f docker-compose.yml -f docker-compose.gorge.yml restart phorge
+dc restart phorge
+# 多节点部署改用带第三个 `-f` 的别名：
+# dc_multi exec phorge /opt/phorge/phorge/bin/config set gorge.db.uri null
+# dc_multi restart phorge
 ```
 
 之后数据库控制台恢复 PHP 直连诊断。确认不再需要服务时可以再停掉它；这不会改变数据库，
