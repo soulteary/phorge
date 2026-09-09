@@ -328,6 +328,17 @@ abstract class PhabricatorWorker extends Phobject {
     return $this->queuedTasks;
   }
 
+  /**
+   * Test whether this worker has staged followup tasks.
+   *
+   * Parent finalization uses this to select the only atomic path available
+   * for a parent and its children. The queued task payloads remain private to
+   * the worker and can only be persisted through the flush methods below.
+   */
+  final public function hasQueuedTasks() {
+    return (bool)$this->queuedTasks;
+  }
+
 
   /**
    * Schedule any queued tasks, then empty the task queue.
@@ -345,9 +356,10 @@ abstract class PhabricatorWorker extends Phobject {
   /**
    * Persist follow-ups directly to SQL without contacting Gorge.
    *
-   * This is reserved for completion reconciliation after the parent worker
-   * has already succeeded and a Gorge completion report failed before the
-   * in-memory follow-ups could be flushed.
+   * This is used by the atomic parent/followup finalizer: Gorge currently
+   * exposes completion and enqueue as separate operations, while the shared
+   * SQL store can commit the parent archive and its entire child batch in one
+   * transaction.
    */
   final public function flushTaskQueueNatively($defaults = array()) {
     $this->flushTaskQueueWithMode($defaults, $force_native = true);

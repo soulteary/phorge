@@ -81,10 +81,7 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
       'gorge.taskqueue.uri',
       'http://127.0.0.1:1');
 
-    $task = $this->scheduleTask(
-      array(
-        'queueFollowup' => true,
-      ));
+    $task = $this->scheduleTask();
     $task = $this->expectNextLease($task);
 
     // Route only the completion report through the unreachable service. The
@@ -106,6 +103,37 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
       PhabricatorWorkerActiveTask::COMPLETION_PENDING_OWNER,
       $stored_task->getLeaseOwner());
     $this->assertTrue($stored_task->getLeaseExpires() > time());
+
+    $followups = id(new PhabricatorWorkerActiveTask())
+      ->loadAllWhere('id != %d', $task->getID());
+    $this->assertEqual(0, count($followups));
+
+    unset($env);
+  }
+
+  public function testGorgeFollowupsUseAtomicNativeFinalization() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask(
+      array(
+        'queueFollowup' => true,
+      ));
+    $task = $this->expectNextLease($task);
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    // The unreachable required service proves this path does not complete
+    // the parent before persisting its followup through a second HTTP call.
+    $result = $task->executeTask();
+    $this->assertTrue($result->isArchived());
+
+    $stored_parent = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertEqual(null, $stored_parent);
 
     $followups = id(new PhabricatorWorkerActiveTask())
       ->loadAllWhere('id != %d', $task->getID());

@@ -239,6 +239,33 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
     }
 
     if ($did_succeed) {
+      $defaults = array(
+        'priority' => (int)$this->getPriority(),
+      );
+
+      if ($worker->hasQueuedTasks()) {
+        // Gorge currently exposes completion and enqueue as separate
+        // operations. Completing the parent first can lose children, while
+        // enqueueing children first can duplicate them if only part of the
+        // batch succeeds. Both tables share the worker database, so finalize
+        // a successful parent with staged followups in one native SQL
+        // transaction even when Gorge owns leasing. This is a deliberate
+        // atomic finalizer, not a service-failure fallback.
+        $this->openTransaction();
+        try {
+          $worker->flushTaskQueueNatively($defaults);
+          $result = $this->archiveTask(
+            PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
+            $duration);
+          $this->saveTransaction();
+        } catch (Throwable $finalize_ex) {
+          $this->killTransaction();
+          throw $finalize_ex;
+        }
+
+        return $result;
+      }
+
       // Completion is control-plane bookkeeping after the worker has already
       // finished its side effects. Keep it outside the execution catch above:
       // a reporting outage must not increment failureCount or call fail(),
@@ -252,51 +279,18 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
         // reconciliation before propagating the control-plane exception.
         // If Gorge committed before losing its response, this update simply
         // finds no active row and the already-archived task remains complete.
-        $defaults = array(
-          'priority' => (int)$this->getPriority(),
-        );
-
-        // These follow-ups are still only in memory and have never been
-        // offered to Gorge. Persist them directly and park the parent in one
-        // transaction: committing either half alone would leave a broken or
-        // duplicate task chain. If finalization fails, roll everything back
-        // and leave the parent recoverable.
-        $this->openTransaction();
-        try {
-          $worker->flushTaskQueueNatively($defaults);
-          $this
-            ->setLeaseOwner(self::COMPLETION_PENDING_OWNER)
-            ->setLeaseExpires(2147483647)
-            ->forceSaveWithoutLease();
-          $this->saveTransaction();
-        } catch (Throwable $finalize_ex) {
-          $this->killTransaction();
-          throw $finalize_ex;
-        }
+        $this
+          ->setLeaseOwner(self::COMPLETION_PENDING_OWNER)
+          ->setLeaseExpires(2147483647)
+          ->forceSaveWithoutLease();
 
         throw $ex;
       }
 
       if (!$go_ok) {
-        // Fallback completion means the service is already known to be
-        // unavailable. Persist every follow-up natively before archiving the
-        // parent; archiving first would make a failed follow-up enqueue
-        // impossible to regenerate.
-        $defaults = array(
-          'priority' => (int)$this->getPriority(),
-        );
-
-        $this->openTransaction();
-        try {
-          $worker->flushTaskQueueNatively($defaults);
-          $result = $this->archiveTask(
-            PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
-            $duration);
-          $this->saveTransaction();
-        } catch (Throwable $finalize_ex) {
-          $this->killTransaction();
-          throw $finalize_ex;
-        }
+        $result = $this->archiveTask(
+          PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
+          $duration);
       } else {
         $result = id(new PhabricatorWorkerArchiveTask())
           ->makeEphemeral()
@@ -306,15 +300,6 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
           ->setDuration($duration);
       }
 
-      // NOTE: If this throws, we don't want it to cause the task to fail
-      // again, so execute it out here and just let the exception escape.
-      // Default the new task priority to our own priority.
-      if ($go_ok) {
-        $defaults = array(
-          'priority' => (int)$this->getPriority(),
-        );
-        $worker->flushTaskQueue($defaults);
-      }
     }
 
     return $result;
