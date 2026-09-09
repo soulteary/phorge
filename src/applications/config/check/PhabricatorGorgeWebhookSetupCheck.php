@@ -161,9 +161,11 @@ final class PhabricatorGorgeWebhookSetupCheck extends PhabricatorSetupCheck {
       "\n\n".
       'Check that the service is running and that %s names a host this '.
       'server can reach. To hand delivery back in the default deployment, '.
-      'set %s to %s and recreate the Phorge containers. This regenerates '.
+      'stop the %s consumer, set %s to %s, rerun %s without starting its '.
+      'dependencies, and restart Phorge the same way. This regenerates '.
       'one deployment configuration which assigns %s to %s and clears %s '.
-      'together. If another deployment system owns these settings, make '.
+      'together. Do not restart that consumer while Phorge owns delivery. '.
+      'If another deployment system owns these settings, make '.
       'those same changes atomically in its configuration source.',
       phutil_tag('tt', array(), $uri),
       phutil_tag('tt', array(), $health_uri),
@@ -172,8 +174,10 @@ final class PhabricatorGorgeWebhookSetupCheck extends PhabricatorSetupCheck {
       phutil_tag('tt', array(), 'gorge'),
       phutil_tag('tt', array(), 'queued'),
       phutil_tag('tt', array(), 'gorge.webhook.uri'),
+      phutil_tag('tt', array(), 'gorge-webhook'),
       phutil_tag('tt', array(), 'GORGE_WEBHOOK_MODE'),
       phutil_tag('tt', array(), 'disable'),
+      phutil_tag('tt', array(), 'phorge-migrate'),
       phutil_tag('tt', array(), 'gorge.webhook.owner'),
       phutil_tag('tt', array(), 'phorge'),
       phutil_tag('tt', array(), 'gorge.webhook.uri'));

@@ -90,10 +90,12 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       "\n\n".
       'Check that the service is running and that %s names a host this '.
       'server can reach. To hand the queue back in the default deployment, '.
-      'set %s to %s and recreate the Phorge containers. This regenerates '.
+      'stop the %s consumers, set %s to %s, rerun %s without starting its '.
+      'dependencies, and restart Phorge the same way. This regenerates '.
       'one deployment configuration which assigns %s to %s, clears %s and '.
       'removes its %s override together, allowing the previous or default '.
-      'native taskmaster pool to resume. If another deployment system owns '.
+      'native taskmaster pool to resume. Do not restart those consumers '.
+      'while native taskmasters are active. If another deployment system owns '.
       'these settings, make the equivalent owner, endpoint and taskmaster '.
       'changes atomically in its configuration source.',
       phutil_tag('tt', array(), $uri),
@@ -102,8 +104,10 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       phutil_tag('tt', array(), 'gorge.taskqueue.owner'),
       phutil_tag('tt', array(), 'gorge'),
       phutil_tag('tt', array(), 'gorge.taskqueue.uri'),
+      phutil_tag('tt', array(), 'gorge-worker'),
       phutil_tag('tt', array(), 'GORGE_TASKQUEUE_MODE'),
       phutil_tag('tt', array(), 'disable'),
+      phutil_tag('tt', array(), 'phorge-migrate'),
       phutil_tag('tt', array(), 'gorge.taskqueue.owner'),
       phutil_tag('tt', array(), 'phorge'),
       phutil_tag('tt', array(), 'gorge.taskqueue.uri'),

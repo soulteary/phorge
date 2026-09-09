@@ -61,7 +61,7 @@ services:
       # 写进去 = 交接开关：phorge 读到它非空就停止用 phd 投递，交给 gorge-webhook。
       # 因此它必须与宿主机上的 gorge-webhook 服务「同进同退」：只起服务不写这里，或
       # 只写这里不起服务会让请求无人投递，只起服务不写配置会产生重复投递竞态。暂不联调
-      # webhook 时，删掉下面两行并且不要启动 gorge-webhook。
+      # webhook 时，先停 gorge-webhook，再把 MODE 设为 disable。
       GORGE_WEBHOOK_URI: "http://host.docker.internal:8160"
       GORGE_WEBHOOK_TOKEN: "${GORGE_WEBHOOK_TOKEN:-}"
-      GORGE_WEBHOOK_MODE: enable
+      GORGE_WEBHOOK_MODE: ${GORGE_WEBHOOK_MODE:-enable}
