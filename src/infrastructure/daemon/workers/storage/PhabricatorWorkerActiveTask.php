@@ -172,14 +172,7 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
         // work would be both unsafe and contrary to the worker's result.
         // Park any surviving SQL row for explicit reconciliation and expose
         // the original reporting exception to required-mode callers.
-        try {
-          $this
-            ->setLeaseOwner(self::FAILURE_PENDING_OWNER)
-            ->setLeaseExpires(2147483647)
-            ->forceSaveWithoutLease();
-        } catch (Throwable $park_ex) {
-          phlog($park_ex);
-        }
+        $this->parkForFailureReconciliation();
 
         throw $report_ex;
       }
@@ -358,6 +351,35 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       $service->recordFallback('complete');
       phlog($ex);
       return false;
+    }
+  }
+
+  /**
+   * Durably remove a permanently failed task from the leaseable queue.
+   *
+   * A transient database failure must not be hidden behind the Gorge
+   * reporting exception: doing so would let the current lease expire and run
+   * work which already declared permanent failure. Retry the independent SQL
+   * update briefly, then expose the persistence error if it still can not be
+   * made durable.
+   */
+  private function parkForFailureReconciliation() {
+    $attempts = 3;
+    for ($ii = 0; $ii < $attempts; $ii++) {
+      try {
+        $this
+          ->setLeaseOwner(self::FAILURE_PENDING_OWNER)
+          ->setLeaseExpires(2147483647)
+          ->forceSaveWithoutLease();
+        return;
+      } catch (Throwable $ex) {
+        if (($ii + 1) === $attempts) {
+          throw $ex;
+        }
+
+        phlog($ex);
+        usleep(100000);
+      }
     }
   }
 

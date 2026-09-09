@@ -221,25 +221,6 @@ class PhabricatorSearchService
           'roles' => array('read' => true, 'write' => true),
         );
       }
-    } else if ($gorge->isFallbackAllowed()) {
-      $has_native = false;
-      foreach ($services as $config) {
-        if (is_array($config) &&
-            idx($config, 'type') !==
-              PhabricatorGorgeFulltextStorageEngine::ENGINE_TYPE) {
-          $has_native = true;
-          break;
-        }
-      }
-
-      // Older deployment files may have removed MySQL when Gorge was first
-      // enabled. Explicit fallback needs a real second service to route to.
-      if (!$has_native) {
-        $services[] = array(
-          'type' => 'mysql',
-          'roles' => array('read' => true, 'write' => true),
-        );
-      }
     }
 
     foreach ($services as $config) {
@@ -259,6 +240,40 @@ class PhabricatorSearchService
       $cluster->setConfig($config);
       $engine->setService($cluster);
       $refs[] = $cluster;
+    }
+
+    if ($gorge->isFallbackAllowed()) {
+      $has_native_read = false;
+      $has_native_write = false;
+      foreach ($refs as $ref) {
+        $config = $ref->getConfig();
+        if (idx($config, 'type') ===
+            PhabricatorGorgeFulltextStorageEngine::ENGINE_TYPE) {
+          continue;
+        }
+
+        $has_native_read = $has_native_read || $ref->isReadable();
+        $has_native_write = $has_native_write || $ref->isWritable();
+      }
+
+      // A native engine which can only read does not make indexing fallback
+      // viable, and a write-only engine can not answer queries. Fill only the
+      // missing roles so both operations have a real fallback destination.
+      if (!$has_native_read || !$has_native_write) {
+        $config = array(
+          'type' => 'mysql',
+          'roles' => array(
+            'read' => !$has_native_read,
+            'write' => !$has_native_write,
+          ),
+        );
+
+        $engine = clone($engines['mysql']);
+        $cluster = new self($engine);
+        $cluster->setConfig($config);
+        $engine->setService($cluster);
+        $refs[] = $cluster;
+      }
     }
 
     return $refs;
