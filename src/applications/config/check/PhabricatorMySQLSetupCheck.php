@@ -13,7 +13,7 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
     // consume the MySQL-keyed subset of those instead of opening management
     // connections from the web tier. When it is not configured, fall back to
     // the native direct-SQL probes below.
-    if (PhabricatorGorgeDBClient::isConfigured()) {
+    if (PhabricatorGorgeDBClient::shouldUseService()) {
       $this->executeGorgeChecks();
 
       // The full-text stopword and minimum-word-length checks depend on

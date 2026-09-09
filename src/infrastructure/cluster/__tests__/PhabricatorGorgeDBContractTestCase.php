@@ -230,4 +230,364 @@ final class PhabricatorGorgeDBContractTestCase extends PhabricatorTestCase {
     $this->assertEqual(null, $missing);
   }
 
+
+/* -(  Contract metadata handshake  )---------------------------------------- */
+
+
+  public function testValidateContractMetaAcceptsCurrentContract() {
+    // The meta fixture is contract 1.1, namespace "phorge", full capabilities:
+    // the exact shape a compatible service reports.
+    $meta = $this->readFixture('meta.json');
+    $this->assertEqual(
+      null,
+      PhabricatorGorgeDBClient::validateContractMeta($meta, 'phorge'),
+      pht('A current, correctly-namespaced service is compatible.'));
+  }
+
+  public function testValidateContractMetaRejectsMajorMismatch() {
+    $meta = $this->newMetaLiteral('2.0');
+    $problem = PhabricatorGorgeDBClient::validateContractMeta($meta, 'phorge');
+    $this->assertTrue(
+      is_array($problem),
+      pht('A different major version is incompatible.'));
+    $this->assertEqual('version', $problem['code']);
+  }
+
+  public function testValidateContractMetaRejectsBelowMinimumMinor() {
+    // 1.0 is a matching major but below the 1.1 minimum this consumer needs.
+    $meta = $this->newMetaLiteral('1.0');
+    $problem = PhabricatorGorgeDBClient::validateContractMeta($meta, 'phorge');
+    $this->assertTrue(
+      is_array($problem),
+      pht('A minor below the minimum is incompatible.'));
+    $this->assertEqual('version', $problem['code']);
+  }
+
+  public function testValidateContractMetaAcceptsHigherMinor() {
+    // A newer minor within the same major is forward-compatible.
+    $meta = $this->newMetaLiteral('1.2');
+    $this->assertEqual(
+      null,
+      PhabricatorGorgeDBClient::validateContractMeta($meta, 'phorge'),
+      pht('A higher minor within the major is compatible.'));
+  }
+
+  public function testValidateContractMetaRejectsMalformedVersions() {
+    // Strict "major.minor" parsing: none of these lenient forms may pass, and
+    // in particular the old "(int)head(explode('.', ...))" cast that accepted
+    // "1garbage" and "1" must be gone.
+    $bad_versions = array('', '1garbage', '1', '1.x', '1.', '.1', 'v1.1');
+    foreach ($bad_versions as $version) {
+      $meta = $this->newMetaLiteral($version);
+      $problem = PhabricatorGorgeDBClient::validateContractMeta(
+        $meta,
+        'phorge');
+      $this->assertTrue(
+        is_array($problem),
+        pht('Version "%s" is rejected as malformed.', $version));
+      $this->assertEqual(
+        'version',
+        $problem['code'],
+        pht('Version "%s" is a version problem.', $version));
+    }
+
+    // A missing contractVersion key entirely is likewise incompatible.
+    $meta = $this->newMetaLiteral('1.1');
+    unset($meta['contractVersion']);
+    $problem = PhabricatorGorgeDBClient::validateContractMeta($meta, 'phorge');
+    $this->assertTrue(is_array($problem));
+    $this->assertEqual('version', $problem['code']);
+  }
+
+  public function testValidateContractMetaRejectsNamespaceMismatch() {
+    $meta = $this->newMetaLiteral('1.1');
+    $meta['namespace'] = 'somethingelse';
+    $problem = PhabricatorGorgeDBClient::validateContractMeta($meta, 'phorge');
+    $this->assertTrue(
+      is_array($problem),
+      pht('A mismatched namespace is incompatible.'));
+    $this->assertEqual('namespace', $problem['code']);
+  }
+
+  public function testValidateContractMetaRejectsMissingCapability() {
+    // Drop one required capability; the rest are present.
+    $meta = $this->newMetaLiteral('1.1');
+    $meta['capabilities'] = array(
+      'servers',
+      'schema-diff',
+      'setup-issues',
+      'charset-info',
+      // 'migrations-status' intentionally omitted.
+    );
+    $problem = PhabricatorGorgeDBClient::validateContractMeta($meta, 'phorge');
+    $this->assertTrue(
+      is_array($problem),
+      pht('A service missing a required capability is incompatible.'));
+    $this->assertEqual('capability', $problem['code']);
+  }
+
+  public function testValidateContractMetaAllowsUnknownCapability() {
+    // All required capabilities present, plus an unknown extra one: allowed.
+    $meta = $this->newMetaLiteral('1.1');
+    $meta['capabilities'][] = 'some-future-capability';
+    $this->assertEqual(
+      null,
+      PhabricatorGorgeDBClient::validateContractMeta($meta, 'phorge'),
+      pht('An unknown extra capability does not break compatibility.'));
+  }
+
+  private function newMetaLiteral($version) {
+    return array(
+      'contractVersion' => $version,
+      'namespace' => 'phorge',
+      'topologySource' => 'file',
+      'capabilities' => array(
+        'servers',
+        'schema-diff',
+        'setup-issues',
+        'charset-info',
+        'migrations-status',
+      ),
+    );
+  }
+
+
+/* -(  Replication decision  )----------------------------------------------- */
+
+
+  public function testReplicationMasterReplicatingIsFatal() {
+    $ref = $this->newRefFromServerRow(
+      'db1:3306',
+      true,
+      array('connectionStatus' => 'okay', 'replicationStatus' => 'master-replica'));
+
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($ref));
+    $this->assertEqual(1, count($specs));
+    $this->assertEqual('db.master.replicating', $specs[0]['key']);
+    $this->assertTrue(
+      (bool)idx($specs[0], 'fatal'),
+      pht('A replicating master is a fatal issue.'));
+  }
+
+  public function testReplicationReplicaNoneIsNonFatal() {
+    $ref = $this->newRefFromServerRow(
+      'db2:3306',
+      false,
+      array('connectionStatus' => 'okay', 'replicationStatus' => 'replica-none'));
+
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($ref));
+    $this->assertEqual(1, count($specs));
+    $this->assertEqual('db.replica.not-replicating', $specs[0]['key']);
+    $this->assertEqual(
+      false,
+      (bool)idx($specs[0], 'fatal'),
+      pht('A nonreplicating replica is a non-fatal warning.'));
+  }
+
+  public function testReplicationNotReplicatingIsNonFatal() {
+    $ref = $this->newRefFromServerRow(
+      'db3:3306',
+      false,
+      array(
+        'connectionStatus' => 'okay',
+        'replicationStatus' => 'not-replicating',
+      ));
+
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($ref));
+    $this->assertEqual(1, count($specs));
+    $this->assertEqual('db.replica.not-replicating', $specs[0]['key']);
+    $this->assertEqual(false, (bool)idx($specs[0], 'fatal'));
+  }
+
+  public function testReplicationSlowReplicaIsNeitherIssue() {
+    $ref = $this->newRefFromServerRow(
+      'db4:3306',
+      false,
+      array(
+        'connectionStatus' => 'okay',
+        'replicationStatus' => 'replica-slow',
+        'secondsBehindMaster' => 120,
+      ));
+
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($ref));
+    $this->assertEqual(
+      array(),
+      $specs,
+      pht('Slow replication is not escalated by the replication check.'));
+  }
+
+  public function testReplicationClientMissingGrantIsNotAFalsePositive() {
+    // A missing "REPLICATION CLIENT" grant is a *connection* status, and the
+    // ref never receives a replica status, so it must not be misjudged as a
+    // broken replica.
+    $ref = $this->newRefFromServerRow(
+      'db5:3306',
+      false,
+      array('connectionStatus' => 'replication-client'));
+
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($ref));
+    $this->assertEqual(
+      array(),
+      $specs,
+      pht('A missing REPLICATION CLIENT grant is not a replication issue.'));
+  }
+
+  public function testReplicationHealthyClusterHasNoIssue() {
+    $master = $this->newRefFromServerRow(
+      'db1:3306',
+      true,
+      array('connectionStatus' => 'okay'));
+    $replica = $this->newRefFromServerRow(
+      'db2:3306',
+      false,
+      array('connectionStatus' => 'okay', 'replicationStatus' => 'okay'));
+
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($master, $replica));
+    $this->assertEqual(
+      array(),
+      $specs,
+      pht('A healthy master/replica pair raises no replication issue.'));
+  }
+
+  public function testReplicationExcludesDisabledNodes() {
+    // A disabled replica that is not replicating must be excluded entirely.
+    $ref = $this->newRefFromServerRow(
+      'db6:3306',
+      false,
+      array('connectionStatus' => 'okay', 'replicationStatus' => 'replica-none'));
+    $ref->setDisabled(true);
+
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($ref));
+    $this->assertEqual(
+      array(),
+      $specs,
+      pht('Disabled nodes do not participate in the replication check.'));
+  }
+
+  private function newRefFromServerRow($ref_key, $is_master, array $server) {
+    list($host, $port) = explode(':', $ref_key);
+
+    $ref = id(new PhabricatorDatabaseRef())
+      ->setHost($host)
+      ->setPort((int)$port)
+      ->setIsMaster($is_master)
+      ->setDisabled(false);
+
+    // Route the server row through the same translator the live path uses, so
+    // these tests exercise the real wire-to-ref mapping.
+    PhabricatorDatabaseRef::applyGorgeServerRow($ref, $server);
+
+    return $ref;
+  }
+
+
+/* -(  Cluster-state agreement decision  )----------------------------------- */
+
+
+  public function testClusterStatePresentFalseIsDesync() {
+    // Multi-master path: the caller only invokes the helper when masters > 1.
+    // A present=false master has committed no state and can not be confirmed
+    // in agreement, so it is a desync (replacing the old silent skip).
+    $status = array(
+      'refKey' => 'db1:3306',
+      'clusterStatePresent' => false,
+    );
+    $this->assertEqual(
+      false,
+      PhabricatorDatabaseSetupCheck::isClusterStateStatusSynchronized(
+        $status,
+        'expected-state'),
+      pht('A present=false master is a desync under multiple masters.'));
+  }
+
+  public function testClusterStateMissingFieldIsSafeFailure() {
+    // The field entirely absent must fail safe (treated as a desync), not be
+    // silently ignored.
+    $status = array('refKey' => 'db1:3306');
+    $this->assertEqual(
+      false,
+      PhabricatorDatabaseSetupCheck::isClusterStateStatusSynchronized(
+        $status,
+        'expected-state'),
+      pht('A missing clusterStatePresent field fails safe as a desync.'));
+  }
+
+  public function testClusterStateMatchingDigestIsSynchronized() {
+    $expected_state = 'expected-state';
+    $status = array(
+      'refKey' => 'db1:3306',
+      'clusterStatePresent' => true,
+      'clusterStateDigest' => hash('sha256', $expected_state),
+    );
+    $this->assertEqual(
+      true,
+      PhabricatorDatabaseSetupCheck::isClusterStateStatusSynchronized(
+        $status,
+        $expected_state),
+      pht('A present, matching digest is synchronized.'));
+  }
+
+  public function testClusterStateMismatchingDigestIsDesync() {
+    $status = array(
+      'refKey' => 'db1:3306',
+      'clusterStatePresent' => true,
+      'clusterStateDigest' => hash('sha256', 'some-other-state'),
+    );
+    $this->assertEqual(
+      false,
+      PhabricatorDatabaseSetupCheck::isClusterStateStatusSynchronized(
+        $status,
+        'expected-state'),
+      pht('A present, differing digest is a desync.'));
+  }
+
+  public function testClusterStateMalformedDigestThrows() {
+    $status = array(
+      'refKey' => 'db1:3306',
+      'clusterStatePresent' => true,
+      'clusterStateDigest' => 'not-a-valid-sha256',
+    );
+
+    $caught = null;
+    try {
+      PhabricatorDatabaseSetupCheck::isClusterStateStatusSynchronized(
+        $status,
+        'expected-state');
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue(
+      $caught instanceof Exception,
+      pht('A present-but-malformed digest throws rather than skipping.'));
+  }
+
+  public function testClusterStateSingleMasterEarlyReturnsWithoutHelper() {
+    // The single-master early return is the caller's responsibility; this
+    // documents that a lone present=false master, which the helper would treat
+    // as a desync, is never fed to the helper because the check returns early
+    // when there is at most one master. We assert the helper contract the
+    // caller relies on: present=false is only a desync in the multi-master
+    // context the caller gates on.
+    $status = array(
+      'refKey' => 'db1:3306',
+      'clusterStatePresent' => false,
+    );
+    $this->assertEqual(
+      false,
+      PhabricatorDatabaseSetupCheck::isClusterStateStatusSynchronized(
+        $status,
+        'expected-state'),
+      pht('The helper itself reports present=false as unsynchronized; the '.
+        'single-master early return in executeGorgeClusterStateCheck is what '.
+        'prevents a false desync for a lone master.'));
+  }
+
 }

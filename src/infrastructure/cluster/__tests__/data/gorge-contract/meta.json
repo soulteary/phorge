@@ -1,0 +1,12 @@
+{
+  "contractVersion": "1.1",
+  "namespace": "phorge",
+  "topologySource": "file",
+  "capabilities": [
+    "servers",
+    "schema-diff",
+    "setup-issues",
+    "charset-info",
+    "migrations-status"
+  ]
+}

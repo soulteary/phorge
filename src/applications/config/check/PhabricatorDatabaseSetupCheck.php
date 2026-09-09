@@ -17,7 +17,7 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
     // hosts and returns them as setup issues, so consume those instead of
     // opening management connections from the web tier. When it is not
     // configured, fall back to the native direct-SQL checks below.
-    if (PhabricatorGorgeDBClient::isConfigured()) {
+    if (PhabricatorGorgeDBClient::shouldUseService()) {
       $this->executeGorgeChecks();
       return;
     }
@@ -144,46 +144,96 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
   /**
    * Rebuild the replication warnings over the service's per-server view.
    *
-   * The service fills each ref's replica status from `/api/db/servers` (via
-   * @{method:PhabricatorDatabaseRef::queryActiveRefs}); the role a host is
-   * expected to play is Phorge's own configuration, so the "replicating
-   * master" and "nonreplicating replica" judgements are made here against that
-   * configuration.
+   * Each ref's replica status is filled from `/api/db/servers` by
+   * @{method:PhabricatorDatabaseRef::queryAll} (via its `queryRefsViaGorge`
+   * path); the role a host is expected to play is Phorge's own configuration,
+   * so the "replicating master" and "nonreplicating replica" judgements are
+   * made here against that configuration. The pure decision lives in
+   * @{method:computeGorgeReplicationIssues} so it can be unit tested against
+   * already-populated refs without a live MySQL cluster.
    */
   private function executeGorgeReplicationChecks() {
-    $refs = PhabricatorDatabaseRef::getActiveDatabaseRefs();
+    // queryAll() routes through queryRefsViaGorge when the service is in use,
+    // which populates each ref's replica status from /api/db/servers. It reads
+    // the same servers list through the request cache path, so this does not
+    // add a second fetch per request.
+    $refs = PhabricatorDatabaseRef::queryAll();
+
+    foreach (self::computeGorgeReplicationIssues($refs) as $spec) {
+      $issue = $this->newIssue($spec['key'])
+        ->setName($spec['name'])
+        ->setMessage($spec['message']);
+      if (!empty($spec['fatal'])) {
+        $issue->setIsFatal(true);
+      }
+    }
+  }
+
+  /**
+   * Pure replication decision over already-populated refs.
+   *
+   * Given the refs @{method:PhabricatorDatabaseRef::queryAll} produced (each
+   * carrying a replica status filled from the service), return the setup issue
+   * specifications the replication check should raise, without touching MySQL
+   * or `PhabricatorSetupCheck` state. Each returned spec is a map with `key`,
+   * `name`, `message` and an optional `fatal` flag.
+   *
+   * The semantics match the native path exactly:
+   *
+   *   - a master that is itself replicating (`master-replica`) is a fatal
+   *     `db.master.replicating`;
+   *   - a non-master that is not replicating (`replica-none` or
+   *     `not-replicating`) is a non-fatal `db.replica.not-replicating`;
+   *   - `replica-slow` is not escalated here (the "Database Servers" console
+   *     surfaces lag);
+   *   - a missing "REPLICATION CLIENT" grant (`replication-client`, a
+   *     connection status, never a replica status) is not misjudged as broken
+   *     replication;
+   *   - disabled nodes are excluded.
+   *
+   * @param list<PhabricatorDatabaseRef> $refs Already-populated refs.
+   * @return list<map<string, wild>> Issue specifications.
+   */
+  public static function computeGorgeReplicationIssues(array $refs) {
+    $specs = array();
 
     foreach ($refs as $ref) {
+      if ($ref->getDisabled()) {
+        continue;
+      }
+
       switch ($ref->getReplicaStatus()) {
         case PhabricatorDatabaseRef::REPLICATION_MASTER_REPLICA:
-          $message = pht(
-            'Database host "%s" is configured as a master, but is '.
-            'replicating another host. This is dangerous and can mangle or '.
-            'destroy data. Only replicas should be replicating. Stop '.
-            'replication on the host or adjust configuration.',
-            $ref->getRefKey());
-
-          $this->newIssue('db.master.replicating')
-            ->setName(pht('Replicating Master'))
-            ->setIsFatal(true)
-            ->setMessage($message);
+          $specs[] = array(
+            'key' => 'db.master.replicating',
+            'name' => pht('Replicating Master'),
+            'fatal' => true,
+            'message' => pht(
+              'Database host "%s" is configured as a master, but is '.
+              'replicating another host. This is dangerous and can mangle or '.
+              'destroy data. Only replicas should be replicating. Stop '.
+              'replication on the host or adjust configuration.',
+              $ref->getRefKey()),
+          );
           break;
         case PhabricatorDatabaseRef::REPLICATION_REPLICA_NONE:
         case PhabricatorDatabaseRef::REPLICATION_NOT_REPLICATING:
           if (!$ref->getIsMaster()) {
-            $message = pht(
-              'Database replica "%s" is listed as a replica, but is not '.
-              'currently replicating. You are vulnerable to data loss if '.
-              'the master fails.',
-              $ref->getRefKey());
-
-            $this->newIssue('db.replica.not-replicating')
-              ->setName(pht('Nonreplicating Replica'))
-              ->setMessage($message);
+            $specs[] = array(
+              'key' => 'db.replica.not-replicating',
+              'name' => pht('Nonreplicating Replica'),
+              'message' => pht(
+                'Database replica "%s" is listed as a replica, but is not '.
+                'currently replicating. You are vulnerable to data loss if '.
+                'the master fails.',
+                $ref->getRefKey()),
+            );
           }
           break;
       }
     }
+
+    return $specs;
   }
 
   /**
@@ -191,21 +241,28 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
    *
    * With more than one master, Phorge requires every master to carry the same
    * committed `cluster.databases` state. The service never returns that state
-   * (it names hosts), only its SHA-256 digest as `clusterStateDigest`; the
-   * expected state is the local configuration, so its digest is computed here
-   * with the same bytes @{method:PhabricatorDatabaseRef::getPartitionStateForCommit}
-   * commits and compared against the reported one.
+   * (it names hosts), only its SHA-256 digest as `clusterStateDigest` plus a
+   * `clusterStatePresent` marker; the expected state is the local
+   * configuration, so its digest is computed here with the same bytes
+   * @{method:PhabricatorDatabaseRef::getPartitionStateForCommit} commits and
+   * compared against the reported one. The per-status decision lives in the
+   * pure @{method:isClusterStateStatusSynchronized}.
    */
   private function executeGorgeClusterStateCheck() {
     $masters = PhabricatorDatabaseRef::getAllMasterDatabaseRefs();
     if (count($masters) <= 1) {
+      // A single master (or none) can never disagree with itself.
       return;
     }
 
     $client = new PhabricatorGorgeDBClient();
     $statuses = $client->getMigrationStatus();
     if (!is_array($statuses)) {
-      return;
+      throw new Exception(
+        pht(
+          'The Gorge database service returned a malformed "%s" response: '.
+          'expected a list of migration statuses.',
+          '/api/db/migrations/status'));
     }
 
     $expect_state = null;
@@ -216,22 +273,20 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
     if ($expect_state === null) {
       return;
     }
-    $expect_digest = hash('sha256', $expect_state);
 
     foreach ($statuses as $status) {
       if (!is_array($status)) {
-        continue;
+        throw new Exception(
+          pht(
+            'The Gorge database service returned a malformed migration '.
+            'status row in its "%s" response.',
+            '/api/db/migrations/status'));
       }
 
-      $actual_digest = idx($status, 'clusterStateDigest');
-      if (!phutil_nonempty_string($actual_digest)) {
-        // A master with no committed state row cannot be compared; the native
-        // path treats a missing row the same way (an empty actual state only
-        // mismatches once some master has committed one).
-        continue;
-      }
-
-      if ($actual_digest === $expect_digest) {
+      // A malformed present-digest throws out of the pure helper; a false or
+      // missing presence marker, or a present-but-differing digest, is a
+      // desync.
+      if (self::isClusterStateStatusSynchronized($status, $expect_state)) {
         continue;
       }
 
@@ -250,6 +305,65 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
         ->setIsFatal(true);
       return;
     }
+  }
+
+  /**
+   * Pure per-master cluster-state agreement decision.
+   *
+   * Given one decoded `/api/db/migrations/status` row and this install's
+   * expected committed `cluster.databases` state, decide whether that master
+   * agrees with the local state. This does no HTTP and no MySQL, so it can be
+   * exercised directly against fixtures and in-test literals. The caller is
+   * responsible for only invoking it when there is more than one master; a
+   * single master can never disagree with itself.
+   *
+   * The four input classes:
+   *
+   *   - missing: `clusterStatePresent` is false, or the field is entirely
+   *     absent. The master has committed no state row, so with more than one
+   *     master it can not be confirmed in agreement — return false (a desync).
+   *     This deliberately replaces the older silent skip on an empty digest,
+   *     which let a genuinely diverged master pass unnoticed.
+   *   - malformed: `clusterStatePresent` is true but `clusterStateDigest` is
+   *     not a 64-character lowercase hexadecimal SHA-256. The service promised
+   *     a digest and did not deliver a well-formed one, so this throws rather
+   *     than silently skipping.
+   *   - matching: present with a digest equal (via `hash_equals`) to the
+   *     expected one — return true.
+   *   - mismatching: present with a well-formed but differing digest — return
+   *     false (a desync).
+   *
+   * @param map<string, wild> $status One decoded migration-status row.
+   * @param string $expected_state Expected committed cluster state (raw bytes).
+   * @return bool True if this master agrees with the local state.
+   */
+  public static function isClusterStateStatusSynchronized(
+    array $status,
+    $expected_state) {
+
+    $present = idx($status, 'clusterStatePresent');
+    if (!$present) {
+      // False or entirely missing: no committed state to compare, which with
+      // more than one master is itself a diagnosable desync.
+      return false;
+    }
+
+    $actual_digest = idx($status, 'clusterStateDigest');
+    if (!phutil_nonempty_string($actual_digest) ||
+        !preg_match('/^[0-9a-f]{64}$/', $actual_digest)) {
+      throw new Exception(
+        pht(
+          'The Gorge database service reported that host "%s" has a cluster '.
+          'state present, but its "%s" is not a well-formed SHA-256 digest. '.
+          'Refusing to silently skip a master whose state can not be '.
+          'compared.',
+          idx($status, 'refKey', ''),
+          'clusterStateDigest'));
+    }
+
+    $expect_digest = hash('sha256', $expected_state);
+
+    return hash_equals($expect_digest, $actual_digest);
   }
 
   private static function getMySQLConfigIssueKeys() {

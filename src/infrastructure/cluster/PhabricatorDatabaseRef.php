@@ -341,7 +341,7 @@ final class PhabricatorDatabaseRef
     // connection and replica status from it instead of opening a management
     // connection to every host from the web tier. When it is not configured,
     // fall back to the native direct-SQL probe below.
-    if (PhabricatorGorgeDBClient::isConfigured()) {
+    if (PhabricatorGorgeDBClient::shouldUseService()) {
       return self::queryRefsViaGorge($refs);
     }
 

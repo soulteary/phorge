@@ -13,8 +13,11 @@
  * client is never constructed.
  *
  * Like the other Gorge domains, this is an "active client": the PHP side
- * initiates every request over HTTP. @{method:isConfigured} is the switch each
- * caller checks before choosing the Go path over its native SQL fallback:
+ * initiates every request over HTTP. @{method:shouldUseService} is the switch
+ * each business caller checks before choosing the Go path over its native SQL
+ * fallback (it confirms the service is both configured and contract-compatible
+ * for this request); @{method:isConfigured} remains the pure configuration
+ * predicate:
  *
  *   - @{class:PhabricatorDatabaseRef} reads per-server connection/replica
  *     status from `/api/db/servers`,
@@ -47,6 +50,13 @@ final class PhabricatorGorgeDBClient
   // Bump this only alongside the changes in go/internal/contracts/dbapi.go that
   // this adapter is updated to read.
   const CONTRACT_MAJOR = 1;
+
+  // The lowest contract minor version this consumer accepts within
+  // CONTRACT_MAJOR. New consumers depend on the explicit hoststate presence
+  // semantics introduced in contract 1.1 (the `clusterStatePresent` field on
+  // migration status), so a service still speaking 1.0 can not answer the
+  // cluster-state desync check correctly and is treated as incompatible.
+  const CONTRACT_MINOR_MIN = 1;
 
   public function __construct() {
     $uri = self::getConfiguredURI();
@@ -141,6 +151,78 @@ final class PhabricatorGorgeDBClient
    */
   public static function isConfigured() {
     return (self::getConfiguredURI() !== null);
+  }
+
+  const KEY_SHOULD_USE = 'cluster.db.gorge.usable';
+
+  /**
+   * Decide, for this request, whether a caller should route through the
+   * service or use its native direct-SQL fallback.
+   *
+   * This is the request-level gate the business switch points ask before they
+   * choose the Go path. It is stricter than @{method:isConfigured}: a
+   * configured service is only used once its contract has been confirmed
+   * compatible via the `/api/db/meta` handshake. The result is memoized in the
+   * request cache so the handshake runs at most once per request.
+   *
+   * The three outcomes are kept distinct — a plain `null` is never used to
+   * mean both "unchecked" and "compatible":
+   *
+   *   - the service is not configured: return false (native path), no cache;
+   *   - the handshake confirms compatibility: cache `usable => true`, return
+   *     true;
+   *   - the handshake returns a CONFIRMED incompatibility (a version,
+   *     namespace or capability problem): cache `usable => false`, return
+   *     false, and let @{class:PhabricatorGorgeDBSetupCheck} report the fatal
+   *     issue over its own path.
+   *
+   * A transient or operational failure — a network error, a timeout, a 401, a
+   * 5xx, an HTML or otherwise invalid envelope, malformed JSON — is NOT an
+   * incompatibility and must NOT silently fall back to native SQL: those
+   * surface as exceptions (the handshake and @{method:getMeta} already throw
+   * on them) and are deliberately not cached, so a caller sees the real error
+   * instead of quietly reading a different data source.
+   *
+   * The cache stores only the decision (`checked` and `usable`); it never
+   * stores the token, the URI or exception details.
+   *
+   * @return bool True if the caller should route through the service.
+   */
+  public static function shouldUseService() {
+    $uri = self::getConfiguredURI();
+    if ($uri === null) {
+      return false;
+    }
+
+    $expected_namespace = PhabricatorEnv::getEnvConfig(
+      'storage.default-namespace');
+
+    // Key on both the service URI and the local namespace: either changing
+    // means a different handshake, and neither is a secret.
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache_key = self::KEY_SHOULD_USE.'('.$uri.', '.
+      phutil_string_cast($expected_namespace).')';
+
+    $cached = $cache->getKey($cache_key);
+    if (is_array($cached) && !empty($cached['checked'])) {
+      return (bool)$cached['usable'];
+    }
+
+    // On a miss, run the handshake. A returned problem array is the ONLY
+    // confirmed-incompatibility signal; any transient/operational failure
+    // throws out of here uncached, on purpose.
+    $client = new self();
+    $problem = $client->checkContractCompatibility($expected_namespace);
+
+    $usable = ($problem === null);
+    $cache->setKey(
+      $cache_key,
+      array(
+        'checked' => true,
+        'usable' => $usable,
+      ));
+
+    return $usable;
   }
 
 
@@ -355,46 +437,86 @@ final class PhabricatorGorgeDBClient
    * Verify the service speaks a contract this install can read, before the
    * console switches any page over to it.
    *
-   * Returns null when the service is compatible. Otherwise returns a
-   * self-describing problem the caller renders as a setup issue and then falls
-   * back to native SQL for, rather than reading fields that may have moved:
+   * This is the network half: it fetches `/api/db/meta` and delegates the
+   * decision to the pure @{method:validateContractMeta}. It returns null when
+   * the service is compatible, or the same self-describing problem array the
+   * validator produces, which the caller renders as a setup issue and then
+   * falls back to native SQL for, rather than reading fields that may have
+   * moved.
    *
-   *   - the contract major version differs from CONTRACT_MAJOR, so a field
-   *     this adapter reads may have been removed or changed meaning, or
-   *   - the service's namespace does not equal this install's
-   *     `storage.default-namespace`, so it is reporting on databases named
-   *     with a different prefix than Phorge reads.
-   *
-   * The check is deliberately permissive about additions: an unknown extra
-   * capability or a newer minor version is compatible.
+   * Fetching the metadata can throw (network error, timeout, auth failure,
+   * invalid envelope, malformed JSON); those are operational failures, not
+   * incompatibilities, and are deliberately left to propagate.
    *
    * @param string $expected_namespace This install's storage namespace.
    * @return map<string, string>|null Problem description, or null when
-   *   compatible. Keys: `code` (one of "version", "namespace"), `summary`,
-   *   `detail`.
+   *   compatible. Keys: `code` (one of "version", "namespace", "capability"),
+   *   `summary`, `detail`.
    */
   public function checkContractCompatibility($expected_namespace) {
     $meta = $this->getMeta();
+    return self::validateContractMeta($meta, $expected_namespace);
+  }
+
+  /**
+   * Pure contract compatibility decision over already-fetched metadata.
+   *
+   * Given the decoded `/api/db/meta` map and this install's storage
+   * namespace, decide whether the service speaks a contract this adapter can
+   * read. Returns null when compatible, otherwise a self-describing problem
+   * array (keys `code`, `summary`, `detail`). This method does no HTTP, so it
+   * can be exercised directly against fixtures and in-test literals.
+   *
+   * The rules:
+   *
+   *   - `contractVersion` is parsed strictly as "major.minor" with the regex
+   *     `^(\d+)\.(\d+)$`. An empty, missing or malformed value ("1garbage",
+   *     "1", "1.x") is a `version` problem; there is no lenient `(int)` cast.
+   *   - the major must equal @{const:CONTRACT_MAJOR}; a different major is a
+   *     `version` problem, because a field this adapter reads may have been
+   *     removed or changed meaning.
+   *   - within the matching major, a minor below @{const:CONTRACT_MINOR_MIN}
+   *     is a `version` problem (the older service can not answer a check this
+   *     consumer now depends on); an equal-or-higher minor is compatible.
+   *   - the namespace must equal $expected_namespace, but only when the caller
+   *     provides one; a mismatch is a `namespace` problem.
+   *   - `capabilities` must contain every route this adapter reads; a missing
+   *     one is a `capability` problem. Unknown extra capabilities are allowed.
+   *
+   * @param map<string, wild> $meta Decoded `/api/db/meta` data section.
+   * @param string $expected_namespace This install's storage namespace.
+   * @return map<string, string>|null Problem description, or null when
+   *   compatible.
+   */
+  public static function validateContractMeta(
+    array $meta,
+    $expected_namespace) {
 
     $version = idx($meta, 'contractVersion');
-    if (!phutil_nonempty_string($version)) {
+
+    $matches = null;
+    if (!phutil_nonempty_string($version) ||
+        !preg_match('/^(\d+)\.(\d+)$/', $version, $matches)) {
       return array(
         'code' => 'version',
         'summary' => pht(
-          'The Gorge database service did not report a contract version.'),
+          'The Gorge database service did not report a usable contract '.
+          'version.'),
         'detail' => pht(
-          'The service at %s answered its capability endpoint without a '.
-          '"contractVersion". This install can only read contract major '.
-          'version %d, and without a version it can not confirm the service '.
-          'speaks it, so it will keep reading the database console with '.
-          'native SQL.',
-          $this->getURI(),
-          self::CONTRACT_MAJOR),
+          'The service answered its capability endpoint with a '.
+          '"contractVersion" of "%s", which is not a "major.minor" version '.
+          'this install can read. This install reads contract major version '.
+          '%d (minor %d or newer), and without a version it can confirm, it '.
+          'will keep reading the database console with native SQL.',
+          (string)$version,
+          self::CONTRACT_MAJOR,
+          self::CONTRACT_MINOR_MIN),
       );
     }
 
-    // The version is "major.minor"; only the major gates compatibility.
-    $major = (int)head(explode('.', $version));
+    $major = (int)$matches[1];
+    $minor = (int)$matches[2];
+
     if ($major !== self::CONTRACT_MAJOR) {
       return array(
         'code' => 'version',
@@ -402,15 +524,33 @@ final class PhabricatorGorgeDBClient
           'The Gorge database service speaks an incompatible contract '.
           'version.'),
         'detail' => pht(
-          'The service at %s reports contract version %s, but this install '.
+          'The service reports contract version %s, but this install '.
           'reads contract major version %d. A different major version means '.
           'a field this software reads may have been removed or changed '.
           'meaning, so rather than read the wrong data, the database console '.
           'keeps using native SQL. Align the service image with this install '.
           'before enabling it.',
-          $this->getURI(),
           $version,
           self::CONTRACT_MAJOR),
+      );
+    }
+
+    if ($minor < self::CONTRACT_MINOR_MIN) {
+      return array(
+        'code' => 'version',
+        'summary' => pht(
+          'The Gorge database service speaks an older contract minor '.
+          'version than this install requires.'),
+        'detail' => pht(
+          'The service reports contract version %s, but this install '.
+          'requires at least contract version %d.%d. The newer minor version '.
+          'added fields this console now depends on (for example the '.
+          'explicit cluster-state presence marker), so an older service can '.
+          'not answer every check correctly. The database console keeps '.
+          'using native SQL until the service image is updated.',
+          $version,
+          self::CONTRACT_MAJOR,
+          self::CONTRACT_MINOR_MIN),
       );
     }
 
@@ -423,19 +563,56 @@ final class PhabricatorGorgeDBClient
           'The Gorge database service is configured for a different '.
           'namespace than this install.'),
         'detail' => pht(
-          'The service at %s reports namespace "%s", but this install\'s '.
+          'The service reports namespace "%s", but this install\'s '.
           '%s is "%s". The service names the databases it inspects '.
           '"{namespace}_meta_data" and so on, so a mismatched namespace means '.
           'it is reporting on databases this install does not read. The '.
           'database console keeps using native SQL until %s on the service '.
           '(%s) matches %s here.',
-          $this->getURI(),
           (string)$namespace,
           'storage.default-namespace',
           $expected_namespace,
           'GORGE_DB_NAMESPACE',
           (string)$namespace,
           $expected_namespace),
+      );
+    }
+
+    $required = array(
+      'servers',
+      'schema-diff',
+      'setup-issues',
+      'charset-info',
+      'migrations-status',
+    );
+
+    $capabilities = idx($meta, 'capabilities');
+    if (!is_array($capabilities)) {
+      $capabilities = array();
+    }
+    $have = array_fuse($capabilities);
+
+    $missing = array();
+    foreach ($required as $capability) {
+      if (!isset($have[$capability])) {
+        $missing[] = $capability;
+      }
+    }
+
+    if ($missing) {
+      return array(
+        'code' => 'capability',
+        'summary' => pht(
+          'The Gorge database service does not advertise every capability '.
+          'this install reads.'),
+        'detail' => pht(
+          'The service must advertise all of the capabilities the database '.
+          'console reads (%s), but it is missing: %s. A service that does '.
+          'not answer one of these routes can not replace the native reads '.
+          'for it, so the database console keeps using native SQL until the '.
+          'service image is updated.',
+          implode(', ', $required),
+          implode(', ', $missing)),
       );
     }
 

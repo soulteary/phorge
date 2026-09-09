@@ -54,7 +54,7 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
     // schema as a tree from it instead of querying INFORMATION_SCHEMA from the
     // web tier. When it is not configured, fall back to the native direct-SQL
     // reflection below.
-    if (PhabricatorGorgeDBClient::isConfigured()) {
+    if (PhabricatorGorgeDBClient::shouldUseService()) {
       return $this->loadActualSchemataViaGorge();
     }
 
@@ -419,7 +419,7 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
     // charset/collation configuration from it instead of asking the local
     // storage API. When it is not configured, fall back to the native path
     // below.
-    if (PhabricatorGorgeDBClient::isConfigured()) {
+    if (PhabricatorGorgeDBClient::shouldUseService()) {
       return $this->loadExpectedSchemataViaGorge();
     }
 
