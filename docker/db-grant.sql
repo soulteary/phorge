@@ -1,8 +1,8 @@
 -- Phorge 数据库授权（由 docker-compose.yml 的一次性 db-init 服务执行）。
 --
--- Phorge 使用命名空间多库：本 fork 未设置 storage.default-namespace，
--- 因此沿用默认值 `phabricator`（见 PhabricatorMySQLConfigOptions），
--- 实际会创建 phabricator_user、phabricator_differential 等一整组库。
+-- Phorge 使用命名空间多库，默认会创建 phabricator_user、
+-- phabricator_differential 等一整组库。编排会用统一的
+-- PHORGE_DB_NAMESPACE 替换下面占位符，使自定义命名空间也获得正确授权。
 --
 -- MySQL 官方镜像的 MYSQL_USER/MYSQL_DATABASE 只会给单个库授权，普通用户
 -- 直接跑 `bin/storage upgrade` 会报 ERROR 1044 (Access denied)。这里补上整
@@ -12,7 +12,7 @@
 -- 这条授权比字面量 "phabricator_*" 略宽；MySQL 里给引号内的 `_` 转义在各版
 -- 本行为不一致，宁可保持这个已验证可用的写法。
 --
--- __PHORGE_USER__ 由 db-init 服务在执行前用 MYSQL_USER 的值替换。
+-- __PHORGE_USER__ / __PHORGE_NAMESPACE__ 由 db-init 服务在执行前替换。
 
-GRANT ALL PRIVILEGES ON `phabricator_%`.* TO '__PHORGE_USER__'@'%';
+GRANT ALL PRIVILEGES ON `__PHORGE_NAMESPACE___%`.* TO '__PHORGE_USER__'@'%';
 FLUSH PRIVILEGES;

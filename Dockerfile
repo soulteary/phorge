@@ -11,7 +11,8 @@ FROM php:8.3-apache
 # 1. 系统依赖 & PHP 扩展
 #    Phorge 需要: mysqli, gd, curl, mbstring, iconv, pcntl, posix, opcache
 #    可选但会被 setup check 检查: zip (PhabricatorZipSetupCheck / Excel 导出)
-#    运行时保留的命令行工具: git (Diffusion)、mariadb-client (排障)、procps (phd)
+#    运行时保留的命令行工具: git (Diffusion)、mariadb-client (排障)、procps (phd)、
+#    util-linux (flock 用于串行化共享 local.json 的配置任务)
 # ------------------------------------------------------------------
 RUN set -eux; \
     savedAptMark="$(apt-mark showmanual)"; \
@@ -20,6 +21,7 @@ RUN set -eux; \
         git \
         mariadb-client \
         procps \
+        util-linux \
         libpng-dev \
         libjpeg-dev \
         libfreetype6-dev \
@@ -48,7 +50,7 @@ RUN set -eux; \
 # 执行 docker-php-ext-install / pecl install。
     apt-mark auto '.*' > /dev/null; \
     apt-mark manual $savedAptMark > /dev/null; \
-    apt-mark manual git mariadb-client procps > /dev/null; \
+    apt-mark manual git mariadb-client procps util-linux > /dev/null; \
     ldd "$(php -r 'echo ini_get("extension_dir");')"/*.so \
         | awk '/=>/ { so = $(NF-1); if (index(so, "/usr/local/") == 1) { next }; gsub("^/(usr/)?", "", so); printf "*/%s\n", so }' \
         | sort -u \
@@ -100,6 +102,7 @@ COPY docker/phorge-apache.conf /etc/apache2/sites-available/000-default.conf
 # 5. 入口脚本
 # ------------------------------------------------------------------
 COPY --chmod=0755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chmod=0755 docker/phd-foreground.sh /usr/local/bin/phd-foreground
 
 # ------------------------------------------------------------------
 # 6. 拷贝 phorge 源码（当前构建上下文即 phorge-fork）

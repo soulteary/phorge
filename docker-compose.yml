@@ -1,119 +1,222 @@
-# Phorge (phorge-fork) 一键启动编排
-# 用法:
-#   cp .env.example .env          # 可选，用于改密码 / 端口 / 域名
-#   docker compose up -d --build
-#   然后浏览器访问 http://127.0.0.1:8088/ 完成初始管理员注册。
+# Phorge + Gorge 默认协作栈
 #
-# 说明:
-#   - Phorge 官方无 Docker 镜像，phorge 服务基于本目录 Dockerfile 自建。
-#   - MySQL 使用 Phorge 要求的若干参数 (sql_mode / max_allowed_packet 等)。
-#   - db-init 是一次性任务，为 Phorge 的普通库用户补齐命名空间多库的授权。
-#   - 所有可调项都有内置默认值，不写 .env 也能直接跑。
+# 新安装直接运行：
+#   cp .env.example .env
+#   docker compose up -d --build
+#
+# 默认启动 Gorge 的无外部依赖核心服务。邮件、搜索与 Gitea bridge 需要额外后端
+# 或密钥，分别通过 mailer、search、gitea profile 启用。原来的纯 Phorge 单容器
+# 编排保存在 docker-compose.legacy.yml，已有部署可原样继续使用。
+
+x-phorge-runtime: &phorge-runtime
+  image: ${PHORGE_IMAGE_REPOSITORY:-phorge}:${PHORGE_IMAGE_TAG:-local}
+  build:
+    context: .
+    dockerfile: Dockerfile
+  volumes:
+    - phorge-conf:/opt/phorge/phorge/conf/local
+    - phorge-repo:/var/repo
+
+x-phorge-environment: &phorge-environment
+  MYSQL_HOST: mysql
+  MYSQL_PORT: "3306"
+  MYSQL_USER: ${MYSQL_USER:-phorge}
+  MYSQL_PASS: ${MYSQL_PASSWORD:-phorge}
+  PHORGE_BASE_URI: ${PHORGE_BASE_URI:-http://127.0.0.1:${PHORGE_HTTP_PORT:-8088}/}
+  PHORGE_TIMEZONE: ${PHORGE_TIMEZONE:-UTC}
+  PHORGE_WAIT_DB: ${PHORGE_WAIT_DB:-1}
+  PHORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
 
 services:
   mysql:
-    image: mysql:8.0
-    container_name: phorge-mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-phorge_root}
-      # 下面三项让镜像在首次初始化时建出 Phorge 使用的普通账号。
-      # 真正的多库授权由 db-init 完成，见 docker/db-grant.sql。
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-phorge}
-      MYSQL_USER: ${MYSQL_USER:-phorge}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-phorge}
-    command:
-      - --sql-mode=STRICT_ALL_TABLES
-      - --max-allowed-packet=134217728          # 128M，Phorge 要求 >= 32M
-      - --innodb-buffer-pool-size=1600M
-      - --local-infile=0
-      - --ft-min-word-len=3
-    volumes:
-      - phorge-db:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-phorge_root}"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-    # 默认不把 3306 暴露到宿主。需要用客户端直连时，创建
-    # docker-compose.override.yml 加上:
-    #   services:
-    #     mysql:
-    #       ports:
-    #         - "127.0.0.1:3306:3306"
+    extends:
+      file: docker-compose.legacy.yml
+      service: mysql
+    image: mysql:${MYSQL_IMAGE_TAG:-8.0.46}
 
-  # 一次性任务：给普通库用户授予 `phabricator_%` 整组库的权限。
-  # phorge 服务用 service_completed_successfully 等它跑完，避免首启动时
-  # storage upgrade 因缺权限报 1044。重复执行是幂等的。
-  #
-  # 注意: GRANT 要求账号已存在。全新数据卷由 mysql 镜像的 MYSQL_USER 建出；
-  # 若沿用旧的、只有 root 的数据卷，请先手工 CREATE USER 再启动。
   db-init:
-    image: mysql:8.0
-    container_name: phorge-db-init
-    restart: "no"
-    depends_on:
-      mysql:
-        condition: service_healthy
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-phorge_root}
-      PHORGE_DB_USER: ${MYSQL_USER:-phorge}
-    volumes:
-      - ./docker/db-grant.sql:/db-grant.sql:ro
-    command:
-      - sh
-      - -c
-      - |
-        set -e
-        sed "s/__PHORGE_USER__/$$PHORGE_DB_USER/g" /db-grant.sql |
-          mysql -h mysql -P 3306 -u root -p"$$MYSQL_ROOT_PASSWORD"
-        echo "[db-init] 已为 $$PHORGE_DB_USER 授权 phabricator_% 库。"
+    extends:
+      file: docker-compose.legacy.yml
+      service: db-init
+    image: mysql:${MYSQL_IMAGE_TAG:-8.0.46}
 
-  phorge:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: phorge-web
-    restart: unless-stopped
+  gorge-render:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-render
+    image: ghcr.io/soulteary/gorge:render-${GORGE_RENDER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    environment:
+      GORGE_RENDER_ENABLE_DIFF: ${GORGE_RENDER_ENABLE_DIFF:-false}
+
+  gorge-conduit:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-conduit
+    image: ghcr.io/soulteary/gorge:conduit-${GORGE_CONDUIT_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+
+  gorge-notification:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-notification
+    image: ghcr.io/soulteary/gorge:notification-${GORGE_NOTIFICATION_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+
+  gorge-file-storage:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-file-storage
+    image: ghcr.io/soulteary/gorge:file-storage-${GORGE_FILE_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    environment:
+      GORGE_FILE_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
+
+  gorge-webhook:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-webhook
+    image: ghcr.io/soulteary/gorge:webhook-${GORGE_WEBHOOK_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    environment:
+      GORGE_WEBHOOK_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
+
+  gorge-taskqueue:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-taskqueue
+    image: ghcr.io/soulteary/gorge:taskqueue-${GORGE_TASKQUEUE_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    environment:
+      GORGE_TASKQUEUE_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
+
+  gorge-worker:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-worker
+    image: ghcr.io/soulteary/gorge:worker-${GORGE_WORKER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+
+  gorge-db-api:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-db-api
+    image: ghcr.io/soulteary/gorge:db-api-${GORGE_DB_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    environment:
+      GORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
+
+  # 邮件、搜索和 Gitea bridge 不属于默认核心：它们需要用户提供外部后端或密钥。
+  gorge-mailer:
+    profiles: ["mailer"]
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-mailer
+    image: ghcr.io/soulteary/gorge:mailer-${GORGE_MAILER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+
+  gorge-search:
+    profiles: ["search"]
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-search
+    image: ghcr.io/soulteary/gorge:search-${GORGE_SEARCH_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+
+  gorge-gitea:
+    profiles: ["gitea"]
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-gitea
+    # gorge-gitea 在 r3 之后进入 main，尚无正式版；启用 profile 时必须明确选择
+    # 一次已发布的构建，不能误用不含该二进制的公共 r3 版本。
+    image: ghcr.io/soulteary/gorge:gitea-${GORGE_GITEA_IMAGE_TAG:-unreleased}
+
+  # 基础配置与 schema 迁移任务。它在迁移前判定新装/升级：
+  # 新装默认 collaboration，旧库无显式记录时保持 full。
+  # mailer/search profile 还会启动各自的追加配置任务；所有 migrate 角色由
+  # entrypoint 通过 phorge-conf 卷上的 flock 串行化，避免并发覆盖 local.json。
+  phorge-migrate:
+    <<: *phorge-runtime
+    container_name: phorge-migrate
+    restart: "no"
     depends_on:
       mysql:
         condition: service_healthy
       db-init:
         condition: service_completed_successfully
+      gorge-render:
+        condition: service_healthy
+      gorge-conduit:
+        condition: service_healthy
+      gorge-notification:
+        condition: service_healthy
+      gorge-file-storage:
+        condition: service_started
+      gorge-webhook:
+        condition: service_started
+      gorge-taskqueue:
+        condition: service_started
+      gorge-db-api:
+        condition: service_started
     environment:
-      MYSQL_HOST: mysql
-      MYSQL_PORT: "3306"
-      MYSQL_USER: ${MYSQL_USER:-phorge}
-      MYSQL_PASS: ${MYSQL_PASSWORD:-phorge}
-      # 注意: Phorge 要求 base-uri 的域名必须含点号(.)，裸 "localhost" 会被拒绝。
-      # 默认值与 PHORGE_HTTP_PORT 联动，否则改了端口站点会 redirect 到错误地址。
-      # 正式部署请在 .env 里改成你的真实域名。
-      PHORGE_BASE_URI: ${PHORGE_BASE_URI:-http://127.0.0.1:${PHORGE_HTTP_PORT:-8088}/}
-      PHORGE_TIMEZONE: ${PHORGE_TIMEZONE:-UTC}
-      PHORGE_WAIT_DB: ${PHORGE_WAIT_DB:-1}
-      PHORGE_AUTO_UPGRADE: ${PHORGE_AUTO_UPGRADE:-1}
-      PHORGE_START_PHD: ${PHORGE_START_PHD:-1}
-      # full 保持上游全部应用；collaboration 让 Gitea 承担代码托管与评审。
-      PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-full}
+      <<: *phorge-environment
+      PHORGE_CONTAINER_ROLE: migrate
+      PHORGE_AUTO_UPGRADE: "1"
+      PHORGE_START_PHD: "0"
+      PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-auto}
       GITEA_BASE_URI: ${GITEA_BASE_URI:-}
+      GORGE_RENDER_URI: ${GORGE_RENDER_URI:-http://gorge-render:8140}
+      GORGE_RENDER_TOKEN: ${GORGE_RENDER_TOKEN:-}
+      GORGE_CONDUIT_URI: ${GORGE_CONDUIT_URI:-http://gorge-conduit:8150}
+      GORGE_CONDUIT_TOKEN: ${GORGE_CONDUIT_TOKEN:-}
+      GORGE_CONDUIT_UPSTREAM_URL: ${GORGE_CONDUIT_UPSTREAM_URL:-http://phorge:80}
+      GORGE_NOTIFICATION_ADMIN_HOST: ${GORGE_NOTIFICATION_ADMIN_HOST:-gorge-notification}
+      GORGE_NOTIFICATION_ADMIN_PORT: ${GORGE_NOTIFICATION_ADMIN_PORT:-22281}
+      GORGE_NOTIFICATION_CLIENT_HOST: ${GORGE_NOTIFICATION_CLIENT_HOST:-127.0.0.1}
+      GORGE_NOTIFICATION_CLIENT_PORT: ${GORGE_NOTIFICATION_CLIENT_PORT:-22280}
+      GORGE_NOTIFICATION_CLIENT_PROTOCOL: ${GORGE_NOTIFICATION_CLIENT_PROTOCOL:-http}
+      GORGE_NOTIFICATION_CLIENT_PATH: ${GORGE_NOTIFICATION_CLIENT_PATH:-}
+      GORGE_NOTIFICATION_MODE: enable
+      GORGE_FILE_URI: ${GORGE_FILE_URI:-http://gorge-file-storage:8100}
+      GORGE_FILE_TOKEN: ${GORGE_FILE_TOKEN:-}
+      GORGE_WEBHOOK_URI: ${GORGE_WEBHOOK_URI:-http://gorge-webhook:8160}
+      GORGE_WEBHOOK_TOKEN: ${GORGE_WEBHOOK_TOKEN:-}
+      GORGE_WEBHOOK_MODE: enable
+      GORGE_TASKQUEUE_URI: ${GORGE_TASKQUEUE_URI:-http://gorge-taskqueue:8090}
+      GORGE_TASKQUEUE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:-}
+      GORGE_TASKQUEUE_MODE: enable
+      GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER: ${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}
+      GORGE_DB_URL: ${GORGE_DB_URL-http://gorge-db-api:8080}
+      GORGE_DB_TOKEN: ${GORGE_DB_TOKEN:-}
+      GORGE_DB_MODE: ${GORGE_DB_MODE:-enable}
+      # 基础栈未启用 mailer profile 时，只撤销指定 key 的受管 Gorge
+      # mailer，不改动用户配置的 SMTP/provider 条目。
+      GORGE_MAILER_MODE: disable
+      GORGE_MAILER_KEY: ${GORGE_MAILER_KEY:-gorge-mailer}
+      # 基础栈未启用 search profile 时，撤销上次 profile 写入的 Gorge
+      # 搜索条目，并在没有其它搜索引擎时恢复 MySQL/Ferret。
+      GORGE_SEARCH_MODE: disable
+    command: ["/bin/true"]
+
+  phorge:
+    <<: *phorge-runtime
+    container_name: phorge-web
+    restart: unless-stopped
+    depends_on:
+      phorge-migrate:
+        condition: service_completed_successfully
+      gorge-render:
+        condition: service_healthy
+      gorge-conduit:
+        condition: service_healthy
+      gorge-notification:
+        condition: service_healthy
+      gorge-file-storage:
+        condition: service_healthy
+      gorge-webhook:
+        condition: service_healthy
+      gorge-taskqueue:
+        condition: service_healthy
+      gorge-worker:
+        condition: service_healthy
+      gorge-db-api:
+        condition: service_healthy
+    environment:
+      <<: *phorge-environment
+      PHORGE_CONTAINER_ROLE: web
     ports:
       - "${PHORGE_HTTP_PORT:-8088}:80"
-    volumes:
-      # 持久化本地配置：让 Web 界面里改的配置和守卫式生成的 local.json
-      # 跨容器重建存活，也让「挂载自己的 local.json」这个用法成立。
-      - phorge-conf:/opt/phorge/phorge/conf/local
-      # 持久化仓库存储 (repository.default-local-path 默认值)
-      - phorge-repo:/var/repo
-    # Phorge 的 /status/ 是免鉴权路由（PhabricatorStatusController），返回
-    # "ALIVE"。用 php 的 http 流而不是 curl CLI，避免假设镜像里有 curl。
-    #
-    # 两个细节:
-    #   - Host 头按 PHORGE_BASE_URI 改写。Phorge 用 Host 匹配站点
-    #     (PhabricatorPlatformSite)，配了自定义域名后直接发
-    #     "Host: 127.0.0.1" 会匹配不到站点而失败。
-    #   - 这段 PHP 刻意不用任何变量，省掉 compose 里 $$ 转义带来的歧义。
-    #     不带 ignore_errors 时 PHP 的 http 流对 4xx/5xx 直接返回 false，
-    #     正好等价于「HTTP 状态正常」判断。
     healthcheck:
       test:
         - CMD
@@ -130,7 +233,76 @@ services:
       start_period: 60s
       retries: 5
 
+  phorge-daemon:
+    <<: *phorge-runtime
+    container_name: phorge-daemon
+    restart: unless-stopped
+    depends_on:
+      phorge-migrate:
+        condition: service_completed_successfully
+      gorge-taskqueue:
+        condition: service_healthy
+      gorge-worker:
+        condition: service_healthy
+    environment:
+      <<: *phorge-environment
+      PHORGE_CONTAINER_ROLE: daemon
+    command: ["/usr/local/bin/phd-foreground"]
+    healthcheck:
+      test: ["CMD-SHELL", "su -s /bin/sh www-data -c '/opt/phorge/phorge/bin/phd status' >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  # profile 启用后由一次性配置任务写入 Phorge；搜索索引仍需显式初始化。
+  phorge-mailer-config:
+    <<: *phorge-runtime
+    profiles: ["mailer"]
+    restart: "no"
+    depends_on:
+      phorge-migrate:
+        condition: service_completed_successfully
+      gorge-mailer:
+        condition: service_healthy
+    environment:
+      <<: *phorge-environment
+      PHORGE_CONTAINER_ROLE: migrate
+      PHORGE_AUTO_UPGRADE: "0"
+      PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-auto}
+      GORGE_MAILER_MODE: enable
+      GORGE_MAILER_URI: ${GORGE_MAILER_URI:-http://gorge-mailer:8110}
+      GORGE_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:-}
+      GORGE_MAILER_KEY: ${GORGE_MAILER_KEY:-gorge-mailer}
+      GORGE_MAILER_TIMEOUT: ${GORGE_MAILER_TIMEOUT:-30}
+      GORGE_MAILER_PRIORITY: ${GORGE_MAILER_PRIORITY:-}
+      GORGE_MAILER_SUPPORTS_MESSAGE_ID: ${GORGE_MAILER_SUPPORTS_MESSAGE_ID:-0}
+    command: ["/bin/true"]
+
+  phorge-search-config:
+    <<: *phorge-runtime
+    profiles: ["search"]
+    restart: "no"
+    depends_on:
+      phorge-migrate:
+        condition: service_completed_successfully
+      gorge-search:
+        condition: service_healthy
+    environment:
+      <<: *phorge-environment
+      PHORGE_CONTAINER_ROLE: migrate
+      PHORGE_AUTO_UPGRADE: "0"
+      PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-auto}
+      GORGE_SEARCH_MODE: enable
+      GORGE_SEARCH_HOST: ${GORGE_SEARCH_HOST:-gorge-search}
+      GORGE_SEARCH_PORT: ${GORGE_SEARCH_PORT:-8120}
+      GORGE_SEARCH_PROTOCOL: ${GORGE_SEARCH_PROTOCOL:-http}
+      GORGE_SEARCH_TOKEN: ${GORGE_SEARCH_TOKEN:-}
+      GORGE_SEARCH_KEEP_MYSQL: ${GORGE_SEARCH_KEEP_MYSQL:-0}
+    command: ["/bin/true"]
+
 volumes:
   phorge-db:
   phorge-conf:
   phorge-repo:
+  phorge-files:

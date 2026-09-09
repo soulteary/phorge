@@ -1,11 +1,11 @@
-# Phorge (phorge-fork) Gorge 服务叠加编排（可选）
+# Phorge (phorge-fork) Gorge 兼容叠加编排
 # ------------------------------------------------------------------
 # 用法（在基础一键启动之上叠加 Gorge 服务）：
-#   docker compose -f docker-compose.yml -f docker-compose.gorge.yml up -d --build
+#   docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
 #
 # 说明：
-#   - 本文件是「叠加文件」，不会独立启动；它与 docker-compose.yml 合并生效。
-#     docker-compose.yml 保持完全不变，因此默认的一键启动（不带本文件）不受影响。
+#   - 默认 docker-compose.yml 已内置 Gorge 核心服务。本文件保留给旧版
+#     docker-compose.legacy.yml 和自定义部署继续叠加，不要再与默认文件组合。
 #   - 上面那条命令里的 --build 不能省。phorge 是 build 型服务、entrypoint.sh 是烤进
 #     镜像的，本地已存在旧的 phorge 镜像时，不带 --build 的 up -d 会直接复用它，容器里
 #     跑的就是**旧版 entrypoint**：notification.servers 与 cluster.mailers 整段不下发，
@@ -995,6 +995,7 @@ services:
       # 只有 client 有 path：admin 条目带 path 会被配置校验明确拒绝。
       GORGE_NOTIFICATION_CLIENT_PROTOCOL: ${GORGE_NOTIFICATION_CLIENT_PROTOCOL:-http}
       GORGE_NOTIFICATION_CLIENT_PATH: ${GORGE_NOTIFICATION_CLIENT_PATH:-}
+      GORGE_NOTIFICATION_MODE: enable
       # --- 下面几项由 entrypoint.sh 拼成 cluster.mailers 里的一个条目 ---
       # 与上面两组不同，这一组写进的是一个**共享列表**：用户可能自己在
       # cluster.mailers 里配了 postmark 等条目。entrypoint.sh 因此做的是合并——读出
@@ -1006,6 +1007,7 @@ services:
       # gorge-mailer 判成路由不匹配，返回 404 ERR_NOT_FOUND。
       GORGE_MAILER_URI: ${GORGE_MAILER_URI:-http://gorge-mailer:8110}
       GORGE_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:-}
+      GORGE_MAILER_MODE: enable
       # 这个条目在 cluster.mailers 里的 key，也是 entrypoint.sh 认定「哪一条归我管」
       # 的依据：只有 key 等于它的条目会被覆盖。想再手工配一条指向另一个实例的
       # gorge mailer，换个 key 写进去即可，不会被覆盖掉。
@@ -1032,6 +1034,7 @@ services:
       GORGE_SEARCH_PORT: ${GORGE_SEARCH_PORT:-8120}
       GORGE_SEARCH_PROTOCOL: ${GORGE_SEARCH_PROTOCOL:-http}
       GORGE_SEARCH_TOKEN: ${GORGE_SEARCH_TOKEN:-}
+      GORGE_SEARCH_MODE: enable
       # 是否在 cluster.search 里保留一条 mysql 条目（取值 1 开启）。
       #
       # 默认关：写进 cluster.search 的就只有 gorge 一条，MySQL（Ferret）全文检索不再
@@ -1066,14 +1069,16 @@ services:
       # PHP 侧真正会去访问这个地址的只有 Config 页面的 setup check。
       #
       # 由此 GORGE_FILE_URI 那种「配了不等于生效」在这里变成了反过来的一条：
-      # **这一项没写进去、而 gorge-webhook 容器在跑，webhook 就会被发两次**（phd 一次、
-      # Go 一次）。两边是一对，删一个就把另一个也删掉。
+      # **这一项没写进去、而 gorge-webhook 容器在跑，会产生重复投递竞态**。两边是一对，
+      # 删一个就把另一个也删掉。
       #
       # 它同时是整段 webhook 配置的总开关：留空时 entrypoint.sh 整段跳过，
       # gorge.webhook.uri 一个字都不动，投递留在 phd 手里。
       # 结尾不要带斜杠：setup check 按 {uri}/healthz、{uri}/readyz 拼接。
       GORGE_WEBHOOK_URI: ${GORGE_WEBHOOK_URI:-http://gorge-webhook:8160}
       GORGE_WEBHOOK_TOKEN: ${GORGE_WEBHOOK_TOKEN:-}
+      # 基础 legacy 编排会显式 disable；叠加本文件时必须夺回所有权。
+      GORGE_WEBHOOK_MODE: enable
       # --- 下面几项与 task-queue 接管相关 ---
       # gorge.taskqueue.uri / gorge.taskqueue.token 是两个标量配置项，整项归 Gorge 所有，
       # entrypoint.sh 走现成的 gorge_config_set 幂等写入 local.json。
@@ -1091,6 +1096,7 @@ services:
       # 让 gorge-worker 独家消费队列，避免 phd 的 taskmaster 与它并存。详见 entrypoint.sh。
       GORGE_TASKQUEUE_URI: ${GORGE_TASKQUEUE_URI:-http://gorge-taskqueue:8090}
       GORGE_TASKQUEUE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:-}
+      GORGE_TASKQUEUE_MODE: enable
       # 配置了 gorge.taskqueue 时是否在本 phorge 容器里禁用 phd 的 taskmaster 守护进程
       # （把 phd.taskmasters 设为 0）。默认 1 = 禁用，这是 compat 硬约束要求的「替换而非
       # 并存」。设 0 可保留 taskmaster（仅在你确知要让 phd 也消费队列、或用于灰度对比时）。
@@ -1098,9 +1104,10 @@ services:
       # --- 下面两项由 entrypoint.sh 写进 gorge.db.uri / gorge.db.token ---
       # PHP 侧 PhabricatorGorgeDBClient 在 URI 非空时把数据库健康、schema、环境与迁移
       # 状态诊断改走 db-api；清空 URI 后自动回落到原来的 PHP 实现。
-      # 使用 "-" 而不是 ":-"：在 .env 显式写 GORGE_DB_URL= 可关闭 PHP 切流。
-      GORGE_DB_URL: ${GORGE_DB_URL-http://gorge-db-api:8080}
+      GORGE_DB_URL: ${GORGE_DB_URL:-http://gorge-db-api:8080}
       GORGE_DB_TOKEN: ${GORGE_DB_TOKEN:-}
+      # 显式设为 disable 时 entrypoint 会清理已持久化的 URI/token。
+      GORGE_DB_MODE: ${GORGE_DB_MODE:-enable}
 
 # 本叠加文件引入的唯一一个卷。顶层 volumes 与基础 docker-compose.yml 里的那三个
 # （phorge-db / phorge-conf / phorge-repo）合并，不会替换它们。

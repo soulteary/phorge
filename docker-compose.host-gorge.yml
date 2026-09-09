@@ -1,3 +1,8 @@
+# 在宿主机裸跑 Gorge、只把 Phorge/MySQL 放进容器时使用：
+#   docker compose -f docker-compose.legacy.yml -f docker-compose.host-gorge.yml up -d --build
+#
+# 不使用 Compose 自动加载的 docker-compose.override.yml 文件名，否则它会在普通
+# `docker compose up` 时悄悄把默认核心服务的地址改回 host.docker.internal。
 services:
   # 把容器 MySQL 的 3306 暴露到宿主回环，供宿主机上裸跑的 gorge-file-storage /
   # gorge-webhook 反向连库（这两个是七个域里唯二有状态、要连 phorge 库的服务）。
@@ -34,16 +39,19 @@ services:
       GORGE_NOTIFICATION_ADMIN_PORT: "22281"
       GORGE_NOTIFICATION_CLIENT_HOST: "127.0.0.1"
       GORGE_NOTIFICATION_CLIENT_PORT: "22280"
+      GORGE_NOTIFICATION_MODE: enable
 
       # --- mailer 发信（宿主 :8110）---
       GORGE_MAILER_URI: "http://host.docker.internal:8110"
       GORGE_MAILER_TOKEN: "${GORGE_MAILER_TOKEN:-}"
+      GORGE_MAILER_MODE: enable
 
       # --- search 检索（host/port/protocol 三件套，宿主 :8120）---
       GORGE_SEARCH_HOST: "host.docker.internal"
       GORGE_SEARCH_PORT: "8120"
       GORGE_SEARCH_PROTOCOL: "http"
       GORGE_SEARCH_TOKEN: "${GORGE_SEARCH_TOKEN:-}"
+      GORGE_SEARCH_MODE: enable
 
       # --- file-storage 文件存储（宿主 :8100）---
       GORGE_FILE_URI: "http://host.docker.internal:8100"
@@ -52,7 +60,8 @@ services:
       # --- webhook 投递（宿主 :8160）---
       # 写进去 = 交接开关：phorge 读到它非空就停止用 phd 投递，交给 gorge-webhook。
       # 因此它必须与宿主机上的 gorge-webhook 服务「同进同退」：只起服务不写这里，或
-      # 只写这里不起服务，都会导致每个 webhook 被发两次 / 一次都不发。暂不联调
+      # 只写这里不起服务会让请求无人投递，只起服务不写配置会产生重复投递竞态。暂不联调
       # webhook 时，删掉下面两行并且不要启动 gorge-webhook。
       GORGE_WEBHOOK_URI: "http://host.docker.internal:8160"
       GORGE_WEBHOOK_TOKEN: "${GORGE_WEBHOOK_TOKEN:-}"
+      GORGE_WEBHOOK_MODE: enable
