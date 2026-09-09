@@ -86,7 +86,10 @@ function load_profile_state($path) {
        !is_array($state['databaseSettings'])) ||
       !array_key_exists('uninstalledDatabase', $state) ||
       ($state['uninstalledDatabase'] !== null &&
-       !is_array($state['uninstalledDatabase']))) {
+       !is_array($state['uninstalledDatabase'])) ||
+      !array_key_exists('customFieldsDatabase', $state) ||
+      ($state['customFieldsDatabase'] !== null &&
+       !is_array($state['customFieldsDatabase']))) {
     throw new Exception(
       pht('Collaboration profile state file "%s" is invalid.', $path));
   }
@@ -166,9 +169,9 @@ function restore_database_config($key, array $baseline) {
   }
 }
 
-function store_uninstalled_config($key, $value, array $database_baseline) {
+function store_at_original_source($key, $value, array $database_baseline) {
   if (!isset($database_baseline['present'])) {
-    throw new Exception(pht('Uninstalled application baseline is invalid.'));
+    throw new Exception(pht('Configuration source baseline is invalid.'));
   }
   if ($database_baseline['present']) {
     store_effective_config($key, $value);
@@ -234,6 +237,11 @@ if ($mode === 'collaboration') {
     $state_changed = true;
   }
 
+  if ($state['customFieldsDatabase'] === null) {
+    $state['customFieldsDatabase'] = capture_database_config($fields_key);
+    $state_changed = true;
+  }
+
   $database_values = array(
     'gorge.diff.enabled' => false,
   );
@@ -271,11 +279,18 @@ if ($mode === 'collaboration') {
   if (!is_array($uninstalled_database)) {
     throw new Exception(pht('Uninstalled application baseline is invalid.'));
   }
-  store_uninstalled_config(
+  store_at_original_source(
     $uninstalled_key,
     $uninstalled,
     $uninstalled_database);
-  store_effective_config($fields_key, $fields);
+  $custom_fields_database = $state['customFieldsDatabase'];
+  if (!is_array($custom_fields_database)) {
+    throw new Exception(pht('Custom-field source baseline is invalid.'));
+  }
+  store_at_original_source(
+    $fields_key,
+    $fields,
+    $custom_fields_database);
   foreach ($database_values as $key => $value) {
     store_effective_config($key, $value);
   }
@@ -305,10 +320,25 @@ if ($mode === 'collaboration') {
   if (!is_array($uninstalled_database)) {
     throw new Exception(pht('Uninstalled application baseline is invalid.'));
   }
-  store_uninstalled_config(
+  store_at_original_source(
     $uninstalled_key,
     $uninstalled,
     $uninstalled_database);
+  $fields = (array)PhabricatorEnv::getEnvConfig($fields_key);
+  $custom_fields_database = $state['customFieldsDatabase'];
+  if ($custom_fields_database === null) {
+    $custom_fields_database = array(
+      'present' => false,
+      'value' => null,
+    );
+  }
+  if (!is_array($custom_fields_database)) {
+    throw new Exception(pht('Custom-field source baseline is invalid.'));
+  }
+  store_at_original_source(
+    $fields_key,
+    $fields,
+    $custom_fields_database);
   foreach ((array)$state['databaseSettings'] as $key => $baseline) {
     if (!is_array($baseline)) {
       throw new Exception(pht('Database configuration baseline is invalid.'));

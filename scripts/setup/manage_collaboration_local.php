@@ -59,7 +59,10 @@ function validate_profile_state(array $state) {
        !is_array($state['databaseSettings'])) ||
       !array_key_exists('uninstalledDatabase', $state) ||
       ($state['uninstalledDatabase'] !== null &&
-       !is_array($state['uninstalledDatabase']))) {
+       !is_array($state['uninstalledDatabase'])) ||
+      !array_key_exists('customFieldsDatabase', $state) ||
+      ($state['customFieldsDatabase'] !== null &&
+       !is_array($state['customFieldsDatabase']))) {
     throw new Exception('Collaboration profile state is invalid.');
   }
 }
@@ -101,6 +104,16 @@ if ($state !== null) {
       );
       $state_upgraded = true;
     }
+    if (!array_key_exists('customFieldsDatabase', $state)) {
+      // Older helpers also wrote the merged custom-field definitions to the
+      // database unconditionally. Move that effective value back to local
+      // configuration when the profile is later removed.
+      $state['customFieldsDatabase'] = array(
+        'present' => false,
+        'value' => null,
+      );
+      $state_upgraded = true;
+    }
   }
   if ($state_upgraded) {
     write_json_object($state_path, $state);
@@ -134,6 +147,7 @@ if ($mode === 'collaboration') {
       'applicationsAdded' => null,
       'databaseSettings' => null,
       'uninstalledDatabase' => null,
+      'customFieldsDatabase' => null,
     );
 
     // Install the rollback record before changing local.json.
