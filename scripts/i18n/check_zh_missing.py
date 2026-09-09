@@ -18,6 +18,8 @@ from typing import Iterable
 
 KEY_PATTERN = re.compile(r"^\s+'((?:\\'|[^'])*)'\s*=>", re.M)
 
+DEFAULT_ROOT = pathlib.Path(__file__).resolve().parents[2]
+
 
 def php_single_unescape(s: str) -> str:
     return s.replace("\\\\", "\\").replace("\\'", "'")
@@ -133,7 +135,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--root",
-        default="/Users/soulteary/Lab/tools/phorge",
+        default=str(DEFAULT_ROOT),
         help="Repository root path.",
     )
     parser.add_argument(

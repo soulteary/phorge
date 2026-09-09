@@ -28,8 +28,11 @@ DEFAULT_FILE = (
     "src/infrastructure/internationalization/translation/"
     "PhabricatorChineseTranslation.php"
 )
-DEFAULT_MODEL = "kimi-k2-thinking-turbo"
+DEFAULT_MODEL = "kimi-k2.6"
 DEFAULT_BASE_URL = "https://api.moonshot.cn/v1"
+DEFAULT_TEMPERATURE = 0.6
+DEFAULT_TOP_P = 0.95
+DEFAULT_MAX_TOKENS = 32768
 
 SINGLE_RE = re.compile(
     r"^(\s+)'((?:[^'\\]|\\.)*)'\s*=>\s*'((?:[^'\\]|\\.)*)'\s*,?\s*$"
@@ -258,16 +261,22 @@ def request_translations(
     retries: int,
     retry_sleep: float,
     request_timeout: float,
+    temperature: float,
+    top_p: float,
+    max_tokens: int,
 ) -> dict[int, str]:
     for attempt in range(1, retries + 1):
         try:
             completion = client.chat.completions.create(
                 model=model,
                 messages=build_messages(batch),
-                temperature=0.2,
-                top_p=1,
+                temperature=temperature,
+                top_p=top_p,
+                max_tokens=max_tokens,
+                response_format={"type": "text"},
                 stream=False,
                 timeout=request_timeout,
+                extra_body={"thinking": {"type": "disabled"}},
             )
             content = completion.choices[0].message.content or ""
             parsed = parse_text_response(content)
@@ -345,6 +354,24 @@ def main() -> None:
     ap.add_argument("--batch-size", type=int, default=90, help="Entries per API call")
     ap.add_argument("--model", default=DEFAULT_MODEL, help="Model name")
     ap.add_argument("--base-url", default=DEFAULT_BASE_URL, help="API base URL")
+    ap.add_argument(
+        "--temperature",
+        type=float,
+        default=DEFAULT_TEMPERATURE,
+        help="Sampling temperature",
+    )
+    ap.add_argument(
+        "--top-p",
+        type=float,
+        default=DEFAULT_TOP_P,
+        help="Nucleus sampling top_p",
+    )
+    ap.add_argument(
+        "--max-tokens",
+        type=int,
+        default=DEFAULT_MAX_TOKENS,
+        help="Max output tokens per API call",
+    )
     ap.add_argument("--retry", type=int, default=2, help="Retries per API call")
     ap.add_argument(
         "--retry-sleep",
@@ -453,6 +480,9 @@ def main() -> None:
             retries=args.retry,
             retry_sleep=args.retry_sleep,
             request_timeout=args.request_timeout,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            max_tokens=args.max_tokens,
         )
         print(
             f"batch={batch_idx}/{total_batches} received={len(result)}",

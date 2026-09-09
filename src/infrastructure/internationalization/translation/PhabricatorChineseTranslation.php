@@ -7144,7 +7144,7 @@ final class PhabricatorChineseTranslation
         '**为什么机器人账户需要邮箱地址？**',
       '**publish** __buildable__ ...' => '**发布** __buildable__ ...',
       '**reparse** __what__ __which_parts__ [--trace] [--force]' =>
-        '**reparse** __what__ __which_parts__ [--trace] [--force]',
+        '**重新解析** __what__ __which_parts__ [--trace] [--force]',
       ', ...' => '，…',
       '//There are no available Herald events for this object.//' =>
         '//此对象没有可用的 Herald 事件。//',
@@ -8511,7 +8511,7 @@ final class PhabricatorChineseTranslation
       'Calls to "transaction.search" must not specify both an ' =>
         '"transaction.search" 的调用不得同时指定…',
       'Calls to "transaction.search" must specify either an "objectType" ' =>
-        '调用"transaction.search"必须指定"objectType"',
+        '调用 "transaction.search" 时必须指定 "objectType"',
       'Calls to External Services' => '调用外部服务',
       'Callsign is the monogram rXXXX for this repository. ' =>
         '呼号即此仓库的 monogram rXXXX。',
@@ -11402,7 +11402,7 @@ final class PhabricatorChineseTranslation
         '期望 "getDoorkeeperURIRef()" 返回 "null" 或…',
       'Expected "multipart/form-data" content type when executing a ' =>
         '执行…时期望 "multipart/form-data" 内容类型。',
-      'Expected "old new ref", got "%s".' => '期望 "old new ref"，但得到 "%s"。',
+      'Expected "old new ref", got "%s".' => '应为 "old new ref"，实际得到 "%s"。',
       'Expected %s, %s and %s to be set before parsing a corpus.' =>
         '期望在解析语料库前设置 %s、%s 和 %s。',
       'Expected DATE-TIME to have exactly one value, found more than ' =>
@@ -11420,7 +11420,7 @@ final class PhabricatorChineseTranslation
       'Expected T_OPEN_TAG, T_WHITESPACE tokens at head of results ' =>
         '期望结果…开头为 T_OPEN_TAG、T_WHITESPACE 标记。',
       'Expected `git-lfs-authenticate <path> <operation>`, but received ' =>
-        '期望 `git-lfs-authenticate <path> <operation>`，但接收到',
+        '应为 `git-lfs-authenticate <path> <operation>`，但实际收到',
       'Expected a PhutilQueryString for %%%s conversion.' =>
         '期望 %%%s 转换为 PhutilQueryString。',
       'Expected a list of PhabricatorRepositorySymbol objects ' =>
@@ -11971,10 +11971,10 @@ final class PhabricatorChineseTranslation
       'Event queries which generate ghost events must include either a ' => '生成幽灵事件的事件查询必须包含',
       'Executing test code outside of test execution! ' => '在测试执行之外执行测试代码！',
       'Expect exception for header pairs of: %s' => '期望以下头对抛出异常：%s',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望 "<mode> <type> <hash> <size>\\t<name>"，对于 ls-tree of',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '应为 "<mode> <type> <hash> <size>\\t<name>"，用于 ls-tree 的',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '期望在头部的 T_WHITESPACE 标记开头有 "\\\\n"',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
-      'Expected "multipart/form-data" parse to end ' => '期望 "multipart/form-data" 解析至末尾',
+      'Expected "multipart/form-data" parse to end ' => '预期 "multipart/form-data" 解析结束',
       'Expected "newArguments()" in class "%s" to return a list of ' => '期望类 "%s" 中的 "newArguments()" 返回',
       'Expected "newColumnTransactions()" on "%s" to return "null" or a ' => '期望 "%s" 上的 "newColumnTransactions()" 返回 "null" 或',
       'Expected "newExternalCursorStringForResult()"  in class "%s" to ' => '期望类 "%s" 中的 "newExternalCursorStringForResult()"',
@@ -12255,7 +12255,7 @@ final class PhabricatorChineseTranslation
       'Foam Circle' => 'Foam Circle',
       'Follow Log' => '跟踪日志',
       'Follow referrals. Disable this for Windows AD 2003.' => '跟踪引用。对于 Windows AD 2003，请禁用此选项。',
-      'Font Awesome by Dave Gandy - %s' => 'Font Awesome 由 Dave Gandy 创作 - %s',
+      'Font Awesome by Dave Gandy - %s' => 'Font Awesome by Dave Gandy - %s',
       'Footer configuration is not valid: value must be a list of ' => '页脚配置无效：值必须是列表',
       'Footer item with index "%s" is invalid: %s' => '索引为 "%s" 的页脚项无效：%s',
       'Footer item with index "%s" is invalid: each item must be a ' => '索引为 "%s" 的页脚项无效：每项必须是',
@@ -12264,7 +12264,7 @@ final class PhabricatorChineseTranslation
       'For custom domains to work, the blog must have a view policy of ' => '要使自定义域名生效，博客必须具有查看策略',
       'For custom domains to work, this server must be ' => '要使自定义域名生效，此服务器必须是',
       'For example:' => '例如：',
-      'For full details, run `/bin/mail show-inbound --id %d`' => '要查看完整详情，请运行 `/bin/mail show-inbound --id %d`',
+      'For full details, run `/bin/mail show-inbound --id %d`' => '如需完整详情，请运行 `/bin/mail show-inbound --id %d`',
       'For help troubleshooting adjustments, see "Managing Storage ' => '有关故障排除调整的帮助，请参阅 "Managing Storage',
       'For merge commits, shows merged changes in email.' => '对于合并提交，在邮件中显示合并的更改。',
       'For milestones, milestone sequence number.' => '对于里程碑，指里程碑序列号。',
@@ -12614,7 +12614,7 @@ final class PhabricatorChineseTranslation
       'High Command' => 'High Command',
       'High-Volume Task Queues' => '高容量任务队列',
       'Highlight %s as PHP.' => '将 %s 高亮为 PHP。',
-      'Highlight httpd.conf as "apacheconf".' => '将 httpd.conf 高亮显示为 "apacheconf"。',
+      'Highlight httpd.conf as "apacheconf".' => '将 httpd.conf 高亮为 "apacheconf"。',
       'Highlighted' => '已高亮',
       'Highlighting' => '高亮中',
       'Hint type ("%s") for commit ("%s") is not valid. Valid hints ' => '提交 ("%s") 的提示类型 ("%s") 无效。有效的提示',
@@ -12843,12 +12843,12 @@ final class PhabricatorChineseTranslation
       'Importing (%s)...' => '正在导入 (%s)...',
       'Importing Events' => '正在导入事件',
       'Importing all cursors: %s.' => '正在导入所有游标：%s。',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望格式为 "<mode> <type> <hash> <size>\\t<name>"，用于 ls-tree 的',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '应为 "<mode> <type> <hash> <size>\\t<name>"，用于 ls-tree 的',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '在 T_WHITESPACE 令牌开头需要 "\\\\n"',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
       'If you are here for code review, let\\\'s set up your first ' => '如果您是为了代码审查而来，让我们设置您的第一个',
       'If you\\\'re new to %s, these optional steps can help you learn the ' => '如果您是 %s 新手，这些可选步骤可以帮助您了解',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望格式为 "<mode> <type> <hash> <size>\\t<name>"，用于 ls-tree 的',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '应为 "<mode> <type> <hash> <size>\\t<name>"，用于 ls-tree 的',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '在 T_WHITESPACE 令牌开头需要 "\\\\n"',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
       'If you are here for code review, let\\\'s set up your first ' => '如果您是为了代码审查而来，让我们设置您的第一个',
@@ -12871,7 +12871,7 @@ final class PhabricatorChineseTranslation
       'In call to "%s", specified "%s" ("%s") ' => '在调用 "%s" 时，指定的 "%s" ("%s")',
       'In call to "transaction.search", selected object (of type "%s") ' => '在调用 "transaction.search" 时，选定的对象（类型为 "%s"）',
       'In call to "transaction.search", specified "objectIdentifier" ' => '在调用 "transaction.search" 时，指定了 "objectIdentifier"',
-      'In call to "transaction.search", specified "objectType" ("%s") ' => '调用 "transaction.search" 时指定的 "objectType" ("%s")',
+      'In call to "transaction.search", specified "objectType" ("%s") ' => '在调用 "transaction.search" 时，指定了 "objectType" ("%s")',
       'In detail, this means that these users can take this action, ' => '详细来说，这意味着这些用户可以执行此操作，',
       'In development, OPcache should be configured to always reload ' => '在开发环境中，OPcache 应配置为始终重新加载',
       'In places that we display a dropdown to syntax-highlight code, ' => '在我们显示用于语法高亮代码的下拉菜单的地方，',
@@ -13849,13 +13849,13 @@ final class PhabricatorChineseTranslation
       'Move to milestone %s.' => '移至里程碑 %s',
       'Moved Here' => '已移至此处',
       'Moved repository "%s" to cluster service "%s".' => '已将仓库 "%s" 移至集群服务 "%s"',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望 "<mode> <type> <hash> <size>\\t<name>"，用于 ls-tree of',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => 'ls-tree 期望格式为 "<mode> <type> <hash> <size>\\t<name>"，',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '期望在 T_WHITESPACE 令牌头部以 "\\\\n" 开头',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
       'If you are here for code review, let\\\'s set up your first ' => '如果您来此进行代码审查，让我们设置您的第一个',
       'If you\\\'re new to %s, these optional steps can help you learn the ' => '如果您是 %s 的新手，这些可选步骤可帮助您了解',
       'M\\\'Lady' => 'M\\\'Lady',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望 "<mode> <type> <hash> <size>\\t<name>"，用于 ls-tree of',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => 'ls-tree 期望格式为 "<mode> <type> <hash> <size>\\t<name>"，',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '期望在 T_WHITESPACE 令牌头部以 "\\\\n" 开头',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
       'If you are here for code review, let\\\'s set up your first ' => '如果您来此进行代码审查，让我们设置您的第一个',
@@ -13916,7 +13916,7 @@ final class PhabricatorChineseTranslation
       'MySQL password to use when connecting to the database.' => '连接 MySQL 数据库时使用的密码。',
       'MySQL port to use when connecting to the database.' => '连接 MySQL 数据库时使用的端口。',
       'MySQL username to use when connecting to the database.' => '连接 MySQL 数据库时使用的用户名。',
-      'Myocardial Infarction' => 'Myocardial Infarction',
+      'Myocardial Infarction' => '心肌梗死',
       'NO OBJECTS' => '无 OBJECTS',
 
       'NONE' => '无',
@@ -14859,7 +14859,7 @@ final class PhabricatorChineseTranslation
       'Order %d: %s' => '排序 %d：%s',
       'Order By' => '排序方式',
       'Order History' => '订单历史',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望的格式为"<mode> <type> <hash> <size>\\t<name>"，用于 ls-tree 的',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => 'ls-tree 期望格式为 "<mode> <type> <hash> <size>\\t<name>"，',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '在 T_WHITESPACE 标记的开头期望 "\\\\n"',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
       'If you are here for code review, let\\\'s set up your first ' => '如果您是为了代码审查而来，让我们设置您的第一个',
@@ -14959,7 +14959,7 @@ final class PhabricatorChineseTranslation
       'PHID of the object which requested authorization.' => '请求授权的对象的 PHID。',
       'PHID of the parent task.' => '父任务的 PHID。',
       'PHID of the policy space this object is part of.' => '此对象所属策略空间的 PHID。',
-      'PHIDs' => 'PHIDs',
+      'PHIDs' => 'PHID',
       'PHP Documentation' => 'PHP 文档',
       'PHP Extension "APCu" Not Installed' => 'PHP 扩展 "APCu" 未安装',
       'PHP OPcache Documentation' => 'PHP OPcache 文档',
@@ -15491,7 +15491,7 @@ final class PhabricatorChineseTranslation
       'Pull Daemon Running' => 'Pull 守护进程运行中',
       'Pull Event' => 'Pull 事件',
       'Pull Event %d' => 'Pull 事件 %d',
-      'Pull Request #%d' => 'Pull Request #%d',
+      'Pull Request #%d' => '拉取请求 #%d',
       'Pull __repository__.' => '拉取 __repository__。',
       'Pull even if the repository should not be present on this ' => '即使仓库不应存在于此也要拉取',
       'Pull only, without discovering commits.' => '仅拉取，不发现提交。',
@@ -15538,7 +15538,7 @@ final class PhabricatorChineseTranslation
       'Put repositories into maintenance mode.' => '将仓库置于维护模式。',
       'Put repository "%s" into maintenance mode.' => '将仓库 "%s" 置于维护模式。',
       'Put your secrets in a lockbox.' => '将您的机密信息放入保险箱。',
-      'Pygmentize Parser: %s' => 'Pygmentize Parser: %s',
+      'Pygmentize Parser: %s' => 'Pygmentize 解析器: %s',
       'Go Highlight service endpoint URL.' => 'Go 高亮服务端点 URL。',
       'QUESTION DETAIL' => '问题详情',
       'Qty.' => '数量',
@@ -15858,14 +15858,14 @@ final class PhabricatorChineseTranslation
       'Recently Completed Tasks (Last 15m)' => '最近完成的任务（过去 15 分钟）',
       'Recently Means' => '最近意味着',
       'Recipient PHID "%s" has not been awarded.' => '收件人 PHID "%s" 尚未被授予。',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望的格式为 "<mode> <type> <hash> <size>\\t<name>"，对于 ls-tree of',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => 'ls-tree 期望格式为 "<mode> <type> <hash> <size>\\t<name>"，',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '期望在 T_WHITESPACE 令牌开头有"\\\\n"，位于',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
       'If you are here for code review, let\\\'s set up your first ' => '如果您是为了代码审查而来，让我们设置您的第一个',
       'If you\\\'re new to %s, these optional steps can help you learn the ' => '如果您是 %s 的新手，这些可选步骤可以帮助您了解',
       'M\\\'Lady' => '女士',
       'Override this identity\\\'s assignment.' => '覆盖此身份的分配。',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望的格式为 "<mode> <type> <hash> <size>\\t<name>"，对于 ls-tree of',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => 'ls-tree 期望格式为 "<mode> <type> <hash> <size>\\t<name>"，',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '期望在 T_WHITESPACE 令牌开头有"\\\\n"，位于',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
       'If you are here for code review, let\\\'s set up your first ' => '如果您是为了代码审查而来，让我们设置您的第一个',
@@ -16896,14 +16896,14 @@ final class PhabricatorChineseTranslation
       'Send the specified type of message (email, sms, ...).' => '发送指定类型的消息（电子邮件、短信等）。',
       'Send with a specific configured mailer.' => '使用特定配置的邮件发送程序发送。',
       'Send with bulk headers.' => '使用批量邮件头发送。',
-      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => '期望的格式为 "<mode> <type> <hash> <size>\\t<name>"，对于 ls-tree of',
+      'Expected "<mode> <type> <hash> <size>\\t<name>", for ls-tree of ' => 'ls-tree 期望格式为 "<mode> <type> <hash> <size>\\t<name>"，',
       'Expected "\\\\n" at beginning of T_WHITESPACE token at head of ' => '期望在 T_WHITESPACE 令牌头部以 "\\\\n" 开始',
       'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在 multipart 数据边界后出现 "\\r\\n" 或 "--"。',
       'If you are here for code review, let\\\'s set up your first ' => '如果您来这里进行代码审查，让我们设置您的第一个',
       'If you\\\'re new to %s, these optional steps can help you learn the ' => '如果您是 %s 的新手，这些可选步骤可以帮助您了解',
       'M\\\'Lady' => '女士',
       'Override this identity\\\'s assignment.' => '覆盖此身份的分配。',
-      'Expected "<mode> <type> <hash> <size>\t<name>", for ls-tree of ' => '期望的格式为 "<mode> <type> <hash> <size>\\t<name>"，对于 ls-tree of',
+      'Expected "<mode> <type> <hash> <size>\t<name>", for ls-tree of ' => 'ls-tree 期望格式为 "<mode> <type> <hash> <size>\\t<name>"，',
       'Expected "\\n" at beginning of T_WHITESPACE token at head of ' => '期望在 T_WHITESPACE 令牌头部以 "\\n" 开始',
       'Expected "\r\n" or "--" after multipart data boundary.' => '期望在多部分数据边界后有 "\\r\\n" 或 "--"。',
 
@@ -17370,7 +17370,7 @@ final class PhabricatorChineseTranslation
       'Specify "--enable" or "--disable", but not both.' => '请指定 "--enable" 或 "--disable"，但不能同时指定两者。',
       'Specify %s to reset all action counters.' => '请指定 %s 以重置所有操作计数器。',
       'Specify --service or --remove-service, but not both.' => '请指定 --service 或 --remove-service，但不能同时指定两者。',
-      'Specify --service or --remove-service.' => '请指定 --service 或 --remove-service。',
+      'Specify --service or --remove-service.' => '指定 --service 或 --remove-service。',
       'Specify a Diviner book configuration file with %s.' => '请使用 %s 指定一个 Diviner 书籍配置文件。',
       'Specify a billing range with %s and %s, or use %s.' => '请使用 %s 和 %s 指定计费范围，或使用 %s。',
       'Specify a collector with "%s". Valid collectors are: %s.' => '请使用 "%s" 指定一个收集器。有效的收集器有：%s。',
@@ -18056,7 +18056,7 @@ final class PhabricatorChineseTranslation
 
       'The body of text of the document.' => '文档的正文内容。',
 
-      'The bound service.' => 'The bound service.',
+      'The bound service.' => '绑定的服务。',
 
       'The build may be restarted if it has failed.' => '如果构建失败，可以重新启动。',
 
@@ -19194,7 +19194,7 @@ final class PhabricatorChineseTranslation
       'This mode is active because no database has a "%s" role in ' => '此模式处于活动状态，因为没有数据库在 "%s" 角色中',
       'This mode may be used to perform temporary maintenance, test ' => '此模式可用于执行临时维护、测试',
       'This newly created repository is not active yet. Configure policies, ' => '此新创建的仓库尚未激活。配置策略，',
-      'This object ("%s") has more than %s transactions in its most ' => 'This object ("%s") has more than %s transactions in its most ',
+      'This object ("%s") has more than %s transactions in its most ' => '此对象 ("%s") 在最近的交易中超过 %s 条',
       'This object does not support builds with Buildkite.' => '此对象不支持使用 Buildkite 构建。',
       'This object has a custom policy controlling who can take this ' => '此对象具有自定义策略，控制谁可以执行此',
       'This object has an unknown or invalid policy setting ("%s").' => '此对象具有未知或无效的策略设置（"%s"）。',
@@ -20050,7 +20050,7 @@ final class PhabricatorChineseTranslation
       'Type an interface name...' => '输入接口名称...',
       'Type an object type name...' => '输入对象类型名称...',
       'Type another build step name...' => '输入另一个构建步骤名称...',
-      'Type any(<project>) or not(<project>)...' => '输入 any(<project>) 或 not(<project>)...',
+      'Type any(<project>) or not(<project>)...' => '输入 any(<项目>) 或 not(<项目>)...',
       'Type exact(<user>)...' => '输入 exact(<user>)...',
       'Type members(<project>)...' => '输入 members(<project>)...',
       'Type of blueprint.' => '类型 of blueprint.',
@@ -20058,7 +20058,7 @@ final class PhabricatorChineseTranslation
       'Type of signature required' => '所需签名类型',
       'Type of the MFA provider.' => 'MFA 提供程序的类型。',
       'Type only()...' => '输入 only()...',
-      'Type packages(<user>) or packages(<project>)...' => '输入 packages(<user>) 或 packages(<project>)...',
+      'Type packages(<user>) or packages(<project>)...' => '输入 packages(<用户>) 或 packages(<项目>)...',
       'Type specification "%s" duplicates type specification "%s". ' => '类型规范 "%s" 重复了类型规范 "%s"。',
       'Type tagged(<project>)...' => '输入 tagged(<project>)...',
       'Type the name of a user, application or Herald rule...' => '输入用户、应用程序或 Herald 规则的名称...',
@@ -20653,7 +20653,7 @@ final class PhabricatorChineseTranslation
       'Update Repository Now' => '更新 仓库 Now',
       'Update Revision %s: %s' => '更新 Revision %s：%s',
       'Update Variable' => '更新 Variable',
-      'Update __repository__. This performs the __pull__, __discover__, ' => '更新 __repository__。这将执行 __pull__、__discover__，',
+      'Update __repository__. This performs the __pull__, __discover__, ' => '更新 __repository__。这将执行 __pull__、__discover__、',
       'Update a Differential revision.' => '更新 a Differential revision.',
       'Update a Phriction document.' => '更新 a Phriction document.',
       'Update a lease.' => '更新 a lease.',
@@ -20727,7 +20727,7 @@ final class PhabricatorChineseTranslation
       'Use "--output <path>" to specify an output file, or "--output -" ' => '使用 "--output <path>" 指定输出文件，或 "--output -"',
       'Use "--start <message>" to put repositories into maintenance ' => '使用 "--start <message>" 将仓库置于维护',
       'Use "--to" to choose a storage format, or "--auto" to select a ' => '使用 "--to" 选择存储格式，或 "--auto" 选择',
-      'Use "--type <type>" or "--provider <phid>" to specify which ' => '使用 "--type <type>" 或 "--provider <phid>" 来指定哪个',
+      'Use "--type <type>" or "--provider <phid>" to specify which ' => '使用 "--type <type>" 或 "--provider <phid>" 来指定',
       'Use "--user <username>" to specify which user to strip factors ' => '使用 "--user <username>" 指定要剥离因子的用户',
       'Use "Edit Menu" to add menu items to this portal.' => '使用“编辑菜单”向此门户添加菜单项。',
       'Use "bin/phd debug ..." to get a detailed daemon execution log.' => '使用 "bin/phd debug ..." 获取详细的守护进程执行日志。',
@@ -21228,16 +21228,16 @@ final class PhabricatorChineseTranslation
       'With beforePHIDs' => '使用 beforePHIDs',
       'Without a configured timezone, PHP will emit warnings when working ' => '未配置时区时，PHP 将在处理',
       'Woe! This request had its journey cut short by unexpected ' => '糟糕！此请求因意外',
-      'Wontfix' => 'Wontfix',
+      'Wontfix' => '不予修复',
       'WordPress.com' => 'WordPress.com',
-      'Wordmark' => 'Wordmark',
+      'Wordmark' => '文字标识',
       'Work' => '工作',
       'Work has already started on job "%s". Jobs can not be ' => '任务 "%s" 的工作已经开始。任务无法',
       'Work will continue on all builds. Really resume?' => '所有构建的工作将继续。确定要恢复吗？',
       'Work will continue on the build. Really resume?' => '该构建的工作将继续。确定要恢复吗？',
       'Workboard Already Has Columns' => 'Workboard 已有列',
-      'Workboard: %s' => 'Workboard: %s',
-      'Workcard (526px)' => 'Workcard (526px)',
+      'Workboard: %s' => '工作板：%s',
+      'Workcard (526px)' => '工作卡片 (526px)',
       'Worker Tasks' => 'Worker 任务',
       'Worker has invalid actor PHID ("%s").' => '工作进程的 actor PHID ("%s") 无效。',
       'Worker has invalid job ID ("%s").' => '工作进程的作业 ID "%s" 无效。',
@@ -22048,7 +22048,7 @@ final class PhabricatorChineseTranslation
       'message' => '消息',
       'monospaced text' => '等宽文本',
       'mysqli->real_connect() failed, but did not set an error code ' => 'mysqli->real_connect() 失败，但未设置错误代码',
-      'mysqli->real_connect() failed: %s' => 'mysqli->real_connect() 失败: %s',
+      'mysqli->real_connect() failed: %s' => 'mysqli->real_connect() 失败：%s',
       'name' => '名称',
       'newChunkedFile returns a PhabricatorFile' => 'newChunkedFile 返回一个 PhabricatorFile',
       'no such chart!' => '暂无此图表!',
@@ -22534,9 +22534,9 @@ final class PhabricatorChineseTranslation
       'Caller is trying to access raw row property "%s", but the row does not have this property.' =>
         '调用者正尝试访问原始行属性 "%s"，但该行没有此属性。',
       'Calls to "transaction.search" must not specify both an "objectType" and an "objectIdentifier".' =>
-        '对 "transaction.search" 的调用不能同时指定 "objectType" 和 "objectIdentifier"。',
+        '调用 "transaction.search" 时不能同时指定 "objectType" 和 "objectIdentifier"。',
       'Calls to "transaction.search" must specify either an "objectType" or an "objectIdentifier".' =>
-        '对 "transaction.search" 的调用必须指定 "objectType" 或 "objectIdentifier" 之一。',
+        '调用 "transaction.search" 时必须指定 "objectType" 或 "objectIdentifier" 之一。',
       'Callsign is the monogram rXXXX for this repository. It cannot contain spaces.' =>
         'Callsign 是此仓库的字母组合 rXXXX。它不能包含空格。',
       'Can not create document because the parent document with slug %s does not exist!' =>
@@ -22999,7 +22999,7 @@ final class PhabricatorChineseTranslation
         '预期 "getDoorkeeperURIRef()" 返回 "null" 或 "DoorkeeperURIRef" 类型的对象，但从提供程序 "%s" 得到了 %s。',
       'Expected "multipart/form-data" content type when executing a multipart body read.' =>
         '执行多部分主体读取时预期为 "multipart/form-data" 内容类型。',
-      'Expected "multipart/form-data" parse to end in state "epilogue".' => '期望 "multipart/form-data" 解析以 "epilogue" 状态结束。',
+      'Expected "multipart/form-data" parse to end in state "epilogue".' => '预期 "multipart/form-data" 解析以状态 "epilogue" 结束。',
 
       'Expected "newArguments()" in class "%s" to return a list of argument specifications, got %s.' =>
         '预期类 "%s" 中的 "newArguments()" 返回参数规范列表，实际得到 %s。',
@@ -23040,7 +23040,7 @@ final class PhabricatorChineseTranslation
       'Expected T_OPEN_TAG, T_WHITESPACE tokens at head of results for highlighting parse of PHP snippet.' =>
         '预期在 PHP 片段高亮解析结果的头部为 T_OPEN_TAG、T_WHITESPACE token。',
       'Expected `git-lfs-authenticate <path> <operation>`, but received too few arguments.' =>
-        '期望 `git-lfs-authenticate <path> <operation>`，但接收到的参数过少。',
+        '预期 `git-lfs-authenticate <路径> <操作>`，但接收到的参数过少。',
       'Expected a list of PhabricatorRepositorySymbol objects from external symbol source "%s".' =>
         '预期从外部符号源 "%s" 获取 PhabricatorRepositorySymbol 对象列表。',
       'Expected a list of PhutilQueryString objects for %%%s conversion.' => '预期获取用于 %%%s 转换的 PhutilQueryString 对象列表。',
@@ -23240,7 +23240,7 @@ final class PhabricatorChineseTranslation
       'Found malformed double-quoted string in ICS document parameter value.' => '在 ICS 文档参数值中发现格式错误的双引号字符串。',
       'Found more than one ("%s") applied edge transactions with given edge type ("%s"); expected zero or one.' =>
         '找到多个 ("%s") 给定边类型 ("%s") 的已应用边事务；期望为零个或一个。',
-      'Found no template resource (for emblem "%s") with dimensions %dx%d.' => 'Found no template resource (for emblem "%s") with dimensions %dx%d.',
+      'Found no template resource (for emblem "%s") with dimensions %dx%d.' => '未找到模板资源（用于徽标 "%s"），尺寸为 %dx%d。',
       'Found unknown intradiff source line, expected a line beginning with "+", "-", or " " (space): %s.' =>
         '发现未知的 intradiff 源行，期望以 "+"、"-" 或 " "（空格）开头的行：%s。',
       'Free leases on selected tasks. If the daemon holding the lease is still working on the task, this may cause the task to execute twice.' =>
@@ -23441,7 +23441,7 @@ final class PhabricatorChineseTranslation
       'In call to "transaction.search", selected object (of type "%s") does not implement "%s", so transactions can not be loaded for it.' =>
         '在调用 "transaction.search" 时，所选对象（类型为 "%s"）未实现 "%s"，因此无法为其加载事务。',
       'In call to "transaction.search", specified "objectIdentifier" ("%s") does not exist.' =>
-        '在调用 "transaction.search" 时，指定的 "objectIdentifier" ("%s") 不存在。',
+        '在调用 "transaction.search" 时，指定的 "objectIdentifier"（"%s"）不存在。',
       'In call to "transaction.search", specified "objectType" ("%s") is unknown. Valid object types are: %s.' =>
         '在调用 "transaction.search" 时，指定的 "objectType" ("%s") 未知。有效的对象类型为：%s。',
       'In detail, this means that these users can take this action, provided they pass all of the checks described above first:' =>
@@ -23654,7 +23654,7 @@ final class PhabricatorChineseTranslation
       'Missing commits (%s) in a SVN repository which is not configured for subdirectory-only parsing!' =>
         '在未配置为仅解析子目录的 SVN 仓库中缺少提交 (%s)！',
       'Missing repository, expected "{src repository:path ...}" or "{src path repository=...}" in: %s' =>
-        '缺少仓库，期望在 %s 中找到 "{src repository:path ...}" 或 "{src path repository=...}"。',
+        '缺少仓库，预期 "{src repository:path ...}" 或 "{src path repository=...}"，位于：%s',
       'Modify a rule, bypassing policies. This workflow can disable problematic personal rules.' =>
         '绕过策略修改规则。此工作流可以禁用有问题的个人规则。',
       'Monogram "%s" identifies an object of the wrong type. Loaded object has class "%s", but this editor operates on objects of type "%s".' =>
@@ -23921,7 +23921,7 @@ final class PhabricatorChineseTranslation
       'Parameter "fullText" is no longer supported. Use method "maniphest.search" with the "query" constraint instead.' =>
         '参数 "fullText" 已不再受支持。请改用方法 "maniphest.search" 并使用 "query" 约束。',
       'Parameter "paths" to Conduit API method "differential.query" is no longer supported. Use the "paths" constraint to "differential.revision.search" instead. See T13639.' =>
-        'Conduit API 方法 "differential.query" 的参数 "paths" 已不再支持。请改用 "differential.revision.search" 的 "paths" 约束。参见 T13639。',
+        'Conduit API 方法 "differential.query" 的参数 "paths" 不再受支持。请改用 "differential.revision.search" 的 "paths" 约束条件。参见 T13639。',
       'Parameter to "%s" conversion in "qsprintf(...)" is not an instance of AphrontDatabaseTableRefInterface.' =>
         '"qsprintf(...)" 中参数到 "%s" 的转换不是 AphrontDatabaseTableRefInterface 的实例。',
       'Parameter to "%s" conversion in "qsprintf(...)" is not an instance of PhutilOpaqueEnvelope.' =>
@@ -24089,7 +24089,7 @@ final class PhabricatorChineseTranslation
       'RRULE specifies BYMONTHDAY with FREQ set to WEEKLY, which violates RFC5545.' =>
         'RRULE 指定了 BYMONTHDAY，但 FREQ 设置为 WEEKLY，这违反了 RFC5545。',
       'RRULE specifies BYYEARDAY with FREQ of DAILY, WEEKLY or MONTHLY, which violates RFC5545.' =>
-        'RRULE 指定了 BYYEARDAY，但 FREQ 为 DAILY、WEEKLY 或 MONTHLY，这违反了 RFC5545。',
+        'RRULE 指定了 FREQ 为 DAILY、WEEKLY 或 MONTHLY 时的 BYYEARDAY，这违反了 RFC5545。',
       'Re-encode files which are already stored in the target encoding.' => '重新编码已存储为目标编码的文件。',
       'Reached TOTP challenge validation with an unexpected number of unexpired challenges (%s), expected exactly one.' =>
         '到达 TOTP 质询验证时，未过期的质询数量异常（%s），预期恰好为一个。',
@@ -24155,7 +24155,7 @@ final class PhabricatorChineseTranslation
       'Regular expression "%s" in Herald rule "%s" is not valid, or exceeded backtracking or recursion limits while executing. Verify the expression and correct it or rewrite it with less backtracking.' =>
         'Herald 规则 "%s" 中的正则表达式 "%s" 无效，或在执行时超出回溯或递归限制。请验证表达式并修正，或以减少回溯的方式重写。',
       'Regular expression to link external bug tracker. See https://tortoisesvn.net/docs/release/TortoiseSVN_en/tsvn-dug-bugtracker.html for further explanation.' =>
-        '用于链接外部缺陷跟踪系统的正则表达式。详见 https://tortoisesvn.net/docs/release/TortoiseSVN_en/tsvn-dug-bugtracker.html。',
+        '用于链接外部缺陷跟踪系统的正则表达式。更多说明请参见 https://tortoisesvn.net/docs/release/TortoiseSVN_en/tsvn-dug-bugtracker.html。',
       'Reindex objects previously indexed on or after a given date.' => '重新索引在给定日期或之后已索引的对象。',
       'Reindex objects previously indexed on or before a given date.' => '重新索引在给定日期或之前已索引的对象。',
       'Reindex objects previously indexed with a particular version of the indexer.' =>

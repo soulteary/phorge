@@ -66,7 +66,13 @@ bash scripts/i18n/run_zh_autofill.sh
 
 - 分批规划见 [`scripts/i18n/BATCH_PLAN_1000.md`](scripts/i18n/BATCH_PLAN_1000.md)（翻译文件共约 28 批，每批 1000 行）。
 - 术语表见 [`resources/i18n-zh-glossary.md`](resources/i18n-zh-glossary.md)，用于统一译法。
-- `translate_zh_api_batch.py` 支持调用翻译 API 批量处理；使用前请自行配置密钥，切勿把密钥硬编码进仓库。
+- `translate_zh_api_batch.py` 支持调用翻译 API 批量处理；使用前请自行配置密钥，切勿把密钥硬编码进仓库。默认模型 `kimi-k2.6`（`temperature=0.6`、`top_p=0.95`、`max_tokens=32768`，关闭思考模式），可用 `--model`、`--temperature`、`--top-p`、`--max-tokens` 覆盖：
+
+```bash
+export MOONSHOT_API_KEY=sk-xxx        # 通过环境变量传入，勿写进仓库
+python3 scripts/i18n/translate_zh_api_batch.py --dry-run   # 先预览会翻多少
+python3 scripts/i18n/translate_zh_api_batch.py --limit 500 # 每次翻 500 条，可反复跑（带断点续传）
+```
 
 修改翻译文件后，务必做语法检查：
 
