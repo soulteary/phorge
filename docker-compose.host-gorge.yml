@@ -43,12 +43,14 @@ services:
       # --- mailer 发信（宿主 :8110）---
       GORGE_MAILER_URI: "http://host.docker.internal:8110"
       GORGE_MAILER_TOKEN: "${GORGE_MAILER_TOKEN:-}"
+      GORGE_MAILER_MODE: enable
 
       # --- search 检索（host/port/protocol 三件套，宿主 :8120）---
       GORGE_SEARCH_HOST: "host.docker.internal"
       GORGE_SEARCH_PORT: "8120"
       GORGE_SEARCH_PROTOCOL: "http"
       GORGE_SEARCH_TOKEN: "${GORGE_SEARCH_TOKEN:-}"
+      GORGE_SEARCH_MODE: enable
 
       # --- file-storage 文件存储（宿主 :8100）---
       GORGE_FILE_URI: "http://host.docker.internal:8100"

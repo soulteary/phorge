@@ -1006,6 +1006,7 @@ services:
       # gorge-mailer 判成路由不匹配，返回 404 ERR_NOT_FOUND。
       GORGE_MAILER_URI: ${GORGE_MAILER_URI:-http://gorge-mailer:8110}
       GORGE_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:-}
+      GORGE_MAILER_MODE: enable
       # 这个条目在 cluster.mailers 里的 key，也是 entrypoint.sh 认定「哪一条归我管」
       # 的依据：只有 key 等于它的条目会被覆盖。想再手工配一条指向另一个实例的
       # gorge mailer，换个 key 写进去即可，不会被覆盖掉。
@@ -1032,6 +1033,7 @@ services:
       GORGE_SEARCH_PORT: ${GORGE_SEARCH_PORT:-8120}
       GORGE_SEARCH_PROTOCOL: ${GORGE_SEARCH_PROTOCOL:-http}
       GORGE_SEARCH_TOKEN: ${GORGE_SEARCH_TOKEN:-}
+      GORGE_SEARCH_MODE: enable
       # 是否在 cluster.search 里保留一条 mysql 条目（取值 1 开启）。
       #
       # 默认关：写进 cluster.search 的就只有 gorge 一条，MySQL（Ferret）全文检索不再

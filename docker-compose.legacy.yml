@@ -112,7 +112,11 @@ services:
       PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-full}
       GITEA_BASE_URI: ${GITEA_BASE_URI:-}
       # 从默认 Gorge 栈切回 legacy 时，清掉持久化的队列端点和
-      # webhook 委派，并精确恢复进入 Gorge 前的 taskmaster 池大小。
+      # webhook 委派、受管 mailer/search 条目，并精确恢复进入 Gorge 前的
+      # taskmaster 池大小。Gorge 叠加文件会显式把这些模式改回 enable。
+      GORGE_MAILER_MODE: disable
+      GORGE_MAILER_KEY: ${GORGE_MAILER_KEY:-gorge-mailer}
+      GORGE_SEARCH_MODE: disable
       GORGE_WEBHOOK_MODE: disable
       GORGE_TASKQUEUE_MODE: disable
     ports:
