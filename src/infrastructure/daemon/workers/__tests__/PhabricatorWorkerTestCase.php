@@ -48,6 +48,31 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
     unset($env);
   }
 
+  public function testTaskQueueLeasePreflightFailureCanFallback() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig('gorge.taskqueue.uri', null);
+
+    $task = $this->scheduleTask();
+
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+
+    $leased = id(new PhabricatorWorkerLeaseQuery())
+      ->setLimit(1)
+      ->execute();
+
+    $this->assertEqual(1, count($leased));
+    $this->assertEqual($task->getID(), head($leased)->getID());
+    $this->assertEqual(
+      array('taskqueue.lease' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
   public function testCompletionFailureDoesNotFailSuccessfulWork() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.service-policy', 'required');

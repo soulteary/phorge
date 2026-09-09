@@ -26,10 +26,6 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
     $client = new PhabricatorGorgeDBClient();
     $issues = $client->getSetupIssues();
 
-    if (!is_array($issues)) {
-      return;
-    }
-
     // The MySQL-configuration issues (small max_allowed_packet, missing
     // strict mode, and so on) are surfaced by PhabricatorMySQLSetupCheck; skip
     // them here so each check owns its own set of keys, matching the native

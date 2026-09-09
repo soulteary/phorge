@@ -66,10 +66,6 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
     $client = new PhabricatorGorgeDBClient();
     $all_issues = $client->getSetupIssues();
 
-    if (!is_array($all_issues)) {
-      return;
-    }
-
     // Only the MySQL-configuration issues belong to this check; the remaining
     // issues (version, engine, storage initialization, patch status) are
     // surfaced by PhabricatorDatabaseSetupCheck.

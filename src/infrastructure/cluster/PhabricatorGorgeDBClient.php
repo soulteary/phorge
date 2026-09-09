@@ -337,12 +337,37 @@ final class PhabricatorGorgeDBClient
    * Read the list of MySQL/setup issues detected across the cluster.
    *
    * @param map<string, wild> $params Optional query parameters.
-   * @return wild The "data" section of the envelope, a list of setup issue
-   *   rows. Each row carries camelCase keys: `issueKey`, `name`, `summary`,
-   *   `message`, `isFatal`, `refKey`.
+   * @return list<map<string, wild>> The "data" section of the envelope. Each
+   *   row carries camelCase keys: `issueKey`, `name`, `summary`, `message`,
+   *   `isFatal`, `refKey`.
    */
   public function getSetupIssues(array $params = array()) {
-    return $this->callGet(self::PATH_SETUPISSUES, $params);
+    $issues = $this->callGet(self::PATH_SETUPISSUES, $params);
+    return self::validateSetupIssueRows($issues);
+  }
+
+  /**
+   * Validate the list carried by the setup-issues response.
+   *
+   * Envelope parsing deliberately accepts any JSON `data` value because
+   * different service routes return different shapes. This route, however,
+   * must return a list. Reject scalars and null here so policy-aware callers
+   * can fall back or fail closed instead of silently treating malformed data
+   * as an empty successful result.
+   *
+   * @param wild $issues Unwrapped response data.
+   * @return array Setup issue rows.
+   */
+  public static function validateSetupIssueRows($issues) {
+    if (!is_array($issues)) {
+      throw new Exception(
+        pht(
+          'The Gorge database service returned a malformed "%s" response: '.
+          'expected a list of setup issues.',
+          self::PATH_SETUPISSUES));
+    }
+
+    return $issues;
   }
 
   /**
