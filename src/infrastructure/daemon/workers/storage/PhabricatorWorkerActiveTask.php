@@ -264,19 +264,21 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
         );
 
         // These follow-ups are still only in memory and have never been
-        // offered to Gorge. Persist them directly before parking the parent
-        // so a completion outage can not silently break a successful task
-        // chain. If persistence fails, let that exception escape and do not
-        // park the parent: the chain must remain recoverable.
-        $worker->flushTaskQueueNatively($defaults);
-
+        // offered to Gorge. Persist them directly and park the parent in one
+        // transaction: committing either half alone would leave a broken or
+        // duplicate task chain. If finalization fails, roll everything back
+        // and leave the parent recoverable.
+        $this->openTransaction();
         try {
+          $worker->flushTaskQueueNatively($defaults);
           $this
             ->setLeaseOwner(self::COMPLETION_PENDING_OWNER)
             ->setLeaseExpires(2147483647)
             ->forceSaveWithoutLease();
-        } catch (Throwable $park_ex) {
-          phlog($park_ex);
+          $this->saveTransaction();
+        } catch (Throwable $finalize_ex) {
+          $this->killTransaction();
+          throw $finalize_ex;
         }
 
         throw $ex;
@@ -290,11 +292,18 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
         $defaults = array(
           'priority' => (int)$this->getPriority(),
         );
-        $worker->flushTaskQueueNatively($defaults);
 
-        $result = $this->archiveTask(
-          PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
-          $duration);
+        $this->openTransaction();
+        try {
+          $worker->flushTaskQueueNatively($defaults);
+          $result = $this->archiveTask(
+            PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
+            $duration);
+          $this->saveTransaction();
+        } catch (Throwable $finalize_ex) {
+          $this->killTransaction();
+          throw $finalize_ex;
+        }
       } else {
         $result = id(new PhabricatorWorkerArchiveTask())
           ->makeEphemeral()
