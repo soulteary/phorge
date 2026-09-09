@@ -1,14 +1,16 @@
 services:
   # 把容器 MySQL 的 3306 暴露到宿主回环，供宿主机上裸跑的 gorge-file-storage /
-  # gorge-webhook 反向连库（这两个是六个域里唯二有状态、要连 phorge 库的服务）。
+  # gorge-webhook 反向连库（这两个是七个域里唯二有状态、要连 phorge 库的服务）。
   mysql:
     ports:
       - "127.0.0.1:3306:3306"
 
   # 给容器里的 phorge 叠加：
   #   1. extra_hosts —— 让 host.docker.internal 在容器内解析到宿主机，phorge 才能
-  #      访问宿主机上裸跑的六个 gorge 服务（不构建 gorge 容器的联调路径）。
-  #   2. 六个域的 GORGE_* 配置项 —— 基础 docker-compose.yml 里没有这些变量（它们本
+  #      访问宿主机上裸跑的七个 gorge 服务（不构建 gorge 容器的联调路径）。
+  #   2. 七个域的 GORGE_* 配置项（render / conduit / notification / mailer /
+  #      search / file-storage / webhook；conduit 网关同样需在宿主另行裸跑）——
+  #      基础 docker-compose.yml 里没有这些变量（它们本
   #      来定义在 docker-compose.gorge.yml 叠加文件里，但那会拉起 gorge 容器，与
   #      「不构建容器」冲突），所以在这里手工补。entrypoint.sh 第 2 步每次启动幂等
   #      用 bin/config set 下发它们，改动后重启容器即生效，不必删 local.json。

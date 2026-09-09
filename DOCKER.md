@@ -409,7 +409,7 @@ Phorge 的实时通知（页面右上角的小铃铛即时亮起、Conpherence �
 
 `docker-compose.gorge.yml` 里的 `gorge-notification` 服务是它的替代品：Go 实现，与 Aphlict
 **线兼容**——一样的路径、一样的报文格式、一样不做鉴权。正因为线兼容，接入不需要改任何 PHP
-代码，只是编排加上一段配置下发。镜像 `ghcr.io/soulteary/gorge-notification` 与 `gorge-render`
+代码，只是编排加上一段配置下发。镜像 `ghcr.io/soulteary/gorge:notification-*` 与 `gorge-render`
 同源同标签（共用 `GORGE_IMAGE_TAG`），拉不到时本地构建一条命令即可，见下面「本地构建镜像」。
 
 ### 一个进程、两个端口，且两条配置的地址必须不同
@@ -544,7 +544,7 @@ docker compose -f docker-compose.yml -f docker-compose.traefik.yml \
 与 `gorge-render` 是同一个 Dockerfile、同一个上下文，只是换一个 `SERVICE` 构建参数：
 
 ```bash
-docker build -t ghcr.io/soulteary/gorge-notification:latest \
+docker build -t ghcr.io/soulteary/gorge:notification-latest \
   --build-arg SERVICE=gorge-notification \
   --build-arg PORT=22281 \
   /path/to/gorge/go
@@ -599,7 +599,7 @@ Sendmail、Amazon SES、SendGrid、Mailgun、Postmark 收在同一个 HTTP API
 （`/api/mailer/*`）后面，容器内固定监听 `8110`。Phorge 侧新增了一个
 [`PhabricatorMailGorgeAdapter`](src/applications/metamta/adapter/PhabricatorMailGorgeAdapter.php)，
 在 `cluster.mailers` 里表现为一个 `type: "gorge"` 的条目。镜像
-`ghcr.io/soulteary/gorge-mailer` 与另外两个服务同源同标签（共用 `GORGE_IMAGE_TAG`），拉不到
+`ghcr.io/soulteary/gorge:mailer-*` 与另外两个服务同源同标签（共用 `GORGE_IMAGE_TAG`），拉不到
 时本地构建一条命令即可。
 
 与高亮**不同**，这里没有「手工切引擎」那一步：配置写进 `cluster.mailers` 就生效。
@@ -728,7 +728,7 @@ echo 'test body' | docker compose exec -T phorge /opt/phorge/phorge/bin/mail sen
 与另外两个服务是同一个 Dockerfile、同一个上下文，只换 `SERVICE` 构建参数：
 
 ```bash
-docker build -t ghcr.io/soulteary/gorge-mailer:latest \
+docker build -t ghcr.io/soulteary/gorge:mailer-latest \
   --build-arg SERVICE=gorge-mailer \
   --build-arg PORT=8110 \
   /path/to/gorge/go
@@ -792,7 +792,7 @@ Phorge 侧只剩一个薄引擎把文档与查询序列化成 HTTP 请求。Phor
   [`PhabricatorGorgeServiceClient`](src/infrastructure/cluster/PhabricatorGorgeServiceClient.php)
   的请求构建与 `{data, error}` 信封解析。
 
-镜像 `ghcr.io/soulteary/gorge-search` 与另外三个服务同源同标签（共用 `GORGE_IMAGE_TAG`），
+镜像 `ghcr.io/soulteary/gorge:search-*` 与另外三个服务同源同标签（共用 `GORGE_IMAGE_TAG`），
 容器内固定监听 `8120`，路由 `/api/search/*`。拉不到时本地构建一条命令即可。
 
 ### 三件和前三个服务都不同的事
@@ -935,7 +935,7 @@ docker compose exec phorge /opt/phorge/phorge/bin/search index --all --force
 与另外三个服务是同一个 Dockerfile、同一个上下文，只换 `SERVICE` 构建参数：
 
 ```bash
-docker build -t ghcr.io/soulteary/gorge-search:latest \
+docker build -t ghcr.io/soulteary/gorge:search-latest \
   --build-arg SERVICE=gorge-search \
   --build-arg PORT=8120 \
   /path/to/gorge/go
@@ -1034,7 +1034,7 @@ Phorge 把上传的文件（附件、头像、粘贴的图片、Diffusion 里的
 - [`PhabricatorGorgeFileStorageSetupCheck`](src/applications/config/check/PhabricatorGorgeFileStorageSetupCheck.php)
   —— Config 页面上的三个 setup issue（不可达 / 没后端 / 配了但没接上）。
 
-镜像 `ghcr.io/soulteary/gorge-file-storage` 与另外五个服务同源同标签（共用
+镜像 `ghcr.io/soulteary/gorge:file-storage-*` 与另外五个服务同源同标签（共用
 `GORGE_IMAGE_TAG`），容器内固定监听 `8100`，路由 `/api/file/*`。拉不到时本地构建一条
 命令即可。
 
@@ -1203,7 +1203,7 @@ MySQL 的连库参数**不在这一组里**：blob 后端的 `GORGE_FILE_MYSQL_U
 与另外四个服务是同一个 Dockerfile、同一个上下文，只换 `SERVICE` 构建参数：
 
 ```bash
-docker build -t ghcr.io/soulteary/gorge-file-storage:latest \
+docker build -t ghcr.io/soulteary/gorge:file-storage-latest \
   --build-arg SERVICE=gorge-file-storage \
   --build-arg PORT=8100 \
   /path/to/gorge/go
@@ -1330,7 +1330,7 @@ Phorge 这边新增的是三个类加一个索引，没有改任何核心逻辑�
 [`HeraldWebhookWorker::doWork()`](src/applications/herald/worker/HeraldWebhookWorker.php)
 （已经派出去的任务跑到时直接返回）两处，条件都是同一个 `isDeliveryDelegated()`。
 
-镜像 `ghcr.io/soulteary/gorge-webhook` 与另外五个服务同源同标签（共用 `GORGE_IMAGE_TAG`），
+镜像 `ghcr.io/soulteary/gorge:webhook-*` 与另外五个服务同源同标签（共用 `GORGE_IMAGE_TAG`），
 容器内固定监听 `8160`。
 
 ### 危险的方向和别的服务相反：配置没写进去 = 发两次
@@ -1436,7 +1436,7 @@ docker compose exec mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" \
 与前五个服务完全相同，只是 `SERVICE` 换成 `gorge-webhook`：
 
 ```bash
-docker build -t ghcr.io/soulteary/gorge-webhook:latest \
+docker build -t ghcr.io/soulteary/gorge:webhook-latest \
   --build-arg SERVICE=gorge-webhook \
   /path/to/gorge/go
 ```

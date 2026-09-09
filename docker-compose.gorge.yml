@@ -117,7 +117,7 @@ services:
   # 仓库的 release 工作流推到 ghcr，语义化版本标签与 latest 都有；生产建议在 .env
   # 里把 GORGE_IMAGE_TAG 钉到具体版本，避免 docker compose pull 悄悄换掉网关实现。
   gorge-conduit:
-    image: ghcr.io/soulteary/gorge-conduit:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:conduit-${GORGE_IMAGE_TAG:-latest}
     container_name: phorge-gorge-conduit
     restart: unless-stopped
     environment:
@@ -167,7 +167,7 @@ services:
   # 它与上游 Node.js 版 aphlict 完全线兼容（同样的路径、同样的报文、同样不鉴权），
   # 所以接入不需要改任何 PHP 代码，全部靠本文件的编排加 entrypoint.sh 的下发。
   gorge-notification:
-    image: ghcr.io/soulteary/gorge-notification:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:notification-${GORGE_IMAGE_TAG:-latest}
     container_name: phorge-gorge-notification
     restart: unless-stopped
     environment:
@@ -220,7 +220,7 @@ services:
   # SMTP_* 全部留空时服务照样起得来、/healthz 也照样 200（进程是活的），但 /readyz
   # 会报 503，每一封信都失败。所以 .env 里至少要设 MAILER_TYPE 和它对应的那几项。
   gorge-mailer:
-    image: ghcr.io/soulteary/gorge-mailer:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:mailer-${GORGE_IMAGE_TAG:-latest}
     container_name: phorge-gorge-mailer
     restart: unless-stopped
     environment:
@@ -314,7 +314,7 @@ services:
   # 值。把 ES_HOST 指向你自己的实例即可；同一台 Docker 宿主上跑的实例可以用
   # host.docker.internal 或把它接进同一个网络。
   gorge-search:
-    image: ghcr.io/soulteary/gorge-search:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:search-${GORGE_IMAGE_TAG:-latest}
     container_name: phorge-gorge-search
     restart: unless-stopped
     environment:
@@ -390,7 +390,7 @@ services:
   #     application/octet-stream，只有元数据、删除与引擎列表仍是 {data, error}。
   #     PHP 侧对应 PhabricatorGorgeServiceClient::parseBinaryResponse()。
   gorge-file-storage:
-    image: ghcr.io/soulteary/gorge-file-storage:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:file-storage-${GORGE_IMAGE_TAG:-latest}
     container_name: phorge-gorge-file-storage
     restart: unless-stopped
     depends_on:
@@ -505,7 +505,7 @@ services:
   # 它和 gorge-file-storage 一样有状态、一样依赖 mysql 与 db-init；下面那个
   # {namespace}_herald 库的存在性问题是它独有的，见 healthcheck 那段注释。
   gorge-webhook:
-    image: ghcr.io/soulteary/gorge-webhook:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:webhook-${GORGE_IMAGE_TAG:-latest}
     container_name: phorge-gorge-webhook
     restart: unless-stopped
     depends_on:
@@ -615,7 +615,7 @@ services:
   # phd.taskmasters 关到 0（见 entrypoint.sh 与 docker/entrypoint 的注释），把队列的
   # 消费权完整交给 gorge-worker。
   gorge-taskqueue:
-    image: ghcr.io/soulteary/gorge-taskqueue:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:taskqueue-${GORGE_IMAGE_TAG:-latest}
     container_name: phorge-gorge-taskqueue
     restart: unless-stopped
     depends_on:
@@ -719,7 +719,7 @@ services:
   # 认识的任务类经 Conduit 委派回 phorge 的 PHP 后端执行。本编排里 gorge-conduit 段
   # 存在，所以默认就指过去。
   gorge-worker:
-    image: ghcr.io/soulteary/gorge-worker:${GORGE_IMAGE_TAG:-latest}
+    image: ghcr.io/soulteary/gorge:worker-${GORGE_IMAGE_TAG:-latest}
     container_name: phorge-gorge-worker
     restart: unless-stopped
     depends_on:
