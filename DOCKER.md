@@ -57,6 +57,7 @@ docker compose up -d --build
 | `PHORGE_BASE_URI` | `http://127.0.0.1:${PHORGE_HTTP_PORT}/`（默认注释，由 compose 自动拼出） | 站点绝对地址，Phorge 用它生成链接并校验请求的 Host 头。**域名必须含点号**，裸 `localhost` 会被拒绝。改了端口一定要让它联动，否则会 redirect 到错误地址。 |
 | `PHORGE_TIMEZONE` | `UTC` | 站点默认时区（`phabricator.timezone`），取 PHP 时区标识符，如 `Asia/Shanghai`。 |
 | `PHORGE_PRODUCT_PROFILE` | `auto` | `auto` 让新安装使用协作模式、已有安装保持 full；也可显式指定 `collaboration` 或 `full`。结果会持久化。 |
+| `PHORGE_DB_NAMESPACE` | 已持久化的 `storage.default-namespace`，否则 `phabricator` | `auto` 模式在迁移前用它查找现有 `*_meta_data` 库。自定义命名空间的旧安装可显式覆盖。 |
 | `GORGE_IMAGE_TAG` | `2026.09.09-r3` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
 | `PHORGE_WAIT_DB` | `1` | 是否在启动 Web 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
 | `PHORGE_AUTO_UPGRADE` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-migrate` 执行。 |

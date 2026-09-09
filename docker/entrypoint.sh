@@ -42,7 +42,7 @@ PHORGE_AUTO_UPGRADE="${PHORGE_AUTO_UPGRADE:-1}"
 PHORGE_START_PHD="${PHORGE_START_PHD:-1}"
 PHORGE_PRODUCT_PROFILE="${PHORGE_PRODUCT_PROFILE:-full}"
 PHORGE_CONTAINER_ROLE="${PHORGE_CONTAINER_ROLE:-all}"
-PHORGE_DB_NAMESPACE="${PHORGE_DB_NAMESPACE:-${STORAGE_NAMESPACE:-phabricator}}"
+PHORGE_DB_NAMESPACE="${PHORGE_DB_NAMESPACE:-${STORAGE_NAMESPACE:-}}"
 
 # 默认编排把初始化、Web 与守护进程分成三个容器。只有 migrate 角色可以改配置
 # 和 schema，避免 Web/daemon 副本同时执行 storage upgrade 或争写 local.json。
@@ -159,6 +159,38 @@ gorge_config_set() {
     fi
 
     return 0
+}
+
+# 删除由部署拥有的本地配置。先直接检查 local.json，避免
+# `bin/config delete` 在键未设置时把幂等清理当成错误。
+gorge_config_delete() {
+    gorge_key="$1"
+
+    if php -r '
+        $file = $argv[1];
+        $key = $argv[2];
+        if (!is_file($file)) { exit(1); }
+        $config = json_decode(file_get_contents($file), true);
+        if (!is_array($config)) { exit(2); }
+        exit(array_key_exists($key, $config) ? 0 : 1);
+    ' "$CONF_FILE" "$gorge_key"; then
+        if "$CONFIG_BIN" delete "$gorge_key"; then
+            echo "[entrypoint] 已删除本地配置 $gorge_key。"
+            chown www-data:www-data "$CONF_FILE" || true
+            chmod 0640 "$CONF_FILE" || true
+            return 0
+        fi
+        echo "[entrypoint] 警告: 删除 $gorge_key 失败。" >&2
+        return 1
+    else
+        gorge_status=$?
+        if [ "$gorge_status" = "1" ]; then
+            echo "[entrypoint] 本地配置 $gorge_key 未设置，无需删除。"
+            return 0
+        fi
+        echo "[entrypoint] 警告: 无法解析 $CONF_FILE，未删除 $gorge_key。" >&2
+        return 1
+    fi
 }
 
 # 此处先记录并写入由部署拓扑拥有的本地配置。应用停用列表和 Maniphest 自定义字段
@@ -861,47 +893,74 @@ fi
 # 但它比其它五段多一件必须做的事，见下面 phd taskmaster 那段：taskqueue 必须**替换**而
 # 不是**并存于** phd 的 taskmaster 守护进程。
 #
-# 不叠加 docker-compose.gorge.yml 时这两个变量都不存在，整段等于不执行。
-if [ -n "${GORGE_TASKQUEUE_URI:-}" ] || [ -n "${GORGE_TASKQUEUE_TOKEN:-}" ]; then
-    echo "[entrypoint] 下发 Gorge task-queue 配置 ..."
-    gorge_config_set 'gorge.taskqueue.uri' "${GORGE_TASKQUEUE_URI:-}"
-    gorge_config_set 'gorge.taskqueue.token' "${GORGE_TASKQUEUE_TOKEN:-}"
-
-    # ----- phd taskmaster 的「替换而非并存」处理（compat 硬约束）-----
-    # gorge-worker 是 PhabricatorTaskmasterDaemon 搬成的独立进程，它和 phd 里的
-    # taskmaster 都从同一个队列消费。两个消费者虽然都向 gorge-taskqueue 原子 lease、
-    # 同一任务不会被领两次（不会「跑两遍」），但让两套 worker 同时消费同一个队列是
-    # 语义混乱且浪费的：两处执行环境、两处 lease 争抢。compat 要求 Go worker **替换**
-    # 而非并存，所以这里在配置了 gorge.taskqueue 时把 phd 的 taskmaster 池关到 0，把
-    # 队列的消费权完整交给 gorge-worker 容器。
-    #
-    # 为什么用 bin/config set 而不是写守卫块：phd.taskmasters 是 setLocked(true) 的
-    # 配置项，但 locked 只在带 --database（写数据库源）时被拒绝，写 local 源
-    # （bin/config set 不带 --database，即 local.json）是允许的 —— 与 gorge_config_set
-    # 走的是同一条路。这样已经跑过的实例光加环境变量也会在下次启动生效，不必删 local.json。
-    #
-    # 只有 GORGE_TASKQUEUE_URI 非空（真的接管了队列）且未显式关掉开关时才动它：
-    # GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER=0 时保留 taskmaster（灰度对比等场景）。
-    GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER="${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}"
-    if [ -n "${GORGE_TASKQUEUE_URI:-}" ] &&
-       [ "$GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER" = "1" ]; then
-        echo "[entrypoint] 配置了 gorge.taskqueue，禁用 phd 的 taskmaster（phd.taskmasters=0），"
-        echo "[entrypoint]   把队列消费权交给 gorge-worker 容器（替换而非并存）。"
-        if ! "$CONFIG_BIN" set phd.taskmasters 0; then
-            # 不阻塞容器启动，但要把后果说清楚：写不进去时 phd 会照常起 taskmaster，与
-            # gorge-worker 并存。最常见的失败是类映射未重新生成导致该键被判 unknown。
-            echo "[entrypoint] 警告: 写入 phd.taskmasters=0 失败，phd 的 taskmaster 会与" >&2
-            echo "[entrypoint]   gorge-worker 并存消费同一队列（不会重复执行任务，但语义" >&2
-            echo "[entrypoint]   混乱且浪费）。可进容器手动执行 bin/config set phd.taskmasters 0。" >&2
+# 默认栈显式使用 enable，legacy 栈显式使用 disable。旧叠加编排未设
+# MODE 时保持历史语义：有 URI 就启用 Gorge，没有则不触碰现有配置。
+GORGE_TASKQUEUE_MODE="${GORGE_TASKQUEUE_MODE:-auto}"
+case "$GORGE_TASKQUEUE_MODE" in
+    auto)
+        if [ -n "${GORGE_TASKQUEUE_URI:-}" ]; then
+            GORGE_TASKQUEUE_MODE=enable
         else
-            chown www-data:www-data "$CONF_FILE" || true
-            chmod 0640 "$CONF_FILE" || true
+            GORGE_TASKQUEUE_MODE=preserve
+        fi
+        ;;
+    enable|disable|preserve)
+        ;;
+    *)
+        echo "[entrypoint] 警告: 未知 GORGE_TASKQUEUE_MODE=$GORGE_TASKQUEUE_MODE，保留现有队列配置。" >&2
+        GORGE_TASKQUEUE_MODE=preserve
+        ;;
+esac
+
+if [ "$GORGE_TASKQUEUE_MODE" = "disable" ]; then
+    echo "[entrypoint] 撤销 Gorge task-queue 配置，恢复 Phorge 原生队列 ..."
+    gorge_config_delete 'gorge.taskqueue.uri' || true
+    gorge_config_delete 'gorge.taskqueue.token' || true
+    # 删除部署写入的 0，让配置回到 Phorge 默认池大小 4。
+    gorge_config_delete 'phd.taskmasters' || true
+elif [ "$GORGE_TASKQUEUE_MODE" = "enable" ]; then
+    if [ -z "${GORGE_TASKQUEUE_URI:-}" ]; then
+        echo "[entrypoint] 警告: GORGE_TASKQUEUE_MODE=enable 但 GORGE_TASKQUEUE_URI 为空，保留现有队列配置。" >&2
+    else
+        echo "[entrypoint] 下发 Gorge task-queue 配置 ..."
+        gorge_config_set 'gorge.taskqueue.uri' "${GORGE_TASKQUEUE_URI:-}"
+        gorge_config_set 'gorge.taskqueue.token' "${GORGE_TASKQUEUE_TOKEN:-}"
+
+        # ----- phd taskmaster 的「替换而非并存」处理（compat 硬约束）-----
+        # gorge-worker 是 PhabricatorTaskmasterDaemon 搬成的独立进程，它和 phd 里的
+        # taskmaster 都从同一个队列消费。两个消费者虽然都向 gorge-taskqueue 原子 lease、
+        # 同一任务不会被领两次（不会「跑两遍」），但让两套 worker 同时消费同一个队列是
+        # 语义混乱且浪费的：两处执行环境、两处 lease 争抢。compat 要求 Go worker **替换**
+        # 而非并存，所以这里在配置了 gorge.taskqueue 时把 phd 的 taskmaster 池关到 0，把
+        # 队列的消费权完整交给 gorge-worker 容器。
+        #
+        # 为什么用 bin/config set 而不是写守卫块：phd.taskmasters 是 setLocked(true) 的
+        # 配置项，但 locked 只在带 --database（写数据库源）时被拒绝，写 local 源
+        # （bin/config set 不带 --database，即 local.json）是允许的 —— 与 gorge_config_set
+        # 走的是同一条路。这样已经跑过的实例光加环境变量也会在下次启动生效，不必删 local.json。
+        #
+        # GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER=0 时保留 taskmaster（灰度对比等场景）。
+        GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER="${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}"
+        if [ "$GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER" = "1" ]; then
+            echo "[entrypoint] 配置了 gorge.taskqueue，禁用 phd 的 taskmaster（phd.taskmasters=0），"
+            echo "[entrypoint]   把队列消费权交给 gorge-worker 容器（替换而非并存）。"
+            if ! "$CONFIG_BIN" set phd.taskmasters 0; then
+                # 不阻塞容器启动，但要把后果说清楚：写不进去时 phd 会照常起 taskmaster，与
+                # gorge-worker 并存。最常见的失败是类映射未重新生成导致该键被判 unknown。
+                echo "[entrypoint] 警告: 写入 phd.taskmasters=0 失败，phd 的 taskmaster 会与" >&2
+                echo "[entrypoint]   gorge-worker 并存消费同一队列（不会重复执行任务，但语义" >&2
+                echo "[entrypoint]   混乱且浪费）。可进容器手动执行 bin/config set phd.taskmasters 0。" >&2
+            else
+                chown www-data:www-data "$CONF_FILE" || true
+                chmod 0640 "$CONF_FILE" || true
+            fi
+        else
+            # 从「关闭原生 taskmaster」切到灰度并存时，不能留下上次写入的 0。
+            gorge_config_delete 'phd.taskmasters' || true
         fi
     fi
 else
-    echo "[entrypoint] 未设置 GORGE_TASKQUEUE_URI，跳过 Gorge task-queue 配置。"
-    # 没配 taskqueue 时刻意不去动 phd.taskmasters：保持 Phorge 默认（池大小 4），
-    # 让原生 SQL 队列由 phd 的 taskmaster 照常消费。这是降级路径。
+    echo "[entrypoint] GORGE_TASKQUEUE_MODE=preserve，保留现有队列配置。"
 fi
 
 # 数据库诊断服务回到最简单的那一类：gorge.db.uri 与 gorge.db.token 都是标量配置项，
@@ -983,6 +1042,24 @@ resolve_product_profile() {
         return 0
     fi
 
+    database_namespace="$PHORGE_DB_NAMESPACE"
+    if [ -z "$database_namespace" ]; then
+        database_namespace="$(php -r '
+            $path = $argv[1];
+            $config = is_file($path)
+                ? json_decode(file_get_contents($path), true)
+                : null;
+            $namespace = is_array($config)
+                ? ($config["storage.default-namespace"] ?? "")
+                : "";
+            if (is_string($namespace) && $namespace !== "") {
+                echo $namespace;
+            }
+        ' "$CONF_FILE")"
+    fi
+    database_namespace="${database_namespace:-phabricator}"
+    echo "[entrypoint] 使用数据库命名空间 $database_namespace 判断安装状态。"
+
     set +e
     php -r '
         $connection = @mysqli_connect(
@@ -1005,7 +1082,7 @@ resolve_product_profile() {
         mysqli_stmt_store_result($statement);
         exit(mysqli_stmt_num_rows($statement) ? 0 : 1);
     ' "$MYSQL_HOST" "$MYSQL_PORT" "$MYSQL_USER" "$MYSQL_PASS" \
-        "$PHORGE_DB_NAMESPACE" >/dev/null 2>&1
+        "$database_namespace" >/dev/null 2>&1
     database_status=$?
     set -e
 

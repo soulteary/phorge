@@ -25,7 +25,8 @@ x-phorge-environment: &phorge-environment
   PHORGE_BASE_URI: ${PHORGE_BASE_URI:-http://127.0.0.1:${PHORGE_HTTP_PORT:-8088}/}
   PHORGE_TIMEZONE: ${PHORGE_TIMEZONE:-UTC}
   PHORGE_WAIT_DB: ${PHORGE_WAIT_DB:-1}
-  PHORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
+  # 留空时 entrypoint 优先读取已持久化的 storage.default-namespace。
+  PHORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-}
 
 services:
   mysql:
@@ -165,6 +166,7 @@ services:
       GORGE_WEBHOOK_TOKEN: ${GORGE_WEBHOOK_TOKEN:-}
       GORGE_TASKQUEUE_URI: ${GORGE_TASKQUEUE_URI:-http://gorge-taskqueue:8090}
       GORGE_TASKQUEUE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:-}
+      GORGE_TASKQUEUE_MODE: enable
       GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER: ${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}
       GORGE_DB_URL: ${GORGE_DB_URL-http://gorge-db-api:8080}
       GORGE_DB_TOKEN: ${GORGE_DB_TOKEN:-}

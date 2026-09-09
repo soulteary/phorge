@@ -96,6 +96,9 @@ services:
       # full 保持上游全部应用；collaboration 让 Gitea 承担代码托管与评审。
       PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-full}
       GITEA_BASE_URI: ${GITEA_BASE_URI:-}
+      # 从默认 Gorge 栈切回 legacy 时，清掉持久化的队列端点和
+      # phd.taskmasters=0，让原生 taskmaster 恢复默认池大小。
+      GORGE_TASKQUEUE_MODE: disable
     ports:
       - "${PHORGE_HTTP_PORT:-8088}:80"
     volumes:
