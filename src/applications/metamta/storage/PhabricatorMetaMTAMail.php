@@ -732,14 +732,8 @@ final class PhabricatorMetaMTAMail
     }
 
     $exceptions = array();
-    $fallback_from_gorge = false;
     foreach ($mailers as $mailer) {
       $is_gorge = ($mailer->getAdapterType() === 'gorge');
-      if (!$is_gorge && $fallback_from_gorge) {
-        PhabricatorGorgeServiceRegistry::getService('mailer')
-          ->recordFallback('send');
-        $fallback_from_gorge = false;
-      }
 
       try {
         $message = $type->newMailMessageEngine()
@@ -775,15 +769,14 @@ final class PhabricatorMetaMTAMail
         throw $ex;
       } catch (Exception $ex) {
         if ($is_gorge) {
-          $gorge = PhabricatorGorgeServiceRegistry::getService('mailer');
-          if (!$gorge->isFallbackAllowed()) {
-            // A transient service failure must leave the message queued so
-            // the task can retry it after Gorge recovers. Permanent failures
-            // are handled by the catch above and still mark the message as
-            // failed immediately.
-            throw $ex;
-          }
-          $fallback_from_gorge = true;
+          // Once the HTTP send begins, a timeout, lost response, invalid
+          // response, or service error can not prove that the provider did
+          // not accept the message. Trying another mailer here can therefore
+          // deliver the same message twice. Keep it queued and surface the
+          // exception under both "required" and migration "fallback"
+          // policies. We must never cross over to a different delivery
+          // channel inside the same attempt.
+          throw $ex;
         }
 
         $exceptions[] = $ex;

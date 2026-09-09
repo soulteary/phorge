@@ -379,7 +379,42 @@ final class PhabricatorGorgeDBClient
    *   `collateFulltext`.
    */
   public function getCharsetInfo() {
-    return $this->callGet(self::PATH_CHARSETINFO);
+    $rows = $this->callGet(self::PATH_CHARSETINFO);
+    return self::validateCharsetInfoRows($rows);
+  }
+
+  /**
+   * Validate the list carried by the charset-info response.
+   *
+   * Missing rows and missing optional fields are valid: callers deliberately
+   * use the platform utf8mb4 defaults in those cases. The top-level value and
+   * every reported row must still be arrays, or policy-aware callers would
+   * mistake malformed service data for a successful response and never use
+   * the native loader.
+   *
+   * @param wild $rows Unwrapped response data.
+   * @return array Charset information rows.
+   */
+  public static function validateCharsetInfoRows($rows) {
+    if (!is_array($rows)) {
+      throw new Exception(
+        pht(
+          'The Gorge database service returned a malformed "%s" response: '.
+          'expected a list of charset information rows.',
+          self::PATH_CHARSETINFO));
+    }
+
+    foreach ($rows as $row) {
+      if (!is_array($row)) {
+        throw new Exception(
+          pht(
+            'The Gorge database service returned a malformed "%s" response: '.
+            'expected every charset information row to be a map.',
+            self::PATH_CHARSETINFO));
+      }
+    }
+
+    return $rows;
   }
 
   /**

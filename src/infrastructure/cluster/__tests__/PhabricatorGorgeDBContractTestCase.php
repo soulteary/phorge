@@ -200,6 +200,34 @@ final class PhabricatorGorgeDBContractTestCase extends PhabricatorTestCase {
     }
   }
 
+  public function testValidateCharsetInfoRowsRejectsMalformedPayload() {
+    $this->assertEqual(
+      array(),
+      PhabricatorGorgeDBClient::validateCharsetInfoRows(array()));
+    $this->assertEqual(
+      array(array('refKey' => 'master')),
+      PhabricatorGorgeDBClient::validateCharsetInfoRows(
+        array(array('refKey' => 'master'))));
+
+    $invalid_values = array(
+      null,
+      false,
+      'not-a-list',
+      1,
+      array('not-a-row'),
+    );
+    foreach ($invalid_values as $value) {
+      $caught = null;
+      try {
+        PhabricatorGorgeDBClient::validateCharsetInfoRows($value);
+      } catch (Exception $ex) {
+        $caught = $ex;
+      }
+
+      $this->assertTrue($caught instanceof Exception);
+    }
+  }
+
   public function testSetupIssueWithoutKeyFallsBackToUnknown() {
     // The old bug read `key`, which the wire never had, so every issue
     // collapsed to the unknown fallback. Confirm the fallback still exists but
