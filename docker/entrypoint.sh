@@ -127,10 +127,10 @@ gorge_config_set() {
     return 0
 }
 
-# collaboration 是一个可逆的产品配置，不删除代码、表或历史数据。它把代码托管与
-# 评审应用加入 uninstalled 列表，并为 Gitea 引用增加 Maniphest 链接字段。所有合并
-# 都保留用户已有的停用应用和自定义字段；切回 full 时撤销本模式管理的八个停用项。
-configure_collaboration_profile() {
+# 此处只写由部署拓扑拥有的本地配置。应用停用列表和 Maniphest 自定义字段可能由
+# Web UI 存在数据库配置，而数据库源优先于 local.json；它们要等 schema 就绪后由
+# manage_collaboration_profile.php 基于有效配置合并，不能在这里直接改 local.json。
+configure_product_profile_local() {
     export CONF_FILE PHORGE_PRODUCT_PROFILE GITEA_BASE_URI GORGE_RENDER_URI
     if ! php -r '
         $file = getenv("CONF_FILE");
@@ -141,68 +141,25 @@ configure_collaboration_profile() {
             exit(1);
         }
 
-        $disabled = array(
-            "PhabricatorDiffusionApplication",
-            "PhabricatorDifferentialApplication",
-            "PhabricatorAuditApplication",
-            "PhabricatorOwnersApplication",
-            "PhabricatorHarbormasterApplication",
-            "PhabricatorDrydockApplication",
-            "PhabricatorDivinerApplication",
-            "PhabricatorPasteApplication",
-        );
-        $existing = isset($config["phabricator.uninstalled-applications"])
-            ? (array)$config["phabricator.uninstalled-applications"]
-            : array();
-        $config["phabricator.uninstalled-applications"] = array_values(
-            array_unique(array_merge($existing, $disabled)));
+        $profile = getenv("PHORGE_PRODUCT_PROFILE");
+        $config["phorge.product-profile"] = $profile;
 
-        $fields = isset($config["maniphest.custom-field-definitions"])
-            ? (array)$config["maniphest.custom-field-definitions"]
-            : array();
-        $defaults = array(
-            "gitea.repository" => array(
-                "name" => "Gitea Repository",
-                "type" => "link",
-                "caption" => "Canonical repository in Gitea.",
-            ),
-            "gitea.issue" => array(
-                "name" => "Gitea Issue",
-                "type" => "link",
-                "caption" => "Related issue in Gitea.",
-            ),
-            "gitea.pull-request" => array(
-                "name" => "Gitea Pull Request",
-                "type" => "link",
-                "caption" => "Related pull request in Gitea.",
-            ),
-            "gitea.commit" => array(
-                "name" => "Gitea Commit",
-                "type" => "link",
-                "caption" => "Related commit in Gitea.",
-            ),
-        );
-        foreach ($defaults as $key => $spec) {
-            if (!array_key_exists($key, $fields)) {
-                $fields[$key] = $spec;
+        if ($profile === "collaboration") {
+            $config["gorge.diff.enabled"] = false;
+
+            $gitea_uri = getenv("GITEA_BASE_URI");
+            if ($gitea_uri !== false && strlen($gitea_uri)) {
+                $config["gitea.uri"] = rtrim($gitea_uri, "/")."/";
+            }
+            if (strlen((string)getenv("GORGE_RENDER_URI"))) {
+                // syntax-highlighter.engine is a class config: "gorge" is not
+                // a valid wire value. This is the registered Gorge engine.
+                $config["syntax-highlighter.engine"] =
+                    "PhabricatorGorgeSyntaxHighlighterEngine";
             }
         }
-        $config["maniphest.custom-field-definitions"] = $fields;
-        $config["phorge.product-profile"] = "collaboration";
-        $config["gorge.diff.enabled"] = false;
 
-        $gitea_uri = getenv("GITEA_BASE_URI");
-        if ($gitea_uri !== false && strlen($gitea_uri)) {
-            $config["gitea.uri"] = rtrim($gitea_uri, "/")."/";
-        }
-        if (strlen((string)getenv("GORGE_RENDER_URI"))) {
-            // syntax-highlighter.engine is a class config: "gorge" is not a
-            // valid wire value. This is the registered Gorge engine class.
-            $config["syntax-highlighter.engine"] =
-                "PhabricatorGorgeSyntaxHighlighterEngine";
-        }
-
-        $tmp = $file.".collaboration.tmp";
+        $tmp = $file.".product-profile.tmp";
         $json = json_encode(
             $config,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
@@ -211,55 +168,7 @@ configure_collaboration_profile() {
             exit(1);
         }
     '; then
-        echo "[entrypoint] 警告: 协作模式配置失败，保留当前配置。" >&2
-        return 0
-    fi
-    chown www-data:www-data "$CONF_FILE" || true
-    chmod 0640 "$CONF_FILE" || true
-}
-
-restore_full_profile() {
-    export CONF_FILE
-    if ! php -r '
-        $file = getenv("CONF_FILE");
-        $config = json_decode(@file_get_contents($file), true);
-        if (!is_array($config)) {
-            exit(1);
-        }
-        if (isset($config["phorge.product-profile"]) &&
-            $config["phorge.product-profile"] === "collaboration") {
-            $managed = array_fill_keys(array(
-                "PhabricatorDiffusionApplication",
-                "PhabricatorDifferentialApplication",
-                "PhabricatorAuditApplication",
-                "PhabricatorOwnersApplication",
-                "PhabricatorHarbormasterApplication",
-                "PhabricatorDrydockApplication",
-                "PhabricatorDivinerApplication",
-                "PhabricatorPasteApplication",
-            ), true);
-            $existing = isset($config["phabricator.uninstalled-applications"])
-                ? (array)$config["phabricator.uninstalled-applications"]
-                : array();
-            $config["phabricator.uninstalled-applications"] = array_values(
-                array_filter(
-                    $existing,
-                    static function ($class) use ($managed) {
-                        return !isset($managed[$class]);
-                    }));
-            $config["phorge.product-profile"] = "full";
-            $tmp = $file.".full.tmp";
-            $json = json_encode(
-                $config,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
-            if (file_put_contents($tmp, $json) === false ||
-                !rename($tmp, $file)) {
-                @unlink($tmp);
-                exit(1);
-            }
-        }
-    '; then
-        echo "[entrypoint] 警告: 恢复 full 模式配置失败，保留当前配置。" >&2
+        echo "[entrypoint] 警告: 产品模式本地配置失败，保留当前配置。" >&2
         return 0
     fi
     chown www-data:www-data "$CONF_FILE" || true
@@ -268,11 +177,9 @@ restore_full_profile() {
 
 if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ]; then
     echo "[entrypoint] 启用 Phorge 协作模式 ..."
-    configure_collaboration_profile
+    configure_product_profile_local
 elif [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
-    # 只有 local.json 明确标记为曾由 collaboration 管理时才撤销那八项；从未启用
-    # 过协作模式的安装完全不动，避免误装管理员自己停用的应用。
-    restore_full_profile
+    configure_product_profile_local
 elif [ "$PHORGE_PRODUCT_PROFILE" != "full" ]; then
     echo "[entrypoint] 警告: 未知 PHORGE_PRODUCT_PROFILE=$PHORGE_PRODUCT_PROFILE，保留当前应用配置。" >&2
 fi
@@ -977,6 +884,22 @@ if [ "$PHORGE_AUTO_UPGRADE" = "1" ]; then
         echo "[entrypoint] 警告: storage upgrade 失败，可进容器执行 bin/storage upgrade 排查。" >&2
 else
     echo "[entrypoint] PHORGE_AUTO_UPGRADE=$PHORGE_AUTO_UPGRADE，跳过 storage upgrade。"
+fi
+
+# 应用安装状态既可以来自 local.json，也可以由管理员在 Web UI 写进优先级更高的
+# 数据库配置。schema 就绪后再读取有效配置、写回合并结果；协作模式首次启用时把
+# “本次新增停用”的应用记在持久化状态文件里，full 模式只恢复这些应用。
+COLLABORATION_STATE_FILE="$CONF_DIR/collaboration-profile-state.json"
+if [ "$PHORGE_PRODUCT_PROFILE" = "collaboration" ] ||
+   [ "$PHORGE_PRODUCT_PROFILE" = "full" ]; then
+    if ! php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
+        "$PHORGE_PRODUCT_PROFILE" "$COLLABORATION_STATE_FILE"; then
+        echo "[entrypoint] 警告: 合并产品模式有效配置失败，保留当前数据库配置。" >&2
+    fi
+    if [ -e "$COLLABORATION_STATE_FILE" ]; then
+        chown www-data:www-data "$COLLABORATION_STATE_FILE" || true
+        chmod 0640 "$COLLABORATION_STATE_FILE" || true
+    fi
 fi
 
 # ----- 5. 守护进程 -----

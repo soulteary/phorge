@@ -1691,7 +1691,10 @@ Harbormaster、Drydock、Diviner、Paste。同时设置 `gorge.diff.enabled=fals
 `gorge`。
 
 `gitea.uri` 会在顶栏增加 Gitea 入口；Maniphest 增加 repository、issue、pull request、
-commit 四个链接字段。所有写入都采用合并语义，不覆盖已有停用应用或同名自定义字段。
+commit 四个链接字段。应用集合使用 Phorge 要求的 `{应用类名: true}` keyed set。
+entrypoint 会在数据库 schema 就绪后读取实际生效值（包括 Web UI 写入的数据库配置），
+再把合并结果写回最高优先级的数据库配置，因此不会被已有数据库值整项覆盖；同名自定义
+字段也保持管理员定义。
 
 在 Gitea 仓库或组织 Webhook 中，将目标设为：
 
@@ -1710,8 +1713,10 @@ https://<对外桥接地址>/webhooks/gitea
 PHORGE_PRODUCT_PROFILE=full
 ```
 
-再次 `up -d --force-recreate` 后，entrypoint 只在确认上一模式由它管理时撤销这八个停用
-项；任务中的 Gitea 链接和历史评论继续保留。
+首次启用时，entrypoint 会在持久化配置卷写入
+`conf/local/collaboration-profile-state.json`，只记录本模式新加入停用集合的应用。再次
+`up -d --force-recreate` 后，full 模式仅撤销这份差集；启用协作模式前已由管理员停用的
+应用仍保持停用。任务中的 Gitea 链接和历史评论继续保留。
 
 ## 参考
 
