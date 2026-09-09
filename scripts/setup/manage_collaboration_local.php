@@ -62,7 +62,19 @@ function validate_profile_state(array $state) {
        !is_array($state['uninstalledDatabase'])) ||
       !array_key_exists('customFieldsDatabase', $state) ||
       ($state['customFieldsDatabase'] !== null &&
-       !is_array($state['customFieldsDatabase']))) {
+       !is_array($state['customFieldsDatabase'])) ||
+      !array_key_exists('uninstalledInitial', $state) ||
+      ($state['uninstalledInitial'] !== null &&
+       !is_array($state['uninstalledInitial'])) ||
+      !array_key_exists('uninstalledProfile', $state) ||
+      ($state['uninstalledProfile'] !== null &&
+       !is_array($state['uninstalledProfile'])) ||
+      !array_key_exists('customFieldsInitial', $state) ||
+      ($state['customFieldsInitial'] !== null &&
+       !is_array($state['customFieldsInitial'])) ||
+      !array_key_exists('customFieldsProfile', $state) ||
+      ($state['customFieldsProfile'] !== null &&
+       !is_array($state['customFieldsProfile']))) {
     throw new Exception('Collaboration profile state is invalid.');
   }
 }
@@ -124,6 +136,17 @@ if ($state !== null) {
       );
       $state_upgraded = true;
     }
+    foreach (array(
+      'uninstalledInitial',
+      'uninstalledProfile',
+      'customFieldsInitial',
+      'customFieldsProfile',
+    ) as $key) {
+      if (!array_key_exists($key, $state)) {
+        $state[$key] = null;
+        $state_upgraded = true;
+      }
+    }
   }
   if ($state_upgraded) {
     write_json_object($state_path, $state);
@@ -174,6 +197,10 @@ if ($mode === 'collaboration') {
       'databaseSettings' => null,
       'uninstalledDatabase' => null,
       'customFieldsDatabase' => null,
+      'uninstalledInitial' => null,
+      'uninstalledProfile' => null,
+      'customFieldsInitial' => null,
+      'customFieldsProfile' => null,
     );
     $state_changed = true;
   }

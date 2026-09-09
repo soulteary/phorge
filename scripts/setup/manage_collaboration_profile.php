@@ -89,7 +89,19 @@ function load_profile_state($path) {
        !is_array($state['uninstalledDatabase'])) ||
       !array_key_exists('customFieldsDatabase', $state) ||
       ($state['customFieldsDatabase'] !== null &&
-       !is_array($state['customFieldsDatabase']))) {
+       !is_array($state['customFieldsDatabase'])) ||
+      !array_key_exists('uninstalledInitial', $state) ||
+      ($state['uninstalledInitial'] !== null &&
+       !is_array($state['uninstalledInitial'])) ||
+      !array_key_exists('uninstalledProfile', $state) ||
+      ($state['uninstalledProfile'] !== null &&
+       !is_array($state['uninstalledProfile'])) ||
+      !array_key_exists('customFieldsInitial', $state) ||
+      ($state['customFieldsInitial'] !== null &&
+       !is_array($state['customFieldsInitial'])) ||
+      !array_key_exists('customFieldsProfile', $state) ||
+      ($state['customFieldsProfile'] !== null &&
+       !is_array($state['customFieldsProfile']))) {
     throw new Exception(
       pht('Collaboration profile state file "%s" is invalid.', $path));
   }
@@ -194,6 +206,32 @@ function store_at_original_source($key, $value, array $database_baseline) {
   }
 }
 
+function get_original_value($key, array $database_baseline) {
+  if (!isset($database_baseline['present'])) {
+    throw new Exception(pht('Configuration source baseline is invalid.'));
+  }
+  if ($database_baseline['present']) {
+    return $database_baseline['value'];
+  }
+  $local = capture_local_config($key);
+  return $local['present'] ? $local['value'] : array();
+}
+
+function apply_keyed_diff(array $result, array $baseline, array $current) {
+  foreach ($baseline as $key => $value) {
+    if (!array_key_exists($key, $current)) {
+      unset($result[$key]);
+    }
+  }
+  foreach ($current as $key => $value) {
+    if (!array_key_exists($key, $baseline) ||
+        $baseline[$key] !== $value) {
+      $result[$key] = $value;
+    }
+  }
+  return $result;
+}
+
 function keyed_application_set($value) {
   $result = array();
   foreach ((array)$value as $key => $item) {
@@ -252,6 +290,47 @@ if ($mode === 'collaboration') {
     $state_changed = true;
   }
 
+  $uninstalled_database = $state['uninstalledDatabase'];
+  if (!is_array($uninstalled_database) ||
+      !isset($uninstalled_database['present'])) {
+    throw new Exception(pht('Uninstalled application baseline is invalid.'));
+  }
+  if ($state['uninstalledInitial'] === null) {
+    $state['uninstalledInitial'] = normalize_application_set(
+      get_original_value($uninstalled_key, $uninstalled_database));
+    $state_changed = true;
+  }
+  if ($state['uninstalledProfile'] === null) {
+    $profile_uninstalled = $state['uninstalledInitial'];
+    foreach ($managed_applications as $application) {
+      $profile_uninstalled[$application] = true;
+    }
+    $state['uninstalledProfile'] = $profile_uninstalled;
+    $state_changed = true;
+  }
+
+  $custom_fields_database = $state['customFieldsDatabase'];
+  if (!is_array($custom_fields_database) ||
+      !isset($custom_fields_database['present'])) {
+    throw new Exception(pht('Custom-field source baseline is invalid.'));
+  }
+  if ($state['customFieldsInitial'] === null) {
+    $state['customFieldsInitial'] = (array)get_original_value(
+      $fields_key,
+      $custom_fields_database);
+    $state_changed = true;
+  }
+  if ($state['customFieldsProfile'] === null) {
+    $profile_fields = $state['customFieldsInitial'];
+    foreach ($field_defaults as $key => $spec) {
+      if (!array_key_exists($key, $profile_fields)) {
+        $profile_fields[$key] = $spec;
+      }
+    }
+    $state['customFieldsProfile'] = $profile_fields;
+    $state_changed = true;
+  }
+
   $database_values = array(
     'gorge.diff.enabled' => false,
   );
@@ -286,19 +365,9 @@ if ($mode === 'collaboration') {
   // active. The Applications UI builds transactions from the database entry
   // itself, so a local-only set could be replaced by a single UI toggle. The
   // recorded baseline removes this temporary override during rollback.
-  $uninstalled_database = $state['uninstalledDatabase'];
-  if (!is_array($uninstalled_database) ||
-      !isset($uninstalled_database['present'])) {
-    throw new Exception(pht('Uninstalled application baseline is invalid.'));
-  }
   store_effective_config($uninstalled_key, $uninstalled);
   // Use the same complete temporary override for custom fields. The Config UI
   // also edits the database entry itself instead of merging a local value.
-  $custom_fields_database = $state['customFieldsDatabase'];
-  if (!is_array($custom_fields_database) ||
-      !isset($custom_fields_database['present'])) {
-    throw new Exception(pht('Custom-field source baseline is invalid.'));
-  }
   store_effective_config($fields_key, $fields);
   foreach ($database_values as $key => $value) {
     store_effective_config($key, $value);
@@ -330,7 +399,7 @@ if ($mode === 'collaboration') {
     exit(0);
   }
 
-  $added = normalize_application_set($state['applicationsAdded']);
+  $state_changed = false;
   $uninstalled_database = $state['uninstalledDatabase'];
   if ($uninstalled_database === null) {
     // The local phase completed but the collaboration database phase never
@@ -344,27 +413,20 @@ if ($mode === 'collaboration') {
       !isset($uninstalled_database['present'])) {
     throw new Exception(pht('Uninstalled application baseline is invalid.'));
   }
-  if (!$uninstalled_database['present']) {
-    // A temporary database override protected the profile-owned set from UI
-    // replacement. Merge additions made through the normal local-writing CLI
-    // before removing the profile difference and restoring local authority.
-    $local_uninstalled = capture_local_config($uninstalled_key);
-    if ($local_uninstalled['present']) {
-      foreach (normalize_application_set(
-        $local_uninstalled['value']) as $application => $ignored) {
-        $uninstalled[$application] = true;
-      }
-    }
+  if ($state['uninstalledInitial'] === null) {
+    $state['uninstalledInitial'] = normalize_application_set(
+      get_original_value($uninstalled_key, $uninstalled_database));
+    $state_changed = true;
   }
-  foreach ($added as $application => $ignored) {
-    unset($uninstalled[$application]);
+  if ($state['uninstalledProfile'] === null) {
+    $profile_uninstalled = $state['uninstalledInitial'];
+    foreach ($managed_applications as $application) {
+      $profile_uninstalled[$application] = true;
+    }
+    $state['uninstalledProfile'] = $profile_uninstalled;
+    $state_changed = true;
   }
 
-  store_at_original_source(
-    $uninstalled_key,
-    $uninstalled,
-    $uninstalled_database);
-  $fields = (array)PhabricatorEnv::getEnvConfig($fields_key);
   $custom_fields_database = $state['customFieldsDatabase'];
   if ($custom_fields_database === null) {
     $custom_fields_database = array(
@@ -376,15 +438,68 @@ if ($mode === 'collaboration') {
       !isset($custom_fields_database['present'])) {
     throw new Exception(pht('Custom-field source baseline is invalid.'));
   }
+  if ($state['customFieldsInitial'] === null) {
+    $state['customFieldsInitial'] = (array)get_original_value(
+      $fields_key,
+      $custom_fields_database);
+    $state_changed = true;
+  }
+  if ($state['customFieldsProfile'] === null) {
+    $profile_fields = $state['customFieldsInitial'];
+    foreach ($field_defaults as $key => $spec) {
+      if (!array_key_exists($key, $profile_fields)) {
+        $profile_fields[$key] = $spec;
+      }
+    }
+    $state['customFieldsProfile'] = $profile_fields;
+    $state_changed = true;
+  }
+
+  // Persist compatibility snapshots before any rollback write. A partial
+  // failure can then retry the same three-way merge on the next startup.
+  if ($state_changed) {
+    write_profile_state($state_path, $state);
+  }
+
+  $merged_uninstalled = $state['uninstalledInitial'];
+  if (!$uninstalled_database['present']) {
+    $local_uninstalled = capture_local_config($uninstalled_key);
+    $local_value = $local_uninstalled['present']
+      ? normalize_application_set($local_uninstalled['value'])
+      : array();
+    $merged_uninstalled = apply_keyed_diff(
+      $merged_uninstalled,
+      $state['uninstalledInitial'],
+      $local_value);
+  }
+  $merged_uninstalled = apply_keyed_diff(
+    $merged_uninstalled,
+    $state['uninstalledProfile'],
+    $uninstalled);
+
+  store_at_original_source(
+    $uninstalled_key,
+    $merged_uninstalled,
+    $uninstalled_database);
+  $fields = (array)PhabricatorEnv::getEnvConfig($fields_key);
+  $merged_fields = $state['customFieldsProfile'];
   if (!$custom_fields_database['present']) {
     $local_fields = capture_local_config($fields_key);
-    if ($local_fields['present']) {
-      $fields = array_replace($fields, (array)$local_fields['value']);
-    }
+    $local_value = $local_fields['present']
+      ? (array)$local_fields['value']
+      : array();
+    $merged_fields = apply_keyed_diff(
+      $merged_fields,
+      $state['customFieldsInitial'],
+      $local_value);
   }
+  $merged_fields = apply_keyed_diff(
+    $merged_fields,
+    $state['customFieldsProfile'],
+    $fields);
   store_at_original_source(
     $fields_key,
-    $fields,
+    $merged_fields,
     $custom_fields_database);
   foreach ((array)$state['databaseSettings'] as $key => $baseline) {
     if (!is_array($baseline)) {
