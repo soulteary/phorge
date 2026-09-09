@@ -173,10 +173,8 @@ final class PhabricatorGorgeDBClient
    *
    * A transient or operational failure — a network error, a timeout, a 401, a
    * 5xx, an HTML or otherwise invalid envelope, malformed JSON — is NOT an
-   * incompatibility and must NOT silently fall back to native SQL: those
-   * surface as exceptions (the handshake and @{method:getMeta} already throw
-   * on them) and are deliberately not cached, so a caller sees the real error
-   * instead of quietly reading a different data source.
+   * incompatibility and is deliberately not cached. Required policy surfaces
+   * it; fallback policy records the handshake transition and uses native SQL.
    *
    * The cache stores only the decision (`checked` and `usable`); it never
    * stores the token, the URI or exception details.
@@ -244,6 +242,37 @@ final class PhabricatorGorgeDBClient
       ));
 
     return $usable;
+  }
+
+  /**
+   * Execute one complete database diagnostic through the selected route.
+   *
+   * The contract handshake only proves that the service was usable at the
+   * start of the operation. Under the migration fallback policy, an outage in
+   * the actual servers/schema/setup request must still run the native
+   * operation. Required mode keeps surfacing the original service exception.
+   */
+  public static function executeWithFallback(
+    $operation,
+    callable $gorge_operation,
+    callable $native_operation) {
+
+    if (!self::shouldUseService()) {
+      return call_user_func($native_operation);
+    }
+
+    try {
+      return call_user_func($gorge_operation);
+    } catch (Exception $ex) {
+      $service = PhabricatorGorgeServiceRegistry::getService('db');
+      if (!$service->isFallbackAllowed()) {
+        throw $ex;
+      }
+
+      $service->recordFallback($operation);
+      phlog($ex);
+      return call_user_func($native_operation);
+    }
   }
 
 

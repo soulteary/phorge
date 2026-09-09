@@ -337,15 +337,14 @@ final class PhabricatorDatabaseRef
   public static function queryAll() {
     $refs = self::getActiveDatabaseRefs();
 
-    // When the Gorge database service fronts the cluster, read per-server
-    // connection and replica status from it instead of opening a management
-    // connection to every host from the web tier. When it is not configured,
-    // fall back to the native direct-SQL probe below.
-    if (PhabricatorGorgeDBClient::shouldUseService()) {
-      return self::queryRefsViaGorge($refs);
-    }
-
-    return self::queryRefs($refs);
+    return PhabricatorGorgeDBClient::executeWithFallback(
+      'servers',
+      function() use ($refs) {
+        return self::queryRefsViaGorge($refs);
+      },
+      function() use ($refs) {
+        return self::queryRefs($refs);
+      });
   }
 
   private static function queryRefsViaGorge(array $refs) {

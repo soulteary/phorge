@@ -48,6 +48,40 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
     unset($env);
   }
 
+  public function testCompletionFailureDoesNotFailSuccessfulWork() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask();
+    $task = $this->expectNextLease($task);
+
+    // Route only the completion report through the unreachable service. The
+    // worker itself has already been leased successfully from native storage.
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $caught = null;
+    try {
+      $task->executeTask();
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+    $stored_task = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertEqual(0, $stored_task->getFailureCount());
+    $this->assertEqual(
+      PhabricatorWorkerActiveTask::COMPLETION_PENDING_OWNER,
+      $stored_task->getLeaseOwner());
+    $this->assertTrue($stored_task->getLeaseExpires() > time());
+
+    unset($env);
+  }
+
   public function testMultipleLease() {
     $task = $this->scheduleTask();
 

@@ -2,6 +2,8 @@
 
 final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
 
+  const COMPLETION_PENDING_OWNER = 'gorge-completion-pending';
+
   protected $failureTime;
 
   private $serverTime;
@@ -159,25 +161,6 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       $t_start = microtime(true);
         $worker->executeTask();
       $duration = phutil_microseconds_since($t_start);
-
-      // When the Gorge task queue service owns the queue, tell it the task
-      // completed and let it archive the row; otherwise archive it here with
-      // SQL. notifyGoComplete() returns false when the service is not
-      // configured (or the call fails), which keeps the native path as a
-      // fallback.
-      $go_ok = $this->notifyGoComplete($duration);
-      if (!$go_ok) {
-        $result = $this->archiveTask(
-          PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
-          $duration);
-      } else {
-        $result = id(new PhabricatorWorkerArchiveTask())
-          ->makeEphemeral()
-          ->setID($this->getID())
-          ->setTaskClass($this->getTaskClass())
-          ->setResult(PhabricatorWorkerArchiveTask::RESULT_SUCCESS)
-          ->setDuration($duration);
-      }
       $did_succeed = true;
     } catch (PhabricatorWorkerPermanentFailureException $ex) {
       $go_ok = $this->notifyGoFail(true);
@@ -242,9 +225,47 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       $result = $this;
     }
 
-    // NOTE: If this throws, we don't want it to cause the task to fail again,
-    // so execute it out here and just let the exception escape.
     if ($did_succeed) {
+      // Completion is control-plane bookkeeping after the worker has already
+      // finished its side effects. Keep it outside the execution catch above:
+      // a reporting outage must not increment failureCount or call fail(),
+      // either of which would immediately schedule successful work again.
+      try {
+        $go_ok = $this->notifyGoComplete($duration);
+      } catch (Exception $ex) {
+        // Required mode must expose the reporting failure, but allowing the
+        // lease to expire would run already-successful, possibly
+        // non-idempotent work again. Park the SQL-backed task for explicit
+        // reconciliation before propagating the control-plane exception.
+        // If Gorge committed before losing its response, this update simply
+        // finds no active row and the already-archived task remains complete.
+        try {
+          $this
+            ->setLeaseOwner(self::COMPLETION_PENDING_OWNER)
+            ->setLeaseExpires(2147483647)
+            ->forceSaveWithoutLease();
+        } catch (Throwable $park_ex) {
+          phlog($park_ex);
+        }
+
+        throw $ex;
+      }
+
+      if (!$go_ok) {
+        $result = $this->archiveTask(
+          PhabricatorWorkerArchiveTask::RESULT_SUCCESS,
+          $duration);
+      } else {
+        $result = id(new PhabricatorWorkerArchiveTask())
+          ->makeEphemeral()
+          ->setID($this->getID())
+          ->setTaskClass($this->getTaskClass())
+          ->setResult(PhabricatorWorkerArchiveTask::RESULT_SUCCESS)
+          ->setDuration($duration);
+      }
+
+      // NOTE: If this throws, we don't want it to cause the task to fail
+      // again, so execute it out here and just let the exception escape.
       // Default the new task priority to our own priority.
       $defaults = array(
         'priority' => (int)$this->getPriority(),

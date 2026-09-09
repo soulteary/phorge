@@ -12,17 +12,14 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
-    // When the Gorge database service fronts the cluster, it runs the version,
-    // engine, storage-initialization and patch-status diagnostics against the
-    // hosts and returns them as setup issues, so consume those instead of
-    // opening management connections from the web tier. When it is not
-    // configured, fall back to the native direct-SQL checks below.
-    if (PhabricatorGorgeDBClient::shouldUseService()) {
-      $this->executeGorgeChecks();
-      return;
-    }
-
-    $this->executeNativeChecks();
+    PhabricatorGorgeDBClient::executeWithFallback(
+      'setup.database',
+      function() {
+        $this->executeGorgeChecks();
+      },
+      function() {
+        $this->executeNativeChecks();
+      });
   }
 
   private function executeGorgeChecks() {

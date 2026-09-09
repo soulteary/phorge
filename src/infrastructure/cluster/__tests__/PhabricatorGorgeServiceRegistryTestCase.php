@@ -114,4 +114,57 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testDatabaseOperationFallbackPolicy() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.db.uri', 'http://gorge-db:8170');
+    $env->overrideEnvConfig('storage.default-namespace', 'phabricator');
+
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache_key = PhabricatorGorgeDBClient::KEY_SHOULD_USE.
+      '(http://gorge-db:8170, phabricator)';
+    $cache->setKey(
+      $cache_key,
+      array(
+        'checked' => true,
+        'usable' => true,
+      ));
+
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+
+    $result = PhabricatorGorgeDBClient::executeWithFallback(
+      'test',
+      function() {
+        throw new Exception('service failure');
+      },
+      function() {
+        return 'native';
+      });
+
+    $this->assertEqual('native', $result);
+    $this->assertEqual(
+      array('db.test' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $caught = null;
+    try {
+      PhabricatorGorgeDBClient::executeWithFallback(
+        'test',
+        function() {
+          throw new Exception('required failure');
+        },
+        function() {
+          return 'unreachable';
+        });
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+    $this->assertTrue($caught instanceof Exception);
+
+    $cache->deleteKey($cache_key);
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
 }
