@@ -394,7 +394,7 @@ final class PhabricatorFile extends PhabricatorFileDAO
     $fallback_from_gorge = false;
     foreach ($engines as $engine) {
       $engine_class = get_class($engine);
-      $is_gorge = ($engine instanceof PhabricatorGorgeFileStorageEngine);
+      $is_gorge = ($engine->getEngineIdentifier() === 'gorge');
 
       if (!$is_gorge && $fallback_from_gorge) {
         PhabricatorGorgeServiceRegistry::getService('file')
@@ -414,9 +414,22 @@ final class PhabricatorFile extends PhabricatorFileDAO
         // places.
         break;
       } catch (PhabricatorFileStorageConfigurationException $ex) {
-        // If an engine is outright misconfigured (or misimplemented), raise
-        // that immediately since it probably needs attention.
-        throw $ex;
+        // Native engine configuration failures still need immediate operator
+        // attention. A malformed Gorge response is reported with this same
+        // exception type, so route that failure through the explicit service
+        // policy before deciding whether another engine may be tried.
+        if (!$is_gorge) {
+          throw $ex;
+        }
+
+        $gorge = PhabricatorGorgeServiceRegistry::getService('file');
+        if (!$gorge->isFallbackAllowed()) {
+          throw $ex;
+        }
+
+        $fallback_from_gorge = true;
+        phlog($ex);
+        $exceptions[$engine_class] = $ex;
       } catch (Throwable $ex) {
         if ($is_gorge) {
           $gorge = PhabricatorGorgeServiceRegistry::getService('file');

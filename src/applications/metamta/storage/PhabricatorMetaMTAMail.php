@@ -777,10 +777,10 @@ final class PhabricatorMetaMTAMail
         if ($is_gorge) {
           $gorge = PhabricatorGorgeServiceRegistry::getService('mailer');
           if (!$gorge->isFallbackAllowed()) {
-            $this
-              ->setStatus(PhabricatorMailOutboundStatus::STATUS_FAIL)
-              ->setMessage($ex->getMessage())
-              ->save();
+            // A transient service failure must leave the message queued so
+            // the task can retry it after Gorge recovers. Permanent failures
+            // are handled by the catch above and still mark the message as
+            // failed immediately.
             throw $ex;
           }
           $fallback_from_gorge = true;

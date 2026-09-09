@@ -8,6 +8,40 @@ final class PhabricatorFileTestCase extends PhabricatorTestCase {
     );
   }
 
+  public function testGorgeConfigurationFailureUsesFallbackPolicy() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig(
+      'gorge.service-policies',
+      array(
+        'file' => 'fallback',
+      ));
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+
+    $gorge_engine = id(new PhabricatorTestStorageEngine())
+      ->setEngineIdentifier('gorge')
+      ->setFailConfiguration(true);
+    $native_engine = new PhabricatorTestStorageEngine();
+
+    $file = PhabricatorFile::newFromFileData(
+      'fallback data',
+      array(
+        'name' => 'fallback.txt',
+        'storageEngines' => array(
+          $gorge_engine,
+          $native_engine,
+        ),
+      ));
+
+    $this->assertEqual('unit-test', $file->getStorageEngine());
+    $this->assertEqual(
+      array('file.write' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
   public function testFileDirectScramble() {
     // Changes to a file's view policy should scramble the file secret.
 

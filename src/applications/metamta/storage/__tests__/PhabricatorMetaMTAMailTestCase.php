@@ -56,6 +56,38 @@ final class PhabricatorMetaMTAMailTestCase extends PhabricatorTestCase {
       $mail->getStatus());
   }
 
+  public function testRequiredGorgeTemporaryFailureRemainsQueued() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+
+    $user = $this->generateNewTestUser();
+    $mail = id(new PhabricatorMetaMTAMail())
+      ->addTos(array($user->getPHID()));
+
+    $mailer = id(new PhabricatorMailGorgeAdapter())
+      ->setOptions(
+        array(
+          'uri' => 'http://127.0.0.1:1',
+          'token' => null,
+          'timeout' => 1,
+          'supports-message-id' => false,
+        ));
+
+    $caught = null;
+    try {
+      $mail->sendWithMailers(array($mailer));
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+    $this->assertEqual(
+      PhabricatorMailOutboundStatus::STATUS_QUEUE,
+      $mail->getStatus());
+
+    unset($env);
+  }
+
   public function testRecipients() {
     $user = $this->generateNewTestUser();
     $phid = $user->getPHID();
