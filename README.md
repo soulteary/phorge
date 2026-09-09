@@ -17,6 +17,10 @@ Phorge includes applications for:
 
 Phorge is developed and maintained by [The Phorge Team](https://phorge.it).
 
+## 本地化 / Localization
+
+本仓库内置简体中文（`zh_CN`）界面本地化，默认可选（默认语言仍为英文）。启用方式、运行时链路与翻译维护工具链详见 [docs/i18n-zh_CN.md](docs/i18n-zh_CN.md)。
+
 ----------
 
 **LICENSE**
