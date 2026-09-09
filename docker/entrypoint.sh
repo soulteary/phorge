@@ -85,6 +85,7 @@ else
     echo "[entrypoint] 生成 Phorge 本地配置 $CONF_FILE ..."
     mkdir -p "$CONF_DIR"
     export CONF_FILE MYSQL_HOST MYSQL_PORT MYSQL_USER MYSQL_PASS
+    export PHORGE_DB_NAMESPACE
     export PHORGE_BASE_URI PHORGE_TIMEZONE
     # 一次性 json_encode 写出：既能表达非标量值，也避免多条 `bin/config set`
     # 中间失败留下半成品配置。先写临时文件再 rename，保证原子替换。
@@ -94,6 +95,8 @@ else
             "mysql.port"           => getenv("MYSQL_PORT"),
             "mysql.user"           => getenv("MYSQL_USER"),
             "mysql.pass"           => getenv("MYSQL_PASS"),
+            "storage.default-namespace" =>
+                (getenv("PHORGE_DB_NAMESPACE") ?: "phabricator"),
             "phabricator.base-uri" => getenv("PHORGE_BASE_URI"),
             "phabricator.timezone" => getenv("PHORGE_TIMEZONE"),
         );
@@ -1023,6 +1026,45 @@ fi
 # auto 只用于默认编排：有持久化选择时沿用；没有选择时，空数据库视为新安装并
 # 选择 collaboration，已存在的 Phorge 数据库视为升级并保持 full。这个判定发生
 # 在 storage upgrade 之前，否则新安装也会被刚创建的 meta_data 库误判为升级。
+resolve_database_namespace() {
+    persisted_namespace="$(php -r '
+        $path = $argv[1];
+        $config = is_file($path)
+            ? json_decode(file_get_contents($path), true)
+            : null;
+        $namespace = is_array($config)
+            ? ($config["storage.default-namespace"] ?? "")
+            : "";
+        if (is_string($namespace) && $namespace !== "") {
+            echo $namespace;
+        }
+    ' "$CONF_FILE")"
+
+    if [ -n "$PHORGE_DB_NAMESPACE" ] &&
+       [ -n "$persisted_namespace" ] &&
+       [ "$PHORGE_DB_NAMESPACE" != "$persisted_namespace" ]; then
+        echo "[entrypoint] PHORGE_DB_NAMESPACE=$PHORGE_DB_NAMESPACE 与已持久化的" >&2
+        echo "[entrypoint] storage.default-namespace=$persisted_namespace 不一致，拒绝连接错误的库。" >&2
+        echo "[entrypoint] 请在 .env 中把 PHORGE_DB_NAMESPACE 改为已有命名空间后重试。" >&2
+        exit 1
+    fi
+
+    RESOLVED_DB_NAMESPACE="${PHORGE_DB_NAMESPACE:-${persisted_namespace:-phabricator}}"
+    case "$RESOLVED_DB_NAMESPACE" in
+        ''|*[!0-9a-zA-Z_\$]*)
+            echo "[entrypoint] 非法数据库命名空间: $RESOLVED_DB_NAMESPACE" >&2
+            exit 64
+            ;;
+    esac
+    if [ "${#RESOLVED_DB_NAMESPACE}" -ge 45 ]; then
+        echo "[entrypoint] 数据库命名空间必须少于 45 个字符。" >&2
+        exit 64
+    fi
+    echo "[entrypoint] 使用数据库命名空间 $RESOLVED_DB_NAMESPACE。"
+}
+
+resolve_database_namespace
+
 resolve_product_profile() {
     if [ "$PHORGE_PRODUCT_PROFILE" != "auto" ]; then
         return 0
@@ -1041,24 +1083,6 @@ resolve_product_profile() {
         echo "[entrypoint] 沿用已保存的产品模式: $PHORGE_PRODUCT_PROFILE。"
         return 0
     fi
-
-    database_namespace="$PHORGE_DB_NAMESPACE"
-    if [ -z "$database_namespace" ]; then
-        database_namespace="$(php -r '
-            $path = $argv[1];
-            $config = is_file($path)
-                ? json_decode(file_get_contents($path), true)
-                : null;
-            $namespace = is_array($config)
-                ? ($config["storage.default-namespace"] ?? "")
-                : "";
-            if (is_string($namespace) && $namespace !== "") {
-                echo $namespace;
-            }
-        ' "$CONF_FILE")"
-    fi
-    database_namespace="${database_namespace:-phabricator}"
-    echo "[entrypoint] 使用数据库命名空间 $database_namespace 判断安装状态。"
 
     set +e
     php -r '
@@ -1082,7 +1106,7 @@ resolve_product_profile() {
         mysqli_stmt_store_result($statement);
         exit(mysqli_stmt_num_rows($statement) ? 0 : 1);
     ' "$MYSQL_HOST" "$MYSQL_PORT" "$MYSQL_USER" "$MYSQL_PASS" \
-        "$database_namespace" >/dev/null 2>&1
+        "$RESOLVED_DB_NAMESPACE" >/dev/null 2>&1
     database_status=$?
     set -e
 

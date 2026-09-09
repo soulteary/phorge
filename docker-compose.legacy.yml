@@ -58,6 +58,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-phorge_root}
       PHORGE_DB_USER: ${MYSQL_USER:-phorge}
+      PHORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
     volumes:
       - ./docker/db-grant.sql:/db-grant.sql:ro
     command:
@@ -65,9 +66,22 @@ services:
       - -c
       - |
         set -e
-        sed "s/__PHORGE_USER__/$$PHORGE_DB_USER/g" /db-grant.sql |
+        case "$$PHORGE_DB_NAMESPACE" in
+          ''|*[!a-zA-Z0-9_$$]*)
+            echo "[db-init] 非法数据库命名空间: $$PHORGE_DB_NAMESPACE" >&2
+            exit 64
+            ;;
+        esac
+        if [ "$${#PHORGE_DB_NAMESPACE}" -ge 45 ]; then
+          echo "[db-init] 数据库命名空间必须少于 45 个字符。" >&2
+          exit 64
+        fi
+        sed \
+          -e "s/__PHORGE_USER__/$$PHORGE_DB_USER/g" \
+          -e "s/__PHORGE_NAMESPACE__/$$PHORGE_DB_NAMESPACE/g" \
+          /db-grant.sql |
           mysql -h mysql -P 3306 -u root -p"$$MYSQL_ROOT_PASSWORD"
-        echo "[db-init] 已为 $$PHORGE_DB_USER 授权 phabricator_% 库。"
+        echo "[db-init] 已为 $$PHORGE_DB_USER 授权 $${PHORGE_DB_NAMESPACE}_% 库。"
 
   phorge:
     build:
@@ -85,6 +99,7 @@ services:
       MYSQL_PORT: "3306"
       MYSQL_USER: ${MYSQL_USER:-phorge}
       MYSQL_PASS: ${MYSQL_PASSWORD:-phorge}
+      PHORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
       # 注意: Phorge 要求 base-uri 的域名必须含点号(.)，裸 "localhost" 会被拒绝。
       # 默认值与 PHORGE_HTTP_PORT 联动，否则改了端口站点会 redirect 到错误地址。
       # 正式部署请在 .env 里改成你的真实域名。
