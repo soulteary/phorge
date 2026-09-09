@@ -332,11 +332,13 @@ if ($profile === 'collaboration') {
     $config['syntax-highlighter.engine'] =
       'PhabricatorGorgeSyntaxHighlighterEngine';
   }
-  $gitea_uri = env_value('GITEA_BASE_URI', '');
-  if (strlen($gitea_uri)) {
-    $config['gitea.uri'] = rtrim($gitea_uri, '/').'/';
-  } else {
-    unset($config['gitea.uri']);
+  $gitea_uri = getenv('GITEA_BASE_URI');
+  if ($gitea_uri !== false) {
+    if (strlen($gitea_uri)) {
+      $config['gitea.uri'] = rtrim($gitea_uri, '/').'/';
+    } else {
+      unset($config['gitea.uri']);
+    }
   }
 } else {
   unset(

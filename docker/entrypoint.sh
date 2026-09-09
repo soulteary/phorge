@@ -1513,12 +1513,13 @@ else
     ' "$CONF_FILE")"
     if [ -e "$COLLABORATION_STATE_FILE" ] ||
        [ -e "$TASKQUEUE_STATE_FILE" ] ||
+       [ -e "$NOTIFICATION_STATE_FILE" ] ||
        [ "$legacy_local_state" = "1" ]; then
         echo "[entrypoint] 迁移旧控制面状态到统一控制面 ..."
         PHORGE_CONTROL_PLANE=legacy \
             php "$PHORGE_DIR/scripts/setup/manage_collaboration_local.php" \
             full "$CONF_FILE" "$COLLABORATION_STATE_FILE" \
-            "$TASKQUEUE_STATE_FILE"
+            "$TASKQUEUE_STATE_FILE" "$NOTIFICATION_STATE_FILE"
     fi
 
     # This helper is also the compatibility detector for the original

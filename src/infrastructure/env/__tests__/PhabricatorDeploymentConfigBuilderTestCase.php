@@ -141,6 +141,26 @@ final class PhabricatorDeploymentConfigBuilderTestCase
         $local['cluster.search'],
         $config['cluster.search']);
       $this->assertFalse(array_key_exists('gitea.uri', $config));
+
+      // Optional profile jobs do not receive GITEA_BASE_URI. Absence means
+      // they must preserve the value installed by the base migration job;
+      // only the explicit empty value above removes it.
+      $config['gitea.uri'] = 'https://gitea.example/';
+      Filesystem::writeFile(
+        $deployment_path,
+        phutil_json_encode($config));
+      execx(
+        'env -i GORGE_MAILER_MODE=disable '.
+        '%s %s collaboration %s %s',
+        PHP_BINARY,
+        $script,
+        $deployment_path,
+        $local_path);
+      $config = phutil_json_decode(
+        Filesystem::readFile($deployment_path));
+      $this->assertEqual(
+        'https://gitea.example/',
+        $config['gitea.uri']);
     } finally {
       Filesystem::remove($directory);
     }
@@ -154,6 +174,7 @@ final class PhabricatorDeploymentConfigBuilderTestCase
     $local_path = $directory.'/local.json';
     $profile_state_path = $directory.'/profile-state.json';
     $taskqueue_state_path = $directory.'/taskqueue-state.json';
+    $notification_state_path = $directory.'/notification-state.json';
 
     $local = array(
       'phorge.product-profile' => 'collaboration',
@@ -161,6 +182,13 @@ final class PhabricatorDeploymentConfigBuilderTestCase
       'gitea.uri' => 'https://gitea.example/',
       'gorge.taskqueue.uri' => 'http://gorge-taskqueue:8090',
       'phd.taskmasters' => 0,
+      'notification.servers' => array(
+        array(
+          'type' => 'admin',
+          'host' => 'gorge-notification',
+          'port' => 22281,
+        ),
+      ),
     );
 
     try {
@@ -174,14 +202,22 @@ final class PhabricatorDeploymentConfigBuilderTestCase
             'present' => false,
             'value' => null,
           )));
+      Filesystem::writeFile(
+        $notification_state_path,
+        phutil_json_encode(
+          array(
+            'present' => false,
+            'value' => null,
+          )));
 
       execx(
-        '%s %s full %s %s %s',
+        '%s %s full %s %s %s %s',
         PHP_BINARY,
         $script,
         $local_path,
         $profile_state_path,
-        $taskqueue_state_path);
+        $taskqueue_state_path,
+        $notification_state_path);
 
       $config = phutil_json_decode(
         Filesystem::readFile($local_path));
@@ -189,7 +225,9 @@ final class PhabricatorDeploymentConfigBuilderTestCase
       $this->assertFalse(array_key_exists('gorge.diff.enabled', $config));
       $this->assertFalse(array_key_exists('gitea.uri', $config));
       $this->assertFalse(array_key_exists('phd.taskmasters', $config));
+      $this->assertFalse(array_key_exists('notification.servers', $config));
       $this->assertFalse(Filesystem::pathExists($taskqueue_state_path));
+      $this->assertFalse(Filesystem::pathExists($notification_state_path));
     } finally {
       Filesystem::remove($directory);
     }
