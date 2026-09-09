@@ -134,6 +134,74 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testSearchIndexFallbackSucceedsNatively() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig(
+      'cluster.search',
+      $this->newFailingGorgeSearchConfig());
+
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache->deleteKey(PhabricatorSearchService::KEY_REFS);
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    $document = id(new PhabricatorSearchAbstractDocument())
+      ->setPHID('PHID-TEST-search-index-fallback');
+    PhabricatorSearchService::reindexAbstractDocument($document);
+
+    $this->assertEqual(
+      array('search.index' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    $cache->deleteKey(PhabricatorSearchService::KEY_REFS);
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
+  public function testSearchIndexRequiredFailsClosed() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig(
+      'cluster.search',
+      $this->newFailingGorgeSearchConfig());
+
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache->deleteKey(PhabricatorSearchService::KEY_REFS);
+
+    $caught = null;
+    try {
+      $document = id(new PhabricatorSearchAbstractDocument())
+        ->setPHID('PHID-TEST-search-index-required');
+      PhabricatorSearchService::reindexAbstractDocument($document);
+    } catch (PhutilAggregateException $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof PhutilAggregateException);
+
+    $cache->deleteKey(PhabricatorSearchService::KEY_REFS);
+    unset($env);
+  }
+
+  private function newFailingGorgeSearchConfig() {
+    return array(
+      array(
+        'type' => 'gorge',
+        'hosts' => array(
+          array(
+            'host' => '127.0.0.1',
+            'port' => 1,
+            'roles' => array('read' => true, 'write' => true),
+          ),
+        ),
+      ),
+      array(
+        'type' => 'mysql',
+        'roles' => array('read' => true, 'write' => true),
+      ),
+    );
+  }
+
   public function testDatabaseOperationFallbackPolicy() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.db.uri', 'http://gorge-db:8170');

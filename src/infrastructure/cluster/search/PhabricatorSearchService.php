@@ -273,16 +273,43 @@ class PhabricatorSearchService
     PhabricatorSearchAbstractDocument $document) {
 
     $exceptions = array();
+    $gorge_fallback_exceptions = array();
+    $native_write_succeeded = false;
     foreach (self::getAllServices() as $service) {
       if (!$service->isWritable()) {
         continue;
       }
 
       $engine = $service->getEngine();
+      $is_gorge =
+        (idx($service->getConfig(), 'type') ===
+          PhabricatorGorgeFulltextStorageEngine::ENGINE_TYPE);
       try {
         $engine->reindexAbstractDocument($document);
+        if (!$is_gorge) {
+          $native_write_succeeded = true;
+        }
       } catch (Exception $ex) {
+        if ($is_gorge) {
+          $gorge = PhabricatorGorgeServiceRegistry::getService('search');
+          if ($gorge->isFallbackAllowed()) {
+            $gorge_fallback_exceptions[] = $ex;
+            continue;
+          }
+        }
+
         $exceptions[] = $ex;
+      }
+    }
+
+    if ($gorge_fallback_exceptions) {
+      if ($native_write_succeeded) {
+        PhabricatorGorgeServiceRegistry::getService('search')
+          ->recordFallback('index');
+      } else {
+        foreach ($gorge_fallback_exceptions as $exception) {
+          $exceptions[] = $exception;
+        }
       }
     }
 

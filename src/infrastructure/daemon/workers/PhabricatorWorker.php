@@ -354,12 +354,33 @@ abstract class PhabricatorWorker extends Phobject {
   }
 
   private function flushTaskQueueWithMode(array $defaults, $force_native) {
-    foreach ($this->getQueuedTasks() as $task) {
-      list($class, $data, $options) = $task;
+    $transaction = null;
+    if ($force_native) {
+      // Native follow-ups are used while finalizing a parent task after a
+      // Gorge control-plane failure. They must become visible as a complete
+      // batch: a partially persisted chain would be duplicated if the parent
+      // later became leaseable and ran again.
+      $transaction = new PhabricatorWorkerActiveTask();
+      $transaction->openTransaction();
+    }
 
-      $options = $options + $defaults;
+    try {
+      foreach ($this->getQueuedTasks() as $task) {
+        list($class, $data, $options) = $task;
 
-      self::scheduleTaskWithMode($class, $data, $options, $force_native);
+        $options = $options + $defaults;
+
+        self::scheduleTaskWithMode($class, $data, $options, $force_native);
+      }
+
+      if ($transaction) {
+        $transaction->saveTransaction();
+      }
+    } catch (Throwable $ex) {
+      if ($transaction) {
+        $transaction->killTransaction();
+      }
+      throw $ex;
     }
 
     $this->queuedTasks = array();

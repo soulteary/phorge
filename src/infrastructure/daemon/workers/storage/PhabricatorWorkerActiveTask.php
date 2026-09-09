@@ -3,6 +3,7 @@
 final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
 
   const COMPLETION_PENDING_OWNER = 'gorge-completion-pending';
+  const FAILURE_PENDING_OWNER = 'gorge-failure-pending';
 
   protected $failureTime;
 
@@ -163,7 +164,26 @@ final class PhabricatorWorkerActiveTask extends PhabricatorWorkerTask {
       $duration = phutil_microseconds_since($t_start);
       $did_succeed = true;
     } catch (PhabricatorWorkerPermanentFailureException $ex) {
-      $go_ok = $this->notifyGoFail(true);
+      try {
+        $go_ok = $this->notifyGoFail(true);
+      } catch (Exception $report_ex) {
+        // The worker has already declared this task permanently failed. If
+        // the reporting request failed after Gorge received it, retrying the
+        // work would be both unsafe and contrary to the worker's result.
+        // Park any surviving SQL row for explicit reconciliation and expose
+        // the original reporting exception to required-mode callers.
+        try {
+          $this
+            ->setLeaseOwner(self::FAILURE_PENDING_OWNER)
+            ->setLeaseExpires(2147483647)
+            ->forceSaveWithoutLease();
+        } catch (Throwable $park_ex) {
+          phlog($park_ex);
+        }
+
+        throw $report_ex;
+      }
+
       if (!$go_ok) {
         $result = $this->archiveTask(
           PhabricatorWorkerArchiveTask::RESULT_FAILURE,
