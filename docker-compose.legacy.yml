@@ -1,7 +1,7 @@
 # Phorge (phorge-fork) 旧版单容器编排
 # 用法:
 #   cp .env.example .env          # 可选，用于改密码 / 端口 / 域名
-#   docker compose -f docker-compose.legacy.yml up -d --build
+#   docker compose -f docker-compose.legacy.yml up -d --build --remove-orphans
 #   然后浏览器访问 http://127.0.0.1:8088/ 完成初始管理员注册。
 #
 # 说明:

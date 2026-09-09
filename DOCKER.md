@@ -86,13 +86,14 @@ Gorge 搜索条目，保留其它引擎，列表为空时恢复 MySQL/Ferret。
 已有安装若暂时不准备接入 Gorge，可以继续运行：
 
 ```bash
-docker compose -f docker-compose.legacy.yml up -d --build
+docker compose -f docker-compose.legacy.yml up -d --build --remove-orphans
 ```
 
 如果该配置卷此前运行过默认栈，legacy 入口会先撤销 webhook 委派和 Gorge
 task-queue 端点，并把 `phd.taskmasters` 精确恢复为进入 Gorge 前的本地值（原来未设置
 则删除覆盖、回到 Phorge 默认值）。清理或恢复失败会阻止 legacy 启动，避免出现无人投递
-webhook 或没有 taskmaster 消费队列的半回滚状态。
+webhook 或没有 taskmaster 消费队列的半回滚状态。`--remove-orphans` 同时停止并移除默认栈
+遗留的 `phorge-daemon`、`gorge-worker` 与其它 Gorge 容器；缺少它会让旧消费者继续运行。
 
 ## 镜像结构
 
