@@ -36,6 +36,8 @@ function read_json_object($path, $required) {
 }
 
 function write_json_object($path, array $value) {
+  $owner = file_exists($path) ? fileowner($path) : null;
+  $group = file_exists($path) ? filegroup($path) : null;
   $temporary = $path.'.tmp.'.getmypid();
   $json = json_encode(
     $value,
@@ -43,7 +45,22 @@ function write_json_object($path, array $value) {
   if (file_put_contents($temporary, $json, LOCK_EX) === false) {
     throw new Exception('Unable to write JSON file: '.$path);
   }
-  chmod($temporary, 0640);
+  if ($owner !== null && $owner !== false &&
+      fileowner($temporary) !== $owner &&
+      !chown($temporary, $owner)) {
+    @unlink($temporary);
+    throw new Exception('Unable to preserve JSON file owner: '.$path);
+  }
+  if ($group !== null && $group !== false &&
+      filegroup($temporary) !== $group &&
+      !chgrp($temporary, $group)) {
+    @unlink($temporary);
+    throw new Exception('Unable to preserve JSON file group: '.$path);
+  }
+  if (!chmod($temporary, 0640)) {
+    @unlink($temporary);
+    throw new Exception('Unable to set JSON file mode: '.$path);
+  }
   if (!rename($temporary, $path)) {
     @unlink($temporary);
     throw new Exception('Unable to install JSON file: '.$path);

@@ -1528,6 +1528,8 @@ else
     PHORGE_CONTROL_PLANE=legacy \
         php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
         full "$COLLABORATION_STATE_FILE"
+    chown www-data:www-data "$CONF_FILE" || true
+    chmod 0640 "$CONF_FILE" || true
 
     echo "[entrypoint] 原子生成统一部署配置 $DEPLOYMENT_CONFIG_FILE ..."
     php "$PHORGE_DIR/scripts/setup/build_deployment_config.php" \

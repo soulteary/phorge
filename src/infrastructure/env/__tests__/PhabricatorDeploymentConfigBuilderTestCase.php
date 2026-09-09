@@ -209,6 +209,8 @@ final class PhabricatorDeploymentConfigBuilderTestCase
             'present' => false,
             'value' => null,
           )));
+      $local_owner = fileowner($local_path);
+      $local_group = filegroup($local_path);
 
       execx(
         '%s %s full %s %s %s %s',
@@ -228,6 +230,8 @@ final class PhabricatorDeploymentConfigBuilderTestCase
       $this->assertFalse(array_key_exists('notification.servers', $config));
       $this->assertFalse(Filesystem::pathExists($taskqueue_state_path));
       $this->assertFalse(Filesystem::pathExists($notification_state_path));
+      $this->assertEqual($local_owner, fileowner($local_path));
+      $this->assertEqual($local_group, filegroup($local_path));
     } finally {
       Filesystem::remove($directory);
     }
