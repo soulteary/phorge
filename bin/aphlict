@@ -1,1 +1,8 @@
-../support/aphlict/server/aphlict_launcher.php
+#!/usr/bin/env php
+<?php
+
+fwrite(
+  STDERR,
+  "Aphlict's Node.js server has been removed from this Phorge distribution.\n".
+  "Use the bundled gorge-notification service and configure notification.servers instead.\n");
+exit(64);
