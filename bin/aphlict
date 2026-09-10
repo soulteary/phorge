@@ -1,8 +1,24 @@
 #!/usr/bin/env php
 <?php
 
-fwrite(
-  STDERR,
-  "Aphlict's Node.js server has been removed from this Phorge distribution.\n".
-  "Use the bundled gorge-notification service and configure notification.servers instead.\n");
-exit(64);
+$root = dirname(__DIR__);
+require_once $root.'/scripts/__init_script__.php';
+
+$args = new PhutilArgumentParser($argv);
+$args->setTagline(pht('send test notifications'));
+$args->setSynopsis(pht(<<<EOSYNOPSIS
+**aphlict** notify --user __username__ --message __text__
+    Send a test notification through the configured notification service.
+
+The bundled Aphlict Node.js process manager has been removed. Use the bundled
+gorge-notification service for realtime notification delivery.
+
+EOSYNOPSIS
+  ));
+$args->parseStandardArguments();
+
+$workflows = array(
+  new PhabricatorAphlictManagementNotifyWorkflow(),
+  new PhutilHelpArgumentWorkflow(),
+);
+$args->parseWorkflows($workflows);

@@ -29,90 +29,25 @@ Notifications are supported for browsers which support WebSockets. This covers
 most modern browsers (Chrome, Firefox, Safari, Edge) and many mobile browsers.
 
 
-Installing Node and Modules
-===========================
+Running the Notification Service
+================================
 
-The notification server uses Node.js, so you'll need to install it first.
+This distribution uses the bundled `gorge-notification` service. The former
+Node.js Aphlict server and its process-management commands have been removed.
+The default Docker Compose deployment starts `gorge-notification`
+automatically.
 
-To install Node.js, follow the instructions on
-[[ https://nodejs.org | nodejs.org ]].
+For a source or custom deployment, run the `gorge-notification` image or
+binary and expose both protocol-compatible endpoints:
 
-You will also need to install the dependencies for Node. This needs to be
-installed into the notification server directory:
+  - the client WebSocket port, `22280` by default;
+  - the administrative HTTP port, `22281` by default.
 
-  phorge/ $ cd support/aphlict/server/
-  phorge/support/aphlict/server/ $ npm install
-
-Once Node.js and its dependencies are installed, you're ready to start the
-server.
-
-
-Running the Aphlict Server
-==========================
-
-After installing Node.js, you can control the notification server with the
-`bin/aphlict` command. To start the server:
-
-  phorge/ $ bin/aphlict start
-
-By default, the server must be able to listen on port `22280`. If you're using
-a host firewall (like a security group in EC2), make sure traffic can reach the
-server.
-
-The server configuration is controlled by a configuration file, which is
-separate from Phorge's configuration settings. The default file can
-be found at `phorge/conf/aphlict/aphlict.default.json`.
-
-To make adjustments to the default configuration, either copy this file to
-create `aphlict.custom.json` in the same directory (this file will be used if
-it exists) or specify a configuration file explicitly with the `--config` flag:
-
-  phorge/ $ bin/aphlict start --config path/to/config.json
-
-The configuration file has these settings:
-
-  - `servers`: //Required list.// A list of servers to start.
-  - `logs`: //Optional list.// A list of logs to write to.
-  - `cluster`: //Optional list.// A list of cluster peers. This is an advanced
-    feature.
-  - `pidfile`: //Required string.// Path to a PID file.
-  - `memory.hint`: //Optional int.// Suggestion to `node` about how much
-    memory to use, via `--max-old-stack-size`. In most cases, this can be
-    left unspecified.
-
-Each server in the `servers` list should be an object with these keys:
-
-  - `type`: //Required string.// The type of server to start. Options are
-    `admin` or `client`. Normally, you should run one of each.
-  - `port`: //Required int.// The port this server should listen on.
-  - `listen`: //Optional string.// Which interface to bind to. By default,
-    the `admin` server is bound to `127.0.0.1` (so only other services on the
-    local machine can connect to it), while the `client` server is bound
-    to `0.0.0.0` (so any client can connect).
-  - `ssl.key`: //Optional string.// If you want to use SSL on this port,
-    the path to an SSL key.
-  - `ssl.cert`: //Optional string.// If you want to use SSL on this port,
-    the path to an SSL certificate.
-  - `ssl.chain`: //Optional string.// If you have configured SSL on this
-    port, an optional path to a certificate chain file.
-
-Each log in the `logs` list should be an object with these keys:
-
-  - `path`: //Required string.// Path to the log file.
-
-Each peer in the `cluster` list should be an object with these keys:
-
-  - `host`: //Required string.// The peer host address.
-  - `port`: //Required int.// The peer port.
-  - `protocol`: //Required string.// The protocol to connect with, one of
-    `"http"` or `"https"`.
-
-Cluster configuration is an advanced topic and can be omitted for most
-installs. For more information on how to configure a cluster, see
-@{article:Clustering Introduction} and @{article:Cluster: Notifications}.
-
-The defaults are appropriate for simple cases, but you may need to adjust them
-if you are running a more complex configuration.
+Configure the service with the `GORGE_NOTIFICATION_*` environment variables.
+See the Gorge notification module documentation for the current variable
+list, health probes, TLS termination, and clustering behavior. Phorge only
+needs the endpoint definitions in `notification.servers`; it does not manage
+the external process.
 
 Configuring Phorge
 =======================
@@ -141,9 +76,9 @@ Normally, you'll list one client server and one admin server, like this:
 ```
 
 This definition defines which services the user's browser will attempt to
-connect to. Most of the time, it will be very similar to the services defined
-in the Aphlict configuration. However, if you are sending traffic through a
-load balancer or terminating SSL somewhere before traffic reaches Aphlict,
+connect to. Most of the time, it will be very similar to the endpoints exposed
+by `gorge-notification`. However, if you are sending traffic through a
+load balancer or terminating SSL somewhere before traffic reaches the service,
 the services the browser connects to may need to have different hosts, ports
 or protocols than the underlying server listens on.
 
@@ -159,16 +94,9 @@ operational.
 Troubleshooting
 ===============
 
-You can run `aphlict` in the foreground to get output to your console:
-
-  phorge/ $ ./bin/aphlict debug
-
-Because the notification server uses WebSockets, your browser error console
+Inspect the `gorge-notification` container or service logs and its `/healthz`
+and `/readyz` probes. Because the notification server uses WebSockets, your browser error console
 may also have information that is useful in figuring out what's wrong.
-
-The server also generates a log, by default in `/var/log/aphlict.log`. You can
-change this location by adjusting configuration. The log may contain
-information that is useful in resolving issues.
 
 
 SSL and HTTPS
@@ -181,8 +109,8 @@ If a client connects to Phorge over HTTPS, Phorge will automatically
 select an appropriate HTTPS service from `notification.servers` and instruct
 the browser to open a websocket connection with `wss://`.
 
-The simplest way to do this is configure Aphlict with an SSL key and
-certificate and let it terminate SSL directly.
+The simplest way to do this is terminate TLS at a reverse proxy in front of
+`gorge-notification`.
 
 If you prefer not to do this, two other options are:
 
@@ -203,8 +131,8 @@ traditional load balancer or a similar device, do this:
   - Point `notification.servers` at your load balancer or reverse proxy,
     specifying that the protocol is `https`.
   - On the load balancer or proxy, terminate SSL and forward traffic to the
-    Aphlict server.
-  - In the Aphlict configuration, listen on the target port with `http`.
+    `gorge-notification` client port.
+  - Keep the administrative port private and reachable only by Phorge.
 
 
 Terminating SSL with Nginx
@@ -267,10 +195,9 @@ With this approach, you should make these additional adjustments:
 
 You do not need to adjust the `"admin"` server.
 
-**Aphlict**: Your Aphlict configuration should make these adjustments to
-the `"client"` server:
+**gorge-notification**: Configure the client listener for this topology:
 
-  - Do not specify any `ssl.*` options: `nginx` will send plain HTTP traffic
-    to Aphlict.
-  - Optionally, you can `listen` on `127.0.0.1` instead of `0.0.0.0`, because
-    the server will no longer receive external traffic.
+  - Let `nginx` terminate TLS and forward plain WebSocket traffic to the
+    client port.
+  - Bind the client listener to a private interface when it will receive
+    traffic only from `nginx`.
