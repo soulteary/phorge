@@ -6,13 +6,11 @@ final class PhabricatorAphlictManagementStopWorkflow
   protected function didConstruct() {
     $this
       ->setName('stop')
-      ->setSynopsis(pht('Stop the notification server.'))
-      ->setArguments($this->getLaunchArguments());
+      ->setSynopsis(pht('Report that the Aphlict server is retired.'));
   }
 
   public function execute(PhutilArgumentParser $args) {
-    $this->parseLaunchArguments($args);
-    return $this->executeStopCommand();
+    return $this->executeRetiredCommand();
   }
 
 }

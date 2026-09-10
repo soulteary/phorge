@@ -478,8 +478,8 @@ docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
 ## 用 Gorge 做实时通知（可选）
 
 Phorge 的实时通知（页面右上角的小铃铛即时亮起、Conpherence 消息实时到达）依赖一个
-叫 **Aphlict** 的独立通知服务器，上游用 Node.js 写成、由 `bin/aphlict start` 启动。本镜像
-**没装 Node.js**，所以开箱状态下通知只有刷新页面才看得到。
+叫 **Aphlict** 的独立通知服务器，上游使用 Node.js。本发行版已删除该服务端和进程管理命令，
+镜像也不包含 Node.js。
 
 `docker-compose.gorge.yml` 里的 `gorge-notification` 服务是它的替代品：Go 实现，与 Aphlict
 **线兼容**——一样的路径、一样的报文格式、一样不做鉴权。正因为线兼容，接入不需要改任何 PHP

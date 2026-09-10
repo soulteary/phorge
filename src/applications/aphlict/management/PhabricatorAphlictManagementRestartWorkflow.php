@@ -6,19 +6,11 @@ final class PhabricatorAphlictManagementRestartWorkflow
   protected function didConstruct() {
     $this
       ->setName('restart')
-      ->setSynopsis(pht('Stop, then start the notification server.'))
-      ->setArguments($this->getLaunchArguments());
+      ->setSynopsis(pht('Report that the Aphlict server is retired.'));
   }
 
   public function execute(PhutilArgumentParser $args) {
-    $this->parseLaunchArguments($args);
-
-    $err = $this->executeStopCommand();
-    if ($err) {
-      return $err;
-    }
-
-    return $this->executeStartCommand();
+    return $this->executeRetiredCommand();
   }
 
 }

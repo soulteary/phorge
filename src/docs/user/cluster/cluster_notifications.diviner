@@ -48,12 +48,14 @@ delay. They may lose some notifications while their client is reconnecting,
 but normally this should only last for a few seconds.
 
 
-Configuring Aphlict
-===================
+Configuring Gorge Notification
+==============================
 
-To configure clustering on the server side, add a `cluster` key to your
-Aphlict configuration file. For more details about configuring Aphlict,
-see @{article:Notifications User Guide: Setup and Configuration}.
+To configure clustering on the server side, set
+`GORGE_NOTIFICATION_CONFIG_FILE` to a JSON configuration file and add a
+`cluster` key to that file. For more details about configuring the Gorge
+notification service, see
+@{article:Notifications User Guide: Setup and Configuration}.
 
 The `cluster` key should contain a list of `"admin"` server locations. Every
 message the server receives will be retransmitted to all nodes in the list.
@@ -63,12 +65,12 @@ sending messages to itself. You can safely list every server you run in the
 configuration file, including the current server.
 
 You do not need to configure servers in an acyclic graph or only list //other//
-servers: just list everything on every server and Aphlict will figure things
-out from there.
+servers: just list everything on every server and the Gorge notification
+service will figure things out from there.
 
 A simple example with two servers might look like this:
 
-```lang=json, name="aphlict.json (Cluster)"
+```lang=json, name="gorge-notification.json (Cluster)"
 {
   ...
   "cluster": [

@@ -48,8 +48,9 @@ the code before pushing it, anyway.
 
 = How can I enable syntax highlighting? =
 
-You need to install and configure **Pygments** to highlight anything else than
-PHP. See the `pygments.enabled` configuration setting.
+Configure the bundled Gorge render service and select the Gorge syntax
+highlighter engine. The former Pygments subprocess integration has been
+retired.
 
 = What formatting can be used in comments? =
 

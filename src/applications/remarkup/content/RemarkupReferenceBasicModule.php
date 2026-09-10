@@ -237,7 +237,7 @@ When using fenced code blocks (triple backticks) you can append the
 language right after the backticks, like this: ##```html##
 
 This will highlight the block using a highlighter for that language, if one is
-available (in most cases, this means you need to configure Pygments):
+available. Configure the Gorge syntax highlighter for broad language support:
 
   lang=html
   <a href="#">...</a>

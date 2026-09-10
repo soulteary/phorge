@@ -30,9 +30,6 @@ git pull
 # Stop daemons.
 $ROOT/$NAME_MAIN/bin/phd stop
 
-# If running the notification server, stop it.
-# $ROOT/$NAME_MAIN/bin/aphlict stop
-
 # Stop the webserver (apache, nginx, lighttpd, etc). This command will differ
 # depending on which system and webserver you are running: replace it with an
 # appropriate command for your system.
@@ -51,6 +48,3 @@ sudo /etc/init.d/httpd start
 
 # Restart daemons.
 $ROOT/$NAME_MAIN/bin/phd start
-
-# If running the notification server, start it.
-# $ROOT/$NAME_MAIN/bin/aphlict start

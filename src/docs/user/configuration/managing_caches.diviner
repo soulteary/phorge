@@ -16,8 +16,8 @@ instead of recomputing the result.
 
 Because text is cached, you may continue to see the old result even after you
 make certain configuration changes which should affect it. The most common
-example of this is that if you enable syntax highlighting with Pygments, old
-diffs and pastes may not appear highlighted.
+example of this is that after switching to the Gorge syntax highlighter, old
+diffs and pastes may continue to show results from the previous highlighter.
 
 You may also run into this issue if you modify existing Remarkup rules or
 develop new ones, or modify other parts of the code that run before the results

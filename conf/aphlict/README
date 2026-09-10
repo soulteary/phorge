@@ -1,16 +1,12 @@
-To customize this configuration, you have two options: create a custom
-configuration file in this directory, or specify a path to a configuration file
-explicitly when starting Aphlict.
+The bundled Node.js Aphlict server has been removed. This directory and its
+historical JSON file are retained only as a migration reference for the wire
+protocol and must not be used to start a process.
 
-To create a custom configuration file, copy `aphlict.default.json` in this
-directory and rename it `aphlict.custom.json`. If this file exists, it will
-be read by default.
+Use the bundled `gorge-notification` service and configure its
+`GORGE_NOTIFICATION_*` environment variables. Then point Phorge's
+`notification.servers` setting at the compatible client and admin endpoints.
+The `bin/aphlict notify` command remains available for sending a test
+notification; the start, stop, restart, status, and debug commands are retired.
 
-To specify a path when starting Aphlict, use the `--config` flag:
-
-  phorge/ $ ./bin/aphlict start --config path/to/config.json
-
-Specifying a configuration file explicitly overrides default configuration.
-
-For more information about configuring notifications, see the article
-"Notifications User Guide: Setup and Configuration" in the documentation.
+For more information, see "Notifications User Guide: Setup and Configuration"
+in the documentation and the Gorge notification module guide.

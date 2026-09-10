@@ -91,9 +91,6 @@ $ROOT/phorge/bin/phd stop
 # If using systemd to manage the daemons:
 # systemctl stop phorge-phd
 
-# If running the notification server, stop it.
-# $ROOT/phorge/bin/aphlict stop
-
 # Stop the webserver (apache, nginx, lighttpd, etc). This command will differ
 # depending on which system and webserver you are running: replace it with an
 # appropriate command for your system.
@@ -123,6 +120,4 @@ sudo /etc/init.d/httpd start
 # systemctl start phorge-phd
 $ROOT/phorge/bin/phd start
 
-# If running the notification server, start it.
-# $ROOT/phorge/bin/aphlict start
 ```

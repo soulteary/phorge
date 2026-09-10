@@ -6,20 +6,11 @@ final class PhabricatorAphlictManagementDebugWorkflow
   protected function didConstruct() {
     $this
       ->setName('debug')
-      ->setSynopsis(
-        pht(
-          'Start the notifications server in the foreground and print large '.
-          'volumes of diagnostic information to the console.'))
-      ->setArguments($this->getLaunchArguments());
+      ->setSynopsis(pht('Report that the Aphlict server is retired.'));
   }
 
   public function execute(PhutilArgumentParser $args) {
-    $this->parseLaunchArguments($args);
-
-    $this->setDebug(true);
-
-    $this->willLaunch();
-    return $this->launch();
+    return $this->executeRetiredCommand();
   }
 
 }
