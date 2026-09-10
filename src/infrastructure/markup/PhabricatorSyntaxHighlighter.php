@@ -5,14 +5,9 @@ final class PhabricatorSyntaxHighlighter extends Phobject {
   public static function newEngine() {
     $engine = PhabricatorEnv::newObjectFromConfig('syntax-highlighter.engine');
 
-    $config = array(
-      'pygments.enabled' => PhabricatorEnv::getEnvConfig('pygments.enabled'),
-      'filename.map'     => PhabricatorEnv::getEnvConfig('syntax.filemap'),
-    );
-
-    foreach ($config as $key => $value) {
-      $engine->setConfig($key, $value);
-    }
+    $engine->setConfig(
+      'filename.map',
+      PhabricatorEnv::getEnvConfig('syntax.filemap'));
 
     return $engine;
   }
