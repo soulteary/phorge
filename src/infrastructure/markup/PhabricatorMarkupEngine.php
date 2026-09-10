@@ -1,327 +1,22 @@
 <?php
 
 /**
- * Manages markup engine selection, configuration, application, caching and
- * pipelining.
- *
- * @{class:PhabricatorMarkupEngine} can be used to render objects which
- * implement @{interface:PhabricatorMarkupInterface} in a batched, cache-aware
- * way. For example, if you have a list of comments written in remarkup (and
- * the objects implement the correct interface) you can render them by first
- * building an engine and adding the fields with @{method:addObject}.
- *
- *   $field  = 'field:body'; // Field you want to render. Each object exposes
- *                           // one or more fields of markup.
- *
- *   $engine = new PhabricatorMarkupEngine();
- *   foreach ($comments as $comment) {
- *     $engine->addObject($comment, $field);
- *   }
- *
- * Now, call @{method:process} to perform the actual cache/rendering
- * step. This is a heavyweight call which does batched data access and
- * transforms the markup into output.
- *
- *   $engine->process();
- *
- * Finally, do something with the results:
- *
- *   $results = array();
- *   foreach ($comments as $comment) {
- *     $results[] = $engine->getOutput($comment, $field);
- *   }
- *
- * If you have a single object to render, you can use the convenience method
- * @{method:renderOneObject}.
- *
  * @task markup Markup Pipeline
  * @task engine Engine Construction
+ * @task toc Table of Contents
  */
 final class PhabricatorMarkupEngine extends Phobject {
 
-  private $objects = array();
   private $viewer;
-  private $contextObject;
-  private $version = 21;
-  private $engineCaches = array();
-  private $auxiliaryConfig = array();
-
-  private static $engineStack = array();
-
-
-/* -(  Markup Pipeline  )---------------------------------------------------- */
-
+  private $contextObjects = array();
+  private $objects = array();
+  private $config = array();
+  private $toc;
+  private $customInlineRule;
+  private $customBlockRule;
 
   /**
-   * Convenience method for pushing a single object through the markup
-   * pipeline.
-   *
-   * @param PhabricatorMarkupInterface  $object The object to render.
-   * @param string                      $field The field to render.
-   * @param PhabricatorUser             $viewer User viewing the markup.
-   * @param object                      $context_object (optional) A context
-   *                                    object for policy checks.
-   * @return string                     Marked up output.
-   * @task markup
-   */
-  public static function renderOneObject(
-    PhabricatorMarkupInterface $object,
-    $field,
-    PhabricatorUser $viewer,
-    $context_object = null) {
-
-    return id(new self())
-      ->setViewer($viewer)
-      ->setContextObject($context_object)
-      ->addObject($object, $field)
-      ->process()
-      ->getOutput($object, $field);
-  }
-
-
-  /**
-   * Queue an object for markup generation when @{method:process} is
-   * called. You can retrieve the output later with @{method:getOutput}.
-   *
-   * @param PhabricatorMarkupInterface  $object The object to render.
-   * @param string                      $field The field to render.
-   * @return $this
-   * @task markup
-   */
-  public function addObject(PhabricatorMarkupInterface $object, $field) {
-    $key = $this->getMarkupFieldKey($object, $field);
-    $this->objects[$key] = array(
-      'object' => $object,
-      'field'  => $field,
-    );
-
-    return $this;
-  }
-
-
-  /**
-   * Process objects queued with @{method:addObject}. You can then retrieve
-   * the output with @{method:getOutput}.
-   *
-   * @return $this
-   * @task markup
-   */
-  public function process() {
-    self::$engineStack[] = $this;
-
-    try {
-      $result = $this->execute();
-    } finally {
-      array_pop(self::$engineStack);
-    }
-
-    return $result;
-  }
-
-  public static function isRenderingEmbeddedContent() {
-    // See T13678. This prevents cycles when rendering embedded content that
-    // itself has remarkup fields.
-    return (count(self::$engineStack) > 1);
-  }
-
-  private function execute() {
-    $keys = array();
-    foreach ($this->objects as $key => $info) {
-      if (!isset($info['markup'])) {
-        $keys[] = $key;
-      }
-    }
-
-    if (!$keys) {
-      return $this;
-    }
-
-    $objects = array_select_keys($this->objects, $keys);
-
-    // Build all the markup engines. We need an engine for each field whether
-    // we have a cache or not, since we still need to postprocess the cache.
-    $engines = array();
-    foreach ($objects as $key => $info) {
-      $engines[$key] = $info['object']->newMarkupEngine($info['field']);
-      $engines[$key]->setConfig('viewer', $this->viewer);
-      $engines[$key]->setConfig('contextObject', $this->contextObject);
-
-      foreach ($this->auxiliaryConfig as $aux_key => $aux_value) {
-        $engines[$key]->setConfig($aux_key, $aux_value);
-      }
-    }
-
-    // Load or build the preprocessor caches.
-    $blocks = $this->loadPreprocessorCaches($engines, $objects);
-    $blocks = mpull($blocks, 'getCacheData');
-
-    $this->engineCaches = $blocks;
-
-    // Finalize the output.
-    foreach ($objects as $key => $info) {
-      $engine = $engines[$key];
-      $field = $info['field'];
-      $object = $info['object'];
-
-      $output = $engine->postprocessText($blocks[$key]);
-      $output = $object->didMarkupText($field, $output, $engine);
-      $this->objects[$key]['output'] = $output;
-    }
-
-    return $this;
-  }
-
-
-  /**
-   * Get the output of markup processing for a field queued with
-   * @{method:addObject}. Before you can call this method, you must call
-   * @{method:process}.
-   *
-   * @param PhabricatorMarkupInterface  $object The object to retrieve.
-   * @param string                      $field The field to retrieve.
-   * @return string                     Processed output.
-   * @task markup
-   */
-  public function getOutput(PhabricatorMarkupInterface $object, $field) {
-    $key = $this->getMarkupFieldKey($object, $field);
-    $this->requireKeyProcessed($key);
-
-    return $this->objects[$key]['output'];
-  }
-
-
-  /**
-   * Retrieve engine metadata for a given field.
-   *
-   * @param PhabricatorMarkupInterface  $object The object to retrieve.
-   * @param string                      $field The field to retrieve.
-   * @param string                      $metadata_key The engine metadata field
-   *                                    to retrieve.
-   * @param mixed                       $default (optional) Default value.
-   * @task markup
-   */
-  public function getEngineMetadata(
-    PhabricatorMarkupInterface $object,
-    $field,
-    $metadata_key,
-    $default = null) {
-
-    $key = $this->getMarkupFieldKey($object, $field);
-    $this->requireKeyProcessed($key);
-
-    return idx($this->engineCaches[$key]['metadata'], $metadata_key, $default);
-  }
-
-
-  /**
-   * @task markup
-   */
-  private function requireKeyProcessed($key) {
-    if (empty($this->objects[$key])) {
-      throw new Exception(
-        pht(
-          "Call %s before using results (key = '%s').",
-          'addObject()',
-          $key));
-    }
-
-    if (!isset($this->objects[$key]['output'])) {
-      throw new PhutilInvalidStateException('process');
-    }
-  }
-
-
-  /**
-   * @task markup
-   */
-  private function getMarkupFieldKey(
-    PhabricatorMarkupInterface $object,
-    $field) {
-
-    static $custom;
-    if ($custom === null) {
-      $custom = array_merge(
-        self::loadCustomInlineRules(),
-        self::loadCustomBlockRules());
-
-      $custom = mpull($custom, 'getRuleVersion', null);
-      ksort($custom);
-      $custom = PhabricatorHash::digestForIndex(serialize($custom));
-    }
-
-    return $object->getMarkupFieldKey($field).'@'.$this->version.'@'.$custom;
-  }
-
-
-  /**
-   * @task markup
-   */
-  private function loadPreprocessorCaches(array $engines, array $objects) {
-    $blocks = array();
-
-    $use_cache = array();
-    foreach ($objects as $key => $info) {
-      if ($info['object']->shouldUseMarkupCache($info['field'])) {
-        $use_cache[$key] = true;
-      }
-    }
-
-    if ($use_cache) {
-      try {
-        $blocks = id(new PhabricatorMarkupCache())->loadAllWhere(
-          'cacheKey IN (%Ls)',
-          array_keys($use_cache));
-        $blocks = mpull($blocks, null, 'getCacheKey');
-      } catch (Throwable $ex) {
-        phlog($ex);
-      }
-    }
-
-    $is_readonly = PhabricatorEnv::isReadOnly();
-
-    foreach ($objects as $key => $info) {
-      // False check in case MySQL doesn't support unicode characters
-      // in the string (T1191), resulting in unserialize returning false.
-      if (isset($blocks[$key]) && $blocks[$key]->getCacheData() !== false) {
-        // If we already have a preprocessing cache, we don't need to rebuild
-        // it.
-        continue;
-      }
-
-      $text = $info['object']->getMarkupText($info['field']);
-      $data = $engines[$key]->preprocessText($text);
-
-      // NOTE: This is just debugging information to help sort out cache issues.
-      // If one machine is misconfigured and poisoning caches you can use this
-      // field to hunt it down.
-
-      $metadata = array(
-        'host' => php_uname('n'),
-      );
-
-      $blocks[$key] = id(new PhabricatorMarkupCache())
-        ->setCacheKey($key)
-        ->setCacheData($data)
-        ->setMetadata($metadata);
-
-      if (isset($use_cache[$key]) && !$is_readonly) {
-        // This is just filling a cache and always safe, even on a read pathway.
-        $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
-          $blocks[$key]->replace();
-        unset($unguarded);
-      }
-    }
-
-    return $blocks;
-  }
-
-
-  /**
-   * Set the viewing user. Used to implement object permissions.
-   *
-   * @param PhabricatorUser $viewer The viewing user.
-   * @return $this
-   * @task markup
+   * @task engine
    */
   public function setViewer(PhabricatorUser $viewer) {
     $this->viewer = $viewer;
@@ -329,426 +24,260 @@ final class PhabricatorMarkupEngine extends Phobject {
   }
 
   /**
-   * Set the context object. Used to implement object permissions.
+   * @task engine
+   */
+  public function getViewer() {
+    if (!$this->viewer) {
+      throw new PhutilInvalidStateException('setViewer');
+    }
+    return $this->viewer;
+  }
+
+  /**
+   * @task engine
+   */
+  public function setCustomInlineRule($rule) {
+    $this->customInlineRule = $rule;
+    return $this;
+  }
+
+  /**
+   * @task engine
+   */
+  public function setCustomBlockRule($rule) {
+    $this->customBlockRule = $rule;
+    return $this;
+  }
+
+  public function setConfig($key, $value) {
+    $this->config[$key] = $value;
+    return $this;
+  }
+
+  public function getConfig($key, $default = null) {
+    return idx($this->config, $key, $default);
+  }
+
+  /**
+   * Set a list of context objects on the engine. This allows remarkup rules to
+   * have access to custom objects when they are rendering. We need to pass
+   * some information to remarkup this way because we can not use the normal
+   * `setConfig()` mechanism, because rule configs are cached along with rule
+   * outputs (so they must be reasonably small scalar values).
    *
-   * @param $object The object in which context this remarkup is used.
-   * @return $this
-   * @task markup
+   * @param list<Phobject> List of context objects.
+   * @return this
    */
-  public function setContextObject($object) {
-    $this->contextObject = $object;
+  public function setContextObjects(array $context_objects) {
+    assert_instances_of($context_objects, 'Phobject');
+
+    $map = array();
+    foreach ($context_objects as $context_object) {
+      $key = get_class($context_object);
+      $map[$key] = $context_object;
+    }
+
+    $this->contextObjects = $map;
+
     return $this;
   }
 
-  public function setAuxiliaryConfig($key, $value) {
-    // TODO: This is gross and should be removed. Avoid use.
-    $this->auxiliaryConfig[$key] = $value;
+  /**
+   * Retrieve a context object by class name.
+   *
+   * @param string Class name.
+   * @return Phobject|null Context object, or null if no context object of the
+   *   requested class exists.
+   */
+  public function getContextObject($class) {
+    return idx($this->contextObjects, $class);
+  }
+
+  /**
+   * Load an object from a standard field specification.
+   *
+   * Phabricator has a large amount of Remarkup rendering code which uses
+   * PhabricatorMarkupEngine as a high-level interface and sets configuration
+   * for the lower-level PhutilRemarkupEngine. Keep this class focused on the
+   * generic markup pipeline; syntax-highlighter-specific runtime flags are
+   * configured by PhabricatorSyntaxHighlighter instead.
+   */
+  public function addObject(
+    PhabricatorMarkupInterface $object,
+    $field) {
+
+    $key = $this->getMarkupFieldKey($object, $field);
+    $this->objects[$key] = array($object, $field);
+
     return $this;
   }
 
-
-/* -(  Engine Construction  )------------------------------------------------ */
-
-
-
-  /**
-   * @task engine
-   */
-  public static function newManiphestMarkupEngine() {
-    return self::newMarkupEngine(array(
-    ));
+  public function process() {
+    foreach ($this->objects as $spec) {
+      list($object, $field) = $spec;
+      $this->processObject($object, $field);
+    }
+    return $this;
   }
 
+  public function getOutput(
+    PhabricatorMarkupInterface $object,
+    $field) {
 
-  /**
-   * @task engine
-   */
-  public static function newPhrictionMarkupEngine() {
-    return self::newMarkupEngine(array(
-      'header.generate-toc' => true,
-    ));
+    return $this->getEngine($object, $field)->getOutput();
   }
 
+  public function getTextOutput(
+    PhabricatorMarkupInterface $object,
+    $field) {
 
-  /**
-   * @task engine
-   */
-  public static function newPhameMarkupEngine() {
-    return self::newMarkupEngine(
-      array(
-        'macros' => false,
-        'uri.full' => true,
-        'uri.same-window' => true,
-        'uri.base' => PhabricatorEnv::getURI('/'),
-      ));
+    return $this->getEngine($object, $field)->getTextOutput();
   }
 
+  public function getEngine(
+    PhabricatorMarkupInterface $object,
+    $field) {
 
-  /**
-   * @task engine
-   */
-  public static function newFeedMarkupEngine() {
-    return self::newMarkupEngine(
-      array(
-        'macros'      => false,
-        'youtube'     => false,
-      ));
-  }
-
-  /**
-   * @task engine
-   */
-  public static function newCalendarMarkupEngine() {
-    return self::newMarkupEngine(array(
-    ));
-  }
-
-
-  /**
-   * @task engine
-   */
-  public static function newDifferentialMarkupEngine(array $options = array()) {
-    return self::newMarkupEngine(array(
-      'differential.diff' => idx($options, 'differential.diff'),
-    ));
-  }
-
-
-  /**
-   * @task engine
-   */
-  public static function newDiffusionMarkupEngine(array $options = array()) {
-    return self::newMarkupEngine(array(
-      'header.generate-toc' => true,
-    ));
-  }
-
-  /**
-   * @task engine
-   */
-  public static function getEngine($ruleset = 'default') {
-    static $engines = array();
-    if (isset($engines[$ruleset])) {
-      return $engines[$ruleset];
+    $key = $this->getMarkupFieldKey($object, $field);
+    if (!isset($this->objects[$key])) {
+      $this->objects[$key] = array($object, $field);
     }
 
-    $engine = null;
-    switch ($ruleset) {
-      case 'default':
-        $engine = self::newMarkupEngine(array());
-        break;
-      case 'feed':
-        $engine = self::newMarkupEngine(array());
-        $engine->setConfig('autoplay.disable', true);
-        break;
-      case 'nolinebreaks':
-        $engine = self::newMarkupEngine(array());
-        $engine->setConfig('preserve-linebreaks', false);
-        break;
-      case 'diffusion-readme':
-        $engine = self::newMarkupEngine(array());
-        $engine->setConfig('preserve-linebreaks', false);
-        $engine->setConfig('header.generate-toc', true);
-        break;
-      case 'diviner':
-        $engine = self::newMarkupEngine(
-          array(
-            'preserve-linebreaks' => false,
-            'header.generate-toc' => true,
-            'macros' => false,
-          ));
-        break;
-      case 'extract':
-        // Engine used for reference/edge extraction. Turn off anything which
-        // is slow and doesn't change reference extraction.
-        $engine = self::newMarkupEngine(array());
-        $engine->setConfig('pygments.enabled', false);
-        break;
-      default:
-        throw new Exception(pht('Unknown engine ruleset: %s!', $ruleset));
+    return $this->processObject($object, $field);
+  }
+
+  public function getEngineMetadata(
+    PhabricatorMarkupInterface $object,
+    $field) {
+
+    return $this->getEngine($object, $field)->getEngineMetadata();
+  }
+
+  public function getTableOfContents() {
+    return $this->toc;
+  }
+
+  private function processObject(
+    PhabricatorMarkupInterface $object,
+    $field) {
+
+    $key = $this->getMarkupFieldKey($object, $field);
+    if (isset($this->objects[$key][2])) {
+      return $this->objects[$key][2];
     }
 
-    $engines[$ruleset] = $engine;
+    $engine = $this->buildEngine($object, $field);
+    $engine->process();
+
+    $this->objects[$key][2] = $engine;
+
     return $engine;
   }
 
-  /**
-   * @task engine
-   */
-  private static function getMarkupEngineDefaultConfiguration() {
-    return array(
-      'pygments'      => PhabricatorEnv::getEnvConfig('pygments.enabled'),
-      'youtube'       => PhabricatorEnv::getEnvConfig(
-        'remarkup.enable-embedded-youtube'),
-      'differential.diff' => null,
-      'header.generate-toc' => false,
-      'macros'        => true,
-      'uri.allowed-protocols' => PhabricatorEnv::getEnvConfig(
-        'uri.allowed-protocols'),
-      'uri.full' => false,
-      'syntax-highlighter.engine' => PhabricatorEnv::getEnvConfig(
-        'syntax-highlighter.engine'),
-      'preserve-linebreaks' => true,
-    );
+  private function buildEngine(
+    PhabricatorMarkupInterface $object,
+    $field) {
+
+    $spec = $object->getMarkupFieldSpecification($field);
+
+    $engine = $this->newMarkupEngine($object, $field, $spec);
+
+    $engine->setConfig('viewer', $this->getViewer());
+    foreach ($this->config as $key => $value) {
+      $engine->setConfig($key, $value);
+    }
+
+    if ($this->customInlineRule) {
+      $engine->setCustomInlineRule($this->customInlineRule);
+    }
+
+    if ($this->customBlockRule) {
+      $engine->setCustomBlockRule($this->customBlockRule);
+    }
+
+    return $engine;
   }
 
-  public static function getMarkupEngineOptionsForInstructionPages() {
-    return array(
-      'macros' => false,
-    );
-  }
-
-  /**
-   * @task engine
-   */
-  public static function newMarkupEngine(array $options) {
-    $options += self::getMarkupEngineDefaultConfiguration();
+  private function newMarkupEngine(
+    PhabricatorMarkupInterface $object,
+    $field,
+    array $spec) {
 
     $engine = new PhutilRemarkupEngine();
 
-    $engine->setConfig('preserve-linebreaks', $options['preserve-linebreaks']);
+    $engine->setConfig('viewer', $this->getViewer());
 
-    $engine->setConfig('pygments.enabled', $options['pygments']);
     $engine->setConfig(
-      'uri.allowed-protocols',
-      $options['uri.allowed-protocols']);
-    $engine->setConfig('differential.diff', $options['differential.diff']);
-    $engine->setConfig('header.generate-toc', $options['header.generate-toc']);
+      'header.generate-toc',
+      idx($spec, 'generate-toc', false));
+
+    $engine->setConfig(
+      'preserve-linebreaks',
+      idx($spec, 'preserve-linebreaks', false));
+
+    $engine->setConfig(
+      'header.header-depth',
+      idx($spec, 'header-depth', 3));
+
+    $engine->setConfig(
+      'header.base-level',
+      idx($spec, 'header-base-level', 1));
+
+    $engine->setConfig(
+      'header.anchor-prefix',
+      idx($spec, 'header-anchor-prefix', null));
+
+    $engine->setConfig(
+      'table-of-contents',
+      idx($spec, 'table-of-contents', false));
+
     $engine->setConfig(
       'syntax-highlighter.engine',
-      $options['syntax-highlighter.engine']);
+      PhabricatorSyntaxHighlighter::newEngine());
 
-    $style_map = id(new PhabricatorDefaultSyntaxStyle())
-      ->getRemarkupStyleMap();
-    $engine->setConfig('phutil.codeblock.style-map', $style_map);
+    $engine->setConfig(
+      'syntax.filemap',
+      PhabricatorEnv::getEnvConfig('syntax.filemap'));
 
-    $engine->setConfig('uri.full', $options['uri.full']);
+    $engine->setConfig(
+      'phabricator.remarkup-objects',
+      $this->contextObjects);
 
-    if (isset($options['uri.base'])) {
-      $engine->setConfig('uri.base', $options['uri.base']);
+    $engine->setConfig(
+      'phabricator.remarkup-object',
+      $object);
+
+    $engine->setConfig(
+      'phabricator.remarkup-field',
+      $field);
+
+    if (idx($spec, 'disable-cache')) {
+      $engine->setConfig('disable-cache', true);
     }
 
-    if (isset($options['uri.same-window'])) {
-      $engine->setConfig('uri.same-window', $options['uri.same-window']);
+    if (idx($spec, 'simple')) {
+      $rules = array(
+        new PhutilRemarkupEscapeRemarkupRule(),
+        new PhutilRemarkupMonospacedRule(),
+        new PhutilRemarkupHyperlinkRule(),
+      );
+      $engine->setBlockRules($rules);
+      $engine->setInlineRules(array());
     }
 
-    $rules = array();
-    $rules[] = new PhutilRemarkupEscapeRemarkupRule();
-    $rules[] = new PhutilRemarkupEvalRule();
-    $rules[] = new PhutilRemarkupMonospaceRule();
-    $rules[] = new PhutilRemarkupHexColorCodeRule();
-
-    $rules[] = new PhutilRemarkupDocumentLinkRule();
-    $rules[] = new PhabricatorNavigationRemarkupRule();
-    $rules[] = new PhabricatorKeyboardRemarkupRule();
-    $rules[] = new PhabricatorConfigRemarkupRule();
-
-    if ($options['youtube']) {
-      $rules[] = new PhabricatorYoutubeRemarkupRule();
+    if (idx($spec, 'no-blocks')) {
+      $engine->setConfig('preserve-linebreaks', true);
+      $engine->setBlockRules(array());
     }
-
-    $rules[] = new PhabricatorIconRemarkupRule();
-    $rules[] = new PhabricatorEmojiRemarkupRule();
-    $rules[] = new PhabricatorHandleRemarkupRule();
-
-    $applications = PhabricatorApplication::getAllInstalledApplications();
-    foreach ($applications as $application) {
-      foreach ($application->getRemarkupRules() as $rule) {
-        $rules[] = $rule;
-      }
-    }
-
-    $rules[] = new PhutilRemarkupHyperlinkRule();
-
-    if ($options['macros']) {
-      $rules[] = new PhabricatorImageMacroRemarkupRule();
-      $rules[] = new PhabricatorMemeRemarkupRule();
-    }
-
-    $rules[] = new PhutilRemarkupBoldRule();
-    $rules[] = new PhutilRemarkupItalicRule();
-    $rules[] = new PhutilRemarkupDelRule();
-    $rules[] = new PhutilRemarkupUnderlineRule();
-    $rules[] = new PhutilRemarkupHighlightRule();
-    $rules[] = new PhutilRemarkupAnchorRule();
-
-    foreach (self::loadCustomInlineRules() as $rule) {
-      $rules[] = clone $rule;
-    }
-
-    $blocks = array();
-    $blocks[] = new PhutilRemarkupQuotesBlockRule();
-    $blocks[] = new PhutilRemarkupReplyBlockRule();
-    $blocks[] = new PhutilRemarkupLiteralBlockRule();
-    $blocks[] = new PhutilRemarkupHeaderBlockRule();
-    $blocks[] = new PhutilRemarkupHorizontalRuleBlockRule();
-    $blocks[] = new PhutilRemarkupListBlockRule();
-    $blocks[] = new PhutilRemarkupCodeBlockRule();
-    $blocks[] = new PhutilRemarkupNoteBlockRule();
-    $blocks[] = new PhutilRemarkupTableBlockRule();
-    $blocks[] = new PhutilRemarkupSimpleTableBlockRule();
-    $blocks[] = new PhutilRemarkupInterpreterBlockRule();
-    $blocks[] = new PhutilRemarkupDefaultBlockRule();
-
-    foreach (self::loadCustomBlockRules() as $rule) {
-      $blocks[] = $rule;
-    }
-
-    foreach ($blocks as $block) {
-      $block->setMarkupRules($rules);
-    }
-
-    $engine->setBlockRules($blocks);
 
     return $engine;
   }
 
-  public static function extractPHIDsFromMentions(
-    PhabricatorUser $viewer,
-    array $content_blocks) {
+  private function getMarkupFieldKey(
+    PhabricatorMarkupInterface $object,
+    $field) {
 
-    $mentions = array();
-
-    $engine = self::newDifferentialMarkupEngine();
-    $engine->setConfig('viewer', $viewer);
-
-    foreach ($content_blocks as $content_block) {
-      if ($content_block === null) {
-        continue;
-      }
-
-      if (!strlen($content_block)) {
-        continue;
-      }
-
-      $engine->markupText($content_block);
-      $phids = $engine->getTextMetadata(
-        PhabricatorMentionRemarkupRule::KEY_MENTIONED,
-        array());
-      $mentions += $phids;
-    }
-
-    return $mentions;
-  }
-
-  public static function extractFilePHIDsFromEmbeddedFiles(
-    PhabricatorUser $viewer,
-    array $content_blocks) {
-
-    $files = array();
-
-    $engine = self::newDifferentialMarkupEngine();
-    $engine->setConfig('viewer', $viewer);
-
-    foreach ($content_blocks as $content_block) {
-      $engine->markupText($content_block);
-      $phids = $engine->getTextMetadata(
-        PhabricatorEmbedFileRemarkupRule::KEY_ATTACH_INTENT_FILE_PHIDS,
-        array());
-      foreach ($phids as $phid) {
-        $files[$phid] = $phid;
-      }
-    }
-
-    return array_values($files);
-  }
-
-  public static function summarizeSentence($corpus) {
-    $corpus = trim($corpus);
-    $blocks = preg_split('/\n+/', $corpus, 2);
-    $block = head($blocks);
-
-    $sentences = preg_split(
-      '/\b([.?!]+)\B/u',
-      $block,
-      2,
-      PREG_SPLIT_DELIM_CAPTURE);
-
-    if (count($sentences) > 1) {
-      $result = $sentences[0].$sentences[1];
-    } else {
-      $result = head($sentences);
-    }
-
-    return id(new PhutilUTF8StringTruncator())
-      ->setMaximumGlyphs(128)
-      ->truncateString($result);
-  }
-
-  /**
-   * Produce a corpus summary, in a way that shortens the underlying text
-   * without truncating it somewhere awkward.
-   *
-   * TODO: We could do a better job of this.
-   *
-   * @param string $corpus Remarkup corpus to summarize.
-   * @return string Summarized corpus.
-   */
-  public static function summarize($corpus) {
-
-    // Major goals here are:
-    //  - Don't split in the middle of a character (utf-8).
-    //  - Don't split in the middle of, e.g., **bold** text, since
-    //    we end up with hanging '**' in the summary.
-    //  - Try not to pick an image macro, header, embedded file, etc.
-    //  - Hopefully don't return too much text. We don't explicitly limit
-    //    this right now.
-
-    $blocks = preg_split("/\n *\n\s*/", $corpus);
-
-    $best = null;
-    foreach ($blocks as $block) {
-      // This is a test for normal spaces in the block, i.e. a heuristic to
-      // distinguish standard paragraphs from things like image macros. It may
-      // not work well for non-latin text. We prefer to summarize with a
-      // paragraph of normal words over an image macro, if possible.
-      $has_space = preg_match('/\w\s\w/', $block);
-
-      // This is a test to find embedded images and headers. We prefer to
-      // summarize with a normal paragraph over a header or an embedded object,
-      // if possible.
-      $has_embed = preg_match('/^[{=]/', $block);
-
-      if ($has_space && !$has_embed) {
-        // This seems like a good summary, so return it.
-        return $block;
-      }
-
-      if (!$best) {
-        // This is the first block we found; if everything is garbage just
-        // use the first block.
-        $best = $block;
-      }
-    }
-
-    return $best;
-  }
-
-  private static function loadCustomInlineRules() {
-    return id(new PhutilClassMapQuery())
-      ->setAncestorClass(PhabricatorRemarkupCustomInlineRule::class)
-      ->execute();
-  }
-
-  private static function loadCustomBlockRules() {
-    return id(new PhutilClassMapQuery())
-      ->setAncestorClass(PhabricatorRemarkupCustomBlockRule::class)
-      ->execute();
-  }
-
-  public static function digestRemarkupContent($object, $content) {
-    $parts = array();
-    $parts[] = get_class($object);
-
-    if ($object instanceof PhabricatorLiskDAO) {
-      $parts[] = $object->getID();
-    }
-
-    $parts[] = $content;
-
-    $message = implode("\n", $parts);
-
-    return PhabricatorHash::digestWithNamedKey($message, 'remarkup');
+    return spl_object_hash($object).':'.$field;
   }
 
 }
