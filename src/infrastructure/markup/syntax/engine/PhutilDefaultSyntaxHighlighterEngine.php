@@ -12,8 +12,6 @@ final class PhutilDefaultSyntaxHighlighterEngine
 
   public function getLanguageFromFilename($filename) {
     static $default_map = array(
-      // All files which have file extensions that we haven't already matched
-      // map to their extensions.
       '@\\.([^./]+)$@' => 1,
     );
 
@@ -43,8 +41,6 @@ final class PhutilDefaultSyntaxHighlighterEngine
     if ($language === null) {
       $language = PhutilLanguageGuesser::guessLanguage($source);
     }
-
-    $have_pygments = !empty($this->config['pygments.enabled']);
 
     if ($language == 'php' && PhutilXHPASTBinary::isAvailable()) {
       return id(new PhutilXHPASTSyntaxHighlighter())
@@ -89,7 +85,6 @@ final class PhutilDefaultSyntaxHighlighterEngine
 
     if ($language == 'json') {
       return id(new PhutilLexerSyntaxHighlighter())
-        ->setConfig('lexer', new PhutilJSONFragmentLexer())
         ->getHighlightFuture($source);
     }
 
@@ -98,16 +93,10 @@ final class PhutilDefaultSyntaxHighlighterEngine
         ->getHighlightFuture($source);
     }
 
-    // Don't invoke Pygments for plain text, since it's expensive and has
-    // no effect.
-    if ($language !== 'text' && $language !== 'txt') {
-      if ($have_pygments) {
-        return id(new PhutilPygmentsSyntaxHighlighter())
-          ->setConfig('language', $language)
-          ->getHighlightFuture($source);
-      }
-    }
-
+    // Advanced highlighting is owned by PhabricatorGorgeSyntaxHighlighterEngine.
+    // The default engine intentionally keeps only the small built-in lexers so
+    // it remains useful in explicit Gorge-off / recovery deployments without
+    // pulling a Python/Pygments runtime back into Phorge.
     return id(new PhutilDefaultSyntaxHighlighter())
       ->getHighlightFuture($source);
   }
