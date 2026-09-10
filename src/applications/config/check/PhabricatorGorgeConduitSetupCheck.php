@@ -33,11 +33,7 @@ final class PhabricatorGorgeConduitSetupCheck extends PhabricatorSetupCheck {
     // wrapped in a response envelope, so a bare 200 is all we look for.
     $health_uri = $uri.'/healthz';
 
-    // A host which does not resolve can take longer than this to fail; see the
-    // note in PhabricatorGorgeServiceClient::newRequestFuture() for why that
-    // can not be bounded any tighter here.
-    $future = id(new HTTPSFuture($health_uri))
-      ->setTimeout(5);
+    $future = PhabricatorGorgeServiceClient::newProbeFuture($health_uri);
 
     try {
       $future->resolvex();
