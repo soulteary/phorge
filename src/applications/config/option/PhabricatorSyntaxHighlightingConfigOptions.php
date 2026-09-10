@@ -69,16 +69,6 @@ final class PhabricatorSyntaxHighlightingConfigOptions
             'diff domain served by `gorge-render`. The global Gorge service '.
             'policy controls whether a failure is exposed or may use the '.
             'migration fallback.')),
-      $this->newOption('pygments.enabled', 'bool', false)
-        ->setLocked(true)
-        ->setSummary(pht('Retired Pygments compatibility key.'))
-        ->setDescription(
-          pht(
-            'This option is retained only so existing configuration remains '.
-            'readable. Pygments execution support has been removed and this '.
-            'value is always treated as disabled. Use `%s` for advanced '.
-            'syntax highlighting.',
-            'PhabricatorGorgeSyntaxHighlighterEngine')),
       $this->newOption(
         'pygments.dropdown-choices',
         'wild',
