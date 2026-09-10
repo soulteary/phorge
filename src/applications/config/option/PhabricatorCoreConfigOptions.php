@@ -204,10 +204,9 @@ EOREMARKUP
             '$PATH'))
         ->setDescription(
           pht(
-            "This software sometimes executes other binaries on the ".
-            "server. An example of this is the `%s` command, used to ".
-            "syntax-highlight code written in languages other than PHP. By ".
-            "default, it is assumed that these binaries are in the %s of the ".
+            "Some administrative and integration workflows execute other ".
+            "binaries on the server. By default, it is assumed that these ".
+            "binaries are in the %s of the ".
             "user running this software (normally 'apache', 'httpd', or ".
             "'nobody'). Here you can add extra directories to the %s ".
             "environment variable, for when these binaries are in ".
@@ -217,7 +216,6 @@ EOREMARKUP
             "The current value of PATH after configuration is applied is:\n\n".
             "  lang=text\n".
             "  %s",
-            'pygmentize',
             '$PATH',
             '$PATH',
             'support/bin/',
