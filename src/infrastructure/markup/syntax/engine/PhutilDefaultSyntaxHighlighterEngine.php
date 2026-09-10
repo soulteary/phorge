@@ -85,6 +85,7 @@ final class PhutilDefaultSyntaxHighlighterEngine
 
     if ($language == 'json') {
       return id(new PhutilLexerSyntaxHighlighter())
+        ->setConfig('lexer', new PhutilJSONFragmentLexer())
         ->getHighlightFuture($source);
     }
 
