@@ -117,6 +117,27 @@ abstract class PhabricatorGorgeServiceClient extends Phobject {
 
 
   /**
+   * Build an unauthenticated liveness/readiness probe request.
+   *
+   * Gorge probe routes (`/healthz` and `/readyz`) deliberately sit outside
+   * the authenticated API envelope. Setup checks across the individual
+   * services all need the same short request budget, so keep that transport
+   * policy here instead of open-coding `HTTPSFuture` in every check.
+   *
+   * @param string $uri Absolute probe URI.
+   * @return HTTPSFuture Unresolved request.
+   */
+  public static function newProbeFuture($uri) {
+    if (!phutil_nonempty_string($uri)) {
+      throw new Exception(pht('A Gorge probe URI is required.'));
+    }
+
+    return id(new HTTPSFuture($uri))
+      ->setTimeout(5);
+  }
+
+
+  /**
    * Build an authenticated request against a route of this service.
    *
    * @param string $uri Absolute URI to request.
