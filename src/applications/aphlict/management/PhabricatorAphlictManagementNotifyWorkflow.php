@@ -1,7 +1,7 @@
 <?php
 
 final class PhabricatorAphlictManagementNotifyWorkflow
-  extends PhabricatorManagementWorkflow {
+  extends PhabricatorAphlictManagementWorkflow {
 
   protected function didConstruct() {
     $this
