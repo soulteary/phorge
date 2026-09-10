@@ -69,6 +69,15 @@ final class PhabricatorSyntaxHighlightingConfigOptions
             'diff domain served by `gorge-render`. The global Gorge service '.
             'policy controls whether a failure is exposed or may use the '.
             'migration fallback.')),
+      $this->newOption('pygments.enabled', 'bool', false)
+        ->setHidden(true)
+        ->setLocked(true)
+        ->setSummary(pht('Internal retired Pygments compatibility key.'))
+        ->setDescription(
+          pht(
+            'Pygments execution support has been removed. This hidden key '.
+            'remains registered only while the generic Remarkup engine '.
+            'continues to carry its historical configuration slot.')),
       $this->newOption(
         'pygments.dropdown-choices',
         'wild',
