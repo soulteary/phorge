@@ -7,33 +7,18 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
-    // When the Gorge database service fronts the cluster, it inspects the
-    // per-host MySQL configuration (max_allowed_packet, strict mode, InnoDB
-    // buffer pool, and so on) and returns the results as setup issues, so
-    // consume the MySQL-keyed subset of those instead of opening management
-    // connections from the web tier. When it is not configured, fall back to
-    // the native direct-SQL probes below.
-    if (PhabricatorGorgeDBClient::shouldUseService()) {
-      $this->executeGorgeChecks();
+    PhabricatorGorgeDBClient::executeWithFallback(
+      'setup.mysql',
+      function() {
+        $this->executeGorgeChecks();
+        $this->executeNativeFulltextChecks();
+      },
+      function() {
+        $this->executeNativeChecks();
+      });
+  }
 
-      // The full-text stopword and minimum-word-length checks depend on
-      // Phorge-owned state (the platform's stopword resource and which
-      // fulltext engine is active) that the service does not report, so they
-      // remain native reads even on the service path. They only read global
-      // variables, so no management write is involved.
-      $refs = PhabricatorDatabaseRef::getActiveDatabaseRefs();
-      foreach ($refs as $ref) {
-        try {
-          $this->executeFulltextChecks($ref, $ref->getRefKey());
-        } catch (AphrontConnectionQueryException $ex) {
-          // If we're unable to connect to a host, just skip its checks, the
-          // same way the native path does during a cluster incident.
-        }
-      }
-
-      return;
-    }
-
+  private function executeNativeChecks() {
     $refs = PhabricatorDatabaseRef::getActiveDatabaseRefs();
     foreach ($refs as $ref) {
       try {
@@ -42,6 +27,20 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
         // If we're unable to connect to a host, just skip the checks for it.
         // This can happen if we're restarting during a cluster incident. See
         // T12966 for discussion.
+      }
+    }
+  }
+
+  private function executeNativeFulltextChecks() {
+    // The full-text stopword and minimum-word-length checks depend on
+    // Phorge-owned state which the service does not report, so retain these
+    // native reads even when the other MySQL diagnostics use Gorge.
+    $refs = PhabricatorDatabaseRef::getActiveDatabaseRefs();
+    foreach ($refs as $ref) {
+      try {
+        $this->executeFulltextChecks($ref, $ref->getRefKey());
+      } catch (AphrontConnectionQueryException $ex) {
+        // Match the native path during a cluster incident.
       }
     }
   }
@@ -66,10 +65,6 @@ final class PhabricatorMySQLSetupCheck extends PhabricatorSetupCheck {
   private function executeGorgeChecks() {
     $client = new PhabricatorGorgeDBClient();
     $all_issues = $client->getSetupIssues();
-
-    if (!is_array($all_issues)) {
-      return;
-    }
 
     // Only the MySQL-configuration issues belong to this check; the remaining
     // issues (version, engine, storage initialization, patch status) are

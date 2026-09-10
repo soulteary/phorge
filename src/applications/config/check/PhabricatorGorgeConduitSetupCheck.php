@@ -7,6 +7,11 @@ final class PhabricatorGorgeConduitSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    if (PhabricatorGorgeServiceRegistry::getService('conduit')
+        ->isDisabled()) {
+      return;
+    }
+
     $uri = PhabricatorGorgeConduitClient::getConfiguredURI();
 
     if ($uri === null) {

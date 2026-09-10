@@ -14,6 +14,11 @@ final class PhabricatorGorgeDBSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    if (PhabricatorGorgeServiceRegistry::getService('db')
+        ->isDisabled()) {
+      return;
+    }
+
     $uri = PhabricatorGorgeDBClient::getConfiguredURI();
 
     // The first stage is implicit: if the service is not configured, the

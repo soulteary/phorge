@@ -52,4 +52,361 @@ final class PhabricatorGorgeServiceRegistryTestCase
     unset($env);
   }
 
+  public function testServicePolicyResolutionAndFallbackCounts() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig(
+      'gorge.service-policies',
+      array(
+        'search' => 'fallback',
+        'render' => 'off',
+      ));
+
+    $search = PhabricatorGorgeServiceRegistry::getService('search');
+    $render = PhabricatorGorgeServiceRegistry::getService('render');
+    $file = PhabricatorGorgeServiceRegistry::getService('file');
+
+    $this->assertTrue($search->isFallbackAllowed());
+    $this->assertTrue($render->isDisabled());
+    $this->assertTrue($file->isRequired());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    $search->recordFallback('query');
+    $search->recordFallback('query');
+    $this->assertEqual(
+      array('search.query' => 2),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
+  public function testOffDoesNotOverrideExclusiveOwnership() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'off');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+    $this->assertTrue($service->isDisabled());
+    $this->assertTrue($service->isOwnedBy('gorge'));
+    $this->assertTrue(PhabricatorGorgeTaskQueueClient::isConfigured());
+
+    unset($env);
+  }
+
+  public function testNotificationOffSuppressesConfiguredServers() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'off');
+    $env->overrideEnvConfig(
+      'notification.servers',
+      array(
+        array(
+          'type' => 'admin',
+          'host' => 'gorge-notification',
+          'port' => 22281,
+          'protocol' => 'http',
+        ),
+        array(
+          'type' => 'client',
+          'host' => '127.0.0.1',
+          'port' => 22280,
+          'protocol' => 'http',
+        ),
+      ));
+
+    $this->assertEqual(array(), PhabricatorNotificationServerRef::newRefs());
+
+    unset($env);
+  }
+
+  public function testNotificationPublishFailurePolicy() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig(
+      'notification.servers',
+      array(
+        array(
+          'type' => 'admin',
+          'host' => '127.0.0.1',
+          'port' => 1,
+          'protocol' => 'http',
+        ),
+      ));
+
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache->deleteKey(PhabricatorNotificationServerRef::KEY_REFS);
+
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $caught = null;
+    try {
+      PhabricatorNotificationClient::tryToPostMessage(array());
+    } catch (PhutilAggregateException $ex) {
+      $caught = $ex;
+    }
+    $this->assertTrue($caught instanceof PhutilAggregateException);
+
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    PhabricatorNotificationClient::tryToPostMessage(array());
+    $this->assertEqual(
+      array('notification.publish' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    $cache->deleteKey(PhabricatorNotificationServerRef::KEY_REFS);
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
+  public function testSearchOffSynthesizesNativeService() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'off');
+    $env->overrideEnvConfig(
+      'cluster.search',
+      array(
+        array(
+          'type' => 'gorge',
+          'hosts' => array(),
+        ),
+      ));
+
+    $services = PhabricatorSearchService::newRefs();
+    $this->assertEqual(1, count($services));
+    $config = $services[0]->getConfig();
+    $this->assertEqual('mysql', $config['type']);
+
+    unset($env);
+  }
+
+  public function testSearchOffSynthesizesMissingNativeRoles() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'off');
+
+    $cases = array(
+      array(
+        'configured' => array('read' => true, 'write' => false),
+        'expected' => array('read' => false, 'write' => true),
+      ),
+      array(
+        'configured' => array('read' => false, 'write' => true),
+        'expected' => array('read' => true, 'write' => false),
+      ),
+    );
+
+    foreach ($cases as $case) {
+      $env->overrideEnvConfig(
+        'cluster.search',
+        array(
+          array(
+            'type' => 'gorge',
+            'hosts' => array(),
+          ),
+          array(
+            'type' => 'mysql',
+            'roles' => $case['configured'],
+          ),
+        ));
+
+      $services = PhabricatorSearchService::newRefs();
+      $this->assertEqual(2, count($services));
+      $fallback = last($services);
+      $this->assertEqual(
+        $case['expected'],
+        idx($fallback->getConfig(), 'roles'));
+      $this->assertEqual(
+        $case['expected']['read'],
+        $fallback->isReadable());
+      $this->assertEqual(
+        $case['expected']['write'],
+        $fallback->isWritable());
+    }
+
+    unset($env);
+  }
+
+  public function testSearchFallbackSynthesizesNativeService() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig(
+      'cluster.search',
+      array(
+        array(
+          'type' => 'gorge',
+          'hosts' => array(),
+        ),
+      ));
+
+    $services = PhabricatorSearchService::newRefs();
+    $this->assertEqual(2, count($services));
+    $config = $services[1]->getConfig();
+    $this->assertEqual('mysql', $config['type']);
+
+    unset($env);
+  }
+
+  public function testSearchFallbackSynthesizesMissingNativeRoles() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+
+    $cases = array(
+      array(
+        'configured' => array('read' => true, 'write' => false),
+        'expected' => array('read' => false, 'write' => true),
+      ),
+      array(
+        'configured' => array('read' => false, 'write' => true),
+        'expected' => array('read' => true, 'write' => false),
+      ),
+    );
+
+    foreach ($cases as $case) {
+      $env->overrideEnvConfig(
+        'cluster.search',
+        array(
+          array(
+            'type' => 'gorge',
+            'hosts' => array(),
+          ),
+          array(
+            'type' => 'mysql',
+            'roles' => $case['configured'],
+          ),
+        ));
+
+      $services = PhabricatorSearchService::newRefs();
+      $this->assertEqual(3, count($services));
+      $fallback = last($services);
+      $this->assertEqual(
+        $case['expected'],
+        idx($fallback->getConfig(), 'roles'));
+      $this->assertEqual(
+        $case['expected']['read'],
+        $fallback->isReadable());
+      $this->assertEqual(
+        $case['expected']['write'],
+        $fallback->isWritable());
+    }
+
+    unset($env);
+  }
+
+  public function testSearchIndexFallbackSucceedsNatively() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig(
+      'cluster.search',
+      $this->newFailingGorgeSearchConfig());
+
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache->deleteKey(PhabricatorSearchService::KEY_REFS);
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    $document = id(new PhabricatorSearchAbstractDocument())
+      ->setPHID('PHID-TEST-search-index-fallback');
+    PhabricatorSearchService::reindexAbstractDocument($document);
+
+    $this->assertEqual(
+      array('search.index' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    $cache->deleteKey(PhabricatorSearchService::KEY_REFS);
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
+  public function testSearchIndexRequiredFailsClosed() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig(
+      'cluster.search',
+      $this->newFailingGorgeSearchConfig());
+
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache->deleteKey(PhabricatorSearchService::KEY_REFS);
+
+    $caught = null;
+    try {
+      $document = id(new PhabricatorSearchAbstractDocument())
+        ->setPHID('PHID-TEST-search-index-required');
+      PhabricatorSearchService::reindexAbstractDocument($document);
+    } catch (PhutilAggregateException $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof PhutilAggregateException);
+
+    $cache->deleteKey(PhabricatorSearchService::KEY_REFS);
+    unset($env);
+  }
+
+  private function newFailingGorgeSearchConfig() {
+    return array(
+      array(
+        'type' => 'gorge',
+        'hosts' => array(
+          array(
+            'host' => '127.0.0.1',
+            'port' => 1,
+            'roles' => array('read' => true, 'write' => true),
+          ),
+        ),
+      ),
+      array(
+        'type' => 'mysql',
+        'roles' => array('read' => true, 'write' => true),
+      ),
+    );
+  }
+
+  public function testDatabaseOperationFallbackPolicy() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.db.uri', 'http://gorge-db:8170');
+    $env->overrideEnvConfig('storage.default-namespace', 'phabricator');
+
+    $cache = PhabricatorCaches::getRequestCache();
+    $cache_key = PhabricatorGorgeDBClient::KEY_SHOULD_USE.
+      '(http://gorge-db:8170, phabricator)';
+    $cache->setKey(
+      $cache_key,
+      array(
+        'checked' => true,
+        'usable' => true,
+      ));
+
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+
+    $result = PhabricatorGorgeDBClient::executeWithFallback(
+      'test',
+      function() {
+        throw new Exception('service failure');
+      },
+      function() {
+        return 'native';
+      });
+
+    $this->assertEqual('native', $result);
+    $this->assertEqual(
+      array('db.test' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $caught = null;
+    try {
+      PhabricatorGorgeDBClient::executeWithFallback(
+        'test',
+        function() {
+          throw new Exception('required failure');
+        },
+        function() {
+          return 'unreachable';
+        });
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+    $this->assertTrue($caught instanceof Exception);
+
+    $cache->deleteKey($cache_key);
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
 }

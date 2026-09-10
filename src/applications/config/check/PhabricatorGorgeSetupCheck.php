@@ -9,6 +9,11 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    if (PhabricatorGorgeServiceRegistry::getService('render')
+        ->isDisabled()) {
+      return;
+    }
+
     $uri = PhabricatorGorgeRenderClient::getConfiguredURI();
 
     if ($uri === null) {

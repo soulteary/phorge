@@ -144,6 +144,19 @@ abstract class PhabricatorWorker extends Phobject {
     $data,
     $options = array()) {
 
+    return self::scheduleTaskWithMode(
+      $task_class,
+      $data,
+      $options,
+      $force_native = false);
+  }
+
+  private static function scheduleTaskWithMode(
+    $task_class,
+    $data,
+    array $options,
+    $force_native) {
+
     PhutilTypeSpec::checkMap(
       $options,
       array(
@@ -217,27 +230,47 @@ abstract class PhabricatorWorker extends Phobject {
       // When the Gorge task queue service owns the queue, enqueue through it
       // and return an ephemeral task carrying the service-assigned ID. When it
       // is not configured, fall through to the native SQL save.
-      if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
-        $client = new PhabricatorGorgeTaskQueueClient();
-        $result = $client->enqueue($task_class, $data, array(
-          'priority'      => $priority,
-          'objectPHID'    => $object_phid,
-          'containerPHID' => $container_phid,
-          'delayUntil'    => idx($options, 'delayUntil'),
-        ));
+      if (!$force_native &&
+          PhabricatorGorgeTaskQueueClient::isConfigured()) {
+        try {
+          $client = new PhabricatorGorgeTaskQueueClient();
+        } catch (Exception $ex) {
+          $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+          if (!$service->isFallbackAllowed()) {
+            throw $ex;
+          }
 
-        $ephemeral = id(new PhabricatorWorkerActiveTask())
-          ->makeEphemeral()
-          ->setTaskClass($task_class)
-          ->setData($data)
-          ->setPriority($priority)
-          ->setObjectPHID($object_phid)
-          ->setContainerPHID($container_phid);
-        if (isset($result['id'])) {
-          $ephemeral->setID($result['id']);
+          $service->recordFallback('enqueue');
+          phlog($ex);
+          $client = null;
         }
 
-        return $ephemeral;
+        if ($client !== null) {
+          // Do not catch failures after beginning this request. Gorge may
+          // have committed the task before the response was lost, and a SQL
+          // fallback would then enqueue the same work twice. Cross-path
+          // fallback is safe only for the constructor failure above, which
+          // happens before any request is transmitted.
+          $result = $client->enqueue($task_class, $data, array(
+            'priority'      => $priority,
+            'objectPHID'    => $object_phid,
+            'containerPHID' => $container_phid,
+            'delayUntil'    => idx($options, 'delayUntil'),
+          ));
+
+          $ephemeral = id(new PhabricatorWorkerActiveTask())
+            ->makeEphemeral()
+            ->setTaskClass($task_class)
+            ->setData($data)
+            ->setPriority($priority)
+            ->setObjectPHID($object_phid)
+            ->setContainerPHID($container_phid);
+          if (isset($result['id'])) {
+            $ephemeral->setID($result['id']);
+          }
+
+          return $ephemeral;
+        }
       }
 
       $task->save();
@@ -295,6 +328,17 @@ abstract class PhabricatorWorker extends Phobject {
     return $this->queuedTasks;
   }
 
+  /**
+   * Test whether this worker has staged followup tasks.
+   *
+   * Parent finalization uses this to select the only atomic path available
+   * for a parent and its children. The queued task payloads remain private to
+   * the worker and can only be persisted through the flush methods below.
+   */
+  final public function hasQueuedTasks() {
+    return (bool)$this->queuedTasks;
+  }
+
 
   /**
    * Schedule any queued tasks, then empty the task queue.
@@ -306,12 +350,49 @@ abstract class PhabricatorWorker extends Phobject {
    * @param array<string, mixed> $defaults (optional) Map of default options.
    */
   final public function flushTaskQueue($defaults = array()) {
-    foreach ($this->getQueuedTasks() as $task) {
-      list($class, $data, $options) = $task;
+    $this->flushTaskQueueWithMode($defaults, $force_native = false);
+  }
 
-      $options = $options + $defaults;
+  /**
+   * Persist follow-ups directly to SQL without contacting Gorge.
+   *
+   * This is used by the atomic parent/followup finalizer: Gorge currently
+   * exposes completion and enqueue as separate operations, while the shared
+   * SQL store can commit the parent archive and its entire child batch in one
+   * transaction.
+   */
+  final public function flushTaskQueueNatively($defaults = array()) {
+    $this->flushTaskQueueWithMode($defaults, $force_native = true);
+  }
 
-      self::scheduleTask($class, $data, $options);
+  private function flushTaskQueueWithMode(array $defaults, $force_native) {
+    $transaction = null;
+    if ($force_native) {
+      // Native follow-ups are used while finalizing a parent task after a
+      // Gorge control-plane failure. They must become visible as a complete
+      // batch: a partially persisted chain would be duplicated if the parent
+      // later became leaseable and ran again.
+      $transaction = new PhabricatorWorkerActiveTask();
+      $transaction->openTransaction();
+    }
+
+    try {
+      foreach ($this->getQueuedTasks() as $task) {
+        list($class, $data, $options) = $task;
+
+        $options = $options + $defaults;
+
+        self::scheduleTaskWithMode($class, $data, $options, $force_native);
+      }
+
+      if ($transaction) {
+        $transaction->saveTransaction();
+      }
+    } catch (Throwable $ex) {
+      if ($transaction) {
+        $transaction->killTransaction();
+      }
+      throw $ex;
     }
 
     $this->queuedTasks = array();
@@ -339,9 +420,19 @@ abstract class PhabricatorWorker extends Phobject {
     // When the Gorge task queue service owns the queue, hand the awaken over
     // to it; otherwise fall through to the native SQL update below.
     if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
-      $client = new PhabricatorGorgeTaskQueueClient();
-      $client->awaken($ids);
-      return;
+      try {
+        $client = new PhabricatorGorgeTaskQueueClient();
+        $client->awaken($ids);
+        return;
+      } catch (Exception $ex) {
+        $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+        if (!$service->isFallbackAllowed()) {
+          throw $ex;
+        }
+
+        $service->recordFallback('awaken');
+        phlog($ex);
+      }
     }
 
     $table = new PhabricatorWorkerActiveTask();

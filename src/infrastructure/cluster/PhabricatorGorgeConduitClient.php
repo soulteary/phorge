@@ -70,7 +70,9 @@ final class PhabricatorGorgeConduitClient
   }
 
   public static function isConfigured() {
-    return (self::getConfiguredURI() !== null);
+    $service = PhabricatorGorgeServiceRegistry::getService('conduit');
+    return !$service->isDisabled() &&
+      (self::getConfiguredURI() !== null);
   }
 
 

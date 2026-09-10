@@ -5,6 +5,12 @@
  */
 final class PhabricatorGorgeServiceSpec extends Phobject {
 
+  const POLICY_REQUIRED = 'required';
+  const POLICY_FALLBACK = 'fallback';
+  const POLICY_OFF = 'off';
+
+  private static $fallbackCounts = array();
+
   private $key;
   private $name;
   private $uriKey;
@@ -64,6 +70,87 @@ final class PhabricatorGorgeServiceSpec extends Phobject {
 
   public function getConfigurationKeys() {
     return $this->configurationKeys;
+  }
+
+  /**
+   * Resolve the failure policy for this service.
+   *
+   * A per-service entry overrides the deployment-wide policy. The default is
+   * deliberately "required": once a service is configured, an outage must be
+   * visible instead of silently selecting a second implementation.
+   */
+  public function getPolicy() {
+    $policy = null;
+    $policies = PhabricatorEnv::getEnvConfigIfExists(
+      'gorge.service-policies');
+    if (is_array($policies)) {
+      $policy = idx($policies, $this->getKey());
+    }
+
+    if ($policy === null) {
+      $policy = PhabricatorEnv::getEnvConfigIfExists(
+        'gorge.service-policy');
+    }
+    if ($policy === null) {
+      $policy = self::POLICY_REQUIRED;
+    }
+
+    $valid = array(
+      self::POLICY_REQUIRED,
+      self::POLICY_FALLBACK,
+      self::POLICY_OFF,
+    );
+    if (!in_array($policy, $valid, true)) {
+      throw new Exception(
+        pht(
+          'Gorge service "%s" has unknown failure policy "%s".',
+          $this->getKey(),
+          phutil_string_cast($policy)));
+    }
+
+    return $policy;
+  }
+
+  public function isRequired() {
+    return ($this->getPolicy() === self::POLICY_REQUIRED);
+  }
+
+  public function isFallbackAllowed() {
+    return ($this->getPolicy() === self::POLICY_FALLBACK);
+  }
+
+  public function isDisabled() {
+    return ($this->getPolicy() === self::POLICY_OFF);
+  }
+
+  /**
+   * Record an intentional transition from Gorge to a native implementation.
+   *
+   * The stable log line is suitable for aggregation. The in-process counter
+   * makes the behavior directly testable without adding a database dependency
+   * to the failure path.
+   */
+  public function recordFallback($operation) {
+    $key = $this->getKey().'.'.$operation;
+    $count = idx(self::$fallbackCounts, $key, 0) + 1;
+    self::$fallbackCounts[$key] = $count;
+
+    phlog(
+      sprintf(
+        '[gorge-fallback] service=%s operation=%s process_count=%d',
+        $this->getKey(),
+        $operation,
+        $count));
+
+    return $this;
+  }
+
+  public static function getFallbackCounts() {
+    return self::$fallbackCounts;
+  }
+
+  public static function resetFallbackCounts() {
+    self::$fallbackCounts = array();
   }
 
   public function getConfiguredURI() {

@@ -93,10 +93,49 @@ final class PhabricatorWorkerLeaseQuery extends PhabricatorQuery {
     // through it rather than with SQL here. When it is not configured, fall
     // through to the native SQL implementation below.
     if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
-      if ($this->skipLease) {
-        return $this->executeListViaGoService();
+      $operation = $this->skipLease ? 'list' : 'lease';
+
+      // Construct the client separately from the request. A constructor
+      // failure proves that no request was transmitted, so SQL fallback is
+      // safe for both reads and leases.
+      try {
+        $client = new PhabricatorGorgeTaskQueueClient();
+      } catch (Exception $ex) {
+        $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+        if (!$service->isFallbackAllowed()) {
+          throw $ex;
+        }
+
+        $service->recordFallback($operation);
+        phlog($ex);
+        $client = null;
       }
-      return $this->executeLeaseViaGoService();
+
+      if ($client !== null) {
+        if (!$this->skipLease) {
+          // Do not catch a lease failure after beginning the request. Gorge
+          // may have committed claims before its response was lost, and a
+          // second SQL lease would strand those tasks until their leases
+          // expire. Cross-path fallback needs a shared claim identifier
+          // before it can safely handle this ambiguous outcome.
+          return $this->executeLeaseViaGoService($client);
+        }
+
+        // Listing is read-only, so a failed request is safe to repeat with
+        // the native query under explicit fallback policy.
+        try {
+          return $this->executeListViaGoService($client);
+        } catch (Exception $ex) {
+          $service =
+            PhabricatorGorgeServiceRegistry::getService('taskqueue');
+          if (!$service->isFallbackAllowed()) {
+            throw $ex;
+          }
+
+          $service->recordFallback($operation);
+          phlog($ex);
+        }
+      }
     }
 
     $task_table = new PhabricatorWorkerActiveTask();
@@ -228,11 +267,11 @@ final class PhabricatorWorkerLeaseQuery extends PhabricatorQuery {
    *
    * @return map<int, PhabricatorWorkerActiveTask> Leased tasks by ID.
    */
-  private function executeLeaseViaGoService() {
+  private function executeLeaseViaGoService(
+    PhabricatorGorgeTaskQueueClient $client) {
     $lease_ownership_name = $this->getLeaseOwnershipName();
 
-    $client = id(new PhabricatorGorgeTaskQueueClient())
-      ->setLeaseOwner($lease_ownership_name);
+    $client->setLeaseOwner($lease_ownership_name);
     $results = $client->lease($this->limit);
 
     if (!$results) {
@@ -270,8 +309,8 @@ final class PhabricatorWorkerLeaseQuery extends PhabricatorQuery {
    *
    * @return map<int, PhabricatorWorkerActiveTask> Tasks by ID.
    */
-  private function executeListViaGoService() {
-    $client = new PhabricatorGorgeTaskQueueClient();
+  private function executeListViaGoService(
+    PhabricatorGorgeTaskQueueClient $client) {
     $results = $client->getTasks($this->limit);
 
     if (!$results) {

@@ -200,8 +200,20 @@ class PhabricatorSearchService
     $engines = self::loadAllFulltextStorageEngines();
     $refs = array();
 
-    foreach ($services as $config) {
+    $gorge = PhabricatorGorgeServiceRegistry::getService('search');
+    if ($gorge->isDisabled()) {
+      $services = array_values(
+        array_filter(
+          $services,
+          function($config) {
+            return !(is_array($config) &&
+              idx($config, 'type') ===
+                PhabricatorGorgeFulltextStorageEngine::ENGINE_TYPE);
+          }));
 
+    }
+
+    foreach ($services as $config) {
       // Normally, we've validated configuration before we get this far, but
       // make sure we don't fatal if we end up here with a bogus configuration.
       if (!isset($engines[$config['type']])) {
@@ -220,6 +232,41 @@ class PhabricatorSearchService
       $refs[] = $cluster;
     }
 
+    if ($gorge->isFallbackAllowed() || $gorge->isDisabled()) {
+      $has_native_read = false;
+      $has_native_write = false;
+      foreach ($refs as $ref) {
+        $config = $ref->getConfig();
+        if (idx($config, 'type') ===
+            PhabricatorGorgeFulltextStorageEngine::ENGINE_TYPE) {
+          continue;
+        }
+
+        $has_native_read = $has_native_read || $ref->isReadable();
+        $has_native_write = $has_native_write || $ref->isWritable();
+      }
+
+      // A native engine which can only read does not make indexing viable,
+      // and a write-only engine can not answer queries. Fill only the missing
+      // roles so both "fallback" and explicit "off" have complete native
+      // destinations.
+      if (!$has_native_read || !$has_native_write) {
+        $config = array(
+          'type' => 'mysql',
+          'roles' => array(
+            'read' => !$has_native_read,
+            'write' => !$has_native_write,
+          ),
+        );
+
+        $engine = clone($engines['mysql']);
+        $cluster = new self($engine);
+        $cluster->setConfig($config);
+        $engine->setService($cluster);
+        $refs[] = $cluster;
+      }
+    }
+
     return $refs;
   }
 
@@ -232,16 +279,43 @@ class PhabricatorSearchService
     PhabricatorSearchAbstractDocument $document) {
 
     $exceptions = array();
+    $gorge_fallback_exceptions = array();
+    $native_write_succeeded = false;
     foreach (self::getAllServices() as $service) {
       if (!$service->isWritable()) {
         continue;
       }
 
       $engine = $service->getEngine();
+      $is_gorge =
+        (idx($service->getConfig(), 'type') ===
+          PhabricatorGorgeFulltextStorageEngine::ENGINE_TYPE);
       try {
         $engine->reindexAbstractDocument($document);
+        if (!$is_gorge) {
+          $native_write_succeeded = true;
+        }
       } catch (Exception $ex) {
+        if ($is_gorge) {
+          $gorge = PhabricatorGorgeServiceRegistry::getService('search');
+          if ($gorge->isFallbackAllowed()) {
+            $gorge_fallback_exceptions[] = $ex;
+            continue;
+          }
+        }
+
         $exceptions[] = $ex;
+      }
+    }
+
+    if ($gorge_fallback_exceptions) {
+      if ($native_write_succeeded) {
+        PhabricatorGorgeServiceRegistry::getService('search')
+          ->recordFallback('index');
+      } else {
+        foreach ($gorge_fallback_exceptions as $exception) {
+          $exceptions[] = $exception;
+        }
       }
     }
 
@@ -270,10 +344,18 @@ class PhabricatorSearchService
    */
   public static function newResultSet(PhabricatorSavedQuery $query) {
     $exceptions = array();
+    $fallback_from_gorge = false;
     // try all services until one succeeds
     foreach (self::getAllServices() as $service) {
       if (!$service->isReadable()) {
         continue;
+      }
+
+      $is_gorge = (idx($service->getConfig(), 'type') === 'gorge');
+      if (!$is_gorge && $fallback_from_gorge) {
+        PhabricatorGorgeServiceRegistry::getService('search')
+          ->recordFallback('query');
+        $fallback_from_gorge = false;
       }
 
       try {
@@ -288,6 +370,13 @@ class PhabricatorSearchService
         // user: they issued a query with bad syntax.
         throw $ex;
       } catch (Exception $ex) {
+        if ($is_gorge) {
+          $gorge = PhabricatorGorgeServiceRegistry::getService('search');
+          if (!$gorge->isFallbackAllowed()) {
+            throw $ex;
+          }
+          $fallback_from_gorge = true;
+        }
         $exceptions[] = $ex;
       }
     }

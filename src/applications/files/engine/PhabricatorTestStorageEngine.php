@@ -8,9 +8,21 @@ final class PhabricatorTestStorageEngine
 
   private static $storage = array();
   private static $nextHandle = 1;
+  private $engineIdentifier = 'unit-test';
+  private $failConfiguration;
+
+  public function setEngineIdentifier($identifier) {
+    $this->engineIdentifier = $identifier;
+    return $this;
+  }
+
+  public function setFailConfiguration($fail) {
+    $this->failConfiguration = $fail;
+    return $this;
+  }
 
   public function getEngineIdentifier() {
-    return 'unit-test';
+    return $this->engineIdentifier;
   }
 
   public function getEnginePriority() {
@@ -30,6 +42,11 @@ final class PhabricatorTestStorageEngine
   }
 
   public function writeFile($data, array $params) {
+    if ($this->failConfiguration) {
+      throw new PhabricatorFileStorageConfigurationException(
+        pht('Unit Test (Configuration)'));
+    }
+
     AphrontWriteGuard::willWrite();
     self::$storage[self::$nextHandle] = $data;
     return (string)self::$nextHandle++;

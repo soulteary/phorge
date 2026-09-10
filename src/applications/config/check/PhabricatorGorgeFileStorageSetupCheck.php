@@ -10,6 +10,11 @@ final class PhabricatorGorgeFileStorageSetupCheck
   }
 
   protected function executeChecks() {
+    if (PhabricatorGorgeServiceRegistry::getService('file')
+        ->isDisabled()) {
+      return;
+    }
+
     $uri = PhabricatorGorgeFileStorageClient::getConfiguredURI();
 
     if ($uri === null) {

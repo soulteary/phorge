@@ -142,14 +142,26 @@ final class PhabricatorFeedStoryPublisher extends Phobject {
     if ($subscribed_phids) {
       $subscribed_phids = $this->filterSubscribedPHIDs($subscribed_phids);
       $this->insertNotifications($chrono_key, $subscribed_phids);
-      $this->sendNotification($chrono_key, $subscribed_phids);
+    }
+
+    $task_data = array(
+      'key' => $chrono_key,
+    );
+    if ($subscribed_phids) {
+      $task_data['notification'] = array(
+        'key' => (string)$chrono_key,
+        'type' => 'notification',
+        'subscribers' => $subscribed_phids,
+        // This payload is durable and may be retried after a response-path
+        // failure. Keep the broadcast identifier stable across every attempt
+        // so browser leaders can deduplicate the same feed event.
+        'uniqueID' => hash('sha256', 'feed.notification/'.$chrono_key),
+      );
     }
 
     PhabricatorWorker::scheduleTask(
       'FeedPublisherWorker',
-      array(
-        'key' => $chrono_key,
-      ));
+      $task_data);
 
     return $story;
   }
@@ -199,16 +211,6 @@ final class PhabricatorFeedStoryPublisher extends Phobject {
     PhabricatorUserCache::clearCaches(
       PhabricatorUserNotificationCountCacheType::KEY_COUNT,
       $user_phids);
-  }
-
-  private function sendNotification($chrono_key, array $subscribed_phids) {
-    $data = array(
-      'key'         => (string)$chrono_key,
-      'type'        => 'notification',
-      'subscribers' => $subscribed_phids,
-    );
-
-    PhabricatorNotificationClient::tryToPostMessage($data);
   }
 
   /**

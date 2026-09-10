@@ -50,14 +50,17 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
   }
 
   public function loadActualSchemata() {
-    // When the Gorge database service fronts the cluster, read the actual
-    // schema as a tree from it instead of querying INFORMATION_SCHEMA from the
-    // web tier. When it is not configured, fall back to the native direct-SQL
-    // reflection below.
-    if (PhabricatorGorgeDBClient::shouldUseService()) {
-      return $this->loadActualSchemataViaGorge();
-    }
+    return PhabricatorGorgeDBClient::executeWithFallback(
+      'schema.actual',
+      function() {
+        return $this->loadActualSchemataViaGorge();
+      },
+      function() {
+        return $this->loadActualSchemataNatively();
+      });
+  }
 
+  private function loadActualSchemataNatively() {
     $refs = $this->getRefs();
 
     $schemata = array();
@@ -415,14 +418,17 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
   }
 
   public function loadExpectedSchemata() {
-    // When the Gorge database service fronts the cluster, read the expected
-    // charset/collation configuration from it instead of asking the local
-    // storage API. When it is not configured, fall back to the native path
-    // below.
-    if (PhabricatorGorgeDBClient::shouldUseService()) {
-      return $this->loadExpectedSchemataViaGorge();
-    }
+    return PhabricatorGorgeDBClient::executeWithFallback(
+      'schema.expected',
+      function() {
+        return $this->loadExpectedSchemataViaGorge();
+      },
+      function() {
+        return $this->loadExpectedSchemataNatively();
+      });
+  }
 
+  private function loadExpectedSchemataNatively() {
     $refs = $this->getRefs();
 
     $schemata = array();

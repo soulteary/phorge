@@ -63,7 +63,9 @@ final class PhabricatorGorgeRenderClient
   }
 
   public static function isConfigured() {
-    return (self::getConfiguredURI() !== null);
+    $service = PhabricatorGorgeServiceRegistry::getService('render');
+    return !$service->isDisabled() &&
+      (self::getConfiguredURI() !== null);
   }
 
   public function getHighlightURI() {

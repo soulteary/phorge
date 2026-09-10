@@ -79,6 +79,12 @@ final class PhabricatorNotificationServerRef
   }
 
   public static function newRefs() {
+    $service =
+      PhabricatorGorgeServiceRegistry::getService('notification');
+    if ($service->isDisabled()) {
+      return array();
+    }
+
     $configs = PhabricatorEnv::getEnvConfig('notification.servers');
 
     $refs = array();

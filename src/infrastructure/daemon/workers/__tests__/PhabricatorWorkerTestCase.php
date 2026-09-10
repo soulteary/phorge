@@ -27,6 +27,217 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
     $this->expectNextLease($task, pht('Leasing should work.'));
   }
 
+  public function testTaskQueuePreflightFailureCanFallback() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+    $env->overrideEnvConfig('gorge.taskqueue.uri', null);
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+
+    $task = $this->scheduleTask();
+    $this->assertTrue((bool)$task->getID());
+    $stored_task = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertTrue($stored_task instanceof PhabricatorWorkerActiveTask);
+    $this->assertEqual(
+      array('taskqueue.enqueue' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
+  public function testTaskQueueLeasePreflightFailureCanFallback() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig('gorge.taskqueue.uri', null);
+
+    $task = $this->scheduleTask();
+
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+
+    $leased = id(new PhabricatorWorkerLeaseQuery())
+      ->setLimit(1)
+      ->execute();
+
+    $this->assertEqual(1, count($leased));
+    $this->assertEqual($task->getID(), head($leased)->getID());
+    $this->assertEqual(
+      array('taskqueue.lease' => 1),
+      PhabricatorGorgeServiceSpec::getFallbackCounts());
+
+    PhabricatorGorgeServiceSpec::resetFallbackCounts();
+    unset($env);
+  }
+
+  public function testCompletionFailureDoesNotFailSuccessfulWork() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask();
+    $task = $this->expectNextLease($task);
+
+    // Route only the completion report through the unreachable service. The
+    // worker itself has already been leased successfully from native storage.
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $caught = null;
+    try {
+      $task->executeTask();
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+    $stored_task = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertEqual(0, $stored_task->getFailureCount());
+    $this->assertEqual(
+      PhabricatorWorkerActiveTask::COMPLETION_PENDING_OWNER,
+      $stored_task->getLeaseOwner());
+    $this->assertTrue($stored_task->getLeaseExpires() > time());
+
+    $followups = id(new PhabricatorWorkerActiveTask())
+      ->loadAllWhere('id != %d', $task->getID());
+    $this->assertEqual(0, count($followups));
+
+    unset($env);
+  }
+
+  public function testGorgeFollowupsUseAtomicNativeFinalization() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask(
+      array(
+        'queueFollowup' => true,
+      ));
+    $task = $this->expectNextLease($task);
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    // The unreachable required service proves this path does not complete
+    // the parent before persisting its followup through a second HTTP call.
+    $result = $task->executeTask();
+    $this->assertTrue($result->isArchived());
+
+    $stored_parent = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertEqual(null, $stored_parent);
+
+    $followups = id(new PhabricatorWorkerActiveTask())
+      ->loadAllWhere('id != %d', $task->getID());
+    $this->assertEqual(1, count($followups));
+    $this->assertTrue((bool)head($followups)->getDataID());
+
+    unset($env);
+  }
+
+  public function testCompletionFallbackPersistsFollowupNatively() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask(
+      array(
+        'queueFollowup' => true,
+      ));
+    $task = $this->expectNextLease($task);
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $result = $task->executeTask();
+    $this->assertTrue($result->isArchived());
+
+    $followups = id(new PhabricatorWorkerActiveTask())
+      ->loadAllWhere('id != %d', $task->getID());
+    $this->assertEqual(1, count($followups));
+
+    unset($env);
+  }
+
+  public function testFailedFollowupPersistenceDoesNotParkParent() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask(
+      array(
+        'queueFollowup' => true,
+        'invalidFollowup' => true,
+        'followupCount' => 2,
+      ));
+    $task = $this->expectNextLease($task);
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $caught = null;
+    try {
+      $task->executeTask();
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+    $stored_task = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertTrue(
+      $stored_task->getLeaseOwner() !==
+        PhabricatorWorkerActiveTask::COMPLETION_PENDING_OWNER);
+    $followups = id(new PhabricatorWorkerActiveTask())
+      ->loadAllWhere('id != %d', $task->getID());
+    $this->assertEqual(0, count($followups));
+
+    unset($env);
+  }
+
+  public function testPermanentFailureReportFailureParksTask() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.service-policy', 'required');
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'phorge');
+    $env->overrideEnvConfig(
+      'gorge.taskqueue.uri',
+      'http://127.0.0.1:1');
+
+    $task = $this->scheduleTask(
+      array(
+        'doWork' => 'fail-permanent',
+      ));
+    $task = $this->expectNextLease($task);
+    $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+
+    $caught = null;
+    try {
+      $task->executeTask();
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    $this->assertTrue($caught instanceof Exception);
+    $stored_task = id(new PhabricatorWorkerActiveTask())
+      ->load($task->getID());
+    $this->assertEqual(
+      PhabricatorWorkerActiveTask::FAILURE_PENDING_OWNER,
+      $stored_task->getLeaseOwner());
+    $this->assertTrue($stored_task->getLeaseExpires() > time());
+
+    unset($env);
+  }
+
   public function testMultipleLease() {
     $task = $this->scheduleTask();
 

@@ -576,6 +576,12 @@ final class PhabricatorMetaMTAMail
 
     foreach ($config as $spec) {
       $type = $spec['type'];
+      if ($type === 'gorge' &&
+          PhabricatorGorgeServiceRegistry::getService('mailer')
+            ->isDisabled()) {
+        continue;
+      }
+
       if (!isset($adapters[$type])) {
         throw new Exception(
           pht(
@@ -727,6 +733,8 @@ final class PhabricatorMetaMTAMail
 
     $exceptions = array();
     foreach ($mailers as $mailer) {
+      $is_gorge = ($mailer->getAdapterType() === 'gorge');
+
       try {
         $message = $type->newMailMessageEngine()
           ->setMailer($mailer)
@@ -760,6 +768,17 @@ final class PhabricatorMetaMTAMail
 
         throw $ex;
       } catch (Exception $ex) {
+        if ($is_gorge) {
+          // Once the HTTP send begins, a timeout, lost response, invalid
+          // response, or service error can not prove that the provider did
+          // not accept the message. Trying another mailer here can therefore
+          // deliver the same message twice. Keep it queued and surface the
+          // exception under both "required" and migration "fallback"
+          // policies. We must never cross over to a different delivery
+          // channel inside the same attempt.
+          throw $ex;
+        }
+
         $exceptions[] = $ex;
         continue;
       }

@@ -7,6 +7,11 @@ final class PhabricatorGorgeSearchSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    if (PhabricatorGorgeServiceRegistry::getService('search')
+        ->isDisabled()) {
+      return;
+    }
+
     foreach ($this->getGorgeSearchURIs() as $host_key => $uri) {
       // Liveness and readiness are two separate failures with two separate
       // fixes, and a service which does not answer at all can not report

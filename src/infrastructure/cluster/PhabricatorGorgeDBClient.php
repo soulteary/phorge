@@ -143,7 +143,9 @@ final class PhabricatorGorgeDBClient
    * @return bool True if the service fronts the database cluster.
    */
   public static function isConfigured() {
-    return (self::getConfiguredURI() !== null);
+    $service = PhabricatorGorgeServiceRegistry::getService('db');
+    return !$service->isDisabled() &&
+      (self::getConfiguredURI() !== null);
   }
 
   const KEY_SHOULD_USE = 'cluster.db.gorge.usable';
@@ -171,10 +173,8 @@ final class PhabricatorGorgeDBClient
    *
    * A transient or operational failure — a network error, a timeout, a 401, a
    * 5xx, an HTML or otherwise invalid envelope, malformed JSON — is NOT an
-   * incompatibility and must NOT silently fall back to native SQL: those
-   * surface as exceptions (the handshake and @{method:getMeta} already throw
-   * on them) and are deliberately not cached, so a caller sees the real error
-   * instead of quietly reading a different data source.
+   * incompatibility and is deliberately not cached. Required policy surfaces
+   * it; fallback policy records the handshake transition and uses native SQL.
    *
    * The cache stores only the decision (`checked` and `usable`); it never
    * stores the token, the URI or exception details.
@@ -182,6 +182,11 @@ final class PhabricatorGorgeDBClient
    * @return bool True if the caller should route through the service.
    */
   public static function shouldUseService() {
+    $service = PhabricatorGorgeServiceRegistry::getService('db');
+    if ($service->isDisabled()) {
+      return false;
+    }
+
     $uri = self::getConfiguredURI();
     if ($uri === null) {
       return false;
@@ -205,9 +210,30 @@ final class PhabricatorGorgeDBClient
     // confirmed-incompatibility signal; any transient/operational failure
     // throws out of here uncached, on purpose.
     $client = new self();
-    $problem = $client->checkContractCompatibility($expected_namespace);
+    try {
+      $problem = $client->checkContractCompatibility($expected_namespace);
+    } catch (Exception $ex) {
+      if (!$service->isFallbackAllowed()) {
+        throw $ex;
+      }
+
+      $service->recordFallback('handshake');
+      phlog($ex);
+      return false;
+    }
+
+    if ($problem !== null && !$service->isFallbackAllowed()) {
+      throw new Exception(
+        pht(
+          'The Gorge database service is required but its contract is not '.
+          'compatible: %s',
+          idx($problem, 'detail', idx($problem, 'summary', 'Unknown error.'))));
+    }
 
     $usable = ($problem === null);
+    if (!$usable) {
+      $service->recordFallback('contract');
+    }
     $cache->setKey(
       $cache_key,
       array(
@@ -216,6 +242,37 @@ final class PhabricatorGorgeDBClient
       ));
 
     return $usable;
+  }
+
+  /**
+   * Execute one complete database diagnostic through the selected route.
+   *
+   * The contract handshake only proves that the service was usable at the
+   * start of the operation. Under the migration fallback policy, an outage in
+   * the actual servers/schema/setup request must still run the native
+   * operation. Required mode keeps surfacing the original service exception.
+   */
+  public static function executeWithFallback(
+    $operation,
+    callable $gorge_operation,
+    callable $native_operation) {
+
+    if (!self::shouldUseService()) {
+      return call_user_func($native_operation);
+    }
+
+    try {
+      return call_user_func($gorge_operation);
+    } catch (Exception $ex) {
+      $service = PhabricatorGorgeServiceRegistry::getService('db');
+      if (!$service->isFallbackAllowed()) {
+        throw $ex;
+      }
+
+      $service->recordFallback($operation);
+      phlog($ex);
+      return call_user_func($native_operation);
+    }
   }
 
 
@@ -280,12 +337,37 @@ final class PhabricatorGorgeDBClient
    * Read the list of MySQL/setup issues detected across the cluster.
    *
    * @param map<string, wild> $params Optional query parameters.
-   * @return wild The "data" section of the envelope, a list of setup issue
-   *   rows. Each row carries camelCase keys: `issueKey`, `name`, `summary`,
-   *   `message`, `isFatal`, `refKey`.
+   * @return list<map<string, wild>> The "data" section of the envelope. Each
+   *   row carries camelCase keys: `issueKey`, `name`, `summary`, `message`,
+   *   `isFatal`, `refKey`.
    */
   public function getSetupIssues(array $params = array()) {
-    return $this->callGet(self::PATH_SETUPISSUES, $params);
+    $issues = $this->callGet(self::PATH_SETUPISSUES, $params);
+    return self::validateSetupIssueRows($issues);
+  }
+
+  /**
+   * Validate the list carried by the setup-issues response.
+   *
+   * Envelope parsing deliberately accepts any JSON `data` value because
+   * different service routes return different shapes. This route, however,
+   * must return a list. Reject scalars and null here so policy-aware callers
+   * can fall back or fail closed instead of silently treating malformed data
+   * as an empty successful result.
+   *
+   * @param wild $issues Unwrapped response data.
+   * @return array Setup issue rows.
+   */
+  public static function validateSetupIssueRows($issues) {
+    if (!is_array($issues)) {
+      throw new Exception(
+        pht(
+          'The Gorge database service returned a malformed "%s" response: '.
+          'expected a list of setup issues.',
+          self::PATH_SETUPISSUES));
+    }
+
+    return $issues;
   }
 
   /**
@@ -297,7 +379,42 @@ final class PhabricatorGorgeDBClient
    *   `collateFulltext`.
    */
   public function getCharsetInfo() {
-    return $this->callGet(self::PATH_CHARSETINFO);
+    $rows = $this->callGet(self::PATH_CHARSETINFO);
+    return self::validateCharsetInfoRows($rows);
+  }
+
+  /**
+   * Validate the list carried by the charset-info response.
+   *
+   * Missing rows and missing optional fields are valid: callers deliberately
+   * use the platform utf8mb4 defaults in those cases. The top-level value and
+   * every reported row must still be arrays, or policy-aware callers would
+   * mistake malformed service data for a successful response and never use
+   * the native loader.
+   *
+   * @param wild $rows Unwrapped response data.
+   * @return array Charset information rows.
+   */
+  public static function validateCharsetInfoRows($rows) {
+    if (!is_array($rows)) {
+      throw new Exception(
+        pht(
+          'The Gorge database service returned a malformed "%s" response: '.
+          'expected a list of charset information rows.',
+          self::PATH_CHARSETINFO));
+    }
+
+    foreach ($rows as $row) {
+      if (!is_array($row)) {
+        throw new Exception(
+          pht(
+            'The Gorge database service returned a malformed "%s" response: '.
+            'expected every charset information row to be a map.',
+            self::PATH_CHARSETINFO));
+      }
+    }
+
+    return $rows;
   }
 
   /**

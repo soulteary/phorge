@@ -78,9 +78,12 @@ final class PhabricatorDifferenceEngine extends Phobject {
           $this->newName,
           $this->getNormalize());
       } catch (Exception $ex) {
-        // A diff is required for the caller to continue. Preserve the local
-        // engine as a compatibility fallback if the optional service is
-        // unavailable or returns a malformed response.
+        $service = PhabricatorGorgeServiceRegistry::getService('render');
+        if (!$service->isFallbackAllowed()) {
+          throw $ex;
+        }
+
+        $service->recordFallback('diff.raw');
         phlog($ex);
       }
     }

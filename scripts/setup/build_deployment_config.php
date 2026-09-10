@@ -110,6 +110,14 @@ $config = read_json_object($deployment_path, true);
 // replaced on every deployment change, so profile and topology can not drift.
 $config['phorge.product-profile'] = $profile;
 
+$service_policy = env_value('PHORGE_GORGE_POLICY', 'required');
+$valid_service_policies = array('required', 'fallback', 'off');
+if (!in_array($service_policy, $valid_service_policies, true)) {
+  throw new Exception(
+    'PHORGE_GORGE_POLICY must be required, fallback, or off.');
+}
+$config['gorge.service-policy'] = $service_policy;
+
 configure_scalar_service(
   $config,
   'GORGE_RENDER_URI',
@@ -152,7 +160,18 @@ if (strlen($upstream)) {
 $notification_mode = env_mode(
   'GORGE_NOTIFICATION_MODE',
   'GORGE_NOTIFICATION_ADMIN_HOST');
-if ($notification_mode === 'enable') {
+$notification_policy = $service_policy;
+$service_policy_overrides = isset($config['gorge.service-policies'])
+  ? $config['gorge.service-policies']
+  : array();
+if (is_array($service_policy_overrides) &&
+    isset($service_policy_overrides['notification'])) {
+  $notification_policy = $service_policy_overrides['notification'];
+}
+
+if ($notification_policy === 'off') {
+  unset($config['notification.servers']);
+} else if ($notification_mode === 'enable') {
   $admin_host = env_value('GORGE_NOTIFICATION_ADMIN_HOST', '');
   $client_host = env_value('GORGE_NOTIFICATION_CLIENT_HOST', '');
   if (!strlen($admin_host) || !strlen($client_host)) {
@@ -243,7 +262,10 @@ if ($search_mode !== 'preserve') {
     if (!strlen($host)) {
       throw new Exception('GORGE_SEARCH_HOST is required in enable mode.');
     }
-    if (env_value('GORGE_SEARCH_KEEP_MYSQL', '0') !== '1') {
+    $keep_mysql =
+      (env_value('GORGE_SEARCH_KEEP_MYSQL', '0') === '1') ||
+      ($service_policy !== 'required');
+    if (!$keep_mysql) {
       $search = array_values(
         array_filter(
           $search,
@@ -251,6 +273,12 @@ if ($search_mode !== 'preserve') {
             return !(is_array($engine) && isset($engine['type']) &&
               $engine['type'] === 'mysql');
           }));
+    }
+    if ($service_policy !== 'required' && !$search) {
+      $search[] = array(
+        'type' => 'mysql',
+        'roles' => array('read' => true, 'write' => true),
+      );
     }
     array_unshift(
       $search,

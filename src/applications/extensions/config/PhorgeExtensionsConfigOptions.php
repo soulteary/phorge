@@ -60,6 +60,27 @@ final class PhorgeExtensionsConfigOptions
           'default container stack.'));
 
     $options[] = $this->newOption(
+      'gorge.service-policy',
+      'string',
+      PhabricatorGorgeServiceSpec::POLICY_REQUIRED)
+      ->setLocked(true)
+      ->setDescription(
+        pht(
+          'Failure policy for configured Gorge services. "required" exposes '.
+          'service failures, "fallback" temporarily allows native '.
+          'implementations, and "off" disables request-routed services.'));
+
+    $options[] = $this->newOption(
+      'gorge.service-policies',
+      'wild',
+      array())
+      ->setLocked(true)
+      ->setDescription(
+        pht(
+          'Optional per-service overrides for "gorge.service-policy", keyed '.
+          'by Gorge service registry identifier.'));
+
+    $options[] = $this->newOption(
       'gitea.uri',
       'string',
       null)

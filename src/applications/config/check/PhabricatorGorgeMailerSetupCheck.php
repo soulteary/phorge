@@ -7,6 +7,11 @@ final class PhabricatorGorgeMailerSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    if (PhabricatorGorgeServiceRegistry::getService('mailer')
+        ->isDisabled()) {
+      return;
+    }
+
     foreach ($this->getGorgeMailerURIs() as $mailer_key => $uri) {
       // Liveness and readiness are two separate failures with two separate
       // fixes, and a service which does not answer at all can not report
