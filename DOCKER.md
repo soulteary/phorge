@@ -833,7 +833,10 @@ EOF
 
 # 2) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前两个服务相同，
 #    只是 --build-arg SERVICE=gorge-mailer；--build 同样不能省）
-docker compose up -d --build
+#    --profile mailer 不能省：gorge-mailer 与写配置的 phorge-mailer-config 都挂在
+#    mailer profile 上，不带它 up 只会起默认核心服务，下面第 3 步的 exec 会直接找不到
+#    容器，配置里的 mailer 也一直是 disable。
+docker compose --profile mailer up -d --build
 
 # 3) 确认配置写进去了，且服务已就绪
 docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.mailers
@@ -1013,7 +1016,9 @@ EOF
 
 # 2) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前三个服务相同，
 #    只是 --build-arg SERVICE=gorge-search；--build 同样不能省）
-docker compose up -d --build
+#    --profile search 同 mailer：gorge-search 与 phorge-search-config 都在 search
+#    profile 上，不带它这一步等于没起服务。
+docker compose --profile search up -d --build
 
 # 3) 确认配置写进去了，且服务已就绪
 docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.search
