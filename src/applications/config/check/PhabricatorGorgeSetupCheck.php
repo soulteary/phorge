@@ -2,8 +2,6 @@
 
 final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
 
-  const ENGINE_CLASS = 'PhabricatorGorgeSyntaxHighlighterEngine';
-
   public function getDefaultGroup() {
     return self::GROUP_OTHER;
   }
@@ -67,7 +65,65 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
       return;
     }
 
-    $this->checkHighlighting($uri);
+    $this->checkDiffRoutes($uri);
+  }
+
+  /**
+   * Prove the endpoint actually serves diffs, not just that it answers.
+   *
+   * `/healthz` says the process is up, which was enough while diff routing was
+   * optional. It is not enough now: an older render image, or one started with
+   * its diff routes disabled, passes the health check and then fails every raw
+   * and prose request with a route error. Pinning GORGE_RENDER_ENABLE_DIFF in
+   * the bundled Compose file does not cover a source or custom deployment
+   * pointed at an endpoint this install does not start.
+   *
+   * The probe goes through the real client, so it exercises the route, the
+   * token and the response envelope together.
+   */
+  private function checkDiffRoutes($uri) {
+    try {
+      id(new PhabricatorGorgeDiffClient())->generateDiff(
+        "a\n",
+        "b\n",
+        null,
+        null,
+        false);
+      return;
+    } catch (Exception $ex) {
+      $error = $ex->getMessage();
+    }
+
+    $summary = pht(
+      'The Gorge render service answers its health check, but does not serve '.
+      'the diff routes this software requires.');
+
+    $message = pht(
+      'The service at %s responded to a health check, but a probe of %s did '.
+      'not succeed:'.
+      "\n\n".
+      '%s'.
+      "\n\n".
+      'Difference generation is served entirely by this endpoint -- the '.
+      'native GNU and PHP implementations have been removed -- so every raw '.
+      'and prose difference fails while these routes are missing.'.
+      "\n\n".
+      'Check that the service is recent enough to serve %s and %s, and that '.
+      'it was started with its diff routes enabled (%s in the bundled '.
+      'Compose stack, which pins it on).',
+      phutil_tag('tt', array(), $uri),
+      phutil_tag('tt', array(), PhabricatorGorgeDiffClient::PATH_GENERATE),
+      phutil_tag('pre', array(), $error),
+      phutil_tag('tt', array(), PhabricatorGorgeDiffClient::PATH_GENERATE),
+      phutil_tag('tt', array(), PhabricatorGorgeDiffClient::PATH_PROSE),
+      phutil_tag('tt', array(), 'GORGE_RENDER_ENABLE_DIFF'));
+
+    $this->newIssue('gorge.diff.routes-missing')
+      ->setName(pht('Gorge Diff Routes Unavailable'))
+      ->setSummary($summary)
+      ->setMessage($message)
+      ->addRelatedPhabricatorConfig('gorge.render.uri')
+      ->addRelatedPhabricatorConfig('gorge.render.token');
   }
 
   private function checkReachable($uri) {
@@ -107,50 +163,6 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
       ->addPhabricatorConfig('syntax-highlighter.engine');
 
     return false;
-  }
-
-  /**
-   * Diff is always routed to Gorge once the service is configured. The only
-   * remaining optional render capability is syntax highlighting.
-   */
-  private function checkHighlighting($uri) {
-    $engine = PhabricatorEnv::getEnvConfig('syntax-highlighter.engine');
-
-    if ($engine === self::ENGINE_CLASS ||
-        is_subclass_of($engine, self::ENGINE_CLASS)) {
-      return;
-    }
-
-    $summary = pht(
-      'Gorge already serves required difference generation, but syntax '.
-      'highlighting is still using the built-in engine.');
-
-    $message = pht(
-      'The Gorge render service at %s is already required for diff '.
-      'generation. To route highlighting through the same service, set %s '.
-      'to %s and purge the render cache. Highlighted HTML is cached, so '.
-      'previously viewed content keeps its old markup until that cache is '.
-      'discarded.',
-      phutil_tag('tt', array(), $uri),
-      phutil_tag('tt', array(), 'syntax-highlighter.engine'),
-      phutil_tag('tt', array(), self::ENGINE_CLASS));
-
-    $this->newIssue('gorge.highlight.native')
-      ->setName(pht('Gorge Highlighting Not Enabled'))
-      ->setSummary($summary)
-      ->setMessage($message)
-      ->addCommand(
-        hsprintf(
-          '<samp>%s $</samp><kbd>./bin/config set '.
-          'syntax-highlighter.engine %s</kbd>',
-          PlatformSymbols::getPlatformServerPath(),
-          self::ENGINE_CLASS))
-      ->addCommand(
-        hsprintf(
-          '<samp>%s $</samp><kbd>./bin/cache purge --all</kbd>',
-          PlatformSymbols::getPlatformServerPath()))
-      ->addRelatedPhabricatorConfig('syntax-highlighter.engine')
-      ->addRelatedPhabricatorConfig('gorge.render.uri');
   }
 
 }

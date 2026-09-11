@@ -8,15 +8,23 @@ final class PhabricatorDaemonsSetupCheck extends PhabricatorSetupCheck {
 
   protected function executeChecks() {
 
+    // Daemon health used to mean "a taskmaster is alive". That daemon has been
+    // retired and `phd` never starts one, so looking for it would report every
+    // installation as broken. Look for any live daemon instead: `phd` still
+    // runs the pull, trigger and fact daemons, and those do real work.
+    //
+    // Task processing is no longer part of this check at all. It belongs to
+    // the Gorge task queue and worker services now, and
+    // PhabricatorGorgeTaskQueueSetupCheck reports on those -- including the
+    // case where ownership resolves to Phorge and nothing consumes the queue.
     try {
-      $task_daemons = id(new PhabricatorDaemonLogQuery())
+      $live_daemons = id(new PhabricatorDaemonLogQuery())
         ->setViewer(PhabricatorUser::getOmnipotentUser())
         ->withStatus(PhabricatorDaemonLogQuery::STATUS_ALIVE)
-        ->withDaemonClasses(array('PhabricatorTaskmasterDaemon'))
         ->setLimit(1)
         ->execute();
 
-      $no_daemons = !$task_daemons;
+      $no_daemons = !$live_daemons;
     } catch (Exception $ex) {
       // Just skip this warning if the query fails for some reason.
       $no_daemons = false;
@@ -26,13 +34,16 @@ final class PhabricatorDaemonsSetupCheck extends PhabricatorSetupCheck {
       $doc_href = PhabricatorEnv::getDoclink('Managing Daemons with phd');
 
       $summary = pht(
-        'You must start the daemons to send email, rebuild search indexes, '.
-        'and do other background processing.');
+        'You must start the daemons to pull repositories, run scheduled '.
+        'triggers, and do other background processing.');
 
       $message = pht(
-        'The daemons are not running, background processing (including '.
-        'sending email, rebuilding search indexes, importing commits, '.
-        'cleaning up old data, and running builds) can not be performed.'.
+        'The daemons are not running, so background processing which they '.
+        'own (importing commits, running scheduled triggers, and computing '.
+        'facts) can not be performed.'.
+        "\n\n".
+        'Queued worker tasks are processed by the Gorge worker service '.
+        'rather than by these daemons; its health is reported separately.'.
         "\n\n".
         'Use %s to start daemons. See %s for more information.',
         phutil_tag('tt', array(), 'bin/phd start'),

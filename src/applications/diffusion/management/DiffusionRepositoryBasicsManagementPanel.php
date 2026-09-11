@@ -516,23 +516,33 @@ final class DiffusionRepositoryBasicsManagementPanel
     }
 
 
-    $task_daemon = id(new PhabricatorDaemonLogQuery())
-      ->setViewer(PhabricatorUser::getOmnipotentUser())
-      ->withStatus(PhabricatorDaemonLogQuery::STATUS_ALIVE)
-      ->withDaemonClasses(array('PhabricatorTaskmasterDaemon'))
-      ->setLimit(1)
-      ->execute();
-    if ($task_daemon) {
+    // The native taskmaster has been retired, so its liveness is no longer
+    // what "tasks are being processed" means. When Gorge owns the queue the
+    // consumer is a service outside this install's daemon set; reporting on
+    // it would need a network call, which does not belong on this panel, so
+    // say who owns the queue and leave the health reporting to the Config
+    // setup checks. When ownership resolves to Phorge there is no consumer at
+    // all any more, which is worth the same warning it always got.
+    $taskqueue = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+    if ($taskqueue->isOwnedBy('gorge')) {
       $view->addItem(
         id(new PHUIStatusItemView())
-          ->setIcon(PHUIStatusItemView::ICON_ACCEPT, 'green')
-          ->setTarget(pht('Task Daemon Running')));
+          ->setIcon(PHUIStatusItemView::ICON_ACCEPT, 'blue')
+          ->setTarget(pht('Tasks Processed by Gorge'))
+          ->setNote(
+            pht(
+              'Queued tasks are consumed by the Gorge worker service. Its '.
+              'health is reported in Config.')));
     } else {
       $view->addItem(
         id(new PHUIStatusItemView())
           ->setIcon(PHUIStatusItemView::ICON_WARNING, 'red')
-          ->setTarget(pht('Task Daemon Not Running'))
-          ->setNote($daemon_instructions));
+          ->setTarget(pht('Task Queue Has No Consumer'))
+          ->setNote(
+            pht(
+              'Queue ownership resolves to Phorge, but the native taskmaster '.
+              'has been retired. Configure the Gorge task queue and worker '.
+              'services; see Config for details.')));
     }
 
 
