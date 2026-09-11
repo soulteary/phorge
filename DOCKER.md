@@ -142,9 +142,15 @@ docker build -t phorge:local .
 docker network create phorge-net
 docker volume create phorge-conf
 docker volume create phorge-repo
+docker volume create phorge-db
 
 # 0) 数据库自备（这里用官方镜像示意）
+#    phorge-db 卷不能省：不挂它的话 /var/lib/mysql 只存在于容器可写层，
+#    删掉或重建 phorge-mysql 就会连同整个站点的数据一起消失（配置和仓库在
+#    另外两个卷里，反而还在，于是故障看起来像「数据库空了」而不是「卷没挂」）。
+#    默认栈在 docker-compose.mysql.yml 里挂的就是这个路径。
 docker run -d --name phorge-mysql --network phorge-net \
+  -v phorge-db:/var/lib/mysql \
   -e MYSQL_ROOT_PASSWORD=phorge_root -e MYSQL_DATABASE=phorge \
   -e MYSQL_USER=phorge -e MYSQL_PASSWORD=phorge \
   mysql:8.0.46 --sql-mode=STRICT_ALL_TABLES --local-infile=0 --ft-min-word-len=3
