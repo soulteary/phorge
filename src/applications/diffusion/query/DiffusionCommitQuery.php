@@ -16,7 +16,6 @@ final class DiffusionCommitQuery
   private $identifierMap;
   private $responsiblePHIDs;
   private $statuses;
-  private $packagePHIDs;
   private $unreachable;
   private $permanent;
 
@@ -147,11 +146,6 @@ final class DiffusionCommitQuery
 
   public function withResponsiblePHIDs(array $responsible_phids) {
     $this->responsiblePHIDs = $responsible_phids;
-    return $this;
-  }
-
-  public function withPackagePHIDs(array $package_phids) {
-    $this->packagePHIDs = $package_phids;
     return $this;
   }
 
@@ -477,12 +471,11 @@ final class DiffusionCommitQuery
       // a single user and single commit, so this has no practical impact.
 
       // NOTE: We're querying with the viewership of query viewer, not the
-      // actual users. If the viewer can't see a project or package, they
-      // won't be able to see who has authority on it. This is safer than
-      // showing them true authority, and should never matter today, but it
-      // also doesn't seem like a significant disclosure and might be
-      // reasonable to adjust later if it causes something weird or confusing
-      // to happen.
+      // actual users. If the viewer can't see a project, they won't be able
+      // to see who has authority on it. This is safer than showing them true
+      // authority, and should never matter today, but it also doesn't seem
+      // like a significant disclosure and might be reasonable to adjust later
+      // if it causes something weird or confusing to happen.
 
       $authority_map = array();
       foreach ($authority_users as $authority_user) {
@@ -495,15 +488,6 @@ final class DiffusionCommitQuery
 
         // Users have authority over themselves.
         $result_phids[] = $authority_phid;
-
-        // Users have authority over packages they own.
-        $owned_packages = id(new PhabricatorOwnersPackageQuery())
-          ->setViewer($viewer)
-          ->withAuthorityPHIDs(array($authority_phid))
-          ->execute();
-        foreach ($owned_packages as $package) {
-          $result_phids[] = $package->getPHID();
-        }
 
         // Users have authority over projects they're members of.
         $projects = id(new PhabricatorProjectQuery())
@@ -520,8 +504,8 @@ final class DiffusionCommitQuery
           $attach_phids = $result_phids;
 
           // NOTE: When modifying your own commits, you act only on behalf of
-          // yourself, not your packages or projects. The idea here is that you
-          // can't accept your own commits. In the future, this might change or
+          // yourself, not your projects. The idea here is that you can't
+          // accept your own commits. In the future, this might change or
           // depend on configuration.
           $author_phid = $commit->getAuthorPHID();
           if ($author_phid == $authority_phid) {
@@ -844,13 +828,6 @@ final class DiffusionCommitQuery
         $statuses);
     }
 
-    if ($this->packagePHIDs !== null) {
-      $where[] = qsprintf(
-        $conn,
-        'package.dst IN (%Ls)',
-        $this->packagePHIDs);
-    }
-
     if ($this->unreachable !== null) {
       if ($this->unreachable) {
         $where[] = qsprintf(
@@ -898,10 +875,6 @@ final class DiffusionCommitQuery
     return ($this->auditIDs || $this->auditorPHIDs);
   }
 
-  private function shouldJoinOwners() {
-    return (bool)$this->packagePHIDs;
-  }
-
   protected function buildJoinClauseParts(AphrontDatabaseConnection $conn) {
     $join = parent::buildJoinClauseParts($conn);
     $audit_request = new PhabricatorRepositoryAuditRequest();
@@ -913,24 +886,11 @@ final class DiffusionCommitQuery
         $audit_request->getTableName());
     }
 
-    if ($this->shouldJoinOwners()) {
-      $join[] = qsprintf(
-        $conn,
-        'JOIN %T package ON commit.phid = package.src
-          AND package.type = %s',
-        PhabricatorEdgeConfig::TABLE_NAME_EDGE,
-        DiffusionCommitHasPackageEdgeType::EDGECONST);
-    }
-
     return $join;
   }
 
   protected function shouldGroupQueryResultRows() {
     if ($this->shouldJoinAuditor()) {
-      return true;
-    }
-
-    if ($this->shouldJoinOwners()) {
       return true;
     }
 

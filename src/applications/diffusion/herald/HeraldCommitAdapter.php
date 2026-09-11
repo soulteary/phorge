@@ -10,8 +10,6 @@ final class HeraldCommitAdapter extends HeraldAdapter {
 
   protected $affectedPaths;
   protected $affectedRevision;
-  protected $affectedPackages;
-  protected $auditNeededPackages;
 
   public function getAdapterApplicationClass() {
     return PhabricatorDiffusionApplication::class;
@@ -139,7 +137,7 @@ final class HeraldCommitAdapter extends HeraldAdapter {
     $viewer = $this->getViewer();
 
     if ($this->affectedPaths === null) {
-      $result = PhabricatorOwnerPathQuery::loadAffectedPaths(
+      $result = DiffusionCommitAffectedPathQuery::loadAffectedPaths(
         $this->getRepository(),
         $this->commit,
         $viewer);
@@ -147,32 +145,6 @@ final class HeraldCommitAdapter extends HeraldAdapter {
     }
 
     return $this->affectedPaths;
-  }
-
-  public function loadAffectedPackages() {
-    if ($this->affectedPackages === null) {
-      $packages = PhabricatorOwnersPackage::loadAffectedPackages(
-        $this->getRepository(),
-        $this->loadAffectedPaths());
-      $this->affectedPackages = $packages;
-    }
-    return $this->affectedPackages;
-  }
-
-  public function loadAuditNeededPackages() {
-    if ($this->auditNeededPackages === null) {
-      $status_arr = array(
-        PhabricatorAuditRequestStatus::AUDIT_REQUIRED,
-        PhabricatorAuditRequestStatus::CONCERNED,
-      );
-      $requests = id(new PhabricatorRepositoryAuditRequest())
-          ->loadAllWhere(
-        'commitPHID = %s AND auditStatus IN (%Ls)',
-        $this->commit->getPHID(),
-        $status_arr);
-      $this->auditNeededPackages = $requests;
-    }
-    return $this->auditNeededPackages;
   }
 
   public function loadDifferentialRevision() {
