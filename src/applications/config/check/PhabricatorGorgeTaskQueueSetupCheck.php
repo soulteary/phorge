@@ -87,52 +87,59 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
    *
    * The two probes above cover the task queue service, which is only half of
    * the pipeline: `gorge-worker` is a separate process which leases tasks from
-   * that service and executes them. Phorge has no address for it -- the worker
-   * is a client of the queue, not something this server calls -- so there is
-   * no endpoint to probe, and a worker which is stopped or crash-looping would
-   * otherwise leave both this check and the repository panel reporting
-   * success while every background job sat unleased.
+   * that service and executes them. Phorge has no configured address for it --
+   * the worker is a client of the queue, not something this server calls -- so
+   * there is nothing to probe here, and a worker which is stopped or
+   * crash-looping would otherwise leave both this check and the repository
+   * panel reporting success while every background job sat unleased.
    *
-   * Leases are visible in this server's own worker tables, so the backlog is
-   * measured directly instead. That is also a better signal than a liveness
-   * probe: a worker which is up but failing on every task shows up here, and a
-   * worker which is briefly restarting does not.
-   *
-   * "Waiting" has to mean what PhabricatorWorkerLeaseQuery means by it. That
-   * query leases from two phases, PHASE_UNLEASED and PHASE_EXPIRED, so a task
-   * whose lease has run out is runnable again even though it still carries the
-   * "leaseOwner" of the worker that abandoned it. Counting only never-leased
-   * rows would miss exactly the outage this check exists for: a worker which
-   * leased a batch and then died reports a clean queue forever.
+   * The backlog is read from the service rather than from this server's worker
+   * tables. Those tables hold the queue only when the service runs its MySQL
+   * store; under `GORGE_TASKQUEUE_BACKEND=redis` the tasks live in Redis and
+   * the SQL tables stay empty, so reading SQL directly would report a clean
+   * queue during exactly the outage this check exists to find. The service's
+   * own counts are the same either way.
    */
   private function checkConsumed() {
-    $table = new PhabricatorWorkerActiveTask();
-    $conn = $table->establishConnection('r');
-
-    $window = phutil_units('15 minutes in seconds');
-    $horizon = PhabricatorTime::getNow() - $window;
-
-    $row = queryfx_one(
-      $conn,
-      'SELECT COUNT(*) N, MIN(dateCreated) oldest FROM %R
-        WHERE (leaseOwner IS NULL OR leaseExpires < UNIX_TIMESTAMP())
-          AND dateCreated < %d',
-      $table,
-      $horizon);
-
-    $count = (int)$row['N'];
-    if (!$count) {
+    try {
+      $client = new PhabricatorGorgeTaskQueueClient();
+      $stats = $client->getStats();
+    } catch (Exception $ex) {
+      // A service which does not answer has already been reported by the
+      // probes above, so do not describe the same outage twice.
       return;
     }
 
-    $age = PhabricatorTime::getNow() - (int)$row['oldest'];
+    // "activeCount" is every task in the queue and "leasedCount" is the subset
+    // a worker holds a live lease on, so the difference is the work that
+    // nothing is touching.
+    $active = (int)idx($stats, 'activeCount');
+    $leased = (int)idx($stats, 'leasedCount');
+
+    $waiting = $active - $leased;
+    if ($waiting < 1) {
+      return;
+    }
+
+    // A backlog only means something once it stops moving: a burst is normal,
+    // and a worker which is keeping up drains it in seconds. Age the report off
+    // the oldest task nothing is holding.
+    $window = phutil_units('15 minutes in seconds');
+    $horizon = PhabricatorTime::getNow() - $window;
+
+    $oldest = $this->getOldestWaitingTask($client, $horizon);
+    if ($oldest === null) {
+      return;
+    }
+
+    $age = PhabricatorTime::getNow() - $oldest;
 
     $summary = pht(
-      'Tasks are queued but nothing has leased them, so background work is '.
+      'Tasks are queued but no worker is leasing them, so background work is '.
       'not running.');
 
     $message = pht(
-      'There are %s task(s) in the queue which no worker is holding -- either '.
+      'The task queue holds %s task(s) which no worker is holding -- either '.
       'never leased, or leased by a worker which stopped and let the lease '.
       'expire -- the oldest queued for %s. The Gorge task queue service is '.
       'reachable, so the tasks are being written correctly; what is missing '.
@@ -146,7 +153,7 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       "\n\n".
       'While this persists, every background job -- outbound mail, search '.
       'indexing, repository import, Herald -- is queued and never run.',
-      new PhutilNumber($count),
+      new PhutilNumber($waiting),
       phutil_format_relative_time($age),
       phutil_tag('tt', array(), 'gorge-worker'),
       phutil_tag('tt', array(), ':8170/healthz'));
@@ -157,6 +164,58 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       ->setMessage($message)
       ->addRelatedPhabricatorConfig('gorge.taskqueue.uri')
       ->addRelatedPhabricatorConfig('gorge.taskqueue.owner');
+  }
+
+
+  /**
+   * Find the oldest queued task which no worker is holding.
+   *
+   * Samples one page instead of walking the queue. The service lists by
+   * priority and then by id, so when nothing is draining the oldest tasks sit
+   * at the front of each band and land on the first page; a queue which is
+   * moving may hide its oldest task further in, which errs toward reporting
+   * nothing rather than toward a false alarm.
+   *
+   * A task counts as held only while its lease is live. An expired lease is
+   * leasable again -- `PhabricatorWorkerLeaseQuery` takes both its unleased
+   * and expired phases -- so a worker which died mid-batch leaves tasks that
+   * still name it as their owner and still need a consumer.
+   *
+   * @param PhabricatorGorgeTaskQueueClient $client Configured client.
+   * @param int $horizon Epoch before which a waiting task counts as stuck.
+   * @return int|null Creation time of the oldest stuck task, if any.
+   */
+  private function getOldestWaitingTask(
+    PhabricatorGorgeTaskQueueClient $client,
+    $horizon) {
+
+    try {
+      $tasks = $client->getTasks(100);
+    } catch (Exception $ex) {
+      return null;
+    }
+
+    $now = PhabricatorTime::getNow();
+    $oldest = null;
+
+    foreach ($tasks as $task) {
+      $owner = idx($task, 'leaseOwner');
+      $expires = (int)idx($task, 'leaseExpires');
+      if (phutil_nonempty_string($owner) && ($expires >= $now)) {
+        continue;
+      }
+
+      $created = (int)idx($task, 'dateCreated');
+      if ($created >= $horizon) {
+        continue;
+      }
+
+      if (($oldest === null) || ($created < $oldest)) {
+        $oldest = $created;
+      }
+    }
+
+    return $oldest;
   }
 
 
