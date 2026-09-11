@@ -407,7 +407,7 @@ Provider **无条件信任** `X-Auth-User/Email/Name` 头。因此：
 ## 用 Gorge 做语法高亮（可选）
 
 Phorge 自带的高亮器只覆盖几种语言（PHP / Python / Java / JSON），本镜像也**没装**
-Pygments，所以其余文件在 Paste、Differential、Diffusion 里都是无色的。叠加编排文件
+Pygments，所以其余文件在 Differential、Diffusion 里都是无色的。叠加编排文件
 `docker-compose.gorge.yml` 会起一个 `gorge-render` 服务（Go + Chroma），Phorge 把高亮
 请求发给它，覆盖面与 Pygments 相当，但不用在镜像里塞一套 Python 运行时。
 同一个进程还承载 `/api/diff/*`：可以替换系统 `diff -U65535` 子进程与 PHP 的 prose
@@ -438,12 +438,12 @@ docker compose exec phorge /opt/phorge/phorge/bin/config set \
 docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 ```
 
-> **第 3 步不能省**：Phorge 缓存的是**高亮之后的 HTML**，不是源码。Paste 的正文与摘要
-> 存在 `cache_general` 表，Differential 的 changeset 存在自己的缓存表，两者都不会因为
-> 换了引擎而失效。只切引擎不清缓存，已经看过的 Paste 和 diff 会继续吐旧 HTML，很容易
-> 误判成「配置没生效」，转头去反复折腾 URI 和 token。只想清相关的两项可以用
-> `bin/cache purge --caches general,changeset`。切换之后**新建**的 Paste / diff 不受影响，
-> 它们本来就会走新引擎。
+> **第 3 步不能省**：Phorge 缓存的是**高亮之后的 HTML**，不是源码。Differential 的
+> changeset 存在自己的缓存表，其余渲染结果存在 `cache_general` 表，都不会因为换了引擎
+> 而失效。只切引擎不清缓存，已经看过的 diff 会继续吐旧 HTML，很容易误判成「配置没生
+> 效」，转头去反复折腾 URI 和 token。只想清相关的两项可以用
+> `bin/cache purge --caches general,changeset`。切换之后**新建**的 diff 不受影响，它们
+> 本来就会走新引擎。
 
 ### 用 Gorge 生成 diff
 
@@ -1844,9 +1844,10 @@ docker compose --profile gitea \
   up -d --force-recreate
 ```
 
-运行时 profile 会停用以下八个应用，而不改管理员的
+运行时 profile 会停用以下七个应用，而不改管理员的
 `phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
-Harbormaster、Drydock、Diviner、Paste。部署配置同时在已配置
+Harbormaster、Drydock、Diviner。Paste 已随本次清理从发行版中物理移除，任何 profile
+下都不存在，因此不再由 profile 开关。部署配置同时在已配置
 `GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
 `PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
 `gorge`。
