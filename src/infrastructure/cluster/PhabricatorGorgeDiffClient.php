@@ -3,10 +3,10 @@
 /**
  * HTTP client for the diff domain served by the Gorge render service.
  *
- * The render and diff domains share one process and therefore share the
- * `gorge.render.uri` and `gorge.render.token` configuration. Diff routing is
- * enabled independently with `gorge.diff.enabled`, so deploying the service
- * does not silently replace Phorge's local difference engines.
+ * Render and diff share one process and one endpoint. The bundled deployment
+ * now treats Gorge as the only production diff implementation, so routing is
+ * selected by the render service itself rather than by the historical
+ * `gorge.diff.enabled` migration switch.
  */
 final class PhabricatorGorgeDiffClient
   extends PhabricatorGorgeServiceClient {
@@ -37,8 +37,13 @@ final class PhabricatorGorgeDiffClient
     return 15;
   }
 
+  /**
+   * Diff is available whenever the render service is selected by policy and
+   * has an endpoint. There is no native implementation to switch to anymore.
+   */
   public static function isEnabled() {
-    if (!PhabricatorEnv::getEnvConfig('gorge.diff.enabled')) {
+    $service = PhabricatorGorgeServiceRegistry::getService('render');
+    if ($service->isDisabled()) {
       return false;
     }
 
