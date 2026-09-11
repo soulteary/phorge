@@ -1,0 +1,28 @@
+# Deliberate references to symbols this cleanup series removed.
+#
+# Format: <path>:<symbol>, one per line. Only that symbol in that file is
+# allowed; any other removed symbol in the same file still fails the check.
+#
+# Add an entry only when the reference is deliberate and the reason is written
+# down at the reference itself. A reference which is merely harmless does not
+# belong here -- delete it instead.
+
+# The collaboration profile's managed-application set is the history of every
+# application the profile has ever uninstalled, not a list of applications which
+# still exist. Dropping an entry would strand it: rollback rebuilds "what the
+# profile set" from this list and three-way merges it against live
+# configuration, so a key an earlier profile run wrote but this list no longer
+# mentions reads as an administrator's own choice and survives the restore
+# permanently. The file says so at the list itself.
+scripts/setup/manage_collaboration_profile.php:PhabricatorPasteApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorDivinerApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorOwnersApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorAuditApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorDifferentialApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorHarbormasterApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorDrydockApplication
+
+# Translation tables are keyed by English source strings. "HarbormasterBuildable"
+# appears inside the prose of a message, not as a reference to the class, and the
+# key has to match the source string byte for byte to translate anything.
+src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php:HarbormasterBuildable
