@@ -1,6 +1,14 @@
 <?php
 
-final class PhabricatorOwnerPathQuery extends Phobject {
+/**
+ * Lists the paths a commit touched, as absolute paths with a trailing slash
+ * on directories.
+ *
+ * This was filed under the Owners application, which used it to match commits
+ * against package paths, but it is a plain Diffusion path query and has no
+ * connection to packages.
+ */
+final class DiffusionCommitAffectedPathQuery extends Phobject {
 
   public static function loadAffectedPaths(
     PhabricatorRepository $repository,

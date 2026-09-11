@@ -8,7 +8,7 @@ final class PhabricatorAuditTransactionQuery
   }
 
   public function getQueryApplicationClass() {
-    return PhabricatorAuditApplication::class;
+    return PhabricatorDiffusionApplication::class;
   }
 
 }

@@ -22,7 +22,7 @@ final class PhabricatorAuditEditor
   }
 
   public function getEditorApplicationClass() {
-    return PhabricatorAuditApplication::class;
+    return PhabricatorDiffusionApplication::class;
   }
 
   public function getEditorObjectsDescription() {

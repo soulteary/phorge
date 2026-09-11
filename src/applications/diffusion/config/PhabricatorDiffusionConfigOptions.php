@@ -41,6 +41,25 @@ final class PhabricatorDiffusionConfigOptions
     }
 
     return array(
+      // NOTE: This option keeps its "audit." key. It was defined by the
+      // removed Audit application, but it configures commit auditing, which
+      // is Diffusion functionality, and renaming the key would silently
+      // discard the value on installs which had set it.
+      $this->newOption(
+        'audit.can-author-close-audit',
+        'bool',
+        false)
+        ->setBoolOptions(
+          array(
+            pht('Enable Self-Accept'),
+            pht('Disable Self-Accept'),
+          ))
+        ->setDescription(
+          pht(
+            'Allows the author of a commit to be an auditor and accept their '.
+            'own commits. Note that this behavior is different from the '.
+            'behavior implied by the name of the option: long ago, it did '.
+            'something else.')),
       $this->newOption(
         'metamta.diffusion.attach-patches',
         'bool',

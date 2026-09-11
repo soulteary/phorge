@@ -1844,9 +1844,9 @@ docker compose --profile gitea \
   up -d --force-recreate
 ```
 
-运行时 profile 会停用以下六个应用，而不改管理员的
-`phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
-Harbormaster、Drydock。Diviner 与 Paste 已随这一系列清理从发行版中物理移除，任何
+运行时 profile 会停用以下四个应用，而不改管理员的
+`phabricator.uninstalled-applications`：Diffusion、Differential、Harbormaster、
+Drydock。Audit、Owners、Diviner 与 Paste 已随这一系列清理从发行版中物理移除，任何
 profile 下都不存在，因此不再由 profile 开关。部署配置同时在已配置
 `GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
 `PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
