@@ -1254,12 +1254,6 @@ final class PhabricatorRepository extends PhabricatorRepositoryDAO
   public function delete() {
     $this->openTransaction();
 
-      $paths = id(new PhabricatorOwnersPath())
-        ->loadAllWhere('repositoryPHID = %s', $this->getPHID());
-      foreach ($paths as $path) {
-        $path->delete();
-      }
-
       queryfx(
         $this->establishConnection('w'),
         'DELETE FROM %T WHERE repositoryPHID = %s',
