@@ -19,6 +19,14 @@ if ($mode !== 'collaboration' && $mode !== 'full') {
     pht('Unknown product profile "%s".', $mode));
 }
 
+// Every application this profile has ever uninstalled, including ones whose
+// implementation has since been physically removed. These are plain class
+// names in a keyed config set, so a name with no class behind it matches
+// nothing and installs nothing. Dropping a removed application from this list
+// would strand it: rollback rebuilds "what the profile set" from this list and
+// three-way merges it against the live config, so an entry written by an
+// earlier profile run but missing from the list reads as an administrator's
+// own choice and survives the restore forever.
 $managed_applications = array(
   'PhabricatorDiffusionApplication',
   'PhabricatorDifferentialApplication',
