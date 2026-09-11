@@ -97,6 +97,13 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
    * measured directly instead. That is also a better signal than a liveness
    * probe: a worker which is up but failing on every task shows up here, and a
    * worker which is briefly restarting does not.
+   *
+   * "Waiting" has to mean what PhabricatorWorkerLeaseQuery means by it. That
+   * query leases from two phases, PHASE_UNLEASED and PHASE_EXPIRED, so a task
+   * whose lease has run out is runnable again even though it still carries the
+   * "leaseOwner" of the worker that abandoned it. Counting only never-leased
+   * rows would miss exactly the outage this check exists for: a worker which
+   * leased a batch and then died reports a clean queue forever.
    */
   private function checkConsumed() {
     $table = new PhabricatorWorkerActiveTask();
@@ -108,7 +115,8 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
     $row = queryfx_one(
       $conn,
       'SELECT COUNT(*) N, MIN(dateCreated) oldest FROM %R
-        WHERE leaseOwner IS NULL AND dateCreated < %d',
+        WHERE (leaseOwner IS NULL OR leaseExpires < UNIX_TIMESTAMP())
+          AND dateCreated < %d',
       $table,
       $horizon);
 
@@ -124,10 +132,11 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       'not running.');
 
     $message = pht(
-      'There are %s task(s) in the queue which have never been leased, the '.
-      'oldest for %s. The Gorge task queue service is reachable, so the '.
-      'tasks are being written correctly; what is missing is a consumer '.
-      'draining them.'.
+      'There are %s task(s) in the queue which no worker is holding -- either '.
+      'never leased, or leased by a worker which stopped and let the lease '.
+      'expire -- the oldest queued for %s. The Gorge task queue service is '.
+      'reachable, so the tasks are being written correctly; what is missing '.
+      'is a consumer draining them.'.
       "\n\n".
       'That consumer is `%s`, a separate process which leases from the task '.
       'queue service and executes the work. This server never calls it, so '.
