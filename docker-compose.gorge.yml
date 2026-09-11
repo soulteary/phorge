@@ -1,17 +1,29 @@
 # Phorge (phorge-fork) Gorge 服务定义
 # ------------------------------------------------------------------
-# 用法：
-#   - 默认栈已内置 Gorge 核心服务，直接一键启动即可：
-#       docker compose up -d --build
-#     默认 docker-compose.yml 用 extends 引用本文件里的 gorge-* 服务定义，
-#     所以**不要**再用 -f 把本文件与默认文件叠加，那会重复定义同名服务。
-#   - 自定义基础编排仍可继续叠加本文件：
-#       docker compose -f <你的基础文件>.yml -f docker-compose.gorge.yml up -d --build
-#     本文件末尾的 phorge 段只补 depends_on 与 GORGE_* 环境变量，基础文件需要
-#     自行定义 phorge / mysql / db-init。
+# 用法：默认栈已内置 Gorge 核心服务，直接一键启动即可：
+#   docker compose up -d --build
+#
+# 本文件只是 gorge-* 服务定义的单一来源，默认 docker-compose.yml 用 extends
+# 逐个引用它们。它**不是**可以用 -f 叠加的 override：
+#   - 与默认文件叠加会重复定义同名服务；
+#   - 单独启动不了，它不含 mysql / db-init / phorge。
+#
+# 自定义编排要接 Gorge，照默认 docker-compose.yml 的写法做，不要 -f 本文件：
+#   1. 用 extends 从本文件引用需要的 gorge-* 服务；
+#   2. 自己定义 phorge-migrate / phorge / phorge-daemon 三个角色，并把全部
+#      GORGE_* 端点变量放在 **phorge-migrate** 上。
+#      端点由 migrate 角色一次性写进 deployment.json，web 与 daemon 只读加载；
+#      放在 phorge（web）上不会生效，而缺少 migrate 角色的编排根本起不来
+#      （web/daemon 缺 local.json / deployment.json 时直接退出）。
+#      docker-compose.yml 的 phorge-migrate 段就是这份变量契约的参考实现。
+#
+# 本文件曾经还带一个只补 depends_on 与 GORGE_* 的 phorge 片段，供旧的
+# docker-compose.legacy.yml 叠加。那些变量只有 legacy 控制面会读，而该控制面
+# 已经移除（PHORGE_CONTROL_PLANE=legacy 现在直接 exit 64），所以片段一并删掉，
+# 以免它看起来还是一条可用的接入方式。
 #
 # 说明：
-#   - 上面两条命令里的 --build 不能省。phorge 是 build 型服务、entrypoint.sh 是烤进
+#   - 上面那条命令里的 --build 不能省。phorge 是 build 型服务、entrypoint.sh 是烤进
 #     镜像的，本地已存在旧的 phorge 镜像时，不带 --build 的 up -d 会直接复用它，容器里
 #     跑的就是**旧版 entrypoint**：notification.servers 与 cluster.mailers 整段不下发，
 #     而且**不报任何错误**——没有告警、没有失败退出，Config 页面看着也正常。唯一的线索
@@ -863,236 +875,6 @@ services:
       timeout: 3s
       start_period: 5s
       retries: 3
-
-  # 给已存在的 phorge 服务补充：对 Gorge 服务的创建顺序 + 若干配置用环境变量。
-  # 这里只是「叠加」字段，其余定义仍来自 docker-compose.yml；depends_on 与
-  # environment 都是映射，compose 会与基础文件里的条目合并（mysql / db-init
-  # 两个依赖仍然保留），不会整体替换。
-  phorge:
-    depends_on:
-      # 这里只约束容器创建顺序，不把 Gorge 健康状态变成 Phorge 的启动门槛。
-      # required 在请求边界显式失败；fallback/off 必须能在 Gorge 故障时启动。
-      gorge-render:
-        condition: service_started
-      gorge-conduit:
-        condition: service_started
-      gorge-notification:
-        condition: service_started
-      gorge-mailer:
-        condition: service_started
-      gorge-search:
-        condition: service_started
-      # 以下有状态服务同样只约束创建顺序，不以健康状态阻塞 Phorge。它们的就绪条件
-      # 都依赖由 phorge 的 bin/storage upgrade 创建的 {namespace}_xxx 数据库。
-      #
-      # 这一条曾经写的是 service_healthy，那是一个**首次启动必然发生的死锁**：
-      # blob 后端的 DSN 是 {namespace}_file（filestorage.FileDSN()），而 go-sql-driver
-      # 会在握手阶段就把库名发过去，库不存在时 Ping 直接拿到
-      # `Error 1049 (42000): Unknown database 'phabricator_file'`，于是 /readyz 一直 503。
-      # 建这个库的是 phorge 的 bin/storage upgrade，而 phorge 正等在这条依赖上。
-      # db-init 帮不上忙：它只发 GRANT（见 docker/db-grant.sql），一个库都不建。
-      #
-      # 换句话说，gorge 侧 Router.Ready 注释里「ping 数据库是安全的，因为数据库服务器是
-      # 一个独立容器」这句只对了一半 —— 独立的是**服务器**，而 DSN 里带的是**库名**。
-      # 那边刻意不查 file_storageblob 表是对的，只是「不查表」还不够。
-      #
-      # 修在编排这一侧而不是改 gorge 的 /readyz 语义，理由是后者会把一个真实有用的信号
-      # 换掉：blob 后端在库建出来之前**确实**写不进去，这正是 /readyz 该报的。而这个中间
-      # 状态本来就有兜底 —— 写入按 priority 下沉到本地磁盘后端（见上面 healthcheck 那段），
-      # 所以 phorge 不必等它。代价只是首次启动时这个容器会有一段 unhealthy 的窗口，
-      # 直到 phorge 跑完 storage upgrade，与下面 gorge-webhook 的情况完全一样。
-      gorge-file-storage:
-        condition: service_started
-      # gorge-webhook 同理，成因一模一样，只是库名是 {namespace}_herald：
-      # 用 service_healthy 等它，首次启动就死锁在「phorge 等服务、服务等只有 phorge
-      # 能建的库」上。
-      #
-      # 那还留这条依赖做什么？为了顺序：让 gorge-webhook 先于 phorge 被创建，
-      # entrypoint.sh 写 gorge.webhook.uri 时投递的接手方已经在跑，中间不会有一段
-      # 「PHP 已经不发、Go 还没起」的空窗（那段时间里的 request 不会丢，会堆在
-      # queued 里等服务起来，但没必要制造它）。
-      gorge-webhook:
-        condition: service_started
-      # gorge-taskqueue 是第七条依赖，用 service_started 的理由与 gorge-webhook /
-      # gorge-file-storage 那两条**完全相同**：它的就绪条件是能连上 {namespace}_worker
-      # 库，而那个库是 phorge 容器里的 bin/storage upgrade 建的。用 service_healthy 等它
-      # 就成了「phorge 等服务、服务等只有 phorge 能建的库」的首次启动死锁。
-      # db-init 也帮不上忙——它只发 GRANT，一个库都不建。
-      #
-      # 留这条依赖是为了顺序：让 gorge-taskqueue 先于 phorge 被创建，等 phorge 的
-      # entrypoint 写 gorge.taskqueue.uri 时，队列服务已经在跑（哪怕还没就绪），
-      # PhabricatorWorker::scheduleTask 头一次入队就有接手方。首次启动时 taskqueue 会有
-      # 一段 unhealthy 的窗口，直到 storage upgrade 建出 {namespace}_worker 库，这是预期的。
-      gorge-taskqueue:
-        condition: service_started
-      # gorge-worker 是第八条依赖，同样用 service_started。它本身不碰数据库、就绪即存活，
-      # 本可以等它 healthy，但那没意义：worker 起来后若队列还没就绪只是空转重试，不影响
-      # phorge。用 service_started 只为把它先于 phorge 创建，让队列的消费方在 phorge 开始
-      # 入队时已经在跑。注意 worker 是**替换** phd 的 taskmaster 而非并存的——entrypoint
-      # 在配置了 GORGE_TASKQUEUE_URI 时会把 phd.taskmasters 关到 0，见下面 environment 段
-      # 与 docker/entrypoint.sh。
-      gorge-worker:
-        condition: service_started
-      # db-api 的 /readyz 会实际探测 MySQL。这里必须只等进程启动，让这个可选诊断面的
-      # 数据库可达性不阻塞 Phorge 自身的首次启动与 storage upgrade。
-      gorge-db-api:
-        condition: service_started
-    environment:
-      # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json，且刻意放在
-      # 守卫式生成块**之外**，所以改 .env 重启容器就生效，不必删 local.json。
-      # URI 结尾不要带斜杠：客户端按 {uri}/api/highlight/render 拼接，双斜杠会被
-      # gorge-render 判成路由不匹配，返回 404 ERR_NOT_FOUND。
-      GORGE_RENDER_URI: ${GORGE_RENDER_URI:-http://gorge-render:8140}
-      GORGE_RENDER_TOKEN: ${GORGE_RENDER_TOKEN:-}
-      # --- conduit 网关（Conduit API 反向代理）---
-      # entrypoint.sh 会把这两个值用 bin/config set 写进 local.json 的
-      # gorge.conduit.uri / gorge.conduit.token，且刻意放在守卫式生成块**之外**，
-      # 所以改 .env 重启容器就生效，不必删 local.json。
-      # URI 结尾不要带斜杠：客户端按 {uri}/api/{method} 拼接，双斜杠会被网关
-      # 判成路由不匹配。
-      GORGE_CONDUIT_URI: ${GORGE_CONDUIT_URI:-http://gorge-conduit:8150}
-      GORGE_CONDUIT_TOKEN: ${GORGE_CONDUIT_TOKEN:-}
-      # entrypoint.sh 用它解析出 conduit 网关的上游 host，登记进 phabricator.allowed-uris。
-      # gorge-conduit 把 worker.execute 转发到这个地址（默认 http://phorge:80），到达
-      # phorge 的请求 Host 头即此 host；不登记进 allowed-uris 时 Phorge 按 Host 匹配
-      # 站点会失败（"Site Not Found"），委派任务永远 temporary-fail。必须与
-      # gorge-conduit 段的 GORGE_CONDUIT_UPSTREAM_URL 取同一个值（同名 .env 变量兜底）。
-      GORGE_CONDUIT_UPSTREAM_URL: ${GORGE_CONDUIT_UPSTREAM_URL:-http://phorge:80}
-      # --- 下面几项由 entrypoint.sh 拼成 notification.servers 的两条记录 ---
-      # 关键不对称：admin 与 client **必须填不同的地址**，因为消费者根本不是同
-      # 一个进程。
-      #   admin  由 phorge 容器内的 PHP 访问（PhabricatorNotificationClient），
-      #          走 compose 默认网络的服务名就行，它对宿主没有任何映射。
-      #   client 由**用户的浏览器**访问：Phorge 用它拼出 ws:// 地址交给 JS 客户端
-      #          （PhabricatorNotificationServerRef::getWebsocketURI()）。这里填
-      #          compose 服务名会让浏览器 DNS 解析失败，必须填浏览器可达的地址，
-      #          对应端口也因此必须发布到宿主（见上面 gorge-notification.ports）。
-      # 顺带：两条记录的 "{host}:{port}" 必须互不相同，否则配置校验直接拒绝——这
-      # 也是为什么就算两个端口都在同一个容器里，也不能把 host 写成一样的值。
-      GORGE_NOTIFICATION_ADMIN_HOST: ${GORGE_NOTIFICATION_ADMIN_HOST:-gorge-notification}
-      GORGE_NOTIFICATION_ADMIN_PORT: ${GORGE_NOTIFICATION_ADMIN_PORT:-22281}
-      GORGE_NOTIFICATION_CLIENT_HOST: ${GORGE_NOTIFICATION_CLIENT_HOST:-127.0.0.1}
-      GORGE_NOTIFICATION_CLIENT_PORT: ${GORGE_NOTIFICATION_CLIENT_PORT:-22280}
-      # 浏览器到 client 端口这一跳的协议与路径前缀。直连容器时保持默认（http +
-      # 空路径）；前面挂了 Traefik / Nginx 做 TLS 终止时，改成 https 与反代上那条
-      # WebSocket 路由的路径（本仓库的 Traefik 叠加文件里是 /ws/），填法见
-      # DOCKER.md「用 Gorge 做实时通知」。
-      # 只有 client 有 path：admin 条目带 path 会被配置校验明确拒绝。
-      GORGE_NOTIFICATION_CLIENT_PROTOCOL: ${GORGE_NOTIFICATION_CLIENT_PROTOCOL:-http}
-      GORGE_NOTIFICATION_CLIENT_PATH: ${GORGE_NOTIFICATION_CLIENT_PATH:-}
-      GORGE_NOTIFICATION_MODE: enable
-      # --- 下面几项由 entrypoint.sh 拼成 cluster.mailers 里的一个条目 ---
-      # 与上面两组不同，这一组写进的是一个**共享列表**：用户可能自己在
-      # cluster.mailers 里配了 postmark 等条目。entrypoint.sh 因此做的是合并——读出
-      # 现有列表、剔除 key 等于 GORGE_MAILER_KEY 的那一条、再把新条目追加回去。
-      #
-      # GORGE_MAILER_URI 同时也是「整段发信配置的总开关」：它为空时 entrypoint.sh
-      # 整段跳过，cluster.mailers 一个字都不动。
-      # URI 结尾不要带斜杠：客户端按 {uri}/api/mailer/send 拼接，双斜杠会被
-      # gorge-mailer 判成路由不匹配，返回 404 ERR_NOT_FOUND。
-      GORGE_MAILER_URI: ${GORGE_MAILER_URI:-http://gorge-mailer:8110}
-      GORGE_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:-}
-      GORGE_MAILER_MODE: enable
-      # 这个条目在 cluster.mailers 里的 key，也是 entrypoint.sh 认定「哪一条归我管」
-      # 的依据：只有 key 等于它的条目会被覆盖。想再手工配一条指向另一个实例的
-      # gorge mailer，换个 key 写进去即可，不会被覆盖掉。
-      GORGE_MAILER_KEY: ${GORGE_MAILER_KEY:-gorge-mailer}
-      # 单次发信请求的客户端超时（秒）。这一跳会占住一个 phd 队列 worker，而服务端
-      # 内部已有自己的有界重试，所以不宜给大。
-      GORGE_MAILER_TIMEOUT: ${GORGE_MAILER_TIMEOUT:-30}
-      # 条目的 priority（数字越大越优先）。留空表示不写这个键，用 Phorge 的默认顺序。
-      # 只有当 cluster.mailers 里还有别的条目、需要指定谁先谁后时才用得上。
-      GORGE_MAILER_PRIORITY: ${GORGE_MAILER_PRIORITY:-}
-      # 是否允许 Phorge 自己指定 Message-ID（取值 1 开启）。默认关：gorge-mailer 后面
-      # 挂着 7 种后端，走 SMTP/SES 时自建 MIME 会保留它，走 SendGrid/Postmark 时
-      # provider 通常会覆盖。谎报支持的表现是邮件会话在客户端里串不起来，很难察觉，
-      # 所以按你实际使用的后端来开。
-      GORGE_MAILER_SUPPORTS_MESSAGE_ID: ${GORGE_MAILER_SUPPORTS_MESSAGE_ID:-0}
-      # --- 下面几项由 entrypoint.sh 拼成 cluster.search 里的一个条目 ---
-      # 这里给的是 host / port / protocol 三件套而不是一个 URI，因为 cluster.search
-      # 条目的 hosts 就是这么描述的（与 notification.servers 同理，与 render / mailer
-      # 的 URI 不同）。
-      #
-      # GORGE_SEARCH_HOST 同时也是「整段检索配置的总开关」：它为空时 entrypoint.sh
-      # 整段跳过，cluster.search 一个字都不动。
-      GORGE_SEARCH_HOST: ${GORGE_SEARCH_HOST:-gorge-search}
-      GORGE_SEARCH_PORT: ${GORGE_SEARCH_PORT:-8120}
-      GORGE_SEARCH_PROTOCOL: ${GORGE_SEARCH_PROTOCOL:-http}
-      GORGE_SEARCH_TOKEN: ${GORGE_SEARCH_TOKEN:-}
-      GORGE_SEARCH_MODE: enable
-      # 是否在 cluster.search 里保留一条 mysql 条目（取值 1 开启）。
-      #
-      # 默认关：写进 cluster.search 的就只有 gorge 一条，MySQL（Ferret）全文检索不再
-      # 被读到。开启后列表变成 [gorge, mysql] —— 两条都可写意味着**双写双索引**，读则
-      # 按列表顺序优先走 gorge、gorge 出错时回落到 MySQL。
-      #
-      # 这是为回滚准备的：Ferret 索引由一个扩展始终维护、不受 cluster.search 影响，
-      # 所以这条 mysql 条目几乎没有额外开销，代价是「这次检索到底由谁回答」多了一层
-      # 不确定性。要彻底回滚就把 GORGE_SEARCH_HOST 留空并手工把 cluster.search 设回
-      # 只有 mysql 一条，命令见 DOCKER.md。
-      GORGE_SEARCH_KEEP_MYSQL: ${GORGE_SEARCH_KEEP_MYSQL:-0}
-      # --- 下面两项由 entrypoint.sh 写进 gorge.file.uri / gorge.file.token ---
-      # 与 gorge.render.* 一样是两个标量配置项（不是 cluster.* 那种列表条目），所以
-      # entrypoint.sh 走的是现成的 gorge_config_set。
-      #
-      # GORGE_FILE_URI 是「整段文件存储配置的总开关」：它为空时 entrypoint.sh 整段
-      # 跳过，gorge.file.uri 一个字都不动，引擎也就不会被认为可写。
-      # 结尾不要带斜杠：客户端按 {uri}/api/file/blob 拼接，双斜杠会被
-      # gorge-file-storage 判成路由不匹配，返回 404 ERR_NOT_FOUND。
-      #
-      # 再强调一次：写了它只是让引擎**可写**，不代表新文件会落到这儿。原生 blob 引擎
-      # priority 更小、仍然先拿到每个文件。第二步（关掉原生引擎）见 DOCKER.md
-      # 「用 Gorge 做文件存储」，Config 页面上的
-      # PhabricatorGorgeFileStorageSetupCheck 也会把这个中间状态报出来。
-      GORGE_FILE_URI: ${GORGE_FILE_URI:-http://gorge-file-storage:8100}
-      GORGE_FILE_TOKEN: ${GORGE_FILE_TOKEN:-}
-      # --- 下面两项由 entrypoint.sh 写进 gorge.webhook.uri / gorge.webhook.token ---
-      # 形式上和 gorge.file.* 一样是两个标量配置项，语义上却是六个服务里唯一一个
-      # **接管开关**：phorge 侧读到 gorge.webhook.uri 非空（且 phabricator.silent 未开）
-      # 就不再给 HeraldWebhookWorker 派任务，投递整个交给 gorge-webhook 容器直接读写
-      # 队列表。所以这里填的地址是「谁接管了」的声明，而不是「往哪儿发请求」——
-      # PHP 侧真正会去访问这个地址的只有 Config 页面的 setup check。
-      #
-      # 由此 GORGE_FILE_URI 那种「配了不等于生效」在这里变成了反过来的一条：
-      # **这一项没写进去、而 gorge-webhook 容器在跑，会产生重复投递竞态**。两边是一对，
-      # 删一个就把另一个也删掉。
-      #
-      # 它同时是整段 webhook 配置的总开关：留空时 entrypoint.sh 整段跳过，
-      # gorge.webhook.uri 一个字都不动，投递留在 phd 手里。
-      # 结尾不要带斜杠：setup check 按 {uri}/healthz、{uri}/readyz 拼接。
-      GORGE_WEBHOOK_URI: ${GORGE_WEBHOOK_URI:-http://gorge-webhook:8160}
-      GORGE_WEBHOOK_TOKEN: ${GORGE_WEBHOOK_TOKEN:-}
-      # 叠加时默认夺回所有权；显式 disable 前必须先停掉 gorge-webhook 消费者。
-      GORGE_WEBHOOK_MODE: ${GORGE_WEBHOOK_MODE:-enable}
-      # --- 下面几项与 task-queue 接管相关 ---
-      # gorge.taskqueue.uri / gorge.taskqueue.token 是两个标量配置项，整项归 Gorge 所有，
-      # entrypoint.sh 走现成的 gorge_config_set 幂等写入 local.json。
-      #
-      # 语义上它属于 phorge **主动调用**的那一类（和 render / conduit / file 一样），不是
-      # webhook 那种接管开关：PHP 侧 PhabricatorWorkerLeaseQuery / PhabricatorWorker /
-      # PhabricatorWorkerActiveTask 在读到 gorge.taskqueue.uri 非空（isConfigured()）时，
-      # 把 enqueue / lease / complete / fail / yield / cancel / awaken 全部改走
-      # gorge-taskqueue，否则回落原生 SQL 队列。清空这一项并重启即可回滚到原生队列。
-      # URI 结尾不要带斜杠：客户端按 {uri}/api/queue/enqueue 等拼接，双斜杠会被
-      # gorge-taskqueue 判成路由不匹配，返回 404 ERR_NOT_FOUND。
-      #
-      # GORGE_TASKQUEUE_URI 同时是「是否禁用 phd taskmaster」的开关：它非空时 entrypoint
-      # 会把 phd.taskmasters 设为 0（除非 GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER=0），
-      # 让 gorge-worker 独家消费队列，避免 phd 的 taskmaster 与它并存。详见 entrypoint.sh。
-      GORGE_TASKQUEUE_URI: ${GORGE_TASKQUEUE_URI:-http://gorge-taskqueue:8090}
-      GORGE_TASKQUEUE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:-}
-      GORGE_TASKQUEUE_MODE: ${GORGE_TASKQUEUE_MODE:-enable}
-      # 配置了 gorge.taskqueue 时是否在本 phorge 容器里禁用 phd 的 taskmaster 守护进程
-      # （把 phd.taskmasters 设为 0）。默认 1 = 禁用，这是 compat 硬约束要求的「替换而非
-      # 并存」。设 0 可保留 taskmaster（仅在你确知要让 phd 也消费队列、或用于灰度对比时）。
-      GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER: ${GORGE_TASKQUEUE_DISABLE_PHD_TASKMASTER:-1}
-      # --- 下面两项由 entrypoint.sh 写进 gorge.db.uri / gorge.db.token ---
-      # PHP 侧 PhabricatorGorgeDBClient 在 URI 非空时把数据库健康、schema、环境与迁移
-      # 状态诊断改走 db-api；清空 URI 后自动回落到原来的 PHP 实现。
-      GORGE_DB_URL: ${GORGE_DB_URL:-http://gorge-db-api:8080}
-      GORGE_DB_TOKEN: ${GORGE_DB_TOKEN:-}
-      # 显式设为 disable 时 entrypoint 会清理已持久化的 URI/token。
-      GORGE_DB_MODE: ${GORGE_DB_MODE:-enable}
 
 # 本叠加文件引入的唯一一个卷。顶层 volumes 与基础 docker-compose.yml 里的那三个
 # （phorge-db / phorge-conf / phorge-repo）合并，不会替换它们。

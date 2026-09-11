@@ -106,9 +106,16 @@ Gorge 的九个接入域由 `PhabricatorGorgeServiceRegistry` 统一登记。默
 调用 `bin/config set`，也不再用 `collaboration-profile-state.json` 长期维护应用和字段
 的三方合并；从阶段一升级时若检测到旧状态文件，会先恢复原始管理员配置，再一次性迁移。
 
-后文保留每个 Gorge 服务的逐项说明。其中提到 entrypoint 写 `local.json` 的操作只属于
-兼容控制面（自定义编排叠加 `docker-compose.gorge.yml` 时仍走这条路径）；默认
-`docker-compose.yml` 使用上述 `deployment.json`，服务协议与环境变量含义不变。
+后文保留每个 Gorge 服务的逐项说明。其中提到 entrypoint 用 `bin/config set` 写
+`local.json` 的描述是旧版兼容控制面的行为，已随 `PHORGE_CONTROL_PLANE=legacy`
+一并移除（显式传 `legacy` 会 exit 64）；现在这些端点由 `phorge-migrate` 一次性写进
+上述 `deployment.json`，服务协议与环境变量含义不变。
+
+自定义编排要接 Gorge，不要用 `-f` 叠加 `docker-compose.gorge.yml` —— 它只是
+`gorge-*` 服务定义的来源，由默认文件用 `extends` 引用。自定义栈必须自己定义
+`phorge-migrate` / `phorge` / `phorge-daemon` 三个角色，并把全部 `GORGE_*` 端点
+变量放在 **`phorge-migrate`** 上；`web` 与 `daemon` 只读加载配置，缺少 migrate 角色
+的编排会因为没有 `local.json` / `deployment.json` 直接退出。
 
 需要邮件、搜索或 Gitea 单向事件桥时，显式启用对应 profile：
 
@@ -698,7 +705,7 @@ services:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.traefik.yml \
-  -f docker-compose.gorge.yml up -d --build
+  up -d --build
 ```
 
 ### 本地构建镜像
