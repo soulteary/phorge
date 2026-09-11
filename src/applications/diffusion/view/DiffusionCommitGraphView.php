@@ -12,7 +12,6 @@ final class DiffusionCommitGraphView
   private $noDataString;
 
   private $commitMap;
-  private $buildableMap;
 
   private $showAuditors;
 
@@ -122,7 +121,6 @@ final class DiffusionCommitGraphView
 
     require_celerity_resource('diffusion-css');
 
-    $show_builds = $this->shouldShowBuilds();
     $show_auditors = $this->shouldShowAuditors();
 
     $phids = array();
@@ -169,10 +167,6 @@ final class DiffusionCommitGraphView
         ->setDisabled($is_disabled);
 
       $this->addBrowseAction($item_view, $hash);
-
-      if ($show_builds) {
-        $this->addBuildAction($item_view, $hash);
-      }
 
       $this->addAuditAction($item_view, $hash);
 
@@ -308,16 +302,6 @@ final class DiffusionCommitGraphView
       ->setIsHead($this->getIsHead())
       ->setIsTail($this->getIsTail())
       ->renderGraph($parents);
-  }
-
-  private function shouldShowBuilds() {
-    $viewer = $this->getViewer();
-
-    $show_builds = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorHarbormasterApplication::class,
-      $this->getUser());
-
-    return $show_builds;
   }
 
 
@@ -470,36 +454,6 @@ final class DiffusionCommitGraphView
       ->setColor('bluegrey');
   }
 
-  private function addBuildAction(PHUIObjectItemView $item, $hash) {
-    $buildable = null;
-
-    $commit = $this->getCommit($hash);
-    if ($commit) {
-      $buildable = $this->getBuildable($commit);
-    }
-
-    if ($buildable) {
-      $icon = $buildable->getStatusIcon();
-      $color = $buildable->getStatusColor();
-      $name = $buildable->getStatusDisplayName();
-      $uri = $buildable->getURI();
-    } else {
-      $icon = 'fa-times';
-      $color = 'grey';
-      $name = pht('No Builds');
-      $uri = null;
-    }
-
-    $menu_item = $item->newMenuItem()
-      ->setName($name)
-      ->setURI($uri)
-      ->setDisabled(($uri === null));
-
-    $menu_item->newIcon()
-      ->setIcon($icon)
-      ->setColor($color);
-  }
-
   private function addAuditAction(PHUIObjectItemView $item_view, $hash) {
     $commit = $this->getCommit($hash);
 
@@ -535,21 +489,6 @@ final class DiffusionCommitGraphView
     $menu_item->newIcon()
       ->setIcon($icon)
       ->setColor($color);
-  }
-
-  private function getBuildable(PhabricatorRepositoryCommit $commit) {
-    $buildable_map = $this->getBuildableMap();
-    return idx($buildable_map, $commit->getPHID());
-  }
-
-  private function getBuildableMap() {
-    if ($this->buildableMap === null) {
-      $commits = $this->getCommitMap();
-      $buildables = $this->loadBuildables($commits);
-      $this->buildableMap = $buildables;
-    }
-
-    return $this->buildableMap;
   }
 
 

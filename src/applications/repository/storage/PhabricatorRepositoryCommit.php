@@ -9,9 +9,6 @@ final class PhabricatorRepositoryCommit
     PhabricatorTokenReceiverInterface,
     PhabricatorSubscribableInterface,
     PhabricatorMentionableInterface,
-    HarbormasterBuildableInterface,
-    HarbormasterCircleCIBuildableInterface,
-    HarbormasterBuildkiteBuildableInterface,
     PhabricatorCustomFieldInterface,
     PhabricatorApplicationTransactionInterface,
     PhabricatorTimelineInterface,
@@ -245,6 +242,29 @@ final class PhabricatorRepositoryCommit
     $map = $this->assertAttachedKey($this->auditAuthorityPHIDs, $user_phid);
 
     return isset($map[$audit->getAuditorPHID()]);
+  }
+
+  public function writeOwnersEdges(array $package_phids) {
+    $src_phid = $this->getPHID();
+    $edge_type = DiffusionCommitHasPackageEdgeType::EDGECONST;
+
+    $editor = new PhabricatorEdgeEditor();
+
+    $dst_phids = PhabricatorEdgeQuery::loadDestinationPHIDs(
+      $src_phid,
+      $edge_type);
+
+    foreach ($dst_phids as $dst_phid) {
+      $editor->removeEdge($src_phid, $edge_type, $dst_phid);
+    }
+
+    foreach ($package_phids as $package_phid) {
+      $editor->addEdge($src_phid, $edge_type, $package_phid);
+    }
+
+    $editor->save();
+
+    return $this;
   }
 
   public function getAuditorPHIDsForEdit() {
@@ -589,6 +609,7 @@ final class PhabricatorRepositoryCommit
       'Commits inherit the policies of the repository they belong to.');
   }
 
+
 /* -(  PhabricatorTokenReceiverInterface  )---------------------------------- */
 
   public function getUsersToNotifyOfTokenGiven() {
@@ -622,134 +643,6 @@ final class PhabricatorRepositoryCommit
       ->loadFromArray($dict);
   }
 
-/* -(  HarbormasterBuildableInterface  )------------------------------------- */
-
-
-  public function getHarbormasterBuildableDisplayPHID() {
-    return $this->getHarbormasterBuildablePHID();
-  }
-
-  public function getHarbormasterBuildablePHID() {
-    return $this->getPHID();
-  }
-
-  public function getHarbormasterContainerPHID() {
-    return $this->getRepository()->getPHID();
-  }
-
-  public function getBuildVariables() {
-    $results = array();
-
-    $results['buildable.commit'] = $this->getCommitIdentifier();
-    $repo = $this->getRepository();
-
-    $results['repository.callsign'] = $repo->getCallsign();
-    $results['repository.phid'] = $repo->getPHID();
-    $results['repository.vcs'] = $repo->getVersionControlSystem();
-    $results['repository.uri'] = $repo->getPublicCloneURI();
-
-    return $results;
-  }
-
-  public function getAvailableBuildVariables() {
-    return array(
-      'buildable.commit' => pht('The commit identifier, if applicable.'),
-      'repository.callsign' =>
-        pht('The callsign of the repository.'),
-      'repository.phid' =>
-        pht('The PHID of the repository.'),
-      'repository.vcs' =>
-        pht('The version control system, either "svn", "hg" or "git".'),
-      'repository.uri' =>
-        pht('The URI to clone or checkout the repository from.'),
-    );
-  }
-
-  public function newBuildableEngine() {
-    return new DiffusionBuildableEngine();
-  }
-
-/* -(  HarbormasterCircleCIBuildableInterface  )----------------------------- */
-
-
-  public function getCircleCIGitHubRepositoryURI() {
-    $repository = $this->getRepository();
-
-    $commit_phid = $this->getPHID();
-    $repository_phid = $repository->getPHID();
-
-    if ($repository->isHosted()) {
-      throw new Exception(
-        pht(
-          'This commit ("%s") is associated with a hosted repository '.
-          '("%s"). Repositories must be imported from GitHub to be built '.
-          'with CircleCI.',
-          $commit_phid,
-          $repository_phid));
-    }
-
-    $remote_uri = $repository->getRemoteURI();
-    $path = HarbormasterCircleCIBuildStepImplementation::getGitHubPath(
-      $remote_uri);
-    if (!$path) {
-      throw new Exception(
-        pht(
-          'This commit ("%s") is associated with a repository ("%s") which '.
-          'has a remote URI ("%s") that does not appear to be hosted on '.
-          'GitHub. Repositories must be hosted on GitHub to be built with '.
-          'CircleCI.',
-          $commit_phid,
-          $repository_phid,
-          $remote_uri));
-    }
-
-    return $remote_uri;
-  }
-
-  public function getCircleCIBuildIdentifierType() {
-    return 'revision';
-  }
-
-  public function getCircleCIBuildIdentifier() {
-    return $this->getCommitIdentifier();
-  }
-
-/* -(  HarbormasterBuildkiteBuildableInterface  )---------------------------- */
-
-
-  public function getBuildkiteBranch() {
-    $viewer = PhabricatorUser::getOmnipotentUser();
-    $repository = $this->getRepository();
-
-    $branches = DiffusionQuery::callConduitWithDiffusionRequest(
-      $viewer,
-      DiffusionRequest::newFromDictionary(
-        array(
-          'repository' => $repository,
-          'user' => $viewer,
-        )),
-      'diffusion.branchquery',
-      array(
-        'contains' => $this->getCommitIdentifier(),
-        'repository' => $repository->getPHID(),
-      ));
-
-    if (!$branches) {
-      throw new Exception(
-        pht(
-          'Commit "%s" is not an ancestor of any branch head, so it can not '.
-          'be built with Buildkite.',
-          $this->getCommitIdentifier()));
-    }
-
-    $branch = head($branches);
-
-    return 'refs/heads/'.$branch['shortName'];
-  }
-
-  public function getBuildkiteCommit() {
-    return $this->getCommitIdentifier();
-  }
 
 /* -(  PhabricatorCustomFieldInterface  )------------------------------------ */
 
@@ -771,6 +664,7 @@ final class PhabricatorRepositoryCommit
     return $this;
   }
 
+
 /* -(  PhabricatorSubscribableInterface  )----------------------------------- */
 
 
@@ -782,6 +676,7 @@ final class PhabricatorRepositoryCommit
 
     return ($phid == $this->getAuthorPHID());
   }
+
 
 /* -(  PhabricatorApplicationTransactionInterface  )------------------------- */
 
@@ -801,12 +696,14 @@ final class PhabricatorRepositoryCommit
     return new DiffusionCommitFulltextEngine();
   }
 
+
 /* -(  PhabricatorFerretInterface  )----------------------------------------- */
 
 
   public function newFerretEngine() {
     return new DiffusionCommitFerretEngine();
   }
+
 
 /* -(  PhabricatorConduitResultInterface  )---------------------------------- */
 
@@ -925,6 +822,7 @@ final class PhabricatorRepositoryCommit
     );
   }
 
+
 /* -(  PhabricatorDraftInterface  )------------------------------------------ */
 
   public function newDraftEngine() {
@@ -939,6 +837,7 @@ final class PhabricatorRepositoryCommit
     $this->drafts[$viewer->getCacheFragment()] = $has_draft;
     return $this;
   }
+
 
 /* -(  PhabricatorTimelineInterface  )--------------------------------------- */
 

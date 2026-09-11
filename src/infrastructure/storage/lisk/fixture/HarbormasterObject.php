@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Generic object fixture for unit tests which need a saveable, PHID-bearing
+ * Lisk object. Retained from the removed Harbormaster application; see
+ * @{class:HarbormasterDAO}.
+ */
 final class HarbormasterObject extends HarbormasterDAO {
 
   protected $name;

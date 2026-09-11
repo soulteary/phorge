@@ -1,8 +1,6 @@
 <?php
 
-final class HeraldCommitAdapter
-  extends HeraldAdapter
-  implements HarbormasterBuildableAdapterInterface {
+final class HeraldCommitAdapter extends HeraldAdapter {
 
   protected $diff;
   protected $revision;
@@ -11,8 +9,6 @@ final class HeraldCommitAdapter
   private $commitDiff;
 
   protected $affectedPaths;
-
-  private $buildRequests = array();
 
   public function getAdapterApplicationClass() {
     return PhabricatorDiffusionApplication::class;
@@ -315,27 +311,6 @@ final class HeraldCommitAdapter
     }
 
     return null;
-  }
-
-
-/* -(  HarbormasterBuildableAdapterInterface  )------------------------------ */
-
-
-  public function getHarbormasterBuildablePHID() {
-    return $this->getObject()->getPHID();
-  }
-
-  public function getHarbormasterContainerPHID() {
-    return $this->getObject()->getRepository()->getPHID();
-  }
-
-  public function getQueuedHarbormasterBuildRequests() {
-    return $this->buildRequests;
-  }
-
-  public function queueHarbormasterBuildRequest(
-    HarbormasterBuildRequest $request) {
-    $this->buildRequests[] = $request;
   }
 
 }
