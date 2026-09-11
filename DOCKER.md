@@ -62,9 +62,9 @@ docker compose up -d --build
 | `PHORGE_GORGE_POLICY` | `required` | 已配置 Gorge 服务的失败策略：`required` 直接暴露错误；`fallback` 迁移期允许旧实现并记录 `[gorge-fallback]` 日志；`off` 停用请求路由型服务。 |
 | `PHORGE_DB_NAMESPACE` | `phabricator` | Phorge、db-init 与 file-storage/webhook/taskqueue/db-api 的唯一数据库前缀。已有自定义 `storage.default-namespace` 的安装升级前必须设为相同值；不一致时 entrypoint 会拒绝启动。 |
 | `GORGE_IMAGE_TAG` | `2026.09.09-r3` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
-| `PHORGE_WAIT_DB` | `1` | 是否在启动 Web 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
-| `PHORGE_AUTO_UPGRADE` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-migrate` 执行。 |
-| `PHORGE_START_PHD` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-daemon` 运行。 |
+| `PHORGE_WAIT_DB` | `1` | `migrate` 角色是否在执行 `storage upgrade` 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
+| `PHORGE_AUTO_UPGRADE` | `1` | `migrate` 角色是否自动执行 `bin/storage upgrade --force`。只有 `migrate` 读它，`web` / `daemon` 永不迁移 schema。 |
+| `PHORGE_CONTAINER_ROLE` | `web` | 容器角色：`migrate`（写 `local.json`、迁移 schema、发布 `deployment.json`）、`web`、`daemon`。`web` / `daemon` 是只读消费者，缺少这两个文件时直接退出。单容器 `all` 角色已移除。 |
 
 > 注意：`MYSQL_*` 与 `PHORGE_BASE_URI` / `PHORGE_TIMEZONE` **只在首次生成
 > `conf/local/local.json` 时写入**。该文件由 `phorge-conf` 卷持久化，之后改 `.env`
@@ -128,6 +128,62 @@ Gorge 搜索条目，保留其它引擎，列表为空时恢复 MySQL/Ferret。
 默认栈是唯一受支持的编排；需要按域取舍时，用 `PHORGE_GORGE_POLICY` 与各服务的
 `GORGE_*_MODE` 变量控制，而不是切回旧编排。仍在宿主机上裸跑 Gorge 的联调场景，
 用 `docker-compose.host-gorge.yml` 叠加默认文件（见该文件顶部说明）。
+
+### 不用 Compose 直接 docker run
+
+镜像只有 `migrate` / `web` / `daemon` 三个角色（`PHORGE_CONTAINER_ROLE`，默认 `web`），
+旧的单容器 `all` 角色已随 legacy 控制面一起移除。`web` 与 `daemon` 是配置的**只读消费者**：
+它们在 `conf/local/local.json` 或 `conf/local/deployment.json` 缺失时直接退出，不会自己
+迁移 schema。所以直接 `docker run` 也必须按 migrate → web → daemon 的顺序来，三个容器
+共享同一个 `conf/local` 卷：
+
+```bash
+docker build -t phorge:local .
+docker network create phorge-net
+docker volume create phorge-conf
+docker volume create phorge-repo
+
+# 0) 数据库自备（这里用官方镜像示意），并按 docker/db-grant.sql 给普通账号授权
+docker run -d --name phorge-mysql --network phorge-net \
+  -e MYSQL_ROOT_PASSWORD=phorge_root -e MYSQL_DATABASE=phorge \
+  -e MYSQL_USER=phorge -e MYSQL_PASSWORD=phorge \
+  mysql:8.0.46 --sql-mode=STRICT_ALL_TABLES --local-infile=0 --ft-min-word-len=3
+
+# 1) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
+#    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
+docker run --rm --network phorge-net \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=migrate \
+  -e PHORGE_AUTO_UPGRADE=1 \
+  -e MYSQL_HOST=phorge-mysql -e MYSQL_USER=phorge -e MYSQL_PASS=phorge \
+  -e PHORGE_BASE_URI=http://127.0.0.1:8088/ \
+  phorge:local /bin/true
+
+# 2) web：Apache，只读加载上一步的配置
+docker run -d --name phorge-web --network phorge-net -p 8088:80 \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=web \
+  phorge:local
+
+# 3) daemon：phd，同样只读加载配置
+docker run -d --name phorge-daemon --network phorge-net \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=daemon \
+  phorge:local /usr/local/bin/phd-foreground
+```
+
+要点：
+
+- 升级同样是「先跑一次 migrate，再重建 web/daemon」。`PHORGE_AUTO_UPGRADE` 只有
+  `migrate` 角色会读，`web` / `daemon` 永远不迁移 schema。
+- `phd` 由 `daemon` 角色的 `phd-foreground` 固定托管，没有「是否随容器启动 phd」的开关。
+- 接 Gorge 时，`GORGE_*` 端点变量要传给 **migrate** 容器：它们由 migrate 一次性写进
+  `deployment.json`，web 与 daemon 只读加载。传给 web 不会生效。
+- `PHORGE_CONTROL_PLANE` 只接受 `deployment`；显式传 `legacy` 会直接退出（exit 64），
+  不会静默退回已经删除的旧控制面。
 
 ## 镜像结构
 
@@ -1461,8 +1517,8 @@ ALTER TABLE {$NAMESPACE}_herald.herald_webhookrequest
   ADD KEY `key_status` (`status`, `id`);
 ```
 
-`resources/sql/autopatches/` 按文件名字典序自动发现，所以 `bin/storage upgrade`（容器默认
-`PHORGE_AUTO_UPGRADE=1`，每次启动都跑）会自动应用它，不需要手工执行。
+`resources/sql/autopatches/` 按文件名字典序自动发现，所以 `bin/storage upgrade`（`phorge-migrate`
+默认 `PHORGE_AUTO_UPGRADE=1`，每次起栈都跑）会自动应用它，不需要手工执行。
 
 同一个索引也声明在
 [`HeraldWebhookRequest::getConfiguration()`](src/applications/herald/storage/HeraldWebhookRequest.php)
