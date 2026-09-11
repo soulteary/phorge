@@ -21,31 +21,23 @@ final class PhabricatorGorgeConduitSetupCheck extends PhabricatorSetupCheck {
     $this->checkReachable($uri);
   }
 
-
-  /**
-   * Probe the gateway and report it if it does not answer.
-   *
-   * @param string $uri Base URI of the gateway.
-   * @return bool True if the gateway answered.
-   */
   private function checkReachable($uri) {
-    // The health probe is the one route which is neither authenticated nor
-    // wrapped in a response envelope, so a bare 200 is all we look for.
-    $health_uri = $uri.'/healthz';
-
-    // A host which does not resolve can take longer than this to fail; see the
-    // note in PhabricatorGorgeServiceClient::newRequestFuture() for why that
-    // can not be bounded any tighter here.
-    $future = id(new HTTPSFuture($health_uri))
-      ->setTimeout(5);
-
-    try {
-      $future->resolvex();
+    $probe = PhabricatorGorgeServiceClient::probeEndpoint($uri, '/healthz');
+    if ($probe['ok']) {
       return true;
-    } catch (Exception $ex) {
-      $error = $ex->getMessage();
     }
 
+    $error = $probe['error'];
+    if (!phutil_nonempty_string($error)) {
+      $status = idx($probe, 'status');
+      if ($status !== null) {
+        $error = pht('HTTP %d: %s', $status, idx($probe, 'body', ''));
+      } else {
+        $error = pht('(The service did not say why.)');
+      }
+    }
+
+    $health_uri = $probe['uri'];
     $summary = pht(
       'The Gorge conduit gateway is configured, but does not respond to a '.
       'health check.');
