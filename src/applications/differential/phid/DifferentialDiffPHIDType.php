@@ -5,7 +5,7 @@ final class DifferentialDiffPHIDType extends PhabricatorPHIDType {
   const TYPECONST = 'DIFF';
 
   public function getTypeName() {
-    return pht('Differential Diff');
+    return pht('Diff');
   }
 
   public function newObject() {
@@ -13,7 +13,7 @@ final class DifferentialDiffPHIDType extends PhabricatorPHIDType {
   }
 
   public function getPHIDTypeApplicationClass() {
-    return PhabricatorDiffusionApplication::class;
+    return PhabricatorFilesApplication::class;
   }
 
   protected function buildQueryForObjects(
@@ -35,7 +35,10 @@ final class DifferentialDiffPHIDType extends PhabricatorPHIDType {
       $id = $diff->getID();
 
       $handle->setName(pht('Diff %d', $id));
-      $handle->setURI("/differential/diff/{$id}/");
+      // Review-specific Differential routes are retired. Generic diff PHIDs
+      // can still be rendered by callers which already hold the object, but
+      // they no longer advertise a code-review application URI.
+      $handle->setURI(null);
     }
   }
 
