@@ -247,29 +247,6 @@ final class PhabricatorRepositoryCommit
     return isset($map[$audit->getAuditorPHID()]);
   }
 
-  public function writeOwnersEdges(array $package_phids) {
-    $src_phid = $this->getPHID();
-    $edge_type = DiffusionCommitHasPackageEdgeType::EDGECONST;
-
-    $editor = new PhabricatorEdgeEditor();
-
-    $dst_phids = PhabricatorEdgeQuery::loadDestinationPHIDs(
-      $src_phid,
-      $edge_type);
-
-    foreach ($dst_phids as $dst_phid) {
-      $editor->removeEdge($src_phid, $edge_type, $dst_phid);
-    }
-
-    foreach ($package_phids as $package_phid) {
-      $editor->addEdge($src_phid, $edge_type, $package_phid);
-    }
-
-    $editor->save();
-
-    return $this;
-  }
-
   public function getAuditorPHIDsForEdit() {
     $audits = $this->getAudits();
     return mpull($audits, 'getAuditorPHID');
@@ -612,7 +589,6 @@ final class PhabricatorRepositoryCommit
       'Commits inherit the policies of the repository they belong to.');
   }
 
-
 /* -(  PhabricatorTokenReceiverInterface  )---------------------------------- */
 
   public function getUsersToNotifyOfTokenGiven() {
@@ -645,7 +621,6 @@ final class PhabricatorRepositoryCommit
     return id(new self())
       ->loadFromArray($dict);
   }
-
 
 /* -(  HarbormasterBuildableInterface  )------------------------------------- */
 
@@ -694,7 +669,6 @@ final class PhabricatorRepositoryCommit
     return new DiffusionBuildableEngine();
   }
 
-
 /* -(  HarbormasterCircleCIBuildableInterface  )----------------------------- */
 
 
@@ -740,7 +714,6 @@ final class PhabricatorRepositoryCommit
     return $this->getCommitIdentifier();
   }
 
-
 /* -(  HarbormasterBuildkiteBuildableInterface  )---------------------------- */
 
 
@@ -778,7 +751,6 @@ final class PhabricatorRepositoryCommit
     return $this->getCommitIdentifier();
   }
 
-
 /* -(  PhabricatorCustomFieldInterface  )------------------------------------ */
 
 
@@ -799,7 +771,6 @@ final class PhabricatorRepositoryCommit
     return $this;
   }
 
-
 /* -(  PhabricatorSubscribableInterface  )----------------------------------- */
 
 
@@ -811,7 +782,6 @@ final class PhabricatorRepositoryCommit
 
     return ($phid == $this->getAuthorPHID());
   }
-
 
 /* -(  PhabricatorApplicationTransactionInterface  )------------------------- */
 
@@ -831,14 +801,12 @@ final class PhabricatorRepositoryCommit
     return new DiffusionCommitFulltextEngine();
   }
 
-
 /* -(  PhabricatorFerretInterface  )----------------------------------------- */
 
 
   public function newFerretEngine() {
     return new DiffusionCommitFerretEngine();
   }
-
 
 /* -(  PhabricatorConduitResultInterface  )---------------------------------- */
 
@@ -957,7 +925,6 @@ final class PhabricatorRepositoryCommit
     );
   }
 
-
 /* -(  PhabricatorDraftInterface  )------------------------------------------ */
 
   public function newDraftEngine() {
@@ -972,7 +939,6 @@ final class PhabricatorRepositoryCommit
     $this->drafts[$viewer->getCacheFragment()] = $has_draft;
     return $this;
   }
-
 
 /* -(  PhabricatorTimelineInterface  )--------------------------------------- */
 
