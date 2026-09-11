@@ -76,6 +76,20 @@ final class PhabricatorDifferenceEngine extends Phobject {
           PhabricatorGorgeServiceSpec::POLICY_OFF));
     }
 
+    // Identical input is not a difference, whatever the content is. The
+    // removed GNU path recognized this too -- `diff` exited 0 with no output
+    // and it synthesized a changeless diff so the unchanged file could still
+    // be rendered -- and it matters more now, because the binary shortcut
+    // below would otherwise report an unchanged binary file (an SVN copy, for
+    // instance) as differing from itself.
+    //
+    // The comparison is on raw bytes only, so files which differ but are
+    // equivalent after normalization still go to the service, which applies
+    // the normalize flag itself.
+    if ($old === $new) {
+      return $this->newUnchangedDiff($old);
+    }
+
     // Binary content can not go through the service at all: the request body
     // is JSON, and even where an encoding is declared, running arbitrary
     // bytes through a text conversion corrupts them rather than diffing them.
@@ -107,6 +121,35 @@ final class PhabricatorDifferenceEngine extends Phobject {
    */
   public static function isBinaryContent($content) {
     return (strpos($content, "\0") !== false);
+  }
+
+  /**
+   * Build the changeless diff two identical files produce.
+   *
+   * This is the synthetic all-context diff the removed GNU path built when
+   * `diff` reported no differences: it keeps the unchanged file renderable
+   * instead of reducing it to "this file did not change", which callers can
+   * not display because they do not hold the content themselves.
+   */
+  private function newUnchangedDiff($content) {
+    $old_name = nonempty($this->oldName, '/dev/universe').' 9999-99-99';
+    $new_name = nonempty($this->newName, '/dev/universe').' 9999-99-99';
+
+    $lines = explode("\n", $content);
+    foreach ($lines as $key => $line) {
+      $lines[$key] = ' '.$line;
+    }
+
+    $len = count($lines);
+    $lines = implode("\n", $lines);
+
+    // NOTE: Inherited from the implementation this replaces: if both files
+    // were identical but missing trailing newlines, the counts here are
+    // probably wrong. It was never established that this matters.
+    return "--- {$old_name}\n".
+           "+++ {$new_name}\n".
+           "@@ -1,{$len} +1,{$len} @@\n".
+           $lines."\n";
   }
 
   /**
