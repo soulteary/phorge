@@ -20,6 +20,56 @@ if ($mode !== 'collaboration' && $mode !== 'full') {
   exit(1);
 }
 
+function notification_selector_mode() {
+  $mode = getenv('GORGE_NOTIFICATION_MODE');
+  if ($mode === false || $mode === '' || $mode === 'auto') {
+    $host = getenv('GORGE_NOTIFICATION_ADMIN_HOST');
+    return (is_string($host) && strlen($host)) ? 'enable' : 'preserve';
+  }
+  return $mode;
+}
+
+function is_gorge_notification_shape($value) {
+  // The shape the Gorge notification integration wrote: exactly two entries,
+  // an "admin" entry pinned to plain HTTP followed by a "client" entry, with
+  // no keys beyond the ones that writer emitted. Anything else -- a single
+  // entry, a third server, an extra key, an HTTPS admin entry -- cannot have
+  // come from it.
+  if (!is_array($value) || count($value) !== 2) {
+    return false;
+  }
+  if (!array_key_exists(0, $value) || !array_key_exists(1, $value)) {
+    return false;
+  }
+
+  $admin = $value[0];
+  $client = $value[1];
+  if (!is_array($admin) || !is_array($client)) {
+    return false;
+  }
+
+  $admin_keys = array_keys($admin);
+  sort($admin_keys);
+  if ($admin_keys !== array('host', 'port', 'protocol', 'type')) {
+    return false;
+  }
+  if ($admin['type'] !== 'admin' || $admin['protocol'] !== 'http') {
+    return false;
+  }
+
+  $client_keys = array_keys($client);
+  sort($client_keys);
+  if ($client_keys !== array('host', 'port', 'protocol', 'type') &&
+      $client_keys !== array('host', 'path', 'port', 'protocol', 'type')) {
+    return false;
+  }
+  if ($client['type'] !== 'client') {
+    return false;
+  }
+
+  return true;
+}
+
 function read_json_object($path, $required) {
   if (!file_exists($path)) {
     if ($required) {
@@ -321,29 +371,64 @@ if ($notification_state !== null) {
       ? $config['notification.servers']
       : null;
 
-    // A baseline captured before Gorge took over differs from the value Gorge
-    // then wrote. One that is byte-identical to the active value was captured
-    // *after* the takeover -- the case where an installation first ran the
-    // stateless notification integration and only recorded a snapshot on a
-    // later upgrade. Restoring that would reinstate the Gorge endpoints under
-    // the name of a rollback, and nothing downstream masks them: the
-    // deployment builder leaves notification.servers alone when no selector
-    // is supplied, which is exactly the no-Gorge migration.
+    // The snapshot is only a pre-Gorge baseline if it was captured before
+    // Gorge wrote over the key. An installation which first ran the stateless
+    // notification integration and only recorded a snapshot on a later
+    // upgrade captured Gorge's own value, and restoring that would reinstate
+    // retired endpoints under the name of a rollback. The snapshot records
+    // nothing but {present, value}, so late capture has to be inferred.
     //
-    // There is no pre-Gorge value recorded anywhere in that case, so remove
-    // the key and let Phorge's default apply rather than leave the install
-    // pointed at a service which is going away.
-    if ($active_servers !== null &&
-        $active_servers === $notification_state['value']) {
+    // It only matters when nothing downstream masks the restored value. The
+    // deployment builder rewrites or clears notification.servers whenever a
+    // notification selector is supplied, so in that case restore the snapshot
+    // as recorded and let the builder decide. Without a selector -- the
+    // documented no-Gorge migration -- whatever is restored here is final.
+    $selector_mode = notification_selector_mode();
+    $is_final = ($selector_mode === 'preserve');
+
+    // Two signals, either of which means the snapshot may be Gorge's own:
+    //
+    //   - it is byte-identical to the active value, which only happens when
+    //     it was captured after the takeover;
+    //   - it has the exact shape the Gorge notification writer emitted, which
+    //     also covers the case where the endpoints were rotated after the
+    //     snapshot was taken, leaving the two values different but both
+    //     Gorge's.
+    //
+    // The second test can also match an administrator's own Aphlict
+    // configuration, since that writer emitted nothing distinctive. Erring
+    // this way is deliberate: a cleared baseline is an install with
+    // notifications to reconfigure and a warning saying so, while a restored
+    // Gorge endpoint is an install silently pointed at a host which is going
+    // away. The warning prints the value so it can be put back by hand.
+    $matches_active = ($active_servers !== null &&
+      $active_servers === $notification_state['value']);
+    $gorge_shaped = is_gorge_notification_shape($notification_state['value']);
+
+    if ($is_final && ($matches_active || $gorge_shaped)) {
       unset($config['notification.servers']);
+
+      if ($matches_active) {
+        $reason =
+          'it is identical to the active Gorge configuration, so it was '.
+          'captured after Gorge was already in use';
+      } else {
+        $reason =
+          'it has the exact shape the Gorge notification integration wrote, '.
+          'so it may have been captured after Gorge was already in use and '.
+          'the endpoints rotated afterwards';
+      }
+
       fwrite(
         STDERR,
-        "[migration] Warning: the recorded notification baseline matched the ".
-        "active Gorge configuration, so it was captured after Gorge was ".
-        "already in use and is not a pre-Gorge baseline. Removed ".
-        "\"notification.servers\" instead of restoring it; reconfigure ".
-        "notifications if this installation used its own server before ".
-        "Gorge.\n");
+        "[migration] Warning: not restoring the recorded notification ".
+        "baseline because ".$reason.", and no notification selector is set ".
+        "so nothing would overwrite it. Removed \"notification.servers\"; ".
+        "reconfigure notifications if this installation used its own server ".
+        "before Gorge. The recorded value was: ".
+        json_encode(
+          $notification_state['value'],
+          JSON_UNESCAPED_SLASHES)."\n");
     } else {
       $config['notification.servers'] = $notification_state['value'];
     }
