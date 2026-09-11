@@ -100,10 +100,6 @@
       "name": "Diffusion",
       "include": "(^src/applications/diffusion/)"
     },
-    "diviner": {
-      "name": "Diviner",
-      "include": "(^src/applications/diviner/)"
-    },
     "doorkeeper": {
       "name": "Doorkeeper",
       "include": "(^src/applications/doorkeeper/)"
