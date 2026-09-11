@@ -42,23 +42,29 @@ final class PhabricatorMetaMTAApplicationEmailQuery
   }
 
   protected function willFilterPage(array $app_emails) {
-    $app_emails_map = mgroup($app_emails, 'getApplicationPHID');
+    $app_phids = mpull($app_emails, 'getApplicationPHID');
     $applications = id(new PhabricatorApplicationQuery())
       ->setViewer($this->getViewer())
-      ->withPHIDs(array_keys($app_emails_map))
+      ->withPHIDs(array_unique($app_phids))
       ->execute();
     $applications = mpull($applications, null, 'getPHID');
 
-    foreach ($app_emails_map as $app_phid => $app_emails_group) {
-      foreach ($app_emails_group as $app_email) {
-        $application = idx($applications, $app_phid);
-        if (!$application) {
-          unset($app_emails[$app_phid]);
-          continue;
-        }
-        $app_email->attachApplication($application);
+    // Discard addresses whose application is uninstalled or no longer exists.
+    // This loop keys on the address, not on the application PHID: the page is
+    // keyed by row ID, so unsetting by application PHID never matched
+    // anything and left the row in the result with no application attached.
+    // getPolicy() then called getApplication(), which asserts the attachment,
+    // so one orphaned row threw for every unscoped address lookup -- the
+    // application email datasource and `bin/mail receive-test` among them.
+    foreach ($app_emails as $key => $app_email) {
+      $application = idx($applications, $app_email->getApplicationPHID());
+      if (!$application) {
+        unset($app_emails[$key]);
+        continue;
       }
+      $app_email->attachApplication($application);
     }
+
     return $app_emails;
   }
 
