@@ -343,10 +343,16 @@ if ($taskqueue_mode === 'enable') {
   // no process can observe a zero- or double-consumer transition.
   $config['phd.taskmasters'] = 0;
 } else if ($taskqueue_mode === 'disable') {
-  $config['gorge.taskqueue.uri'] = null;
-  $config['gorge.taskqueue.token'] = null;
-  $config['gorge.taskqueue.owner'] = 'phorge';
-  unset($config['phd.taskmasters']);
+  // Handing the queue back to Phorge used to mean "restore the native
+  // taskmaster pool". PhabricatorTaskmasterDaemon has been retired and `phd`
+  // no longer launches it, so publishing gorge.taskqueue.owner = phorge would
+  // route tasks into the SQL queue with nothing to lease them. Refuse the
+  // rollback instead of writing a configuration with no consumer.
+  throw new Exception(
+    'GORGE_TASKQUEUE_MODE=disable is no longer supported: the native PHP '.
+    'taskmaster consumer has been removed, so there is nothing to hand the '.
+    'queue back to. Keep the Gorge task queue and worker services '.
+    'configured.');
 }
 
 $db_mode = env_mode('GORGE_DB_MODE', 'GORGE_DB_URL');
