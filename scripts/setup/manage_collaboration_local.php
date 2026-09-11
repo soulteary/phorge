@@ -15,6 +15,8 @@ $config_path = $argv[2];
 $state_path = $argv[3];
 $taskqueue_state_path = isset($argv[4]) ? $argv[4] : null;
 $notification_state_path = isset($argv[5]) ? $argv[5] : null;
+
+require_once __DIR__.'/lib/gorge_notification_shape.php';
 if ($mode !== 'collaboration' && $mode !== 'full') {
   fwrite(STDERR, "Unknown product profile.\n");
   exit(1);
@@ -316,7 +318,71 @@ if ($taskqueue_state !== null) {
 
 if ($notification_state !== null) {
   if ($notification_state['present']) {
-    $config['notification.servers'] = $notification_state['value'];
+    $active_servers = array_key_exists('notification.servers', $config)
+      ? $config['notification.servers']
+      : null;
+
+    // The snapshot is only a pre-Gorge baseline if it was captured before
+    // Gorge wrote over the key. An installation which first ran the stateless
+    // notification integration and only recorded a snapshot on a later
+    // upgrade captured Gorge's own value, and restoring that would reinstate
+    // retired endpoints under the name of a rollback. The snapshot records
+    // nothing but {present, value}, so late capture has to be inferred.
+    //
+    // It only matters when nothing downstream masks the restored value. The
+    // deployment builder rewrites or clears notification.servers whenever a
+    // notification selector is supplied, so in that case restore the snapshot
+    // as recorded and let the builder decide. Without a selector -- the
+    // documented no-Gorge migration -- whatever is restored here is final.
+    $selector_mode = gorge_notification_selector_mode();
+    $is_final = ($selector_mode === 'preserve');
+
+    // Two signals, either of which means the snapshot may be Gorge's own:
+    //
+    //   - it is byte-identical to the active value, which only happens when
+    //     it was captured after the takeover;
+    //   - it has the exact shape the Gorge notification writer emitted, which
+    //     also covers the case where the endpoints were rotated after the
+    //     snapshot was taken, leaving the two values different but both
+    //     Gorge's.
+    //
+    // The second test can also match an administrator's own Aphlict
+    // configuration, since that writer emitted nothing distinctive. Erring
+    // this way is deliberate: a cleared baseline is an install with
+    // notifications to reconfigure and a warning saying so, while a restored
+    // Gorge endpoint is an install silently pointed at a host which is going
+    // away. The warning prints the value so it can be put back by hand.
+    $matches_active = ($active_servers !== null &&
+      $active_servers === $notification_state['value']);
+    $gorge_shaped = is_gorge_notification_shape($notification_state['value']);
+
+    if ($is_final && ($matches_active || $gorge_shaped)) {
+      unset($config['notification.servers']);
+
+      if ($matches_active) {
+        $reason =
+          'it is identical to the active Gorge configuration, so it was '.
+          'captured after Gorge was already in use';
+      } else {
+        $reason =
+          'it has the exact shape the Gorge notification integration wrote, '.
+          'so it may have been captured after Gorge was already in use and '.
+          'the endpoints rotated afterwards';
+      }
+
+      fwrite(
+        STDERR,
+        "[migration] Warning: not restoring the recorded notification ".
+        "baseline because ".$reason.", and no notification selector is set ".
+        "so nothing would overwrite it. Removed \"notification.servers\"; ".
+        "reconfigure notifications if this installation used its own server ".
+        "before Gorge. The recorded value was: ".
+        json_encode(
+          $notification_state['value'],
+          JSON_UNESCAPED_SLASHES)."\n");
+    } else {
+      $config['notification.servers'] = $notification_state['value'];
+    }
   } else {
     unset($config['notification.servers']);
   }

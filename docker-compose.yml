@@ -157,7 +157,6 @@ services:
       <<: *phorge-environment
       PHORGE_CONTAINER_ROLE: migrate
       PHORGE_AUTO_UPGRADE: "1"
-      PHORGE_START_PHD: "0"
       PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-auto}
       GITEA_BASE_URI: ${GITEA_BASE_URI:-}
       GORGE_RENDER_URI: ${GORGE_RENDER_URI:-http://gorge-render:8140}
