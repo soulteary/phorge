@@ -1,0 +1,38 @@
+name: Rebuild Phutil library map
+
+on:
+  push:
+    branches:
+      - 'cleanup/apps-*'
+
+permissions:
+  contents: write
+
+jobs:
+  liberate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Install Arcanist
+        run: git clone --depth=1 https://github.com/phorgeit/arcanist.git ../arcanist
+      - name: Rebuild library map
+        run: php ../arcanist/bin/arc liberate src/
+      - name: Commit generated map
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- src/__phutil_library_map__.php; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/__phutil_library_map__.php
+          git commit -m 'chore: regenerate Phutil library map [skip ci]'
+          git push origin HEAD:${GITHUB_REF_NAME}
