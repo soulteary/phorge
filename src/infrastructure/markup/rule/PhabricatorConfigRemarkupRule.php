@@ -11,9 +11,13 @@ final class PhabricatorConfigRemarkupRule
   }
 
   public function getPriority() {
-    // We're reusing the Diviner atom syntax, so make sure we evaluate before
-    // the Diviner rule evaluates.
-    return id(new DivinerSymbolRemarkupRule())->getPriority() - 1;
+    // This rule reuses the Diviner atom syntax and has to evaluate before the
+    // Diviner rule does. That rule has been removed with its application, so
+    // the value it returned (200.0) is inlined rather than read back from it:
+    // every standard Remarkup engine installs this rule and sorts the block
+    // rules by priority, so reaching for a deleted class here would break all
+    // Remarkup rendering, not just Diviner links.
+    return 199.0;
   }
 
   public function markupConfig(array $matches) {

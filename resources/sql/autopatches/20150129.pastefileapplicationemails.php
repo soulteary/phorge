@@ -23,14 +23,20 @@ if ($value_files) {
 }
 
 $value_paste = PhabricatorEnv::getEnvConfigIfExists($key_paste);
-$paste_app = new PhabricatorPasteApplication();
+
+// The Paste application has been removed, so PhabricatorPasteApplication no
+// longer exists to ask for its PHID. Application PHIDs are deterministic --
+// PhabricatorApplication::getPHID() returns 'PHID-APPS-'.get_class($this) --
+// so the literal below is exactly what that call produced, and rows this
+// patch wrote before the removal carry the same value.
+$paste_app_phid = 'PHID-APPS-PhabricatorPasteApplication';
 
 if ($value_paste) {
   try {
     PhabricatorMetaMTAApplicationEmail::initializeNewAppEmail(
       PhabricatorUser::getOmnipotentUser())
       ->setAddress($value_paste)
-      ->setApplicationPHID($paste_app->getPHID())
+      ->setApplicationPHID($paste_app_phid)
       ->save();
   } catch (AphrontDuplicateKeyQueryException $ex) {
     // Already migrated?

@@ -25,7 +25,6 @@ final class PhorgeProductProfile extends Phobject {
       'PhabricatorHarbormasterApplication',
       'PhabricatorDrydockApplication',
       'PhabricatorDivinerApplication',
-      'PhabricatorPasteApplication',
     );
   }
 
