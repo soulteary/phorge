@@ -51,7 +51,6 @@ These applications currently support form customization:
 |-------------------|---------|
 | Maniphest         | Full
 | Owners            | Full
-| Paste             | Full
 | ApplicationEditor | Meta
 
 This documentation is geared toward use in Maniphest because customizing task
