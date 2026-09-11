@@ -16,5 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+          command -v rg
       - name: Check live references
         run: bash .github/scripts/check-retired-app-references.sh
