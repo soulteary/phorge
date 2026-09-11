@@ -62,87 +62,31 @@ final class PhabricatorDifferenceEngine extends Phobject {
    * @{method:generateChangesetFromFileContent}, but may be useful if you need
    * to use a custom parser configuration, as with Diffusion.
    *
+   * Raw diff generation is owned by Gorge. Keep this API on the PHP side so
+   * callers do not need to know where the computation runs, but do not fall
+   * back to the retired GNU diff subprocess: a missing or unhealthy Gorge
+   * service is now an explicit service failure instead of a silent runtime
+   * dependency change.
+   *
    * @param string $old Entire previous file content.
    * @param string $new Entire current file content.
    * @return string Raw diff between the two files.
    * @task diff
    */
   public function generateRawDiffFromFileContent($old, $new) {
-
-    if (PhabricatorGorgeDiffClient::isEnabled()) {
-      try {
-        return id(new PhabricatorGorgeDiffClient())->generateDiff(
-          $old,
-          $new,
-          $this->oldName,
-          $this->newName,
-          $this->getNormalize());
-      } catch (Exception $ex) {
-        $service = PhabricatorGorgeServiceRegistry::getService('render');
-        if (!$service->isFallbackAllowed()) {
-          throw $ex;
-        }
-
-        $service->recordFallback('diff.raw');
-        phlog($ex);
-      }
+    if (!PhabricatorGorgeDiffClient::isEnabled()) {
+      throw new Exception(
+        pht(
+          'Raw diff generation requires the Gorge diff service. Configure '.
+          'Gorge before generating diffs.'));
     }
 
-    $options = array();
-
-    // Generate diffs with full context.
-    $options[] = '-U65535';
-
-    $old_name = nonempty($this->oldName, '/dev/universe').' 9999-99-99';
-    $new_name = nonempty($this->newName, '/dev/universe').' 9999-99-99';
-
-    $options[] = '-L';
-    $options[] = $old_name;
-    $options[] = '-L';
-    $options[] = $new_name;
-
-    $normalize = $this->getNormalize();
-    if ($normalize) {
-      $old = $this->normalizeFile($old);
-      $new = $this->normalizeFile($new);
-    }
-
-    $old_tmp = new TempFile();
-    $new_tmp = new TempFile();
-
-    Filesystem::writeFile($old_tmp, $old);
-    Filesystem::writeFile($new_tmp, $new);
-    list($err, $diff) = exec_manual(
-      'diff %Ls %s %s',
-      $options,
-      $old_tmp,
-      $new_tmp);
-
-    if (!$err) {
-      // This indicates that the two files are the same. Build a synthetic,
-      // changeless diff so that we can still render the raw, unchanged file
-      // instead of being forced to just say "this file didn't change" since we
-      // don't have the content.
-
-      $entire_file = explode("\n", $old);
-      foreach ($entire_file as $k => $line) {
-        $entire_file[$k] = ' '.$line;
-      }
-
-      $len = count($entire_file);
-      $entire_file = implode("\n", $entire_file);
-
-      // TODO: If both files were identical but missing newlines, we probably
-      // get this wrong. Unclear if it ever matters.
-
-      // This is a bit hacky but the diff parser can handle it.
-      $diff = "--- {$old_name}\n".
-              "+++ {$new_name}\n".
-              "@@ -1,{$len} +1,{$len} @@\n".
-              $entire_file."\n";
-    }
-
-    return $diff;
+    return id(new PhabricatorGorgeDiffClient())->generateDiff(
+      $old,
+      $new,
+      $this->oldName,
+      $this->newName,
+      $this->getNormalize());
   }
 
 
