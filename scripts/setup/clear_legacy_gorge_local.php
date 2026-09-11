@@ -25,6 +25,8 @@ if ($argc !== 2) {
 
 $local_path = $argv[1];
 
+require_once __DIR__.'/lib/gorge_notification_shape.php';
+
 if (!is_file($local_path)) {
   exit(0);
 }
@@ -42,9 +44,9 @@ if (!is_array($config)) {
   exit(0);
 }
 
-// Scalar, machine-owned keys. "notification.servers" is excluded because
-// manage_collaboration_local.php already restores it from the recorded
-// baseline. "cluster.mailers" and "cluster.search" are shared lists which an
+// Scalar, machine-owned keys. "notification.servers" is not one of them: it
+// is a shared key with no managed entry, so it is handled separately below.
+// "cluster.mailers" and "cluster.search" are shared lists which an
 // administrator may also have entries in, so they are filtered entry by entry
 // below rather than removed wholesale.
 $owned_keys = array(
@@ -71,6 +73,42 @@ foreach ($owned_keys as $key) {
     unset($config[$key]);
     $removed[] = $key;
   }
+}
+
+// Drop a Gorge notification server list which no snapshot covers.
+//
+// Normally manage_collaboration_local.php owns this key: it restores the
+// recorded pre-Gorge baseline, or rejects one it can tell was captured after
+// Gorge took over. Installations which ran the earliest notification
+// integration have no snapshot at all -- gorge-notification-state.json was
+// introduced later -- and that script is not even invoked when no state file
+// exists, so nothing else looks at the key. The deployment builder preserves
+// it when no notification selector is supplied, which is exactly the
+// documented no-Gorge migration, and browsers keep connecting to a service
+// which was retired with the legacy stack.
+//
+// Only the shape the Gorge notification writer emitted is removed, and only
+// when nothing downstream would overwrite it. That shape can also match an
+// administrator's own Aphlict configuration -- that writer emitted nothing
+// distinctive -- so the removed value is printed, and the same trade-off
+// applies as in manage_collaboration_local.php: a cleared list is an install
+// with notifications to reconfigure and a warning saying so, a kept one is an
+// install silently pointed at a host which is going away.
+if (array_key_exists('notification.servers', $config) &&
+    gorge_notification_selector_mode() === 'preserve' &&
+    is_gorge_notification_shape($config['notification.servers'])) {
+  fwrite(
+    STDERR,
+    "Warning: removed a \"notification.servers\" value which has the exact ".
+    "shape the Gorge notification integration wrote, and which no recorded ".
+    "baseline covers. No notification selector is set, so nothing would ".
+    "overwrite it. Reconfigure notifications if this installation used its ".
+    "own server before Gorge. The removed value was: ".
+    json_encode($config['notification.servers'], JSON_UNESCAPED_SLASHES).
+    "\n");
+
+  unset($config['notification.servers']);
+  $removed[] = 'notification.servers';
 }
 
 // Drop the managed Gorge mailer, keeping every administrator-configured
