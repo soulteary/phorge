@@ -1,8 +1,20 @@
 # 在宿主机裸跑 Gorge、只把 Phorge/MySQL 放进容器时使用：
-#   docker compose -f docker-compose.legacy.yml -f docker-compose.host-gorge.yml up -d --build
+#   docker compose -f docker-compose.yml -f docker-compose.host-gorge.yml up -d --build
+# --build 不能省，原因见 docker-compose.gorge.yml 顶部说明与 DOCKER.md「常见故障排查」。
+# 要求 Docker Compose 2.24.4 或更高版本（使用了 !override 标签）。
 #
 # 不使用 Compose 自动加载的 docker-compose.override.yml 文件名，否则它会在普通
 # `docker compose up` 时悄悄把默认核心服务的地址改回 host.docker.internal。
+#
+# 本文件做三件事：
+#   1. 把默认栈里的 gorge-* 容器放进 host-gorge-containers profile，并用 !override
+#      去掉 phorge 三个角色对它们的 depends_on，使一键启动只拉起 mysql / db-init /
+#      phorge-migrate / phorge / phorge-daemon。
+#   2. 把容器 MySQL 的 3306 暴露到宿主回环。
+#   3. 给 phorge-migrate 补上指向宿主的 GORGE_* 端点。默认栈的控制面是
+#      deployment：端点写在 phorge-migrate 一次性任务里，由它原子写入
+#      deployment.json，web 与 daemon 只读加载，所以这些变量必须补在 migrate 上，
+#      补在 phorge 上不会生效。改动后重跑一次 up 即可，不必删 deployment.json。
 services:
   # 把容器 MySQL 的 3306 暴露到宿主回环，供宿主机上裸跑的 gorge-file-storage /
   # gorge-webhook 反向连库（这两个是七个域里唯二有状态、要连 phorge 库的服务）。
@@ -10,16 +22,34 @@ services:
     ports:
       - "127.0.0.1:3306:3306"
 
-  # 给容器里的 phorge 叠加：
-  #   1. extra_hosts —— 让 host.docker.internal 在容器内解析到宿主机，phorge 才能
-  #      访问宿主机上裸跑的七个 gorge 服务（不构建 gorge 容器的联调路径）。
-  #   2. 七个域的 GORGE_* 配置项（render / conduit / notification / mailer /
-  #      search / file-storage / webhook；conduit 网关同样需在宿主另行裸跑）——
-  #      基础 docker-compose.yml 里没有这些变量（它们本
-  #      来定义在 docker-compose.gorge.yml 叠加文件里，但那会拉起 gorge 容器，与
-  #      「不构建容器」冲突），所以在这里手工补。entrypoint.sh 第 2 步每次启动幂等
-  #      用 bin/config set 下发它们，改动后重启容器即生效，不必删 local.json。
-  phorge:
+  # 默认栈自带的 Gorge 容器一律退居 profile，不参与本文件的一键启动。
+  # 想临时对照容器版行为时，加 --profile host-gorge-containers 即可。
+  gorge-render:
+    profiles: ["host-gorge-containers"]
+  gorge-conduit:
+    profiles: ["host-gorge-containers"]
+  gorge-notification:
+    profiles: ["host-gorge-containers"]
+  gorge-file-storage:
+    profiles: ["host-gorge-containers"]
+  gorge-webhook:
+    profiles: ["host-gorge-containers"]
+  gorge-taskqueue:
+    profiles: ["host-gorge-containers"]
+  gorge-worker:
+    profiles: ["host-gorge-containers"]
+  gorge-db-api:
+    profiles: ["host-gorge-containers"]
+
+  phorge-migrate:
+    # 只剩数据库依赖：Gorge 在宿主机上由你自己拉起，compose 不再排它们的顺序。
+    depends_on: !override
+      mysql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    # extra_hosts 让 host.docker.internal 在容器内解析到宿主机，migrate 写配置前
+    # 的探活与 web/daemon 的运行期调用才能打到宿主上裸跑的 Gorge 服务。
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -57,6 +87,16 @@ services:
       GORGE_FILE_URI: "http://host.docker.internal:8100"
       GORGE_FILE_TOKEN: "${GORGE_FILE_TOKEN:-}"
 
+      # --- task queue 与 worker（宿主 :8090）---
+      GORGE_TASKQUEUE_URI: "http://host.docker.internal:8090"
+      GORGE_TASKQUEUE_TOKEN: "${GORGE_TASKQUEUE_TOKEN:-}"
+      GORGE_TASKQUEUE_MODE: ${GORGE_TASKQUEUE_MODE:-enable}
+
+      # --- db-api 诊断（宿主 :8080）---
+      GORGE_DB_URL: "http://host.docker.internal:8080"
+      GORGE_DB_TOKEN: "${GORGE_DB_TOKEN:-}"
+      GORGE_DB_MODE: ${GORGE_DB_MODE:-enable}
+
       # --- webhook 投递（宿主 :8160）---
       # 写进去 = 交接开关：phorge 读到它非空就停止用 phd 投递，交给 gorge-webhook。
       # 因此它必须与宿主机上的 gorge-webhook 服务「同进同退」：只起服务不写这里，或
@@ -65,3 +105,19 @@ services:
       GORGE_WEBHOOK_URI: "http://host.docker.internal:8160"
       GORGE_WEBHOOK_TOKEN: "${GORGE_WEBHOOK_TOKEN:-}"
       GORGE_WEBHOOK_MODE: ${GORGE_WEBHOOK_MODE:-enable}
+
+  # web 与 daemon 只读加载 deployment.json，不需要 GORGE_* 变量，但运行期要能
+  # 解析 host.docker.internal（渲染、文件、队列等调用都发自这两个容器）。
+  phorge:
+    depends_on: !override
+      phorge-migrate:
+        condition: service_completed_successfully
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  phorge-daemon:
+    depends_on: !override
+      phorge-migrate:
+        condition: service_completed_successfully
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

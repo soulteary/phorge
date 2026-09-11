@@ -5,8 +5,8 @@
 #   docker compose up -d --build
 #
 # 默认启动 Gorge 的无外部依赖核心服务。邮件、搜索与 Gitea bridge 需要额外后端
-# 或密钥，分别通过 mailer、search、gitea profile 启用。原来的纯 Phorge 单容器
-# 编排保存在 docker-compose.legacy.yml，已有部署可原样继续使用。
+# 或密钥，分别通过 mailer、search、gitea profile 启用。数据库基础设施独立放在
+# docker-compose.mysql.yml，默认栈不再依赖完整的 legacy Phorge 编排。
 
 x-phorge-runtime: &phorge-runtime
   image: ${PHORGE_IMAGE_REPOSITORY:-phorge}:${PHORGE_IMAGE_TAG:-local}
@@ -34,13 +34,13 @@ x-phorge-environment: &phorge-environment
 services:
   mysql:
     extends:
-      file: docker-compose.legacy.yml
+      file: docker-compose.mysql.yml
       service: mysql
     image: mysql:${MYSQL_IMAGE_TAG:-8.0.46}
 
   db-init:
     extends:
-      file: docker-compose.legacy.yml
+      file: docker-compose.mysql.yml
       service: db-init
     image: mysql:${MYSQL_IMAGE_TAG:-8.0.46}
 

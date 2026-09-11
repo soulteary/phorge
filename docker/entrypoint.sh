@@ -57,7 +57,7 @@ esac
 
 # 默认编排把初始化、Web 与守护进程分成三个容器。只有 migrate 角色可以改配置
 # 和 schema，避免 Web/daemon 副本同时执行 storage upgrade 或争写 local.json。
-# all 保留旧镜像入口语义，供 docker-compose.legacy.yml 与直接 docker run 使用。
+# all 保留旧镜像入口语义，供自定义编排与直接 docker run 使用。
 case "$PHORGE_CONTAINER_ROLE" in
     web|daemon)
         if [ ! -s "$CONF_FILE" ]; then
@@ -137,9 +137,9 @@ else
 fi
 
 # ----- 2. 兼容控制面 -----
-# 默认栈使用后文一次原子替换的 deployment.json。这里保留旧控制面，供
-# docker-compose.legacy.yml、旧 Gorge overlay 和直接 docker run 使用；这条路径
-# 仍按原来的逐项配置语义运行，不会因镜像升级被悄悄切换。
+# 默认栈使用后文一次原子替换的 deployment.json。这里保留旧控制面，供叠加
+# docker-compose.gorge.yml 的自定义编排和直接 docker run 使用；这条路径仍按
+# 原来的逐项配置语义运行，不会因镜像升级被悄悄切换。
 if [ "$PHORGE_CONTROL_PLANE" = "legacy" ]; then
 
 # 下发 Gorge 服务配置（非守卫式，刻意与上面相反）
