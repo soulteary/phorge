@@ -149,15 +149,23 @@ final class DiffusionDiffQueryConduitAPIMethod
     $old_data = idx($futures, 'old', '');
     $new_data = idx($futures, 'new', '');
 
+    // `svn cat` hands back raw bytes in the repository's encoding. The diff
+    // is generated over a JSON API now, so the conversion which used to
+    // happen in the parser has to happen before the request instead -- and
+    // therefore exactly once: the resulting diff is already UTF-8, so the
+    // parser must not try to convert it again.
+    $try_encoding = $this->getTryEncoding($request);
+
     $engine = new PhabricatorDifferenceEngine();
     $engine->setOldName($old_name);
     $engine->setNewName($new_name);
+    $engine->setTryEncoding($try_encoding);
     $raw_diff = $engine->generateRawDiffFromFileContent($old_data, $new_data);
 
     $arcanist_changes = DiffusionPathChange::convertToArcanistChanges(
       $path_changes);
 
-    $parser = $this->getDefaultParser($request);
+    $parser = $this->getDefaultParser($request, $use_encoding = false);
     $parser->setChanges($arcanist_changes);
     $parser->forcePath($path->getPath());
     $changes = $parser->parseDiff($raw_diff);
@@ -223,20 +231,37 @@ final class DiffusionDiffQueryConduitAPIMethod
     return $changes;
   }
 
-  private function getDefaultParser(ConduitAPIRequest $request) {
-    $drequest = $this->getDiffusionRequest();
-    $repository = $drequest->getRepository();
+  /**
+   * @param ConduitAPIRequest $request The request being served.
+   * @param bool $use_encoding Convert the diff from the repository encoding.
+   *   Pass false when the content was already converted before the diff was
+   *   generated, so it is not converted a second time.
+   */
+  private function getDefaultParser(
+    ConduitAPIRequest $request,
+    $use_encoding = true) {
 
     $parser = new ArcanistDiffParser();
-    $try_encoding = coalesce(
-      $request->getValue('encoding'),
-      $repository->getDetail('encoding'));
-    if ($try_encoding) {
-      $parser->setTryEncoding($try_encoding);
+
+    if ($use_encoding) {
+      $try_encoding = $this->getTryEncoding($request);
+      if ($try_encoding) {
+        $parser->setTryEncoding($try_encoding);
+      }
     }
+
     $parser->setDetectBinaryFiles(true);
 
     return $parser;
+  }
+
+  private function getTryEncoding(ConduitAPIRequest $request) {
+    $drequest = $this->getDiffusionRequest();
+    $repository = $drequest->getRepository();
+
+    return coalesce(
+      $request->getValue('encoding'),
+      $repository->getDetail('encoding'));
   }
 
   private function getEmptyResult() {

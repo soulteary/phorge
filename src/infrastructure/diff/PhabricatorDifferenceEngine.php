@@ -12,6 +12,7 @@ final class PhabricatorDifferenceEngine extends Phobject {
   private $oldName;
   private $newName;
   private $normalize;
+  private $tryEncoding;
 
 /* -(  Configuring the Engine  )--------------------------------------------- */
 
@@ -32,6 +33,25 @@ final class PhabricatorDifferenceEngine extends Phobject {
 
   public function getNormalize() {
     return $this->normalize;
+  }
+
+  /**
+   * Declare the encoding the inputs are stored in.
+   *
+   * Content read out of a repository is raw bytes in whatever encoding that
+   * repository uses. The diff request is JSON, which is UTF-8 only, so bytes
+   * which are not valid UTF-8 have to be converted before they can be sent.
+   * The removed GNU implementation worked on bytes directly and left the
+   * conversion to the caller's parser, so callers which read non-UTF-8
+   * content must now declare its encoding here instead.
+   */
+  public function setTryEncoding($encoding) {
+    $this->tryEncoding = $encoding;
+    return $this;
+  }
+
+  public function getTryEncoding() {
+    return $this->tryEncoding;
   }
 
 /* -(  Generating Diffs  )--------------------------------------------------- */
@@ -56,12 +76,51 @@ final class PhabricatorDifferenceEngine extends Phobject {
           PhabricatorGorgeServiceSpec::POLICY_OFF));
     }
 
+    $old = $this->newUTF8Content($old, 'old');
+    $new = $this->newUTF8Content($new, 'new');
+
     return id(new PhabricatorGorgeDiffClient())->generateDiff(
       $old,
       $new,
       $this->oldName,
       $this->newName,
       $this->getNormalize());
+  }
+
+  /**
+   * Make one side of the diff safe to put in a JSON request body.
+   *
+   * Returns the content unchanged when it is already UTF-8, which is every
+   * caller except repositories with a declared legacy encoding. Otherwise the
+   * declared encoding is used to convert it; without one there is nothing to
+   * convert from, and failing here with the encoding named is far easier to
+   * act on than the json_encode() error the request would otherwise raise
+   * from inside the service client.
+   */
+  private function newUTF8Content($content, $which) {
+    if (!strlen($content)) {
+      return $content;
+    }
+
+    if (phutil_is_utf8($content)) {
+      return $content;
+    }
+
+    $encoding = $this->getTryEncoding();
+    if ($encoding === null || !strlen($encoding)) {
+      throw new Exception(
+        pht(
+          'The %s side of this diff is not valid UTF-8 and no source '.
+          'encoding was declared with "%s". Difference generation is served '.
+          'over a JSON API, which can not carry arbitrary bytes, so content '.
+          'in another encoding must be declared before it can be diffed. '.
+          'For a repository, set its "%s" property.',
+          $which,
+          'setTryEncoding()',
+          'encoding'));
+    }
+
+    return phutil_utf8_convert($content, 'UTF-8', $encoding);
   }
 
   public function generateChangesetFromFileContent($old, $new) {
