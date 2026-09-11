@@ -5,7 +5,6 @@ final class HeraldPreCommitContentAdapter extends HeraldPreCommitAdapter {
   private $changesets;
   private $commitRef;
   private $fields;
-  private $revision = false;
 
   private $identityCache = array();
 
@@ -211,23 +210,6 @@ final class HeraldPreCommitContentAdapter extends HeraldPreCommitAdapter {
     return $this->fields;
   }
 
-  public function getRevision() {
-    if ($this->revision === false) {
-      $fields = $this->getCommitFields();
-      $revision_id = idx($fields, 'revisionID');
-      if (!$revision_id) {
-        $this->revision = null;
-      } else {
-        $this->revision = id(new DifferentialRevisionQuery())
-          ->setViewer(PhabricatorUser::getOmnipotentUser())
-          ->withIDs(array($revision_id))
-          ->needReviewers(true)
-          ->executeOne();
-      }
-    }
-
-    return $this->revision;
-  }
 
   public function getIsMergeCommit() {
     $repository = $this->getHookEngine()->getRepository();

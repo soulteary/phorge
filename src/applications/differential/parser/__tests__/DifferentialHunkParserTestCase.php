@@ -2,11 +2,6 @@
 
 final class DifferentialHunkParserTestCase extends PhabricatorTestCase {
 
-  private function createComment() {
-    $comment = new DifferentialInlineComment();
-    return $comment;
-  }
-
   private function createHunk(
     $old_offset,
     $old_len,

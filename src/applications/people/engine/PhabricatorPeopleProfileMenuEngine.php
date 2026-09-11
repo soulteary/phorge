@@ -50,16 +50,6 @@ final class PhabricatorPeopleProfileMenuEngine
           PhabricatorPeopleTasksAuthoredProfileMenuItem::MENUITEMKEY);
     }
 
-    $have_differential = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorDifferentialApplication::class,
-      $viewer);
-    if ($have_differential) {
-      $items[] = $this->newItem()
-        ->setBuiltinKey(self::ITEM_REVISIONS)
-        ->setMenuItemKey(
-          PhabricatorPeopleRevisionsProfileMenuItem::MENUITEMKEY);
-    }
-
     $have_diffusion = PhabricatorApplication::isClassInstalledForViewer(
       PhabricatorDiffusionApplication::class,
       $viewer);

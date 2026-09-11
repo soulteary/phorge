@@ -163,7 +163,6 @@ want to add a field to:
 
 | Application | Extend  |
 |-------------|---------|
-| Differential | @{class:DifferentialCustomField} |
 | Diffusion | @{class:PhabricatorCommitCustomField} |
 | Maniphest | @{class:ManiphestCustomField} |
 | People | @{class:PhabricatorUserCustomField} |

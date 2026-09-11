@@ -35,7 +35,7 @@ final class HarbormasterBuildableEditEngine
   }
 
   protected function newEditableObjectForDocumentation() {
-    $object = new DifferentialRevision();
+    $object = new PhabricatorRepositoryCommit();
 
     return $this->newEditableObject()
       ->attachBuildableObject($object);

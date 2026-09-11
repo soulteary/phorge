@@ -233,7 +233,6 @@ final class DiffusionBrowseController extends DiffusionController {
             $renamed));
     }
 
-    $open_revisions = $this->buildOpenRevisions();
     $crumbs = $this->buildCrumbs(
       array(
         'branch' => true,
@@ -254,7 +253,6 @@ final class DiffusionBrowseController extends DiffusionController {
         $follow_notice,
         $renamed_notice,
         $corpus,
-        $open_revisions,
       ));
 
     $title = array($basename, $repository->getDisplayName());
@@ -310,7 +308,6 @@ final class DiffusionBrowseController extends DiffusionController {
         ->setPager($pager);
     }
 
-    $open_revisions = $this->buildOpenRevisions();
     $readme = $this->renderDirectoryReadme($results);
 
     $crumbs = $this->buildCrumbs(
@@ -336,7 +333,6 @@ final class DiffusionBrowseController extends DiffusionController {
           $bar,
           $empty_result,
           $browse_panel,
-          $open_revisions,
           $readme,
         ));
 
@@ -836,45 +832,6 @@ final class DiffusionBrowseController extends DiffusionController {
     return null;
   }
 
-  private function buildOpenRevisions() {
-    $viewer = $this->getViewer();
-
-    $drequest = $this->getDiffusionRequest();
-    $repository = $drequest->getRepository();
-    $path = $drequest->getPath();
-
-    $recent = (PhabricatorTime::getNow() - phutil_units('30 days in seconds'));
-
-    $engine = id(new DifferentialRevisionSearchEngine())
-      ->setViewer($viewer);
-
-    $query = $engine->newQuery()
-      ->withPaths(array($path))
-      ->withRepositoryPHIDs(array($repository->getPHID()))
-      ->withIsOpen(true)
-      ->withUpdatedEpochBetween($recent, null)
-      ->setOrder(DifferentialRevisionQuery::ORDER_MODIFIED)
-      ->setLimit(10)
-      ->needReviewers(true)
-      ->needDrafts(true);
-
-    $results = $engine->executeQueryAndRender($query);
-    $list = $results->getContent();
-    if ($list->isEmpty()) {
-      return null;
-    }
-
-    $header = id(new PHUIHeaderView())
-      ->setHeader(pht('Recent Open Revisions'));
-
-    $view = id(new PHUIObjectBoxView())
-      ->setHeader($header)
-      ->setBackground(PHUIObjectBoxView::BLUE_PROPERTY)
-      ->addClass('diffusion-mobile-view')
-      ->appendChild($list);
-
-    return $view;
-  }
 
   private function getGitLFSRef(PhabricatorRepository $repository, $data) {
     if (!$repository->canUseGitLFS()) {

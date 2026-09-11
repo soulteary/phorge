@@ -8,10 +8,7 @@ final class DifferentialDiffQuery
 
   private $ids;
   private $phids;
-  private $revisionIDs;
-  private $revisionPHIDs;
   private $commitPHIDs;
-  private $hasRevision;
 
   private $needChangesets = false;
   private $needProperties;
@@ -26,23 +23,8 @@ final class DifferentialDiffQuery
     return $this;
   }
 
-  public function withRevisionIDs(array $revision_ids) {
-    $this->revisionIDs = $revision_ids;
-    return $this;
-  }
-
-  public function withRevisionPHIDs(array $revision_phids) {
-    $this->revisionPHIDs = $revision_phids;
-    return $this;
-  }
-
   public function withCommitPHIDs(array $phids) {
     $this->commitPHIDs = $phids;
-    return $this;
-  }
-
-  public function withHasRevision($has_revision) {
-    $this->hasRevision = $has_revision;
     return $this;
   }
 
@@ -61,30 +43,10 @@ final class DifferentialDiffQuery
   }
 
   protected function willFilterPage(array $diffs) {
-    $revision_ids = array_filter(mpull($diffs, 'getRevisionID'));
-
-    $revisions = array();
-    if ($revision_ids) {
-      $revisions = id(new DifferentialRevisionQuery())
-        ->setViewer($this->getViewer())
-        ->withIDs($revision_ids)
-        ->execute();
-    }
-
-    foreach ($diffs as $key => $diff) {
-      if (!$diff->getRevisionID()) {
-        continue;
-      }
-
-      $revision = idx($revisions, $diff->getRevisionID());
-      if ($revision) {
-        $diff->attachRevision($revision);
-        continue;
-      }
-
-      unset($diffs[$key]);
-    }
-
+    // This used to load each diff's revision, attach it, and drop diffs whose
+    // revision the viewer could not see. With revisions removed, a diff's
+    // visibility is its own: see DifferentialDiff::getPolicy(), which now
+    // returns the diff's view policy directly.
 
     if ($diffs && $this->needChangesets) {
       $diffs = $this->loadChangesets($diffs);
@@ -139,13 +101,6 @@ final class DifferentialDiffQuery
         $this->phids);
     }
 
-    if ($this->revisionIDs !== null) {
-      $where[] = qsprintf(
-        $conn,
-        'revisionID IN (%Ld)',
-        $this->revisionIDs);
-    }
-
     if ($this->commitPHIDs !== null) {
       $where[] = qsprintf(
         $conn,
@@ -153,42 +108,11 @@ final class DifferentialDiffQuery
         $this->commitPHIDs);
     }
 
-    if ($this->hasRevision !== null) {
-      if ($this->hasRevision) {
-        $where[] = qsprintf(
-          $conn,
-          'revisionID IS NOT NULL');
-      } else {
-        $where[] = qsprintf(
-          $conn,
-          'revisionID IS NULL');
-      }
-    }
-
-    if ($this->revisionPHIDs !== null) {
-      $viewer = $this->getViewer();
-
-      $revisions = id(new DifferentialRevisionQuery())
-        ->setViewer($viewer)
-        ->setParentQuery($this)
-        ->withPHIDs($this->revisionPHIDs)
-        ->execute();
-      $revision_ids = mpull($revisions, 'getID');
-      if (!$revision_ids) {
-        throw new PhabricatorEmptyQueryException();
-      }
-
-      $where[] = qsprintf(
-        $conn,
-        'revisionID IN (%Ls)',
-        $revision_ids);
-    }
-
     return $where;
   }
 
   public function getQueryApplicationClass() {
-    return PhabricatorDifferentialApplication::class;
+    return PhabricatorDiffusionApplication::class;
   }
 
 }

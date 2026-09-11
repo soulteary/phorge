@@ -178,7 +178,7 @@ final class DifferentialChangesetQuery
   }
 
   public function getQueryApplicationClass() {
-    return PhabricatorDifferentialApplication::class;
+    return PhabricatorDiffusionApplication::class;
   }
 
 }
