@@ -36,9 +36,9 @@ final class PhabricatorDeploymentConfigSource
 
   public static function newOptionalSource($config_optional = false) {
     // A shared configuration volume may still contain deployment.json after
-    // an operator deliberately starts docker-compose.legacy.yml. The runtime
-    // mode is the authority in that case; do not let the retained file keep
-    // Gorge ownership active in the legacy container.
+    // an operator deliberately starts a container with the legacy control
+    // plane. The runtime mode is the authority in that case; do not let the
+    // retained file keep Gorge ownership active in the legacy container.
     if (getenv('PHORGE_CONTROL_PLANE') === 'legacy') {
       return null;
     }

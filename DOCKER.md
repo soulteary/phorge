@@ -2,7 +2,9 @@
 
 本 fork 默认以 Phorge + Gorge 协作栈运行。Phorge 镜像按职责拆成一次性的
 `phorge-migrate`、Apache `phorge` 和 `phorge-daemon`；Gorge 核心服务随默认
-Compose 启动。旧版纯 Phorge 单容器编排保存在 `docker-compose.legacy.yml`。
+Compose 启动。数据库基础设施单独放在 `docker-compose.mysql.yml`，由默认
+`docker-compose.yml` 用 `extends` 引用。旧版纯 Phorge 单容器编排
+（`docker-compose.legacy.yml`）已经移除，不再是受支持的启动方式。
 
 ## 前置要求
 
@@ -60,9 +62,9 @@ docker compose up -d --build
 | `PHORGE_GORGE_POLICY` | `required` | 已配置 Gorge 服务的失败策略：`required` 直接暴露错误；`fallback` 迁移期允许旧实现并记录 `[gorge-fallback]` 日志；`off` 停用请求路由型服务。 |
 | `PHORGE_DB_NAMESPACE` | `phabricator` | Phorge、db-init 与 file-storage/webhook/taskqueue/db-api 的唯一数据库前缀。已有自定义 `storage.default-namespace` 的安装升级前必须设为相同值；不一致时 entrypoint 会拒绝启动。 |
 | `GORGE_IMAGE_TAG` | `2026.09.09-r3` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
-| `PHORGE_WAIT_DB` | `1` | 是否在启动 Web 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
-| `PHORGE_AUTO_UPGRADE` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-migrate` 执行。 |
-| `PHORGE_START_PHD` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-daemon` 运行。 |
+| `PHORGE_WAIT_DB` | `1` | `migrate` 角色是否在执行 `storage upgrade` 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
+| `PHORGE_AUTO_UPGRADE` | `1` | `migrate` 角色是否自动执行 `bin/storage upgrade --force`。只有 `migrate` 读它，`web` / `daemon` 永不迁移 schema。 |
+| `PHORGE_CONTAINER_ROLE` | `web` | 容器角色：`migrate`（写 `local.json`、迁移 schema、发布 `deployment.json`）、`web`、`daemon`。`web` / `daemon` 是只读消费者，缺少这两个文件时直接退出。单容器 `all` 角色已移除。 |
 
 > 注意：`MYSQL_*` 与 `PHORGE_BASE_URI` / `PHORGE_TIMEZONE` **只在首次生成
 > `conf/local/local.json` 时写入**。该文件由 `phorge-conf` 卷持久化，之后改 `.env`
@@ -104,9 +106,9 @@ Gorge 的九个接入域由 `PhabricatorGorgeServiceRegistry` 统一登记。默
 调用 `bin/config set`，也不再用 `collaboration-profile-state.json` 长期维护应用和字段
 的三方合并；从阶段一升级时若检测到旧状态文件，会先恢复原始管理员配置，再一次性迁移。
 
-后文仍保留 `docker-compose.legacy.yml + docker-compose.gorge.yml` 的逐服务说明。其中提到
-entrypoint 写 `local.json` 的操作只属于兼容控制面；默认 `docker-compose.yml` 使用上述
-`deployment.json`，服务协议与环境变量含义不变。
+后文保留每个 Gorge 服务的逐项说明。其中提到 entrypoint 写 `local.json` 的操作只属于
+兼容控制面（自定义编排叠加 `docker-compose.gorge.yml` 时仍走这条路径）；默认
+`docker-compose.yml` 使用上述 `deployment.json`，服务协议与环境变量含义不变。
 
 需要邮件、搜索或 Gitea 单向事件桥时，显式启用对应 profile：
 
@@ -122,19 +124,66 @@ Mailer 与 Search 的一次性配置任务会随 profile 运行；Search 的全�
 Gorge 搜索条目，保留其它引擎，列表为空时恢复 MySQL/Ferret。
 `gorge-gitea` 在 Gorge r3 之后才合入，启用 `gitea` profile 前必须设置
 `GORGE_GITEA_IMAGE_TAG` 为实际已经发布的构建；默认 `unreleased` 用来阻止误拉 r3。
-已有安装若暂时不准备接入 Gorge，可以继续运行：
+不再提供「不接入 Gorge」的 Compose 入口。`docker-compose.legacy.yml` 已经删除，
+默认栈是唯一受支持的编排；需要按域取舍时，用 `PHORGE_GORGE_POLICY` 与各服务的
+`GORGE_*_MODE` 变量控制，而不是切回旧编排。仍在宿主机上裸跑 Gorge 的联调场景，
+用 `docker-compose.host-gorge.yml` 叠加默认文件（见该文件顶部说明）。
+
+### 不用 Compose 直接 docker run
+
+镜像只有 `migrate` / `web` / `daemon` 三个角色（`PHORGE_CONTAINER_ROLE`，默认 `web`），
+旧的单容器 `all` 角色已随 legacy 控制面一起移除。`web` 与 `daemon` 是配置的**只读消费者**：
+它们在 `conf/local/local.json` 或 `conf/local/deployment.json` 缺失时直接退出，不会自己
+迁移 schema。所以直接 `docker run` 也必须按 migrate → web → daemon 的顺序来，三个容器
+共享同一个 `conf/local` 卷：
 
 ```bash
-docker compose -f docker-compose.legacy.yml up -d --build --remove-orphans
+docker build -t phorge:local .
+docker network create phorge-net
+docker volume create phorge-conf
+docker volume create phorge-repo
+
+# 0) 数据库自备（这里用官方镜像示意），并按 docker/db-grant.sql 给普通账号授权
+docker run -d --name phorge-mysql --network phorge-net \
+  -e MYSQL_ROOT_PASSWORD=phorge_root -e MYSQL_DATABASE=phorge \
+  -e MYSQL_USER=phorge -e MYSQL_PASSWORD=phorge \
+  mysql:8.0.46 --sql-mode=STRICT_ALL_TABLES --local-infile=0 --ft-min-word-len=3
+
+# 1) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
+#    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
+docker run --rm --network phorge-net \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=migrate \
+  -e PHORGE_AUTO_UPGRADE=1 \
+  -e MYSQL_HOST=phorge-mysql -e MYSQL_USER=phorge -e MYSQL_PASS=phorge \
+  -e PHORGE_BASE_URI=http://127.0.0.1:8088/ \
+  phorge:local /bin/true
+
+# 2) web：Apache，只读加载上一步的配置
+docker run -d --name phorge-web --network phorge-net -p 8088:80 \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=web \
+  phorge:local
+
+# 3) daemon：phd，同样只读加载配置
+docker run -d --name phorge-daemon --network phorge-net \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=daemon \
+  phorge:local /usr/local/bin/phd-foreground
 ```
 
-如果该配置卷此前运行过默认栈，legacy 入口会先撤销受管 Mailer/Search、DB API 配置、
-webhook 委派和 Gorge task-queue 端点，并把 Notification 与 `phd.taskmasters` 精确恢复为
-进入 Gorge 前的本地值
-（原来未设置则删除覆盖、回到 Phorge 默认值）。清理或恢复失败会阻止 legacy 启动，
-避免出现邮件/搜索仍指向已停止服务、无人投递 webhook 或没有 taskmaster 消费队列的
-半回滚状态。`--remove-orphans` 同时停止并移除默认栈
-遗留的 `phorge-daemon`、`gorge-worker` 与其它 Gorge 容器；缺少它会让旧消费者继续运行。
+要点：
+
+- 升级同样是「先跑一次 migrate，再重建 web/daemon」。`PHORGE_AUTO_UPGRADE` 只有
+  `migrate` 角色会读，`web` / `daemon` 永远不迁移 schema。
+- `phd` 由 `daemon` 角色的 `phd-foreground` 固定托管，没有「是否随容器启动 phd」的开关。
+- 接 Gorge 时，`GORGE_*` 端点变量要传给 **migrate** 容器：它们由 migrate 一次性写进
+  `deployment.json`，web 与 daemon 只读加载。传给 web 不会生效。
+- `PHORGE_CONTROL_PLANE` 只接受 `deployment`；显式传 `legacy` 会直接退出（exit 64），
+  不会静默退回已经删除的旧控制面。
 
 ## 镜像结构
 
@@ -177,7 +226,7 @@ webhook 委派和 Gorge task-queue 端点，并把 Notification 与 `phd.taskmas
   ```bash
   docker compose up -d --build phorge
   # 用了叠加文件时把 -f 都带上，否则叠加的配置会丢：
-  # docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build phorge
+  # docker compose up -d --build phorge
   ```
   另外，新增 PHP 类还需要先在宿主上 `arc liberate src/` 重新生成
   `src/__phutil_library_map__.php` —— 类映射没更新，重建了镜像也一样 `Class not found`。
@@ -350,7 +399,7 @@ difference engine。高亮与 diff 分别启用，可以独立回滚。
 #    拉镜像失败（403）见下面「本地构建 gorge-render 镜像」
 #    --build 不能省：本地已有旧 phorge 镜像时 up -d 会直接复用它，容器里跑的就是旧版
 #    entrypoint，Gorge 的配置整段不下发且不报任何错（见「常见故障排查」）
-docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
+docker compose up -d --build
 
 # 2) 把高亮引擎切到 Gorge
 docker compose exec phorge /opt/phorge/phorge/bin/config set \
@@ -510,7 +559,7 @@ Phorge 的实时通知（页面右上角的小铃铛即时亮起、Conpherence �
 和高亮共用同一个叠加文件，两个服务互不依赖，一条命令一起起来：
 
 ```bash
-docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
+docker compose up -d --build
 ```
 
 默认值（`127.0.0.1:22280`）适用于「在 Docker 宿主本机上开浏览器」这一种情况，不改 `.env`
@@ -767,7 +816,7 @@ EOF
 
 # 2) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前两个服务相同，
 #    只是 --build-arg SERVICE=gorge-mailer；--build 同样不能省）
-docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
+docker compose up -d --build
 
 # 3) 确认配置写进去了，且服务已就绪
 docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.mailers
@@ -947,7 +996,7 @@ EOF
 
 # 2) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前三个服务相同，
 #    只是 --build-arg SERVICE=gorge-search；--build 同样不能省）
-docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
+docker compose up -d --build
 
 # 3) 确认配置写进去了，且服务已就绪
 docker compose exec phorge /opt/phorge/phorge/bin/config get cluster.search
@@ -1181,7 +1230,7 @@ docker compose exec phorge /opt/phorge/phorge/bin/config set storage.s3.bucket n
 # 1) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前四个服务相同，
 #    只是 --build-arg SERVICE=gorge-file-storage；--build 同样不能省）
 #    这一步不需要先配后端：本地磁盘后端默认就开着，数据落在新增的 phorge-files 卷里。
-docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
+docker compose up -d --build
 
 # 2) 确认配置写进去了，且服务已就绪
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.file.uri
@@ -1468,8 +1517,8 @@ ALTER TABLE {$NAMESPACE}_herald.herald_webhookrequest
   ADD KEY `key_status` (`status`, `id`);
 ```
 
-`resources/sql/autopatches/` 按文件名字典序自动发现，所以 `bin/storage upgrade`（容器默认
-`PHORGE_AUTO_UPGRADE=1`，每次启动都跑）会自动应用它，不需要手工执行。
+`resources/sql/autopatches/` 按文件名字典序自动发现，所以 `bin/storage upgrade`（`phorge-migrate`
+默认 `PHORGE_AUTO_UPGRADE=1`，每次起栈都跑）会自动应用它，不需要手工执行。
 
 同一个索引也声明在
 [`HeraldWebhookRequest::getConfiguration()`](src/applications/herald/storage/HeraldWebhookRequest.php)
@@ -1482,7 +1531,7 @@ ALTER TABLE {$NAMESPACE}_herald.herald_webhookrequest
 ```bash
 # 1) 起服务（拉镜像失败 403 见「本地构建镜像」，命令与前五个服务相同，
 #    只是 --build-arg SERVICE=gorge-webhook；--build 同样不能省）
-docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml up -d --build
+docker compose up -d --build
 
 # 2) 确认配置写进去了。这一步不能省 —— 它没写进去就是上面那张表的第三行。
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
@@ -1575,14 +1624,14 @@ docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
 ## 用 Gorge 做数据库诊断（可选）
 
 `gorge-db-api` 把数据库服务器健康、schema 差异、MySQL 环境检查与 storage upgrade
-进度收进只读 HTTP API。PHP 侧 `PhabricatorGorgeDBClient` 已接入这些接口；使用 Gorge
-叠加编排后，entrypoint 会把内部地址和 token 写进 `gorge.db.uri` / `gorge.db.token`，
+进度收进只读 HTTP API。PHP 侧 `PhabricatorGorgeDBClient` 已接入这些接口；默认栈启动
+后会把内部地址和 token 写进 `gorge.db.uri` / `gorge.db.token`，
 数据库控制台与相关 setup check 随即切流。URI 未配置时仍走原来的 PHP 直连实现。
 
-> 本节命令统一用下面这个别名，`dc` 代表单节点（基础叠加）的两个 `-f`；多节点另有 `dc_multi`，见后文：
+> 本节命令统一用下面这个别名，`dc` 就是默认栈的 `docker compose`；多节点另有 `dc_multi`，见后文：
 >
 > ```bash
-> alias dc='docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml'
+> alias dc='docker compose'
 > ```
 
 ```bash
@@ -1617,12 +1666,12 @@ Compose 对 `gorge-db-api` 使用 `/healthz` 健康检查，`phorge` 只以 `ser
 依赖它；数据库可达性由 `/readyz` 和 `PhabricatorGorgeDBSetupCheck` 报告。这个区分要保留：
 进程已经启动与数据库诊断已经可用是两种状态，首启迁移期间不应让前者阻塞 Phorge。
 
-默认单节点部署不需要挂配置文件。多节点部署要让 db-api 读到集群拓扑，有两种做法，都要**新建第三个 override 文件**——本小节所有命令因此改用 `dc_multi`，它在上面 `dc` 的两个 `-f`（`docker-compose.yml`、`docker-compose.gorge.yml`）之外再叠一个多节点 override（约定名为 `docker-compose.gorge-multinode.yml`）。缺了第三个 `-f`，挂载和环境变量都不会生效，服务会静默退回单节点。
+默认单节点部署不需要挂配置文件。多节点部署要让 db-api 读到集群拓扑，有两种做法，都要**新建一个 override 文件**——本小节所有命令因此改用 `dc_multi`，它在默认 `docker-compose.yml` 之外再叠一个多节点 override（约定名为 `docker-compose.gorge-multinode.yml`）。缺了这个 `-f`，挂载和环境变量都不会生效，服务会静默退回单节点。
 
 > 从这里起，把下面这行别名记在手边，本小节命令都用它：
 >
 > ```bash
-> alias dc_multi='docker compose -f docker-compose.legacy.yml -f docker-compose.gorge.yml -f docker-compose.gorge-multinode.yml'
+> alias dc_multi='docker compose -f docker-compose.yml -f docker-compose.gorge-multinode.yml'
 > ```
 
 #### 做法 A（推荐）：专用只读配置文件 + 只读 DB 账号
