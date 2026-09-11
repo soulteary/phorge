@@ -20,9 +20,6 @@ final class PhorgeProductProfile extends Phobject {
     return array(
       'PhabricatorDiffusionApplication',
       'PhabricatorDifferentialApplication',
-      'PhabricatorAuditApplication',
-      'PhabricatorOwnersApplication',
-      'PhabricatorDivinerApplication',
     );
   }
 

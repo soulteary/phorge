@@ -8,8 +8,7 @@ final class PhabricatorMetaMTAMailableFunctionDatasource
   }
 
   public function getPlaceholderText() {
-    if (id(new PhabricatorOwnersApplication())->isInstalled() ||
-        id(new PhabricatorPackagesApplication())->isInstalled()) {
+    if (id(new PhabricatorPackagesApplication())->isInstalled()) {
       return pht(
         'Type a username, project, mailing list, package, or function...');
     } else {
@@ -28,8 +27,6 @@ final class PhabricatorMetaMTAMailableFunctionDatasource
       new PhabricatorPeopleDatasource(),
       new PhabricatorProjectMembersDatasource(),
       new PhabricatorProjectDatasource(),
-      new PhabricatorOwnersPackageDatasource(),
-      new PhabricatorOwnersPackageOwnerDatasource(),
     );
   }
 

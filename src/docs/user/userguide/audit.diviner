@@ -36,8 +36,8 @@ Developers may also want other developers to take a second look at things if
 they realize they aren't sure about something after a change has been published,
 or just want to provide a heads-up.
 
-You can configure Herald rules and Owners packages to automatically trigger
-audits of commits that satisfy particular criteria.
+You can configure Herald rules to automatically trigger audits of commits that
+satisfy particular criteria.
 
 
 Audit States and Actions
@@ -114,8 +114,6 @@ Audit requests can be triggered in a number of ways:
   - You can create rules in Herald that trigger audits based on properties
     of the commit -- like the files it touches, the text of the change, the
     author, etc.
-  - You can create an Owners package and enable automatic auditing for the
-    package.
 
 
 Audits in Small Teams
@@ -185,13 +183,6 @@ consistent.
 
 This command will update commits so their overall audit state reflects the
 cumulative state of their actual audit requests.
-
-**Update Owners Package Membership**: Update which Owners packages commits
-belong to with `bin/audit update-owners`.
-
-Normally, commits are automatically associated with packages when they are
-imported. You can use this command to manually rebuild this association if
-you run into problems with it.
 
 Next Steps
 ==========
