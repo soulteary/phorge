@@ -177,6 +177,18 @@ sed -e 's/__PHORGE_USER__/phorge/g' \
 
 # 2) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
 #    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
+#
+#    ⚠️ 本配方假定 phorge-conf 是**全新**卷。如果你复用的是之前跑过 Gorge 默认栈
+#    的那个卷，先删掉里面的 deployment.json 再执行这一步：
+#      docker run --rm -v phorge-conf:/conf alpine \
+#        rm -f /conf/deployment.json
+#    原因：build_deployment_config.php 是在**现有** deployment.json 的基础上增量
+#    重建的，选择器变量缺失的服务一律按 preserve 保留。本配方不传任何 GORGE_*，
+#    所以 gorge.taskqueue.owner=gorge、phd.taskmasters=0、webhook 所有权以及各个
+#    gorge.*.uri 都会原封不动留下来。Gorge 容器已经停了，结果就是队列和 webhook
+#    没有消费者、required 策略下的调用打向已经不存在的主机。
+#    不要试图用 GORGE_*_MODE=disable 回滚：webhook 与 taskqueue 的 disable 已经
+#    不再受支持（migrate 会直接报错退出），删掉 deployment.json 是唯一的重置方式。
 #    PHORGE_PRODUCT_PROFILE 显式写 full：默认的 auto 在空库上会解析成
 #    collaboration，那会停用 Diffusion / Differential / Audit 这组代码应用，
 #    并预期由 GITEA_BASE_URI 指向一个外部代码托管。这个不带 Gorge 的最小示例
