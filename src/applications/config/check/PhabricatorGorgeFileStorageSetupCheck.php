@@ -10,14 +10,68 @@ final class PhabricatorGorgeFileStorageSetupCheck
   }
 
   protected function executeChecks() {
-    if (PhabricatorGorgeServiceRegistry::getService('file')
-        ->isDisabled()) {
-      return;
-    }
-
+    // The historical blob, local-disk and S3 engines are read-only, so this
+    // service is the only engine which can accept a new file. Both of the
+    // states which used to be unremarkable here -- the service disabled by
+    // policy, or no endpoint configured -- now mean the install can not store
+    // an upload at all, so report them instead of returning quietly.
+    $service = PhabricatorGorgeServiceRegistry::getService('file');
     $uri = PhabricatorGorgeFileStorageClient::getConfiguredURI();
 
-    if ($uri === null) {
+    if ($service->isDisabled() || $uri === null) {
+      if ($service->isDisabled()) {
+        $cause = pht(
+          'the Gorge service policy for %s resolves to %s',
+          phutil_tag('tt', array(), 'file'),
+          phutil_tag('tt', array(), PhabricatorGorgeServiceSpec::POLICY_OFF));
+      } else {
+        $cause = pht(
+          '%s is not configured',
+          phutil_tag('tt', array(), 'gorge.file.uri'));
+      }
+
+      $this->newIssue('gorge.file.no-write-engine')
+        ->setName(pht('File Storage Has No Writable Engine'))
+        ->setSummary(
+          pht(
+            'The Gorge file storage service is unavailable and the '.
+            'historical storage engines are read-only, so new files can not '.
+            'be stored.'))
+        ->setMessage(
+          pht(
+            'The %s, %s and %s storage engines keep existing files readable '.
+            'but no longer accept writes, which leaves %s as the only engine '.
+            'that can store a new file. It is unavailable here because %s.'.
+            "\n\n".
+            'Every upload, and every background operation which produces a '.
+            'file, fails while this is true. Configure %s and leave the '.
+            'service policy for %s at %s or %s.'.
+            "\n\n".
+            'Note that %s does not help: it selects a native engine to fall '.
+            'back to, and after this change there is no writable native '.
+            'engine to select.',
+            phutil_tag('tt', array(), 'blob'),
+            phutil_tag('tt', array(), 'local-disk'),
+            phutil_tag('tt', array(), 'amazon-s3'),
+            phutil_tag('tt', array(), 'gorge'),
+            $cause,
+            phutil_tag('tt', array(), 'gorge.file.uri'),
+            phutil_tag('tt', array(), 'file'),
+            phutil_tag(
+              'tt',
+              array(),
+              PhabricatorGorgeServiceSpec::POLICY_REQUIRED),
+            phutil_tag(
+              'tt',
+              array(),
+              PhabricatorGorgeServiceSpec::POLICY_FALLBACK),
+            phutil_tag(
+              'tt',
+              array(),
+              PhabricatorGorgeServiceSpec::POLICY_FALLBACK)))
+        ->addRelatedPhabricatorConfig('gorge.file.uri')
+        ->addRelatedPhabricatorConfig('gorge.service-policy')
+        ->addRelatedPhabricatorConfig('gorge.service-policies');
       return;
     }
 
