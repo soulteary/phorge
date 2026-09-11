@@ -537,7 +537,6 @@ final class DiffusionCommitController extends DiffusionController {
       ->withSourcePHIDs(array($commit_phid))
       ->withEdgeTypes(array(
         DiffusionCommitHasTaskEdgeType::EDGECONST,
-        DiffusionCommitHasRevisionEdgeType::EDGECONST,
         DiffusionCommitRevertsCommitEdgeType::EDGECONST,
         DiffusionCommitRevertedByCommitEdgeType::EDGECONST,
       ));
@@ -546,9 +545,6 @@ final class DiffusionCommitController extends DiffusionController {
 
     $task_phids = array_keys(
       $edges[$commit_phid][DiffusionCommitHasTaskEdgeType::EDGECONST]);
-    $revision_phid = key(
-      $edges[$commit_phid][DiffusionCommitHasRevisionEdgeType::EDGECONST]);
-
     $reverts_phids = array_keys(
       $edges[$commit_phid][DiffusionCommitRevertsCommitEdgeType::EDGECONST]);
     $reverted_by_phids = array_keys(
@@ -673,12 +669,6 @@ final class DiffusionCommitController extends DiffusionController {
       $view->addProperty(
         pht('Reviewer'),
         $handles[$reviewer_phid]->renderLink());
-    }
-
-    if ($revision_phid) {
-      $view->addProperty(
-        pht('Differential Revision'),
-        $handles[$revision_phid]->renderLink());
     }
 
     $parents = $this->getCommitParents();

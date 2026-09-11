@@ -74,7 +74,6 @@ final class PhabricatorRepositoryCommitPublishWorker
     // commits/revisions, so those won't occur until after the commit gets
     // transactions.
 
-    $this->closeRevisions($viewer, $commit);
     $this->closeTasks($viewer, $commit);
 
     $this->applyTransactions($viewer, $repository, $commit);
@@ -90,17 +89,7 @@ final class PhabricatorRepositoryCommitPublishWorker
     $acting_phid = $this->getPublishAsPHID($commit);
     $content_source = $this->newContentSource();
 
-    $revision = DiffusionCommitRevisionQuery::loadRevisionForCommit(
-      $actor,
-      $commit);
-
-    // Prevent the commit from generating a mention of the associated
-    // revision, if one exists, so we don't double up because of the URI
-    // in the commit message.
     $unmentionable_phids = array();
-    if ($revision) {
-      $unmentionable_phids[] = $revision->getPHID();
-    }
 
     $editor = $commit->getApplicationTransactionEditor()
       ->setActor($actor)
@@ -214,60 +203,6 @@ final class PhabricatorRepositoryCommitPublishWorker
     }
 
     return $file->loadFileData();
-  }
-
-  private function closeRevisions(
-    PhabricatorUser $actor,
-    PhabricatorRepositoryCommit $commit) {
-
-    $differential_class = PhabricatorDifferentialApplication::class;
-    if (!PhabricatorApplication::isClassInstalled($differential_class)) {
-      return;
-    }
-
-    $repository = $commit->getRepository();
-    $data = $commit->getCommitData();
-    $ref = $data->getCommitRef();
-
-    $field_query = id(new DiffusionLowLevelCommitFieldsQuery())
-      ->setRepository($repository)
-      ->withCommitRef($ref);
-
-    $field_values = $field_query->execute();
-
-    $revision_id = idx($field_values, 'revisionID');
-    if (!$revision_id) {
-      return;
-    }
-
-    $revision = id(new DifferentialRevisionQuery())
-      ->setViewer($actor)
-      ->withIDs(array($revision_id))
-      ->executeOne();
-    if (!$revision) {
-      return;
-    }
-
-    // NOTE: This is very old code from when revisions had a single reviewer.
-    // It still powers the "Reviewer (Deprecated)" field in Herald, but should
-    // be removed.
-    if (!empty($field_values['reviewedByPHIDs'])) {
-      $data->setCommitDetail(
-        'reviewerPHID',
-        head($field_values['reviewedByPHIDs']));
-    }
-
-    $match_data = $field_query->getRevisionMatchData();
-
-    $data->setCommitDetail('differential.revisionID', $revision_id);
-    $data->setCommitDetail('revisionMatchData', $match_data);
-
-    $data->save();
-
-    $properties = array(
-      'revisionMatchData' => $match_data,
-    );
-    $this->queueObjectUpdate($commit, $revision, $properties);
   }
 
   private function closeTasks(
