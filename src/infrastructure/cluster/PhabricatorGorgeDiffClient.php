@@ -5,8 +5,9 @@
  *
  * Render and diff share one process and one endpoint. The bundled deployment
  * now treats Gorge as the only production diff implementation, so routing is
- * selected by the render service itself rather than by the historical
- * `gorge.diff.enabled` migration switch.
+ * selected by the render service itself. The historical `gorge.diff.enabled`
+ * migration switch is retired: it is hidden and locked in Config and is not
+ * read anywhere.
  */
 final class PhabricatorGorgeDiffClient
   extends PhabricatorGorgeServiceClient {
