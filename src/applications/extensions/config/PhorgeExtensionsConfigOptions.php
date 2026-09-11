@@ -68,7 +68,12 @@ final class PhorgeExtensionsConfigOptions
         pht(
           'Failure policy for configured Gorge services. "required" exposes '.
           'service failures, "fallback" temporarily allows native '.
-          'implementations, and "off" disables request-routed services.'));
+          'implementations, and "off" disables request-routed services. '.
+          'The "render" service is an exception for difference generation: '.
+          'the native GNU and PHP difference engines have been removed, so '.
+          'neither "fallback" nor "off" has a local implementation to select '.
+          'and raw or prose differences fail while the service is '.
+          'unavailable.'));
 
     $options[] = $this->newOption(
       'gorge.service-policies',
