@@ -99,8 +99,13 @@ SQL 任务停在 `gorge-completion-pending` lease 下，避免租约到期后重
 
 Webhook 与 task queue 分别使用 `gorge.webhook.owner` 和
 `gorge.taskqueue.owner` 明确选择唯一消费者；URI 只表示端点。默认栈把两者设为
-`gorge`，legacy 模式设为 `phorge`。源码安装和旧 overlay 未设置 owner 时仍支持
-`auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+`gorge`。源码安装未设置 owner 时仍支持 `auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+
+但 `phorge` 这一侧现在是空的：原生 webhook 投递与原生 taskmaster 都已经移除，
+所以把 owner 设为 `phorge`——或者在没有配置 URI 的情况下让 `auto` 落到 `phorge`——
+意味着**没有任何消费者**，而不是交还给 phd。两个 setup check
+（`gorge.webhook.no-consumer` / `gorge.taskqueue.no-consumer`）会把这个状态报出来，
+`phorge-migrate` 也会拒绝 `GORGE_WEBHOOK_MODE=disable` 与 `GORGE_TASKQUEUE_MODE=disable`。
 
 Gorge 的九个接入域由 `PhabricatorGorgeServiceRegistry` 统一登记。默认控制面不再逐项
 调用 `bin/config set`，也不再用 `collaboration-profile-state.json` 长期维护应用和字段
@@ -1647,28 +1652,23 @@ docker compose exec phorge /opt/phorge/phorge/bin/phd status
   `setRunAllTasksInProcess()` 就地投递再读回状态码，交接之后请求是被 Go 异步取走的，
   命令行拿不到结果，所以改成打印请求的 PHID，让你去 Recent Requests 里看。
 
-### 回滚
+### 没有回滚
 
-一步，而且没有数据后果——队列表的结构和字段含义两边完全一致：
+这一节以前写的是「清空 URI、把 owner 切回 phorge、再停服务」。**那条路已经不存在了**：
+承接投递的 `HeraldWebhookWorker` 原生 HTTP 实现已经删除，它现在只是一个兼容壳，
+读到「未委派给 Gorge」时把请求置为终态失败（`native-retired` hook error），而不是发出去。
 
-```bash
-# 1) 停掉下发：把 GORGE_WEBHOOK_URI 从 .env 里清空（或整段删掉），
-#    这样 entrypoint.sh 下次启动就不再写 gorge.webhook.uri。
-#    注意：清空它**不会**把已经写进 local.json 的值撤掉，得手工清。
-docker compose exec phorge /opt/phorge/phorge/bin/config set gorge.webhook.uri null
+所以照旧操作的后果是：webhook 一条都不再投递，而且失败是静默的——请求仍然被记录，
+只是永远发不出去。`PhabricatorGorgeWebhookSetupCheck` 会把这个状态报成
+`gorge.webhook.no-consumer`。
 
-# 2) 停掉服务。顺序不能反 —— 先停服务再清配置的话，中间那段时间两边都不投。
-docker compose stop gorge-webhook
+需要停 `gorge-webhook` 做维护时，就只是停它：队列表里的行留在 `queued`，服务起回来以后
+继续投（前提是没被 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期删掉）。不要顺手去
+清 `gorge.webhook.uri` 或把 `gorge.webhook.owner` 改成 `phorge`——那不会让 `phd` 接手，
+只会把请求提前判死。
 
-# 3) 确认生效
-docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
-```
-
-清掉配置之后 `phd` 对**新产生的**请求立刻恢复调度。第 1、2 步的顺序不能反，原因就在这里：
-任务是在插行的那一刻由 `queueCall()` 派出去的，只派一次。先停服务再清配置的话，中间那段
-时间产生的行既没有 phd 的任务、又没有 Go 来取，之后谁也不会回头去捡——它们会一直停在
-`queued`，直到 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期把它们删掉。按上面的
-顺序做则不会有这样的行：清配置的那一刻服务还在跑，队列是空的。
+真的不想要 webhook 投递，就删掉 Herald 里的 webhook 本身，而不是把所有权交给一个不存在的
+消费者。
 
 新增的 `key_status` 索引留着即可，它不影响 PHP 侧的任何查询。
 
