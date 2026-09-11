@@ -20,7 +20,10 @@ foreach (new LiskMigrationIterator($commit_table) as $commit) {
     continue;
   }
 
-  $commit_drev = DiffusionCommitHasRevisionEdgeType::EDGECONST;
+  // DiffusionCommitHasRevisionEdgeType::EDGECONST. The class was removed with
+  // Differential revisions; edge type constants are stored integers, so the
+  // literal is what rows written before the removal carry.
+  $commit_drev = 32;
   $editor->addEdge($commit->getPHID(), $commit_drev, $revision_phid);
   $edges++;
   if ($edges % 256 == 0) {
