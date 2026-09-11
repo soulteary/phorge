@@ -1220,11 +1220,6 @@ return array(
       'phabricator-darklog',
       'phabricator-darkmessage',
     ),
-    '47a0728b' => array(
-      'javelin-behavior',
-      'javelin-dom',
-      'javelin-request',
-    ),
     '48c2854f' => array(
       'aphront-dialog-view-css',
     ),
