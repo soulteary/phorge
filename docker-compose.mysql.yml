@@ -1,0 +1,67 @@
+# Shared MySQL services for the default Phorge + Gorge deployment.
+#
+# This file contains only database infrastructure. It replaces the old
+# docker-compose.legacy.yml as the source for the mysql/db-init definitions,
+# so the default stack no longer depends on a complete legacy Phorge runtime.
+
+services:
+  mysql:
+    image: mysql:${MYSQL_IMAGE_TAG:-8.0.46}
+    container_name: phorge-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-phorge_root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-phorge}
+      MYSQL_USER: ${MYSQL_USER:-phorge}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-phorge}
+    command:
+      - --sql-mode=STRICT_ALL_TABLES
+      - --max-allowed-packet=134217728
+      - --innodb-buffer-pool-size=1600M
+      - --local-infile=0
+      - --ft-min-word-len=3
+    volumes:
+      - phorge-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-phorge_root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  db-init:
+    image: mysql:${MYSQL_IMAGE_TAG:-8.0.46}
+    container_name: phorge-db-init
+    restart: "no"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-phorge_root}
+      PHORGE_DB_USER: ${MYSQL_USER:-phorge}
+      PHORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
+    volumes:
+      - ./docker/db-grant.sql:/db-grant.sql:ro
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        case "$$PHORGE_DB_NAMESPACE" in
+          ''|*[!a-zA-Z0-9_$$]*)
+            echo "[db-init] 非法数据库命名空间: $$PHORGE_DB_NAMESPACE" >&2
+            exit 64
+            ;;
+        esac
+        if [ "$${#PHORGE_DB_NAMESPACE}" -ge 45 ]; then
+          echo "[db-init] 数据库命名空间必须少于 45 个字符。" >&2
+          exit 64
+        fi
+        sed \
+          -e "s/__PHORGE_USER__/$$PHORGE_DB_USER/g" \
+          -e "s/__PHORGE_NAMESPACE__/$$PHORGE_DB_NAMESPACE/g" \
+          /db-grant.sql |
+          mysql -h mysql -P 3306 -u root -p"$$MYSQL_ROOT_PASSWORD"
+        echo "[db-init] 已为 $$PHORGE_DB_USER 授权 $${PHORGE_DB_NAMESPACE}_% 库。"
+
+volumes:
+  phorge-db:
