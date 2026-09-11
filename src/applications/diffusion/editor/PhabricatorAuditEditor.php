@@ -189,24 +189,9 @@ final class PhabricatorAuditEditor
     PhabricatorLiskDAO $object,
     PhabricatorApplicationTransaction $xaction) {
 
-    $auditors_type = DiffusionCommitAuditorsTransaction::TRANSACTIONTYPE;
-
     $xactions = parent::expandTransaction($object, $xaction);
 
     switch ($xaction->getTransactionType()) {
-      case PhorgeAuditCommitCommitTransaction::TRANSACTIONTYPE:
-        $phids = $this->getAuditRequestTransactionPHIDsFromCommitMessage(
-          $object);
-        if ($phids) {
-          $xactions[] = $object->getApplicationTransactionTemplate()
-            ->setTransactionType($auditors_type)
-            ->setNewValue(
-              array(
-                '+' => array_fuse($phids),
-              ));
-          $this->addUnmentionablePHIDs($phids);
-        }
-        break;
       default:
         break;
     }
@@ -233,37 +218,6 @@ final class PhabricatorAuditEditor
     return $xactions;
   }
 
-  private function getAuditRequestTransactionPHIDsFromCommitMessage(
-    PhabricatorRepositoryCommit $commit) {
-
-    $actor = $this->getActor();
-    $data = $commit->getCommitData();
-    $message = $data->getCommitMessage();
-
-    $result = DifferentialCommitMessageParser::newStandardParser($actor)
-      ->setRaiseMissingFieldErrors(false)
-      ->parseFields($message);
-
-    $field_key = DifferentialAuditorsCommitMessageField::FIELDKEY;
-    $phids = idx($result, $field_key, null);
-
-    if (!$phids) {
-      return array();
-    }
-
-    // If a commit lists its author as an auditor, just pretend it does not.
-    foreach ($phids as $key => $phid) {
-      if ($phid == $commit->getAuthorPHID()) {
-        unset($phids[$key]);
-      }
-    }
-
-    if (!$phids) {
-      return array();
-    }
-
-    return $phids;
-  }
 
   protected function sortTransactions(array $xactions) {
     $xactions = parent::sortTransactions($xactions);
@@ -336,65 +290,11 @@ final class PhabricatorAuditEditor
       }
     }
 
-    $rev_refs = id(new DifferentialCustomFieldDependsOnParser())
-      ->parseCorpus($huge_block);
-    foreach ($rev_refs as $match) {
-      foreach ($match['monograms'] as $monogram) {
-        $monograms[] = $monogram;
-      }
-    }
-
     $objects = id(new PhabricatorObjectQuery())
       ->setViewer($this->getActor())
       ->withNames($monograms)
       ->execute();
     $phid_map[] = mpull($objects, 'getPHID', 'getPHID');
-
-    $reverts_refs = id(new DifferentialCustomFieldRevertsParser())
-      ->parseCorpus($huge_block);
-    $reverts = array_mergev(ipull($reverts_refs, 'monograms'));
-    if ($reverts) {
-      $reverted_objects = DiffusionCommitRevisionQuery::loadRevertedObjects(
-        $actor,
-        $object,
-        $reverts,
-        $object->getRepository());
-
-      $reverted_phids = mpull($reverted_objects, 'getPHID', 'getPHID');
-
-      $reverts_edge = DiffusionCommitRevertsCommitEdgeType::EDGECONST;
-      $result[] = id(new PhabricatorAuditTransaction())
-        ->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
-        ->setMetadataValue('edge:type', $reverts_edge)
-        ->setNewValue(array('+' => $reverted_phids));
-
-      $phid_map[] = $reverted_phids;
-    }
-
-    // See T13463. Copy "related task" edges from the associated revision, if
-    // one exists.
-
-    $revision = DiffusionCommitRevisionQuery::loadRevisionForCommit(
-      $actor,
-      $object);
-    if ($revision) {
-      $task_phids = PhabricatorEdgeQuery::loadDestinationPHIDs(
-        $revision->getPHID(),
-        DifferentialRevisionHasTaskEdgeType::EDGECONST);
-      $task_phids = array_fuse($task_phids);
-
-      if ($task_phids) {
-        $related_edge = DiffusionCommitHasTaskEdgeType::EDGECONST;
-        $result[] = id(new PhabricatorAuditTransaction())
-          ->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
-          ->setMetadataValue('edge:type', $related_edge)
-          ->setNewValue(array('+' => $task_phids));
-      }
-
-      // Mark these objects as unmentionable, since the explicit relationship
-      // is stronger and any mentions are redundant.
-      $phid_map[] = $task_phids;
-    }
 
     $phid_map = array_mergev($phid_map);
     $this->addUnmentionablePHIDs($phid_map);

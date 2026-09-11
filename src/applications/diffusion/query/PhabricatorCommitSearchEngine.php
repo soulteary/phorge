@@ -72,7 +72,10 @@ final class PhabricatorCommitSearchEngine
         ->setKey('responsiblePHIDs')
         ->setConduitKey('responsible')
         ->setAliases(array('responsible', 'responsibles', 'responsiblePHID'))
-        ->setDatasource(new DifferentialResponsibleDatasource())
+        // This used to use DifferentialResponsibleDatasource, which also
+        // offered Owners packages and revision-responsibility functions.
+        // Both are gone; commit responsibility is users and projects.
+        ->setDatasource(new PhabricatorProjectOrUserFunctionDatasource())
         ->setDescription(
           pht(
             'Find commits where given users or projects are responsible '.
