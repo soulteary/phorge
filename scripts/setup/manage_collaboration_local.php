@@ -211,9 +211,10 @@ if ($mode === 'collaboration') {
   $legacy_profile = $state === null &&
     isset($config['phorge.product-profile']) &&
     $config['phorge.product-profile'] === 'collaboration';
-  $profile_values = array(
-    'gorge.diff.enabled' => false,
-  );
+  // `gorge.diff.enabled` stays in $owned_keys so a value written by an older
+  // release is still cleaned up on rollback, but the profile no longer writes
+  // it: the switch is retired and nothing reads it.
+  $profile_values = array();
   $gitea_uri = getenv('GITEA_BASE_URI');
   if ($gitea_uri !== false && strlen($gitea_uri)) {
     $profile_values['gitea.uri'] = rtrim($gitea_uri, '/').'/';

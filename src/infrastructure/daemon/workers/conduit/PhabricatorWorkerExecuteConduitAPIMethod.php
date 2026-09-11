@@ -28,6 +28,12 @@
  *   - @{class:PhabricatorWorkerYieldException}           => "yield",
  *   - @{class:PhabricatorWorkerPermanentFailureException} => "permanent-failure",
  *   - any other exception                                => "failure" (retry).
+ *
+ * It also has to flush the worker's follow-up queue. A worker stages child
+ * work with @{method:PhabricatorWorker::queueTask}, which keeps it in memory
+ * until something persists it, and the only other thing which does is
+ * @{class:PhabricatorWorkerActiveTask::executeTask} -- the native path this
+ * method exists to replace.
  */
 final class PhabricatorWorkerExecuteConduitAPIMethod
   extends ConduitAPIMethod {
@@ -60,6 +66,7 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
       'taskID'    => 'optional int',
       'taskClass' => 'required string',
       'data'      => 'optional string',
+      'priority'  => 'optional int',
     );
   }
 
@@ -113,6 +120,7 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
     }
 
     $t_start = microtime(true);
+    $worker = null;
     try {
       $worker = $task->getWorkerInstance();
       $worker->setCurrentWorkerTask($task);
@@ -146,9 +154,68 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
       );
     }
 
+    // Persist whatever the worker staged with queueTask(). Dropping these is
+    // silent and permanent: FeedPublisherWorker stages the actual publishing
+    // this way, and PhabricatorRepositoryCommitParserWorker stages the next
+    // import stage, so the parent would report success while the work that
+    // matters never happened.
+    //
+    // The native finalizer commits the children and the parent's archive in
+    // one transaction. That is not available here: this task has no SQL row to
+    // enlist -- the service owns the row -- and the service completes the
+    // parent only after this method returns. So children are enqueued first
+    // and the parent is reported afterwards. If completion is then lost and
+    // the task is retried, the children are queued again, which is the
+    // at-least-once contract every retried worker already lives under, and a
+    // far better failure than losing them.
+    if ($worker->hasQueuedTasks()) {
+      $defaults = array();
+
+      // The service does not send a priority today, in which case children
+      // are scheduled at the default. Honour it when it starts to.
+      $priority = $request->getValue('priority');
+      if ($priority !== null) {
+        $defaults['priority'] = (int)$priority;
+      }
+
+      try {
+        $worker->flushTaskQueue($defaults);
+      } catch (Exception $ex) {
+        return $this->newFollowupFailure($task_class, $ex, $t_start);
+      } catch (Throwable $ex) {
+        return $this->newFollowupFailure($task_class, $ex, $t_start);
+      }
+    }
+
     return array(
       'result'   => 'success',
       'duration' => phutil_microseconds_since($t_start),
+    );
+  }
+
+  /**
+   * Report follow-up scheduling which failed after the work itself succeeded.
+   *
+   * Reported as transient so the task is retried: re-running the worker
+   * re-stages the same children, which may duplicate any that were already
+   * persisted, but leaves nothing unscheduled. Returning success instead would
+   * hide the loss completely.
+   *
+   * @param string $task_class Task class which ran.
+   * @param Throwable $ex Exception the flush raised.
+   * @param float $t_start Execution start, from microtime(true).
+   * @return array<string, wild> Conduit result structure.
+   */
+  private function newFollowupFailure($task_class, $ex, $t_start) {
+    return array(
+      'result'        => 'failure',
+      'failureType'   => 'transient',
+      'failureReason' => pht(
+        'Task "%s" ran successfully, but scheduling the follow-up tasks it '.
+        'queued failed: %s',
+        $task_class,
+        $ex->getMessage()),
+      'duration'      => phutil_microseconds_since($t_start),
     );
   }
 

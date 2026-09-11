@@ -78,6 +78,12 @@ final class PhabricatorGorgeServiceSpec extends Phobject {
    * A per-service entry overrides the deployment-wide policy. The default is
    * deliberately "required": once a service is configured, an outage must be
    * visible instead of silently selecting a second implementation.
+   *
+   * Database diagnostics are past their migration window and are now always
+   * Gorge-owned. Keeping fallback/off selectable for the `db` capability
+   * would continue exercising the large direct-management-SQL implementation
+   * we are retiring, so reject those policies rather than silently re-enable
+   * an obsolete diagnostic path.
    */
   public function getPolicy() {
     $policy = null;
@@ -108,6 +114,20 @@ final class PhabricatorGorgeServiceSpec extends Phobject {
           phutil_string_cast($policy)));
     }
 
+    if ($this->getKey() === 'db' && $policy !== self::POLICY_REQUIRED) {
+      // The native PHP diagnostic fallback has been retired, so an override
+      // which selects it no longer names an implementation. Ignore it rather
+      // than throwing: getPolicy() is reached from setup checks, the database
+      // console and management queries -- including on installations which
+      // never configured this service and only set the global policy for
+      // another one -- so throwing here breaks unrelated pages, and it breaks
+      // the setup check which would otherwise explain the problem.
+      //
+      // PhabricatorGorgeDBSetupCheck reports the ignored override instead,
+      // where the operator can act on it.
+      return self::POLICY_REQUIRED;
+    }
+
     return $policy;
   }
 
@@ -125,10 +145,6 @@ final class PhabricatorGorgeServiceSpec extends Phobject {
 
   /**
    * Record an intentional transition from Gorge to a native implementation.
-   *
-   * The stable log line is suitable for aggregation. The in-process counter
-   * makes the behavior directly testable without adding a database dependency
-   * to the failure path.
    */
   public function recordFallback($operation) {
     $key = $this->getKey().'.'.$operation;
@@ -174,14 +190,6 @@ final class PhabricatorGorgeServiceSpec extends Phobject {
     return PhabricatorEnv::getEnvConfigIfExists($this->tokenKey);
   }
 
-  /**
-   * Resolve the owner of a capability with a native Phorge implementation.
-   *
-   * "auto" preserves the pre-control-plane behavior for source and legacy
-   * installs: a configured endpoint selects Gorge. Deployment configuration
-   * writes an explicit owner, so endpoint rotation can no longer transfer
-   * consumer ownership as a side effect.
-   */
   public function getOwner() {
     if ($this->ownerKey === null) {
       return null;

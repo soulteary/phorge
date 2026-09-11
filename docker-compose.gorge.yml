@@ -104,12 +104,16 @@ services:
       # Phorge 侧表现为该文件回退到无高亮。默认 1MiB。
       GORGE_RENDER_MAX_BYTES: ${GORGE_RENDER_MAX_BYTES:-1048576}
       # diff 域与 render 共用此进程，但有独立的输入上限。计算 old 与 new 的
-      # 合计字节数，超限时 Phorge 会记录错误并回退到本地 difference engine。
+      # 合计字节数，超限时 Phorge 直接报错 —— 原生 diff 已经移除，没有可回退的
+      # 本地 difference engine 了。要处理更大的输入就调高这个值。
       GORGE_DIFF_MAX_BYTES: ${GORGE_DIFF_MAX_BYTES:-1048576}
       # 单次高亮的服务端超时（秒）。PHP 客户端自己也有超时，两者取小者生效。
       GORGE_RENDER_TIMEOUT_SEC: ${GORGE_RENDER_TIMEOUT_SEC:-15}
-      # 协作模式关闭 Phorge 的 diff 客户端后，也可在服务端彻底不注册 diff 路由。
-      GORGE_RENDER_ENABLE_DIFF: ${GORGE_RENDER_ENABLE_DIFF:-true}
+      # 刻意写死 true，不接受 .env 覆盖：原生 GNU/PHP diff 已经移除，PHP 侧只要
+      # 配了 gorge.render.uri 就无条件调用 /api/diff/*。服务端一旦不注册这两条
+      # 路由，raw 与 prose diff 会直接失败且无处回退，所以这不再是一个开关。
+      # 旧 .env 里残留的 GORGE_RENDER_ENABLE_DIFF 会被忽略。
+      GORGE_RENDER_ENABLE_DIFF: "true"
     # 刻意不声明 ports：render/diff 服务只被 phorge 通过 compose 默认网络的服务名
     # gorge-render 调用，不需要宿主入口——少一个对外面，也省掉与 gorge 自己那套
     # 编排（deploy/compose 里映射了 8140）抢宿主端口。

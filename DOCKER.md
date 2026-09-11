@@ -84,23 +84,31 @@ docker compose up -d --build
 服务超时、返回错误或响应非法时，Phorge 不再按请求静默进入旧实现。迁移期间可临时设为
 `fallback`；每次实际进入原生路径都会记录
 `[gorge-fallback] service=... operation=... process_count=...`。稳定一个发布周期且
-日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、db、search、
+日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、search、
 file 和 mailer 等请求路由型能力；webhook/taskqueue 的排他消费者仍由各自
 `GORGE_*_MODE` 切换，不能靠全局策略隐式改写。
-DB 的 fallback 覆盖完整诊断操作：握手成功后若 servers、schema 或 setup 请求失败，
-仍会记录具体操作并执行对应的原生诊断，而不是只在握手阶段生效。
+两个服务是例外，因为它们要回退到的原生实现已经删除：render/diff 无论策略取值都会在
+服务不可用时直接失败；db 的 `fallback` 与 `off` 会被忽略并按 `required` 处理，
+`PhabricatorGorgeDBSetupCheck` 会报告这个被忽略的覆盖。
 
 Task queue 的 enqueue 是例外：只有在发送请求前即发现端点不可用时才允许进入 SQL
 fallback。请求发出后的超时或坏响应会直接报错，因为 Gorge 可能已经提交任务；此时再
 写一条原生任务会造成重复执行。完整的跨路径重试需要两端共享幂等键后才能开放。
+注意这条 fallback 现在只保证任务被写下来而不会丢：原生 taskmaster 已经删除，
+`phd` 不再启动它，所以写进 SQL 队列的任务要等 Gorge 恢复后才会被消费。
 同理，worker 业务逻辑成功但 required completion 回报失败时，Phorge 会显式报错并把
 SQL 任务停在 `gorge-completion-pending` lease 下，避免租约到期后重复执行；恢复服务后
 应由运维确认实际归档状态再做 reconciliation。
 
 Webhook 与 task queue 分别使用 `gorge.webhook.owner` 和
 `gorge.taskqueue.owner` 明确选择唯一消费者；URI 只表示端点。默认栈把两者设为
-`gorge`，legacy 模式设为 `phorge`。源码安装和旧 overlay 未设置 owner 时仍支持
-`auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+`gorge`。源码安装未设置 owner 时仍支持 `auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+
+但 `phorge` 这一侧现在是空的：原生 webhook 投递与原生 taskmaster 都已经移除，
+所以把 owner 设为 `phorge`——或者在没有配置 URI 的情况下让 `auto` 落到 `phorge`——
+意味着**没有任何消费者**，而不是交还给 phd。两个 setup check
+（`gorge.webhook.no-consumer` / `gorge.taskqueue.no-consumer`）会把这个状态报出来，
+`phorge-migrate` 也会拒绝 `GORGE_WEBHOOK_MODE=disable` 与 `GORGE_TASKQUEUE_MODE=disable`。
 
 Gorge 的九个接入域由 `PhabricatorGorgeServiceRegistry` 统一登记。默认控制面不再逐项
 调用 `bin/config set`，也不再用 `collaboration-profile-state.json` 长期维护应用和字段
@@ -474,24 +482,33 @@ docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 
 ### 用 Gorge 生成 diff
 
-部署 `gorge-render` 不会自动改变差异计算。确认服务健康后，显式打开独立开关：
+diff **没有开关**。原生的 GNU `diff -U65535` 子进程与 PHP prose 实现都已删除，
+`PhabricatorDifferenceEngine` 的 unified diff 与 `PhutilProseDifferenceEngine` 的
+prose diff 一律调用 `/api/diff/generate` 和 `/api/diff/prose`。请求沿用
+`gorge.render.uri` / `gorge.render.token`，不再增加一组重复的地址和密钥配置。
+
+因此与高亮不同，这里没有「先起服务再切引擎」两步：配好 `gorge.render.uri`、服务健康，
+diff 就已经走 Gorge 了。
+
+同样因为没有本地实现可退，服务不可达、超时、返回错误或响应不能无损还原输入时，Phorge
+会**直接抛异常**，而不是记一条日志再悄悄换一套算法。编排把服务端的
+`GORGE_RENDER_ENABLE_DIFF` 写死为 `true`（见 `docker-compose.gorge.yml`），`.env` 里
+覆盖不掉——服务端不注册这两条路由就等于整个站点算不出 diff。
+
+两个历史开关已经退役，设置它们不再有任何效果：
+
+| 开关 | 现状 |
+|------|------|
+| `gorge.diff.enabled`（Phorge 配置项） | 已隐藏并锁定。旧值保留在配置里不报错，但不再被读取。 |
+| `GORGE_RENDER_ENABLE_DIFF`（编排环境变量） | 编排写死 `true`，`.env` 里的残留值被忽略。 |
+
+排障时确认服务端确实注册了 diff 路由：
 
 ```bash
-docker compose exec phorge /opt/phorge/phorge/bin/config set \
-  gorge.diff.enabled true
-```
-
-开启后，`PhabricatorDifferenceEngine` 的 unified diff 与
-`PhutilProseDifferenceEngine` 的 prose diff 会分别调用 `/api/diff/generate` 和
-`/api/diff/prose`。请求沿用 `gorge.render.uri` / `gorge.render.token`，不再增加一组
-重复的地址和密钥配置。服务不可达、超时、返回错误或响应不能无损还原输入时，Phorge 会把
-异常写入日志并回退到本地实现，页面与后台任务不会因为可选服务故障而中断。
-
-关闭开关即可回滚，不需要清缓存：
-
-```bash
-docker compose exec phorge /opt/phorge/phorge/bin/config set \
-  gorge.diff.enabled false
+docker compose exec gorge-render \
+  wget -qO- --post-data '{"old":"a\n","new":"b\n"}' \
+  --header 'Content-Type: application/json' \
+  http://127.0.0.1:8140/api/diff/generate
 ```
 
 叠加文件做了两件事：
@@ -566,7 +583,6 @@ docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 # 看当前生效的引擎与地址（会打印值来自哪个配置源）
 docker compose exec phorge /opt/phorge/phorge/bin/config get syntax-highlighter.engine
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.render.uri
-docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.diff.enabled
 
 # 在高亮服务容器内探活（镜像基于 alpine，用 busybox 的 wget，没有 curl）
 docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
@@ -576,6 +592,8 @@ docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
   页面的 setup 检查——`PhabricatorGorgeSetupCheck` 会探 `/healthz` 并把不可达报出来。
 - **高亮服务挂了会怎样**：客户端抛 `PhutilSyntaxHighlighterException`，Differential 页面
   显示高亮失败提示，其余位置回退到无高亮渲染，页面本身不会 500。故障是可见的，不是静默的。
+  **但 diff 没有这层兜底**：同一个进程挂掉时，raw 与 prose diff 直接失败（原生实现已
+  移除）。所以 `gorge-render` 对本部署是必需服务，不是可选增强。
 - **日志里出现 404 `ERR_NOT_FOUND`**：几乎总是 `gorge.render.uri` 结尾多了一个斜杠。
 - **401 `ERR_UNAUTHORIZED`**：两端 token 不一致。注意只改 `.env` 里的
   `GORGE_RENDER_TOKEN` 后必须重启**两个**容器，否则一端还拿着旧值。
@@ -1657,28 +1675,23 @@ docker compose exec phorge /opt/phorge/phorge/bin/phd status
   `setRunAllTasksInProcess()` 就地投递再读回状态码，交接之后请求是被 Go 异步取走的，
   命令行拿不到结果，所以改成打印请求的 PHID，让你去 Recent Requests 里看。
 
-### 回滚
+### 没有回滚
 
-一步，而且没有数据后果——队列表的结构和字段含义两边完全一致：
+这一节以前写的是「清空 URI、把 owner 切回 phorge、再停服务」。**那条路已经不存在了**：
+承接投递的 `HeraldWebhookWorker` 原生 HTTP 实现已经删除，它现在只是一个兼容壳，
+读到「未委派给 Gorge」时把请求置为终态失败（`native-retired` hook error），而不是发出去。
 
-```bash
-# 1) 停掉下发：把 GORGE_WEBHOOK_URI 从 .env 里清空（或整段删掉），
-#    这样 entrypoint.sh 下次启动就不再写 gorge.webhook.uri。
-#    注意：清空它**不会**把已经写进 local.json 的值撤掉，得手工清。
-docker compose exec phorge /opt/phorge/phorge/bin/config set gorge.webhook.uri null
+所以照旧操作的后果是：webhook 一条都不再投递，而且失败是静默的——请求仍然被记录，
+只是永远发不出去。`PhabricatorGorgeWebhookSetupCheck` 会把这个状态报成
+`gorge.webhook.no-consumer`。
 
-# 2) 停掉服务。顺序不能反 —— 先停服务再清配置的话，中间那段时间两边都不投。
-docker compose stop gorge-webhook
+需要停 `gorge-webhook` 做维护时，就只是停它：队列表里的行留在 `queued`，服务起回来以后
+继续投（前提是没被 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期删掉）。不要顺手去
+清 `gorge.webhook.uri` 或把 `gorge.webhook.owner` 改成 `phorge`——那不会让 `phd` 接手，
+只会把请求提前判死。
 
-# 3) 确认生效
-docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
-```
-
-清掉配置之后 `phd` 对**新产生的**请求立刻恢复调度。第 1、2 步的顺序不能反，原因就在这里：
-任务是在插行的那一刻由 `queueCall()` 派出去的，只派一次。先停服务再清配置的话，中间那段
-时间产生的行既没有 phd 的任务、又没有 Go 来取，之后谁也不会回头去捡——它们会一直停在
-`queued`，直到 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期把它们删掉。按上面的
-顺序做则不会有这样的行：清配置的那一刻服务还在跑，队列是空的。
+真的不想要 webhook 投递，就删掉 Herald 里的 webhook 本身，而不是把所有权交给一个不存在的
+消费者。
 
 新增的 `key_status` 索引留着即可，它不影响 PHP 侧的任何查询。
 
@@ -1849,7 +1862,6 @@ dc up -d --build --force-recreate phorge
 ```dotenv
 PHORGE_PRODUCT_PROFILE=collaboration
 GITEA_BASE_URI=https://git.example.com/
-GORGE_RENDER_ENABLE_DIFF=false
 GORGE_GITEA_WEBHOOK_SECRET=<随机共享密钥>
 GORGE_GITEA_CONDUIT_TOKEN=<专用 Conduit bot token>
 GORGE_GITEA_GATEWAY_TOKEN=<GORGE_CONDUIT_TOKEN 的值>
@@ -1864,11 +1876,14 @@ docker compose --profile gitea \
 
 运行时 profile 会停用以下八个应用，而不改管理员的
 `phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
-Harbormaster、Drydock、Diviner、Paste。部署配置同时设置
-`gorge.diff.enabled=false`，在已配置
+Harbormaster、Drydock、Diviner、Paste。部署配置同时在已配置
 `GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
 `PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
 `gorge`。
+
+协作模式**不再**关闭 diff：原生 GNU/PHP diff 已经移除，`gorge-render` 的
+`/api/diff/*` 在所有 profile 下都必须可用，`GORGE_RENDER_ENABLE_DIFF` 与
+`gorge.diff.enabled` 都已退役（见「用 Gorge 生成 diff」）。
 
 `gitea.uri` 会在顶栏增加 Gitea 入口；Maniphest 增加 repository、issue、pull request、
 commit 四个内建链接字段。字段沿用旧生成配置的 `std:maniphest:gitea.*` key，因此现有值

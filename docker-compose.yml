@@ -49,8 +49,10 @@ services:
       file: docker-compose.gorge.yml
       service: gorge-render
     image: ghcr.io/soulteary/gorge:render-${GORGE_RENDER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
-    environment:
-      GORGE_RENDER_ENABLE_DIFF: ${GORGE_RENDER_ENABLE_DIFF:-false}
+    # Native PHP/GNU diff has been retired; the bundled render service owns
+    # unified and prose diff generation as well as syntax highlighting. The
+    # diff routes are pinned on in docker-compose.gorge.yml and can no longer
+    # be turned off from .env, because there is nothing left to fall back to.
 
   gorge-conduit:
     extends:
@@ -122,14 +124,8 @@ services:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-gitea
-    # gorge-gitea 在 r3 之后进入 main，尚无正式版；启用 profile 时必须明确选择
-    # 一次已发布的构建，不能误用不含该二进制的公共 r3 版本。
     image: ghcr.io/soulteary/gorge:gitea-${GORGE_GITEA_IMAGE_TAG:-unreleased}
 
-  # 基础配置与 schema 迁移任务。它在迁移前判定新装/升级：
-  # 新装默认 collaboration，旧库无显式记录时保持 full。
-  # mailer/search profile 还会启动各自的追加配置任务；所有 migrate 角色由
-  # entrypoint 通过 phorge-conf 卷上的 flock 串行化，避免并发覆盖 local.json。
   phorge-migrate:
     <<: *phorge-runtime
     container_name: phorge-migrate
@@ -182,12 +178,8 @@ services:
       GORGE_DB_URL: ${GORGE_DB_URL-http://gorge-db-api:8080}
       GORGE_DB_TOKEN: ${GORGE_DB_TOKEN:-}
       GORGE_DB_MODE: ${GORGE_DB_MODE:-enable}
-      # 基础栈未启用 mailer profile 时，只撤销指定 key 的受管 Gorge
-      # mailer，不改动用户配置的 SMTP/provider 条目。
       GORGE_MAILER_MODE: disable
       GORGE_MAILER_KEY: ${GORGE_MAILER_KEY:-gorge-mailer}
-      # 基础栈未启用 search profile 时，撤销上次 profile 写入的 Gorge
-      # 搜索条目，并在没有其它搜索引擎时恢复 MySQL/Ferret。
       GORGE_SEARCH_MODE: disable
     command: ["/bin/true"]
 
@@ -257,7 +249,6 @@ services:
       start_period: 30s
       retries: 3
 
-  # profile 启用后由一次性配置任务写入 Phorge；搜索索引仍需显式初始化。
   phorge-mailer-config:
     <<: *phorge-runtime
     profiles: ["mailer"]
