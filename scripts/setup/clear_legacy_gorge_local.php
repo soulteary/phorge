@@ -42,10 +42,11 @@ if (!is_array($config)) {
   exit(0);
 }
 
-// Only scalar, machine-owned keys. The list deliberately excludes
-// "notification.servers", "cluster.mailers" and "cluster.search": those are
-// shared lists an administrator may also have entries in, and the one-way
-// migration in manage_collaboration_local.php already restores them.
+// Scalar, machine-owned keys. "notification.servers" is excluded because
+// manage_collaboration_local.php already restores it from the recorded
+// baseline. "cluster.mailers" and "cluster.search" are shared lists which an
+// administrator may also have entries in, so they are filtered entry by entry
+// below rather than removed wholesale.
 $owned_keys = array(
   'gorge.render.uri',
   'gorge.render.token',
@@ -69,6 +70,72 @@ foreach ($owned_keys as $key) {
   if (array_key_exists($key, $config)) {
     unset($config[$key]);
     $removed[] = $key;
+  }
+}
+
+// Drop the managed Gorge mailer, keeping every administrator-configured
+// entry. The key is the same one build_deployment_config.php writes and
+// removes, so an install which renamed it through GORGE_MAILER_KEY is matched
+// too. Entries this deployment never managed are left alone.
+$mailer_key = getenv('GORGE_MAILER_KEY');
+if ($mailer_key === false || !strlen($mailer_key)) {
+  $mailer_key = 'gorge-mailer';
+}
+
+if (array_key_exists('cluster.mailers', $config) &&
+    is_array($config['cluster.mailers'])) {
+  $mailers = array();
+  $dropped = 0;
+  foreach ($config['cluster.mailers'] as $mailer) {
+    if (is_array($mailer) &&
+        isset($mailer['key']) &&
+        $mailer['key'] === $mailer_key) {
+      $dropped++;
+      continue;
+    }
+    $mailers[] = $mailer;
+  }
+
+  if ($dropped) {
+    if ($mailers) {
+      $config['cluster.mailers'] = array_values($mailers);
+    } else {
+      // An empty list is not the same as no list: unset it so the built-in
+      // mailer default applies again, which is where a pre-Gorge install was.
+      unset($config['cluster.mailers']);
+    }
+    $removed[] = 'cluster.mailers['.$mailer_key.']';
+  }
+}
+
+// Drop Gorge search engines the same way. build_deployment_config.php restores
+// MySQL/Ferret when removing the Gorge entry empties the list, so do that here
+// as well: an empty cluster.search leaves the install with no search engine at
+// all. This is also why gorge.search.token is safe to remove above -- the
+// entry which needed it is gone by the time this finishes.
+if (array_key_exists('cluster.search', $config) &&
+    is_array($config['cluster.search'])) {
+  $search = array();
+  $dropped = 0;
+  foreach ($config['cluster.search'] as $engine) {
+    if (is_array($engine) &&
+        isset($engine['type']) &&
+        $engine['type'] === 'gorge') {
+      $dropped++;
+      continue;
+    }
+    $search[] = $engine;
+  }
+
+  if ($dropped) {
+    if (!$search) {
+      $search[] = array(
+        'type' => 'mysql',
+        'roles' => array('read' => true, 'write' => true),
+      );
+    }
+    $config['cluster.search'] = array_values($search);
+    $removed[] = 'cluster.search[type=gorge]';
   }
 }
 
