@@ -316,9 +316,17 @@ if ($webhook_mode === 'enable') {
   $config['gorge.webhook.token'] = nullable_env('GORGE_WEBHOOK_TOKEN');
   $config['gorge.webhook.owner'] = 'gorge';
 } else if ($webhook_mode === 'disable') {
-  $config['gorge.webhook.uri'] = null;
-  $config['gorge.webhook.token'] = null;
-  $config['gorge.webhook.owner'] = 'phorge';
+  // Handing webhook delivery back to Phorge used to mean "HeraldWebhookWorker
+  // sends it". That consumer has been retired, so publishing
+  // gorge.webhook.owner = phorge would assign delivery to something which no
+  // longer exists and every webhook would be recorded and then failed. Refuse
+  // the rollback instead of writing a configuration with no consumer.
+  throw new Exception(
+    'GORGE_WEBHOOK_MODE=disable is no longer supported: the native PHP '.
+    'webhook delivery consumer has been removed, so there is nothing to '.
+    'hand delivery back to. Keep the Gorge webhook service configured, or '.
+    'accept that Herald webhooks are not delivered and remove the webhooks '.
+    'themselves.');
 }
 
 $taskqueue_mode = env_mode('GORGE_TASKQUEUE_MODE', 'GORGE_TASKQUEUE_URI');
