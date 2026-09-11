@@ -271,6 +271,15 @@ fi
 PHORGE_CONTROL_PLANE=legacy \
     php "$PHORGE_DIR/scripts/setup/manage_collaboration_profile.php" \
     full "$COLLABORATION_STATE_FILE"
+# Endpoints, tokens and consumer ownership belong to deployment.json under
+# this control plane. A copy left in local.json by the legacy control plane is
+# not masked by the deployment document -- that file omits scalar services
+# whose selector variables are absent -- so it stays effective and keeps
+# pointing at hosts which were retired with the legacy stack. Strip them
+# before publishing. This is idempotent and a no-op for deployments which
+# never ran the legacy control plane.
+php "$PHORGE_DIR/scripts/setup/clear_legacy_gorge_local.php" "$CONF_FILE"
+
 chown www-data:www-data "$CONF_FILE" || true
 chmod 0640 "$CONF_FILE" || true
 
