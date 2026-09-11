@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Compatibility sink for PHP webhook tasks created before Gorge ownership.
+ *
+ * Gorge is now the only webhook delivery consumer. Keep this worker class so
+ * tasks which were already persisted before an upgrade still deserialize, but
+ * never perform an outbound HTTP request here.
+ */
 final class HeraldWebhookWorker
   extends PhabricatorWorker {
 
@@ -21,268 +28,46 @@ final class HeraldWebhookWorker
           $request_phid));
     }
 
-    $status = $request->getStatus();
-    if ($status !== HeraldWebhookRequest::STATUS_QUEUED) {
-      throw new PhabricatorWorkerPermanentFailureException(
-        pht(
-          'Webhook request ("%s") is not in "%s" status (actual '.
-          'status is "%s"). Declining call to hook.',
-          $request_phid,
-          HeraldWebhookRequest::STATUS_QUEUED,
-          $status));
+    if ($request->getStatus() !== HeraldWebhookRequest::STATUS_QUEUED) {
+      // Gorge or an earlier worker already resolved the row. There is no work
+      // left for this compatibility task.
+      return;
     }
 
-    // If we're in silent mode, permanently fail the webhook request and then
-    // return to complete this task.
+    // Global silent mode belongs to Phorge configuration and is not visible to
+    // the Go consumer. Preserve the historical invariant by converting queued
+    // rows to a terminal silent failure before Gorge can claim them.
     if (PhabricatorEnv::getEnvConfig('phabricator.silent')) {
-      $this->failRequest(
-        $request,
-        HeraldWebhookRequest::ERRORTYPE_HOOK,
-        HeraldWebhookRequest::ERROR_SILENT);
-      return;
-    }
-
-    // When the Gorge webhook service owns delivery, leave the request alone:
-    // the service polls this table for "queued" rows and this task would
-    // deliver a request it is about to claim, or has already claimed.
-    //
-    // HeraldWebhookRequest::queueCall() normally keeps tasks from being
-    // created at all, so reaching here means either a task which was queued
-    // before the option was set, or "bin/webhook call", which runs the worker
-    // in process and bypasses the queue entirely. Returning hands the request
-    // to the service in both cases: the row stays "queued", which is exactly
-    // what the service claims.
-    //
-    // This has to come after the silent check above and not before it. Silent
-    // mode is a configuration option of this server which the service can not
-    // see, so the request has to be failed here -- and once it is "failed",
-    // the service will not claim it. Guarding first would leave the row
-    // "queued" and get it delivered in silent mode.
-    //
-    // It also comes before every check below it, all of which write a "failed"
-    // status onto the row. Those checks are the service's job once delivery is
-    // delegated, and running them here as well would mean two writers deciding
-    // the fate of one row.
-    if (PhabricatorGorgeWebhookClient::isDeliveryDelegated()) {
-      return;
-    }
-
-    $hook = $request->getWebhook();
-
-    if ($hook->isDisabled()) {
-      $this->failRequest(
-        $request,
-        HeraldWebhookRequest::ERRORTYPE_HOOK,
-        HeraldWebhookRequest::ERROR_DISABLED);
-      throw new PhabricatorWorkerPermanentFailureException(
-        pht(
-          'Associated hook ("%s") for webhook request ("%s") is disabled.',
-          $hook->getPHID(),
-          $request_phid));
-    }
-
-    $uri = $hook->getWebhookURI();
-    try {
-      PhabricatorEnv::requireValidRemoteURIForFetch(
-        $uri,
-        array(
-          'http',
-          'https',
-        ));
-    } catch (Exception $ex) {
-      $this->failRequest(
-        $request,
-        HeraldWebhookRequest::ERRORTYPE_HOOK,
-        HeraldWebhookRequest::ERROR_URI);
-      throw new PhabricatorWorkerPermanentFailureException(
-        pht(
-          'Associated hook ("%s") for webhook request ("%s") has invalid '.
-          'fetch URI: %s',
-          $hook->getPHID(),
-          $request_phid,
-          $ex->getMessage()));
-    }
-
-    $object_phid = $request->getObjectPHID();
-
-    $object = id(new PhabricatorObjectQuery())
-      ->setViewer($viewer)
-      ->withPHIDs(array($object_phid))
-      ->executeOne();
-    if (!$object) {
-      $this->failRequest(
-        $request,
-        HeraldWebhookRequest::ERRORTYPE_HOOK,
-        HeraldWebhookRequest::ERROR_OBJECT);
-
-      throw new PhabricatorWorkerPermanentFailureException(
-        pht(
-          'Unable to load object ("%s") for webhook request ("%s").',
-          $object_phid,
-          $request_phid));
-    }
-
-    $xaction_query = PhabricatorApplicationTransactionQuery::newQueryForObject(
-      $object);
-    $xaction_phids = $request->getTransactionPHIDs();
-    if ($xaction_phids) {
-      $xactions = $xaction_query
-        ->setViewer($viewer)
-        ->withObjectPHIDs(array($object_phid))
-        ->withPHIDs($xaction_phids)
-        ->execute();
-      $xactions = mpull($xactions, null, 'getPHID');
-    } else {
-      $xactions = array();
-    }
-
-    // To prevent thundering herd issues for high volume webhooks (where
-    // a large number of workers might try to work through a request backlog
-    // simultaneously, before the error backoff can catch up), we never
-    // parallelize requests to a particular webhook.
-
-    $lock_key = 'webhook('.$hook->getPHID().')';
-    $lock = PhabricatorGlobalLock::newLock($lock_key);
-
-    try {
-      $lock->lock();
-    } catch (Exception $ex) {
-      phlog($ex);
-      throw new PhabricatorWorkerYieldException(15);
-    }
-
-    $caught = null;
-    try {
-      $this->callWebhookWithLock($hook, $request, $object, $xactions);
-    } catch (Exception $ex) {
-      $caught = $ex;
-    }
-
-    $lock->unlock();
-
-    if ($caught) {
-      throw $caught;
-    }
-  }
-
-  private function callWebhookWithLock(
-    HeraldWebhook $hook,
-    HeraldWebhookRequest $request,
-    $object,
-    array $xactions) {
-    $viewer = PhabricatorUser::getOmnipotentUser();
-
-    if ($hook->isInErrorBackoff($viewer)) {
-      throw new PhabricatorWorkerYieldException($hook->getErrorBackoffWindow());
-    }
-
-    $xaction_data = array();
-    foreach ($xactions as $xaction) {
-      $xaction_data[] = array(
-        'phid' => $xaction->getPHID(),
-      );
-    }
-
-    $trigger_data = array();
-    foreach ($request->getTriggerPHIDs() as $trigger_phid) {
-      $trigger_data[] = array(
-        'phid' => $trigger_phid,
-      );
-    }
-
-    $payload = array(
-      'object' => array(
-        'type' => phid_get_type($object->getPHID()),
-        'phid' => $object->getPHID(),
-      ),
-      'triggers' => $trigger_data,
-      'action' => array(
-        'test' => $request->getIsTestAction(),
-        'silent' => $request->getIsSilentAction(),
-        'secure' => $request->getIsSecureAction(),
-        'epoch' => (int)$request->getDateCreated(),
-      ),
-      'transactions' => $xaction_data,
-    );
-
-    $payload = id(new PhutilJSON())->encodeFormatted($payload);
-    $key = $hook->getHmacKey();
-    $signature = PhabricatorHash::digestHMACSHA256($payload, $key);
-    $uri = $hook->getWebhookURI();
-
-    $future = id(new HTTPSFuture($uri))
-      ->setMethod('POST')
-      ->addHeader('Content-Type', 'application/json')
-      ->addHeader('X-Phabricator-Webhook-Signature', $signature)
-      ->setTimeout(15)
-      ->setData($payload);
-
-    list($status) = $future->resolve();
-
-    if ($status->isTimeout()) {
-      $error_type = HeraldWebhookRequest::ERRORTYPE_TIMEOUT;
-    } else {
-      $error_type = HeraldWebhookRequest::ERRORTYPE_HTTP;
-    }
-    $error_code = $status->getStatusCode();
-
-    $request
-      ->setErrorType($error_type)
-      ->setErrorCode($error_code)
-      ->setLastRequestEpoch(PhabricatorTime::getNow());
-
-    $retry_forever = HeraldWebhookRequest::RETRY_FOREVER;
-    if ($status->isTimeout() || $status->isError()) {
-      $should_retry = ($request->getRetryMode() === $retry_forever);
-
       $request
-        ->setLastRequestResult(HeraldWebhookRequest::RESULT_FAIL);
-
-      if ($should_retry) {
-        $request->save();
-
-        throw new Exception(
-          pht(
-            'Webhook request ("%s", to "%s") failed (%s / %s). The request '.
-            'will be retried.',
-            $request->getPHID(),
-            $uri,
-            $error_type,
-            $error_code));
-      } else {
-        $request
-          ->setStatus(HeraldWebhookRequest::STATUS_FAILED)
-          ->save();
-
-        throw new PhabricatorWorkerPermanentFailureException(
-          pht(
-            'Webhook request ("%s", to "%s") failed (%s / %s). The request '.
-            'will not be retried.',
-            $request->getPHID(),
-            $uri,
-            $error_type,
-            $error_code));
-      }
-    } else {
-      $request
-        ->setLastRequestResult(HeraldWebhookRequest::RESULT_OKAY)
-        ->setStatus(HeraldWebhookRequest::STATUS_SENT)
+        ->setStatus(HeraldWebhookRequest::STATUS_FAILED)
+        ->setErrorType(HeraldWebhookRequest::ERRORTYPE_HOOK)
+        ->setErrorCode(HeraldWebhookRequest::ERROR_SILENT)
+        ->setLastRequestResult(HeraldWebhookRequest::RESULT_NONE)
+        ->setLastRequestEpoch(0)
         ->save();
+      return;
     }
-  }
 
-  private function failRequest(
-    HeraldWebhookRequest $request,
-    $error_type,
-    $error_code) {
+    if (PhabricatorGorgeWebhookClient::isDeliveryDelegated()) {
+      // Leave the row queued. gorge-webhook owns the claim, retry, HMAC and
+      // result-write protocol and will consume it from herald_webhookrequest.
+      return;
+    }
 
+    // Native HTTP delivery has been retired. Fail closed instead of leaving a
+    // queued row with no owner or silently reviving the removed PHP consumer.
     $request
       ->setStatus(HeraldWebhookRequest::STATUS_FAILED)
-      ->setErrorType($error_type)
-      ->setErrorCode($error_code)
+      ->setErrorType(HeraldWebhookRequest::ERRORTYPE_HOOK)
+      ->setErrorCode('native-retired')
       ->setLastRequestResult(HeraldWebhookRequest::RESULT_NONE)
       ->setLastRequestEpoch(0)
       ->save();
+
+    throw new PhabricatorWorkerPermanentFailureException(
+      pht(
+        'Native PHP webhook delivery has been retired. Configure the Gorge '.
+        'webhook service as the delivery owner before queueing webhooks.'));
   }
 
 }
