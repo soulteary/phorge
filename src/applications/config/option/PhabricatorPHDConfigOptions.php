@@ -31,12 +31,18 @@ final class PhabricatorPHDConfigOptions
           pht('Directory that the daemons should use to store log files.')),
       $this->newOption('phd.taskmasters', 'int', 4)
         ->setLocked(true)
-        ->setSummary(pht('Maximum taskmaster daemon pool size.'))
+        ->setSummary(pht('Retired taskmaster daemon pool size.'))
         ->setDescription(
           pht(
-            "Maximum number of taskmaster daemons to run at once. Raising ".
-            "this can increase the maximum throughput of the task queue. The ".
-            "pool will automatically scale down when unutilized.".
+            "The native taskmaster daemon has been retired: `gorge-worker` ".
+            "leases and executes queued tasks, and `phd` no longer starts a ".
+            "taskmaster pool at any value of this option. It remains ".
+            "registered as the deployment invariant, which the deployment ".
+            "configuration pins to 0.".
+            "\n\n".
+            "Historically: maximum number of taskmaster daemons to run at ".
+            "once. Raising this could increase the maximum throughput of ".
+            "the task queue, and the pool scaled down when unutilized.".
             "\n\n".
             "If you are running a cluster, this limit applies separately ".
             "to each instance of `phd`. For example, if this limit is set ".

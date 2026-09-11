@@ -322,12 +322,12 @@ abstract class PhabricatorDaemonManagementWorkflow
         'class' => 'PhabricatorFactDaemon',
         'label' => 'fact',
       ),
-      array(
-        'class' => 'PhabricatorTaskmasterDaemon',
-        'label' => 'task',
-        'pool' => PhabricatorEnv::getEnvConfig('phd.taskmasters'),
-        'reserve' => idx($options, 'reserve', 0),
-      ),
+      // PhabricatorTaskmasterDaemon is deliberately absent: the native queue
+      // consumer has been retired and the class now throws on startup, so
+      // launching a pool of them would only produce an overseer restart loop
+      // while gorge-worker does the actual work. "phd.taskmasters" no longer
+      // starts anything; it is kept as the deployment invariant which
+      // build_deployment_config.php pins to 0.
     );
 
     $this->launchDaemons($daemons, $is_debug = false);
