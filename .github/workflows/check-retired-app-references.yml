@@ -1,0 +1,20 @@
+name: Check retired application references
+
+on:
+  push:
+    branches:
+      - 'cleanup/apps-*'
+  pull_request:
+    branches:
+      - 'cleanup/apps-*'
+
+permissions:
+  contents: read
+
+jobs:
+  references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check live references
+        run: bash .github/scripts/check-retired-app-references.sh
