@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Transaction storage for repository commits.
+ *
+ * This is Diffusion's commit transaction -- its base transaction class is
+ * @{class:DiffusionCommitTransactionType} and
+ * @{method:PhabricatorRepositoryCommit::getApplicationTransactionTemplate}
+ * returns it. It was filed under the removed Audit application, and keeps
+ * that application name because the schema history preserved by this series
+ * is what creates the `audit` database and the `audit_transaction` table.
+ * Renaming it would point it at a database no patch ever created.
+ */
 final class PhabricatorAuditTransaction
   extends PhabricatorModularTransaction {
 

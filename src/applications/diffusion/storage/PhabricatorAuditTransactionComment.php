@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Comment storage for repository commit transactions, including inline
+ * comments on commit diffs. Retained from the removed Audit application; see
+ * @{class:PhabricatorAuditTransaction} for why the name and application
+ * survive it.
+ */
 final class PhabricatorAuditTransactionComment
   extends PhabricatorApplicationTransactionComment
   implements
