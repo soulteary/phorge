@@ -35,9 +35,6 @@ final class DifferentialDiffPHIDType extends PhabricatorPHIDType {
       $id = $diff->getID();
 
       $handle->setName(pht('Diff %d', $id));
-      // Review-specific Differential routes are retired. Generic diff PHIDs
-      // can still be rendered by callers which already hold the object, but
-      // they no longer advertise a code-review application URI.
       $handle->setURI(null);
     }
   }
