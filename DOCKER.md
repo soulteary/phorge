@@ -143,13 +143,26 @@ docker network create phorge-net
 docker volume create phorge-conf
 docker volume create phorge-repo
 
-# 0) 数据库自备（这里用官方镜像示意），并按 docker/db-grant.sql 给普通账号授权
+# 0) 数据库自备（这里用官方镜像示意）
 docker run -d --name phorge-mysql --network phorge-net \
   -e MYSQL_ROOT_PASSWORD=phorge_root -e MYSQL_DATABASE=phorge \
   -e MYSQL_USER=phorge -e MYSQL_PASSWORD=phorge \
   mysql:8.0.46 --sql-mode=STRICT_ALL_TABLES --local-infile=0 --ft-min-word-len=3
 
-# 1) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
+# 1) 授权：等同于默认栈里的 db-init 一次性任务，这一步不能省。
+#    官方镜像的 MYSQL_USER 只对 MYSQL_DATABASE 一个库有权限，而 Phorge 用的是
+#    {namespace}_xxx 一整组库，少了这步 migrate 会在 storage upgrade 阶段直接
+#    报 ERROR 1044 (Access denied)，deployment.json 根本不会发布。
+#    占位符与 db-init 用的是同一份 docker/db-grant.sql，替换规则也一致；
+#    PHORGE_DB_NAMESPACE 用了非默认值时，两处要同时改。
+until docker exec phorge-mysql \
+  mysqladmin ping -h localhost -uroot -pphorge_root --silent; do sleep 2; done
+sed -e 's/__PHORGE_USER__/phorge/g' \
+    -e 's/__PHORGE_NAMESPACE__/phabricator/g' \
+    docker/db-grant.sql |
+  docker exec -i phorge-mysql mysql -uroot -pphorge_root
+
+# 2) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
 #    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
 docker run --rm --network phorge-net \
   -v phorge-conf:/opt/phorge/phorge/conf/local \
@@ -160,14 +173,14 @@ docker run --rm --network phorge-net \
   -e PHORGE_BASE_URI=http://127.0.0.1:8088/ \
   phorge:local /bin/true
 
-# 2) web：Apache，只读加载上一步的配置
+# 3) web：Apache，只读加载上一步的配置
 docker run -d --name phorge-web --network phorge-net -p 8088:80 \
   -v phorge-conf:/opt/phorge/phorge/conf/local \
   -v phorge-repo:/var/repo \
   -e PHORGE_CONTAINER_ROLE=web \
   phorge:local
 
-# 3) daemon：phd，同样只读加载配置
+# 4) daemon：phd，同样只读加载配置
 docker run -d --name phorge-daemon --network phorge-net \
   -v phorge-conf:/opt/phorge/phorge/conf/local \
   -v phorge-repo:/var/repo \
@@ -178,7 +191,11 @@ docker run -d --name phorge-daemon --network phorge-net \
 要点：
 
 - 升级同样是「先跑一次 migrate，再重建 web/daemon」。`PHORGE_AUTO_UPGRADE` 只有
-  `migrate` 角色会读，`web` / `daemon` 永远不迁移 schema。
+  `migrate` 角色会读，`web` / `daemon` 永远不迁移 schema。升级时数据库已经授权过，
+  第 1 步可以跳过；它本身是幂等的，重复执行也没有副作用。
+- 改用非默认命名空间时，授权步骤里的 `__PHORGE_NAMESPACE__` 与 migrate 容器的
+  `-e PHORGE_DB_NAMESPACE=` 必须填成同一个值，否则授权覆盖不到实际用的那组库，
+  `storage upgrade` 仍然会 ERROR 1044。
 - `phd` 由 `daemon` 角色的 `phd-foreground` 固定托管，没有「是否随容器启动 phd」的开关。
 - 接 Gorge 时，`GORGE_*` 端点变量要传给 **migrate** 容器：它们由 migrate 一次性写进
   `deployment.json`，web 与 daemon 只读加载。传给 web 不会生效。
