@@ -60,13 +60,12 @@ final class PhabricatorDifferentialRevisionTestDataGenerator
   }
 
   public function generateDiff($author) {
-    $paste_generator = new PhabricatorPasteTestDataGenerator();
-    $languages = $paste_generator->getSupportedLanguages();
+    $languages = $this->getSupportedLanguages();
     $language = array_rand($languages);
     $spec = $languages[$language];
 
-    $code = $paste_generator->generateContent($spec);
-    $altcode = $paste_generator->generateContent($spec);
+    $code = $this->generateCode($spec);
+    $altcode = $this->generateCode($spec);
     $newcode = $this->randomlyModify($code, $altcode);
     $diff = id(new PhabricatorDifferenceEngine())
       ->generateRawDiffFromFileContent($code, $newcode);
@@ -81,6 +80,35 @@ final class PhabricatorDifferentialRevisionTestDataGenerator
       $result['id']);
     $thediff->setDescription($this->generateTitle())->save();
     return $thediff;
+  }
+
+  /**
+   * Source snippet generation, inlined from the retired Paste generator.
+   *
+   * This was borrowed from PhabricatorPasteTestDataGenerator, which was only
+   * ever used here for its language table and content helper. That generator
+   * went with the Paste application, and the two methods are small enough
+   * that keeping a copy is cheaper than a shared base class for one caller.
+   */
+  private function getSupportedLanguages() {
+    return array(
+      'php' => array(
+        'content' => 'PhutilPHPCodeSnippetContextFreeGrammar',
+      ),
+      'java' => array(
+        'content' => 'PhutilJavaCodeSnippetContextFreeGrammar',
+      ),
+    );
+  }
+
+  private function generateCode($spec) {
+    $content_generator = idx($spec, 'content');
+    if (!$content_generator) {
+      $content_generator = 'PhutilLipsumContextFreeGrammar';
+    }
+
+    return newv($content_generator, array())
+      ->generateSeveral($this->roll(4, 12, 10));
   }
 
   public function generateDescription() {
