@@ -1,0 +1,40 @@
+name: Audit next application removal
+
+on:
+  push:
+    branches:
+      - 'cleanup/apps-07-remove-drydock'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Audit historical SQL patches for removed runtime classes
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='\b(PhabricatorPaste(Application)?|PhabricatorDivinerApplication|Diviner[A-Z][A-Za-z0-9_]*|PhabricatorOwners(Application|Package|Path|DAO)|PhabricatorAuditApplication|PhabricatorAudit[A-Z][A-Za-z0-9_]*|PhabricatorDifferentialApplication|Differential[A-Z][A-Za-z0-9_]*|PhabricatorHarbormasterApplication|Harbormaster[A-Z][A-Za-z0-9_]*|PhabricatorDrydockApplication|Drydock[A-Z][A-Za-z0-9_]*)\b'
+          rg --line-number --no-heading --color never --pcre2 "$pattern" resources/sql/autopatches \
+            > /tmp/removed-app-sql-references.log || true
+          cat /tmp/removed-app-sql-references.log
+      - name: Inventory Diffusion runtime references outside its own module
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='\b(PhabricatorDiffusionApplication|Diffusion[A-Z][A-Za-z0-9_]*)\b'
+          rg --line-number --no-heading --color never --pcre2 "$pattern" src scripts bin webroot \
+            --glob '!src/applications/diffusion/**' \
+            --glob '!src/__phutil_library_map__.php' \
+            > /tmp/diffusion-cross-references.log || true
+          cat /tmp/diffusion-cross-references.log
+      - name: Upload audit reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: physical-app-removal-audit
+          path: |
+            /tmp/removed-app-sql-references.log
+            /tmp/diffusion-cross-references.log
