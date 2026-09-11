@@ -4,7 +4,7 @@
 Guide to Arcanist, a command-line interface to Phorge.
 
 Arcanist provides command-line access to many Phorge tools (like
-Differential, Files, and Paste), integrates with static analysis ("lint") and
+Differential and Files), integrates with static analysis ("lint") and
 unit tests, and manages common workflows like getting changes into Differential
 for review.
 
@@ -59,7 +59,6 @@ Once you've configured lint and unit test integration, you can also:
 Arcanist integrates with other tools:
 
   - upload and download files with `arc upload` and `arc download`
-  - create and view pastes with `arc paste`
 
 Arcanist has some advanced features as well, you can:
 
