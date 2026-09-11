@@ -70,15 +70,14 @@ final class PhabricatorSyntaxHighlightingConfigOptions
             'policy controls whether a failure is exposed or may use the '.
             'migration fallback.')),
       $this->newOption('pygments.enabled', 'bool', false)
+        ->setHidden(true)
         ->setLocked(true)
-        ->setSummary(pht('Retired Pygments compatibility key.'))
+        ->setSummary(pht('Internal retired Pygments compatibility key.'))
         ->setDescription(
           pht(
-            'This option is retained only so existing configuration remains '.
-            'readable. Pygments execution support has been removed and this '.
-            'value is always treated as disabled. Use `%s` for advanced '.
-            'syntax highlighting.',
-            'PhabricatorGorgeSyntaxHighlighterEngine')),
+            'Pygments execution support has been removed. This hidden key '.
+            'remains registered only while the generic Remarkup engine '.
+            'continues to carry its historical configuration slot.')),
       $this->newOption(
         'pygments.dropdown-choices',
         'wild',
