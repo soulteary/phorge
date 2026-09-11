@@ -447,24 +447,33 @@ docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 
 ### 用 Gorge 生成 diff
 
-部署 `gorge-render` 不会自动改变差异计算。确认服务健康后，显式打开独立开关：
+diff **没有开关**。原生的 GNU `diff -U65535` 子进程与 PHP prose 实现都已删除，
+`PhabricatorDifferenceEngine` 的 unified diff 与 `PhutilProseDifferenceEngine` 的
+prose diff 一律调用 `/api/diff/generate` 和 `/api/diff/prose`。请求沿用
+`gorge.render.uri` / `gorge.render.token`，不再增加一组重复的地址和密钥配置。
+
+因此与高亮不同，这里没有「先起服务再切引擎」两步：配好 `gorge.render.uri`、服务健康，
+diff 就已经走 Gorge 了。
+
+同样因为没有本地实现可退，服务不可达、超时、返回错误或响应不能无损还原输入时，Phorge
+会**直接抛异常**，而不是记一条日志再悄悄换一套算法。编排把服务端的
+`GORGE_RENDER_ENABLE_DIFF` 写死为 `true`（见 `docker-compose.gorge.yml`），`.env` 里
+覆盖不掉——服务端不注册这两条路由就等于整个站点算不出 diff。
+
+两个历史开关已经退役，设置它们不再有任何效果：
+
+| 开关 | 现状 |
+|------|------|
+| `gorge.diff.enabled`（Phorge 配置项） | 已隐藏并锁定。旧值保留在配置里不报错，但不再被读取。 |
+| `GORGE_RENDER_ENABLE_DIFF`（编排环境变量） | 编排写死 `true`，`.env` 里的残留值被忽略。 |
+
+排障时确认服务端确实注册了 diff 路由：
 
 ```bash
-docker compose exec phorge /opt/phorge/phorge/bin/config set \
-  gorge.diff.enabled true
-```
-
-开启后，`PhabricatorDifferenceEngine` 的 unified diff 与
-`PhutilProseDifferenceEngine` 的 prose diff 会分别调用 `/api/diff/generate` 和
-`/api/diff/prose`。请求沿用 `gorge.render.uri` / `gorge.render.token`，不再增加一组
-重复的地址和密钥配置。服务不可达、超时、返回错误或响应不能无损还原输入时，Phorge 会把
-异常写入日志并回退到本地实现，页面与后台任务不会因为可选服务故障而中断。
-
-关闭开关即可回滚，不需要清缓存：
-
-```bash
-docker compose exec phorge /opt/phorge/phorge/bin/config set \
-  gorge.diff.enabled false
+docker compose exec gorge-render \
+  wget -qO- --post-data '{"old":"a\n","new":"b\n"}' \
+  --header 'Content-Type: application/json' \
+  http://127.0.0.1:8140/api/diff/generate
 ```
 
 叠加文件做了两件事：
@@ -539,7 +548,6 @@ docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 # 看当前生效的引擎与地址（会打印值来自哪个配置源）
 docker compose exec phorge /opt/phorge/phorge/bin/config get syntax-highlighter.engine
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.render.uri
-docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.diff.enabled
 
 # 在高亮服务容器内探活（镜像基于 alpine，用 busybox 的 wget，没有 curl）
 docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
@@ -549,6 +557,8 @@ docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
   页面的 setup 检查——`PhabricatorGorgeSetupCheck` 会探 `/healthz` 并把不可达报出来。
 - **高亮服务挂了会怎样**：客户端抛 `PhutilSyntaxHighlighterException`，Differential 页面
   显示高亮失败提示，其余位置回退到无高亮渲染，页面本身不会 500。故障是可见的，不是静默的。
+  **但 diff 没有这层兜底**：同一个进程挂掉时，raw 与 prose diff 直接失败（原生实现已
+  移除）。所以 `gorge-render` 对本部署是必需服务，不是可选增强。
 - **日志里出现 404 `ERR_NOT_FOUND`**：几乎总是 `gorge.render.uri` 结尾多了一个斜杠。
 - **401 `ERR_UNAUTHORIZED`**：两端 token 不一致。注意只改 `.env` 里的
   `GORGE_RENDER_TOKEN` 后必须重启**两个**容器，否则一端还拿着旧值。
@@ -1822,7 +1832,6 @@ dc up -d --build --force-recreate phorge
 ```dotenv
 PHORGE_PRODUCT_PROFILE=collaboration
 GITEA_BASE_URI=https://git.example.com/
-GORGE_RENDER_ENABLE_DIFF=false
 GORGE_GITEA_WEBHOOK_SECRET=<随机共享密钥>
 GORGE_GITEA_CONDUIT_TOKEN=<专用 Conduit bot token>
 GORGE_GITEA_GATEWAY_TOKEN=<GORGE_CONDUIT_TOKEN 的值>
@@ -1837,11 +1846,14 @@ docker compose --profile gitea \
 
 运行时 profile 会停用以下八个应用，而不改管理员的
 `phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
-Harbormaster、Drydock、Diviner、Paste。部署配置同时设置
-`gorge.diff.enabled=false`，在已配置
+Harbormaster、Drydock、Diviner、Paste。部署配置同时在已配置
 `GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
 `PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
 `gorge`。
+
+协作模式**不再**关闭 diff：原生 GNU/PHP diff 已经移除，`gorge-render` 的
+`/api/diff/*` 在所有 profile 下都必须可用，`GORGE_RENDER_ENABLE_DIFF` 与
+`gorge.diff.enabled` 都已退役（见「用 Gorge 生成 diff」）。
 
 `gitea.uri` 会在顶栏增加 Gitea 入口；Maniphest 增加 repository、issue、pull request、
 commit 四个内建链接字段。字段沿用旧生成配置的 `std:maniphest:gitea.*` key，因此现有值

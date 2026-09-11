@@ -336,9 +336,9 @@ if ($mode === 'collaboration') {
     $state_changed = true;
   }
 
-  $database_values = array(
-    'gorge.diff.enabled' => false,
-  );
+  // The retired `gorge.diff.enabled` switch is deliberately absent: it is no
+  // longer read, so the profile must not write it into effective config.
+  $database_values = array();
   if (strlen((string)getenv('GORGE_RENDER_URI'))) {
     $database_values['syntax-highlighter.engine'] =
       'PhabricatorGorgeSyntaxHighlighterEngine';

@@ -354,8 +354,11 @@ if ($db_mode === 'enable') {
   $config['gorge.db.token'] = null;
 }
 
+// The native difference engines are gone, so the retired `gorge.diff.enabled`
+// switch is never published: neither profile may imply a diff implementation.
+unset($config['gorge.diff.enabled']);
+
 if ($profile === 'collaboration') {
-  $config['gorge.diff.enabled'] = false;
   if (!empty($config['gorge.render.uri'])) {
     $config['syntax-highlighter.engine'] =
       'PhabricatorGorgeSyntaxHighlighterEngine';
@@ -370,7 +373,6 @@ if ($profile === 'collaboration') {
   }
 } else {
   unset(
-    $config['gorge.diff.enabled'],
     $config['syntax-highlighter.engine'],
     $config['gitea.uri']);
 }
