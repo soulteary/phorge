@@ -76,6 +76,16 @@ final class PhabricatorDifferenceEngine extends Phobject {
           PhabricatorGorgeServiceSpec::POLICY_OFF));
     }
 
+    // Binary content can not go through the service at all: the request body
+    // is JSON, and even where an encoding is declared, running arbitrary
+    // bytes through a text conversion corrupts them rather than diffing them.
+    // The removed GNU path did not diff binaries either -- `diff` printed a
+    // "Binary files ... differ" line and the parser turned that into a binary
+    // changeset -- so produce that same line here instead of calling out.
+    if (self::isBinaryContent($old) || self::isBinaryContent($new)) {
+      return $this->newBinaryDiff();
+    }
+
     $old = $this->newUTF8Content($old, 'old');
     $new = $this->newUTF8Content($new, 'new');
 
@@ -85,6 +95,33 @@ final class PhabricatorDifferenceEngine extends Phobject {
       $this->oldName,
       $this->newName,
       $this->getNormalize());
+  }
+
+  /**
+   * Detect content which must not be treated as text.
+   *
+   * This is the same rule GNU `diff` applies: a NUL byte means binary. It is
+   * deliberately not "invalid UTF-8", because a legacy-encoded text file is
+   * invalid UTF-8 and is still text -- it goes through the declared encoding
+   * instead, see newUTF8Content().
+   */
+  public static function isBinaryContent($content) {
+    return (strpos($content, "\0") !== false);
+  }
+
+  /**
+   * Build the marker the diff parser turns into a binary changeset.
+   *
+   * The wording matches what GNU `diff` emitted on the removed path, which is
+   * what ArcanistDiffParser::setDetectBinaryFiles() was written to recognize.
+   * Callers which force a path on the parser -- `diffusion.diffquery` does --
+   * get their own path back regardless of the names used here.
+   */
+  private function newBinaryDiff() {
+    $old_name = nonempty($this->oldName, '/dev/universe');
+    $new_name = nonempty($this->newName, '/dev/universe');
+
+    return "Binary files {$old_name} and {$new_name} differ\n";
   }
 
   /**
