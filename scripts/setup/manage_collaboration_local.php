@@ -317,7 +317,36 @@ if ($taskqueue_state !== null) {
 
 if ($notification_state !== null) {
   if ($notification_state['present']) {
-    $config['notification.servers'] = $notification_state['value'];
+    $active_servers = array_key_exists('notification.servers', $config)
+      ? $config['notification.servers']
+      : null;
+
+    // A baseline captured before Gorge took over differs from the value Gorge
+    // then wrote. One that is byte-identical to the active value was captured
+    // *after* the takeover -- the case where an installation first ran the
+    // stateless notification integration and only recorded a snapshot on a
+    // later upgrade. Restoring that would reinstate the Gorge endpoints under
+    // the name of a rollback, and nothing downstream masks them: the
+    // deployment builder leaves notification.servers alone when no selector
+    // is supplied, which is exactly the no-Gorge migration.
+    //
+    // There is no pre-Gorge value recorded anywhere in that case, so remove
+    // the key and let Phorge's default apply rather than leave the install
+    // pointed at a service which is going away.
+    if ($active_servers !== null &&
+        $active_servers === $notification_state['value']) {
+      unset($config['notification.servers']);
+      fwrite(
+        STDERR,
+        "[migration] Warning: the recorded notification baseline matched the ".
+        "active Gorge configuration, so it was captured after Gorge was ".
+        "already in use and is not a pre-Gorge baseline. Removed ".
+        "\"notification.servers\" instead of restoring it; reconfigure ".
+        "notifications if this installation used its own server before ".
+        "Gorge.\n");
+    } else {
+      $config['notification.servers'] = $notification_state['value'];
+    }
   } else {
     unset($config['notification.servers']);
   }
