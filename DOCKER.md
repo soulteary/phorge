@@ -114,6 +114,14 @@ Gorge 的九个接入域由 `PhabricatorGorgeServiceRegistry` 统一登记。默
 调用 `bin/config set`，也不再用 `collaboration-profile-state.json` 长期维护应用和字段
 的三方合并；从阶段一升级时若检测到旧状态文件，会先恢复原始管理员配置，再一次性迁移。
 
+`notification.servers` 是这次迁移里唯一可能被清掉的管理员可见配置。旧控制面把 Gorge
+的两条记录直接写进 `local.json`，快照（`gorge-notification-state.json`）是后来才加的，
+所以最早那批安装没有可恢复的原值，而不带通知选择器的迁移又不会覆盖这一项。迁移因此会
+识别 Gorge 写出的那个固定结构（两条记录：`admin` 固定 `http`，其后一条 `client`，没有
+多余字段）并移除它，同时在 stderr 上打印被移除的值。这个结构也可能与管理员自建的
+Aphlict 配置相同，取舍是明确的：清掉是“通知需要重新配置”并且有警告，留下则是悄悄指向
+一台即将下线的主机。看到该警告后按后文的 Aphlict/通知章节重新配置即可。
+
 后文保留每个 Gorge 服务的逐项说明。其中提到 entrypoint 用 `bin/config set` 写
 `local.json` 的描述是旧版兼容控制面的行为，已随 `PHORGE_CONTROL_PLANE=legacy`
 一并移除（显式传 `legacy` 会 exit 64）；现在这些端点由 `phorge-migrate` 一次性写进
