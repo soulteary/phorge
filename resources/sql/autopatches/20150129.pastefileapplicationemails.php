@@ -3,9 +3,8 @@
 $key_files = 'metamta.files.public-create-email';
 $key_paste = 'metamta.paste.public-create-email';
 echo pht(
-  "Migrating `%s` and `%s` to new application email infrastructure...\n",
-  $key_files,
-  $key_paste);
+  "Migrating `%s` to new application email infrastructure...\n",
+  $key_files);
 
 $value_files = PhabricatorEnv::getEnvConfigIfExists($key_files);
 $files_app = new PhabricatorFilesApplication();
@@ -24,23 +23,20 @@ if ($value_files) {
 
 $value_paste = PhabricatorEnv::getEnvConfigIfExists($key_paste);
 
-// The Paste application has been removed, so PhabricatorPasteApplication no
-// longer exists to ask for its PHID. Application PHIDs are deterministic --
-// PhabricatorApplication::getPHID() returns 'PHID-APPS-'.get_class($this) --
-// so the literal below is exactly what that call produced, and rows this
-// patch wrote before the removal carry the same value.
-$paste_app_phid = 'PHID-APPS-PhabricatorPasteApplication';
-
+// The Paste half of this migration is not performed. The Paste application
+// has been removed, so an address created here would carry an applicationPHID
+// which resolves to nothing: PhabricatorMetaMTAApplicationEmailQuery drops
+// such addresses, and an address nothing can route is worse than no address
+// at all, because it still occupies the unique key on the address itself.
+//
+// Say so rather than dropping the setting silently -- this is an install
+// which had configured a public Paste create-address.
 if ($value_paste) {
-  try {
-    PhabricatorMetaMTAApplicationEmail::initializeNewAppEmail(
-      PhabricatorUser::getOmnipotentUser())
-      ->setAddress($value_paste)
-      ->setApplicationPHID($paste_app_phid)
-      ->save();
-  } catch (AphrontDuplicateKeyQueryException $ex) {
-    // Already migrated?
-  }
+  echo pht(
+    "Not migrating `%s` (\"%s\"): the Paste application has been removed, ".
+    "so there is no application for the address to belong to.\n",
+    $key_paste,
+    $value_paste);
 }
 
 echo pht('Done.')."\n";
