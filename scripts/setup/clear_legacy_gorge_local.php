@@ -82,48 +82,32 @@ foreach ($owned_keys as $key) {
 // instance under a different key without the managed entry overwriting it --
 // so a type-wide sweep here would silently delete their mail routing.
 //
-// The managed key is not guessed from the environment alone, because this
-// migration runs without the retired deployment's environment: the documented
-// reused-volume `docker run` recipe passes no GORGE_MAILER_KEY. The keys the
-// deployment could have owned are collected from every source that actually
-// recorded one, and anything else is left alone and reported.
+// The managed key can only be claimed from a source that actually records
+// ownership. There are two:
+//
+//   1. GORGE_MAILER_KEY, when the operator supplies it.
+//   2. `gorge-mailer`, the key an installation which never set the variable
+//      was managed under.
+//
+// The deployment document is deliberately NOT a third source. It looks like
+// one -- the managed entry is written there with its key -- but
+// build_deployment_config.php also copies every entry it preserved from
+// local.json into it (see the loop around its `$mailers[] = $mailer`), so an
+// administrator's own second `type: gorge` mailer appears there too and is
+// indistinguishable from the managed one. Harvesting keys from it would make
+// this migration delete their mail routing.
+//
+// A managed entry renamed by a deployment whose environment is gone is
+// therefore not claimed automatically. It is reported instead, below: leaving
+// a stale mailer in place is recoverable, deleting an administrator's is not.
 $managed_keys = array();
 
-// 1. The current environment, when the operator supplied it.
 $mailer_key = getenv('GORGE_MAILER_KEY');
 if ($mailer_key !== false && strlen($mailer_key)) {
   $managed_keys[$mailer_key] = true;
 }
 
-// 2. The default, which is the key an installation that never set the
-//    variable was managed under.
 $managed_keys['gorge-mailer'] = true;
-
-// 3. The deployment document, which records the key independently of the
-//    environment: build_deployment_config.php writes the managed entry there
-//    with its key. Resolved the same way the entrypoint resolves it.
-$deployment_path = getenv('PHORGE_DEPLOYMENT_CONFIG');
-if ($deployment_path === false || !strlen($deployment_path)) {
-  $deployment_path = dirname($local_path).'/deployment.json';
-}
-
-if (is_file($deployment_path)) {
-  $deployment = json_decode((string)file_get_contents($deployment_path), true);
-  if (is_array($deployment) &&
-      array_key_exists('cluster.mailers', $deployment) &&
-      is_array($deployment['cluster.mailers'])) {
-    foreach ($deployment['cluster.mailers'] as $mailer) {
-      if (!is_array($mailer)) {
-        continue;
-      }
-      $type = array_key_exists('type', $mailer) ? $mailer['type'] : null;
-      $key = array_key_exists('key', $mailer) ? $mailer['key'] : null;
-      if ($type === 'gorge' && $key !== null && strlen((string)$key)) {
-        $managed_keys[$key] = true;
-      }
-    }
-  }
-}
 
 if (array_key_exists('cluster.mailers', $config) &&
     is_array($config['cluster.mailers'])) {
@@ -162,8 +146,9 @@ if (array_key_exists('cluster.mailers', $config) &&
 
   // A Gorge mailer under a key this deployment never claimed is either an
   // administrator's own second instance or a managed entry renamed by a
-  // deployment whose environment and deployment document are both gone.
-  // Deleting it could lose their configuration, so say so instead.
+  // deployment whose environment is gone. Nothing here can tell those apart,
+  // and deleting the first would lose configuration this migration has no
+  // business touching, so report instead of guessing.
   if ($unclaimed) {
     fwrite(
       STDERR,
