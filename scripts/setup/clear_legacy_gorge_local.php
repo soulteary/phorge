@@ -76,28 +76,60 @@ foreach ($owned_keys as $key) {
 // Drop the managed Gorge mailer, keeping every administrator-configured
 // entry.
 //
-// The predicate is the entry type, not its key. build_deployment_config.php
-// matches on GORGE_MAILER_KEY because it is removing the entry it wrote
-// moments earlier in the same process, with that variable in hand. This is a
-// one-way migration and runs without the retired deployment's environment --
-// the documented reused-volume `docker run` recipe passes no GORGE_MAILER_KEY
-// at all -- so keying off it would miss the managed entry of any install
-// which renamed it, and leave mail pointed at the retired endpoint.
+// The predicate is the entry KEY, not its type. "cluster.mailers" is a shared
+// list and DOCKER.md documents matching on the key precisely so that an
+// administrator can add a second `type: gorge` mailer pointing at another
+// instance under a different key without the managed entry overwriting it --
+// so a type-wide sweep here would silently delete their mail routing.
 //
-// `type: gorge` identifies a mailer served by the Gorge mailer service under
-// any key, which is exactly the set being retired, and administrator-owned
-// entries are other types (smtp, sendmail, ses, ...). The key is still
-// honored when it is available, so an entry which was renamed to a
-// non-`gorge` type by hand is matched too.
+// The managed key is not guessed from the environment alone, because this
+// migration runs without the retired deployment's environment: the documented
+// reused-volume `docker run` recipe passes no GORGE_MAILER_KEY. The keys the
+// deployment could have owned are collected from every source that actually
+// recorded one, and anything else is left alone and reported.
+$managed_keys = array();
+
+// 1. The current environment, when the operator supplied it.
 $mailer_key = getenv('GORGE_MAILER_KEY');
-if ($mailer_key === false || !strlen($mailer_key)) {
-  $mailer_key = null;
+if ($mailer_key !== false && strlen($mailer_key)) {
+  $managed_keys[$mailer_key] = true;
+}
+
+// 2. The default, which is the key an installation that never set the
+//    variable was managed under.
+$managed_keys['gorge-mailer'] = true;
+
+// 3. The deployment document, which records the key independently of the
+//    environment: build_deployment_config.php writes the managed entry there
+//    with its key. Resolved the same way the entrypoint resolves it.
+$deployment_path = getenv('PHORGE_DEPLOYMENT_CONFIG');
+if ($deployment_path === false || !strlen($deployment_path)) {
+  $deployment_path = dirname($local_path).'/deployment.json';
+}
+
+if (is_file($deployment_path)) {
+  $deployment = json_decode((string)file_get_contents($deployment_path), true);
+  if (is_array($deployment) &&
+      array_key_exists('cluster.mailers', $deployment) &&
+      is_array($deployment['cluster.mailers'])) {
+    foreach ($deployment['cluster.mailers'] as $mailer) {
+      if (!is_array($mailer)) {
+        continue;
+      }
+      $type = array_key_exists('type', $mailer) ? $mailer['type'] : null;
+      $key = array_key_exists('key', $mailer) ? $mailer['key'] : null;
+      if ($type === 'gorge' && $key !== null && strlen((string)$key)) {
+        $managed_keys[$key] = true;
+      }
+    }
+  }
 }
 
 if (array_key_exists('cluster.mailers', $config) &&
     is_array($config['cluster.mailers'])) {
   $mailers = array();
-  $dropped = 0;
+  $dropped_mailers = array();
+  $unclaimed = array();
   foreach ($config['cluster.mailers'] as $mailer) {
     if (is_array($mailer)) {
       // Plain PHP only: like build_deployment_config.php, this script runs
@@ -105,18 +137,19 @@ if (array_key_exists('cluster.mailers', $config) &&
       $type = array_key_exists('type', $mailer) ? $mailer['type'] : null;
       $key = array_key_exists('key', $mailer) ? $mailer['key'] : null;
 
-      $is_gorge_type = ($type === 'gorge');
-      $is_managed_key = ($mailer_key !== null) && ($key === $mailer_key);
-
-      if ($is_gorge_type || $is_managed_key) {
-        $dropped++;
+      if ($key !== null && isset($managed_keys[$key])) {
+        $dropped_mailers[] = $key;
         continue;
+      }
+
+      if ($type === 'gorge') {
+        $unclaimed[] = ($key === null) ? '<no key>' : $key;
       }
     }
     $mailers[] = $mailer;
   }
 
-  if ($dropped) {
+  if ($dropped_mailers) {
     if ($mailers) {
       $config['cluster.mailers'] = array_values($mailers);
     } else {
@@ -124,7 +157,21 @@ if (array_key_exists('cluster.mailers', $config) &&
       // mailer default applies again, which is where a pre-Gorge install was.
       unset($config['cluster.mailers']);
     }
-    $removed[] = 'cluster.mailers[type=gorge]';
+    $removed[] = 'cluster.mailers['.implode(', ', $dropped_mailers).']';
+  }
+
+  // A Gorge mailer under a key this deployment never claimed is either an
+  // administrator's own second instance or a managed entry renamed by a
+  // deployment whose environment and deployment document are both gone.
+  // Deleting it could lose their configuration, so say so instead.
+  if ($unclaimed) {
+    fwrite(
+      STDERR,
+      "[migration] Warning: left ".count($unclaimed)." Gorge mailer(s) in ".
+      "place under unrecognized key(s): ".implode(', ', $unclaimed).". ".
+      "If one of these was this deployment's managed mailer, rerun with ".
+      "GORGE_MAILER_KEY set to its key, or remove it by hand -- it still ".
+      "points at the retired service.\n");
   }
 }
 
@@ -163,7 +210,13 @@ if (!$removed) {
   exit(0);
 }
 
-$json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+// An empty result must still be a JSON object: json_encode() renders an empty
+// PHP array as "[]", which is not a configuration document.
+if (!$config) {
+  $json = '{}';
+} else {
+  $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+}
 if ($json === false) {
   fwrite(STDERR, "Unable to encode: ".$local_path."\n");
   exit(1);
