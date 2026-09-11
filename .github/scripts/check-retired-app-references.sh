@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+command -v rg >/dev/null 2>&1 || {
+  echo 'ripgrep (rg) is required for retired application reference checks.' >&2
+  exit 127
+}
+
 # Runtime/source references to applications which have already been physically
 # removed from this cleanup stack. Historical SQL autopatches are deliberately
 # outside this check: they have their own compatibility rewrites and must stay
@@ -30,11 +35,21 @@ patterns=(
 
 failed=0
 for pattern in "${patterns[@]}"; do
-  if matches="$(rg "${rg_args[@]}" --pcre2 "$pattern" "${roots[@]}" 2>/dev/null)"; then
-    echo "::error::Found runtime references to a physically removed application"
-    printf '%s\n' "$matches"
-    failed=1
-  fi
+  status=0
+  matches="$(rg "${rg_args[@]}" --pcre2 "$pattern" "${roots[@]}" 2>/dev/null)" || status=$?
+  case "$status" in
+    0)
+      echo "::error::Found runtime references to a physically removed application"
+      printf '%s\n' "$matches"
+      failed=1
+      ;;
+    1)
+      ;;
+    *)
+      echo "ripgrep failed while evaluating pattern: $pattern" >&2
+      exit "$status"
+      ;;
+  esac
 done
 
 if (( failed )); then
