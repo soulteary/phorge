@@ -164,11 +164,17 @@ sed -e 's/__PHORGE_USER__/phorge/g' \
 
 # 2) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
 #    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
+#    PHORGE_PRODUCT_PROFILE 显式写 full：默认的 auto 在空库上会解析成
+#    collaboration，那会停用 Diffusion / Differential / Audit 这组代码应用，
+#    并预期由 GITEA_BASE_URI 指向一个外部代码托管。这个不带 Gorge 的最小示例
+#    两者都没有，用 full 才能拿到一个自带代码托管的完整站点。真要跑协作模式，
+#    就把这一行改成 collaboration 并同时补 -e GITEA_BASE_URI=https://git.example.com/。
 docker run --rm --network phorge-net \
   -v phorge-conf:/opt/phorge/phorge/conf/local \
   -v phorge-repo:/var/repo \
   -e PHORGE_CONTAINER_ROLE=migrate \
   -e PHORGE_AUTO_UPGRADE=1 \
+  -e PHORGE_PRODUCT_PROFILE=full \
   -e MYSQL_HOST=phorge-mysql -e MYSQL_USER=phorge -e MYSQL_PASS=phorge \
   -e PHORGE_BASE_URI=http://127.0.0.1:8088/ \
   phorge:local /bin/true
