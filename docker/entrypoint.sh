@@ -169,7 +169,17 @@ if [ "$PHORGE_PRODUCT_PROFILE" = "auto" ]; then
         esac
     fi
 fi
-case "$PHORGE_PRODUCT_PROFILE" in collaboration|full) ;; *) exit 64 ;; esac
+case "$PHORGE_PRODUCT_PROFILE" in
+    collaboration|full)
+        ;;
+    *)
+        # Say which value was rejected. docker-compose.yml forwards this to
+        # phorge-migrate and every other service waits on that job, so a silent
+        # exit leaves the whole stack blocked behind an empty migration log.
+        echo "[entrypoint] unknown PHORGE_PRODUCT_PROFILE=$PHORGE_PRODUCT_PROFILE" >&2
+        exit 64
+        ;;
+esac
 
 if [ "$PHORGE_AUTO_UPGRADE" = "1" ]; then
     "$STORAGE_BIN" upgrade --force
