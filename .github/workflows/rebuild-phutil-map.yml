@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          php ../arcanist/bin/arc liberate src/ 2>&1 | tee /tmp/arc-liberate.log
+          php ../arcanist/bin/arc liberate -- src/ 2>&1 | tee /tmp/arc-liberate.log
       - name: Upload liberate diagnostics
         if: always()
         uses: actions/upload-artifact@v4
