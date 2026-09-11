@@ -9,7 +9,40 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
+    // A disabled render service is not a healthy state any more: both
+    // difference engines throw whenever Gorge diff is unavailable, and there
+    // is no native implementation left to take over. Report it instead of
+    // returning early, or the deployment only fails at the first raw or
+    // prose diff.
     if (PhabricatorGorgeServiceRegistry::getService('render')->isDisabled()) {
+      $this->newIssue('gorge.diff.policy-off')
+        ->setName(pht('Required Difference Generation Is Disabled'))
+        ->setSummary(
+          pht(
+            'The Gorge service policy disables the render service, but Gorge '.
+            'is the only difference implementation in this build.'))
+        ->setMessage(
+          pht(
+            'The failure policy for the Gorge "render" service resolves to '.
+            '%s, either from %s or from a per-service entry in %s. The '.
+            'native GNU and PHP difference engines have been removed, so '.
+            'every raw and prose difference request now fails while this '.
+            'policy is in effect. Set the policy to %s (or %s) and make the '.
+            'render service reachable.',
+            phutil_tag('tt', array(), PhabricatorGorgeServiceSpec::POLICY_OFF),
+            phutil_tag('tt', array(), 'gorge.service-policy'),
+            phutil_tag('tt', array(), 'gorge.service-policies'),
+            phutil_tag(
+              'tt',
+              array(),
+              PhabricatorGorgeServiceSpec::POLICY_REQUIRED),
+            phutil_tag(
+              'tt',
+              array(),
+              PhabricatorGorgeServiceSpec::POLICY_FALLBACK)))
+        ->addRelatedPhabricatorConfig('gorge.service-policy')
+        ->addRelatedPhabricatorConfig('gorge.service-policies')
+        ->addRelatedPhabricatorConfig('gorge.render.uri');
       return;
     }
 

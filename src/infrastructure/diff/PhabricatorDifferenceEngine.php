@@ -48,9 +48,12 @@ final class PhabricatorDifferenceEngine extends Phobject {
     if (!PhabricatorGorgeDiffClient::isEnabled()) {
       throw new Exception(
         pht(
-          'Gorge diff generation is required, but the Gorge render service '.
-          'or the "%s" switch is not enabled.',
-          'gorge.diff.enabled'));
+          'Gorge diff generation is required, but the render service is '.
+          'unavailable: either "%s" is not configured, or the Gorge service '.
+          'policy for "render" is "%s". There is no native difference engine '.
+          'to fall back to.',
+          'gorge.render.uri',
+          PhabricatorGorgeServiceSpec::POLICY_OFF));
     }
 
     return id(new PhabricatorGorgeDiffClient())->generateDiff(
