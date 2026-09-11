@@ -87,7 +87,18 @@ final class PhabricatorDifferenceEngine extends Phobject {
     // equivalent after normalization still go to the service, which applies
     // the normalize flag itself.
     if ($old === $new) {
-      return $this->newUnchangedDiff($old);
+      // The synthetic diff carries the file's own content, and callers are
+      // told this engine emits UTF-8 -- diffusion.diffquery disables
+      // parser-side conversion on the strength of that -- so legacy-encoded
+      // text has to be converted here too. Binary content is passed through:
+      // there is nothing to convert it from, and the removed implementation
+      // embedded the raw bytes in this case as well.
+      $content = $old;
+      if (!self::isBinaryContent($content)) {
+        $content = $this->newUTF8Content($content, 'old');
+      }
+
+      return $this->newUnchangedDiff($content);
     }
 
     // Binary content can not go through the service at all: the request body

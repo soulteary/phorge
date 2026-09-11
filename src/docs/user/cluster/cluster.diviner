@@ -173,12 +173,20 @@ of any subset of hosts without an interruption to daemon services, as long as
 at least one host remains alive. Daemons are stateless, so spreading daemons
 across multiple hosts provides no resistance to data loss.
 
-Daemons can become a bottleneck, particularly if your install sees a large
-volume of write traffic to repositories. If the daemon task queue has a
-backlog, that hints at a capacity problem. If existing hosts have unused
-resources, increase `phd.taskmasters` until they are fully utilized. From
-there, adding more daemon hosts will provide an approximately linear increase
-in capacity.
+Task processing can become a bottleneck, particularly if your install sees a
+large volume of write traffic to repositories. If the task queue has a
+backlog, that hints at a capacity problem.
+
+The native taskmaster pool has been retired: `phd` no longer starts one at any
+value of `phd.taskmasters`, and the queue is consumed by the `gorge-worker`
+service instead. Scale it in two steps. If existing hosts have unused
+resources, raise `GORGE_WORKER_MAX_WORKERS` (how many tasks one worker process
+runs at once) until they are fully utilized. From there, running more
+`gorge-worker` instances will provide an approximately linear increase in
+capacity.
+
+The other daemons -- the pull, trigger and fact daemons -- still run under
+`phd`, and spreading them across hosts works as described above.
 
 For details, see @{article:Cluster: Daemons}.
 
