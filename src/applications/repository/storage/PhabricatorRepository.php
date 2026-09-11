@@ -2678,21 +2678,10 @@ final class PhabricatorRepository extends PhabricatorRepositoryDAO
 
       PhabricatorRepositoryURIIndex::updateRepositoryURIs($phid, array());
 
-      $books = id(new DivinerBookQuery())
-        ->setViewer($engine->getViewer())
-        ->withRepositoryPHIDs(array($phid))
-        ->execute();
-      foreach ($books as $book) {
-        $engine->destroyObject($book);
-      }
-
-      $atoms = id(new DivinerAtomQuery())
-        ->setViewer($engine->getViewer())
-        ->withRepositoryPHIDs(array($phid))
-        ->execute();
-      foreach ($atoms as $atom) {
-        $engine->destroyObject($atom);
-      }
+      // Diviner books and atoms were cascaded from here. That application has
+      // been removed, so there is nothing left to destroy and the queries no
+      // longer exist; reaching for them would abort every repository
+      // destruction midway through.
 
       $lfs_refs = id(new PhabricatorRepositoryGitLFSRefQuery())
         ->setViewer($engine->getViewer())
