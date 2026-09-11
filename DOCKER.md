@@ -142,9 +142,15 @@ docker build -t phorge:local .
 docker network create phorge-net
 docker volume create phorge-conf
 docker volume create phorge-repo
+docker volume create phorge-db
 
 # 0) 数据库自备（这里用官方镜像示意）
+#    phorge-db 卷不能省：不挂它的话 /var/lib/mysql 只存在于容器可写层，
+#    删掉或重建 phorge-mysql 就会连同整个站点的数据一起消失（配置和仓库在
+#    另外两个卷里，反而还在，于是故障看起来像「数据库空了」而不是「卷没挂」）。
+#    默认栈在 docker-compose.mysql.yml 里挂的就是这个路径。
 docker run -d --name phorge-mysql --network phorge-net \
+  -v phorge-db:/var/lib/mysql \
   -e MYSQL_ROOT_PASSWORD=phorge_root -e MYSQL_DATABASE=phorge \
   -e MYSQL_USER=phorge -e MYSQL_PASSWORD=phorge \
   mysql:8.0.46 --sql-mode=STRICT_ALL_TABLES --local-infile=0 --ft-min-word-len=3
@@ -164,11 +170,17 @@ sed -e 's/__PHORGE_USER__/phorge/g' \
 
 # 2) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
 #    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
+#    PHORGE_PRODUCT_PROFILE 显式写 full：默认的 auto 在空库上会解析成
+#    collaboration，那会停用 Diffusion / Differential / Audit 这组代码应用，
+#    并预期由 GITEA_BASE_URI 指向一个外部代码托管。这个不带 Gorge 的最小示例
+#    两者都没有，用 full 才能拿到一个自带代码托管的完整站点。真要跑协作模式，
+#    就把这一行改成 collaboration 并同时补 -e GITEA_BASE_URI=https://git.example.com/。
 docker run --rm --network phorge-net \
   -v phorge-conf:/opt/phorge/phorge/conf/local \
   -v phorge-repo:/var/repo \
   -e PHORGE_CONTAINER_ROLE=migrate \
   -e PHORGE_AUTO_UPGRADE=1 \
+  -e PHORGE_PRODUCT_PROFILE=full \
   -e MYSQL_HOST=phorge-mysql -e MYSQL_USER=phorge -e MYSQL_PASS=phorge \
   -e PHORGE_BASE_URI=http://127.0.0.1:8088/ \
   phorge:local /bin/true
