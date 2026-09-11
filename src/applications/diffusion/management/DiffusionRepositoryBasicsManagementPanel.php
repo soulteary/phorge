@@ -523,16 +523,23 @@ final class DiffusionRepositoryBasicsManagementPanel
     // say who owns the queue and leave the health reporting to the Config
     // setup checks. When ownership resolves to Phorge there is no consumer at
     // all any more, which is worth the same warning it always got.
+    //
+    // This row states ownership and nothing more. It is deliberately not an
+    // assertion that work is being consumed: `gorge-worker` runs outside this
+    // install and has no endpoint here to probe, so a stopped or
+    // crash-looping worker is detected from the queue backlog instead, by
+    // PhabricatorGorgeTaskQueueSetupCheck.
     $taskqueue = PhabricatorGorgeServiceRegistry::getService('taskqueue');
     if ($taskqueue->isOwnedBy('gorge')) {
       $view->addItem(
         id(new PHUIStatusItemView())
           ->setIcon(PHUIStatusItemView::ICON_ACCEPT, 'blue')
-          ->setTarget(pht('Tasks Processed by Gorge'))
+          ->setTarget(pht('Task Queue Assigned to Gorge'))
           ->setNote(
             pht(
-              'Queued tasks are consumed by the Gorge worker service. Its '.
-              'health is reported in Config.')));
+              'Queued tasks are consumed by the Gorge worker service, which '.
+              'runs outside this install. Config reports the task queue '.
+              'service health, and warns if the queue stops being drained.')));
     } else {
       $view->addItem(
         id(new PHUIStatusItemView())

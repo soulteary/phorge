@@ -74,7 +74,80 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       return;
     }
 
-    $this->checkReady($uri);
+    if (!$this->checkReady($uri)) {
+      return;
+    }
+
+    $this->checkConsumed();
+  }
+
+
+  /**
+   * Report a queue which nothing is draining.
+   *
+   * The two probes above cover the task queue service, which is only half of
+   * the pipeline: `gorge-worker` is a separate process which leases tasks from
+   * that service and executes them. Phorge has no address for it -- the worker
+   * is a client of the queue, not something this server calls -- so there is
+   * no endpoint to probe, and a worker which is stopped or crash-looping would
+   * otherwise leave both this check and the repository panel reporting
+   * success while every background job sat unleased.
+   *
+   * Leases are visible in this server's own worker tables, so the backlog is
+   * measured directly instead. That is also a better signal than a liveness
+   * probe: a worker which is up but failing on every task shows up here, and a
+   * worker which is briefly restarting does not.
+   */
+  private function checkConsumed() {
+    $table = new PhabricatorWorkerActiveTask();
+    $conn = $table->establishConnection('r');
+
+    $window = phutil_units('15 minutes in seconds');
+    $horizon = PhabricatorTime::getNow() - $window;
+
+    $row = queryfx_one(
+      $conn,
+      'SELECT COUNT(*) N, MIN(dateCreated) oldest FROM %R
+        WHERE leaseOwner IS NULL AND dateCreated < %d',
+      $table,
+      $horizon);
+
+    $count = (int)$row['N'];
+    if (!$count) {
+      return;
+    }
+
+    $age = PhabricatorTime::getNow() - (int)$row['oldest'];
+
+    $summary = pht(
+      'Tasks are queued but nothing has leased them, so background work is '.
+      'not running.');
+
+    $message = pht(
+      'There are %s task(s) in the queue which have never been leased, the '.
+      'oldest for %s. The Gorge task queue service is reachable, so the '.
+      'tasks are being written correctly; what is missing is a consumer '.
+      'draining them.'.
+      "\n\n".
+      'That consumer is `%s`, a separate process which leases from the task '.
+      'queue service and executes the work. This server never calls it, so '.
+      'it cannot be probed directly -- check that it is running and look at '.
+      'its logs. In the bundled Compose stack it answers a health check on '.
+      '%s.'.
+      "\n\n".
+      'While this persists, every background job -- outbound mail, search '.
+      'indexing, repository import, Herald -- is queued and never run.',
+      new PhutilNumber($count),
+      phutil_format_relative_time($age),
+      phutil_tag('tt', array(), 'gorge-worker'),
+      phutil_tag('tt', array(), ':8170/healthz'));
+
+    $this->newIssue('gorge.taskqueue.not-consumed')
+      ->setName(pht('Task Queue Is Not Being Drained'))
+      ->setSummary($summary)
+      ->setMessage($message)
+      ->addRelatedPhabricatorConfig('gorge.taskqueue.uri')
+      ->addRelatedPhabricatorConfig('gorge.taskqueue.owner');
   }
 
 

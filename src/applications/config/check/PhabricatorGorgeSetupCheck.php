@@ -78,20 +78,37 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
    * the bundled Compose file does not cover a source or custom deployment
    * pointed at an endpoint this install does not start.
    *
-   * The probe goes through the real client, so it exercises the route, the
+   * Both routes are probed. They are separate handlers, so a partially
+   * deployed or mismatched service can serve one and not the other, and
+   * PhutilProseDifferenceEngine::getDiff() reaches the prose route
+   * unconditionally -- probing only the raw route would leave every prose
+   * difference failing under a clean setup report.
+   *
+   * The probes go through the real client, so they exercise the route, the
    * token and the response envelope together.
    */
   private function checkDiffRoutes($uri) {
-    try {
-      id(new PhabricatorGorgeDiffClient())->generateDiff(
-        "a\n",
-        "b\n",
-        null,
-        null,
-        false);
+    $client = new PhabricatorGorgeDiffClient();
+
+    $probes = array(
+      PhabricatorGorgeDiffClient::PATH_GENERATE => array($client, 'probeRaw'),
+      PhabricatorGorgeDiffClient::PATH_PROSE => array($client, 'probeProse'),
+    );
+
+    $failed_path = null;
+    $error = null;
+    foreach ($probes as $path => $probe) {
+      try {
+        call_user_func($probe);
+      } catch (Exception $ex) {
+        $failed_path = $path;
+        $error = $ex->getMessage();
+        break;
+      }
+    }
+
+    if ($failed_path === null) {
       return;
-    } catch (Exception $ex) {
-      $error = $ex->getMessage();
     }
 
     $summary = pht(
@@ -112,7 +129,7 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
       'it was started with its diff routes enabled (%s in the bundled '.
       'Compose stack, which pins it on).',
       phutil_tag('tt', array(), $uri),
-      phutil_tag('tt', array(), PhabricatorGorgeDiffClient::PATH_GENERATE),
+      phutil_tag('tt', array(), $failed_path),
       phutil_tag('pre', array(), $error),
       phutil_tag('tt', array(), PhabricatorGorgeDiffClient::PATH_GENERATE),
       phutil_tag('tt', array(), PhabricatorGorgeDiffClient::PATH_PROSE),

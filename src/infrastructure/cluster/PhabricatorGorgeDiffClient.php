@@ -103,6 +103,26 @@ final class PhabricatorGorgeDiffClient
     return self::newProseDiffFromData($data, $old, $new);
   }
 
+  /**
+   * Exercise the raw diff route with a minimal input.
+   *
+   * Used by @{class:PhabricatorGorgeSetupCheck} to prove the route exists and
+   * answers in the expected envelope, rather than only that the process is up.
+   */
+  public function probeRaw() {
+    $this->generateDiff("a\n", "b\n", null, null, false);
+  }
+
+  /**
+   * Exercise the prose diff route with a minimal input.
+   *
+   * The prose route is a separate handler from the raw route, so a service can
+   * serve one and not the other.
+   */
+  public function probeProse() {
+    $this->generateProseDiff('a', 'b');
+  }
+
   public static function newProseDiffFromData(array $data, $old, $new) {
     $parts = idx($data, 'parts');
     if (!is_array($parts)) {
