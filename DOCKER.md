@@ -171,7 +171,7 @@ sed -e 's/__PHORGE_USER__/phorge/g' \
 # 2) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
 #    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
 #    PHORGE_PRODUCT_PROFILE 显式写 full：默认的 auto 在空库上会解析成
-#    collaboration，那会停用 Diffusion / Differential / Audit 这组代码应用，
+#    collaboration，那会停用 Diffusion 代码托管应用，
 #    并预期由 GITEA_BASE_URI 指向一个外部代码托管。这个不带 Gorge 的最小示例
 #    两者都没有，用 full 才能拿到一个自带代码托管的完整站点。真要跑协作模式，
 #    就把这一行改成 collaboration 并同时补 -e GITEA_BASE_URI=https://git.example.com/。
@@ -407,7 +407,7 @@ Provider **无条件信任** `X-Auth-User/Email/Name` 头。因此：
 ## 用 Gorge 做语法高亮（可选）
 
 Phorge 自带的高亮器只覆盖几种语言（PHP / Python / Java / JSON），本镜像也**没装**
-Pygments，所以其余文件在 Paste、Differential、Diffusion 里都是无色的。叠加编排文件
+Pygments，所以其余文件在 Diffusion 里都是无色的。叠加编排文件
 `docker-compose.gorge.yml` 会起一个 `gorge-render` 服务（Go + Chroma），Phorge 把高亮
 请求发给它，覆盖面与 Pygments 相当，但不用在镜像里塞一套 Python 运行时。
 同一个进程还承载 `/api/diff/*`：可以替换系统 `diff -U65535` 子进程与 PHP 的 prose
@@ -438,12 +438,12 @@ docker compose exec phorge /opt/phorge/phorge/bin/config set \
 docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 ```
 
-> **第 3 步不能省**：Phorge 缓存的是**高亮之后的 HTML**，不是源码。Paste 的正文与摘要
-> 存在 `cache_general` 表，Differential 的 changeset 存在自己的缓存表，两者都不会因为
-> 换了引擎而失效。只切引擎不清缓存，已经看过的 Paste 和 diff 会继续吐旧 HTML，很容易
-> 误判成「配置没生效」，转头去反复折腾 URI 和 token。只想清相关的两项可以用
-> `bin/cache purge --caches general,changeset`。切换之后**新建**的 Paste / diff 不受影响，
-> 它们本来就会走新引擎。
+> **第 3 步不能省**：Phorge 缓存的是**高亮之后的 HTML**，不是源码。diff 的 changeset
+> 存在自己的缓存表，其余渲染结果存在 `cache_general` 表，都不会因为换了引擎
+> 而失效。只切引擎不清缓存，已经看过的 diff 会继续吐旧 HTML，很容易误判成「配置没生
+> 效」，转头去反复折腾 URI 和 token。只想清相关的两项可以用
+> `bin/cache purge --caches general,changeset`。切换之后**新建**的 diff 不受影响，它们
+> 本来就会走新引擎。
 
 ### 用 Gorge 生成 diff
 
@@ -555,8 +555,8 @@ docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
 
 - **切了引擎但页面还是无色**：先看是不是缓存（见上面的 `bin/cache purge`），再看 Config
   页面的 setup 检查——`PhabricatorGorgeSetupCheck` 会探 `/healthz` 并把不可达报出来。
-- **高亮服务挂了会怎样**：客户端抛 `PhutilSyntaxHighlighterException`，Differential 页面
-  显示高亮失败提示，其余位置回退到无高亮渲染，页面本身不会 500。故障是可见的，不是静默的。
+- **高亮服务挂了会怎样**：客户端抛 `PhutilSyntaxHighlighterException`，Diffusion 的 diff
+  页面显示高亮失败提示，其余位置回退到无高亮渲染，页面本身不会 500。故障是可见的，不是静默的。
   **但 diff 没有这层兜底**：同一个进程挂掉时，raw 与 prose diff 直接失败（原生实现已
   移除）。所以 `gorge-render` 对本部署是必需服务，不是可选增强。
 - **日志里出现 404 `ERR_NOT_FOUND`**：几乎总是 `gorge.render.uri` 结尾多了一个斜杠。
@@ -1844,9 +1844,10 @@ docker compose --profile gitea \
   up -d --force-recreate
 ```
 
-运行时 profile 会停用以下八个应用，而不改管理员的
-`phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
-Harbormaster、Drydock、Diviner、Paste。部署配置同时在已配置
+运行时 profile 会停用 Diffusion 与 Drydock 两个应用，而不改管理员的
+`phabricator.uninstalled-applications`。Harbormaster、Differential、Audit、Owners、
+Diviner 与 Paste 已随这一系列清理从发行版中物理移除，任何 profile 下都不存在，
+因此不再由 profile 开关。部署配置同时在已配置
 `GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
 `PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
 `gorge`。
