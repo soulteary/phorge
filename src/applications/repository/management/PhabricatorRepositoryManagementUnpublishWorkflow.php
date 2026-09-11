@@ -113,7 +113,6 @@ final class PhabricatorRepositoryManagementUnpublishWorkflow
     $edge_types = array(
       PhabricatorObjectMentionsObjectEdgeType::EDGECONST => true,
       DiffusionCommitHasTaskEdgeType::EDGECONST => true,
-      DiffusionCommitHasRevisionEdgeType::EDGECONST => true,
       DiffusionCommitRevertsCommitEdgeType::EDGECONST => true,
     );
 
@@ -223,29 +222,6 @@ final class PhabricatorRepositoryManagementUnpublishWorkflow
               "%s\n",
               pht(
                 'MANUAL Task "%s" was likely closed improperly by "%s".',
-                $dst->getMonogram(),
-                $src->getMonogram()));
-          }
-        }
-      }
-    }
-
-    if ($type === DiffusionCommitHasRevisionEdgeType::EDGECONST) {
-      $xactions = id(clone $query)
-        ->withTransactionTypes(
-          array(
-            DifferentialRevisionCloseTransaction::TRANSACTIONTYPE,
-          ))
-        ->execute();
-
-      if ($xactions) {
-        foreach ($xactions as $xaction) {
-          $metadata = $xaction->getMetadata();
-          if (idx($metadata, 'commitPHID') === $src->getPHID()) {
-            echo tsprintf(
-              "%s\n",
-              pht(
-                'MANUAL Revision "%s" was likely closed improperly by "%s".',
                 $dst->getMonogram(),
                 $src->getMonogram()));
           }

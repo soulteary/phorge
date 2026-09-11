@@ -13,7 +13,6 @@ final class DiffusionCommitGraphView
 
   private $commitMap;
   private $buildableMap;
-  private $revisionMap;
 
   private $showAuditors;
 
@@ -124,19 +123,9 @@ final class DiffusionCommitGraphView
     require_celerity_resource('diffusion-css');
 
     $show_builds = $this->shouldShowBuilds();
-    $show_revisions = $this->shouldShowRevisions();
     $show_auditors = $this->shouldShowAuditors();
 
     $phids = array();
-
-    if ($show_revisions) {
-      $revision_map = $this->getRevisionMap();
-      foreach ($revision_map as $revisions) {
-        foreach ($revisions as $revision) {
-          $phids[] = $revision->getPHID();
-        }
-      }
-    }
 
     $commits = $this->getCommitMap();
 
@@ -205,20 +194,6 @@ final class DiffusionCommitGraphView
           $property_list->newItem()
             ->setName(pht('Author'))
             ->setValue($author_view);
-        }
-      }
-
-      if ($show_revisions) {
-        if ($commit) {
-          $revisions = $this->getRevisions($commit);
-          if ($revisions) {
-            $list_view = $handles->newSublist(mpull($revisions, 'getPHID'))
-              ->newListView();
-
-            $property_list->newItem()
-              ->setName(pht('Revisions'))
-              ->setValue($list_view);
-          }
         }
       }
 
@@ -345,15 +320,6 @@ final class DiffusionCommitGraphView
     return $show_builds;
   }
 
-  private function shouldShowRevisions() {
-    $viewer = $this->getViewer();
-
-    $show_revisions = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorDifferentialApplication::class,
-      $viewer);
-
-    return $show_revisions;
-  }
 
   private function shouldShowAuditors() {
     return $this->getShowAuditors();
@@ -586,27 +552,6 @@ final class DiffusionCommitGraphView
     return $this->buildableMap;
   }
 
-  private function getRevisions(PhabricatorRepositoryCommit $commit) {
-    $revision_map = $this->getRevisionMap();
-    return idx($revision_map, $commit->getPHID(), array());
-  }
-
-  private function getRevisionMap() {
-    if ($this->revisionMap === null) {
-      $this->revisionMap = $this->newRevisionMap();
-    }
-
-    return $this->revisionMap;
-  }
-
-  private function newRevisionMap() {
-    $viewer = $this->getViewer();
-    $commits = $this->getCommitMap();
-
-    return DiffusionCommitRevisionQuery::loadRevisionMapForCommits(
-      $viewer,
-      $commits);
-  }
 
   private function newCommitList() {
     $commits = $this->getCommits();

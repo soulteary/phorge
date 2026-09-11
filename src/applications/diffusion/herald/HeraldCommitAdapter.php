@@ -11,7 +11,6 @@ final class HeraldCommitAdapter
   private $commitDiff;
 
   protected $affectedPaths;
-  protected $affectedRevision;
 
   private $buildRequests = array();
 
@@ -149,41 +148,6 @@ final class HeraldCommitAdapter
     }
 
     return $this->affectedPaths;
-  }
-
-  public function loadDifferentialRevision() {
-    if ($this->affectedRevision === null) {
-      $viewer = $this->getViewer();
-
-      // NOTE: The viewer here is omnipotent, which means that Herald discloses
-      // some information users do not normally have access to when rules load
-      // the revision related to a commit. See D20468.
-
-      // A user who wants to learn about "Dxyz" can write a Herald rule which
-      // uses all the "Related revision..." fields, then push a commit which
-      // contains "Differential Revision: Dxyz" in the message to make Herald
-      // evaluate the commit with "Dxyz" as the related revision.
-
-      // At time of writing, this commit will link to the revision and the
-      // transcript for the commit will disclose some information about the
-      // revision (like reviewers, subscribers, and build status) which the
-      // commit author could not otherwise see.
-
-      // For now, we just accept this. The disclosures are relatively
-      // uninteresting and you have to jump through a lot of hoops (and leave
-      // a lot of evidence) to get this information.
-
-      $revision = DiffusionCommitRevisionQuery::loadRevisionForCommit(
-        $viewer,
-        $this->getObject());
-      if ($revision) {
-        $this->affectedRevision = $revision;
-      } else {
-        $this->affectedRevision = false;
-      }
-    }
-
-    return $this->affectedRevision;
   }
 
   public static function getEnormousByteLimit() {

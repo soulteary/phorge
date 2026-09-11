@@ -92,17 +92,6 @@ final class DrydockRepositoryOperationStatusView
               'This change could not be fetched from the remote staging '.
               'area. It may not have been pushed, or may have been removed.');
             break;
-          case DrydockLandRepositoryOperation::PHASE_COMMIT:
-            $message = pht(
-              'Committing this change failed. It may already have been '.
-              'merged.');
-            break;
-          case DrydockLandRepositoryOperation::PHASE_PUSH:
-            $message = pht(
-              'The push failed. This usually indicates '.
-              'that the change is breaking some rules or '.
-              'some custom commit hook has failed.');
-            break;
           default:
             $message = pht(
               'Operation encountered an error while performing repository '.
