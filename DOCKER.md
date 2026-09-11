@@ -84,15 +84,18 @@ docker compose up -d --build
 服务超时、返回错误或响应非法时，Phorge 不再按请求静默进入旧实现。迁移期间可临时设为
 `fallback`；每次实际进入原生路径都会记录
 `[gorge-fallback] service=... operation=... process_count=...`。稳定一个发布周期且
-日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、db、search、
+日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、search、
 file 和 mailer 等请求路由型能力；webhook/taskqueue 的排他消费者仍由各自
 `GORGE_*_MODE` 切换，不能靠全局策略隐式改写。
-DB 的 fallback 覆盖完整诊断操作：握手成功后若 servers、schema 或 setup 请求失败，
-仍会记录具体操作并执行对应的原生诊断，而不是只在握手阶段生效。
+两个服务是例外，因为它们要回退到的原生实现已经删除：render/diff 无论策略取值都会在
+服务不可用时直接失败；db 的 `fallback` 与 `off` 会被忽略并按 `required` 处理，
+`PhabricatorGorgeDBSetupCheck` 会报告这个被忽略的覆盖。
 
 Task queue 的 enqueue 是例外：只有在发送请求前即发现端点不可用时才允许进入 SQL
 fallback。请求发出后的超时或坏响应会直接报错，因为 Gorge 可能已经提交任务；此时再
 写一条原生任务会造成重复执行。完整的跨路径重试需要两端共享幂等键后才能开放。
+注意这条 fallback 现在只保证任务被写下来而不会丢：原生 taskmaster 已经删除，
+`phd` 不再启动它，所以写进 SQL 队列的任务要等 Gorge 恢复后才会被消费。
 同理，worker 业务逻辑成功但 required completion 回报失败时，Phorge 会显式报错并把
 SQL 任务停在 `gorge-completion-pending` lease 下，避免租约到期后重复执行；恢复服务后
 应由运维确认实际归档状态再做 reconciliation。

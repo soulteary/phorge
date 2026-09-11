@@ -172,8 +172,11 @@ EOTEXT
             'every queue operation (enqueue, lease, complete, fail, yield, '.
             'awaken) instead of running those operations against the local '.
             'database. The default deployment changes owner, endpoint and '.
-            '`%s` together. In legacy `%s` mode only, clearing this endpoint '.
-            'selects the local SQL implementation again.'.
+            '`%s` together. Clearing this endpoint in legacy `%s` mode no '.
+            'longer selects a working local implementation: tasks are still '.
+            'written to the SQL queue, but %s has been retired and %s starts '.
+            'no taskmaster pool to lease them, so background work stops '.
+            'running. %s reports that configuration.'.
             "\n\n".
             'The service owns the `%s` tables, so it is configured with its '.
             'own database connection settings and its %s must match this '.
@@ -182,6 +185,9 @@ EOTEXT
             'gorge.taskqueue.owner',
             'phd.taskmasters',
             'auto',
+            phutil_tag('tt', array(), 'PhabricatorTaskmasterDaemon'),
+            phutil_tag('tt', array(), 'phd'),
+            'PhabricatorGorgeTaskQueueSetupCheck',
             phutil_tag('tt', array(), '{namespace}_worker'),
             phutil_tag('tt', array(), 'GORGE_TASKQUEUE_NAMESPACE'),
             phutil_tag('tt', array(), 'storage.default-namespace'),
@@ -191,7 +197,7 @@ EOTEXT
         ->setEnumOptions(
           array(
             'auto' => pht('Infer From Endpoint (Legacy)'),
-            'phorge' => pht('Phorge'),
+            'phorge' => pht('Phorge (No Consumer)'),
             'gorge' => pht('Gorge'),
           ))
         ->setSummary(pht('Select the worker queue owner.'))
@@ -200,9 +206,18 @@ EOTEXT
             'Select which runtime owns worker queue operations. The default ' .
             'deployment sets this explicitly and changes it atomically with ' .
             'the endpoint. `%s` keeps the legacy behavior in which a ' .
-            'configured `%s` selects Gorge.',
+            'configured `%s` selects Gorge.' .
+            "\n\n" .
+            '`%s` no longer names a working implementation. It used to mean ' .
+            'the native taskmaster pool leased from the SQL queue, but %s ' .
+            'has been retired: tasks are written and never consumed, so ' .
+            'mail, search indexing, repository work and Herald stop ' .
+            'running. %s reports this configuration.',
             'auto',
-            'gorge.taskqueue.uri')),
+            'gorge.taskqueue.uri',
+            'phorge',
+            phutil_tag('tt', array(), 'PhabricatorTaskmasterDaemon'),
+            'PhabricatorGorgeTaskQueueSetupCheck')),
       $this->newOption('gorge.taskqueue.token', 'string', null)
         ->setHidden(true)
         ->setDescription(

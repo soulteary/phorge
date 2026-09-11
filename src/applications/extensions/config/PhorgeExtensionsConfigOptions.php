@@ -69,11 +69,18 @@ final class PhorgeExtensionsConfigOptions
           'Failure policy for configured Gorge services. "required" exposes '.
           'service failures, "fallback" temporarily allows native '.
           'implementations, and "off" disables request-routed services. '.
-          'The "render" service is an exception for difference generation: '.
-          'the native GNU and PHP difference engines have been removed, so '.
-          'neither "fallback" nor "off" has a local implementation to select '.
-          'and raw or prose differences fail while the service is '.
-          'unavailable.'));
+          'Two services are exceptions, because the native implementation '.
+          'they would select no longer exists:'.
+          "\n\n".
+          ' - "render", for difference generation: the native GNU and PHP '.
+          'difference engines have been removed, so raw and prose '.
+          'differences fail while the service is unavailable, whatever this '.
+          'is set to.'.
+          "\n".
+          ' - "db": the native PHP diagnostics have been removed, so a '.
+          '"fallback" or "off" value for this service is ignored and treated '.
+          'as "required". PhabricatorGorgeDBSetupCheck reports the ignored '.
+          'override.'));
 
     $options[] = $this->newOption(
       'gorge.service-policies',
