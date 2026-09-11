@@ -74,12 +74,24 @@ foreach ($owned_keys as $key) {
 }
 
 // Drop the managed Gorge mailer, keeping every administrator-configured
-// entry. The key is the same one build_deployment_config.php writes and
-// removes, so an install which renamed it through GORGE_MAILER_KEY is matched
-// too. Entries this deployment never managed are left alone.
+// entry.
+//
+// The predicate is the entry type, not its key. build_deployment_config.php
+// matches on GORGE_MAILER_KEY because it is removing the entry it wrote
+// moments earlier in the same process, with that variable in hand. This is a
+// one-way migration and runs without the retired deployment's environment --
+// the documented reused-volume `docker run` recipe passes no GORGE_MAILER_KEY
+// at all -- so keying off it would miss the managed entry of any install
+// which renamed it, and leave mail pointed at the retired endpoint.
+//
+// `type: gorge` identifies a mailer served by the Gorge mailer service under
+// any key, which is exactly the set being retired, and administrator-owned
+// entries are other types (smtp, sendmail, ses, ...). The key is still
+// honored when it is available, so an entry which was renamed to a
+// non-`gorge` type by hand is matched too.
 $mailer_key = getenv('GORGE_MAILER_KEY');
 if ($mailer_key === false || !strlen($mailer_key)) {
-  $mailer_key = 'gorge-mailer';
+  $mailer_key = null;
 }
 
 if (array_key_exists('cluster.mailers', $config) &&
@@ -87,11 +99,19 @@ if (array_key_exists('cluster.mailers', $config) &&
   $mailers = array();
   $dropped = 0;
   foreach ($config['cluster.mailers'] as $mailer) {
-    if (is_array($mailer) &&
-        isset($mailer['key']) &&
-        $mailer['key'] === $mailer_key) {
-      $dropped++;
-      continue;
+    if (is_array($mailer)) {
+      // Plain PHP only: like build_deployment_config.php, this script runs
+      // without booting Phorge, so libphutil helpers are not available.
+      $type = array_key_exists('type', $mailer) ? $mailer['type'] : null;
+      $key = array_key_exists('key', $mailer) ? $mailer['key'] : null;
+
+      $is_gorge_type = ($type === 'gorge');
+      $is_managed_key = ($mailer_key !== null) && ($key === $mailer_key);
+
+      if ($is_gorge_type || $is_managed_key) {
+        $dropped++;
+        continue;
+      }
     }
     $mailers[] = $mailer;
   }
@@ -104,7 +124,7 @@ if (array_key_exists('cluster.mailers', $config) &&
       // mailer default applies again, which is where a pre-Gorge install was.
       unset($config['cluster.mailers']);
     }
-    $removed[] = 'cluster.mailers['.$mailer_key.']';
+    $removed[] = 'cluster.mailers[type=gorge]';
   }
 }
 
