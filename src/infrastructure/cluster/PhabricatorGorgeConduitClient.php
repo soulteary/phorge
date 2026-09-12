@@ -133,7 +133,13 @@ final class PhabricatorGorgeConduitClient
   private static function parseConduitResponse($uri, $result) {
     list($status, $body) = $result;
 
-    if ($status instanceof Exception) {
+    $status_code = null;
+    if ($status instanceof HTTPFutureHTTPResponseStatus) {
+      // HTTP response statuses are Exception subclasses too, including a
+      // successful 200. Inspect them before the generic exception branch so
+      // valid Conduit responses are not mistaken for transport failures.
+      $status_code = $status->getStatusCode();
+    } else if ($status instanceof Exception) {
       // The request never produced a response: connection refused, DNS
       // failure, timeout, and so on. There is no envelope to read.
       throw new Exception(
@@ -160,12 +166,17 @@ final class PhabricatorGorgeConduitClient
           (string)idx($envelope, 'error_info', ''));
       }
 
-      return idx($envelope, 'result');
-    }
+      if ($status_code !== null && $status_code != 200) {
+        throw new Exception(
+          pht(
+            'The %s returned HTTP %d for "%s": %s',
+            self::getServiceName(),
+            $status_code,
+            $uri,
+            $body));
+      }
 
-    $status_code = null;
-    if ($status instanceof HTTPFutureHTTPResponseStatus) {
-      $status_code = $status->getStatusCode();
+      return idx($envelope, 'result');
     }
 
     if ($status_code !== null && $status_code != 200) {
