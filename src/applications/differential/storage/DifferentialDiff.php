@@ -467,6 +467,58 @@ final class DifferentialDiff
     );
   }
 
+  /**
+   * Read the branch this diff was meant to land on, from its "arc:onto" diff
+   * property.
+   *
+   * This is diff-level data -- a property of the diff itself, written by the
+   * client which created it -- so it survives the removal of revisions. It was
+   * deleted with the revision layer by mistake while getFieldValuesForConduit()
+   * still called it.
+   */
+  public function loadTargetBranch() {
+    // TODO: This is sketchy, but just eat the query cost until this can get
+    // cleaned up.
+
+    // For now, we're only returning a target if there's exactly one and it's
+    // a branch, since we don't support landing to more esoteric targets like
+    // tags yet.
+
+    $property = id(new DifferentialDiffProperty())->loadOneWhere(
+      'diffID = %d AND name = %s',
+      $this->getID(),
+      'arc:onto');
+    if (!$property) {
+      return null;
+    }
+
+    $data = $property->getData();
+
+    if (!$data) {
+      return null;
+    }
+
+    if (!is_array($data)) {
+      return null;
+    }
+
+    if (count($data) != 1) {
+      return null;
+    }
+
+    $onto = head($data);
+    if (!is_array($onto)) {
+      return null;
+    }
+
+    $type = idx($onto, 'type');
+    if ($type != 'branch') {
+      return null;
+    }
+
+    return idx($onto, 'name');
+  }
+
   public function getFieldValuesForConduit() {
     $refs = array();
 

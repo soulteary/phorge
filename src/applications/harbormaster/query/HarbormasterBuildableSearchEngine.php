@@ -131,8 +131,7 @@ final class HarbormasterBuildableSearchEngine
 
     $phids = array();
     foreach ($buildables as $buildable) {
-      $phids[] = $buildable->getBuildableObject()
-        ->getHarbormasterBuildableDisplayPHID();
+      $phids[] = $this->getBuildableDisplayPHID($buildable);
 
       $phids[] = $buildable->getContainerPHID();
       $phids[] = $buildable->getBuildablePHID();
@@ -145,8 +144,7 @@ final class HarbormasterBuildableSearchEngine
     foreach ($buildables as $buildable) {
       $id = $buildable->getID();
 
-      $display_phid = $buildable->getBuildableObject()
-        ->getHarbormasterBuildableDisplayPHID();
+      $display_phid = $this->getBuildableDisplayPHID($buildable);
 
       $container_phid = $buildable->getContainerPHID();
       $buildable_phid = $buildable->getBuildablePHID();
@@ -189,6 +187,32 @@ final class HarbormasterBuildableSearchEngine
     $result->setNoDataString(pht('No buildables found.'));
 
     return $result;
+  }
+
+
+  /**
+   * Read a buildable's display PHID, tolerating objects which no longer
+   * declare themselves buildable.
+   *
+   * Historical rows can point at an object whose class has since stopped
+   * implementing @{class:HarbormasterBuildableInterface} -- a Differential
+   * diff, for instance, once the revision layer was removed. Such a row is
+   * still loadable, so calling the interface method on it unconditionally
+   * takes the whole Buildables list down with an undefined-method error.
+   *
+   * Fall back to the buildable's own PHID, which always renders.
+   *
+   * @param HarbormasterBuildable $buildable Buildable to describe.
+   * @return string|null PHID to render as the buildable's name.
+   */
+  private function getBuildableDisplayPHID(HarbormasterBuildable $buildable) {
+    $object = $buildable->getBuildableObject();
+
+    if ($object instanceof HarbormasterBuildableInterface) {
+      return $object->getHarbormasterBuildableDisplayPHID();
+    }
+
+    return $buildable->getBuildablePHID();
   }
 
 }
