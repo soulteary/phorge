@@ -5,11 +5,9 @@ Guide to the Differential (pre-push code review) tool and workflow.
 
 = Overview =
 
-Phorge supports two code review workflows, "review" (pre-push) and
-"audit" (post-push). To understand the differences between the two, see
-@{article:User Guide: Review vs Audit}.
+Phorge supports a pre-push code review workflow, "review".
 
-This document summarizes the pre-push "review" workflow implemented by the tool
+This document summarizes the "review" workflow implemented by the tool
 //Differential//.
 
 = How Review Works =

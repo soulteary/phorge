@@ -45,7 +45,6 @@ When a commit is published, Phorge acts on it and:
   - sends email;
   - delivers notifications;
   - publishes a feed story;
-  - triggers Audits;
   - runs Herald rules;
   - updates mentioned objects;
   - closes referenced tasks; and
