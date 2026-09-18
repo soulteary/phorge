@@ -352,8 +352,6 @@ Staging Area
 The **Staging Area** panel configures staging areas, used to make proposed
 changes available to build and continuous integration systems.
 
-For more details, see @{article:Harbormaster User Guide}.
-
 
 Automation
 ==========
