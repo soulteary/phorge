@@ -16,7 +16,6 @@ These applications currently support custom fields:
 
 | Application | Support |
 |-------------|---------|
-| Differential | Partial Support |
 | Diffusion | Limited Support |
 | Maniphest | Full Support |
 | People | Full Support |
@@ -38,7 +37,6 @@ The relevant configuration settings are:
 
 | Application | Add Fields | Select Fields |
 |-------------|------------|---------------|
-| Differential | Planned | `differential.fields` |
 | Diffusion | Planned | Planned |
 | Maniphest | `maniphest.custom-field-definitions` | `maniphest.fields` |
 | People | `user.custom-field-definitions` | `user.fields` |

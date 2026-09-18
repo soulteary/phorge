@@ -26,8 +26,8 @@ For example, you can write a personal rule like this which triggers on tasks:
 This rule will automatically subscribe you to any newly created or updated
 tasks that contain "quasar" in the title.
 
-Herald rules are often used to: notify users, add reviewers, classify
-objects, block commits, enforce CLAs, and run builds.
+Herald rules are often used to: notify users, classify objects, block
+commits, and run builds.
 
 
 Working with Rules
