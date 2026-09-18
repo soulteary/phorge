@@ -68,10 +68,8 @@ If you are deploying hardware in EC2, a reasonable approach is to launch a
 dedicated Phorge VPC, put the whole VPC into the allowlist as a Phorge cluster,
 and then deploy only Phorge services into that VPC.
 
-If you have additional auxiliary hosts which run builds and tests via Drydock,
-you should //not// include them in the cluster address definition. For more
-detailed discussion of the Drydock security model, see
-@{article:Drydock User Guide: Security}.
+If you have additional auxiliary hosts which run builds and tests, you should
+//not// include them in the cluster address definition.
 
 Most other clustering features will not work until you define a cluster by
 configuring `cluster.addresses`.

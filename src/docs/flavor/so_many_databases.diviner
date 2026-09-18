@@ -39,7 +39,6 @@ secure_countdown
 secure_daemon
 secure_differential
 secure_draft
-secure_drydock
 secure_feed
 ...<dozens more databases>...
 ```

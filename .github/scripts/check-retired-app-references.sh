@@ -53,6 +53,11 @@ fi
 # Word boundaries so "DifferentialDiff" does not match "DifferentialDiffQuery".
 sed 's/^/\\b/; s/$/\\b/' "$work/removed.txt" > "$work/patterns.txt"
 
+# resources/ is scanned because the SQL autopatches under resources/sql are
+# executed by `bin/storage upgrade`, which `require`s the PHP ones with no
+# compatibility guard: a reference to a removed class there is a fatal error
+# during an upgrade, not dead prose.
+#
 # Documentation is excluded deliberately: src/docs is prose and Diviner book
 # configuration rather than runtime code, and webroot/rsrc/externals is
 # third-party, which .arcconfig also excludes from linting. The library map
@@ -63,8 +68,9 @@ rg --line-number --no-heading --color never --hidden --only-matching \
   --glob '!src/docs/**' \
   --glob '!webroot/rsrc/externals/**' \
   --glob '!src/applications/retired/**' \
+  --glob '!**/.phutil_module_cache' \
   -f "$work/patterns.txt" \
-  src scripts bin webroot > "$work/matches.txt" || rg_status=$?
+  src scripts bin webroot resources > "$work/matches.txt" || rg_status=$?
 
 case "$rg_status" in
   0) ;;

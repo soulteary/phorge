@@ -26,3 +26,18 @@ scripts/setup/manage_collaboration_profile.php:PhabricatorDrydockApplication
 # appears inside the prose of a message, not as a reference to the class, and the
 # key has to match the source string byte for byte to translate anything.
 src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php:HarbormasterBuildable
+
+# Application PHIDs are 'PHID-APPS-'.get_class($application), so these string
+# literals are the values the stored rows carry. The classes are gone, so the
+# patches cannot ask for them; each patch says so at the literal.
+resources/sql/autopatches/20260911.paste.01.appemail.php:PhabricatorPasteApplication
+resources/sql/autopatches/20260911.differential.01.appemail.php:PhabricatorDifferentialApplication
+
+# "engineClassName" on a saved query is a stored string. This patch predates
+# the removal and has to keep matching rows written while the class existed.
+resources/sql/autopatches/20170811.differential.01.status.php:DifferentialRevisionSearchEngine
+
+# A historical data migration which rewrites stored authorPHID values. The
+# reason lives here rather than at the reference because .sql patches are
+# applied verbatim and carry no comments anywhere in this tree.
+resources/sql/autopatches/20140723.apprenamexaction.sql:PhabricatorHarbormasterApplication
