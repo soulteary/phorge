@@ -136,10 +136,6 @@
       "name": "Flags",
       "include": "(^src/applications/flag/)"
     },
-    "harbormaster": {
-      "name": "Harbormaster",
-      "include": "(^src/applications/harbormaster/)"
-    },
     "help": {
       "name": "Help",
       "include": "(^src/applications/help/)"
