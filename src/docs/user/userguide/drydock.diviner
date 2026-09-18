@@ -15,7 +15,6 @@ applications coordinate during complex build and deployment tasks. Typically,
 you will configure Drydock to enable capabilities in other applications:
 
   - Harbormaster can use Drydock to host builds.
-  - Differential can use Drydock to perform server-side merges.
 
 Users will not normally interact with Drydock directly.
 
@@ -67,11 +66,6 @@ Getting Started with Drydock
 In general, you will interact with Drydock by configuring blueprints, which
 tell Drydock how to build resources. You can jump into this topic directly
 in @{article:Drydock Blueprints}.
-
-For help on configuring specific application features:
-
-  - to configure server-side merges from Differential, see
-    @{article:Differential User Guide: Automated Landing}.
 
 You should also understand the Drydock security model before deploying it
 in a production environment. See @{article:Drydock User Guide: Security}.

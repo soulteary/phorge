@@ -19,8 +19,6 @@ and access controls which are not available for observed repositories.
 Diffusion is integrated with the other tools in the Phorge suite. For
 instance:
 
-  - when you commit Differential revisions to a tracked repository, they are
-    automatically updated and linked to the corresponding commits;
   - you can add Herald rules to notify you about commits that match certain
     rules;
   - for hosted repositories, Herald can enforce granular access control rules;

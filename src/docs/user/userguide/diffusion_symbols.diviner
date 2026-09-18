@@ -9,8 +9,8 @@ Phorge can maintain a symbol index, which keeps track of where classes
 and functions are defined in the codebase. Once you set up indexing, you can
 use the index to do things like:
 
-  - jump to symbol definitions from Differential code reviews and Diffusion
-    code browsing by ctrl-clicking (cmd-click on Mac) symbols
+  - jump to symbol definitions from Diffusion code browsing by ctrl-clicking
+    (cmd-click on Mac) symbols
   - search for symbols from the quick-search
   - let the IRC bot answer questions like "Where is SomeClass?"
 

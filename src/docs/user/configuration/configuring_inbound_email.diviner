@@ -71,8 +71,8 @@ domain you configure according to the instructions below, e.g.
 `phorge.example.com`. Once you set this key, email will use a
 "Reply-To" like `T123+273+af310f9220ad@phorge.example.com`, which -- when
 configured correctly, according to the instructions below -- will parse incoming
-email and allow users to interact with Differential revisions, Maniphest tasks,
-etc. over email.
+email and allow users to interact with Maniphest tasks, commits, etc. over
+email.
 
 If you don't want Phorge to take up an entire domain (or subdomain) you
 can configure a general prefix so you can use a single mailbox to receive mail
