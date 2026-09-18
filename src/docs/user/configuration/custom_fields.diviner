@@ -19,7 +19,6 @@ These applications currently support custom fields:
 | Differential | Partial Support |
 | Diffusion | Limited Support |
 | Maniphest | Full Support |
-| Owners | Full Support |
 | People | Full Support |
 | Projects | Full Support |
 
@@ -42,7 +41,6 @@ The relevant configuration settings are:
 | Differential | Planned | `differential.fields` |
 | Diffusion | Planned | Planned |
 | Maniphest | `maniphest.custom-field-definitions` | `maniphest.fields` |
-| Owners | `owners.custom-field-definitions` | `owners.fields` |
 | People | `user.custom-field-definitions` | `user.fields` |
 | Projects | `projects.custom-field-definitions` | `projects.fields` |
 

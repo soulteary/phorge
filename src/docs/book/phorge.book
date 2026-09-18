@@ -192,10 +192,6 @@
       "name": "OAuth Server",
       "include": "(^src/applications/oauthserver/)"
     },
-    "owners": {
-      "name": "Owners",
-      "include": "(^src/applications/owners/)"
-    },
     "passphrase": {
       "name": "Passphrase",
       "include": "(^src/applications/passphrase/)"
