@@ -15,7 +15,7 @@ final class AlmanacServiceEditController
       $list_uri = $this->getApplicationURI('service/');
 
       $service_type = $request->getStr('serviceType');
-      $service_types = AlmanacServiceType::getAllServiceTypes();
+      $service_types = AlmanacServiceType::getCreatableServiceTypes();
       if ($service_type === null || empty($service_types[$service_type])) {
         return $this->buildServiceTypeResponse($list_uri);
       }
@@ -29,7 +29,7 @@ final class AlmanacServiceEditController
   }
 
   private function buildServiceTypeResponse($cancel_uri) {
-    $service_types = AlmanacServiceType::getAllServiceTypes();
+    $service_types = AlmanacServiceType::getCreatableServiceTypes();
 
     $request = $this->getRequest();
     $viewer = $this->getViewer();
