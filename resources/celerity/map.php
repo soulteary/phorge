@@ -320,7 +320,6 @@ return array(
     'rsrc/js/application/diffusion/behavior-locate-file.js' => '4c77f259',
     'rsrc/js/application/diffusion/behavior-pull-lastmodified.js' => 'c715c123',
     'rsrc/js/application/doorkeeper/behavior-doorkeeper-tag.js' => '6a85bc5a',
-    'rsrc/js/application/drydock/drydock-live-operation-status.js' => '47a0728b',
     'rsrc/js/application/fact/Chart.js' => '48fae0e0',
     'rsrc/js/application/fact/ChartCurtainView.js' => '52837786',
     'rsrc/js/application/fact/ChartFunctionLabel.js' => 'b04c258c',
@@ -536,7 +535,6 @@ return array(
     'javelin-behavior-diffusion-pull-lastmodified' => 'c715c123',
     'javelin-behavior-document-engine' => '9d02b360',
     'javelin-behavior-doorkeeper-tag' => '6a85bc5a',
-    'javelin-behavior-drydock-live-operation-status' => '47a0728b',
     'javelin-behavior-durable-column' => 'a2d381d8',
     'javelin-behavior-editengine-reorder-configs' => '636c1d6d',
     'javelin-behavior-editengine-reorder-fields' => '0235b35d',
@@ -1221,11 +1219,6 @@ return array(
       'phabricator-keyboard-shortcut',
       'phabricator-darklog',
       'phabricator-darkmessage',
-    ),
-    '47a0728b' => array(
-      'javelin-behavior',
-      'javelin-dom',
-      'javelin-request',
     ),
     '48c2854f' => array(
       'aphront-dialog-view-css',

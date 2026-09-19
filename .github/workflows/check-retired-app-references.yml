@@ -1,0 +1,31 @@
+name: Check retired application references
+
+on:
+  push:
+    branches:
+      - 'cleanup/apps-*'
+  pull_request:
+    branches:
+      - 'cleanup/apps-*'
+
+permissions:
+  contents: read
+
+jobs:
+  references:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The check computes the removed symbol set by reading the Phutil
+          # library map at the pre-cleanup baseline, so it needs the history
+          # that commit is in.
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+          command -v rg
+      - name: Check live references
+        run: bash .github/scripts/check-retired-app-references.sh

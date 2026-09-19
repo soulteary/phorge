@@ -265,9 +265,8 @@ transferred over the network to clone it, and simply reverting the changes
 doesn't reduce the impact of this kind of mistake.
 
 **Clone/Fetch Timeout**: Configure the internal timeout for creating copies
-of this repository during operations like intracluster synchronization and
-Drydock working copy construction. This timeout does not affect external
-users.
+of this repository during operations like intracluster synchronization. This
+timeout does not affect external users.
 
 **Touch Limit**: Apply a limit to the maximum number of paths that any commit
 may touch. If a commit affects more paths than this limit, it will be rejected.
@@ -351,17 +350,6 @@ Staging Area
 
 The **Staging Area** panel configures staging areas, used to make proposed
 changes available to build and continuous integration systems.
-
-
-Automation
-==========
-
-The **Automation** panel configures support for allowing Phorge to make
-writes directly to the repository, so that it can perform operations like
-automatically landing revisions from the web UI.
-
-For details on repository automation, see
-@{article:Drydock User Guide: Repository Automation}.
 
 
 Symbols

@@ -58,7 +58,7 @@ final class AlmanacServiceEditEngine
           'must provide a "type" transaction to select a type.'));
     }
 
-    $map = AlmanacServiceType::getAllServiceTypes();
+    $map = AlmanacServiceType::getCreatableServiceTypes();
     if (!isset($map[$type])) {
       throw new Exception(
         pht(
