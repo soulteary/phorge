@@ -19,13 +19,6 @@ final class PhorgeProductProfile extends Phobject {
   public static function getManagedApplicationClasses() {
     return array(
       'PhabricatorDiffusionApplication',
-      'PhabricatorDifferentialApplication',
-      'PhabricatorAuditApplication',
-      'PhabricatorOwnersApplication',
-      'PhabricatorHarbormasterApplication',
-      'PhabricatorDrydockApplication',
-      'PhabricatorDivinerApplication',
-      'PhabricatorPasteApplication',
     );
   }
 

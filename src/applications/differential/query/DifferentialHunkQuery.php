@@ -84,7 +84,7 @@ final class DifferentialHunkQuery
   }
 
   public function getQueryApplicationClass() {
-    return PhabricatorDifferentialApplication::class;
+    return PhabricatorDiffusionApplication::class;
   }
 
   protected function getDefaultOrderVector() {

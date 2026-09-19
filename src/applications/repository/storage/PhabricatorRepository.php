@@ -1254,12 +1254,6 @@ final class PhabricatorRepository extends PhabricatorRepositoryDAO
   public function delete() {
     $this->openTransaction();
 
-      $paths = id(new PhabricatorOwnersPath())
-        ->loadAllWhere('repositoryPHID = %s', $this->getPHID());
-      foreach ($paths as $path) {
-        $path->delete();
-      }
-
       queryfx(
         $this->establishConnection('w'),
         'DELETE FROM %T WHERE repositoryPHID = %s',
@@ -2563,33 +2557,6 @@ final class PhabricatorRepository extends PhabricatorRepositoryDAO
   }
 
 
-/* -(  Automation  )--------------------------------------------------------- */
-
-
-  public function supportsAutomation() {
-    return $this->isGit();
-  }
-
-  public function canPerformAutomation() {
-    if (!$this->supportsAutomation()) {
-      return false;
-    }
-
-    if (!$this->getAutomationBlueprintPHIDs()) {
-      return false;
-    }
-
-    return true;
-  }
-
-  public function getAutomationBlueprintPHIDs() {
-    if (!$this->supportsAutomation()) {
-      return array();
-    }
-    return $this->getDetail('automation.blueprintPHIDs', array());
-  }
-
-
 /* -(  PhabricatorApplicationTransactionInterface  )------------------------- */
 
 
@@ -2678,21 +2645,10 @@ final class PhabricatorRepository extends PhabricatorRepositoryDAO
 
       PhabricatorRepositoryURIIndex::updateRepositoryURIs($phid, array());
 
-      $books = id(new DivinerBookQuery())
-        ->setViewer($engine->getViewer())
-        ->withRepositoryPHIDs(array($phid))
-        ->execute();
-      foreach ($books as $book) {
-        $engine->destroyObject($book);
-      }
-
-      $atoms = id(new DivinerAtomQuery())
-        ->setViewer($engine->getViewer())
-        ->withRepositoryPHIDs(array($phid))
-        ->execute();
-      foreach ($atoms as $atom) {
-        $engine->destroyObject($atom);
-      }
+      // Diviner books and atoms were cascaded from here. That application has
+      // been removed, so there is nothing left to destroy and the queries no
+      // longer exist; reaching for them would abort every repository
+      // destruction midway through.
 
       $lfs_refs = id(new PhabricatorRepositoryGitLFSRefQuery())
         ->setViewer($engine->getViewer())

@@ -12,8 +12,6 @@ final class DiffusionCommitGraphView
   private $noDataString;
 
   private $commitMap;
-  private $buildableMap;
-  private $revisionMap;
 
   private $showAuditors;
 
@@ -123,20 +121,9 @@ final class DiffusionCommitGraphView
 
     require_celerity_resource('diffusion-css');
 
-    $show_builds = $this->shouldShowBuilds();
-    $show_revisions = $this->shouldShowRevisions();
     $show_auditors = $this->shouldShowAuditors();
 
     $phids = array();
-
-    if ($show_revisions) {
-      $revision_map = $this->getRevisionMap();
-      foreach ($revision_map as $revisions) {
-        foreach ($revisions as $revision) {
-          $phids[] = $revision->getPHID();
-        }
-      }
-    }
 
     $commits = $this->getCommitMap();
 
@@ -181,14 +168,7 @@ final class DiffusionCommitGraphView
 
       $this->addBrowseAction($item_view, $hash);
 
-      if ($show_builds) {
-        $this->addBuildAction($item_view, $hash);
-      }
-
-      // hide Audit entry on /diffusion/commit/query/all if Audit is disabled
-      if (id(new PhabricatorAuditApplication())->isInstalled()) {
-        $this->addAuditAction($item_view, $hash);
-      }
+      $this->addAuditAction($item_view, $hash);
 
       if ($show_auditors) {
         $auditor_list = $item_view->newMapView();
@@ -208,20 +188,6 @@ final class DiffusionCommitGraphView
           $property_list->newItem()
             ->setName(pht('Author'))
             ->setValue($author_view);
-        }
-      }
-
-      if ($show_revisions) {
-        if ($commit) {
-          $revisions = $this->getRevisions($commit);
-          if ($revisions) {
-            $list_view = $handles->newSublist(mpull($revisions, 'getPHID'))
-              ->newListView();
-
-            $property_list->newItem()
-              ->setName(pht('Revisions'))
-              ->setValue($list_view);
-          }
         }
       }
 
@@ -338,25 +304,6 @@ final class DiffusionCommitGraphView
       ->renderGraph($parents);
   }
 
-  private function shouldShowBuilds() {
-    $viewer = $this->getViewer();
-
-    $show_builds = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorHarbormasterApplication::class,
-      $this->getUser());
-
-    return $show_builds;
-  }
-
-  private function shouldShowRevisions() {
-    $viewer = $this->getViewer();
-
-    $show_revisions = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorDifferentialApplication::class,
-      $viewer);
-
-    return $show_revisions;
-  }
 
   private function shouldShowAuditors() {
     return $this->getShowAuditors();
@@ -507,36 +454,6 @@ final class DiffusionCommitGraphView
       ->setColor('bluegrey');
   }
 
-  private function addBuildAction(PHUIObjectItemView $item, $hash) {
-    $buildable = null;
-
-    $commit = $this->getCommit($hash);
-    if ($commit) {
-      $buildable = $this->getBuildable($commit);
-    }
-
-    if ($buildable) {
-      $icon = $buildable->getStatusIcon();
-      $color = $buildable->getStatusColor();
-      $name = $buildable->getStatusDisplayName();
-      $uri = $buildable->getURI();
-    } else {
-      $icon = 'fa-times';
-      $color = 'grey';
-      $name = pht('No Builds');
-      $uri = null;
-    }
-
-    $menu_item = $item->newMenuItem()
-      ->setName($name)
-      ->setURI($uri)
-      ->setDisabled(($uri === null));
-
-    $menu_item->newIcon()
-      ->setIcon($icon)
-      ->setColor($color);
-  }
-
   private function addAuditAction(PHUIObjectItemView $item_view, $hash) {
     $commit = $this->getCommit($hash);
 
@@ -574,42 +491,6 @@ final class DiffusionCommitGraphView
       ->setColor($color);
   }
 
-  private function getBuildable(PhabricatorRepositoryCommit $commit) {
-    $buildable_map = $this->getBuildableMap();
-    return idx($buildable_map, $commit->getPHID());
-  }
-
-  private function getBuildableMap() {
-    if ($this->buildableMap === null) {
-      $commits = $this->getCommitMap();
-      $buildables = $this->loadBuildables($commits);
-      $this->buildableMap = $buildables;
-    }
-
-    return $this->buildableMap;
-  }
-
-  private function getRevisions(PhabricatorRepositoryCommit $commit) {
-    $revision_map = $this->getRevisionMap();
-    return idx($revision_map, $commit->getPHID(), array());
-  }
-
-  private function getRevisionMap() {
-    if ($this->revisionMap === null) {
-      $this->revisionMap = $this->newRevisionMap();
-    }
-
-    return $this->revisionMap;
-  }
-
-  private function newRevisionMap() {
-    $viewer = $this->getViewer();
-    $commits = $this->getCommitMap();
-
-    return DiffusionCommitRevisionQuery::loadRevisionMapForCommits(
-      $viewer,
-      $commits);
-  }
 
   private function newCommitList() {
     $commits = $this->getCommits();

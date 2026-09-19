@@ -40,8 +40,8 @@ final class PhabricatorAsanaConfigOptions
           pht(
             'When %s creates tasks in Asana, it can add the tasks '.
             'to Asana projects based on which application the corresponding '.
-            'object in %s comes from. For example, you can add code '.
-            'reviews in Asana to a "Differential" project.'.
+            'object in %s comes from. For example, you can add commits '.
+            'in Asana to a "Diffusion" project.'.
             "\n\n".
             'NOTE: This feature is new and experimental.',
             PlatformSymbols::getPlatformServerName(),
@@ -140,12 +140,12 @@ final class PhabricatorAsanaConfigOptions
     $out[] = pht(
       'To specify projects to add tasks to, enter a JSON map with publisher '.
       'class names as keys and a list of project IDs as values. For example, '.
-      'to put Differential tasks into Asana projects with IDs `123` and '.
+      'to put commit tasks into Asana projects with IDs `123` and '.
       '`456`, enter:'.
       "\n\n".
       "  lang=txt\n".
       "  {\n".
-      "    \"DifferentialDoorkeeperRevisionFeedStoryPublisher\" : [123, 456]\n".
+      "    \"DiffusionDoorkeeperCommitFeedStoryPublisher\" : [123, 456]\n".
       "  }\n");
 
     $out[] = pht('Available publishers class names are:');

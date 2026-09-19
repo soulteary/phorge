@@ -342,7 +342,7 @@ abstract class PhabricatorObjectRemarkupRule extends PhutilRemarkupRule {
 
     // If we're rendering a table of contents, just render the raw input.
     // This could perhaps be handled more gracefully but it seems unusual to
-    // put something like "{P123}" in a header and it's not obvious what users
+    // put something like "{F123}" in a header and it's not obvious what users
     // expect? See T8845.
     $engine = $this->getEngine();
     if ($engine->getState('toc')) {

@@ -13,7 +13,7 @@ final class DifferentialDiffPHIDType extends PhabricatorPHIDType {
   }
 
   public function getPHIDTypeApplicationClass() {
-    return PhabricatorDifferentialApplication::class;
+    return PhabricatorDiffusionApplication::class;
   }
 
   protected function buildQueryForObjects(

@@ -30,15 +30,6 @@ final class PHUIHomeView
       PhabricatorDiffusionApplication::class,
       $viewer);
 
-    $has_differential = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorDifferentialApplication::class,
-      $viewer);
-
-    $revision_panel = null;
-    if ($has_differential) {
-      $revision_panel = $this->buildRevisionPanel();
-    }
-
     $tasks_panel = null;
     if ($has_maniphest) {
       $tasks_panel = $this->buildTasksPanel();
@@ -61,7 +52,6 @@ final class PHUIHomeView
         'class' => 'homepage-panel',
       ),
       array(
-        $revision_panel,
         $tasks_panel,
         $repository_panel,
       ));
@@ -82,23 +72,6 @@ final class PHUIHomeView
         ->appendChild($dashboard);
 
       return $view;
-  }
-
-  /**
-   * @return PHUIObjectBoxView|null
-   */
-  private function buildRevisionPanel() {
-    $viewer = $this->getViewer();
-    if (!$viewer->isLoggedIn()) {
-      return null;
-    }
-
-    $panel = $this->newQueryPanel()
-      ->setName(pht('Active Revisions'))
-      ->setProperty('class', 'DifferentialRevisionSearchEngine')
-      ->setProperty('key', 'active');
-
-    return $this->renderPanel($panel);
   }
 
   /**

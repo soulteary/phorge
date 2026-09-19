@@ -185,7 +185,6 @@ return array(
   'differential.pkg.css' => array(
     'differential-core-view-css',
     'differential-changeset-view-css',
-    'differential-revision-history-css',
     'differential-table-of-contents-css',
     'differential-revision-add-comment-css',
     'phabricator-object-selector-css',
@@ -200,7 +199,6 @@ return array(
     'phabricator-shaped-request',
 
     'javelin-behavior-differential-populate',
-    'javelin-behavior-differential-diff-radios',
     'javelin-behavior-aphront-drag-and-drop-textarea',
     'javelin-behavior-phabricator-object-selector',
     'javelin-behavior-repository-crossreference',

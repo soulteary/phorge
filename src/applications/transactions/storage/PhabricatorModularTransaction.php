@@ -1,9 +1,5 @@
 <?php
 
-// TODO: Some "final" modifiers have been VERY TEMPORARILY moved aside to
-// allow DifferentialTransaction to extend this class without converting
-// fully to ModularTransactions.
-
 abstract class PhabricatorModularTransaction
   extends PhabricatorApplicationTransaction {
 

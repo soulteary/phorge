@@ -1,7 +1,53 @@
 <?php
 
-$conn_w = id(new DifferentialRevision())->establishConnection('w');
+// The Differential revision models have been removed. This patch still has to
+// run against installations whose schema predates it, and all it ever wanted
+// from them was a connection to the differential database and a table name, so
+// declare the minimum here.
+//
+// Database "differential": the value DifferentialDAO::getApplicationName()
+// produced. Table names are the ones PhabricatorLiskDAO::getTableName()
+// produced for the deleted classes.
+final class DifferentialArmageddonMigrationDAO extends PhabricatorLiskDAO {
+
+  public function getApplicationName() {
+    return 'differential';
+  }
+
+  public function getTableName() {
+    return 'differential_revision';
+  }
+
+}
+
+$revision_table = new DifferentialArmageddonMigrationDAO();
+$conn_w = $revision_table->establishConnection('w');
 $rows = new LiskRawMigrationIterator($conn_w, 'differential_comment');
+
+// These constants came from classes which were removed with Differential
+// revisions. Actions, transaction types and PHID types are stored strings and
+// edge types are stored integers, so the literals are what rows written before
+// the removal carry.
+
+// DifferentialAction::ACTION_COMMENT, ACTION_ADDREVIEWERS, ACTION_ADDCCS and
+// ACTION_UPDATE.
+$action_comment = 'none';
+$action_add_reviewers = 'add_reviewers';
+$action_add_ccs = 'add_ccs';
+$action_update = 'update';
+
+// DifferentialTransaction::TYPE_INLINE and TYPE_ACTION.
+$type_inline = 'differential:inline';
+$type_action = 'differential:action';
+
+// DifferentialRevisionUpdateTransaction::TRANSACTIONTYPE.
+$type_revision_update = 'differential:update';
+
+// DifferentialRevisionHasReviewerEdgeType::EDGECONST.
+$reviewer_edge = 35;
+
+// DifferentialRevisionPHIDType::TYPECONST.
+$revision_type = 'DREV';
 
 $content_source = PhabricatorContentSource::newForSource(
   PhabricatorOldWorldContentSource::SOURCECONST)->serialize();
@@ -11,13 +57,17 @@ foreach ($rows as $row) {
   $id = $row['id'];
   echo pht('Migrating comment %d...', $id)."\n";
 
-  $revision = id(new DifferentialRevision())->load($row['revisionID']);
-  if (!$revision) {
+  $revision_row = queryfx_one(
+    $conn_w,
+    'SELECT phid FROM %T WHERE id = %d',
+    $revision_table->getTableName(),
+    $row['revisionID']);
+  if (!$revision_row) {
     echo pht('No revision, continuing.')."\n";
     continue;
   }
 
-  $revision_phid = $revision->getPHID();
+  $revision_phid = $revision_row['phid'];
 
   $comments = queryfx_all(
     $conn_w,
@@ -50,17 +100,17 @@ foreach ($rows as $row) {
 
   // Build the main action transaction.
   switch ($row['action']) {
-    case DifferentialAction::ACTION_COMMENT:
-    case DifferentialAction::ACTION_ADDREVIEWERS:
-    case DifferentialAction::ACTION_ADDCCS:
-    case DifferentialAction::ACTION_UPDATE:
-    case DifferentialTransaction::TYPE_INLINE:
+    case $action_comment:
+    case $action_add_reviewers:
+    case $action_add_ccs:
+    case $action_update:
+    case $type_inline:
       // These actions will have their transactions created by other rules.
       break;
     default:
       // Otherwise, this is a normal action (like an accept or reject).
       $xactions[] = array(
-        'type' => DifferentialTransaction::TYPE_ACTION,
+        'type' => $type_action,
         'old' => null,
         'new' => $row['action'],
       );
@@ -73,9 +123,9 @@ foreach ($rows as $row) {
     $diff_id = null;
   }
 
-  if ($diff_id || $row['action'] == DifferentialAction::ACTION_UPDATE) {
+  if ($diff_id || $row['action'] == $action_update) {
     $xactions[] = array(
-      'type' => DifferentialRevisionUpdateTransaction::TRANSACTIONTYPE,
+      'type' => $type_revision_update,
       'old' => null,
       'new' => $diff_id,
     );
@@ -99,7 +149,7 @@ foreach ($rows as $row) {
       }
       $old[$phid] = array(
         'src' => $revision_phid,
-        'type' => DifferentialRevisionHasReviewerEdgeType::EDGECONST,
+        'type' => $reviewer_edge,
         'dst' => $phid,
       );
     }
@@ -111,7 +161,7 @@ foreach ($rows as $row) {
       }
       $new[$phid] = array(
         'src' => $revision_phid,
-        'type' => DifferentialRevisionHasReviewerEdgeType::EDGECONST,
+        'type' => $reviewer_edge,
         'dst' => $phid,
       );
     }
@@ -121,7 +171,7 @@ foreach ($rows as $row) {
       'old' => $old,
       'new' => $new,
       'meta' => array(
-        'edge:type' => DifferentialRevisionHasReviewerEdgeType::EDGECONST,
+        'edge:type' => $reviewer_edge,
       ),
     );
   }
@@ -155,7 +205,7 @@ foreach ($rows as $row) {
   // Build inline comment transactions.
   foreach ($inline_comments as $inline) {
     $xactions[] = array(
-      'type' => DifferentialTransaction::TYPE_INLINE,
+      'type' => $type_inline,
       'old' => null,
       'new' => null,
       'phid' => $inline['transactionPHID'],
@@ -171,7 +221,7 @@ foreach ($rows as $row) {
     if (!$xaction_phid) {
       $xaction_phid = PhabricatorPHID::generateNewPHID(
         PhabricatorApplicationTransactionTransactionPHIDType::TYPECONST,
-        DifferentialRevisionPHIDType::TYPECONST);
+        $revision_type);
     }
     unset($xaction['phid']);
 

@@ -9,6 +9,42 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
   protected function executeChecks() {
     $service = PhabricatorGorgeServiceRegistry::getService('taskqueue');
     if (!$service->isOwnedBy('gorge')) {
+      // Phorge ownership used to mean "the native taskmaster pool leases from
+      // the SQL queue". PhabricatorTaskmasterDaemon has been retired and phd
+      // no longer launches it, so this is now a configuration in which tasks
+      // are written and never consumed. Report it instead of leaving the
+      // install to discover it as work which silently never happens.
+      $this->newIssue('gorge.taskqueue.no-consumer')
+        ->setName(pht('Task Queue Has No Consumer'))
+        ->setSummary(
+          pht(
+            'The worker queue is assigned to Phorge, but the native '.
+            'taskmaster daemon has been removed.'))
+        ->setMessage(
+          pht(
+            'Queue ownership resolves to %s, either because %s is set to %s '.
+            'or because it is %s with no %s configured. Tasks are still '.
+            'written to the SQL queue, but %s has been retired and %s no '.
+            'longer starts a taskmaster pool at any value of %s, so nothing '.
+            'leases them: every background job (mail, search indexing, '.
+            'repository work, Herald) stops running.'.
+            "\n\n".
+            'Configure the Gorge task queue and worker services and assign '.
+            'ownership to %s. In the bundled stack that is %s with a '.
+            'reachable %s.',
+            phutil_tag('tt', array(), 'phorge'),
+            phutil_tag('tt', array(), 'gorge.taskqueue.owner'),
+            phutil_tag('tt', array(), 'phorge'),
+            phutil_tag('tt', array(), 'auto'),
+            phutil_tag('tt', array(), 'gorge.taskqueue.uri'),
+            phutil_tag('tt', array(), 'PhabricatorTaskmasterDaemon'),
+            phutil_tag('tt', array(), 'phd'),
+            phutil_tag('tt', array(), 'phd.taskmasters'),
+            phutil_tag('tt', array(), 'gorge'),
+            phutil_tag('tt', array(), 'GORGE_TASKQUEUE_MODE=enable'),
+            phutil_tag('tt', array(), 'GORGE_TASKQUEUE_URI')))
+        ->addRelatedPhabricatorConfig('gorge.taskqueue.owner')
+        ->addRelatedPhabricatorConfig('gorge.taskqueue.uri');
       return;
     }
 
@@ -23,12 +59,11 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
             'endpoint is configured.'))
         ->setMessage(
           pht(
-            'Set `%s` to a reachable task queue service, or atomically set ' .
-            '`%s` back to `%s`. Phorge deliberately does not fall back to ' .
-            'SQL while Gorge owns the queue, because that would reactivate ' .
-            'a second consumer.',
+            'Set `%s` to a reachable task queue service. Handing the queue ' .
+            'back to `%s` is no longer an option: the native taskmaster ' .
+            'daemon has been removed, so that configuration has no consumer ' .
+            'at all.',
             'gorge.taskqueue.uri',
-            'gorge.taskqueue.owner',
             'phorge'))
         ->addRelatedPhabricatorConfig('gorge.taskqueue.owner')
         ->addRelatedPhabricatorConfig('gorge.taskqueue.uri');
@@ -39,7 +74,148 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       return;
     }
 
-    $this->checkReady($uri);
+    if (!$this->checkReady($uri)) {
+      return;
+    }
+
+    $this->checkConsumed();
+  }
+
+
+  /**
+   * Report a queue which nothing is draining.
+   *
+   * The two probes above cover the task queue service, which is only half of
+   * the pipeline: `gorge-worker` is a separate process which leases tasks from
+   * that service and executes them. Phorge has no configured address for it --
+   * the worker is a client of the queue, not something this server calls -- so
+   * there is nothing to probe here, and a worker which is stopped or
+   * crash-looping would otherwise leave both this check and the repository
+   * panel reporting success while every background job sat unleased.
+   *
+   * The backlog is read from the service rather than from this server's worker
+   * tables. Those tables hold the queue only when the service runs its MySQL
+   * store; under `GORGE_TASKQUEUE_BACKEND=redis` the tasks live in Redis and
+   * the SQL tables stay empty, so reading SQL directly would report a clean
+   * queue during exactly the outage this check exists to find. The service's
+   * own counts are the same either way.
+   */
+  private function checkConsumed() {
+    try {
+      $client = new PhabricatorGorgeTaskQueueClient();
+      $stats = $client->getStats();
+    } catch (Exception $ex) {
+      // A service which does not answer has already been reported by the
+      // probes above, so do not describe the same outage twice.
+      return;
+    }
+
+    // "activeCount" is every task in the queue and "leasedCount" is the subset
+    // a worker holds a live lease on, so the difference is the work that
+    // nothing is touching.
+    $active = (int)idx($stats, 'activeCount');
+    $leased = (int)idx($stats, 'leasedCount');
+
+    $waiting = $active - $leased;
+    if ($waiting < 1) {
+      return;
+    }
+
+    // A backlog only means something once it stops moving: a burst is normal,
+    // and a worker which is keeping up drains it in seconds. Age the report off
+    // the oldest task nothing is holding.
+    $window = phutil_units('15 minutes in seconds');
+    $horizon = PhabricatorTime::getNow() - $window;
+
+    $oldest = $this->getOldestWaitingTask($client, $horizon);
+    if ($oldest === null) {
+      return;
+    }
+
+    $age = PhabricatorTime::getNow() - $oldest;
+
+    $summary = pht(
+      'Tasks are queued but no worker is leasing them, so background work is '.
+      'not running.');
+
+    $message = pht(
+      'The task queue holds %s task(s) which no worker is holding -- either '.
+      'never leased, or leased by a worker which stopped and let the lease '.
+      'expire -- the oldest queued for %s. The Gorge task queue service is '.
+      'reachable, so the tasks are being written correctly; what is missing '.
+      'is a consumer draining them.'.
+      "\n\n".
+      'That consumer is `%s`, a separate process which leases from the task '.
+      'queue service and executes the work. This server never calls it, so '.
+      'it cannot be probed directly -- check that it is running and look at '.
+      'its logs. In the bundled Compose stack it answers a health check on '.
+      '%s.'.
+      "\n\n".
+      'While this persists, every background job -- outbound mail, search '.
+      'indexing, repository import, Herald -- is queued and never run.',
+      new PhutilNumber($waiting),
+      phutil_format_relative_time($age),
+      phutil_tag('tt', array(), 'gorge-worker'),
+      phutil_tag('tt', array(), ':8170/healthz'));
+
+    $this->newIssue('gorge.taskqueue.not-consumed')
+      ->setName(pht('Task Queue Is Not Being Drained'))
+      ->setSummary($summary)
+      ->setMessage($message)
+      ->addRelatedPhabricatorConfig('gorge.taskqueue.uri')
+      ->addRelatedPhabricatorConfig('gorge.taskqueue.owner');
+  }
+
+
+  /**
+   * Find the oldest queued task which no worker is holding.
+   *
+   * Samples one page instead of walking the queue. The service lists by
+   * priority and then by id, so when nothing is draining the oldest tasks sit
+   * at the front of each band and land on the first page; a queue which is
+   * moving may hide its oldest task further in, which errs toward reporting
+   * nothing rather than toward a false alarm.
+   *
+   * A task counts as held only while its lease is live. An expired lease is
+   * leasable again -- `PhabricatorWorkerLeaseQuery` takes both its unleased
+   * and expired phases -- so a worker which died mid-batch leaves tasks that
+   * still name it as their owner and still need a consumer.
+   *
+   * @param PhabricatorGorgeTaskQueueClient $client Configured client.
+   * @param int $horizon Epoch before which a waiting task counts as stuck.
+   * @return int|null Creation time of the oldest stuck task, if any.
+   */
+  private function getOldestWaitingTask(
+    PhabricatorGorgeTaskQueueClient $client,
+    $horizon) {
+
+    try {
+      $tasks = $client->getTasks(100);
+    } catch (Exception $ex) {
+      return null;
+    }
+
+    $now = PhabricatorTime::getNow();
+    $oldest = null;
+
+    foreach ($tasks as $task) {
+      $owner = idx($task, 'leaseOwner');
+      $expires = (int)idx($task, 'leaseExpires');
+      if (phutil_nonempty_string($owner) && ($expires >= $now)) {
+        continue;
+      }
+
+      $created = (int)idx($task, 'dateCreated');
+      if ($created >= $horizon) {
+        continue;
+      }
+
+      if (($oldest === null) || ($created < $oldest)) {
+        $oldest = $created;
+      }
+    }
+
+    return $oldest;
   }
 
 
@@ -89,29 +265,17 @@ final class PhabricatorGorgeTaskQueueSetupCheck extends PhabricatorSetupCheck {
       'queue stalls.'.
       "\n\n".
       'Check that the service is running and that %s names a host this '.
-      'server can reach. To hand the queue back in the default deployment, '.
-      'stop the %s consumers, set %s to %s, rerun %s without starting its '.
-      'dependencies, and restart Phorge the same way. This regenerates '.
-      'one deployment configuration which assigns %s to %s, clears %s and '.
-      'removes its %s override together, allowing the previous or default '.
-      'native taskmaster pool to resume. Do not restart those consumers '.
-      'while native taskmasters are active. If another deployment system owns '.
-      'these settings, make the equivalent owner, endpoint and taskmaster '.
-      'changes atomically in its configuration source.',
+      'server can reach. There is no longer a way to hand the queue back to '.
+      'native taskmasters: that daemon has been retired, so %s is the only '.
+      'consumer and bringing it back up is the only repair. Queued tasks '.
+      'are leased once it returns.',
       phutil_tag('tt', array(), $uri),
       phutil_tag('tt', array(), $health_uri),
       phutil_tag('pre', array(), $error),
       phutil_tag('tt', array(), 'gorge.taskqueue.owner'),
       phutil_tag('tt', array(), 'gorge'),
       phutil_tag('tt', array(), 'gorge.taskqueue.uri'),
-      phutil_tag('tt', array(), 'gorge-worker'),
-      phutil_tag('tt', array(), 'GORGE_TASKQUEUE_MODE'),
-      phutil_tag('tt', array(), 'disable'),
-      phutil_tag('tt', array(), 'phorge-migrate'),
-      phutil_tag('tt', array(), 'gorge.taskqueue.owner'),
-      phutil_tag('tt', array(), 'phorge'),
-      phutil_tag('tt', array(), 'gorge.taskqueue.uri'),
-      phutil_tag('tt', array(), 'phd.taskmasters'));
+      phutil_tag('tt', array(), 'gorge-worker'));
 
     $this->newIssue('gorge.taskqueue.unreachable')
       ->setName(pht('Gorge Task Queue Service Unreachable'))

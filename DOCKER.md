@@ -62,9 +62,9 @@ docker compose up -d --build
 | `PHORGE_GORGE_POLICY` | `required` | 已配置 Gorge 服务的失败策略：`required` 直接暴露错误；`fallback` 迁移期允许旧实现并记录 `[gorge-fallback]` 日志；`off` 停用请求路由型服务。 |
 | `PHORGE_DB_NAMESPACE` | `phabricator` | Phorge、db-init 与 file-storage/webhook/taskqueue/db-api 的唯一数据库前缀。已有自定义 `storage.default-namespace` 的安装升级前必须设为相同值；不一致时 entrypoint 会拒绝启动。 |
 | `GORGE_IMAGE_TAG` | `2026.09.09-r3` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
-| `PHORGE_WAIT_DB` | `1` | 是否在启动 Web 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
-| `PHORGE_AUTO_UPGRADE` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-migrate` 执行。 |
-| `PHORGE_START_PHD` | `1` | 仅旧版单容器编排使用；默认栈固定由 `phorge-daemon` 运行。 |
+| `PHORGE_WAIT_DB` | `1` | `migrate` 角色是否在执行 `storage upgrade` 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
+| `PHORGE_AUTO_UPGRADE` | `1` | `migrate` 角色是否自动执行 `bin/storage upgrade --force`。只有 `migrate` 读它，`web` / `daemon` 永不迁移 schema。 |
+| `PHORGE_CONTAINER_ROLE` | `web` | 容器角色：`migrate`（写 `local.json`、迁移 schema、发布 `deployment.json`）、`web`、`daemon`。`web` / `daemon` 是只读消费者，缺少这两个文件时直接退出。单容器 `all` 角色已移除。 |
 
 > 注意：`MYSQL_*` 与 `PHORGE_BASE_URI` / `PHORGE_TIMEZONE` **只在首次生成
 > `conf/local/local.json` 时写入**。该文件由 `phorge-conf` 卷持久化，之后改 `.env`
@@ -84,31 +84,54 @@ docker compose up -d --build
 服务超时、返回错误或响应非法时，Phorge 不再按请求静默进入旧实现。迁移期间可临时设为
 `fallback`；每次实际进入原生路径都会记录
 `[gorge-fallback] service=... operation=... process_count=...`。稳定一个发布周期且
-日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、db、search、
+日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、search、
 file 和 mailer 等请求路由型能力；webhook/taskqueue 的排他消费者仍由各自
 `GORGE_*_MODE` 切换，不能靠全局策略隐式改写。
-DB 的 fallback 覆盖完整诊断操作：握手成功后若 servers、schema 或 setup 请求失败，
-仍会记录具体操作并执行对应的原生诊断，而不是只在握手阶段生效。
+两个服务是例外，因为它们要回退到的原生实现已经删除：render/diff 无论策略取值都会在
+服务不可用时直接失败；db 的 `fallback` 与 `off` 会被忽略并按 `required` 处理，
+`PhabricatorGorgeDBSetupCheck` 会报告这个被忽略的覆盖。
 
 Task queue 的 enqueue 是例外：只有在发送请求前即发现端点不可用时才允许进入 SQL
 fallback。请求发出后的超时或坏响应会直接报错，因为 Gorge 可能已经提交任务；此时再
 写一条原生任务会造成重复执行。完整的跨路径重试需要两端共享幂等键后才能开放。
+注意这条 fallback 现在只保证任务被写下来而不会丢：原生 taskmaster 已经删除，
+`phd` 不再启动它，所以写进 SQL 队列的任务要等 Gorge 恢复后才会被消费。
 同理，worker 业务逻辑成功但 required completion 回报失败时，Phorge 会显式报错并把
 SQL 任务停在 `gorge-completion-pending` lease 下，避免租约到期后重复执行；恢复服务后
 应由运维确认实际归档状态再做 reconciliation。
 
 Webhook 与 task queue 分别使用 `gorge.webhook.owner` 和
 `gorge.taskqueue.owner` 明确选择唯一消费者；URI 只表示端点。默认栈把两者设为
-`gorge`，legacy 模式设为 `phorge`。源码安装和旧 overlay 未设置 owner 时仍支持
-`auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+`gorge`。源码安装未设置 owner 时仍支持 `auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+
+但 `phorge` 这一侧现在是空的：原生 webhook 投递与原生 taskmaster 都已经移除，
+所以把 owner 设为 `phorge`——或者在没有配置 URI 的情况下让 `auto` 落到 `phorge`——
+意味着**没有任何消费者**，而不是交还给 phd。两个 setup check
+（`gorge.webhook.no-consumer` / `gorge.taskqueue.no-consumer`）会把这个状态报出来，
+`phorge-migrate` 也会拒绝 `GORGE_WEBHOOK_MODE=disable` 与 `GORGE_TASKQUEUE_MODE=disable`。
 
 Gorge 的九个接入域由 `PhabricatorGorgeServiceRegistry` 统一登记。默认控制面不再逐项
 调用 `bin/config set`，也不再用 `collaboration-profile-state.json` 长期维护应用和字段
 的三方合并；从阶段一升级时若检测到旧状态文件，会先恢复原始管理员配置，再一次性迁移。
 
-后文保留每个 Gorge 服务的逐项说明。其中提到 entrypoint 写 `local.json` 的操作只属于
-兼容控制面（自定义编排叠加 `docker-compose.gorge.yml` 时仍走这条路径）；默认
-`docker-compose.yml` 使用上述 `deployment.json`，服务协议与环境变量含义不变。
+`notification.servers` 是这次迁移里唯一可能被清掉的管理员可见配置。旧控制面把 Gorge
+的两条记录直接写进 `local.json`，快照（`gorge-notification-state.json`）是后来才加的，
+所以最早那批安装没有可恢复的原值，而不带通知选择器的迁移又不会覆盖这一项。迁移因此会
+识别 Gorge 写出的那个固定结构（两条记录：`admin` 固定 `http`，其后一条 `client`，没有
+多余字段）并移除它，同时在 stderr 上打印被移除的值。这个结构也可能与管理员自建的
+Aphlict 配置相同，取舍是明确的：清掉是“通知需要重新配置”并且有警告，留下则是悄悄指向
+一台即将下线的主机。看到该警告后按后文的 Aphlict/通知章节重新配置即可。
+
+后文保留每个 Gorge 服务的逐项说明。其中提到 entrypoint 用 `bin/config set` 写
+`local.json` 的描述是旧版兼容控制面的行为，已随 `PHORGE_CONTROL_PLANE=legacy`
+一并移除（显式传 `legacy` 会 exit 64）；现在这些端点由 `phorge-migrate` 一次性写进
+上述 `deployment.json`，服务协议与环境变量含义不变。
+
+自定义编排要接 Gorge，不要用 `-f` 叠加 `docker-compose.gorge.yml` —— 它只是
+`gorge-*` 服务定义的来源，由默认文件用 `extends` 引用。自定义栈必须自己定义
+`phorge-migrate` / `phorge` / `phorge-daemon` 三个角色，并把全部 `GORGE_*` 端点
+变量放在 **`phorge-migrate`** 上；`web` 与 `daemon` 只读加载配置，缺少 migrate 角色
+的编排会因为没有 `local.json` / `deployment.json` 直接退出。
 
 需要邮件、搜索或 Gitea 单向事件桥时，显式启用对应 profile：
 
@@ -128,6 +151,103 @@ Gorge 搜索条目，保留其它引擎，列表为空时恢复 MySQL/Ferret。
 默认栈是唯一受支持的编排；需要按域取舍时，用 `PHORGE_GORGE_POLICY` 与各服务的
 `GORGE_*_MODE` 变量控制，而不是切回旧编排。仍在宿主机上裸跑 Gorge 的联调场景，
 用 `docker-compose.host-gorge.yml` 叠加默认文件（见该文件顶部说明）。
+
+### 不用 Compose 直接 docker run
+
+镜像只有 `migrate` / `web` / `daemon` 三个角色（`PHORGE_CONTAINER_ROLE`，默认 `web`），
+旧的单容器 `all` 角色已随 legacy 控制面一起移除。`web` 与 `daemon` 是配置的**只读消费者**：
+它们在 `conf/local/local.json` 或 `conf/local/deployment.json` 缺失时直接退出，不会自己
+迁移 schema。所以直接 `docker run` 也必须按 migrate → web → daemon 的顺序来，三个容器
+共享同一个 `conf/local` 卷：
+
+```bash
+docker build -t phorge:local .
+docker network create phorge-net
+docker volume create phorge-conf
+docker volume create phorge-repo
+docker volume create phorge-db
+
+# 0) 数据库自备（这里用官方镜像示意）
+#    phorge-db 卷不能省：不挂它的话 /var/lib/mysql 只存在于容器可写层，
+#    删掉或重建 phorge-mysql 就会连同整个站点的数据一起消失（配置和仓库在
+#    另外两个卷里，反而还在，于是故障看起来像「数据库空了」而不是「卷没挂」）。
+#    默认栈在 docker-compose.mysql.yml 里挂的就是这个路径。
+docker run -d --name phorge-mysql --network phorge-net \
+  -v phorge-db:/var/lib/mysql \
+  -e MYSQL_ROOT_PASSWORD=phorge_root -e MYSQL_DATABASE=phorge \
+  -e MYSQL_USER=phorge -e MYSQL_PASSWORD=phorge \
+  mysql:8.0.46 --sql-mode=STRICT_ALL_TABLES --local-infile=0 --ft-min-word-len=3
+
+# 1) 授权：等同于默认栈里的 db-init 一次性任务，这一步不能省。
+#    官方镜像的 MYSQL_USER 只对 MYSQL_DATABASE 一个库有权限，而 Phorge 用的是
+#    {namespace}_xxx 一整组库，少了这步 migrate 会在 storage upgrade 阶段直接
+#    报 ERROR 1044 (Access denied)，deployment.json 根本不会发布。
+#    占位符与 db-init 用的是同一份 docker/db-grant.sql，替换规则也一致；
+#    PHORGE_DB_NAMESPACE 用了非默认值时，两处要同时改。
+until docker exec phorge-mysql \
+  mysqladmin ping -h localhost -uroot -pphorge_root --silent; do sleep 2; done
+sed -e 's/__PHORGE_USER__/phorge/g' \
+    -e 's/__PHORGE_NAMESPACE__/phabricator/g' \
+    docker/db-grant.sql |
+  docker exec -i phorge-mysql mysql -uroot -pphorge_root
+
+# 2) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
+#    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
+#
+#    ⚠️ 本配方假定 phorge-conf 是**全新**卷。如果你复用的是之前跑过 Gorge 默认栈
+#    的那个卷，先删掉里面的 deployment.json 再执行这一步：
+#      docker run --rm -v phorge-conf:/conf alpine \
+#        rm -f /conf/deployment.json
+#    原因：build_deployment_config.php 是在**现有** deployment.json 的基础上增量
+#    重建的，选择器变量缺失的服务一律按 preserve 保留。本配方不传任何 GORGE_*，
+#    所以 gorge.taskqueue.owner=gorge、phd.taskmasters=0、webhook 所有权以及各个
+#    gorge.*.uri 都会原封不动留下来。Gorge 容器已经停了，结果就是队列和 webhook
+#    没有消费者、required 策略下的调用打向已经不存在的主机。
+#    不要试图用 GORGE_*_MODE=disable 回滚：webhook 与 taskqueue 的 disable 已经
+#    不再受支持（migrate 会直接报错退出），删掉 deployment.json 是唯一的重置方式。
+#    PHORGE_PRODUCT_PROFILE 显式写 full：默认的 auto 在空库上会解析成
+#    collaboration，那会停用 Diffusion 代码托管应用，
+#    并预期由 GITEA_BASE_URI 指向一个外部代码托管。这个不带 Gorge 的最小示例
+#    两者都没有，用 full 才能拿到一个自带代码托管的完整站点。真要跑协作模式，
+#    就把这一行改成 collaboration 并同时补 -e GITEA_BASE_URI=https://git.example.com/。
+docker run --rm --network phorge-net \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=migrate \
+  -e PHORGE_AUTO_UPGRADE=1 \
+  -e PHORGE_PRODUCT_PROFILE=full \
+  -e MYSQL_HOST=phorge-mysql -e MYSQL_USER=phorge -e MYSQL_PASS=phorge \
+  -e PHORGE_BASE_URI=http://127.0.0.1:8088/ \
+  phorge:local /bin/true
+
+# 3) web：Apache，只读加载上一步的配置
+docker run -d --name phorge-web --network phorge-net -p 8088:80 \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=web \
+  phorge:local
+
+# 4) daemon：phd，同样只读加载配置
+docker run -d --name phorge-daemon --network phorge-net \
+  -v phorge-conf:/opt/phorge/phorge/conf/local \
+  -v phorge-repo:/var/repo \
+  -e PHORGE_CONTAINER_ROLE=daemon \
+  phorge:local /usr/local/bin/phd-foreground
+```
+
+要点：
+
+- 升级同样是「先跑一次 migrate，再重建 web/daemon」。`PHORGE_AUTO_UPGRADE` 只有
+  `migrate` 角色会读，`web` / `daemon` 永远不迁移 schema。升级时数据库已经授权过，
+  第 1 步可以跳过；它本身是幂等的，重复执行也没有副作用。
+- 改用非默认命名空间时，授权步骤里的 `__PHORGE_NAMESPACE__` 与 migrate 容器的
+  `-e PHORGE_DB_NAMESPACE=` 必须填成同一个值，否则授权覆盖不到实际用的那组库，
+  `storage upgrade` 仍然会 ERROR 1044。
+- `phd` 由 `daemon` 角色的 `phd-foreground` 固定托管，没有「是否随容器启动 phd」的开关。
+- 接 Gorge 时，`GORGE_*` 端点变量要传给 **migrate** 容器：它们由 migrate 一次性写进
+  `deployment.json`，web 与 daemon 只读加载。传给 web 不会生效。
+- `PHORGE_CONTROL_PLANE` 只接受 `deployment`；显式传 `legacy` 会直接退出（exit 64），
+  不会静默退回已经删除的旧控制面。
 
 ## 镜像结构
 
@@ -322,7 +442,7 @@ Provider **无条件信任** `X-Auth-User/Email/Name` 头。因此：
 ## 用 Gorge 做语法高亮（可选）
 
 Phorge 自带的高亮器只覆盖几种语言（PHP / Python / Java / JSON），本镜像也**没装**
-Pygments，所以其余文件在 Paste、Differential、Diffusion 里都是无色的。叠加编排文件
+Pygments，所以其余文件在 Diffusion 里都是无色的。叠加编排文件
 `docker-compose.gorge.yml` 会起一个 `gorge-render` 服务（Go + Chroma），Phorge 把高亮
 请求发给它，覆盖面与 Pygments 相当，但不用在镜像里塞一套 Python 运行时。
 同一个进程还承载 `/api/diff/*`：可以替换系统 `diff -U65535` 子进程与 PHP 的 prose
@@ -353,33 +473,42 @@ docker compose exec phorge /opt/phorge/phorge/bin/config set \
 docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 ```
 
-> **第 3 步不能省**：Phorge 缓存的是**高亮之后的 HTML**，不是源码。Paste 的正文与摘要
-> 存在 `cache_general` 表，Differential 的 changeset 存在自己的缓存表，两者都不会因为
-> 换了引擎而失效。只切引擎不清缓存，已经看过的 Paste 和 diff 会继续吐旧 HTML，很容易
-> 误判成「配置没生效」，转头去反复折腾 URI 和 token。只想清相关的两项可以用
-> `bin/cache purge --caches general,changeset`。切换之后**新建**的 Paste / diff 不受影响，
-> 它们本来就会走新引擎。
+> **第 3 步不能省**：Phorge 缓存的是**高亮之后的 HTML**，不是源码。diff 的 changeset
+> 存在自己的缓存表，其余渲染结果存在 `cache_general` 表，都不会因为换了引擎
+> 而失效。只切引擎不清缓存，已经看过的 diff 会继续吐旧 HTML，很容易误判成「配置没生
+> 效」，转头去反复折腾 URI 和 token。只想清相关的两项可以用
+> `bin/cache purge --caches general,changeset`。切换之后**新建**的 diff 不受影响，它们
+> 本来就会走新引擎。
 
 ### 用 Gorge 生成 diff
 
-部署 `gorge-render` 不会自动改变差异计算。确认服务健康后，显式打开独立开关：
+diff **没有开关**。原生的 GNU `diff -U65535` 子进程与 PHP prose 实现都已删除，
+`PhabricatorDifferenceEngine` 的 unified diff 与 `PhutilProseDifferenceEngine` 的
+prose diff 一律调用 `/api/diff/generate` 和 `/api/diff/prose`。请求沿用
+`gorge.render.uri` / `gorge.render.token`，不再增加一组重复的地址和密钥配置。
+
+因此与高亮不同，这里没有「先起服务再切引擎」两步：配好 `gorge.render.uri`、服务健康，
+diff 就已经走 Gorge 了。
+
+同样因为没有本地实现可退，服务不可达、超时、返回错误或响应不能无损还原输入时，Phorge
+会**直接抛异常**，而不是记一条日志再悄悄换一套算法。编排把服务端的
+`GORGE_RENDER_ENABLE_DIFF` 写死为 `true`（见 `docker-compose.gorge.yml`），`.env` 里
+覆盖不掉——服务端不注册这两条路由就等于整个站点算不出 diff。
+
+两个历史开关已经退役，设置它们不再有任何效果：
+
+| 开关 | 现状 |
+|------|------|
+| `gorge.diff.enabled`（Phorge 配置项） | 已隐藏并锁定。旧值保留在配置里不报错，但不再被读取。 |
+| `GORGE_RENDER_ENABLE_DIFF`（编排环境变量） | 编排写死 `true`，`.env` 里的残留值被忽略。 |
+
+排障时确认服务端确实注册了 diff 路由：
 
 ```bash
-docker compose exec phorge /opt/phorge/phorge/bin/config set \
-  gorge.diff.enabled true
-```
-
-开启后，`PhabricatorDifferenceEngine` 的 unified diff 与
-`PhutilProseDifferenceEngine` 的 prose diff 会分别调用 `/api/diff/generate` 和
-`/api/diff/prose`。请求沿用 `gorge.render.uri` / `gorge.render.token`，不再增加一组
-重复的地址和密钥配置。服务不可达、超时、返回错误或响应不能无损还原输入时，Phorge 会把
-异常写入日志并回退到本地实现，页面与后台任务不会因为可选服务故障而中断。
-
-关闭开关即可回滚，不需要清缓存：
-
-```bash
-docker compose exec phorge /opt/phorge/phorge/bin/config set \
-  gorge.diff.enabled false
+docker compose exec gorge-render \
+  wget -qO- --post-data '{"old":"a\n","new":"b\n"}' \
+  --header 'Content-Type: application/json' \
+  http://127.0.0.1:8140/api/diff/generate
 ```
 
 叠加文件做了两件事：
@@ -454,7 +583,6 @@ docker compose exec phorge /opt/phorge/phorge/bin/cache purge --all
 # 看当前生效的引擎与地址（会打印值来自哪个配置源）
 docker compose exec phorge /opt/phorge/phorge/bin/config get syntax-highlighter.engine
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.render.uri
-docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.diff.enabled
 
 # 在高亮服务容器内探活（镜像基于 alpine，用 busybox 的 wget，没有 curl）
 docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
@@ -462,8 +590,10 @@ docker compose exec gorge-render wget -qO- http://127.0.0.1:8140/healthz
 
 - **切了引擎但页面还是无色**：先看是不是缓存（见上面的 `bin/cache purge`），再看 Config
   页面的 setup 检查——`PhabricatorGorgeSetupCheck` 会探 `/healthz` 并把不可达报出来。
-- **高亮服务挂了会怎样**：客户端抛 `PhutilSyntaxHighlighterException`，Differential 页面
-  显示高亮失败提示，其余位置回退到无高亮渲染，页面本身不会 500。故障是可见的，不是静默的。
+- **高亮服务挂了会怎样**：客户端抛 `PhutilSyntaxHighlighterException`，Diffusion 的 diff
+  页面显示高亮失败提示，其余位置回退到无高亮渲染，页面本身不会 500。故障是可见的，不是静默的。
+  **但 diff 没有这层兜底**：同一个进程挂掉时，raw 与 prose diff 直接失败（原生实现已
+  移除）。所以 `gorge-render` 对本部署是必需服务，不是可选增强。
 - **日志里出现 404 `ERR_NOT_FOUND`**：几乎总是 `gorge.render.uri` 结尾多了一个斜杠。
 - **401 `ERR_UNAUTHORIZED`**：两端 token 不一致。注意只改 `.env` 里的
   `GORGE_RENDER_TOKEN` 后必须重启**两个**容器，否则一端还拿着旧值。
@@ -603,7 +733,7 @@ services:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.traefik.yml \
-  -f docker-compose.gorge.yml up -d --build
+  up -d --build
 ```
 
 ### 本地构建镜像
@@ -1466,8 +1596,8 @@ ALTER TABLE {$NAMESPACE}_herald.herald_webhookrequest
   ADD KEY `key_status` (`status`, `id`);
 ```
 
-`resources/sql/autopatches/` 按文件名字典序自动发现，所以 `bin/storage upgrade`（容器默认
-`PHORGE_AUTO_UPGRADE=1`，每次启动都跑）会自动应用它，不需要手工执行。
+`resources/sql/autopatches/` 按文件名字典序自动发现，所以 `bin/storage upgrade`（`phorge-migrate`
+默认 `PHORGE_AUTO_UPGRADE=1`，每次起栈都跑）会自动应用它，不需要手工执行。
 
 同一个索引也声明在
 [`HeraldWebhookRequest::getConfiguration()`](src/applications/herald/storage/HeraldWebhookRequest.php)
@@ -1545,28 +1675,23 @@ docker compose exec phorge /opt/phorge/phorge/bin/phd status
   `setRunAllTasksInProcess()` 就地投递再读回状态码，交接之后请求是被 Go 异步取走的，
   命令行拿不到结果，所以改成打印请求的 PHID，让你去 Recent Requests 里看。
 
-### 回滚
+### 没有回滚
 
-一步，而且没有数据后果——队列表的结构和字段含义两边完全一致：
+这一节以前写的是「清空 URI、把 owner 切回 phorge、再停服务」。**那条路已经不存在了**：
+承接投递的 `HeraldWebhookWorker` 原生 HTTP 实现已经删除，它现在只是一个兼容壳，
+读到「未委派给 Gorge」时把请求置为终态失败（`native-retired` hook error），而不是发出去。
 
-```bash
-# 1) 停掉下发：把 GORGE_WEBHOOK_URI 从 .env 里清空（或整段删掉），
-#    这样 entrypoint.sh 下次启动就不再写 gorge.webhook.uri。
-#    注意：清空它**不会**把已经写进 local.json 的值撤掉，得手工清。
-docker compose exec phorge /opt/phorge/phorge/bin/config set gorge.webhook.uri null
+所以照旧操作的后果是：webhook 一条都不再投递，而且失败是静默的——请求仍然被记录，
+只是永远发不出去。`PhabricatorGorgeWebhookSetupCheck` 会把这个状态报成
+`gorge.webhook.no-consumer`。
 
-# 2) 停掉服务。顺序不能反 —— 先停服务再清配置的话，中间那段时间两边都不投。
-docker compose stop gorge-webhook
+需要停 `gorge-webhook` 做维护时，就只是停它：队列表里的行留在 `queued`，服务起回来以后
+继续投（前提是没被 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期删掉）。不要顺手去
+清 `gorge.webhook.uri` 或把 `gorge.webhook.owner` 改成 `phorge`——那不会让 `phd` 接手，
+只会把请求提前判死。
 
-# 3) 确认生效
-docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
-```
-
-清掉配置之后 `phd` 对**新产生的**请求立刻恢复调度。第 1、2 步的顺序不能反，原因就在这里：
-任务是在插行的那一刻由 `queueCall()` 派出去的，只派一次。先停服务再清配置的话，中间那段
-时间产生的行既没有 phd 的任务、又没有 Go 来取，之后谁也不会回头去捡——它们会一直停在
-`queued`，直到 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期把它们删掉。按上面的
-顺序做则不会有这样的行：清配置的那一刻服务还在跑，队列是空的。
+真的不想要 webhook 投递，就删掉 Herald 里的 webhook 本身，而不是把所有权交给一个不存在的
+消费者。
 
 新增的 `key_status` 索引留着即可，它不影响 PHP 侧的任何查询。
 
@@ -1737,7 +1862,6 @@ dc up -d --build --force-recreate phorge
 ```dotenv
 PHORGE_PRODUCT_PROFILE=collaboration
 GITEA_BASE_URI=https://git.example.com/
-GORGE_RENDER_ENABLE_DIFF=false
 GORGE_GITEA_WEBHOOK_SECRET=<随机共享密钥>
 GORGE_GITEA_CONDUIT_TOKEN=<专用 Conduit bot token>
 GORGE_GITEA_GATEWAY_TOKEN=<GORGE_CONDUIT_TOKEN 的值>
@@ -1750,13 +1874,17 @@ docker compose --profile gitea \
   up -d --force-recreate
 ```
 
-运行时 profile 会停用以下八个应用，而不改管理员的
-`phabricator.uninstalled-applications`：Diffusion、Differential、Audit、Owners、
-Harbormaster、Drydock、Diviner、Paste。部署配置同时设置
-`gorge.diff.enabled=false`，在已配置
+运行时 profile 会停用 Diffusion，而不改管理员的
+`phabricator.uninstalled-applications`。Drydock、Harbormaster、Differential、
+Audit、Owners、Diviner 与 Paste 已随这一系列清理从发行版中物理移除，任何 profile
+下都不存在，因此不再由 profile 开关。部署配置同时在已配置
 `GORGE_RENDER_URI` 时把 `syntax-highlighter.engine` 切到
 `PhabricatorGorgeSyntaxHighlighterEngine`。配置项是 class 类型，不能填写字面值
 `gorge`。
+
+协作模式**不再**关闭 diff：原生 GNU/PHP diff 已经移除，`gorge-render` 的
+`/api/diff/*` 在所有 profile 下都必须可用，`GORGE_RENDER_ENABLE_DIFF` 与
+`gorge.diff.enabled` 都已退役（见「用 Gorge 生成 diff」）。
 
 `gitea.uri` 会在顶栏增加 Gitea 入口；Maniphest 增加 repository、issue、pull request、
 commit 四个内建链接字段。字段沿用旧生成配置的 `std:maniphest:gitea.*` key，因此现有值

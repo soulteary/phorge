@@ -3,10 +3,13 @@
 final class DifferentialSchemaSpec extends PhabricatorConfigSchemaSpec {
 
   public function buildSchemata() {
-    $this->buildEdgeSchemata(new DifferentialRevision());
+    // The edge table is declared through a diff rather than a revision now:
+    // both are in the "differential" database, and the revision models have
+    // been removed. Existing edge rows are left in place.
+    $this->buildEdgeSchemata(new DifferentialDiff());
 
     $this->buildRawSchema(
-      id(new DifferentialRevision())->getApplicationName(),
+      id(new DifferentialDiff())->getApplicationName(),
       DifferentialChangeset::TABLE_CACHE,
       array(
         'id' => 'auto',
@@ -32,7 +35,7 @@ final class DifferentialSchemaSpec extends PhabricatorConfigSchemaSpec {
       ));
 
     $this->buildRawSchema(
-      id(new DifferentialRevision())->getApplicationName(),
+      id(new DifferentialDiff())->getApplicationName(),
       ArcanistDifferentialRevisionHash::TABLE_NAME,
       array(
         'revisionID' => 'id',

@@ -1,8 +1,6 @@
 <?php
 
-final class HeraldCommitAdapter
-  extends HeraldAdapter
-  implements HarbormasterBuildableAdapterInterface {
+final class HeraldCommitAdapter extends HeraldAdapter {
 
   protected $diff;
   protected $revision;
@@ -11,11 +9,6 @@ final class HeraldCommitAdapter
   private $commitDiff;
 
   protected $affectedPaths;
-  protected $affectedRevision;
-  protected $affectedPackages;
-  protected $auditNeededPackages;
-
-  private $buildRequests = array();
 
   public function getAdapterApplicationClass() {
     return PhabricatorDiffusionApplication::class;
@@ -143,7 +136,7 @@ final class HeraldCommitAdapter
     $viewer = $this->getViewer();
 
     if ($this->affectedPaths === null) {
-      $result = PhabricatorOwnerPathQuery::loadAffectedPaths(
+      $result = DiffusionCommitAffectedPathQuery::loadAffectedPaths(
         $this->getRepository(),
         $this->commit,
         $viewer);
@@ -151,67 +144,6 @@ final class HeraldCommitAdapter
     }
 
     return $this->affectedPaths;
-  }
-
-  public function loadAffectedPackages() {
-    if ($this->affectedPackages === null) {
-      $packages = PhabricatorOwnersPackage::loadAffectedPackages(
-        $this->getRepository(),
-        $this->loadAffectedPaths());
-      $this->affectedPackages = $packages;
-    }
-    return $this->affectedPackages;
-  }
-
-  public function loadAuditNeededPackages() {
-    if ($this->auditNeededPackages === null) {
-      $status_arr = array(
-        PhabricatorAuditRequestStatus::AUDIT_REQUIRED,
-        PhabricatorAuditRequestStatus::CONCERNED,
-      );
-      $requests = id(new PhabricatorRepositoryAuditRequest())
-          ->loadAllWhere(
-        'commitPHID = %s AND auditStatus IN (%Ls)',
-        $this->commit->getPHID(),
-        $status_arr);
-      $this->auditNeededPackages = $requests;
-    }
-    return $this->auditNeededPackages;
-  }
-
-  public function loadDifferentialRevision() {
-    if ($this->affectedRevision === null) {
-      $viewer = $this->getViewer();
-
-      // NOTE: The viewer here is omnipotent, which means that Herald discloses
-      // some information users do not normally have access to when rules load
-      // the revision related to a commit. See D20468.
-
-      // A user who wants to learn about "Dxyz" can write a Herald rule which
-      // uses all the "Related revision..." fields, then push a commit which
-      // contains "Differential Revision: Dxyz" in the message to make Herald
-      // evaluate the commit with "Dxyz" as the related revision.
-
-      // At time of writing, this commit will link to the revision and the
-      // transcript for the commit will disclose some information about the
-      // revision (like reviewers, subscribers, and build status) which the
-      // commit author could not otherwise see.
-
-      // For now, we just accept this. The disclosures are relatively
-      // uninteresting and you have to jump through a lot of hoops (and leave
-      // a lot of evidence) to get this information.
-
-      $revision = DiffusionCommitRevisionQuery::loadRevisionForCommit(
-        $viewer,
-        $this->getObject());
-      if ($revision) {
-        $this->affectedRevision = $revision;
-      } else {
-        $this->affectedRevision = false;
-      }
-    }
-
-    return $this->affectedRevision;
   }
 
   public static function getEnormousByteLimit() {
@@ -379,27 +311,6 @@ final class HeraldCommitAdapter
     }
 
     return null;
-  }
-
-
-/* -(  HarbormasterBuildableAdapterInterface  )------------------------------ */
-
-
-  public function getHarbormasterBuildablePHID() {
-    return $this->getObject()->getPHID();
-  }
-
-  public function getHarbormasterContainerPHID() {
-    return $this->getObject()->getRepository()->getPHID();
-  }
-
-  public function getQueuedHarbormasterBuildRequests() {
-    return $this->buildRequests;
-  }
-
-  public function queueHarbormasterBuildRequest(
-    HarbormasterBuildRequest $request) {
-    $this->buildRequests[] = $request;
   }
 
 }

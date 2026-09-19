@@ -1,6 +1,27 @@
 <?php
 
-$table = new PhabricatorOwnersPackageTransaction();
+// The Owners application has been removed, so
+// PhabricatorOwnersPackageTransaction no longer exists. This patch still has
+// to run against installations whose schema predates it, and all it ever
+// wanted from that class was a connection to the owners database and the
+// table name, so declare the minimum here.
+//
+// Database "owners", table "owners_packagetransaction": the same values
+// PhabricatorOwnersDAO and PhabricatorLiskDAO::getTableName() produced.
+final class PhabricatorOwnersAuditingXactionMigrationDAO
+  extends PhabricatorLiskDAO {
+
+  public function getApplicationName() {
+    return 'owners';
+  }
+
+  public function getTableName() {
+    return 'owners_packagetransaction';
+  }
+
+}
+
+$table = new PhabricatorOwnersAuditingXactionMigrationDAO();
 $conn = $table->establishConnection('w');
 $iterator = new LiskRawMigrationIterator($conn, $table->getTableName());
 

@@ -1,7 +1,27 @@
 <?php
 
+// The Differential revision models have been removed. This patch still has to
+// run against installations whose schema predates it, and all it ever wanted
+// from them was a connection to the differential database and a table name, so
+// declare the minimum here.
+//
+// Database "differential": the value DifferentialDAO::getApplicationName()
+// produced. Table names are the ones PhabricatorLiskDAO::getTableName()
+// produced for the deleted classes.
+final class DifferentialUnsubscribedMigrationDAO extends PhabricatorLiskDAO {
+
+  public function getApplicationName() {
+    return 'differential';
+  }
+
+  public function getTableName() {
+    return 'differential_revision';
+  }
+
+}
+
 echo pht('Migrating Differential unsubscribed users to edges...')."\n";
-$table = new DifferentialRevision();
+$table = new DifferentialUnsubscribedMigrationDAO();
 $table->openTransaction();
 
 // We couldn't use new LiskMigrationIterator($table) because the $unsubscribed

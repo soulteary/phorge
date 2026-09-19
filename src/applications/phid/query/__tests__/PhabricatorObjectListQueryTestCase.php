@@ -38,28 +38,33 @@ final class PhabricatorObjectListQueryTestCase extends PhabricatorTestCase {
       ),
       $result);
 
-    $package = PhabricatorOwnersPackage::initializeNewPackage($user)
-      ->setName(pht('Query Test Package'))
+    // Any monogram-addressable object exercises the "ignore text after the
+    // monogram" parsing rule; this used to use an Owners package.
+    $object = PhabricatorCountdown::initializeNewCountdown($user)
+      ->setTitle(pht('Query Test Countdown'))
+      ->setDescription('')
+      ->setEpoch(PhabricatorTime::getNow())
+      ->setMailKey(Filesystem::readRandomCharacters(20))
       ->save();
 
-    $package_phid = $package->getPHID();
-    $package_mono = $package->getMonogram();
+    $object_phid = $object->getPHID();
+    $object_mono = $object->getMonogram();
 
-    $result = $this->parseObjectList("{$package_mono} Any Ignored Text");
-    $this->assertEqual(array($package_phid), $result);
+    $result = $this->parseObjectList("{$object_mono} Any Ignored Text");
+    $this->assertEqual(array($object_phid), $result);
 
-    $result = $this->parseObjectList("{$package_mono} Any Text, {$name}");
-    $this->assertEqual(array($package_phid, $phid), $result);
+    $result = $this->parseObjectList("{$object_mono} Any Text, {$name}");
+    $this->assertEqual(array($object_phid, $phid), $result);
 
     $result = $this->parseObjectList(
-      "{$package_mono} Any Text!, {$name}",
+      "{$object_mono} Any Text!, {$name}",
       array(),
       false,
       array('!'));
     $this->assertEqual(
       array(
         array(
-          'phid' => $package_phid,
+          'phid' => $object_phid,
           'suffixes' => array('!' => '!'),
         ),
         array(

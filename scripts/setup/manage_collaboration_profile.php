@@ -19,6 +19,14 @@ if ($mode !== 'collaboration' && $mode !== 'full') {
     pht('Unknown product profile "%s".', $mode));
 }
 
+// Every application this profile has ever uninstalled, including ones whose
+// implementation has since been physically removed. These are plain class
+// names in a keyed config set, so a name with no class behind it matches
+// nothing and installs nothing. Dropping a removed application from this list
+// would strand it: rollback rebuilds "what the profile set" from this list and
+// three-way merges it against the live config, so an entry written by an
+// earlier profile run but missing from the list reads as an administrator's
+// own choice and survives the restore forever.
 $managed_applications = array(
   'PhabricatorDiffusionApplication',
   'PhabricatorDifferentialApplication',
@@ -336,9 +344,9 @@ if ($mode === 'collaboration') {
     $state_changed = true;
   }
 
-  $database_values = array(
-    'gorge.diff.enabled' => false,
-  );
+  // The retired `gorge.diff.enabled` switch is deliberately absent: it is no
+  // longer read, so the profile must not write it into effective config.
+  $database_values = array();
   if (strlen((string)getenv('GORGE_RENDER_URI'))) {
     $database_values['syntax-highlighter.engine'] =
       'PhabricatorGorgeSyntaxHighlighterEngine';

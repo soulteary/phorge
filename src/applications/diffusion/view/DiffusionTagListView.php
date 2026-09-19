@@ -31,8 +31,6 @@ final class DiffusionTagListView extends DiffusionView {
     $viewer = $this->getViewer();
     require_celerity_resource('diffusion-css');
 
-    $buildables = $this->loadBuildables($this->commits);
-
     $list = id(new PHUIObjectItemListView())
       ->setViewer($viewer)
       ->setFlush(true)
@@ -70,14 +68,6 @@ final class DiffusionTagListView extends DiffusionView {
           $description = $commit->getSummary();
         } else {
           $description = $tag->getDescription();
-        }
-      }
-
-      $build_view = null;
-      if ($commit) {
-        $buildable = idx($buildables, $commit->getPHID());
-        if ($buildable) {
-          $build_view = $this->renderBuildable($buildable, 'button');
         }
       }
 
@@ -129,7 +119,6 @@ final class DiffusionTagListView extends DiffusionView {
         ->addAttribute(array($commit_tag))
         ->addAttribute($description)
         ->setSideColumn(array(
-          $build_view,
           $button_bar,
         ));
 

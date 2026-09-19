@@ -34,10 +34,6 @@ final class DiffusionBlameController extends DiffusionController {
       $commits = array();
     }
 
-    $revision_map = DiffusionCommitRevisionQuery::loadRevisionMapForCommits(
-      $viewer,
-      $commits);
-
     $base_href = (string)$drequest->generateURI(
       array(
         'action' => 'browse',
@@ -53,12 +49,6 @@ final class DiffusionBlameController extends DiffusionController {
     $handle_phids = array();
     foreach ($commits as $commit) {
       $handle_phids[] = $commit->getAuthorDisplayPHID();
-    }
-
-    foreach ($revision_map as $revisions) {
-      foreach ($revisions as $revision) {
-        $handle_phids[] = $revision->getAuthorPHID();
-      }
     }
 
     $handles = $viewer->loadHandles($handle_phids);
@@ -90,17 +80,6 @@ final class DiffusionBlameController extends DiffusionController {
 
       $commit = idx($commits, $identifier);
 
-      $revision = null;
-      if ($commit) {
-        $revisions = idx($revision_map, $commit->getPHID());
-
-        // There may be multiple edges between this commit and revisions in the
-        // database. If there are, just pick one arbitrarily.
-        if ($revisions) {
-          $revision = head($revisions);
-        }
-      }
-
       $author_phid = null;
 
       if ($commit) {
@@ -108,8 +87,8 @@ final class DiffusionBlameController extends DiffusionController {
       }
 
       if (!$author_phid) {
-        // This means we couldn't identify an author for the commit or the
-        // revision. We just render a blank for alignment.
+        // This means we couldn't identify an author for the commit. We just
+        // render a blank for alignment.
         $author_style = null;
         $author_href = null;
         $author_sigil = null;
@@ -157,27 +136,6 @@ final class DiffusionBlameController extends DiffusionController {
         $author_link,
         $commit_link,
       );
-
-      if ($revision) {
-        $revision_link = javelin_tag(
-          'a',
-          array(
-            'href' => $revision->getURI(),
-            'sigil' => 'has-tooltip',
-            'meta'  => array(
-              'tip' => $this->renderRevisionTooltip($revision, $handles),
-              'align' => 'E',
-              'size' => 600,
-            ),
-          ),
-          $revision->getMonogram());
-
-        $info = array(
-          $info,
-          " \xC2\xB7 ",
-          $revision_link,
-        );
-      }
 
       if ($commit) {
         $epoch = $commit->getEpoch();
@@ -233,20 +191,6 @@ final class DiffusionBlameController extends DiffusionController {
     return idx($blame, $path, array());
   }
 
-  private function renderRevisionTooltip(
-    DifferentialRevision $revision,
-    $handles) {
-    $viewer = $this->getViewer();
-
-    $date = phabricator_date($revision->getDateModified(), $viewer);
-    $monogram = $revision->getMonogram();
-    $title = $revision->getTitle();
-    $header = "{$monogram} {$title}";
-
-    $author = $handles[$revision->getAuthorPHID()]->getName();
-
-    return "{$header}\n{$date} \xC2\xB7 {$author}";
-  }
 
   private function renderCommitTooltip(
     PhabricatorRepositoryCommit $commit,

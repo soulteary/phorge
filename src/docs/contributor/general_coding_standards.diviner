@@ -1,8 +1,8 @@
 @title General Coding Standards
 @group standards
 
-This document is a general coding standard for contributing to Phorge,
-Arcanist, and Diviner.
+This document is a general coding standard for contributing to Phorge and
+Arcanist.
 
 = Overview =
 

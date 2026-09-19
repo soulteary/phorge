@@ -32,7 +32,6 @@ final class ManiphestTaskDetailController extends ManiphestController {
 
     $edge_types = array(
       ManiphestTaskHasCommitEdgeType::EDGECONST,
-      ManiphestTaskHasRevisionEdgeType::EDGECONST,
       ManiphestTaskHasMockEdgeType::EDGECONST,
       PhabricatorObjectMentionedByObjectEdgeType::EDGECONST,
       PhabricatorObjectMentionsObjectEdgeType::EDGECONST,
@@ -590,28 +589,17 @@ final class ManiphestTaskDetailController extends ManiphestController {
   private function newChangesView(ManiphestTask $task, array $edges) {
     $viewer = $this->getViewer();
 
-    $revision_type = ManiphestTaskHasRevisionEdgeType::EDGECONST;
     $commit_type = ManiphestTaskHasCommitEdgeType::EDGECONST;
-
-    $revision_phids = idx($edges, $revision_type, array());
-    $revision_phids = array_keys($revision_phids);
-    $revision_phids = array_fuse($revision_phids);
 
     $commit_phids = idx($edges, $commit_type, array());
     $commit_phids = array_keys($commit_phids);
     $commit_phids = array_fuse($commit_phids);
 
-    if (!$revision_phids && !$commit_phids) {
+    if (!$commit_phids) {
       return null;
     }
 
     if ($commit_phids) {
-      $link_type = DiffusionCommitHasRevisionEdgeType::EDGECONST;
-      $link_query = id(new PhabricatorEdgeQuery())
-        ->withSourcePHIDs($commit_phids)
-        ->withEdgeTypes(array($link_type));
-      $link_query->execute();
-
       $commits = id(new DiffusionCommitQuery())
         ->setViewer($viewer)
         ->withPHIDs($commit_phids)
@@ -621,31 +609,13 @@ final class ManiphestTaskDetailController extends ManiphestController {
       $commits = array();
     }
 
-    if ($revision_phids) {
-      $revisions = id(new DifferentialRevisionQuery())
-        ->setViewer($viewer)
-        ->withPHIDs($revision_phids)
-        ->execute();
-      $revisions = mpull($revisions, null, 'getPHID');
-    } else {
-      $revisions = array();
-    }
-
     $handle_phids = array();
-    $any_linked = false;
     $any_status = false;
 
     $idx = 0;
     $objects = array();
     foreach ($commit_phids as $commit_phid) {
       $handle_phids[] = $commit_phid;
-
-      $link_phids = $link_query->getDestinationPHIDs(array($commit_phid));
-      foreach ($link_phids as $link_phid) {
-        $handle_phids[] = $link_phid;
-        unset($revision_phids[$link_phid]);
-        $any_linked = true;
-      }
 
       $commit = idx($commits, $commit_phid);
       if ($commit) {
@@ -701,81 +671,11 @@ final class ManiphestTaskDetailController extends ManiphestController {
         'objectPHID' => $commit_phid,
         'objectLink' => $object_link,
         'repositoryPHID' => $repository_phid,
-        'revisionPHIDs' => $link_phids,
         'status' => $status_view,
         'order' => id(new PhutilSortVector())
           ->addInt($repository_phid ? 1 : 0)
           ->addString((string)$repository_phid)
           ->addInt(1)
-          ->addInt($idx++),
-      );
-    }
-
-    foreach ($revision_phids as $revision_phid) {
-      $handle_phids[] = $revision_phid;
-
-      $revision = idx($revisions, $revision_phid);
-      if ($revision) {
-        $repository_phid = $revision->getRepositoryPHID();
-        $handle_phids[] = $repository_phid;
-      } else {
-        $repository_phid = null;
-      }
-
-      if ($revision) {
-        $icon = $revision->getStatusIcon();
-        $color = $revision->getStatusIconColor();
-        $name = $revision->getStatusDisplayName();
-
-        $status_view = id(new PHUITagView())
-          ->setType(PHUITagView::TYPE_SHADE)
-          ->setIcon($icon)
-          ->setColor($color)
-          ->setName($name);
-      } else {
-        $status_view = null;
-      }
-
-      $object_link = null;
-      if ($revision) {
-        $revision_monogram = $revision->getMonogram();
-        $revision_monogram = phutil_tag(
-          'span',
-          array(
-            'class' => 'object-name',
-          ),
-          $revision_monogram);
-
-        $revision_link = javelin_tag(
-          'a',
-          array(
-            'href' => $revision->getURI(),
-            'sigil' => 'hovercard',
-            'meta' => array(
-              'hovercardSpec' => array(
-                'objectPHID' => $revision->getPHID(),
-              ),
-            ),
-          ),
-          $revision->getTitle());
-
-        $object_link = array(
-          $revision_monogram,
-          ' ',
-          $revision_link,
-        );
-      }
-
-      $objects[] = array(
-        'objectPHID' => $revision_phid,
-        'objectLink' => $object_link,
-        'repositoryPHID' => $repository_phid,
-        'revisionPHIDs' => array(),
-        'status' => $status_view,
-        'order' => id(new PhutilSortVector())
-          ->addInt($repository_phid ? 1 : 0)
-          ->addString((string)$repository_phid)
-          ->addInt(0)
           ->addInt($idx++),
       );
     }
@@ -820,34 +720,20 @@ final class ManiphestTaskDetailController extends ManiphestController {
         $any_status = true;
       }
 
-      $revision_tags = array();
-      foreach ($object['revisionPHIDs'] as $link_phid) {
-        $revision_handle = $handles[$link_phid];
-
-        $revision_name = $revision_handle->getName();
-        $revision_tags[] = $revision_handle
-          ->renderHovercardLink($revision_name);
-      }
-      $revision_tags = phutil_implode_html(
-        phutil_tag('br'),
-        $revision_tags);
-
       $rowd[] = false;
       $rows[] = array(
         $object_icon,
         $status_view,
-        $revision_tags,
         $object_link,
       );
     }
 
     $changes_table = id(new AphrontTableView($rows))
-      ->setNoDataString(pht('This task has no related commits or revisions.'))
+      ->setNoDataString(pht('This task has no related commits.'))
       ->setRowDividers($rowd)
       ->setColumnClasses(
         array(
           'indent center',
-          null,
           null,
           'wide pri object-link',
         ))
@@ -855,14 +741,12 @@ final class ManiphestTaskDetailController extends ManiphestController {
         array(
           true,
           $any_status,
-          $any_linked,
           true,
         ))
       ->setDeviceVisibility(
         array(
           false,
           $any_status,
-          false,
           true,
         ));
 

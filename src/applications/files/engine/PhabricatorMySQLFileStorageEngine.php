@@ -1,24 +1,14 @@
 <?php
 
 /**
- * MySQL blob storage engine. This engine is the easiest to set up but doesn't
- * scale very well.
+ * Historical MySQL blob storage reader.
  *
- * It uses the @{class:PhabricatorFileStorageBlob} to actually access the
- * underlying database table.
- *
- * @task internal Internals
+ * New writes are owned by Gorge. Keep this engine registered so existing
+ * `blob` handles remain readable/deletable until data migration is complete.
  */
 final class PhabricatorMySQLFileStorageEngine
   extends PhabricatorFileStorageEngine {
 
-
-/* -(  Engine Metadata  )---------------------------------------------------- */
-
-
-  /**
-   * For historical reasons, this engine identifies as "blob".
-   */
   public function getEngineIdentifier() {
     return 'blob';
   }
@@ -28,64 +18,32 @@ final class PhabricatorMySQLFileStorageEngine
   }
 
   public function canWriteFiles() {
-    return ($this->getFilesizeLimit() > 0);
+    return false;
   }
-
 
   public function hasFilesizeLimit() {
     return true;
   }
 
-
   public function getFilesizeLimit() {
     return PhabricatorEnv::getEnvConfig('storage.mysql-engine.max-size');
   }
 
-
-/* -(  Managing File Data  )------------------------------------------------- */
-
-
-  /**
-   * Write file data into the big blob store table in MySQL. Returns the row
-   * ID as the file data handle.
-   *
-   * @return string Row ID
-   */
   public function writeFile($data, array $params) {
-    $blob = new PhabricatorFileStorageBlob();
-    $blob->setData($data);
-    $blob->save();
-
-    return (string)$blob->getID();
+    throw new PhabricatorFileStorageConfigurationException(
+      pht(
+        'The historical MySQL blob storage engine is read-only. New file '.
+        'content must be written through the Gorge file storage engine.'));
   }
 
-
-  /**
-   * Load a stored blob from MySQL.
-   */
   public function readFile($handle) {
     return $this->loadFromMySQLFileStorage($handle)->getData();
   }
 
-
-  /**
-   * Delete a blob from MySQL.
-   */
   public function deleteFile($handle) {
     $this->loadFromMySQLFileStorage($handle)->delete();
   }
 
-
-/* -(  Internals  )---------------------------------------------------------- */
-
-
-  /**
-   * Load the Lisk object that stores the file data for a handle.
-   *
-   * @param string $handle File data handle.
-   * @return PhabricatorFileStorageBlob Data DAO.
-   * @task internal
-   */
   private function loadFromMySQLFileStorage($handle) {
     $blob = id(new PhabricatorFileStorageBlob())->load($handle);
     if (!$blob) {

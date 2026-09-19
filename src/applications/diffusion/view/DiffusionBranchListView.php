@@ -34,8 +34,6 @@ final class DiffusionBranchListView extends DiffusionView {
     $viewer = $this->getUser();
     require_celerity_resource('diffusion-css');
 
-    $buildables = $this->loadBuildables($commits);
-
     $can_close_branches = ($repository->isHg());
 
     Javelin::initBehavior('phabricator-tooltips');
@@ -48,17 +46,11 @@ final class DiffusionBranchListView extends DiffusionView {
     $publisher = $repository->newPublisher();
 
     foreach ($this->branches as $branch) {
-      $build_view = null;
       $button_bar = new PHUIButtonBarView();
       $commit = idx($commits, $branch->getCommitIdentifier());
       if ($commit) {
         $details = $commit->getSummary();
         $datetime = phabricator_datetime($commit->getEpoch(), $viewer);
-
-        $buildable = idx($buildables, $commit->getPHID());
-        if ($buildable) {
-          $build_view = $this->renderBuildable($buildable, 'button');
-        }
       } else {
         $datetime = null;
         $details = null;
@@ -121,7 +113,6 @@ final class DiffusionBranchListView extends DiffusionView {
           )))
         ->setSubhead($subhead)
         ->setSideColumn(array(
-          $build_view,
           $button_bar,
         ));
 

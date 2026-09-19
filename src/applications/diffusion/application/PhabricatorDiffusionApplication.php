@@ -28,10 +28,6 @@ final class PhabricatorDiffusionApplication extends PhabricatorApplication {
         'name' => pht('Diffusion User Guide'),
         'href' => PhabricatorEnv::getDoclink('Diffusion User Guide'),
       ),
-      array(
-        'name' => pht('Audit User Guide'),
-        'href' => PhabricatorEnv::getDoclink('Audit User Guide'),
-      ),
     );
   }
 
@@ -92,7 +88,6 @@ final class PhabricatorDiffusionApplication extends PhabricatorApplication {
           'delete/' => 'DiffusionRepositoryEditDeleteController',
           'update/' => 'DiffusionRepositoryEditUpdateController',
           'publish/' => 'DiffusionRepositoryEditPublishingController',
-          'testautomation/' => 'DiffusionRepositoryTestAutomationController',
         ),
         'pathtree/(?P<dblob>.*)' => 'DiffusionPathTreeController',
       ),

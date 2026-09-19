@@ -5,9 +5,7 @@ final class HeraldPreCommitContentAdapter extends HeraldPreCommitAdapter {
   private $changesets;
   private $commitRef;
   private $fields;
-  private $revision = false;
 
-  private $affectedPackages;
   private $identityCache = array();
 
   public function getAdapterContentName() {
@@ -212,23 +210,6 @@ final class HeraldPreCommitContentAdapter extends HeraldPreCommitAdapter {
     return $this->fields;
   }
 
-  public function getRevision() {
-    if ($this->revision === false) {
-      $fields = $this->getCommitFields();
-      $revision_id = idx($fields, 'revisionID');
-      if (!$revision_id) {
-        $this->revision = null;
-      } else {
-        $this->revision = id(new DifferentialRevisionQuery())
-          ->setViewer(PhabricatorUser::getOmnipotentUser())
-          ->withIDs(array($revision_id))
-          ->needReviewers(true)
-          ->executeOne();
-      }
-    }
-
-    return $this->revision;
-  }
 
   public function getIsMergeCommit() {
     $repository = $this->getHookEngine()->getRepository();
@@ -254,17 +235,5 @@ final class HeraldPreCommitContentAdapter extends HeraldPreCommitAdapter {
     return $this->getHookEngine()->loadBranches(
       $this->getObject()->getRefNew());
   }
-
-  public function loadAffectedPackages() {
-    if ($this->affectedPackages === null) {
-      $packages = PhabricatorOwnersPackage::loadAffectedPackages(
-        $this->getHookEngine()->getRepository(),
-        $this->getDiffContent('name'));
-      $this->affectedPackages = $packages;
-    }
-
-    return $this->affectedPackages;
-  }
-
 
 }

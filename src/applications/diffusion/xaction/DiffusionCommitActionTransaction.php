@@ -8,9 +8,6 @@ abstract class DiffusionCommitActionTransaction
   }
 
   public function isActionAvailable($object, PhabricatorUser $viewer) {
-    if (!id(new PhabricatorAuditApplication())->isInstalled()) {
-      return false;
-    }
     try {
       $this->validateAction($object, $viewer);
       return true;

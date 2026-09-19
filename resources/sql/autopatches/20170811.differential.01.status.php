@@ -18,6 +18,9 @@ $status_map = array(
 );
 
 foreach (new LiskMigrationIterator($table) as $query) {
+  // "engineClassName" is a stored string. The class is gone, but rows written
+  // before it was removed still carry this value, and this patch has to keep
+  // recognizing them: it runs against databases which predate the removal.
   if ($query->getEngineClassName() !== 'DifferentialRevisionSearchEngine') {
     // This isn't a revision query.
     continue;

@@ -19,11 +19,8 @@ Callers ask it for information about services, and it responds with details
 about which devices host those services. However, it can respond to a broader
 range of queries and provide more detailed responses than DNS alone can.
 
-Today, the primary use cases for Almanac are internal to Phorge:
-
-  - Providing a list of build servers to Drydock so it can run build and
-    integration tasks.
-  - Configuring Phorge to operate in a cluster setup.
+Today, the primary use case for Almanac is internal to Phorge: configuring
+Phorge to operate in a cluster setup.
 
 Beyond internal uses, Almanac is a general-purpose service and device inventory
 application and can be used to configure and manage other types of service and
@@ -31,20 +28,21 @@ hardware inventories, but these use cases are currently considered experimental
 and you should be exercise caution in pursuing them.
 
 
-Example: Drydock Build Pool
-================================
+Example: Host Pool
+==================
 
 Here's a quick example of how you might configure Almanac to solve a real-world
 problem. This section describes configuration at a high level to give you an
 introduction to Almanac concepts and a better idea of how the pieces fit
 together.
 
-In this scenario, we want to use Drydock to run some sort of build process. To
-do this, Drydock needs hardware to run on. We're going to use Almanac to give
-Drydock a list of hosts it should use.
+In this scenario, we have a pool of hosts which run some sort of build process,
+and a caller (a deployment script of your own, reaching Almanac over Conduit)
+which needs to know where they are. We're going to use Almanac to keep the list
+of hosts.
 
 In this scenario, Almanac will work a bit like a DNS server. When we're done,
-Drydock will be able to query Almanac for information about a service (like
+the caller will be able to query Almanac for information about a service (like
 `build.mycompany.com`) and get back information about which hosts are part of
 that service and which addresses/ports it should connect to.
 
@@ -73,21 +71,20 @@ might look a little bit like this:
 | `build002.mycompany.com` | Public Internet | 58.8.9.11 | 22
 | ... | Public Internet | ... | 22
 
-Now, we create the **service**. This is what we'll tell Drydock about, and
+Now, we create the **service**. This is what we'll point the caller at, and
 it can query for information about this service to find connected devices.
 Here, we'll call it `build.mycompany.com`.
 
 After creating the service, add **bindings** to the interfaces we configured
-above. This will tell Drydock where it should actually connect to.
+above. This will tell the caller where it should actually connect to.
 
-Once this is complete, we're done in Almanac and can continue configuration in
-Drydock, which is outside the scope of this example. Once everything is fully
-configured, this is how Almanac will be used by Drydock:
+Once this is complete, we're done in Almanac. Once everything is fully
+configured, this is how Almanac will be used:
 
-  - Drydock will query information about `build.mycompany.com` from Almanac.
-  - Drydock will get back a list of bound interfaces, among other data.
-  - The interfaces provide information about addresses and ports that Drydock
-    can use to connect to the actual devices.
+  - The caller will query information about `build.mycompany.com` from Almanac.
+  - It will get back a list of bound interfaces, among other data.
+  - The interfaces provide information about addresses and ports it can use to
+    connect to the actual devices.
 
 You can now add and remove devices to the pool by binding them and unbinding
 them from the service.

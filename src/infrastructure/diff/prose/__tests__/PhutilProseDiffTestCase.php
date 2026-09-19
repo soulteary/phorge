@@ -36,101 +36,28 @@ final class PhutilProseDiffTestCase
     }
   }
 
-  public function testProseDiffsDistance() {
-    $this->assertProseParts(
-      '',
-      '',
-      array(),
-      pht('Empty'));
-
-    $this->assertProseParts(
-      "xxx\nyyy",
-      "xxx\nzzz\nyyy",
-      array(
-        "= xxx\n",
-        "+ zzz\n",
-        '= yyy',
-      ),
-      pht('Add Paragraph'));
-
-    $this->assertProseParts(
-      "xxx\nzzz\nyyy",
-      "xxx\nyyy",
-      array(
-        "= xxx\n",
-        "- zzz\n",
-        '= yyy',
-      ),
-      pht('Remove Paragraph'));
-
-    $this->assertProseParts(
-       'xxx',
-       "xxxyyy\n.zzz",
-       array(
-         '= xxx',
-         "+ yyy\n.zzz",
-       ),
-       pht('Amend paragraph, and add paragraph starting with punctuation'));
-
-    // Without smoothing, the alogorithm identifies that "shark" and "cat"
-    // both contain the letter "a" and tries to express this as a very
-    // fine-grained edit which replaces "sh" with "c" and then "rk" with "t".
-    // This is technically correct, but it is much easier for human viewers to
-    // parse if we smooth this into a single removal and a single addition.
-
-    $this->assertProseParts(
-      'They say the shark has nine lives.',
-      'They say the cat has nine lives.',
-      array(
-        '= They say the ',
-        '- shark',
-        '+ cat',
-        '=  has nine lives.',
-      ),
-      pht('"Shark/cat" word edit smoothenss.'));
-
-    $this->assertProseParts(
-      'Rising quickly, she says',
-      'Rising quickly, she remarks:',
-      array(
-        '= Rising quickly, she ',
-        '- says',
-        '+ remarks:',
-      ),
-      pht('"Says/remarks" word edit smoothenss.'));
-
-    $this->assertProseParts(
-      'See screenshots',
-      'Viewed video files',
-      array(
-        '- See screenshots',
-        '+ Viewed video files',
-      ),
-      pht('Complete paragraph rewrite.'));
-
-    $this->assertProseParts(
-      'xaaax',
-      'xbbbx',
-      array(
-        '- xaaax',
-        '+ xbbbx',
-      ),
-      pht('Whole word rewrite with common prefix and suffix.'));
-
-    $this->assertProseParts(
-      ' aaa ',
-      ' bbb ',
-      array(
-        '=  ',
-        '- aaa',
-        '+ bbb',
-        '=  ',
-      ),
-      pht('Whole word rewrite with whitespace prefix and suffix.'));
-
+  /**
+   * Summarization is still computed here, so it is still tested here.
+   *
+   * The cases which used to assert how the text was split into parts -- edit
+   * smoothing, punctuation handling, whole-word rewrites -- described the
+   * behavior of the local implementation which has been removed. Those
+   * expectations now belong to the Gorge render service and are verified in
+   * its own suite; there is nothing left in this process to assert them
+   * against. What remains on this side is turning a part list into a summary,
+   * so these cases feed the part list a service response would carry and
+   * check the elision.
+   */
+  public function testProseSummaryParts() {
     $this->assertSummaryProseParts(
       "a\nb\nc\nd\ne\nf\ng\nh\n",
       "a\nb\nc\nd\nX\nf\ng\nh\n",
+      array(
+        array('=', "a\nb\nc\nd\n"),
+        array('-', 'e'),
+        array('+', 'X'),
+        array('=', "\nf\ng\nh\n"),
+      ),
       array(
         '.',
         "= d\n",
@@ -145,6 +72,11 @@ final class PhutilProseDiffTestCase
       "a\nb\nc\nd\ne\nf\ng\nh\n",
       "X\nb\nc\nd\ne\nf\ng\nh\n",
       array(
+        array('-', 'a'),
+        array('+', 'X'),
+        array('=', "\nb\nc\nd\ne\nf\ng\nh\n"),
+      ),
+      array(
         '- a',
         '+ X',
         "= \nb",
@@ -156,6 +88,12 @@ final class PhutilProseDiffTestCase
       "a\nb\nc\nd\ne\nf\ng\nh\n",
       "a\nb\nc\nd\ne\nf\ng\nX\n",
       array(
+        array('=', "a\nb\nc\nd\ne\nf\ng\n"),
+        array('-', 'h'),
+        array('+', 'X'),
+        array('=', "\n"),
+      ),
+      array(
         '.',
         "= g\n",
         '- h',
@@ -163,101 +101,106 @@ final class PhutilProseDiffTestCase
         "= \n",
       ),
       pht('Summary diff with last change.'));
-
-    $this->assertProseParts(
-      'aaa aaa aaa aaa, bbb bbb bbb bbb.',
-      "aaa aaa aaa aaa, bbb bbb bbb bbb.\n\n- ccc ccc ccc",
-      array(
-        '= aaa aaa aaa aaa, bbb bbb bbb bbb.',
-        "+ \n\n- ccc ccc ccc",
-      ),
-      pht('Diff with new trailing content.'));
-
-    $this->assertProseParts(
-      'aaa aaa aaa aaa, bbb bbb bbb bbb.',
-      'aaa aaa aaa aaa bbb bbb bbb bbb.',
-      array(
-        '= aaa aaa aaa aaa',
-        '- ,',
-        '=  bbb bbb bbb bbb.',
-      ),
-      pht('Diff with a removed comma.'));
-
-    $this->assertProseParts(
-      'aaa aaa aaa aaa, bbb bbb bbb bbb.',
-      "aaa aaa aaa aaa bbb bbb bbb bbb.\n\n- ccc ccc ccc!",
-      array(
-        '= aaa aaa aaa aaa',
-        '- ,',
-        '=  bbb bbb bbb bbb.',
-        "+ \n\n- ccc ccc ccc!",
-      ),
-      pht('Diff with a removed comma and new trailing content.'));
-
-    $this->assertProseParts(
-      '[ ] Walnuts',
-      '[X] Walnuts',
-      array(
-        '= [',
-        '-  ',
-        '+ X',
-        '= ] Walnuts',
-      ),
-      pht('Diff adding a tickmark to a checkbox list.'));
-
-    $this->assertProseParts(
-      '[[ ./week49 ]]',
-      '[[ ./week50 ]]',
-      array(
-        '= [[ ./week',
-        '- 49',
-        '+ 50',
-        '=  ]]',
-      ),
-      pht('Diff changing a remarkup wiki link target.'));
-
-    // Create a large corpus with many sentences and paragraphs.
-    $large_paragraph = 'xyz. ';
-    $large_paragraph = str_repeat($large_paragraph, 50);
-    $large_paragraph = rtrim($large_paragraph);
-
-    $large_corpus = $large_paragraph."\n\n";
-    $large_corpus = str_repeat($large_corpus, 50);
-    $large_corpus = rtrim($large_corpus);
-
-    $this->assertProseParts(
-      $large_corpus,
-      "aaa\n\n".$large_corpus."\n\nzzz",
-      array(
-        "+ aaa\n\n",
-        '= '.$large_corpus,
-        "+ \n\nzzz",
-      ),
-      pht('Adding initial and final lines to a large corpus.'));
-
   }
 
-  private function assertProseParts($old, $new, array $expect_parts, $label) {
-    $engine = new PhutilProseDifferenceEngine();
-    $diff = $engine->getDiff($old, $new);
+  /**
+   * A response which does not reproduce the inputs must be rejected.
+   *
+   * This is the integrity check which replaces "the local algorithm can not
+   * lose text by construction", so it is the one guarantee this side still
+   * owns about the part list itself.
+   */
+  public function testProsePartsMustReconstructInput() {
+    $old = "a\nb\n";
+    $new = "a\nc\n";
 
-    $parts = $diff->getParts();
+    $caught = null;
+    try {
+      PhabricatorGorgeDiffClient::newProseDiffFromData(
+        array(
+          'parts' => array(
+            array('type' => '=', 'text' => "a\n"),
+            array('type' => '-', 'text' => 'b'),
+            array('type' => '+', 'text' => 'c'),
+            // The trailing newline both inputs end with is missing here.
+          ),
+        ),
+        $old,
+        $new);
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
 
-    $this->assertParts($expect_parts, $parts, $label);
+    $this->assertTrue(
+      ($caught instanceof Exception),
+      pht('Parts which do not reconstruct the inputs are rejected.'));
+
+    $diff = PhabricatorGorgeDiffClient::newProseDiffFromData(
+      array(
+        'parts' => array(
+          array('type' => '=', 'text' => "a\n"),
+          array('type' => '-', 'text' => 'b'),
+          array('type' => '+', 'text' => 'c'),
+          array('type' => '=', 'text' => "\n"),
+        ),
+      ),
+      $old,
+      $new);
+
+    $this->assertParts(
+      array(
+        "= a\n",
+        '- b',
+        '+ c',
+        "= \n",
+      ),
+      $diff->getParts(),
+      pht('Parts which reconstruct the inputs are accepted.'));
+  }
+
+  /**
+   * Without a render endpoint there is no prose diff at all any more.
+   */
+  public function testProseDiffRequiresConfiguredService() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.render.uri', null);
+
+    $caught = null;
+    try {
+      id(new PhutilProseDifferenceEngine())->getDiff('a', 'b');
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
+
+    unset($env);
+
+    $this->assertTrue(
+      ($caught instanceof Exception),
+      pht('Prose diff fails when the render service is not configured.'));
   }
 
   private function assertSummaryProseParts(
     $old,
     $new,
+    array $service_parts,
     array $expect_parts,
     $label) {
 
-    $engine = new PhutilProseDifferenceEngine();
-    $diff = $engine->getDiff($old, $new);
+    $parts = array();
+    foreach ($service_parts as $service_part) {
+      list($type, $text) = $service_part;
+      $parts[] = array(
+        'type' => $type,
+        'text' => $text,
+      );
+    }
 
-    $parts = $diff->getSummaryParts();
+    $diff = PhabricatorGorgeDiffClient::newProseDiffFromData(
+      array('parts' => $parts),
+      $old,
+      $new);
 
-    $this->assertParts($expect_parts, $parts, $label);
+    $this->assertParts($expect_parts, $diff->getSummaryParts(), $label);
   }
 
   private function assertParts(

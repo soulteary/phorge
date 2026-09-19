@@ -9,6 +9,39 @@ final class PhabricatorGorgeWebhookSetupCheck extends PhabricatorSetupCheck {
   protected function executeChecks() {
     $service = PhabricatorGorgeServiceRegistry::getService('webhook');
     if (!$service->isOwnedBy('gorge')) {
+      // Phorge ownership used to mean "the HeraldWebhookWorker delivers".
+      // That consumer has been retired, so this is now a configuration with
+      // no delivery agent at all: requests are written to the queue and
+      // terminally failed instead of sent. Report it here rather than
+      // letting the install discover it one dead webhook at a time.
+      $this->newIssue('gorge.webhook.no-consumer')
+        ->setName(pht('Webhook Delivery Has No Consumer'))
+        ->setSummary(
+          pht(
+            'Webhook delivery is assigned to Phorge, but the native PHP '.
+            'delivery implementation has been removed.'))
+        ->setMessage(
+          pht(
+            'Herald webhook delivery resolves to %s, either because %s is '.
+            'set to %s or because it is %s with no %s configured. The PHP '.
+            'HTTP sender which used to serve that configuration has been '.
+            'retired, so nothing delivers these requests: they are recorded '.
+            'and then failed with a %s hook error.'.
+            "\n\n".
+            'Configure the Gorge webhook service and assign ownership to '.
+            '%s. In the bundled stack that is %s with a reachable %s. '.
+            'Webhook delivery is not available without it.',
+            phutil_tag('tt', array(), 'phorge'),
+            phutil_tag('tt', array(), 'gorge.webhook.owner'),
+            phutil_tag('tt', array(), 'phorge'),
+            phutil_tag('tt', array(), 'auto'),
+            phutil_tag('tt', array(), 'gorge.webhook.uri'),
+            phutil_tag('tt', array(), 'native-retired'),
+            phutil_tag('tt', array(), 'gorge'),
+            phutil_tag('tt', array(), 'GORGE_WEBHOOK_MODE=enable'),
+            phutil_tag('tt', array(), 'GORGE_WEBHOOK_URI')))
+        ->addRelatedPhabricatorConfig('gorge.webhook.owner')
+        ->addRelatedPhabricatorConfig('gorge.webhook.uri');
       return;
     }
 
@@ -23,11 +56,11 @@ final class PhabricatorGorgeWebhookSetupCheck extends PhabricatorSetupCheck {
             'endpoint is not configured.'))
         ->setMessage(
           pht(
-            'Webhook delivery remains delegated so the PHP worker can not ' .
-            'race the Gorge consumer. Set `%s` to the running service, or ' .
-            'atomically set `%s` back to `%s`.',
+            'Set `%s` to the running service. Handing ownership back to ' .
+            '`%s` is no longer an option: the native PHP delivery ' .
+            'implementation has been removed, so that configuration has no ' .
+            'consumer at all.',
             'gorge.webhook.uri',
-            'gorge.webhook.owner',
             'phorge'))
         ->addRelatedPhabricatorConfig('gorge.webhook.owner')
         ->addRelatedPhabricatorConfig('gorge.webhook.uri');
@@ -160,13 +193,11 @@ final class PhabricatorGorgeWebhookSetupCheck extends PhabricatorSetupCheck {
       'the garbage collector reaches them first.'.
       "\n\n".
       'Check that the service is running and that %s names a host this '.
-      'server can reach. To hand delivery back in the default deployment, '.
-      'stop the %s consumer, set %s to %s, rerun %s without starting its '.
-      'dependencies, and restart Phorge the same way. This regenerates '.
-      'one deployment configuration which assigns %s to %s and clears %s '.
-      'together. Do not restart that consumer while Phorge owns delivery. '.
-      'If another deployment system owns these settings, make '.
-      'those same changes atomically in its configuration source.',
+      'server can reach. There is no longer a way to hand delivery back to '.
+      'this server: the native PHP sender has been retired, so %s is the '.
+      'only delivery agent and bringing it back up is the only repair. '.
+      'Queued requests are delivered once it returns, unless the garbage '.
+      'collector reaches them first.',
       phutil_tag('tt', array(), $uri),
       phutil_tag('tt', array(), $health_uri),
       phutil_tag('pre', array(), $error),
@@ -174,13 +205,7 @@ final class PhabricatorGorgeWebhookSetupCheck extends PhabricatorSetupCheck {
       phutil_tag('tt', array(), 'gorge'),
       phutil_tag('tt', array(), 'queued'),
       phutil_tag('tt', array(), 'gorge.webhook.uri'),
-      phutil_tag('tt', array(), 'gorge-webhook'),
-      phutil_tag('tt', array(), 'GORGE_WEBHOOK_MODE'),
-      phutil_tag('tt', array(), 'disable'),
-      phutil_tag('tt', array(), 'phorge-migrate'),
-      phutil_tag('tt', array(), 'gorge.webhook.owner'),
-      phutil_tag('tt', array(), 'phorge'),
-      phutil_tag('tt', array(), 'gorge.webhook.uri'));
+      phutil_tag('tt', array(), 'gorge-webhook'));
 
     $this->newIssue('gorge.webhook.unreachable')
       ->setName(pht('Gorge Webhook Service Unreachable'))

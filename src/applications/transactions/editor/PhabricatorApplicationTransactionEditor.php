@@ -1254,18 +1254,10 @@ abstract class PhabricatorApplicationTransactionEditor
             $errors);
         }
 
-        if ($this->raiseWarnings) {
-          $warnings = array();
-          foreach ($xactions as $xaction) {
-            if ($this->hasWarnings($object, $xaction)) {
-              $warnings[] = $xaction;
-            }
-          }
-          if ($warnings) {
-            throw new PhabricatorApplicationTransactionWarningException(
-              $warnings);
-          }
-        }
+        // Warnings used to be raised here for draft Differential revisions,
+        // the only object which ever produced them. With revisions removed
+        // there is nothing left to warn about; setRaiseWarnings() is still
+        // accepted so callers do not have to change.
       }
 
       foreach ($xactions as $xaction) {
@@ -3309,8 +3301,8 @@ abstract class PhabricatorApplicationTransactionEditor
 
     $type_user = PhabricatorPeopleUserPHIDType::TYPECONST;
     if (phid_get_type($actor_phid) != $type_user) {
-      // Transactions by application actors like Herald, Harbormaster and
-      // Diffusion should not CC the applications.
+      // Transactions by application actors like Herald and Diffusion should
+      // not CC the applications.
       return $xactions;
     }
 
@@ -4286,35 +4278,6 @@ abstract class PhabricatorApplicationTransactionEditor
     $this->setHeraldAdapter($adapter);
     $this->setHeraldTranscript($xscript);
 
-    if ($adapter instanceof HarbormasterBuildableAdapterInterface) {
-      $buildable_phid = $adapter->getHarbormasterBuildablePHID();
-
-      HarbormasterBuildable::applyBuildPlans(
-        $buildable_phid,
-        $adapter->getHarbormasterContainerPHID(),
-        $adapter->getQueuedHarbormasterBuildRequests());
-
-      // Whether we queued any builds or not, any automatic buildable for this
-      // object is now done preparing builds and can transition into a
-      // completed status.
-      $buildables = id(new HarbormasterBuildableQuery())
-        ->setViewer(PhabricatorUser::getOmnipotentUser())
-        ->withManualBuildables(false)
-        ->withBuildablePHIDs(array($buildable_phid))
-        ->execute();
-      foreach ($buildables as $buildable) {
-        // If this buildable has already moved beyond preparation, we don't
-        // need to nudge it again.
-        if (!$buildable->isPreparing()) {
-          continue;
-        }
-        $buildable->sendMessage(
-          $this->getActor(),
-          HarbormasterMessageType::BUILDABLE_BUILD,
-          true);
-      }
-    }
-
     $this->mustEncrypt = $adapter->getMustEncryptReasons();
 
     // See PHI1134. Propagate "Must Encrypt" state to sub-editors.
@@ -5272,54 +5235,6 @@ abstract class PhabricatorApplicationTransactionEditor
 
       $request->queueCall();
     }
-  }
-
-  /**
-   * This can only apply to Differential Revisions which are drafts.
-   *
-   * @return bool
-   */
-  private function hasWarnings($object, $xaction) {
-    // TODO: For the moment, this is a very un-modular hack to support
-    // a small number of warnings related to draft revisions. See PHI433.
-
-    if (!($object instanceof DifferentialRevision)) {
-      return false;
-    }
-
-    $type = $xaction->getTransactionType();
-
-    // TODO: This doesn't warn for inlines in Audit, even though they have
-    // the same overall workflow.
-    if ($type === DifferentialTransaction::TYPE_INLINE) {
-      return (bool)$xaction->getComment()->getAttribute('editing', false);
-    }
-
-    if (!$object->isDraft()) {
-      return false;
-    }
-
-    if ($type != PhabricatorTransactions::TYPE_SUBSCRIBERS) {
-      return false;
-    }
-
-    // We're only going to raise a warning if the transaction adds subscribers
-    // other than the acting user. (This implementation is clumsy because the
-    // code runs before a lot of normalization occurs.)
-
-    $old = $this->getTransactionOldValue($object, $xaction);
-    $new = $this->getPHIDTransactionNewValue($xaction, $old);
-    $old = array_fuse($old);
-    $new = array_fuse($new);
-    $add = array_diff_key($new, $old);
-
-    unset($add[$this->getActingAsPHID()]);
-
-    if (!$add) {
-      return false;
-    }
-
-    return true;
   }
 
   public function newAutomaticInlineTransactions(
