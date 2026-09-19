@@ -71,16 +71,22 @@ final class PhabricatorGorgeSetupCheck extends PhabricatorSetupCheck {
   }
 
   private function checkReachable($uri) {
-    $health_uri = $uri.'/healthz';
-    $future = id(new HTTPSFuture($health_uri))->setTimeout(5);
-
-    try {
-      $future->resolvex();
+    $probe = PhabricatorGorgeServiceClient::probeEndpoint($uri, '/healthz');
+    if ($probe['ok']) {
       return true;
-    } catch (Exception $ex) {
-      $error = $ex->getMessage();
     }
 
+    $error = $probe['error'];
+    if (!phutil_nonempty_string($error)) {
+      $status = idx($probe, 'status');
+      if ($status !== null) {
+        $error = pht('HTTP %d: %s', $status, idx($probe, 'body', ''));
+      } else {
+        $error = pht('(The service did not say why.)');
+      }
+    }
+
+    $health_uri = $probe['uri'];
     $summary = pht(
       'The Gorge render and diff service is configured, but does not '.
       'respond to a health check.');
