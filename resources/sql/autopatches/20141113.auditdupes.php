@@ -1,15 +1,33 @@
 <?php
 
-$table = new PhabricatorRepositoryAuditRequest();
+// PhabricatorRepositoryAuditRequest is gone with the Audit application. The
+// rows remain, and this patch still has to run against older schemas, so it
+// walks them raw and deletes by id rather than through the model.
+final class PhabricatorAuditDupesMigrationDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_auditrequest';
+  }
+
+}
+
+$table = new PhabricatorAuditDupesMigrationDAO();
 $conn_w = $table->establishConnection('w');
 
 echo pht('Removing duplicate Audit requests...')."\n";
 $seen_audit_map = array();
-foreach (new LiskMigrationIterator($table) as $request) {
-  $commit_phid = $request->getCommitPHID();
-  $auditor_phid = $request->getAuditorPHID();
+foreach (new LiskRawMigrationIterator($conn_w, $table->getTableName())
+  as $request) {
+
+  $commit_phid = $request['commitPHID'];
+  $auditor_phid = $request['auditorPHID'];
   if (isset($seen_audit_map[$commit_phid][$auditor_phid])) {
-    $request->delete();
+    queryfx(
+      $conn_w,
+      'DELETE FROM %T WHERE id = %d',
+      $table->getTableName(),
+      $request['id']);
   }
 
   if (!isset($seen_audit_map[$commit_phid])) {

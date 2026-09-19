@@ -43,3 +43,19 @@ resources/sql/autopatches/20170811.differential.01.status.php:DifferentialRevisi
 # reason lives here rather than at the reference because .sql patches are
 # applied verbatim and carry no comments anywhere in this tree.
 resources/sql/autopatches/20140723.apprenamexaction.sql:PhabricatorHarbormasterApplication
+
+# Stored values inside historical SQL data, not code references. The reasons
+# live here rather than at the reference because no .sql patch in this tree
+# carries comments and they are applied verbatim.
+#
+# - the two Herald patches rewrite rows by their stored "contentType" string;
+# - quickstart.sql seeds saved queries whose "queryClass" is a stored string
+#   in a JSON blob.
+resources/sql/autopatches/20150708.herald.2.sql:HeraldPreCommitRefAdapter
+resources/sql/autopatches/20150708.herald.3.sql:HeraldPreCommitContentAdapter
+resources/sql/quickstart.sql:PhabricatorRepositoryQuery
+
+# "engineClassName" on a saved query is a stored string; rows written while the
+# commit search engine existed must still be recognized by this patch. Same
+# case as 20170811.differential.01.status.php above.
+resources/sql/autopatches/20180910.audit.01.searches.php:PhabricatorCommitSearchEngine
