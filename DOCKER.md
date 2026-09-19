@@ -84,31 +84,54 @@ docker compose up -d --build
 服务超时、返回错误或响应非法时，Phorge 不再按请求静默进入旧实现。迁移期间可临时设为
 `fallback`；每次实际进入原生路径都会记录
 `[gorge-fallback] service=... operation=... process_count=...`。稳定一个发布周期且
-日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、db、search、
+日志计数归零后即可开始删除旧实现。`off` 只影响 render/diff、conduit、search、
 file 和 mailer 等请求路由型能力；webhook/taskqueue 的排他消费者仍由各自
 `GORGE_*_MODE` 切换，不能靠全局策略隐式改写。
-DB 的 fallback 覆盖完整诊断操作：握手成功后若 servers、schema 或 setup 请求失败，
-仍会记录具体操作并执行对应的原生诊断，而不是只在握手阶段生效。
+两个服务是例外，因为它们要回退到的原生实现已经删除：render/diff 无论策略取值都会在
+服务不可用时直接失败；db 的 `fallback` 与 `off` 会被忽略并按 `required` 处理，
+`PhabricatorGorgeDBSetupCheck` 会报告这个被忽略的覆盖。
 
 Task queue 的 enqueue 是例外：只有在发送请求前即发现端点不可用时才允许进入 SQL
 fallback。请求发出后的超时或坏响应会直接报错，因为 Gorge 可能已经提交任务；此时再
 写一条原生任务会造成重复执行。完整的跨路径重试需要两端共享幂等键后才能开放。
+注意这条 fallback 现在只保证任务被写下来而不会丢：原生 taskmaster 已经删除，
+`phd` 不再启动它，所以写进 SQL 队列的任务要等 Gorge 恢复后才会被消费。
 同理，worker 业务逻辑成功但 required completion 回报失败时，Phorge 会显式报错并把
 SQL 任务停在 `gorge-completion-pending` lease 下，避免租约到期后重复执行；恢复服务后
 应由运维确认实际归档状态再做 reconciliation。
 
 Webhook 与 task queue 分别使用 `gorge.webhook.owner` 和
 `gorge.taskqueue.owner` 明确选择唯一消费者；URI 只表示端点。默认栈把两者设为
-`gorge`，legacy 模式设为 `phorge`。源码安装和旧 overlay 未设置 owner 时仍支持
-`auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+`gorge`。源码安装未设置 owner 时仍支持 `auto`，保持“存在 URI 即使用 Gorge”的旧行为。
+
+但 `phorge` 这一侧现在是空的：原生 webhook 投递与原生 taskmaster 都已经移除，
+所以把 owner 设为 `phorge`——或者在没有配置 URI 的情况下让 `auto` 落到 `phorge`——
+意味着**没有任何消费者**，而不是交还给 phd。两个 setup check
+（`gorge.webhook.no-consumer` / `gorge.taskqueue.no-consumer`）会把这个状态报出来，
+`phorge-migrate` 也会拒绝 `GORGE_WEBHOOK_MODE=disable` 与 `GORGE_TASKQUEUE_MODE=disable`。
 
 Gorge 的九个接入域由 `PhabricatorGorgeServiceRegistry` 统一登记。默认控制面不再逐项
 调用 `bin/config set`，也不再用 `collaboration-profile-state.json` 长期维护应用和字段
 的三方合并；从阶段一升级时若检测到旧状态文件，会先恢复原始管理员配置，再一次性迁移。
 
-后文保留每个 Gorge 服务的逐项说明。其中提到 entrypoint 写 `local.json` 的操作只属于
-兼容控制面（自定义编排叠加 `docker-compose.gorge.yml` 时仍走这条路径）；默认
-`docker-compose.yml` 使用上述 `deployment.json`，服务协议与环境变量含义不变。
+`notification.servers` 是这次迁移里唯一可能被清掉的管理员可见配置。旧控制面把 Gorge
+的两条记录直接写进 `local.json`，快照（`gorge-notification-state.json`）是后来才加的，
+所以最早那批安装没有可恢复的原值，而不带通知选择器的迁移又不会覆盖这一项。迁移因此会
+识别 Gorge 写出的那个固定结构（两条记录：`admin` 固定 `http`，其后一条 `client`，没有
+多余字段）并移除它，同时在 stderr 上打印被移除的值。这个结构也可能与管理员自建的
+Aphlict 配置相同，取舍是明确的：清掉是“通知需要重新配置”并且有警告，留下则是悄悄指向
+一台即将下线的主机。看到该警告后按后文的 Aphlict/通知章节重新配置即可。
+
+后文保留每个 Gorge 服务的逐项说明。其中提到 entrypoint 用 `bin/config set` 写
+`local.json` 的描述是旧版兼容控制面的行为，已随 `PHORGE_CONTROL_PLANE=legacy`
+一并移除（显式传 `legacy` 会 exit 64）；现在这些端点由 `phorge-migrate` 一次性写进
+上述 `deployment.json`，服务协议与环境变量含义不变。
+
+自定义编排要接 Gorge，不要用 `-f` 叠加 `docker-compose.gorge.yml` —— 它只是
+`gorge-*` 服务定义的来源，由默认文件用 `extends` 引用。自定义栈必须自己定义
+`phorge-migrate` / `phorge` / `phorge-daemon` 三个角色，并把全部 `GORGE_*` 端点
+变量放在 **`phorge-migrate`** 上；`web` 与 `daemon` 只读加载配置，缺少 migrate 角色
+的编排会因为没有 `local.json` / `deployment.json` 直接退出。
 
 需要邮件、搜索或 Gitea 单向事件桥时，显式启用对应 profile：
 
@@ -170,6 +193,18 @@ sed -e 's/__PHORGE_USER__/phorge/g' \
 
 # 2) migrate：写 local.json、跑 storage upgrade、原子发布 deployment.json
 #    它是一次性任务，跑完就退出；--rm 之后配置留在 phorge-conf 卷里。
+#
+#    ⚠️ 本配方假定 phorge-conf 是**全新**卷。如果你复用的是之前跑过 Gorge 默认栈
+#    的那个卷，先删掉里面的 deployment.json 再执行这一步：
+#      docker run --rm -v phorge-conf:/conf alpine \
+#        rm -f /conf/deployment.json
+#    原因：build_deployment_config.php 是在**现有** deployment.json 的基础上增量
+#    重建的，选择器变量缺失的服务一律按 preserve 保留。本配方不传任何 GORGE_*，
+#    所以 gorge.taskqueue.owner=gorge、phd.taskmasters=0、webhook 所有权以及各个
+#    gorge.*.uri 都会原封不动留下来。Gorge 容器已经停了，结果就是队列和 webhook
+#    没有消费者、required 策略下的调用打向已经不存在的主机。
+#    不要试图用 GORGE_*_MODE=disable 回滚：webhook 与 taskqueue 的 disable 已经
+#    不再受支持（migrate 会直接报错退出），删掉 deployment.json 是唯一的重置方式。
 #    PHORGE_PRODUCT_PROFILE 显式写 full：默认的 auto 在空库上会解析成
 #    collaboration，那会停用 Diffusion 代码托管应用，
 #    并预期由 GITEA_BASE_URI 指向一个外部代码托管。这个不带 Gorge 的最小示例
@@ -698,7 +733,7 @@ services:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.traefik.yml \
-  -f docker-compose.gorge.yml up -d --build
+  up -d --build
 ```
 
 ### 本地构建镜像
@@ -1640,28 +1675,23 @@ docker compose exec phorge /opt/phorge/phorge/bin/phd status
   `setRunAllTasksInProcess()` 就地投递再读回状态码，交接之后请求是被 Go 异步取走的，
   命令行拿不到结果，所以改成打印请求的 PHID，让你去 Recent Requests 里看。
 
-### 回滚
+### 没有回滚
 
-一步，而且没有数据后果——队列表的结构和字段含义两边完全一致：
+这一节以前写的是「清空 URI、把 owner 切回 phorge、再停服务」。**那条路已经不存在了**：
+承接投递的 `HeraldWebhookWorker` 原生 HTTP 实现已经删除，它现在只是一个兼容壳，
+读到「未委派给 Gorge」时把请求置为终态失败（`native-retired` hook error），而不是发出去。
 
-```bash
-# 1) 停掉下发：把 GORGE_WEBHOOK_URI 从 .env 里清空（或整段删掉），
-#    这样 entrypoint.sh 下次启动就不再写 gorge.webhook.uri。
-#    注意：清空它**不会**把已经写进 local.json 的值撤掉，得手工清。
-docker compose exec phorge /opt/phorge/phorge/bin/config set gorge.webhook.uri null
+所以照旧操作的后果是：webhook 一条都不再投递，而且失败是静默的——请求仍然被记录，
+只是永远发不出去。`PhabricatorGorgeWebhookSetupCheck` 会把这个状态报成
+`gorge.webhook.no-consumer`。
 
-# 2) 停掉服务。顺序不能反 —— 先停服务再清配置的话，中间那段时间两边都不投。
-docker compose stop gorge-webhook
+需要停 `gorge-webhook` 做维护时，就只是停它：队列表里的行留在 `queued`，服务起回来以后
+继续投（前提是没被 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期删掉）。不要顺手去
+清 `gorge.webhook.uri` 或把 `gorge.webhook.owner` 改成 `phorge`——那不会让 `phd` 接手，
+只会把请求提前判死。
 
-# 3) 确认生效
-docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.webhook.uri
-```
-
-清掉配置之后 `phd` 对**新产生的**请求立刻恢复调度。第 1、2 步的顺序不能反，原因就在这里：
-任务是在插行的那一刻由 `queueCall()` 派出去的，只派一次。先停服务再清配置的话，中间那段
-时间产生的行既没有 phd 的任务、又没有 Go 来取，之后谁也不会回头去捡——它们会一直停在
-`queued`，直到 `HeraldWebhookRequestGarbageCollector` 按 7 天保留期把它们删掉。按上面的
-顺序做则不会有这样的行：清配置的那一刻服务还在跑，队列是空的。
+真的不想要 webhook 投递，就删掉 Herald 里的 webhook 本身，而不是把所有权交给一个不存在的
+消费者。
 
 新增的 `key_status` 索引留着即可，它不影响 PHP 侧的任何查询。
 

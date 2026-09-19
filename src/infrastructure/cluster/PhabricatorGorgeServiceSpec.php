@@ -114,14 +114,18 @@ final class PhabricatorGorgeServiceSpec extends Phobject {
           phutil_string_cast($policy)));
     }
 
-    if ($this->getKey() === 'db' &&
-        $policy !== self::POLICY_REQUIRED) {
-      throw new Exception(
-        pht(
-          'Gorge database diagnostics no longer support policy "%s". The '.
-          'database service is required after retirement of the native PHP '.
-          'diagnostic fallback.',
-          $policy));
+    if ($this->getKey() === 'db' && $policy !== self::POLICY_REQUIRED) {
+      // The native PHP diagnostic fallback has been retired, so an override
+      // which selects it no longer names an implementation. Ignore it rather
+      // than throwing: getPolicy() is reached from setup checks, the database
+      // console and management queries -- including on installations which
+      // never configured this service and only set the global policy for
+      // another one -- so throwing here breaks unrelated pages, and it breaks
+      // the setup check which would otherwise explain the problem.
+      //
+      // PhabricatorGorgeDBSetupCheck reports the ignored override instead,
+      // where the operator can act on it.
+      return self::POLICY_REQUIRED;
     }
 
     return $policy;

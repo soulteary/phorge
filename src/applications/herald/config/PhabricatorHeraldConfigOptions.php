@@ -30,7 +30,7 @@ final class PhabricatorHeraldConfigOptions
         ->setEnumOptions(
           array(
             'auto' => pht('Infer From Endpoint (Legacy)'),
-            'phorge' => pht('Phorge'),
+            'phorge' => pht('Phorge (No Consumer)'),
             'gorge' => pht('Gorge'),
           ))
         ->setSummary(pht('Select the Herald webhook delivery owner.'))
@@ -39,9 +39,18 @@ final class PhabricatorHeraldConfigOptions
             'Select exactly one consumer for Herald webhook requests. The ' .
             'default deployment writes an explicit owner through its ' .
             'read-only deployment configuration. `%s` preserves the older ' .
-            'behavior in which a nonempty `%s` implicitly selected Gorge.',
+            'behavior in which a nonempty `%s` implicitly selected Gorge.'.
+            "\n\n".
+            '`%s` no longer names a working consumer: the native PHP '.
+            'delivery worker has been removed. Selecting it -- or leaving '.
+            '`%s` with no endpoint configured, which resolves to it -- means '.
+            'no webhook is delivered at all. `%s` reports this as a setup '.
+            'issue.',
             'auto',
-            'gorge.webhook.uri')),
+            'gorge.webhook.uri',
+            'phorge',
+            'auto',
+            'PhabricatorGorgeWebhookSetupCheck')),
       $this->newOption('gorge.webhook.uri', 'string', null)
         ->setLocked(true)
         ->setSummary(pht('Base URI of the Gorge webhook service.'))
@@ -63,11 +72,15 @@ final class PhabricatorHeraldConfigOptions
             "\n\n".
             'The handover is not complete while `%s` is enabled. Silent mode '.
             'is configuration of this server and the service can not read it, '.
-            'so a silent install keeps delivering through the daemon, which '.
-            'fails each request instead of sending it. Set the owner to '.
-            '`phorge` before stopping Gorge; in legacy `auto` mode, clearing '.
-            'this endpoint performs the same handback. Requests which are '.
-            'still in `%s` status are picked up by the daemon from then on.'.
+            'so a silent install keeps failing each request instead of '.
+            'sending it, exactly as it did before the service existed.'.
+            "\n\n".
+            'There is no handback. The native PHP delivery consumer has been '.
+            'removed, so assigning the owner to `phorge` or clearing this '.
+            'endpoint does not return delivery to the daemon: it leaves no '.
+            'consumer at all, and requests are recorded and then failed with '.
+            'a `native-retired` hook error. Requests in `%s` status are '.
+            'delivered when the service comes back, not by this server.'.
             "\n\n".
             'Do not include a trailing slash: the service routes exactly, '.
             'and a doubled slash produces an "ERR_NOT_FOUND" error instead '.
