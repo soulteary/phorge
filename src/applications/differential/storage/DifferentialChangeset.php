@@ -290,29 +290,21 @@ final class DifferentialChangeset
     return 'change-'.PhabricatorHash::digestForAnchor($this->getFilename());
   }
 
-  public function getAbsoluteRepositoryPath(
-    ?PhabricatorRepository $repository = null,
-    ?DifferentialDiff $diff = null) {
-
+  /**
+   * The repository argument this method used to take is gone with tracked
+   * repositories. It only selected an SVN-specific behaviour -- stripping the
+   * repository's "remote-uri" path prefix -- which no caller can ask for any
+   * more, because nothing can produce a repository to pass.
+   */
+  public function getAbsoluteRepositoryPath(?DifferentialDiff $diff = null) {
     $base = '/';
     if ($diff && $diff->getSourceControlPath()) {
       $base = id(new PhutilURI($diff->getSourceControlPath()))->getPath();
     }
 
     $path = $this->getFilename();
-    $path = rtrim($base, '/').'/'.ltrim($path, '/');
 
-    $svn = PhabricatorRepositoryType::REPOSITORY_TYPE_SVN;
-    if ($repository && $repository->getVersionControlSystem() == $svn) {
-      $prefix = $repository->getDetail('remote-uri');
-      $prefix = id(new PhutilURI($prefix))->getPath();
-      if (!strncmp($path, $prefix, strlen($prefix))) {
-        $path = substr($path, strlen($prefix));
-      }
-      $path = '/'.ltrim($path, '/');
-    }
-
-    return $path;
+    return rtrim($base, '/').'/'.ltrim($path, '/');
   }
 
   public function attachDiff(DifferentialDiff $diff) {
@@ -753,13 +745,12 @@ final class DifferentialChangeset
   public function getFieldValuesForConduit() {
     $diff = $this->getDiff();
 
-    // A diff reached its repository through its revision, and diffs no longer
-    // have one: DifferentialDiff::getRevision() was removed with the revision
-    // layer, so this call fataled for every caller of
-    // "differential.changeset.search". Without a revision there is no
-    // repository to derive, and getAbsoluteRepositoryPath() answers a null
-    // repository with the diff-relative path, which is what the field wants.
-    $absolute_path = $this->getAbsoluteRepositoryPath(null, $diff);
+    // This used to reach a repository through the diff's revision, which
+    // fataled once DifferentialDiff::getRevision() went with the revision
+    // layer. There are now neither revisions nor repositories, and
+    // getAbsoluteRepositoryPath() no longer takes a repository at all, so the
+    // field asks for the diff-relative path directly.
+    $absolute_path = $this->getAbsoluteRepositoryPath($diff);
     if (strlen($absolute_path)) {
       $absolute_path = base64_encode($absolute_path);
     } else {

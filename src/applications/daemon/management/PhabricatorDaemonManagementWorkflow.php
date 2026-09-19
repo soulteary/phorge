@@ -325,10 +325,9 @@ abstract class PhabricatorDaemonManagementWorkflow
     }
 
     $daemons = array(
-      array(
-        'class' => 'PhabricatorRepositoryPullLocalDaemon',
-        'label' => 'pull',
-      ),
+      // PhabricatorRepositoryPullLocalDaemon is gone with tracked
+      // repositories: there is nothing local to pull, and the class no longer
+      // exists for the overseer to launch.
       array(
         'class' => 'PhabricatorTriggerDaemon',
         'label' => 'trigger',

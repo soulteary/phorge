@@ -1,6 +1,18 @@
 <?php
 
-$table = new PhabricatorAuditTransaction();
+// PhabricatorAuditTransaction is gone, and so is
+// DiffusionCommitStateTransaction. "transactionType" is a stored string, so
+// the literal "diffusion.commit.state" is what existing rows carry.
+final class PhabricatorAuditStateXactionMigrationDAO
+  extends PhabricatorAuditDAO {
+
+  public function getTableName() {
+    return 'audit_transaction';
+  }
+
+}
+
+$table = new PhabricatorAuditStateXactionMigrationDAO();
 $conn = $table->establishConnection('w');
 
 $status_map = array(
@@ -12,24 +24,26 @@ $status_map = array(
   5 => 'needs-verification',
 );
 
-$state_type = DiffusionCommitStateTransaction::TRANSACTIONTYPE;
+$state_type = 'diffusion.commit.state';
 
-foreach (new LiskMigrationIterator($table) as $xaction) {
-  if ($xaction->getTransactionType() !== $state_type) {
+foreach (new LiskRawMigrationIterator($conn, $table->getTableName())
+  as $xaction) {
+
+  if ($xaction['transactionType'] !== $state_type) {
     continue;
   }
 
-  $old_value = $xaction->getOldValue();
-  $new_value = $xaction->getNewValue();
+  $old_value = phutil_json_decode($xaction['oldValue']);
+  $new_value = phutil_json_decode($xaction['newValue']);
 
   $any_change = false;
 
-  if (isset($status_map[$old_value])) {
+  if (is_scalar($old_value) && isset($status_map[$old_value])) {
     $old_value = $status_map[$old_value];
     $any_change = true;
   }
 
-  if (isset($status_map[$new_value])) {
+  if (is_scalar($new_value) && isset($status_map[$new_value])) {
     $new_value = $status_map[$new_value];
     $any_change = true;
   }
@@ -44,5 +58,5 @@ foreach (new LiskMigrationIterator($table) as $xaction) {
     $table->getTableName(),
     phutil_json_encode($old_value),
     phutil_json_encode($new_value),
-    $xaction->getID());
+    $xaction['id']);
 }

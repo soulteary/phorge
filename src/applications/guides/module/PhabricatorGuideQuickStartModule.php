@@ -25,32 +25,9 @@ final class PhabricatorGuideQuickStartModule extends PhabricatorGuideModule {
     $guide_items = id(new PhabricatorGuideListView())
       ->setViewer($viewer);
 
-    $title = pht('Create a Repository');
-    $repository_check = id(new PhabricatorRepositoryQuery())
-      ->setViewer($viewer)
-      ->execute();
-    $href = PhabricatorEnv::getURI('/diffusion/');
-    if ($repository_check) {
-      $icon = 'fa-check';
-      $icon_bg = 'bg-green';
-      $description = pht(
-        "You've created at least one repository.");
-    } else {
-      $icon = 'fa-code';
-      $icon_bg = 'bg-sky';
-      $description =
-        pht('If you are here for code review, let\'s set up your first '.
-        'repository.');
-    }
-
-    $item = id(new PhabricatorGuideItemView())
-      ->setTitle($title)
-      ->setHref($href)
-      ->setIcon($icon)
-      ->setIconBackground($icon_bg)
-      ->setDescription($description);
-    $guide_items->addItem($item);
-
+    // The quick start began with "Create a Repository", pointing at
+    // /diffusion/. Repository hosting is delegated to the external forge, so
+    // there is nothing here to create and no Diffusion to land on.
 
     $title = pht('Create a Project');
     $project_check = id(new PhabricatorProjectQuery())

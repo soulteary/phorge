@@ -13,9 +13,9 @@ return array(
     'core.pkg.js' => '3f2a0263',
     'dark-console.pkg.js' => '40bfef42',
     'differential.pkg.css' => '6ca493b5',
-    'differential.pkg.js' => 'f1faacb7',
+    'differential.pkg.js' => '95e53931',
     'diffusion.pkg.css' => '91e57dc1',
-    'diffusion.pkg.js' => '3fba0510',
+    'diffusion.pkg.js' => '78d7ae12',
     'maniphest.pkg.css' => '3549ec0e',
     'maniphest.pkg.js' => 'f17ec1b3',
     'rsrc/audio/basic/alert.mp3' => '17889334',
@@ -311,14 +311,8 @@ return array(
     'rsrc/js/application/diff/DiffInlineContentState.js' => '09b25d79',
     'rsrc/js/application/diff/DiffPathView.js' => '06c422f5',
     'rsrc/js/application/diff/DiffTreeView.js' => '284cdce8',
+    'rsrc/js/application/diff/behavior-commit-graph.js' => '0e4c6c40',
     'rsrc/js/application/differential/behavior-populate.js' => 'fabc70ac',
-    'rsrc/js/application/diffusion/DiffusionLocateFileSource.js' => 'c2129f37',
-    'rsrc/js/application/diffusion/ExternalEditorLinkEngine.js' => '0597e99e',
-    'rsrc/js/application/diffusion/behavior-audit-preview.js' => 'b7b73831',
-    'rsrc/js/application/diffusion/behavior-commit-branches.js' => '4b671572',
-    'rsrc/js/application/diffusion/behavior-commit-graph.js' => '9bc1dd14',
-    'rsrc/js/application/diffusion/behavior-locate-file.js' => '4c77f259',
-    'rsrc/js/application/diffusion/behavior-pull-lastmodified.js' => 'c715c123',
     'rsrc/js/application/doorkeeper/behavior-doorkeeper-tag.js' => '6a85bc5a',
     'rsrc/js/application/fact/Chart.js' => '48fae0e0',
     'rsrc/js/application/fact/ChartCurtainView.js' => '52837786',
@@ -370,6 +364,7 @@ return array(
     'rsrc/js/core/Busy.js' => 'ec0c35b0',
     'rsrc/js/core/DragAndDropFileUpload.js' => '184e5354',
     'rsrc/js/core/DraggableList.js' => '0092408f',
+    'rsrc/js/core/ExternalEditorLinkEngine.js' => '34c4d3a5',
     'rsrc/js/core/Favicon.js' => '6be35145',
     'rsrc/js/core/FileUpload.js' => 'bcb07115',
     'rsrc/js/core/Hovercard.js' => 'b4afcd89',
@@ -506,7 +501,6 @@ return array(
     'javelin-behavior-aphront-form-disable-on-submit' => 'c60fb44a',
     'javelin-behavior-aphront-more' => '506aa3f4',
     'javelin-behavior-audio-source' => '6e815b50',
-    'javelin-behavior-audit-preview' => 'b7b73831',
     'javelin-behavior-badge-view' => '92cdd7b6',
     'javelin-behavior-bulk-editor' => 'aa6d2308',
     'javelin-behavior-bulk-job-reload' => '3829a3cf',
@@ -529,10 +523,7 @@ return array(
     'javelin-behavior-detect-timezone' => '4321459b',
     'javelin-behavior-device' => 'f941cb00',
     'javelin-behavior-differential-populate' => 'fabc70ac',
-    'javelin-behavior-diffusion-commit-branches' => '4b671572',
-    'javelin-behavior-diffusion-commit-graph' => '9bc1dd14',
-    'javelin-behavior-diffusion-locate-file' => '4c77f259',
-    'javelin-behavior-diffusion-pull-lastmodified' => 'c715c123',
+    'javelin-behavior-diffusion-commit-graph' => '0e4c6c40',
     'javelin-behavior-document-engine' => '9d02b360',
     'javelin-behavior-doorkeeper-tag' => '6a85bc5a',
     'javelin-behavior-durable-column' => 'a2d381d8',
@@ -613,11 +604,10 @@ return array(
     'javelin-chart-function-label' => 'b04c258c',
     'javelin-color' => '36576292',
     'javelin-cookie' => '05b28aa2',
-    'javelin-diffusion-locate-file-source' => 'c2129f37',
     'javelin-dom' => 'eaaba741',
     'javelin-dynval' => 'e47745d1',
     'javelin-event' => '38bc5a44',
-    'javelin-external-editor-link-engine' => '0597e99e',
+    'javelin-external-editor-link-engine' => '34c4d3a5',
     'javelin-fx' => '0a9fdbb9',
     'javelin-history' => '74885a80',
     'javelin-install' => '51e928c2',
@@ -849,9 +839,6 @@ return array(
       'javelin-dom',
       'javelin-workflow',
     ),
-    '0597e99e' => array(
-      'javelin-install',
-    ),
     '05a2b50b' => array(
       'javelin-behavior',
       'javelin-behavior-device',
@@ -905,6 +892,12 @@ return array(
       'javelin-dom',
       'javelin-stratcom',
       'javelin-util',
+    ),
+    '0e4c6c40' => array(
+      'javelin-behavior',
+      'javelin-dom',
+      'javelin-stratcom',
+      'javelin-vector',
     ),
     '122e6e60' => array(
       'javelin-install',
@@ -1100,6 +1093,9 @@ return array(
       'javelin-util',
       'phabricator-busy',
     ),
+    '34c4d3a5' => array(
+      'javelin-install',
+    ),
     '34c53422' => array(
       'javelin-behavior',
       'javelin-dom',
@@ -1246,12 +1242,6 @@ return array(
     '490e2e2e' => array(
       'phui-oi-list-view-css',
     ),
-    '4b671572' => array(
-      'javelin-behavior',
-      'javelin-dom',
-      'javelin-util',
-      'javelin-request',
-    ),
     '4c2bf506' => array(
       'javelin-util',
     ),
@@ -1261,13 +1251,6 @@ return array(
       'javelin-stratcom',
       'javelin-dom',
       'javelin-vector',
-    ),
-    '4c77f259' => array(
-      'javelin-behavior',
-      'javelin-diffusion-locate-file-source',
-      'javelin-dom',
-      'javelin-typeahead',
-      'javelin-uri',
     ),
     '4e373d4b' => array(
       'javelin-install',
@@ -1702,12 +1685,6 @@ return array(
       'javelin-workflow',
       'phabricator-drag-and-drop-file-upload',
     ),
-    '9bc1dd14' => array(
-      'javelin-behavior',
-      'javelin-dom',
-      'javelin-stratcom',
-      'javelin-vector',
-    ),
     '9c01e364' => array(
       'javelin-behavior',
       'javelin-dom',
@@ -1887,12 +1864,6 @@ return array(
     'b748c1de' => array(
       'phui-theme-css',
     ),
-    'b7b73831' => array(
-      'javelin-behavior',
-      'javelin-dom',
-      'javelin-util',
-      'phabricator-shaped-request',
-    ),
     'b82fc780' => array(
       'javelin-install',
       'javelin-dom',
@@ -1935,12 +1906,6 @@ return array(
       'javelin-install',
       'javelin-util',
       'phabricator-keyboard-shortcut-manager',
-    ),
-    'c2129f37' => array(
-      'javelin-install',
-      'javelin-dom',
-      'javelin-typeahead-preloaded-source',
-      'javelin-util',
     ),
     'c3ea5759' => array(
       'javelin-behavior',
@@ -1986,13 +1951,6 @@ return array(
     ),
     'c6d00cb9' => array(
       'javelin-install',
-    ),
-    'c715c123' => array(
-      'javelin-behavior',
-      'javelin-dom',
-      'javelin-util',
-      'javelin-workflow',
-      'javelin-json',
     ),
     'c74a690a' => array(
       'javelin-install',
@@ -2469,9 +2427,7 @@ return array(
       'diffusion-icons-css',
     ),
     'diffusion.pkg.js' => array(
-      'javelin-behavior-diffusion-pull-lastmodified',
       'javelin-behavior-diffusion-commit-graph',
-      'javelin-behavior-audit-preview',
     ),
     'maniphest.pkg.css' => array(
       'maniphest-task-summary-css',

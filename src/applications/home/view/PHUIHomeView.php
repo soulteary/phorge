@@ -26,18 +26,9 @@ final class PHUIHomeView
       PhabricatorManiphestApplication::class,
       $viewer);
 
-    $has_diffusion = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorDiffusionApplication::class,
-      $viewer);
-
     $tasks_panel = null;
     if ($has_maniphest) {
       $tasks_panel = $this->buildTasksPanel();
-    }
-
-    $repository_panel = null;
-    if ($has_diffusion) {
-      $repository_panel = $this->buildRepositoryPanel();
     }
 
     $feed_panel = $this->buildFeedPanel();
@@ -53,7 +44,6 @@ final class PHUIHomeView
       ),
       array(
         $tasks_panel,
-        $repository_panel,
       ));
     $dashboard->addColumn($main_panel, 'thirds');
 
@@ -106,19 +96,6 @@ final class PHUIHomeView
       ->setProperty('class', 'PhabricatorFeedSearchEngine')
       ->setProperty('key', 'all')
       ->setProperty('limit', 40);
-
-    return $this->renderPanel($panel);
-  }
-
-  /**
-   * @return PHUIObjectBoxView
-   */
-  public function buildRepositoryPanel() {
-    $panel = $this->newQueryPanel()
-      ->setName(pht('Active Repositories'))
-      ->setProperty('class', 'PhabricatorRepositorySearchEngine')
-      ->setProperty('key', 'active')
-      ->setProperty('limit', 5);
 
     return $this->renderPanel($panel);
   }

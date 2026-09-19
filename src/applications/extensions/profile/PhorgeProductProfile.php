@@ -17,9 +17,9 @@ final class PhorgeProductProfile extends Phobject {
   }
 
   public static function getManagedApplicationClasses() {
-    return array(
-      'PhabricatorDiffusionApplication',
-    );
+    // Code hosting/review applications are physically absent from the
+    // collaboration-focused distribution, so profiles no longer toggle them.
+    return array();
   }
 
   public static function disablesApplication($class) {

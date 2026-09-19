@@ -1,20 +1,48 @@
 <?php
 
+// The commit and commit-data models are gone with tracked repositories. The
+// tables and their rows are not: the schema history which creates them is
+// retained, and this patch still has to run against installations whose schema
+// predates it.
+
+final class PhabricatorCommitSummaryMigrationCommitDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_commit';
+  }
+
+}
+
+final class PhabricatorCommitSummaryMigrationDataDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_commitdata';
+  }
+
+}
+
 echo pht('Backfilling commit summaries...')."\n";
 
-$table = new PhabricatorRepositoryCommit();
+$table = new PhabricatorCommitSummaryMigrationCommitDAO();
 $conn_w = $table->establishConnection('w');
-$commits = new LiskMigrationIterator($table);
-foreach ($commits as $commit) {
-  echo pht('Filling Commit #%d', $commit->getID())."\n";
+$data_table = new PhabricatorCommitSummaryMigrationDataDAO();
 
-  if (strlen($commit->getSummary())) {
+$commits = new LiskRawMigrationIterator($conn_w, $table->getTableName());
+foreach ($commits as $commit) {
+  $id = $commit['id'];
+  echo pht('Filling Commit #%d', $id)."\n";
+
+  if (phutil_nonempty_string($commit['summary'])) {
     continue;
   }
 
-  $data = id(new PhabricatorRepositoryCommitData())->loadOneWhere(
-    'commitID = %d',
-    $commit->getID());
+  $data = queryfx_one(
+    $conn_w,
+    'SELECT summary FROM %T WHERE commitID = %d',
+    $data_table->getTableName(),
+    $id);
 
   if (!$data) {
     continue;
@@ -23,9 +51,9 @@ foreach ($commits as $commit) {
   queryfx(
     $conn_w,
     'UPDATE %T SET summary = %s WHERE id = %d',
-    $commit->getTableName(),
-    $data->getSummary(),
-    $commit->getID());
+    $table->getTableName(),
+    $data['summary'],
+    $id);
 }
 
 echo pht('Done.')."\n";

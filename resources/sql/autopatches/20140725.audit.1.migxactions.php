@@ -1,6 +1,26 @@
 <?php
 
-$conn_w = id(new PhabricatorAuditTransaction())->establishConnection('w');
+// PhabricatorAuditTransaction and the Audit transaction classes are gone. The
+// values this patch switches on and writes are stored strings, so the literals
+// below are what existing "audit_comment" rows carry. The mapping, from the
+// removed constants to the strings they held:
+//
+//   add_auditors   the "add auditors" transaction type
+//   add_ccs        the "add subscribers" transaction type
+//   comment        the legacy comment action
+//   audit:inline   the inline comment transaction type
+//   audit:action   the accept/concern/resign/close transaction type
+//   CMIT           the PHID type of a commit
+final class PhabricatorAuditXactionMigrationDAO extends PhabricatorAuditDAO {
+
+  public function getTableName() {
+    return 'audit_transaction';
+  }
+
+}
+
+$conn_w = id(new PhabricatorAuditXactionMigrationDAO())
+  ->establishConnection('w');
 $rows = new LiskRawMigrationIterator($conn_w, 'audit_comment');
 
 $content_source = PhabricatorContentSource::newForSource(
@@ -37,7 +57,7 @@ foreach ($rows as $row) {
 
   // Build the main action transaction.
   switch ($row['action']) {
-    case PhorgeAuditCommitAddAuditorTransaction::TRANSACTIONTYPE:
+    case 'add_auditors':
       $phids = idx($metadata, 'added-auditors', array());
       $xactions[] = array(
         'type' => $row['action'],
@@ -45,7 +65,7 @@ foreach ($rows as $row) {
         'new' => array_fuse($phids),
       );
       break;
-    case PhorgeAuditCommitAddCCTransaction::TRANSACTIONTYPE:
+    case 'add_ccs':
       $phids = idx($metadata, 'added-ccs', array());
       $xactions[] = array(
         'type' => $row['action'],
@@ -53,14 +73,14 @@ foreach ($rows as $row) {
         'new' => array_fuse($phids),
       );
       break;
-    case PhabricatorAuditActionConstants::COMMENT:
-    case PhorgeAuditCommitInlineCommentTransaction::TRANSACTIONTYPE:
+    case 'comment':
+    case 'audit:inline':
       // These actions will have their transactions created by other rules.
       break;
     default:
       // Otherwise, this is an accept/concern/etc action.
       $xactions[] = array(
-        'type' => PhorgeAuditCommitActionTransaction::TRANSACTIONTYPE,
+        'type' => 'audit:action',
         'old' => null,
         'new' => $row['action'],
       );
@@ -82,7 +102,7 @@ foreach ($rows as $row) {
   // Build inline comment transactions.
   foreach ($inline_comments as $inline) {
     $xactions[] = array(
-      'type' => PhorgeAuditCommitInlineCommentTransaction::TRANSACTIONTYPE,
+      'type' => 'audit:inline',
       'old' => null,
       'new' => null,
       'phid' => $inline['transactionPHID'],
@@ -98,7 +118,7 @@ foreach ($rows as $row) {
     if (!$xaction_phid) {
       $xaction_phid = PhabricatorPHID::generateNewPHID(
         PhabricatorApplicationTransactionTransactionPHIDType::TYPECONST,
-        PhabricatorRepositoryCommitPHIDType::TYPECONST);
+        'CMIT');
     }
     unset($xaction['phid']);
 

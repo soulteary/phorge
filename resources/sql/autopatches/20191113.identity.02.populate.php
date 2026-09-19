@@ -1,6 +1,17 @@
 <?php
 
-$table = new PhabricatorRepositoryIdentity();
+// PhabricatorRepositoryIdentity is gone; this patch already walked raw rows
+// and only needed the model for a connection and a table name.
+final class PhabricatorIdentityPopulateMigrationDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_identity';
+  }
+
+}
+
+$table = new PhabricatorIdentityPopulateMigrationDAO();
 $conn = $table->establishConnection('w');
 
 $iterator = new LiskRawMigrationIterator($conn, $table->getTableName());

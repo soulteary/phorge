@@ -1,21 +1,48 @@
 <?php
 
+// The commit and commit-data models are gone with tracked repositories. The
+// tables and their rows are not: the schema history which creates them is
+// retained, and this patch still has to run against installations whose schema
+// predates it.
+
+final class PhabricatorCommitDrevMigrationCommitDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_commit';
+  }
+
+}
+
+final class PhabricatorCommitDrevMigrationDataDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_commitdata';
+  }
+
+}
+
 echo pht('Migrating %s to edges...', 'differential.revisionPHID')."\n";
-$commit_table = new PhabricatorRepositoryCommit();
-$data_table = new PhabricatorRepositoryCommitData();
+$commit_table = new PhabricatorCommitDrevMigrationCommitDAO();
+$data_table = new PhabricatorCommitDrevMigrationDataDAO();
 $editor = new PhabricatorEdgeEditor();
-$commit_table->establishConnection('w');
+$conn_w = $commit_table->establishConnection('w');
 $edges = 0;
 
-foreach (new LiskMigrationIterator($commit_table) as $commit) {
-  $data = $data_table->loadOneWhere(
-    'commitID = %d',
-    $commit->getID());
+$commits = new LiskRawMigrationIterator($conn_w, $commit_table->getTableName());
+foreach ($commits as $commit) {
+  $data = queryfx_one(
+    $conn_w,
+    'SELECT commitDetails FROM %T WHERE commitID = %d',
+    $data_table->getTableName(),
+    $commit['id']);
   if (!$data) {
     continue;
   }
 
-  $revision_phid = $data->getCommitDetail('differential.revisionPHID');
+  $details = phutil_json_decode($data['commitDetails']);
+  $revision_phid = idx($details, 'differential.revisionPHID');
   if (!$revision_phid) {
     continue;
   }
@@ -24,7 +51,7 @@ foreach (new LiskMigrationIterator($commit_table) as $commit) {
   // Differential revisions; edge type constants are stored integers, so the
   // literal is what rows written before the removal carry.
   $commit_drev = 32;
-  $editor->addEdge($commit->getPHID(), $commit_drev, $revision_phid);
+  $editor->addEdge($commit['phid'], $commit_drev, $revision_phid);
   $edges++;
   if ($edges % 256 == 0) {
     echo '.';

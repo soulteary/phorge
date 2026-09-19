@@ -1,8 +1,20 @@
 <?php
 
+// The PhabricatorRepository model is gone with tracked repositories. This
+// patch wanted it only for a connection and a table name, and still has to
+// run against installations whose schema predates it.
+final class PhabricatorGitRemotesMigrationRepositoryDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository';
+  }
+
+}
+
 echo pht('Stripping remotes from repository default branches...')."\n";
 
-$table = new PhabricatorRepository();
+$table = new PhabricatorGitRemotesMigrationRepositoryDAO();
 $table->openTransaction();
 $conn_w = $table->establishConnection('w');
 

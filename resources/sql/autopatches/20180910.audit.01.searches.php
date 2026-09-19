@@ -1,5 +1,8 @@
 <?php
 
+// "engineClassName" is a stored string. PhabricatorCommitSearchEngine was
+// removed with commits, but rows written while it existed still carry the
+// name, and this patch has to keep recognizing them.
 $table = new PhabricatorSavedQuery();
 $conn = $table->establishConnection('w');
 

@@ -2,13 +2,13 @@
 
 final class PhorgeProductProfileTestCase extends PhabricatorTestCase {
 
-  public function testCollaborationApplicationsAreRuntimePolicy() {
+  public function testCollaborationProfileHasNoRuntimeApplicationToggles() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('phorge.product-profile', 'collaboration');
 
-    $this->assertTrue(
-      PhorgeProductProfile::disablesApplication(
-        'PhabricatorDiffusionApplication'));
+    $this->assertEqual(
+      array(),
+      PhorgeProductProfile::getManagedApplicationClasses());
     $this->assertFalse(
       PhorgeProductProfile::disablesApplication(
         'PhabricatorManiphestApplication'));

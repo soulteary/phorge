@@ -5,7 +5,7 @@ final class DifferentialChangesetPHIDType extends PhabricatorPHIDType {
   const TYPECONST = 'DCNG';
 
   public function getTypeName() {
-    return pht('Differential Changeset');
+    return pht('Diff Changeset');
   }
 
   public function newObject() {
@@ -13,7 +13,7 @@ final class DifferentialChangesetPHIDType extends PhabricatorPHIDType {
   }
 
   public function getPHIDTypeApplicationClass() {
-    return PhabricatorDiffusionApplication::class;
+    return PhabricatorFilesApplication::class;
   }
 
   protected function buildQueryForObjects(
@@ -31,10 +31,7 @@ final class DifferentialChangesetPHIDType extends PhabricatorPHIDType {
 
     foreach ($handles as $phid => $handle) {
       $changeset = $objects[$phid];
-
-      $id = $changeset->getID();
-
-      $handle->setName(pht('Changeset %d', $id));
+      $handle->setName(pht('Changeset %d', $changeset->getID()));
     }
   }
 

@@ -9,7 +9,6 @@ final class PhabricatorPeopleProfileMenuEngine
   const ITEM_BADGES = 'people.badges';
   const ITEM_TASKS_ASSIGNED = 'people.tasks.assigned';
   const ITEM_TASKS_AUTHORED = 'people.tasks.authored';
-  const ITEM_COMMITS = 'people.commits';
   const ITEM_REVISIONS = 'people.revisions';
 
   protected function isMenuEngineConfigurable() {
@@ -48,15 +47,6 @@ final class PhabricatorPeopleProfileMenuEngine
         ->setBuiltinKey(self::ITEM_TASKS_AUTHORED)
         ->setMenuItemKey(
           PhabricatorPeopleTasksAuthoredProfileMenuItem::MENUITEMKEY);
-    }
-
-    $have_diffusion = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorDiffusionApplication::class,
-      $viewer);
-    if ($have_diffusion) {
-      $items[] = $this->newItem()
-        ->setBuiltinKey(self::ITEM_COMMITS)
-        ->setMenuItemKey(PhabricatorPeopleCommitsProfileMenuItem::MENUITEMKEY);
     }
 
     $have_badges = PhabricatorApplication::isClassInstalledForViewer(

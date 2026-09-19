@@ -178,7 +178,12 @@ final class DifferentialChangesetQuery
   }
 
   public function getQueryApplicationClass() {
-    return PhabricatorDiffusionApplication::class;
+    // The diff engine is retained infrastructure with no owning application:
+    // Differential's was removed with revisions and Diffusion's with tracked
+    // repositories. A null class means no application-level policy check,
+    // which is what PhabricatorPolicyAwareQuery documents for a query that
+    // does not belong to an application.
+    return null;
   }
 
 }

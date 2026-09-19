@@ -222,9 +222,11 @@ return array(
     'diffusion-icons-css',
   ),
   'diffusion.pkg.js' => array(
-    'javelin-behavior-diffusion-pull-lastmodified',
+    // The commit graph is drawn for Maniphest task graphs as well, through
+    // the retained PHUIDiffGraphView, so it outlives Diffusion. The
+    // "pull-lastmodified" and "audit-preview" behaviours went with their
+    // applications and have no provider any more.
     'javelin-behavior-diffusion-commit-graph',
-    'javelin-behavior-audit-preview',
   ),
   'maniphest.pkg.css' => array(
     'maniphest-task-summary-css',

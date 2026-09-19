@@ -1,6 +1,16 @@
 <?php
 
-$table = new PhabricatorRepositoryCommit();
+// The commit model is gone; the table and its auditStatus column are not.
+final class PhabricatorAuditStatusMigrationDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_commit';
+  }
+
+}
+
+$table = new PhabricatorAuditStatusMigrationDAO();
 $conn = $table->establishConnection('w');
 
 $status_map = array(
