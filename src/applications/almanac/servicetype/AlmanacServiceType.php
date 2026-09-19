@@ -79,4 +79,36 @@ abstract class AlmanacServiceType extends Phobject {
   }
 
 
+  /**
+   * Is this service type still offered when creating a new service?
+   *
+   * A type whose consumer has been removed from the install has to stay
+   * loadable, so services created before the removal keep working and stay
+   * visible, but offering it for a new service would only produce a
+   * configuration object nothing reads.
+   *
+   * @return bool True if a new service may be created with this type.
+   */
+  public function isCreatableServiceType() {
+    return true;
+  }
+
+
+  /**
+   * Service types which may be selected for a new service.
+   *
+   * @return map<string, AlmanacServiceType> Creatable types, by constant.
+   */
+  public static function getCreatableServiceTypes() {
+    $types = self::getAllServiceTypes();
+
+    foreach ($types as $key => $type) {
+      if (!$type->isCreatableServiceType()) {
+        unset($types[$key]);
+      }
+    }
+
+    return $types;
+  }
+
 }

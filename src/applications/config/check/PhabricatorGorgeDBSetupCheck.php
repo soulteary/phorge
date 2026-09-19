@@ -6,6 +6,23 @@ final class PhabricatorGorgeDBSetupCheck extends PhabricatorSetupCheck {
     return self::GROUP_OTHER;
   }
 
+  /**
+   * Read the policy as configured, before the `db` service normalizes it.
+   *
+   * @return string|null The configured policy, or null if none is set.
+   */
+  private function getConfiguredPolicy() {
+    $policies = PhabricatorEnv::getEnvConfigIfExists('gorge.service-policies');
+    if (is_array($policies)) {
+      $policy = idx($policies, 'db');
+      if ($policy !== null) {
+        return $policy;
+      }
+    }
+
+    return PhabricatorEnv::getEnvConfigIfExists('gorge.service-policy');
+  }
+
   public function getExecutionOrder() {
     // Run alongside the other database checks, but this one only probes the
     // Gorge service over HTTP and does not open management connections, so it
@@ -14,12 +31,51 @@ final class PhabricatorGorgeDBSetupCheck extends PhabricatorSetupCheck {
   }
 
   protected function executeChecks() {
-    if (PhabricatorGorgeServiceRegistry::getService('db')
-        ->isDisabled()) {
-      return;
-    }
-
     $uri = PhabricatorGorgeDBClient::getConfiguredURI();
+
+    // The database service is required once it is configured: the native PHP
+    // diagnostic fallback has been retired, so `fallback` and `off` no longer
+    // name an implementation and PhabricatorGorgeServiceSpec resolves them
+    // back to `required`. Say so here rather than letting an administrator
+    // set an override which quietly does nothing.
+    if ($uri !== null) {
+      $configured = $this->getConfiguredPolicy();
+      if ($configured !== null &&
+          $configured !== PhabricatorGorgeServiceSpec::POLICY_REQUIRED) {
+        $this->newIssue('gorge.db.policy-ignored')
+          ->setName(pht('Gorge Database Policy Override Is Ignored'))
+          ->setSummary(
+            pht(
+              'A non-required failure policy is configured for the Gorge '.
+              'database service, but it no longer selects anything.'))
+          ->setMessage(
+            pht(
+              'The failure policy for the Gorge %s service is set to %s, '.
+              'but the native PHP diagnostic fallback has been retired, so '.
+              'there is no local implementation for that policy to select. '.
+              'The service is treated as %s regardless, and diagnostics fail '.
+              'visibly while it is unavailable.'.
+              "\n\n".
+              'Set the policy for %s back to %s to make the configuration '.
+              'match the behaviour, or stop configuring %s if these '.
+              'diagnostics are not wanted.',
+              phutil_tag('tt', array(), 'db'),
+              phutil_tag('tt', array(), $configured),
+              phutil_tag(
+                'tt',
+                array(),
+                PhabricatorGorgeServiceSpec::POLICY_REQUIRED),
+              phutil_tag('tt', array(), 'db'),
+              phutil_tag(
+                'tt',
+                array(),
+                PhabricatorGorgeServiceSpec::POLICY_REQUIRED),
+              phutil_tag('tt', array(), 'gorge.db.uri')))
+          ->addRelatedPhabricatorConfig('gorge.service-policy')
+          ->addRelatedPhabricatorConfig('gorge.service-policies')
+          ->addRelatedPhabricatorConfig('gorge.db.uri');
+      }
+    }
 
     // The first stage is implicit: if the service is not configured, the
     // database console reads status with direct SQL as it always has, so there

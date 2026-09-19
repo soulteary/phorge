@@ -108,10 +108,6 @@
       "name": "Draft",
       "include": "(^src/applications/draft/)"
     },
-    "drydock": {
-      "name": "Drydock",
-      "include": "(^src/applications/drydock/)"
-    },
     "edges": {
       "name": "Edges",
       "include": "(^src/infrastructure/edges/)"
@@ -135,10 +131,6 @@
     "flag": {
       "name": "Flags",
       "include": "(^src/applications/flag/)"
-    },
-    "harbormaster": {
-      "name": "Harbormaster",
-      "include": "(^src/applications/harbormaster/)"
     },
     "help": {
       "name": "Help",
@@ -191,10 +183,6 @@
     "oauthserver": {
       "name": "OAuth Server",
       "include": "(^src/applications/oauthserver/)"
-    },
-    "owners": {
-      "name": "Owners",
-      "include": "(^src/applications/owners/)"
     },
     "passphrase": {
       "name": "Passphrase",

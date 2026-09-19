@@ -299,7 +299,22 @@ abstract class PhabricatorDaemonManagementWorkflow
       }
     }
 
-    if (idx($options, 'keep-leases')) {
+    // Expiring leases on startup is only safe while this process is the sole
+    // consumer of the queue. It exists to release leases held by taskmasters
+    // which died with the previous `phd`, and the native taskmaster has been
+    // retired -- when Gorge owns the queue, `gorge-worker` runs independently
+    // of `phd` and is very likely holding live leases on tasks it is
+    // executing right now. Expiring those lets the same task be leased again
+    // and run twice.
+    $taskqueue = PhabricatorGorgeServiceRegistry::getService('taskqueue');
+    if ($taskqueue->isOwnedBy('gorge')) {
+      $console->writeErr(
+        "%s\n",
+        pht(
+          'Not touching active task queue leases: the queue is owned by '.
+          'the Gorge worker service, which leases independently of this '.
+          'process.'));
+    } else if (idx($options, 'keep-leases')) {
       $console->writeErr("%s\n", pht('Not touching active task queue leases.'));
     } else {
       $console->writeErr("%s\n", pht('Freeing active task leases...'));

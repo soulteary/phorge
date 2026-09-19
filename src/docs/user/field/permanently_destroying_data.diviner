@@ -78,15 +78,6 @@ Because time can not be rewound, it is best to prevent sensitive data from
 leaking in the first place. Phorge supports some technical measures that
 can make it more difficult to accidentally disclose secrets:
 
-**Differential Diff Herald Rules**: You can write "Differential Diff" rules
-in Herald that reject diffs before they are written to disk by using the
-"Block diff with message" action.
-
-These rules can reject diffs based on affected file names or file content.
-This is a coarse tool, but rejecting diffs which contain strings like
-`BEGIN RSA PRIVATE KEY` may make it more difficult to accidentally disclose
-certain secrets.
-
 **Commit Content Herald Rules**: For hosted repositories, you can write
 "Commit Hook: Commit Content" rules in Herald which reject pushes that contain
 commit which match certain rules (like file name or file content rules).

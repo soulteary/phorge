@@ -15,10 +15,11 @@ information.
 
 While `arc` has a large number of commands that interface with various
 Phorge applications, the primary use of `arc` is to send changes for
-review in Differential (for more information on Differential, see
-@{article:Differential User Guide}). If you aren't familiar with Differential,
-it may be instructive to read that article first to understand the big picture
-of how the code review workflow works.
+review in Differential.
+
+NOTE: This install has removed Differential revisions, so it does not serve
+the `differential.*` Conduit methods `arc diff` calls. This article is
+retained to document the client-side workflow only.
 
 You send changes for review by running `arc diff`. The rest of this document
 explains how to use `arc diff`, and how the entire review workflow operates for
