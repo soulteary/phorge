@@ -290,29 +290,21 @@ final class DifferentialChangeset
     return 'change-'.PhabricatorHash::digestForAnchor($this->getFilename());
   }
 
-  public function getAbsoluteRepositoryPath(
-    ?PhabricatorRepository $repository = null,
-    ?DifferentialDiff $diff = null) {
-
+  /**
+   * The repository argument this method used to take is gone with tracked
+   * repositories. It only selected an SVN-specific behaviour -- stripping the
+   * repository's "remote-uri" path prefix -- which no caller can ask for any
+   * more, because nothing can produce a repository to pass.
+   */
+  public function getAbsoluteRepositoryPath(?DifferentialDiff $diff = null) {
     $base = '/';
     if ($diff && $diff->getSourceControlPath()) {
       $base = id(new PhutilURI($diff->getSourceControlPath()))->getPath();
     }
 
     $path = $this->getFilename();
-    $path = rtrim($base, '/').'/'.ltrim($path, '/');
 
-    $svn = PhabricatorRepositoryType::REPOSITORY_TYPE_SVN;
-    if ($repository && $repository->getVersionControlSystem() == $svn) {
-      $prefix = $repository->getDetail('remote-uri');
-      $prefix = id(new PhutilURI($prefix))->getPath();
-      if (!strncmp($path, $prefix, strlen($prefix))) {
-        $path = substr($path, strlen($prefix));
-      }
-      $path = '/'.ltrim($path, '/');
-    }
-
-    return $path;
+    return rtrim($base, '/').'/'.ltrim($path, '/');
   }
 
   public function attachDiff(DifferentialDiff $diff) {
