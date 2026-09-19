@@ -745,15 +745,12 @@ final class DifferentialChangeset
   public function getFieldValuesForConduit() {
     $diff = $this->getDiff();
 
-    $repository = null;
-    if ($diff) {
-      $revision = $diff->getRevision();
-      if ($revision) {
-        $repository = $revision->getRepository();
-      }
-    }
-
-    $absolute_path = $this->getAbsoluteRepositoryPath($repository, $diff);
+    // This used to reach a repository through the diff's revision, which
+    // fataled once DifferentialDiff::getRevision() went with the revision
+    // layer. There are now neither revisions nor repositories, and
+    // getAbsoluteRepositoryPath() no longer takes a repository at all, so the
+    // field asks for the diff-relative path directly.
+    $absolute_path = $this->getAbsoluteRepositoryPath($diff);
     if (strlen($absolute_path)) {
       $absolute_path = base64_encode($absolute_path);
     } else {
