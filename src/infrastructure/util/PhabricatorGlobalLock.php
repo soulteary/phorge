@@ -129,7 +129,12 @@ final class PhabricatorGlobalLock extends PhutilLock {
     // We could build a database-free connection instead, but that's kind of
     // messy and unusual.
 
-    $dao = new PhabricatorRepository();
+    // This was PhabricatorRepository, chosen only because it was a
+    // conveniently available Lisk DAO; no table is accessed. Repositories are
+    // gone, so the lock connection is taken from the "system" database
+    // instead, which is infrastructure rather than an application and cannot
+    // be removed out from under this.
+    $dao = new PhabricatorGlobalLockDAO();
 
     // NOTE: Using "force_new" to make sure each lock is on its own connection.
 

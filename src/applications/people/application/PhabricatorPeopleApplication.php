@@ -75,8 +75,6 @@ final class PhabricatorPeopleApplication extends PhabricatorApplication {
           'PhabricatorPeopleProfileTasksAssignedController',
         'tasks/authored/(?P<id>[1-9]\d*)/' =>
           'PhabricatorPeopleProfileTasksAuthoredController',
-        'commits/(?P<id>[1-9]\d*)/' =>
-          'PhabricatorPeopleProfileCommitsController',
         'picture/(?P<id>[1-9]\d*)/' =>
           'PhabricatorPeopleProfilePictureController',
         'manage/(?P<id>[1-9]\d*)/' =>

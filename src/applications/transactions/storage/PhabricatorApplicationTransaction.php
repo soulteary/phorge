@@ -501,12 +501,10 @@ abstract class PhabricatorApplicationTransaction
       case PhabricatorTransactions::TYPE_INTERACT_POLICY:
         return 'fa-lock';
       case PhabricatorTransactions::TYPE_EDGE:
-        switch ($this->getMetadataValue('edge:type')) {
-          case DiffusionCommitRevertedByCommitEdgeType::EDGECONST:
-            return 'fa-undo';
-          case DiffusionCommitRevertsCommitEdgeType::EDGECONST:
-            return 'fa-ambulance';
-        }
+        // The "reverts" and "reverted by" commit edges had their own icons.
+        // Both edge types are gone with commits; historical rows still carry
+        // their stored "edge:type" integers and now render with the generic
+        // link icon.
         return 'fa-link';
       case PhabricatorTransactions::TYPE_TOKEN:
         return 'fa-trophy';
@@ -547,12 +545,7 @@ abstract class PhabricatorApplicationTransaction
         }
         break;
       case PhabricatorTransactions::TYPE_EDGE:
-        switch ($this->getMetadataValue('edge:type')) {
-          case DiffusionCommitRevertedByCommitEdgeType::EDGECONST:
-            return 'pink';
-          case DiffusionCommitRevertsCommitEdgeType::EDGECONST:
-            return 'sky';
-        }
+        // As above: the revert edges no longer have a colour of their own.
         break;
       case PhabricatorTransactions::TYPE_MFA:
         return 'pink';
@@ -744,7 +737,6 @@ abstract class PhabricatorApplicationTransaction
           case PhabricatorObjectMentionsObjectEdgeType::EDGECONST:
           case PhabricatorObjectMentionedByObjectEdgeType::EDGECONST:
           case ManiphestTaskHasCommitEdgeType::EDGECONST:
-          case DiffusionCommitHasTaskEdgeType::EDGECONST:
             return true;
           case PhabricatorProjectObjectHasProjectEdgeType::EDGECONST:
             // When an object is first created, we hide any corresponding
@@ -809,7 +801,6 @@ abstract class PhabricatorApplicationTransaction
           case PhabricatorObjectMentionsObjectEdgeType::EDGECONST:
           case PhabricatorObjectMentionedByObjectEdgeType::EDGECONST:
           case ManiphestTaskHasCommitEdgeType::EDGECONST:
-          case DiffusionCommitHasTaskEdgeType::EDGECONST:
             return true;
           default:
             break;
