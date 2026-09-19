@@ -44,6 +44,13 @@ final class PhabricatorRepositorySlugMigrationDAO
       return false;
     }
 
+    // ".git" is rejected anywhere in the name, not only as a suffix: the
+    // removed validator added that suffix itself in the contexts which
+    // need it.
+    if (preg_match('/\.git/', $slug)) {
+      return false;
+    }
+
     return true;
   }
 

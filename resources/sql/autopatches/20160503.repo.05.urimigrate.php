@@ -18,6 +18,10 @@
 //
 // The literals are the stored values of the removed constants: ioType
 // "observe", displayType "default", and a PHID of type "RURI".
+//
+// "credentialPHID" is a column on "repository", not a key in the "details"
+// blob, which is why it is read from the row rather than from the decoded
+// details.
 final class PhabricatorURIMigrationRepositoryDAO
   extends PhabricatorRepositoryDAO {
 
@@ -80,7 +84,7 @@ foreach (new LiskRawMigrationIterator($conn_w, $table->getTableName())
     PhabricatorPHID::generateNewPHID('RURI'),
     $repository_phid,
     $remote_uri,
-    idx($details, 'credentialPHID'),
+    $repository['credentialPHID'],
     'observe',
     'default',
     0,
