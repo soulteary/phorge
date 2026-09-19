@@ -133,7 +133,13 @@ final class PhabricatorGorgeConduitClient
   private static function parseConduitResponse($uri, $result) {
     list($status, $body) = $result;
 
-    if ($status instanceof Exception) {
+    $status_code = null;
+    if ($status instanceof HTTPFutureHTTPResponseStatus) {
+      // HTTP response statuses are Exception subclasses too, including a
+      // successful 200. Inspect them before the generic exception branch so
+      // valid Conduit responses are not mistaken for transport failures.
+      $status_code = $status->getStatusCode();
+    } else if ($status instanceof Exception) {
       // The request never produced a response: connection refused, DNS
       // failure, timeout, and so on. There is no envelope to read.
       throw new Exception(
@@ -160,15 +166,20 @@ final class PhabricatorGorgeConduitClient
           (string)idx($envelope, 'error_info', ''));
       }
 
+      if ($status_code !== null && !self::isSuccessfulHTTPStatus($status_code)) {
+        throw new Exception(
+          pht(
+            'The %s returned HTTP %d for "%s": %s',
+            self::getServiceName(),
+            $status_code,
+            $uri,
+            $body));
+      }
+
       return idx($envelope, 'result');
     }
 
-    $status_code = null;
-    if ($status instanceof HTTPFutureHTTPResponseStatus) {
-      $status_code = $status->getStatusCode();
-    }
-
-    if ($status_code !== null && $status_code != 200) {
+    if ($status_code !== null && !self::isSuccessfulHTTPStatus($status_code)) {
       throw new Exception(
         pht(
           'The %s returned HTTP %d for "%s": %s',
@@ -183,6 +194,24 @@ final class PhabricatorGorgeConduitClient
         'The %s returned an invalid JSON response for "%s".',
         self::getServiceName(),
         $uri));
+  }
+
+
+  /**
+   * Is this an HTTP status the gateway answered successfully with?
+   *
+   * Any 2xx counts. Conduit itself always answers 200, but the gateway sits in
+   * front of it and may answer 201 or 204 of its own accord, and a response
+   * whose envelope parses should not be discarded over that.
+   *
+   * This is where @{class:HTTPFutureHTTPResponseStatus} draws the line in
+   * `isError()`, so the client agrees with the transport it reads from.
+   *
+   * @param int HTTP status code from the response.
+   * @return bool True if the status is a success.
+   */
+  private static function isSuccessfulHTTPStatus($status_code) {
+    return ($status_code >= 200) && ($status_code <= 299);
   }
 
 }
