@@ -21,11 +21,13 @@ scripts/setup/manage_collaboration_profile.php:PhabricatorAuditApplication
 scripts/setup/manage_collaboration_profile.php:PhabricatorDifferentialApplication
 scripts/setup/manage_collaboration_profile.php:PhabricatorHarbormasterApplication
 scripts/setup/manage_collaboration_profile.php:PhabricatorDrydockApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorDiffusionApplication
 
 # Translation tables are keyed by English source strings. "HarbormasterBuildable"
 # appears inside the prose of a message, not as a reference to the class, and the
 # key has to match the source string byte for byte to translate anything.
 src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php:HarbormasterBuildable
+src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php:PhabricatorRepositorySymbol
 
 # Application PHIDs are 'PHID-APPS-'.get_class($application), so these string
 # literals are the values the stored rows carry. The classes are gone, so the

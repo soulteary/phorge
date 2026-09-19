@@ -31,7 +31,6 @@ final class ManiphestTaskDetailController extends ManiphestController {
       ->setTargetObject($task);
 
     $edge_types = array(
-      ManiphestTaskHasCommitEdgeType::EDGECONST,
       ManiphestTaskHasMockEdgeType::EDGECONST,
       PhabricatorObjectMentionedByObjectEdgeType::EDGECONST,
       PhabricatorObjectMentionsObjectEdgeType::EDGECONST,
@@ -187,14 +186,11 @@ final class ManiphestTaskDetailController extends ManiphestController {
         ->addTabGroup($tab_group);
     }
 
-    $changes_view = $this->newChangesView($task, $edges);
-
     $view = id(new PHUITwoColumnView())
       ->setHeader($header)
       ->setCurtain($curtain)
       ->setMainColumn(
         array(
-          $changes_view,
           $tab_view,
           $timeline,
           $comment_view,
@@ -584,181 +580,6 @@ final class ManiphestTaskDetailController extends ManiphestController {
     }
 
     return $handles->newSublist($phids);
-  }
-
-  private function newChangesView(ManiphestTask $task, array $edges) {
-    $viewer = $this->getViewer();
-
-    $commit_type = ManiphestTaskHasCommitEdgeType::EDGECONST;
-
-    $commit_phids = idx($edges, $commit_type, array());
-    $commit_phids = array_keys($commit_phids);
-    $commit_phids = array_fuse($commit_phids);
-
-    if (!$commit_phids) {
-      return null;
-    }
-
-    if ($commit_phids) {
-      $commits = id(new DiffusionCommitQuery())
-        ->setViewer($viewer)
-        ->withPHIDs($commit_phids)
-        ->execute();
-      $commits = mpull($commits, null, 'getPHID');
-    } else {
-      $commits = array();
-    }
-
-    $handle_phids = array();
-    $any_status = false;
-
-    $idx = 0;
-    $objects = array();
-    foreach ($commit_phids as $commit_phid) {
-      $handle_phids[] = $commit_phid;
-
-      $commit = idx($commits, $commit_phid);
-      if ($commit) {
-        $repository_phid = $commit->getRepository()->getPHID();
-        $handle_phids[] = $repository_phid;
-      } else {
-        $repository_phid = null;
-      }
-
-      $status_view = null;
-      if ($commit) {
-        $status = $commit->getAuditStatusObject();
-        if (!$status->isNoAudit()) {
-          $status_view = id(new PHUITagView())
-            ->setType(PHUITagView::TYPE_SHADE)
-            ->setIcon($status->getIcon())
-            ->setColor($status->getColor())
-            ->setName($status->getName());
-        }
-      }
-
-      $object_link = null;
-      if ($commit) {
-        $commit_monogram = $commit->getDisplayName();
-        $commit_monogram = phutil_tag(
-          'span',
-          array(
-            'class' => 'object-name',
-          ),
-          $commit_monogram);
-
-        $commit_link = javelin_tag(
-          'a',
-          array(
-            'href' => $commit->getURI(),
-            'sigil' => 'hovercard',
-            'meta' => array(
-              'hovercardSpec' => array(
-                'objectPHID' => $commit->getPHID(),
-              ),
-            ),
-          ),
-          $commit->getSummary());
-
-        $object_link = array(
-          $commit_monogram,
-          ' ',
-          $commit_link,
-        );
-      }
-
-      $objects[] = array(
-        'objectPHID' => $commit_phid,
-        'objectLink' => $object_link,
-        'repositoryPHID' => $repository_phid,
-        'status' => $status_view,
-        'order' => id(new PhutilSortVector())
-          ->addInt($repository_phid ? 1 : 0)
-          ->addString((string)$repository_phid)
-          ->addInt(1)
-          ->addInt($idx++),
-      );
-    }
-
-    $handles = $viewer->loadHandles($handle_phids);
-
-    $order = ipull($objects, 'order');
-    $order = msortv($order, 'getSelf');
-    $objects = array_select_keys($objects, array_keys($order));
-
-    $last_repository = false;
-    $rows = array();
-    $rowd = array();
-    foreach ($objects as $object) {
-      $repository_phid = $object['repositoryPHID'];
-      if ($repository_phid !== $last_repository) {
-        $repository_link = null;
-        if ($repository_phid) {
-          $repository_handle = $handles[$repository_phid];
-          $rows[] = array(
-            $repository_handle->renderLink(),
-          );
-          $rowd[] = true;
-        }
-
-        $last_repository = $repository_phid;
-      }
-
-      $object_phid = $object['objectPHID'];
-      $handle = $handles[$object_phid];
-
-      $object_link = $object['objectLink'];
-      if ($object_link === null) {
-        $object_link = $handle->renderLink();
-      }
-
-      $object_icon = id(new PHUIIconView())
-        ->setIcon($handle->getIcon());
-
-      $status_view = $object['status'];
-      if ($status_view) {
-        $any_status = true;
-      }
-
-      $rowd[] = false;
-      $rows[] = array(
-        $object_icon,
-        $status_view,
-        $object_link,
-      );
-    }
-
-    $changes_table = id(new AphrontTableView($rows))
-      ->setNoDataString(pht('This task has no related commits.'))
-      ->setRowDividers($rowd)
-      ->setColumnClasses(
-        array(
-          'indent center',
-          null,
-          'wide pri object-link',
-        ))
-      ->setColumnVisibility(
-        array(
-          true,
-          $any_status,
-          true,
-        ))
-      ->setDeviceVisibility(
-        array(
-          false,
-          $any_status,
-          true,
-        ));
-
-    $changes_header = id(new PHUIHeaderView())
-      ->setHeader(pht('Revisions and Commits'));
-
-    $changes_view = id(new PHUIObjectBoxView())
-      ->setHeader($changes_header)
-      ->setBackground(PHUIObjectBoxView::BLUE_PROPERTY)
-      ->setTable($changes_table);
-
-    return $changes_view;
   }
 
 

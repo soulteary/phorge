@@ -184,43 +184,11 @@ final class HeraldTranscriptController extends HeraldController {
   }
 
   private function buildWarningPanel(HeraldTranscript $xscript) {
-    $request = $this->getRequest();
-    $panel = null;
-    if ($xscript->getObjectTranscript()) {
-      $handles = $this->handles;
-      $object_xscript = $xscript->getObjectTranscript();
-      $handle = $handles[$object_xscript->getPHID()];
-      if ($handle->getType() ==
-          PhabricatorRepositoryCommitPHIDType::TYPECONST) {
-        $commit = id(new DiffusionCommitQuery())
-          ->setViewer($request->getUser())
-          ->withPHIDs(array($handle->getPHID()))
-          ->executeOne();
-        if ($commit) {
-          $repository = $commit->getRepository();
-          if ($repository->isImporting()) {
-            $title = pht(
-              'The %s repository is still importing.',
-              $repository->getMonogram());
-            $body = pht(
-              'Herald rules will not trigger until import completes.');
-          } else if (!$repository->isTracked()) {
-            $title = pht(
-              'The %s repository is not tracked.',
-              $repository->getMonogram());
-            $body = pht(
-              'Herald rules will not trigger until tracking is enabled.');
-          } else {
-            return $panel;
-          }
-          $panel = id(new PHUIInfoView())
-            ->setSeverity(PHUIInfoView::SEVERITY_WARNING)
-            ->setTitle($title)
-            ->appendChild($body);
-        }
-      }
-    }
-    return $panel;
+    // This panel only ever warned about one thing: a commit transcript whose
+    // repository was still importing or was not tracked, which meant the
+    // rules had not really run yet. Commits and repositories are gone, so
+    // there is no such state to warn about.
+    return null;
   }
 
   private function buildActionTranscriptPanel(HeraldTranscript $xscript) {

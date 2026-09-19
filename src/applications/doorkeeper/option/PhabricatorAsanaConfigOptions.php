@@ -140,12 +140,12 @@ final class PhabricatorAsanaConfigOptions
     $out[] = pht(
       'To specify projects to add tasks to, enter a JSON map with publisher '.
       'class names as keys and a list of project IDs as values. For example, '.
-      'to put commit tasks into Asana projects with IDs `123` and '.
-      '`456`, enter:'.
+      'to put the tasks a publisher creates into Asana projects with IDs '.
+      '`123` and `456`, enter:'.
       "\n\n".
       "  lang=txt\n".
       "  {\n".
-      "    \"DiffusionDoorkeeperCommitFeedStoryPublisher\" : [123, 456]\n".
+      "    \"ExampleDoorkeeperFeedStoryPublisher\" : [123, 456]\n".
       "  }\n");
 
     $out[] = pht('Available publishers class names are:');
