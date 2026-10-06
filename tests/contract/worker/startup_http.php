@@ -26,7 +26,8 @@ switch ($_SERVER['REQUEST_URI']) {
     echo json_encode(array('data' => array_map(function($id) use ($owner) {
       return array('id' => $id, 'owner' => $owner, 'policyHash' => 'fixture');
     }, array('cache.general.ttl', 'cache.general', 'cache.markup',
-      'conduit.logs', 'daemon.processes', 'daemon.lock-log')))); break;
+      'conduit.logs', 'daemon.processes', 'daemon.lock-log',
+        'differential.parse', 'differential.viewstate', 'multimeter.events')))); break;
   case '/readyz': echo '{"status":"ok"}'; break;
   case '/login': echo '<html>login</html>'; break;
   case '/redirect': header('Location: /readyz'); break;

@@ -46,7 +46,8 @@ startup_assert(!gorge_startup_valid('image', array('data' => $image)), 'Recipe m
 $states = array_map(function($id) {
   return array('id' => $id, 'owner' => 'gorge', 'policyHash' => 'fixture');
 }, array('cache.general.ttl', 'cache.general', 'cache.markup', 'conduit.logs',
-  'daemon.processes', 'daemon.lock-log'));
+  'daemon.processes', 'daemon.lock-log', 'differential.parse',
+  'differential.viewstate', 'multimeter.events'));
 startup_assert(gorge_startup_valid('cleanup-owners', array('data' => $states)),
   'Gorge owners rejected.');
 $states[0]['owner'] = 'php';
@@ -77,4 +78,4 @@ try {
   foreach (glob($directory.'/*') as $file) { unlink($file); }
   rmdir($directory);
 }
-echo "Cutover contracts passed: mode guards, capabilities, live index and six owners.\n";
+echo "Cutover contracts passed: mode guards, capabilities, live index and nine owners.\n";

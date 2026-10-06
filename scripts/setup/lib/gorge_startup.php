@@ -166,7 +166,8 @@ function gorge_startup_valid($shape, $json) {
       return isset($data['exists']) && $data['exists'] === true;
     case 'cleanup-owners':
       $expected = array('cache.general.ttl', 'cache.general', 'cache.markup',
-        'conduit.logs', 'daemon.processes', 'daemon.lock-log');
+        'conduit.logs', 'daemon.processes', 'daemon.lock-log',
+        'differential.parse', 'differential.viewstate', 'multimeter.events');
       $seen = array();
       foreach ($data as $state) {
         if (!is_array($state) || !isset($state['id'], $state['owner'],

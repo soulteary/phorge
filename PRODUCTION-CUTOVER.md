@@ -15,7 +15,7 @@
 1. 备份数据库与配置；确认所有 PHP daemon、CLI 和 Web 节点都运行含 cleanup guard 的版本。混用不认识 guard 的旧节点不能被数据库 owner 阻止。
 2. 在 `.env` 配置非空 `GORGE_CONDUIT_TOKEN`、`GORGE_TASKQUEUE_TOKEN`、`GORGE_MAILER_TOKEN`、`GORGE_SEARCH_TOKEN`、`GORGE_IMAGE_TOKEN`、`GORGE_MAINTENANCE_TOKEN`。worker token 默认与队列 token 一致。
 3. 配置真实邮件 provider 和已验收的生产搜索后端。不要使用 mailer/search 的 test backend 作为生产验收。
-4. 设置 `GORGE_MAILER_DELIVERY_DSN` 为当前 namespace 的 metamta 写库，配置 `GORGE_MAINTENANCE_CACHE_DSN`、`GORGE_MAINTENANCE_CONDUIT_DSN`、`GORGE_MAINTENANCE_DAEMON_DSN` 为对应写库。均使用 Go MySQL DSN 格式，如 `user:password@tcp(mysql:3306)/phabricator_metamta`；不能指向副本。
+4. 设置 `GORGE_MAILER_DELIVERY_DSN` 为当前 namespace 的 metamta 写库，配置 `GORGE_MAINTENANCE_CACHE_DSN`、`GORGE_MAINTENANCE_CONDUIT_DSN`、`GORGE_MAINTENANCE_DAEMON_DSN`、`GORGE_MAINTENANCE_DIFFERENTIAL_DSN`、`GORGE_MAINTENANCE_MULTIMETER_DSN` 为对应写库。均使用 Go MySQL DSN 格式，如 `user:password@tcp(mysql:3306)/phabricator_metamta`；不能指向副本。
 5. 保持原 namespace。已有任务/邮件应先识别并处理旧格式积压；切换不会把既有 legacy 邮件任务自动转换为原生任务。
 
 以下命令都在 `phorge-fork/` 执行，固定使用同一覆盖配置与 profiles：
@@ -63,7 +63,7 @@ docker compose -f docker-compose.yml -f docker-compose.production.yml \
   /usr/local/bin/gorge-maintenance import /etc/phorge/cleanup-policy.json
 ```
 
-对 `cache.general.ttl`、`cache.general`、`cache.markup`、`conduit.logs`、`daemon.processes`、`daemon.lock-log` 分别执行：
+对 `cache.general.ttl`、`cache.general`、`cache.markup`、`conduit.logs`、`daemon.processes`、`daemon.lock-log`、`differential.parse`、`differential.viewstate`、`multimeter.events` 分别执行：
 
 ```text
 /usr/local/bin/gorge-maintenance dry-run <collector>

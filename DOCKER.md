@@ -2076,10 +2076,11 @@ Gorge 搜索适配器在原同步投递之前，原子保存快照事件和每�
 ## Gorge 日志与缓存清理
 
 首批清理模块为可选 `maintenance` profile，默认未启动、未移交执行权。
-只覆盖通用/Markup/TTL 缓存、Conduit 日志、daemon 事件与锁日志。锁日志默认
+覆盖通用/Markup/TTL 缓存、Conduit 日志、daemon 事件与锁日志，以及 Differential
+解析缓存、浏览状态和 Multimeter 事件（共九项）。锁日志默认
 仍无限保留，认证、任务归档、文件销毁及 outbox/inbox 不在此范围。
 
-先执行 `bin/storage upgrade` 创建 cache/conduit/daemon 库的
+先执行 `bin/storage upgrade` 创建 cache/conduit/daemon/differential/multimeter 库的
 `gorge_gc_control`，再部署本版 PHP。在所有 Web、CLI、daemon 节点执行
 `bin/config set phd.gorge-cleanup true`，重启常驻 PHP daemon，确认旧二进制
 和在途清理已退出。保护必须同时覆盖 Trigger 和 `bin/garbage collect`；

@@ -9,7 +9,7 @@ fixture_env = {"PATH": os.environ["PATH"]}
 for service in ("IMAGE", "MAILER", "SEARCH", "TASKQUEUE", "CONDUIT", "MAINTENANCE", "FILE"):
     fixture_env[f"GORGE_{service}_TOKEN"] = "contract-fixture"
 fixture_env["GORGE_MAILER_DELIVERY_DSN"] = "fixture@tcp(mysql:3306)/phabricator_metamta"
-for role in ("CACHE", "CONDUIT", "DAEMON"):
+for role in ("CACHE", "CONDUIT", "DAEMON", "DIFFERENTIAL", "MULTIMETER"):
     fixture_env[f"GORGE_MAINTENANCE_{role}_DSN"] = (
         f"fixture@tcp(mysql:3306)/phabricator_{role.lower()}"
     )
@@ -53,3 +53,7 @@ for profile in ("mailer", "search", "maintenance"):
 result = subprocess.run(without_profiles, cwd=root, env=fixture_env, capture_output=True)
 assert result.returncode != 0, "Missing production profiles were accepted"
 print("Production Compose contracts passed: modes, shared DSN, auth, build, ordering and profiles.")
+
+for role in ("CACHE", "CONDUIT", "DAEMON", "DIFFERENTIAL", "MULTIMETER"):
+    key = f"GORGE_MAINTENANCE_{role}_DSN"
+    assert services["gorge-maintenance"]["environment"][key] == fixture_env[key]

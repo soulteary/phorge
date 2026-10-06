@@ -4,7 +4,7 @@ final class PhabricatorGorgeCleanupSchemaSpec
   extends PhabricatorConfigSchemaSpec {
 
   public function buildSchemata() {
-    foreach (array('cache', 'conduit', 'daemon') as $application) {
+    foreach (array('cache', 'conduit', 'daemon', 'differential', 'multimeter') as $application) {
       $this->buildRawSchema(
         $application,
         'gorge_gc_control',

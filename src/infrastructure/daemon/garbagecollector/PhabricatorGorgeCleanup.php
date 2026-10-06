@@ -11,6 +11,9 @@ final class PhabricatorGorgeCleanup extends Phobject {
       'conduit.logs' => array(new PhabricatorConduitMethodCallLog(), 'conduit', 'dateCreated'),
       'daemon.processes' => array(new PhabricatorDaemonLogEvent(), 'daemon', 'epoch'),
       'daemon.lock-log' => array(new PhabricatorDaemonLockLog(), 'daemon', 'dateCreated'),
+      'differential.parse' => array(new DifferentialChangeset(), 'differential', 'dateCreated', DifferentialChangeset::TABLE_CACHE),
+      'differential.viewstate' => array(new DifferentialViewState(), 'differential', 'dateModified'),
+      'multimeter.events' => array(new MultimeterEvent(), 'multimeter', 'epoch'),
     );
   }
 
@@ -29,7 +32,7 @@ final class PhabricatorGorgeCleanup extends Phobject {
       $conn,
       'SELECT ENGINE FROM information_schema.TABLES
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (%Ls)',
-      array('gorge_gc_control', $spec[0]->getTableName()));
+      array('gorge_gc_control', idx($spec, 3, $spec[0]->getTableName())));
     if (count($tables) !== 2) {
       throw new Exception(pht('Run storage upgrade before cleanup.'));
     }

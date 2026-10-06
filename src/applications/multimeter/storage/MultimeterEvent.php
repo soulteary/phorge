@@ -67,6 +67,9 @@ final class MultimeterEvent extends MultimeterDAO {
         'requestKey' => 'bytes12',
       ),
       self::CONFIG_KEY_SCHEMA => array(
+        'key_epoch' => array(
+          'columns' => array('epoch'),
+        ),
         'key_request' => array(
           'columns' => array('requestKey'),
         ),

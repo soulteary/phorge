@@ -15,13 +15,29 @@ $namespace = 'gorge_cleanup_'.getmypid().'_'.bin2hex(random_bytes(4));
 $admin = new mysqli('127.0.0.1', 'root', $password, '', (int)$port);
 $names = array();
 try {
-  foreach (array('cache', 'conduit', 'daemon', 'system') as $role) {
+  foreach (array('cache', 'conduit', 'daemon', 'differential', 'multimeter', 'system') as $role) {
     $name = $namespace.'_'.$role; $names[] = $name;
     $admin->query('CREATE DATABASE `'.$name.'`');
     if ($role !== 'system') {
       $admin->select_db($name);
-      $sql = file_get_contents($root.'/resources/sql/autopatches/20261006.'.$role.'.01.gorgecleanup.sql');
+      $date = in_array($role, array('differential', 'multimeter')) ? '20261007' : '20261006';
+      $sql = file_get_contents($root.'/resources/sql/autopatches/'.$date.'.'.$role.'.01.gorgecleanup.sql');
       $admin->query(str_replace('{$NAMESPACE}', $namespace, $sql));
+    }
+  }
+  foreach (array(
+    array('differential', 'differential_changeset_parse_cache', 'dateCreated'),
+    array('differential', 'differential_viewstate', 'dateModified'),
+    array('multimeter', 'multimeter_event', 'epoch'),
+  ) as $target) {
+    $admin->select_db($namespace.'_'.$target[0]);
+    $index = $target[0] === 'multimeter' ? '' : ', KEY cleanup_time ('.$target[2].')';
+    $admin->query('CREATE TABLE '.$target[1].' (id BIGINT UNSIGNED PRIMARY KEY, '.$target[2].' INT UNSIGNED NOT NULL'.$index.') ENGINE=InnoDB');
+    if ($target[0] === 'multimeter') {
+      $migration = file_get_contents($root.'/resources/sql/autopatches/20261007.multimeter.01.cleanupindex.sql');
+      $admin->query(str_replace('{$NAMESPACE}', $namespace, $migration));
+      $indexes = $admin->query("SHOW INDEX FROM multimeter_event WHERE Key_name='key_epoch'");
+      if ($indexes->num_rows !== 1 || $indexes->fetch_assoc()['Column_name'] !== 'epoch') {throw new Exception('Multimeter index migration failed.');}
     }
   }
   $admin->select_db($namespace.'_cache');
@@ -31,11 +47,28 @@ try {
   PhabricatorEnv::setReadOnly(false,null);
   PhabricatorCaches::getRequestCache()->deleteKey(PhabricatorDatabaseRef::KEY_REFS);
   PhabricatorCaches::getRequestCache()->deleteKey(PhabricatorDatabaseRef::KEY_INDIVIDUAL);
-  $expected = array('cache_general','cache_general','cache_markupcache','conduit_methodcalllog','daemon_logevent','daemon_locklog');
-  foreach (array_values(PhabricatorGorgeCleanup::getRegistry()) as $i=>$spec) { if ($spec[0]->getTableName() !== $expected[$i]) {throw new Exception('Registry table drift.');} }
+  $expected = array('cache_general','cache_general','cache_markupcache','conduit_methodcalllog','daemon_logevent','daemon_locklog','differential_changeset_parse_cache','differential_viewstate','multimeter_event');
+  foreach (array_values(PhabricatorGorgeCleanup::getRegistry()) as $i=>$spec) { if (idx($spec, 3, $spec[0]->getTableName()) !== $expected[$i]) {throw new Exception('Registry table drift.');} }
+  foreach (array(
+    new DifferentialParseCacheGarbageCollector(),
+    new DifferentialViewStateGarbageCollector(),
+    new MultimeterEventGarbageCollector(),
+  ) as $technical) {
+    $id = $technical->getCollectorConstant();
+    $spec = PhabricatorGorgeCleanup::getRegistry()[$id];
+    $target = idx($spec, 3, $spec[0]->getTableName());
+    $admin->select_db($namespace.'_'.$spec[1]);
+    $admin->query('INSERT INTO '.$target.' VALUES (1,1),(2,'.(time()+3600).')');
+    $technical->runCollector();
+    if ((int)$admin->query('SELECT COUNT(*) AS n FROM '.$target)->fetch_assoc()['n'] !== 1) {throw new Exception('Technical retention boundary failed: '.$id);}
+    $admin->query("UPDATE gorge_gc_control SET owner='gorge' WHERE collectorID='".$id."'");
+    $admin->query('INSERT INTO '.$target.' VALUES (3,1)');
+    if ($technical->runCollector() !== false || (int)$admin->query('SELECT COUNT(*) AS n FROM '.$target)->fetch_assoc()['n'] !== 2) {throw new Exception('Technical owner guard failed: '.$id);}
+  }
+  $admin->select_db($namespace.'_cache');
   $env->overrideEnvConfig('phd.garbage-collection', array('cache.general'=>null,'daemon.lock-log'=>0));
   $export = PhabricatorGorgeCleanup::exportPolicies();
-  if (!$export['guardEnabled'] || $export['readOnly'] || count($export['policies']) !== 6 || $export['policies'][1]['mode'] !== 'indefinite' || $export['policies'][5]['mode'] !== 'indefinite') {throw new Exception('Policy compatibility failed.');}
+  if (!$export['guardEnabled'] || $export['readOnly'] || count($export['policies']) !== 9 || $export['policies'][1]['mode'] !== 'indefinite' || $export['policies'][5]['mode'] !== 'indefinite') {throw new Exception('Policy compatibility failed.');}
   $env->overrideEnvConfig('phd.garbage-collection', array('cache.general'=>86400));
   $export = PhabricatorGorgeCleanup::exportPolicies();
   if ($export['policies'][1]['retentionSeconds'] !== 86400) {throw new Exception('Effective override lost.');}
