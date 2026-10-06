@@ -2067,3 +2067,19 @@ curl --get "$GORGE_WORKER_MAILER_URL/api/mailer/delivery" \
   -H "X-Service-Token: $GORGE_WORKER_MAILER_TOKEN" \
   --data-urlencode 'deliveryID=mail/PHID-MAIL-example/1'
 ```
+
+### 搜索投影 outbox（shadow 捕获）
+
+先运行 `bin/storage upgrade` 创建 `search_gorgeprojection` 和
+`search_gorgeoutbox`。`gorge.search.projection-shadow` 默认关闭；显式开启后，
+Gorge 搜索适配器在原同步投递之前，原子保存快照事件和每对象递增版本。
+相同快照重试复用原事件；不能提前清理最后一条 outbox 回执。
+
+此开关仅捕获快照，尚未启用 Go 原生投递或重建调度；生产查询和同步写入
+保持现有路径。outbox 捕获失败会让 SearchWorker 重试，不把索引版本标记
+为完成。新事务只覆盖 search 数据库，不能代替各业务库事务中的变更捕获。
+删除捕获目前只提供显式 helper，未接入对象销毁；`search.export` 的 missing
+不能作为删除事件。
+
+真实 MySQL 契约：`GORGE_TEST_ARCANIST_DIR=/path/to/arcanist GORGE_TEST_MYSQL_PORT=3306 GORGE_TEST_MYSQL_PASSWORD=test php tests/contract/search/outbox.php`。
+仅在临时测试实例执行；脚本会创建并删除随机命名的测试数据库。

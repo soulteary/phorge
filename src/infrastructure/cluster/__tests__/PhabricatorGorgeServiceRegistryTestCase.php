@@ -20,7 +20,7 @@ final class PhabricatorGorgeServiceRegistryTestCase
       array_keys(PhabricatorGorgeServiceRegistry::getServices()));
 
     $this->assertEqual(
-      array('gorge.search.token', 'cluster.search'),
+      array('gorge.search.token', 'cluster.search', 'gorge.search.projection-shadow'),
       PhabricatorGorgeServiceRegistry::getService('search')
         ->getConfigurationKeys());
   }

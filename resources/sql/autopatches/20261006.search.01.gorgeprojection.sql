@@ -1,0 +1,23 @@
+CREATE TABLE {$NAMESPACE}_search.search_gorgeprojection (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  namespace VARBINARY(64) NOT NULL,
+  objectPHID VARBINARY(64) NOT NULL,
+  revision BIGINT NOT NULL DEFAULT 0,
+  serializerVersion VARBINARY(128) NOT NULL,
+  sourceVersion VARBINARY(512) NOT NULL,
+  payloadHash VARBINARY(64) NOT NULL,
+  operation VARBINARY(16) NOT NULL,
+  lastEventID VARBINARY(128) NOT NULL,
+  UNIQUE KEY object (namespace, objectPHID)
+) ENGINE=InnoDB;
+CREATE TABLE {$NAMESPACE}_search.search_gorgeoutbox (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  eventID VARBINARY(128) NOT NULL,
+  payload LONGTEXT NOT NULL,
+  attempts INT UNSIGNED NOT NULL DEFAULT 0,
+  nextAttempt BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  deliveredEpoch BIGINT UNSIGNED NULL,
+  lastError LONGTEXT NOT NULL,
+  UNIQUE KEY eventID (eventID),
+  KEY pending (deliveredEpoch, nextAttempt, id)
+) ENGINE=InnoDB;

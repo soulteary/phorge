@@ -81,15 +81,21 @@ final class PhabricatorSearchWorker extends PhabricatorWorker {
       $object = $this->loadObjectForIndexing($object->getPHID());
 
       $engine->setObject($object);
-      $engine->indexObject();
-    } catch (Exception $ex) {
+      // Re-evaluate versions after the locked reload, not against the old object.
+      if ($engine->shouldIndexObject()) {
+        $engine->indexObject();
+      }
+    } catch (Throwable $ex) {
       $caught = $ex;
+    } finally {
+      $lock->unlock();
     }
 
-    // Release the lock before we deal with the exception.
-    $lock->unlock();
-
     if ($caught) {
+      // Failed capture did not export a durable version: always retry it.
+      if ($caught instanceof PhabricatorSearchProjectionException) {
+        throw $caught;
+      }
       if (!($caught instanceof PhabricatorWorkerPermanentFailureException)) {
         $caught = new PhabricatorWorkerPermanentFailureException(
           pht(

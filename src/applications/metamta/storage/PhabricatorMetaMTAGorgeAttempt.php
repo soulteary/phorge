@@ -11,7 +11,7 @@ final class PhabricatorMetaMTAGorgeAttempt extends PhabricatorMetaMTADAO {
     return array(
       self::CONFIG_TIMESTAMPS => false,
       self::CONFIG_COLUMN_SCHEMA => array(
-        'id' => 'uint64',
+        'id' => 'auto64',
         'deliveryID' => 'bytes128',
         'attempt' => 'uint32',
         'startedEpoch' => 'uint64',

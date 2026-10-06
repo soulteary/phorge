@@ -18,7 +18,7 @@ final class PhabricatorMetaMTAGorgeOutbox extends PhabricatorMetaMTADAO {
     return array(
       self::CONFIG_TIMESTAMPS => false,
       self::CONFIG_COLUMN_SCHEMA => array(
-        'id' => 'uint64',
+        'id' => 'auto64',
         'eventID' => 'bytes128',
         'payload' => 'text',
         'attempts' => 'uint32',

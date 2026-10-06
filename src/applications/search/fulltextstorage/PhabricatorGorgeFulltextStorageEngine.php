@@ -66,6 +66,16 @@ final class PhabricatorGorgeFulltextStorageEngine
   public function reindexAbstractDocument(
     PhabricatorSearchAbstractDocument $doc) {
 
+    if (PhabricatorEnv::getEnvConfig('gorge.search.projection-shadow')) {
+      try {
+        PhabricatorSearchProjectionPublisher::publishDocument(
+          PhabricatorEnv::getEnvConfig('storage.default-namespace'), $doc);
+      } catch (Throwable $ex) {
+        throw new PhabricatorSearchProjectionException(
+          pht('Unable to persist the search projection.'), 0, $ex);
+      }
+    }
+
     $host = $this->getHostForWrite();
 
     $this->executeRequest(
@@ -182,62 +192,8 @@ final class PhabricatorGorgeFulltextStorageEngine
    * @return map<string, wild> Wire representation of the document.
    */
   private function newDocumentSpec(PhabricatorSearchAbstractDocument $doc) {
-    $spec = array(
-      'phid' => $doc->getPHID(),
-      'type' => $doc->getDocumentType(),
-      'title' => (string)$doc->getDocumentTitle(),
-      'dateCreated' => (int)$doc->getDocumentCreated(),
-      'dateModified' => (int)$doc->getDocumentModified(),
-    );
-
-    // Fields arrive as a list of tuples rather than a map because a document
-    // may carry several corpora for one field name -- every comment on a task
-    // is another "cmnt" field -- so they are kept as a list on the wire too
-    // and grouped by the service.
-    $fields = array();
-    foreach ($doc->getFieldData() as $field) {
-      list($field_name, $corpus, $aux) = $field;
-
-      $item = array(
-        'name' => $field_name,
-        'corpus' => (string)$corpus,
-      );
-
-      if ($aux !== null) {
-        $item['aux'] = $aux;
-      }
-
-      $fields[] = $item;
-    }
-
-    if ($fields) {
-      $spec['fields'] = $fields;
-    }
-
-    $relationships = array();
-    foreach ($doc->getRelationshipData() as $relationship) {
-      list($field_name, $related_phid, $rtype, $time) = $relationship;
-
-      $item = array(
-        'name' => $field_name,
-        'relatedPHID' => $related_phid,
-        'rtype' => $rtype,
-      );
-
-      if ($time) {
-        $item['timestamp'] = (int)$time;
-      }
-
-      $relationships[] = $item;
-    }
-
-    if ($relationships) {
-      $spec['relationships'] = $relationships;
-    }
-
-    return $spec;
+    return PhabricatorSearchDocumentSerializer::newDocumentSpec($doc);
   }
-
 
   /**
    * Convert a saved query into the wire form the service expects.

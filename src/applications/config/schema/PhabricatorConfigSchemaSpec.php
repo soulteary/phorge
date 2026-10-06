@@ -413,6 +413,9 @@ abstract class PhabricatorConfigSchemaSpec extends Phobject {
         case 'ipaddress':
           $column_type = 'varbinary(64)';
           break;
+        case 'bytes128':
+          $column_type = 'varbinary(128)';
+          break;
         case 'bytes64':
           $column_type = 'binary(64)';
           break;

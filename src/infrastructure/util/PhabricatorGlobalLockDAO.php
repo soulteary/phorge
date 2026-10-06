@@ -15,4 +15,10 @@
  */
 final class PhabricatorGlobalLockDAO extends PhabricatorSystemDAO {
 
+  protected function getConfiguration() {
+    return array(
+      self::CONFIG_NO_TABLE => true,
+    ) + parent::getConfiguration();
+  }
+
 }

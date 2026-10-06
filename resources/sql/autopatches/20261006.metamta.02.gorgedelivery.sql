@@ -8,7 +8,7 @@ CREATE TABLE {$NAMESPACE}_metamta.gorge_mail_delivery (
  nextAttempt BIGINT UNSIGNED NOT NULL,
  startedEpoch BIGINT UNSIGNED NOT NULL,
  result LONGTEXT NOT NULL,
- projectionPending TINYINT UNSIGNED NOT NULL DEFAULT 0,
+ projectionPending TINYINT(1) NOT NULL DEFAULT 0,
  KEY projectionPending (projectionPending,deliveryID)
 ) ENGINE=InnoDB;
 CREATE TABLE {$NAMESPACE}_metamta.gorge_mail_attempt (

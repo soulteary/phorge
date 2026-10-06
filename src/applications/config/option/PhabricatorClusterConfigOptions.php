@@ -144,6 +144,12 @@ EOTEXT
               ),
             ),
           )),
+      $this->newOption('gorge.search.projection-shadow', 'bool', false)
+        ->setLocked(true)
+        ->setDescription(pht(
+          'Capture versioned search snapshots in a local outbox while retaining '.
+          'synchronous production indexing. Run storage upgrades first. '.
+          'This does not enable native search delivery.')),
       $this->newOption('gorge.search.token', 'string', null)
         ->setHidden(true)
         ->setDescription(
