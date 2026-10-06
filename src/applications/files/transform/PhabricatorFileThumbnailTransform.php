@@ -83,6 +83,45 @@ final class PhabricatorFileThumbnailTransform
   }
 
   public function applyTransform(PhabricatorFile $file) {
+    $mode = PhabricatorEnv::getEnvConfig('gorge.image.mode');
+    if (!in_array($mode, array('legacy', 'shadow', 'gorge'))) {
+      throw new PhabricatorGorgeImageTransientException(
+        pht('Invalid Gorge image rollout mode.'));
+    }
+    if ($mode === 'legacy') {
+      return $this->applyLegacyTransform($file);
+    }
+    $this->willTransformFile($file);
+    if ($mode === 'gorge') {
+      $data = id(new PhabricatorGorgeImageClient())->transform(
+        $this->getData(), $this->key,
+        PhabricatorEnv::getEnvConfig('files.enable-imagemagick'));
+      return $this->newFileFromData($data);
+    }
+    // Shadow computes bytes only: no additional file or relationship is saved.
+    $result = $this->applyLegacyTransform($file);
+    $percent = PhabricatorEnv::getEnvConfig('gorge.image.shadow-percent');
+    $bucket = hexdec(substr(hash('sha256', $file->getPHID()), 0, 8)) % 100;
+    if ($bucket < max(0, min(100, $percent))) {
+      try {
+        $data = id(new PhabricatorGorgeImageClient())->transform(
+          $this->getData(), $this->key,
+          PhabricatorEnv::getEnvConfig('files.enable-imagemagick'));
+        $info = getimagesizefromstring($data);
+        if ($info[0] !== $result->getImageWidth() ||
+            $info[1] !== $result->getImageHeight() ||
+            idx($info, 'mime') !== $result->getMimeType()) {
+          phlog(pht('Gorge image shadow geometry or MIME differs (%s).',
+            $this->key));
+        }
+      } catch (Exception $ex) {
+        phlog(pht('Gorge image shadow computation failed (%s).', $this->key));
+      }
+    }
+    return $result;
+  }
+
+  private function applyLegacyTransform(PhabricatorFile $file) {
     $this->willTransformFile($file);
 
     list($src_x, $src_y) = $this->getImageDimensions();

@@ -12,7 +12,8 @@ try {
   $count = 0;
   foreach (array('PhutilDefaultSyntaxHighlighterEngineTestCase',
     'PhabricatorMailAdapterTestCase', 'PhabricatorDeploymentConfigBuilderTestCase',
-    'PhabricatorFileStorageEngineTestCase') as $class) {
+    'PhabricatorFileStorageEngineTestCase', 'PhabricatorGorgeImageTestCase',
+    'PhabricatorGorgeServiceRegistryTestCase') as $class) {
     foreach (id(new $class())->setWorkingCopy($working)->run() as $result) {
       if ($result->getResult() !== ArcanistUnitTestResult::RESULT_PASS) {
         throw new Exception($result->getName().': '.$result->getUserData());

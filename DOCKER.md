@@ -1963,3 +1963,21 @@ Ferret 同时服务领域查询索引，尚未整体退役，不能删除其表�
 当前应用退役分支已经移除仓库拉取 daemon，并从标准启动列表移除 PHP
 Taskmaster；保留 Trigger（定时事件）和 Fact（统计构建），它们仍有实际
 领域职责。迁移它们之前，不应把整个 PHP daemon 运行时删掉。
+
+
+### 图片变换灰度
+
+新增独立 Gorge image 服务（8190），默认仍为 `gorge.image.mode=legacy`。
+在 `.env` 配置非空 `GORGE_IMAGE_TOKEN` 后，可用
+`docker compose -f docker-compose.yml -f docker-compose.image.yml up -d --build`
+接入本地构建。overlay 默认 shadow，10% 按源 PHID 稳定采样，仅旧结果持久化；
+正式切换设 `GORGE_IMAGE_MODE=gorge` 并重新运行 migrate 配置生成。
+新服务启动校验 JPEG/PNG/GIF/WebP 编解码能力。临时错误不写派生关系；
+显式重生成失败保留旧文件，成功后才替换关系并销毁旧结果。
+
+原 URL、secret key、已有派生文件和旧存储读取不变。gorge 模式上传尺寸探测也
+使用 Go；图片输入限制16MiB，画布50,135,040像素，动画100帧且累计像素同样受限。
+该动画预算比旧实现更严格，切换前需要核验部署样本。JPEG质量、重采样与GIF
+调色板视觉差异仍需 shadow 验收，不应仅凭尺寸测试切换全量。
+GD仍用于内置头像、图标、Meme及SpriteSheet，本轮不得删除GD扩展。
+回滚设置GORGE_IMAGE_MODE=legacy并重新生成配置；已生成图片仍可读取。

@@ -11,6 +11,7 @@ final class PhabricatorGorgeServiceRegistryTestCase
         'notification',
         'mailer',
         'search',
+        'image',
         'file',
         'webhook',
         'taskqueue',

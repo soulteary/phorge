@@ -32,12 +32,9 @@ final class PhabricatorFileTransformController
     $transform = $request->getURIData('transform');
     $xform = $this->loadTransform($source_phid, $transform);
 
-    if ($xform) {
-      if ($is_regenerate) {
-        $this->destroyTransform($xform);
-      } else {
-        return $this->buildTransformedFileResponse($xform);
-      }
+    $replace_xform = $xform;
+    if ($xform && !$is_regenerate) {
+      return $this->buildTransformedFileResponse($xform);
     }
 
     $xforms = PhabricatorFileTransform::getAllTransforms();
@@ -52,6 +49,7 @@ final class PhabricatorFileTransformController
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
 
     $xformed_file = null;
+    $transient_failure = false;
     if ($xform->canApplyTransform($file)) {
       try {
         $xformed_file = $xforms[$transform]->applyTransform($file);
@@ -59,6 +57,8 @@ final class PhabricatorFileTransformController
         // In normal transform mode, we ignore failures and generate a
         // default transform below. If we're explicitly regenerating the
         // thumbnail, rethrow the exception.
+        $transient_failure =
+          ($ex instanceof PhabricatorGorgeImageTransientException);
         if ($is_regenerate) {
           throw $ex;
         }
@@ -73,10 +73,48 @@ final class PhabricatorFileTransformController
       return new Aphront400Response();
     }
 
+    if ($transient_failure) {
+      return $xformed_file->getRedirectResponse();
+    }
+
     $xform = id(new PhabricatorTransformedFile())
       ->setOriginalPHID($source_phid)
       ->setTransform($transform)
       ->setTransformedPHID($xformed_file->getPHID());
+
+    if ($replace_xform) {
+      // Build outside the transaction. Replace only the relation we observed;
+      // another regeneration may already have published a newer result.
+      $did_replace = false;
+      $xform->openTransaction();
+      try {
+        $current = id(new PhabricatorTransformedFile())->loadOneWhere(
+          'originalPHID = %s AND transform = %s FOR UPDATE',
+          $source_phid, $transform);
+        if ($current &&
+            $current->getTransformedPHID() ===
+              $replace_xform->getTransformedPHID()) {
+          $current->setTransformedPHID($xformed_file->getPHID())->save();
+          $did_replace = true;
+        }
+        $xform->saveTransaction();
+      } catch (Exception $ex) {
+        $xform->killTransaction();
+        throw $ex;
+      }
+      if ($did_replace) {
+        // Do not pass the old persisted relation ID: it now identifies the
+        // replacement, and deleting a missing old file must not delete it.
+        $old = id(new PhabricatorTransformedFile())
+          ->setTransformedPHID($replace_xform->getTransformedPHID());
+        $this->destroyTransform($old);
+        return $this->buildTransformedFileResponse($current);
+      }
+      if ($current) {
+        $this->destroyTransform($xform);
+        return $this->buildTransformedFileResponse($current);
+      }
+    }
 
     try {
       $xform->save();

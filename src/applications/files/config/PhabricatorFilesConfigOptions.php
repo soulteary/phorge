@@ -238,6 +238,18 @@ final class PhabricatorFilesConfigOptions
             'Service token for the Gorge file storage service, sent with '.
             'each request in an "X-Service-Token" header. Leave this empty '.
             'if the service is configured without a token.')),
+      $this->newOption('gorge.image.uri', 'string', null)
+        ->setLocked(true)
+        ->setDescription(pht('Base URI of the Gorge image service.')),
+      $this->newOption('gorge.image.token', 'string', null)
+        ->setHidden(true)
+        ->setDescription(pht('Required service token for image computation.')),
+      $this->newOption('gorge.image.mode', 'string', 'legacy')
+        ->setLocked(true)
+        ->setDescription(pht('Image rollout mode: legacy, shadow, or gorge.')),
+      $this->newOption('gorge.image.shadow-percent', 'int', 10)
+        ->setLocked(true)
+        ->setDescription(pht('Stable source-PHID sampling percentage in shadow mode.')),
      $this->newOption('files.enable-imagemagick', 'bool', false)
        ->setBoolOptions(
          array(

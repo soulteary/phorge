@@ -1108,6 +1108,10 @@ final class PhabricatorFile extends PhabricatorFileDAO
       return false;
     }
 
+    if (PhabricatorEnv::getEnvConfig('gorge.image.mode') === 'gorge') {
+      return true;
+    }
+
     switch ($matches[1]) {
       case 'jpg':
       case 'jpeg':
@@ -1233,6 +1237,25 @@ final class PhabricatorFile extends PhabricatorFileDAO
   public function updateDimensions($save = true) {
     if (!$this->isViewableImage()) {
       throw new Exception(pht('This file is not a viewable image.'));
+    }
+
+    if (PhabricatorEnv::getEnvConfig('gorge.image.mode') === 'gorge') {
+      if ($this->getByteSize() > 16 * 1024 * 1024) {
+        throw new Exception(pht('Image exceeds the 16 MiB transform limit.'));
+      }
+      if ($this->getIsChunk() || $this->instantiateStorageEngine()->isChunkEngine()) {
+        throw new Exception(pht('Refusing to assess image dimensions of chunks.'));
+      }
+      $info = id(new PhabricatorGorgeImageClient())->probe($this->loadFileData());
+      if (idx($info, 'width') < 1 || idx($info, 'height') < 1) {
+        throw new Exception(pht('Gorge image returned invalid dimensions.'));
+      }
+      $this->metadata[self::METADATA_IMAGE_WIDTH] = $info['width'];
+      $this->metadata[self::METADATA_IMAGE_HEIGHT] = $info['height'];
+      if ($save) {
+        $this->save();
+      }
+      return $this;
     }
 
     if (!function_exists('imagecreatefromstring')) {

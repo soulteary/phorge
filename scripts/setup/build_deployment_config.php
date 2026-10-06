@@ -134,6 +134,21 @@ configure_scalar_service(
   'gorge.file.uri',
   'gorge.file.token');
 
+configure_scalar_service(
+  $config, 'GORGE_IMAGE_URI', 'gorge.image.uri', 'gorge.image.token');
+$image_mode = env_value('GORGE_IMAGE_MODE',
+  isset($local['gorge.image.mode']) ? $local['gorge.image.mode'] : 'legacy');
+if (!in_array($image_mode, array('legacy', 'shadow', 'gorge'), true)) {
+  throw new Exception('GORGE_IMAGE_MODE must be legacy, shadow, or gorge.');
+}
+$config['gorge.image.mode'] = $image_mode;
+$config['gorge.image.shadow-percent'] = env_uint('GORGE_IMAGE_SHADOW_PERCENT',
+  (string)(isset($local['gorge.image.shadow-percent'])
+    ? $local['gorge.image.shadow-percent'] : 10));
+if ($config['gorge.image.shadow-percent'] > 100) {
+  throw new Exception('GORGE_IMAGE_SHADOW_PERCENT must not exceed 100.');
+}
+
 // Conduit callbacks arrive with the internal upstream Host. Keep the user's
 // existing aliases and append the one owned by this deployment.
 $upstream = env_value('GORGE_CONDUIT_UPSTREAM_URL', '');

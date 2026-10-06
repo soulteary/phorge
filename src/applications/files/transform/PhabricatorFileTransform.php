@@ -2,6 +2,8 @@
 
 abstract class PhabricatorFileTransform extends Phobject {
 
+  private $transientFailure = false;
+
   abstract public function getTransformName();
   abstract public function getTransformKey();
   abstract public function canApplyTransform(PhabricatorFile $file);
@@ -56,11 +58,13 @@ abstract class PhabricatorFileTransform extends Phobject {
    * @return PhabricatorFile Transformed file
    */
   public function executeTransform(PhabricatorFile $file) {
+    $this->transientFailure = false;
     if ($this->canApplyTransform($file)) {
       try {
         return $this->applyTransform($file);
       } catch (Exception $ex) {
-        // Ignore.
+        $this->transientFailure =
+          ($ex instanceof PhabricatorGorgeImageTransientException);
       }
     }
 
@@ -83,7 +87,7 @@ abstract class PhabricatorFileTransform extends Phobject {
     //  - Builtins may have a lot of transforms. We don't know if the UX scales.
     //    Example page: /file/transforms/1/
     //  - Tracking builtins gives unclear benefits.
-    if ($xform && !$file->isBuiltin()) {
+    if ($xform && !$file->isBuiltin() && !$this->transientFailure) {
       id(new PhabricatorTransformedFile())
         ->setOriginalPHID($file->getPHID())
         ->setTransformedPHID($xform->getPHID())

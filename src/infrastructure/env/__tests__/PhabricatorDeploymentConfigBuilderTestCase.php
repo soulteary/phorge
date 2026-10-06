@@ -3,6 +3,37 @@
 final class PhabricatorDeploymentConfigBuilderTestCase
   extends PhabricatorTestCase {
 
+  public function testImageRolloutValidation() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $directory = Filesystem::createTemporaryDirectory();
+    try {
+      $local = $directory.'/local.json';
+      $deployment = $directory.'/deployment.json';
+      Filesystem::writeFile($local, '{}');
+      execx('env -i GORGE_IMAGE_URI=http://image:8190 GORGE_IMAGE_TOKEN=test-only '.
+        'GORGE_IMAGE_MODE=shadow GORGE_IMAGE_SHADOW_PERCENT=25 %s %s full %s %s',
+        PHP_BINARY, $root.'/scripts/setup/build_deployment_config.php',
+        $deployment, $local);
+      $config = phutil_json_decode(Filesystem::readFile($deployment));
+      $this->assertEqual('shadow', $config['gorge.image.mode']);
+      $this->assertEqual(25, $config['gorge.image.shadow-percent']);
+      $this->assertEqual('http://image:8190', $config['gorge.image.uri']);
+      foreach (array('GORGE_IMAGE_MODE=invalid',
+        'GORGE_IMAGE_SHADOW_PERCENT=101') as $setting) {
+        $caught = false;
+        try {
+          execx('env -i %s %s %s full %s %s', $setting, PHP_BINARY,
+            $root.'/scripts/setup/build_deployment_config.php', $deployment, $local);
+        } catch (CommandException $ex) {
+          $caught = true;
+        }
+        $this->assertTrue($caught);
+      }
+    } finally {
+      Filesystem::remove($directory);
+    }
+  }
+
   public function testFeedPolicyPublishedWithDeployment() {
     $root = dirname(phutil_get_library_root('phabricator'));
     $directory = Filesystem::createTemporaryDirectory();
