@@ -26,7 +26,7 @@ Mail Rules
 ==========
 
 The best approach to managing mail is to write mail rules. Simply writing rules
-to move mail from Differential, Maniphest and Herald to separate folders will
+to move mail from Diffusion, Maniphest and Herald to separate folders will
 vastly simplify mail management.
 
 Phorge also adds mail headers (see below) which can allow you to write

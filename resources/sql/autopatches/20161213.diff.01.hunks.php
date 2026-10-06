@@ -1,6 +1,8 @@
 <?php
 
-$conn = id(new DifferentialRevision())->establishConnection('w');
+// DifferentialRevision has been removed. Any DAO in the "differential"
+// database serves here, and this patch only ever wanted a connection.
+$conn = id(new DifferentialHunk())->establishConnection('w');
 $src_table = 'differential_hunk';
 $dst_table = 'differential_hunk_modern';
 

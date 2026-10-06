@@ -10,8 +10,8 @@ system is strongly discouraged. We have been removing events since 2013 and
 will continue to remove events in the future.
 
 Phorge and Arcanist allow you to install custom runtime event listeners
-which can react to certain things happening (like a Maniphest Task being edited
-or a user creating a new Differential Revision) and run custom code to perform
+which can react to certain things happening (like a Maniphest Task being
+edited or a commit being published) and run custom code to perform
 logging, synchronize with other systems, or modify workflows.
 
 These listeners are PHP classes which you install beside Phorge or

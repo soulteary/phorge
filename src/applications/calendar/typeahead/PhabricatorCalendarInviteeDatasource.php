@@ -19,7 +19,6 @@ final class PhabricatorCalendarInviteeDatasource
     return array(
       new PhabricatorCalendarInviteeUserDatasource(),
       new PhabricatorCalendarInviteeViewerFunctionDatasource(),
-      new DifferentialExactUserFunctionDatasource(),
       new PhabricatorProjectDatasource(),
     );
   }

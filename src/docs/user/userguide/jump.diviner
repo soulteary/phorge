@@ -18,8 +18,6 @@ Supported Commands
 
   - **T** - Jump to Maniphest.
   - **T123** - Jump to Maniphest Task 123.
-  - **D** - Jump to Differential.
-  - **D123** - Jump to Differential Revision 123.
   - **r** - Jump to Diffusion.
   - **rXYZ** - Jump to Diffusion Repository XYZ.
   - **rXYZabcdef** - Jump to Diffusion Commit rXYZabcdef.

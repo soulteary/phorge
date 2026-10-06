@@ -316,9 +316,17 @@ if ($webhook_mode === 'enable') {
   $config['gorge.webhook.token'] = nullable_env('GORGE_WEBHOOK_TOKEN');
   $config['gorge.webhook.owner'] = 'gorge';
 } else if ($webhook_mode === 'disable') {
-  $config['gorge.webhook.uri'] = null;
-  $config['gorge.webhook.token'] = null;
-  $config['gorge.webhook.owner'] = 'phorge';
+  // Handing webhook delivery back to Phorge used to mean "HeraldWebhookWorker
+  // sends it". That consumer has been retired, so publishing
+  // gorge.webhook.owner = phorge would assign delivery to something which no
+  // longer exists and every webhook would be recorded and then failed. Refuse
+  // the rollback instead of writing a configuration with no consumer.
+  throw new Exception(
+    'GORGE_WEBHOOK_MODE=disable is no longer supported: the native PHP '.
+    'webhook delivery consumer has been removed, so there is nothing to '.
+    'hand delivery back to. Keep the Gorge webhook service configured, or '.
+    'accept that Herald webhooks are not delivered and remove the webhooks '.
+    'themselves.');
 }
 
 $taskqueue_mode = env_mode('GORGE_TASKQUEUE_MODE', 'GORGE_TASKQUEUE_URI');
@@ -335,10 +343,16 @@ if ($taskqueue_mode === 'enable') {
   // no process can observe a zero- or double-consumer transition.
   $config['phd.taskmasters'] = 0;
 } else if ($taskqueue_mode === 'disable') {
-  $config['gorge.taskqueue.uri'] = null;
-  $config['gorge.taskqueue.token'] = null;
-  $config['gorge.taskqueue.owner'] = 'phorge';
-  unset($config['phd.taskmasters']);
+  // Handing the queue back to Phorge used to mean "restore the native
+  // taskmaster pool". PhabricatorTaskmasterDaemon has been retired and `phd`
+  // no longer launches it, so publishing gorge.taskqueue.owner = phorge would
+  // route tasks into the SQL queue with nothing to lease them. Refuse the
+  // rollback instead of writing a configuration with no consumer.
+  throw new Exception(
+    'GORGE_TASKQUEUE_MODE=disable is no longer supported: the native PHP '.
+    'taskmaster consumer has been removed, so there is nothing to hand the '.
+    'queue back to. Keep the Gorge task queue and worker services '.
+    'configured.');
 }
 
 $db_mode = env_mode('GORGE_DB_MODE', 'GORGE_DB_URL');
@@ -354,8 +368,11 @@ if ($db_mode === 'enable') {
   $config['gorge.db.token'] = null;
 }
 
+// The native difference engines are gone, so the retired `gorge.diff.enabled`
+// switch is never published: neither profile may imply a diff implementation.
+unset($config['gorge.diff.enabled']);
+
 if ($profile === 'collaboration') {
-  $config['gorge.diff.enabled'] = false;
   if (!empty($config['gorge.render.uri'])) {
     $config['syntax-highlighter.engine'] =
       'PhabricatorGorgeSyntaxHighlighterEngine';
@@ -370,9 +387,27 @@ if ($profile === 'collaboration') {
   }
 } else {
   unset(
-    $config['gorge.diff.enabled'],
     $config['syntax-highlighter.engine'],
     $config['gitea.uri']);
+}
+
+// Feed delivery policy has one deployment owner shared by PHP and Go.
+// Import existing DB-only settings into local.json before enabling this path.
+$config['feed.http-hooks'] = array_key_exists('feed.http-hooks', $local)
+  ? $local['feed.http-hooks'] : (isset($config['feed.http-hooks'])
+    ? $config['feed.http-hooks'] : array());
+$config['phabricator.silent'] = array_key_exists('phabricator.silent', $local)
+  ? $local['phabricator.silent'] : (isset($config['phabricator.silent'])
+    ? $config['phabricator.silent'] : false);
+if (!is_array($config['feed.http-hooks']) || !is_bool($config['phabricator.silent'])) {
+  throw new Exception('Invalid feed deployment policy.');
+}
+$feed_policy = json_encode(array(
+  'silent' => $config['phabricator.silent'],
+  'uris' => array_values($config['feed.http-hooks']),
+), JSON_UNESCAPED_SLASHES);
+if ($feed_policy === false) {
+  throw new Exception('Unable to encode feed execution policy.');
 }
 
 $directory = dirname($deployment_path);
@@ -418,6 +453,14 @@ if (!chmod($temporary, 0640)) {
 if (!rename($temporary, $deployment_path)) {
   @unlink($temporary);
   throw new Exception('Unable to install deployment configuration.');
+}
+
+$policy_path = dirname($deployment_path).'/feed-policy.json';
+$policy_tmp = $policy_path.'.tmp.'.getmypid();
+if (file_put_contents($policy_tmp, $feed_policy."\n", LOCK_EX) === false ||
+    !chmod($policy_tmp, 0644) || !rename($policy_tmp, $policy_path)) {
+  @unlink($policy_tmp);
+  throw new Exception('Unable to publish feed execution policy.');
 }
 
 echo 'Wrote deployment configuration to '.$deployment_path.".\n";

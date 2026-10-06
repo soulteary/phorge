@@ -198,9 +198,17 @@ final class PhabricatorDashboardQueryPanelType
     $class = $panel->getProperty('class');
     $engine = PhabricatorApplicationSearchEngine::getEngineByClassName($class);
     if (!$engine) {
+      // PhabricatorDashboardPanelRenderingEngine::renderPanel() catches this
+      // and renders the panel as an error tile, so one dead panel does not
+      // take its dashboard down. Say what the reader can do about it: the
+      // usual cause is a panel left behind by an application which has since
+      // been removed from the install, and the panel can only be deleted or
+      // repointed.
       throw new Exception(
         pht(
-          'The application search engine "%s" is unknown.',
+          'This panel queries "%s", which no longer exists on this install. '.
+          'The application that provided it was probably removed. Edit the '.
+          'panel to point it at another query, or delete it.',
           $class));
     }
 

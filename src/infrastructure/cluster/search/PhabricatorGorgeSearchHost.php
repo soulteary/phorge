@@ -25,7 +25,7 @@ final class PhabricatorGorgeSearchHost
 
   public function setConfig($config) {
     // Default to read and write, as @{class:PhabricatorMySQLSearchHost} does
-    // and unlike @{class:PhabricatorElasticsearchHost}, which defaults to no
+    // and unlike the retired PHP Elasticsearch host, which defaults to no
     // roles at all. A host with no roles is skipped by every caller without
     // complaining, so an entry which names a service and forgets to list
     // roles would be a search configuration that quietly does nothing.
@@ -89,7 +89,7 @@ final class PhabricatorGorgeSearchHost
    * rewrites paths.
    *
    * Note that this is not the index name, which is the meaning `path` has for
-   * @{class:PhabricatorElasticsearchHost}: the index lives on the service
+   * the retired PHP Elasticsearch host: the index lives on the service
    * side, where the search engines are configured. Normally this is empty and
    * the routes are reached at the root, as they are when the service runs as
    * a container in the same network.
@@ -104,7 +104,7 @@ final class PhabricatorGorgeSearchHost
    * Base URI of the service on this host, with no trailing slash.
    *
    * This returns a string rather than a @{class@arcanist:PhutilURI}, which is
-   * what @{class:PhabricatorElasticsearchHost} returns: the client appends
+   * what the retired PHP Elasticsearch host returns: the client appends
    * fixed route paths to it, so there is nothing to build up piece by piece.
    *
    * @return string Base URI of the service.

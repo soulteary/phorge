@@ -17,7 +17,6 @@ final class DifferentialChangesetListView extends AphrontView {
   private $inlineListURI;
 
   private $symbolIndexes = array();
-  private $repository;
   private $branch;
   private $diff;
   private $vsMap = array();
@@ -73,15 +72,6 @@ final class DifferentialChangesetListView extends AphrontView {
 
   public function getInlineListURI() {
     return $this->inlineListURI;
-  }
-
-  public function setRepository(PhabricatorRepository $repository) {
-    $this->repository = $repository;
-    return $this;
-  }
-
-  public function getRepository() {
-    return $this->repository;
   }
 
   public function setDiff(DifferentialDiff $diff) {
@@ -163,7 +153,6 @@ final class DifferentialChangesetListView extends AphrontView {
 
     $changesets = $this->changesets;
 
-    $repository = $this->getRepository();
     $diff = $this->getDiff();
 
     $output = array();
@@ -175,10 +164,6 @@ final class DifferentialChangesetListView extends AphrontView {
 
       $detail = id(new DifferentialChangesetDetailView())
         ->setViewer($viewer);
-
-      if ($repository) {
-        $detail->setRepository($repository);
-      }
 
       if ($diff) {
         $detail->setDiff($diff);

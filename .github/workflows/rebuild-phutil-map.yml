@@ -1,0 +1,76 @@
+name: Rebuild Phutil library map
+
+on:
+  push:
+    branches:
+      - 'cleanup/apps-*'
+
+permissions:
+  contents: write
+
+jobs:
+  liberate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          # Do not leave a push credential in .git/config while third-party
+          # code runs in this job. The commit step authenticates explicitly.
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Install Arcanist
+        # Pinned: this job runs the cloned code, so it must not follow a
+        # mutable branch tip. Bump ARCANIST_REF deliberately after reviewing
+        # the upstream range.
+        env:
+          ARCANIST_REPO: https://github.com/phorgeit/arcanist.git
+          ARCANIST_REF: 6f3726694752fb9cb08207070a4d7f68163784e1
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init ../arcanist
+          git -C ../arcanist remote add origin "$ARCANIST_REPO"
+          git -C ../arcanist fetch --depth=1 origin "$ARCANIST_REF"
+          git -C ../arcanist checkout --detach FETCH_HEAD
+          actual="$(git -C ../arcanist rev-parse HEAD)"
+          if [ "$actual" != "$ARCANIST_REF" ]; then
+            echo "Arcanist checkout is $actual, expected $ARCANIST_REF" >&2
+            exit 1
+          fi
+      - name: Rebuild library map
+        id: liberate
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          php ../arcanist/bin/arc liberate -- src/ 2>&1 | tee /tmp/arc-liberate.log
+      - name: Upload liberate diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arc-liberate-log
+          path: /tmp/arc-liberate.log
+      - name: Fail if liberate failed
+        if: steps.liberate.outcome != 'success'
+        run: exit 1
+      - name: Commit generated map
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- src/__phutil_library_map__.php; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/__phutil_library_map__.php
+          git commit -m 'chore: regenerate Phutil library map [skip ci]'
+          git push \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "HEAD:${GITHUB_REF_NAME}"

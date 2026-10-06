@@ -43,83 +43,10 @@ final class PhabricatorMailPostmarkAdapter
   }
 
   public function sendMessage(PhabricatorMailExternalMessage $message) {
-    $access_token = $this->getOption('access-token');
-
-    $parameters = array();
-
-    $subject = $message->getSubject();
-    if ($subject !== null) {
-      $parameters['Subject'] = $subject;
-    }
-
-    $from_address = $message->getFromAddress();
-    if ($from_address) {
-      $parameters['From'] = (string)$from_address;
-    }
-
-    $to_addresses = $message->getToAddresses();
-    if ($to_addresses) {
-      $to = array();
-      foreach ($to_addresses as $address) {
-        $to[] = (string)$address;
-      }
-      $parameters['To'] = implode(', ', $to);
-    }
-
-    $cc_addresses = $message->getCCAddresses();
-    if ($cc_addresses) {
-      $cc = array();
-      foreach ($cc_addresses as $address) {
-        $cc[] = (string)$address;
-      }
-      $parameters['Cc'] = implode(', ', $cc);
-    }
-
-    $reply_address = $message->getReplyToAddress();
-    if ($reply_address) {
-      $parameters['ReplyTo'] = (string)$reply_address;
-    }
-
-    $headers = $message->getHeaders();
-    if ($headers) {
-      $list = array();
-      foreach ($headers as $header) {
-        $list[] = array(
-          'Name' => $header->getName(),
-          'Value' => $header->getValue(),
-        );
-      }
-      $parameters['Headers'] = $list;
-    }
-
-    $text_body = $message->getTextBody();
-    if ($text_body !== null) {
-      $parameters['TextBody'] = $text_body;
-    }
-
-    $html_body = $message->getHTMLBody();
-    if ($html_body !== null) {
-      $parameters['HtmlBody'] = $html_body;
-    }
-
-    $attachments = $message->getAttachments();
-    if ($attachments) {
-      $files = array();
-      foreach ($attachments as $attachment) {
-        $files[] = array(
-          'Name' => $attachment->getFilename(),
-          'ContentType' => $attachment->getMimeType(),
-          'Content' => base64_encode($attachment->getData()),
-        );
-      }
-      $parameters['Attachments'] = $files;
-    }
-
-    id(new PhutilPostmarkFuture())
-      ->setAccessToken($access_token)
-      ->setMethod('email', $parameters)
-      ->setTimeout(60)
-      ->resolve();
+    throw new Exception(pht(
+      'Native email delivery has been retired. Configure an outbound '.
+      'cluster.mailers entry of type "gorge" and move provider settings '.
+      'to the Gorge mailer. Keep this provider entry inbound-only.'));
   }
 
 }

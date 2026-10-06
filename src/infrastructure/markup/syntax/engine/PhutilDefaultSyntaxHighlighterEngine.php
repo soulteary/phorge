@@ -42,11 +42,6 @@ final class PhutilDefaultSyntaxHighlighterEngine
       $language = PhutilLanguageGuesser::guessLanguage($source);
     }
 
-    if ($language == 'php' && PhutilXHPASTBinary::isAvailable()) {
-      return id(new PhutilXHPASTSyntaxHighlighter())
-        ->getHighlightFuture($source);
-    }
-
     if ($language == 'console') {
       return id(new PhutilConsoleSyntaxHighlighter())
         ->getHighlightFuture($source);
@@ -62,42 +57,20 @@ final class PhutilDefaultSyntaxHighlighterEngine
         ->getHighlightFuture($source);
     }
 
-    if ($language == 'php') {
-      return id(new PhutilLexerSyntaxHighlighter())
-        ->setConfig('lexer', new PhutilPHPFragmentLexer())
-        ->setConfig('language', 'php')
-        ->getHighlightFuture($source);
-    }
-
-    if ($language == 'py' || $language == 'python') {
-      return id(new PhutilLexerSyntaxHighlighter())
-        ->setConfig('lexer', new PhutilPythonFragmentLexer())
-        ->setConfig('language', 'py')
-        ->getHighlightFuture($source);
-    }
-
-    if ($language == 'java') {
-      return id(new PhutilLexerSyntaxHighlighter())
-        ->setConfig('lexer', new PhutilJavaFragmentLexer())
-        ->setConfig('language', 'java')
-        ->getHighlightFuture($source);
-    }
-
-    if ($language == 'json') {
-      return id(new PhutilLexerSyntaxHighlighter())
-        ->setConfig('lexer', new PhutilJSONFragmentLexer())
-        ->getHighlightFuture($source);
-    }
-
     if ($language == 'invisible') {
       return id(new PhutilInvisibleSyntaxHighlighter())
         ->getHighlightFuture($source);
     }
 
-    // Advanced highlighting is owned by PhabricatorGorgeSyntaxHighlighterEngine.
-    // The default engine intentionally keeps only the small built-in lexers so
-    // it remains useful in explicit Gorge-off / recovery deployments without
-    // pulling a Python/Pygments runtime back into Phorge.
+    if ($language !== null && $language !== 'text' && $language !== 'txt' &&
+        PhabricatorGorgeRenderClient::isConfigured()) {
+      return id(new PhabricatorGorgeSyntaxHighlighter())
+        ->setConfig('language', $language)
+        ->getHighlightFuture($source);
+    }
+
+    // Recovery mode returns escaped plain text; no parallel language lexer
+    // or external highlighter implementation remains in this engine.
     return id(new PhutilDefaultSyntaxHighlighter())
       ->getHighlightFuture($source);
   }

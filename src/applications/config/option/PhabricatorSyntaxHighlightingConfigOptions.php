@@ -57,18 +57,18 @@ final class PhabricatorSyntaxHighlightingConfigOptions
             'Service token for the Gorge render service, sent with each '.
             'request in an "X-Service-Token" header.')),
       $this->newOption('gorge.diff.enabled', 'bool', false)
-        ->setSummary(pht('Generate text differences with Gorge?'))
-        ->setBoolOptions(
-          array(
-            pht('Use Gorge'),
-            pht('Use Local Difference Engines'),
-          ))
+        ->setHidden(true)
+        ->setLocked(true)
+        ->setSummary(pht('Internal retired Gorge diff migration switch.'))
         ->setDescription(
           pht(
-            'Route unified and prose difference computation through the '.
-            'diff domain served by `gorge-render`. The global Gorge service '.
-            'policy controls whether a failure is exposed or may use the '.
-            'migration fallback.')),
+            'The native GNU and PHP difference engines have been removed, so '.
+            'unified and prose differences are always computed by the diff '.
+            'domain of the `gorge-render` service. This key is no longer '.
+            'read; it remains registered only so existing configuration '.
+            'which still carries it does not report an unknown option. '.
+            'Whether a failure is exposed is decided by the Gorge service '.
+            'policy for `render`.')),
       $this->newOption('pygments.enabled', 'bool', false)
         ->setHidden(true)
         ->setLocked(true)

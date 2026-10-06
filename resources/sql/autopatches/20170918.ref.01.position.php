@@ -1,6 +1,17 @@
 <?php
 
-$table = new PhabricatorRepositoryRefPosition();
+// PhabricatorRepositoryRefPosition is gone; the table is not. The model was
+// used for a connection, a table name, and row deletion.
+final class PhabricatorRefPositionMigrationDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_refposition';
+  }
+
+}
+
+$table = new PhabricatorRefPositionMigrationDAO();
 $conn = $table->establishConnection('w');
 $key_name = 'key_position';
 
@@ -20,15 +31,25 @@ try {
   // unlocked".
 }
 
+// The rows are read before the table is locked: LiskRawMigrationIterator
+// pages with its own SELECTs, and "LOCK TABLES ... WRITE" would not permit
+// them under the same name.
+$positions = array();
+foreach (new LiskRawMigrationIterator($conn, $table->getTableName())
+  as $position) {
+
+  $positions[] = $position;
+}
+
 queryfx(
   $conn,
   'LOCK TABLES %T WRITE',
   $table->getTableName());
 
 $seen = array();
-foreach (new LiskMigrationIterator($table) as $position) {
-  $cursor_id = $position->getCursorID();
-  $hash = $position->getCommitIdentifier();
+foreach ($positions as $position) {
+  $cursor_id = $position['cursorID'];
+  $hash = $position['commitIdentifier'];
 
   // If this is the first copy of this row we've seen, mark it as seen and
   // move on.
@@ -38,7 +59,11 @@ foreach (new LiskMigrationIterator($table) as $position) {
   }
 
   // Otherwise, get rid of this row as it duplicates a row we saw previously.
-  $position->delete();
+  queryfx(
+    $conn,
+    'DELETE FROM %T WHERE id = %d',
+    $table->getTableName(),
+    $position['id']);
 }
 
 queryfx(

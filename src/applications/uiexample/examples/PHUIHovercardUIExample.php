@@ -22,20 +22,6 @@ final class PHUIHovercardUIExample extends PhabricatorUIExample {
 
     $elements = array();
 
-    $diff_handle = $this->createBasicDummyHandle(
-      'D123',
-      DifferentialRevisionPHIDType::TYPECONST,
-      pht('Introduce cooler Differential Revisions'));
-
-    $panel = $this->createPanel(pht('Differential Hovercard'));
-    $panel->appendChild(id(new PHUIHovercardView())
-      ->setObjectHandle($diff_handle)
-      ->addField(pht('Author'), $user->getUsername())
-      ->addField(pht('Updated'), phabricator_datetime(time(), $user))
-      ->addAction(pht('Subscribe'), '/dev/random')
-      ->setUser($user));
-    $elements[] = $panel;
-
     $task_handle = $this->createBasicDummyHandle(
       'T123',
       ManiphestTaskPHIDType::TYPECONST,

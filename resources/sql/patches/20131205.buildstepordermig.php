@@ -1,14 +1,28 @@
 <?php
 
-$table = new HarbormasterBuildPlan();
+// The Harbormaster application has been removed, so its models no longer
+// exist. This patch still has to run against installations whose schema
+// predates it, so it declares the minimum it needs and reads raw rows instead
+// of Lisk objects. HarbormasterDAO is retained for the legacy "harbormaster"
+// database.
+final class HarbormasterStepOrderMigrationPlanDAO extends HarbormasterDAO {
+
+  public function getTableName() {
+    return 'harbormaster_buildplan';
+  }
+
+}
+
+$table = new HarbormasterStepOrderMigrationPlanDAO();
 $conn_w = $table->establishConnection('w');
-$viewer = PhabricatorUser::getOmnipotentUser();
 
-// Since HarbormasterBuildStepQuery has been updated to handle the
-// correct order, we can't use the built in database access.
+// Since the build step query orders on "sequence", we can't use the built in
+// database access here.
 
-foreach (new LiskMigrationIterator($table) as $plan) {
-  $planname = $plan->getName();
+$plan_iterator = new LiskRawMigrationIterator($conn_w, $table->getTableName());
+
+foreach ($plan_iterator as $plan) {
+  $planname = $plan['name'];
   echo pht('Migrating steps in %s...', $planname)."\n";
 
   $rows = queryfx_all(
@@ -16,7 +30,7 @@ foreach (new LiskMigrationIterator($table) as $plan) {
     'SELECT id, sequence FROM harbormaster_buildstep '.
     'WHERE buildPlanPHID = %s '.
     'ORDER BY id ASC',
-    $plan->getPHID());
+    $plan['phid']);
 
   $sequence = 1;
   foreach ($rows as $row) {

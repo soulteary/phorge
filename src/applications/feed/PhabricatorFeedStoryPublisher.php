@@ -116,52 +116,74 @@ final class PhabricatorFeedStoryPublisher extends Phobject {
     $story->setStoryData($this->storyData);
     $story->setAuthorPHID((string)$this->storyAuthorPHID);
     $story->setChronologicalKey($chrono_key);
-    $story->save();
+    // Feed rows and the delivery event use the same feed connection. No
+    // network call participates in the business transaction.
+    $story->openTransaction();
+    try {
+      $story->save();
 
-    if ($this->relatedPHIDs) {
-      $ref = new PhabricatorFeedStoryReference();
+      if ($this->relatedPHIDs) {
+        $ref = new PhabricatorFeedStoryReference();
 
-      $sql = array();
-      $conn = $ref->establishConnection('w');
-      foreach (array_unique($this->relatedPHIDs) as $phid) {
-        $sql[] = qsprintf(
+        $sql = array();
+        $conn = $ref->establishConnection('w');
+        foreach (array_unique($this->relatedPHIDs) as $phid) {
+          $sql[] = qsprintf(
+            $conn,
+            '(%s, %s)',
+            $phid,
+            $chrono_key);
+        }
+
+        queryfx(
           $conn,
-          '(%s, %s)',
-          $phid,
-          $chrono_key);
+          'INSERT INTO %T (objectPHID, chronologicalKey) VALUES %LQ',
+          $ref->getTableName(),
+          $sql);
       }
 
-      queryfx(
-        $conn,
-        'INSERT INTO %T (objectPHID, chronologicalKey) VALUES %LQ',
-        $ref->getTableName(),
-        $sql);
-    }
+      $subscribed_phids = $this->subscribedPHIDs;
+      if ($subscribed_phids) {
+        $subscribed_phids = $this->filterSubscribedPHIDs($subscribed_phids);
+        $this->insertNotifications($chrono_key, $subscribed_phids);
+      }
 
-    $subscribed_phids = $this->subscribedPHIDs;
-    if ($subscribed_phids) {
-      $subscribed_phids = $this->filterSubscribedPHIDs($subscribed_phids);
-      $this->insertNotifications($chrono_key, $subscribed_phids);
-    }
-
-    $task_data = array(
-      'key' => $chrono_key,
-    );
-    if ($subscribed_phids) {
-      $task_data['notification'] = array(
-        'key' => (string)$chrono_key,
-        'type' => 'notification',
-        'subscribers' => $subscribed_phids,
-        // This payload is durable and may be retried after a response-path
-        // failure. Keep the broadcast identifier stable across every attempt
-        // so browser leaders can deduplicate the same feed event.
-        'uniqueID' => hash('sha256', 'feed.notification/'.$chrono_key),
+      $task_data = array(
+        'key' => $chrono_key,
       );
-    }
+      if ($subscribed_phids) {
+        $task_data['notification'] = array(
+          'key' => (string)$chrono_key,
+          'type' => 'notification',
+          'subscribers' => $subscribed_phids,
+          // This payload is durable and may be retried after a response-path
+          // failure. Keep the broadcast identifier stable across every attempt
+          // so browser leaders can deduplicate the same feed event.
+          'uniqueID' => hash('sha256', 'feed.notification/'.$chrono_key),
+        );
+      }
 
-    PhabricatorWorker::scheduleTask(
-      'FeedPublisherWorker',
-      $task_data);
+      if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
+        $event_id = 'feed.publish/'.$chrono_key;
+        $payload = phutil_json_encode(array(
+          'eventID' => $event_id,
+          'task' => array(
+            'taskClass' => 'FeedPublisherWorker',
+            'data' => phutil_json_encode($task_data),
+          ),
+        ));
+        queryfx(
+          $story->establishConnection('w'),
+          'INSERT INTO %T (eventID, payload, lastError) VALUES (%s, %s, %s)',
+          'feed_gorgeoutbox', $event_id, $payload, '');
+      } else {
+        PhabricatorWorker::scheduleTask('FeedPublisherWorker', $task_data);
+      }
+      $story->saveTransaction();
+    } catch (Throwable $ex) {
+      $story->killTransaction();
+      throw $ex;
+    }
 
     return $story;
   }

@@ -92,6 +92,7 @@ final class HeraldWebhookCallManagementWorkflow
     }
 
     $is_background = $args->getArg('background');
+    $saw_failure = false;
 
     $xaction_query =
       PhabricatorApplicationTransactionQuery::newQueryForObject($object);
@@ -151,6 +152,30 @@ final class HeraldWebhookCallManagementWorkflow
               'result is not available here; see the request in the web '.
               'interface for its outcome.',
               $request->getPHID()));
+        } else if (
+          $request->getStatus() === HeraldWebhookRequest::STATUS_FAILED) {
+          // A failure in the in-process worker is archived rather than
+          // rethrown, so the request row is the only record of what happened.
+          // Reporting it as a success here -- which is what printing the
+          // error code as an HTTP status did -- describes the opposite of
+          // the outcome for a command whose whole purpose is diagnosis.
+          $saw_failure = true;
+          echo tsprintf(
+            "%s\n",
+            pht(
+              'Webhook request ("%s") failed: %s error "%s".',
+              $request->getPHID(),
+              $request->getErrorType(),
+              $request->getErrorCode()));
+        } else if (
+          $request->getStatus() === HeraldWebhookRequest::STATUS_QUEUED) {
+          $saw_failure = true;
+          echo tsprintf(
+            "%s\n",
+            pht(
+              'Webhook request ("%s") is still queued: nothing delivered '.
+              'it in process.',
+              $request->getPHID()));
         } else {
           echo tsprintf(
             "%s\n",
@@ -165,7 +190,7 @@ final class HeraldWebhookCallManagementWorkflow
       $progress_bar->done();
     }
 
-    return 0;
+    return $saw_failure ? 1 : 0;
   }
 
 }

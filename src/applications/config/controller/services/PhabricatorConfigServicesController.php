@@ -41,11 +41,6 @@ abstract class PhabricatorConfigServicesController
       ->setIcon('fa-bell-o')
       ->setHref(urisprintf('%s%s/', $services_uri, 'cluster/notifications'));
 
-    $nav->newLink('repository-servers')
-      ->setName(pht('Repository Servers'))
-      ->setIcon('fa-code')
-      ->setHref(urisprintf('%s%s/', $services_uri, 'cluster/repositories'));
-
     $nav->newLink('search-servers')
       ->setName(pht('Search Servers'))
       ->setIcon('fa-search')

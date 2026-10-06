@@ -3,6 +3,29 @@
 final class PhabricatorDeploymentConfigBuilderTestCase
   extends PhabricatorTestCase {
 
+  public function testFeedPolicyPublishedWithDeployment() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $directory = Filesystem::createTemporaryDirectory();
+    try {
+      $local = $directory.'/local.json';
+      $deployment = $directory.'/deployment.json';
+      Filesystem::writeFile($local, phutil_json_encode(array(
+        'feed.http-hooks' => array('https://example.test/feed'),
+        'phabricator.silent' => true,
+      )));
+      execx('env -i %s %s full %s %s', PHP_BINARY,
+        $root.'/scripts/setup/build_deployment_config.php', $deployment, $local);
+      $config = phutil_json_decode(Filesystem::readFile($deployment));
+      $policy = phutil_json_decode(
+        Filesystem::readFile($directory.'/feed-policy.json'));
+      $this->assertEqual($config['feed.http-hooks'], $policy['uris']);
+      $this->assertEqual($config['phabricator.silent'], $policy['silent']);
+      $this->assertEqual(true, $policy['silent']);
+    } finally {
+      Filesystem::remove($directory);
+    }
+  }
+
   public function testSearchHostShape() {
     $root = dirname(phutil_get_library_root('phabricator'));
     $script = $root.'/scripts/setup/build_deployment_config.php';

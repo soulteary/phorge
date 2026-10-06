@@ -6,7 +6,7 @@
  *
  * Select this engine with the "syntax-highlighter.engine" option. Languages
  * the default engine handles better on its own, and languages the service
- * can not improve on, continue to use the default engine, so switching back
+ * can not improve on, continue to use local presentation helpers. Switching back
  * is a matter of restoring the option.
  *
  * This composes @{class:PhutilDefaultSyntaxHighlighterEngine} rather than
@@ -27,52 +27,7 @@ final class PhabricatorGorgeSyntaxHighlighterEngine
   }
 
   public function getHighlightFuture($language, $source) {
-    if ($language === null) {
-      $language = PhutilLanguageGuesser::guessLanguage($source);
-    }
-
-    if ($this->shouldHighlightWithGorge($language)) {
-      return id(new PhabricatorGorgeSyntaxHighlighter())
-        ->setConfig('language', $language)
-        ->getHighlightFuture($source);
-    }
-
     return $this->newDefaultEngine()->getHighlightFuture($language, $source);
-  }
-
-  private function shouldHighlightWithGorge($language) {
-    if ($language === null) {
-      return false;
-    }
-
-    if (!PhabricatorGorgeRenderClient::isConfigured()) {
-      return false;
-    }
-
-    // "text" and "txt" gain nothing from highlighting, and the rest of these
-    // are either not real languages or are rendered by a local highlighter
-    // which understands more about them than a general purpose lexer does.
-    static $local_languages = array(
-      'console' => true,
-      'diviner' => true,
-      'invisible' => true,
-      'rainbow' => true,
-      'remarkup' => true,
-      'text' => true,
-      'txt' => true,
-    );
-
-    if (isset($local_languages[$language])) {
-      return false;
-    }
-
-    // XHPAST parses PHP instead of lexing it, so it highlights PHP better
-    // than the service can, and it does it without a round trip.
-    if ($language == 'php' && PhutilXHPASTBinary::isAvailable()) {
-      return false;
-    }
-
-    return true;
   }
 
   private function newDefaultEngine() {

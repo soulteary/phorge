@@ -38,8 +38,8 @@ final class PhabricatorConfigConsoleController
         ->setClickable(true)
         ->addAttribute(
           pht(
-            'View status information for databases, caches, repositories, '.
-            'and other services.')));
+            'View status information for databases, caches, and other '.
+            'services.')));
 
     $menu->addItem(
       id(new PHUIObjectItemView())

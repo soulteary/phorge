@@ -359,7 +359,20 @@ final class PhabricatorFile extends PhabricatorFileDAO
 
     assert_instances_of($engines, PhabricatorFileStorageEngine::class);
     if (!$engines) {
-      throw new Exception(pht('No valid storage engines are available!'));
+      // The historical blob, local-disk and S3 engines are read-only, so an
+      // empty list here almost always means the Gorge file storage service
+      // is missing rather than that every engine rejected this file's size.
+      throw new Exception(
+        pht(
+          'No valid storage engines are available! The historical "%s", '.
+          '"%s" and "%s" engines are read-only, so new files can only be '.
+          'stored by the Gorge file storage engine. Configure "%s"; see the '.
+          '"%s" setup issue for details.',
+          'blob',
+          'local-disk',
+          'amazon-s3',
+          'gorge.file.uri',
+          'File Storage Has No Writable Engine'));
     }
 
     $file = self::initializeNewFile();
@@ -446,7 +459,15 @@ final class PhabricatorFile extends PhabricatorFileDAO
 
     if (!$data_handle) {
       throw new PhutilAggregateException(
-        pht('All storage engines failed to write file:'),
+        pht(
+          'All storage engines failed to write file. Note that the '.
+          'historical "%s", "%s" and "%s" engines are read-only, so a '.
+          '"%s" service policy has no writable native engine to select '.
+          'and a Gorge failure can not be absorbed by another engine:',
+          'blob',
+          'local-disk',
+          'amazon-s3',
+          PhabricatorGorgeServiceSpec::POLICY_FALLBACK),
         $exceptions);
     }
 
@@ -511,6 +532,13 @@ final class PhabricatorFile extends PhabricatorFileDAO
       $engine,
       $data,
       $params);
+
+    $stored = $engine->readFile($new_handle);
+    $verified_hash = $engine->newIntegrityHash($stored, $this->newStorageFormat());
+    if (!hash_equals($integrity_hash, $verified_hash)) {
+      // Keep the old handle and bytes authoritative on any readback failure.
+      throw new Exception(pht('Migration readback integrity verification failed.'));
+    }
 
     $old_engine = $this->instantiateStorageEngine();
     $old_identifier = $this->getStorageEngine();

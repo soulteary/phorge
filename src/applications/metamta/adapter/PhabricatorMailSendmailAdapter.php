@@ -31,18 +31,11 @@ final class PhabricatorMailSendmailAdapter
     );
   }
 
-  /**
-   * @phutil-external-symbol class PHPMailer
-   */
   public function sendMessage(PhabricatorMailExternalMessage $message) {
-    $root = phutil_get_library_root('phabricator');
-    $root = dirname($root);
-    require_once $root.'/externals/phpmailer/class.phpmailer.php';
-
-    $mailer = PHPMailer::newFromMessage($message);
-
-    $mailer->IsSendmail();
-    $mailer->Send();
+    throw new Exception(pht(
+      'Native email delivery has been retired. Configure an outbound '.
+      'cluster.mailers entry of type "gorge" and move provider settings '.
+      'to the Gorge mailer. Keep this provider entry inbound-only.'));
   }
 
 }

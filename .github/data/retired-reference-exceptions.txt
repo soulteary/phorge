@@ -1,0 +1,61 @@
+# Deliberate references to symbols this cleanup series removed.
+#
+# Format: <path>:<symbol>, one per line. Only that symbol in that file is
+# allowed; any other removed symbol in the same file still fails the check.
+#
+# Add an entry only when the reference is deliberate and the reason is written
+# down at the reference itself. A reference which is merely harmless does not
+# belong here -- delete it instead.
+
+# The collaboration profile's managed-application set is the history of every
+# application the profile has ever uninstalled, not a list of applications which
+# still exist. Dropping an entry would strand it: rollback rebuilds "what the
+# profile set" from this list and three-way merges it against live
+# configuration, so a key an earlier profile run wrote but this list no longer
+# mentions reads as an administrator's own choice and survives the restore
+# permanently. The file says so at the list itself.
+scripts/setup/manage_collaboration_profile.php:PhabricatorPasteApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorDivinerApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorOwnersApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorAuditApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorDifferentialApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorHarbormasterApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorDrydockApplication
+scripts/setup/manage_collaboration_profile.php:PhabricatorDiffusionApplication
+
+# Translation tables are keyed by English source strings. "HarbormasterBuildable"
+# appears inside the prose of a message, not as a reference to the class, and the
+# key has to match the source string byte for byte to translate anything.
+src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php:HarbormasterBuildable
+src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php:PhabricatorRepositorySymbol
+
+# Application PHIDs are 'PHID-APPS-'.get_class($application), so these string
+# literals are the values the stored rows carry. The classes are gone, so the
+# patches cannot ask for them; each patch says so at the literal.
+resources/sql/autopatches/20260911.paste.01.appemail.php:PhabricatorPasteApplication
+resources/sql/autopatches/20260911.differential.01.appemail.php:PhabricatorDifferentialApplication
+
+# "engineClassName" on a saved query is a stored string. This patch predates
+# the removal and has to keep matching rows written while the class existed.
+resources/sql/autopatches/20170811.differential.01.status.php:DifferentialRevisionSearchEngine
+
+# A historical data migration which rewrites stored authorPHID values. The
+# reason lives here rather than at the reference because .sql patches are
+# applied verbatim and carry no comments anywhere in this tree.
+resources/sql/autopatches/20140723.apprenamexaction.sql:PhabricatorHarbormasterApplication
+
+# Stored values inside historical SQL data, not code references. The reasons
+# live here rather than at the reference because no .sql patch in this tree
+# carries comments and they are applied verbatim.
+#
+# - the two Herald patches rewrite rows by their stored "contentType" string;
+# - quickstart.sql seeds saved queries whose "queryClass" is a stored string
+#   in a JSON blob.
+resources/sql/autopatches/20150708.herald.2.sql:HeraldPreCommitRefAdapter
+resources/sql/autopatches/20150708.herald.3.sql:HeraldPreCommitContentAdapter
+resources/sql/quickstart.sql:PhabricatorRepositoryQuery
+
+# "engineClassName" on a saved query is a stored string; rows written while the
+# commit search engine existed must still be recognized by this patch. Same
+# case as 20170811.differential.01.status.php above.
+resources/sql/autopatches/20180910.audit.01.searches.php:PhabricatorCommitSearchEngine

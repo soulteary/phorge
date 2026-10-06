@@ -12,7 +12,6 @@ Facebook's internal tools.
 
 The major components of Phorge are:
 
-  - **Differential**, a code review tool; and
   - **Diffusion**, a repository browser; and
   - **Maniphest**, a bug tracker; and
   - **Phriction**, a wiki.

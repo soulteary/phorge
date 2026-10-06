@@ -1,8 +1,41 @@
 <?php
 
-$table = new DifferentialRevision();
+// The Differential revision models have been removed. This patch still has to
+// run against installations whose schema predates it, and all it ever wanted
+// from them was a connection to the differential database and a table name, so
+// declare the minimum here.
+//
+// Database "differential": the value DifferentialDAO::getApplicationName()
+// produced. Table names are the ones PhabricatorLiskDAO::getTableName()
+// produced for the deleted classes.
+final class DifferentialReviewerRevisionMigrationDAO
+  extends PhabricatorLiskDAO {
+
+  public function getApplicationName() {
+    return 'differential';
+  }
+
+  public function getTableName() {
+    return 'differential_revision';
+  }
+
+}
+
+final class DifferentialReviewerRowMigrationDAO extends PhabricatorLiskDAO {
+
+  public function getApplicationName() {
+    return 'differential';
+  }
+
+  public function getTableName() {
+    return 'differential_reviewer';
+  }
+
+}
+
+$table = new DifferentialReviewerRevisionMigrationDAO();
 $diff_table = new DifferentialDiff();
-$reviewer_table = new DifferentialReviewer();
+$reviewer_table = new DifferentialReviewerRowMigrationDAO();
 
 $table_name = PhabricatorEdgeConfig::TABLE_NAME_EDGE;
 $data_name = PhabricatorEdgeConfig::TABLE_NAME_EDGEDATA;

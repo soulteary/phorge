@@ -1,0 +1,5 @@
+CREATE TABLE {$NAMESPACE}_worker.worker_gorgeinbox (
+  eventID VARBINARY(128) NOT NULL PRIMARY KEY,
+  payloadHash VARCHAR(64) NOT NULL,
+  response LONGTEXT NOT NULL
+) ENGINE=InnoDB;

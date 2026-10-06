@@ -11,7 +11,6 @@ final class DifferentialChangesetDetailView extends AphrontView {
   private $renderURI;
   private $renderingRef;
   private $autoload;
-  private $repository;
   private $diff;
   private $changesetResponse;
   private $branch;
@@ -194,34 +193,10 @@ final class DifferentialChangesetDetailView extends AphrontView {
     $show_path_uri = null;
     $show_directory_uri = null;
 
-    $repository = $this->getRepository();
-    if ($repository) {
-      $diff = $this->getDiff();
-      if ($diff) {
-        $repo_path = $changeset->getAbsoluteRepositoryPath($repository, $diff);
-
-        $repo_dir = dirname($repo_path);
-        if ($repo_dir === $repo_path) {
-          $repo_dir = null;
-        }
-
-        $show_path_uri = $repository->getDiffusionBrowseURIForPath(
-          $viewer,
-          $repo_path,
-          idx($changeset->getMetadata(), 'line:first'),
-          $this->getBranch());
-
-        if ($repo_dir !== null) {
-          $repo_dir = rtrim($repo_dir, '/').'/';
-
-          $show_directory_uri = $repository->getDiffusionBrowseURIForPath(
-            $viewer,
-            $repo_dir,
-            null,
-            $this->getBranch());
-        }
-      }
-    }
+    // "Browse in Diffusion" links for the changeset's path and its directory
+    // were built from the tracked repository. There are no tracked
+    // repositories and no Diffusion to browse, so both URIs stay null and the
+    // menu items they gate are simply not offered.
 
     if ($show_path_uri) {
       $show_path_uri = phutil_string_cast($show_path_uri);
@@ -323,15 +298,6 @@ final class DifferentialChangesetDetailView extends AphrontView {
       ));
   }
 
-  public function setRepository(PhabricatorRepository $repository) {
-    $this->repository = $repository;
-    return $this;
-  }
-
-  public function getRepository() {
-    return $this->repository;
-  }
-
   public function getChangeset() {
     return $this->changeset;
   }
@@ -346,27 +312,11 @@ final class DifferentialChangesetDetailView extends AphrontView {
   }
 
   private function getEditorURITemplate() {
-    $repository = $this->getRepository();
-    if (!$repository) {
-      return null;
-    }
-
-    $viewer = $this->getViewer();
-
-    $link_engine = PhabricatorEditorURIEngine::newForViewer($viewer);
-    if (!$link_engine) {
-      return null;
-    }
-
-    $link_engine->setRepository($repository);
-
-    $changeset = $this->getChangeset();
-    $diff = $this->getDiff();
-
-    $path = $changeset->getAbsoluteRepositoryPath($repository, $diff);
-    $path = ltrim($path, '/');
-
-    return $link_engine->getURITokensForPath($path);
+    // "Open in Editor" resolved its path against the tracked repository the
+    // changeset belonged to, and PhabricatorEditorURIEngine required one.
+    // Without repositories there is no way to build the template, so the
+    // link is not offered.
+    return null;
   }
 
   private function getEditorConfigureURI() {

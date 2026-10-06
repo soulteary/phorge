@@ -56,6 +56,11 @@ check_execution($result['result'] === 'failure' && $result['retry'] === 123,
 $result = call_execution($params, array('getMaximumRetryCount' => 1));
 check_execution($result['result'] === 'permanent-failure',
   'Maximum retry count ignored.');
+$retired = $params;
+$retired['taskClass'] = 'GorgeRetiredWorkerContract';
+$result = call_execution($retired, array());
+check_execution($result['result'] === 'permanent-failure',
+  'Retired task would retry forever.');
 $params['phase'] = 'prepare';
 $result = call_execution($params, array('getRequiredLeaseTime' => 9000));
 check_execution($result['result'] === 'prepared' &&

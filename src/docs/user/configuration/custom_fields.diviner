@@ -16,10 +16,8 @@ These applications currently support custom fields:
 
 | Application | Support |
 |-------------|---------|
-| Differential | Partial Support |
 | Diffusion | Limited Support |
 | Maniphest | Full Support |
-| Owners | Full Support |
 | People | Full Support |
 | Projects | Full Support |
 
@@ -39,10 +37,8 @@ The relevant configuration settings are:
 
 | Application | Add Fields | Select Fields |
 |-------------|------------|---------------|
-| Differential | Planned | `differential.fields` |
 | Diffusion | Planned | Planned |
 | Maniphest | `maniphest.custom-field-definitions` | `maniphest.fields` |
-| Owners | `owners.custom-field-definitions` | `owners.fields` |
 | People | `user.custom-field-definitions` | `user.fields` |
 | Projects | `projects.custom-field-definitions` | `projects.fields` |
 
@@ -163,10 +159,8 @@ want to add a field to:
 
 | Application | Extend  |
 |-------------|---------|
-| Differential | @{class:DifferentialCustomField} |
 | Diffusion | @{class:PhabricatorCommitCustomField} |
 | Maniphest | @{class:ManiphestCustomField} |
-| Owners | @{class:PhabricatorOwnersCustomField} |
 | People | @{class:PhabricatorUserCustomField} |
 | Projects | @{class:PhabricatorProjectCustomField} |
 

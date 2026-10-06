@@ -30,6 +30,12 @@
  *   - @{class:PhabricatorWorkerYieldException}           => "yield",
  *   - @{class:PhabricatorWorkerPermanentFailureException} => "permanent-failure",
  *   - any other exception                                => "failure" (retry).
+ *
+ * It exports the worker's follow-up queue for atomic Gorge finalization. A worker stages child
+ * work with @{method:PhabricatorWorker::queueTask}, which keeps it in memory
+ * until something persists it, and the only other thing which does is
+ * @{class:PhabricatorWorkerActiveTask::executeTask} -- the native path this
+ * method exists to replace.
  */
 final class PhabricatorWorkerExecuteConduitAPIMethod
   extends ConduitAPIMethod {
@@ -111,6 +117,17 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
     $task_class = $request->getValue('taskClass');
     if (!phutil_nonempty_string($task_class)) {
       throw new ConduitException('ERR-NO-TASK-CLASS');
+    }
+
+    if (!class_exists($task_class) ||
+        !is_subclass_of($task_class, PhabricatorWorker::class)) {
+      return array(
+        'executionVersion' => 1,
+        'result' => 'permanent-failure',
+        'failureType' => 'permanent',
+        'failureReason' => pht(
+          'Task class "%s" is unavailable or has been retired.', $task_class),
+      );
     }
 
     $task_id = $request->getValue('taskID');
@@ -214,6 +231,9 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
       );
     }
 
+    // Protocol v1 exports staged children. Gorge atomically enqueues them
+    // with the parent archive; flushing here would duplicate them and clear
+    // the exported followups before the caller could finalize.
     return array(
       'executionVersion' => 1,
       'followups' => $worker->exportQueuedTasksForGorge(),

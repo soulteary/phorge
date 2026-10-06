@@ -31,49 +31,11 @@ final class PhabricatorMailAmazonSESAdapter
     );
   }
 
-  /**
-   * @phutil-external-symbol class PHPMailer
-   */
   public function sendMessage(PhabricatorMailExternalMessage $message) {
-    $root = phutil_get_library_root('phabricator');
-    $root = dirname($root);
-    require_once $root.'/externals/phpmailer/class.phpmailer.php';
-
-    $mailer = PHPMailer::newFromMessage($message);
-
-    $mailer->Mailer = 'amazon-ses';
-    $mailer->customMailer = $this;
-
-    $mailer->Send();
-  }
-
-  public function executeSend($body) {
-    $key = $this->getOption('access-key');
-
-    $secret = $this->getOption('secret-key');
-    $secret = new PhutilOpaqueEnvelope($secret);
-
-    $region = $this->getOption('region');
-    $endpoint = $this->getOption('endpoint');
-
-    $data = array(
-      'Action' => 'SendRawEmail',
-      'RawMessage.Data' => base64_encode($body),
-    );
-
-    $data = phutil_build_http_querystring($data);
-
-    $future = id(new PhabricatorAWSSESFuture())
-      ->setAccessKey($key)
-      ->setSecretKey($secret)
-      ->setRegion($region)
-      ->setEndpoint($endpoint)
-      ->setHTTPMethod('POST')
-      ->setData($data);
-
-    $future->resolve();
-
-    return true;
+    throw new Exception(pht(
+      'Native email delivery has been retired. Configure an outbound '.
+      'cluster.mailers entry of type "gorge" and move provider settings '.
+      'to the Gorge mailer. Keep this provider entry inbound-only.'));
   }
 
 }

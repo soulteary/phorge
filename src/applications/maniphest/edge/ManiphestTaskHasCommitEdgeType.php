@@ -4,13 +4,12 @@ final class ManiphestTaskHasCommitEdgeType extends PhabricatorEdgeType {
 
   const EDGECONST = 1;
 
-  public function shouldWriteInverseTransactions() {
-    return true;
-  }
-
-  public function getInverseEdgeConstant() {
-    return DiffusionCommitHasTaskEdgeType::EDGECONST;
-  }
+  // This edge used to be half of an inverse pair with
+  // DiffusionCommitHasTaskEdgeType. That type is gone, and
+  // PhabricatorEdgeType::getAllTypes() throws when a type names an inverse
+  // which does not exist, so declaring one here would fatal every caller of
+  // that method. The base class returns null, meaning "no inverse", and with
+  // no inverse there is nothing to write inverse transactions to.
 
   public function getConduitKey() {
     return 'task.commit';

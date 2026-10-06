@@ -3,6 +3,27 @@
 final class PhabricatorMailAdapterTestCase
   extends PhabricatorTestCase {
 
+  public function testLegacyOutboundRequiresGorge() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('cluster.mailers', array(array(
+      'key' => 'legacy', 'type' => 'smtp', 'options' => array(),
+    )));
+    $caught = false;
+    try {
+      PhabricatorMetaMTAMail::newMailers(array('outbound' => true));
+    } catch (Exception $ex) {
+      $caught = (strpos($ex->getMessage(), 'retired PHP delivery') !== false);
+    }
+    $this->assertTrue($caught);
+    $env->overrideEnvConfig('cluster.mailers', array(array(
+      'key' => 'legacy-inbound', 'type' => 'smtp',
+      'outbound' => false, 'options' => array(),
+    )));
+    $mailers = PhabricatorMetaMTAMail::newMailers(array('inbound' => true));
+    $this->assertEqual(1, count($mailers));
+    $this->assertFalse(head($mailers)->getSupportsOutbound());
+  }
+
   public function testSupportsMessageID() {
     $cases = array(
       array(

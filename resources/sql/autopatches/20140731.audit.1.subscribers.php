@@ -1,15 +1,27 @@
 <?php
 
-$table = new PhabricatorRepositoryAuditRequest();
+// As above: the audit request model is gone, the rows are not.
+final class PhabricatorAuditSubscribersMigrationDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_auditrequest';
+  }
+
+}
+
+$table = new PhabricatorAuditSubscribersMigrationDAO();
 $conn_w = $table->establishConnection('w');
 
 echo pht('Migrating Audit subscribers to subscriptions...')."\n";
-foreach (new LiskMigrationIterator($table) as $request) {
-  $id = $request->getID();
+foreach (new LiskRawMigrationIterator($conn_w, $table->getTableName())
+  as $request) {
+
+  $id = $request['id'];
 
   echo pht("Migrating audit %d...\n", $id);
 
-  if ($request->getAuditStatus() != 'cc') {
+  if ($request['auditStatus'] != 'cc') {
     // This isn't a "subscriber", so skip it.
     continue;
   }
@@ -18,13 +30,17 @@ foreach (new LiskMigrationIterator($table) as $request) {
     $conn_w,
     'INSERT IGNORE INTO %T (src, type, dst) VALUES (%s, %d, %s)',
     PhabricatorEdgeConfig::TABLE_NAME_EDGE,
-    $request->getCommitPHID(),
+    $request['commitPHID'],
     PhabricatorObjectHasSubscriberEdgeType::EDGECONST,
-    $request->getAuditorPHID());
+    $request['auditorPHID']);
 
 
   // Wipe the row.
-  $request->delete();
+  queryfx(
+    $conn_w,
+    'DELETE FROM %T WHERE id = %d',
+    $table->getTableName(),
+    $id);
 }
 
 echo pht('Done.')."\n";

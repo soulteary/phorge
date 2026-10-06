@@ -9,7 +9,6 @@ final class PHUIDiffTableOfContentsItem extends Phobject {
   private $coverage;
   private $coverageID;
   private $context;
-  private $packages;
 
   public function setViewer(PhabricatorUser $viewer) {
     $this->viewer = $viewer;
@@ -77,19 +76,6 @@ final class PHUIDiffTableOfContentsItem extends Phobject {
 
   public function getContext() {
     return $this->context;
-  }
-
-  /**
-   * @param array<PhabricatorOwnersPackage> $packages
-   */
-  public function setPackages(array $packages) {
-    assert_instances_of($packages, PhabricatorOwnersPackage::class);
-    $this->packages = mpull($packages, null, 'getPHID');
-    return $this;
-  }
-
-  public function getPackages() {
-    return $this->packages;
   }
 
   /**
@@ -176,23 +162,6 @@ final class PHUIDiffTableOfContentsItem extends Phobject {
         'class' => 'differential-mcoverage-loading',
       ),
       $label);
-  }
-
-  /**
-   * @return PHUIHandleListView|null View of the handles
-   */
-  public function renderPackages() {
-    $packages = $this->getPackages();
-
-    if (!$packages) {
-      return null;
-    }
-
-    $viewer = $this->getViewer();
-    $package_phids = mpull($packages, 'getPHID');
-
-    return $viewer->renderHandleList($package_phids)
-      ->setGlyphLimit(48);
   }
 
 }

@@ -1,6 +1,17 @@
 <?php
 
-$commit_table = new PhabricatorRepositoryCommit();
+// The commit model is gone; PhabricatorMetaMTAMailProperties is retained, so
+// only the source table needs an inline accessor.
+final class PhabricatorAuditMailKeyMigrationDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_commit';
+  }
+
+}
+
+$commit_table = new PhabricatorAuditMailKeyMigrationDAO();
 $commit_conn = $commit_table->establishConnection('w');
 $commit_name = $commit_table->getTableName();
 

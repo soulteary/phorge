@@ -57,7 +57,6 @@ task or revision is closed). Some types of objects support richer embedding,
 providing a more engaging experience, such as:
 
   {{W5}}        # Dashboard panel
-  {{P31}}       # a Paste
   {{C121}}      # a ticking countdown
 
 If the object's PHID is known, it can be used directly in this syntax:
@@ -95,21 +94,6 @@ provide an image ID to display.
 You can set the image to display like this:
 
   {M123, image=12345}
-
-== Embedding Pastes
-
-You can embed a Paste using braces:
-
-  {P123}
-
-You can adjust the embed height with the `lines` option:
-
-  {P123, lines=15}
-
-You can highlight specific lines with the `highlight` option:
-
-  {P123, highlight=15}
-  {P123, highlight="23-25, 31"}
 
 == Embedding Images
 

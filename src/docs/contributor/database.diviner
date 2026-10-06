@@ -42,9 +42,9 @@ Tables
 ======
 
 Most table names are prefixed by their application names. For example,
-Differential revisions are stored in database `phorge_differential` and
-table `differential_revision`. This generally makes queries easier to recognize
-and understand.
+Maniphest tasks are stored in database `phorge_maniphest` and table
+`maniphest_task`. This generally makes queries easier to recognize and
+understand.
 
 The exception is a few tables which share the same schema over different
 databases such as `edge`.

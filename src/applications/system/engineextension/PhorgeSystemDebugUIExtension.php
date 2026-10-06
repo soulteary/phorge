@@ -42,15 +42,6 @@ final class PhorgeSystemDebugUIExtension extends PHUIActionListExtension {
       ->setName(pht('View full transaction history'))
       ->setHref(urisprintf('/feed/transactions?objectPHIDs=%s', $phid));
 
-    if ($object instanceof DifferentialRevision) {
-      $submenu[] = id(new PhabricatorActionView())
-        ->setIcon('fa-database')
-        ->setName(pht('View Affected Path Index'))
-        ->setHref(
-          urisprintf(
-            '/differential/revision/paths/%s/',
-            $object->getID()));
-    }
 
     return id(new PhabricatorActionView())
       ->setName(pht('Advanced/Developer...'))

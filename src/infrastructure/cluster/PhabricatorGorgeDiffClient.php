@@ -3,10 +3,11 @@
 /**
  * HTTP client for the diff domain served by the Gorge render service.
  *
- * The render and diff domains share one process and therefore share the
- * `gorge.render.uri` and `gorge.render.token` configuration. Diff routing is
- * enabled independently with `gorge.diff.enabled`, so deploying the service
- * does not silently replace Phorge's local difference engines.
+ * Render and diff share one process and one endpoint. The bundled deployment
+ * now treats Gorge as the only production diff implementation, so routing is
+ * selected by the render service itself. The historical `gorge.diff.enabled`
+ * migration switch is retired: it is hidden and locked in Config and is not
+ * read anywhere.
  */
 final class PhabricatorGorgeDiffClient
   extends PhabricatorGorgeServiceClient {
@@ -37,8 +38,13 @@ final class PhabricatorGorgeDiffClient
     return 15;
   }
 
+  /**
+   * Diff is available whenever the render service is selected by policy and
+   * has an endpoint. There is no native implementation to switch to anymore.
+   */
   public static function isEnabled() {
-    if (!PhabricatorEnv::getEnvConfig('gorge.diff.enabled')) {
+    $service = PhabricatorGorgeServiceRegistry::getService('render');
+    if ($service->isDisabled()) {
       return false;
     }
 
@@ -95,6 +101,26 @@ final class PhabricatorGorgeDiffClient
     $data = self::parseResponseEnvelope($uri, $result);
 
     return self::newProseDiffFromData($data, $old, $new);
+  }
+
+  /**
+   * Exercise the raw diff route with a minimal input.
+   *
+   * Used by @{class:PhabricatorGorgeSetupCheck} to prove the route exists and
+   * answers in the expected envelope, rather than only that the process is up.
+   */
+  public function probeRaw() {
+    $this->generateDiff("a\n", "b\n", null, null, false);
+  }
+
+  /**
+   * Exercise the prose diff route with a minimal input.
+   *
+   * The prose route is a separate handler from the raw route, so a service can
+   * serve one and not the other.
+   */
+  public function probeProse() {
+    $this->generateProseDiff('a', 'b');
   }
 
   public static function newProseDiffFromData(array $data, $old, $new) {

@@ -1,6 +1,18 @@
 <?php
 
-$conn_w = id(new PhabricatorRepository())->establishConnection('w');
+// PhabricatorRepository and PhabricatorRepositoryPushEvent are gone. This
+// patch wanted the first for a connection and the second only to mint a PHID;
+// push event PHIDs are of type "PSHE", which is the stored prefix.
+final class PhabricatorPushGroupsMigrationDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository';
+  }
+
+}
+
+$conn_w = id(new PhabricatorPushGroupsMigrationDAO())->establishConnection('w');
 
 echo pht('Adding transaction log event groups...')."\n";
 
@@ -15,7 +27,7 @@ foreach ($logs as $log) {
     continue;
   }
 
-  $event_phid = id(new PhabricatorRepositoryPushEvent())->generatePHID();
+  $event_phid = PhabricatorPHID::generateNewPHID('PSHE');
 
   queryfx(
     $conn_w,

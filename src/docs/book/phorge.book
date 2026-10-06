@@ -100,10 +100,6 @@
       "name": "Diffusion",
       "include": "(^src/applications/diffusion/)"
     },
-    "diviner": {
-      "name": "Diviner",
-      "include": "(^src/applications/diviner/)"
-    },
     "doorkeeper": {
       "name": "Doorkeeper",
       "include": "(^src/applications/doorkeeper/)"
@@ -111,10 +107,6 @@
     "draft": {
       "name": "Draft",
       "include": "(^src/applications/draft/)"
-    },
-    "drydock": {
-      "name": "Drydock",
-      "include": "(^src/applications/drydock/)"
     },
     "edges": {
       "name": "Edges",
@@ -139,10 +131,6 @@
     "flag": {
       "name": "Flags",
       "include": "(^src/applications/flag/)"
-    },
-    "harbormaster": {
-      "name": "Harbormaster",
-      "include": "(^src/applications/harbormaster/)"
     },
     "help": {
       "name": "Help",
@@ -196,17 +184,9 @@
       "name": "OAuth Server",
       "include": "(^src/applications/oauthserver/)"
     },
-    "owners": {
-      "name": "Owners",
-      "include": "(^src/applications/owners/)"
-    },
     "passphrase": {
       "name": "Passphrase",
       "include": "(^src/applications/passphrase/)"
-    },
-    "paste": {
-      "name": "Paste",
-      "include": "(^src/applications/paste/)"
     },
     "people": {
       "name": "People",

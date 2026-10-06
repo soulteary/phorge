@@ -168,6 +168,58 @@ final class PhabricatorWorkerTestCase extends PhabricatorTestCase {
     unset($env);
   }
 
+  public function testDelegatedExecutionPersistsFollowups() {
+    // When Gorge owns the queue, gorge-worker leases the task and hands the
+    // business logic back through "worker.execute". That path does not go
+    // through PhabricatorWorkerActiveTask::executeTask(), which is the only
+    // other thing that flushes the worker's followup queue, so the children a
+    // worker stages with queueTask() have to be persisted by the Conduit
+    // method itself or they are lost silently.
+    $request = new ConduitAPIRequest(
+      array(
+        'taskClass' => 'PhabricatorTestWorker',
+        'data' => phutil_json_encode(
+          array(
+            'queueFollowup' => true,
+            'followupCount' => 2,
+          )),
+      ),
+      $strictly_typed = false);
+    $request->setUser(PhabricatorUser::getOmnipotentUser());
+
+    $result = id(new PhabricatorWorkerExecuteConduitAPIMethod())
+      ->executeMethod($request);
+
+    $this->assertEqual('success', idx($result, 'result'));
+
+    $followups = id(new PhabricatorWorkerActiveTask())->loadAll();
+    $this->assertEqual(2, count($followups));
+  }
+
+  public function testDelegatedExecutionReportsFollowupFailure() {
+    // A followup which cannot be scheduled must not be reported as success:
+    // the work ran, but the children it staged did not, and only a retry can
+    // recover them.
+    $request = new ConduitAPIRequest(
+      array(
+        'taskClass' => 'PhabricatorTestWorker',
+        'data' => phutil_json_encode(
+          array(
+            'queueFollowup' => true,
+            'invalidFollowup' => true,
+            'followupCount' => 2,
+          )),
+      ),
+      $strictly_typed = false);
+    $request->setUser(PhabricatorUser::getOmnipotentUser());
+
+    $result = id(new PhabricatorWorkerExecuteConduitAPIMethod())
+      ->executeMethod($request);
+
+    $this->assertEqual('failure', idx($result, 'result'));
+    $this->assertEqual('transient', idx($result, 'failureType'));
+  }
+
   public function testFailedFollowupPersistenceDoesNotParkParent() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.service-policy', 'required');

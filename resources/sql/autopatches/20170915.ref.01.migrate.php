@@ -1,19 +1,43 @@
 <?php
 
-$table = new PhabricatorRepositoryRefCursor();
+// The ref cursor and ref position models are gone; their tables are not. This
+// patch already read the fields it cares about with a raw query, because they
+// were about to be dropped, so it needed the models only for connections and
+// table names.
+final class PhabricatorRefCursorMigrationCursorDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_refcursor';
+  }
+
+}
+
+final class PhabricatorRefCursorMigrationPositionDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_refposition';
+  }
+
+}
+
+$table = new PhabricatorRefCursorMigrationCursorDAO();
 $conn = $table->establishConnection('w');
 
 $map = array();
-foreach (new LiskMigrationIterator($table) as $ref) {
-  $repository_phid = $ref->getRepositoryPHID();
-  $ref_type = $ref->getRefType();
-  $ref_hash = $ref->getRefNameHash();
+foreach (new LiskRawMigrationIterator($conn, $table->getTableName())
+  as $ref) {
+
+  $repository_phid = $ref['repositoryPHID'];
+  $ref_type = $ref['refType'];
+  $ref_hash = $ref['refNameHash'];
 
   $ref_key = "{$repository_phid}/{$ref_type}/{$ref_hash}";
 
   if (!isset($map[$ref_key])) {
     $map[$ref_key] = array(
-      'id' => $ref->getID(),
+      'id' => $ref['id'],
       'type' => $ref_type,
       'hash' => $ref_hash,
       'repositoryPHID' => $repository_phid,
@@ -22,24 +46,17 @@ foreach (new LiskMigrationIterator($table) as $ref) {
   }
 
   // NOTE: When this migration runs, the table will have "commitIdentifier" and
-  // "isClosed" fields. Later, it won't. Since they'll be removed, we can't
-  // rely on being able to access them via the object. Instead, run a separate
-  // raw query to read them.
-
-  $row = queryfx_one(
-    $conn,
-    'SELECT commitIdentifier, isClosed FROM %T WHERE id = %d',
-    $ref->getTableName(),
-    $ref->getID());
+  // "isClosed" fields. Later, it won't. The raw iterator reads whatever
+  // columns exist, so take them from the row it already produced.
 
   $map[$ref_key]['positions'][] = array(
-    'identifier' => $row['commitIdentifier'],
-    'isClosed' => (int)$row['isClosed'],
+    'identifier' => $ref['commitIdentifier'],
+    'isClosed' => (int)$ref['isClosed'],
   );
 }
 
 // Now, write all the position rows.
-$position_table = new PhabricatorRepositoryRefPosition();
+$position_table = new PhabricatorRefCursorMigrationPositionDAO();
 foreach ($map as $ref_key => $spec) {
   $id = $spec['id'];
   foreach ($spec['positions'] as $position) {

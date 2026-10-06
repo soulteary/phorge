@@ -6,7 +6,7 @@
  * The service speaks Phorge's document model over HTTP and keeps the
  * Elasticsearch or Meilisearch clients on its own side, so this engine only
  * has to serialize documents and queries onto the wire. Compare
- * @{class:PhabricatorElasticFulltextStorageEngine}, which builds
+ * the retired PHP Elasticsearch provider, which builds
  * Elasticsearch mappings and query DSL here in PHP: none of that lives in
  * this engine, and in exchange none of it can be tuned from this side either.
  *

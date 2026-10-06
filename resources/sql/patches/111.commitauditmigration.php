@@ -1,11 +1,34 @@
 <?php
 
+// The commit and commit-data models are gone with tracked repositories. The
+// tables and their rows are not: the schema history which creates them is
+// retained, and this patch still has to run against installations whose schema
+// predates it.
+
+final class PhabricatorCommitAuditMigrationCommitDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_commit';
+  }
+
+}
+
+final class PhabricatorCommitAuditMigrationDataDAO
+  extends PhabricatorRepositoryDAO {
+
+  public function getTableName() {
+    return 'repository_commitdata';
+  }
+
+}
+
 echo pht('Updating old commit authors...')."\n";
-$table = new PhabricatorRepositoryCommit();
+$table = new PhabricatorCommitAuditMigrationCommitDAO();
 $table->openTransaction();
 
 $conn = $table->establishConnection('w');
-$data = new PhabricatorRepositoryCommitData();
+$data = new PhabricatorCommitAuditMigrationDataDAO();
 $commits = queryfx_all(
   $conn,
   'SELECT c.id id, c.authorPHID authorPHID, d.commitDetails details

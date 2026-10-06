@@ -1,0 +1,36 @@
+<?php
+
+// Feed delivery events share the business connection, not the worker DB.
+final class PhabricatorFeedGorgeOutbox extends PhabricatorFeedDAO {
+  protected $eventID;
+  protected $payload;
+  protected $attempts = 0;
+  protected $nextAttempt = 0;
+  protected $deliveredEpoch;
+  protected $queueTaskID;
+  protected $lastError = '';
+
+  public function getTableName() {
+    return 'feed_gorgeoutbox';
+  }
+
+  protected function getConfiguration() {
+    return array(
+      self::CONFIG_TIMESTAMPS => false,
+      self::CONFIG_COLUMN_SCHEMA => array(
+        'id' => 'uint64',
+        'eventID' => 'bytes128',
+        'payload' => 'text',
+        'attempts' => 'uint32',
+        'nextAttempt' => 'uint64',
+        'deliveredEpoch' => 'uint64?',
+        'queueTaskID' => 'uint64?',
+        'lastError' => 'text',
+      ),
+      self::CONFIG_KEY_SCHEMA => array(
+        'eventID' => array('columns' => array('eventID'), 'unique' => true),
+        'pending' => array('columns' => array('deliveredEpoch', 'nextAttempt', 'id')),
+      ),
+    ) + parent::getConfiguration();
+  }
+}

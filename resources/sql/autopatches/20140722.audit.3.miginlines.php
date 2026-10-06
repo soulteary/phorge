@@ -1,6 +1,21 @@
 <?php
 
-$audit_table = new PhabricatorAuditTransaction();
+// PhabricatorAuditTransaction is gone. It survived the Audit removal by
+// moving into Diffusion with its name and application intact, and has now gone
+// with Diffusion. This patch wanted it only for a connection on the legacy
+// "audit" database.
+//
+// "CMIT" is the stored PHID type of a commit; the PHID type class went with
+// commits.
+final class PhabricatorAuditInlineMigrationDAO extends PhabricatorAuditDAO {
+
+  public function getTableName() {
+    return 'audit_transaction';
+  }
+
+}
+
+$audit_table = new PhabricatorAuditInlineMigrationDAO();
 $conn_w = $audit_table->establishConnection('w');
 $conn_w->openTransaction();
 
@@ -21,14 +36,14 @@ foreach ($rows as $row) {
   if ($row['auditCommentID']) {
     $xaction_phid = PhabricatorPHID::generateNewPHID(
       PhabricatorApplicationTransactionTransactionPHIDType::TYPECONST,
-      PhabricatorRepositoryCommitPHIDType::TYPECONST);
+      'CMIT');
   } else {
     $xaction_phid = null;
   }
 
   $comment_phid = PhabricatorPHID::generateNewPHID(
     PhabricatorPHIDConstants::PHID_TYPE_XCMT,
-    PhabricatorRepositoryCommitPHIDType::TYPECONST);
+    'CMIT');
 
   queryfx(
     $conn_w,

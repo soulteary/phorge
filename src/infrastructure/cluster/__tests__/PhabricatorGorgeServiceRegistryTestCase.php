@@ -356,7 +356,16 @@ final class PhabricatorGorgeServiceRegistryTestCase
     );
   }
 
-  public function testDatabaseOperationFallbackPolicy() {
+  /**
+   * The database service does not honor "fallback" any more.
+   *
+   * Its native PHP diagnostic implementation was retired, so a policy which
+   * selects one no longer names anything. The spec resolves it back to
+   * "required" rather than throwing, because getPolicy() is reached from
+   * setup checks and console queries on installations which only set the
+   * global policy for some other service.
+   */
+  public function testDatabaseServicePolicyIsAlwaysRequired() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.db.uri', 'http://gorge-db:8170');
     $env->overrideEnvConfig('storage.default-namespace', 'phabricator');
@@ -372,22 +381,46 @@ final class PhabricatorGorgeServiceRegistryTestCase
       ));
 
     $env->overrideEnvConfig('gorge.service-policy', 'fallback');
+
+    $this->assertEqual(
+      PhabricatorGorgeServiceSpec::POLICY_REQUIRED,
+      PhabricatorGorgeServiceRegistry::getService('db')->getPolicy(),
+      pht('Database policy resolves to required.'));
+
+    // The normalization is scoped to this one service: everything else still
+    // honors the configured policy, and still has a native implementation to
+    // select when it does.
+    $this->assertEqual(
+      PhabricatorGorgeServiceSpec::POLICY_FALLBACK,
+      PhabricatorGorgeServiceRegistry::getService('file')->getPolicy(),
+      pht('Other services still honor the configured policy.'));
+
     PhabricatorGorgeServiceSpec::resetFallbackCounts();
 
-    $result = PhabricatorGorgeDBClient::executeWithFallback(
-      'test',
-      function() {
-        throw new Exception('service failure');
-      },
-      function() {
-        return 'native';
-      });
+    $caught = null;
+    try {
+      PhabricatorGorgeDBClient::executeWithFallback(
+        'test',
+        function() {
+          throw new Exception('service failure');
+        },
+        function() {
+          return 'native';
+        });
+    } catch (Exception $ex) {
+      $caught = $ex;
+    }
 
-    $this->assertEqual('native', $result);
+    $this->assertTrue(
+      ($caught instanceof Exception),
+      pht('A configured fallback policy does not absorb the failure.'));
     $this->assertEqual(
-      array('db.test' => 1),
-      PhabricatorGorgeServiceSpec::getFallbackCounts());
+      array(),
+      PhabricatorGorgeServiceSpec::getFallbackCounts(),
+      pht('No fallback is recorded for the database service.'));
 
+    // An explicitly required policy behaves identically, which is the point:
+    // there is now only one behavior to have.
     $env->overrideEnvConfig('gorge.service-policy', 'required');
     $caught = null;
     try {

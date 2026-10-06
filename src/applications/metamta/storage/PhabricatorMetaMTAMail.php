@@ -576,6 +576,15 @@ final class PhabricatorMetaMTAMail
 
     foreach ($config as $spec) {
       $type = $spec['type'];
+      if (!empty($constraints['outbound']) &&
+          in_array($type, array('smtp', 'sendmail', 'ses', 'sendgrid',
+            'mailgun', 'postmark'), true) && idx($spec, 'outbound', true)) {
+        throw new Exception(pht(
+          'Outbound mailer "%s" uses retired PHP delivery. Migrate it to '.
+          'type "gorge"; keep provider inbound entries outbound=false.',
+          $spec['key']));
+      }
+
       if ($type === 'gorge' &&
           PhabricatorGorgeServiceRegistry::getService('mailer')
             ->isDisabled()) {

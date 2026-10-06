@@ -185,7 +185,6 @@ return array(
   'differential.pkg.css' => array(
     'differential-core-view-css',
     'differential-changeset-view-css',
-    'differential-revision-history-css',
     'differential-table-of-contents-css',
     'differential-revision-add-comment-css',
     'phabricator-object-selector-css',
@@ -200,7 +199,6 @@ return array(
     'phabricator-shaped-request',
 
     'javelin-behavior-differential-populate',
-    'javelin-behavior-differential-diff-radios',
     'javelin-behavior-aphront-drag-and-drop-textarea',
     'javelin-behavior-phabricator-object-selector',
     'javelin-behavior-repository-crossreference',
@@ -224,9 +222,11 @@ return array(
     'diffusion-icons-css',
   ),
   'diffusion.pkg.js' => array(
-    'javelin-behavior-diffusion-pull-lastmodified',
+    // The commit graph is drawn for Maniphest task graphs as well, through
+    // the retained PHUIDiffGraphView, so it outlives Diffusion. The
+    // "pull-lastmodified" and "audit-preview" behaviours went with their
+    // applications and have no provider any more.
     'javelin-behavior-diffusion-commit-graph',
-    'javelin-behavior-audit-preview',
   ),
   'maniphest.pkg.css' => array(
     'maniphest-task-summary-css',

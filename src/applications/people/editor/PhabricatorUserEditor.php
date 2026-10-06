@@ -88,9 +88,6 @@ final class PhabricatorUserEditor extends PhabricatorEditor {
       $this->didVerifyEmail($user, $email);
     }
 
-    id(new DiffusionRepositoryIdentityEngine())
-      ->didUpdateEmailAddress($email->getAddress());
-
     return $this;
   }
 
@@ -203,9 +200,6 @@ final class PhabricatorUserEditor extends PhabricatorEditor {
 
       $user->endWriteLocking();
     $user->saveTransaction();
-
-    id(new DiffusionRepositoryIdentityEngine())
-      ->didUpdateEmailAddress($email->getAddress());
 
     return $this;
   }
@@ -445,9 +439,6 @@ final class PhabricatorUserEditor extends PhabricatorEditor {
 
       $user->endWriteLocking();
     $user->saveTransaction();
-
-    id(new DiffusionRepositoryIdentityEngine())
-      ->didUpdateEmailAddress($email->getAddress());
   }
 
 

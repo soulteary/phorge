@@ -136,11 +136,10 @@ EODOC
   'metamta.public-replies'));
 
     $adapter_description = $this->deformat(pht(<<<EODOC
-Adapter class to use to transmit mail to the MTA. The default uses
-PHPMailer, which will invoke "mail". This is appropriate if mail actually
-works on your host, but if you haven't configured mail it may not be so great.
-A number of other mailers are available (e.g., SES, SendGrid, SMTP, Sendmail,
-custom mailers). This option is deprecated in favor of 'cluster.mailers'.
+Outbound email uses the Gorge adapter in cluster.mailers. Configure SMTP,
+SES, SendGrid, Mailgun or Postmark on the Gorge service. Historical provider
+entries remain available for inbound verification with outbound=false.
+This option is deprecated in favor of 'cluster.mailers'.
 EODOC
 ));
 

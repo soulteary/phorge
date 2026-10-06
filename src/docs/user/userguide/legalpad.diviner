@@ -12,9 +12,7 @@ has signed what.
 
 Right now, it is primarily useful for open source projects that have a
 Contributor License Agreement or a similar document which needs to be signed
-before changes can be accepted from contributors. In particular, it has
-integrations into Differential which can block changes from being accepted until
-the author has signed the required documents.
+before changes can be accepted from contributors.
 
 NOTE: Legalpad is a basic application, and missing many of the features of more
 general document signing software. It may be useful to help you do things
@@ -39,38 +37,6 @@ policy documents or other documents which do not require a signature).
 your users must sign before they can use Phorge, like a terms of service
 document. See "Use Case: Terms of Service" below for details. These documents
 must be signable by individuals.
-
-Use Case: Requiring a CLA
-===============
-
-Open source projects often require contributors to sign a license agreement
-before their contributions can be accepted to the project. To require a CLA or
-similar document for an open source project:
-
-  - Create a CLA document in Legalpad.
-  - Create a "Global" Herald rule which triggers "Always".
-  - The rule should take the action "Require legal signatures", specifying
-    your CLA document as the required document.
-
-After you've done this, all new reviews created in Differential by authors who
-have not signed the document will trigger a signature requirement. These reviews
-can not be accepted until the document has been signed.
-
-The content of these revisions will also be hidden until the document has been
-signed. This prevents reviewers from being tainted by examining the changes if
-the author ultimately declines to sign the CLA.
-
-If the author has already signed all of the required documents, Herald will not
-take any actions. This reduces the amount of noise the CLA process generates for
-regular contributors.
-
-You can require more than one document (to require that they all be signed), if
-you have several agreements that contributors must sign.
-
-Alternatively, if you have several different sets of agreements for different
-projects, you can also choose a more narrow Herald condition than "Always" (for
-example, require a signature only if the revision is against certain
-repositories).
 
 Use Case: Terms of Service
 =================================

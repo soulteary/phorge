@@ -26,27 +26,9 @@ final class PHUIHomeView
       PhabricatorManiphestApplication::class,
       $viewer);
 
-    $has_diffusion = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorDiffusionApplication::class,
-      $viewer);
-
-    $has_differential = PhabricatorApplication::isClassInstalledForViewer(
-      PhabricatorDifferentialApplication::class,
-      $viewer);
-
-    $revision_panel = null;
-    if ($has_differential) {
-      $revision_panel = $this->buildRevisionPanel();
-    }
-
     $tasks_panel = null;
     if ($has_maniphest) {
       $tasks_panel = $this->buildTasksPanel();
-    }
-
-    $repository_panel = null;
-    if ($has_diffusion) {
-      $repository_panel = $this->buildRepositoryPanel();
     }
 
     $feed_panel = $this->buildFeedPanel();
@@ -61,9 +43,7 @@ final class PHUIHomeView
         'class' => 'homepage-panel',
       ),
       array(
-        $revision_panel,
         $tasks_panel,
-        $repository_panel,
       ));
     $dashboard->addColumn($main_panel, 'thirds');
 
@@ -82,23 +62,6 @@ final class PHUIHomeView
         ->appendChild($dashboard);
 
       return $view;
-  }
-
-  /**
-   * @return PHUIObjectBoxView|null
-   */
-  private function buildRevisionPanel() {
-    $viewer = $this->getViewer();
-    if (!$viewer->isLoggedIn()) {
-      return null;
-    }
-
-    $panel = $this->newQueryPanel()
-      ->setName(pht('Active Revisions'))
-      ->setProperty('class', 'DifferentialRevisionSearchEngine')
-      ->setProperty('key', 'active');
-
-    return $this->renderPanel($panel);
   }
 
   /**
@@ -133,19 +96,6 @@ final class PHUIHomeView
       ->setProperty('class', 'PhabricatorFeedSearchEngine')
       ->setProperty('key', 'all')
       ->setProperty('limit', 40);
-
-    return $this->renderPanel($panel);
-  }
-
-  /**
-   * @return PHUIObjectBoxView
-   */
-  public function buildRepositoryPanel() {
-    $panel = $this->newQueryPanel()
-      ->setName(pht('Active Repositories'))
-      ->setProperty('class', 'PhabricatorRepositorySearchEngine')
-      ->setProperty('key', 'active')
-      ->setProperty('limit', 5);
 
     return $this->renderPanel($panel);
   }

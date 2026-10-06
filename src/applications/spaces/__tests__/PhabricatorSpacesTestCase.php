@@ -95,18 +95,22 @@ final class PhabricatorSpacesTestCase extends PhabricatorTestCase {
     $creator = $this->generateNewTestUser();
     $viewer = $this->generateNewTestUser();
 
-    // Create a new paste.
-    $paste = PhabricatorPaste::initializeNewPaste($creator)
+    // Create a new object. Any object implementing PhabricatorSpacesInterface
+    // will do; this used to be a Paste, which went with that application.
+    // Countdown is the cheapest remaining one to construct.
+    $object = PhabricatorCountdown::initializeNewCountdown($creator)
       ->setViewPolicy(PhabricatorPolicies::POLICY_USER)
-      ->setFilePHID('')
-      ->setLanguage('')
+      ->setTitle(pht('Spaces Policy Test'))
+      ->setDescription('')
+      ->setEpoch(PhabricatorTime::getNow())
+      ->setMailKey(Filesystem::readRandomCharacters(20))
       ->save();
 
     // It should be visible.
     $this->assertTrue(
       PhabricatorPolicyFilter::hasCapability(
         $viewer,
-        $paste,
+        $object,
         PhabricatorPolicyCapability::CAN_VIEW));
 
     // Create a default space with an open view policy.
@@ -115,12 +119,12 @@ final class PhabricatorSpacesTestCase extends PhabricatorTestCase {
       ->save();
     PhabricatorSpacesNamespaceQuery::destroySpacesCache();
 
-    // The paste should now be in the space implicitly, but still visible
+    // The object should now be in the space implicitly, but still visible
     // because the space view policy is open.
     $this->assertTrue(
       PhabricatorPolicyFilter::hasCapability(
         $viewer,
-        $paste,
+        $object,
         PhabricatorPolicyCapability::CAN_VIEW));
 
     // Make the space view policy restrictive.
@@ -129,15 +133,15 @@ final class PhabricatorSpacesTestCase extends PhabricatorTestCase {
       ->save();
     PhabricatorSpacesNamespaceQuery::destroySpacesCache();
 
-    // The paste should be in the space implicitly, and no longer visible.
+    // The object should be in the space implicitly, and no longer visible.
     $this->assertFalse(
       PhabricatorPolicyFilter::hasCapability(
         $viewer,
-        $paste,
+        $object,
         PhabricatorPolicyCapability::CAN_VIEW));
 
-    // Put the paste in the space explicitly.
-    $paste
+    // Put the object in the space explicitly.
+    $object
       ->setSpacePHID($default->getPHID())
       ->save();
     PhabricatorSpacesNamespaceQuery::destroySpacesCache();
@@ -146,24 +150,24 @@ final class PhabricatorSpacesTestCase extends PhabricatorTestCase {
     $this->assertFalse(
       PhabricatorPolicyFilter::hasCapability(
         $viewer,
-        $paste,
+        $object,
         PhabricatorPolicyCapability::CAN_VIEW));
 
     // Create an alternate space with more permissive policies, then move the
-    // paste to that space.
+    // object to that space.
     $alternate = $this->newSpace($creator, pht('Alternate Space'), false)
       ->setViewPolicy(PhabricatorPolicies::POLICY_USER)
       ->save();
-    $paste
+    $object
       ->setSpacePHID($alternate->getPHID())
       ->save();
     PhabricatorSpacesNamespaceQuery::destroySpacesCache();
 
-    // Now the paste should be visible again.
+    // Now the object should be visible again.
     $this->assertTrue(
       PhabricatorPolicyFilter::hasCapability(
         $viewer,
-        $paste,
+        $object,
         PhabricatorPolicyCapability::CAN_VIEW));
   }
 

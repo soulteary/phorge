@@ -214,6 +214,13 @@ class PhabricatorSearchService
     }
 
     foreach ($services as $config) {
+      if (idx($config, 'type') === 'elasticsearch') {
+        throw new Exception(pht(
+          'The PHP Elasticsearch provider has been retired. Configure '.
+          'cluster.search with type "gorge", move backend settings to '.
+          'Gorge, and rebuild the replacement index before switching reads.'));
+      }
+
       // Normally, we've validated configuration before we get this far, but
       // make sure we don't fatal if we end up here with a bogus configuration.
       if (!isset($engines[$config['type']])) {
