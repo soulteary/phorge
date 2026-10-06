@@ -32,6 +32,8 @@ switch ($_SERVER['REQUEST_URI']) {
   case '/redirect': header('Location: /readyz'); break;
   case '/down': http_response_code(503); echo '{"status":"unavailable"}'; break;
   case '/old': echo '{"data":{"executionVersion":0,"leaseOutcomes":true}}'; break;
+  case '/api/file/fetch/meta':
+    echo '{"data":{"protocolVersion":1,"maxBytes":16777216,"publicOnly":true,"headerTokenOnly":true,"pinnedDNS":true}}'; break;
   case '/meta':
   case '/api/queue/meta':
   case '/api/worker/meta':
@@ -70,6 +72,8 @@ PHP
     array('/old', 'execution', 'test-token', false),
     array('/meta', 'execution', 'test-token', true),
     array('/big', 'ready', 'test-token', false),
+    array('/api/file/fetch/meta', 'file-fetch', 'test-token', true),
+    array('/old', 'file-fetch', 'test-token', false),
     array('/diff', 'diff', 'test-token', true),
   ) as $case) {
     $payload = $case[1] === 'diff' ? array('old' => '', 'new' => '') : null;
@@ -81,6 +85,7 @@ PHP
   file_put_contents($directory.'/local.json', '{}');
   $config = array('gorge.service-policy' => 'required',
     'gorge.render.uri' => $base, 'gorge.render.token' => 'test-token',
+    'gorge.file.uri' => $base, 'gorge.file.token' => 'test-token',
     'gorge.taskqueue.uri' => $base, 'gorge.taskqueue.token' => 'test-token');
   file_put_contents($directory.'/deployment.json', json_encode($config));
   foreach (array('test-token' => 0, 'wrong-token' => 1) as $token => $expected) {

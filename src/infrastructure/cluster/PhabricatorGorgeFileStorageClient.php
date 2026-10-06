@@ -116,6 +116,45 @@ final class PhabricatorGorgeFileStorageClient
 
 
   /**
+   * Fetch public HTTP(S) bytes through Gorge. This does not create a blob or
+   * a file object: the caller applies metadata and existing storage formats.
+   */
+  public function getDownloadCapabilities() {
+    $uri = $this->getURI().'/api/file/fetch/meta';
+    $caps = self::parseResponseEnvelope(
+      $uri, $this->newRequestFuture($uri)->resolve());
+    if (!is_array($caps)) {
+      throw new Exception(pht('Invalid Gorge download capabilities.'));
+    }
+    return $caps;
+  }
+
+  public static function hasDownloadCapabilities(array $caps) {
+    return idx($caps, 'protocolVersion') === 1 &&
+      is_int(idx($caps, 'maxBytes')) &&
+      idx($caps, 'maxBytes', 0) >= 16 * 1024 * 1024 &&
+      idx($caps, 'publicOnly') === true &&
+      idx($caps, 'headerTokenOnly') === true &&
+      idx($caps, 'pinnedDNS') === true;
+  }
+
+  public function downloadFile($remote_uri) {
+    if (!self::isConfigured() || !$this->getToken()) {
+      throw new Exception(
+        pht('Remote download requires an enabled Gorge file service and token.'));
+    }
+    $uri = $this->getURI().'/api/file/fetch';
+    $future = $this->newJSONRequestFuture(
+      $uri,
+      array(
+        'uri' => $remote_uri,
+        'denyCIDRs' => PhabricatorEnv::getEnvConfig(
+          'security.outbound-blacklist'),
+      ));
+    return self::parseBinaryResponse($uri, $future->resolve());
+  }
+
+  /**
    * Read file data back out of the service.
    *
    * @param string $engine Identifier of the backend which holds the file.

@@ -653,120 +653,21 @@ final class PhabricatorFile extends PhabricatorFileDAO
   /**
    * Download a remote resource over HTTP and save the response body as a file.
    *
-   * This method respects `security.outbound-blacklist`, and protects against
-   * HTTP redirection (by manually following "Location" headers and verifying
-   * each destination). It does not protect against DNS rebinding. See
-   * discussion in T6755.
+   * Gorge validates each connection and redirect against public-address rules
+   * and `security.outbound-blacklist`, then dials the validated address.
+   * PHP retains file metadata, permissions and storage format handling.
    */
   public static function newFromFileDownload($uri, array $params = array()) {
-    $timeout = 5;
-
-    $redirects = array();
-    $current = $uri;
-    while (true) {
-      try {
-        if (count($redirects) > 10) {
-          throw new Exception(
-            pht('Too many redirects trying to fetch remote URI.'));
-        }
-
-        $resolved = PhabricatorEnv::requireValidRemoteURIForFetch(
-          $current,
-          array(
-            'http',
-            'https',
-          ));
-
-        list($resolved_uri, $resolved_domain) = $resolved;
-
-        $current = new PhutilURI($current);
-        if ($current->getProtocol() == 'http') {
-          // For HTTP, we can use a pre-resolved URI to defuse DNS rebinding.
-          $fetch_uri = $resolved_uri;
-          $fetch_host = $resolved_domain;
-        } else {
-          // For HTTPS, we can't: cURL won't verify the SSL certificate if
-          // the domain has been replaced with an IP. But internal services
-          // presumably will not have valid certificates for rebindable
-          // domain names on attacker-controlled domains, so the DNS rebinding
-          // attack should generally not be possible anyway.
-          $fetch_uri = $current;
-          $fetch_host = null;
-        }
-
-        $future = id(new HTTPSFuture($fetch_uri))
-          ->setFollowLocation(false)
-          ->setTimeout($timeout);
-
-        if ($fetch_host !== null) {
-          $future->addHeader('Host', $fetch_host);
-        }
-
-        list($status, $body, $headers) = $future->resolve();
-
-        if ($status->isRedirect()) {
-          // This is an HTTP 3XX status, so look for a "Location" header.
-          $location = null;
-          foreach ($headers as $header) {
-            list($name, $value) = $header;
-            if (phutil_utf8_strtolower($name) == 'location') {
-              $location = $value;
-              break;
-            }
-          }
-
-          // HTTP 3XX status with no "Location" header, just treat this like
-          // a normal HTTP error.
-          if ($location === null) {
-            throw $status;
-          }
-
-          if (isset($redirects[$location])) {
-            throw new Exception(
-              pht('Encountered loop while following redirects.'));
-          }
-
-          $redirects[$location] = $location;
-          $current = $location;
-          // We'll fall off the bottom and go try this URI now.
-        } else if ($status->isError()) {
-          // This is something other than an HTTP 2XX or HTTP 3XX status, so
-          // just bail out.
-          throw $status;
-        } else {
-          // This is HTTP 2XX, so use the response body to save the file data.
-          // Provide a default name based on the URI, truncating it if the URI
-          // is exceptionally long.
-
-          $default_name = basename($uri);
-          $default_name = id(new PhutilUTF8StringTruncator())
-            ->setMaximumBytes(64)
-            ->truncateString($default_name);
-
-          $params = $params + array(
-            'name' => $default_name,
-          );
-
-          return self::newFromFileData($body, $params);
-        }
-      } catch (Throwable $ex) {
-        if ($redirects) {
-          throw new Exception(
-            pht(
-              'Failed to fetch remote URI "%s" after following %s redirect(s) '.
-              '(%s): %s',
-              $uri,
-              phutil_count($redirects),
-              implode(' > ', array_keys($redirects)),
-              $ex->getMessage()),
-            0,
-            $ex);
-        } else {
-          throw $ex;
-        }
-      }
-    }
+    $data = id(new PhabricatorGorgeFileStorageClient())
+      ->downloadFile($uri);
+    $default_name = id(new PhutilUTF8StringTruncator())
+      ->setMaximumBytes(64)
+      ->truncateString(basename($uri));
+    return self::newFromFileData(
+      $data,
+      $params + array('name' => $default_name));
   }
+
 
   public static function normalizeFileName($file_name) {
     $pattern = "@[\\x00-\\x19#%&+!~'\$\"\/=\\\\?<> ]+@";

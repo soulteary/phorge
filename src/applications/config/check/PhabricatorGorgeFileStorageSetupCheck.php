@@ -91,9 +91,33 @@ final class PhabricatorGorgeFileStorageSetupCheck
       return;
     }
 
+    if (!$this->checkDownloadCapabilities()) {
+      return;
+    }
     $this->checkEnabled($uri);
   }
 
+
+  private function checkDownloadCapabilities() {
+    try {
+      $client = new PhabricatorGorgeFileStorageClient();
+      $caps = $client->getDownloadCapabilities();
+      if (PhabricatorGorgeFileStorageClient::hasDownloadCapabilities($caps)) {
+        return true;
+      }
+    } catch (Exception $ex) {
+      // Do not include remote bodies or configuration secrets in diagnostics.
+    }
+    $this->newIssue('gorge.file.download-unavailable')
+      ->setName(pht('Gorge Remote Download Is Unavailable'))
+      ->setSummary(pht('File storage is ready, but remote download is unavailable.'))
+      ->setMessage(pht(
+        'Deploy Gorge with the version 1 download API and configure matching '.
+        'nonempty service tokens. Remote attachments and calendar URI imports '.
+        'require this capability.'))
+      ->addRelatedPhabricatorConfig('gorge.file.token');
+    return false;
+  }
 
   /**
    * Probe the service and report it if it does not answer.

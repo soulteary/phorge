@@ -2,6 +2,13 @@
 # generations remain shadow-only. Apply with docker-compose.yml, using
 # --profile mailer --profile search --profile maintenance.
 services:
+  gorge-file-storage:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-file-storage, PORT: 8100}
+    image: gorge-file-storage:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_FILE_TOKEN:?Set GORGE_FILE_TOKEN}
   gorge-image:
     extends:
       file: docker-compose.image.yml

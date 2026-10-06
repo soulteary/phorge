@@ -86,7 +86,21 @@ try {
     return $probe[0] === 'diff/generate' || $probe[0] === 'diff/prose' ||
       $probe[0] === 'queue protocol' || $probe[0] === 'worker protocol';
   })) === 4, 'Bootstrap protocol/diff probes missing.');
-  $optional = array('optional', 'http://unused', null, null, 'ready', false);
+  $caps = array('protocolVersion'=>1, 'maxBytes'=>16777216,
+    'publicOnly'=>true, 'headerTokenOnly'=>true, 'pinnedDNS'=>true);
+  startup_assert(gorge_startup_valid('file-fetch', array('data'=>$caps)),
+    'Download protocol rejected.');
+  foreach (array('protocolVersion', 'publicOnly', 'headerTokenOnly', 'pinnedDNS')
+    as $key) {
+    $broken = $caps;
+    unset($broken[$key]);
+    startup_assert(!gorge_startup_valid('file-fetch', array('data'=>$broken)),
+      'Incomplete download capability accepted.');
+  }
+  startup_assert(count(array_filter($probes, function($probe) {
+    return $probe[0] === 'file download protocol' && $probe[5] === true;
+  })) === 1, 'Required download probe missing.');
+  $optional = array('optional' , 'http://unused', null, null, 'ready', false);
   $required = array('required', 'http://unused', null, null, 'ready', true);
   $result = gorge_startup_wait(array($optional, $required), .01,
     function() { return false; });

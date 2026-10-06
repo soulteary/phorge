@@ -6,7 +6,7 @@ import subprocess
 
 root = Path(__file__).resolve().parents[3]
 fixture_env = {"PATH": os.environ["PATH"]}
-for service in ("IMAGE", "MAILER", "SEARCH", "TASKQUEUE", "CONDUIT", "MAINTENANCE"):
+for service in ("IMAGE", "MAILER", "SEARCH", "TASKQUEUE", "CONDUIT", "MAINTENANCE", "FILE"):
     fixture_env[f"GORGE_{service}_TOKEN"] = "contract-fixture"
 fixture_env["GORGE_MAILER_DELIVERY_DSN"] = "fixture@tcp(mysql:3306)/phabricator_metamta"
 for role in ("CACHE", "CONDUIT", "DAEMON"):
@@ -20,6 +20,12 @@ result = subprocess.run(command, cwd=root, env=fixture_env, text=True, capture_o
 if result.returncode:
     raise RuntimeError("Production Compose configuration failed")
 services = json.loads(result.stdout)["services"]
+file_token = services["gorge-file-storage"]["environment"]["GORGE_SERVICE_TOKEN"]
+assert file_token == "contract-fixture"
+assert services["phorge-migrate"]["environment"]["GORGE_FILE_TOKEN"] == file_token
+# Web and daemon consume the migration job deployment config from shared conf.
+for name in ("phorge", "phorge-daemon"):
+    assert any(v.get("source") == "phorge-conf" for v in services[name]["volumes"])
 mailer = services["gorge-mailer"]["environment"]
 worker = services["gorge-worker"]["environment"]
 assert worker["GORGE_WORKER_MAIL_OUTBOX_DSN"] == mailer["GORGE_MAILER_DELIVERY_DSN"]
@@ -36,7 +42,7 @@ assert services["phorge-search-config"]["environment"]["GORGE_SEARCH_EXCLUSIVE"]
 assert services["phorge-search-config"]["depends_on"]["phorge-mailer-config"]["required"]
 for name in ("phorge-mailer-config", "phorge-search-config", "gorge-maintenance"):
     assert services["phorge"]["depends_on"][name]["required"]
-for name in ("mailer", "search", "taskqueue", "worker", "maintenance", "image"):
+for name in ("mailer", "search", "taskqueue", "worker", "maintenance", "image", "file-storage"):
     assert services[f"gorge-{name}"]["build"]["args"]["SERVICE"] == f"gorge-{name}"
 assert "readyz" in str(services["gorge-maintenance"]["healthcheck"]["test"])
 # Omitting mandatory profiles must fail instead of silently starting a partial stack.

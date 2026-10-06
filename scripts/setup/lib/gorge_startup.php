@@ -29,6 +29,11 @@ function gorge_startup_probes(array $config, $worker_uri, $worker_token) {
           array('old' => '', 'new' => ''), $shape, true);
       }
     }
+    if ($service === 'file') {
+      $probes[] = array('file download protocol',
+        rtrim($uri, '/').'/api/file/fetch/meta', $token,
+        null, 'file-fetch', true);
+    }
     if ($service === 'taskqueue') {
       $probes[] = array('queue protocol', rtrim($uri, '/').'/api/queue/meta',
         $token, null, 'execution', true);
@@ -129,6 +134,13 @@ function gorge_startup_valid($shape, $json) {
   }
   $data = $json['data'];
   switch ($shape) {
+    case 'file-fetch':
+      return isset($data['protocolVersion'], $data['maxBytes'],
+        $data['publicOnly'], $data['headerTokenOnly'], $data['pinnedDNS']) &&
+        $data['protocolVersion'] === 1 &&
+        is_int($data['maxBytes']) && $data['maxBytes'] >= 16 * 1024 * 1024 &&
+        $data['publicOnly'] === true && $data['headerTokenOnly'] === true &&
+        $data['pinnedDNS'] === true;
     case 'mail-delivery':
       return isset($data['schemaVersion'], $data['recovery']) &&
         $data['schemaVersion'] === 1 && $data['recovery'] === true;
