@@ -122,7 +122,7 @@ final class PhabricatorGorgeMailerClient
    * @param PhabricatorMailExternalMessage $message Message to serialize.
    * @return map<string, wild> Wire representation of the message.
    */
-  private function serializeMessage(
+  public function serializeMessage(
     PhabricatorMailExternalMessage $message) {
 
     $result = array();

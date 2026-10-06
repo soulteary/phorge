@@ -1,0 +1,12 @@
+CREATE TABLE {$NAMESPACE}_metamta.metamta_gorgeoutbox (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  eventID VARBINARY(128) NOT NULL,
+  payload LONGTEXT NOT NULL,
+  attempts INT UNSIGNED NOT NULL DEFAULT 0,
+  nextAttempt BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  deliveredEpoch BIGINT UNSIGNED NULL,
+  queueTaskID BIGINT UNSIGNED NULL,
+  lastError LONGTEXT NOT NULL,
+  UNIQUE KEY eventID (eventID),
+  KEY pending (deliveredEpoch, nextAttempt, id)
+) ENGINE=InnoDB;

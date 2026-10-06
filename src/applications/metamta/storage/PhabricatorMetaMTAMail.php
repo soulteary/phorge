@@ -501,6 +501,7 @@ final class PhabricatorMetaMTAMail
     // method.
 
     $this->openTransaction();
+    try {
       // Save to generate a mail ID and PHID.
       $result = parent::save();
 
@@ -519,7 +520,22 @@ final class PhabricatorMetaMTAMail
       }
       $editor->save();
 
+    $native = PhabricatorEnv::getEnvConfig('metamta.gorge-delivery-mode') === 'native' &&
+      $this->getMessageType() === PhabricatorMailEmailMessage::MESSAGETYPE;
+    if ($native) {
+      if (!PhabricatorGorgeTaskQueueClient::isConfigured()) {
+        throw new Exception(pht('Native mail requires Gorge taskqueue.'));
+      }
+      $this->adoptGorgeDelivery();
+    }
     $this->saveTransaction();
+    } catch (Throwable $ex) {
+      $this->killTransaction();
+      throw $ex;
+    }
+    if ($native) {
+      return $result;
+    }
 
     // Queue a task to send this mail.
     $mailer_task = PhabricatorWorker::scheduleTask(
@@ -536,6 +552,10 @@ final class PhabricatorMetaMTAMail
    * Attempt to deliver an email immediately, in this process.
    */
   public function sendNow() {
+    if ($this->getParam('gorge.delivery-owner') === 'gorge') {
+      throw new PhabricatorMetaMTAPermanentFailureException(
+        pht('This mail is owned by native Gorge delivery.'));
+    }
     if ($this->getStatus() != PhabricatorMailOutboundStatus::STATUS_QUEUE) {
       throw new Exception(pht('Trying to send an already-sent mail!'));
     }
@@ -555,6 +575,189 @@ final class PhabricatorMetaMTAMail
     }
 
     return $this->sendWithMailers($mailers);
+  }
+
+  // Caller must hold gorge-mail lock for existing mail. New mail is still
+  // invisible inside its creation transaction. Legacy worker shares this lock.
+  public function adoptGorgeDelivery() {
+    if ($this->getStatus() !== PhabricatorMailOutboundStatus::STATUS_QUEUE ||
+        $this->getMessageType() !== PhabricatorMailEmailMessage::MESSAGETYPE) {
+      throw new Exception(pht('Only queued email can be migrated.'));
+    }
+    if ($this->getParam('gorge.delivery-owner') === 'gorge') {
+      return;
+    }
+    $this->openTransaction();
+    try {
+      $this->setParam('gorge.delivery-owner', 'gorge');
+      parent::save();
+      $event_id = 'mail.prepare/'.$this->getPHID().'/1';
+      id(new PhabricatorMetaMTAGorgeOutbox())
+        ->setEventID($event_id)
+        ->setPayload(phutil_json_encode(array(
+          'eventID' => $event_id,
+          'task' => array(
+            'taskClass' => 'GorgeMailDeliveryWorker',
+            'data' => phutil_json_encode((int)$this->getID()),
+            'priority' => PhabricatorWorker::PRIORITY_ALERTS,
+          ),
+        )))
+        ->save();
+      $this->saveTransaction();
+    } catch (Throwable $ex) {
+      $this->killTransaction();
+      throw $ex;
+    }
+  }
+
+  public function prepareGorgeDelivery() {
+    if ($this->getParam('gorge.delivery-owner') !== 'gorge') {
+      throw new Exception(pht('Mail is not owned by Gorge.'));
+    }
+    $cached = $this->getParam('gorge.delivery-snapshot');
+    if ($cached) {
+      return $cached;
+    }
+    if ($this->getStatus() !== PhabricatorMailOutboundStatus::STATUS_QUEUE) {
+      return array('state' => 'void');
+    }
+    $mailers = self::newMailers(array(
+      'outbound' => true,
+      'media' => array(PhabricatorMailEmailMessage::MESSAGETYPE),
+    ));
+    $try = $this->getParam('mailers.try');
+    if ($try) {
+      $mailers = array_select_keys(mpull($mailers, null, 'getKey'), $try);
+    }
+    $mailer = null;
+    foreach ($mailers as $candidate) {
+      if ($candidate->getAdapterType() === 'gorge') {
+        $mailer = $candidate;
+        break;
+      }
+    }
+    if (!$mailer) {
+      throw new Exception(pht('No compatible Gorge email adapter configured.'));
+    }
+    $actors = $this->loadAllActors();
+    $target = head($this->getToPHIDs());
+    if (!$target) {
+      $target = head($this->getCcPHIDs());
+    }
+    $preferences = $this->loadPreferences($target);
+    foreach ($this->loadAttachedFiles(PhabricatorUser::getOmnipotentUser()) as $file) {
+      $file->attachToObject($this->getPHID());
+    }
+    $message = $this->newExternalMessageForMailer($mailer, $actors, $preferences);
+    if (!$message) {
+      $this->setStatus(PhabricatorMailOutboundStatus::STATUS_VOID)->save();
+      return array('state' => 'void');
+    }
+    $audit = array();
+    foreach ($actors as $actor) {
+      $audit[$actor->getPHID()] = array(
+        'address' => $actor->getEmailAddress(),
+        'deliverable' => $actor->isDeliverable(),
+        'reasons' => $actor->getDeliverabilityReasons(),
+      );
+    }
+    $this->setParam('gorge.delivery-policy-hash', $this->getGorgeActorPolicyHash($audit));
+    $this->setParam('gorge.delivery-audit', array(
+      'actors' => $audit,
+      'routing' => $this->getParam('routing'),
+      'routingmap' => $this->getRoutingRuleMap(),
+    ));
+    $snapshot = array(
+      'schemaVersion' => 1,
+      'deliveryID' => 'mail/'.$this->getPHID().'/1',
+      'mailID' => (int)$this->getID(),
+      'deadline' => (int)$this->getDateCreated() + 86400,
+      'mailerURI' => rtrim($mailer->getOption('uri'), '/'),
+      'adapterKey' => $mailer->getKey(),
+      'message' => id(new PhabricatorGorgeMailerClient())->serializeMessage($message),
+    );
+    $this->setParam('gorge.delivery-snapshot', $snapshot)->save();
+    return $snapshot;
+  }
+
+  private function newExternalMessageForMailer($mailer, array $actors, $preferences) {
+    $types = PhabricatorMailExternalMessage::getAllMessageTypes();
+    $type = idx($types, $this->getMessageType());
+    if (!$type) {
+      throw new Exception(pht('Unknown mail message type.'));
+    }
+    return $type->newMailMessageEngine()
+      ->setMailer($mailer)
+      ->setMail($this)
+      ->setActors($actors)
+      ->setPreferences($preferences)
+      ->newMessage($mailer);
+  }
+
+  private function getGorgeActorPolicyHash(array $audit) {
+    ksort($audit);
+    return hash('sha256', phutil_json_encode($audit));
+  }
+
+  public function authorizeGorgeDelivery() {
+    $expected = $this->getParam('gorge.delivery-policy-hash');
+    if (!$expected) {
+      throw new Exception(pht('Prepared recipient policy is unavailable.'));
+    }
+    $audit = array();
+    foreach ($this->loadAllActors() as $actor) {
+      $audit[$actor->getPHID()] = array(
+        'address' => $actor->getEmailAddress(),
+        'deliverable' => $actor->isDeliverable(),
+        'reasons' => $actor->getDeliverabilityReasons(),
+      );
+    }
+    return array('changed' => !hash_equals($expected,
+      $this->getGorgeActorPolicyHash($audit)));
+  }
+
+  public function applyGorgeDelivery(array $result) {
+    $snapshot = $this->getParam('gorge.delivery-snapshot');
+    if (!$snapshot || idx($result, 'deliveryID') !== $snapshot['deliveryID']) {
+      throw new Exception(pht('Delivery identity mismatch.'));
+    }
+    $revision = idx($result, 'revision');
+    if (!is_int($revision) || $revision < 0) {
+      throw new Exception(pht('Invalid delivery revision.'));
+    }
+    $states = array(
+      'accepted' => PhabricatorMailOutboundStatus::STATUS_SENT,
+      'failed' => PhabricatorMailOutboundStatus::STATUS_FAIL,
+      'unknown' => PhabricatorMailOutboundStatus::STATUS_UNKNOWN,
+      'expired' => PhabricatorMailOutboundStatus::STATUS_EXPIRED,
+      'cancelled' => PhabricatorMailOutboundStatus::STATUS_VOID,
+      'retry_wait' => PhabricatorMailOutboundStatus::STATUS_QUEUE,
+      'submitting' => PhabricatorMailOutboundStatus::STATUS_QUEUE,
+      'prepared' => PhabricatorMailOutboundStatus::STATUS_QUEUE,
+    );
+    $state = idx($result, 'state');
+    if (!isset($states[$state])) {
+      throw new Exception(pht('Invalid delivery state.'));
+    }
+    if (in_array($state, array('accepted', 'failed', 'unknown', 'expired', 'cancelled'), true) && $revision < 1) {
+      throw new Exception(pht('Terminal delivery requires a positive revision.'));
+    }
+    if ($revision <= (int)$this->getParam('gorge.delivery-revision')) {
+      return;
+    }
+    if ($state === 'accepted') {
+      $audit = $this->getParam('gorge.delivery-audit', array());
+      $this->setParam('actors.sent', idx($audit, 'actors', array()));
+      $this->setParam('routing.sent', idx($audit, 'routing'));
+      $this->setParam('routingmap.sent', idx($audit, 'routingmap'));
+    }
+    $this->setParam('gorge.delivery-revision', $revision);
+    $this->setParam('gorge.delivery-result', $result);
+    if ($state === 'accepted') {
+      $this->setParam('mailer.key', idx($snapshot, 'adapterKey', idx($result, 'mailerKey')));
+      $this->setParam('gorge.provider-key', idx($result, 'mailerKey'));
+    }
+    $this->setStatus($states[$state])->save();
   }
 
   public static function newMailers(array $constraints) {
@@ -689,6 +892,10 @@ final class PhabricatorMetaMTAMail
   }
 
   public function sendWithMailers(array $mailers) {
+    if ($this->getParam('gorge.delivery-owner') === 'gorge') {
+      throw new PhabricatorMetaMTAPermanentFailureException(
+        pht('This mail is owned by native Gorge delivery.'));
+    }
     if (!$mailers) {
       $any_mailers = self::newMailers(array());
 
@@ -745,12 +952,7 @@ final class PhabricatorMetaMTAMail
       $is_gorge = ($mailer->getAdapterType() === 'gorge');
 
       try {
-        $message = $type->newMailMessageEngine()
-          ->setMailer($mailer)
-          ->setMail($this)
-          ->setActors($actors)
-          ->setPreferences($preferences)
-          ->newMessage($mailer);
+        $message = $this->newExternalMessageForMailer($mailer, $actors, $preferences);
       } catch (Exception $ex) {
         $exceptions[] = $ex;
         continue;

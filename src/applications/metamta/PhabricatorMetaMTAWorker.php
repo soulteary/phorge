@@ -12,19 +12,24 @@ final class PhabricatorMetaMTAWorker
   }
 
   protected function doWork() {
-    $message = $this->loadMessage();
-
-    if ($message->getStatus() != PhabricatorMailOutboundStatus::STATUS_QUEUE) {
-      return;
-    }
-
+    $id = (int)$this->getTaskData();
+    $lock = PhabricatorGlobalLock::newLock('gorge-mail', array('id' => $id));
+    $lock->lock(5);
     try {
-      $message->sendNow();
-    } catch (PhabricatorMetaMTAPermanentFailureException $ex) {
-      // If the mailer fails permanently, fail this task permanently.
-      throw new PhabricatorWorkerPermanentFailureException($ex->getMessage());
+      $message = $this->loadMessage();
+      if ($message->getStatus() != PhabricatorMailOutboundStatus::STATUS_QUEUE) {
+        return;
+      }
+      try {
+        $message->sendNow();
+      } catch (PhabricatorMetaMTAPermanentFailureException $ex) {
+        throw new PhabricatorWorkerPermanentFailureException($ex->getMessage());
+      }
+    } finally {
+      $lock->unlock();
     }
   }
+
 
   private function loadMessage() {
     $message_id = $this->getTaskData();

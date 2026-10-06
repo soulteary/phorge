@@ -209,6 +209,9 @@ EODOC
       pht('Configuring Outbound Email')));
 
     return array(
+      $this->newOption('metamta.gorge-delivery-mode', 'string', 'legacy')
+        ->setDescription(pht('Use native for durable Gorge email delivery; legacy retains the existing worker.')),
+
       $this->newOption('cluster.mailers', 'cluster.mailers', array())
         ->setHidden(true)
         ->setDescription($mailers_description),

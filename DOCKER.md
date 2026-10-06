@@ -2008,3 +2008,62 @@ migrate 配置角色。此开关默认 false。新通知与 Feed 事件在同一
 关闭通知时 deployment 显式写空 servers，以覆盖旧 local/DB 配置；显式清空
 `cluster.instance` 会恢复 default。切换配置时暂停消费者，待部署政策文件
 全部生成后再恢复，避免 PHP 与 Go 读取不同配置版本。
+
+## 原生邮件投递编排 v1
+
+默认 `GORGE_MAIL_DELIVERY_MODE=legacy`。新实现已经具备生产事件、准备任务、
+原生提交、投递账本和独立结果投影；启用前仍需使用目标供应商做真实邮件验收。
+没有供应商凭据的本地测试不能替代上线验收。
+
+1. 暂停旧邮件消费者，更新 PHP、Gorge mailer/worker，运行
+   `bin/storage upgrade` 创建 metamta outbox、delivery 和 attempt 表。
+2. 配置 `GORGE_MAILER_DELIVERY_DSN` 与 `GORGE_WORKER_MAIL_OUTBOX_DSN`，两者均
+   指向 `${PHORGE_DB_NAMESPACE}_metamta`；使用同一实例，不要共享多个实例的账本。
+   配置 `GORGE_WORKER_MAILER_URL=http://gorge-mailer:8110` 和非空
+   `GORGE_MAILER_TOKEN`，Worker 沿用同一 token。Conduit token 也必须非空且一致。
+   Worker 挂载的 `feed-policy.json` 同时提供邮件的全局 silent 开关。
+3. 先保持 legacy 生产，验证更新后的消费者、schema、mailer 和结果投影可用。
+   再设置 migrate 角色的 `GORGE_MAIL_DELIVERY_MODE=native` 并重新生成 deployment。
+   只有之后新建的 email 进入新路径；短信和旧邮件仍走兼容 Worker。
+4. 在测试邮件中核验 To/CC、订阅偏好、线程头、附件、静默开关和邮件详情状态。
+   Native 重试冻结快照；发送前复核收件人决策，变化时取消尚未提交的旧快照。
+5. 历史 queued 邮件先预览：
+   `php scripts/setup/migrate_gorge_mail.php --limit 100`；核对后加 `--apply`。
+   用输出的 `next after-id` 配合 `--after-id` 继续分页。
+   认领与旧 Worker 共用锁，旧 sendNow 拒绝 Gorge-owned 邮件。
+   24 小时截止时间从原邮件创建时间计算，陈旧邮件会过期，不能盲目补发。
+
+回滚将生产模式改回 legacy，仅影响未来新邮件。已经由 Gorge 认领的邮件继续
+由原路径排空或核对；不要清除 owner、快照或账本后交回旧发送器。
+`sent` 表示供应商接受；`unknown` 表示可能已被接受，必须核对后再决定是否
+创建新的邮件。取消接口仅允许 prepared/retry_wait，提交中不能撤回。
+
+监控 `metamta_gorgeoutbox.deliveredEpoch IS NULL`、
+`gorge_mail_delivery.projectionPending=1`、unknown、retry_wait 和 expired 数量。
+投影使用单调 revision；旧回执不能把 sent 改回 queued。
+默认 native 并发为 4，可用 `GORGE_MAILER_DELIVERY_CONCURRENCY` 调整到 1..64。
+未配置原生 handler 的新版 Worker 会延后邮件任务，不会委派给不存在的 PHP 类。
+
+本阶段保留旧邮件兼容入口。供应商结果查询、账户级限流、大附件引用及显式
+重发 generation 管理尚未覆盖，不应通过删除旧记录来模拟重发。
+
+邮件恢复补丁 `20261006.metamta.03.gorgerecovery.sql` 也必须执行。它从已有快照
+回填 deadline，并增加投影退避和恢复索引。Mailer 独立扫描悬挂提交和过期快照，
+即使原队列任务已取消也会落盘 unknown/expired，恢复扫描不会发送邮件。
+投影失败按记录退避，新增 `projectionAttempts/projectionNextAttempt/projectionLastError`
+用于排查。Worker readiness 会核验原生协议与投影 schema。
+新快照固定 PHP 选中的 mailerURI；Worker 配置不同的服务地址时停止准备，避免
+邮件进入错误后端。PHP adapter key 与 Go provider key 分别保留。
+
+原生邮件可通过带服务 token 的 `GET /api/mailer/delivery?deliveryID=...` 只读查询。
+接口返回状态与 revision、供应商回执、deadline、最近 12 次尝试和投影退避信息，
+不返回正文、收件人或附件，也不会触发发送。查询使用同一只读事务，超时为 5 秒；
+记录不存在返回 404，数据库暂不可用返回 503。排查 unknown 时先核对尝试时间与
+供应商日志；排查 accepted 且 projectionPending 为 true 时检查 PHP Conduit 回写，
+不要通过重发邮件来修复投影。示例：
+
+```sh
+curl --get "$GORGE_WORKER_MAILER_URL/api/mailer/delivery" \
+  -H "X-Service-Token: $GORGE_WORKER_MAILER_TOKEN" \
+  --data-urlencode 'deliveryID=mail/PHID-MAIL-example/1'
+```

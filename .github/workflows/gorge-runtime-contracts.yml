@@ -40,6 +40,7 @@ jobs:
           php tests/contract/worker/execution.php
           php tests/contract/worker/retirement.php
           php tests/contract/feed/outbox.php
+          php tests/contract/mail/outbox.php
 
   image-contracts:
     if: github.event_name == 'workflow_dispatch' && inputs.image_ref != ''

@@ -258,6 +258,8 @@ services:
       GORGE_SERVICE_TOKEN: ${GORGE_MAILER_TOKEN:-}
       # 单封邮件正文（纯文本与 HTML 各自）的长度上限，超出部分按 UTF-8 边界截断，
       # 不报错。它**不是**整个请求体的上限：那一项固定 10M、不可调，附件走的是它。
+      GORGE_MAILER_DELIVERY_CONCURRENCY: ${GORGE_MAILER_DELIVERY_CONCURRENCY:-4}
+      GORGE_MAILER_DELIVERY_DSN: ${GORGE_MAILER_DELIVERY_DSN:-}
       GORGE_MAILER_BODY_LIMIT: ${GORGE_MAILER_BODY_LIMIT:-524288}
       # 单个后端内部的重试次数与每次之间的等待秒数（失败到下一个后端之前先自己重试
       # 这么多次；判定为永久失败时立即短路，既不重试也不换后端）。
@@ -781,6 +783,9 @@ services:
       GORGE_WORKER_TASK_CLASS_FILTER: ${GORGE_WORKER_TASK_CLASS_FILTER:-}
       # Feed transaction outbox reads only the feed DB; queue inbox accepts
       # repeated events without creating duplicate tasks. This is a MySQL driver DSN.
+      GORGE_WORKER_MAIL_OUTBOX_DSN: ${GORGE_WORKER_MAIL_OUTBOX_DSN:-}
+      GORGE_WORKER_MAILER_URL: ${GORGE_WORKER_MAILER_URL:-}
+      GORGE_WORKER_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:-}
       GORGE_WORKER_OUTBOX_DSN: ${GORGE_WORKER_OUTBOX_DSN:-${MYSQL_USER:-phorge}:${MYSQL_PASSWORD:-phorge}@tcp(mysql:3306)/${GORGE_TASKQUEUE_NAMESPACE:-phabricator}_feed}
       GORGE_WORKER_FEED_POLICY_FILE: /etc/phorge/feed-policy.json
       GORGE_WORKER_NOTIFICATION_MODE: ${GORGE_WORKER_NOTIFICATION_MODE:-native}

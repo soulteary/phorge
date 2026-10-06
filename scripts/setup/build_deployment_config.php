@@ -452,6 +452,12 @@ if ($profile === 'collaboration') {
     $config['gitea.uri']);
 }
 
+$mail_delivery_mode = env_value('GORGE_MAIL_DELIVERY_MODE', 'legacy');
+if (!in_array($mail_delivery_mode, array('legacy', 'native'), true)) {
+  throw new Exception('Invalid GORGE_MAIL_DELIVERY_MODE.');
+}
+$config['metamta.gorge-delivery-mode'] = $mail_delivery_mode;
+
 // Feed delivery policy has one deployment owner shared by PHP and Go.
 // Import existing DB-only settings into local.json before enabling this path.
 $config['feed.http-hooks'] = array_key_exists('feed.http-hooks', $local)
