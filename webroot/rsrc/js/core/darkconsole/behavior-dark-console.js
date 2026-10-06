@@ -68,6 +68,7 @@ JX.behavior('dark-console', function(config, statics) {
 
   function init_console(visible) {
     statics.root = JX.$('darkconsole');
+    statics.readonlymode = !!config.readonlymode;
     statics.req = {all: {}, current: null};
     statics.tab = {all: {}, current: null};
 
@@ -282,9 +283,11 @@ JX.behavior('dark-console', function(config, statics) {
         }
 
         // Save user preference.
-        new JX.Request('/~/', JX.bag)
-          .setData({visible: statics.visible ? 1 : 0})
-          .send();
+        if (!statics.readonlymode) {
+          new JX.Request('/~/', JX.bag)
+            .setData({visible: statics.visible ? 1 : 0})
+            .send();
+        }
 
         // Force resize listeners to take effect.
         JX.Stratcom.invoke('resize');
@@ -293,6 +296,10 @@ JX.behavior('dark-console', function(config, statics) {
   }
 
   statics.root = statics.root || setup_console();
+  if (statics.readonlymode) {
+    return;
+  }
+
   if (config.quicksand && statics.quicksand_key) {
     config.key = statics.quicksand_key;
     config.color = statics.quicksand_color;
