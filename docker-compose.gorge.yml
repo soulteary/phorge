@@ -685,6 +685,9 @@ services:
       # 队列后端："mysql"（默认）或 "redis"。下面的 GORGE_TASKQUEUE_REDIS_* 只在这里
       # 是 "redis" 时才被读到。默认走 MySQL，也就是 phorge 自己的 {namespace}_worker 库。
       GORGE_TASKQUEUE_BACKEND: ${GORGE_TASKQUEUE_BACKEND:-mysql}
+      GORGE_TASKQUEUE_SCHEDULER_ENABLED: ${GORGE_TASKQUEUE_SCHEDULER_ENABLED:-false}
+      GORGE_TASKQUEUE_SCHEDULER_CONDUIT_URI: ${GORGE_TASKQUEUE_SCHEDULER_CONDUIT_URI:-http://gorge-conduit:8150}
+      GORGE_TASKQUEUE_SCHEDULER_CONDUIT_TOKEN: ${GORGE_CONDUIT_TOKEN:-}
 
       # 下面每一项都用 GORGE_TASKQUEUE_ 前缀，这是服务读配置时的**首选名**。无前缀的
       # 旧名（MYSQL_HOST / STORAGE_NAMESPACE / QUEUE_BACKEND …）服务也认，但那是留给

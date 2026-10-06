@@ -57,6 +57,7 @@ jobs:
           php tests/contract/worker/cutover.php
           php tests/contract/worker/startup_http.php
           php tests/contract/cleanup/runtime.php
+          php tests/contract/scheduler/runtime.php
           php tests/contract/worker/execution.php
           php tests/contract/worker/retirement.php
           php tests/contract/feed/outbox.php

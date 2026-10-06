@@ -42,3 +42,18 @@ Trigger, for example:
 | id | phid                           | triggerVersion | clockClass                        | clockProperties | actionClass                          | actionProperties                                                                                                                                                                                   |
 |----|--------------------------------|----------------|-----------------------------------|-----------------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |  1 | PHID-TRIG-ywy5v5zouv744zhnjed5 |              1 | PhabricatorMetronomicTriggerClock | {"period":3600} | PhabricatorScheduleTaskTriggerAction | {"class":"PhabricatorCalendarImportReloadWorker","data":{"importPHID":"PHID-CIMP-ielkbnijgs5w6hmjsypu","via":"trigger"},"options":{"objectPHID":"PHID-CIMP-ielkbnijgs5w6hmjsypu","priority":3000}} |
+
+= Gorge Persistent Scheduling =
+
+Upgraded deployments may delegate trigger timing to the Gorge taskqueue service.
+PHP retains clock computation through the authenticated, read-only `trigger.plan`
+method. Gorge atomically commits event advancement with task enqueue in the same
+MySQL worker database. This mode currently supports task scheduling actions only.
+
+After schema upgrade and enabling the MySQL scheduler, use `bin/trigger owner`
+to inspect ownership. Switch with `--set paused`, then `--set gorge` or `--set php`.
+All PHP daemon instances must include the ownership guard before takeover.
+The TriggerDaemon still runs GC, calendar notifications and importer polling.
+Deleting a trigger invalidates plans which have not committed; it does not cancel
+an already queued task. See Gorge `docs/modules/scheduler.md` for the full rollout,
+capability checks, recovery guarantees and rollback procedure.

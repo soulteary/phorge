@@ -89,24 +89,22 @@ final class PhabricatorTriggerDaemon
           $ex);
       }
 
-      // Run the scheduling phase. This finds updated triggers which we have
-      // not scheduled yet and schedules them.
-      $last_version = $this->loadCurrentCursor();
-      $head_version = $this->loadCurrentVersion();
-
-      // The cursor points at the next record to process, so we can only skip
-      // this step if we're ahead of the version number.
-      if ($last_version <= $head_version) {
-        $this->scheduleTriggers($last_version);
-      }
-
-      // Run the execution phase. This finds events which are due to execute
-      // and runs them.
-      $this->executeTriggers();
+      // The shared row lock drains a PHP cycle before ownership changes.
+      // Gorge uses the same lock for atomic event/queue transactions.
+      $owns_triggers = PhabricatorWorkerGorgeSchedulerControl::runPHP(function() {
+        $last_version = $this->loadCurrentCursor();
+        $head_version = $this->loadCurrentVersion();
+        if ($last_version <= $head_version) {
+          $this->scheduleTriggers($last_version);
+        }
+        $this->executeTriggers();
+      });
 
       $lock->unlock();
 
-      $sleep_duration = $this->getSleepDuration();
+      $sleep_duration = $owns_triggers
+        ? $this->getSleepDuration()
+        : phutil_units('3 minutes in seconds');
       $sleep_duration = $this->runNuanceImportCursors($sleep_duration);
       $sleep_duration = $this->runGarbageCollection($sleep_duration);
       $sleep_duration = $this->runCalendarNotifier($sleep_duration);
@@ -154,6 +152,18 @@ final class PhabricatorTriggerDaemon
 
       foreach ($triggers as $trigger) {
         $event = $trigger->getEvent();
+        // Go may have already materialized this version while the PHP cursor
+        // was stopped. Do not reset its pending first occurrence on rollback.
+        $materialized = queryfx_one(
+          $trigger->establishConnection('w'),
+          'SELECT scheduledVersion FROM %T WHERE triggerID = %d',
+          id(new PhabricatorWorkerGorgeSchedule())->getTableName(),
+          $trigger->getID());
+        if ($event && $materialized &&
+            $materialized['scheduledVersion'] == $trigger->getTriggerVersion()) {
+          $this->updateCursor($trigger->getTriggerVersion() + 1);
+          continue;
+        }
         if ($event) {
           $last_epoch = $event->getLastEventEpoch();
         } else {
@@ -181,6 +191,16 @@ final class PhabricatorTriggerDaemon
           // Retaining the last epoch allows them to do this, even if the
           // trigger is updated.
           $new_event->save();
+          queryfx(
+            $new_event->establishConnection('w'),
+            'INSERT INTO %T
+              (triggerID, scheduledVersion, retryAfter, lastEvaluatedEpoch)
+              VALUES (%d, %d, 0, 0)
+              ON DUPLICATE KEY UPDATE
+                scheduledVersion = VALUES(scheduledVersion), retryAfter = 0',
+            id(new PhabricatorWorkerGorgeSchedule())->getTableName(),
+            $trigger->getID(),
+            $trigger->getTriggerVersion());
 
           // Move the cursor forward to make sure we don't reprocess this
           // trigger until it is updated again.

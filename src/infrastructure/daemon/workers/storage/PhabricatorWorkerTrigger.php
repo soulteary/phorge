@@ -158,10 +158,21 @@ final class PhabricatorWorkerTrigger
     PhabricatorDestructionEngine $engine) {
 
     $this->openTransaction();
+      queryfx_one(
+        $this->establishConnection('w'),
+        'SELECT id FROM %T WHERE id = %d FOR UPDATE',
+        $this->getTableName(),
+        $this->getID());
       queryfx(
         $this->establishConnection('w'),
         'DELETE FROM %T WHERE triggerID = %d',
         id(new PhabricatorWorkerTriggerEvent())->getTableName(),
+        $this->getID());
+
+      queryfx(
+        $this->establishConnection('w'),
+        'DELETE FROM %T WHERE triggerID = %d',
+        id(new PhabricatorWorkerGorgeSchedule())->getTableName(),
         $this->getID());
 
       $this->delete();

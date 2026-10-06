@@ -276,6 +276,10 @@ final class PhabricatorGorgeTaskQueueClient
    * @param int $task_id Task ID.
    * @return wild The "data" section of the envelope, a single task row.
    */
+  public function getSchedulerCapabilities() {
+    return $this->callGet('/api/queue/meta');
+  }
+
   public function getTask($task_id) {
     return $this->callGet(self::PATH_TASKS.'/'.(int)$task_id);
   }
