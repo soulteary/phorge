@@ -18,7 +18,7 @@ try {
       $count++;
     }
   }
-  if ($count !== 5) { throw new Exception('Expected search projection tests did not run.'); }
+  if ($count !== 6) { throw new Exception('Expected search projection tests did not run.'); }
   echo 'Search projection PHP checks passed: '.$count." tests.\n";
 } catch (Throwable $ex) {
   fwrite(STDERR, $ex->getMessage()."\n");

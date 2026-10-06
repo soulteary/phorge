@@ -2,6 +2,18 @@
 
 final class PhabricatorSearchAbstractDocument extends Phobject {
 
+  // Execution policy only; excluded from serialized content and its hash.
+  private $forceProjection = false;
+
+  public function setForceProjection($force) {
+    $this->forceProjection = (bool)$force;
+    return $this;
+  }
+
+  public function getForceProjection() {
+    return $this->forceProjection;
+  }
+
   private $phid;
   private $documentType;
   private $documentTitle;

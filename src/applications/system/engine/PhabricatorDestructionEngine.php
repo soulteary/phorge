@@ -32,6 +32,25 @@ final class PhabricatorDestructionEngine extends Phobject {
   }
 
   public function destroyObject(PhabricatorDestructibleInterface $object) {
+    if (!PhabricatorSearchDeletionRecovery::shouldCapture($object)) {
+      return $this->destroyObjectWithExtensions($object);
+    }
+    $phid = $object->getPHID();
+    $lock = PhabricatorGlobalLock::newLock(
+      'index', array('objectPHID' => $phid));
+    $lock->lock(5);
+    try {
+      PhabricatorSearchDeletionRecovery::begin($object);
+      $result = $this->destroyObjectWithExtensions($object);
+      PhabricatorSearchDeletionRecovery::reconcile($phid);
+      return $result;
+    } finally {
+      $lock->unlock();
+    }
+  }
+
+  private function destroyObjectWithExtensions(
+    PhabricatorDestructibleInterface $object) {
     $this->depth++;
 
     $log = id(new PhabricatorSystemDestructionLog())

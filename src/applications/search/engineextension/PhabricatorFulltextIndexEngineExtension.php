@@ -44,7 +44,7 @@ final class PhabricatorFulltextIndexEngineExtension
 
     $engine->setObject($object);
 
-    $engine->buildFulltextIndexes();
+    $engine->buildFulltextIndexes($this->shouldForceFullReindex());
   }
 
   private function getTransactionVersion($object) {

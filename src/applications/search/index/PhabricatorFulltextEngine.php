@@ -70,8 +70,9 @@ abstract class PhabricatorFulltextEngine
   }
 
   /** Existing callers retain build, local indexing and publication ordering. */
-  final public function buildFulltextIndexes() {
+  final public function buildFulltextIndexes($force_projection = false) {
     $document = $this->buildFulltextDocument();
+    $document->setForceProjection($force_projection);
     $this->indexLocalFulltextDocument($document);
     PhabricatorSearchService::reindexAbstractDocument($document);
   }

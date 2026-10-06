@@ -2132,3 +2132,16 @@ gorge-maintenance run-once cache.general.ttl
 也先 pause 已移交项。回滚为 pause、等待事务完成、resume 到 php，再恢复
 PHP 调度；已删数据不能靠切换执行权恢复。PHP 清理 SQL 暂留作灰度回滚，
 完成部署数据验收后再删除。执行边界和预算见 Gorge 的 maintenance 模块文档。
+
+### 搜索删除意图与恢复
+
+启用 `gorge.search.projection-shadow` 前，先在全部 PHP 节点部署代码并运行
+`bin/storage upgrade`，创建 `search_gorgedeletion`。经销毁引擎处理的 Lisk
+全文对象，会先持久化删除意图，再删除源对象。Trigger 自动恢复未完成意图；
+也可运行 `php scripts/setup/recover_gorge_search_deletions.php` 做最多 32 项的
+恢复批次。该命令会发布搜索 tombstone，不是只读检查，不会删除业务对象。
+源对象仍存在、源查询失败或源类已退役时不发布删除。
+
+这是搜索 shadow 的恢复边界，不能替代生产重建与切换验收。直接 SQL 删除、
+非 Lisk 对象及外层事务中的销毁尚未覆盖；已开启捕获的外层事务销毁会拒绝
+执行，应先拆清提交边界。关闭 shadow 暂停自动恢复，不删除历史意图。

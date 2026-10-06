@@ -58,6 +58,7 @@ jobs:
           php tests/contract/mail/outbox.php
           php tests/contract/search/projection.php
           php tests/contract/search/outbox.php
+          php tests/contract/search/deletion.php
       - name: Verify paired cleanup contracts
         working-directory: .test-gorge/go
         env:

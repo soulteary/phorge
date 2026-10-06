@@ -45,6 +45,40 @@ final class PhabricatorSearchProjectionTestCase extends PhabricatorTestCase {
     $this->assertEqual(array('enrich', 'local'), $events->getArrayCopy());
   }
 
+  public function testForcedIndexPolicyReachesBuiltDocument() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('cluster.search', array());
+    $fulltext = new class extends PhabricatorFulltextEngine {
+      public $document;
+      protected function newFulltextExtensions() { return array(); }
+      protected function buildAbstractDocument($document, $object) {
+        $document->setDocumentTitle('same content');
+        $this->document = $document;
+      }
+    };
+    $object = new class($fulltext) extends Phobject {
+      private $engine;
+      public function __construct($engine) { $this->engine = $engine; }
+      public function getPHID() { return 'PHID-TASK-force'; }
+      public function newFulltextEngine() { return $this->engine; }
+    };
+    $extension = new PhabricatorFulltextIndexEngineExtension();
+    $extension->setParameters(array('force' => true));
+    $extension->indexObject(new PhabricatorIndexEngine(), $object);
+    $forced = $fulltext->document;
+    $this->assertTrue($forced->getForceProjection());
+    $extension->setParameters(array('force' => false));
+    $extension->indexObject(new PhabricatorIndexEngine(), $object);
+    $normal = $fulltext->document;
+    $this->assertFalse($normal->getForceProjection());
+    $this->assertEqual(
+      PhabricatorSearchDocumentSerializer::newDocumentSpec($normal),
+      PhabricatorSearchDocumentSerializer::newDocumentSpec($forced));
+    $this->assertEqual(
+      PhabricatorSearchDocumentSerializer::getDocumentHash($normal),
+      PhabricatorSearchDocumentSerializer::getDocumentHash($forced));
+  }
+
   public function testWireProjectionPreservesTuples() {
     $doc = id(new PhabricatorSearchAbstractDocument())
       ->setPHID('PHID-TASK-test')->setDocumentType('TASK')

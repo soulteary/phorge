@@ -21,6 +21,7 @@ final class PhabricatorTriggerDaemon
   private $nuanceCursors;
 
   private $calendarEngine;
+  private $nextSearchDeletionRecovery = 0;
 
   protected function run() {
 
@@ -109,6 +110,19 @@ final class PhabricatorTriggerDaemon
       $sleep_duration = $this->runNuanceImportCursors($sleep_duration);
       $sleep_duration = $this->runGarbageCollection($sleep_duration);
       $sleep_duration = $this->runCalendarNotifier($sleep_duration);
+      if (PhabricatorEnv::getEnvConfig('gorge.search.projection-shadow') &&
+          PhabricatorTime::getNow() >= $this->nextSearchDeletionRecovery) {
+        $this->nextSearchDeletionRecovery = PhabricatorTime::getNow() + 60;
+        try {
+          PhabricatorSearchDeletionRecovery::recoverBatch();
+        } catch (Throwable $ex) {
+          phlog(pht('Search deletion recovery is unavailable.'));
+        }
+      }
+
+      if (PhabricatorEnv::getEnvConfig('gorge.search.projection-shadow')) {
+        $sleep_duration = min($sleep_duration, 60);
+      }
 
       if ($this->shouldHibernate($sleep_duration)) {
         break;

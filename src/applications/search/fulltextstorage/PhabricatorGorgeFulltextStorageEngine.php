@@ -69,7 +69,8 @@ final class PhabricatorGorgeFulltextStorageEngine
     if (PhabricatorEnv::getEnvConfig('gorge.search.projection-shadow')) {
       try {
         PhabricatorSearchProjectionPublisher::publishDocument(
-          PhabricatorEnv::getEnvConfig('storage.default-namespace'), $doc);
+          PhabricatorEnv::getEnvConfig('storage.default-namespace'), $doc,
+          null, $doc->getForceProjection());
       } catch (Throwable $ex) {
         throw new PhabricatorSearchProjectionException(
           pht('Unable to persist the search projection.'), 0, $ex);

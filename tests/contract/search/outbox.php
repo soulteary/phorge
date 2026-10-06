@@ -42,7 +42,26 @@ try {
   if ($first !== $repeat || $first['revision'] !== '1') {
     throw new Exception('Snapshot retry did not retain its revision and event.');
   }
-  $forced = PhabricatorSearchProjectionPublisher::publishDocument($namespace, $doc, null, true);
+  // Exercise the actual adapter's capture, without a remote backend write.
+  $env->overrideEnvConfig('gorge.search.projection-shadow', true);
+  $adapter = new PhabricatorGorgeFulltextStorageEngine();
+  $service = new class($adapter) extends PhabricatorSearchService {
+    public function getAnyHostForRole($role) {
+      throw new RuntimeException('contract: capture complete');
+    }
+  };
+  $adapter->setService($service);
+  $doc->setForceProjection(true);
+  try {
+    $adapter->reindexAbstractDocument($doc);
+    throw new Exception('Contract host boundary was not reached.');
+  } catch (RuntimeException $ex) {
+    if ($ex->getMessage() !== 'contract: capture complete') { throw $ex; }
+  }
+  $forced_row = $admin->query(
+    'SELECT payload FROM search_gorgeoutbox ORDER BY id DESC LIMIT 1')->fetch_assoc();
+  $forced = phutil_json_decode($forced_row['payload']);
+  $doc->setForceProjection(false);
   $deleted = PhabricatorSearchProjectionPublisher::publishDeletion(
     $namespace, $doc->getPHID(), 'TASK', 'authoritative-delete');
   $restored = PhabricatorSearchProjectionPublisher::publishDocument($namespace, $doc);
