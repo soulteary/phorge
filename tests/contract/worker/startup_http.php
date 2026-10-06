@@ -11,6 +11,22 @@ if (($_SERVER['HTTP_X_SERVICE_TOKEN'] ?? '') !== 'test-token') {
   http_response_code(401); exit;
 }
 switch ($_SERVER['REQUEST_URI']) {
+  case '/api/mailer/delivery-capabilities':
+    echo '{"data":{"schemaVersion":1,"recovery":true}}'; break;
+  case '/api/search/exists': echo '{"data":{"exists":true}}'; break;
+  case '/api/image/capabilities':
+    echo json_encode(array('data' => array('protocolVersion' => 1,
+      'recipeRevision' => 'phorge-v1', 'backendRevision' => 'fixture',
+      'recipes' => array_fill_keys(array('profile', 'pinboard', 'thumbgrid',
+        'preview', 'workcard'), array('width' => 1)),
+      'inputFormats' => array('image/jpeg', 'image/png', 'image/gif', 'image/webp'),
+      'animationPolicies' => array('legacy-static', 'legacy-preserve')))); break;
+  case '/api/maintenance/collectors':
+    $owner = file_exists(__DIR__.'/paused') ? 'paused' : 'gorge';
+    echo json_encode(array('data' => array_map(function($id) use ($owner) {
+      return array('id' => $id, 'owner' => $owner, 'policyHash' => 'fixture');
+    }, array('cache.general.ttl', 'cache.general', 'cache.markup',
+      'conduit.logs', 'daemon.processes', 'daemon.lock-log')))); break;
   case '/readyz': echo '{"status":"ok"}'; break;
   case '/login': echo '<html>login</html>'; break;
   case '/redirect': header('Location: /readyz'); break;
@@ -81,7 +97,34 @@ PHP
       throw new Exception('Startup CLI exit or credential isolation failed.');
     }
   }
-  echo "Startup HTTP contracts passed: auth, errors, redirects, bounds, diff, protocol.\n";
+  $config = array('gorge.service-policy' => 'required',
+    'gorge.image.mode' => 'gorge', 'gorge.image.uri' => $base,
+    'gorge.image.token' => 'test-token', 'phd.gorge-cleanup' => true,
+    'metamta.gorge-delivery-mode' => 'native', 'gorge.mailer.exclusive' => true,
+    'gorge.taskqueue.owner' => 'gorge', 'gorge.search.token' => 'test-token',
+    'cluster.mailers' => array(array('type' => 'gorge', 'options' => array(
+      'uri' => $base, 'token' => 'test-token'))),
+    'cluster.search' => array(array('type' => 'gorge', 'hosts' => array(array(
+      'host' => '127.0.0.1', 'port' => (int)parse_url($base, PHP_URL_PORT),
+      'protocol' => 'http', 'roles' => array('read' => true, 'write' => true))))));
+  file_put_contents($directory.'/deployment.json', json_encode($config));
+  foreach (array(false => 0, true => 1) as $paused => $expected) {
+    if ($paused) { file_put_contents($directory.'/paused', '1'); }
+    $child = proc_open(array(PHP_BINARY,
+      __DIR__.'/../../../scripts/setup/check_gorge_cutover.php',
+      $directory.'/deployment.json', $directory.'/local.json'),
+      array(1 => array('pipe', 'w'), 2 => array('pipe', 'w')), $output, null,
+      array('GORGE_WORKER_URI' => $base, 'GORGE_WORKER_TOKEN' => 'test-token',
+        'GORGE_MAINTENANCE_URI' => $base, 'GORGE_MAINTENANCE_TOKEN' => 'test-token',
+        'PHORGE_GORGE_STARTUP_TIMEOUT' => '1'));
+    $stdout = stream_get_contents($output[1]);
+    $stderr = stream_get_contents($output[2]);
+    fclose($output[1]); fclose($output[2]);
+    if (proc_close($child) !== $expected || strpos($stderr, 'test-token') !== false) {
+      throw new Exception('Cutover CLI ownership or credential isolation failed.');
+    }
+  }
+  echo "Startup HTTP contracts passed: auth, errors, redirects, bounds, diff, protocol, cutover CLI.\n";
 } finally {
   if (is_resource($process)) { proc_terminate($process); proc_close($process); }
   foreach (glob($directory.'/*') as $file) { unlink($file); }

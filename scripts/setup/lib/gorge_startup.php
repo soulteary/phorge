@@ -34,6 +34,18 @@ function gorge_startup_probes(array $config, $worker_uri, $worker_token) {
         $token, null, 'execution', true);
     }
   }
+  $image_mode = isset($config['gorge.image.mode'])
+    ? $config['gorge.image.mode'] : 'legacy';
+  if ($image_mode !== 'legacy') {
+    $uri = isset($config['gorge.image.uri']) ? $config['gorge.image.uri'] : '';
+    $token = isset($config['gorge.image.token'])
+      ? $config['gorge.image.token'] : null;
+    $probes[] = array('image readiness', rtrim($uri, '/').'/readyz',
+      $token, null, 'ready', $image_mode === 'gorge');
+    $probes[] = array('image capabilities', rtrim($uri, '/').
+      '/api/image/capabilities', $token, null, 'image',
+      $image_mode === 'gorge');
+  }
   if ($worker_uri) {
     // Worker readiness includes a callback to PHP, which has not started yet.
     // Static capabilities are safe here; /readyz gates daemon startup later.
@@ -52,6 +64,13 @@ function gorge_startup_probes(array $config, $worker_uri, $worker_token) {
       $probes[] = array('mailer', rtrim($options['uri'], '/').'/readyz',
         isset($options['token']) ? $options['token'] : null, null, 'ready',
         $mode === 'required');
+      if (isset($config['metamta.gorge-delivery-mode']) &&
+          $config['metamta.gorge-delivery-mode'] === 'native') {
+        $probes[] = array('native mail ledger', rtrim($options['uri'], '/').
+          '/api/mailer/delivery-capabilities',
+          isset($options['token']) ? $options['token'] : null,
+          null, 'mail-delivery', true);
+      }
     }
   }
   foreach (isset($config['cluster.search']) ? $config['cluster.search'] : array()
@@ -110,6 +129,42 @@ function gorge_startup_valid($shape, $json) {
   }
   $data = $json['data'];
   switch ($shape) {
+    case 'mail-delivery':
+      return isset($data['schemaVersion'], $data['recovery']) &&
+        $data['schemaVersion'] === 1 && $data['recovery'] === true;
+    case 'image':
+      if (!isset($data['protocolVersion'], $data['recipeRevision'],
+          $data['backendRevision'], $data['recipes'], $data['inputFormats'],
+          $data['animationPolicies']) || $data['protocolVersion'] !== 1 ||
+          $data['recipeRevision'] !== 'phorge-v1' ||
+          !is_string($data['backendRevision']) || !$data['backendRevision'] ||
+          !is_array($data['recipes']) || !is_array($data['inputFormats']) ||
+          !is_array($data['animationPolicies'])) {
+        return false;
+      }
+      foreach (array('profile', 'pinboard', 'thumbgrid', 'preview', 'workcard')
+        as $recipe) {
+        if (!isset($data['recipes'][$recipe])) { return false; }
+      }
+      return !array_diff(array('image/jpeg', 'image/png', 'image/gif',
+        'image/webp'), $data['inputFormats']) &&
+        !array_diff(array('legacy-static', 'legacy-preserve'),
+          $data['animationPolicies']);
+    case 'live-index':
+      return isset($data['exists']) && $data['exists'] === true;
+    case 'cleanup-owners':
+      $expected = array('cache.general.ttl', 'cache.general', 'cache.markup',
+        'conduit.logs', 'daemon.processes', 'daemon.lock-log');
+      $seen = array();
+      foreach ($data as $state) {
+        if (!is_array($state) || !isset($state['id'], $state['owner'],
+            $state['policyHash']) || $state['owner'] !== 'gorge' ||
+            !is_string($state['policyHash']) || !$state['policyHash'] ||
+            !in_array($state['id'], $expected, true) ||
+            isset($seen[$state['id']])) { return false; }
+        $seen[$state['id']] = true;
+      }
+      return count($seen) === count($expected);
     case 'execution':
       return isset($data['executionVersion'], $data['leaseOutcomes']) &&
         $data['executionVersion'] === 1 && $data['leaseOutcomes'] === true;

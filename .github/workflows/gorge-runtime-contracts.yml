@@ -28,7 +28,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mysqli, mbstring
+          extensions: mysqli, mbstring, curl
           coverage: none
       - uses: actions/checkout@v6
         with:
@@ -44,6 +44,8 @@ jobs:
         with:
           go-version-file: .test-gorge/go/go.mod
           cache-dependency-path: .test-gorge/go/go.sum
+      - name: Verify production Compose topology
+        run: python3 tests/contract/worker/production_compose.py
       - name: Verify execution, provider retirement and feed transaction rollback
         env:
           GORGE_TEST_ARCANIST_DIR: ${{ github.workspace }}/.test-arcanist
@@ -52,7 +54,7 @@ jobs:
           GORGE_TEST_MYSQL_PORT: '3306'
           GORGE_TEST_MYSQL_PASSWORD: gorge-contract-only
         run: |
-          php tests/contract/worker/startup.php
+          php tests/contract/worker/cutover.php
           php tests/contract/worker/startup_http.php
           php tests/contract/cleanup/runtime.php
           php tests/contract/worker/execution.php

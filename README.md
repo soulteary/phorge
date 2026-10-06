@@ -17,6 +17,10 @@ Phorge includes applications for:
 
 Phorge is developed and maintained by [The Phorge Team](https://phorge.it).
 
+## Gorge 生产切换
+
+搜索、原生邮件、图片与六类缓存/日志清理的统一覆盖配置、交接步骤及只读验收见 [PRODUCTION-CUTOVER.md](PRODUCTION-CUTOVER.md)。
+
 ## 本地化 / Localization
 
 本仓库内置简体中文（`zh_CN`）界面本地化，默认可选（默认语言仍为英文）。启用方式、运行时链路与翻译维护工具链详见 [I18N-zh_CN.md](I18N-zh_CN.md)。

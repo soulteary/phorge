@@ -1,0 +1,108 @@
+# Opt-in convergence of the existing production paths. Search projection
+# generations remain shadow-only. Apply with docker-compose.yml, using
+# --profile mailer --profile search --profile maintenance.
+services:
+  gorge-image:
+    extends:
+      file: docker-compose.image.yml
+      service: gorge-image
+  gorge-mailer:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-mailer, PORT: 8110}
+    image: gorge-mailer:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_MAILER_TOKEN:?Set GORGE_MAILER_TOKEN}
+      GORGE_MAILER_DELIVERY_DSN: ${GORGE_MAILER_DELIVERY_DSN:?Set metamta delivery DSN}
+  gorge-search:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-search, PORT: 8120}
+    image: gorge-search:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_SEARCH_TOKEN:?Set GORGE_SEARCH_TOKEN}
+  gorge-taskqueue:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-taskqueue, PORT: 8090}
+    image: gorge-taskqueue:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:?Set GORGE_TASKQUEUE_TOKEN}
+  gorge-worker:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-worker, PORT: 8170}
+    image: gorge-worker:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_WORKER_TOKEN:-${GORGE_TASKQUEUE_TOKEN:?Set GORGE_TASKQUEUE_TOKEN}}
+      GORGE_WORKER_MAILER_URL: http://gorge-mailer:8110
+      GORGE_WORKER_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:?Set GORGE_MAILER_TOKEN}
+      GORGE_WORKER_MAIL_OUTBOX_DSN: ${GORGE_MAILER_DELIVERY_DSN:?Set metamta delivery DSN}
+  gorge-conduit:
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_CONDUIT_TOKEN:?Set GORGE_CONDUIT_TOKEN}
+  gorge-maintenance:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-maintenance, PORT: 8200}
+    image: gorge-maintenance:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_MAINTENANCE_TOKEN:?Set GORGE_MAINTENANCE_TOKEN}
+      GORGE_MAINTENANCE_CACHE_DSN: ${GORGE_MAINTENANCE_CACHE_DSN:?Set cache writer DSN}
+      GORGE_MAINTENANCE_CONDUIT_DSN: ${GORGE_MAINTENANCE_CONDUIT_DSN:?Set conduit writer DSN}
+      GORGE_MAINTENANCE_DAEMON_DSN: ${GORGE_MAINTENANCE_DAEMON_DSN:?Set daemon writer DSN}
+    volumes:
+      - phorge-conf:/etc/phorge:ro
+    healthcheck:
+      test: [CMD, wget, -qO-, 'http://127.0.0.1:8200/readyz']
+  phorge-migrate:
+    environment:
+      # Bootstrap the guard before importing policies or handing off ownership.
+      PHORGE_GORGE_POLICY: required
+      GORGE_CLEANUP_GUARD: 'true'
+      GORGE_IMAGE_URI: http://gorge-image:8190
+      GORGE_IMAGE_TOKEN: ${GORGE_IMAGE_TOKEN:?Set GORGE_IMAGE_TOKEN}
+      GORGE_IMAGE_MODE: gorge
+      # Optional config jobs publish native mail after the base migration.
+      GORGE_MAIL_DELIVERY_MODE: legacy
+    depends_on:
+      gorge-image:
+        condition: service_healthy
+  phorge-mailer-config:
+    environment:
+      PHORGE_GORGE_POLICY: required
+      GORGE_MAIL_DELIVERY_MODE: native
+      GORGE_MAILER_EXCLUSIVE: 'true'
+      GORGE_TASKQUEUE_URI: http://gorge-taskqueue:8090
+      GORGE_TASKQUEUE_TOKEN: ${GORGE_TASKQUEUE_TOKEN:?Set GORGE_TASKQUEUE_TOKEN}
+      GORGE_TASKQUEUE_MODE: enable
+  phorge-search-config:
+    environment:
+      PHORGE_GORGE_POLICY: required
+      GORGE_MAIL_DELIVERY_MODE: native
+      GORGE_SEARCH_EXCLUSIVE: 'true'
+      GORGE_SEARCH_KEEP_MYSQL: '0'
+    # Both jobs replace the deployment document; serialize their writes.
+    depends_on:
+      phorge-mailer-config:
+        condition: service_completed_successfully
+  phorge:
+    depends_on:
+      gorge-maintenance:
+        condition: service_started
+        required: true
+      phorge-mailer-config:
+        condition: service_completed_successfully
+        required: true
+      phorge-search-config:
+        condition: service_completed_successfully
+        required: true
+    environment:
+      PHORGE_GORGE_POLICY: required
+      GORGE_MAIL_DELIVERY_MODE: native
+      GORGE_MAINTENANCE_URI: http://gorge-maintenance:8200
+      GORGE_MAINTENANCE_TOKEN: ${GORGE_MAINTENANCE_TOKEN:?Set GORGE_MAINTENANCE_TOKEN}
+  phorge-daemon:
+    environment:
+      PHORGE_GORGE_POLICY: required
+      GORGE_MAIL_DELIVERY_MODE: native

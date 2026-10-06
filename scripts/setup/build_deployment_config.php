@@ -157,6 +157,14 @@ if ($config['gorge.image.shadow-percent'] > 100) {
   throw new Exception('GORGE_IMAGE_SHADOW_PERCENT must not exceed 100.');
 }
 
+if ($image_mode !== 'legacy' &&
+    (empty($config['gorge.image.uri']) || empty($config['gorge.image.token']))) {
+  throw new Exception('Active image mode requires GORGE_IMAGE_URI and token.');
+}
+if (getenv('GORGE_CLEANUP_GUARD') !== false) {
+  $config['phd.gorge-cleanup'] = env_bool('GORGE_CLEANUP_GUARD', false);
+}
+
 // Conduit callbacks arrive with the internal upstream Host. Keep the user's
 // existing aliases and append the one owned by this deployment.
 $upstream = env_value('GORGE_CONDUIT_UPSTREAM_URL', '');
@@ -481,9 +489,27 @@ if ($profile === 'collaboration') {
     $config['gitea.uri']);
 }
 
-$mail_delivery_mode = env_value('GORGE_MAIL_DELIVERY_MODE', 'legacy');
+$mail_delivery_mode = env_value('GORGE_MAIL_DELIVERY_MODE',
+  isset($config['metamta.gorge-delivery-mode'])
+    ? $config['metamta.gorge-delivery-mode'] : 'legacy');
 if (!in_array($mail_delivery_mode, array('legacy', 'native'), true)) {
   throw new Exception('Invalid GORGE_MAIL_DELIVERY_MODE.');
+}
+if ($mail_delivery_mode === 'native') {
+  $native_mailers = array_filter(
+    isset($config['cluster.mailers']) ? $config['cluster.mailers'] : array(),
+    function($mailer) {
+      return isset($mailer['type']) && $mailer['type'] === 'gorge' &&
+        (!isset($mailer['outbound']) || $mailer['outbound']) &&
+        !empty($mailer['options']['uri']) &&
+        !empty($mailer['options']['token']);
+    });
+  if (!$native_mailers ||
+      !isset($config['gorge.taskqueue.owner']) ||
+      $config['gorge.taskqueue.owner'] !== 'gorge') {
+    throw new Exception('Native mail requires an authenticated Gorge mailer '.
+      'and Gorge queue ownership.');
+  }
 }
 $config['metamta.gorge-delivery-mode'] = $mail_delivery_mode;
 
