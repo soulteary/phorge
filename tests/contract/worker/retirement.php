@@ -11,7 +11,8 @@ try {
   $working = ArcanistWorkingCopyIdentity::newFromPath($root);
   $count = 0;
   foreach (array('PhutilDefaultSyntaxHighlighterEngineTestCase',
-    'PhabricatorMailAdapterTestCase', 'PhabricatorDeploymentConfigBuilderTestCase',
+    'PhabricatorMailAdapterTestCase', 'PhabricatorMailConfigTestCase',
+    'PhabricatorDeploymentConfigBuilderTestCase',
     'PhabricatorFileStorageEngineTestCase', 'PhabricatorGorgeImageTestCase',
     'PhabricatorGorgeServiceRegistryTestCase') as $class) {
     foreach (id(new $class())->setWorkingCopy($working)->run() as $result) {

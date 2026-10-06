@@ -13,11 +13,8 @@
  *
  * The engine is discovered automatically by
  * @{method:PhabricatorFileStorageEngine::loadAllEngines}, so setting
- * `gorge.file.uri` is enough to make it writable -- but not enough to make it
- * win. Phorge's own engines have lower priority numbers and are selected
- * first, so an install which wants files to land here must also turn those
- * off; see "Configuring File Storage" and the file storage section of
- * DOCKER.md.
+ * `gorge.file.uri` selects new writes. Historical blob, local-disk and S3
+ * engines are read-only; retain their configuration for existing file reads.
  *
  * @task meta Engine Metadata
  * @task file Managing File Data

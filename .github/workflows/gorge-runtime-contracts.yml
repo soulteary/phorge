@@ -52,6 +52,8 @@ jobs:
           GORGE_TEST_MYSQL_PORT: '3306'
           GORGE_TEST_MYSQL_PASSWORD: gorge-contract-only
         run: |
+          php tests/contract/worker/startup.php
+          php tests/contract/worker/startup_http.php
           php tests/contract/cleanup/runtime.php
           php tests/contract/worker/execution.php
           php tests/contract/worker/retirement.php

@@ -30,6 +30,9 @@ x-phorge-environment: &phorge-environment
   # 服务端点、profile 与消费者所有权一次写入 deployment.json；Web 和 daemon
   # 将它作为高于数据库配置的只读来源加载。
   PHORGE_CONTROL_PLANE: deployment
+  PHORGE_GORGE_STARTUP_TIMEOUT: ${PHORGE_GORGE_STARTUP_TIMEOUT:-60}
+  GORGE_WORKER_URI: ${GORGE_WORKER_URI:-http://gorge-worker:8170}
+  GORGE_WORKER_TOKEN: ${GORGE_WORKER_TOKEN:-${GORGE_TASKQUEUE_TOKEN:-}}
   GORGE_MAIL_DELIVERY_MODE: ${GORGE_MAIL_DELIVERY_MODE:-legacy}
 
 services:
@@ -101,6 +104,10 @@ services:
       file: docker-compose.gorge.yml
       service: gorge-worker
     image: ghcr.io/soulteary/gorge:worker-${GORGE_WORKER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8170/readyz"]
+      timeout: 6s
+      start_period: 60s
 
   gorge-db-api:
     extends:
@@ -197,6 +204,14 @@ services:
     depends_on:
       phorge-migrate:
         condition: service_completed_successfully
+      # Optional profiles must publish their configuration before PHP loads
+      # the shared deployment document. They do not depend on PHP readiness.
+      phorge-mailer-config:
+        condition: service_completed_successfully
+        required: false
+      phorge-search-config:
+        condition: service_completed_successfully
+        required: false
       gorge-render:
         condition: service_started
       gorge-conduit:
@@ -244,7 +259,9 @@ services:
       gorge-taskqueue:
         condition: service_started
       gorge-worker:
-        condition: service_started
+        condition: service_healthy
+      phorge:
+        condition: service_healthy
     environment:
       <<: *phorge-environment
       PHORGE_CONTAINER_ROLE: daemon
@@ -271,6 +288,7 @@ services:
       PHORGE_AUTO_UPGRADE: "0"
       PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-auto}
       GORGE_MAILER_MODE: enable
+      GORGE_MAILER_EXCLUSIVE: ${GORGE_MAILER_EXCLUSIVE:-true}
       GORGE_MAILER_URI: ${GORGE_MAILER_URI:-http://gorge-mailer:8110}
       GORGE_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:-}
       GORGE_MAILER_KEY: ${GORGE_MAILER_KEY:-gorge-mailer}
@@ -294,6 +312,7 @@ services:
       PHORGE_AUTO_UPGRADE: "0"
       PHORGE_PRODUCT_PROFILE: ${PHORGE_PRODUCT_PROFILE:-auto}
       GORGE_SEARCH_MODE: enable
+      GORGE_SEARCH_EXCLUSIVE: ${GORGE_SEARCH_EXCLUSIVE:-true}
       GORGE_SEARCH_HOST: ${GORGE_SEARCH_HOST:-gorge-search}
       GORGE_SEARCH_PORT: ${GORGE_SEARCH_PORT:-8120}
       GORGE_SEARCH_PROTOCOL: ${GORGE_SEARCH_PROTOCOL:-http}

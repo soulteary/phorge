@@ -184,6 +184,35 @@ final class PhabricatorMailConfigTestCase
     $this->assertEqual(0, count($mailers));
   }
 
+  public function testGorgeExclusiveEmailPreservesSMSAndInbound() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.mailer.exclusive', true);
+    $env->overrideEnvConfig('cluster.mailers', array(
+      array('key' => 'other', 'type' => 'test'),
+      array('key' => 'gorge', 'type' => 'gorge', 'inbound' => false,
+        'options' => array('uri' => 'http://mailer.example.test')),
+    ));
+    $mailers = PhabricatorMetaMTAMail::newMailers(array(
+      'outbound' => true, 'media' => array('email'),
+    ));
+    $this->assertEqual(1, count($mailers));
+    $this->assertEqual('gorge', head($mailers)->getAdapterType());
+    $mailers = PhabricatorMetaMTAMail::newMailers(array(
+      'outbound' => true, 'media' => array('sms'),
+    ));
+    $this->assertEqual('test', head($mailers)->getAdapterType());
+    $mailers = PhabricatorMetaMTAMail::newMailers(array('outbound' => true));
+    foreach ($mailers as $mailer) {
+      if ($mailer->getAdapterType() !== 'gorge') {
+        $this->assertFalse($mailer->supportsMessageType('email'));
+      }
+    }
+    $mailers = PhabricatorMetaMTAMail::newMailers(array(
+      'inbound' => true, 'media' => array('email'),
+    ));
+    $this->assertEqual('test', head($mailers)->getAdapterType());
+  }
+
   private function newMailersWithConfig(
     array $config,
     array $constraints = array()) {

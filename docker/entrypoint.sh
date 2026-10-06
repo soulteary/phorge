@@ -51,6 +51,8 @@ case "$PHORGE_CONTAINER_ROLE" in
             echo "[entrypoint] missing $DEPLOYMENT_CONFIG_FILE; run phorge-migrate first." >&2
             exit 1
         }
+        php "$PHORGE_DIR/scripts/setup/check_gorge_startup.php" \
+            "$DEPLOYMENT_CONFIG_FILE" "$CONF_FILE"
         exec "$@"
         ;;
     migrate) ;;

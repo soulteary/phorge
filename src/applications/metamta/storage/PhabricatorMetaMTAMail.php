@@ -855,6 +855,21 @@ final class PhabricatorMetaMTAMail
       foreach ($mailers as $key => $mailer) {
         if (!$mailer->getSupportsOutbound()) {
           unset($mailers[$key]);
+          continue;
+        }
+        if (PhabricatorEnv::getEnvConfig('gorge.mailer.exclusive') &&
+            $mailer->getAdapterType() !== 'gorge') {
+          $media = $mailer->getMedia();
+          if (!$media) {
+            $media = $mailer->getSupportedMessageTypes();
+          }
+          $media = array_values(array_diff($media,
+            array(PhabricatorMailEmailMessage::MESSAGETYPE)));
+          if (!$media) {
+            unset($mailers[$key]);
+          } else {
+            $mailer->setMedia($media);
+          }
         }
       }
     }

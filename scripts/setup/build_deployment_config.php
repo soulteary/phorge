@@ -80,6 +80,14 @@ function nullable_env($key) {
   return strlen($value) ? $value : null;
 }
 
+function env_bool($key, $default) {
+  $value = env_value($key, $default ? 'true' : 'false');
+  if (!in_array($value, array('true', 'false', '1', '0'), true)) {
+    throw new Exception($key.' must be true, false, 1, or 0.');
+  }
+  return $value === 'true' || $value === '1';
+}
+
 function local_list(array $local, $key) {
   if (array_key_exists($key, $local) && is_array($local[$key])) {
     return $local[$key];
@@ -270,9 +278,19 @@ if ($mailer_mode !== 'preserve') {
     if (is_array($mailer) && isset($mailer['key']) && $mailer['key'] === $key) {
       continue;
     }
+    // Provider implementations are now inbound-only. Preserve credentials
+    // and inbound routing without allowing a retired outbound adapter to
+    // poison selection of the managed Gorge mailer.
+    if ($mailer_mode === 'enable' && is_array($mailer) &&
+        isset($mailer['type']) && in_array($mailer['type'],
+          array('smtp', 'sendmail', 'ses', 'sendgrid', 'mailgun', 'postmark'),
+          true)) {
+      $mailer['outbound'] = false;
+    }
     $mailers[] = $mailer;
   }
   if ($mailer_mode === 'enable') {
+    $config['gorge.mailer.exclusive'] = env_bool('GORGE_MAILER_EXCLUSIVE', true);
     $uri = env_value('GORGE_MAILER_URI', '');
     if (!strlen($uri)) {
       throw new Exception('GORGE_MAILER_URI is required in enable mode.');
@@ -304,6 +322,8 @@ if ($mailer_mode !== 'preserve') {
       $mailer['priority'] = $priority;
     }
     $mailers[] = $mailer;
+  } else {
+    $config['gorge.mailer.exclusive'] = false;
   }
   $config['cluster.mailers'] = array_values($mailers);
 }
@@ -323,9 +343,18 @@ if ($search_mode !== 'preserve') {
     if (!strlen($host)) {
       throw new Exception('GORGE_SEARCH_HOST is required in enable mode.');
     }
+    $exclusive = env_bool(
+      'GORGE_SEARCH_EXCLUSIVE', $service_policy === 'required');
     $keep_mysql =
       (env_value('GORGE_SEARCH_KEEP_MYSQL', '0') === '1') ||
       ($service_policy !== 'required');
+    if ($exclusive && env_value('GORGE_SEARCH_KEEP_MYSQL', '0') === '1') {
+      throw new Exception(
+        'GORGE_SEARCH_EXCLUSIVE conflicts with GORGE_SEARCH_KEEP_MYSQL=1.');
+    }
+    if ($exclusive) {
+      $search = array();
+    }
     if (!$keep_mysql) {
       $search = array_values(
         array_filter(
@@ -335,7 +364,7 @@ if ($search_mode !== 'preserve') {
               $engine['type'] === 'mysql');
           }));
     }
-    if ($service_policy !== 'required' && !$search) {
+    if (!$exclusive && $service_policy !== 'required' && !$search) {
       $search[] = array(
         'type' => 'mysql',
         'roles' => array('read' => true, 'write' => true),

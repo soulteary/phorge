@@ -212,6 +212,12 @@ EODOC
       $this->newOption('metamta.gorge-delivery-mode', 'string', 'legacy')
         ->setDescription(pht('Use native for durable Gorge email delivery; legacy retains the existing worker.')),
 
+      $this->newOption('gorge.mailer.exclusive', 'bool', false)
+        ->setLocked(true)
+        ->setSummary(pht('Use only Gorge for outbound email.'))
+        ->setDescription(pht(
+          'Exclude other adapters when selecting outbound email. Inbound '.
+          'mail and outbound SMS keep their configured adapters.')),
       $this->newOption('cluster.mailers', 'cluster.mailers', array())
         ->setHidden(true)
         ->setDescription($mailers_description),

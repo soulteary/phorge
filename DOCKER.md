@@ -12,11 +12,38 @@ Compose 启动。数据库基础设施单独放在 `docker-compose.mysql.yml`，
   Docker Compose 2.24.4 或更高版本，以支持 `!reset` 标签）
 - 无需预装 PHP / MySQL：镜像自建，数据库随 Compose 一起启动
 
+## 启动接管验证
+
+启动需要 Docker Compose 2.20 或更新版本，以支持可选 profile 配置任务的
+`depends_on.required=false`。Web 等待已启用的 mailer/search 配置任务成功后再加载部署配置。
+`mailer` profile 默认 `GORGE_MAILER_EXCLUSIVE=true`：旧 SMTP/provider 保留为收信适配器，
+出站邮件只选择 Gorge，SMS 仍使用原有适配器。`search` profile 默认
+`GORGE_SEARCH_EXCLUSIVE=true`：只发布 Gorge 搜索引擎；需要保留旧引擎时显式设为 false。
+独占模式与 `GORGE_SEARCH_KEEP_MYSQL=1` 冲突，生成器会拒绝该配置。
+
+Web/daemon 在执行主进程前运行 `scripts/setup/check_gorge_startup.php`。
+它检查已配置服务的 `/readyz`、两个 diff 路由、队列和 worker 的 v1 capability；
+搜索还调用只读 `/api/search/exists` 验证后端可达，`exists=false` 仍需初始化/重建索引。
+`PHORGE_GORGE_STARTUP_TIMEOUT` 默认为 60 秒（可设 1..600）。required 检查失败阻止启动，
+fallback 检查只告警；queue/worker 版本和 diff 路由不能降级到已经移除的 PHP 实现。
+邮件就绪只证明适配器/持久投递存储配置可用，不发送测试邮件，也不证明供应商接受投递。
+
+worker 的 `/api/worker/meta` 在 PHP 启动前报告静态 capability，避免启动闭环；
+`/readyz` 在 PHP 启动后验证 `worker.execute` capabilities、队列协议、政策和 outbox。
+首次握手成功前不会领取业务任务。daemon 等待 Web 和 worker 健康。
+迁移角色不等待 worker ready；否则新安装无法生成它需要的表和政策文件。
+
+配置非空且一致的 `GORGE_CONDUIT_TOKEN`，PHP 执行接口拒绝空 token。
+必须部署包含这些协议与探针的 Gorge 镜像；Phorge 的 `docker compose up --build`
+不会构建使用 `image:` 的 Gorge 服务。旧镜像缺少 capability 时会明确阻止启动。
+
 ## 快速启动
 
 ```bash
 # 1) 准备环境变量（可选，用于改密码 / 端口 / 域名；不改也能跑）
 cp .env.example .env
+# 编辑 .env，设置非空 GORGE_CONDUIT_TOKEN 和匹配本次协议的 Gorge 镜像标签。
+# token 可以用 openssl rand -hex 32 生成；PHP、gateway、worker 共用这个值。
 
 # 2) 构建 Phorge，并启动默认核心服务
 docker compose up -d --build
@@ -1240,50 +1267,16 @@ Phorge 把上传的文件（附件、头像、粘贴的图片、Diffusion 里的
 `GORGE_IMAGE_TAG`），容器内固定监听 `8100`，路由 `/api/file/*`。拉不到时本地构建一条
 命令即可。
 
-### 启用是两步，只做第一步等于白做且不报错
+### 新写入接管与历史文件读取
 
-**这是接这个服务时唯一真正容易踩的地方，请读完再动手。**
+`GORGE_FILE_URI` 在迁移阶段写入 `deployment.json`，新文件由 Gorge 存储。
+历史 `blob`、`local-disk` 和 `amazon-s3` 引擎已经拒绝写入，继续支持读取和删除。
+不要清空 `storage.local-disk.path`、`storage.s3.bucket` 或旧凭据；历史文件依赖这些配置。
+文件记录上的 `storageEngine` / `storageHandle` 决定使用哪个读取引擎。
 
-存储引擎靠 `PhutilClassMapQuery` 自动发现，所以 `gorge.file.uri`（由 `entrypoint.sh` 从
-`GORGE_FILE_URI` 写入）一配上，`gorge` 引擎立刻变成「可写」并**并列**出现在引擎表里。
-但它不会因此赢：写文件时 Phorge 调
-[`loadStorageEngines($size)`](src/applications/files/engine/PhabricatorFileStorageEngine.php)，
-按 `priority` **从小到大**把文件依次递给能收下它的引擎，而原生 blob 引擎的 `priority`
-是 `1`，比 `gorge` 的 `2` 更小。
-
-默认配置下的实际效果是：
-
-| 文件大小 | 落在哪个引擎 |
-|---------|------------|
-| ≤ 1,000,000 字节 | `blob`（MySQL，`priority` 1） |
-| 1,000,000 字节 ~ 8MB | `gorge`（`priority` 2） |
-| > 8MB | `chunks` 切成 4MB 一块，**每块**再走上面两行的规则 |
-
-也就是说新文件按大小散落在两套引擎里，**既不生效也不报错**——没有告警、没有失败上传，
-Config 页面也不会因为配置本身有问题而变红。所以第二步是把原生引擎关掉：
-
-```bash
-docker compose exec phorge /opt/phorge/phorge/bin/config set storage.mysql-engine.max-size 0
-# 这两项默认就是空的，配过才需要清
-docker compose exec phorge /opt/phorge/phorge/bin/config set storage.local-disk.path null
-docker compose exec phorge /opt/phorge/phorge/bin/config set storage.s3.bucket null
-```
-
-`storage.mysql-engine.max-size` 设 `0` 会让 blob 引擎的 `canWriteFiles()` 返回 false，
-于是它整个退出候选列表，`gorge` 成为 `priority` 最小的可写引擎。
-
-**切换是安全的增量迁移，不需要搬数据。** 引擎标识与 handle 是**按文件**存在
-`file` 表里的（`storageEngine` / `storageHandle` 两列），读文件时用的是当初写它的那个
-引擎，与 `loadStorageEngines()` 现在会怎么选完全无关。所以：
-
-- 已存文件继续由原来的引擎读取，一个字节都不用动；
-- 回滚就是把上面三项设回去，之后新文件重新落 MySQL，而这期间落在 `gorge` 里的文件
-  仍然读得出来（只要服务还在）。反过来说，**接过这个服务之后就不要再随便删掉那个
-  service 段**，否则那些文件读不出来，而且报的是「读取失败」而不是「配置不对」。
-
-这个「配了但没接上」的中间状态由 `PhabricatorGorgeFileStorageSetupCheck` 在 Config 页面
-报成 **"Gorge File Storage Service Not In Use"**，issue 正文里会列出具体哪些引擎排在
-前面。它存在的唯一理由就是让上面这段沉默变得可见。
+需要删除旧读取实现时，先用 `bin/files migrate --engine gorge --all --copy --dry-run`
+检查迁移范围，再执行复制迁移，并用 `bin/files integrity --all` 验证。
+仅改变配置不能证明历史文件已经迁移。Gorge 不可用时不会恢复旧写入。
 
 ### 为什么这个引擎刻意保留 8MB 上限
 
@@ -1315,15 +1308,11 @@ docker compose up -d --build
 docker compose exec phorge /opt/phorge/phorge/bin/config get gorge.file.uri
 docker compose exec gorge-file-storage wget -qO- http://127.0.0.1:8100/readyz
 
-# 3) 关掉原生引擎（这一步不能省，原因见上）
-docker compose exec phorge /opt/phorge/phorge/bin/config set storage.mysql-engine.max-size 0
-
-# 4) 确认引擎表里的顺序对了
-#    界面上：Applications → Files → Storage Engines。那张表按 priority 排序、可写的
-#    高亮，做完第 3 步后 gorge 应该是第一个高亮行，blob 的 Writable 变成 No。
+# 3) 确认只有 Gorge 接受新文件，历史引擎的 Writable 为 No。
+#    不需要修改历史存储路径或凭据。
 docker compose exec phorge /opt/phorge/phorge/bin/files engines
 
-# 5) 从 Web UI 上传一个小于 8MB 的文件和一个大于 8MB 的文件，在文件详情页（/F123）
+# 4) 从 Web UI 上传一个小于 8MB 的文件和一个大于 8MB 的文件，在文件详情页（/F123）
 #    看 "Storage Engine" 那一行：前者应该是 gorge，后者应该是 chunks（它的每一块
 #    再落到 gorge）。
 ```
