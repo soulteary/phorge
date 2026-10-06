@@ -57,6 +57,74 @@ final class PhabricatorDeploymentConfigBuilderTestCase
     }
   }
 
+  public function testNotificationPolicyAndIndependentOutbox() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $directory = Filesystem::createTemporaryDirectory();
+    try {
+      $local = $directory.'/local.json';
+      $deployment = $directory.'/deployment.json';
+      Filesystem::writeFile($local, phutil_json_encode(array(
+        'cluster.instance' => 'tenant a',
+        'gorge.service-policies' => array('notification' => 'fallback'),
+        'notification.servers' => array(
+          array('type' => 'admin', 'host' => 'notify', 'port' => 22281,
+            'protocol' => 'http', 'path' => 'notify'),
+          array('type' => 'admin', 'host' => 'disabled', 'port' => 22281,
+            'protocol' => 'http', 'disabled' => true),
+          array('type' => 'client', 'host' => 'public', 'port' => 443,
+            'protocol' => 'https'),
+        ),
+      )));
+      execx('env -i GORGE_NOTIFICATION_OUTBOX=true %s %s full %s %s',
+        PHP_BINARY, $root.'/scripts/setup/build_deployment_config.php',
+        $deployment, $local);
+      $config = phutil_json_decode(Filesystem::readFile($deployment));
+      $policy = phutil_json_decode(Filesystem::readFile(
+        $directory.'/notification-policy.json'));
+      $this->assertEqual(true, $config['gorge.notification.outbox']);
+      $this->assertEqual('tenant a', $policy['instance']);
+      $this->assertEqual('fallback', $policy['mode']);
+      $this->assertEqual(array('http://notify:22281/notify/'), $policy['endpoints']);
+      execx('env -i %s %s full %s %s', PHP_BINARY,
+        $root.'/scripts/setup/build_deployment_config.php', $deployment, $local);
+      $config = phutil_json_decode(Filesystem::readFile($deployment));
+      $this->assertEqual(false, $config['gorge.notification.outbox']);
+    } finally {
+      Filesystem::remove($directory);
+    }
+  }
+
+  public function testNotificationDisableAndInstanceResetOverrideOldDeployment() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $directory = Filesystem::createTemporaryDirectory();
+    try {
+      $local = $directory.'/local.json';
+      $deployment = $directory.'/deployment.json';
+      Filesystem::writeFile($deployment, phutil_json_encode(array(
+        'cluster.instance' => 'old-instance',
+      )));
+      Filesystem::writeFile($local, phutil_json_encode(array(
+        'cluster.instance' => null,
+        'notification.servers' => array(array(
+          'type' => 'admin', 'host' => 'old', 'port' => 22281,
+          'protocol' => 'http',
+        )),
+      )));
+      execx('env -i GORGE_NOTIFICATION_MODE=disable %s %s full %s %s',
+        PHP_BINARY, $root.'/scripts/setup/build_deployment_config.php',
+        $deployment, $local);
+      $config = phutil_json_decode(Filesystem::readFile($deployment));
+      $policy = phutil_json_decode(Filesystem::readFile(
+        $directory.'/notification-policy.json'));
+      $this->assertEqual(array(), $config['notification.servers']);
+      $this->assertEqual(null, $config['cluster.instance']);
+      $this->assertEqual(array(), $policy['endpoints']);
+      $this->assertEqual('default', $policy['instance']);
+    } finally {
+      Filesystem::remove($directory);
+    }
+  }
+
   public function testSearchHostShape() {
     $root = dirname(phutil_get_library_root('phabricator'));
     $script = $root.'/scripts/setup/build_deployment_config.php';

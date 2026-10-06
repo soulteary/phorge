@@ -55,6 +55,9 @@ EOTEXT
       $servers_example1);
 
     return array(
+      $this->newOption('gorge.notification.outbox', 'bool', false)
+        ->setSummary(pht('Publish realtime notifications through an independent outbox event.'))
+        ->setDescription(pht('Enable only after all Gorge workers support native notification delivery.')),
       $this->newOption('notification.servers', $servers_type, array())
         ->setHidden(true)
         ->setSummary(pht('Configure real-time notifications.'))

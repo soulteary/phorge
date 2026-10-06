@@ -175,6 +175,12 @@ if (strlen($upstream)) {
 $notification_mode = env_mode(
   'GORGE_NOTIFICATION_MODE',
   'GORGE_NOTIFICATION_ADMIN_HOST');
+if (array_key_exists('notification.servers', $local)) {
+  $config['notification.servers'] = $local['notification.servers'];
+}
+if (array_key_exists('gorge.service-policies', $local)) {
+  $config['gorge.service-policies'] = $local['gorge.service-policies'];
+}
 $notification_policy = $service_policy;
 $service_policy_overrides = isset($config['gorge.service-policies'])
   ? $config['gorge.service-policies']
@@ -184,8 +190,12 @@ if (is_array($service_policy_overrides) &&
   $notification_policy = $service_policy_overrides['notification'];
 }
 
+if (!in_array($notification_policy, $valid_service_policies, true)) {
+  throw new Exception('Invalid notification service policy.');
+}
+
 if ($notification_policy === 'off') {
-  unset($config['notification.servers']);
+  $config['notification.servers'] = array();
 } else if ($notification_mode === 'enable') {
   $admin_host = env_value('GORGE_NOTIFICATION_ADMIN_HOST', '');
   $client_host = env_value('GORGE_NOTIFICATION_CLIENT_HOST', '');
@@ -213,7 +223,43 @@ if ($notification_policy === 'off') {
     $client,
   );
 } else if ($notification_mode === 'disable') {
-  unset($config['notification.servers']);
+  $config['notification.servers'] = array();
+}
+
+// Shared authority for native notification execution and instance routing.
+$notification_instance = array_key_exists('cluster.instance', $local)
+  ? $local['cluster.instance'] : (isset($config['cluster.instance'])
+    ? $config['cluster.instance'] : null);
+if ($notification_instance !== null && !is_string($notification_instance)) {
+  throw new Exception('Invalid notification instance.');
+}
+$config['cluster.instance'] = $notification_instance;
+$notification_endpoints = array();
+foreach (isset($config['notification.servers']) ? $config['notification.servers'] : array() as $server) {
+  if ($server['type'] !== 'admin' || !empty($server['disabled'])) {
+    continue;
+  }
+  $host = $server['host'];
+  if (strpos($host, ':') !== false && $host[0] !== '[') {
+    $host = '['.$host.']';
+  }
+  $path = isset($server['path']) ? trim($server['path'], '/') : '';
+  $notification_endpoints[] = $server['protocol'].'://'.$host.':'.$server['port'].
+    '/'.(strlen($path) ? $path.'/' : '');
+}
+$notification_outbox = env_value('GORGE_NOTIFICATION_OUTBOX', 'false');
+if (!in_array($notification_outbox, array('true', 'false'), true)) {
+  throw new Exception('GORGE_NOTIFICATION_OUTBOX must be true or false.');
+}
+$config['gorge.notification.outbox'] = ($notification_outbox === 'true');
+$native_notification_policy = json_encode(array(
+  'version' => 1,
+  'mode' => $notification_policy,
+  'instance' => strlen((string)$notification_instance) ? $notification_instance : 'default',
+  'endpoints' => $notification_endpoints,
+), JSON_UNESCAPED_SLASHES);
+if ($native_notification_policy === false) {
+  throw new Exception('Unable to encode notification execution policy.');
 }
 
 $mailer_mode = env_mode('GORGE_MAILER_MODE', 'GORGE_MAILER_URI');
@@ -476,6 +522,14 @@ if (file_put_contents($policy_tmp, $feed_policy."\n", LOCK_EX) === false ||
     !chmod($policy_tmp, 0644) || !rename($policy_tmp, $policy_path)) {
   @unlink($policy_tmp);
   throw new Exception('Unable to publish feed execution policy.');
+}
+
+$policy_path = dirname($deployment_path).'/notification-policy.json';
+$policy_tmp = $policy_path.'.tmp.'.getmypid();
+if (file_put_contents($policy_tmp, $native_notification_policy."\n", LOCK_EX) === false ||
+    !chmod($policy_tmp, 0644) || !rename($policy_tmp, $policy_path)) {
+  @unlink($policy_tmp);
+  throw new Exception('Unable to publish notification execution policy.');
 }
 
 echo 'Wrote deployment configuration to '.$deployment_path.".\n";

@@ -10,6 +10,26 @@
 final class PhabricatorNotificationPublishWorker
   extends PhabricatorWorker {
 
+  public static function newGorgeEvent($chrono_key, array $message) {
+    $instance = PhabricatorEnv::getEnvConfig('cluster.instance');
+    if (!phutil_nonempty_string($instance)) {
+      $instance = 'default';
+    }
+    $event_id = 'notification.publish/'.$chrono_key;
+    return array(
+      'eventID' => $event_id,
+      'task' => array(
+        'taskClass' => self::class,
+        'data' => phutil_json_encode(array(
+          'deliveryVersion' => 1,
+          'eventID' => $event_id,
+          'instance' => $instance,
+          'message' => $message,
+        )),
+      ),
+    );
+  }
+
   protected function doWork() {
     $task_data = $this->getTaskData();
     $message = idx($task_data, 'message');

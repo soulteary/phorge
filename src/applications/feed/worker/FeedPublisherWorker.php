@@ -2,6 +2,24 @@
 
 final class FeedPublisherWorker extends FeedPushWorker {
 
+  public static function newGorgeEvents($chrono_key, array $task_data, $independent) {
+    $events = array();
+    if ($independent && isset($task_data['notification'])) {
+      $events[] = PhabricatorNotificationPublishWorker::newGorgeEvent(
+        $chrono_key, $task_data['notification']);
+      unset($task_data['notification']);
+      $task_data['notificationDeliveryVersion'] = 1;
+    }
+    $events[] = array(
+      'eventID' => 'feed.publish/'.$chrono_key,
+      'task' => array(
+        'taskClass' => self::class,
+        'data' => phutil_json_encode($task_data),
+      ),
+    );
+    return $events;
+  }
+
   protected function doWork() {
     $story = $this->loadFeedStory();
     $task_data = $this->getTaskData();
@@ -12,7 +30,8 @@ final class FeedPublisherWorker extends FeedPushWorker {
     // notification rows. Followups are committed atomically when this worker
     // completes, so a failure below does not leave a partial task batch.
     $notification = idx($task_data, 'notification');
-    if (is_array($notification)) {
+    if (idx($task_data, 'notificationDeliveryVersion') !== 1 &&
+        is_array($notification)) {
       $this->queueTask(
         'PhabricatorNotificationPublishWorker',
         array(

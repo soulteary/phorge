@@ -1981,3 +1981,30 @@ Taskmaster；保留 Trigger（定时事件）和 Fact（统计构建），它们
 调色板视觉差异仍需 shadow 验收，不应仅凭尺寸测试切换全量。
 GD仍用于内置头像、图标、Meme及SpriteSheet，本轮不得删除GD扩展。
 回滚设置GORGE_IMAGE_MODE=legacy并重新生成配置；已生成图片仍可读取。
+
+### 实时通知 Worker 原生迁移
+
+升级通知相关 PHP 与 Gorge worker 后，共享 conf 卷会生成
+`notification-policy.json`，Bundled worker 默认使用 `native`。也可以先设置
+`GORGE_WORKER_NOTIFICATION_MODE=shadow` 验证任务与政策；shadow 只校验，实际
+发送仍由 PHP 执行。`delegated` 可恢复 PHP 执行，`native` 不调用 PHP prepare/execute。
+已有 DB-only `notification.servers`、`cluster.instance` 与 notification 服务政策
+必须先导入 local.json；部署文件是原生 Worker 和 PHP 的共同配置来源。
+
+所有消费者都支持新版本后，再设置 `GORGE_NOTIFICATION_OUTBOX=true` 并运行
+migrate 配置角色。此开关默认 false。新通知与 Feed 事件在同一个 feed 数据库
+事务写入现有 outbox；新 Feed 父任务不再创建通知子任务，旧父任务继续兼容。
+没有配置 Gorge queue 的部署仍保留历史生产路径。回滚时关闭新事件生产，
+继续消费已提交事件；不要删除 outbox、inbox 或未完成任务。
+
+通知 admin HTTP 成功只表示服务接受消息；节点转发、浏览器接收与跨重启恢复
+没有新增持久保证。required 无 endpoint 的历史 no-op 行为保持不变并输出告警。
+统计可在受认证保护的 `/api/worker/notification-stats` 查看。PHP 通知 Worker
+仍保留作为回滚入口，ServerRef 和管理 UI 不退役。
+
+通知拆分范围：本次原生 Worker 处理 Feed 的 `type:notification`。Conpherence
+消息 (`message`) 和 Maniphest 看板刷新 (`workboards`) 仍从 PHP 直接投递；
+迁移这些入口前必须定义各自的事务/outbox 边界，不能删除 PHP 通知客户端。
+关闭通知时 deployment 显式写空 servers，以覆盖旧 local/DB 配置；显式清空
+`cluster.instance` 会恢复 default。切换配置时暂停消费者，待部署政策文件
+全部生成后再恢复，避免 PHP 与 Go 读取不同配置版本。

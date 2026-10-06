@@ -783,6 +783,8 @@ services:
       # repeated events without creating duplicate tasks. This is a MySQL driver DSN.
       GORGE_WORKER_OUTBOX_DSN: ${GORGE_WORKER_OUTBOX_DSN:-${MYSQL_USER:-phorge}:${MYSQL_PASSWORD:-phorge}@tcp(mysql:3306)/${GORGE_TASKQUEUE_NAMESPACE:-phabricator}_feed}
       GORGE_WORKER_FEED_POLICY_FILE: /etc/phorge/feed-policy.json
+      GORGE_WORKER_NOTIFICATION_MODE: ${GORGE_WORKER_NOTIFICATION_MODE:-native}
+      GORGE_WORKER_NOTIFICATION_POLICY_FILE: ${GORGE_WORKER_NOTIFICATION_POLICY_FILE:-/etc/phorge/notification-policy.json}
     volumes:
       - phorge-conf:/etc/phorge:ro
     # 与其余服务同理刻意不声明 ports：只有排障时才需要宿主入口访问它的 stats。

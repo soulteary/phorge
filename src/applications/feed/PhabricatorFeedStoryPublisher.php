@@ -164,18 +164,19 @@ final class PhabricatorFeedStoryPublisher extends Phobject {
       }
 
       if (PhabricatorGorgeTaskQueueClient::isConfigured()) {
-        $event_id = 'feed.publish/'.$chrono_key;
-        $payload = phutil_json_encode(array(
-          'eventID' => $event_id,
-          'task' => array(
-            'taskClass' => 'FeedPublisherWorker',
-            'data' => phutil_json_encode($task_data),
-          ),
-        ));
-        queryfx(
-          $story->establishConnection('w'),
-          'INSERT INTO %T (eventID, payload, lastError) VALUES (%s, %s, %s)',
-          'feed_gorgeoutbox', $event_id, $payload, '');
+        $events = FeedPublisherWorker::newGorgeEvents(
+          $chrono_key,
+          $task_data,
+          PhabricatorEnv::getEnvConfig('gorge.notification.outbox'));
+        foreach ($events as $event) {
+          queryfx(
+            $story->establishConnection('w'),
+            'INSERT INTO %T (eventID, payload, lastError) VALUES (%s, %s, %s)',
+            'feed_gorgeoutbox',
+            $event['eventID'],
+            phutil_json_encode($event),
+            '');
+        }
       } else {
         PhabricatorWorker::scheduleTask('FeedPublisherWorker', $task_data);
       }
