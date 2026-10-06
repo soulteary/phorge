@@ -144,6 +144,11 @@ EOTEXT
               ),
             ),
           )),
+      $this->newOption('gorge.search.source-scan', 'bool', false)
+        ->setLocked(true)
+        ->setDescription(pht(
+          'Allow authenticated bounded search source materialization. Requires '.
+          'shadow capture; does not authorize live index activation.')),
       $this->newOption('gorge.search.projection-shadow', 'bool', false)
         ->setLocked(true)
         ->setDescription(pht(

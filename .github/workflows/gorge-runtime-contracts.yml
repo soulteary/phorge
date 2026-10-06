@@ -48,6 +48,7 @@ jobs:
         env:
           GORGE_TEST_ARCANIST_DIR: ${{ github.workspace }}/.test-arcanist
           GORGE_TEST_CLEANUP_EXPORT: ${{ runner.temp }}/cleanup-export.json
+          GORGE_TEST_SEARCH_SCAN_PAGE: ${{ runner.temp }}/search-source-page.json
           GORGE_TEST_MYSQL_PORT: '3306'
           GORGE_TEST_MYSQL_PASSWORD: gorge-contract-only
         run: |
@@ -59,6 +60,7 @@ jobs:
           php tests/contract/search/projection.php
           php tests/contract/search/outbox.php
           php tests/contract/search/deletion.php
+          php tests/contract/search/source.php
       - name: Verify paired cleanup contracts
         working-directory: .test-gorge/go
         env:
@@ -69,6 +71,16 @@ jobs:
           test -s "$GORGE_TEST_CLEANUP_EXPORT"
           test -f internal/maintenance/cleanup/contract_test.go
           go test -race -count=1 ./internal/maintenance/... ./cmd/gorge-maintenance
+
+      - name: Verify paired search source scan contracts
+        working-directory: .test-gorge/go
+        env:
+          GORGE_TEST_SEARCH_SCAN_PAGE: ${{ runner.temp }}/search-source-page.json
+          GORGE_TEST_SEARCH_MYSQL_DSN: root:gorge-contract-only@tcp(127.0.0.1:3306)/
+        run: |
+          test -s "$GORGE_TEST_SEARCH_SCAN_PAGE"
+          test -f internal/search/projection/source_scan_test.go
+          go test -race -count=1 ./internal/search/... ./internal/platform/conduitclient ./internal/worker/handlers
 
   image-contracts:
     if: github.event_name == 'workflow_dispatch' && inputs.image_ref != ''
