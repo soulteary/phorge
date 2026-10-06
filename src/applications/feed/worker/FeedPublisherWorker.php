@@ -21,15 +21,15 @@ final class FeedPublisherWorker extends FeedPushWorker {
     }
 
     $uris = PhabricatorEnv::getEnvConfig('feed.http-hooks');
+    if (PhabricatorEnv::getEnvConfig('phabricator.silent')) {
+      $uris = array();
+    }
 
     if ($uris) {
       foreach ($uris as $uri) {
         $this->queueTask(
           'FeedPublisherHTTPWorker',
-          array(
-            'key' => $story->getChronologicalKey(),
-            'uri' => $uri,
-          ));
+          FeedPublisherHTTPWorker::newGorgeTaskData($story, $uri));
       }
     }
 

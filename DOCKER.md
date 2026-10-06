@@ -1788,3 +1788,11 @@ PHORGE_PRODUCT_PROFILE=full
 
 - [安装指南](src/docs/user/installation_guide.diviner)
 - [配置指南](https://we.phorge.it/book/phorge/article/configuration_guide/)
+
+### Gorge worker 执行协议 v1 升级
+
+新版 `worker.execute` 在 PHP 内独立校验 `X-Service-Token`。启用委派执行时，必须设置非空 `GORGE_CONDUIT_TOKEN`，并与 gateway 和 Go worker 的 conduit token 保持一致；空 token 将拒绝执行任务。新版 PHP、gorge-taskqueue、gorge-worker 需要配套升级。升级期间暂停队列消费者，先更新 PHP 和 taskqueue，再更新 worker，只恢复 Go worker。不要因此停掉仍承担仓库拉取、trigger 或 fact 的其他 PHP 守护进程。回滚应同步回滚配套组件。
+
+新版成功执行会返回全部子任务，由 taskqueue 一次提交父任务归档和子任务入队。Feed HTTP 新任务使用完整投递快照，旧 key/uri 任务仍保留兼容处理。PHP 业务副作用在响应丢失或进程崩溃时仍可能重试，需要业务本身保持幂等。
+
+可使用 `GORGE_TEST_ARCANIST_DIR=/path/to/arcanist php tests/contract/worker/execution.php` 检查 PHP 执行协议、子任务、重试策略及认证。

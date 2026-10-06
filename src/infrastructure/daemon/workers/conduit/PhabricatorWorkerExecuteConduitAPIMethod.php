@@ -12,7 +12,9 @@
  * @{class:PhabricatorWorker} in Go: the Go side owns the queue, PHP still runs
  * the work.
  *
- * The call is internal, machine-to-machine, and reaches this method only
+ * The call is internal, machine-to-machine. This method independently verifies
+ * the service token; callers may not bypass authentication by reaching PHP
+ * directly. Historically it was assumed to reach this method only
  * through the gateway, which authenticates with its own "X-Service-Token"
  * before forwarding. There is no Phorge user session on the request, so this
  * method does not require Conduit authentication and allows unguarded writes:
@@ -57,7 +59,13 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
 
   protected function defineParamTypes() {
     return array(
-      'taskID'    => 'optional int',
+      'taskID'    => 'required int',
+      'phase' => 'required string',
+      'executionVersion' => 'required int',
+      'failureCount' => 'required int',
+      'priority' => 'required int',
+      'leaseOwner' => 'required string',
+      'leaseExpires' => 'required int',
       'taskClass' => 'required string',
       'data'      => 'optional string',
     );
@@ -70,10 +78,36 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
   protected function defineErrorTypes() {
     return array(
       'ERR-NO-TASK-CLASS' => pht('A "taskClass" is required.'),
+      'ERR-WORKER-AUTH' => pht('A configured worker service token is required.'),
+      'ERR-WORKER-CONTEXT' => pht('A valid versioned execution context is required.'),
     );
   }
 
   protected function execute(ConduitAPIRequest $request) {
+    $expected = PhabricatorGorgeServiceRegistry::getService('conduit')
+      ->getConfiguredToken();
+    $presented = AphrontRequest::getHTTPHeader('X-Service-Token');
+    if (!phutil_nonempty_string($expected) ||
+        !phutil_nonempty_string($presented) ||
+        !hash_equals($expected, $presented)) {
+      throw new ConduitException('ERR-WORKER-AUTH');
+    }
+    // Probe with an empty taskClass: older implementations reject it before
+    // instantiating a worker, so mixed-version deployments never run work
+    // while negotiating the protocol.
+    if ($request->getValue('phase') === 'capabilities' &&
+        $request->getValue('executionVersion') === 1 &&
+        $request->getValue('taskClass') === '') {
+      return array('executionVersion' => 1, 'result' => 'capabilities');
+    }
+    if ($request->getValue('executionVersion') !== 1 ||
+        !in_array($request->getValue('phase'), array('prepare', 'execute'), true) ||
+        $request->getValue('taskID') <= 0 ||
+        $request->getValue('failureCount') < 0 ||
+        !phutil_nonempty_string($request->getValue('leaseOwner')) ||
+        $request->getValue('leaseExpires') <= time()) {
+      throw new ConduitException('ERR-WORKER-CONTEXT');
+    }
     $task_class = $request->getValue('taskClass');
     if (!phutil_nonempty_string($task_class)) {
       throw new ConduitException('ERR-NO-TASK-CLASS');
@@ -91,6 +125,7 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
         $data = phutil_json_decode($raw_data);
       } catch (PhutilJSONParserException $ex) {
         return array(
+          'executionVersion' => 1,
           'result'        => 'permanent-failure',
           'failureType'   => 'permanent',
           'failureReason' => pht(
@@ -107,24 +142,53 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
     $task = id(new PhabricatorWorkerActiveTask())
       ->makeEphemeral()
       ->setTaskClass($task_class)
-      ->setData($data);
+      ->setData($data)
+      ->setFailureCount($request->getValue('failureCount'))
+      ->setPriority($request->getValue('priority'))
+      ->setLeaseOwner($request->getValue('leaseOwner'))
+      ->setLeaseExpires($request->getValue('leaseExpires'));
     if ($task_id !== null) {
       $task->setID((int)$task_id);
     }
 
+    $worker = null;
     $t_start = microtime(true);
     try {
       $worker = $task->getWorkerInstance();
       $worker->setCurrentWorkerTask($task);
+      $maximum = $worker->getMaximumRetryCount();
+      if ($maximum !== null && $task->getFailureCount() > $maximum) {
+        throw new PhabricatorWorkerPermanentFailureException(
+          pht('Task has exceeded its maximum number of failures.'));
+      }
+      if ($request->getValue('phase') === 'prepare') {
+        if ($task_class === 'FeedPublisherHTTPWorker') {
+          if (PhabricatorEnv::getEnvConfig('phabricator.silent')) {
+            return array('executionVersion' => 1, 'result' => 'skipped');
+          }
+          if (!in_array(idx($data, 'uri'),
+              PhabricatorEnv::getEnvConfig('feed.http-hooks'))) {
+            throw new PhabricatorWorkerPermanentFailureException(
+              pht('Feed hook is no longer configured.'));
+          }
+        }
+        return array(
+          'executionVersion' => 1,
+          'result' => 'prepared',
+          'leaseDuration' => $worker->getRequiredLeaseTime(),
+        );
+      }
       $worker->executeTask();
     } catch (PhabricatorWorkerYieldException $ex) {
       return array(
+        'executionVersion' => 1,
         'result'   => 'yield',
         'duration' => phutil_microseconds_since($t_start),
         'retry'    => (int)$ex->getDuration(),
       );
     } catch (PhabricatorWorkerPermanentFailureException $ex) {
       return array(
+        'executionVersion' => 1,
         'result'        => 'permanent-failure',
         'failureType'   => 'permanent',
         'failureReason' => $ex->getMessage(),
@@ -132,24 +196,41 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
       );
     } catch (Exception $ex) {
       return array(
+        'executionVersion' => 1,
         'result'        => 'failure',
         'failureType'   => 'transient',
         'failureReason' => $ex->getMessage(),
         'duration'      => phutil_microseconds_since($t_start),
+        'retry' => $this->getRetryDelay($worker, $task),
       );
     } catch (Throwable $ex) {
       return array(
+        'executionVersion' => 1,
         'result'        => 'failure',
         'failureType'   => 'transient',
         'failureReason' => $ex->getMessage(),
         'duration'      => phutil_microseconds_since($t_start),
+        'retry' => $this->getRetryDelay($worker, $task),
       );
     }
 
     return array(
+      'executionVersion' => 1,
+      'followups' => $worker->exportQueuedTasksForGorge(),
       'result'   => 'success',
       'duration' => phutil_microseconds_since($t_start),
     );
+  }
+
+  private function getRetryDelay($worker, PhabricatorWorkerTask $task) {
+    $task->setFailureCount($task->getFailureCount() + 1);
+    if ($worker) {
+      $retry = $worker->getWaitBeforeRetry($task);
+      if ($retry !== null) {
+        return (int)$retry;
+      }
+    }
+    return PhabricatorWorkerLeaseQuery::getDefaultWaitBeforeRetry();
   }
 
 }

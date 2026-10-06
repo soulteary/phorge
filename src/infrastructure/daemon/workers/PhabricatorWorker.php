@@ -329,12 +329,32 @@ abstract class PhabricatorWorker extends Phobject {
   }
 
   /**
-   * Test whether this worker has staged followup tasks.
-   *
-   * Parent finalization uses this to select the only atomic path available
-   * for a parent and its children. The queued task payloads remain private to
-   * the worker and can only be persisted through the flush methods below.
+   * Export staged followup tasks without persisting or clearing them.
+   * Gorge commits these payloads together with the successful parent.
    */
+  final public function exportQueuedTasksForGorge() {
+    $result = array();
+    foreach ($this->queuedTasks as $task) {
+      list($class, $data, $options) = $task;
+      PhutilTypeSpec::checkMap($options, array(
+        'priority' => 'optional int|null',
+        'objectPHID' => 'optional string|null',
+        'containerPHID' => 'optional string|null',
+        'delayUntil' => 'optional int|null',
+      ));
+      $child = array('taskClass' => $class, 'data' => phutil_json_encode($data));
+      foreach (array('priority', 'objectPHID', 'containerPHID', 'delayUntil') as $key) {
+        $value = idx($options, $key);
+        if ($value !== null) {
+          $child[$key] = $value;
+        }
+      }
+      $result[] = $child;
+    }
+    return $result;
+  }
+
+  /** Test whether this worker has staged followup tasks. */
   final public function hasQueuedTasks() {
     return (bool)$this->queuedTasks;
   }

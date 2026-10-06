@@ -50,8 +50,9 @@ final class PhabricatorConduitConfigOptions
         ->setDescription(
           pht(
             'Service token for the Gorge conduit gateway, sent with each '.
-            'request in an "X-Service-Token" header. Leave this empty if '.
-            'the gateway is configured without a token.')),
+            'request in an "X-Service-Token" header. Delegated worker '.
+            'execution requires a nonempty token shared by PHP, the '.
+            'gateway and the Go worker.')),
     );
   }
 
