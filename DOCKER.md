@@ -2083,3 +2083,52 @@ Gorge 搜索适配器在原同步投递之前，原子保存快照事件和每�
 
 真实 MySQL 契约：`GORGE_TEST_ARCANIST_DIR=/path/to/arcanist GORGE_TEST_MYSQL_PORT=3306 GORGE_TEST_MYSQL_PASSWORD=test php tests/contract/search/outbox.php`。
 仅在临时测试实例执行；脚本会创建并删除随机命名的测试数据库。
+
+## Gorge 日志与缓存清理
+
+首批清理模块为可选 `maintenance` profile，默认未启动、未移交执行权。
+只覆盖通用/Markup/TTL 缓存、Conduit 日志、daemon 事件与锁日志。锁日志默认
+仍无限保留，认证、任务归档、文件销毁及 outbox/inbox 不在此范围。
+
+先执行 `bin/storage upgrade` 创建 cache/conduit/daemon 库的
+`gorge_gc_control`，再部署本版 PHP。在所有 Web、CLI、daemon 节点执行
+`bin/config set phd.gorge-cleanup true`，重启常驻 PHP daemon，确认旧二进制
+和在途清理已退出。保护必须同时覆盖 Trigger 和 `bin/garbage collect`；
+控制表缺失时，本版登记清理器失败关闭；关闭确认开关不会绕过控制行保护。
+
+导出真实有效配置（不要手工复制默认 TTL）：
+
+```sh
+php scripts/setup/export_gorge_cleanup.php > cleanup.json
+```
+
+为 `gorge-maintenance` 配置三个目标主库 DSN 和非空服务 token；账号只授予
+登记表 SELECT/DELETE、控制表 SELECT/INSERT/UPDATE。禁止使用读副本或把
+控制行放到独立主库。启用 profile 只启动服务，import 不接管执行权。
+CLI 运行时沿用同一环境，可将导出文件只读挂载到容器。使用 Compose 的导入示例：
+
+```sh
+docker compose --profile maintenance run --rm \
+  -v "$PWD/cleanup.json:/tmp/cleanup.json:ro" \
+  gorge-maintenance import /tmp/cleanup.json
+```
+
+二进制 CLI 的逐项切换命令：
+
+```sh
+gorge-maintenance import cleanup.json
+gorge-maintenance dry-run cache.general.ttl
+gorge-maintenance pause cache.general.ttl
+gorge-maintenance resume cache.general.ttl gorge
+gorge-maintenance run-once cache.general.ttl
+```
+
+一次只切换一个 collector，先 TTL 缓存，再年龄缓存和日志。仅配置一个
+角色时，将导出的 policies 过滤到该角色完整登记项，保留 version、guardEnabled
+与 readOnly；服务 readiness 要求配置角色的全部策略已导入。跨库 import
+并非全局事务；检查逐项输出，失败后重试，已导入策略不会自动切为 Go。
+
+策略调整时先 pause，重新导出/import，再 resume。进入 Phorge 只读维护前
+也先 pause 已移交项。回滚为 pause、等待事务完成、resume 到 php，再恢复
+PHP 调度；已删数据不能靠切换执行权恢复。PHP 清理 SQL 暂留作灰度回滚，
+完成部署数据验收后再删除。执行边界和预算见 Gorge 的 maintenance 模块文档。

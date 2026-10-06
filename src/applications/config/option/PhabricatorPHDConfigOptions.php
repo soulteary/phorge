@@ -62,6 +62,11 @@ final class PhabricatorPHDConfigOptions
             'user will own the working copies of any repositories that '.
             'this software imports or manages. This option is new and '.
             'experimental.')),
+      $this->newOption('phd.gorge-cleanup', 'bool', false)
+        ->setDescription(pht(
+          'Confirm that storage upgrade and the cleanup ownership guard rollout '.
+          'are complete on every daemon and CLI node before exporting policies '.
+          'for Gorge. Disabling this confirmation never bypasses owner checks.')),
       $this->newOption('phd.garbage-collection', 'wild', array())
         ->setLocked(true)
         ->setLockedMessage(

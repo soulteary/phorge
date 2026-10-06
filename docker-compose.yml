@@ -91,6 +91,11 @@ services:
     environment:
       GORGE_TASKQUEUE_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
 
+  gorge-maintenance:
+    extends:
+      file: docker-compose.gorge.yml
+      service: gorge-maintenance
+
   gorge-worker:
     extends:
       file: docker-compose.gorge.yml

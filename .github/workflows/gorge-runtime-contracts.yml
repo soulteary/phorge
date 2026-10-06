@@ -5,6 +5,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      gorge_ref:
+        description: Gorge branch/tag/SHA for paired cleanup contracts
+        required: false
+        default: main
       image_ref:
         description: Published Gorge image service reference for cross-repository contracts
         required: false
@@ -31,18 +35,39 @@ jobs:
           repository: phorgeit/arcanist
           ref: 6f3726694752fb9cb08207070a4d7f68163784e1
           path: .test-arcanist
+      - uses: actions/checkout@v6
+        with:
+          repository: soulteary/gorge
+          ref: ${{ inputs.gorge_ref || 'main' }}
+          path: .test-gorge
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: .test-gorge/go/go.mod
+          cache-dependency-path: .test-gorge/go/go.sum
       - name: Verify execution, provider retirement and feed transaction rollback
         env:
           GORGE_TEST_ARCANIST_DIR: ${{ github.workspace }}/.test-arcanist
+          GORGE_TEST_CLEANUP_EXPORT: ${{ runner.temp }}/cleanup-export.json
           GORGE_TEST_MYSQL_PORT: '3306'
           GORGE_TEST_MYSQL_PASSWORD: gorge-contract-only
         run: |
+          php tests/contract/cleanup/runtime.php
           php tests/contract/worker/execution.php
           php tests/contract/worker/retirement.php
           php tests/contract/feed/outbox.php
           php tests/contract/mail/outbox.php
           php tests/contract/search/projection.php
           php tests/contract/search/outbox.php
+      - name: Verify paired cleanup contracts
+        working-directory: .test-gorge/go
+        env:
+          PHORGE_FORK_DIR: ${{ github.workspace }}
+          GORGE_TEST_CLEANUP_EXPORT: ${{ runner.temp }}/cleanup-export.json
+          GORGE_TEST_MYSQL_DSN: root:gorge-contract-only@tcp(127.0.0.1:3306)/
+        run: |
+          test -s "$GORGE_TEST_CLEANUP_EXPORT"
+          test -f internal/maintenance/cleanup/contract_test.go
+          go test -race -count=1 ./internal/maintenance/... ./cmd/gorge-maintenance
 
   image-contracts:
     if: github.event_name == 'workflow_dispatch' && inputs.image_ref != ''

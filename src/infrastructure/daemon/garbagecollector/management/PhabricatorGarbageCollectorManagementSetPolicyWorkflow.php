@@ -118,11 +118,12 @@ final class PhabricatorGarbageCollectorManagementSetPolicyWorkflow
       unset($value[$collector_const]);
     }
 
-    id(new PhabricatorConfigLocalSource())
-      ->setKeys(
-        array(
-          $config_key => $value,
-        ));
+    PhabricatorGorgeCleanup::changePolicy(
+      $collector,
+      function() use ($config_key, $value) {
+        id(new PhabricatorConfigLocalSource())->setKeys(
+          array($config_key => $value));
+      });
 
     echo tsprintf(
       "%s\n",
@@ -133,7 +134,8 @@ final class PhabricatorGarbageCollectorManagementSetPolicyWorkflow
       "%s\n",
       pht(
         'This change will take effect the next time the daemons are '.
-        'restarted.'));
+        'restarted. For registered Gorge collectors, export and import the new '.
+        'policy before resuming Gorge cleanup.'));
 
     return 0;
   }

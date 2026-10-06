@@ -82,6 +82,26 @@
 # ------------------------------------------------------------------
 
 services:
+  gorge-maintenance:
+    image: ghcr.io/soulteary/gorge:maintenance-${GORGE_MAINTENANCE_IMAGE_TAG:-${GORGE_IMAGE_TAG:-latest}}
+    profiles: [maintenance]
+    restart: unless-stopped
+    read_only: true
+    depends_on:
+      phorge-migrate:
+        condition: service_completed_successfully
+    environment:
+      GORGE_LISTEN_ADDR: ':8200'
+      GORGE_SERVICE_TOKEN: ${GORGE_MAINTENANCE_TOKEN:-}
+      GORGE_MAINTENANCE_CACHE_DSN: ${GORGE_MAINTENANCE_CACHE_DSN:-}
+      GORGE_MAINTENANCE_CONDUIT_DSN: ${GORGE_MAINTENANCE_CONDUIT_DSN:-}
+      GORGE_MAINTENANCE_DAEMON_DSN: ${GORGE_MAINTENANCE_DAEMON_DSN:-}
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8200/healthz']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   # gorge-render 一个进程承载 render 与 diff 两个域（路由 /api/highlight/*、
   # /api/diff/*），容器内
   # 固定监听 8140。镜像由 gorge 仓库的 release 工作流推到统一的 ghcr package，版本标签

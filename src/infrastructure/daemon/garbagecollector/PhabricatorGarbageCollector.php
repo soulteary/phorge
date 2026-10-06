@@ -112,8 +112,10 @@ abstract class PhabricatorGarbageCollector extends Phobject {
     }
 
     try {
-      $result = $this->collectGarbage();
-    } catch (Exception $ex) {
+      $result = PhabricatorGorgeCleanup::runGuarded(
+        $this,
+        function() { return $this->collectGarbage(); });
+    } catch (Throwable $ex) {
       $lock->unlock();
       throw $ex;
     }

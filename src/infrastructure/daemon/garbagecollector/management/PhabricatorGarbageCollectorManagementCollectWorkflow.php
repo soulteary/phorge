@@ -23,6 +23,14 @@ final class PhabricatorGarbageCollectorManagementCollectWorkflow
   public function execute(PhutilArgumentParser $args) {
     $collector = $this->getCollector($args->getArg('collector'));
 
+    $owner = PhabricatorGorgeCleanup::getExecutionOwner($collector);
+    if ($owner !== null && $owner !== 'php') {
+      echo tsprintf("%s\n", pht(
+        'Cleanup execution owner is "%s". Use gorge-maintenance to inspect '.
+        'or run this collector.', $owner));
+      return 0;
+    }
+
     echo tsprintf(
       "%s\n",
       pht('Collecting "%s" garbage...', $collector->getCollectorName()));
