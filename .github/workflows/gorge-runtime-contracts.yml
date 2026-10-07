@@ -64,6 +64,11 @@ jobs:
         run: |
           php tests/contract/integrations/runtime.php
           php tests/contract/integrations/inbound_mysql.php
+      - name: Validate Docker delivery entry and manifest failure gates
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python3 tests/contract/worker/delivery_manifest_test.py
+          PYTHONDONTWRITEBYTECODE=1 python3 tests/contract/worker/delivery_entry_test.py
+          python3 deploy/acceptance/accept.py --gorge-dir .test-gorge --check
       - name: Verify production Compose topology
         run: python3 tests/contract/worker/production_compose.py
       - name: Start mandatory current image and real S3 fixtures

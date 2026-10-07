@@ -2155,3 +2155,35 @@ PHP 调度；已删数据不能靠切换执行权恢复。PHP 清理 SQL 暂留�
 这是搜索 shadow 的恢复边界，不能替代生产重建与切换验收。直接 SQL 删除、
 非 Lisk 对象及外层事务中的销毁尚未覆盖；已开启捕获的外层事务销毁会拒绝
 执行，应先拆清提交边界。关闭 shadow 暂停自动恢复，不删除历史意图。
+
+## 独立 Docker 交付验收
+
+宿主机只需 Docker Compose 与 Python 3；PHP、Go、MySQL、Redis、真实 S3 和图片
+服务全部在容器内。入口复用现有 paired acceptance，包括真实 PHP HTTP、文件迁移、
+中断恢复，以及 Go 测试。它不等于浏览器登录后的全业务验收或第三方邮件供应商验收。
+
+```bash
+python3 deploy/acceptance/accept.py --check
+GOPROXY=https://goproxy.cn \
+ALPINE_MIRROR=https://mirrors.tuna.tsinghua.edu.cn/alpine \
+python3 deploy/acceptance/accept.py --output /tmp/gorge-delivery-result
+```
+
+每次使用随机 Compose project，不读取应用 `.env`，不暴露宿主端口，不复用业务卷；
+数据库和 S3 使用临时存储，成功或失败都清理测试容器。输出目录不可复用已存在的
+manifest。若强制杀死宿主入口，按输出 manifest 的 project 手工清理遗留测试栈。
+
+`result.json` 保存每阶段状态，`paired-acceptance.json` 保存配对故障验收身份，
+`delivery-manifest.json` 保存 PHP/Go commit、dirty、源码摘要、构建锁、实际镜像 ID
+和已知 registry digest。构建失败同样保存交付 manifest 与 fixture 日志，不报通过。
+不把配置、DSN、token 或业务载荷写入 manifest。测试凭据仅用于隔离环境。
+
+`deploy/acceptance/build-lock.json` 锁定基础/后端镜像 digest、Arcanist SHA、APCu 版本
+及 Debian 包快照。当前摘要来自本机所用镜像；首次在另一架构使用前验证其平台支持。
+Phorge Dockerfile 接受 `PHP_BASE_IMAGE`、`ARCANIST_REF`、`APCU_VERSION`、
+`DEBIAN_SNAPSHOT`；Gorge Dockerfile 接受 `GO_BASE_IMAGE`、`RUNTIME_BASE_IMAGE`。
+普通开发构建仍允许默认镜像标签；冻结构建必须使用这份锁和验收入口。
+
+此锁提高依赖可追溯性，不承诺字节级重建一致：Alpine APK 仓库仍可能更新，构建器和
+时间戳也会改变镜像 ID。交付已验收产物时应发布并使用最终镜像 digest，保留配对
+manifest；不要重新构建后继续沿用旧验收结果。

@@ -5,7 +5,16 @@
 # Phorge 官方没有提供 Docker 镜像，本 Dockerfile 基于当前源码目录自建。
 # 运行时依赖 arcanist（构建阶段从上游仓库拉取）。
 #
-FROM php:8.3-apache
+ARG PHP_BASE_IMAGE=php:8.3-apache
+FROM ${PHP_BASE_IMAGE}
+ARG APCU_VERSION=5.1.28
+ARG ARCANIST_REF=6f3726694752fb9cb08207070a4d7f68163784e1
+ARG DEBIAN_SNAPSHOT=
+# Release builds freeze package repositories as well as the base image.
+RUN if [ -n "$DEBIAN_SNAPSHOT" ]; then \
+      sed -i "s|http://deb.debian.org/debian-security|https://snapshot.debian.org/archive/debian-security/${DEBIAN_SNAPSHOT}|g; s|http://deb.debian.org/debian|https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}|g" /etc/apt/sources.list.d/debian.sources; \
+      printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99snapshot; \
+    fi
 
 # ------------------------------------------------------------------
 # 1. 系统依赖 & PHP 扩展
@@ -62,8 +71,12 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 # APCu 缓存扩展
-RUN pecl install apcu \
-    && docker-php-ext-enable apcu
+ARG APCU_SHA256=ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf
+RUN curl -fsSL --retry 3 --max-time 60 "https://pecl.php.net/get/apcu-${APCU_VERSION}.tgz" -o /tmp/apcu.tgz \
+    && echo "${APCU_SHA256}  /tmp/apcu.tgz" | sha256sum -c - \
+    && pecl install /tmp/apcu.tgz \
+    && docker-php-ext-enable apcu \
+    && rm /tmp/apcu.tgz
 
 # ------------------------------------------------------------------
 # 2. PHP 运行参数（Phorge setup 检查项）
@@ -87,8 +100,14 @@ RUN set -eux; \
 # ------------------------------------------------------------------
 WORKDIR /opt/phorge
 RUN set -eux; \
-    git clone --depth 1 https://we.phorge.it/source/arcanist.git arcanist \
-        || git clone --depth 1 https://github.com/phorgeit/arcanist.git arcanist; \
+    echo "$ARCANIST_REF" | grep -Eq '^[0-9a-f]{40}$'; \
+    git init arcanist; \
+    git -C arcanist remote add origin https://github.com/phorgeit/arcanist.git; \
+    git -C arcanist fetch --depth 1 origin "$ARCANIST_REF" \
+        || git -C arcanist fetch --depth 1 https://we.phorge.it/source/arcanist.git "$ARCANIST_REF"; \
+    git -C arcanist checkout --detach FETCH_HEAD; \
+    test "$(git -C arcanist rev-parse HEAD)" = "$ARCANIST_REF"; \
+    printf '%s\n' "$ARCANIST_REF" > arcanist/.source-revision; \
     rm -rf arcanist/.git; \
     chown -R www-data:www-data arcanist
 

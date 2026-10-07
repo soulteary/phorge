@@ -124,6 +124,11 @@ with tempfile.TemporaryDirectory(prefix="gorge-acceptance-") as directory:
         if env.get('GORGE_TEST_ACCEPTANCE_MANIFEST'):
             Path(env['GORGE_TEST_ACCEPTANCE_MANIFEST']).write_text(json.dumps(manifest,indent=2))
         print('Complete paired acceptance passed; exact source identities recorded.')
+    except Exception:
+        manifest['result'] = 'failed'
+        if env.get('GORGE_TEST_ACCEPTANCE_MANIFEST'):
+            Path(env['GORGE_TEST_ACCEPTANCE_MANIFEST']).write_text(json.dumps(manifest,indent=2))
+        raise
     finally:
         if service is not None:
             service.terminate()

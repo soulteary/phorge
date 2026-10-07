@@ -1,0 +1,83 @@
+# Deliberately isolated: no production env file, ports, volumes or container names.
+services:
+  base:
+    profiles: [build]
+    image: ${ACCEPTANCE_BASE_IMAGE}
+    build:
+      context: ../..
+      args:
+        PHP_BASE_IMAGE: ${LOCK_PHP}
+        ARCANIST_REF: ${LOCK_ARCANIST}
+        APCU_VERSION: ${LOCK_APCU}
+        APCU_SHA256: ${LOCK_APCU_SHA256}
+        DEBIAN_SNAPSHOT: ${LOCK_SNAPSHOT}
+  mysql:
+    image: ${LOCK_MYSQL}
+    environment:
+      MYSQL_ROOT_PASSWORD: acceptance-only
+      MYSQL_ROOT_HOST: '%'
+    tmpfs: [/var/lib/mysql:rw]
+    healthcheck:
+      test: [CMD-SHELL, 'mysqladmin ping -h 127.0.0.1 -pacceptance-only --silent']
+      interval: 3s
+      timeout: 3s
+      retries: 60
+  s3:
+    image: ${LOCK_S3}
+    network_mode: service:mysql
+    environment:
+      OTTERIO_ROOT_USER: gorgeacceptance
+      OTTERIO_ROOT_PASSWORD: gorge-acceptance-only
+    command: [server, /data, --address, ':9000']
+    tmpfs: [/data:rw]
+  redis:
+    image: ${LOCK_REDIS}
+    network_mode: service:mysql
+  image:
+    build:
+      context: ${ACCEPTANCE_GORGE_DIR}/go
+      args:
+        GO_BASE_IMAGE: ${LOCK_GO}
+        RUNTIME_BASE_IMAGE: ${LOCK_ALPINE}
+        SERVICE: gorge-image
+        PORT: 8190
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: /usr/local/go
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
+    network_mode: service:mysql
+    environment:
+      GORGE_SERVICE_TOKEN: acceptance-image-only
+    read_only: true
+    tmpfs: [/tmp:rw,size=512m]
+    mem_limit: 2g
+  runner:
+    build:
+      context: ../..
+      dockerfile: docker/acceptance.Dockerfile
+      args:
+        GO_BASE_IMAGE: ${LOCK_GO}
+        PHORGE_BASE_IMAGE: ${ACCEPTANCE_BASE_IMAGE}
+    network_mode: service:mysql
+    depends_on:
+      mysql: {condition: service_healthy}
+      redis: {condition: service_started}
+      s3: {condition: service_started}
+      image: {condition: service_started}
+    volumes:
+      - ../..:/work/phorge:ro
+      - ${ACCEPTANCE_GORGE_DIR}:/work/gorge:ro
+      - ${ACCEPTANCE_OUTPUT}:/results
+    environment:
+      GORGE_TEST_GORGE_DIR: /work/gorge
+      GORGE_TEST_ARCANIST_DIR: /opt/phorge/arcanist
+      GORGE_TEST_MYSQL_PORT: '3306'
+      GORGE_TEST_MYSQL_PASSWORD: acceptance-only
+      GORGE_TEST_INTEGRATIONS_MYSQL_PORT: '3306'
+      GORGE_TEST_INTEGRATIONS_MYSQL_PASSWORD: acceptance-only
+      GORGE_TEST_S3_URL: http://127.0.0.1:9000
+      GORGE_TEST_S3_USER: gorgeacceptance
+      GORGE_TEST_S3_PASSWORD: gorge-acceptance-only
+      GORGE_TEST_IMAGE_URL: http://127.0.0.1:8190
+      GORGE_TEST_IMAGE_TOKEN: acceptance-image-only
+      GORGE_TEST_ACCEPTANCE_MANIFEST: /results/paired-acceptance.json
+      GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
