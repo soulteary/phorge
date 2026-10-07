@@ -84,8 +84,9 @@ volumes:
         try:
             preflight.actual_grants(writer_id,os.environ.get('GORGE_TEST_PHP_IMAGE','phorge:local'),credentials)
             raise AssertionError('A more-specific writer account was accepted')
-        except ValueError:
-            pass
+        except ValueError as error:
+            assert str(error)=='Actual DB API account has unsupported privileges or mandatory roles', \
+                'Writer rejection was not caused by the actual account privileges'
         web=call(base+['ps','-q','phorge']).strip()
         # An originally stopped Phorge must be readable and remain stopped.
         call(['docker','stop','--time','10',web])

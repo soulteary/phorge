@@ -2,6 +2,9 @@
 
 适用：当前 Phorge + Gorge 协作栈。默认栈不自动修改已有搜索后端或移交清理执行权。
 `docker-compose.production.yml` 是显式选择的生产覆盖配置，所有启用的核心 Gorge 服务使用本地源码构建，避免新旧发布镜像混用。通知 admin/client 端口只绑定回环地址，浏览器 WebSocket 应经 TLS 反代访问。需要 Compose 2.24.4 或更新版本以支持端口列表 `!override`。
+本地构建要求相邻 Gorge checkout 与 Phorge 是同一配对验收的源码对。使用发布镜像
+时按 [发布镜像与源码配对](DOCKER.md#发布镜像与源码配对) 在本覆盖之后逐服务覆盖
+manifest digest 并清除继承的 build，不能把基础编排的历史 tag 当成本次 Release。
 
 ## 切换范围
 
@@ -26,6 +29,18 @@ GRANT REPLICATION CLIENT ON *.* TO 'gorge_dbapi_ro'@'%';
 ```
 
 `information_schema` 的可见性随对应业务库权限自动提供，不向它直接授予权限。不要授予 INSERT、UPDATE、DELETE、DDL、GRANT OPTION、管理动态权限或角色。既有 Phorge 普通账号仍用于迁移；本次只拆分诊断账号。
+`db-init` 只为 Phorge 普通账号授权，不会建立上述只读账号。已有更具体的 host
+匹配账号时，MySQL 可能选它而非 `%`；配置变量名称和用户名不同都不能证明只读。
+新建 namespace、调整授权或恢复数据库后，须重新完成在线授权门禁。
+
+邮件参数分属两个层次：`.env` 的 `GORGE_MAILER_KEY` 是 PHP `cluster.mailers`
+条目标识；`GORGE_MAILER_BACKEND_KEY` 是 Go provider 的 key（Compose 将它映射为
+容器内 `GORGE_MAILER_KEY`）。单后端使用 `GORGE_MAILER_TYPE`，多后端使用
+`GORGE_MAILER_CONFIG` 中各自唯一非空的 key。旧 `MAILER_TYPE/MAILER_KEY` 只是
+Compose 升级桥接输入；旧 `MAILER_CONFIG` 必须改为 `GORGE_MAILER_CONFIG`，
+不能依赖未实现的别名。直接启动 Go 应使用规范 `GORGE_` 变量。
+`GORGE_MAIL_DELIVERY_MODE` 控制 PHP 生产路径；这个覆盖配置强制 native，默认基础栈
+的 legacy 仍通过 Gorge 同步发送。它不会重新启用 PHP provider。
 
 以下命令都在 `phorge-fork/` 执行，固定使用同一覆盖配置与 profiles：
 
@@ -52,7 +67,13 @@ Worker 默认停收任务后等待 30 秒，容器 `stop_grace_period` 为 45 �
 
 图片使用 `tests/contract/image/runtime.php` 与实际图片服务进行验收；检查五种配方、GIF、WebP、极端长宽和历史派生文件可读性。启动能力检查只验证协议、配方及格式声明，不证明像素行为等价。
 
-邮件使用受控测试收件人确认准备、投递账本终态和 PHP 结果投影；提供方 accepted 不表示最终收件箱送达。确认旧队列中的邮件能够收尾，unknown 状态按既有账本恢复规则处理，不能手工盲目重发。
+邮件使用受控测试收件人确认准备、投递账本终态和 PHP 结果投影；提供方 accepted 不表示最终收件箱送达。确认旧队列中的邮件能够收尾。
+同步 legacy 在网络前提交 unknown fence；native 通过持久投递账本记录状态。
+两者的超时、坏回执、崩溃或接受后落盘失败都可能留下 unknown，禁止自动重投。
+先暂停该邮件的进一步处理，核对 PHP 状态、任务/账本和供应商日志；native 可调用
+只读 delivery 查询，legacy 不一定有这条 native 记录。确认结果后按部署的核对流程
+处理，不手改 queued、不换后端尝试，也不以重发修复 projectionPending。
+目前没有自动供应商结果查询或通用 unknown 解除命令，见 [邮件说明](DOCKER.md)。
 
 ## 清理交接
 

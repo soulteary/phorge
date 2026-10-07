@@ -32,24 +32,44 @@ def actual_grants(container, php_image, credentials):
     # user@host account, including more-specific IP/host grants. Passwords go
     # only through stdin, never through Docker arguments or diagnostic output.
     helper='phorge-preflight-'+uuid.uuid4().hex[:12]
-    script='''mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    # Fixed exit codes identify the failed stage without exposing PHP errors,
+    # connection details or Docker stderr. Docker reserves 125/126/127 itself.
+    script='''if (!extension_loaded('mysqli')) {exit(10);}
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     try {
       $c=json_decode(stream_get_contents(STDIN),true,512,JSON_THROW_ON_ERROR);
       $db=mysqli_init();
       $db->options(MYSQLI_OPT_CONNECT_TIMEOUT,5);
       $db->options(MYSQLI_OPT_READ_TIMEOUT,5);
       $db->real_connect($c['host'],$c['user'],$c['password'],null,$c['port']);
+    } catch (Throwable $e) {exit(11);}
+    try {
       $rows=$db->query('SHOW GRANTS'); $grants=array();
       while ($row=$rows->fetch_row()) {$grants[]=$row[0];}
       $roles=$db->query('SELECT @@GLOBAL.mandatory_roles')->fetch_row()[0];
       echo json_encode(array('grants'=>$grants,'mandatoryRoles'=>$roles));
-    } catch (Throwable $e) {exit(2);}'''
+    } catch (Throwable $e) {exit(12);}'''
     try:
-        proc=subprocess.run(['docker','run','--rm','-i','--name',helper,
-            '--network','container:'+container,'--read-only','--entrypoint','php',php_image,'-r',script],
-            input=json.dumps(credentials),text=True,capture_output=True,timeout=30)
-        if proc.returncode: raise ValueError('Actual database credential check failed')
-        value=json.loads(proc.stdout)
+        try:
+            proc=subprocess.run(['docker','run','--rm','-i','--name',helper,
+                '--network','container:'+container,'--read-only','--entrypoint','php',php_image,'-r',script],
+                input=json.dumps(credentials),text=True,capture_output=True,timeout=30)
+        except subprocess.TimeoutExpired:
+            raise ValueError('Database privilege helper timed out') from None
+        except OSError:
+            raise ValueError('Database privilege helper container could not start') from None
+        if proc.returncode:
+            errors={10:'Database privilege helper requires the PHP mysqli extension',
+                    11:'Actual database credential connection failed',
+                    12:'Database privilege query failed'}
+            message=errors.get(proc.returncode,'Database privilege helper execution failed')
+            if proc.returncode in (125,126,127):
+                message='Database privilege helper container could not start'
+            raise ValueError(message)
+        try:
+            value=json.loads(proc.stdout)
+        except (json.JSONDecodeError, TypeError):
+            raise ValueError('Database privilege response is incomplete') from None
         if not isinstance(value,dict) or not isinstance(value.get('mandatoryRoles'),str):
             raise ValueError('Database privilege response is incomplete')
         grants=value.get('grants')
@@ -60,7 +80,11 @@ def actual_grants(container, php_image, credentials):
         if not {'SELECT','SHOW VIEW','REPLICATION CLIENT'}.issubset(privileges):
             raise ValueError('Actual DB API account is missing diagnostic privileges')
     finally:
-        subprocess.run(['docker','rm','-f',helper],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        try:
+            subprocess.run(['docker','rm','-f',helper],stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL,timeout=10)
+        except (OSError, subprocess.SubprocessError):
+            pass
 
 def validate(config):
     services = config['services']

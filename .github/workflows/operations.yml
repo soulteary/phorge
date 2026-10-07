@@ -15,5 +15,9 @@ jobs:
           python-version: '3.12'
       - name: Integrity and failure gates
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/operations -v
+      - name: Build PHP grant-audit fixture
+        run: docker build -f tests/operations/php.Dockerfile -t phorge-operations-php:ci tests/operations
       - name: Disposable SQL and file-volume restore
+        env:
+          GORGE_TEST_PHP_IMAGE: phorge-operations-php:ci
         run: PYTHONDONTWRITEBYTECODE=1 python3 tests/operations/docker_roundtrip.py

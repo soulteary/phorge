@@ -1,7 +1,12 @@
 import copy
 import importlib.util
+import io
+import json
 from pathlib import Path
+import subprocess
+import traceback
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from unittest.mock import patch
 from types import SimpleNamespace
 
@@ -56,7 +61,6 @@ class ProductionGate(unittest.TestCase):
                     with self.assertRaises(ValueError):preflight.validate(cfg)
 
     def test_mail_receipts_require_distinct_backend_identity(self):
-        import json
         for keys in [[],[''],[' \t'],['primary','primary']]:
             cfg=self.fixture()
             cfg['services']['gorge-mailer']['environment']['GORGE_MAILER_CONFIG']=json.dumps(
@@ -68,7 +72,6 @@ class ProductionGate(unittest.TestCase):
         result={'grants':["GRANT SELECT, SHOW VIEW ON db.* TO 'ro'@'172.1.2.3'",
                           "GRANT REPLICATION CLIENT ON *.* TO 'ro'@'172.1.2.3'"],
                 'mandatoryRoles':''}
-        import json
         for change,passed in [(None,True),('writer',False),('role',False)]:
             value=dict(result,grants=list(result['grants']))
             if change=='writer':value['grants'][0]="GRANT SELECT, UPDATE ON db.* TO 'ro'@'172.1.2.3'"
@@ -84,5 +87,68 @@ class ProductionGate(unittest.TestCase):
             self.assertNotIn('private-password',' '.join(calls[0][0]))
             self.assertIn('private-password',calls[0][1]['input'])
             self.assertEqual(calls[-1][0][:3],['docker','rm','-f'])
+
+    def test_actual_account_failures_are_classified_without_sensitive_output(self):
+        secret='private-password-do-not-print'
+        credentials=dict(host='private-db-host',user='private-user',password=secret,port=3306)
+        cases=[(10,'Database privilege helper requires the PHP mysqli extension'),
+               (11,'Actual database credential connection failed'),
+               (12,'Database privilege query failed'),
+               (125,'Database privilege helper container could not start'),
+               (126,'Database privilege helper container could not start'),
+               (127,'Database privilege helper container could not start'),
+               (2,'Database privilege helper execution failed'),
+               (OSError(secret),'Database privilege helper container could not start'),
+               (subprocess.TimeoutExpired(['docker',secret],30,output=secret,stderr=secret),
+                'Database privilege helper timed out')]
+        for failure,message in cases:
+            calls=[]
+            def run(args,**kwargs):
+                calls.append((args,kwargs))
+                if args[1]=='rm':return SimpleNamespace(returncode=0)
+                if isinstance(failure,Exception):raise failure
+                return SimpleNamespace(returncode=failure,stdout=json.dumps(credentials),stderr=secret)
+            output=io.StringIO()
+            with self.subTest(failure=message),patch.object(preflight.subprocess,'run',side_effect=run),\
+                    redirect_stdout(output),redirect_stderr(output):
+                try:
+                    preflight.actual_grants('database-client','fixture-php',credentials)
+                except ValueError as error:
+                    self.assertEqual(str(error),message)
+                    formatted=''.join(traceback.format_exception(type(error),error,error.__traceback__))
+                    self.assertNotIn(secret,formatted)
+                    self.assertNotIn(credentials['host'],formatted)
+                    self.assertNotIn(credentials['user'],formatted)
+                else:
+                    self.fail('Helper failure was accepted')
+            self.assertEqual(output.getvalue(),'')
+            self.assertNotIn(secret,' '.join(calls[0][0]))
+            self.assertIn(secret,calls[0][1]['input'])
+            helper=calls[0][0][calls[0][0].index('--name')+1]
+            self.assertEqual(calls[-1][0],['docker','rm','-f',helper])
+            self.assertEqual(calls[-1][1]['timeout'],10)
+
+    def test_invalid_privilege_response_does_not_echo_helper_output(self):
+        secret='private-password-do-not-print'
+        for stdout in [secret,json.dumps(secret),json.dumps({'grants':[secret],'mandatoryRoles':''})]:
+            result=SimpleNamespace(returncode=0,stdout=stdout,stderr=secret)
+            with self.subTest(stdout=stdout),patch.object(preflight.subprocess,'run',return_value=result) as run:
+                with self.assertRaises(ValueError) as caught:
+                    preflight.actual_grants('database-client','fixture-php',
+                                            dict(host='mysql',user='ro',password=secret,port=3306))
+            self.assertNotIn(secret,str(caught.exception))
+            self.assertEqual(run.call_args_list[-1].args[0][:3],['docker','rm','-f'])
+
+    def test_cleanup_error_preserves_safe_helper_failure(self):
+        for cleanup_error in [OSError('private-password'),
+                              subprocess.TimeoutExpired(['docker','private-password'],10)]:
+            with self.subTest(cleanup_error=type(cleanup_error).__name__),\
+                    patch.object(preflight.subprocess,'run',side_effect=[
+                        SimpleNamespace(returncode=125,stdout='private-password',stderr='private-password'),
+                        cleanup_error]) as run:
+                with self.assertRaisesRegex(ValueError,'^Database privilege helper container could not start$'):
+                    preflight.actual_grants('database-client','fixture-php',
+                                            dict(host='mysql',user='ro',password='private-password',port=3306))
+            self.assertEqual(run.call_args_list[-1].args[0][:3],['docker','rm','-f'])
 
 if __name__=='__main__':unittest.main()

@@ -34,15 +34,21 @@ worker 的 `/api/worker/meta` 在 PHP 启动前报告静态 capability，避免�
 迁移角色不等待 worker ready；否则新安装无法生成它需要的表和政策文件。
 
 配置非空且一致的 `GORGE_CONDUIT_TOKEN`，PHP 执行接口拒绝空 token。
-必须部署包含这些协议与探针的 Gorge 镜像；Phorge 的 `docker compose up --build`
-不会构建使用 `image:` 的 Gorge 服务。旧镜像缺少 capability 时会明确阻止启动。
+默认编排必须部署包含这些协议与探针的 Gorge 镜像；其中只声明 `image:` 的
+服务不会被 `docker compose up --build` 重新构建。生产覆盖配置则为核心 Gorge
+服务补充本地源码 `build:`，启动方式见 [生产切换](PRODUCTION-CUTOVER.md)。
+旧镜像缺少 capability 时会明确阻止启动。
 
 ## 快速启动
+
+本节基础编排保留历史 `service-2026.10.07-r2` 镜像标签，仅用于该标签实际存在且
+已有对应源码配对验收的栈。它不会自动选择匹配当前 checkout 的新发布；新发布的
+digest 部署或当前源码本地构建请先按后面的“发布镜像与源码配对”选择路径。
 
 ```bash
 # 1) 准备部署环境变量；必需的服务 token 要明确配置
 cp .env.example .env
-# 编辑 .env，设置非空 GORGE_CONDUIT_TOKEN 和匹配本次协议的 Gorge 镜像标签。
+# 编辑 .env，设置非空 GORGE_CONDUIT_TOKEN，并使用已确认与源码匹配的镜像配置。
 # token 可以用 openssl rand -hex 32 生成；PHP、gateway、worker 共用这个值。
 
 # 2) 构建 Phorge，并启动默认核心服务
@@ -65,7 +71,8 @@ docker compose up -d --build
 - schema 完成后，`phorge` 只运行 Apache，`phorge-daemon` 独立监护 phd；两者
   只读部署配置，不再迁移或争写配置。
 - 默认启动 render、conduit、notification、file-storage、webhook、taskqueue、
-  worker 与 db-api。Gorge 镜像默认锁定 `2026.10.07-r2`，不会跟随 `latest` 漂移。
+  worker 与 db-api。基础编排历史标签默认锁定 `2026.10.07-r2`，不会跟随 `latest`
+  漂移，也不能据此推断它满足当前源码协议。
 
 访问根路径 `/` 会 302 跳到 `/auth/register/` 的初始管理员注册引导页，按向导创建第一个
 账号即可。应用容器带 healthcheck（探测免鉴权的 `/status/`），有 60s `start_period`，
@@ -73,6 +80,36 @@ docker compose up -d --build
 
 Phorge `2026.10.07-r2` 的合并与发布依赖 Gorge 同版本全部服务镜像先发布成功。
 候选阶段的发布顺序、配对源码与验收证据见 [发布准备](docs/releases/2026.10.07-r2.md)。
+这是该版历史记录；当前发布流程见下一节。
+
+## 发布镜像与源码配对
+
+当前 Gorge 发布入口是整套 GitHub Release 的 `release-manifest.json`，不再生成新
+`service-<CalVer>` 或更新 `service-latest` 标签。`GORGE_IMAGE_TAG` 及各
+`*_IMAGE_TAG` 只是基础编排的历史标签选择器，不能拼出本次发布的镜像。
+当前流程和验收覆盖见 [Gorge 发布门禁](../gorge/deploy/release/README.md)。
+
+使用已发布产物时，先核对清单的 `phorgeCommit`、`gorgeCommit` 和验收记录，检出
+对应 Phorge 源码；将 `images.<service>.image` 的完整 `repository@sha256:...`
+逐项写入本地 Compose override 的 `gorge-<service>.image`。所有启用的服务都要覆盖，
+不能只钉住 mailer 后混用其他历史标签。下面仅说明一个服务的写法，替换占位符并
+补齐其余服务后使用：
+
+```yaml
+services:
+  gorge-mailer:
+    image: ghcr.io/soulteary/gorge@sha256:<manifest中该服务的64位digest>
+    build: !reset null
+```
+
+把该 override 放在生产配置之后，清除每个候选服务继承的 `build:`，分别构建配对
+Phorge 镜像、拉取 Gorge digest，再以 `up --no-build` 启动；保留相同 profiles 和生产
+预检。不能对 digest 配置继续 `up --build`，重新构建后沿用已验收产物的身份。
+镜像可执行文件和标签验证不替代目标环境的供应商、搜索/权限和浏览器业务验收。
+
+使用当前本地源码时，选择 [生产覆盖配置](PRODUCTION-CUTOVER.md) 的本地 `build:`
+路径。它从相邻 Gorge 源码构建核心服务；两个 checkout 必须是完整验收使用的同一
+源码对，记录 commit/dirty/源码摘要。不能把已有历史 tag 的验收证据套到新构建上。
 
 ## 环境变量
 
@@ -110,12 +147,20 @@ OAuth/LDAP 可达性验证。添加 `--warn-only` 时未完成状态只告警并
 | `PHORGE_PRODUCT_PROFILE` | `auto` | `auto` 让新安装使用协作模式、已有安装保持 full；也可显式指定 `collaboration` 或 `full`。结果持久化在只读部署配置中。 |
 | `PHORGE_GORGE_POLICY` | `required` | 已配置 Gorge 服务的失败策略：`required` 直接暴露错误；`fallback` 迁移期允许旧实现并记录 `[gorge-fallback]` 日志；`off` 停用请求路由型服务。 |
 | `PHORGE_DB_NAMESPACE` | `phabricator` | Phorge、db-init 与 file-storage/webhook/taskqueue/db-api 的唯一数据库前缀。已有自定义 `storage.default-namespace` 的安装升级前必须设为相同值；不一致时 entrypoint 会拒绝启动。 |
-| `GORGE_IMAGE_TAG` | `2026.10.07-r2` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
+| `GORGE_IMAGE_TAG` | `2026.10.07-r2` | 基础栈的历史服务标签选择器；只用于已存在且已验收的历史镜像。当前 Release 用 manifest digest override，见“发布镜像与源码配对”。 |
 | `PHORGE_WAIT_DB` | `1` | `migrate` 角色是否在执行 `storage upgrade` 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
 | `PHORGE_AUTO_UPGRADE` | `1` | `migrate` 角色是否自动执行 `bin/storage upgrade --force`。只有 `migrate` 读它，`web` / `daemon` 永不迁移 schema。 |
 | `PHORGE_CONTAINER_ROLE` | `web` | 容器角色：`migrate`（写 `local.json`、迁移 schema、发布 `deployment.json`）、`web`、`daemon`。`web` / `daemon` 是只读消费者，缺少这两个文件时直接退出。单容器 `all` 角色已移除。 |
 
 `MYSQL_*`、站点地址与时区用于首次生成 `conf/local/local.json`，后续改 `.env` 不会自动覆盖已有本地配置。升级前备份配置，按有效配置来源修改这些普通配置；数据库账号或地址变化还须同步 Gorge 连接配置并重新创建消费者。不要靠删除整个配置文件重置服务所有权。
+
+普通本地配置调整先暂停会写配置的 migrate/profile 任务，备份整个 `conf/local/`
+到受控目录，再对照 `local.json`、`deployment.json` 和 Web Config 确认来源。
+只更新确认需要变更的键，可用 `bin/config set <key> --stdin` 输入 JSON 值；
+只有确认应恢复到其他来源或默认值的单个本地键才运行 `bin/config delete <key>`。
+这个命令只删除该键，不会根据新 `.env` 自动重建它。部署配置管理的键应修改
+`.env`/Compose，重跑同一 profiles 的 migrate/config 任务并重启消费者；它们仍由
+只读 `deployment.json` 决定，不能靠 Web Config 或删除本地键覆盖。
 
 ### 统一部署控制面
 
@@ -331,7 +376,7 @@ admin/client 的 `host:port` 不能相同；admin 不接受 `path`。TLS 在反�
 
 `mailer` profile 启动服务与一次性 `phorge-mailer-config`。它将受管 `key` 的 Gorge 条目写入 deployment 配置；provider 旧条目保留收信用途，出站 email 选择 Gorge，SMS 单独配置。端点/token 放在该 adapter 的 options 中。
 
-必须配置真实 provider。当前 Go 只接受 `GORGE_MAILER_TYPE`、`GORGE_MAILER_CONFIG`、`GORGE_MAILER_KEY` 等规范服务变量，provider 原生 `SMTP_*`、`MAILER_API_KEY` 等仍有效。基础 Compose 已把旧 `MAILER_TYPE`/`MAILER_CONFIG` 输入桥接到规范变量，新输入优先。`.env` 的 `GORGE_MAILER_BACKEND_KEY` 传给 Go 的 `GORGE_MAILER_KEY`；PHP 使用的 `GORGE_MAILER_KEY` 是 adapter 标识，两者分别配置。自定义 override 可直接给 `gorge-mailer.environment` 设置规范变量，例如：
+必须配置真实 provider。当前 Go 只接受 `GORGE_MAILER_TYPE`、`GORGE_MAILER_CONFIG`、`GORGE_MAILER_KEY` 等规范服务变量，provider 原生 `SMTP_*`、`MAILER_API_KEY` 等仍有效。基础 Compose 已把旧 `MAILER_TYPE`/`MAILER_KEY` 输入桥接到规范变量，新输入优先；旧 `MAILER_CONFIG` 没有桥接，必须改为 `GORGE_MAILER_CONFIG`。`.env` 的 `GORGE_MAILER_BACKEND_KEY` 传给 Go 的 `GORGE_MAILER_KEY`；PHP 使用的 `GORGE_MAILER_KEY` 是 adapter 标识，两者分别配置。自定义 override 可直接给 `gorge-mailer.environment` 设置规范变量，例如：
 
 ```yaml
 services:
@@ -347,6 +392,20 @@ services:
 ```
 
 配置 provider 后用同一 override 启动 `--profile mailer`。`/healthz` 只表示进程存活；`/readyz` 检查后端配置，PHP required 启动门禁仍会阻止未就绪的服务。受控收件人的真实投递与账本/投影验收另行执行。provider accepted 不等于收件箱送达。完整配置见 [mailer](../gorge/docs/modules/mailer.md)，native outbox 见后文与生产切换文档。
+
+`GORGE_MAIL_DELIVERY_MODE=legacy` 表示 PHP 兼容任务通过 Gorge 同步发送，
+并不恢复已退役的 PHP SMTP/provider 实现。`native` 让新建邮件进入持久 outbox、
+账本与结果投影；它还要求 `GORGE_MAILER_DELIVERY_DSN`，worker 的
+`GORGE_WORKER_MAIL_OUTBOX_DSN` 必须指向同一 metamta 主库。生产覆盖配置从同一
+`GORGE_MAILER_DELIVERY_DSN` 下发这两个消费者的 DSN。legacy 的旧任务仍需收尾。
+
+同步路径在网络提交前先持久化 unknown fence。只有明确未开始/未被接受的失败
+才恢复 queued；超时、连接中断、坏 JSON、无有效 `mailerKey` 回执、进程崩溃或
+接受后的状态保存失败都会保留 unknown，禁止自动重投及切换后端。
+`ERR_SEND_FAILED` 是确认未接受的可重试回执，`ERR_PERMANENT_FAILURE` 是明确拒绝，
+`ERR_OUTCOME_UNKNOWN` 需要人工核对。legacy unknown 没有 native delivery 查询记录，
+应核对 PHP 邮件状态、任务记录和供应商日志；native unknown 可使用后文的只读查询。
+不要把状态手改为 queued，或以重发来修复结果投影。
 
 ### 搜索
 
@@ -377,9 +436,19 @@ Webhook 与 taskqueue 的 PHP 消费者已退役，owner=phorge 或 disable 不�
 
 worker 在依赖首次握手通过前不领取任务。Web bootstrap 只等待静态 meta，daemon 再等待 worker ready；迁移角色不能等待依赖其 schema 的 worker ready。Feed、通知、邮件、文件和其他任务的 native/delegated 边界见 [worker](../gorge/docs/modules/worker.md)、[taskqueue](../gorge/docs/modules/taskqueue.md)、[scheduler](../gorge/docs/modules/scheduler.md) 与后文。旧格式任务必须先处理，不能靠清队列或改 task ID 升级。
 
+停机先停止领取，默认继续处理和续租 30 秒（`GORGE_WORKER_DRAIN_TIMEOUT_SEC`）；
+基础编排和生产覆盖使用 45 秒 `stop_grace_period`。到期执行以最新同 owner 的有效
+token 尝试永久归档，业务结果仍为未确认，需人工核对；队列不可达时不能保证归档。
+增加 drain 时须同步增加 Compose 等待时间，至少另留 15 秒给归档与进程退出。
+关停语义见 [Worker](../gorge/docs/modules/worker.md)，不能把容器退出当作业务完成。
+
 ### 数据库诊断
 
 默认 `gorge-db-api:8080` 提供只读 schema、节点和迁移诊断。PHP 原生诊断回退已经移除，缺少 URI、能力或 namespace 不匹配是部署错误；`GORGE_DB_MODE=disable` 不能恢复旧实现。
+基础开发编排默认复用 Phorge 普通数据库凭据，这个账号具有写权限；API 只执行读取
+不代表数据库权限已隔离。生产覆盖强制独立 `GORGE_DB_MYSQL_USER/PASS`，账号授权
+不会由 `db-init` 自动创建。按 [生产切换](PRODUCTION-CUTOVER.md) 创建最小权限账号，
+再执行 `preflight.py --check-db-grants` 检查实际选中的 user@host 和角色。
 
 多节点用独立只读 JSON 描述 `cluster.databases` 与 `storage.default-namespace`，通过 override 挂载到 `GORGE_DB_CONFIG_FILE`；密码单独注入 `GORGE_DB_MYSQL_PASS`。不要将含全部应用密钥的 `local.json` 用作默认挂载。文件无效时启动失败，不静默退回单节点。
 
@@ -627,15 +696,17 @@ PHP 调度；已删数据不能靠切换执行权恢复。PHP 清理 SQL 暂留�
 
 ## 独立 Docker 交付验收
 
-宿主机只需 Docker Compose 与 Python 3；PHP、Go、MySQL、Redis、真实 S3 和图片
-服务全部在容器内。入口复用现有 paired acceptance，包括真实 PHP HTTP、文件迁移、
-中断恢复，以及 Go 测试。它不等于浏览器登录后的全业务验收或第三方邮件供应商验收。
+宿主机需要 Docker Compose、Python 3 和两个源码 checkout；默认 Gorge 路径是本仓库
+相邻的 `../gorge`，其他布局必须传 `--gorge-dir`。PHP、Go、MySQL、Redis、真实 S3、
+render/image、Elasticsearch 8 与 Meilisearch 服务全部在容器内。入口复用 paired
+acceptance，包括真实 PHP HTTP、文件迁移、中断恢复和全部 Go race 测试；命名的 Go
+测试被 skip 也会失败。它不等于浏览器登录后的全业务、供应商投递或生产性能验收。
 
 ```bash
-python3 deploy/acceptance/accept.py --check
+python3 deploy/acceptance/accept.py --gorge-dir ../gorge --check
 GOPROXY=https://goproxy.cn \
 ALPINE_MIRROR=https://mirrors.tuna.tsinghua.edu.cn/alpine \
-python3 deploy/acceptance/accept.py --output /tmp/gorge-delivery-result
+python3 deploy/acceptance/accept.py --gorge-dir ../gorge --output /tmp/gorge-delivery-result
 ```
 
 每次使用随机 Compose project，不读取应用 `.env`，不暴露宿主端口，不复用业务卷；
@@ -653,12 +724,25 @@ Phorge Dockerfile 接受 `PHP_BASE_IMAGE`、`APCU_VERSION`、
 `DEBIAN_SNAPSHOT`；Gorge Dockerfile 接受 `GO_BASE_IMAGE`、`RUNTIME_BASE_IMAGE`。
 普通开发构建仍允许默认镜像标签；冻结构建必须使用这份锁和验收入口。
 
+`--check` 只校验运行库身份、Compose 隔离拓扑与镜像锁，不运行契约或证明镜像可用。
+完整执行需要 Docker daemon 可用、足够的后端内存与磁盘，以及已缓存或可访问的
+镜像仓库、系统包仓库、Go modules 和解析器构建依赖。`--candidate-images` 还需完整
+十四服务 digest map：全部检查包装和源码标签，真实 render/image fixture 使用候选
+digest；其余业务 Go 验收仍运行配对源码，不能宣称十四个生产服务均已端到端运行。
+直接运行 `tests/contract/worker/acceptance.py` 则需宿主 PHP/Go/OpenSSL、显式测试
+MySQL、真实 S3 与 image fixture 和 `GORGE_TEST_*` 参数；优先使用上面的隔离入口。
+
 此锁提高依赖可追溯性，不承诺字节级重建一致：Alpine APK 仓库仍可能更新，构建器和
 时间戳也会改变镜像 ID。交付已验收产物时应发布并使用最终镜像 digest，保留配对
 manifest；不要重新构建后继续沿用旧验收结果。
 
 
 ## 内置 PHP 兼容运行库
+
+当前 Docker 与完整配对契约的 PHP 基线是 8.3。CI 的 `runtime-compatibility`
+矩阵另在 8.4/8.5 检查保留运行库、维护工具和响应安全；这些版本仍是运行库候选，
+尚不等于全应用、迁移或生产工作负载已支持。升级基线前须重新完成整套配对验收和
+有代表性的业务验证。维护流程见 [运行库说明](support/runtime/README.md)。
 
 Phorge 的 PHP 基础运行库位于 `support/runtime/`，随本仓库源码和镜像交付。
 构建、网页、管理命令和契约测试都不需要相邻的 Arcanist checkout。内部库注册名

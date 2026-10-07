@@ -43,6 +43,74 @@ bin/ops backup /secure/backup-20261008 --exclusive-access \
 版本兼容与保留期。归档本地 bundle 不等于归档外部快照。数据库/文件卷 `restore-test` 继续
 显式记录 `externalSearchRestore=not_verified`，report 会发出 `SEARCH_RESTORE_UNVERIFIED`；
 需要在隔离搜索集群恢复原生快照，并核对索引、对象、权限和 SQL/outbox 状态，才可切流。
+adapter 只捕获配置的索引，明确设置 `include_global_state=false` 和
+`feature_states=["none"]`；安全账户、全局模板/设置和 repository 配置必须独立保存。
+
+#### 外部快照的隔离恢复步骤
+
+以下步骤是搜索恢复的人工流程，`bin/ops restore` 和 `restore-test` 都不会调用它。
+HTTP 示例供隔离集群的受控 API 控制台使用；把 repository、snapshot、索引名称替换为
+该备份 `search-snapshot.json` 的精确值，不能将占位值或通配符发送到生产端点。
+目标 API 凭据必须具有注册 repository 和恢复目标索引所需权限；创建快照的备份
+凭据不一定允许恢复，不复用应用只读数据库凭据处理搜索授权。
+
+1. 先执行 `bin/ops verify <backup>`，核对 manifest 中的外部引用及独立保存的
+   repository 内容、配置和凭据。另运行数据库/文件卷隔离恢复，保留其回执；任何一份
+   不完整都不是可用的协调恢复点。
+2. 新建与源集群相同 Elasticsearch 8 版本的隔离集群，准备足够容量和相同分析器插件，
+   不连接生产 PHP/Worker/relay。核对 `GET /` 的目标 cluster UUID 与生产不同。
+   不降低版本恢复；跨版本须另核验快照及索引兼容性。
+3. 在目标注册同一 repository，使用只读访问，不能让两个集群同时写 repository。
+   例如原 repository 是 `fs` 时，在目标节点先配置 `path.repo` 和只读共享存储，再执行：
+
+   ```http
+   PUT /_snapshot/phorge_backup
+   {
+     "type": "fs",
+     "settings": {"location": "/snapshots/phorge", "readonly": true}
+   }
+   GET /_snapshot/phorge_backup/gorge-backup-example
+   ```
+
+   S3 等 repository 按原类型配置，不套用 `fs` 示例。核对响应的 snapshot UUID、
+   `state=SUCCESS`、完整索引列表与失败 shard 数，必须与引用匹配。
+   源 cluster UUID 用于记录备份来源，目标 cluster UUID 不应照抄。
+   仓库规则见 [Elasticsearch 8 repository 文档](https://www.elastic.co/guide/en/elasticsearch/reference/8.19/snapshots-register-repository.html)。
+4. 在无同名开放索引的目标恢复原名，明确列出引用中的全部索引，不恢复全局配置或
+   feature states；示例中的 `phabricator` 必须替换为实际完整列表：
+
+   ```http
+   POST /_snapshot/phorge_backup/gorge-backup-example/_restore?wait_for_completion=true
+   {
+     "indices": "phabricator",
+     "ignore_unavailable": false,
+     "include_global_state": false,
+     "feature_states": ["none"],
+     "include_aliases": true
+   }
+   GET /_cluster/health/phabricator
+   GET /phabricator/_recovery
+   GET /phabricator/_settings
+   GET /phabricator/_mapping
+   GET /phabricator/_count
+   ```
+
+   检查恢复完成、无失败 primary shard、索引集合和 mapping/分析器符合配对配置。
+   单节点 yellow 可能只是副本不足，必须逐 shard 核验，不能以 HTTP 200 或 yellow
+   直接判定恢复完成。API 与恢复监控见 [Elasticsearch 8 恢复文档](https://www.elastic.co/guide/en/elasticsearch/reference/8.19/snapshots-restore-snapshot.html)。
+5. 对恢复的 SQL、文件和搜索使用同一协调恢复点，校验已知对象、更新/删除、不同权限
+   用户结果过滤及 outbox/inbox 状态。若有 projection generation，还要核对实际
+   index UUID 与持久 target 绑定；失配时停止旧 target，按
+   [搜索投影流程](../../../gorge/docs/modules/search-projection.md) 新建 generation 并完成
+   扫描/核对。不能改账本 UUID 绕过保护，当前没有自动提升生产读路由的 API。
+   UUID 相同也不能证明恢复内容最新；SQL 中 applied 回执可能晚于搜索快照，启动
+   身份检查不会比对 ES 正文。须按快照边界核对保留增量与当前业务对象。
+6. 独立保存恢复记录：备份 manifest SHA256、repository/snapshot UUID、源/目标
+   cluster UUID、目标版本、索引 UUID、恢复 API 结果和业务验证结果。保留现有
+   `externalSearchRestore=not_verified` 和 `businessIntegrity=not_verified`；工具目前
+   不读取或签发人工搜索恢复证据，不能手改回执伪造通过。
+7. 按人工变更门禁验收新的读取配置，逐域移交消费者再切流；保持原资源可回退。
+   需要重建时仅操作已确认的替代索引，不在恢复前对原生产索引执行 `bin/search init`。
 
 本地真实回归：`python3 tests/operations/search_snapshot_roundtrip.py`。该回归仅创建随机命名
 的临时容器、卷和回环测试端口，覆盖 native snapshot/restore、与 SQL/卷的停写协调、失败
@@ -161,6 +229,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 tests/operations/docker_roundtrip.py
 - 定时调度、失败通知、备份任务本身失联告警与接收端验收。
 - 加密离机副本、保留期、镜像和实际部署环境（含 shell 导出的变量及只读 bind 配置）的独立保存。
 - MySQL 应用账号/授权重建，以及业务数据、文件引用和任务重放的恢复验收。
+- 外部搜索 repository 的独立保护、恢复记录和业务门禁；当前工具不自动恢复搜索或验证人工恢复证据。
 - MySQL/宿主机磁盘、binlog 和日志增长监控；明确 RPO、RTO 并测量演练用时。
 - 业务账本冷存储查询和安全清理；现阶段不删除在线账本或原备份。
 

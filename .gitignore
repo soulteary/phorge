@@ -3,6 +3,7 @@
 
 # Diviner (retain maintained release notes)
 /docs/*
+!/docs/README.md
 !/docs/releases/
 /docs/releases/*
 !/docs/releases/*.md
