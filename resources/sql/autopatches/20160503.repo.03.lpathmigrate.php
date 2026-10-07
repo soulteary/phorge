@@ -19,7 +19,12 @@ final class PhabricatorLocalPathMigrationDAO
 $table = new PhabricatorLocalPathMigrationDAO();
 $conn_w = $table->establishConnection('w');
 
-$default_path = PhabricatorEnv::getEnvConfig('repository.default-local-path');
+// The repository application no longer registers this configuration option.
+// Preserve overrides on older installations and use its historical default
+// when replaying migrations on a fresh installation.
+$default_path = PhabricatorEnv::getEnvConfigIfExists(
+  'repository.default-local-path',
+  '/var/repo/');
 $default_path = rtrim($default_path, '/');
 
 foreach (new LiskRawMigrationIterator($conn_w, $table->getTableName())
