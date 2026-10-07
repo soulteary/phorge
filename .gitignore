@@ -1,8 +1,11 @@
 # NOTE: Thinking about adding files created by your operating system, IDE,
 # or text editor here? Don't! Add them to your per-user .gitignore instead.
 
-# Diviner
-/docs/
+# Diviner (retain maintained release notes)
+/docs/*
+!/docs/releases/
+/docs/releases/*
+!/docs/releases/*.md
 /.divinercache/
 /webroot/rsrc/externals/javelin/.divinercache/
 /webroot/rsrc/externals/javelin/docs/.divinercache/

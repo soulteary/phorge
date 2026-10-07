@@ -52,7 +52,7 @@ services:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-render
-    image: ghcr.io/soulteary/gorge:render-${GORGE_RENDER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:render-${GORGE_RENDER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
     # Native PHP/GNU diff has been retired; the bundled render service owns
     # unified and prose diff generation as well as syntax highlighting. The
     # diff routes are pinned on in docker-compose.gorge.yml and can no longer
@@ -62,19 +62,19 @@ services:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-conduit
-    image: ghcr.io/soulteary/gorge:conduit-${GORGE_CONDUIT_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:conduit-${GORGE_CONDUIT_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
 
   gorge-notification:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-notification
-    image: ghcr.io/soulteary/gorge:notification-${GORGE_NOTIFICATION_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:notification-${GORGE_NOTIFICATION_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
 
   gorge-file-storage:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-file-storage
-    image: ghcr.io/soulteary/gorge:file-storage-${GORGE_FILE_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:file-storage-${GORGE_FILE_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
     environment:
       GORGE_FILE_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
 
@@ -82,7 +82,7 @@ services:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-webhook
-    image: ghcr.io/soulteary/gorge:webhook-${GORGE_WEBHOOK_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:webhook-${GORGE_WEBHOOK_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
     environment:
       GORGE_WEBHOOK_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
 
@@ -90,7 +90,7 @@ services:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-taskqueue
-    image: ghcr.io/soulteary/gorge:taskqueue-${GORGE_TASKQUEUE_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:taskqueue-${GORGE_TASKQUEUE_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
     environment:
       GORGE_TASKQUEUE_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
 
@@ -103,7 +103,7 @@ services:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-worker
-    image: ghcr.io/soulteary/gorge:worker-${GORGE_WORKER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:worker-${GORGE_WORKER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8170/readyz"]
       timeout: 6s
@@ -113,7 +113,7 @@ services:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-db-api
-    image: ghcr.io/soulteary/gorge:db-api-${GORGE_DB_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:db-api-${GORGE_DB_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
     environment:
       GORGE_DB_NAMESPACE: ${PHORGE_DB_NAMESPACE:-phabricator}
 
@@ -123,14 +123,14 @@ services:
     extends:
       file: docker-compose.gorge.yml
       service: gorge-mailer
-    image: ghcr.io/soulteary/gorge:mailer-${GORGE_MAILER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:mailer-${GORGE_MAILER_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
 
   gorge-search:
     profiles: ["search"]
     extends:
       file: docker-compose.gorge.yml
       service: gorge-search
-    image: ghcr.io/soulteary/gorge:search-${GORGE_SEARCH_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.09.09-r3}}
+    image: ghcr.io/soulteary/gorge:search-${GORGE_SEARCH_IMAGE_TAG:-${GORGE_IMAGE_TAG:-2026.10.07-r2}}
 
   gorge-gitea:
     profiles: ["gitea"]
