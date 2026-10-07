@@ -492,6 +492,7 @@ final class PhabricatorStandardPageView extends PhabricatorBarePageView
       $durable_column = id(new ConpherenceDurableColumnView())
         ->setSelectedConpherence(null)
         ->setViewer($user)
+        ->setRequest($request)
         ->setQuicksandConfig($this->buildQuicksandConfig())
         ->setVisible($is_visible)
         ->setMinimize($is_minimize)

@@ -50,7 +50,9 @@ final class PhabricatorNotificationPanelController
       ),
       pht('Notifications'));
 
-    $connection_status = new PhabricatorNotificationStatusView();
+    $connection_status = id(new PhabricatorNotificationStatusView())
+      ->setViewer($viewer)
+      ->setRequest($request);
 
     $connection_ui = phutil_tag(
       'div',

@@ -11,6 +11,16 @@ final class ConpherenceDurableColumnView extends AphrontTagView {
   private $initialLoad = false;
   private $policyObjects;
   private $quicksandConfig = array();
+  private $request;
+
+  public function setRequest(AphrontRequest $request) {
+    $this->request = $request;
+    return $this;
+  }
+
+  public function getRequest() {
+    return $this->request;
+  }
 
   /**
    * @param array<ConpherenceThread> $conpherences
@@ -332,7 +342,11 @@ final class ConpherenceDurableColumnView extends AphrontTagView {
         pht('Conpherence'));
     }
 
-    $status = new PhabricatorNotificationStatusView();
+    $status = id(new PhabricatorNotificationStatusView())
+      ->setViewer($this->getViewer());
+    if ($this->getRequest()) {
+      $status->setRequest($this->getRequest());
+    }
 
     return
       phutil_tag(

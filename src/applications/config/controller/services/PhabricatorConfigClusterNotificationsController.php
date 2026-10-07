@@ -18,13 +18,14 @@ final class PhabricatorConfigClusterNotificationsController
     $status = $this->buildConfigBoxView(
       pht('Notifications Status'),
       $notification_status);
+    $browser_status = $this->buildCurrentBrowserNotificationConnection($request);
 
     $crumbs = $this->newCrumbs()
       ->addTextCrumb($title);
 
     $content = id(new PHUITwoColumnView())
       ->setHeader($header)
-      ->setFooter($status);
+      ->setFooter(array($status, $browser_status));
 
     $nav = $this->newNavigation('notification-servers');
 
@@ -35,9 +36,21 @@ final class PhabricatorConfigClusterNotificationsController
       ->appendChild($content);
   }
 
-  private function buildClusterNotificationStatus() {
-    $viewer = $this->getViewer();
+  private function buildCurrentBrowserNotificationConnection(
+    AphrontRequest $request) {
+    $status = id(new PhabricatorNotificationStatusView())
+      ->setViewer($request->getUser())
+      ->setRequest($request);
+    $content = id(new PHUIBoxView())
+      ->addPadding(PHUI::PADDING_MEDIUM)
+      ->appendChild($status);
 
+    return $this->buildConfigBoxView(
+      pht('Current Browser Notification Connection'),
+      $content);
+  }
+
+  private function buildClusterNotificationStatus() {
     $servers = PhabricatorNotificationServerRef::newRefs();
     Javelin::initBehavior('phabricator-tooltips');
 
@@ -45,10 +58,10 @@ final class PhabricatorConfigClusterNotificationsController
     foreach ($servers as $server) {
       if ($server->isAdminServer()) {
         $type_icon = 'fa-database sky';
-        $type_tip = pht('Admin Server');
+        $type_tip = pht('Management Interface');
       } else {
         $type_icon = 'fa-bell sky';
-        $type_tip = pht('Client Server');
+        $type_tip = pht('Browser Connection Address');
       }
 
       $type_icon = id(new PHUIIconView())
@@ -60,28 +73,37 @@ final class PhabricatorConfigClusterNotificationsController
           ));
 
       $messages = array();
+      if (!$server->isAdminServer()) {
+        $messages[] = phutil_tag(
+          'code',
+          array(),
+          (string)$server->getWebsocketURI());
+      }
 
       $details = array();
-      if ($server->isAdminServer()) {
+      if ($server->getIsDisabled()) {
+        $status_icon = 'fa-ban grey';
+        $status_label = pht('Disabled');
+      } else if ($server->isAdminServer()) {
         try {
-          $details = $server->loadServerStatus();
+          $status_data = $server->loadServerStatus();
+          if (!$this->isValidNotificationServerStatus($status_data)) {
+            throw new Exception(
+              pht('Notification server returned an invalid status response.'));
+          }
+          $details = $status_data;
           $status_icon = 'fa-exchange green';
-          $status_label = pht('Version %s', idx($details, 'version'));
+          $status_label = pht('Protocol Version %s', idx($details, 'version'));
         } catch (Exception $ex) {
           $status_icon = 'fa-times red';
           $status_label = pht('Connection Error');
           $messages[] = $ex->getMessage();
         }
       } else {
-        try {
-          $server->testClient();
-          $status_icon = 'fa-exchange green';
-          $status_label = pht('Connected');
-        } catch (Exception $ex) {
-          $status_icon = 'fa-times red';
-          $status_label = pht('Connection Error');
-          $messages[] = $ex->getMessage();
-        }
+        // This address is used by the browser, whose network may differ from
+        // PHP's. The separate browser status view reports the active connection.
+        $status_icon = 'fa-globe grey';
+        $status_label = pht('Browser Connection Address');
       }
 
       if ($details) {
@@ -137,13 +159,19 @@ final class PhabricatorConfigClusterNotificationsController
       );
     }
 
+    $service = PhabricatorGorgeServiceRegistry::getService('notification');
+    if ($service->isDisabled()) {
+      $no_data = pht('Notification service is disabled.');
+    } else {
+      $no_data = pht('No notification servers are configured.');
+    }
+
     $table = id(new AphrontTableView($rows))
-      ->setNoDataString(
-        pht('No notification servers are configured.'))
+      ->setNoDataString($no_data)
       ->setHeaders(
         array(
           null,
-          pht('Proto'),
+          pht('Protocol'),
           pht('Host'),
           pht('Port'),
           pht('Status'),
@@ -151,7 +179,7 @@ final class PhabricatorConfigClusterNotificationsController
           pht('Clients'),
           pht('Messages'),
           pht('History'),
-          null,
+          pht('Details'),
         ))
       ->setColumnClasses(
         array(
@@ -168,6 +196,35 @@ final class PhabricatorConfigClusterNotificationsController
         ));
 
     return $table;
+  }
+
+  private function isValidNotificationServerStatus($details) {
+    if (!is_array($details)) {
+      return false;
+    }
+
+    foreach (array(
+      'version', 'uptime', 'clients.active', 'clients.total',
+      'messages.in', 'messages.out', 'history.size') as $key) {
+      $value = idx($details, $key);
+      if (!$this->isValidNotificationStatusNumber($value)) {
+        return false;
+      }
+    }
+
+    if ($details['history.size']) {
+      $age = idx($details, 'history.age');
+      if (!$this->isValidNotificationStatusNumber($age)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private function isValidNotificationStatusNumber($value) {
+    return (is_int($value) || is_float($value)) &&
+      is_finite((float)$value) && ($value >= 0);
   }
 
 }

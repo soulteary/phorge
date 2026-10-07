@@ -28,9 +28,12 @@ try {
     }
   }
   if ($count < 10) { throw new Exception('Expected retirement test suites did not run.'); }
-  list($console_output) = execx('%s %s', PHP_BINARY,
-    dirname(__DIR__).'/config/console.php');
-  echo $console_output;
+  foreach (array('console.php', 'notifications.php',
+    'notification-status.php') as $contract) {
+    list($config_output) = execx('%s %s', PHP_BINARY,
+      dirname(__DIR__).'/config/'.$contract);
+    echo $config_output;
+  }
   echo 'Retirement PHP checks passed: '.$count.' tests; '.$skipped." skipped.\n";
 } catch (Throwable $ex) {
   fwrite(STDERR, $ex->getMessage()."\n");

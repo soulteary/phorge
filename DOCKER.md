@@ -364,6 +364,10 @@ docker compose exec -w /opt/phorge/phorge phorge bin/cache purge --caches genera
 
 notification 在一个进程内监听 admin `22281` 和 client `22280`，严格 Aphlict 兼容，不使用 service token。PHP 从 Compose 网络访问 admin；浏览器必须能解析 client 的公开地址。公网或反代部署需同时设置 client host/protocol/port/path 和实际端口发布，不能把 Compose 服务名交给浏览器。
 
+本地开发的 client `127.0.0.1:22280` 指向浏览器所在宿主机；同一地址在 PHP 容器中指向容器自身，因此容器探测失败不能代表浏览器断线。通知状态页分别展示 PHP 对 admin 的检查和当前浏览器的连接状态，client 列保留公开入口信息。多条 client 配置是候选入口，当前浏览器已连接不表示每条入口都已验证。通知关闭、入口禁用、页面协议不兼容或未登录时，也不能从 admin 健康推断浏览器已连接。
+
+排查时确认浏览器生成的 WebSocket 地址及 `cluster.instance`，保留正确的公开 host/protocol/port/path；远程用户不能使用开发机的 loopback 地址。client 普通 HTTP GET 返回 HTTP 501，正文为 `HTTP/501 Use Websockets\n`，仍是 Aphlict 协议约定，不能为消除界面提示而改为 200。该 HTTP 诊断与浏览器实际 WebSocket 状态相互独立。
+
 `notification.servers` 和 worker 的 notification policy 由迁移任务原子生成。检查有效值：
 
 ```bash
