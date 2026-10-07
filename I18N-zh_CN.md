@@ -8,7 +8,7 @@
 
 | 组成 | 路径 | 说明 |
 |------|------|------|
-| 翻译数据 | `src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php` | 约 2.7 万行的 `msgid → 中文` 映射（含复数/性别分支） |
+| 翻译数据 | `src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php` | `msgid → 中文` 映射（含复数/性别分支） |
 | Locale 类 | `src/infrastructure/internationalization/locale/PhabricatorChineseLocale.php` | 定义 `zh_CN`，显示名「中文（简体）」，回退 `en_US` |
 | 类映射注册 | `src/__phutil_library_map__.php` | 注册上述两个类（class map + extends map） |
 | 设置项适配 | `src/applications/settings/setting/PhabricatorTranslationSetting.php` | 让 `zh_CN` 出现在语言下拉、通过校验，并合并 `zh_*` 变体 |
@@ -26,10 +26,10 @@
 2. 在语言下拉中选择 **中文（简体）**。
 3. 保存后界面即渲染为中文。
 
-如需将**整站默认语言**设为中文（可选，非默认行为）：
+如需调整默认语言，注意 Web 与 CLI 是两个独立入口：
 
 - 修改 `PhabricatorTranslationSetting::getSettingDefaultValue()` 返回 `'zh_CN'`；或
-- 将配置项 `locale.command` 默认值改为 `zh_CN`（影响命令行/后台任务的语言）。
+- 通过 `bin/config set locale.command zh_CN` 设置命令行/后台任务语言；此项不修改 Web 用户的默认语言。
 
 当前仓库有意保持这两处为 `en_US`（中文可选而非强制默认）。
 
@@ -64,9 +64,9 @@ python3 scripts/i18n/improve_zh_batch.py --start-line 22 --end-line 1021 --limit
 bash scripts/i18n/run_zh_autofill.sh
 ```
 
-- 分批规划见 [`scripts/i18n/BATCH_PLAN_1000.md`](scripts/i18n/BATCH_PLAN_1000.md)（翻译文件共约 28 批，每批 1000 行）。
+- 分批规划见 [`scripts/i18n/BATCH_PLAN_1000.md`](scripts/i18n/BATCH_PLAN_1000.md)（按当前文件重新计算行范围，不复用固定批次快照）。
 - 术语表见 [`resources/i18n-zh-glossary.md`](resources/i18n-zh-glossary.md)，用于统一译法。
-- `translate_zh_api_batch.py` 支持调用翻译 API 批量处理；使用前请自行配置密钥，切勿把密钥硬编码进仓库。默认模型 `kimi-k2.6`（`temperature=0.6`、`top_p=0.95`、`max_tokens=32768`，关闭思考模式），可用 `--model`、`--temperature`、`--top-p`、`--max-tokens` 覆盖：
+- `translate_zh_api_batch.py` 支持调用翻译 API 批量处理；使用前请自行配置密钥，切勿把密钥硬编码进仓库。模型及参数默认值以脚本的 `--help` 和常量为准，可用 `--model`、`--temperature`、`--top-p`、`--max-tokens` 覆盖：
 
 ```bash
 export MOONSHOT_API_KEY=sk-xxx        # 通过环境变量传入，勿写进仓库
@@ -82,12 +82,12 @@ php -l src/infrastructure/internationalization/translation/PhabricatorChineseTra
 
 ## 五、部署注意事项（OPcache）
 
-`PhabricatorChineseTranslation.php` 有约 2.7 万行。在启用了 OPcache 的生产环境中，超大 PHP 文件偶发会触发「Failed to load symbol」类告警。若真正启用 `zh_CN` 并观察到此类问题，建议将该翻译文件加入 OPcache 黑名单：
+翻译文件较大。在启用了 OPcache 的生产环境中，超大 PHP 文件偶发会触发「Failed to load symbol」类告警。若真正启用 `zh_CN` 并观察到此类问题，建议将该翻译文件加入 OPcache 黑名单：
 
 - 在 `docker/php/opcache.ini` 指定 `opcache.blacklist_filename`；
 - 在对应的 `opcache-blacklist.txt` 中加入该翻译文件路径。
 
-这是部署层配置，不影响代码逻辑；未启用中文时无需处理。
+当前 `opcache.validate_timestamps=0`，源码与翻译修改后必须重新构建并重启消费者。黑名单是出现实际编译/加载问题时的诊断选项，不作为默认要求。
 
 ## 六、相关决策
 

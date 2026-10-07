@@ -1,19 +1,19 @@
 # 搜索、邮件、图片与清理的生产切换
 
 适用：当前 Phorge + Gorge 协作栈。默认栈不自动修改已有搜索后端或移交清理执行权。
-`docker-compose.production.yml` 是显式选择的生产覆盖配置，使用本地 Gorge 源码构建 queue、worker、mailer、search、image、maintenance，避免旧发布镜像缺少新协议。
+`docker-compose.production.yml` 是显式选择的生产覆盖配置，使用本地 Gorge 源码构建 file-storage、queue、worker、mailer、search、image、maintenance，避免旧发布镜像缺少新协议。
 
 ## 切换范围
 
 - 搜索：`cluster.search` 只保留 Gorge 读写适配器，禁用 MySQL/Ferret 并行路径。继续使用已经验收的生产后端和索引。新增投影 generation 仍为影子索引；此覆盖配置不会启用投影或提升 generation。
 - 邮件：唯一 Gorge email adapter，PHP 产生原生邮件 outbox，worker 使用同一 metamta 数据库 relay 与投影，mailer 开启持久账本。SMS 与入站邮件配置保留。
 - 图片：五种已有 thumbnail 配方使用 `gorge` 模式。Meme、sprite 等不在范围内；已有派生缓存不强制重建。
-- 清理：部署启用 PHP 所有权 guard。六个 collector 的数据库 owner 仍须经过 export、import、dry-run、pause、resume 逐项移交；启动容器不会自动删除数据或移交 owner。
+- 清理：部署启用 PHP 所有权 guard。九个 collector 的数据库 owner 仍须经过 export、import、dry-run、pause、resume 逐项移交；启动容器不会自动删除数据或移交 owner。
 
 ## 准备
 
 1. 备份数据库与配置；确认所有 PHP daemon、CLI 和 Web 节点都运行含 cleanup guard 的版本。混用不认识 guard 的旧节点不能被数据库 owner 阻止。
-2. 在 `.env` 配置非空 `GORGE_CONDUIT_TOKEN`、`GORGE_TASKQUEUE_TOKEN`、`GORGE_MAILER_TOKEN`、`GORGE_SEARCH_TOKEN`、`GORGE_IMAGE_TOKEN`、`GORGE_MAINTENANCE_TOKEN`。worker token 默认与队列 token 一致。
+2. 在 `.env` 配置非空 `GORGE_CONDUIT_TOKEN`、`GORGE_FILE_TOKEN`、`GORGE_TASKQUEUE_TOKEN`、`GORGE_MAILER_TOKEN`、`GORGE_SEARCH_TOKEN`、`GORGE_IMAGE_TOKEN`、`GORGE_MAINTENANCE_TOKEN`。worker token 默认与队列 token 一致。
 3. 配置真实邮件 provider 和已验收的生产搜索后端。不要使用 mailer/search 的 test backend 作为生产验收。
 4. 设置 `GORGE_MAILER_DELIVERY_DSN` 为当前 namespace 的 metamta 写库，配置 `GORGE_MAINTENANCE_CACHE_DSN`、`GORGE_MAINTENANCE_CONDUIT_DSN`、`GORGE_MAINTENANCE_DAEMON_DSN`、`GORGE_MAINTENANCE_DIFFERENTIAL_DSN`、`GORGE_MAINTENANCE_MULTIMETER_DSN` 为对应写库。均使用 Go MySQL DSN 格式，如 `user:password@tcp(mysql:3306)/phabricator_metamta`；不能指向副本。
 5. 保持原 namespace。已有任务/邮件应先识别并处理旧格式积压；切换不会把既有 legacy 邮件任务自动转换为原生任务。
@@ -81,7 +81,7 @@ docker compose -f docker-compose.yml -f docker-compose.production.yml \
   php scripts/setup/check_gorge_cutover.php conf/local/deployment.json conf/local/local.json
 ```
 
-检查 required 策略、唯一 Gorge 搜索适配器及 read/write roles、原生邮件模式与账本能力、图片协议和五种配方、worker `/readyz`、清理 schema，以及全部六项 owner=gorge。缺失索引、paused/php owner、能力不兼容或认证错误均返回非零退出码。诊断只显示检查名称，不输出 token、DSN 或响应正文。检查不会发邮件、改索引或移交 owner。
+检查 required 策略、唯一 Gorge 搜索适配器及 read/write roles、原生邮件模式与账本能力、图片协议和五种配方、worker `/readyz`、清理 schema，以及全部九项 owner=gorge。缺失索引、paused/php owner、能力不兼容或认证错误均返回非零退出码。诊断只显示检查名称，不输出 token、DSN 或响应正文。检查不会发邮件、改索引或移交 owner。
 
 此门禁通过之后，仍须保留上述功能验收记录与至少完整清理周期的运行观察。
 
