@@ -137,14 +137,16 @@ final class PhabricatorConfigConsoleController
   }
 
   private function loadVersions(PhabricatorUser $viewer) {
-    $specs = array(
-      'phorge',
-      'arcanist',
-    );
+    $specs = array('phorge');
 
     $all_libraries = PhutilBootloader::getInstance()->getAllLibraries();
     // This puts the core libraries at the top:
-    $other_libraries = array_diff($all_libraries, $specs);
+    // The bundled compatibility library is registered as "arcanist" for
+    // existing PHP consumers, but its identity comes from the runtime manifest.
+    // Running Git from its directory would report the enclosing Phorge commit.
+    $other_libraries = array_diff(
+      $all_libraries,
+      array_merge($specs, array('arcanist')));
     $specs = array_merge($specs, $other_libraries);
 
     $log_futures = array();
@@ -310,6 +312,18 @@ final class PhabricatorConfigConsoleController
         );
       }
     }
+
+    $runtime_root = dirname(phutil_get_library_root('arcanist'));
+    $manifest = json_decode(
+      Filesystem::readFile($runtime_root.'/manifest.json'),
+      true);
+    $runtime_name = pht('Gorge PHP Runtime');
+    $results[$runtime_name] = array(
+      'hash' => idx($manifest, 'contentSHA256'),
+      'epoch' => null,
+      'upstream' => null,
+      'branchpoint' => null,
+    );
 
     return $results;
   }

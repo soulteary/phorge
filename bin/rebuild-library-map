@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+
+$project = dirname(__DIR__);
+require_once $project.'/support/runtime/bootstrap-cli.php';
+
+$args = new PhutilArgumentParser($argv);
+$args->setTagline('rebuild project PHP library maps');
+$args->setSynopsis("rebuild-library-map [--alternative-parser] [library-root ...]\n".
+  "With no roots, rebuild the internal runtime and Phorge src maps.\n");
+$args->parseStandardArguments();
+$args->parse(array(
+  array('name' => 'alternative-parser', 'help' => 'Use prepared PHP-Parser.'),
+  array('name' => 'drop-cache', 'help' => 'Discard previous symbol caches.'),
+  array('name' => 'limit', 'param' => 'N', 'default' => 8,
+    'help' => 'Mapper subprocess limit.'),
+  array('name' => 'roots', 'wildcard' => true),
+));
+$roots = $args->getArg('roots');
+if (!$roots) {
+  $roots = array($project.'/support/runtime/src', $project.'/src');
+}
+foreach ($roots as $root) {
+  $root = Filesystem::resolvePath($root, $project);
+  $builder = id(new PhutilLibraryMapBuilder($root))
+    ->setSubprocessLimit($args->getArg('limit'))
+    ->setAlternativeParser($args->getArg('alternative-parser'));
+  if ($args->getArg('drop-cache')) {
+    $builder->dropSymbolCache();
+  }
+  $builder->buildAndWriteMap();
+  if (realpath($root) === realpath($project.'/support/runtime/src')) {
+    execx('%s %s', PHP_BINARY, $project.'/scripts/runtime/seal-map.php');
+  }
+  echo 'Rebuilt '.Filesystem::readablePath($root, $project)."\n";
+}

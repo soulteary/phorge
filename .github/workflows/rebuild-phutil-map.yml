@@ -22,54 +22,48 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
+          extensions: curl, mbstring
           coverage: none
-      - name: Install Arcanist
-        # Pinned: this job runs the cloned code, so it must not follow a
-        # mutable branch tip. Bump ARCANIST_REF deliberately after reviewing
-        # the upstream range.
-        env:
-          ARCANIST_REPO: https://github.com/phorgeit/arcanist.git
-          ARCANIST_REF: 6f3726694752fb9cb08207070a4d7f68163784e1
-        shell: bash
+      - name: Build bundled parser tools
         run: |
-          set -euo pipefail
-          git init ../arcanist
-          git -C ../arcanist remote add origin "$ARCANIST_REPO"
-          git -C ../arcanist fetch --depth=1 origin "$ARCANIST_REF"
-          git -C ../arcanist checkout --detach FETCH_HEAD
-          actual="$(git -C ../arcanist rev-parse HEAD)"
-          if [ "$actual" != "$ARCANIST_REF" ]; then
-            echo "Arcanist checkout is $actual, expected $ARCANIST_REF" >&2
-            exit 1
-          fi
+          php support/runtime/support/xhpast/build-xhpast.php
+          php support/runtime/support/php-parser/build-php-parser.php
       - name: Rebuild library map
         id: liberate
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          php ../arcanist/bin/arc liberate -- src/ 2>&1 | tee /tmp/arc-liberate.log
+          php bin/rebuild-library-map 2>&1 | tee /tmp/rebuild-library-map.log
       - name: Upload liberate diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: arc-liberate-log
-          path: /tmp/arc-liberate.log
+          name: rebuild-library-map-log
+          path: /tmp/rebuild-library-map.log
       - name: Fail if liberate failed
         if: steps.liberate.outcome != 'success'
         run: exit 1
+      - name: Verify runtime integrity after regeneration
+        run: php scripts/runtime/verify.php
+      - name: Verify map rebuild is reproducible
+        run: |
+          sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > /tmp/library-maps.sha256
+          php bin/rebuild-library-map
+          sha256sum --check /tmp/library-maps.sha256
+          php scripts/runtime/verify.php
       - name: Commit generated map
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if git diff --quiet -- src/__phutil_library_map__.php; then
+          if git diff --quiet -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json; then
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/__phutil_library_map__.php
+          git add src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
           git commit -m 'chore: regenerate Phutil library map [skip ci]'
           git push \
             "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \

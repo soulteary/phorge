@@ -1,0 +1,1935 @@
+{
+    "schemaVersion": 1,
+    "runtimeVersion": "1",
+    "libraryName": "arcanist",
+    "upstreamRevision": null,
+    "upstreamSnapshotSHA256": "a1d8fd74c7e68da6a54f114aac253bb2c0c8a7fe971eae5882b45fe99541f42a",
+    "contentSHA256": "deee83340644315bfe4bbae28c14d3484dfa012123e48052230214a9f1fe6a25",
+    "generatedPaths": [
+        "src/.phutil_module_cache",
+        "src/parser/xhpast/bin/xhpast",
+        "support/php-parser/lib/**",
+        "support/php-parser/php-parser-*.zip",
+        "support/php-parser/php-parser-*.tar.gz",
+        "support/xhpast/xhpast",
+        "support/xhpast/node_names.hpp",
+        "support/xhpast/libxhpast.a",
+        "support/xhpast/*.o",
+        "support/xhpast/parser.yacc.output"
+    ],
+    "patches": [
+        {
+            "id": "macos-tls-backend-ca",
+            "path": "src/future/http/HTTPSFuture.php",
+            "description": "Apply macOS CAINFO restriction only to SecureTransport; retain CAINFO for OpenSSL and other backends."
+        },
+        {
+            "id": "explicit-parser-builds",
+            "path": "src/parser/phpast/lib/PhutilPHPParserLibrary.php",
+            "description": "Require explicit build-time preparation; never download dependencies while parsing."
+        },
+        {
+            "id": "explicit-xhpast-builds",
+            "path": "src/parser/xhpast/bin/PhutilXHPASTBinary.php",
+            "description": "Require explicit build-time compilation; never compile while parsing."
+        },
+        {
+            "id": "explicit-mapper-builds",
+            "path": "src/moduleutils/PhutilLibraryMapBuilder.php",
+            "description": "Require prepared parser tools before starting mapper subprocesses. Reject empty symbols before writing a map. Invalidate upstream symbol caches with schema version 12."
+        },
+        {
+            "id": "server-diff-parser",
+            "path": "src/parser/ArcanistDiffParser.php",
+            "description": "Retain text parsing; remove repository setter, SVN repository parsing and synthetic repository data loading."
+        },
+        {
+            "id": "server-diff-change",
+            "path": "src/parser/diff/ArcanistDiffChange.php",
+            "description": "Remove unused repository-backed binary conversion; retain wire constants and model fields."
+        },
+        {
+            "id": "server-diff-bundle",
+            "path": "src/parser/ArcanistBundle.php",
+            "description": "Retain in-memory/text patch exports and blob callbacks; remove disk/tar and Conduit client loading. Avoid strlen(null) deprecation without changing null-path exports."
+        },
+        {
+            "id": "project-test-discovery",
+            "path": "src/unit/engine/PhutilUnitTestEngine.php",
+            "description": "Do not run retained upstream testing base classes as an upstream test suite."
+        },
+        {
+            "id": "project-library-diagnostics",
+            "path": "src/init/lib/PhutilMissingSymbolException.php",
+            "description": "Diagnose missing project runtime symbols and direct maintainers to the project map tool."
+        },
+        {
+            "id": "project-library-test-diagnostics",
+            "path": "src/__tests__/PhutilLibraryTestCase.php",
+            "description": "Direct maintainers to the project map rebuild tool."
+        },
+        {
+            "id": "project-ca-documentation",
+            "path": "resources/ssl/README",
+            "description": "Document project CA paths and the SecureTransport versus other TLS backend distinction."
+        },
+        {
+            "id": "project-ca-errors",
+            "path": "src/future/http/status/HTTPFutureCURLResponseStatus.php",
+            "description": "Point CA troubleshooting at the project-owned runtime resources."
+        },
+        {
+            "id": "project-certificate-errors",
+            "path": "src/future/http/status/HTTPFutureCertificateResponseStatus.php",
+            "description": "Point CA troubleshooting at the project-owned runtime resources."
+        },
+        {
+            "id": "anonymous-class-symbol-map",
+            "path": "support/lib/extract-symbols.php",
+            "description": "Do not declare or xmap unnamed anonymous classes; retain parent and interface dependencies."
+        },
+        {
+            "id": "anonymous-class-php-parser",
+            "path": "support/php-parser/api/PHPASTDeclarationVisitor.php",
+            "description": "Retain anonymous class parent/interface/trait requirements without creating a loadable class symbol."
+        }
+    ],
+    "files": [
+        {
+            "path": "LICENSE",
+            "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+            "sourceSHA256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "NOTICE",
+            "sha256": "954766cf854b3b4db6b6d97de6073cbf57b7385795a5f529e13b21515c8ae754",
+            "sourceSHA256": "954766cf854b3b4db6b6d97de6073cbf57b7385795a5f529e13b21515c8ae754",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "README.md",
+            "sourceSHA256": null,
+            "reason": "project-runtime-maintenance",
+            "sha256": "b4abc16270307f32e86d6f3736bd673bd2d1a7f5eeb7afdb5f2b0fe702f5c581"
+        },
+        {
+            "path": "bootstrap-cli.php",
+            "sourceSHA256": null,
+            "reason": "project-runtime-maintenance",
+            "sha256": "e2b18d8d61ebd3c559101c3211564ede44a7b397a734a7ebb42bd130409950e7"
+        },
+        {
+            "path": "bootstrap.php",
+            "sourceSHA256": null,
+            "reason": "project-runtime-maintenance",
+            "sha256": "cce59fbda92b16f1daa2610d49586e1ed2aff55025118fbe97da7985521a6982"
+        },
+        {
+            "path": "externals/README",
+            "sha256": "392e4d17c6f70fa6e3e3598c389bcb7715fe77223e723684de8e5a9084bec7f9",
+            "sourceSHA256": "392e4d17c6f70fa6e3e3598c389bcb7715fe77223e723684de8e5a9084bec7f9",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "externals/includes/README",
+            "sha256": "f6b7ac456bf6448896501bafc4c1d78c3e838de509c4ef967aedbadf57653d26",
+            "sourceSHA256": "f6b7ac456bf6448896501bafc4c1d78c3e838de509c4ef967aedbadf57653d26",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "externals/jsonlint/LICENSE",
+            "sha256": "0f8b952ae717f0e1eaa1e67cabc212238e9364d4e74e0af8d12bc7de860e1450",
+            "sourceSHA256": "0f8b952ae717f0e1eaa1e67cabc212238e9364d4e74e0af8d12bc7de860e1450",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "externals/jsonlint/src/Seld/JsonLint/JsonParser.php",
+            "sha256": "dbd59ee5da556d2216a6be53bb6fac769d80eda97178bde440e61103b39ac1ec",
+            "sourceSHA256": "dbd59ee5da556d2216a6be53bb6fac769d80eda97178bde440e61103b39ac1ec",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "externals/jsonlint/src/Seld/JsonLint/Lexer.php",
+            "sha256": "f7e6938d2f821afc1870ccd1d0caec1c3adf72cf117243d281ab46fd3cce7944",
+            "sourceSHA256": "f7e6938d2f821afc1870ccd1d0caec1c3adf72cf117243d281ab46fd3cce7944",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "externals/jsonlint/src/Seld/JsonLint/ParsingException.php",
+            "sha256": "9f5b3634644e6aed30bb14e9960c57dce2432de48e84e2a448400fb1411b1aef",
+            "sourceSHA256": "9f5b3634644e6aed30bb14e9960c57dce2432de48e84e2a448400fb1411b1aef",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "externals/jsonlint/src/Seld/JsonLint/Undefined.php",
+            "sha256": "60b201b41555cc681381d40850325ad293c46dd620ea5482f9ac6cc2015e7994",
+            "sourceSHA256": "60b201b41555cc681381d40850325ad293c46dd620ea5482f9ac6cc2015e7994",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "resources/php/symbol-information.json",
+            "sha256": "21b37ab3d0c429b6866ba6ba79e61ee9b34abfe91880b0b4eb439085683c1c75",
+            "sourceSHA256": "21b37ab3d0c429b6866ba6ba79e61ee9b34abfe91880b0b4eb439085683c1c75",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "resources/ssl/README",
+            "sha256": "b74c382248eb7d10d1ac4e36c4540e9a476c1eab1f88634db462c713be21d08a",
+            "sourceSHA256": "23360179e8219a7536dcb4773398309ec8942b220c5177b1a9554480ac9979a3",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "resources/ssl/default.pem",
+            "sha256": "6ed95025fba2aef0ce7b647607225745624497f876d74ef6ec22b26e73e9de77",
+            "sourceSHA256": "6ed95025fba2aef0ce7b647607225745624497f876d74ef6ec22b26e73e9de77",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "source-symbols.json",
+            "sourceSHA256": null,
+            "reason": "project-runtime-maintenance",
+            "sha256": "594550a7972e24f2123ce67998a27d921e51330f49513348e819ae7a1c6d22d8"
+        },
+        {
+            "path": "src/__phutil_library_init__.php",
+            "sha256": "58cb6939cce30b87fc4468fab04d9a13e966d9bb52eb2cee187b0759608e2fe4",
+            "sourceSHA256": "58cb6939cce30b87fc4468fab04d9a13e966d9bb52eb2cee187b0759608e2fe4",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/__phutil_library_map__.php",
+            "sha256": "17f893fa28fa0ec3e5858e522376de40f425d88afbb0028e2140f51619cbdd27",
+            "sourceSHA256": "5d259ebb228303e36323008dbc5027aab4c86e13e45783e6a2bda456be64b0c9",
+            "reason": "filtered-map"
+        },
+        {
+            "path": "src/__tests__/PhutilLibraryTestCase.php",
+            "sha256": "f2dfdd3117ab8ffd9fe22e392859bed4fc61dcb819cee23a45ff0fd09873a7ee",
+            "sourceSHA256": "dee9c709294de15b21bdc4446f7dcdc5b653ccf0ad32bccd4aeeab2efb179756",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/channel/PhutilChannel.php",
+            "sha256": "66a6e14c986f18e96d655b347b94128a57df7ba4c5d3f71884376269e0026047",
+            "sourceSHA256": "66a6e14c986f18e96d655b347b94128a57df7ba4c5d3f71884376269e0026047",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/channel/PhutilChannelChannel.php",
+            "sha256": "6236ac99383cf19a3613488944752f2c7dad0c3d9149c7ae180e84f098a416c7",
+            "sourceSHA256": "6236ac99383cf19a3613488944752f2c7dad0c3d9149c7ae180e84f098a416c7",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/channel/PhutilExecChannel.php",
+            "sha256": "d593b27ffd4a3ab8ed6e359ee24c5789e67aa6547dad86a06bc18a5ebee68d75",
+            "sourceSHA256": "d593b27ffd4a3ab8ed6e359ee24c5789e67aa6547dad86a06bc18a5ebee68d75",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/channel/PhutilMetricsChannel.php",
+            "sha256": "4cc6f1aa4a8a6d89d7926b326899c811a342dddbd58cca3126a4624877204517",
+            "sourceSHA256": "4cc6f1aa4a8a6d89d7926b326899c811a342dddbd58cca3126a4624877204517",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/channel/PhutilPHPObjectProtocolChannel.php",
+            "sha256": "5d9dfe1ce85d4b3b4948aa8d5e95701aba6b930f6f6871c86b57cda00a0eca05",
+            "sourceSHA256": "5d9dfe1ce85d4b3b4948aa8d5e95701aba6b930f6f6871c86b57cda00a0eca05",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/channel/PhutilProtocolChannel.php",
+            "sha256": "cd3e725bba89eaaf3553b51a880197c55a4e2331e940c5af578f55a5aa9a14de",
+            "sourceSHA256": "cd3e725bba89eaaf3553b51a880197c55a4e2331e940c5af578f55a5aa9a14de",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/channel/PhutilSocketChannel.php",
+            "sha256": "112a0ea647a9d6089e47fb5b215ab146b411ec0d4140f1610d988d4452664322",
+            "sourceSHA256": "112a0ea647a9d6089e47fb5b215ab146b411ec0d4140f1610d988d4452664322",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/conduit/ConduitClient.php",
+            "sha256": "f8f353bfec1106b15f7fb32e2cc2a1664fb18a8b1d90bcddc4f363ed12cedf70",
+            "sourceSHA256": "f8f353bfec1106b15f7fb32e2cc2a1664fb18a8b1d90bcddc4f363ed12cedf70",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/conduit/ConduitClientException.php",
+            "sha256": "176e4336c44a15bb23c0593cb098c38294a93e33c965f366f7b6e913549856d6",
+            "sourceSHA256": "176e4336c44a15bb23c0593cb098c38294a93e33c965f366f7b6e913549856d6",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/conduit/ConduitFuture.php",
+            "sha256": "163ec51c3a73a09821b6c82e3d02d2fb64b0a1b1a04806efc0cc00417546868e",
+            "sourceSHA256": "163ec51c3a73a09821b6c82e3d02d2fb64b0a1b1a04806efc0cc00417546868e",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/configuration/ArcanistBlindlyTrustHTTPEngineExtension.php",
+            "sha256": "325bb1f276083d61cf3b4d75ab78188c5a34287b8c8faf2f4fe243fe4eb5bcf1",
+            "sourceSHA256": "325bb1f276083d61cf3b4d75ab78188c5a34287b8c8faf2f4fe243fe4eb5bcf1",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/configuration/ArcanistConfigurationManager.php",
+            "sha256": "7d6985e6488cc0a17d6e9e7d3865c4cea52de1454884affc51c7475f26c26ef0",
+            "sourceSHA256": "7d6985e6488cc0a17d6e9e7d3865c4cea52de1454884affc51c7475f26c26ef0",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/configuration/ArcanistSetting.php",
+            "sha256": "749a1e4c7084ce2fee6428b4ddf4bd5ac7405cd8343906e4d16d8394eb9d5830",
+            "sourceSHA256": "749a1e4c7084ce2fee6428b4ddf4bd5ac7405cd8343906e4d16d8394eb9d5830",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/configuration/ArcanistSettings.php",
+            "sha256": "003c1194884f3bf76105f49f97542523797f7536395220eb9ae8537492d78aa2",
+            "sourceSHA256": "003c1194884f3bf76105f49f97542523797f7536395220eb9ae8537492d78aa2",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/console/PhutilConsole.php",
+            "sha256": "704081d3c6a439c433303c4d30ba637e90f86a4263c65793ee7faf0013cb4e18",
+            "sourceSHA256": "704081d3c6a439c433303c4d30ba637e90f86a4263c65793ee7faf0013cb4e18",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/console/PhutilConsoleFormatter.php",
+            "sha256": "e2f2d41c921c1a764f68238611ff23dfc8117b976132bae2481244cb0bceb350",
+            "sourceSHA256": "e2f2d41c921c1a764f68238611ff23dfc8117b976132bae2481244cb0bceb350",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/console/PhutilConsoleMessage.php",
+            "sha256": "1079a0d2b75bc6cc3003aaab9769fb21ae53d471dab9a780999218502c8881f7",
+            "sourceSHA256": "1079a0d2b75bc6cc3003aaab9769fb21ae53d471dab9a780999218502c8881f7",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/console/PhutilConsoleMetrics.php",
+            "sha256": "8c131f67a7d5690d8bb4978876348b373b57989ca6e820c6df7183e9299b510a",
+            "sourceSHA256": "8c131f67a7d5690d8bb4978876348b373b57989ca6e820c6df7183e9299b510a",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/console/PhutilConsoleProgressBar.php",
+            "sha256": "5de18cdd0567efa38eabad435a1fe2334928dd7b421db65bc1e76750c7bceeaa",
+            "sourceSHA256": "5de18cdd0567efa38eabad435a1fe2334928dd7b421db65bc1e76750c7bceeaa",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/console/PhutilConsoleServer.php",
+            "sha256": "b7fc0e47b4fbe3ce3df024e2ab6ff18c18955d7c4368793660b0c19e871951c6",
+            "sourceSHA256": "b7fc0e47b4fbe3ce3df024e2ab6ff18c18955d7c4368793660b0c19e871951c6",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/console/PhutilConsoleServerChannel.php",
+            "sha256": "fe721f6f48f19787522c624b2d5f6c5cfa19003309f3abacd73fd3eac542c2d0",
+            "sourceSHA256": "fe721f6f48f19787522c624b2d5f6c5cfa19003309f3abacd73fd3eac542c2d0",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/console/PhutilConsoleStdinNotInteractiveException.php",
+            "sha256": "4d6d72ea928360cd205d627e9928725df8a677c17d2a13acf50577cce14948aa",
+            "sourceSHA256": "4d6d72ea928360cd205d627e9928725df8a677c17d2a13acf50577cce14948aa",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/console/format.php",
+            "sha256": "762da1f4989b54fc9f6465539ebfbd762b1336c4a140481fd78597de58454316",
+            "sourceSHA256": "762da1f4989b54fc9f6465539ebfbd762b1336c4a140481fd78597de58454316",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/console/view/PhutilConsoleBlock.php",
+            "sha256": "0391f147e5a80ff39db53efffde81dc831acbcae4f963db5335c67d357c76823",
+            "sourceSHA256": "0391f147e5a80ff39db53efffde81dc831acbcae4f963db5335c67d357c76823",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/console/view/PhutilConsoleList.php",
+            "sha256": "7a1b8bdd26c15c6dbb76fa59b11617cf986a791136593ed93ffc709b176b2395",
+            "sourceSHA256": "7a1b8bdd26c15c6dbb76fa59b11617cf986a791136593ed93ffc709b176b2395",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/console/view/PhutilConsoleTable.php",
+            "sha256": "8984902bc49f22bd0878160eaa63a80ba49a4307a46d036db06fe421f739d32e",
+            "sourceSHA256": "8984902bc49f22bd0878160eaa63a80ba49a4307a46d036db06fe421f739d32e",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/console/view/PhutilConsoleView.php",
+            "sha256": "57307247e31d5cc4765c606d495f9e7334d367f9af803d105641a863857fe3bd",
+            "sourceSHA256": "57307247e31d5cc4765c606d495f9e7334d367f9af803d105641a863857fe3bd",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/difference/ArcanistDiffUtils.php",
+            "sha256": "997cc512a2aa1b980905dd158fdd17576defb82e7c981057c06695e23829963f",
+            "sourceSHA256": "997cc512a2aa1b980905dd158fdd17576defb82e7c981057c06695e23829963f",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/difference/ArcanistDiffVectorNode.php",
+            "sha256": "62122e08af8a12ff6c0d049527a1132c0b486bb62a8484db29d6c57378557970",
+            "sourceSHA256": "62122e08af8a12ff6c0d049527a1132c0b486bb62a8484db29d6c57378557970",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/difference/ArcanistDiffVectorTree.php",
+            "sha256": "fd0fe3fb016daa7cceab373239cc2a4c65672542996d045a38f906db15b5836d",
+            "sourceSHA256": "fd0fe3fb016daa7cceab373239cc2a4c65672542996d045a38f906db15b5836d",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/differential/constants/ArcanistDifferentialRevisionHash.php",
+            "sha256": "5df60cdec8bf01902f611c59f35a976c25730daf427fef970d502475f0572832",
+            "sourceSHA256": "5df60cdec8bf01902f611c59f35a976c25730daf427fef970d502475f0572832",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/error/PhutilAggregateException.php",
+            "sha256": "ede1b695f5682942533819051e8a3e553fb15477c9a2b7e46fbbe58adde4c025",
+            "sourceSHA256": "ede1b695f5682942533819051e8a3e553fb15477c9a2b7e46fbbe58adde4c025",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/error/PhutilErrorHandler.php",
+            "sha256": "8cfce414be1af6dff2a908dc628784fa252a38a9fbe7c4346e3c10784e36c1e2",
+            "sourceSHA256": "8cfce414be1af6dff2a908dc628784fa252a38a9fbe7c4346e3c10784e36c1e2",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/error/PhutilErrorTrap.php",
+            "sha256": "b166c197c75561a4f5dfc6b1d0c281c2bdf30589f7e417be1d241056d9f5cbc3",
+            "sourceSHA256": "b166c197c75561a4f5dfc6b1d0c281c2bdf30589f7e417be1d241056d9f5cbc3",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/error/PhutilMethodNotImplementedException.php",
+            "sha256": "8947a3e256034fb79356eeaa7685ba91c1909e6e15d08c74690ebe6faa572fd4",
+            "sourceSHA256": "8947a3e256034fb79356eeaa7685ba91c1909e6e15d08c74690ebe6faa572fd4",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/error/PhutilOpaqueEnvelope.php",
+            "sha256": "251a18e918eb9b028eba4dc9d184af11f1a15873c6d843593b99c9279e977b7c",
+            "sourceSHA256": "251a18e918eb9b028eba4dc9d184af11f1a15873c6d843593b99c9279e977b7c",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/error/PhutilOpaqueEnvelopeKey.php",
+            "sha256": "e3edf5174d3aa7e7e35a0cdf94026e73f17d0629f02ef6ac1b05dded94b1a504",
+            "sourceSHA256": "e3edf5174d3aa7e7e35a0cdf94026e73f17d0629f02ef6ac1b05dded94b1a504",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/error/phlog.php",
+            "sha256": "a3f53e8c803f9fc73c8843c78b533a145ce10c37589e99cb804bbdc5a794d92d",
+            "sourceSHA256": "a3f53e8c803f9fc73c8843c78b533a145ce10c37589e99cb804bbdc5a794d92d",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/events/PhutilEvent.php",
+            "sha256": "3edfce2371874e2581d0eb1e013af8b8f4b0d7fa0715b728a32f4392a81a1f86",
+            "sourceSHA256": "3edfce2371874e2581d0eb1e013af8b8f4b0d7fa0715b728a32f4392a81a1f86",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/events/PhutilEventEngine.php",
+            "sha256": "ed727434a7af63290aaeaa8f4beaea20e6c33fe49a7cd71a5884f9eed43e4887",
+            "sourceSHA256": "ed727434a7af63290aaeaa8f4beaea20e6c33fe49a7cd71a5884f9eed43e4887",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/events/PhutilEventListener.php",
+            "sha256": "d47564935d2cb2e17d53ad6d7f89e30bcacd6142647d29c68fdbed3afbee5bf3",
+            "sourceSHA256": "d47564935d2cb2e17d53ad6d7f89e30bcacd6142647d29c68fdbed3afbee5bf3",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/events/constant/PhutilEventConstants.php",
+            "sha256": "14ce36c173e70a47a2befe48817cf832a1846061c92625ed761edd20e23274c3",
+            "sourceSHA256": "14ce36c173e70a47a2befe48817cf832a1846061c92625ed761edd20e23274c3",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/events/constant/PhutilEventType.php",
+            "sha256": "0f5aff46e38f362cb45895471a68fabea58c4c617be7f3146e0f0be9c2448baf",
+            "sourceSHA256": "0f5aff46e38f362cb45895471a68fabea58c4c617be7f3146e0f0be9c2448baf",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/exception/ArcanistDiffByteSizeException.php",
+            "sha256": "4c1ae215001608e3fc6028f0e9521916c4d9ce26bd1b9584b7a3a8ed3e5a8e6d",
+            "sourceSHA256": "4c1ae215001608e3fc6028f0e9521916c4d9ce26bd1b9584b7a3a8ed3e5a8e6d",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/exception/ArcanistMissingArgumentTerminatorException.php",
+            "sha256": "859b0d2a9a5cbebc543c54f7bcaaf24a0553d6b1420e5cd0bee20ea3af718a73",
+            "sourceSHA256": "859b0d2a9a5cbebc543c54f7bcaaf24a0553d6b1420e5cd0bee20ea3af718a73",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/exception/ArcanistUsageException.php",
+            "sha256": "85096f8e501315ff56ba61c1835a4d2a125a1d6800dff41378f46f22bf971c65",
+            "sourceSHA256": "85096f8e501315ff56ba61c1835a4d2a125a1d6800dff41378f46f22bf971c65",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/exception/PhutilInvalidStateException.php",
+            "sha256": "68e79ef3ebc8aa534e360852e212940caf973985f25792bd9811a04d35e7d883",
+            "sourceSHA256": "68e79ef3ebc8aa534e360852e212940caf973985f25792bd9811a04d35e7d883",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/exception/PhutilRegexException.php",
+            "sha256": "cc40d01a4cdee22ecc957a8bf84c1968e29f0a4d366b7874935847fd662f73fc",
+            "sourceSHA256": "cc40d01a4cdee22ecc957a8bf84c1968e29f0a4d366b7874935847fd662f73fc",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/exception/usage/ArcanistNoEffectException.php",
+            "sha256": "f803586e269e68409328eb51b2c03333bad9c1f9ad87db00262a7cef58621c40",
+            "sourceSHA256": "f803586e269e68409328eb51b2c03333bad9c1f9ad87db00262a7cef58621c40",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/exception/usage/ArcanistUserAbortException.php",
+            "sha256": "364072a8c9608bcc5f501ccdb9f543920991c32eb896bf5520891aedaf809c48",
+            "sourceSHA256": "364072a8c9608bcc5f501ccdb9f543920991c32eb896bf5520891aedaf809c48",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/FileFinder.php",
+            "sha256": "7780d17819d42b7531c8724d546165283383a66e7240a3c0abd41a96aa0766e8",
+            "sourceSHA256": "7780d17819d42b7531c8724d546165283383a66e7240a3c0abd41a96aa0766e8",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/FileList.php",
+            "sha256": "2d2ccd2de7f64aafc19c3edb783e279ed3c137724da782fc4bd34984505876d7",
+            "sourceSHA256": "2d2ccd2de7f64aafc19c3edb783e279ed3c137724da782fc4bd34984505876d7",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/filesystem/Filesystem.php",
+            "sha256": "c1a204323580392482a9e4b2a9b92a7f00ded42df9e9d0f0e95c44c16ebf9532",
+            "sourceSHA256": "c1a204323580392482a9e4b2a9b92a7f00ded42df9e9d0f0e95c44c16ebf9532",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/FilesystemException.php",
+            "sha256": "7ab3a44ed4fb18e2611a7ae59c04c9504f653572e562ec4047349a79a4dd42e4",
+            "sourceSHA256": "7ab3a44ed4fb18e2611a7ae59c04c9504f653572e562ec4047349a79a4dd42e4",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/PhutilDeferredLog.php",
+            "sha256": "5ccbe864552f03b579dbc9d794d2d47408d80c6b3d8c74aa0434b1dc0e020462",
+            "sourceSHA256": "5ccbe864552f03b579dbc9d794d2d47408d80c6b3d8c74aa0434b1dc0e020462",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/PhutilErrorLog.php",
+            "sha256": "cad598d3b956265ec8bafea64b3ae0dab8017341a6d25779506e103ea9595762",
+            "sourceSHA256": "cad598d3b956265ec8bafea64b3ae0dab8017341a6d25779506e103ea9595762",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/PhutilFileLock.php",
+            "sha256": "420d7124a487a039ade972a7138f357af7f33781e016879c4005a347ae67da70",
+            "sourceSHA256": "420d7124a487a039ade972a7138f357af7f33781e016879c4005a347ae67da70",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/PhutilLock.php",
+            "sha256": "96b2294d0fc87df6628b670fc56e30cbb33bdea50111f3680f80511764166f32",
+            "sourceSHA256": "96b2294d0fc87df6628b670fc56e30cbb33bdea50111f3680f80511764166f32",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/PhutilLockException.php",
+            "sha256": "9dd91feff4460265a44574b938a894d37771ff562a6703fe32fb3cbc448bd25c",
+            "sourceSHA256": "9dd91feff4460265a44574b938a894d37771ff562a6703fe32fb3cbc448bd25c",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/PhutilProcessQuery.php",
+            "sha256": "f0f01116f500b41dc75513607da1fd502a93e21e767274e74124d27d33129129",
+            "sourceSHA256": "f0f01116f500b41dc75513607da1fd502a93e21e767274e74124d27d33129129",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/PhutilProcessRef.php",
+            "sha256": "df5aec8545555bbfb282cadd1eb07f535555e8f0f9d3a67927189af0b7304d49",
+            "sourceSHA256": "df5aec8545555bbfb282cadd1eb07f535555e8f0f9d3a67927189af0b7304d49",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/filesystem/TempFile.php",
+            "sha256": "a2e2c0d566762d02c9744f66894d747a4523d18e1e542e2f21dbaa061e05f987",
+            "sourceSHA256": "a2e2c0d566762d02c9744f66894d747a4523d18e1e542e2f21dbaa061e05f987",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/binary/PhutilBinaryAnalyzer.php",
+            "sha256": "9d20817dedc49773964174b4e6ce707326e1047ddedf911201b9dc6f13e8bcb3",
+            "sourceSHA256": "9d20817dedc49773964174b4e6ce707326e1047ddedf911201b9dc6f13e8bcb3",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/filesystem/binary/PhutilDiffBinaryAnalyzer.php",
+            "sha256": "996d5554c81c5e7d42c909a8062bd8af02184e6dc9944e792a1b13429ba98c2d",
+            "sourceSHA256": "996d5554c81c5e7d42c909a8062bd8af02184e6dc9944e792a1b13429ba98c2d",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/filesystem/binary/PhutilGitBinaryAnalyzer.php",
+            "sha256": "968421c8a3e733c4c4dbd72033f4f09380d4df34bc95d4b2bf304e63e52174b1",
+            "sourceSHA256": "968421c8a3e733c4c4dbd72033f4f09380d4df34bc95d4b2bf304e63e52174b1",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/filesystem/binary/PhutilMercurialBinaryAnalyzer.php",
+            "sha256": "4f3cb3c8495881bca5fe744f24652fa7a55576f14adb51c3590ebf4f4a32ac4c",
+            "sourceSHA256": "4f3cb3c8495881bca5fe744f24652fa7a55576f14adb51c3590ebf4f4a32ac4c",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/filesystem/binary/PhutilPygmentizeBinaryAnalyzer.php",
+            "sha256": "781f600aa03a4f3d9b1f029a3e40605d08f2a432b6f16cd9050e83605a2b4cee",
+            "sourceSHA256": "781f600aa03a4f3d9b1f029a3e40605d08f2a432b6f16cd9050e83605a2b4cee",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/filesystem/binary/PhutilSubversionBinaryAnalyzer.php",
+            "sha256": "c5b5828642b3b9c92108d4be8f99013d1aa82300b567b5e1f60dab10a9874f0d",
+            "sourceSHA256": "c5b5828642b3b9c92108d4be8f99013d1aa82300b567b5e1f60dab10a9874f0d",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/filesystem/linesofalarge/LinesOfALarge.php",
+            "sha256": "77c6204c0d0d3f8688cf51d8404fd487fcbd51ba27ebcec0c2c588b04fab2213",
+            "sourceSHA256": "77c6204c0d0d3f8688cf51d8404fd487fcbd51ba27ebcec0c2c588b04fab2213",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/filesystem/linesofalarge/LinesOfALargeExecFuture.php",
+            "sha256": "939e0c6e90d98af4b174c4766661760b31eecf011f5a17fe5c70688cba73a179",
+            "sourceSHA256": "939e0c6e90d98af4b174c4766661760b31eecf011f5a17fe5c70688cba73a179",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/filesystem/linesofalarge/LinesOfALargeFile.php",
+            "sha256": "e3047ff9c168754daefa7634d8444fdda88bf2afb3e5781307183a9c08f24a9c",
+            "sourceSHA256": "e3047ff9c168754daefa7634d8444fdda88bf2afb3e5781307183a9c08f24a9c",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/Future.php",
+            "sha256": "5d224e8706f2f488d10021ae4327321afdcc23eb4b7bc830acb3c097442b600e",
+            "sourceSHA256": "5d224e8706f2f488d10021ae4327321afdcc23eb4b7bc830acb3c097442b600e",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/FutureIterator.php",
+            "sha256": "d9ce38358f2b4e4d794d1a24c4bd441630b1f54b9db5a5232b8d4dd7cf2f5071",
+            "sourceSHA256": "d9ce38358f2b4e4d794d1a24c4bd441630b1f54b9db5a5232b8d4dd7cf2f5071",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/FuturePool.php",
+            "sha256": "c01e1d2c65a567fd93f6d66fb2caea7e03fd2f81ffe1545a5c2be940be9d9a73",
+            "sourceSHA256": "c01e1d2c65a567fd93f6d66fb2caea7e03fd2f81ffe1545a5c2be940be9d9a73",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/FutureProxy.php",
+            "sha256": "bd17d76110f32d477140866c010f30d3a1846cb36ff323e11cd146c40abcbef8",
+            "sourceSHA256": "bd17d76110f32d477140866c010f30d3a1846cb36ff323e11cd146c40abcbef8",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/ImmediateFuture.php",
+            "sha256": "2cbf561c18ed50fdc8b789f1c42abe8148f4cdde208559aab140adba63211ee1",
+            "sourceSHA256": "2cbf561c18ed50fdc8b789f1c42abe8148f4cdde208559aab140adba63211ee1",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/asana/PhutilAsanaFuture.php",
+            "sha256": "f8fe1b683af3fb9dbcca9d5c0c9fd02c72ac8da7d40c58a022a6e0aad9446974",
+            "sourceSHA256": "f8fe1b683af3fb9dbcca9d5c0c9fd02c72ac8da7d40c58a022a6e0aad9446974",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/aws/PhutilAWSException.php",
+            "sha256": "7888df70a6cc800012a56626b3ba894dcfebd3660228c6258f07443e705204f1",
+            "sourceSHA256": "7888df70a6cc800012a56626b3ba894dcfebd3660228c6258f07443e705204f1",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/future/aws/PhutilAWSFuture.php",
+            "sha256": "42284d3386956f91272bc021f94ae111360bbd11318256f10dcc14c1b6d73a5e",
+            "sourceSHA256": "42284d3386956f91272bc021f94ae111360bbd11318256f10dcc14c1b6d73a5e",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/aws/PhutilAWSS3Future.php",
+            "sha256": "fc42f65c6a5ed035708bd65452365132b22d768a2a9cb3d5298da0064bec8e47",
+            "sourceSHA256": "fc42f65c6a5ed035708bd65452365132b22d768a2a9cb3d5298da0064bec8e47",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/aws/PhutilAWSv4Signature.php",
+            "sha256": "597976f6e9f30d2bb1551db3e8652ec3ea9be54e7f1f41ab08649e2f6e612820",
+            "sourceSHA256": "597976f6e9f30d2bb1551db3e8652ec3ea9be54e7f1f41ab08649e2f6e612820",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/future/exec/CommandException.php",
+            "sha256": "09fafb3b6cc9153040602371d860c67acc870f9dce15431e0ba47a2ce0a9789c",
+            "sourceSHA256": "09fafb3b6cc9153040602371d860c67acc870f9dce15431e0ba47a2ce0a9789c",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/exec/ExecFuture.php",
+            "sha256": "9b9178d708ffa8ad63a493e4683bc302accaba8aca8839390ae5b0cf238200ee",
+            "sourceSHA256": "9b9178d708ffa8ad63a493e4683bc302accaba8aca8839390ae5b0cf238200ee",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/exec/PhutilBacktraceSignalHandler.php",
+            "sha256": "b7d20577ebc0e9fa15d6e9b6b340aa5b708e7ed5a13bb23474b2b2093300657a",
+            "sourceSHA256": "b7d20577ebc0e9fa15d6e9b6b340aa5b708e7ed5a13bb23474b2b2093300657a",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/exec/PhutilCallbackSignalHandler.php",
+            "sha256": "edbf49896798ef53a7d67e42169ed05cece5f778c9fdcfa9f35876f33b109dbb",
+            "sourceSHA256": "edbf49896798ef53a7d67e42169ed05cece5f778c9fdcfa9f35876f33b109dbb",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/exec/PhutilConsoleMetricsSignalHandler.php",
+            "sha256": "2c5b3f83a1eaa5de67c2a704f073088556ae6f987c93f8bd60ea3f938efb5281",
+            "sourceSHA256": "2c5b3f83a1eaa5de67c2a704f073088556ae6f987c93f8bd60ea3f938efb5281",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/exec/PhutilExecPassthru.php",
+            "sha256": "3f7449823920d601ee8014bf16f3410706e967d616f18db0af2b534bdf698baa",
+            "sourceSHA256": "3f7449823920d601ee8014bf16f3410706e967d616f18db0af2b534bdf698baa",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/exec/PhutilExecutableFuture.php",
+            "sha256": "4c360e3cedcfd771d180554c6b766792e1447286104c8725e19cb0fc85a5a20f",
+            "sourceSHA256": "4c360e3cedcfd771d180554c6b766792e1447286104c8725e19cb0fc85a5a20f",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/future/exec/PhutilSignalHandler.php",
+            "sha256": "15cdb9061bdb1580a682daf40ea6336d598b998690e01b391cfd05b6d55effce",
+            "sourceSHA256": "15cdb9061bdb1580a682daf40ea6336d598b998690e01b391cfd05b6d55effce",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/future/exec/PhutilSignalRouter.php",
+            "sha256": "6a52a61a58950db054bbf3a92ebbb63d09e1cde10806089e2228728c77b0a4c1",
+            "sourceSHA256": "6a52a61a58950db054bbf3a92ebbb63d09e1cde10806089e2228728c77b0a4c1",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/exec/execx.php",
+            "sha256": "f8d683e6555578a9b49cf78e5153c0a807e58bf107501cd08725ff392e160b3b",
+            "sourceSHA256": "f8d683e6555578a9b49cf78e5153c0a807e58bf107501cd08725ff392e160b3b",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/github/PhutilGitHubFuture.php",
+            "sha256": "baf89a6a064d5b6ad31b77f2248ac929005dffedef24f5d314e12297d88117ec",
+            "sourceSHA256": "baf89a6a064d5b6ad31b77f2248ac929005dffedef24f5d314e12297d88117ec",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/github/PhutilGitHubResponse.php",
+            "sha256": "74e6c14c526629af5cfe45a69d876df75d64203127cdb5b1ae4aa42e6d9b062e",
+            "sourceSHA256": "74e6c14c526629af5cfe45a69d876df75d64203127cdb5b1ae4aa42e6d9b062e",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/http/BaseHTTPFuture.php",
+            "sha256": "a6b08e6f68225f04e126bc36c851f1a63209e8427655a3ae0e87d424459890f1",
+            "sourceSHA256": "a6b08e6f68225f04e126bc36c851f1a63209e8427655a3ae0e87d424459890f1",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/http/HTTPSFuture.php",
+            "sha256": "fd2862cc5f8d241de0c5d1648e2bd27013c0b2cf36c663106bd659201e52753c",
+            "sourceSHA256": "a6e110fe4b87cb474ae831fc9f8aa15b5a5a1a05a2a736056dbfe75bc2628617",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/http/PhutilHTTPEngineExtension.php",
+            "sha256": "58a80c2f7cdc6087f17d731385c87483160b1fb0dd6689d6d5c445fe90af1659",
+            "sourceSHA256": "58a80c2f7cdc6087f17d731385c87483160b1fb0dd6689d6d5c445fe90af1659",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/future/http/status/HTTPFutureCURLResponseStatus.php",
+            "sha256": "41b2461af4fc56652cff900ae3b06369f84683e2084f1b326a007083ed7dfd98",
+            "sourceSHA256": "988b8f485a5364c321681bce4fce9c698d1a4d2b04a087d62aa6e9c0db8792de",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/http/status/HTTPFutureCertificateResponseStatus.php",
+            "sha256": "691e65029c25167d4cb6bfe8526721ada8c07d70754a2195b9b960849be7693e",
+            "sourceSHA256": "82e30afe8df34814122ee06e6403c313cbcf7a0887a24ca728ad9e1f84315d34",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/future/http/status/HTTPFutureHTTPResponseStatus.php",
+            "sha256": "c5271db4a0e9f6813c9b7fd7c16f360e89c0742592fb038b9e03cab79a7ab5a0",
+            "sourceSHA256": "c5271db4a0e9f6813c9b7fd7c16f360e89c0742592fb038b9e03cab79a7ab5a0",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/http/status/HTTPFutureParseResponseStatus.php",
+            "sha256": "db283c23cfcf45686564dae54e013af2b19551bb73dde239682f0300903ffb6b",
+            "sourceSHA256": "db283c23cfcf45686564dae54e013af2b19551bb73dde239682f0300903ffb6b",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/future/http/status/HTTPFutureResponseStatus.php",
+            "sha256": "e47552d8ab859aa9064cefebccad36e28acd99937e1ef9b10ce42ae528d2db33",
+            "sourceSHA256": "e47552d8ab859aa9064cefebccad36e28acd99937e1ef9b10ce42ae528d2db33",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/oauth/PhutilOAuth1Future.php",
+            "sha256": "d38f316ee5bdc58942b78bdacfb9711e59a70288df264209a64f705c5dee5918",
+            "sourceSHA256": "d38f316ee5bdc58942b78bdacfb9711e59a70288df264209a64f705c5dee5918",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/slack/PhutilSlackFuture.php",
+            "sha256": "6a6f59d6ca1f5060e58fa4caf7dfca0691b86a4bdb9222af449148c1bdae8daf",
+            "sourceSHA256": "6a6f59d6ca1f5060e58fa4caf7dfca0691b86a4bdb9222af449148c1bdae8daf",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/twitch/PhutilTwitchFuture.php",
+            "sha256": "4f92429cd6e4ffd104b9b884596875445a07076978f925f361671ad9d9e932ff",
+            "sourceSHA256": "4f92429cd6e4ffd104b9b884596875445a07076978f925f361671ad9d9e932ff",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/future/wordpress/PhutilWordPressFuture.php",
+            "sha256": "cbcd01a8668e4dee2e2fcfe9666707b18eb33a07fc9f0cfd5b8d6681efe5e5e0",
+            "sourceSHA256": "cbcd01a8668e4dee2e2fcfe9666707b18eb33a07fc9f0cfd5b8d6681efe5e5e0",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/init/init-library.php",
+            "sha256": "b98eda6de428c6a8dc88e4e8b8b4972ff1dcbd5e660658ffdfdc062d11a0031b",
+            "sourceSHA256": "b98eda6de428c6a8dc88e4e8b8b4972ff1dcbd5e660658ffdfdc062d11a0031b",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/init/lib/PhutilBootloader.php",
+            "sha256": "074a5338f2ca1fff87de63258aae773865f90f02c614fce473116a10b343ade2",
+            "sourceSHA256": "074a5338f2ca1fff87de63258aae773865f90f02c614fce473116a10b343ade2",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/init/lib/PhutilBootloaderException.php",
+            "sha256": "9b93ec2d9c1d93863f822a8b77555b612ca8054d3df00aae3acd09f958f5b2a2",
+            "sourceSHA256": "9b93ec2d9c1d93863f822a8b77555b612ca8054d3df00aae3acd09f958f5b2a2",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/init/lib/PhutilLibraryConflictException.php",
+            "sha256": "35f32800ec4d666edd44e2236dbde1f9b25803ee9657be93a275fd366cfb6d8a",
+            "sourceSHA256": "35f32800ec4d666edd44e2236dbde1f9b25803ee9657be93a275fd366cfb6d8a",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/init/lib/PhutilMissingSymbolException.php",
+            "sha256": "e5526f76c2d8eb6e15981488488bbfcfc9156fcc6e4253cf076bfe032e5df687",
+            "sourceSHA256": "41ee99affff8c8a9141c807dd705e23f802762aa7b012da67674f4518d3f76a9",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/init/lib/core.php",
+            "sha256": "de0dd93fb86e4de01b0bd1da72e02310995c9e2e6553dd603a9b64f500461ea6",
+            "sourceSHA256": "de0dd93fb86e4de01b0bd1da72e02310995c9e2e6553dd603a9b64f500461ea6",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/init/lib/moduleutils.php",
+            "sha256": "3d1166fe20be30c1f9da42b6ebd741bd5899ba388e5df743418e28f7d8c8b9fd",
+            "sourceSHA256": "3d1166fe20be30c1f9da42b6ebd741bd5899ba388e5df743418e28f7d8c8b9fd",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/internationalization/ArcanistUSEnglishTranslation.php",
+            "sha256": "316abf8585fd511bf9e10009f39de848cc84ba3a1a00a1a0fa29c4cabb0ba8c7",
+            "sourceSHA256": "316abf8585fd511bf9e10009f39de848cc84ba3a1a00a1a0fa29c4cabb0ba8c7",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/PhutilLocale.php",
+            "sha256": "b5792d3d1d2fe47b1b3e99204ac4b604a6293e63051379f3347bb16873a7f670",
+            "sourceSHA256": "b5792d3d1d2fe47b1b3e99204ac4b604a6293e63051379f3347bb16873a7f670",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/PhutilNumber.php",
+            "sha256": "df1f337c016d20885d0e2f103f7c4a6ae44973f0d33b532e63732ca90a87fdc6",
+            "sourceSHA256": "df1f337c016d20885d0e2f103f7c4a6ae44973f0d33b532e63732ca90a87fdc6",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/internationalization/PhutilPerson.php",
+            "sha256": "60cf9820f4c92c614e662ee5ed8fb15cbcc4864ed2f0e71b8be566b3a0b69439",
+            "sourceSHA256": "60cf9820f4c92c614e662ee5ed8fb15cbcc4864ed2f0e71b8be566b3a0b69439",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/internationalization/PhutilTranslation.php",
+            "sha256": "eb228d4fd33570bb5ecefdd03fb2719a7eaf149c1cb5ac411f9f13afd2616d6c",
+            "sourceSHA256": "eb228d4fd33570bb5ecefdd03fb2719a7eaf149c1cb5ac411f9f13afd2616d6c",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/PhutilTranslator.php",
+            "sha256": "8a733edc72b02b7af6f258f1f8a38620543bad8b92b55074153a8f14dbe42aa3",
+            "sourceSHA256": "8a733edc72b02b7af6f258f1f8a38620543bad8b92b55074153a8f14dbe42aa3",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilAllCapsEnglishLocale.php",
+            "sha256": "92e3f882ef1aa70cad2c00e16cfa2f1a74785f3420bc22ad1499c4e6fc514b39",
+            "sourceSHA256": "92e3f882ef1aa70cad2c00e16cfa2f1a74785f3420bc22ad1499c4e6fc514b39",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilBritishEnglishLocale.php",
+            "sha256": "26ed6ac859049d50fd233a044ff7e91b67f81d6e1ce43350f83a472c0b03c69c",
+            "sourceSHA256": "26ed6ac859049d50fd233a044ff7e91b67f81d6e1ce43350f83a472c0b03c69c",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilCzechLocale.php",
+            "sha256": "6683db1d7ba1a3a17bba4c99780557c7156943f470200cb7373e9edd2c35eb87",
+            "sourceSHA256": "6683db1d7ba1a3a17bba4c99780557c7156943f470200cb7373e9edd2c35eb87",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilEnglishCanadaLocale.php",
+            "sha256": "a1dfdad1ba07afe43cce4fbf0a11a901cde8dd949b995f6c3f7c0481ac579440",
+            "sourceSHA256": "a1dfdad1ba07afe43cce4fbf0a11a901cde8dd949b995f6c3f7c0481ac579440",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilFrenchLocale.php",
+            "sha256": "7374eb1096389dace0a1adb6621181ba24a908e665951749bfa9dea00a3e7fe7",
+            "sourceSHA256": "7374eb1096389dace0a1adb6621181ba24a908e665951749bfa9dea00a3e7fe7",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilGermanLocale.php",
+            "sha256": "dc7e2a049600127d9f5b89ecbca138532bb3fa30b6612da25e77304472889bdf",
+            "sourceSHA256": "dc7e2a049600127d9f5b89ecbca138532bb3fa30b6612da25e77304472889bdf",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilKoreanLocale.php",
+            "sha256": "23784f683f0699478bb0381ab7211171c9eca21b413fffaf6e713d320095e61d",
+            "sourceSHA256": "23784f683f0699478bb0381ab7211171c9eca21b413fffaf6e713d320095e61d",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilPirateEnglishLocale.php",
+            "sha256": "bcdde7726019b1dea5b9d71dbfc5ad42edd53e740c273ba3a25d5e5779284310",
+            "sourceSHA256": "bcdde7726019b1dea5b9d71dbfc5ad42edd53e740c273ba3a25d5e5779284310",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilPortugueseBrazilLocale.php",
+            "sha256": "b49c4ec45dd5d2f4c8fc467415ba34122c32b7b343083f79ea5d02fb1a267539",
+            "sourceSHA256": "b49c4ec45dd5d2f4c8fc467415ba34122c32b7b343083f79ea5d02fb1a267539",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilPortuguesePortugalLocale.php",
+            "sha256": "73b4d34b61174cc2b486e371a453ff05569982ea33912dd9801d7687200d9789",
+            "sourceSHA256": "73b4d34b61174cc2b486e371a453ff05569982ea33912dd9801d7687200d9789",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilRawEnglishLocale.php",
+            "sha256": "dbb04360fce3b1b58bf3750b7d5d2a4c1701e2c7722cd9eb7841bba2e5516d4f",
+            "sourceSHA256": "dbb04360fce3b1b58bf3750b7d5d2a4c1701e2c7722cd9eb7841bba2e5516d4f",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilSimplifiedChineseLocale.php",
+            "sha256": "7ed445967108f22f8c5e0d401c65b5cac973beb45a0ddc82ad54a86185a4301f",
+            "sourceSHA256": "7ed445967108f22f8c5e0d401c65b5cac973beb45a0ddc82ad54a86185a4301f",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilSpanishSpainLocale.php",
+            "sha256": "7731066c0a108d9e0c3809ca358b6dded3df1aa15821f41bb7b7e6b7e7295bc6",
+            "sourceSHA256": "7731066c0a108d9e0c3809ca358b6dded3df1aa15821f41bb7b7e6b7e7295bc6",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilTraditionalChineseLocale.php",
+            "sha256": "d459a41832397b156d92fca4835a778725084474b7ce3bc3fe8a7d2352627bb9",
+            "sourceSHA256": "d459a41832397b156d92fca4835a778725084474b7ce3bc3fe8a7d2352627bb9",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilUSEnglishLocale.php",
+            "sha256": "2b10b952e51b30c74fcc7df0d5b5b788dd3d0615eeea883f4e2f30527aeea4f5",
+            "sourceSHA256": "2b10b952e51b30c74fcc7df0d5b5b788dd3d0615eeea883f4e2f30527aeea4f5",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/locales/PhutilVeryWowEnglishLocale.php",
+            "sha256": "4a0f9f2451a5cb89f131704e7ce5311d1ab0fa803775f73e26518a55c5f7c9b0",
+            "sourceSHA256": "4a0f9f2451a5cb89f131704e7ce5311d1ab0fa803775f73e26518a55c5f7c9b0",
+            "reason": "dynamic-discovery"
+        },
+        {
+            "path": "src/internationalization/pht.php",
+            "sha256": "dee5b8bcdc9cc18b1fced60bebea306508a699d1ca1a3100fd7fe0c2ed6168bc",
+            "sourceSHA256": "dee5b8bcdc9cc18b1fced60bebea306508a699d1ca1a3100fd7fe0c2ed6168bc",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/ip/PhutilCIDRBlock.php",
+            "sha256": "f864ae8703f3cd51f8daf199a7a0ffa1479510b4a44857685094eb2e59f0dbf5",
+            "sourceSHA256": "f864ae8703f3cd51f8daf199a7a0ffa1479510b4a44857685094eb2e59f0dbf5",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/ip/PhutilCIDRList.php",
+            "sha256": "fe7b96ad74d946cbfc96688767d227dfb57fb7e4a72b31f905d9cd02ca0d2023",
+            "sourceSHA256": "fe7b96ad74d946cbfc96688767d227dfb57fb7e4a72b31f905d9cd02ca0d2023",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/ip/PhutilIPAddress.php",
+            "sha256": "055495575261145df3982f32efecc9ddac631cfc2b65d068707f65e71505aea0",
+            "sourceSHA256": "055495575261145df3982f32efecc9ddac631cfc2b65d068707f65e71505aea0",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/ip/PhutilIPv4Address.php",
+            "sha256": "d8697d561336413c2edf621999f21313adb513c76ef02c6e87dfd0b7e9459e8d",
+            "sourceSHA256": "d8697d561336413c2edf621999f21313adb513c76ef02c6e87dfd0b7e9459e8d",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/ip/PhutilIPv6Address.php",
+            "sha256": "bb0341a6fad4ddaad8837ba9be4ac9b157acbc19612132fbc06818fea8b5c139",
+            "sourceSHA256": "bb0341a6fad4ddaad8837ba9be4ac9b157acbc19612132fbc06818fea8b5c139",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lexer/PhutilLexer.php",
+            "sha256": "d726e4be96e59d0bed465480eefa4f35c1aea40ee1b37995c8718b4efff6924d",
+            "sourceSHA256": "d726e4be96e59d0bed465480eefa4f35c1aea40ee1b37995c8718b4efff6924d",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lexer/PhutilShellLexer.php",
+            "sha256": "e368ee85689f100d7bbf96cb4e04292b1206f96592a28b09efa66e72149a6af6",
+            "sourceSHA256": "e368ee85689f100d7bbf96cb4e04292b1206f96592a28b09efa66e72149a6af6",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/lexer/PhutilSimpleOptionsLexer.php",
+            "sha256": "4ebca58b7cc26182cb215498fe03544d3ddbf26fca7d1bd60ef33a6b5f417f40",
+            "sourceSHA256": "4ebca58b7cc26182cb215498fe03544d3ddbf26fca7d1bd60ef33a6b5f417f40",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lexer/PhutilTypeLexer.php",
+            "sha256": "79aad57d684d830edc34aa454ef30ed9b4f1e47361ab5b8340a72615138ff3c8",
+            "sourceSHA256": "79aad57d684d830edc34aa454ef30ed9b4f1e47361ab5b8340a72615138ff3c8",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lint/ArcanistLintMessage.php",
+            "sha256": "aea82fa66a209bd873768cabc21370de41f38292c1115d0e469dfa2b48711315",
+            "sourceSHA256": "aea82fa66a209bd873768cabc21370de41f38292c1115d0e469dfa2b48711315",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lint/ArcanistLintPatcher.php",
+            "sha256": "9efacfcd4a4494fffd8c5cb24a72acb764d8c947c997b849180c6a3b01f1801c",
+            "sourceSHA256": "9efacfcd4a4494fffd8c5cb24a72acb764d8c947c997b849180c6a3b01f1801c",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lint/ArcanistLintResult.php",
+            "sha256": "7181c508a28f93be69f40498de8eee0396dc31abb00c38378c42ea7de9aef81b",
+            "sourceSHA256": "7181c508a28f93be69f40498de8eee0396dc31abb00c38378c42ea7de9aef81b",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lint/ArcanistLintSeverity.php",
+            "sha256": "2b01b02d5803f5c3a900cf6e09d9f6369581b0d7fe87adcaede0e1665b4d89cb",
+            "sourceSHA256": "2b01b02d5803f5c3a900cf6e09d9f6369581b0d7fe87adcaede0e1665b4d89cb",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/lint/engine/ArcanistLintEngine.php",
+            "sha256": "c8f583a027b67827ec9f5c95a0d9a7df9cbb06a7d5cdab6e24fb8ecc37145cd9",
+            "sourceSHA256": "c8f583a027b67827ec9f5c95a0d9a7df9cbb06a7d5cdab6e24fb8ecc37145cd9",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lint/engine/ArcanistUnitTestableLintEngine.php",
+            "sha256": "ed00864b01a159ab65c0073b9da08b1044aa97e77264e39d4bcb164f3eff555b",
+            "sourceSHA256": "ed00864b01a159ab65c0073b9da08b1044aa97e77264e39d4bcb164f3eff555b",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lint/linter/ArcanistLinter.php",
+            "sha256": "aff24b14927b400bb9a7283dc301c19083a74661655f7a1870ceb914ae4fdbf0",
+            "sourceSHA256": "aff24b14927b400bb9a7283dc301c19083a74661655f7a1870ceb914ae4fdbf0",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/lint/linter/__tests__/ArcanistLinterTestCase.php",
+            "sha256": "bd3f6c8a5941a5f0fdd05568461a775269678e2d66e3a1d2aa15a1c567afa5c2",
+            "sourceSHA256": "bd3f6c8a5941a5f0fdd05568461a775269678e2d66e3a1d2aa15a1c567afa5c2",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/lint/linter/exception/ArcanistMissingLinterException.php",
+            "sha256": "8397cf618430ae8ff4bbf293ab4179e3a61a7b0be73bd86fa6aeede13208f61c",
+            "sourceSHA256": "8397cf618430ae8ff4bbf293ab4179e3a61a7b0be73bd86fa6aeede13208f61c",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/lint/linter/standards/ArcanistLinterStandard.php",
+            "sha256": "fdaccb164c342e03e416a7a8bdfbe604670c1f51b97abc368aa97af682cd2359",
+            "sourceSHA256": "fdaccb164c342e03e416a7a8bdfbe604670c1f51b97abc368aa97af682cd2359",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/moduleutils/PhutilLibraryMapBuilder.php",
+            "sha256": "8c23c7ce128e673ed32619c7d35e6971bbd965ed53549bbb5ac33982da363dc6",
+            "sourceSHA256": "cc9a916e98a32f30383dabbb156ee09cb34db195ae608a23ca9d58ad7f968507",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/object/Phobject.php",
+            "sha256": "8136d2f3ceb06e624d813e21c6275e8d706a20095eacd05c62dc386a881c748a",
+            "sourceSHA256": "8136d2f3ceb06e624d813e21c6275e8d706a20095eacd05c62dc386a881c748a",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/ArcanistBundle.php",
+            "sha256": "62c86ac19971bfd1b07ac10887e6540b119a40e9048ebec184cd12368b45acc5",
+            "sourceSHA256": "9b80191ac09238cbb3082c33f730209ad42ea29982dd5e9ce1e9bba8adaf8c9a",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/ArcanistDiffParser.php",
+            "sha256": "67f9b46b1bb730ee4b69185810967e352786a34904feea532b05f614289dd0c1",
+            "sourceSHA256": "2b6bc58580cea7fecdc7c1d5bced557c8043522b11aafd49bcad2eb2f7548c53",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilDocblockParser.php",
+            "sha256": "1e560dc4208983f1811d4f6def07e8f897466e121161e65dd413b7c3232c0b04",
+            "sourceSHA256": "1e560dc4208983f1811d4f6def07e8f897466e121161e65dd413b7c3232c0b04",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilEmailAddress.php",
+            "sha256": "ac236fe77a37e58f4c17a0361d59803ba8ea398ecb757bb5f831d6e958c1c0a7",
+            "sourceSHA256": "ac236fe77a37e58f4c17a0361d59803ba8ea398ecb757bb5f831d6e958c1c0a7",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilJSON.php",
+            "sha256": "d7d582e17ccc703562eae54e62a6f702763e1f6c1f7fa9c2bbcbcf02bdf6f93c",
+            "sourceSHA256": "d7d582e17ccc703562eae54e62a6f702763e1f6c1f7fa9c2bbcbcf02bdf6f93c",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilJSONParser.php",
+            "sha256": "eead2e3fa46b4dad2aa6899eade4b8b4ed04f06f469214f02fcabaaee5e49fdf",
+            "sourceSHA256": "eead2e3fa46b4dad2aa6899eade4b8b4ed04f06f469214f02fcabaaee5e49fdf",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilLanguageGuesser.php",
+            "sha256": "da643465b927a00920517ac3333f5283ddf307c22d52f60231584b5a19168428",
+            "sourceSHA256": "da643465b927a00920517ac3333f5283ddf307c22d52f60231584b5a19168428",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilParserGenerator.php",
+            "sha256": "102d8ff472c1cfcd635b0359ef557e933604a461d405f8c8d3df51b01e6de60d",
+            "sourceSHA256": "102d8ff472c1cfcd635b0359ef557e933604a461d405f8c8d3df51b01e6de60d",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/PhutilQueryStringParser.php",
+            "sha256": "93d636903260c3b5153397d39990695a24513f62cadec4495d8c47f8f6cb2505",
+            "sourceSHA256": "93d636903260c3b5153397d39990695a24513f62cadec4495d8c47f8f6cb2505",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilSimpleOptions.php",
+            "sha256": "ae13cfe0beb2780ed8612e738dc39e6d323f46bd6548ef9f368576d3b607ee02",
+            "sourceSHA256": "ae13cfe0beb2780ed8612e738dc39e6d323f46bd6548ef9f368576d3b607ee02",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilTypeSpec.php",
+            "sha256": "d002975a015d7cb082f45eaab99ac24b8e9b60ebaa30790c63a0d55ef766610f",
+            "sourceSHA256": "d002975a015d7cb082f45eaab99ac24b8e9b60ebaa30790c63a0d55ef766610f",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/PhutilURI.php",
+            "sha256": "4d49dd7017eb2eb11c6ab29994e7bd8875960471f034759df312f6e0f0ec0385",
+            "sourceSHA256": "4d49dd7017eb2eb11c6ab29994e7bd8875960471f034759df312f6e0f0ec0385",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/aast/api/AASTNode.php",
+            "sha256": "84401c3a7afd7cb09ca9eab7598d4768cfb9390799b888e3d735d8b7a8943ee3",
+            "sourceSHA256": "84401c3a7afd7cb09ca9eab7598d4768cfb9390799b888e3d735d8b7a8943ee3",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/aast/api/AASTNodeList.php",
+            "sha256": "46ad64f4a38fc340232decee50b68718cc659f64cff818141eeb913d348a4c0a",
+            "sourceSHA256": "46ad64f4a38fc340232decee50b68718cc659f64cff818141eeb913d348a4c0a",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/aast/api/AASTToken.php",
+            "sha256": "01f2e3037ea5e465efd509ab19a8ecb53523eef07a44a7a67a89b44ea577953e",
+            "sourceSHA256": "01f2e3037ea5e465efd509ab19a8ecb53523eef07a44a7a67a89b44ea577953e",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/aast/api/AASTTree.php",
+            "sha256": "ff443cacfcb193875f5ee454da4d0f9d1bb1ede684d33727cd098857d86d2bec",
+            "sourceSHA256": "ff443cacfcb193875f5ee454da4d0f9d1bb1ede684d33727cd098857d86d2bec",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/argument/PhutilArgumentParser.php",
+            "sha256": "c9c6ff8506e858f3a4166f042aeb3e2186655a32ba2fa8ee61492caa2a7d8dbf",
+            "sourceSHA256": "c9c6ff8506e858f3a4166f042aeb3e2186655a32ba2fa8ee61492caa2a7d8dbf",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/argument/PhutilArgumentSpecification.php",
+            "sha256": "6ed2a71be1883d561cb8035119680f3158fec722c9f26c9dcf4ce381b8f757f1",
+            "sourceSHA256": "6ed2a71be1883d561cb8035119680f3158fec722c9f26c9dcf4ce381b8f757f1",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/argument/PhutilArgumentSpellingCorrector.php",
+            "sha256": "b3f81020f41b4d48726b8837e3d2aab33a3b01d41f1c111de0ec1de5dbfb2e15",
+            "sourceSHA256": "b3f81020f41b4d48726b8837e3d2aab33a3b01d41f1c111de0ec1de5dbfb2e15",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/argument/exception/PhutilArgumentParserException.php",
+            "sha256": "97ccd2cf397c3a86388abf84a4ce02c194284e13c809d28c891b1db48b1535d1",
+            "sourceSHA256": "97ccd2cf397c3a86388abf84a4ce02c194284e13c809d28c891b1db48b1535d1",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/argument/exception/PhutilArgumentSpecificationException.php",
+            "sha256": "e92a3221ec05a6b7d0a960c92a49ca396f43c74c807328204b161938596db363",
+            "sourceSHA256": "e92a3221ec05a6b7d0a960c92a49ca396f43c74c807328204b161938596db363",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/argument/exception/PhutilArgumentUsageException.php",
+            "sha256": "5707d9088827bb1d371c59d5853f3c43efa9510f47d10e18ad48cd196426f7fe",
+            "sourceSHA256": "5707d9088827bb1d371c59d5853f3c43efa9510f47d10e18ad48cd196426f7fe",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/argument/exception/PhutilArgumentUsageInvalidCommandException.php",
+            "sha256": "3998a343483da17e0fd9334f73ea9a6a12b451dd4337d5fae2935395e9478a9f",
+            "sourceSHA256": "3998a343483da17e0fd9334f73ea9a6a12b451dd4337d5fae2935395e9478a9f",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/argument/workflow/PhutilArgumentWorkflow.php",
+            "sha256": "da2271fefbddd682239a60c0cb34a8d5a5e0fbf2ff8452098b5ff69ffdd5ce11",
+            "sourceSHA256": "da2271fefbddd682239a60c0cb34a8d5a5e0fbf2ff8452098b5ff69ffdd5ce11",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/argument/workflow/PhutilHelpArgumentWorkflow.php",
+            "sha256": "7458be01583c0a2867c68fcd8799a18a614bd929f6b7e784e1b18b19a6a58728",
+            "sourceSHA256": "7458be01583c0a2867c68fcd8799a18a614bd929f6b7e784e1b18b19a6a58728",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/diff/ArcanistDiffChange.php",
+            "sha256": "55aed97219631af726941242eb7aae2e9fbe13d945f68586540d30e2be4725dc",
+            "sourceSHA256": "d8bc91cfd35ea1f5617d8de47718e25ab40939ad1be015a4943eeb261d620340",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/diff/ArcanistDiffChangeType.php",
+            "sha256": "71223db6a8fe04a198d89abcd109ef4cc60508ffe3156c3674c729401d64efb1",
+            "sourceSHA256": "71223db6a8fe04a198d89abcd109ef4cc60508ffe3156c3674c729401d64efb1",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/diff/ArcanistDiffHunk.php",
+            "sha256": "62cd75001ff30fd005c6fa5889e91de14180a3f8f66903486e07d4b328ff78db",
+            "sourceSHA256": "62cd75001ff30fd005c6fa5889e91de14180a3f8f66903486e07d4b328ff78db",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/exception/PhutilINIParserException.php",
+            "sha256": "00785d5d7064a9bac5e8a1d54136b8e0c9d3d3e5944ab04e72f3651e17c7517f",
+            "sourceSHA256": "00785d5d7064a9bac5e8a1d54136b8e0c9d3d3e5944ab04e72f3651e17c7517f",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/exception/PhutilJSONParserException.php",
+            "sha256": "431a8ae21f778a9a2a3a4dc131162346d6659e07e1e30d779c8bde794835c82c",
+            "sourceSHA256": "431a8ae21f778a9a2a3a4dc131162346d6659e07e1e30d779c8bde794835c82c",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/exception/PhutilTypeCheckException.php",
+            "sha256": "d2791a3bdd62ef24f3400a7be3c5227d34348be0b366fdb4cc48cbb927ccba8d",
+            "sourceSHA256": "d2791a3bdd62ef24f3400a7be3c5227d34348be0b366fdb4cc48cbb927ccba8d",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/exception/PhutilTypeExtraParametersException.php",
+            "sha256": "6a538e2ece1eb816d0aa81dff3526aa4489026ea0e00e79a5f87bfd9036365c3",
+            "sourceSHA256": "6a538e2ece1eb816d0aa81dff3526aa4489026ea0e00e79a5f87bfd9036365c3",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/exception/PhutilTypeMissingParametersException.php",
+            "sha256": "31c075e18bdbcdf7bfb59fadd8d2f01208bacfc58ee360c23b05bd04a132768d",
+            "sourceSHA256": "31c075e18bdbcdf7bfb59fadd8d2f01208bacfc58ee360c23b05bd04a132768d",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/generator/exception/PhutilInvalidRuleParserGeneratorException.php",
+            "sha256": "f4e7c512eb2734d229508bf808b55f138807a8a8c5233158853473987722563c",
+            "sourceSHA256": "f4e7c512eb2734d229508bf808b55f138807a8a8c5233158853473987722563c",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/generator/exception/PhutilIrreducibleRuleParserGeneratorException.php",
+            "sha256": "8c0eeeaaea1f6e0ebb338ff3feb4422725aba5f2b2eb02608bc303d2c01a2467",
+            "sourceSHA256": "8c0eeeaaea1f6e0ebb338ff3feb4422725aba5f2b2eb02608bc303d2c01a2467",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/generator/exception/PhutilParserGeneratorException.php",
+            "sha256": "68ea57316b4541dc390e33b190271639dc6b76a452e03d1ed5db45008ea9b532",
+            "sourceSHA256": "68ea57316b4541dc390e33b190271639dc6b76a452e03d1ed5db45008ea9b532",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/generator/exception/PhutilUnknownSymbolParserGeneratorException.php",
+            "sha256": "107692940a9cc179d2fbc1dca0413bc06b1767d36de62d9a6ff80ed0ab3602d3",
+            "sourceSHA256": "107692940a9cc179d2fbc1dca0413bc06b1767d36de62d9a6ff80ed0ab3602d3",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/generator/exception/PhutilUnreachableRuleParserGeneratorException.php",
+            "sha256": "7b644b69560a2b0fd3b8368d4961ab752be414a156bf42b6dd2c66ef2ec81d4d",
+            "sourceSHA256": "7b644b69560a2b0fd3b8368d4961ab752be414a156bf42b6dd2c66ef2ec81d4d",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/generator/exception/PhutilUnreachableTerminalParserGeneratorException.php",
+            "sha256": "becb2b456fbc813874c5a42bc82a00c75bc15376e663a06c8dbe3b24ad14c9a3",
+            "sourceSHA256": "becb2b456fbc813874c5a42bc82a00c75bc15376e663a06c8dbe3b24ad14c9a3",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/html/PhutilDOMNode.php",
+            "sha256": "cc7a16151ab3361b0e296fbdbca6d784413f691eca70b6ff7270134a35346947",
+            "sourceSHA256": "cc7a16151ab3361b0e296fbdbca6d784413f691eca70b6ff7270134a35346947",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/html/PhutilHTMLParser.php",
+            "sha256": "e0ace7fcad4e59b7ef3ee1d41518da269fcdb49ee2058244e327634d84b826d0",
+            "sourceSHA256": "e0ace7fcad4e59b7ef3ee1d41518da269fcdb49ee2058244e327634d84b826d0",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/http/PhutilHTTPResponse.php",
+            "sha256": "55df4be69e08f6edf9db8d2e4ef3850a494cb171024fee7732a5976ecbe8d4e6",
+            "sourceSHA256": "55df4be69e08f6edf9db8d2e4ef3850a494cb171024fee7732a5976ecbe8d4e6",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/http/PhutilHTTPResponseParser.php",
+            "sha256": "bfa1185900d96cefeacf16fd6aca6950972a878948dfcd637b164ad91d018d83",
+            "sourceSHA256": "bfa1185900d96cefeacf16fd6aca6950972a878948dfcd637b164ad91d018d83",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/phpast/lib/PhutilPHPParserLibrary.php",
+            "sha256": "4ae39f2436da7fbc5f9b8826f4a42b9f95a8117d32df13f09b56c48e8a0df224",
+            "sourceSHA256": "0ddb1e6d0188a384889f153775d23d6d7000ccd818254734ea0b606ad061a727",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/xhpast/api/XHPASTNode.php",
+            "sha256": "b65bab26fdc9b04621b619866f9b3712898292ec54ebf29797fa48a8d0a2ae45",
+            "sourceSHA256": "b65bab26fdc9b04621b619866f9b3712898292ec54ebf29797fa48a8d0a2ae45",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/xhpast/api/XHPASTSyntaxErrorException.php",
+            "sha256": "e3377de8f6f1ca1367b5aa46b3a71b366aeebe741b2ff5fc8b440249fb357756",
+            "sourceSHA256": "e3377de8f6f1ca1367b5aa46b3a71b366aeebe741b2ff5fc8b440249fb357756",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/xhpast/api/XHPASTToken.php",
+            "sha256": "9156ccc1ef45fee6d63b7fb5da7f275d2d80139b93da28db4d569736b2371f7c",
+            "sourceSHA256": "9156ccc1ef45fee6d63b7fb5da7f275d2d80139b93da28db4d569736b2371f7c",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/parser/xhpast/api/XHPASTTree.php",
+            "sha256": "2bacd587c53d2eb701cad3a2c26a3f1947b9379d86c856ab6209e2d94fe52576",
+            "sourceSHA256": "2bacd587c53d2eb701cad3a2c26a3f1947b9379d86c856ab6209e2d94fe52576",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/xhpast/bin/PhutilXHPASTBinary.php",
+            "sha256": "d89b2c89b32b2d7b7e0d269dcb4c455f9a595fe44d1af2e68dfb1738f201d42c",
+            "sourceSHA256": "ddac08db6a60d3d0310b6784b7cbc5ae318f7fef845060bac8542ad299db753b",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/parser/xhpast/bin/xhpast.exe",
+            "sha256": "5783154af6e45642223c8586cab9a4e6c6b4586121d21d51e88e3f9d3b48f54d",
+            "sourceSHA256": "5783154af6e45642223c8586cab9a4e6c6b4586121d21d51e88e3f9d3b48f54d",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "src/parser/xhpast/parser_nodes.php",
+            "sha256": "1cf877532dd3e628b8c8bd31d91063671cd90f1ad8e98c6ea02672167495d3e9",
+            "sourceSHA256": "1cf877532dd3e628b8c8bd31d91063671cd90f1ad8e98c6ea02672167495d3e9",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/parser/xhpast/parser_tokens.php",
+            "sha256": "78a13d6391d6be44ee83f2d235f54e587f33b4f2ac6a756e7215bf42e8757a86",
+            "sourceSHA256": "78a13d6391d6be44ee83f2d235f54e587f33b4f2ac6a756e7215bf42e8757a86",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/platform/PlatformSymbols.php",
+            "sha256": "50d96013a9f5aa5fd8510e07353f7b83e7dc5bb6df0c2eb734ee7ee7e6d495ef",
+            "sourceSHA256": "50d96013a9f5aa5fd8510e07353f7b83e7dc5bb6df0c2eb734ee7ee7e6d495ef",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/progress/PhutilProgressSink.php",
+            "sha256": "bf428037ee097b8c125829ccdd9364a5324cfa2bd0b5b9956eb9d6455885e02b",
+            "sourceSHA256": "bf428037ee097b8c125829ccdd9364a5324cfa2bd0b5b9956eb9d6455885e02b",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/readableserializer/PhutilReadableSerializer.php",
+            "sha256": "02677fa698cdf5b1247800f2d8272b8d819afb402edd2e6211bc7530b199bf8d",
+            "sourceSHA256": "02677fa698cdf5b1247800f2d8272b8d819afb402edd2e6211bc7530b199bf8d",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/serviceprofiler/PhutilServiceProfiler.php",
+            "sha256": "ce221e080e2d780243a0bb41cdd060f40d08859229d67acc63bd749ac69bcf7b",
+            "sourceSHA256": "ce221e080e2d780243a0bb41cdd060f40d08859229d67acc63bd749ac69bcf7b",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/symbols/PhutilClassMapQuery.php",
+            "sha256": "39cd578ddb5df0fd4ecaa0f7f42961525789aaeb1fde807a5912af4dd5904553",
+            "sourceSHA256": "39cd578ddb5df0fd4ecaa0f7f42961525789aaeb1fde807a5912af4dd5904553",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/symbols/PhutilSymbolLoader.php",
+            "sha256": "1e1ed9137d73ce865a7e2496bf843a94fb6ee916f5d837bca16a8ec741adc5ba",
+            "sourceSHA256": "1e1ed9137d73ce865a7e2496bf843a94fb6ee916f5d837bca16a8ec741adc5ba",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/unit/ArcanistUnitTestResult.php",
+            "sha256": "c443e6812d4039b76fcb669a82459cd3a8f72a12c99745de915ff85d25320bd7",
+            "sourceSHA256": "c443e6812d4039b76fcb669a82459cd3a8f72a12c99745de915ff85d25320bd7",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/unit/engine/ArcanistUnitTestEngine.php",
+            "sha256": "23987bea0c242e096e2e3021f1faa452c189d8474a9504c7b208007aafd3e702",
+            "sourceSHA256": "23987bea0c242e096e2e3021f1faa452c189d8474a9504c7b208007aafd3e702",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/unit/engine/PhutilUnitTestEngine.php",
+            "sha256": "a7bab9a1a8cdf8a0c43655cc0d296ec07b30c13a0253bbdf3fc69341713fb9c6",
+            "sourceSHA256": "c6896fc63042368d5f36e8bcb9554f142ca51baa0a0f1f6ee79f121aee4813f1",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/unit/engine/phutil/PhutilTestCase.php",
+            "sha256": "d206a0780503837e2e98cbc6655bd8fe6ae51e63913fb0bb2cb0b94964ecb701",
+            "sourceSHA256": "d206a0780503837e2e98cbc6655bd8fe6ae51e63913fb0bb2cb0b94964ecb701",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/unit/engine/phutil/testcase/PhutilTestSkippedException.php",
+            "sha256": "e7c47fad75b25237d940f982fb908504b159dc01e878034b07e1e43d55330c98",
+            "sourceSHA256": "e7c47fad75b25237d940f982fb908504b159dc01e878034b07e1e43d55330c98",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/unit/engine/phutil/testcase/PhutilTestTerminatedException.php",
+            "sha256": "170b4d3ac1ff7426f86a80d512b95dc57b90fd0acf9f8eeda1793d75101ff1b9",
+            "sourceSHA256": "170b4d3ac1ff7426f86a80d512b95dc57b90fd0acf9f8eeda1793d75101ff1b9",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/unit/renderer/ArcanistUnitConsoleRenderer.php",
+            "sha256": "5a849932f9fdff8970df7606d3fc473161c0066339fd9d15037795a310340354",
+            "sourceSHA256": "5a849932f9fdff8970df7606d3fc473161c0066339fd9d15037795a310340354",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/unit/renderer/ArcanistUnitRenderer.php",
+            "sha256": "a569eb2a19d45aacdf3f8f96d22beaeba458326e943469feda253e117ddb9496",
+            "sourceSHA256": "a569eb2a19d45aacdf3f8f96d22beaeba458326e943469feda253e117ddb9496",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/unit/renderer/ArcanistUnitReporter.php",
+            "sha256": "e4ea1418e00b4b04f1ba98828c7bfb3df79a3a667b5cad9dc592019a17855017",
+            "sourceSHA256": "e4ea1418e00b4b04f1ba98828c7bfb3df79a3a667b5cad9dc592019a17855017",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/utils/AbstractDirectedGraph.php",
+            "sha256": "8c1e0a30ee8f591d97ea719487ad2a2f0f4e80e8e8c895a2fb09440801caf4c9",
+            "sourceSHA256": "8c1e0a30ee8f591d97ea719487ad2a2f0f4e80e8e8c895a2fb09440801caf4c9",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilArray.php",
+            "sha256": "10e2fd9ae6b17487038da3f8a3ea6f88e084329435c9010cceb82d937829bea5",
+            "sourceSHA256": "10e2fd9ae6b17487038da3f8a3ea6f88e084329435c9010cceb82d937829bea5",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/utils/PhutilArrayWithDefaultValue.php",
+            "sha256": "25f6b91b9910c49e782561a148f52ee89967b5f9ae5473a3dab680834cd1c221",
+            "sourceSHA256": "25f6b91b9910c49e782561a148f52ee89967b5f9ae5473a3dab680834cd1c221",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/utils/PhutilBufferedIterator.php",
+            "sha256": "fffc7e42a733e71c30b9c9268bd7ab1a15eb0a02be72d60a48193ab050406a76",
+            "sourceSHA256": "fffc7e42a733e71c30b9c9268bd7ab1a15eb0a02be72d60a48193ab050406a76",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilChunkedIterator.php",
+            "sha256": "a8739dbf2caf81a1b9b4511aecb1aa7c5e62c45119d3b8cb957ac5dd7c4db959",
+            "sourceSHA256": "a8739dbf2caf81a1b9b4511aecb1aa7c5e62c45119d3b8cb957ac5dd7c4db959",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilCowsay.php",
+            "sha256": "10b02fdf20e07671257bf2bfceaadb007935f70ac0349cfd8c0351f5a1264263",
+            "sourceSHA256": "10b02fdf20e07671257bf2bfceaadb007935f70ac0349cfd8c0351f5a1264263",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilDirectedScalarGraph.php",
+            "sha256": "cc6a3270c006f2c610e5f25160a4fe3f725ebc74be5a499bd5045a35567b700d",
+            "sourceSHA256": "cc6a3270c006f2c610e5f25160a4fe3f725ebc74be5a499bd5045a35567b700d",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilEditDistanceMatrix.php",
+            "sha256": "5ec2543f9bd86c9f6ce44373554c2a06439f195f688c8fa346656fa745cfdcb2",
+            "sourceSHA256": "5ec2543f9bd86c9f6ce44373554c2a06439f195f688c8fa346656fa745cfdcb2",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilExecutionEnvironment.php",
+            "sha256": "66037ff5fe8a37e4b89323b64f7697eef6b4958bcf127efb7d1b776275cc5a55",
+            "sourceSHA256": "66037ff5fe8a37e4b89323b64f7697eef6b4958bcf127efb7d1b776275cc5a55",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilGitHubReleaseDownloader.php",
+            "sha256": "8e1db1a790de4f775fdf812efb1786f99d9dac7819ae6331ad99d9d8dd5a43e6",
+            "sourceSHA256": "8e1db1a790de4f775fdf812efb1786f99d9dac7819ae6331ad99d9d8dd5a43e6",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilLunarPhase.php",
+            "sha256": "129d96057681f6e9bd1442f568340eba5ea330dec2dfc5afc864cb6b6e7c6c1a",
+            "sourceSHA256": "129d96057681f6e9bd1442f568340eba5ea330dec2dfc5afc864cb6b6e7c6c1a",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilRope.php",
+            "sha256": "f9e0d729938621975d7725807f16c0ee537e40510152082d6e1d79208bc848cb",
+            "sourceSHA256": "f9e0d729938621975d7725807f16c0ee537e40510152082d6e1d79208bc848cb",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilSortVector.php",
+            "sha256": "9a2a80483fb7b1ef40557ab04c675858cfa13d47f602951336b7739378232fac",
+            "sourceSHA256": "9a2a80483fb7b1ef40557ab04c675858cfa13d47f602951336b7739378232fac",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilStreamIterator.php",
+            "sha256": "eef469aee0d45ca01330b2b9e8cc072ad0671966ffae53df86866e74581b54cc",
+            "sourceSHA256": "eef469aee0d45ca01330b2b9e8cc072ad0671966ffae53df86866e74581b54cc",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilSystem.php",
+            "sha256": "5092eeb312e33b7b8630c64577688071fdbaa12fb2f7b48883f532d09a4f5d67",
+            "sourceSHA256": "5092eeb312e33b7b8630c64577688071fdbaa12fb2f7b48883f532d09a4f5d67",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/PhutilUTF8StringTruncator.php",
+            "sha256": "3618c7c39694a77b60df5271c858d5f1c4e043e2893f9a61dee9cd45c7f9c2b7",
+            "sourceSHA256": "3618c7c39694a77b60df5271c858d5f1c4e043e2893f9a61dee9cd45c7f9c2b7",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/utf8.php",
+            "sha256": "23a7c526f034571799c0a0e417fd9a2a0577a4bb64d7d290306a0e23852fd90e",
+            "sourceSHA256": "23a7c526f034571799c0a0e417fd9a2a0577a4bb64d7d290306a0e23852fd90e",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/utils.php",
+            "sha256": "e51844905fa7bf53408a0fde6be926edff9ee0f0a73a071b2a87b4fdbe61dfb5",
+            "sourceSHA256": "e51844905fa7bf53408a0fde6be926edff9ee0f0a73a071b2a87b4fdbe61dfb5",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/utils/viewutils.php",
+            "sha256": "5bda5dcf2181032470609dd39e775b03548ec601db2706780b5546184fcfa466",
+            "sourceSHA256": "5bda5dcf2181032470609dd39e775b03548ec601db2706780b5546184fcfa466",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/workingcopyidentity/ArcanistWorkingCopyIdentity.php",
+            "sha256": "829e8211120249b57656552c5a5536a5ba0bf95820917d3851b115ff127f01bb",
+            "sourceSHA256": "829e8211120249b57656552c5a5536a5ba0bf95820917d3851b115ff127f01bb",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/ArcanistTerminalStringInterface.php",
+            "sha256": "9e5276a5a39c85276f5a8ce40a6b7870aa47fd6f361bac92c40aeb0f4ad6b4bb",
+            "sourceSHA256": "9e5276a5a39c85276f5a8ce40a6b7870aa47fd6f361bac92c40aeb0f4ad6b4bb",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/xsprintf/PhutilCommandString.php",
+            "sha256": "689b6990c34954693a33a7f5a24df453621efd03705a74bffe557539f22c6ad2",
+            "sourceSHA256": "689b6990c34954693a33a7f5a24df453621efd03705a74bffe557539f22c6ad2",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/xsprintf/PhutilTerminalString.php",
+            "sha256": "111aeb8c42b7d251d979b8daddd4eed6e0eaee2e819523833c91ac7182e28cae",
+            "sourceSHA256": "111aeb8c42b7d251d979b8daddd4eed6e0eaee2e819523833c91ac7182e28cae",
+            "reason": "conservative-file-dependency"
+        },
+        {
+            "path": "src/xsprintf/csprintf.php",
+            "sha256": "90d4a4e54d576322add59847232fe0158d5afbc9f2cf332530d022c4558d43ba",
+            "sourceSHA256": "90d4a4e54d576322add59847232fe0158d5afbc9f2cf332530d022c4558d43ba",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/exception/XsprintfUnknownConversionException.php",
+            "sha256": "071e8b5cc74e9d07aa4ce0d636512a868bab207400e980875d1cddeda08293c4",
+            "sourceSHA256": "071e8b5cc74e9d07aa4ce0d636512a868bab207400e980875d1cddeda08293c4",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/gitsprintf.php",
+            "sha256": "65c2a7d3cf9978ea84b7c381f082c0be11d9467c49c9385a30c01ef760ae89a2",
+            "sourceSHA256": "65c2a7d3cf9978ea84b7c381f082c0be11d9467c49c9385a30c01ef760ae89a2",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/hgsprintf.php",
+            "sha256": "ab7e6b1448c9aa47626c7dd8e47a7f1dfc10bcb817aaa992377ca62946d1562a",
+            "sourceSHA256": "ab7e6b1448c9aa47626c7dd8e47a7f1dfc10bcb817aaa992377ca62946d1562a",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/jsprintf.php",
+            "sha256": "a4837ceecb8740dec3e647da736f8a8f545af75c1d4ff856442461f1f0009d47",
+            "sourceSHA256": "a4837ceecb8740dec3e647da736f8a8f545af75c1d4ff856442461f1f0009d47",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/ldapsprintf.php",
+            "sha256": "32d86f04d0969439f602a887e7a629dffca9ee0ea3334cadfe413a9eef423f1c",
+            "sourceSHA256": "32d86f04d0969439f602a887e7a629dffca9ee0ea3334cadfe413a9eef423f1c",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/pregsprintf.php",
+            "sha256": "3d325f4bd31e330452b999d3e07ea7e72cb85e08ec7bcf4554a2a5338497c7f9",
+            "sourceSHA256": "3d325f4bd31e330452b999d3e07ea7e72cb85e08ec7bcf4554a2a5338497c7f9",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/tsprintf.php",
+            "sha256": "bc3b72831b4c0ea81c9d1ae4f4819e7ce7e407fcf732d941e70049df13c44fa4",
+            "sourceSHA256": "bc3b72831b4c0ea81c9d1ae4f4819e7ce7e407fcf732d941e70049df13c44fa4",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/urisprintf.php",
+            "sha256": "d2d4a7588701ed500d4f87c044a7f9490d58929b5ef8144dc47940481b68b85d",
+            "sourceSHA256": "d2d4a7588701ed500d4f87c044a7f9490d58929b5ef8144dc47940481b68b85d",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "src/xsprintf/xsprintf.php",
+            "sha256": "4cd06fa61c115bd0ec7b069090e445f19d3157f58b70163e97442e16d67d529e",
+            "sourceSHA256": "4cd06fa61c115bd0ec7b069090e445f19d3157f58b70163e97442e16d67d529e",
+            "reason": "project-and-tool-root"
+        },
+        {
+            "path": "support/init/init-script.php",
+            "sha256": "45e9a1fed5288245cc2364d803a63895f240bb0ad3d817ce619f590149ddedd8",
+            "sourceSHA256": "45e9a1fed5288245cc2364d803a63895f240bb0ad3d817ce619f590149ddedd8",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/lib/extract-symbols-with-php-parser.php",
+            "sha256": "bc71b5dd1d9b91e5d68a0a751f6c78211ca700aa6ffa62e6c9a8b34269207381",
+            "sourceSHA256": "bc71b5dd1d9b91e5d68a0a751f6c78211ca700aa6ffa62e6c9a8b34269207381",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/lib/extract-symbols.php",
+            "sha256": "593813c31468e9188ab36825aaa8729cb7cb5cb51765bb8a26e291920c34d9fb",
+            "sourceSHA256": "dc85530c48ffdec6abad31b273275f740eb7ff488662f40ee493c21892617aca",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/lib/rebuild-map.php",
+            "sha256": "35721c76f7201edee98bc55cc72ca299bb52824fd211bc9f34e86cdced64ccff",
+            "sourceSHA256": "35721c76f7201edee98bc55cc72ca299bb52824fd211bc9f34e86cdced64ccff",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/lib/rebuild-symbol-information.php",
+            "sha256": "451f44f21dc0e6478e554742f9218c3147f4e0e21c8415c4de39b8e3afa08829",
+            "sourceSHA256": "451f44f21dc0e6478e554742f9218c3147f4e0e21c8415c4de39b8e3afa08829",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/php-parser/api/PHPASTCallVisitor.php",
+            "sha256": "657751994979202afe4c8b3858319efad80f56b2e0fdfbd7a97d93ef72523681",
+            "sourceSHA256": "657751994979202afe4c8b3858319efad80f56b2e0fdfbd7a97d93ef72523681",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/php-parser/api/PHPASTDeclarationVisitor.php",
+            "sha256": "04bd30e2de567a282fcf837295f3a89c139663206ca00a3482e37d22129fb872",
+            "sourceSHA256": "0b266bf0a21ab9d3aeaee590c194a475a714e88c092a36970f18cbc44d52677d",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/php-parser/api/PHPASTExternalSymbolVisitor.php",
+            "sha256": "a72a6ce025a53fdc6a16ad826a05948e15bc869443e2496ee1cc017a950ecc31",
+            "sourceSHA256": "a72a6ce025a53fdc6a16ad826a05948e15bc869443e2496ee1cc017a950ecc31",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/php-parser/api/PHPASTTypesVisitor.php",
+            "sha256": "222d968495208c216f6c7faa7c05a6dfc101b4ce975274e4c03792949d0ade62",
+            "sourceSHA256": "222d968495208c216f6c7faa7c05a6dfc101b4ce975274e4c03792949d0ade62",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/php-parser/build-php-parser.php",
+            "sha256": "d307aa4a94bf731d2676d261b122729855257e61b66ed738d0c70dafd1f0776e",
+            "sourceSHA256": "d307aa4a94bf731d2676d261b122729855257e61b66ed738d0c70dafd1f0776e",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/unit/cat.php",
+            "sha256": "329b169f7a99a73ace79e2e7a186165567595911bcd912dbf8f435f615155345",
+            "sourceSHA256": "329b169f7a99a73ace79e2e7a186165567595911bcd912dbf8f435f615155345",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/unit/echo.php",
+            "sha256": "bcf99910a85af238d482e7bf799133347e78962f691ee85e7e80557b55b4c5e6",
+            "sourceSHA256": "bcf99910a85af238d482e7bf799133347e78962f691ee85e7e80557b55b4c5e6",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/unit/exit.php",
+            "sha256": "566d2018868f355e2dac806bc70945356086de0fbe8cdc5378c9c5e4465ec100",
+            "sourceSHA256": "566d2018868f355e2dac806bc70945356086de0fbe8cdc5378c9c5e4465ec100",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/unit/lock.php",
+            "sha256": "0f94c8f63bbb6de30de2b6a102190b58d10ce82c440d0e6a2d1ffe46a6679b87",
+            "sourceSHA256": "0f94c8f63bbb6de30de2b6a102190b58d10ce82c440d0e6a2d1ffe46a6679b87",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/unit/sleep.php",
+            "sha256": "cff3e3c23a980b2ec9a6cf245a7cbc2c07a9d12c23806f305ce006e4e80e2aa4",
+            "sourceSHA256": "cff3e3c23a980b2ec9a6cf245a7cbc2c07a9d12c23806f305ce006e4e80e2aa4",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/Makefile",
+            "sha256": "2817803afc2d6931ac333aa6867d6378fe051a00c6a28b5bd47a849b33743634",
+            "sourceSHA256": "2817803afc2d6931ac333aa6867d6378fe051a00c6a28b5bd47a849b33743634",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/README",
+            "sha256": "415b2ec5c4c160368b6cdd2f147b62502d6b5157568ec750c89f3b7ca6493a3d",
+            "sourceSHA256": "415b2ec5c4c160368b6cdd2f147b62502d6b5157568ec750c89f3b7ca6493a3d",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/ast.hpp",
+            "sha256": "a13030d2313913f3d00d2fcf81e04a307fd9c077ea59c2290931bf4287de176b",
+            "sourceSHA256": "a13030d2313913f3d00d2fcf81e04a307fd9c077ea59c2290931bf4287de176b",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/astnode.hpp",
+            "sha256": "e0c08c4377ecc64980ffb89c64427d2ccbdf33d0cb991f553f5e56b28917c2ed",
+            "sourceSHA256": "e0c08c4377ecc64980ffb89c64427d2ccbdf33d0cb991f553f5e56b28917c2ed",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/bin/xhpast-generate-nodes.php",
+            "sha256": "81510f6e85b0826e25eb8789e3c351cf7532b416bf4bd1218aa20281fab2160c",
+            "sourceSHA256": "81510f6e85b0826e25eb8789e3c351cf7532b416bf4bd1218aa20281fab2160c",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/bin/xhpast-generate-release-cppflags.php",
+            "sha256": "0279a6a6dee453c9ea5cfffe3766eef19f8dcbdbccb2cef63608f12780d6bb71",
+            "sourceSHA256": "0279a6a6dee453c9ea5cfffe3766eef19f8dcbdbccb2cef63608f12780d6bb71",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/bin/xhpast-generate-version.php",
+            "sha256": "68284cefe4e7eb223670bccf0903eccd3b9a8b24d87007d7f505c7485b181940",
+            "sourceSHA256": "68284cefe4e7eb223670bccf0903eccd3b9a8b24d87007d7f505c7485b181940",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/build-xhpast.php",
+            "sha256": "7534f4775bd194b1ff93d5e71f55aa3487162a5b557edd255178f538bc02baf8",
+            "sourceSHA256": "7534f4775bd194b1ff93d5e71f55aa3487162a5b557edd255178f538bc02baf8",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/parser.y",
+            "sha256": "99f78d1cb3b7d5a6c4404bac94006c5597f1b233af456bec63dbbf8b274a3a58",
+            "sourceSHA256": "99f78d1cb3b7d5a6c4404bac94006c5597f1b233af456bec63dbbf8b274a3a58",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/parser.yacc.cpp",
+            "sha256": "206cbbde84be99795e55cdeaa389f549a53f77d9507e3556ad2ffc38a0832f6d",
+            "sourceSHA256": "206cbbde84be99795e55cdeaa389f549a53f77d9507e3556ad2ffc38a0832f6d",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/parser.yacc.hpp",
+            "sha256": "62a5b912be9db2ccb4d7e4e370fb76251d5fc2f5f1a5edbb152bd1aa19307dbc",
+            "sourceSHA256": "62a5b912be9db2ccb4d7e4e370fb76251d5fc2f5f1a5edbb152bd1aa19307dbc",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/parser_nodes.php",
+            "sha256": "1cf877532dd3e628b8c8bd31d91063671cd90f1ad8e98c6ea02672167495d3e9",
+            "sourceSHA256": "1cf877532dd3e628b8c8bd31d91063671cd90f1ad8e98c6ea02672167495d3e9",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/scanner.l",
+            "sha256": "acabb31447afd5305acac0ba8100124f80913367e89e3e05223af2fe29d1d37f",
+            "sourceSHA256": "acabb31447afd5305acac0ba8100124f80913367e89e3e05223af2fe29d1d37f",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/scanner.lex.cpp",
+            "sha256": "3ac1a3b1a0022ecde6b785ae9a2c15b9863f3ebfb38fd8efafbe4ec560e9e3d4",
+            "sourceSHA256": "3ac1a3b1a0022ecde6b785ae9a2c15b9863f3ebfb38fd8efafbe4ec560e9e3d4",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/scanner.lex.hpp",
+            "sha256": "7b3e06fba8af1741fab1b95c089accb65a06966bc35fea4b512c031508789149",
+            "sourceSHA256": "7b3e06fba8af1741fab1b95c089accb65a06966bc35fea4b512c031508789149",
+            "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "support/xhpast/xhpast.cpp",
+            "sha256": "56753afc50e5ed9c6a77a98c6bac74a263f69c46a868e236cb43fecc129ec65b",
+            "sourceSHA256": "56753afc50e5ed9c6a77a98c6bac74a263f69c46a868e236cb43fecc129ec65b",
+            "reason": "bootstrap-resource-or-tool"
+        }
+    ]
+}

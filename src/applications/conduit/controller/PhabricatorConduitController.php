@@ -156,13 +156,13 @@ abstract class PhabricatorConduitController extends PhabricatorController {
 
     $parts = array();
 
-    $libphutil_path = 'path/to/arcanist/support/init/init-script.php';
+    $runtime_path = 'path/to/phorge/support/runtime/bootstrap-cli.php';
 
     $parts[] = '<?php';
     $parts[] = "\n\n";
 
     $parts[] = 'require_once ';
-    $parts[] = phutil_var_export($libphutil_path);
+    $parts[] = phutil_var_export($runtime_path);
     $parts[] = ";\n\n";
 
     $parts[] = '$api_token = "';

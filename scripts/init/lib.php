@@ -4,27 +4,17 @@ function init_phabricator_script(array $options) {
   error_reporting(E_ALL);
   ini_set('display_errors', 1);
 
-  $root = null;
-  if (!empty($_SERVER['PHUTIL_LIBRARY_ROOT'])) {
-    $root = $_SERVER['PHUTIL_LIBRARY_ROOT'];
-  }
-
-  $include_path = ini_get('include_path');
-  ini_set(
-    'include_path',
-    $include_path.PATH_SEPARATOR.dirname(__FILE__).'/../../../');
-
-  $ok = @include_once $root.'arcanist/support/init/init-script.php';
-  if (!$ok) {
-    echo
-      'FATAL ERROR: Unable to load the "Arcanist" library. '.
-      'Put "arcanist/" next to "phorge/" on disk.';
-    echo "\n";
-
+  $runtime = dirname(__FILE__).'/../../support/runtime/bootstrap-cli.php';
+  if (!is_file($runtime)) {
+    fwrite(
+      STDERR,
+      'FATAL ERROR: Unable to load the bundled PHP runtime. '.
+      'Restore "support/runtime/" from the same Phorge release.'."\n");
     exit(1);
   }
 
-  phutil_load_library('arcanist/src');
+  require_once $runtime;
+
   phutil_load_library(dirname(__FILE__).'/../../src/');
 
   $config_optional = $options['config.optional'];

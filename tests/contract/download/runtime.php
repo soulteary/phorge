@@ -1,14 +1,7 @@
 <?php
 
 // Exercise the real PHP client over HTTP without a production database.
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
-if (!$arcanist) {
-  fwrite(STDERR, "Set GORGE_TEST_ARCANIST_DIR.\n");
-  exit(1);
-}
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
-phutil_load_library(dirname(__FILE__).'/../../../src');
+require_once dirname(__DIR__).'/bootstrap.php';
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 $listener = stream_socket_server('tcp://127.0.0.1:0', $errno, $error);
 if (!$listener) { throw new Exception($error); }

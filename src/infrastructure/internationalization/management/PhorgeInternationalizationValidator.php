@@ -13,6 +13,7 @@ final class PhorgeInternationalizationValidator extends Phobject {
             $proto,
             new PhutilNumber($n + 1),
             phutil_count($types));
+          return $errors;
         }
         $data = array();
         foreach ($types as $type) {
@@ -92,11 +93,15 @@ final class PhorgeInternationalizationValidator extends Phobject {
     }
     return $errors;
   }
-  public function validateLibraries($loaded_json) {
-    $errors = array();
+  /**
+   * Validate the strings extracted from the current libraries. Translation
+   * dictionaries may retain strings from removed features or older versions;
+   * those strings have no current argument types to validate. Checking for
+   * unused dictionary entries is a separate, opt-in maintenance audit.
+   */
+  public function validateLibraries($loaded_json, $check_unused = false) {
     $all_translations = PhutilTranslation::getAllTranslations();
     $locales = PhutilLocale::loadAllLocales();
-    $keyed_translations = array();
     $override_key = 'translation.override';
     try {
       $trans_override = PhabricatorEnv::getEnvConfig($override_key);
@@ -104,6 +109,23 @@ final class PhorgeInternationalizationValidator extends Phobject {
     } catch (Throwable $ex) {
       // If Phorge config is hosed then just don't check translation.override
     }
+    return $this->validateTranslations(
+      $loaded_json,
+      $all_translations,
+      array_keys($locales),
+      $check_unused);
+  }
+
+  public function validateTranslations(
+    array $loaded_json,
+    array $all_translations,
+    array $locale_codes,
+    $check_unused = false) {
+
+    $errors = array();
+    $locales = array_fuse($locale_codes);
+    $keyed_translations = array();
+    $override_key = 'translation.override';
     foreach ($all_translations as $locale_code => $translations) {
       $is_known_locale = isset($locales[$locale_code]);
       if ($locale_code === 'zh_CN') {
@@ -122,8 +144,9 @@ final class PhorgeInternationalizationValidator extends Phobject {
           $keyed_translations[$proto] = array();
         }
         $keyed_translations[$proto][$locale_code] = $transl;
-        // Check for unused translations
-        if (!isset($loaded_json[$proto])) {
+        // Preserve historical translations by default. They become subject to
+        // all format and branch checks again if their source string returns.
+        if ($check_unused && !isset($loaded_json[$proto])) {
           $errors[] = pht(
             'The locale `%s` defines a translation for the string "%s", '.
             'however that string does not appear to be referenced '.
@@ -174,10 +197,11 @@ final class PhorgeInternationalizationValidator extends Phobject {
     $libraries = PhutilBootloader::getInstance()->getAllLibraries();
     $phorge_root = phutil_get_library_root('phorge');
     $i18n_bin = Filesystem::resolvePath('../bin/i18n', $phorge_root);
+    $extractor = new PhabricatorInternationalizationManagementExtractWorkflow();
     $all_json = array();
     foreach ($libraries as $lib) {
       $root = phutil_get_library_root($lib);
-      $json = Filesystem::resolvePath('.cache/i18n_strings.json', $root);
+      $json = $extractor->getCachePath($root, 'i18n_strings.json');
       if ($run_extractor) {
         // The command needs to be stated twice to avoid the linter complaining
         // about the arg not being a scalar string

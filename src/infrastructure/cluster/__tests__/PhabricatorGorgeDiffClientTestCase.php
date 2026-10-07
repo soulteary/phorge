@@ -42,6 +42,19 @@ final class PhabricatorGorgeDiffClientTestCase extends PhabricatorTestCase {
       'same new suffix');
   }
 
+  public function testHighlightResponseFromUnresolvedFuture() {
+    $html = '<span class="k">echo</span> example;';
+    $result = array(
+      new HTTPFutureHTTPResponseStatus(200, '', array()),
+      phutil_json_encode(array('data' => array('html' => $html))),
+    );
+    $future = new PhabricatorGorgeHighlightFuture(
+      new ImmediateFuture($result),
+      'http://gorge-render:8140/api/highlight/render');
+
+    $this->assertEqual($html, (string)$future->resolve());
+  }
+
   public function testHighlightFallbackPolicy() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('gorge.service-policy', 'fallback');

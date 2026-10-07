@@ -1,11 +1,7 @@
 <?php
 
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
-if (!$arcanist) { fwrite(STDERR, "Set GORGE_TEST_ARCANIST_DIR.\n"); exit(1); }
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
+require_once dirname(__DIR__).'/bootstrap.php';
 $root = dirname(__FILE__).'/../../..';
-phutil_load_library($root.'/src');
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 try {
   $working = ArcanistWorkingCopyIdentity::newFromPath($root);

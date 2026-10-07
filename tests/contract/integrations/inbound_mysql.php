@@ -1,13 +1,10 @@
 <?php
 
 // Uses only a disposable, fixed test namespace. Never call against a production host.
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
 $port = getenv('GORGE_TEST_INTEGRATIONS_MYSQL_PORT');
-if (!$arcanist || !$port) { throw new Exception('Set test Arcanist directory and MySQL port.'); }
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
+if (!$port) { throw new Exception('Set GORGE_TEST_INTEGRATIONS_MYSQL_PORT.'); }
+require_once dirname(__DIR__).'/bootstrap.php';
 $root = dirname(__FILE__).'/../../..';
-phutil_load_library($root.'/src');
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 $password = getenv('GORGE_TEST_INTEGRATIONS_MYSQL_PASSWORD') ?: '';
 $mysql = new mysqli('127.0.0.1', 'root', $password, null, (int)$port);

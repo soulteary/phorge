@@ -1,7 +1,7 @@
 <?php
 
 // Unavailable inventory must not become a zero-count retirement gate.
-require getenv('GORGE_TEST_ARCANIST_DIR').'/src/init/init-library.php';
+require_once dirname(__DIR__).'/bootstrap.php';
 require dirname(__FILE__).'/../../../scripts/setup/lib/gorge_status.php';
 function statusCheck($ok, $message) { if (!$ok) { throw new Exception($message); } }
 $config = array('gorge.file.uri' => 'https://files.example',

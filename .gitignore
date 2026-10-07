@@ -11,6 +11,18 @@
 # libphutil
 /src/.phutil_module_cache
 
+# Bundled runtime: explicitly prepared parser tools and mapper caches.
+/support/runtime/src/.phutil_module_cache
+/support/runtime/src/parser/xhpast/bin/xhpast
+/support/runtime/support/php-parser/lib/
+/support/runtime/support/php-parser/php-parser-*.tar.gz
+/support/runtime/support/php-parser/php-parser-*.zip
+/support/runtime/support/xhpast/*.o
+/support/runtime/support/xhpast/libxhpast.a
+/support/runtime/support/xhpast/xhpast
+/support/runtime/support/xhpast/node_names.hpp
+/support/runtime/support/xhpast/parser.yacc.output
+
 # Configuration
 /conf/custom/*
 /conf/local/local.json

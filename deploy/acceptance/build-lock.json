@@ -1,6 +1,5 @@
 {
-  "schemaVersion": 1,
-  "arcanist": "6f3726694752fb9cb08207070a4d7f68163784e1",
+  "schemaVersion": 2,
   "apcu": "5.1.28",
   "debianSnapshot": "20261006T000000Z",
   "images": {
@@ -11,5 +10,6 @@
     "s3": "ghcr.io/soulteary/otterio@sha256:9caee7b58a029ba7aa7556ea446184316585485b29c58e2889e07634c470b225",
     "redis": "docker.io/library/redis@sha256:1f09a89a207d794a8c61d9edfc26e7c58427de10ccef7c5d18d638df79a63b85"
   },
-  "apcuSHA256": "ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf"
+  "apcuSHA256": "ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf",
+  "runtimeManifest": "support/runtime/manifest.json"
 }

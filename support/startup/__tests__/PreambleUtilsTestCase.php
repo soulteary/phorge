@@ -5,7 +5,7 @@
  * /startup/ is not a Phutil library, so it can't use the phutil test fixture.
  * This script will just run the tests directly.
  *
- * NOTE: This test file will not run as part of `arc unit` run!
+ * NOTE: This test file will not run as part of `bin/unit` run!
  */
 
 

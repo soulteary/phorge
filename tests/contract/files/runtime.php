@@ -4,8 +4,7 @@
 if (!getenv('GORGE_TEST_FILE_URL') || !getenv('PHABRICATOR_ENV')) {
   throw new Exception('Run through worker/acceptance.py with isolated MySQL.');
 }
-require getenv('GORGE_TEST_ARCANIST_DIR').'/src/init/init-library.php';
-phutil_load_library(dirname(__FILE__).'/../../../src');
+require_once dirname(__DIR__).'/bootstrap.php';
 if (getenv('GORGE_TEST_S3_CA')) { HTTPSFuture::setGlobalCABundleFromPath(getenv('GORGE_TEST_S3_CA')); }
 if (getenv('GORGE_TEST_S3_ENDPOINT')) {
   id(new PhutilAWSS3Future())->addHeader('Host','127.0.0.1')

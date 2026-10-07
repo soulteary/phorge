@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Paired acceptance using an explicitly supplied disposable MySQL server.
 
-Creates only gorge_acceptance_file and random Phorge fixture namespaces. The
+Creates only gorge_acceptance_file and random Phorge fixture/replay namespaces. The
 Go integration suites separately refuse non-test lifecycle/integration schemas.
 No deployment configs, business volumes or application services are modified.
 """
@@ -17,8 +17,8 @@ import urllib.request
 import uuid
 import sys
 sys.dont_write_bytecode = True
-from acceptance_helpers import S3TLS, prepare_arcanist
-from acceptance_manifest import source_identity
+from acceptance_helpers import S3TLS
+from acceptance_manifest import runtime_identity, source_identity
 
 if len(sys.argv) == 3 and sys.argv[1] == '--environment':
     raw=Path(sys.argv[2]).read_bytes()
@@ -32,7 +32,6 @@ elif len(sys.argv)!=1:
 
 ROOT = Path(__file__).resolve().parents[3]
 GORGE = Path(os.environ["GORGE_TEST_GORGE_DIR"]).resolve()
-ARCANIST = Path(os.environ["GORGE_TEST_ARCANIST_DIR"]).resolve()
 PORT = int(os.environ["GORGE_TEST_MYSQL_PORT"])
 PASSWORD = os.environ["GORGE_TEST_MYSQL_PASSWORD"]
 
@@ -43,13 +42,16 @@ def run(args, env, cwd=ROOT):
 
 with tempfile.TemporaryDirectory(prefix="gorge-acceptance-") as directory:
     work = Path(directory)
-    manifest={'phorge':source_identity(ROOT),'gorge':source_identity(GORGE),
-              'arcanist':source_identity(ARCANIST),'result':'running'}
+    source_root = Path(os.environ.get('GORGE_TEST_PHORGE_SOURCE_IDENTITY_DIR', ROOT)).resolve()
+    if runtime_identity(source_root / 'support/runtime/manifest.json') != runtime_identity(ROOT / 'support/runtime/manifest.json'):
+        raise ValueError('Execution runtime does not match source identity directory')
+    manifest={'schemaVersion':2,'phorge':source_identity(source_root),'gorge':source_identity(GORGE),
+              'runtime':runtime_identity(ROOT / 'support/runtime/manifest.json'),'result':'running'}
+    if source_root != ROOT:
+        manifest['executionSnapshot'] = source_identity(ROOT)
     if os.environ.get('GORGE_TEST_ACCEPTANCE_MANIFEST'):
         Path(os.environ['GORGE_TEST_ACCEPTANCE_MANIFEST']).write_text(json.dumps(manifest,indent=2))
-    arcanist = prepare_arcanist(ARCANIST, work)
-    manifest['arcanistCACompatibilitySHA256']=__import__('hashlib').sha256(
-      (arcanist/'src/future/http/HTTPSFuture.php').read_bytes()).hexdigest()
+    run(['php', str(ROOT / 'scripts/runtime/verify.php')], os.environ)
     config = work / "isolated.conf.php"
     settings = {"mysql.host": "127.0.0.1", "mysql.port": str(PORT),
                 "mysql.user": "root", "mysql.pass": PASSWORD,
@@ -59,10 +61,8 @@ with tempfile.TemporaryDirectory(prefix="gorge-acceptance-") as directory:
     encoded = base64.b64encode(json.dumps(settings).encode()).decode()
     config.write_text("<?php return json_decode(base64_decode('" + encoded + "'), true);\n")
     config.chmod(0o600)
-    env = dict(os.environ, PHUTIL_LIBRARY_ROOT=str(work) + "/",
-               PHABRICATOR_ENV=os.path.relpath(config, ROOT / "conf"),
+    env = dict(os.environ, PHABRICATOR_ENV=os.path.relpath(config, ROOT / "conf"),
                PHORGE_CONTROL_PLANE="legacy", PHORGE_FORK_DIR=str(ROOT),
-               GORGE_TEST_ARCANIST_DIR=str(arcanist),
                GORGE_TEST_INTEGRATIONS_MYSQL_PORT=str(PORT),
                GORGE_TEST_INTEGRATIONS_MYSQL_PASSWORD=PASSWORD)
     # Destructive scope is a dedicated fixed test database, never an existing
@@ -70,6 +70,8 @@ with tempfile.TemporaryDirectory(prefix="gorge-acceptance-") as directory:
     init = work / "database.php"
     init.write_text("<?php $db=new mysqli('127.0.0.1','root',getenv('GORGE_TEST_MYSQL_PASSWORD'),'',"
                     "(int)getenv('GORGE_TEST_MYSQL_PORT')); "
+                    "$mode=$db->query('SELECT @@GLOBAL.sql_mode AS mode')->fetch_assoc()['mode']; "
+                    "if($mode!=='STRICT_ALL_TABLES'){throw new Exception('Disposable MySQL must use STRICT_ALL_TABLES for historical migration replay.');} "
                     "$db->query('CREATE DATABASE gorge_acceptance_file'); "
                     "$db->select_db('gorge_acceptance_file'); "
                     "$db->query('CREATE TABLE file(id INT PRIMARY KEY,storageEngine VARBINARY(32),"
@@ -83,6 +85,22 @@ with tempfile.TemporaryDirectory(prefix="gorge-acceptance-") as directory:
     service = None
     proxy = None
     try:
+        # Replay every historical PHP/SQL migration with the bundled library.
+        # A dedicated random namespace cannot collide with the file fixtures.
+        replay_namespace = 'gorge_runtime_replay_' + uuid.uuid4().hex[:12]
+        replay_settings = dict(settings, **{
+            'storage.default-namespace': replay_namespace})
+        replay_config = work / 'replay.conf.php'
+        replay_encoded = base64.b64encode(json.dumps(replay_settings).encode()).decode()
+        replay_config.write_text("<?php return json_decode(base64_decode('" + replay_encoded + "'), true);\n")
+        replay_config.chmod(0o600)
+        replay_env = dict(env, PHABRICATOR_ENV=os.path.relpath(replay_config, ROOT / 'conf'))
+        try:
+            run(['php', str(ROOT / 'bin/storage'), 'upgrade', '--force',
+                 '--namespace', replay_namespace, '--no-quickstart', '--allow-surplus'], replay_env)
+        finally:
+            run(['php', str(ROOT / 'bin/storage'), 'destroy', '--force',
+                 '--namespace', replay_namespace], replay_env)
         if not env.get('GORGE_TEST_S3_URL') or not env.get('GORGE_TEST_IMAGE_URL'):
             raise RuntimeError('Full acceptance requires real S3 and current image service URLs')
         proxy = S3TLS(env['GORGE_TEST_S3_URL'], work)
@@ -114,11 +132,23 @@ with tempfile.TemporaryDirectory(prefix="gorge-acceptance-") as directory:
         else:
             raise RuntimeError("File service readiness timeout")
         env.update(GORGE_TEST_FILE_URL=url, GORGE_TEST_FILE_TOKEN="acceptance-file-only")
+        # User-password tests build avatar files through the current write engine.
+        # Configure only this disposable service, after its readiness check.
+        settings.update({'gorge.file.uri': url,
+                         'gorge.file.token': 'acceptance-file-only'})
+        encoded = base64.b64encode(json.dumps(settings).encode()).decode()
+        config.write_text("<?php return json_decode(base64_decode('" + encoded + "'), true);\n")
+        config.chmod(0o600)
+        # Preserve the existing module selection and ancestor fixtures.
+        run(['php', str(ROOT / 'bin/unit'), '--no-coverage',
+             'src/infrastructure/cluster/',
+             'src/applications/auth/__tests__/PhabricatorAuthPasswordTestCase.php'], env)
         for script in ["worker/status.php", "scheduler/runtime.php", "integrations/runtime.php",
                        "integrations/inbound_mysql.php", "worker/retirement.php", "files/runtime.php"]:
             run(["php", "-d", "curl.cainfo="+str(proxy.cert), str(ROOT / "tests/contract" / script)], env,
                 work if script == "files/runtime.php" else ROOT)
         run(["python3", str(ROOT / "tests/contract/integrations/paired_recovery.py")], env)
+        run(['php', str(ROOT / 'scripts/runtime/verify.php')], env)
         manifest['result']='passed'
         manifest['requiredBackends']=['mysql','real-s3','current-image','real-php-http','go-replicas']
         if env.get('GORGE_TEST_ACCEPTANCE_MANIFEST'):

@@ -1,9 +1,6 @@
 <?php
 
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
-phutil_load_library(dirname(__FILE__).'/../../../src');
+require_once dirname(__DIR__).'/bootstrap.php';
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 $env = PhabricatorEnv::beginScopedEnv();
 $env->overrideEnvConfig('gorge.image.uri', getenv('GORGE_TEST_IMAGE_URL'));

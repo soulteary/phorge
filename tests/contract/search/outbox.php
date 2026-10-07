@@ -1,16 +1,13 @@
 <?php
 
 // Dedicated disposable MySQL only; create and drop our own random database.
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
 $port = getenv('GORGE_TEST_MYSQL_PORT');
 $password = getenv('GORGE_TEST_MYSQL_PASSWORD');
-if (!$arcanist || !$port || $password === false) {
-  fwrite(STDERR, "Set GORGE_TEST_ARCANIST_DIR, GORGE_TEST_MYSQL_PORT and GORGE_TEST_MYSQL_PASSWORD.\n");
+if (!$port || $password === false) {
+  fwrite(STDERR, "Set GORGE_TEST_MYSQL_PORT and GORGE_TEST_MYSQL_PASSWORD.\n");
   exit(1);
 }
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
-phutil_load_library(dirname(__FILE__).'/../../../src');
+require_once dirname(__DIR__).'/bootstrap.php';
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 $admin = new mysqli('127.0.0.1', 'root', $password, '', (int)$port);
 $namespace = 'gorge_search_contract_'.getmypid().'_'.bin2hex(random_bytes(4));

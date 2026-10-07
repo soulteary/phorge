@@ -92,7 +92,11 @@ final class DifferentialChangesetEngine extends Phobject {
 
     $filename = $changeset->getFilename();
 
-    $paths = PhabricatorEnv::getEnvConfig('differential.generated-paths');
+    // Shared document diffs remain available after the review application and
+    // its configuration defaults have been removed.
+    $paths = PhabricatorEnv::getEnvConfigIfExists(
+      'differential.generated-paths',
+      array());
     foreach ($paths as $regexp) {
       if (preg_match($regexp, $filename)) {
         return true;

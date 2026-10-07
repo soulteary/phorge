@@ -13,7 +13,7 @@ final class PhabricatorGorgeHighlightFuture extends FutureProxy {
 
   protected function didReceiveResult($result) {
     try {
-      $data = PhabricatorGorgeRenderClient::parseResponseEnvelope(
+      $data = PhabricatorGorgeRenderClient::parseHighlightResponse(
         $this->uri,
         $result);
     } catch (Exception $ex) {

@@ -1,10 +1,6 @@
 <?php
 
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
-if (!$arcanist) { throw new Exception('Set GORGE_TEST_ARCANIST_DIR.'); }
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
-phutil_load_library(dirname(__FILE__).'/../../../src');
+require_once dirname(__DIR__).'/bootstrap.php';
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 function integrationCheck($value, $message) { if (!$value) { throw new Exception($message); } }
 $listener = stream_socket_server('tcp://127.0.0.1:0', $errno, $error);

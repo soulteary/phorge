@@ -1,7 +1,7 @@
 @title Writing Unit Tests
 @group developer
 
-Simple guide to Arcanist and Phorge unit tests.
+Guide to unit tests using the bundled Phorge runtime.
 
 = Overview =
 
@@ -9,10 +9,9 @@ Arcanist and Phorge provide and use a simple unit test framework. This
 document is aimed at project contributors and describes how to use it to add
 and run tests in these projects or other custom libraries.
 
-In the general case, you can integrate `arc` with a custom unit test engine
-(like PHPUnit or any other unit testing library) to run tests in other projects.
-See @{article:Arcanist User Guide: Customizing Lint, Unit Tests and Workflows}
-for information on customizing engines.
+This distribution provides its own test runner and bundled compatibility
+library. External projects may independently choose a client or other test
+framework; that is not required to develop or run Phorge.
 
 = Adding Tests =
 
@@ -22,16 +21,18 @@ To add new tests to a Arcanist or Phorge module:
   - Add classes to the `__tests__/` directory which extend from
     @{class:PhabricatorTestCase} (in Phorge) or
     @{class@arcanist:PhutilTestCase} (elsewhere).
-  - Run `arc liberate` on the library root so your classes are loadable.
+  - Run `bin/rebuild-library-map` in Phorge so your classes are loadable.
 
 = Running Tests =
 
-Once you've added test classes, you can run them with:
+Once you've added test classes, run them from the Phorge checkout:
 
-  - `arc unit path/to/module/`, to explicitly run module tests.
-  - `arc unit`, to run tests for all modules affected by changes in the
-    working copy.
-  - `arc diff` will also run `arc unit` for you.
+  - `bin/unit --no-coverage path/to/module/`, to explicitly run module tests.
+  - `bin/unit --no-coverage src/`, to run the Phorge PHP suite.
+
+The runner uses the bundled runtime. No separate Arcanist checkout or
+`arc` executable is required. Failures return a nonzero exit status; skipped
+optional integration tests are reported separately.
 
 = Example Test Case =
 
@@ -56,7 +57,7 @@ Here's a simple example test:
 
 You can see this class at @{class:PhabricatorTrivialTestCase} and run it with:
 
-  phorge/ $ arc unit src/infrastructure/testing/testcase/
+  phorge/ $ bin/unit --no-coverage src/infrastructure/testing/testcase/
    PASS   <1ms*  testAllIsRightWithTheWorld
 
 For more information on writing tests, see

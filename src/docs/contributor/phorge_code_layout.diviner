@@ -13,7 +13,7 @@ The Phorge infrastructure knows where a given controller class lives on
 disk from a cache file the Arcanist phutil mapper generates. This mapping
 should be updated whenever new classes or files are added:
 
-  arc liberate /path/to/phorge/src
+  /path/to/phorge/bin/rebuild-library-map
 
 Finally, a given controller class will map to an application which will have
 most of its code in standardized subdirectories and classes.

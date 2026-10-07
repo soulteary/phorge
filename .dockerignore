@@ -9,6 +9,8 @@
 
 # 文档
 **/*.md
+# The runtime manifest includes its maintenance/source documentation.
+!support/runtime/README.md
 
 # 编辑器 / 本地开发产物
 .cursor
@@ -41,6 +43,16 @@ conf/aphlict/aphlict.custom.json
 docs/
 src/.cache
 src/.phutil_module_cache
+support/runtime/src/.phutil_module_cache
+support/runtime/src/parser/xhpast/bin/xhpast
+support/runtime/support/php-parser/lib
+support/runtime/support/php-parser/php-parser-*.tar.gz
+support/runtime/support/php-parser/php-parser-*.zip
+support/runtime/support/xhpast/*.o
+support/runtime/support/xhpast/libxhpast.a
+support/runtime/support/xhpast/xhpast
+support/runtime/support/xhpast/node_names.hpp
+support/runtime/support/xhpast/parser.yacc.output
 support/peast/lib
 support/peast/peast*.tar.gz
 support/peast/peast*.zip

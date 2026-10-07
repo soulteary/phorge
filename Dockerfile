@@ -3,12 +3,11 @@
 # Phorge (phorge-fork) 自建镜像
 # ------------------------------------------------------------------
 # Phorge 官方没有提供 Docker 镜像，本 Dockerfile 基于当前源码目录自建。
-# 运行时依赖 arcanist（构建阶段从上游仓库拉取）。
+# PHP 兼容运行库随源码交付，构建无需独立 Arcanist checkout。
 #
 ARG PHP_BASE_IMAGE=php:8.3-apache
 FROM ${PHP_BASE_IMAGE}
 ARG APCU_VERSION=5.1.28
-ARG ARCANIST_REF=6f3726694752fb9cb08207070a4d7f68163784e1
 ARG DEBIAN_SNAPSHOT=
 # Release builds freeze package repositories as well as the base image.
 RUN if [ -n "$DEBIAN_SNAPSHOT" ]; then \
@@ -20,7 +19,7 @@ RUN if [ -n "$DEBIAN_SNAPSHOT" ]; then \
 # 1. 系统依赖 & PHP 扩展
 #    Phorge 需要: mysqli, gd, curl, mbstring, iconv, pcntl, posix, opcache
 #    可选但会被 setup check 检查: zip (PhabricatorZipSetupCheck / Excel 导出)
-#    运行时保留的命令行工具: git (Diffusion)、mariadb-client (排障)、procps (phd)、
+#    运行时保留的命令行工具: git (维护工具)、mariadb-client (排障)、procps (phd)、
 #    util-linux (flock 用于串行化共享 local.json 的配置任务)
 # ------------------------------------------------------------------
 RUN set -eux; \
@@ -95,21 +94,9 @@ RUN set -eux; \
     printf '[client]\nskip-ssl\n' > /etc/mysql/conf.d/skip-ssl.cnf
 
 # ------------------------------------------------------------------
-# 3. 拉取 arcanist（Phorge 运行时必需的外部依赖）
-#    浅克隆后删掉 .git：容器内不需要 arcanist 的版本历史。
+# 3. 使用当前源码内的 support/runtime PHP 兼容运行库
 # ------------------------------------------------------------------
 WORKDIR /opt/phorge
-RUN set -eux; \
-    echo "$ARCANIST_REF" | grep -Eq '^[0-9a-f]{40}$'; \
-    git init arcanist; \
-    git -C arcanist remote add origin https://github.com/phorgeit/arcanist.git; \
-    git -C arcanist fetch --depth 1 origin "$ARCANIST_REF" \
-        || git -C arcanist fetch --depth 1 https://we.phorge.it/source/arcanist.git "$ARCANIST_REF"; \
-    git -C arcanist checkout --detach FETCH_HEAD; \
-    test "$(git -C arcanist rev-parse HEAD)" = "$ARCANIST_REF"; \
-    printf '%s\n' "$ARCANIST_REF" > arcanist/.source-revision; \
-    rm -rf arcanist/.git; \
-    chown -R www-data:www-data arcanist
 
 # ------------------------------------------------------------------
 # 4. Apache 站点配置：DocumentRoot 指向 webroot，开启 PATH rewrite
@@ -128,6 +115,10 @@ COPY --chmod=0755 docker/phd-foreground.sh /usr/local/bin/phd-foreground
 #    COPY --chown 直接落属主，避免再来一层与源码等大的 chown -R。
 # ------------------------------------------------------------------
 COPY --chown=www-data:www-data . /opt/phorge/phorge
+# Build parser dependencies explicitly; web and CLI requests never download them.
+RUN php /opt/phorge/phorge/support/runtime/support/xhpast/build-xhpast.php \
+    && php /opt/phorge/phorge/support/runtime/support/php-parser/build-php-parser.php \
+    && php /opt/phorge/phorge/scripts/runtime/verify.php
 
 # ------------------------------------------------------------------
 # 7. 预建运行时可写目录并设置属主

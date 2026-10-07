@@ -1,0 +1,55 @@
+#!/usr/bin/env php
+<?php
+
+$project = dirname(__DIR__);
+require_once $project.'/support/runtime/bootstrap-cli.php';
+phutil_load_library($project.'/src');
+// Build the ordinary Phorge environment once, allowing isolated unit tests
+// to run before an installation has database configuration. Tests which use
+// real storage still fail if their required backend is unavailable.
+require_once $project.'/scripts/init/lib.php';
+init_phabricator_script(array(
+  'config.optional' => true,
+  'no-extensions' => true,
+));
+
+$args = new PhutilArgumentParser($argv);
+$args->setTagline('run project PHP unit tests');
+$args->setSynopsis("unit [--no-coverage|--coverage] [--everything] [path ...]\n");
+$args->parseStandardArguments();
+$args->parse(array(
+  array('name' => 'no-coverage', 'help' => 'Disable coverage (the default).'),
+  array('name' => 'coverage', 'help' => 'Require XDebug coverage.'),
+  array('name' => 'everything', 'help' => 'Run all Phorge PHP test cases.'),
+  array('name' => 'paths', 'wildcard' => true),
+));
+if ($args->getArg('coverage') && $args->getArg('no-coverage')) {
+  throw new PhutilArgumentUsageException('Choose one coverage option.');
+}
+$paths = array();
+foreach ($args->getArg('paths') as $path) {
+  $path = Filesystem::resolvePath($path, $project);
+  if (!Filesystem::pathExists($path)) {
+    throw new PhutilArgumentUsageException('Test path does not exist: '.$path);
+  }
+  $paths[] = $path;
+}
+$engine = id(new PhutilUnitTestEngine())
+  ->setWorkingCopy(ArcanistWorkingCopyIdentity::newFromPath($project))
+  ->setPaths($paths)
+  ->setRunAllTests($args->getArg('everything') || !$paths)
+  ->setEnableCoverage((bool)$args->getArg('coverage'));
+$results = $engine->run();
+$renderer = new ArcanistUnitConsoleRenderer();
+$failed = false;
+foreach ($results as $result) {
+  echo $renderer->renderUnitResult($result);
+  if (!in_array($result->getResult(), array(
+    ArcanistUnitTestResult::RESULT_PASS,
+    ArcanistUnitTestResult::RESULT_SKIP,
+  ), true)) {
+    $failed = true;
+  }
+}
+echo sprintf("Executed %d tests.\n", count($results));
+exit($failed || !$results ? 1 : 0);

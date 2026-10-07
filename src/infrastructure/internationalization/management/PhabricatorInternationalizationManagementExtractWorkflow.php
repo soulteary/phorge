@@ -84,9 +84,11 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
     $cache = $this->readCache($root);
 
     $modified = $this->getModifiedFiles($files, $cache);
+    $removed = array_diff_key(idx($cache, 'files', array()), $files);
     $cache['files'] = $files;
 
-    if ($modified) {
+    $strings_path = $this->getCachePath($root, 'i18n_strings.json');
+    if ($modified || $removed || !Filesystem::pathExists($strings_path)) {
       echo tsprintf(
         "**<bg:blue> %s </bg>** %s\n",
         pht('MODIFIED'),
@@ -94,6 +96,12 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
           'Found %s modified file(s) (of %s total).',
           phutil_count($modified),
           phutil_count($files)));
+      if ($removed) {
+        echo tsprintf(
+          "**<bg:blue> %s </bg>** %s\n",
+          pht('REMOVED'),
+          pht('Found %s removed file(s).', phutil_count($removed)));
+      }
 
       $old_strings = idx($cache, 'strings');
       $old_strings = array_select_keys($old_strings, $files);
@@ -296,8 +304,12 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
     Filesystem::writeFile($path, $data);
   }
 
-  private function getCachePath($root, $to_file) {
-    return $root.'/.cache/'.$to_file;
+  public function getCachePath($root, $to_file) {
+    // Keep generated caches outside library sources, including the maintained
+    // runtime package. All libraries share the project's ignored cache tree.
+    $cache_root = phutil_get_library_root('phorge').'/.cache/i18n/';
+    $library_key = hash('sha256', Filesystem::resolvePath($root));
+    return $cache_root.$library_key.'/'.$to_file;
   }
 
 }

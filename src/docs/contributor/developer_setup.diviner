@@ -44,11 +44,11 @@ can `catch` exceptions; they can not catch `die(...)`.
 Utilities
 =========
 
-After adding, renaming, or moving classes, run `arc liberate` to rebuild
+After adding, renaming, or moving classes, run `bin/rebuild-library-map` to rebuild
 the class map:
 
 ```
-phorge/ $ arc liberate
+phorge/ $ bin/rebuild-library-map
 ```
 
 Until you do this, Phorge won't recognize your new, moved, or renamed

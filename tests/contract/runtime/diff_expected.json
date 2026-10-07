@@ -1,0 +1,224 @@
+{
+    "text-change": {
+        "changes": [
+            {
+                "metadata": [],
+                "oldPath": "example.txt",
+                "currentPath": "example.txt",
+                "awayPaths": [],
+                "oldProperties": [],
+                "newProperties": [],
+                "type": 2,
+                "fileType": 1,
+                "commitHash": null,
+                "hunks": [
+                    {
+                        "oldOffset": "1",
+                        "newOffset": "1",
+                        "oldLength": "2",
+                        "newLength": "2",
+                        "addLines": 1,
+                        "delLines": 1,
+                        "isMissingOldNewline": false,
+                        "isMissingNewNewline": false,
+                        "corpus": " alpha\n-old\n+new\n"
+                    }
+                ]
+            }
+        ],
+        "git": "diff --git a/example.txt b/example.txt\n--- a/example.txt\n+++ b/example.txt\n@@ -1,2 +1,2 @@\n alpha\n-old\n+new\n\n",
+        "unified": "Index: example.txt\n===================================================================\n--- example.txt\n+++ example.txt\n@@ -1,2 +1,2 @@\n alpha\n-old\n+new\n"
+    },
+    "empty-add": {
+        "changes": [
+            {
+                "metadata": [],
+                "oldPath": "empty",
+                "currentPath": "empty",
+                "awayPaths": [],
+                "oldProperties": [],
+                "newProperties": {
+                    "unix:filemode": "100644"
+                },
+                "type": 1,
+                "fileType": 1,
+                "commitHash": null,
+                "hunks": []
+            }
+        ],
+        "git": "diff --git a/empty b/empty\nnew file mode 100644\n\n",
+        "unified": ""
+    },
+    "delete": {
+        "changes": [
+            {
+                "metadata": [],
+                "oldPath": "remove.txt",
+                "currentPath": "remove.txt",
+                "awayPaths": [],
+                "oldProperties": {
+                    "unix:filemode": "100644"
+                },
+                "newProperties": [],
+                "type": 3,
+                "fileType": 1,
+                "commitHash": null,
+                "hunks": [
+                    {
+                        "oldOffset": "1",
+                        "newOffset": "0",
+                        "oldLength": 1,
+                        "newLength": "0",
+                        "addLines": 0,
+                        "delLines": 1,
+                        "isMissingOldNewline": false,
+                        "isMissingNewNewline": false,
+                        "corpus": "-removed\n"
+                    }
+                ]
+            }
+        ],
+        "git": "diff --git a/remove.txt b/remove.txt\ndeleted file mode 100644\n--- a/remove.txt\n+++ /dev/null\n@@ -1 +0,0 @@\n-removed\n\n",
+        "unified": "Index: remove.txt\n===================================================================\n--- remove.txt\n+++ /dev/null\n@@ -1 +0,0 @@\n-removed\n"
+    },
+    "rename": {
+        "changes": [
+            {
+                "metadata": [],
+                "oldPath": "old.txt",
+                "currentPath": "new.txt",
+                "awayPaths": [],
+                "oldProperties": [],
+                "newProperties": [],
+                "type": 6,
+                "fileType": 1,
+                "commitHash": null,
+                "hunks": []
+            },
+            {
+                "metadata": [],
+                "oldPath": null,
+                "currentPath": "old.txt",
+                "awayPaths": [
+                    "new.txt"
+                ],
+                "oldProperties": [],
+                "newProperties": [],
+                "type": 4,
+                "fileType": 1,
+                "commitHash": null,
+                "hunks": []
+            }
+        ],
+        "git": "diff --git a/old.txt b/new.txt\nrename from old.txt\nrename to new.txt\n\n",
+        "unified": ""
+    },
+    "unicode": {
+        "changes": [
+            {
+                "metadata": [],
+                "oldPath": "old.txt",
+                "currentPath": "new.txt",
+                "awayPaths": [],
+                "oldProperties": [],
+                "newProperties": [],
+                "type": 2,
+                "fileType": 1,
+                "commitHash": null,
+                "hunks": [
+                    {
+                        "oldOffset": "1",
+                        "newOffset": "1",
+                        "oldLength": 1,
+                        "newLength": 1,
+                        "addLines": 1,
+                        "delLines": 1,
+                        "isMissingOldNewline": false,
+                        "isMissingNewNewline": false,
+                        "corpus": "-旧值\n+新值\n"
+                    }
+                ]
+            }
+        ],
+        "git": "diff --git a/old.txt b/new.txt\n--- a/old.txt\n+++ b/new.txt\n@@ -1 +1 @@\n-旧值\n+新值\n\n",
+        "unified": "Index: new.txt\n===================================================================\n--- new.txt\n+++ new.txt\n@@ -1 +1 @@\n-旧值\n+新值\n"
+    },
+    "no-final-newline": {
+        "changes": [
+            {
+                "metadata": [],
+                "oldPath": "old.txt",
+                "currentPath": "new.txt",
+                "awayPaths": [],
+                "oldProperties": [],
+                "newProperties": [],
+                "type": 2,
+                "fileType": 1,
+                "commitHash": null,
+                "hunks": [
+                    {
+                        "oldOffset": "1",
+                        "newOffset": "1",
+                        "oldLength": 1,
+                        "newLength": 1,
+                        "addLines": 1,
+                        "delLines": 1,
+                        "isMissingOldNewline": true,
+                        "isMissingNewNewline": true,
+                        "corpus": "-old\n\\ No newline at end of file\n+new\n\\ No newline at end of file\n"
+                    }
+                ]
+            }
+        ],
+        "git": "diff --git a/old.txt b/new.txt\n--- a/old.txt\n+++ b/new.txt\n@@ -1 +1 @@\n-old\n\\ No newline at end of file\n+new\n\\ No newline at end of file\n\n",
+        "unified": "Index: new.txt\n===================================================================\n--- new.txt\n+++ new.txt\n@@ -1 +1 @@\n-old\n\\ No newline at end of file\n+new\n\\ No newline at end of file\n"
+    },
+    "binary": {
+        "changes": [
+            {
+                "metadata": [],
+                "oldPath": "image.bin",
+                "currentPath": "image.bin",
+                "awayPaths": [],
+                "oldProperties": [],
+                "newProperties": [],
+                "type": 2,
+                "fileType": 3,
+                "commitHash": null,
+                "hunks": []
+            }
+        ],
+        "git": "diff --git a/image.bin b/image.bin\nindex d290b0bf9dd2a3723a5d20373b75a725cbd246a6..f7645caa15eb27f756f4ac7409574b4f3e6f887c\nGIT binary patch\nliteral 9\nQc$~{iEoVroEJ-Z}01&qWasU7T\n\nliteral 9\nQc$~}6NnuE;EJ-Z}01$HnX8-^I\n\n\n",
+        "unified": ""
+    },
+    "svn-text": {
+        "changes": [
+            {
+                "metadata": [],
+                "oldPath": "example.txt",
+                "currentPath": "example.txt",
+                "awayPaths": [],
+                "oldProperties": [],
+                "newProperties": [],
+                "type": 2,
+                "fileType": 1,
+                "commitHash": null,
+                "hunks": [
+                    {
+                        "oldOffset": "1",
+                        "newOffset": "1",
+                        "oldLength": 1,
+                        "newLength": 1,
+                        "addLines": 1,
+                        "delLines": 1,
+                        "isMissingOldNewline": false,
+                        "isMissingNewNewline": false,
+                        "corpus": "-old\n+new\n"
+                    }
+                ]
+            }
+        ],
+        "git": "diff --git a/example.txt b/example.txt\n--- a/example.txt\n+++ b/example.txt\n@@ -1 +1 @@\n-old\n+new\n\n",
+        "unified": "Index: example.txt\n===================================================================\n--- example.txt\n+++ example.txt\n@@ -1 +1 @@\n-old\n+new\n"
+    }
+}

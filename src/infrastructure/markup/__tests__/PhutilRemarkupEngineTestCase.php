@@ -6,9 +6,17 @@
 final class PhutilRemarkupEngineTestCase extends PhabricatorTestCase {
 
   public function testEngine() {
-    $root = dirname(__FILE__).'/remarkup/';
-    foreach (Filesystem::listDirectory($root, $hidden = false) as $file) {
-      $this->markupText($root.$file);
+    // These fixtures exercise markup structure and escaping without an
+    // external renderer. Current Gorge highlighting has separate contracts.
+    $env = PhabricatorEnv::beginScopedEnv();
+    try {
+      $env->overrideEnvConfig('gorge.render.uri', '');
+      $root = dirname(__FILE__).'/remarkup/';
+      foreach (Filesystem::listDirectory($root, $hidden = false) as $file) {
+        $this->markupText($root.$file);
+      }
+    } finally {
+      unset($env);
     }
   }
 

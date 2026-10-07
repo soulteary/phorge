@@ -61,7 +61,7 @@ sed 's/^/\\b/; s/$/\\b/' "$work/removed.txt" > "$work/patterns.txt"
 # Documentation is excluded deliberately: src/docs is prose and Diviner book
 # configuration rather than runtime code, and webroot/rsrc/externals is
 # third-party, which .arcconfig also excludes from linting. The library map
-# itself is generated, and arc liberate is the authority for it.
+# itself is generated, and bin/rebuild-library-map is the authority for it.
 rg_status=0
 rg --line-number --no-heading --color never --hidden --only-matching \
   --glob "!$MAP" \

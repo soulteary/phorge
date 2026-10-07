@@ -1,17 +1,14 @@
 <?php
 
 // Disposable MySQL only. Exercise real PHP planning and ownership transactions.
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
 $port = getenv('GORGE_TEST_MYSQL_PORT');
 $password = getenv('GORGE_TEST_MYSQL_PASSWORD');
-if (!$arcanist || !$port || $password === false) {
-  fwrite(STDERR, "Set Arcanist and disposable MySQL test environment variables.\n");
+if (!$port || $password === false) {
+  fwrite(STDERR, "Set disposable MySQL test environment variables.\n");
   exit(1);
 }
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
+require_once dirname(__DIR__).'/bootstrap.php';
 $root = dirname(__FILE__).'/../../..';
-phutil_load_library($root.'/src');
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 $namespace = 'gorge_scheduler_'.getmypid().'_'.bin2hex(random_bytes(4));
 $admin = new mysqli('127.0.0.1', 'root', $password, '', (int)$port);

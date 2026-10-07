@@ -1,9 +1,6 @@
 <?php
 // Export the current PHP planner as an oracle, without pixel decode or DB writes.
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
-phutil_load_library(dirname(__FILE__).'/../../../src');
+require_once dirname(__DIR__).'/bootstrap.php';
 $method = new ReflectionMethod('PhabricatorFileThumbnailTransform', 'computeDimensions');
 $rows = array();
 foreach (array(array(1,1), array(16,9), array(9,16), array(1000,10),

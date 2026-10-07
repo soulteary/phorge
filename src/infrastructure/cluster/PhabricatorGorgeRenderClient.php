@@ -123,7 +123,7 @@ final class PhabricatorGorgeRenderClient
    * @param wild $result Raw result of an @{class@arcanist:HTTPSFuture}.
    * @return wild The "data" section of the envelope.
    */
-  public static function parseResponseEnvelope($uri, $result) {
+  public static function parseHighlightResponse($uri, $result) {
     return parent::parseResponseEnvelope($uri, $result);
   }
 

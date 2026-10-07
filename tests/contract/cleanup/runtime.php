@@ -1,15 +1,12 @@
 <?php
 // Disposable MySQL only: validates the real GC entry point and guard transaction.
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
 $port = getenv('GORGE_TEST_MYSQL_PORT');
 $password = getenv('GORGE_TEST_MYSQL_PASSWORD');
-if (!$arcanist || !$port || $password === false) {
-  fwrite(STDERR, "Set GORGE_TEST_ARCANIST_DIR, GORGE_TEST_MYSQL_PORT and GORGE_TEST_MYSQL_PASSWORD.\n"); exit(1);
+if (!$port || $password === false) {
+  fwrite(STDERR, "Set GORGE_TEST_MYSQL_PORT and GORGE_TEST_MYSQL_PASSWORD.\n"); exit(1);
 }
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
+require_once dirname(__DIR__).'/bootstrap.php';
 $root = dirname(__FILE__).'/../../..';
-phutil_load_library($root.'/src');
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 $namespace = 'gorge_cleanup_'.getmypid().'_'.bin2hex(random_bytes(4));
 $admin = new mysqli('127.0.0.1', 'root', $password, '', (int)$port);

@@ -48,8 +48,9 @@ This is intended as a quick way to add small pieces of functionality, test new
 features, or get started on a larger project. Extending Phorge like this
 imposes a small performance penalty compared to using a library.
 
-This directory also exists for Arcanist, so you can find a similar
-directory in `arcanist/src/extensions/`.
+Keep application extensions in `phorge/src/extensions/`. The bundled
+`support/runtime/` directory is maintained with Phorge; it is not a separate
+Arcanist checkout or the recommended location for application extensions.
 
 For example, to add a new application, create a file like this one and add it
 to `phorge/src/extensions/`.
@@ -75,116 +76,48 @@ extensions.
 Creating Libraries
 ==================
 
+Phorge uses `bin/rebuild-library-map` and `bin/unit` with its bundled runtime.
+Application extensions can also use the directory above.
+
+
 A more powerful (but more complicated) way to extend Phorge is to create
 a library. Libraries can organize a larger amount of code, are easier
 to work with and distribute, and have slightly better performance than loose
 source files in the extensions directory.
 
-In general, you'll perform these one-time setup steps to create a library:
+Create a library with a unique name and initialize its source directory:
 
-  - Create a new directory.
-  - Use `arc liberate` to initialize and name the library.
-  - Configure Phorge or Arcanist to load the library.
-
-Then, to add new code, you do this:
-
-  - Write or update classes.
-  - Update the library metadata by running `arc liberate` again.
-
-Initializing a Library
-======================
-
-To create a new library, create a directory for it and run
-`arc liberate` on the directory. This documentation will use a conventional
-directory layout, which is recommended, but you are free to deviate from this.
-
-```
-$ mkdir libcustom/
-$ cd libcustom/
-libcustom/ $ arc liberate src/
+```name=libcustom/src/__phutil_library_init__.php, lang=php
+<?php
+phutil_register_library('libcustom', __FILE__);
 ```
 
-Now you'll get a prompt like this:
+Then rebuild its metadata with the project command, using an absolute path:
 
-```lang=txt
-No library currently exists at that path...
-The directory '/some/path/libcustom/src' does not exist.
-
-  Do you want to create it? [y/N] y
-Creating new library in '/some/path/libcustom/src'.
-Choose a name for the new library.
-
-  What do you want to name this library?
+```
+phorge/ $ bin/rebuild-library-map /absolute/path/libcustom/src
 ```
 
-Choose a library name (in this case, "libcustom" would be appropriate) and it
-you should get some details about the library initialization:
-
-```lang=txt
-Writing '__phutil_library_init__.php' to
-  '/some/path/libcustom/src/__phutil_library_init__.php'...
-Using library root at 'src'...
-Mapping library...
-Verifying library...
-Finalizing library map...
-  OKAY   Library updated.
-```
-
-This will write three files:
-
-  - `src/.phutil_module_cache` This is a cache which makes "arc liberate"
-    faster when you run it to update the library. You can safely remove it at
-    any time. If you check your library into version control, you can add this
-    file to ignore rules (like `.gitignore`).
-  - `src/__phutil_library_init__.php` This records the name of the library and
-    tells Arcanist that a library exists here.
-  - `src/__phutil_library_map__.php` This is a map of all the symbols
-    (functions and classes) in the library, which allows them to be autoloaded
-    at runtime and dependencies to be statically managed by `arc liberate`.
+The command supports already initialized libraries. It does not prompt for
+names or require an external Arcanist checkout. The generated map records
+functions, classes and inheritance, while `.phutil_module_cache` is a removable
+local cache. Prepare the parser tools explicitly as described in DOCKER.md
+before rebuilding maps on a new development checkout.
 
 Linking with Phorge
 ===================
 
-(NOTE) If you aren't using this library with Phorge (e.g., you are only using it
-with Arcanist or are building something else) you can skip this
-step.
+Configure Phorge to load the library by adding its absolute source path to
+`load-libraries`:
 
-But, if you intend to use this library with Phorge, you need to define its
-dependency on Phorge by creating a `.arcconfig` file which points at
-Phorge. For example, you might write this file to
-`libcustom/.arcconfig`:
-
-```lang=json
-{
-  "load": [
-    "phorge/src/"
-  ]
-}
-```
-
-For details on creating a `.arcconfig`, see
-@{article:Arcanist User Guide: Configuring a New Project}. In general, this
-tells `arc liberate` that it should look for symbols in Phorge when
-performing static analysis.
-
-NOTE: If Phorge isn't located next to your custom library, specify a
-path which actually points to the `phorge/` directory.
-
-You do not need to declare dependencies on `arcanist`, since `arc liberate`
-automatically loads them.
-
-Finally, edit your Phorge config to tell it to load your library at
-runtime, by adding it to `load-libraries`:
-
-```lang=json
-...
+```lang=php
 'load-libraries' => array(
-  'libcustom' => 'libcustom/src/',
+  'libcustom' => '/absolute/path/libcustom/src/',
 ),
-...
 ```
 
-Now, Phorge will be able to load classes from your custom library.
+Phorge will then load the library's classes using the same bundled loader.
+No `.arcconfig` or additional Arcanist runtime is needed for this procedure.
 
 
 Writing Classes
@@ -195,9 +128,9 @@ To actually write classes, create a new module and put code in it:
   libcustom/ $ mkdir src/example/
   libcustom/ $ nano src/example/ExampleClass.php # Edit some code.
 
-Now, run `arc liberate` to regenerate the static resource map:
+Now, rebuild the library symbol map with the Phorge command:
 
-  libcustom/ $ arc liberate src/
+  phorge/ $ bin/rebuild-library-map /absolute/path/libcustom/src
 
 This will automatically regenerate the static map of the library.
 

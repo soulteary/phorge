@@ -193,23 +193,14 @@ final class PhabricatorStartup {
 
   public static function loadCoreLibraries() {
     $phabricator_root = dirname(dirname(dirname(__FILE__)));
-    $libraries_root = dirname($phabricator_root);
-
-    $root = null;
-    if (!empty($_SERVER['PHUTIL_LIBRARY_ROOT'])) {
-      $root = $_SERVER['PHUTIL_LIBRARY_ROOT'];
-    }
-
-    ini_set(
-      'include_path',
-      $libraries_root.PATH_SEPARATOR.ini_get('include_path'));
-
-    $ok = @include_once $root.'arcanist/src/init/init-library.php';
-    if (!$ok) {
+    $runtime = $phabricator_root.'/support/runtime/bootstrap.php';
+    if (!is_file($runtime)) {
       self::didFatal(
-        'Unable to load the "Arcanist" library. Put "arcanist/" next to '.
-        '"phorge/" on disk.');
+        'Unable to load the bundled PHP runtime. '.
+        'Restore "support/runtime/" from the same Phorge release.');
     }
+
+    require_once $runtime;
 
     // Load Phorge itself using the absolute path, so we never end up doing
     // anything surprising (loading index.php and libraries from different

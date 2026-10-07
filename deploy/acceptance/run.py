@@ -8,14 +8,15 @@ import sys
 import time
 import urllib.request
 
-ROOT = Path('/work/phorge')
-sys.path.insert(0, str(ROOT / 'tests/contract/worker'))
-from acceptance_manifest import source_identity
-result = {'schemaVersion': 1, 'result': 'running', 'stages': [],
-          'phorge': source_identity(ROOT),
+SOURCE_ROOT = Path('/work/phorge')
+ROOT = Path('/tmp/acceptance-phorge')
+sys.path.insert(0, str(SOURCE_ROOT / 'tests/contract/worker'))
+from acceptance_helpers import prepare_phorge_snapshot
+from acceptance_manifest import runtime_identity, source_identity
+result = {'schemaVersion': 2, 'result': 'running', 'stages': [],
+          'phorge': source_identity(SOURCE_ROOT),
           'gorge': source_identity(Path('/work/gorge')),
-          'arcanist': source_identity(Path('/opt/phorge/arcanist')),
-          'buildLock': json.loads((ROOT / 'deploy/acceptance/build-lock.json').read_text()),
+          'buildLock': json.loads((SOURCE_ROOT / 'deploy/acceptance/build-lock.json').read_text()),
           'scope': 'paired PHP/Go contracts, real MySQL/S3/image, interruption/recovery fixtures',
           'notCovered': ['authenticated browser journeys', 'external provider delivery', 'production performance', 'real Elasticsearch/Meilisearch backend matrix']}
 out = Path('/results/result.json')
@@ -44,8 +45,19 @@ def run(name, args, cwd=ROOT):
     stage.update(result='passed' if rc == 0 else 'failed', exitCode=rc); save()
     if rc: raise RuntimeError(name + ' failed')
 try:
+    result['executionSnapshot'] = prepare_phorge_snapshot(SOURCE_ROOT, Path('/opt/phorge/phorge'), ROOT)
+    # Preserve the documented sibling layout for cross-repository link checks.
+    # The target remains the read-only Gorge source mount.
+    (ROOT.parent / 'gorge').symlink_to('/work/gorge', target_is_directory=True)
+    os.environ['GORGE_TEST_PHORGE_SOURCE_IDENTITY_DIR'] = str(SOURCE_ROOT)
+    result['runtime'] = runtime_identity(ROOT / 'support/runtime/manifest.json')
     save()
-    for url in ['http://127.0.0.1:8190/readyz', 'http://127.0.0.1:9000/minio/health/live']:
+    run('bundled-runtime-integrity', ['php', 'scripts/runtime/verify.php'])
+    for script in ['compatibility', 'diff', 'integrity', 'maintenance']:
+        run('runtime/' + script, ['php', 'tests/contract/runtime/' + script + '.php'])
+    for fixture, url in [('image', 'http://127.0.0.1:8190/readyz'),
+                         ('s3', 'http://127.0.0.1:9000/otterio/health/ready'),
+                         ('render', 'http://127.0.0.1:8140/readyz')]:
         deadline = time.monotonic() + 120
         while True:
             try:
@@ -53,12 +65,22 @@ try:
                     if r.status == 200: break
             except OSError:
                 pass
-            if time.monotonic() > deadline: raise RuntimeError('Fixture readiness timeout')
+            if time.monotonic() > deadline: raise RuntimeError(fixture + ' fixture readiness timeout')
             time.sleep(1)
-    for script in ['worker/startup.php', 'worker/installation.php', 'worker/execution.php', 'download/runtime.php']:
+    run('runtime/products', ['php', 'tests/contract/runtime/products.php'])
+    for script in ['worker/bundled_runtime.php', 'worker/startup.php', 'worker/installation.php', 'worker/execution.php', 'download/runtime.php']:
         run(script, ['php', 'tests/contract/' + script])
     run('paired-acceptance', ['python3', 'tests/contract/worker/acceptance.py'])
-    os.environ.update(PHORGE_FORK_DIR='/work/phorge',
+    os.environ.update(GORGE_TEST_CLEANUP_EXPORT='/results/cleanup-export.json',
+                      GORGE_TEST_SEARCH_SCAN_PAGE='/results/search-source-page.json',
+                      GORGE_TEST_SEARCH_EVENT_FILE='/results/search-events.json')
+    for script in ['worker/cutover.php', 'worker/startup_http.php',
+                   'cleanup/runtime.php', 'feed/outbox.php', 'mail/outbox.php',
+                   'search/projection.php', 'search/outbox.php',
+                   'search/deletion.php', 'search/source.php',
+                   'image/geometry.php', 'image/runtime.php']:
+        run(script, ['php', 'tests/contract/' + script])
+    os.environ.update(PHORGE_FORK_DIR=str(ROOT),
         GORGE_TEST_MYSQL_DSN='root:acceptance-only@tcp(127.0.0.1:3306)/',
         GORGE_TEST_REDIS_ADDR='127.0.0.1:6379',
         GORGE_TEST_FILE_LIFECYCLE_DSN='root:acceptance-only@tcp(127.0.0.1:3306)/gorge_lifecycle_test',
@@ -66,6 +88,7 @@ try:
         GORGE_TEST_SEARCH_MYSQL_DSN='root:acceptance-only@tcp(127.0.0.1:3306)/')
     run('create-test-schemas', ['php', '-r', '$db=new mysqli("127.0.0.1","root","acceptance-only","",3306);foreach(["gorge_lifecycle_test","gorge_integrations_test"] as $n){$db->query("CREATE DATABASE ".$n);}'])
     run('go-unit-contracts' , ['go', 'test', '-count=1', './...'], Path('/work/gorge/go'))
+    run('bundled-runtime-integrity-after-contracts', ['php', 'scripts/runtime/verify.php'])
     result['result'] = 'passed'
 except Exception as ex:
     result['result'] = 'failed'

@@ -505,8 +505,9 @@ final class DifferentialChangesetParser extends Phobject {
     $generated_guess = (strpos($new_corpus_block, '@'.'generated') !== false);
 
     if (!$generated_guess) {
-      $generated_path_regexps = PhabricatorEnv::getEnvConfig(
-        'differential.generated-paths');
+      $generated_path_regexps = PhabricatorEnv::getEnvConfigIfExists(
+        'differential.generated-paths',
+        array());
       foreach ($generated_path_regexps as $regexp) {
         if (preg_match($regexp, $this->changeset->getFilename())) {
           $generated_guess = true;

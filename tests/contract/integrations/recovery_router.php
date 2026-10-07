@@ -1,8 +1,7 @@
 <?php
 // Actual PHP Conduit method over HTTP; only the response loss is injected.
 if ($_SERVER['REQUEST_URI'] === '/readyz') { echo '{}'; return; }
-require getenv('GORGE_TEST_ARCANIST_DIR').'/src/init/init-library.php';
-phutil_load_library(dirname(__FILE__).'/../../../src');
+require_once dirname(__DIR__).'/bootstrap.php';
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 $env = PhabricatorEnv::beginScopedEnv();
 foreach (array('mysql.host'=>'127.0.0.1','mysql.port'=>getenv('GORGE_TEST_MYSQL_PORT'),

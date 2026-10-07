@@ -7,12 +7,12 @@ services:
       context: ../..
       args:
         PHP_BASE_IMAGE: ${LOCK_PHP}
-        ARCANIST_REF: ${LOCK_ARCANIST}
         APCU_VERSION: ${LOCK_APCU}
         APCU_SHA256: ${LOCK_APCU_SHA256}
         DEBIAN_SNAPSHOT: ${LOCK_SNAPSHOT}
   mysql:
     image: ${LOCK_MYSQL}
+    command: ['--sql-mode=STRICT_ALL_TABLES']
     environment:
       MYSQL_ROOT_PASSWORD: acceptance-only
       MYSQL_ROOT_HOST: '%'
@@ -48,7 +48,12 @@ services:
     environment:
       GORGE_SERVICE_TOKEN: acceptance-image-only
     read_only: true
-    tmpfs: [/tmp:rw,size=512m]
+    volumes:
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 536870912
+          mode: 01777
     mem_limit: 2g
   runner:
     build:
@@ -63,13 +68,13 @@ services:
       redis: {condition: service_started}
       s3: {condition: service_started}
       image: {condition: service_started}
+      render: {condition: service_started}
     volumes:
       - ../..:/work/phorge:ro
       - ${ACCEPTANCE_GORGE_DIR}:/work/gorge:ro
       - ${ACCEPTANCE_OUTPUT}:/results
     environment:
       GORGE_TEST_GORGE_DIR: /work/gorge
-      GORGE_TEST_ARCANIST_DIR: /opt/phorge/arcanist
       GORGE_TEST_MYSQL_PORT: '3306'
       GORGE_TEST_MYSQL_PASSWORD: acceptance-only
       GORGE_TEST_INTEGRATIONS_MYSQL_PORT: '3306'
@@ -79,5 +84,22 @@ services:
       GORGE_TEST_S3_PASSWORD: gorge-acceptance-only
       GORGE_TEST_IMAGE_URL: http://127.0.0.1:8190
       GORGE_TEST_IMAGE_TOKEN: acceptance-image-only
+      GORGE_TEST_RENDER_URL: http://127.0.0.1:8140
+      GORGE_TEST_RENDER_TOKEN: acceptance-render-only
       GORGE_TEST_ACCEPTANCE_MANIFEST: /results/paired-acceptance.json
       GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+  render:
+    build:
+      context: ${ACCEPTANCE_GORGE_DIR}/go
+      args:
+        GO_BASE_IMAGE: ${LOCK_GO}
+        RUNTIME_BASE_IMAGE: ${LOCK_ALPINE}
+        SERVICE: gorge-render
+        PORT: 8140
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: /usr/local/go
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
+    network_mode: service:mysql
+    environment:
+      GORGE_SERVICE_TOKEN: acceptance-render-only
+    read_only: true

@@ -1,14 +1,7 @@
 <?php
 
-// Run with GORGE_TEST_ARCANIST_DIR=/path/to/arcanist php execution.php.
-$arcanist = getenv('GORGE_TEST_ARCANIST_DIR');
-if (!$arcanist) {
-  fwrite(STDERR, "Set GORGE_TEST_ARCANIST_DIR to an Arcanist checkout.\n");
-  exit(1);
-}
-require $arcanist.'/src/init/init-library.php';
-phutil_load_library($arcanist.'/src');
-phutil_load_library(dirname(__FILE__).'/../../../src');
+// Run with php tests/contract/worker/execution.php.
+require_once dirname(__DIR__).'/bootstrap.php';
 PhabricatorEnv::initializeScriptEnvironment(true, true);
 $env = PhabricatorEnv::beginScopedEnv();
 $env->overrideEnvConfig('gorge.conduit.token', 'execution-contract-test');

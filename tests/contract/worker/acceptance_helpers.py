@@ -7,6 +7,22 @@ import urllib.error
 import urllib.request
 
 
+def validate_isolated_topology(config):
+    for service in config['services'].values():
+        if service.get('ports') or service.get('container_name'):
+            raise ValueError('Acceptance must not publish ports or reuse container names')
+        for mount in service.get('tmpfs', []):
+            if not isinstance(mount, str) or not mount.split(':', 1)[0].startswith('/'):
+                raise ValueError('Acceptance tmpfs target must be an absolute container path')
+        for mount in service.get('volumes', []):
+            if mount.get('type') == 'tmpfs' and not mount.get('target', '').startswith('/'):
+                raise ValueError('Acceptance tmpfs target must be an absolute container path')
+            if mount.get('type') == 'tmpfs' and mount.get('target') == '/tmp':
+                mode = mount.get('tmpfs', {}).get('mode', 0)
+                if not isinstance(mode, int) or mode & 0o1003 != 0o1003:
+                    raise ValueError('Acceptance /tmp must be writable by the image service user with sticky mode')
+
+
 class S3TLS:
     def __init__(self, endpoint, work):
         self.endpoint = endpoint.rstrip('/')
@@ -43,25 +59,47 @@ class S3TLS:
         self.server.shutdown();self.server.server_close();self.thread.join(timeout=5)
 
 
-def prepare_arcanist(source, work):
-    # The pinned upstream assumes every macOS cURL uses SecureTransport. Modern
-    # PHP uses OpenSSL and requires CURLOPT_CAINFO for a private fixture CA.
-    # Patch only the disposable copy; never disable certificate verification.
+def prepare_phorge_snapshot(source, image, target):
+    """Run the supplied source with the parser artifacts built into its image."""
     import shutil
-    import sys
-    target=work/'arcanist'
-    if sys.platform!='darwin':
-        target.symlink_to(source,target_is_directory=True)
-        return target
-    backend=subprocess.check_output(['php','-r','echo curl_version()["ssl_version"];'],text=True)
-    if not backend.startswith('OpenSSL/'):
-        raise RuntimeError('Private S3 fixture CA requires OpenSSL PHP cURL on macOS')
-    shutil.copytree(source,target,ignore=shutil.ignore_patterns('.git'))
-    file=target/'src/future/http/HTTPSFuture.php'
-    text=file.read_text()
-    old="if (version_compare($osx_version, '14', '>=')) {"
-    if old not in text:raise RuntimeError('Pinned Arcanist CA workaround no longer matches')
-    text=text.replace(old,"if (version_compare($osx_version, '14', '>=') && "+
-      "strpos(curl_version()['ssl_version'], 'SecureTransport') !== false) {")
-    file.write_text(text)
-    return target
+    from pathlib import Path
+    from acceptance_manifest import runtime_identity, source_identity
+
+    source_runtime = runtime_identity(source / 'support/runtime/manifest.json')
+    image_runtime = runtime_identity(image / 'support/runtime/manifest.json')
+    if source_runtime != image_runtime:
+        raise ValueError('Built image runtime does not match the supplied source')
+    identity = source_identity(source)
+    def ignore_deployment(directory, names):
+        ignored = set(shutil.ignore_patterns('.git', '.phutil_module_cache',
+                                             '__pycache__', '*.pyc', '.env')(directory, names))
+        relative = Path(directory).relative_to(source)
+        if relative.as_posix() == 'conf':
+            ignored.update({'local', 'custom', 'keys'} & set(names))
+        elif relative.as_posix() == 'support':
+            ignored.update({'preamble.php'} & set(names))
+        elif relative.as_posix() == 'src':
+            ignored.update({'extensions'} & set(names))
+        return ignored
+
+    shutil.copytree(source, target, symlinks=True, ignore=ignore_deployment)
+    (target / 'conf/local').mkdir(parents=True, exist_ok=True)
+    (target / '.source-revision').write_text(identity['commit'] + '\n')
+    for name in ['support/runtime/src/parser/xhpast/bin/xhpast',
+                 'support/runtime/support/php-parser/lib']:
+        built = image / name
+        copied = target / name
+        if not built.exists():
+            raise ValueError('Required parser artifact is absent from built image: ' + name)
+        if copied.is_symlink():
+            copied.unlink()
+        if built.is_dir():
+            if copied.exists():
+                shutil.rmtree(copied)
+            shutil.copytree(built, copied)
+        else:
+            copied.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(built, copied)
+    if runtime_identity(target / 'support/runtime/manifest.json') != source_runtime:
+        raise ValueError('Execution snapshot runtime differs from supplied source')
+    return source_identity(target)

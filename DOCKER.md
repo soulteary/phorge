@@ -54,7 +54,7 @@ docker compose up -d --build
 
 首次启动会自动完成：
 
-- 构建应用镜像（拉取 arcanist、编译 PHP 扩展）。
+- 构建应用镜像（包含内置兼容运行库、编译 PHP 扩展）。
 - 启动 MySQL，等待其健康后由一次性任务 `db-init` 为普通库用户补齐
   `phabricator_%` 整组库的授权（见 `docker/db-grant.sql`）。
 - `phorge-migrate` 独占 `bin/storage upgrade --force`。它与 Mailer/Search 可选配置
@@ -402,7 +402,7 @@ worker 在依赖首次握手通过前不领取任务。Web bootstrap 只等待�
 
 新版成功执行会返回全部子任务，由 taskqueue 一次提交父任务归档和子任务入队。Feed HTTP 新任务使用完整投递快照，旧 key/uri 任务仍保留兼容处理。PHP 业务副作用在响应丢失或进程崩溃时仍可能重试，需要业务本身保持幂等。
 
-可使用 `GORGE_TEST_ARCANIST_DIR=/path/to/arcanist php tests/contract/worker/execution.php` 检查 PHP 执行协议、子任务、重试策略及认证。
+可使用 `php tests/contract/worker/execution.php` 检查 PHP 执行协议、子任务、重试策略及认证。
 
 ## Gorge 生命周期与旧实现退役（2026-10）
 
@@ -558,7 +558,7 @@ Gorge 搜索适配器在原同步投递之前，原子保存快照事件和每�
 为完成。新事务只覆盖 search 数据库，不能代替各业务库事务中的变更捕获。
 删除捕获已接入经销毁引擎处理的 Lisk 全文对象，具体恢复边界见后文“搜索删除意图与恢复”；`search.export` 的 missing 不能作为删除事件。
 
-真实 MySQL 契约：`GORGE_TEST_ARCANIST_DIR=/path/to/arcanist GORGE_TEST_MYSQL_PORT=3306 GORGE_TEST_MYSQL_PASSWORD=test php tests/contract/search/outbox.php`。
+真实 MySQL 契约：`GORGE_TEST_MYSQL_PORT=3306 GORGE_TEST_MYSQL_PASSWORD=test php tests/contract/search/outbox.php`。
 仅在临时测试实例执行；脚本会创建并删除随机命名的测试数据库。
 
 ## Gorge 日志与缓存清理
@@ -644,12 +644,59 @@ manifest。若强制杀死宿主入口，按输出 manifest 的 project 手工�
 和已知 registry digest。构建失败同样保存交付 manifest 与 fixture 日志，不报通过。
 不把配置、DSN、token 或业务载荷写入 manifest。测试凭据仅用于隔离环境。
 
-`deploy/acceptance/build-lock.json` 锁定基础/后端镜像 digest、Arcanist SHA、APCu 版本
-及 Debian 包快照。当前摘要来自本机所用镜像；首次在另一架构使用前验证其平台支持。
-Phorge Dockerfile 接受 `PHP_BASE_IMAGE`、`ARCANIST_REF`、`APCU_VERSION`、
+`deploy/acceptance/build-lock.json` 锁定基础/后端镜像 digest、APCu 版本
+及 Debian 包快照；内置运行库的来源和内容摘要由 `support/runtime/manifest.json` 记录。当前摘要来自本机所用镜像；首次在另一架构使用前验证其平台支持。
+Phorge Dockerfile 接受 `PHP_BASE_IMAGE`、`APCU_VERSION`、
 `DEBIAN_SNAPSHOT`；Gorge Dockerfile 接受 `GO_BASE_IMAGE`、`RUNTIME_BASE_IMAGE`。
 普通开发构建仍允许默认镜像标签；冻结构建必须使用这份锁和验收入口。
 
 此锁提高依赖可追溯性，不承诺字节级重建一致：Alpine APK 仓库仍可能更新，构建器和
 时间戳也会改变镜像 ID。交付已验收产物时应发布并使用最终镜像 digest，保留配对
 manifest；不要重新构建后继续沿用旧验收结果。
+
+
+## 内置 PHP 兼容运行库
+
+Phorge 的 PHP 基础运行库位于 `support/runtime/`，随本仓库源码和镜像交付。
+构建、网页、管理命令和契约测试都不需要相邻的 Arcanist checkout。内部库注册名
+`arcanist` 和原有 PHP 类名暂时保留，以兼容动态类发现和共享 diff 数据模型；
+这不代表仍需要安装或执行 `arc` 客户端。
+
+在 Phorge 仓库中运行：
+
+```sh
+php scripts/runtime/verify.php
+php scripts/runtime/build.php all
+php bin/rebuild-library-map
+php bin/unit --no-coverage src/infrastructure/cluster/__tests__/PhabricatorGorgeDBContractTestCase.php
+php tests/contract/runtime/compatibility.php
+php tests/contract/runtime/diff.php
+php tests/contract/runtime/integrity.php
+php tests/contract/runtime/maintenance.php
+php tests/contract/runtime/products.php
+php tests/contract/worker/execution.php
+```
+
+映射重建覆盖内置运行库和 Phorge，PHP 单元测试继续执行实际测试和失败退出码。
+按整个模块选择测试时，也会运行建立数据库 fixture 的祖先测试；应先配置独立测试
+数据库，再运行 `bin/unit --no-coverage src/infrastructure/cluster/`。镜像构建已准备
+两个解析工具，网页和 CLI 请求不会触发下载或编译。
+产品渲染契约 `products.php` 需要显式设置 `GORGE_TEST_RENDER_URL` 和
+`GORGE_TEST_RENDER_TOKEN`，指向独立的 Gorge render 测试服务；完整隔离验收入口
+`deploy/acceptance/accept.py` 会自动构建、启动并清理这个服务。
+依赖来源、源码快照摘要与本项目补丁记录在 `support/runtime/manifest.json`；
+派生运行库的内容摘要和上游来源分别记录，不把派生包冒充上游原始提交。
+运行库更新需要同步审查资源、动态实现与工具支持，并重新执行隔离验收。
+
+macOS 私有 CA 的 OpenSSL/SecureTransport 兼容修复由内置运行库维护，验收不再
+复制外部 checkout 或临时替换 PHP 源码。共享文件比较、Jupyter 差异、国际化、
+PHP AST 页面、翻译提取和仍保留的后台任务均在兼容范围内。
+
+`bin/i18n validate --extract` 严格检查当前源字符串的格式和翻译分支；历史功能的
+未引用词条继续保留，可用 `bin/i18n validate --unused` 单独审计。所有库的提取
+缓存统一写入 Phorge 的 `src/.cache/i18n/`，删除源文件也会刷新缓存，内置运行库
+的受管理文件不会被提取过程修改。
+
+解除 Arcanist 下载不表示整个构建离线：基础镜像、系统包、Go modules 和单独
+管理的 PHP-Parser 等依赖仍需按其构建流程准备。回退使用已验证的旧镜像和配对
+版本，不在运行时自动搜索外部 Arcanist；本轮不改变数据库 schema 或业务协议。
