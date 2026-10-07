@@ -137,3 +137,15 @@ try {
   }
   rmdir($directory);
 }
+
+// Probe real prose output rather than the empty-input null slice edge case.
+$probes = gorge_startup_probes(array(
+  'gorge.render.uri' => 'http://render:8140'), null, null);
+foreach ($probes as $probe) {
+  if ($probe[0] === 'diff/prose') {
+    startup_assert(strlen($probe[3]['old']) > 0 &&
+      strlen($probe[3]['new']) > 0 &&
+      $probe[3]['old'] !== $probe[3]['new'],
+      'Prose startup probe must exercise a nonempty change.');
+  }
+}

@@ -132,6 +132,10 @@ abstract class PhabricatorStorageManagementWorkflow
     );
   }
 
+  protected function shouldAllowSurplusSchemata() {
+    return false;
+  }
+
   final protected function adjustSchemata(
     PhabricatorStorageManagementAPI $api,
     $unsafe) {
@@ -856,6 +860,10 @@ abstract class PhabricatorStorageManagementWorkflow
         "**<bg:red> %s </bg>**\n\n%s\n",
         pht('SCHEMATA ERRORS'),
         phutil_console_wrap($message));
+    }
+
+    if ($all_surplus && $this->shouldAllowSurplusSchemata()) {
+      return 0;
     }
 
     return 2;

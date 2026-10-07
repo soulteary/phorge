@@ -3,6 +3,12 @@
 final class PhabricatorStorageManagementUpgradeWorkflow
   extends PhabricatorStorageManagementWorkflow {
 
+  private $allowSurplusSchemata = false;
+
+  protected function shouldAllowSurplusSchemata() {
+    return $this->allowSurplusSchemata;
+  }
+
   protected function didConstruct() {
     $this
       ->setName('upgrade')
@@ -30,6 +36,11 @@ final class PhabricatorStorageManagementUpgradeWorkflow
               'Initialize storage only; do not apply patches or adjustments.'),
           ),
           array(
+            'name' => 'allow-surplus',
+            'help' => pht(
+              'Keep surplus schemata as warnings. Other schema errors fail.'),
+          ),
+          array(
             'name' => 'no-adjust',
             'help' => pht(
               'Do not apply storage adjustments after storage upgrades.'),
@@ -38,6 +49,7 @@ final class PhabricatorStorageManagementUpgradeWorkflow
   }
 
   public function didExecute(PhutilArgumentParser $args) {
+    $this->allowSurplusSchemata = (bool)$args->getArg('allow-surplus');
     $console = PhutilConsole::getConsole();
     $patches = $this->getPatches();
 

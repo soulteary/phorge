@@ -184,7 +184,7 @@ case "$PHORGE_PRODUCT_PROFILE" in
 esac
 
 if [ "$PHORGE_AUTO_UPGRADE" = "1" ]; then
-    "$STORAGE_BIN" upgrade --force
+    "$STORAGE_BIN" upgrade --force --allow-surplus
 fi
 
 # Upgrade compatibility lives behind one explicit, one-way migration helper.

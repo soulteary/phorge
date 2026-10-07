@@ -26,7 +26,8 @@ function gorge_startup_probes(array $config, $worker_uri, $worker_token) {
       foreach (array('generate' => 'diff', 'prose' => 'parts') as $route => $shape) {
         $probes[] = array('diff/'.$route,
           rtrim($uri, '/').'/api/diff/'.$route, $token,
-          array('old' => '', 'new' => ''), $shape, true);
+          array('old' => 'startup old', 'new' => 'startup new'),
+          $shape, true);
       }
     }
     if ($service === 'file') {

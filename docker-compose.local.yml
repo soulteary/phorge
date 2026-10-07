@@ -8,6 +8,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-render
@@ -18,6 +19,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-conduit
@@ -28,6 +30,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-notification
@@ -38,6 +41,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-file-storage
@@ -48,6 +52,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-webhook
@@ -58,6 +63,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-taskqueue
@@ -68,6 +74,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-worker
@@ -78,6 +85,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-db-api
@@ -88,6 +96,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-mailer
@@ -98,6 +107,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-search
@@ -108,6 +118,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-maintenance
@@ -118,6 +129,7 @@ services:
       context: ../gorge/go
       dockerfile: Dockerfile
       args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
         GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
         GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
         SERVICE: gorge-gitea
