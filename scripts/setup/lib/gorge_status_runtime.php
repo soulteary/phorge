@@ -182,10 +182,9 @@ function gorge_status_runtime_report($local_only = false, array $runtime = array
     }
   }
   if (!$local_only) {
-    try {
-      $report['uploadUsage'] = gorge_status_runtime_probe(
-        idx($config, 'gorge.file.uri'), idx($config, 'gorge.file.token'), '/api/file/uploads/usage');
-    } catch (Throwable $ex) { $report['uploadUsage'] = array('state' => 'unavailable'); }
+    $report['uploadUsage'] = gorge_status_upload_usage(
+      idx($config, 'gorge.file.uri'), idx($config, 'gorge.file.token'),
+      'gorge_status_runtime_probe');
   }
   return $report;
 }

@@ -268,3 +268,17 @@ function gorge_status_growth(array $current, array $previous) {
   }
   return array('state'=>'observed','elapsedSeconds'=>$seconds,'scope'=>'net growth between observational snapshots; not insertion rate','tables'=>$out);
 }
+
+// A disabled upload feature is not a failed capacity observation.
+function gorge_status_upload_usage($uri, $token, $probe) {
+  if (!$uri) { return array('state' => 'not_configured'); }
+  try {
+    $meta = $probe($uri, $token, '/api/file/uploads/meta');
+    if (!is_array($meta) || !isset($meta['enabled']) || !is_bool($meta['enabled'])) {
+      return array('state' => 'unavailable');
+    }
+    if (!$meta['enabled']) { return array('state' => 'not_enabled'); }
+    return array('state' => 'observed',
+      'data' => $probe($uri, $token, '/api/file/uploads/usage'));
+  } catch (Throwable $ex) { return array('state' => 'unavailable'); }
+}

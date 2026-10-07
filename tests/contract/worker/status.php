@@ -58,3 +58,18 @@ statusCheck($safe['tables'][0]['records'] === 3, 'Operations count lost.');
 $safe = gorge_status_capabilities(array('backendIdentities'=>array('local-disk'=>
   array('state'=>'observed', 'volumeIdentity'=>'fixture', 'credential'=>'NEVER_PRINT'))));
 statusCheck(strpos(json_encode($safe), 'NEVER_PRINT') === false, 'Backend body leaked.');
+
+$disabled = function($uri, $token, $path) {
+  statusCheck($path === '/api/file/uploads/meta', 'Disabled uploads queried capacity.');
+  return array('enabled' => false);
+};
+statusCheck(gorge_status_upload_usage(null, null, $disabled)['state'] === 'not_configured', 'Missing config classification.');
+statusCheck(gorge_status_upload_usage('http://files', null, $disabled)['state'] === 'not_enabled', 'Disabled classification.');
+$enabled = function($uri, $token, $path) {
+  return $path === '/api/file/uploads/meta' ? array('enabled' => true) : array('logicalBytes' => 4);
+};
+statusCheck(gorge_status_upload_usage('http://files', null, $enabled)['data']['logicalBytes'] === 4, 'Enabled capacity lost.');
+$broken = function() { throw new Exception('NEVER_PRINT_SECRET'); };
+statusCheck(gorge_status_upload_usage('http://files', null, $broken)['state'] === 'unavailable', 'Failure classified as disabled.');
+statusCheck(gorge_status_upload_usage('http://files', null, function() { return array(); })['state'] === 'unavailable', 'Missing capability accepted.');
+echo "Upload audit classification contracts passed.\n";
