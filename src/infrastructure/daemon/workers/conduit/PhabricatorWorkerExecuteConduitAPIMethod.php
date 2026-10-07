@@ -133,14 +133,14 @@ final class PhabricatorWorkerExecuteConduitAPIMethod
     $task_id = $request->getValue('taskID');
 
     // "data" arrives as a JSON string (the same encoding the enqueue path
-    // uses), so decode it back into the array shape a worker expects. An
+    // uses). Workers may expect an object, list, or scalar (mail uses an ID). An
     // absent or empty value means "no data", i.e. an empty array.
     $raw_data = $request->getValue('data');
     $data = array();
     if (phutil_nonempty_string($raw_data)) {
       try {
-        $data = phutil_json_decode($raw_data);
-      } catch (PhutilJSONParserException $ex) {
+        $data = json_decode($raw_data, true, 512, JSON_THROW_ON_ERROR);
+      } catch (JsonException $ex) {
         return array(
           'executionVersion' => 1,
           'result'        => 'permanent-failure',

@@ -32,6 +32,22 @@ function call_execution(array $params, array $data) {
   $params['data'] = phutil_json_encode($data);
   return id(new ConduitCall('worker.execute', $params))->execute();
 }
+// Mail jobs store a scalar message ID, not a JSON object. Preparation is
+// read-only and must accept that payload without attempting mail delivery.
+$mail_probe = $params;
+$mail_probe['taskClass'] = 'PhabricatorMetaMTAWorker';
+$mail_probe['phase'] = 'prepare';
+foreach (array('2', '"2"') as $raw) {
+  $mail_probe['data'] = $raw;
+  $result = id(new ConduitCall('worker.execute', $mail_probe))->execute();
+  check_execution($result['result'] === 'prepared',
+    'Scalar mail task payload rejected.');
+}
+$mail_probe['data'] = '{invalid';
+$result = id(new ConduitCall('worker.execute', $mail_probe))->execute();
+check_execution($result['result'] === 'permanent-failure',
+  'Malformed JSON payload accepted.');
+
 $probe = $params;
 $probe['phase'] = 'capabilities';
 $probe['taskClass'] = '';

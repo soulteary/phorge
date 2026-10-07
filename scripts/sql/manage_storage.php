@@ -4,6 +4,21 @@
 $root = dirname(dirname(dirname(__FILE__)));
 require_once $root.'/scripts/init/init-setup.php';
 
+// A deployment may rotate DB credentials before publishing deployment.json.
+// Only the migration role uses the incoming settings; ordinary CLI calls
+// continue to use the published configuration.
+if (getenv('PHORGE_CONTAINER_ROLE') === 'migrate' &&
+    getenv('GORGE_DB_MODE') !== 'disable') {
+  $db_uri = getenv('GORGE_DB_URL');
+  $db_token = getenv('GORGE_DB_TOKEN');
+  if ($db_uri !== false && strlen($db_uri)) {
+    PhabricatorEnv::overrideConfig('gorge.db.uri', $db_uri);
+    if ($db_token !== false) {
+      PhabricatorEnv::overrideConfig('gorge.db.token', $db_token);
+    }
+  }
+}
+
 $args = new PhutilArgumentParser($argv);
 $args->setTagline(pht('manage storage and schemata'));
 $args->setSynopsis(pht(<<<EOHELP
