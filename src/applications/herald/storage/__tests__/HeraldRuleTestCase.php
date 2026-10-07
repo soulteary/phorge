@@ -37,5 +37,55 @@ final class HeraldRuleTestCase extends PhabricatorTestCase {
       array_values(mpull($rules, 'getID')));
   }
 
+  public function testHeraldRuleAttachmentsAcceptValidData() {
+    $rule = new HeraldRule();
+    $conditions = array(17 => new HeraldCondition());
+    $actions = array(29 => new HeraldActionRecord());
+
+    $this->assertEqual($rule, $rule->attachConditions($conditions));
+    $this->assertEqual($conditions, $rule->getConditions());
+    $this->assertEqual($rule, $rule->attachActions($actions));
+    $this->assertEqual($actions, $rule->getActions());
+
+    $rule->attachConditions(array());
+    $rule->attachActions(array());
+    $this->assertEqual(array(), $rule->getConditions());
+    $this->assertEqual(array(), $rule->getActions());
+  }
+
+  public function testHeraldRuleAttachmentsRejectInvalidElements() {
+    $conditions = array(new HeraldCondition());
+    $actions = array(new HeraldActionRecord());
+    $rule = id(new HeraldRule())
+      ->attachConditions($conditions)
+      ->attachActions($actions);
+
+    $this->assertException(
+      InvalidArgumentException::class,
+      function() use ($rule) {
+        $rule->attachConditions(
+          array(new HeraldCondition(), new stdClass()));
+      });
+    $this->assertEqual($conditions, $rule->getConditions());
+
+    $this->assertException(
+      InvalidArgumentException::class,
+      function() use ($rule) {
+        $rule->attachActions(
+          array(new HeraldActionRecord(), new stdClass()));
+      });
+    $this->assertEqual($actions, $rule->getActions());
+  }
+
+  public function testHeraldRuleGettersRequireAttachedData() {
+    $rule = new HeraldRule();
+
+    $this->assertException(
+      PhabricatorDataNotAttachedException::class,
+      array($rule, 'getConditions'));
+    $this->assertException(
+      PhabricatorDataNotAttachedException::class,
+      array($rule, 'getActions'));
+  }
 
 }

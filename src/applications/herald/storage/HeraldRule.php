@@ -27,8 +27,8 @@ final class HeraldRule extends HeraldDAO
   private $ruleApplied = self::ATTACHABLE;
   private $validAuthor = self::ATTACHABLE;
   private $author = self::ATTACHABLE;
-  private $conditions;
-  private $actions;
+  private $conditions = self::ATTACHABLE;
+  private $actions = self::ATTACHABLE;
   private $triggerObject = self::ATTACHABLE;
 
   const REPEAT_EVERY = 'every';
@@ -82,18 +82,6 @@ final class HeraldRule extends HeraldDAO
   }
 
   /**
-   * @return array<HeraldCondition>
-   */
-  public function loadConditions() {
-    if (!$this->getID()) {
-      return array();
-    }
-    return id(new HeraldCondition())->loadAllWhere(
-      'ruleID = %d',
-      $this->getID());
-  }
-
-  /**
    * @param array<HeraldCondition> $conditions
    */
   public function attachConditions(array $conditions) {
@@ -106,31 +94,20 @@ final class HeraldRule extends HeraldDAO
    * @return array<HeraldCondition>
    */
   public function getConditions() {
-    // TODO: validate conditions have been attached.
-    return $this->conditions;
-  }
-
-  public function loadActions() {
-    if (!$this->getID()) {
-      return array();
-    }
-    return id(new HeraldActionRecord())->loadAllWhere(
-      'ruleID = %d',
-      $this->getID());
+    return $this->assertAttached($this->conditions);
   }
 
   /**
    * @param array<HeraldActionRecord> $actions
    */
   public function attachActions(array $actions) {
-    // TODO: validate actions have been attached.
     assert_instances_of($actions, HeraldActionRecord::class);
     $this->actions = $actions;
     return $this;
   }
 
   public function getActions() {
-    return $this->actions;
+    return $this->assertAttached($this->actions);
   }
 
   /**
