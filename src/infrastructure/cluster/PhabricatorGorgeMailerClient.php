@@ -90,9 +90,82 @@ final class PhabricatorGorgeMailerClient
 
     $uri = $this->getURI().self::PATH_SEND;
 
-    $future = $this->newJSONRequestFuture($uri, $body);
+    // A redirect could submit once, then fail to connect to a second host.
+    // Keep transport failures provably before-send by never following it.
+    $future = $this->newJSONRequestFuture($uri, $body)
+      ->setFollowLocation(false);
 
-    return self::parseResponseEnvelope($uri, $future->resolve());
+    try {
+      $result = $future->resolve();
+    } catch (Exception $ex) {
+      throw new PhabricatorMetaMTAUnknownOutcomeException(
+        pht('Mail submission outcome is unknown; reconcile before retrying.'),
+        0,
+        $ex);
+    }
+
+    return self::parseSendResponse($uri, $result);
+  }
+
+  private static function parseSendResponse($uri, array $result) {
+    try {
+      $data = self::parseResponseEnvelope($uri, $result);
+    } catch (PhabricatorMetaMTAUnknownOutcomeException $ex) {
+      throw $ex;
+    } catch (PhabricatorMetaMTAPermanentFailureException $ex) {
+      if ($result[0] instanceof HTTPFutureHTTPResponseStatus &&
+          $result[0]->getStatusCode() === 422) {
+        throw $ex;
+      }
+      throw new PhabricatorMetaMTAUnknownOutcomeException(
+        pht('The mailer returned an inconsistent rejection receipt; '.
+          'reconcile before retrying.'), 0, $ex);
+    } catch (Exception $ex) {
+      $status = $result[0];
+      // Only failures before an HTTP request could be sent are safe to retry.
+      // A timeout or reset may have happened after provider acceptance.
+      $before_send = $status instanceof HTTPFutureCURLResponseStatus &&
+        in_array($status->getStatusCode(), array(
+          CURLE_COULDNT_RESOLVE_HOST,
+          CURLE_COULDNT_RESOLVE_PROXY,
+          CURLE_COULDNT_CONNECT,
+          CURLE_SSL_CONNECT_ERROR,
+          CURLE_SSL_CACERT,
+          CURLE_SSL_CACERT_BADFILE,
+        ), true);
+      $envelope = json_decode((string)$result[1], true);
+      $error = is_array($envelope) ? idx($envelope, 'error') : null;
+      $rejection_statuses = array(
+        'ERR_SEND_FAILED' => 502,
+        'ERR_BAD_REQUEST' => 400,
+        'ERR_UNAUTHORIZED' => 401,
+        'ERR_TOO_LARGE' => 413,
+      );
+      $safe_rejection = $status instanceof HTTPFutureHTTPResponseStatus &&
+        is_array($error) &&
+        !array_key_exists('data', $envelope) &&
+        is_string(idx($error, 'message')) &&
+        is_string(idx($error, 'code')) &&
+        idx($rejection_statuses, $error['code']) === $status->getStatusCode();
+      if ($before_send || $safe_rejection) {
+        throw $ex;
+      }
+      throw new PhabricatorMetaMTAUnknownOutcomeException(
+        pht('Mail submission outcome is unknown; reconcile before retrying.'),
+        0,
+        $ex);
+    }
+
+    if (!is_array($data) ||
+        !is_string(idx($data, 'mailerKey')) ||
+        !phutil_nonempty_string(idx($data, 'mailerKey')) ||
+        (array_key_exists('messageId', $data) &&
+          !is_string($data['messageId']))) {
+      throw new PhabricatorMetaMTAUnknownOutcomeException(
+        pht('The mailer returned an invalid acceptance receipt; reconcile '.
+          'the submission before retrying.'));
+    }
+    return $data;
   }
 
 
@@ -211,15 +284,7 @@ final class PhabricatorGorgeMailerClient
 
 
   /**
-   * Raise "ERR_PERMANENT_FAILURE" as a mail-specific exception.
-   *
-   * That distinction is the whole point of the code. Anything else -- every
-   * other envelope error, and every transport failure, which the shared
-   * parser raises as a plain exception -- leaves the message queued for
-   * another attempt, which is right for a refused connection or a throttled
-   * provider but wrong for a malformed recipient: the service has told us
-   * that retrying will fail the same way forever, and this exception is how
-   * the mail stack is told to stop and mark the message as failed.
+   * Keep rejection and uncertain submission separate from safe retries.
    *
    * @param string $uri URI which was requested, for diagnostics.
    * @param string $code Error code from the envelope.
@@ -227,6 +292,10 @@ final class PhabricatorGorgeMailerClient
    * @return Exception Exception to raise.
    */
   protected static function newServiceErrorException($uri, $code, $message) {
+    if ($code === 'ERR_OUTCOME_UNKNOWN') {
+      return new PhabricatorMetaMTAUnknownOutcomeException(
+        pht('Mail submission outcome is unknown; reconcile before retrying.'));
+    }
     if ($code === 'ERR_PERMANENT_FAILURE') {
       return new PhabricatorMetaMTAPermanentFailureException(
         pht(

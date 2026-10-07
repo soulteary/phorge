@@ -22,6 +22,10 @@ final class PhabricatorMetaMTAWorker
       }
       try {
         $message->sendNow();
+      } catch (PhabricatorMetaMTAUnknownOutcomeException $ex) {
+        // The mail retains "unknown"; failing this queue attempt prevents
+        // an automatic resend while the operator reconciles the provider.
+        throw new PhabricatorWorkerPermanentFailureException($ex->getMessage());
       } catch (PhabricatorMetaMTAPermanentFailureException $ex) {
         throw new PhabricatorWorkerPermanentFailureException($ex->getMessage());
       }

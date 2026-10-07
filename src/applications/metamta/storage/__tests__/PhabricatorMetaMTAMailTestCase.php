@@ -63,6 +63,8 @@ final class PhabricatorMetaMTAMailTestCase extends PhabricatorTestCase {
     $user = $this->generateNewTestUser();
     $mail = id(new PhabricatorMetaMTAMail())
       ->addTos(array($user->getPHID()));
+    $save = new ReflectionMethod('PhabricatorLiskDAO', 'save');
+    $save->invoke($mail);
 
     $mailer = id(new PhabricatorMailGorgeAdapter())
       ->setOptions(
@@ -95,6 +97,8 @@ final class PhabricatorMetaMTAMailTestCase extends PhabricatorTestCase {
     $user = $this->generateNewTestUser();
     $mail = id(new PhabricatorMetaMTAMail())
       ->addTos(array($user->getPHID()));
+    $save = new ReflectionMethod('PhabricatorLiskDAO', 'save');
+    $save->invoke($mail);
 
     $gorge_mailer = id(new PhabricatorMailGorgeAdapter())
       ->setOptions(

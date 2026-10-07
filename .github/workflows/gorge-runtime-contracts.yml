@@ -14,6 +14,30 @@ on:
         required: false
         default: ''
 jobs:
+  runtime-compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mysqli, mbstring, curl
+          coverage: none
+      - name: Prepare retained parser tools explicitly
+        run: php scripts/runtime/build.php all
+      - name: Verify runtime behavior and response safety
+        run: |
+          php scripts/runtime/verify.php
+          php tests/contract/worker/bundled_runtime.php
+          php tests/contract/runtime/compatibility.php
+          php tests/contract/runtime/diff.php
+          php tests/contract/runtime/integrity.php
+          php tests/contract/runtime/maintenance.php
+          php tests/contract/transport/runtime.php
   contracts:
     runs-on: ubuntu-latest
     services:
@@ -50,6 +74,7 @@ jobs:
           php tests/contract/runtime/diff.php
           php tests/contract/runtime/integrity.php
           php tests/contract/runtime/maintenance.php
+          php tests/contract/transport/runtime.php
       - name: Require immutable paired Gorge revision
         env:
           GORGE_REF: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
@@ -67,6 +92,8 @@ jobs:
         with:
           go-version-file: .test-gorge/go/go.mod
           cache-dependency-path: .test-gorge/go/go.sum
+      - name: Load actual Compose mailer environments through paired Go
+        run: python3 tests/contract/worker/mailer_config.py --gorge-dir .test-gorge
       - name: Verify integration PHP transport and inbound receipts
         env:
           GORGE_TEST_INTEGRATIONS_MYSQL_PORT: '3306'

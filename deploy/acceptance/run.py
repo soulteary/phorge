@@ -17,8 +17,8 @@ result = {'schemaVersion': 2, 'result': 'running', 'stages': [],
           'phorge': source_identity(SOURCE_ROOT),
           'gorge': source_identity(Path('/work/gorge')),
           'buildLock': json.loads((SOURCE_ROOT / 'deploy/acceptance/build-lock.json').read_text()),
-          'scope': 'paired PHP/Go contracts, real MySQL/S3/image, interruption/recovery fixtures',
-          'notCovered': ['authenticated browser journeys', 'external provider delivery', 'production performance', 'real Elasticsearch/Meilisearch backend matrix']}
+          'scope': 'paired PHP/Go contracts, real MySQL/Redis/S3/image/Elasticsearch/Meilisearch, interruption/recovery fixtures',
+          'notCovered': ['authenticated browser journeys', 'external provider delivery', 'production performance']}
 out = Path('/results/result.json')
 def save():
     tmp = out.with_suffix('.tmp')
@@ -30,16 +30,22 @@ def run(name, args, cwd=ROOT):
     if args[:2] == ['go', 'test']:
         process = subprocess.Popen(args[:2]+['-json']+args[2:],cwd=cwd,env=os.environ,stdout=subprocess.PIPE,text=True)
         skipped=[]
-        with Path('/results/go-tests.jsonl').open('w') as log:
+        with Path('/results/'+name.replace('/', '-')+'-go-tests.jsonl').open('w') as log:
             for line in process.stdout:
                 log.write(line)
                 try:
                     event=json.loads(line)
-                    if event.get('Action')=='skip': skipped.append({'package':event.get('Package'),'test':event.get('Test')})
+                    if event.get('Action')=='skip' and event.get('Test'):
+                        skipped.append({'package':event.get('Package'),'test':event['Test']})
                     if event.get('Action')=='fail': print(line,flush=True)
                 except ValueError: print(line,flush=True)
         rc=process.wait()
         stage['skippedTests']=skipped
+        # Missing real dependencies are failures in this entry, never a green
+        # release obtained by skipping the very contracts it is meant to prove.
+        if skipped:
+            rc = rc or 1
+            stage['failure'] = 'Mandatory Go contracts were skipped'
     else:
         rc = subprocess.run(args, cwd=cwd, env=os.environ).returncode
     stage.update(result='passed' if rc == 0 else 'failed', exitCode=rc); save()
@@ -55,9 +61,12 @@ try:
     run('bundled-runtime-integrity', ['php', 'scripts/runtime/verify.php'])
     for script in ['compatibility', 'diff', 'integrity', 'maintenance']:
         run('runtime/' + script, ['php', 'tests/contract/runtime/' + script + '.php'])
+    run('transport/runtime.php', ['php', 'tests/contract/transport/runtime.php'])
     for fixture, url in [('image', 'http://127.0.0.1:8190/readyz'),
                          ('s3', 'http://127.0.0.1:9000/otterio/health/ready'),
-                         ('render', 'http://127.0.0.1:8140/readyz')]:
+                         ('render', 'http://127.0.0.1:8140/readyz'),
+                         ('elasticsearch', 'http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow&timeout=1s'),
+                         ('meilisearch', 'http://127.0.0.1:7700/health')]:
         deadline = time.monotonic() + 120
         while True:
             try:
@@ -87,7 +96,7 @@ try:
         GORGE_TEST_INTEGRATIONS_DSN='root:acceptance-only@tcp(127.0.0.1:3306)/gorge_integrations_test',
         GORGE_TEST_SEARCH_MYSQL_DSN='root:acceptance-only@tcp(127.0.0.1:3306)/')
     run('create-test-schemas', ['php', '-r', '$db=new mysqli("127.0.0.1","root","acceptance-only","",3306);foreach(["gorge_lifecycle_test","gorge_integrations_test"] as $n){$db->query("CREATE DATABASE ".$n);}'])
-    run('go-unit-contracts' , ['go', 'test', '-count=1', './...'], Path('/work/gorge/go'))
+    run('go-unit-contracts' , ['go', 'test', '-race', '-count=1', './...'], Path('/work/gorge/go'))
     run('bundled-runtime-integrity-after-contracts', ['php', 'scripts/runtime/verify.php'])
     result['result'] = 'passed'
 except Exception as ex:

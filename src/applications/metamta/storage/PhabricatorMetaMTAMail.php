@@ -929,6 +929,10 @@ final class PhabricatorMetaMTAMail
   }
 
   public function sendWithMailers(array $mailers) {
+    if ($this->getStatus() === PhabricatorMailOutboundStatus::STATUS_UNKNOWN) {
+      throw new PhabricatorMetaMTAUnknownOutcomeException(
+        pht('Reconcile the unknown submission before sending this mail again.'));
+    }
     if ($this->getParam('gorge.delivery-owner') === 'gorge') {
       throw new PhabricatorMetaMTAPermanentFailureException(
         pht('This mail is owned by native Gorge delivery.'));
@@ -1022,6 +1026,10 @@ final class PhabricatorMetaMTAMail
           ->save();
       }
 
+      if ($is_gorge) {
+        $this->beginGorgeLegacySubmission();
+      }
+
       try {
         if ($message instanceof PhabricatorMailSMSMessage) {
           if ($is_native_sms) {
@@ -1030,6 +1038,15 @@ final class PhabricatorMetaMTAMail
           $message->setGorgeDeliveryID($this->getID());
         }
         $mailer->sendMessage($message);
+      } catch (PhabricatorMetaMTAUnknownOutcomeException $ex) {
+        // There is no provider receipt to prove acceptance or rejection.
+        // Preserve this distinction from failed mail and prevent a later
+        // worker attempt or fallback adapter from sending the message again.
+        $this
+          ->setStatus(PhabricatorMailOutboundStatus::STATUS_UNKNOWN)
+          ->setMessage($ex->getMessage())
+          ->save();
+        throw $ex;
       } catch (PhabricatorMetaMTAPermanentFailureException $ex) {
         // If any mailer raises a permanent failure, stop trying to send the
         // mail with other mailers.
@@ -1041,13 +1058,17 @@ final class PhabricatorMetaMTAMail
         throw $ex;
       } catch (Exception $ex) {
         if ($is_gorge || $is_native_sms) {
-          // Once the HTTP send begins, a timeout, lost response, invalid
-          // response, or service error can not prove that the provider did
-          // not accept the message. Trying another mailer here can therefore
-          // deliver the same message twice. Keep it queued and surface the
-          // exception under both "required" and migration "fallback"
-          // policies. We must never cross over to a different delivery
-          // channel inside the same attempt.
+          if ($is_gorge) {
+            // The synchronous client only returns ordinary exceptions when
+            // submission was rejected or never began. All other outcomes
+            // raise the unknown-outcome exception above. If this save fails,
+            // the durable unknown fence continues to block automatic sends.
+            $this
+              ->setStatus(PhabricatorMailOutboundStatus::STATUS_QUEUE)
+              ->setMessage($ex->getMessage())
+              ->save();
+          }
+          // Never switch delivery channels within a failed Gorge attempt.
           throw $ex;
         }
 
@@ -1100,6 +1121,46 @@ final class PhabricatorMetaMTAMail
     throw new PhutilAggregateException(
       pht('Encountered multiple exceptions while transmitting mail.'),
       $exceptions);
+  }
+
+  private function beginGorgeLegacySubmission() {
+    if (!$this->getID()) {
+      throw new Exception(pht('Persist mail before submitting it to Gorge.'));
+    }
+
+    $conn = $this->establishConnection('w');
+    if ($conn->isInsideTransaction()) {
+      if (LiskDAO::shouldIsolateAllLiskEffectsToTransactions()) {
+        // Disposable fixture transactions test fake adapters. They must not
+        // become a production bypass for the committed submission fence.
+        PhabricatorTestCase::assertExecutingUnitTests();
+      } else {
+        throw new Exception(
+          pht('Gorge mail submission can not run inside a transaction.'));
+      }
+    }
+
+    // Commit an atomic fence before network I/O. A process crash or failure
+    // to save the later provider receipt must leave mail unknown, never queued.
+    // The conditional update also rejects stale, concurrent callers.
+    $message = pht('Mail submission started; reconcile before retrying.');
+    queryfx(
+      $conn,
+      'UPDATE %T SET status = %s, message = %s, dateModified = %d '.
+      'WHERE id = %d AND status = %s',
+      $this->getTableName(),
+      PhabricatorMailOutboundStatus::STATUS_UNKNOWN,
+      $message,
+      PhabricatorTime::getNow(),
+      $this->getID(),
+      PhabricatorMailOutboundStatus::STATUS_QUEUE);
+    if (!$conn->getAffectedRows()) {
+      throw new Exception(
+        pht('Mail is no longer queued; reconcile before submitting it.'));
+    }
+    $this
+      ->setStatus(PhabricatorMailOutboundStatus::STATUS_UNKNOWN)
+      ->setMessage($message);
   }
 
 

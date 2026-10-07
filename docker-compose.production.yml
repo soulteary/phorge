@@ -2,6 +2,37 @@
 # generations remain shadow-only. Apply with docker-compose.yml, using
 # --profile mailer --profile search --profile maintenance.
 services:
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
+  db-init:
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD}
+  gorge-render:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-render, PORT: 8140}
+    image: gorge-render:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_RENDER_TOKEN:?Set GORGE_RENDER_TOKEN}
+  gorge-webhook:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-webhook, PORT: 8160}
+    image: gorge-webhook:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_WEBHOOK_TOKEN:?Set GORGE_WEBHOOK_TOKEN}
+  gorge-db-api:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-db-api, PORT: 8080}
+    image: gorge-db-api:local
+    environment:
+      GORGE_SERVICE_TOKEN: ${GORGE_DB_TOKEN:?Set GORGE_DB_TOKEN}
+      # Explicitly provision a read-only account; never inherit MYSQL_USER.
+      GORGE_DB_MYSQL_USER: ${GORGE_DB_MYSQL_USER:?Set dedicated read-only DB account}
+      GORGE_DB_MYSQL_PASS: ${GORGE_DB_MYSQL_PASS:?Set read-only DB password}
   gorge-file-storage:
     build:
       context: ../gorge/go
@@ -46,8 +77,21 @@ services:
       GORGE_WORKER_MAILER_TOKEN: ${GORGE_MAILER_TOKEN:?Set GORGE_MAILER_TOKEN}
       GORGE_WORKER_MAIL_OUTBOX_DSN: ${GORGE_MAILER_DELIVERY_DSN:?Set metamta delivery DSN}
   gorge-conduit:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-conduit, PORT: 8150}
+    image: gorge-conduit:local
     environment:
       GORGE_SERVICE_TOKEN: ${GORGE_CONDUIT_TOKEN:?Set GORGE_CONDUIT_TOKEN}
+  gorge-notification:
+    build:
+      context: ../gorge/go
+      args: {SERVICE: gorge-notification, PORT: 22281}
+    image: gorge-notification:local
+    # Terminate browser TLS at a reverse proxy; keep admin off public interfaces.
+    ports: !override
+      - '127.0.0.1:${GORGE_NOTIFICATION_CLIENT_PORT:-22280}:22280'
+      - '127.0.0.1:${GORGE_NOTIFICATION_ADMIN_PORT:-22281}:22281'
   gorge-maintenance:
     build:
       context: ../gorge/go

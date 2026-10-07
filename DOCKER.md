@@ -331,7 +331,7 @@ admin/client 的 `host:port` 不能相同；admin 不接受 `path`。TLS 在反�
 
 `mailer` profile 启动服务与一次性 `phorge-mailer-config`。它将受管 `key` 的 Gorge 条目写入 deployment 配置；provider 旧条目保留收信用途，出站 email 选择 Gorge，SMS 单独配置。端点/token 放在该 adapter 的 options 中。
 
-必须配置真实 provider。当前 Go 只接受 `GORGE_MAILER_TYPE`、`GORGE_MAILER_CONFIG`、`GORGE_MAILER_KEY` 等规范服务变量，provider 原生 `SMTP_*`、`MAILER_API_KEY` 等仍有效。Phorge 基础 Compose 的旧 `MAILER_TYPE`/`MAILER_CONFIG` 映射不适用于当前源码；自定义 override 应直接给 `gorge-mailer.environment` 设置规范变量，例如：
+必须配置真实 provider。当前 Go 只接受 `GORGE_MAILER_TYPE`、`GORGE_MAILER_CONFIG`、`GORGE_MAILER_KEY` 等规范服务变量，provider 原生 `SMTP_*`、`MAILER_API_KEY` 等仍有效。基础 Compose 已把旧 `MAILER_TYPE`/`MAILER_CONFIG` 输入桥接到规范变量，新输入优先。`.env` 的 `GORGE_MAILER_BACKEND_KEY` 传给 Go 的 `GORGE_MAILER_KEY`；PHP 使用的 `GORGE_MAILER_KEY` 是 adapter 标识，两者分别配置。自定义 override 可直接给 `gorge-mailer.environment` 设置规范变量，例如：
 
 ```yaml
 services:

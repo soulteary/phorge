@@ -4,7 +4,7 @@
     "libraryName": "arcanist",
     "upstreamRevision": null,
     "upstreamSnapshotSHA256": "a1d8fd74c7e68da6a54f114aac253bb2c0c8a7fe971eae5882b45fe99541f42a",
-    "contentSHA256": "deee83340644315bfe4bbae28c14d3484dfa012123e48052230214a9f1fe6a25",
+    "contentSHA256": "3a030558bb48fb3ae929925d90152396f5417b8f94298d6b855e9e288ef784f0",
     "generatedPaths": [
         "src/.phutil_module_cache",
         "src/parser/xhpast/bin/xhpast",
@@ -18,6 +18,11 @@
         "support/xhpast/parser.yacc.output"
     ],
     "patches": [
+        {
+            "id": "runtime-maintenance-policy",
+            "path": "README.md",
+            "description": "Document upstream fix and patch reconciliation, source provenance and the PHP runtime CI matrix without claiming full application support on candidate versions."
+        },
         {
             "id": "macos-tls-backend-ca",
             "path": "src/future/http/HTTPSFuture.php",
@@ -111,7 +116,7 @@
             "path": "README.md",
             "sourceSHA256": null,
             "reason": "project-runtime-maintenance",
-            "sha256": "b4abc16270307f32e86d6f3736bd673bd2d1a7f5eeb7afdb5f2b0fe702f5c581"
+            "sha256": "905ae84b81b3ab4157af0eeb3bd4eb95da74b4f5e7eaf9ad9649f0027b9cc6d9"
         },
         {
             "path": "bootstrap-cli.php",

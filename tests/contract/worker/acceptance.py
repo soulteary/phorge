@@ -142,9 +142,13 @@ with tempfile.TemporaryDirectory(prefix="gorge-acceptance-") as directory:
         # Preserve the existing module selection and ancestor fixtures.
         run(['php', str(ROOT / 'bin/unit'), '--no-coverage',
              'src/infrastructure/cluster/',
+             'src/applications/metamta/storage/__tests__/PhabricatorMetaMTAMailTestCase.php',
+             'src/applications/metamta/storage/__tests__/PhabricatorMailUnknownOutcomeTestCase.php',
+             'src/applications/search/index/__tests__/PhabricatorSearchRetryTestCase.php',
              'src/applications/auth/__tests__/PhabricatorAuthPasswordTestCase.php'], env)
         for script in ["worker/status.php", "scheduler/runtime.php", "integrations/runtime.php",
-                       "integrations/inbound_mysql.php", "worker/retirement.php", "files/runtime.php"]:
+                       "integrations/inbound_mysql.php", "worker/mailer_fence.php",
+                       "worker/retirement.php", "files/runtime.php"]:
             run(["php", "-d", "curl.cainfo="+str(proxy.cert), str(ROOT / "tests/contract" / script)], env,
                 work if script == "files/runtime.php" else ROOT)
         run(["python3", str(ROOT / "tests/contract/integrations/paired_recovery.py")], env)

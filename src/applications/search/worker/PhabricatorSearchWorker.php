@@ -32,9 +32,9 @@ final class PhabricatorSearchWorker extends PhabricatorWorker {
     // may have been deleted. This is unusual, but not concerning, and failing
     // to index these objects is correct.
 
-    // To avoid showing these non-actionable errors to users, don't report
-    // indexing exceptions unless we're in "strict" mode. This mode is set by
-    // the "bin/search index" tool.
+    // Deleted objects need no further indexing. Strict "bin/search index"
+    // reports their permanent failure; temporary backend/capture failures
+    // always reach the retry protocol.
 
     $is_strict = idx($data, 'strict', false);
 
@@ -92,22 +92,19 @@ final class PhabricatorSearchWorker extends PhabricatorWorker {
     }
 
     if ($caught) {
-      // Failed capture did not export a durable version: always retry it.
-      if ($caught instanceof PhabricatorSearchProjectionException) {
-        throw $caught;
-      }
-      if (!($caught instanceof PhabricatorWorkerPermanentFailureException)) {
-        $caught = new PhabricatorWorkerPermanentFailureException(
-          pht(
-            'Failed to update search index for document "%s": %s',
-            $object_phid,
-            $caught->getMessage()));
-      }
-
-      if ($is_strict) {
-        throw $caught;
-      }
+      self::rethrowIndexingFailure($caught, $is_strict);
     }
+  }
+
+  public static function rethrowIndexingFailure(Throwable $caught, $is_strict) {
+    // Missing/deleted objects explicitly declare a permanent failure. All
+    // other failures, including aggregated backend and capture failures, must
+    // reach the worker retry protocol instead of completing the task.
+    if (!$is_strict &&
+        $caught instanceof PhabricatorWorkerPermanentFailureException) {
+      return;
+    }
+    throw $caught;
   }
 
   private function loadObjectForIndexing($phid) {

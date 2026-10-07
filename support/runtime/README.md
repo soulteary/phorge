@@ -60,3 +60,28 @@ metadata. Then explicitly replace reviewed managed files, run
 the runtime contracts and project acceptance suite. Diff baseline changes
 must be investigated rather than regenerated automatically. Import and prune
 are maintenance operations, never required to build or run a checkout.
+
+## Maintenance and PHP versions
+
+The container and complete paired acceptance currently use PHP 8.3. The
+`runtime-compatibility` CI job additionally checks the retained runtime,
+maintenance tools and response safety contracts on PHP 8.4 and 8.5. Passing
+these narrower checks does not claim full application or migration support on
+those versions. Promote a new production baseline only after running the
+complete paired acceptance and a representative application workload on it.
+
+When evaluating upstream fixes, record the inspected source location and its
+commit if available, or preserve the original snapshot and its SHA-256 when
+Git metadata is absent. `upstreamRevision: null` must not be replaced with an
+inferred commit. Keep a reviewed decision for each relevant fix: applied,
+already covered by a project patch, or not applicable to a removed API.
+Changes to HTTP/TLS, serialization, error handling, process execution and
+parser behavior require regression cases for the retained behavior, including
+failure paths, on every runtime-matrix version.
+
+For each imported candidate, reconcile every `manifest.json` patch explicitly:
+retain it, port it, or document why it is superseded. Update the patch record
+and original source hash before refreshing maintained content hashes. Run
+`verify.php`, both parser/map maintenance checks, response safety contracts and
+the full paired acceptance; publish their exact source identities together.
+Refreshing a manifest approves file identities, not compatibility or security.

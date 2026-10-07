@@ -63,7 +63,7 @@
 #     段与 DOCKER.md「用 Gorge 投递 Webhook」。
 #   - 所有可调项都有内置默认值，不写 .env 也能直接跑。**发信与检索是两个例外**，
 #     它们都需要你自己提供一个后端：
-#       gorge-mailer 必须至少配一个投递后端（MAILER_TYPE + 对应的 SMTP_* / MAILER_*），
+#       gorge-mailer 必须至少配一个投递后端（GORGE_MAILER_TYPE + 对应的 SMTP_* / MAILER_*），
 #         否则它的 /readyz 不通、每一封信都会失败。见 DOCKER.md「用 Gorge 发送邮件」。
 #       gorge-search 必须至少配一个搜索后端（ES_HOST 或 MEILI_HOST，指向本编排之外
 #         的实例），否则它的 /readyz 不通、每一次检索都会失败。另外它还有**一步手工
@@ -262,7 +262,7 @@ services:
   #
   # 与另外两个服务最大的不同：**它需要你自己配一个投递后端**。下面那组 MAILER_* /
   # SMTP_* 全部留空时服务照样起得来、/healthz 也照样 200（进程是活的），但 /readyz
-  # 会报 503，每一封信都失败。所以 .env 里至少要设 MAILER_TYPE 和它对应的那几项。
+  # 会报 503，每一封信都失败。所以 .env 里至少要设 GORGE_MAILER_TYPE 和它对应的那几项。
   gorge-mailer:
     image: ghcr.io/soulteary/gorge:mailer-${GORGE_IMAGE_TAG:-2026.10.07-r2}
     container_name: phorge-gorge-mailer
@@ -284,10 +284,9 @@ services:
       GORGE_MAILER_BODY_LIMIT: ${GORGE_MAILER_BODY_LIMIT:-524288}
       # 单个后端内部的重试次数与每次之间的等待秒数（失败到下一个后端之前先自己重试
       # 这么多次；判定为永久失败时立即短路，既不重试也不换后端）。
-      # 默认值小得刻意：真正权威的重试循环是 Phorge 的 phd worker 队列，凡不是永久
-      # 失败它都会重新投递，这里只用来吸收秒级抖动。整个循环还受请求上下文约束，而
-      # 上面 phorge 段的 GORGE_MAILER_TIMEOUT 默认只等 30 秒——把这两个值调大，结果
-      # 是客户端先超时放弃、服务端还在重试，白占一个 worker。
+      # 仅已确认提供方未接受的失败可重试；不确定提交进入 unknown 后须人工核对。
+      # Worker/持久邮件账本控制外层重试，服务仅吸收秒级抖动；还受服务总截止和
+      # GORGE_MAILER_TIMEOUT 客户端默认30秒上限约束。
       GORGE_MAILER_MAX_RETRIES: ${GORGE_MAILER_MAX_RETRIES:-2}
       GORGE_MAILER_RETRY_WAIT: ${GORGE_MAILER_RETRY_WAIT:-2}
 
@@ -299,16 +298,17 @@ services:
       #     "options":{"host":"smtp.example.com","port":"587","protocol":"tls",
       #     "user":"...","password":"..."}}]
       GORGE_MAILER_CONFIG: ${GORGE_MAILER_CONFIG:-}
-      # 方式二（够用且好读）：MAILER_TYPE 选一种后端，再填它需要的那几项。
+      # 方式二：GORGE_MAILER_TYPE 选一种后端；保留旧 Compose 输入作升级桥接，
+      # 但容器只接收服务当前支持的规范变量。规范输入优先于旧 MAILER_TYPE。
       # 取值：smtp / sendmail / ses / sendgrid / mailgun / postmark / test。
       # 留空表示一个后端都没配，服务会起来但 /readyz 报 503。
       # test 后端只把邮件丢掉，用来验证链路通不通，别用在生产上。
-      MAILER_TYPE: ${MAILER_TYPE:-}
+      GORGE_MAILER_TYPE: ${GORGE_MAILER_TYPE:-${MAILER_TYPE:-}}
       # 这个 key 是**服务端**给后端起的名字，与 Phorge 侧 cluster.mailers 条目的 key
       # （GORGE_MAILER_KEY，默认 gorge-mailer）是两回事，不必也不该保持一致。
       # PHP 客户端不指定 mailerKeys，所以这个名字只在服务端日志和 /api/mailer/mailers
       # 的返回里出现。
-      MAILER_KEY: ${MAILER_KEY:-}
+      GORGE_MAILER_KEY: ${GORGE_MAILER_BACKEND_KEY:-${MAILER_KEY:-default}}
       # smtp / sendmail 用
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-}
@@ -773,6 +773,8 @@ services:
     image: ghcr.io/soulteary/gorge:worker-${GORGE_IMAGE_TAG:-2026.10.07-r2}
     container_name: phorge-gorge-worker
     restart: unless-stopped
+    # Leave time for the 30s task drain and fenced queue reporting before kill.
+    stop_grace_period: 45s
     depends_on:
       # 只等 taskqueue 容器启动，不等健康：首次安装要由 Phorge migration 建 worker
       # 数据库，而 fallback/off 也必须能在队列服务故障时启动 Phorge。
@@ -805,6 +807,8 @@ services:
       GORGE_WORKER_POLL_INTERVAL_MS: ${GORGE_WORKER_POLL_INTERVAL_MS:-1000}
       GORGE_WORKER_MAX_WORKERS: ${GORGE_WORKER_MAX_WORKERS:-4}
       GORGE_WORKER_IDLE_TIMEOUT_SEC: ${GORGE_WORKER_IDLE_TIMEOUT_SEC:-180}
+      # Keep this below stop_grace_period after allowing queue reporting time.
+      GORGE_WORKER_DRAIN_TIMEOUT_SEC: ${GORGE_WORKER_DRAIN_TIMEOUT_SEC:-30}
       # 逗号分隔的任务类白名单；留空表示 worker 支持的全部任务类。变量名与 config.go 的
       # config.EnvStr("", "GORGE_WORKER_TASK_CLASS_FILTER", "TASK_CLASS_FILTER") 对齐。
       GORGE_WORKER_TASK_CLASS_FILTER: ${GORGE_WORKER_TASK_CLASS_FILTER:-}

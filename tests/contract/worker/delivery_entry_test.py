@@ -34,6 +34,14 @@ class EntryFailure(unittest.TestCase):
             runtime.mkdir(parents=True)
             from delivery_manifest_test import RuntimeIdentity
             RuntimeIdentity().make_runtime(runtime)
+            # Imports must not dirty an otherwise clean release checkout even
+            # when the caller did not configure Python's bytecode environment.
+            env.pop('PYTHONDONTWRITEBYTECODE',None)
+            subprocess.run(['git','init','-q',str(phorge)],check=True)
+            subprocess.run(['git','-C',str(phorge),'add','.'],check=True)
+            subprocess.run(['git','-C',str(phorge),'-c','user.name=Fixture',
+                            '-c','user.email=fixture@example.test','-c','commit.gpgsign=false',
+                            '-c','core.hooksPath=/dev/null','commit','-qm','fixture'],check=True)
             out=work/'results'
             p=subprocess.run([sys.executable,str(phorge/'deploy/acceptance/accept.py'),'--gorge-dir',str(gorge),'--output',str(out)],env=env,capture_output=True,text=True)
             self.assertEqual(p.returncode,1,p.stdout+p.stderr)
@@ -43,6 +51,8 @@ class EntryFailure(unittest.TestCase):
             self.assertEqual(m['failureStage'], 'base-image-build')
             self.assertEqual(m['failureType'], 'CalledProcessError')
             self.assertIn('sourceSHA256',m['phorge'])
+            self.assertIs(m['phorge']['dirty'],False)
+            self.assertFalse(list(phorge.rglob('__pycache__')))
             self.assertEqual(m['gorge']['commit'],'a'*40)
             self.assertIsNone(m['gorge']['dirty'])
             self.assertEqual(len(m['gorge']['sourceSHA256']),64)

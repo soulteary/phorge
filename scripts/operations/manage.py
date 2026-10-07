@@ -20,6 +20,8 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from search_backup import ElasticsearchSnapshot
 SYSTEM_DATABASES = {'mysql', 'information_schema', 'performance_schema', 'sys'}
 
 
@@ -219,6 +221,15 @@ def verify(directory):
     expected = {'database.sql'} | {v['artifact'] for v in volumes}
     if not expected.issubset(files):
         raise ValueError('Missing volume checksum')
+    external = manifest.get('externalSearch')
+    if external is not None:
+        if external != {'artifact':'search-snapshot.json','storage':'external-repository-reference'} or 'search-snapshot.json' not in files:
+            raise ValueError('Invalid external search inventory')
+        snapshot = json.loads((directory/'search-snapshot.json').read_text())
+        if not isinstance(snapshot,dict) or type(snapshot.get('format')) is not int or snapshot.get('format') != 1 or snapshot.get('state') != 'native-snapshot-captured' or snapshot.get('engine') != 'elasticsearch' or snapshot.get('majorVersion') != 8 or snapshot.get('storage') != 'external-repository-reference' or snapshot.get('restore') != 'not_verified' or not all(isinstance(snapshot.get(k),str) and snapshot[k] for k in ('repository','snapshot','snapshotUUID','clusterUUID')) or not isinstance(snapshot.get('indices'),list) or not snapshot['indices'] or not all(isinstance(n,str) and re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,254}',n) for n in snapshot['indices']):
+            raise ValueError('Incomplete external native snapshot reference')
+        if timestamp(snapshot.get('capturedAt')) <= 0:
+            raise ValueError('Invalid native snapshot timestamp')
     return manifest
 
 def require_volume_path(container, value, key):
@@ -233,11 +244,17 @@ def require_volume_path(container, value, key):
 
 
 class Stack:
-    def __init__(self, files):
+    def __init__(self, files, search_adapter=None, profiles=None):
         self.files = [Path(p).resolve() for p in files]
+        self.search_adapter = search_adapter
+        self.profiles = list(profiles or [])
         self.base = ['docker', 'compose']
         for path in self.files:
             self.base += ['-f', str(path)]
+        for profile in self.profiles:
+            if not isinstance(profile,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',profile):
+                raise ValueError('Invalid Compose profile')
+            self.base += ['--profile',profile]
 
     def inspect(self):
         ids = command(self.base+['ps', '-a', '-q']).decode().split()
@@ -248,11 +265,18 @@ class Stack:
         if len(mysql) != 1 or not mysql[0]['State']['Running']:
             raise ValueError('Exactly one running bundled mysql is required')
         volumes = {}
+        searches = [c for c in containers if c['Config'].get('Labels', {}).get('com.docker.compose.service') == 'gorge-search']
+        if self.search_adapter and len(searches) != 1:
+            raise ValueError('Native snapshot adapter requires exactly one captured Gorge search service')
         for c in containers:
             service = c['Config'].get('Labels', {}).get('com.docker.compose.service', '')
-            if service in ('integrations', 'gorge-integrations', 'gorge-search'):
+            if service in ('integrations', 'gorge-integrations') or service == 'gorge-search' and not self.search_adapter:
                 raise ValueError('External integration/search state requires a separate coordinated backup adapter')
+            if service in ('elasticsearch','meilisearch'):
+                raise ValueError('Search engine data directories are not a supported backup; use an external native snapshot repository')
             env = dict(e.split('=', 1) for e in c['Config'].get('Env', []) if '=' in e)
+            if service == 'gorge-search':
+                self.search_adapter.validate_environment(env)
             if env.get('GORGE_TASKQUEUE_BACKEND', 'mysql') != 'mysql' or env.get('GORGE_FILE_S3_BUCKET'):
                 raise ValueError('Redis or S3 requires a separate coordinated backup procedure')
             for key, value in env.items():
@@ -317,7 +341,7 @@ def sql(container, query):
 def backup(args):
     if not args.exclusive_access:
         raise ValueError('Use --exclusive-access only after excluding external CLI/DB writers')
-    _, mysql, _ = Stack(args.compose).inspect()
+    _, mysql, _ = Stack(args.compose, ElasticsearchSnapshot.from_args(args), getattr(args,'profile',None)).inspect()
     with backup_lock(mysql['Id']):
         backup_locked(args, expected_mysql=mysql['Id'])
 
@@ -325,7 +349,7 @@ def backup(args):
 def backup_locked(args, expected_mysql=None):
     if not args.exclusive_access:
         raise ValueError('Use --exclusive-access only after excluding external CLI/DB writers')
-    stack = Stack(args.compose)
+    stack = Stack(args.compose, ElasticsearchSnapshot.from_args(args), getattr(args,'profile',None))
     containers, mysql, volumes = stack.inspect()
     if expected_mysql is not None and mysql['Id'] != expected_mysql:
         raise ValueError('Database container changed while acquiring backup lock')
@@ -342,7 +366,8 @@ def backup_locked(args, expected_mysql=None):
     directory.chmod(0o700)
     manifest = {'format': 1, 'state': 'incomplete', 'createdAt': dt.datetime.now(dt.timezone.utc).isoformat(),
                 'mysqlImage': mysql['Image'], 'images': sorted({c['Image'] for c in containers}),
-                'originalRunningContainers': running, 'volumes': [], 'databases': [], 'files': {}, 'scope': 'bundled-mysql-and-named-volumes'}
+                'originalRunningContainers': running, 'composeProfiles':stack.profiles,
+                'volumes': [], 'databases': [], 'files': {}, 'scope': 'bundled-mysql-and-named-volumes'}
     save_json(directory/'manifest.json', manifest)
     try:
         if running:
@@ -353,6 +378,13 @@ def backup_locked(args, expected_mysql=None):
         if any(c['State'].get('OOMKilled') or c['State'].get('ExitCode') == 137 for c in stopped):
             raise ValueError('Writer shutdown was forced; verify crash recovery before backup')
         assert_quiescent(stack, containers, mysql, volumes)
+        if stack.search_adapter:
+            # Search and all SQL writers are stopped before the native snapshot;
+            # retain that same stop window until both external and SQL captures
+            # have completed. --exclusive-access also excludes external writers.
+            save_json(directory/'search-snapshot.json', stack.search_adapter.capture())
+            manifest['externalSearch'] = {'artifact':'search-snapshot.json','storage':'external-repository-reference'}
+            manifest['scope'] = 'bundled-mysql-and-named-volumes-with-external-native-search-reference'
         databases = [n for n in sql(mysql['Id'], 'SHOW DATABASES').splitlines() if n not in SYSTEM_DATABASES]
         if not databases or any(not re.fullmatch(r'[A-Za-z0-9_$]+', n) for n in databases):
             raise ValueError('No user databases or unsupported database name')
@@ -468,6 +500,8 @@ def restore_test(args):
                    'manifestSHA256': sha(directory/'manifest.json'), 'databases': len(manifest['databases']),
                    'volumes': len(manifest['volumes']), 'businessIntegrity': 'not_verified',
                    'scope': 'checksum-volume-bytes-and-permissions-sql-import-schema-counts'}
+        if manifest.get('externalSearch'):
+            receipt['externalSearchRestore'] = 'not_verified'
         save_json(directory/'restore-test.json', receipt)
         if stage:
             save_json(stage/'credentials.json', {'MYSQL_ROOT_PASSWORD': root_password})
@@ -476,6 +510,7 @@ def restore_test(args):
                 'applicationVolumes': [{'artifact': v['artifact'], 'sourceName': v['sourceName'], 'restoredVolume': created[i]} for i,v in enumerate(manifest['volumes'])],
                 'image': manifest['mysqlImage'], 'manifestSHA256': sha(directory/'manifest.json'),
                 'applicationAccounts': 'not_provisioned', 'businessIntegrity': 'not_verified',
+                'externalSearchRestore': 'not_verified' if manifest.get('externalSearch') else 'not_applicable',
                 'consumersStarted': False, 'network': 'none'})
             record_resources('isolated-restored')
             retained = True
@@ -602,6 +637,8 @@ def evaluate(report, previous=None, *, now=None, bundle=None):
     if bundle:
         try:
             manifest = verify(bundle)
+            if manifest.get('externalSearch'):
+                alert('SEARCH_RESTORE_UNVERIFIED','critical','Native search snapshot is an external reference; isolated search restore evidence is still required')
             created = timestamp(manifest['createdAt'])
             if created > now+60:
                 alert('BACKUP_FUTURE','critical','Backup timestamp is in the future')
@@ -674,6 +711,10 @@ def main():
     b = sub.add_parser('backup')
     b.add_argument('directory'); b.add_argument('--compose', action='append', required=True)
     b.add_argument('--exclusive-access', action='store_true')
+    b.add_argument('--profile', action='append', default=[])
+    b.add_argument('--search-es-endpoint')
+    b.add_argument('--search-es-repository')
+    b.add_argument('--search-snapshot-timeout', type=int, default=300)
     for action in ['verify', 'restore-test']:
         sub.add_parser(action).add_argument('directory')
     stage = sub.add_parser('restore')

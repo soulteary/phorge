@@ -1,7 +1,7 @@
 # 搜索、邮件、图片与清理的生产切换
 
 适用：当前 Phorge + Gorge 协作栈。默认栈不自动修改已有搜索后端或移交清理执行权。
-`docker-compose.production.yml` 是显式选择的生产覆盖配置，使用本地 Gorge 源码构建 file-storage、queue、worker、mailer、search、image、maintenance，避免旧发布镜像缺少新协议。
+`docker-compose.production.yml` 是显式选择的生产覆盖配置，所有启用的核心 Gorge 服务使用本地源码构建，避免新旧发布镜像混用。通知 admin/client 端口只绑定回环地址，浏览器 WebSocket 应经 TLS 反代访问。需要 Compose 2.24.4 或更新版本以支持端口列表 `!override`。
 
 ## 切换范围
 
@@ -13,21 +13,38 @@
 ## 准备
 
 1. 备份数据库与配置；确认所有 PHP daemon、CLI 和 Web 节点都运行含 cleanup guard 的版本。混用不认识 guard 的旧节点不能被数据库 owner 阻止。
-2. 在 `.env` 配置非空 `GORGE_CONDUIT_TOKEN`、`GORGE_FILE_TOKEN`、`GORGE_TASKQUEUE_TOKEN`、`GORGE_MAILER_TOKEN`、`GORGE_SEARCH_TOKEN`、`GORGE_IMAGE_TOKEN`、`GORGE_MAINTENANCE_TOKEN`。worker token 默认与队列 token 一致。
+2. 在 `.env` 配置非空 `GORGE_CONDUIT_TOKEN`、`GORGE_FILE_TOKEN`、`GORGE_TASKQUEUE_TOKEN`、`GORGE_MAILER_TOKEN`、`GORGE_SEARCH_TOKEN`、`GORGE_IMAGE_TOKEN`、`GORGE_MAINTENANCE_TOKEN`、`GORGE_RENDER_TOKEN`、`GORGE_WEBHOOK_TOKEN`、`GORGE_DB_TOKEN`；配置独立数据库密码 `MYSQL_ROOT_PASSWORD`、`MYSQL_PASSWORD`。worker token 默认与队列 token 一致。通知保持 Aphlict 协议，以反代和内网边界保护 admin。
 3. 配置真实邮件 provider 和已验收的生产搜索后端。不要使用 mailer/search 的 test backend 作为生产验收。
 4. 设置 `GORGE_MAILER_DELIVERY_DSN` 为当前 namespace 的 metamta 写库，配置 `GORGE_MAINTENANCE_CACHE_DSN`、`GORGE_MAINTENANCE_CONDUIT_DSN`、`GORGE_MAINTENANCE_DAEMON_DSN`、`GORGE_MAINTENANCE_DIFFERENTIAL_DSN`、`GORGE_MAINTENANCE_MULTIMETER_DSN` 为对应写库。均使用 Go MySQL DSN 格式，如 `user:password@tcp(mysql:3306)/phabricator_metamta`；不能指向副本。
 5. 保持原 namespace。已有任务/邮件应先识别并处理旧格式积压；切换不会把既有 legacy 邮件任务自动转换为原生任务。
+6. 为 DB API 单独建立只读账号，设置 `GORGE_DB_MYSQL_USER` / `GORGE_DB_MYSQL_PASS`，不能复用 Phorge 普通账号或 root。参考授权如下；把 namespace 和密码替换为部署的真实值，通过受控数据库会话执行，不将密码写入命令行历史：
+
+```sql
+CREATE USER 'gorge_dbapi_ro'@'%' IDENTIFIED BY '<independent-password>';
+GRANT SELECT, SHOW VIEW ON `phabricator\_%`.* TO 'gorge_dbapi_ro'@'%';
+GRANT REPLICATION CLIENT ON *.* TO 'gorge_dbapi_ro'@'%';
+```
+
+`information_schema` 的可见性随对应业务库权限自动提供，不向它直接授予权限。不要授予 INSERT、UPDATE、DELETE、DDL、GRANT OPTION、管理动态权限或角色。既有 Phorge 普通账号仍用于迁移；本次只拆分诊断账号。
 
 以下命令都在 `phorge-fork/` 执行，固定使用同一覆盖配置与 profiles：
 
 ```sh
 docker compose -f docker-compose.yml -f docker-compose.production.yml \
   --profile mailer --profile search --profile maintenance config --quiet
+python3 scripts/operations/preflight.py
 docker compose -f docker-compose.yml -f docker-compose.production.yml \
   --profile mailer --profile search --profile maintenance up -d --build
+python3 scripts/operations/preflight.py --check-db-grants
 ```
 
 迁移任务先执行 storage upgrade 并发布图片模式与 guard；邮件配置任务再发布 native 模式；搜索配置任务等邮件配置完成后发布，避免两个文档写者覆盖彼此。Web 等两个任务完成再启动。worker 在 PHP、队列、策略与原生邮件依赖就绪前不领取任务。
+
+配置 preflight 会拒绝空认证、测试后端、空搜索后端、复用数据库账号和公开通知端口；在线选项从 DB API 容器的同一网络来源以实际凭据连接 MySQL，检查真正选中的账户授权及 mandatory roles，避免只审计 `%` 账户而漏掉更具体 host 的写权限。临时检查容器使用正在运行的 Phorge 镜像 ID，凭据仅由标准输入传入，检查结束清理。它不证明供应商投递、搜索覆盖或备份恢复完成，自定义数据库拓扑和挂载的 backend 配置必须另行审计。
+
+Worker 默认停收任务后等待 30 秒，容器 `stop_grace_period` 为 45 秒，为队列归档和关停清理留出余量。调整 `GORGE_WORKER_DRAIN_TIMEOUT_SEC` 时须同步增加容器等待时间；preflight 要求至少再预留 15 秒。关停到期任务的业务结果仍须人工核对，详细归档语义见 Gorge Worker 文档。
+
+备份门禁必须在切换之前完成。`scripts/operations/manage.py` 默认只覆盖 bundled MySQL 与 named volumes，外部搜索必须使用显式原生适配器。新增 Elasticsearch 8 adapter 支持在同一停写窗口捕获预先配置的 repository 快照，再备份数据库；清单保存外部快照引用。所有搜索 backend 和 projection 必须指向完全相同的显式 endpoint，其他拓扑继续拒绝。用法和恢复边界见 [运维说明](scripts/operations/README.md)。不能删除搜索容器或忽略检查来取得“完整备份”。`restore-test.json` 的 `businessIntegrity=not_verified`、`externalSearchRestore=not_verified` 仍表示业务和搜索恢复未验收，不可作为切流通过的证据。
 
 ## 搜索与图片的功能验收
 

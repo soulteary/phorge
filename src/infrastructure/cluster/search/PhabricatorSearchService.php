@@ -302,6 +302,10 @@ class PhabricatorSearchService
         if (!$is_gorge) {
           $native_write_succeeded = true;
         }
+      } catch (PhabricatorSearchProjectionException $ex) {
+        // A failed durable capture must reach the worker unchanged. It can
+        // not be repaired by a successful write to another search backend.
+        throw $ex;
       } catch (Exception $ex) {
         if ($is_gorge) {
           $gorge = PhabricatorGorgeServiceRegistry::getService('search');

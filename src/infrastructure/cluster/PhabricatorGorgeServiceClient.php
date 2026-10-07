@@ -150,7 +150,13 @@ abstract class PhabricatorGorgeServiceClient extends Phobject {
           'Request to the %s at "%s" failed: %s',
           static::getServiceName(),
           $uri,
-          $status->getMessage()));
+          $status->getMessage()),
+        0,
+        $status);
+    }
+    if ($status_code === null) {
+      throw new Exception(pht('The %s did not return an HTTP response for "%s".',
+        static::getServiceName(), $uri));
     }
 
     $envelope = null;
@@ -160,17 +166,20 @@ abstract class PhabricatorGorgeServiceClient extends Phobject {
       // Fall through to the HTTP/status diagnostics below.
     }
 
-    if ($envelope !== null) {
+    $valid_envelope = is_array($envelope) &&
+      substr(ltrim($body), 0, 1) === '{';
+    if ($valid_envelope) {
       $error = idx($envelope, 'error');
-      if ($error) {
-        if (!is_array($error)) {
-          $error = array('message' => $error);
-        }
-
+      if ($error !== null &&
+          is_array($error) &&
+          is_string(idx($error, 'code')) &&
+          phutil_nonempty_string(idx($error, 'code')) &&
+          is_string(idx($error, 'message')) &&
+          !array_key_exists('data', $envelope)) {
         throw static::newServiceErrorException(
           $uri,
-          idx($error, 'code', 'UNKNOWN'),
-          idx($error, 'message', ''));
+          $error['code'],
+          $error['message']);
       }
     }
 
@@ -184,15 +193,18 @@ abstract class PhabricatorGorgeServiceClient extends Phobject {
           $body));
     }
 
-    if ($envelope === null) {
+    if (!$valid_envelope ||
+        !array_key_exists('data', $envelope) ||
+        $envelope['data'] === null ||
+        idx($envelope, 'error') !== null) {
       throw new Exception(
         pht(
-          'The %s returned an invalid JSON response for "%s".',
+          'The %s returned an invalid response envelope for "%s".',
           static::getServiceName(),
           $uri));
     }
 
-    return idx($envelope, 'data', array());
+    return $envelope['data'];
   }
 
   protected static function newServiceErrorException($uri, $code, $message) {

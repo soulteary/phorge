@@ -8,7 +8,9 @@
     "alpine": "docker.io/library/alpine@sha256:2e1a7aa4cbc4e9e5222bb4c24a839aa1a6170ea5492d644777ce7b178824e44f",
     "mysql": "docker.io/library/mysql@sha256:213bbfaf699693a40a20a12bb4342d2589a15a3dc7153db698eaed252a92458e",
     "s3": "ghcr.io/soulteary/otterio@sha256:9caee7b58a029ba7aa7556ea446184316585485b29c58e2889e07634c470b225",
-    "redis": "docker.io/library/redis@sha256:1f09a89a207d794a8c61d9edfc26e7c58427de10ccef7c5d18d638df79a63b85"
+    "redis": "docker.io/library/redis@sha256:1f09a89a207d794a8c61d9edfc26e7c58427de10ccef7c5d18d638df79a63b85",
+    "elasticsearch": "docker.elastic.co/elasticsearch/elasticsearch@sha256:224c75e346bd745ce908f06a1cbad7bf10988961dcdcdfccb22556b3f856b3f0",
+    "meilisearch": "docker.io/getmeili/meilisearch@sha256:459f539c1f3e14dfddbc7451f3cb3506c998661cc0daef82828260242fe6c71f"
   },
   "apcuSHA256": "ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf",
   "runtimeManifest": "support/runtime/manifest.json"

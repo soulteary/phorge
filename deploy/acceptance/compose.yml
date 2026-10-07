@@ -33,7 +33,25 @@ services:
   redis:
     image: ${LOCK_REDIS}
     network_mode: service:mysql
+  elasticsearch:
+    image: ${LOCK_ELASTICSEARCH}
+    network_mode: service:mysql
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: 'false'
+      ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+    tmpfs: ['/usr/share/elasticsearch/data:rw,mode=1777', '/usr/share/elasticsearch/logs:rw,mode=1777']
+    mem_limit: 2g
+  meilisearch:
+    image: ${LOCK_MEILISEARCH}
+    network_mode: service:mysql
+    environment:
+      MEILI_MASTER_KEY: acceptance-meili-only
+      MEILI_ENV: production
+      MEILI_NO_ANALYTICS: 'true'
+    tmpfs: [/meili_data:rw]
   image:
+    image: ${ACCEPTANCE_IMAGE_IMAGE:-${ACCEPTANCE_BASE_IMAGE}-image}
     build:
       context: ${ACCEPTANCE_GORGE_DIR}/go
       args:
@@ -69,6 +87,8 @@ services:
       s3: {condition: service_started}
       image: {condition: service_started}
       render: {condition: service_started}
+      elasticsearch: {condition: service_started}
+      meilisearch: {condition: service_started}
     volumes:
       - ../..:/work/phorge:ro
       - ${ACCEPTANCE_GORGE_DIR}:/work/gorge:ro
@@ -86,9 +106,13 @@ services:
       GORGE_TEST_IMAGE_TOKEN: acceptance-image-only
       GORGE_TEST_RENDER_URL: http://127.0.0.1:8140
       GORGE_TEST_RENDER_TOKEN: acceptance-render-only
+      GORGE_TEST_ES_URL: http://127.0.0.1:9200
+      GORGE_TEST_MEILI_URL: http://127.0.0.1:7700
+      GORGE_TEST_MEILI_KEY: acceptance-meili-only
       GORGE_TEST_ACCEPTANCE_MANIFEST: /results/paired-acceptance.json
       GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
   render:
+    image: ${ACCEPTANCE_RENDER_IMAGE:-${ACCEPTANCE_BASE_IMAGE}-render}
     build:
       context: ${ACCEPTANCE_GORGE_DIR}/go
       args:

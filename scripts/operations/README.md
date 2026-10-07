@@ -11,10 +11,42 @@
 备份不包含 MySQL 系统用户/授权、镜像本身、宿主机调度配置或第三方账户。
 恢复部署需要原镜像 ID、相同版本 MySQL，以及独立保存的部署环境和 db-init 授权流程。
 
-检测到 Redis、S3、已创建的 integrations/search 服务（即使当前停止）、非 bundled MySQL DSN、
+检测到 Redis、S3、已创建的 integrations 服务或没有显式 adapter 的 search 服务（即使当前停止）、非 bundled MySQL DSN、
 自定义数据库集群、可写 bind mount 或未纳入快照的容器共享卷写入者（包括同一项目的临时容器）时拒绝执行。
 这些拓扑必须先建立专用一致备份适配器；不能把拒绝改成跳过再称完整备份。
 只读 bind 配置、容器可写层和 tmpfs 不属于持久卷快照，部署者必须确保它们不存业务数据。
+
+### Elasticsearch 8 原生快照协调
+
+外部 Elasticsearch 8 可以使用新增 adapter。先在引擎中配置并验证原生 snapshot repository，
+再显式提供 endpoint/repository。所有 Gorge 搜索 backend 与 projection 必须指向同一 endpoint，
+所有索引必须由 adapter 覆盖。未识别的挂载配置、多集群、其他引擎或集成状态继续拒绝，
+不能通过复制 Elasticsearch 数据目录替代原生快照（[官方恢复约束](https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-restore.html)）。
+
+```sh
+bin/ops backup /secure/backup-20261008 --exclusive-access \
+  --compose docker-compose.yml --compose docker-compose.production.yml \
+  --profile mailer --profile search --profile maintenance \
+  --search-es-endpoint https://search.example.internal:9200 \
+  --search-es-repository phorge_backup
+```
+
+需要认证时通过受控环境变量 `GORGE_BACKUP_ES_API_KEY` 提供；不把它写入 endpoint 或命令行。
+非回环端点携带凭据时必须 HTTPS，HTTP redirect 被拒绝。操作先停止已捕获的所有应用写者，
+确认停写，再创建原生快照并等待 `SUCCESS`；部分快照、缺索引、拓扑不匹配或超时均保持
+备份 `incomplete`，随后恢复原先运行的容器。`--exclusive-access` 仍要求排除外部 CLI、
+数据库和搜索写者，不代表自动取得分布式写锁。失败后外部 repository 可能留下未采用的
+快照，需按保存的操作记录检查；工具不自动删除外部快照。
+
+`search-snapshot.json` 和 manifest 保存 snapshot UUID、cluster UUID、索引列表与校验，
+**保存的是外部 repository 引用**。备份目录自身不包含原生快照字节；必须独立保护 repository、
+版本兼容与保留期。归档本地 bundle 不等于归档外部快照。数据库/文件卷 `restore-test` 继续
+显式记录 `externalSearchRestore=not_verified`，report 会发出 `SEARCH_RESTORE_UNVERIFIED`；
+需要在隔离搜索集群恢复原生快照，并核对索引、对象、权限和 SQL/outbox 状态，才可切流。
+
+本地真实回归：`python3 tests/operations/search_snapshot_roundtrip.py`。该回归仅创建随机命名
+的临时容器、卷和回环测试端口，覆盖 native snapshot/restore、与 SQL/卷的停写协调、失败
+恢复写者及具体 host 写权限账号拒绝；它不操作生产 repository。
 
 `--exclusive-access` 是操作员确认没有宿主机 CLI、外部数据库连接、自动重启编排或
 其他外部写入者。工具无法证明这些写入者已停止；这与项目既有停写声明的边界相同。
