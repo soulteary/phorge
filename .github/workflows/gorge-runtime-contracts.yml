@@ -119,6 +119,7 @@ jobs:
         run: |
           php tests/contract/worker/cutover.php
           php tests/contract/worker/startup_http.php
+          php tests/contract/worker/installation.php
           php tests/contract/download/runtime.php
           php tests/contract/cleanup/runtime.php
           php tests/contract/scheduler/runtime.php

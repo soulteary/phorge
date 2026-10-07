@@ -53,6 +53,10 @@ case "$PHORGE_CONTAINER_ROLE" in
         }
         php "$PHORGE_DIR/scripts/setup/check_gorge_startup.php" \
             "$DEPLOYMENT_CONFIG_FILE" "$CONF_FILE"
+        # Keep recovery and first-admin registration reachable when incomplete.
+        if [ "$PHORGE_CONTAINER_ROLE" = "web" ]; then
+            php "$PHORGE_DIR/scripts/setup/check_installation.php" --warn-only
+        fi
         exec "$@"
         ;;
     migrate) ;;

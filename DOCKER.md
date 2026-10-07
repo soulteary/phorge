@@ -73,6 +73,26 @@ docker compose up -d --build
 
 ## 环境变量
 
+### 安装完成检查
+
+Web 容器启动时会以告警模式执行安装检查。尚未创建管理员、没有可用管理员、
+或没有启用允许登录的认证提供者时，日志明确提示安装未完成，但保持 Web 运行，
+方便首次注册或账号恢复。该检查不修改账号、认证配置或生成恢复凭据。
+
+显式验收当前安装：
+
+```bash
+docker compose exec -w /opt/phorge/phorge phorge php scripts/setup/check_installation.php
+```
+
+输出 JSON 状态：`needs_admin`、`needs_admin_recovery`、`login_unavailable`、
+`ready` 或 `unavailable`；除 `ready` 外退出码为 1。
+`ready` 仅证明本地存在有效管理员和登录提供者配置，不能替代实际登录或外部
+OAuth/LDAP 可达性验证。添加 `--warn-only` 时未完成状态只告警并返回 0。
+镜像内代码需要重新构建后才会在启动时执行新检查。
+
+### 配置变量
+
 所有变量在 `docker-compose.yml` 里都有同名内置默认值，因此**不写 `.env` 也能跑**；
 生产部署至少要改掉两个密码和 `PHORGE_BASE_URI`。
 
