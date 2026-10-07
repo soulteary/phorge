@@ -34,6 +34,7 @@ abstract class PhabricatorTestCase extends PhutilTestCase {
   private $env;
 
   private $currentTest;
+  private $previousExecutionTimeLimit;
 
   private static $storageFixtureReferences = 0;
   private static $storageFixture;
@@ -158,24 +159,32 @@ abstract class PhabricatorTestCase extends PhutilTestCase {
   }
 
   protected function didRunTests() {
-    $config = $this->getComputedConfiguration();
-
-    if ($config[self::PHABRICATOR_TESTCONFIG_ISOLATE_LISK]) {
-      LiskDAO::endIsolateAllLiskEffectsToCurrentProcess();
-    }
-
     try {
-      unset($this->env);
-    } catch (Throwable $ex) {
-      throw new Exception(
-        pht(
-          'Some test called %s, but is still holding '.
-          'a reference to the scoped environment!',
-          'PhabricatorEnv::beginScopedEnv()'));
+      $config = $this->getComputedConfiguration();
+
+      if ($config[self::PHABRICATOR_TESTCONFIG_ISOLATE_LISK]) {
+        LiskDAO::endIsolateAllLiskEffectsToCurrentProcess();
+      }
+
+      try {
+        unset($this->env);
+      } catch (Throwable $ex) {
+        throw new Exception(
+          pht(
+            'Some test called %s, but is still holding '.
+            'a reference to the scoped environment!',
+            'PhabricatorEnv::beginScopedEnv()'));
+      }
+    } finally {
+      // Setup or coverage initialization can fail before didRunOneTest().
+      $this->restoreExecutionTimeLimit();
     }
   }
 
   protected function willRunOneTest($test) {
+    // A preceding setup failure may have skipped the per-test teardown. Restore
+    // its original budget before capturing the budget for the next test.
+    $this->restoreExecutionTimeLimit();
     $config = $this->getComputedConfiguration();
 
     if ($config[self::PHABRICATOR_TESTCONFIG_BUILD_STORAGE_FIXTURES]) {
@@ -183,14 +192,28 @@ abstract class PhabricatorTestCase extends PhutilTestCase {
     }
 
     $this->currentTest = $test;
+    $this->previousExecutionTimeLimit = (int)ini_get('max_execution_time');
     set_time_limit(4); // this resets the limit
   }
 
   protected function didRunOneTest($test) {
-    $config = $this->getComputedConfiguration();
+    try {
+      $config = $this->getComputedConfiguration();
 
-    if ($config[self::PHABRICATOR_TESTCONFIG_BUILD_STORAGE_FIXTURES]) {
-      LiskDAO::endIsolateAllLiskEffectsToTransactions();
+      if ($config[self::PHABRICATOR_TESTCONFIG_BUILD_STORAGE_FIXTURES]) {
+        LiskDAO::endIsolateAllLiskEffectsToTransactions();
+      }
+    } finally {
+      $this->restoreExecutionTimeLimit();
+    }
+  }
+
+  private function restoreExecutionTimeLimit() {
+    $this->currentTest = null;
+    if ($this->previousExecutionTimeLimit !== null) {
+      $limit = $this->previousExecutionTimeLimit;
+      $this->previousExecutionTimeLimit = null;
+      set_time_limit($limit);
     }
   }
 
