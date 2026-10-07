@@ -65,11 +65,14 @@ docker compose up -d --build
 - schema 完成后，`phorge` 只运行 Apache，`phorge-daemon` 独立监护 phd；两者
   只读部署配置，不再迁移或争写配置。
 - 默认启动 render、conduit、notification、file-storage、webhook、taskqueue、
-  worker 与 db-api。Gorge 镜像默认锁定 `2026.09.09-r3`，不会跟随 `latest` 漂移。
+  worker 与 db-api。Gorge 镜像默认锁定 `2026.10.07-r2`，不会跟随 `latest` 漂移。
 
 访问根路径 `/` 会 302 跳到 `/auth/register/` 的初始管理员注册引导页，按向导创建第一个
 账号即可。应用容器带 healthcheck（探测免鉴权的 `/status/`），有 60s `start_period`，
 所以启动后需要等一会儿 `docker compose ps` 里才会变成 `healthy`。
+
+Phorge `2026.10.07-r2` 的合并与发布依赖 Gorge 同版本全部服务镜像先发布成功。
+候选阶段的发布顺序、配对源码与验收证据见 [发布准备](docs/releases/2026.10.07-r2.md)。
 
 ## 环境变量
 
@@ -107,7 +110,7 @@ OAuth/LDAP 可达性验证。添加 `--warn-only` 时未完成状态只告警并
 | `PHORGE_PRODUCT_PROFILE` | `auto` | `auto` 让新安装使用协作模式、已有安装保持 full；也可显式指定 `collaboration` 或 `full`。结果持久化在只读部署配置中。 |
 | `PHORGE_GORGE_POLICY` | `required` | 已配置 Gorge 服务的失败策略：`required` 直接暴露错误；`fallback` 迁移期允许旧实现并记录 `[gorge-fallback]` 日志；`off` 停用请求路由型服务。 |
 | `PHORGE_DB_NAMESPACE` | `phabricator` | Phorge、db-init 与 file-storage/webhook/taskqueue/db-api 的唯一数据库前缀。已有自定义 `storage.default-namespace` 的安装升级前必须设为相同值；不一致时 entrypoint 会拒绝启动。 |
-| `GORGE_IMAGE_TAG` | `2026.09.09-r3` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
+| `GORGE_IMAGE_TAG` | `2026.10.07-r2` | 默认栈所有 Gorge 镜像的版本锁；可用各服务的 `*_IMAGE_TAG` 单独覆盖。 |
 | `PHORGE_WAIT_DB` | `1` | `migrate` 角色是否在执行 `storage upgrade` 前等待数据库就绪。严格取值 `1` 开启，其它任何值视为关闭。关掉首启动 `storage upgrade` 大概率失败。 |
 | `PHORGE_AUTO_UPGRADE` | `1` | `migrate` 角色是否自动执行 `bin/storage upgrade --force`。只有 `migrate` 读它，`web` / `daemon` 永不迁移 schema。 |
 | `PHORGE_CONTAINER_ROLE` | `web` | 容器角色：`migrate`（写 `local.json`、迁移 schema、发布 `deployment.json`）、`web`、`daemon`。`web` / `daemon` 是只读消费者，缺少这两个文件时直接退出。单容器 `all` 角色已移除。 |
@@ -184,8 +187,8 @@ Mailer 与 Search 的一次性配置任务会随 profile 运行；Search 的全�
 显式执行。之后不带相应 profile 再运行基础栈时，`phorge-migrate` 会撤销
 已持久化的受管配置：Mailer 只移除 `GORGE_MAILER_KEY` 命名的条目；Search 移除
 Gorge 搜索条目，保留其它引擎，列表为空时恢复 MySQL/Ferret。
-`gorge-gitea` 在 Gorge r3 之后才合入，启用 `gitea` profile 前必须设置
-`GORGE_GITEA_IMAGE_TAG` 为实际已经发布的构建；默认 `unreleased` 用来阻止误拉 r3。
+启用 `gitea` profile 前，确认 Gorge 镜像已经发布，并显式设置
+`GORGE_GITEA_IMAGE_TAG=2026.10.07-r2`；未设置时默认 `unreleased` 会阻止拉取。
 不再提供「不接入 Gorge」的 Compose 入口。`docker-compose.legacy.yml` 已经删除，
 默认栈是唯一受支持的编排；需要按域取舍时，用 `PHORGE_GORGE_POLICY` 与各服务的
 `GORGE_*_MODE` 变量控制，而不是切回旧编排。仍在宿主机上裸跑 Gorge 的联调场景，

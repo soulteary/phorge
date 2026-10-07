@@ -17,6 +17,10 @@ Phorge includes applications for:
 
 Phorge is developed and maintained by [The Phorge Team](https://phorge.it).
 
+## 版本说明
+
+新版本变更见 [RELEASE_NOTES.md](RELEASE_NOTES.md)，`2026.10.07-r2` 的配对源码、验证与发布顺序见 [发布准备](docs/releases/2026.10.07-r2.md)。
+
 ## 部署与运维
 
 容器部署、配置来源与核心服务见 [DOCKER.md](DOCKER.md)，备份、恢复、容量与告警入口见 [运维说明](scripts/operations/README.md)。协议细节以配对 Gorge 的 [模块索引](../gorge/docs/README.md) 为准；跨仓库链接需要相邻 checkout。
