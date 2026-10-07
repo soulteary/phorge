@@ -1,0 +1,124 @@
+# Build Gorge from the adjacent checkout; preserve the default runtime configuration.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+# Optional services retain their mailer/search/maintenance/gitea profiles.
+services:
+  gorge-render:
+    image: gorge-render:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-render
+        PORT: 8140
+  gorge-conduit:
+    image: gorge-conduit:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-conduit
+        PORT: 8150
+  gorge-notification:
+    image: gorge-notification:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-notification
+        PORT: 22281
+  gorge-file-storage:
+    image: gorge-file-storage:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-file-storage
+        PORT: 8100
+  gorge-webhook:
+    image: gorge-webhook:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-webhook
+        PORT: 8160
+  gorge-taskqueue:
+    image: gorge-taskqueue:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-taskqueue
+        PORT: 8090
+  gorge-worker:
+    image: gorge-worker:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-worker
+        PORT: 8170
+  gorge-db-api:
+    image: gorge-db-api:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-db-api
+        PORT: 8080
+  gorge-mailer:
+    image: gorge-mailer:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-mailer
+        PORT: 8110
+  gorge-search:
+    image: gorge-search:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-search
+        PORT: 8120
+  gorge-maintenance:
+    image: gorge-maintenance:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-maintenance
+        PORT: 8200
+  gorge-gitea:
+    image: gorge-gitea:local
+    build:
+      context: ../gorge/go
+      dockerfile: Dockerfile
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+        GOROOT_BOOTSTRAP: ${GOROOT_BOOTSTRAP:-/usr/local/go}
+        SERVICE: gorge-gitea
+        PORT: 8180
