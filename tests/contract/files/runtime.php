@@ -58,7 +58,8 @@ try {
   $live = gorge_status_runtime_report(false);
   if ($live['services']['file']['uploadObservation']['state'] !== 'observed' ||
       $live['services']['file']['uploadObservation']['capabilities']['protocolVersion'] !== 1 ||
-      !isset($live['uploadUsage']['logicalBytes'])) {
+      $live['uploadUsage']['state'] !== 'observed' ||
+      !isset($live['uploadUsage']['data']['logicalBytes'])) {
     throw new Exception('Unified report could not observe the real file backend.');
   }
   unset($env);
