@@ -48,7 +48,11 @@ switch ($_SERVER['REQUEST_URI']) {
   case '/api/diff/generate':
   case '/diff':
     $input = json_decode(file_get_contents('php://input'), true);
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $input !== array('old'=>'', 'new'=>'')) {
+    // Direct HTTP checks use empty input; the CLI uses a nonempty startup probe.
+    $expected_input = $_SERVER['REQUEST_URI'] === '/diff'
+      ? array('old' => '', 'new' => '')
+      : array('old' => 'startup old', 'new' => 'startup new');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $input !== $expected_input) {
       http_response_code(400); exit;
     }
     echo '{"data":{"diff":""},"error":null}'; break;
@@ -108,8 +112,13 @@ PHP
     $stdout = stream_get_contents($output[1]);
     $stderr = stream_get_contents($output[2]);
     fclose($output[1]); fclose($output[2]);
-    if (proc_close($child) !== $expected || strpos($stderr, $token) !== false) {
-      throw new Exception('Startup CLI exit or credential isolation failed.');
+    $exit_code = proc_close($child);
+    if ($exit_code !== $expected) {
+      throw new Exception('Startup CLI exit mismatch: expected '.
+        $expected.', got '.$exit_code.'.');
+    }
+    if (strpos($stdout.$stderr, $token) !== false) {
+      throw new Exception('Startup CLI credential isolation failed.');
     }
   }
   $config = array('gorge.service-policy' => 'required',
@@ -135,8 +144,13 @@ PHP
     $stdout = stream_get_contents($output[1]);
     $stderr = stream_get_contents($output[2]);
     fclose($output[1]); fclose($output[2]);
-    if (proc_close($child) !== $expected || strpos($stderr, 'test-token') !== false) {
-      throw new Exception('Cutover CLI ownership or credential isolation failed.');
+    $exit_code = proc_close($child);
+    if ($exit_code !== $expected) {
+      throw new Exception('Cutover CLI exit mismatch: expected '.
+        $expected.', got '.$exit_code.'.');
+    }
+    if (strpos($stdout.$stderr, 'test-token') !== false) {
+      throw new Exception('Cutover CLI credential isolation failed.');
     }
   }
   echo "Startup HTTP contracts passed: auth, errors, redirects, bounds, diff, protocol, cutover CLI.\n";
