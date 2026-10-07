@@ -337,8 +337,20 @@ final class PhabricatorConfigConsoleController
       php_sapi_name(),
     );
 
+    // The compatibility runtime still discovers these historical analyzers,
+    // but their tools are no longer dependencies of this fork.
+    $retired_binaries = array(
+      'hg' => true,
+      'pygmentize' => true,
+      'svn' => true,
+    );
+
     $binaries = PhutilBinaryAnalyzer::getAllBinaries();
     foreach ($binaries as $binary) {
+      if (isset($retired_binaries[$binary->getBinaryKey()])) {
+        continue;
+      }
+
       if (!$binary->isBinaryAvailable()) {
         $binary_version = pht('Not Available');
         $binary_path = null;

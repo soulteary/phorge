@@ -108,7 +108,7 @@ final class PhabricatorConfigKeySchema
 
   public function newEmptyClone() {
     $clone = clone $this;
-    $this->table = null;
+    $clone->table = null;
     return $clone;
   }
 

@@ -159,7 +159,11 @@ final class PhabricatorConfigDatabaseStatusController
     $collation_issue = PhabricatorConfigStorageSchema::ISSUE_COLLATION;
 
     $rows = array();
+    $all_issues = array();
+    $retained_table_count = 0;
     foreach ($comp_servers as $ref_key => $comp) {
+      $all_issues += $comp->getIssues();
+      $retained_table_count += $comp->getRetainedTableCount();
       $actual = $actual_servers[$ref_key];
       $expect = $expect_servers[$ref_key];
       foreach ($comp->getDatabases() as $database_name => $database) {
@@ -172,9 +176,6 @@ final class PhabricatorConfigDatabaseStatusController
           $collation = null;
         }
 
-        $status = $database->getStatus();
-        $issues = $database->getIssues();
-
         $uri = $this->getURI(
           array(
             'ref' => $ref_key,
@@ -182,7 +183,7 @@ final class PhabricatorConfigDatabaseStatusController
           ));
 
         $rows[] = array(
-          $this->renderIcon($status),
+          $this->renderSchemaIcon($database),
           $ref_key,
           phutil_tag(
             'a',
@@ -192,6 +193,7 @@ final class PhabricatorConfigDatabaseStatusController
             $database_name),
           $this->renderAttr($charset, $database->hasIssue($charset_issue)),
           $this->renderAttr($collation, $database->hasIssue($collation_issue)),
+          $this->renderSchemaRole($database),
         );
       }
     }
@@ -204,6 +206,7 @@ final class PhabricatorConfigDatabaseStatusController
           pht('Database'),
           pht('Charset'),
           pht('Collation'),
+          pht('Schema Role'),
         ))
       ->setColumnClasses(
         array(
@@ -212,13 +215,16 @@ final class PhabricatorConfigDatabaseStatusController
           'wide pri',
           null,
           null,
+          null,
         ));
 
     $title = pht('Database Status');
     $properties = $this->buildProperties(
       array(
       ),
-      $comp->getIssues());
+      $all_issues,
+      null,
+      $retained_table_count);
     $properties = $this->buildConfigBoxView(pht('Properties'), $properties);
     $table = $this->buildConfigBoxView(pht('Database'), $table);
 
@@ -240,15 +246,13 @@ final class PhabricatorConfigDatabaseStatusController
 
     $rows = array();
     foreach ($database->getTables() as $table_name => $table) {
-      $status = $table->getStatus();
-
       $uri = $this->getURI(
         array(
           'table' => $table_name,
         ));
 
       $rows[] = array(
-        $this->renderIcon($status),
+        $this->renderSchemaIcon($table),
         phutil_tag(
           'a',
           array(
@@ -259,6 +263,7 @@ final class PhabricatorConfigDatabaseStatusController
           $table->getCollation(),
           $table->hasIssue($collation_issue)),
         $table->getPersistenceTypeDisplayName(),
+        $this->renderSchemaRole($table),
       );
     }
 
@@ -269,11 +274,13 @@ final class PhabricatorConfigDatabaseStatusController
           pht('Table'),
           pht('Collation'),
           pht('Persistence'),
+          pht('Schema Role'),
         ))
       ->setColumnClasses(
         array(
           null,
           'wide pri',
+          null,
           null,
           null,
         ));
@@ -321,7 +328,8 @@ final class PhabricatorConfigDatabaseStatusController
           $expect_collation,
         ),
       ),
-      $database->getIssues());
+      $database->getIssues(),
+      $database);
 
     $properties = $this->buildConfigBoxView(pht('Properties'), $properties);
     $table = $this->buildConfigBoxView(pht('Database'), $table);
@@ -374,8 +382,6 @@ final class PhabricatorConfigDatabaseStatusController
         $expect_column = $expect_table->getColumn($column_name);
       }
 
-      $status = $column->getStatus();
-
       $data_type = null;
       if ($expect_column) {
         $data_type = $expect_column->getDataType();
@@ -387,7 +393,7 @@ final class PhabricatorConfigDatabaseStatusController
         ));
 
       $rows[] = array(
-        $this->renderIcon($status),
+        $this->renderSchemaIcon($column),
         phutil_tag(
           'a',
           array(
@@ -443,8 +449,6 @@ final class PhabricatorConfigDatabaseStatusController
         $expect_key = $expect_table->getKey($key_name);
       }
 
-      $status = $key->getStatus();
-
       $size = 0;
       foreach ($key->getColumnNames() as $column_spec) {
         list($column_name, $prefix) = $key->getKeyColumnAndPrefix($column_spec);
@@ -469,7 +473,7 @@ final class PhabricatorConfigDatabaseStatusController
         ));
 
       $key_rows[] = array(
-        $this->renderIcon($status),
+        $this->renderSchemaIcon($key),
         phutil_tag(
           'a',
           array(
@@ -533,7 +537,8 @@ final class PhabricatorConfigDatabaseStatusController
           $expect_collation,
         ),
       ),
-      $table->getIssues());
+      $table->getIssues(),
+      $table);
 
     $properties = $this->buildConfigBoxView(pht('Properties'), $properties);
     $table = $this->buildConfigBoxView(pht('Database'), $table_view);
@@ -674,7 +679,8 @@ final class PhabricatorConfigDatabaseStatusController
           $this->renderBoolean($expect_auto),
         ),
       ),
-      $column->getIssues());
+      $column->getIssues(),
+      $column);
 
     $properties = $this->buildConfigBoxView(pht('Properties'), $properties);
 
@@ -769,14 +775,40 @@ final class PhabricatorConfigDatabaseStatusController
           implode(', ', $expect_columns),
         ),
       ),
-      $key->getIssues());
+      $key->getIssues(),
+      $key);
 
     $properties = $this->buildConfigBoxView(pht('Properties'), $properties);
 
     return $this->buildResponse($title, $properties);
   }
 
-  private function buildProperties(array $properties, array $issues) {
+  private function renderSchemaIcon(PhabricatorConfigStorageSchema $schema) {
+    if ($schema->getIsRetained() &&
+        $schema->getStatus() === PhabricatorConfigStorageSchema::STATUS_OKAY) {
+      return id(new PHUIIconView())->setIcon('fa-archive grey');
+    }
+    return $this->renderIcon($schema->getStatus());
+  }
+
+  private function renderSchemaRole(PhabricatorConfigStorageSchema $schema) {
+    if ($schema->getIsRetained()) {
+      return pht('Historical Structure (Retained)');
+    }
+    if ($schema->getRetainedTableCount()) {
+      return pht('Current and Historical Structures');
+    }
+    if ($schema->hasIssue(PhabricatorConfigStorageSchema::ISSUE_SURPLUS)) {
+      return pht('Unexpected Structure');
+    }
+    return pht('Current Application Structure');
+  }
+
+  private function buildProperties(
+    array $properties,
+    array $issues,
+    ?PhabricatorConfigStorageSchema $schema = null,
+    $retained_table_count = 0) {
     $view = id(new PHUIPropertyListView())
       ->setUser($this->getRequest()->getUser());
 
@@ -786,12 +818,12 @@ final class PhabricatorConfigDatabaseStatusController
     }
 
     $status_view = new PHUIStatusListView();
-    if (!$issues) {
+    if (!$issues && (!$schema || !$schema->getIsRetained())) {
       $status_view->addItem(
         id(new PHUIStatusItemView())
           ->setIcon(PHUIStatusItemView::ICON_ACCEPT, 'green')
           ->setTarget(pht('No Schema Issues')));
-    } else {
+    } else if ($issues) {
       foreach ($issues as $issue) {
         $note = PhabricatorConfigStorageSchema::getIssueDescription($issue);
 
@@ -815,6 +847,28 @@ final class PhabricatorConfigDatabaseStatusController
 
         $status_view->addItem($item);
       }
+    }
+
+    if ($schema) {
+      $retained_table_count = $schema->getRetainedTableCount();
+    }
+    if (($schema && $schema->getIsRetained()) || $retained_table_count) {
+      if ($schema && $schema->getIsRetained()) {
+        $note = pht(
+          'This structure belongs to a retired application. It is retained '.
+          'for historical data and migrations and is not an active schema '.
+          'requirement.');
+      } else {
+        $note = pht(
+          '%s retired table(s) are retained for historical data and '.
+          'migrations. Active structures are still checked.',
+          new PhutilNumber($retained_table_count));
+      }
+      $status_view->addItem(
+        id(new PHUIStatusItemView())
+          ->setIcon('fa-archive', 'grey')
+          ->setTarget(pht('Historical Structures Retained'))
+          ->setNote($note));
     }
     $view->addProperty(pht('Schema Status'), $status_view);
 

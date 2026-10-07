@@ -546,15 +546,24 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
     PhabricatorConfigServerSchema $actual) {
 
     $comp_server = $actual->newEmptyClone();
+    $namespace = PhabricatorLiskDAO::getStorageNamespace();
 
     $all_databases = $actual->getDatabases() + $expect->getDatabases();
     foreach ($all_databases as $database_name => $database_template) {
       $actual_database = $actual->getDatabase($database_name);
       $expect_database = $expect->getDatabase($database_name);
 
-      $issues = $this->compareSchemata($expect_database, $actual_database);
+      $retained_database =
+        !$expect_database && $actual_database &&
+        !$actual_database->getAccessDenied() &&
+        PhabricatorConfigRetiredSchema::isRetiredDatabase(
+          $database_name, $namespace);
+      $issues = $retained_database
+        ? array()
+        : $this->compareSchemata($expect_database, $actual_database);
 
       $comp_database = $database_template->newEmptyClone()
+        ->setRetained($retained_database)
         ->setIssues($issues);
 
       if (!$actual_database) {
@@ -572,9 +581,19 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
         $actual_table = $actual_database->getTable($table_name);
         $expect_table = $expect_database->getTable($table_name);
 
-        $issues = $this->compareSchemata($expect_table, $actual_table);
+        // The reviewed table policy applies only where there is no current
+        // specification. Live columns/indexes and unknown tables keep the
+        // ordinary comparison, even inside a retired database.
+        $retained_table =
+          !$expect_table && $actual_table &&
+          PhabricatorConfigRetiredSchema::isRetiredTable(
+            $database_name, $table_name, $namespace);
+        $issues = $retained_table
+          ? array()
+          : $this->compareSchemata($expect_table, $actual_table);
 
         $comp_table = $table_template->newEmptyClone()
+          ->setRetained($retained_table)
           ->setIssues($issues);
 
         if (!$actual_table) {
@@ -591,9 +610,12 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
           $actual_column = $actual_table->getColumn($column_name);
           $expect_column = $expect_table->getColumn($column_name);
 
-          $issues = $this->compareSchemata($expect_column, $actual_column);
+          $issues = $retained_table
+            ? array()
+            : $this->compareSchemata($expect_column, $actual_column);
 
           $comp_column = $column_template->newEmptyClone()
+            ->setRetained($retained_table)
             ->setIssues($issues);
 
           $comp_table->addColumn($comp_column);
@@ -606,9 +628,12 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
           $actual_key = $actual_table->getKey($key_name);
           $expect_key = $expect_table->getKey($key_name);
 
-          $issues = $this->compareSchemata($expect_key, $actual_key);
+          $issues = $retained_table
+            ? array()
+            : $this->compareSchemata($expect_key, $actual_key);
 
           $comp_key = $key_template->newEmptyClone()
+            ->setRetained($retained_table)
             ->setIssues($issues);
 
           $comp_table->addKey($comp_key);
@@ -627,6 +652,13 @@ final class PhabricatorConfigSchemaQuery extends Phobject {
   private function compareSchemata(
     ?PhabricatorConfigStorageSchema $expect = null,
     ?PhabricatorConfigStorageSchema $actual = null) {
+
+    // A restricted database cannot be classified from its visible contents,
+    // even when it has no current specification (retired or unknown).
+    if ($actual instanceof PhabricatorConfigDatabaseSchema &&
+        $actual->getAccessDenied()) {
+      return array(PhabricatorConfigStorageSchema::ISSUE_ACCESSDENIED);
+    }
 
     $expect_is_key = ($expect instanceof PhabricatorConfigKeySchema);
     $actual_is_key = ($actual instanceof PhabricatorConfigKeySchema);

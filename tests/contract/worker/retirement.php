@@ -11,7 +11,8 @@ try {
     'PhabricatorMailAdapterTestCase', 'PhabricatorMailConfigTestCase',
     'PhabricatorDeploymentConfigBuilderTestCase',
     'PhabricatorFileStorageEngineTestCase', 'PhabricatorGorgeImageTestCase',
-    'PhabricatorGorgeServiceRegistryTestCase') as $class) {
+    'PhabricatorGorgeServiceRegistryTestCase',
+    'PhabricatorConfigRetiredSchemaTestCase') as $class) {
     foreach (id(new $class())->setWorkingCopy($working)->run() as $result) {
       if ($result->getResult() === ArcanistUnitTestResult::RESULT_SKIP) {
         // Optional real service contracts have dedicated acceptance jobs.
@@ -27,6 +28,9 @@ try {
     }
   }
   if ($count < 10) { throw new Exception('Expected retirement test suites did not run.'); }
+  list($console_output) = execx('%s %s', PHP_BINARY,
+    dirname(__DIR__).'/config/console.php');
+  echo $console_output;
   echo 'Retirement PHP checks passed: '.$count.' tests; '.$skipped." skipped.\n";
 } catch (Throwable $ex) {
   fwrite(STDERR, $ex->getMessage()."\n");

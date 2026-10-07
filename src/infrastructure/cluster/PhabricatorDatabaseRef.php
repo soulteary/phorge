@@ -13,6 +13,8 @@ final class PhabricatorDatabaseRef
   const REPLICATION_REPLICA_NONE = 'replica-none';
   const REPLICATION_SLOW = 'replica-slow';
   const REPLICATION_NOT_REPLICATING = 'not-replicating';
+  const REPLICATION_NOT_APPLICABLE = 'not-applicable';
+  const REPLICATION_PERMISSION_DENIED = 'permission-denied';
 
   const KEY_HEALTH = 'cluster.db.health';
   const KEY_REFS = 'cluster.db.refs';
@@ -263,6 +265,16 @@ final class PhabricatorDatabaseRef
 
   public static function getReplicaStatusMap() {
     return array(
+      self::REPLICATION_NOT_APPLICABLE => array(
+        'icon' => 'fa-minus',
+        'color' => 'grey',
+        'label' => pht('Not Applicable'),
+      ),
+      self::REPLICATION_PERMISSION_DENIED => array(
+        'icon' => 'fa-eye-slash',
+        'color' => 'yellow',
+        'label' => pht('Replication Monitoring Unavailable'),
+      ),
       self::REPLICATION_OKAY => array(
         'icon' => 'fa-download',
         'color' => 'green',
@@ -420,106 +432,158 @@ final class PhabricatorDatabaseRef
     array $server) {
 
     $status = idx($server, 'connectionStatus', self::STATUS_FAIL);
+    $replica_status = idx($server, 'replicationStatus');
+    $legacy_permission = ($status === self::STATUS_REPLICATION_CLIENT);
+    if ($legacy_permission) {
+      // Contract 1.1 put a successful connection's missing monitoring grant
+      // in the connection field. Accept it during a rolling upgrade.
+      $status = self::STATUS_OKAY;
+      if ($replica_status !== self::REPLICATION_MASTER_REPLICA) {
+        $replica_status = self::REPLICATION_PERMISSION_DENIED;
+      }
+    }
+
+    if ($status === self::STATUS_OKAY &&
+        $ref->getIsIndividual() &&
+        $replica_status !== self::REPLICATION_MASTER_REPLICA) {
+      $replica_status = self::REPLICATION_NOT_APPLICABLE;
+    }
+
     $ref->setConnectionStatus($status);
     $ref->setConnectionLatency(
       (float)idx($server, 'connectionLatencySec', 0));
 
     $conn_msg = idx($server, 'connectionMessage', '');
-    if (phutil_nonempty_string($conn_msg)) {
+    $ref->setConnectionMessage(null);
+    if (!$legacy_permission && phutil_nonempty_string($conn_msg)) {
       $ref->setConnectionMessage($conn_msg);
     }
 
-    // The service names these fields `replicationStatus` and
-    // `secondsBehindMaster`, matching the wire contract; a reachable master
-    // that is not itself replicating omits `replicationStatus` entirely.
-    $replica_status = idx($server, 'replicationStatus');
-    if ($replica_status !== null) {
-      $ref->setReplicaStatus($replica_status);
-    }
+    $ref->setReplicaStatus($replica_status);
+    $ref->setReplicaMessage(null);
+    $ref->setReplicaDelay(null);
 
     $replica_msg = idx($server, 'replicaMessage', '');
-    if (phutil_nonempty_string($replica_msg)) {
+    if ($replica_status === self::REPLICATION_PERMISSION_DENIED) {
+      $ref->setReplicaMessage(self::getReplicationPermissionMessage());
+    } else if ($replica_status !== self::REPLICATION_NOT_APPLICABLE &&
+               phutil_nonempty_string($replica_msg)) {
       $ref->setReplicaMessage($replica_msg);
     }
 
     $replica_delay = idx($server, 'secondsBehindMaster');
-    if ($replica_delay !== null) {
+    if ($replica_status !== self::REPLICATION_NOT_APPLICABLE &&
+        $replica_status !== self::REPLICATION_PERMISSION_DENIED &&
+        $replica_delay !== null) {
       $ref->setReplicaDelay((int)$replica_delay);
     }
+  }
+
+  private static function getReplicationPermissionMessage() {
+    return pht(
+      'Replication status is unavailable because the monitoring user lacks '.
+      '"REPLICATION CLIENT" permission.');
   }
 
   private static function queryRefs(array $refs) {
     foreach ($refs as $ref) {
       $conn = $ref->newManagementConnection();
+      self::queryNativeRef($ref, $conn);
+    }
 
-      $t_start = microtime(true);
-      $replica_status = false;
-      try {
+    return $refs;
+  }
+
+  private static function queryNativeRef(
+    PhabricatorDatabaseRef $ref,
+    AphrontDatabaseConnection $conn) {
+
+    $ref->setConnectionMessage(null);
+    $ref->setReplicaStatus(null);
+    $ref->setReplicaMessage(null);
+    $ref->setReplicaDelay(null);
+
+    $t_start = microtime(true);
+    $replica_status = false;
+    $connected = false;
+    try {
+      $conn->openConnection();
+      $connected = true;
+      $ref->setConnectionStatus(self::STATUS_OKAY);
+      if ($ref->getIsIndividual()) {
+        $ref->setReplicaStatus(self::REPLICATION_NOT_APPLICABLE);
+      } else {
         $replica_status = queryfx_one($conn, 'SHOW REPLICA STATUS');
-        $ref->setConnectionStatus(self::STATUS_OKAY);
-      } catch (AphrontAccessDeniedQueryException $ex) {
-        $ref->setConnectionStatus(self::STATUS_REPLICATION_CLIENT);
-        $ref->setConnectionMessage(
-          pht(
-            'No permission to run "SHOW REPLICA STATUS". Grant this user '.
-            '"REPLICATION CLIENT" permission to allow this server to '.
-            'monitor replica health.'));
-      } catch (AphrontInvalidCredentialsQueryException $ex) {
-        $ref->setConnectionStatus(self::STATUS_AUTH);
-        $ref->setConnectionMessage($ex->getMessage());
-      } catch (AphrontQueryException $ex) {
-        $ref->setConnectionStatus(self::STATUS_FAIL);
-
-        $class = get_class($ex);
-        $message = $ex->getMessage();
-        $ref->setConnectionMessage(
-          pht(
-            '%s: %s',
-            get_class($ex),
-            $ex->getMessage()));
       }
-      $t_end = microtime(true);
-      $ref->setConnectionLatency($t_end - $t_start);
+    } catch (AphrontInvalidCredentialsQueryException $ex) {
+      $ref->setConnectionStatus(self::STATUS_AUTH);
+      $ref->setConnectionMessage($ex->getMessage());
+    } catch (AphrontAccessDeniedQueryException $ex) {
+      if ($connected) {
+        $ref->setReplicaStatus(self::REPLICATION_PERMISSION_DENIED);
+        $ref->setReplicaMessage(self::getReplicationPermissionMessage());
+      } else {
+        $ref->setConnectionStatus(self::STATUS_FAIL);
+        $ref->setConnectionMessage($ex->getMessage());
+      }
+    } catch (AphrontQueryException $ex) {
+      $ref->setConnectionStatus(self::STATUS_FAIL);
 
-      if ($replica_status !== false) {
-        $is_replica = (bool)$replica_status;
-        if ($ref->getIsMaster() && $is_replica) {
-          $ref->setReplicaStatus(self::REPLICATION_MASTER_REPLICA);
-          $ref->setReplicaMessage(
-            pht(
-              'This host has a "master" role, but is replicating data from '.
-              'another host ("%s")!',
-              idx($replica_status, 'Master_Host')));
-        } else if (!$ref->getIsMaster() && !$is_replica) {
-          $ref->setReplicaStatus(self::REPLICATION_REPLICA_NONE);
-          $ref->setReplicaMessage(
-            pht(
-              'This host has a "replica" role, but is not replicating data '.
-              'from a master (no output from "SHOW REPLICA STATUS").'));
+      $ref->setConnectionMessage(
+        pht(
+          '%s: %s',
+          get_class($ex),
+          $ex->getMessage()));
+    }
+    $t_end = microtime(true);
+    $ref->setConnectionLatency($t_end - $t_start);
+
+    if ($replica_status !== false) {
+      $is_replica = (bool)$replica_status;
+      if ($ref->getIsMaster() && $is_replica) {
+        $ref->setReplicaStatus(self::REPLICATION_MASTER_REPLICA);
+        $ref->setReplicaMessage(
+          pht(
+            'This host has a "master" role, but is replicating data from '.
+            'another host ("%s")!',
+            idx($replica_status, 'Source_Host',
+              idx($replica_status, 'Master_Host'))));
+      } else if (!$ref->getIsMaster() && !$is_replica) {
+        $ref->setReplicaStatus(self::REPLICATION_REPLICA_NONE);
+        $ref->setReplicaMessage(
+          pht(
+            'This host has a "replica" role, but is not replicating data '.
+            'from a master (no output from "SHOW REPLICA STATUS").'));
+      } else {
+        $ref->setReplicaStatus(self::REPLICATION_OKAY);
+      }
+
+      // A master copying another node stays a fatal wrong-role diagnosis,
+      // regardless of its lag or whether the replica threads are running.
+      if ($is_replica && !$ref->getIsMaster()) {
+        $latency = idx($replica_status, 'Seconds_Behind_Source',
+          idx($replica_status, 'Seconds_Behind_Master'));
+        $io_running = idx($replica_status, 'Replica_IO_Running',
+          idx($replica_status, 'Slave_IO_Running'));
+        $sql_running = idx($replica_status, 'Replica_SQL_Running',
+          idx($replica_status, 'Slave_SQL_Running'));
+        $stopped = ($io_running !== null && $io_running !== 'Yes') ||
+          ($sql_running !== null && $sql_running !== 'Yes');
+        if ($latency === null || $latency === '' || $stopped) {
+          $ref->setReplicaStatus(self::REPLICATION_NOT_REPLICATING);
         } else {
-          $ref->setReplicaStatus(self::REPLICATION_OKAY);
-        }
-
-        if ($is_replica) {
-          $latency = idx($replica_status, 'Seconds_Behind_Master');
-          if (!phutil_nonempty_string($latency)) {
-            $ref->setReplicaStatus(self::REPLICATION_NOT_REPLICATING);
-          } else {
-            $latency = (int)$latency;
-            $ref->setReplicaDelay($latency);
-            if ($latency > 30) {
-              $ref->setReplicaStatus(self::REPLICATION_SLOW);
-              $ref->setReplicaMessage(
-                pht(
-                  'This replica is lagging far behind the master. Data is at '.
-                  'risk!'));
-            }
+          $latency = (int)$latency;
+          $ref->setReplicaDelay($latency);
+          if ($latency > 30) {
+            $ref->setReplicaStatus(self::REPLICATION_SLOW);
+            $ref->setReplicaMessage(
+              pht(
+                'This replica is lagging far behind the master. Data is at '.
+                'risk!'));
           }
         }
       }
     }
-
-    return $refs;
   }
 
   /**

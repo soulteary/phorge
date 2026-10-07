@@ -26,6 +26,7 @@ abstract class PhabricatorConfigStorageSchema extends Phobject {
 
   private $issues = array();
   private $name;
+  private $retained = false;
 
   abstract public function newEmptyClone();
   abstract protected function compareToSimilarSchema(
@@ -51,6 +52,26 @@ abstract class PhabricatorConfigStorageSchema extends Phobject {
 
   public function getName() {
     return $this->name;
+  }
+
+  public function setRetained($retained) {
+    $this->retained = (bool)$retained;
+    return $this;
+  }
+
+  public function getIsRetained() {
+    return $this->retained;
+  }
+
+  public function getRetainedTableCount() {
+    if ($this instanceof PhabricatorConfigTableSchema && $this->retained) {
+      return 1;
+    }
+    $count = 0;
+    foreach ($this->getSubschemata() as $sub) {
+      $count += $sub->getRetainedTableCount();
+    }
+    return $count;
   }
 
   public function setIssues(array $issues) {
@@ -173,6 +194,9 @@ abstract class PhabricatorConfigStorageSchema extends Phobject {
         return pht('This column has the wrong autoincrement setting.');
       case self::ISSUE_UNKNOWN:
         return pht('This column is missing a type specification.');
+      case self::ISSUE_ACCESSDENIED:
+        return pht(
+          'The database user does not have permission to inspect this schema.');
       case self::ISSUE_ENGINE:
         return pht('This table can use a better table engine.');
       default:

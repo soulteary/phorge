@@ -179,9 +179,10 @@ final class PhabricatorDatabaseSetupCheck extends PhabricatorSetupCheck {
    *     `not-replicating`) is a non-fatal `db.replica.not-replicating`;
    *   - `replica-slow` is not escalated here (the "Database Servers" console
    *     surfaces lag);
-   *   - a missing "REPLICATION CLIENT" grant (`replication-client`, a
-   *     connection status, never a replica status) is not misjudged as broken
-   *     replication;
+   *   - missing monitoring permission (`permission-denied`) or replication
+   *     being inapplicable (`not-applicable`) is not misjudged as broken
+   *     replication; the DatabaseRef adapter also accepts the legacy
+   *     `replication-client` connection status;
    *   - disabled nodes are excluded.
    *
    * @param list<PhabricatorDatabaseRef> $refs Already-populated refs.

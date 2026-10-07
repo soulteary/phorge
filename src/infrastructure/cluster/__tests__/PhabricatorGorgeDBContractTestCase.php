@@ -32,14 +32,15 @@ final class PhabricatorGorgeDBContractTestCase extends PhabricatorTestCase {
     $servers = $this->readFixture('servers.json');
     $by_key = ipull($servers, null, 'refKey');
 
-    // A healthy master: okay connection, okay replication, a latency, no delay.
+    // An individual master: okay connection, inapplicable replication.
     $master_row = idx($by_key, 'db1:3306');
     $this->assertTrue(is_array($master_row), pht('servers.json has db1:3306.'));
 
     $master = id(new PhabricatorDatabaseRef())
       ->setHost('db1')
       ->setPort(3306)
-      ->setIsMaster(true);
+      ->setIsMaster(true)
+      ->setIsIndividual(true);
     PhabricatorDatabaseRef::applyGorgeServerRow($master, $master_row);
 
     $this->assertEqual(
@@ -47,7 +48,7 @@ final class PhabricatorGorgeDBContractTestCase extends PhabricatorTestCase {
       $master->getConnectionStatus(),
       pht('Master connectionStatus is read from the wire.'));
     $this->assertEqual(
-      PhabricatorDatabaseRef::REPLICATION_OKAY,
+      PhabricatorDatabaseRef::REPLICATION_NOT_APPLICABLE,
       $master->getReplicaStatus(),
       pht('Master replicationStatus is read from the wire.'));
     $this->assertEqual(
@@ -85,6 +86,179 @@ final class PhabricatorGorgeDBContractTestCase extends PhabricatorTestCase {
       'replica is behind',
       $replica->getReplicaMessage(),
       pht('replicaMessage is read from the wire.'));
+
+    $unmonitored = $this->newRefFromServerRow(
+      'db3:3306',
+      false,
+      idx($by_key, 'db3:3306'));
+    $this->assertEqual(
+      PhabricatorDatabaseRef::STATUS_OKAY,
+      $unmonitored->getConnectionStatus());
+    $this->assertEqual(
+      PhabricatorDatabaseRef::REPLICATION_PERMISSION_DENIED,
+      $unmonitored->getReplicaStatus());
+    $this->assertTrue(
+      phutil_nonempty_string($unmonitored->getReplicaMessage()));
+    $this->assertEqual(null, $unmonitored->getConnectionMessage());
+  }
+
+  public function testLegacyMonitoringGrantMovesToReplicationColumn() {
+    $ref = $this->newRefFromServerRow(
+      'db2:3306',
+      false,
+      array(
+        'connectionStatus' => 'replication-client',
+        'connectionMessage' => 'No permission to run SHOW REPLICA STATUS',
+      ));
+    $this->assertEqual(
+      PhabricatorDatabaseRef::STATUS_OKAY,
+      $ref->getConnectionStatus());
+    $this->assertEqual(null, $ref->getConnectionMessage());
+    $this->assertEqual(
+      PhabricatorDatabaseRef::REPLICATION_PERMISSION_DENIED,
+      $ref->getReplicaStatus());
+    $this->assertTrue(phutil_nonempty_string($ref->getReplicaMessage()));
+  }
+
+  public function testLegacyIndividualMonitoringGrantIsNotApplicable() {
+    $ref = id(new PhabricatorDatabaseRef())
+      ->setIsMaster(true)
+      ->setIsIndividual(true)
+      ->setReplicaStatus(PhabricatorDatabaseRef::REPLICATION_SLOW)
+      ->setReplicaMessage('stale lag')
+      ->setReplicaDelay(60);
+    PhabricatorDatabaseRef::applyGorgeServerRow(
+      $ref,
+      array(
+        'connectionStatus' => 'replication-client',
+        'connectionMessage' => 'No permission to run SHOW REPLICA STATUS',
+      ));
+    $this->assertEqual(
+      PhabricatorDatabaseRef::STATUS_OKAY,
+      $ref->getConnectionStatus());
+    $this->assertEqual(
+      PhabricatorDatabaseRef::REPLICATION_NOT_APPLICABLE,
+      $ref->getReplicaStatus());
+    $this->assertEqual(null, $ref->getConnectionMessage());
+    $this->assertEqual(null, $ref->getReplicaMessage());
+    $this->assertEqual(null, $ref->getReplicaDelay());
+
+    PhabricatorDatabaseRef::applyGorgeServerRow(
+      $ref,
+      array('connectionStatus' => 'auth', 'connectionMessage' => 'bad login'));
+    $this->assertEqual('auth', $ref->getConnectionStatus());
+    $this->assertEqual('bad login', $ref->getConnectionMessage());
+    $this->assertEqual(null, $ref->getReplicaStatus());
+  }
+
+  public function testIndividualAdapterPreservesReportedReplicatingMaster() {
+    $ref = id(new PhabricatorDatabaseRef())
+      ->setIsMaster(true)
+      ->setIsIndividual(true);
+    PhabricatorDatabaseRef::applyGorgeServerRow(
+      $ref,
+      array(
+        'connectionStatus' => 'okay',
+        'replicationStatus' => 'master-replica',
+      ));
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($ref));
+    $this->assertEqual(1, count($specs));
+    $this->assertTrue((bool)idx($specs[0], 'fatal'));
+  }
+
+  public function testNativeIndividualConnectionSkipsReplicationQueries() {
+    $ref = id(new PhabricatorDatabaseRef())
+      ->setIsMaster(true)
+      ->setIsIndividual(true);
+    $conn = new AphrontIsolatedDatabaseConnection(array());
+    // The isolated connection rejects SHOW queries, so this also catches an
+    // accidental replication probe in the native individual path.
+    $this->invokeNativeProbe($ref, $conn);
+    $this->assertEqual('okay', $ref->getConnectionStatus());
+    $this->assertEqual('not-applicable', $ref->getReplicaStatus());
+    $this->assertEqual(array(), $conn->getQueryTranscript());
+  }
+
+  public function testNativeClusterMonitoringGrantIsNotConnectionFailure() {
+    $ref = id(new PhabricatorDatabaseRef())->setIsMaster(false);
+    $conn = $this->newNativeProbeConnection(
+      array(),
+      new AphrontAccessDeniedQueryException('REPLICATION CLIENT required'));
+    $this->invokeNativeProbe($ref, $conn);
+    $this->assertEqual('okay', $ref->getConnectionStatus());
+    $this->assertEqual('permission-denied', $ref->getReplicaStatus());
+    $this->assertEqual(null, $ref->getConnectionMessage());
+    $this->assertTrue(phutil_nonempty_string($ref->getReplicaMessage()));
+  }
+
+  public function testNativeClusterMasterReplicationKeepsFatalDiagnosis() {
+    $ref = id(new PhabricatorDatabaseRef())->setIsMaster(true);
+    $conn = $this->newNativeProbeConnection(
+      array(array('Source_Host' => 'upstream', 'Seconds_Behind_Source' => 120)));
+    $this->invokeNativeProbe($ref, $conn);
+    $this->assertEqual('master-replica', $ref->getReplicaStatus());
+    $specs = PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+      array($ref));
+    $this->assertEqual(1, count($specs));
+    $this->assertTrue((bool)idx($specs[0], 'fatal'));
+  }
+
+  public function testNativeReplicaModernLagAndStoppedThreads() {
+    foreach (array('Yes' => 'okay', 'No' => 'not-replicating') as $io => $want) {
+      $ref = id(new PhabricatorDatabaseRef())->setIsMaster(false);
+      $conn = $this->newNativeProbeConnection(
+        array(array(
+          'Seconds_Behind_Source' => 0,
+          'Replica_IO_Running' => $io,
+          'Replica_SQL_Running' => 'Yes',
+        )));
+      $this->invokeNativeProbe($ref, $conn);
+      $this->assertEqual($want, $ref->getReplicaStatus());
+      if ($io === 'Yes') {
+        $this->assertEqual(0, $ref->getReplicaDelay());
+      }
+    }
+  }
+
+  private function invokeNativeProbe(
+    PhabricatorDatabaseRef $ref,
+    AphrontDatabaseConnection $conn) {
+
+    $method = new ReflectionMethod('PhabricatorDatabaseRef', 'queryNativeRef');
+    $method->invoke(null, $ref, $conn);
+  }
+
+  private function newNativeProbeConnection(array $rows, $query_error = null) {
+    return new class($rows, $query_error) extends AphrontDatabaseConnection {
+      private $rows;
+      private $queryError;
+
+      public function __construct(array $rows, $query_error) {
+        $this->rows = $rows;
+        $this->queryError = $query_error;
+      }
+      public function openConnection() {}
+      public function close() {}
+      public function getInsertID() { return null; }
+      public function getAffectedRows() { return 0; }
+      public function selectAllResults() { return $this->rows; }
+      public function executeQuery(PhutilQueryString $query) {
+        if ($this->queryError) {
+          throw $this->queryError;
+        }
+      }
+      public function executeRawQueries(array $queries) { return array(); }
+      public function simulateErrorOnNextQuery($error) {
+        $this->queryError = $error;
+        return $this;
+      }
+      public function escapeBinaryString($value) { return $value; }
+      public function escapeUTF8String($value) { return $value; }
+      public function escapeColumnName($value) { return $value; }
+      public function escapeMultilineComment($value) { return '/* '.$value.' */'; }
+      public function escapeStringForLikeClause($value) { return $value; }
+    };
   }
 
   public function testSchemaDiffFixtureBuildsFullSchema() {
@@ -466,9 +640,8 @@ final class PhabricatorGorgeDBContractTestCase extends PhabricatorTestCase {
   }
 
   public function testReplicationClientMissingGrantIsNotAFalsePositive() {
-    // A missing "REPLICATION CLIENT" grant is a *connection* status, and the
-    // ref never receives a replica status, so it must not be misjudged as a
-    // broken replica.
+    // The adapter accepts the old connection status and converts it to a
+    // replication monitoring warning, without inventing broken replication.
     $ref = $this->newRefFromServerRow(
       'db5:3306',
       false,
@@ -480,6 +653,19 @@ final class PhabricatorGorgeDBContractTestCase extends PhabricatorTestCase {
       array(),
       $specs,
       pht('A missing REPLICATION CLIENT grant is not a replication issue.'));
+  }
+
+  public function testReplicationNewMonitoringStatesAreNotBrokenReplicas() {
+    foreach (array('permission-denied', 'not-applicable') as $status) {
+      $ref = $this->newRefFromServerRow(
+        'db5:3306',
+        false,
+        array('connectionStatus' => 'okay', 'replicationStatus' => $status));
+      $this->assertEqual(
+        array(),
+        PhabricatorDatabaseSetupCheck::computeGorgeReplicationIssues(
+          array($ref)));
+    }
   }
 
   public function testReplicationHealthyClusterHasNoIssue() {

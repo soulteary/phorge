@@ -148,7 +148,17 @@ final class PhabricatorConfigClusterDatabasesController
       $health_status = array(
         $health_icon,
         ' ',
-        $health_count,
+        javelin_tag(
+          'span',
+          array(
+            'sigil' => 'has-tooltip',
+            'meta' => array(
+              'tip' => pht(
+                'Successful connection checks among the last %s checks.',
+                new PhutilNumber($health->getRequiredEventCount())),
+            ),
+          ),
+          $health_count),
       );
 
       $conn_message = $database->getConnectionMessage();
