@@ -1,95 +1,68 @@
 # 简体中文本地化（zh_CN）
 
-本仓库在上游 Phorge 的基础上，内置了一套简体中文（`zh_CN`）界面本地化能力。中文是**可选**语言（默认语言仍为 `en_US`），用户可在个人设置中切换。
+本仓库内置简体中文（`zh_CN`），个人用户可以切换语言，管理员可以设置全局默认语言。未配置个人或全局语言时，Web 界面默认使用 `en_US`；命令行默认语言也是 `en_US`，两者分别设置。
 
-## 一、能力组成
+## 启用中文
 
-中文本地化由以下几部分协同实现：
+### 个人界面语言
 
-| 组成 | 路径 | 说明 |
-|------|------|------|
-| 翻译数据 | `src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php` | `msgid → 中文` 映射（含复数/性别分支） |
-| Locale 类 | `src/infrastructure/internationalization/locale/PhabricatorChineseLocale.php` | 定义 `zh_CN`，显示名「中文（简体）」，回退 `en_US` |
-| 类映射注册 | `src/__phutil_library_map__.php` | 注册上述两个类（class map + extends map） |
-| 设置项适配 | `src/applications/settings/setting/PhabricatorTranslationSetting.php` | 让 `zh_CN` 出现在语言下拉、通过校验，并合并 `zh_*` 变体 |
-| 运行时加载 | `src/infrastructure/env/PhabricatorEnv.php` | `setLocaleCode()` 的 `zh_CN` 分支 + `normalizeLocaleCode()` |
-| 校验豁免 | `src/infrastructure/internationalization/management/PhorgeInternationalizationValidator.php` | 使 i18n 校验工具不对 `zh_CN` 误报 |
-| 翻译工具链 | `scripts/i18n/`、`resources/i18n-zh-*` | 用于检测缺失、批量生成/补全翻译（见第四节） |
+登录后进入 **Settings → Account → Language → Translation**，选择 **中文（简体）** 并保存。也可以访问 `/settings/panel/language/`，页面会跳转到当前用户的语言设置。
 
-> 为什么需要自建 Locale 类和运行时分支：`zh_CN` 的 Locale/Translation 类由本仓库自行提供，`libphutil` 的 `loadAllLocales()` / `loadLocale()` **无法自动发现**它们。因此设置页需要手动注入 `zh_CN` 选项，`PhabricatorEnv::setLocaleCode()` 也需要一个专门分支直接实例化自带类，否则即便在设置里选了中文也不会真正生效。
+个人选择只影响该用户，不会修改其他用户或命令行的语言。
 
-## 二、启用方式
+### 全局默认界面语言
 
-中文默认可选，无需额外配置即可在界面中切换：
+管理员进入 **Settings → Global Default Settings**，在 **Language → Translation** 中选择 **中文（简体）**。直接入口为 `/settings/builtin/global/page/language/`；尚未建立全局设置时，可从 Settings 页面选择 **Create Global Defaults**。
 
-1. 登录后进入 **Settings → Account → Translation / 翻译**。
-2. 在语言下拉中选择 **中文（简体）**。
-3. 保存后界面即渲染为中文。
+全局默认值适用于未单独设置语言的用户。个人显式保存的语言选择优先于全局默认值。设置全局中文无需修改 `PhabricatorTranslationSetting::getSettingDefaultValue()` 的源码。
 
-如需调整默认语言，注意 Web 与 CLI 是两个独立入口：
+### 命令行和后台任务语言
 
-- 修改 `PhabricatorTranslationSetting::getSettingDefaultValue()` 返回 `'zh_CN'`；或
-- 通过 `bin/config set locale.command zh_CN` 设置命令行/后台任务语言；此项不修改 Web 用户的默认语言。
-
-当前仓库有意保持这两处为 `en_US`（中文可选而非强制默认）。
-
-## 三、运行时加载链路
-
-```mermaid
-flowchart LR
-  Setting["设置页选中「中文（简体）」"] --> Env["PhabricatorEnv::setLocaleCode('zh_CN')"]
-  Env --> Norm["normalizeLocaleCode 归一 zh_* → zh_CN"]
-  Norm --> Branch["zh_CN 分支：new PhabricatorChineseLocale + PhabricatorChineseTranslation"]
-  Branch --> Map["getTranslationMap() 提供中文串"]
-  Map --> UI["界面渲染为中文"]
-```
-
-`normalizeLocaleCode()` 会把 `zh-CN`、`zh_Hans`、`zh_Hant`、`zh_*` 等归一化为 `zh_CN`，因此这些变体都会命中中文。
-
-## 四、维护翻译（工具链）
-
-翻译工具位于 `scripts/i18n/`，配套词表在 `resources/i18n-zh-*`。所有脚本使用**仓库根相对路径**，请在仓库根目录执行。
-
-常用命令：
+在 Phorge 根目录执行：
 
 ```bash
-# 1) 检测当前缺失/未翻译的字符串（生成 top-N 清单到 resources/）
-python3 scripts/i18n/check_zh_missing.py --top 1000 --out resources/i18n-zh-missing-top1000.txt
-
-# 2) 按批生成/补全翻译（建议先 --dry-run 预览）
-python3 scripts/i18n/improve_zh_batch.py --start-line 22 --end-line 1021 --dry-run
-python3 scripts/i18n/improve_zh_batch.py --start-line 22 --end-line 1021 --limit 500
-
-# 3) 一键循环补全（检测 → 补全，直至无缺失或达到最大轮数）
-bash scripts/i18n/run_zh_autofill.sh
+bin/config set locale.command zh_CN
 ```
 
-- 分批规划见 [`scripts/i18n/BATCH_PLAN_1000.md`](scripts/i18n/BATCH_PLAN_1000.md)（按当前文件重新计算行范围，不复用固定批次快照）。
-- 术语表见 [`resources/i18n-zh-glossary.md`](resources/i18n-zh-glossary.md)，用于统一译法。
-- `translate_zh_api_batch.py` 支持调用翻译 API 批量处理；使用前请自行配置密钥，切勿把密钥硬编码进仓库。模型及参数默认值以脚本的 `--help` 和常量为准，可用 `--model`、`--temperature`、`--top-p`、`--max-tokens` 覆盖：
+`locale.command` 控制没有指定 `--locale` 的命令行脚本，不改变 Web 用户设置。支持公共语言参数的命令也可以使用 `--locale zh_CN` 临时覆盖。恢复命令行英文默认值：
 
 ```bash
-export MOONSHOT_API_KEY=sk-xxx        # 通过环境变量传入，勿写进仓库
-python3 scripts/i18n/translate_zh_api_batch.py --dry-run   # 先预览会翻多少
-python3 scripts/i18n/translate_zh_api_batch.py --limit 500 # 每次翻 500 条，可反复跑（带断点续传）
+bin/config set locale.command en_US
 ```
 
-修改翻译文件后，务必做语法检查：
+## 翻译维护
+
+维护入口是 [`scripts/i18n/translate_zh_api_batch.py`](scripts/i18n/translate_zh_api_batch.py)，通过在线模型 API 翻译当前源码需要的文案。安装依赖、提供 API 密钥、筛选候选、批量翻译、续跑与校验说明见 [`scripts/i18n/README.md`](scripts/i18n/README.md)。
+
+先查看参数和只读候选预览：
+
+```bash
+python3 scripts/i18n/translate_zh_api_batch.py --help
+python3 scripts/i18n/translate_zh_api_batch.py --dry-run
+```
+
+工具根据当前 PHP AST 提取 `pht()` 的静态键、参数类型和源码位置，处理缺失译文以及待改善的英文或中英混合译文，并保留复数、性别等数组分支。它自动读取 [`resources/i18n-zh-glossary.md`](resources/i18n-zh-glossary.md)，用于统一模型翻译中的术语。
+
+旧的缺失清单、TSV 映射、规则补译脚本和临时进度文件已移除，保留术语表供在线翻译使用。候选与进度以当前源码和实际生效词典为准。
+
+## 运行时组成
+
+- `src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php` 提供中文映射；值可以是字符串，也可以是复数或性别分支数组。
+- `src/infrastructure/internationalization/locale/PhabricatorChineseLocale.php` 定义 `zh_CN`，显示名称为「中文（简体）」，回退语言为 `en_US`。
+- `src/__phutil_library_map__.php` 注册这两个类。当前内置运行库的类发现机制能找到它们，`PhutilLocale::loadAllLocales()`、`loadLocale('zh_CN')` 和 `PhutilTranslation::getAllTranslations()` 均支持自动发现。
+- `PhabricatorTranslationSetting` 将内置简体中文放入常规语言选项。
+- `PhabricatorEnv::setLocaleCode()` 当前保留 `zh_CN` 专门分支，直接加载中文 Locale 和映射。此分支是现有实现，不是因为当前运行库必然无法发现中文类。
+
+Web 请求使用用户语言设置；命令行从 `locale.command` 加载语言。`normalizeLocaleCode()` 先将连字符变为下划线，再将 `zh_*` 归一为 `zh_CN`，所以 `zh-CN`、`zh_Hans`、`zh_Hant` 等当前都会使用这套简体中文译文。`translation.override` 中的自定义映射优先于内置译文。
+
+## 验收与部署
+
+模型译文需要人工复核术语和语境。词典键命中率、译文是否含汉字或静态缺失键数量，都不能直接表示真实界面的汉化完成率：源字符串中也有命令行消息、错误信息、占位模板和产品名，提取范围也不能覆盖所有动态内容或未使用 `pht()` 的文案。
+
+工具在提交翻译文件前执行 PHP 语法和原生格式校验。修改后检查差异，并在启用中文的实际页面中验证；独立语法检查可运行：
 
 ```bash
 php -l src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php
 ```
 
-## 五、部署注意事项（OPcache）
-
-翻译文件较大。在启用了 OPcache 的生产环境中，超大 PHP 文件偶发会触发「Failed to load symbol」类告警。若真正启用 `zh_CN` 并观察到此类问题，建议将该翻译文件加入 OPcache 黑名单：
-
-- 在 `docker/php/opcache.ini` 指定 `opcache.blacklist_filename`；
-- 在对应的 `opcache-blacklist.txt` 中加入该翻译文件路径。
-
-当前 `opcache.validate_timestamps=0`，源码与翻译修改后必须重新构建并重启消费者。黑名单是出现实际编译/加载问题时的诊断选项，不作为默认要求。
-
-## 六、相关决策
-
-- **中文可选，不强制默认**：`getSettingDefaultValue()` 与 `locale.command` 均保持 `en_US`。
-- **不改动 `PhabricatorUSEnglishTranslation.php`**：其在定制版中的差异来自上游已移除的 `phortune`/`fund` 应用字符串，本仓库不含这些应用，故不迁移。
+当前容器的 `opcache.validate_timestamps=0`。翻译文件随源码打包，更新后应按部署流程重新构建镜像并重启 Web 和后台消费者，确保它们加载新文件。如果实际出现超大翻译文件的编译或符号加载异常，再检查 OPcache 日志及黑名单配置；黑名单不是启用中文的必要步骤。

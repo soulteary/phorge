@@ -97,10 +97,26 @@ final class PhorgeI18nTestCase extends PhabricatorTestCase {
     Filesystem::writeFile(
       $root.'messages/retired.php',
       '<?php pht("Retired extraction %s", count(array()));');
+    $script = $directory.'/fixture/scripts/tasks/command.php';
+    Filesystem::createDirectory(dirname($script), 0755, true);
+    Filesystem::writeFile($script, '<?php pht("Script extraction");');
 
     $extractor = new PhabricatorInternationalizationManagementExtractWorkflow();
     $cache = $extractor->getCachePath($root, 'i18n_strings.json');
     try {
+      $strings = $extractor->extractLibraryStrings($root);
+      $this->assertEqual(
+        array(
+          'Current extraction %s',
+          'Retired extraction %s',
+          'Script extraction',
+        ),
+        array_keys($strings));
+      $this->assertEqual(
+        '../scripts/tasks/command.php',
+        $strings['Script extraction']['uses'][0]['file']);
+      $this->assertFalse(Filesystem::pathExists($cache));
+      Filesystem::remove($script);
       $this->extractFixture($directory);
       $strings = phutil_json_decode(Filesystem::readFile($cache));
       $this->assertEqual(

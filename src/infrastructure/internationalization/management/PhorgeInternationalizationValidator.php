@@ -232,8 +232,15 @@ final class PhorgeInternationalizationValidator extends Phobject {
       }
       $all_json += phutil_json_decode(Filesystem::readFile($json));
     }
-    // Add extra date elements from PhutilTranslator::translateDate
-    // which aren't in a static pht() call
+    foreach ($this->getExtraSources() as $key => $source) {
+      $all_json[$key] = $source;
+    }
+    return $all_json;
+  }
+
+  /** Dynamic messages used by PhutilTranslator::translateDate(). */
+  public function getExtraSources() {
+    $all_json = array();
     $date = array('types' => array());
     $all_json['Jan'] = $date;
     $all_json['Feb'] = $date;

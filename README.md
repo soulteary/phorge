@@ -33,7 +33,7 @@ Phorge is developed and maintained by [The Phorge Team](https://phorge.it).
 
 ## 本地化 / Localization
 
-本仓库内置简体中文（`zh_CN`）界面本地化，默认可选（默认语言仍为英文）。启用方式、运行时链路与翻译维护工具链详见 [I18N-zh_CN.md](I18N-zh_CN.md)。
+本仓库内置简体中文（`zh_CN`），支持个人语言与全局默认语言设置，未配置时仍使用英文。启用与部署说明见 [I18N-zh_CN.md](I18N-zh_CN.md)，在线模型 API 翻译维护说明见 [scripts/i18n/README.md](scripts/i18n/README.md)。
 
 ----------
 

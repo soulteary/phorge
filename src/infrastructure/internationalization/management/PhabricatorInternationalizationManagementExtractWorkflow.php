@@ -137,7 +137,17 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
     return $modified;
   }
 
-  private function extractFiles($root_path, array $files) {
+  /** Extract a current library catalog without writing extraction caches. */
+  public function extractLibraryStrings($root) {
+    $root = Filesystem::resolvePath($root).DIRECTORY_SEPARATOR;
+    return $this->buildStringMap(
+      $this->extractFiles(
+        rtrim($root, DIRECTORY_SEPARATOR),
+        $this->loadLibraryFiles($root),
+        true));
+  }
+
+  private function extractFiles($root_path, array $files, $strict = false) {
     $hashes = array();
 
     $bar = id(new PhutilConsoleProgressBar())
@@ -175,6 +185,10 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
 
     $bar->done();
 
+    if ($strict && $messages) {
+      throw new Exception(implode("\n", $messages));
+    }
+
     foreach ($messages as $message) {
       echo tsprintf(
         "**<bg:yellow> %s </bg>** %s\n",
@@ -186,6 +200,12 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
   }
 
   private function writeStrings($root, array $strings) {
+    $map = $this->buildStringMap($strings);
+    $json = id(new PhutilJSON())->encodeFormatted($map);
+    $this->writeCache($root, 'i18n_strings.json', $json);
+  }
+
+  private function buildStringMap(array $strings) {
     $map = array();
     foreach ($strings as $hash => $string_list) {
       foreach ($string_list as $string_info) {
@@ -211,9 +231,7 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
     }
 
     ksort($map);
-
-    $json = id(new PhutilJSON())->encodeFormatted($map);
-    $this->writeCache($root, 'i18n_strings.json', $json);
+    return $map;
   }
 
   private function loadLibraryFiles($root) {

@@ -29,6 +29,8 @@ jobs:
           coverage: none
       - name: Prepare retained parser tools explicitly
         run: php scripts/runtime/build.php all
+      - name: Verify online translation maintenance without external API calls
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/i18n -p 'test_*.py' -v
       - name: Verify runtime behavior and response safety
         run: |
           php scripts/runtime/verify.php

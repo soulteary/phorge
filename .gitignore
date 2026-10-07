@@ -12,6 +12,10 @@
 /webroot/rsrc/externals/javelin/docs/.divinercache/
 /src/.cache/
 
+# Local translation maintenance artifacts (not source data).
+/scripts/i18n/__pycache__/
+/src/infrastructure/internationalization/translation/*.progress.json
+
 # libphutil
 /src/.phutil_module_cache
 
