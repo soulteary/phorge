@@ -80,22 +80,18 @@ abstract class NuanceGitHubImportCursor
         'per_page' => $page_size,
       );
 
-      $future = id(new PhutilGitHubFuture())
-        ->setAccessToken($api_token)
-        ->setRawGitHubQuery($uri, $data);
-
-      if ($page == 1) {
-        $cursor_etag = $this->getCursorProperty('github.poll.etag');
-        if ($cursor_etag) {
-          $future->addHeader('If-None-Match', $cursor_etag);
-        }
+      $etag_header = ($page == 1)
+        ? $this->getCursorProperty('github.poll.etag') : null;
+      $this->logInfo(pht('Polling GitHub Repository API endpoint "%s".', $uri));
+      if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'github')) {
+        $response = PhabricatorGorgeIntegrationClient::readGitHub(
+          $source->getPHID(), $api_token, $uri, $data, $etag_header);
+      } else {
+        $future = id(new PhutilGitHubFuture())
+          ->setAccessToken($api_token)->setRawGitHubQuery($uri, $data);
+        if ($etag_header) { $future->addHeader('If-None-Match', $etag_header); }
+        $response = $future->resolve();
       }
-
-      $this->logInfo(
-        pht(
-          'Polling GitHub Repository API endpoint "%s".',
-          $uri));
-      $response = $future->resolve();
 
       // Do this first: if we hit the rate limit, we get a response but the
       // body isn't valid.
@@ -109,7 +105,8 @@ abstract class NuanceGitHubImportCursor
 
       // This means we hit a rate limit or a "Not Modified" because of the
       // "ETag" header. In either case, we should bail out.
-      if ($response->getStatus()->isError()) {
+      if ($response->getStatus()->isError() ||
+          $response->getStatus()->getStatusCode() == 304) {
         $this->updatePolling($response, $now, false);
         $this->getCursorData()->save();
         return false;

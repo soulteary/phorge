@@ -111,7 +111,8 @@ final class PhabricatorFilesComposeAvatarBuiltinFile
     $icon = $this->getIcon();
     $color = $this->getColor();
     $border = implode(',', $this->getBorder());
-    $desc = "compose(icon={$icon}, color={$color}, border={$border}";
+    $mode = PhabricatorEnv::getEnvConfig('gorge.image.builtin-mode');
+    $desc = "compose(revision=compose-v1, mode={$mode}, icon={$icon}, color={$color}, border={$border}";
     $hash = PhabricatorHash::digestToLength($desc, 40);
     return "builtin:{$hash}";
   }
@@ -136,6 +137,19 @@ final class PhabricatorFilesComposeAvatarBuiltinFile
   }
 
   private function composeImage($color, $image, $border) {
+    if (PhabricatorEnv::getEnvConfig('gorge.image.builtin-mode') === 'legacy') {
+      return $this->composeLegacyImage($color, $image, $border);
+    }
+    $map = $this->getMap('image');
+    return PhabricatorGorgeImageClient::composeWithRollout(array(
+      'recipe' => 'avatar', 'background' => $color, 'border' => $border,
+      'layers' => array(base64_encode(Filesystem::readFile($map[$image])))),
+      function() use ($color, $image, $border) {
+        return $this->composeLegacyImage($color, $image, $border);
+      });
+  }
+
+  private function composeLegacyImage($color, $image, $border) {
     // If we don't have the GD extension installed, just return a static
     // default profile image rather than trying to compose a dynamic one.
     if (!function_exists('imagecreatefromstring')) {

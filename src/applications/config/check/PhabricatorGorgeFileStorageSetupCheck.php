@@ -94,9 +94,42 @@ final class PhabricatorGorgeFileStorageSetupCheck
     if (!$this->checkDownloadCapabilities()) {
       return;
     }
+    if (!$this->checkLifecycleCapabilities()) { return; }
     $this->checkEnabled($uri);
   }
 
+
+  private function checkLifecycleCapabilities() {
+    $uploads = PhabricatorEnv::getEnvConfig('gorge.file.uploads');
+    $deletes = PhabricatorEnv::getEnvConfig('gorge.file.deletion-outbox');
+    if (!$uploads && !$deletes) { return true; }
+    try {
+      if ($uploads && !$deletes) { throw new Exception(pht('Gorge uploads require durable deletion.')); }
+      $client = new PhabricatorGorgeFileStorageClient();
+      $caps = $client->getLifecycleCapabilities();
+      if (idx($caps, 'protocolVersion') !== 1 ||
+          ($uploads && idx($caps, 'uploads') !== true) ||
+          ($deletes && idx($caps, 'deletionOutbox') !== true)) {
+        throw new Exception(pht('Required file lifecycle capability is unavailable.'));
+      }
+      if ($uploads && PhabricatorKeyring::getDefaultKeyName(
+          PhabricatorFileAES256StorageFormat::FORMATKEY) !== null) {
+        throw new Exception(pht('Raw Gorge upload sessions cannot bypass configured encryption.'));
+      }
+      if ($uploads && !PhabricatorGorgeFileStorageClient::hasUploadCapabilities(
+          $client->getUploadCapabilities())) {
+        throw new Exception(pht('Required upload protocol is unavailable.'));
+      }
+      return true;
+    } catch (Exception $ex) {
+      $this->newIssue('gorge.file.lifecycle-unavailable')
+        ->setName(pht('Gorge File Lifecycle Is Unavailable'))
+        ->setMessage(pht('Configure matching tokens, a persistent upload volume and a deletion consumer; run storage upgrades before enabling file lifecycle options.'))
+        ->addRelatedPhabricatorConfig('gorge.file.uploads')
+        ->addRelatedPhabricatorConfig('gorge.file.deletion-outbox');
+      return false;
+    }
+  }
 
   private function checkDownloadCapabilities() {
     try {

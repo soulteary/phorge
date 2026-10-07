@@ -136,13 +136,7 @@ abstract class PhutilOAuth1AuthAdapter extends PhutilAuthAdapter {
   public function getClientRedirectURI() {
     $request_token_uri = $this->getRequestTokenURI();
 
-    $future = $this->newOAuth1Future($request_token_uri);
-    if (phutil_nonempty_string($this->getCallbackURI())) {
-      $future->setCallbackURI($this->getCallbackURI());
-    }
-
-    list($body) = $future->resolvex();
-    $data = id(new PhutilQueryStringParser())->parseQueryString($body);
+    $data = $this->requestOAuthToken($request_token_uri, array(), true);
 
     // NOTE: Per the spec, this value MUST be the string 'true'.
     $confirmed = idx($data, 'oauth_callback_confirmed');
@@ -174,12 +168,20 @@ abstract class PhutilOAuth1AuthAdapter extends PhutilAuthAdapter {
       'oauth_verifier' => $this->getVerifier(),
     );
 
-    list($body) = $this->newOAuth1Future($validate_uri, $params)->resolvex();
-    $data = id(new PhutilQueryStringParser())->parseQueryString($body);
+    $data = $this->requestOAuthToken($validate_uri, $params, false);
 
     $this->readTokenAndTokenSecret($data);
 
     $this->handshakeData = $data;
+  }
+
+  protected function requestOAuthToken($uri, array $params, $callback) {
+    $future = $this->newOAuth1Future($uri, $params);
+    if ($callback && phutil_nonempty_string($this->getCallbackURI())) {
+      $future->setCallbackURI($this->getCallbackURI());
+    }
+    list($body) = $future->resolvex();
+    return id(new PhutilQueryStringParser())->parseQueryString($body);
   }
 
   private function readTokenAndTokenSecret(array $data) {

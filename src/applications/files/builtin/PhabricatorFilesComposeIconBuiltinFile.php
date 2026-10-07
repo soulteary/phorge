@@ -27,7 +27,8 @@ final class PhabricatorFilesComposeIconBuiltinFile
   public function getBuiltinFileKey() {
     $icon = $this->getIcon();
     $color = $this->getColor();
-    $desc = "compose(icon={$icon}, color={$color})";
+    $mode = PhabricatorEnv::getEnvConfig('gorge.image.builtin-mode');
+    $desc = "compose(revision=compose-v1, mode={$mode}, icon={$icon}, color={$color})";
     $hash = PhabricatorHash::digestToLength($desc, 40);
     return "builtin:{$hash}";
   }
@@ -98,6 +99,22 @@ final class PhabricatorFilesComposeIconBuiltinFile
   }
 
   private function composeImage($color, $icon) {
+    if (PhabricatorEnv::getEnvConfig('gorge.image.builtin-mode') === 'legacy') {
+      return $this->composeLegacyImage($color, $icon);
+    }
+    $colors = self::getAllColors();
+    $icons = self::getAllIcons();
+    $background = idx($colors, $color, idx($colors, 'backdrop'));
+    $asset = idx($icons, $icon, idx($icons, 'fa-umbrella'));
+    return PhabricatorGorgeImageClient::composeWithRollout(array(
+      'recipe' => 'icon', 'background' => $background['color'],
+      'layers' => array(base64_encode(Filesystem::readFile($asset['path'])))),
+      function() use ($color, $icon) {
+        return $this->composeLegacyImage($color, $icon);
+      });
+  }
+
+  private function composeLegacyImage($color, $icon) {
     // If we don't have the GD extension installed, just return a static
     // default project image rather than trying to compose one.
     if (!function_exists('imagecreatefromstring')) {

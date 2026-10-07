@@ -145,14 +145,16 @@ configure_scalar_service(
 configure_scalar_service(
   $config, 'GORGE_IMAGE_URI', 'gorge.image.uri', 'gorge.image.token');
 $image_mode = env_value('GORGE_IMAGE_MODE',
-  isset($local['gorge.image.mode']) ? $local['gorge.image.mode'] : 'legacy');
+  isset($local['gorge.image.mode']) ? $local['gorge.image.mode'] :
+    (isset($config['gorge.image.mode']) ? $config['gorge.image.mode'] : 'legacy'));
 if (!in_array($image_mode, array('legacy', 'shadow', 'gorge'), true)) {
   throw new Exception('GORGE_IMAGE_MODE must be legacy, shadow, or gorge.');
 }
 $config['gorge.image.mode'] = $image_mode;
 $config['gorge.image.shadow-percent'] = env_uint('GORGE_IMAGE_SHADOW_PERCENT',
   (string)(isset($local['gorge.image.shadow-percent'])
-    ? $local['gorge.image.shadow-percent'] : 10));
+    ? $local['gorge.image.shadow-percent'] :
+      (isset($config['gorge.image.shadow-percent']) ? $config['gorge.image.shadow-percent'] : 10)));
 if ($config['gorge.image.shadow-percent'] > 100) {
   throw new Exception('GORGE_IMAGE_SHADOW_PERCENT must not exceed 100.');
 }
@@ -161,6 +163,31 @@ if ($image_mode !== 'legacy' &&
     (empty($config['gorge.image.uri']) || empty($config['gorge.image.token']))) {
   throw new Exception('Active image mode requires GORGE_IMAGE_URI and token.');
 }
+foreach (array('GORGE_FILE_UPLOADS' => 'gorge.file.uploads',
+  'GORGE_FILE_DELETION_OUTBOX' => 'gorge.file.deletion-outbox') as $variable => $key) {
+  $config[$key] = env_bool($variable,
+    isset($local[$key]) ? $local[$key] : !empty($config[$key]));
+}
+if ($config['gorge.file.uploads'] && !$config['gorge.file.deletion-outbox']) {
+  throw new Exception('Gorge upload sessions require GORGE_FILE_DELETION_OUTBOX.');
+}
+if (($config['gorge.file.uploads'] || $config['gorge.file.deletion-outbox']) &&
+    (empty($config['gorge.file.uri']) || empty($config['gorge.file.token']))) {
+  throw new Exception('File lifecycle requires GORGE_FILE_URI and token.');
+}
+foreach (array('GORGE_IMAGE_MEME_MODE' => 'gorge.image.meme-mode',
+  'GORGE_IMAGE_BUILTIN_MODE' => 'gorge.image.builtin-mode') as $variable => $key) {
+  $config[$key] = env_value($variable, isset($local[$key]) ? $local[$key] :
+    (isset($config[$key]) ? $config[$key] : 'legacy'));
+  if (!in_array($config[$key], array('legacy', 'shadow', 'gorge'), true)) {
+    throw new Exception($variable.' must be legacy, shadow, or gorge.');
+  }
+  if ($config[$key] !== 'legacy' &&
+      (empty($config['gorge.image.uri']) || empty($config['gorge.image.token']))) {
+    throw new Exception('Active image recipes require GORGE_IMAGE_URI and token.');
+  }
+}
+
 if (getenv('GORGE_CLEANUP_GUARD') !== false) {
   $config['phd.gorge-cleanup'] = env_bool('GORGE_CLEANUP_GUARD', false);
 }

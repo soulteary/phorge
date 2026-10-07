@@ -57,12 +57,15 @@ final class PhabricatorJIRAAuthProvider
   protected function newOAuthAdapter() {
     $config = $this->getProviderConfig();
 
-    return id(new PhutilJIRAAuthAdapter())
+    $adapter = id(new PhutilJIRAAuthAdapter())
       ->setAdapterDomain($config->getProviderDomain())
-      ->setJIRABaseURI($config->getProperty(self::PROPERTY_JIRA_URI))
-      ->setPrivateKey(
-        new PhutilOpaqueEnvelope(
-          $config->getProperty(self::PROPERTY_PRIVATE_KEY)));
+      ->setJIRABaseURI($config->getProperty(self::PROPERTY_JIRA_URI));
+    if (!PhabricatorGorgeIntegrationClient::enabled(
+      'connectors', 'jira:'.$config->getProviderDomain())) {
+      $adapter->setPrivateKey(new PhutilOpaqueEnvelope(
+        $config->getProperty(self::PROPERTY_PRIVATE_KEY)));
+    }
+    return $adapter;
   }
 
   protected function getLoginIcon() {

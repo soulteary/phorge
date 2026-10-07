@@ -35,6 +35,10 @@ switch ($_SERVER['REQUEST_URI']) {
   case '/old': echo '{"data":{"executionVersion":0,"leaseOutcomes":true}}'; break;
   case '/api/file/fetch/meta':
     echo '{"data":{"protocolVersion":1,"maxBytes":16777216,"publicOnly":true,"headerTokenOnly":true,"pinnedDNS":true}}'; break;
+  case '/api/file/lifecycle/meta':
+    echo '{"data":{"protocolVersion":1,"uploads":true,"deletionOutbox":true}}'; break;
+  case '/api/file/uploads/meta':
+    echo '{"data":{"protocolVersion":1,"integrityVersion":1,"enabled":true,"chunkSize":4194304,"maxSize":68719476736,"storageFormat":"raw","durability":"posix-volume"}}'; break;
   case '/meta':
   case '/api/queue/meta':
   case '/api/worker/meta':
@@ -75,6 +79,10 @@ PHP
     array('/big', 'ready', 'test-token', false),
     array('/api/file/fetch/meta', 'file-fetch', 'test-token', true),
     array('/old', 'file-fetch', 'test-token', false),
+    array('/api/file/lifecycle/meta', 'file-uploads', 'test-token', true),
+    array('/api/file/lifecycle/meta', 'file-deletions', 'test-token', true),
+    array('/api/file/uploads/meta', 'file-upload-protocol', 'test-token', true),
+    array('/old', 'file-upload-protocol', 'test-token', false),
     array('/diff', 'diff', 'test-token', true),
   ) as $case) {
     $payload = $case[1] === 'diff' ? array('old' => '', 'new' => '') : null;
@@ -87,6 +95,7 @@ PHP
   $config = array('gorge.service-policy' => 'required',
     'gorge.render.uri' => $base, 'gorge.render.token' => 'test-token',
     'gorge.file.uri' => $base, 'gorge.file.token' => 'test-token',
+    'gorge.file.uploads' => true, 'gorge.file.deletion-outbox' => true,
     'gorge.taskqueue.uri' => $base, 'gorge.taskqueue.token' => 'test-token');
   file_put_contents($directory.'/deployment.json', json_encode($config));
   foreach (array('test-token' => 0, 'wrong-token' => 1) as $token => $expected) {

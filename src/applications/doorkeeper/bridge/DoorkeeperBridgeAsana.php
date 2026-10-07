@@ -61,6 +61,16 @@ final class DoorkeeperBridgeAsana extends DoorkeeperBridge {
       return;
     }
 
+    $native = PhabricatorGorgeIntegrationClient::enabled('connectors', 'asana');
+    if ($native) {
+      $results = array(); $failed = array();
+      foreach ($id_map as $key => $id) {
+        try {
+          $results[$key] = PhabricatorGorgeIntegrationClient::readConnector(
+            'asana', $account->getPHID(), $token, "tasks/{$id}");
+        } catch (Exception $ex) { $failed[$key] = $ex; }
+      }
+    } else {
     $template = id(new PhutilAsanaFuture())
       ->setAccessToken($token);
 
@@ -92,6 +102,8 @@ final class DoorkeeperBridgeAsana extends DoorkeeperBridge {
           $failed[$key] = $ex;
         }
       }
+    }
+
     }
 
     foreach ($refs as $ref) {

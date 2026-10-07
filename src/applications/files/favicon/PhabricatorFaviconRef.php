@@ -96,6 +96,8 @@ final class PhabricatorFaviconRef extends Phobject {
       'prod' => PhabricatorEnv::getProductionURI('/'),
       'cdn' => PhabricatorEnv::getEnvConfig('security.alternate-file-domain'),
       'havepng' => function_exists('imagepng'),
+      'composeMode' => PhabricatorEnv::getEnvConfig('gorge.image.builtin-mode'),
+      'composeRevision' => 'compose-v1',
     );
 
     return PhabricatorHash::digestForIndex(serialize($inputs));
@@ -242,6 +244,25 @@ final class PhabricatorFaviconRef extends Phobject {
   }
 
   private function newCompositedFavicon($template) {
+    if (PhabricatorEnv::getEnvConfig('gorge.image.builtin-mode') === 'legacy') {
+      return $this->newLegacyCompositedFavicon($template);
+    }
+    try { $data = $template['file']->loadFileData(); }
+    catch (Exception $ex) { return null; }
+    $layers = array(base64_encode($data));
+    $size = (int)floor(min($this->getWidth(), $this->getHeight()) / 2);
+    foreach ($this->emblems as $emblem) {
+      if ($emblem === null) { $layers[] = ''; continue; }
+      $asset = $this->newTemplateFile($emblem, $size, $size);
+      $layers[] = base64_encode($asset['file']->loadFileData());
+    }
+    return PhabricatorGorgeImageClient::composeWithRollout(array(
+      'recipe' => 'favicon', 'width' => $this->getWidth(), 'height' => $this->getHeight(),
+      'background' => '#000000', 'layers' => $layers),
+      function() use ($template) { return $this->newLegacyCompositedFavicon($template); });
+  }
+
+  private function newLegacyCompositedFavicon($template) {
     $dst_w = $this->getWidth();
     $dst_h = $this->getHeight();
     $src_w = $template['width'];

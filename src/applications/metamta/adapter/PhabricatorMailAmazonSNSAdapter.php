@@ -12,6 +12,9 @@ final class PhabricatorMailAmazonSNSAdapter
   }
 
   protected function validateOptions(array $options) {
+    if (PhabricatorGorgeIntegrationClient::enabled('sms', $this->getKey())) {
+      return;
+    }
     PhutilTypeSpec::checkMap(
       $options,
       array(
@@ -32,6 +35,10 @@ final class PhabricatorMailAmazonSNSAdapter
   }
 
   public function sendMessage(PhabricatorMailExternalMessage $message) {
+    if (PhabricatorGorgeIntegrationClient::enabled('sms', $this->getKey())) {
+      return PhabricatorGorgeIntegrationClient::sendSMS($this, $message);
+    }
+
     $access_key = $this->getOption('access-key');
 
     $secret_key = $this->getOption('secret-key');

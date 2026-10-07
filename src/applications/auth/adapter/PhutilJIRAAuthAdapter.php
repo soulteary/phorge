@@ -114,15 +114,13 @@ final class PhutilJIRAAuthAdapter extends PhutilOAuth1AuthAdapter {
   private function newUserInfo() {
     // See T13493. Try a relatively modern (circa early 2020) API call first.
     try {
-      return $this->newJIRAFuture('rest/api/3/myself', 'GET')
-        ->resolveJSON();
+      return $this->readUserAPI('rest/api/3/myself');
     } catch (Exception $ex) {
       // If we failed the v3 call, assume the server version is too old
       // to support this API and fall back to trying the older method.
     }
 
-    $session = $this->newJIRAFuture('rest/auth/1/session', 'GET')
-      ->resolveJSON();
+    $session = $this->readUserAPI('rest/auth/1/session');
 
     // The session call gives us the username, but not the user key or other
     // information. Make a second call to get additional information.
@@ -131,8 +129,29 @@ final class PhutilJIRAAuthAdapter extends PhutilOAuth1AuthAdapter {
       'username' => $session['name'],
     );
 
-    return $this->newJIRAFuture('rest/api/2/user', 'GET', $params)
-      ->resolveJSON();
+    return $this->readUserAPI('rest/api/2/user', $params);
+  }
+
+  protected function requestOAuthToken($uri, array $params, $callback) {
+    $key = 'jira:'.$this->getAdapterDomain();
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', $key)) {
+      if ($callback && phutil_nonempty_string($this->getCallbackURI())) {
+        $params['oauth_callback'] = $this->getCallbackURI();
+      }
+      return PhabricatorGorgeIntegrationClient::authenticate(
+        $key, $callback ? 'request-token' : 'access-token',
+        $callback ? '' : $this->getToken(), $params);
+    }
+    return parent::requestOAuthToken($uri, $params, $callback);
+  }
+
+  private function readUserAPI($path, array $params = array()) {
+    $key = 'jira:'.$this->getAdapterDomain();
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', $key)) {
+      return PhabricatorGorgeIntegrationClient::readConnector(
+        $key, 'auth:jira', $this->getToken(), $path, $params);
+    }
+    return $this->newJIRAFuture($path, 'GET', $params)->resolveJSON();
   }
 
   public static function newJIRAKeypair() {

@@ -86,6 +86,9 @@ final class PhabricatorS3FileStorageEngine
       ->setAccessKey($access_key)
       ->setSecretKey(new PhutilOpaqueEnvelope($secret_key))
       ->setRegion($region)
+      // Match the domain-only Host canonicalized by the pinned AWS signer.
+      // The connection still uses the full endpoint, including its port.
+      ->addHeader('Host', id(new PhutilURI('https://'.$endpoint.'/'))->getDomain())
       ->setEndpoint($endpoint)
       ->setBucket($this->getBucketName());
   }

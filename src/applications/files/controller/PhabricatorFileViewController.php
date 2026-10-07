@@ -338,20 +338,38 @@ final class PhabricatorFileViewController extends PhabricatorFileController {
             ->setKey('chunks')
             ->appendChild($chunkinfo));
 
-        $chunks = id(new PhabricatorFileChunkQuery())
-          ->setViewer($viewer)
-          ->withChunkHandles(array($file->getStorageHandle()))
-          ->execute();
-        $chunks = msort($chunks, 'getByteStart');
+        if ($file->getStorageEngine() === 'chunks' &&
+            PhabricatorChunkedFileStorageEngine::isGorgeHandle($file->getStorageHandle())) {
+          try {
+            $upload = id(new PhabricatorGorgeFileStorageClient())->getUpload(
+              PhabricatorChunkedFileStorageEngine::getGorgeUploadID($file->getStorageHandle()));
+            $chunks = $upload['chunks'];
+          } catch (Exception $ex) {
+            $chunkinfo->addProperty(pht('Upload Status'),
+              pht('Unavailable. Retry the upload to recover or start a new upload.'));
+            return;
+          }
+        } else {
+          $stored_chunks = id(new PhabricatorFileChunkQuery())
+            ->setViewer($viewer)
+            ->withChunkHandles(array($file->getStorageHandle()))
+            ->execute();
+          $chunks = array();
+          foreach (msort($stored_chunks, 'getByteStart') as $chunk) {
+            $chunks[] = array('byteStart' => $chunk->getByteStart(),
+              'byteEnd' => $chunk->getByteEnd(),
+              'complete' => (bool)$chunk->getDataFilePHID());
+          }
+        }
 
         $rows = array();
         $completed = array();
         foreach ($chunks as $chunk) {
-          $is_complete = $chunk->getDataFilePHID();
+          $is_complete = $chunk['complete'];
 
           $rows[] = array(
-            $chunk->getByteStart(),
-            $chunk->getByteEnd(),
+            $chunk['byteStart'],
+            $chunk['byteEnd'],
             ($is_complete ? pht('Yes') : pht('No')),
           );
 

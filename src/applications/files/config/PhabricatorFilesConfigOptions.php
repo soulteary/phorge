@@ -133,6 +133,20 @@ final class PhabricatorFilesConfigOptions
     // discussion).
 
     return array(
+      $this->newOption('gorge.file.uploads', 'bool', false)
+        ->setLocked(true)
+        ->setDescription(pht('Use durable raw Gorge upload sessions for new chunked files. Requires a persistent upload volume; encrypted installations are rejected.')),
+      $this->newOption('gorge.file.deletion-outbox', 'bool', false)
+        ->setLocked(true)
+        ->setDescription(pht('Commit Gorge physical deletion intents with file-row deletion. Requires storage upgrade and GORGE_FILE_DELETION_DSN consumer.')),
+      $this->newOption('gorge.image.builtin-mode', 'enum', 'legacy')
+        ->setEnumOptions(array('legacy' => pht('PHP'), 'shadow' => pht('Shadow'), 'gorge' => pht('Gorge')))
+        ->setLocked(true)
+        ->setDescription(pht('Builtin avatar, icon and favicon composition rollout.')),
+      $this->newOption('gorge.image.meme-mode', 'enum', 'legacy')
+        ->setEnumOptions(array('legacy' => pht('PHP'), 'shadow' => pht('Shadow'), 'gorge' => pht('Gorge')))
+        ->setLocked(true)
+        ->setDescription(pht('Meme recipe rollout, independent of thumbnail rollout.')),
       $this->newOption('files.viewable-mime-types', 'wild', $viewable_default)
         ->setLocked(true)
         ->setSummary(

@@ -23,6 +23,18 @@ final class DoorkeeperBridgeGitHubIssue
       return null;
     }
 
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'github')) {
+      $results = array(); $failed = array();
+      $id_map = mpull($refs, 'getObjectID', 'getObjectKey');
+      foreach ($id_map as $key => $id) {
+        try {
+          list($user, $repository, $number) = $this->parseGitHubIssueID($id);
+          $results[$key] = PhabricatorGorgeIntegrationClient::readConnector('github',
+            'context:'.$this->getViewer()->getPHID(), $token,
+            "repos/{$user}/{$repository}/issues/{$number}");
+        } catch (Exception $ex) { $failed[$key] = $ex; }
+      }
+    } else {
     $template = id(new PhutilGitHubFuture())
       ->setAccessToken($token);
 
@@ -53,6 +65,8 @@ final class DoorkeeperBridgeGitHubIssue
       }
     }
 
+    }
+
     $viewer = $this->getViewer();
 
     foreach ($refs as $ref) {
@@ -69,7 +83,7 @@ final class DoorkeeperBridgeGitHubIssue
         continue;
       }
 
-      $body = $result->getBody();
+      $body = is_array($result) ? $result : $result->getBody();
 
       $ref->setIsVisible(true);
       $ref->setAttribute('api.raw', $body);
@@ -83,7 +97,7 @@ final class DoorkeeperBridgeGitHubIssue
   }
 
   public function fillObjectFromData(DoorkeeperExternalObject $obj, $result) {
-    $body = $result->getBody();
+    $body = is_array($result) ? $result : $result->getBody();
     $uri = $body['html_url'];
     $obj->setObjectURI($uri);
 

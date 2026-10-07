@@ -5,6 +5,10 @@ final class PhabricatorFactDaemon extends PhabricatorDaemon {
   private $engines;
 
   protected function run() {
+    if (PhabricatorGorgeIntegrationClient::enabled('fact')) {
+      throw new Exception(pht('Fact execution belongs to Gorge; stop the PHP fact daemon.'));
+    }
+
     $this->setEngines(PhabricatorFactEngine::loadAllEngines());
     do {
       PhabricatorCaches::destroyRequestCache();
@@ -39,6 +43,9 @@ final class PhabricatorFactDaemon extends PhabricatorDaemon {
   }
 
   public function processIteratorWithCursor($iterator_name, $iterator) {
+    if (PhabricatorGorgeIntegrationClient::enabled('fact')) {
+      throw new Exception(pht('Fact cursors and writes belong to Gorge.'));
+    }
     $this->log(pht("Processing cursor '%s'.", $iterator_name));
 
     $cursor = id(new PhabricatorFactCursor())->loadOneWhere(
@@ -77,6 +84,10 @@ final class PhabricatorFactDaemon extends PhabricatorDaemon {
   }
 
   public function processIterator($iterator) {
+    if (PhabricatorGorgeIntegrationClient::enabled('fact')) {
+      throw new Exception(pht('Fact writes belong to Gorge.'));
+    }
+
     $result = null;
 
     $datapoints = array();
@@ -124,6 +135,10 @@ final class PhabricatorFactDaemon extends PhabricatorDaemon {
    *   PHID to an array of datapoints
    */
   private function updateDatapoints(array $map) {
+    if (PhabricatorGorgeIntegrationClient::enabled('fact')) {
+      throw new Exception(pht('Fact writes belong to Gorge.'));
+    }
+
     foreach ($map as $phid => $facts) {
       assert_instances_of($facts, PhabricatorFactIntDatapoint::class);
     }

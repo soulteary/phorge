@@ -57,6 +57,31 @@ function gorge_startup_probes(array $config, $worker_uri, $worker_token) {
     $probes[] = array('worker protocol', rtrim($worker_uri, '/').'/api/worker/meta',
       $worker_token, null, 'execution', true);
   }
+  foreach (array('gorge.file.uploads' => 'file-uploads',
+    'gorge.file.deletion-outbox' => 'file-deletions') as $key => $shape) {
+    if (!empty($config[$key])) {
+      $file_uri = isset($config['gorge.file.uri']) ? $config['gorge.file.uri'] : '';
+      $probes[] = array($shape, rtrim($file_uri, '/').'/api/file/lifecycle/meta',
+        isset($config['gorge.file.token']) ? $config['gorge.file.token'] : null,
+        null, $shape, true);
+    }
+  }
+  if (!empty($config['gorge.file.uploads'])) {
+    $file_uri = isset($config['gorge.file.uri']) ? $config['gorge.file.uri'] : '';
+    $probes[] = array('file upload protocol',
+      rtrim($file_uri, '/').'/api/file/uploads/meta',
+      isset($config['gorge.file.token']) ? $config['gorge.file.token'] : null,
+      null, 'file-upload-protocol', true);
+  }
+  foreach (array('gorge.image.meme-mode' => 'image-meme',
+    'gorge.image.builtin-mode' => 'image-compose') as $key => $shape) {
+    if (isset($config[$key]) && $config[$key] !== 'legacy') {
+      $image_uri = isset($config['gorge.image.uri']) ? $config['gorge.image.uri'] : '';
+      $probes[] = array($shape, rtrim($image_uri, '/').'/api/image/capabilities',
+        isset($config['gorge.image.token']) ? $config['gorge.image.token'] : null,
+        null, $shape, $config[$key] === 'gorge');
+    }
+  }
   foreach (isset($config['cluster.mailers']) ? $config['cluster.mailers'] : array()
     as $mailer) {
     if ($mailer['type'] !== 'gorge' ||
@@ -134,6 +159,31 @@ function gorge_startup_valid($shape, $json) {
   }
   $data = $json['data'];
   switch ($shape) {
+    case 'file-upload-protocol':
+      return isset($data['protocolVersion'], $data['enabled'],
+        $data['chunkSize'], $data['maxSize'], $data['storageFormat'],
+        $data['durability']) && $data['protocolVersion'] === 1 &&
+        $data['enabled'] === true && ($data['integrityVersion'] ?? null) === 1 &&
+        $data['chunkSize'] === 4 * 1024 * 1024 &&
+        is_int($data['maxSize']) && $data['maxSize'] > 0 &&
+        $data['maxSize'] <= 64 * 1024 * 1024 * 1024 &&
+        $data['storageFormat'] === 'raw' && $data['durability'] === 'posix-volume';
+    case 'file-uploads':
+      return isset($data['protocolVersion'], $data['uploads']) &&
+        $data['protocolVersion'] === 1 && $data['uploads'] === true;
+    case 'file-deletions':
+      return isset($data['protocolVersion'], $data['deletionOutbox']) &&
+        $data['protocolVersion'] === 1 && $data['deletionOutbox'] === true;
+    case 'image-meme':
+      return isset($data['meme']['revision'], $data['meme']['fontRevision']) &&
+        $data['meme']['revision'] === 'meme-v1' &&
+        is_string($data['meme']['fontRevision']) &&
+        preg_match('/^[a-f0-9]{64}$/D', $data['meme']['fontRevision']);
+    case 'image-compose':
+      return isset($data['compose']['revision'], $data['compose']['recipes']) &&
+        $data['compose']['revision'] === 'compose-v1' &&
+        is_array($data['compose']['recipes']) &&
+        !array_diff(array('avatar', 'icon', 'favicon'), $data['compose']['recipes']);
     case 'file-fetch':
       return isset($data['protocolVersion'], $data['maxBytes'],
         $data['publicOnly'], $data['headerTokenOnly'], $data['pinnedDNS']) &&

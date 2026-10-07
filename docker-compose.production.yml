@@ -72,6 +72,8 @@ services:
       GORGE_IMAGE_URI: http://gorge-image:8190
       GORGE_IMAGE_TOKEN: ${GORGE_IMAGE_TOKEN:?Set GORGE_IMAGE_TOKEN}
       GORGE_IMAGE_MODE: gorge
+      GORGE_IMAGE_MEME_MODE: ${GORGE_IMAGE_MEME_MODE:-legacy}
+      GORGE_IMAGE_BUILTIN_MODE: ${GORGE_IMAGE_BUILTIN_MODE:-legacy}
       # Optional config jobs publish native mail after the base migration.
       GORGE_MAIL_DELIVERY_MODE: legacy
     depends_on:

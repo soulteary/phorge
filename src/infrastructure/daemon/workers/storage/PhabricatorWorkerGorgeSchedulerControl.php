@@ -16,9 +16,9 @@ final class PhabricatorWorkerGorgeSchedulerControl
       self::CONFIG_IDS => self::IDS_MANUAL,
       self::CONFIG_TIMESTAMPS => false,
       self::CONFIG_COLUMN_SCHEMA => array(
-        'owner' => 'bytes16',
+        'owner' => 'varbytes16',
         'epoch' => 'uint64',
-        'databaseID' => 'bytes36',
+        'databaseID' => 'varbytes36',
       ),
     ) + parent::getConfiguration();
   }

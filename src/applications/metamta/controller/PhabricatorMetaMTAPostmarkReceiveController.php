@@ -41,6 +41,10 @@ final class PhabricatorMetaMTAPostmarkReceiveController
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     $raw_input = PhabricatorStartup::getRawInput();
 
+    if (PhabricatorGorgeIntegrationClient::enabled('inbound', 'postmark')) {
+      return PhabricatorGorgeIntegrationClient::queueInbound($request, 'postmark', $raw_input);
+    }
+
     try {
       $data = phutil_json_decode($raw_input);
     } catch (Exception $ex) {

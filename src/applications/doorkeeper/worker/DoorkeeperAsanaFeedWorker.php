@@ -5,6 +5,8 @@
  * updates the tasks as the corresponding Phabricator objects are updated.
  */
 final class DoorkeeperAsanaFeedWorker extends DoorkeeperFeedWorker {
+  private $gorgePrincipal;
+
 
   private $provider;
 
@@ -588,13 +590,23 @@ final class DoorkeeperAsanaFeedWorker extends DoorkeeperFeedWorker {
         continue;
       }
 
+      $this->gorgePrincipal = $account->getPHID();
+
       // Verify we can actually make a call with the token, and that the user
       // has access to the workspace in question.
       try {
-        id(new PhutilAsanaFuture())
-          ->setAccessToken($token)
-          ->setRawAsanaQuery("workspaces/{$workspace_id}")
-          ->resolve();
+        if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'asana')) {
+          $workspace = PhabricatorGorgeIntegrationClient::readConnector(
+            'asana', $account->getPHID(), $token, "workspaces/{$workspace_id}");
+          if ($workspace === null) {
+            throw new Exception(pht('Asana workspace is not visible to this account.'));
+          }
+        } else {
+          id(new PhutilAsanaFuture())
+            ->setAccessToken($token)
+            ->setRawAsanaQuery("workspaces/{$workspace_id}")
+            ->resolve();
+        }
       } catch (Exception $ex) {
         // This token didn't make it through; try the next account.
         continue;
@@ -613,6 +625,26 @@ final class DoorkeeperAsanaFeedWorker extends DoorkeeperFeedWorker {
   }
 
   private function makeAsanaAPICall($token, $action, $method, array $params) {
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'asana')) {
+      $operation = 'default';
+      if ($action === 'tasks' && $method === 'POST') {
+        $operation = idx($params, 'parent') ?
+          'subtask:'.idx($params, 'parent').':'.idx($params, 'assignee') : 'main-task';
+      } else if (preg_match('@/addFollowers$@', $action)) {
+        $operation = idx($params, 'silent') ? 'silent-followers' : 'noisy-followers';
+      } else if (preg_match('@/addProject$@', $action)) {
+        $operation = 'project:'.idx($params, 'project');
+      }
+      try {
+        return PhabricatorGorgeIntegrationClient::connector('asana',
+        $this->getFeedStory()->getChronologicalKey(),
+        $this->gorgePrincipal,
+        $token, $action, $method, $params, $operation);
+      } catch (PhabricatorMetaMTAPermanentFailureException $ex) {
+        throw new PhabricatorWorkerPermanentFailureException($ex->getMessage());
+      }
+    }
+
     foreach ($params as $key => $value) {
       if ($value === null) {
         unset($params[$key]);

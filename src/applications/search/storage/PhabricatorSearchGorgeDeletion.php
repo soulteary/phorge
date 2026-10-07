@@ -13,8 +13,8 @@ final class PhabricatorSearchGorgeDeletion extends PhabricatorSearchDAO {
     return array(
       self::CONFIG_TIMESTAMPS => false,
       self::CONFIG_COLUMN_SCHEMA => array(
-        'id' => 'auto64', 'namespace' => 'bytes64',
-        'objectClass' => 'bytes128', 'sourceVersion' => 'bytes512',
+        'id' => 'auto64', 'namespace' => 'varbytes64',
+        'objectClass' => 'bytes128', 'sourceVersion' => 'varbytes512',
         'completedEpoch' => 'uint64?', 'nextAttempt' => 'uint64'),
       self::CONFIG_KEY_SCHEMA => array(
         'object' => array('columns' => array('namespace', 'objectPHID'),

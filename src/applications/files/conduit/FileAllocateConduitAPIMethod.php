@@ -83,6 +83,13 @@ final class FileAllocateConduitAPIMethod
       }
     }
 
+    if ($file && $file->getIsPartial() && $file->getStorageEngine() === 'chunks' &&
+        PhabricatorChunkedFileStorageEngine::isGorgeHandle($file->getStorageHandle())) {
+      PhabricatorPolicyFilter::requireCapability($viewer, $file,
+        PhabricatorPolicyCapability::CAN_EDIT);
+      $file = $this->reconcileGorgeUpload($file);
+    }
+
     if ($file) {
       return array(
         'upload' => (bool)$file->getIsPartial(),
@@ -137,6 +144,47 @@ final class FileAllocateConduitAPIMethod
       'filePHID' => null,
       'error' => $error,
     );
+  }
+
+  private function reconcileGorgeUpload(PhabricatorFile $file) {
+    $handle = $file->getStorageHandle();
+    $upload = id(new PhabricatorGorgeFileStorageClient())->getUploadForResume(
+      PhabricatorChunkedFileStorageEngine::getGorgeUploadID($handle));
+    if ($upload !== null && $upload['state'] !== 'complete') { return $file; }
+    $file->openTransaction();
+    try {
+      $row = queryfx_one($file->establishConnection('w'),
+        'SELECT * FROM %T WHERE id = %d FOR UPDATE',
+        $file->getTableName(), $file->getID());
+      if (!$row) {
+        $file->saveTransaction();
+        return null;
+      }
+      $file->loadFromArray($row);
+      $result = $file;
+      if ($file->getIsPartial() && $file->getStorageEngine() === 'chunks' &&
+          $file->getStorageHandle() === $handle) {
+        if ($upload === null) {
+          $file->delete();
+          $result = null;
+        } else {
+          if ($upload['size'] !== (int)$file->getByteSize()) {
+            throw new Exception(pht('Gorge upload size does not match the file.'));
+          }
+          $file->setIsPartial(0);
+          $metadata = $file->getMetadata();
+          $metadata['gorge.upload.sha256'] = $upload['sha256'];
+          $file->setMetadata($metadata);
+          $file->setIntegrityHash('gorge-sha256:'.$upload['sha256']);
+          $file->save();
+        }
+      }
+      $file->saveTransaction();
+      return $result;
+    } catch (Throwable $ex) {
+      $file->killTransaction();
+      throw $ex;
+    }
   }
 
 }

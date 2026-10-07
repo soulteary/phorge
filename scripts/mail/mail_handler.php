@@ -14,7 +14,6 @@ if ($argc > 1) {
 
 $root = dirname(dirname(dirname(__FILE__)));
 require_once $root.'/scripts/__init_script__.php';
-require_once $root.'/externals/mimemailparser/__init.php';
 
 $args = new PhutilArgumentParser($argv);
 $args->parseStandardArguments();
@@ -32,6 +31,16 @@ $args->parse(
     ),
   ));
 
+if (PhabricatorGorgeIntegrationClient::enabled('inbound', 'raw')) {
+  $raw = file_get_contents('php://stdin', false, null, 0, 6 * 1024 * 1024 + 1);
+  if ($raw === false || strlen($raw) > 6 * 1024 * 1024) {
+    throw new Exception(pht('Raw inbound mail exceeds 6 MiB.'));
+  }
+  PhabricatorGorgeIntegrationClient::queueRawInbound(
+    $raw, (bool)$args->getArg('process-duplicates'));
+  exit(0);
+}
+require_once $root.'/externals/mimemailparser/__init.php';
 if (!extension_loaded('mailparse')) {
   throw new Exception(
     pht(

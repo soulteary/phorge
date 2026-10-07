@@ -15,9 +15,9 @@ final class PhabricatorSearchGorgeProjection extends PhabricatorSearchDAO {
     return array(
       self::CONFIG_TIMESTAMPS => false,
       self::CONFIG_COLUMN_SCHEMA => array(
-        'id' => 'auto64', 'namespace' => 'bytes64', 'revision' => 'sint64',
-        'serializerVersion' => 'bytes128', 'sourceVersion' => 'bytes512',
-        'payloadHash' => 'bytes64', 'operation' => 'bytes16',
+        'id' => 'auto64', 'namespace' => 'varbytes64', 'revision' => 'sint64',
+        'serializerVersion' => 'bytes128', 'sourceVersion' => 'varbytes512',
+        'payloadHash' => 'varbytes64', 'operation' => 'varbytes16',
         'lastEventID' => 'bytes128'),
       self::CONFIG_KEY_SCHEMA => array(
         'object' => array('columns' => array('namespace', 'objectPHID'), 'unique' => true)),

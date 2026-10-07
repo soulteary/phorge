@@ -54,6 +54,53 @@ final class FileUploadChunkConduitAPIMethod
     }
     $length = strlen($data);
 
+    if ($file->getStorageEngine() === 'chunks' &&
+        PhabricatorChunkedFileStorageEngine::isGorgeHandle($file->getStorageHandle())) {
+      PhabricatorPolicyFilter::requireCapability($viewer, $file,
+        PhabricatorPolicyCapability::CAN_EDIT);
+      $id = PhabricatorChunkedFileStorageEngine::getGorgeUploadID($file->getStorageHandle());
+      $client = new PhabricatorGorgeFileStorageClient();
+      $upload = $client->uploadChunk($id, $start, $data);
+      if ($upload['size'] !== (int)$file->getByteSize()) {
+        throw new Exception(pht('Gorge upload size does not match the file.'));
+      }
+      $complete = true;
+      foreach ($upload['chunks'] as $part) {
+        if (!$part['complete']) { $complete = false; break; }
+      }
+      if ($complete) { $upload = $client->completeUpload($id); }
+      $file->openTransaction();
+      try {
+        $conn = $file->establishConnection('w');
+        $row = queryfx_one($conn, 'SELECT * FROM %T WHERE id = %d FOR UPDATE',
+          $file->getTableName(), $file->getID());
+        if (!$row) { throw new Exception(pht('File was deleted during upload.')); }
+        $file->loadFromArray($row);
+        if ($file->getStorageEngine() !== 'chunks' ||
+            $file->getStorageHandle() !== 'gorge-upload/'.$id) {
+          throw new Exception(pht('File storage changed during upload.'));
+        }
+        if ($complete) {
+          $file->setIsPartial(0);
+          $metadata = $file->getMetadata();
+          $metadata['gorge.upload.sha256'] = $upload['sha256'];
+          $file->setMetadata($metadata);
+          $file->setIntegrityHash('gorge-sha256:'.$upload['sha256']);
+        }
+        if (!$start) {
+          $tmp = new TempFile();
+          Filesystem::writeFile($tmp, $data);
+          $file->setMimeType(Filesystem::getMimeType($tmp));
+        }
+        $file->save();
+        $file->saveTransaction();
+      } catch (Throwable $ex) {
+        $file->killTransaction();
+        throw $ex;
+      }
+      return null;
+    }
+
     $chunk = $this->loadFileChunkForUpload(
       $viewer,
       $file,

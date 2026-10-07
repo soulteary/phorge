@@ -78,7 +78,19 @@ final class PhutilAsanaAuthAdapter extends PhutilOAuthAuthAdapter {
     return true;
   }
 
+  protected function requestTokenBody($uri, array $params) {
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'asana')) {
+      return phutil_json_encode(PhabricatorGorgeIntegrationClient::authenticate(
+        'asana', 'token', '', $params));
+    }
+    return parent::requestTokenBody($uri, $params);
+  }
+
   protected function loadOAuthAccountData() {
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'asana')) {
+      return PhabricatorGorgeIntegrationClient::readConnector(
+        'asana', 'auth:asana', $this->getAccessToken(), 'users/me');
+    }
     return id(new PhutilAsanaFuture())
       ->setAccessToken($this->getAccessToken())
       ->setRawAsanaQuery('users/me')

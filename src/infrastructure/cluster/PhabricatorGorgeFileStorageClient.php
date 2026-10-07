@@ -215,6 +215,145 @@ final class PhabricatorGorgeFileStorageClient
   }
 
 
+  public function getLifecycleCapabilities() {
+    $uri = $this->getURI().'/api/file/lifecycle/meta';
+    return self::parseResponseEnvelope($uri, $this->newRequestFuture($uri)->resolve());
+  }
+
+  public function getUploadCapabilities() {
+    $uri = $this->getURI().'/api/file/uploads/meta';
+    $caps = self::parseResponseEnvelope(
+      $uri, $this->newRequestFuture($uri)->resolve());
+    if (!is_array($caps)) {
+      throw new Exception(pht('Invalid Gorge upload capabilities.'));
+    }
+    return $caps;
+  }
+
+  public static function hasUploadCapabilities(array $caps) {
+    return idx($caps, 'protocolVersion') === 1 && idx($caps, 'enabled') === true &&
+      idx($caps, 'integrityVersion') === 1 &&
+      idx($caps, 'chunkSize') === 4 * 1024 * 1024 &&
+      is_int(idx($caps, 'maxSize')) && $caps['maxSize'] > 0 &&
+      $caps['maxSize'] <= 64 * 1024 * 1024 * 1024 &&
+      idx($caps, 'storageFormat') === 'raw' &&
+      idx($caps, 'durability') === 'posix-volume';
+  }
+
+  public function createUpload($id, $size) {
+    $this->newUploadURI($id);
+    $uri = $this->getURI().'/api/file/uploads/session';
+    $upload = self::validateUploadResponse($id, self::parseResponseEnvelope($uri,
+      $this->newJSONRequestFuture($uri, array('id' => $id, 'size' => $size))->resolve()));
+    if ($upload['size'] !== $size) {
+      throw new Exception(pht('Gorge upload size does not match allocation.'));
+    }
+    return $upload;
+  }
+
+  private function newUploadURI($id, $suffix = '') {
+    if (!preg_match('/^[a-f0-9]{32}$/D', $id)) {
+      throw new Exception(pht('Invalid Gorge upload handle.'));
+    }
+    return $this->getURI().'/api/file/uploads/'.$id.$suffix;
+  }
+
+  public function getUpload($id) {
+    $uri = $this->newUploadURI($id);
+    return self::validateUploadResponse($id,
+      self::parseResponseEnvelope($uri, $this->newRequestFuture($uri)->resolve()));
+  }
+
+  public function getUploadForResume($id) {
+    $uri = $this->newUploadURI($id);
+    $result = $this->newRequestFuture($uri)->resolve();
+    $envelope = json_decode($result[1], true);
+    // Only a confirmed tombstone/expiry is terminal. A missing volume, 404 or
+    // network failure must not cause the PHP file to be destroyed.
+    if ($result[0] instanceof HTTPFutureHTTPResponseStatus &&
+        $result[0]->getStatusCode() === 410 && is_array($envelope) &&
+        is_array(idx($envelope, 'error')) &&
+        idx($envelope['error'], 'code') === 'ERR_UPLOAD_EXPIRED') {
+      return null;
+    }
+    return self::validateUploadResponse($id,
+      self::parseResponseEnvelope($uri, $result));
+  }
+
+  public function uploadChunk($id, $start, $data) {
+    $uri = (string)id(new PhutilURI($this->newUploadURI($id, '/chunk')))
+      ->setQueryParam('start', $start);
+    return self::validateUploadResponse($id, self::parseResponseEnvelope($uri,
+      $this->newBinaryRequestFuture($uri, $data)->setMethod('PUT')->resolve()));
+  }
+
+  public function completeUpload($id) {
+    $uri = $this->newUploadURI($id, '/complete');
+    $upload = self::validateUploadResponse($id, self::parseResponseEnvelope($uri,
+      $this->newJSONRequestFuture($uri, array())->resolve()));
+    if ($upload['state'] !== 'complete') {
+      throw new Exception(pht('Gorge upload completion was not confirmed.'));
+    }
+    return $upload;
+  }
+
+  /** Reject malformed manifests before they can complete a PHP file record. */
+  public static function validateUploadResponse($id, $upload) {
+    $chunk_size = 4 * 1024 * 1024;
+    if (!is_array($upload) || idx($upload, 'id') !== $id ||
+        !is_int(idx($upload, 'size')) || $upload['size'] <= 0 ||
+        $upload['size'] > 64 * 1024 * 1024 * 1024 ||
+        !in_array(idx($upload, 'state'), array('uploading', 'complete'), true) ||
+        !is_array(idx($upload, 'chunks')) ||
+        count($upload['chunks']) !== (int)ceil($upload['size'] / $chunk_size)) {
+      throw new Exception(pht('Invalid Gorge upload manifest.'));
+    }
+    $start = 0;
+    foreach ($upload['chunks'] as $chunk) {
+      $end = min($start + $chunk_size, $upload['size']);
+      if (!is_array($chunk) || idx($chunk, 'byteStart') !== $start ||
+          idx($chunk, 'byteEnd') !== $end || !is_bool(idx($chunk, 'complete')) ||
+          ($upload['state'] === 'complete' && !$chunk['complete']) ||
+          ($chunk['complete'] && (!is_string(idx($chunk, 'sha256')) ||
+            !preg_match('/^[a-f0-9]{64}$/D', $chunk['sha256'])))) {
+        throw new Exception(pht('Invalid Gorge upload chunk manifest.'));
+      }
+      $start = $end;
+    }
+    if ($upload['state'] === 'complete' &&
+        (!is_string(idx($upload, 'sha256')) ||
+          !preg_match('/^[a-f0-9]{64}$/D', $upload['sha256']))) {
+      throw new Exception(pht('Invalid Gorge completed upload digest.'));
+    }
+    return $upload;
+  }
+
+  public function cancelUpload($id) {
+    $uri = $this->newUploadURI($id);
+    return self::parseResponseEnvelope($uri,
+      $this->newRequestFuture($uri)->setMethod('DELETE')->resolve());
+  }
+
+  public function verifyUpload($id) {
+    $uri = $this->newUploadURI($id, '/verify');
+    $upload = self::validateUploadResponse($id, self::parseResponseEnvelope($uri,
+      $this->newJSONRequestFuture($uri, array())->resolve()));
+    if ($upload['state'] !== 'complete') {
+      throw new Exception(pht('Gorge upload is not complete.'));
+    }
+    return $upload;
+  }
+
+  public function readUploadRange($id, $start, $end) {
+    $uri = (string)id(new PhutilURI($this->newUploadURI($id, '/data')))
+      ->setQueryParams(array('start' => $start, 'end' => $end));
+    $data = self::parseBinaryResponse($uri, $this->newRequestFuture($uri)->resolve());
+    if (strlen($data) !== $end - $start) {
+      throw new Exception(pht('Gorge upload range was truncated.'));
+    }
+    return $data;
+  }
+
 /* -(  Internals  )---------------------------------------------------------- */
 
 

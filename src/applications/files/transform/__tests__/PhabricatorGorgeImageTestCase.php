@@ -77,4 +77,25 @@ final class PhabricatorGorgeImageTestCase extends PhabricatorTestCase {
     catch (PhabricatorGorgeImageTransientException $ex) { $caught = true; }
     $this->assertTrue($caught);
   }
+  public function testRealGorgeMemeAndComposeClients() {
+    $url = getenv('GORGE_TEST_IMAGE_URL');
+    if (!$url) { $this->assertSkipped('Set GORGE_TEST_IMAGE_URL for real image service.'); }
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.image.uri', $url);
+    $env->overrideEnvConfig('gorge.image.token', getenv('GORGE_TEST_IMAGE_TOKEN'));
+    $client = new PhabricatorGorgeImageClient();
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $source = Filesystem::readFile($root.'/resources/builtin/image-100x100.png');
+    $caps = $client->getCapabilities();
+    $this->assertEqual('meme-v1', $caps['meme']['revision']);
+    $this->assertEqual('compose-v1', $caps['compose']['revision']);
+    $output = $client->meme($source, '@literal', '%text', false);
+    $this->assertEqual(100, getimagesizefromstring($output)[0]);
+    $output = $client->compose(array('recipe' => 'avatar',
+      'background' => '#ff0000', 'border' => array(0, 0, 0, 0.5),
+      'layers' => array(base64_encode($source))));
+    $this->assertEqual(400, getimagesizefromstring($output)[0]);
+    $this->assertEqual('image/png', getimagesizefromstring($output)['mime']);
+  }
+
 }

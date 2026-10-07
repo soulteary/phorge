@@ -49,7 +49,19 @@ final class PhutilGitHubAuthAdapter extends PhutilOAuthAuthAdapter {
     return 'https://github.com/login/oauth/access_token';
   }
 
+  protected function requestTokenBody($uri, array $params) {
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'github')) {
+      return phutil_json_encode(PhabricatorGorgeIntegrationClient::authenticate(
+        'github', 'token', '', $params));
+    }
+    return parent::requestTokenBody($uri, $params);
+  }
+
   protected function loadOAuthAccountData() {
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'github')) {
+      return PhabricatorGorgeIntegrationClient::readConnector(
+        'github', 'auth:github', $this->getAccessToken(), 'user');
+    }
     $uri = new PhutilURI('https://api.github.com/user');
 
     $future = new HTTPSFuture($uri);

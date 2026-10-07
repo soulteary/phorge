@@ -10,10 +10,19 @@ final class PhabricatorStorageFixtureScopeGuard extends Phobject {
   public function __construct($name) {
     $this->name = $name;
 
-    execx(
-      'php %s upgrade --force --namespace %s',
-      $this->getStorageBinPath(),
-      $this->name);
+    try {
+      execx(
+        'php %s upgrade --force --namespace %s',
+        $this->getStorageBinPath(),
+        $this->name);
+    } catch (CommandException $ex) {
+      // Retired applications leave surplus quickstart tables and indexes.
+      // Accept only this condition after comparing live schemata.
+      // Missing columns, unsupported types and migration failures still fail.
+      if ($ex->getError() != 2 || !$this->hasOnlySurplusSchemata()) {
+        throw $ex;
+      }
+    }
 
     PhabricatorLiskDAO::pushStorageNamespace($name);
 
@@ -33,6 +42,37 @@ final class PhabricatorStorageFixtureScopeGuard extends Phobject {
       'php %s destroy --force --namespace %s',
       $this->getStorageBinPath(),
       $this->name);
+  }
+
+  private function hasOnlySurplusSchemata() {
+    $apis = array();
+    try {
+      foreach (PhabricatorDatabaseRef::getMasterDatabaseRefs() as $ref) {
+        $apis[] = id(new PhabricatorStorageManagementAPI())
+          ->setRef($ref)->setUser($ref->getUser())->setHost($ref->getHost())
+          ->setPort($ref->getPort())->setPassword($ref->getPass())
+          ->setNamespace($this->name);
+      }
+      $query = id(new PhabricatorConfigSchemaQuery())->setAPIs($apis);
+      $actual = $query->loadActualSchemata();
+      $expected = $query->loadExpectedSchemata();
+      $surplus = false;
+      foreach ($query->buildComparisonSchemata($expected, $actual) as $schema) {
+        foreach ($schema->getAllIssues() as $issue) {
+          if ($issue === PhabricatorConfigStorageSchema::ISSUE_SURPLUS ||
+              $issue === PhabricatorConfigStorageSchema::ISSUE_SURPLUSKEY) {
+            $surplus = true;
+          } else if ($issue !== PhabricatorConfigStorageSchema::ISSUE_SUBWARN &&
+                     $issue !== PhabricatorConfigStorageSchema::ISSUE_SUBFAIL) {
+            return false;
+          }
+        }
+      }
+      return $surplus;
+    } finally {
+      foreach ($apis as $api) { PhabricatorLiskDAO::popStorageNamespace(); }
+      PhabricatorLiskDAO::closeAllConnections();
+    }
   }
 
   private function getStorageBinPath() {

@@ -50,6 +50,18 @@ final class DoorkeeperBridgeJIRA extends DoorkeeperBridge {
     // (by querying all instances). For now, just query the one instance.
     $account = head($accounts);
 
+    $target = 'jira:'.$provider->getProviderConfig()->getProviderDomain();
+    $native = PhabricatorGorgeIntegrationClient::enabled('connectors', $target);
+    if ($native) {
+      $results = array(); $failed = array();
+      foreach ($id_map as $key => $id) {
+        try {
+          $results[$key] = PhabricatorGorgeIntegrationClient::readConnector(
+            $target, $account->getPHID(), $account->getProperty('oauth1.token'),
+            'rest/api/2/issue/'.phutil_escape_uri($id));
+        } catch (Exception $ex) { $failed[$key] = $ex; }
+      }
+    } else {
     $timeout = $this->getTimeout();
 
     $futures = array();
@@ -83,6 +95,8 @@ final class DoorkeeperBridgeJIRA extends DoorkeeperBridge {
           $failed[$key] = $ex;
         }
       }
+    }
+
     }
 
     foreach ($refs as $ref) {

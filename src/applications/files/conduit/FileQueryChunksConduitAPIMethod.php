@@ -39,6 +39,19 @@ final class FileQueryChunksConduitAPIMethod
       throw new ConduitException('ERR-BAD-PHID');
     }
     $file = $this->loadFileByPHID($viewer, $file_phid);
+    if (PhabricatorChunkedFileStorageEngine::isGorgeHandle($file->getStorageHandle()) &&
+        $file->getStorageEngine() === 'chunks') {
+      $upload = id(new PhabricatorGorgeFileStorageClient())->getUpload(
+        PhabricatorChunkedFileStorageEngine::getGorgeUploadID($file->getStorageHandle()));
+      if ($upload['size'] !== (int)$file->getByteSize()) {
+        throw new Exception(pht('Gorge upload size does not match the file.'));
+      }
+      $results = array();
+      foreach ($upload['chunks'] as $chunk) {
+        $results[] = array_select_keys($chunk, array('byteStart', 'byteEnd', 'complete'));
+      }
+      return $results;
+    }
     $chunks = $this->loadFileChunks($viewer, $file);
 
     $results = array();

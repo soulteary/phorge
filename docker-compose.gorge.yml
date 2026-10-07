@@ -470,6 +470,9 @@ services:
       # 连库参数取的仍是基础编排里那一组 .env 变量，不另开一份：写错的表现不是报错，
       # 而是 blob 写入失败后**静默下沉**到本地磁盘后端，事后只能靠 file 表里的引擎标识
       # 才看得出来。与 phorge 段一样把 host/port 写成字面量，它们是 compose 内部拓扑。
+      # Optional durable upload volume and transactional deletion consumer.
+      GORGE_FILE_UPLOAD_ROOT: ${GORGE_FILE_UPLOAD_ROOT:-}
+      GORGE_FILE_DELETION_DSN: ${GORGE_FILE_DELETION_DSN:-}
       GORGE_FILE_MYSQL_HOST: mysql
       GORGE_FILE_MYSQL_PORT: "3306"
       GORGE_FILE_MYSQL_USER: ${MYSQL_USER:-phorge}

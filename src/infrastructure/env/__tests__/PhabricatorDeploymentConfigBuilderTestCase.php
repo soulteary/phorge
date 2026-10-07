@@ -469,4 +469,48 @@ final class PhabricatorDeploymentConfigBuilderTestCase
     }
   }
 
+  public function testFileLifecycleAndAdditionalRecipeRollout() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $directory = Filesystem::createTemporaryDirectory();
+    try {
+      $local = $directory.'/local.json'; $deployment = $directory.'/deployment.json';
+      Filesystem::writeFile($local, '{}');
+      execx('env -i GORGE_FILE_URI=http://files:8100 GORGE_FILE_TOKEN=test-only '.
+        'GORGE_FILE_UPLOADS=true GORGE_FILE_DELETION_OUTBOX=true '.
+        'GORGE_IMAGE_URI=http://image:8190 GORGE_IMAGE_TOKEN=test-only '.
+        'GORGE_IMAGE_MEME_MODE=gorge GORGE_IMAGE_BUILTIN_MODE=shadow %s %s full %s %s',
+        PHP_BINARY, $root.'/scripts/setup/build_deployment_config.php', $deployment, $local);
+      $config = phutil_json_decode(Filesystem::readFile($deployment));
+      $this->assertTrue($config['gorge.file.uploads']);
+      $this->assertTrue($config['gorge.file.deletion-outbox']);
+      $this->assertEqual('gorge', $config['gorge.image.meme-mode']);
+      $this->assertEqual('shadow', $config['gorge.image.builtin-mode']);
+      // Later mailer/search jobs regenerate deployment without image/file env.
+      execx('env -i %s %s full %s %s', PHP_BINARY,
+        $root.'/scripts/setup/build_deployment_config.php', $deployment, $local);
+      $regenerated = phutil_json_decode(Filesystem::readFile($deployment));
+      foreach (array('gorge.file.uploads', 'gorge.file.deletion-outbox',
+        'gorge.image.meme-mode', 'gorge.image.builtin-mode') as $key) {
+        $this->assertEqual($config[$key], $regenerated[$key]);
+      }
+      execx('env -i GORGE_FILE_UPLOADS=false GORGE_FILE_DELETION_OUTBOX=false '.
+        'GORGE_IMAGE_MEME_MODE=legacy GORGE_IMAGE_BUILTIN_MODE=legacy %s %s full %s %s',
+        PHP_BINARY, $root.'/scripts/setup/build_deployment_config.php', $deployment, $local);
+      $disabled = phutil_json_decode(Filesystem::readFile($deployment));
+      $this->assertFalse($disabled['gorge.file.uploads']);
+      $this->assertFalse($disabled['gorge.file.deletion-outbox']);
+      $this->assertEqual('legacy', $disabled['gorge.image.meme-mode']);
+      $this->assertEqual('legacy', $disabled['gorge.image.builtin-mode']);
+      foreach (array('GORGE_FILE_UPLOADS=true', 'GORGE_IMAGE_MEME_MODE=bad',
+        'GORGE_IMAGE_BUILTIN_MODE=gorge') as $setting) {
+        Filesystem::writeFile($deployment, '{}');
+        $caught = false;
+        try { execx('env -i %s %s %s full %s %s', $setting, PHP_BINARY,
+          $root.'/scripts/setup/build_deployment_config.php', $deployment, $local); }
+        catch (CommandException $ex) { $caught = true; }
+        $this->assertTrue($caught);
+      }
+    } finally { Filesystem::remove($directory); }
+  }
+
 }

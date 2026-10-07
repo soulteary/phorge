@@ -32,7 +32,38 @@ final class PhabricatorChunkedFileStorageEngine
     throw new PhutilMethodNotImplementedException();
   }
 
+  public static function isGorgeHandle($handle) {
+    return (bool)preg_match('/^gorge-upload\/[a-f0-9]{32}$/D', $handle);
+  }
+
+  public static function getGorgeUploadID($handle) {
+    if (!self::isGorgeHandle($handle)) {
+      throw new Exception(pht('Invalid Gorge upload handle.'));
+    }
+    return substr($handle, strlen('gorge-upload/'));
+  }
+
+  public static function countLegacyFileRecords() {
+    $file = new PhabricatorFile();
+    $row = queryfx_one($file->establishConnection('r'),
+      'SELECT COUNT(*) AS records FROM %T WHERE storageEngine = %s AND '.
+      '(storageHandle NOT REGEXP %s OR LENGTH(storageHandle) != 45 OR '.
+      'BINARY storageHandle != BINARY LOWER(storageHandle))',
+      $file->getTableName(), 'chunks', '^gorge-upload/[0-9a-f]{32}$');
+    return (int)idx($row, 'records', 0);
+  }
+
   public function readFile($handle) {
+    if (self::isGorgeHandle($handle)) {
+      $client = new PhabricatorGorgeFileStorageClient();
+      $id = self::getGorgeUploadID($handle);
+      $upload = $client->getUpload($id);
+      $buffer = '';
+      foreach ($this->readGorgeRanges($id, 0, $upload['size']) as $data) {
+        $buffer .= $data;
+      }
+      return $buffer;
+    }
     // This is inefficient, but makes the API work as expected.
     $chunks = $this->loadAllChunks($handle, true);
 
@@ -50,6 +81,11 @@ final class PhabricatorChunkedFileStorageEngine
   }
 
   public function deleteFile($handle) {
+    if (self::isGorgeHandle($handle)) {
+      id(new PhabricatorGorgeFileStorageClient())->cancelUpload(
+        self::getGorgeUploadID($handle));
+      return;
+    }
     $engine = new PhabricatorDestructionEngine();
     $chunks = $this->loadAllChunks($handle, true);
     foreach ($chunks as $chunk) {
@@ -112,6 +148,32 @@ final class PhabricatorChunkedFileStorageEngine
 
   public function allocateChunks($length, array $properties) {
     $file = PhabricatorFile::newChunkedFile($this, $length, $properties);
+
+    if (PhabricatorEnv::getEnvConfig('gorge.file.uploads')) {
+      if (!PhabricatorEnv::getEnvConfig('gorge.file.deletion-outbox')) {
+        throw new Exception(pht('Gorge uploads require the durable deletion outbox.'));
+      }
+      // Raw sessions must never bypass an installation's encryption policy.
+      if (PhabricatorKeyring::getDefaultKeyName(
+          PhabricatorFileAES256StorageFormat::FORMATKEY) !== null) {
+        throw new Exception(pht('Gorge upload sessions currently require raw storage; encryption is configured.'));
+      }
+      $client = new PhabricatorGorgeFileStorageClient();
+      $lifecycle = $client->getLifecycleCapabilities();
+      if (idx($lifecycle, 'deletionOutbox') !== true) {
+        throw new Exception(pht('Gorge deletion consumer is unavailable.'));
+      }
+      $caps = $client->getUploadCapabilities();
+      if (!PhabricatorGorgeFileStorageClient::hasUploadCapabilities($caps) ||
+          $length > $caps['maxSize']) {
+        throw new Exception(pht('Gorge upload session capability is unavailable.'));
+      }
+      $id = substr(hash('sha256', $file->getStorageHandle()), 0, 32);
+      $client->createUpload($id, $length);
+      $file->setStorageHandle('gorge-upload/'.$id);
+      $file->saveAndIndex();
+      return $file;
+    }
 
     $chunk_size = $this->getChunkSize();
 
@@ -180,6 +242,13 @@ final class PhabricatorChunkedFileStorageEngine
     $end,
     PhabricatorFileStorageFormat $format) {
 
+    if (self::isGorgeHandle($file->getStorageHandle())) {
+      return $this->readGorgeRanges(
+        self::getGorgeUploadID($file->getStorageHandle()),
+        $begin === null ? 0 : $begin,
+        $end === null ? $file->getByteSize() : $end);
+    }
+
     // NOTE: It is currently impossible for files stored with the chunk
     // engine to have their own formatting (instead, the individual chunks
     // are formatted), so we ignore the format object.
@@ -192,6 +261,14 @@ final class PhabricatorChunkedFileStorageEngine
       ->execute();
 
     return new PhabricatorFileChunkIterator($chunks, $begin, $end);
+  }
+
+  private function readGorgeRanges($id, $begin, $end) {
+    $client = new PhabricatorGorgeFileStorageClient();
+    for ($start = $begin; $start < $end; $start += $this->getChunkSize()) {
+      yield $client->readUploadRange($id, $start,
+        min($end, $start + $this->getChunkSize()));
+    }
   }
 
 }

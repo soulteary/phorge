@@ -12,6 +12,9 @@ final class PhabricatorMailTwilioAdapter
   }
 
   protected function validateOptions(array $options) {
+    if (PhabricatorGorgeIntegrationClient::enabled('sms', $this->getKey())) {
+      return;
+    }
     PhutilTypeSpec::checkMap(
       $options,
       array(
@@ -33,6 +36,10 @@ final class PhabricatorMailTwilioAdapter
   }
 
   public function sendMessage(PhabricatorMailExternalMessage $message) {
+    if (PhabricatorGorgeIntegrationClient::enabled('sms', $this->getKey())) {
+      return PhabricatorGorgeIntegrationClient::sendSMS($this, $message);
+    }
+
     $account_sid = $this->getOption('account-sid');
 
     $auth_token = $this->getOption('auth-token');

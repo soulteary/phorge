@@ -92,16 +92,18 @@ final class DoorkeeperJIRAFeedWorker extends DoorkeeperFeedWorker {
       $accounts = array_select_keys($accounts, $try_users);
 
       foreach ($xobj_list as $xobj) {
+        $comment_done = false;
         foreach ($accounts as $account) {
           try {
             $jira_key = $xobj->getObjectID();
 
-            if ($this->shouldPostComment()) {
-              $this->postComment($account, $jira_key);
+            if ($this->shouldPostComment() && !$comment_done) {
+              $this->postComment($account, $jira_key, $domain);
+              $comment_done = true;
             }
 
             if ($this->shouldPostLink()) {
-              $this->postLink($account, $jira_key);
+              $this->postLink($account, $jira_key, $domain);
             }
 
             break;
@@ -190,16 +192,16 @@ final class DoorkeeperJIRAFeedWorker extends DoorkeeperFeedWorker {
     return $this->getProvider()->shouldCreateJIRALink();
   }
 
-  private function postComment($account, $jira_key) {
+  private function postComment($account, $jira_key, $domain) {
     $provider = $this->getProvider();
 
-    $provider->newJIRAFuture(
-      $account,
+    $this->newTransportCall(
+      $account, $domain,
       'rest/api/2/issue/'.$jira_key.'/comment',
       'POST',
       array(
         'body' => $this->renderStoryText(),
-      ))->resolveJSON();
+      ));
   }
 
   private function renderStoryText() {
@@ -216,14 +218,14 @@ final class DoorkeeperJIRAFeedWorker extends DoorkeeperFeedWorker {
     }
   }
 
-  private function postLink($account, $jira_key) {
+  private function postLink($account, $jira_key, $domain) {
     $provider = $this->getProvider();
     $object = $this->getStoryObject();
     $publisher = $this->getPublisher();
     $icon_uri = celerity_get_resource_uri('rsrc/favicons/favicon-16x16.png');
 
-    $provider->newJIRAFuture(
-      $account,
+    $this->newTransportCall(
+      $account, $domain,
       'rest/api/2/issue/'.$jira_key.'/remotelink',
       'POST',
 
@@ -246,6 +248,19 @@ final class DoorkeeperJIRAFeedWorker extends DoorkeeperFeedWorker {
             'resolved' => $publisher->isObjectClosed($object),
           ),
         ),
-      ))->resolveJSON();
+      ));
+  }
+  private function newTransportCall($account, $domain, $path, $method, array $params) {
+    $key = 'jira:'.$domain;
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', $key)) {
+      try {
+        return PhabricatorGorgeIntegrationClient::connector($key,
+        $this->getFeedStory()->getChronologicalKey(), $account->getPHID(),
+        $account->getProperty('oauth1.token'), $path, $method, $params);
+      } catch (PhabricatorMetaMTAPermanentFailureException $ex) {
+        throw new PhabricatorWorkerPermanentFailureException($ex->getMessage());
+      }
+    }
+    return $this->getProvider()->newJIRAFuture($account, $path, $method, $params)->resolveJSON();
   }
 }

@@ -9,6 +9,7 @@ final class PhabricatorMemeEngine extends Phobject {
 
   private $templateFile;
   private $metrics;
+  private $gorgeMemeCapabilities;
 
   public function setViewer(PhabricatorUser $viewer) {
     $this->viewer = $viewer;
@@ -111,6 +112,17 @@ final class PhabricatorMemeEngine extends Phobject {
       'below' => $this->getBelowText(),
     );
 
+    $mode = PhabricatorEnv::getEnvConfig('gorge.image.meme-mode');
+    if ($mode === 'gorge') {
+      $caps = id(new PhabricatorGorgeImageClient())->getCapabilities();
+      $meme = idx($caps, 'meme', array());
+      if (idx($meme, 'revision') !== 'meme-v1' || !idx($meme, 'fontRevision')) {
+        throw new Exception(pht('Gorge Meme capability is unavailable.'));
+      }
+      $this->gorgeMemeCapabilities = $caps;
+      $properties['recipe'] = $meme;
+      $properties['backend'] = idx($caps, 'backendRevision');
+    }
     $properties = phutil_json_encode($properties);
 
     return PhabricatorHash::digestForIndex($properties);
@@ -187,12 +199,27 @@ final class PhabricatorMemeEngine extends Phobject {
       return $template_data;
     }
 
-    $result = $this->newImagemagickAsset($template, $template_data);
-    if ($result) {
-      return $result;
+    $mode = PhabricatorEnv::getEnvConfig('gorge.image.meme-mode');
+    if ($mode === 'gorge') {
+      return id(new PhabricatorGorgeImageClient())->meme($template_data,
+        $above_text, $below_text, PhabricatorEnv::getEnvConfig('files.enable-imagemagick'),
+        $this->gorgeMemeCapabilities ?: array());
     }
-
-    return $this->newGDAsset($template, $template_data);
+    if (!in_array($mode, array('legacy', 'shadow'), true)) {
+      throw new Exception(pht('Invalid Meme rollout mode.'));
+    }
+    $result = $this->newImagemagickAsset($template, $template_data);
+    if (!$result) { $result = $this->newGDAsset($template, $template_data); }
+    if ($mode === 'shadow') {
+      try {
+        $shadow = id(new PhabricatorGorgeImageClient())->meme($template_data,
+          $above_text, $below_text, PhabricatorEnv::getEnvConfig('files.enable-imagemagick'));
+        if (@getimagesizefromstring($result) !== @getimagesizefromstring($shadow)) {
+          phlog(pht('Gorge Meme shadow metadata differs.'));
+        }
+      } catch (Throwable $ex) { phlog(pht('Gorge Meme shadow failed.')); }
+    }
+    return $result;
   }
 
   private function newImagemagickAsset(

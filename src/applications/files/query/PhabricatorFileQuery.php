@@ -51,7 +51,11 @@ final class PhabricatorFileQuery
   }
 
   public function withContentHashes(array $content_hashes) {
-    $this->contentHashes = $content_hashes;
+    // contentHash is BINARY(64). Historical resumable hashes are 40 bytes;
+    // MySQL pads stored values with NUL but does not pad IN() parameters.
+    $this->contentHashes = array_map(function($hash) {
+      return str_pad($hash, 64, "\0");
+    }, $content_hashes);
     return $this;
   }
 

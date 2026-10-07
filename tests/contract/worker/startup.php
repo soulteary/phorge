@@ -100,6 +100,25 @@ try {
   startup_assert(count(array_filter($probes, function($probe) {
     return $probe[0] === 'file download protocol' && $probe[5] === true;
   })) === 1, 'Required download probe missing.');
+  $upload_caps = array('protocolVersion' => 1, 'integrityVersion' => 1, 'enabled' => true,
+    'chunkSize' => 4 * 1024 * 1024, 'maxSize' => 64 * 1024 * 1024 * 1024,
+    'storageFormat' => 'raw', 'durability' => 'posix-volume');
+  startup_assert(gorge_startup_valid('file-upload-protocol', array('data' => $upload_caps)),
+    'Upload protocol rejected.');
+  foreach (array('chunkSize' => 1, 'storageFormat' => 'encrypted',
+    'durability' => 'memory', 'maxSize' => '64') as $key => $value) {
+    $bad = $upload_caps; $bad[$key] = $value;
+    startup_assert(!gorge_startup_valid('file-upload-protocol', array('data' => $bad)),
+      'Invalid upload protocol accepted.');
+  }
+  $file_config = $config;
+  $file_config['gorge.file.uploads'] = true;
+  $file_config['gorge.file.deletion-outbox'] = true;
+  $file_probes = gorge_startup_probes($file_config, null, null);
+  startup_assert(count(array_filter($file_probes, function($probe) {
+    return $probe[0] === 'file upload protocol' && $probe[5] === true &&
+      $probe[1] === 'http://file:8100/api/file/uploads/meta';
+  })) === 1, 'Required upload protocol probe missing.');
   $optional = array('optional' , 'http://unused', null, null, 'ready', false);
   $required = array('required', 'http://unused', null, null, 'ready', true);
   $result = gorge_startup_wait(array($optional, $required), .01,

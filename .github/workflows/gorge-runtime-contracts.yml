@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       gorge_ref:
-        description: Gorge branch/tag/SHA for paired cleanup contracts
+        description: Immutable 40-character Gorge commit for all paired contracts
         required: false
-        default: main
+        default: ''
       image_ref:
         description: Published Gorge image service reference for cross-repository contracts
         required: false
@@ -17,6 +17,10 @@ jobs:
   contracts:
     runs-on: ubuntu-latest
     services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 30
       mysql:
         image: mysql:8.0
         env:
@@ -35,17 +39,76 @@ jobs:
           repository: phorgeit/arcanist
           ref: 6f3726694752fb9cb08207070a4d7f68163784e1
           path: .test-arcanist
+      - name: Require immutable paired Gorge revision
+        env:
+          GORGE_REF: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
+        run: |
+          if ! [[ "$GORGE_REF" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "Set GORGE_CONTRACT_REF or gorge_ref to the published matching Gorge commit SHA."
+            exit 1
+          fi
       - uses: actions/checkout@v6
         with:
           repository: soulteary/gorge
-          ref: ${{ inputs.gorge_ref || 'main' }}
+          ref: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
           path: .test-gorge
       - uses: actions/setup-go@v6
         with:
           go-version-file: .test-gorge/go/go.mod
           cache-dependency-path: .test-gorge/go/go.sum
+      - name: Verify integration PHP transport and inbound receipts
+        env:
+          GORGE_TEST_ARCANIST_DIR: ${{ github.workspace }}/.test-arcanist
+          GORGE_TEST_INTEGRATIONS_MYSQL_PORT: '3306'
+          GORGE_TEST_INTEGRATIONS_MYSQL_PASSWORD: gorge-contract-only
+        run: |
+          php tests/contract/integrations/runtime.php
+          php tests/contract/integrations/inbound_mysql.php
       - name: Verify production Compose topology
         run: python3 tests/contract/worker/production_compose.py
+      - name: Start mandatory current image and real S3 fixtures
+        run: |
+          docker build --build-arg SERVICE=gorge-image --build-arg PORT=8190 -t gorge-image:paired .test-gorge/go
+          docker run -d --name paired-image -p 127.0.0.1:18196:8190 -e GORGE_SERVICE_TOKEN=acceptance-image-only gorge-image:paired
+          docker run -d --name paired-s3 -p 127.0.0.1:19091:9000 -e OTTERIO_ROOT_USER=gorgeacceptance -e OTTERIO_ROOT_PASSWORD=gorge-acceptance-only ghcr.io/soulteary/otterio@sha256:9caee7b58a029ba7aa7556ea446184316585485b29c58e2889e07634c470b225 server /data --address :9000
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18196/readyz && curl -fsS http://127.0.0.1:19091/otterio/health/ready; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Verify paired takeover, migration and recovery
+        env:
+          GORGE_TEST_GORGE_DIR: ${{ github.workspace }}/.test-gorge
+          GORGE_TEST_ARCANIST_DIR: ${{ github.workspace }}/.test-arcanist
+          GORGE_TEST_MYSQL_PORT: '3306'
+          GORGE_TEST_MYSQL_PASSWORD: gorge-contract-only
+          GORGE_TEST_INTEGRATIONS_MYSQL_PORT: '3306'
+          GORGE_TEST_INTEGRATIONS_MYSQL_PASSWORD: gorge-contract-only
+          GORGE_TEST_S3_URL: http://127.0.0.1:19091
+          GORGE_TEST_S3_USER: gorgeacceptance
+          GORGE_TEST_S3_PASSWORD: gorge-acceptance-only
+          GORGE_TEST_IMAGE_URL: http://127.0.0.1:18196
+          GORGE_TEST_IMAGE_TOKEN: acceptance-image-only
+          GORGE_TEST_ACCEPTANCE_MANIFEST: ${{ runner.temp }}/paired-acceptance.json
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 tests/contract/worker/acceptance.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paired-source-identities
+          path: ${{ runner.temp }}/paired-acceptance.json
+          if-no-files-found: error
+      - name: Verify real backend concurrency and interruption
+        working-directory: .test-gorge/go
+        env:
+          PHORGE_FORK_DIR: ${{ github.workspace }}
+          GORGE_TEST_MYSQL_DSN: root:gorge-contract-only@tcp(127.0.0.1:3306)/
+          GORGE_TEST_REDIS_ADDR: 127.0.0.1:6379
+          GORGE_TEST_SEARCH_MYSQL_DSN: root:gorge-contract-only@tcp(127.0.0.1:3306)/
+          GORGE_TEST_FILE_LIFECYCLE_DSN: root:gorge-contract-only@tcp(127.0.0.1:3306)/gorge_lifecycle_test
+          GORGE_TEST_INTEGRATIONS_DSN: root:gorge-contract-only@tcp(127.0.0.1:3306)/gorge_integrations_test
+        run: |
+          php -r '$db=new mysqli("127.0.0.1","root","gorge-contract-only","",3306); foreach (["gorge_lifecycle_test","gorge_integrations_test"] as $name) { $db->query("CREATE DATABASE ".$name); }'
+          go test -race -count=1 ./internal/taskqueue ./internal/filestorage ./internal/integrations ./internal/mailer ./internal/search/projection
       - name: Verify execution, provider retirement and feed transaction rollback
         env:
           GORGE_TEST_ARCANIST_DIR: ${{ github.workspace }}/.test-arcanist

@@ -1,0 +1,19 @@
+# Overlay after docker-compose.yml. Provision the two integration schemas first.
+services:
+  integrations:
+    build:
+      context: ../gorge/go
+      args:
+        SERVICE: gorge-integrations
+        PORT: 8210
+    restart: unless-stopped
+    read_only: true
+    environment:
+      GORGE_INTEGRATIONS_CONFIG_FILE: /etc/gorge/integrations.json
+    volumes:
+      - ${GORGE_INTEGRATIONS_CONFIG_FILE:-./conf/integrations.json}:/etc/gorge/integrations.json:ro
+    healthcheck:
+      test: [CMD, wget, -qO-, http://127.0.0.1:8210/readyz]
+      interval: 10s
+      timeout: 6s
+      retries: 3

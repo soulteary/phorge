@@ -22,6 +22,10 @@ final class PhabricatorMetaMTASendGridReceiveController
       return new Aphront404Response();
     }
 
+    if (PhabricatorGorgeIntegrationClient::enabled('inbound', 'sendgrid')) {
+      return PhabricatorGorgeIntegrationClient::queueInbound($request, 'sendgrid');
+    }
+
     // No CSRF for SendGrid.
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     $user = $request->getUser();

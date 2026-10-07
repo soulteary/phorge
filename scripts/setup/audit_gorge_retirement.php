@@ -4,25 +4,58 @@
 // Read-only deletion gates. Counts include old and chunk-member file records;
 // no source bytes, business rows, queue entries or indexes are removed.
 require_once dirname(__FILE__).'/../../scripts/__init_script__.php';
+require_once dirname(__FILE__).'/lib/gorge_status_runtime.php';
 
-$report = array();
-$conn = id(new PhabricatorFile())->establishConnection('r');
-$files = queryfx_all($conn,
-  'SELECT storageEngine, COUNT(*) AS records, SUM(byteSize) AS bytes '.
-  'FROM %T GROUP BY storageEngine', id(new PhabricatorFile())->getTableName());
-$legacy_files = 0;
-foreach ($files as $row) {
-  if (!in_array($row['storageEngine'], array('gorge', 'chunks'), true)) {
-    $legacy_files += (int)$row['records'];
+$args = new PhutilArgumentParser($argv);
+$args->parseStandardArguments();
+$args->parse(array(
+  array('name' => 'verify-integrity', 'help' => pht('Read and verify every file in this audit run.')),
+  array('name' => 'writers-paused', 'help' => pht('Attest that all file writers and migration workers are stopped.')),
+));
+$integrity = array('state' => 'not_verified');
+if ($args->getArg('verify-integrity')) {
+  try {
+    $integrity = array('state' => 'verified', 'checked' => 0, 'failures' => 0, 'partial' => 0);
+    $table = new PhabricatorFile();
+    foreach (new LiskMigrationIterator($table) as $file) {
+      if ($file->getIsPartial()) { $integrity['partial']++; continue; }
+      try {
+        $expected = $file->getIntegrityHash();
+        if (!$expected || !hash_equals($expected, $file->newIntegrityHash())) {
+          $integrity['failures']++;
+        }
+      } catch (Throwable $ex) { $integrity['failures']++; }
+      $integrity['checked']++;
+    }
+    $integrity['verifiedEpoch'] = time();
+  } catch (Throwable $ex) { $integrity = array('state' => 'unavailable'); }
+}
+$takeover = gorge_status_runtime_report(true);
+$report = array('takeover' => $takeover);
+$file_inventory = idx($takeover['inventory']['files'], 'data');
+$legacy_files = null;
+$legacy_chunks = null;
+$files = null;
+if ($file_inventory !== null) {
+  $files = $file_inventory['engines'];
+  $legacy_chunks = (int)$file_inventory['legacyChunks'];
+  $legacy_files = 0;
+  foreach ($files as $row) {
+    if (!in_array($row['storageEngine'], array('gorge', 'chunks'), true)) {
+      $legacy_files += (int)$row['records'];
+    }
   }
 }
 $report['files'] = array(
-  'engines' => $files,
-  'legacyRecords' => $legacy_files,
-  'canRemoveLegacyReaders' => ($legacy_files === 0),
-  'nextStep' => 'Run bin/files migrate --engine gorge --all --copy --dry-run, then '.
-    'migrate --all --copy and verify bin/files integrity --all before deleting readers.',
+  'engines' => $files, 'legacyRecords' => $legacy_files,
+  'legacyChunkRecords' => $legacy_chunks,
+  'requiresIntegrityValidation' => true,
+  'nextStep' => 'Run bin/files migrate --engine gorge --all --copy --dry-run, '.
+    'migrate --all --copy, then bin/files integrity --all before deleting readers.',
 );
+
+$report['files'] += gorge_retirement_file_gate($legacy_files, $legacy_chunks,
+  $integrity, $args->getArg('writers-paused'));
 
 $search = PhabricatorEnv::getEnvConfig('cluster.search');
 $legacy_search = array();
@@ -41,26 +74,10 @@ $report['search'] = array(
   'ferretDomainIndexesRetained' => true,
 );
 
-$conn = id(new PhabricatorWorkerActiveTask())->establishConnection('r');
-$report['sqlQueue'] = queryfx_all($conn,
-  'SELECT taskClass, COUNT(*) AS records FROM %T GROUP BY taskClass',
-  id(new PhabricatorWorkerActiveTask())->getTableName());
-$report['queueScope'] = 'SQL queue only. Audit Redis separately when it owns '.
-  'the active queue; zero SQL rows does not prove Redis is drained.';
+$report['sqlQueue'] = idx(idx($takeover['inventory']['queue'], 'data', array()), 'classes');
+$report['queueScope'] = 'SQL only; unavailable or zero SQL rows does not prove Redis drained.';
+$report['outbox'] = idx($takeover['inventory']['feedOutbox'], 'data');
 
-$conn = id(new PhabricatorFeedStoryData())->establishConnection('r');
-$report['outbox'] = queryfx_one($conn,
-  'SELECT COUNT(*) AS pending, MAX(attempts) AS maximumAttempts '.
-  'FROM %T WHERE deliveredEpoch IS NULL', 'feed_gorgeoutbox');
-
-$report['workerBoundary'] = array(
-  'native' => array('FeedPublisherHTTPWorker (deliveryVersion=1 with policy file)'),
-  'delegated' => array('FeedPublisherWorker', 'PhabricatorSearchWorker',
-    'PhabricatorMetaMTAWorker', 'PhabricatorApplicationTransactionPublishWorker',
-    'remaining registered PHP worker classes'),
-  'daemonGate' => 'Keep Trigger and Fact until their domain work is migrated '.
-    'or retired. Retired repository/build applications need no new Go ports; '.
-    'verify their persisted tasks are drained or explicitly retired.',
-);
+$report['workerBoundary'] = $report['takeover']['workerBoundary'];
 
 echo phutil_json_encode($report)."\n";

@@ -45,6 +45,10 @@ final class PhabricatorMetaMTAMailgunReceiveController
         pht('Mail signature is not valid. Check your Mailgun API key.'));
     }
 
+    if (PhabricatorGorgeIntegrationClient::enabled('inbound', 'mailgun')) {
+      return PhabricatorGorgeIntegrationClient::queueInbound($request, 'mailgun');
+    }
+
     $raw_headers = $request->getStr('message-headers');
     $raw_dict = array();
     if (strlen($raw_headers)) {

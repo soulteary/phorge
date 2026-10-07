@@ -168,9 +168,7 @@ abstract class PhutilOAuthAuthAdapter extends PhutilAuthAdapter {
       'redirect_uri'    => $this->getRedirectURI(),
     ) + $params;
 
-    $future = new HTTPSFuture($uri, $query_data);
-    $future->setMethod('POST');
-    list($body) = $future->resolvex();
+    $body = $this->requestTokenBody($uri, $query_data);
 
     $data = $this->readAccessTokenResponse($body);
 
@@ -194,6 +192,12 @@ abstract class PhutilOAuthAuthAdapter extends PhutilAuthAdapter {
     }
 
     return $data;
+  }
+
+  protected function requestTokenBody($uri, array $params) {
+    $future = id(new HTTPSFuture($uri, $params))->setMethod('POST');
+    list($body) = $future->resolvex();
+    return $body;
   }
 
   protected function readAccessTokenResponse($body) {

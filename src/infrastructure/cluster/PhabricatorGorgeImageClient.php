@@ -88,6 +88,85 @@ final class PhabricatorGorgeImageClient
     return self::validateTransformResponse($output, $data, $recipe, idx($result, 2, array()));
   }
 
+  public function meme($data, $above, $below, $preserve_animation, array $expected = array()) {
+    if (!$expected) { $expected = $this->getCapabilities(); }
+    $uri = (string)id(new PhutilURI($this->getURI().'/api/image/meme'))
+      ->setQueryParams(array('revision' => 'meme-v1',
+        'animation' => $preserve_animation ? 'legacy-preserve' : 'legacy-static'));
+    $result = $this->newBinaryRequestFuture($uri, $data)
+      ->addHeader('X-Gorge-Meme-Above', base64_encode((string)$above))
+      ->addHeader('X-Gorge-Meme-Below', base64_encode((string)$below))
+      ->resolve();
+    $source = @getimagesizefromstring($data);
+    if (!$source) { throw new Exception(pht('Invalid Meme source.')); }
+    $output = self::validateRecipeResponse($uri, $result,
+      'meme-v1', $source[0], $source[1], idx($source, 'mime'));
+    $headers = array();
+    foreach (idx($result, 2, array()) as $header) { $headers[strtolower($header[0])] = $header[1]; }
+    if (idx($headers, 'x-gorge-font-revision') !== idx(idx($expected, 'meme', array()), 'fontRevision') ||
+        idx($headers, 'x-gorge-backend-revision') !== idx($expected, 'backendRevision')) {
+      throw new PhabricatorGorgeImageTransientException(pht('Meme backend or font changed during generation.'));
+    }
+    return $output;
+  }
+
+  public function compose(array $request) {
+    $request['revision'] = 'compose-v1';
+    $uri = $this->getURI().'/api/image/compose';
+    $result = $this->newJSONRequestFuture($uri, $request)->resolve();
+    switch ($request['recipe']) {
+      case 'avatar': $width = $height = 400; break;
+      case 'icon': $width = $height = 200; break;
+      case 'favicon': $width = $request['width']; $height = $request['height']; break;
+      default: throw new Exception(pht('Unknown composition recipe.'));
+    }
+    return self::validateRecipeResponse($uri, $result,
+      'compose-v1', $width, $height, 'image/png');
+  }
+
+  public static function composeWithRollout(array $request, $legacy) {
+    $mode = PhabricatorEnv::getEnvConfig('gorge.image.builtin-mode');
+    if ($mode === 'legacy') { return $legacy(); }
+    if ($mode === 'gorge') { return id(new self())->compose($request); }
+    if ($mode !== 'shadow') { throw new Exception(pht('Invalid builtin image rollout mode.')); }
+    $output = $legacy();
+    try {
+      $shadow = id(new self())->compose($request);
+      if (@getimagesizefromstring($output) !== @getimagesizefromstring($shadow)) {
+        phlog(pht('Gorge composition shadow metadata differs (%s).', $request['recipe']));
+      }
+    } catch (Throwable $ex) {
+      phlog(pht('Gorge composition shadow failed (%s).', $request['recipe']));
+    }
+    return $output;
+  }
+
+  private static function validateRecipeResponse($uri, array $result,
+    $revision, $width, $height, $mime) {
+    $output = self::parseBinaryResponse($uri, $result);
+    $info = @getimagesizefromstring($output);
+    $headers = array();
+    foreach (idx($result, 2, array()) as $header) {
+      $key = strtolower($header[0]);
+      if (isset($headers[$key]) && $headers[$key] !== $header[1]) {
+        throw new PhabricatorGorgeImageTransientException(pht('Conflicting recipe headers.'));
+      }
+      $headers[$key] = $header[1];
+    }
+    if (!$info || $info[0] !== (int)$width || $info[1] !== (int)$height ||
+        idx($info, 'mime') !== $mime || strlen($output) > 16 * 1024 * 1024 ||
+        idx($headers, 'x-gorge-recipe-revision') !== $revision ||
+        !strlen((string)idx($headers, 'x-gorge-backend-revision')) ||
+        idx($headers, 'x-gorge-image-width') !== (string)$width ||
+        idx($headers, 'x-gorge-image-height') !== (string)$height ||
+        idx($headers, 'content-length') !== (string)strlen($output) ||
+        strtolower((string)idx($headers, 'content-type')) !== $mime ||
+        idx($headers, 'etag') !== '"'.hash('sha256', $output).'"') {
+      throw new PhabricatorGorgeImageTransientException(pht('Invalid Gorge recipe output.'));
+    }
+    return $output;
+  }
+
   /** Validate the actual binary and negotiated contract before storing a file. */
   public static function validateTransformResponse($output, $source, $recipe, array $headers) {
     $map = array();

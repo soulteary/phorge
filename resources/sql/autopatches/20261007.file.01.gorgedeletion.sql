@@ -1,0 +1,12 @@
+CREATE TABLE {$NAMESPACE}_file.file_gorgedeletion (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  eventID VARBINARY(128) NOT NULL,
+  storageEngine VARCHAR(32) NOT NULL,
+  storageHandle VARCHAR(255) NOT NULL,
+  state VARCHAR(16) NOT NULL DEFAULT 'pending',
+  attempts INT UNSIGNED NOT NULL DEFAULT 0,
+  nextAttempt BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  lastError LONGTEXT NOT NULL,
+  UNIQUE KEY eventID (eventID),
+  KEY pending (state, nextAttempt, id)
+) ENGINE=InnoDB, COLLATE {$COLLATE_TEXT};

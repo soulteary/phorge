@@ -25,6 +25,9 @@ final class PhabricatorFactManagementCursorsWorkflow
     $console = PhutilConsole::getConsole();
 
     $reset = $args->getArg('reset');
+    if ($reset && PhabricatorGorgeIntegrationClient::enabled('fact')) {
+      throw new Exception(pht('Stop the Gorge projector and disable native fact ownership before resetting cursors.'));
+    }
     if ($reset) {
       foreach ($reset as $name) {
         $cursor = id(new PhabricatorFactCursor())->loadOneWhere(

@@ -5,6 +5,11 @@ final class PhabricatorMailSMSMessage
 
   const MESSAGETYPE = 'sms';
 
+  private $gorgeDeliveryID;
+
+  public function setGorgeDeliveryID($id) { $this->gorgeDeliveryID = (string)$id; return $this; }
+  public function getGorgeDeliveryID() { return $this->gorgeDeliveryID; }
+
   private $toNumber;
   private $textBody;
 

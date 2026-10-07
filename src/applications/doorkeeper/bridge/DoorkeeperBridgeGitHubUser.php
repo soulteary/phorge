@@ -23,6 +23,17 @@ final class DoorkeeperBridgeGitHubUser
       return null;
     }
 
+    if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'github')) {
+      $results = array(); $failed = array();
+      $id_map = mpull($refs, 'getObjectID', 'getObjectKey');
+      foreach ($id_map as $key => $id) {
+        try {
+          $results[$key] = PhabricatorGorgeIntegrationClient::readConnector('github',
+            'context:'.$this->getViewer()->getPHID(), $token, 'users',
+            array('since'=>(int)$id - 1, 'per_page'=>1));
+        } catch (Exception $ex) { $failed[$key] = $ex; }
+      }
+    } else {
     $template = id(new PhutilGitHubFuture())
       ->setAccessToken($token);
 
@@ -57,6 +68,8 @@ final class DoorkeeperBridgeGitHubUser
       }
     }
 
+    }
+
     $viewer = $this->getViewer();
 
     foreach ($refs as $ref) {
@@ -73,7 +86,7 @@ final class DoorkeeperBridgeGitHubUser
         continue;
       }
 
-      $body = $result->getBody();
+      $body = is_array($result) ? $result : $result->getBody();
       if (!is_array($body) || !count($body)) {
         $ref->setSyncFailed(true);
         continue;

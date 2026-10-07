@@ -92,10 +92,15 @@ final class PhabricatorAsanaConfigOptions
     }
 
     try {
-      $workspaces = id(new PhutilAsanaFuture())
-        ->setAccessToken($token)
-        ->setRawAsanaQuery('workspaces')
-        ->resolve();
+      if (PhabricatorGorgeIntegrationClient::enabled('connectors', 'asana')) {
+        $workspaces = PhabricatorGorgeIntegrationClient::readConnector(
+          'asana', $account->getPHID(), $token, 'workspaces');
+      } else {
+        $workspaces = id(new PhutilAsanaFuture())
+          ->setAccessToken($token)
+          ->setRawAsanaQuery('workspaces')
+          ->resolve();
+      }
     } catch (Exception $ex) {
       return null;
     }

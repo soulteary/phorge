@@ -106,6 +106,33 @@ try {
   catch (Throwable $ex) { $failed = true; }
   $count = $admin->query('SELECT COUNT(*) AS n FROM metamta_mail')->fetch_assoc();
   if (!$failed || (int)$count['n'] !== 1) { throw new Exception('Mail escaped failed outbox transaction.'); }
+  $env->overrideEnvConfig('gorge.integrations', array('sms'=>array('native-sms'=>'target')));
+  $sms_mail = id(new PhabricatorMetaMTAMail())->setMessageType('sms');
+  // Persist the fixture without scheduling the intentionally unavailable queue.
+  $storage_save = new ReflectionMethod('PhabricatorLiskDAO', 'save');
+  $storage_save->invoke($sms_mail);
+  $sms_message = id(new PhabricatorMailSMSMessage())
+    ->setToNumber(new PhabricatorPhoneNumber('+15550000001'))->setTextBody('first body');
+  $sms_mail->prepareGorgeSMSMessage($sms_message, 'native-sms');
+  $retry = id(new PhabricatorMailSMSMessage())
+    ->setToNumber(new PhabricatorPhoneNumber('+15550000002'))->setTextBody('changed body');
+  $reloaded = id(new PhabricatorMetaMTAMail())->load($sms_mail->getID());
+  $reloaded->prepareGorgeSMSMessage($retry, 'native-sms');
+  if ($retry->getToNumber()->toE164() !== '+15550000001' ||
+      $retry->getTextBody() !== 'first body' ||
+      $retry->getGorgeDeliveryID() !== (string)$sms_mail->getID()) {
+    throw new Exception('SMS retry changed destination, content or identity.');
+  }
+  $wrong_adapter = id(new PhabricatorMailTwilioAdapter())->setKey('different-provider');
+  $blocked = false;
+  try { $reloaded->sendWithMailers(array($wrong_adapter)); }
+  catch (PhabricatorMetaMTAPermanentFailureException $ex) { $blocked = true; }
+  if (!$blocked) { throw new Exception('Prepared SMS fell back to another provider.'); }
+  $env->overrideEnvConfig('gorge.integrations', array());
+  $blocked = false;
+  try { $reloaded->sendWithMailers(array(id(new PhabricatorMailTwilioAdapter())->setKey('native-sms'))); }
+  catch (PhabricatorMetaMTAPermanentFailureException $ex) { $blocked = true; }
+  if (!$blocked) { throw new Exception('Disabled native SMS reverted to a legacy send.'); }
   echo "Mail ownership, projection and outbox rollback contracts passed.\n";
 } finally {
   $admin->query('DROP DATABASE `'.$name.'`');

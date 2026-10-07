@@ -906,11 +906,49 @@ final class PhabricatorMetaMTAMail
     return $sorted;
   }
 
+  public function prepareGorgeSMSMessage(PhabricatorMailSMSMessage $message, $adapter_key) {
+    if ($this->getMessageType() !== PhabricatorMailSMSMessage::MESSAGETYPE ||
+        !PhabricatorGorgeIntegrationClient::enabled('sms', $adapter_key)) {
+      throw new PhabricatorMetaMTAPermanentFailureException(pht('Native SMS is not enabled.'));
+    }
+    $pinned = $this->getParam('gorge.sms-adapter');
+    if ($pinned !== null && $pinned !== $adapter_key) {
+      throw new PhabricatorMetaMTAPermanentFailureException(pht('Native SMS adapter can not change after preparation.'));
+    }
+    $snapshot = $this->getParam('gorge.sms-snapshot');
+    if ($snapshot === null) {
+      $snapshot = array('to' => $message->getToNumber()->toE164(),
+        'text' => $message->getTextBody());
+      // Persist the destination, text and provider ownership before network I/O.
+      $this->setParam('gorge.sms-adapter', $adapter_key)
+        ->setParam('gorge.sms-snapshot', $snapshot)->save();
+    }
+    $message->setToNumber(new PhabricatorPhoneNumber($snapshot['to']))
+      ->setTextBody($snapshot['text'])->setGorgeDeliveryID($this->getID());
+    return $message;
+  }
+
   public function sendWithMailers(array $mailers) {
     if ($this->getParam('gorge.delivery-owner') === 'gorge') {
       throw new PhabricatorMetaMTAPermanentFailureException(
         pht('This mail is owned by native Gorge delivery.'));
     }
+    $pinned_sms = $this->getParam('gorge.sms-adapter');
+    if ($pinned_sms !== null) {
+      $selected = array();
+      foreach ($mailers as $mailer) {
+        if ($mailer->getKey() === $pinned_sms &&
+            PhabricatorGorgeIntegrationClient::enabled('sms', $pinned_sms)) {
+          $selected[] = $mailer;
+        }
+      }
+      if (!$selected) {
+        throw new PhabricatorMetaMTAPermanentFailureException(
+          pht('Native SMS adapter %s must remain enabled until this delivery is reconciled.', $pinned_sms));
+      }
+      $mailers = $selected;
+    }
+
     if (!$mailers) {
       $any_mailers = self::newMailers(array());
 
@@ -965,6 +1003,8 @@ final class PhabricatorMetaMTAMail
     $exceptions = array();
     foreach ($mailers as $mailer) {
       $is_gorge = ($mailer->getAdapterType() === 'gorge');
+      $is_native_sms = $this->getMessageType() === PhabricatorMailSMSMessage::MESSAGETYPE &&
+        PhabricatorGorgeIntegrationClient::enabled('sms', $mailer->getKey());
 
       try {
         $message = $this->newExternalMessageForMailer($mailer, $actors, $preferences);
@@ -983,6 +1023,12 @@ final class PhabricatorMetaMTAMail
       }
 
       try {
+        if ($message instanceof PhabricatorMailSMSMessage) {
+          if ($is_native_sms) {
+            $this->prepareGorgeSMSMessage($message, $mailer->getKey());
+          }
+          $message->setGorgeDeliveryID($this->getID());
+        }
         $mailer->sendMessage($message);
       } catch (PhabricatorMetaMTAPermanentFailureException $ex) {
         // If any mailer raises a permanent failure, stop trying to send the
@@ -994,7 +1040,7 @@ final class PhabricatorMetaMTAMail
 
         throw $ex;
       } catch (Exception $ex) {
-        if ($is_gorge) {
+        if ($is_gorge || $is_native_sms) {
           // Once the HTTP send begins, a timeout, lost response, invalid
           // response, or service error can not prove that the provider did
           // not accept the message. Trying another mailer here can therefore

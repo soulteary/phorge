@@ -253,43 +253,61 @@ final class PhabricatorFile extends PhabricatorFileDAO
 
 
   public static function newFileFromContentHash($hash, array $params) {
-    if ($hash === null) {
+    if ($hash === null || substr(rtrim($hash, "\0"), -2) === '-C') {
+      // Resumable hashes are scoped to an account, not verified content hashes.
       return null;
     }
+    $query_hash = str_pad($hash, 64, "\0");
 
-    // Check to see if a file with same hash already exists.
-    $file = id(new self())->loadOneWhere(
-      'contentHash = %s LIMIT 1',
-      $hash);
-    if (!$file) {
-      return null;
+    $guard = PhabricatorEnv::getEnvConfig('gorge.file.deletion-outbox') ? new self() : null;
+    if ($guard) { $guard->openTransaction(); }
+    try {
+      // Check to see if a file with same hash already exists.
+      if ($guard) {
+        $row = queryfx_one($guard->establishConnection('w'),
+          'SELECT * FROM %T WHERE contentHash = %s AND isPartial = 0 LIMIT 1 FOR UPDATE',
+          $guard->getTableName(), $query_hash);
+        $file = $row ? id(new self())->loadFromArray($row) : null;
+      } else {
+        $file = id(new self())->loadOneWhere(
+          'contentHash = %s AND isPartial = 0 LIMIT 1', $query_hash);
+      }
+      if (!$file) {
+        if ($guard) { $guard->saveTransaction(); }
+        return null;
+      }
+
+      $copy_of_storage_engine = $file->getStorageEngine();
+      $copy_of_storage_handle = $file->getStorageHandle();
+      $copy_of_storage_format = $file->getStorageFormat();
+      $copy_of_storage_properties = $file->getStorageProperties();
+      $copy_of_byte_size = $file->getByteSize();
+      $copy_of_mime_type = $file->getMimeType();
+
+      $new_file = self::initializeNewFile();
+
+      $new_file->setByteSize($copy_of_byte_size);
+
+      $new_file->setContentHash($hash);
+      $new_file->setStorageEngine($copy_of_storage_engine);
+      $new_file->setStorageHandle($copy_of_storage_handle);
+      $new_file->setStorageFormat($copy_of_storage_format);
+      $new_file->setStorageProperties($copy_of_storage_properties);
+      $new_file->setMimeType($copy_of_mime_type);
+      $new_file->copyDimensions($file);
+
+      $new_file->readPropertiesFromParameters($params);
+
+      $new_file->saveAndIndex();
+
+      if ($guard) { $guard->saveTransaction(); }
+      return $new_file;
+    } catch (Throwable $ex) {
+      if ($guard) { $guard->killTransaction(); }
+      throw $ex;
     }
-
-    $copy_of_storage_engine = $file->getStorageEngine();
-    $copy_of_storage_handle = $file->getStorageHandle();
-    $copy_of_storage_format = $file->getStorageFormat();
-    $copy_of_storage_properties = $file->getStorageProperties();
-    $copy_of_byte_size = $file->getByteSize();
-    $copy_of_mime_type = $file->getMimeType();
-
-    $new_file = self::initializeNewFile();
-
-    $new_file->setByteSize($copy_of_byte_size);
-
-    $new_file->setContentHash($hash);
-    $new_file->setStorageEngine($copy_of_storage_engine);
-    $new_file->setStorageHandle($copy_of_storage_handle);
-    $new_file->setStorageFormat($copy_of_storage_format);
-    $new_file->setStorageProperties($copy_of_storage_properties);
-    $new_file->setMimeType($copy_of_mime_type);
-    $new_file->copyDimensions($file);
-
-    $new_file->readPropertiesFromParameters($params);
-
-    $new_file->saveAndIndex();
-
-    return $new_file;
   }
+
 
   public static function newChunkedFile(
     PhabricatorFileStorageEngine $engine,
@@ -547,14 +565,7 @@ final class PhabricatorFile extends PhabricatorFileDAO
     $this->setStorageEngine($new_identifier);
     $this->setStorageHandle($new_handle);
     $this->setIntegrityHash($integrity_hash);
-    $this->save();
-
-    if (!$make_copy) {
-      $this->deleteFileDataIfUnused(
-        $old_engine,
-        $old_identifier,
-        $old_handle);
-    }
+    $this->saveStorageReplacement($old_engine, $old_identifier, $old_handle, !$make_copy);
 
     return $this;
   }
@@ -571,6 +582,7 @@ final class PhabricatorFile extends PhabricatorFileDAO
     );
 
     $engine = $this->instantiateStorageEngine();
+    $old_identifier = $this->getStorageEngine();
     $old_handle = $this->getStorageHandle();
 
     $properties = $format->newStorageProperties();
@@ -584,14 +596,42 @@ final class PhabricatorFile extends PhabricatorFileDAO
 
     $this->setStorageHandle($new_handle);
     $this->setIntegrityHash($integrity_hash);
-    $this->save();
-
-    $this->deleteFileDataIfUnused(
-      $engine,
-      $identifier,
-      $old_handle);
+    $this->saveStorageReplacement($engine, $old_identifier, $old_handle, true);
 
     return $this;
+  }
+
+  private function saveStorageReplacement(PhabricatorFileStorageEngine $old_engine,
+    $old_identifier, $old_handle, $delete_old) {
+    if (!PhabricatorFileGorgeDeletion::shouldQueue($old_identifier, $old_handle)) {
+      $this->save();
+      if ($delete_old) {
+        $this->deleteFileDataIfUnused($old_engine, $old_identifier, $old_handle);
+      }
+      return;
+    }
+    // Commit the replacement handle and old-byte intent together. Otherwise
+    // a crash between these writes permanently loses the cleanup target.
+    $this->openTransaction();
+    try {
+      $row = queryfx_one($this->establishConnection('w'),
+        'SELECT storageEngine, storageHandle FROM %T WHERE id = %d FOR UPDATE',
+        $this->getTableName(), $this->getID());
+      if (!$row || $row['storageEngine'] !== $old_identifier ||
+          $row['storageHandle'] !== $old_handle) {
+        throw new Exception(pht('File storage changed during migration.'));
+      }
+      $this->save();
+      if ($delete_old) {
+        $old = clone $this;
+        $old->setStorageEngine($old_identifier)->setStorageHandle($old_handle);
+        PhabricatorFileGorgeDeletion::queueUnused($old);
+      }
+      $this->saveTransaction();
+    } catch (Throwable $ex) {
+      $this->killTransaction();
+      throw $ex;
+    }
   }
 
   public function cycleMasterStorageKey(PhabricatorFileStorageFormat $format) {
@@ -712,17 +752,39 @@ final class PhabricatorFile extends PhabricatorFileDAO
       $this->getPHID());
 
     $this->openTransaction();
+    try {
+      if (PhabricatorEnv::getEnvConfig('gorge.file.deletion-outbox')) {
+        $row = queryfx_one($this->establishConnection('w'),
+          'SELECT * FROM %T WHERE id = %d FOR UPDATE',
+          $this->getTableName(), $this->getID());
+        if (!$row) {
+          $this->saveTransaction();
+          return $this;
+        }
+        // A concurrent migration may have replaced the snapshot's handle.
+        $this->loadFromArray($row);
+      }
       foreach ($inbound_xforms as $inbound_xform) {
         $inbound_xform->delete();
       }
       $ret = parent::delete();
-    $this->saveTransaction();
+      if (PhabricatorFileGorgeDeletion::shouldQueue(
+          $this->getStorageEngine(), $this->getStorageHandle())) {
+        PhabricatorFileGorgeDeletion::queueUnused($this);
+      }
+      $this->saveTransaction();
+    } catch (Throwable $ex) {
+      $this->killTransaction();
+      throw $ex;
+    }
 
-    $this->deleteFileDataIfUnused(
-      $this->instantiateStorageEngine(),
-      $this->getStorageEngine(),
-      $this->getStorageHandle());
-
+    if (!PhabricatorFileGorgeDeletion::shouldQueue(
+        $this->getStorageEngine(), $this->getStorageHandle())) {
+      $this->deleteFileDataIfUnused(
+        $this->instantiateStorageEngine(),
+        $this->getStorageEngine(),
+        $this->getStorageHandle());
+    }
     return $ret;
   }
 
@@ -735,6 +797,22 @@ final class PhabricatorFile extends PhabricatorFileDAO
     PhabricatorFileStorageEngine $engine,
     $engine_identifier,
     $handle) {
+
+    if (PhabricatorFileGorgeDeletion::shouldQueue($engine_identifier, $handle)) {
+      // Called by storage migrations as well as deletion. Persist a retryable
+      // intent instead of swallowing physical backend failures.
+      $this->openTransaction();
+      try {
+        $shadow = clone $this;
+        $shadow->setStorageEngine($engine_identifier)->setStorageHandle($handle);
+        PhabricatorFileGorgeDeletion::queueUnused($shadow);
+        $this->saveTransaction();
+      } catch (Throwable $ex) {
+        $this->killTransaction();
+        throw $ex;
+      }
+      return;
+    }
 
     // Check to see if any files are using storage.
     $usage = id(new self())->loadAllWhere(
@@ -1459,6 +1537,17 @@ final class PhabricatorFile extends PhabricatorFileDAO
     $engine = $this->instantiateStorageEngine();
 
     if ($engine->isChunkEngine()) {
+      if ($this->getStorageEngine() === 'chunks' &&
+          PhabricatorChunkedFileStorageEngine::isGorgeHandle($this->getStorageHandle())) {
+        $upload = id(new PhabricatorGorgeFileStorageClient())->verifyUpload(
+          PhabricatorChunkedFileStorageEngine::getGorgeUploadID($this->getStorageHandle()));
+        $expected = idx($this->getMetadata(), 'gorge.upload.sha256');
+        if ($upload['size'] !== (int)$this->getByteSize() ||
+            !is_string($expected) || !hash_equals($expected, $upload['sha256'])) {
+          throw new Exception(pht('Gorge upload integrity does not match file metadata.'));
+        }
+        return 'gorge-sha256:'.$upload['sha256'];
+      }
       return null;
     }
 
