@@ -78,9 +78,10 @@ docker compose up -d --build
 账号即可。应用容器带 healthcheck（探测免鉴权的 `/status/`），有 60s `start_period`，
 所以启动后需要等一会儿 `docker compose ps` 里才会变成 `healthy`。
 
-Phorge `2026.10.07-r2` 的合并与发布依赖 Gorge 同版本全部服务镜像先发布成功。
-候选阶段的发布顺序、配对源码与验收证据见 [发布准备](docs/releases/2026.10.07-r2.md)。
-这是该版历史记录；当前发布流程见下一节。
+Phorge `2026.10.08-r1` 与 Gorge 同版本按不可变源码提交配对，发布范围和步骤见
+[发布准备](docs/releases/2026.10.08-r1.md)。先合并两仓库的发布准备 PR 并确定最终
+配对提交，再由 Gorge 发布流程构建、验收并发布镜像 digest；部署方式见下一节。
+`2026.10.07-r2` 的旧标签发布顺序仅保留在 [历史记录](docs/releases/2026.10.07-r2.md)。
 
 ## 发布镜像与源码配对
 
