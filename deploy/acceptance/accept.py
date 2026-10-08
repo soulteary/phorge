@@ -73,6 +73,9 @@ rc = 1
 phase = 'runtime-integrity'
 try:
     manifest['runtime']=runtime_identity(ROOT / lock['runtimeManifest'])
+    phase = 'image-platform-check'
+    subprocess.run([sys.executable, str(gorge/'deploy/release/base_images.py'),
+                    '--lock', str(ROOT/'deploy/acceptance/build-lock.json')], check=True)
     if candidate_images:
         phase = 'candidate-packaging'
         sys.path.insert(0, str(gorge/'deploy/release'))
