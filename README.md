@@ -19,7 +19,7 @@ Phorge is developed and maintained by [The Phorge Team](https://phorge.it).
 
 ## 版本说明
 
-版本变更见 [RELEASE_NOTES.md](RELEASE_NOTES.md)，历史 `2026.10.07-r2` 的配对源码、验证与发布顺序见 [发布准备](docs/releases/2026.10.07-r2.md)。当前产物的 digest 和源码配对见 [部署说明](DOCKER.md#发布镜像与源码配对)。
+版本变更见 [RELEASE_NOTES.md](RELEASE_NOTES.md)，`2026.10.08-r1` 的配对源码、验证与发布顺序见 [发布准备](docs/releases/2026.10.08-r1.md)。当前产物的 digest 和源码配对见 [部署说明](DOCKER.md#发布镜像与源码配对)。
 
 ## 部署与运维
 
