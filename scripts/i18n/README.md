@@ -32,13 +32,15 @@ export MOONSHOT_API_KEY='替换为你的 API 密钥'
 python3 scripts/i18n/translate_zh_api_batch.py --limit 500 --batch-size 30
 ```
 
-默认地址是 `https://api.moonshot.cn/v1`，模型是 `kimi-k2.6`。运行完成后检查差异：
+默认地址是 `https://api.moonshot.cn/v1`，模型是 `kimi-k2.6`。工具在 Moonshot 官方域名（`api.moonshot.cn`、`api.moonshot.ai`）调用此模型时默认关闭思考，使用非思考模式完成翻译；未显式指定 `--temperature` 或 `--top-p` 时，不发送这两个参数，由服务使用模型合法的默认值。运行完成后检查差异：
 
 ```bash
 git diff -- src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php
 ```
 
-工具默认不附加服务商专用参数。若所选 Moonshot 模型需要显式关闭 thinking，可传入 JSON 对象：
+Kimi K2.6 默认开启思考，思考模式温度固定为 `1.0`，非思考模式固定为 `0.6`，`top_p` 固定为 `0.95`。旧版工具发送 `temperature=0.6` 却没有关闭思考，会与服务参数约束冲突并可能返回 HTTP 400。规则见 [Kimi K2.6 官方说明](https://platform.kimi.com/docs/guide/kimi-k2-6-quickstart)。当前默认命令已处理此兼容性要求，无需另加参数。
+
+也可以通过 `--extra-body` 显式配置 thinking，工具尊重该设置。例如关闭思考：
 
 ```bash
 python3 scripts/i18n/translate_zh_api_batch.py \
@@ -46,7 +48,9 @@ python3 scripts/i18n/translate_zh_api_batch.py \
   --limit 100
 ```
 
-`--extra-body` 默认 `{}`，只添加请求字段，不能覆盖 `model`、`messages`、`temperature`、`top_p`、`max_tokens` 或 `stream`。其他服务商是否接受 thinking 或其他扩展字段，需要按对应接口选择；本工具不会将 Moonshot 参数强加给所有服务。
+如需使用思考模式，将上述 `disabled` 改为 `enabled`，保持采样参数未指定即可；若显式设置温度，应使用 `--temperature 1.0`。
+
+`--extra-body` 默认 `{}`，只添加请求字段，不能覆盖 `model`、`messages`、`temperature`、`top_p`、`max_tokens` 或 `stream`。除 Moonshot 官方域名的 `kimi-k2.6` 外，工具不会自动添加 thinking；其他服务商和模型的扩展字段需要按对应接口选择。
 
 需要换用其他兼容 Chat Completions 的服务时，显式指定地址、模型和密钥环境变量名：
 
@@ -114,11 +118,14 @@ API 返回不完整、保护标记损坏或格式校验失败的结果不会作�
 
 - `--file`：目标中文翻译文件，默认 `src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php`。
 - `--request-timeout`：单次请求超时秒数，默认 120。
-- `--retry`：每个请求的总尝试次数，默认 2；`--retry-sleep`：重试间隔秒数，默认 1。
+- `--retry`：可重试错误的每个请求总尝试次数，默认 2；`--retry-sleep`：基础重试间隔秒数，默认 1，按尝试次数递增。
 - `--request-interval`：批次请求之间的间隔秒数，默认 0.5。
-- `--temperature`、`--top-p`、`--max-tokens`：模型采样与输出参数，默认分别为 0.6、0.95、32768；需要与所选服务及模型支持的参数保持一致。
+- `--temperature`、`--top-p`：默认不发送，采用所选服务与模型的默认值；显式指定时原样发送，需要符合对应接口的参数约束。
+- `--max-tokens`：最大输出 token 数，默认 32768。
 
 退出码 `0` 表示成功或没有候选，`2` 表示有模型输出被拒绝，`1` 表示请求、写入或校验错误。遇到失败先查看终端中的具体原因，保留进度文件并重新运行；不需要删除已经完成的译文。
+
+HTTP 错误会显示服务返回的消息、错误类型、代码及参数名（如有），并限制输出长度、隐藏回显的 API 密钥。HTTP 400、401、403、404 等不能通过原样重试解决的错误立即停止；408、429、5xx、连接中断及无效响应按 `--retry` 重试。若仍出现 HTTP 400，根据显示的具体参数错误修正模型或参数，而不是增大重试次数。
 
 ## 复核与部署
 

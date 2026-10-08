@@ -24,8 +24,14 @@ final class PhabricatorChineseTranslation
         '此配置项与之相关：',
         '这些配置项与之相关：',
       ),
-      '%s Answer(s)' => array('%s 个回答', '%s 个回答'),
-      'Show %s Comment(s)' => array('显示 %s 条评论', '显示 %s 条评论'),
+      '%s Answer(s)' => array(
+        '%s 个回答',
+        '%s 个回答',
+      ),
+      'Show %s Comment(s)' => array(
+        '显示 %s 条评论',
+        '显示 %s 条评论',
+      ),
       '%s Action(s) Have No Effect' => array(
         '操作无效',
         '操作无效',
@@ -54,10 +60,8 @@ final class PhabricatorChineseTranslation
           '%s 移除了成员：%3$s。',
         ),
       ),
-      '%s edited project(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了项目，添加：%3$s；移除：%5$s。',
-      '%s edited project(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 编辑了项目，添加：%4$s；移除：%6$s。',
+      '%s edited project(s), added %s: %s; removed %s: %s.' => '%s 编辑了项目，添加：%3$s；移除：%5$s。',
+      '%s edited project(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了项目，添加：%4$s；移除：%6$s。',
       '%s added %s project(s): %s.' => array(
         array(
           '%s 添加了项目：%3$s。',
@@ -142,16 +146,11 @@ final class PhabricatorChineseTranslation
           '%s 为 %3$s 移除了父任务：%4$s。',
         ),
       ),
-      '%s edited subtask(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了子任务，添加：%3$s；移除：%5$s。',
-      '%s edited subtask(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 编辑了子任务，添加：%4$s；移除：%6$s。',
-      '%s edited parent task(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了父任务，添加：%3$s；移除：%5$s。',
-      '%s edited parent task(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 编辑了父任务，添加：%4$s；移除：%6$s。',
-      '%s edited mock(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了 Mock，添加：%3$s；移除：%5$s。',
+      '%s edited subtask(s), added %s: %s; removed %s: %s.' => '%s 编辑了子任务，添加：%3$s；移除：%5$s。',
+      '%s edited subtask(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了子任务，添加：%4$s；移除：%6$s。',
+      '%s edited parent task(s), added %s: %s; removed %s: %s.' => '%s 编辑了父任务，添加：%3$s；移除：%5$s。',
+      '%s edited parent task(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了父任务，添加：%4$s；移除：%6$s。',
+      '%s edited mock(s), added %s: %s; removed %s: %s.' => '%s 编辑了 Mock，添加：%3$s；移除：%5$s。',
       '%s added %s mock(s): %s.' => array(
         array(
           '%s 添加了 Mock：%3$s。',
@@ -170,8 +169,7 @@ final class PhabricatorChineseTranslation
           '%s 为 %3$s 移除了 Mock：%4$s。',
         ),
       ),
-      '%s edited mock(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 编辑了 Mock，添加：%4$s；移除：%6$s。',
+      '%s edited mock(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了 Mock，添加：%4$s；移除：%6$s。',
       '%s removed %s mock(s): %s.' => array(
         array(
           '%s 移除了 Mock：%3$s。',
@@ -190,8 +188,7 @@ final class PhabricatorChineseTranslation
           '%s 移除了任务：%3$s。',
         ),
       ),
-      '%s edited contributor(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了贡献者，添加：%3$s；移除：%5$s。',
+      '%s edited contributor(s), added %s: %s; removed %s: %s.' => '%s 编辑了贡献者，添加：%3$s；移除：%5$s。',
       '%s added %s contributor(s): %s.' => array(
         array(
           '%s 添加了贡献者：%3$s。',
@@ -216,18 +213,14 @@ final class PhabricatorChineseTranslation
           '%s 为 %3$s 移除了贡献者：%4$s。',
         ),
       ),
-      '%s edited contributor(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 编辑了贡献者，添加：%4$s；移除：%6$s。',
+      '%s edited contributor(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了贡献者，添加：%4$s；移除：%6$s。',
       '%d other(s)' => array(
         '%d 其他',
         '%d 其他',
       ),
-      '%s edited subscriber(s), added %d: %s; removed %d: %s.' =>
-        '%s 编辑了订阅者，添加：%3$s；移除：%5$s。',
-      '%s edited subscriber(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了订阅者，添加：%3$s；移除：%5$s。',
-      '%s edited subscriber(s) for %s, added %s: %s; removed %s: %s.' =>
-          '%s 为 %s 编辑了订阅者，添加：%4$s；移除：%6$s。',
+      '%s edited subscriber(s), added %d: %s; removed %d: %s.' => '%s 编辑了订阅者，添加：%3$s；移除：%5$s。',
+      '%s edited subscriber(s), added %s: %s; removed %s: %s.' => '%s 编辑了订阅者，添加：%3$s；移除：%5$s。',
+      '%s edited subscriber(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了订阅者，添加：%4$s；移除：%6$s。',
       '%s added %s subscriber(s): %s.' => array(
         array(
           '%s 添加了订阅者：%3$s。',
@@ -264,10 +257,8 @@ final class PhabricatorChineseTranslation
           '%s 为 %3$s 移除了订阅者：%4$s。',
         ),
       ),
-      '%s edited unsubscriber(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了取消订阅者，添加：%3$s；移除：%5$s。',
-      '%s edited unsubscriber(s) for %s, added %s: %s; removed %s: %s.' =>
-          '%s 为 %s 编辑了取消订阅者，添加：%4$s；移除：%6$s。',
+      '%s edited unsubscriber(s), added %s: %s; removed %s: %s.' => '%s 编辑了取消订阅者，添加：%3$s；移除：%5$s。',
+      '%s edited unsubscriber(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了取消订阅者，添加：%4$s；移除：%6$s。',
       '%s added %s unsubscriber(s): %s.' => array(
         array(
           '%s 添加了取消订阅者：%3$s。',
@@ -292,10 +283,8 @@ final class PhabricatorChineseTranslation
           '%s 为 %3$s 移除了取消订阅者：%4$s。',
         ),
       ),
-      '%s edited watcher(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了关注者，添加：%3$s；移除：%5$s。',
-      '%s edited watcher(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 编辑了关注者，添加：%4$s；移除：%6$s。',
+      '%s edited watcher(s), added %s: %s; removed %s: %s.' => '%s 编辑了关注者，添加：%3$s；移除：%5$s。',
+      '%s edited watcher(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了关注者，添加：%4$s；移除：%6$s。',
       '%s added %s watcher(s): %s.' => array(
         array(
           '%s 添加了关注者：%3$s。',
@@ -308,8 +297,7 @@ final class PhabricatorChineseTranslation
           '%s 移除了关注者：%3$s。',
         ),
       ),
-      '%s edited participant(s), added %d: %s; removed %d: %s.' =>
-        '%s 编辑了参与者，添加：%3$s；移除：%5$s。',
+      '%s edited participant(s), added %d: %s; removed %d: %s.' => '%s 编辑了参与者，添加：%3$s；移除：%5$s。',
       '%s added %d participant(s): %s.' => array(
         array(
           '%s 添加了参与者：%3$s。',
@@ -322,8 +310,7 @@ final class PhabricatorChineseTranslation
           '%s 移除了参与者：%3$s。',
         ),
       ),
-      '%s edited image(s), added %d: %s; removed %d: %s.' =>
-        '%s 编辑了图片，添加：%3$s；移除：%5$s。',
+      '%s edited image(s), added %d: %s; removed %d: %s.' => '%s 编辑了图片，添加：%3$s；移除：%5$s。',
       '%s added %d image(s): %s.' => array(
         array(
           '%s 添加了图片：%3$s。',
@@ -376,8 +363,7 @@ final class PhabricatorChineseTranslation
           '%s 移除了提交：%3$s。',
         ),
       ),
-      '%s changed project member(s), added %d: %s; removed %d: %s.' =>
-        '%s 变更了项目成员，添加：%3$s；移除：%5$s。',
+      '%s changed project member(s), added %d: %s; removed %d: %s.' => '%s 变更了项目成员，添加：%3$s；移除：%5$s。',
       '%s added %d project member(s): %s.' => array(
         array(
           '%s 添加了成员：%3$s。',
@@ -394,8 +380,7 @@ final class PhabricatorChineseTranslation
         '项目话题标签「%2$s」已被其他项目使用。',
         '以下项目话题标签已被其他项目使用：%2$s。',
       ),
-      '%s changed project hashtag(s), added %d: %s; removed %d: %s.' =>
-        '%s 变更了项目话题标签，添加：%3$s；移除：%5$s。',
+      '%s changed project hashtag(s), added %d: %s; removed %d: %s.' => '%s 变更了项目话题标签，添加：%3$s；移除：%5$s。',
       '%s added %d project hashtag(s): %s.' => array(
         array(
           '%s 添加了话题标签：%3$s。',
@@ -408,8 +393,7 @@ final class PhabricatorChineseTranslation
           '%s 移除了话题标签：%3$s。',
         ),
       ),
-      '%s changed %s hashtag(s), added %d: %s; removed %d: %s.' =>
-        '%s 为 %s 变更了话题标签，添加：%4$s；移除：%6$s。',
+      '%s changed %s hashtag(s), added %d: %s; removed %d: %s.' => '%s 为 %s 变更了话题标签，添加：%4$s；移除：%6$s。',
       '%s added %d %s hashtag(s): %s.' => array(
         array(
           '%s 向 %3$s 添加了话题标签：%4$s。',
@@ -456,14 +440,11 @@ final class PhabricatorChineseTranslation
         array(
           '%s 为 %3$s 移除了任务：%4$s。',
           '%s 为 %3$s 移除了任务：%4$s。',
-       ),
+        ),
       ),
-      '%s edited task(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了任务，添加：%3$s；移除：%5$s。',
-      '%s edited task(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 编辑了任务，添加：%4$s；移除：%6$s。',
-      '%s edited %s commit(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了提交，添加：%4$s；移除：%6$s。',
+      '%s edited task(s), added %s: %s; removed %s: %s.' => '%s 编辑了任务，添加：%3$s；移除：%5$s。',
+      '%s edited task(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了任务，添加：%4$s；移除：%6$s。',
+      '%s edited %s commit(s), added %s: %s; removed %s: %s.' => '%s 编辑了提交，添加：%4$s；移除：%6$s。',
       '%s added %s commit(s) to %s: %s.' => array(
         array(
           '%s 向 %3$s 添加了提交：%4$s。',
@@ -476,10 +457,8 @@ final class PhabricatorChineseTranslation
           '%s 从 %3$s 移除了提交：%4$s。',
         ),
       ),
-      '%s edited %s commit(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %3$s 编辑了提交，添加：%5$s；移除：%7$s。',
-      '%s edited %s project(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了项目，添加：%4$s；移除：%6$s。',
+      '%s edited %s commit(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %3$s 编辑了提交，添加：%5$s；移除：%7$s。',
+      '%s edited %s project(s), added %s: %s; removed %s: %s.' => '%s 编辑了项目，添加：%4$s；移除：%6$s。',
       '%s added %s project(s) to %s: %s.' => array(
         array(
           '%s 向 %3$s 添加了项目：%4$s。',
@@ -492,8 +471,7 @@ final class PhabricatorChineseTranslation
           '%s 从 %3$s 移除了项目：%4$s。',
         ),
       ),
-      '%s edited %s project(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %3$s 编辑了项目，添加：%5$s；移除：%7$s。',
+      '%s edited %s project(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %3$s 编辑了项目，添加：%5$s；移除：%7$s。',
       '%s added %s edge(s): %s.' => array(
         array(
           '%s 添加了边：%3$s。',
@@ -518,10 +496,8 @@ final class PhabricatorChineseTranslation
           '%s 从 %3$s 移除了边：%4$s。',
         ),
       ),
-      '%s edited %s edge(s), added %s: %s; removed %s: %s.' =>
-       '%s 编辑了边，添加：%4$s；移除：%6$s。',
-      '%s edited %s edge(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %3$s 编辑了边，添加：%5$s；移除：%7$s。',
+      '%s edited %s edge(s), added %s: %s; removed %s: %s.' => '%s 编辑了边，添加：%4$s；移除：%6$s。',
+      '%s edited %s edge(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %3$s 编辑了边，添加：%5$s；移除：%7$s。',
       '%s added %s member(s) for %s: %s.' => array(
         array(
           '%s 为 %3$s 添加了成员：%4$s。',
@@ -546,13 +522,13 @@ final class PhabricatorChineseTranslation
         '显示首个块',
         '显示前 %s 个块',
       ),
-      "\xE2\x96\xB2 Show %s Line(s)" => array(
-        "\xE2\x96\xB2 显示行",
-        "\xE2\x96\xB2 显示 %s 行",
+      '▲ Show %s Line(s)' => array(
+        '▲ 显示行',
+        '▲ 显示 %s 行',
       ),
-      "\xE2\x96\xB2 Show %s Block(s)" => array(
-        "\xE2\x96\xB2 显示块",
-        "\xE2\x96\xB2 显示 %s 个块",
+      '▲ Show %s Block(s)' => array(
+        '▲ 显示块',
+        '▲ 显示 %s 个块',
       ),
       'Show All %s Line(s)' => array(
         '显示行',
@@ -562,13 +538,13 @@ final class PhabricatorChineseTranslation
         '显示块',
         '显示全部 %s 个块',
       ),
-      "\xE2\x96\xBC Show %s Line(s)" => array(
-        "\xE2\x96\xBC 显示行",
-        "\xE2\x96\xBC 显示 %s 行",
+      '▼ Show %s Line(s)' => array(
+        '▼ 显示行',
+        '▼ 显示 %s 行',
       ),
-      "\xE2\x96\xBC Show %s Block(s)" => array(
-        "\xE2\x96\xBC 显示块",
-        "\xE2\x96\xBC 显示 %s 个块",
+      '▼ Show %s Block(s)' => array(
+        '▼ 显示块',
+        '▼ 显示 %s 个块',
       ),
       'Show Last %s Line(s)' => array(
         '显示最后一行',
@@ -656,18 +632,12 @@ final class PhabricatorChineseTranslation
         '%s 个单位',
         '%s 个单位',
       ),
-      '%s updated %s, added %s: %s.' =>
-        '%s 更新了 %s，添加：%4$s。',
-      '%s updated %s, removed %s: %s.' =>
-        '%s 更新了 %s，移除：%4$s。',
-      '%s updated %s, added %s: %s; removed %s: %s.' =>
-        '%s 更新了 %s，添加：%4$s；移除：%6$s。',
-      '%s updated %s for %s, added %s: %s.' =>
-        '%s 为 %s 更新了 %s，添加：%5$s。',
-      '%s updated %s for %s, removed %s: %s.' =>
-        '%s 为 %s 更新了 %s，移除：%5$s。',
-      '%s updated %s for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 更新了 %s，添加：%5$s；移除：%7$s。',
+      '%s updated %s, added %s: %s.' => '%s 更新了 %s，添加：%4$s。',
+      '%s updated %s, removed %s: %s.' => '%s 更新了 %s，移除：%4$s。',
+      '%s updated %s, added %s: %s; removed %s: %s.' => '%s 更新了 %s，添加：%4$s；移除：%6$s。',
+      '%s updated %s for %s, added %s: %s.' => '%s 为 %s 更新了 %s，添加：%5$s。',
+      '%s updated %s for %s, removed %s: %s.' => '%s 为 %s 更新了 %s，移除：%5$s。',
+      '%s updated %s for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 更新了 %s，添加：%5$s；移除：%7$s。',
       'Permanently destroyed %s object(s).' => array(
         '已永久销毁 %s 个对象。',
         '已永久销毁 %s 个对象。',
@@ -712,18 +682,12 @@ final class PhabricatorChineseTranslation
           ),
         ),
       ),
-      '%s invited %s attendee(s): %s.' =>
-        '%s 已邀请：%3$s。',
-      '%s uninvited %s attendee(s): %s.' =>
-        '%s 已取消邀请：%3$s。',
-      '%s invited %s attendee(s): %s; uninvited %s attendee(s): %s.' =>
-        '%s 已邀请：%3$s；已取消邀请：%5$s。',
-      '%s invited %s attendee(s) to %s: %s.' =>
-        '%s 为 %3$s 添加了邀请：%4$s。',
-      '%s uninvited %s attendee(s) to %s: %s.' =>
-        '%s 为 %3$s 移除了邀请：%4$s。',
-      '%s updated the invite list for %s, invited %s: %s; uninvited %s: %s.' =>
-        '%s 更新了 %s 的邀请列表，邀请：%4$s；取消邀请：%6$s。',
+      '%s invited %s attendee(s): %s.' => '%s 已邀请：%3$s。',
+      '%s uninvited %s attendee(s): %s.' => '%s 已取消邀请：%3$s。',
+      '%s invited %s attendee(s): %s; uninvited %s attendee(s): %s.' => '%s 已邀请：%3$s；已取消邀请：%5$s。',
+      '%s invited %s attendee(s) to %s: %s.' => '%s 为 %3$s 添加了邀请：%4$s。',
+      '%s uninvited %s attendee(s) to %s: %s.' => '%s 为 %3$s 移除了邀请：%4$s。',
+      '%s updated the invite list for %s, invited %s: %s; uninvited %s: %s.' => '%s 更新了 %s 的邀请列表，邀请：%4$s；取消邀请：%6$s。',
       '%s is starting in %s minute(s), at %s.' => array(
         array(
           '%s 将于 1 分钟后、即 %3$s 开始。',
@@ -780,243 +744,217 @@ final class PhabricatorChineseTranslation
           '%s 移除了附件：%3$s。',
         ),
       ),
-      '%s updated %s attached file(s), added %s: %s; removed %s: %s.' =>
-        '%s 更新了附件，添加：%4$s；移除：%6$s。',
-      '%s updated %s attached file(s), added %s: %s; modified %s: %s.' =>
-        '%s 更新了附件，添加：%4$s；修改：%6$s。',
-      '%s updated %s attached file(s), removed %s: %s; modified %s: %s.' =>
-        '%s 更新了附件，移除：%4$s；修改：%6$s。',
-      '%s attached %s file(s): %s.' =>
-      array(
+      '%s updated %s attached file(s), added %s: %s; removed %s: %s.' => '%s 更新了附件，添加：%4$s；移除：%6$s。',
+      '%s updated %s attached file(s), added %s: %s; modified %s: %s.' => '%s 更新了附件，添加：%4$s；修改：%6$s。',
+      '%s updated %s attached file(s), removed %s: %s; modified %s: %s.' => '%s 更新了附件，移除：%4$s；修改：%6$s。',
+      '%s attached %s file(s): %s.' => array(
         array(
-            '%s 附加了文件：%3$s。',
-            '%s 附加了文件：%3$s。',
+          '%s 附加了文件：%3$s。',
+          '%s 附加了文件：%3$s。',
         ),
       ),
-      'Used on %s and %s other active column(s).' =>
-      array(
+      'Used on %s and %s other active column(s).' => array(
         array(
-            '用于 %s 及另一活跃列。',
-            '用于 %s 及另外 %s 个活跃列。',
+          '用于 %s 及另一活跃列。',
+          '用于 %s 及另外 %s 个活跃列。',
         ),
       ),
-      'Used on %s and %s other column(s).' =>
-      array(
+      'Used on %s and %s other column(s).' => array(
         array(
-            '用于 %s 及另一列。',
-            '用于 %s 及另外 %s 列。',
+          '用于 %s 及另一列。',
+          '用于 %s 及另外 %s 列。',
         ),
       ),
-      '%s moved this task on %s board(s): %s.' =>
-      array(
+      '%s moved this task on %s board(s): %s.' => array(
         array(
-            '%s 在看板上移动了此任务：%3$s。',
-            '%s 在 %s 个看板上移动了此任务：%s。',
+          '%s 在看板上移动了此任务：%3$s。',
+          '%s 在 %s 个看板上移动了此任务：%s。',
         ),
       ),
-      '%s moved %s on %s board(s): %s.' =>
-      array(
+      '%s moved %s on %s board(s): %s.' => array(
         array(
           array(
-              '%s 在看板上移动了 %s：%4$s。',
-              '%s 在 %s 个看板上移动了 %s：%s。',
+            '%s 在看板上移动了 %s：%4$s。',
+            '%s 在 %s 个看板上移动了 %s：%s。',
           ),
         ),
       ),
       'Found %s modified file(s) (of %s total).' => array(
-          '找到 %s 个已修改文件（共 %s 个）。',
-          '找到 %s 个已修改文件（共 %s 个）。',
+        '找到 %s 个已修改文件（共 %s 个）。',
+        '找到 %s 个已修改文件（共 %s 个）。',
       ),
       'You denied this request. Wait %s second(s) to try again.' => array(
-          '您已拒绝此请求。请等待 %s 秒后重试。',
-          '您已拒绝此请求。请等待 %s 秒后重试。',
+        '您已拒绝此请求。请等待 %s 秒后重试。',
+        '您已拒绝此请求。请等待 %s 秒后重试。',
       ),
       'Found %s account(s) to refresh.' => array(
-          '找到 %s 个待刷新账户。',
-          '找到 %s 个待刷新账户。',
+        '找到 %s 个待刷新账户。',
+        '找到 %s 个待刷新账户。',
       ),
       'Reset %s action(s).' => array(
-          '已重置 %s 个操作。',
-          '已重置 %s 个操作。',
+        '已重置 %s 个操作。',
+        '已重置 %s 个操作。',
       ),
       'Rebuilding %s resource source(s).' => array(
-          '正在重建 %s 个资源源。',
-          '正在重建 %s 个资源源。',
+        '正在重建 %s 个资源源。',
+        '正在重建 %s 个资源源。',
       ),
       'Detected %s serious issue(s) with the schemata.' => array(
-          '检测到模式存在严重问题。',
-          '检测到模式存在 %s 个严重问题。',
+        '检测到模式存在严重问题。',
+        '检测到模式存在 %s 个严重问题。',
       ),
-      'Detected %s warning(s) with the schemata.' =>
-      array(
-          '检测到模式存在警告。',
-          '检测到模式存在 %s 个警告。',
+      'Detected %s warning(s) with the schemata.' => array(
+        '检测到模式存在警告。',
+        '检测到模式存在 %s 个警告。',
       ),
       'This file has %s collapsed inline comment(s).' => array(
-          '此文件有 1 条折叠的行内评论。',
-          '此文件有 %s 条折叠的行内评论。',
+        '此文件有 1 条折叠的行内评论。',
+        '此文件有 %s 条折叠的行内评论。',
       ),
-      'Processed %s file(s) with no errors.' =>
-      array(
-          '已处理 %s 个文件，无错误。',
-          '已处理 %s 个文件，无错误。',
+      'Processed %s file(s) with no errors.' => array(
+        '已处理 %s 个文件，无错误。',
+        '已处理 %s 个文件，无错误。',
       ),
       '%s target(s) are invalid or of the wrong type: %s.' => array(
-          '%s 个目标无效或类型错误：%s。',
-          '%s 个目标无效或类型错误：%s。',
+        '%s 个目标无效或类型错误：%s。',
+        '%s 个目标无效或类型错误：%s。',
       ),
-      '%s target(s) could not be loaded: %s.' =>
-      array(
-          '无法加载 %s 个目标：%s。',
-          '无法加载 %s 个目标：%s。',
+      '%s target(s) could not be loaded: %s.' => array(
+        '无法加载 %s 个目标：%s。',
+        '无法加载 %s 个目标：%s。',
       ),
-      '%s detached %s file(s): %s.' =>
-      array(
+      '%s detached %s file(s): %s.' => array(
         array(
-            '%s 取消了 %3$s 的附件。',
-            '%s 取消了多个文件的附件：%3$s。',
+          '%s 取消了 %3$s 的附件。',
+          '%s 取消了多个文件的附件：%3$s。',
         ),
       ),
-      'Respecting "%s": waiting for %s second(s) to poll GitHub.' =>
-      array(
+      'Respecting "%s": waiting for %s second(s) to poll GitHub.' => array(
         array(
-            '遵守「%s」：等待 %s 秒后轮询 GitHub。',
-            '遵守「%s」：等待 %s 秒后轮询 GitHub。',
+          '遵守「%s」：等待 %s 秒后轮询 GitHub。',
+          '遵守「%s」：等待 %s 秒后轮询 GitHub。',
         ),
       ),
-      'Used on %s active column(s).' =>
-      array(
-          '用于 %s 个活动列。',
-          '用于 %s 个活动列。',
+      'Used on %s active column(s).' => array(
+        '用于 %s 个活动列。',
+        '用于 %s 个活动列。',
       ),
-      'Used on %s column(s).' =>
-      array(
-          '用于 %s 个列。',
-          '用于 %s 个列。',
+      'Used on %s column(s).' => array(
+        '用于 %s 个列。',
+        '用于 %s 个列。',
       ),
-      'Indexing %s object(s).' =>
-      array(
-          '正在索引 %s 个对象。',
-          '正在索引 %s 个对象。',
+      'Indexing %s object(s).' => array(
+        '正在索引 %s 个对象。',
+        '正在索引 %s 个对象。',
       ),
-      'Updated search indexes for %s document(s).' =>
-      array(
-          '已更新 %s 个文档的搜索索引。',
-          '已更新 %s 个文档的搜索索引。',
+      'Updated search indexes for %s document(s).' => array(
+        '已更新 %s 个文档的搜索索引。',
+        '已更新 %s 个文档的搜索索引。',
       ),
-      'Queued %s document(s) for background indexing.' =>
-      array(
-          '已将 %s 个文档加入后台索引队列。',
-          '已将 %s 个文档加入后台索引队列。',
+      'Queued %s document(s) for background indexing.' => array(
+        '已将 %s 个文档加入后台索引队列。',
+        '已将 %s 个文档加入后台索引队列。',
       ),
-      'Forced search index updates for %s document(s).' =>
-      array(
-          '已强制更新 %s 个文档的搜索索引。',
-          '已强制更新 %s 个文档的搜索索引。',
+      'Forced search index updates for %s document(s).' => array(
+        '已强制更新 %s 个文档的搜索索引。',
+        '已强制更新 %s 个文档的搜索索引。',
       ),
-      'Preparing to hibernate for %s second(s).' =>
-      array(
-          '准备休眠 %s 秒。',
-          '准备休眠 %s 秒。',
+      'Preparing to hibernate for %s second(s).' => array(
+        '准备休眠 %s 秒。',
+        '准备休眠 %s 秒。',
       ),
-      'Daemon was idle for more than %s second(s), scaling pool down.' =>
-      array(
-          '守护进程空闲超过 %s 秒，正在缩小池。',
-          '守护进程空闲超过 %s 秒，正在缩小池。',
+      'Daemon was idle for more than %s second(s), scaling pool down.' => array(
+        '守护进程空闲超过 %s 秒，正在缩小池。',
+        '守护进程空闲超过 %s 秒，正在缩小池。',
       ),
-      'Waiting %s second(s) to restart process.' =>
-      array(
-          '等待 %s 秒后重启进程。',
-          '等待 %s 秒后重启进程。',
+      'Waiting %s second(s) to restart process.' => array(
+        '等待 %s 秒后重启进程。',
+        '等待 %s 秒后重启进程。',
       ),
-      'Process is preparing to hibernate for %s second(s).' =>
-      array(
-          '进程准备休眠 %s 秒。',
-          '进程准备休眠 %s 秒。',
+      'Process is preparing to hibernate for %s second(s).' => array(
+        '进程准备休眠 %s 秒。',
+        '进程准备休眠 %s 秒。',
       ),
-      'Pool "%s" is exiting, with %s daemon(s) remaining.' =>
-      array(
+      'Pool "%s" is exiting, with %s daemon(s) remaining.' => array(
         array(
-            '池「%s」正在退出，还剩 %s 个守护进程。',
-            '池「%s」正在退出，还剩 %s 个守护进程。',
+          '池「%s」正在退出，还剩 %s 个守护进程。',
+          '池「%s」正在退出，还剩 %s 个守护进程。',
         ),
       ),
-      'Autoscale pool "%s" scaled down to %s daemon(s).' =>
-      array(
+      'Autoscale pool "%s" scaled down to %s daemon(s).' => array(
         array(
-            '自动扩缩池「%s」已缩至 %s 个守护进程。',
-            '自动扩缩池「%s」已缩至 %s 个守护进程。',
+          '自动扩缩池「%s」已缩至 %s 个守护进程。',
+          '自动扩缩池「%s」已缩至 %s 个守护进程。',
         ),
       ),
-      'Query timed out after %s second(s)!' =>
-      array(
-          '查询在 %s 秒后超时！',
-          '查询在 %s 秒后超时！',
+      'Query timed out after %s second(s)!' => array(
+        '查询在 %s 秒后超时！',
+        '查询在 %s 秒后超时！',
       ),
-      'Failed to write %s byte(s) to file "%s".' =>
-      array(
-          '向文件「%2$s」写入 %s 字节失败。',
-          '向文件「%2$s」写入 %s 字节失败。',
+      'Failed to write %s byte(s) to file "%s".' => array(
+        '向文件「%2$s」写入 %s 字节失败。',
+        '向文件「%2$s」写入 %s 字节失败。',
       ),
-      'Failed to write %s byte(s) to "%s".' =>
-      array(
-          '向「%2$s」写入 %s 字节失败。',
-          '向「%2$s」写入 %s 字节失败。',
+      'Failed to write %s byte(s) to "%s".' => array(
+        '向「%2$s」写入 %s 字节失败。',
+        '向「%2$s」写入 %s 字节失败。',
       ),
-      'This lock was released %s second(s) ago.' =>
-      array(
-          '此锁在 %s 秒前已释放。',
-          '此锁在 %s 秒前已释放。',
+      'This lock was released %s second(s) ago.' => array(
+        '此锁在 %s 秒前已释放。',
+        '此锁在 %s 秒前已释放。',
       ),
-      "Found %s adjustment(s) to apply, detailed above.\n\n".
-          "You can review adjustments in more detail from the web interface, ".
-          "in Config > Database Status. To better understand the adjustment ".
-          "workflow, see \"Managing Storage Adjustments\" in the ".
-          "documentation.\n\n".
-          "MySQL needs to copy table data to make some adjustments, so these ".
-          "migrations may take some time." =>
-      array(
-        "发现 %s 项需应用的调整，详见上文。\n\n".
-        "您可在 Web 界面的 配置 > 数据库状态 中更详细地查看调整。\n\n".
-        "要更好理解调整流程，请参阅文档中的「管理存储调整」。\n\n".
-        "MySQL 需要复制表数据以完成部分调整，因此这些迁移可能需要一些时间。",
-        "发现 %s 项需应用的调整，详见上文。\n\n".
-        "您可在 Web 界面的 配置 > 数据库状态 中更详细地查看调整。\n\n".
-        "要更好理解调整流程，请参阅文档中的「管理存储调整」。\n\n".
-        "MySQL 需要复制表数据以完成部分调整，因此这些迁移可能需要一些时间。",
+      'Found %s adjustment(s) to apply, detailed above.
+
+You can review adjustments in more detail from the web interface, in Config > Database Status. To better understand the adjustment workflow, see "Managing Storage Adjustments" in the documentation.
+
+MySQL needs to copy table data to make some adjustments, so these migrations may take some time.' => array(
+        '发现 %s 项需应用的调整，详见上文。
+
+您可在 Web 界面的 配置 > 数据库状态 中更详细地查看调整。
+
+要更好理解调整流程，请参阅文档中的「管理存储调整」。
+
+MySQL 需要复制表数据以完成部分调整，因此这些迁移可能需要一些时间。',
+        '发现 %s 项需应用的调整，详见上文。
+
+您可在 Web 界面的 配置 > 数据库状态 中更详细地查看调整。
+
+要更好理解调整流程，请参阅文档中的「管理存储调整」。
+
+MySQL 需要复制表数据以完成部分调整，因此这些迁移可能需要一些时间。',
       ),
       'File alternate text must not be longer than %s character(s).' => array(
-         '文件替代文本不得超过 %s 个字符。',
-         '文件替代文本不得超过 %s 个字符。',
+        '文件替代文本不得超过 %s 个字符。',
+        '文件替代文本不得超过 %s 个字符。',
       ),
       'File names must not be longer than %s character(s).' => array(
-         '文件名不得超过 %s 个字符。',
-         '文件名不得超过 %s 个字符。',
+        '文件名不得超过 %s 个字符。',
+        '文件名不得超过 %s 个字符。',
       ),
       'Queue names must not be longer than %s character(s).' => array(
-         '队列名不得超过 %s 个字符。',
-         '队列名不得超过 %s 个字符。',
+        '队列名不得超过 %s 个字符。',
+        '队列名不得超过 %s 个字符。',
       ),
       'Source names must not be longer than %s character(s).' => array(
-         '源名称不得超过 %s 个字符。',
-         '源名称不得超过 %s 个字符。',
+        '源名称不得超过 %s 个字符。',
+        '源名称不得超过 %s 个字符。',
       ),
       'Mock image titles must not be longer than %s character(s).' => array(
-         'Mock 图片标题不得超过 %s 个字符。',
-         'Mock 图片标题不得超过 %s 个字符。',
+        'Mock 图片标题不得超过 %s 个字符。',
+        'Mock 图片标题不得超过 %s 个字符。',
       ),
       'Mock names must not be longer than %s character(s).' => array(
-         'Mock 名称不得超过 %s 个字符。',
-         'Mock 名称不得超过 %s 个字符。',
+        'Mock 名称不得超过 %s 个字符。',
+        'Mock 名称不得超过 %s 个字符。',
       ),
       'Project names must not be longer than %s character(s).' => array(
-         '项目名称不得超过 %s 个字符。',
-         '项目名称不得超过 %s 个字符。',
+        '项目名称不得超过 %s 个字符。',
+        '项目名称不得超过 %s 个字符。',
       ),
       'Scaling pool "%s" up to %s daemon(s).' => array(
         array(
-           '正在将池「%s」扩展至 %s 个守护进程。',
-           '正在将池「%s」扩展至 %s 个守护进程。',
+          '正在将池「%s」扩展至 %s 个守护进程。',
+          '正在将池「%s」扩展至 %s 个守护进程。',
         ),
       ),
       'The current configuration has these %d value(s):' => array(
@@ -1033,10 +971,8 @@ final class PhabricatorChineseTranslation
           '已处理 %s 个文件，遇到 %s 个错误。',
         ),
       ),
-      '%s changed file(s), attached %s: %s; detached %s: %s.' =>
-        '%s 变更了文件，附加：%3$s；取消附加：%5$s。',
-      '%s changed file(s) for %s, attached %d: %s; detached %d: %s' =>
-        '%s 为 %s 变更了文件，附加：%4$s；取消附加：%6$s。',
+      '%s changed file(s), attached %s: %s; detached %s: %s.' => '%s 变更了文件，附加：%3$s；取消附加：%5$s。',
+      '%s changed file(s) for %s, attached %d: %s; detached %d: %s' => '%s 为 %s 变更了文件，附加：%4$s；取消附加：%6$s。',
       '%s attached %d file(s) of %s: %s' => array(
         array(
           '%s 附加了 %3$s 的 1 个文件：%4$s。',
@@ -1059,10 +995,8 @@ final class PhabricatorChineseTranslation
           '将 API 轮询 TTL 设为 +%s 秒（距现在 %s 秒）。',
         ),
       ),
-      '%s edited member(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了成员，添加：%3$s；移除：%5$s。',
-      '%s edited member(s) for %s, added %s: %s; removed %s: %s.' =>
-        '%s 为 %s 编辑了成员，添加：%4$s；移除：%6$s。',
+      '%s edited member(s), added %s: %s; removed %s: %s.' => '%s 编辑了成员，添加：%3$s；移除：%5$s。',
+      '%s edited member(s) for %s, added %s: %s; removed %s: %s.' => '%s 为 %s 编辑了成员，添加：%4$s；移除：%6$s。',
       'Done, compacted %s edge transactions.' => array(
         '已完成，压缩了 %s 条边事务。',
         '已完成，压缩了 %s 条边事务。',
@@ -1149,8 +1083,7 @@ final class PhabricatorChineseTranslation
       'Required' => '必填',
       'Save Changes' => '保存更改',
       'Status' => '状态',
-      'This method has been deprecated since %s in favor of %s.' =>
-        '此方法自 %s 起已弃用，建议改用 %s。',
+      'This method has been deprecated since %s in favor of %s.' => '此方法自 %s 起已弃用，建议改用 %s。',
       'Type' => '类型',
       'Unknown' => '未知',
       'Unknown ("%s")' => '未知（"%s"）',
@@ -1177,7 +1110,7 @@ final class PhabricatorChineseTranslation
       'Default Edit Policy' => '默认编辑策略',
       'Device' => '设备',
       'Devices' => '设备',
-      'Diff %d' => 'Diff %d',
+      'Diff %d' => '差异 %d',
       'Disable' => '禁用',
       'Documentation' => '文档',
       'Draft' => '草稿',
@@ -1320,8 +1253,7 @@ final class PhabricatorChineseTranslation
       'Make Default' => '设为默认',
       'Members' => '成员',
       'Method' => '方法',
-      'The name can be no longer than %s characters.' =>
-        '名称长度不能超过 %s 个字符。',
+      'The name can be no longer than %s characters.' => '名称长度不能超过 %s 个字符。',
       'Missing or malformed parameter.' => '缺少参数或参数格式错误。',
       'NO DAEMONS' => '无守护进程',
       'Network' => '网络',
@@ -1439,12 +1371,10 @@ final class PhabricatorChineseTranslation
       'Table' => '表',
       'Task' => '任务',
       'Text' => '文本',
-      'The title can be no longer than %s characters.' =>
-        '标题长度不能超过 %s 个字符。',
+      'The title can be no longer than %s characters.' => '标题长度不能超过 %s 个字符。',
       'URL' => 'URL',
       'Unknown Error' => '未知错误',
-      'Unknown configuration option type "%s".' =>
-        '未知的配置选项类型 "%s"。',
+      'Unknown configuration option type "%s".' => '未知的配置选项类型 "%s"。',
       'Unlimited' => '无限制',
       'Upload Header' => '上传头图',
       'User aborted the workflow.' => '用户中止了该工作流。',
@@ -1461,8 +1391,7 @@ final class PhabricatorChineseTranslation
       '%s failed!' => '%s 失败！',
       '%s removed %s.' => '%s 移除了 %s。',
       '%s updated the description for %s.' => '%s 更新了 %s 的描述。',
-      '%s updated the name for %s from %s to %s.' =>
-        '%s 将 %s 的名称从 %s 更新为 %s。',
+      '%s updated the name for %s from %s to %s.' => '%s 将 %s 的名称从 %s 更新为 %s。',
       'API Token' => 'API 令牌',
       'Aborted workflow.' => '工作流已中止。',
       'Acquired' => '已获取',
@@ -1482,8 +1411,7 @@ final class PhabricatorChineseTranslation
       'Archive Badge' => '归档徽章',
       'Attributes' => '属性',
       'Basics' => '基础',
-      '%s: Uses unknown storage engine "%s".' =>
-        '%s：使用了未知存储引擎 "%s"。',
+      '%s: Uses unknown storage engine "%s".' => '%s：使用了未知存储引擎 "%s"。',
       'Audio Behavior' => '音频行为',
       'Authored by %s on %s.' => '%s 于 %s 创建。',
       'Authorization %d' => '授权 %d',
@@ -1638,8 +1566,7 @@ final class PhabricatorChineseTranslation
       'Profile Menu Item' => '个人资料菜单项',
       'Provider Type' => '提供方类型',
       'Publishers' => '发布者',
-      'Query ("%s") does not support the Ferret fulltext engine.' =>
-        '查询（"%s"）不支持 Ferret 全文引擎。',
+      'Query ("%s") does not support the Ferret fulltext engine.' => '查询（"%s"）不支持 Ferret 全文引擎。',
       'Queue' => '队列',
       'Queues' => '队列',
       'Received Badges' => '已收徽章',
@@ -1662,23 +1589,19 @@ final class PhabricatorChineseTranslation
       'Save Related Tasks' => '保存相关任务',
       'Saved Queries' => '已保存查询',
       'Search Servers' => '搜索服务器',
-      'Search for objects created by specific authors.' =>
-        '按指定作者搜索其创建的对象。',
-      'Search for objects with given statuses.' =>
-        '按给定状态搜索对象。',
+      'Search for objects created by specific authors.' => '按指定作者搜索其创建的对象。',
+      'Search for objects with given statuses.' => '按给定状态搜索对象。',
       'Sent' => '已发送',
       'Sessions' => '会话',
       'Setup Issues' => '配置问题',
       'Short Name' => '简称',
       'Show All' => '显示全部',
       'Show Column' => '显示列',
-      'Some specified messages do not exist: %s' =>
-        '部分指定消息不存在：%s',
+      'Some specified messages do not exist: %s' => '部分指定消息不存在：%s',
       'Source Type' => '来源类型',
       'Sources' => '来源',
       'Start' => '开始',
-      'Storage for file "%s" does not support integrity hashing.' =>
-        '文件 "%s" 的存储不支持完整性哈希。',
+      'Storage for file "%s" does not support integrity hashing.' => '文件 "%s" 的存储不支持完整性哈希。',
       'Stuff' => '内容',
       'Subject' => '主题',
       'Subtypes' => '子类型',
@@ -1727,10 +1650,8 @@ final class PhabricatorChineseTranslation
       '%s added %s.' => '%s 添加了 %s。',
       '%s added an answer.' => '%s 添加了回答。',
       '%s archived %s.' => '%s 归档了 %s。',
-      '%s changed %s from %s to %s on %s.' =>
-        '%s 将 %s 在 %s 上从 %s 改为 %s。',
-      '%s changed the status of %s from %s to %s.' =>
-        '%s 将 %s 的状态从 %s 改为 %s。',
+      '%s changed %s from %s to %s on %s.' => '%s 将 %s 在 %s 上从 %s 改为 %s。',
+      '%s changed the status of %s from %s to %s.' => '%s 将 %s 的状态从 %s 改为 %s。',
       '%s created this credential.' => '%s 创建了此凭据。',
       '%s created this object.' => '%s 创建了此对象。',
       '%s created this poll.' => '%s 创建了此投票。',
@@ -1745,16 +1666,13 @@ final class PhabricatorChineseTranslation
       '%s removed %s on %s.' => '%s 在 %s 上移除了 %s。',
       '%s renamed %s.' => '%s 重命名了 %s。',
       '%s set %s to %s on %s.' => '%1$s 在 %4$s 上将 %2$s 设为 %3$s。',
-      '%s set the OAuth application notes for this provider.' =>
-        '%s 为该提供方设置了 OAuth 应用备注。',
+      '%s set the OAuth application notes for this provider.' => '%s 为该提供方设置了 OAuth 应用备注。',
       '%s set the subtitle for %s.' => '%s 为 %s 设置了副标题。',
       '%s updated images of %s.' => '%s 更新了 %s 的图片。',
-      '%s updated the OAuth application notes for this provider.' =>
-        '%s 更新了该提供方的 OAuth 应用备注。',
+      '%s updated the OAuth application notes for this provider.' => '%s 更新了该提供方的 OAuth 应用备注。',
       '%s updated the description.' => '%s 更新了描述。',
       '%s updated the subtitle for %s.' => '%s 更新了 %s 的副标题。',
-      '%s updated the title for this countdown from %s to %s.' =>
-        '%s 将此倒计时的标题从 %s 更新为 %s。',
+      '%s updated the title for this countdown from %s to %s.' => '%s 将此倒计时的标题从 %s 更新为 %s。',
       '%sms' => '%s毫秒',
       '+%s ms' => '+%s 毫秒',
       '%s us' => '%s 微秒',
@@ -2350,35 +2268,28 @@ final class PhabricatorChineseTranslation
       'PHID of the parent project.' => '父项目的 PHID。',
       'PHPAST View' => 'PHPAST 视图',
       'Package Packages' => '包列表',
-      'Pass true to find only bots, or false to omit bots.' =>
-        '传 true 仅查找机器人，传 false 排除机器人。',
+      'Pass true to find only bots, or false to omit bots.' => '传 true 仅查找机器人，传 false 排除机器人。',
       'Play sound %s.' => '播放声音 %s。',
       'Set current time to %s.' => '将当前时间设为 %s。',
       'Show a specific number of messages (default 100).' => '显示指定数量的消息（默认 100）。',
-      'Status rule value should be a string, but is not (value is "%s").' =>
-        '状态规则值应为字符串，但不是（值为 "%s"）。',
-      'The "--overwrite" flag can only be used alongside "--output".' =>
-        '"--overwrite" 只能与 "--output" 一起使用。',
+      'Status rule value should be a string, but is not (value is "%s").' => '状态规则值应为字符串，但不是（值为 "%s"）。',
+      'The "--overwrite" flag can only be used alongside "--output".' => '"--overwrite" 只能与 "--output" 一起使用。',
       'The OAuth provider failed to retrieve an account ID.' => 'OAuth 提供方未能获取账户 ID。',
       'The id of the OAuth client.' => 'OAuth 客户端的 ID。',
       'The subtitle can be no longer than %s characters.' => '副标题不能超过 %s 个字符。',
       'This configuration source does not support writes.' => '此配置源不支持写入。',
       'This document has an unknown signature type ("%s").' => '此文档具有未知的签名类型（"%s"）。',
       'This file ("%s") does not exist or could not be loaded.' => '此文件（"%s"）不存在或无法加载。',
-      'This function includes results which have any closed status.' =>
-        '此函数包含具有任意已关闭状态的结果。',
-      'This function includes results which have any open status.' =>
-        '此函数包含具有任意打开状态的结果。',
+      'This function includes results which have any closed status.' => '此函数包含具有任意已关闭状态的结果。',
+      'This function includes results which have any open status.' => '此函数包含具有任意打开状态的结果。',
       'This user has already been approved.' => '此用户已获批准。',
       'Export format ("%s") is not enabled.' => '导出格式（"%s"）未启用。',
       'File mime type of "%s" is not a valid viewable image.' => '文件 "%s" 的 MIME 类型不是可查看的图片。',
       'Failed to load file data for changeset ("%s").' => '无法加载变更集（"%s"）的文件数据。',
-      'Herald field "%s" has unknown standard type "%s".' =>
-        'Herald 字段 "%s" 具有未知的标准类型 "%s"。',
+      'Herald field "%s" has unknown standard type "%s".' => 'Herald 字段 "%s" 具有未知的标准类型 "%s"。',
       'Imbalanced %s: more %s calls than %s calls.' => '不平衡的 %s：%s 调用多于 %s 调用。',
       'Configuring Custom Fields' => '配置自定义字段',
-      'Edge change record is not configured with any change data.' =>
-        '边变更记录未配置任何变更数据。',
+      'Edge change record is not configured with any change data.' => '边变更记录未配置任何变更数据。',
       'Configuration Guide: Configuring a File Domain' => '配置指南：配置文件域',
       'Epoch timestamp when the object was created.' => '对象创建时的 Epoch 时间戳。',
       'Epoch timestamp when the object was last updated.' => '对象最后更新时的 Epoch 时间戳。',
@@ -2460,8 +2371,7 @@ final class PhabricatorChineseTranslation
       'Username or password are incorrect.' => '用户名或密码错误。',
       'Utilities' => '工具',
       'Validation Failed' => '验证失败',
-      'Value "%s" is not valid for setting "%s": valid values are %s.' =>
-        '值 "%s" 对设置 "%s" 无效：有效值为 %s。',
+      'Value "%s" is not valid for setting "%s": valid values are %s.' => '值 "%s" 对设置 "%s" 无效：有效值为 %s。',
       'Value for index "%s" should be a dictionary.' => '索引 "%s" 的值应为字典。',
       'Value for key "%s" should be a dictionary.' => '键 "%s" 的值应为字典。',
       'Verify Signature' => '验证签名',
@@ -2542,7 +2452,7 @@ final class PhabricatorChineseTranslation
       '%s Query: %s' => '%s 查询：%s',
       '%s Req' => '%s 请求',
       '%s Search' => '%s 搜索',
-      '%s Stackered' => '%s Stackered',
+      '%s Stackered' => '%s 堆叠',
       '%s Stats' => '%s 统计',
       '%s Subprojects' => '%s 子项目',
       '%s Token' => '%s 令牌',
@@ -2717,8 +2627,7 @@ final class PhabricatorChineseTranslation
       '%s set the description of %s.' => '%s 设置了 %s 的描述。',
       'Configure real-time notifications.' => '配置实时通知。',
       'Configuring Outbound Email' => '配置外发邮件',
-      'You can not apply transactions which already have %s!' =>
-        '您无法应用已包含 %s 的事务！',
+      'You can not apply transactions which already have %s!' => '您无法应用已包含 %s 的事务！',
       '    Username: %s' => '    用户名：%s',
       '!%s (or %s)' => '!%s（或 %s）',
       '"%s" <%s>' => '"%s" <%s>',
@@ -2748,163 +2657,107 @@ final class PhabricatorChineseTranslation
       '%s bought an apple.' => '%s 买了一个苹果。',
       '%s changed hook status from %s to %s.' => '%s 将 Hook 状态从 %s 改为 %s。',
       '%s changed locked and hidden fields.' => '%s 更改了锁定和隐藏的字段。',
-      '%s changed the %s policy for application %s from %s to %s.' =>
-        '%s 将应用 %s 的 %s 策略从 %s 改为 %s。',
+      '%s changed the %s policy for application %s from %s to %s.' => '%s 将应用 %s 的 %s 策略从 %s 改为 %s。',
       '%s changed the %s policy from %s to %s.' => '%s 将 %s 策略从 %s 改为 %s。',
       '%s changed the URI for %s from %s to %s.' => '%s 将 %s 的 URI 从 %s 改为 %s。',
-      '%s changed the URI for this webhook from %s to %s.' =>
-        '%s 将此 Webhook 的 URI 从 %s 改为 %s。',
-      '%s changed the address for this interface from %s to %s.' =>
-        '%s 将此接口的地址从 %s 改为 %s。',
+      '%s changed the URI for this webhook from %s to %s.' => '%s 将此 Webhook 的 URI 从 %s 改为 %s。',
+      '%s changed the address for this interface from %s to %s.' => '%s 将此接口的地址从 %s 改为 %s。',
       '%s changed the alias from %s to %s.' => '%s 将别名从 %s 改为 %s。',
       '%s changed the alias of %s from %s to %s.' => '%s 将 %s 的别名从 %s 改为 %s。',
-      '%s changed the alternate text for %s from %s to %s.' =>
-        '%s 将 %s 的替代文本从 %s 改为 %s。',
-      '%s changed the alternate text for this file from %s to %s.' =>
-        '%s 将此文件的替代文本从 %s 改为 %s。',
-      '%s changed the application redirect URI from "%s" to "%s".' =>
-        '%s 将应用重定向 URI 从 "%s" 改为 "%s"。',
+      '%s changed the alternate text for %s from %s to %s.' => '%s 将 %s 的替代文本从 %s 改为 %s。',
+      '%s changed the alternate text for this file from %s to %s.' => '%s 将此文件的替代文本从 %s 改为 %s。',
+      '%s changed the application redirect URI from "%s" to "%s".' => '%s 将应用重定向 URI 从 "%s" 改为 "%s"。',
       '%s changed the audio for %s from %s to %s.' => '%s 将 %s 的音频从 %s 改为 %s。',
       '%s changed the audio for this macro from %s to %s.' => '%s 将此宏的音频从 %s 改为 %s。',
-      '%s changed the automatic update frequency for this import.' =>
-        '%s 更改了此导入的自动更新频率。',
-      '%s changed the background color of the project workboard.' =>
-        '%s 更改了项目工作看板的背景色。',
-      '%s changed the badge icon for %s from %s to %s.' =>
-        '%s 将 %s 的徽章图标从 %s 改为 %s。',
+      '%s changed the automatic update frequency for this import.' => '%s 更改了此导入的自动更新频率。',
+      '%s changed the background color of the project workboard.' => '%s 更改了项目工作看板的背景色。',
+      '%s changed the badge icon for %s from %s to %s.' => '%s 将 %s 的徽章图标从 %s 改为 %s。',
       '%s changed the badge icon from %s to %s.' => '%s 将徽章图标从 %s 改为 %s。',
       '%s changed the blog for post %s.' => '%s 更改了文章 %s 的博客。',
       '%s changed the blog for this post.' => '%s 更改了此文章的博客。',
-      '%s changed the credential for this provider from %s to %s.' =>
-        '%s 将此提供方的凭据从 %s 改为 %s。',
-      '%s changed the default filter for the project workboard.' =>
-        '%s 更改了项目工作看板的默认筛选。',
-      '%s changed the default queue for this source from %s to %s.' =>
-        '%s 将此来源的默认队列从 %s 改为 %s。',
-      '%s changed the default sort order for the project workboard.' =>
-        '%s 更改了项目工作看板的默认排序。',
+      '%s changed the credential for this provider from %s to %s.' => '%s 将此提供方的凭据从 %s 改为 %s。',
+      '%s changed the default filter for the project workboard.' => '%s 更改了项目工作看板的默认筛选。',
+      '%s changed the default queue for this source from %s to %s.' => '%s 将此来源的默认队列从 %s 改为 %s。',
+      '%s changed the default sort order for the project workboard.' => '%s 更改了项目工作看板的默认排序。',
       '%s changed the default value for field %s.' => '%s 更改了字段 %s 的默认值。',
       '%s changed the default values for field %s.' => '%s 更改了字段 %s 的默认值。',
-      '%s changed the destination URL %s from %s to %s.' =>
-        '%s 将目标 URL %s 从 %s 改为 %s。',
+      '%s changed the destination URL %s from %s to %s.' => '%s 将目标 URL %s 从 %s 改为 %s。',
       '%s changed the destination URL from %s to %s.' => '%s 将目标 URL 从 %s 改为 %s。',
-      '%s changed the device for this interface from %s to %s.' =>
-        '%s 将此接口的设备从 %s 改为 %s。',
+      '%s changed the device for this interface from %s to %s.' => '%s 将此接口的设备从 %s 改为 %s。',
       '%s changed the edit policy for %s.' => '%s 更改了 %s 的编辑策略。',
       '%s changed the edit policy from "%s" to "%s".' => '%s 将编辑策略从 "%s" 改为 "%s"。',
       '%s changed the end date for %s from %s to %s.' => '%s 将 %s 的结束日期从 %s 改为 %s。',
-      '%s changed the end date for this event from %s to %s.' =>
-        '%s 将此活动的结束日期从 %s 改为 %s。',
-      '%s changed the enrollment policy for this provider from %s to %s.' =>
-        '%s 将此提供方的注册策略从 %s 改为 %s。',
+      '%s changed the end date for this event from %s to %s.' => '%s 将此活动的结束日期从 %s 改为 %s。',
+      '%s changed the enrollment policy for this provider from %s to %s.' => '%s 将此提供方的注册策略从 %s 改为 %s。',
       '%s changed the event icon from %s to %s.' => '%s 将活动图标从 %s 改为 %s。',
       '%s changed the header image for blog %s.' => '%s 更改了博客 %s 的页眉图片。',
       '%s changed the header image for post %s.' => '%s 更改了文章 %s 的页眉图片。',
       '%s changed the header image for this blog.' => '%s 更改了此博客的页眉图片。',
       '%s changed the header image for this post.' => '%s 更改了此文章的页眉图片。',
       '%s changed the host of %s from %s to %s.' => '%s 将 %s 的主机从 %s 改为 %s。',
-      '%s changed the host of this event from %s to %s.' =>
-        '%s 将此活动的主机从 %s 改为 %s。',
-      '%s changed the hostname for this provider from %s to %s.' =>
-        '%s 将此提供方的主机名从 %s 改为 %s。',
+      '%s changed the host of this event from %s to %s.' => '%s 将此活动的主机从 %s 改为 %s。',
+      '%s changed the hostname for this provider from %s to %s.' => '%s 将此提供方的主机名从 %s 改为 %s。',
       '%s changed the icon for %s from %s to %s.' => '%s 将 %s 的图标从 %s 改为 %s。',
-      '%s changed the icon for this dashboard from %s to %s.' =>
-        '%s 将此仪表盘的图标从 %s 改为 %s。',
+      '%s changed the icon for this dashboard from %s to %s.' => '%s 将此仪表盘的图标从 %s 改为 %s。',
       '%s changed the image for %s.' => '%s 更改了 %s 的图片。',
       '%s changed the image for this macro.' => '%s 更改了此宏的图片。',
       '%s changed the interact policy for %s.' => '%s 更改了 %s 的交互策略。',
       '%s changed the interact policy from "%s" to "%s".' => '%s 将交互策略从 "%s" 改为 "%s"。',
-      '%s changed the interface for this binding from %s to %s.' =>
-        '%s 将此绑定的接口从 %s 改为 %s。',
+      '%s changed the interface for this binding from %s to %s.' => '%s 将此绑定的接口从 %s 改为 %s。',
       '%s changed the join policy for %s.' => '%s 更改了 %s 的加入策略。',
       '%s changed the join policy from "%s" to "%s".' => '%s 将加入策略从 "%s" 改为 "%s"。',
-      '%s changed the layout mode for this dashboard from %s to %s.' =>
-        '%s 将此仪表盘的布局模式从 %s 改为 %s。',
+      '%s changed the layout mode for this dashboard from %s to %s.' => '%s 将此仪表盘的布局模式从 %s 改为 %s。',
       '%s changed the name of %s from %s to %s.' => '%s 将 %s 的名称从 %s 改为 %s。',
       '%s changed the name of the URL from %s to %s.' => '%s 将 URL 名称从 %s 改为 %s。',
-      '%s changed the name of this package from %s to %s.' =>
-        '%s 将此包的名称从 %s 改为 %s。',
-      '%s changed the name of this publisher from %s to %s.' =>
-        '%s 将此发布者的名称从 %s 改为 %s。',
-      '%s changed the name of this version from %s to %s.' =>
-        '%s 将此版本的名称从 %s 改为 %s。',
-      '%s changed the network for this interface from %s to %s.' =>
-        '%s 将此接口的网络从 %s 改为 %s。',
-      '%s changed the order in which this form appears in the "Create" menu.' =>
-        '%s 更改了此表单在“创建”菜单中的显示顺序。',
-      '%s changed the order in which this form appears in the "Edit" menu.' =>
-        '%s 更改了此表单在“编辑”菜单中的显示顺序。',
+      '%s changed the name of this package from %s to %s.' => '%s 将此包的名称从 %s 改为 %s。',
+      '%s changed the name of this publisher from %s to %s.' => '%s 将此发布者的名称从 %s 改为 %s。',
+      '%s changed the name of this version from %s to %s.' => '%s 将此版本的名称从 %s 改为 %s。',
+      '%s changed the network for this interface from %s to %s.' => '%s 将此接口的网络从 %s 改为 %s。',
+      '%s changed the order in which this form appears in the "Create" menu.' => '%s 更改了此表单在“创建”菜单中的显示顺序。',
+      '%s changed the order in which this form appears in the "Edit" menu.' => '%s 更改了此表单在“编辑”菜单中的显示顺序。',
       '%s changed the panels on this dashboard.' => '%s 更改了此仪表盘上的面板。',
-      '%s changed the point limit for this column from %s to %s.' =>
-        '%s 将此列的点数限制从 %s 改为 %s。',
-      '%s changed the point value for %s from %s to %s.' =>
-        '%s 将 %s 的点数从 %s 改为 %s。',
-      '%s changed the point value for this task from %s to %s.' =>
-        '%s 将此任务的点数从 %s 改为 %s。',
-      '%s changed the policy mode for this export from %s to %s.' =>
-        '%s 将此导出的策略模式从 %s 改为 %s。',
-      '%s changed the poll question from "%s" to "%s".' =>
-        '%s 将投票问题从 "%s" 改为 "%s"。',
-      '%s changed the port for this interface from %s to %s.' =>
-        '%s 将此接口的端口从 %s 改为 %s。',
+      '%s changed the point limit for this column from %s to %s.' => '%s 将此列的点数限制从 %s 改为 %s。',
+      '%s changed the point value for %s from %s to %s.' => '%s 将 %s 的点数从 %s 改为 %s。',
+      '%s changed the point value for this task from %s to %s.' => '%s 将此任务的点数从 %s 改为 %s。',
+      '%s changed the policy mode for this export from %s to %s.' => '%s 将此导出的策略模式从 %s 改为 %s。',
+      '%s changed the poll question from "%s" to "%s".' => '%s 将投票问题从 "%s" 改为 "%s"。',
+      '%s changed the port for this interface from %s to %s.' => '%s 将此接口的端口从 %s 改为 %s。',
       '%s changed the profile image for blog %s.' => '%s 更改了博客 %s 的头像。',
       '%s changed the profile image for this blog.' => '%s 更改了此博客的头像。',
       '%s changed the query for this export.' => '%s 更改了此导出的查询。',
-      '%s changed the start date for %s from %s to %s.' =>
-        '%s 将 %s 的开始日期从 %s 改为 %s。',
-      '%s changed the start date for this event from %s to %s.' =>
-        '%s 将此活动的开始日期从 %s 改为 %s。',
-      '%s changed the status of %s from %s to %s by committing %s.' =>
-        '%s 通过提交 %s 将 %s 的状态从 %s 改为 %s。',
-      '%s changed the status of subtask %s from %s to %s.' =>
-        '%s 将子任务 %s 的状态从 %s 改为 %s。',
-      '%s changed the status of this device from %s to %s.' =>
-        '%s 将此设备的状态从 %s 改为 %s。',
-      '%s changed the status of this item from %s to %s.' =>
-        '%s 将此项的状态从 %s 改为 %s。',
-      '%s changed the status of this poll from %s to %s.' =>
-        '%s 将此投票的状态从 %s 改为 %s。',
-      '%s changed the status of this provider from %s to %s.' =>
-        '%s 将此提供方的状态从 %s 改为 %s。',
-      '%s changed the subtype of %s from "%s" to "%s".' =>
-        '%s 将 %s 的子类型从 "%s" 改为 "%s"。',
-      '%s changed the subtype of this form from %s to %s.' =>
-        '%s 将此表单的子类型从 %s 改为 %s。',
-      '%s changed the task status from %s to %s by committing %s.' =>
-        '%s 通过提交 %s 将任务状态从 %s 改为 %s。',
+      '%s changed the start date for %s from %s to %s.' => '%s 将 %s 的开始日期从 %s 改为 %s。',
+      '%s changed the start date for this event from %s to %s.' => '%s 将此活动的开始日期从 %s 改为 %s。',
+      '%s changed the status of %s from %s to %s by committing %s.' => '%s 通过提交 %s 将 %s 的状态从 %s 改为 %s。',
+      '%s changed the status of subtask %s from %s to %s.' => '%s 将子任务 %s 的状态从 %s 改为 %s。',
+      '%s changed the status of this device from %s to %s.' => '%s 将此设备的状态从 %s 改为 %s。',
+      '%s changed the status of this item from %s to %s.' => '%s 将此项的状态从 %s 改为 %s。',
+      '%s changed the status of this poll from %s to %s.' => '%s 将此投票的状态从 %s 改为 %s。',
+      '%s changed the status of this provider from %s to %s.' => '%s 将此提供方的状态从 %s 改为 %s。',
+      '%s changed the subtype of %s from "%s" to "%s".' => '%s 将 %s 的子类型从 "%s" 改为 "%s"。',
+      '%s changed the subtype of this form from %s to %s.' => '%s 将此表单的子类型从 %s 改为 %s。',
+      '%s changed the task status from %s to %s by committing %s.' => '%s 通过提交 %s 将任务状态从 %s 改为 %s。',
       '%s changed the task status from %s to %s.' => '%s 将任务状态从 %s 改为 %s。',
-      '%s changed the trigger for this column from %s to %s.' =>
-        '%s 将此列的触发器从 %s 改为 %s。',
-      '%s changed the username policy for this provider from %s to %s.' =>
-        '%s 将此提供方的用户名策略从 %s 改为 %s。',
-      '%s changed the voting method from %s to %s.' =>
-        '%s 将投票方式从 %s 改为 %s。',
-      '%s changed the voting method of %s from %s to %s.' =>
-        '%s 将 %s 的投票方式从 %s 改为 %s。',
-      '%s changed this contact number from %s to %s.' =>
-        '%s 将此联系电话从 %s 改为 %s。',
+      '%s changed the trigger for this column from %s to %s.' => '%s 将此列的触发器从 %s 改为 %s。',
+      '%s changed the username policy for this provider from %s to %s.' => '%s 将此提供方的用户名策略从 %s 改为 %s。',
+      '%s changed the voting method from %s to %s.' => '%s 将投票方式从 %s 改为 %s。',
+      '%s changed the voting method of %s from %s to %s.' => '%s 将 %s 的投票方式从 %s 改为 %s。',
+      '%s changed this contact number from %s to %s.' => '%s 将此联系电话从 %s 改为 %s。',
       '%s changed this event to repeat forever.' => '%s 将此活动设为永久重复。',
       '%s changed this event to repeat until %s.' => '%s 将此活动设为重复直到 %s。',
       '%s changed this to an all day event.' => '%s 将此改为全天活动。',
-      '%s changed who can see the responses from %s to %s.' =>
-        '%s 将谁可查看回复从 %s 改为 %s。',
-      '%s changed who can see the responses of %s from %s to %s.' =>
-        '%s 将谁可查看 %s 的回复从 %s 改为 %s。',
+      '%s changed who can see the responses from %s to %s.' => '%s 将谁可查看回复从 %s 改为 %s。',
+      '%s changed who can see the responses of %s from %s to %s.' => '%s 将谁可查看 %s 的回复从 %s 改为 %s。',
       '%s closed %s as %s by committing %s.' => '%s 通过提交 %s 将 %s 关闭为 %s。',
-      '%s closed %s as a duplicate by committing %s.' =>
-        '%s 通过提交 %s 将 %s 作为重复关闭。',
+      '%s closed %s as a duplicate by committing %s.' => '%s 通过提交 %s 将 %s 作为重复关闭。',
       '%s closed %s as invalid.' => '%s 将 %s 关闭为无效。',
       '%s closed %s as obsolete.' => '%s 将 %s 关闭为已过时。',
       '%s closed %s as resolved.' => '%s 将 %s 关闭为已解决。',
-      '%s closed %s, a subtask of %s, as %s.' =>
-        '%s 将 %s 的子任务 %s 关闭为 %s。',
+      '%s closed %s, a subtask of %s, as %s.' => '%s 将 %s 的子任务 %s 关闭为 %s。',
       '%s closed mock %s.' => '%s 关闭了 Mock %s。',
       '%s closed subtask %s as %s.' => '%s 将子任务 %s 关闭为 %s。',
       '%s closed this question as obsolete.' => '%s 将此问题关闭为已过时。',
-      '%s closed this task as %s by committing %s.' =>
-        '%s 通过提交 %s 将此任务关闭为 %s。',
-      '%s closed this task as a duplicate by committing %s.' =>
-        '%s 通过提交 %s 将此任务作为重复关闭。',
+      '%s closed this task as %s by committing %s.' => '%s 通过提交 %s 将此任务关闭为 %s。',
+      '%s closed this task as a duplicate by committing %s.' => '%s 通过提交 %s 将此任务作为重复关闭。',
       '%s closed this task as a duplicate of %s.' => '%s 将此任务作为 %s 的重复关闭。',
       '%s converted %s from an all day event.' => '%s 将 %s 从全天活动改为非全天。',
       '%s created an object: %s.' => '%s 创建了对象：%s。',
@@ -2915,12 +2768,9 @@ final class PhabricatorChineseTranslation
       '%s created this mock.' => '%s 创建了此 Mock。',
       '%s created this object in space %s.' => '%s 在空间 %s 中创建了此对象。',
       '%s created this object with edit policy "%s".' => '%s 以编辑策略 "%s" 创建了此对象。',
-      '%s created this object with interact policy "%s".' =>
-        '%s 以交互策略 "%s" 创建了此对象。',
-      '%s created this object with join policy "%s".' =>
-        '%s 以加入策略 "%s" 创建了此对象。',
-      '%s created this object with visibility "%s".' =>
-        '%s 以可见性 "%s" 创建了此对象。',
+      '%s created this object with interact policy "%s".' => '%s 以交互策略 "%s" 创建了此对象。',
+      '%s created this object with join policy "%s".' => '%s 以加入策略 "%s" 创建了此对象。',
+      '%s created this object with visibility "%s".' => '%s 以可见性 "%s" 创建了此对象。',
       '%s created this password.' => '%s 创建了此密码。',
       '%s defrocked %s.' => '%s 撤销了 %s 的权限。',
       '%s defrocked this user.' => '%s 撤销了此用户权限。',
@@ -2939,11 +2789,9 @@ final class PhabricatorChineseTranslation
       '%s disabled the audio for this macro.' => '%s 禁用了此宏的音频。',
       '%s disabled the badge %s.' => '%s 禁用了徽章 %s。',
       '%s disabled the workboard for this project.' => '%s 禁用了此项目的工作看板。',
-      '%s disallowed Conduit API access to credential %s.' =>
-        '%s 禁止了 Conduit API 对凭据 %s 的访问。',
+      '%s disallowed Conduit API access to credential %s.' => '%s 禁止了 Conduit API 对凭据 %s 的访问。',
       '%s edited %s on %s.' => '%s 在 %s 上编辑了 %s。',
-      '%s edited %s required legal document(s), added %s: %s; removed %s: %s.' =>
-        '%s 编辑了 %s 份必备法律文档，添加 %s：%s；移除 %s：%s。',
+      '%s edited %s required legal document(s), added %s: %s; removed %s: %s.' => '%s 编辑了 %s 份必备法律文档，添加 %s：%s；移除 %s：%s。',
       '%s edited a custom field (with key "%s").' => '%s 编辑了自定义字段（键 "%s"）。',
       '%s edited a custom field on %s.' => '%s 在 %s 上编辑了自定义字段。',
       '%s edited a custom field.' => '%s 编辑了自定义字段。',
@@ -2954,8 +2802,7 @@ final class PhabricatorChineseTranslation
       '%s edited edge metadata.' => '%s 编辑了边元数据。',
       '%s edited this %s.' => '%s 编辑了此 %s。',
       '%s edited this configuration entry.' => '%s 编辑了此配置项。',
-      '%s edited this object (transaction type "%s").' =>
-        '%s 编辑了此对象（事务类型 "%s"）。',
+      '%s edited this object (transaction type "%s").' => '%s 编辑了此对象（事务类型 "%s"）。',
       '%s edited this rule.' => '%s 编辑了此规则。',
       '%s empowered %s as an administrator.' => '%s 将 %s 设为了管理员。',
       '%s empowered this user as an administrator.' => '%s 将此用户设为了管理员。',
@@ -2967,41 +2814,28 @@ final class PhabricatorChineseTranslation
       '%s enabled registration.' => '%s 启用了注册。',
       '%s enabled the badge %s.' => '%s 启用了徽章 %s。',
       '%s enabled the workboard for this project.' => '%s 启用了此项目的工作看板。',
-      '%s examined the secret plaintext for credential %s.' =>
-        '%s 查看了凭据 %s 的密钥明文。',
-      '%s examined the secret plaintext for this credential.' =>
-        '%s 查看了此凭据的密钥明文。',
+      '%s examined the secret plaintext for credential %s.' => '%s 查看了凭据 %s 的密钥明文。',
+      '%s examined the secret plaintext for this credential.' => '%s 查看了此凭据的密钥明文。',
       '%s from %s' => '%s 来自 %s',
       '%s got test event at %d' => '%s 在 %d 收到测试事件',
       '%s hid this column.' => '%s 隐藏了此列。',
       '%s imported an ICS file.' => '%s 导入了 ICS 文件。',
-      '%s is already archived, and can not be cancelled.' =>
-        '%s 已归档，无法取消。',
-      '%s is already archived, and can not be delayed.' =>
-        '%s 已归档，无法延迟。',
-      '%s is already archived, and can not be reprioritized.' =>
-        '%s 已归档，无法重新排序优先级。',
+      '%s is already archived, and can not be cancelled.' => '%s 已归档，无法取消。',
+      '%s is already archived, and can not be delayed.' => '%s 已归档，无法延迟。',
+      '%s is already archived, and can not be reprioritized.' => '%s 已归档，无法重新排序优先级。',
       '%s is already in the active task queue.' => '%s 已在活跃任务队列中。',
-      '%s is already leased, and can not be delayed.' =>
-        '%s 已租用，无法延迟。',
-      '%s is archived; archived tasks do not have leases.' =>
-        '%s 已归档；已归档任务没有租约。',
+      '%s is already leased, and can not be delayed.' => '%s 已租用，无法延迟。',
+      '%s is archived; archived tasks do not have leases.' => '%s 已归档；已归档任务没有租约。',
       '%s is attending %s.' => '%s 将参加 %s。',
       '%s is attending this event.' => '%s 将参加此活动。',
-      '%s is not available; unable to read deflated data!' =>
-        '%s 不可用；无法读取压缩数据！',
+      '%s is not available; unable to read deflated data!' => '%s 不可用；无法读取压缩数据！',
       '%s locked %s membership.' => '%s 锁定了 %s 的成员关系。',
       '%s locked credential %s.' => '%s 锁定了凭据 %s。',
-      '%s lowered the priority of %s from %s to %s.' =>
-        '%s 将 %s 的优先级从 %s 降至 %s。',
-      '%s made %s responses appear in a fixed order.' =>
-        '%s 将 %s 个回复设为固定顺序显示。',
-      '%s made %s responses appear in a random order.' =>
-        '%s 将 %s 个回复设为随机顺序显示。',
-      '%s made poll responses appear in a fixed order.' =>
-        '%s 将投票回复设为固定顺序显示。',
-      '%s made poll responses appear in a random order.' =>
-        '%s 将投票回复设为随机顺序显示。',
+      '%s lowered the priority of %s from %s to %s.' => '%s 将 %s 的优先级从 %s 降至 %s。',
+      '%s made %s responses appear in a fixed order.' => '%s 将 %s 个回复设为固定顺序显示。',
+      '%s made %s responses appear in a random order.' => '%s 将 %s 个回复设为随机顺序显示。',
+      '%s made poll responses appear in a fixed order.' => '%s 将投票回复设为固定顺序显示。',
+      '%s made poll responses appear in a random order.' => '%s 将投票回复设为随机顺序显示。',
       '%s made space %s the default space.' => '%s 将空间 %s 设为默认空间。',
       '%s made this the primary contact number.' => '%s 将此设为主要联系电话。',
       '%s marked %s as hidden.' => '%s 将 %s 标为隐藏。',
@@ -3013,14 +2847,11 @@ final class PhabricatorChineseTranslation
       '%s marked this post as a draft.' => '%s 将此文章标为草稿。',
       '%s mentioned this in %s.' => '%s 在 %s 中提及此。',
       '%s moved %s from %s' => '%s 将 %s 从 %s 移出',
-      '%s moved %s from %s to %s on the %s board.' =>
-        '%s 在 %s 看板上将 %s 从 %s 移到 %s。',
-      '%s moved %s to %s on the %s board.' =>
-        '%s 在 %s 看板上将 %s 移到 %s。',
+      '%s moved %s from %s to %s on the %s board.' => '%s 在 %s 看板上将 %s 从 %s 移到 %s。',
+      '%s moved %s to %s on the %s board.' => '%s 在 %s 看板上将 %s 移到 %s。',
       '%s moved this document from %s.' => '%s 将此文档从 %s 移出。',
       '%s moved this document to %s.' => '%s 将此文档移至 %s。',
-      '%s moved this task to %s on the %s board.' =>
-        '%s 在 %s 看板上将此任务移到 %s。',
+      '%s moved this task to %s on the %s board.' => '%s 在 %s 看板上将此任务移到 %s。',
       '%s must implement %s.' => '%s 必须实现 %s。',
       '%s named this import %s.' => '%s 将此导入命名为 %s。',
       '%s named this provider %s.' => '%s 将此提供方命名为 %s。',
@@ -3032,8 +2863,7 @@ final class PhabricatorChineseTranslation
       '%s published a new version of %s.' => '%s 发布了 %s 的新版本。',
       '%s published a new version of this document.' => '%s 发布了此文档的新版本。',
       '%s published the blog %s.' => '%s 发布了博客 %s。',
-      '%s raised the priority of %s from %s to %s.' =>
-        '%s 将 %s 的优先级从 %s 提高到 %s。',
+      '%s raised the priority of %s from %s to %s.' => '%s 将 %s 的优先级从 %s 提高到 %s。',
       '%s reassigned %s from %s to %s.' => '%s 将 %s 从 %s 重新分配给 %s。',
       '%s reassigned this item from %s to %s.' => '%s 将此项从 %s 重新分配给 %s。',
       '%s reinstated %s.' => '%s 恢复了 %s。',
@@ -3043,16 +2873,13 @@ final class PhabricatorChineseTranslation
       '%s removed %s as %s.' => '%s 将 %s 作为 %s 移除。',
       '%s removed %s which was set to %s.' => '%s 移除了设为 %s 的 %s。',
       '%s removed the administrator role from %s.' => '%s 移除了 %s 的管理员角色。',
-      '%s removed the alternate text for %s (was %s).' =>
-        '%s 移除了 %s 的替代文本（原为 %s）。',
-      '%s removed the alternate text for this file (was %s).' =>
-        '%s 移除了此文件的替代文本（原为 %s）。',
+      '%s removed the alternate text for %s (was %s).' => '%s 移除了 %s 的替代文本（原为 %s）。',
+      '%s removed the alternate text for this file (was %s).' => '%s 移除了此文件的替代文本（原为 %s）。',
       '%s removed the custom name of this column.' => '%s 移除了此列的自定义名称。',
       '%s removed the image for %s.' => '%s 移除了 %s 的图片。',
       '%s removed the interface for this binding.' => '%s 移除了此绑定的接口。',
       '%s removed the name (%s) of this provider.' => '%s 移除了此提供方的名称（%s）。',
-      '%s removed the name of this import (was: %s).' =>
-        '%s 移除了此导入的名称（原为：%s）。',
+      '%s removed the name of this import (was: %s).' => '%s 移除了此导入的名称（原为：%s）。',
       '%s removed the point limit for this column.' => '%s 移除了此列的点数限制。',
       '%s removed the point value %s for this task.' => '%s 移除了此任务的点数 %s。',
       '%s removed the point value for %s.' => '%s 移除了 %s 的点数。',
@@ -3060,41 +2887,29 @@ final class PhabricatorChineseTranslation
       '%s removed the property %s.' => '%s 移除了属性 %s。',
       '%s removed the room topic for %s.' => '%s 移除了 %s 的房间主题。',
       '%s removed the room topic.' => '%s 移除了房间主题。',
-      '%s removed the trigger for this column (was %s).' =>
-        '%s 移除了此列的触发器（原为 %s）。',
-      '%s removed this form from the "Create" menu.' =>
-        '%s 从“创建”菜单移除此表单。',
-      '%s removed this password from the revocation list.' =>
-        '%s 从吊销列表中移除此密码。',
-      '%s renamed %s blog post from %s to %s.' =>
-        '%s 将 %s 的博客文章从 %s 重命名为 %s。',
+      '%s removed the trigger for this column (was %s).' => '%s 移除了此列的触发器（原为 %s）。',
+      '%s removed this form from the "Create" menu.' => '%s 从“创建”菜单移除此表单。',
+      '%s removed this password from the revocation list.' => '%s 从吊销列表中移除此密码。',
+      '%s renamed %s blog post from %s to %s.' => '%s 将 %s 的博客文章从 %s 重命名为 %s。',
       '%s renamed %s credential %s to %s.' => '%s 将 %s 的凭据 %s 重命名为 %s。',
-      '%s renamed an image (%s) from %s to %s.' =>
-        '%s 将图片（%s）从 %s 重命名为 %s。',
+      '%s renamed an image (%s) from %s to %s.' => '%s 将图片（%s）从 %s 重命名为 %s。',
       '%s renamed space %s from %s to %s.' => '%s 将空间 %s 从 %s 重命名为 %s。',
-      '%s renamed this application from "%s" to "%s".' =>
-        '%s 将此应用从 "%s" 重命名为 "%s"。',
-      '%s renamed this blog post from %s to %s.' =>
-        '%s 将此博客文章从 %s 重命名为 %s。',
+      '%s renamed this application from "%s" to "%s".' => '%s 将此应用从 "%s" 重命名为 "%s"。',
+      '%s renamed this blog post from %s to %s.' => '%s 将此博客文章从 %s 重命名为 %s。',
       '%s renamed this export from %s to %s.' => '%s 将此导出从 %s 重命名为 %s。',
       '%s renamed this key from "%s" to "%s".' => '%s 将此密钥从 "%s" 重命名为 "%s"。',
       '%s renamed this mock from %s to %s.' => '%s 将此 Mock 从 %s 重命名为 %s。',
       '%s renamed this portal from %s to %s.' => '%s 将此门户从 %s 重命名为 %s。',
       '%s renamed this queue from %s to %s.' => '%s 将此队列从 %s 重命名为 %s。',
       '%s renamed this source from %s to %s.' => '%s 将此来源从 %s 重命名为 %s。',
-      '%s renamed this trigger from %s to %s.' =>
-        '%s 将此触发器从 %s 重命名为 %s。',
+      '%s renamed this trigger from %s to %s.' => '%s 将此触发器从 %s 重命名为 %s。',
       '%s renamed this user.' => '%s 重命名了此用户。',
-      '%s renamed this webhook from %s to %s.' =>
-        '%s 将此 Webhook 从 %s 重命名为 %s。',
+      '%s renamed this webhook from %s to %s.' => '%s 将此 Webhook 从 %s 重命名为 %s。',
       '%s reopened %s as "%s".' => '%s 将 %s 重新打开为 "%s"。',
-      '%s reopened %s as %s by committing %s.' =>
-        '%s 通过提交 %s 将 %s 重新打开为 %s。',
-      '%s reopened %s, a subtask of %s, as %s.' =>
-        '%s 将 %s 的子任务 %s 重新打开为 %s。',
+      '%s reopened %s as %s by committing %s.' => '%s 通过提交 %s 将 %s 重新打开为 %s。',
+      '%s reopened %s, a subtask of %s, as %s.' => '%s 将 %s 的子任务 %s 重新打开为 %s。',
       '%s reopened subtask %s as %s.' => '%s 将子任务 %s 重新打开为 %s。',
-      '%s reopened this task as %s by committing %s.' =>
-        '%s 通过提交 %s 将此任务重新打开为 %s。',
+      '%s reopened this task as %s by committing %s.' => '%s 通过提交 %s 将此任务重新打开为 %s。',
       '%s reordered the fields in this form.' => '%s 重新排列了此表单中的字段。',
       '%s replaced %s with %s.' => '%s 用 %s 替换了 %s。',
       '%s rerouted this item from %s to %s.' => '%s 将此项从 %s 重路由到 %s。',
@@ -3110,13 +2925,10 @@ final class PhabricatorChineseTranslation
       '%s set %s to repeat yearly.' => '%s 将 %s 设为每年重复。',
       '%s set a property on this item.' => '%s 在此项上设置了属性。',
       '%s set the "%s" value to "%s".' => '%s 将 "%s" 的值设为 "%s"。',
-      '%s set the OAuth application secret for this provider.' =>
-        '%s 设置了此提供方的 OAuth 应用密钥。',
-      '%s set the OAuth consumer secret for this provider.' =>
-        '%s 设置了此提供方的 OAuth 消费者密钥。',
+      '%s set the OAuth application secret for this provider.' => '%s 设置了此提供方的 OAuth 应用密钥。',
+      '%s set the OAuth consumer secret for this provider.' => '%s 设置了此提供方的 OAuth 消费者密钥。',
       '%s set the alternate text for %s to %s.' => '%s 将 %s 的替代文本设为 %s。',
-      '%s set the alternate text for this file to %s.' =>
-        '%s 将此文件的替代文本设为 %s。',
+      '%s set the alternate text for this file to %s.' => '%s 将此文件的替代文本设为 %s。',
       '%s set the audio for %s to loop.' => '%s 将 %s 的音频设为循环。',
       '%s set the audio for %s to play once.' => '%s 将 %s 的音频设为播放一次。',
       '%s set the audio to loop.' => '%s 将音频设为循环。',
@@ -3124,58 +2936,43 @@ final class PhabricatorChineseTranslation
       '%s set the color for %s to %s.' => '%s 将 %s 的颜色设为 %s。',
       '%s set the column trigger to %s.' => '%s 将列触发器设为 %s。',
       '%s set the cover image to %s.' => '%s 将封面图片设为 %s。',
-      '%s set the document %s to not require signatures.' =>
-        '%s 将文档 %s 设为不需要签名。',
-      '%s set the document %s to require signatures.' =>
-        '%s 将文档 %s 设为需要签名。',
+      '%s set the document %s to not require signatures.' => '%s 将文档 %s 设为不需要签名。',
+      '%s set the document %s to require signatures.' => '%s 将文档 %s 设为需要签名。',
       '%s set the document text.' => '%s 设置了文档正文。',
-      '%s set the document to not require signatures.' =>
-        '%s 将文档设为不需要签名。',
-      '%s set the document to require signatures.' =>
-        '%s 将文档设为需要签名。',
+      '%s set the document to not require signatures.' => '%s 将文档设为不需要签名。',
+      '%s set the document to require signatures.' => '%s 将文档设为需要签名。',
       '%s set the icon for %s to %s.' => '%s 将 %s 的图标设为 %s。',
       '%s set the image for %s to %s.' => '%s 将 %s 的图片设为 %s。',
-      '%s set the interface for this binding to %s.' =>
-        '%s 将此绑定的接口设为 %s。',
-      '%s set the network for this interface to %s.' =>
-        '%s 将此接口的网络设为 %s。',
-      '%s set the point limit for this column to %s.' =>
-        '%s 将此列的点数限制设为 %s。',
+      '%s set the interface for this binding to %s.' => '%s 将此绑定的接口设为 %s。',
+      '%s set the network for this interface to %s.' => '%s 将此接口的网络设为 %s。',
+      '%s set the point limit for this column to %s.' => '%s 将此列的点数限制设为 %s。',
       '%s set the point value for %s to %s.' => '%s 将 %s 的点数设为 %s。',
-      '%s set the point value for this task to %s.' =>
-        '%s 将此任务的点数设为 %s。',
+      '%s set the point value for this task to %s.' => '%s 将此任务的点数设为 %s。',
       '%s set the room topic to %s in %s.' => '%s 在 %s 中将房间主题设为 %s。',
       '%s set the room topic to %s.' => '%s 将房间主题设为 %s。',
-      '%s set the username for credential %s to %s.' =>
-        '%s 将凭据 %s 的用户名设为 %s。',
-      '%s set the username for this credential to %s.' =>
-        '%s 将此凭据的用户名设为 %s。',
-      '%s shifted %s from the %s space to the %s space.' =>
-        '%s 将 %s 从空间 %s 移至空间 %s。',
-      '%s shifted this object from the %s space to the %s space.' =>
-        '%s 将此对象从空间 %s 移至空间 %s。',
+      '%s set the username for credential %s to %s.' => '%s 将凭据 %s 的用户名设为 %s。',
+      '%s set the username for this credential to %s.' => '%s 将此凭据的用户名设为 %s。',
+      '%s shifted %s from the %s space to the %s space.' => '%s 将 %s 从空间 %s 移至空间 %s。',
+      '%s shifted this object from the %s space to the %s space.' => '%s 将此对象从空间 %s 移至空间 %s。',
       '%s signed these changes with MFA.' => '%s 使用 MFA 签署了这些更改。',
-      '%s stripped the name %s from this trigger.' =>
-        '%s 从此触发器移除了名称 %s。',
+      '%s stripped the name %s from this trigger.' => '%s 从此触发器移除了名称 %s。',
       '%s subscribed.' => '%s 已订阅。',
       '%s triaged %s as %s priority.' => '%s 将 %s 标为 %s 优先级。',
       '%s triaged this task as %s priority.' => '%s 将此任务标为 %s 优先级。',
       '%s unchecked %s.' => '%s 取消勾选了 %s。',
       '%s unhid this column.' => '%s 取消隐藏了此列。',
       '%s unlocked %s membership.' => '%s 解锁了 %s 的成员关系。',
-      '%s unmarked this form as an edit form.' =>
-        '%s 取消将此表单标为编辑表单。',
+      '%s unmarked this form as an edit form.' => '%s 取消将此表单标为编辑表单。',
       '%s unsubscribed.' => '%s 已取消订阅。',
       '%s was cancelled.' => '%s 已取消。',
       '%s was delayed until "%s".' => '%s 已延迟至 "%s"。',
       '%s was freed from its lease.' => '%s 已从租约中释放。',
       '%s was queued for retry.' => '%s 已加入重试队列。',
-      '%s was reprioritized (from "%d" to "%d").' =>
-        '%s 已重新排序优先级（从 "%d" 到 "%d"）。',
+      '%s was reprioritized (from "%d" to "%d").' => '%s 已重新排序优先级（从 "%d" 到 "%d"）。',
       '%s went to the store.' => '%s 去了商店。',
       '%s with bad key.' => '%s 密钥错误。',
       '%s wrote:' => '%s 写道：',
-      '%s%ss' => '%s%ss',
+      '%s%ss' => '%s%s 秒',
       '%s, %s, %s and %s' => '%s、%s、%s 和 %s',
       '%s, All Day' => '%s，全天',
       '%s, occurrences: %s' => '%s，出现次数：%s',
@@ -3185,37 +2982,26 @@ final class PhabricatorChineseTranslation
       '%s: Already encoded in target format.' => '%s：已以目标格式编码。',
       '%s: Already stored in engine "%s".' => '%s：已存储在引擎 "%s" 中。',
       '%s: Burnup / Burndown Rate' => '%s：燃尽率',
-      '%s: Changing encoding from "%s" to "%s".' =>
-        '%s：正在将编码从 "%s" 改为 "%s"。',
+      '%s: Changing encoding from "%s" to "%s".' => '%s：正在将编码从 "%s" 改为 "%s"。',
       '%s: Compacting storage with %s.' => '%s：正在使用 %s 压缩存储。',
       '%s: Cycling master key.' => '%s：正在轮换主密钥。',
-      '%s: File size (%s) is larger than maximum size (%s).' =>
-        '%s：文件大小（%s）超过最大尺寸（%s）。',
-      '%s: File size (%s) is smaller than minimum size (%s).' =>
-        '%s：文件大小（%s）小于最小尺寸（%s）。',
+      '%s: File size (%s) is larger than maximum size (%s).' => '%s：文件大小（%s）超过最大尺寸（%s）。',
+      '%s: File size (%s) is smaller than minimum size (%s).' => '%s：文件大小（%s）小于最小尺寸（%s）。',
       '%s: Image dimensions already exist.' => '%s：图片尺寸已存在。',
       '%s: Mime type not changed (%s).' => '%s：MIME 类型未更改（%s）。',
       '%s: No content hash.' => '%s：无内容哈希。',
-      '%s: No other files with the same content hash.' =>
-        '%s：无其他具有相同内容哈希的文件。',
+      '%s: No other files with the same content hash.' => '%s：无其他具有相同内容哈希的文件。',
       '%s: Not an image file.' => '%s：不是图片文件。',
       '%s: Skipping expired temporary file.' => '%s：跳过已过期的临时文件。',
-      '%s: Storage format ("%s") does not support key cycling.' =>
-        '%s：存储格式（"%s"）不支持密钥轮换。',
-      '%s: Stored as chunks, declining to cycle directly.' =>
-        '%s：按块存储，拒绝直接轮换。',
-      '%s: Stored as chunks, no data to encode directly.' =>
-        '%s：按块存储，无可直接编码的数据。',
-      '%s: Stored as chunks, no data to migrate directly.' =>
-        '%s：按块存储，无可直接迁移的数据。',
-      '%s: Unable to load file data; declining to compact.' =>
-        '%s：无法加载文件数据；拒绝压缩。',
+      '%s: Storage format ("%s") does not support key cycling.' => '%s：存储格式（"%s"）不支持密钥轮换。',
+      '%s: Stored as chunks, declining to cycle directly.' => '%s：按块存储，拒绝直接轮换。',
+      '%s: Stored as chunks, no data to encode directly.' => '%s：按块存储，无可直接编码的数据。',
+      '%s: Stored as chunks, no data to migrate directly.' => '%s：按块存储，无可直接迁移的数据。',
+      '%s: Unable to load file data; declining to compact.' => '%s：无法加载文件数据；拒绝压缩。',
       '%s: Updating metadata... ' => '%s：正在更新元数据…',
-      '%s: Uses unknown storage format "%s".' =>
-        '%s：使用未知的存储格式 "%s"。',
+      '%s: Uses unknown storage format "%s".' => '%s：使用未知的存储格式 "%s"。',
       '%s: Would compact storage with %s.' => '%s：将使用 %s 压缩存储。',
-      '%s: Would update file dimensions (dry run)' =>
-        '%s：将更新文件尺寸（试运行）',
+      '%s: Would update file dimensions (dry run)' => '%s：将更新文件尺寸（试运行）',
       '%s:%s (%s on %s)' => '%s：%s（%s 于 %s）',
       '%ss Behind' => '%s 秒落后',
       '(%s -> %s @ %s) %s' => '（%s -> %s @ %s）%s',
@@ -3247,17 +3033,14 @@ final class PhabricatorChineseTranslation
       '(Restricted/Invalid Form)' => '（受限/无效表单）',
       '(Restricted/Invalid Project)' => '（受限/无效项目）',
       '(See table below.)' => '（见下表。）',
-      '(This email was truncated at %d bytes.)' =>
-        '（此邮件在 %d 字节处被截断。）',
+      '(This email was truncated at %d bytes.)' => '（此邮件在 %d 字节处被截断。）',
       '(This message has no text body.)' => '（此消息无正文。）',
-      '(Unable to render story of class %s for Doorkeeper.)' =>
-        '（无法为 Doorkeeper 渲染类 %s 的 story。）',
+      '(Unable to render story of class %s for Doorkeeper.)' => '（无法为 Doorkeeper 渲染类 %s 的 story。）',
       '(Ungrouped)' => '（未分组）',
       '(Unknown Rule)' => '（未知规则）',
       '(Untitled Document)' => '（无标题文档）',
       '(Up For Grabs)' => '（可认领）',
-      '(Use --cursor to import only a particular cursor.)' =>
-        '（使用 --cursor 仅导入特定游标。）',
+      '(Use --cursor to import only a particular cursor.)' => '（使用 --cursor 仅导入特定游标。）',
       '(empty)' => '（空）',
       '(via %s)' => '（通过 %s）',
       '.ics File' => '.ics 文件',
@@ -3277,8 +3060,7 @@ final class PhabricatorChineseTranslation
       '<Unknown Action "%s">' => '<未知操作 "%s">',
       '<Unknown Field "%s">' => '<未知字段 "%s">',
       '?' => '?',
-      'A Controller must implement %s before you can invoke %s or %s.' =>
-        '控制器必须先实现 %s 才能调用 %s 或 %s。',
+      'A Controller must implement %s before you can invoke %s or %s.' => '控制器必须先实现 %s 才能调用 %s 或 %s。',
       'A JSON-encoded object.' => 'JSON 编码的对象。',
       'A Modern Example' => '现代示例',
       'A PHID.' => 'PHID。',
@@ -3393,10 +3175,8 @@ final class PhabricatorChineseTranslation
       'All Users' => '全部用户',
       'All Versions' => '全部版本',
       'All conditions matched.' => '所有条件均已匹配。',
-      'All of the configured Fulltext Search services failed.' =>
-        '所有已配置的全文搜索服务均失败。',
-      'All users are already subscribed to this %s.' =>
-        '所有用户已订阅此 %s。',
+      'All of the configured Fulltext Search services failed.' => '所有已配置的全文搜索服务均失败。',
+      'All users are already subscribed to this %s.' => '所有用户已订阅此 %s。',
       'Allow %s to access this server?' => '允许 %s 访问此服务器？',
       'Allow Account Linking' => '允许账户关联',
       'Allow Account Unlinking' => '允许账户取消关联',
@@ -3412,36 +3192,25 @@ final class PhabricatorChineseTranslation
       'Allow Registration:' => '允许注册：',
       'Allow Unlinking Accounts' => '允许取消关联账户',
       'Allow Writes' => '允许写入',
-      'Allow a single mailbox to be used for all replies.' =>
-        '允许使用单个邮箱处理所有回复。',
+      'Allow a single mailbox to be used for all replies.' => '允许使用单个邮箱处理所有回复。',
       'Allow editing' => '允许编辑',
-      'Allow users to log in or register using a username and password.' =>
-        '允许用户使用用户名和密码登录或注册。',
-      'Allow users to receive a code via SMS.' =>
-        '允许用户通过短信接收验证码。',
-      'Allow users to set object visibility to public.' =>
-        '允许用户将对象可见性设为公开。',
+      'Allow users to log in or register using a username and password.' => '允许用户使用用户名和密码登录或注册。',
+      'Allow users to receive a code via SMS.' => '允许用户通过短信接收验证码。',
+      'Allow users to set object visibility to public.' => '允许用户将对象可见性设为公开。',
       'Allows Registration' => '允许注册',
       'Allows creating and editing macros.' => '允许创建和编辑宏。',
-      'Allows easily alignment of left/right UI elements.' =>
-        '便于左右 UI 元素对齐。',
-      'Allows you to add footer links on most pages.' =>
-        '允许您在多数页面添加页脚链接。',
-      'Allows you to remove levity and jokes from the UI.' =>
-        '允许您从界面中移除轻松和玩笑内容。',
+      'Allows easily alignment of left/right UI elements.' => '便于左右 UI 元素对齐。',
+      'Allows you to add footer links on most pages.' => '允许您在多数页面添加页脚链接。',
+      'Allows you to remove levity and jokes from the UI.' => '允许您从界面中移除轻松和玩笑内容。',
       'Almanac' => 'Almanac',
       'Almanac Core Objects' => 'Almanac 核心对象',
       'Almanac User Guide' => 'Almanac 用户指南',
       'Almanac device name to register.' => '要注册的 Almanac 设备名称。',
-      'Almanac devices must have unique names.' =>
-        'Almanac 设备名称必须唯一。',
-      'Almanac networks must have unique names.' =>
-        'Almanac 网络名称必须唯一。',
-      'Almanac property values must be representable in JSON. %s' =>
-        'Almanac 属性值必须可表示为 JSON。%s',
+      'Almanac devices must have unique names.' => 'Almanac 设备名称必须唯一。',
+      'Almanac networks must have unique names.' => 'Almanac 网络名称必须唯一。',
+      'Almanac property values must be representable in JSON. %s' => 'Almanac 属性值必须可表示为 JSON。%s',
       'Almanac services must have a name.' => 'Almanac 服务必须有名称。',
-      'Almanac services must have unique names.' =>
-        'Almanac 服务名称必须唯一。',
+      'Almanac services must have unique names.' => 'Almanac 服务名称必须唯一。',
       'Already Accepted Invite' => '已接受邀请',
       'Already Answered' => '已回答',
       'Already Applied' => '已应用',
@@ -3455,15 +3224,12 @@ final class PhabricatorChineseTranslation
       'Alt Text' => '替代文本',
       'Alternate File Domain Not Configured' => '未配置备选文件域名',
       'Alternate domain to serve files from.' => '用于提供文件的备选域名。',
-      'Alternative URIs that can access this service.' =>
-        '可访问此服务的备用 URI。',
+      'Alternative URIs that can access this service.' => '可访问此服务的备用 URI。',
       'Always Activate DarkConsole' => '始终启用 DarkConsole',
       'Always Search' => '始终搜索',
       'Always Visible' => '始终可见',
-      'Always bind and search, even without a username and password.' =>
-        '即使没有用户名和密码也始终绑定并搜索。',
-      'Always require real name for user profiles.' =>
-        '始终要求用户资料填写真实姓名。',
+      'Always bind and search, even without a username and password.' => '即使没有用户名和密码也始终绑定并搜索。',
+      'Always require real name for user profiles.' => '始终要求用户资料填写真实姓名。',
       'Amazon' => '亚马逊',
       'Amazon S3 bucket.' => 'Amazon S3 存储桶。',
       'Amazon S3 is Only Partially Configured' => 'Amazon S3 仅部分配置',
@@ -3495,24 +3261,18 @@ final class PhabricatorChineseTranslation
       'Assigned to Me' => '分配给我',
       'Attach File' => '附加文件',
       'Attached' => '已附加',
-      'An Administrator has placed this server into read-only mode.' =>
-        '管理员已将此服务器设为只读模式。',
+      'An Administrator has placed this server into read-only mode.' => '管理员已将此服务器设为只读模式。',
       'An Umbrella' => '一把伞',
       'An absolute date, as a string.' => '绝对日期，字符串形式。',
-      'An already deleted document can not be deleted.' =>
-        '已删除的文档无法再次删除。',
+      'An already deleted document can not be deleted.' => '已删除的文档无法再次删除。',
       'An epoch timestamp, as an integer.' => '纪元时间戳，整数形式。',
-      'An interface inherits the policies of the device it belongs to.' =>
-        '接口继承其所属设备的策略。',
+      'An interface inherits the policies of the device it belongs to.' => '接口继承其所属设备的策略。',
       'An object name is required.' => '需要对象名称。',
       'An order vector must not be empty.' => '顺序向量不能为空。',
       'Analyze Query Plans' => '分析查询计划',
-      'Analyze and diagnose issues with LDAP configuration.' =>
-        '分析并诊断 LDAP 配置问题。',
-      'Analyze from the beginning, ignoring cursors.' =>
-        '从头分析，忽略游标。',
-      'Analyzing table sizes (this may take a moment)...' =>
-        '正在分析表大小（可能需要一会儿）...',
+      'Analyze and diagnose issues with LDAP configuration.' => '分析并诊断 LDAP 配置问题。',
+      'Analyze from the beginning, ignoring cursors.' => '从头分析，忽略游标。',
+      'Analyzing table sizes (this may take a moment)...' => '正在分析表大小（可能需要一会儿）...',
       'Analyzing tables...' => '正在分析表...',
       'Ancestor Paths' => '祖先路径',
       'Ancestor Projects' => '祖先项目',
@@ -3542,8 +3302,7 @@ final class PhabricatorChineseTranslation
       'Application Email' => '应用邮箱',
       'Application ID is required.' => '需要应用 ID。',
       'Application Secret' => '应用密钥',
-      'Application email ("%s") has an invalid default author ("%s").' =>
-        '应用邮箱（"%s"）的默认作者（"%s"）无效。',
+      'Application email ("%s") has an invalid default author ("%s").' => '应用邮箱（"%s"）的默认作者（"%s"）无效。',
       'Application secret is required.' => '需要应用密钥。',
       'Applications and Extensions' => '应用与扩展',
       'Applications application' => '应用应用',
@@ -3556,8 +3315,7 @@ final class PhabricatorChineseTranslation
       'Apply remaining actions?' => '应用剩余操作？',
       'Apply these schema adjustments?' => '应用这些 schema 调整？',
       'Applying changes to %s: %s...' => '正在对 %s 应用更改：%s...',
-      'Applying patch "%s" to host "%s"...' =>
-        '正在向主机 "%s" 应用补丁 "%s"...',
+      'Applying patch "%s" to host "%s"...' => '正在向主机 "%s" 应用补丁 "%s"...',
       'Applying schema adjustments...' => '正在应用 schema 调整...',
       'Approval' => '批准',
       'Approval (Multiple Choice)' => '批准（多选）',
@@ -3579,23 +3337,18 @@ final class PhabricatorChineseTranslation
       'Archived Posts' => '已归档文章',
       'Archived Tasks' => '已归档任务',
       'Archived post by %s.' => '由 %s 归档的文章。',
-      'Are you absolutely certain you want to destroy these %s object(s)?' =>
-        '您确定要销毁这 %s 个对象吗？',
+      'Are you absolutely certain you want to destroy these %s object(s)?' => '您确定要销毁这 %s 个对象吗？',
       'Are you ready to continue?' => '是否继续？',
       'Are you sure you want to close the poll?' => '确定要关闭此投票吗？',
-      'Are you sure you want to delete this email address?' =>
-        '确定要删除此邮箱地址吗？',
-      'Are you sure you want to generate piles of garbage?' =>
-        '确定要生成大量垃圾吗？',
+      'Are you sure you want to delete this email address?' => '确定要删除此邮箱地址吗？',
+      'Are you sure you want to generate piles of garbage?' => '确定要生成大量垃圾吗？',
       'Are you sure you want to log out?' => '确定要退出登录吗？',
       'Are you sure you want to reopen the poll?' => '确定要重新打开此投票吗？',
       'Are you sure you want to show this column?' => '确定要显示此列吗？',
-      'Argument "%s" does not match the name of any generators.' =>
-        '参数 "%s" 与任何生成器名称都不匹配。',
+      'Argument "%s" does not match the name of any generators.' => '参数 "%s" 与任何生成器名称都不匹配。',
       'Argument "%s" is not a valid message ID.' => '参数 "%s" 不是有效的消息 ID。',
       'Argv' => 'Argv',
-      'Array containing list of disabled applications.' =>
-        '包含已禁用应用列表的数组。',
+      'Array containing list of disabled applications.' => '包含已禁用应用列表的数组。',
       'Array for %%%s conversion is empty.' => '%%%s 转换的数组为空。',
       'Asana' => 'Asana',
       'Asana Task %s' => 'Asana 任务 %s',
@@ -3616,18 +3369,15 @@ final class PhabricatorChineseTranslation
       'Assignee' => '受托人',
       'Associated repository PHID.' => '关联的仓库 PHID。',
       'Associated revision PHID.' => '关联的修订 PHID。',
-      'At least one daemon is currently running as the wrong user.' =>
-        '至少有一个守护进程正在以错误用户身份运行。',
+      'At least one daemon is currently running as the wrong user.' => '至少有一个守护进程正在以错误用户身份运行。',
       'Atom URI' => 'Atom URI',
       'Atom URI does not support custom domains.' => 'Atom URI 不支持自定义域名。',
       'Attach a file.' => '附加文件。',
       'Attached Files' => '附加文件',
       'Attached To' => '附加到',
       'Attachments' => '附件',
-      'Attempt to connect to %s@%s failed with error #%d: %s.' =>
-        '尝试连接 %s@%s 失败，错误 #%d：%s。',
-      'Attempting to access unknown status property ("%s").' =>
-        '正在访问未知的状态属性（"%s"）。',
+      'Attempt to connect to %s@%s failed with error #%d: %s.' => '尝试连接 %s@%s 失败，错误 #%d：%s。',
+      'Attempting to access unknown status property ("%s").' => '正在访问未知的状态属性（"%s"）。',
       'August' => '八月',
       'Auth' => '认证',
       'Auth Provider' => '认证提供方',
@@ -3716,14 +3466,10 @@ final class PhabricatorChineseTranslation
       '%s set this event to repeat weekly.' => '%s 将此活动设为每周重复。',
       '%s set this event to repeat yearly.' => '%s 将此活动设为每年重复。',
       '%s set this post\'s subtitle to "%s".' => '%s 将此文章的副标题设为 "%s"。',
-      '%s updated %s blog\'s full domain from %s to %s.' =>
-        '%s 将 %s 博客的完整域名从 %s 改为 %s。',
-      '%s updated %s blog\'s parent domain from %s to %s.' =>
-        '%s 将 %s 博客的父域名从 %s 改为 %s。',
-      '%s updated %s blog\'s parent site from %s to %s.' =>
-        '%s 将 %s 博客的父站点从 %s 改为 %s。',
-      '%s updated %s flavor text from %s to %s.' =>
-        '%s 将 %s 的 flavor 文本从 %s 改为 %s。',
+      '%s updated %s blog\'s full domain from %s to %s.' => '%s 将 %s 博客的完整域名从 %s 改为 %s。',
+      '%s updated %s blog\'s parent domain from %s to %s.' => '%s 将 %s 博客的父域名从 %s 改为 %s。',
+      '%s updated %s blog\'s parent site from %s to %s.' => '%s 将 %s 博客的父站点从 %s 改为 %s。',
+      '%s updated %s flavor text from %s to %s.' => '%s 将 %s 的 flavor 文本从 %s 改为 %s。',
       '%s updated %s from %s to %s.' => '%s 将 %s 从 %s 改为 %s。',
       '%s updated %s.' => '%s 更新了 %s。',
       '%s updated a token.' => '%s 更新了令牌。',
@@ -3736,104 +3482,70 @@ final class PhabricatorChineseTranslation
       '%s updated subscribers of %s.' => '%s 更新了 %s 的订阅者。',
       '%s updated subscribers...' => '%s 更新了订阅者…',
       '%s updated the "%s" value.' => '%s 更新了 "%s" 的值。',
-      '%s updated the OAuth application secret for this provider.' =>
-        '%s 更新了此提供方的 OAuth 应用密钥。',
-      '%s updated the OAuth consumer secret for this provider.' =>
-        '%s 更新了此提供方的 OAuth 消费者密钥。',
+      '%s updated the OAuth application secret for this provider.' => '%s 更新了此提供方的 OAuth 应用密钥。',
+      '%s updated the OAuth consumer secret for this provider.' => '%s 更新了此提供方的 OAuth 消费者密钥。',
       '%s updated the answer details for %s.' => '%s 更新了 %s 的回答详情。',
       '%s updated the answer details.' => '%s 更新了回答详情。',
       '%s updated the answer wiki for %s.' => '%s 更新了 %s 的回答 Wiki。',
       '%s updated the answer wiki.' => '%s 更新了回答 Wiki。',
-      '%s updated the blog\'s full domain from %s to %s.' =>
-        '%s 将博客的完整域名从 %s 改为 %s。',
-      '%s updated the blog\'s parent domain from %s to %s.' =>
-        '%s 将博客的父域名从 %s 改为 %s。',
-      '%s updated the blog\'s parent site from %s to %s.' =>
-        '%s 将博客的父站点从 %s 改为 %s。',
-      '%s updated the blog\'s subtitle to "%s".' =>
-        '%s 将博客的副标题设为 "%s"。',
-      '%s updated the countdown description for %s.' =>
-        '%s 更新了 %s 的倒计时描述。',
+      '%s updated the blog\'s full domain from %s to %s.' => '%s 将博客的完整域名从 %s 改为 %s。',
+      '%s updated the blog\'s parent domain from %s to %s.' => '%s 将博客的父域名从 %s 改为 %s。',
+      '%s updated the blog\'s parent site from %s to %s.' => '%s 将博客的父站点从 %s 改为 %s。',
+      '%s updated the blog\'s subtitle to "%s".' => '%s 将博客的副标题设为 "%s"。',
+      '%s updated the countdown description for %s.' => '%s 更新了 %s 的倒计时描述。',
       '%s updated the countdown description.' => '%s 更新了倒计时描述。',
-      '%s updated the countdown end for %s from %s to %s.' =>
-        '%s 将 %s 的倒计时结束时间从 %s 改为 %s。',
-      '%s updated the countdown end from %s to %s.' =>
-        '%s 将倒计时结束时间从 %s 改为 %s。',
+      '%s updated the countdown end for %s from %s to %s.' => '%s 将 %s 的倒计时结束时间从 %s 改为 %s。',
+      '%s updated the countdown end from %s to %s.' => '%s 将倒计时结束时间从 %s 改为 %s。',
       '%s updated the cover image for %s.' => '%s 更新了 %s 的封面图。',
       '%s updated the cover image to %s.' => '%s 将封面图更新为 %s。',
-      '%s updated the description for credential %s.' =>
-        '%s 更新了凭据 %s 的描述。',
-      '%s updated the description for this credential.' =>
-        '%s 更新了此凭据的描述。',
-      '%s updated the description for this poll.' =>
-        '%s 更新了此投票的描述。',
-      '%s updated the document preamble for %s.' =>
-        '%s 更新了 %s 的文档前言。',
+      '%s updated the description for credential %s.' => '%s 更新了凭据 %s 的描述。',
+      '%s updated the description for this credential.' => '%s 更新了此凭据的描述。',
+      '%s updated the description for this poll.' => '%s 更新了此投票的描述。',
+      '%s updated the document preamble for %s.' => '%s 更新了 %s 的文档前言。',
       '%s updated the document preamble.' => '%s 更新了文档前言。',
-      '%s updated the document signature type for %s.' =>
-        '%s 更新了 %s 的文档签名类型。',
-      '%s updated the document signature type.' =>
-        '%s 更新了文档签名类型。',
+      '%s updated the document signature type for %s.' => '%s 更新了 %s 的文档签名类型。',
+      '%s updated the document signature type.' => '%s 更新了文档签名类型。',
       '%s updated the document text for %s.' => '%s 更新了 %s 的文档正文。',
       '%s updated the document text.' => '%s 更新了文档正文。',
       '%s updated the enroll message.' => '%s 更新了注册消息。',
-      '%s updated the flavor from %s to %s.' =>
-        '%s 将 flavor 从 %s 改为 %s。',
-      '%s updated the image for %s from %s to %s.' =>
-        '%s 将 %s 的图片从 %s 改为 %s。',
+      '%s updated the flavor from %s to %s.' => '%s 将 flavor 从 %s 改为 %s。',
+      '%s updated the image for %s from %s to %s.' => '%s 将 %s 的图片从 %s 改为 %s。',
       '%s updated the image names of %s.' => '%s 更新了 %s 的图片名称。',
       '%s updated the import URI.' => '%s 更新了导入 URI。',
       '%s updated the message text.' => '%s 更新了消息正文。',
-      '%s updated the name for this file from "%s" to "%s".' =>
-        '%s 将此文件的名称从 "%s" 改为 "%s"。',
-      '%s updated the name of %s from "%s" to "%s".' =>
-        '%s 将 %s 的名称从 "%s" 改为 "%s"。',
+      '%s updated the name for this file from "%s" to "%s".' => '%s 将此文件的名称从 "%s" 改为 "%s"。',
+      '%s updated the name of %s from "%s" to "%s".' => '%s 将 %s 的名称从 "%s" 改为 "%s"。',
       '%s updated the panel text.' => '%s 更新了面板文本。',
       '%s updated the post content for %s.' => '%s 更新了 %s 的文章内容。',
       '%s updated the post content.' => '%s 更新了文章内容。',
-      '%s updated the post\'s subtitle to "%s".' =>
-        '%s 将文章的副标题设为 "%s"。',
-      '%s updated the preamble for this form.' =>
-        '%s 更新了此表单的前言。',
+      '%s updated the post\'s subtitle to "%s".' => '%s 将文章的副标题设为 "%s"。',
+      '%s updated the preamble for this form.' => '%s 更新了此表单的前言。',
       '%s updated the property %s.' => '%s 更新了属性 %s。',
-      '%s updated the public key material for this SSH key.' =>
-        '%s 更新了此 SSH 密钥的公钥材料。',
-      '%s updated the quality from %s to %s.' =>
-        '%s 将质量从 %s 改为 %s。',
-      '%s updated the quality of %s from %s to %s.' =>
-        '%s 将 %s 的质量从 %s 改为 %s。',
-      '%s updated the question details for %s.' =>
-        '%s 更新了 %s 的问题详情。',
+      '%s updated the public key material for this SSH key.' => '%s 更新了此 SSH 密钥的公钥材料。',
+      '%s updated the quality from %s to %s.' => '%s 将质量从 %s 改为 %s。',
+      '%s updated the quality of %s from %s to %s.' => '%s 将 %s 的质量从 %s 改为 %s。',
+      '%s updated the question details for %s.' => '%s 更新了 %s 的问题详情。',
       '%s updated the question details.' => '%s 更新了问题详情。',
-      '%s updated the question from %s to %s.' =>
-        '%s 将问题从 %s 改为 %s。',
+      '%s updated the question from %s to %s.' => '%s 将问题从 %s 改为 %s。',
       '%s updated the room image for %s.' => '%s 更新了 %s 的房间图片。',
       '%s updated the room image.' => '%s 更新了房间图片。',
-      '%s updated the ruleset for this trigger.' =>
-        '%s 更新了此触发器的规则集。',
+      '%s updated the ruleset for this trigger.' => '%s 更新了此触发器的规则集。',
       '%s updated the secret for %s.' => '%s 更新了 %s 的密钥。',
-      '%s updated the secret for this credential.' =>
-        '%s 更新了此凭据的密钥。',
-      '%s updated the space description for %s.' =>
-        '%s 更新了 %s 的空间描述。',
+      '%s updated the secret for this credential.' => '%s 更新了此凭据的密钥。',
+      '%s updated the space description for %s.' => '%s 更新了 %s 的空间描述。',
       '%s updated the space description.' => '%s 更新了空间描述。',
-      '%s updated the task description for %s.' =>
-        '%s 更新了 %s 的任务描述。',
+      '%s updated the task description for %s.' => '%s 更新了 %s 的任务描述。',
       '%s updated the task description.' => '%s 更新了任务描述。',
       '%s updated their profile' => '%s 更新了其个人资料',
       '%s updated this object.' => '%s 更新了此对象。',
       '%s updated this variable.' => '%s 更新了此变量。',
-      '%s upgraded the hash algorithm for this password from "%s" to "%s".' =>
-        '%s 将此密码的哈希算法从 "%s" 升级为 "%s"。',
-      '%s: (%s) Migrating from "%s" to "%s"...' =>
-        '%s：（%s）正在从 "%s" 迁移到 "%s"...',
-      '%s: (%s) Would migrate from "%s" to "%s" (dry run)...' =>
-        '%s：（%s）将从 "%s" 迁移到 "%s"（试运行）...',
+      '%s upgraded the hash algorithm for this password from "%s" to "%s".' => '%s 将此密码的哈希算法从 "%s" 升级为 "%s"。',
+      '%s: (%s) Migrating from "%s" to "%s"...' => '%s：（%s）正在从 "%s" 迁移到 "%s"...',
+      '%s: (%s) Would migrate from "%s" to "%s" (dry run)...' => '%s：（%s）将从 "%s" 迁移到 "%s"（试运行）...',
       '%s\'s home page' => '%s 的主页',
       '(Wildcard)' => '（通配符）',
       '**Post a comment** in the JIRA task.' => '在 JIRA 任务中**发表评论**。',
-      '//There are no available Herald events for this object.//' =>
-        '//此对象没有可用的 Herald 事件。//',
+      '//There are no available Herald events for this object.//' => '//此对象没有可用的 Herald 事件。//',
       '/settings/panel/contact/' => '/settings/panel/contact/',
       '1 of 99 Problems' => '99 个问题中的 1 个',
       '1,113,377' => '1,113,377',
@@ -3842,14 +3554,12 @@ final class PhabricatorChineseTranslation
       '<api-token>' => '<api-token>',
       '<incomplete key>' => '<不完整键>',
       '<incomplete name>' => '<不完整名称>',
-      '<parameters>' => '<parameters>',
+      '<parameters>' => '<参数>',
       '<script>alert(1);</script>' => '<script>alert(1);</script>',
       'A Standard Palette of Colors for use.' => '标准调色板。',
       'A Troublesome Encounter!' => '一次麻烦的遭遇！',
-      'A Very Very Very Very Very Very Very Very Very Long Property Label' =>
-        '非常非常非常非常非常非常非常非常非常长的属性标签',
-      'A binding inherits the policies of its service.' =>
-        '绑定继承其服务的策略。',
+      'A Very Very Very Very Very Very Very Very Very Long Property Label' => '非常非常非常非常非常非常非常非常非常长的属性标签',
+      'A binding inherits the policies of its service.' => '绑定继承其服务的策略。',
       'A deleted document can not be moved.' => '已删除的文档无法移动。',
       'A description of the URL.' => 'URL 的描述。',
       'A document is deleted.' => '文档已删除。',
@@ -3859,44 +3569,30 @@ final class PhabricatorChineseTranslation
       'A major event.' => '重要活动。',
       'A minimal UI for Buttons' => '按钮的最小 UI',
       'A minor event.' => '次要活动。',
-      'A moderator can always view the answers.' =>
-        '版主始终可查看回答。',
-      'A moderator can always view the question.' =>
-        '版主始终可查看问题。',
+      'A moderator can always view the answers.' => '版主始终可查看回答。',
+      'A moderator can always view the question.' => '版主始终可查看问题。',
       'A modern description with lots of frills.' => '带大量修饰的现代描述。',
       'A more basic description' => '更基础的描述',
       'A moved document can not be deleted.' => '已移动的文档无法删除。',
       'A moved document can not be moved again.' => '已移动的文档无法再次移动。',
-      'A panel with strong tendencies for inciting ACTION!' =>
-        '一个强烈倾向于激发行动的面板！',
-      'A personal rule can only be edited by its author.' =>
-        '个人规则只能由其作者编辑。',
-      'A random, unique string which identifies the request.' =>
-        '用于标识请求的随机唯一字符串。',
+      'A panel with strong tendencies for inciting ACTION!' => '一个强烈倾向于激发行动的面板！',
+      'A personal rule can only be edited by its author.' => '个人规则只能由其作者编辑。',
+      'A random, unique string which identifies the request.' => '用于标识请求的随机唯一字符串。',
       'A relative date, as a string.' => '相对日期，字符串形式。',
-      'A session is visible only to its owner.' =>
-        '会话仅对其所有者可见。',
+      'A session is visible only to its owner.' => '会话仅对其所有者可见。',
       'A simple description' => '简单描述',
-      'A simple questions and answers application for your teams.' =>
-        '为您的团队准备的简单问答应用。',
+      'A simple questions and answers application for your teams.' => '为您的团队准备的简单问答应用。',
       'A single value from the allowed set.' => '允许集合中的单个值。',
       'A stub document can not be deleted.' => '占位文档无法删除。',
       'A stub document can not be moved.' => '占位文档无法移动。',
-      'A task is moved between columns on a workboard.' =>
-        '任务在工作看板的列之间移动。',
-      'A token inherits the policies of the object it is awarded to.' =>
-        '令牌继承其授予对象的策略。',
-      'API Method "%s" does not define these parameters: %s.' =>
-        'API 方法 "%s" 未定义这些参数：%s。',
+      'A task is moved between columns on a workboard.' => '任务在工作看板的列之间移动。',
+      'A token inherits the policies of the object it is awarded to.' => '令牌继承其授予对象的策略。',
+      'API Method "%s" does not define these parameters: %s.' => 'API 方法 "%s" 未定义这些参数：%s。',
       'API token "%s" is not valid.' => 'API 令牌 "%s" 无效。',
-      'API token "%s" was previously valid, but has expired.' =>
-        'API 令牌 "%s" 曾有效，但已过期。',
-      'API token is not associated with a valid user.' =>
-        'API 令牌未关联到有效用户。',
-      'AVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongUnbrokenPropertyLabel' =>
-        '非常非常非常非常非常非常非常非常非常长的连续属性标签',
-      'About to call new %s, but the PHP MySQLi extension is not available!' =>
-        '即将调用 new %s，但 PHP MySQLi 扩展不可用！',
+      'API token "%s" was previously valid, but has expired.' => 'API 令牌 "%s" 曾有效，但已过期。',
+      'API token is not associated with a valid user.' => 'API 令牌未关联到有效用户。',
+      'AVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongUnbrokenPropertyLabel' => '非常非常非常非常非常非常非常非常非常长的连续属性标签',
+      'About to call new %s, but the PHP MySQLi extension is not available!' => '即将调用 new %s，但 PHP MySQLi 扩展不可用！',
       'Account Activity Logs' => '账户活动日志',
       'Account Already Linked' => '账户已关联',
       'Account Balance' => '账户余额',
@@ -3908,8 +3604,7 @@ final class PhabricatorChineseTranslation
       'Account Settings' => '账户设置',
       'Account Type' => '账户类型',
       'Account does not match provider!' => '账户与提供方不匹配！',
-      'Account is already registered or linked.' =>
-        '账户已注册或已关联。',
+      'Account is already registered or linked.' => '账户已注册或已关联。',
       'Accounting' => '核算',
       'Ace' => 'A',
       'Ace of Hearts' => '红心 A',
@@ -3929,10 +3624,8 @@ final class PhabricatorChineseTranslation
       'Activate Space: %s' => '启用空间：%s',
       'Activate Subproject' => '启用子项目',
       'Activate and Show Column' => '启用并显示列',
-      'Activate read-only mode for maintenance or disaster recovery.' =>
-        '为维护或灾难恢复启用只读模式。',
-      'Activates selected triggers, firing them immediately.' =>
-        '激活所选触发器并立即触发。',
+      'Activate read-only mode for maintenance or disaster recovery.' => '为维护或灾难恢复启用只读模式。',
+      'Activates selected triggers, firing them immediately.' => '激活所选触发器并立即触发。',
       'Active API Tokens' => '活跃 API 令牌',
       'Active Badges' => '活跃徽章',
       'Active Blogs' => '活跃博客',
@@ -3954,8 +3647,7 @@ final class PhabricatorChineseTranslation
       'Active or archive the blog.' => '启用或归档博客。',
       'Active or archived status of the badge.' => '徽章的活跃或已归档状态。',
       'ActiveDirectory Domain' => 'ActiveDirectory 域',
-      'Activity "%s" did not need to be marked as complete.' =>
-        '活动 "%s" 无需标为已完成。',
+      'Activity "%s" did not need to be marked as complete.' => '活动 "%s" 无需标为已完成。',
       'Activity Log %d' => '活动日志 %d',
       'Activity Log ID: #%d' => '活动日志 ID：#%d',
       'Actor PHID' => '操作者 PHID',
@@ -3977,8 +3669,7 @@ final class PhabricatorChineseTranslation
       'Add Interface' => '添加接口',
       'Add MFA Provider' => '添加 MFA 提供方',
       'Add Multi-Factor Authentication' => '添加多因素认证',
-      'Add Multi-Factor Authentication To Your Account' =>
-        '为您的账户添加多因素认证',
+      'Add Multi-Factor Authentication To Your Account' => '为您的账户添加多因素认证',
       'Add Multiple Paths' => '添加多个路径',
       'Add New Credential' => '添加新凭据',
       'Add New Menu Item...' => '添加新菜单项...',
@@ -3989,33 +3680,24 @@ final class PhabricatorChineseTranslation
       'Add Tab...' => '添加标签...',
       'Add a Comment' => '添加评论',
       'Add comment: %s' => '添加评论：%s',
-      'Add dashboard %s as a global menu item in the favorites menu?' =>
-        '将仪表盘 %s 作为全局菜单项添加到收藏菜单？',
-      'Add dashboard %s as a global menu item on the home page?' =>
-        '将仪表盘 %s 作为全局菜单项添加到主页？',
-      'Add dashboard %s as a personal menu item in the favorites menu?' =>
-        '将仪表盘 %s 作为个人菜单项添加到收藏菜单？',
-      'Add dashboard %s as a personal menu item on your home page?' =>
-        '将仪表盘 %s 作为个人菜单项添加到您的主页？',
+      'Add dashboard %s as a global menu item in the favorites menu?' => '将仪表盘 %s 作为全局菜单项添加到收藏菜单？',
+      'Add dashboard %s as a global menu item on the home page?' => '将仪表盘 %s 作为全局菜单项添加到主页？',
+      'Add dashboard %s as a personal menu item in the favorites menu?' => '将仪表盘 %s 作为个人菜单项添加到收藏菜单？',
+      'Add dashboard %s as a personal menu item on your home page?' => '将仪表盘 %s 作为个人菜单项添加到您的主页？',
       'Add me as a subscriber' => '将我添加为订阅者',
       'Add members.' => '添加成员。',
-      'Add new inline comment on selected source text.' =>
-        '在所选源文本上添加新行内评论。',
+      'Add new inline comment on selected source text.' => '在所选源文本上添加新行内评论。',
       'Add project tags: %s.' => '添加项目标签：%s。',
       'Add projects' => '添加项目',
       'Add projects: %s.' => '添加项目：%s。',
       'Add rule author as subscriber.' => '将规则作者添加为订阅者。',
       'Add subscribers.' => '添加订阅者。',
       'Add the dashboard %s to portal %s?' => '将仪表盘 %s 添加到门户 %s？',
-      'Add the dashboard %s to the menu for project %s?' =>
-        '将仪表盘 %s 添加到项目 %s 的菜单？',
+      'Add the dashboard %s to the menu for project %s?' => '将仪表盘 %s 添加到项目 %s 的菜单？',
       'Add the given mail tags.' => '添加给定的邮件标签。',
-      'Add this dashboard to the menu for a project.' =>
-        '将此仪表盘添加到项目的菜单。',
-      'Add this dashboard to the menu on a portal.' =>
-        '将此仪表盘添加到门户的菜单。',
-      'Add this dashboard to the menu on the home page.' =>
-        '将此仪表盘添加到主页的菜单。',
+      'Add this dashboard to the menu for a project.' => '将此仪表盘添加到项目的菜单。',
+      'Add this dashboard to the menu on a portal.' => '将此仪表盘添加到门户的菜单。',
+      'Add this dashboard to the menu on the home page.' => '将此仪表盘添加到主页的菜单。',
       'Add to Favorites Menu' => '添加到收藏菜单',
       'Add to Global Favorites' => '添加到全局收藏',
       'Add to Global Home Menu' => '添加到全局主页菜单',
@@ -4024,24 +3706,20 @@ final class PhabricatorChineseTranslation
       'Add to Personal Home Menu' => '添加到个人主页菜单',
       'Add to Portal Menu' => '添加到门户菜单',
       'Add to Project Menu' => '添加到项目菜单',
-      'Add users or projects as subscribers.' =>
-        '将用户或项目添加为订阅者。',
+      'Add users or projects as subscribers.' => '将用户或项目添加为订阅者。',
       'Added Comment' => '已添加评论',
       'Added Label: %s' => '已添加标签：%s',
       'Added Milestone: %s' => '已添加里程碑：%s',
       'Added Project Tags' => '已添加项目标签',
       'Added Subscribers' => '已添加订阅者',
       'Added a comment: %s' => '已添加评论：%s',
-      'Adding many test tasks to worker queue. Use ^C to exit.' =>
-        '正在向工作队列添加大量测试任务。按 ^C 退出。',
+      'Adding many test tasks to worker queue. Use ^C to exit.' => '正在向工作队列添加大量测试任务。按 ^C 退出。',
       'Additional Hashtags' => '额外话题标签',
       'Additional configuration options to hide.' => '要隐藏的额外配置选项。',
       'Additional configuration options to lock.' => '要锁定的额外配置选项。',
       'Additional project tags.' => '额外项目标签。',
-      'Address "%s" (owned by "%s") is already unverified.' =>
-        '地址 "%s"（由 "%s" 拥有）已为未验证。',
-      'Address "%s" belongs to invalid user "%s".' =>
-        '地址 "%s" 属于无效用户 "%s"。',
+      'Address "%s" (owned by "%s") is already unverified.' => '地址 "%s"（由 "%s" 拥有）已为未验证。',
+      'Address "%s" belongs to invalid user "%s".' => '地址 "%s" 属于无效用户 "%s"。',
       'Address "%s" is unknown.' => '地址 "%s" 未知。',
       'Address (or addresses) to unverify.' => '要取消验证的地址。',
       'Address Already Verified' => '地址已验证',
@@ -4228,8 +3906,7 @@ final class PhabricatorChineseTranslation
       'Buckets Overflowing' => '分组溢出',
       'Bugmeister' => 'Bugmeister',
       'Bugs' => '缺陷',
-      'Build individual panels to display on your homepage dashboard.' =>
-        '构建在主页仪表盘上显示的独立面板。',
+      'Build individual panels to display on your homepage dashboard.' => '构建在主页仪表盘上显示的独立面板。',
       'Build or rebuild search indexes.' => '构建或重建搜索索引。',
       'Build self esteem through gamification.' => '通过游戏化建立自信。',
       'Built-in Homepage' => '内置主页',
@@ -4283,8 +3960,7 @@ final class PhabricatorChineseTranslation
       'CORRUPTED' => '已损坏',
       'COUNTDOWN DESCRIPTION' => '倒计时描述',
       'COUNTDOWN DETAIL' => '倒计时详情',
-      'CSRF HMAC keys are now managed automatically.' =>
-        'CSRF HMAC 密钥现由系统自动管理。',
+      'CSRF HMAC keys are now managed automatically.' => 'CSRF HMAC 密钥现由系统自动管理。',
       'Cache Entries' => '缓存条目',
       'Cache Storage' => '缓存存储',
       'Cache namespace.' => '缓存命名空间。',
@@ -4298,8 +3974,7 @@ final class PhabricatorChineseTranslation
       'Calendar exports must have a name.' => '日历导出必须有名称。',
       'Calendar exports must have a query key.' => '日历导出必须有查询键。',
       'Call %s before publishing!' => '在发布前调用 %s！',
-      'Call %s when rendering an action as a form.' =>
-        '在将操作渲染为表单时调用 %s。',
+      'Call %s when rendering an action as a form.' => '在将操作渲染为表单时调用 %s。',
       'Call Duration (us)' => '调用时长（微秒）',
       'Call a Conduit method..' => '调用 Conduit 方法。',
       'Call a webhook.' => '调用 Webhook。',
@@ -4354,15 +4029,11 @@ final class PhabricatorChineseTranslation
       'Can View' => '可查看',
       'Can not build empty SELECT clause!' => '无法构建空的 SELECT 子句！',
       'Can not compare two missing schemata!' => '无法比较两个缺失的 schema！',
-      'Can not create an image with nonpositive dimensions.' =>
-        '无法创建非正尺寸的图片。',
+      'Can not create an image with nonpositive dimensions.' => '无法创建非正尺寸的图片。',
       'Can not generate PHID with no type.' => '无法生成无类型的 PHID。',
-      'Can not generate keys: unable to find "%s" in PATH!' =>
-        '无法生成密钥：在 PATH 中找不到 "%s"！',
-      'Can not generate zero linear steps between two values!' =>
-        '无法在两个值之间生成零个线性步骤！',
-      'Can not materialize an event stub: this event is not a stub.' =>
-        '无法具体化活动存根：此活动不是存根。',
+      'Can not generate keys: unable to find "%s" in PATH!' => '无法生成密钥：在 PATH 中找不到 "%s"！',
+      'Can not generate zero linear steps between two values!' => '无法在两个值之间生成零个线性步骤！',
+      'Can not materialize an event stub: this event is not a stub.' => '无法具体化活动存根：此活动不是存根。',
       'Can not merge parts of dissimilar types!' => '无法合并不同类型的部分！',
       'Cancel Only This Event' => '仅取消此活动',
       'Cancel This And All Later Events' => '取消此活动及之后所有活动',
@@ -4375,14 +4046,10 @@ final class PhabricatorChineseTranslation
       'Cannot retrieve image information.' => '无法获取图片信息。',
       'Capability "%s"' => '能力 "%s"',
       'Capability "%s" does not exist.' => '能力 "%s" 不存在。',
-      'Capability "%s" does not support public policy.' =>
-        '能力 "%s" 不支持公开策略。',
-      'Capability "%s" has invalid policy "%s".' =>
-        '能力 "%s" 具有无效策略 "%s"。',
-      'Capability "%s" has invalid policy "%s"; "%s" does not exist.' =>
-        '能力 "%s" 具有无效策略 "%s"；"%s" 不存在。',
-      'Capability "%s" is not editable for this application.' =>
-        '此应用的能力 "%s" 不可编辑。',
+      'Capability "%s" does not support public policy.' => '能力 "%s" 不支持公开策略。',
+      'Capability "%s" has invalid policy "%s".' => '能力 "%s" 具有无效策略 "%s"。',
+      'Capability "%s" has invalid policy "%s"; "%s" does not exist.' => '能力 "%s" 具有无效策略 "%s"；"%s" 不存在。',
+      'Capability "%s" is not editable for this application.' => '此应用的能力 "%s" 不可编辑。',
       'Car Company' => '汽车公司',
       'Cardamom' => '豆蔻',
       'Cardboard Box' => '纸箱',
@@ -4410,59 +4077,33 @@ final class PhabricatorChineseTranslation
       'Change Points' => '更改点数',
       'Administrators can always view all activity.' => '管理员始终可查看所有活动。',
       'Administrators can take this action.' => '管理员可执行此操作。',
-      'After running this command, reload this page to see the new setting.' =>
-        '运行此命令后，重新加载此页以查看新设置。',
-      'An outlandish exaggeration of intricate tales from around the realm.' =>
-        '对来自王国各地的复杂传说的夸张演绎。',
-      'Any mixed or complex value. Check the documentation for details.' =>
-        '任意混合或复杂值。详情请参阅文档。',
-      'Aphront site ("%s") failed to build a 404 controller.' =>
-        'Aphront 站点（"%s"）无法构建 404 控制器。',
+      'After running this command, reload this page to see the new setting.' => '运行此命令后，重新加载此页以查看新设置。',
+      'An outlandish exaggeration of intricate tales from around the realm.' => '对来自王国各地的复杂传说的夸张演绎。',
+      'Any mixed or complex value. Check the documentation for details.' => '任意混合或复杂值。详情请参阅文档。',
+      'Aphront site ("%s") failed to build a 404 controller.' => 'Aphront 站点（"%s"）无法构建 404 控制器。',
       'Apple Blueberry' => '苹果蓝莓',
-      'Apply transactions to create a new Phurl URL or edit an existing one.' =>
-        '应用事务以创建新 Phurl URL 或编辑现有项。',
-      'Apply transactions to create a new badge or edit an existing one.' =>
-        '应用事务以创建新徽章或编辑现有项。',
-      'Apply transactions to create a new binding or edit an existing one.' =>
-        '应用事务以创建新绑定或编辑现有项。',
-      'Apply transactions to create a new countdown or edit an existing one.' =>
-        '应用事务以创建新倒计时或编辑现有项。',
-      'Apply transactions to create a new device or edit an existing one.' =>
-        '应用事务以创建新设备或编辑现有项。',
-      'Apply transactions to create a new event or edit an existing one.' =>
-        '应用事务以创建新活动或编辑现有项。',
-      'Apply transactions to create a new interface or edit an existing one.' =>
-        '应用事务以创建新接口或编辑现有项。',
-      'Apply transactions to create a new macro or edit an existing one.' =>
-        '应用事务以创建新宏或编辑现有项。',
-      'Apply transactions to create a new namespace or edit an existing one.' =>
-        '应用事务以创建新命名空间或编辑现有项。',
-      'Apply transactions to create a new network or edit an existing one.' =>
-        '应用事务以创建新网络或编辑现有项。',
-      'Apply transactions to create a new package or edit an existing one.' =>
-        '应用事务以创建新包或编辑现有项。',
-      'Apply transactions to create a new portal or edit an existing one.' =>
-        '应用事务以创建新门户或编辑现有项。',
-      'Apply transactions to create a new project or edit an existing one.' =>
-        '应用事务以创建新项目或编辑现有项。',
-      'Apply transactions to create a new publisher or edit an existing one.' =>
-        '应用事务以创建新发布者或编辑现有项。',
-      'Apply transactions to create a new room or edit an existing one.' =>
-        '应用事务以创建新房间或编辑现有项。',
-      'Apply transactions to create a new service or edit an existing one.' =>
-        '应用事务以创建新服务或编辑现有项。',
-      'Apply transactions to create a new task or edit an existing one.' =>
-        '应用事务以创建新任务或编辑现有项。',
-      'Apply transactions to create a new version or edit an existing one.' =>
-        '应用事务以创建新版本或编辑现有项。',
-      'Apply transactions to edit an existing phriction document.' =>
-        '应用事务以编辑现有 Phriction 文档。',
-      'Attempting to change the key of a tab with a locked key ("%s").' =>
-        '正在尝试更改具有锁定键（"%s"）的标签页的键。',
-      'Attempting to dispose of write guard, but no write guard is active!' =>
-        '正在尝试释放写守卫，但无活跃的写守卫！',
-      'Attempting to resolve unknown resource, "%s".' =>
-        '正在尝试解析未知资源 "%s"。',
+      'Apply transactions to create a new Phurl URL or edit an existing one.' => '应用事务以创建新 Phurl URL 或编辑现有项。',
+      'Apply transactions to create a new badge or edit an existing one.' => '应用事务以创建新徽章或编辑现有项。',
+      'Apply transactions to create a new binding or edit an existing one.' => '应用事务以创建新绑定或编辑现有项。',
+      'Apply transactions to create a new countdown or edit an existing one.' => '应用事务以创建新倒计时或编辑现有项。',
+      'Apply transactions to create a new device or edit an existing one.' => '应用事务以创建新设备或编辑现有项。',
+      'Apply transactions to create a new event or edit an existing one.' => '应用事务以创建新活动或编辑现有项。',
+      'Apply transactions to create a new interface or edit an existing one.' => '应用事务以创建新接口或编辑现有项。',
+      'Apply transactions to create a new macro or edit an existing one.' => '应用事务以创建新宏或编辑现有项。',
+      'Apply transactions to create a new namespace or edit an existing one.' => '应用事务以创建新命名空间或编辑现有项。',
+      'Apply transactions to create a new network or edit an existing one.' => '应用事务以创建新网络或编辑现有项。',
+      'Apply transactions to create a new package or edit an existing one.' => '应用事务以创建新包或编辑现有项。',
+      'Apply transactions to create a new portal or edit an existing one.' => '应用事务以创建新门户或编辑现有项。',
+      'Apply transactions to create a new project or edit an existing one.' => '应用事务以创建新项目或编辑现有项。',
+      'Apply transactions to create a new publisher or edit an existing one.' => '应用事务以创建新发布者或编辑现有项。',
+      'Apply transactions to create a new room or edit an existing one.' => '应用事务以创建新房间或编辑现有项。',
+      'Apply transactions to create a new service or edit an existing one.' => '应用事务以创建新服务或编辑现有项。',
+      'Apply transactions to create a new task or edit an existing one.' => '应用事务以创建新任务或编辑现有项。',
+      'Apply transactions to create a new version or edit an existing one.' => '应用事务以创建新版本或编辑现有项。',
+      'Apply transactions to edit an existing phriction document.' => '应用事务以编辑现有 Phriction 文档。',
+      'Attempting to change the key of a tab with a locked key ("%s").' => '正在尝试更改具有锁定键（"%s"）的标签页的键。',
+      'Attempting to dispose of write guard, but no write guard is active!' => '正在尝试释放写守卫，但无活跃的写守卫！',
+      'Attempting to resolve unknown resource, "%s".' => '正在尝试解析未知资源 "%s"。',
       'Attempting to set an empty password!' => '正在尝试设置空密码！',
       'Attending' => '将参加',
       'Audio File' => '音频文件',
@@ -4476,14 +4117,10 @@ final class PhabricatorChineseTranslation
       'Auth Password' => '认证密码',
       'Auth Provider %d' => '认证提供方 %d',
       'Auth Provider: %s' => '认证提供方：%s',
-      'Auth provider config can be edited without unlocking' =>
-        '认证提供方配置可在未解锁情况下编辑',
-      'Auth provider config must be unlocked before editing' =>
-        '编辑前必须解锁认证提供方配置',
-      'Auth provider failed to load an account from %s!' =>
-        '认证提供方无法从 %s 加载账户！',
-      'Authenticating users based on "Reply-To" is no longer supported.' =>
-        '不再支持基于“Reply-To”对用户进行认证。',
+      'Auth provider config can be edited without unlocking' => '认证提供方配置可在未解锁情况下编辑',
+      'Auth provider config must be unlocked before editing' => '编辑前必须解锁认证提供方配置',
+      'Auth provider failed to load an account from %s!' => '认证提供方无法从 %s 加载账户！',
+      'Authenticating users based on "Reply-To" is no longer supported.' => '不再支持基于“Reply-To”对用户进行认证。',
       'Authentication Canceled' => '认证已取消',
       'Authentication Challenges' => '认证挑战',
       'Authentication Config Locked' => '认证配置已锁定',
@@ -4492,30 +4129,22 @@ final class PhabricatorChineseTranslation
       'Authentication Failure' => '认证失败',
       'Authentication Sessions' => '认证会话',
       'Authentication Tokens' => '认证令牌',
-      'Authentication factors must have a name to identify them.' =>
-        '认证因素必须有名称以识别。',
+      'Authentication factors must have a name to identify them.' => '认证因素必须有名称以识别。',
       'Author PHID: %s' => '作者 PHID：%s',
       'Authored Jobs' => '我创建的任务',
       'Authored by %s' => '作者：%s',
       'Authorization code %s not found.' => '未找到授权码 %s。',
-      'Authorization for "%s" confirmed, redirecting...' =>
-        '"%s" 的授权已确认，正在重定向...',
-      'Authorizations can only be viewed by the authorizing user.' =>
-        '授权仅可由授权用户查看。',
+      'Authorization for "%s" confirmed, redirecting...' => '"%s" 的授权已确认，正在重定向...',
+      'Authorizations can only be viewed by the authorizing user.' => '授权仅可由授权用户查看。',
       'Authorize "%s"?' => '授权 "%s"？',
       'Authorize Application' => '授权应用',
       'Authorize Application?' => '授权应用？',
       'Automatic Updates' => '自动更新',
-      'Automatically profile some percentage of pages.' =>
-        '自动对一定比例的页面进行性能分析。',
-      'Automatically sample some fraction of requests.' =>
-        '自动对一定比例的请求进行采样。',
-      'Autoscale pool "%s" already at maximum size (%s of %s).' =>
-        '自动扩缩池 "%s" 已达最大规模（%s / %s）。',
-      'Autoscale pool "%s" has an idle daemon, declining to scale.' =>
-        '自动扩缩池 "%s" 存在空闲守护进程，拒绝扩缩。',
-      'Autoscale pool "%s" is being awakened from hibernation.' =>
-        '自动扩缩池 "%s" 正从休眠中唤醒。',
+      'Automatically profile some percentage of pages.' => '自动对一定比例的页面进行性能分析。',
+      'Automatically sample some fraction of requests.' => '自动对一定比例的请求进行采样。',
+      'Autoscale pool "%s" already at maximum size (%s of %s).' => '自动扩缩池 "%s" 已达最大规模（%s / %s）。',
+      'Autoscale pool "%s" has an idle daemon, declining to scale.' => '自动扩缩池 "%s" 存在空闲守护进程，拒绝扩缩。',
+      'Autoscale pool "%s" is being awakened from hibernation.' => '自动扩缩池 "%s" 正从休眠中唤醒。',
       'Availability' => '可用性',
       'Availability: %s' => '可用性：%s',
       'Available Transforms' => '可用转换',
@@ -4554,9 +4183,8 @@ final class PhabricatorChineseTranslation
       'Badge quality is not valid.' => '徽章质量无效。',
       'Badge quality must be set.' => '必须设置徽章质量。',
       'Basic New User State information block.' => '新用户状态基本信息块。',
-      'Basic ping for monitoring or a health-check.' =>
-        '用于监控或健康检查的基本 ping。',
-      'Basicly Basic' => 'Basicly Basic',
+      'Basic ping for monitoring or a health-check.' => '用于监控或健康检查的基本 ping。',
+      'Basicly Basic' => '基本的基础',
       'Begin printing at a specific offset.' => '从指定偏移开始打印。',
       'Bird Stencil' => '鸟形模板',
       'Blake Ross' => 'Blake Ross',
@@ -4565,8 +4193,7 @@ final class PhabricatorChineseTranslation
       'Blessed Reviewers' => '受信任审阅者',
       'Blindigo' => 'Blindigo',
       'Blob store for Pokemon pictures.' => 'Pokemon 图片的 Blob 存储。',
-      'Block in text did not match any block rule.' =>
-        '文本中的块未匹配任何块规则。',
+      'Block in text did not match any block rule.' => '文本中的块未匹配任何块规则。',
       'Blog Post: ' => '博客文章：',
       'Blue Sky' => '蓝天',
       'Blues' => '蓝色',
@@ -4576,15 +4203,13 @@ final class PhabricatorChineseTranslation
       'Briefcase' => '公文包',
       'Browse Emojis' => '浏览表情',
       'Browse Herald Adapters' => '浏览 Herald 适配器',
-      'Can\'t set the policy to a policy you can\'t view!' =>
-        '无法将策略设为您无法查看的策略！',
+      'Can\'t set the policy to a policy you can\'t view!' => '无法将策略设为您无法查看的策略！',
       'Change invited users.' => '更改被邀请用户。',
       'Change post body.' => '更改文章正文。',
       'Change post visibility.' => '更改文章可见性。',
       'Change primary email address?' => '更改主要邮箱地址？',
       'Change priority to: %s.' => '将优先级改为：%s。',
-      'Change retention policies for a garbage collector.' =>
-        '更改垃圾回收器的保留策略。',
+      'Change retention policies for a garbage collector.' => '更改垃圾回收器的保留策略。',
       'Change status to: %s.' => '将状态改为：%s。',
       'Change subtype to "%s"' => '将子类型改为 "%s"',
       'Change subtype to "%s."' => '将子类型改为 "%s"。',
@@ -4599,8 +4224,7 @@ final class PhabricatorChineseTranslation
       'Change the countdown description.' => '更改倒计时描述。',
       'Change the dashboard icon.' => '更改仪表盘图标。',
       'Change the dashboard layout mode.' => '更改仪表盘布局模式。',
-      'Change the database namespace of a .sql dump file.' =>
-        '更改 .sql 转储文件的数据库命名空间。',
+      'Change the database namespace of a .sql dump file.' => '更改 .sql 转储文件的数据库命名空间。',
       'Change the edit policy of the object.' => '更改对象的编辑策略。',
       'Change the end date of the countdown.' => '更改倒计时的结束日期。',
       'Change the end time of the event.' => '更改活动的结束时间。',
@@ -4610,8 +4234,7 @@ final class PhabricatorChineseTranslation
       'Change the host of the event.' => '更改活动的主机。',
       'Change the interaction policy of the object.' => '更改对象的交互策略。',
       'Change the join policy of the object.' => '更改对象的加入策略。',
-      'Change the owner of an object to the specified user.' =>
-        '将对象的所有者更改为指定用户。',
+      'Change the owner of an object to the specified user.' => '将对象的所有者更改为指定用户。',
       'Change the parents of this task.' => '更改此任务的父任务。',
       'Change the policy mode for the export.' => '更改导出的策略模式。',
       'Change the post subtitle.' => '更改文章副标题。',
@@ -4636,8 +4259,7 @@ final class PhabricatorChineseTranslation
       'Changed task priority to "%s".' => '已将任务优先级改为 "%s"。',
       'Changed task status to "%s".' => '已将任务状态改为 "%s"。',
       'Changes discarded.' => '更改已放弃。',
-      'Changes from before your most recent comment are hidden.' =>
-        '您最近评论之前的更改已隐藏。',
+      'Changes from before your most recent comment are hidden.' => '您最近评论之前的更改已隐藏。',
       'Changes made by bulk update.' => '批量更新所做的更改。',
       'Changes triggered by Herald rules.' => '由 Herald 规则触发的更改。',
       'Changeset %d' => '变更集 %d',
@@ -4670,39 +4292,28 @@ final class PhabricatorChineseTranslation
       'Choose Provider Type' => '选择提供方类型',
       'Choose Service Type' => '选择服务类型',
       'Choose User Icon' => '选择用户图标',
-      'Choose a blog to create a post on (or move a post to).' =>
-        '选择要创建文章（或移动文章）的博客。',
+      'Choose a blog to create a post on (or move a post to).' => '选择要创建文章（或移动文章）的博客。',
       'Choose a column to move tasks to.' => '选择要移动任务到的列。',
       'Choose a document engine to use.' => '选择要使用的文档引擎。',
-      'Choose a panel to add to this dashboard:' =>
-        '选择要添加到此仪表盘的面板：',
-      'Choose a parent project to create a new milestone for.' =>
-        '选择要为其创建新里程碑的父项目。',
-      'Choose a parent project to create a subproject beneath.' =>
-        '选择要在其下创建子项目的父项目。',
-      'Choose a policy with "%s", "%s" or "%s".' =>
-        '使用 "%s"、"%s" 或 "%s" 选择策略。',
+      'Choose a panel to add to this dashboard:' => '选择要添加到此仪表盘的面板：',
+      'Choose a parent project to create a new milestone for.' => '选择要为其创建新里程碑的父项目。',
+      'Choose a parent project to create a subproject beneath.' => '选择要在其下创建子项目的父项目。',
+      'Choose a policy with "%s", "%s" or "%s".' => '使用 "%s"、"%s" 或 "%s" 选择策略。',
       'Choose a project to move tasks to.' => '选择要移动任务到的项目。',
       'Choose a syntax highlighting to use.' => '选择要使用的语法高亮。',
       'Choose a text encoding to use.' => '选择要使用的文本编码。',
       'Choose a valid export format.' => '选择有效的导出格式。',
       'Choose a valid object.' => '选择有效对象。',
       'Choose a valid project to move tasks to.' => '选择有效的项目以移动任务。',
-      'Choose an object to install this dashboard on.' =>
-        '选择要安装此仪表盘的对象。',
+      'Choose an object to install this dashboard on.' => '选择要安装此仪表盘的对象。',
       'Choose subscribers.' => '选择订阅者。',
-      'Choose the default behavior of the global search in the main menu.' =>
-        '选择主菜单中全局搜索的默认行为。',
-      'Choose the default notification behavior for Conpherence rooms.' =>
-        '选择 Conpherence 房间的默认通知行为。',
-      'Choose the default sound behavior for new Conpherence rooms.' =>
-        '选择新 Conpherence 房间的默认声音行为。',
+      'Choose the default behavior of the global search in the main menu.' => '选择主菜单中全局搜索的默认行为。',
+      'Choose the default notification behavior for Conpherence rooms.' => '选择 Conpherence 房间的默认通知行为。',
+      'Choose the default sound behavior for new Conpherence rooms.' => '选择新 Conpherence 房间的默认声音行为。',
       'Choose the pronoun you prefer.' => '选择您偏好的代词。',
-      'Choose which day a calendar week should begin on.' =>
-        '选择日历周从哪一天开始。',
+      'Choose which day a calendar week should begin on.' => '选择日历周从哪一天开始。',
       'Choose which item to route.' => '选择要路由的项。',
-      'Choose which language you would like the UI to use.' =>
-        '选择您希望界面使用的语言。',
+      'Choose which language you would like the UI to use.' => '选择您希望界面使用的语言。',
       'Choose which source to import.' => '选择要导入的来源。',
       'Christmas' => '圣诞节',
       'Chunk end byte is %d, not %d.' => '块结束字节为 %d，不是 %d。',
@@ -4715,16 +4326,13 @@ final class PhabricatorChineseTranslation
       'Cleanup' => '清理',
       'Clear a flag.' => '清除标记。',
       'Clear sailing ahead.' => '前方一帆风顺。',
-      'Click "Save Preference" to persist these changes.' =>
-        '点击“保存偏好”以持久化这些更改。',
-      'Click here, or drag and drop images to add them to the mock.' =>
-        '点击此处，或拖放图片以将其添加到 Mock。',
+      'Click "Save Preference" to persist these changes.' => '点击“保存偏好”以持久化这些更改。',
+      'Click here, or drag and drop images to add them to the mock.' => '点击此处，或拖放图片以将其添加到 Mock。',
       'Clicky' => 'Clicky',
       'Client PHID' => '客户端 PHID',
       'Client is unknown.' => '客户端未知。',
       'Client with %s %s not found.' => '未找到具有 %s %s 的客户端。',
-      'Client/server version mismatch. Upgrade your client.' =>
-        '客户端/服务器版本不匹配。请升级您的客户端。',
+      'Client/server version mismatch. Upgrade your client.' => '客户端/服务器版本不匹配。请升级您的客户端。',
       'Clients' => '客户端',
       'Clock' => '时钟',
       'Close Pholio Mock' => '关闭 Pholio Mock',
@@ -4755,7 +4363,7 @@ final class PhabricatorChineseTranslation
       'Clustering Introduction' => '集群简介',
       'Code Block' => '代码块',
       'Code Contributor' => '代码贡献者',
-      'Code Weaver' => 'Code Weaver',
+      'Code Weaver' => '代码编织者',
       'Code with Friends' => '与好友编码',
       'Coder' => '编码者',
       'Coffee Meeting' => '咖啡会议',
@@ -4767,17 +4375,13 @@ final class PhabricatorChineseTranslation
       'Colorless' => '无色',
       'Colors and Transforms' => '颜色与变换',
       'Colors of the Rainbow' => '彩虹色',
-      'Column "%s" has unknown column type "%s".' =>
-        '列 "%s" 具有未知的列类型 "%s"。',
+      'Column "%s" has unknown column type "%s".' => '列 "%s" 具有未知的列类型 "%s"。',
       'Column Has No Specification' => '列无规范',
       'Column has Wrong Autoincrement' => '列的自增设置错误',
-      'Column names must not be longer than %s characters.' =>
-        '列名不得超过 %s 个字符。',
-      'Column status "%s" is unrecognized, valid statuses are: %s.' =>
-        '列状态 "%s" 无法识别，有效状态为：%s。',
+      'Column names must not be longer than %s characters.' => '列名不得超过 %s 个字符。',
+      'Column status "%s" is unrecognized, valid statuses are: %s.' => '列状态 "%s" 无法识别，有效状态为：%s。',
       'Column/Key' => '列/键',
-      'Comma separated list of PHIDs or object names.' =>
-        'PHID 或对象名称的逗号分隔列表。',
+      'Comma separated list of PHIDs or object names.' => 'PHID 或对象名称的逗号分隔列表。',
       'Comma-Separated Values (.csv)' => '逗号分隔值（.csv）',
       'Comma-separated list of PHIDs.' => 'PHID 的逗号分隔列表。',
       'Comma-separated list of project PHIDs.' => '项目 PHID 的逗号分隔列表。',
@@ -4796,16 +4400,13 @@ final class PhabricatorChineseTranslation
       'Comment History' => '评论历史',
       'Comment cannot be empty.' => '评论不能为空。',
       'Comment content' => '评论内容',
-      'Comment for this transaction was not loaded.' =>
-        '未加载此事务的评论。',
+      'Comment for this transaction was not loaded.' => '未加载此事务的评论。',
       'Comment is not visible on changeset!' => '评论在变更集上不可见！',
       'Comment to add, formatted as remarkup.' => '要添加的评论，以 remarkup 格式。',
-      'Comments are disabled for this post. Edit it anyway?' =>
-        '此文章已禁用评论。仍要编辑？',
+      'Comments are disabled for this post. Edit it anyway?' => '此文章已禁用评论。仍要编辑？',
       'Comments have been disabled for this post.' => '此文章已禁用评论。',
       'Commit partition configuration to databases.' => '将分区配置提交到数据库。',
-      'Committing configured partition map to databases...' =>
-        '正在将配置的分区映射提交到数据库…',
+      'Committing configured partition map to databases...' => '正在将配置的分区映射提交到数据库…',
       'Communication Device' => '通信设备',
       'Compacted table by %s in %sms.' => '在 %sms 内压缩了 %s 的表。',
       'Company' => '公司',
@@ -4816,15 +4417,12 @@ final class PhabricatorChineseTranslation
       'Complete enrolling your phone with Duo:' => '完成用 Duo 登记您的手机：',
       'Completed Chunks' => '已完成块',
       'Completed applying all schema adjustments.' => '已完成应用所有 schema 调整。',
-      'Completed optimizations, reclaimed %s of disk space.' =>
-        '已完成优化，回收 %s 磁盘空间。',
+      'Completed optimizations, reclaimed %s of disk space.' => '已完成优化，回收 %s 磁盘空间。',
       'Completely Break Everything' => '彻底破坏一切',
       'Compose Image' => '组合图片',
       'Compressed Requests Not Received Properly' => '未正确接收压缩请求',
-      'Computed and stored integrity hash for file "%s".' =>
-        '已计算并存储文件 "%s" 的完整性哈希。',
-      'Condition references a rule which does not exist!' =>
-        '条件引用了不存在的规则！',
+      'Computed and stored integrity hash for file "%s".' => '已计算并存储文件 "%s" 的完整性哈希。',
+      'Condition references a rule which does not exist!' => '条件引用了不存在的规则！',
       'Conditions were met for %s' => '已满足 %s 的条件',
       'Conduct Polls' => '进行投票',
       'Conduit API Overview' => 'Conduit API 概览',
@@ -4832,8 +4430,7 @@ final class PhabricatorChineseTranslation
       'Conduit Methods' => 'Conduit 方法',
       'Conduit Tokens' => 'Conduit 令牌',
       'Conduit client "%s" is not known.' => 'Conduit 客户端 "%s" 未知。',
-      'Conduit tokens inherit the policies of the user they authenticate.' =>
-        'Conduit 令牌继承其认证用户的策略。',
+      'Conduit tokens inherit the policies of the user they authenticate.' => 'Conduit 令牌继承其认证用户的策略。',
       'Configure Files Forms' => '配置文件表单',
       'Configure Forms for Configuring Forms' => '配置用于配置表单的表单',
       'Configure Global Search' => '配置全局搜索',
@@ -4851,60 +4448,39 @@ final class PhabricatorChineseTranslation
       'Configure Projects.' => '配置项目。',
       'Configure Recaptcha captchas.' => '配置 Recaptcha 验证码。',
       'Configure User Forms' => '配置用户表单',
-      'Configure a bulk job to execute silently.' =>
-        '将批处理任务配置为静默执行。',
-      'Configure account settings for all users, or just yourself' =>
-        '为所有用户或仅为自己配置账户设置',
+      'Configure a bulk job to execute silently.' => '将批处理任务配置为静默执行。',
+      'Configure account settings for all users, or just yourself' => '为所有用户或仅为自己配置账户设置',
       'Configure an automatic update frequency.' => '配置自动更新频率。',
       'Configure core options, including URIs.' => '配置核心选项，包括 URI。',
-      'Configure creation and editing blog posts in Phame.' =>
-        '在 Phame 中配置博客文章的创建与编辑。',
-      'Configure creation and editing documents in Legalpad.' =>
-        '在 Legalpad 中配置文档的创建与编辑。',
-      'Configure creation and editing forms for users.' =>
-        '配置用户的创建与编辑表单。',
-      'Configure creation and editing forms in Applications.' =>
-        '在应用中配置创建与编辑表单。',
-      'Configure creation and editing forms in Badges.' =>
-        '在徽章中配置创建与编辑表单。',
-      'Configure creation and editing forms in Conpherence.' =>
-        '在 Conpherence 中配置创建与编辑表单。',
-      'Configure creation and editing forms in Files.' =>
-        '在文件中配置创建与编辑表单。',
-      'Configure creation and editing of Macro images.' =>
-        '配置宏图片的创建与编辑。',
+      'Configure creation and editing blog posts in Phame.' => '在 Phame 中配置博客文章的创建与编辑。',
+      'Configure creation and editing documents in Legalpad.' => '在 Legalpad 中配置文档的创建与编辑。',
+      'Configure creation and editing forms for users.' => '配置用户的创建与编辑表单。',
+      'Configure creation and editing forms in Applications.' => '在应用中配置创建与编辑表单。',
+      'Configure creation and editing forms in Badges.' => '在徽章中配置创建与编辑表单。',
+      'Configure creation and editing forms in Conpherence.' => '在 Conpherence 中配置创建与编辑表单。',
+      'Configure creation and editing forms in Files.' => '在文件中配置创建与编辑表单。',
+      'Configure creation and editing of Macro images.' => '配置宏图片的创建与编辑。',
       'Configure database read replicas.' => '配置数据库只读副本。',
       'Configure files and file storage.' => '配置文件与文件存储。',
       'Configure forms for creating projects.' => '配置创建项目的表单。',
       'Configure full-text search services.' => '配置全文搜索服务。',
-      'Configure how blogs in Phame are created and edited.' =>
-        '配置 Phame 中博客的创建与编辑方式。',
-      'Configure how users create and edit events.' =>
-        '配置用户创建与编辑活动的方式。',
-      'Configure how users create and edit exports.' =>
-        '配置用户创建与编辑导出的方式。',
-      'Configure how users create and edit imports.' =>
-        '配置用户创建与编辑导入的方式。',
-      'Configure how users create and edit tasks.' =>
-        '配置用户创建与编辑任务的方式。',
-      'Configure integration with AWS (EC2, SES, S3, etc.).' =>
-        '配置与 AWS（EC2、SES、S3 等）的集成。',
+      'Configure how blogs in Phame are created and edited.' => '配置 Phame 中博客的创建与编辑方式。',
+      'Configure how users create and edit events.' => '配置用户创建与编辑活动的方式。',
+      'Configure how users create and edit exports.' => '配置用户创建与编辑导出的方式。',
+      'Configure how users create and edit imports.' => '配置用户创建与编辑导入的方式。',
+      'Configure how users create and edit tasks.' => '配置用户创建与编辑任务的方式。',
+      'Configure integration with AWS (EC2, SES, S3, etc.).' => '配置与 AWS（EC2、SES、S3 等）的集成。',
       'Configure master encryption keys.' => '配置主加密密钥。',
       'Configure point values for tasks.' => '配置任务的点数。',
-      'Configure services to run on a cluster of hosts.' =>
-        '配置在主机集群上运行的服务。',
+      'Configure services to run on a cluster of hosts.' => '配置在主机集群上运行的服务。',
       'Configure the UI, including colors.' => '配置 UI，包括颜色。',
-      'Configure the access logs, which log HTTP/SSH requests.' =>
-        '配置记录 HTTP/SSH 请求的访问日志。',
-      'Configure the cutoff for the "Recently Closed" column.' =>
-        '配置“最近关闭”列的截止时间。',
+      'Configure the access logs, which log HTTP/SSH requests.' => '配置记录 HTTP/SSH 请求的访问日志。',
+      'Configure the cutoff for the "Recently Closed" column.' => '配置“最近关闭”列的截止时间。',
       'Configure which MIME types are audio.' => '配置哪些 MIME 类型为音频。',
       'Configure which MIME types are images.' => '配置哪些 MIME 类型为图片。',
       'Configure which MIME types are video.' => '配置哪些 MIME 类型为视频。',
-      'Configure which MIME types are viewable in the browser.' =>
-        '配置哪些 MIME 类型可在浏览器中查看。',
-      'Configure which MIME types map to which icons.' =>
-        '配置 MIME 类型与图标的对应关系。',
+      'Configure which MIME types are viewable in the browser.' => '配置哪些 MIME 类型可在浏览器中查看。',
+      'Configure which MIME types map to which icons.' => '配置 MIME 类型与图标的对应关系。',
       'Configured job "%s" to run silently.' => '已配置任务 "%s" 静默运行。',
       'Configuring File Storage' => '配置文件存储',
       'Configuring a Preamble Script' => '配置前言脚本',
@@ -4915,8 +4491,7 @@ final class PhabricatorChineseTranslation
       'Confirm External Account Link' => '确认外部账户关联',
       'Confirm File Attachment' => '确认文件附件',
       'Confirm Link' => '确认关联',
-      'Confirm before redirecting so DarkConsole can be examined.' =>
-        '重定向前确认以便检查 DarkConsole。',
+      'Confirm before redirecting so DarkConsole can be examined.' => '重定向前确认以便检查 DarkConsole。',
       'Confirmation' => '确认',
       'Confirmed your account.' => '已确认您的账户。',
       'Conflict Ignored' => '冲突已忽略',
@@ -4939,10 +4514,8 @@ final class PhabricatorChineseTranslation
       'Contact name is required.' => '必须提供联系人。',
       'Contact number is already in use.' => '该联系电话已被使用。',
       'Contact number is invalid: %s' => '联系电话无效：%s',
-      'Contact numbers can not be longer than %s characters.' =>
-        '联系电话不能超过 %s 个字符。',
-      'Contact numbers must have a contact number.' =>
-        '联系电话必须包含号码。',
+      'Contact numbers can not be longer than %s characters.' => '联系电话不能超过 %s 个字符。',
+      'Contact numbers must have a contact number.' => '联系电话必须包含号码。',
       'Content Changes' => '内容变更',
       'Content Sources' => '内容来源',
       'Content Type' => '内容类型',
@@ -4958,13 +4531,10 @@ final class PhabricatorChineseTranslation
       'Context Object Unsupported' => '上下文对象不受支持',
       'Continue to Application' => '继续到应用',
       'Control access to groups of objects.' => '控制对象组的访问。',
-      'Control how user names are rendered in mail.' =>
-        '控制邮件中用户名的显示方式。',
-      'Control who can create new named services and devices.' =>
-        '控制谁可创建新的命名服务和设备。',
+      'Control how user names are rendered in mail.' => '控制邮件中用户名的显示方式。',
+      'Control who can create new named services and devices.' => '控制谁可创建新的命名服务和设备。',
       'Controller' => '控制器',
-      'Controls whether email is sent "From" users.' =>
-        '控制邮件是否“发件人”为用户。',
+      'Controls whether email is sent "From" users.' => '控制邮件是否“发件人”为用户。',
       'Controls who can edit the object.' => '控制谁可编辑对象。',
       'Controls who can interact with the object.' => '控制谁可与对象交互。',
       'Controls who can join the object.' => '控制谁可加入对象。',
@@ -4975,14 +4545,12 @@ final class PhabricatorChineseTranslation
       'Copied Here' => '已复制到此',
       'Copy file path' => '复制文件路径',
       'Copy text' => '复制文本',
-      'Copy-paste the API Token below to grant access to your account.' =>
-        '复制粘贴下方的 API 令牌以授予您账户的访问权限。',
+      'Copy-paste the API Token below to grant access to your account.' => '复制粘贴下方的 API 令牌以授予您账户的访问权限。',
       'Core Applications' => '核心应用',
       'Corned Beef' => '咸牛肉',
       'Corporations' => '企业',
       'Could not find any garbage to collect.' => '未找到可收集的垃圾。',
-      'Countdown titles must not be longer than %s characters.' =>
-        '倒计时标题不得超过 %s 个字符。',
+      'Countdown titles must not be longer than %s characters.' => '倒计时标题不得超过 %s 个字符。',
       'Countdown to Events' => '活动倒计时',
       'Coverage (All)' => '覆盖率（全部）',
       'Coverage (Touched)' => '覆盖率（已触及）',
@@ -5050,20 +4618,17 @@ final class PhabricatorChineseTranslation
       'Create a subproject of an existing project.' => '创建现有项目的子项目。',
       'Create a task in a workboard column.' => '在工作看板列中创建任务。',
       'Create documents and track signatures.' => '创建文档并跟踪签名。',
-      'Create easy to remember shortcuts to images and memes.' =>
-        '创建便于记忆的图片和 Meme 快捷方式。',
+      'Create easy to remember shortcuts to images and memes.' => '创建便于记忆的图片和 Meme 快捷方式。',
       'Create or edit blog posts in Phame.' => '在 Phame 中创建或编辑博客文章。',
       'Create or edit blogs in Phame.' => '在 Phame 中创建或编辑博客。',
-      'Create reusable, memorable, shorter URLs for easy accessibility.' =>
-        '创建可复用、易记、更短的 URL 便于访问。',
+      'Create reusable, memorable, shorter URLs for easy accessibility.' => '创建可复用、易记、更短的 URL 便于访问。',
       'Create this Document' => '创建此文档',
       'Created By' => '创建者',
       'Created By Me' => '我创建的',
       'Created by %s on %s.' => '由 %s 于 %s 创建。',
       'Creates and edits countdowns.' => '创建并编辑倒计时。',
       'Credential "%s" is of unknown type "%s"!' => '凭据 "%s" 的类型 "%s" 未知！',
-      'Credential "%s" must provide "%s", but provides "%s"!' =>
-        '凭据 "%s" 必须提供 "%s"，但提供的是 "%s"！',
+      'Credential "%s" must provide "%s", but provides "%s"!' => '凭据 "%s" 必须提供 "%s"，但提供的是 "%s"！',
       'Credential ("%s") is not valid.' => '凭据（"%s"）无效。',
       'Credential Already Locked' => '凭据已锁定',
       'Credential Author' => '凭据作者',
@@ -5073,8 +4638,7 @@ final class PhabricatorChineseTranslation
       'Credential has no public key!' => '凭据无公钥！',
       'Credential is locked' => '凭据已锁定',
       'Credential is required!' => '需要凭据！',
-      'Credential management and general storage of shared secrets.' =>
-        '凭据管理与共享密钥的通用存储。',
+      'Credential management and general storage of shared secrets.' => '凭据管理与共享密钥的通用存储。',
       'Current Configuration' => '当前配置',
       'Current Default' => '当前默认',
       'Current Menu Items' => '当前菜单项',
@@ -5102,8 +4666,7 @@ final class PhabricatorChineseTranslation
       'Customize Messages' => '自定义消息',
       'Customize Query' => '自定义查询',
       'Customize Query: %s' => '自定义查询：%s',
-      'Customize the logo and wordmark text in the header.' =>
-        '自定义页眉中的标识和文字。',
+      'Customize the logo and wordmark text in the header.' => '自定义页眉中的标识和文字。',
       'Customized' => '已自定义',
       'Customized settings for applications.' => '应用的自定义设置。',
       'DANGEROUS' => '危险',
@@ -5134,8 +4697,7 @@ final class PhabricatorChineseTranslation
       'Dashboard Used By' => '仪表盘使用者',
       'Dashboard icon.' => '仪表盘图标。',
       'Dashboard layout mode.' => '仪表盘布局模式。',
-      'Dashboard names must not be longer than %s characters.' =>
-        '仪表盘名称不得超过 %s 个字符。',
+      'Dashboard names must not be longer than %s characters.' => '仪表盘名称不得超过 %s 个字符。',
       'Data Cache' => '数据缓存',
       'Data Export' => '数据导出',
       'Database / Table' => '数据库 / 表',
@@ -5153,8 +4715,7 @@ final class PhabricatorChineseTranslation
       'Datetime has no timezone or viewer timezone.' => '日期时间无时区或查看者时区。',
       'Deadline' => '截止日期',
       'Debug' => '调试',
-      'Debugging console for real-time notifications.' =>
-        '实时通知的调试控制台。',
+      'Debugging console for real-time notifications.' => '实时通知的调试控制台。',
       'December' => '十二月',
       'Default Alt Text' => '默认替代文本',
       'Default Author' => '默认作者',
@@ -5174,50 +4735,31 @@ final class PhabricatorChineseTranslation
       'Default create policy for countdowns.' => '倒计时的默认创建策略。',
       'Default edit policy for badges.' => '徽章的默认编辑策略。',
       'Default edit policy for new countdowns.' => '新倒计时的默认编辑策略。',
-      'Default edit policy for newly created credentials.' =>
-        '新创建凭据的默认编辑策略。',
-      'Default edit policy for newly created events.' =>
-        '新创建活动的默认编辑策略。',
-      'Default edit policy for newly created projects.' =>
-        '新创建项目的默认编辑策略。',
-      'Default edit policy for newly created publishers.' =>
-        '新创建发布者的默认编辑策略。',
-      'Default edit policy for newly created sources.' =>
-        '新创建来源的默认编辑策略。',
-      'Default edit policy for newly created spaces.' =>
-        '新创建空间的默认编辑策略。',
-      'Default edit policy for newly created tasks.' =>
-        '新创建任务的默认编辑策略。',
-      'Default join policy for newly created projects.' =>
-        '新创建项目的默认加入策略。',
+      'Default edit policy for newly created credentials.' => '新创建凭据的默认编辑策略。',
+      'Default edit policy for newly created events.' => '新创建活动的默认编辑策略。',
+      'Default edit policy for newly created projects.' => '新创建项目的默认编辑策略。',
+      'Default edit policy for newly created publishers.' => '新创建发布者的默认编辑策略。',
+      'Default edit policy for newly created sources.' => '新创建来源的默认编辑策略。',
+      'Default edit policy for newly created spaces.' => '新创建空间的默认编辑策略。',
+      'Default edit policy for newly created tasks.' => '新创建任务的默认编辑策略。',
+      'Default join policy for newly created projects.' => '新创建项目的默认加入策略。',
       'Default queue.' => '默认队列。',
       'Default task priority for create flows.' => '创建流程的默认任务优先级。',
       'Default view policy for new countdowns.' => '新倒计时的默认查看策略。',
       'Default view policy for new polls.' => '新投票的默认查看策略。',
-      'Default view policy for newly created credentials.' =>
-        '新创建凭据的默认查看策略。',
-      'Default view policy for newly created events.' =>
-        '新创建活动的默认查看策略。',
-      'Default view policy for newly created files.' =>
-        '新创建文件的默认查看策略。',
-      'Default view policy for newly created projects.' =>
-        '新创建项目的默认查看策略。',
-      'Default view policy for newly created sources.' =>
-        '新创建来源的默认查看策略。',
-      'Default view policy for newly created spaces.' =>
-        '新创建空间的默认查看策略。',
-      'Default view policy for newly created tasks.' =>
-        '新创建任务的默认查看策略。',
+      'Default view policy for newly created credentials.' => '新创建凭据的默认查看策略。',
+      'Default view policy for newly created events.' => '新创建活动的默认查看策略。',
+      'Default view policy for newly created files.' => '新创建文件的默认查看策略。',
+      'Default view policy for newly created projects.' => '新创建项目的默认查看策略。',
+      'Default view policy for newly created sources.' => '新创建来源的默认查看策略。',
+      'Default view policy for newly created spaces.' => '新创建空间的默认查看策略。',
+      'Default view policy for newly created tasks.' => '新创建任务的默认查看策略。',
       'Define project subtypes.' => '定义项目子类型。',
       'Define task subtypes.' => '定义任务子类型。',
-      'Defines a database service for use in a cluster.' =>
-        '定义集群中使用的数据库服务。',
-      'Defines a pool of hosts which Drydock can allocate.' =>
-        '定义 Drydock 可分配的主机池。',
-      'Defines a repository service for use in a cluster.' =>
-        '定义集群中使用的仓库服务。',
-      'Delay execution of selected tasks until the specified time.' =>
-        '将所选任务延迟到指定时间执行。',
+      'Defines a database service for use in a cluster.' => '定义集群中使用的数据库服务。',
+      'Defines a pool of hosts which Drydock can allocate.' => '定义 Drydock 可分配的主机池。',
+      'Defines a repository service for use in a cluster.' => '定义集群中使用的仓库服务。',
+      'Delay execution of selected tasks until the specified time.' => '将所选任务延迟到指定时间执行。',
       'Delete Address' => '删除地址',
       'Delete Authentication Factor' => '删除认证因素',
       'Delete Comment' => '删除评论',
@@ -5236,8 +4778,7 @@ final class PhabricatorChineseTranslation
       'Deliver as notification' => '作为通知送达',
       'Deliver as notification.' => '作为通知送达。',
       'Delivery Failed' => '投递失败',
-      'Delivery reasons are listed from weakest to strongest.' =>
-        '投递原因按从弱到强列出。',
+      'Delivery reasons are listed from weakest to strongest.' => '投递原因按从弱到强列出。',
       'Deny' => '拒绝',
       'Dependent Tasks' => '依赖任务',
       'Deprecated Call Logs' => '已弃用通话记录',
@@ -5250,8 +4791,7 @@ final class PhabricatorChineseTranslation
       'Description Preview' => '描述预览',
       'Description of the countdown.' => '倒计时描述。',
       'Description of the event.' => '活动描述。',
-      'Designate %s as your primary contact number?' =>
-        '将 %s 设为主要联系电话？',
+      'Designate %s as your primary contact number?' => '将 %s 设为主要联系电话？',
       'Desktop Only' => '仅桌面',
       'Destroy all facts.' => '销毁所有事实。',
       'Destroy objects without prompting.' => '不提示直接销毁对象。',
@@ -5259,8 +4799,7 @@ final class PhabricatorChineseTranslation
       'Destruction Logs' => '销毁日志',
       'Detach the file %s from the object %s?' => '将文件 %s 从对象 %s 分离？',
       'Detached' => '已分离',
-      'Details of this transcript have been garbage collected.' =>
-        '此记录的详情已被垃圾回收。',
+      'Details of this transcript have been garbage collected.' => '此记录的详情已被垃圾回收。',
       'Developer / Debugging' => '开发者 / 调试',
       'Developer API' => '开发者 API',
       'Developer Tools' => '开发者工具',
@@ -5294,48 +4833,35 @@ final class PhabricatorChineseTranslation
       'Configure Calendar Import Forms' => '配置日历导入表单',
       'Configure Conpherence Forms' => '配置 Conpherence 表单',
       'Configure Editor' => '配置编辑器',
-      'Configure JIRA OAuth. NOTE: Only supports JIRA 6.' =>
-        '配置 JIRA OAuth。注意：仅支持 JIRA 6。',
+      'Configure JIRA OAuth. NOTE: Only supports JIRA 6.' => '配置 JIRA OAuth。注意：仅支持 JIRA 6。',
       'Consistent Fact' => '一致事实',
-      'Constant identifying the garbage collector to run.' =>
-        '标识要运行的垃圾回收器的常量。',
+      'Constant identifying the garbage collector to run.' => '标识要运行的垃圾回收器的常量。',
       'Constant identifying the garbage collector.' => '标识垃圾回收器的常量。',
-      'Constants supported by the `%s` constraint:' =>
-        '`%s` 约束支持的常量：',
-      'Content from the distant past, before content sources existed.' =>
-        '来自遥远过去的内容，在内容来源存在之前。',
-      'Content generated by CLI administrative tools.' =>
-        '由 CLI 管理工具生成的内容。',
+      'Constants supported by the `%s` constraint:' => '`%s` 约束支持的常量：',
+      'Content from the distant past, before content sources existed.' => '来自遥远过去的内容，在内容来源存在之前。',
+      'Content generated by CLI administrative tools.' => '由 CLI 管理工具生成的内容。',
       'Content imported via Nuance.' => '通过 Nuance 导入的内容。',
       'Content received via fax (telefacsimile).' => '通过传真接收的内容。',
-      'Content sent by electronic mail, also known as e-mail.' =>
-        '通过电子邮件（e-mail）发送的内容。',
+      'Content sent by electronic mail, also known as e-mail.' => '通过电子邮件（e-mail）发送的内容。',
       'Copy %s' => '复制 %s',
       'Corrupted integrity hash for file "%s".' => '文件 "%s" 的完整性哈希已损坏。',
       'Create a new Maniphest task.' => '创建新 Maniphest 任务。',
-      'Create a new board with just a backlog column.' =>
-        '创建仅含待办列的新看板。',
+      'Create a new board with just a backlog column.' => '创建仅含待办列的新看板。',
       'Create a new conpherence thread.' => '创建新 Conpherence 会话。',
       'Create a new document at' => '在…创建新文档',
-      'Create a web form that submits into a Nuance queue.' =>
-        '创建提交到 Nuance 队列的 Web 表单。',
+      'Create a web form that submits into a Nuance queue.' => '创建提交到 Nuance 队列的 Web 表单。',
       'Create and update software packages.' => '创建和更新软件包。',
       'Create as a subtask of another task.' => '作为另一任务的子任务创建。',
       'Create or modify a flag.' => '创建或修改标记。',
       'Credential has noncreateable type "%s"!' => '凭据具有不可创建类型 "%s"！',
-      'Current database namespace used by dumpfile.' =>
-        'dumpfile 使用的当前数据库命名空间。',
-      'Cursor "%s" does not identify a valid object in query "%s".' =>
-        '游标 "%s" 在查询 "%s" 中未标识有效对象。',
-      'Cursor %s does not exist or is already reset.' =>
-        '游标 %s 不存在或已重置。',
+      'Current database namespace used by dumpfile.' => 'dumpfile 使用的当前数据库命名空间。',
+      'Cursor "%s" does not identify a valid object in query "%s".' => '游标 "%s" 在查询 "%s" 中未标识有效对象。',
+      'Cursor %s does not exist or is already reset.' => '游标 %s 不存在或已重置。',
       'Custom Maniphest fields.' => '自定义 Maniphest 字段。',
       'Custom Projects fields.' => '自定义项目字段。',
       'Custom field class "%s" does not exist.' => '自定义字段类 "%s" 不存在。',
-      'Custom field class "%s" does not implement interface "%s".' =>
-        '自定义字段类 "%s" 未实现接口 "%s"。',
-      'Customizes retention policies for garbage collectors.' =>
-        '自定义垃圾回收器的保留策略。',
+      'Custom field class "%s" does not implement interface "%s".' => '自定义字段类 "%s" 未实现接口 "%s"。',
+      'Customizes retention policies for garbage collectors.' => '自定义垃圾回收器的保留策略。',
       'Cycle detected in resource graph: %s' => '资源图中检测到环：%s',
       'Cycle master key for encrypted files.' => '轮换加密文件的主密钥。',
       'DISABLE APPROVAL QUEUE' => '禁用批准队列',
@@ -5349,27 +4875,21 @@ final class PhabricatorChineseTranslation
       'Declining to apply storage adjustments.' => '拒绝应用存储调整。',
       'Default Edit Badges' => '默认编辑徽章',
       'Default Partition' => '默认分区',
-      'Default syntax highlighter engine.' =>
-        '默认语法高亮引擎。',
+      'Default syntax highlighter engine.' => '默认语法高亮引擎。',
       'Defines a unstructured custom service.' => '定义非结构化自定义服务。',
       'Deleted After Multiple Copy' => '多次复制后已删除',
-      'Deleted event "%s" which is no longer present in the source.' =>
-        '已删除来源中不再存在的事件 "%s"。',
-      'Demonstrates the visual appearance of various Remarkup elements.' =>
-        '演示各种 Remarkup 元素的视觉外观。',
+      'Deleted event "%s" which is no longer present in the source.' => '已删除来源中不再存在的事件 "%s"。',
+      'Demonstrates the visual appearance of various Remarkup elements.' => '演示各种 Remarkup 元素的视觉外观。',
       'Deprecated Config Source' => '已弃用配置源',
-      'Deprecated call to setIcon(), use setImageIcon() instead.' =>
-        '已弃用 setIcon() 调用，请改用 setImageIcon()。',
+      'Deprecated call to setIcon(), use setImageIcon() instead.' => '已弃用 setIcon() 调用，请改用 setImageIcon()。',
       'Deprecated mysql.host Format' => '已弃用 mysql.host 格式',
       'Depths' => '深度',
       'Design by committee.' => '委员会设计。',
       'Desired database namespace for output.' => '输出的目标数据库命名空间。',
       'Destination Beacon' => '目标信标',
       'Destroy all unit test data?' => '销毁所有单元测试数据？',
-      'Determines whether or not YouTube videos get embedded.' =>
-        '决定是否嵌入 YouTube 视频。',
-      'Determines whether or not basic account information is editable.' =>
-        '决定基本账户信息是否可编辑。',
+      'Determines whether or not YouTube videos get embedded.' => '决定是否嵌入 YouTube 视频。',
+      'Determines whether or not basic account information is editable.' => '决定基本账户信息是否可编辑。',
       'Developer/Test Translations' => '开发者/测试翻译',
       'Dictionary with various data of the story' => '包含 story 各类数据的字典',
       'Dimension' => '维度',
@@ -5377,8 +4897,7 @@ final class PhabricatorChineseTranslation
       'Direct Award' => '直接授予',
       'Direct Parent' => '直接父级',
       'Direct Subtask' => '直接子任务',
-      'Directory that the daemons should use to store log files.' =>
-        '守护进程用于存储日志文件的目录。',
+      'Directory that the daemons should use to store log files.' => '守护进程用于存储日志文件的目录。',
       'Disable "Re:" Prefix' => '禁用 "Re:" 前缀',
       'Disable Email Notifications' => '禁用邮件通知',
       'Disable Number' => '禁用号码',
@@ -5403,10 +4922,8 @@ final class PhabricatorChineseTranslation
       'Disable the rule.' => '禁用规则。',
       'Disable the user.' => '禁用用户。',
       'Disable this binding?' => '禁用此绑定？',
-      'Disable this export? The export URI will no longer function.' =>
-        '禁用此导出？导出 URI 将不再可用。',
-      'Disable this form? Users will no longer be able to use it.' =>
-        '禁用此表单？用户将无法再使用。',
+      'Disable this export? The export URI will no longer function.' => '禁用此导出？导出 URI 将不再可用。',
+      'Disable this form? Users will no longer be able to use it.' => '禁用此表单？用户将无法再使用。',
       'Disabled Macros' => '已禁用宏',
       'Disabled Object' => '已禁用对象',
       'Disabled Recipient' => '已禁用收件人',
@@ -5417,8 +4934,7 @@ final class PhabricatorChineseTranslation
       'Dislike' => '不喜欢',
       'Display Name' => '显示名称',
       'Display Preferences' => '显示偏好',
-      'Display events in a certain display format.' =>
-        '以特定显示格式显示活动。',
+      'Display events in a certain display format.' => '以特定显示格式显示活动。',
       'Display images with crops.' => '显示带裁剪的图片。',
       'Display name for the MFA provider.' => 'MFA 提供方的显示名称。',
       'Disqus' => 'Disqus',
@@ -5426,13 +4942,11 @@ final class PhabricatorChineseTranslation
       'Do Not Authorize' => '不授权',
       'Do Not Play' => '不播放',
       'Do Not Use HSTS' => '不使用 HSTS',
-      'Do not apply storage adjustments after storage upgrades.' =>
-        '存储升级后不应用存储调整。',
+      'Do not apply storage adjustments after storage upgrades.' => '存储升级后不应用存储调整。',
       'Do not play audio.' => '不播放音频。',
       'Do nothing' => '不执行任何操作',
       'Do nothing.' => '不执行任何操作。',
-      'Do you want to attach the file %s to the object %s?' =>
-        '是否将文件 %s 附加到对象 %s？',
+      'Do you want to attach the file %s to the object %s?' => '是否将文件 %s 附加到对象 %s？',
       'Do you want to post your comment anyway?' => '是否仍要发布您的评论？',
       'Document Body' => '文档正文',
       'Document Content' => '文档内容',
@@ -5447,8 +4961,7 @@ final class PhabricatorChineseTranslation
       'Documenter' => '文档编写者',
       'Does Not Allow Registration' => '不允许注册',
       'Domain' => '域名',
-      'Domain must be unique; another blog already has this domain.' =>
-        '域名必须唯一；已有其他博客使用此域名。',
+      'Domain must be unique; another blog already has this domain.' => '域名必须唯一；已有其他博客使用此域名。',
       'Domain used for reply email addresses.' => '用于回复邮箱地址的域名。',
       'Done. Migrated %d keys.' => '完成。已迁移 %d 个键。',
       'Doorkeeper' => 'Doorkeeper',
@@ -5470,8 +4983,7 @@ final class PhabricatorChineseTranslation
       'Drag items in this list to reorder them.' => '在此列表中拖放项以重新排序。',
       'Drop .ics Files to Import' => '拖放 .ics 文件以导入',
       'Drop Files to Upload' => '拖放文件以上传',
-      'Drop caches before extracting strings. Slow!' =>
-        '提取字符串前清除缓存。较慢！',
+      'Drop caches before extracting strings. Slow!' => '提取字符串前清除缓存。较慢！',
       'Drop data from readthrough caches.' => '从直读缓存中清除数据。',
       'Drydock Pool' => 'Drydock 池',
       'Drydock: Resource Pool' => 'Drydock：资源池',
@@ -5482,10 +4994,8 @@ final class PhabricatorChineseTranslation
       'Duo Username' => 'Duo 用户名',
       'Duo Username: %s' => 'Duo 用户名：%s',
       'Duo account ("%s") is fully enrolled.' => 'Duo 账户（"%s"）已完整注册。',
-      'Duo providers must have an API credential.' =>
-        'Duo 提供方必须有 API 凭据。',
-      'Duo providers must have an API hostname.' =>
-        'Duo 提供方必须有 API 主机名。',
+      'Duo providers must have an API credential.' => 'Duo 提供方必须有 API 凭据。',
+      'Duo providers must have an API hostname.' => 'Duo 提供方必须有 API 主机名。',
       'Duplicate Event' => '重复活动',
       'Duplicate Message' => '重复消息',
       'Duplicates' => '重复',
@@ -5493,12 +5003,10 @@ final class PhabricatorChineseTranslation
       'EDIT NOTES' => '编辑备注',
       'EMAIL PREFERENCES' => '邮件偏好',
       'ERROR' => '错误',
-      'Easily render icons or images with links and sprites.' =>
-        '轻松渲染带链接和雪碧图的图标或图片。',
+      'Easily render icons or images with links and sprites.' => '轻松渲染带链接和雪碧图的图标或图片。',
       'Edge Masked' => '边已掩码',
       'Edges' => '边',
-      'Edges already exist; transaction has no effect.' =>
-        '边已存在；事务无效。',
+      'Edges already exist; transaction has no effect.' => '边已存在；事务无效。',
       'Edit "%s"' => '编辑 "%s"',
       'Edit Application' => '编辑应用',
       'Edit Application Emails: %s' => '编辑应用邮箱：%s',
@@ -5578,8 +5086,7 @@ final class PhabricatorChineseTranslation
       'Edits' => '编辑',
       'Edits Locked' => '编辑已锁定',
       'Effective Rule' => '生效规则',
-      'Elasticsearch is now configured with "%s".' =>
-        'Elasticsearch 现已配置为 "%s"。',
+      'Elasticsearch is now configured with "%s".' => 'Elasticsearch 现已配置为 "%s"。',
       'Electric' => 'Electric',
       'Element' => '元素',
       'Email Address Already in Use' => '邮箱地址已被使用',
@@ -5607,8 +5114,7 @@ final class PhabricatorChineseTranslation
       'Email: Verify Address' => '邮件：验证地址',
       'Emails' => '邮箱',
       'Embed YouTube videos' => '嵌入 YouTube 视频',
-      'Emit gzipped output instead of plain text.' =>
-        '输出 gzip 压缩内容而非纯文本。',
+      'Emit gzipped output instead of plain text.' => '输出 gzip 压缩内容而非纯文本。',
       'Emoji' => '表情',
       'Emojis' => '表情',
       'Empowered user account "%s".' => '已授予用户账户 "%s" 主管权限。',
@@ -5616,14 +5122,12 @@ final class PhabricatorChineseTranslation
       'Empty Comment' => '空评论',
       'Empty Document' => '空文档',
       'Empty Mail' => '空邮件',
-      'Empty string is not a valid setting for "%s".' =>
-        '空字符串不是 "%s" 的有效设置。',
+      'Empty string is not a valid setting for "%s".' => '空字符串不是 "%s" 的有效设置。',
       'Empty withOwners() constraint is not valid.' => '空的 withOwners() 约束无效。',
       'Enable "Re:" Prefix' => '启用 "Re:" 前缀',
       'Enable %s application?' => '启用 %s 应用？',
       'Enable Email Notifications' => '启用邮件通知',
-      'Enable HTTP Strict Transport Security (HSTS).' =>
-        '启用 HTTP 严格传输安全（HSTS）。',
+      'Enable HTTP Strict Transport Security (HSTS).' => '启用 HTTP 严格传输安全（HSTS）。',
       'Enable Number' => '启用号码',
       'Enable OAuth Application' => '启用 OAuth 应用',
       'Enable Project Mail' => '启用项目邮件',
@@ -5638,34 +5142,27 @@ final class PhabricatorChineseTranslation
       'Enable Vary Subjects' => '启用主题变化',
       'Enable Workboard' => '启用工作看板',
       'Enable a disabled user account.' => '启用已禁用的用户账户。',
-      'Enable applications which are still under development.' =>
-        '启用仍在开发中的应用。',
+      'Enable applications which are still under development.' => '启用仍在开发中的应用。',
       'Enable captchas with Recaptcha.' => '使用 Recaptcha 启用验证码。',
       'Enable debug memory tracing.' => '启用调试内存跟踪。',
       'Enable developer mode' => '启用开发者模式',
-      'Enable the built-in query "%s"? It will appear in your menu again.' =>
-        '启用内置查询 "%s"？它将再次出现在您的菜单中。',
+      'Enable the built-in query "%s"? It will appear in your menu again.' => '启用内置查询 "%s"？它将再次出现在您的菜单中。',
       'Enable the contact number %s?' => '启用联系电话 %s？',
       'Enable the debugging console.' => '启用调试控制台。',
       'Enable the lock log.' => '启用锁日志。',
       'Enable the rule.' => '启用规则。',
       'Enable this binding?' => '启用此绑定？',
-      'Enable this import? Events from this source will be updated again.' =>
-        '启用此导入？此来源的活动将再次更新。',
-      'Enable this menu item? It will appear in the menu again.' =>
-        '启用此菜单项？它将再次出现在菜单中。',
+      'Enable this import? Events from this source will be updated again.' => '启用此导入？此来源的活动将再次更新。',
+      'Enable this menu item? It will appear in the menu again.' => '启用此菜单项？它将再次出现在菜单中。',
       'Enable verbose activity logging.' => '启用详细活动日志。',
-      'Enable verbose error reporting and disk reads.' =>
-        '启用详细错误报告和磁盘读取。',
+      'Enable verbose error reporting and disk reads.' => '启用详细错误报告和磁盘读取。',
       'Enable, disable, or show the lock log.' => '启用、禁用或显示锁日志。',
       'Enabled user account "%s".' => '已启用用户账户 "%s"。',
       'Enabling APCu will improve performance.' => '启用 APCu 将提升性能。',
-      'Enabling OPcache will dramatically improve performance.' =>
-        '启用 OPcache 将显著提升性能。',
+      'Enabling OPcache will dramatically improve performance.' => '启用 OPcache 将显著提升性能。',
       'Enabling the lock log.' => '正在启用锁日志。',
       'Encoded (ROT13)' => '已编码（ROT13）',
-      'Encountered multiple exceptions while transmitting mail.' =>
-        '传输邮件时遇到多个异常。',
+      'Encountered multiple exceptions while transmitting mail.' => '传输邮件时遇到多个异常。',
       'Encrypted (AES-256-CBC)' => '已加密（AES-256-CBC）',
       'Encryption Required' => '需要加密',
       'End Date' => '结束日期',
@@ -5710,14 +5207,11 @@ final class PhabricatorChineseTranslation
       'Expected Unique' => '期望唯一',
       'Expected a list, but value is an object.' => '期望列表，但值为对象。',
       'Expected a list, but value is not a list.' => '期望列表，但值不是列表。',
-      'Expected a nonempty list, but value is an empty list.' =>
-        '期望非空列表，但值为空列表。',
+      'Expected a nonempty list, but value is an empty list.' => '期望非空列表，但值为空列表。',
       'Expected a password hash, received nothing!' => '期望密码哈希，未收到任何内容！',
-      'Expected a query key or a set of query constraints.' =>
-        '期望查询键或一组查询约束。',
+      'Expected a query key or a set of query constraints.' => '期望查询键或一组查询约束。',
       'Expected a single result!' => '期望单个结果！',
-      'Expected boolean (true or false), got something else.' =>
-        '期望布尔值（true 或 false），得到其他。',
+      'Expected boolean (true or false), got something else.' => '期望布尔值（true 或 false），得到其他。',
       'Expected integer, got something else.' => '期望整数，得到其他。',
       'Edit Almanac Binding Configurations' => '编辑 Almanac 绑定配置',
       'Edit Almanac Device Configurations' => '编辑 Almanac 设备配置',
@@ -5766,22 +5260,16 @@ final class PhabricatorChineseTranslation
       'Edit Question' => '编辑问题',
       'Edit Settings Configurations' => '编辑设置配置',
       'Edit Webhook Configurations' => '编辑 Webhook 配置',
-      'Edit type (with key "%s") is missing a Conduit parameter type.' =>
-        '编辑类型（键 "%s"）缺少 Conduit 参数类型。',
-      'EditEngine ("%s") contains an invalid key character "/".' =>
-        'EditEngine（"%s"）包含无效键字符 "/"。',
-      'EditEngine BuiltinKey contains an invalid key character "/".' =>
-        'EditEngine BuiltinKey 包含无效键字符 "/"。',
-      'Editor ("%s") has no mail stamp template with provided key ("%s").' =>
-        '编辑器（"%s"）没有所提供键（"%s"）的邮件戳记模板。',
-      'Effect type passed to "%s" must be a scalar string.' =>
-        '传给 "%s" 的效果类型必须是标量字符串。',
+      'Edit type (with key "%s") is missing a Conduit parameter type.' => '编辑类型（键 "%s"）缺少 Conduit 参数类型。',
+      'EditEngine ("%s") contains an invalid key character "/".' => 'EditEngine（"%s"）包含无效键字符 "/"。',
+      'EditEngine BuiltinKey contains an invalid key character "/".' => 'EditEngine BuiltinKey 包含无效键字符 "/"。',
+      'Editor ("%s") has no mail stamp template with provided key ("%s").' => '编辑器（"%s"）没有所提供键（"%s"）的邮件戳记模板。',
+      'Effect type passed to "%s" must be a scalar string.' => '传给 "%s" 的效果类型必须是标量字符串。',
       'Email Commands: Legalpad Documents' => '邮件命令：Legalpad 文档',
       'Email Commands: Macros' => '邮件命令：宏',
       'Email Commands: Mocks' => '邮件命令：Mocks',
       'Email Commands: Questions' => '邮件命令：问题',
-      'Email record ("%s") has bad associated user PHID ("%s").' =>
-        '邮件记录（"%s"）的关联用户 PHID（"%s"）无效。',
+      'Email record ("%s") has bad associated user PHID ("%s").' => '邮件记录（"%s"）的关联用户 PHID（"%s"）无效。',
       'Email record has invalid user PHID!' => '邮件记录的用户 PHID 无效！',
       'Engine: Search' => '引擎：搜索',
       'Engine: Session' => '引擎：会话',
@@ -5795,8 +5283,7 @@ final class PhabricatorChineseTranslation
       'Environmental!' => '环境！',
       'Epic' => '史诗',
       'Epoch' => '时间戳',
-      'Epoch timestamp must be larger than 0, got %d.' =>
-        '时间戳必须大于 0，得到 %d。',
+      'Epoch timestamp must be larger than 0, got %d.' => '时间戳必须大于 0，得到 %d。',
       'Epoch timestamp when the task was closed.' => '任务关闭时的时间戳。',
       'Epoch timestamp, as an integer.' => '时间戳（整数）。',
       'Epoch timestamp.' => '时间戳。',
@@ -5820,78 +5307,54 @@ final class PhabricatorChineseTranslation
       'Event Series' => '活动系列',
       'Event Start' => '活动开始',
       'Event Timeline' => '活动时间线',
-      'Event frequency "%s" is not valid. Valid frequencies are: %s.' =>
-        '活动频率 "%s" 无效。有效频率为：%s。',
+      'Event frequency "%s" is not valid. Valid frequencies are: %s.' => '活动频率 "%s" 无效。有效频率为：%s。',
       'Event host is required.' => '活动主办为必填。',
       'Event icon.' => '活动图标。',
-      'Event must be recurring to have a recurrence end date.' =>
-        '活动必须为重复活动才能有重复结束日期。',
+      'Event must be recurring to have a recurrence end date.' => '活动必须为重复活动才能有重复结束日期。',
       'Events' => '活动',
       'Events are only rendered indirectly.' => '活动仅以间接方式渲染。',
-      'Every program attempts to expand until it can read mail.' =>
-        '每个程序都试图扩展直到能读邮件。',
+      'Every program attempts to expand until it can read mail.' => '每个程序都试图扩展直到能读邮件。',
       'Evil Spooky Haunted Tree' => '邪恶幽灵树',
       'Exact Search' => '精确搜索',
       'Example: %s%sFor LDAPS, use: %s' => '示例：%s%s对于 LDAPS，使用：%s',
       'Excel (.xlsx)' => 'Excel (.xlsx)',
       'Exception Handlers' => '异常处理器',
-      'Exception when processing transaction of type "%s": %s' =>
-        '处理类型 "%s" 的事务时异常：%s',
+      'Exception when processing transaction of type "%s": %s' => '处理类型 "%s" 的事务时异常：%s',
       'Exclude results tagged with this project.' => '排除标有此项目的结果。',
       'Excluding Search' => '排除搜索',
-      'Execute complex searches for Maniphest tasks.' =>
-        '对 Maniphest 任务执行复杂搜索。',
+      'Execute complex searches for Maniphest tasks.' => '对 Maniphest 任务执行复杂搜索。',
       'Execute searches for Projects.' => '执行项目搜索。',
       'Executing' => '正在执行',
       'Executing %s...' => '正在执行 %s...',
       'Executing a fact query requires facts.' => '执行 fact 查询需要 facts。',
-      'Executing event as though it never previously executed.' =>
-        '执行活动，仿佛其从未执行过。',
-      'Executing event as though it previously executed at %s.' =>
-        '执行活动，仿佛其曾于 %s 执行。',
-      'Executing event as though it was scheduled to execute at %s.' =>
-        '执行活动，仿佛其计划于 %s 执行。',
+      'Executing event as though it never previously executed.' => '执行活动，仿佛其从未执行过。',
+      'Executing event as though it previously executed at %s.' => '执行活动，仿佛其曾于 %s 执行。',
+      'Executing event as though it was scheduled to execute at %s.' => '执行活动，仿佛其计划于 %s 执行。',
       'Executing trigger %s.' => '正在执行触发器 %s。',
       'Executive' => '高管',
       'Exempt User' => '豁免用户',
       'Exemption' => '豁免',
       'Exemption By' => '豁免者',
-      'Existing objects will no longer be hidden from query results.' =>
-        '现有对象将不再从查询结果中隐藏。',
+      'Existing objects will no longer be hidden from query results.' => '现有对象将不再从查询结果中隐藏。',
       'Exiting' => '正在退出',
       'Expand' => '展开',
       'Expand File' => '展开文件',
-      'Expected ":" after parameters in ICS document property.' =>
-        '期望 ICS 文档属性中参数后有 ":"。',
-      'Expected DATE-TIME to have exactly one value, found none.' =>
-        '期望 DATE-TIME 恰好有一个值，未发现。',
-      'Expected DURATION to have exactly one value, found none.' =>
-        '期望 DURATION 恰好有一个值，未发现。',
-      'Expected a PhutilQueryString for %%%s conversion.' =>
-        '期望 %%%s 转换为 PhutilQueryString。',
-      'Expected a numeric scalar or null for %%%s conversion.' =>
-        '期望 %%%s 转换为数值标量或 null。',
-      'Expected a scalar or null for %%%s conversion.' =>
-        '期望 %%%s 转换为标量或 null。',
+      'Expected ":" after parameters in ICS document property.' => '期望 ICS 文档属性中参数后有 ":"。',
+      'Expected DATE-TIME to have exactly one value, found none.' => '期望 DATE-TIME 恰好有一个值，未发现。',
+      'Expected DURATION to have exactly one value, found none.' => '期望 DURATION 恰好有一个值，未发现。',
+      'Expected a PhutilQueryString for %%%s conversion.' => '期望 %%%s 转换为 PhutilQueryString。',
+      'Expected a numeric scalar or null for %%%s conversion.' => '期望 %%%s 转换为数值标量或 null。',
+      'Expected a scalar or null for %%%s conversion.' => '期望 %%%s 转换为标量或 null。',
       'Expected a string for %%%s conversion.' => '期望 %%%s 转换为字符串。',
-      'Expected array argument for %%%s conversion.' =>
-        '期望 %%%s 转换的数组参数。',
-      'Expected edge cursor in the form "0123_6789", got "%s".' =>
-        '期望 "0123_6789" 形式的边游标，得到 "%s"。',
-      'Expected token to finish OAuth handshake!' =>
-        '期望令牌完成 OAuth 握手！',
-      'Expected valid JSON response from Amazon account data request.' =>
-        '期望 Amazon 账户数据请求返回有效 JSON 响应。',
-      'Expected valid JSON response from Disqus account data request.' =>
-        '期望 Disqus 账户数据请求返回有效 JSON 响应。',
-      'Expected valid JSON response from Facebook account data request.' =>
-        '期望 Facebook 账户数据请求返回有效 JSON 响应。',
-      'Expected valid JSON response from GitHub account data request.' =>
-        '期望 GitHub 账户数据请求返回有效 JSON 响应。',
-      'Expected valid JSON response from Google account data request.' =>
-        '期望 Google 账户数据请求返回有效 JSON 响应。',
-      'Expected verifier to finish OAuth handshake!' =>
-        '期望验证器完成 OAuth 握手！',
+      'Expected array argument for %%%s conversion.' => '期望 %%%s 转换的数组参数。',
+      'Expected edge cursor in the form "0123_6789", got "%s".' => '期望 "0123_6789" 形式的边游标，得到 "%s"。',
+      'Expected token to finish OAuth handshake!' => '期望令牌完成 OAuth 握手！',
+      'Expected valid JSON response from Amazon account data request.' => '期望 Amazon 账户数据请求返回有效 JSON 响应。',
+      'Expected valid JSON response from Disqus account data request.' => '期望 Disqus 账户数据请求返回有效 JSON 响应。',
+      'Expected valid JSON response from Facebook account data request.' => '期望 Facebook 账户数据请求返回有效 JSON 响应。',
+      'Expected valid JSON response from GitHub account data request.' => '期望 GitHub 账户数据请求返回有效 JSON 响应。',
+      'Expected valid JSON response from Google account data request.' => '期望 Google 账户数据请求返回有效 JSON 响应。',
+      'Expected verifier to finish OAuth handshake!' => '期望验证器完成 OAuth 握手！',
       'Expired' => '已过期',
       'Explore Applications' => '浏览应用',
       'Explore More Applications' => '浏览更多应用',
@@ -5901,13 +5364,11 @@ final class PhabricatorChineseTranslation
       'Export Format Not Available' => '导出格式不可用',
       'Export Query as .ics' => '将查询导出为 .ics',
       'Export Results' => '导出结果',
-      'Export data to a flat file (JSON, CSV, Excel, etc.).' =>
-        '将数据导出到平面文件（JSON、CSV、Excel 等）。',
+      'Export data to a flat file (JSON, CSV, Excel, etc.).' => '将数据导出到平面文件（JSON、CSV、Excel 等）。',
       'Export format.' => '导出格式。',
       'Export only public data.' => '仅导出公开数据。',
       'Export private data.' => '导出私有数据。',
-      'Export the data selected by one or more queries.' =>
-        '导出一个或多个查询所选的数据。',
+      'Export the data selected by one or more queries.' => '导出一个或多个查询所选的数据。',
       'Exported data to "%s".' => '已导出数据到 "%s"。',
       'Exporting Data...' => '正在导出数据...',
       'Exporting Events' => '正在导出活动',
@@ -5919,8 +5380,7 @@ final class PhabricatorChineseTranslation
       'External Invitee' => '外部受邀者',
       'External Recipient' => '外部收件人',
       'External Requests (TTL)' => '外部请求（TTL）',
-      'External accounts can only be edited by the account owner.' =>
-        '外部账户仅可由账户所有者编辑。',
+      'External accounts can only be edited by the account owner.' => '外部账户仅可由账户所有者编辑。',
       'Extra Settings' => '额外设置',
       'Extract translatable strings.' => '提取可翻译字符串。',
       'Extracting "%s"...' => '正在提取 "%s"...',
@@ -5932,44 +5392,34 @@ final class PhabricatorChineseTranslation
       'Fact' => '事实',
       'Fact "%s"' => '事实 "%s"',
       'Fact Extraction Report' => '事实提取报告',
-      'Fact key "%s" is not a known fact key.' =>
-        '事实键 "%s" 不是已知的事实键。',
+      'Fact key "%s" is not a known fact key.' => '事实键 "%s" 不是已知的事实键。',
       'Facts' => '事实',
       'Failed to JSON decode rule data!' => '无法 JSON 解码规则数据！',
       'Failed to copy text into clipboard.' => '无法将文本复制到剪贴板。',
-      'Failed to decode OAuth access token response: %s' =>
-        '无法解码 OAuth 访问令牌响应：%s',
-      'Failed to find an OAuth client with ID %s.' =>
-        '无法找到 ID 为 %s 的 OAuth 客户端。',
-      'Failed to find an OAuth client with id %s.' =>
-        '无法找到 id 为 %s 的 OAuth 客户端。',
+      'Failed to decode OAuth access token response: %s' => '无法解码 OAuth 访问令牌响应：%s',
+      'Failed to find an OAuth client with ID %s.' => '无法找到 ID 为 %s 的 OAuth 客户端。',
+      'Failed to find an OAuth client with id %s.' => '无法找到 id 为 %s 的 OAuth 客户端。',
       'Failed to load comment "%s".' => '无法加载评论 "%s"。',
       'Failed to load credential "%s"!' => '无法加载凭据 "%s"！',
       'Failed to load custom PHID "%s"!' => '无法加载自定义 PHID "%s"！',
-      'Failed to load file ("%s") with hunk data.' =>
-        '无法加载带 hunk 数据的文件（"%s"）。',
+      'Failed to load file ("%s") with hunk data.' => '无法加载带 hunk 数据的文件（"%s"）。',
       'Failed to load file.' => '无法加载文件。',
       'Failed to load import with PHID "%s".' => '无法加载 PHID 为 "%s" 的导入。',
       'Failed to load saved query ("%s").' => '无法加载已保存查询（"%s"）。',
       'Failed to open file "%s" for writing.' => '无法打开文件 "%s" 进行写入。',
-      'Failed to open output file "%s" for writing.' =>
-        '无法打开输出文件 "%s" 进行写入。',
-      'Failed to open stream "%s" for reading.' =>
-        '无法打开流 "%s" 进行读取。',
+      'Failed to open output file "%s" for writing.' => '无法打开输出文件 "%s" 进行写入。',
+      'Failed to open stream "%s" for reading.' => '无法打开流 "%s" 进行读取。',
       'Failed to parse ICS data ("%s"): %s' => '无法解析 ICS 数据（"%s"）：%s',
       'Failed to parse file "%s": %s' => '无法解析文件 "%s"：%s',
       'Failed to run i18n extractor: %s' => '无法运行 i18n 提取器：%s',
-      'Failed to update object %s using user %s.' =>
-        '无法使用用户 %s 更新对象 %s。',
+      'Failed to update object %s using user %s.' => '无法使用用户 %s 更新对象 %s。',
       'Failed!' => '失败！',
       'Failure' => '失败',
       'Failure Count' => '失败次数',
       'Failures' => '失败',
       'Failures!' => '失败！',
-      'Fallback compose color ("%s") does not exist!' =>
-        '回退撰写颜色（"%s"）不存在！',
-      'Fallback compose icon ("%s") does not exist!' =>
-        '回退撰写图标（"%s"）不存在！',
+      'Fallback compose color ("%s") does not exist!' => '回退撰写颜色（"%s"）不存在！',
+      'Fallback compose icon ("%s") does not exist!' => '回退撰写图标（"%s"）不存在！',
       'Fancy Box' => 'Fancy Box',
       'Favorite Items' => '收藏项',
       'Fax' => '传真',
@@ -5980,10 +5430,8 @@ final class PhabricatorChineseTranslation
       'Feed Story' => '动态故事',
       'Feed Story Failed to Render (%s)' => '动态故事渲染失败（%s）',
       'Feed options.' => '动态选项。',
-      'Feed query minimum range must be lower than maximum range.' =>
-        '动态查询最小范围必须小于最大范围。',
-      'Feed story (with key "%s") does not exist or could not be loaded.' =>
-        '动态故事（键 "%s"）不存在或无法加载。',
+      'Feed query minimum range must be lower than maximum range.' => '动态查询最小范围必须小于最大范围。',
+      'Feed story (with key "%s") does not exist or could not be loaded.' => '动态故事（键 "%s"）不存在或无法加载。',
       'Ferret Engine Ngrams' => 'Ferret 引擎 N 元组',
       'Ferret Fulltext Engine' => 'Ferret 全文引擎',
       'Fetched Calendar' => '已获取日历',
@@ -5992,8 +5440,7 @@ final class PhabricatorChineseTranslation
       'File path copied.' => '文件路径已复制。',
       'File size disagrees with uploaded size.' => '文件大小与上传大小不一致。',
       'File size, in bytes.' => '文件大小（字节）。',
-      'File was only partially transferred, upload did not complete.' =>
-        '文件仅部分传输，上传未完成。',
+      'File was only partially transferred, upload did not complete.' => '文件仅部分传输，上传未完成。',
       'Files (TTL)' => '文件（TTL）',
       'Files must have a name.' => '文件必须有名称。',
       'Filetree Visible' => '文件树可见',
@@ -6007,12 +5454,10 @@ final class PhabricatorChineseTranslation
       'Find Rooms' => '查找房间',
       'Find Signatures' => '查找签名',
       'Find User:' => '查找用户：',
-      'Find all subprojects beneath specified ancestors.' =>
-        '查找指定祖先下的所有子项目。',
+      'Find all subprojects beneath specified ancestors.' => '查找指定祖先下的所有子项目。',
       'Find calls by specific users.' => '按指定用户查找调用。',
       'Find calls to specific methods.' => '查找对指定方法的调用。',
-      'Find calls to stable, unstable, or deprecated methods.' =>
-        '查找对稳定、不稳定或已弃用方法的调用。',
+      'Find calls to stable, unstable, or deprecated methods.' => '查找对稳定、不稳定或已弃用方法的调用。',
       'Cats are stealthy predators and nearly invisible to radar.' => '猫是隐秘的捕食者，对雷达几乎不可见。',
       'Cats have five pointy ends.' => '猫有五个尖的末端。',
       'Cats prefer vanilla ice cream.' => '猫更喜欢香草冰淇淋。',
@@ -6048,7 +5493,7 @@ final class PhabricatorChineseTranslation
       'Declining to emit response with malformed HTTP header name: %s' => '拒绝发送 HTTP 头名称格式错误的响应：%s',
       'Declining to emit response with unsafe HTTP header: %s' => '拒绝发送不安全的 HTTP 头的响应：%s',
       'Declining to synchronize static tables.' => '拒绝同步静态表。',
-      'Ding Ding' => 'Ding Ding',
+      'Ding Ding' => '叮叮',
       'Disable SSH error log.' => '禁用 SSH 错误日志。',
       'Disable SSH log.' => '禁用 SSH log.',
       'Disable unsafe option "%s" in PHP configuration.' => '在 PHP 配置中禁用不安全的选项 "%s"。',
@@ -6056,7 +5501,7 @@ final class PhabricatorChineseTranslation
       'Do not invoke `%s` after updating sprites' => '更新精灵图后不要调用 `%s`',
       'Done generating sprites - updating map...' => '精灵图生成完成 - 正在更新映射...',
       'DoorkeeperURIRef display mode "%s" is unknown.' => 'DoorkeeperURIRef 显示模式 "%s" 未知。',
-      'Doubloon' => 'Doubloon',
+      'Doubloon' => '达布隆',
       'Drag and drop .xhprof files to import them.' => '拖放 .xhprof 文件以导入。',
       'Drew the short stick' => '抽到了短签',
       'Drift Aimlessly' => '漫无目的地漂流',
@@ -7345,13 +6790,10 @@ final class PhabricatorChineseTranslation
       'Notification service is disabled.' => '通知服务已禁用。',
       'Notifications are disabled.' => '通知服务已禁用。',
       'No enabled browser notification servers.' => '没有已启用的浏览器通知入口。',
-      'No notification server supports this page protocol (%s).' =>
-        '没有支持当前页面协议（%s）的通知入口。',
+      'No notification server supports this page protocol (%s).' => '没有支持当前页面协议（%s）的通知入口。',
       'Sign in to connect to notifications.' => '登录后可连接通知服务。',
-      'Notification connection status is unavailable.' =>
-        '无法获取通知连接状态。',
-      'Notification server returned an invalid status response.' =>
-        '通知服务器返回的状态响应无效。',
+      'Notification connection status is unavailable.' => '无法获取通知连接状态。',
+      'Notification server returned an invalid status response.' => '通知服务器返回的状态响应无效。',
       'No Messages' => '无消息',
       'No Milestones' => '无 Milestones',
       'No More Retries' => '无 More Retries',
@@ -8667,18 +8109,13 @@ final class PhabricatorChineseTranslation
       'Current and Historical Structures' => '当前结构与历史保留结构',
       'Current Application Structure' => '当前应用结构',
       'Unexpected Structure' => '未定义的结构',
-      'The database user does not have permission to inspect this schema.' =>
-        '数据库账号没有查看此结构的权限。',
+      'The database user does not have permission to inspect this schema.' => '数据库账号没有查看此结构的权限。',
       'Historical Structures Retained' => '历史结构已保留',
-      'This structure belongs to a retired application. It is retained for historical data and migrations and is not an active schema requirement.' =>
-        '此结构属于已退役应用，为保留历史数据和执行迁移而留存，不属于当前应用所需的结构。',
-      '%s retired table(s) are retained for historical data and migrations. Active structures are still checked.' =>
-        '已保留 %s 张退役应用的历史表，供历史数据留存和迁移使用。当前应用结构仍会正常检查。',
+      'This structure belongs to a retired application. It is retained for historical data and migrations and is not an active schema requirement.' => '此结构属于已退役应用，为保留历史数据和执行迁移而留存，不属于当前应用所需的结构。',
+      '%s retired table(s) are retained for historical data and migrations. Active structures are still checked.' => '已保留 %s 张退役应用的历史表，供历史数据留存和迁移使用。当前应用结构仍会正常检查。',
       'Replication Monitoring Unavailable' => '复制监控不可用',
-      'Replication status is unavailable because the monitoring user lacks "REPLICATION CLIENT" permission.' =>
-        '监控账号缺少 "REPLICATION CLIENT" 权限，无法读取复制状态。',
-      'Successful connection checks among the last %s checks.' =>
-        '最近 %s 次连接检查中的成功次数。',
+      'Replication status is unavailable because the monitoring user lacks "REPLICATION CLIENT" permission.' => '监控账号缺少 "REPLICATION CLIENT" 权限，无法读取复制状态。',
+      'Successful connection checks among the last %s checks.' => '最近 %s 次连接检查中的成功次数。',
       'School' => '学校',
       'Scope' => '范围',
       'ScopeEngine text map must be a 1-based map of lines.' => 'ScopeEngine 文本映射必须是基于 1 的行映射。',
@@ -8878,7 +8315,7 @@ final class PhabricatorChineseTranslation
       'Send the specified type of message (email, sms, ...).' => '发送指定类型的消息（电子邮件、短信等）。',
       'Send with a specific configured mailer.' => '使用特定配置的邮件发送程序发送。',
       'Send with bulk headers.' => '使用批量邮件头发送。',
-      'Expected "\r\n" or "--" after multipart data boundary.' => '期望在多部分数据边界后有 "\\r\\n" 或 "--"。',
+      'Expected "\\r\\n" or "--" after multipart data boundary.' => '期望在多部分数据边界后有 "\\r\\n" 或 "--"。',
       'Sending a message will also join the room.' => '发送消息也会加入房间。',
       'Sent By' => '发送者',
       'Sent Mail' => '已发送邮件',
@@ -9327,10 +8764,8 @@ final class PhabricatorChineseTranslation
       'Subprojects can be created for this project.' => '可以为此项目创建子项目。',
       'Subschemata Have Failures' => '下级数据库结构存在异常',
       'Subschemata Have Warnings' => '下级数据库结构存在警告',
-      'Subschemata have setup failures.' =>
-        '部分数据库、表、字段或索引与当前结构规范不一致，请查看具体项目。',
-      'Subschemata have setup warnings.' =>
-        '部分数据库、表、字段或索引需要调整，请查看具体项目。',
+      'Subschemata have setup failures.' => '部分数据库、表、字段或索引与当前结构规范不一致，请查看具体项目。',
+      'Subschemata have setup warnings.' => '部分数据库、表、字段或索引需要调整，请查看具体项目。',
       'Subscribed' => '已订阅',
       'Subscriber' => '订阅者',
       'Subscriber PHIDs' => '订阅者 PHID',
@@ -10262,7 +9697,7 @@ final class PhabricatorChineseTranslation
       'Unknown map "%s".' => '未知 map "%s".',
       'Unknown order "%s"!' => '未知 order "%s"!',
       'Unknown order "%s".' => '未知 order "%s".',
-      'Unknown parser state "%s".\n' => '未知 parser state "%s".\n',
+      'Unknown parser state "%s".\\n' => '未知 parser state "%s".\\n',
       'Unknown reason ("%s").' => '未知 reason ("%s").',
       'Unknown rendering target: %s' => '未知 rendering target：%s',
       'Unknown routing rule "%s".' => '未知 routing rule "%s".',
@@ -11036,8 +10471,7 @@ final class PhabricatorChineseTranslation
       'Someone changes the badge\'s details.' => '有人更改了徽章的详细信息。',
       'You\'re It' => '轮到你了',
       'This question has been marked as closed,
-             but you can still leave a new answer.' =>
-        '此问题已被标记为关闭，但你仍然可以留下新的回答。',
+             but you can still leave a new answer.' => '此问题已被标记为关闭，但你仍然可以留下新的回答。',
       'Authentication provider configuration is locked, and can not be changed without being unlocked. See the configuration setting %s for details.' => '认证提供方配置已锁定，未解锁前无法修改。详情请参阅配置项 %s。',
       'Option "%s" is of type "%s", but the configured value is not a string.' => '选项 “%s” 的类型为 “%s”，但配置值不是字符串。',
       'An exception occurred executing Herald rule %s: "%s" Review the Herald transcripts and correct or disable the problematic rule.' => '执行 Herald 规则 %s 时发生异常：“%s”。请查看 Herald 记录，并修正或禁用有问题的规则。',
@@ -11088,8 +10522,7 @@ final class PhabricatorChineseTranslation
       'A completed challenge was provided as an answered challenge. The underlying factor is implemented improperly, challenges may not be reused.' => '一个已完成的挑战被作为已应答挑战提交。底层认证因子实现不正确，挑战不得重复使用。',
       'A component of the configured PATH can not be used by the webserver: %s' => '配置的 PATH 中有一个组件无法被 Web 服务器使用：%s',
       'A container good for 1-7 equally spaced columns. Fixed and Fluid layouts.' => '适用于 1-7 个等宽列的容器，支持固定布局与流式布局。',
-      'A database host ("%s") and this web host ("%s") disagree on the current time by more than 60 seconds (absolute skew is %s seconds). Check that the current time is set correctly everywhere.' =>
-        '数据库主机（“%s”）与此 Web 主机（“%s”）的当前时间相差超过 60 秒（绝对偏差为 %s 秒）。请检查所有节点的当前时间是否设置正确。',
+      'A database host ("%s") and this web host ("%s") disagree on the current time by more than 60 seconds (absolute skew is %s seconds). Check that the current time is set correctly everywhere.' => '数据库主机（“%s”）与此 Web 主机（“%s”）的当前时间相差超过 60 秒（绝对偏差为 %s 秒）。请检查所有节点的当前时间是否设置正确。',
       'A flexible rules engine that can notify and act on other actions such as tasks, diffs, and commits.' => '一个灵活的规则引擎，可对任务、diff、提交等动作执行通知与自动处理。',
       'A keypair has been generated, and the public key has been added as a recognized key.' => '已生成密钥对，公钥已添加为受信任密钥。',
       'A lipsum generator is registered with key "%s". This key is reserved.' => '已注册一个键为 “%s” 的 lipsum 生成器。该键为保留键。',
@@ -11105,8 +10538,7 @@ final class PhabricatorChineseTranslation
       'Active tasks can not be deleted directly. Use %s to move tasks to the archive.' => '活动任务不能直接删除。请使用 %s 将任务移入归档。',
       'Activity "%s" is not currently marked as required, so there is no need to complete it.' => '活动 “%s” 当前未标记为必需，因此无需完成它。',
       'Adapter ("%s") is configured for medium "%s", but this is not a supported delivery medium. Supported media are: %s.' => '适配器（“%s”）配置为介质 “%s”，但该介质不受支持。支持的介质有：%s。',
-      'Add __--master-data__ to the __mysqldump__ command, generating a CHANGE MASTER statement in the output. This option also dumps all data, including caches.' =>
-        '在 __mysqldump__ 命令中添加 __--master-data__，可在输出中生成 CHANGE MASTER 语句。该选项还会导出包括缓存在内的所有数据。',
+      'Add __--master-data__ to the __mysqldump__ command, generating a CHANGE MASTER statement in the output. This option also dumps all data, including caches.' => '在 __mysqldump__ 命令中添加 __--master-data__，可在输出中生成 CHANGE MASTER 语句。该选项还会导出包括缓存在内的所有数据。',
       'Add a text panel to the dashboard to provide instructions or context.' => '向仪表板添加文本面板，以提供说明或上下文。',
       'Add project rule value should be a list, but is not (value is "%s").' => '“添加项目”规则的值应为列表，但当前不是（当前值为 “%s”）。',
       'Add subscribers rule value should be a list, but is not (value is "%s").' => '“添加订阅者”规则的值应为列表，但当前不是（当前值为 “%s”）。',
@@ -11124,3142 +10556,1704 @@ final class PhabricatorChineseTranslation
       'After editing the PHP configuration, <strong>restart everything for the changes to take effect</strong>. For help with restarting everything, see %s in the documentation.' => '编辑 PHP 配置后，<strong>请重启所有相关服务以使更改生效</strong>。有关重启所有服务的帮助，请参阅文档中的 %s。',
       'After entering the key, the application should display a numeric code. Enter that code below to confirm that you have configured the authenticator correctly:' => '输入密钥后，应用应显示一个数字代码。请在下方输入该代码，以确认你已正确配置认证器：',
       'After executing under these conditions, this event would never execute again.' => '在这些条件下执行后，此事件将不再被执行。',
-      'After executing under these conditions, this event would next execute at %s.' =>
-        '在这些条件下执行后，此事件将在 %s 再次执行。',
-      'After installing new PHP extensions, <strong>restart everything for the changes to take effect</strong>. For help with restarting everything, see %s in the documentation.' =>
-        '安装新的 PHP 扩展后，<strong>请重启所有服务以使更改生效</strong>。有关重启所有服务的帮助，请参阅文档中的 %s。',
-      'After logging in you should set a password for your account, or link your account to an external account that you can use to authenticate in the future.' =>
-        '登录后，您应该为您的账户设置密码，或将您的账户链接到可用于未来身份验证的外部账户。',
-      'After logging in, you can use the "Auth" application to add or restore authentication providers and allow normal logins to succeed.' =>
-        '登录后，您可以使用“Auth”应用添加或恢复身份验证提供程序，并允许正常登录成功。',
-      'After rebuilding repository identities, run this command to clear this setup warning:' =>
-        '重建仓库身份后，运行此命令以清除此设置警告：',
-      'After rebuilding the index, run this command to clear this setup warning:' =>
-        '重建索引后，运行此命令以清除此设置警告：',
-      'After you copy and paste this token, `arc` will complete the certificate install process for you.' =>
-        '复制并粘贴此令牌后，`arc` 将为您完成证书安装过程。',
-      'After you download the private key, it will be destroyed. You will not be able to retrieve it if you lose your copy.' =>
-        '下载私钥后，它将被销毁。如果您丢失了副本，将无法检索它。',
-      'After you have set a password, you can log in again in the future by going here:' =>
-        '设置密码后，您将来可以通过前往此处再次登录：',
-      'After you set up your account, you can log in again in the future by going here:' =>
-        '设置账户后，您将来可以通过前往此处再次登录：',
-      'All Differential fields are now managed through the configuration option "%s". Use that option to configure which fields are shown.' =>
-        '现在，所有 Differential 字段都通过配置选项 "%s" 进行管理。使用该选项来配置显示哪些字段。',
-      'All of the addresses appear to be valid invite recipients. Confirm the actions below to continue.' =>
-        '所有地址似乎都有效的邀请收件人。确认以下操作以继续。',
-      'All unread notifications will be marked as read. You can not undo this action.' =>
-        '所有未读通知都将标记为已读。您无法撤销此操作。',
-      'Allow users to attach a mobile authenticator application (like 2FAS, Aegis, FreeOTP, or Bitwarden Authenticator) to their account.' =>
-        '允许用户将移动身份验证器应用（如 2FAS、Aegis、FreeOTP 或 Bitwarden Authenticator）关联到其账户。',
-      'Allow users to log in using this provider. If you disable login, users can still use account integrations for this provider.' =>
-        '允许用户使用此提供程序登录。如果您禁用登录，用户仍可使用此提供程序的账户集成。',
-      'Allow users to register new accounts using this provider. If you disable registration, users can still use this provider to log in to existing accounts, but will not be able to create new accounts.' =>
-        '允许用户使用此提供程序注册新账户。如果您禁用注册，用户仍可使用此提供程序登录现有账户，但将无法创建新账户。',
-      'Allow users to unlink account credentials for this provider from existing accounts. If you disable this, accounts will be permanently bound to provider accounts.' =>
-        '允许用户从现有账户中取消关联此提供程序的账户凭据。如果您禁用此功能，账户将永久绑定到提供程序账户。',
-      'Almanac device status "%s" is unrecognized. Valid status values are: %s.' =>
-        'Almanac 设备状态 "%s" 无法识别。有效的状态值为: %s。',
-      'Almanac service, device, network, property and namespace names may not have any segments containing only digits.' =>
-        'Almanac 服务、设备、网络、属性和命名空间的名称不能包含仅由数字组成的段。',
-      'Almanac service, device, property, network and namespace names may not be more than 100 characters long.' =>
-        'Almanac 服务、设备、属性、网络和命名空间的名称不能超过 100 个字符。',
-      'Almanac service, device, property, network and namespace names may not contain hyphens adjacent to periods.' =>
-        'Almanac 服务、设备、属性、网络和命名空间的名称不能包含与句点相邻的连字符。',
-      'Almanac service, device, property, network and namespace names may not contain multiple consecutive hyphens.' =>
-        'Almanac 服务、设备、属性、网络和命名空间的名称不能包含多个连续的连字符。',
-      'Almanac service, device, property, network and namespace names may not contain multiple consecutive periods.' =>
-        'Almanac 服务、设备、属性、网络和命名空间的名称不能包含多个连续的句点。',
-      'Almanac service, device, property, network and namespace names may only contain lowercase letters, numbers, hyphens, and periods.' =>
-        'Almanac 服务、设备、属性、网络和命名空间的名称只能包含小写字母、数字、连字符和句点。',
-      'Almanac service, device, property, network and namespace names must be at least 3 characters long.' =>
-        'Almanac 服务、设备、属性、网络和命名空间的名称必须至少为 3 个字符。',
-      'Almanac service, device, property, network and namespace names must begin and end with a letter or number.' =>
-        'Almanac 服务、设备、属性、网络和命名空间的名称必须以字母或数字开头和结尾。',
-      'Although this may be the result of a misconfiguration or operational error, this is also the state you reach if a meteor recently obliterated a datacenter.' =>
-        '虽然这可能是配置错误或操作错误的结果，但如果最近有流星摧毁了数据中心，您也会达到此状态。',
-      'An %s already exists. Dispose of the previous guard before creating a new one.' =>
-        '%s 已存在。在创建新实例之前，请先释放之前的 guard。',
-      'An %s is being created in a context which permits unguarded writes unconditionally. This is not allowed and indicates a serious error.' =>
-        '正在创建一个 %s，其上下文无条件允许未受保护的写入。这是不允许的，并表示存在严重错误。',
-      'An alternate resource map is no longer supported. Instead, use multiple maps. See T4222.' =>
-        '不再支持备用资源映射。请改用多个映射。请参阅 T4222。',
-      'An authorization request will be pushed to the Duo application on your phone.' =>
-        '授权请求将被推送到您手机上的 Duo 应用。',
-      'An email has been sent containing a link you can use to log in to your account.' =>
-        '已发送一封电子邮件，其中包含可用于登录您账户的链接。',
-      'An email has been sent containing a link you can use to set a password for your account.' =>
-        '已发送一封电子邮件，其中包含可用于为您的账户设置密码的链接。',
-      'An event can not be stopped from recurring once it has been made recurring. You can cancel the event.' =>
-        '一旦事件被设为重复，就无法阻止其重复。您可以取消该事件。',
-      'An exception occurred executing Herald rule %s: Unknown action: "%s". Review the Herald transcripts and correct or disable the problematic rule.' =>
-        '执行 Herald 规则 %s 时发生异常：未知操作："%s"。请查看 Herald 记录并修正或禁用有问题的规则。',
-      'An order vector can only be constructed from a list of strings or another order vector.' =>
-        '排序向量只能从字符串列表或另一个排序向量构建。',
-      'Analyzing or decrypting SSH keys requires the "ssh-keygen" binary, but it is not available in "$PATH". Make it available to work with SSH private keys.' =>
-        '分析或解密 SSH 密钥需要 "ssh-keygen" 二进制文件，但它在 "$PATH" 中不可用。请使其可用以处理 SSH 私钥。',
-      'Another namespace with this name already exists. Each namespace must have a unique name.' =>
-        '已存在同名命名空间。每个命名空间必须具有唯一名称。',
-      'Another process is holding the trigger lock. Usually, this means another copy of the trigger daemon is running elsewhere. Multiple processes are not permitted to update triggers simultaneously.' =>
-        '另一个进程持有触发器锁。通常这意味着另一份触发器守护进程正在别处运行。不允许多个进程同时更新触发器。',
-      'Anyone who can browse to this server will be able to register an account. To add email domain restrictions, configure %s.' =>
-        '任何可以访问此服务器的人都将能够注册账户。要添加电子邮件域限制，请配置 %s。',
-      'Anyone who knows the URI for this export can view all event details as though they were logged in with your account.' =>
-        '任何知道此导出 URI 的人都可以查看所有事件详情，就像使用您的账户登录一样。',
-      'Application "%s" is not a valid application which you have permission to see.' =>
-        '应用 "%s" 不是您有权查看的有效应用。',
-      'Application search engine class "%s" is unknown. Query panels must use a known search engine class.' =>
-        '应用搜索引擎类 "%s" 未知。查询面板必须使用已知的搜索引擎类。',
-      'Application search engines of class "%s" can not be used to build dashboard panels.' =>
-        '类为 "%s" 的应用搜索引擎无法用于构建仪表板面板。',
-      'Apply __patch__ explicitly. This is an advanced feature for development and debugging; you should not normally use this flag. This skips adjustment.' =>
-        '显式应用 __patch__。这是用于开发和调试的高级功能；正常情况下不应使用此标志。这将跳过调整。',
-      'Apply transactions to create a new dashboard panel or edit an existing one.' =>
-        '应用事务以创建新的仪表板面板或编辑现有面板。',
-      'Apply transactions to edit a user. (Users can not be created via the API.)' =>
-        '应用事务以编辑用户。（无法通过 API 创建用户。）',
-      'Arbitrarily large files are now supported. Consult the documentation for configuration details.' =>
-        '现已支持任意大文件。请参阅文档以了解配置详情。',
+      'After executing under these conditions, this event would next execute at %s.' => '在这些条件下执行后，此事件将在 %s 再次执行。',
+      'After installing new PHP extensions, <strong>restart everything for the changes to take effect</strong>. For help with restarting everything, see %s in the documentation.' => '安装新的 PHP 扩展后，<strong>请重启所有服务以使更改生效</strong>。有关重启所有服务的帮助，请参阅文档中的 %s。',
+      'After logging in you should set a password for your account, or link your account to an external account that you can use to authenticate in the future.' => '登录后，您应该为您的账户设置密码，或将您的账户链接到可用于未来身份验证的外部账户。',
+      'After logging in, you can use the "Auth" application to add or restore authentication providers and allow normal logins to succeed.' => '登录后，您可以使用“Auth”应用添加或恢复身份验证提供程序，并允许正常登录成功。',
+      'After rebuilding repository identities, run this command to clear this setup warning:' => '重建仓库身份后，运行此命令以清除此设置警告：',
+      'After rebuilding the index, run this command to clear this setup warning:' => '重建索引后，运行此命令以清除此设置警告：',
+      'After you copy and paste this token, `arc` will complete the certificate install process for you.' => '复制并粘贴此令牌后，`arc` 将为您完成证书安装过程。',
+      'After you download the private key, it will be destroyed. You will not be able to retrieve it if you lose your copy.' => '下载私钥后，它将被销毁。如果您丢失了副本，将无法检索它。',
+      'After you have set a password, you can log in again in the future by going here:' => '设置密码后，您将来可以通过前往此处再次登录：',
+      'After you set up your account, you can log in again in the future by going here:' => '设置账户后，您将来可以通过前往此处再次登录：',
+      'All Differential fields are now managed through the configuration option "%s". Use that option to configure which fields are shown.' => '现在，所有 Differential 字段都通过配置选项 "%s" 进行管理。使用该选项来配置显示哪些字段。',
+      'All of the addresses appear to be valid invite recipients. Confirm the actions below to continue.' => '所有地址似乎都有效的邀请收件人。确认以下操作以继续。',
+      'All unread notifications will be marked as read. You can not undo this action.' => '所有未读通知都将标记为已读。您无法撤销此操作。',
+      'Allow users to attach a mobile authenticator application (like 2FAS, Aegis, FreeOTP, or Bitwarden Authenticator) to their account.' => '允许用户将移动身份验证器应用（如 2FAS、Aegis、FreeOTP 或 Bitwarden Authenticator）关联到其账户。',
+      'Allow users to log in using this provider. If you disable login, users can still use account integrations for this provider.' => '允许用户使用此提供程序登录。如果您禁用登录，用户仍可使用此提供程序的账户集成。',
+      'Allow users to register new accounts using this provider. If you disable registration, users can still use this provider to log in to existing accounts, but will not be able to create new accounts.' => '允许用户使用此提供程序注册新账户。如果您禁用注册，用户仍可使用此提供程序登录现有账户，但将无法创建新账户。',
+      'Allow users to unlink account credentials for this provider from existing accounts. If you disable this, accounts will be permanently bound to provider accounts.' => '允许用户从现有账户中取消关联此提供程序的账户凭据。如果您禁用此功能，账户将永久绑定到提供程序账户。',
+      'Almanac device status "%s" is unrecognized. Valid status values are: %s.' => 'Almanac 设备状态 "%s" 无法识别。有效的状态值为: %s。',
+      'Almanac service, device, network, property and namespace names may not have any segments containing only digits.' => 'Almanac 服务、设备、网络、属性和命名空间的名称不能包含仅由数字组成的段。',
+      'Almanac service, device, property, network and namespace names may not be more than 100 characters long.' => 'Almanac 服务、设备、属性、网络和命名空间的名称不能超过 100 个字符。',
+      'Almanac service, device, property, network and namespace names may not contain hyphens adjacent to periods.' => 'Almanac 服务、设备、属性、网络和命名空间的名称不能包含与句点相邻的连字符。',
+      'Almanac service, device, property, network and namespace names may not contain multiple consecutive hyphens.' => 'Almanac 服务、设备、属性、网络和命名空间的名称不能包含多个连续的连字符。',
+      'Almanac service, device, property, network and namespace names may not contain multiple consecutive periods.' => 'Almanac 服务、设备、属性、网络和命名空间的名称不能包含多个连续的句点。',
+      'Almanac service, device, property, network and namespace names may only contain lowercase letters, numbers, hyphens, and periods.' => 'Almanac 服务、设备、属性、网络和命名空间的名称只能包含小写字母、数字、连字符和句点。',
+      'Almanac service, device, property, network and namespace names must be at least 3 characters long.' => 'Almanac 服务、设备、属性、网络和命名空间的名称必须至少为 3 个字符。',
+      'Almanac service, device, property, network and namespace names must begin and end with a letter or number.' => 'Almanac 服务、设备、属性、网络和命名空间的名称必须以字母或数字开头和结尾。',
+      'Although this may be the result of a misconfiguration or operational error, this is also the state you reach if a meteor recently obliterated a datacenter.' => '虽然这可能是配置错误或操作错误的结果，但如果最近有流星摧毁了数据中心，您也会达到此状态。',
+      'An %s already exists. Dispose of the previous guard before creating a new one.' => '%s 已存在。在创建新实例之前，请先释放之前的 guard。',
+      'An %s is being created in a context which permits unguarded writes unconditionally. This is not allowed and indicates a serious error.' => '正在创建一个 %s，其上下文无条件允许未受保护的写入。这是不允许的，并表示存在严重错误。',
+      'An alternate resource map is no longer supported. Instead, use multiple maps. See T4222.' => '不再支持备用资源映射。请改用多个映射。请参阅 T4222。',
+      'An authorization request will be pushed to the Duo application on your phone.' => '授权请求将被推送到您手机上的 Duo 应用。',
+      'An email has been sent containing a link you can use to log in to your account.' => '已发送一封电子邮件，其中包含可用于登录您账户的链接。',
+      'An email has been sent containing a link you can use to set a password for your account.' => '已发送一封电子邮件，其中包含可用于为您的账户设置密码的链接。',
+      'An event can not be stopped from recurring once it has been made recurring. You can cancel the event.' => '一旦事件被设为重复，就无法阻止其重复。您可以取消该事件。',
+      'An exception occurred executing Herald rule %s: Unknown action: "%s". Review the Herald transcripts and correct or disable the problematic rule.' => '执行 Herald 规则 %s 时发生异常：未知操作："%s"。请查看 Herald 记录并修正或禁用有问题的规则。',
+      'An order vector can only be constructed from a list of strings or another order vector.' => '排序向量只能从字符串列表或另一个排序向量构建。',
+      'Analyzing or decrypting SSH keys requires the "ssh-keygen" binary, but it is not available in "$PATH". Make it available to work with SSH private keys.' => '分析或解密 SSH 密钥需要 "ssh-keygen" 二进制文件，但它在 "$PATH" 中不可用。请使其可用以处理 SSH 私钥。',
+      'Another namespace with this name already exists. Each namespace must have a unique name.' => '已存在同名命名空间。每个命名空间必须具有唯一名称。',
+      'Another process is holding the trigger lock. Usually, this means another copy of the trigger daemon is running elsewhere. Multiple processes are not permitted to update triggers simultaneously.' => '另一个进程持有触发器锁。通常这意味着另一份触发器守护进程正在别处运行。不允许多个进程同时更新触发器。',
+      'Anyone who can browse to this server will be able to register an account. To add email domain restrictions, configure %s.' => '任何可以访问此服务器的人都将能够注册账户。要添加电子邮件域限制，请配置 %s。',
+      'Anyone who knows the URI for this export can view all event details as though they were logged in with your account.' => '任何知道此导出 URI 的人都可以查看所有事件详情，就像使用您的账户登录一样。',
+      'Application "%s" is not a valid application which you have permission to see.' => '应用 "%s" 不是您有权查看的有效应用。',
+      'Application search engine class "%s" is unknown. Query panels must use a known search engine class.' => '应用搜索引擎类 "%s" 未知。查询面板必须使用已知的搜索引擎类。',
+      'Application search engines of class "%s" can not be used to build dashboard panels.' => '类为 "%s" 的应用搜索引擎无法用于构建仪表板面板。',
+      'Apply __patch__ explicitly. This is an advanced feature for development and debugging; you should not normally use this flag. This skips adjustment.' => '显式应用 __patch__。这是用于开发和调试的高级功能；正常情况下不应使用此标志。这将跳过调整。',
+      'Apply transactions to create a new dashboard panel or edit an existing one.' => '应用事务以创建新的仪表板面板或编辑现有面板。',
+      'Apply transactions to edit a user. (Users can not be created via the API.)' => '应用事务以编辑用户。（无法通过 API 创建用户。）',
+      'Arbitrarily large files are now supported. Consult the documentation for configuration details.' => '现已支持任意大文件。请参阅文档以了解配置详情。',
       'Are you absolutely certain you want to disable the Home application?' => '您确定要禁用 Home 应用吗？',
-      'Are you completely sure you really want to permanently destroy all storage for %s data on host "%s"? This operation can not be undone and your data will not be recoverable if you proceed.' =>
-        '您确定要永久销毁主机 "%s" 上 %s 数据的所有存储吗？此操作无法撤销，如果继续，您的数据将无法恢复。',
-      'Are you sure you want to delete this address? You will no longer be able to use it to login.' =>
-        '您确定要删除此地址吗？您将无法再使用它登录。',
-      'Are you sure you want to hide this column? It will no longer appear on the workboard.' =>
-        '您确定要隐藏此列吗？它将不再显示在工作板上。',
+      'Are you completely sure you really want to permanently destroy all storage for %s data on host "%s"? This operation can not be undone and your data will not be recoverable if you proceed.' => '您确定要永久销毁主机 "%s" 上 %s 数据的所有存储吗？此操作无法撤销，如果继续，您的数据将无法恢复。',
+      'Are you sure you want to delete this address? You will no longer be able to use it to login.' => '您确定要删除此地址吗？您将无法再使用它登录。',
+      'Are you sure you want to hide this column? It will no longer appear on the workboard.' => '您确定要隐藏此列吗？它将不再显示在工作板上。',
       'Argument "%s" (in position "%s") to function "%s" is invalid: %s' => '函数 "%s" 的参数 "%s"（位于位置 "%s"）无效：%s',
       'Argument "%s" is ambiguous, and matches multiple generators: %s.' => '参数 "%s" 存在歧义，匹配多个生成器：%s。',
-      'As an Administrator, you can review status information from the %s control panel. This may provide more information about the current state of affairs.' =>
-        '作为管理员，您可以从 %s 控制面板查看状态信息。这可能会提供有关当前状况的更多信息。',
-      'Ask someone to give you access to a space so you can view and create objects.' =>
-        '请让他人授予您空间的访问权限，以便您可以查看和创建对象。',
-      'Assign yourself as the owner of a task. To assign another user, see `%s`.' =>
-        '将自己分配为任务所有者。要分配其他用户，请参阅 `%s`。',
-      'Attach a mobile authenticator application (like 2FAS, Aegis, FreeOTP, Bitwarden Authenticator, Google Authenticator, or Authy) to your account. When you need to authenticate, you will enter a code shown on your phone.' =>
-        '将移动身份验证器应用（如 2FAS、Aegis、FreeOTP、Bitwarden Authenticator、Google Authenticator 或 Authy）关联到您的账户。当您需要身份验证时，将输入手机上显示的代码。',
+      'As an Administrator, you can review status information from the %s control panel. This may provide more information about the current state of affairs.' => '作为管理员，您可以从 %s 控制面板查看状态信息。这可能会提供有关当前状况的更多信息。',
+      'Ask someone to give you access to a space so you can view and create objects.' => '请让他人授予您空间的访问权限，以便您可以查看和创建对象。',
+      'Assign yourself as the owner of a task. To assign another user, see `%s`.' => '将自己分配为任务所有者。要分配其他用户，请参阅 `%s`。',
+      'Attach a mobile authenticator application (like 2FAS, Aegis, FreeOTP, Bitwarden Authenticator, Google Authenticator, or Authy) to your account. When you need to authenticate, you will enter a code shown on your phone.' => '将移动身份验证器应用（如 2FAS、Aegis、FreeOTP、Bitwarden Authenticator、Google Authenticator 或 Authy）关联到您的账户。当您需要身份验证时，将输入手机上显示的代码。',
       'Attempting to add more metadata after metadata has been locked.' => '尝试在元数据已锁定后添加更多元数据。',
-      'Attempting to apply a range constraint to a field with index type "%s", expected type "%s".' =>
-        '尝试将范围约束应用于具有索引类型 "%s" 的字段，期望类型为 "%s"。',
-      'Attempting to apply a transaction (of class "%s", with type "%s") which has not been constructed correctly: %s' =>
-        '尝试应用未正确构建的事务（类为 "%s"，类型为 "%s"）：%s',
-      'Attempting to attach capability ("%s") for object ("%s") to handle, but this handle (of type "%s") can not have capabilities.' =>
-        '尝试为对象 ("%s") 附加能力 ("%s") 到句柄，但此句柄（类型为 "%s"）无法拥有能力。',
-      'Attempting to build function "%s" from dictionary, but that function is unknown. Known functions are: %s.' =>
-        '尝试从字典构建函数 "%s"，但该函数未知。已知函数为：%s。',
-      'Attempting to compare a password saved with the "%s" hash. No such hasher is known.' =>
-        '尝试比较使用 "%s" 哈希保存的密码。未知的哈希器。',
-      'Attempting to compare a password saved with the "%s" hash. The hasher exists, but is not currently usable. %s' =>
-        '尝试比较使用 "%s" 哈希保存的密码。哈希器存在，但当前不可用。%s',
-      'Attempting to construct a query using a non-utf8 string when utf8 is expected. Use the `%%B` conversion to escape binary strings data.' =>
-        '尝试在期望 utf8 时使用非 utf8 字符串构建查询。使用 `%%B` 转换来转义二进制字符串数据。',
-      'Attempting to emit a response with an unsafe source ("%s") in the Content-Security-Policy header.' =>
-        '尝试在 Content-Security-Policy 标头中使用不安全来源 ("%s") 发出响应。',
-      'Attempting to issue a write query on a read-only connection (to database "%s")!' =>
-        '尝试在只读连接（连接到数据库 "%s"）上执行写入查询！',
-      'Attempting to load PHID "%s", but it was not requested by any handle list.' =>
-        '尝试加载 PHID "%s"，但没有任何句柄列表请求它。',
-      'Attempting to test capability "%s" for handle of type "%s", but this capability has not been attached.' =>
-        '尝试测试类型为 "%s" 的句柄的能力 "%s"，但该能力尚未附加。',
-      'Attempting to update comment content state, but request has no content state.' =>
-        '尝试更新评论内容状态，但请求没有内容状态。',
-      'Attempting to upgrade password hasher, but the password for the upgrade is not the stored credential!' =>
-        '尝试升级密码哈希器，但用于升级的密码不是存储的凭据！',
-      'Attempting to use a credential ("%s") but the credential secret has been destroyed!' =>
-        '尝试使用凭据 ("%s")，但该凭据密钥已被销毁！',
-      'Attempting to use a panel in a way that requires an implementation, but the panel implementation ("%s") is unknown.' =>
-        '尝试以需要实现的方式使用面板，但面板实现 ("%s") 未知。',
-      'Authentication configuration is currently unlocked. Once you finish configuring authentication, you should lock it.' =>
-        '身份验证配置当前已解锁。完成身份验证配置后，应将其锁定。',
-      'Authentication provider ("%s") encountered an error while attempting to log in. %s' =>
-        '身份验证提供程序 ("%s") 在尝试登录时遇到错误。%s',
-      'Authentication provider (of class "%s") is attempting to load or create an external account, but provided a list of account identifiers which map to more than one account: %s.' =>
-        '身份验证提供程序（类为 "%s"）正在尝试加载或创建外部账户，但提供的账户标识符列表映射到多个账户：%s。',
-      'Authentication provider (of class "%s") is attempting to load or create an external account, but provided no account identifiers.' =>
-        '身份验证提供程序（类为 "%s"）正在尝试加载或创建外部账户，但未提供账户标识符。',
-      'Authentication provider configuration is locked, and can not be changed without being unlocked.' =>
-        '身份验证提供程序配置已锁定，未经解锁无法更改。',
-      'Authentication providers allow users to register accounts and log in.' =>
-        '认证提供方允许用户注册账户并登录。',
-      'Automatically log in with this provider if it is the only available provider.' =>
-        '如果这是唯一可用的提供程序，则自动登录。',
-      'Autoscale pool "%s" does not have enough free memory to scale up (%s free of %s reserved).' =>
-        '自动扩缩池 "%s" 没有足够的可用内存进行扩容（%s 可用，共保留 %s）。',
-      'Autoscale pool "%s" has not been busy long enough to scale up (busy for %s of %s seconds).' =>
-        '自动扩缩池 "%s" 繁忙时间不足以进行扩容（在 %s 秒内繁忙 %s 秒）。',
+      'Attempting to apply a range constraint to a field with index type "%s", expected type "%s".' => '尝试将范围约束应用于具有索引类型 "%s" 的字段，期望类型为 "%s"。',
+      'Attempting to apply a transaction (of class "%s", with type "%s") which has not been constructed correctly: %s' => '尝试应用未正确构建的事务（类为 "%s"，类型为 "%s"）：%s',
+      'Attempting to attach capability ("%s") for object ("%s") to handle, but this handle (of type "%s") can not have capabilities.' => '尝试为对象 ("%s") 附加能力 ("%s") 到句柄，但此句柄（类型为 "%s"）无法拥有能力。',
+      'Attempting to build function "%s" from dictionary, but that function is unknown. Known functions are: %s.' => '尝试从字典构建函数 "%s"，但该函数未知。已知函数为：%s。',
+      'Attempting to compare a password saved with the "%s" hash. No such hasher is known.' => '尝试比较使用 "%s" 哈希保存的密码。未知的哈希器。',
+      'Attempting to compare a password saved with the "%s" hash. The hasher exists, but is not currently usable. %s' => '尝试比较使用 "%s" 哈希保存的密码。哈希器存在，但当前不可用。%s',
+      'Attempting to construct a query using a non-utf8 string when utf8 is expected. Use the `%%B` conversion to escape binary strings data.' => '尝试在期望 utf8 时使用非 utf8 字符串构建查询。使用 `%%B` 转换来转义二进制字符串数据。',
+      'Attempting to emit a response with an unsafe source ("%s") in the Content-Security-Policy header.' => '尝试在 Content-Security-Policy 标头中使用不安全来源 ("%s") 发出响应。',
+      'Attempting to issue a write query on a read-only connection (to database "%s")!' => '尝试在只读连接（连接到数据库 "%s"）上执行写入查询！',
+      'Attempting to load PHID "%s", but it was not requested by any handle list.' => '尝试加载 PHID "%s"，但没有任何句柄列表请求它。',
+      'Attempting to test capability "%s" for handle of type "%s", but this capability has not been attached.' => '尝试测试类型为 "%s" 的句柄的能力 "%s"，但该能力尚未附加。',
+      'Attempting to update comment content state, but request has no content state.' => '尝试更新评论内容状态，但请求没有内容状态。',
+      'Attempting to upgrade password hasher, but the password for the upgrade is not the stored credential!' => '尝试升级密码哈希器，但用于升级的密码不是存储的凭据！',
+      'Attempting to use a credential ("%s") but the credential secret has been destroyed!' => '尝试使用凭据 ("%s")，但该凭据密钥已被销毁！',
+      'Attempting to use a panel in a way that requires an implementation, but the panel implementation ("%s") is unknown.' => '尝试以需要实现的方式使用面板，但面板实现 ("%s") 未知。',
+      'Authentication configuration is currently unlocked. Once you finish configuring authentication, you should lock it.' => '身份验证配置当前已解锁。完成身份验证配置后，应将其锁定。',
+      'Authentication provider ("%s") encountered an error while attempting to log in. %s' => '身份验证提供程序 ("%s") 在尝试登录时遇到错误。%s',
+      'Authentication provider (of class "%s") is attempting to load or create an external account, but provided a list of account identifiers which map to more than one account: %s.' => '身份验证提供程序（类为 "%s"）正在尝试加载或创建外部账户，但提供的账户标识符列表映射到多个账户：%s。',
+      'Authentication provider (of class "%s") is attempting to load or create an external account, but provided no account identifiers.' => '身份验证提供程序（类为 "%s"）正在尝试加载或创建外部账户，但未提供账户标识符。',
+      'Authentication provider configuration is locked, and can not be changed without being unlocked.' => '身份验证提供程序配置已锁定，未经解锁无法更改。',
+      'Authentication providers allow users to register accounts and log in.' => '认证提供方允许用户注册账户并登录。',
+      'Automatically log in with this provider if it is the only available provider.' => '如果这是唯一可用的提供程序，则自动登录。',
+      'Autoscale pool "%s" does not have enough free memory to scale up (%s free of %s reserved).' => '自动扩缩池 "%s" 没有足够的可用内存进行扩容（%s 可用，共保留 %s）。',
+      'Autoscale pool "%s" has not been busy long enough to scale up (busy for %s of %s seconds).' => '自动扩缩池 "%s" 繁忙时间不足以进行扩容（在 %s 秒内繁忙 %s 秒）。',
       'Available search engines are now automatically discovered at runtime.' => '可用的搜索引擎现在会在运行时自动发现。',
-      'Badges let you award and distinguish special users throughout your install.' =>
-        '徽章允许您在您的安装中奖励和区分特殊用户。',
-      'Because the algorithm implementation is missing, your password can not be used or updated.' =>
-        '由于算法实现缺失，您的密码无法使用或更新。',
-      'Before running storage upgrades, you should take down the web interface and stop any running daemons (you can disable this warning with %s).' =>
-        '在运行存储升级之前，您应关闭 Web 界面并停止任何正在运行的守护进程（您可以使用 %s 禁用此警告）。',
-      'Before you can set up or use LDAP, you need to install the PHP LDAP extension. It is not currently installed, so PHP can not talk to LDAP. Usually you can install it with `%s`, `%s`, or a similar package manager command.' =>
-        '在设置或使用 LDAP 之前，您需要安装 PHP LDAP 扩展。它当前未安装，因此 PHP 无法与 LDAP 通信。通常您可以使用 `%s`、`%s` 或类似的包管理器命令进行安装。',
+      'Badges let you award and distinguish special users throughout your install.' => '徽章允许您在您的安装中奖励和区分特殊用户。',
+      'Because the algorithm implementation is missing, your password can not be used or updated.' => '由于算法实现缺失，您的密码无法使用或更新。',
+      'Before running storage upgrades, you should take down the web interface and stop any running daemons (you can disable this warning with %s).' => '在运行存储升级之前，您应关闭 Web 界面并停止任何正在运行的守护进程（您可以使用 %s 禁用此警告）。',
+      'Before you can set up or use LDAP, you need to install the PHP LDAP extension. It is not currently installed, so PHP can not talk to LDAP. Usually you can install it with `%s`, `%s`, or a similar package manager command.' => '在设置或使用 LDAP 之前，您需要安装 PHP LDAP 扩展。它当前未安装，因此 PHP 无法与 LDAP 通信。通常您可以使用 `%s`、`%s` 或类似的包管理器命令进行安装。',
       'Blacklist subnets to prevent user-initiated outbound requests.' => '将子网加入黑名单以防止用户发起的出站请求。',
-      'Build storage patch-by-patch from scratch, even if it could be loaded from the quickstart template.' =>
-        '从头开始逐补丁构建存储，即使可以从快速入门模板加载。',
-      'Builtin item ("%s") specifies a bad item key ("%s"); there is no corresponding item implementation available.' =>
-        '内置项 ("%s") 指定了错误的项键 ("%s")；没有可用的对应项实现。',
-      'By default, **%s** will free all task leases held by the daemons. With this flag, this step will be skipped.' =>
-        '默认情况下，**%s** 将释放守护进程持有的所有任务租约。使用此标志将跳过此步骤。',
-      'By default, this software links object names in Remarkup fields to the corresponding object. This regex can be used to modify this behavior; object names that match this regex will not be linked.' =>
-        '默认情况下，此软件会将 Remarkup 字段中的对象名称链接到对应的对象。此正则表达式可用于修改此行为；匹配该正则表达式的对象名称将不会被链接。',
+      'Build storage patch-by-patch from scratch, even if it could be loaded from the quickstart template.' => '从头开始逐补丁构建存储，即使可以从快速入门模板加载。',
+      'Builtin item ("%s") specifies a bad item key ("%s"); there is no corresponding item implementation available.' => '内置项 ("%s") 指定了错误的项键 ("%s")；没有可用的对应项实现。',
+      'By default, **%s** will free all task leases held by the daemons. With this flag, this step will be skipped.' => '默认情况下，**%s** 将释放守护进程持有的所有任务租约。使用此标志将跳过此步骤。',
+      'By default, this software links object names in Remarkup fields to the corresponding object. This regex can be used to modify this behavior; object names that match this regex will not be linked.' => '默认情况下，此软件会将 Remarkup 字段中的对象名称链接到对应的对象。此正则表达式可用于修改此行为；匹配该正则表达式的对象名称将不会被链接。',
       'Cache engine extension "%s" did not return a list of linked objects.' => '缓存引擎扩展 "%s" 未返回链接对象的列表。',
-      'Cache engine extension "%s" returned object (of class "%s") with no PHID.' =>
-        '缓存引擎扩展 "%s" 返回了没有 PHID 的对象（类为 "%s"）。',
+      'Cache engine extension "%s" returned object (of class "%s") with no PHID.' => '缓存引擎扩展 "%s" 返回了没有 PHID 的对象（类为 "%s"）。',
       'Cache purger "%s" is not recognized. Available caches are: %s.' => '无法识别缓存清理器 "%s"。可用的缓存为：%s。',
-      'Cache the PKCS8 format of a public key. When developing on OSX, this can be used to work around issues with ssh-keygen. Use `%s` to generate a PKCS8 key to feed to this command.' =>
-        '缓存公钥的 PKCS8 格式。在 OSX 上开发时，这可用于解决 ssh-keygen 的问题。使用 `%s` 生成要提供给此命令的 PKCS8 密钥。',
+      'Cache the PKCS8 format of a public key. When developing on OSX, this can be used to work around issues with ssh-keygen. Use `%s` to generate a PKCS8 key to feed to this command.' => '缓存公钥的 PKCS8 格式。在 OSX 上开发时，这可用于解决 ssh-keygen 的问题。使用 `%s` 生成要提供给此命令的 PKCS8 密钥。',
       'Call %s before rendering tokenizers. Use %s on %s to do this easily.' => '在渲染分词器之前调用 %s。在 %s 上使用 %s 可轻松完成此操作。',
-      'Call to "mysqli->query()" failed, but did not set an error code or emit an error message.' =>
-        '调用 "mysqli->query()" 失败，但未设置错误代码或发出错误消息。',
-      'Call to method newQueryObject() did not return an object of class "%s".' =>
-        '方法 newQueryObject() 的调用未返回 "%s" 类的对象。',
-      'Call to setShouldRequireMFA() is too late: this Editor has already checked for MFA requirements.' =>
-        '调用 setShouldRequireMFA() 太晚：此编辑器已检查 MFA 要求。',
-      'Caller is trying to "getRawRowProperty()" with key "%s", but this cursor has no raw row.' =>
-        '调用者正尝试使用键 "%s" 调用 "getRawRowProperty()"，但此游标没有原始行。',
-      'Caller is trying to access raw row property "%s", but the row does not have this property.' =>
-        '调用者正尝试访问原始行属性 "%s"，但该行没有此属性。',
-      'Can not create document because the parent document with slug %s does not exist!' =>
-        '无法创建文档，因为具有别名 %s 的父文档不存在！',
-      'Can not get garbage epoch for a collector with an automatic collection policy.' =>
-        '无法为具有自动收集策略的收集器获取垃圾时间戳。',
-      'Can not get garbage epoch for a collector with an indefinite retention policy.' =>
-        '无法为具有无限期保留策略的收集器获取垃圾时间戳。',
+      'Call to "mysqli->query()" failed, but did not set an error code or emit an error message.' => '调用 "mysqli->query()" 失败，但未设置错误代码或发出错误消息。',
+      'Call to method newQueryObject() did not return an object of class "%s".' => '方法 newQueryObject() 的调用未返回 "%s" 类的对象。',
+      'Call to setShouldRequireMFA() is too late: this Editor has already checked for MFA requirements.' => '调用 setShouldRequireMFA() 太晚：此编辑器已检查 MFA 要求。',
+      'Caller is trying to "getRawRowProperty()" with key "%s", but this cursor has no raw row.' => '调用者正尝试使用键 "%s" 调用 "getRawRowProperty()"，但此游标没有原始行。',
+      'Caller is trying to access raw row property "%s", but the row does not have this property.' => '调用者正尝试访问原始行属性 "%s"，但该行没有此属性。',
+      'Can not create document because the parent document with slug %s does not exist!' => '无法创建文档，因为具有别名 %s 的父文档不存在！',
+      'Can not get garbage epoch for a collector with an automatic collection policy.' => '无法为具有自动收集策略的收集器获取垃圾时间戳。',
+      'Can not get garbage epoch for a collector with an indefinite retention policy.' => '无法为具有无限期保留策略的收集器获取垃圾时间戳。',
       'Can not get retention policy of collector with automatic policy.' => '无法获取具有自动策略的收集器的保留策略。',
-      'Can not move document because the parent document with slug %s does not exist!' =>
-        '无法移动文档，因为具有别名 %s 的父文档不存在！',
-      'Cancel selected tasks. The work these tasks represent will never be performed.' =>
-        '取消选定的任务。这些任务所代表的工作将永远不会执行。',
-      'Cancel this event and all events in the series which occur on or after %s.' =>
-        '取消此事件以及系列中发生在 %s 或之后的所有事件。',
-      'Capability "%s" for user "%s" on object "%s" is being resolved, but was never queued with "addCapability()".' =>
-        '正在解析对象 "%s" 上用户 "%s" 的能力 "%s"，但从未使用 "addCapability()" 排队。',
+      'Can not move document because the parent document with slug %s does not exist!' => '无法移动文档，因为具有别名 %s 的父文档不存在！',
+      'Cancel selected tasks. The work these tasks represent will never be performed.' => '取消选定的任务。这些任务所代表的工作将永远不会执行。',
+      'Cancel this event and all events in the series which occur on or after %s.' => '取消此事件以及系列中发生在 %s 或之后的所有事件。',
+      'Capability "%s" for user "%s" on object "%s" is being resolved, but was never queued with "addCapability()".' => '正在解析对象 "%s" 上用户 "%s" 的能力 "%s"，但从未使用 "addCapability()" 排队。',
       'Cat tails are flexible because they contain thousands of tiny bones.' => '猫尾巴很灵活，因为它们包含数千块微小的骨头。',
-      'Cats have a tail, two feet, between one and three ears, and two other feet.' =>
-        '猫有一条尾巴、两只脚、一到三只耳朵，还有另外两只脚。',
-      'Cats must eat a diet rich in fish to replace the tiny bones in their tails.' =>
-        '猫必须食用富含鱼的饮食，以替换尾巴中的微小骨头。',
+      'Cats have a tail, two feet, between one and three ears, and two other feet.' => '猫有一条尾巴、两只脚、一到三只耳朵，还有另外两只脚。',
+      'Cats must eat a diet rich in fish to replace the tiny bones in their tails.' => '猫必须食用富含鱼的饮食，以替换尾巴中的微小骨头。',
       'Cats use a special type of magnetism to help them land on their feet.' => '猫使用一种特殊的磁力来帮助它们用脚着陆。',
-      'Cats will often bring you their prey because they feel sorry for your inability to hunt.' =>
-        '猫经常会把猎物带给你，因为它们对你无法狩猎感到遗憾。',
-      'Cats with high self-esteem seek out high perches to launch their attacks. Watch out!' =>
-        '自尊心强的猫会寻找高处栖息以发动攻击。小心！',
-      'Change how forms in other applications are created and edited. Advanced!' =>
-        '更改其他应用程序中表单的创建和编辑方式。高级！',
-      'Change the edit policy of an object so that the specified user may edit it.' =>
-        '更改对象的编辑策略，以便指定用户可以编辑它。',
-      'Change the name and add your company logo, just to give it a little extra polish.' =>
-        '更改名称并添加公司徽标，只是为了给它增添一点额外的润色。',
-      'Change the priority of selected tasks, causing them to execute before or after other tasks.' =>
-        '更改选定任务的优先级，使其在其他任务之前或之后执行。',
-      'Change the view policy of an object so that the specified user may view it.' =>
-        '更改对象的查看策略，以便指定用户可以查看它。',
-      'Change where this application redirects users to during OAuth handshakes.' =>
-        '更改此应用程序在 OAuth 握手期间将用户重定向到的位置。',
-      'Changing your password will terminate any other outstanding login sessions.' =>
-        '更改密码将终止任何其他未完成的登录会话。',
-      'Chart configurations are not mutable. You can not update or overwrite an existing chart configuration.' =>
-        '图表配置不可变。您无法更新或覆盖现有的图表配置。',
-      'Chart function "%s" emitted a repeatable argument ("%s"), then another argument ("%s"). No arguments are permitted after a repeatable argument.' =>
-        '图表函数 "%s" 发出了可重复参数 ("%s")，然后又发出了另一个参数 ("%s")。可重复参数之后不允许有任何参数。',
-      'Chart function "%s" emitted an argument specification ("%s") with no type. Each argument specification must have a valid type.' =>
-        '图表函数 "%s" 发出了没有类型的参数规范 ("%s")。每个参数规范必须具有有效类型。',
-      'Chart function "%s" emitted an argument specification with no argument name. Argument specifications must have unique names.' =>
-        '图表函数 "%s" 发出了没有参数名称的参数规范。参数规范必须具有唯一名称。',
-      'Chart function "%s" emitted multiple argument specifications with the same name ("%s"). Each argument specification must have a unique name.' =>
-        '图表函数 "%s" 发出了多个具有相同名称 ("%s") 的参数规范。每个参数规范必须具有唯一名称。',
-      'Chart function "%s" emitted multiple repeatable argument specifications ("%s" and "%s"). Only one argument may be repeatable and it must be the last argument.' =>
-        '图表函数 "%s" 发出了多个可重复参数规范 ("%s" 和 "%s")。只能有一个参数可重复，且必须是最后一个参数。',
+      'Cats will often bring you their prey because they feel sorry for your inability to hunt.' => '猫经常会把猎物带给你，因为它们对你无法狩猎感到遗憾。',
+      'Cats with high self-esteem seek out high perches to launch their attacks. Watch out!' => '自尊心强的猫会寻找高处栖息以发动攻击。小心！',
+      'Change how forms in other applications are created and edited. Advanced!' => '更改其他应用程序中表单的创建和编辑方式。高级！',
+      'Change the edit policy of an object so that the specified user may edit it.' => '更改对象的编辑策略，以便指定用户可以编辑它。',
+      'Change the name and add your company logo, just to give it a little extra polish.' => '更改名称并添加公司徽标，只是为了给它增添一点额外的润色。',
+      'Change the priority of selected tasks, causing them to execute before or after other tasks.' => '更改选定任务的优先级，使其在其他任务之前或之后执行。',
+      'Change the view policy of an object so that the specified user may view it.' => '更改对象的查看策略，以便指定用户可以查看它。',
+      'Change where this application redirects users to during OAuth handshakes.' => '更改此应用程序在 OAuth 握手期间将用户重定向到的位置。',
+      'Changing your password will terminate any other outstanding login sessions.' => '更改密码将终止任何其他未完成的登录会话。',
+      'Chart configurations are not mutable. You can not update or overwrite an existing chart configuration.' => '图表配置不可变。您无法更新或覆盖现有的图表配置。',
+      'Chart function "%s" emitted a repeatable argument ("%s"), then another argument ("%s"). No arguments are permitted after a repeatable argument.' => '图表函数 "%s" 发出了可重复参数 ("%s")，然后又发出了另一个参数 ("%s")。可重复参数之后不允许有任何参数。',
+      'Chart function "%s" emitted an argument specification ("%s") with no type. Each argument specification must have a valid type.' => '图表函数 "%s" 发出了没有类型的参数规范 ("%s")。每个参数规范必须具有有效类型。',
+      'Chart function "%s" emitted an argument specification with no argument name. Argument specifications must have unique names.' => '图表函数 "%s" 发出了没有参数名称的参数规范。参数规范必须具有唯一名称。',
+      'Chart function "%s" emitted multiple argument specifications with the same name ("%s"). Each argument specification must have a unique name.' => '图表函数 "%s" 发出了多个具有相同名称 ("%s") 的参数规范。每个参数规范必须具有唯一名称。',
+      'Chart function "%s" emitted multiple repeatable argument specifications ("%s" and "%s"). Only one argument may be repeatable and it must be the last argument.' => '图表函数 "%s" 发出了多个可重复参数规范 ("%s" 和 "%s")。只能有一个参数可重复，且必须是最后一个参数。',
       'Chart function argument type "%s" is unknown. Valid types are: %s.' => '图表函数参数类型 "%s" 未知。有效类型为：%s。',
-      'Chart with this key does not exist. A chart must be specified by its %d character long key.' =>
-        '具有此键的图表不存在。必须通过其 %d 字符长的键来指定图表。',
-      'Choose a default priority for newly created tasks. You can review and adjust available priorities by using the %s configuration option. The default value (`90`) corresponds to the default "Needs Triage" priority.' =>
-        '为新建任务选择默认优先级。您可以使用 %s 配置选项查看和调整可用优先级。默认值 (`90`) 对应默认的"需要分类"优先级。',
+      'Chart with this key does not exist. A chart must be specified by its %d character long key.' => '具有此键的图表不存在。必须通过其 %d 字符长的键来指定图表。',
+      'Choose a default priority for newly created tasks. You can review and adjust available priorities by using the %s configuration option. The default value (`90`) corresponds to the default "Needs Triage" priority.' => '为新建任务选择默认优先级。您可以使用 %s 配置选项查看和调整可用优先级。默认值 (`90`) 对应默认的"需要分类"优先级。',
       'Choose a project or a milestone to import columns from:' => '选择要导入列的项目或里程碑：',
-      'Choose the object this rule will act on (for example, enter `rX` to act on the `rX` repository, or `#project` to act on a project).' =>
-        '选择此规则将作用的对象（例如，输入 `rX` 以作用于 `rX` 仓库，或输入 `#project` 以作用于项目）。',
-      'Choose the type of user account to create. For a detailed explanation of user account types, see [[ %s | User Guide: Account Roles ]].' =>
-        '选择要创建的用户账户类型。有关用户账户类型的详细说明，请参见 [[ %s | User Guide: Account Roles ]]。',
-      'Choose which capabilities to unlock with "--view", "--edit", or "--owner".' =>
-        '选择使用 "--view"、"--edit" 或 "--owner" 解锁哪些能力。',
-      'Choose which type or types of test data you want to generate, or select "%s".' =>
-        '选择要生成的测试数据类型，或选择 "%s"。',
-      'Client/server version mismatch. Upgrade your server or downgrade your client.' =>
-        '客户端/服务器版本不匹配。请升级服务器或降级客户端。',
-      'Close a task. This changes the task status to the default closed status. For a more powerful (but less concise) way to change task statuses, see `%s`.' =>
-        '关闭任务。这会将任务状态更改为默认的关闭状态。有关更改任务状态的更强大（但不够简洁）的方法，请参见 `%s`。',
-      'Collectors with custom policies are highlighted. Use %s to change retention policies.' =>
-        '具有自定义策略的收集器已高亮显示。使用 %s 更改保留策略。',
-      'Collided mid-air when generating builtin file "%s", but then failed to load the object we collided with.' =>
-        '在生成内置文件 "%s" 时在空中发生碰撞，但随后未能加载我们与之碰撞的对象。',
-      'Color key "%s" is not a valid color key. The supported color keys are: %s.' =>
-        '颜色键 "%s" 不是有效的颜色键。支持的颜色键为：%s。',
+      'Choose the object this rule will act on (for example, enter `rX` to act on the `rX` repository, or `#project` to act on a project).' => '选择此规则将作用的对象（例如，输入 `rX` 以作用于 `rX` 仓库，或输入 `#project` 以作用于项目）。',
+      'Choose the type of user account to create. For a detailed explanation of user account types, see [[ %s | User Guide: Account Roles ]].' => '选择要创建的用户账户类型。有关用户账户类型的详细说明，请参见 [[ %s | User Guide: Account Roles ]]。',
+      'Choose which capabilities to unlock with "--view", "--edit", or "--owner".' => '选择使用 "--view"、"--edit" 或 "--owner" 解锁哪些能力。',
+      'Choose which type or types of test data you want to generate, or select "%s".' => '选择要生成的测试数据类型，或选择 "%s"。',
+      'Client/server version mismatch. Upgrade your server or downgrade your client.' => '客户端/服务器版本不匹配。请升级服务器或降级客户端。',
+      'Close a task. This changes the task status to the default closed status. For a more powerful (but less concise) way to change task statuses, see `%s`.' => '关闭任务。这会将任务状态更改为默认的关闭状态。有关更改任务状态的更强大（但不够简洁）的方法，请参见 `%s`。',
+      'Collectors with custom policies are highlighted. Use %s to change retention policies.' => '具有自定义策略的收集器已高亮显示。使用 %s 更改保留策略。',
+      'Collided mid-air when generating builtin file "%s", but then failed to load the object we collided with.' => '在生成内置文件 "%s" 时在空中发生碰撞，但随后未能加载我们与之碰撞的对象。',
+      'Color key "%s" is not a valid color key. The supported color keys are: %s.' => '颜色键 "%s" 不是有效的颜色键。支持的颜色键为：%s。',
       'Column "%s" has null value, but does not specify a null behavior.' => '列 "%s" 具有空值，但未指定空值行为。',
-      'Column move transaction specifies column PHID "%s", but there is no corresponding column with this PHID.' =>
-        '列移动事务指定了列 PHID "%s"，但没有与此 PHID 对应的列。',
+      'Column move transaction specifies column PHID "%s", but there is no corresponding column with this PHID.' => '列移动事务指定了列 PHID "%s"，但没有与此 PHID 对应的列。',
       'Column point limit must either be empty or a nonnegative integer.' => '列点数限制必须为空或非负整数。',
-      'Comments are visible to users who can see the object which was commented on. Comments can be edited by their authors.' =>
-        '评论对可以查看被评论对象的用户可见。评论可由作者编辑。',
-      'Compute and update integrity hashes for files which do not yet have them.' =>
-        '计算并更新尚未拥有完整性哈希的文件。',
-      'Config key "%s" is locked and can only be set in local configuration. To learn more, see "%s" in the documentation.' =>
-        '配置键 "%s" 已被锁定，只能在本地配置中设置。了解更多信息，请参见文档中的 "%s"。',
-      'Config option "%s" is invalid. The URI must contain a dot ("%s"), like "%s", not just a bare name like "%s". Some web browsers will not set cookies on domains with no TLD.' =>
-        '配置选项 "%s" 无效。URI 必须包含一个点（"%s"），例如 "%s"，而不仅仅是像 "%s" 这样的裸名称。某些 Web 浏览器不会在没有 TLD 的域上设置 cookie。',
+      'Comments are visible to users who can see the object which was commented on. Comments can be edited by their authors.' => '评论对可以查看被评论对象的用户可见。评论可由作者编辑。',
+      'Compute and update integrity hashes for files which do not yet have them.' => '计算并更新尚未拥有完整性哈希的文件。',
+      'Config key "%s" is locked and can only be set in local configuration. To learn more, see "%s" in the documentation.' => '配置键 "%s" 已被锁定，只能在本地配置中设置。了解更多信息，请参见文档中的 "%s"。',
+      'Config option "%s" is invalid. The URI must contain a dot ("%s"), like "%s", not just a bare name like "%s". Some web browsers will not set cookies on domains with no TLD.' => '配置选项 "%s" 无效。URI 必须包含一个点（"%s"），例如 "%s"，而不仅仅是像 "%s" 这样的裸名称。某些 Web 浏览器不会在没有 TLD 的域上设置 cookie。',
       'Config option "%s" is invalid. The URI must start with "%s" or "%s".' => '配置选项 "%s" 无效。URI 必须以 "%s" 或 "%s" 开头。',
-      'Config option "%s" is invalid. The timezone identifier must be a valid timezone identifier recognized by PHP, like "%s".' =>
-        '配置选项 "%s" 无效。时区标识符必须是 PHP 认可的有效时区标识符，例如 "%s"。',
-      'Config option "phd.user" is not set. You must set this option so the private key can be stored with the correct permissions.' =>
-        '配置选项 "phd.user" 未设置。您必须设置此选项，以便私钥能以正确的权限存储。',
-      'Configuration defines no task status with special attribute "%s", but you must specify a status which fills this special role.' =>
-        '配置未定义具有特殊属性 "%s" 的任务状态，但您必须指定一个承担此特殊角色的状态。',
-      'Configuration file "%s" exists and is readable, but the content is not valid JSON. You may have edited this file manually and introduced a syntax error by mistake. Correct the file syntax to continue.' =>
-        '配置文件 "%s" 存在且可读，但内容不是有效的 JSON。您可能手动编辑了此文件并不小心引入了语法错误。请修正文件语法以继续。',
-      'Configuration has two statuses both marked with the special attribute "%s" ("%s" and "%s"). There should be only one.' =>
-        '配置中有两个状态都被标记为特殊属性 "%s"（"%s" 和 "%s"）。应该只有一个。',
+      'Config option "%s" is invalid. The timezone identifier must be a valid timezone identifier recognized by PHP, like "%s".' => '配置选项 "%s" 无效。时区标识符必须是 PHP 认可的有效时区标识符，例如 "%s"。',
+      'Config option "phd.user" is not set. You must set this option so the private key can be stored with the correct permissions.' => '配置选项 "phd.user" 未设置。您必须设置此选项，以便私钥能以正确的权限存储。',
+      'Configuration defines no task status with special attribute "%s", but you must specify a status which fills this special role.' => '配置未定义具有特殊属性 "%s" 的任务状态，但您必须指定一个承担此特殊角色的状态。',
+      'Configuration file "%s" exists and is readable, but the content is not valid JSON. You may have edited this file manually and introduced a syntax error by mistake. Correct the file syntax to continue.' => '配置文件 "%s" 存在且可读，但内容不是有效的 JSON。您可能手动编辑了此文件并不小心引入了语法错误。请修正文件语法以继续。',
+      'Configuration has two statuses both marked with the special attribute "%s" ("%s" and "%s"). There should be only one.' => '配置中有两个状态都被标记为特殊属性 "%s"（"%s" 和 "%s"）。应该只有一个。',
       'Configuration is not valid. Maniphest points configuration must be a dictionary.' => '配置无效。Maniphest 点数配置必须是一个字典。',
-      'Configuration is not valid. Maniphest priority configurations must be dictionaries.' =>
-        '配置无效。Maniphest 优先级配置必须是字典。',
+      'Configuration is not valid. Maniphest priority configurations must be dictionaries.' => '配置无效。Maniphest 优先级配置必须是字典。',
       'Configuration key "%s" is unknown. Use "bin/config list" to list all known keys.' => '配置键 "%s" 未知。使用 "bin/config list" 列出所有已知键。',
-      'Configuration of the notification server has changed substantially. For discussion, see T10794.' =>
-        '通知服务器的配置已发生重大更改。有关讨论，请参见 T10794。',
-      'Configure a connection to an LDAP server so that users can use their LDAP credentials to log in.' =>
-        '配置与 LDAP 服务器的连接，以便用户可以使用其 LDAP 凭据登录。',
-      'Configure bulk job __id__ to run silently (without sending mail or publishing notifications).' =>
-        '将批量作业 __id__ 配置为静默运行（不发送邮件或发布通知）。',
+      'Configuration of the notification server has changed substantially. For discussion, see T10794.' => '通知服务器的配置已发生重大更改。有关讨论，请参见 T10794。',
+      'Configure a connection to an LDAP server so that users can use their LDAP credentials to log in.' => '配置与 LDAP 服务器的连接，以便用户可以使用其 LDAP 凭据登录。',
+      'Configure bulk job __id__ to run silently (without sending mail or publishing notifications).' => '将批量作业 __id__ 配置为静默运行（不发送邮件或发布通知）。',
       'Configure the largest file which will be put into the MySQL storage engine.' => '配置将放入 MySQL 存储引擎的最大文件。',
-      'Configured location for storing uploaded files on disk ("%s") does not exist, or is not readable or writable. Verify the directory exists and is readable and writable by the webserver.' =>
-        '配置的磁盘上传文件存储位置（"%s"）不存在，或不可读/写。请验证该目录存在且 Web 服务器可读/写。',
+      'Configured location for storing uploaded files on disk ("%s") does not exist, or is not readable or writable. Verify the directory exists and is readable and writable by the webserver.' => '配置的磁盘上传文件存储位置（"%s"）不存在，或不可读/写。请验证该目录存在且 Web 服务器可读/写。',
       'Configured search engine type "%s" is unknown. Valid engines are: %s.' => '配置的搜索引擎类型 "%s" 未知。有效引擎为：%s。',
-      'Confirm the link with this %s account. This account will be able to log in to your %s account.' =>
-        '确认与此 %s 账户的链接。该账户将能够登录您的 %s 账户。',
-      'Conpherence lets you create public or private rooms to communicate with others.' =>
-        'Conpherence 允许您创建公共或私人房间与他人交流。',
-      'Content object "%s" can not be published because it belongs to a different document.' =>
-        '内容对象 "%s" 无法发布，因为它属于另一个文档。',
-      'Context object ("%s") has unsupported type. Panels should be rendered from the context of a dashboard or another panel.' =>
-        '上下文对象（"%s"）具有不支持的类型。面板应从仪表板或另一个面板的上下文中渲染。',
-      'Controller "%s" returned an invalid response from call to "%s". This method must return an object of class "%s", or an object which implements the "%s" interface.' =>
-        '控制器 "%s" 从对 "%s" 的调用返回了无效响应。此方法必须返回 "%s" 类的对象，或实现 "%s" 接口的对象。',
+      'Confirm the link with this %s account. This account will be able to log in to your %s account.' => '确认与此 %s 账户的链接。该账户将能够登录您的 %s 账户。',
+      'Conpherence lets you create public or private rooms to communicate with others.' => 'Conpherence 允许您创建公共或私人房间与他人交流。',
+      'Content object "%s" can not be published because it belongs to a different document.' => '内容对象 "%s" 无法发布，因为它属于另一个文档。',
+      'Context object ("%s") has unsupported type. Panels should be rendered from the context of a dashboard or another panel.' => '上下文对象（"%s"）具有不支持的类型。面板应从仪表板或另一个面板的上下文中渲染。',
+      'Controller "%s" returned an invalid response from call to "%s". This method must return an object of class "%s", or an object which implements the "%s" interface.' => '控制器 "%s" 从对 "%s" 的调用返回了无效响应。此方法必须返回 "%s" 类的对象，或实现 "%s" 接口的对象。',
       'Controllers must implement either %s (recommended) or %s (deprecated).' => '控制器必须实现 %s（推荐）或 %s（已弃用）。',
-      'Controls whether email for multiple recipients is sent by creating one message with everyone in the "To:" line, or multiple messages that each have a single recipient in the "To:" line.' =>
-        '控制多收件人邮件的发送方式：是创建一封邮件并在 "To:" 行中包含所有人，还是创建多封邮件且每封邮件的 "To:" 行中只有一个收件人。',
-      'Cookies set for x.com are also sent for y.x.com. Assuming instances are running on both domains, this will create a collision preventing you from logging in.' =>
-        '为 x.com 设置的 cookie 也会发送到 y.x.com。假设实例在两个域上运行，这将产生冲突，阻止您登录。',
-      'Copy and paste this token into the prompt given to you by `arc install-certificate`' =>
-        '将此令牌复制并粘贴到 `arc install-certificate` 给您的提示中。',
-      'Copy file data instead of moving it: after migrating, do not remove the old data even if it is no longer referenced.' =>
-        '复制文件数据而不是移动它：迁移后，即使旧数据不再被引用，也不要删除它。',
-      'Corrupt integrity hashes for given files. This is intended for debugging.' =>
-        '损坏给定文件的完整性哈希。这用于调试。',
-      'Corrupting integrity hashes will prevent files from being accessed. This mode is intended only for development and debugging.' =>
-        '损坏完整性哈希将阻止文件被访问。此模式仅用于开发和调试。',
+      'Controls whether email for multiple recipients is sent by creating one message with everyone in the "To:" line, or multiple messages that each have a single recipient in the "To:" line.' => '控制多收件人邮件的发送方式：是创建一封邮件并在 "To:" 行中包含所有人，还是创建多封邮件且每封邮件的 "To:" 行中只有一个收件人。',
+      'Cookies set for x.com are also sent for y.x.com. Assuming instances are running on both domains, this will create a collision preventing you from logging in.' => '为 x.com 设置的 cookie 也会发送到 y.x.com。假设实例在两个域上运行，这将产生冲突，阻止您登录。',
+      'Copy and paste this token into the prompt given to you by `arc install-certificate`' => '将此令牌复制并粘贴到 `arc install-certificate` 给您的提示中。',
+      'Copy file data instead of moving it: after migrating, do not remove the old data even if it is no longer referenced.' => '复制文件数据而不是移动它：迁移后，即使旧数据不再被引用，也不要删除它。',
+      'Corrupt integrity hashes for given files. This is intended for debugging.' => '损坏给定文件的完整性哈希。这用于调试。',
+      'Corrupting integrity hashes will prevent files from being accessed. This mode is intended only for development and debugging.' => '损坏完整性哈希将阻止文件被访问。此模式仅用于开发和调试。',
       'Create **Issue Link** to the Revision, as an "implemented in" relationship.' => '创建到修订的 **Issue Link**，作为 "implemented in" 关系。',
-      'Create a mailing list user to represent an existing, external mailing list like a Google Group or a Mailman list.' =>
-        '创建邮件列表用户以代表现有的外部邮件列表，如 Google Group 或 Mailman 列表。',
-      'Create a standard user account. These users can log in, use the web interface and API, and receive email.' =>
-        '创建标准用户账户。这些用户可以登录、使用 Web 界面和 API，并接收电子邮件。',
+      'Create a mailing list user to represent an existing, external mailing list like a Google Group or a Mailman list.' => '创建邮件列表用户以代表现有的外部邮件列表，如 Google Group 或 Mailman 列表。',
+      'Create a standard user account. These users can log in, use the web interface and API, and receive email.' => '创建标准用户账户。这些用户可以登录、使用 Web 界面和 API，并接收电子邮件。',
       'Create an inventory of physical and virtual hosts and devices.' => '创建物理和虚拟主机及设备的清单。',
       'Create and update services, and map them to interfaces on devices.' => '创建和更新服务，并将其映射到设备上的接口。',
       'Credential type "%s" is not valid. Valid credential types are: %s.' => '凭据类型 "%s" 无效。有效的凭据类型为：%s。',
-      'Currently, there are no configured external auth providers which you can link your account to.' =>
-        '当前没有已配置的外部认证提供程序可供您链接账户。',
-      'Curtain extension ("%s", of class "%s") did not return a list of curtain panels from method "%s". This method must return an array, and each value in the array must be a "%s" object.' =>
-        'Curtain 扩展（"%s"，类 "%s"）未从方法 "%s" 返回 curtain 面板列表。此方法必须返回一个数组，且数组中的每个值都必须是 "%s" 对象。',
-      'Curtain extension ("%s", of class "%s") returned a list of curtain panels from "%s" that contains an invalid value: a value (with key "%s") is not an object of class "%s". Each item in the returned array must be a panel.' =>
-        'Curtain 扩展（"%s"，类 "%s"）从 "%s" 返回的 curtain 面板列表包含无效值：一个值（键为 "%s"）不是 "%s" 类的对象。返回的数组中的每个项目都必须是面板。',
-      'Custom instructions included in "Welcome" mail when an administrator creates a user account.' =>
-        '管理员创建用户账户时包含在"欢迎"邮件中的自定义说明。',
+      'Currently, there are no configured external auth providers which you can link your account to.' => '当前没有已配置的外部认证提供程序可供您链接账户。',
+      'Curtain extension ("%s", of class "%s") did not return a list of curtain panels from method "%s". This method must return an array, and each value in the array must be a "%s" object.' => 'Curtain 扩展（"%s"，类 "%s"）未从方法 "%s" 返回 curtain 面板列表。此方法必须返回一个数组，且数组中的每个值都必须是 "%s" 对象。',
+      'Curtain extension ("%s", of class "%s") returned a list of curtain panels from "%s" that contains an invalid value: a value (with key "%s") is not an object of class "%s". Each item in the returned array must be a panel.' => 'Curtain 扩展（"%s"，类 "%s"）从 "%s" 返回的 curtain 面板列表包含无效值：一个值（键为 "%s"）不是 "%s" 类的对象。返回的数组中的每个项目都必须是面板。',
+      'Custom instructions included in "Welcome" mail when an administrator creates a user account.' => '管理员创建用户账户时包含在"欢迎"邮件中的自定义说明。',
       'Custom remarkup rules are now added by subclassing %s or %s.' => '自定义 remarkup 规则现在通过子类化 %s 或 %s 来添加。',
-      'DANGEROUS. Attempt to salvage file content even if the integrity check fails. If an adversary has tampered with the file, the content may be unsafe.' =>
-        '危险。即使完整性检查失败，也尝试恢复文件内容。如果攻击者篡改了文件，内容可能不安全。',
-      'DANGEROUS. Recompute and update integrity hashes, overwriting invalid hashes. This may mark corrupt or dangerous files as valid.' =>
-        '危险。重新计算并更新完整性哈希，覆盖无效的哈希。这可能会将损坏或危险的文件标记为有效。',
-      'DANGEROUS. Strip integrity hashes from files. This makes files vulnerable to corruption or tampering.' =>
-        '危险。从文件中剥离完整性哈希。这使文件容易受到损坏或篡改。',
-      'DATE-TIME "%s" uses "Z" to specify UTC, but also has a TZID parameter with value "%s". This violates RFC5545. The TZID will be ignored, and the value will be interpreted as UTC.' =>
-        'DATE-TIME "%s" 使用 "Z" 指定 UTC，但同时具有值为 "%s" 的 TZID 参数。这违反了 RFC5545。TZID 将被忽略，该值将被解释为 UTC。',
-      'DRYRUN: Storage on host "%s" does not exist yet, so it would be created.' =>
-        'DRYRUN：主机 "%s" 上的存储尚不存在，因此将被创建。',
-      'DarkConsole is a debugging console for developing and troubleshooting applications. After enabling DarkConsole, press the {nav `} key on your keyboard to toggle it on or off.' =>
-        'DarkConsole 是用于开发和故障排除应用程序的调试控制台。启用 DarkConsole 后，按键盘上的 {nav `} 键可切换其开关。',
-      'Dashboard "%s" is not a valid dashboard which you have permission to see.' =>
-        '仪表板 "%s" 不是您有权查看的有效仪表板。',
-      'Dashboards organize panels, creating a cohesive page for analysis or action.' =>
-        '仪表板组织面板，为分析或操作创建统一的页面。',
-      'Database "%s" is configured as a replica and specifies a master ("%s"), but that master is not a valid master. Valid masters are: %s.' =>
-        '数据库 "%s" 被配置为副本并指定了主库（"%s"），但该主库不是有效的主库。有效的主库为：%s。',
-      'Database "%s" is configured as a replica, but does not specify which "master" it follows in configuration. Valid masters are: %s.' =>
-        '数据库 "%s" 被配置为副本，但未在配置中指定它跟随哪个"主库"。有效的主库为：%s。',
-      'Database "%s" is configured as a replica, but specifies a "partition". Only master databases may have a partition configuration. Replicas use the same configuration as the master they follow.' =>
-        '数据库 "%s" 被配置为副本，但指定了"分区"。只有主库数据库才能具有分区配置。副本使用与其跟随的主库相同的配置。',
+      'DANGEROUS. Attempt to salvage file content even if the integrity check fails. If an adversary has tampered with the file, the content may be unsafe.' => '危险。即使完整性检查失败，也尝试恢复文件内容。如果攻击者篡改了文件，内容可能不安全。',
+      'DANGEROUS. Recompute and update integrity hashes, overwriting invalid hashes. This may mark corrupt or dangerous files as valid.' => '危险。重新计算并更新完整性哈希，覆盖无效的哈希。这可能会将损坏或危险的文件标记为有效。',
+      'DANGEROUS. Strip integrity hashes from files. This makes files vulnerable to corruption or tampering.' => '危险。从文件中剥离完整性哈希。这使文件容易受到损坏或篡改。',
+      'DATE-TIME "%s" uses "Z" to specify UTC, but also has a TZID parameter with value "%s". This violates RFC5545. The TZID will be ignored, and the value will be interpreted as UTC.' => 'DATE-TIME "%s" 使用 "Z" 指定 UTC，但同时具有值为 "%s" 的 TZID 参数。这违反了 RFC5545。TZID 将被忽略，该值将被解释为 UTC。',
+      'DRYRUN: Storage on host "%s" does not exist yet, so it would be created.' => 'DRYRUN：主机 "%s" 上的存储尚不存在，因此将被创建。',
+      'DarkConsole is a debugging console for developing and troubleshooting applications. After enabling DarkConsole, press the {nav `} key on your keyboard to toggle it on or off.' => 'DarkConsole 是用于开发和故障排除应用程序的调试控制台。启用 DarkConsole 后，按键盘上的 {nav `} 键可切换其开关。',
+      'Dashboard "%s" is not a valid dashboard which you have permission to see.' => '仪表板 "%s" 不是您有权查看的有效仪表板。',
+      'Dashboards organize panels, creating a cohesive page for analysis or action.' => '仪表板组织面板，为分析或操作创建统一的页面。',
+      'Database "%s" is configured as a replica and specifies a master ("%s"), but that master is not a valid master. Valid masters are: %s.' => '数据库 "%s" 被配置为副本并指定了主库（"%s"），但该主库不是有效的主库。有效的主库为：%s。',
+      'Database "%s" is configured as a replica, but does not specify which "master" it follows in configuration. Valid masters are: %s.' => '数据库 "%s" 被配置为副本，但未在配置中指定它跟随哪个"主库"。有效的主库为：%s。',
+      'Database "%s" is configured as a replica, but specifies a "partition". Only master databases may have a partition configuration. Replicas use the same configuration as the master they follow.' => '数据库 "%s" 被配置为副本，但指定了"分区"。只有主库数据库才能具有分区配置。副本使用与其跟随的主库相同的配置。',
       'Database "%s" is configured as a replica, but there is no master configured.' => '数据库 "%s" 被配置为副本，但未配置主库。',
       'Database "%s" is specified more than once. Specify each database at most once.' => '数据库 "%s" 被指定了多次。每个数据库最多只能指定一次。',
-      'Database "%s" is unknown. This script can only dump databases known to the current version of this software. Valid databases are: %s.' =>
-        '数据库 "%s" 未知。此脚本只能转储此软件当前版本已知的数据库。有效的数据库为：%s。',
-      'Database cluster configuration describes an invalid host ("%s", at index "%s") with an unrecognized role ("%s"). Valid roles are "%s" or "%s".' =>
-        '数据库集群配置描述了一个无效主机（"%s"，位于索引 "%s"），其角色（"%s"）无法识别。有效角色为 "%s" 或 "%s"。',
-      'Database cluster configuration has an invalid host specification (at index "%s"): %s.' =>
-        '数据库集群配置具有无效的主机规范（位于索引 "%s"）：%s。',
-      'Database cluster configuration is invalid: it describes the same host ("%s") multiple times. Each host should appear only once in the list.' =>
-        '数据库集群配置无效：它多次描述了同一主机（"%s"）。每个主机在列表中应只出现一次。',
-      'Database cluster configuration is not valid: each entry in the list must be a dictionary describing a database host, but the value with index "%s" is not a dictionary.' =>
-        '数据库集群配置无效：列表中的每个条目都必须是描述数据库主机的字典，但索引为 "%s" 的值不是字典。',
-      'Database host "%s" is configured as a master, but is replicating another host. This is dangerous and can mangle or destroy data. Only replicas should be replicating. Stop replication on the host or adjust configuration.' =>
-        '数据库主机 "%s" 被配置为主库，但正在复制另一个主机。这很危险，可能会损坏或销毁数据。只有副本才应进行复制。请停止该主机上的复制或调整配置。',
-      'Database replica "%s" is listed as a replica, but is not currently replicating. You are vulnerable to data loss if the master fails.' =>
-        '数据库副本 "%s" 被列为副本，但当前未在复制。如果主库发生故障，您将面临数据丢失的风险。',
-      'Declined to resubscribe %s target(s) because they previously unsubscribed: %s.' =>
-        '拒绝重新订阅 %s 个目标，因为它们之前已取消订阅：%s。',
-      'Delete all the events that were imported from this source? This action can not be undone.' =>
-        '删除从此源导入的所有事件？此操作无法撤销。',
+      'Database "%s" is unknown. This script can only dump databases known to the current version of this software. Valid databases are: %s.' => '数据库 "%s" 未知。此脚本只能转储此软件当前版本已知的数据库。有效的数据库为：%s。',
+      'Database cluster configuration describes an invalid host ("%s", at index "%s") with an unrecognized role ("%s"). Valid roles are "%s" or "%s".' => '数据库集群配置描述了一个无效主机（"%s"，位于索引 "%s"），其角色（"%s"）无法识别。有效角色为 "%s" 或 "%s"。',
+      'Database cluster configuration has an invalid host specification (at index "%s"): %s.' => '数据库集群配置具有无效的主机规范（位于索引 "%s"）：%s。',
+      'Database cluster configuration is invalid: it describes the same host ("%s") multiple times. Each host should appear only once in the list.' => '数据库集群配置无效：它多次描述了同一主机（"%s"）。每个主机在列表中应只出现一次。',
+      'Database cluster configuration is not valid: each entry in the list must be a dictionary describing a database host, but the value with index "%s" is not a dictionary.' => '数据库集群配置无效：列表中的每个条目都必须是描述数据库主机的字典，但索引为 "%s" 的值不是字典。',
+      'Database host "%s" is configured as a master, but is replicating another host. This is dangerous and can mangle or destroy data. Only replicas should be replicating. Stop replication on the host or adjust configuration.' => '数据库主机 "%s" 被配置为主库，但正在复制另一个主机。这很危险，可能会损坏或销毁数据。只有副本才应进行复制。请停止该主机上的复制或调整配置。',
+      'Database replica "%s" is listed as a replica, but is not currently replicating. You are vulnerable to data loss if the master fails.' => '数据库副本 "%s" 被列为副本，但当前未在复制。如果主库发生故障，您将面临数据丢失的风险。',
+      'Declined to resubscribe %s target(s) because they previously unsubscribed: %s.' => '拒绝重新订阅 %s 个目标，因为它们之前已取消订阅：%s。',
+      'Delete all the events that were imported from this source? This action can not be undone.' => '删除从此源导入的所有事件？此操作无法撤销。',
       'Delete configuration in the database instead of in local configuration.' => '删除数据库中的配置，而不是本地配置中的配置。',
-      'Delivery of this mail is forced and ignores deliver preferences. Mail which uses forced delivery is usually related to account management or authentication. For example, password reset email ignores mail preferences.' =>
-        '此邮件的投递被强制并忽略投递偏好。使用强制投递的邮件通常与账户管理或认证相关。例如，密码重置邮件会忽略邮件偏好。',
+      'Delivery of this mail is forced and ignores deliver preferences. Mail which uses forced delivery is usually related to account management or authentication. For example, password reset email ignores mail preferences.' => '此邮件的投递被强制并忽略投递偏好。使用强制投递的邮件通常与账户管理或认证相关。例如，密码重置邮件会忽略邮件偏好。',
       'Determines which URI protocols are valid for links and redirects.' => '确定哪些 URI 协议对链接和重定向有效。',
-      'Device "%s" is unrecognized, restricted, or you do not have permission to edit it.' =>
-        '设备 "%s" 无法识别、受限或您无权编辑。',
-      'Disable %s? They will no longer be able to access this server or receive email.' =>
-        '禁用 %s？他们将无法再访问此服务器或接收邮件。',
-      'Disable this import? Events from this source will no longer be updated.' =>
-        '禁用此导入？来自该源的事件将不再更新。',
-      'Disable this menu item? It will no longer appear in the menu, but you can re-enable it later.' =>
-        '禁用此菜单项？它将不再显示在菜单中，但您可以稍后重新启用。',
-      'Disabled (an administrator has disabled login for this account provider).' =>
-        '已禁用（管理员已禁用此账户提供程序的登录功能）。',
-      'Disabling a workboard hides the board. Objects on the board will no longer be annotated with column names in other applications. You can restore the workboard later.' =>
-        '禁用工作板将隐藏该板。板上的对象将不再在其他应用中标注列名。您可以稍后恢复工作板。',
-      'Do an implicit string extraction before validating. If this is not set, it will validate based on the last extracted strings.' =>
-        '在验证前执行隐式字符串提取。如果未设置，它将基于上次提取的字符串进行验证。',
-      'Do not dump data in rebuildable index tables. This means backups are smaller and faster, but you will need to manually rebuild indexes after performing a restore.' =>
-        '不要在可重建的索引表中转储数据。这意味着备份更小更快，但在执行恢复后需要手动重建索引。',
+      'Device "%s" is unrecognized, restricted, or you do not have permission to edit it.' => '设备 "%s" 无法识别、受限或您无权编辑。',
+      'Disable %s? They will no longer be able to access this server or receive email.' => '禁用 %s？他们将无法再访问此服务器或接收邮件。',
+      'Disable this import? Events from this source will no longer be updated.' => '禁用此导入？来自该源的事件将不再更新。',
+      'Disable this menu item? It will no longer appear in the menu, but you can re-enable it later.' => '禁用此菜单项？它将不再显示在菜单中，但您可以稍后重新启用。',
+      'Disabled (an administrator has disabled login for this account provider).' => '已禁用（管理员已禁用此账户提供程序的登录功能）。',
+      'Disabling a workboard hides the board. Objects on the board will no longer be annotated with column names in other applications. You can restore the workboard later.' => '禁用工作板将隐藏该板。板上的对象将不再在其他应用中标注列名。您可以稍后恢复工作板。',
+      'Do an implicit string extraction before validating. If this is not set, it will validate based on the last extracted strings.' => '在验证前执行隐式字符串提取。如果未设置，它将基于上次提取的字符串进行验证。',
+      'Do not dump data in rebuildable index tables. This means backups are smaller and faster, but you will need to manually rebuild indexes after performing a restore.' => '不要在可重建的索引表中转储数据。这意味着备份更小更快，但在执行恢复后需要手动重建索引。',
       'Do not install this software on an instance class with burstable CPU.' => '不要在具有突发型 CPU 的实例类上安装此软件。',
       'Do not migrate data for files which are larger than a given filesize.' => '不要迁移大于给定文件大小的文件数据。',
       'Do not migrate data for files which are smaller than a given filesize.' => '不要迁移小于给定文件大小的文件数据。',
-      'Do you want to authorize the external application "%s" to access your %s account data, including your primary email address?' =>
-        '是否要授权外部应用 "%s" 访问您的 %s 账户数据（包括您的主邮箱地址）？',
-      'Do you want to enable this provider? Users will be able to log in using linked accounts.' =>
-        '是否要启用此提供程序？用户将能够使用关联账户登录。',
-      'Do you want to enable this provider? Users will be able to use their existing external accounts to register new accounts and log in using linked accounts.' =>
-        '是否要启用此提供程序？用户将能够使用其现有的外部账户注册新账户，并使用关联账户登录。',
-      'Document path "%s" is not a valid path. The normalized form of this path is "%s".' =>
-        '文档路径 "%s" 不是有效路径。该路径的规范化形式为 "%s"。',
+      'Do you want to authorize the external application "%s" to access your %s account data, including your primary email address?' => '是否要授权外部应用 "%s" 访问您的 %s 账户数据（包括您的主邮箱地址）？',
+      'Do you want to enable this provider? Users will be able to log in using linked accounts.' => '是否要启用此提供程序？用户将能够使用关联账户登录。',
+      'Do you want to enable this provider? Users will be able to use their existing external accounts to register new accounts and log in using linked accounts.' => '是否要启用此提供程序？用户将能够使用其现有的外部账户注册新账户，并使用关联账户登录。',
+      'Document path "%s" is not a valid path. The normalized form of this path is "%s".' => '文档路径 "%s" 不是有效路径。该路径的规范化形式为 "%s"。',
       'Drag and drop .ics files to upload them and import them into Calendar.' => '拖放 .ics 文件以上传并导入到 Calendar。',
-      'Drag and drop fields to change the order in which they appear in the application "Create" menu.' =>
-        '拖放字段以更改它们在应用“创建”菜单中的显示顺序。',
-      'Drag and drop fields to change their priority for edits. When a user edits an object, they will be shown the first form in this list that they have permission to see.' =>
-        '拖放字段以更改其编辑优先级。当用户编辑对象时，将显示他们有权限查看的此列表中的第一个表单。',
-      'Dump only tables in the named database (or databases, if the flag is repeated). Specify database names without the namespace prefix (that is: use "differential", not "phabricator_differential").' =>
-        '仅转储指定数据库（如果重复标志则为多个数据库）中的表。指定数据库名称时不带命名空间前缀（即：使用 "differential"，而不是 "phabricator_differential"）。',
-      'Dump the HTML body of the mail. You can redirect it to a file and then open it in a browser.' =>
-        '转储邮件的 HTML 正文。您可以将其重定向到文件，然后在浏览器中打开。',
-      'Duo API hostname ("%s") is invalid, hostname must be "*.duosecurity.com".' =>
-        'Duo API 主机名 ("%s") 无效，主机名必须为 "*.duosecurity.com"。',
-      'Duo is not requiring a challenge, which defeats the purpose of MFA. Duo must be configured to challenge you.' =>
-        'Duo 未要求质询，这违背了 MFA 的目的。必须配置 Duo 以向您发起质询。',
-      'During the last %s second(s) spent waiting for the lock, %s other process(es) acquired it, so this is likely a bottleneck. Use "bin/lock log --name %s" to review log activity.' =>
-        '在等待锁的最后 %s 秒内，%s 个其他进程获取了该锁，因此这很可能是一个瓶颈。使用 "bin/lock log --name %s" 查看日志活动。',
-      'During the last %s second(s) spent waiting for the lock, more than %s other process(es) acquired it, so this is likely a bottleneck. Use "bin/lock log --name %s" to review log activity.' =>
-        '在等待锁的最后 %s 秒内，超过 %s 个其他进程获取了该锁，因此这很可能是一个瓶颈。使用 "bin/lock log --name %s" 查看日志活动。',
-      'ERROR: You are making a Conduit API request to "%s", but the correct HTTP request path to use in order to access a Conduit method is "%s" (for example, "%s"). Check your configuration.' =>
-        '错误：您正在向 "%s" 发起 Conduit API 请求，但访问 Conduit 方法的正确 HTTP 请求路径是 "%s"（例如 "%s"）。请检查您的配置。',
+      'Drag and drop fields to change the order in which they appear in the application "Create" menu.' => '拖放字段以更改它们在应用“创建”菜单中的显示顺序。',
+      'Drag and drop fields to change their priority for edits. When a user edits an object, they will be shown the first form in this list that they have permission to see.' => '拖放字段以更改其编辑优先级。当用户编辑对象时，将显示他们有权限查看的此列表中的第一个表单。',
+      'Dump only tables in the named database (or databases, if the flag is repeated). Specify database names without the namespace prefix (that is: use "differential", not "phabricator_differential").' => '仅转储指定数据库（如果重复标志则为多个数据库）中的表。指定数据库名称时不带命名空间前缀（即：使用 "differential"，而不是 "phabricator_differential"）。',
+      'Dump the HTML body of the mail. You can redirect it to a file and then open it in a browser.' => '转储邮件的 HTML 正文。您可以将其重定向到文件，然后在浏览器中打开。',
+      'Duo API hostname ("%s") is invalid, hostname must be "*.duosecurity.com".' => 'Duo API 主机名 ("%s") 无效，主机名必须为 "*.duosecurity.com"。',
+      'Duo is not requiring a challenge, which defeats the purpose of MFA. Duo must be configured to challenge you.' => 'Duo 未要求质询，这违背了 MFA 的目的。必须配置 Duo 以向您发起质询。',
+      'During the last %s second(s) spent waiting for the lock, %s other process(es) acquired it, so this is likely a bottleneck. Use "bin/lock log --name %s" to review log activity.' => '在等待锁的最后 %s 秒内，%s 个其他进程获取了该锁，因此这很可能是一个瓶颈。使用 "bin/lock log --name %s" 查看日志活动。',
+      'During the last %s second(s) spent waiting for the lock, more than %s other process(es) acquired it, so this is likely a bottleneck. Use "bin/lock log --name %s" to review log activity.' => '在等待锁的最后 %s 秒内，超过 %s 个其他进程获取了该锁，因此这很可能是一个瓶颈。使用 "bin/lock log --name %s" 查看日志活动。',
+      'ERROR: You are making a Conduit API request to "%s", but the correct HTTP request path to use in order to access a Conduit method is "%s" (for example, "%s"). Check your configuration.' => '错误：您正在向 "%s" 发起 Conduit API 请求，但访问 Conduit 方法的正确 HTTP 请求路径是 "%s"（例如 "%s"）。请检查您的配置。',
       'Each package provided by a publisher must have a unique package key.' => '发布者提供的每个包必须具有唯一的包键。',
-      'Each panel specification must be a map of panel attributes. Panel specification at index "%s" is "%s".' =>
-        '每个面板规范必须是面板属性的映射。索引 "%s" 处的面板规范为 "%s"。',
-      'Each tab in a tab group must have a unique key; attempting to add a second tab with a duplicate key ("%s").' =>
-        '标签组中的每个标签必须具有唯一的键；试图添加第二个具有重复键 ("%s") 的标签。',
-      'Edge list passed to "withSourcePHIDs(...)" is empty, but it must be nonempty.' =>
-        '传递给 "withSourcePHIDs(...)" 的边列表为空，但必须非空。',
-      'Edge object query must be executed with a nonempty list of source PHIDs.' =>
-        '边对象查询必须使用非空的源 PHID 列表执行。',
-      'Edge transactions must have PHIDs or edge specs as values (found value "%s" on transaction of type "%s").' =>
-        '边事务的值必须是 PHID 或边规范（在类型为 "%s" 的事务上找到值 "%s"）。',
-      'Edge transactions must have destination PHIDs as in edge lists (found key "%s" on transaction of type "%s").' =>
-        '边事务必须在边列表中具有目标 PHID（在类型为 "%s" 的事务上找到键 "%s"）。',
-      'Edge type "%s" ("%d") defines an inverse type ("%d") which does not exist.' =>
-        '边类型 "%s" ("%d") 定义了一个不存在的反向类型 ("%d")。',
-      'Edge type "%s" ("%d") defines an inverse type ("%d"), but that inverse type defines a different type ("%d") as its inverse.' =>
-        '边类型 "%s" ("%d") 定义了一个反向类型 ("%d")，但该反向类型将另一个不同的类型 ("%d") 定义为其反向类型。',
-      'Edit engine (of class "%s") does not support subtypes, so subtype transactions can not be applied to it.' =>
-        '编辑引擎（类 "%s"）不支持子类型，因此无法对其应用子类型事务。',
-      'Edit this event and all events in the series which occur on or after %s. This will overwrite previous edits!' =>
-        '编辑此事件及系列中发生在 %s 及之后的所有事件。这将覆盖之前的编辑！',
-      'EditEngine "%s" created or loaded an invalid object: object (of class "%s") must implement "%s", but does not.' =>
-        'EditEngine "%s" 创建或加载了无效的对象：对象（类为 "%s"）必须实现 "%s"，但未实现。',
-      'EditEngine "%s" created or loaded an invalid object: object must actually be an object, but is of some other type ("%s").' =>
-        'EditEngine "%s" 创建或加载了无效的对象：对象必须是实际的对象，但却是其他类型（"%s"）。',
-      'EditEngine ("%s") returned builtin engine configurations, but at least two specify the same builtin key ("%s"). Engines must have unique builtin keys.' =>
-        'EditEngine ("%s") 返回了内置引擎配置，但至少有两个指定了相同的内置键（"%s"）。引擎必须具有唯一的内置键。',
-      'EditEngine ("%s") returned no builtin engine configurations, but an edit engine must have at least one configuration.' =>
-        'EditEngine ("%s") 未返回任何内置引擎配置，但编辑引擎必须至少有一个配置。',
-      'EditField (with key "%s", of class "%s") is generating transactions, but has no EditType.' =>
-        'EditField（键为 "%s"，类为 "%s"）正在生成事务，但没有 EditType。',
-      'Editor method "queuePublishing()" was called, but no publishable object is present. This Editor is not ready to publish.' =>
-        '调用了 Editor 方法 "queuePublishing()"，但没有可发布的对象。此 Editor 尚未准备好发布。',
-      'Email addresses should be in the form "user@domain.com". The maximum length of an email address is %s characters.' =>
-        '电子邮件地址应采用 "user@domain.com" 格式。电子邮件地址的最大长度为 %s 个字符。',
-      'Empower %s as an administrator? They will be able to create users, approve users, make and remove administrators, delete accounts, and perform other administrative functions on this server.' =>
-        '将 %s 设为管理员？他们将能够创建用户、批准用户、设置和移除管理员、删除账户，并在此服务器上执行其他管理功能。',
-      'Enable %s? They will be able to access this server and receive email again.' =>
-        '启用 %s？他们将能够再次访问此服务器并接收电子邮件。',
-      'Enable recaptcha to require users solve captchas after a few failed login attempts. This hinders brute-force attacks against user passwords. For more information, see https://www.google.com/recaptcha' =>
-        '启用 recaptcha 以要求用户在多次登录失败后解决验证码。这会阻碍对用户密码的暴力破解攻击。更多信息，请参见 https://www.google.com/recaptcha',
-      'Enable the lock log for more detailed information about which process is holding this lock.' =>
-        '启用锁日志以获取有关哪个进程持有此锁的更多详细信息。',
-      'Enable this export? Anyone who knows the export URI will be able to export the data.' =>
-        '启用此导出？任何知道导出 URI 的人都将能够导出数据。',
-      'Enable this form? Users who can see it will be able to use it to create objects.' =>
-        '启用此表单？能够看到它的用户将能够使用它来创建对象。',
-      'Encountered a processing exception, then another exception when trying to build a response for the first exception.' =>
-        '遇到处理异常，在尝试为第一个异常构建响应时又遇到另一个异常。',
-      'Enter an object to test rules for, like a Diffusion commit (e.g., `rX123`) or a Differential revision (e.g., `D123`). You will be shown the results of a dry run on the object.' =>
-        '输入要测试规则的对象，例如 Diffusion 提交（如 `rX123`）或 Differential 修订（如 `D123`）。您将看到对该对象进行试运行（dry run）的结果。',
-      'Enter parameters using **JSON**. For instance, to enter a list, type: `%s`' =>
-        '使用 **JSON** 输入参数。例如，要输入列表，请键入：`%s`',
-      'Enter the code from the text message which was sent to your primary contact number.' =>
-        '输入发送到您主要联系号码的短信中的验证码。',
-      'Event queries which generate ghost events must include either a result limit or an end date, because they may otherwise generate an infinite number of results. This query has neither.' =>
-        '生成幽灵事件的事件查询必须包含结果限制或结束日期，否则可能生成无限数量的结果。此查询两者皆无。',
-      'Exception handler "%s" returned an invalid response from call to "%s". This method must return an object of class "%s", or an object which implements the "%s" interface.' =>
-        '异常处理器 "%s" 从对 "%s" 的调用返回了无效的响应。此方法必须返回 "%s" 类的对象，或实现 "%s" 接口的对象。',
-      'Execute a task explicitly. This command ignores leases, is dangerous, and may cause work to be performed twice.' =>
-        '显式执行任务。此命令忽略租约，具有危险性，可能导致工作被执行两次。',
+      'Each panel specification must be a map of panel attributes. Panel specification at index "%s" is "%s".' => '每个面板规范必须是面板属性的映射。索引 "%s" 处的面板规范为 "%s"。',
+      'Each tab in a tab group must have a unique key; attempting to add a second tab with a duplicate key ("%s").' => '标签组中的每个标签必须具有唯一的键；试图添加第二个具有重复键 ("%s") 的标签。',
+      'Edge list passed to "withSourcePHIDs(...)" is empty, but it must be nonempty.' => '传递给 "withSourcePHIDs(...)" 的边列表为空，但必须非空。',
+      'Edge object query must be executed with a nonempty list of source PHIDs.' => '边对象查询必须使用非空的源 PHID 列表执行。',
+      'Edge transactions must have PHIDs or edge specs as values (found value "%s" on transaction of type "%s").' => '边事务的值必须是 PHID 或边规范（在类型为 "%s" 的事务上找到值 "%s"）。',
+      'Edge transactions must have destination PHIDs as in edge lists (found key "%s" on transaction of type "%s").' => '边事务必须在边列表中具有目标 PHID（在类型为 "%s" 的事务上找到键 "%s"）。',
+      'Edge type "%s" ("%d") defines an inverse type ("%d") which does not exist.' => '边类型 "%s" ("%d") 定义了一个不存在的反向类型 ("%d")。',
+      'Edge type "%s" ("%d") defines an inverse type ("%d"), but that inverse type defines a different type ("%d") as its inverse.' => '边类型 "%s" ("%d") 定义了一个反向类型 ("%d")，但该反向类型将另一个不同的类型 ("%d") 定义为其反向类型。',
+      'Edit engine (of class "%s") does not support subtypes, so subtype transactions can not be applied to it.' => '编辑引擎（类 "%s"）不支持子类型，因此无法对其应用子类型事务。',
+      'Edit this event and all events in the series which occur on or after %s. This will overwrite previous edits!' => '编辑此事件及系列中发生在 %s 及之后的所有事件。这将覆盖之前的编辑！',
+      'EditEngine "%s" created or loaded an invalid object: object (of class "%s") must implement "%s", but does not.' => 'EditEngine "%s" 创建或加载了无效的对象：对象（类为 "%s"）必须实现 "%s"，但未实现。',
+      'EditEngine "%s" created or loaded an invalid object: object must actually be an object, but is of some other type ("%s").' => 'EditEngine "%s" 创建或加载了无效的对象：对象必须是实际的对象，但却是其他类型（"%s"）。',
+      'EditEngine ("%s") returned builtin engine configurations, but at least two specify the same builtin key ("%s"). Engines must have unique builtin keys.' => 'EditEngine ("%s") 返回了内置引擎配置，但至少有两个指定了相同的内置键（"%s"）。引擎必须具有唯一的内置键。',
+      'EditEngine ("%s") returned no builtin engine configurations, but an edit engine must have at least one configuration.' => 'EditEngine ("%s") 未返回任何内置引擎配置，但编辑引擎必须至少有一个配置。',
+      'EditField (with key "%s", of class "%s") is generating transactions, but has no EditType.' => 'EditField（键为 "%s"，类为 "%s"）正在生成事务，但没有 EditType。',
+      'Editor method "queuePublishing()" was called, but no publishable object is present. This Editor is not ready to publish.' => '调用了 Editor 方法 "queuePublishing()"，但没有可发布的对象。此 Editor 尚未准备好发布。',
+      'Email addresses should be in the form "user@domain.com". The maximum length of an email address is %s characters.' => '电子邮件地址应采用 "user@domain.com" 格式。电子邮件地址的最大长度为 %s 个字符。',
+      'Empower %s as an administrator? They will be able to create users, approve users, make and remove administrators, delete accounts, and perform other administrative functions on this server.' => '将 %s 设为管理员？他们将能够创建用户、批准用户、设置和移除管理员、删除账户，并在此服务器上执行其他管理功能。',
+      'Enable %s? They will be able to access this server and receive email again.' => '启用 %s？他们将能够再次访问此服务器并接收电子邮件。',
+      'Enable recaptcha to require users solve captchas after a few failed login attempts. This hinders brute-force attacks against user passwords. For more information, see https://www.google.com/recaptcha' => '启用 recaptcha 以要求用户在多次登录失败后解决验证码。这会阻碍对用户密码的暴力破解攻击。更多信息，请参见 https://www.google.com/recaptcha',
+      'Enable the lock log for more detailed information about which process is holding this lock.' => '启用锁日志以获取有关哪个进程持有此锁的更多详细信息。',
+      'Enable this export? Anyone who knows the export URI will be able to export the data.' => '启用此导出？任何知道导出 URI 的人都将能够导出数据。',
+      'Enable this form? Users who can see it will be able to use it to create objects.' => '启用此表单？能够看到它的用户将能够使用它来创建对象。',
+      'Encountered a processing exception, then another exception when trying to build a response for the first exception.' => '遇到处理异常，在尝试为第一个异常构建响应时又遇到另一个异常。',
+      'Enter an object to test rules for, like a Diffusion commit (e.g., `rX123`) or a Differential revision (e.g., `D123`). You will be shown the results of a dry run on the object.' => '输入要测试规则的对象，例如 Diffusion 提交（如 `rX123`）或 Differential 修订（如 `D123`）。您将看到对该对象进行试运行（dry run）的结果。',
+      'Enter parameters using **JSON**. For instance, to enter a list, type: `%s`' => '使用 **JSON** 输入参数。例如，要输入列表，请键入：`%s`',
+      'Enter the code from the text message which was sent to your primary contact number.' => '输入发送到您主要联系号码的短信中的验证码。',
+      'Event queries which generate ghost events must include either a result limit or an end date, because they may otherwise generate an infinite number of results. This query has neither.' => '生成幽灵事件的事件查询必须包含结果限制或结束日期，否则可能生成无限数量的结果。此查询两者皆无。',
+      'Exception handler "%s" returned an invalid response from call to "%s". This method must return an object of class "%s", or an object which implements the "%s" interface.' => '异常处理器 "%s" 从对 "%s" 的调用返回了无效的响应。此方法必须返回 "%s" 类的对象，或实现 "%s" 接口的对象。',
+      'Execute a task explicitly. This command ignores leases, is dangerous, and may cause work to be performed twice.' => '显式执行任务。此命令忽略租约，具有危险性，可能导致工作被执行两次。',
       'Execute dangerous operations without prompting for confirmation.' => '执行危险操作时不提示确认。',
-      'Execute the call as the given user. (If omitted, the call will be executed as an omnipotent user.)' =>
-        '以指定用户身份执行调用。（如果省略，调用将以全能用户身份执行。）',
-      'Executing test code outside of test execution! This code path can only be run during unit tests.' =>
-        '在测试执行之外运行测试代码！此代码路径只能在单元测试期间运行。',
-      'Existing objects in this Space will be hidden from query results by default.' =>
-        '此 Space 中的现有对象将默认从查询结果中隐藏。',
+      'Execute the call as the given user. (If omitted, the call will be executed as an omnipotent user.)' => '以指定用户身份执行调用。（如果省略，调用将以全能用户身份执行。）',
+      'Executing test code outside of test execution! This code path can only be run during unit tests.' => '在测试执行之外运行测试代码！此代码路径只能在单元测试期间运行。',
+      'Existing objects in this Space will be hidden from query results by default.' => '此 Space 中的现有对象将默认从查询结果中隐藏。',
       'Expected "PhutilCalendarDuration" object or ISO8601 duration string.' => '预期为 "PhutilCalendarDuration" 对象或 ISO8601 时长字符串。',
-      'Expected "getDoorkeeperURIRef()" to return "null" or an object of type "DoorkeeperURIRef", but got %s from provider "%s".' =>
-        '预期 "getDoorkeeperURIRef()" 返回 "null" 或 "DoorkeeperURIRef" 类型的对象，但从提供程序 "%s" 得到了 %s。',
-      'Expected "multipart/form-data" content type when executing a multipart body read.' =>
-        '执行多部分主体读取时预期为 "multipart/form-data" 内容类型。',
+      'Expected "getDoorkeeperURIRef()" to return "null" or an object of type "DoorkeeperURIRef", but got %s from provider "%s".' => '预期 "getDoorkeeperURIRef()" 返回 "null" 或 "DoorkeeperURIRef" 类型的对象，但从提供程序 "%s" 得到了 %s。',
+      'Expected "multipart/form-data" content type when executing a multipart body read.' => '执行多部分主体读取时预期为 "multipart/form-data" 内容类型。',
       'Expected "multipart/form-data" parse to end in state "epilogue".' => '预期 "multipart/form-data" 解析以状态 "epilogue" 结束。',
-      'Expected "newArguments()" in class "%s" to return a list of argument specifications, got %s.' =>
-        '预期类 "%s" 中的 "newArguments()" 返回参数规范列表，实际得到 %s。',
-      'Expected "newColumnTransactions()" on "%s" to return "null" or a list of transactions, but got "%s".' =>
-        '预期 "%s" 上的 "newColumnTransactions()" 返回 "null" 或事务列表，但实际得到 "%s"。',
-      'Expected "newExternalCursorStringForResult()"  in class "%s" to return a string, but got "%s".' =>
-        '预期类 "%s" 中的 "newExternalCursorStringForResult()" 返回字符串，但实际得到 "%s"。',
-      'Expected "newHeaderKeysForObject()" on "%s" to return a map of header keys, but got "%s".' =>
-        '预期 "%s" 上的 "newHeaderKeysForObject()" 返回 header 键的映射，但实际得到 "%s"。',
-      'Expected "newHeadersForObjects()" on "%s" to return a list of headers, but got "%s".' =>
-        '预期 "%s" 上的 "newHeadersForObjects()" 返回 header 列表，但实际得到 "%s"。',
-      'Expected "newInternalCursorFromExternalCursor()" to return an object of class "PhabricatorQueryCursor", but got "%s" (in class "%s").' =>
-        '预期 "newInternalCursorFromExternalCursor()" 返回 "PhabricatorQueryCursor" 类的对象，但实际得到 "%s"（在类 "%s" 中）。',
-      'Expected "newMenuItemViewList()" to return a list (in class "%s"), but it returned something else ("%s").' =>
-        '预期 "newMenuItemViewList()" 返回列表（在类 "%s" 中），但它返回了其他内容（"%s"）。',
-      'Expected "newPagingMapFromCursorObject()" to return a map of paging values, but got "%s" (in class "%s").' =>
-        '预期 "newPagingMapFromCursorObject()" 返回分页值的映射，但实际得到 "%s"（在类 "%s" 中）。',
-      'Expected "newResultForPrompt()" to return an object of class "%s", but it returned something else ("%s"; in "%s").' =>
-        '预期 "newResultForPrompt()" 返回 "%s" 类的对象，但它返回了其他内容（"%s"；在 "%s" 中）。',
-      'Expected "newResultFromChallengeResponse()" to return an object of class "%s"; got something else (in "%s").' =>
-        '预期 "newResultFromChallengeResponse()" 返回 "%s" 类的对象；得到了其他内容（在 "%s" 中）。',
-      'Expected "newResultFromIssuedChallenges()" to return null or an object of class "%s"; got something else (in "%s").' =>
-        '预期 "newResultFromIssuedChallenges()" 返回 null 或 "%s" 类的对象；得到了其他内容（在 "%s" 中）。',
-      'Expected "newSortVectorsForObjects()" on "%s" to return a map of vectors, but got "%s".' =>
-        '预期 "%s" 上的 "newSortVectorsForObjects()" 返回向量的映射，但实际得到 "%s"。',
-      'Expected "newTimelineView()" to return an object of class "%s" (in engine "%s").' =>
-        '预期 "newTimelineView()" 返回 "%s" 类的对象（在引擎 "%s" 中）。',
-      'Expected "newTransactionWarning()" to return an object of class "PhabricatorTransactionWarning", got something else ("%s") from transaction of class "%s".' =>
-        '预期 "newTransactionWarning()" 返回 "PhabricatorTransactionWarning" 类的对象，但从 "%s" 类的事务中得到了其他内容（"%s"）。',
+      'Expected "newArguments()" in class "%s" to return a list of argument specifications, got %s.' => '预期类 "%s" 中的 "newArguments()" 返回参数规范列表，实际得到 %s。',
+      'Expected "newColumnTransactions()" on "%s" to return "null" or a list of transactions, but got "%s".' => '预期 "%s" 上的 "newColumnTransactions()" 返回 "null" 或事务列表，但实际得到 "%s"。',
+      'Expected "newExternalCursorStringForResult()"  in class "%s" to return a string, but got "%s".' => '预期类 "%s" 中的 "newExternalCursorStringForResult()" 返回字符串，但实际得到 "%s"。',
+      'Expected "newHeaderKeysForObject()" on "%s" to return a map of header keys, but got "%s".' => '预期 "%s" 上的 "newHeaderKeysForObject()" 返回 header 键的映射，但实际得到 "%s"。',
+      'Expected "newHeadersForObjects()" on "%s" to return a list of headers, but got "%s".' => '预期 "%s" 上的 "newHeadersForObjects()" 返回 header 列表，但实际得到 "%s"。',
+      'Expected "newInternalCursorFromExternalCursor()" to return an object of class "PhabricatorQueryCursor", but got "%s" (in class "%s").' => '预期 "newInternalCursorFromExternalCursor()" 返回 "PhabricatorQueryCursor" 类的对象，但实际得到 "%s"（在类 "%s" 中）。',
+      'Expected "newMenuItemViewList()" to return a list (in class "%s"), but it returned something else ("%s").' => '预期 "newMenuItemViewList()" 返回列表（在类 "%s" 中），但它返回了其他内容（"%s"）。',
+      'Expected "newPagingMapFromCursorObject()" to return a map of paging values, but got "%s" (in class "%s").' => '预期 "newPagingMapFromCursorObject()" 返回分页值的映射，但实际得到 "%s"（在类 "%s" 中）。',
+      'Expected "newResultForPrompt()" to return an object of class "%s", but it returned something else ("%s"; in "%s").' => '预期 "newResultForPrompt()" 返回 "%s" 类的对象，但它返回了其他内容（"%s"；在 "%s" 中）。',
+      'Expected "newResultFromChallengeResponse()" to return an object of class "%s"; got something else (in "%s").' => '预期 "newResultFromChallengeResponse()" 返回 "%s" 类的对象；得到了其他内容（在 "%s" 中）。',
+      'Expected "newResultFromIssuedChallenges()" to return null or an object of class "%s"; got something else (in "%s").' => '预期 "newResultFromIssuedChallenges()" 返回 null 或 "%s" 类的对象；得到了其他内容（在 "%s" 中）。',
+      'Expected "newSortVectorsForObjects()" on "%s" to return a map of vectors, but got "%s".' => '预期 "%s" 上的 "newSortVectorsForObjects()" 返回向量的映射，但实际得到 "%s"。',
+      'Expected "newTimelineView()" to return an object of class "%s" (in engine "%s").' => '预期 "newTimelineView()" 返回 "%s" 类的对象（在引擎 "%s" 中）。',
+      'Expected "newTransactionWarning()" to return an object of class "PhabricatorTransactionWarning", got something else ("%s") from transaction of class "%s".' => '预期 "newTransactionWarning()" 返回 "PhabricatorTransactionWarning" 类的对象，但从 "%s" 类的事务中得到了其他内容（"%s"）。',
       'Expected DATE-TIME to have exactly one value, found more than one.' => '预期 DATE-TIME 有且仅有一个值，但找到了多个。',
       'Expected DURATION to have exactly one value, found more than one.' => '预期 DURATION 有且仅有一个值，但找到了多个。',
       'Expected ISO8601 datetime in the format "19990105T112233Z", found "%s".' => '预期格式为 "19990105T112233Z" 的 ISO8601 日期时间，但实际得到 "%s"。',
       'Expected ISO8601 duration in the format "P12DT3H4M5S", found "%s".' => '预期格式为 "P12DT3H4M5S" 的 ISO8601 时长，但实际得到 "%s"。',
       'Expected a list of PhutilQueryString objects for %%%s conversion.' => '预期获取用于 %%%s 转换的 PhutilQueryString 对象列表。',
-      'Expected all "BEGIN:" sections in ICS document to have corresponding "END:" sections.' =>
-        '预期 ICS 文档中所有 "BEGIN:" 部分都有对应的 "END:" 部分。',
-      'Expected external Asana account to have exactly one external account identifier, found %s.' =>
-        '预期外部 Asana 账户有且仅有一个外部账户标识符，但实际找到 %s 个。',
+      'Expected all "BEGIN:" sections in ICS document to have corresponding "END:" sections.' => '预期 ICS 文档中所有 "BEGIN:" 部分都有对应的 "END:" 部分。',
+      'Expected external Asana account to have exactly one external account identifier, found %s.' => '预期外部 Asana 账户有且仅有一个外部账户标识符，但实际找到 %s 个。',
       'Expected four elements in icon emblem list. To omit an emblem, pass "null".' => '预期图标徽标列表中有四个元素。要省略徽标，请传递 "null"。',
-      'Expected fulltext engine extension ("%s") to return a list of "FerretSearchFunction" objects from "newFerretSearchFunctions()", but found something else ("%s") at index "%s".' =>
-        '预期全文搜索引擎扩展（"%s"）从 "newFerretSearchFunctions()" 返回 "FerretSearchFunction" 对象列表，但在索引 "%s" 处发现了其他内容（"%s"）。',
-      'Expected fulltext engine extension ("%s") to return a list of functions from "newFerretSearchFunctions()", got "%s".' =>
-        '预期全文搜索引擎扩展（"%s"）从 "newFerretSearchFunctions()" 返回函数列表，但实际得到 "%s"。',
-      'Expected object (of class "%s") to return a transaction template (of class "%s"), but it returned something else ("%s").' =>
-        '预期对象（类为 "%s"）返回事务模板（类为 "%s"），但它返回了其他内容（"%s"）。',
+      'Expected fulltext engine extension ("%s") to return a list of "FerretSearchFunction" objects from "newFerretSearchFunctions()", but found something else ("%s") at index "%s".' => '预期全文搜索引擎扩展（"%s"）从 "newFerretSearchFunctions()" 返回 "FerretSearchFunction" 对象列表，但在索引 "%s" 处发现了其他内容（"%s"）。',
+      'Expected fulltext engine extension ("%s") to return a list of functions from "newFerretSearchFunctions()", got "%s".' => '预期全文搜索引擎扩展（"%s"）从 "newFerretSearchFunctions()" 返回函数列表，但实际得到 "%s"。',
+      'Expected object (of class "%s") to return a transaction template (of class "%s"), but it returned something else ("%s").' => '预期对象（类为 "%s"）返回事务模板（类为 "%s"），但它返回了其他内容（"%s"）。',
       'Expected parameter "%s" to have at most one value, but found more than one.' => '预期参数 "%s" 最多有一个值，但找到了多个。',
-      'Expected to be passed a result object of class "LiskDAO" in "newExternalCursorStringForResult()", actually passed "%s". Return storage objects from "loadPage()" or override "newExternalCursorStringForResult()".' =>
-        '预期在 "newExternalCursorStringForResult()" 中传递 "LiskDAO" 类的结果对象，实际传递的是 "%s"。请从 "loadPage()" 返回存储对象，或重写 "newExternalCursorStringForResult()"。',
-      'Expected trigger rule (of class "%s") to return a list of transactions from "newDropTransactions()", but got "%s".' =>
-        '预期触发器规则（类为 "%s"）从 "newDropTransactions()" 返回事务列表，但实际得到 "%s"。',
-      'Export engine extension ("%s") defines an export field with a key ("%s") that collides with another field. Each field must have a unique key.' =>
-        '导出引擎扩展（"%s"）定义的导出字段的键（"%s"）与另一个字段冲突。每个字段必须具有唯一的键。',
-      'Export engine extension ("%s") exported the wrong number of objects, expected %s but got %s.' =>
-        '导出引擎扩展（"%s"）导出的对象数量错误，预期为 %s，但实际得到 %s。',
-      'Extension "%s" defines a bulk edit group with the same key ("%s") as the main editor or another extension. Each bulk edit group must have a unique key.' =>
-        '扩展 "%s" 定义的批量编辑组的键（"%s"）与主编辑器或其他扩展相同。每个批量编辑组必须具有唯一的键。',
-      'External loaders have been replaced. Extend `%s` to implement new PHID and handle types.' =>
-        '外部加载器已被替换。请扩展 `%s` 以实现新的 PHID 和 handle 类型。',
-      'Factor type "%s" is unknown. Use `bin/auth list-factors` to get a list of known factor types.' =>
-        '因子类型 "%s" 未知。请使用 `bin/auth list-factors` 获取已知因子类型的列表。',
-      'Failed to "json_decode(...)" JSON document after successfully decoding it with "phutil_json_decode(...).' =>
-        '在使用 "phutil_json_decode(...)" 成功解码后，对 JSON 文档执行 "json_decode(...)" 失败。',
-      'Failed to append filter "%s" to input stream while processing a request with "%s" encoding.' =>
-        '处理使用 "%s" 编码的请求时，无法将过滤器 "%s" 附加到输入流。',
+      'Expected to be passed a result object of class "LiskDAO" in "newExternalCursorStringForResult()", actually passed "%s". Return storage objects from "loadPage()" or override "newExternalCursorStringForResult()".' => '预期在 "newExternalCursorStringForResult()" 中传递 "LiskDAO" 类的结果对象，实际传递的是 "%s"。请从 "loadPage()" 返回存储对象，或重写 "newExternalCursorStringForResult()"。',
+      'Expected trigger rule (of class "%s") to return a list of transactions from "newDropTransactions()", but got "%s".' => '预期触发器规则（类为 "%s"）从 "newDropTransactions()" 返回事务列表，但实际得到 "%s"。',
+      'Export engine extension ("%s") defines an export field with a key ("%s") that collides with another field. Each field must have a unique key.' => '导出引擎扩展（"%s"）定义的导出字段的键（"%s"）与另一个字段冲突。每个字段必须具有唯一的键。',
+      'Export engine extension ("%s") exported the wrong number of objects, expected %s but got %s.' => '导出引擎扩展（"%s"）导出的对象数量错误，预期为 %s，但实际得到 %s。',
+      'Extension "%s" defines a bulk edit group with the same key ("%s") as the main editor or another extension. Each bulk edit group must have a unique key.' => '扩展 "%s" 定义的批量编辑组的键（"%s"）与主编辑器或其他扩展相同。每个批量编辑组必须具有唯一的键。',
+      'External loaders have been replaced. Extend `%s` to implement new PHID and handle types.' => '外部加载器已被替换。请扩展 `%s` 以实现新的 PHID 和 handle 类型。',
+      'Factor type "%s" is unknown. Use `bin/auth list-factors` to get a list of known factor types.' => '因子类型 "%s" 未知。请使用 `bin/auth list-factors` 获取已知因子类型的列表。',
+      'Failed to "json_decode(...)" JSON document after successfully decoding it with "phutil_json_decode(...).' => '在使用 "phutil_json_decode(...)" 成功解码后，对 JSON 文档执行 "json_decode(...)" 失败。',
+      'Failed to append filter "%s" to input stream while processing a request with "%s" encoding.' => '处理使用 "%s" 编码的请求时，无法将过滤器 "%s" 附加到输入流。',
       'Failed to connect to master database ("%s"), failing over into read-only mode.' => '无法连接到主数据库 ("%s")，已切换至只读模式。',
-      'Failed to convert public key into PKCS8 format. If you are developing on OSX, you may be able to use `%s` to work around this issue. %s' =>
-        '无法将公钥转换为 PKCS8 格式。如果您在 OSX 上开发，可以使用 `%s` 来解决此问题。%s',
-      'Failed to digest password: object ("%s") did not return an opaque envelope with a password digest.' =>
-        '无法处理密码：对象 ("%s") 未返回包含密码摘要的不透明信封。',
+      'Failed to convert public key into PKCS8 format. If you are developing on OSX, you may be able to use `%s` to work around this issue. %s' => '无法将公钥转换为 PKCS8 格式。如果您在 OSX 上开发，可以使用 `%s` 来解决此问题。%s',
+      'Failed to digest password: object ("%s") did not return an opaque envelope with a password digest.' => '无法处理密码：对象 ("%s") 未返回包含密码摘要的不透明信封。',
       'Failed to load UserCacheType to manage key "%s". This cache type is required.' => '无法加载 UserCacheType 来管理键 "%s"。此缓存类型是必需的。',
       'Failed to load a random user. You may need to generate more test users first.' => '无法加载随机用户。您可能需要先生成更多测试用户。',
-      'Failed to load chart with key "%s" after key collision. This should not be possible.' =>
-        '在键冲突后无法加载键为 "%s" 的图表。这不应该发生。',
+      'Failed to load chart with key "%s" after key collision. This should not be possible.' => '在键冲突后无法加载键为 "%s" 的图表。这不应该发生。',
       'Failed to load or generate dimension ID ("%s") for dimension key "%s".' => '无法加载或生成维度键 "%s" 的维度 ID ("%s")。',
       'Failed to reload object identified by monogram "%s" when querying by PHID.' => '通过 PHID 查询时，无法重新加载由字母组合 "%s" 标识的对象。',
-      'Failed while trying to read schema status: the database "%s" exists, but the current user ("%s") does not have permission to access it. GRANT the current user more permissions, or use a different user.' =>
-        '尝试读取模式状态时失败：数据库 "%s" 存在，但当前用户 ("%s") 无权访问。请为当前用户授予更多权限，或使用其他用户。',
-      'Failure while producing response for object of class "%s": encountered production cycle (identical object, of class "%s", was produced twice).' =>
-        '为类 "%s" 的对象生成响应时失败：遇到生成循环（相同的类 "%s" 对象被生成了两次）。',
-      'Ferret function "%s" is specified with a denormalized name. Instead, specify the function using the normalized function name ("%s").' =>
-        'Ferret 函数 "%s" 使用了非规范化的名称指定。请改用规范化的函数名称 ("%s") 来指定该函数。',
-      'Ferret search engine field key ("%s") is invalid. Field keys must be exactly four characters long and contain only lowercase latin letters.' =>
-        'Ferret 搜索引擎字段键 ("%s") 无效。字段键必须恰好为四个字符，且仅包含小写拉丁字母。',
-      'Ferret search engine function name ("%s") is invalid. Function names must be nonempty and may only contain latin letters and hyphens.' =>
-        'Ferret 搜索引擎函数名称 ("%s") 无效。函数名称不能为空，且只能包含拉丁字母和连字符。',
-      'Field "%s" has a bulk edit group key ("%s") with no corresponding bulk edit group.' =>
-        '字段 "%s" 具有批量编辑组键 ("%s")，但没有对应的批量编辑组。',
-      'Field "%s" is not a standard select field, nor a proxy of a standard select field.' =>
-        '字段 "%s" 不是标准选择字段，也不是标准选择字段的代理。',
-      'File "%s" is invalid: it could not be loaded, or you do not have permission to view it. You must be able to see a file to attach it to an object.' =>
-        '文件 "%s" 无效：无法加载，或您无权查看。必须能够查看文件才能将其附加到对象。',
-      'File ("%s", with MIME type "%s") can not be transformed into a thumbnail. You may be missing support for this file type in the "GD" extension.' =>
-        '文件 ("%s", MIME 类型为 "%s") 无法转换为缩略图。您可能缺少 "GD" 扩展对该文件类型的支持。',
+      'Failed while trying to read schema status: the database "%s" exists, but the current user ("%s") does not have permission to access it. GRANT the current user more permissions, or use a different user.' => '尝试读取模式状态时失败：数据库 "%s" 存在，但当前用户 ("%s") 无权访问。请为当前用户授予更多权限，或使用其他用户。',
+      'Failure while producing response for object of class "%s": encountered production cycle (identical object, of class "%s", was produced twice).' => '为类 "%s" 的对象生成响应时失败：遇到生成循环（相同的类 "%s" 对象被生成了两次）。',
+      'Ferret function "%s" is specified with a denormalized name. Instead, specify the function using the normalized function name ("%s").' => 'Ferret 函数 "%s" 使用了非规范化的名称指定。请改用规范化的函数名称 ("%s") 来指定该函数。',
+      'Ferret search engine field key ("%s") is invalid. Field keys must be exactly four characters long and contain only lowercase latin letters.' => 'Ferret 搜索引擎字段键 ("%s") 无效。字段键必须恰好为四个字符，且仅包含小写拉丁字母。',
+      'Ferret search engine function name ("%s") is invalid. Function names must be nonempty and may only contain latin letters and hyphens.' => 'Ferret 搜索引擎函数名称 ("%s") 无效。函数名称不能为空，且只能包含拉丁字母和连字符。',
+      'Field "%s" has a bulk edit group key ("%s") with no corresponding bulk edit group.' => '字段 "%s" 具有批量编辑组键 ("%s")，但没有对应的批量编辑组。',
+      'Field "%s" is not a standard select field, nor a proxy of a standard select field.' => '字段 "%s" 不是标准选择字段，也不是标准选择字段的代理。',
+      'File "%s" is invalid: it could not be loaded, or you do not have permission to view it. You must be able to see a file to attach it to an object.' => '文件 "%s" 无效：无法加载，或您无权查看。必须能够查看文件才能将其附加到对象。',
+      'File ("%s", with MIME type "%s") can not be transformed into a thumbnail. You may be missing support for this file type in the "GD" extension.' => '文件 ("%s", MIME 类型为 "%s") 无法转换为缩略图。您可能缺少 "GD" 扩展对该文件类型的支持。',
       'File PHID ("%s") is invalid, or you do not have permission to view it.' => '文件 PHID ("%s") 无效，或您无权查看。',
       'File attachment mode "%s" (for file "%s") is invalid. Valid modes are: %s.' => '文件附加模式 "%s"（针对文件 "%s"）无效。有效模式为：%s。',
-      'File attachment mode (for file "%s") is invalid. Expected a string, found "%s".' =>
-        '文件附加模式（针对文件 "%s"）无效。期望字符串，但找到 "%s"。',
-      'File attachment transaction must have a map of files to attachment modes, found "%s".' =>
-        '文件附加事务必须包含文件到附加模式的映射，但找到 "%s"。',
-      'File data integrity check failed. Dark forces have corrupted or tampered with this file. The file data can not be read.' =>
-        '文件数据完整性检查失败。黑暗力量已损坏或篡改了此文件。无法读取文件数据。',
-      'File data integrity check failed. Use "--salvage" to bypass integrity checks. This flag is dangerous, use it at your own risk. Underlying error: %s' =>
-        '文件数据完整性检查失败。使用 "--salvage" 可绕过完整性检查。此标志有危险，请自行承担风险。底层错误：%s',
+      'File attachment mode (for file "%s") is invalid. Expected a string, found "%s".' => '文件附加模式（针对文件 "%s"）无效。期望字符串，但找到 "%s"。',
+      'File attachment transaction must have a map of files to attachment modes, found "%s".' => '文件附加事务必须包含文件到附加模式的映射，但找到 "%s"。',
+      'File data integrity check failed. Dark forces have corrupted or tampered with this file. The file data can not be read.' => '文件数据完整性检查失败。黑暗力量已损坏或篡改了此文件。无法读取文件数据。',
+      'File data integrity check failed. Use "--salvage" to bypass integrity checks. This flag is dangerous, use it at your own risk. Underlying error: %s' => '文件数据完整性检查失败。使用 "--salvage" 可绕过完整性检查。此标志有危险，请自行承担风险。底层错误：%s',
       'File to read parameters from, or "-" to read from stdin.' => '要读取参数的文件，或使用 "-" 从 stdin 读取。',
-      'Files attached to objects are visible to users who can view those objects.' =>
-        '附加到对象的文件对可查看这些对象的用户可见。',
-      'Find objects matching a fulltext search query. See "Search User Guide" in the documentation for details.' =>
-        '查找与全文搜索查询匹配的对象。详见文档中的 "Search User Guide"。',
-      'Find projects with a given maximum depth. Root projects have depth 0, their immediate children have depth 1, and so on.' =>
-        '查找具有给定最大深度的项目。根项目深度为 0，其子项目深度为 1，以此类推。',
-      'Find projects with a given minimum depth. Root projects have depth 0, their immediate children have depth 1, and so on.' =>
-        '查找具有给定最小深度的项目。根项目深度为 0，其子项目深度为 1，以此类推。',
-      'Fire the trigger as though the current time is a given time. This allows you to test how a trigger would behave if activated in the past or future. Defaults to the actual current time.' =>
-        '按给定时间触发触发器，如同当前时间就是该时间。这允许您测试触发器在过去或未来激活时的行为。默认为实际当前时间。',
-      'Fire the trigger as though the last event occurred at a given time. Defaults to the actual last event time.' =>
-        '按给定时间触发触发器，如同上一个事件发生在该时间。默认为实际的上一个事件时间。',
-      'Fire the trigger as though the next event was scheduled at a given time. Defaults to the actual time when the event is next scheduled to fire.' =>
-        '按给定时间触发触发器，如同下一个事件已安排在该时间。默认为事件下次计划触发的实际时间。',
-      'First line of ICS file begins with a space or tab, but this marks a line which should be unfolded.' =>
-        'ICS 文件的第一行以空格或制表符开头，但这标记了一行应该被展开的行。',
-      'Flood the queue with test tasks. This command is intended for use during development and debugging.' =>
-        '用测试任务淹没队列。此命令仅用于开发和调试期间。',
+      'Files attached to objects are visible to users who can view those objects.' => '附加到对象的文件对可查看这些对象的用户可见。',
+      'Find objects matching a fulltext search query. See "Search User Guide" in the documentation for details.' => '查找与全文搜索查询匹配的对象。详见文档中的 "Search User Guide"。',
+      'Find projects with a given maximum depth. Root projects have depth 0, their immediate children have depth 1, and so on.' => '查找具有给定最大深度的项目。根项目深度为 0，其子项目深度为 1，以此类推。',
+      'Find projects with a given minimum depth. Root projects have depth 0, their immediate children have depth 1, and so on.' => '查找具有给定最小深度的项目。根项目深度为 0，其子项目深度为 1，以此类推。',
+      'Fire the trigger as though the current time is a given time. This allows you to test how a trigger would behave if activated in the past or future. Defaults to the actual current time.' => '按给定时间触发触发器，如同当前时间就是该时间。这允许您测试触发器在过去或未来激活时的行为。默认为实际当前时间。',
+      'Fire the trigger as though the last event occurred at a given time. Defaults to the actual last event time.' => '按给定时间触发触发器，如同上一个事件发生在该时间。默认为实际的上一个事件时间。',
+      'Fire the trigger as though the next event was scheduled at a given time. Defaults to the actual time when the event is next scheduled to fire.' => '按给定时间触发触发器，如同下一个事件已安排在该时间。默认为事件下次计划触发的实际时间。',
+      'First line of ICS file begins with a space or tab, but this marks a line which should be unfolded.' => 'ICS 文件的第一行以空格或制表符开头，但这标记了一行应该被展开的行。',
+      'Flood the queue with test tasks. This command is intended for use during development and debugging.' => '用测试任务淹没队列。此命令仅用于开发和调试期间。',
       'Footer configuration is not valid: value must be a list of items.' => '页脚配置无效：值必须是项目列表。',
-      'Footer item with index "%s" is invalid: each item must be a dictionary describing a footer item.' =>
-        '索引为 "%s" 的页脚项目无效：每个项目必须是描述页脚项目的字典。',
-      'For columns that proxy another object (like a subproject or milestone), the PHID of the object they proxy.' =>
-        '对于代理另一个对象（如子项目或里程碑）的列，指其所代理对象的 PHID。',
-      'For custom domains to work, the blog must have a view policy of public. This blog is currently set to "%s".' =>
-        '要使自定义域名生效，博客必须具有公开查看策略。此博客当前设置为 "%s"。',
-      'For help troubleshooting adjustments, see "Managing Storage Adjustments" in the documentation.' =>
-        '有关调整故障排除的帮助，请参见文档中的 "Managing Storage Adjustments"。',
-      'For subprojects and milestones, a brief description of the parent project.' =>
-        '对于子项目和里程碑，指父项目的简要描述。',
-      'For subprojects and milestones, depth of this project in the tree. Root projects have depth 0.' =>
-        '对于子项目和里程碑，指该项目在树中的深度。根项目深度为 0。',
-      'Force a complete rebuild of the entire index instead of an incremental update.' =>
-        '强制完全重建整个索引，而非增量更新。',
-      'Force the request to execute in this process, rather than proxying to another host in the cluster.' =>
-        '强制请求在此进程中执行，而非代理到集群中的另一台主机。',
+      'Footer item with index "%s" is invalid: each item must be a dictionary describing a footer item.' => '索引为 "%s" 的页脚项目无效：每个项目必须是描述页脚项目的字典。',
+      'For columns that proxy another object (like a subproject or milestone), the PHID of the object they proxy.' => '对于代理另一个对象（如子项目或里程碑）的列，指其所代理对象的 PHID。',
+      'For custom domains to work, the blog must have a view policy of public. This blog is currently set to "%s".' => '要使自定义域名生效，博客必须具有公开查看策略。此博客当前设置为 "%s"。',
+      'For help troubleshooting adjustments, see "Managing Storage Adjustments" in the documentation.' => '有关调整故障排除的帮助，请参见文档中的 "Managing Storage Adjustments"。',
+      'For subprojects and milestones, a brief description of the parent project.' => '对于子项目和里程碑，指父项目的简要描述。',
+      'For subprojects and milestones, depth of this project in the tree. Root projects have depth 0.' => '对于子项目和里程碑，指该项目在树中的深度。根项目深度为 0。',
+      'Force a complete rebuild of the entire index instead of an incremental update.' => '强制完全重建整个索引，而非增量更新。',
+      'Force the request to execute in this process, rather than proxying to another host in the cluster.' => '强制请求在此进程中执行，而非代理到集群中的另一台主机。',
       'Form "%s" is not a valid form which you have permission to see.' => '表单 "%s" 不是您有权查看的有效表单。',
-      'Format for the HTTP access log. Use `%s` to set the path. Available variables are:' =>
-        'HTTP 访问日志的格式。使用 `%s` 设置路径。可用变量为：',
-      'Format for the SSH access log. Use %s to set the path. Available variables are:' =>
-        'SSH 访问日志的格式。使用 %s 设置路径。可用变量为：',
+      'Format for the HTTP access log. Use `%s` to set the path. Available variables are:' => 'HTTP 访问日志的格式。使用 `%s` 设置路径。可用变量为：',
+      'Format for the SSH access log. Use %s to set the path. Available variables are:' => 'SSH 访问日志的格式。使用 %s 设置路径。可用变量为：',
       'Found malformed double-quoted string in ICS document parameter value.' => '在 ICS 文档参数值中发现格式错误的双引号字符串。',
-      'Found more than one ("%s") applied edge transactions with given edge type ("%s"); expected zero or one.' =>
-        '找到多个 ("%s") 给定边类型 ("%s") 的已应用边事务；期望为零个或一个。',
+      'Found more than one ("%s") applied edge transactions with given edge type ("%s"); expected zero or one.' => '找到多个 ("%s") 给定边类型 ("%s") 的已应用边事务；期望为零个或一个。',
       'Found no template resource (for emblem "%s") with dimensions %dx%d.' => '未找到模板资源（用于徽标 "%s"），尺寸为 %dx%d。',
-      'Found unknown intradiff source line, expected a line beginning with "+", "-", or " " (space): %s.' =>
-        '发现未知的 intradiff 源行，期望以 "+"、"-" 或 " "（空格）开头的行：%s。',
-      'Free leases on selected tasks. If the daemon holding the lease is still working on the task, this may cause the task to execute twice.' =>
-        '释放选定任务上的租约。如果持有租约的守护进程仍在处理该任务，这可能导致任务执行两次。',
-      'Function "%s" expects %s argument(s), but %s argument(s) were provided.' =>
-        '函数 "%s" 期望 %s 个参数，但提供了 %s 个参数。',
-      'Function "%s" expects %s or more argument(s), but only %s argument(s) were provided.' =>
-        '函数 "%s" 期望 %s 个或更多参数，但仅提供了 %s 个参数。',
-      'Function "%s" expects at least %s argument(s), but only %s argument(s) were provided.' =>
-        '函数 "%s" 期望至少 %s 个参数，但仅提供了 %s 个参数。',
+      'Found unknown intradiff source line, expected a line beginning with "+", "-", or " " (space): %s.' => '发现未知的 intradiff 源行，期望以 "+"、"-" 或 " "（空格）开头的行：%s。',
+      'Free leases on selected tasks. If the daemon holding the lease is still working on the task, this may cause the task to execute twice.' => '释放选定任务上的租约。如果持有租约的守护进程仍在处理该任务，这可能导致任务执行两次。',
+      'Function "%s" expects %s argument(s), but %s argument(s) were provided.' => '函数 "%s" 期望 %s 个参数，但提供了 %s 个参数。',
+      'Function "%s" expects %s or more argument(s), but only %s argument(s) were provided.' => '函数 "%s" 期望 %s 个或更多参数，但仅提供了 %s 个参数。',
+      'Function "%s" expects at least %s argument(s), but only %s argument(s) were provided.' => '函数 "%s" 期望至少 %s 个参数，但仅提供了 %s 个参数。',
       'Function "%s" is requesting an argument ("%s") that it did not define.' => '函数 "%s" 正在请求一个未定义的参数 ("%s")。',
-      'Generate a new quickstart database dump. This command is mostly useful for internal development.' =>
-        '生成新的快速入门数据库转储。此命令主要用于内部开发。',
-      'Generating synthetic test objects forever. Use ^C to stop when satisfied.' =>
-        '持续生成合成测试对象。满意时使用 ^C 停止。',
-      'GitHub Issue ID "%s" is not properly formatted. Expected an ID in the form "owner/repository#123".' =>
-        'GitHub 问题 ID "%s" 格式不正确。期望的格式为 "owner/repository#123"。',
-      'Global Herald rules can be edited by users with the "Can Manage Global Rules" Herald application permission.' =>
-        '拥有 "Can Manage Global Rules" Herald 应用权限的用户可以编辑全局 Herald 规则。',
-      'Global rules notify anyone about events. Global rules can bypass access control policies and act on any object.' =>
-        '全局规则可向任何人通知事件。全局规则可以绕过访问控制策略并对任何对象执行操作。',
-      'Gracefully restart daemon processes in-place to pick up changes to source. This will not disrupt running jobs. This is an advanced workflow; most installs should use __%s__.' =>
-        '优雅地原地重启守护进程以获取源代码变更。这不会中断正在运行的任务。这是高级工作流；大多数安装应使用 __%s__。',
-      'Guidance in the "Change Username" dialog for requesting a username change.' =>
-        '"更改用户名"对话框中关于请求更改用户名的指导。',
-      'Guidance in the message body when users request an email link to access their account.' =>
-        '用户请求通过电子邮件链接访问其账户时，消息正文中的指导。',
-      'Guidance in the message body when users set a password on an account which did not previously have a password.' =>
-        '用户在之前未设置密码的账户上设置密码时，消息正文中的指导。',
-      'Guidance shown after a user logs in with an email link and is prompted to link an external account.' =>
-        '用户通过电子邮件链接登录并被提示关联外部账户后显示的指导。',
-      'Guidance shown on the main login screen before users log in or register.' =>
-        '用户在登录或注册前于主登录屏幕上显示的指导。',
-      'Handles action rate limiting exceptions which occur when a user does something too frequently.' =>
-        '处理用户操作过于频繁时发生的操作速率限制异常。',
-      'Handles high security exceptions which occur when a user needs to present MFA credentials to take an action.' =>
-        '处理用户需要出示 MFA 凭据才能执行操作时发生的高安全级别异常。',
-      'Handles policy exceptions which occur when a user tries to do something they do not have permission to do.' =>
-        '处理用户尝试执行其无权执行的操作时发生的策略异常。',
-      'Hasher "%s" may produce hashes which are too long to fit in storage. %d characters are available, but its hashes may be up to %d characters in length.' =>
-        '哈希器 "%s" 可能生成过长的哈希值而无法存储。可用字符数为 %d，但其哈希值长度可能达到 %d。',
-      'Hashtags must contain at least one letter or number. %s project hashtag(s) are invalid: %s.' =>
-        '话题标签必须包含至少一个字母或数字。%s 个项目话题标签无效：%s。',
-      'Hit duplicate key collision when saving proxied image, but failed to load duplicate row (for URI "%s").' =>
-        '保存代理图像时遇到重复键冲突，但未能加载重复行（对应 URI "%s"）。',
+      'Generate a new quickstart database dump. This command is mostly useful for internal development.' => '生成新的快速入门数据库转储。此命令主要用于内部开发。',
+      'Generating synthetic test objects forever. Use ^C to stop when satisfied.' => '持续生成合成测试对象。满意时使用 ^C 停止。',
+      'GitHub Issue ID "%s" is not properly formatted. Expected an ID in the form "owner/repository#123".' => 'GitHub 问题 ID "%s" 格式不正确。期望的格式为 "owner/repository#123"。',
+      'Global Herald rules can be edited by users with the "Can Manage Global Rules" Herald application permission.' => '拥有 "Can Manage Global Rules" Herald 应用权限的用户可以编辑全局 Herald 规则。',
+      'Global rules notify anyone about events. Global rules can bypass access control policies and act on any object.' => '全局规则可向任何人通知事件。全局规则可以绕过访问控制策略并对任何对象执行操作。',
+      'Gracefully restart daemon processes in-place to pick up changes to source. This will not disrupt running jobs. This is an advanced workflow; most installs should use __%s__.' => '优雅地原地重启守护进程以获取源代码变更。这不会中断正在运行的任务。这是高级工作流；大多数安装应使用 __%s__。',
+      'Guidance in the "Change Username" dialog for requesting a username change.' => '"更改用户名"对话框中关于请求更改用户名的指导。',
+      'Guidance in the message body when users request an email link to access their account.' => '用户请求通过电子邮件链接访问其账户时，消息正文中的指导。',
+      'Guidance in the message body when users set a password on an account which did not previously have a password.' => '用户在之前未设置密码的账户上设置密码时，消息正文中的指导。',
+      'Guidance shown after a user logs in with an email link and is prompted to link an external account.' => '用户通过电子邮件链接登录并被提示关联外部账户后显示的指导。',
+      'Guidance shown on the main login screen before users log in or register.' => '用户在登录或注册前于主登录屏幕上显示的指导。',
+      'Handles action rate limiting exceptions which occur when a user does something too frequently.' => '处理用户操作过于频繁时发生的操作速率限制异常。',
+      'Handles high security exceptions which occur when a user needs to present MFA credentials to take an action.' => '处理用户需要出示 MFA 凭据才能执行操作时发生的高安全级别异常。',
+      'Handles policy exceptions which occur when a user tries to do something they do not have permission to do.' => '处理用户尝试执行其无权执行的操作时发生的策略异常。',
+      'Hasher "%s" may produce hashes which are too long to fit in storage. %d characters are available, but its hashes may be up to %d characters in length.' => '哈希器 "%s" 可能生成过长的哈希值而无法存储。可用字符数为 %d，但其哈希值长度可能达到 %d。',
+      'Hashtags must contain at least one letter or number. %s project hashtag(s) are invalid: %s.' => '话题标签必须包含至少一个字母或数字。%s 个项目话题标签无效：%s。',
+      'Hit duplicate key collision when saving proxied image, but failed to load duplicate row (for URI "%s").' => '保存代理图像时遇到重复键冲突，但未能加载重复行（对应 URI "%s"）。',
       'ICS document contains TEXT value ending with unescaped backslash.' => 'ICS 文档包含以未转义反斜杠结尾的 TEXT 值。',
-      'ISO8601 date ends in "Z" indicating UTC, but a timezone other than UTC ("%s") was specified.' =>
-        'ISO8601 日期以 "Z" 结尾表示 UTC，但指定了非 UTC 的时区 ("%s")。',
-      'Icon key "%s" is not a valid icon key. Icon keys must be 1-32 characters long and contain only lowercase letters. For example, "%s" and "%s" are reasonable keys.' =>
-        '图标键 "%s" 不是有效的图标键。图标键长度必须为 1-32 个字符，且只能包含小写字母。例如， "%s" 和 "%s" 是合理的键。',
-      'Icon special attribute "%s" is not valid. Recognized special attributes are: %s.' =>
-        '图标特殊属性 "%s" 无效。可识别的特殊属性为：%s。',
-      'Identifier "%s" matches multiple users. Specify each user unambiguously with "@username" or by using user PHIDs.' =>
-        '标识符 "%s" 匹配多个用户。请使用 "@username" 或用户 PHID 明确指定每个用户。',
-      'Identify the component in your webserver configuration which is decompressing or mangling requests and disable it. This software will not work properly until you do.' =>
-        '识别 Web 服务器配置中解压缩或损坏请求的组件并将其禁用。否则此软件将无法正常工作。',
-      'If everything looks good, click **Send Invitations** to deliver email invitations these users. Otherwise, edit the email list or personal message at the bottom of the page to revise the invitations.' =>
-        '如果一切正常，点击 **Send Invitations** 向这些用户发送电子邮件邀请。否则，请编辑页面底部的电子邮件列表或个人消息以修改邀请。',
-      'If the audio does not play, you may need to reload the page and interact with it (for example, click somewhere), or check your web permissions as modern browsers may block audio autoplay.' =>
-        '如果音频无法播放，您可能需要重新加载页面并与之交互（例如点击某处），或检查您的 Web 权限，因为现代浏览器可能会阻止音频自动播放。',
-      'If the output file already exists, overwrite it instead of raising an error.' =>
-        '如果输出文件已存在，则覆盖它而不是引发错误。',
-      'If true, email addresses must be verified (by clicking a link in an email) before a user can login. By default, verification is optional unless @{config:auth.email-domains} is nonempty.' =>
-        '如果为 true，则电子邮件地址必须经过验证（通过点击电子邮件中的链接）后用户才能登录。默认情况下，验证是可选的，除非 @{config:auth.email-domains} 非空。',
-      'If you activate this space, you will be able to create objects inside it again.' =>
-        '如果您激活此空间，将能够再次在其中创建对象。',
-      'If you already have an account, you can follow the link to quickly verify this email address.' =>
-        '如果您已有账户，可以点击链接快速验证此电子邮件地址。',
-      'If you archive this Space, you will no longer be able to create new objects inside it.' =>
-        '如果您归档此空间，将无法再在其中创建新对象。',
-      'If you archive this post, it will only be visible to users who can edit %s.' =>
-        '如果您归档此帖子，则只有可以编辑 %s 的用户才能看到它。',
-      'If you are currently using your phone to view this page, click this button to open the Duo application:' =>
-        '如果您当前正在使用手机查看此页面，请点击此按钮打开 Duo 应用：',
-      'If you are developing %s, these errors usually indicate that your schema specifications do not agree with the schemata your code actually builds.' =>
-        '如果您正在开发 %s，这些错误通常表示您的架构规范与代码实际构建的架构不一致。',
-      'If you are not developing %s itself, report this issue to the upstream.' =>
-        '如果您不是在开发 %s 本身，请将此问题报告给上游。',
-      'If you are using Amazon RDS, some of the instructions above may not apply to you. See %s for discussion of Amazon RDS.' =>
-        '如果您使用 Amazon RDS，上述某些说明可能不适用。有关 Amazon RDS 的讨论，请参见 %s。',
-      'If you change your mind, you can revoke this token later in {nav icon=wrench,name=Settings > Conduit API Tokens}.' =>
-        '如果您改变主意，可以稍后在 {nav icon=wrench,name=Settings > Conduit API Tokens} 中撤销此令牌。',
+      'ISO8601 date ends in "Z" indicating UTC, but a timezone other than UTC ("%s") was specified.' => 'ISO8601 日期以 "Z" 结尾表示 UTC，但指定了非 UTC 的时区 ("%s")。',
+      'Icon key "%s" is not a valid icon key. Icon keys must be 1-32 characters long and contain only lowercase letters. For example, "%s" and "%s" are reasonable keys.' => '图标键 "%s" 不是有效的图标键。图标键长度必须为 1-32 个字符，且只能包含小写字母。例如， "%s" 和 "%s" 是合理的键。',
+      'Icon special attribute "%s" is not valid. Recognized special attributes are: %s.' => '图标特殊属性 "%s" 无效。可识别的特殊属性为：%s。',
+      'Identifier "%s" matches multiple users. Specify each user unambiguously with "@username" or by using user PHIDs.' => '标识符 "%s" 匹配多个用户。请使用 "@username" 或用户 PHID 明确指定每个用户。',
+      'Identify the component in your webserver configuration which is decompressing or mangling requests and disable it. This software will not work properly until you do.' => '识别 Web 服务器配置中解压缩或损坏请求的组件并将其禁用。否则此软件将无法正常工作。',
+      'If everything looks good, click **Send Invitations** to deliver email invitations these users. Otherwise, edit the email list or personal message at the bottom of the page to revise the invitations.' => '如果一切正常，点击 **Send Invitations** 向这些用户发送电子邮件邀请。否则，请编辑页面底部的电子邮件列表或个人消息以修改邀请。',
+      'If the audio does not play, you may need to reload the page and interact with it (for example, click somewhere), or check your web permissions as modern browsers may block audio autoplay.' => '如果音频无法播放，您可能需要重新加载页面并与之交互（例如点击某处），或检查您的 Web 权限，因为现代浏览器可能会阻止音频自动播放。',
+      'If the output file already exists, overwrite it instead of raising an error.' => '如果输出文件已存在，则覆盖它而不是引发错误。',
+      'If true, email addresses must be verified (by clicking a link in an email) before a user can login. By default, verification is optional unless @{config:auth.email-domains} is nonempty.' => '如果为 true，则电子邮件地址必须经过验证（通过点击电子邮件中的链接）后用户才能登录。默认情况下，验证是可选的，除非 @{config:auth.email-domains} 非空。',
+      'If you activate this space, you will be able to create objects inside it again.' => '如果您激活此空间，将能够再次在其中创建对象。',
+      'If you already have an account, you can follow the link to quickly verify this email address.' => '如果您已有账户，可以点击链接快速验证此电子邮件地址。',
+      'If you archive this Space, you will no longer be able to create new objects inside it.' => '如果您归档此空间，将无法再在其中创建新对象。',
+      'If you archive this post, it will only be visible to users who can edit %s.' => '如果您归档此帖子，则只有可以编辑 %s 的用户才能看到它。',
+      'If you are currently using your phone to view this page, click this button to open the Duo application:' => '如果您当前正在使用手机查看此页面，请点击此按钮打开 Duo 应用：',
+      'If you are developing %s, these errors usually indicate that your schema specifications do not agree with the schemata your code actually builds.' => '如果您正在开发 %s，这些错误通常表示您的架构规范与代码实际构建的架构不一致。',
+      'If you are not developing %s itself, report this issue to the upstream.' => '如果您不是在开发 %s 本身，请将此问题报告给上游。',
+      'If you are using Amazon RDS, some of the instructions above may not apply to you. See %s for discussion of Amazon RDS.' => '如果您使用 Amazon RDS，上述某些说明可能不适用。有关 Amazon RDS 的讨论，请参见 %s。',
+      'If you change your mind, you can revoke this token later in {nav icon=wrench,name=Settings > Conduit API Tokens}.' => '如果您改变主意，可以稍后在 {nav icon=wrench,name=Settings > Conduit API Tokens} 中撤销此令牌。',
       'If you change your primary address, %s will send all email to %s.' => '如果您更改主地址，%s 将向 %s 发送所有电子邮件。',
-      'If you continue, you will create a new account. You will not be able to link this external account to an existing account.' =>
-        '如果继续，您将创建一个新账户。您将无法将此外部账户关联到现有账户。',
-      'If you did not receive an email, you can click the button below to try sending another one.' =>
-        '如果您未收到电子邮件，可以点击下面的按钮尝试重新发送。',
-      'If you disable **Self Actions**, this server will not notify you about actions you take.' =>
-        '如果您禁用 **Self Actions**，此服务器将不会通知您自己所执行的操作。',
-      'If you do not recognize this change, it may indicate your account has been compromised.' =>
-        '如果您不认识此更改，可能表明您的账户已被盗用。',
+      'If you continue, you will create a new account. You will not be able to link this external account to an existing account.' => '如果继续，您将创建一个新账户。您将无法将此外部账户关联到现有账户。',
+      'If you did not receive an email, you can click the button below to try sending another one.' => '如果您未收到电子邮件，可以点击下面的按钮尝试重新发送。',
+      'If you disable **Self Actions**, this server will not notify you about actions you take.' => '如果您禁用 **Self Actions**，此服务器将不会通知您自己所执行的操作。',
+      'If you do not recognize this change, it may indicate your account has been compromised.' => '如果您不认识此更改，可能表明您的账户已被盗用。',
       'If you have difficulty reading the UI, this setting may help.' => '如果您在阅读 UI 时有困难，此设置可能会有所帮助。',
-      'If you leave high security, you will need to authenticate again the next time you try to take a high security action.' =>
-        '如果您离开高安全级别，下次尝试执行高安全级别操作时将需要重新进行身份验证。',
+      'If you leave high security, you will need to authenticate again the next time you try to take a high security action.' => '如果您离开高安全级别，下次尝试执行高安全级别操作时将需要重新进行身份验证。',
       'If you lock this project, members will be prevented from leaving it.' => '如果您锁定此项目，成员将无法离开。',
-      'If you log out now, you can still regain access to your account later by using the account recovery workflow. The login screen will prompt you with recovery instructions.' =>
-        '如果您现在注销，稍后仍可通过账户恢复流程重新获得账户访问权限。登录屏幕将提示恢复说明。',
-      'If you lose access to your account, you can recover access by sending yourself an email login link from the login screen.' =>
-        '如果您失去账户访问权限，可以通过从登录屏幕向自己发送电子邮件登录链接来恢复访问。',
-      'If you potentially select leased tasks using %s, you MUST disable lease acquisition by calling %s.' =>
-        '如果您可能使用 %s 选择已租用的任务，则必须通过调用 %s 禁用租用获取。',
-      'If you rename this user, the old username will no longer be tied to the user account. Anything which uses the old username in raw text (like old commit messages) may no longer associate correctly.' =>
-        '如果您重命名此用户，旧用户名将不再与用户账户关联。任何在纯文本中使用旧用户名的地方（如旧的提交消息）可能无法再正确关联。',
-      'If you set one of the Play options, audio volume will automatically increase when scrolling closer to the Macro, and decrease when scrolling away.' =>
-        '如果您设置了播放选项之一，滚动靠近 Macro 时音量将自动增加，滚动远离时音量将减小。',
-      'If you start work now, this edit will be applied silently: it will not send mail or publish notifications.' =>
-        '如果您现在开始工作，此编辑将静默应用：不会发送邮件或发布通知。',
-      'If you start work now, this edit will send mail and publish notifications normally.' =>
-        '如果您现在开始工作，此编辑将正常发送邮件和发布通知。',
-      'If you submit parameters, these examples will update to show exactly how to encode the parameters you submit.' =>
-        '如果您提交参数，这些示例将更新以准确显示如何编码您提交的参数。',
-      'If you want to link an existing %s account to this external account, do not continue. Instead: log in to your existing account, then go to "Settings" and link the account in the "External Accounts" panel.' =>
-        '如果您想将现有的 %s 账户关联到此外部账户，请不要继续。相反：登录到您的现有账户，然后进入 "Settings" 并在 "External Accounts" 面板中关联账户。',
-      'If you want to register a new account, continue with this registration workflow and choose a new, unique email address for the new account.' =>
-        '如果您想注册新账户，请继续此注册流程并为新账户选择一个全新的、唯一的电子邮件地址。',
-      'If you\'re new to %s, these optional steps can help you learn the basics. Feel free to set things up for how you work best and explore these features at your own pace.' =>
-        '如果您是 %s 的新手，这些可选步骤可以帮助您学习基础知识。请根据您的工作方式自由设置，并按自己的节奏探索这些功能。',
-      'Ignored an event (%s) because the original version of this event was created here.' =>
-        '忽略了事件 (%s)，因为该事件的原始版本是在此处创建的。',
-      'Ignored an event with an out-of-range date. Only dates between 1970 and 2037 are supported.' =>
-        '忽略了日期超出范围的事件。仅支持 1970 年至 2037 年之间的日期。',
-      'Ignored an event with an unsupported frequency rule ("%s"). Events which repeat more frequently than daily are not supported.' =>
-        '忽略了包含不受支持的频率规则 ("%s") 的事件。不支持比每天更频繁重复的事件。',
-      'Ignoring email with "Message-ID" hash "%s" that has been seen %d times, including this message.' =>
-        '忽略 "Message-ID" 哈希为 "%s" 的电子邮件，该邮件已出现 %d 次（包括此消息）。',
-      'Imported events can only be viewed by users who can view the import source.' =>
-        '导入的事件只能由可以查看导入源的用户查看。',
-      'In call to "%s", specified "%s" ("%s") is not supported because it does not implement "%s". Valid object types are: %s.' =>
-        '在调用 "%s" 时，指定的 "%s" ("%s") 不受支持，因为它未实现 "%s"。有效的对象类型为：%s。',
-      'In call to "transaction.search", selected object (of type "%s") does not implement "%s", so transactions can not be loaded for it.' =>
-        '在调用 "transaction.search" 时，所选对象（类型为 "%s"）未实现 "%s"，因此无法为其加载事务。',
-      'In detail, this means that these users can take this action, provided they pass all of the checks described above first:' =>
-        '详细来说，这意味着这些用户可以先通过上述所有检查，然后才能执行此操作：',
-      'In development, OPcache should be configured to always reload code so nothing needs to be restarted after making changes. To do this, enable "%s" and set "%s" to 0.' =>
-        '在开发环境中，应将 OPcache 配置为始终重新加载代码，这样更改后无需重启任何服务。为此，请启用 "%s" 并将 "%s" 设置为 0。',
-      'In production, OPcache should be configured to never revalidate code. This will slightly improve performance. To do this, disable "%s" in your PHP configuration.' =>
-        '在生产环境中，应将 OPcache 配置为永不重新验证代码。这将略微提升性能。为此，请在 PHP 配置中禁用 "%s"。',
-      'In read-only mode you can read existing information, but you will not be able to edit objects or create new objects until this mode is disabled.' =>
-        '在只读模式下，您可以读取现有信息，但在禁用此模式之前将无法编辑对象或创建新对象。',
-      'Inbound mail addresses are now configured for each application in the Applications tool.' =>
-        '入站邮件地址现已在应用程序工具中为每个应用程序配置。',
-      'Individual application reply handler domains have been removed. Configure a reply domain with "%s".' =>
-        '已移除单个应用程序回复处理程序域。请使用 "%s" 配置回复域。',
+      'If you log out now, you can still regain access to your account later by using the account recovery workflow. The login screen will prompt you with recovery instructions.' => '如果您现在注销，稍后仍可通过账户恢复流程重新获得账户访问权限。登录屏幕将提示恢复说明。',
+      'If you lose access to your account, you can recover access by sending yourself an email login link from the login screen.' => '如果您失去账户访问权限，可以通过从登录屏幕向自己发送电子邮件登录链接来恢复访问。',
+      'If you potentially select leased tasks using %s, you MUST disable lease acquisition by calling %s.' => '如果您可能使用 %s 选择已租用的任务，则必须通过调用 %s 禁用租用获取。',
+      'If you rename this user, the old username will no longer be tied to the user account. Anything which uses the old username in raw text (like old commit messages) may no longer associate correctly.' => '如果您重命名此用户，旧用户名将不再与用户账户关联。任何在纯文本中使用旧用户名的地方（如旧的提交消息）可能无法再正确关联。',
+      'If you set one of the Play options, audio volume will automatically increase when scrolling closer to the Macro, and decrease when scrolling away.' => '如果您设置了播放选项之一，滚动靠近 Macro 时音量将自动增加，滚动远离时音量将减小。',
+      'If you start work now, this edit will be applied silently: it will not send mail or publish notifications.' => '如果您现在开始工作，此编辑将静默应用：不会发送邮件或发布通知。',
+      'If you start work now, this edit will send mail and publish notifications normally.' => '如果您现在开始工作，此编辑将正常发送邮件和发布通知。',
+      'If you submit parameters, these examples will update to show exactly how to encode the parameters you submit.' => '如果您提交参数，这些示例将更新以准确显示如何编码您提交的参数。',
+      'If you want to link an existing %s account to this external account, do not continue. Instead: log in to your existing account, then go to "Settings" and link the account in the "External Accounts" panel.' => '如果您想将现有的 %s 账户关联到此外部账户，请不要继续。相反：登录到您的现有账户，然后进入 "Settings" 并在 "External Accounts" 面板中关联账户。',
+      'If you want to register a new account, continue with this registration workflow and choose a new, unique email address for the new account.' => '如果您想注册新账户，请继续此注册流程并为新账户选择一个全新的、唯一的电子邮件地址。',
+      'If you\'re new to %s, these optional steps can help you learn the basics. Feel free to set things up for how you work best and explore these features at your own pace.' => '如果您是 %s 的新手，这些可选步骤可以帮助您学习基础知识。请根据您的工作方式自由设置，并按自己的节奏探索这些功能。',
+      'Ignored an event (%s) because the original version of this event was created here.' => '忽略了事件 (%s)，因为该事件的原始版本是在此处创建的。',
+      'Ignored an event with an out-of-range date. Only dates between 1970 and 2037 are supported.' => '忽略了日期超出范围的事件。仅支持 1970 年至 2037 年之间的日期。',
+      'Ignored an event with an unsupported frequency rule ("%s"). Events which repeat more frequently than daily are not supported.' => '忽略了包含不受支持的频率规则 ("%s") 的事件。不支持比每天更频繁重复的事件。',
+      'Ignoring email with "Message-ID" hash "%s" that has been seen %d times, including this message.' => '忽略 "Message-ID" 哈希为 "%s" 的电子邮件，该邮件已出现 %d 次（包括此消息）。',
+      'Imported events can only be viewed by users who can view the import source.' => '导入的事件只能由可以查看导入源的用户查看。',
+      'In call to "%s", specified "%s" ("%s") is not supported because it does not implement "%s". Valid object types are: %s.' => '在调用 "%s" 时，指定的 "%s" ("%s") 不受支持，因为它未实现 "%s"。有效的对象类型为：%s。',
+      'In call to "transaction.search", selected object (of type "%s") does not implement "%s", so transactions can not be loaded for it.' => '在调用 "transaction.search" 时，所选对象（类型为 "%s"）未实现 "%s"，因此无法为其加载事务。',
+      'In detail, this means that these users can take this action, provided they pass all of the checks described above first:' => '详细来说，这意味着这些用户可以先通过上述所有检查，然后才能执行此操作：',
+      'In development, OPcache should be configured to always reload code so nothing needs to be restarted after making changes. To do this, enable "%s" and set "%s" to 0.' => '在开发环境中，应将 OPcache 配置为始终重新加载代码，这样更改后无需重启任何服务。为此，请启用 "%s" 并将 "%s" 设置为 0。',
+      'In production, OPcache should be configured to never revalidate code. This will slightly improve performance. To do this, disable "%s" in your PHP configuration.' => '在生产环境中，应将 OPcache 配置为永不重新验证代码。这将略微提升性能。为此，请在 PHP 配置中禁用 "%s"。',
+      'In read-only mode you can read existing information, but you will not be able to edit objects or create new objects until this mode is disabled.' => '在只读模式下，您可以读取现有信息，但在禁用此模式之前将无法编辑对象或创建新对象。',
+      'Inbound mail addresses are now configured for each application in the Applications tool.' => '入站邮件地址现已在应用程序工具中为每个应用程序配置。',
+      'Individual application reply handler domains have been removed. Configure a reply domain with "%s".' => '已移除单个应用程序回复处理程序域。请使用 "%s" 配置回复域。',
       'Information on user profiles on this install is publicly visible.' => '此安装中的用户信息是公开可见的。',
-      'Inline comments are now always rendered with a limited amount of context.' =>
-        '行内注释现在始终以有限的上下文量进行渲染。',
-      'Installation is complete. Register your administrator account below to log in. You will be able to configure options and add authentication mechanisms later on.' =>
-        '安装已完成。请在下方注册您的管理员账户以登录。您稍后能够配置选项并添加身份验证机制。',
-      'Installing the "APCu" PHP extension will improve performance. This extension is strongly recommended. Without it, this software must rely on a very inefficient disk-based cache.' =>
-        '安装 "APCu" PHP 扩展将提升性能。强烈建议安装此扩展。如果没有它，本软件必须依赖非常低效的基于磁盘的缓存。',
-      'Installing the "Zend OPcache" extension will dramatically improve performance.' =>
-        '安装 "Zend OPcache" 扩展将显著提升性能。',
-      'Instead of indexing in this process, queue tasks for the daemons. This can improve performance, but makes it more difficult to debug search indexing.' =>
-        '不要在此进程中执行索引，而是为守护进程排队任务。这可以提升性能，但会使搜索索引的调试更加困难。',
-      'Instead of making calls in the foreground, add the tasks to the daemon queue.' =>
-        '不要在前台执行调用，而是将任务添加到守护进程队列。',
-      'Instructions on the "Wait For Approval" screen, shown to users who have registered an account that has not yet been approved by an administrator.' =>
-        '"等待批准" 屏幕上的说明，显示给已注册账户但尚未获得管理员批准的用户。',
-      'Interfaces must have a unique combination of network, device, address, and port.' =>
-        '接口必须具有唯一的网络、设备、地址和端口组合。',
-      'Invalid response token for this challenge: token digest does not match stored digest.' =>
-        '此质询的响应令牌无效：令牌摘要与存储的摘要不匹配。',
-      'Invitee "%s" identifies an object that does not exist or which you do not have permission to view.' =>
-        '被邀请者 "%s" 标识了一个不存在的对象或您无权查看的对象。',
-      'Invites are visible to administrators, the inviting user, users with an invite code, and the user who accepts the invite.' =>
-        '邀请对管理员、邀请者、拥有邀请码的用户以及接受邀请的用户可见。',
-      'It is generally safe to rename users, but changing usernames may create occasional minor complications or confusion with text that contains the old username.' =>
-        '重命名用户通常是安全的，但更改用户名可能会偶尔导致包含旧用户名的文本出现轻微复杂情况或混淆。',
-      'JIRA instance name must contain only lowercase letters, digits, and period.' =>
-        'JIRA 实例名称只能包含小写字母、数字和句点。',
-      'Join this project? You will become a member and enjoy whatever benefits membership may confer.' =>
-        '加入此项目？您将成为成员并享受成员资格可能带来的任何权益。',
-      'Keep this token private, it allows any bearer to access your account on behalf of this application.' =>
-        '请保密此令牌，它允许任何持有者代表此应用程序访问您的账户。',
+      'Inline comments are now always rendered with a limited amount of context.' => '行内注释现在始终以有限的上下文量进行渲染。',
+      'Installation is complete. Register your administrator account below to log in. You will be able to configure options and add authentication mechanisms later on.' => '安装已完成。请在下方注册您的管理员账户以登录。您稍后能够配置选项并添加身份验证机制。',
+      'Installing the "APCu" PHP extension will improve performance. This extension is strongly recommended. Without it, this software must rely on a very inefficient disk-based cache.' => '安装 "APCu" PHP 扩展将提升性能。强烈建议安装此扩展。如果没有它，本软件必须依赖非常低效的基于磁盘的缓存。',
+      'Installing the "Zend OPcache" extension will dramatically improve performance.' => '安装 "Zend OPcache" 扩展将显著提升性能。',
+      'Instead of indexing in this process, queue tasks for the daemons. This can improve performance, but makes it more difficult to debug search indexing.' => '不要在此进程中执行索引，而是为守护进程排队任务。这可以提升性能，但会使搜索索引的调试更加困难。',
+      'Instead of making calls in the foreground, add the tasks to the daemon queue.' => '不要在前台执行调用，而是将任务添加到守护进程队列。',
+      'Instructions on the "Wait For Approval" screen, shown to users who have registered an account that has not yet been approved by an administrator.' => '"等待批准" 屏幕上的说明，显示给已注册账户但尚未获得管理员批准的用户。',
+      'Interfaces must have a unique combination of network, device, address, and port.' => '接口必须具有唯一的网络、设备、地址和端口组合。',
+      'Invalid response token for this challenge: token digest does not match stored digest.' => '此质询的响应令牌无效：令牌摘要与存储的摘要不匹配。',
+      'Invitee "%s" identifies an object that does not exist or which you do not have permission to view.' => '被邀请者 "%s" 标识了一个不存在的对象或您无权查看的对象。',
+      'Invites are visible to administrators, the inviting user, users with an invite code, and the user who accepts the invite.' => '邀请对管理员、邀请者、拥有邀请码的用户以及接受邀请的用户可见。',
+      'It is generally safe to rename users, but changing usernames may create occasional minor complications or confusion with text that contains the old username.' => '重命名用户通常是安全的，但更改用户名可能会偶尔导致包含旧用户名的文本出现轻微复杂情况或混淆。',
+      'JIRA instance name must contain only lowercase letters, digits, and period.' => 'JIRA 实例名称只能包含小写字母、数字和句点。',
+      'Join this project? You will become a member and enjoy whatever benefits membership may confer.' => '加入此项目？您将成为成员并享受成员资格可能带来的任何权益。',
+      'Keep this token private, it allows any bearer to access your account on behalf of this application.' => '请保密此令牌，它允许任何持有者代表此应用程序访问您的账户。',
       'Keep track of upcoming launch dates with embeddable counters.' => '使用可嵌入的计数器跟踪即将发布的日期。',
-      'Key "%s" is not a valid priority constant. Priority constants must be nonnegative integers.' =>
-        '键 "%s" 不是有效的优先级常量。优先级常量必须是非负整数。',
-      'Key "%s" is not a valid priority keyword. Priority keywords must be 1-64 alphanumeric characters and cannot be exclusively digits. For example, "%s" or "%s" are reasonable choices.' =>
-        '键 "%s" 不是有效的优先级关键字。优先级关键字必须是 1-64 个字母数字字符，不能全是数字。例如，"%s" 或 "%s" 是合理的选择。',
-      'Key "%s" is not a valid status constant. Status constants must be 1-64 alphanumeric characters and cannot be exclusively digits. For example, "%s" or "%s" are reasonable choices.' =>
-        '键 "%s" 不是有效的状态常量。状态常量必须是 1-64 个字母数字字符，不能全是数字。例如，"%s" 或 "%s" 是合理的选择。',
-      'Keyring configuration has an invalid key specification (at index "%s"): %s.' =>
-        '密钥环配置包含无效的密钥规范（在索引 "%s" 处）：%s。',
-      'Keyring configuration is invalid: it describes a key with type "%s", but this type is unknown.' =>
-        '密钥环配置无效：它描述了一个类型为 "%s" 的密钥，但该类型未知。',
-      'Keyring configuration is invalid: it describes multiple default encryption keys. No more than one key may be the default key. Keys currently configured as defaults: %s.' =>
-        '密钥环配置无效：它描述了多个默认加密密钥。默认密钥不能超过一个。当前配置为默认的密钥：%s。',
-      'Keyring configuration is invalid: it describes multiple keys with the same name ("%s"). Each key must have a unique name.' =>
-        '密钥环配置无效：它描述了多个同名密钥（"%s"）。每个密钥必须具有唯一名称。',
-      'Keyring configuration is not valid: each entry in the list must be a dictionary describing an encryption key, but the value with index "%s" is not a dictionary.' =>
-        '密钥环配置无效：列表中的每个条目必须是描述加密密钥的字典，但索引为 "%s" 的值不是字典。',
-      'Keyring configuration is not valid: value must be a list of encryption keys.' =>
-        '密钥环配置无效：值必须是加密密钥的列表。',
-      'Keyring is configured with a "%s" key, but the PHP OpenSSL extension is not installed. Install the OpenSSL extension to enable encryption.' =>
-        '密钥环配置了 "%s" 密钥，但未安装 PHP OpenSSL 扩展。请安装 OpenSSL 扩展以启用加密。',
-      'Keyring specifies an invalid key ("%s"): key material should be 32 bytes (256 bits) but has length %s.' =>
-        '密钥环指定了无效的密钥（"%s"）：密钥材料应为 32 字节（256 位），但实际长度为 %s。',
-      'Keyring specifies an invalid key ("%s"): key material should be base64 encoded.' =>
-        '密钥环指定了无效的密钥（"%s"）：密钥材料应使用 base64 编码。',
-      'LDAP record query returned more than one result. The query must uniquely identify a record.' =>
-        'LDAP 记录查询返回了多个结果。查询必须唯一标识一条记录。',
-      'LDAP: Failed to retrieve record for user "%s" when searching with both user and anonymous credentials.' =>
-        'LDAP：在使用用户凭据和匿名凭据搜索时，无法检索用户 "%s" 的记录。',
-      'LDAP: Failed to retrieve record for user "%s" when searching. Credentialed users may not be able to search your LDAP server. Try configuring anonymous credentials or fully anonymous binds.' =>
-        'LDAP：搜索时无法检索用户 "%s" 的记录。有凭据的用户可能无法搜索您的 LDAP 服务器。请尝试配置匿名凭据或完全匿名绑定。',
-      'Large file storage has not been configured, which will limit the maximum size of file uploads. See %s for instructions on configuring uploads and storage.' =>
-        '未配置大文件存储，这将限制文件上传的最大大小。有关配置上传和存储的说明，请参见 %s。',
+      'Key "%s" is not a valid priority constant. Priority constants must be nonnegative integers.' => '键 "%s" 不是有效的优先级常量。优先级常量必须是非负整数。',
+      'Key "%s" is not a valid priority keyword. Priority keywords must be 1-64 alphanumeric characters and cannot be exclusively digits. For example, "%s" or "%s" are reasonable choices.' => '键 "%s" 不是有效的优先级关键字。优先级关键字必须是 1-64 个字母数字字符，不能全是数字。例如，"%s" 或 "%s" 是合理的选择。',
+      'Key "%s" is not a valid status constant. Status constants must be 1-64 alphanumeric characters and cannot be exclusively digits. For example, "%s" or "%s" are reasonable choices.' => '键 "%s" 不是有效的状态常量。状态常量必须是 1-64 个字母数字字符，不能全是数字。例如，"%s" 或 "%s" 是合理的选择。',
+      'Keyring configuration has an invalid key specification (at index "%s"): %s.' => '密钥环配置包含无效的密钥规范（在索引 "%s" 处）：%s。',
+      'Keyring configuration is invalid: it describes a key with type "%s", but this type is unknown.' => '密钥环配置无效：它描述了一个类型为 "%s" 的密钥，但该类型未知。',
+      'Keyring configuration is invalid: it describes multiple default encryption keys. No more than one key may be the default key. Keys currently configured as defaults: %s.' => '密钥环配置无效：它描述了多个默认加密密钥。默认密钥不能超过一个。当前配置为默认的密钥：%s。',
+      'Keyring configuration is invalid: it describes multiple keys with the same name ("%s"). Each key must have a unique name.' => '密钥环配置无效：它描述了多个同名密钥（"%s"）。每个密钥必须具有唯一名称。',
+      'Keyring configuration is not valid: each entry in the list must be a dictionary describing an encryption key, but the value with index "%s" is not a dictionary.' => '密钥环配置无效：列表中的每个条目必须是描述加密密钥的字典，但索引为 "%s" 的值不是字典。',
+      'Keyring configuration is not valid: value must be a list of encryption keys.' => '密钥环配置无效：值必须是加密密钥的列表。',
+      'Keyring is configured with a "%s" key, but the PHP OpenSSL extension is not installed. Install the OpenSSL extension to enable encryption.' => '密钥环配置了 "%s" 密钥，但未安装 PHP OpenSSL 扩展。请安装 OpenSSL 扩展以启用加密。',
+      'Keyring specifies an invalid key ("%s"): key material should be 32 bytes (256 bits) but has length %s.' => '密钥环指定了无效的密钥（"%s"）：密钥材料应为 32 字节（256 位），但实际长度为 %s。',
+      'Keyring specifies an invalid key ("%s"): key material should be base64 encoded.' => '密钥环指定了无效的密钥（"%s"）：密钥材料应使用 base64 编码。',
+      'LDAP record query returned more than one result. The query must uniquely identify a record.' => 'LDAP 记录查询返回了多个结果。查询必须唯一标识一条记录。',
+      'LDAP: Failed to retrieve record for user "%s" when searching with both user and anonymous credentials.' => 'LDAP：在使用用户凭据和匿名凭据搜索时，无法检索用户 "%s" 的记录。',
+      'LDAP: Failed to retrieve record for user "%s" when searching. Credentialed users may not be able to search your LDAP server. Try configuring anonymous credentials or fully anonymous binds.' => 'LDAP：搜索时无法检索用户 "%s" 的记录。有凭据的用户可能无法搜索您的 LDAP 服务器。请尝试配置匿名凭据或完全匿名绑定。',
+      'Large file storage has not been configured, which will limit the maximum size of file uploads. See %s for instructions on configuring uploads and storage.' => '未配置大文件存储，这将限制文件上传的最大大小。有关配置上传和存储的说明，请参见 %s。',
       'Layout mode "%s" is not valid. Supported layout modes are: %s.' => '布局模式 "%s" 无效。支持的布局模式为：%s。',
       'Leave high security and return your session to normal security levels?' => '离开高安全模式并将会话恢复到正常安全级别？',
       'Length parameter in %s must be at least %s, but %s was provided.' => '%s 中的长度参数必须至少为 %s，但提供了 %s。',
-      'List capabilities, wire formats, and authentication protocols available on this server.' =>
-        '列出此服务器上可用的功能、传输格式和身份验证协议。',
-      'Local path "%s" is not writable. This file must be writable so that "bin/config" can store configuration.' =>
-        '本地路径 "%s" 不可写。此文件必须可写，以便 "bin/config" 可以存储配置。',
-      'Lock authentication provider config, to prevent changes to the config without doing **bin/auth unlock**.' =>
-        '锁定身份验证提供程序配置，以防止在未执行 **bin/auth unlock** 的情况下更改配置。',
-      'Lock is already held, and must be released before the connection may be changed.' =>
-        '锁已被持有，必须在更改连接之前释放。',
-      'Log in, or ask someone to create a public space which logged out users are permitted to access.' =>
-        '请登录，或请他人创建一个允许已注销用户访问的公共空间。',
-      'Login Required: This method requires authentication. You must log in before you can make calls to it.' =>
-        '需要登录：此方法需要身份验证。您必须先登录才能调用它。',
-      'Login cookie was set correctly, but your login session is not valid. Try clearing cookies and logging in again.' =>
-        '登录 cookie 已正确设置，但您的登录会话无效。请尝试清除 cookie 并重新登录。',
-      'Macro name "%s" be: at least three characters long; and contain only lowercase letters, digits, hyphens, colons, underscores, and emoji; and not be composed entirely of latin symbols.' =>
-        '宏名称 "%s" 必须：至少三个字符长；仅包含小写字母、数字、连字符、冒号、下划线和表情符号；且不能全部由拉丁符号组成。',
-      'Made it a requirement that mail content be transmitted only over secure channels.' =>
-        '已要求邮件内容仅通过安全通道传输。',
-      'Mail commands "%s" and "%s" both respond to keyword "%s". Keywords must be uniquely associated with commands.' =>
-        '邮件命令 "%s" 和 "%s" 都响应关键字 "%s"。关键字必须与命令唯一关联。',
-      'Mail extension ("%s") defines a stamp template with the same key ("%s") as another template. Each stamp template must have a unique key.' =>
-        '邮件扩展（"%s"）定义的印章模板使用了与另一个模板相同的键（"%s"）。每个印章模板必须具有唯一的键。',
-      'Mailer cluster configuration is not valid: each entry in the list must be a dictionary describing a mailer, but the value with index "%s" is not a dictionary.' =>
-        '邮件发送器集群配置无效：列表中的每个条目必须是描述邮件发送器的字典，但索引为 "%s" 的值不是字典。',
-      'Mailer cluster configuration is not valid: it should be a list of mailer configurations.' =>
-        '邮件发送器集群配置无效：它应该是邮件发送器配置的列表。',
-      'Mailer configuration ("%s") is invalid: mailer type ("%s") is unknown. Supported mailer types are: %s.' =>
-        '邮件发送器配置（"%s"）无效：邮件发送器类型（"%s"）未知。支持的邮件发送器类型为：%s。',
-      'Mailer configuration ("%s") is invalid: priority must be greater than 0.' =>
-        '邮件发送器配置（"%s"）无效：优先级必须大于 0。',
+      'List capabilities, wire formats, and authentication protocols available on this server.' => '列出此服务器上可用的功能、传输格式和身份验证协议。',
+      'Local path "%s" is not writable. This file must be writable so that "bin/config" can store configuration.' => '本地路径 "%s" 不可写。此文件必须可写，以便 "bin/config" 可以存储配置。',
+      'Lock authentication provider config, to prevent changes to the config without doing **bin/auth unlock**.' => '锁定身份验证提供程序配置，以防止在未执行 **bin/auth unlock** 的情况下更改配置。',
+      'Lock is already held, and must be released before the connection may be changed.' => '锁已被持有，必须在更改连接之前释放。',
+      'Log in, or ask someone to create a public space which logged out users are permitted to access.' => '请登录，或请他人创建一个允许已注销用户访问的公共空间。',
+      'Login Required: This method requires authentication. You must log in before you can make calls to it.' => '需要登录：此方法需要身份验证。您必须先登录才能调用它。',
+      'Login cookie was set correctly, but your login session is not valid. Try clearing cookies and logging in again.' => '登录 cookie 已正确设置，但您的登录会话无效。请尝试清除 cookie 并重新登录。',
+      'Macro name "%s" be: at least three characters long; and contain only lowercase letters, digits, hyphens, colons, underscores, and emoji; and not be composed entirely of latin symbols.' => '宏名称 "%s" 必须：至少三个字符长；仅包含小写字母、数字、连字符、冒号、下划线和表情符号；且不能全部由拉丁符号组成。',
+      'Made it a requirement that mail content be transmitted only over secure channels.' => '已要求邮件内容仅通过安全通道传输。',
+      'Mail commands "%s" and "%s" both respond to keyword "%s". Keywords must be uniquely associated with commands.' => '邮件命令 "%s" 和 "%s" 都响应关键字 "%s"。关键字必须与命令唯一关联。',
+      'Mail extension ("%s") defines a stamp template with the same key ("%s") as another template. Each stamp template must have a unique key.' => '邮件扩展（"%s"）定义的印章模板使用了与另一个模板相同的键（"%s"）。每个印章模板必须具有唯一的键。',
+      'Mailer cluster configuration is not valid: each entry in the list must be a dictionary describing a mailer, but the value with index "%s" is not a dictionary.' => '邮件发送器集群配置无效：列表中的每个条目必须是描述邮件发送器的字典，但索引为 "%s" 的值不是字典。',
+      'Mailer cluster configuration is not valid: it should be a list of mailer configurations.' => '邮件发送器集群配置无效：它应该是邮件发送器配置的列表。',
+      'Mailer configuration ("%s") is invalid: mailer type ("%s") is unknown. Supported mailer types are: %s.' => '邮件发送器配置（"%s"）无效：邮件发送器类型（"%s"）未知。支持的邮件发送器类型为：%s。',
+      'Mailer configuration ("%s") is invalid: priority must be greater than 0.' => '邮件发送器配置（"%s"）无效：优先级必须大于 0。',
       'Mailer configuration ("%s") specifies invalid options for mailer: %s' => '邮件发送器配置（"%s"）为邮件发送器指定了无效选项：%s',
-      'Mailer configuration has an invalid mailer specification (at index "%s"): %s.' =>
-        '邮件发送器配置包含无效的邮件发送器规范（在索引 "%s" 处）：%s。',
-      'Mailer configuration is invalid: multiple mailers have the same key ("%s"). Each mailer must have a unique key.' =>
-        '邮件发送器配置无效：多个邮件发送器具有相同的键（"%s"）。每个邮件发送器必须具有唯一的键。',
-      'Mailer key ("%s") is not configured, or does not support outbound messages of type "%s". Available mailers are: %s.' =>
-        '邮件发送器键（"%s"）未配置，或不支持 "%s" 类型的出站消息。可用的邮件发送器为：%s。',
-      'Make schemata adjustments to correct issues with characters sets, collations, and keys.' =>
-        '进行架构调整以纠正字符集、排序规则和键的问题。',
-      'Make sure you are copy-and-pasting the entire link into your browser. Login links are only valid for 24 hours, and can only be used once.' =>
-        '请确保将整个链接复制并粘贴到浏览器中。登录链接仅在 24 小时内有效，且只能使用一次。',
-      'Make the current filter the new default filter for this board? All users will see the new filter as the default when they view the board.' =>
-        '将当前筛选器设为看板的新默认筛选器？所有用户在查看看板时都将看到新的默认筛选器。',
-      'Make the current sort order the new default order for this board? All users will see the new order as the default when they view the board.' =>
-        '将当前排序设为看板的新默认顺序？所有用户在查看看板时都将看到新的默认顺序。',
-      'Maniphest fields are now defined in `%s`. Existing definitions have been migrated.' =>
-        'Maniphest 字段现已在 `%s` 中定义。现有定义已迁移。',
-      'Maniphest fields are now loaded automatically. You can configure them with `%s`.' =>
-        'Maniphest 字段现已自动加载。您可以使用 `%s` 配置它们。',
-      'Many cats appear black in low light, suffering a -2 modifier to luck rolls.' =>
-        '许多猫在弱光下看起来是黑色的，幸运检定承受 -2 减值。',
-      'Many requests to this webhook have failed recently (at least %s errors in the last %s seconds). New requests are temporarily paused.' =>
-        '最近对此 webhook 的许多请求已失败（在过去 %s 秒内至少有 %s 个错误）。新请求已暂时暂停。',
-      'Map of MIME type to icon name. MIME types which can not be found default to icon `%s`.' =>
-        'MIME 类型到图标名称的映射。找不到的 MIME 类型默认使用图标 `%s`。',
-      'Map returned by "newPagingMapFromCursorObject()" in class "%s" omits required key "%s".' =>
-        '类 "%s" 中 "newPagingMapFromCursorObject()" 返回的映射缺少必需的键 "%s"。',
-      'Mark activities complete even if there is no outstanding need to complete them.' =>
-        '即使没有未完成的需要，也将活动标记为已完成。',
-      'Mark an OAuth client as trusted. Trusted OAuth clients may be reauthorized without requiring users to manually confirm the action.' =>
-        '将 OAuth 客户端标记为可信。可信的 OAuth 客户端可以重新授权，无需用户手动确认操作。',
-      'Mark this form as a create form? It will appear in the application "Create" menus by default.' =>
-        '将此表单标记为创建表单？默认情况下它将显示在应用的“创建”菜单中。',
-      'Mark this form as an edit form? Users who can view it will be able to use it to edit objects.' =>
-        '将此表单标记为编辑表单？能够查看它的用户将可以使用它来编辑对象。',
-      'Matched token key "%s" while processing remarkup block, but this token appears later in the list than the key being processed ("%s").' =>
-        '处理 remarkup 块时匹配到令牌键 "%s"，但该令牌在列表中出现的位置晚于正在处理的键 ("%s")。',
-      'Matched token key "%s" while processing remarkup block, but this token does not exist in the token map.' =>
-        '处理 remarkup 块时匹配到令牌键 "%s"，但该令牌不存在于令牌映射中。',
-      'Maximum page size for Conduit API method calls is 100, but this call specified %s.' =>
-        'Conduit API 方法调用的最大页面大小为 100，但此调用指定了 %s。',
-      'Members of a particular project can take this action. (You can not see this object, so the name of this project is restricted.)' =>
-        '特定项目的成员可以执行此操作。（您无法查看此对象，因此项目名称受限。）',
-      'Merge identical files to share the same storage. In some cases, this can repair files with missing data.' =>
-        '合并相同的文件以共享相同的存储。在某些情况下，这可以修复数据缺失的文件。',
+      'Mailer configuration has an invalid mailer specification (at index "%s"): %s.' => '邮件发送器配置包含无效的邮件发送器规范（在索引 "%s" 处）：%s。',
+      'Mailer configuration is invalid: multiple mailers have the same key ("%s"). Each mailer must have a unique key.' => '邮件发送器配置无效：多个邮件发送器具有相同的键（"%s"）。每个邮件发送器必须具有唯一的键。',
+      'Mailer key ("%s") is not configured, or does not support outbound messages of type "%s". Available mailers are: %s.' => '邮件发送器键（"%s"）未配置，或不支持 "%s" 类型的出站消息。可用的邮件发送器为：%s。',
+      'Make schemata adjustments to correct issues with characters sets, collations, and keys.' => '进行架构调整以纠正字符集、排序规则和键的问题。',
+      'Make sure you are copy-and-pasting the entire link into your browser. Login links are only valid for 24 hours, and can only be used once.' => '请确保将整个链接复制并粘贴到浏览器中。登录链接仅在 24 小时内有效，且只能使用一次。',
+      'Make the current filter the new default filter for this board? All users will see the new filter as the default when they view the board.' => '将当前筛选器设为看板的新默认筛选器？所有用户在查看看板时都将看到新的默认筛选器。',
+      'Make the current sort order the new default order for this board? All users will see the new order as the default when they view the board.' => '将当前排序设为看板的新默认顺序？所有用户在查看看板时都将看到新的默认顺序。',
+      'Maniphest fields are now defined in `%s`. Existing definitions have been migrated.' => 'Maniphest 字段现已在 `%s` 中定义。现有定义已迁移。',
+      'Maniphest fields are now loaded automatically. You can configure them with `%s`.' => 'Maniphest 字段现已自动加载。您可以使用 `%s` 配置它们。',
+      'Many cats appear black in low light, suffering a -2 modifier to luck rolls.' => '许多猫在弱光下看起来是黑色的，幸运检定承受 -2 减值。',
+      'Many requests to this webhook have failed recently (at least %s errors in the last %s seconds). New requests are temporarily paused.' => '最近对此 webhook 的许多请求已失败（在过去 %s 秒内至少有 %s 个错误）。新请求已暂时暂停。',
+      'Map of MIME type to icon name. MIME types which can not be found default to icon `%s`.' => 'MIME 类型到图标名称的映射。找不到的 MIME 类型默认使用图标 `%s`。',
+      'Map returned by "newPagingMapFromCursorObject()" in class "%s" omits required key "%s".' => '类 "%s" 中 "newPagingMapFromCursorObject()" 返回的映射缺少必需的键 "%s"。',
+      'Mark activities complete even if there is no outstanding need to complete them.' => '即使没有未完成的需要，也将活动标记为已完成。',
+      'Mark an OAuth client as trusted. Trusted OAuth clients may be reauthorized without requiring users to manually confirm the action.' => '将 OAuth 客户端标记为可信。可信的 OAuth 客户端可以重新授权，无需用户手动确认操作。',
+      'Mark this form as a create form? It will appear in the application "Create" menus by default.' => '将此表单标记为创建表单？默认情况下它将显示在应用的“创建”菜单中。',
+      'Mark this form as an edit form? Users who can view it will be able to use it to edit objects.' => '将此表单标记为编辑表单？能够查看它的用户将可以使用它来编辑对象。',
+      'Matched token key "%s" while processing remarkup block, but this token appears later in the list than the key being processed ("%s").' => '处理 remarkup 块时匹配到令牌键 "%s"，但该令牌在列表中出现的位置晚于正在处理的键 ("%s")。',
+      'Matched token key "%s" while processing remarkup block, but this token does not exist in the token map.' => '处理 remarkup 块时匹配到令牌键 "%s"，但该令牌不存在于令牌映射中。',
+      'Maximum page size for Conduit API method calls is 100, but this call specified %s.' => 'Conduit API 方法调用的最大页面大小为 100，但此调用指定了 %s。',
+      'Members of a particular project can take this action. (You can not see this object, so the name of this project is restricted.)' => '特定项目的成员可以执行此操作。（您无法查看此对象，因此项目名称受限。）',
+      'Merge identical files to share the same storage. In some cases, this can repair files with missing data.' => '合并相同的文件以共享相同的存储。在某些情况下，这可以修复数据缺失的文件。',
       'Message content can only be transmitted over secure channels.' => '消息内容只能通过安全通道传输。',
-      'Message has no valid recipients: all To/CC are disabled, invalid, or configured not to receive this mail.' =>
-        '消息没有有效的收件人：所有收件人/抄送人均已禁用、无效或配置为不接收此邮件。',
+      'Message has no valid recipients: all To/CC are disabled, invalid, or configured not to receive this mail.' => '消息没有有效的收件人：所有收件人/抄送人均已禁用、无效或配置为不接收此邮件。',
       'Milestone projects do not support subprojects or milestones.' => '里程碑项目不支持子项目或里程碑。',
-      'Modify a rule, bypassing policies. This workflow can disable problematic personal rules.' =>
-        '绕过策略修改规则。此工作流可以禁用有问题的个人规则。',
-      'Monogram "%s" identifies an object of the wrong type. Loaded object has class "%s", but this editor operates on objects of type "%s".' =>
-        '字母组合 "%s" 标识了错误类型的对象。已加载的对象类为 "%s"，但此编辑器操作的对象类型为 "%s"。',
-      'Monospaced font value "%s" is unsafe. You may only enter letters, numbers, spaces, commas, periods, hyphens, forward slashes, and double quotes' =>
-        '等宽字体值 "%s" 不安全。您只能输入字母、数字、空格、逗号、句点、连字符、正斜杠和双引号',
-      'More than one source matches "%s". Choose a narrower query, or use an ID or PHID to select a source. Matching sources: %s.' =>
-        '多个源匹配 "%s"。请选择更精确的查询，或使用 ID 或 PHID 选择源。匹配的源：%s。',
-      'Motivate your team with inspirational quotes from great minds. This menu item shows a new quote every day.' =>
-        '用伟大思想家的励志名言激励您的团队。此菜单项每天显示一条新名言。',
-      'Multiple configured databases have the same internal key, "%s". You may have listed a database multiple times.' =>
-        '多个已配置的数据库具有相同的内部键 "%s"。您可能多次列出了同一个数据库。',
-      'Multiple masters (databases "%s" and "%s") specify that they are the "default" partition. Only one master may be the default.' =>
-        '多个主库（数据库 "%s" 和 "%s"）指定其为“默认”分区。只能有一个主库是默认的。',
-      'Multiple masters (databases "%s" and "%s") specify that they are the partition for application "%s". Each application may be allocated to only one partition.' =>
-        '多个主库（数据库 "%s" 和 "%s"）指定其为应用 "%s" 的分区。每个应用只能分配到一个分区。',
-      'Multiple user identifiers (%s) correspond to the same user. Identify each user exactly once.' =>
-        '多个用户标识符 (%s) 对应同一用户。请恰好标识每个用户一次。',
-      'Mute this object? You will no longer receive notifications or email about it.' =>
-        '静音此对象？您将不再收到关于它的通知或邮件。',
-      'MySQL (on host "%s") is configured with a very small innodb_buffer_pool_size, which may impact performance.' =>
-        'MySQL（在主机 "%s" 上）配置的 innodb_buffer_pool_size 非常小，可能会影响性能。',
-      'MySQL (on host "%s") is using a default stopword file, which will prevent searching for many common words.' =>
-        'MySQL（在主机 "%s" 上）正在使用默认停用词文件，这将导致无法搜索许多常见词。',
-      'MySQL is configured (on host "%s") to only index words with at least %d characters.' =>
-        'MySQL 配置（在主机 "%s" 上）为仅索引至少包含 %d 个字符的词。',
-      'MySQL is not in strict mode (on host "%s"), but using strict mode is recommended.' =>
-        'MySQL 未处于严格模式（在主机 "%s" 上），但建议使用严格模式。',
-      'NOTE: **To complete setup**, copy and paste these keys into JIRA according to the instructions below.' =>
-        '注意：**要完成设置**，请根据以下说明将这些密钥复制并粘贴到 JIRA 中。',
-      'NOTE: Amazon **requires** HTTPS, but this service does not use HTTPS. **You will not be able to add Amazon as an authentication provider until you configure HTTPS on this install**.' =>
-        '注意：Amazon **要求**使用 HTTPS，但此服务未使用 HTTPS。**在为此安装配置 HTTPS 之前，您将无法将 Amazon 添加为身份验证提供程序**。',
-      'NOTE: Revoking passwords does not terminate existing sessions which were established using the old passwords. To terminate existing sessions, run the "session" revoker now.' =>
-        '注意：撤销密码不会终止使用旧密码建立的现有会话。要终止现有会话，请立即运行“session”撤销程序。',
-      'NOTE: This provider **only supports JIRA 6**. It will not work with JIRA 5 or earlier.' =>
-        '注意：此提供程序**仅支持 JIRA 6**。它无法与 JIRA 5 或更早版本配合使用。',
-      'NOTE: You already have an Auth Factor configured. Adding another factor will require you to always provide all Auth Factors instead of selecting one of your Auth Factors.' =>
-        '注意：您已配置了一个身份验证因素。添加另一个因素将要求您始终提供所有身份验证因素，而不是选择其中一个。',
-      'NOTE: You are creating the **default space**. All existing objects will be put into this space. You must create a default space before you can create other spaces.' =>
-        '注意：您正在创建**默认空间**。所有现有对象都将放入此空间。您必须先创建默认空间，然后才能创建其他空间。',
-      'NOTE: You can only see your own signatures and signatures on documents you have permission to edit.' =>
-        '注意：您只能查看自己的签名以及您有权编辑的文档上的签名。',
+      'Modify a rule, bypassing policies. This workflow can disable problematic personal rules.' => '绕过策略修改规则。此工作流可以禁用有问题的个人规则。',
+      'Monogram "%s" identifies an object of the wrong type. Loaded object has class "%s", but this editor operates on objects of type "%s".' => '字母组合 "%s" 标识了错误类型的对象。已加载的对象类为 "%s"，但此编辑器操作的对象类型为 "%s"。',
+      'Monospaced font value "%s" is unsafe. You may only enter letters, numbers, spaces, commas, periods, hyphens, forward slashes, and double quotes' => '等宽字体值 "%s" 不安全。您只能输入字母、数字、空格、逗号、句点、连字符、正斜杠和双引号',
+      'More than one source matches "%s". Choose a narrower query, or use an ID or PHID to select a source. Matching sources: %s.' => '多个源匹配 "%s"。请选择更精确的查询，或使用 ID 或 PHID 选择源。匹配的源：%s。',
+      'Motivate your team with inspirational quotes from great minds. This menu item shows a new quote every day.' => '用伟大思想家的励志名言激励您的团队。此菜单项每天显示一条新名言。',
+      'Multiple configured databases have the same internal key, "%s". You may have listed a database multiple times.' => '多个已配置的数据库具有相同的内部键 "%s"。您可能多次列出了同一个数据库。',
+      'Multiple masters (databases "%s" and "%s") specify that they are the "default" partition. Only one master may be the default.' => '多个主库（数据库 "%s" 和 "%s"）指定其为“默认”分区。只能有一个主库是默认的。',
+      'Multiple masters (databases "%s" and "%s") specify that they are the partition for application "%s". Each application may be allocated to only one partition.' => '多个主库（数据库 "%s" 和 "%s"）指定其为应用 "%s" 的分区。每个应用只能分配到一个分区。',
+      'Multiple user identifiers (%s) correspond to the same user. Identify each user exactly once.' => '多个用户标识符 (%s) 对应同一用户。请恰好标识每个用户一次。',
+      'Mute this object? You will no longer receive notifications or email about it.' => '静音此对象？您将不再收到关于它的通知或邮件。',
+      'MySQL (on host "%s") is configured with a very small innodb_buffer_pool_size, which may impact performance.' => 'MySQL（在主机 "%s" 上）配置的 innodb_buffer_pool_size 非常小，可能会影响性能。',
+      'MySQL (on host "%s") is using a default stopword file, which will prevent searching for many common words.' => 'MySQL（在主机 "%s" 上）正在使用默认停用词文件，这将导致无法搜索许多常见词。',
+      'MySQL is configured (on host "%s") to only index words with at least %d characters.' => 'MySQL 配置（在主机 "%s" 上）为仅索引至少包含 %d 个字符的词。',
+      'MySQL is not in strict mode (on host "%s"), but using strict mode is recommended.' => 'MySQL 未处于严格模式（在主机 "%s" 上），但建议使用严格模式。',
+      'NOTE: **To complete setup**, copy and paste these keys into JIRA according to the instructions below.' => '注意：**要完成设置**，请根据以下说明将这些密钥复制并粘贴到 JIRA 中。',
+      'NOTE: Amazon **requires** HTTPS, but this service does not use HTTPS. **You will not be able to add Amazon as an authentication provider until you configure HTTPS on this install**.' => '注意：Amazon **要求**使用 HTTPS，但此服务未使用 HTTPS。**在为此安装配置 HTTPS 之前，您将无法将 Amazon 添加为身份验证提供程序**。',
+      'NOTE: Revoking passwords does not terminate existing sessions which were established using the old passwords. To terminate existing sessions, run the "session" revoker now.' => '注意：撤销密码不会终止使用旧密码建立的现有会话。要终止现有会话，请立即运行“session”撤销程序。',
+      'NOTE: This provider **only supports JIRA 6**. It will not work with JIRA 5 or earlier.' => '注意：此提供程序**仅支持 JIRA 6**。它无法与 JIRA 5 或更早版本配合使用。',
+      'NOTE: You already have an Auth Factor configured. Adding another factor will require you to always provide all Auth Factors instead of selecting one of your Auth Factors.' => '注意：您已配置了一个身份验证因素。添加另一个因素将要求您始终提供所有身份验证因素，而不是选择其中一个。',
+      'NOTE: You are creating the **default space**. All existing objects will be put into this space. You must create a default space before you can create other spaces.' => '注意：您正在创建**默认空间**。所有现有对象都将放入此空间。您必须先创建默认空间，然后才能创建其他空间。',
+      'NOTE: You can only see your own signatures and signatures on documents you have permission to edit.' => '注意：您只能查看自己的签名以及您有权编辑的文档上的签名。',
       'NULL value "%s" is invalid. Valid values are "head" and "tail".' => 'NULL 值 "%s" 无效。有效值为 "head" 和 "tail"。',
-      'Names "%s" and "%s" identify the same object. Specify only unique objects.' =>
-        '名称 "%s" 和 "%s" 标识同一对象。请仅指定唯一的对象。',
-      'Newly issued MFA challenges must have a future TTL. This factor issued a bad TTL ("%s"). (Did you use a relative time instead of an epoch?)' =>
-        '新颁发的 MFA 质询必须具有未来的 TTL。此因素颁发了无效的 TTL ("%s")。（您是否使用了相对时间而非纪元时间？）',
-      'Newly registered user "%s" is awaiting account approval by an administrator.' =>
-        '新注册用户 "%s" 正在等待管理员批准账户。',
-      'No AES256 key is specified in the keyring as a default encryption key, and no encryption key has been explicitly selected.' =>
-        '密钥环中未指定 AES256 密钥作为默认加密密钥，且未明确选择加密密钥。',
-      'No Traefik Auth identity was found in this request. Please access this application through Traefik so that authentication headers (e.g. X-Auth-User) are set.' =>
-        '此请求中未找到 Traefik Auth 身份。请通过 Traefik 访问此应用，以便设置身份验证标头（例如 X-Auth-User）。',
-      'No application handled this mail. This mail was sent to a reserved recipient ("%s") so bounces are suppressed.' =>
-        '没有应用处理此邮件。此邮件已发送到保留收件人 ("%s")，因此退信被抑制。',
-      'No configured storage engine can store this file. See "Configuring File Storage" in the documentation for information on configuring storage engines. This is likely because the file is too large.' =>
-        '没有已配置的存储引擎可以存储此文件。有关配置存储引擎的信息，请参阅文档中的“配置文件存储”。这很可能是因为文件太大。',
-      'No events from this source currently exist. They may have failed to import, have been updated by another source, or already have been deleted.' =>
-        '此来源当前不存在任何事件。它们可能导入失败、已被其他来源更新或已被删除。',
-      'No field with field key "%s" exists for objects of class "%s" with custom field role "%s".' =>
-        '对于具有自定义字段角色 "%s" 的类 "%s" 的对象，不存在字段键为 "%s" 的字段。',
+      'Names "%s" and "%s" identify the same object. Specify only unique objects.' => '名称 "%s" 和 "%s" 标识同一对象。请仅指定唯一的对象。',
+      'Newly issued MFA challenges must have a future TTL. This factor issued a bad TTL ("%s"). (Did you use a relative time instead of an epoch?)' => '新颁发的 MFA 质询必须具有未来的 TTL。此因素颁发了无效的 TTL ("%s")。（您是否使用了相对时间而非纪元时间？）',
+      'Newly registered user "%s" is awaiting account approval by an administrator.' => '新注册用户 "%s" 正在等待管理员批准账户。',
+      'No AES256 key is specified in the keyring as a default encryption key, and no encryption key has been explicitly selected.' => '密钥环中未指定 AES256 密钥作为默认加密密钥，且未明确选择加密密钥。',
+      'No Traefik Auth identity was found in this request. Please access this application through Traefik so that authentication headers (e.g. X-Auth-User) are set.' => '此请求中未找到 Traefik Auth 身份。请通过 Traefik 访问此应用，以便设置身份验证标头（例如 X-Auth-User）。',
+      'No application handled this mail. This mail was sent to a reserved recipient ("%s") so bounces are suppressed.' => '没有应用处理此邮件。此邮件已发送到保留收件人 ("%s")，因此退信被抑制。',
+      'No configured storage engine can store this file. See "Configuring File Storage" in the documentation for information on configuring storage engines. This is likely because the file is too large.' => '没有已配置的存储引擎可以存储此文件。有关配置存储引擎的信息，请参阅文档中的“配置文件存储”。这很可能是因为文件太大。',
+      'No events from this source currently exist. They may have failed to import, have been updated by another source, or already have been deleted.' => '此来源当前不存在任何事件。它们可能导入失败、已被其他来源更新或已被删除。',
+      'No field with field key "%s" exists for objects of class "%s" with custom field role "%s".' => '对于具有自定义字段角色 "%s" 的类 "%s" 的对象，不存在字段键为 "%s" 的字段。',
       'No outbound mailer which can deliver SMS messages is configured.' => '未配置可发送 SMS 消息的出站邮件程序。',
-      'No provider with PHID "%s" exists. Use `bin/auth list-mfa-providers` to list providers.' =>
-        '不存在 PHID 为 "%s" 的提供程序。请使用 `bin/auth list-mfa-providers` 列出提供程序。',
-      'No search engines match "%s". Available engines which support data export are: %s.' =>
-        '没有搜索引擎匹配 "%s"。支持数据导出的可用引擎为：%s。',
+      'No provider with PHID "%s" exists. Use `bin/auth list-mfa-providers` to list providers.' => '不存在 PHID 为 "%s" 的提供程序。请使用 `bin/auth list-mfa-providers` 列出提供程序。',
+      'No search engines match "%s". Available engines which support data export are: %s.' => '没有搜索引擎匹配 "%s"。支持数据导出的可用引擎为：%s。',
       'No support for applying operator "%s" against index of type "%s".' => '不支持对类型为 "%s" 的索引应用运算符 "%s"。',
-      'None of the provided addresses are valid invite recipients. Review the table below for details. Revise the address list to continue.' =>
-        '提供的地址均不是有效的邀请收件人。请查看下表了解详情。请修改地址列表以继续。',
+      'None of the provided addresses are valid invite recipients. Review the table below for details. Revise the address list to continue.' => '提供的地址均不是有效的邀请收件人。请查看下表了解详情。请修改地址列表以继续。',
       'None of the visible menu items in this portal can render any content.' => '此门户中所有可见的菜单项都无法渲染任何内容。',
-      'Note: Changing your primary email address will invalidate any outstanding password reset links.' =>
-        '注意：更改您的主邮箱地址将使所有未完成的密码重置链接失效。',
-      'Note: Removing an email address from your account will invalidate any outstanding password reset links.' =>
-        '注意：从您的账户中移除邮箱地址将使所有未完成的密码重置链接失效。',
-      'Note: Unlinking an authentication provider will terminate any other active login sessions.' =>
-        '注意：取消关联身份验证提供程序将终止任何其他活跃的登录会话。',
-      'Notification server configuration describes an invalid host ("%s", at index "%s") with an invalid protocol ("%s"). Valid protocols are "%s" or "%s".' =>
-        '通知服务器配置描述了无效的主机 ("%s"，位于索引 "%s")，其协议 ("%s") 无效。有效协议为 "%s" 或 "%s"。',
-      'Notification server configuration describes an invalid host ("%s", at index "%s") with an unrecognized type ("%s"). Valid types are "%s" or "%s".' =>
-        '通知服务器配置描述了无效的主机 ("%s"，位于索引 "%s")，其类型 ("%s") 无法识别。有效类型为 "%s" 或 "%s"。',
-      'Notification server configuration describes an invalid host ("%s", at index "%s"). This is an "admin" service but it has a "path" property. This property is only valid for "client" services.' =>
-        '通知服务器配置描述了无效的主机 ("%s"，位于索引 "%s")。这是一个 "admin" 服务，但它具有 "path" 属性。此属性仅对 "client" 服务有效。',
-      'Notification server configuration has an invalid service specification (at index "%s"): %s.' =>
-        '通知服务器配置具有无效的服务规范（位于索引 "%s"）：%s。',
-      'Notification server configuration is invalid: it describes the same host and port ("%s") multiple times. Each host and port combination should appear only once in the list.' =>
-        '通知服务器配置无效：它多次描述了相同的主机和端口 ("%s")。每个主机和端口组合在列表中只能出现一次。',
-      'Notification server configuration is invalid: it does not specify any enabled servers with type "admin". Notifications require at least one active "admin" server.' =>
-        '通知服务器配置无效：它未指定任何类型为 "admin" 的已启用服务器。通知需要至少一个活跃的 "admin" 服务器。',
-      'Notification server configuration is invalid: it does not specify any enabled servers with type "client". Notifications require at least one active "client" server.' =>
-        '通知服务器配置无效：它未指定任何类型为 "client" 的已启用服务器。通知需要至少一个活跃的 "client" 服务器。',
-      'Notification server configuration is not valid: each entry in the list must be a dictionary describing a service, but the value with index "%s" is not a dictionary.' =>
-        '通知服务器配置无效：列表中的每个条目必须是描述服务的字典，但索引为 "%s" 的值不是字典。',
-      'Notification settings are available after logging in and joining the room.' =>
-        '通知设置在登录并加入房间后可用。',
-      'Notify about events in the next __N__ minutes (default: 15). Setting this to a larger value makes testing easier.' =>
-        '通知接下来 __N__ 分钟内的事件（默认：15）。将其设置为更大的值可让测试更轻松。',
-      'OAuth application redirect URIs must not contain URI fragments, but the URI "%s" has a fragment ("%s").' =>
-        'OAuth 应用重定向 URI 不得包含 URI 片段，但 URI "%s" 包含片段（"%s"）。',
-      'OAuth application redirect URIs must only use the "http" or "https" protocols, but the URI "%s" uses the "%s" protocol.' =>
-        'OAuth 应用重定向 URI 只能使用 "http" 或 "https" 协议，但 URI "%s" 使用了 "%s" 协议。',
-      'OAuth clients may call this method after requesting access to the "%s" scope.' =>
-        'OAuth 客户端在请求访问 "%s" 范围后可调用此方法。',
+      'Note: Changing your primary email address will invalidate any outstanding password reset links.' => '注意：更改您的主邮箱地址将使所有未完成的密码重置链接失效。',
+      'Note: Removing an email address from your account will invalidate any outstanding password reset links.' => '注意：从您的账户中移除邮箱地址将使所有未完成的密码重置链接失效。',
+      'Note: Unlinking an authentication provider will terminate any other active login sessions.' => '注意：取消关联身份验证提供程序将终止任何其他活跃的登录会话。',
+      'Notification server configuration describes an invalid host ("%s", at index "%s") with an invalid protocol ("%s"). Valid protocols are "%s" or "%s".' => '通知服务器配置描述了无效的主机 ("%s"，位于索引 "%s")，其协议 ("%s") 无效。有效协议为 "%s" 或 "%s"。',
+      'Notification server configuration describes an invalid host ("%s", at index "%s") with an unrecognized type ("%s"). Valid types are "%s" or "%s".' => '通知服务器配置描述了无效的主机 ("%s"，位于索引 "%s")，其类型 ("%s") 无法识别。有效类型为 "%s" 或 "%s"。',
+      'Notification server configuration describes an invalid host ("%s", at index "%s"). This is an "admin" service but it has a "path" property. This property is only valid for "client" services.' => '通知服务器配置描述了无效的主机 ("%s"，位于索引 "%s")。这是一个 "admin" 服务，但它具有 "path" 属性。此属性仅对 "client" 服务有效。',
+      'Notification server configuration has an invalid service specification (at index "%s"): %s.' => '通知服务器配置具有无效的服务规范（位于索引 "%s"）：%s。',
+      'Notification server configuration is invalid: it describes the same host and port ("%s") multiple times. Each host and port combination should appear only once in the list.' => '通知服务器配置无效：它多次描述了相同的主机和端口 ("%s")。每个主机和端口组合在列表中只能出现一次。',
+      'Notification server configuration is invalid: it does not specify any enabled servers with type "admin". Notifications require at least one active "admin" server.' => '通知服务器配置无效：它未指定任何类型为 "admin" 的已启用服务器。通知需要至少一个活跃的 "admin" 服务器。',
+      'Notification server configuration is invalid: it does not specify any enabled servers with type "client". Notifications require at least one active "client" server.' => '通知服务器配置无效：它未指定任何类型为 "client" 的已启用服务器。通知需要至少一个活跃的 "client" 服务器。',
+      'Notification server configuration is not valid: each entry in the list must be a dictionary describing a service, but the value with index "%s" is not a dictionary.' => '通知服务器配置无效：列表中的每个条目必须是描述服务的字典，但索引为 "%s" 的值不是字典。',
+      'Notification settings are available after logging in and joining the room.' => '通知设置在登录并加入房间后可用。',
+      'Notify about events in the next __N__ minutes (default: 15). Setting this to a larger value makes testing easier.' => '通知接下来 __N__ 分钟内的事件（默认：15）。将其设置为更大的值可让测试更轻松。',
+      'OAuth application redirect URIs must not contain URI fragments, but the URI "%s" has a fragment ("%s").' => 'OAuth 应用重定向 URI 不得包含 URI 片段，但 URI "%s" 包含片段（"%s"）。',
+      'OAuth application redirect URIs must only use the "http" or "https" protocols, but the URI "%s" uses the "%s" protocol.' => 'OAuth 应用重定向 URI 只能使用 "http" 或 "https" 协议，但 URI "%s" 使用了 "%s" 协议。',
+      'OAuth clients may call this method after requesting access to the "%s" scope.' => 'OAuth 客户端在请求访问 "%s" 范围后可调用此方法。',
       'Object "%s" is specified more than once. Specify only unique objects.' => '对象 "%s" 被指定了多次。请仅指定唯一的对象。',
-      'Object ("%s") does not implement interface "%s", so this type of object can not be unlocked.' =>
-        '对象（"%s"）未实现接口 "%s"，因此无法解锁此类型的对象。',
-      'Object (of class "%s") has no PHID, so handles can not interact with capabilities for it.' =>
-        '对象（类 "%s"）没有 PHID，因此句柄无法与其功能交互。',
-      'Object edit policy can not be unlocked because this object does not have a mutable edit policy.' =>
-        '无法解锁对象编辑策略，因为此对象没有可变的编辑策略。',
-      'Object owner can not be unlocked: the unlocking engine ("%s") for this object does not implement an owner unlocking mechanism.' =>
-        '无法解锁对象所有者：此对象的解锁引擎（"%s"）未实现所有者解锁机制。',
-      'Object produced a builtin item with no builtin item key! Builtin items must have a unique key.' =>
-        '对象生成了没有内置项键的内置项！内置项必须具有唯一键。',
-      'Object produced two items with the same builtin key ("%s"). Each item must have a unique builtin key.' =>
-        '对象生成了两个具有相同内置键（"%s"）的项。每个项必须具有唯一的内置键。',
-      'Object view policy can not be unlocked because this object does not have a mutable view policy.' =>
-        '无法解锁对象查看策略，因为此对象没有可变的查看策略。',
-      'Objects will be permanently destroyed. There is no way to undo this operation or ever retrieve this data unless you maintain external backups.' =>
-        '对象将被永久销毁。除非您维护外部备份，否则无法撤销此操作或恢复此数据。',
-      'On host "%s", MySQL is configured with a small "%s" (%d), which may cause some large writes to fail. The recommended minimum value for this setting is "%d".' =>
-        '在主机 "%s" 上，MySQL 配置的 "%s" 过小（%d），可能导致某些大型写入失败。此设置的推荐最小值为 "%d"。',
+      'Object ("%s") does not implement interface "%s", so this type of object can not be unlocked.' => '对象（"%s"）未实现接口 "%s"，因此无法解锁此类型的对象。',
+      'Object (of class "%s") has no PHID, so handles can not interact with capabilities for it.' => '对象（类 "%s"）没有 PHID，因此句柄无法与其功能交互。',
+      'Object edit policy can not be unlocked because this object does not have a mutable edit policy.' => '无法解锁对象编辑策略，因为此对象没有可变的编辑策略。',
+      'Object owner can not be unlocked: the unlocking engine ("%s") for this object does not implement an owner unlocking mechanism.' => '无法解锁对象所有者：此对象的解锁引擎（"%s"）未实现所有者解锁机制。',
+      'Object produced a builtin item with no builtin item key! Builtin items must have a unique key.' => '对象生成了没有内置项键的内置项！内置项必须具有唯一键。',
+      'Object produced two items with the same builtin key ("%s"). Each item must have a unique builtin key.' => '对象生成了两个具有相同内置键（"%s"）的项。每个项必须具有唯一的内置键。',
+      'Object view policy can not be unlocked because this object does not have a mutable view policy.' => '无法解锁对象查看策略，因为此对象没有可变的查看策略。',
+      'Objects will be permanently destroyed. There is no way to undo this operation or ever retrieve this data unless you maintain external backups.' => '对象将被永久销毁。除非您维护外部备份，否则无法撤销此操作或恢复此数据。',
+      'On host "%s", MySQL is configured with a small "%s" (%d), which may cause some large writes to fail. The recommended minimum value for this setting is "%d".' => '在主机 "%s" 上，MySQL 配置的 "%s" 过小（%d），可能导致某些大型写入失败。此设置的推荐最小值为 "%d"。',
       'On the plus side, that purple notification bubble will disappear.' => '从好的方面看，那个紫色通知气泡将会消失。',
-      'Only administrators may change whether a document requires a signature.' =>
-        '只有管理员可以更改文档是否需要签名。',
-      'Only documents with signature type "individual" may require signing to log in.' =>
-        '只有签名类型为 "individual" 的文档才可能需要签名才能登录。',
-      'Only external accounts of type "email" are deliverable; this account has a different type.' =>
-        '只有类型为 "email" 的外部账户可投递；此账户具有不同的类型。',
-      'Only the first space created can be the default space, and it must remain the default space evermore.' =>
-        '只有创建的第一个空间才能作为默认空间，且它必须永远保持为默认空间。',
-      'Option "%s" is dangerously long for a database prefix in MySQL/MariaDB. The current value is %d characters long. It should be less than %d to be safe for future changes.' =>
-        '选项 "%s" 作为 MySQL/MariaDB 的数据库前缀过长。当前值为 %d 个字符。为了未来变更的安全，应小于 %d。',
-      'Option "%s" is of type "%s" and must be set to a list of valid regular expressions, but "%s" is not a valid regular expression.' =>
-        '选项 "%s" 的类型为 "%s"，必须设置为有效的正则表达式列表，但 "%s" 不是有效的正则表达式。',
-      'Option "%s" is of type "%s", and should be specified on the command line as a JSON list of values. You may need to quote the value for your shell (for example: \'["a", "b", ...]\').' =>
-        '选项 "%s" 的类型为 "%s"，应在命令行中指定为 JSON 值列表。您可能需要为 shell 引用该值（例如：\'["a", "b", ...]\'）。',
-      'Option "%s" is of type "%s", but the configured value is not a boolean.' =>
-        '选项 "%s" 的类型为 "%s"，但配置的值不是布尔值。',
-      'Option "%s" is of type "%s", but the configured value is not an integer.' =>
-        '选项 "%s" 的类型为 "%s"，但配置的值不是整数。',
-      'Option "%s" is of type "%s", but the configured value is not the name of a known class. Valid selections are: %s.' =>
-        '选项 "%s" 的类型为 "%s"，但配置的值不是已知类的名称。有效选项为：%s。',
-      'Option "%s" is of type "%s", but the current value ("%s") is not a known, concrete subclass of base class "%s". Valid selections are: %s.' =>
-        '选项 "%s" 的类型为 "%s"，但当前值（"%s"）不是基类 "%s" 的已知具体子类。有效选项为：%s。',
-      'Option "%s" is of type "%s", but the current value ("%s") is not among the set of valid values: %s.' =>
-        '选项 "%s" 的类型为 "%s"，但当前值（"%s"）不在有效值集合中：%s。',
-      'Option "%s" is of type "%s", but the item at index "%s" of the list is not a string.' =>
-        '选项 "%s" 的类型为 "%s"，但列表中索引为 "%s" 的项不是字符串。',
-      'Option "%s" is of type "%s", but the value at index "%s" of the list is not "true".' =>
-        '选项 "%s" 的类型为 "%s"，但列表中索引为 "%s" 的值不是 "true"。',
-      'Option "%s" is of type "%s", but the value is not a list: it is a map with unnatural or sparse keys.' =>
-        '选项 "%s" 的类型为 "%s"，但值不是列表：它是一个具有不自然或稀疏键的映射。',
-      'Option "%s" only supports numbers, letters, underscores and (for some reason) the dollar sign. This is necessary to avoid potential MySQL/MariaDB escape issues. Remove the invalid characters.' =>
-        '选项 "%s" 仅支持数字、字母、下划线以及（出于某种原因）美元符号。这是为了避免潜在的 MySQL/MariaDB 转义问题。请删除无效字符。',
-      'Option ("%s") is not a valid poll option. You may only vote for valid options.' =>
-        '选项（"%s"）不是有效的投票选项。您只能为有效选项投票。',
-      'Options "%s", "%s" and "%s" represent mutually exclusive ways to choose a policy. Specify only one.' =>
-        '选项 "%s"、"%s" 和 "%s" 代表选择策略的互斥方式。请仅指定一个。',
-      'Order vector "%s" is invalid: only the last column in an order may be unique, but "%s" is a unique column and not the last column in the order.' =>
-        '排序向量 "%s" 无效：排序中只有最后一列可以是唯一的，但 "%s" 是唯一列且不是排序中的最后一列。',
-      'Order vector "%s" is invalid: the last column in an order must be a column with unique values, but "%s" is not unique.' =>
-        '排序向量 "%s" 无效：排序中的最后一列必须是具有唯一值的列，但 "%s" 不是唯一的。',
-      'Order vector "%s" specifies order "%s" twice. Each component of an ordering must be unique.' =>
-        '排序向量 "%s" 两次指定排序 "%s"。排序的每个组件必须唯一。',
+      'Only administrators may change whether a document requires a signature.' => '只有管理员可以更改文档是否需要签名。',
+      'Only documents with signature type "individual" may require signing to log in.' => '只有签名类型为 "individual" 的文档才可能需要签名才能登录。',
+      'Only external accounts of type "email" are deliverable; this account has a different type.' => '只有类型为 "email" 的外部账户可投递；此账户具有不同的类型。',
+      'Only the first space created can be the default space, and it must remain the default space evermore.' => '只有创建的第一个空间才能作为默认空间，且它必须永远保持为默认空间。',
+      'Option "%s" is dangerously long for a database prefix in MySQL/MariaDB. The current value is %d characters long. It should be less than %d to be safe for future changes.' => '选项 "%s" 作为 MySQL/MariaDB 的数据库前缀过长。当前值为 %d 个字符。为了未来变更的安全，应小于 %d。',
+      'Option "%s" is of type "%s" and must be set to a list of valid regular expressions, but "%s" is not a valid regular expression.' => '选项 "%s" 的类型为 "%s"，必须设置为有效的正则表达式列表，但 "%s" 不是有效的正则表达式。',
+      'Option "%s" is of type "%s", and should be specified on the command line as a JSON list of values. You may need to quote the value for your shell (for example: \'["a", "b", ...]\').' => '选项 "%s" 的类型为 "%s"，应在命令行中指定为 JSON 值列表。您可能需要为 shell 引用该值（例如：\'["a", "b", ...]\'）。',
+      'Option "%s" is of type "%s", but the configured value is not a boolean.' => '选项 "%s" 的类型为 "%s"，但配置的值不是布尔值。',
+      'Option "%s" is of type "%s", but the configured value is not an integer.' => '选项 "%s" 的类型为 "%s"，但配置的值不是整数。',
+      'Option "%s" is of type "%s", but the configured value is not the name of a known class. Valid selections are: %s.' => '选项 "%s" 的类型为 "%s"，但配置的值不是已知类的名称。有效选项为：%s。',
+      'Option "%s" is of type "%s", but the current value ("%s") is not a known, concrete subclass of base class "%s". Valid selections are: %s.' => '选项 "%s" 的类型为 "%s"，但当前值（"%s"）不是基类 "%s" 的已知具体子类。有效选项为：%s。',
+      'Option "%s" is of type "%s", but the current value ("%s") is not among the set of valid values: %s.' => '选项 "%s" 的类型为 "%s"，但当前值（"%s"）不在有效值集合中：%s。',
+      'Option "%s" is of type "%s", but the item at index "%s" of the list is not a string.' => '选项 "%s" 的类型为 "%s"，但列表中索引为 "%s" 的项不是字符串。',
+      'Option "%s" is of type "%s", but the value at index "%s" of the list is not "true".' => '选项 "%s" 的类型为 "%s"，但列表中索引为 "%s" 的值不是 "true"。',
+      'Option "%s" is of type "%s", but the value is not a list: it is a map with unnatural or sparse keys.' => '选项 "%s" 的类型为 "%s"，但值不是列表：它是一个具有不自然或稀疏键的映射。',
+      'Option "%s" only supports numbers, letters, underscores and (for some reason) the dollar sign. This is necessary to avoid potential MySQL/MariaDB escape issues. Remove the invalid characters.' => '选项 "%s" 仅支持数字、字母、下划线以及（出于某种原因）美元符号。这是为了避免潜在的 MySQL/MariaDB 转义问题。请删除无效字符。',
+      'Option ("%s") is not a valid poll option. You may only vote for valid options.' => '选项（"%s"）不是有效的投票选项。您只能为有效选项投票。',
+      'Options "%s", "%s" and "%s" represent mutually exclusive ways to choose a policy. Specify only one.' => '选项 "%s"、"%s" 和 "%s" 代表选择策略的互斥方式。请仅指定一个。',
+      'Order vector "%s" is invalid: only the last column in an order may be unique, but "%s" is a unique column and not the last column in the order.' => '排序向量 "%s" 无效：排序中只有最后一列可以是唯一的，但 "%s" 是唯一列且不是排序中的最后一列。',
+      'Order vector "%s" is invalid: the last column in an order must be a column with unique values, but "%s" is not unique.' => '排序向量 "%s" 无效：排序中的最后一列必须是具有唯一值的列，但 "%s" 不是唯一的。',
+      'Order vector "%s" specifies order "%s" twice. Each component of an ordering must be unique.' => '排序向量 "%s" 两次指定排序 "%s"。排序的每个组件必须唯一。',
       'Output path already exists. Use "--overwrite" to overwrite it.' => '输出路径已存在。请使用 "--overwrite" 覆盖它。',
-      'Outside of the CAT scan, cats have made almost no contributions to modern medicine.' =>
-        '除了CAT扫描之外，猫对现代医学几乎没有做出任何贡献。',
-      'Overwriting integrity hashes is dangerous and may mark files which have been corrupted or tampered with as safe.' =>
-        '覆盖完整性哈希值是危险的，可能会将已损坏或被篡改的文件标记为安全。',
-      'Owner rule value is required. Specify a user to assign tasks to, the token "viewer()" to assign to the user moving tasks, or the token "none()" to unassign tasks.' =>
-        '所有者规则值是必需的。请指定一个用户来分配任务，使用令牌 "viewer()" 分配给移动任务的用户，或使用令牌 "none()" 取消分配任务。',
-      'Package "%s" is invalid: the package must exist and you must have permission to edit it in order to create a new package.' =>
-        '软件包 "%s" 无效：该软件包必须存在，并且您必须拥有编辑权限才能创建新软件包。',
-      'Package key "%s" is not valid: package keys may only contain lowercase latin letters.' =>
-        '软件包键 "%s" 无效：软件包键只能包含小写拉丁字母。',
-      'Package key "%s" is not valid: package keys must not be more than %s characters long.' =>
-        '软件包键 "%s" 无效：软件包键的长度不得超过 %s 个字符。',
-      'Package name "%s" is not valid: package names must not be more than %s characters long.' =>
-        '软件包名称 "%s" 无效：软件包名称的长度不得超过 %s 个字符。',
-      'Package specification for "%s" includes "%s", but that symbol is not %s by any resource.' =>
-        '软件包 "%s" 的规范包含了 "%s"，但该符号未被任何资源 %s。',
-      'Package specification for "%s" includes resources of multiple types (%s, %s). Each package may only contain one type of resource.' =>
-        '软件包 "%s" 的规范包含多种类型的资源（%s、%s）。每个软件包只能包含一种类型的资源。',
-      'Panel specification adds panel "%s", but this is not a valid panel or not a visible panel. You can only add valid panels which you have permission to see to a dashboard.' =>
-        '面板规范添加了面板 "%s"，但该面板无效或不可见。您只能将您有权查看的有效面板添加到仪表板。',
-      'Panel specification at index "%s" has bad column key "%s", valid column keys are: %s.' =>
-        '索引为 "%s" 的面板规范包含无效的列键 "%s"，有效的列键为：%s。',
-      'Panel specification at index "%s" has bad panel key "%s". Panel keys must be nonempty.' =>
-        '索引为 "%s" 的面板规范包含无效的面板键 "%s"。面板键不能为空。',
-      'Panel specification at index "%s" has duplicate panel key "%s". Each panel must have a unique panel key.' =>
-        '索引为 "%s" 的面板规范包含重复的面板键 "%s"。每个面板必须具有唯一的面板键。',
-      'Panels show queries, charts, and other information to provide insight on a particular topic.' =>
-        '面板显示查询、图表和其他信息，以提供对特定主题的洞察。',
-      'Parameter "%s" must contain a list of transaction descriptions, but item with key "%s" is missing a "type" field. Each transaction must have a type field.' =>
-        '参数 "%s" 必须包含交易描述列表，但键为 "%s" 的项缺少 "type" 字段。每个交易都必须有一个 type 字段。',
-      'Parameter "%s" must contain a list of transaction descriptions, but item with key "%s" is missing a "value" field. Each transaction must have a value field.' =>
-        '参数 "%s" 必须包含交易描述列表，但键为 "%s" 的项缺少 "value" 字段。每个交易都必须有一个 value 字段。',
-      'Parameter "%s" must contain a list of transaction descriptions, but item with key "%s" is not a dictionary.' =>
-        '参数 "%s" 必须包含交易描述列表，但键为 "%s" 的项不是字典。',
-      'Parameter to "%s" conversion in "qsprintf(...)" is not an instance of AphrontDatabaseTableRefInterface.' =>
-        '"qsprintf(...)" 中参数到 "%s" 的转换不是 AphrontDatabaseTableRefInterface 的实例。',
-      'Parameter to "%s" conversion in "qsprintf(...)" is not an instance of PhutilOpaqueEnvelope.' =>
-        '"qsprintf(...)" 中参数到 "%s" 的转换不是 PhutilOpaqueEnvelope 的实例。',
-      'Parent or milestone project PHID ("%s") must be the PHID of a valid, visible project which you have permission to edit.' =>
-        '父项目或里程碑项目 PHID（"%s"）必须是一个有效且可见的项目的 PHID，并且您拥有编辑权限。',
-      'Parent or milestone project PHID ("%s") must not be a milestone. Milestones may not have subprojects or milestones.' =>
-        '父项目或里程碑项目 PHID（"%s"）不能是里程碑。里程碑不能拥有子项目或里程碑。',
+      'Outside of the CAT scan, cats have made almost no contributions to modern medicine.' => '除了CAT扫描之外，猫对现代医学几乎没有做出任何贡献。',
+      'Overwriting integrity hashes is dangerous and may mark files which have been corrupted or tampered with as safe.' => '覆盖完整性哈希值是危险的，可能会将已损坏或被篡改的文件标记为安全。',
+      'Owner rule value is required. Specify a user to assign tasks to, the token "viewer()" to assign to the user moving tasks, or the token "none()" to unassign tasks.' => '所有者规则值是必需的。请指定一个用户来分配任务，使用令牌 "viewer()" 分配给移动任务的用户，或使用令牌 "none()" 取消分配任务。',
+      'Package "%s" is invalid: the package must exist and you must have permission to edit it in order to create a new package.' => '软件包 "%s" 无效：该软件包必须存在，并且您必须拥有编辑权限才能创建新软件包。',
+      'Package key "%s" is not valid: package keys may only contain lowercase latin letters.' => '软件包键 "%s" 无效：软件包键只能包含小写拉丁字母。',
+      'Package key "%s" is not valid: package keys must not be more than %s characters long.' => '软件包键 "%s" 无效：软件包键的长度不得超过 %s 个字符。',
+      'Package name "%s" is not valid: package names must not be more than %s characters long.' => '软件包名称 "%s" 无效：软件包名称的长度不得超过 %s 个字符。',
+      'Package specification for "%s" includes "%s", but that symbol is not %s by any resource.' => '软件包 "%s" 的规范包含了 "%s"，但该符号未被任何资源 %s。',
+      'Package specification for "%s" includes resources of multiple types (%s, %s). Each package may only contain one type of resource.' => '软件包 "%s" 的规范包含多种类型的资源（%s、%s）。每个软件包只能包含一种类型的资源。',
+      'Panel specification adds panel "%s", but this is not a valid panel or not a visible panel. You can only add valid panels which you have permission to see to a dashboard.' => '面板规范添加了面板 "%s"，但该面板无效或不可见。您只能将您有权查看的有效面板添加到仪表板。',
+      'Panel specification at index "%s" has bad column key "%s", valid column keys are: %s.' => '索引为 "%s" 的面板规范包含无效的列键 "%s"，有效的列键为：%s。',
+      'Panel specification at index "%s" has bad panel key "%s". Panel keys must be nonempty.' => '索引为 "%s" 的面板规范包含无效的面板键 "%s"。面板键不能为空。',
+      'Panel specification at index "%s" has duplicate panel key "%s". Each panel must have a unique panel key.' => '索引为 "%s" 的面板规范包含重复的面板键 "%s"。每个面板必须具有唯一的面板键。',
+      'Panels show queries, charts, and other information to provide insight on a particular topic.' => '面板显示查询、图表和其他信息，以提供对特定主题的洞察。',
+      'Parameter "%s" must contain a list of transaction descriptions, but item with key "%s" is missing a "type" field. Each transaction must have a type field.' => '参数 "%s" 必须包含交易描述列表，但键为 "%s" 的项缺少 "type" 字段。每个交易都必须有一个 type 字段。',
+      'Parameter "%s" must contain a list of transaction descriptions, but item with key "%s" is missing a "value" field. Each transaction must have a value field.' => '参数 "%s" 必须包含交易描述列表，但键为 "%s" 的项缺少 "value" 字段。每个交易都必须有一个 value 字段。',
+      'Parameter "%s" must contain a list of transaction descriptions, but item with key "%s" is not a dictionary.' => '参数 "%s" 必须包含交易描述列表，但键为 "%s" 的项不是字典。',
+      'Parameter to "%s" conversion in "qsprintf(...)" is not an instance of AphrontDatabaseTableRefInterface.' => '"qsprintf(...)" 中参数到 "%s" 的转换不是 AphrontDatabaseTableRefInterface 的实例。',
+      'Parameter to "%s" conversion in "qsprintf(...)" is not an instance of PhutilOpaqueEnvelope.' => '"qsprintf(...)" 中参数到 "%s" 的转换不是 PhutilOpaqueEnvelope 的实例。',
+      'Parent or milestone project PHID ("%s") must be the PHID of a valid, visible project which you have permission to edit.' => '父项目或里程碑项目 PHID（"%s"）必须是一个有效且可见的项目的 PHID，并且您拥有编辑权限。',
+      'Parent or milestone project PHID ("%s") must not be a milestone. Milestones may not have subprojects or milestones.' => '父项目或里程碑项目 PHID（"%s"）不能是里程碑。里程碑不能拥有子项目或里程碑。',
       'Parent task identifier "%s" does not identify a visible task.' => '父任务标识符 "%s" 未标识一个可见的任务。',
       'Partitioning and replication are now managed in primary configuration.' => '分区和复制现在由主配置管理。',
-      'Pass true to find only administrators, or false to omit administrators.' =>
-        '传入 true 以仅查找管理员，或传入 false 以排除管理员。',
-      'Pass true to find only disabled accounts, or false to omit disabled accounts.' =>
-        '传入 true 以仅查找已禁用的账户，或传入 false 以排除已禁用的账户。',
+      'Pass true to find only administrators, or false to omit administrators.' => '传入 true 以仅查找管理员，或传入 false 以排除管理员。',
+      'Pass true to find only disabled accounts, or false to omit disabled accounts.' => '传入 true 以仅查找已禁用的账户，或传入 false 以排除已禁用的账户。',
       'Pass true to find only mailing lists, or false to omit mailing lists.' => '传入 true 以仅查找邮件列表，或传入 false 以排除邮件列表。',
       'Pass true to find only milestones, or false to omit milestones.' => '传入 true 以仅查找里程碑，或传入 false 以排除里程碑。',
       'Pass true to find only root projects, or false to omit root projects.' => '传入 true 以仅查找根项目，或传入 false 以排除根项目。',
-      'Pass true to find only users awaiting administrative approval, or false to omit these users.' =>
-        '传入 true 以仅查找等待管理员批准的用户，或传入 false 以排除这些用户。',
-      'Pass true to find only users who are enrolled in MFA, or false to omit these users.' =>
-        '传入 true 以仅查找已注册 MFA 的用户，或传入 false 以排除这些用户。',
-      'Password authentication is not enabled and you are already logged in. There is nothing for you here.' =>
-        '密码认证未启用，且您已经登录。这里没有什么可做的。',
-      'Patch "%s" has already been applied on host "%s". Are you sure you want to apply it again? This may put your storage in a state that the upgrade scripts can not automatically manage.' =>
-        '补丁 "%s" 已在主机 "%s" 上应用。您确定要再次应用它吗？这可能会使您的存储处于升级脚本无法自动管理的状态。',
-      'Per-application mail subject prefix customization is no longer directly supported. Prefixes and other strings may be customized with "translation.override".' =>
-        '不再直接支持按应用自定义邮件主题前缀。前缀和其他字符串可通过 "translation.override" 自定义。',
+      'Pass true to find only users awaiting administrative approval, or false to omit these users.' => '传入 true 以仅查找等待管理员批准的用户，或传入 false 以排除这些用户。',
+      'Pass true to find only users who are enrolled in MFA, or false to omit these users.' => '传入 true 以仅查找已注册 MFA 的用户，或传入 false 以排除这些用户。',
+      'Password authentication is not enabled and you are already logged in. There is nothing for you here.' => '密码认证未启用，且您已经登录。这里没有什么可做的。',
+      'Patch "%s" has already been applied on host "%s". Are you sure you want to apply it again? This may put your storage in a state that the upgrade scripts can not automatically manage.' => '补丁 "%s" 已在主机 "%s" 上应用。您确定要再次应用它吗？这可能会使您的存储处于升级脚本无法自动管理的状态。',
+      'Per-application mail subject prefix customization is no longer directly supported. Prefixes and other strings may be customized with "translation.override".' => '不再直接支持按应用自定义邮件主题前缀。前缀和其他字符串可通过 "translation.override" 自定义。',
       'Perhaps the real treasure was the friends you made along the way.' => '也许真正的宝藏是你在旅途中结识的朋友。',
-      'Permission for desktop notifications was denied. Only application notifications will be sent.' =>
-        '桌面通知权限被拒绝。仅会发送应用通知。',
-      'Permit adjustments which truncate data. This option may destroy some data, but the lost data is usually not important (most commonly, the ends of very long object titles).' =>
-        '允许截断数据的调整。此选项可能会破坏某些数据，但丢失的数据通常不重要（最常见的是超长对象标题的末尾部分）。',
-      'Personal rules notify you about events. You own them, but they can only affect you. Personal rules only trigger for objects you have permission to see.' =>
-        '个人规则会向您通知事件。您拥有这些规则，但它们只能影响您。个人规则仅对您有权查看的对象触发。',
-      'Phone number ("%s") is not in a recognized format: expected a US number like "(555) 555-5555", or an international number like "+55 5555 555555".' =>
-        '电话号码（"%s"）格式无法识别：应为美国号码格式如 "(555) 555-5555"，或国际号码格式如 "+55 5555 555555"。',
-      'Phriction is a simple and easy to use wiki for keeping track of documents and their changes.' =>
-        'Phriction 是一个简单易用的 wiki，用于跟踪文档及其更改。',
-      'Play audio continuously, treating the macro as an audio source. Best for ambient sounds.' =>
-        '持续播放音频，将宏视为音频源。最适合环境音效。',
-      'Please verify that you own this email address (%s) by clicking this link:' =>
-        '请点击此链接验证您拥有此电子邮件地址（%s）：',
-      'Policy namespaces to segment object visibility throughout your instance.' =>
-        '策略命名空间用于在整个实例中划分对象可见性。',
-      'Portals are collections of dashboards, links, and other resources that can provide a high-level overview of a project.' =>
-        '门户是仪表板、链接和其他资源的集合，可提供项目的高层次概览。',
-      'Print the logs for all daemons, or some daemon(s) identified by ID. You can get the ID for a daemon from the Daemon Console in the web interface.' =>
-        '打印所有守护进程的日志，或按 ID 指定的某些守护进程的日志。您可以从 Web 界面的守护进程控制台获取守护进程的 ID。',
-      'Process exited with an open read lock! Call to %s must always be paired with a call to %s.' =>
-        '进程退出时存在未关闭的读取锁！对 %s 的调用必须始终与对 %s 的调用配对。',
-      'Process exited with an open transaction! The transaction will be implicitly rolled back. Calls to %s must always be paired with a call to %s or %s.' =>
-        '进程退出时存在未关闭的事务！该事务将被隐式回滚。对 %s 的调用必须始终与对 %s 或 %s 的调用配对。',
-      'Process exited with an open write lock! Call to %s must always be paired with a call to %s.' =>
-        '进程退出时存在未关闭的写入锁！对 %s 的调用必须始终与对 %s 的调用配对。',
-      'Producer "%s" returned an invalid response from call to "%s". This method must return an object of class "%s", or an object which implements the "%s" interface.' =>
-        '生产者 "%s" 从对 "%s" 的调用返回了无效响应。该方法必须返回 "%s" 类的对象，或实现 "%s" 接口的对象。',
+      'Permission for desktop notifications was denied. Only application notifications will be sent.' => '桌面通知权限被拒绝。仅会发送应用通知。',
+      'Permit adjustments which truncate data. This option may destroy some data, but the lost data is usually not important (most commonly, the ends of very long object titles).' => '允许截断数据的调整。此选项可能会破坏某些数据，但丢失的数据通常不重要（最常见的是超长对象标题的末尾部分）。',
+      'Personal rules notify you about events. You own them, but they can only affect you. Personal rules only trigger for objects you have permission to see.' => '个人规则会向您通知事件。您拥有这些规则，但它们只能影响您。个人规则仅对您有权查看的对象触发。',
+      'Phone number ("%s") is not in a recognized format: expected a US number like "(555) 555-5555", or an international number like "+55 5555 555555".' => '电话号码（"%s"）格式无法识别：应为美国号码格式如 "(555) 555-5555"，或国际号码格式如 "+55 5555 555555"。',
+      'Phriction is a simple and easy to use wiki for keeping track of documents and their changes.' => 'Phriction 是一个简单易用的 wiki，用于跟踪文档及其更改。',
+      'Play audio continuously, treating the macro as an audio source. Best for ambient sounds.' => '持续播放音频，将宏视为音频源。最适合环境音效。',
+      'Please verify that you own this email address (%s) by clicking this link:' => '请点击此链接验证您拥有此电子邮件地址（%s）：',
+      'Policy namespaces to segment object visibility throughout your instance.' => '策略命名空间用于在整个实例中划分对象可见性。',
+      'Portals are collections of dashboards, links, and other resources that can provide a high-level overview of a project.' => '门户是仪表板、链接和其他资源的集合，可提供项目的高层次概览。',
+      'Print the logs for all daemons, or some daemon(s) identified by ID. You can get the ID for a daemon from the Daemon Console in the web interface.' => '打印所有守护进程的日志，或按 ID 指定的某些守护进程的日志。您可以从 Web 界面的守护进程控制台获取守护进程的 ID。',
+      'Process exited with an open read lock! Call to %s must always be paired with a call to %s.' => '进程退出时存在未关闭的读取锁！对 %s 的调用必须始终与对 %s 的调用配对。',
+      'Process exited with an open transaction! The transaction will be implicitly rolled back. Calls to %s must always be paired with a call to %s or %s.' => '进程退出时存在未关闭的事务！该事务将被隐式回滚。对 %s 的调用必须始终与对 %s 或 %s 的调用配对。',
+      'Process exited with an open write lock! Call to %s must always be paired with a call to %s.' => '进程退出时存在未关闭的写入锁！对 %s 的调用必须始终与对 %s 的调用配对。',
+      'Producer "%s" returned an invalid response from call to "%s". This method must return an object of class "%s", or an object which implements the "%s" interface.' => '生产者 "%s" 从对 "%s" 的调用返回了无效响应。该方法必须返回 "%s" 类的对象，或实现 "%s" 接口的对象。',
       'Profile menu items can not be generated without an object context.' => '无法在没有对象上下文的情况下生成个人资料菜单项。',
-      'Profiling was not enabled for this page. Use the button above to enable it.' =>
-        '此页面未启用性能分析。请使用上方的按钮启用。',
+      'Profiling was not enabled for this page. Use the button above to enable it.' => '此页面未启用性能分析。请使用上方的按钮启用。',
       'Project "%s" is not a valid project which you have permission to see.' => '项目 "%s" 不是您有权查看的有效项目。',
-      'Project colors must have unique keys, but two icons share the same key ("%s").' =>
-        '项目颜色必须具有唯一的键，但两个图标共享相同的键（"%s"）。',
-      'Project colors must include one color marked as the "%s" color, but no such color exists.' =>
-        '项目颜色必须包含一种标记为 "%s" 颜色的颜色，但不存在这样的颜色。',
-      'Project icons must have unique keys, but two icons share the same key ("%s").' =>
-        '项目图标必须具有唯一的键，但两个图标共享相同的键（"%s"）。',
-      'Project icons must include one icon marked as the "%s" icon, but no such icon exists.' =>
-        '项目图标必须包含一个标记为 "%s" 图标的图标，但不存在这样的图标。',
-      'Project icons must include one icon marked with special attribute "%s", but no such icon exists.' =>
-        '项目图标必须包含一个带有特殊属性 "%s" 标记的图标，但不存在这样的图标。',
-      'Project name generates the same hashtag ("%s") as another existing project. Choose a unique name.' =>
-        '项目名称生成的标签（"%s"）与另一个现有项目相同。请选择唯一的名称。',
-      'Project tags define everything. Create them for teams, tags, or actual projects.' =>
-        '项目标签定义一切。为团队、标签或实际项目创建它们。',
-      'Projects are labels are tags. You can use them for a codebase, a team, a sprint, or anything you need to group or categorize.' =>
-        '项目就是标签和标记。您可以将它们用于代码库、团队、冲刺或任何需要分组或分类的事物。',
-      'Provide a list of objects to index (like "D123"), or a set of query constraint flags (like "--type"), or "--all" to index all objects.' =>
-        '提供要索引的对象列表（如 "D123"），或一组查询约束标志（如 "--type"），或使用 "--all" 索引所有对象。',
-      'Provided view is not one of the views in the list: you can only select a view which appears in the list.' =>
-        '提供的视图不在列表中的视图之内：您只能选择列表中出现的视图。',
-      'Prune ngrams present in more than this fraction of documents. Provide a value between 0.0 and 1.0.' =>
-        '修剪存在于超过此文档比例中的 ngram。请提供 0.0 到 1.0 之间的值。',
-      'Public email is now accepted if the associated address has a default author, and rejected otherwise.' =>
-        '如果关联地址具有默认作者，则现在接受公开电子邮件；否则将被拒绝。',
-      'Publisher "%s" is invalid: the publisher must exist and you must have permission to edit it in order to create a new package.' =>
-        '发布者 "%s" 无效：该发布者必须存在，并且您必须拥有编辑权限才能创建新软件包。',
-      'Publisher key "%s" is not valid: publisher keys may only contain lowercase latin letters.' =>
-        '发布者键 "%s" 无效：发布者键只能包含小写拉丁字母。',
-      'Publisher key "%s" is not valid: publisher keys must not be more than %s characters long.' =>
-        '发布者键 "%s" 无效：发布者键的长度不得超过 %s 个字符。',
-      'Publisher name "%s" is not valid: publisher names must not be more than %s characters long.' =>
-        '发布者名称 "%s" 无效：发布者名称的长度不得超过 %s 个字符。',
-      'Query "%s" does not support a builtin order "%s". Supported orders are: %s.' =>
-        '查询 "%s" 不支持内置排序 "%s"。支持的排序为：%s。',
-      'Query "%s" is unknown. To run a builtin query like "all" or "active", also specify the search engine with "--class".' =>
-        '查询 "%s" 未知。要运行 "all" 或 "active" 等内置查询，还需使用 "--class" 指定搜索引擎。',
-      'Query (of class "%s") overheated: examined more than %s raw rows without finding %s visible objects.' =>
-        '查询（类 "%s"）过热：检查了超过 %s 条原始行，未找到 %s 个可见对象。',
-      'Query (with ID "%s") has already been saved. Queries are immutable once saved.' =>
-        '查询（ID 为 "%s"）已保存。查询一旦保存便不可更改。',
-      'Query class ("%s") must define "newResultObject()" to use Ferret constraints.' =>
-        '查询类 ("%s") 必须定义 "newResultObject()" 才能使用 Ferret 约束。',
-      'Query contains a token ("%s") with no search term. Query tokens specify text to search for.' =>
-        '查询包含一个无搜索词的令牌 ("%s")。查询令牌用于指定要搜索的文本。',
-      'Query field must be absent ("%s") and present ("%s"). This is impossible, so the query is not valid.' =>
-        '查询字段必须同时不存在 ("%s") 且存在 ("%s")。这是不可能的，因此查询无效。',
-      'Query has too many search tokens (%s tokens, maximum is %s tokens). Please use more specific search criteria.' =>
-        '查询包含过多搜索令牌（%s 个，最多 %s 个）。请使用更具体的搜索条件。',
-      'Query is too long (%s bytes, maximum is %s bytes). Please use more specific search criteria.' =>
-        '查询过长（%s 字节，最多 %s 字节）。请使用更具体的搜索条件。',
+      'Project colors must have unique keys, but two icons share the same key ("%s").' => '项目颜色必须具有唯一的键，但两个图标共享相同的键（"%s"）。',
+      'Project colors must include one color marked as the "%s" color, but no such color exists.' => '项目颜色必须包含一种标记为 "%s" 颜色的颜色，但不存在这样的颜色。',
+      'Project icons must have unique keys, but two icons share the same key ("%s").' => '项目图标必须具有唯一的键，但两个图标共享相同的键（"%s"）。',
+      'Project icons must include one icon marked as the "%s" icon, but no such icon exists.' => '项目图标必须包含一个标记为 "%s" 图标的图标，但不存在这样的图标。',
+      'Project icons must include one icon marked with special attribute "%s", but no such icon exists.' => '项目图标必须包含一个带有特殊属性 "%s" 标记的图标，但不存在这样的图标。',
+      'Project name generates the same hashtag ("%s") as another existing project. Choose a unique name.' => '项目名称生成的标签（"%s"）与另一个现有项目相同。请选择唯一的名称。',
+      'Project tags define everything. Create them for teams, tags, or actual projects.' => '项目标签定义一切。为团队、标签或实际项目创建它们。',
+      'Projects are labels are tags. You can use them for a codebase, a team, a sprint, or anything you need to group or categorize.' => '项目就是标签和标记。您可以将它们用于代码库、团队、冲刺或任何需要分组或分类的事物。',
+      'Provide a list of objects to index (like "D123"), or a set of query constraint flags (like "--type"), or "--all" to index all objects.' => '提供要索引的对象列表（如 "D123"），或一组查询约束标志（如 "--type"），或使用 "--all" 索引所有对象。',
+      'Provided view is not one of the views in the list: you can only select a view which appears in the list.' => '提供的视图不在列表中的视图之内：您只能选择列表中出现的视图。',
+      'Prune ngrams present in more than this fraction of documents. Provide a value between 0.0 and 1.0.' => '修剪存在于超过此文档比例中的 ngram。请提供 0.0 到 1.0 之间的值。',
+      'Public email is now accepted if the associated address has a default author, and rejected otherwise.' => '如果关联地址具有默认作者，则现在接受公开电子邮件；否则将被拒绝。',
+      'Publisher "%s" is invalid: the publisher must exist and you must have permission to edit it in order to create a new package.' => '发布者 "%s" 无效：该发布者必须存在，并且您必须拥有编辑权限才能创建新软件包。',
+      'Publisher key "%s" is not valid: publisher keys may only contain lowercase latin letters.' => '发布者键 "%s" 无效：发布者键只能包含小写拉丁字母。',
+      'Publisher key "%s" is not valid: publisher keys must not be more than %s characters long.' => '发布者键 "%s" 无效：发布者键的长度不得超过 %s 个字符。',
+      'Publisher name "%s" is not valid: publisher names must not be more than %s characters long.' => '发布者名称 "%s" 无效：发布者名称的长度不得超过 %s 个字符。',
+      'Query "%s" does not support a builtin order "%s". Supported orders are: %s.' => '查询 "%s" 不支持内置排序 "%s"。支持的排序为：%s。',
+      'Query "%s" is unknown. To run a builtin query like "all" or "active", also specify the search engine with "--class".' => '查询 "%s" 未知。要运行 "all" 或 "active" 等内置查询，还需使用 "--class" 指定搜索引擎。',
+      'Query (of class "%s") overheated: examined more than %s raw rows without finding %s visible objects.' => '查询（类 "%s"）过热：检查了超过 %s 条原始行，未找到 %s 个可见对象。',
+      'Query (with ID "%s") has already been saved. Queries are immutable once saved.' => '查询（ID 为 "%s"）已保存。查询一旦保存便不可更改。',
+      'Query class ("%s") must define "newResultObject()" to use Ferret constraints.' => '查询类 ("%s") 必须定义 "newResultObject()" 才能使用 Ferret 约束。',
+      'Query contains a token ("%s") with no search term. Query tokens specify text to search for.' => '查询包含一个无搜索词的令牌 ("%s")。查询令牌用于指定要搜索的文本。',
+      'Query field must be absent ("%s") and present ("%s"). This is impossible, so the query is not valid.' => '查询字段必须同时不存在 ("%s") 且存在 ("%s")。这是不可能的，因此查询无效。',
+      'Query has too many search tokens (%s tokens, maximum is %s tokens). Please use more specific search criteria.' => '查询包含过多搜索令牌（%s 个，最多 %s 个）。请使用更具体的搜索条件。',
+      'Query is too long (%s bytes, maximum is %s bytes). Please use more specific search criteria.' => '查询过长（%s 字节，最多 %s 字节）。请使用更具体的搜索条件。',
       'Querying for comments that are "not publishable" is not supported.' => '不支持查询“不可发布”的评论。',
       'Querying for comments that are "not published" is not supported.' => '不支持查询“未发布”的评论。',
-      'Queue tasks which require a specific amount of wall time to complete. By default, tasks complete as quickly as possible.' =>
-        '对需要特定挂钟时间才能完成的任务进行排队。默认情况下，任务会尽快完成。',
-      'Queued email to be delivered to %s target(s), ignoring their notification preferences: %s.' =>
-        '已将邮件排入队列，将发送给 %s 个目标，忽略其通知偏好：%s。',
-      'Queued for background import: data size (%s) exceeds limit for immediate processing (%s).' =>
-        '已排入后台导入队列：数据大小 (%s) 超过立即处理限制 (%s)。',
-      'RRULE BYDAY value "%s" has an offset with magnitude "%s", but the maximum permitted value is "%s".' =>
-        'RRULE BYDAY 值 "%s" 的偏移量大小为 "%s"，但允许的最大值为 "%s"。',
-      'RRULE BYDAY value "%s" is invalid: rule part must be in the expected form (like "MO", "-3TH", or "+2SU").' =>
-        'RRULE BYDAY 值 "%s" 无效：规则部分必须符合预期格式（如 "MO"、"-3TH" 或 "+2SU"）。',
+      'Queue tasks which require a specific amount of wall time to complete. By default, tasks complete as quickly as possible.' => '对需要特定挂钟时间才能完成的任务进行排队。默认情况下，任务会尽快完成。',
+      'Queued email to be delivered to %s target(s), ignoring their notification preferences: %s.' => '已将邮件排入队列，将发送给 %s 个目标，忽略其通知偏好：%s。',
+      'Queued for background import: data size (%s) exceeds limit for immediate processing (%s).' => '已排入后台导入队列：数据大小 (%s) 超过立即处理限制 (%s)。',
+      'RRULE BYDAY value "%s" has an offset with magnitude "%s", but the maximum permitted value is "%s".' => 'RRULE BYDAY 值 "%s" 的偏移量大小为 "%s"，但允许的最大值为 "%s"。',
+      'RRULE BYDAY value "%s" is invalid: rule part must be in the expected form (like "MO", "-3TH", or "+2SU").' => 'RRULE BYDAY 值 "%s" 无效：规则部分必须符合预期格式（如 "MO"、"-3TH" 或 "+2SU"）。',
       'RRULE dictionary includes unknown key "%s". Expected keys are: %s.' => 'RRULE 字典包含未知键 "%s"。预期键为：%s。',
-      'RRULE evaluation failed to generate more events in the next 100 years. This RRULE is likely invalid or degenerate.' =>
-        'RRULE 评估在未来 100 年内无法生成更多事件。该 RRULE 可能无效或退化。',
-      'RRULE specifies BYMONTHDAY with FREQ set to WEEKLY, which violates RFC5545.' =>
-        'RRULE 指定了 BYMONTHDAY，但 FREQ 设置为 WEEKLY，这违反了 RFC5545。',
-      'RRULE specifies BYYEARDAY with FREQ of DAILY, WEEKLY or MONTHLY, which violates RFC5545.' =>
-        'RRULE 指定了 FREQ 为 DAILY、WEEKLY 或 MONTHLY 时的 BYYEARDAY，这违反了 RFC5545。',
+      'RRULE evaluation failed to generate more events in the next 100 years. This RRULE is likely invalid or degenerate.' => 'RRULE 评估在未来 100 年内无法生成更多事件。该 RRULE 可能无效或退化。',
+      'RRULE specifies BYMONTHDAY with FREQ set to WEEKLY, which violates RFC5545.' => 'RRULE 指定了 BYMONTHDAY，但 FREQ 设置为 WEEKLY，这违反了 RFC5545。',
+      'RRULE specifies BYYEARDAY with FREQ of DAILY, WEEKLY or MONTHLY, which violates RFC5545.' => 'RRULE 指定了 FREQ 为 DAILY、WEEKLY 或 MONTHLY 时的 BYYEARDAY，这违反了 RFC5545。',
       'Re-encode files which are already stored in the target encoding.' => '重新编码已存储为目标编码的文件。',
-      'Reached TOTP challenge validation with an unexpected number of unexpired challenges (%s), expected exactly one.' =>
-        '到达 TOTP 质询验证时，未过期的质询数量异常（%s），预期恰好为一个。',
-      'Read transactions and comments for a particular object or an entire object type.' =>
-        '读取特定对象或整个对象类型的事务和评论。',
-      'Really attach the file %s to the object %s, allowing any user who can view the object to view and download the file?' =>
-        '确实要将文件 %s 附加到对象 %s，从而允许任何可以查看该对象的用户查看并下载此文件吗？',
-      'Really delete the query "%s"? You can not undo this. Remember all the great times you had filtering results together?' =>
-        '确实要删除查询 "%s" 吗？此操作无法撤销。还记得一起筛选结果的那些美好时光吗？',
-      'Really delete this document? You can recover it later by reverting to a previous version.' =>
-        '确实要删除此文档吗？您稍后可以通过恢复到之前的版本来恢复它。',
-      'Really destroy all facts? They will need to be rebuilt through analysis, which may take some time.' =>
-        '确实要销毁所有事实吗？它们需要通过分析重建，这可能需要一些时间。',
-      'Really disable the %s OAuth application? Users will no longer be able to authenticate against it, nor access this server using tokens generated by this application.' =>
-        '确实要禁用 %s OAuth 应用吗？用户将无法再对其进行身份验证，也无法使用该应用生成的令牌访问此服务器。',
-      'Really disable the much-beloved image macro %s? It will be sorely missed.' =>
-        '确实要禁用备受喜爱的图片宏 %s 吗？它将被深深怀念。',
-      'Really enable the %s OAuth application? Users will be able to authenticate against it, and existing tokens will become usable again.' =>
-        '确实要启用 %s OAuth 应用吗？用户将能够对其进行身份验证，且现有令牌将再次可用。',
-      'Really revoke all tokens? Among other temporary authorizations, this will disable any outstanding password reset or account recovery links.' =>
-        '确实要撤销所有令牌吗？除其他临时授权外，这将禁用任何未完成的密码重置或账户恢复链接。',
-      'Really revoke this token? Any temporary authorization it enables will be disabled.' =>
-        '确实要撤销此令牌吗？其启用的任何临时授权都将被禁用。',
-      'Really terminate all active API tokens? Any systems using these tokens will no longer be able to make API requests.' =>
-        '确实要终止所有活动的 API 令牌吗？使用这些令牌的任何系统都将无法再发起 API 请求。',
-      'Really terminate all sessions? (Your current login session will not be terminated.)' =>
-        '确实要终止所有会话吗？（您当前的登录会话不会被终止。）',
-      'Really terminate this token? Any system using this token will no longer be able to make API requests.' =>
-        '确实要终止此令牌吗？使用此令牌的任何系统都将无法再发起 API 请求。',
+      'Reached TOTP challenge validation with an unexpected number of unexpired challenges (%s), expected exactly one.' => '到达 TOTP 质询验证时，未过期的质询数量异常（%s），预期恰好为一个。',
+      'Read transactions and comments for a particular object or an entire object type.' => '读取特定对象或整个对象类型的事务和评论。',
+      'Really attach the file %s to the object %s, allowing any user who can view the object to view and download the file?' => '确实要将文件 %s 附加到对象 %s，从而允许任何可以查看该对象的用户查看并下载此文件吗？',
+      'Really delete the query "%s"? You can not undo this. Remember all the great times you had filtering results together?' => '确实要删除查询 "%s" 吗？此操作无法撤销。还记得一起筛选结果的那些美好时光吗？',
+      'Really delete this document? You can recover it later by reverting to a previous version.' => '确实要删除此文档吗？您稍后可以通过恢复到之前的版本来恢复它。',
+      'Really destroy all facts? They will need to be rebuilt through analysis, which may take some time.' => '确实要销毁所有事实吗？它们需要通过分析重建，这可能需要一些时间。',
+      'Really disable the %s OAuth application? Users will no longer be able to authenticate against it, nor access this server using tokens generated by this application.' => '确实要禁用 %s OAuth 应用吗？用户将无法再对其进行身份验证，也无法使用该应用生成的令牌访问此服务器。',
+      'Really disable the much-beloved image macro %s? It will be sorely missed.' => '确实要禁用备受喜爱的图片宏 %s 吗？它将被深深怀念。',
+      'Really enable the %s OAuth application? Users will be able to authenticate against it, and existing tokens will become usable again.' => '确实要启用 %s OAuth 应用吗？用户将能够对其进行身份验证，且现有令牌将再次可用。',
+      'Really revoke all tokens? Among other temporary authorizations, this will disable any outstanding password reset or account recovery links.' => '确实要撤销所有令牌吗？除其他临时授权外，这将禁用任何未完成的密码重置或账户恢复链接。',
+      'Really revoke this token? Any temporary authorization it enables will be disabled.' => '确实要撤销此令牌吗？其启用的任何临时授权都将被禁用。',
+      'Really terminate all active API tokens? Any systems using these tokens will no longer be able to make API requests.' => '确实要终止所有活动的 API 令牌吗？使用这些令牌的任何系统都将无法再发起 API 请求。',
+      'Really terminate all sessions? (Your current login session will not be terminated.)' => '确实要终止所有会话吗？（您当前的登录会话不会被终止。）',
+      'Really terminate this token? Any system using this token will no longer be able to make API requests.' => '确实要终止此令牌吗？使用此令牌的任何系统都将无法再发起 API 请求。',
       'Rebuild old edge transactions storage to use a more compact format.' => '重建旧的边缘事务存储以使用更紧凑的格式。',
-      'Recompute common ngrams. This is an advanced workflow that can harm search quality if used improperly.' =>
-        '重新计算常见 ngram。这是一个高级工作流，使用不当可能会损害搜索质量。',
-      'Recover directly into a full session without requiring MFA or other login checks.' =>
-        '直接恢复到完整会话，无需 MFA 或其他登录检查。',
+      'Recompute common ngrams. This is an advanced workflow that can harm search quality if used improperly.' => '重新计算常见 ngram。这是一个高级工作流，使用不当可能会损害搜索质量。',
+      'Recover directly into a full session without requiring MFA or other login checks.' => '直接恢复到完整会话，无需 MFA 或其他登录检查。',
       'Recurring event range queries must have an end date, a limit, or both.' => '重复事件范围查询必须具有结束日期、限制或两者皆有。',
-      'Redirect URI in request and no redirect URI in authorization code. The two must exactly match.' =>
-        '请求中存在重定向 URI，但授权代码中不存在。两者必须完全匹配。',
-      'Redirect URI in request must exactly match redirect URI from authorization code.' =>
-        '请求中的重定向 URI 必须与授权代码中的重定向 URI 完全匹配。',
-      'Refresh OAuth access tokens. This is primarily useful for development and debugging.' =>
-        '刷新 OAuth 访问令牌。这主要用于开发和调试。',
-      'Refusing to proxy a request to IP address ("%s") which is not in the cluster address block (this address was derived by resolving the domain "%s").' =>
-        '拒绝代理到 IP 地址 ("%s") 的请求，该地址不在集群地址块中（此地址通过解析域名 "%s" 获得）。',
-      'Refusing to redirect to external URI "%s". This URI is not a valid remote web resource.' =>
-        '拒绝重定向到外部 URI "%s"。此 URI 不是有效的远程 Web 资源。',
-      'Refusing to redirect to external URI "%s". This URI is not fully qualified, and is missing a domain name. To redirect to a local resource, remove the external flag.' =>
-        '拒绝重定向到外部 URI "%s"。此 URI 未完全限定，缺少域名。要重定向到本地资源，请移除 external 标志。',
-      'Refusing to redirect to local resource "%s". The URI has a domain, but the redirect is not marked external. Mark redirects as external to allow redirection off the local domain.' =>
-        '拒绝重定向到本地资源 "%s"。URI 包含域名，但重定向未标记为 external。请将重定向标记为 external 以允许重定向到本地域之外。',
-      'Refusing to redirect to local resource "%s". This URI is not formatted in a recognizable way.' =>
-        '拒绝重定向到本地资源 "%s"。此 URI 格式无法识别。',
+      'Redirect URI in request and no redirect URI in authorization code. The two must exactly match.' => '请求中存在重定向 URI，但授权代码中不存在。两者必须完全匹配。',
+      'Redirect URI in request must exactly match redirect URI from authorization code.' => '请求中的重定向 URI 必须与授权代码中的重定向 URI 完全匹配。',
+      'Refresh OAuth access tokens. This is primarily useful for development and debugging.' => '刷新 OAuth 访问令牌。这主要用于开发和调试。',
+      'Refusing to proxy a request to IP address ("%s") which is not in the cluster address block (this address was derived by resolving the domain "%s").' => '拒绝代理到 IP 地址 ("%s") 的请求，该地址不在集群地址块中（此地址通过解析域名 "%s" 获得）。',
+      'Refusing to redirect to external URI "%s". This URI is not a valid remote web resource.' => '拒绝重定向到外部 URI "%s"。此 URI 不是有效的远程 Web 资源。',
+      'Refusing to redirect to external URI "%s". This URI is not fully qualified, and is missing a domain name. To redirect to a local resource, remove the external flag.' => '拒绝重定向到外部 URI "%s"。此 URI 未完全限定，缺少域名。要重定向到本地资源，请移除 external 标志。',
+      'Refusing to redirect to local resource "%s". The URI has a domain, but the redirect is not marked external. Mark redirects as external to allow redirection off the local domain.' => '拒绝重定向到本地资源 "%s"。URI 包含域名，但重定向未标记为 external。请将重定向标记为 external 以允许重定向到本地域之外。',
+      'Refusing to redirect to local resource "%s". This URI is not formatted in a recognizable way.' => '拒绝重定向到本地资源 "%s"。此 URI 格式无法识别。',
       'Regenerate the HMAC key used to sign requests made by this webhook?' => '重新生成用于对此 webhook 发起的请求进行签名的 HMAC 密钥吗？',
-      'Regular expression "%s" in Herald rule "%s" is not valid, or exceeded backtracking or recursion limits while executing. Verify the expression and correct it or rewrite it with less backtracking.' =>
-        'Herald 规则 "%s" 中的正则表达式 "%s" 无效，或在执行时超出回溯或递归限制。请验证表达式并修正，或以减少回溯的方式重写。',
+      'Regular expression "%s" in Herald rule "%s" is not valid, or exceeded backtracking or recursion limits while executing. Verify the expression and correct it or rewrite it with less backtracking.' => 'Herald 规则 "%s" 中的正则表达式 "%s" 无效，或在执行时超出回溯或递归限制。请验证表达式并修正，或以减少回溯的方式重写。',
       'Reindex objects previously indexed on or after a given date.' => '重新索引在给定日期或之后已索引的对象。',
       'Reindex objects previously indexed on or before a given date.' => '重新索引在给定日期或之前已索引的对象。',
-      'Reindex objects previously indexed with a particular version of the indexer.' =>
-        '重新索引之前使用特定索引器版本索引的对象。',
-      'Reinstate this event and all events in the series which occur on or after %s.' =>
-        '恢复此事件及系列中发生在 %s 或之后的所有事件。',
+      'Reindex objects previously indexed with a particular version of the indexer.' => '重新索引之前使用特定索引器版本索引的对象。',
+      'Reinstate this event and all events in the series which occur on or after %s.' => '恢复此事件及系列中发生在 %s 或之后的所有事件。',
       'Relative TTL must be zero or more seconds, but "%s" is negative.' => '相对 TTL 必须为零或更多秒，但 "%s" 为负数。',
-      'Relative TTL must not be more than "%s" seconds, but TTL "%s" was specified.' =>
-        '相对 TTL 不得超过 "%s" 秒，但指定的 TTL 为 "%s"。',
-      'Reload event imports from the command line. Useful for testing and debugging importers.' =>
-        '从命令行重新加载事件导入。便于测试和调试导入器。',
+      'Relative TTL must not be more than "%s" seconds, but TTL "%s" was specified.' => '相对 TTL 不得超过 "%s" 秒，但指定的 TTL 为 "%s"。',
+      'Reload event imports from the command line. Useful for testing and debugging importers.' => '从命令行重新加载事件导入。便于测试和调试导入器。',
       'Reload this source? Events imported from this source will be updated.' => '重新加载此源吗？从此源导入的事件将被更新。',
-      'Remarkup rule precedence is dangerous: rendering text with tokens as flat text!' =>
-        'Remarkup 规则优先级存在风险：将包含令牌的文本渲染为纯文本！',
-      'Remove %s as an administrator? They will no longer be able to perform administrative functions on this server.' =>
-        '移除 %s 的管理员身份吗？他们将无法再在此服务器上执行管理功能。',
+      'Remarkup rule precedence is dangerous: rendering text with tokens as flat text!' => 'Remarkup 规则优先级存在风险：将包含令牌的文本渲染为纯文本！',
+      'Remove %s as an administrator? They will no longer be able to perform administrative functions on this server.' => '移除 %s 的管理员身份吗？他们将无法再在此服务器上执行管理功能。',
       'Remove project rule value should be a list, but is not (value is "%s").' => '移除项目规则值应为列表，但实际不是（值为 "%s"）。',
       'Remove subscribers rule value should be a list, but is not (value is "%s").' => '移除订阅者规则值应为列表，但实际不是（值为 "%s"）。',
-      'Remove trust from an OAuth client. Users must manually confirm reauthorization of untrusted OAuth clients.' =>
-        '移除 OAuth 客户端的信任。用户必须手动确认对不受信任的 OAuth 客户端的重新授权。',
+      'Remove trust from an OAuth client. Users must manually confirm reauthorization of untrusted OAuth clients.' => '移除 OAuth 客户端的信任。用户必须手动确认对不受信任的 OAuth 客户端的重新授权。',
       'Replaced image ("%s") belongs to the wrong mock ("%s", expected "%s").' => '被替换的图片 ("%s") 属于错误的原型 ("%s"，预期为 "%s")。',
-      'Reply addresses can either be private (more secure) or public (which works better with mailing lists).' =>
-        '回复地址可以是私有的（更安全）或公共的（更适合邮件列表）。',
-      'Request included a client_id parameter and an "Authorization" header with a username, but the values "%s" and "%s") disagree. The values must match.' =>
-        '请求包含 client_id 参数和带有用户名的 "Authorization" 标头，但值 "%s" 和 "%s" 不一致。这两个值必须匹配。',
-      'Request includes restricted parameter "%s", but this controller ("%s") does not whitelist it. Refusing to serve this request because it might be part of a redirection attack.' =>
-        '请求包含受限参数 "%s"，但此控制器（"%s"）未将其加入白名单。拒绝处理该请求，因为它可能是重定向攻击的一部分。',
-      'Request parameter %s specifies an unsupported response type. Valid response types are: %s.' =>
-        '请求参数 %s 指定了不支持的响应类型。有效的响应类型为：%s。',
+      'Reply addresses can either be private (more secure) or public (which works better with mailing lists).' => '回复地址可以是私有的（更安全）或公共的（更适合邮件列表）。',
+      'Request included a client_id parameter and an "Authorization" header with a username, but the values "%s" and "%s") disagree. The values must match.' => '请求包含 client_id 参数和带有用户名的 "Authorization" 标头，但值 "%s" 和 "%s" 不一致。这两个值必须匹配。',
+      'Request includes restricted parameter "%s", but this controller ("%s") does not whitelist it. Refusing to serve this request because it might be part of a redirection attack.' => '请求包含受限参数 "%s"，但此控制器（"%s"）未将其加入白名单。拒绝处理该请求，因为它可能是重定向攻击的一部分。',
+      'Request parameter %s specifies an unsupported response type. Valid response types are: %s.' => '请求参数 %s 指定了不支持的响应类型。有效的响应类型为：%s。',
       'Requests which are currently authenticated with the old key may fail.' => '当前使用旧密钥进行身份验证的请求可能会失败。',
-      'Require administrators to unlock the authentication provider configuration from the CLI before it can be edited.' =>
-        '要求管理员从 CLI 解锁身份验证提供程序配置后才能编辑。',
+      'Require administrators to unlock the authentication provider configuration from the CLI before it can be edited.' => '要求管理员从 CLI 解锁身份验证提供程序配置后才能编辑。',
       'Required parameter `parentPanelPHIDs` is not present in request.' => '请求中缺少必需的参数 `parentPanelPHIDs`。',
-      'Reset action counters so a user can continue taking rate-limited actions.' =>
-        '重置操作计数器，以便用户可以继续执行受速率限制的操作。',
-      'Resource "%s" does not have a header doc comment. Encode dependency data in a header docblock.' =>
-        '资源 "%s" 没有头部文档注释。请在头部文档块中编码依赖数据。',
-      'Resource source defines two resources with the same name, "%s". One is defined in the "%s" map; the other in the "%s" map. Each resource must have a unique name.' =>
-        '资源源定义了两个同名资源 "%s"。一个定义在 "%s" 映射中；另一个定义在 "%s" 映射中。每个资源必须具有唯一名称。',
-      'Resources name "%s" is not valid; it must contain only lowercase latin letters and digits.' =>
-        '资源名称 "%s" 无效；只能包含小写拉丁字母和数字。',
-      'Respecting "%s" or minimum poll delay: waiting for %s second(s) to poll GitHub.' =>
-        '遵守 "%s" 或最小轮询延迟：等待 %s 秒以轮询 GitHub。',
-      'Restrict **destroy** operations to databases created by %s test fixtures.' =>
-        '将 **destroy** 操作限制为由 %s 测试固件创建的数据库。',
-      'Retry selected tasks which previously failed permanently or were cancelled. Only archived tasks can be retried.' =>
-        '重试之前永久失败或已取消的选定任务。只有已归档的任务才能重试。',
-      'Retrying database connection to "%s" after connection failure (attempt %d; "%s"; error #%d): %s' =>
-        '连接失败后重试连接到数据库 "%s"（尝试 %d；"%s"；错误 #%d）：%s',
+      'Reset action counters so a user can continue taking rate-limited actions.' => '重置操作计数器，以便用户可以继续执行受速率限制的操作。',
+      'Resource "%s" does not have a header doc comment. Encode dependency data in a header docblock.' => '资源 "%s" 没有头部文档注释。请在头部文档块中编码依赖数据。',
+      'Resource source defines two resources with the same name, "%s". One is defined in the "%s" map; the other in the "%s" map. Each resource must have a unique name.' => '资源源定义了两个同名资源 "%s"。一个定义在 "%s" 映射中；另一个定义在 "%s" 映射中。每个资源必须具有唯一名称。',
+      'Resources name "%s" is not valid; it must contain only lowercase latin letters and digits.' => '资源名称 "%s" 无效；只能包含小写拉丁字母和数字。',
+      'Respecting "%s" or minimum poll delay: waiting for %s second(s) to poll GitHub.' => '遵守 "%s" 或最小轮询延迟：等待 %s 秒以轮询 GitHub。',
+      'Restrict **destroy** operations to databases created by %s test fixtures.' => '将 **destroy** 操作限制为由 %s 测试固件创建的数据库。',
+      'Retry selected tasks which previously failed permanently or were cancelled. Only archived tasks can be retried.' => '重试之前永久失败或已取消的选定任务。只有已归档的任务才能重试。',
+      'Retrying database connection to "%s" after connection failure (attempt %d; "%s"; error #%d): %s' => '连接失败后重试连接到数据库 "%s"（尝试 %d；"%s"；错误 #%d）：%s',
       'Returns information about the possible priorities for Maniphest tasks.' => '返回有关 Maniphest 任务可能的优先级的信息。',
       'Returns information about the possible statuses for Maniphest tasks.' => '返回有关 Maniphest 任务可能的状态的信息。',
       'Revert the published version of this document to an older version?' => '将此文档的已发布版本恢复到旧版本？',
-      'Revoke credentials for the specified object. To revoke credentials for a user, use "@username".' =>
-        '撤销指定对象的凭证。要撤销用户的凭证，请使用 "@username"。',
+      'Revoke credentials for the specified object. To revoke credentials for a user, use "@username".' => '撤销指定对象的凭证。要撤销用户的凭证，请使用 "@username"。',
       'Room "%s" is not a valid room which you have permission to see.' => '房间 "%s" 不是您有权查看的有效房间。',
-      'Rows passed to "loadAllFromArray(...)" include two or more rows with the same ID ("%s"). Rows must have unique IDs. An underlying query may be missing a GROUP BY.' =>
-        '传递给 "loadAllFromArray(...)" 的行包含两个或更多具有相同 ID（"%s"）的行。行必须具有唯一 ID。底层查询可能缺少 GROUP BY。',
-      'Rule could not be processed because it was created with a newer version of Herald.' =>
-        '规则无法处理，因为它是使用较新版本的 Herald 创建的。',
-      'Rule failed automatically because it is a personal rule and its author does not have permission to view the object.' =>
-        '规则自动失败，因为它是个人规则，且其作者没有权限查看该对象。',
-      'Rule failed automatically because it is a personal rule and its author is invalid or disabled.' =>
-        '规则自动失败，因为它是个人规则，且其作者无效或已禁用。',
-      'Rule failed automatically because it is an object rule which is not relevant for this object.' =>
-        '规则自动失败，因为它是与此对象无关的对象规则。',
+      'Rows passed to "loadAllFromArray(...)" include two or more rows with the same ID ("%s"). Rows must have unique IDs. An underlying query may be missing a GROUP BY.' => '传递给 "loadAllFromArray(...)" 的行包含两个或更多具有相同 ID（"%s"）的行。行必须具有唯一 ID。底层查询可能缺少 GROUP BY。',
+      'Rule could not be processed because it was created with a newer version of Herald.' => '规则无法处理，因为它是使用较新版本的 Herald 创建的。',
+      'Rule failed automatically because it is a personal rule and its author does not have permission to view the object.' => '规则自动失败，因为它是个人规则，且其作者没有权限查看该对象。',
+      'Rule failed automatically because it is a personal rule and its author is invalid or disabled.' => '规则自动失败，因为它是个人规则，且其作者无效或已禁用。',
+      'Rule failed automatically because it is an object rule which is not relevant for this object.' => '规则自动失败，因为它是与此对象无关的对象规则。',
       'Run the daemon as the current user instead of the configured %s' => '以当前用户身份运行守护进程，而不是配置的 %s',
-      'Run the storage upgrade script to setup databases (host "%s" has not been initialized).' =>
-        '运行存储升级脚本来设置数据库（主机 "%s" 尚未初始化）。',
-      'Run the storage upgrade script to upgrade databases (host "%s" is out of date). Missing patches: %s.' =>
-        '运行存储升级脚本来升级数据库（主机 "%s" 已过时）。缺少的补丁：%s。',
-      'Run this workflow with "--background" to queue tasks for the daemon workers.' =>
-        '使用 "--background" 运行此工作流以将任务排队到守护进程工作器。',
-      'SMS is weak, and relatively easy for attackers to compromise. Strongly consider using a different MFA provider.' =>
-        'SMS 较弱，攻击者相对容易攻破。强烈建议考虑使用其他 MFA 提供程序。',
+      'Run the storage upgrade script to setup databases (host "%s" has not been initialized).' => '运行存储升级脚本来设置数据库（主机 "%s" 尚未初始化）。',
+      'Run the storage upgrade script to upgrade databases (host "%s" is out of date). Missing patches: %s.' => '运行存储升级脚本来升级数据库（主机 "%s" 已过时）。缺少的补丁：%s。',
+      'Run this workflow with "--background" to queue tasks for the daemon workers.' => '使用 "--background" 运行此工作流以将任务排队到守护进程工作器。',
+      'SMS is weak, and relatively easy for attackers to compromise. Strongly consider using a different MFA provider.' => 'SMS 较弱，攻击者相对容易攻破。强烈建议考虑使用其他 MFA 提供程序。',
       'Save this query as a global query, making it visible to all users.' => '将此查询保存为全局查询，使其对所有用户可见。',
-      'Scan the QR code or manually enter the key shown below into the application.' =>
-        '扫描二维码或手动将下方显示的密钥输入到应用程序中。',
+      'Scan the QR code or manually enter the key shown below into the application.' => '扫描二维码或手动将下方显示的密钥输入到应用程序中。',
       'Scan this QR code with the Duo application on your mobile phone:' => '使用手机上的 Duo 应用程序扫描此二维码：',
-      'ScopeEngine text map must be a contiguous map of lines, but is not: found key "%s" where key "%s" was expected.' =>
-        'ScopeEngine 文本映射必须是连续的行映射，但实际不是：在期望键 "%s" 的位置找到了键 "%s"。',
-      'Scoped environments were destroyed in a different order than they were initialized.' =>
-        '作用域环境的销毁顺序与初始化顺序不同。',
-      'Search cluster configuration has an invalid host specification (at index "%s"): %s.' =>
-        '搜索集群配置包含无效的主机规范（在索引 "%s" 处）：%s。',
-      'Search cluster configuration is not valid: each entry in the list must be a dictionary describing a search service, but the value with index "%s" is not a dictionary.' =>
-        '搜索集群配置无效：列表中的每个条目必须是描述搜索服务的字典，但索引为 "%s" 的值不是字典。',
-      'Search constraint "minDepth" must be no larger than search constraint "maxDepth".' =>
-        '搜索约束 "minDepth" 不得大于搜索约束 "maxDepth"。',
-      'Search engine ("%s") defines an export field with a key ("%s") that collides with another field. Each field must have a unique key.' =>
-        '搜索引擎（"%s"）定义的导出字段的键（"%s"）与另一个字段冲突。每个字段必须具有唯一键。',
-      'Search engine ("%s") exported the wrong number of objects, expected %s but got %s.' =>
-        '搜索引擎（"%s"）导出的对象数量错误，期望 %s 但得到 %s。',
-      'Search engine configuration has an invalid service specification (at index "%s"): %s.' =>
-        '搜索引擎配置包含无效的服务规范（在索引 "%s" 处）：%s。',
+      'ScopeEngine text map must be a contiguous map of lines, but is not: found key "%s" where key "%s" was expected.' => 'ScopeEngine 文本映射必须是连续的行映射，但实际不是：在期望键 "%s" 的位置找到了键 "%s"。',
+      'Scoped environments were destroyed in a different order than they were initialized.' => '作用域环境的销毁顺序与初始化顺序不同。',
+      'Search cluster configuration has an invalid host specification (at index "%s"): %s.' => '搜索集群配置包含无效的主机规范（在索引 "%s" 处）：%s。',
+      'Search cluster configuration is not valid: each entry in the list must be a dictionary describing a search service, but the value with index "%s" is not a dictionary.' => '搜索集群配置无效：列表中的每个条目必须是描述搜索服务的字典，但索引为 "%s" 的值不是字典。',
+      'Search constraint "minDepth" must be no larger than search constraint "maxDepth".' => '搜索约束 "minDepth" 不得大于搜索约束 "maxDepth"。',
+      'Search engine ("%s") defines an export field with a key ("%s") that collides with another field. Each field must have a unique key.' => '搜索引擎（"%s"）定义的导出字段的键（"%s"）与另一个字段冲突。每个字段必须具有唯一键。',
+      'Search engine ("%s") exported the wrong number of objects, expected %s but got %s.' => '搜索引擎（"%s"）导出的对象数量错误，期望 %s 但得到 %s。',
+      'Search engine configuration has an invalid service specification (at index "%s"): %s.' => '搜索引擎配置包含无效的服务规范（在索引 "%s" 处）：%s。',
       'Search for signatures with a name containing the given string.' => '搜索名称包含给定字符串的签名。',
       'Search for signatures with an email containing the given string.' => '搜索电子邮件包含给定字符串的签名。',
-      'SearchEngines must render a "%s" object, but this engine (of class "%s") rendered something else ("%s").' =>
-        'SearchEngines 必须渲染 "%s" 对象，但此引擎（类为 "%s"）渲染了其他内容（"%s"）。',
-      'SearchFields "%s" (of class "%s") and "%s" (of class "%s") both define the same Conduit key ("%s"). Keys must be unique.' =>
-        'SearchFields "%s"（类为 "%s"）和 "%s"（类为 "%s"）都定义了相同的 Conduit 键（"%s"）。键必须唯一。',
-      'Select caches to purge with "--all" or "--caches". Available caches are: %s.' =>
-        '使用 "--all" 或 "--caches" 选择要清除的缓存。可用缓存为：%s。',
-      'Send emails with file attachments to these addresses to upload files. %s' =>
-        '向这些地址发送带文件附件的电子邮件以上传文件。%s',
+      'SearchEngines must render a "%s" object, but this engine (of class "%s") rendered something else ("%s").' => 'SearchEngines 必须渲染 "%s" 对象，但此引擎（类为 "%s"）渲染了其他内容（"%s"）。',
+      'SearchFields "%s" (of class "%s") and "%s" (of class "%s") both define the same Conduit key ("%s"). Keys must be unique.' => 'SearchFields "%s"（类为 "%s"）和 "%s"（类为 "%s"）都定义了相同的 Conduit 键（"%s"）。键必须唯一。',
+      'Select caches to purge with "--all" or "--caches". Available caches are: %s.' => '使用 "--all" 或 "--caches" 选择要清除的缓存。可用缓存为：%s。',
+      'Send emails with file attachments to these addresses to upload files. %s' => '向这些地址发送带文件附件的电子邮件以上传文件。%s',
       'Server name must contain only lowercase letters, digits, and periods.' => '服务器名称只能包含小写字母、数字和句点。',
-      'Service "%s" is unrecognized, restricted, or you do not have permission to edit it.' =>
-        '服务 "%s" 无法识别、受限或您没有权限编辑它。',
-      'Services describe pools of devices, and they are available to Drydock for CI/CD, and more.' =>
-        '服务描述设备池，它们可供 Drydock 用于 CI/CD 等。',
-      'Sessions now expire and are garbage collected rather than having an arbitrary concurrency limit.' =>
-        '会话现在会过期并被垃圾回收，而不是具有任意的并发限制。',
-      'Set %s in your PHP configuration to at least 32MB to support large file uploads.' =>
-        '在 PHP 配置中将 %s 设置为至少 32MB 以支持大文件上传。',
-      'Set Full Domain URI if you plan to serve this blog on another hosted domain. Parent Site Name and Parent Site URI are optional but helpful since they provide a link from the blog back to your parent site.' =>
-        '如果您计划在另一个托管域上提供此博客，请设置完整域 URI。父站点名称和父站点 URI 是可选的，但很有用，因为它们提供了从博客返回父站点的链接。',
-      'Set tasks to this priority. Tasks with a smaller priority value execute before tasks with a larger priority value.' =>
-        '将任务设置为此优先级。优先级值较小的任务在优先级值较大的任务之前执行。',
-      'Set the URI where this software is installed. Setting this improves security by preventing cookies from being set on other domains, and allows daemons to send emails with links that have the correct domain.' =>
-        '设置此软件安装的 URI。设置此项可通过防止在其他域上设置 Cookie 来提高安全性，并允许守护进程发送具有正确域的链接的电子邮件。',
-      'Set this item as the default for this menu? Users arriving on this page will be shown the content of this item by default.' =>
-        '将此项目设置为该菜单的默认项？到达此页面的用户将默认显示此项目的内容。',
-      'Show invites the current viewer is invited to. This function includes events the user is invited to because a project they are a member of is invited.' =>
-        '显示当前查看者被邀请的邀请。此功能包括用户因其所属项目被邀请而被邀请的活动。',
-      'Show old methods which will be deleted in a future version of this software.' =>
-        '显示将在未来版本中被删除的旧方法。',
-      'Show results of a search query, like the most recently filed tasks or revisions you need to review.' =>
-        '显示搜索查询的结果，例如最近提交的任务或您需要审查的修订。',
-      'Simulate receiving mail. This is primarily useful if you are developing new mail receivers.' =>
-        '模拟接收邮件。这主要用于开发新的邮件接收器时。',
-      'Simulate sending mail. This may be useful to test your mail configuration, or while developing new mail adapters.' =>
-        '模拟发送邮件。这可能有助于测试您的邮件配置，或在开发新的邮件适配器时。',
+      'Service "%s" is unrecognized, restricted, or you do not have permission to edit it.' => '服务 "%s" 无法识别、受限或您没有权限编辑它。',
+      'Services describe pools of devices, and they are available to Drydock for CI/CD, and more.' => '服务描述设备池，它们可供 Drydock 用于 CI/CD 等。',
+      'Sessions now expire and are garbage collected rather than having an arbitrary concurrency limit.' => '会话现在会过期并被垃圾回收，而不是具有任意的并发限制。',
+      'Set %s in your PHP configuration to at least 32MB to support large file uploads.' => '在 PHP 配置中将 %s 设置为至少 32MB 以支持大文件上传。',
+      'Set Full Domain URI if you plan to serve this blog on another hosted domain. Parent Site Name and Parent Site URI are optional but helpful since they provide a link from the blog back to your parent site.' => '如果您计划在另一个托管域上提供此博客，请设置完整域 URI。父站点名称和父站点 URI 是可选的，但很有用，因为它们提供了从博客返回父站点的链接。',
+      'Set tasks to this priority. Tasks with a smaller priority value execute before tasks with a larger priority value.' => '将任务设置为此优先级。优先级值较小的任务在优先级值较大的任务之前执行。',
+      'Set the URI where this software is installed. Setting this improves security by preventing cookies from being set on other domains, and allows daemons to send emails with links that have the correct domain.' => '设置此软件安装的 URI。设置此项可通过防止在其他域上设置 Cookie 来提高安全性，并允许守护进程发送具有正确域的链接的电子邮件。',
+      'Set this item as the default for this menu? Users arriving on this page will be shown the content of this item by default.' => '将此项目设置为该菜单的默认项？到达此页面的用户将默认显示此项目的内容。',
+      'Show invites the current viewer is invited to. This function includes events the user is invited to because a project they are a member of is invited.' => '显示当前查看者被邀请的邀请。此功能包括用户因其所属项目被邀请而被邀请的活动。',
+      'Show old methods which will be deleted in a future version of this software.' => '显示将在未来版本中被删除的旧方法。',
+      'Show results of a search query, like the most recently filed tasks or revisions you need to review.' => '显示搜索查询的结果，例如最近提交的任务或您需要审查的修订。',
+      'Simulate receiving mail. This is primarily useful if you are developing new mail receivers.' => '模拟接收邮件。这主要用于开发新的邮件接收器时。',
+      'Simulate sending mail. This may be useful to test your mail configuration, or while developing new mail adapters.' => '模拟发送邮件。这可能有助于测试您的邮件配置，或在开发新的邮件适配器时。',
       'Skip email verification for accounts registered through this provider.' => '跳过通过此提供程序注册的帐户的电子邮件验证。',
-      'Skipped %s document(s) which have not updated since they were last indexed.' =>
-        '已跳过 %s 个自上次索引后未更新的文档。',
-      'Some applications use unicode glyphs in page titles to provide a compact representation of the current application. You can substitute plain text instead if these glyphs do not display on your system.' =>
-        '某些应用程序在页面标题中使用 Unicode 符号来提供当前应用的紧凑表示。如果这些符号在您的系统上无法显示，您可以改用纯文本替代。',
-      'Some of the addresses you entered do not appear to be valid recipients. Review the table below. You can revise the address list, or ignore these errors and continue.' =>
-        '您输入的部分地址似乎不是有效的收件人。请查看下表。您可以修改地址列表，或忽略这些错误并继续。',
-      'Some of the selected PHIDs in field "%s" are invalid or restricted: %s.' =>
-        '字段 "%s" 中的部分选定 PHID 无效或受限：%s。',
-      'Some test called %s, but is still holding a reference to the scoped environment!' =>
-        '某个测试调用了 %s，但仍持有对作用域环境的引用！',
-      'Source "%s" (of class "%s") returned an import cursor with a missing key from "%s". Each cursor must have a unique, nonempty key.' =>
-        '源 "%s"（类 "%s"）从 "%s" 返回了一个缺少键的导入游标。每个游标必须具有唯一的非空键。',
-      'Source "%s" (of class "%s") returned an invalid value from method "%s": all values must be objects of class "%s".' =>
-        '源 "%s"（类 "%s"）从方法 "%s" 返回了无效值：所有值必须是 "%s" 类的对象。',
-      'Source "%s" (of class "%s") returned two cursors from method "%s" with the same key ("%s"). Each cursor must have a unique key.' =>
-        '源 "%s"（类 "%s"）从方法 "%s" 返回了两个具有相同键（"%s"）的游标。每个游标必须具有唯一的键。',
-      'Source PHID "%s" does not identify a valid object, or you do not have permission to view it.' =>
-        '源 PHID "%s" 未标识有效对象，或者您没有权限查看它。',
-      'Special users like daemons and mailing lists are not permitted to log in via the web. Log in as a normal user instead.' =>
-        '守护进程和邮件列表等特殊用户不允许通过 Web 登录。请以普通用户身份登录。',
-      'Specified "--min-failures" must not be larger than specified "--max-failures".' =>
-        '指定的 "--min-failures" 不得大于指定的 "--max-failures"。',
-      'Specified "--min-priority" may not be larger than specified "--max-priority".' =>
-        '指定的 "--min-priority" 不得大于指定的 "--max-priority"。',
-      'Specified queries use different engines: query "%s" uses engine "%s", not "%s". All queries must run on the same engine.' =>
-        '指定的查询使用不同的引擎：查询 "%s" 使用引擎 "%s"，而非 "%s"。所有查询必须在同一引擎上运行。',
-      'Specify a content type to run rules for. For this object, valid content types are: %s.' =>
-        '指定要运行规则的内容类型。对于此对象，有效的内容类型包括：%s。',
-      'Specify a content type to run rules for. The specified content type ("%s") is not valid. For this object, valid content types are: %s.' =>
-        '指定要运行规则的内容类型。指定的内容类型（"%s"）无效。对于此对象，有效的内容类型包括：%s。',
-      'Specify a proportion of machine memory which must be free before autoscale pools will grow. For example, a value of 0.25 means that pools will not grow unless the machine has at least 25%%%% of its RAM free.' =>
-        '指定自动扩展池增长前必须空闲的机器内存比例。例如，值 0.25 表示除非机器至少有 25%%%% 的 RAM 空闲，否则池不会增长。',
-      'Specify a system user to run the daemons as. Primarily, this user will own the working copies of any repositories that this software imports or manages. This option is new and experimental.' =>
-        '指定运行守护进程的系统用户。主要地，该用户将拥有本软件导入或管理的任何仓库的工作副本。此选项是新的且实验性的。',
-      'Specify a value to set the configuration key "%s" to, or use "--stdin" to read a value from stdin.' =>
-        '指定要设置配置键 "%s" 的值，或使用 "--stdin" 从 stdin 读取值。',
-      'Specify an alternate host identity. This is an advanced feature which allows a pool of devices to share credentials.' =>
-        '指定备用主机标识。这是一项高级功能，允许设备池共享凭据。',
-      'Specify an engine to migrate to with `%s`. Use `%s` to get a list of engines.' =>
-        '使用 `%s` 指定要迁移到的引擎。使用 `%s` 获取引擎列表。',
-      'Specify either specific factors with "--provider", or all factors with "--all-types", but not both.' =>
-        '使用 "--provider" 指定特定因子，或使用 "--all-types" 指定所有因子，但不能同时指定两者。',
-      'Specify either specific factors with "--type", or all factors with "--all-types", but not both.' =>
-        '使用 "--type" 指定特定因子，或使用 "--all-types" 指定所有因子，但不能同时指定两者。',
-      'Specify either specific users with %s, or all users with %s, but not both.' =>
-        '使用 %s 指定特定用户，或使用 %s 指定所有用户，但不能同时指定两者。',
-      'Specify one or more users to send a message to with "--to" and/or "--cc".' =>
-        '使用 "--to" 和/或 "--cc" 指定一个或多个要发送消息的用户。',
-      'Specify the ID or PHID of an item to update. Parameter "%s" is not an ID or PHID.' =>
-        '指定要更新项的 ID 或 PHID。参数 "%s" 不是 ID 或 PHID。',
-      'Specify the credential type to revoke with "--type" or "--everything", but not both.' =>
-        '使用 "--type" 指定要撤销的凭据类型，或使用 "--everything"，但不能同时指定两者。',
-      'Specify the credential type to revoke with "--type" or specify "--everything". Use "--list" to list available credential types.' =>
-        '使用 "--type" 指定要撤销的凭据类型，或指定 "--everything"。使用 "--list" 列出可用的凭据类型。',
-      'Specify the dumpfile to read with "--input", or use "--live" to generate one automatically.' =>
-        '使用 "--input" 指定要读取的转储文件，或使用 "--live" 自动生成一个。',
+      'Skipped %s document(s) which have not updated since they were last indexed.' => '已跳过 %s 个自上次索引后未更新的文档。',
+      'Some applications use unicode glyphs in page titles to provide a compact representation of the current application. You can substitute plain text instead if these glyphs do not display on your system.' => '某些应用程序在页面标题中使用 Unicode 符号来提供当前应用的紧凑表示。如果这些符号在您的系统上无法显示，您可以改用纯文本替代。',
+      'Some of the addresses you entered do not appear to be valid recipients. Review the table below. You can revise the address list, or ignore these errors and continue.' => '您输入的部分地址似乎不是有效的收件人。请查看下表。您可以修改地址列表，或忽略这些错误并继续。',
+      'Some of the selected PHIDs in field "%s" are invalid or restricted: %s.' => '字段 "%s" 中的部分选定 PHID 无效或受限：%s。',
+      'Some test called %s, but is still holding a reference to the scoped environment!' => '某个测试调用了 %s，但仍持有对作用域环境的引用！',
+      'Source "%s" (of class "%s") returned an import cursor with a missing key from "%s". Each cursor must have a unique, nonempty key.' => '源 "%s"（类 "%s"）从 "%s" 返回了一个缺少键的导入游标。每个游标必须具有唯一的非空键。',
+      'Source "%s" (of class "%s") returned an invalid value from method "%s": all values must be objects of class "%s".' => '源 "%s"（类 "%s"）从方法 "%s" 返回了无效值：所有值必须是 "%s" 类的对象。',
+      'Source "%s" (of class "%s") returned two cursors from method "%s" with the same key ("%s"). Each cursor must have a unique key.' => '源 "%s"（类 "%s"）从方法 "%s" 返回了两个具有相同键（"%s"）的游标。每个游标必须具有唯一的键。',
+      'Source PHID "%s" does not identify a valid object, or you do not have permission to view it.' => '源 PHID "%s" 未标识有效对象，或者您没有权限查看它。',
+      'Special users like daemons and mailing lists are not permitted to log in via the web. Log in as a normal user instead.' => '守护进程和邮件列表等特殊用户不允许通过 Web 登录。请以普通用户身份登录。',
+      'Specified "--min-failures" must not be larger than specified "--max-failures".' => '指定的 "--min-failures" 不得大于指定的 "--max-failures"。',
+      'Specified "--min-priority" may not be larger than specified "--max-priority".' => '指定的 "--min-priority" 不得大于指定的 "--max-priority"。',
+      'Specified queries use different engines: query "%s" uses engine "%s", not "%s". All queries must run on the same engine.' => '指定的查询使用不同的引擎：查询 "%s" 使用引擎 "%s"，而非 "%s"。所有查询必须在同一引擎上运行。',
+      'Specify a content type to run rules for. For this object, valid content types are: %s.' => '指定要运行规则的内容类型。对于此对象，有效的内容类型包括：%s。',
+      'Specify a content type to run rules for. The specified content type ("%s") is not valid. For this object, valid content types are: %s.' => '指定要运行规则的内容类型。指定的内容类型（"%s"）无效。对于此对象，有效的内容类型包括：%s。',
+      'Specify a proportion of machine memory which must be free before autoscale pools will grow. For example, a value of 0.25 means that pools will not grow unless the machine has at least 25%%%% of its RAM free.' => '指定自动扩展池增长前必须空闲的机器内存比例。例如，值 0.25 表示除非机器至少有 25%%%% 的 RAM 空闲，否则池不会增长。',
+      'Specify a system user to run the daemons as. Primarily, this user will own the working copies of any repositories that this software imports or manages. This option is new and experimental.' => '指定运行守护进程的系统用户。主要地，该用户将拥有本软件导入或管理的任何仓库的工作副本。此选项是新的且实验性的。',
+      'Specify a value to set the configuration key "%s" to, or use "--stdin" to read a value from stdin.' => '指定要设置配置键 "%s" 的值，或使用 "--stdin" 从 stdin 读取值。',
+      'Specify an alternate host identity. This is an advanced feature which allows a pool of devices to share credentials.' => '指定备用主机标识。这是一项高级功能，允许设备池共享凭据。',
+      'Specify an engine to migrate to with `%s`. Use `%s` to get a list of engines.' => '使用 `%s` 指定要迁移到的引擎。使用 `%s` 获取引擎列表。',
+      'Specify either specific factors with "--provider", or all factors with "--all-types", but not both.' => '使用 "--provider" 指定特定因子，或使用 "--all-types" 指定所有因子，但不能同时指定两者。',
+      'Specify either specific factors with "--type", or all factors with "--all-types", but not both.' => '使用 "--type" 指定特定因子，或使用 "--all-types" 指定所有因子，但不能同时指定两者。',
+      'Specify either specific users with %s, or all users with %s, but not both.' => '使用 %s 指定特定用户，或使用 %s 指定所有用户，但不能同时指定两者。',
+      'Specify one or more users to send a message to with "--to" and/or "--cc".' => '使用 "--to" 和/或 "--cc" 指定一个或多个要发送消息的用户。',
+      'Specify the ID or PHID of an item to update. Parameter "%s" is not an ID or PHID.' => '指定要更新项的 ID 或 PHID。参数 "%s" 不是 ID 或 PHID。',
+      'Specify the credential type to revoke with "--type" or "--everything", but not both.' => '使用 "--type" 指定要撤销的凭据类型，或使用 "--everything"，但不能同时指定两者。',
+      'Specify the credential type to revoke with "--type" or specify "--everything". Use "--list" to list available credential types.' => '使用 "--type" 指定要撤销的凭据类型，或指定 "--everything"。使用 "--list" 列出可用的凭据类型。',
+      'Specify the dumpfile to read with "--input", or use "--live" to generate one automatically.' => '使用 "--input" 指定要读取的转储文件，或使用 "--live" 自动生成一个。',
       'Specify the name of exactly one object to show policy information for.' => '指定恰好一个要显示策略信息的对象名称。',
-      'Specify the target to revoke credentials from with "--from" or specify "--everywhere", but not both.' =>
-        '使用 "--from" 指定要从中撤销凭据的目标，或指定 "--everywhere"，但不能同时指定两者。',
-      'Specify the target to revoke credentials from with "--from" or specify "--everywhere".' =>
-        '使用 "--from" 指定要从中撤销凭据的目标，或指定 "--everywhere"。',
-      'Specify which files to operate on, or use "--all" to operate on all files.' =>
-        '指定要操作的文件，或使用 "--all" 操作所有文件。',
-      'Start __daemon__ in the foreground and print large volumes of diagnostic information to the console.' =>
-        '在前台启动 __daemon__ 并将大量诊断信息打印到控制台。',
+      'Specify the target to revoke credentials from with "--from" or specify "--everywhere", but not both.' => '使用 "--from" 指定要从中撤销凭据的目标，或指定 "--everywhere"，但不能同时指定两者。',
+      'Specify the target to revoke credentials from with "--from" or specify "--everywhere".' => '使用 "--from" 指定要从中撤销凭据的目标，或指定 "--everywhere"。',
+      'Specify which files to operate on, or use "--all" to operate on all files.' => '指定要操作的文件，或使用 "--all" 操作所有文件。',
+      'Start __daemon__ in the foreground and print large volumes of diagnostic information to the console.' => '在前台启动 __daemon__ 并将大量诊断信息打印到控制台。',
       'Start a specific __daemon__, or __n__ copies of a specific __daemon__.' => '启动特定的 __daemon__，或启动 __n__ 个特定 __daemon__ 的副本。',
-      'Start the standard configured collection of daemons. This is appropriate for most installs. Use **%s** to customize which daemons are launched.' =>
-        '启动标准配置的守护进程集合。这适用于大多数安装。使用 **%s** 自定义要启动的守护进程。',
+      'Start the standard configured collection of daemons. This is appropriate for most installs. Use **%s** to customize which daemons are launched.' => '启动标准配置的守护进程集合。这适用于大多数安装。使用 **%s** 自定义要启动的守护进程。',
       'Start tracking time on an object by pushing it on the tracking stack.' => '通过将对象推入跟踪堆栈来开始跟踪其时间。',
-      'Status "%s" is marked as default, but it is a closed status. The default status should be an open status.' =>
-        '状态 "%s" 被标记为默认状态，但它是已关闭状态。默认状态应为开放状态。',
-      'Status "%s" is marked as the default status for closing tasks, but is not a closed status. It should be a closed status.' =>
-        '状态 "%s" 被标记为关闭任务的默认状态，但它不是已关闭状态。它应该是已关闭状态。',
-      'Status "%s" is marked as the status for closing tasks as duplicates, but it is not a closed status. It should be a closed status.' =>
-        '状态 "%s" 被标记为将任务作为重复项关闭的状态，但它不是已关闭状态。它应该是已关闭状态。',
-      'Status ("%s") is not a valid contact number status. Valid status constants are: %s.' =>
-        '状态（"%s"）不是有效的联系号码状态。有效的状态常量为：%s。',
-      'Stop daemon processes on this host, then start the standard daemon loadout.' =>
-        '停止此主机上的守护进程，然后启动标准守护进程配置。',
-      'Storage for file "%s" does not support integrity hashing, but the file has an integrity hash.' =>
-        '文件 "%s" 的存储不支持完整性哈希，但该文件具有完整性哈希。',
-      'Storage on host "%s" has not been initialized yet. You must initialize storage before selectively applying patches.' =>
-        '主机 "%s" 上的存储尚未初始化。您必须在选择性应用补丁之前初始化存储。',
-      'Storage patch "%s" executes in phase "%s", but depends on patch "%s" which is in a different phase ("%s"). Patches may not have dependencies across phases.' =>
-        '存储补丁 "%s" 在阶段 "%s" 中执行，但依赖于处于不同阶段（"%s"）的补丁 "%s"。补丁不能跨阶段依赖。',
-      'Storage patch "%s" specifies a "@phase" attribute with no phase value. Phase attributes must specify a value, like "@phase default".' =>
-        '存储补丁 "%s" 指定了没有阶段值的 "@phase" 属性。阶段属性必须指定值，如 "@phase default"。',
-      'Storage patch "%s" specifies a "@phase" value ("%s"), but it already has a specified phase ("%s"). Patches may not specify multiple phases.' =>
-        '存储补丁 "%s" 指定了 "@phase" 值（"%s"），但它已具有指定的阶段（"%s"）。补丁不能指定多个阶段。',
-      'Storage patch "%s" specifies a "@phase" value ("%s"), but this is not a recognized phase. Valid phases are: %s.' =>
-        '存储补丁 "%s" 指定了 "@phase" 值（"%s"），但这不是一个可识别的阶段。有效阶段包括：%s。',
-      'Storage patch "%s" specifies attribute "%s", but this attribute is unknown.' =>
-        '存储补丁 "%s" 指定了属性 "%s"，但该属性未知。',
-      'Storage patch "%s" specifies it should apply in phase "%s", but this phase is unrecognized. Valid phases are: %s.' =>
-        '存储补丁 "%s" 指定它应在阶段 "%s" 中应用，但该阶段无法识别。有效阶段包括：%s。',
-      'Strip a specific factor type. Use `bin/auth list-factors` for a list of factor types.' =>
-        '剥离特定的因子类型。使用 `bin/auth list-factors` 获取因子类型列表。',
-      'Strip factors for a specific provider. Use `bin/auth list-mfa-providers` for a list of providers.' =>
-        '剥离特定提供程序的因子。使用 `bin/auth list-mfa-providers` 获取提供程序列表。',
-      'Stripping integrity hashes is dangerous and makes files vulnerable to corruption or tampering.' =>
-        '剥离完整性哈希是危险的，会使文件容易受到损坏或篡改。',
-      'Stronger algorithms are listed first. The highlighted algorithm will be used when storing new hashes. Older hashes will be upgraded to the best algorithm over time.' =>
-        '更强的算法列在前面。突出显示的算法将用于存储新哈希。旧哈希将随时间逐步升级到最佳算法。',
-      'Subtype "%s" is not valid: subtype keys may only contain lowercase latin letters ("a" through "z").' =>
-        '子类型 "%s" 无效：子类型键只能包含小写拉丁字母（"a" 到 "z"）。',
-      'Subtype "%s" is not valid: subtype keys must be no longer than 64 bytes.' =>
-        '子类型 "%s" 无效：子类型键不得超过 64 字节。',
-      'Subtype "%s" is not valid: subtype keys must have a minimum length of 3 bytes.' =>
-        '子类型 "%s" 无效：子类型键的最小长度必须为 3 字节。',
-      'Subtype configuration is invalid: it must be a list of subtype specifications.' =>
-        '子类型配置无效：它必须是子类型规范的列表。',
-      'Subtype configuration is invalid: subtype with key "%s" has no name. Subtypes must have a name.' =>
-        '子类型配置无效：键为 "%s" 的子类型没有名称。子类型必须具有名称。',
-      'Subtype configuration is invalid: subtype with key "%s" specifies both child subtypes and child forms. Specify one or the other, but not both.' =>
-        '子类型配置无效：键为 "%s" 的子类型同时指定了子子类型和子表单。请指定其中之一，但不能同时指定两者。',
-      'Subtype configuration is invalid: subtype with key "%s" specifies that it can mutate into subtype "%s", but that is not a valid subtype.' =>
-        '子类型配置无效：键为 "%s" 的子类型指定它可以突变为子类型 "%s"，但该子类型无效。',
-      'Subtype configuration is invalid: there is no subtype defined with key "%s". This subtype is required and must be defined.' =>
-        '子类型配置无效：未定义键为 "%s" 的子类型。此子类型是必需的且必须定义。',
-      'Subtype configuration is invalid: two subtypes use the same key ("%s"). Each subtype must have a unique key.' =>
-        '子类型配置无效：两个子类型使用了相同的键（"%s"）。每个子类型必须具有唯一的键。',
-      'Target "%s" is not a valid target to revoke credentials from. Usually, revoke from "@username".' =>
-        '目标 "%s" 不是有效的凭证撤销目标。通常从 "@username" 撤销。',
-      'Target tab ("%s") was not found on this panel. It may have been removed.' =>
-        '目标标签页 ("%s") 未在此面板中找到。它可能已被移除。',
-      'Task priority "%s" is not a valid task priority. Use a priority keyword to choose a task priority: %s.' =>
-        '任务优先级 "%s" 不是有效的任务优先级。请使用优先级关键字来选择任务优先级：%s。',
-      'Task priority value ("%s") is not a valid task priority. Valid priorities are: %s.' =>
-        '任务优先级值 ("%s") 不是有效的任务优先级。有效的优先级为：%s。',
-      'Task status ("%s") has unrecognized value for "locked" configuration ("%s"). Supported values are: "%s", "%s".' =>
-        '任务状态 ("%s") 的 "locked" 配置 ("%s") 包含无法识别的值。支持的值为："%s"、"%s"。',
-      'Task status value ("%s") is not a valid task status. Valid statues are: %s.' =>
-        '任务状态值 ("%s") 不是有效的任务状态。有效的状态为：%s。',
-      'Taskmasters now use an autoscaling pool. You can configure the pool size with `%s`.' =>
-        'Taskmasters 现在使用自动扩缩池。您可以通过 `%s` 配置池大小。',
-      'Test content rules for an object. Executes a dry run, like the web UI test console.' =>
-        '测试对象的内容规则。执行一次试运行，类似于网页 UI 测试控制台。',
+      'Status "%s" is marked as default, but it is a closed status. The default status should be an open status.' => '状态 "%s" 被标记为默认状态，但它是已关闭状态。默认状态应为开放状态。',
+      'Status "%s" is marked as the default status for closing tasks, but is not a closed status. It should be a closed status.' => '状态 "%s" 被标记为关闭任务的默认状态，但它不是已关闭状态。它应该是已关闭状态。',
+      'Status "%s" is marked as the status for closing tasks as duplicates, but it is not a closed status. It should be a closed status.' => '状态 "%s" 被标记为将任务作为重复项关闭的状态，但它不是已关闭状态。它应该是已关闭状态。',
+      'Status ("%s") is not a valid contact number status. Valid status constants are: %s.' => '状态（"%s"）不是有效的联系号码状态。有效的状态常量为：%s。',
+      'Stop daemon processes on this host, then start the standard daemon loadout.' => '停止此主机上的守护进程，然后启动标准守护进程配置。',
+      'Storage for file "%s" does not support integrity hashing, but the file has an integrity hash.' => '文件 "%s" 的存储不支持完整性哈希，但该文件具有完整性哈希。',
+      'Storage on host "%s" has not been initialized yet. You must initialize storage before selectively applying patches.' => '主机 "%s" 上的存储尚未初始化。您必须在选择性应用补丁之前初始化存储。',
+      'Storage patch "%s" executes in phase "%s", but depends on patch "%s" which is in a different phase ("%s"). Patches may not have dependencies across phases.' => '存储补丁 "%s" 在阶段 "%s" 中执行，但依赖于处于不同阶段（"%s"）的补丁 "%s"。补丁不能跨阶段依赖。',
+      'Storage patch "%s" specifies a "@phase" attribute with no phase value. Phase attributes must specify a value, like "@phase default".' => '存储补丁 "%s" 指定了没有阶段值的 "@phase" 属性。阶段属性必须指定值，如 "@phase default"。',
+      'Storage patch "%s" specifies a "@phase" value ("%s"), but it already has a specified phase ("%s"). Patches may not specify multiple phases.' => '存储补丁 "%s" 指定了 "@phase" 值（"%s"），但它已具有指定的阶段（"%s"）。补丁不能指定多个阶段。',
+      'Storage patch "%s" specifies a "@phase" value ("%s"), but this is not a recognized phase. Valid phases are: %s.' => '存储补丁 "%s" 指定了 "@phase" 值（"%s"），但这不是一个可识别的阶段。有效阶段包括：%s。',
+      'Storage patch "%s" specifies attribute "%s", but this attribute is unknown.' => '存储补丁 "%s" 指定了属性 "%s"，但该属性未知。',
+      'Storage patch "%s" specifies it should apply in phase "%s", but this phase is unrecognized. Valid phases are: %s.' => '存储补丁 "%s" 指定它应在阶段 "%s" 中应用，但该阶段无法识别。有效阶段包括：%s。',
+      'Strip a specific factor type. Use `bin/auth list-factors` for a list of factor types.' => '剥离特定的因子类型。使用 `bin/auth list-factors` 获取因子类型列表。',
+      'Strip factors for a specific provider. Use `bin/auth list-mfa-providers` for a list of providers.' => '剥离特定提供程序的因子。使用 `bin/auth list-mfa-providers` 获取提供程序列表。',
+      'Stripping integrity hashes is dangerous and makes files vulnerable to corruption or tampering.' => '剥离完整性哈希是危险的，会使文件容易受到损坏或篡改。',
+      'Stronger algorithms are listed first. The highlighted algorithm will be used when storing new hashes. Older hashes will be upgraded to the best algorithm over time.' => '更强的算法列在前面。突出显示的算法将用于存储新哈希。旧哈希将随时间逐步升级到最佳算法。',
+      'Subtype "%s" is not valid: subtype keys may only contain lowercase latin letters ("a" through "z").' => '子类型 "%s" 无效：子类型键只能包含小写拉丁字母（"a" 到 "z"）。',
+      'Subtype "%s" is not valid: subtype keys must be no longer than 64 bytes.' => '子类型 "%s" 无效：子类型键不得超过 64 字节。',
+      'Subtype "%s" is not valid: subtype keys must have a minimum length of 3 bytes.' => '子类型 "%s" 无效：子类型键的最小长度必须为 3 字节。',
+      'Subtype configuration is invalid: it must be a list of subtype specifications.' => '子类型配置无效：它必须是子类型规范的列表。',
+      'Subtype configuration is invalid: subtype with key "%s" has no name. Subtypes must have a name.' => '子类型配置无效：键为 "%s" 的子类型没有名称。子类型必须具有名称。',
+      'Subtype configuration is invalid: subtype with key "%s" specifies both child subtypes and child forms. Specify one or the other, but not both.' => '子类型配置无效：键为 "%s" 的子类型同时指定了子子类型和子表单。请指定其中之一，但不能同时指定两者。',
+      'Subtype configuration is invalid: subtype with key "%s" specifies that it can mutate into subtype "%s", but that is not a valid subtype.' => '子类型配置无效：键为 "%s" 的子类型指定它可以突变为子类型 "%s"，但该子类型无效。',
+      'Subtype configuration is invalid: there is no subtype defined with key "%s". This subtype is required and must be defined.' => '子类型配置无效：未定义键为 "%s" 的子类型。此子类型是必需的且必须定义。',
+      'Subtype configuration is invalid: two subtypes use the same key ("%s"). Each subtype must have a unique key.' => '子类型配置无效：两个子类型使用了相同的键（"%s"）。每个子类型必须具有唯一的键。',
+      'Target "%s" is not a valid target to revoke credentials from. Usually, revoke from "@username".' => '目标 "%s" 不是有效的凭证撤销目标。通常从 "@username" 撤销。',
+      'Target tab ("%s") was not found on this panel. It may have been removed.' => '目标标签页 ("%s") 未在此面板中找到。它可能已被移除。',
+      'Task priority "%s" is not a valid task priority. Use a priority keyword to choose a task priority: %s.' => '任务优先级 "%s" 不是有效的任务优先级。请使用优先级关键字来选择任务优先级：%s。',
+      'Task priority value ("%s") is not a valid task priority. Valid priorities are: %s.' => '任务优先级值 ("%s") 不是有效的任务优先级。有效的优先级为：%s。',
+      'Task status ("%s") has unrecognized value for "locked" configuration ("%s"). Supported values are: "%s", "%s".' => '任务状态 ("%s") 的 "locked" 配置 ("%s") 包含无法识别的值。支持的值为："%s"、"%s"。',
+      'Task status value ("%s") is not a valid task status. Valid statues are: %s.' => '任务状态值 ("%s") 不是有效的任务状态。有效的状态为：%s。',
+      'Taskmasters now use an autoscaling pool. You can configure the pool size with `%s`.' => 'Taskmasters 现在使用自动扩缩池。您可以通过 `%s` 配置池大小。',
+      'Test content rules for an object. Executes a dry run, like the web UI test console.' => '测试对象的内容规则。执行一次试运行，类似于网页 UI 测试控制台。',
       'Test rules which run when another Herald rule is created or updated.' => '测试在创建或更新其他 Herald 规则时运行的规则。',
-      'Test rules which run when outbound mail is being prepared for delivery.' =>
-        '测试在准备外发邮件以进行投递时运行的规则。',
-      'Testing for capability "%s" on an object ("%s") which does not support that capability.' =>
-        '正在对不支持该功能的对象 ("%s") 测试功能 "%s"。',
-      'Text values that match this regex and are also object names will not be linked.' =>
-        '匹配此正则表达式且为对象名称的文本值将不会被链接。',
-      'Thank you for signing this document. Please check your email to verify your signature and complete the process.' =>
-        '感谢您签署此文档。请检查您的电子邮件以验证签名并完成流程。',
-      'The "--compress" flag requires the PHP "zlib" extension, but that extension is not available. Install the extension or omit the "--compress" option.' =>
-        '"--compress" 标志需要 PHP "zlib" 扩展，但该扩展不可用。请安装该扩展或省略 "--compress" 选项。',
-      'The "--for-replica" flag can not be used with the "--no-indexes" flag. Replication dumps must contain a complete representation of database state.' =>
-        '"--for-replica" 标志不能与 "--no-indexes" 标志一起使用。复制转储必须包含数据库状态的完整表示。',
-      'The "--local-disk-source" argument must point to a valid, readable directory on local disk.' =>
-        '"--local-disk-source" 参数必须指向本地磁盘上一个有效且可读的目录。',
-      'The "Has MFA" query constraint may only be used by administrators, to prevent attackers from using it to target weak accounts.' =>
-        '"Has MFA" 查询约束只能由管理员使用，以防止攻击者利用它针对弱账户。',
-      'The "Re: Prefix" and "Vary Subjects" settings are now configured in global settings.' =>
-        '"Re: Prefix" 和 "Vary Subjects" 设置现已在全局设置中配置。',
-      'The "xhprof" PHP extension is not available. Install xhprof to enable the XHProf console plugin. You can find instructions in the %s.' =>
-        'PHP 扩展 "xhprof" 不可用。请安装 xhprof 以启用 XHProf 控制台插件。您可以在 %s 中找到说明。',
+      'Test rules which run when outbound mail is being prepared for delivery.' => '测试在准备外发邮件以进行投递时运行的规则。',
+      'Testing for capability "%s" on an object ("%s") which does not support that capability.' => '正在对不支持该功能的对象 ("%s") 测试功能 "%s"。',
+      'Text values that match this regex and are also object names will not be linked.' => '匹配此正则表达式且为对象名称的文本值将不会被链接。',
+      'Thank you for signing this document. Please check your email to verify your signature and complete the process.' => '感谢您签署此文档。请检查您的电子邮件以验证签名并完成流程。',
+      'The "--compress" flag requires the PHP "zlib" extension, but that extension is not available. Install the extension or omit the "--compress" option.' => '"--compress" 标志需要 PHP "zlib" 扩展，但该扩展不可用。请安装该扩展或省略 "--compress" 选项。',
+      'The "--for-replica" flag can not be used with the "--no-indexes" flag. Replication dumps must contain a complete representation of database state.' => '"--for-replica" 标志不能与 "--no-indexes" 标志一起使用。复制转储必须包含数据库状态的完整表示。',
+      'The "--local-disk-source" argument must point to a valid, readable directory on local disk.' => '"--local-disk-source" 参数必须指向本地磁盘上一个有效且可读的目录。',
+      'The "Has MFA" query constraint may only be used by administrators, to prevent attackers from using it to target weak accounts.' => '"Has MFA" 查询约束只能由管理员使用，以防止攻击者利用它针对弱账户。',
+      'The "Re: Prefix" and "Vary Subjects" settings are now configured in global settings.' => '"Re: Prefix" 和 "Vary Subjects" 设置现已在全局设置中配置。',
+      'The "xhprof" PHP extension is not available. Install xhprof to enable the XHProf console plugin. You can find instructions in the %s.' => 'PHP 扩展 "xhprof" 不可用。请安装 xhprof 以启用 XHProf 控制台插件。您可以在 %s 中找到说明。',
       'The %s policy of this object would no longer allow you to %s the object.' => '此对象的 %s 策略将不再允许您 %s 该对象。',
-      'The APCu PHP extension is installed, but not enabled in your PHP configuration. Enabling this extension will improve performance. Edit the "%s" setting to enable this extension.' =>
-        'APCu PHP 扩展已安装，但未在您的 PHP 配置中启用。启用此扩展将提升性能。请编辑 "%s" 设置以启用此扩展。',
-      'The Differential revision list view age UI elements have been removed to simplify the interface.' =>
-        '为简化界面，Differential 修订列表视图的时间 UI 元素已被移除。',
-      'The HTTP parameter named "parameters" for this request is not a valid JSON parameter. JSON is required. Exception: %s' =>
-        '此请求中名为 "parameters" 的 HTTP 参数不是有效的 JSON 参数。需要提供 JSON。异常：%s',
-      'The Japanese word for cat is "kome", which is also the word for rice. Japanese cats love to eat rice, so the two are synonymous.' =>
-        '日语中猫的词是 "kome"，这也是米的词。日本的猫喜欢吃米，因此两者是同义词。',
+      'The APCu PHP extension is installed, but not enabled in your PHP configuration. Enabling this extension will improve performance. Edit the "%s" setting to enable this extension.' => 'APCu PHP 扩展已安装，但未在您的 PHP 配置中启用。启用此扩展将提升性能。请编辑 "%s" 设置以启用此扩展。',
+      'The Differential revision list view age UI elements have been removed to simplify the interface.' => '为简化界面，Differential 修订列表视图的时间 UI 元素已被移除。',
+      'The HTTP parameter named "parameters" for this request is not a valid JSON parameter. JSON is required. Exception: %s' => '此请求中名为 "parameters" 的 HTTP 参数不是有效的 JSON 参数。需要提供 JSON。异常：%s',
+      'The Japanese word for cat is "kome", which is also the word for rice. Japanese cats love to eat rice, so the two are synonymous.' => '日语中猫的词是 "kome"，这也是米的词。日本的猫喜欢吃米，因此两者是同义词。',
       'The MySQL "local_infile" option is enabled. This option is unsafe.' => 'MySQL 的 "local_infile" 选项已启用。此选项不安全。',
       'The OAuth provider did not return a "code" parameter in its response.' => 'OAuth 提供程序在其响应中未返回 "code" 参数。',
-      'The PHP "Zend OPcache" extension is installed, but not enabled in your PHP configuration. Enabling it will dramatically improve performance. Edit the "%s" setting to enable the extension.' =>
-        'PHP 扩展 "Zend OPcache" 已安装，但未在您的 PHP 配置中启用。启用它将显著提升性能。请编辑 "%s" 设置以启用该扩展。',
+      'The PHP "Zend OPcache" extension is installed, but not enabled in your PHP configuration. Enabling it will dramatically improve performance. Edit the "%s" setting to enable the extension.' => 'PHP 扩展 "Zend OPcache" 已安装，但未在您的 PHP 配置中启用。启用它将显著提升性能。请编辑 "%s" 设置以启用该扩展。',
       'The Spanish word for cat is "cato". The biggest cat is called "el cato".' => '西班牙语中猫的词是 "cato"。最大的猫被称为 "el cato"。',
-      'The URI "%s" does not correspond to a valid image file (got a file with MIME type "%s"). You must specify the URI of a valid image file.' =>
-        'URI "%s" 不对应有效的图像文件（获取到的文件 MIME 类型为 "%s"）。您必须指定有效图像文件的 URI。',
+      'The URI "%s" does not correspond to a valid image file (got a file with MIME type "%s"). You must specify the URI of a valid image file.' => 'URI "%s" 不对应有效的图像文件（获取到的文件 MIME 类型为 "%s"）。您必须指定有效图像文件的 URI。',
       'The account you are attempting to link is already linked to your account.' => '您尝试链接的账户已链接到您的账户。',
-      'The account you are attempting to log in with uses a nonexistent or disabled authentication provider (with key "%s"). An administrator may have recently disabled this provider.' =>
-        '您尝试登录的账户使用了不存在或已禁用的身份验证提供程序（密钥为 "%s"）。管理员可能最近已禁用此提供程序。',
-      'The account you are attempting to register or link is already linked to another user.' =>
-        '您尝试注册或链接的账户已链接到其他用户。',
-      'The account you are attempting to register with has an invalid email address (%s). This server only allows registration with specific email addresses:' =>
-        '您尝试注册的账户具有无效的电子邮件地址 (%s)。此服务器仅允许使用特定电子邮件地址进行注册：',
-      'The account you are attempting to register with uses a disabled authentication provider ("%s"). An administrator may have recently disabled this provider.' =>
-        '您尝试注册的账户使用了已禁用的身份验证提供程序 ("%s")。管理员可能最近已禁用此提供程序。',
-      'The account you are attempting to register with uses an authentication provider ("%s") which does not allow registration. An administrator may have recently disabled registration with this provider.' =>
-        '您尝试注册的账户使用了不允许注册的身份验证提供程序 ("%s")。管理员可能最近已禁用此提供程序的注册功能。',
+      'The account you are attempting to log in with uses a nonexistent or disabled authentication provider (with key "%s"). An administrator may have recently disabled this provider.' => '您尝试登录的账户使用了不存在或已禁用的身份验证提供程序（密钥为 "%s"）。管理员可能最近已禁用此提供程序。',
+      'The account you are attempting to register or link is already linked to another user.' => '您尝试注册或链接的账户已链接到其他用户。',
+      'The account you are attempting to register with has an invalid email address (%s). This server only allows registration with specific email addresses:' => '您尝试注册的账户具有无效的电子邮件地址 (%s)。此服务器仅允许使用特定电子邮件地址进行注册：',
+      'The account you are attempting to register with uses a disabled authentication provider ("%s"). An administrator may have recently disabled this provider.' => '您尝试注册的账户使用了已禁用的身份验证提供程序 ("%s")。管理员可能最近已禁用此提供程序。',
+      'The account you are attempting to register with uses an authentication provider ("%s") which does not allow registration. An administrator may have recently disabled registration with this provider.' => '您尝试注册的账户使用了不允许注册的身份验证提供程序 ("%s")。管理员可能最近已禁用此提供程序的注册功能。',
       'The alias you provided (%s) may only contain letters and numbers.' => '您提供的别名 (%s) 只能包含字母和数字。',
       'The alias you provided (%s) must contain at least one letter.' => '您提供的别名 (%s) 必须至少包含一个字母。',
-      'The authentication provider did not return a client state parameter in its response, but one was expected. If this problem persists, you may need to clear your cookies.' =>
-        '身份验证提供程序在其响应中未返回客户端状态参数，但预期应返回。如果此问题持续存在，您可能需要清除您的 cookies。',
-      'The authentication provider did not return the correct client state parameter in its response. If this problem persists, you may need to clear your cookies.' =>
-        '身份验证提供程序在其响应中未返回正确的客户端状态参数。如果此问题持续存在，您可能需要清除您的 cookies。',
-      'The base URI for this install is not configured. Many major features will not work properly until you configure it.' =>
-        '此安装的基础 URI 未配置。许多主要功能在配置之前将无法正常工作。',
+      'The authentication provider did not return a client state parameter in its response, but one was expected. If this problem persists, you may need to clear your cookies.' => '身份验证提供程序在其响应中未返回客户端状态参数，但预期应返回。如果此问题持续存在，您可能需要清除您的 cookies。',
+      'The authentication provider did not return the correct client state parameter in its response. If this problem persists, you may need to clear your cookies.' => '身份验证提供程序在其响应中未返回正确的客户端状态参数。如果此问题持续存在，您可能需要清除您的 cookies。',
+      'The base URI for this install is not configured. Many major features will not work properly until you configure it.' => '此安装的基础 URI 未配置。许多主要功能在配置之前将无法正常工作。',
       'The best available MYSQL implementation is now selected automatically.' => '现在会自动选择最佳可用的 MYSQL 实现。',
-      'The command "!%s" is not a supported mail command. Valid commands for this object are: %s.' =>
-        '命令 "!%s" 不是支持的邮件命令。此对象的有效命令为：%s。',
-      'The configuration key "%s" is already defined in the database. The value from the database will override the value in local storage.' =>
-        '配置键 "%s" 已在数据库中定义。数据库中的值将覆盖本地存储中的值。',
-      'The configuration option "%s" is not recognized. It may be misspelled, or it might have existed in an older version of the software. It has no effect, and should be corrected or deleted.' =>
-        '配置选项 "%s" 未被识别。它可能拼写错误，或者可能存在于旧版本的软件中。它没有任何效果，应予以更正或删除。',
-      'The conflict between your browser and profile timezone settings will be ignored.' =>
-        '浏览器与配置文件时区设置之间的冲突将被忽略。',
-      'The content for this message can only be transmitted over a secure channel. To view the message content, follow this link:' =>
-        '此消息的内容只能通过安全通道传输。要查看消息内容，请访问此链接：',
-      'The content of this mail is sensitive and it can not be viewed from the web UI.' =>
-        '此邮件的内容是敏感的，无法从 Web UI 查看。',
-      'The custom domain should contain at least one dot (.) because some browsers fail to set cookies on domains without a dot. Instead, use a normal looking domain name like "%s".' =>
-        '自定义域名应至少包含一个点 (.)，因为某些浏览器无法在没有点的域名上设置 cookie。请改用类似 "%s" 的正常域名。',
-      'The custom domain should include a valid protocol in the URI (for example, "%s"). Valid protocols are "http" or "https".' =>
-        '自定义域名应在 URI 中包含有效的协议（例如 "%s"）。有效协议为 "http" 或 "https"。',
-      'The custom domain should not specify a path (hosting a Phame blog at a path is currently not supported). Instead, just provide the bare domain name (for example, "%s").' =>
-        '自定义域名不应指定路径（目前不支持在路径上托管 Phame 博客）。只需提供裸域名（例如 "%s"）。',
+      'The command "!%s" is not a supported mail command. Valid commands for this object are: %s.' => '命令 "!%s" 不是支持的邮件命令。此对象的有效命令为：%s。',
+      'The configuration key "%s" is already defined in the database. The value from the database will override the value in local storage.' => '配置键 "%s" 已在数据库中定义。数据库中的值将覆盖本地存储中的值。',
+      'The configuration option "%s" is not recognized. It may be misspelled, or it might have existed in an older version of the software. It has no effect, and should be corrected or deleted.' => '配置选项 "%s" 未被识别。它可能拼写错误，或者可能存在于旧版本的软件中。它没有任何效果，应予以更正或删除。',
+      'The conflict between your browser and profile timezone settings will be ignored.' => '浏览器与配置文件时区设置之间的冲突将被忽略。',
+      'The content for this message can only be transmitted over a secure channel. To view the message content, follow this link:' => '此消息的内容只能通过安全通道传输。要查看消息内容，请访问此链接：',
+      'The content of this mail is sensitive and it can not be viewed from the web UI.' => '此邮件的内容是敏感的，无法从 Web UI 查看。',
+      'The custom domain should contain at least one dot (.) because some browsers fail to set cookies on domains without a dot. Instead, use a normal looking domain name like "%s".' => '自定义域名应至少包含一个点 (.)，因为某些浏览器无法在没有点的域名上设置 cookie。请改用类似 "%s" 的正常域名。',
+      'The custom domain should include a valid protocol in the URI (for example, "%s"). Valid protocols are "http" or "https".' => '自定义域名应在 URI 中包含有效的协议（例如 "%s"）。有效协议为 "http" 或 "https"。',
+      'The custom domain should not specify a path (hosting a Phame blog at a path is currently not supported). Instead, just provide the bare domain name (for example, "%s").' => '自定义域名不应指定路径（目前不支持在路径上托管 Phame 博客）。只需提供裸域名（例如 "%s"）。',
       'The device for an interface can not be changed once it has been created.' => '接口的设备在创建后无法更改。',
-      'The dialog asking for permission to send desktop notifications was closed without granting permission. Only application notifications will be sent.' =>
-        '请求发送桌面通知权限的对话框已在未授予权限的情况下关闭。仅会发送应用程序通知。',
-      'The email address associated with this account ("%s") is already in use by an application and can not be used to register a new account. Choose a different, valid address.' =>
-        '与此账户关联的邮箱地址（"%s"）已被应用程序使用，无法用于注册新账户。请选择一个不同的有效地址。',
-      'The email address associated with this external account ("%s") is not a valid email address and can not be used to register an account. Choose a different, valid address.' =>
-        '此外部账户关联的邮箱地址（"%s"）不是有效的邮箱地址，无法用于注册账户。请选择一个不同的有效地址。',
-      'The email address specified is associated with an account. Please login to that account and sign this document again.' =>
-        '指定的邮箱地址已关联到某个账户。请登录该账户并重新签署此文档。',
-      'The email address you just clicked a link from is already associated with a registered account (%s), but is not verified. Log in to that account to continue. If you can not log in, you can register a new account.' =>
-        '您点击链接的邮箱地址已关联到已注册账户（%s），但尚未验证。请登录该账户以继续。如果您无法登录，可以注册新账户。',
-      'The email address you just clicked a link from is already the primary email address for a registered account (%s). Log in to continue.' =>
-        '您点击链接的邮箱地址已是已注册账户（%s）的主邮箱地址。请登录以继续。',
-      'The email address you just clicked a link from is already verified and associated with a registered account (%s). Log in to continue.' =>
-        '您点击链接的邮箱地址已验证并关联到已注册账户（%s）。请登录以继续。',
-      'The email will identify you as the sender. You may optionally include additional text in the mail body by specifying it below.' =>
-        '该邮件将标识您为发件人。您可以选择在下方指定内容，以在邮件正文中包含额外文本。',
-      'The email will identify you as the sender. You may optionally replace the [[ %s | default custom mail body ]] with different text by providing a message below.' =>
-        '该邮件将标识您为发件人。您可以选择在下方提供消息，将[[ %s | default custom mail body ]]替换为其他文本。',
-      'The environmental variable %s is empty. This server will not be able to execute some commands.' =>
-        '环境变量 %s 为空。此服务器将无法执行某些命令。',
-      'The external account you are registering with has an email address that is already in use ("%s") by an existing %s account. Choose a new, valid email address to register a new account.' =>
-        '您正在注册的外部账户所使用的邮箱地址（"%s"）已被现有的 %s 账户使用。请选择一个新的有效邮箱地址来注册新账户。',
-      'The external account you just logged in with is not associated with a valid %s user account.' =>
-        '您刚刚登录的外部账户未关联到有效的 %s 用户账户。',
-      'The external service ("%s") you just authenticated with is not configured to allow account linking on this server. An administrator may have recently disabled it.' =>
-        '您刚刚认证的外部服务（"%s"）未配置为允许在此服务器上关联账户。管理员可能最近已将其禁用。',
-      'The external service ("%s") you just authenticated with is not configured to allow logins on this server. An administrator may have recently disabled it.' =>
-        '您刚刚认证的外部服务（"%s"）未配置为允许在此服务器上登录。管理员可能最近已将其禁用。',
-      'The external service ("%s") you just authenticated with is not configured to allow registration on this server. An administrator may have recently disabled it.' =>
-        '您刚刚认证的外部服务（"%s"）未配置为允许在此服务器上注册。管理员可能最近已将其禁用。',
-      'The external service ("%s") you just used to log in is already associated with another %s user account. Log in to the other %s account and unlink the external account before linking it to a new %s account.' =>
-        '您刚刚用于登录的外部服务（"%s"）已关联到另一个 %s 用户账户。请先登录另一个 %s 账户并解除外部账户关联，然后再将其关联到新的 %s 账户。',
-      'The file %s is referenced by the object %s, but not attached to it, so it can not be detached.' =>
-        '文件 %s 被对象 %s 引用，但未附加到该对象，因此无法分离。',
-      'The file you uploaded is invalid: it is not recognizable as a valid audio file.' =>
-        '您上传的文件无效：无法识别为有效的音频文件。',
+      'The dialog asking for permission to send desktop notifications was closed without granting permission. Only application notifications will be sent.' => '请求发送桌面通知权限的对话框已在未授予权限的情况下关闭。仅会发送应用程序通知。',
+      'The email address associated with this account ("%s") is already in use by an application and can not be used to register a new account. Choose a different, valid address.' => '与此账户关联的邮箱地址（"%s"）已被应用程序使用，无法用于注册新账户。请选择一个不同的有效地址。',
+      'The email address associated with this external account ("%s") is not a valid email address and can not be used to register an account. Choose a different, valid address.' => '此外部账户关联的邮箱地址（"%s"）不是有效的邮箱地址，无法用于注册账户。请选择一个不同的有效地址。',
+      'The email address specified is associated with an account. Please login to that account and sign this document again.' => '指定的邮箱地址已关联到某个账户。请登录该账户并重新签署此文档。',
+      'The email address you just clicked a link from is already associated with a registered account (%s), but is not verified. Log in to that account to continue. If you can not log in, you can register a new account.' => '您点击链接的邮箱地址已关联到已注册账户（%s），但尚未验证。请登录该账户以继续。如果您无法登录，可以注册新账户。',
+      'The email address you just clicked a link from is already the primary email address for a registered account (%s). Log in to continue.' => '您点击链接的邮箱地址已是已注册账户（%s）的主邮箱地址。请登录以继续。',
+      'The email address you just clicked a link from is already verified and associated with a registered account (%s). Log in to continue.' => '您点击链接的邮箱地址已验证并关联到已注册账户（%s）。请登录以继续。',
+      'The email will identify you as the sender. You may optionally include additional text in the mail body by specifying it below.' => '该邮件将标识您为发件人。您可以选择在下方指定内容，以在邮件正文中包含额外文本。',
+      'The email will identify you as the sender. You may optionally replace the [[ %s | default custom mail body ]] with different text by providing a message below.' => '该邮件将标识您为发件人。您可以选择在下方提供消息，将[[ %s | default custom mail body ]]替换为其他文本。',
+      'The environmental variable %s is empty. This server will not be able to execute some commands.' => '环境变量 %s 为空。此服务器将无法执行某些命令。',
+      'The external account you are registering with has an email address that is already in use ("%s") by an existing %s account. Choose a new, valid email address to register a new account.' => '您正在注册的外部账户所使用的邮箱地址（"%s"）已被现有的 %s 账户使用。请选择一个新的有效邮箱地址来注册新账户。',
+      'The external account you just logged in with is not associated with a valid %s user account.' => '您刚刚登录的外部账户未关联到有效的 %s 用户账户。',
+      'The external service ("%s") you just authenticated with is not configured to allow account linking on this server. An administrator may have recently disabled it.' => '您刚刚认证的外部服务（"%s"）未配置为允许在此服务器上关联账户。管理员可能最近已将其禁用。',
+      'The external service ("%s") you just authenticated with is not configured to allow logins on this server. An administrator may have recently disabled it.' => '您刚刚认证的外部服务（"%s"）未配置为允许在此服务器上登录。管理员可能最近已将其禁用。',
+      'The external service ("%s") you just authenticated with is not configured to allow registration on this server. An administrator may have recently disabled it.' => '您刚刚认证的外部服务（"%s"）未配置为允许在此服务器上注册。管理员可能最近已将其禁用。',
+      'The external service ("%s") you just used to log in is already associated with another %s user account. Log in to the other %s account and unlink the external account before linking it to a new %s account.' => '您刚刚用于登录的外部服务（"%s"）已关联到另一个 %s 用户账户。请先登录另一个 %s 账户并解除外部账户关联，然后再将其关联到新的 %s 账户。',
+      'The file %s is referenced by the object %s, but not attached to it, so it can not be detached.' => '文件 %s 被对象 %s 引用，但未附加到该对象，因此无法分离。',
+      'The file you uploaded is invalid: it is not recognizable as a valid audio file.' => '您上传的文件无效：无法识别为有效的音频文件。',
       'The first regexp in the regexp pair, "%s", is not a valid regexp.' => '正则表达式对中的第一个正则表达式 "%s" 不是有效的正则表达式。',
-      'The human cardiovascular system includes the heart, lungs, and some other parts; most of these parts are pretty squishy.' =>
-        '人体心血管系统包括心脏、肺部和其他一些部分；这些部分大多非常柔软。',
-      'The indexing algorithm for the fulltext search index has been updated and the index needs to be rebuilt. Until you rebuild the index, global search (and other fulltext search) will not function correctly.' =>
-        '全文搜索索引的索引算法已更新，需要重建索引。在重建索引之前，全局搜索（及其他全文搜索）将无法正常工作。',
+      'The human cardiovascular system includes the heart, lungs, and some other parts; most of these parts are pretty squishy.' => '人体心血管系统包括心脏、肺部和其他一些部分；这些部分大多非常柔软。',
+      'The indexing algorithm for the fulltext search index has been updated and the index needs to be rebuilt. Until you rebuild the index, global search (and other fulltext search) will not function correctly.' => '全文搜索索引的索引算法已更新，需要重建索引。在重建索引之前，全局搜索（及其他全文搜索）将无法正常工作。',
       'The invite code in the link you clicked has already been accepted.' => '您点击的链接中的邀请码已被接受。',
-      'The invite code in the link you clicked is invalid. Check that you followed the link correctly.' =>
-        '您点击的链接中的邀请码无效。请检查是否正确访问了该链接。',
-      'The key "%s" will be permanently revoked, and you will no longer be able to use the corresponding private key to authenticate.' =>
-        '密钥 "%s" 将被永久撤销，您将无法再使用相应的私钥进行身份验证。',
-      'The key which signed this request is associated with a disabled device ("%s").' =>
-        '签署此请求的密钥关联到已禁用的设备（"%s"）。',
-      'The key which signed this request is not trusted. Only trusted keys can be used to sign API calls.' =>
-        '签署此请求的密钥不受信任。只有受信任的密钥才能用于签署 API 调用。',
+      'The invite code in the link you clicked is invalid. Check that you followed the link correctly.' => '您点击的链接中的邀请码无效。请检查是否正确访问了该链接。',
+      'The key "%s" will be permanently revoked, and you will no longer be able to use the corresponding private key to authenticate.' => '密钥 "%s" 将被永久撤销，您将无法再使用相应的私钥进行身份验证。',
+      'The key which signed this request is associated with a disabled device ("%s").' => '签署此请求的密钥关联到已禁用的设备（"%s"）。',
+      'The key which signed this request is not trusted. Only trusted keys can be used to sign API calls.' => '签署此请求的密钥不受信任。只有受信任的密钥才能用于签署 API 调用。',
       'The largest recorded cat was nearly 11 inches long from nose to tail.' => '有记录的最大猫从鼻子到尾巴将近 11 英寸长。',
-      'The link you followed to access this file is no longer valid. The visibility of the file may have changed after the link was generated.' =>
-        '您用于访问此文件的链接已失效。文件的可见性可能在链接生成后已更改。',
-      'The locale `%s` defines a translation for the key `%s` which failed to interpolate properly. Probably it defines too many parameters.' =>
-        '区域设置 `%s` 为键 `%s` 定义了翻译，但插值失败。可能是定义了过多参数。',
-      'The locale `%s` defines a translation for the key `%s` which uses %%d to represent a PhutilNumber. This loses data if the  number ends up being formatted with thousands specifiers. See T16454' =>
-        '区域设置 `%s` 为键 `%s` 定义了翻译，该翻译使用 %%d 表示 PhutilNumber。如果数字最终使用千位分隔符格式化，则会丢失数据。参见 T16454',
-      'The locale `%s` defines a translation for the key `%s`, which varies on the plurality or gender of parameter %d, however that parameter is not a number or person.' =>
-        '区域设置 `%s` 为键 `%s` 定义了翻译，该翻译根据参数 %d 的复数或性别变化，但该参数不是数字或人。',
-      'The locale `%s` defines a translation for the string "%s", however that string does not appear to be referenced by the codebase.' =>
-        '区域设置 `%s` 为字符串 "%s" 定义了翻译，但该字符串似乎未被代码库引用。',
-      'The login link you clicked is invalid, out of date, or has already been used.' =>
-        '您点击的登录链接无效、已过期或已被使用。',
+      'The link you followed to access this file is no longer valid. The visibility of the file may have changed after the link was generated.' => '您用于访问此文件的链接已失效。文件的可见性可能在链接生成后已更改。',
+      'The locale `%s` defines a translation for the key `%s` which failed to interpolate properly. Probably it defines too many parameters.' => '区域设置 `%s` 为键 `%s` 定义了翻译，但插值失败。可能是定义了过多参数。',
+      'The locale `%s` defines a translation for the key `%s` which uses %%d to represent a PhutilNumber. This loses data if the  number ends up being formatted with thousands specifiers. See T16454' => '区域设置 `%s` 为键 `%s` 定义了翻译，该翻译使用 %%d 表示 PhutilNumber。如果数字最终使用千位分隔符格式化，则会丢失数据。参见 T16454',
+      'The locale `%s` defines a translation for the key `%s`, which varies on the plurality or gender of parameter %d, however that parameter is not a number or person.' => '区域设置 `%s` 为键 `%s` 定义了翻译，该翻译根据参数 %d 的复数或性别变化，但该参数不是数字或人。',
+      'The locale `%s` defines a translation for the string "%s", however that string does not appear to be referenced by the codebase.' => '区域设置 `%s` 为字符串 "%s" 定义了翻译，但该字符串似乎未被代码库引用。',
+      'The login link you clicked is invalid, out of date, or has already been used.' => '您点击的登录链接无效、已过期或已被使用。',
       'The mapping from VCS users to %s users has changed and must be rebuilt.' => '从 VCS 用户到 %s 用户的映射已更改，必须重建。',
-      'The maximum allowed rate for this action is %s. You are taking actions at a rate of %s.' =>
-        '此操作允许的最大频率为 %s。您当前的操作频率为 %s。',
-      'The namespace name "%s" is already in use by another namespace. Each namespace must have a unique name.' =>
-        '命名空间名称 "%s" 已被另一个命名空间使用。每个命名空间必须具有唯一的名称。',
-      'The notification server no longer requires root permissions. Start the server as the user you want it to run under.' =>
-        '通知服务器不再需要 root 权限。请以您希望其运行的用户身份启动服务器。',
-      'The object being edited does not implement any standard interfaces (like PhabricatorSubscribableInterface) which allow CCs to be generated automatically. Override the "getMailCC()" method and generate CCs explicitly.' =>
-        '正在编辑的对象未实现任何允许自动生成 CC 的标准接口（如 PhabricatorSubscribableInterface）。请重写 "getMailCC()" 方法并显式生成 CC。',
-      'The objects you have listed include objects of the wrong type (%s) and objects which do not exist (%s).' =>
-        '您列出的对象包含错误类型的对象（%s）和不存在的对象（%s）。',
+      'The maximum allowed rate for this action is %s. You are taking actions at a rate of %s.' => '此操作允许的最大频率为 %s。您当前的操作频率为 %s。',
+      'The namespace name "%s" is already in use by another namespace. Each namespace must have a unique name.' => '命名空间名称 "%s" 已被另一个命名空间使用。每个命名空间必须具有唯一的名称。',
+      'The notification server no longer requires root permissions. Start the server as the user you want it to run under.' => '通知服务器不再需要 root 权限。请以您希望其运行的用户身份启动服务器。',
+      'The object being edited does not implement any standard interfaces (like PhabricatorSubscribableInterface) which allow CCs to be generated automatically. Override the "getMailCC()" method and generate CCs explicitly.' => '正在编辑的对象未实现任何允许自动生成 CC 的标准接口（如 PhabricatorSubscribableInterface）。请重写 "getMailCC()" 方法并显式生成 CC。',
+      'The objects you have listed include objects of the wrong type (%s) and objects which do not exist (%s).' => '您列出的对象包含错误类型的对象（%s）和不存在的对象（%s）。',
       'The objects you have listed include objects of the wrong type (%s).' => '您列出的对象包含错误类型的对象（%s）。',
       'The objects you have listed include objects which do not exist (%s).' => '您列出的对象包含不存在的对象（%s）。',
-      'The package key "%s" is already in use by another package provided by this publisher.' =>
-        '包密钥 "%s" 已被该发布者提供的另一个包使用。',
-      'The password you entered has been revoked. You can not reuse a password which has been revoked. Choose a new password.' =>
-        '您输入的密码已被撤销。不能重复使用已被撤销的密码。请选择新密码。',
-      'The password you entered is the same as another password associated with your account. Each password must be unique.' =>
-        '您输入的密码与账户关联的另一个密码相同。每个密码必须唯一。',
-      'The password you entered is very similar to a nonsecret account identifier (like a username or email address). Choose a more distinct password.' =>
-        '您输入的密码与非机密账户标识符（如用户名或电子邮件地址）非常相似。请选择更具区分度的密码。',
-      'The path you entered (%s) is not a valid wiki document path. Paths may not contain spaces or special characters.' =>
-        '您输入的路径（%s）不是有效的 wiki 文档路径。路径不能包含空格或特殊字符。',
-      'The popular trivia game "World of Warcraft" features a race of cat people called the Khajiit.' =>
-        '热门问答游戏《魔兽世界》中有一个名为卡吉特的猫人种族。',
+      'The package key "%s" is already in use by another package provided by this publisher.' => '包密钥 "%s" 已被该发布者提供的另一个包使用。',
+      'The password you entered has been revoked. You can not reuse a password which has been revoked. Choose a new password.' => '您输入的密码已被撤销。不能重复使用已被撤销的密码。请选择新密码。',
+      'The password you entered is the same as another password associated with your account. Each password must be unique.' => '您输入的密码与账户关联的另一个密码相同。每个密码必须唯一。',
+      'The password you entered is very similar to a nonsecret account identifier (like a username or email address). Choose a more distinct password.' => '您输入的密码与非机密账户标识符（如用户名或电子邮件地址）非常相似。请选择更具区分度的密码。',
+      'The path you entered (%s) is not a valid wiki document path. Paths may not contain spaces or special characters.' => '您输入的路径（%s）不是有效的 wiki 文档路径。路径不能包含空格或特殊字符。',
+      'The popular trivia game "World of Warcraft" features a race of cat people called the Khajiit.' => '热门问答游戏《魔兽世界》中有一个名为卡吉特的猫人种族。',
       'The private material for this credential has been destroyed.' => '此凭证的私有材料已被销毁。',
       'The project icon ("%s") with special attribute "%s" must not be disabled' => '具有特殊属性 "%s" 的项目图标（"%s"）不得被禁用',
       'The project icon marked as the default icon ("%s") must not be disabled.' => '被标记为默认图标的项目图标（"%s"）不得被禁用。',
-      'The project image ("%s") specified for ("%s") was not found in the folder "resources/builtin/projects/".' =>
-        '为（"%s"）指定的项目图像（"%s"）在文件夹 "resources/builtin/projects/" 中未找到。',
+      'The project image ("%s") specified for ("%s") was not found in the folder "resources/builtin/projects/".' => '为（"%s"）指定的项目图像（"%s"）在文件夹 "resources/builtin/projects/" 中未找到。',
       'The property name "%s" is invalid. This property can not be edited.' => '属性名称 "%s" 无效。此属性无法编辑。',
-      'The public key corresponding to the given private key is already associated with an object ("%s") other than the specified device ("%s"). You can not use a single private key to identify multiple devices or users.' =>
-        '给定私钥对应的公钥已关联到另一个对象（"%s"），而非指定设备（"%s"）。不能使用单个私钥来标识多个设备或用户。',
-      'The public key corresponding to the given private key is properly associated with the device, but is not yet trusted. Trust this key before registering devices with it.' =>
-        '给定私钥对应的公钥已正确关联到设备，但尚未受信任。请在使用它注册设备之前信任此密钥。',
-      'The public key corresponding to the given private key is unknown. Associate the public key with an Almanac device in the web interface before registering hosts with it.' =>
-        '给定私钥对应的公钥未知。请先在 Web 界面中将公钥与 Almanac 设备关联，再使用它注册主机。',
+      'The public key corresponding to the given private key is already associated with an object ("%s") other than the specified device ("%s"). You can not use a single private key to identify multiple devices or users.' => '给定私钥对应的公钥已关联到另一个对象（"%s"），而非指定设备（"%s"）。不能使用单个私钥来标识多个设备或用户。',
+      'The public key corresponding to the given private key is properly associated with the device, but is not yet trusted. Trust this key before registering devices with it.' => '给定私钥对应的公钥已正确关联到设备，但尚未受信任。请在使用它注册设备之前信任此密钥。',
+      'The public key corresponding to the given private key is unknown. Associate the public key with an Almanac device in the web interface before registering hosts with it.' => '给定私钥对应的公钥未知。请先在 Web 界面中将公钥与 Almanac 设备关联，再使用它注册主机。',
       'The queries you have saved are private. Only you can view or edit them.' => '您保存的查询是私有的。只有您可以查看或编辑它们。',
-      'The query matched more than one page of results. Results are paginated before bucketing, so later pages may contain additional results in any bucket.' =>
-        '查询匹配了多页结果。结果在分组前已分页，因此后续页面可能包含任何分组中的额外结果。',
-      'The regular expression "%s" is not valid. Regular expressions must have enclosing characters (e.g. "@/path/to/file@", not "/path/to/file") and be syntactically correct.' =>
-        '正则表达式 "%s" 无效。正则表达式必须包含包围字符（例如 "@/path/to/file@"，而非 "/path/to/file"）且语法正确。',
-      'The regular expression pair "%s" is not valid JSON. Enter a valid JSON array with two elements.' =>
-        '正则表达式对 "%s" 不是有效的 JSON。请输入包含两个元素的有效 JSON 数组。',
+      'The query matched more than one page of results. Results are paginated before bucketing, so later pages may contain additional results in any bucket.' => '查询匹配了多页结果。结果在分组前已分页，因此后续页面可能包含任何分组中的额外结果。',
+      'The regular expression "%s" is not valid. Regular expressions must have enclosing characters (e.g. "@/path/to/file@", not "/path/to/file") and be syntactically correct.' => '正则表达式 "%s" 无效。正则表达式必须包含包围字符（例如 "@/path/to/file@"，而非 "/path/to/file"）且语法正确。',
+      'The regular expression pair "%s" is not valid JSON. Enter a valid JSON array with two elements.' => '正则表达式对 "%s" 不是有效的 JSON。请输入包含两个元素的有效 JSON 数组。',
       'The regular expression pair "%s" must have exactly two elements.' => '正则表达式对 "%s" 必须恰好包含两个元素。',
-      'The request body that the server received had already been decompressed. This strongly suggests your webserver is configured to decompress requests inline, before they reach PHP.' =>
-        '服务器接收到的请求正文已被解压缩。这强烈表明您的 Web 服务器配置为在请求到达 PHP 之前内联解压缩。',
-      'The response token for this challenge is invalid: response tokens may not include spaces.' =>
-        '此质询的响应令牌无效：响应令牌不能包含空格。',
-      'The schemata have errors (detailed above) which the adjustment workflow can not fix.' =>
-        '模式存在错误（详见上文），调整工作流无法修复。',
-      'The search index algorithm has been updated and the index needs be rebuilt.' =>
-        '搜索索引算法已更新，需要重建索引。',
+      'The request body that the server received had already been decompressed. This strongly suggests your webserver is configured to decompress requests inline, before they reach PHP.' => '服务器接收到的请求正文已被解压缩。这强烈表明您的 Web 服务器配置为在请求到达 PHP 之前内联解压缩。',
+      'The response token for this challenge is invalid: response tokens may not include spaces.' => '此质询的响应令牌无效：响应令牌不能包含空格。',
+      'The schemata have errors (detailed above) which the adjustment workflow can not fix.' => '模式存在错误（详见上文），调整工作流无法修复。',
+      'The search index algorithm has been updated and the index needs be rebuilt.' => '搜索索引算法已更新，需要重建索引。',
       'The second regexp in the regexp pair, "%s", is not a valid regexp.' => '正则表达式对中的第二个正则表达式 "%s" 不是有效的正则表达式。',
-      'The secret associated with this OAuth application will be shown in plain text on your screen.' =>
-        '与此 OAuth 应用关联的密钥将以纯文本形式显示在您的屏幕上。',
-      'The secret associated with this credential will be shown in plain text on your screen.' =>
-        '与此凭证关联的密钥将以纯文本形式显示在您的屏幕上。',
-      'The selected %s policy excludes you. Choose a %s policy which allows you to %s the object.' =>
-        '选定的 %s 策略排除了您。请选择允许您 %s 对象的 %s 策略。',
-      'The selected column contains no visible tasks which you have permission to edit.' =>
-        '选定的列不包含您有权限编辑的可见任务。',
-      'The selected column contains no visible tasks which you have permission to move.' =>
-        '选定的列不包含您有权限移动的可见任务。',
+      'The secret associated with this OAuth application will be shown in plain text on your screen.' => '与此 OAuth 应用关联的密钥将以纯文本形式显示在您的屏幕上。',
+      'The secret associated with this credential will be shown in plain text on your screen.' => '与此凭证关联的密钥将以纯文本形式显示在您的屏幕上。',
+      'The selected %s policy excludes you. Choose a %s policy which allows you to %s the object.' => '选定的 %s 策略排除了您。请选择允许您 %s 对象的 %s 策略。',
+      'The selected column contains no visible tasks which you have permission to edit.' => '选定的列不包含您有权限编辑的可见任务。',
+      'The selected column contains no visible tasks which you have permission to move.' => '选定的列不包含您有权限移动的可见任务。',
       'The selected content type ("%s") is not recognized by Herald.' => 'Herald 无法识别选定的内容类型（"%s"）。',
-      'The selected credential does not exist, or you do not have permission to use it.' =>
-        '选定的凭证不存在，或您无权使用它。',
-      'The selected password is too short. Passwords must be a minimum of %s characters long.' =>
-        '选定的密码太短。密码长度必须至少为 %s 个字符。',
-      'The selected password is very weak: it is one of the most common passwords in use. Choose a stronger password.' =>
-        '选定的密码非常弱：它是使用中最常见的密码之一。请选择更强的密码。',
-      'The selected rule type ("%s") is not supported by the selected content type ("%s").' =>
-        '选定的内容类型（"%s"）不支持选定的规则类型（"%s"）。',
+      'The selected credential does not exist, or you do not have permission to use it.' => '选定的凭证不存在，或您无权使用它。',
+      'The selected password is too short. Passwords must be a minimum of %s characters long.' => '选定的密码太短。密码长度必须至少为 %s 个字符。',
+      'The selected password is very weak: it is one of the most common passwords in use. Choose a stronger password.' => '选定的密码非常弱：它是使用中最常见的密码之一。请选择更强的密码。',
+      'The selected rule type ("%s") is not supported by the selected content type ("%s").' => '选定的内容类型（"%s"）不支持选定的规则类型（"%s"）。',
       'The service for a binding can not be changed once it has been created.' => '绑定的服务一旦创建便无法更改。',
-      'The service for this binding is a cluster service. You do not have permission to manage cluster services, so this binding can not be edited.' =>
-        '此绑定的服务是集群服务。您无权管理集群服务，因此此绑定无法编辑。',
-      'The signature verification code is incorrect, or the signature has been invalidated. Make sure you followed the link in the email correctly.' =>
-        '签名验证码不正确，或签名已失效。请确保您正确点击了电子邮件中的链接。',
+      'The service for this binding is a cluster service. You do not have permission to manage cluster services, so this binding can not be edited.' => '此绑定的服务是集群服务。您无权管理集群服务，因此此绑定无法编辑。',
+      'The signature verification code is incorrect, or the signature has been invalidated. Make sure you followed the link in the email correctly.' => '签名验证码不正确，或签名已失效。请确保您正确点击了电子邮件中的链接。',
       'The source task has been closed as a duplicate of the destination task.' => '源任务已被关闭，因为它是目标任务的重复项。',
-      'The source task has had the destination task closed as a duplicate and merged into it.' =>
-        '源任务已将目标任务作为重复项关闭并合并到其中。',
-      'The space this object is in has a more restrictive view policy ("%s") than the object does ("%s"), so the space\'s view policy is shown as a hint instead of the object policy.' =>
-        '此对象所在空间的查看策略（"%s"）比对象本身的查看策略（"%s"）更严格，因此显示空间的查看策略作为提示而非对象策略。',
-      'The specified "Created Before" date is earlier in time than the specified "Created After" date, so this query can never match any results.' =>
-        '指定的“创建时间早于”日期在时间上早于指定的“创建时间晚于”日期，因此此查询永远无法匹配任何结果。',
-      'The specified "Occurs Before" date is earlier in time than the specified "Occurs After" date, so this query can never match any results.' =>
-        '指定的“发生于早于”日期在时间上早于指定的“发生于晚于”日期，因此此查询永远无法匹配任何结果。',
-      'The specified blog PHID ("%s") is not valid. You can only create a post on (or move a post into) a blog which you have permission to see and edit.' =>
-        '指定的博客 PHID（"%s"）无效。您只能在有权限查看和编辑的博客上创建帖子（或将帖子移动到其中）。',
-      'The specified content type ("%s") does not support dry runs. Choose a testable content type. For this object, valid content types are: %s.' =>
-        '指定的内容类型（"%s"）不支持试运行。请选择可测试的内容类型。对于此对象，有效的内容类型为：%s。',
-      'The strength of your stored password hash can be upgraded. To upgrade, either: log out and log in using your password; or change your password.' =>
-        '您存储的密码哈希强度可以升级。要升级，请执行以下操作之一：注销并使用密码重新登录；或更改您的密码。',
-      'The string "%s" contains the placeholder "(s)" and  a numeric parameter on which to vary the (s) by, however the builtin US English translation does not do so.' =>
-        '字符串 "%s" 包含占位符 "(s)" 和一个用于变化 (s) 的数值参数，但内置的美式英语翻译未这样做。',
-      'The translation implementation has changed and providers are no longer used or supported.' =>
-        '翻译实现已更改，提供程序不再被使用或支持。',
+      'The source task has had the destination task closed as a duplicate and merged into it.' => '源任务已将目标任务作为重复项关闭并合并到其中。',
+      'The space this object is in has a more restrictive view policy ("%s") than the object does ("%s"), so the space\'s view policy is shown as a hint instead of the object policy.' => '此对象所在空间的查看策略（"%s"）比对象本身的查看策略（"%s"）更严格，因此显示空间的查看策略作为提示而非对象策略。',
+      'The specified "Created Before" date is earlier in time than the specified "Created After" date, so this query can never match any results.' => '指定的“创建时间早于”日期在时间上早于指定的“创建时间晚于”日期，因此此查询永远无法匹配任何结果。',
+      'The specified "Occurs Before" date is earlier in time than the specified "Occurs After" date, so this query can never match any results.' => '指定的“发生于早于”日期在时间上早于指定的“发生于晚于”日期，因此此查询永远无法匹配任何结果。',
+      'The specified blog PHID ("%s") is not valid. You can only create a post on (or move a post into) a blog which you have permission to see and edit.' => '指定的博客 PHID（"%s"）无效。您只能在有权限查看和编辑的博客上创建帖子（或将帖子移动到其中）。',
+      'The specified content type ("%s") does not support dry runs. Choose a testable content type. For this object, valid content types are: %s.' => '指定的内容类型（"%s"）不支持试运行。请选择可测试的内容类型。对于此对象，有效的内容类型为：%s。',
+      'The strength of your stored password hash can be upgraded. To upgrade, either: log out and log in using your password; or change your password.' => '您存储的密码哈希强度可以升级。要升级，请执行以下操作之一：注销并使用密码重新登录；或更改您的密码。',
+      'The string "%s" contains the placeholder "(s)" and  a numeric parameter on which to vary the (s) by, however the builtin US English translation does not do so.' => '字符串 "%s" 包含占位符 "(s)" 和一个用于变化 (s) 的数值参数，但内置的美式英语翻译未这样做。',
+      'The translation implementation has changed and providers are no longer used or supported.' => '翻译实现已更改，提供程序不再被使用或支持。',
       'The type of a service can not be changed once it has been created.' => '服务的类型一旦创建便无法更改。',
-      'The underlying file does not exist, but the cached request was successful. This likely means the file record was manually deleted by an administrator.' =>
-        '底层文件不存在，但缓存请求成功。这可能意味着文件记录已被管理员手动删除。',
-      'The user will receive an email notifying them that you changed their username.' =>
-        '用户将收到一封电子邮件，通知他们您更改了其用户名。',
-      'The user you are connecting to MySQL with does not have the correct permissions, and can not access some databases or tables that it needs to be able to access. GRANT the user additional permissions.' =>
-        '您用于连接 MySQL 的用户没有正确的权限，无法访问某些需要访问的数据库或表。请为该用户 GRANT 额外权限。',
-      'The version "%s" already exists for this package. Each version must have a unique name.' =>
-        '此包的版本 "%s" 已存在。每个版本必须具有唯一的名称。',
+      'The underlying file does not exist, but the cached request was successful. This likely means the file record was manually deleted by an administrator.' => '底层文件不存在，但缓存请求成功。这可能意味着文件记录已被管理员手动删除。',
+      'The user will receive an email notifying them that you changed their username.' => '用户将收到一封电子邮件，通知他们您更改了其用户名。',
+      'The user you are connecting to MySQL with does not have the correct permissions, and can not access some databases or tables that it needs to be able to access. GRANT the user additional permissions.' => '您用于连接 MySQL 的用户没有正确的权限，无法访问某些需要访问的数据库或表。请为该用户 GRANT 额外权限。',
+      'The version "%s" already exists for this package. Each version must have a unique name.' => '此包的版本 "%s" 已存在。每个版本必须具有唯一的名称。',
       'The word "catastrophe" has no etymological relationship to the word "cat".' => '单词 "catastrophe" 与单词 "cat" 没有词源关系。',
-      'The workboard for this project has not been created yet, but you do not have permission to create it. Only users who can edit this project can create a workboard for it.' =>
-        '此项目的工作板尚未创建，但您无权创建它。只有可以编辑此项目的用户才能为其创建工作板。',
+      'The workboard for this project has not been created yet, but you do not have permission to create it. Only users who can edit this project can create a workboard for it.' => '此项目的工作板尚未创建，但您无权创建它。只有可以编辑此项目的用户才能为其创建工作板。',
       'There are a very large number of changes, so older changes are hidden.' => '更改数量非常多，因此较旧的更改已被隐藏。',
-      'There are no password hashers available which are usable for new passwords.' =>
-        '没有可用于新密码的密码哈希器。',
+      'There are no password hashers available which are usable for new passwords.' => '没有可用于新密码的密码哈希器。',
       'There are no running daemon processes for the current instance ("%s").' => '当前实例（"%s"）没有正在运行的守护进程。',
-      'There are no running daemons for the current instance ("%s"). Use "--force" to stop daemons for all instances.' =>
-        '当前实例（"%s"）没有正在运行的守护进程。请使用 "--force" 停止所有实例的守护进程。',
-      'There is a new indirection layer between the strings that appear as VCS authors and committers (such as "John Developer <johnd@bigcorp.com>") and the user account that gets associated with VCS commits.' =>
-        '作为 VCS 作者和提交者出现的字符串（如 "John Developer <johnd@bigcorp.com>"）与关联到 VCS 提交的用户账户之间存在一个新的间接层。',
-      'There is no database storage initialized in the current storage namespace ("%s"). Use "bin/storage upgrade" to initialize storage or use "--namespace" to choose a different namespace.' =>
-        '当前存储命名空间（"%s"）中未初始化数据库存储。请使用 "bin/storage upgrade" 初始化存储或使用 "--namespace" 选择其他命名空间。',
-      'There was an unexpected error displaying the task graph. Use %s to browse parents or subtasks, or %s to show the graph.' =>
-        '显示任务图表时发生意外错误。使用 %s 浏览父任务或子任务，或使用 %s 显示图表。',
-      'These layouts test UI edge cases in the element. This block tests wrapping and overflow behavior.' =>
-        '这些布局测试元素中的 UI 边界情况。此块测试换行和溢出行为。',
+      'There are no running daemons for the current instance ("%s"). Use "--force" to stop daemons for all instances.' => '当前实例（"%s"）没有正在运行的守护进程。请使用 "--force" 停止所有实例的守护进程。',
+      'There is a new indirection layer between the strings that appear as VCS authors and committers (such as "John Developer <johnd@bigcorp.com>") and the user account that gets associated with VCS commits.' => '作为 VCS 作者和提交者出现的字符串（如 "John Developer <johnd@bigcorp.com>"）与关联到 VCS 提交的用户账户之间存在一个新的间接层。',
+      'There is no database storage initialized in the current storage namespace ("%s"). Use "bin/storage upgrade" to initialize storage or use "--namespace" to choose a different namespace.' => '当前存储命名空间（"%s"）中未初始化数据库存储。请使用 "bin/storage upgrade" 初始化存储或使用 "--namespace" 选择其他命名空间。',
+      'There was an unexpected error displaying the task graph. Use %s to browse parents or subtasks, or %s to show the graph.' => '显示任务图表时发生意外错误。使用 %s 浏览父任务或子任务，或使用 %s 显示图表。',
+      'These layouts test UI edge cases in the element. This block tests wrapping and overflow behavior.' => '这些布局测试元素中的 UI 边界情况。此块测试换行和溢出行为。',
       'They will not be able to rejoin the room unless invited again.' => '除非再次受邀，否则他们将无法重新加入房间。',
-      'This Duo enrollment attempt is invalid or has expired ("%s"). Cancel the workflow and try again.' =>
-        '此次 Duo 注册尝试无效或已过期（"%s"）。请取消工作流并重试。',
-      'This Jupyter notebook uses an unsupported version of the file format (found version %s, expected version 4).' =>
-        '此 Jupyter 笔记本使用了不受支持的文件格式版本（发现版本 %s，期望版本 4）。',
-      'This account ("%s") can not establish web sessions, so it is not possible to generate a functional recovery link. Special accounts like daemons and mailing lists can not log in via the web UI.' =>
-        '此账户（"%s"）无法建立 Web 会话，因此无法生成功能正常的恢复链接。守护进程和邮件列表等特殊账户无法通过 Web UI 登录。',
-      'This ancient extension point has been replaced with other mechanisms, including "AphrontSite".' =>
-        '这个古老的扩展点已被其他机制取代，包括 "AphrontSite"。',
-      'This application ("%s") is authorized to use your %s credentials. Continue to complete the authentication workflow.' =>
-        '此应用（"%s"）已获授权使用您的 %s 凭据。继续以完成身份验证流程。',
-      'This application also requested additional unrecognized permissions. These permissions may have existed in an older version of the software, or may be from a future version of the software. They will not be granted.' =>
-        '此应用还请求了额外的未识别权限。这些权限可能存在于软件的旧版本中，或来自未来版本。这些权限将不会被授予。',
-      'This application has requested these additional permissions. Authorizing it will grant it the permissions it requests:' =>
-        '此应用已请求以下额外权限。授权将授予其所请求的权限：',
-      'This application is not configured with any forms for creating objects that are visible to you and enabled.' =>
-        '此应用未配置任何对您可见且已启用的用于创建对象的表单。',
+      'This Duo enrollment attempt is invalid or has expired ("%s"). Cancel the workflow and try again.' => '此次 Duo 注册尝试无效或已过期（"%s"）。请取消工作流并重试。',
+      'This Jupyter notebook uses an unsupported version of the file format (found version %s, expected version 4).' => '此 Jupyter 笔记本使用了不受支持的文件格式版本（发现版本 %s，期望版本 4）。',
+      'This account ("%s") can not establish web sessions, so it is not possible to generate a functional recovery link. Special accounts like daemons and mailing lists can not log in via the web UI.' => '此账户（"%s"）无法建立 Web 会话，因此无法生成功能正常的恢复链接。守护进程和邮件列表等特殊账户无法通过 Web UI 登录。',
+      'This ancient extension point has been replaced with other mechanisms, including "AphrontSite".' => '这个古老的扩展点已被其他机制取代，包括 "AphrontSite"。',
+      'This application ("%s") is authorized to use your %s credentials. Continue to complete the authentication workflow.' => '此应用（"%s"）已获授权使用您的 %s 凭据。继续以完成身份验证流程。',
+      'This application also requested additional unrecognized permissions. These permissions may have existed in an older version of the software, or may be from a future version of the software. They will not be granted.' => '此应用还请求了额外的未识别权限。这些权限可能存在于软件的旧版本中，或来自未来版本。这些权限将不会被授予。',
+      'This application has requested these additional permissions. Authorizing it will grant it the permissions it requests:' => '此应用已请求以下额外权限。授权将授予其所请求的权限：',
+      'This application is not configured with any forms for creating objects that are visible to you and enabled.' => '此应用未配置任何对您可见且已启用的用于创建对象的表单。',
       'This application is required, so all users must have access to it.' => '此应用为必需应用，因此所有用户都必须有权访问。',
-      'This application will no longer be able to access this server on your behalf.' =>
-        '此应用将不再能够代表您访问此服务器。',
-      'This blog is not visible to logged out users, so it can not be visited from a custom domain.' =>
-        '此博客对未登录用户不可见，因此无法通过自定义域名访问。',
-      'This built-in query can not be deleted, but you can disable it so it does not appear in your query menu. You can enable it again later. Disable built-in query "%s"?' =>
-        '此内置查询无法删除，但您可以禁用它，使其不出现在查询菜单中。您可以稍后重新启用它。是否禁用内置查询 "%s"？',
-      'This challenge already has a response token; you can not set a new response token.' =>
-        '此质询已包含响应令牌；无法设置新的响应令牌。',
-      'This change applied silently, so mail and other notifications will not be sent.' =>
-        '此更改已静默应用，因此不会发送邮件和其他通知。',
-      'This column is hidden because it represents an archived subproject. Do you want to activate the subproject so the column is visible again?' =>
-        '此列被隐藏，因为它代表一个已归档的子项目。是否要激活该子项目以使列重新可见？',
-      'This column is visible because it represents an active subproject. Do you want to hide the column by archiving the subproject?' =>
-        '此列可见，因为它代表一个活动的子项目。是否要通过归档子项目来隐藏该列？',
-      'This command implementation ("%s") can not be applied to an item of type "%s".' =>
-        '此命令实现（"%s"）无法应用于类型为 "%s" 的项。',
-      'This command implementation("%s") can not apply a command of a different type ("%s").' =>
-        '此命令实现（"%s"）无法应用不同类型的命令（"%s"）。',
-      'This command only operates on database masters, but the selected database hosts do not include any masters.' =>
-        '此命令仅对数据库主节点生效，但所选数据库主机中不包含任何主节点。',
-      'This comment originally appeared on line %s, but that line does not exist in this version of the diff. It has been moved backward to the nearest line.' =>
-        '此评论最初出现在第 %s 行，但该行在此版本的差异中不存在。它已向后移动到最近的行。',
-      'This comment was signed with MFA, so edits to it must also be signed with MFA. You do not have any MFA factors attached to your account, so you can not sign this edit. Add MFA to your account in Settings.' =>
-        '此评论已使用 MFA 签名，因此编辑也必须使用 MFA 签名。您的账户未附加任何 MFA 因素，因此无法签署此编辑。请在设置中为您的账户添加 MFA。',
-      'This comment was signed with MFA, so you will be required to provide MFA credentials to make changes.' =>
-        '此评论已使用 MFA 签名，因此您需要提供 MFA 凭据才能进行更改。',
-      'This configuration is hidden and can not be edited or viewed from the web interface.' =>
-        '此配置已隐藏，无法通过 Web 界面编辑或查看。',
-      'This configuration is locked and can not be edited from the web interface. Use %s in %s to edit it.' =>
-        '此配置已锁定，无法通过 Web 界面编辑。请在 %s 中使用 %s 进行编辑。',
-      'This configuration is no longer relevant because daemons restart automatically on configuration changes.' =>
-        '此配置已不再相关，因为守护进程会在配置更改时自动重启。',
-      'This configuration option has been replaced with a modular handler. See T9346.' =>
-        '此配置选项已被模块化处理器取代。参见 T9346。',
-      'This configuration option is unknown. It may be misspelled, or have existed in a previous version of the software.' =>
-        '此配置选项未知。它可能拼写错误，或存在于软件的旧版本中。',
-      'This configuration value is defined in these %d configuration source(s): %s.' =>
-        '此配置值在以下 %d 个配置源中定义：%s。',
-      'This credential and its secret will no longer be able to be retrieved using the `%s` method in Conduit.' =>
-        '此凭据及其密钥将无法再通过 Conduit 中的 `%s` 方法检索。',
+      'This application will no longer be able to access this server on your behalf.' => '此应用将不再能够代表您访问此服务器。',
+      'This blog is not visible to logged out users, so it can not be visited from a custom domain.' => '此博客对未登录用户不可见，因此无法通过自定义域名访问。',
+      'This built-in query can not be deleted, but you can disable it so it does not appear in your query menu. You can enable it again later. Disable built-in query "%s"?' => '此内置查询无法删除，但您可以禁用它，使其不出现在查询菜单中。您可以稍后重新启用它。是否禁用内置查询 "%s"？',
+      'This challenge already has a response token; you can not set a new response token.' => '此质询已包含响应令牌；无法设置新的响应令牌。',
+      'This change applied silently, so mail and other notifications will not be sent.' => '此更改已静默应用，因此不会发送邮件和其他通知。',
+      'This column is hidden because it represents an archived subproject. Do you want to activate the subproject so the column is visible again?' => '此列被隐藏，因为它代表一个已归档的子项目。是否要激活该子项目以使列重新可见？',
+      'This column is visible because it represents an active subproject. Do you want to hide the column by archiving the subproject?' => '此列可见，因为它代表一个活动的子项目。是否要通过归档子项目来隐藏该列？',
+      'This command implementation ("%s") can not be applied to an item of type "%s".' => '此命令实现（"%s"）无法应用于类型为 "%s" 的项。',
+      'This command implementation("%s") can not apply a command of a different type ("%s").' => '此命令实现（"%s"）无法应用不同类型的命令（"%s"）。',
+      'This command only operates on database masters, but the selected database hosts do not include any masters.' => '此命令仅对数据库主节点生效，但所选数据库主机中不包含任何主节点。',
+      'This comment originally appeared on line %s, but that line does not exist in this version of the diff. It has been moved backward to the nearest line.' => '此评论最初出现在第 %s 行，但该行在此版本的差异中不存在。它已向后移动到最近的行。',
+      'This comment was signed with MFA, so edits to it must also be signed with MFA. You do not have any MFA factors attached to your account, so you can not sign this edit. Add MFA to your account in Settings.' => '此评论已使用 MFA 签名，因此编辑也必须使用 MFA 签名。您的账户未附加任何 MFA 因素，因此无法签署此编辑。请在设置中为您的账户添加 MFA。',
+      'This comment was signed with MFA, so you will be required to provide MFA credentials to make changes.' => '此评论已使用 MFA 签名，因此您需要提供 MFA 凭据才能进行更改。',
+      'This configuration is hidden and can not be edited or viewed from the web interface.' => '此配置已隐藏，无法通过 Web 界面编辑或查看。',
+      'This configuration is locked and can not be edited from the web interface. Use %s in %s to edit it.' => '此配置已锁定，无法通过 Web 界面编辑。请在 %s 中使用 %s 进行编辑。',
+      'This configuration is no longer relevant because daemons restart automatically on configuration changes.' => '此配置已不再相关，因为守护进程会在配置更改时自动重启。',
+      'This configuration option has been replaced with a modular handler. See T9346.' => '此配置选项已被模块化处理器取代。参见 T9346。',
+      'This configuration option is unknown. It may be misspelled, or have existed in a previous version of the software.' => '此配置选项未知。它可能拼写错误，或存在于软件的旧版本中。',
+      'This configuration value is defined in these %d configuration source(s): %s.' => '此配置值在以下 %d 个配置源中定义：%s。',
+      'This credential and its secret will no longer be able to be retrieved using the `%s` method in Conduit.' => '此凭据及其密钥将无法再通过 Conduit 中的 `%s` 方法检索。',
       'This credential can not be made available via Conduit because it is locked.' => '此凭据因已锁定而无法通过 Conduit 提供。',
-      'This credential will be deactivated and the secret will be unrecoverably destroyed. Anything relying on this credential will cease to function. This operation can not be undone.' =>
-        '此凭据将被停用，且密钥将被不可恢复地销毁。任何依赖此凭据的功能都将停止工作。此操作无法撤销。',
-      'This credential will be locked and the secret will be hidden forever. If Conduit access is enabled, it will be revoked. Anything relying on this credential will still function. This operation can not be undone.' =>
-        '此凭据将被锁定，且密钥将被永久隐藏。如果启用了 Conduit 访问，它将被撤销。任何依赖此凭据的功能仍将正常工作。此操作无法撤销。',
-      'This daemon did not report a status update for %s. It is presumed dead. Usually, this indicates that the daemon was killed or otherwise exited abruptly with an error. You may need to restart it.' =>
-        '此守护进程在 %s 内未报告状态更新。它被认为已终止。通常，这表明守护进程被终止或因错误而突然退出。您可能需要重启它。',
-      'This daemon encountered an error recently and is waiting a moment to restart.' =>
-        '此守护进程最近遇到错误，正在等待片刻后重启。',
+      'This credential will be deactivated and the secret will be unrecoverably destroyed. Anything relying on this credential will cease to function. This operation can not be undone.' => '此凭据将被停用，且密钥将被不可恢复地销毁。任何依赖此凭据的功能都将停止工作。此操作无法撤销。',
+      'This credential will be locked and the secret will be hidden forever. If Conduit access is enabled, it will be revoked. Anything relying on this credential will still function. This operation can not be undone.' => '此凭据将被锁定，且密钥将被永久隐藏。如果启用了 Conduit 访问，它将被撤销。任何依赖此凭据的功能仍将正常工作。此操作无法撤销。',
+      'This daemon did not report a status update for %s. It is presumed dead. Usually, this indicates that the daemon was killed or otherwise exited abruptly with an error. You may need to restart it.' => '此守护进程在 %s 内未报告状态更新。它被认为已终止。通常，这表明守护进程被终止或因错误而突然退出。您可能需要重启它。',
+      'This daemon encountered an error recently and is waiting a moment to restart.' => '此守护进程最近遇到错误，正在等待片刻后重启。',
       'This daemon has been lost or exited uncleanly, and is presumed dead.' => '此守护进程已丢失或未正常退出，被认为已终止。',
-      'This daemon has not reported a status update recently (within %s). It may have exited abruptly. After %s, it will be presumed dead.' =>
-        '此守护进程最近（在 %s 内）未报告状态更新。它可能已突然退出。在 %s 后，它将被认为已终止。',
-      'This daemon has not reported its status recently. It may have exited uncleanly.' =>
-        '此守护进程最近未报告其状态。它可能未正常退出。',
-      'This daemon is running normally and reported a status update recently (within %s).' =>
-        '此守护进程运行正常，最近（在 %s 内）报告了状态更新。',
-      'This daemon is running normally and reported a status update recently (within %s). The process is currently waiting to restart, either because it is hibernating or because it encountered an error.' =>
-        '此守护进程运行正常，最近（在 %s 内）报告了状态更新。该进程当前正在等待重启，可能是因为它处于休眠状态或遇到了错误。',
-      'This datasource ("%s") requires to be logged-in to use the function "%s(...)".' =>
-        '此数据源（"%s"）要求登录后才能使用函数 "%s(...)"。',
-      'This dedicated badge, once a distinguish icon of this install, shall be immediately retired from service, but will never far from our hearts. Godspeed.' =>
-        '此专用徽章曾是本安装程序的标志性图标，现即将退役，但将永远留在我们心中。祝好运。',
-      'This device is bound to a cluster service. You do not have permission to manage cluster services, so the device can not be edited.' =>
-        '此设备已绑定到集群服务。您没有管理集群服务的权限，因此无法编辑该设备。',
-      'This document does not encode a valid JSON object and can not be rendered as a Jupyter notebook.' =>
-        '此文档未编码有效的 JSON 对象，无法渲染为 Jupyter 笔记本。',
-      'This document has been deleted. You can edit it to put new content here, or use history to revert to an earlier version.' =>
-        '此文档已被删除。您可以编辑它以在此处添加新内容，或使用历史记录恢复到早期版本。',
-      'This document has been moved to %s. You can edit it to put new content here, or use history to revert to an earlier version.' =>
-        '此文档已移至 %s。您可以编辑它以在此处添加新内容，或使用历史记录恢复到早期版本。',
-      'This document has been moved. You can edit it to put new content here, or use history to revert to an earlier version.' =>
-        '此文档已被移动。您可以编辑它以在此处添加新内容，或使用历史记录恢复到早期版本。',
-      'This document is already deleted. You must specify content to re-create the document and make further edits.' =>
-        '此文档已被删除。您必须指定内容以重新创建文档并进行进一步编辑。',
+      'This daemon has not reported a status update recently (within %s). It may have exited abruptly. After %s, it will be presumed dead.' => '此守护进程最近（在 %s 内）未报告状态更新。它可能已突然退出。在 %s 后，它将被认为已终止。',
+      'This daemon has not reported its status recently. It may have exited uncleanly.' => '此守护进程最近未报告其状态。它可能未正常退出。',
+      'This daemon is running normally and reported a status update recently (within %s).' => '此守护进程运行正常，最近（在 %s 内）报告了状态更新。',
+      'This daemon is running normally and reported a status update recently (within %s). The process is currently waiting to restart, either because it is hibernating or because it encountered an error.' => '此守护进程运行正常，最近（在 %s 内）报告了状态更新。该进程当前正在等待重启，可能是因为它处于休眠状态或遇到了错误。',
+      'This datasource ("%s") requires to be logged-in to use the function "%s(...)".' => '此数据源（"%s"）要求登录后才能使用函数 "%s(...)"。',
+      'This dedicated badge, once a distinguish icon of this install, shall be immediately retired from service, but will never far from our hearts. Godspeed.' => '此专用徽章曾是本安装程序的标志性图标，现即将退役，但将永远留在我们心中。祝好运。',
+      'This device is bound to a cluster service. You do not have permission to manage cluster services, so the device can not be edited.' => '此设备已绑定到集群服务。您没有管理集群服务的权限，因此无法编辑该设备。',
+      'This document does not encode a valid JSON object and can not be rendered as a Jupyter notebook.' => '此文档未编码有效的 JSON 对象，无法渲染为 Jupyter 笔记本。',
+      'This document has been deleted. You can edit it to put new content here, or use history to revert to an earlier version.' => '此文档已被删除。您可以编辑它以在此处添加新内容，或使用历史记录恢复到早期版本。',
+      'This document has been moved to %s. You can edit it to put new content here, or use history to revert to an earlier version.' => '此文档已移至 %s。您可以编辑它以在此处添加新内容，或使用历史记录恢复到早期版本。',
+      'This document has been moved. You can edit it to put new content here, or use history to revert to an earlier version.' => '此文档已被移动。您可以编辑它以在此处添加新内容，或使用历史记录恢复到早期版本。',
+      'This document is already deleted. You must specify content to re-create the document and make further edits.' => '此文档已被删除。您必须指定内容以重新创建文档并进行进一步编辑。',
       'This document is empty. You can edit it to put some proper content here.' => '此文档为空。您可以编辑它以在此处添加适当的内容。',
-      'This document is not UTF8 and its text encoding could not be detected automatically. Use "Change Text Encoding..." to choose an encoding.' =>
-        '此文档不是 UTF8 格式，且其文本编码无法自动检测。请使用“更改文本编码...”来选择编码。',
-      'This document is not UTF8. It was detected as %s and converted to UTF8 for display.' =>
-        '此文档不是 UTF8 格式。它被检测为 %s 并已转换为 UTF8 以供显示。',
-      'This document is too large to be completely rendered inline. The first %s bytes are shown.' =>
-        '此文档太大，无法完全内联渲染。仅显示前 %s 字节。',
-      'This document is too large to be rendered inline. (The document is %s bytes, the limit for this engine is %s bytes.)' =>
-        '此文档太大，无法内联渲染。（文档大小为 %s 字节，此引擎的限制为 %s 字节。）',
-      'This document lacks a valid "nbformat" field. Jupyter notebooks must have this field and it must have an integer value.' =>
-        '此文档缺少有效的 "nbformat" 字段。Jupyter 笔记本必须包含此字段，且其值必须为整数。',
-      'This document requires a corporate signatory. You must log in to accept this document on behalf of a company you represent.' =>
-        '此文档需要公司签署人。您必须登录并代表您所代表的公司接受此文档。',
-      'This domain can only be used to open URLs shortened using the Phurl application. The URL you are trying to access does not have a Phurl URL associated with it.' =>
-        '此域名只能用于打开使用 Phurl 应用缩短的 URL。您尝试访问的 URL 没有关联的 Phurl URL。',
-      'This email address (%s) is no longer your primary email address. Going forward, all email will be sent to your new primary email address (%s).' =>
-        '此电子邮件地址（%s）不再是您的主电子邮件地址。今后，所有电子邮件都将发送到您的新主电子邮件地址（%s）。',
+      'This document is not UTF8 and its text encoding could not be detected automatically. Use "Change Text Encoding..." to choose an encoding.' => '此文档不是 UTF8 格式，且其文本编码无法自动检测。请使用“更改文本编码...”来选择编码。',
+      'This document is not UTF8. It was detected as %s and converted to UTF8 for display.' => '此文档不是 UTF8 格式。它被检测为 %s 并已转换为 UTF8 以供显示。',
+      'This document is too large to be completely rendered inline. The first %s bytes are shown.' => '此文档太大，无法完全内联渲染。仅显示前 %s 字节。',
+      'This document is too large to be rendered inline. (The document is %s bytes, the limit for this engine is %s bytes.)' => '此文档太大，无法内联渲染。（文档大小为 %s 字节，此引擎的限制为 %s 字节。）',
+      'This document lacks a valid "nbformat" field. Jupyter notebooks must have this field and it must have an integer value.' => '此文档缺少有效的 "nbformat" 字段。Jupyter 笔记本必须包含此字段，且其值必须为整数。',
+      'This document requires a corporate signatory. You must log in to accept this document on behalf of a company you represent.' => '此文档需要公司签署人。您必须登录并代表您所代表的公司接受此文档。',
+      'This domain can only be used to open URLs shortened using the Phurl application. The URL you are trying to access does not have a Phurl URL associated with it.' => '此域名只能用于打开使用 Phurl 应用缩短的 URL。您尝试访问的 URL 没有关联的 Phurl URL。',
+      'This email address (%s) is no longer your primary email address. Going forward, all email will be sent to your new primary email address (%s).' => '此电子邮件地址（%s）不再是您的主电子邮件地址。今后，所有电子邮件都将发送到您的新主电子邮件地址（%s）。',
       'This email address is already in use by a user. Choose a different address.' => '此电子邮件地址已被用户使用。请选择其他地址。',
       'This email address is reserved. Choose a different address.' => '此电子邮件地址已被保留。请选择其他地址。',
-      'This email was sent from an email address ("%s") that is not associated with a registered user account. To interact via email, add this address to your account.' =>
-        '此电子邮件是从未与注册用户账户关联的电子邮件地址（"%s"）发送的。要通过电子邮件进行交互，请将此地址添加到您的账户。',
-      'This endpoint supports these types of transactions. See below for detailed information about each transaction type.' =>
-        '此端点支持这些类型的交易。有关每种交易类型的详细信息，请参见下文。',
-      'This error usually indicates that you need to "GRANT" the MySQL user additional permissions. See "GRANT" in the MySQL manual for help.' =>
-        '此错误通常表示您需要为 MySQL 用户“GRANT”额外权限。请参阅 MySQL 手册中的“GRANT”获取帮助。',
+      'This email was sent from an email address ("%s") that is not associated with a registered user account. To interact via email, add this address to your account.' => '此电子邮件是从未与注册用户账户关联的电子邮件地址（"%s"）发送的。要通过电子邮件进行交互，请将此地址添加到您的账户。',
+      'This endpoint supports these types of transactions. See below for detailed information about each transaction type.' => '此端点支持这些类型的交易。有关每种交易类型的详细信息，请参见下文。',
+      'This error usually indicates that you need to "GRANT" the MySQL user additional permissions. See "GRANT" in the MySQL manual for help.' => '此错误通常表示您需要为 MySQL 用户“GRANT”额外权限。请参阅 MySQL 手册中的“GRANT”获取帮助。',
       'This event has been imported from an external source and can not be edited.' => '此事件已从外部源导入，无法编辑。',
       'This event instance has not been created yet. Log in to create it.' => '此事件实例尚未创建。请登录以创建它。',
-      'This event is an instance in an event series. To change the behavior for the series, edit the parent event.' =>
-        '此事件是事件系列中的一个实例。要更改系列的行为，请编辑父事件。',
+      'This event is an instance in an event series. To change the behavior for the series, edit the parent event.' => '此事件是事件系列中的一个实例。要更改系列的行为，请编辑父事件。',
       'This event is part of a series. Which events do you want to cancel?' => '此事件属于一个系列。您要取消哪些事件？',
       'This event is part of a series. Which events do you want to edit?' => '此事件属于一个系列。您要编辑哪些事件？',
       'This event is part of a series. Which events do you want to reinstate?' => '此事件属于一个系列。您要恢复哪些事件？',
-      'This factor has been removed from your device, so this server can not send you a challenge. To continue, an administrator must strip this factor from your account.' =>
-        '此因素已从您的设备中移除，因此此服务器无法向您发送质询。要继续，管理员必须从您的账户中移除该因素。',
-      'This factor recently issued a challenge for a different workflow. Wait %s second(s) for the code to cycle, then try again.' =>
-        '此因素最近已为其他工作流发出质询。请等待 %s 秒让代码循环，然后重试。',
-      'This factor recently issued a challenge to a different login session. Wait %s second(s) for the code to cycle, then try again.' =>
-        '此因素最近已向其他登录会话发出质询。请等待 %s 秒让代码循环，然后重试。',
-      'This factor recently issued a challenge which has expired. A new challenge can not be issued yet. Wait %s second(s) for the code to cycle, then try again.' =>
-        '此因素最近发出的质询已过期。尚无法发出新的质询。请等待 %s 秒让代码循环，然后重试。',
-      'This file contains generated code, which does not normally need to be reviewed.' =>
-        '此文件包含生成的代码，通常无需审核。',
-      'This file has only been partially uploaded. It must be uploaded completely before you can download it.' =>
-        '此文件仅部分上传。必须先完全上传，然后才能下载。',
+      'This factor has been removed from your device, so this server can not send you a challenge. To continue, an administrator must strip this factor from your account.' => '此因素已从您的设备中移除，因此此服务器无法向您发送质询。要继续，管理员必须从您的账户中移除该因素。',
+      'This factor recently issued a challenge for a different workflow. Wait %s second(s) for the code to cycle, then try again.' => '此因素最近已为其他工作流发出质询。请等待 %s 秒让代码循环，然后重试。',
+      'This factor recently issued a challenge to a different login session. Wait %s second(s) for the code to cycle, then try again.' => '此因素最近已向其他登录会话发出质询。请等待 %s 秒让代码循环，然后重试。',
+      'This factor recently issued a challenge which has expired. A new challenge can not be issued yet. Wait %s second(s) for the code to cycle, then try again.' => '此因素最近发出的质询已过期。尚无法发出新的质询。请等待 %s 秒让代码循环，然后重试。',
+      'This file contains generated code, which does not normally need to be reviewed.' => '此文件包含生成的代码，通常无需审核。',
+      'This file has only been partially uploaded. It must be uploaded completely before you can download it.' => '此文件仅部分上传。必须先完全上传，然后才能下载。',
       'This file is larger than %s, so syntax highlighting is disabled by default.' => '此文件大于 %s，因此默认禁用语法高亮。',
-      'This form ("%s") is not marked as an edit form, so it can not be used to edit objects.' =>
-        '此表单（"%s"）未标记为编辑表单，因此无法用于编辑对象。',
-      'This function includes results which have any owner. It excludes unassigned or unowned results.' =>
-        '此函数包含具有所有者的结果。它排除未分配或无所有者的结果。',
-      'This host already has a registered private key ("%s"). Remove this key before registering the host, or use --force to overwrite it.' =>
-        '此主机已注册私钥（"%s"）。在注册主机之前请移除该密钥，或使用 --force 覆盖它。',
-      'This host already has a registered public key ("%s"). Remove this key before registering the host, or use --force to overwrite it.' =>
-        '此主机已注册公钥（"%s"）。在注册主机之前请移除该密钥，或使用 --force 覆盖它。',
-      'This host has a "master" role, but is replicating data from another host ("%s")!' =>
-        '此主机具有“主节点”角色，但正在从另一台主机（"%s"）复制数据！',
-      'This host has a "replica" role, but is not replicating data from a master (no output from "SHOW REPLICA STATUS").' =>
-        '此主机具有“副本”角色，但未从主节点复制数据（"SHOW REPLICA STATUS" 无输出）。',
-      'This host has been registered as "%s" and a trusted keypair has been installed.' =>
-        '此主机已注册为 "%s"，并且已安装可信密钥对。',
-      'This host has device ID "%s", but there is no corresponding device record in Almanac.' =>
-        '此主机具有设备 ID "%s"，但 Almanac 中没有对应的设备记录。',
-      'This image (with dimensions %spx x %spx) is too large to transform. The image has %s pixels, but transforms are limited to images with %s or fewer pixels.' =>
-        '此图像（尺寸为 %spx x %spx）太大而无法转换。该图像有 %s 像素，但转换仅限于具有 %s 或更少像素的图像。',
-      'This image is too large to transform. The transform limit is %s bytes, but the image size is %s bytes.' =>
-        '此图像太大而无法转换。转换限制为 %s 字节，但图像大小为 %s 字节。',
-      'This install does not have any active MFA providers configured. At least one provider must be configured and active before you can add new MFA factors.' =>
-        '此安装未配置任何活动的 MFA 提供程序。在添加新的 MFA 因素之前，必须至少配置并激活一个提供程序。',
-      'This install has a fatal setup error, access the web interface to view details and resolve it.' =>
-        '此安装存在致命设置错误，请访问 Web 界面查看详细信息并解决它。',
-      'This install uses spaces to organize objects, but logged out users do not have access to any spaces.' =>
-        '此安装使用空间来组织对象，但已注销用户无法访问任何空间。',
-      'This install uses spaces to organize objects, but your account does not have access to any spaces.' =>
-        '此安装使用空间来组织对象，但您的账户无法访问任何空间。',
-      'This is a draft, and is only visible to you and other users who can edit %s. Use "Publish" to publish this post.' =>
-        '这是一个草稿，仅对您和可以编辑 %s 的其他用户可见。请使用“发布”来发布此帖子。',
-      'This is a progress bar which shows how many points of work are complete within the milestone. It has no configurable settings.' =>
-        '这是一个进度条，显示里程碑内已完成的工作点数。它没有可配置的设置。',
-      'This is a standard **ApplicationEditor** method which allows you to create and modify objects by applying transactions. For documentation on these endpoints, see **[[ %s | Conduit API: Using Edit Endpoints ]]**.' =>
-        '这是一个标准的 **ApplicationEditor** 方法，允许您通过应用事务来创建和修改对象。有关这些端点的文档，请参见 **[[ %s | Conduit API: Using Edit Endpoints ]]**。',
-      'This is a standard **ApplicationSearch** method which will let you list, query, or search for objects. For documentation on these endpoints, see **[[ %s | Conduit API: Using Search Endpoints ]]**.' =>
-        '这是一个标准的 **ApplicationSearch** 方法，可让您列出、查询或搜索对象。有关这些端点的文档，请参见 **[[ %s | Conduit API: Using Search Endpoints ]]**。',
+      'This form ("%s") is not marked as an edit form, so it can not be used to edit objects.' => '此表单（"%s"）未标记为编辑表单，因此无法用于编辑对象。',
+      'This function includes results which have any owner. It excludes unassigned or unowned results.' => '此函数包含具有所有者的结果。它排除未分配或无所有者的结果。',
+      'This host already has a registered private key ("%s"). Remove this key before registering the host, or use --force to overwrite it.' => '此主机已注册私钥（"%s"）。在注册主机之前请移除该密钥，或使用 --force 覆盖它。',
+      'This host already has a registered public key ("%s"). Remove this key before registering the host, or use --force to overwrite it.' => '此主机已注册公钥（"%s"）。在注册主机之前请移除该密钥，或使用 --force 覆盖它。',
+      'This host has a "master" role, but is replicating data from another host ("%s")!' => '此主机具有“主节点”角色，但正在从另一台主机（"%s"）复制数据！',
+      'This host has a "replica" role, but is not replicating data from a master (no output from "SHOW REPLICA STATUS").' => '此主机具有“副本”角色，但未从主节点复制数据（"SHOW REPLICA STATUS" 无输出）。',
+      'This host has been registered as "%s" and a trusted keypair has been installed.' => '此主机已注册为 "%s"，并且已安装可信密钥对。',
+      'This host has device ID "%s", but there is no corresponding device record in Almanac.' => '此主机具有设备 ID "%s"，但 Almanac 中没有对应的设备记录。',
+      'This image (with dimensions %spx x %spx) is too large to transform. The image has %s pixels, but transforms are limited to images with %s or fewer pixels.' => '此图像（尺寸为 %spx x %spx）太大而无法转换。该图像有 %s 像素，但转换仅限于具有 %s 或更少像素的图像。',
+      'This image is too large to transform. The transform limit is %s bytes, but the image size is %s bytes.' => '此图像太大而无法转换。转换限制为 %s 字节，但图像大小为 %s 字节。',
+      'This install does not have any active MFA providers configured. At least one provider must be configured and active before you can add new MFA factors.' => '此安装未配置任何活动的 MFA 提供程序。在添加新的 MFA 因素之前，必须至少配置并激活一个提供程序。',
+      'This install has a fatal setup error, access the web interface to view details and resolve it.' => '此安装存在致命设置错误，请访问 Web 界面查看详细信息并解决它。',
+      'This install uses spaces to organize objects, but logged out users do not have access to any spaces.' => '此安装使用空间来组织对象，但已注销用户无法访问任何空间。',
+      'This install uses spaces to organize objects, but your account does not have access to any spaces.' => '此安装使用空间来组织对象，但您的账户无法访问任何空间。',
+      'This is a draft, and is only visible to you and other users who can edit %s. Use "Publish" to publish this post.' => '这是一个草稿，仅对您和可以编辑 %s 的其他用户可见。请使用“发布”来发布此帖子。',
+      'This is a progress bar which shows how many points of work are complete within the milestone. It has no configurable settings.' => '这是一个进度条，显示里程碑内已完成的工作点数。它没有可配置的设置。',
+      'This is a standard **ApplicationEditor** method which allows you to create and modify objects by applying transactions. For documentation on these endpoints, see **[[ %s | Conduit API: Using Edit Endpoints ]]**.' => '这是一个标准的 **ApplicationEditor** 方法，允许您通过应用事务来创建和修改对象。有关这些端点的文档，请参见 **[[ %s | Conduit API: Using Edit Endpoints ]]**。',
+      'This is a standard **ApplicationSearch** method which will let you list, query, or search for objects. For documentation on these endpoints, see **[[ %s | Conduit API: Using Search Endpoints ]]**.' => '这是一个标准的 **ApplicationSearch** 方法，可让您列出、查询或搜索对象。有关这些端点的文档，请参见 **[[ %s | Conduit API: Using Search Endpoints ]]**。',
       'This is a trigger rule with a valid type ("%s") but an invalid value.' => '这是一个触发器规则，具有有效的类型（"%s"）但值无效。',
-      'This is a visual divider which you can use to separate sections in the menu. It does not have any configurable options.' =>
-        '这是一个视觉分隔符，可用于分隔菜单中的各个部分。它没有任何可配置的选项。',
+      'This is a visual divider which you can use to separate sections in the menu. It does not have any configurable options.' => '这是一个视觉分隔符，可用于分隔菜单中的各个部分。它没有任何可配置的选项。',
       'This is already the first tab. It can not move any farther to the left.' => '这已是第一个标签页。它无法再向左移动。',
       'This is already the last tab. It can not move any farther to the right.' => '这已是最后一个标签页。它无法再向右移动。',
-      'This is an advanced feature which should normally be used only when building a cluster. This feature is very dangerous if misused.' =>
-        '这是一个高级功能，通常仅应在构建集群时使用。如果滥用，此功能非常危险。',
-      'This is an error email, but one or more recipients have exceeded the error email rate limit. Declining to deliver message.' =>
-        '这是一封错误电子邮件，但一个或多个收件人已超出错误电子邮件速率限制。拒绝投递消息。',
-      'This is an old transcript which uses an obsolete log format. Detailed action information is not available.' =>
-        '这是一个使用过时日志格式的旧记录。详细的操作信息不可用。',
-      'This is an older message that predates recording delivery information, so none is available.' =>
-        '这是一条早于投递信息记录的较旧消息，因此没有可用信息。',
-      'This is an unknown rule of type "%s". An administrator may have edited or removed an extension which implements this rule type.' =>
-        '这是一个类型为 "%s" 的未知规则。管理员可能已编辑或移除了实现此规则类型的扩展。',
-      'This is not a valid JSON document and can not be rendered as a Jupyter notebook: %s.' =>
-        '这不是有效的 JSON 文档，无法渲染为 Jupyter 笔记本：%s。',
-      'This is now your primary email address (%s). Going forward, all email will be sent here.' =>
-        '这现在是您的主电子邮件地址（%s）。今后，所有电子邮件都将发送至此。',
-      'This is the only external login account linked to your account. If you remove it, you may no longer be able to log in.' =>
-        '这是关联到您账户的唯一外部登录账户。如果将其移除，您可能无法再登录。',
-      'This is very unusual and will leave you without any content on the home page. You should only do this if you are certain you know what you are doing.' =>
-        '这非常不寻常，将导致您的主页没有任何内容。仅当您确定知道自己在做什么时才应执行此操作。',
+      'This is an advanced feature which should normally be used only when building a cluster. This feature is very dangerous if misused.' => '这是一个高级功能，通常仅应在构建集群时使用。如果滥用，此功能非常危险。',
+      'This is an error email, but one or more recipients have exceeded the error email rate limit. Declining to deliver message.' => '这是一封错误电子邮件，但一个或多个收件人已超出错误电子邮件速率限制。拒绝投递消息。',
+      'This is an old transcript which uses an obsolete log format. Detailed action information is not available.' => '这是一个使用过时日志格式的旧记录。详细的操作信息不可用。',
+      'This is an older message that predates recording delivery information, so none is available.' => '这是一条早于投递信息记录的较旧消息，因此没有可用信息。',
+      'This is an unknown rule of type "%s". An administrator may have edited or removed an extension which implements this rule type.' => '这是一个类型为 "%s" 的未知规则。管理员可能已编辑或移除了实现此规则类型的扩展。',
+      'This is not a valid JSON document and can not be rendered as a Jupyter notebook: %s.' => '这不是有效的 JSON 文档，无法渲染为 Jupyter 笔记本：%s。',
+      'This is now your primary email address (%s). Going forward, all email will be sent here.' => '这现在是您的主电子邮件地址（%s）。今后，所有电子邮件都将发送至此。',
+      'This is the only external login account linked to your account. If you remove it, you may no longer be able to log in.' => '这是关联到您账户的唯一外部登录账户。如果将其移除，您可能无法再登录。',
+      'This is very unusual and will leave you without any content on the home page. You should only do this if you are certain you know what you are doing.' => '这非常不寻常，将导致您的主页没有任何内容。仅当您确定知道自己在做什么时才应执行此操作。',
       'This issue is currently ignored, and does not show a global warning.' => '此问题当前已被忽略，不会显示全局警告。',
-      'This issue will no longer be suppressed, and will return to its rightful place as a global setup warning.' =>
-        '此问题将不再被抑制，并将恢复其作为全局设置警告的应有位置。',
-      'This item can not be set as the default item. This is usually because the item has no page of its own, or links to an external page.' =>
-        '此项目无法设为默认项目。这通常是因为该项目没有自己的页面，或链接到外部页面。',
+      'This issue will no longer be suppressed, and will return to its rightful place as a global setup warning.' => '此问题将不再被抑制，并将恢复其作为全局设置警告的应有位置。',
+      'This item can not be set as the default item. This is usually because the item has no page of its own, or links to an external page.' => '此项目无法设为默认项目。这通常是因为该项目没有自己的页面，或链接到外部页面。',
       'This key has %s remaining API request(s), limit resets in %s second(s).' => '此密钥还剩 %s 个 API 请求，限制将在 %s 秒后重置。',
       'This key has been revoked. Choose or generate a new, unique key.' => '此密钥已被撤销。请选择或生成一个新的唯一密钥。',
-      'This key is trusted. Trusted keys can not be edited. Use %s to revoke trust before editing the key.' =>
-        '此密钥受信任。受信任的密钥无法编辑。请使用 %s 撤销信任后再编辑密钥。',
-      'This likely indicates a severe misconfiguration or major service interruption.' =>
-        '这可能表示存在严重配置错误或重大服务中断。',
+      'This key is trusted. Trusted keys can not be edited. Use %s to revoke trust before editing the key.' => '此密钥受信任。受信任的密钥无法编辑。请使用 %s 撤销信任后再编辑密钥。',
+      'This likely indicates a severe misconfiguration or major service interruption.' => '这可能表示存在严重配置错误或重大服务中断。',
       'This linter is intended for use with the Javelin JS library and extensions.' => '此 linter 旨在与 Javelin JS 库和扩展一起使用。',
       'This lock was most recently acquired by a process (%s) %s second(s) ago.' => '此锁最近由进程（%s）在 %s 秒前获取。',
-      'This mail can not be processed because no application knows how to handle it. Check that the address you sent it to is correct.' =>
-        '此邮件无法处理，因为没有应用知道如何处理它。请检查您发送到的地址是否正确。',
-      'This mail has tags which control which users receive it, and this recipient has not elected to receive mail with any of the tags on this message (Settings > Email Preferences).' =>
-        '此邮件包含控制接收用户的标签，而该收件人未选择接收带有此消息上任何标签的邮件（设置 > 邮件偏好设置）。',
-      'This mail is addressed to an object ("%s") you do not have permission to see: %s' =>
-        '此邮件发送给了一个您无权查看的对象（"%s"）：%s',
+      'This mail can not be processed because no application knows how to handle it. Check that the address you sent it to is correct.' => '此邮件无法处理，因为没有应用知道如何处理它。请检查您发送到的地址是否正确。',
+      'This mail has tags which control which users receive it, and this recipient has not elected to receive mail with any of the tags on this message (Settings > Email Preferences).' => '此邮件包含控制接收用户的标签，而该收件人未选择接收带有此消息上任何标签的邮件（设置 > 邮件偏好设置）。',
+      'This mail is addressed to an object ("%s") you do not have permission to see: %s' => '此邮件发送给了一个您无权查看的对象（"%s"）：%s',
       'This mail is addressed to an object ("%s"), but that object does not exist.' => '此邮件发送给了一个对象（"%s"），但该对象不存在。',
-      'This mail is addressed to an object ("%s"), but the address is not correct (the security hash is wrong). Check that the address is correct.' =>
-        '此邮件发送给了一个对象（"%s"），但地址不正确（安全哈希错误）。请检查地址是否正确。',
-      'This may happen if there is a temporary network anomaly on the server side, like cosmic radiation or spooky ghosts. If this failure was caused by a transient service interruption, this server will recover momentarily.' =>
-        '如果服务器端出现临时网络异常（如宇宙射线或幽灵）时可能会发生这种情况。如果此故障是由短暂的服务中断引起的，该服务器将很快恢复。',
-      'This message has not been delivered yet, so delivery information is not available.' =>
-        '此消息尚未送达，因此无法提供投递信息。',
-      'This message has not been sent yet, so routing rules have not been computed.' =>
-        '此消息尚未发送，因此路由规则尚未计算。',
-      'This message was downgraded to a notification by outbound mail rules in Herald.' =>
-        '此消息已被 Herald 的出站邮件规则降级为通知。',
+      'This mail is addressed to an object ("%s"), but the address is not correct (the security hash is wrong). Check that the address is correct.' => '此邮件发送给了一个对象（"%s"），但地址不正确（安全哈希错误）。请检查地址是否正确。',
+      'This may happen if there is a temporary network anomaly on the server side, like cosmic radiation or spooky ghosts. If this failure was caused by a transient service interruption, this server will recover momentarily.' => '如果服务器端出现临时网络异常（如宇宙射线或幽灵）时可能会发生这种情况。如果此故障是由短暂的服务中断引起的，该服务器将很快恢复。',
+      'This message has not been delivered yet, so delivery information is not available.' => '此消息尚未送达，因此无法提供投递信息。',
+      'This message has not been sent yet, so routing rules have not been computed.' => '此消息尚未发送，因此路由规则尚未计算。',
+      'This message was downgraded to a notification by outbound mail rules in Herald.' => '此消息已被 Herald 的出站邮件规则降级为通知。',
       'This message was routed as a notification because it matched %s.' => '此消息被路由为通知，因为它匹配了 %s。',
       'This message was upgraded to email by outbound mail rules in Herald.' => '此消息已被 Herald 的出站邮件规则升级为邮件。',
-      'This method is frozen and will eventually be deprecated. New code should use "transaction.search" instead.' =>
-        '此方法已冻结，最终将被弃用。新代码应使用 "transaction.search"。',
-      'This method is frozen and will eventually be deprecated. New code should use "user.search" instead.' =>
-        '此方法已冻结，最终将被弃用。新代码应使用 "user.search"。',
+      'This method is frozen and will eventually be deprecated. New code should use "transaction.search" instead.' => '此方法已冻结，最终将被弃用。新代码应使用 "transaction.search"。',
+      'This method is frozen and will eventually be deprecated. New code should use "user.search" instead.' => '此方法已冻结，最终将被弃用。新代码应使用 "user.search"。',
       'This method is new and unstable. Its interface is subject to change.' => '此方法是新的且不稳定的。其接口可能会更改。',
       'This mode is active because it is enabled in the configuration option "%s".' => '此模式处于激活状态，因为它在配置选项 "%s" 中已启用。',
-      'This mode is active because no database has a "%s" role in the configuration option "%s".' =>
-        '此模式处于激活状态，因为在配置选项 "%s" 中没有数据库具有 "%s" 角色。',
-      'This mode may be used to perform temporary maintenance, test configuration, or archive an installation permanently.' =>
-        '此模式可用于执行临时维护、测试配置或永久归档安装。',
-      'This object ("%s") has more than %s transactions in its most recent transaction group; this is too many.' =>
-        '此对象（"%s"）在其最近的事务组中包含超过 %s 个事务；这太多了。',
-      'This object (of class "%s") does not implement the required interface ("%s"), so files can not be manually attached to it.' =>
-        '此对象（类 "%s"）未实现所需的接口（"%s"），因此无法手动将文件附加到它。',
-      'This object (of class "%s") does not implement the required interface ("%s"), so files can not be manually detached from it.' =>
-        '此对象（类 "%s"）未实现所需的接口（"%s"），因此无法手动从它分离文件。',
+      'This mode is active because no database has a "%s" role in the configuration option "%s".' => '此模式处于激活状态，因为在配置选项 "%s" 中没有数据库具有 "%s" 角色。',
+      'This mode may be used to perform temporary maintenance, test configuration, or archive an installation permanently.' => '此模式可用于执行临时维护、测试配置或永久归档安装。',
+      'This object ("%s") has more than %s transactions in its most recent transaction group; this is too many.' => '此对象（"%s"）在其最近的事务组中包含超过 %s 个事务；这太多了。',
+      'This object (of class "%s") does not implement the required interface ("%s"), so files can not be manually attached to it.' => '此对象（类 "%s"）未实现所需的接口（"%s"），因此无法手动将文件附加到它。',
+      'This object (of class "%s") does not implement the required interface ("%s"), so files can not be manually detached from it.' => '此对象（类 "%s"）未实现所需的接口（"%s"），因此无法手动从它分离文件。',
       'This object has a custom policy controlling who can take this action.' => '此对象具有自定义策略，控制谁可以执行此操作。',
       'This object has special rules which override normal object policy rules:' => '此对象具有覆盖正常对象策略规则的特殊规则：',
-      'This object is in %s and can only be seen or edited by users with access to view objects in the space.' =>
-        '此对象位于 %s 中，只能由有权查看该空间内对象的用户查看或编辑。',
-      'This object is not of an allowed type for the rule. Rules can only trigger on certain objects.' =>
-        '此对象不是规则允许的类型的对象。规则只能在某些对象上触发。',
-      'This object is public and can be viewed by anyone, even if they do not have an account on this server.' =>
-        '此对象是公开的，任何人都可以查看，即使他们在此服务器上没有账户。',
-      'This option can not be edited from the web UI. Use %s to adjust garbage collector policies.' =>
-        '此选项无法从 Web UI 编辑。使用 %s 调整垃圾回收器策略。',
-      'This option enables verbose error reporting (stack traces, error callouts) and forces disk reads of static assets on every reload.' =>
-        '此选项启用详细的错误报告（堆栈跟踪、错误标注），并强制在每次重新加载时从磁盘读取静态资源。',
-      'This option generally did not prove useful. Resource hash keys are now managed automatically.' =>
-        '此选项通常证明没有用处。资源哈希密钥现在已自动管理。',
-      'This option has been migrated to the "Auth" application. Your old configuration is still in effect, but now stored in "Auth" instead of configuration. Going forward, you can manage authentication from the web UI.' =>
-        '此选项已迁移到“Auth”应用。您的旧配置仍然有效，但现在存储在“Auth”中而不是配置中。今后，您可以从 Web UI 管理身份验证。',
-      'This option has been removed, you can use Dashboards to provide homepage customization. See T11533 for more details.' =>
-        '此选项已被移除，您可以使用仪表板来提供主页自定义。有关更多详细信息，请参阅 T11533。',
+      'This object is in %s and can only be seen or edited by users with access to view objects in the space.' => '此对象位于 %s 中，只能由有权查看该空间内对象的用户查看或编辑。',
+      'This object is not of an allowed type for the rule. Rules can only trigger on certain objects.' => '此对象不是规则允许的类型的对象。规则只能在某些对象上触发。',
+      'This object is public and can be viewed by anyone, even if they do not have an account on this server.' => '此对象是公开的，任何人都可以查看，即使他们在此服务器上没有账户。',
+      'This option can not be edited from the web UI. Use %s to adjust garbage collector policies.' => '此选项无法从 Web UI 编辑。使用 %s 调整垃圾回收器策略。',
+      'This option enables verbose error reporting (stack traces, error callouts) and forces disk reads of static assets on every reload.' => '此选项启用详细的错误报告（堆栈跟踪、错误标注），并强制在每次重新加载时从磁盘读取静态资源。',
+      'This option generally did not prove useful. Resource hash keys are now managed automatically.' => '此选项通常证明没有用处。资源哈希密钥现在已自动管理。',
+      'This option has been migrated to the "Auth" application. Your old configuration is still in effect, but now stored in "Auth" instead of configuration. Going forward, you can manage authentication from the web UI.' => '此选项已迁移到“Auth”应用。您的旧配置仍然有效，但现在存储在“Auth”中而不是配置中。今后，您可以从 Web UI 管理身份验证。',
+      'This option has been removed, you can use Dashboards to provide homepage customization. See T11533 for more details.' => '此选项已被移除，您可以使用仪表板来提供主页自定义。有关更多详细信息，请参阅 T11533。',
       'This option has been removed. You may delete it at your convenience.' => '此选项已被移除。您可以在方便时删除它。',
-      'This option has been renamed to `%s` to emphasize the unfinished nature of many prototype applications. Your existing setting has been migrated.' =>
-        '此选项已重命名为 `%s`，以强调许多原型应用的未完成性质。您现有的设置已迁移。',
-      'This option has been replaced with `ui.logo`, which provides more flexible configuration options.' =>
-        '此选项已被 `ui.logo` 取代，后者提供了更灵活的配置选项。',
-      'This page documents the commands you can use to interact with documents in Legalpad.' =>
-        '此页面记录了您可用于与 Legalpad 中的文档交互的命令。',
-      'This page documents the commands you can use to interact with events in Calendar. These commands work when creating new tasks via email and when replying to existing tasks.' =>
-        '此页面记录了您可用于与 Calendar 中的事件交互的命令。这些命令在通过邮件创建新任务和回复现有任务时均有效。',
+      'This option has been renamed to `%s` to emphasize the unfinished nature of many prototype applications. Your existing setting has been migrated.' => '此选项已重命名为 `%s`，以强调许多原型应用的未完成性质。您现有的设置已迁移。',
+      'This option has been replaced with `ui.logo`, which provides more flexible configuration options.' => '此选项已被 `ui.logo` 取代，后者提供了更灵活的配置选项。',
+      'This page documents the commands you can use to interact with documents in Legalpad.' => '此页面记录了您可用于与 Legalpad 中的文档交互的命令。',
+      'This page documents the commands you can use to interact with events in Calendar. These commands work when creating new tasks via email and when replying to existing tasks.' => '此页面记录了您可用于与 Calendar 中的事件交互的命令。这些命令在通过邮件创建新任务和回复现有任务时均有效。',
       'This page documents the commands you can use to interact with files.' => '此页面记录了您可用于与文件交互的命令。',
       'This page documents the commands you can use to interact with image macros.' => '此页面记录了您可用于与图片宏交互的命令。',
-      'This page documents the commands you can use to interact with mocks in Pholio.' =>
-        '此页面记录了您可用于与 Pholio 中的模型交互的命令。',
-      'This page documents the commands you can use to interact with questions in Ponder.' =>
-        '此页面记录了您可用于与 Ponder 中的问题交互的命令。',
-      'This page documents the commands you can use to interact with tasks in Maniphest. These commands work when creating new tasks via email and when replying to existing tasks.' =>
-        '此页面记录了您可用于与 Maniphest 中的任务交互的命令。这些命令在通过邮件创建新任务和回复现有任务时均有效。',
+      'This page documents the commands you can use to interact with mocks in Pholio.' => '此页面记录了您可用于与 Pholio 中的模型交互的命令。',
+      'This page documents the commands you can use to interact with questions in Ponder.' => '此页面记录了您可用于与 Ponder 中的问题交互的命令。',
+      'This page documents the commands you can use to interact with tasks in Maniphest. These commands work when creating new tasks via email and when replying to existing tasks.' => '此页面记录了您可用于与 Maniphest 中的任务交互的命令。这些命令在通过邮件创建新任务和回复现有任务时均有效。',
       'This page raised PHP errors. Find them in DarkConsole or the error log.' => '此页面引发了 PHP 错误。请在 DarkConsole 或错误日志中查找。',
       'This panel is invalid or does not exist. It may have been deleted.' => '此面板无效或不存在。它可能已被删除。',
-      'This panel is not used on any dashboard or inside any other panel container.' =>
-        '此面板未在任何仪表板或其他面板容器中使用。',
+      'This panel is not used on any dashboard or inside any other panel container.' => '此面板未在任何仪表板或其他面板容器中使用。',
       'This panel will be archived and no longer appear in lists of active panels.' => '此面板将被归档，不再显示在活动面板列表中。',
-      'This panel will be reactivated and appear in other interfaces as an active panel.' =>
-        '此面板将被重新激活，并在其他界面中显示为活动面板。',
-      'This password is associated with an object PHID ("%s") for a different object than the provided one ("%s").' =>
-        '此密码与另一个对象 PHID（"%s"）关联，而非与提供的对象（"%s"）关联。',
-      'This policy rule (of class "%s") does not have an associated object policy key.' =>
-        '此策略规则（类 "%s"）没有关联的对象策略键。',
-      'This post has been archived, and is only visible to you and other users who can edit %s.' =>
-        '此帖子已被归档，仅对您和可以编辑 %s 的其他用户可见。',
-      'This post is not associated with a blog (the blog may have been deleted). Use "Move Post" to move it to a new blog.' =>
-        '此帖子未与博客关联（该博客可能已被删除）。请使用“移动帖子”将其移至新博客。',
-      'This post will revert to draft status and no longer be visible to other users.' =>
-        '此帖子将恢复为草稿状态，不再对其他用户可见。',
-      'This private key is not formatted correctly. Check that you have provided the complete text of a valid private key.' =>
-        '此私钥格式不正确。请检查您是否提供了有效私钥的完整文本。',
-      'This private key requires a passphrase, but no passphrase was provided. Check that you supplied the correct key, or provide the passphrase.' =>
-        '此私钥需要密码短语，但未提供密码短语。请检查您是否提供了正确的密钥，或提供密码短语。',
-      'This private key requires a passphrase, but the wrong passphrase was provided. Check that you supplied the correct key and passphrase.' =>
-        '此私钥需要密码短语，但提供了错误的密码短语。请检查您是否提供了正确的密钥和密码短语。',
+      'This panel will be reactivated and appear in other interfaces as an active panel.' => '此面板将被重新激活，并在其他界面中显示为活动面板。',
+      'This password is associated with an object PHID ("%s") for a different object than the provided one ("%s").' => '此密码与另一个对象 PHID（"%s"）关联，而非与提供的对象（"%s"）关联。',
+      'This policy rule (of class "%s") does not have an associated object policy key.' => '此策略规则（类 "%s"）没有关联的对象策略键。',
+      'This post has been archived, and is only visible to you and other users who can edit %s.' => '此帖子已被归档，仅对您和可以编辑 %s 的其他用户可见。',
+      'This post is not associated with a blog (the blog may have been deleted). Use "Move Post" to move it to a new blog.' => '此帖子未与博客关联（该博客可能已被删除）。请使用“移动帖子”将其移至新博客。',
+      'This post will revert to draft status and no longer be visible to other users.' => '此帖子将恢复为草稿状态，不再对其他用户可见。',
+      'This private key is not formatted correctly. Check that you have provided the complete text of a valid private key.' => '此私钥格式不正确。请检查您是否提供了有效私钥的完整文本。',
+      'This private key requires a passphrase, but no passphrase was provided. Check that you supplied the correct key, or provide the passphrase.' => '此私钥需要密码短语，但未提供密码短语。请检查您是否提供了正确的密钥，或提供密码短语。',
+      'This private key requires a passphrase, but the wrong passphrase was provided. Check that you supplied the correct key and passphrase.' => '此私钥需要密码短语，但提供了错误的密码短语。请检查您是否提供了正确的密钥和密码短语。',
       'This private material for this credential is not accessible via API calls.' => '此凭证的私有材料无法通过 API 调用访问。',
       'This project is a milestone, and milestones may not have subprojects.' => '此项目是一个里程碑，里程碑不能拥有子项目。',
-      'This project is already a milestone, and milestones may not have their own milestones.' =>
-        '此项目已是里程碑，里程碑不能拥有自己的里程碑。',
-      'This property label and property value are quite long. They demonstrate the wrapping behavior of the element, or lack thereof if something terrible has happened.' =>
-        '此属性标签和属性值相当长。它们展示了元素的换行行为，如果发生了可怕的事情则可能没有换行。',
-      'This provider ("%s") already exists, and you can not add more than one instance of it. You can edit the existing provider, or you can choose a different provider.' =>
-        '此提供商（"%s"）已存在，您不能添加多个实例。您可以编辑现有提供商，或选择其他提供商。',
-      'This public key is already associated with another user or device. Each key must unambiguously identify a single unique owner.' =>
-        '此公钥已与另一个用户或设备关联。每个密钥必须明确标识唯一的所有者。',
-      'This query ("%s") does not support sorting by order key "%s". Supported orders are: %s.' =>
-        '此查询（"%s"）不支持按排序键 "%s" 排序。支持的排序方式为：%s。',
-      'This query (of class "%s") does not implement newResultObject(), but must implement this method to enable support for Spaces.' =>
-        '这个查询（类 "%s"）未实现 newResultObject()，但必须实现此方法才能启用对 Spaces 的支持。',
-      'This query (of class "%s") returned an object of class "%s" from getNewResultObject(), but it does not implement the required interface ("%s"). Objects must implement this interface to enable Spaces support.' =>
-        '这个查询（类 "%s"）从 getNewResultObject() 返回了一个类为 "%s" 的对象，但该对象未实现所需的接口（"%s"）。对象必须实现此接口才能启用 Spaces 支持。',
+      'This project is already a milestone, and milestones may not have their own milestones.' => '此项目已是里程碑，里程碑不能拥有自己的里程碑。',
+      'This property label and property value are quite long. They demonstrate the wrapping behavior of the element, or lack thereof if something terrible has happened.' => '此属性标签和属性值相当长。它们展示了元素的换行行为，如果发生了可怕的事情则可能没有换行。',
+      'This provider ("%s") already exists, and you can not add more than one instance of it. You can edit the existing provider, or you can choose a different provider.' => '此提供商（"%s"）已存在，您不能添加多个实例。您可以编辑现有提供商，或选择其他提供商。',
+      'This public key is already associated with another user or device. Each key must unambiguously identify a single unique owner.' => '此公钥已与另一个用户或设备关联。每个密钥必须明确标识唯一的所有者。',
+      'This query ("%s") does not support sorting by order key "%s". Supported orders are: %s.' => '此查询（"%s"）不支持按排序键 "%s" 排序。支持的排序方式为：%s。',
+      'This query (of class "%s") does not implement newResultObject(), but must implement this method to enable support for Spaces.' => '这个查询（类 "%s"）未实现 newResultObject()，但必须实现此方法才能启用对 Spaces 的支持。',
+      'This query (of class "%s") returned an object of class "%s" from getNewResultObject(), but it does not implement the required interface ("%s"). Objects must implement this interface to enable Spaces support.' => '这个查询（类 "%s"）从 getNewResultObject() 返回了一个类为 "%s" 的对象，但该对象未实现所需的接口（"%s"）。对象必须实现此接口才能启用 Spaces 支持。',
       'This query is constrained by a project you do not have permission to see.' => '此查询受限于您无权查看的项目。',
-      'This query matches only unowned documents owned by anyone, which is impossible.' =>
-        '此查询仅匹配无归属文档且又匹配任何人拥有的文档，这是不可能的。',
-      'This query specifies an invalid parameter. Review the query parameters and correct errors.' =>
-        '此查询指定了无效参数。请检查查询参数并纠正错误。',
-      'This query specifies only(), but no other constraints which it can apply to.' =>
-        '此查询仅指定了 only()，但没有其他可应用的约束条件。',
-      'This query uses a fulltext function which this document type does not support.' =>
-        '此查询使用了全文搜索功能，但该文档类型不支持此功能。',
+      'This query matches only unowned documents owned by anyone, which is impossible.' => '此查询仅匹配无归属文档且又匹配任何人拥有的文档，这是不可能的。',
+      'This query specifies an invalid parameter. Review the query parameters and correct errors.' => '此查询指定了无效参数。请检查查询参数并纠正错误。',
+      'This query specifies only(), but no other constraints which it can apply to.' => '此查询仅指定了 only()，但没有其他可应用的约束条件。',
+      'This query uses a fulltext function which this document type does not support.' => '此查询使用了全文搜索功能，但该文档类型不支持此功能。',
       'This queue has no open items which you have permission to work on.' => '此队列中没有您有权限处理的待办项。',
-      'This recipient has disabled all email notifications (Settings > Email Preferences > Email Notifications).' =>
-        '此收件人已禁用所有邮件通知（设置 > 邮件偏好 > 邮件通知）。',
-      'This recipient is the user whose actions caused delivery of this message, but they have set preferences so they do not receive mail about their own actions (Settings > Email Preferences > Self Actions).' =>
-        '此收件人是导致此消息发送的用户，但其已设置偏好不接收关于自己操作的邮件（设置 > 邮件偏好 > 自身操作）。',
-      'This recipient was added by a "Send me an Email" rule in Herald, which overrides some delivery settings.' =>
-        '此收件人由 Herald 中的“给我发送邮件”规则添加，该规则会覆盖部分投递设置。',
+      'This recipient has disabled all email notifications (Settings > Email Preferences > Email Notifications).' => '此收件人已禁用所有邮件通知（设置 > 邮件偏好 > 邮件通知）。',
+      'This recipient is the user whose actions caused delivery of this message, but they have set preferences so they do not receive mail about their own actions (Settings > Email Preferences > Self Actions).' => '此收件人是导致此消息发送的用户，但其已设置偏好不接收关于自己操作的邮件（设置 > 邮件偏好 > 自身操作）。',
+      'This recipient was added by a "Send me an Email" rule in Herald, which overrides some delivery settings.' => '此收件人由 Herald 中的“给我发送邮件”规则添加，该规则会覆盖部分投递设置。',
       'This replica is lagging far behind the master. Data is at risk!' => '此副本远远落后于主库。数据存在风险！',
-      'This request asked for "%s" on host "%s", but no site is configured which can serve this request.' =>
-        '此请求在主机 "%s" 上请求了 "%s"，但未配置可处理此请求的站点。',
+      'This request asked for "%s" on host "%s", but no site is configured which can serve this request.' => '此请求在主机 "%s" 上请求了 "%s"，但未配置可处理此请求的站点。',
       'This request has timed out because you took too long to respond.' => '此请求已超时，因为您响应时间过长。',
-      'This request improperly specifies an MFA challenge token ("%s") multiple times and can not be processed.' =>
-        '此请求多次不当指定了 MFA 质询令牌（"%s"），无法处理。',
-      'This request included an improperly formatted MFA challenge token and can not be processed.' =>
-        '此请求包含格式不正确的 MFA 质询令牌，无法处理。',
-      'This request originates from outside of the cluster address range. Requests signed with cluster API tokens must originate from within the cluster.' =>
-        '此请求源自集群地址范围之外。使用集群 API 令牌签名的请求必须源自集群内部。',
-      'This request originates from outside of the cluster address range. Requests signed with trusted device keys must originate from within the cluster.' =>
-        '此请求源自集群地址范围之外。使用可信设备密钥签名的请求必须源自集群内部。',
-      'This request reached a site which requires HTTPS, but the request is not marked as HTTPS.' =>
-        '此请求到达了一个需要 HTTPS 的站点，但请求未标记为 HTTPS。',
+      'This request improperly specifies an MFA challenge token ("%s") multiple times and can not be processed.' => '此请求多次不当指定了 MFA 质询令牌（"%s"），无法处理。',
+      'This request included an improperly formatted MFA challenge token and can not be processed.' => '此请求包含格式不正确的 MFA 质询令牌，无法处理。',
+      'This request originates from outside of the cluster address range. Requests signed with cluster API tokens must originate from within the cluster.' => '此请求源自集群地址范围之外。使用集群 API 令牌签名的请求必须源自集群内部。',
+      'This request originates from outside of the cluster address range. Requests signed with trusted device keys must originate from within the cluster.' => '此请求源自集群地址范围之外。使用可信设备密钥签名的请求必须源自集群内部。',
+      'This request reached a site which requires HTTPS, but the request is not marked as HTTPS.' => '此请求到达了一个需要 HTTPS 的站点，但请求未标记为 HTTPS。',
       'This rule has a recursive dependency on itself and can not be evaluated.' => '此规则对自身存在递归依赖，无法评估。',
-      'This rule is only supposed to be repeated a single time, and it has already been applied.' =>
-        '此规则本应仅重复一次，且已应用过。',
-      'This rule matched, but did not take any actions because it is configured to act only if it did not match the last time.' =>
-        '此规则已匹配，但未执行任何操作，因为它被配置为仅在上次未匹配时才执行操作。',
+      'This rule is only supposed to be repeated a single time, and it has already been applied.' => '此规则本应仅重复一次，且已应用过。',
+      'This rule matched, but did not take any actions because it is configured to act only if it did not match the last time.' => '此规则已匹配，但未执行任何操作，因为它被配置为仅在上次未匹配时才执行操作。',
       'This rule type is not supported by the selected content type.' => '所选内容类型不支持此规则类型。',
-      'This rule was created with a newer version of Herald. You can not view or edit it in this older version. Upgrade your software.' =>
-        '此规则由较新版本的 Herald 创建。您无法在此旧版本中查看或编辑它。请升级您的软件。',
-      'This server can send real-time notifications to your web browser or to your desktop. Select where you want to receive these real-time updates.' =>
-        '此服务器可向您的网页浏览器或桌面发送实时通知。请选择您希望接收这些实时更新的位置。',
-      'This server has consistently been unable to reach the writable ("master") database while processing recent requests.' =>
-        '此服务器在处理最近请求时一直无法访问可写（"master"）数据库。',
-      'This server is configured in cluster mode, with multiple database hosts. Use "--host" to specify which host you want to operate on.' =>
-        '此服务器配置为集群模式，具有多个数据库主机。请使用 "--host" 指定要操作的主机。',
-      'This server is configured to use a notification server, but is not able to connect to it.' =>
-        '此服务器配置为使用通知服务器，但无法连接到它。',
-      'This server is configured with an email domain whitelist (in %s), so only users with a verified email address at one of these %s allowed domain(s) will be able to register an account: %s' =>
-        '此服务器配置了邮件域名白名单（在 %s 中），因此只有拥有这些 %s 个允许域名之一的已验证邮箱地址的用户才能注册账户：%s',
-      'This server is configured with multiple master databases, but master "%s" is missing a "partition" configuration key to define application partitioning.' =>
-        '此服务器配置了多个主数据库，但主库 "%s" 缺少用于定义应用分区的 "partition" 配置键。',
-      'This server is currently in read-only mode. Use --force to override this mode.' =>
-        '此服务器当前处于只读模式。请使用 --force 覆盖此模式。',
+      'This rule was created with a newer version of Herald. You can not view or edit it in this older version. Upgrade your software.' => '此规则由较新版本的 Herald 创建。您无法在此旧版本中查看或编辑它。请升级您的软件。',
+      'This server can send real-time notifications to your web browser or to your desktop. Select where you want to receive these real-time updates.' => '此服务器可向您的网页浏览器或桌面发送实时通知。请选择您希望接收这些实时更新的位置。',
+      'This server has consistently been unable to reach the writable ("master") database while processing recent requests.' => '此服务器在处理最近请求时一直无法访问可写（"master"）数据库。',
+      'This server is configured in cluster mode, with multiple database hosts. Use "--host" to specify which host you want to operate on.' => '此服务器配置为集群模式，具有多个数据库主机。请使用 "--host" 指定要操作的主机。',
+      'This server is configured to use a notification server, but is not able to connect to it.' => '此服务器配置为使用通知服务器，但无法连接到它。',
+      'This server is configured with an email domain whitelist (in %s), so only users with a verified email address at one of these %s allowed domain(s) will be able to register an account: %s' => '此服务器配置了邮件域名白名单（在 %s 中），因此只有拥有这些 %s 个允许域名之一的已验证邮箱地址的用户才能注册账户：%s',
+      'This server is configured with multiple master databases, but master "%s" is missing a "partition" configuration key to define application partitioning.' => '此服务器配置了多个主数据库，但主库 "%s" 缺少用于定义应用分区的 "partition" 配置键。',
+      'This server is currently in read-only mode. Use --force to override this mode.' => '此服务器当前处于只读模式。请使用 --force 覆盖此模式。',
       'This server is in read-only mode (no writable database is configured).' => '此服务器处于只读模式（未配置可写数据库）。',
-      'This server is not configured to serve cluster requests. Set `cluster.addresses` in the configuration to whitelist cluster hosts before sending requests that use a cluster authentication mechanism.' =>
-        '此服务器未配置为提供集群请求。请在配置中设置 `cluster.addresses` 以将集群主机加入白名单，然后再发送使用集群身份验证机制的请求。',
-      'This server is running in silent mode, so it will not publish webhooks. To adjust this setting, see @{config:phabricator.silent} in Config.' =>
-        '此服务器正以静默模式运行，因此不会发布 Webhook。要调整此设置，请参见配置中的 @{config:phabricator.silent}。',
-      'This server thinks you are using %s, but your client is convinced that it is using %s. This is a serious misconfiguration with subtle, but significant, consequences.' =>
-        '此服务器认为您正在使用 %s，但您的客户端确信它正在使用 %s。这是一个严重的配置错误，后果微妙但影响重大。',
-      'This server was unable to connect to the writable ("master") database while handling this request, and automatically degraded into read-only mode.' =>
-        '此服务器在处理此请求时无法连接到可写（"master"）数据库，并自动降级为只读模式。',
-      'This server will periodically retry the connection and recover once service is restored. Most causes of persistent service interruption will require administrative intervention in order to restore service.' =>
-        '此服务器将定期重试连接，并在服务恢复后自动恢复。大多数持续服务中断的原因需要管理干预才能恢复服务。',
-      'This service is a cluster service. You do not have permission to edit cluster services, so you can not edit this service.' =>
-        '此服务是集群服务。您没有权限编辑集群服务，因此无法编辑此服务。',
-      'This service is configured in cluster mode and the address this request was received on ("%s") is not whitelisted as a cluster address.' =>
-        '此服务配置为集群模式，且接收此请求的地址（"%s"）未被列入集群地址白名单。',
-      'This software is running in silent mode. See `%s` in the configuration to change this setting.' =>
-        '此软件正以静默模式运行。请参见配置中的 `%s` 以更改此设置。',
-      'This software sent itself a test request that was compressed with "Content-Encoding: gzip", but received different bytes than it sent.' =>
-        '此软件向自身发送了一个使用 "Content-Encoding: gzip" 压缩的测试请求，但接收到的字节与发送的不同。',
+      'This server is not configured to serve cluster requests. Set `cluster.addresses` in the configuration to whitelist cluster hosts before sending requests that use a cluster authentication mechanism.' => '此服务器未配置为提供集群请求。请在配置中设置 `cluster.addresses` 以将集群主机加入白名单，然后再发送使用集群身份验证机制的请求。',
+      'This server is running in silent mode, so it will not publish webhooks. To adjust this setting, see @{config:phabricator.silent} in Config.' => '此服务器正以静默模式运行，因此不会发布 Webhook。要调整此设置，请参见配置中的 @{config:phabricator.silent}。',
+      'This server thinks you are using %s, but your client is convinced that it is using %s. This is a serious misconfiguration with subtle, but significant, consequences.' => '此服务器认为您正在使用 %s，但您的客户端确信它正在使用 %s。这是一个严重的配置错误，后果微妙但影响重大。',
+      'This server was unable to connect to the writable ("master") database while handling this request, and automatically degraded into read-only mode.' => '此服务器在处理此请求时无法连接到可写（"master"）数据库，并自动降级为只读模式。',
+      'This server will periodically retry the connection and recover once service is restored. Most causes of persistent service interruption will require administrative intervention in order to restore service.' => '此服务器将定期重试连接，并在服务恢复后自动恢复。大多数持续服务中断的原因需要管理干预才能恢复服务。',
+      'This service is a cluster service. You do not have permission to edit cluster services, so you can not edit this service.' => '此服务是集群服务。您没有权限编辑集群服务，因此无法编辑此服务。',
+      'This service is configured in cluster mode and the address this request was received on ("%s") is not whitelisted as a cluster address.' => '此服务配置为集群模式，且接收此请求的地址（"%s"）未被列入集群地址白名单。',
+      'This software is running in silent mode. See `%s` in the configuration to change this setting.' => '此软件正以静默模式运行。请参见配置中的 `%s` 以更改此设置。',
+      'This software sent itself a test request that was compressed with "Content-Encoding: gzip", but received different bytes than it sent.' => '此软件向自身发送了一个使用 "Content-Encoding: gzip" 压缩的测试请求，但接收到的字节与发送的不同。',
       'This source ("%s") does not have a "%s" cursor. Available cursors: %s.' => '此源（"%s"）没有 "%s" 游标。可用游标：%s。',
-      'This suggests your webserver is configured to decompress or mangle compressed requests.' =>
-        '这表明您的 Web 服务器配置为解压缩或损坏压缩请求。',
-      'This system does not have the "%s" extension installed, so character encodings are not supported. Install "%s" to enable support.' =>
-        '此系统未安装 "%s" 扩展，因此不支持字符编码。请安装 "%s" 以启用支持。',
-      'This tab panel does not have any tabs yet. Use "Add Tab..." to create or place a tab.' =>
-        '此标签面板尚无任何标签。请使用“添加标签...”创建或放置标签。',
-      'This table briefly describes available functions for this control. For details on a particular function, see the corresponding section below.' =>
-        '此表格简要描述了此控件的可用功能。有关特定功能的详细信息，请参见下面的相应部分。',
-      'This table summarizes the available mail commands. For details on a specific command, see the command section below.' =>
-        '此表格总结了可用的邮件命令。有关特定命令的详细信息，请参见下面的命令部分。',
-      'This task has no parent tasks and no subtasks, so there is no graph to draw.' =>
-        '此任务没有父任务和子任务，因此没有可绘制的图表。',
-      'This task is closed as a duplicate. Only comment if you think that this task is not a duplicate.' =>
-        '此任务因重复而被关闭。仅当您认为此任务不是重复时才发表评论。',
-      'This task is connected to more than %s other tasks. Only direct parents and subtasks are shown here.' =>
-        '此任务连接了超过 %s 个其他任务。此处仅显示直接父任务和子任务。',
-      'This task is connected to more than %s other tasks. Only direct parents and subtasks are shown here. Use %s to show more of the graph.' =>
-        '此任务连接了超过 %s 个其他任务。此处仅显示直接父任务和子任务。请使用 %s 显示更多图表。',
-      'This task is directly connected to more than %s other tasks, which is too many tasks to display. Use %s to browse parents or subtasks.' =>
-        '此任务直接连接了超过 %s 个其他任务，数量过多无法显示。请使用 %s 浏览父任务或子任务。',
-      'This task is directly connected to more than %s other tasks. Use %s to browse parents or subtasks, or %s to show more of the graph.' =>
-        '此任务直接连接了超过 %s 个其他任务。请使用 %s 浏览父任务或子任务，或使用 %s 显示更多图表。',
-      'This token is automatically generated, and used to make requests between nodes in a cluster. You can not use this token in external applications.' =>
-        '此令牌是自动生成的，用于在集群中的节点之间发起请求。您不能在外部应用程序中使用此令牌。',
-      'This transaction group requires MFA to apply, but the Editor was not configured with a Cancel URI. This workflow can not perform an MFA check.' =>
-        '此事务组需要 MFA 才能应用，但编辑器未配置取消 URI。此工作流无法执行 MFA 检查。',
-      'This transaction group requires MFA to apply, but the Editor was not configured with a Request. This workflow can not perform an MFA check.' =>
-        '此事务组需要 MFA 才能应用，但编辑器未配置请求。此工作流无法执行 MFA 检查。',
-      'This transaction group requires MFA to apply, but you can not provide an MFA response via Conduit. Edit this object via the web UI.' =>
-        '此事务组需要 MFA 才能应用，但您无法通过 Conduit 提供 MFA 响应。请通过网页界面编辑此对象。',
-      'This transaction should generate its %s automatically, but has already had one set!' =>
-        '此事务应自动生成其 %s，但已设置了一个！',
-      'This usually occurs when an administrator is actively working on fixing a temporary configuration or deployment problem.' =>
-        '这通常发生在管理员正在积极修复临时配置或部署问题时。',
+      'This suggests your webserver is configured to decompress or mangle compressed requests.' => '这表明您的 Web 服务器配置为解压缩或损坏压缩请求。',
+      'This system does not have the "%s" extension installed, so character encodings are not supported. Install "%s" to enable support.' => '此系统未安装 "%s" 扩展，因此不支持字符编码。请安装 "%s" 以启用支持。',
+      'This tab panel does not have any tabs yet. Use "Add Tab..." to create or place a tab.' => '此标签面板尚无任何标签。请使用“添加标签...”创建或放置标签。',
+      'This table briefly describes available functions for this control. For details on a particular function, see the corresponding section below.' => '此表格简要描述了此控件的可用功能。有关特定功能的详细信息，请参见下面的相应部分。',
+      'This table summarizes the available mail commands. For details on a specific command, see the command section below.' => '此表格总结了可用的邮件命令。有关特定命令的详细信息，请参见下面的命令部分。',
+      'This task has no parent tasks and no subtasks, so there is no graph to draw.' => '此任务没有父任务和子任务，因此没有可绘制的图表。',
+      'This task is closed as a duplicate. Only comment if you think that this task is not a duplicate.' => '此任务因重复而被关闭。仅当您认为此任务不是重复时才发表评论。',
+      'This task is connected to more than %s other tasks. Only direct parents and subtasks are shown here.' => '此任务连接了超过 %s 个其他任务。此处仅显示直接父任务和子任务。',
+      'This task is connected to more than %s other tasks. Only direct parents and subtasks are shown here. Use %s to show more of the graph.' => '此任务连接了超过 %s 个其他任务。此处仅显示直接父任务和子任务。请使用 %s 显示更多图表。',
+      'This task is directly connected to more than %s other tasks, which is too many tasks to display. Use %s to browse parents or subtasks.' => '此任务直接连接了超过 %s 个其他任务，数量过多无法显示。请使用 %s 浏览父任务或子任务。',
+      'This task is directly connected to more than %s other tasks. Use %s to browse parents or subtasks, or %s to show more of the graph.' => '此任务直接连接了超过 %s 个其他任务。请使用 %s 浏览父任务或子任务，或使用 %s 显示更多图表。',
+      'This token is automatically generated, and used to make requests between nodes in a cluster. You can not use this token in external applications.' => '此令牌是自动生成的，用于在集群中的节点之间发起请求。您不能在外部应用程序中使用此令牌。',
+      'This transaction group requires MFA to apply, but the Editor was not configured with a Cancel URI. This workflow can not perform an MFA check.' => '此事务组需要 MFA 才能应用，但编辑器未配置取消 URI。此工作流无法执行 MFA 检查。',
+      'This transaction group requires MFA to apply, but the Editor was not configured with a Request. This workflow can not perform an MFA check.' => '此事务组需要 MFA 才能应用，但编辑器未配置请求。此工作流无法执行 MFA 检查。',
+      'This transaction group requires MFA to apply, but you can not provide an MFA response via Conduit. Edit this object via the web UI.' => '此事务组需要 MFA 才能应用，但您无法通过 Conduit 提供 MFA 响应。请通过网页界面编辑此对象。',
+      'This transaction should generate its %s automatically, but has already had one set!' => '此事务应自动生成其 %s，但已设置了一个！',
+      'This usually occurs when an administrator is actively working on fixing a temporary configuration or deployment problem.' => '这通常发生在管理员正在积极修复临时配置或部署问题时。',
       'This version of the document is already the published version.' => '本文档的版本已经是已发布版本。',
       'This was a dry run to test Herald rules, no actions were executed.' => '这是测试 Herald 规则的试运行，未执行任何操作。',
-      'This web browser does not support desktop notifications. Only application notifications will be sent for this browser regardless of this preference.' =>
-        '此网页浏览器不支持桌面通知。无论此偏好如何，该浏览器仅会发送应用通知。',
-      'This web host ("%s") is set to a very different time than a database host "%s".' =>
-        '此 Web 主机（"%s"）设置的时间与数据库主机 "%s" 的时间差异很大。',
-      'This will authorize the requesting script to act on your behalf permanently, like giving the script your account password.' =>
-        '这将永久授权请求脚本代表您执行操作，就像将您的账户密码提供给该脚本一样。',
-      'This will create an authorization and OAuth token, permitting %s to access your account.' =>
-        '这将创建授权和 OAuth 令牌，允许 %s 访问您的账户。',
-      'This will only affect the current web frontend. Daemons and any other web frontends may continue to use older, cached code from their opcache.' =>
-        '这仅会影响当前的 Web 前端。守护进程和其他 Web 前端可能会继续使用其 OPcache 中较旧的缓存代码。',
-      'This workboard has been disabled, and you do not have permission to enable it. Only users who can edit this project can restore the workboard.' =>
-        '此工作板已被禁用，且您无权启用它。只有可以编辑此项目的用户才能恢复工作板。',
+      'This web browser does not support desktop notifications. Only application notifications will be sent for this browser regardless of this preference.' => '此网页浏览器不支持桌面通知。无论此偏好如何，该浏览器仅会发送应用通知。',
+      'This web host ("%s") is set to a very different time than a database host "%s".' => '此 Web 主机（"%s"）设置的时间与数据库主机 "%s" 的时间差异很大。',
+      'This will authorize the requesting script to act on your behalf permanently, like giving the script your account password.' => '这将永久授权请求脚本代表您执行操作，就像将您的账户密码提供给该脚本一样。',
+      'This will create an authorization and OAuth token, permitting %s to access your account.' => '这将创建授权和 OAuth 令牌，允许 %s 访问您的账户。',
+      'This will only affect the current web frontend. Daemons and any other web frontends may continue to use older, cached code from their opcache.' => '这仅会影响当前的 Web 前端。守护进程和其他 Web 前端可能会继续使用其 OPcache 中较旧的缓存代码。',
+      'This workboard has been disabled, and you do not have permission to enable it. Only users who can edit this project can restore the workboard.' => '此工作板已被禁用，且您无权启用它。只有可以编辑此项目的用户才能恢复工作板。',
       'This workboard has been disabled, but can be restored to its former glory.' => '此工作板已被禁用，但可以恢复其昔日辉煌。',
-      'This workflow will generate a new SSH keypair, add the public key, and let you download the private key.' =>
-        '此工作流将生成新的 SSH 密钥对，添加公钥，并允许您下载私钥。',
-      'This workflow will send this user ("%s") a copy of the "Welcome to %s" email that users normally receive when their accounts are created by an administrator.' =>
-        '此工作流将向该用户（"%s"）发送一封“欢迎使用 %s”邮件的副本，该邮件通常是用户由管理员创建账户时收到的。',
-      'Thispropertylabelandpropertyvaluearequitelongandhavenospacestheydemonstratetheoverflowbehavioroftheelementorlackthereof.' =>
-        '此属性标签和属性值相当长且没有空格它们用于演示元素的溢出行为或缺乏该行为',
+      'This workflow will generate a new SSH keypair, add the public key, and let you download the private key.' => '此工作流将生成新的 SSH 密钥对，添加公钥，并允许您下载私钥。',
+      'This workflow will send this user ("%s") a copy of the "Welcome to %s" email that users normally receive when their accounts are created by an administrator.' => '此工作流将向该用户（"%s"）发送一封“欢迎使用 %s”邮件的副本，该邮件通常是用户由管理员创建账户时收到的。',
+      'Thispropertylabelandpropertyvaluearequitelongandhavenospacestheydemonstratetheoverflowbehavioroftheelementorlackthereof.' => '此属性标签和属性值相当长且没有空格它们用于演示元素的溢出行为或缺乏该行为',
       'Thumbnails are visible only to users who can view the original file.' => '只有可以查看原始文件的用户才能看到缩略图。',
-      'To access this object, users must have first have access capabilities on these other objects:' =>
-        '要访问此对象，用户必须首先对这些其他对象具有访问权限：',
-      'To access your account, provide your email address. An email with a login link will be sent to you.' =>
-        '要访问您的账户，请提供您的电子邮件地址。包含登录链接的邮件将发送给您。',
-      'To add a Duo factor, first download and install the Duo application on your phone. Once you have launched the application and are ready to perform setup, click continue.' =>
-        '要添加 Duo 因素，请先在手机上下载并安装 Duo 应用。启动应用并准备就绪后，点击继续。',
+      'To access this object, users must have first have access capabilities on these other objects:' => '要访问此对象，用户必须首先对这些其他对象具有访问权限：',
+      'To access your account, provide your email address. An email with a login link will be sent to you.' => '要访问您的账户，请提供您的电子邮件地址。包含登录链接的邮件将发送给您。',
+      'To add a Duo factor, first download and install the Duo application on your phone. Once you have launched the application and are ready to perform setup, click continue.' => '要添加 Duo 因素，请先在手机上下载并安装 Duo 应用。启动应用并准备就绪后，点击继续。',
       'To begin on such a grand journey, requires but just a single step.' => '要开始如此宏大的旅程，只需迈出第一步。',
       'To change the audio for a macro, you must upload an audio file.' => '要更改宏的音频，您必须上传音频文件。',
-      'To choose a different primary contact number, make that number primary (instead of trying to demote this one).' =>
-        '要选择其他主要联系号码，请将该号码设为主要号码（而不是尝试降级此号码）。',
-      'To configure the search engines, edit [[ %s | %s ]] configuration. See **[[ %s | %s ]]** for documentation.' =>
-        '要配置搜索引擎，请编辑 [[ %s | %s ]] 配置。有关文档，请参见 **[[ %s | %s ]]**。',
-      'To edit a wiki document, you must also be able to view all of its ancestors.' =>
-        '要编辑 wiki 文档，您还必须能够查看其所有上级文档。',
-      'To invite users, enter their email addresses below. Separate addresses with commas or newlines.' =>
-        '要邀请用户，请在下方输入他们的电子邮件地址。请用逗号或换行分隔地址。',
+      'To choose a different primary contact number, make that number primary (instead of trying to demote this one).' => '要选择其他主要联系号码，请将该号码设为主要号码（而不是尝试降级此号码）。',
+      'To configure the search engines, edit [[ %s | %s ]] configuration. See **[[ %s | %s ]]** for documentation.' => '要配置搜索引擎，请编辑 [[ %s | %s ]] 配置。有关文档，请参见 **[[ %s | %s ]]**。',
+      'To edit a wiki document, you must also be able to view all of its ancestors.' => '要编辑 wiki 文档，您还必须能够查看其所有上级文档。',
+      'To invite users, enter their email addresses below. Separate addresses with commas or newlines.' => '要邀请用户，请在下方输入他们的电子邮件地址。请用逗号或换行分隔地址。',
       'To manage prototypes, enable them by setting %s in your configuration.' => '要管理原型，请在配置中通过设置 %s 来启用它们。',
-      'To permanently destroy this user, run this command from the command line:' =>
-        '要永久销毁此用户，请从命令行运行以下命令：',
-      'To render more than %s levels of panels nested inside other panels, purchase a subscription to %s Gold.' =>
-        '要渲染超过 %s 层的嵌套面板，请购买 %s Gold 订阅。',
-      'To reset your password, provide your email address. An email with a login link will be sent to you.' =>
-        '要重置密码，请提供您的电子邮件地址。包含登录链接的邮件将发送给您。',
-      'To search for an LDAP record before authenticating, either check the **Always Search** checkbox or enter an anonymous username and password to use to perform the search.' =>
-        '要在身份验证前搜索 LDAP 记录，请勾选**始终搜索**复选框，或输入用于执行搜索的匿名用户名和密码。',
-      'To set a new password, request a password reset link from the login screen and then follow the instructions.' =>
-        '要设置新密码，请从登录屏幕请求密码重置链接，然后按照说明操作。',
-      'To update these %d value(s), edit your PHP configuration file, located here:' =>
-        '要更新这些 %d 值，请编辑位于此处的 PHP 配置文件：',
-      'To update these %d value(s), run these command(s) from the command line:' =>
-        '要更新这些 %d 值，请从命令行运行以下命令：',
-      'To verify your phone as an authentication factor, a text message with a secret code will be sent to the phone number you have listed as your primary contact number.' =>
-        '要将您的手机验证为身份验证因素，包含验证码的短信将发送到您列为主联系号码的电话号码。',
-      'To view a binding, you must also be able to view its device and interface.' =>
-        '要查看绑定，您还必须能够查看其设备和接口。',
-      'To view a transcript, you must be able to view the object the transcript is about.' =>
-        '要查看记录，您必须能够查看该记录所属的对象。',
-      'To view a wiki document, you must also be able to view all of its ancestors. The most-restrictive view policy of this document\'s ancestors is "%s".' =>
-        '要查看 wiki 文档，您还必须能够查看其所有上级文档。此文档上级文档中最严格的查看策略是 "%s"。',
-      'Today, I went to the store. I bought an apple. I bought a banana. I bought a cherry. I paid for my goods, then I returned home.' =>
-        '今天，我去了商店。我买了一个苹果。我买了一根香蕉。我买了一颗樱桃。我为商品付款，然后回家了。',
-      'Too many account recovery email links have been sent to this account in a short period of time.' =>
-        '在短时间内已向此账户发送了过多的账户恢复邮件链接。',
-      'Too many arguments: expected only a configuration key when using "--stdin".' =>
-        '参数过多：使用 "--stdin" 时仅期望一个配置键。',
-      'Too many login failures recently. You must submit a CAPTCHA with your login request.' =>
-        '最近登录失败次数过多。您必须在登录请求中提交验证码。',
-      'Total wall time spent in this function and all of its children (children are other functions it called while executing).' =>
-        '此函数及其所有子函数（子函数指执行时调用的其他函数）花费的总挂钟时间。',
-      'Transaction ("%s", of type "%s") requires a handle ("%s") that it did not load.' =>
-        '事务("%s", 类型为"%s")需要一个未加载的句柄("%s")。',
-      'Transaction edge data must either be the edge PHID or an edge specification dictionary.' =>
-        '事务边数据必须是边 PHID 或边规范字典。',
-      'Transaction has type "%s", but that transaction type is not supported by this editor (%s).' =>
-        '事务类型为"%s"，但该事务类型不受此编辑器(%s)支持。',
-      'Transaction mail is now always sent with "Precedence: bulk" to improve deliverability.' =>
-        '事务邮件现在始终使用"Precedence: bulk"发送，以提高投递能力。',
-      'Transaction specifies both "afterPHID" and "afterPHIDs". Specify only "afterPHIDs".' =>
-        '事务同时指定了"afterPHID"和"afterPHIDs"。请仅指定"afterPHIDs"。',
-      'Transaction specifies both "beforePHID" and "beforePHIDs". Specify only "beforePHIDs".' =>
-        '事务同时指定了"beforePHID"和"beforePHIDs"。请仅指定"beforePHIDs"。',
-      'Transaction value when deleting Almanac properties must be a list of property names.' =>
-        '删除 Almanac 属性时，事务值必须是属性名称列表。',
-      'Transaction value when setting Almanac properties must be a map with property names as keys.' =>
-        '设置 Almanac 属性时，事务值必须是以属性名称为键的映射。',
-      'Transaction with key "%s" has invalid type "%s". This type is not recognized. Valid types are: %s.' =>
-        '键为"%s"的事务具有无效类型"%s"。该类型无法识别。有效类型为：%s。',
-      'Transactions are visible to users that can see the object which was acted upon. Some transactions - in particular, comments - are editable by the transaction author.' =>
-        '事务对可查看被操作对象的用户可见。某些事务（特别是评论）可由事务作者编辑。',
+      'To permanently destroy this user, run this command from the command line:' => '要永久销毁此用户，请从命令行运行以下命令：',
+      'To render more than %s levels of panels nested inside other panels, purchase a subscription to %s Gold.' => '要渲染超过 %s 层的嵌套面板，请购买 %s Gold 订阅。',
+      'To reset your password, provide your email address. An email with a login link will be sent to you.' => '要重置密码，请提供您的电子邮件地址。包含登录链接的邮件将发送给您。',
+      'To search for an LDAP record before authenticating, either check the **Always Search** checkbox or enter an anonymous username and password to use to perform the search.' => '要在身份验证前搜索 LDAP 记录，请勾选**始终搜索**复选框，或输入用于执行搜索的匿名用户名和密码。',
+      'To set a new password, request a password reset link from the login screen and then follow the instructions.' => '要设置新密码，请从登录屏幕请求密码重置链接，然后按照说明操作。',
+      'To update these %d value(s), edit your PHP configuration file, located here:' => '要更新这些 %d 值，请编辑位于此处的 PHP 配置文件：',
+      'To update these %d value(s), run these command(s) from the command line:' => '要更新这些 %d 值，请从命令行运行以下命令：',
+      'To verify your phone as an authentication factor, a text message with a secret code will be sent to the phone number you have listed as your primary contact number.' => '要将您的手机验证为身份验证因素，包含验证码的短信将发送到您列为主联系号码的电话号码。',
+      'To view a binding, you must also be able to view its device and interface.' => '要查看绑定，您还必须能够查看其设备和接口。',
+      'To view a transcript, you must be able to view the object the transcript is about.' => '要查看记录，您必须能够查看该记录所属的对象。',
+      'To view a wiki document, you must also be able to view all of its ancestors. The most-restrictive view policy of this document\'s ancestors is "%s".' => '要查看 wiki 文档，您还必须能够查看其所有上级文档。此文档上级文档中最严格的查看策略是 "%s"。',
+      'Today, I went to the store. I bought an apple. I bought a banana. I bought a cherry. I paid for my goods, then I returned home.' => '今天，我去了商店。我买了一个苹果。我买了一根香蕉。我买了一颗樱桃。我为商品付款，然后回家了。',
+      'Too many account recovery email links have been sent to this account in a short period of time.' => '在短时间内已向此账户发送了过多的账户恢复邮件链接。',
+      'Too many arguments: expected only a configuration key when using "--stdin".' => '参数过多：使用 "--stdin" 时仅期望一个配置键。',
+      'Too many login failures recently. You must submit a CAPTCHA with your login request.' => '最近登录失败次数过多。您必须在登录请求中提交验证码。',
+      'Total wall time spent in this function and all of its children (children are other functions it called while executing).' => '此函数及其所有子函数（子函数指执行时调用的其他函数）花费的总挂钟时间。',
+      'Transaction ("%s", of type "%s") requires a handle ("%s") that it did not load.' => '事务("%s", 类型为"%s")需要一个未加载的句柄("%s")。',
+      'Transaction edge data must either be the edge PHID or an edge specification dictionary.' => '事务边数据必须是边 PHID 或边规范字典。',
+      'Transaction has type "%s", but that transaction type is not supported by this editor (%s).' => '事务类型为"%s"，但该事务类型不受此编辑器(%s)支持。',
+      'Transaction mail is now always sent with "Precedence: bulk" to improve deliverability.' => '事务邮件现在始终使用"Precedence: bulk"发送，以提高投递能力。',
+      'Transaction specifies both "afterPHID" and "afterPHIDs". Specify only "afterPHIDs".' => '事务同时指定了"afterPHID"和"afterPHIDs"。请仅指定"afterPHIDs"。',
+      'Transaction specifies both "beforePHID" and "beforePHIDs". Specify only "beforePHIDs".' => '事务同时指定了"beforePHID"和"beforePHIDs"。请仅指定"beforePHIDs"。',
+      'Transaction value when deleting Almanac properties must be a list of property names.' => '删除 Almanac 属性时，事务值必须是属性名称列表。',
+      'Transaction value when setting Almanac properties must be a map with property names as keys.' => '设置 Almanac 属性时，事务值必须是以属性名称为键的映射。',
+      'Transaction with key "%s" has invalid type "%s". This type is not recognized. Valid types are: %s.' => '键为"%s"的事务具有无效类型"%s"。该类型无法识别。有效类型为：%s。',
+      'Transactions are visible to users that can see the object which was acted upon. Some transactions - in particular, comments - are editable by the transaction author.' => '事务对可查看被操作对象的用户可见。某些事务（特别是评论）可由事务作者编辑。',
       'Translations are defined for the locale `%s`, which is not recognized.' => '为区域设置`%s`定义了翻译，但该区域设置无法识别。',
-      'Trigger "%s" is not a valid trigger, or you do not have permission to view it.' =>
-        '触发器"%s"不是有效触发器，或您没有权限查看它。',
-      'Trigger is not scheduled to execute. Use --next to simulate a scheduled event.' =>
-        '触发器未计划执行。请使用 --next 模拟计划事件。',
+      'Trigger "%s" is not a valid trigger, or you do not have permission to view it.' => '触发器"%s"不是有效触发器，或您没有权限查看它。',
+      'Trigger is not scheduled to execute. Use --next to simulate a scheduled event.' => '触发器未计划执行。请使用 --next 模拟计划事件。',
       'Trigger ruleset is corrupt, rule (of type "%s") does not validate: %s' => '触发器规则集损坏，规则（类型为"%s"）验证失败：%s',
-      'Trigger ruleset is corrupt: expected a list of rule specifications, found "%s".' =>
-        '触发器规则集损坏：期望规则规范列表，但找到"%s"。',
-      'Trigger ruleset is corrupt: rule (at index "%s") is not a valid rule specification: %s' =>
-        '触发器规则集损坏：规则（在索引"%s"处）不是有效规则规范：%s',
-      'Trigger ruleset is corrupt: rule (at index "%s") should be a rule specification, but is actually "%s".' =>
-        '触发器规则集损坏：规则（在索引"%s"处）应为规则规范，但实际为"%s"。',
-      'Trusting a public key gives anyone holding the corresponding private key complete, unrestricted access to all data. The private key will be able to sign requests that bypass policy and security checks.' =>
-        '信任公钥将授予持有对应私钥的任何人完全无限制的访问权限。该私钥将能够签署绕过策略和安全检查的请求。',
-      'Trying to construct a dataset of type "%s", but this type is unknown. Supported types are: %s.' =>
-        '尝试构建类型为 "%s" 的数据集，但该类型未知。支持的类型有：%s。',
-      'Trying to create a new sublist of an existing handle list, but PHID "%s" does not appear in the parent list.' =>
-        '尝试为现有句柄列表创建新的子列表，但 PHID "%s" 未出现在父列表中。',
-      'Trying to forget lock "%s", but this connection does not remember that lock.' =>
-        '尝试忘记锁 "%s"，但此连接未记住该锁。',
-      'Trying to lease tasks selected in the leased phase! This is intended to be impossible.' =>
-        '尝试租用已在租用阶段选中的任务！这理应不可能发生。',
-      'Trying to mutate a %s, but this is not permitted; handle lists are immutable.' =>
-        '尝试修改 %s，但这是不允许的；句柄列表是不可变的。',
-      'Trying to read configuration "%s" before configuration has been initialized.' =>
-        '尝试在配置初始化之前读取配置 "%s"。',
-      'Trying to remember lock "%s", but this lock has already been remembered.' =>
-        '尝试记住锁 "%s"，但该锁已被记住。',
-      'Trying to retrieve markup field key "%s", but this feed story did not request it be rendered.' =>
-        '尝试检索标记字段键 "%s"，但此订阅源故事未请求渲染它。',
-      'Two HeraldActions (of classes "%s" and "%s") have the same action key ("%s") after expansion for an object of class "%s" inside adapter "%s". Each action must have a unique action key.' =>
-        '两个 HeraldActions（类分别为 "%s" 和 "%s"）在适配器 "%s" 中为类 "%s" 的对象展开后具有相同的操作键 ("%s")。每个操作必须具有唯一的操作键。',
-      'Two HeraldFields (of classes "%s" and "%s") have the same field key ("%s") after expansion for an object of class "%s" inside adapter "%s". Each field must have a unique field key.' =>
-        '两个 HeraldFields（类分别为 "%s" 和 "%s"）在适配器 "%s" 中为类 "%s" 的对象展开后具有相同的字段键 ("%s")。每个字段必须具有唯一的字段键。',
-      'Two builtin orders ("%s" and "%s") define the same key or alias ("%s"). Each order alias and key must be unique and identify a single order.' =>
-        '两个内置排序 ("%s" 和 "%s") 定义了相同的键或别名 ("%s")。每个排序别名和键必须唯一，且只能标识一个排序。',
-      'Two bulk edit groups have the same key ("%s"). Each bulk edit group must have a unique key.' =>
-        '两个批量编辑组具有相同的键 ("%s")。每个批量编辑组必须具有唯一的键。',
-      'Two different colors ("%s", "%s") are marked as the default color. Only one color may be marked as the default.' =>
-        '两个不同的颜色 ("%s", "%s") 被标记为默认颜色。只能有一个颜色被标记为默认。',
-      'Two different fulltext engine extensions ("%s" and "%s") both define a search function with the same key ("%s"). Each function must have a unique key.' =>
-        '两个不同的全文搜索引擎扩展 ("%s" 和 "%s") 都定义了具有相同键 ("%s") 的搜索函数。每个函数必须具有唯一的键。',
-      'Two different fulltext engine extensions ("%s" and "%s") both define a search function with the same name ("%s"). Each function must have a unique name.' =>
-        '两个不同的全文搜索引擎扩展 ("%s" 和 "%s") 都定义了具有相同名称 ("%s") 的搜索函数。每个函数必须具有唯一的名称。',
-      'Two different icons ("%s", "%s") are marked as the default icon. Only one icon may be marked as the default.' =>
-        '两个不同的图标 ("%s", "%s") 被标记为默认图标。只能有一个图标被标记为默认。',
-      'Two different icons ("%s", "%s") are marked with special attribute "%s". Only one icon may be marked with this attribute.' =>
-        '两个不同的图标 ("%s", "%s") 被标记为特殊属性 "%s"。只能有一个图标被标记为此属性。',
-      'Two different task priorities ("%s" and "%s") have the same keyword ("%s"). Keywords must uniquely identify priorities.' =>
-        '两个不同的任务优先级 ("%s" 和 "%s") 具有相同的关键字 ("%s")。关键字必须能唯一标识优先级。',
-      'Two field specifications share the same key ("%s"). Each specification must have a unique key.' =>
-        '两个字段规范共享相同的键 ("%s")。每个规范必须具有唯一的键。',
-      'Two fields in this SearchEngine use the same key ("%s"), but each field must use a unique key.' =>
-        '此 SearchEngine 中的两个字段使用了相同的键 ("%s")，但每个字段必须使用唯一的键。',
-      'Two guidance extensions generated guidance with the same key ("%s"). Each piece of guidance must have a unique key.' =>
-        '两个指导扩展生成了具有相同键 ("%s") 的指导。每条指导必须具有唯一的键。',
-      'Two objects (of classes "%s" and "%s") generate the same map value ("%s"). Each object must generate a unique map value.' =>
-        '两个对象（类分别为 "%s" 和 "%s"）生成了相同的映射值 ("%s")。每个对象必须生成唯一的映射值。',
-      'Two policy rules (of classes "%s" and "%s") define the same object policy key ("%s"), but each object policy rule must use a unique key.' =>
-        '两个策略规则（类分别为 "%s" 和 "%s"）定义了相同的对象策略键 ("%s")，但每个对象策略规则必须使用唯一的键。',
-      'Two search engine attachments (of classes "%s" and "%s") specify the same attachment key ("%s"); keys must be unique.' =>
-        '两个搜索引擎附件（类分别为 "%s" 和 "%s"）指定了相同的附件键 ("%s")；键必须唯一。',
-      'Two source PHIDs ("%s" and "%s") have different PHID types ("%s" and "%s"). All PHIDs must be of the same type to execute an edge object query.' =>
-        '两个源 PHID（"%s" 和 "%s"）具有不同的 PHID 类型（"%s" 和 "%s"）。执行边对象查询时，所有 PHID 必须是同一类型。',
-      'Two-up inline row scaffold must have one comment on the left and one comment on the right when showing two comments.' =>
-        '双栏内联行框架在显示两条注释时，左侧必须有一条注释，右侧必须有一条注释。',
-      'Type "%s" matches multiple indexable objects. Use a more specific string. Matching objects are: %s.' =>
-        '类型 "%s" 匹配多个可索引对象。请使用更具体的字符串。匹配的对象为：%s。',
+      'Trigger ruleset is corrupt: expected a list of rule specifications, found "%s".' => '触发器规则集损坏：期望规则规范列表，但找到"%s"。',
+      'Trigger ruleset is corrupt: rule (at index "%s") is not a valid rule specification: %s' => '触发器规则集损坏：规则（在索引"%s"处）不是有效规则规范：%s',
+      'Trigger ruleset is corrupt: rule (at index "%s") should be a rule specification, but is actually "%s".' => '触发器规则集损坏：规则（在索引"%s"处）应为规则规范，但实际为"%s"。',
+      'Trusting a public key gives anyone holding the corresponding private key complete, unrestricted access to all data. The private key will be able to sign requests that bypass policy and security checks.' => '信任公钥将授予持有对应私钥的任何人完全无限制的访问权限。该私钥将能够签署绕过策略和安全检查的请求。',
+      'Trying to construct a dataset of type "%s", but this type is unknown. Supported types are: %s.' => '尝试构建类型为 "%s" 的数据集，但该类型未知。支持的类型有：%s。',
+      'Trying to create a new sublist of an existing handle list, but PHID "%s" does not appear in the parent list.' => '尝试为现有句柄列表创建新的子列表，但 PHID "%s" 未出现在父列表中。',
+      'Trying to forget lock "%s", but this connection does not remember that lock.' => '尝试忘记锁 "%s"，但此连接未记住该锁。',
+      'Trying to lease tasks selected in the leased phase! This is intended to be impossible.' => '尝试租用已在租用阶段选中的任务！这理应不可能发生。',
+      'Trying to mutate a %s, but this is not permitted; handle lists are immutable.' => '尝试修改 %s，但这是不允许的；句柄列表是不可变的。',
+      'Trying to read configuration "%s" before configuration has been initialized.' => '尝试在配置初始化之前读取配置 "%s"。',
+      'Trying to remember lock "%s", but this lock has already been remembered.' => '尝试记住锁 "%s"，但该锁已被记住。',
+      'Trying to retrieve markup field key "%s", but this feed story did not request it be rendered.' => '尝试检索标记字段键 "%s"，但此订阅源故事未请求渲染它。',
+      'Two HeraldActions (of classes "%s" and "%s") have the same action key ("%s") after expansion for an object of class "%s" inside adapter "%s". Each action must have a unique action key.' => '两个 HeraldActions（类分别为 "%s" 和 "%s"）在适配器 "%s" 中为类 "%s" 的对象展开后具有相同的操作键 ("%s")。每个操作必须具有唯一的操作键。',
+      'Two HeraldFields (of classes "%s" and "%s") have the same field key ("%s") after expansion for an object of class "%s" inside adapter "%s". Each field must have a unique field key.' => '两个 HeraldFields（类分别为 "%s" 和 "%s"）在适配器 "%s" 中为类 "%s" 的对象展开后具有相同的字段键 ("%s")。每个字段必须具有唯一的字段键。',
+      'Two builtin orders ("%s" and "%s") define the same key or alias ("%s"). Each order alias and key must be unique and identify a single order.' => '两个内置排序 ("%s" 和 "%s") 定义了相同的键或别名 ("%s")。每个排序别名和键必须唯一，且只能标识一个排序。',
+      'Two bulk edit groups have the same key ("%s"). Each bulk edit group must have a unique key.' => '两个批量编辑组具有相同的键 ("%s")。每个批量编辑组必须具有唯一的键。',
+      'Two different colors ("%s", "%s") are marked as the default color. Only one color may be marked as the default.' => '两个不同的颜色 ("%s", "%s") 被标记为默认颜色。只能有一个颜色被标记为默认。',
+      'Two different fulltext engine extensions ("%s" and "%s") both define a search function with the same key ("%s"). Each function must have a unique key.' => '两个不同的全文搜索引擎扩展 ("%s" 和 "%s") 都定义了具有相同键 ("%s") 的搜索函数。每个函数必须具有唯一的键。',
+      'Two different fulltext engine extensions ("%s" and "%s") both define a search function with the same name ("%s"). Each function must have a unique name.' => '两个不同的全文搜索引擎扩展 ("%s" 和 "%s") 都定义了具有相同名称 ("%s") 的搜索函数。每个函数必须具有唯一的名称。',
+      'Two different icons ("%s", "%s") are marked as the default icon. Only one icon may be marked as the default.' => '两个不同的图标 ("%s", "%s") 被标记为默认图标。只能有一个图标被标记为默认。',
+      'Two different icons ("%s", "%s") are marked with special attribute "%s". Only one icon may be marked with this attribute.' => '两个不同的图标 ("%s", "%s") 被标记为特殊属性 "%s"。只能有一个图标被标记为此属性。',
+      'Two different task priorities ("%s" and "%s") have the same keyword ("%s"). Keywords must uniquely identify priorities.' => '两个不同的任务优先级 ("%s" 和 "%s") 具有相同的关键字 ("%s")。关键字必须能唯一标识优先级。',
+      'Two field specifications share the same key ("%s"). Each specification must have a unique key.' => '两个字段规范共享相同的键 ("%s")。每个规范必须具有唯一的键。',
+      'Two fields in this SearchEngine use the same key ("%s"), but each field must use a unique key.' => '此 SearchEngine 中的两个字段使用了相同的键 ("%s")，但每个字段必须使用唯一的键。',
+      'Two guidance extensions generated guidance with the same key ("%s"). Each piece of guidance must have a unique key.' => '两个指导扩展生成了具有相同键 ("%s") 的指导。每条指导必须具有唯一的键。',
+      'Two objects (of classes "%s" and "%s") generate the same map value ("%s"). Each object must generate a unique map value.' => '两个对象（类分别为 "%s" 和 "%s"）生成了相同的映射值 ("%s")。每个对象必须生成唯一的映射值。',
+      'Two policy rules (of classes "%s" and "%s") define the same object policy key ("%s"), but each object policy rule must use a unique key.' => '两个策略规则（类分别为 "%s" 和 "%s"）定义了相同的对象策略键 ("%s")，但每个对象策略规则必须使用唯一的键。',
+      'Two search engine attachments (of classes "%s" and "%s") specify the same attachment key ("%s"); keys must be unique.' => '两个搜索引擎附件（类分别为 "%s" 和 "%s"）指定了相同的附件键 ("%s")；键必须唯一。',
+      'Two source PHIDs ("%s" and "%s") have different PHID types ("%s" and "%s"). All PHIDs must be of the same type to execute an edge object query.' => '两个源 PHID（"%s" 和 "%s"）具有不同的 PHID 类型（"%s" 和 "%s"）。执行边对象查询时，所有 PHID 必须是同一类型。',
+      'Two-up inline row scaffold must have one comment on the left and one comment on the right when showing two comments.' => '双栏内联行框架在显示两条注释时，左侧必须有一条注释，右侧必须有一条注释。',
+      'Type "%s" matches multiple indexable objects. Use a more specific string. Matching objects are: %s.' => '类型 "%s" 匹配多个可索引对象。请使用更具体的字符串。匹配的对象为：%s。',
       'Type "%s" matches no indexable objects. Supported types are: %s.' => '类型 "%s" 未匹配到任何可索引对象。支持的类型为：%s。',
-      'Type specification "%s" duplicates type specification "%s". Specify each type only once.' =>
-        '类型规范 "%s" 重复定义了类型规范 "%s"。每种类型只能指定一次。',
-      'UNHEALTHY: This database has failed recent health checks. Traffic will not be sent to it until it recovers.' =>
-        'UNHEALTHY：此数据库未通过最近的健康检查。在其恢复之前，流量不会发送到该数据库。',
-      'UNSAFE: Raw string ("%s") passed to query ("%s") for "%%Q" conversion. %%Q should be passed a query string.' =>
-        'UNSAFE：原始字符串（"%s"）传递给查询（"%s"）以进行 "%%Q" 转换。%%Q 应传递查询字符串。',
-      'UNSAFE: Raw string ("%s") passed to query ("%s") subclause for "%%%s" conversion. Subclause conversions should be passed a list of PhutilQueryString objects.' =>
-        'UNSAFE：原始字符串（"%s"）传递给查询（"%s"）子句以进行 "%%%s" 转换。子句转换应传递 PhutilQueryString 对象列表。',
-      'URI "%s" is not a valid fetchable resource. A valid fetchable resource URI must specify a domain.' =>
-        'URI "%s" 不是有效的可获取资源。有效的可获取资源 URI 必须指定域名。',
-      'URI "%s" is not a valid fetchable resource. A valid fetchable resource URI must specify a protocol.' =>
-        'URI "%s" 不是有效的可获取资源。有效的可获取资源 URI 必须指定协议。',
-      'URI "%s" is not a valid fetchable resource. A valid fetchable resource URI must use one of these protocols: %s.' =>
-        'URI "%s" 不是有效的可获取资源。有效的可获取资源 URI 必须使用以下协议之一：%s。',
-      'URI "%s" is not a valid fetchable resource. The domain "%s" could not be resolved.' =>
-        'URI "%s" 不是有效的可获取资源。无法解析域名 "%s"。',
-      'URI "%s" is not a valid fetchable resource. The domain "%s" resolves to the address "%s", which is blacklisted for outbound requests.' =>
-        'URI "%s" 不是有效的可获取资源。域名 "%s" 解析到地址 "%s"，该地址已被列入出站请求黑名单。',
-      'URI "%s" is not a valid link URI. It should be a full, valid URI beginning with a protocol like "%s".' =>
-        'URI "%s" 不是有效的链接 URI。它应该是以协议开头的完整有效 URI，例如 "%s"。',
-      'URI "%s" is not a valid linkable resource. A valid linkable resource URI must specify a domain.' =>
-        'URI "%s" 不是有效的可链接资源。有效的可链接资源 URI 必须指定域名。',
-      'URI "%s" is not a valid linkable resource. A valid linkable resource URI must specify a protocol.' =>
-        'URI "%s" 不是有效的可链接资源。有效的可链接资源 URI 必须指定协议。',
-      'URI "%s" is not a valid linkable resource. A valid linkable resource URI must use one of these protocols: %s.' =>
-        'URI "%s" 不是有效的可链接资源。有效的可链接资源 URI 必须使用以下协议之一：%s。',
-      'Unable to apply patch "%s" because it depends on patch "%s", which has not been applied on some hosts: %s.' =>
-        '无法应用补丁 "%s"，因为它依赖于补丁 "%s"，而该补丁尚未在某些主机上应用：%s。',
-      'Unable to build a new transaction for adapter object; it does not implement "%s".' =>
-        '无法为适配器对象构建新事务；它未实现 "%s"。',
-      'Unable to change ownership of an identity file to daemon user "%s". Run this command as %s or root.' =>
-        '无法将身份文件的所有权更改为守护进程用户 "%s"。请以 %s 或 root 身份运行此命令。',
-      'Unable to connect to master database ("%s"). This is a severe failure; your request did not complete.' =>
-        '无法连接到主数据库（"%s"）。这是一个严重故障；您的请求未完成。',
+      'Type specification "%s" duplicates type specification "%s". Specify each type only once.' => '类型规范 "%s" 重复定义了类型规范 "%s"。每种类型只能指定一次。',
+      'UNHEALTHY: This database has failed recent health checks. Traffic will not be sent to it until it recovers.' => 'UNHEALTHY：此数据库未通过最近的健康检查。在其恢复之前，流量不会发送到该数据库。',
+      'UNSAFE: Raw string ("%s") passed to query ("%s") for "%%Q" conversion. %%Q should be passed a query string.' => 'UNSAFE：原始字符串（"%s"）传递给查询（"%s"）以进行 "%%Q" 转换。%%Q 应传递查询字符串。',
+      'UNSAFE: Raw string ("%s") passed to query ("%s") subclause for "%%%s" conversion. Subclause conversions should be passed a list of PhutilQueryString objects.' => 'UNSAFE：原始字符串（"%s"）传递给查询（"%s"）子句以进行 "%%%s" 转换。子句转换应传递 PhutilQueryString 对象列表。',
+      'URI "%s" is not a valid fetchable resource. A valid fetchable resource URI must specify a domain.' => 'URI "%s" 不是有效的可获取资源。有效的可获取资源 URI 必须指定域名。',
+      'URI "%s" is not a valid fetchable resource. A valid fetchable resource URI must specify a protocol.' => 'URI "%s" 不是有效的可获取资源。有效的可获取资源 URI 必须指定协议。',
+      'URI "%s" is not a valid fetchable resource. A valid fetchable resource URI must use one of these protocols: %s.' => 'URI "%s" 不是有效的可获取资源。有效的可获取资源 URI 必须使用以下协议之一：%s。',
+      'URI "%s" is not a valid fetchable resource. The domain "%s" could not be resolved.' => 'URI "%s" 不是有效的可获取资源。无法解析域名 "%s"。',
+      'URI "%s" is not a valid fetchable resource. The domain "%s" resolves to the address "%s", which is blacklisted for outbound requests.' => 'URI "%s" 不是有效的可获取资源。域名 "%s" 解析到地址 "%s"，该地址已被列入出站请求黑名单。',
+      'URI "%s" is not a valid link URI. It should be a full, valid URI beginning with a protocol like "%s".' => 'URI "%s" 不是有效的链接 URI。它应该是以协议开头的完整有效 URI，例如 "%s"。',
+      'URI "%s" is not a valid linkable resource. A valid linkable resource URI must specify a domain.' => 'URI "%s" 不是有效的可链接资源。有效的可链接资源 URI 必须指定域名。',
+      'URI "%s" is not a valid linkable resource. A valid linkable resource URI must specify a protocol.' => 'URI "%s" 不是有效的可链接资源。有效的可链接资源 URI 必须指定协议。',
+      'URI "%s" is not a valid linkable resource. A valid linkable resource URI must use one of these protocols: %s.' => 'URI "%s" 不是有效的可链接资源。有效的可链接资源 URI 必须使用以下协议之一：%s。',
+      'Unable to apply patch "%s" because it depends on patch "%s", which has not been applied on some hosts: %s.' => '无法应用补丁 "%s"，因为它依赖于补丁 "%s"，而该补丁尚未在某些主机上应用：%s。',
+      'Unable to build a new transaction for adapter object; it does not implement "%s".' => '无法为适配器对象构建新事务；它未实现 "%s"。',
+      'Unable to change ownership of an identity file to daemon user "%s". Run this command as %s or root.' => '无法将身份文件的所有权更改为守护进程用户 "%s"。请以 %s 或 root 身份运行此命令。',
+      'Unable to connect to master database ("%s"). This is a severe failure; your request did not complete.' => '无法连接到主数据库（"%s"）。这是一个严重故障；您的请求未完成。',
       'Unable to determine image dimensions with imagesx()/imagesy(): %s' => '无法使用 imagesx()/imagesy() 确定图像尺寸：%s',
-      'Unable to establish a connection to any database host (while trying "%s"). All masters and replicas are completely unreachable.' =>
-        '无法建立到任何数据库主机的连接（在尝试 "%s" 时）。所有主库和副本库均完全无法访问。',
-      'Unable to establish a connection to any database host (while trying "%s"). No masters or replicas are configured.' =>
-        '无法建立到任何数据库主机的连接（在尝试 "%s" 时）。未配置任何主库或副本库。',
-      'Unable to establish a write-mode connection (to application database "%s") because this server is in read-only mode. Whatever you are trying to do does not function correctly in read-only mode.' =>
-        '无法建立写入模式连接（到应用数据库 "%s"），因为此服务器处于只读模式。您尝试执行的操作在只读模式下无法正常工作。',
-      'Unable to establish lock on connection: this connection is already holding a lock. Acquiring a second lock on the same connection would release the first lock in MySQL versions older than 5.7.' =>
-        '无法在连接上建立锁：此连接已持有锁。在同一连接上获取第二个锁将在 MySQL 5.7 之前的版本中释放第一个锁。',
-      'Unable to execute command "%s": this command does not have a recognized command implementation.' =>
-        '无法执行命令 "%s"：此命令没有可识别的命令实现。',
-      'Unable to find any Asana user with valid credentials to pull an OAuth token out of.' =>
-        '找不到具有有效凭据以提取 OAuth 令牌的 Asana 用户。',
-      'Unable to generate a new child event for an event which is not a recurring parent event!' =>
-        '无法为非重复父事件生成新的子事件！',
+      'Unable to establish a connection to any database host (while trying "%s"). All masters and replicas are completely unreachable.' => '无法建立到任何数据库主机的连接（在尝试 "%s" 时）。所有主库和副本库均完全无法访问。',
+      'Unable to establish a connection to any database host (while trying "%s"). No masters or replicas are configured.' => '无法建立到任何数据库主机的连接（在尝试 "%s" 时）。未配置任何主库或副本库。',
+      'Unable to establish a write-mode connection (to application database "%s") because this server is in read-only mode. Whatever you are trying to do does not function correctly in read-only mode.' => '无法建立写入模式连接（到应用数据库 "%s"），因为此服务器处于只读模式。您尝试执行的操作在只读模式下无法正常工作。',
+      'Unable to establish lock on connection: this connection is already holding a lock. Acquiring a second lock on the same connection would release the first lock in MySQL versions older than 5.7.' => '无法在连接上建立锁：此连接已持有锁。在同一连接上获取第二个锁将在 MySQL 5.7 之前的版本中释放第一个锁。',
+      'Unable to execute command "%s": this command does not have a recognized command implementation.' => '无法执行命令 "%s"：此命令没有可识别的命令实现。',
+      'Unable to find any Asana user with valid credentials to pull an OAuth token out of.' => '找不到具有有效凭据以提取 OAuth 令牌的 Asana 用户。',
+      'Unable to generate a new child event for an event which is not a recurring parent event!' => '无法为非重复父事件生成新的子事件！',
       'Unable to load mail message (with ID "%s") while preparing to deliver it.' => '在准备投递时无法加载邮件消息（ID 为 "%s"）。',
       'Unable to load webhook request ("%s"). It may have been garbage collected.' => '无法加载 webhook 请求（"%s"）。它可能已被垃圾回收。',
-      'Unable to load your OAuth1 token secret from storage. It may have expired. Try authenticating again.' =>
-        '无法从存储中加载您的 OAuth1 令牌密钥。它可能已过期。请尝试重新认证。',
+      'Unable to load your OAuth1 token secret from storage. It may have expired. Try authenticating again.' => '无法从存储中加载您的 OAuth1 令牌密钥。它可能已过期。请尝试重新认证。',
       'Unable to perform capability tests on an object (of class "%s") with no PHID.' => '无法对没有 PHID 的对象（类为 "%s"）执行能力测试。',
       'Unable to perform text encoding conversion: mbstring extension is not available.' => '无法执行文本编码转换：mbstring 扩展不可用。',
-      'Unable to pop profiler stack: expected frame of type "%s" with key "%s", but found frame of type "%s" with key "%s".' =>
-        '无法弹出分析器堆栈：期望类型为 "%s" 且键为 "%s" 的帧，但找到类型为 "%s" 且键为 "%s" 的帧。',
-      'Unable to retrieve Ferret engine metadata, this class ("%s") does not support the Ferret engine.' =>
-        '无法检索 Ferret 引擎元数据，此类（"%s"）不支持 Ferret 引擎。',
-      'Unable to retrieve profile: profiler stack is not empty. The stack has %s frame(s); the final frame has type "%s" and key "%s".' =>
-        '无法检索分析器配置：分析器堆栈不为空。该堆栈有 %s 个帧；最终帧的类型为 "%s"，键为 "%s"。',
-      'Unable to stop all daemon processes. You may need to run this command as root with "sudo".' =>
-        '无法停止所有守护进程。您可能需要使用 "sudo" 以 root 身份运行此命令。',
-      'Unable to test remote address against cluster whitelist: REMOTE_ADDR is not defined or not valid.' =>
-        '无法根据集群白名单测试远程地址：REMOTE_ADDR 未定义或无效。',
-      'Unable to transform image: the imagecreatefromstring() function is not available. Install or enable the "gd" extension for PHP.' =>
-        '无法转换图像：imagecreatefromstring() 函数不可用。请安装或启用 PHP 的 "gd" 扩展。',
-      'Unable to upload file: the server is not configured with any writable storage engines.' =>
-        '无法上传文件：服务器未配置任何可写的存储引擎。',
+      'Unable to pop profiler stack: expected frame of type "%s" with key "%s", but found frame of type "%s" with key "%s".' => '无法弹出分析器堆栈：期望类型为 "%s" 且键为 "%s" 的帧，但找到类型为 "%s" 且键为 "%s" 的帧。',
+      'Unable to retrieve Ferret engine metadata, this class ("%s") does not support the Ferret engine.' => '无法检索 Ferret 引擎元数据，此类（"%s"）不支持 Ferret 引擎。',
+      'Unable to retrieve profile: profiler stack is not empty. The stack has %s frame(s); the final frame has type "%s" and key "%s".' => '无法检索分析器配置：分析器堆栈不为空。该堆栈有 %s 个帧；最终帧的类型为 "%s"，键为 "%s"。',
+      'Unable to stop all daemon processes. You may need to run this command as root with "sudo".' => '无法停止所有守护进程。您可能需要使用 "sudo" 以 root 身份运行此命令。',
+      'Unable to test remote address against cluster whitelist: REMOTE_ADDR is not defined or not valid.' => '无法根据集群白名单测试远程地址：REMOTE_ADDR 未定义或无效。',
+      'Unable to transform image: the imagecreatefromstring() function is not available. Install or enable the "gd" extension for PHP.' => '无法转换图像：imagecreatefromstring() 函数不可用。请安装或启用 PHP 的 "gd" 扩展。',
+      'Unable to upload file: the server is not configured with any writable storage engines.' => '无法上传文件：服务器未配置任何可写的存储引擎。',
       'Unable to upload file: this file is too large for any configured storage engine.' => '无法上传文件：此文件对于任何已配置的存储引擎来说都太大。',
-      'Unable to upload file: this server is not configured with any storage engine which can store large files.' =>
-        '无法上传文件：此服务器未配置可存储大文件的存储引擎。',
+      'Unable to upload file: this server is not configured with any storage engine which can store large files.' => '无法上传文件：此服务器未配置可存储大文件的存储引擎。',
       'Unable to write ICS document: event has no UID, but each event MUST have a UID.' => '无法写入 ICS 文档：事件没有 UID，但每个事件都必须有 UID。',
-      'Unable to write ICS document: event has no modified time, but each event MUST have a modified time.' =>
-        '无法写入 ICS 文档：事件没有修改时间，但每个事件都必须有修改时间。',
+      'Unable to write ICS document: event has no modified time, but each event MUST have a modified time.' => '无法写入 ICS 文档：事件没有修改时间，但每个事件都必须有修改时间。',
       'Unexpected value "%s" in "%s" RRULE property: expected only integers.' => '"%s" 的 RRULE 属性中存在意外值 "%s"：预期仅为整数。',
       'Unexpected value "%s" in "%s" RULE property: expected an integer.' => '"%s" 的 RULE 属性中存在意外值 "%s"：预期为整数。',
       'Unknown patch "%s" in "%s", expected ".php" or ".sql" or ".db" suffix.' => '"%s" 中存在未知补丁 "%s"，预期后缀为 ".php"、".sql" 或 ".db"。',
-      'Unknown search function "%s". Supported functions are: %s. (To search for a term containing a colon, surround the term in double quotes.)' =>
-        '未知的搜索函数 "%s"。支持的函数为：%s。（要搜索包含冒号的词，请将该词用双引号括起来。）',
-      'Unless you have a very good reason to delete this user, consider disabling them instead.' =>
-        '除非您有非常充分的理由删除此用户，否则请考虑将其禁用。',
-      'Unlock one or more objects by changing their view policies, edit policies, or owners.' =>
-        '通过更改查看策略、编辑策略或所有者来解锁一个或多个对象。',
-      'Unlock the authentication provider config, to make it possible to edit the config using the web UI. Make sure to do **bin/auth lock** when done editing the configuration.' =>
-        '解锁认证提供程序配置，以便可以使用 Web UI 编辑配置。编辑完成后请务必执行 **bin/auth lock**。',
-      'Unmark this form as a create form? It will still function properly, but no longer be reachable directly from the application "Create" menu.' =>
-        '取消将此表单标记为创建表单？它仍将正常工作，但将无法再从应用的“创建”菜单直接访问。',
-      'Unmark this form as an edit form? It will no longer be able to be used to edit objects.' =>
-        '取消将此表单标记为编辑表单？它将无法再用于编辑对象。',
+      'Unknown search function "%s". Supported functions are: %s. (To search for a term containing a colon, surround the term in double quotes.)' => '未知的搜索函数 "%s"。支持的函数为：%s。（要搜索包含冒号的词，请将该词用双引号括起来。）',
+      'Unless you have a very good reason to delete this user, consider disabling them instead.' => '除非您有非常充分的理由删除此用户，否则请考虑将其禁用。',
+      'Unlock one or more objects by changing their view policies, edit policies, or owners.' => '通过更改查看策略、编辑策略或所有者来解锁一个或多个对象。',
+      'Unlock the authentication provider config, to make it possible to edit the config using the web UI. Make sure to do **bin/auth lock** when done editing the configuration.' => '解锁认证提供程序配置，以便可以使用 Web UI 编辑配置。编辑完成后请务必执行 **bin/auth lock**。',
+      'Unmark this form as a create form? It will still function properly, but no longer be reachable directly from the application "Create" menu.' => '取消将此表单标记为创建表单？它仍将正常工作，但将无法再从应用的“创建”菜单直接访问。',
+      'Unmark this form as an edit form? It will no longer be able to be used to edit objects.' => '取消将此表单标记为编辑表单？它将无法再用于编辑对象。',
       'Unmute this object? You will receive notifications and email again.' => '取消对此对象的静音？您将再次收到通知和电子邮件。',
-      'Update configuration in the database instead of in local configuration.' =>
-        '在数据库中更新配置，而非本地配置。',
+      'Update configuration in the database instead of in local configuration.' => '在数据库中更新配置，而非本地配置。',
       'Update the published version of this document to this newer version?' => '将本文档的已发布版本更新到此新版本吗？',
-      'Upload sets of images for review with revision history and inline comments.' =>
-        '上传图片集以供审查，包含修订历史和行内注释。',
-      'Use "--output <path>" to specify an output file, or "--output -" to print to stdout.' =>
-        '使用 "--output <path>" 指定输出文件，或使用 "--output -" 打印到 stdout。',
-      'Use "--user <username>" to specify which user to strip factors from, or "--all-users" to strip factors from all users.' =>
-        '使用 "--user <username>" 指定要从哪个用户移除因子，或使用 "--all-users" 从所有用户移除因子。',
-      'Use "phd stop" to stop daemons, "phd restart" to restart daemons, or "phd start --force" to ignore running processes.' =>
-        '使用 "phd stop" 停止守护进程，"phd restart" 重启守护进程，或 "phd start --force" 忽略正在运行的进程。',
-      'Use %s to create a control which allows users to paginate through large amounts of content.' =>
-        '使用 %s 创建一个允许用户分页浏览大量内容的控件。',
-      'Use %s to listen for gesture events. Note that you must be in device mode for this to work (you can narrow your browser window if you are on a desktop).' =>
-        '使用 %s 监听手势事件。请注意，必须处于设备模式才能正常工作（如果在桌面上，可以缩小浏览器窗口）。',
-      'Use --as <format> to select a target encoding format. Available formats are: %s.' =>
-        '使用 --as <format> 选择目标编码格式。可用格式为：%s。',
-      'Use Almanac devices to catalogue your build hosts and their SSH ports your network, and more.' =>
-        '使用 Almanac 设备来编录构建主机及其 SSH 端口、网络等信息。',
-      'Use Almanac networks to catalogue private and public computer networks.' =>
-        '使用 Almanac 网络来编录私有和公共计算机网络。',
-      'Use Maniphest to track bugs, features, todos, or anything else you need to get done. Tasks assigned to you will appear here.' =>
-        '使用 Maniphest 跟踪错误、功能、待办事项或任何其他需要完成的任务。分配给您的任务将显示在此处。',
-      'Use constraint flags (like "--id" or "--class") to select which tasks to affect. Use "--help" for a list of supported constraint flags.' =>
-        '使用约束标志（如 "--id" 或 "--class"）来选择要影响哪些任务。使用 "--help" 查看支持的约束标志列表。',
-      'Use flags to specify at least one edit to apply to the rule (for example, use "--disable" to disable a rule).' =>
-        '使用标志指定至少一个要应用于规则的编辑（例如，使用 "--disable" 禁用规则）。',
-      'Use form-encoded data to submit parameters to Conduit endpoints. Sending a JSON-encoded body and setting \'Content-Type\': \'application/json\' is not currently supported.' =>
-        '使用表单编码数据向 Conduit 端点提交参数。目前不支持发送 JSON 编码的请求体并设置 \'Content-Type\': \'application/json\'。',
-      'Use the **OAuth App Notes** field to record details about which account the external application is registered under.' =>
-        '使用 **OAuth App Notes** 字段记录外部应用程序注册在哪个账户下的详细信息。',
-      'Use this link to recover access to the "%s" account from the web interface:' =>
-        '使用此链接从 Web 界面恢复对 "%s" 账户的访问权限：',
-      'Used if the "From:" address does not map to a user account. Setting a default author will allow anyone on the public internet to create objects by sending email to this address.' =>
-        '当 "From:" 地址未映射到用户账户时使用。设置默认作者将允许公共互联网上的任何人通过向此地址发送电子邮件来创建对象。',
-      'User account "%s" is already an administrator. You can only empower accounts that are not yet administrators.' =>
-        '用户账户 "%s" 已是管理员。您只能授权尚未成为管理员的账户。',
-      'User account "%s" is already approved. You can only approve accounts that are not yet approved.' =>
-        '用户账户 "%s" 已获批准。您只能批准尚未批准的账户。',
-      'User account "%s" is not disabled. You can only enable accounts that are disabled.' =>
-        '用户账户 "%s" 未被禁用。您只能启用已禁用的账户。',
-      'Usernames cannot contain spaces. Please replace them with underscores, hyphens, periods, or some other way of separating words.' =>
-        '用户名不能包含空格。请将其替换为下划线、连字符、句点或其他分隔单词的方式。',
-      'Usernames must contain only numbers, Latin letters, period, underscore and hyphen.' =>
-        '用户名只能包含数字、拉丁字母、句点、下划线和连字符。',
-      'Users can configure a URI pattern to open files in a text editor. The URI must use a protocol on this whitelist.' =>
-        '用户可以配置 URI 模式以在文本编辑器中打开文件。URI 必须使用此白名单上的协议。',
-      'Users can not be permanently destroyed from the web interface. See %s in the documentation for more information.' =>
-        '用户无法从网页界面永久销毁。有关更多信息，请参阅文档中的 %s。',
-      'Users will only be able to register with a verified email address at one of the configured [[ %s | %s ]] domains: **%s**' =>
-        '用户只能使用已验证的电子邮件地址在已配置的 [[ %s | %s ]] 域名之一进行注册：**%s**',
-      'Value "%s" in RRULE "%s" parameter is invalid: it must be between %s and %s.' =>
-        'RRULE "%s" 参数中的值 "%s" 无效：必须在 %s 和 %s 之间。',
+      'Upload sets of images for review with revision history and inline comments.' => '上传图片集以供审查，包含修订历史和行内注释。',
+      'Use "--output <path>" to specify an output file, or "--output -" to print to stdout.' => '使用 "--output <path>" 指定输出文件，或使用 "--output -" 打印到 stdout。',
+      'Use "--user <username>" to specify which user to strip factors from, or "--all-users" to strip factors from all users.' => '使用 "--user <username>" 指定要从哪个用户移除因子，或使用 "--all-users" 从所有用户移除因子。',
+      'Use "phd stop" to stop daemons, "phd restart" to restart daemons, or "phd start --force" to ignore running processes.' => '使用 "phd stop" 停止守护进程，"phd restart" 重启守护进程，或 "phd start --force" 忽略正在运行的进程。',
+      'Use %s to create a control which allows users to paginate through large amounts of content.' => '使用 %s 创建一个允许用户分页浏览大量内容的控件。',
+      'Use %s to listen for gesture events. Note that you must be in device mode for this to work (you can narrow your browser window if you are on a desktop).' => '使用 %s 监听手势事件。请注意，必须处于设备模式才能正常工作（如果在桌面上，可以缩小浏览器窗口）。',
+      'Use --as <format> to select a target encoding format. Available formats are: %s.' => '使用 --as <format> 选择目标编码格式。可用格式为：%s。',
+      'Use Almanac devices to catalogue your build hosts and their SSH ports your network, and more.' => '使用 Almanac 设备来编录构建主机及其 SSH 端口、网络等信息。',
+      'Use Almanac networks to catalogue private and public computer networks.' => '使用 Almanac 网络来编录私有和公共计算机网络。',
+      'Use Maniphest to track bugs, features, todos, or anything else you need to get done. Tasks assigned to you will appear here.' => '使用 Maniphest 跟踪错误、功能、待办事项或任何其他需要完成的任务。分配给您的任务将显示在此处。',
+      'Use constraint flags (like "--id" or "--class") to select which tasks to affect. Use "--help" for a list of supported constraint flags.' => '使用约束标志（如 "--id" 或 "--class"）来选择要影响哪些任务。使用 "--help" 查看支持的约束标志列表。',
+      'Use flags to specify at least one edit to apply to the rule (for example, use "--disable" to disable a rule).' => '使用标志指定至少一个要应用于规则的编辑（例如，使用 "--disable" 禁用规则）。',
+      'Use form-encoded data to submit parameters to Conduit endpoints. Sending a JSON-encoded body and setting \'Content-Type\': \'application/json\' is not currently supported.' => '使用表单编码数据向 Conduit 端点提交参数。目前不支持发送 JSON 编码的请求体并设置 \'Content-Type\': \'application/json\'。',
+      'Use the **OAuth App Notes** field to record details about which account the external application is registered under.' => '使用 **OAuth App Notes** 字段记录外部应用程序注册在哪个账户下的详细信息。',
+      'Use this link to recover access to the "%s" account from the web interface:' => '使用此链接从 Web 界面恢复对 "%s" 账户的访问权限：',
+      'Used if the "From:" address does not map to a user account. Setting a default author will allow anyone on the public internet to create objects by sending email to this address.' => '当 "From:" 地址未映射到用户账户时使用。设置默认作者将允许公共互联网上的任何人通过向此地址发送电子邮件来创建对象。',
+      'User account "%s" is already an administrator. You can only empower accounts that are not yet administrators.' => '用户账户 "%s" 已是管理员。您只能授权尚未成为管理员的账户。',
+      'User account "%s" is already approved. You can only approve accounts that are not yet approved.' => '用户账户 "%s" 已获批准。您只能批准尚未批准的账户。',
+      'User account "%s" is not disabled. You can only enable accounts that are disabled.' => '用户账户 "%s" 未被禁用。您只能启用已禁用的账户。',
+      'Usernames cannot contain spaces. Please replace them with underscores, hyphens, periods, or some other way of separating words.' => '用户名不能包含空格。请将其替换为下划线、连字符、句点或其他分隔单词的方式。',
+      'Usernames must contain only numbers, Latin letters, period, underscore and hyphen.' => '用户名只能包含数字、拉丁字母、句点、下划线和连字符。',
+      'Users can configure a URI pattern to open files in a text editor. The URI must use a protocol on this whitelist.' => '用户可以配置 URI 模式以在文本编辑器中打开文件。URI 必须使用此白名单上的协议。',
+      'Users can not be permanently destroyed from the web interface. See %s in the documentation for more information.' => '用户无法从网页界面永久销毁。有关更多信息，请参阅文档中的 %s。',
+      'Users will only be able to register with a verified email address at one of the configured [[ %s | %s ]] domains: **%s**' => '用户只能使用已验证的电子邮件地址在已配置的 [[ %s | %s ]] 域名之一进行注册：**%s**',
+      'Value "%s" in RRULE "%s" parameter is invalid: it must be between %s and %s.' => 'RRULE "%s" 参数中的值 "%s" 无效：必须在 %s 和 %s 之间。',
       'Value "%s" in RRULE "%s" parameter is invalid: it must not be zero.' => 'RRULE "%s" 参数中的值 "%s" 无效：不能为零。',
-      'Value "%s" in RRULE "%s" parameter is invalid: values must be integers.' =>
-        'RRULE "%s" 参数中的值 "%s" 无效：值必须为整数。',
-      'Value for "function" argument must be a function definition, formatted as a list, like: [fn, arg1, arg, ...]. Actual value is %s.' =>
-        '"function" 参数的值必须是函数定义，格式为列表，例如：[fn, arg1, arg, ...]。实际值为 %s。',
-      'Value for "function" argument must be a list with a function name; got an empty list.' =>
-        '"function" 参数的值必须是包含函数名称的列表；但得到了空列表。',
-      'Value for "function" argument must be a natural list beginning with a function name as a string. The first list item has the wrong type, %s.' =>
-        '"function" 参数的值必须是以函数名称作为字符串开头的自然列表。第一个列表项的类型错误，%s。',
-      'Value for "function" argument must be a natural list, not a dictionary. Actual value is "%s".' =>
-        '"function" 参数的值必须是自然列表，而不是字典。实际值为 "%s"。',
+      'Value "%s" in RRULE "%s" parameter is invalid: values must be integers.' => 'RRULE "%s" 参数中的值 "%s" 无效：值必须为整数。',
+      'Value for "function" argument must be a function definition, formatted as a list, like: [fn, arg1, arg, ...]. Actual value is %s.' => '"function" 参数的值必须是函数定义，格式为列表，例如：[fn, arg1, arg, ...]。实际值为 %s。',
+      'Value for "function" argument must be a list with a function name; got an empty list.' => '"function" 参数的值必须是包含函数名称的列表；但得到了空列表。',
+      'Value for "function" argument must be a natural list beginning with a function name as a string. The first list item has the wrong type, %s.' => '"function" 参数的值必须是以函数名称作为字符串开头的自然列表。第一个列表项的类型错误，%s。',
+      'Value for "function" argument must be a natural list, not a dictionary. Actual value is "%s".' => '"function" 参数的值必须是自然列表，而不是字典。实际值为 "%s"。',
       'Value for "number" argument must be an integer or double, got %s.' => '"number" 参数的值必须是整数或双精度浮点数，实际为 %s。',
-      'Value for option "%s" (of type "%s") must be specified in JSON, but input could not be decoded. (Did you forget to quote a string?)' =>
-        '选项 "%s"（类型为 "%s"）的值必须以 JSON 格式指定，但无法解码输入。（是否忘记引用字符串？）',
-      'Value for option "%s" (of type "%s") must be specified in JSON, but input could not be decoded: %s' =>
-        '选项 "%s"（类型为 "%s"）的值必须以 JSON 格式指定，但无法解码输入：%s',
+      'Value for option "%s" (of type "%s") must be specified in JSON, but input could not be decoded. (Did you forget to quote a string?)' => '选项 "%s"（类型为 "%s"）的值必须以 JSON 格式指定，但无法解码输入。（是否忘记引用字符串？）',
+      'Value for option "%s" (of type "%s") must be specified in JSON, but input could not be decoded: %s' => '选项 "%s"（类型为 "%s"）的值必须以 JSON 格式指定，但无法解码输入：%s',
       'Value for option "%s" of type "%s" must be either "true" or "false".' => '类型为 "%s" 的选项 "%s" 的值必须为 "true" 或 "false"。',
-      'Value with key "%s" in order vector is not a string (it has type "%s"). An order vector must contain only strings.' =>
-        '排序向量中键为 "%s" 的值不是字符串（其类型为 "%s"）。排序向量只能包含字符串。',
-      'Variable key "%s" must contain only lowercase letters, digits, period, and hyphen.' =>
-        '变量键 "%s" 只能包含小写字母、数字、句点和连字符。',
+      'Value with key "%s" in order vector is not a string (it has type "%s"). An order vector must contain only strings.' => '排序向量中键为 "%s" 的值不是字符串（其类型为 "%s"）。排序向量只能包含字符串。',
+      'Variable key "%s" must contain only lowercase letters, digits, period, and hyphen.' => '变量键 "%s" 只能包含小写字母、数字、句点和连字符。',
       'Verification code can not be regenerated after an invite is created.' => '邀请创建后无法重新生成验证码。',
-      'Verify an unverified email address which is already attached to an account. This will also re-execute event hooks for addresses which are already verified.' =>
-        '验证已附加到账户但未验证的电子邮件地址。这也将重新执行已验证地址的事件钩子。',
+      'Verify an unverified email address which is already attached to an account. This will also re-execute event hooks for addresses which are already verified.' => '验证已附加到账户但未验证的电子邮件地址。这也将重新执行已验证地址的事件钩子。',
       'Verify this email address (%s) and attach it to your account (%s)?' => '验证此电子邮件地址（%s）并将其附加到您的账户（%s）？',
-      'Version name "%s" is not valid: version names may not start or end with a period or hyphen.' =>
-        '版本名称 "%s" 无效：版本名称不得以句点或连字符开头或结尾。',
-      'Version name "%s" is not valid: version names may only contain latin letters, digits, periods, and hyphens.' =>
-        '版本名称 "%s" 无效：版本名称只能包含拉丁字母、数字、句点和连字符。',
-      'Version name "%s" is not valid: version names must not be more than %s characters long.' =>
-        '版本名称 "%s" 无效：版本名称长度不得超过 %s 个字符。',
-      'WARNING: You have not configured any authentication providers yet, so your account has no login credentials. If you log out now, you will not be able to log back in normally.' =>
-        '警告：您尚未配置任何身份验证提供程序，因此您的账户没有登录凭据。如果您现在注销，将无法正常重新登录。',
-      'Wall time spent in this function, excluding time spent in children (children are other functions it called while executing).' =>
-        '此函数中花费的挂钟时间，不包括子函数中花费的时间（子函数是执行期间调用的其他函数）。',
-      'Watching a project also watches all subprojects and milestones of that project.' =>
-        '关注项目也会关注该项目的所有子项目和里程碑。',
-      'Watching a project will let you monitor it closely. You will receive email and notifications about changes to every object tagged with projects you watch.' =>
-        '关注项目可以让您密切监视它。您将收到关于每个被标记为您所关注项目的对象的更改的电子邮件和通知。',
+      'Version name "%s" is not valid: version names may not start or end with a period or hyphen.' => '版本名称 "%s" 无效：版本名称不得以句点或连字符开头或结尾。',
+      'Version name "%s" is not valid: version names may only contain latin letters, digits, periods, and hyphens.' => '版本名称 "%s" 无效：版本名称只能包含拉丁字母、数字、句点和连字符。',
+      'Version name "%s" is not valid: version names must not be more than %s characters long.' => '版本名称 "%s" 无效：版本名称长度不得超过 %s 个字符。',
+      'WARNING: You have not configured any authentication providers yet, so your account has no login credentials. If you log out now, you will not be able to log back in normally.' => '警告：您尚未配置任何身份验证提供程序，因此您的账户没有登录凭据。如果您现在注销，将无法正常重新登录。',
+      'Wall time spent in this function, excluding time spent in children (children are other functions it called while executing).' => '此函数中花费的挂钟时间，不包括子函数中花费的时间（子函数是执行期间调用的其他函数）。',
+      'Watching a project also watches all subprojects and milestones of that project.' => '关注项目也会关注该项目的所有子项目和里程碑。',
+      'Watching a project will let you monitor it closely. You will receive email and notifications about changes to every object tagged with projects you watch.' => '关注项目可以让您密切监视它。您将收到关于每个被标记为您所关注项目的对象的更改的电子邮件和通知。',
       'Weekday "%s" is not a valid weekday constant. Valid constants are: %s.' => '星期 "%s" 不是有效的星期常量。有效的常量为：%s。',
-      'Welcome, %s. To complete the process of logging in, provide your multi-factor credentials.' =>
-        '欢迎，%s。要完成登录过程，请提供您的多因素凭证。',
-      'What locale to use for command-line scripts that don\'t specify a `%s` argument.' =>
-        '用于未指定 `%s` 参数的命令行脚本的区域设置。',
-      'When a card is dropped into a column that uses this trigger, these actions will be taken.' =>
-        '当卡片被拖放到使用该触发器的列中时，将执行这些操作。',
-      'When a revision is updated, this software attempts to bring inline comments on the older version forward to the new changes. You can disable this behavior if you prefer comments stay anchored in one place.' =>
-        '当修订更新时，本软件会尝试将旧版本的内联评论带到新更改中。如果您希望评论固定在一个位置，可以禁用此行为。',
-      'When creating a new Almanac binding via the Conduit API, you must provide a "service" transaction to select a service to bind.' =>
-        '通过 Conduit API 创建新的 Almanac 绑定时，您必须提供一个 "service" 事务以选择要绑定的服务。',
-      'When creating a new Almanac interface via the Conduit API, you must provide a "device" transaction to select a device.' =>
-        '通过 Conduit API 创建新的 Almanac 接口时，您必须提供一个 "device" 事务以选择设备。',
-      'When creating a new Almanac service via the Conduit API, you must provide a "type" transaction to select a type.' =>
-        '通过 Conduit API 创建新的 Almanac 服务时，您必须提供一个 "type" 事务以选择类型。',
-      'When creating a project, specify a maximum of one parent project or milestone project. A project can not be both a subproject and a milestone.' =>
-        '创建项目时，最多指定一个父项目或里程碑项目。项目不能同时是子项目和里程碑。',
-      'When deleting Almanac properties, each property name must be a string. The value at index "%s" is not a string.' =>
-        '删除 Almanac 属性时，每个属性名称必须是字符串。索引 "%s" 处的值不是字符串。',
-      'When it is prohibitively expensive or complex to attain a complete count of the items, you can select one extra item and set %s if it exists, creating an inexact pager.' =>
-        '当获取项目的完整计数过于昂贵或复杂时，您可以选择一个额外的项目，并在其存在时设置 %s，从而创建一个不精确的分页器。',
-      'When mail is sent to members of this project, you will no longer receive a copy.' =>
-        '当邮件发送给此项目的成员时，您将不再收到副本。',
+      'Welcome, %s. To complete the process of logging in, provide your multi-factor credentials.' => '欢迎，%s。要完成登录过程，请提供您的多因素凭证。',
+      'What locale to use for command-line scripts that don\'t specify a `%s` argument.' => '用于未指定 `%s` 参数的命令行脚本的区域设置。',
+      'When a card is dropped into a column that uses this trigger, these actions will be taken.' => '当卡片被拖放到使用该触发器的列中时，将执行这些操作。',
+      'When a revision is updated, this software attempts to bring inline comments on the older version forward to the new changes. You can disable this behavior if you prefer comments stay anchored in one place.' => '当修订更新时，本软件会尝试将旧版本的内联评论带到新更改中。如果您希望评论固定在一个位置，可以禁用此行为。',
+      'When creating a new Almanac binding via the Conduit API, you must provide a "service" transaction to select a service to bind.' => '通过 Conduit API 创建新的 Almanac 绑定时，您必须提供一个 "service" 事务以选择要绑定的服务。',
+      'When creating a new Almanac interface via the Conduit API, you must provide a "device" transaction to select a device.' => '通过 Conduit API 创建新的 Almanac 接口时，您必须提供一个 "device" 事务以选择设备。',
+      'When creating a new Almanac service via the Conduit API, you must provide a "type" transaction to select a type.' => '通过 Conduit API 创建新的 Almanac 服务时，您必须提供一个 "type" 事务以选择类型。',
+      'When creating a project, specify a maximum of one parent project or milestone project. A project can not be both a subproject and a milestone.' => '创建项目时，最多指定一个父项目或里程碑项目。项目不能同时是子项目和里程碑。',
+      'When deleting Almanac properties, each property name must be a string. The value at index "%s" is not a string.' => '删除 Almanac 属性时，每个属性名称必须是字符串。索引 "%s" 处的值不是字符串。',
+      'When it is prohibitively expensive or complex to attain a complete count of the items, you can select one extra item and set %s if it exists, creating an inexact pager.' => '当获取项目的完整计数过于昂贵或复杂时，您可以选择一个额外的项目，并在其存在时设置 %s，从而创建一个不精确的分页器。',
+      'When mail is sent to members of this project, you will no longer receive a copy.' => '当邮件发送给此项目的成员时，您将不再收到副本。',
       'When mail is sent to members of this project, you will receive a copy.' => '当邮件发送给此项目的成员时，您将收到副本。',
-      'When migrating from a local disk source, use the specified path as the root directory.' =>
-        '从本地磁盘源迁移时，使用指定的路径作为根目录。',
-      'When moving objects between columns on a board, columns must be identified by PHIDs. This transaction uses "%s" to identify a column, but that is not a valid column PHID.' =>
-        '在面板的列之间移动对象时，列必须通过 PHID 标识。此事务使用 "%s" 来标识列，但它不是有效的列 PHID。',
-      'When users add a factor for this provider, they are given this enrollment guidance by default:' =>
-        '用户为此提供方添加因子时，默认会获得以下注册引导：',
-      'When users set or reset a password, it must have at least this many characters.' =>
-        '用户设置或重置密码时，密码长度至少必须达到此数值。',
-      'When using "--caches", you must select at least one valid cache to purge.' =>
-        '使用 "--caches" 时，必须至少选择一个有效的缓存进行清除。',
-      'When you need to authenticate, a request will be pushed to the Duo application on your phone.' =>
-        '需要身份验证时，请求将被推送至您手机上的 Duo 应用。',
-      'When you need to authenticate, a text message with a code will be sent to your phone.' =>
-        '需要身份验证时，包含验证码的短信将发送至您的手机。',
+      'When migrating from a local disk source, use the specified path as the root directory.' => '从本地磁盘源迁移时，使用指定的路径作为根目录。',
+      'When moving objects between columns on a board, columns must be identified by PHIDs. This transaction uses "%s" to identify a column, but that is not a valid column PHID.' => '在面板的列之间移动对象时，列必须通过 PHID 标识。此事务使用 "%s" 来标识列，但它不是有效的列 PHID。',
+      'When users add a factor for this provider, they are given this enrollment guidance by default:' => '用户为此提供方添加因子时，默认会获得以下注册引导：',
+      'When users set or reset a password, it must have at least this many characters.' => '用户设置或重置密码时，密码长度至少必须达到此数值。',
+      'When using "--caches", you must select at least one valid cache to purge.' => '使用 "--caches" 时，必须至少选择一个有效的缓存进行清除。',
+      'When you need to authenticate, a request will be pushed to the Duo application on your phone.' => '需要身份验证时，请求将被推送至您手机上的 Duo 应用。',
+      'When you need to authenticate, a text message with a code will be sent to your phone.' => '需要身份验证时，包含验证码的短信将发送至您的手机。',
       'With __--output__, overwrite the output file if it already exists.' => '使用 __--output__ 时，若输出文件已存在则覆盖。',
-      'With __--output__, write a compressed file to disk instead of a plaintext file.' =>
-        '使用 __--output__ 时，将压缩文件写入磁盘而非明文文件。',
+      'With __--output__, write a compressed file to disk instead of a plaintext file.' => '使用 __--output__ 时，将压缩文件写入磁盘而非明文文件。',
       'With __--output__, write to disk even if the file already exists.' => '使用 __--output__ 时，即使文件已存在也写入磁盘。',
-      'Without a configured timezone, PHP will emit warnings when working with dates, and dates and times may not display correctly.' =>
-        '未配置时区时，PHP 在处理日期时会发出警告，且日期和时间可能无法正确显示。',
-      'Woe! This request had its journey cut short by unexpected circumstances (%s).' =>
-        '糟糕！此请求因意外情况（%s）而中途终止。',
-      'Work has already started on job "%s". Jobs can not be reconfigured after they have been started.' =>
-        '作业 "%s" 的工作已经开始。作业启动后无法重新配置。',
-      'Write output directly to disk. This handles errors better than using pipes. Use with __--compress__ to gzip the output.' =>
-        '将输出直接写入磁盘。这比使用管道能更好地处理错误。与 __--compress__ 配合使用以 gzip 压缩输出。',
+      'Without a configured timezone, PHP will emit warnings when working with dates, and dates and times may not display correctly.' => '未配置时区时，PHP 在处理日期时会发出警告，且日期和时间可能无法正确显示。',
+      'Woe! This request had its journey cut short by unexpected circumstances (%s).' => '糟糕！此请求因意外情况（%s）而中途终止。',
+      'Work has already started on job "%s". Jobs can not be reconfigured after they have been started.' => '作业 "%s" 的工作已经开始。作业启动后无法重新配置。',
+      'Write output directly to disk. This handles errors better than using pipes. Use with __--compress__ to gzip the output.' => '将输出直接写入磁盘。这比使用管道能更好地处理错误。与 __--compress__ 配合使用以 gzip 压缩输出。',
       'Write output to a file. If omitted, output will be sent to stdout.' => '将输出写入文件。若省略，输出将发送至 stdout。',
-      'You (or someone pretending to be you) recently requested an account recovery link be sent to this email address. If you did not make this request, you can ignore this message.' =>
-        '您（或冒充您的人）最近请求向此邮箱地址发送账户恢复链接。若您未提出此请求，可忽略此消息。',
-      'You already have Duo authentication attached to your account for this provider.' =>
-        '您已为该提供方在账户中启用了 Duo 身份验证。',
-      'You and other users on this install are collectively sending too many test text messages too quickly. Wait a few minutes to continue texting tests.' =>
-        '您与本安装中的其他用户集体发送测试短信的速度过快。请等待几分钟再继续发送测试短信。',
-      'You are a member and you will receive mail that is sent to all project members.' =>
-        '您是成员，将会收到发送给所有项目成员的邮件。',
+      'You (or someone pretending to be you) recently requested an account recovery link be sent to this email address. If you did not make this request, you can ignore this message.' => '您（或冒充您的人）最近请求向此邮箱地址发送账户恢复链接。若您未提出此请求，可忽略此消息。',
+      'You already have Duo authentication attached to your account for this provider.' => '您已为该提供方在账户中启用了 Duo 身份验证。',
+      'You and other users on this install are collectively sending too many test text messages too quickly. Wait a few minutes to continue texting tests.' => '您与本安装中的其他用户集体发送测试短信的速度过快。请等待几分钟再继续发送测试短信。',
+      'You are a member and you will receive mail that is sent to all project members.' => '您是成员，将会收到发送给所有项目成员的邮件。',
       'You are about to apply a bulk edit which will affect %s object(s).' => '您即将应用批量编辑，这将影响 %s 个对象。',
-      'You are already watching %s, an ancestor of this project, and are thus watching all of its subprojects.' =>
-        '您已在关注 %s（本项目的祖先项目），因此将自动关注其所有子项目。',
+      'You are already watching %s, an ancestor of this project, and are thus watching all of its subprojects.' => '您已在关注 %s（本项目的祖先项目），因此将自动关注其所有子项目。',
       'You are creating a new account linked to an existing external account.' => '您正在创建一个与现有外部账户关联的新账户。',
-      'You are destroying an entire class of credentials. This may be very disruptive to users. You should normally do this only if you suspect there has been a widespread compromise which may have impacted everyone.' =>
-        '您正在销毁整个凭证类别。这可能会对用户造成很大影响。通常只有在怀疑发生大规模泄露并可能影响所有人时，才应执行此操作。',
-      'You are logged in as %s, but the email address you just clicked a link from is already the primary email address for another account (%s). Switch accounts, then try again.' =>
-        '您当前登录为 %s，但您点击链接的邮箱地址已是另一个账户（%s）的主邮箱。请切换账户后重试。',
-      'You are logged in as %s, but the email address you just clicked a link from is already verified and associated with another account (%s). Switch accounts, then try again.' =>
-        '您当前登录为 %s，但您点击链接的邮箱地址已验证并关联到另一个账户（%s）。请切换账户后重试。',
-      'You are not a project member, so you do not receive mail sent to members of this project.' =>
-        '您不是项目成员，因此不会收到发送给该项目成员的邮件。',
-      'You are running %s version "%s", which is older than the minimum required version, "%s". Update to at least "%s".' =>
-        '您运行的 %s 版本为 "%s"，低于最低要求的版本 "%s"。请至少更新至 "%s"。',
-      'You are sending from an unrecognized email address to an address which does not support public email ("%s").' =>
-        '您正在从一个无法识别的邮箱地址向不支持公开邮件的地址发送邮件（"%s"）。',
+      'You are destroying an entire class of credentials. This may be very disruptive to users. You should normally do this only if you suspect there has been a widespread compromise which may have impacted everyone.' => '您正在销毁整个凭证类别。这可能会对用户造成很大影响。通常只有在怀疑发生大规模泄露并可能影响所有人时，才应执行此操作。',
+      'You are logged in as %s, but the email address you just clicked a link from is already the primary email address for another account (%s). Switch accounts, then try again.' => '您当前登录为 %s，但您点击链接的邮箱地址已是另一个账户（%s）的主邮箱。请切换账户后重试。',
+      'You are logged in as %s, but the email address you just clicked a link from is already verified and associated with another account (%s). Switch accounts, then try again.' => '您当前登录为 %s，但您点击链接的邮箱地址已验证并关联到另一个账户（%s）。请切换账户后重试。',
+      'You are not a project member, so you do not receive mail sent to members of this project.' => '您不是项目成员，因此不会收到发送给该项目成员的邮件。',
+      'You are running %s version "%s", which is older than the minimum required version, "%s". Update to at least "%s".' => '您运行的 %s 版本为 "%s"，低于最低要求的版本 "%s"。请至少更新至 "%s"。',
+      'You are sending from an unrecognized email address to an address which does not support public email ("%s").' => '您正在从一个无法识别的邮箱地址向不支持公开邮件的地址发送邮件（"%s"）。',
       'You are taking an action which requires you to enter high security.' => '您正在执行需要进入高安全模式的操作。',
-      'You are taking an action which requires you to provide multi-factor credentials.' =>
-        '您正在执行需要提供多因素凭证的操作。',
+      'You are taking an action which requires you to provide multi-factor credentials.' => '您正在执行需要提供多因素凭证的操作。',
       'You are the last member, so you will never be able to rejoin the room.' => '您是最后一位成员，因此将无法重新加入该房间。',
-      'You are trying to act on this item from the wrong queue: it is currently in a different queue.' =>
-        '您正试图从错误的队列操作此项目：该项目当前位于不同的队列中。',
-      'You are trying to gain access to an account ("%s") that can not establish a web session.' =>
-        '您正试图访问无法建立 Web 会话的账户（"%s"）。',
-      'You are trying to save some data to permanent storage, but the request your browser made included an incorrect token. Reload the page and try again. You may need to clear your cookies.' =>
-        '您正尝试将某些数据保存到永久存储，但您的浏览器请求包含了错误的令牌。请重新加载页面后重试。您可能需要清除 Cookie。',
-      'You are using manual IDs. You must override the %s method to properly detect when to insert a new record.' =>
-        '您正在使用手动 ID。必须重写 %s 方法以正确检测何时插入新记录。',
-      'You are viewing an older version of this document, as it appeared on %s.' =>
-        '您正在查看此文档的旧版本，该版本显示于 %s。',
-      'You are watching this project and will receive mail about changes made to any related object.' =>
-        '您正在关注此项目，并将收到有关任何相关对象变更的邮件。',
-      'You awake in a twisting maze of mirrors, all alike. You are likely to be eaten by a graph cycle. Should you escape alive, you resolve to be more careful about putting dashboard panels inside themselves.' =>
-        '你在一个蜿蜒曲折、完全相同的镜子迷宫中醒来。很可能被图循环吞噬。如果你能活着逃脱，你决心以后更加小心，不再将仪表板面板放入自身内部。',
-      'You can also upload files by dragging and dropping them from your desktop onto this page or the home page.' =>
-        '您还可以通过从桌面拖拽文件到本页面或首页来上传文件。',
-      'You can choose to use either a monospaced or variable-width font in textareas in the UI. Textareas are used for editing descriptions and writing comments, among other things.' =>
-        '您可以选择在 UI 的文本区域中使用等宽字体或变宽字体。文本区域用于编辑描述、撰写评论等。',
-      'You can continue to the file detail page to get more information and attempt to access the file.' =>
-        '您可以继续前往文件详情页面以获取更多信息并尝试访问该文件。',
-      'You can continue to the file detail page to monitor the upload progress of the file.' =>
-        '您可以继续前往文件详情页面以监控文件上传进度。',
-      'You can customize the font used when showing monospaced text, including source code. You should enter a valid CSS font declaration like: `13px Consolas`' =>
-        '您可以自定义显示等宽文本（包括源代码）时使用的字体。您应输入有效的 CSS 字体声明，例如：`13px Consolas`',
-      'You can find more information about PHP configuration values in the %s.' =>
-        '您可以在 %s 中找到有关 PHP 配置值的更多信息。',
+      'You are trying to act on this item from the wrong queue: it is currently in a different queue.' => '您正试图从错误的队列操作此项目：该项目当前位于不同的队列中。',
+      'You are trying to gain access to an account ("%s") that can not establish a web session.' => '您正试图访问无法建立 Web 会话的账户（"%s"）。',
+      'You are trying to save some data to permanent storage, but the request your browser made included an incorrect token. Reload the page and try again. You may need to clear your cookies.' => '您正尝试将某些数据保存到永久存储，但您的浏览器请求包含了错误的令牌。请重新加载页面后重试。您可能需要清除 Cookie。',
+      'You are using manual IDs. You must override the %s method to properly detect when to insert a new record.' => '您正在使用手动 ID。必须重写 %s 方法以正确检测何时插入新记录。',
+      'You are viewing an older version of this document, as it appeared on %s.' => '您正在查看此文档的旧版本，该版本显示于 %s。',
+      'You are watching this project and will receive mail about changes made to any related object.' => '您正在关注此项目，并将收到有关任何相关对象变更的邮件。',
+      'You awake in a twisting maze of mirrors, all alike. You are likely to be eaten by a graph cycle. Should you escape alive, you resolve to be more careful about putting dashboard panels inside themselves.' => '你在一个蜿蜒曲折、完全相同的镜子迷宫中醒来。很可能被图循环吞噬。如果你能活着逃脱，你决心以后更加小心，不再将仪表板面板放入自身内部。',
+      'You can also upload files by dragging and dropping them from your desktop onto this page or the home page.' => '您还可以通过从桌面拖拽文件到本页面或首页来上传文件。',
+      'You can choose to use either a monospaced or variable-width font in textareas in the UI. Textareas are used for editing descriptions and writing comments, among other things.' => '您可以选择在 UI 的文本区域中使用等宽字体或变宽字体。文本区域用于编辑描述、撰写评论等。',
+      'You can continue to the file detail page to get more information and attempt to access the file.' => '您可以继续前往文件详情页面以获取更多信息并尝试访问该文件。',
+      'You can continue to the file detail page to monitor the upload progress of the file.' => '您可以继续前往文件详情页面以监控文件上传进度。',
+      'You can customize the font used when showing monospaced text, including source code. You should enter a valid CSS font declaration like: `13px Consolas`' => '您可以自定义显示等宽文本（包括源代码）时使用的字体。您应输入有效的 CSS 字体声明，例如：`13px Consolas`',
+      'You can find more information about PHP configuration values in the %s.' => '您可以在 %s 中找到有关 PHP 配置值的更多信息。',
       'You can find more information about configuring OPcache in the %s.' => '您可以在 %s 中找到有关配置 OPcache 的更多信息。',
-      'You can find more information about rebuilding the search index here: %s' =>
-        '您可以在此处找到有关重建搜索索引的更多信息：%s',
+      'You can find more information about rebuilding the search index here: %s' => '您可以在此处找到有关重建搜索索引的更多信息：%s',
       'You can find more information about this new identity mapping here: %s' => '您可以在此找到有关此新身份映射的更多信息：%s',
       'You can flag this %s if you want to remember to look at it later.' => '如果您想记住稍后查看，可以标记此 %s。',
-      'You can link your %s account to an external account to allow you to log in more easily in the future. To continue, choose an account to link below. If you prefer not to link your account, you can skip this step.' =>
-        '您可以将 %s 账户关联到外部账户，以便将来更轻松地登录。要继续，请在下方选择要关联的账户。如果您不想关联账户，可以跳过此步骤。',
-      'You can not "--list" and revoke credentials (with "--from" or "--everywhere") in the same operation.' =>
-        '您不能在同一个操作中同时执行 "--list" 和撤销凭据（使用 "--from" 或 "--everywhere"）。',
-      'You can not access the user inside the implementation of a Conduit method which does not require authentication (as per %s).' =>
-        '您无法在不需要身份验证的 Conduit 方法实现中访问用户（根据 %s）。',
+      'You can link your %s account to an external account to allow you to log in more easily in the future. To continue, choose an account to link below. If you prefer not to link your account, you can skip this step.' => '您可以将 %s 账户关联到外部账户，以便将来更轻松地登录。要继续，请在下方选择要关联的账户。如果您不想关联账户，可以跳过此步骤。',
+      'You can not "--list" and revoke credentials (with "--from" or "--everywhere") in the same operation.' => '您不能在同一个操作中同时执行 "--list" 和撤销凭据（使用 "--from" 或 "--everywhere"）。',
+      'You can not access the user inside the implementation of a Conduit method which does not require authentication (as per %s).' => '您无法在不需要身份验证的 Conduit 方法实现中访问用户（根据 %s）。',
       'You can not apply transactions which already have commentVersions!' => '您无法应用已包含 commentVersions 的事务！',
-      'You can not attach an ICS URI to an import type other than an ICS URI import (type is "%s").' =>
-        '您无法将 ICS URI 附加到非 ICS URI 导入的导入类型（类型为 "%s"）。',
-      'You can not attach an ICS file to an import type other than an ICS import (type is "%s").' =>
-        '您无法将 ICS 文件附加到非 ICS 导入的导入类型（类型为 "%s"）。',
-      'You can not attach an interface to a device which you do not have permission to edit.' =>
-        '您无法将接口附加到您无权编辑的设备。',
+      'You can not attach an ICS URI to an import type other than an ICS URI import (type is "%s").' => '您无法将 ICS URI 附加到非 ICS URI 导入的导入类型（类型为 "%s"）。',
+      'You can not attach an ICS file to an import type other than an ICS import (type is "%s").' => '您无法将 ICS 文件附加到非 ICS 导入的导入类型（类型为 "%s"）。',
+      'You can not attach an interface to a device which you do not have permission to edit.' => '您无法将接口附加到您无权编辑的设备。',
       'You can not attach an interface to a nonexistent or restricted device.' => '您无法将接口附加到不存在或受限制的设备。',
       'You can not bind a service to an invalid or restricted interface.' => '您无法将服务绑定到无效或受限制的接口。',
       'You can not bind a service to the same interface multiple times.' => '您无法将服务多次绑定到同一接口。',
       'You can not bind a service which you do not have permission to edit.' => '您无法绑定您无权编辑的服务。',
       'You can not both "--enable" or "--disable" with search parameters like "--name".' => '您不能同时使用 "--enable" 或 "--disable" 与 "--name" 等搜索参数。',
-      'You can not call newQueryFromRequest() in this method ("%s") because it does not implement newQueryObject().' =>
-        '您无法在此方法（"%s"）中调用 newQueryFromRequest()，因为它未实现 newQueryObject()。',
-      'You can not change members of a milestone. Members of the parent project are automatically members of the milestone.' =>
-        '您无法更改里程碑的成员。父项目的成员会自动成为里程碑的成员。',
-      'You can not change members of a project with subprojects directly. Members of any subproject are automatically members of the parent project.' =>
-        '您无法直接更改包含子项目的项目的成员。任何子项目的成员都会自动成为父项目的成员。',
-      'You can not change usernames because you are not an administrator. Only administrators can change usernames.' =>
-        '您无法更改用户名，因为您不是管理员。只有管理员才能更改用户名。',
+      'You can not call newQueryFromRequest() in this method ("%s") because it does not implement newQueryObject().' => '您无法在此方法（"%s"）中调用 newQueryFromRequest()，因为它未实现 newQueryObject()。',
+      'You can not change members of a milestone. Members of the parent project are automatically members of the milestone.' => '您无法更改里程碑的成员。父项目的成员会自动成为里程碑的成员。',
+      'You can not change members of a project with subprojects directly. Members of any subproject are automatically members of the parent project.' => '您无法直接更改包含子项目的项目的成员。任何子项目的成员都会自动成为父项目的成员。',
+      'You can not change usernames because you are not an administrator. Only administrators can change usernames.' => '您无法更改用户名，因为您不是管理员。只有管理员才能更改用户名。',
       'You can not change your display availability for events you are not attending.' => '您无法更改您未参加活动的显示可用性。',
-      'You can not create a relationship (of type "%s") to object "%s" because it is not the right type of object for this relationship.' =>
-        '无法创建类型为 "%s" 到对象 "%s" 的关系，因为它不是此关系的正确对象类型。',
-      'You can not create a relationship to object "%s" because objects can not be related to themselves.' =>
-        '无法创建到对象 "%s" 的关系，因为对象不能与自己建立关系。',
-      'You can not create a relationship to object "%s" because the object does not exist or could not be loaded.' =>
-        '无法创建到对象 "%s" 的关系，因为该对象不存在或无法加载。',
-      'You can not create a rule for that object, because you do not have permission to edit it. You can only create rules for objects you can edit.' =>
-        '无法为该对象创建规则，因为您没有权限编辑它。您只能为自己可以编辑的对象创建规则。',
-      'You can not create a subproject or milestone under this parent because it would nest projects too deeply. The maximum nesting depth of projects is %s.' =>
-        '无法在此父项目下创建子项目或里程碑，因为会使项目嵌套过深。项目的最大嵌套深度为 %s。',
-      'You can not create that relationship because it would create a circular dependency:' =>
-        '无法创建该关系，因为它会产生循环依赖：',
-      'You can not disable import of an ICS file because the entire import occurs immediately when you upload the file. There is no further activity to disable.' =>
-        '无法禁用 ICS 文件导入，因为整个导入过程在上传文件时立即完成。没有后续活动可以禁用。',
+      'You can not create a relationship (of type "%s") to object "%s" because it is not the right type of object for this relationship.' => '无法创建类型为 "%s" 到对象 "%s" 的关系，因为它不是此关系的正确对象类型。',
+      'You can not create a relationship to object "%s" because objects can not be related to themselves.' => '无法创建到对象 "%s" 的关系，因为对象不能与自己建立关系。',
+      'You can not create a relationship to object "%s" because the object does not exist or could not be loaded.' => '无法创建到对象 "%s" 的关系，因为该对象不存在或无法加载。',
+      'You can not create a rule for that object, because you do not have permission to edit it. You can only create rules for objects you can edit.' => '无法为该对象创建规则，因为您没有权限编辑它。您只能为自己可以编辑的对象创建规则。',
+      'You can not create a subproject or milestone under this parent because it would nest projects too deeply. The maximum nesting depth of projects is %s.' => '无法在此父项目下创建子项目或里程碑，因为会使项目嵌套过深。项目的最大嵌套深度为 %s。',
+      'You can not create that relationship because it would create a circular dependency:' => '无法创建该关系，因为它会产生循环依赖：',
+      'You can not disable import of an ICS file because the entire import occurs immediately when you upload the file. There is no further activity to disable.' => '无法禁用 ICS 文件导入，因为整个导入过程在上传文件时立即完成。没有后续活动可以禁用。',
       'You can not edit this comment because the conversation is locked.' => '无法编辑此评论，因为对话已锁定。',
-      'You can not import columns from that workboard because it has no importable columns.' =>
-        '无法从该工作板导入列，因为它没有可导入的列。',
-      'You can not import columns into this workboard because it already has columns. You can only import into an empty workboard.' =>
-        '无法将列导入此工作板，因为它已有列。您只能导入到空的工作板。',
-      'You can not lock this task and unassign it at the same time because no one will be able to edit it anymore. Lock the task or remove the assignee, but not both.' =>
-        '无法同时锁定此任务并取消指派，因为将无人能够再编辑它。请锁定任务或移除指派人，但不要同时进行。',
-      'You can not lock this task because it does not have an assignee. No one would be able to edit the task. Assign the task to an assignee before locking it.' =>
-        '无法锁定此任务，因为它没有指派人。将无人能够编辑该任务。请在锁定前为任务指定指派人。',
-      'You can not move a document to its existing location. Choose a different location to move the document to.' =>
-        '无法将文档移动到其现有位置。请选择其他位置来移动文档。',
-      'You can not move this document there, because it would overwrite an existing document which is already at that location. Move or delete the existing document first.' =>
-        '无法将文档移动到该位置，因为会覆盖已存在于该位置的文档。请先移动或删除现有文档。',
-      'You can not operate on all files with "--all" and also operate on a subset of files by naming them explicitly or using constraint flags like "--from-engine".' =>
-        '无法同时使用 "--all" 对所有文件执行操作，又通过显式指定名称或使用约束标志（如 "--from-engine"）对文件子集执行操作。',
+      'You can not import columns from that workboard because it has no importable columns.' => '无法从该工作板导入列，因为它没有可导入的列。',
+      'You can not import columns into this workboard because it already has columns. You can only import into an empty workboard.' => '无法将列导入此工作板，因为它已有列。您只能导入到空的工作板。',
+      'You can not lock this task and unassign it at the same time because no one will be able to edit it anymore. Lock the task or remove the assignee, but not both.' => '无法同时锁定此任务并取消指派，因为将无人能够再编辑它。请锁定任务或移除指派人，但不要同时进行。',
+      'You can not lock this task because it does not have an assignee. No one would be able to edit the task. Assign the task to an assignee before locking it.' => '无法锁定此任务，因为它没有指派人。将无人能够编辑该任务。请在锁定前为任务指定指派人。',
+      'You can not move a document to its existing location. Choose a different location to move the document to.' => '无法将文档移动到其现有位置。请选择其他位置来移动文档。',
+      'You can not move this document there, because it would overwrite an existing document which is already at that location. Move or delete the existing document first.' => '无法将文档移动到该位置，因为会覆盖已存在于该位置的文档。请先移动或删除现有文档。',
+      'You can not operate on all files with "--all" and also operate on a subset of files by naming them explicitly or using constraint flags like "--from-engine".' => '无法同时使用 "--all" 对所有文件执行操作，又通过显式指定名称或使用约束标志（如 "--from-engine"）对文件子集执行操作。',
       'You can not put an interface on a nonexistent or restricted network.' => '您无法将接口置于不存在或受限的网络上。',
       'You can not query for inline comments without also querying for images.' => '您无法在不同时查询图像的情况下查询内联评论。',
-      'You can not remove the assignee of this task because it is locked and no one would be able to edit the task. Reassign the task or unlock it before removing the assignee.' =>
-        '您无法移除此任务的受理人，因为它已锁定且无人能编辑该任务。在移除受理人之前，请重新指派任务或将其解锁。',
+      'You can not remove the assignee of this task because it is locked and no one would be able to edit the task. Reassign the task or unlock it before removing the assignee.' => '您无法移除此任务的受理人，因为它已锁定且无人能编辑该任务。在移除受理人之前，请重新指派任务或将其解锁。',
       'You can not remove this comment because the conversation is locked.' => '您无法移除此评论，因为对话已锁定。',
-      'You can not send an email login link to this email address because the associated user account is disabled.' =>
-        '您无法向此电子邮件地址发送电子邮件登录链接，因为关联的用户账户已禁用。',
-      'You can not send an email login link to this email address because the associated user account is not a normal user account and can not log in to the web interface.' =>
-        '您无法向此电子邮件地址发送电子邮件登录链接，因为关联的用户账户不是普通用户账户，无法登录 Web 界面。',
-      'You can not send this user welcome mail because they are not a normal user and can not log in to the web interface. Special users (like bots and mailing lists) are unable to establish web sessions.' =>
-        '您无法向此用户发送欢迎邮件，因为他们不是普通用户，无法登录 Web 界面。特殊用户（如机器人和邮件列表）无法建立 Web 会话。',
-      'You can not send welcome mail because you are not an administrator. Only administrators may send welcome mail.' =>
-        '您无法发送欢迎邮件，因为您不是管理员。只有管理员可以发送欢迎邮件。',
+      'You can not send an email login link to this email address because the associated user account is disabled.' => '您无法向此电子邮件地址发送电子邮件登录链接，因为关联的用户账户已禁用。',
+      'You can not send an email login link to this email address because the associated user account is not a normal user account and can not log in to the web interface.' => '您无法向此电子邮件地址发送电子邮件登录链接，因为关联的用户账户不是普通用户账户，无法登录 Web 界面。',
+      'You can not send this user welcome mail because they are not a normal user and can not log in to the web interface. Special users (like bots and mailing lists) are unable to establish web sessions.' => '您无法向此用户发送欢迎邮件，因为他们不是普通用户，无法登录 Web 界面。特殊用户（如机器人和邮件列表）无法建立 Web 会话。',
+      'You can not send welcome mail because you are not an administrator. Only administrators may send welcome mail.' => '您无法发送欢迎邮件，因为您不是管理员。只有管理员可以发送欢迎邮件。',
       'You can not send welcome mail to this user because their account is disabled.' => '您无法向此用户发送欢迎邮件，因为其账户已禁用。',
-      'You can not set the response digest for a challenge directly. Instead, set a response token. A response digest will be computed automatically.' =>
-        '您无法直接为质询设置响应摘要。请设置响应令牌，响应摘要将自动计算。',
-      'You can not shift this object in the selected space, because the space does not exist or you do not have access to it.' =>
-        '您无法在选定的空间中移动此对象，因为该空间不存在或您无权访问。',
-      'You can not shift this object into the selected space, because the space is archived. Objects can not be created inside (or moved into) archived spaces.' =>
-        '您无法将此对象移动到选定的空间中，因为该空间已归档。无法在已归档的空间中创建（或移入）对象。',
+      'You can not set the response digest for a challenge directly. Instead, set a response token. A response digest will be computed automatically.' => '您无法直接为质询设置响应摘要。请设置响应令牌，响应摘要将自动计算。',
+      'You can not shift this object in the selected space, because the space does not exist or you do not have access to it.' => '您无法在选定的空间中移动此对象，因为该空间不存在或您无权访问。',
+      'You can not shift this object into the selected space, because the space is archived. Objects can not be created inside (or moved into) archived spaces.' => '您无法将此对象移动到选定的空间中，因为该空间已归档。无法在已归档的空间中创建（或移入）对象。',
       'You can not sign a document on behalf of a corporation unless you are logged in.' => '除非您已登录，否则无法代表公司签署文档。',
       'You can not sign a transaction group that has no other effects.' => '您无法签署没有其他效果的的事务组。',
-      'You can not specify both "--active" and "--archived" tasks: no tasks can match both constraints.' =>
-        '您无法同时指定 "--active" 和 "--archived" 任务：没有任务能同时满足这两个约束。',
-      'You can not start tracking time at a future time. Enter the current time, or a time in the past.' =>
-        '您无法在未来时间开始跟踪时间。请输入当前时间或过去的时间。',
-      'You can not stop tracking time at a future time. Enter the current time, or a time in the past.' =>
-        '您无法在未来时间停止跟踪时间。请输入当前时间或过去的时间。',
-      'You can not unconditionally disable %s by calling %s while a write guard is active. Use %s to temporarily allow unguarded writes.' =>
-        '当写保护处于活动状态时，您无法通过调用 %s 无条件禁用 %s。请使用 %s 临时允许无保护写入。',
-      'You can not unlink this account because the administrator has configured this server to make links to "%s" accounts permanent.' =>
-        '您无法取消关联此账户，因为管理员已配置此服务器将指向 "%s" 账户的链接设为永久。',
-      'You can not use query constraint flags (like "--version", "--type", or a list of specific objects) with "--all".' =>
-        '您无法将查询约束标志（如 "--version"、"--type" 或特定对象列表）与 "--all" 一起使用。',
-      'You can only select a parent task when creating a transaction for the first time.' =>
-        '只有在首次创建事务时才能选择父任务。',
-      'You can only set a parent or milestone project when creating a project for the first time.' =>
-        '只有在首次创建项目时才能设置父项目或里程碑项目。',
-      'You can opt to receive plain text email instead of HTML email. Plain text email works better with some clients.' =>
-        '您可以选择接收纯文本电子邮件而非 HTML 电子邮件。纯文本电子邮件在某些客户端上效果更好。',
+      'You can not specify both "--active" and "--archived" tasks: no tasks can match both constraints.' => '您无法同时指定 "--active" 和 "--archived" 任务：没有任务能同时满足这两个约束。',
+      'You can not start tracking time at a future time. Enter the current time, or a time in the past.' => '您无法在未来时间开始跟踪时间。请输入当前时间或过去的时间。',
+      'You can not stop tracking time at a future time. Enter the current time, or a time in the past.' => '您无法在未来时间停止跟踪时间。请输入当前时间或过去的时间。',
+      'You can not unconditionally disable %s by calling %s while a write guard is active. Use %s to temporarily allow unguarded writes.' => '当写保护处于活动状态时，您无法通过调用 %s 无条件禁用 %s。请使用 %s 临时允许无保护写入。',
+      'You can not unlink this account because the administrator has configured this server to make links to "%s" accounts permanent.' => '您无法取消关联此账户，因为管理员已配置此服务器将指向 "%s" 账户的链接设为永久。',
+      'You can not use query constraint flags (like "--version", "--type", or a list of specific objects) with "--all".' => '您无法将查询约束标志（如 "--version"、"--type" 或特定对象列表）与 "--all" 一起使用。',
+      'You can only select a parent task when creating a transaction for the first time.' => '只有在首次创建事务时才能选择父任务。',
+      'You can only set a parent or milestone project when creating a project for the first time.' => '只有在首次创建项目时才能设置父项目或里程碑项目。',
+      'You can opt to receive plain text email instead of HTML email. Plain text email works better with some clients.' => '您可以选择接收纯文本电子邮件而非 HTML 电子邮件。纯文本电子邮件在某些客户端上效果更好。',
       'You can optionally include a heartfelt personal message in the email.' => '您可以选择在邮件中添加一条真挚的个人留言。',
-      'You can record a signature exemption if a user has signed an equivalent document. Other applications will behave as through the user has signed this document.' =>
-        '如果用户已签署等效文档，您可以记录签名豁免。其他应用程序将表现得好像该用户已签署此文档。',
-      'You can respond to various application events by installing listeners, which will receive callbacks when interesting things occur. Specify a list of classes which extend PhabricatorEventListener here.' =>
-        '您可以通过安装监听器来响应各种应用程序事件，监听器会在发生值得关注的事件时接收回调。请在此处指定扩展 PhabricatorEventListener 的类列表。',
-      'You can tell how warm a cat is by examining the coloration: cooler areas are darker.' =>
-        '您可以通过观察颜色来判断一只猫有多温暖：较冷的区域颜色更深。',
-      'You can usually install a PHP extension using %s, %s, or %s. A common package name is %s. Try commands like these:' =>
-        '您通常可以使用 %s、%s 或 %s 来安装 PHP 扩展。常见的包名是 %s。请尝试如下命令：',
-      'You currently have multi-factor authentication ("%s") which depends on your primary contact number. You must remove this authentication factor before you can designate a new primary contact number.' =>
-        '您当前拥有依赖于您的主联系号码的多因素认证（"%s"）。在指定新的主联系号码之前，您必须移除该认证因素。',
-      'You currently have multi-factor authentication ("%s") which depends on your primary contact number. You must remove this authentication factor before you can modify or disable your primary contact number.' =>
-        '您当前拥有依赖于您的主联系号码的多因素认证（"%s"）。在修改或禁用您的主联系号码之前，您必须移除该认证因素。',
+      'You can record a signature exemption if a user has signed an equivalent document. Other applications will behave as through the user has signed this document.' => '如果用户已签署等效文档，您可以记录签名豁免。其他应用程序将表现得好像该用户已签署此文档。',
+      'You can respond to various application events by installing listeners, which will receive callbacks when interesting things occur. Specify a list of classes which extend PhabricatorEventListener here.' => '您可以通过安装监听器来响应各种应用程序事件，监听器会在发生值得关注的事件时接收回调。请在此处指定扩展 PhabricatorEventListener 的类列表。',
+      'You can tell how warm a cat is by examining the coloration: cooler areas are darker.' => '您可以通过观察颜色来判断一只猫有多温暖：较冷的区域颜色更深。',
+      'You can usually install a PHP extension using %s, %s, or %s. A common package name is %s. Try commands like these:' => '您通常可以使用 %s、%s 或 %s 来安装 PHP 扩展。常见的包名是 %s。请尝试如下命令：',
+      'You currently have multi-factor authentication ("%s") which depends on your primary contact number. You must remove this authentication factor before you can designate a new primary contact number.' => '您当前拥有依赖于您的主联系号码的多因素认证（"%s"）。在指定新的主联系号码之前，您必须移除该认证因素。',
+      'You currently have multi-factor authentication ("%s") which depends on your primary contact number. You must remove this authentication factor before you can modify or disable your primary contact number.' => '您当前拥有依赖于您的主联系号码的多因素认证（"%s"）。在修改或禁用您的主联系号码之前，您必须移除该认证因素。',
       'You do not have a linked account on this provider, and thus can not refresh it.' => '您在此提供商上没有关联账户，因此无法刷新它。',
       'You do not have access to any forms which are enabled and marked as edit forms.' => '您无权访问任何已启用且标记为编辑表单的表单。',
       'You do not have access to any forms which can be used to create a subtask.' => '您无权访问任何可用于创建子任务的表单。',
       'You do not have access to any of the spaces this query is constrained to.' => '您无权访问此查询被限制到的任何空间。',
       'You do not have access to the application which provides this API method.' => '您无权访问提供此 API 方法的应用程序。',
-      'You do not have any MFA factors attached to your account, so you can not sign this transaction group with MFA. Add MFA to your account in %s.' =>
-        '您的账户未附加任何 MFA 因素，因此无法使用 MFA 签署此事务组。请在 %s 中为您的账户添加 MFA。',
+      'You do not have any MFA factors attached to your account, so you can not sign this transaction group with MFA. Add MFA to your account in %s.' => '您的账户未附加任何 MFA 因素，因此无法使用 MFA 签署此事务组。请在 %s 中为您的账户添加 MFA。',
       'You do not have permission to configure forms for this application.' => '您无权为此应用程序配置表单。',
       'You do not have permission to create Almanac devices within the "%s" namespace.' => '您无权在 "%s" 命名空间内创建 Almanac 设备。',
-      'You do not have permission to create Almanac namespaces within the "%s" namespace.' =>
-        '您无权在 "%s" 命名空间内创建 Almanac 命名空间。',
+      'You do not have permission to create Almanac namespaces within the "%s" namespace.' => '您无权在 "%s" 命名空间内创建 Almanac 命名空间。',
       'You do not have permission to create Almanac services within the "%s" namespace.' => '您无权在 "%s" 命名空间内创建 Almanac 服务。',
-      'You do not have permission to edit the selected object. You can only install dashboards on objects you can edit.' =>
-        '您无权编辑所选对象。您只能在自己可以编辑的对象上安装仪表盘。',
+      'You do not have permission to edit the selected object. You can only install dashboards on objects you can edit.' => '您无权编辑所选对象。您只能在自己可以编辑的对象上安装仪表盘。',
       'You do not have permission to install items on the global favorites menu.' => '您无权在全局收藏夹菜单上安装项目。',
       'You do not have permission to install items on the global home menu.' => '您无权在全局主页菜单上安装项目。',
-      'You do not have the required capability ("%s") to do whatever you are trying to do.' =>
-        '您不具备执行您尝试进行的操作所需的权限（"%s"）。',
-      'You do not need to sign this document. %s added a signature exemption for you on %s.' =>
-        '您无需签署此文档。%s 于 %s 为您添加了签名豁免。',
-      'You have already answered this question. You can not answer twice, but you can edit your existing answer.' =>
-        '您已经回答过此问题。您不能回答两次，但可以编辑现有答案。',
-      'You have disabled mail. When mail is sent to project members, you will not receive a copy.' =>
-        '您已禁用邮件。当向项目成员发送邮件时，您将不会收到副本。',
-      'You have failed to enter the correct account password too often in a short period of time.' =>
-        '您在短时间内输入错误账户密码的次数过多。',
-      'You have failed to verify multi-factor authentication too often in a short period of time.' =>
-        '您在短时间内验证多因素身份验证失败的次数过多。',
-      'You have failed too many attempts to synchronize new multi-factor authentication methods in a short period of time.' =>
-        '您在短时间内尝试同步新的多因素身份验证方法的次数过多。',
-      'You have initiated too many outbound requests to fetch remote URIs recently.' =>
-        '您最近发起了过多的出站请求来获取远程 URI。',
-      'You have made too many account recovery requests in a short period of time.' =>
-        '您在短时间内提交了过多的账户恢复请求。',
-      'You have made too many invalid token requests recently. Wait before making more.' =>
-        '您最近提交了过多的无效令牌请求。请稍后再试。',
-      'You have not activated this enrollment in the Duo application on your phone yet. Complete activation, then click continue.' =>
-        '您尚未在手机上的 Duo 应用中激活此注册。请完成激活，然后点击继续。',
-      'You have not applied all available storage patches yet. You must apply all available patches before you can adjust schemata. Run `%s` to show patch status, and `%s` to apply missing patches.' =>
-        '您尚未应用所有可用的存储补丁。在调整架构之前，必须先应用所有可用补丁。运行 `%s` 以显示补丁状态，运行 `%s` 以应用缺失的补丁。',
-      'You have not completed Duo enrollment yet. Complete enrollment, then click continue.' =>
-        '您尚未完成 Duo 注册。请完成注册，然后点击继续。',
-      'You have not configured a primary contact number. Configure a contact number before adding SMS as an authentication factor.' =>
-        '您尚未配置主要联系电话。在将短信添加为身份验证因素之前，请先配置联系电话。',
-      'You have not configured an outbound SMS mailer. You must configure one before you can set up SMS. See: %s' =>
-        '您尚未配置出站短信邮件程序。必须先配置一个，然后才能设置短信。参见：%s',
-      'You have not initialized the database yet. You must initialize the database before you can adjust schemata. Run `%s` to initialize the database.' =>
-        '您尚未初始化数据库。在调整架构之前，必须先初始化数据库。运行 `%s` 以初始化数据库。',
+      'You do not have the required capability ("%s") to do whatever you are trying to do.' => '您不具备执行您尝试进行的操作所需的权限（"%s"）。',
+      'You do not need to sign this document. %s added a signature exemption for you on %s.' => '您无需签署此文档。%s 于 %s 为您添加了签名豁免。',
+      'You have already answered this question. You can not answer twice, but you can edit your existing answer.' => '您已经回答过此问题。您不能回答两次，但可以编辑现有答案。',
+      'You have disabled mail. When mail is sent to project members, you will not receive a copy.' => '您已禁用邮件。当向项目成员发送邮件时，您将不会收到副本。',
+      'You have failed to enter the correct account password too often in a short period of time.' => '您在短时间内输入错误账户密码的次数过多。',
+      'You have failed to verify multi-factor authentication too often in a short period of time.' => '您在短时间内验证多因素身份验证失败的次数过多。',
+      'You have failed too many attempts to synchronize new multi-factor authentication methods in a short period of time.' => '您在短时间内尝试同步新的多因素身份验证方法的次数过多。',
+      'You have initiated too many outbound requests to fetch remote URIs recently.' => '您最近发起了过多的出站请求来获取远程 URI。',
+      'You have made too many account recovery requests in a short period of time.' => '您在短时间内提交了过多的账户恢复请求。',
+      'You have made too many invalid token requests recently. Wait before making more.' => '您最近提交了过多的无效令牌请求。请稍后再试。',
+      'You have not activated this enrollment in the Duo application on your phone yet. Complete activation, then click continue.' => '您尚未在手机上的 Duo 应用中激活此注册。请完成激活，然后点击继续。',
+      'You have not applied all available storage patches yet. You must apply all available patches before you can adjust schemata. Run `%s` to show patch status, and `%s` to apply missing patches.' => '您尚未应用所有可用的存储补丁。在调整架构之前，必须先应用所有可用补丁。运行 `%s` 以显示补丁状态，运行 `%s` 以应用缺失的补丁。',
+      'You have not completed Duo enrollment yet. Complete enrollment, then click continue.' => '您尚未完成 Duo 注册。请完成注册，然后点击继续。',
+      'You have not configured a primary contact number. Configure a contact number before adding SMS as an authentication factor.' => '您尚未配置主要联系电话。在将短信添加为身份验证因素之前，请先配置联系电话。',
+      'You have not configured an outbound SMS mailer. You must configure one before you can set up SMS. See: %s' => '您尚未配置出站短信邮件程序。必须先配置一个，然后才能设置短信。参见：%s',
+      'You have not initialized the database yet. You must initialize the database before you can adjust schemata. Run `%s` to initialize the database.' => '您尚未初始化数据库。在调整架构之前，必须先初始化数据库。运行 `%s` 以初始化数据库。',
       'You have not moved this object to any columns it is not already in.' => '您尚未将此对象移动到任何它尚未所在的列中。',
-      'You have not set up any events for export from Calendar yet. See the documentation for instructions on how to get started.' =>
-        '您尚未设置任何要从日历导出的事件。请参阅文档以获取入门指南。',
-      'You have not verified the email address for your account ("%s"). You must verify your email address before you can interact over email.' =>
-        '您尚未验证账户的电子邮件地址（"%s"）。在通过电子邮件进行交互之前，必须先验证您的电子邮件地址。',
-      'You have selected multiple operation modes (%s). Choose a single mode to operate in.' =>
-        '您已选择多种操作模式（%s）。请选择单一模式进行操作。',
-      'You haven\'t configured mailers yet, so this server won\'t be able to send outbound mail or receive inbound mail. See the configuration setting "cluster.mailers" for details.' =>
-        '您尚未配置邮件程序，因此此服务器将无法发送出站邮件或接收入站邮件。有关详细信息，请参见配置设置 "cluster.mailers"。',
-      'You likely need to fix your preamble script so REMOTE_ADDR is no longer empty.' =>
-        '您可能需要修复您的 preamble 脚本，使 REMOTE_ADDR 不再为空。',
-      'You may optionally customize the enrollment message users are presented with by providing a replacement message below:' =>
-        '您可以选择通过在下文提供替换消息来自定义呈现给用户的注册消息：',
-      'You must approve the challenge which was sent to your phone. Open the Duo application and confirm the challenge, then continue.' =>
-        '您必须批准发送到手机的挑战。打开 Duo 应用并确认挑战，然后继续。',
-      'You must be able to view the network an interface resides on to view the interface.' =>
-        '您必须能够查看接口所在的网络才能查看该接口。',
-      'You must provide multi-factor credentials to comment or make changes, but you do not have multi-factor authentication configured on your account.' =>
-        '您必须提供多因素凭证才能评论或进行更改，但您的账户未配置多因素认证。',
+      'You have not set up any events for export from Calendar yet. See the documentation for instructions on how to get started.' => '您尚未设置任何要从日历导出的事件。请参阅文档以获取入门指南。',
+      'You have not verified the email address for your account ("%s"). You must verify your email address before you can interact over email.' => '您尚未验证账户的电子邮件地址（"%s"）。在通过电子邮件进行交互之前，必须先验证您的电子邮件地址。',
+      'You have selected multiple operation modes (%s). Choose a single mode to operate in.' => '您已选择多种操作模式（%s）。请选择单一模式进行操作。',
+      'You haven\'t configured mailers yet, so this server won\'t be able to send outbound mail or receive inbound mail. See the configuration setting "cluster.mailers" for details.' => '您尚未配置邮件程序，因此此服务器将无法发送出站邮件或接收入站邮件。有关详细信息，请参见配置设置 "cluster.mailers"。',
+      'You likely need to fix your preamble script so REMOTE_ADDR is no longer empty.' => '您可能需要修复您的 preamble 脚本，使 REMOTE_ADDR 不再为空。',
+      'You may optionally customize the enrollment message users are presented with by providing a replacement message below:' => '您可以选择通过在下文提供替换消息来自定义呈现给用户的注册消息：',
+      'You must approve the challenge which was sent to your phone. Open the Duo application and confirm the challenge, then continue.' => '您必须批准发送到手机的挑战。打开 Duo 应用并确认挑战，然后继续。',
+      'You must be able to view the network an interface resides on to view the interface.' => '您必须能够查看接口所在的网络才能查看该接口。',
+      'You must provide multi-factor credentials to comment or make changes, but you do not have multi-factor authentication configured on your account.' => '您必须提供多因素凭证才能评论或进行更改，但您的账户未配置多因素认证。',
       'You must specify a room id or room PHID to query transactions from.' => '您必须指定房间 ID 或房间 PHID 以查询交易。',
-      'You must verify your email address to log in. You should have a new email message with verification instructions in your inbox (%s).' =>
-        '您必须验证您的电子邮件地址才能登录。您的收件箱中应该有一封包含验证说明的新邮件（%s）。',
-      'You recently provided a response to this factor. Responses may not be reused. Wait %s second(s) for the code to cycle, then try again.' =>
-        '您最近已对此因素提供过响应。响应不可重复使用。请等待 %s 秒让代码循环，然后重试。',
-      'You will be required to provide multi-factor credentials to comment or make changes.' =>
-        '您将需要提供多因素凭证才能评论或进行更改。',
-      'You will be required to provide multi-factor credentials to make changes.' =>
-        '您将需要提供多因素凭证才能进行更改。',
+      'You must verify your email address to log in. You should have a new email message with verification instructions in your inbox (%s).' => '您必须验证您的电子邮件地址才能登录。您的收件箱中应该有一封包含验证说明的新邮件（%s）。',
+      'You recently provided a response to this factor. Responses may not be reused. Wait %s second(s) for the code to cycle, then try again.' => '您最近已对此因素提供过响应。响应不可重复使用。请等待 %s 秒让代码循环，然后重试。',
+      'You will be required to provide multi-factor credentials to comment or make changes.' => '您将需要提供多因素凭证才能评论或进行更改。',
+      'You will be required to provide multi-factor credentials to make changes.' => '您将需要提供多因素凭证才能进行更改。',
       'You will no longer be able to use your %s account to log in.' => '您将无法再使用您的 %s 账户登录。',
-      'You will no longer receive email or notifications about every object associated with this project.' =>
-        '您将不再接收与此项目关联的每个对象的邮件或通知。',
-      'You will not be able to rejoin the room on your own, but someone else can invite you later.' =>
-        '您将无法自行重新加入房间，但其他人可以稍后邀请您。',
+      'You will no longer receive email or notifications about every object associated with this project.' => '您将不再接收与此项目关联的每个对象的邮件或通知。',
+      'You will not be able to rejoin the room on your own, but someone else can invite you later.' => '您将无法自行重新加入房间，但其他人可以稍后邀请您。',
       'Your %s account (%s) has been approved by %s. You can login here:' => '您的 %s 账户 (%s) 已被 %s 批准。您可以在此登录：',
-      'Your Duo account ("%s") has not completed Duo enrollment. Check your email and complete enrollment to continue.' =>
-        '您的 Duo 账户 ("%s") 尚未完成 Duo 注册。请检查您的电子邮件并完成注册以继续。',
-      'Your Duo account ("%s") requires enrollment. Contact your Duo administrator for help. Duo status message: %s' =>
-        '您的 Duo 账户 ("%s") 需要注册。请联系您的 Duo 管理员寻求帮助。Duo 状态消息：%s',
-      'Your PHP configuration selects an invalid timezone. Select a valid timezone.' =>
-        '您的 PHP 配置选择了一个无效的时区。请选择一个有效的时区。',
-      'Your PHP memory limit is configured in a way that may prevent you from uploading large files or handling large requests.' =>
-        '您的 PHP 内存限制配置可能会阻止您上传大文件或处理大型请求。',
-      'Your `%s` configuration contains a port number, but this usage is deprecated. Instead, put the port number in `%s`.' =>
-        '您的 `%s` 配置包含端口号，但此用法已弃用。请将端口号放在 `%s` 中。',
-      'Your account ("%s") has not been approved yet. You can not interact over email until your account is approved.' =>
-        '您的账户 ("%s") 尚未获得批准。在账户获得批准之前，您无法通过电子邮件进行交互。',
-      'Your account ("%s") is disabled, so you can not interact with over email.' =>
-        '您的账户 ("%s") 已被禁用，因此您无法通过电子邮件进行交互。',
-      'Your account does not currently have a password set. You can choose a password by performing a password reset.' =>
-        '您的账户当前未设置密码。您可以通过执行密码重置来设置密码。',
-      'Your account has too many outstanding, incomplete MFA synchronization attempts. Wait an hour and try again.' =>
-        '您的账户有太多未完成的 MFA 同步尝试。请等待一小时后再试。',
-      'Your account is already linked to an external account for this provider.' =>
-        '您的账户已与此提供者的外部账户关联。',
-      'Your account will remain in high security mode for a short period of time. When you are finished taking sensitive actions, you should leave high security.' =>
-        '您的账户将在短时间内保持高安全模式。完成敏感操作后，您应退出高安全模式。',
-      'Your browser did not submit a "%s" cookie with client state information in the request. Check that cookies are enabled. If this problem persists, you may need to clear your cookies.' =>
-        '您的浏览器未在请求中提交包含客户端状态信息的 "%s" cookie。请检查 cookie 是否已启用。如果此问题仍然存在，您可能需要清除 cookie。',
-      'Your browser did not submit a registration key with the request. You must use the same browser to begin and complete registration. Check that cookies are enabled and try again.' =>
-        '您的浏览器未在请求中提交注册密钥。您必须使用同一浏览器开始并完成注册。请检查 cookie 是否已启用，然后重试。',
-      'Your browser has granted this server permission to send desktop notifications.' =>
-        '您的浏览器已授予此服务器发送桌面通知的权限。',
-      'Your browser has not yet granted this server permission to send desktop notifications.' =>
-        '您的浏览器尚未授予此服务器发送桌面通知的权限。',
-      'Your browser submitted a different registration key than the one associated with this account. You may need to clear your cookies.' =>
-        '您的浏览器提交的注册密钥与此账户关联的密钥不同。您可能需要清除 cookie。',
-      'Your browser timezone (%s) differs from your profile timezone (%s). You can adjust your profile setting to match your browser, or ignore this conflict to keep your current profile setting.' =>
-        '您的浏览器时区 (%s) 与您的个人资料时区 (%s) 不同。您可以调整个人资料设置以匹配浏览器，或忽略此冲突以保留当前的个人资料设置。',
+      'Your Duo account ("%s") has not completed Duo enrollment. Check your email and complete enrollment to continue.' => '您的 Duo 账户 ("%s") 尚未完成 Duo 注册。请检查您的电子邮件并完成注册以继续。',
+      'Your Duo account ("%s") requires enrollment. Contact your Duo administrator for help. Duo status message: %s' => '您的 Duo 账户 ("%s") 需要注册。请联系您的 Duo 管理员寻求帮助。Duo 状态消息：%s',
+      'Your PHP configuration selects an invalid timezone. Select a valid timezone.' => '您的 PHP 配置选择了一个无效的时区。请选择一个有效的时区。',
+      'Your PHP memory limit is configured in a way that may prevent you from uploading large files or handling large requests.' => '您的 PHP 内存限制配置可能会阻止您上传大文件或处理大型请求。',
+      'Your `%s` configuration contains a port number, but this usage is deprecated. Instead, put the port number in `%s`.' => '您的 `%s` 配置包含端口号，但此用法已弃用。请将端口号放在 `%s` 中。',
+      'Your account ("%s") has not been approved yet. You can not interact over email until your account is approved.' => '您的账户 ("%s") 尚未获得批准。在账户获得批准之前，您无法通过电子邮件进行交互。',
+      'Your account ("%s") is disabled, so you can not interact with over email.' => '您的账户 ("%s") 已被禁用，因此您无法通过电子邮件进行交互。',
+      'Your account does not currently have a password set. You can choose a password by performing a password reset.' => '您的账户当前未设置密码。您可以通过执行密码重置来设置密码。',
+      'Your account has too many outstanding, incomplete MFA synchronization attempts. Wait an hour and try again.' => '您的账户有太多未完成的 MFA 同步尝试。请等待一小时后再试。',
+      'Your account is already linked to an external account for this provider.' => '您的账户已与此提供者的外部账户关联。',
+      'Your account will remain in high security mode for a short period of time. When you are finished taking sensitive actions, you should leave high security.' => '您的账户将在短时间内保持高安全模式。完成敏感操作后，您应退出高安全模式。',
+      'Your browser did not submit a "%s" cookie with client state information in the request. Check that cookies are enabled. If this problem persists, you may need to clear your cookies.' => '您的浏览器未在请求中提交包含客户端状态信息的 "%s" cookie。请检查 cookie 是否已启用。如果此问题仍然存在，您可能需要清除 cookie。',
+      'Your browser did not submit a registration key with the request. You must use the same browser to begin and complete registration. Check that cookies are enabled and try again.' => '您的浏览器未在请求中提交注册密钥。您必须使用同一浏览器开始并完成注册。请检查 cookie 是否已启用，然后重试。',
+      'Your browser has granted this server permission to send desktop notifications.' => '您的浏览器已授予此服务器发送桌面通知的权限。',
+      'Your browser has not yet granted this server permission to send desktop notifications.' => '您的浏览器尚未授予此服务器发送桌面通知的权限。',
+      'Your browser submitted a different registration key than the one associated with this account. You may need to clear your cookies.' => '您的浏览器提交的注册密钥与此账户关联的密钥不同。您可能需要清除 cookie。',
+      'Your browser timezone (%s) differs from your profile timezone (%s). You can adjust your profile setting to match your browser, or ignore this conflict to keep your current profile setting.' => '您的浏览器时区 (%s) 与您的个人资料时区 (%s) 不同。您可以调整个人资料设置以匹配浏览器，或忽略此冲突以保留当前的个人资料设置。',
       'Your browser timezone and profile timezone are now in agreement (%s).' => '您的浏览器时区与个人资料时区现已一致 (%s)。',
-      'Your browser timezone setting differs from the timezone setting in your profile, click to reconcile.' =>
-        '您的浏览器时区设置与个人资料中的时区设置不同，点击以协调。',
-      'Your invitations have been accepted. You will not be alone on this journey.' =>
-        '您的邀请已被接受。您在此旅程中将不会孤单。',
-      'Your login session is invalid, and clearing the session cookie was unsuccessful. Try clearing your browser cookies.' =>
-        '您的登录会话无效，且清除会话 cookie 未成功。请尝试清除浏览器 cookie。',
-      'Your password is currently hashed using an algorithm which is no longer available on this install.' =>
-        '您的密码当前使用的哈希算法在此安装中已不再可用。',
-      'Your primary email address is unverified. You will not be able to receive email until you verify it.' =>
-        '您的主电子邮件地址未经验证。在验证之前，您将无法接收电子邮件。',
-      'Your remote address has made too many login attempts in a short period of time.' =>
-        '您的远程地址在短时间内尝试了太多次登录。',
-      'Your session is in high security mode. When you finish using it, click here to leave.' =>
-        '您的会话处于高安全模式。使用完毕后，请点击此处退出。',
-      'Your tremendous contributions to this project will be sorely missed. Are you sure you want to leave?' =>
-        '您对本项目的巨大贡献将被深深怀念。您确定要离开吗？',
-      'Your version of MySQL (on database host "%s") does not support configuration of a stopword file. You will not be able to find search results for common words.' =>
-        '您的 MySQL 版本（位于数据库主机 "%s"）不支持配置停用词文件。您将无法找到常见词的搜索结果。',
+      'Your browser timezone setting differs from the timezone setting in your profile, click to reconcile.' => '您的浏览器时区设置与个人资料中的时区设置不同，点击以协调。',
+      'Your invitations have been accepted. You will not be alone on this journey.' => '您的邀请已被接受。您在此旅程中将不会孤单。',
+      'Your login session is invalid, and clearing the session cookie was unsuccessful. Try clearing your browser cookies.' => '您的登录会话无效，且清除会话 cookie 未成功。请尝试清除浏览器 cookie。',
+      'Your password is currently hashed using an algorithm which is no longer available on this install.' => '您的密码当前使用的哈希算法在此安装中已不再可用。',
+      'Your primary email address is unverified. You will not be able to receive email until you verify it.' => '您的主电子邮件地址未经验证。在验证之前，您将无法接收电子邮件。',
+      'Your remote address has made too many login attempts in a short period of time.' => '您的远程地址在短时间内尝试了太多次登录。',
+      'Your session is in high security mode. When you finish using it, click here to leave.' => '您的会话处于高安全模式。使用完毕后，请点击此处退出。',
+      'Your tremendous contributions to this project will be sorely missed. Are you sure you want to leave?' => '您对本项目的巨大贡献将被深深怀念。您确定要离开吗？',
+      'Your version of MySQL (on database host "%s") does not support configuration of a stopword file. You will not be able to find search results for common words.' => '您的 MySQL 版本（位于数据库主机 "%s"）不支持配置停用词文件。您将无法找到常见词的搜索结果。',
       'Your webserver is not handling compressed request bodies properly.' => '您的 Web 服务器未正确处理压缩的请求体。',
-      'lipsum is a development and testing tool and may only be run on installs in developer mode. Enable "%s" in your configuration to enable lipsum.' =>
-        'lipsum 是一个开发和测试工具，只能在开发者模式的安装中运行。在配置中启用 "%s" 以启用 lipsum。',
-      'mysqli->real_connect() failed, but did not set an error code or emit a message.' =>
-        'mysqli->real_connect() 失败，但未设置错误代码或发出消息。',
-      '%s has been successfully installed. These next guides will take you through configuration and new user orientation. These steps are optional, and you can go through them in any order. If you want to get back to this guide later on, you can find it in {icon globe} **Applications** under {icon map-o} **Guides**.' =>
-        '%s 已成功安装。接下来的指南将带您完成配置和新用户引导。这些步骤是可选的，您可以按任意顺序进行。如果稍后想返回此指南，可以在 {icon globe} **Applications** 下的 {icon map-o} **Guides** 中找到它。',
-      'Allow users to link account credentials for this provider to existing accounts. There is normally no reason to disable this unless you are trying to move away from a provider and want to stop users from creating new account links.' =>
-        '允许用户将此提供商的账户凭据链接到现有账户。通常没有理由禁用此功能，除非您正试图弃用该提供商并希望阻止用户创建新的账户链接。',
-      'Amazon S3 region where your S3 bucket is located. When you specify a region, you should also specify a corresponding endpoint with `amazon-s3.endpoint`. You can find a list of available regions and endpoints in the AWS documentation.' =>
-        '您的 S3 存储桶所在的 Amazon S3 区域。指定区域时，还应通过 `amazon-s3.endpoint` 指定相应的端点。您可以在 AWS 文档中找到可用区域和端点的列表。',
-      'Another user made changes to this document after you began editing it. Do you want to overwrite their changes? (If you choose to overwrite their changes, you should review the document edit history to see what you overwrote, and then make another edit to merge the changes if necessary.)' =>
-        '在您开始编辑后，另一位用户修改了此文档。您要覆盖他们的更改吗？（如果选择覆盖他们的更改，您应查看文档编辑历史以了解覆盖了哪些内容，然后根据需要进行另一次编辑以合并更改。）',
-      'Before you can use this software, you need to add multi-factor authentication to your account. Multi-factor authentication helps secure your account by making it more difficult for attackers to gain access or take sensitive actions.' =>
-        '在使用此软件之前，您需要为您的账户添加多因素认证。多因素认证通过增加攻击者访问账户或执行敏感操作的难度来帮助保护您的账户安全。',
-      'By default, this software includes some flavor text in the UI, like a prompt to "Weigh In" rather than "Add Comment" in Maniphest. If you\'d prefer more traditional UI strings like "Add Comment", you can set this flag to disable most of the extra flavor.' =>
-        '默认情况下，此软件在 UI 中包含一些风格化文本，例如在 Maniphest 中提示 "Weigh In" 而不是 "Add Comment"。如果您更喜欢 "Add Comment" 这类传统的 UI 字符串，可以设置此标志以禁用大部分额外的风格化文本。',
-      'Database host "%s" has a configured cluster state which disagrees with the state on this host ("%s"). Run `bin/storage partition` to commit local state to the cluster. This host may have started with an out-of-date configuration.' =>
-        '数据库主机 "%s" 配置的集群状态与此主机上的状态 ("%s") 不一致。请运行 `bin/storage partition` 将本地状态提交到集群。此主机可能使用了过时的配置启动。',
-      'Default key for HMAC digests where the key is not important (i.e., the hash itself is secret). You can change this if you want (to any other string), but doing so will break existing sessions and CSRF tokens. This option is deprecated. Newer code automatically manages HMAC keys.' =>
-        '用于 HMAC 摘要的默认密钥，其中密钥本身不重要（即哈希值本身是保密的）。您可以根据需要更改此值（更改为任何其他字符串），但这样做会破坏现有会话和 CSRF 令牌。此选项已弃用。较新的代码会自动管理 HMAC 密钥。',
-      'Diffs are normally shown in a side-by-side layout on large screens and automatically switched to a unified view on small screens (like mobile phones). If you prefer unified diffs even on large screens, you can select them for use on all displays.' =>
-        '差异通常在大屏幕上以并排布局显示，并在小屏幕（如手机）上自动切换为统一视图。如果您即使在大屏幕上也更喜欢统一差异，可以选择在所有显示器上使用它们。',
-      'Do you want to disable this provider? Users will not be able to register or log in using linked accounts. If there are any users without other linked authentication mechanisms, they will no longer be able to log in. If you disable all providers, no one will be able to log in.' =>
-        '您要禁用此提供商吗？用户将无法使用关联账户注册或登录。如果存在没有其他关联认证机制的用户，他们将无法再登录。如果您禁用所有提供商，则任何人都将无法登录。',
-      'EditEngine ("%s") returned builtin engine configurations, but none are marked as default and the first configuration has a different builtin key already. Mark a builtin as default or omit the key from the first configuration' =>
-        'EditEngine ("%s") 返回了内置引擎配置，但均未标记为默认，且第一个配置已具有不同的内置键。请将某个内置配置标记为默认，或从第一个配置中省略该键。',
-      'EditEngine ("%s") returned builtin engine configurations, but one (with key "%s") is missing a builtin key. Provide a builtin key for each configuration (you can omit it from the first configuration in the list to automatically assign the default key).' =>
-        'EditEngine ("%s") 返回了内置引擎配置，但其中一个（键为 "%s"）缺少内置键。请为每个配置提供一个内置键（您可以从列表中的第一个配置中省略它，以自动分配默认键）。',
-      'Explicit S3 endpoint to use. This should be the endpoint which corresponds to the region you have selected in `amazon-s3.region`. This software can not determine the correct endpoint automatically because some endpoint locations are irregular.' =>
-        '要使用的显式 S3 端点。这应该是与您在 `amazon-s3.region` 中选择的区域相对应的端点。此软件无法自动确定正确的端点，因为某些端点位置是不规则的。',
-      'File storage in Amazon S3 has been partially configured, but you are missing some required settings. S3 will not be available to store files until you complete the configuration. Either configure S3 fully or remove the partial configuration.' =>
-        'Amazon S3 的文件存储已部分配置，但您缺少一些必需的设置。在完成配置之前，S3 将无法用于存储文件。请完整配置 S3 或删除部分配置。',
-      'For custom domains to work, this server must be configured to allow the public access policy. Configure this setting %s, or ask an administrator to configure this setting. The domain can be specified later once this setting has been changed.' =>
-        '要使自定义域名生效，必须配置此服务器以允许公共访问策略。请配置此设置 %s，或请管理员配置此设置。更改此设置后可以稍后指定域名。',
-      'If you are using Apache, your server may be configured with "SetInputFilter DEFLATE". This directive destructively mangles requests and emits them with "Content-Length" and "Content-Encoding" headers that no longer match the data in the request body.' =>
-        '如果您使用 Apache，您的服务器可能配置了 "SetInputFilter DEFLATE"。此指令会破坏性地篡改请求，并发出 "Content-Length" 和 "Content-Encoding" 标头，这些标头不再与请求体中的数据匹配。',
-      'If you have multiple %s environments (like a development/staging environment and a production environment), set the production environment URI here so that emails and other durable URIs will always generate with links pointing at the production environment. If unset, defaults to `%s`. Most installs do not need to set this option.' =>
-        '如果您有多个 %s 环境（如开发/预发布环境和生产环境），请在此设置生产环境 URI，以便邮件和其他持久 URI 始终生成指向生产环境的链接。如果未设置，默认为 `%s`。大多数安装不需要设置此选项。',
-      'No REMOTE_ADDR is available, so this server cannot determine the origin address for requests. This will prevent the software from performing important security checks. This most often means you have a mistake in your preamble script. Consult the documentation (%s) and double-check that the script is written correctly.' =>
-        '没有可用的 REMOTE_ADDR，因此服务器无法确定请求的来源地址。这将导致软件无法执行重要的安全检查。这通常意味着您的 preamble 脚本中存在错误。请查阅文档 (%s) 并仔细检查脚本是否编写正确。',
-      'Normally, this software issues HTTP redirects after a successful POST. This can make it difficult to debug things which happen while processing the POST, because service and profiling information are lost. By setting this configuration option, an interstitial page will be shown instead of automatically redirecting, allowing you to examine service and profiling information. It also makes the UX awful, so you should only enable it when debugging.' =>
-        '通常情况下，此软件在成功的 POST 请求后会发出 HTTP 重定向。这使得调试 POST 处理过程中发生的问题变得困难，因为服务和性能分析信息会丢失。通过设置此配置选项，将显示一个中间页面而不是自动重定向，从而允许您检查服务和性能分析信息。但这也会使用户体验变得很糟糕，因此仅在调试时才应启用。',
-      'Object rules notify anyone about events. They are bound to an object (like a repository) and can only act on that object. You must be able to edit an object to create object rules for it. Other users who can edit the object can edit its rules.' =>
-        '对象规则可向任何人通知事件。它们绑定到某个对象（如仓库），并且只能对该对象执行操作。您必须能够编辑对象才能为其创建对象规则。其他能够编辑该对象的用户也可以编辑其规则。',
-      'Option "%s" is of type "%s", but the value you provided is not a valid JSON list. When setting a list option from the command line, specify the value in JSON. You may need to quote the value for your shell (for example: \'["a", "b", ...]\').' =>
-        '选项 "%s" 的类型为 "%s"，但您提供的值不是有效的 JSON 列表。从命令行设置列表选项时，请以 JSON 格式指定值。您可能需要为 shell 引用该值（例如：\'["a", "b", ...]\'）。',
-      'Option "%s" is of type "%s", but the value you provided is not a valid JSON list: when providing a set from the command line, specify it as a list of values in JSON. You may need to quote the value for your shell (for example: \'["a", "b", ...]\').' =>
-        '选项 "%s" 的类型为 "%s"，但您提供的值不是有效的 JSON 列表：从命令行提供集合时，请以 JSON 格式将其指定为值列表。您可能需要为 shell 引用该值（例如：\'["a", "b", ...]\'）。',
-      'Optionally, specify a username attribute to use to prefill usernames when registering a new account. This is purely cosmetic and does not affect the login process, but you can configure it to make sure users get the same default username as their LDAP username, so usernames remain consistent across systems.' =>
-        '可选地，指定一个用户名属性，用于在注册新账户时预填充用户名。这纯粹是装饰性的，不会影响登录过程，但您可以配置它以确保用户获得与其 LDAP 用户名相同的默认用户名，从而使用户名在各系统间保持一致。',
-      'Optionally, specify one or more comma-separated attributes to use to prefill the "Real Name" field when registering a new account. This is purely cosmetic and does not affect the login process, but can make registration a little easier.' =>
-        '可选地，指定一个或多个以逗号分隔的属性，用于在注册新账户时预填充"真实姓名"字段。这纯粹是装饰性的，不会影响登录过程，但可以让注册变得稍微容易一些。',
-      'Query class ("%s") did not return the correct type of object from "newResultObject()" (expected a subclass of "PhabricatorLiskDAO", found "%s"). Return an object of the expected type (this is common), or implement a custom "loadPage()" method (this is unusual in modern code).' =>
-        '查询类 ("%s") 未从 "newResultObject()" 返回正确类型的对象（期望的是 "PhabricatorLiskDAO" 的子类，实际找到的是 "%s"）。请返回预期类型的对象（这是常见做法），或实现自定义的 "loadPage()" 方法（这在现代代码中不常见）。',
-      'Query for Conpherence threads for the logged in user. You can query by IDs or PHIDs for specific Conpherence threads. Otherwise, specify limit and offset to query the most recently updated Conpherences for the logged in user.' =>
-        '查询已登录用户的 Conpherence 主题。您可以通过 ID 或 PHID 查询特定的 Conpherence 主题。否则，请指定 limit 和 offset 来查询已登录用户最近更新的 Conpherence。',
-      'Query for transactions for the logged in user within a specific Conpherence room. You can specify the room by ID or PHID. Otherwise, specify limit and offset to query the most recent transactions within the Conpherence room for the logged in user.' =>
-        '在特定的 Conpherence 房间中查询已登录用户的交易记录。您可以通过 ID 或 PHID 指定房间。否则，请指定 limit 和 offset 来查询已登录用户在 Conpherence 房间中的最近交易记录。',
-      'Read-only mode was enabled by the explicit action of a human administrator, so you can get more information about why it has been turned on by rolling your chair away from your desk and yelling "Hey! Why is %s in read-only mode??!" using your very loudest outside voice.' =>
-        '只读模式是由人工管理员明确操作启用的，因此您可以通过将椅子从办公桌前移开，并用最大的室外音量大喊"嘿！为什么 %s 处于只读模式？！"来获取有关其开启原因的更多信息。',
-      'Request parameter %s specifies an invalid redirect URI. The redirect URI must be a fully-qualified domain with no fragments, and must have the same domain and at least the same query parameters as the redirect URI the client registered.' =>
-        '请求参数 %s 指定了无效的重定向 URI。重定向 URI 必须是完全限定的域名且不含片段，并且必须与客户端注册的重定向 URI 具有相同的域名和至少相同的查询参数。',
-      'Some of these errors are caused by access control problems. The user you are connecting with does not have permission to see all of the database or tables that this software uses. You need to GRANT the user more permission, or use a different user.' =>
-        '其中一些错误是由访问控制问题引起的。您正在连接的用户没有权限查看此软件使用的所有数据库或表。您需要为该用户授予更多权限，或使用其他用户。',
-      'Some of these errors are caused by surplus schemata (extra tables or columns which this software does not expect). These are not serious. For information on resolving these issues, see the "Surplus Schemata" section in the "Managing Storage Adjustments" article in the documentation.' =>
-        '其中一些错误是由多余的模式（此软件不期望的额外表或列）引起的。这些问题并不严重。有关解决这些问题的信息，请查阅文档中"管理存储调整"一文的"Surplus Schemata"部分。',
-      'That email address is not verified, but the account it is connected to has at least one other verified address. When an account has at least one verified address, you can only send password reset links to one of the verified addresses. Try a verified address instead.' =>
-        '该电子邮件地址未验证，但其关联的账户至少有一个其他已验证的地址。当账户至少有一个已验证地址时，您只能向已验证地址发送密码重置链接。请尝试使用已验证的地址。',
-      'The email address ("%s") associated with the external account is already in use by an existing %s account. Multiple %s accounts may not have the same email address, so you can not use this email address to register a new account.' =>
-        '与外部账户关联的电子邮件地址 ("%s") 已被现有的 %s 账户使用。多个 %s 账户不能拥有相同的电子邮件地址，因此您无法使用该电子邮件地址注册新账户。',
-      'The email will contain a link that the user may use to log in to their account. This link bypasses authentication requirements and allows them to log in without credentials. Sending a copy of this email can be useful if the original was lost or never sent.' =>
-        '该电子邮件将包含一个用户可用于登录其账户的链接。此链接绕过身份验证要求，允许用户无需凭据即可登录。如果原始邮件丢失或未发送，发送此邮件的副本可能会很有用。',
-      'The request you submitted is signed with a timestamp, but that timestamp is not within %s of the current time. The signed timestamp is %s (%s), and the current server time is %s (%s). This is a difference of %s seconds, but the timestamp must differ from the server time by no more than %s seconds. Your client or server clock may not be set correctly.' =>
-        '您提交的请求带有时间戳签名，但该时间戳不在当前时间的 %s 范围内。签名时间戳为 %s (%s)，当前服务器时间为 %s (%s)。两者相差 %s 秒，但时间戳与服务器时间的差异不得超过 %s 秒。您的客户端或服务器时钟可能未正确设置。',
-      'The secret associated with this OAuth application will be shown in plain text on your screen. Before continuing, wrap your arms around your monitor to create a human shield, keeping it safe from prying eyes. Protect company secrets!' =>
-        '与此 OAuth 应用关联的密钥将以纯文本形式显示在您的屏幕上。在继续之前，请用双臂环绕显示器形成人盾，防止他人窥视。保护公司机密！',
-      'The secret associated with this credential will be shown in plain text on your screen. Before continuing, wrap your arms around your monitor to create a human shield, keeping it safe from prying eyes. Protect company secrets!' =>
-        '与此凭据关联的密钥将以纯文本形式显示在您的屏幕上。在继续之前，请用双臂环绕显示器形成人盾，防止他人窥视。保护公司机密！',
-      'The verification code you provided is incorrect, or the email address has been removed, or the email address is owned by another user. Make sure you followed the link in the email correctly and are logged in with the user account associated with the email address.' =>
-        '您提供的验证码不正确，或该电子邮件地址已被移除，或该电子邮件地址属于其他用户。请确保您正确点击了邮件中的链接，并使用与该电子邮件地址关联的用户账户登录。',
-      'This browser has denied permission to send desktop notifications to this server. Consult your browser settings / documentation to figure out how to clear this setting, do so, and then re-visit this page to grant permission.' =>
-        '此浏览器已拒绝向该服务器发送桌面通知的权限。请查阅浏览器设置/文档以了解如何清除此设置，执行清除操作，然后重新访问此页面以授予权限。',
-      'This change supports situations where users are incorrectly associated with commits because the software makes a bad guess about how the VCS string maps to a user account. This also helps with situations where existing repositories are imported without having created accounts for all the committers to that repository. Until you rebuild these repository identities, you are likely to encounter problems with features which rely on the existence of these identities.' =>
-        '此变更支持用户与提交错误关联的情况，因为软件对 VCS 字符串如何映射到用户账户做出了错误猜测。这也有助于解决导入现有仓库时未为所有提交者创建账户的情况。在重建这些仓库身份之前，您可能会遇到依赖这些身份存在的功能出现问题。',
-      'This command generates synthetic test data, including user accounts. It is intended for use in development environments so you can test features more easily. There is no easy way to delete this data or undo the effects of this command. If you run it in a production environment, it will pollute your data with large amounts of meaningless garbage that you can not get rid of.' =>
-        '此命令会生成合成测试数据，包括用户账户。它旨在用于开发环境，以便您更轻松地测试功能。没有简单的方法可以删除此数据或撤销此命令的效果。如果您在生产环境中运行它，它将用大量无法清除的无意义垃圾数据污染您的数据。',
-      'This credential will be able to be retrieved via the Conduit API by users who have access to this credential. You should only enable this for credentials which need to be accessed programmatically (such as from build agents).' =>
-        '拥有此凭证访问权限的用户将能够通过 Conduit API 检索该凭证。您应该仅为需要以编程方式访问的凭证（例如从构建代理）启用此功能。',
-      'This error may occur if your configured MySQL "wait_timeout" or "max_allowed_packet" values are too small. This may also indicate that something used the MySQL "KILL <process>" command to kill the connection running the query.' =>
-        '如果配置的 MySQL "wait_timeout" 或 "max_allowed_packet" 值太小，可能会出现此错误。这也可能表示某些操作使用了 MySQL "KILL <process>" 命令终止了运行查询的连接。',
-      'This install has the configuration option "%s" enabled, but does not have any active multifactor providers configured. This means you are required to add MFA, but are also prevented from doing so. An administrator must disable "%s" or enable an MFA provider to allow you to continue.' =>
-        '此安装已启用配置选项 "%s"，但未配置任何活跃的多重身份验证提供程序。这意味着您需要添加 MFA，但也被阻止这样做。管理员必须禁用 "%s" 或启用 MFA 提供程序以允许您继续操作。',
-      'This mail is addressed to the private email address of an object ("%s"), but you are not the user who is authorized to use the address you sent mail to. Each private address is unique to the user who received the original mail. Try replying to a message which was sent directly to you instead.' =>
-        '此邮件发送至对象的私有邮箱地址（"%s"），但您不是被授权使用您发送邮件到的地址的用户。每个私有地址对于收到原始邮件的用户都是唯一的。请尝试回复直接发送给您的消息。',
-      'This mail is addressed to the public email address of an object ("%s"), but public replies are not enabled on this server. An administrator may have recently disabled this setting, or you may have replied to an old message. Try replying to a more recent message instead.' =>
-        '此邮件发送至对象的公共邮箱地址（"%s"），但此服务器未启用公共回复。管理员可能最近已禁用此设置，或者您可能回复了一条旧消息。请尝试回复更新的消息。',
-      'This may also indicate that a more serious failure has occurred. If this interruption does not resolve on its own, this server will soon detect the persistent disruption and degrade into read-only mode until the issue is resolved.' =>
-        '这也可能表示发生了更严重的故障。如果此中断无法自行解决，此服务器将很快检测到持续的中断并降级为只读模式，直到问题解决。',
-      'This message is a response to another email message, and this recipient received the original email message, so we are not sending them this substantially similar message (for example, the sender used "Reply All" instead of "Reply" in response to mail from this server).' =>
-        '此消息是对另一封电子邮件的回复，且此收件人已收到原始电子邮件，因此我们不会向他们发送这条高度相似的消息（例如，发件人在回复来自此服务器的邮件时使用了"全部回复"而不是"回复"）。',
-      'This option will use Imagemagick to rescale images, so animated GIFs can be thumbnailed and set as profile pictures. Imagemagick must be installed and the "%s" or "%s" binary must be available to the webserver for this to work.' =>
-        '此选项将使用 Imagemagick 重新缩放图像，以便可以为动画 GIF 生成缩略图并将其设置为个人资料图片。必须安装 Imagemagick，并且 "%s" 或 "%s" 二进制文件必须对 Web 服务器可用，此功能才能正常工作。',
-      'This private key could not be opened with the provided passphrase. This might mean that the passphrase is wrong or that the key is not formatted correctly. Check that you have supplied the complete text of a valid private key and the correct passphrase.' =>
-        '无法使用提供的密码打开此私钥。这可能意味着密码错误，或密钥格式不正确。请检查您是否提供了有效私钥的完整文本以及正确的密码。',
-      'This private key could not be opened. This might mean that the key requires a passphrase, or might mean that the key is not formatted correctly. Check that you have supplied the complete text of a valid private key and the correct passphrase.' =>
-        '无法打开此私钥。这可能意味着密钥需要密码，或密钥格式不正确。请检查您是否提供了有效私钥的完整文本以及正确的密码。',
-      'This provider trusts the HTTP headers set by Traefik after Forward Auth. Requests must reach this install through Traefik so that headers such as X-Auth-User, X-Auth-Email, and X-Auth-Name are set. If Phorge is also reachable directly, restrict access or use a trusted proxy so that header-based authentication is not spoofed.' =>
-        '此提供程序信任 Traefik 在 Forward Auth 后设置的 HTTP 标头。请求必须通过 Traefik 到达此安装，以便设置 X-Auth-User、X-Auth-Email 和 X-Auth-Name 等标头。如果 Phorge 也可以直接访问，请限制访问或使用可信代理，以防止基于标头的身份验证被欺骗。',
-      'This request was served from a replica database. Replica databases may lag behind the master, so very recent activity may not be reflected in the UI. This data will be restored if the master database is restored, but may have been lost if the master database has been reduced to a pile of ash.' =>
-        '此请求由副本数据库提供服务。副本数据库可能滞后于主数据库，因此非常近期的活动可能不会反映在 UI 中。如果主数据库已恢复，此数据将被恢复，但如果主数据库已化为灰烬，则此数据可能已丢失。',
-      'This server is configured as "%s", but you are using the domain name "%s" to access a page which is trying to set a cookie. Access this service on the configured primary domain or a configured alternate domain. Cookies will not be set on other domains for security reasons.' =>
-        '此服务器配置为 "%s"，但您正在使用域名 "%s" 访问尝试设置 cookie 的页面。请在配置的主域名或配置的备用域名上访问此服务。出于安全原因，cookie 不会在其他域名上设置。',
-      'This server is currently configured with no writable ("master") database, so it can not write new information anywhere. This server will run in read-only mode until an administrator reconfigures it with a writable database.' =>
-        '此服务器当前未配置任何可写（"master"）数据库，因此无法在任何位置写入新信息。此服务器将以只读模式运行，直到管理员使用可写数据库重新配置它。',
-      'This server is not configured with any enabled authentication providers which can be used to log in. If you have accidentally locked yourself out by disabling all providers, you can use `%s` to recover access to an account.' =>
-        '此服务器未配置任何可用于登录的已启用身份验证提供程序。如果您因禁用所有提供程序而不慎将自己锁定在外，可以使用 `%s` 来恢复对账户的访问权限。',
-      'This server received an "X-Mod-Pagespeed" or "X-Page-Speed" HTTP header on this request, which indicates that you have enabled "mod_pagespeed" on this server. This module is not compatible with this software. You should disable the module.' =>
-        '此服务器在此请求中收到了 "X-Mod-Pagespeed" 或 "X-Page-Speed" HTTP 标头，这表明您已在此服务器上启用了 "mod_pagespeed"。此模块与此软件不兼容。您应该禁用该模块。',
-      'This service is configured to operate in cluster mode, but %s is not defined in the request context. Your webserver configuration needs to forward %s to PHP so the software can reject requests received on external interfaces.' =>
-        '此服务配置为在集群模式下运行，但请求上下文中未定义 %s。您的 Web 服务器配置需要将 %s 转发到 PHP，以便软件可以拒绝在外部接口上收到的请求。',
-      'This software appears to be installed on a very small EC2 instance (of class "%s") with burstable CPU. This is strongly discouraged. This software regularly needs CPU, and these instances are often choked to death by CPU throttling. Use an instance with a normal CPU instead.' =>
-        '此软件似乎安装在具有突发型 CPU 的非常小的 EC2 实例（类型为 "%s"）上。强烈不建议这样做。此软件定期需要 CPU，而这些实例通常会被 CPU 节流扼杀掉。请改用具有正常 CPU 的实例。',
-      'To enable the login flow, follow setup guidance and configure at least one authentication provider, then associate credentials with your account. After completing these steps, you will be able to log out and log back in normally.' =>
-        '要启用登录流程，请按照设置指南配置至少一个身份验证提供程序，然后将凭证与您的账户关联。完成这些步骤后，您将能够正常注销并重新登录。',
-      'Trigger is attempting to perform a routine reschedule where the next event (at %s) does not occur after the previous event (at %s). Routine reschedules must strictly move event triggers forward through time to avoid executing a trigger an infinite number of times instantaneously.' =>
-        '触发器正在尝试执行常规重新调度，其中下一个事件（在 %s）未在上一个事件（在 %s）之后发生。常规重新调度必须严格地将事件触发器向前推进时间，以避免瞬间无限次执行触发器。',
-      'Unable to access a required database or table. This almost always means that the user you are connecting with ("%s") does not have sufficient permissions granted in MySQL. You can use `bin/storage databases` to get a list of all databases permission is required on.' =>
-        '无法访问所需的数据库或表。这几乎总是意味着您连接所使用的用户（"%s"）在 MySQL 中没有足够的权限。您可以使用 `bin/storage databases` 获取需要权限的所有数据库列表。',
-      'Use "--type <type>" or "--provider <phid>" to specify which factors to strip, or "--all-types" to strip all factors. Use `bin/auth list-factors` to show the available factor types or `bin/auth list-mfa-providers` to show available providers.' =>
-        '使用 "--type <type>" 或 "--provider <phid>" 指定要剥离的因子，或使用 "--all-types" 剥离所有因子。使用 `bin/auth list-factors` 显示可用的因子类型，或使用 `bin/auth list-mfa-providers` 显示可用的提供程序。',
-      'You are logged in as %s, but the email address (%s) you just clicked a link from is already associated with another account (%s). You can log out to switch accounts, or verify the address and attach it to your current account. Attach email address %s to user account %s?' =>
-        '您当前登录的账户是 %s，但您点击链接的邮箱地址（%s）已关联到另一个账户（%s）。您可以退出登录以切换账户，或验证该地址并将其附加到当前账户。要将邮箱地址 %s 附加到用户账户 %s 吗？',
-      'You can not deprecate or disable the last active MFA provider while "%s" is enabled, because new users would be unable to enroll in MFA. Disable the MFA requirement in Config, or create or enable another MFA provider first.' =>
-        '在启用 "%s" 时，您无法弃用或禁用最后一个活跃的 MFA 提供程序，因为新用户将无法注册 MFA。请在配置中禁用 MFA 要求，或先创建/启用另一个 MFA 提供程序。',
-      'You can safely ignore these warnings if the install itself has access controls (for example, it is deployed on a VPN) or if all of the configured providers have access controls (for example, they are all private LDAP or OAuth servers).' =>
-        '如果安装实例本身具有访问控制（例如部署在 VPN 上），或所有已配置的提供程序都具有访问控制（例如均为私有 LDAP 或 OAuth 服务器），则可以安全地忽略这些警告。',
-      'You can set a limit for the maximum byte size of outbound mail. Mail which is larger than this limit will be truncated before being sent. This can be useful if your MTA rejects mail which exceeds some limit (this is reasonably common). Specify a value in bytes.' =>
-        '您可以为出站邮件设置最大字节大小限制。超过此限制的邮件将在发送前被截断。如果您的 MTA 拒绝超过某些限制的邮件（这种情况相当常见），此功能会很有用。请以字节为单位指定值。',
-      'You have not configured any authentication providers yet. You should add a provider (like username/password, LDAP, or GitHub OAuth) so users can register and log in. You can add and configure providers using the Auth Application.' =>
-        '您尚未配置任何身份验证提供程序。您应添加一个提供程序（如用户名/密码、LDAP 或 GitHub OAuth），以便用户可以注册和登录。您可以使用 Auth 应用添加和配置提供程序。',
-      'You have surplus schemata (extra tables or columns which this software does not expect). For information on resolving these issues, see the "Surplus Schemata" section in the "Managing Storage Adjustments" article in the documentation.' =>
-        '您有多余的架构（此软件不需要的额外表或列）。有关解决这些问题的信息，请参阅文档中“管理存储调整”文章的“多余架构”部分。',
-      'Your %s account is already connected to an external account on this service ("%s"), but you are currently logged in to the service with a different account. Log out of the external service, then log back in with the correct account before refreshing the account link.' =>
-        '您的 %s 账户已连接到该服务上的外部账户（"%s"），但您当前使用另一个账户登录该服务。请退出外部服务，然后使用正确的账户重新登录，再刷新账户链接。',
-      'Your message does not contain any body text or attachments, so this server can not do anything useful with it. Make sure comment text appears at the top of your message: quoted replies, inline text, and signatures are discarded and ignored.' =>
-        '您的消息不包含任何正文文本或附件，因此此服务器无法对其进行任何有效处理。请确保注释文本出现在消息顶部：引用的回复、内联文本和签名将被丢弃并忽略。',
+      'lipsum is a development and testing tool and may only be run on installs in developer mode. Enable "%s" in your configuration to enable lipsum.' => 'lipsum 是一个开发和测试工具，只能在开发者模式的安装中运行。在配置中启用 "%s" 以启用 lipsum。',
+      'mysqli->real_connect() failed, but did not set an error code or emit a message.' => 'mysqli->real_connect() 失败，但未设置错误代码或发出消息。',
+      '%s has been successfully installed. These next guides will take you through configuration and new user orientation. These steps are optional, and you can go through them in any order. If you want to get back to this guide later on, you can find it in {icon globe} **Applications** under {icon map-o} **Guides**.' => '%s 已成功安装。接下来的指南将带您完成配置和新用户引导。这些步骤是可选的，您可以按任意顺序进行。如果稍后想返回此指南，可以在 {icon globe} **Applications** 下的 {icon map-o} **Guides** 中找到它。',
+      'Allow users to link account credentials for this provider to existing accounts. There is normally no reason to disable this unless you are trying to move away from a provider and want to stop users from creating new account links.' => '允许用户将此提供商的账户凭据链接到现有账户。通常没有理由禁用此功能，除非您正试图弃用该提供商并希望阻止用户创建新的账户链接。',
+      'Amazon S3 region where your S3 bucket is located. When you specify a region, you should also specify a corresponding endpoint with `amazon-s3.endpoint`. You can find a list of available regions and endpoints in the AWS documentation.' => '您的 S3 存储桶所在的 Amazon S3 区域。指定区域时，还应通过 `amazon-s3.endpoint` 指定相应的端点。您可以在 AWS 文档中找到可用区域和端点的列表。',
+      'Another user made changes to this document after you began editing it. Do you want to overwrite their changes? (If you choose to overwrite their changes, you should review the document edit history to see what you overwrote, and then make another edit to merge the changes if necessary.)' => '在您开始编辑后，另一位用户修改了此文档。您要覆盖他们的更改吗？（如果选择覆盖他们的更改，您应查看文档编辑历史以了解覆盖了哪些内容，然后根据需要进行另一次编辑以合并更改。）',
+      'Before you can use this software, you need to add multi-factor authentication to your account. Multi-factor authentication helps secure your account by making it more difficult for attackers to gain access or take sensitive actions.' => '在使用此软件之前，您需要为您的账户添加多因素认证。多因素认证通过增加攻击者访问账户或执行敏感操作的难度来帮助保护您的账户安全。',
+      'By default, this software includes some flavor text in the UI, like a prompt to "Weigh In" rather than "Add Comment" in Maniphest. If you\'d prefer more traditional UI strings like "Add Comment", you can set this flag to disable most of the extra flavor.' => '默认情况下，此软件在 UI 中包含一些风格化文本，例如在 Maniphest 中提示 "Weigh In" 而不是 "Add Comment"。如果您更喜欢 "Add Comment" 这类传统的 UI 字符串，可以设置此标志以禁用大部分额外的风格化文本。',
+      'Database host "%s" has a configured cluster state which disagrees with the state on this host ("%s"). Run `bin/storage partition` to commit local state to the cluster. This host may have started with an out-of-date configuration.' => '数据库主机 "%s" 配置的集群状态与此主机上的状态 ("%s") 不一致。请运行 `bin/storage partition` 将本地状态提交到集群。此主机可能使用了过时的配置启动。',
+      'Default key for HMAC digests where the key is not important (i.e., the hash itself is secret). You can change this if you want (to any other string), but doing so will break existing sessions and CSRF tokens. This option is deprecated. Newer code automatically manages HMAC keys.' => '用于 HMAC 摘要的默认密钥，其中密钥本身不重要（即哈希值本身是保密的）。您可以根据需要更改此值（更改为任何其他字符串），但这样做会破坏现有会话和 CSRF 令牌。此选项已弃用。较新的代码会自动管理 HMAC 密钥。',
+      'Diffs are normally shown in a side-by-side layout on large screens and automatically switched to a unified view on small screens (like mobile phones). If you prefer unified diffs even on large screens, you can select them for use on all displays.' => '差异通常在大屏幕上以并排布局显示，并在小屏幕（如手机）上自动切换为统一视图。如果您即使在大屏幕上也更喜欢统一差异，可以选择在所有显示器上使用它们。',
+      'Do you want to disable this provider? Users will not be able to register or log in using linked accounts. If there are any users without other linked authentication mechanisms, they will no longer be able to log in. If you disable all providers, no one will be able to log in.' => '您要禁用此提供商吗？用户将无法使用关联账户注册或登录。如果存在没有其他关联认证机制的用户，他们将无法再登录。如果您禁用所有提供商，则任何人都将无法登录。',
+      'EditEngine ("%s") returned builtin engine configurations, but none are marked as default and the first configuration has a different builtin key already. Mark a builtin as default or omit the key from the first configuration' => 'EditEngine ("%s") 返回了内置引擎配置，但均未标记为默认，且第一个配置已具有不同的内置键。请将某个内置配置标记为默认，或从第一个配置中省略该键。',
+      'EditEngine ("%s") returned builtin engine configurations, but one (with key "%s") is missing a builtin key. Provide a builtin key for each configuration (you can omit it from the first configuration in the list to automatically assign the default key).' => 'EditEngine ("%s") 返回了内置引擎配置，但其中一个（键为 "%s"）缺少内置键。请为每个配置提供一个内置键（您可以从列表中的第一个配置中省略它，以自动分配默认键）。',
+      'Explicit S3 endpoint to use. This should be the endpoint which corresponds to the region you have selected in `amazon-s3.region`. This software can not determine the correct endpoint automatically because some endpoint locations are irregular.' => '要使用的显式 S3 端点。这应该是与您在 `amazon-s3.region` 中选择的区域相对应的端点。此软件无法自动确定正确的端点，因为某些端点位置是不规则的。',
+      'File storage in Amazon S3 has been partially configured, but you are missing some required settings. S3 will not be available to store files until you complete the configuration. Either configure S3 fully or remove the partial configuration.' => 'Amazon S3 的文件存储已部分配置，但您缺少一些必需的设置。在完成配置之前，S3 将无法用于存储文件。请完整配置 S3 或删除部分配置。',
+      'For custom domains to work, this server must be configured to allow the public access policy. Configure this setting %s, or ask an administrator to configure this setting. The domain can be specified later once this setting has been changed.' => '要使自定义域名生效，必须配置此服务器以允许公共访问策略。请配置此设置 %s，或请管理员配置此设置。更改此设置后可以稍后指定域名。',
+      'If you are using Apache, your server may be configured with "SetInputFilter DEFLATE". This directive destructively mangles requests and emits them with "Content-Length" and "Content-Encoding" headers that no longer match the data in the request body.' => '如果您使用 Apache，您的服务器可能配置了 "SetInputFilter DEFLATE"。此指令会破坏性地篡改请求，并发出 "Content-Length" 和 "Content-Encoding" 标头，这些标头不再与请求体中的数据匹配。',
+      'If you have multiple %s environments (like a development/staging environment and a production environment), set the production environment URI here so that emails and other durable URIs will always generate with links pointing at the production environment. If unset, defaults to `%s`. Most installs do not need to set this option.' => '如果您有多个 %s 环境（如开发/预发布环境和生产环境），请在此设置生产环境 URI，以便邮件和其他持久 URI 始终生成指向生产环境的链接。如果未设置，默认为 `%s`。大多数安装不需要设置此选项。',
+      'No REMOTE_ADDR is available, so this server cannot determine the origin address for requests. This will prevent the software from performing important security checks. This most often means you have a mistake in your preamble script. Consult the documentation (%s) and double-check that the script is written correctly.' => '没有可用的 REMOTE_ADDR，因此服务器无法确定请求的来源地址。这将导致软件无法执行重要的安全检查。这通常意味着您的 preamble 脚本中存在错误。请查阅文档 (%s) 并仔细检查脚本是否编写正确。',
+      'Normally, this software issues HTTP redirects after a successful POST. This can make it difficult to debug things which happen while processing the POST, because service and profiling information are lost. By setting this configuration option, an interstitial page will be shown instead of automatically redirecting, allowing you to examine service and profiling information. It also makes the UX awful, so you should only enable it when debugging.' => '通常情况下，此软件在成功的 POST 请求后会发出 HTTP 重定向。这使得调试 POST 处理过程中发生的问题变得困难，因为服务和性能分析信息会丢失。通过设置此配置选项，将显示一个中间页面而不是自动重定向，从而允许您检查服务和性能分析信息。但这也会使用户体验变得很糟糕，因此仅在调试时才应启用。',
+      'Object rules notify anyone about events. They are bound to an object (like a repository) and can only act on that object. You must be able to edit an object to create object rules for it. Other users who can edit the object can edit its rules.' => '对象规则可向任何人通知事件。它们绑定到某个对象（如仓库），并且只能对该对象执行操作。您必须能够编辑对象才能为其创建对象规则。其他能够编辑该对象的用户也可以编辑其规则。',
+      'Option "%s" is of type "%s", but the value you provided is not a valid JSON list. When setting a list option from the command line, specify the value in JSON. You may need to quote the value for your shell (for example: \'["a", "b", ...]\').' => '选项 "%s" 的类型为 "%s"，但您提供的值不是有效的 JSON 列表。从命令行设置列表选项时，请以 JSON 格式指定值。您可能需要为 shell 引用该值（例如：\'["a", "b", ...]\'）。',
+      'Option "%s" is of type "%s", but the value you provided is not a valid JSON list: when providing a set from the command line, specify it as a list of values in JSON. You may need to quote the value for your shell (for example: \'["a", "b", ...]\').' => '选项 "%s" 的类型为 "%s"，但您提供的值不是有效的 JSON 列表：从命令行提供集合时，请以 JSON 格式将其指定为值列表。您可能需要为 shell 引用该值（例如：\'["a", "b", ...]\'）。',
+      'Optionally, specify a username attribute to use to prefill usernames when registering a new account. This is purely cosmetic and does not affect the login process, but you can configure it to make sure users get the same default username as their LDAP username, so usernames remain consistent across systems.' => '可选地，指定一个用户名属性，用于在注册新账户时预填充用户名。这纯粹是装饰性的，不会影响登录过程，但您可以配置它以确保用户获得与其 LDAP 用户名相同的默认用户名，从而使用户名在各系统间保持一致。',
+      'Optionally, specify one or more comma-separated attributes to use to prefill the "Real Name" field when registering a new account. This is purely cosmetic and does not affect the login process, but can make registration a little easier.' => '可选地，指定一个或多个以逗号分隔的属性，用于在注册新账户时预填充"真实姓名"字段。这纯粹是装饰性的，不会影响登录过程，但可以让注册变得稍微容易一些。',
+      'Query class ("%s") did not return the correct type of object from "newResultObject()" (expected a subclass of "PhabricatorLiskDAO", found "%s"). Return an object of the expected type (this is common), or implement a custom "loadPage()" method (this is unusual in modern code).' => '查询类 ("%s") 未从 "newResultObject()" 返回正确类型的对象（期望的是 "PhabricatorLiskDAO" 的子类，实际找到的是 "%s"）。请返回预期类型的对象（这是常见做法），或实现自定义的 "loadPage()" 方法（这在现代代码中不常见）。',
+      'Query for Conpherence threads for the logged in user. You can query by IDs or PHIDs for specific Conpherence threads. Otherwise, specify limit and offset to query the most recently updated Conpherences for the logged in user.' => '查询已登录用户的 Conpherence 主题。您可以通过 ID 或 PHID 查询特定的 Conpherence 主题。否则，请指定 limit 和 offset 来查询已登录用户最近更新的 Conpherence。',
+      'Query for transactions for the logged in user within a specific Conpherence room. You can specify the room by ID or PHID. Otherwise, specify limit and offset to query the most recent transactions within the Conpherence room for the logged in user.' => '在特定的 Conpherence 房间中查询已登录用户的交易记录。您可以通过 ID 或 PHID 指定房间。否则，请指定 limit 和 offset 来查询已登录用户在 Conpherence 房间中的最近交易记录。',
+      'Read-only mode was enabled by the explicit action of a human administrator, so you can get more information about why it has been turned on by rolling your chair away from your desk and yelling "Hey! Why is %s in read-only mode??!" using your very loudest outside voice.' => '只读模式是由人工管理员明确操作启用的，因此您可以通过将椅子从办公桌前移开，并用最大的室外音量大喊"嘿！为什么 %s 处于只读模式？！"来获取有关其开启原因的更多信息。',
+      'Request parameter %s specifies an invalid redirect URI. The redirect URI must be a fully-qualified domain with no fragments, and must have the same domain and at least the same query parameters as the redirect URI the client registered.' => '请求参数 %s 指定了无效的重定向 URI。重定向 URI 必须是完全限定的域名且不含片段，并且必须与客户端注册的重定向 URI 具有相同的域名和至少相同的查询参数。',
+      'Some of these errors are caused by access control problems. The user you are connecting with does not have permission to see all of the database or tables that this software uses. You need to GRANT the user more permission, or use a different user.' => '其中一些错误是由访问控制问题引起的。您正在连接的用户没有权限查看此软件使用的所有数据库或表。您需要为该用户授予更多权限，或使用其他用户。',
+      'Some of these errors are caused by surplus schemata (extra tables or columns which this software does not expect). These are not serious. For information on resolving these issues, see the "Surplus Schemata" section in the "Managing Storage Adjustments" article in the documentation.' => '其中一些错误是由多余的模式（此软件不期望的额外表或列）引起的。这些问题并不严重。有关解决这些问题的信息，请查阅文档中"管理存储调整"一文的"Surplus Schemata"部分。',
+      'That email address is not verified, but the account it is connected to has at least one other verified address. When an account has at least one verified address, you can only send password reset links to one of the verified addresses. Try a verified address instead.' => '该电子邮件地址未验证，但其关联的账户至少有一个其他已验证的地址。当账户至少有一个已验证地址时，您只能向已验证地址发送密码重置链接。请尝试使用已验证的地址。',
+      'The email address ("%s") associated with the external account is already in use by an existing %s account. Multiple %s accounts may not have the same email address, so you can not use this email address to register a new account.' => '与外部账户关联的电子邮件地址 ("%s") 已被现有的 %s 账户使用。多个 %s 账户不能拥有相同的电子邮件地址，因此您无法使用该电子邮件地址注册新账户。',
+      'The email will contain a link that the user may use to log in to their account. This link bypasses authentication requirements and allows them to log in without credentials. Sending a copy of this email can be useful if the original was lost or never sent.' => '该电子邮件将包含一个用户可用于登录其账户的链接。此链接绕过身份验证要求，允许用户无需凭据即可登录。如果原始邮件丢失或未发送，发送此邮件的副本可能会很有用。',
+      'The request you submitted is signed with a timestamp, but that timestamp is not within %s of the current time. The signed timestamp is %s (%s), and the current server time is %s (%s). This is a difference of %s seconds, but the timestamp must differ from the server time by no more than %s seconds. Your client or server clock may not be set correctly.' => '您提交的请求带有时间戳签名，但该时间戳不在当前时间的 %s 范围内。签名时间戳为 %s (%s)，当前服务器时间为 %s (%s)。两者相差 %s 秒，但时间戳与服务器时间的差异不得超过 %s 秒。您的客户端或服务器时钟可能未正确设置。',
+      'The secret associated with this OAuth application will be shown in plain text on your screen. Before continuing, wrap your arms around your monitor to create a human shield, keeping it safe from prying eyes. Protect company secrets!' => '与此 OAuth 应用关联的密钥将以纯文本形式显示在您的屏幕上。在继续之前，请用双臂环绕显示器形成人盾，防止他人窥视。保护公司机密！',
+      'The secret associated with this credential will be shown in plain text on your screen. Before continuing, wrap your arms around your monitor to create a human shield, keeping it safe from prying eyes. Protect company secrets!' => '与此凭据关联的密钥将以纯文本形式显示在您的屏幕上。在继续之前，请用双臂环绕显示器形成人盾，防止他人窥视。保护公司机密！',
+      'The verification code you provided is incorrect, or the email address has been removed, or the email address is owned by another user. Make sure you followed the link in the email correctly and are logged in with the user account associated with the email address.' => '您提供的验证码不正确，或该电子邮件地址已被移除，或该电子邮件地址属于其他用户。请确保您正确点击了邮件中的链接，并使用与该电子邮件地址关联的用户账户登录。',
+      'This browser has denied permission to send desktop notifications to this server. Consult your browser settings / documentation to figure out how to clear this setting, do so, and then re-visit this page to grant permission.' => '此浏览器已拒绝向该服务器发送桌面通知的权限。请查阅浏览器设置/文档以了解如何清除此设置，执行清除操作，然后重新访问此页面以授予权限。',
+      'This change supports situations where users are incorrectly associated with commits because the software makes a bad guess about how the VCS string maps to a user account. This also helps with situations where existing repositories are imported without having created accounts for all the committers to that repository. Until you rebuild these repository identities, you are likely to encounter problems with features which rely on the existence of these identities.' => '此变更支持用户与提交错误关联的情况，因为软件对 VCS 字符串如何映射到用户账户做出了错误猜测。这也有助于解决导入现有仓库时未为所有提交者创建账户的情况。在重建这些仓库身份之前，您可能会遇到依赖这些身份存在的功能出现问题。',
+      'This command generates synthetic test data, including user accounts. It is intended for use in development environments so you can test features more easily. There is no easy way to delete this data or undo the effects of this command. If you run it in a production environment, it will pollute your data with large amounts of meaningless garbage that you can not get rid of.' => '此命令会生成合成测试数据，包括用户账户。它旨在用于开发环境，以便您更轻松地测试功能。没有简单的方法可以删除此数据或撤销此命令的效果。如果您在生产环境中运行它，它将用大量无法清除的无意义垃圾数据污染您的数据。',
+      'This credential will be able to be retrieved via the Conduit API by users who have access to this credential. You should only enable this for credentials which need to be accessed programmatically (such as from build agents).' => '拥有此凭证访问权限的用户将能够通过 Conduit API 检索该凭证。您应该仅为需要以编程方式访问的凭证（例如从构建代理）启用此功能。',
+      'This error may occur if your configured MySQL "wait_timeout" or "max_allowed_packet" values are too small. This may also indicate that something used the MySQL "KILL <process>" command to kill the connection running the query.' => '如果配置的 MySQL "wait_timeout" 或 "max_allowed_packet" 值太小，可能会出现此错误。这也可能表示某些操作使用了 MySQL "KILL <process>" 命令终止了运行查询的连接。',
+      'This install has the configuration option "%s" enabled, but does not have any active multifactor providers configured. This means you are required to add MFA, but are also prevented from doing so. An administrator must disable "%s" or enable an MFA provider to allow you to continue.' => '此安装已启用配置选项 "%s"，但未配置任何活跃的多重身份验证提供程序。这意味着您需要添加 MFA，但也被阻止这样做。管理员必须禁用 "%s" 或启用 MFA 提供程序以允许您继续操作。',
+      'This mail is addressed to the private email address of an object ("%s"), but you are not the user who is authorized to use the address you sent mail to. Each private address is unique to the user who received the original mail. Try replying to a message which was sent directly to you instead.' => '此邮件发送至对象的私有邮箱地址（"%s"），但您不是被授权使用您发送邮件到的地址的用户。每个私有地址对于收到原始邮件的用户都是唯一的。请尝试回复直接发送给您的消息。',
+      'This mail is addressed to the public email address of an object ("%s"), but public replies are not enabled on this server. An administrator may have recently disabled this setting, or you may have replied to an old message. Try replying to a more recent message instead.' => '此邮件发送至对象的公共邮箱地址（"%s"），但此服务器未启用公共回复。管理员可能最近已禁用此设置，或者您可能回复了一条旧消息。请尝试回复更新的消息。',
+      'This may also indicate that a more serious failure has occurred. If this interruption does not resolve on its own, this server will soon detect the persistent disruption and degrade into read-only mode until the issue is resolved.' => '这也可能表示发生了更严重的故障。如果此中断无法自行解决，此服务器将很快检测到持续的中断并降级为只读模式，直到问题解决。',
+      'This message is a response to another email message, and this recipient received the original email message, so we are not sending them this substantially similar message (for example, the sender used "Reply All" instead of "Reply" in response to mail from this server).' => '此消息是对另一封电子邮件的回复，且此收件人已收到原始电子邮件，因此我们不会向他们发送这条高度相似的消息（例如，发件人在回复来自此服务器的邮件时使用了"全部回复"而不是"回复"）。',
+      'This option will use Imagemagick to rescale images, so animated GIFs can be thumbnailed and set as profile pictures. Imagemagick must be installed and the "%s" or "%s" binary must be available to the webserver for this to work.' => '此选项将使用 Imagemagick 重新缩放图像，以便可以为动画 GIF 生成缩略图并将其设置为个人资料图片。必须安装 Imagemagick，并且 "%s" 或 "%s" 二进制文件必须对 Web 服务器可用，此功能才能正常工作。',
+      'This private key could not be opened with the provided passphrase. This might mean that the passphrase is wrong or that the key is not formatted correctly. Check that you have supplied the complete text of a valid private key and the correct passphrase.' => '无法使用提供的密码打开此私钥。这可能意味着密码错误，或密钥格式不正确。请检查您是否提供了有效私钥的完整文本以及正确的密码。',
+      'This private key could not be opened. This might mean that the key requires a passphrase, or might mean that the key is not formatted correctly. Check that you have supplied the complete text of a valid private key and the correct passphrase.' => '无法打开此私钥。这可能意味着密钥需要密码，或密钥格式不正确。请检查您是否提供了有效私钥的完整文本以及正确的密码。',
+      'This provider trusts the HTTP headers set by Traefik after Forward Auth. Requests must reach this install through Traefik so that headers such as X-Auth-User, X-Auth-Email, and X-Auth-Name are set. If Phorge is also reachable directly, restrict access or use a trusted proxy so that header-based authentication is not spoofed.' => '此提供程序信任 Traefik 在 Forward Auth 后设置的 HTTP 标头。请求必须通过 Traefik 到达此安装，以便设置 X-Auth-User、X-Auth-Email 和 X-Auth-Name 等标头。如果 Phorge 也可以直接访问，请限制访问或使用可信代理，以防止基于标头的身份验证被欺骗。',
+      'This request was served from a replica database. Replica databases may lag behind the master, so very recent activity may not be reflected in the UI. This data will be restored if the master database is restored, but may have been lost if the master database has been reduced to a pile of ash.' => '此请求由副本数据库提供服务。副本数据库可能滞后于主数据库，因此非常近期的活动可能不会反映在 UI 中。如果主数据库已恢复，此数据将被恢复，但如果主数据库已化为灰烬，则此数据可能已丢失。',
+      'This server is configured as "%s", but you are using the domain name "%s" to access a page which is trying to set a cookie. Access this service on the configured primary domain or a configured alternate domain. Cookies will not be set on other domains for security reasons.' => '此服务器配置为 "%s"，但您正在使用域名 "%s" 访问尝试设置 cookie 的页面。请在配置的主域名或配置的备用域名上访问此服务。出于安全原因，cookie 不会在其他域名上设置。',
+      'This server is currently configured with no writable ("master") database, so it can not write new information anywhere. This server will run in read-only mode until an administrator reconfigures it with a writable database.' => '此服务器当前未配置任何可写（"master"）数据库，因此无法在任何位置写入新信息。此服务器将以只读模式运行，直到管理员使用可写数据库重新配置它。',
+      'This server is not configured with any enabled authentication providers which can be used to log in. If you have accidentally locked yourself out by disabling all providers, you can use `%s` to recover access to an account.' => '此服务器未配置任何可用于登录的已启用身份验证提供程序。如果您因禁用所有提供程序而不慎将自己锁定在外，可以使用 `%s` 来恢复对账户的访问权限。',
+      'This server received an "X-Mod-Pagespeed" or "X-Page-Speed" HTTP header on this request, which indicates that you have enabled "mod_pagespeed" on this server. This module is not compatible with this software. You should disable the module.' => '此服务器在此请求中收到了 "X-Mod-Pagespeed" 或 "X-Page-Speed" HTTP 标头，这表明您已在此服务器上启用了 "mod_pagespeed"。此模块与此软件不兼容。您应该禁用该模块。',
+      'This service is configured to operate in cluster mode, but %s is not defined in the request context. Your webserver configuration needs to forward %s to PHP so the software can reject requests received on external interfaces.' => '此服务配置为在集群模式下运行，但请求上下文中未定义 %s。您的 Web 服务器配置需要将 %s 转发到 PHP，以便软件可以拒绝在外部接口上收到的请求。',
+      'This software appears to be installed on a very small EC2 instance (of class "%s") with burstable CPU. This is strongly discouraged. This software regularly needs CPU, and these instances are often choked to death by CPU throttling. Use an instance with a normal CPU instead.' => '此软件似乎安装在具有突发型 CPU 的非常小的 EC2 实例（类型为 "%s"）上。强烈不建议这样做。此软件定期需要 CPU，而这些实例通常会被 CPU 节流扼杀掉。请改用具有正常 CPU 的实例。',
+      'To enable the login flow, follow setup guidance and configure at least one authentication provider, then associate credentials with your account. After completing these steps, you will be able to log out and log back in normally.' => '要启用登录流程，请按照设置指南配置至少一个身份验证提供程序，然后将凭证与您的账户关联。完成这些步骤后，您将能够正常注销并重新登录。',
+      'Trigger is attempting to perform a routine reschedule where the next event (at %s) does not occur after the previous event (at %s). Routine reschedules must strictly move event triggers forward through time to avoid executing a trigger an infinite number of times instantaneously.' => '触发器正在尝试执行常规重新调度，其中下一个事件（在 %s）未在上一个事件（在 %s）之后发生。常规重新调度必须严格地将事件触发器向前推进时间，以避免瞬间无限次执行触发器。',
+      'Unable to access a required database or table. This almost always means that the user you are connecting with ("%s") does not have sufficient permissions granted in MySQL. You can use `bin/storage databases` to get a list of all databases permission is required on.' => '无法访问所需的数据库或表。这几乎总是意味着您连接所使用的用户（"%s"）在 MySQL 中没有足够的权限。您可以使用 `bin/storage databases` 获取需要权限的所有数据库列表。',
+      'Use "--type <type>" or "--provider <phid>" to specify which factors to strip, or "--all-types" to strip all factors. Use `bin/auth list-factors` to show the available factor types or `bin/auth list-mfa-providers` to show available providers.' => '使用 "--type <type>" 或 "--provider <phid>" 指定要剥离的因子，或使用 "--all-types" 剥离所有因子。使用 `bin/auth list-factors` 显示可用的因子类型，或使用 `bin/auth list-mfa-providers` 显示可用的提供程序。',
+      'You are logged in as %s, but the email address (%s) you just clicked a link from is already associated with another account (%s). You can log out to switch accounts, or verify the address and attach it to your current account. Attach email address %s to user account %s?' => '您当前登录的账户是 %s，但您点击链接的邮箱地址（%s）已关联到另一个账户（%s）。您可以退出登录以切换账户，或验证该地址并将其附加到当前账户。要将邮箱地址 %s 附加到用户账户 %s 吗？',
+      'You can not deprecate or disable the last active MFA provider while "%s" is enabled, because new users would be unable to enroll in MFA. Disable the MFA requirement in Config, or create or enable another MFA provider first.' => '在启用 "%s" 时，您无法弃用或禁用最后一个活跃的 MFA 提供程序，因为新用户将无法注册 MFA。请在配置中禁用 MFA 要求，或先创建/启用另一个 MFA 提供程序。',
+      'You can safely ignore these warnings if the install itself has access controls (for example, it is deployed on a VPN) or if all of the configured providers have access controls (for example, they are all private LDAP or OAuth servers).' => '如果安装实例本身具有访问控制（例如部署在 VPN 上），或所有已配置的提供程序都具有访问控制（例如均为私有 LDAP 或 OAuth 服务器），则可以安全地忽略这些警告。',
+      'You can set a limit for the maximum byte size of outbound mail. Mail which is larger than this limit will be truncated before being sent. This can be useful if your MTA rejects mail which exceeds some limit (this is reasonably common). Specify a value in bytes.' => '您可以为出站邮件设置最大字节大小限制。超过此限制的邮件将在发送前被截断。如果您的 MTA 拒绝超过某些限制的邮件（这种情况相当常见），此功能会很有用。请以字节为单位指定值。',
+      'You have not configured any authentication providers yet. You should add a provider (like username/password, LDAP, or GitHub OAuth) so users can register and log in. You can add and configure providers using the Auth Application.' => '您尚未配置任何身份验证提供程序。您应添加一个提供程序（如用户名/密码、LDAP 或 GitHub OAuth），以便用户可以注册和登录。您可以使用 Auth 应用添加和配置提供程序。',
+      'You have surplus schemata (extra tables or columns which this software does not expect). For information on resolving these issues, see the "Surplus Schemata" section in the "Managing Storage Adjustments" article in the documentation.' => '您有多余的架构（此软件不需要的额外表或列）。有关解决这些问题的信息，请参阅文档中“管理存储调整”文章的“多余架构”部分。',
+      'Your %s account is already connected to an external account on this service ("%s"), but you are currently logged in to the service with a different account. Log out of the external service, then log back in with the correct account before refreshing the account link.' => '您的 %s 账户已连接到该服务上的外部账户（"%s"），但您当前使用另一个账户登录该服务。请退出外部服务，然后使用正确的账户重新登录，再刷新账户链接。',
+      'Your message does not contain any body text or attachments, so this server can not do anything useful with it. Make sure comment text appears at the top of your message: quoted replies, inline text, and signatures are discarded and ignored.' => '您的消息不包含任何正文文本或附件，因此此服务器无法对其进行任何有效处理。请确保注释文本出现在消息顶部：引用的回复、内联文本和签名将被丢弃并忽略。',
       '%s:' => '%s：',
-      'The locale `%s` defines a translation for the key `%s`, which has '.
-      'at least %s level(s) of arrays, however the source message has only '.
-      '%s parameter(s).' => array(
+      'The locale `%s` defines a translation for the key `%s`, which has at least %s level(s) of arrays, however the source message has only %s parameter(s).' => array(
         array(
           array(
             array(
@@ -14273,6 +12267,1878 @@ final class PhabricatorChineseTranslation
           ),
         ),
       ),
+      '    **extract-symbols-with-php-parser.php** [__options__] __path.php__
+        Identify the symbols (classes, interfaces, traits, enums and functions)
+        in PHP source files. Symbols are divided into "have" symbols
+        (symbols the file declares) and "need" symbols (symbols the file
+        depends on). For example, class declarations are "have" symbols,
+        while object instantiations with "new X()" are "need" symbols.
+
+        Dependencies on builtins and symbols marked \'@phutil-external-symbol\'
+        in docblocks are omitted without __--all__.
+
+        Symbols are reported in JSON on stdout.
+
+        This script is used internally to build maps of library
+        symbols.
+' => '    **extract-symbols-with-php-parser.php** [__options__] __path.php__
+        识别 PHP 源文件中的符号（类、接口、Trait、枚举和函数）。
+        符号分为"拥有"符号（文件声明的符号）和"需要"符号（文件依赖的符号）。
+        例如，类声明是"拥有"符号，而使用 "new X()" 的对象实例化是"需要"符号。
+
+        在未使用 __--all__ 时，会省略对内建符号和文档块中标记为 \'@phutil-external-symbol\' 的符号的依赖。
+
+        符号以 JSON 格式输出到标准输出。
+
+        此脚本在内部用于构建库符号映射。
+',
+      '    **extract-symbols.php** [__options__] __path.php__
+        Identify the symbols (clases, functions and interfaces) in a PHP
+        source file. Symbols are divided into "have" symbols (symbols the file
+        declares) and "need" symbols (symbols the file depends on). For example,
+        class declarations are "have" symbols, while object instantiations
+        with "new X()" are "need" symbols.
+
+        Dependencies on builtins and symbols marked \'@phutil-external-symbol\'
+        in docblocks are omitted without __--all__.
+
+        Symbols are reported in JSON on stdout.
+
+        This script is used internally to build maps of library
+        symbols.
+
+        It would be nice to eventually implement this as a C++ xhpast binary,
+        as it\'s relatively stable and performance is currently awful
+        (500ms+ for moderately large files).
+' => '    **extract-symbols.php** [__options__] __path.php__
+        识别 PHP 源文件中的符号（类、函数和接口）。
+        符号分为"拥有"符号（文件声明的符号）和"需要"符号（文件依赖的符号）。
+        例如，类声明是"拥有"符号，而使用 "new X()" 的对象实例化是"需要"符号。
+
+        在未使用 __--all__ 时，会省略对内建符号和文档块中标记为 \'@phutil-external-symbol\' 的符号的依赖。
+
+        符号以 JSON 格式输出到标准输出。
+
+        此脚本在内部用于构建库符号映射。
+
+        最终将此实现为 C++ xhpast 二进制文件会更好，
+        因为它相对稳定，且当前性能很差
+       （中等大小文件需要 500 毫秒以上）。
+',
+      '    **rebuild-map.php** [__options__] __root__
+        Rebuild the library map file for a libphutil library.
+' => '    **rebuild-map.php** [__options__] __root__
+        为 libphutil 库重建库映射文件。
+',
+      ' <%dms' => ' <%d毫秒',
+      '"%s" class "%s" has an invalid "%s" property. Field constants must be strings and no more than %s bytes in length.' => '"%s" 类 "%s" 的 "%s" 属性无效。字段常量必须是字符串，且长度不超过 %s 字节。',
+      '"%s" class "%s" must define a "%s" constant.' => '"%s" 类 "%s" 必须定义 "%s" 常量。',
+      '"%s" is not an exact quantity.' => '"%s" 不是精确数量。',
+      '"%s" must be a list of constraints.' => '"%s" 必须是约束列表。',
+      '"%s" must be a non-empty list of author PHIDs.' => '"%s" 必须是非空的作者 PHID 列表。',
+      '"%s" must be a non-empty list of transaction PHIDs.' => '"%s" 必须是非空的事务 PHID 列表。',
+      '"%s" must be a string (PHID or object monogram).' => '"%s" 必须是字符串（PHID 或对象字母编号）。',
+      '"%s" must be a string.' => '"%s" 必须是字符串。',
+      '%3dms' => '%3d毫秒',
+      '%4.1fs' => '%4.1f秒',
+      '%dm%02ds' => '%d分%02d秒',
+      '%s
+
+To configure Amazon OAuth, create a new \'API Project\' here:
+
+https://developer.amazon.com/apps-and-games/login-with-amazon
+
+Use these settings:
+
+  - **Allowed Return URLs:** Add this: `%s`
+
+After completing configuration, copy the **Client ID** and **Client Secret** to the fields above.' => '%s
+
+要配置 Amazon OAuth，请在此处创建新的"API 项目"：
+
+https://developer.amazon.com/apps-and-games/login-with-amazon
+
+使用以下设置：
+
+  - **允许的返回 URL：** 添加此项：`%s`
+
+完成配置后，将**客户端 ID** 和**客户端密钥**复制到上方字段中。',
+      '%s \'%s\' has a patch \'%s\' which duplicates an existing patch key.' => '%s \'%s\' 的补丁 \'%s\' 与现有补丁键重复。',
+      '%s \'%s\' has a patch \'%s\' which is not an array.' => '%s \'%s\' 的补丁 \'%s\' 不是数组。',
+      '%s \'%s\' has a patch with a colon in the key name, \'%s\'. Patch keys may not contain colons.' => '%s \'%s\' 的补丁键名 \'%s\' 中包含冒号。补丁键不能包含冒号。',
+      '%s \'%s\' has a patch with a numeric key, \'%s\'. Patches must use string keys.' => '%s \'%s\' 的补丁使用了数字键 \'%s\'。补丁必须使用字符串键。',
+      '%s \'%s\' has a patch, \'%s\', with an unknown property, \'%s\'.Patches must have only valid keys: %s.' => '%s \'%s\' 的补丁 \'%s\' 包含未知属性 \'%s\'。补丁只能包含有效的键：%s。',
+      '%s Identity: %s.' => '%s 身份：%s。',
+      '%s WORKFLOW' => '%s 工作流',
+      '%s argument \'%s\' is not a valid patch. Use \'%s\' to show patch status.' => '%s 参数 \'%s\' 不是有效的补丁。使用 \'%s\' 显示补丁状态。',
+      '%s assertion(s) passed.' => '%s 个断言已通过。',
+      '%s called with no messages!' => '%s 调用时没有消息！',
+      '%s can not load additional nodes at runtime. Tried to load: %s' => '%s 无法在运行时加载额外节点。尝试加载：%s',
+      '%s can not write bytes directly!' => '%s 不能直接写入字节！',
+      '%s changed the effective policy from %s to %s.' => '%s 将有效策略从 %s 更改为 %s。',
+      '%s changed the effective policy of %s from %s to %s' => '%s 将 %s 的有效策略从 %s 更改为 %s',
+      '%s changed the objects type this policy is applicable to from %s to %s' => '%s 将此策略适用的对象类型从 %s 更改为 %s',
+      '%s changed the subtype of this object from "%s" to "%s".' => '%s 将此对象的子类型从 "%s" 更改为 "%s"。',
+      '%s created %s %s.' => '%s 创建了 %s %s。',
+      '%s currently supports only one file attachment for each parameter name. You are trying to attach two different files with the same parameter, "%s".' => '%s 目前每个参数名称仅支持一个文件附件。您正尝试使用相同参数 "%s" 附加两个不同的文件。',
+      '%s does not support the "%s" modifier.' => '%s 不支持 "%s" 修饰符。',
+      '%s extension ("%s", of class "%s") returned a list of Remarkup actions from "%s" that contains an invalid value: a value (with key "%s") is not an object of class "%s". ' => '%s 扩展（"%s"，类为 "%s"）从 "%s" 返回的 Remarkup 操作列表包含无效值：某个值（键为 "%s"）不是 "%s" 类的对象。',
+      '%s failed to parse file data %d: %s' => '%s 解析文件数据 %d 失败：%s',
+      '%s failed: %s' => '%s 失败：%s',
+      '%s is broken.' => '%s 已损坏。',
+      '%s is not a valid JSON object.' => '%s 不是有效的 JSON 对象。',
+      '%s is not configured' => '%s 未配置',
+      '%s locked this project\'s membership.' => '%s 锁定了此项目的成员资格。',
+      '%s may only write strings!' => '%s 只能写入字符串！',
+      '%s must return an edge list array for each provided node, or the cycle detection algorithm may not terminate.' => '%s 必须为每个提供的节点返回边列表数组，否则环检测算法可能无法终止。',
+      '%s removed mention from %s of %s.' => '%s 从 %s 的 %s 中移除了提及。',
+      '%s removed mention from %s.' => '%s 从 %s 中移除了提及。',
+      '%s removed mention of %s from %s.' => '%s 从 %s 中移除了对 %s 的提及。',
+      '%s removed mention of %s.' => '%s 移除了对 %s 的提及。',
+      '%s removed this project\'s image.' => '%s 移除此项目的图片。',
+      '%s renamed %s %s from %s to %s.' => '%s 将 %s %s 从 %s 重命名为 %s。',
+      '%s renamed this %s from %s to %s.' => '%s 将此 %s 从 %s 重命名为 %s。',
+      '%s requires the %s algorithm but %s disables %s by default. Consider setting %s or export %s.' => '%s 需要 %s 算法，但 %s 默认禁用 %s。请考虑设置 %s 或导出 %s。',
+      '%s requires the directory \'%s\' to exist, but it does not exist and could not be created. Create this directory or update \'%s\' in your configuration to point to an existing directory.' => '%s 需要目录 \'%s\' 存在，但该目录不存在且无法创建。请创建此目录或在配置中更新 \'%s\' 以指向现有目录。',
+      '%s set the effective policy of %s to %s' => '%s 将 %s 的有效策略设置为 %s',
+      '%s set the effective policy to %s.' => '%s 将有效策略设置为 %s。',
+      '%s set this project\'s color to %s.' => '%s 将此项目的颜色设置为 %s。',
+      '%s set this project\'s icon to %s.' => '%s 将此项目的图标设置为 %s。',
+      '%s set this project\'s image to %s.' => '%s 将此项目的图片设置为 %s。',
+      '%s unlocked this project\'s membership.' => '%s 解锁了此项目的成员资格。',
+      '%s updated the description for %s %s.' => '%s 更新了 %s %s 的描述。',
+      '%s updated the mock\'s description.' => '%s 更新了 Mock 的描述。',
+      '%s updated this project\'s image from %s to %s.' => '%s 将此项目的图片从 %s 更新为 %s。',
+      '%s y' => '%s 年',
+      '%s y, %s d' => '%s 年，%s 天',
+      '%s y, %s m' => '%s 年，%s 个月',
+      '%s y, %s m, %s d' => '%s 年，%s 个月，%s 天',
+      '%s μs' => '%s 微秒',
+      '%s:
+
+This email address was used to sign a Legalpad document in %s:
+
+  %s
+
+Please verify you own this email address and accept the agreement by clicking this link:
+
+  %s
+
+Your signature is not valid until you complete this verification step.
+
+You can review the document here:
+
+  %s
+' => '%s：
+
+此邮箱地址被用于在 %s 签署 Legalpad 文档：
+
+  %s
+
+请点击以下链接验证您拥有此邮箱地址并接受协议：
+
+  %s
+
+在完成此验证步骤之前，您的签名无效。
+
+您可以在此处查看文档：
+
+  %s
+',
+      '%s: Updating Mime type: \'%s\' -> \'%s\'.' => '%s：正在更新 MIME 类型：\'%s\' -> \'%s\'。',
+      '%s: Would update Mime type: \'%s\' -> \'%s\'.' => '%s：将更新 MIME 类型：\'%s\' -> \'%s\'。',
+      '%s: failed to decode tree.' => '%s：解析树失败。',
+      '\'%s\' is not a builtin!' => '\'%s\' 不是内置功能！',
+      '\'%s\' is not the name of a known object.' => '\'%s\' 不是已知对象的名称。',
+      '\'%s\' or \'%s\' binary not found or Imagemagick is not installed.' => '未找到 \'%s\' 或 \'%s\' 二进制文件，或未安装 ImageMagick。',
+      '(Assuming "%s" is the British spelling of "%s".)' => '（假设 "%s" 是 "%s" 的英式拼写。）',
+      '(Old and new values are identical.)' => '（旧值和新值相同。）',
+      '(The response had no body.)' => '（响应没有正文。）',
+      '(The service did not say why.)' => '（服务未说明原因。）',
+      '(Usually, you should run a command like "git clone" or "hg push" instead of connecting directly with SSH.)' => '（通常，您应该运行 "git clone" 或 "hg push" 等命令，而不是直接使用 SSH 连接。）',
+      '(WARNING) Examine the table below for information on how password hashes will be stored in the database.
+
+(NOTE) You can select a minimum password length by setting `%s` in configuration.' => '（警告）请查看下表，了解密码哈希在数据库中的存储方式。
+
+（注意）您可以通过在配置中设置 `%s` 来选择最小密码长度。',
+      '**JIRA Instance Name**
+
+Choose a permanent name for this instance of JIRA. This name is used internally to keep track of this particular instance of JIRA, in case the URL changes later.
+
+Use lowercase letters, digits, and period. For example, `jira`, `jira.mycompany` or `jira.engineering` are reasonable names.' => '**JIRA 实例名称**
+
+为此 JIRA 实例选择一个永久名称。该名称在内部用于跟踪此特定 JIRA 实例，以防 URL 日后发生更改。
+
+请使用小写字母、数字和句点。例如，`jira`、`jira.mycompany` 或 `jira.engineering` 都是合理的名称。',
+      '**Locked** fields are visible in the form, but their values can not be changed
+by the user.
+
+**Hidden** fields are not visible in the form.
+
+Any assigned default values are still respected, even if the field is locked
+or hidden.' => '**锁定**字段在表单中可见，但用户无法更改其值。
+
+**隐藏**字段在表单中不可见。
+
+即使字段被锁定或隐藏，任何已分配的默认值仍然生效。',
+      '**Step 1 of 2 - Name Remote Server**
+
+Choose a permanent name for the remote server you want to connect to. This name is used internally to keep track of the remote server, in case the URL changes later.' => '**第 1 步（共 2 步）- 命名远程服务器**
+
+为您要连接的远程服务器选择一个永久名称。该名称在内部用于跟踪远程服务器，以防 URL 日后发生更改。',
+      '**Step 1 of 2**: Provide the name and URI for your JIRA install.
+
+In the next step, you will configure JIRA.' => '**第 1 步（共 2 步）**：提供您的 JIRA 安装名称和 URI。
+
+在下一步中，您将配置 JIRA。',
+      '**Step 2 of 2 - Configure OAuth Server**
+
+To configure OAuth, create a new application here:
+
+%s
+
+When creating your application, use these settings:
+
+  - **Redirect URI:** Set this to: `%s`
+
+After completing configuration, copy the **Client ID** and **Client Secret** to the fields above. (You may need to generate the client secret by clicking \'New Secret\' first.)' => '**第 2 步，共 2 步 - 配置 OAuth 服务器**
+
+要配置 OAuth，请在此处创建新应用：
+
+%s
+
+创建应用时，请使用以下设置：
+
+  - **重定向 URI：** 设置为：`%s`
+
+完成配置后，将**客户端 ID**和**客户端密钥**复制到上方字段中。（您可能需要先点击"新建密钥"来生成客户端密钥。）',
+      '**Step 2 of 2**: In this step, you will configure JIRA.
+
+**Create a JIRA Application**: Log into JIRA and go to **Administration**, then **Add-ons**, then **Application Links**. Click the button labeled **Add Application Link**, and use these settings to create an application:
+
+  - **Server URL**: `%s`
+  - Then, click **Next**. On the second page:
+  - **Application Name**: `%s`
+  - **Application Type**: `Generic Application`
+  - Then, click **Create**.
+
+**Configure Your Application**: Find the application you just created in the table, and click the **Configure** link under **Actions**. Select **Incoming Authentication** and click the **OAuth** tab (it may be selected by default). Then, use these settings:
+
+  - **Consumer Key**: Set this to the "Consumer Key" value in the form above.
+  - **Consumer Name**: `%s`
+  - **Public Key**: Set this to the "Public Key" value in the form above.
+  - **Consumer Callback URL**: `%s`
+Click **Save** in JIRA. Authentication should now be configured, and this provider should work correctly.' => '**第 2 步，共 2 步**：在此步骤中，您将配置 JIRA。
+
+**创建 JIRA 应用**：登录 JIRA，依次进入**管理**、**插件**、**应用链接**。点击标有**添加应用链接**的按钮，使用以下设置创建应用：
+
+  - **服务器 URL**：`%s`
+  - 然后，点击**下一步**。在第二页：
+  - **应用名称**：`%s`
+  - **应用类型**：`Generic Application`
+  - 然后，点击**创建**。
+
+**配置您的应用**：在表格中找到您刚刚创建的应用，点击**操作**下的**配置**链接。选择**传入身份验证**，然后点击 **OAuth** 标签页（可能默认已选中）。然后，使用以下设置：
+
+  - **消费者密钥**：设置为上方表单中的"消费者密钥"值。
+  - **消费者名称**：`%s`
+  - **公钥**：设置为上方表单中的"公钥"值。
+  - **消费者回调 URL**：`%s`
+在 JIRA 中点击**保存**。身份验证现在应该已配置完成，此提供方应能正常工作。',
+      '**Why do bot accounts need an email address?**
+
+Although bots do not normally receive email, they can interact with other systems which require an email address. Examples include:
+
+  - If the account takes actions which //send// email, we need     an address to use in the //From// header.
+  - If the account creates commits, Git and Mercurial require     an email address for authorship.
+  - If you send email //to// this server on behalf of the     account, the address can identify the sender.
+  - Some internal authentication functions depend on accounts     having an email address.
+
+
+The address will automatically be verified, so you do not need to be able to receive mail at this address, and can enter some invalid or nonexistent (but correctly formatted) address like `bot@yourcompany.com` if you prefer.' => '**为什么机器人账户需要电子邮件地址？**
+
+虽然机器人通常不接收电子邮件，但它们可以与需要电子邮件地址的其他系统交互。示例包括：
+
+  - 如果该账户执行//发送//电子邮件的操作，我们需要一个地址用于 //From// 标头。
+  - 如果该账户创建提交，Git 和 Mercurial 需要电子邮件地址作为作者信息。
+  - 如果您代表该账户向此服务器发送电子邮件，该地址可以标识发件人。
+  - 某些内部身份验证功能依赖于账户拥有电子邮件地址。
+
+
+该地址将自动验证，因此您无需能够在此地址接收邮件，也可以输入一些无效或不存在的（但格式正确的）地址，例如 `bot@yourcompany.com`。',
+      '**add_macro.php** __image__ [--as __name__]
+    Add an image macro. This can be useful for importing a large number
+    of macros.' => '**add_macro.php** __image__ [--as __name__]
+    添加一个图片宏。这对于导入大量宏很有用。',
+      '**almanac** __commmand__ [__options__]
+    Manage Almanac stuff. NEW AND EXPERIMENTAL.
+' => '**almanac** __commmand__ [__options__]
+    管理 Almanac 相关功能。全新且实验性。
+',
+      '**auth** __command__ [__options__]
+    Manage authentication configuration.
+' => '**auth** __command__ [__options__]
+    管理身份验证配置。
+',
+      '**bulk** __command__ [__options__]
+  Manage and debug bulk jobs.
+' => '**bulk** __command__ [__options__]
+  管理和调试批量任务。
+',
+      '**cache** __command__ [__options__]
+    Manage caches.
+' => '**cache** __command__ [__options__]
+    管理缓存。
+',
+      '**calendar** __command__ [__options__]
+    Manage Calendar.
+' => '**calendar** __command__ [__options__]
+    管理日历。
+',
+      '**celerity** __command__ [__options__]
+    Manage static resources.
+' => '**celerity** __command__ [__options__]
+    管理静态资源。
+',
+      '**conduit** __command__ [__options__]
+    Manage Conduit.
+' => '**conduit** __command__ [__options__]
+    管理 Conduit。
+',
+      '**config** __command__ [__options__]
+    Manage configurations.
+' => '**config** __command__ [__options__]
+    管理配置。
+',
+      '**edges** __command__ [__options__]
+  Explore edges.
+' => '**edges** __command__ [__options__]
+  探索边。
+',
+      '**emit_test_event.php** [--listen listener] ...
+  Emit a test event after installing any specified __listener__s.' => '**emit_test_event.php** [--listen listener] ...
+  安装任何指定的 __listener__ 后，发出测试事件。',
+      '**emoji**
+    Rebuild Emoji data sheets.
+' => '**emoji**
+    重建 Emoji 数据表。
+',
+      '**exec_daemon.php** [__options__] __daemon__ ...
+    Run an instance of __daemon__.' => '**exec_daemon.php** [__options__] __daemon__ ...
+    运行 __daemon__ 的一个实例。',
+      '**fact** __command__ [__options__]
+    Manage and debug data extraction, storage and
+    configuration used to compute statistics.
+' => '**fact** __command__ [__options__]
+    管理和调试用于计算统计数据的数据提取、存储和配置。
+',
+      '**feed** __command__ [__options__]
+    Test and debug feed events.
+' => '**feed** __command__ [__options__]
+    测试和调试动态事件。
+',
+      '**files** __command__ [__options__]
+    Manage file storage.
+' => '**files** __command__ [__options__]
+    管理文件存储。
+',
+      '**garbage** __command__ [__options__]
+    Manage garbage collectors.
+' => '**garbage** __command__ [__options__]
+    管理垃圾回收器。
+',
+      '**generate_ctags_symbols.php** [__options__]
+
+  Generate repository symbols using Exuberant Ctags. Paths are read from stdin.' => '**generate_ctags_symbols.php** [__options__]
+
+  使用 Exuberant Ctags 生成仓库符号。路径从标准输入读取。',
+      '**generate_php_symbols.php** [__options__]
+
+  Generate repository symbols using XHPAST. Paths are read from stdin.' => '**generate_php_symbols.php** [__options__]
+
+  使用 XHPAST 生成仓库符号。路径从标准输入读取。',
+      '**herald** __command__ [__options__]
+  Manage and debug Herald.
+' => '**herald** __command__ [__options__]
+  管理和调试 Herald。
+',
+      '**i18n** __command__ [__options__]
+    Manage translations and internationalization.
+' => '**i18n** __command__ [__options__]
+    管理翻译和国际化。
+',
+      '**launch_daemon.php** [__options__] __daemon__
+    Launch and oversee an instance of __daemon__.' => '**launch_daemon.php** [__options__] __daemon__
+    启动并监控 __daemon__ 的一个实例。',
+      '**lipsum** __command__ [__options__]
+    Generate synthetic test data to make development easier.
+' => '**lipsum** __command__ [__options__]
+    生成合成测试数据，使开发更轻松。
+',
+      '**lock** __command__ [__options__]
+  Manage locks.
+' => '**lock** __command__ [__options__]
+  管理锁。
+',
+      '**lock.php** __file__ [__options__]
+    Acquire a lockfile and hold it until told to unlock it.
+' => '**lock.php** __file__ [__options__]
+    获取锁文件并持有，直到被告知解锁。
+',
+      '**mail** __command__ [__options__]
+    Manage mail stuff.
+' => '**mail** __command__ [__options__]
+    管理邮件相关功能。
+',
+      '**nuance** __command__ [__options__]
+  Manage and debug Nuance.
+' => '**nuance** __command__ [__options__]
+  管理和调试 Nuance。
+',
+      '**phd** __command__ [__options__]
+    Manage daemons.
+' => '**phd** __command__ [__options__]
+    管理守护进程。
+',
+      '**policy** __command__ [__options__]
+    Administrative tool for reviewing and editing policies.
+' => '**policy** __command__ [__options__]
+    用于查看和编辑策略的管理工具。
+',
+      '**remove** __command__ [__options__]
+    Administrative tool for destroying objects permanently.
+' => '**remove** __command__ [__options__]
+    用于永久销毁对象的管理工具。
+',
+      '**search** __command__ [__options__]
+    Manage search index.
+' => '**search** __command__ [__options__]
+    管理搜索索引。
+',
+      '**ssh-exec** --phabricator-ssh-user __user__ [--ssh-command __commmand__]
+**ssh-exec** --phabricator-ssh-device __device__ [--ssh-command __commmand__]
+    Execute authenticated SSH requests. This script is normally invoked
+    via SSHD, but can be invoked manually for testing.
+' => '**ssh-exec** --phabricator-ssh-user __user__ [--ssh-command __commmand__]
+**ssh-exec** --phabricator-ssh-device __device__ [--ssh-command __commmand__]
+    执行已认证的 SSH 请求。此脚本通常由 SSHD 调用，
+    但也可以手动调用以进行测试。
+',
+      '**storage** __workflow__ [__options__]
+Manage database storage and schema versioning.
+
+**storage** upgrade
+Initialize or upgrade storage.
+
+**storage** upgrade --user __root__ --password __hunter2__
+Use administrative credentials for schema changes.' => '**storage** __workflow__ [__options__]
+管理数据库存储和架构版本。
+
+**storage** upgrade
+初始化或升级存储。
+
+**storage** upgrade --user __root__ --password __hunter2__
+使用管理凭据进行架构更改。',
+      '**trigger** __command__ [__options__]
+    Manage event triggers.
+' => '**trigger** __command__ [__options__]
+    管理事件触发器。
+',
+      '**user** __command__ [__options__]
+    Modify user accounts to regain access to an install.
+' => '**user** __command__ [__options__]
+    修改用户账户以恢复对安装的访问权限。
+',
+      '**webhook** __command__ [__options__]
+    Manage webhooks.
+' => '**webhook** __command__ [__options__]
+    管理 Webhook。
+',
+      '**worker** __command__ [__options__]
+    Manage the task queue.
+' => '**worker** __command__ [__options__]
+    管理任务队列。
+',
+      '... (%s more byte(s)) ...' => '...（还有 %s 字节）...',
+      '1. download the extension the extension from url `%s` to location `%s` (using %s)' => '1. 从 URL `%s` 下载扩展至位置 `%s`（使用 %s）',
+      '2. Add the extension to `load-libraries` in %s, so it will be loaded into %s' => '2. 将扩展添加至 %s 中的 `load-libraries`，使其加载到 %s',
+      '<Process was terminated by signal %s (%d).>
+
+' => '<进程被信号 %s（%d）终止。>
+
+',
+      '<bytes = %s>' => '<字节数 = %s>',
+      '<listeners = %s>' => '<监听器 = %s>',
+      '<opaque envelope>' => '<不透明信封>',
+      '<paths = %s>' => '<路径 = %s>',
+      '= Integration Options = 
+Configure how to record Revisions on JIRA tasks.
+
+Note you\'ll have to restart the daemons for this to take effect.' => '= 集成选项 = 
+配置如何在 JIRA 任务上记录修订。
+
+注意：需要重启守护进程才能使此设置生效。',
+      'A "taskClass" is required.' => '需要提供 "taskClass"。',
+      'A %s cannot be used as an effective policy for a %s' => '%s 不能用作 %s 的有效策略',
+      'A %s must have either an valid HREF url or an action-name. Extension %s built an action with neither (with key %s). ' => '%s 必须具有有效的 HREF URL 或操作名称。扩展 %s 构建了一个两者皆无的操作（键为 %s）。',
+      'A Conduit method name is required to call the %s.' => '调用 %s 需要提供 Conduit 方法名称。',
+      '%s changed the objects type policy %s is applicable to from %s to %s' => '%s 将 %s 适用的对象类型策略从 %s 更改为 %s',
+      'A URL\'s details change.' => 'URL 的详情发生变化。',
+      'A base URI is required to reach the %s, but the URI provided is empty.' => '访问 %s 需要提供基础 URI，但提供的 URI 为空。',
+      'A blog\'s details change.' => '博客的详情发生变化。',
+      'A blog\'s subscribers change.' => '博客的订阅者发生变化。',
+      'A configured service token is required.' => '需要配置服务令牌。',
+      'A configured worker service token is required.' => '需要配置工作者服务令牌。',
+      'A daemon is running as user %s, but daemons should be running as %s.
+
+Either adjust the configuration setting %s or restart the daemons. Daemons should attempt to run as the proper user when restarted.' => '守护进程正以用户 %s 运行，但守护进程应以 %s 运行。
+
+请调整配置项 %s 或重启守护进程。重启后守护进程将尝试以正确的用户运行。',
+      'A document\'s content changes.' => '文档的内容发生变化。',
+      'A document\'s title changes.' => '文档的标题发生变化。',
+      'A four-letter object type.' => '四字母对象类型。',
+      'A list of paths to phutil libraries that should be loaded at startup. This can be used to make classes available, like lint or unit test engines.' => '启动时应加载的 phutil 库路径列表。可用于使类可用，例如 lint 或单元测试引擎。',
+      'A macro already exists with the name \'%s\'!' => '已存在名为 \'%s\' 的宏！',
+      'A mock\'s status changes.' => 'Mock 的状态发生变化。',
+      'A non-required failure policy is configured for the Gorge database service, but it no longer selects anything.' => 'Gorge 数据库服务配置了非必需的故障策略，但该策略不再选择任何内容。',
+      'A policy change is already in progress; reconcile local configuration first.' => '策略更改已在进行中；请先协调本地配置。',
+      'A post\'s content changes.' => '文章的内容发生变化。',
+      'A post\'s subscribers change.' => '文章的订阅者发生变化。',
+      'A task\'s assignee changes.' => '任务的分配人发生变化。',
+      'A task\'s associated projects change.' => '任务的关联项目发生变化。',
+      'A task\'s priority changes.' => '任务的优先级发生变化。',
+      'A task\'s status changes.' => '任务的状态发生变化。',
+      'A task\'s subscribers change.' => '任务的订阅者发生变化。',
+      'A valid versioned execution context is required.' => '需要有效的版本化执行上下文。',
+      'ACTUAL VALUE' => '实际值',
+      'AWS Errors:' => 'AWS 错误：',
+      'AWS Request Failed' => 'AWS 请求失败',
+      'AWS Request ID: %s' => 'AWS 请求 ID：%s',
+      'Aborting.' => '正在中止。',
+      'Aborting.
+' => '正在中止。
+',
+      'Accept/reduce conflict!' => '接受/归约冲突！',
+      'Accept/shift conflict!' => '接受/移进冲突！',
+      'Accepted.' => '已接受。',
+      'Accepts the "%%k" parameter from "AuthorizedKeysCommand".' => '接受来自 "AuthorizedKeysCommand" 的 "%%k" 参数。',
+      'Acting user\'s projects' => '操作用户的项目',
+      'ActionList extension ("%s", of class "%s") did not return a list of ActionView from method "%s". This method must return an array, and each value in the array must be a "%s" object.' => 'ActionList 扩展（"%s"，类名为 "%s"）未从方法 "%s" 返回 ActionView 列表。该方法必须返回一个数组，且数组中的每个值都必须是 "%s" 对象。',
+      'ActionList extension ("%s", of class "%s") returned a list of ActionList extension from "%s" that contains an invalid value: a value (with key "%s") is not an object of class "%s". ' => 'ActionList 扩展（"%s"，类名为 "%s"）从 "%s" 返回的 ActionList 扩展列表包含无效值：一个值（键为 "%s"）不是 "%s" 类的对象。',
+      'Activates a points field on tasks. You can use points for estimation or
+planning. If configured, points will appear on workboards.
+
+To activate points, set this value to a map with these keys:
+
+  - `enabled` //Optional bool.// Use `true` to enable points, or
+    `false` to disable them.
+  - `label` //Optional string.// Label for points, like "Story Points" or
+    "Estimated Hours". If omitted, points will be called "Points".
+  - `action` //Optional string.// Label for the action which changes points
+    in Maniphest, like "Change Estimate". If omitted, the action will
+    be called "Change Points".
+
+See the example below for a starting point.' => '在任务上激活积分字段。您可以将积分用于估算或规划。如果已配置，积分将显示在工作看板上。
+
+要激活积分，请将此值设置为包含以下键的映射：
+
+  - `enabled` //可选布尔值。// 使用 `true` 启用积分，或使用
+    `false` 禁用积分。
+  - `label` //可选字符串。// 积分的标签，例如 "故事点" 或
+    "预计工时"。如果省略，积分将称为 "积分"。
+  - `action` //可选字符串。// 在 Maniphest 中更改积分操作的标签，例如 "更改估算"。如果省略，该操作将
+    称为 "更改积分"。
+
+请参阅下面的示例作为起点。',
+      'Add one or more subscribers to the object. You can add users by providing their usernames, or add projects by adding their hashtags. For example, use `%s` to add the user `alincoln` and the project with hashtag `#ios` as subscribers.
+
+Subscribers which are invalid or unrecognized will be ignored. This command has no effect if you do not specify any subscribers.
+
+Users who are CC\'d on the email itself are also automatically subscribed if their addresses are associated with a known account.' => '向对象添加一个或多个订阅者。您可以通过提供用户名来添加用户，或通过添加话题标签来添加项目。例如，使用 `%s` 可以将用户 `alincoln` 和话题标签为 `#ios` 的项目添加为订阅者。
+
+无效或无法识别的订阅者将被忽略。如果您未指定任何订阅者，此命令将无效。
+
+如果电子邮件抄送用户的地址与已知账户关联，他们也会自动订阅。',
+      'Added macro \'%s\' (%s).' => '已添加宏 \'%s\'（%s）。',
+      'Adding a PKCS8 keyfile to the cache can be very dangerous. If the PKCS8 file really encodes a different public key than the one specified, an attacker could use it to gain unauthorized access.
+
+Generally, you should use this option only in a development environment where ssh-keygen is broken and it is inconvenient to fix it, and only if you are certain you understand the risks. You should never cache a PKCS8 file you did not generate yourself.' => '将 PKCS8 密钥文件添加到缓存可能非常危险。如果 PKCS8 文件实际编码的公钥与指定的不一致，攻击者可能利用它获取未经授权的访问权限。
+
+通常，您应该仅在 ssh-keygen 损坏且修复不便的开发环境中使用此选项，并且只有在您确定了解相关风险时才使用。切勿缓存您未自行生成的 PKCS8 文件。',
+      'Advice' => '建议',
+      'After configuring processing for inbound mail, you can interact with objects (like tasks and revisions) over email. For information on configuring inbound mail, see **[[ %s | Configuring Inbound Email ]]**.
+
+In most cases, you can reply to email you receive from this server to leave comments. You can also use **mail commands** to take a greater range of actions (like claiming a task or requesting changes to a revision) without needing to log in to the web UI.
+
+Mail commands are keywords which start with an exclamation point, like `!claim`. Some commands may take parameters, like `!assign alincoln`.
+
+To use mail commands, write one command per line at the beginning or end of your mail message. For example, you could write this in a reply to task email to claim the task:
+
+```
+!claim
+
+I\'ll take care of this.
+```
+
+
+When %s receives your mail, it will process any commands first, then post the remaining message body as a comment. You can execute multiple commands at once:
+
+```
+!assign alincoln
+!close
+
+I just talked to @alincoln, and he showed me that he fixed this.
+```
+' => '配置入站邮件处理后，您可以通过电子邮件与对象（如任务和修订）进行交互。有关配置入站邮件的信息，请参阅 **[[ %s | 配置入站邮件 ]]**。
+
+在大多数情况下，您可以回复从此服务器收到的电子邮件来发表评论。您还可以使用 **邮件命令** 执行更广泛的操作（如认领任务或请求对修订进行更改），而无需登录 Web 界面。
+
+邮件命令是以感叹号开头的关键字，例如 `!claim`。某些命令可能带有参数，例如 `!assign alincoln`。
+
+要使用邮件命令，请在邮件正文的开头或结尾每行写一个命令。例如，您可以在回复任务邮件时写入以下内容来认领该任务：
+
+```
+!claim
+
+我来处理这个问题。
+```
+
+
+当 %s 收到您的邮件时，它会先处理所有命令，然后将剩余的正文内容作为评论发布。您可以同时执行多个命令：
+
+```
+!assign alincoln
+!close
+
+我刚和 @alincoln 谈过，他告诉我他已经修复了这个问题。
+```
+',
+      'After running, you should run `%s` and restart the server.' => '运行后，您应该执行 `%s` 并重启服务器。',
+      'Aliases
+-------
+
+Aliases are alternate recognized keys for a field. For example, a field with
+a complex key like `examplePHIDs` might be have a simple version of that key
+as an alias, like `example`.
+
+Aliases work just like the primary key when prefilling forms. They make it
+easier to remember and use HTTP parameters by providing more natural ways to do
+some prefilling.
+
+For example, if a field has `examplePHIDs` as a key but has aliases `example`
+and `examples`, these three URIs will all do the same thing:
+
+```
+%s?examplePHIDs=...
+%s?examples=...
+%s?example=...
+```
+
+If a URI specifies multiple default values for a field, the value using the
+primary key has precedence. Generally, you can not mix different aliases in
+a single URI.
+' => '别名
+-------
+
+别名是字段的替代识别键。例如，一个键名为 `examplePHIDs` 的复杂字段可能有一个简化版本的别名，如 `example`。
+
+在预填充表单时，别名的作用与主键相同。它们通过提供更自然的方式让您更容易记住和使用 HTTP 参数来进行预填充。
+
+例如，如果一个字段的主键是 `examplePHIDs`，但别名为 `example`
+和 `examples`，那么以下三个 URI 都会执行相同的操作：
+
+```
+%s?examplePHIDs=...
+%s?examples=...
+%s?example=...
+```
+
+如果 URI 为某个字段指定了多个默认值，使用主键的值具有优先权。通常，您不能在一个 URI 中混合使用不同的别名。
+',
+      'All Named Policies' => '所有命名策略',
+      'All object types' => '所有对象类型',
+      'All settings (system and applications) are available under "%s" in the navigation menu.' => '所有设置（系统和应用程序）均可在导航菜单中的 "%s" 下找到。',
+      'All sprites in a \'%s\' sheet must have the same height.' => '\'%s\' 工作表中的所有精灵图必须具有相同的高度。',
+      'All sprites in a \'%s\' sheet must have the same width.' => '\'%s\' 工作表中的所有精灵图必须具有相同的宽度。',
+      'All storage engines failed to write file. Note that the historical "%s", "%s" and "%s" engines are read-only, so a "%s" service policy has no writable native engine to select and a Gorge failure can not be absorbed by another engine:' => '所有存储引擎均未能写入文件。请注意，历史上的 "%s"、"%s" 和 "%s" 引擎均为只读，因此 "%s" 服务策略没有可写的原生引擎可供选择，且 Gorge 故障无法被其他引擎吸收：',
+      'Allow authenticated bounded search source materialization. Requires shadow capture; does not authorize live index activation.' => '允许经过身份验证的有界搜索源物化。需要影子捕获；不授权实时索引激活。',
+      'Allowed Extension Stores to use.' => '允许使用的扩展存储。',
+      'Allows you to add a footer with links in it to most pages. You might want to use these links to point at legal information or an about page.
+
+Specify a list of dictionaries. Each dictionary describes a footer item. These keys are supported:
+
+  - `name` The name of the item.
+  - `href` Optionally, the link target of the item. You can     omit this if you just want a piece of text, like a copyright     notice.' => '允许您在大多数页面中添加带有链接的页脚。您可能希望使用这些链接指向法律信息或关于页面。
+
+指定一个字典列表。每个字典描述一个页脚项目。支持以下键：
+
+  - `name` 项目的名称。
+  - `href` 可选，项目的链接目标。如果您只想显示一段文本（如版权声明），可以省略此项。',
+      'Allows you to change and customize the available project icons.
+
+You can find a list of available icons in {nav UIExamples > Icons and Images}.
+
+Configure a list of icon specifications. Each icon specification should be
+a dictionary, which may contain these keys:
+
+  - `key` //Required string.// Internal key identifying the icon.
+  - `name` //Required string.// Human-readable icon name.
+  - `icon` //Required string.// Specifies which actual icon image to use.
+  - `image` //Optional string.// Selects a default image. Select an image from
+    `resources/builtins/projects/`.
+  - `default` //Optional bool.// Selects a default icon. Exactly one icon must
+    be selected as the default.
+  - `disabled` //Optional bool.// If true, this icon will no longer be
+    available for selection when creating or editing projects.
+  - `special` //Optional string.// Marks an icon as a special icon:
+    - `milestone` This is the icon for milestones. Exactly one icon must be
+      selected as the milestone icon.
+
+You can look at the default configuration below for an example of a valid
+configuration.' => '允许您更改和自定义可用的项目图标。
+
+您可以在 {nav UIExamples > Icons and Images} 中找到可用图标列表。
+
+配置一个图标规范列表。每个图标规范应为一个字典，可包含以下键：
+
+  - `key` //必填字符串。// 图标的内部标识键。
+  - `name` //必填字符串。// 人类可读的图标名称。
+  - `icon` //必填字符串。// 指定要使用的实际图标图像。
+  - `image` //可选字符串。// 选择默认图像。从 `resources/builtins/projects/` 中选择图像。
+  - `default` //可选布尔值。// 选择默认图标。必须恰好选择一个图标作为默认图标。
+  - `disabled` //可选布尔值。// 如果为 true，创建或编辑项目时将不再可选择此图标。
+  - `special` //可选字符串。// 将图标标记为特殊图标：
+    - `milestone` 这是里程碑的图标。必须恰好选择一个图标作为里程碑图标。
+
+您可以查看下方的默认配置，以获取有效配置的示例。',
+      'Allows you to define project subtypes. For a more detailed description of
+subtype configuration, see @{config:maniphest.subtypes}.' => '允许您定义项目子类型。有关子类型配置的更详细说明，请参阅 @{config:maniphest.subtypes}。',
+      'Allows you to define task subtypes. Subtypes let you hide fields you don\'t
+need to simplify the workflows for editing tasks.
+
+To define subtypes, provide a list of subtypes. Each subtype should be a
+dictionary with these keys:
+
+  - `key` //Required string.// Internal identifier for the subtype, like
+    "task", "feature", or "bug".
+  - `name` //Required string.// Human-readable name for this subtype, like
+    "Task", "Feature Request" or "Bug Report".
+  - `tag` //Optional string.// Tag text for this subtype.
+  - `color` //Optional string.// Display color for this subtype.
+  - `icon` //Optional string.// Icon for the subtype.
+  - `children` //Optional map.// Configure options shown to the user when
+     they "Create Subtask". See below.
+  - `fields` //Optional map.// Configure field behaviors. See below.
+  - `mutations` //Optional list.// Configure which subtypes this subtype
+    can easily be converted to by using the "Change Subtype" action. See below.
+
+Each subtype must have a unique key, and you must define a subtype with
+the key "%s", which is used as a default subtype.
+
+The tag text (`tag`) is used to set the text shown in the subtype tag on list
+views and workboards. If you do not configure it, the default subtype will have
+no subtype tag and other subtypes will use their name as tag text.
+
+The `children` key allows you to configure which options are presented to the
+user when they "Create Subtask" from a task of this subtype. You can specify
+these keys:
+
+  - `subtypes`: //Optional list<string>.// Show users creation forms for these
+    task subtypes.
+  - `forms`: //Optional list<string|int>.// Show users these specific forms,
+    in order.
+
+If you don\'t specify either constraint, users will be shown creation forms
+for the same subtype.
+
+For example, if you have a "quest" subtype and do not configure `children`,
+users who click "Create Subtask" will be presented with all create forms for
+"quest" tasks.
+
+If you want to present them with forms for a different task subtype or set of
+subtypes instead, use `subtypes`:
+
+```
+  {
+    ...
+    "children": {
+      "subtypes": ["objective", "boss", "reward"]
+    }
+    ...
+  }
+```
+
+If you want to present them with specific forms, use `forms` and specify form
+IDs:
+
+```
+  {
+    ...
+    "children": {
+      "forms": [12, 16]
+    }
+    ...
+  }
+```
+
+When specifying forms by ID explicitly, the order you specify the forms in will
+be used when presenting options to the user.
+
+If only one option would be presented, the user will be taken directly to the
+appropriate form instead of being prompted to choose a form.
+
+The `fields` key can configure the behavior of custom fields on specific
+task subtypes. For example:
+
+```
+  {
+    ...
+    "fields": {
+      "custom.some-field": {
+        "disabled": true
+      }
+    }
+    ...
+  }
+```
+
+Each field supports these options:
+
+  - `disabled` //Optional bool.// Allows you to disable fields on certain
+    subtypes.
+  - `name` //Optional string.// Custom name of this field for the subtype.
+
+
+The `mutations` key allows you to control the behavior of the "Change Subtype"
+action above the comment area. By default, this action allows users to change
+the task subtype into any other subtype.
+
+If you\'d prefer to make it more difficult to change subtypes or offer only a
+subset of subtypes, you can specify the list of subtypes that "Change Subtypes"
+offers. For example, if you have several similar subtypes and want to allow
+tasks to be converted between them but not easily converted to other types,
+you can make the "Change Subtypes" control show only these options like this:
+
+```
+  {
+    ...
+    "mutations": ["bug", "issue", "defect"]
+    ...
+  }
+```
+
+If you specify an empty list, the "Change Subtypes" action will be completely
+hidden.
+
+This mutation list is advisory and only configures the UI. Tasks may still be
+converted across subtypes freely by using the Bulk Editor or API.
+' => '允许您定义任务子类型。子类型让您可以隐藏不需要的字段，以简化编辑任务的工作流程。
+
+要定义子类型，请提供一个子类型列表。每个子类型应为一个字典，包含以下键：
+
+  - `key` //必填字符串。// 子类型的内部标识符，如 "task"、"feature" 或 "bug"。
+  - `name` //必填字符串。// 此子类型的人类可读名称，如 "任务"、"功能请求" 或 "缺陷报告"。
+  - `tag` //可选字符串。// 此子类型的标签文本。
+  - `color` //可选字符串。// 此子类型的显示颜色。
+  - `icon` //可选字符串。// 子类型的图标。
+  - `children` //可选映射。// 配置用户"创建子任务"时显示的选项。详见下文。
+  - `fields` //可选映射。// 配置字段行为。详见下文。
+  - `mutations` //可选列表。// 配置此子类型可以通过"更改子类型"操作轻松转换为哪些子类型。详见下文。
+
+每个子类型必须具有唯一的键，并且您必须定义一个键为 "%s" 的子类型，该子类型将用作默认子类型。
+
+标签文本（`tag`）用于设置列表视图和工作板中子类型标签上显示的文本。如果您未配置此项，默认子类型将没有子类型标签，其他子类型将使用其名称作为标签文本。
+
+`children` 键允许您配置用户从此子类型的任务"创建子任务"时显示的选项。您可以指定以下键：
+
+  - `subtypes`：//可选列表<string>。// 向用户显示这些任务子类型的创建表单。
+  - `forms`：//可选列表<string|int>。// 按顺序向用户显示这些特定表单。
+
+如果您未指定任何约束，用户将看到相同子类型的创建表单。
+
+例如，如果您有一个 "quest" 子类型且未配置 `children`，点击"创建子任务"的用户将看到所有 "quest" 任务的创建表单。
+
+如果您希望向他们显示不同任务子类型或一组子类型的表单，请使用 `subtypes`：
+
+```
+  {
+    ...
+    "children": {
+      "subtypes": ["objective", "boss", "reward"]
+    }
+    ...
+  }
+```
+
+如果您希望向他们显示特定表单，请使用 `forms` 并指定表单 ID：
+
+```
+  {
+    ...
+    "children": {
+      "forms": [12, 16]
+    }
+    ...
+  }
+```
+
+通过 ID 显式指定表单时，您指定表单的顺序将用于向用户展示选项。
+
+如果只有一个选项，用户将直接转到适当的表单，而不会被提示选择表单。
+
+`fields` 键可以配置特定任务子类型上自定义字段的行为。例如：
+
+```
+  {
+    ...
+    "fields": {
+      "custom.some-field": {
+        "disabled": true
+      }
+    }
+    ...
+  }
+```
+
+每个字段支持以下选项：
+
+  - `disabled` //可选布尔值。// 允许您在特定子类型上禁用字段。
+  - `name` //可选字符串。// 此字段在该子类型上的自定义名称。
+
+
+`mutations` 键允许您控制评论区域上方"更改子类型"操作的行为。默认情况下，此操作允许用户将任务子类型更改为任何其他子类型。
+
+如果您希望使更改子类型更加困难或仅提供一部分子类型，可以指定"更改子类型"提供的子类型列表。例如，如果您有几个相似的子类型，希望允许任务在它们之间转换，但不希望轻松转换为其他类型，您可以让"更改子类型"控件仅显示这些选项，如下所示：
+
+```
+  {
+    ...
+    "mutations": ["bug", "issue", "defect"]
+    ...
+  }
+```
+
+如果您指定空列表，"更改子类型"操作将完全隐藏。
+
+此变更列表仅供参考，仅配置 UI。任务仍可通过批量编辑器或 API 在子类型之间自由转换。
+',
+      'Allows you to edit or override the default priorities available in Maniphest,
+like "High", "Normal" and "Low". The configuration should contain a map of
+numeric priority values (where larger numbers correspond to higher priorities)
+to priority specifications (see defaults below for examples).
+
+The keys you can define for a priority are:
+
+  - `name` //Required string.// Name of the priority.
+  - `keywords` //Required list<string>.// List of unique keywords which identify
+    this priority, like "high" or "low". Each priority must have at least one
+    keyword and two priorities may not share the same keyword.
+  - `short` //Optional string.// Alternate shorter name, used in UIs where
+    there is less space available.
+  - `color` //Optional string.// Color for this priority, like "red" or
+    "blue".
+  - `disabled` //Optional bool.// Set to true to prevent users from choosing
+    this priority when creating or editing tasks. Existing tasks will not be
+    affected, and can be batch edited to a different priority or left to
+    eventually die out.
+
+You can choose the default priority for newly created tasks with
+"maniphest.default-priority".' => '允许您编辑或覆盖 Maniphest 中的默认优先级，如"高"、"普通"和"低"。配置应包含一个从数字优先级值（数字越大对应优先级越高）到优先级规范的映射（有关示例，请参见下方的默认值）。
+
+您可以为优先级定义的键包括：
+
+  - `name` //必填字符串。// 优先级的名称。
+  - `keywords` //必填列表<string>。// 标识此优先级的唯一关键词列表，如 "high" 或 "low"。每个优先级必须至少有一个关键词，且两个优先级不能共享相同的关键词。
+  - `short` //可选字符串。// 备用短名称，用于 UI 中空间较小的地方。
+  - `color` //可选字符串。// 此优先级的颜色，如 "red" 或 "blue"。
+  - `disabled` //可选布尔值。// 设置为 true 可阻止用户在创建或编辑任务时选择此优先级。现有任务不会受到影响，可以批量编辑为不同的优先级，或留待最终自然淘汰。
+
+您可以使用 "maniphest.default-priority" 选择新建任务的默认优先级。',
+      'Allows you to edit, add, or remove the task statuses available in Maniphest,
+like "Open", "Resolved" and "Invalid". The configuration should contain a map
+of status constants to status specifications (see defaults below for examples).
+
+The constant for each status should be 1-12 characters long and  contain only
+lowercase letters and digits. Valid examples are "open", "closed", and
+"invalid". Users will not normally see these values.
+
+The keys you can provide in a specification are:
+
+  - `name` //Required string.// Name of the status, like "Invalid".
+  - `name.full` //Optional string.// Longer name, like "Closed, Invalid". This
+    appears on the task detail view in the header.
+  - `name.action` //Optional string.// Action name for email subjects, like
+    "Marked Invalid".
+  - `closed` //Optional bool.// Statuses are either "open" or "closed".
+    Specifying `true` here will mark the status as closed (like "Resolved" or
+    "Invalid"). By default, statuses are open.
+  - `special` //Optional string.// Mark this status as special. The special
+    statuses are:
+    - `default` This is the default status for newly created tasks. You must
+      designate one status as default, and it must be an open status.
+    - `closed` This is the default status for closed tasks (for example, tasks
+      closed via the "!close" action in email or via the quick close button in
+      Maniphest). You must designate one status as the default closed status,
+      and it must be a closed status.
+    - `duplicate` This is the status used when tasks are merged into one
+      another as duplicates. You must designate one status for duplicates,
+      and it must be a closed status.
+  - `transaction.icon` //Optional string.// Allows you to choose a different
+    icon to use for this status when showing status changes in the transaction
+    log. Please see UIExamples, Icons and Images for a list.
+  - `transaction.color` //Optional string.// Allows you to choose a different
+    color to use for this status when showing status changes in the transaction
+    log.
+  - `silly` //Optional bool.// Marks this status as silly, and thus wholly
+    inappropriate for use by serious businesses.
+  - `prefixes` //Optional list<string>.// Allows you to specify a list of
+    text prefixes which will trigger a task transition into this status
+    when mentioned in a commit message. For example, providing "closes" here
+    will allow users to move tasks to this status by writing `Closes T123` in
+    commit messages.
+  - `suffixes` //Optional list<string>.// Allows you to specify a list of
+    text suffixes which will trigger a task transition into this status
+    when mentioned in a commit message, after a valid prefix. For example,
+    providing "as invalid" here will allow users to move tasks
+    to this status by writing `Closes T123 as invalid`, even if another status
+    is selected by the "Closes" prefix.
+  - `keywords` //Optional list<string>.// Allows you to specify a list
+    of keywords which can be used with `!status` commands in email to select
+    this status.
+  - `disabled` //Optional bool.// Marks this status as no longer in use so
+    tasks can not be created or edited to have this status. Existing tasks with
+    this status will not be affected, but you can batch edit them or let them
+    die out on their own.
+  - `claim` //Optional bool.// By default, closing an unassigned task claims
+    it. You can set this to `false` to disable this behavior for a particular
+    status.
+  - `locked` //Optional string.// Lock tasks in this status. Specify "comments"
+    to lock comments (users who can edit the task may override this lock).
+    Specify "edits" to prevent anyone except the task owner from making edits.
+  - `mfa` //Optional bool.// Require all edits to this task to be signed with
+    multi-factor authentication.
+
+Statuses will appear in the UI in the order specified. Note the status marked
+`special` as `duplicate` is not settable directly and will not appear in UI
+elements, and that any status marked `silly` does not appear if the software
+is configured with `phabricator.serious-business` set to true.
+
+Examining the default configuration and examples below will probably be helpful
+in understanding these options.
+' => '允许您编辑、添加或删除 Maniphest 中的任务状态，如"打开"、"已解决"和"无效"。配置应包含一个从状态常量到状态规范的映射（有关示例，请参见下方的默认值）。
+
+每个状态的常量应为 1-12 个字符，且仅包含小写字母和数字。有效示例包括 "open"、"closed" 和 "invalid"。用户通常不会看到这些值。
+
+您可以在规范中提供的键包括：
+
+  - `name` //必填字符串。// 状态的名称，如 "Invalid"。
+  - `name.full` //可选字符串。// 更长的名称，如 "Closed, Invalid"。这将显示在任务详情视图的标题中。
+  - `name.action` //可选字符串。// 邮件主题中的操作名称，如 "Marked Invalid"。
+  - `closed` //可选布尔值。// 状态分为"打开"或"已关闭"。在此处指定 `true` 将标记状态为已关闭（如"已解决"或"无效"）。默认情况下，状态为打开。
+  - `special` //可选字符串。// 将此状态标记为特殊状态。特殊状态包括：
+    - `default` 这是新建任务的默认状态。您必须指定一个状态为默认状态，且它必须是打开状态。
+    - `closed` 这是已关闭任务的默认状态（例如，通过邮件中的 "!close" 操作或 Maniphest 中的快速关闭按钮关闭的任务）。您必须指定一个状态为默认关闭状态，且它必须是已关闭状态。
+    - `duplicate` 这是任务作为重复项合并到另一个任务时使用的状态。您必须指定一个状态用于重复项，且它必须是已关闭状态。
+  - `transaction.icon` //可选字符串。// 允许您选择不同的图标，用于在事务日志中显示状态变更时。请参阅 UIExamples、Icons and Images 获取列表。
+  - `transaction.color` //可选字符串。// 允许您选择不同的颜色，用于在事务日志中显示状态变更时。
+  - `silly` //可选布尔值。// 将此状态标记为滑稽状态，因此对于严肃的企业来说完全不适用。
+  - `prefixes` //可选列表<string>。// 允许您指定文本前缀列表，当在提交消息中提到这些前缀时，将触发任务转换到此状态。例如，在此处提供 "closes" 将允许用户通过在提交消息中编写 `Closes T123` 来将任务移动到此状态。
+  - `suffixes` //可选列表<string>。// 允许您指定文本后缀列表，当在提交消息中提到有效前缀后的这些后缀时，将触发任务转换到此状态。例如，在此处提供 "as invalid" 将允许用户通过编写 `Closes T123 as invalid` 来将任务移动到此状态，即使另一个状态被 "Closes" 前缀选中。
+  - `keywords` //可选列表<string>。// 允许您指定可与邮件中的 `!status` 命令一起使用的关键词列表，以选择此状态。
+  - `disabled` //可选布尔值。// 将此状态标记为不再使用，因此无法创建或编辑任务以拥有此状态。具有此状态的现有任务不会受到影响，但您可以批量编辑它们或让它们自行淘汰。
+  - `claim` //可选布尔值。// 默认情况下，关闭未分配的任务会认领它。您可以将其设置为 `false` 以禁用特定状态的此行为。
+  - `locked` //可选字符串。// 锁定此状态中的任务。指定 "comments" 以锁定评论（可以编辑任务的用户可以覆盖此锁定）。指定 "edits" 以防止除任务所有者之外的任何人进行编辑。
+  - `mfa` //可选布尔值。// 要求对此任务的所有编辑都使用多因素身份验证签名。
+
+状态将按指定的顺序显示在 UI 中。请注意，标记为 `special` 为 `duplicate` 的状态不能直接设置，不会出现在 UI 元素中，且任何标记为 `silly` 的状态在软件配置 `phabricator.serious-business` 设置为 true 时不会出现。
+
+检查下方的默认配置和示例可能有助于理解这些选项。
+',
+      'Allows you to relabel project colors.
+
+The list of available colors can not be expanded, but the existing colors may
+be given labels.
+
+Configure a list of color specifications. Each color specification should be a
+dictionary, which may contain these keys:
+
+  - `key` //Required string.// The internal key identifying the color.
+  - `name` //Required string.// Human-readable label for the color.
+  - `default` //Optional bool.// Selects the default color used when creating
+    new projects. Exactly one color must be selected as the default.
+
+You can look at the default configuration below for an example of a valid
+configuration.' => '允许您重新标记项目颜色。
+
+可用颜色列表无法扩展，但可以为现有颜色添加标签。
+
+配置一个颜色规范列表。每个颜色规范应为一个字典，可包含以下键：
+
+  - `key` //必填字符串。// 标识颜色的内部键。
+  - `name` //必填字符串。// 颜色的人类可读标签。
+  - `default` //可选布尔值。// 选择创建新项目时使用的默认颜色。必须恰好选择一种颜色作为默认颜色。
+
+您可以查看下方的默认配置，以获取有效配置的示例。',
+      'Also report historical translation entries which are absent from the current extracted source strings. These entries are retained by default.' => '同时报告当前提取的源字符串中不存在的历史翻译条目。默认情况下会保留这些条目。',
+      'An event\'s name, status, invite list, icon, and description changes.' => '事件的名称、状态、邀请列表、图标和描述变更。',
+      'An event\'s start and end date and cancellation status changes.' => '事件的开始和结束日期以及取消状态变更。',
+      'Applicable To' => '适用于',
+      'Application source' => '应用来源',
+      'Application-specific settings are moved into dedicated pages found under %s > %s.' => '应用特定的设置已移至 %s > %s 下的专用页面。',
+      'Applied the collaboration profile to effective configuration.' => '已将协作配置文件应用到有效配置。',
+      'Apply a durably accepted inbound email.' => '应用持久接受的入站邮件。',
+      'Apr' => '4月',
+      'Are you completely sure you really want to destroy all unit test fixture data on host "%s"? This operation can not be undone.' => '您确定要完全销毁主机 "%s" 上的所有单元测试夹具数据吗？此操作无法撤销。',
+      'Argument "%s" appears after the first non-flag argument. This special argument must appear before other arguments.' => '参数 "%s" 出现在第一个非标志参数之后。此特殊参数必须出现在其他参数之前。',
+      'Argument "%s" conflicts with argument "%s"%s' => '参数 "%s" 与参数 "%s" 冲突%s',
+      'Argument "%s" conflicts with itself!' => '参数 "%s" 与自身冲突！',
+      'Argument "%s" conflicts with unspecified argument "%s".' => '参数 "%s" 与未指定的参数 "%s" 冲突。',
+      'Argument "%s" does not take a parameter.' => '参数 "%s" 不接受参数。',
+      'Argument "%s" is unrecognized. Use "%s" to indicate the end of flags.' => '无法识别参数 "%s"。使用 "%s" 表示标志的结束。',
+      'Argument "%s" requires a parameter.' => '参数 "%s" 需要一个参数。',
+      'Argument "%s" was provided twice.' => '参数 "%s" 被提供了两次。',
+      'Argument index is not a scalar.' => '参数索引不是标量。',
+      'Argument method is not a string.' => '参数 method 不是字符串。',
+      'Argument must be scalar or object which implements %s!' => '参数必须是标量或实现了 %s 的对象！',
+      'Argument names may only contain a-z, 0-9 and -, and must be at least one character long. \'%s\' is invalid.' => '参数名称只能包含 a-z、0-9 和 -，且至少为一个字符长。\'%s\' 无效。',
+      'Argument short aliases may only be in a-z, A-Z and 0-9. \'%s\' is invalid.' => '参数短别名只能为 a-z、A-Z 和 0-9。\'%s\' 无效。',
+      'Argument short aliases must be exactly one character long. \'%s\' is invalid.' => '参数短别名必须恰好为一个字符长。\'%s\' 无效。',
+      'Argument should be countable.' => '参数应为可计数的。',
+      'Argument specification MUST have a \'name\'.' => '参数规范必须包含 \'name\'。',
+      'Argument to "phutil_microseconds_since(...)" should be a value returned from "microtime(true)".' => '"phutil_microseconds_since(...)" 的参数应为 "microtime(true)" 返回的值。',
+      'Argument was \'%s\', but must be \'%s\'. For example, %s' => '参数为 \'%s\'，但必须是 \'%s\'。例如，%s',
+      'Array item with key \'%s\' must be an instance of %s, %s given.' => '键为 \'%s\' 的数组项必须是 %s 的实例，但传入了 %s。',
+      'Array item with key \'%s\' must be of type array, %s given.' => '键为 \'%s\' 的数组项必须是数组类型，但传入了 %s。',
+      'Asana workspace is not visible to this account.' => '此账户无法查看 Asana 工作区。',
+      'Assertion failed, expected \'%s\' (at %s:%d).' => '断言失败，预期为 \'%s\'（位于 %s:%d）。',
+      'Assertion failed, expected \'%s\' (at %s:%d): %s' => '断言失败，预期为 \'%s\'（位于 %s:%d）：%s',
+      'Assertion failed, expected values to be equal (at %s:%d).' => '断言失败，预期值应相等（位于 %s:%d）。',
+      'Assertion failed, expected values to be equal (at %s:%d): %s' => '断言失败，预期值应相等（位于 %s:%d）：%s',
+      'Assertion of caught exception failed (at %s:%d in test case "%s").' => '捕获的异常断言失败（位于 %s:%d，测试用例 "%s"）。',
+      'Assertion of caught exception failed (at %s:%d).' => '捕获的异常断言失败（位于 %s:%d）。',
+      'Associate one or more projects to the object by listing their hashtags. Separate project tags with spaces. For example, use `!projects #ios #feature` to add both related projects.
+
+Projects which are invalid or unrecognized will be ignored. This command has no effect if you do not specify any project tags.' => '通过列出项目的主题标签将一个或多个项目关联到对象。使用空格分隔项目标签。例如，使用 `!projects #ios #feature` 来添加两个相关项目。
+
+无效或无法识别的项目将被忽略。如果未指定任何项目标签，此命令将无效。',
+      'Associate the working copy with a specific repository. Normally, %s can figure this association out on its own, but if your setup is unusual you can use this option to tell it what the desired value is.' => '将工作副本与特定仓库关联。通常情况下，%s 可以自行推断此关联，但如果您的设置比较特殊，可以使用此选项来指定所需值。',
+      'Associates this working copy with a specific server.' => '将此工作副本与特定服务器关联。',
+      'Attempt to read from undeclared property %s.' => '尝试读取未声明的属性 %s。',
+      'Attempt to write to undeclared property %s.' => '尝试写入未声明的属性 %s。',
+      'Attempted to set \'%s\' cookie to \'%s\', but your browser did not accept the cookie. Check that cookies are enabled, clear them, and try again.' => '尝试将 \'%s\' Cookie 设置为 \'%s\'，但您的浏览器未接受该 Cookie。请检查是否已启用 Cookie，清除 Cookie 后重试。',
+      'Attempted to set \'%s\' cookie to \'%s\', but your browser sent back a cookie with the value \'%s\'. Clear your browser\'s cookies and try again.' => '尝试将 \'%s\' Cookie 设置为 \'%s\'，但您的浏览器返回的 Cookie 值为 \'%s\'。请清除浏览器的 Cookie 后重试。',
+      'Attempting to access attached data on %s, but the data is not actually attached. Before accessing attachable data on an object, you must load and attach it.
+
+Data is normally attached by calling the corresponding %s method on the Query class when the object is loaded. You can also call the corresponding %s method explicitly.' => '尝试访问 %s 上的附加数据，但实际并未附加该数据。在访问对象上的可附加数据之前，必须先加载并附加它。
+
+数据通常通过在加载对象时调用 Query 类上相应的 %s 方法来附加。您也可以显式调用相应的 %s 方法。',
+      'Attempting to archive a task which hasn\'t been saved!' => '尝试归档尚未保存的任务！',
+      'Attempting to convert a string encoding from \'%s\' to \'%s\', but the \'%s\' PHP extension is not available. Install %s to work with encodings other than UTF-8.' => '尝试将字符串编码从 \'%s\' 转换为 \'%s\'，但 \'%s\' PHP 扩展不可用。请安装 %s 以处理 UTF-8 以外的编码。',
+      'Attempting to convert a string encoding, but no source encoding was provided. Explicitly provide the source encoding.' => '尝试转换字符串编码，但未提供源编码。请显式提供源编码。',
+      'Attempting to convert a string encoding, but no target encoding was provided. Explicitly provide the target encoding.' => '尝试转换字符串编码，但未提供目标编码。请显式提供目标编码。',
+      'Attempting to create an SSH connection that authenticates with the current device, but this host is not configured as a cluster device.' => '尝试创建使用当前设备进行身份验证的 SSH 连接，但此主机未配置为集群设备。',
+      'Attempting to get subprocess status in "ExecFuture" with no valid subprocess.' => '尝试在 "ExecFuture" 中获取无有效子进程的子进程状态。',
+      'Attempting to iterate an object (of class %s) which is not iterable.' => '尝试迭代一个不可迭代的对象（类为 %s）。',
+      'Attempting to make an HTTP request which includes file data, but the value of a query parameter begins with "%s". PHP interprets these values to mean that it should read arbitrary files off disk and transmit them to remote servers. Declining to make this request.' => '尝试发起包含文件数据的 HTTP 请求，但某个查询参数的值以 "%s" 开头。PHP 会将这些值解释为应从磁盘读取任意文件并传输到远程服务器。拒绝发起此请求。',
+      'Attempting to proxy an SSH connection that authenticates with both the current device and a specific credential. These options are mutually exclusive.' => '尝试代理一个同时使用当前设备和特定凭据进行身份验证的 SSH 连接。这两个选项互斥。',
+      'Attempting to render a tag with an \'%s\' attribute that begins with \'%s\'. This is either a serious security concern or a serious architecture concern. Seek urgent remedy.' => '尝试渲染一个 \'%s\' 属性以 \'%s\' 开头的标签。这是一个严重的安全问题或架构问题。请立即寻求解决方案。',
+      'Attempting to run unit tests on a library which has not been loaded, at:
+
+    %s
+
+Make sure this library is configured to load.
+
+(In rare cases, this may be because you are attempting to run one copy of this software against a different copy of this software. This operation is not supported.)' => '尝试在未加载的库上运行单元测试，位置：
+
+    %s
+
+请确保此库已配置为加载。
+
+（在极少数情况下，这可能是因为您正在尝试运行此软件的一个副本以对抗此软件的另一个副本。不支持此操作。）',
+      'Attest that all file writers and migration workers are stopped.' => '确认所有文件写入器和迁移工作器已停止。',
+      'Aug' => '8月',
+      'Authenticated Gorge integrations endpoint and enabled domains.' => '已认证的 Gorge 集成端点和已启用的域名。',
+      'Author PHIDs must be a list.' => '作者 PHID 必须为列表。',
+      'Auto-Fix' => '自动修复',
+      'BROKEN' => '已损坏',
+      'Bad Administrative Credentials' => '管理凭据错误',
+      'Base URI of the Gitea instance shown in the global navigation.' => '全局导航中显示的 Gitea 实例的基础 URI。',
+      'Base URI of the Gorge conduit gateway, a standalone service which reverse-proxies the Conduit API: it authenticates and rate limits callers and forwards "/api/{method}" to the upstream Conduit, collecting authentication, rate limiting and auditing behind a single gateway.
+
+Setting this option lets Phorge reach Conduit through the gateway via %s. Leave it empty to keep calling Conduit directly.
+
+Do not include a trailing slash: the gateway routes exactly, and a doubled slash produces a route mismatch instead of a forwarded call.' => 'Gorge 管道网关的基础 URI，这是一个独立服务，对 Conduit API 进行反向代理：它对调用者进行身份验证和速率限制，并将 "/api/{method}" 转发到上游 Conduit，在单个网关后集中处理身份验证、速率限制和审计。
+
+设置此选项后，Phorge 可通过 %s 经网关访问 Conduit。留空则继续直接调用 Conduit。
+
+请勿包含尾部斜杠：网关精确路由，双斜杠会导致路由不匹配而非转发调用。',
+      'Base URI of the Gorge conduit gateway.' => 'Gorge 管道网关的基础 URI。',
+      'Base URI of the Gorge database service, a standalone service which fronts the MySQL cluster: it owns the cluster topology, connection pooling and schema diagnostics, and exposes them over an authenticated HTTP API at "%s".
+
+When this option is set, the database console reads per-server health, schema diffs and setup issues from the service instead of opening management connections to every database host from the web tier: %s, the two database setup checks and %s all switch to the service. When it is empty, each of them falls back to its native direct-SQL implementation, so an install which has not configured the service behaves exactly as before.
+
+The health of the service itself is reported on the "%s" page by %s.' => 'Gorge 数据库服务的基础 URI，这是一个独立服务，代理 MySQL 集群：它管理集群拓扑、连接池和架构诊断，并通过经过身份验证的 HTTP API 在 "%s" 上公开这些信息。
+
+设置此选项后，数据库控制台从该服务读取每台服务器的健康状况、架构差异和设置问题，而不是从 Web 层向每个数据库主机打开管理连接：%s、两个数据库设置检查和 %s 都会切换到该服务。留空时，它们各自回退到原生的直接 SQL 实现，因此未配置该服务的安装行为与之前完全相同。
+
+该服务本身的健康状况由 %s 在 "%s" 页面上报告。',
+      'Base URI of the Gorge database service.' => 'Gorge 数据库服务的基础 URI。',
+      'Base URI of the Gorge file storage service, a standalone service which stores file data in MySQL, on local disk or in an S3-compatible object store, and chooses between them on its own side.
+
+Setting this option makes the Gorge storage engine writable. The historical MySQL, local-disk and S3 engines are read-only. Keep their paths and credentials configured so existing files remain readable; each file records its original engine.
+
+Do not include a trailing slash: the service routes exactly, and a doubled slash produces an "ERR_NOT_FOUND" error instead of a file.' => 'Gorge 文件存储服务的基础 URI，这是一个独立服务，将文件数据存储在 MySQL、本地磁盘或兼容 S3 的对象存储中，并自行在它们之间进行选择。
+
+设置此选项后，Gorge 存储引擎变为可写。历史上的 MySQL、本地磁盘和 S3 引擎为只读。保留它们的路径和凭据配置，以便现有文件保持可读；每个文件都记录其原始引擎。
+
+请勿包含尾部斜杠：服务精确路由，双斜杠会产生 "ERR_NOT_FOUND" 错误而非返回文件。',
+      'Base URI of the Gorge file storage service.' => 'Gorge 文件存储服务的基础 URI。',
+      'Base URI of the Gorge image service.' => 'Gorge 图像服务的基础 URI。',
+      'Base URI of the Gorge render service, which highlights source code and returns HTML using the CSS class names expected by Phorge.
+
+Setting this option does not enable the service by itself. To use it, also set `syntax-highlighter.engine` to `%s`.' => 'Gorge 渲染服务的基础 URI，该服务高亮显示源代码并返回 Phorge 期望的 CSS 类名 HTML。
+
+仅设置此选项不会自动启用该服务。如需使用，还需将 `syntax-highlighter.engine` 设置为 `%s`。',
+      'Base URI of the Gorge render service.' => 'Gorge 渲染服务的基础 URI。',
+      'Base URI of the Gorge task queue service.' => 'Gorge 任务队列服务的基础 URI。',
+      'Base URI of the Gorge webhook service, a standalone service which delivers Herald webhook requests in place of the `%s` daemon worker.
+
+Delivery ownership is selected independently with `%s`. In legacy `%s` mode, this address also acts as the handover switch. The service does not receive requests from this server at all. It polls the `%s` table directly, claims the rows in `%s` status and writes the outcome back to them, so selecting Gorge as owner stops this server from scheduling `%s` tasks and leave those rows alone. Delivery moves whether or not the address is reachable, which is why `%s` probes it and reports a setup issue when it does not answer.
+
+The handover is not complete while `%s` is enabled. Silent mode is configuration of this server and the service can not read it, so a silent install keeps failing each request instead of sending it, exactly as it did before the service existed.
+
+There is no handback. The native PHP delivery consumer has been removed, so assigning the owner to `phorge` or clearing this endpoint does not return delivery to the daemon: it leaves no consumer at all, and requests are recorded and then failed with a `native-retired` hook error. Requests in `%s` status are delivered when the service comes back, not by this server.
+
+Do not include a trailing slash: the service routes exactly, and a doubled slash produces an "ERR_NOT_FOUND" error instead of a result.' => 'Gorge Webhook 服务的基础 URI，这是一个独立服务，用于替代 `%s` 守护进程工作进程来传递 Herald Webhook 请求。
+
+传递所有权通过 `%s` 独立选择。在旧版 `%s` 模式下，此地址还充当切换开关。该服务根本不会从此服务器接收请求。它直接轮询 `%s` 表，认领 `%s` 状态的行，并将结果写回这些行，因此选择 Gorge 作为所有者会阻止此服务器调度 `%s` 任务，并让这些行保持原样。无论地址是否可达，传递都会进行，这就是 `%s` 会探测它并在无响应时报告设置问题的原因。
+
+在启用 `%s` 期间，切换尚未完成。静默模式是此服务器的配置，服务无法读取它，因此静默安装会继续让每个请求失败而不是发送它，与服务出现之前的行为完全一致。
+
+没有回退机制。原生 PHP 传递消费者已被移除，因此将所有者分配给 `phorge` 或清除此端点不会将传递返回给守护进程：这将导致没有任何消费者，请求会被记录然后以 `native-retired` 钩子错误失败。`%s` 状态的请求会在服务恢复时传递，而不是由此服务器传递。
+
+不要包含尾部斜杠：服务路由是精确匹配的，双斜杠会产生 "ERR_NOT_FOUND" 错误而不是结果。',
+      'Base URI of the Gorge webhook service.' => 'Gorge Webhook 服务的基础 URI。',
+      'Base commit ruleset to invoke when determining the start of a commit range. See "Arcanist User Guide: Commit Ranges" for details.' => '确定提交范围起点时要调用的基础提交规则集。详见《Arcanist 用户指南：提交范围》。',
+      'Batch editing tasks is not available in read-only mode.' => '只读模式下无法批量编辑任务。',
+      'Block for up to __n__ seconds waiting for the lock.' => '阻塞等待锁，最多等待 __n__ 秒。',
+      'Both \'%s\' and \'%s\' define a custom field with field key \'%s\'. Field keys must be unique.' => '\'%s\' 和 \'%s\' 都定义了字段键为 \'%s\' 的自定义字段。字段键必须唯一。',
+      'Browse Named Policies' => '浏览命名策略',
+      'Buffer discards are not currently supported by the streaming parser.' => '流式解析器当前不支持缓冲区丢弃。',
+      'Build a batch of fulltext projections without publishing them.' => '构建一批全文投影而不发布它们。',
+      'Build successful!' => '构建成功！',
+      'Builtin \'%s\' is not supported!' => '内置 \'%s\' 不受支持！',
+      'Builtin avatar, icon and favicon composition rollout.' => '内置头像、图标和网站图标合成推出。',
+      'Bulk Edit Selected »' => '批量编辑选中项 »',
+      'By default, only basic information about objects is returned. If you want
+more extensive information, you can use available `attachments` to get more
+information in the results (like subscribers and projects).
+
+Generally, requesting more information means the query executes more slowly
+and returns more data (in some cases, much more data). You should normally
+request only the data you need.
+
+To request extra data, specify which attachments you want in the `attachments`
+parameter:
+
+```lang=json, name="Example Attachments Request"
+{
+  ...
+  "attachments": {
+    "subscribers": true
+  },
+  ...
+}
+```
+
+This example specifies that results should include information about
+subscribers. In the return value, each object will now have this information
+filled out in the corresponding `attachments` value:
+
+```lang=json, name="Example Attachments Result"
+{
+  ...
+  "data": [
+    {
+      ...
+      "attachments": {
+        "subscribers": {
+          "subscriberPHIDs": [
+            "PHID-WXYZ-2222",
+          ],
+          "subscriberCount": 1,
+          "viewerIsSubscribed": false
+        }
+      },
+      ...
+    },
+    ...
+  ],
+  ...
+}
+```
+
+These attachments are available:' => '默认情况下，仅返回对象的基本信息。如需更详细的信息，可使用可用的 `attachments` 在结果中获取更多信息（如订阅者和项目）。
+
+通常，请求更多信息意味着查询执行更慢，返回的数据更多（某些情况下会多得多）。正常情况下，应仅请求所需数据。
+
+要请求额外数据，请在 `attachments` 参数中指定所需的附件：
+
+```lang=json, name="附件请求示例"
+{
+  ...
+  "attachments": {
+    "subscribers": true
+  },
+  ...
+}
+```
+
+此示例指定结果应包含订阅者信息。在返回值中，每个对象现在都会在相应的 `attachments` 值中填充此信息：
+
+```lang=json, name="附件结果示例"
+{
+  ...
+  "data": [
+    {
+      ...
+      "attachments": {
+        "subscribers": {
+          "subscriberPHIDs": [
+            "PHID-WXYZ-2222",
+          ],
+          "subscriberCount": 1,
+          "viewerIsSubscribed": false
+        }
+      },
+      ...
+    },
+    ...
+  ],
+  ...
+}
+```
+
+以下附件可用：',
+      'By default, this software allows users to add multi-factor authentication to
+their accounts, but does not require it. By enabling this option, you can
+force all users to add at least one authentication factor before they can use
+their accounts.
+
+Administrators can query a list of users who do not have MFA configured in
+{nav People}:
+
+  - **[[ %s | %s ]]**' => '默认情况下，本软件允许用户为其账户添加多因素认证，但不强制要求。启用此选项后，您可以强制所有用户在使用账户之前至少添加一个认证因素。
+
+管理员可以在{nav 人员}中查询未配置 MFA 的用户列表：
+
+  - **[[ %s | %s ]]**',
+      'By default, this software generates unique reply-to addresses and sends a
+separate email to each recipient when you enable reply handling. This is more
+secure than using "From" to establish user identity, but can mean users may
+receive multiple emails when they are on mailing lists. Instead, you can use a
+single, non-unique reply to address and authenticate users based on the "From"
+address by setting this to \'true\'. This trades away a little bit of security
+for convenience, but it\'s reasonable in many installs. Object interactions are
+still protected using hashes in the single public email address, so objects
+can not be replied to blindly.' => '默认情况下，启用回复处理时，本软件会生成唯一的回复地址并向每个收件人发送单独的邮件。这比使用"发件人"来确立用户身份更安全，但意味着当用户在邮件列表中时可能会收到多封邮件。或者，您可以将此设置为 \'true\'，使用单一的、非唯一的回复地址，并根据"发件人"地址对用户进行认证。这在一定程度上牺牲了安全性以换取便利性，但在许多安装中是合理的。对象交互仍然受到单一公共邮件地址中哈希值的保护，因此对象不会被盲目回复。',
+      'By default, this software serves files from the same domain the application is served from. This is convenient, but presents a security risk.
+
+You should configure a CDN or alternate file domain to mitigate this risk. Configuring a CDN will also improve performance. See [[ %s | %s ]] for instructions.' => '默认情况下，本软件从与应用程序相同的域名提供文件。这很方便，但存在安全风险。
+
+您应该配置 CDN 或备用文件域名来缓解此风险。配置 CDN 还可以提升性能。详见 [[ %s | %s ]]。',
+      'CHANGES TO %s DESCRIPTION' => '%s 描述的更改',
+      'CIDR block "%s" is not formatted correctly. Expected an IP block in CIDR notation, like "%s" or "%s".' => 'CIDR 块 "%s" 格式不正确。应为 CIDR 表示法的 IP 块，如 "%s" 或 "%s"。',
+      'CIDR block "%s" is not formatted correctly. The IP block mask ("%s") must mask between 0 and %s bits, inclusive.' => 'CIDR 块 "%s" 格式不正确。IP 块掩码（"%s"）必须介于 0 和 %s 位之间（含）。',
+      'CIDR block "%s" is not formatted correctly. The IP block mask ("%s") must not have leading zeroes.' => 'CIDR 块 "%s" 格式不正确。IP 块掩码（"%s"）不能有前导零。',
+      'CSS file \'%s\' has unknown variable \'%s\'.' => 'CSS 文件 \'%s\' 包含未知变量 \'%s\'。',
+      'Call %s before calling %s!' => '在调用 %s 之前先调用 %s！',
+      'Call %s before calling %s. You can not add more nodes once you have loaded the graph.' => '在调用 %s 之前先调用 %s。加载图表后无法添加更多节点。',
+      'Call %s before using results (key = \'%s\').' => '在使用结果前调用 %s（键 = \'%s\'）。',
+      'Call %s to build the graph out before calling %s.' => '在调用 %s 之前，先调用 %s 来构建图。',
+      'Call to "assertCaught(..., <junk>, ...)" for test case "%s" passed bad value for test result. Expected null, Exception, or Throwable; got: %s.' => '测试用例 "%s" 中对 "assertCaught(..., <junk>, ...)" 的调用传入了错误的测试结果值。预期为 null、Exception 或 Throwable；实际得到：%s。',
+      'Call to "assertCaught(..., <junk>, ...)" passed bad value for test result. Expected null, Exception, or Throwable; got: %s.' => '对 "assertCaught(..., <junk>, ...)" 的调用传入了错误的测试结果值。预期为 null、Exception 或 Throwable；实际得到：%s。',
+      'Call to "assertCaught(<junk>, ...)" for test case "%s" passed bad expected value. Expected bool, class name as a string, or a list of class names. Got: %s.' => '测试用例 "%s" 中对 "assertCaught(<junk>, ...)" 的调用传入了错误的预期值。预期为布尔值、字符串形式的类名或类名列表。实际得到：%s。',
+      'Call to "assertCaught(<junk>, ...)" passed bad expected value. expected result. Expected null, Exception, or Throwable; got: %s.' => '对 "assertCaught(<junk>, ...)" 的调用传入了错误的预期值。预期为 null、Exception 或 Throwable；实际得到：%s。',
+      'Call to "curl_setopt(...) failed for option key "%s".' => '调用 "curl_setopt(...)" 对选项键 "%s" 失败。',
+      'Call to "curl_setopt(...)" returned "false".' => '调用 "curl_setopt(...)" 返回了 "false"。',
+      'Call to "proc_open()" to open a subprocess failed: %s' => '调用 "proc_open()" 打开子进程失败：%s',
+      'Call to %s(%s, ...) failed.' => '调用 %s(%s, ...) 失败。',
+      'Call to phutil_nonempty_scalar() expected: a string; or stringlike object; or int; or float. Got: %s.' => '调用 phutil_nonempty_scalar() 预期为：字符串；或类字符串对象；或整数；或浮点数。实际得到：%s。',
+      'Call to phutil_nonempty_string() expected null or a string, got: %s.' => '调用 phutil_nonempty_string() 预期为 null 或字符串，实际得到：%s。',
+      'Call to phutil_nonempty_stringlike() expected a string or stringlike object, got: %s.' => '调用 phutil_nonempty_stringlike() 预期为字符串或类字符串对象，实际得到：%s。',
+      'Can Create Named Policies' => '可创建命名策略',
+      'Can only install one extension at a time.' => '一次只能安装一个扩展。',
+      'Can only remove one extension at a time.' => '一次只能移除一个扩展。',
+      'Can\'t Analyze' => '无法分析',
+      'Can\'t parse an empty diff!' => '无法解析空的差异！',
+      'Can\'t remove primary email!' => '无法移除主邮箱！',
+      'Can\'t resolve a PHAR path relative to another PHAR path. Trying to resolve path `%s` relative to `%s` .' => '无法将 PHAR 路径解析为相对于另一个 PHAR 路径。尝试将路径 `%s` 解析为相对于 `%s` 。',
+      'Can\'t set non-public capabilities to public.' => '无法将非公开能力设置为公开。',
+      'Cannot identify the version of the %s repository because the webserver does not trust it (more info on Task %s).
+Try this system resolution:
+sudo git config --system --add safe.directory %s' => '无法识别 %s 仓库的版本，因为 Web 服务器不信任该仓库（有关更多信息，请参阅任务 %s）。
+尝试以下系统级解决方案：
+sudo git config --system --add safe.directory %s',
+      'Canonical repository in Gitea.' => 'Gitea 中的规范仓库。',
+      'Capture versioned search snapshots in a local outbox while retaining synchronous production indexing. Run storage upgrades first. This does not enable native search delivery.' => '在保留同步生产索引的同时，将版本化搜索快照捕获到本地发件箱中。请先运行存储升级。这不会启用原生搜索投递。',
+      'Channel closed while flushing output!' => '在刷新输出时通道已关闭！',
+      'Channel closed while waiting for message!' => '在等待消息时通道已关闭！',
+      'Child in position \'%d\' is not of type \'%s\': %s' => '位置 \'%d\' 的子项不是 \'%s\' 类型：%s',
+      'Chinese (Simplified)' => '中文（简体）',
+      'Chinese (Traditional)' => '中文（繁体）',
+      'Choose the object **subtype** that this form should create and edit.' => '选择此表单应创建和编辑的对象**子类型**。',
+      'Class "%s" is not a subclass of "%s".' => '类“%s”不是“%s”的子类。',
+      'Cleanup execution owner is "%s". Use gorge-maintenance to inspect or run this collector.' => '清理执行所有者是“%s”。请使用 gorge-maintenance 来检查或运行此收集器。',
+      'Collaboration local baseline "%s" does not exist.' => '协作本地基线“%s”不存在。',
+      'Collaboration profile state file "%s" is invalid.' => '协作配置文件状态文件“%s”无效。',
+      'Color \'%s\'' => '颜色 \'%s\'',
+      'Command (of class "%s") was constructed with a "PhutilCommandString", but also passed arguments. When using a prebuilt command, you must not pass arguments.' => '命令（类“%s”）使用“PhutilCommandString”构造，但也传入了参数。使用预构建命令时，不得传入参数。',
+      'Command failed with error #%d!' => '命令失败，错误码 #%d！',
+      'Command killed by timeout after running for more than %s seconds.' => '命令因超时被杀，运行时间超过 %s 秒。',
+      'Command string argument includes a NULL byte. This byte can not be safely escaped in command line arguments in Linux environments.' => '命令字符串参数包含 NULL 字节。在 Linux 环境中，此字节无法被安全转义为命令行参数。',
+      'Command string argument includes a NULL byte. This byte can not be safely escaped in command line arguments in Windows environments.' => '命令字符串参数包含 NULL 字节。在 Windows 环境中，此字节无法被安全转义为命令行参数。',
+      'Command string argument includes text which is not valid UTF-8. This library can not safely escape this sequence in command line arguments in Windows environments.' => '命令字符串参数包含非有效 UTF-8 文本。在 Windows 环境中，此库无法安全转义该序列为命令行参数。',
+      'Command to use to invoke a web browser.' => '用于调用网页浏览器的命令。',
+      'Command to use to invoke an interactive editor, like `%s` or `%s`. This setting overrides the %s environmental variable.' => '用于调用交互式编辑器的命令，例如 `%s` 或 `%s`。此设置会覆盖 %s 环境变量。',
+      'Command was `%s` at `%s`' => '命令在 `%s` 执行 `%s`',
+      'Commit Gorge physical deletion intents with file-row deletion. Requires storage upgrade and GORGE_FILE_DELETION_DSN consumer.' => '提交 Gorge 物理删除意图并删除文件行。需要存储升级和 GORGE_FILE_DELETION_DSN 消费者。',
+      'Compare net capacity growth with a previous report from the same physical databases.' => '与同一物理数据库的先前报告比较净容量增长。',
+      'Compose service' => 'Compose 服务',
+      'Compute a versioned trigger plan without executing its action.' => '计算版本化触发器计划而不执行其操作。',
+      'Condolences on forgetting your password. You can use this link to reset it:
+
+  %s
+
+After setting a new password, consider writing it down on a sticky note and attaching it to your monitor so others can impersonate you at any time. Choosing a short, easy-to-remember password like "cat" or "1234" might also help to get your machine hacked, your bank account emptied, or your company ruined.
+
+Best Wishes,
+%s' => '很遗憾您忘记了密码。您可以使用此链接重置：
+
+  %s
+
+设置新密码后，建议将其写在便利贴上并贴在显示器上，以便他人可以随时冒充您。选择一个简短、易记的密码（如“cat”或“1234”）也可能有助于让您的机器被黑客入侵、银行账户被清空或公司破产。
+
+祝好，
+%s',
+      'Conduit URI \'%s\' must include a valid host.' => 'Conduit URI \'%s\' 必须包含有效主机。',
+      'Config \'%s\' Invalid' => '配置 \'%s\' 无效',
+      'Config option \'%s\' is invalid. The URI must NOT have a path, e.g. \'%s\' is OK, but \'%s\' is not. This software must be installed on an entire domain; it can not be installed on a path.' => '配置选项 \'%s\' 无效。URI 不得包含路径，例如 \'%s\' 可以，但 \'%s\' 不行。本软件必须安装在完整域名上，不能安装在路径上。',
+      'Config option \'%s\' is invalid. The URI must contain a dot (\'.\'), like \'%s\', not just a bare name like \'%s\'. Some web browsers will not set cookies on domains with no TLD.' => '配置选项 \'%s\' 无效。URI 必须包含点号（\'.\'），例如 \'%s\'，而不能只是裸名如 \'%s\'。某些网页浏览器不会在没有 TLD 的域名上设置 Cookie。',
+      'Config option \'%s\' is invalid. The URI must start with \'%s\' or \'%s\'.' => '配置选项 \'%s\' 无效。URI 必须以 \'%s\' 或 \'%s\' 开头。',
+      'Config: Did not find local configuration at "%s".' => '配置：未在“%s”找到本地配置。',
+      'Config: Did not find system configuration at "%s".' => '配置：未在“%s”找到系统配置。',
+      'Config: Did not find user configuration at "%s".' => '配置：未在“%s”找到用户配置。',
+      'Config: Reading local configuration file "%s"...' => '配置：正在读取本地配置文件 "%s"...',
+      'Config: Reading system configuration file "%s"...' => '配置：正在读取系统配置文件 "%s"...',
+      'Config: Reading user configuration file "%s"...' => '配置：正在读取用户配置文件 "%s"...',
+      'Configuration key \'%s\' is not set in %s configuration!' => '配置键 \'%s\' 未在 %s 配置中设置！',
+      'Configuration option "%s" has unknown owner "%s".' => '配置选项 "%s" 包含未知的所有者 "%s"。',
+      'Configuration option "%s" is required to reach the Gorge conduit gateway, but it is not set.' => '配置选项 "%s" 是访问 Gorge 导管网关所必需的，但尚未设置。',
+      'Configuration option "%s" is required to reach the Gorge database service, but it is not set.' => '配置选项 "%s" 是访问 Gorge 数据库服务所必需的，但尚未设置。',
+      'Configuration option "%s" is required to reach the Gorge diff service, but it is not set.' => '配置选项 "%s" 是访问 Gorge 差异服务所必需的，但尚未设置。',
+      'Configuration option "%s" is required to reach the Gorge file storage service, but it is not set.' => '配置选项 "%s" 是访问 Gorge 文件存储服务所必需的，但尚未设置。',
+      'Configuration option "%s" is required to reach the Gorge render service, but it is not set.' => '配置选项 "%s" 是访问 Gorge 渲染服务所必需的，但尚未设置。',
+      'Configuration option "%s" is required to reach the Gorge task queue service, but it is not set.' => '配置选项 "%s" 是访问 Gorge 任务队列服务所必需的，但尚未设置。',
+      'Configuration option "%s" is required to reach the Gorge webhook service, but it is not set.' => '配置选项 "%s" 是访问 Gorge Webhook 服务所必需的，但尚未设置。',
+      'Configuration option \'%s\' has invalid value and was restored to the default: %s' => '配置选项 \'%s\' 的值无效，已恢复为默认值：%s',
+      'Configuration source baseline is invalid.' => '配置源基线无效。',
+      'Configure Gorge queue and Conduit token.' => '配置 Gorge 队列和 Conduit 令牌。',
+      'Configure Herald.' => '配置 Herald。',
+      'Configure Named Policy Forms' => '配置命名策略表单',
+      'Configure a locale to print messages in.' => '配置用于输出消息的区域设置。',
+      'Configure creating and editing Named Policies.' => '配置命名策略的创建和编辑。',
+      'Configure matching tokens, a persistent upload volume and a deletion consumer; run storage upgrades before enabling file lifecycle options.' => '配置匹配令牌、持久化上传卷和删除消费者；在启用文件生命周期选项之前先运行存储升级。',
+      'Configure which uploaded file types may be viewed directly in the browser. Other types will be downloaded instead of displayed. This is a usability and security consideration, since browsers tend to freak out when viewing very large binary files, and some types may be vulnerable to XSS attacks when viewed in a browser.
+
+The keys in this map are viewable MIME types; the values are the MIME types they are delivered as when they are viewed in the browser.' => '配置哪些上传的文件类型可以直接在浏览器中查看。其他类型将被下载而非显示。这是出于可用性和安全性考虑，因为浏览器在查看非常大的二进制文件时容易出现问题，而且某些类型在浏览器中查看时可能容易受到 XSS 攻击。
+
+此映射中的键是可查看的 MIME 类型；值是它们在浏览器中查看时所交付的 MIME 类型。',
+      'Configured command aliases. Use "arc alias" to define aliases.' => '已配置的命令别名。使用 "arc alias" 来定义别名。',
+      'Confirm that storage upgrade and the cleanup ownership guard rollout are complete on every daemon and CLI node before exporting policies for Gorge. Disabling this confirmation never bypasses owner checks.' => '在为 Gorge 导出策略之前，请确认每个守护进程和 CLI 节点上的存储升级以及清理所有权保护推广已完成。禁用此确认永远不会绕过所有者检查。',
+      'Conflicting image response headers.' => '图像响应头冲突。',
+      'Conflicting recipe headers.' => '配方头冲突。',
+      'Confused by empty line' => '空行导致解析混乱',
+      'Connect with __username__ instead of the configured default.' => '使用 __username__ 而非配置的默认值进行连接。',
+      'Connector read failed (HTTP %s).' => '连接器读取失败（HTTP %s）。',
+      'Construction of a DateTime() with epoch \'%s\' raised an exception.' => '使用纪元 \'%s\' 构造 DateTime() 时引发了异常。',
+      'Contents must be a list of strings.' => '内容必须是字符串列表。',
+      'Continue installing whatever that is?' => '继续安装该内容？',
+      'Controls the number of symbol mapper subprocesses run at once. Defaults to 8.' => '控制同时运行的符号映射器子进程数量。默认为 8。',
+      'Copying `%s` to `%s`' => '正在将 `%s` 复制到 `%s`',
+      'Could not find Exuberant Ctags. Make sure it is installed and available in executable path.' => '未找到 Exuberant Ctags。请确保已安装并在可执行路径中可用。',
+      'Create %s' => '创建 %s',
+      'Create a bot/script user account, to automate interactions with other systems. These users can not use the web interface, but can use the Conduit API.' => '创建机器人/脚本用户账户，用于自动化与其他系统的交互。这些用户无法使用 Web 界面，但可以使用 Conduit API。',
+      'Creating a project\'s first subproject **moves all members** to become members of the subproject instead.
+
+See [[ %s | Projects User Guide ]] in the documentation for details. This process can not be undone.' => '创建项目的第一个子项目会**将所有成员**转移为子项目的成员。
+
+详情请参阅文档中的 [[ %s | 项目用户指南 ]]。此操作无法撤销。',
+      'Current Mentions' => '当前提及',
+      'Custom %s file was specified, but it was not found!' => '已指定自定义 %s 文件，但未找到！',
+      'Custom field \'%s\' (with key \'%s\', of class \'%s\') can not have a proxy set with %s, because it returned %s from %s.' => '自定义字段 \'%s\'（键为 \'%s\'，类为 \'%s\'）无法通过 %s 设置代理，因为它从 %s 返回了 %s。',
+      'Custom field \'%s\' (with key \'%s\', of class \'%s\') is attempting to access data which is not available in this context.' => '自定义字段 \'%s\'（键为 \'%s\'，类为 \'%s\'）正在尝试访问此上下文中不可用的数据。',
+      'Custom field \'%s\' (with key \'%s\', of class \'%s\') is incompletely implemented: it claims to support a feature, but does not implement all of the required methods for that feature.' => '自定义字段 \'%s\'（键为 \'%s\'，类为 \'%s\'）实现不完整：它声称支持某项功能，但未实现该功能所需的全部方法。',
+      'Custom field transaction \'%s\' does not implement integration for %s.' => '自定义字段事务 \'%s\' 未实现 %s 的集成。',
+      'Custom field transaction has invalid \'%s\'; field \'%s\' is disabled or does not exist.' => '自定义字段事务的 \'%s\' 无效；字段 \'%s\' 已禁用或不存在。',
+      'Custom field transaction has no \'%s\'!' => '自定义字段事务没有 \'%s\'！',
+      'Custom-field source baseline is invalid.' => '自定义字段来源基线无效。',
+      'Customize the logo image and text which appears in the main site header:
+
+  - **Logo Image**: Upload a new 80 x 80px image to replace the logo in the site header.
+
+  - **Wordmark**: Choose new text to display next to the logo. By default, the header displays //%s//.
+
+' => '自定义主站点页眉中显示的 Logo 图片和文字：
+
+  - **Logo 图片**：上传新的 80 x 80 像素图片以替换站点页眉中的 Logo。
+
+  - **文字标识**：选择要显示在 Logo 旁边的新文本。默认情况下，页眉显示 //%s//。
+
+',
+      'Czech (Czech Republic)' => '捷克语（捷克共和国）',
+      'Daemons are configured to run as user "%s" in configuration option `%s`, but the current user is "%s" and `phd` was unable to switch to the correct user with `sudo`. Command output:
+
+%s' => '守护进程配置为以用户 "%s" 运行，配置选项为 `%s`，但当前用户是 "%s"，且 `phd` 无法通过 `sudo` 切换到正确的用户。命令输出：
+
+%s',
+      'Dark Mode' => '深色模式',
+      'DarkConsole is a development and profiling tool built into the web interface. You should leave it disabled unless you are developing or debugging %s.
+
+Once you activate DarkConsole for the install, **you need to enable it for your account before it will actually appear on pages.** You can do this in Settings > Developer Settings.
+
+DarkConsole exposes potentially sensitive data (like queries, stack traces, and configuration) so you generally should not turn it on in production.' => 'DarkConsole 是内置于 Web 界面的开发与性能分析工具。除非您正在开发或调试 %s，否则应保持禁用状态。
+
+为整个安装激活 DarkConsole 后，**您需要为您的账户启用它，才会实际显示在页面上。**您可以在 设置 > 开发者设置 中进行此操作。
+
+DarkConsole 会暴露潜在的敏感数据（如查询、堆栈跟踪和配置），因此通常不应在生产环境中启用。',
+      'Data can not be exported to Excel because the "zip" PHP extension is not
+installed. Consult the setup issue in the Config application for guidance on
+installing the extension.' => '数据无法导出到 Excel，因为未安装 "zip" PHP 扩展。请在 Config 应用中查看安装该扩展的设置问题以获取指导。',
+      'Data can not be exported to Excel because the PHPExcel library is not
+installed. This software component is required to create Excel files.
+
+You can install PHPExcel from GitHub:
+
+> https://github.com/PHPOffice/PHPExcel
+
+Briefly:
+
+  - Clone that repository somewhere on the sever
+    (like `/path/to/example/PHPExcel`).
+  - Update your PHP `%s` setting (in `php.ini`) to include the PHPExcel
+    `Classes` directory (like `/path/to/example/PHPExcel/Classes`).' => '数据无法导出到 Excel，因为未安装 PHPExcel 库。创建 Excel 文件需要此软件组件。
+
+您可以从 GitHub 安装 PHPExcel：
+
+> https://github.com/PHPOffice/PHPExcel
+
+简要步骤：
+
+  - 在服务器上的某处克隆该仓库
+    （例如 `/path/to/example/PHPExcel`）。
+  - 更新 PHP `%s` 设置（在 `php.ini` 中）以包含 PHPExcel
+    `Classes` 目录（例如 `/path/to/example/PHPExcel/Classes`）。',
+      'Data has fewer than %d lines.' => '数据少于 %d 行。',
+      'Data parameter must be an array or string.' => 'Data 参数必须是数组或字符串。',
+      'Database configuration baseline is invalid.' => '数据库配置基线无效。',
+      'Database host "%s" does not support the %s option. You will not be able to find search results for common words. You can gain access to this option by upgrading MySQL to a more recent version.
+
+You can ignore this warning if you plan to configure Elasticsearch later, or aren\'t concerned about searching for common words.' => '数据库主机“%s”不支持 %s 选项。您将无法搜索常见词汇的结果。您可以通过将 MySQL 升级到更新版本来获得此选项。
+
+如果您计划稍后配置 Elasticsearch，或者不介意搜索常见词汇，可以忽略此警告。',
+      'Database host "%s" is configured to use the default minimum word length when building search indexes, which is 4. This means words which are only 3 characters long will not be indexed and can not be searched for.
+
+For example, you will not be able to find search results for words like \'SMS\', \'web\', or \'DOS\'.
+
+You can change this setting to 3 to allow these words to be indexed. Alternatively, you can ignore this warning if you are not concerned about searching for 3-letter words. If you later plan to configure Elasticsearch, you can also ignore this warning: only MySQL fulltext search is affected.
+
+To reduce the minimum word length to 3, add this to your %s file (in the %s section) and then restart %s:
+
+%s
+' => '数据库主机“%s”配置为在构建搜索索引时使用默认的最小词长，即 4。这意味着仅包含 3 个字符的词汇将不会被索引，也无法被搜索。
+
+例如，您将无法搜索“SMS”、“web”或“DOS”等词汇的结果。
+
+您可以将此设置更改为 3，以允许这些词汇被索引。或者，如果您不介意搜索 3 个字母的词汇，可以忽略此警告。如果您稍后计划配置 Elasticsearch，也可以忽略此警告：仅 MySQL 全文搜索会受到影响。
+
+要将最小词长减少到 3，请将以下内容添加到您的 %s 文件中（位于 %s 部分），然后重启 %s：
+
+%s
+',
+      'Database host "%s" is configured with a very small %s (%s). This may cause poor database performance and lock exhaustion.
+
+There are no hard-and-fast rules to setting an appropriate value, but a reasonable starting point for a standard install is something like 40%% of the total memory on the machine. For example, if you have 4GB of RAM on the machine you have installed this software on, you might set this value to %s.
+
+You can read more about this option in the MySQL documentation to help you make a decision about how to configure it for your use case. There are no concerns specific to this software which make it different from normal workloads with respect to this setting.
+
+To adjust the setting, add something like this to your %s file (in the %s section), replacing %s with an appropriate value for your host and use case. Then restart %s:
+
+%s
+If you\'re satisfied with the current setting, you can safely ignore this setup warning.' => '数据库主机“%s”配置的 %s 非常小（%s）。这可能会导致数据库性能不佳和锁耗尽。
+
+设置合适的值没有硬性规定，但对于标准安装，合理的起点约为机器总内存的 40%%。例如，如果您安装的机器有 4GB 内存，您可以将此值设置为 %s。
+
+您可以在 MySQL 文档中阅读有关此选项的更多信息，以帮助您决定如何根据用例进行配置。此软件在这方面与普通工作负载没有特殊差异。
+
+要调整该设置，请将类似以下内容添加到您的 %s 文件中（位于 %s 部分），将 %s 替换为适合您主机和用例的值。然后重启 %s：
+
+%s
+如果您对当前设置满意，可以安全地忽略此安装警告。',
+      'Database host "%s" is using the builtin stopword file for building search indexes. This can make the search feature less useful.
+
+Stopwords are common words which are not indexed and thus can not be searched for. The default stopword file has about 500 words, including various words which you are likely to wish to search for, such as \'various\', \'likely\', \'wish\', and \'zero\'.
+
+To make search more useful, you can use an alternate stopword file with fewer words. Alternatively, if you aren\'t concerned about searching for common words, you can ignore this warning. If you later plan to configure Elasticsearch, you can also ignore this warning: this stopword file only affects MySQL fulltext indexes.
+
+To choose a different stopword file, add this to your %s file (in the %s section) and then restart %s:
+
+%s
+(You can also use a different file if you prefer. The file suggested above has about 50 of the most common English words.)' => '数据库主机“%s”使用内置停用词文件构建搜索索引。这可能会降低搜索功能的实用性。
+
+停用词是不会被索引的常见词汇，因此无法搜索。默认停用词文件包含约 500 个词汇，其中包括您可能希望搜索的各种词汇，例如“various”、“likely”、“wish”和“zero”。
+
+为了让搜索更有用，您可以使用包含较少词汇的替代停用词文件。或者，如果您不介意搜索常见词汇，可以忽略此警告。如果您稍后计划配置 Elasticsearch，也可以忽略此警告：此停用词文件仅影响 MySQL 全文索引。
+
+要选择不同的停用词文件，请将以下内容添加到您的 %s 文件中（位于 %s 部分），然后重启 %s：
+
+%s
+（如果您愿意，也可以使用其他文件。上面建议的文件包含约 50 个最常见的英语词汇。）',
+      'Database isolation currently only supports some queries. You are trying to issue a query which does not begin with an allowed keyword (%s): \'%s\'.' => '数据库隔离目前仅支持部分查询。您尝试执行的查询未以允许的关键字（%s）开头：“%s”。',
+      'Database write (to database "%s") though the connection is supposed to be read-only. Please file a bug report after carefully reviewing the query below for any private data.
+First 256 characters of the query: %s' => '对数据库“%s”执行写入操作，但连接应为只读。请仔细查看下方查询中的任何私人数据后提交错误报告。
+查询的前 256 个字符：%s',
+      'Databases are created in a namespace, which defaults to \'phabricator\' -- for instance, the Differential database is named \'phabricator_differential\' by default. You can change this namespace if you want. Normally, you should not do this unless you are developing extensions and using namespaces to separate multiple sandbox datasets.' => '数据库在命名空间中创建，默认命名空间为“phabricator”——例如，Differential 数据库默认名为“phabricator_differential”。您可以根据需要更改此命名空间。通常情况下，除非您正在开发扩展并使用命名空间来分隔多个沙盒数据集，否则不应更改此设置。',
+      'Dec' => '12月',
+      'Default User-Agent for outgoing HTTP requests made by this software.' => '此软件对外发出的 HTTP 请求的默认 User-Agent。',
+      'Default address used as a "From" or "To" email address when an address is
+required but no meaningful address is available.
+
+If you configure inbound mail, you generally do not need to set this:
+the software will automatically generate and use a suitable mailbox on the
+inbound mail domain.
+
+Otherwise, this option should be configured to point at a valid mailbox which
+discards all mail sent to it. If you point it at an invalid mailbox, mail sent
+by the software and some mail sent by users will bounce. If you point it at a
+real user mailbox, that user will get a lot of mail they don\'t want.
+
+For further guidance, see **[[ %s | %s ]]** in the documentation.' => '当需要地址但没有可用有效地址时，用作“发件人”或“收件人”电子邮件地址的默认地址。
+
+如果您配置了入站邮件，通常无需设置此项：软件将自动生成并使用入站邮件域上的合适邮箱。
+
+否则，此选项应配置为指向一个会丢弃所有发送给它的邮件的有效邮箱。如果您将其指向无效邮箱，软件发送的邮件以及用户发送的部分邮件将会退回。如果您将其指向真实用户邮箱，该用户将收到大量不想要的邮件。
+
+如需更多指导，请参阅文档中的 **[[ %s | %s ]]**。',
+      'Define \'%s\' in your configuration to continue.' => '请在配置中定义“%s”以继续。',
+      'Define a cluster by providing a whitelist of host addresses that are part of the cluster.
+
+Hosts on this whitelist have special powers. These hosts are permitted to bend security rules, and misconfiguring this list can make your install less secure. For more information, see **[[ %s | %s ]]**.
+
+Define a list of CIDR blocks which whitelist all hosts in the cluster and no additional hosts. See the examples below for details.
+
+When cluster addresses are defined, hosts will also reject requests to interfaces which are not whitelisted.' => '通过提供属于集群的主机地址白名单来定义集群。
+
+此白名单上的主机具有特殊权限。这些主机被允许绕过安全规则，错误配置此列表可能会降低安装的安全性。有关更多信息，请参阅 **[[ %s | %s ]]**。
+
+定义一个 CIDR 块列表，将集群中的所有主机列入白名单，且不包含其他额外主机。详情请参见下方的示例。
+
+当定义了集群地址后，主机还将拒绝发往未列入白名单的接口的请求。',
+      'Define one or more fulltext storage services. Here you can configure which
+hosts will handle fulltext search queries and indexing. For help with
+configuring fulltext search clusters, see **[[ %s | %s ]]** in the
+documentation.' => '定义一个或多个全文存储服务。您可以在此处配置哪些主机将处理全文搜索查询和索引。有关配置全文搜索集群的帮助，请参阅文档中的 **[[ %s | %s ]]**。',
+      'Define one or more mail transmission services. For help with configuring
+mailers, see **[[ %s | %s ]]** in the documentation.' => '定义一个或多个邮件传输服务。有关配置邮件发送服务的帮助，请参阅文档中的 **[[ %s | %s ]]**。',
+      'Definition of %s \'%s\' in file \'%s\' duplicates prior definition in file \'%s\'. You can not declare the same symbol twice.' => '文件“%s”中 %s“%s”的定义与文件“%s”中的先前定义重复。您不能两次声明相同的符号。',
+      'Deleted \'%s\' from %s configuration.' => '已从 %s 配置中删除“%s”。',
+      'Deletion intent requires committed source and search connections.' => '删除意图需要已提交的来源和搜索连接。',
+      'Deletion source class is unavailable.' => '删除来源类不可用。',
+      'Delimiter character must be one byte in length or null.' => '分隔符字符必须为单字节长度或 null。',
+      'Delivery identity mismatch.' => '投递身份不匹配。',
+      'Deploy Gorge with the version 1 download API and configure matching nonempty service tokens. Remote attachments and calendar URI imports require this capability.' => '使用版本 1 下载 API 部署 Gorge 并配置匹配的非空服务令牌。远程附件和日历 URI 导入需要此功能。',
+      'Deployment Config \'%s\'' => '部署配置“%s”',
+      'Deployment configuration "%s" contains an invalid key.' => '部署配置“%s”包含无效的键。',
+      'Deployment configuration "%s" could not be read.' => '无法读取部署配置“%s”。',
+      'Deployment configuration "%s" does not exist.' => '部署配置“%s”不存在。',
+      'Deployment configuration "%s" is not valid JSON.' => '部署配置“%s”不是有效的 JSON。',
+      'Deployment configuration "%s" must be a JSON object.' => '部署配置“%s”必须是 JSON 对象。',
+      'Deployment profile. The "collaboration" profile keeps Maniphest, projects, documents and chat while an external forge owns code. The deployment configuration source owns this value in the default container stack.' => '部署配置文件。“collaboration”配置文件保留 Maniphest、项目、文档和聊天功能，而外部 forge 拥有代码。在默认容器堆栈中，部署配置源拥有此值。',
+      'Describe source ranges or materialize a bounded search scan page.' => '描述来源范围或物化有界搜索扫描页面。',
+      'Destination' => '目标',
+      'Destroying %s **%s**...
+' => '正在销毁 %s **%s**...
+',
+      'Destroying objects may cause related objects to stop working, and may leave scattered references to objects which no longer exist. In most cases, it is much better to disable or archive objects instead of destroying them. This risk is greatest when deleting complex or highly connected objects like repositories, projects and users.
+
+These tattered edges are an expected consequence of destroying objects, and the upstream will not help you fix them. We strongly recommend disabling or archiving objects instead.' => '销毁对象可能导致相关对象停止工作，并可能留下对已不存在对象的零散引用。在大多数情况下，禁用或归档对象比销毁它们要好得多。删除仓库、项目和用户等复杂或高度关联的对象时，这种风险最大。
+
+这些破碎的关联是销毁对象的预期后果，上游不会帮助您修复它们。我们强烈建议禁用或归档对象，而不是销毁它们。',
+      'Destroying table \'%s\'...' => '正在销毁表 \'%s\'...',
+      'Detailed view of a transaction.' => '事务的详细视图。',
+      'Developer Tools show more tools that are mostly useful for %s developers and advanced administrators.' => '开发者工具显示更多主要对 %s 开发者和高级管理员有用的工具。',
+      'Device request identifies an acting user with an invalid username ("%s"). There is no user with this username.' => '设备请求识别到一个无效用户名的操作用户（"%s"）。不存在具有此用户名的用户。',
+      'Dictionary key "%s" is not valid UTF8, and cannot be JSON encoded.' => '字典键 "%s" 不是有效的 UTF8，无法 JSON 编码。',
+      'Dictionary value at key "%s" is not valid UTF8, and cannot be JSON encoded: %s' => '字典中键 "%s" 的值不是有效的 UTF8，无法 JSON 编码：%s',
+      'Did not find an extension with %s "%s".' => '未找到具有 %s "%s" 的扩展。',
+      'Diff Changeset' => '差异变更集',
+      'Diff Parse Exception: %s' => '差异解析异常：%s',
+      'Disable ANSI terminal codes, printing plain text with no color or style.' => '禁用 ANSI 终端代码，打印纯文本，不带颜色或样式。',
+      'Disable Developer Tools' => '禁用开发者工具',
+      'Disabled Application' => '已禁用应用',
+      'Disallowed ssh option "%s" given with "-o". Allowed options are: %s.' => '不允许的 ssh 选项 "%s" 通过 "-o" 传入。允许的选项为：%s。',
+      'Do not actually change anything, just show what would be changed.' => '不实际更改任何内容，仅显示将要更改的内容。',
+      'Do not call %s or %s directly on a %s. Instead, call %s or %s.' => '不要直接在 %s 上调用 %s 或 %s。而应调用 %s 或 %s。',
+      'Do not prettify JSON output.' => '不要美化 JSON 输出。',
+      'Do not prompt before performing dangerous operations.' => '在执行危险操作前不提示确认。',
+      'Don\'t Require Manual Approval' => '不需要手动审批',
+      'Don\'t embed YouTube videos' => '不嵌入 YouTube 视频',
+      'Don\'t let go!' => '别松手！',
+      'Don\'t require email verification' => '不需要验证邮箱',
+      'Doorkeeper worker \'%s\' is not enabled.' => 'Doorkeeper 工作器 \'%s\' 未启用。',
+      'Downloaded hash does not match: expected any of %s, got %s.' => '下载的哈希不匹配：预期为 %s 中的任意一个，实际得到 %s。',
+      'Downloading %s to %s
+' => '正在下载 %s 到 %s
+',
+      'Drop the symbol cache and rebuild the entire map from scratch.' => '清空符号缓存并从头重建整个映射。',
+      'Dry-run.' => '试运行。',
+      'ERROR: The PHP extension \'%s\' is not installed. You must install it to run daemons on this machine.
+' => '错误：未安装 PHP 扩展 \'%s\'。必须安装此扩展才能在此机器上运行守护进程。
+',
+      'ERROR: The PHP function %s is disabled. You must enable it to run daemons on this machine.
+' => '错误：PHP 函数 %s 已被禁用。必须启用此函数才能在此机器上运行守护进程。
+',
+      'EXCEPTION' => '异常',
+      'EXCEPTION: %s' => '异常：%s',
+      'Edge Type' => '边类型',
+      'Edge transaction has no \'%s\'!' => '边事务没有 \'%s\'！',
+      'Edge transaction includes edge of type \'%s\', but transaction is of type \'%s\'. Each edge transaction must alter edges of only one type.' => '边事务包含 \'%s\' 类型的边，但事务类型为 \'%s\'。每个边事务只能修改单一类型的边。',
+      'Edges are not available for objects of type \'%s\'!' => '\'%s\' 类型的对象不支持边！',
+      'Edit %s: %s' => '编辑 %s：%s',
+      'Edit API Token' => '编辑 API 令牌',
+      'Edit Mentions' => '编辑提及',
+      'Edit Named Policy' => '编辑命名策略',
+      'Edit Notes of the version.' => '编辑版本备注。',
+      'Edit the description of the policy.' => '编辑策略描述。',
+      'Effective Policy' => '有效策略',
+      'Effective Policy is required.' => '有效策略为必填项。',
+      'Emit all symbols, including built-ins and declared externals.' => '输出所有符号，包括内置符号和声明的外部符号。',
+      'Emit builtin symbols.' => '输出内置符号。',
+      'Emitting event...' => '正在发送事件...',
+      'Empty key is invalid!' => '空键无效！',
+      'Enable Developer Tools' => '启用开发者工具',
+      'Enable debug tracing.' => '启用调试跟踪。',
+      'Enable only after all Gorge workers support native notification delivery.' => '仅在所有 Gorge 工作者支持原生通知投递后启用。',
+      'Enable the migrated MySQL scheduler first.' => '请先启用已迁移的 MySQL 调度器。',
+      'Enabled integrations require uri and token.' => '已启用的集成需要 uri 和 token。',
+      'Encoding UTF8 codepoint "%s" is not supported.' => '不支持编码 UTF8 码点 "%s"。',
+      'Encountered an error trying to verify the downloaded package: %s' => '尝试验证下载的包时遇到错误：%s',
+      'Engine \'%s\' does not support %s.' => '引擎 \'%s\' 不支持 %s。',
+      'English (Canada)' => '英语（加拿大）',
+      'English (Great Britain)' => '英语（英国）',
+      'English (Pirate)' => '英语（海盗）',
+      'English (Raw Strings)' => '英语（原始字符串）',
+      'English (US)' => '英语（美国）',
+      'English (US, ALL CAPS)' => '英语（美国，全大写）',
+      'English (Very Wow)' => '英语（Very Wow）',
+      'Exclude other adapters when selecting outbound email. Inbound mail and outbound SMS keep their configured adapters.' => '选择出站邮件时排除其他适配器。入站邮件和出站 SMS 保留其已配置的适配器。',
+      'Existing policy PHID or constant.' => '现有策略 PHID 或常量。',
+      'Expected %s rules to define rules for state \'%s\'.' => '预期 %s 规则为状态 \'%s\' 定义规则。',
+      'Expected %s to return array, got %s.' => '预期 %s 返回数组，实际得到 %s。',
+      'Expected \'%s\' divider line.' => '预期 \'%s\' 分隔线。',
+      'Expected \'%s\' in request!' => '请求中预期包含 \'%s\'！',
+      'Expected \'%s\' in response!' => '响应中预期包含 \'%s\'！',
+      'Expected \'%s\' in unified diff.' => '统一差异中预期包含 \'%s\'。',
+      'Expected \'%s\' to be \'%s\'!' => '预期 \'%s\' 为 \'%s\'！',
+      'Expected \'%s\' to start git binary patch.' => '预期 \'%s\' 开始 git 二进制补丁。',
+      'Expected \'%s\'.' => '预期 \'%s\'。',
+      'Expected \'Author:\'.' => '预期 \'Author：\'。',
+      'Expected \'Date:\'.' => '预期 \'Date：\'。',
+      'Expected \'Name\', \'Added\', \'Deleted\', or \'Modified\'.' => '应为 "Name"、"Added"、"Deleted" 或 "Modified"。',
+      'Expected \'\\ No newline at end of file\'.' => '应为 "\\ No newline at end of file"。',
+      'Expected JSON response from Asana.' => '预期从 Asana 返回 JSON 响应。',
+      'Expected JSON response from GitHub.' => '预期从 GitHub 返回 JSON 响应。',
+      'Expected JSON response from Slack.' => '预期从 Slack 返回 JSON 响应。',
+      'Expected JSON response from Twitch.' => '预期从 Twitch 返回 JSON 响应。',
+      'Expected JSON response from WordPress.com.' => '预期从 WordPress.com 返回 JSON 响应。',
+      'Expected JSON.' => '预期为 JSON。',
+      'Expected a hunk header, like \'%s\' (svn), \'%s\' (svn properties), \'%s\' (git show), \'%s\' (git diff), \'%s\' (unified diff), or \'%s\' (hg diff or patch).' => '预期为差异块（hunk）头，如 "%s"（svn）、"%s"（svn 属性）、"%s"（git show）、"%s"（git diff）、"%s"（unified diff）或 "%s"（hg diff 或 patch）。',
+      'Expected a regular expression, but \'%s\' is not valid: %s' => '预期为正则表达式，但 "%s" 无效：%s',
+      'Expected a regular expression, but value is not valid: %s' => '预期为正则表达式，但值无效：%s',
+      'Expected all items passed to "array_mergev()" to be arrays, but argument with key "%s" has type "%s".' => '预期传给 "array_mergev()" 的所有项均为数组，但键为 "%s" 的参数类型为 "%s"。',
+      'Expected an array for %%L%s conversion.' => '预期为用于 %%L%s 转换的数组。',
+      'Expected an array from %s for object of class \'%s\'.' => '预期从 %s 返回类 "%s" 的对象的数组。',
+      'Expected any exception, got no exception.' => '预期出现任何异常，但未获得异常。',
+      'Expected base85 line length character (a-zA-Z).' => '预期为 base85 行长度字符（a-zA-Z）。',
+      'Expected exception (in class(es): %s), got exception of class "%s".' => '预期异常（类：%s），但获得类 "%s" 的异常。',
+      'Expected file \'%s\' in \'%s\' to be a sprite source ending in \'%s\'.' => '预期 "%s" 中的文件 "%s" 为以 "%s" 结尾的精灵图源。',
+      'Expected hunk header \'%s\'.' => '预期差异块头 "%s"。',
+      'Expected hunk target \'%s\'.' => '预期差异块目标 "%s"。',
+      'Expected list of rules for state \'%s\' in %s, got %s.' => '预期在 %s 中状态 "%s" 的规则列表，但获得 %s。',
+      'Expected no exception, got exception of class "%s".' => '预期无异常，但获得类 "%s" 的异常。',
+      'Expected option key passed to "addCurlOption(<key>, ...)" to be a scalar, got "%s".' => '预期传给 "addCurlOption(<key>, ...)" 的选项键为标量，但获得 "%s"。',
+      'Expected rule \'%s\' in state \'%s\' in %s to have 2-4 elements (regex, token, [next state], [options]), got %d.' => '预期 %s 中状态 "%s" 的规则 "%s" 包含 2-4 个元素（regex、token、[next state]、[options]），但获得 %d。',
+      'Expected to find "%s" in "%s" output, but did not.' => '预期在 "%s" 输出中找到 "%s"，但未找到。',
+      'Expected to find "%s" in `%s` output, but did not.' => '预期在 `%s` 输出中找到 "%s"，但未找到。',
+      'Expected to find key "%s", but it is not present.' => '预期找到键 "%s"，但该键不存在。',
+      'Expected type \'%s\', got type \'%s\'.' => '预期类型为 "%s"，但获得类型 "%s"。',
+      'Expected vs Actual Output Diff
+%s' => '预期输出与实际输出的差异
+%s',
+      'Expected: %s
+  Actual: %s' => '预期：%s
+  实际：%s',
+      'Export a bounded page of semantic fact datapoints.' => '导出一页有界的语义事实数据点。',
+      'Extension %s found in store %s.' => '在存储 %s 中找到扩展 %s。',
+      'Extension %s is already up-to-date' => '扩展 %s 已是最新版本',
+      'Extension %s not found in store %s - maybe it was deleted?. \'.
+          \'Unable to upgrade.' => '在存储 %s 中未找到扩展 %s - 可能已被删除？无法升级。',
+      'Extension %s not found.
+' => '未找到扩展 %s。
+',
+      'Extension with key %s not found in any store.' => '在任何存储中都未找到键为 %s 的扩展。',
+      'Exuberant Ctags project page: %s' => 'Exuberant Ctags 项目页面：%s',
+      'Fact cursors and writes belong to Gorge.' => '事实游标和写入属于 Gorge。',
+      'Fact execution belongs to Gorge; stop the PHP fact daemon.' => '事实执行属于 Gorge；请停止 PHP 事实守护进程。',
+      'Fact page exceeds datapoint limit.' => '事实页面超出数据点限制。',
+      'Fact writer is not enabled on Gorge.' => '事实写入器未在 Gorge 上启用。',
+      'Fact writes belong to Gorge.' => '事实写入属于 Gorge。',
+      'Fail' => '失败',
+      'Failed closing file \'%s\' after write.' => '写入后关闭文件 \'%s\' 失败。',
+      'Failed to JSON encode value (%s): %s.' => 'JSON 编码值失败（%s）：%s。',
+      'Failed to JSON encode value: %s.' => 'JSON 编码值失败：%s。',
+      'Failed to chmod \'%s\' to \'%s\'.' => '将 \'%s\' 的权限修改为 \'%s\' 失败。',
+      'Failed to close file handle.' => '关闭文件句柄失败。',
+      'Failed to convert a hunk from \'%s\' to UTF-8. Check that the specified encoding is correct.' => '将差异块从 \'%s\' 转换为 UTF-8 失败。请检查指定的编码是否正确。',
+      'Failed to copy file from "%s" to "%s".' => '将文件从 "%s" 复制到 "%s" 失败。',
+      'Failed to copy file from "%s" to "%s": %s' => '将文件从 "%s" 复制到 "%s" 失败：%s',
+      'Failed to create a temporary directory in \'%s\'.' => '在 \'%s\' 中创建临时目录失败。',
+      'Failed to create a temporary directory: the disk is full.' => '创建临时目录失败：磁盘已满。',
+      'Failed to create directory \'%s\'.' => '创建目录 \'%s\' 失败。',
+      'Failed to create usable reference object for named policy %s - target type is %s' => '为命名策略 %s 创建可用的引用对象失败 - 目标类型为 %s',
+      'Failed to decompose multicopy changeset in order to generate diff.' => '分解多副本变更集以生成差异失败。',
+      'Failed to extract link target!' => '提取链接目标失败！',
+      'Failed to fread() from request input stream.' => '从请求输入流执行 fread() 失败。',
+      'Failed to install signal handler!' => '信号处理程序安装失败！',
+      'Failed to open file \'%s\'.' => '打开文件 \'%s\' 失败。',
+      'Failed to open file!' => '打开文件失败！',
+      'Failed to open filesystem path "%s" for writing.' => '打开文件系统路径 "%s" 以进行写入失败。',
+      'Failed to parse \'%s\' as JSON.' => '将 \'%s\' 解析为 JSON 失败。',
+      'Failed to parse URI "%s" as a Git URI.' => '将 URI "%s" 解析为 Git URI 失败。',
+      'Failed to passthru %s: %s' => '透传 %s 失败：%s',
+      'Failed to read file \'%s\'.' => '读取文件 \'%s\' 失败。',
+      'Failed to read file!' => '读取文件失败！',
+      'Failed to read from %s' => '从 %s 读取失败',
+      'Failed to read modified time for %s.' => '读取 %s 的修改时间失败。',
+      'Failed to remove directory \'%s\'!' => '删除目录 \'%s\' 失败！',
+      'Failed to remove file \'%s\'!' => '删除文件 \'%s\' 失败！',
+      'Failed to rename \'%s\' to \'%s\'!' => '将 \'%s\' 重命名为 \'%s\' 失败！',
+      'Failed to replace template variables while rendering cow!' => '渲染 cow 时替换模板变量失败！',
+      'Failed to set socket nonblocking!' => '设置套接字非阻塞模式失败！',
+      'Failed to set streams nonblocking.' => '设置流非阻塞模式失败。',
+      'Failed to set system locale (to "%s").' => '设置系统区域设置失败（设置为 "%s"）。',
+      'Failed to unpack data.' => '解包数据失败。',
+      'Failed to unserialize object: %s' => '反序列化对象失败：%s',
     );
   }
 }

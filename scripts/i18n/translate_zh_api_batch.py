@@ -27,6 +27,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_FILE = 'src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php'
 DEFAULT_MODEL = 'kimi-k2.6'
 DEFAULT_BASE_URL = 'https://api.moonshot.cn/v1'
+STANDARD_REQUEST_FIELDS = frozenset({'model', 'messages', 'temperature', 'top_p', 'max_tokens', 'stream'})
 PLACEHOLDER_RE = re.compile(r"%(?:\d+\$)?[-+ 0#']*\d*(?:\.\d+)?[bcdeEfFgGosuxX%]")
 BRACKET_TOKEN_RE = re.compile(r'(?<!\[)\[[^\[\]\n]+\](?!\])')
 URL_RE = re.compile(r'https?://[^\s<>\[\]|`]+')
@@ -222,6 +223,31 @@ def parse_text_response(content: str, expected: set[str]) -> dict[str, str]:
         raise ValueError('Model response omitted requested ids')
     return mapped
 
+def describe_http_error(error: urllib.error.HTTPError, api_key: str) -> str:
+    try:
+        body = error.read(65536).decode('utf-8', errors='replace')
+    except (OSError, http.client.HTTPException):
+        body = ''
+    finally:
+        error.close()
+    detail = body
+    try:
+        payload = json.loads(body)
+        failure = payload.get('error', payload) if isinstance(payload, dict) else payload
+        if isinstance(failure, dict):
+            fields = [f'{name}={failure[name]}' for name in ('message', 'type', 'code', 'param')
+                      if failure.get(name) is not None]
+            if fields:
+                detail = '; '.join(fields)
+        elif isinstance(failure, str):
+            detail = failure
+    except ValueError:
+        pass
+    # Some gateways echo request values. Never expose the credential in errors.
+    detail = ' '.join(detail.replace(api_key, '[REDACTED]').split())[:4096]
+    reason = ' '.join(str(error.reason).replace(api_key, '[REDACTED]').split())[:256]
+    return f'HTTP {error.code} {reason}' + (': ' + detail if detail else '')
+
 def request_translations(args: argparse.Namespace, batch: list[dict], glossary: str) -> dict[str, str]:
     api_key = os.getenv(args.api_key_env)
     if not api_key:
@@ -235,12 +261,17 @@ def request_translations(args: argparse.Namespace, batch: list[dict], glossary: 
     payload = {'model': args.model, 'messages': [
         {'role': 'system', 'content': system},
         {'role': 'user', 'content': json.dumps({'items': batch}, ensure_ascii=False)}],
-        'temperature': args.temperature, 'top_p': args.top_p,
         'max_tokens': args.max_tokens, 'stream': False}
+    for name, value in (('temperature', args.temperature), ('top_p', args.top_p)):
+        if value is not None:
+            payload[name] = value
     if args.extra_body:
-        if set(args.extra_body) & payload.keys():
+        if set(args.extra_body) & STANDARD_REQUEST_FIELDS:
             raise ValueError('--extra-body may not override standard request arguments')
         payload.update(args.extra_body)
+    if (urllib.parse.urlsplit(args.base_url).hostname in {'api.moonshot.cn', 'api.moonshot.ai'}
+            and args.model == 'kimi-k2.6' and 'thinking' not in payload):
+        payload['thinking'] = {'type': 'disabled'}
     request = urllib.request.Request(args.base_url.rstrip('/') + '/chat/completions',
         data=json.dumps(payload, ensure_ascii=False).encode(),
         headers={'Authorization': 'Bearer ' + api_key, 'Content-Type': 'application/json'}, method='POST')
@@ -249,9 +280,13 @@ def request_translations(args: argparse.Namespace, batch: list[dict], glossary: 
             with urllib.request.urlopen(request, timeout=args.request_timeout) as response:
                 envelope = json.loads(response.read())
             return parse_text_response(envelope['choices'][0]['message']['content'], {item['id'] for item in batch})
+        except urllib.error.HTTPError as error:
+            detail = describe_http_error(error, api_key)
+            retryable = error.code in {408, 429} or 500 <= error.code < 600
+            if not retryable or attempt + 1 >= args.retry:
+                raise RuntimeError('Model request failed: ' + detail) from error
+            time.sleep(args.retry_sleep * (attempt + 1))
         except (OSError, http.client.HTTPException, ValueError, KeyError, IndexError, TypeError) as error:
-            if isinstance(error, urllib.error.HTTPError):
-                error.close()
             if attempt + 1 >= args.retry:
                 raise RuntimeError('Model request or response failed: ' + str(error)) from error
             time.sleep(args.retry_sleep * (attempt + 1))
@@ -344,8 +379,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument('--base-url', default=DEFAULT_BASE_URL, help='API root, without /chat/completions')
     parser.add_argument('--model', default=DEFAULT_MODEL)
     parser.add_argument('--api-key-env', default='MOONSHOT_API_KEY', help='Environment variable containing the API key')
-    parser.add_argument('--temperature', type=float, default=0.6)
-    parser.add_argument('--top-p', type=float, default=0.95)
+    parser.add_argument('--temperature', type=float, help='Sampling temperature; omitted by default to use model settings')
+    parser.add_argument('--top-p', type=float, help='Nucleus sampling; omitted by default to use model settings')
     parser.add_argument('--max-tokens', type=int, default=32768)
     parser.add_argument('--extra-body', default='{}', help='Provider-specific JSON object, such as thinking configuration')
     parser.add_argument('--retry', type=int, default=2, help='Total attempts, including the first')
@@ -363,7 +398,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             parser.error('--' + name.replace('_', '-') + ' must be positive')
     if args.retry_sleep < 0 or args.request_interval < 0:
         parser.error('Sleep and interval must be non-negative')
-    if not 0 <= args.temperature <= 2 or not 0 < args.top_p <= 1:
+    if ((args.temperature is not None and not 0 <= args.temperature <= 2)
+            or (args.top_p is not None and not 0 < args.top_p <= 1)):
         parser.error('temperature must be in [0,2] and top-p in (0,1]')
     url = urllib.parse.urlsplit(args.base_url)
     if url.scheme not in ('http', 'https') or not url.netloc or url.username or url.password or url.query or url.fragment:
