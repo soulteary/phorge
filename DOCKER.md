@@ -724,12 +724,20 @@ manifest。若强制杀死宿主入口，按输出 manifest 的 project 手工�
 不把配置、DSN、token 或业务载荷写入 manifest。测试凭据仅用于隔离环境。
 
 `deploy/acceptance/build-lock.json` 锁定基础/后端镜像 digest、APCu 版本
-及 Debian 包快照；内置运行库的来源和内容摘要由 `support/runtime/manifest.json` 记录。当前摘要来自本机所用镜像；首次在另一架构使用前验证其平台支持。
+及 Debian 包快照；内置运行库的来源和内容摘要由 `support/runtime/manifest.json` 记录。
+镜像锁使用包含 `linux/amd64` 和 `linux/arm64` 的多架构索引，Docker 按宿主平台选择
+对应子镜像。不要把本机拉取到的单架构子镜像 digest 当成多架构构建锁；版本、原
+arm64 子镜像与索引的对应关系及核验步骤见
+[image-lock-provenance.md](deploy/acceptance/image-lock-provenance.md)。
 Phorge Dockerfile 接受 `PHP_BASE_IMAGE`、`APCU_VERSION`、
 `DEBIAN_SNAPSHOT`；Gorge Dockerfile 接受 `GO_BASE_IMAGE`、`RUNTIME_BASE_IMAGE`。
 普通开发构建仍允许默认镜像标签；冻结构建必须使用这份锁和验收入口。
 
 `--check` 只校验运行库身份、Compose 隔离拓扑与镜像锁，不运行契约或证明镜像可用。
+完整执行在构建或拉取候选前，调用配对 Gorge 的 `deploy/release/base_images.py`，
+通过注册表核对锁定基础镜像与后端平台。Go/Alpine 必须包含 `linux/amd64` 和
+`linux/arm64`；后端必须支持 GitHub Actions 验收宿主使用的 `linux/amd64`。检查
+失败会以 `image-platform-check` 阶段写入交付失败清单，阻止后续构建与启动。
 完整执行需要 Docker daemon 可用、足够的后端内存与磁盘，以及已缓存或可访问的
 镜像仓库、系统包仓库、Go modules 和解析器构建依赖。`--candidate-images` 还需完整
 十四服务 digest map：全部检查包装和源码标签，真实 render/image fixture 使用候选
