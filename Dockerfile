@@ -5,7 +5,7 @@
 # Phorge 官方没有提供 Docker 镜像，本 Dockerfile 基于当前源码目录自建。
 # PHP 兼容运行库随源码交付，构建无需独立 Arcanist checkout。
 #
-ARG PHP_BASE_IMAGE=php:8.3-apache
+ARG PHP_BASE_IMAGE=php:8.3.36-apache
 FROM ${PHP_BASE_IMAGE}
 ARG APCU_VERSION=5.1.28
 ARG DEBIAN_SNAPSHOT=
