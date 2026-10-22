@@ -21,7 +21,7 @@ jobs:
   verify-php-runtime:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Validate production PHP image and session hardening
         shell: bash
         run: |
@@ -37,7 +37,7 @@ jobs:
               fwrite(STDERR, "PHP version is below the security baseline: ".PHP_VERSION.PHP_EOL);
               exit(1);
             }
-            if (ini_get("session.upload_progress.enabled") !== "0") {
+            if (filter_var(ini_get("session.upload_progress.enabled"), FILTER_VALIDATE_BOOLEAN)) {
               fwrite(STDERR, "Session upload progress must be disabled".PHP_EOL);
               exit(1);
             }
