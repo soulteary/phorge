@@ -1,0 +1,49 @@
+name: PHP Core security baseline
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - docker/php/uploads.ini
+      - .github/workflows/php-core-security.yml
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - docker/php/uploads.ini
+      - .github/workflows/php-core-security.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-php-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate production PHP image and session hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="$(sed -n 's/^ARG PHP_BASE_IMAGE=//p' Dockerfile | head -n1)"
+          if [[ ! "$image" =~ ^php:8\.3\.[0-9]+-apache$ ]]; then
+            echo "::error::Expected a pinned PHP 8.3 Apache patch release, found: $image"
+            exit 1
+          fi
+          docker run --rm -v "$PWD/docker/php/uploads.ini:/usr/local/etc/php/conf.d/phorge-uploads.ini:ro" "$image" php -r '
+            if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 3
+                || version_compare(PHP_VERSION, "8.3.36", "<")) {
+              fwrite(STDERR, "PHP version is below the security baseline: ".PHP_VERSION.PHP_EOL);
+              exit(1);
+            }
+            if (filter_var(ini_get("session.upload_progress.enabled"), FILTER_VALIDATE_BOOLEAN)) {
+              fwrite(STDERR, "Session upload progress must be disabled".PHP_EOL);
+              exit(1);
+            }
+            if (ini_get("session.use_strict_mode") !== "1") {
+              fwrite(STDERR, "Strict session mode must be enabled".PHP_EOL);
+              exit(1);
+            }
+            echo "Verified PHP ".PHP_VERSION." with hardened session settings".PHP_EOL;
+          '
