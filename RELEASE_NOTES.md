@@ -1,3 +1,31 @@
+# Phorge 2026.10.22-r1
+
+## 中文
+
+本版本与 Gorge `2026.10.22-r1` 配对，基于已发布的 `2026.10.08-r1`。
+
+- **PHP Core 安全修复。** 合并 [PR #41](https://github.com/soulteary/phorge/pull/41)，将默认 Apache PHP 镜像升级为 `php:8.3.36-apache`，应对 CVE-2026-109618 / CVE-2026-109619。
+- **会话防御加固。** 关闭 PHP session 上传进度功能，启用严格 Session ID 模式。该配置是纵深防御，不替代 PHP Core 补丁。
+- **持续集成。** 新增检查实际 PHP 补丁版本和生效的 session 配置的 CI 流程。
+- **配对发布。** 必须与 Gorge 同版本的不可变源码和 `release-manifest.json` 服务 digest 一起部署；历史 Compose 默认标签并不是新版发布产物。
+
+部署前备份；重新构建 Phorge Web/daemon 镜像；检查自定义 `PHP_BASE_IMAGE` override；按 Gorge 清单逐项使用服务 digest。生产环境另行验证登录、上传、API、恢复与业务链路。
+
+## English
+
+This release pairs with Gorge `2026.10.22-r1` and supersedes `2026.10.08-r1`.
+
+- Merge [PR #41](https://github.com/soulteary/phorge/pull/41) and update the default Apache PHP runtime to `php:8.3.36-apache` for CVE-2026-109618 / CVE-2026-109619.
+- Disable PHP session upload progress and enable strict session IDs as defense in depth; these controls do not replace the patched runtime.
+- Add CI checks of the runtime's effective PHP version and session settings.
+- Deploy only with the matching Gorge release manifest and immutable service image digests. Legacy Compose image tag defaults do not identify this release.
+
+Back up before upgrading, rebuild Phorge web and daemon images, audit PHP base-image overrides, and validate login, uploads, APIs, backup/restore and production business flows.
+
+**Release pairing:** final immutable commit SHAs and image digests are established only after both release preparation PRs are merged and Gorge's paired acceptance workflow succeeds.
+
+---
+
 # Release notes
 
 ## 2026.10.08-r1
