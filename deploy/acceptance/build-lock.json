@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "apcu": "5.1.28",
-  "debianSnapshot": "20261006T000000Z",
+  "debianSnapshot": "20261023T000000Z",
   "images": {
     "php": "docker.io/library/php@sha256:756c2884677bedea30afaa95811b42cd3ff251203291c5820c1ad209e86c9fb4",
     "go": "docker.io/library/golang@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414",
