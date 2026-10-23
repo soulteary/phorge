@@ -108,7 +108,7 @@ final class PhabricatorConduitAPIController
       } else {
         list($error_code, $error_info) = $auth_error;
       }
-    } catch (Exception $ex) {
+    } catch (Throwable $ex) {
       $result = null;
 
       if ($ex instanceof ConduitException ||
@@ -218,7 +218,7 @@ final class PhabricatorConduitAPIController
           $api_request->getAllParameters(),
           $protocol_data,
           $ssl_public_key);
-      } catch (Exception $ex) {
+      } catch (Throwable $ex) {
         return array(
           'ERR-INVALID-AUTH',
           pht(

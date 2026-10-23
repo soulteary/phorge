@@ -31,6 +31,8 @@ jobs:
         run: php scripts/runtime/build.php all
       - name: Verify online translation maintenance without external API calls
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/i18n -p 'test_*.py' -v
+      - name: Verify Conduit errors and authentication requirements
+        run: php bin/unit --no-coverage src/applications/conduit/call/__tests__/ConduitCallTestCase.php
       - name: Verify runtime behavior and response safety
         run: |
           php scripts/runtime/verify.php
