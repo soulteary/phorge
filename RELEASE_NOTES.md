@@ -1,8 +1,8 @@
-# Phorge 2026.10.22-r1
+# Phorge 2026.10.23-r1
 
 ## 中文
 
-本版本与 Gorge `2026.10.22-r1` 配对，基于已发布的 `2026.10.08-r1`。
+本版本与 Gorge `2026.10.23-r1` 配对，基于已发布的 `2026.10.08-r1`。
 
 - **PHP Core 安全修复。** 合并 [PR #41](https://github.com/soulteary/phorge/pull/41)，将默认 Apache PHP 镜像升级为 `php:8.3.36-apache`，应对 CVE-2026-109618 / CVE-2026-109619。
 - **会话防御加固。** 关闭 PHP session 上传进度功能，启用严格 Session ID 模式。该配置是纵深防御，不替代 PHP Core 补丁。
@@ -13,7 +13,7 @@
 
 ## English
 
-This release pairs with Gorge `2026.10.22-r1` and supersedes `2026.10.08-r1`.
+This release pairs with Gorge `2026.10.23-r1` and supersedes `2026.10.08-r1`.
 
 - Merge [PR #41](https://github.com/soulteary/phorge/pull/41) and update the default Apache PHP runtime to `php:8.3.36-apache` for CVE-2026-109618 / CVE-2026-109619.
 - Disable PHP session upload progress and enable strict session IDs as defense in depth; these controls do not replace the patched runtime.
