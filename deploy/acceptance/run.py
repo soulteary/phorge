@@ -58,6 +58,7 @@ try:
     os.environ['GORGE_TEST_PHORGE_SOURCE_IDENTITY_DIR'] = str(SOURCE_ROOT)
     result['runtime'] = runtime_identity(ROOT / 'support/runtime/manifest.json')
     save()
+    run('php-core-security', ['php', 'deploy/acceptance/php_security.php'])
     run('bundled-runtime-integrity', ['php', 'scripts/runtime/verify.php'])
     for script in ['compatibility', 'diff', 'integrity', 'maintenance']:
         run('runtime/' + script, ['php', 'tests/contract/runtime/' + script + '.php'])
