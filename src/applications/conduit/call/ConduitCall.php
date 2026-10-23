@@ -79,7 +79,7 @@ final class ConduitCall extends Phobject {
 
     try {
       $result = $this->executeMethod();
-    } catch (Exception $ex) {
+    } catch (Throwable $ex) {
       $profiler->endServiceCall($call_id, array());
       throw $ex;
     }
@@ -105,7 +105,8 @@ final class ConduitCall extends Phobject {
       if (!$allow_public) {
         if (!$user->isLoggedIn() && !$user->isOmnipotent()) {
           // TODO: As per below, this should get centralized and cleaned up.
-          throw new ConduitException('ERR-INVALID-AUTH');
+          throw id(new ConduitException('ERR-INVALID-AUTH'))
+            ->setErrorDescription(pht('This method requires authentication.'));
         }
       }
 
