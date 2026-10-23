@@ -1,11 +1,12 @@
-# Phorge 2026.10.23-r1
+# Phorge 2026.10.23-r2
 
 ## 中文
 
-本版本与 Gorge `2026.10.23-r1` 配对，基于已发布的 `2026.10.08-r1`。
+本版本与 Gorge `2026.10.23-r2` 配对，基于已发布的 `2026.10.08-r1`。
 
 - **PHP Core 安全修复。** 合并 [PR #41](https://github.com/soulteary/phorge/pull/41)，将默认 Apache PHP 镜像升级为 `php:8.3.36-apache`，应对 CVE-2026-109618 / CVE-2026-109619。
 - **验收镜像安全修正。** 将配对验收的固定 PHP 镜像 digest 从实际 8.3.35 更新为官方 8.3.36 多架构索引，并在最终构建的 Phorge 验收容器中强制核验 PHP 版本及安装后生效的 session 设置。
+- **可重现构建修正。** 将 Debian snapshot 固定到 `20261023T000000Z`，使 curl 开发包与 PHP 基础镜像内的 `8.14.1-2+deb13u7` 运行库一致；安全 CI 使用正式锁参数实际构建应用镜像，并验证其已安装的 PHP/session 设置。此前 r1 候选在该构建门禁失败，未公开发布。
 - **会话防御加固。** 关闭 PHP session 上传进度功能，启用严格 Session ID 模式。该配置是纵深防御，不替代 PHP Core 补丁。
 - **持续集成。** 新增检查实际 PHP 补丁版本和生效的 session 配置的 CI 流程。
 - **配对发布。** 必须与 Gorge 同版本的不可变源码和 `release-manifest.json` 服务 digest 一起部署；历史 Compose 默认标签并不是新版发布产物。
@@ -14,10 +15,11 @@
 
 ## English
 
-This release pairs with Gorge `2026.10.23-r1` and supersedes `2026.10.08-r1`.
+This release pairs with Gorge `2026.10.23-r2` and supersedes `2026.10.08-r1`.
 
 - Merge [PR #41](https://github.com/soulteary/phorge/pull/41) and update the default Apache PHP runtime to `php:8.3.36-apache` for CVE-2026-109618 / CVE-2026-109619.
 - Correct the paired acceptance PHP image lock from PHP 8.3.35 to the official 8.3.36 multi-platform index. Require a security stage inside the final built Phorge acceptance container to verify its PHP version and installed session settings.
+- Fix the Debian snapshot at `20261023T000000Z` so curl development packages match the base image's `8.14.1-2+deb13u7` runtime. Security CI builds the actual application image with the release lock parameters and checks its installed PHP/session settings. The previous r1 candidate failed this build gate and was not published.
 - Disable PHP session upload progress and enable strict session IDs as defense in depth; these controls do not replace the patched runtime.
 - Add CI checks of the runtime's effective PHP version and session settings.
 - Deploy only with the matching Gorge release manifest and immutable service image digests. Legacy Compose image tag defaults do not identify this release.

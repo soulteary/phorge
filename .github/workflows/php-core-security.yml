@@ -45,3 +45,23 @@ jobs:
               -v "$PWD/deploy/acceptance/php_security.php:/tmp/php_security.php:ro" \
               "$ref" php /tmp/php_security.php
           done
+      - name: Build and verify the locked production PHP application image
+        run: |
+          python3 - <<'PYCODE'
+          import json, subprocess
+          from pathlib import Path
+          lock = json.loads(Path('deploy/acceptance/build-lock.json').read_text())
+          arguments = {
+              'PHP_BASE_IMAGE': lock['images']['php'],
+              'APCU_VERSION': lock['apcu'],
+              'APCU_SHA256': lock['apcuSHA256'],
+              'DEBIAN_SNAPSHOT': lock['debianSnapshot'],
+          }
+          command = ['docker', 'build', '--progress=plain', '--tag', 'phorge-security:ci']
+          for name, value in arguments.items():
+              command += ['--build-arg', name + '=' + value]
+          subprocess.run(command + ['.'], check=True)
+          subprocess.run(['docker', 'run', '--rm', '--entrypoint', 'php',
+                          'phorge-security:ci', '/opt/phorge/phorge/deploy/acceptance/php_security.php'],
+                         check=True)
+          PYCODE
