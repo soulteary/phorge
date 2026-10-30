@@ -1,0 +1,428 @@
+@title Independent Ordinary Project Permissions
+@group developer
+
+Independent ordinary project membership and permission semantics.
+
+This change targets `test/phorge-permission`, based on
+`4d9b8b40389c5d24f76ab57513349aca338731d5`. It does not add a `project.manage`
+capability, a creator override, a migration, or a production configuration.
+
+## Contract
+
+| Behavior | Ordinary parent / child | Milestone |
+| --- | --- | --- |
+| Members | Own direct members, regardless of children | Immediate parent's members |
+| View / edit / join policies | Own native policies | Immediate parent's policies |
+| Creating a child | No copied or moved members | Membership inherited, not copied |
+| Membership editing | Native editor and join/leave checks | Edit the parent instead |
+| Hierarchy | Organizational links, tags, board and ancestor searches retained | Original milestone organization retained |
+
+Native automatic rules still apply: a project's own members can view it, and
+its own editors can join it. Native edit, application, Space, CSRF and transaction
+checks are retained. Ordinary projects have the controlled handoff described
+below instead of requiring the actor to retain access. Other object types and
+milestones retain native self-lockout checks. Project policy selection is unchanged.
+The same membership can be deliberately assigned to several projects, and a
+policy can explicitly reference another project's members; those are explicit
+grants, not hierarchy inheritance.
+
+Existing ancestor watch subscriptions and organizational task searches are not
+removed. Watching does not grant membership or object access; notification
+recipient checks still use the target object's view policy. The existing
+`ITEM_MANAGE` navigation key is retained; it is not a new management capability.
+
+Creating an ordinary child still requires view and edit access to the parent.
+The initial Space default is unchanged. A child's own permissive policy is no
+longer constrained by a hidden ordinary parent. A milestone still requires view
+access to its immediate parent. Ancestor names, PHIDs and links are filtered in
+breadcrumbs and Conduit output. Hierarchy search constraints accept only visible
+parent/ancestor projects. `fields.parent` is null for a hidden parent, just as for
+a root; the ancestors attachment contains only visible entries. Depth and
+ordinary organizational search semantics are retained, so this does not promise
+to hide the existence of hierarchy levels or redact user-authored text.
+
+## Implementation
+
+- Edge 13 (`PhabricatorProjectProjectHasMemberEdgeType`) and its inverse edge 14
+  remain the direct membership source of truth.
+- Edge 60 (`PhabricatorProjectMaterializedMemberEdgeType`) indexes own members
+  for ordinary projects and direct parent members for milestones.
+- Membership transactions reindex the changed project and its direct milestones.
+  They do not change ordinary ancestors, siblings or descendants.
+- `hasSubprojects` and `hasMilestones` remain structural database flags and do
+  not disable ordinary membership editing. Creation and destruction still update
+  structural flags without using an actor's view policy to count children.
+- Sparse, full and ancestor-member project queries use the same own membership
+  data. Object-member policies use direct inverse edges; milestone policies
+  resolve to their immediate parent, including transaction hints.
+- Raw ancestor objects remain available for internal hierarchy operations.
+  User-facing consumers must apply the viewer's policy before returning them.
+
+### Search constraints and hidden intermediate projects
+
+For G (visible) -> P (hidden) -> C (visible), a task search containing G, P and
+C must not drop P as redundant before checking P's visibility. Otherwise the
+result differs from substituting an unrelated hidden project for P, exposing
+the hidden relationship. `PhabricatorProjectLogicalAncestorDatasource` now
+loads every original plain project condition with the actual viewer before
+expanding descendants or simplifying conditions. A missing or inaccessible
+condition yields `OPERATOR_EMPTY`, not an empty list of constraints. Maps only
+include ancestors which were original, authorized conditions. Existing
+downstream edge-constraint and task-object policy checks remain in place.
+
+The Web field's slug parser also previously dropped hidden or unknown slugs
+before they reached this check. `PhabricatorProjectSearchField` now uses the
+native, viewer-filtered slug map and preserves unresolved inputs for rejection.
+Visible slug normalization and deduplication remain supported. A URL or saved
+query with an invalid/inaccessible project must now return no results rather
+than silently search without that condition. This is an intentional change.
+
+The shared paths reviewed are:
+
+- `PhabricatorProjectsSearchEngineExtension`: project-tag fields in supported
+  application searches, including Web Maniphest and `maniphest.search`, use
+  the same datasource. The Conduit PHID resolver does not prove visibility;
+  the datasource and downstream query must still validate resolved inputs.
+- `PhabricatorApplicationSearchEngine::setQueryProjects()`: this retained
+  helper uses the same datasource; no callers of the helper were found in the
+  current tree. There is no separate copy of the redundant-ancestor algorithm.
+- `PhabricatorWorkboardViewState`: saved task queries use the shared engine;
+  additional board constraints use visible descendants and do not discard
+  original search conditions. `ManiphestTaskColumnTransaction` constructs
+  internal board-layout constraints without this simplification. Neither
+  path's permissions or transaction behavior were relaxed.
+- `any()` and `not()` produce constraint objects, which are not simplified by
+  the plain-project loop. The existing downstream visibility check rejects
+  hidden operands. `only()` does not remove an empty constraint.
+
+This is a review of the shared project-search paths, not a whole-application
+security audit. Visible G/C organizational relationships may still be searched;
+P's existence, name or relation is not disclosed by accepting a hidden input.
+The fix does not require viewing P to view or directly search public C.
+
+## Controlled ordinary-project handoff
+
+Ordinary child creation links directly to the native form. The legacy warning
+route rechecks parent visibility, edit access and the application creation
+capability before redirecting. Milestone creation is unchanged.
+
+Only `PhabricatorProjectTransactionEditor` replaces the native policy
+self-retention validation. It still uses the common transaction editor's
+original capability checks. `PhabricatorProjectHandoff` validates the combined
+final policies, Space and normalized direct-member transaction before saving
+the project or writing its transactions/edges. It does not grant a creator
+override or introduce a management capability.
+
+When the actor loses view or edit access, at least one approved, enabled human
+account must pass the native `PhabricatorPolicyFilter` for both capabilities
+on the candidate final state, and must be allowed to use the Projects
+application. Membership uses the final direct-member list and
+a separate native transaction hint; original authorization uses the original
+list. Project-member automatic view access and Space restrictions still apply.
+The actor's original authorization is rechecked from locked dependencies.
+Noneditor self-join/leave retains native authorization, while removing the last
+editing member is rejected. Unrelated edits to legacy projects are not a data
+migration or an automatic repair of pre-existing policy problems.
+
+The bounded handoff proof supports global constants, explicit users,
+`obj.project.members`, and custom policies composed of Users, Administrators,
+Global and ProjectMembers rules. It enumerates final members and explicit users
+as recipients. It deliberately rejects a handoff relying on named policies,
+other projects' membership, time-dependent or unknown rules, or a global rule
+with no provable candidate. These policies remain usable on the native
+self-retaining path. Rejection does not relax access checks; use an explicit
+approved recipient for a transfer. Original authorization and Space policies
+must also use provable dependency types for the handoff path.
+
+Application-level configuration is checked for the request but is not a
+transactional project setting. Do not change application access settings or
+database routing concurrently with permission handoffs.
+
+Existing project and new-child parent rows are locked. Relevant user, custom
+policy and Space rows are locked through the **same project transaction
+connection**, using cross-schema reads. All Spaces are locked to stabilize the
+default-Space decision. This implementation requires the relevant schemas on
+one MySQL server with transactional tables and suitable schema permissions;
+sharded or differently routed database deployments are not certified. A lock
+failure or deadlock aborts the transaction and must be retried as a new request.
+It proves a recipient at commit time, not perpetual access after a later
+administrator disables that account or changes a Space. External direct SQL
+or low-level edge writes which bypass transaction editors are outside this
+contract and must not run concurrently with application writes.
+
+Web handoffs return a native confirmation dialog before writes. Its signed,
+15-minute token binds the actor/session, original policies and members, final
+state, dependency snapshots and complete form payload. Confirmation goes
+through all checks again; missing, forged, changed or expired confirmation
+never authorizes a write. Cancel does not save (a full-page cancel returns to
+the form and may discard unsaved text). If the actor loses view access, success
+shows only a generic saved message and a link to the project list. Conduit and
+internal editors use the same proof without an interactive dialog. The generic
+PolicyFilter and other applications' error handling are unchanged.
+
+The handoff suite temporarily commits fixtures so independent DB connections
+can test real lock contention. It has an explicit randomized
+`phabricator_unittest_*` namespace guard and must only run on isolated storage.
+It covers creation for another user, member and explicit custom policies,
+Web confirmation/forgery/replay, loss of view, rejected mixed writes, inactive
+recipients, stale editors, concurrent recipient disable and Space revocation,
+native parent/application gates, and milestones.
+
+## Historical data: deployment gate
+
+**Do not deploy over an existing database or run a global reindex without an
+approved membership and policy reconciliation plan.** There is no automatic
+migration in this branch.
+
+The old first-child operation copied direct parent edges to the child. It did
+not record whether an edge was copied or intentionally added. Old parent direct
+edges may therefore be stale, while edge 60 may contain a union of descendant
+members. Rebuilding from edge 13 may remove previously effective users or revive
+stale direct members. Converting edge 60 to edge 13 can grant new editing rights
+through `obj.project.members`. Neither is a safe universal migration rule.
+
+Additionally, a child with a broad view policy may become visible when the
+parent-view requirement is removed, even when policy columns are unchanged.
+Task, Wiki and file policies that reference project membership need review.
+Project tags alone do not establish those objects' access policies.
+
+Before a separately authorized deployment:
+
+1. Take a consistent database backup and record the application image/version.
+2. Produce a read-only manifest of all ordinary parent/child projects, direct
+   edges (13/14), materialized edges (60), milestones, Spaces and all three
+   policies. Record users who gain or lose access under the proposed model.
+3. Ask project owners to approve explicit member lists and any necessary policy
+   changes, including dependencies from tasks, documents and files. Ensure each
+   project retains an intended effective editor; ownership is not an override.
+4. Restore a copy into an isolated database. Apply the approved manifest there,
+   rebuild derived indexes there and repeat the matrix below. Retain before/after
+   manifests, direct-edge provenance limits and rollback evidence.
+5. Only after separate approval, schedule a coordinated application/data cutover.
+   Do not mix old and new membership writers. Queue workers and CLI index jobs
+   must use the same model. Even a routine membership edit or background reindex
+   can replace a legacy edge-60 union, so postponing an explicit reindex does not
+   make an unreconciled database safe.
+
+Rollback before data conversion is a code rollback. After new membership writes
+or conversion, restoring the old image alone does not restore the old model:
+reconcile against the approved manifest and rebuild appropriate indexes with a
+reviewed rollback procedure. Do not automatically restore an old production
+snapshot over later business writes.
+
+## Isolated regression testing
+
+Run on an isolated installation only, with a dedicated MySQL instance. Native
+`PhabricatorTestCase` creates randomized `phabricator_unittest_*` namespaces,
+uses fixture transactions and removes the test namespace afterwards. It still
+needs database creation privileges and must never point at production.
+
+Configure a separate Gorge file service for this installation before running
+the suite: user-avatar fixtures write files through `gorge.file.uri` and
+`gorge.file.token`. The historical local-disk engine is read-only, so setting
+`storage.local-disk.path` alone is insufficient. Set `policy.allow-public` to
+true in this isolated test configuration; the native named-policy cycle test
+expects anonymous access to public policies. Keep these settings and test
+credentials outside the source checkout. Neither service needs a host port.
+The extended suite also needs the bundled runtime's prepared XHPAST and
+PHP-Parser dependencies. These ignored build artifacts are absent from a fresh
+Git checkout; use a matching prepared test image or build them in the disposable
+test environment before running class-map and translation validation.
+
+```sh
+php bin/unit --no-coverage \
+  src/applications/project/__tests__/PhabricatorProjectHandoffTestCase.php \
+  src/applications/project/__tests__/PhabricatorProjectCoreTestCase.php \
+  src/applications/policy/__tests__/PhabricatorPolicyTestCase.php \
+  src/applications/policy/__tests__/PhabricatorPolicyDataTestCase.php
+```
+
+Regression coverage includes first/subsequent child creation, multi-level and
+sibling membership isolation, ordinary parent member editing, repeated Conduit
+changes, sparse/full/ancestor queries, materialized member searches, hidden
+ancestors in full rendered pages and API responses, independent view/edit/join
+policies, milestone inheritance and revocation, mixed transaction rejection,
+Conduit creation, dependent task policies, and simulated legacy index divergence.
+The previous child-edit form/transaction/API tests and structural destruction,
+tag ancestry and board tests are retained with updated membership expectations.
+
+For broader checks, use `src/applications/project/` and `src/applications/policy/`.
+Generic library-map and translation tests need a writable disposable source
+copy; never make the production checkout writable merely to satisfy these tests.
+
+An in-process controller test is not a real browser or live gateway acceptance
+test. Before any release, test Alice/Bob/unauthorized accounts in separate browser
+profiles in a staging deployment; cover project creation, parent/child details,
+member management, policy selectors, hidden ancestors, milestone operations,
+and tasks/files with explicit membership-based policies. No production acceptance
+or database migration is performed by these tests.
+
+## Development history
+
+The initial independent-membership implementation and the combined-search
+follow-up were tested on 2026-10-29. Their intermediate test totals and file
+lists are superseded by the final validation record and complete file list
+below. The existing child-edit regressions were retained throughout.
+
+Early runs identified a search-engine viewer accessor error and empty SQL
+hierarchy filters after removing hidden parents. Those implementation defects
+were fixed. Test fixture issues and class-map ordering failures were also fixed
+before the final successful runs. These historical failures are not outstanding
+regressions.
+
+## Combined-search follow-up (2026-10-29)
+
+Before changing the datasource, three new isolated regression cases failed:
+Web Maniphest search, `maniphest.search`, and anonymous public-child search
+returned a task for G/P/C despite P being hidden. The existing 60 tests passed.
+After fixing that path, an additional slug regression reproduced the Web
+parser silently dropping P's hidden slug. Both defects are now addressed.
+
+Four new test methods cover:
+
+| Input / viewer | Expected behavior |
+| --- | --- |
+| Bob: C, G/C, duplicate visible conditions | Visible child task returned; private task excluded |
+| Alice: G/P/C | Both fixture child tasks returned under their own policies |
+| Bob: all six G/P/C orders and duplicate hidden conditions | No results |
+| Bob: hidden P alone, G/P, unrelated hidden project or nonexistent PHID | No results |
+| Hidden conditions mixed with `any()`, `not()` and `only()` | No results |
+| Direct ancestor datasource reused for Bob/Alice/Bob | Original conditions rechecked for each viewer |
+| Visible slug and uppercase slug mixed with PHIDs | Normal visible results and deduplication |
+| Hidden/unrelated/missing slugs alone or mixed with G/C | No results in Web and Conduit searches |
+| Anonymous viewer with public G and C, private P | C and its public task accessible; P hidden |
+| Anonymous public C with private P | No edit/join right or synthetic membership; C milestone visible, P milestone hidden |
+| Public access disabled in scoped test configuration | C, its task and the application unavailable anonymously |
+
+The Web tests exercise request parsing, saved-query conversion, project-search
+extensions and the policy-aware task query. They also render full task-search
+pages and verify that hidden project names/links and private task titles do
+not appear. Conduit cases invoke the real `maniphest.search` method. Anonymous
+tests use native public policies, not an authenticated or omnipotent viewer.
+The anonymous request fixture supplies its normal CSRF context; when public
+access is disabled, tests check the application gate instead of invoking a
+datasource which is unavailable to that viewer.
+
+## Final validation record (2026-10-30)
+
+The candidate contains **26 files: 22 tracked modifications and four new files**.
+Of these, 24 are PHP files and two are documentation files. The old 16 tracked /
+17 total count preceded the two search fixes; the subsequent 18 tracked /
+19 total count preceded the handoff implementation. Neither is the current total.
+
+| Check | Final result | Evidence |
+| --- | --- | --- |
+| Core project, handoff and policy regressions | 82/82 passed | `handoff-core8.log` |
+| Extended project and policy suite | 97/97 passed, including core tests | `handoff-extended3.log` |
+| HTTP login, handoff and rejection checks | 69/69 passed | `handoff-http-final2.json` |
+| Baseline HTTP, hidden ancestors and combined search | 83/83 passed | `http-verification.json` |
+| PHP syntax | All 24 changed/new PHP files passed | `handoff-php-lint.log`; repeated during pre-commit review |
+| Whitespace/error checks | `git diff --check` passed | Pre-commit review |
+| Isolated browser acceptance | User confirmed completed and behavior as expected | User acceptance supplied after the automated report |
+
+The core and extended counts overlap and must not be added together. The
+extended suite includes library-map, method visibility, Conduit, Celerity and
+translation checks. These results are for the accepted local candidate on
+PHP 8.3, not an untested integration with a later upstream revision.
+
+The logs and JSON reports are retained outside this repository in the isolated
+lab's `browser-review/reports/` directory. The older machine-generated summary
+still says browser acceptance is pending; the later user confirmation is the
+source for the browser result above. No screenshot or per-step browser trace
+is claimed. Reports, test credentials, backups and deployment configuration are
+not part of this change.
+
+Before this documentation update, all 26 candidate file hashes matched the
+accepted snapshot, and 4,958 source files matched the tested image manifest.
+Only this document is updated during submission preparation; the accepted PHP
+implementation and tests remain unchanged. The read-only pre-commit review
+rechecked PHP syntax and evidence without rerunning database-writing tests.
+
+The core command is shown above. The final extended command, run only in a
+writable disposable source copy against isolated storage, was:
+
+```sh
+php bin/unit --no-coverage \
+  src/applications/project/ \
+  src/applications/policy/
+```
+
+The full `.arclint` run remains unavailable without the `arc` executable.
+PHP 8.4/8.5 and the complete paired-runtime CI were not run in this validation.
+No known failure remains in the final regression suites listed above.
+
+Code review readiness: **PASS** for the accepted local candidate. Integration
+with the current upstream base requires its own compatibility checks and CI.
+This does not certify arbitrary plugin consumers or production data migration.
+
+Production deployment readiness: **BLOCKED pending the separate historical
+data, restored-data simulation and deployment acceptance gates** described
+above. Local browser acceptance does not approve production member lists or a
+production cutover. Do not auto-convert legacy membership edges or reindex
+production as part of this change. Large real-world search and handoff workloads
+have not been performance-tested. Saved searches containing unavailable or
+invalid tags may now return no results and should be corrected by their owners.
+
+## Upstream compatibility check (2026-10-30)
+
+The candidate was applied in a separate checkout to upstream
+`b0edc13049e562c9d5e7e25e6e848bcc07d1ec40`, 36 commits ahead of the original
+base. The 17 upstream-changed files overlap this candidate only in the Chinese
+translation file, at different locations. Patch validation and application
+passed without conflict or source edits. The development branch was not merged
+or rebased, and the accepted browser installation was not updated.
+
+On a new internal network with independent MySQL and Gorge file storage,
+the combined tree passed **82/82 core tests** and **105/105 extended tests**.
+The latter includes the original 97-test suite, three Typeahead/search-engine
+tests and five upstream Conduit call/controller tests. All **30 PHP files**
+changed by either side passed syntax checks. The upstream PHP security check
+passed on PHP 8.3.36, and both checkouts passed `git diff --check`.
+
+Initial runs exposed missing test-environment dependencies: Gorge file storage,
+the public-policy fixture setting, and prepared XHPAST/PHP-Parser artifacts.
+Those were supplied only in the temporary environment; no application source
+or test assertions were changed. The failed logs were retained alongside the
+final passing logs. Production and the accepted browser environment were not
+used as test backends.
+
+These are automated compatibility results. The earlier 69/83 HTTP checks and
+user browser acceptance still refer to the original-base candidate. A later
+rebase must match this combined tree; changes require renewed regression
+testing. Review the updated workboard UI and handoff flows in a separate
+browser environment before release. PHP 8.4/8.5 and complete upstream CI remain
+separate validation gates.
+
+## Complete candidate file list
+
+Paths below are relative to the repository root. The four files marked `New`
+must be included alongside the tracked modifications and the class map.
+
+| File | Status | Purpose |
+| --- | --- | --- |
+| `src/__phutil_library_map__.php` | Modified | Register handoff implementation, exception and tests |
+| `src/applications/project/__tests__/PhabricatorProjectCoreTestCase.php` | Modified | Membership, policies, hidden ancestors and combined-search regressions |
+| `src/applications/project/__tests__/PhabricatorProjectHandoffTestCase.php` | New | Creation, transfer, confirmation, concurrency and rejection regressions |
+| `src/applications/project/controller/PhabricatorProjectController.php` | Modified | Filter hidden ancestor breadcrumbs |
+| `src/applications/project/controller/PhabricatorProjectEditController.php` | Modified | Render native handoff confirmation |
+| `src/applications/project/controller/PhabricatorProjectMembersAddController.php` | Modified | Independent membership and handoff confirmation |
+| `src/applications/project/controller/PhabricatorProjectMembersRemoveController.php` | Modified | Confirm membership changes which transfer access |
+| `src/applications/project/controller/PhabricatorProjectMembersViewController.php` | Modified | Independent parent members and join UI |
+| `src/applications/project/controller/PhabricatorProjectSubprojectWarningController.php` | Modified | Permission-checked legacy redirect |
+| `src/applications/project/controller/PhabricatorProjectSubprojectsController.php` | Modified | Link ordinary child creation directly to its form |
+| `src/applications/project/controller/PhabricatorProjectUpdateController.php` | Modified | Preserve milestone rules and handle join/leave handoff confirmation |
+| `src/applications/project/editor/PhabricatorProjectTransactionEditor.php` | Modified | Independent membership and final-state handoff validation |
+| `src/applications/project/engine/PhabricatorProjectEditEngine.php` | Modified | Native membership fields and safe post-handoff response |
+| `src/applications/project/engine/PhabricatorProjectHandoff.php` | New | Locked native-policy proof of authorization and effective recipient |
+| `src/applications/project/engineextension/PhabricatorProjectsAncestorsSearchEngineAttachment.php` | Modified | Visible ancestor references only |
+| `src/applications/project/engineextension/PhabricatorProjectsMembershipIndexEngineExtension.php` | Modified | Own-member indexes and direct milestone synchronization |
+| `src/applications/project/exception/PhabricatorProjectHandoffException.php` | New | Native signed confirmation dialog |
+| `src/applications/project/policyrule/PhabricatorProjectMembersPolicyRule.php` | Modified | Direct membership and immediate-parent milestone resolution |
+| `src/applications/project/query/PhabricatorProjectQuery.php` | Modified | Independent membership queries and visible hierarchy constraints |
+| `src/applications/project/query/PhabricatorProjectSearchEngine.php` | Modified | Redact hidden Conduit parent reference |
+| `src/applications/project/searchfield/PhabricatorProjectSearchField.php` | Modified | Preserve unresolved Web slug conditions for rejection |
+| `src/applications/project/storage/PhabricatorProject.php` | Modified | Independent ordinary view/edit behavior and parent member management |
+| `src/applications/project/typeahead/PhabricatorProjectLogicalAncestorDatasource.php` | Modified | Authorize original constraints before simplification |
+| `src/docs/contributor/independent_project_permissions.diviner` | New | Contract, limitations, migration gates and current validation record |
+| `src/docs/user/userguide/projects.diviner` | Modified | User-facing membership and policy model |
+| `src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php` | Modified | Chinese project errors, confirmation and hierarchy descriptions |

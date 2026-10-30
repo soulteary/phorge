@@ -120,6 +120,13 @@ abstract class PhabricatorProjectController extends PhabricatorController {
       $ancestors = array_reverse($ancestors);
       $ancestors[] = $project;
       foreach ($ancestors as $ancestor) {
+        if (!PhabricatorPolicyFilter::hasCapability(
+          $this->getViewer(),
+          $ancestor,
+          PhabricatorPolicyCapability::CAN_VIEW)) {
+          continue;
+        }
+
         if ($ancestor->getPHID() === $project->getPHID()) {
           // Link the current project's crumb to its profile no matter what,
           // since we're already on the right context page for it and linking

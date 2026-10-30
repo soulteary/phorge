@@ -177,11 +177,6 @@ final class PhabricatorProjectMembersViewController
       $note = pht(
         'Members of the parent project are members of this project.');
       $show_join = false;
-    } else if ($project->getHasSubprojects()) {
-      $header = pht('Parent Project');
-      $note = pht(
-        'Members of all subprojects are members of this project.');
-      $show_join = false;
     } else if ($project->getIsMembershipLocked()) {
       $header = pht('Locked Project');
       $note = pht(

@@ -5,6 +5,57 @@ final class PhabricatorProjectTransactionEditor
 
   private $isMilestone;
   private $parentPHID;
+  private $handoffOriginal;
+
+  public function validatePolicyTransaction(
+    PhabricatorLiskDAO $object,
+    array $xactions,
+    $transaction_type,
+    $capability) {
+
+    if ($this->getIsMilestone()) {
+      return parent::validatePolicyTransaction(
+        $object, $xactions, $transaction_type, $capability);
+    }
+
+    // Ordinary projects may intentionally transfer access. Validate policy
+    // references here, then validate the *combined final state* before save.
+    // Other applications and milestones retain the native self-lockout rule.
+    foreach ($xactions as $xaction) {
+      PhabricatorProjectHandoff::validatePolicy($xaction->getNewValue());
+    }
+    return array();
+  }
+
+  protected function didApplyInternalEffects(
+    PhabricatorLiskDAO $object,
+    array $xactions) {
+
+    if (!$object->isMilestone()) {
+      $relevant = $this->getIsNewObject();
+      foreach ($xactions as $xaction) {
+        $type = $xaction->getTransactionType();
+        if (in_array($type, array(
+          PhabricatorTransactions::TYPE_VIEW_POLICY,
+          PhabricatorTransactions::TYPE_EDIT_POLICY,
+          PhabricatorTransactions::TYPE_JOIN_POLICY,
+          PhabricatorTransactions::TYPE_SPACE,
+        ), true) ||
+          ($type === PhabricatorTransactions::TYPE_EDGE &&
+           $xaction->getMetadataValue('edge:type') ===
+             PhabricatorProjectProjectHasMemberEdgeType::EDGECONST)) {
+          $relevant = true;
+        }
+      }
+      if ($relevant) {
+        PhabricatorProjectHandoff::validate(
+          $this->handoffOriginal, $object, $this->getActor(),
+          $xactions, $this->getRequest());
+      }
+    }
+
+    return parent::didApplyInternalEffects($object, $xactions);
+  }
 
   private function setIsMilestone($is_milestone) {
     $this->isMilestone = $is_milestone;
@@ -87,25 +138,12 @@ final class PhabricatorProjectTransactionEditor
 
     $is_milestone = $this->getIsMilestone();
 
-    $is_parent = $object->getHasSubprojects();
-
     foreach ($xactions as $xaction) {
       switch ($xaction->getTransactionType()) {
         case PhabricatorTransactions::TYPE_EDGE:
           $type = $xaction->getMetadataValue('edge:type');
           if ($type != PhabricatorProjectProjectHasMemberEdgeType::EDGECONST) {
             break;
-          }
-
-          if ($is_parent) {
-            $errors[] = new PhabricatorApplicationTransactionValidationError(
-              $xaction->getTransactionType(),
-              pht('Invalid'),
-              pht(
-                'You can not change members of a project with subprojects '.
-                'directly. Members of any subproject are automatically '.
-                'members of the parent project.'),
-              $xaction);
           }
 
           if ($is_milestone) {
@@ -227,26 +265,6 @@ final class PhabricatorProjectTransactionEditor
           $materialize = true;
           $new_parent = $object->getParentProject();
           break;
-      }
-    }
-
-    if ($new_parent) {
-      // If we just created the first subproject of this parent, we want to
-      // copy all of the real members to the subproject.
-      if (!$new_parent->getHasSubprojects()) {
-        $member_type = PhabricatorProjectProjectHasMemberEdgeType::EDGECONST;
-
-        $project_members = PhabricatorEdgeQuery::loadDestinationPHIDs(
-          $new_parent->getPHID(),
-          $member_type);
-
-        if ($project_members) {
-          $editor = new PhabricatorEdgeEditor();
-          foreach ($project_members as $phid) {
-            $editor->addEdge($object->getPHID(), $member_type, $phid);
-          }
-          $editor->save();
-        }
       }
     }
 
@@ -456,6 +474,13 @@ final class PhabricatorProjectTransactionEditor
 
     $this->setIsMilestone($is_milestone);
     $this->setParentPHID($parent_phid);
+
+    if (!$is_milestone) {
+      // reload() refreshes stored policies but not attached membership data.
+      // Never authorize an edit with a stale membership attachment.
+      $object->attachMemberPHIDs(PhabricatorProjectHandoff::loadMembers($object));
+      $this->handoffOriginal = clone $object;
+    }
 
     return $results;
   }

@@ -92,7 +92,11 @@ final class PhabricatorProjectEditController
       }
     }
 
-    return $engine->buildResponse();
+    try {
+      return $engine->buildResponse();
+    } catch (PhabricatorProjectHandoffException $ex) {
+      return $ex->newResponse($request);
+    }
   }
 
   protected function buildApplicationCrumbs() {

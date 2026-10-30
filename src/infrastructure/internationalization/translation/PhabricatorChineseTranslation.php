@@ -20,6 +20,48 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Unable to Transfer' => '无法交接',
+      'Invalid Project Policy' => '无效的项目权限',
+      'The selected policy does not apply to projects. Choose a project policy.' =>
+        '所选权限策略不适用于项目，请重新选择项目权限策略。',
+      'You no longer have permission to create a child of this project.' =>
+        '你已无权在此项目下创建子项目，请刷新页面并检查父项目权限。',
+      'Confirm Project Permission Transfer' => '确认移交项目权限？',
+      'Confirm Save' => '确认保存',
+      'Project Saved' => '项目已保存',
+      'The acting account is not an active, approved user.' =>
+        '当前操作账号未获批准或已停用，无法修改项目权限。',
+      'The selected project policy does not exist. Choose a valid policy.' =>
+        '所选项目权限策略不存在，请重新选择有效的权限设置。',
+      'No active recipient can both view and edit the project after this '.
+        'change. Include an approved user in the project members or an '.
+        'explicit user policy, and check the view policy, Space and Projects application access.' =>
+        '保存后没有可用的接收用户能够同时查看和编辑此项目。请在项目成员或'.
+        '用户权限规则中指定至少一位已获批准且未停用的用户，并检查查看权限'.
+        '、空间和项目应用的访问权限。',
+      'This transfer depends on a policy which can not be verified safely. '.
+        'Use project members or an explicit user policy for the transfer.' =>
+        '此交接依赖无法安全验证的权限规则，本次修改未保存。请使用项目成员'.
+        '或明确指定用户的权限策略完成交接。',
+      'After saving, you will no longer be able to view or edit this '.
+        'project. Confirm that access has been granted to the intended user.' =>
+        '保存后，你将无法继续查看或编辑此项目。请确认新的权限已授予正确的用户。',
+      'After saving, you will no longer be able to edit this project. '.
+        'Confirm that edit access has been granted to the intended user.' =>
+        '保存后，你将无法继续编辑此项目。请确认新的编辑权限已授予正确的用户。',
+      'The project was saved. Its new permissions no longer allow you '.
+        'to view it.' => '项目已保存。新的权限设置不再允许你查看此项目。',
+      'Milestones inherit members from their parent project. '.
+        'Add members to the parent project instead.' =>
+        '里程碑继承直属父项目的成员。请在父项目中添加成员。',
+      'Milestones inherit members from their parent project. '.
+        'Join or leave the parent project instead.' =>
+        '里程碑继承直属父项目的成员。请加入或退出父项目。',
+      'Get the visible ancestors for each project.' =>
+        '获取每个项目对当前用户可见的祖先项目。',
+      'For subprojects and milestones, a brief description of the '.
+        'parent project, if visible to the viewer.' =>
+        '子项目及里程碑的父项目简要信息，仅在当前用户可见时返回。',
       'These %d configuration value(s) are related:' => array(
         '此配置项与之相关：',
         '这些配置项与之相关：',

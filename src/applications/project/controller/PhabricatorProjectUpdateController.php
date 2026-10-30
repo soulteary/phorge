@@ -35,8 +35,8 @@ final class PhabricatorProjectUpdateController
     $done_uri = "/project/members/{$id}/";
 
     if (!$project->supportsEditMembers()) {
-      $copy = pht('Parent projects and milestones do not support adding '.
-        'members. You can add members directly to any non-parent subproject.');
+      $copy = pht('Milestones inherit members from their parent project. '.
+        'Join or leave the parent project instead.');
 
       $subprojects_uri = "/project/subprojects/{$id}/";
 
@@ -72,12 +72,16 @@ final class PhabricatorProjectUpdateController
         ->setMetadataValue('edge:type', $type_member)
         ->setNewValue($member_spec);
 
-      $editor = id(new PhabricatorProjectTransactionEditor())
-        ->setActor($viewer)
-        ->setContentSourceFromRequest($request)
-        ->setContinueOnNoEffect(true)
-        ->setContinueOnMissingFields(true)
-        ->applyTransactions($project, $xactions);
+      try {
+        $editor = id(new PhabricatorProjectTransactionEditor())
+          ->setActor($viewer)
+          ->setContentSourceFromRequest($request)
+          ->setContinueOnNoEffect(true)
+          ->setContinueOnMissingFields(true)
+          ->applyTransactions($project, $xactions);
+      } catch (PhabricatorProjectHandoffException $ex) {
+        return $ex->newResponse($request);
+      }
 
       return id(new AphrontRedirectResponse())->setURI($done_uri);
     }

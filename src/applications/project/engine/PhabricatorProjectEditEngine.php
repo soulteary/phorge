@@ -92,6 +92,29 @@ final class PhabricatorProjectEditEngine
     }
   }
 
+  protected function newEditResponse(
+    AphrontRequest $request,
+    $object,
+    array $xactions) {
+
+    // Use a fresh query after commit. Do not render a now-private project
+    // using the actor's pre-transfer attachments.
+    $visible = id(new PhabricatorProjectQuery())
+      ->setViewer($this->getViewer())
+      ->withIDs(array($object->getID()))
+      ->execute();
+    if (!$visible) {
+      return $this->getController()->newDialog()
+        ->setTitle(pht('Project Saved'))
+        ->appendParagraph(pht(
+          'The project was saved. Its new permissions no longer allow you '.
+          'to view it.'))
+        ->addCancelButton('/project/', pht('Continue'));
+    }
+
+    return parent::newEditResponse($request, $object, $xactions);
+  }
+
   protected function getObjectCreateCancelURI($object) {
     $parent = $this->getParentProject();
     $milestone = $this->getMilestoneProject();
@@ -323,9 +346,7 @@ final class PhabricatorProjectEditEngine
         ->setValue($slugs),
     );
 
-    $can_edit_members = (!$milestone) &&
-                        (!$object->isMilestone()) &&
-                        (!$object->getHasSubprojects());
+    $can_edit_members = (!$milestone) && $object->supportsEditMembers();
 
     if ($can_edit_members) {
 
