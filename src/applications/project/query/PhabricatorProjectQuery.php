@@ -21,6 +21,7 @@ final class PhabricatorProjectQuery
   private $colors;
   private $ancestorPHIDs;
   private $parentPHIDs;
+  private $visibleHierarchyPHIDs;
   private $isMilestone;
   private $hasSubprojects;
   private $minDepth;
@@ -224,6 +225,21 @@ final class PhabricatorProjectQuery
   }
 
   protected function willExecute() {
+    // Hierarchy constraints must not be usable to discover the descendants
+    // of a hidden project. This does not restrict independent child queries.
+    $hierarchy_phids = array_merge(
+      coalesce($this->parentPHIDs, array()),
+      coalesce($this->ancestorPHIDs, array()));
+    $this->visibleHierarchyPHIDs = array();
+    if ($hierarchy_phids) {
+      $visible = id(new self())
+        ->setViewer($this->getViewer())
+        ->setParentQuery($this)
+        ->withPHIDs($hierarchy_phids)
+        ->execute();
+      $this->visibleHierarchyPHIDs = mpull($visible, 'getPHID');
+    }
+
     $this->slugMap = array();
     $this->slugNormals = array();
     $this->allSlugs = array();
@@ -338,7 +354,6 @@ final class PhabricatorProjectQuery
       $edge_query->execute();
     }
 
-    $membership_projects = array();
     foreach ($all_graph as $project) {
       $project_phid = $project->getPHID();
 
@@ -356,8 +371,10 @@ final class PhabricatorProjectQuery
         $member_phids = array();
       }
 
-      if (in_array($viewer_phid, $member_phids)) {
-        $membership_projects[$project_phid] = $project;
+      if ($viewer_phid) {
+        $project->setIsUserMember(
+          $viewer_phid,
+          in_array($viewer_phid, $member_phids));
       }
 
       if ($this->needMembers || $this->needAncestorMembers) {
@@ -374,17 +391,6 @@ final class PhabricatorProjectQuery
             $viewer_phid,
             in_array($viewer_phid, $watcher_phids));
         }
-      }
-    }
-
-    // If we loaded ancestor members, we've already populated membership
-    // lists above, so we can skip this step.
-    if ($viewer_phid && !$this->needAncestorMembers) {
-      $member_graph = $this->getAllReachableAncestors($membership_projects);
-
-      foreach ($all_graph as $phid => $project) {
-        $is_member = isset($member_graph[$phid]);
-        $project->setIsUserMember($viewer_phid, $is_member);
       }
     }
 
@@ -567,18 +573,30 @@ final class PhabricatorProjectQuery
     }
 
     if ($this->parentPHIDs !== null) {
+      $parent_phids = array_intersect(
+        $this->parentPHIDs,
+        $this->visibleHierarchyPHIDs);
+      if (!$parent_phids) {
+        throw new PhabricatorEmptyQueryException();
+      }
       $where[] = qsprintf(
         $conn,
         'project.parentProjectPHID IN (%Ls)',
-        $this->parentPHIDs);
+        $parent_phids);
     }
 
     if ($this->ancestorPHIDs !== null) {
+      $ancestor_phids = array_intersect(
+        $this->ancestorPHIDs,
+        $this->visibleHierarchyPHIDs);
+      if (!$ancestor_phids) {
+        throw new PhabricatorEmptyQueryException();
+      }
       $ancestor_paths = queryfx_all(
         $conn,
         'SELECT projectPath, projectDepth FROM %T WHERE phid IN (%Ls)',
         id(new PhabricatorProject())->getTableName(),
-        $this->ancestorPHIDs);
+        $ancestor_phids);
       if (!$ancestor_paths) {
         throw new PhabricatorEmptyQueryException();
       }

@@ -22,27 +22,34 @@ final class PhabricatorProjectMembersPolicyRule extends PhabricatorPolicyRule {
       $this->memberships[$viewer_phid] = array();
     }
 
-    foreach ($objects as $key => $object) {
+    $sources = array();
+    foreach ($objects as $object) {
+      $object_phid = $object->getPHID();
+      unset($this->memberships[$viewer_phid][$object_phid]);
+
       $cache = $this->getTransactionHint($object);
-      if ($cache === null) {
+      if ($cache !== null) {
+        if (isset($cache[$viewer_phid])) {
+          $this->memberships[$viewer_phid][$object_phid] = true;
+        }
         continue;
       }
 
-      unset($objects[$key]);
-
-      if (isset($cache[$viewer_phid])) {
-        $this->memberships[$viewer_phid][$object->getPHID()] = true;
+      if ($object->isMilestone()) {
+        $source_phid = $object->getParentProjectPHID();
+      } else {
+        $source_phid = $object_phid;
       }
+      $sources[$source_phid][] = $object_phid;
     }
 
-    if (!$objects) {
+    if (!$sources) {
       return;
     }
 
-    $object_phids = mpull($objects, 'getPHID');
     $edge_query = id(new PhabricatorEdgeQuery())
       ->withSourcePHIDs(array($viewer_phid))
-      ->withDestinationPHIDs($object_phids)
+      ->withDestinationPHIDs(array_keys($sources))
       ->withEdgeTypes(
         array(
           PhabricatorProjectMemberOfProjectEdgeType::EDGECONST,
@@ -50,11 +57,11 @@ final class PhabricatorProjectMembersPolicyRule extends PhabricatorPolicyRule {
     $edge_query->execute();
 
     $memberships = $edge_query->getDestinationPHIDs();
-    if (!$memberships) {
-      return;
+    foreach ($memberships as $source_phid) {
+      foreach ($sources[$source_phid] as $object_phid) {
+        $this->memberships[$viewer_phid][$object_phid] = true;
+      }
     }
-
-    $this->memberships[$viewer_phid] += array_fill_keys($memberships, true);
   }
 
   public function applyRule(

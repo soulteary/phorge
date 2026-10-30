@@ -134,17 +134,9 @@ final class PhabricatorProjectSubprojectsController
 
     $can_subproject = ($can_create && $can_edit && $allows_subprojects);
 
-    // If we're offering to create the first subproject, we're going to warn
-    // the user about the effects before moving forward.
-    if ($can_subproject && !$subprojects) {
-      $subproject_href = "/project/warning/{$id}/";
-      $subproject_disabled = false;
-      $subproject_workflow = true;
-    } else {
-      $subproject_href = "/project/edit/?parent={$id}";
-      $subproject_disabled = !$can_subproject;
-      $subproject_workflow = !$can_subproject;
-    }
+    $subproject_href = "/project/edit/?parent={$id}";
+    $subproject_disabled = !$can_subproject;
+    $subproject_workflow = !$can_subproject;
 
     $curtain->addAction(
       id(new PhabricatorActionView())

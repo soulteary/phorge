@@ -151,18 +151,6 @@ final class PhabricatorProject extends PhabricatorProjectDAO
           return true;
         }
         break;
-      case PhabricatorPolicyCapability::CAN_EDIT:
-        $parent = $this->getParentProject();
-        if ($parent) {
-          $can_edit_parent = PhabricatorPolicyFilter::hasCapability(
-            $viewer,
-            $parent,
-            $can_edit);
-          if ($can_edit_parent) {
-            return true;
-          }
-        }
-        break;
       case PhabricatorPolicyCapability::CAN_JOIN:
         if (PhabricatorPolicyFilter::hasCapability($viewer, $this, $can_edit)) {
           // Project editors can always join a project.
@@ -175,8 +163,6 @@ final class PhabricatorProject extends PhabricatorProjectDAO
   }
 
   public function describeAutomaticCapability($capability) {
-
-    // TODO: Clarify the additional rules that parent and subprojects imply.
 
     switch ($capability) {
       case PhabricatorPolicyCapability::CAN_VIEW:
@@ -193,7 +179,7 @@ final class PhabricatorProject extends PhabricatorProjectDAO
     switch ($capability) {
       case PhabricatorPolicyCapability::CAN_VIEW:
         $parent = $this->getParentProject();
-        if ($parent) {
+        if ($parent && $this->isMilestone()) {
           $extended[] = array(
             $parent,
             PhabricatorPolicyCapability::CAN_VIEW,
@@ -524,10 +510,6 @@ final class PhabricatorProject extends PhabricatorProjectDAO
 
   public function supportsEditMembers() {
     if ($this->isMilestone()) {
-      return false;
-    }
-
-    if ($this->getHasSubprojects()) {
       return false;
     }
 
@@ -894,7 +876,7 @@ final class PhabricatorProject extends PhabricatorProjectDAO
         ->setDescription(
           pht(
             'For subprojects and milestones, a brief description of the '.
-            'parent project.')),
+            'parent project, if visible to the viewer.')),
       id(new PhabricatorConduitSearchFieldSpecification())
         ->setKey('depth')
         ->setType('int')

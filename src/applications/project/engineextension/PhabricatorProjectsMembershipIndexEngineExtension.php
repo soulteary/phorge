@@ -25,8 +25,17 @@ final class PhabricatorProjectsMembershipIndexEngineExtension
   }
 
   public function rematerialize(PhabricatorProject $project) {
-    $materialize = $project->getAncestorProjects();
-    array_unshift($materialize, $project);
+    $materialize = array($project);
+
+    // Only milestones inherit members. Ordinary descendants and ancestors
+    // have independent membership indexes. Load structural dependents without
+    // applying the indexing actor's visibility policy.
+    if (!$project->isMilestone()) {
+      $milestones = id(new PhabricatorProject())->loadAllWhere(
+        'parentProjectPHID = %s AND milestoneNumber IS NOT NULL',
+        $project->getPHID());
+      $materialize = array_merge($materialize, $milestones);
+    }
 
     foreach ($materialize as $project) {
       $this->materializeProject($project);
@@ -38,29 +47,22 @@ final class PhabricatorProjectsMembershipIndexEngineExtension
     $member_type = PhabricatorProjectProjectHasMemberEdgeType::EDGECONST;
 
     $project_phid = $project->getPHID();
+    $conn_w = $project->establishConnection('w');
 
     if ($project->isMilestone()) {
       $source_phids = array($project->getParentProjectPHID());
       $has_subprojects = false;
     } else {
-      $descendants = id(new PhabricatorProjectQuery())
-        ->setViewer($this->getViewer())
-        ->withAncestorProjectPHIDs(array($project->getPHID()))
-        ->withIsMilestone(false)
-        ->withHasSubprojects(false)
-        ->execute();
-      $descendant_phids = mpull($descendants, 'getPHID');
-
-      if ($descendant_phids) {
-        $source_phids = $descendant_phids;
-        $has_subprojects = true;
-      } else {
-        $source_phids = array($project->getPHID());
-        $has_subprojects = false;
-      }
+      $source_phids = array($project_phid);
+      $any_subproject = queryfx_one(
+        $conn_w,
+        'SELECT id FROM %T
+          WHERE parentProjectPHID = %s AND milestoneNumber IS NULL
+          LIMIT 1',
+        $project->getTableName(),
+        $project_phid);
+      $has_subprojects = (bool)$any_subproject;
     }
-
-    $conn_w = $project->establishConnection('w');
 
     $any_milestone = queryfx_one(
       $conn_w,

@@ -33,12 +33,16 @@ final class PhabricatorProjectSearchField
     }
 
     if ($slugs) {
-      $projects = id(new PhabricatorProjectQuery())
+      $query = id(new PhabricatorProjectQuery())
         ->setViewer($this->getViewer())
-        ->withSlugs($slugs)
-        ->execute();
-      foreach ($projects as $project) {
-        $phids[] = $project->getPHID();
+        ->withSlugs($slugs);
+      $query->execute();
+      $map = $query->getSlugMap();
+      foreach ($slugs as $slug) {
+        $match = idx($map, $slug);
+        // Keep unresolved or hidden slugs so constraint validation can reject
+        // them. Dropping them here would silently broaden the search.
+        $phids[] = $match ? $match['projectPHID'] : $slug;
       }
       $phids = array_unique($phids);
     }

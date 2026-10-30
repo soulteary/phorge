@@ -49,12 +49,16 @@ final class PhabricatorProjectMembersRemoveController
             '-' => array($remove_phid => $remove_phid),
           ));
 
-      $editor = id(new PhabricatorProjectTransactionEditor())
-        ->setActor($viewer)
-        ->setContentSourceFromRequest($request)
-        ->setContinueOnNoEffect(true)
-        ->setContinueOnMissingFields(true)
-        ->applyTransactions($project, $xactions);
+      try {
+        $editor = id(new PhabricatorProjectTransactionEditor())
+          ->setActor($viewer)
+          ->setContentSourceFromRequest($request)
+          ->setContinueOnNoEffect(true)
+          ->setContinueOnMissingFields(true)
+          ->applyTransactions($project, $xactions);
+      } catch (PhabricatorProjectHandoffException $ex) {
+        return $ex->newResponse($request);
+      }
 
       return id(new AphrontRedirectResponse())
         ->setURI($members_uri);
