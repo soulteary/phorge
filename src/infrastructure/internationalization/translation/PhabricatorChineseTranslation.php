@@ -20,6 +20,10 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Page Size Limited' => '每页结果数量已限制',
+      'You requested %s results per page, but the maximum page size is %s.' => '你请求每页显示 %s 条结果，但每页最多只能显示 %s 条。',
+      'Missing Some Settings?' => '找不到某些设置？',
+      'Iterator \'%s\' does not exist. Valid iterators are: %s.' => '迭代器 \'%s\' 不存在。可用的迭代器：%s。',
       'These %d configuration value(s) are related:' => array(
         '此配置项与之相关：',
         '这些配置项与之相关：',
