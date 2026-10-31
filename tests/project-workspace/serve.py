@@ -95,10 +95,13 @@ def main():
               'pairedGorgeRevision': os.environ['GORGE_CONTRACT_REF'],
               'scope': 'Disposable native HTTP and persistence checks; browser layout is verified separately.'}
     server = None
-    def command(name, argv):
+    def command(name, argv, retain_stdout=True):
         result = subprocess.run(argv, cwd=ROOT, env=env, text=True, capture_output=True, timeout=300)
-        text = result.stdout+result.stderr
-        for secret in (os.environ['GORGE_TEST_MYSQL_PASSWORD'], key): text = text.replace(secret, '[redacted]')
+        text = (result.stdout if retain_stdout else '')+result.stderr
+        for environment_name in ('GORGE_TEST_MYSQL_PASSWORD', 'GORGE_TEST_FILE_TOKEN',
+                                 'GORGE_TEST_IMAGE_TOKEN', 'GORGE_TEST_RENDER_TOKEN'):
+            text = text.replace(os.environ[environment_name], '[redacted]')
+        text = text.replace(key, '[redacted]')
         (output/(name+'.log')).write_text(text)
         return result
     def fixture(mode):
@@ -140,10 +143,11 @@ def main():
         if result.returncode not in (0,2): raise RuntimeError('Fresh native upgrade failed.')
         schema = command('schema',['php',str(HERE/'fixture.php'),'schema'])
         if schema.returncode: raise RuntimeError('Native schema comparison failed.')
-        seeded = command('seed',['php',str(HERE/'fixture.php'),'seed'])
+        # Seed stdout contains synthetic sessions. Never persist it, including
+        # parse failures; ordinary artifacts retain only redacted diagnostics.
+        seeded = command('seed',['php',str(HERE/'fixture.php'),'seed'],retain_stdout=False)
         if seeded.returncode: raise RuntimeError('Native fixture seed failed.')
         data = json.loads(seeded.stdout)
-        (output/'seed.log').unlink()  # synthetic sessions stay only in private storage
         fixture_path = private/'fixture.json'
         fixture_path.write_text(json.dumps(data)); fixture_path.chmod(0o600)
         log = (output/'server.log').open('w')
