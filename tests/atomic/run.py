@@ -10,6 +10,7 @@ import re
 import signal
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 
 
@@ -100,20 +101,25 @@ def run(arguments=None):
     result = None
     try:
         child = dict(os.environ, ATOMIC_TEST_PREPARED="1")
-        command = ["php", "tests/atomic/run.php", "--report",
-                   str(options.output / "native-results.json")]
-        for package in options.package:
-            command.extend(["--package", package])
-        # Native fixtures allocate their own random namespaces, run native
-        # storage upgrades, and remove those databases at PHP process shutdown.
-        with (options.output / "native.log").open("w") as output:
-            result = subprocess.run(command, cwd=root, env=child,
-                                    stdout=output, stderr=subprocess.STDOUT,
-                                    timeout=1800, check=False)
         report = options.output / "native-results.json"
-        if not report.exists():
-            raise RuntimeError("Native runner failed without test-result evidence; inspect native.log.")
-        evidence = json.loads(report.read_text())
+        # A reused evidence directory must not turn an early exit into a pass
+        # from a previous checkout. Each child receives a fresh private path;
+        # the published report exists only after that child produced evidence.
+        report.unlink(missing_ok=True)
+        with tempfile.TemporaryDirectory(prefix=".native-current-", dir=options.output) as current:
+            current_report = Path(current) / "results.json"
+            command = ["php", "tests/atomic/run.php", "--report", str(current_report)]
+            for package in options.package:
+                command.extend(["--package", package])
+            # Native fixtures allocate their own random namespaces, run native
+            # storage upgrades, and remove those databases at PHP process shutdown.
+            with (options.output / "native.log").open("w") as output:
+                result = subprocess.run(command, cwd=root, env=child,
+                                        stdout=output, stderr=subprocess.STDOUT,
+                                        timeout=1800, check=False)
+            if not current_report.is_file():
+                raise RuntimeError("Native runner failed without test-result evidence; inspect native.log.")
+            evidence = json.loads(current_report.read_text())
         evidence["gitHead"] = subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
         evidence["worktreeDirty"] = bool(subprocess.check_output(
