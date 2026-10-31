@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "D05",
+  "tests": [
+    {
+      "class": "TeamProjectHistoryStateTestCase",
+      "path": "src/applications/project/__tests__/TeamProjectHistoryStateTestCase.php",
+      "methods": [
+        "testHistoryIsDefaultOffAndInvalidStatesFailClosed",
+        "testEnglishAndChineseLabelsKeepStoredValues"
+      ]
+    },
+    {
+      "class": "TeamProjectProgressTestCase",
+      "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+      "methods": [
+        "testHistoryModesStopAllNewWritesAndRetainOldReaders",
+        "testDisabledAndUnapprovedStaleActorsCannotPublishForOtherParticipants",
+        "testIdenticalContentAppendsDistinctEvents",
+        "testParticipantsNeedVisibilityButNotDirectMembership",
+        "testRevokedViewHidesPreviouslyReadableRecords",
+        "testAnonymousCanReadOnlyExplicitlyPublicHistory",
+        "testOnlyEditorsCanPublishAllRecordTypes",
+        "testRevokedEditPermissionImmediatelyStopsPublication",
+        "testHistoryIsAppendOnlyAndCommentsPreserveCurrentProgress",
+        "testInvalidRecordsAndInvisibleParticipantsDoNotWrite",
+        "testPrivateChildPermissionsAlsoProtectProgressHistory",
+        "testKindFiltersAndCursorPagesPreserveCompleteHistory",
+        "testCanonicalNodesMergeLegacyHistoryWithoutInheritingStatus",
+        "testNewStageRecordsNeverStoreASecondExecutionState",
+        "testStoredRecordsHaveSafeFeedLinksAndCompleteDetails",
+        "testNativeFeedPublishesProgressAndTaskActivityWithoutPolicyLeaks",
+        "testNodeReferencesUseNativeMentionRelationships",
+        "testMentionedUsersRenderInNativeDetailsAndPublishFeed",
+        "testNodeReferencesPreservePrivateTaskAndFileAccess",
+        "testPrivateNodeBacklinksDoNotRevealTheSourceProject",
+        "testRevokedNodeAuthorDoesNotBlockBackgroundPublication"
+      ]
+    }
+  ],
+  "allowedSkips": {}
+}
