@@ -22,6 +22,11 @@ abstract class PhabricatorPeopleProfileController
     $crumbs = parent::buildApplicationCrumbs();
 
     $user = $this->getUser();
+    // An access-denial response can be built before a profile query assigns
+    // its result. Preserve the original denial without inventing user context.
+    if (!$user) {
+      return $crumbs;
+    }
     $crumbs->addTextCrumb(
       $user->getUsername(),
       urisprintf('/p/%s/', $user->getUsername()));

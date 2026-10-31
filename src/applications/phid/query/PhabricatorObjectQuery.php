@@ -126,8 +126,38 @@ final class PhabricatorObjectQuery
       $groups[$type][] = $phid;
     }
 
-    $in_flight = $this->getPHIDsInFlight();
+    $load_groups = array();
     foreach ($groups as $type => $group) {
+      $batches = array($group);
+      if ($type === PhabricatorFileFilePHIDType::TYPECONST &&
+          count($group) > 1) {
+        $transforms = id(new PhabricatorTransformedFile())->loadAllWhere(
+          'transformedPHID IN (%Ls) AND originalPHID != %s',
+          $group,
+          PhabricatorPHIDConstants::PHID_VOID);
+        if ($transforms) {
+          // Derived files may depend on another file in this batch. Marking
+          // every sibling in flight makes a valid ancestry path look cyclic.
+          // Keep ordinary files batched, then load each derived path with the
+          // native ancestor guard and viewer-scoped workspace intact.
+          $derived = array_fuse(mpull($transforms, 'getTransformedPHID'));
+          $ordinary = array_values(array_diff($group, array_keys($derived)));
+          $batches = $ordinary ? array($ordinary) : array();
+          foreach ($group as $phid) {
+            if (isset($derived[$phid])) {
+              $batches[] = array($phid);
+            }
+          }
+        }
+      }
+      foreach ($batches as $batch) {
+        $load_groups[] = array($type, $batch);
+      }
+    }
+
+    $in_flight = $this->getPHIDsInFlight();
+    foreach ($load_groups as $load_group) {
+      list($type, $group) = $load_group;
       // We check the workspace for each group, because some groups may trigger
       // other groups to load (for example, transactions load their objects).
       $workspace = $this->getObjectsFromWorkspace($group);
