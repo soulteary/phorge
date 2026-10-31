@@ -49,9 +49,15 @@ jobs:
           extensions: mysqli, mbstring, curl, gd
           coverage: none
       - name: Install the retained product-boundary checker dependency
+        timeout-minutes: 5
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ripgrep
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            printf '%s\n' 'https://archive.ubuntu.com/ubuntu' | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
+          fi
+          apt_options=(-o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
+          sudo apt-get "${apt_options[@]}" update
+          sudo apt-get "${apt_options[@]}" install -y ripgrep
+          rg --version
       - name: Check runner failure and isolation policy
         run: |
           php tests/atomic/test_gate.php

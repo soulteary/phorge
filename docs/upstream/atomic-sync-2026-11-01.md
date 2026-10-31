@@ -83,6 +83,19 @@ and ownership-safe handling of foreign/symlink log and output paths. The
 product features, PHP baseline, paired Gorge revision and production settings
 are unchanged; full native/HTTP execution remains required in the follow-up CI.
 
+The post-merge PHP 8.3 job also stalled before product tests in the ripgrep
+installation step. Its live APT log repeatedly ignored
+`http://azure.archive.ubuntu.com/ubuntu` indexes for Noble, updates, backports
+and security while the official HTTPS archive served the fallback InRelease
+successfully; a follow-up PR PHP 8.4 job showed the same setup stall. The
+disposable CI step now rewrites only an existing `/etc/apt/apt-mirrors.txt`
+to `https://archive.ubuntu.com/ubuntu`, bounds APT retries to two and HTTP/HTTPS
+timeouts to 30 seconds, and limits the step to five minutes. Standard signed
+APT checks and other repositories remain enabled. `rg --version` confirms
+the installed dependency before tests begin; fresh CI, rather than a local
+mirror-string test, verifies the runner setup. Production package sources
+and running workflow jobs are untouched.
+
 For each following batch, append its PR/merge identity, actual source subset,
 test evidence and any limitations without marking unrelated deferred work
 complete. No retired application, repository-hosting/notification client,
