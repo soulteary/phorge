@@ -20,6 +20,8 @@ final class TeamProjectHistoryStateTestCase extends PhabricatorTestCase {
     $english = PhabricatorEnv::beginScopedLocale('en_US');
     $this->assertEqual('Node', TeamProjectProgress::getKindNames()['node']);
     $this->assertEqual('Work Comment', TeamProjectProgress::getKindNames()['comment']);
+    $this->assertEqual('Reported Project Completion (%)',
+      pht('Reported Project Completion (%%)'));
     $this->assertEqual('Only project editors can publish records.',
       pht('Only project editors can publish records.'));
     $keys = array_keys(TeamProjectProgress::getStatusNames());
@@ -27,6 +29,8 @@ final class TeamProjectHistoryStateTestCase extends PhabricatorTestCase {
     $chinese = PhabricatorEnv::beginScopedLocale('zh_CN');
     $this->assertEqual('节点', TeamProjectProgress::getKindNames()['node']);
     $this->assertEqual('工作评论', TeamProjectProgress::getKindNames()['comment']);
+    $this->assertEqual('项目完成度 (%)',
+      pht('Reported Project Completion (%%)'));
     $this->assertEqual('只有具备项目编辑权限的用户可以发布记录。',
       pht('Only project editors can publish records.'));
     $this->assertEqual($keys, array_keys(TeamProjectProgress::getStatusNames()));

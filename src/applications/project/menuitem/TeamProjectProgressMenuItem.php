@@ -208,6 +208,10 @@ final class TeamProjectProgressSummaryView extends AphrontView {
     if (count($phids) <= $limit) {
       return $names;
     }
-    return array($names, pht(' and %s others', count($phids)));
+    $remaining = count($phids) - $limit;
+    $suffix = ($remaining === 1)
+      ? pht(' and one other participant')
+      : pht(' and %s other participants', new PhutilNumber($remaining));
+    return array($names, $suffix);
   }
 }

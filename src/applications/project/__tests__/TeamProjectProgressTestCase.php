@@ -102,6 +102,40 @@ final class TeamProjectProgressTestCase extends PhabricatorTestCase {
     $this->assertEqual(1, count(TeamProjectProgress::newQuery($owner, $project)->execute()));
   }
 
+  public function testParticipantSummaryCountsOnlyUnshownPeopleInBothLocales() {
+    $owner = $this->generateNewTestUser();
+    $participants = array();
+    for ($index = 0; $index < TeamProjectProgress::MAX_PARTICIPANTS; $index++) {
+      $participants[] = $this->generateNewTestUser()->getPHID();
+    }
+    $project = $this->newProject($owner, array());
+    foreach (array(5, 6, 50) as $count) {
+      $this->publish($owner, $project, array(
+        'participants' => array_slice($participants, 0, $count),
+      ));
+      foreach (array('en_US', 'zh_CN') as $locale) {
+        $scope = PhabricatorEnv::beginScopedLocale($locale);
+        try {
+          $view = id(new TeamProjectProgressSummaryView())
+            ->setViewer($owner)->setProject($project)->setShowActions(false);
+          $html = (string)hsprintf('%s', $view);
+          if ($count === 5) {
+            $this->assertFalse(strpos($html, 'other participant') !== false);
+            $this->assertFalse(strpos($html, '另有') !== false);
+          } else {
+            $expected = ($locale === 'en_US')
+              ? ($count === 6 ? 'and one other participant' : 'and 45 other participants')
+              : ($count === 6 ? '另有 1 位参与者' : '另有 45 位参与者');
+            $this->assertTrue(strpos($html, $expected) !== false,
+              'The participant summary must count only the omitted people.');
+          }
+        } finally {
+          unset($scope);
+        }
+      }
+    }
+  }
+
   public function testRevokedViewHidesPreviouslyReadableRecords() {
     $owner = $this->generateNewTestUser();
     $reader = $this->generateNewTestUser();

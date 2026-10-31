@@ -66,22 +66,7 @@ jobs:
           path: .test-gorge
           persist-credentials: false
       - name: Build actual file, image and render services from the paired source
-        run: |
-          python3 - <<'PY'
-          import json, os, subprocess
-          from pathlib import Path
-          actual = subprocess.check_output(['git', '-C', '.test-gorge', 'rev-parse', 'HEAD'], text=True).strip()
-          if actual != os.environ['GORGE_CONTRACT_REF']:
-              raise SystemExit('Paired Gorge checkout identity differs from the requested commit.')
-          lock = json.loads(Path('deploy/acceptance/build-lock.json').read_text())
-          for service, port in [('gorge-file-storage', '8100'), ('gorge-image', '8190'), ('gorge-render', '8140')]:
-              subprocess.run(['docker', 'build', '--build-arg', 'SERVICE='+service,
-                              '--build-arg', 'PORT='+port,
-                              '--build-arg', 'GO_BASE_IMAGE='+lock['images']['go'],
-                              '--build-arg', 'RUNTIME_BASE_IMAGE='+lock['images']['alpine'],
-                              '--label', 'phorge.gorge-revision='+actual,
-                              '--tag', service+':atomic', '.test-gorge/go'], check=True)
-          PY
+        run: python3 tests/atomic/build_gorge.py --gorge-dir .test-gorge --revision "$GORGE_CONTRACT_REF"
       - name: Start isolated disposable dependencies
         env:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}

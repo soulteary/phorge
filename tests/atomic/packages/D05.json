@@ -18,6 +18,7 @@
         "testDisabledAndUnapprovedStaleActorsCannotPublishForOtherParticipants",
         "testIdenticalContentAppendsDistinctEvents",
         "testParticipantsNeedVisibilityButNotDirectMembership",
+        "testParticipantSummaryCountsOnlyUnshownPeopleInBothLocales",
         "testRevokedViewHidesPreviouslyReadableRecords",
         "testAnonymousCanReadOnlyExplicitlyPublicHistory",
         "testOnlyEditorsCanPublishAllRecordTypes",
