@@ -53,6 +53,9 @@ final class PhabricatorPolicyEditController
       ->execute();
 
     $rules = self::selectBusinessRules($rules, $object);
+    if (!$rules) {
+      return $this->newUnavailableRuleResponse();
+    }
 
     $default_rule = array(
       'action' => head_key($action_options),

@@ -184,7 +184,7 @@ final class PhabricatorFileQuery
 
     // However, in some special cases where we know files will always be
     // visible, we skip this. See T8478 and T13106.
-    // Deployment G04: a standalone public profile image remains public, but
+    // A standalone public profile image remains public, but
     // a profile transform must retain its original file's visibility. Only
     // remove the optimization for profile images with a real transform source.
     $profile_phids = array();
