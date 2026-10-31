@@ -207,7 +207,9 @@ final class TeamProjectMembership extends Phobject {
         $join = $added === array($actor->getPHID()) && !$deleted;
         $leave = $deleted === array($actor->getPHID()) && !$added;
         $self_leave = $self_leave || $leave;
-        $protected = !$join && !$leave;
+        // Native joins/leaves are idempotent. An unchanged edge set does
+        // not administer another member, even for an ordinary member.
+        $protected = (bool)($added || $deleted) && !$join && !$leave;
         if ($join && !$is_new && !PhabricatorPolicyFilter::hasCapability($actor, $project, 'join')) {
           throw new PhabricatorPolicyException('您没有加入此项目的权限。');
         }

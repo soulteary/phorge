@@ -45,6 +45,27 @@ final class TeamProjectMembershipTestCase extends PhabricatorTestCase {
     $this->assertEqual(array($editor->getPHID()), $this->fresh($project)->getDirectMemberPHIDs());
   }
 
+  public function testSelfJoinAndLeaveRemainIdempotentWithoutManagementRole() {
+    $owner = $this->user(); $member = $this->user(); $other = $this->user();
+    $project = $this->project($owner, array(), array('view' => 'users', 'join' => 'users'));
+    $this->assertFalse(TeamProjectMembership::canManage($member, $project));
+    foreach (array('members.add', 'members.add') as $type) {
+      $project = $this->edit($member, $project,
+        array(array('type' => $type, 'value' => array($member->getPHID()))));
+    }
+    $this->assertEqual(array($member->getPHID()), $project->getDirectMemberPHIDs());
+    foreach (array('members.remove', 'members.remove') as $type) {
+      $project = $this->edit($member, $project,
+        array(array('type' => $type, 'value' => array($member->getPHID()))));
+    }
+    $this->assertEqual(array(), $project->getDirectMemberPHIDs());
+    $this->reject(function() use ($member, $project, $other) {
+      $this->edit($member, $project,
+        array(array('type' => 'members.add', 'value' => array($other->getPHID()))));
+    });
+    $this->assertFalse(TeamProjectMembership::canManage($member, $project));
+  }
+
   public function testViewerCeilingOverridesBroadPolicyAndSurvivesSelfLeaveAndRejoin() {
     $owner = $this->user(); $viewer = $this->user();
     $project = $this->project($owner, array($viewer), array('view' => 'users', 'edit' => 'users', 'join' => 'users'));
