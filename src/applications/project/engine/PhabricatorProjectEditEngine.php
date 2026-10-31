@@ -323,9 +323,7 @@ final class PhabricatorProjectEditEngine
         ->setValue($slugs),
     );
 
-    $can_edit_members = (!$milestone) &&
-                        (!$object->isMilestone()) &&
-                        (!$object->getHasSubprojects());
+    $can_edit_members = (!$milestone) && (!$object->isMilestone());
 
     if ($can_edit_members) {
 

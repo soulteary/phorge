@@ -1296,21 +1296,21 @@ final class PhabricatorProjectCoreTestCase extends PhabricatorTestCase {
     // Add "Mario" in the project "A", successfully.
     $this->joinProject($a, $mario);
 
-    // Under project "A", create "B".
-    // Side-effects:
-    //   - members of "A" are moved to "B".
-    //   - members of "A" are not editable anymore.
+    // Creating a child keeps direct membership on A and does not copy it.
     $b = $this->createProject($author, $a)->save();
 
     // Under project "B", create the milestone "M".
     // Note that the members of "B" are also members of "M".
     $m = $this->createProject($author, $b, true)->save();
 
-    // Under project "B", create "C".
-    // Side-effects:
-    //   - members of "B" are automatically moved to "C".
-    //   - members of "B" are not editable anymore.
+    // Creating another level also preserves independently scoped members.
     $c = $this->createProject($author, $b)->save();
+
+    $this->assertEqual(array($mario->getPHID()), $a->getDirectMemberPHIDs());
+    $this->assertEqual(array(), $b->getDirectMemberPHIDs());
+    $this->assertEqual(array(), $c->getDirectMemberPHIDs());
+    // Explicitly join the leaf to exercise descendant aggregation as well.
+    $this->joinProject($c, $mario);
 
     // Refresh the perspective of Mario.
     $this->refreshProjectInPlace($a, $mario);
@@ -1326,12 +1326,11 @@ final class PhabricatorProjectCoreTestCase extends PhabricatorTestCase {
     //                 \ Depth: 1 \
     //                             \ Depth: 2
     //
-    //   - Mario is an indirect member of "A"
+    //   - Mario retains direct membership of "A".
     //   - Mario is an indirect member of "B"
     //   - Mario is an indirect member of "M"
     //   - Mario is a    direct member of "C"
-    //   - Users cannot join "A" directly.
-    //   - Users cannot join "B" directly.
+    //   - Users may join and leave each parent's direct member list.
     //
     $this->assertEqual(0, (int)$a->getProjectDepth());
     $this->assertEqual(1, (int)$b->getProjectDepth());
@@ -1341,10 +1340,10 @@ final class PhabricatorProjectCoreTestCase extends PhabricatorTestCase {
     $this->assertTrue($b->isUserMember($mario->getPHID()));
     $this->assertTrue($c->isUserMember($mario->getPHID()));
     $this->assertTrue($m->isUserMember($mario->getPHID()));
-    $this->assertCannotJoinProject($a, $luigi, pht(
-      'Test users cannot join project A, because B exists'));
-    $this->assertCannotJoinProject($b, $luigi, pht(
-      'Test users cannot join project B, because C exists'));
+    $this->joinProject($a, $luigi);
+    $this->leaveProject($a, $luigi);
+    $this->joinProject($b, $luigi);
+    $this->leaveProject($b, $luigi);
 
     // Destroy project "B" and refresh its relatives.
     // Note that its milestone "M" is also nuked automatically.
@@ -1359,9 +1358,9 @@ final class PhabricatorProjectCoreTestCase extends PhabricatorTestCase {
     //    \ Depth: 0  \
     //                 \ Depth: 1
     //
-    //   - Mario is an indirect member of "A"
+    //   - Mario retains direct membership of "A".
     //   - Mario is an   direct member of "C"
-    //   - Users cannot join "A" directly.
+    //   - Direct membership remains editable while children exist.
     //
     $this->assertEqual(null, $this->refreshProject($b, $mario));
     $this->assertEqual(null, $this->refreshProject($m, $mario));
@@ -1369,8 +1368,8 @@ final class PhabricatorProjectCoreTestCase extends PhabricatorTestCase {
     $this->assertEqual(1, (int)$c->getProjectDepth());
     $this->assertTrue($a->isUserMember($mario->getPHID()));
     $this->assertTrue($c->isUserMember($mario->getPHID()));
-    $this->assertCannotJoinProject($a, $luigi, pht(
-      'Test users cannot join project A, because C exists'));
+    $this->joinProject($a, $luigi);
+    $this->leaveProject($a, $luigi);
 
     // Destroy project "C" and refresh relatives.
     $engine->destroyObject($c);

@@ -140,9 +140,11 @@ abstract class PhabricatorProjectUserListView
         $item->addIcon('fa-lock', pht('Has MFA'));
       }
 
+      $remove_uri = null;
       if ($supports_edit && !$is_panel) {
         $remove_uri = $this->getRemoveURI($user_phid);
-
+      }
+      if ($remove_uri) {
         $item->addAction(
           id(new PHUIListItemView())
             ->setIcon('fa-times')

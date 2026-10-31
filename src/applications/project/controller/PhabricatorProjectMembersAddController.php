@@ -24,16 +24,16 @@ final class PhabricatorProjectMembersAddController
     $done_uri = "/project/members/{$id}/";
 
     if (!$project->supportsEditMembers()) {
-      $copy = pht('Parent projects and milestones do not support adding '.
-        'members. You can add members directly to any non-parent subproject.');
+      $copy = pht('里程碑沿用父项目成员，请在父项目中管理成员。');
 
-      $subprojects_uri = "/project/subprojects/{$id}/";
+      $parent_id = $project->getParentProject()->getID();
+      $subprojects_uri = "/project/members/{$parent_id}/";
 
       return $this->newDialog()
         ->setTitle(pht('Unsupported Project'))
         ->appendParagraph($copy)
         ->setSubmitURI($subprojects_uri)
-        ->addSubmitButton(pht('See Subprojects'))
+        ->addSubmitButton(pht('查看父项目成员'))
         ->setDisableWorkflowOnSubmit(true)
         ->addCancelButton($done_uri);
     }

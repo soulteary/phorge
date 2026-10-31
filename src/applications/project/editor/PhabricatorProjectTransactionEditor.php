@@ -87,25 +87,12 @@ final class PhabricatorProjectTransactionEditor
 
     $is_milestone = $this->getIsMilestone();
 
-    $is_parent = $object->getHasSubprojects();
-
     foreach ($xactions as $xaction) {
       switch ($xaction->getTransactionType()) {
         case PhabricatorTransactions::TYPE_EDGE:
           $type = $xaction->getMetadataValue('edge:type');
           if ($type != PhabricatorProjectProjectHasMemberEdgeType::EDGECONST) {
             break;
-          }
-
-          if ($is_parent) {
-            $errors[] = new PhabricatorApplicationTransactionValidationError(
-              $xaction->getTransactionType(),
-              pht('Invalid'),
-              pht(
-                'You can not change members of a project with subprojects '.
-                'directly. Members of any subproject are automatically '.
-                'members of the parent project.'),
-              $xaction);
           }
 
           if ($is_milestone) {
@@ -230,25 +217,8 @@ final class PhabricatorProjectTransactionEditor
       }
     }
 
-    if ($new_parent) {
-      // If we just created the first subproject of this parent, we want to
-      // copy all of the real members to the subproject.
-      if (!$new_parent->getHasSubprojects()) {
-        $member_type = PhabricatorProjectProjectHasMemberEdgeType::EDGECONST;
-
-        $project_members = PhabricatorEdgeQuery::loadDestinationPHIDs(
-          $new_parent->getPHID(),
-          $member_type);
-
-        if ($project_members) {
-          $editor = new PhabricatorEdgeEditor();
-          foreach ($project_members as $phid) {
-            $editor->addEdge($object->getPHID(), $member_type, $phid);
-          }
-          $editor->save();
-        }
-      }
-    }
+    // A new subproject keeps only the members explicitly supplied by its
+    // creator. In particular, the first child must not import parent members.
 
     // TODO: We should dump an informational transaction onto the parent
     // project to show that we created the sub-thing.
@@ -409,7 +379,7 @@ final class PhabricatorProjectTransactionEditor
             ->withPHIDs(array($object_phid))
             ->needMembers(true)
             ->executeOne();
-          $members = $project->getMemberPHIDs();
+          $members = $project->getDirectMemberPHIDs();
         } else {
           $members = array();
         }
@@ -417,6 +387,24 @@ final class PhabricatorProjectTransactionEditor
         $clone_xaction = clone $member_xaction;
         $hint = $this->getPHIDTransactionNewValue($clone_xaction, $members);
         $hint = array_fuse($hint);
+
+        // Editing direct membership does not remove rights originating in a
+        // descendant. Predict the same union as the membership index does.
+        if ($object_phid && $object->getHasSubprojects()) {
+          $descendants = id(new PhabricatorProjectQuery())
+            ->setViewer(PhabricatorUser::getOmnipotentUser())
+            ->withAncestorProjectPHIDs(array($object_phid))
+            ->withIsMilestone(false)
+            ->execute();
+          if ($descendants) {
+            $edges = id(new PhabricatorEdgeQuery())
+              ->withSourcePHIDs(mpull($descendants, 'getPHID'))
+              ->withEdgeTypes(array($edgetype_member));
+            $edges->execute();
+            $inherited = $edges->getDestinationPHIDs();
+            $hint += array_fuse($inherited);
+          }
+        }
       }
     }
 

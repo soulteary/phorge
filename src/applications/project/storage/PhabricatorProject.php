@@ -151,18 +151,8 @@ final class PhabricatorProject extends PhabricatorProjectDAO
           return true;
         }
         break;
-      case PhabricatorPolicyCapability::CAN_EDIT:
-        $parent = $this->getParentProject();
-        if ($parent) {
-          $can_edit_parent = PhabricatorPolicyFilter::hasCapability(
-            $viewer,
-            $parent,
-            $can_edit);
-          if ($can_edit_parent) {
-            return true;
-          }
-        }
-        break;
+      // Subprojects use their own edit policy. Editing a parent does not
+      // implicitly grant editing (or joining) of its children.
       case PhabricatorPolicyCapability::CAN_JOIN:
         if (PhabricatorPolicyFilter::hasCapability($viewer, $this, $can_edit)) {
           // Project editors can always join a project.
@@ -203,6 +193,16 @@ final class PhabricatorProject extends PhabricatorProjectDAO
     }
 
     return $extended;
+  }
+
+  /** Explicit membership, excluding the members aggregated from descendants. */
+  public function getDirectMemberPHIDs() {
+    if (!$this->getPHID()) {
+      return array();
+    }
+    return PhabricatorEdgeQuery::loadDestinationPHIDs(
+      $this->getPHID(),
+      PhabricatorProjectProjectHasMemberEdgeType::EDGECONST);
   }
 
   public function isUserMember($user_phid) {
@@ -524,10 +524,6 @@ final class PhabricatorProject extends PhabricatorProjectDAO
 
   public function supportsEditMembers() {
     if ($this->isMilestone()) {
-      return false;
-    }
-
-    if ($this->getHasSubprojects()) {
       return false;
     }
 

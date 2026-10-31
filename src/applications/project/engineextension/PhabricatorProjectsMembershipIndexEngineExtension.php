@@ -47,12 +47,13 @@ final class PhabricatorProjectsMembershipIndexEngineExtension
         ->setViewer($this->getViewer())
         ->withAncestorProjectPHIDs(array($project->getPHID()))
         ->withIsMilestone(false)
-        ->withHasSubprojects(false)
         ->execute();
       $descendant_phids = mpull($descendants, 'getPHID');
 
       if ($descendant_phids) {
-        $source_phids = $descendant_phids;
+        // Retain explicit members of this project and every intermediate
+        // descendant. Creating a child must never evict parent members.
+        $source_phids = array_merge(array($project_phid), $descendant_phids);
         $has_subprojects = true;
       } else {
         $source_phids = array($project->getPHID());

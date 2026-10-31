@@ -3,7 +3,17 @@
 final class PhabricatorProjectMemberListView
   extends PhabricatorProjectUserListView {
 
+  private $isInherited = false;
+
+  public function setIsInherited($is_inherited) {
+    $this->isInherited = $is_inherited;
+    return $this;
+  }
+
   protected function canEditList() {
+    if ($this->isInherited) {
+      return false;
+    }
     $viewer = $this->getViewer();
     $project = $this->getProject();
 
@@ -22,16 +32,28 @@ final class PhabricatorProjectMemberListView
   }
 
   protected function getRemoveURI($phid) {
+    if ($this->isInherited) {
+      return null;
+    }
     $project = $this->getProject();
     $id = $project->getID();
     return "/project/members/{$id}/remove/?phid={$phid}";
   }
 
   protected function getHeaderText() {
+    if ($this->isInherited) {
+      return pht('来自子项目的成员');
+    }
+    if ($this->getProject()->getHasSubprojects() && !$this->getLimit()) {
+      return pht('本级直接成员');
+    }
     return pht('Members');
   }
 
   protected function getMembershipNote() {
+    if ($this->isInherited) {
+      return pht('这些成员通过子项目加入本级，请在相应子项目中管理其成员身份。');
+    }
     $viewer = $this->getViewer();
     $viewer_phid = $viewer->getPHID();
     $project = $this->getProject();

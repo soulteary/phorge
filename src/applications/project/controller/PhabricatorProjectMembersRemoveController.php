@@ -38,6 +38,14 @@ final class PhabricatorProjectMembersRemoveController
     $members_uri = $this->getApplicationURI('members/'.$project->getID().'/');
     $remove_phid = $request->getStr('phid');
 
+    if (!$is_watcher && !in_array(
+      $remove_phid, $project->getDirectMemberPHIDs())) {
+      return $this->newDialog()
+        ->setTitle(pht('来自子项目的成员'))
+        ->appendParagraph(pht('此用户不是本级直接成员，请在相应子项目中移除。'))
+        ->addCancelButton($members_uri);
+    }
+
     if ($request->isFormPost()) {
       $xactions = array();
 
@@ -82,6 +90,10 @@ final class PhabricatorProjectMembersRemoveController
         $target_name,
         $project_name);
       $button = pht('Remove Member');
+      if ($project->getHasSubprojects()) {
+        $body = array($body, ' ', pht(
+          '仅移除本级直接成员身份；仍属于子项目的用户会继续作为汇总成员显示。'));
+      }
     }
 
     return $this->newDialog()

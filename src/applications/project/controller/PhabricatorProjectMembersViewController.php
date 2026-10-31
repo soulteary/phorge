@@ -22,12 +22,28 @@ final class PhabricatorProjectMembersViewController
     $title = pht('Members and Watchers');
     $curtain = $this->buildCurtainView($project);
 
+    $direct_members = $project->isMilestone()
+      ? $project->getMemberPHIDs()
+      : $project->getDirectMemberPHIDs();
+    $inherited_members = array_diff($project->getMemberPHIDs(), $direct_members);
+
     $member_list = id(new PhabricatorProjectMemberListView())
       ->setViewer($viewer)
       ->setProject($project)
       ->setBackground(PHUIObjectBoxView::BLUE_PROPERTY)
-      ->setUserPHIDs($project->getMemberPHIDs())
+      ->setUserPHIDs($direct_members)
       ->setShowNote(true);
+
+    $inherited_list = null;
+    if ($inherited_members) {
+      $inherited_list = id(new PhabricatorProjectMemberListView())
+        ->setViewer($viewer)
+        ->setProject($project)
+        ->setIsInherited(true)
+        ->setBackground(PHUIObjectBoxView::BLUE_PROPERTY)
+        ->setUserPHIDs($inherited_members)
+        ->setShowNote(true);
+    }
 
     $watcher_list = id(new PhabricatorProjectWatcherListView())
       ->setViewer($viewer)
@@ -57,6 +73,7 @@ final class PhabricatorProjectMembersViewController
       ->addClass('project-view-people-home')
       ->setMainColumn(array(
         $member_list,
+        $inherited_list,
         $watcher_list,
       ));
 
@@ -91,7 +108,10 @@ final class PhabricatorProjectMembersViewController
 
     $viewer_phid = $viewer->getPHID();
 
-    if (!$project->isUserMember($viewer_phid)) {
+    $is_direct_member = in_array(
+      $viewer_phid, $project->getDirectMemberPHIDs());
+
+    if (!$is_direct_member) {
       $curtain->addAction(
         id(new PhabricatorActionView())
           ->setHref('/project/update/'.$project->getID().'/join/')
@@ -180,8 +200,9 @@ final class PhabricatorProjectMembersViewController
     } else if ($project->getHasSubprojects()) {
       $header = pht('Parent Project');
       $note = pht(
-        'Members of all subprojects are members of this project.');
-      $show_join = false;
+        '本级成员可直接管理。子项目成员会汇总到本级；移除其汇总身份需在'.
+        '相应子项目中操作。本级成员不会自动加入子项目。');
+      $show_join = true;
     } else if ($project->getIsMembershipLocked()) {
       $header = pht('Locked Project');
       $note = pht(
