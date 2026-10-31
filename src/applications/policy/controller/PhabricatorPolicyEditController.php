@@ -343,7 +343,7 @@ final class PhabricatorPolicyEditController
     }
     $uri = new PhutilURI($base.$context.'/'.
       AphrontFormPolicyControl::getSelectCustomKey().'/');
-    $capability = $request->getStr('capability');
+    $capability = $request->getStr('capability', '');
     if ($capability !== '') {
       $uri->replaceQueryParam('capability', $capability);
     }
@@ -370,7 +370,7 @@ final class PhabricatorPolicyEditController
         'object to apply its new permission settings.'))
       ->setSubmitURI(self::newReplacementURI($request))
       ->addHiddenInput('__start_policy_replacement__', '1')
-      ->addHiddenInput('capability', $request->getStr('capability'))
+      ->addHiddenInput('capability', $request->getStr('capability', ''))
       ->addSubmitButton(pht('Create Replacement Policy'))
       ->addCancelButton('#');
     if ($request->isFormPost()) {
