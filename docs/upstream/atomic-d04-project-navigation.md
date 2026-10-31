@@ -13,6 +13,10 @@ indexes and milestone inheritance remain unchanged.
 
 - `flat` is the default and retains native query selection, including saved or
   pinned queries. It does not force a hierarchy directory on existing installs.
+  The builtin hierarchy entry is appended after native queries, so the search
+  engine's unpinned fallback stays Joined for signed-in users and Active for
+  anonymous users. Returning a null navigation key alone is insufficient to
+  preserve this behavior: the delegated search engine resolves that fallback.
 - `hierarchy` makes an unfiltered GET to `/project/` select root projects,
   ordered by name. Archive filtering is `all`, so an archived root does not
   strand its active children. Pagination counts root projects, not a flattened
@@ -52,9 +56,13 @@ in the later membership package.
 
 ## Validation
 
-The pure suite covers default selection, explicit queries/filters, pagination,
+The six-method pure suite covers default selection, anonymous native-engine
+fallback, explicit queries/filters, pagination,
 POST handling, builtin query contracts and English/Chinese messages. The
-storage suite covers real root pagination with archived parents and descendants,
+12-method storage suite additionally exercises the real signed-in engine
+fallback through the project-list request/controller context and verifies
+hierarchy opt-in for both signed-in and anonymous viewers. It covers real root
+pagination with archived parents and descendants,
 unchanged ancestor permissions in both modes, Conduit constraints and reused
 queries, token validation, raw attached-ancestor privacy, direct-parent fallback,
 creation context, view-only context at the native method gate and edit-form crumb duplication.

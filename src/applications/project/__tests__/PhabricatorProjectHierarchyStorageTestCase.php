@@ -9,6 +9,57 @@ final class PhabricatorProjectHierarchyStorageTestCase
     );
   }
 
+  public function testFlatListFallsBackToNativeJoinedQuery() {
+    $viewer = $this->generateNewTestUser();
+    list($engine, $selected) = $this->newListQueryContext('flat', $viewer);
+    $this->assertEqual('joined', $engine->getDefaultQueryKey());
+    $this->assertEqual('joined', $selected->getQueryKey());
+    $this->assertEqual(array($viewer->getPHID()),
+      $selected->getParameter('memberPHIDs'));
+    $this->assertEqual(null, $selected->getParameter('isRoot'));
+    $this->assertEqual(array('joined', 'watching', 'active', 'all', 'hierarchy'),
+      array_keys($engine->loadEnabledNamedQueries()));
+  }
+
+  public function testHierarchyOptInSelectsHierarchyWithoutChangingNativeFallback() {
+    $logged_in = $this->generateNewTestUser();
+    foreach (array($logged_in, new PhabricatorUser()) as $viewer) {
+      list($engine, $selected) = $this->newListQueryContext('hierarchy', $viewer);
+      $this->assertEqual($viewer->isLoggedIn() ? 'joined' : 'active',
+        $engine->getDefaultQueryKey());
+      $this->assertEqual('hierarchy', $selected->getQueryKey());
+      $this->assertTrue($selected->getParameter('isRoot'));
+      $this->assertEqual('all', $selected->getParameter('status'));
+    }
+  }
+
+  private function newListQueryContext($mode, PhabricatorUser $viewer) {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('projects.default-navigation', $mode);
+    $old_method = idx($_SERVER, 'REQUEST_METHOD');
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    try {
+      $request = id(new AphrontRequest('phabricator.example.com', '/project/'))
+        ->setUser($viewer)->setURIMap(array('queryKey' => null))
+        ->setRequestData(array());
+      $controller = id(new PhabricatorProjectListController())->setRequest($request);
+      $engine = id(new PhabricatorProjectSearchEngine())
+        ->setController($controller)->setViewer($controller->getViewer());
+      $key = PhabricatorProjectNavigation::getQueryKey($controller->getRequest());
+      if ($key === null) {
+        $key = $engine->getDefaultQueryKey();
+      }
+      return array($engine, $engine->buildSavedQueryFromBuiltin($key));
+    } finally {
+      if ($old_method === null) {
+        unset($_SERVER['REQUEST_METHOD']);
+      } else {
+        $_SERVER['REQUEST_METHOD'] = $old_method;
+      }
+      unset($env);
+    }
+  }
+
   public function testRootPaginationIncludesArchivedRootsWithoutChildren() {
     $actor = $this->generateNewTestUser();
     $roots = array();

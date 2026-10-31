@@ -7,6 +7,7 @@
       "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
       "methods": [
         "testFlatDefaultPreservesNativeQuerySelection",
+        "testFlatAnonymousListFallsBackToNativeActiveQuery",
         "testHierarchyDefaultOnlySelectsUnfilteredGet",
         "testExplicitSearchesAreNeverReplaced",
         "testHierarchyQueryUsesRootsAndRetainsArchivedParents",
@@ -17,6 +18,8 @@
       "class": "PhabricatorProjectHierarchyStorageTestCase",
       "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
       "methods": [
+        "testFlatListFallsBackToNativeJoinedQuery",
+        "testHierarchyOptInSelectsHierarchyWithoutChangingNativeFallback",
         "testRootPaginationIncludesArchivedRootsWithoutChildren",
         "testDefaultModeDoesNotChangeNativeAncestorPermissions",
         "testAnonymousHierarchyUsesNativePublicVisibilitySetting",

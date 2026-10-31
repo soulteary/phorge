@@ -11,6 +11,17 @@ final class PhabricatorProjectHierarchyNavigationTestCase
     $this->assertEqual('hierarchy', $this->selectQuery('flat', 'hierarchy'));
   }
 
+  public function testFlatAnonymousListFallsBackToNativeActiveQuery() {
+    list($engine, $selected) = $this->newListQueryContext('flat', new PhabricatorUser());
+    $this->assertEqual('active', $engine->getDefaultQueryKey());
+    $this->assertEqual('active', $selected->getQueryKey());
+    $this->assertEqual(PhabricatorProjectStatus::STATUS_ACTIVE_KEY,
+      $selected->getParameter('status'));
+    $this->assertEqual(null, $selected->getParameter('isRoot'));
+    $this->assertEqual(array('active', 'all', 'hierarchy'),
+      array_keys($engine->loadEnabledNamedQueries()));
+  }
+
   public function testHierarchyDefaultOnlySelectsUnfilteredGet() {
     $this->assertEqual('hierarchy', $this->selectQuery('hierarchy', null));
     foreach (array(array('after' => 'cursor'), array('before' => 'cursor'),
@@ -86,6 +97,36 @@ final class PhabricatorProjectHierarchyNavigationTestCase
         unset($_SERVER['REQUEST_METHOD']);
       } else {
         $_SERVER['REQUEST_METHOD'] = $old;
+      }
+      unset($env);
+    }
+  }
+
+  private function newListQueryContext($mode, PhabricatorUser $viewer) {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('projects.default-navigation', $mode);
+    $old_method = idx($_SERVER, 'REQUEST_METHOD');
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    try {
+      $request = id(new AphrontRequest('phabricator.example.com', '/project/'))
+        ->setUser($viewer)->setURIMap(array('queryKey' => null))
+        ->setRequestData(array());
+      $controller = id(new PhabricatorProjectListController())->setRequest($request);
+      $engine = id(new PhabricatorProjectSearchEngine())
+        ->setController($controller)->setViewer($controller->getViewer());
+      // Follow both stages used by the project list and delegated search:
+      // navigation may explicitly select hierarchy, while a null key falls
+      // through to the engine's real saved/default-query resolution.
+      $key = PhabricatorProjectNavigation::getQueryKey($controller->getRequest());
+      if ($key === null) {
+        $key = $engine->getDefaultQueryKey();
+      }
+      return array($engine, $engine->buildSavedQueryFromBuiltin($key));
+    } finally {
+      if ($old_method === null) {
+        unset($_SERVER['REQUEST_METHOD']);
+      } else {
+        $_SERVER['REQUEST_METHOD'] = $old_method;
       }
       unset($env);
     }

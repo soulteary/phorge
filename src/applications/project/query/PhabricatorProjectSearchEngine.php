@@ -242,9 +242,7 @@ final class PhabricatorProjectSearchEngine
   }
 
   protected function getBuiltinQueryNames() {
-    $names = array(
-      'hierarchy' => pht('Project Hierarchy'),
-    );
+    $names = array();
 
     if ($this->requireViewer()->isLoggedIn()) {
       $names['joined'] = pht('Joined');
@@ -256,6 +254,10 @@ final class PhabricatorProjectSearchEngine
 
     $names['active'] = pht('Active');
     $names['all'] = pht('All');
+    // The first enabled builtin is the native no-pinned-query fallback.
+    // Keep Joined/Active first; hierarchy is selected explicitly by the
+    // opt-in list controller or its stable query URL.
+    $names['hierarchy'] = pht('Project Hierarchy');
 
     return $names;
   }
