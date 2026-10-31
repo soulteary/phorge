@@ -55,6 +55,8 @@ final class PhabricatorProjectApplication extends PhabricatorApplication {
           => 'PhabricatorProjectMembersRemoveController',
         'profile/(?P<id>[1-9]\d*)/'
           => 'PhabricatorProjectProfileController',
+        'progress/(?P<id>[1-9]\d*)/'
+          => 'TeamProjectProgressController',
         'view/(?P<id>[1-9]\d*)/'
           => 'PhabricatorProjectViewController',
         'picture/(?P<id>[1-9]\d*)/'
