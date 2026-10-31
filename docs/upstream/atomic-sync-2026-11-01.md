@@ -31,6 +31,10 @@ variable as existing paired runtime CI, not a moving Gorge branch. Its matrix
 checks selected native packages on PHP 8.3/8.4/8.5; production remains PHP 8.3.
 The local native evidence records the exact paired commit and PHP version;
 results on other matrix versions must be read from those individual CI jobs.
+Fixture builds use the paired Gorge commit's release build bases and retain
+its strict Go-version guard. They do not reuse or change Phorge's older
+production acceptance builders. The runner requires fresh per-invocation
+evidence even when an output directory contains a previous passing report.
 
 Local D01 verification used PHP 8.5.8 and actual disposable MySQL/Gorge file,
 image and render services built from
