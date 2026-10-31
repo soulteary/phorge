@@ -110,6 +110,14 @@ final class PhabricatorProjectListView extends AphrontView {
         $item->setDisabled(true);
       }
 
+      if (TeamProjectProgress::isWorkspaceEnabled() &&
+          TeamProjectProgress::isHistoryVisible()) {
+        $item->addAttribute(phutil_tag(
+          'a',
+          array('href' => "/project/progress/{$id}/"),
+          pht('Development History')));
+      }
+
       if ($this->showMember) {
         $is_member = $project->isUserMember($viewer_phid);
         if ($is_member) {

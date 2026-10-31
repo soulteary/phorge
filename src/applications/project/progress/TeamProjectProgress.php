@@ -22,6 +22,15 @@ final class TeamProjectProgress extends Phobject {
     return self::getHistoryState() !== 'off';
   }
 
+  public static function isWorkspaceEnabled() {
+    return PhabricatorEnv::getEnvConfig('project.workspace-mode') === 'unified';
+  }
+
+  public static function areTaskDraftsEnabled() {
+    return PhabricatorEnv::getEnvConfig('project.history-task-drafts') === true &&
+      self::getHistoryState() === 'active';
+  }
+
   private static function loadActiveUser(PhabricatorUser $user) {
     if (!$user->getPHID()) {
       return null;
@@ -182,6 +191,77 @@ final class TeamProjectProgress extends Phobject {
       return $name;
     }
     return pht('Unannotated');
+  }
+
+  /**
+   * Build an editable task draft without saving either a task or a relation.
+   * Native creation forms still apply their field and policy validation.
+   */
+  public static function newTaskDraft(PhabricatorUser $viewer, $transaction_id) {
+    $viewer = self::loadActiveUser($viewer);
+    if (!$viewer || !self::areTaskDraftsEnabled()) {
+      throw new PhabricatorPolicyException(pht('You do not have permission to create a task from this record.'));
+    }
+    if ((!is_int($transaction_id) && !is_string($transaction_id)) ||
+        !preg_match('/\A[1-9][0-9]*\z/', (string)$transaction_id)) {
+      throw new InvalidArgumentException(pht('Choose a valid source project record.'));
+    }
+    $types = self::getTransactionTypes();
+    $record = id(new PhabricatorProjectTransactionQuery())
+      ->setViewer($viewer)
+      ->withIDs(array($transaction_id))
+      ->withTransactionTypes(array($types['node'], $types['update'],
+        $types['milestone']))
+      ->executeOne();
+    // Use one denial for missing, private, and non-node records. A transaction
+    // identifier must not disclose the source project or its record type.
+    if (!$record) {
+      throw new PhabricatorPolicyException(pht('You do not have permission to create a task from this record.'));
+    }
+    $project = id(new PhabricatorProjectQuery())
+      ->setViewer($viewer)
+      ->withPHIDs(array($record->getObjectPHID()))
+      ->needMembers(true)
+      ->needAncestorMembers(true)
+      ->executeOne();
+    if (!$project || !self::canPublish($viewer, $project)) {
+      throw new PhabricatorPolicyException(pht('You do not have permission to create a task from this record.'));
+    }
+    if (!PhabricatorApplication::isClassInstalledForViewer(
+        PhabricatorManiphestApplication::class, $viewer)) {
+      throw new PhabricatorPolicyException(pht('You do not have permission to create tasks.'));
+    }
+    if (!PhabricatorPolicyFilter::hasCapability(
+        $viewer, id(new ManiphestEditEngine())->setViewer($viewer),
+        PhabricatorPolicyCapability::CAN_EDIT)) {
+      throw new PhabricatorPolicyException(pht('You do not have permission to create tasks.'));
+    }
+    $value = $record->getNewValue();
+    if (!is_array($value) ||
+        self::normalizeKind(idx($value, 'kind')) !== 'node' ||
+        !is_string(idx($value, 'title')) ||
+        !is_string(idx($value, 'body'))) {
+      throw new InvalidArgumentException(pht('This record cannot be used as a task source.'));
+    }
+    $author = $viewer->loadHandles(array($record->getAuthorPHID()))
+      [$record->getAuthorPHID()];
+    $source_uri = '/project/progress/'.$project->getID().'/?entry='.
+      $record->getID().'#entry-'.$record->getID();
+    $source = pht(
+      "Source: [[%s | Project Record #%s]]\n".
+      "Original Author: %s\n".
+      "Originally Published: %s (UTC)",
+      $source_uri, $record->getID(), $author->getFullName(),
+      gmdate('Y-m-d H:i:s', $record->getDateCreated()));
+    $old_status = idx(self::getStatusNames(), idx($value, 'status'));
+    if ($old_status !== null) {
+      $source .= "\n".pht('Original Node Status: %s (Historical Information)', $old_status);
+    }
+
+    return ManiphestTask::initializeNewTask($viewer)
+      ->setTitle($value['title'])
+      ->setDescription($value['body']."\n\n---\n\n".$source)
+      ->attachProjectPHIDs(array($project->getPHID()));
   }
 
   public static function publish(

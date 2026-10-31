@@ -99,6 +99,24 @@ final class ProjectBoardTaskCard extends Phobject {
       ->setDisabled($task->isClosed())
       ->setBarColor($bar_color);
 
+    if (TeamProjectProgress::isWorkspaceEnabled()) {
+      // Every index displays the same task state; AJAX reload uses this renderer.
+      $status = $task->getStatus();
+      $status_colors = array(
+        'open' => PHUITagView::COLOR_GREY,
+        'active' => PHUITagView::COLOR_BLUE,
+        'blocked' => PHUITagView::COLOR_RED,
+        'resolved' => PHUITagView::COLOR_GREEN,
+      );
+      $card->addAttribute(id(new PHUITagView())
+        ->setType(PHUITagView::TYPE_SHADE)
+        ->setSlimShady(true)
+        ->setColor(idx($status_colors, $status, PHUITagView::COLOR_GREY))
+        ->setName(ManiphestTaskStatus::getTaskStatusName($status))
+        ->addClass('team-project-card-status'));
+
+    }
+
     if ($this->getShowEditControls()) {
       if ($can_edit) {
         $card
