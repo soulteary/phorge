@@ -14155,6 +14155,18 @@ These tattered edges are an expected consequence of destroying objects, and the 
       'Failed to set system locale (to "%s").' => '设置系统区域设置失败（设置为 "%s"）。',
       'Failed to unpack data.' => '解包数据失败。',
       'Failed to unserialize object: %s' => '反序列化对象失败：%s',
+      'Project Hierarchy' => '项目层级',
+      'Back to Project Directory' => '返回项目目录',
+      'Back to Parent Project' => '返回上一级项目',
+      'No visible subprojects.' => '没有可查看的子项目。',
+      'No visible milestones.' => '没有可查看的里程碑。',
+      'Restricted Parent Project' => '受限父项目',
+      'Root Project' => '顶级项目',
+      'Browse Subprojects' => '浏览子项目',
+      'Flat Project List' => '平铺项目列表',
+      'Default project directory presentation.' => '项目目录的默认展示方式。',
+      'Keep flat navigation to preserve the native default and saved queries. Choose hierarchy to browse root projects by default. Explicit searches and existing project permissions are unchanged; hierarchy query URLs remain available in either mode.' => '保留平铺模式可沿用原生默认入口和已保存的查询。选择层级模式后，默认浏览顶级项目。显式搜索和既有项目权限不变，两种模式都可使用层级查询的稳定地址。',
+      'Get the visible ancestors for each project.' => '获取当前用户可查看的项目祖先列表。',
     );
   }
 }

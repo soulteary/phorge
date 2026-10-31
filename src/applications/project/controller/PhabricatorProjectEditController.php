@@ -4,6 +4,7 @@ final class PhabricatorProjectEditController
   extends PhabricatorProjectController {
 
   private $engine;
+  private $isEditingProject = false;
 
   public function setEngine(PhabricatorProjectEditEngine $engine) {
     $this->engine = $engine;
@@ -23,7 +24,17 @@ final class PhabricatorProjectEditController
     $this->setEngine($engine);
 
     $id = $request->getURIData('id');
-    if (!$id) {
+    if ($id) {
+      // The edit engine loads its own object but does not attach that object
+      // to the controller. Load the navigation context explicitly. Only
+      // require view here: the engine enforces the capability for each action
+      // (for example, adding a comment does not require project edit access).
+      $response = $this->loadProject();
+      if ($response) {
+        return $response;
+      }
+      $this->isEditingProject = true;
+    } else {
       // This capability is checked again later, but checking it here
       // explicitly gives us a better error message.
       $this->requireApplicationCapability(
@@ -111,6 +122,27 @@ final class PhabricatorProjectEditController
     }
 
     return $crumbs;
+  }
+
+  protected function getProjectNavigationParent() {
+    $engine = $this->getEngine();
+    if ($engine) {
+      // During creation, the controller holds the parent project, not the
+      // new project. Return to that directory instead of skipping a level.
+      $parent = nonempty(
+        $engine->getParentProject(),
+        $engine->getMilestoneProject());
+      if ($parent) {
+        return $parent;
+      }
+    }
+
+    return parent::getProjectNavigationParent();
+  }
+
+  protected function shouldAddCurrentProjectCrumb() {
+    // The native edit engine appends the current project and "Edit" itself.
+    return !$this->isEditingProject;
   }
 
 }

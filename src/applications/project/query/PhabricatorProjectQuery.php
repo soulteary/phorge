@@ -21,6 +21,7 @@ final class PhabricatorProjectQuery
   private $colors;
   private $ancestorPHIDs;
   private $parentPHIDs;
+  private $visibleHierarchyPHIDs;
   private $isMilestone;
   private $hasSubprojects;
   private $minDepth;
@@ -224,6 +225,21 @@ final class PhabricatorProjectQuery
   }
 
   protected function willExecute() {
+    // Hidden projects must not be usable as hierarchy lookup constraints.
+    // Native ancestor visibility and project membership semantics are unchanged.
+    $hierarchy_phids = array_merge(
+      coalesce($this->parentPHIDs, array()),
+      coalesce($this->ancestorPHIDs, array()));
+    $this->visibleHierarchyPHIDs = array();
+    if ($hierarchy_phids) {
+      $visible = id(new self())
+        ->setViewer($this->getViewer())
+        ->setParentQuery($this)
+        ->withPHIDs($hierarchy_phids)
+        ->execute();
+      $this->visibleHierarchyPHIDs = mpull($visible, 'getPHID');
+    }
+
     $this->slugMap = array();
     $this->slugNormals = array();
     $this->allSlugs = array();
@@ -567,18 +583,28 @@ final class PhabricatorProjectQuery
     }
 
     if ($this->parentPHIDs !== null) {
+      $parent_phids = array_intersect(
+        $this->parentPHIDs, $this->visibleHierarchyPHIDs);
+      if (!$parent_phids) {
+        throw new PhabricatorEmptyQueryException();
+      }
       $where[] = qsprintf(
         $conn,
         'project.parentProjectPHID IN (%Ls)',
-        $this->parentPHIDs);
+        $parent_phids);
     }
 
     if ($this->ancestorPHIDs !== null) {
+      $ancestor_phids = array_intersect(
+        $this->ancestorPHIDs, $this->visibleHierarchyPHIDs);
+      if (!$ancestor_phids) {
+        throw new PhabricatorEmptyQueryException();
+      }
       $ancestor_paths = queryfx_all(
         $conn,
         'SELECT projectPath, projectDepth FROM %T WHERE phid IN (%Ls)',
         id(new PhabricatorProject())->getTableName(),
-        $this->ancestorPHIDs);
+        $ancestor_phids);
       if (!$ancestor_paths) {
         throw new PhabricatorEmptyQueryException();
       }
