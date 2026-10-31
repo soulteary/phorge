@@ -381,20 +381,27 @@ final class PhabricatorProjectTransactionEditor
       if ($member_xaction) {
         $object_phid = $object->getPHID();
 
-        if ($object_phid) {
-          $project = id(new PhabricatorProjectQuery())
-            ->setViewer($this->getActor())
-            ->withPHIDs(array($object_phid))
-            ->needMembers(true)
-            ->executeOne();
-          $members = $project->getDirectMemberPHIDs();
+        if ($this->getIsInverseEdgeEditor()) {
+          // The origin already wrote the edge set. Inverse values are full
+          // normalized maps, not PHID-list operations; the actor may also
+          // have lost member-derived visibility by leaving this project.
+          $hint = array_fuse(array_keys((array)$member_xaction->getNewValue()));
         } else {
-          $members = array();
-        }
+          if ($object_phid) {
+            $project = id(new PhabricatorProjectQuery())
+              ->setViewer($this->getActor())
+              ->withPHIDs(array($object_phid))
+              ->needMembers(true)
+              ->executeOne();
+            $members = $project->getDirectMemberPHIDs();
+          } else {
+            $members = array();
+          }
 
-        $clone_xaction = clone $member_xaction;
-        $hint = $this->getPHIDTransactionNewValue($clone_xaction, $members);
-        $hint = array_fuse($hint);
+          $clone_xaction = clone $member_xaction;
+          $hint = $this->getPHIDTransactionNewValue($clone_xaction, $members);
+          $hint = array_fuse($hint);
+        }
 
         // Editing direct membership does not remove rights originating in a
         // descendant. Predict the same union as the membership index does.

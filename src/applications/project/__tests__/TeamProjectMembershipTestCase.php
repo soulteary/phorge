@@ -243,10 +243,11 @@ final class TeamProjectMembershipTestCase extends PhabricatorTestCase {
     return $this->fresh($project);
   }
   private function inverseMembership($actor, $project, $operation) {
-    // Reproduce applyInverseEdgeTransactions(): the originating editor owns
-    // its transaction, writes both edges, then supplies normalized maps to
-    // the project's inverse editor. UserTransactionEditor itself does not
-    // expose core:edge edits, so this fixture does not invent that endpoint.
+    // Exercise the receiving protocol of applyInverseEdgeTransactions():
+    // write both edges, then supply normalized maps to the inverse editor.
+    // The dual-DAO transaction below isolates this fixture; native inverse
+    // delivery after the origin commits does not promise cross-DAO rollback.
+    // UserTransactionEditor has no core:edge endpoint to expose here.
     $current = $this->fresh($project);
     $old = array_fuse($current->getDirectMemberPHIDs());
     $new = $old;
