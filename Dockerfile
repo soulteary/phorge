@@ -8,8 +8,8 @@
 ARG PHP_BASE_IMAGE=php:8.5.12-apache
 FROM ${PHP_BASE_IMAGE}
 ARG APCU_VERSION=5.1.28
-ARG DEBIAN_SNAPSHOT=
-# Release builds freeze package repositories as well as the base image.
+ARG DEBIAN_SNAPSHOT=20261028T000000Z
+# Freeze package repositories to match the PHP base image for ordinary builds too.
 RUN if [ -n "$DEBIAN_SNAPSHOT" ]; then \
       sed -i "s|http://deb.debian.org/debian-security|https://snapshot.debian.org/archive/debian-security/${DEBIAN_SNAPSHOT}|g; s|http://deb.debian.org/debian|https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}|g" /etc/apt/sources.list.d/debian.sources; \
       printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99snapshot; \
