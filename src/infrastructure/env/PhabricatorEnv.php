@@ -184,7 +184,12 @@ final class PhabricatorEnv extends Phobject {
         // phutil may not discover it via loadAllLocales/loadLocale.
         $locale = new PhabricatorChineseLocale();
         $translation = new PhabricatorChineseTranslation();
-        $translations = $translation->getTranslationMap();
+        // Keep the maintained dictionary's precedence, but include module
+        // translations just as other locales do. Otherwise a feature's
+        // discovered zh_CN source validates yet never reaches the translator.
+        $all_translations = PhutilTranslation::getAllTranslations();
+        $translations = $translation->getTranslationMap() +
+          idx($all_translations, 'zh_CN', array());
       } else {
         $locale = PhutilLocale::loadLocale($locale_code);
         $translations = PhutilTranslation::getTranslationMapForLocale(
