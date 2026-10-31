@@ -184,12 +184,31 @@ final class PhabricatorFileQuery
 
     // However, in some special cases where we know files will always be
     // visible, we skip this. See T8478 and T13106.
+    // A standalone public profile image remains public, but
+    // a profile transform must retain its original file's visibility. Only
+    // remove the optimization for profile images with a real transform source.
+    $profile_phids = array();
+    foreach ($files as $file) {
+      if ($file->getIsProfileImage() && !$file->isBuiltin()) {
+        $profile_phids[] = $file->getPHID();
+      }
+    }
+    $profile_sources = array();
+    if ($profile_phids) {
+      $profile_xforms = id(new PhabricatorTransformedFile())->loadAllWhere(
+        'transformedPHID IN (%Ls) AND originalPHID != %s',
+        $profile_phids,
+        PhabricatorPHIDConstants::PHID_VOID);
+      $profile_sources = array_fuse(mpull($profile_xforms, 'getTransformedPHID'));
+    }
+
     $need_objects = array();
     $need_xforms = array();
     foreach ($files as $file) {
       $always_visible = false;
 
-      if ($file->getIsProfileImage()) {
+      if ($file->getIsProfileImage() &&
+          !isset($profile_sources[$file->getPHID()])) {
         $always_visible = true;
       }
 
