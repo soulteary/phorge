@@ -190,6 +190,10 @@ final class PhabricatorFileProfileAncestryTestCase extends PhabricatorTestCase {
       $source = $derived;
     }
     $this->assertTrue($this->canQuery($author, $source));
+    // Ordinary files remain visible in the same batch as derived descendants.
+    for ($index = 0; $index < 3; $index++) {
+      $chain[] = $this->newFile($author)->getPHID();
+    }
     foreach (array(PhabricatorFileQuery::class, PhabricatorObjectQuery::class)
       as $query_class) {
       foreach (array($chain, array_reverse($chain)) as $phids) {

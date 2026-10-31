@@ -131,16 +131,23 @@ final class PhabricatorObjectQuery
       $batches = array($group);
       if ($type === PhabricatorFileFilePHIDType::TYPECONST &&
           count($group) > 1) {
-        $transform = id(new PhabricatorTransformedFile())->loadOneWhere(
-          'transformedPHID IN (%Ls) AND originalPHID != %s LIMIT 1',
+        $transforms = id(new PhabricatorTransformedFile())->loadAllWhere(
+          'transformedPHID IN (%Ls) AND originalPHID != %s',
           $group,
           PhabricatorPHIDConstants::PHID_VOID);
-        if ($transform) {
+        if ($transforms) {
           // Derived files may depend on another file in this batch. Marking
           // every sibling in flight makes a valid ancestry path look cyclic.
-          // Load one path at a time, retaining the native ancestor guard and
-          // viewer-scoped workspace. Ordinary file groups stay batched.
-          $batches = array_chunk($group, 1);
+          // Keep ordinary files batched, then load each derived path with the
+          // native ancestor guard and viewer-scoped workspace intact.
+          $derived = array_fuse(mpull($transforms, 'getTransformedPHID'));
+          $ordinary = array_values(array_diff($group, array_keys($derived)));
+          $batches = $ordinary ? array($ordinary) : array();
+          foreach ($group as $phid) {
+            if (isset($derived[$phid])) {
+              $batches[] = array($phid);
+            }
+          }
         }
       }
       foreach ($batches as $batch) {

@@ -52,8 +52,9 @@ loading it. With derived profiles, a source and its descendant in that group
 can therefore look cyclic even though either loads individually. Object-query
 FILE groups containing real transforms now load one ancestry path at a time,
 using the same native in-flight guard and viewer-scoped workspace. Ordinary
-file groups and all other object types retain batched loading. An indexed,
-limited transform-existence query selects this narrower path.
+files retain one batch, including in mixed groups, and all other object types
+retain their existing batches. An indexed transform lookup partitions only
+FILE groups with more than one requested object.
 
 A 20-level regression combines sources and descendants in forward and reverse
 request order through both FileQuery and ObjectQuery, for the author, another
