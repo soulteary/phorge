@@ -164,4 +164,3 @@ final class TeamProjectWorkspaceBoardView extends AphrontTagView {
     ), $columns);
   }
 }
-
