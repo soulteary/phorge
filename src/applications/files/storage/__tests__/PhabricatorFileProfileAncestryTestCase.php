@@ -143,6 +143,13 @@ final class PhabricatorFileProfileAncestryTestCase extends PhabricatorTestCase {
     foreach (array($author, new PhabricatorUser()) as $viewer) {
       $this->assertFalse($this->canQuery($viewer, $a));
       $this->assertFalse($this->canQuery($viewer, $b));
+      foreach (array(PhabricatorFileQuery::class, PhabricatorObjectQuery::class)
+        as $query_class) {
+        $results = id(new $query_class())->setViewer($viewer)
+          ->withPHIDs(array($a->getPHID(), $b->getPHID()))
+          ->setRaisePolicyExceptions(false)->execute();
+        $this->assertEqual(array(), $results);
+      }
     }
   }
 
@@ -169,6 +176,36 @@ final class PhabricatorFileProfileAncestryTestCase extends PhabricatorTestCase {
       ->execute();
     $this->assertEqual(array($profile_a->getPHID()),
       array_values(mpull($results, 'getPHID')));
+  }
+
+  public function testBatchChainMatchesIndividualVisibility() {
+    $author = $this->generateNewTestUser();
+    $other = $this->generateNewTestUser();
+    $source = $this->newFile($author);
+    $chain = array($source->getPHID());
+    for ($depth = 0; $depth < 20; $depth++) {
+      $derived = $this->newFile($author, true);
+      $this->link($source->getPHID(), $derived);
+      $chain[] = $derived->getPHID();
+      $source = $derived;
+    }
+    $this->assertTrue($this->canQuery($author, $source));
+    foreach (array(PhabricatorFileQuery::class, PhabricatorObjectQuery::class)
+      as $query_class) {
+      foreach (array($chain, array_reverse($chain)) as $phids) {
+        foreach (array($author, $other, new PhabricatorUser()) as $viewer) {
+          $results = id(new $query_class())
+            ->setViewer($viewer)->withPHIDs($phids)
+            ->setRaisePolicyExceptions(false)->execute();
+          $actual = array_values(mpull($results, 'getPHID'));
+          sort($actual);
+          $expected = ($viewer === $author) ? $chain : array();
+          sort($expected);
+          $this->assertEqual($expected, $actual,
+            $query_class.' must agree with individual ancestry checks.');
+        }
+      }
+    }
   }
 
   private function newFile(PhabricatorUser $author, $profile = false) {

@@ -44,3 +44,19 @@ for individual ancestry records; it is not enabled for production or the user
 avatar preflight. Gorge continues to own file writes, image transforms and
 cleanup. People profile denial rendering uses the existing translated denial
 page and adds no new user-facing error strings.
+
+## Dependent files in the same batch
+
+The native generic object query marks an entire type group in flight before
+loading it. With derived profiles, a source and its descendant in that group
+can therefore look cyclic even though either loads individually. Object-query
+FILE groups containing real transforms now load one ancestry path at a time,
+using the same native in-flight guard and viewer-scoped workspace. Ordinary
+file groups and all other object types retain batched loading. An indexed,
+limited transform-existence query selects this narrower path.
+
+A 20-level regression combines sources and descendants in forward and reverse
+request order through both FileQuery and ObjectQuery, for the author, another
+user and an anonymous viewer. The regression fails before the batching fix;
+real cycles remain denied individually and in a batch. D02 now registers 14
+native methods (12 file-ancestry methods and 2 People breadcrumb methods).

@@ -16,7 +16,8 @@
         "testDeepProfileChainUsesNativeQueryAncestry",
         "testMissingAndCyclicSourcesAreRejected",
         "testInvalidSourceTypeDoesNotBecomeAFileGrant",
-        "testBatchQueryKeepsSourceDecisionsSeparate"
+        "testBatchQueryKeepsSourceDecisionsSeparate",
+        "testBatchChainMatchesIndividualVisibility"
       ]
     },
     {
