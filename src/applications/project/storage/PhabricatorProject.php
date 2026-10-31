@@ -94,6 +94,7 @@ final class PhabricatorProject extends PhabricatorProjectDAO
 
     return id(new self())
       ->setAuthorPHID($actor->getPHID())
+      ->setProperty(TeamProjectMembership::ROLES_PROPERTY, array($actor->getPHID() => 'admin'))
       ->setIcon($default_icon)
       ->setColor($default_color)
       ->setViewPolicy($view_policy)
@@ -143,6 +144,12 @@ final class PhabricatorProject extends PhabricatorProjectDAO
 
     $can_edit = PhabricatorPolicyCapability::CAN_EDIT;
 
+    if (($capability === PhabricatorPolicyCapability::CAN_VIEW &&
+          TeamProjectMembership::hasAutomaticViewRole($this, $viewer)) ||
+        ($capability === $can_edit && TeamProjectMembership::isAutomaticRole($this, $viewer))) {
+      return true;
+    }
+
     switch ($capability) {
       case PhabricatorPolicyCapability::CAN_VIEW:
         $viewer_phid = $viewer->getPHID();
@@ -151,18 +158,8 @@ final class PhabricatorProject extends PhabricatorProjectDAO
           return true;
         }
         break;
-      case PhabricatorPolicyCapability::CAN_EDIT:
-        $parent = $this->getParentProject();
-        if ($parent) {
-          $can_edit_parent = PhabricatorPolicyFilter::hasCapability(
-            $viewer,
-            $parent,
-            $can_edit);
-          if ($can_edit_parent) {
-            return true;
-          }
-        }
-        break;
+      // Subprojects use their own edit policy. Editing a parent does not
+      // implicitly grant editing (or joining) of its children.
       case PhabricatorPolicyCapability::CAN_JOIN:
         if (PhabricatorPolicyFilter::hasCapability($viewer, $this, $can_edit)) {
           // Project editors can always join a project.
@@ -175,6 +172,15 @@ final class PhabricatorProject extends PhabricatorProjectDAO
   }
 
   public function describeAutomaticCapability($capability) {
+
+    if (TeamOrganizationProjectBoundary::newGuard($this)) {
+      switch ($capability) {
+        case PhabricatorPolicyCapability::CAN_VIEW:
+          return pht('项目成员也必须符合团队访问边界，才能查看此项目。');
+        case PhabricatorPolicyCapability::CAN_JOIN:
+          return pht('编辑者符合团队访问边界时可以加入此项目。');
+      }
+    }
 
     // TODO: Clarify the additional rules that parent and subprojects imply.
 
@@ -202,7 +208,26 @@ final class PhabricatorProject extends PhabricatorProjectDAO
         break;
     }
 
+    $boundary = TeamOrganizationProjectBoundary::newGuard($this);
+    if ($boundary) {
+      $extended[] = array($boundary, PhabricatorPolicyCapability::CAN_VIEW);
+    }
+
+    if ($capability === PhabricatorPolicyCapability::CAN_EDIT) {
+      $extended[] = array(new TeamProjectMemberRoleGuard($this), PhabricatorPolicyCapability::CAN_VIEW);
+    }
+
     return $extended;
+  }
+
+  /** Explicit membership, excluding the members aggregated from descendants. */
+  public function getDirectMemberPHIDs() {
+    if (!$this->getPHID()) {
+      return array();
+    }
+    return PhabricatorEdgeQuery::loadDestinationPHIDs(
+      $this->getPHID(),
+      PhabricatorProjectProjectHasMemberEdgeType::EDGECONST);
   }
 
   public function isUserMember($user_phid) {
@@ -524,10 +549,6 @@ final class PhabricatorProject extends PhabricatorProjectDAO
 
   public function supportsEditMembers() {
     if ($this->isMilestone()) {
-      return false;
-    }
-
-    if ($this->getHasSubprojects()) {
       return false;
     }
 

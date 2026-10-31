@@ -22,12 +22,28 @@ final class PhabricatorProjectMembersViewController
     $title = pht('Members and Watchers');
     $curtain = $this->buildCurtainView($project);
 
+    $direct_members = $project->isMilestone()
+      ? $project->getMemberPHIDs()
+      : $project->getDirectMemberPHIDs();
+    $inherited_members = array_diff($project->getMemberPHIDs(), $direct_members);
+
     $member_list = id(new PhabricatorProjectMemberListView())
       ->setViewer($viewer)
       ->setProject($project)
       ->setBackground(PHUIObjectBoxView::BLUE_PROPERTY)
-      ->setUserPHIDs($project->getMemberPHIDs())
+      ->setUserPHIDs($direct_members)
       ->setShowNote(true);
+
+    $inherited_list = null;
+    if ($inherited_members) {
+      $inherited_list = id(new PhabricatorProjectMemberListView())
+        ->setViewer($viewer)
+        ->setProject($project)
+        ->setIsInherited(true)
+        ->setBackground(PHUIObjectBoxView::BLUE_PROPERTY)
+        ->setUserPHIDs($inherited_members)
+        ->setShowNote(true);
+    }
 
     $watcher_list = id(new PhabricatorProjectWatcherListView())
       ->setViewer($viewer)
@@ -57,6 +73,8 @@ final class PhabricatorProjectMembersViewController
       ->addClass('project-view-people-home')
       ->setMainColumn(array(
         $member_list,
+        $this->buildRoleManagement($project),
+        $inherited_list,
         $watcher_list,
       ));
 
@@ -65,6 +83,24 @@ final class PhabricatorProjectMembersViewController
       ->setCrumbs($crumbs)
       ->setTitle(array($project->getName(), $title))
       ->appendChild($view);
+  }
+
+  private function buildRoleManagement(PhabricatorProject $project) {
+    $viewer = $this->getViewer();
+    if ($project->isMilestone() || !TeamProjectMembership::canManage($viewer, $project)) { return null; }
+    $members = array_values(array_unique(array_merge($project->getDirectMemberPHIDs(),
+      array_keys(TeamProjectMembership::roleMap($project)))));
+    $options = TeamProjectMembership::getRoleOptions(); $rows = array();
+    foreach ($members as $phid) {
+      $role = TeamProjectMembership::getRole($project, $phid);
+      $rows[] = array($viewer->renderHandle($phid), idx($options, $role),
+        phutil_tag('a', array('href' => TeamProjectMembership::roleURI($project, $phid)), '管理角色'));
+    }
+    $table = id(new AphrontTableView($rows))->setHeaders(array('本级成员或管理员', '项目内角色', '操作'));
+    return id(new PHUIObjectBoxView())->setHeaderText('成员权限')->appendChild(
+      phutil_tag('p', array('style' => 'padding:12px;'),
+        '管理员可添加、移除成员或调整角色。只读角色会限制编辑，自行退出后仍保留该限制；按项目策略保留其他来源授权。项目角色不会授予站点管理员权限。'))
+      ->appendChild($table);
   }
 
   private function buildCurtainView(PhabricatorProject $project) {
@@ -91,7 +127,10 @@ final class PhabricatorProjectMembersViewController
 
     $viewer_phid = $viewer->getPHID();
 
-    if (!$project->isUserMember($viewer_phid)) {
+    $is_direct_member = in_array(
+      $viewer_phid, $project->getDirectMemberPHIDs());
+
+    if (!$is_direct_member) {
       $curtain->addAction(
         id(new PhabricatorActionView())
           ->setHref('/project/update/'.$project->getID().'/join/')
@@ -142,15 +181,15 @@ final class PhabricatorProjectMembersViewController
         ->setWorkflow(true)
         ->setDisabled(!$can_silence));
 
-    $can_add = $can_edit && $supports_edit;
+    $can_add = TeamProjectMembership::canManage($viewer, $project) && $supports_edit;
 
-    $curtain->addAction(
+    if ($can_add) { $curtain->addAction(
       id(new PhabricatorActionView())
-        ->setName(pht('Add Members'))
+        ->setName(pht('添加成员'))
         ->setIcon('fa-user-plus')
         ->setHref("/project/members/{$id}/add/")
         ->setWorkflow(true)
-        ->setDisabled(!$can_add));
+        ->setDisabled(!$can_add)); }
 
     $can_lock = $can_edit && $supports_edit && $this->hasApplicationCapability(
       ProjectCanLockProjectsCapability::CAPABILITY);
@@ -180,8 +219,9 @@ final class PhabricatorProjectMembersViewController
     } else if ($project->getHasSubprojects()) {
       $header = pht('Parent Project');
       $note = pht(
-        'Members of all subprojects are members of this project.');
-      $show_join = false;
+        '本级成员可直接管理。子项目成员会汇总到本级；移除其汇总身份需在'.
+        '相应子项目中操作。本级成员不会自动加入子项目。');
+      $show_join = true;
     } else if ($project->getIsMembershipLocked()) {
       $header = pht('Locked Project');
       $note = pht(

@@ -122,6 +122,18 @@ final class PhabricatorProjectEditEngine
     );
     $unavailable = array_fuse($unavailable);
 
+    // Editing project content and administering its access are separate roles.
+    if ($object->getID() && !TeamProjectMembership::canManage($this->getViewer(), $object)) {
+      foreach ($fields as $field) {
+        if (in_array($field->getTransactionType(), array(
+          PhabricatorTransactions::TYPE_VIEW_POLICY,
+          PhabricatorTransactions::TYPE_EDIT_POLICY,
+          PhabricatorTransactions::TYPE_JOIN_POLICY), true)) {
+          $field->setIsLocked(true);
+        }
+      }
+    }
+
     if ($is_milestone) {
       foreach ($fields as $key => $field) {
         $xaction_type = $field->getTransactionType();
@@ -323,9 +335,7 @@ final class PhabricatorProjectEditEngine
         ->setValue($slugs),
     );
 
-    $can_edit_members = (!$milestone) &&
-                        (!$object->isMilestone()) &&
-                        (!$object->getHasSubprojects());
+    $can_edit_members = (!$milestone) && (!$object->isMilestone());
 
     if ($can_edit_members) {
 
@@ -333,10 +343,11 @@ final class PhabricatorProjectEditEngine
       // one. It is always available via Conduit.
       $show_field = (bool)$this->getIsCreate();
 
-      $members_field = id(new PhabricatorUsersEditField())
+      $members_field = id(new TeamProjectMembersEditField())
         ->setKey('members')
         ->setAliases(array('memberPHIDs'))
-        ->setLabel(pht('Initial Members'))
+        ->setLabel(pht('初始成员'))
+        ->setControlInstructions(pht('可搜索人员、团队或项目，批量导入所选来源本级的当前有效成员，最多 500 人。不包含下级；仅一次性添加成员，不同步后续变化，也不授予编辑或管理权限。'))
         ->setIsFormField($show_field)
         ->setUseEdgeTransactions(true)
         ->setTransactionType(PhabricatorTransactions::TYPE_EDGE)

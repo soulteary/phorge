@@ -87,25 +87,12 @@ final class PhabricatorProjectTransactionEditor
 
     $is_milestone = $this->getIsMilestone();
 
-    $is_parent = $object->getHasSubprojects();
-
     foreach ($xactions as $xaction) {
       switch ($xaction->getTransactionType()) {
         case PhabricatorTransactions::TYPE_EDGE:
           $type = $xaction->getMetadataValue('edge:type');
           if ($type != PhabricatorProjectProjectHasMemberEdgeType::EDGECONST) {
             break;
-          }
-
-          if ($is_parent) {
-            $errors[] = new PhabricatorApplicationTransactionValidationError(
-              $xaction->getTransactionType(),
-              pht('Invalid'),
-              pht(
-                'You can not change members of a project with subprojects '.
-                'directly. Members of any subproject are automatically '.
-                'members of the parent project.'),
-              $xaction);
           }
 
           if ($is_milestone) {
@@ -121,6 +108,9 @@ final class PhabricatorProjectTransactionEditor
       }
     }
 
+    TeamProjectMembership::validateTransactions(
+      $this->getActor(), $object, $xactions, $this->getIsNewObject(),
+      $this->getIsInverseEdgeEditor());
     return $errors;
   }
 
@@ -230,25 +220,8 @@ final class PhabricatorProjectTransactionEditor
       }
     }
 
-    if ($new_parent) {
-      // If we just created the first subproject of this parent, we want to
-      // copy all of the real members to the subproject.
-      if (!$new_parent->getHasSubprojects()) {
-        $member_type = PhabricatorProjectProjectHasMemberEdgeType::EDGECONST;
-
-        $project_members = PhabricatorEdgeQuery::loadDestinationPHIDs(
-          $new_parent->getPHID(),
-          $member_type);
-
-        if ($project_members) {
-          $editor = new PhabricatorEdgeEditor();
-          foreach ($project_members as $phid) {
-            $editor->addEdge($object->getPHID(), $member_type, $phid);
-          }
-          $editor->save();
-        }
-      }
-    }
+    // A new subproject keeps only the members explicitly supplied by its
+    // creator. In particular, the first child must not import parent members.
 
     // TODO: We should dump an informational transaction onto the parent
     // project to show that we created the sub-thing.
@@ -357,6 +330,11 @@ final class PhabricatorProjectTransactionEditor
 
     /** @var PhabricatorProject $copy */
     $copy = parent::adjustObjectForPolicyChecks($object, $xactions);
+    foreach ($xactions as $xaction) {
+      if ($xaction->getTransactionType() === TeamProjectMemberRoleTransaction::TRANSACTIONTYPE) {
+        $copy->setProperty(TeamProjectMembership::ROLES_PROPERTY, $xaction->getNewValue());
+      }
+    }
 
     $type_edge = PhabricatorTransactions::TYPE_EDGE;
     $edgetype_member = PhabricatorProjectProjectHasMemberEdgeType::EDGECONST;
@@ -403,20 +381,45 @@ final class PhabricatorProjectTransactionEditor
       if ($member_xaction) {
         $object_phid = $object->getPHID();
 
-        if ($object_phid) {
-          $project = id(new PhabricatorProjectQuery())
-            ->setViewer($this->getActor())
-            ->withPHIDs(array($object_phid))
-            ->needMembers(true)
-            ->executeOne();
-          $members = $project->getMemberPHIDs();
+        if ($this->getIsInverseEdgeEditor()) {
+          // The origin already wrote the edge set. Inverse values are full
+          // normalized maps, not PHID-list operations; the actor may also
+          // have lost member-derived visibility by leaving this project.
+          $hint = array_fuse(array_keys((array)$member_xaction->getNewValue()));
         } else {
-          $members = array();
+          if ($object_phid) {
+            $project = id(new PhabricatorProjectQuery())
+              ->setViewer($this->getActor())
+              ->withPHIDs(array($object_phid))
+              ->needMembers(true)
+              ->executeOne();
+            $members = $project->getDirectMemberPHIDs();
+          } else {
+            $members = array();
+          }
+
+          $clone_xaction = clone $member_xaction;
+          $hint = $this->getPHIDTransactionNewValue($clone_xaction, $members);
+          $hint = array_fuse($hint);
         }
 
-        $clone_xaction = clone $member_xaction;
-        $hint = $this->getPHIDTransactionNewValue($clone_xaction, $members);
-        $hint = array_fuse($hint);
+        // Editing direct membership does not remove rights originating in a
+        // descendant. Predict the same union as the membership index does.
+        if ($object_phid && $object->getHasSubprojects()) {
+          $descendants = id(new PhabricatorProjectQuery())
+            ->setViewer(PhabricatorUser::getOmnipotentUser())
+            ->withAncestorProjectPHIDs(array($object_phid))
+            ->withIsMilestone(false)
+            ->execute();
+          if ($descendants) {
+            $edges = id(new PhabricatorEdgeQuery())
+              ->withSourcePHIDs(mpull($descendants, 'getPHID'))
+              ->withEdgeTypes(array($edgetype_member));
+            $edges->execute();
+            $inherited = $edges->getDestinationPHIDs();
+            $hint += array_fuse($inherited);
+          }
+        }
       }
     }
 
@@ -456,6 +459,62 @@ final class PhabricatorProjectTransactionEditor
 
     $this->setIsMilestone($is_milestone);
     $this->setParentPHID($parent_phid);
+
+    $has_role = false;
+    foreach ($results as $xaction) {
+      if ($xaction->getTransactionType() === TeamProjectMemberRoleTransaction::TRANSACTIONTYPE) {
+        $has_role = true;
+      }
+    }
+    if (!$is_milestone && !$has_role) {
+      if ($this->getIsNewObject()) {
+        $results[] = id(new PhabricatorProjectTransaction())
+          ->setTransactionType(TeamProjectMemberRoleTransaction::TRANSACTIONTYPE)
+          ->setNewValue(array($object->getAuthorPHID() => 'admin'));
+      } else {
+        $roles = TeamProjectMembership::roleMap($object);
+        $members = array_fuse($object->getDirectMemberPHIDs());
+        $old_members = $members;
+        $expected = null;
+        foreach ($results as $xaction) {
+          if ($xaction->getTransactionType() !== PhabricatorTransactions::TYPE_EDGE ||
+              $xaction->getMetadataValue('edge:type') !== PhabricatorProjectProjectHasMemberEdgeType::EDGECONST) {
+            continue;
+          }
+          $spec = $xaction->getNewValue();
+          if ($this->getIsInverseEdgeEditor()) {
+            // The originating editor already wrote these edges. Use its
+            // supplied before/after maps to prune roles and protect the final
+            // administrator, including when the resulting member list is empty.
+            $old_members = array_fuse(array_keys((array)$xaction->getOldValue()));
+            $members = array_fuse(array_keys((array)$spec));
+          } else {
+            if (isset($spec['='])) { $members = array_fuse(array_keys($spec['='])); }
+            foreach (idx($spec, '+', array()) as $phid => $value) { $members[$phid] = $phid; }
+            foreach (idx($spec, '-', array()) as $phid => $value) { unset($members[$phid]); }
+          }
+          $expected = $xaction->getMetadataValue(TeamProjectMembership::EXPECTED_STATE);
+        }
+        $removed = array_diff(array_keys($old_members), array_keys($members));
+        $pruned = $roles;
+        foreach ($removed as $phid) {
+          // Leaving and rejoining must not let a read-only member discard
+          // an administrator's explicit edit ceiling.
+          if ($phid === $this->getActor()->getPHID() && idx($roles, $phid) === 'viewer' &&
+              !TeamProjectMembership::canManage($this->getActor(), $object)) {
+            continue;
+          }
+          unset($pruned[$phid]);
+        }
+        ksort($pruned, SORT_STRING); ksort($roles, SORT_STRING);
+        if ($pruned !== $roles) {
+          $results[] = id(new PhabricatorProjectTransaction())
+            ->setTransactionType(TeamProjectMemberRoleTransaction::TRANSACTIONTYPE)
+            ->setMetadataValue(TeamProjectMembership::EXPECTED_STATE, $expected)
+            ->setNewValue($pruned);
+        }
+      }
+    }
 
     return $results;
   }

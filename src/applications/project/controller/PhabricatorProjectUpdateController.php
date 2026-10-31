@@ -35,17 +35,25 @@ final class PhabricatorProjectUpdateController
     $done_uri = "/project/members/{$id}/";
 
     if (!$project->supportsEditMembers()) {
-      $copy = pht('Parent projects and milestones do not support adding '.
-        'members. You can add members directly to any non-parent subproject.');
+      $copy = pht('里程碑沿用父项目成员，请在父项目中管理成员。');
 
-      $subprojects_uri = "/project/subprojects/{$id}/";
+      $parent_id = $project->getParentProject()->getID();
+      $subprojects_uri = "/project/members/{$parent_id}/";
 
       return $this->newDialog()
         ->setTitle(pht('Unsupported Project'))
         ->appendParagraph($copy)
         ->setSubmitURI($subprojects_uri)
-        ->addSubmitButton(pht('See Subprojects'))
+        ->addSubmitButton(pht('查看父项目成员'))
         ->setDisableWorkflowOnSubmit(true)
+        ->addCancelButton($done_uri);
+    }
+
+    if ($action === 'leave' && !in_array(
+      $viewer->getPHID(), $project->getDirectMemberPHIDs())) {
+      return $this->newDialog()
+        ->setTitle(pht('来自子项目的成员'))
+        ->appendParagraph(pht('你没有本级直接成员身份，请到相应子项目中退出。'))
         ->addCancelButton($done_uri);
     }
 
@@ -97,6 +105,10 @@ final class PhabricatorProjectUpdateController
           'Your tremendous contributions to this project will be sorely '.
           'missed. Are you sure you want to leave?');
         $button = pht('Leave Project');
+        if ($project->getHasSubprojects()) {
+          $body = array($body, ' ', pht(
+            '退出本级后，若你仍属于子项目，仍会保留汇总成员身份。'));
+        }
       } else {
         $title = pht('Membership Locked');
         $body = pht(
