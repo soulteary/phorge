@@ -89,6 +89,41 @@ final class PhorgeOptionalIntegrationsTestCase extends PhabricatorTestCase {
     $this->assertFalse(PhorgeOptionalIntegrations::isMaintenanceEnabled());
   }
 
+  public function testConfiguredAppVisibilityAndPaginationMatchTheServiceContract() {
+    $env = $this->entryEnvironment();
+    $env->overrideEnvConfig('integrations.entry-session.enabled', true);
+    $env->overrideEnvConfig('integrations.maintenance.enabled', true);
+    $env->overrideEnvConfig('integrations.maintenance.endpoint', 'https://maintenance.invalid/rpc');
+    $file = new TempFile();
+    Filesystem::writeFile($file, Filesystem::readRandomBytes(32));
+    $env->overrideEnvConfig('integrations.maintenance.key-file', (string)$file);
+    $app = new TeamMaintenanceApplication();
+    $this->assertTrue($app->isLaunchable());
+    $this->assertFalse($app->isUnlisted());
+    $this->assertEqual(6, count($app->getRoutes()['/maintenance/']));
+    $this->assertTrue($app->isPinnedByDefault(id(new PhabricatorUser())->setIsAdmin(1)));
+    $this->assertFalse($app->isPinnedByDefault(new PhabricatorUser()));
+
+    $controller = new TeamMaintenanceOverviewController();
+    $params = new ReflectionMethod($controller, 'listParams');
+    $params->setAccessible(true);
+    $request = id(new AphrontRequest('phorge.example.invalid', '/maintenance/'))
+      ->setRequestData(array('offset' => '1000001'));
+    $this->assertEqual(100000, $params->invoke($controller, $request)['offset']);
+    $request->setRequestData(array('offset' => '-1'));
+    $this->assertEqual(0, $params->invoke($controller, $request)['offset']);
+    $pager = new ReflectionMethod($controller, 'pager');
+    $pager->setAccessible(true);
+    $html = (string)hsprintf('%s', $pager->invoke($controller, '/maintenance/users/',
+      array('offset' => 100000, 'limit' => 50, 'q' => ''), 200000));
+    $this->assertFalse(strpos($html, 'offset=100050') !== false);
+
+    $env->overrideEnvConfig('integrations.maintenance.key-file', '');
+    $this->assertFalse($app->isLaunchable());
+    $this->assertTrue($app->isUnlisted());
+    $this->assertEqual(array(), $app->getRoutes());
+  }
+
   public function testFileGuardUsesNativeDataDownloadAndTransformRoutes() {
     $phid = 'PHID-FILE-example';
     foreach (array(

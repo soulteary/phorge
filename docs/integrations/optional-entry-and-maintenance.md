@@ -127,8 +127,9 @@ newline:
 POST\n/rpc\n<TIMESTAMP>\n<NONCE>\n<SHA256_HEX_OF_BODY>
 ```
 
-The receiver must use constant-time signature comparison, bound timestamp
-skew, reject reused nonces, authorize the PHID/principal pair against live
+The existing receiver uses constant-time signature comparison, a 60-second
+timestamp skew limit, and 180-second nonce retention to reject reuse. A
+compatible receiver must also authorize the PHID/principal pair against live
 native identity and site administrator state, validate every field, and
 enforce account safeguards itself. PHP UI checks are not a substitute for
 service authorization. Never trust PHID, role, action eligibility, or target
@@ -149,7 +150,8 @@ hash, key, or private exception detail may appear in either response.
 | `set_user_status` | `user_id`, `status` (`active`/`inactive`), `reason` | Optional `entry_only`, `reauth_required` |
 | `set_password` | `user_id`, `password`, `password_confirm`, `reason` | Optional `reauth_required` |
 
-Timestamps are Unix seconds. Exact-item lookup uses the same list API and
+Timestamps are Unix seconds. List offsets are integers from 0 through 100000,
+and limits are integers from 1 through 100. Exact-item lookup uses the same list API and
 matches the returned ID exactly. Passwords are 15–128 valid UTF-8 characters,
 may contain whitespace, must match exactly, and must not contain NUL. They are
 POST-body fields only. The service must safely hash passwords, reject legacy
@@ -228,6 +230,7 @@ navigation tests with:
 ```sh
 bin/unit --no-coverage \
   src/applications/auth/__tests__/PhorgeOptionalIntegrationsTestCase.php \
+  src/applications/auth/__tests__/PhorgeMaintenanceRPCContractTestCase.php \
   src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php \
   src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php
 ```
@@ -238,6 +241,16 @@ and needs an isolated test installation with its own MySQL backend:
 ```sh
 bin/unit --no-coverage \
   src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php
+```
+
+The RPC contract test starts a disposable loopback PHP HTTP receiver, checks
+the real cURL/HMAC request path for all eight actions, and tests error/size/
+redirect handling without a database. The 90-second response deadline test is
+an explicit opt-in, skipped in ordinary test runs:
+
+```sh
+PHORGE_TEST_MAINTENANCE_TIMEOUT=1 bin/unit --no-coverage \
+  src/applications/auth/__tests__/PhorgeMaintenanceRPCContractTestCase.php
 ```
 
 These tests do not exercise a real gateway or implement the separately deployed

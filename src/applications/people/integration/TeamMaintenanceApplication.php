@@ -79,6 +79,9 @@ final class TeamMaintenanceClient extends Phobject {
   public function call(PhabricatorUser $actor, $principal, $action,
     array $params, $request_id = null) {
 
+    if (!PhabricatorEnv::getEnvConfig('integrations.maintenance.enabled')) {
+      throw new TeamMaintenanceServiceException('service_unavailable');
+    }
     if (!is_string($principal) || $principal === '' || strlen($principal) > 200) {
       throw new TeamMaintenanceServiceException('forbidden');
     }
@@ -164,6 +167,7 @@ final class TeamMaintenanceClient extends Phobject {
 
 abstract class TeamMaintenanceController extends PhabricatorController {
   const PAGE_SIZE = 50;
+  const MAX_OFFSET = 100000;
 
   public function shouldRequireAdmin() { return true; }
 
@@ -360,7 +364,7 @@ abstract class TeamMaintenanceController extends PhabricatorController {
     $q = $request->getStr('q', '');
     if (strlen($q) > 200) { $q = ''; }
     return array('q' => $q,
-      'offset' => max(0, min(1000000, $request->getInt('offset'))),
+      'offset' => max(0, min(self::MAX_OFFSET, $request->getInt('offset'))),
       'limit' => self::PAGE_SIZE);
   }
 
@@ -370,7 +374,7 @@ abstract class TeamMaintenanceController extends PhabricatorController {
     $links = array(phutil_tag('span', array(), '共 '.$total.' 条记录'));
     foreach (array(-self::PAGE_SIZE => '上一页', self::PAGE_SIZE => '下一页') as $delta => $label) {
       $next = $offset + $delta;
-      if ($next < 0 || $next >= $total) { continue; }
+      if ($next < 0 || $next > self::MAX_OFFSET || $next >= $total) { continue; }
       $query = $params;
       $query['offset'] = $next;
       unset($query['limit']);

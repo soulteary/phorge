@@ -4192,6 +4192,7 @@ phutil_register_library_map(array(
     'PhorgeLibraryStoreOriginData' => 'applications/extensions/storage/PhorgeLibraryStoreOriginData.php',
     'PhorgeListExtensionsWorkflow' => 'applications/extensions/management/PhorgeListExtensionsWorkflow.php',
     'PhorgeMacroMemeRemarkupControlExtension' => 'applications/macro/engineextension/PhorgeMacroMemeRemarkupControlExtension.php',
+    'PhorgeMaintenanceRPCContractTestCase' => 'applications/auth/__tests__/PhorgeMaintenanceRPCContractTestCase.php',
     'PhorgeModularTransactionLinter' => 'infrastructure/lint/linter/PhorgeModularTransactionLinter.php',
     'PhorgeNameTransactionTrait' => 'applications/transactions/xactiontraits/PhorgeNameTransactionTrait.php',
     'PhorgeNamedPolicy' => 'applications/policy/storage/PhorgeNamedPolicy.php',
@@ -9516,6 +9517,7 @@ phutil_register_library_map(array(
     'PhorgeLibraryStoreOriginData' => 'PhorgeExtensionsDTO',
     'PhorgeListExtensionsWorkflow' => 'PhorgeExtensionsManagementWorkflow',
     'PhorgeMacroMemeRemarkupControlExtension' => 'PhorgeRemarkupControlExtension',
+    'PhorgeMaintenanceRPCContractTestCase' => 'PhabricatorTestCase',
     'PhorgeModularTransactionLinter' => 'ArcanistLinter',
     'PhorgeNameTransactionTrait' => 'PhorgeTransactionObjectNameTrait',
     'PhorgeNamedPolicy' => array(
