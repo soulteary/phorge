@@ -31,6 +31,14 @@ jobs:
         run: php scripts/runtime/build.php all
       - name: Verify online translation maintenance without external API calls
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/i18n -p 'test_*.py' -v
+      - name: Verify selective upstream fixes
+        run: |
+          php bin/unit --no-coverage \
+            src/infrastructure/markup/__tests__/PhutilRemarkupEngineTestCase.php \
+            src/applications/search/engine/__tests__/PhabricatorApplicationSearchEngineTestCase.php \
+            src/applications/phid/query/__tests__/PhabricatorHandleQueryTestCase.php \
+            src/applications/ponder/view/__tests__/PonderAddAnswerViewTestCase.php \
+            src/infrastructure/internationalization/scope/__tests__/PhabricatorLocaleScopeGuardTestCase.php
       - name: Verify Conduit errors and authentication requirements
         run: php bin/unit --no-coverage src/applications/conduit/call/__tests__/ConduitCallTestCase.php
       - name: Verify runtime behavior and response safety
@@ -68,6 +76,11 @@ jobs:
         run: |
           docker exec -e MYSQL_PWD=gorge-contract-only "$MYSQL_CONTAINER" \
             mysql --user=root --execute="SET GLOBAL sql_mode = 'STRICT_ALL_TABLES'"
+      - name: Verify selective upstream cache regressions
+        env:
+          GORGE_TEST_MYSQL_PORT: '3306'
+          GORGE_TEST_MYSQL_PASSWORD: gorge-contract-only
+        run: php tests/contract/upstream/cache.php
       - name: Prepare parser tools for runtime maintenance contracts
         run: php scripts/runtime/build.php all
       - name: Verify bundled PHP runtime and retained behavior

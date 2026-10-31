@@ -35,4 +35,26 @@ final class PhabricatorLocaleScopeGuardTestCase
 
   }
 
+  public function testSelectiveUpstreamChineseMessages() {
+    $guard = PhabricatorEnv::beginScopedLocale('zh_CN');
+    try {
+      $this->assertEqual('每页结果数量已限制', pht('Page Size Limited'));
+      $this->assertEqual('找不到某些设置？', pht('Missing Some Settings?'));
+      $this->assertEqual(
+        '你请求每页显示 5,000 条结果，但每页最多只能显示 1,000 条。',
+        pht(
+          'You requested %s results per page, but the maximum page size is %s.',
+          new PhutilNumber(5000),
+          new PhutilNumber(1000)));
+      $this->assertEqual(
+        "迭代器 'unknown' 不存在。可用的迭代器：ManiphestTask。",
+        pht(
+          "Iterator '%s' does not exist. Valid iterators are: %s.",
+          'unknown',
+          'ManiphestTask'));
+    } finally {
+      unset($guard);
+    }
+  }
+
 }

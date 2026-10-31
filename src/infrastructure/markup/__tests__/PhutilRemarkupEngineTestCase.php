@@ -20,6 +20,27 @@ final class PhutilRemarkupEngineTestCase extends PhabricatorTestCase {
     }
   }
 
+  public function testReservedTokenByteIsStripped() {
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('gorge.render.uri', '');
+    $byte = PhutilRemarkupBlockStorage::MAGIC_BYTE;
+    try {
+      foreach (array('lang', 'name') as $option) {
+        foreach (array(PhutilRemarkupEngine::MODE_DEFAULT,
+                       PhutilRemarkupEngine::MODE_TEXT) as $mode) {
+          $input = "```".$option.'="x'.$byte."1Z\"\nbody\n```\n";
+          $engine = $this->buildNewTestEngine();
+          $engine->setMode($mode);
+          $output = (string)$engine->markupText($input);
+          $this->assertEqual(0, substr_count($output, $byte));
+          $this->assertTrue(strpos($output, 'body') !== false);
+        }
+      }
+    } finally {
+      unset($env);
+    }
+  }
+
   private function markupText($markup_file) {
     $contents = Filesystem::readFile($markup_file);
     $file = basename($markup_file);
