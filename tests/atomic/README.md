@@ -16,6 +16,7 @@ point these variables at a deployed service, even through a local tunnel.
 php scripts/runtime/build.php all
 php bin/rebuild-library-map
 php tests/atomic/test_gate.php
+php tests/atomic/test_timeout.php
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/atomic -p 'test_*.py' -v
 
 ATOMIC_TEST_DISPOSABLE=1 \
@@ -55,6 +56,13 @@ regressions verify that broad cluster selection still includes ordinary
 library checks, excludes the atomic-only preflight, and that explicit atomic
 selection still discovers the required fixture. No dependency is skipped or
 removed from the D01 gate.
+
+This dedicated environment case uses a 30-second CPU budget for actual
+migrations and paired service calls, rather than the native pure-unit
+default. Its ordinary parent teardown restores the prior limit. The
+standalone hook regression checks both unlimited and finite caller budgets,
+including a failing body, without using database or network services. The
+bundled test engine and other suites' default budgets are unchanged.
 
 ## Package contract
 
