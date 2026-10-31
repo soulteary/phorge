@@ -41,6 +41,17 @@ HTTP validation preserves the production-default builtin-composition mode.
 Mandatory D01 probes separately exercise actual Gorge image composition.
 Neither the driver nor the feature adds a production PHP rendering fallback.
 
+The functional HTTP server explicitly uses `opcache.jit=disable`, retaining
+OPcache and all HTTP assertions. Function JIT reproduces an incorrect retained
+SQL-formatter result before web startup on PHP 8.4/8.5 CI runtimes; a DB-free
+real-server regression simulates that host configuration, checks exact formatter
+outputs and rejected argument counts, and verifies the launcher's selected mode.
+CI runs this regression before HTTP acceptance. The report records the actual
+server PHP version, SAPI, OPcache enable/CLI settings, JIT mode, and buffer size.
+This is an isolated functional-test setting; production PHP/runtime settings
+are unchanged. PHP documents `disable` as its default JIT mode since 8.4:
+https://www.php.net/manual/en/opcache.configuration.php#ini.opcache.jit
+
 ## Automated HTTP coverage
 
 - Real native sessions for an editor, reader, observer, and Chinese editor.

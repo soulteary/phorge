@@ -28,7 +28,14 @@ if (strpos($uri, '/__atomic/') === 0) {
   }
   if ($uri === '/__atomic/ready') {
     header('Content-Type: application/json');
-    echo '{"ready":true}';
+    echo json_encode(array('ready' => true, 'runtime' => array(
+      'php' => PHP_VERSION,
+      'sapi' => PHP_SAPI,
+      'jit' => ini_get('opcache.jit'),
+      'opcacheEnabled' => ini_get('opcache.enable'),
+      'opcacheCLIEnabled' => ini_get('opcache.enable_cli'),
+      'jitBufferSize' => ini_get('opcache.jit_buffer_size'),
+    )));
     return;
   }
   if (preg_match('@\A/__atomic/session/(owner|reader|observer|chinese)/\z@', $uri, $m)) {

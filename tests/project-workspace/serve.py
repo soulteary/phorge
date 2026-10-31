@@ -27,6 +27,15 @@ GATE = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(GATE)
 
 
+def php_server_command(port, document_root, router):
+    # Functional coverage uses PHP's default non-JIT execution mode. Some
+    # runner images enable function JIT, which miscompiles the retained
+    # by-reference SQL formatter on PHP 8.4/8.5 before a request can start.
+    # Keep OPcache enabled; do not change the application or relax assertions.
+    return ['php', '-d', 'opcache.jit=disable', '-S', f'127.0.0.1:{port}',
+            '-t', str(document_root), str(router)]
+
+
 class Forms(HTMLParser):
     def __init__(self):
         super().__init__(); self.forms = []; self.current = None
@@ -151,11 +160,16 @@ def main():
         fixture_path = private/'fixture.json'
         fixture_path.write_text(json.dumps(data)); fixture_path.chmod(0o600)
         log = (output/'server.log').open('w')
-        server = subprocess.Popen(['php','-S',f'127.0.0.1:{port}','-t',str(ROOT/'webroot'),str(HERE/'router.php')],
+        server = subprocess.Popen(php_server_command(port, ROOT/'webroot', HERE/'router.php'),
                                   cwd=ROOT,env=env,stdout=log,stderr=subprocess.STDOUT)
         for _ in range(50):
             try:
-                if request(client(),'/__atomic/ready?key='+key)[0]==200: break
+                code, ready, _ = request(client(),'/__atomic/ready?key='+key)
+                if code == 200:
+                    report['serverRuntime'] = json.loads(ready)['runtime']
+                    if report['serverRuntime']['jit'] != 'disable':
+                        raise RuntimeError('Functional PHP server did not disable JIT.')
+                    break
             except OSError: time.sleep(.1)
         else: raise RuntimeError('Disposable native server did not start.')
         history = data['projects']['main']['history']; board = data['projects']['main']['board']
