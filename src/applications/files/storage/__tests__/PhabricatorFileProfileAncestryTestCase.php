@@ -57,6 +57,6 @@ final class PhabricatorFileProfileAncestryTestCase extends PhabricatorTestCase {
       ->setViewer($viewer)
       ->withPHIDs(array($file->getPHID()))
       ->setRaisePolicyExceptions(false)
-      ->executeOne();
+      ->execute();
   }
 }
