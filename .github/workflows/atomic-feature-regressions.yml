@@ -103,10 +103,10 @@ jobs:
       - name: Run every registered native package with mandatory dependency preflight
         run: python3 tests/atomic/run.py --output "$RUNNER_TEMP/atomic-evidence"
       - name: Verify native workspace HTTP and persistence contracts when installed
-        if: ${{ hashFiles('tests/project-workspace/serve.py') != '' }}
+        if: ${{ hashFiles('tests/atomic/packages/D06.json') != '' }}
         run: python3 tests/project-workspace/serve.py --exit-after-http --output "$RUNNER_TEMP/workspace-http-evidence"
       - uses: actions/upload-artifact@v4
-        if: always() && hashFiles('tests/project-workspace/serve.py') != ''
+        if: always() && hashFiles('tests/atomic/packages/D06.json') != ''
         with:
           name: atomic-workspace-http-php-${{ matrix.php }}
           path: ${{ runner.temp }}/workspace-http-evidence
