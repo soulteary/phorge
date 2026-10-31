@@ -7,6 +7,29 @@ final class PhorgeAtomicEnvironmentTestCase extends PhabricatorTestCase {
     return array(self::PHABRICATOR_TESTCONFIG_BUILD_STORAGE_FIXTURES => true);
   }
 
+  public function testBroadRuntimeDiscoveryExcludesAtomicPreflight() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $engine = id(new PhutilUnitTestEngine())
+      ->setWorkingCopy(ArcanistWorkingCopyIdentity::newFromPath($root))
+      ->setPaths(array($root.'/src/infrastructure/cluster/'));
+    // Exercise native ancestor-suite discovery without running those suites.
+    // Reflection invocation of private methods is supported on PHP 8.3+.
+    $method = new ReflectionMethod(PhutilUnitTestEngine::class, 'getTestsForPaths');
+    $classes = $method->invoke($engine);
+    $this->assertTrue(in_array(PhabricatorLibraryTestCase::class, $classes, true));
+    $this->assertTrue(in_array(PhabricatorGorgeDiffClientTestCase::class, $classes, true));
+    $this->assertFalse(in_array(self::class, $classes, true));
+  }
+
+  public function testExplicitAtomicPreflightIsStillDiscovered() {
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $engine = id(new PhutilUnitTestEngine())
+      ->setWorkingCopy(ArcanistWorkingCopyIdentity::newFromPath($root))
+      ->setPaths(array(__FILE__));
+    $method = new ReflectionMethod(PhutilUnitTestEngine::class, 'getTestsForPaths');
+    $this->assertEqual(array(self::class), $method->invoke($engine));
+  }
+
   public function testGorgeIsTheWritableFileEngine() {
     $this->assertEqual('1', getenv('ATOMIC_TEST_DISPOSABLE'));
     $engines = PhabricatorFileStorageEngine::loadWritableEngines();
