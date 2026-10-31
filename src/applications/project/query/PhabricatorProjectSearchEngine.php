@@ -18,6 +18,22 @@ final class PhabricatorProjectSearchEngine
       ->needWatchers(true);
   }
 
+  protected function getObjectWireFieldsForConduit(
+    $object,
+    array $field_extensions,
+    array $extension_data) {
+
+    $fields = parent::getObjectWireFieldsForConduit(
+      $object, $field_extensions, $extension_data);
+    $parent = $object->getParentProject();
+    if ($parent && !PhabricatorPolicyFilter::hasCapability(
+      $this->requireViewer(), $parent,
+      PhabricatorPolicyCapability::CAN_VIEW)) {
+      $fields['parent'] = null;
+    }
+    return $fields;
+  }
+
   protected function buildCustomSearchFields() {
     $subtype_map = id(new PhabricatorProject())->newEditEngineSubtypeMap();
     $hide_subtypes = ($subtype_map->getCount() == 1);
@@ -238,6 +254,10 @@ final class PhabricatorProjectSearchEngine
 
     $names['active'] = pht('Active');
     $names['all'] = pht('All');
+    // The first enabled builtin is the native no-pinned-query fallback.
+    // Keep Joined/Active first; hierarchy is selected explicitly by the
+    // opt-in list controller or its stable query URL.
+    $names['hierarchy'] = pht('Project Hierarchy');
 
     return $names;
   }
@@ -254,6 +274,14 @@ final class PhabricatorProjectSearchEngine
     $active = PhabricatorProjectStatus::STATUS_ACTIVE_KEY;
 
     switch ($query_key) {
+      case 'hierarchy':
+        // Paginate roots, not a flat mix of roots and descendants. Children
+        // are loaded separately, with the viewer's policy, at each level.
+        // Include archived roots so their active children remain reachable.
+        return $query
+          ->setParameter('isRoot', true)
+          ->setParameter('status', 'all')
+          ->setParameter('order', 'name');
       case 'all':
         return $query;
       case 'active':
@@ -344,6 +372,10 @@ final class PhabricatorProjectSearchEngine
     $list = id(new PhabricatorProjectListView())
       ->setViewer($viewer)
       ->setProjects($projects)
+      ->setBrowseHierarchy($query->getQueryKey() === 'hierarchy')
+      ->setShowHierarchyPath(
+        PhabricatorProjectNavigation::isHierarchyDefault() ||
+        $query->getQueryKey() === 'hierarchy')
       ->setShowWatching(true)
       ->setShowMember(true)
       ->renderList();

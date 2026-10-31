@@ -5,6 +5,13 @@ final class PhabricatorPolicyEditController
 
   public function handleRequest(AphrontRequest $request) {
     $viewer = $this->getViewer();
+    $request_data = $request->getRequestData();
+    $capability = idx($request_data, 'capability');
+    if ($capability !== null && $capability !== '' &&
+        (!is_string($capability) ||
+         !PhabricatorPolicyCapability::getCapabilityByKey($capability))) {
+      return $this->newUnavailableRuleResponse();
+    }
 
     $object_phid = $request->getURIData('objectPHID');
     if ($object_phid) {
@@ -52,14 +59,7 @@ final class PhabricatorPolicyEditController
       ->setAncestorClass(PhabricatorPolicyRule::class)
       ->execute();
 
-    foreach ($rules as $key => $rule) {
-      if (!$rule->canApplyToObject($object)) {
-        unset($rules[$key]);
-      }
-    }
-
-    $rules = msort($rules, 'getRuleOrder');
-
+    $rules = self::selectBusinessRules($rules, $object);
     $default_rule = array(
       'action' => head_key($action_options),
       'rule' => head_key($rules),
@@ -76,9 +76,33 @@ final class PhabricatorPolicyEditController
       }
       $policy = head($policies);
     } else {
+      if (!$rules) {
+        return $this->newUnavailableRuleResponse();
+      }
       $policy = id(new PhabricatorPolicy())
         ->setRules(array($default_rule))
         ->setDefaultAction(PhabricatorPolicy::ACTION_DENY);
+    }
+
+    // Never pass an unavailable stored rule to the native JavaScript editor:
+    // its missing option/template could change what the person sees or saves.
+    // Policies are immutable and their original evaluation remains intact.
+    if ($phid && self::hasUnavailableRules($policy, $rules)) {
+      return $this->newHistoricalPolicyResponse($request, $policy);
+    }
+    if (!$rules) {
+      return $this->newUnavailableRuleResponse();
+    }
+
+    // Continue the same policy-control Workflow, preserving its result handler.
+    // This first POST only opens a fresh editor; the next explicit Save Policy
+    // creates a policy and the outer object form still has to apply it.
+    $starting_replacement = $request->getExists('__start_policy_replacement__');
+    if ($starting_replacement &&
+        (!$request->isFormPost() ||
+         idx($request_data, '__start_policy_replacement__') !== '1' ||
+         $request->getExists('rules') || $phid)) {
+      return $this->newUnavailableRuleResponse();
     }
 
     $root_id = celerity_generate_unique_node_id();
@@ -87,34 +111,48 @@ final class PhabricatorPolicyEditController
     $rule_data = $policy->getRules();
 
     $errors = array();
-    if ($request->isFormPost()) {
-      $data = $request->getStr('rules');
+    if ($request->isFormPost() && !$starting_replacement) {
+      $data = idx($request_data, 'rules');
+      $default_action = idx($request_data, 'default');
+      if (!is_string($data) || !is_string($default_action) ||
+          !isset($action_options[$default_action])) {
+        return $this->newUnavailableRuleResponse();
+      }
       try {
         $data = phutil_json_decode($data);
       } catch (PhutilJSONParserException $ex) {
-        throw new Exception(
-          pht('Failed to JSON decode rule data!'),
-          0,
-          $ex);
+        return $this->newUnavailableRuleResponse();
+      }
+      if (!is_array($data)) {
+        return $this->newUnavailableRuleResponse();
       }
 
       $rule_data = array();
       foreach ($data as $rule) {
+        if (!is_array($rule)) {
+          return $this->newUnavailableRuleResponse();
+        }
         $action = idx($rule, 'action');
+        if (!is_string($action)) {
+          return $this->newUnavailableRuleResponse();
+        }
         switch ($action) {
           case 'allow':
           case 'deny':
             break;
           default:
-            throw new Exception(pht("Invalid action '%s'!", $action));
+            return $this->newUnavailableRuleResponse();
         }
 
         $rule_class = idx($rule, 'rule');
-        if (empty($rules[$rule_class])) {
-          throw new Exception(pht("Invalid rule class '%s'!", $rule_class));
+        if (!is_string($rule_class) || empty($rules[$rule_class])) {
+          return $this->newUnavailableRuleResponse();
         }
 
         $rule_obj = $rules[$rule_class];
+        if (!self::isRuleValueAvailable($rule_obj, idx($rule, 'value'))) {
+          return $this->newUnavailableRuleResponse();
+        }
 
         $value = $rule_obj->getValueForStorage(idx($rule, 'value'));
 
@@ -147,7 +185,7 @@ final class PhabricatorPolicyEditController
       if (!$errors) {
         $new_policy = new PhabricatorPolicy();
         $new_policy->setRules($valid_rules);
-        $new_policy->setDefaultAction($request->getStr('default'));
+        $new_policy->setDefaultAction($default_action);
         $new_policy->save();
 
         $data = array(
@@ -228,7 +266,6 @@ final class PhabricatorPolicyEditController
       ),
       $form);
 
-    $rules = mfilter($rules, 'shouldHideFromUI', true);
     $rule_options = mpull($rules, 'getRuleDescription');
     $type_map = mpull($rules, 'getValueControlType');
     $templates = mpull($rules, 'getValueControlTemplate');
@@ -262,7 +299,114 @@ final class PhabricatorPolicyEditController
       ->addSubmitButton(pht('Save Policy'))
       ->addCancelButton('#');
 
+    if ($key) {
+      $dialog->addHiddenInput('capability', $key);
+    }
+
     return id(new AphrontDialogResponse())->setDialog($dialog);
+  }
+
+  private static function selectBusinessRules(
+    array $rules,
+    PhabricatorPolicyInterface $object) {
+
+    $hidden = array_fuse(PhabricatorPolicyEditorRuleSet::getHiddenRuleClasses());
+    foreach ($rules as $key => $rule) {
+      if (!$rule->canApplyToObject($object) || $rule->shouldHideFromUI() ||
+          isset($hidden[get_class($rule)])) {
+        unset($rules[$key]);
+      }
+    }
+    return msort($rules, 'getRuleOrder');
+  }
+
+  private static function hasUnavailableRules(
+    PhabricatorPolicy $policy,
+    array $rules) {
+
+    foreach ($policy->getRules() as $rule) {
+      if (!is_array($rule) || !is_string(idx($rule, 'rule')) ||
+          !isset($rules[$rule['rule']]) ||
+          !in_array(idx($rule, 'action'), array('allow', 'deny'), true) ||
+          !self::isRuleValueAvailable(
+            $rules[$rule['rule']], idx($rule, 'value'))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static function isRuleValueAvailable(
+    PhabricatorPolicyRule $rule,
+    $value) {
+
+    if ($rule->getValueControlType() !==
+        PhabricatorPolicyRule::CONTROL_TYPE_SELECT) {
+      return true;
+    }
+    $options = idx($rule->getValueControlTemplate(), 'options', array());
+    return (is_string($value) || is_int($value)) &&
+      array_key_exists($value, $options);
+  }
+
+  private static function newReplacementURI(AphrontRequest $request) {
+    $base = '/policy/edit/';
+    if ($request->getURIData('objectPHID')) {
+      $context = 'object/'.rawurlencode($request->getURIData('objectPHID'));
+    } else if ($request->getURIData('objectType')) {
+      $context = 'type/'.rawurlencode($request->getURIData('objectType'));
+    } else {
+      $context = 'template/'.rawurlencode($request->getURIData('templateType'));
+    }
+    $uri = new PhutilURI($base.$context.'/'.
+      AphrontFormPolicyControl::getSelectCustomKey().'/');
+    $capability = $request->getStr('capability', '');
+    if ($capability !== '') {
+      $uri->replaceQueryParam('capability', $capability);
+    }
+    return $uri;
+  }
+
+  private function newHistoricalPolicyResponse(
+    AphrontRequest $request,
+    PhabricatorPolicy $policy) {
+
+    $dialog = id(new AphrontDialogView())
+      ->setViewer($this->getViewer())
+      ->setWidth(AphrontDialogView::WIDTH_FULL)
+      ->setTitle(pht('Historical Policy (Read Only)'))
+      ->appendParagraph(pht(
+        'This policy contains rules which are unavailable in this editor. '.
+        'The existing rules continue to apply and will not be removed or '.
+        'rewritten automatically.'))
+      ->appendChild(id(new PhabricatorPolicyRulesView())
+        ->setViewer($this->getViewer())->setPolicy($policy))
+      ->appendParagraph(pht(
+        'To make changes, create a replacement policy and configure all of '.
+        'its rules explicitly. After saving the new policy, save the original '.
+        'object to apply its new permission settings.'))
+      ->setSubmitURI(self::newReplacementURI($request))
+      ->addHiddenInput('__start_policy_replacement__', '1')
+      ->addHiddenInput('capability', $request->getStr('capability', ''))
+      ->addSubmitButton(pht('Create Replacement Policy'))
+      ->addCancelButton('#');
+    if ($request->isFormPost()) {
+      $dialog->setErrors(array(pht(
+        'Historical policies can not be edited directly. '.
+        'This submission was not saved.')));
+    }
+    return id(new AphrontDialogResponse())->setDialog($dialog);
+  }
+
+  private function newUnavailableRuleResponse() {
+    return id(new AphrontDialogResponse())->setDialog(
+      id(new AphrontDialogView())
+        ->setViewer($this->getViewer())
+        ->setTitle(pht('Unavailable Policy Rule'))
+        ->appendParagraph(pht(
+          'This rule is not available for the current object. This submission '.
+          'was not saved. Reopen the custom policy and choose supported rules.'))
+        ->addCancelButton('#', pht('Close')));
   }
 
   private function handleProjectRequest(AphrontRequest $request) {

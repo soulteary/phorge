@@ -32,6 +32,16 @@ final class PhabricatorPolicyConfigOptions
     $policy_locked_example = $json->encodeFormatted($policy_locked_example);
 
     return array(
+      $this->newOption('policy.editor.hidden-rules', 'wild', null)
+        ->setLocked(true)
+        ->setSummary(pht('Rules unavailable for new custom-policy editing.'))
+        ->setDescription(pht(
+          'Use null to inherit the product profile: collaboration hides lunar '.
+          'phase and Legalpad signature conditions, while full keeps them. '.
+          'An explicit list of rule class names overrides this default; an '.
+          'empty list keeps all ordinary rules available. Existing policies '.
+          'continue to evaluate unchanged and unavailable rules are shown '.
+          'read-only until an explicit replacement is configured.')),
       $this->newOption('policy.allow-public', 'bool', false)
         ->setBoolOptions(
           array(

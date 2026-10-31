@@ -8,7 +8,7 @@ final class PhabricatorProjectsAncestorsSearchEngineAttachment
   }
 
   public function getAttachmentDescription() {
-    return pht('Get the full ancestor list for each project.');
+    return pht('Get the visible ancestors for each project.');
   }
 
   public function getAttachmentForObject($object, $data, $spec) {
@@ -19,6 +19,13 @@ final class PhabricatorProjectsAncestorsSearchEngineAttachment
 
     $results = array();
     foreach ($ancestors as $ancestor) {
+      if (!PhabricatorPolicyFilter::hasCapability(
+        $this->getViewer(),
+        $ancestor,
+        PhabricatorPolicyCapability::CAN_VIEW)) {
+        continue;
+      }
+
       $results[] = $ancestor->getRefForConduit();
     }
 
