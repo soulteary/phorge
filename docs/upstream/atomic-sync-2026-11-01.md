@@ -55,6 +55,12 @@ adding native broad-versus-explicit discovery regressions. The bundled test
 engine and existing runtime acceptance selections remain unchanged.
 The corrected D01 suite passed all 49 native methods locally on PHP 8.5.8
 with the same disposable paired services; no required method was skipped.
+Sequential feature acceptance also exposed the pure-unit four-second CPU
+limit in the repeated-migration preflight. Only the dedicated atomic
+environment case now receives a bounded 30-second integration budget; the
+native parent teardown still restores the caller's limit. A no-service hook
+regression covers restoration after normal and failed bodies. No global
+runtime budget or production setting changes.
 
 Required skips are failures. An explicitly documented optional skip remains a
 skip in the result JSON. A source author's acceptance count or a declared

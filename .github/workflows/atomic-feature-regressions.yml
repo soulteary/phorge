@@ -55,6 +55,7 @@ jobs:
       - name: Check runner failure and isolation policy
         run: |
           php tests/atomic/test_gate.php
+          php tests/atomic/test_timeout.php
           python3 -m unittest discover -s tests/atomic -p 'test_*.py' -v
       - name: Require the same immutable Gorge revision as paired runtime contracts
         run: |
