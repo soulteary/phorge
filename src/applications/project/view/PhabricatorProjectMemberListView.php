@@ -21,10 +21,7 @@ final class PhabricatorProjectMemberListView
       return false;
     }
 
-    return PhabricatorPolicyFilter::hasCapability(
-      $viewer,
-      $project,
-      PhabricatorPolicyCapability::CAN_EDIT);
+    return TeamProjectMembership::canManage($viewer, $project);
   }
 
   protected function getNoDataString() {
@@ -32,7 +29,7 @@ final class PhabricatorProjectMemberListView
   }
 
   protected function getRemoveURI($phid) {
-    if ($this->isInherited) {
+    if ($this->isInherited || !TeamProjectMembership::canManage($this->getViewer(), $this->getProject())) {
       return null;
     }
     $project = $this->getProject();

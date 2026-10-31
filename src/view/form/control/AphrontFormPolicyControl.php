@@ -117,14 +117,24 @@ final class AphrontFormPolicyControl extends AphrontFormControl {
     $policy_map = mpull($policies, null, 'getPHID');
     $value = $this->getValue();
     if ($value && empty($policy_map[$value])) {
-      $handle = id(new PhabricatorHandleQuery())
-        ->setViewer($viewer)
-        ->withPHIDs(array($value))
-        ->executeOne();
-      if ($handle->isComplete()) {
-        $policies[] = PhabricatorPolicy::newFromPolicyAndHandle(
-          $value,
-          $handle);
+      $selected_policy = null;
+      if ($this->supportsTeamPolicy() &&
+          phid_get_type($value) === PhabricatorPolicyPHIDTypePolicy::TYPECONST) {
+        $selected_policy = id(new PhabricatorPolicyQuery())->setViewer($viewer)
+          ->withPHIDs(array($value))->executeOne();
+      }
+      if ($selected_policy) {
+        $policies[] = $selected_policy;
+      } else {
+        $handle = id(new PhabricatorHandleQuery())
+          ->setViewer($viewer)
+          ->withPHIDs(array($value))
+          ->executeOne();
+        if ($handle->isComplete()) {
+          $policies[] = PhabricatorPolicy::newFromPolicyAndHandle(
+            $value,
+            $handle);
+        }
       }
     }
 
@@ -168,6 +178,21 @@ final class AphrontFormPolicyControl extends AphrontFormControl {
         'icon' => $policy->getIcon(),
         'sort' => phutil_utf8_strtolower($policy->getName()),
       );
+      if ($this->supportsTeamPolicy()) {
+        $info = TeamProjectTeamPolicy::getPolicyInfo($viewer, $policy);
+        if ($info !== null) {
+          $options[$policy->getType()][$policy->getPHID()] = $info + array(
+            'sort' => phutil_utf8_strtolower($info['name']));
+        }
+      }
+    }
+
+    if ($this->supportsTeamPolicy()) {
+      $options['organization-team'] = array(
+        TeamProjectTeamPolicy::SELECT_KEY => array(
+          'name' => pht('团队成员…'), 'full' => pht('选择具体团队及成员包含范围'),
+          'icon' => 'fa-sitemap',
+        ));
     }
 
     // TODO hide "named policy" section if the feature isn't used at all (never
@@ -236,6 +261,7 @@ final class AphrontFormPolicyControl extends AphrontFormControl {
         PhabricatorPolicyType::TYPE_GLOBAL,
         PhabricatorPolicyType::TYPE_OBJECT,
         PhabricatorPolicyType::TYPE_USER,
+        'organization-team',
         PhabricatorPolicyType::TYPE_CUSTOM,
         PhabricatorPolicyType::TYPE_NAMED,
         PhabricatorPolicyType::TYPE_PROJECT,
@@ -290,7 +316,8 @@ final class AphrontFormPolicyControl extends AphrontFormControl {
     $labels = array();
     foreach ($options as $key => $values) {
       $order[$key] = array_keys($values);
-      $labels[$key] = PhabricatorPolicyType::getPolicyTypeName($key);
+      $labels[$key] = $key === 'organization-team'
+        ? pht('团队成员') : PhabricatorPolicyType::getPolicyTypeName($key);
     }
 
     $flat_options = array_mergev($options);
@@ -324,7 +351,8 @@ final class AphrontFormPolicyControl extends AphrontFormControl {
         'labels' => $labels,
         'value' => $this->getValue(),
         'capability' => $this->capability,
-        'editURI' => '/policy/edit/'.$context_path,
+        'editURI' => ($this->supportsTeamPolicy()
+          ? '/organization/project-policy/' : '/policy/edit/').$context_path,
         'customKey' => $this->getSelectCustomKey(),
         'selectPrefix' => $this->getSelectKeyPrefix(),
         'disabled' => $this->getDisabled(),
@@ -371,6 +399,10 @@ final class AphrontFormPolicyControl extends AphrontFormControl {
 
   private static function getSelectKeyPrefix() {
     return 'select_';
+  }
+
+  private function supportsTeamPolicy() {
+    return TeamProjectTeamPolicy::supportsObject($this->object, $this->capability);
   }
 
   public static function getSelectCustomKey() {

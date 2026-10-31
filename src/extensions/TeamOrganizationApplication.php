@@ -23,6 +23,8 @@ final class TeamOrganizationApplication extends PhabricatorApplication {
       'user/(?P<phid>PHID-USER-[a-z0-9]+)/' => 'TeamOrganizationUserController',
       'project/(?P<id>[1-9]\\d*)/permissions/' => 'TeamProjectAccessController',
       'resources/project-access\\.js' => 'TeamProjectAccessScriptController',
+      'project/(?P<id>[1-9]\\d*)/member-role/' => 'TeamProjectMemberRoleController',
+      'project-policy/(?:object/(?P<objectPHID>PHID-PROJ-[a-z0-9]+)|type/(?P<objectType>PROJ))/(?P<phid>[^/]+)/' => 'TeamProjectTeamPolicyController',
     ));
   }
 }
@@ -467,9 +469,8 @@ final class TeamProjectAccessController extends TeamOrganizationController {
     $named = phid_get_type($project->getPolicy($capability)) === 'NPLC';
     if ($named && !$request->isHTTPPost()) { $input['mode'] = 'keep'; }
     $disabled_modes = $named ? array('add', 'revoke') : array();
-    if ($capability === 'edit') {
-      // A project has no automatic edit grant. Empty explicit edit permission
-      // would always lock out its manager and is rejected by the native editor.
+    if ($capability === 'edit' && !TeamProjectMembership::isAutomaticRole($project, $viewer)) {
+      // Legacy projects may have no automatic edit grant.
       $disabled_modes[] = 'automatic';
       if (!$viewer->getIsAdmin()) { $disabled_modes[] = 'administrators'; }
     }
@@ -481,7 +482,7 @@ final class TeamProjectAccessController extends TeamOrganizationController {
       ->setAction('/organization/project/'.$project->getID().'/permissions/')
       ->appendControl(id(new AphrontFormSelectControl())->setName('capability')->setLabel('权限项')
         ->setValue($capability)->setOptions(array('view' => '谁能查看',
-          'edit' => '谁能编辑与发布', 'join' => '谁能加入'))
+          'edit' => '谁能编辑', 'join' => '谁能加入'))
         ->setCaption('切换后查看对应规则；每次保存只修改所选权限，项目整体额外限制除外。'))
       ->appendControl(id(new AphrontFormSubmitControl())->setValue('打开权限项'));
     $form = id(new AphrontFormView())->setUser($viewer)
@@ -547,7 +548,7 @@ final class TeamProjectAccessController extends TeamOrganizationController {
       $this->box($capabilities[$capability].' · 当前显式规则',
         $this->renderRules($project, $policy, $capability, $input['expectedState'])),
       $this->box('自动权限与其他规则', array(
-        phutil_tag('p', array(), '项目成员仍自动可见，包含通过子项目聚合的成员；编辑者仍可加入。编辑和发布也需要先能查看项目。'),
+        phutil_tag('p', array(), '项目成员仍自动可见，包含通过子项目聚合的成员；编辑者仍可加入。明确设置的成员角色可能授予或限制编辑权限，管理成员和授权仅限项目管理员。'),
         phutil_tag('p', array(), '回收一个来源后，其他来源可能继续授权。替换或回收显式规则不修改项目成员或用户的团队归属。'),
         phutil_tag('a', array('href' => '/project/members/'.$project->getID().'/'), '管理项目成员'),
         ' · ', phutil_tag('a', array('href' => '/project/edit/'.$project->getID().'/'), '高级策略设置'),

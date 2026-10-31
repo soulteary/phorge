@@ -285,7 +285,7 @@ final class TeamOrganizationBoundaryTeamsEditField extends PhabricatorTokenizerE
       pht('高级额外限制，与普通授权取交集；留空不限制，已有项目成员也受限。'.
         '同时影响查看、编辑和加入，不改变团队目录或名单隐私。'.
         '这项设置只限制、不授予权限；已有项目请在“权限管理”中增添人员或团队，'.
-        '新项目可在创建后配置这些授权。创建时仍由“谁能查看、编辑、加入”决定初始范围。'.
+        '新项目可在“谁能查看、编辑、加入”的策略下拉中选择团队成员，分别设置初始范围。'.
         '站点管理员仍须满足项目原有权限。'));
   }
 }
@@ -305,12 +305,14 @@ final class TeamOrganizationProjectEditExtension extends PhabricatorEditEngineEx
     return array(
       id(new TeamOrganizationBoundaryTeamsEditField())
         ->setKey('organizationTeams')->setLabel(pht('团队额外限制（影响查看、编辑、加入）'))
+        ->setIsFormField(!$engine->getIsCreate() && TeamProjectMembership::canManage($engine->getViewer(), $object))
         ->setEditTypeKey('organization.teams')
         ->setDescription(pht('在原项目权限之外要求符合所选团队；空列表关闭此额外限制。'))
         ->setTransactionType(TeamOrganizationBoundaryTeamsTransaction::TRANSACTIONTYPE)
         ->setValue($object->getProperty(TeamOrganizationProjectBoundary::TEAMS_PROPERTY, array())),
       id(new PhabricatorSelectEditField())
         ->setKey('organizationScope')->setLabel(pht('额外限制的团队范围'))
+        ->setIsFormField(!$engine->getIsCreate() && TeamProjectMembership::canManage($engine->getViewer(), $object))
         ->setEditTypeKey('organization.scope')
         ->setDescription(pht('限制范围包含所选团队本级，或所选团队及全部下级。'))
         ->setTransactionType(TeamOrganizationBoundaryScopeTransaction::TRANSACTIONTYPE)
@@ -434,6 +436,9 @@ final class TeamOrganizationBoundaryValidationExtension extends PhabricatorEdito
           break;
       }
     }
+    if ($changed && $object->getID() && !TeamProjectMembership::canManage($this->getViewer(), $object)) {
+      return array($this->newTransactionError($changed, pht('项目管理员'), pht('只有项目管理员可以调整团队额外限制。')));
+    }
     if ($changed && !TeamOrganizationProjectBoundary::canPass($this->getViewer(), $copy)) {
       return array($this->newTransactionError($changed, pht('团队边界'),
         pht('您不属于所选团队范围。请选择包含自己的范围，或由管理员设置。')));
@@ -515,8 +520,7 @@ final class TeamProjectAccessService extends Phobject {
     if (!self::usableUser($viewer)) { return false; }
     $current = self::loadProject($viewer, $project->getID());
     return $current && $current->getPHID() === $project->getPHID() &&
-      PhabricatorPolicyFilter::hasCapability(
-        $viewer, $current, PhabricatorPolicyCapability::CAN_EDIT);
+      TeamProjectMembership::canManage($viewer, $current);
   }
 
   public static function getStateToken(PhabricatorProject $project) {
@@ -524,6 +528,7 @@ final class TeamProjectAccessService extends Phobject {
     return hash('sha256', serialize(array(
       $project->getPHID(), $project->getPolicy('view'),
       $project->getPolicy('edit'), $project->getPolicy('join'),
+      $boundary->getProperty(TeamProjectMembership::ROLES_PROPERTY),
       $boundary->getProperty(TeamOrganizationProjectBoundary::TEAMS_PROPERTY, array()),
       $boundary->getProperty(TeamOrganizationProjectBoundary::SCOPE_PROPERTY, 'direct'),
     )));
@@ -638,8 +643,7 @@ final class TeamProjectAccessService extends Phobject {
         throw self::managementException();
       }
       $project = self::loadProject($actor, (int)$row['id']);
-      if (!$project || !PhabricatorPolicyFilter::hasCapability(
-          $actor, $project, PhabricatorPolicyCapability::CAN_EDIT)) {
+      if (!$project || !TeamProjectMembership::canManage($actor, $project)) {
         throw self::managementException();
       }
       if ($project->isMilestone()) {
@@ -867,6 +871,6 @@ final class TeamProjectAccessService extends Phobject {
   }
 
   private static function managementException() {
-    return new PhabricatorPolicyException(pht('仅当前具有项目查看和编辑权限的有效用户可以管理授权。'));
+    return new PhabricatorPolicyException(pht('仅当前具有项目查看、编辑及项目管理员身份的有效用户可以管理授权。'));
   }
 }

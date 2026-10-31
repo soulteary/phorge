@@ -108,6 +108,8 @@ final class PhabricatorProjectTransactionEditor
       }
     }
 
+    TeamProjectMembership::validateTransactions(
+      $this->getActor(), $object, $xactions, $this->getIsNewObject());
     return $errors;
   }
 
@@ -327,6 +329,11 @@ final class PhabricatorProjectTransactionEditor
 
     /** @var PhabricatorProject $copy */
     $copy = parent::adjustObjectForPolicyChecks($object, $xactions);
+    foreach ($xactions as $xaction) {
+      if ($xaction->getTransactionType() === TeamProjectMemberRoleTransaction::TRANSACTIONTYPE) {
+        $copy->setProperty(TeamProjectMembership::ROLES_PROPERTY, $xaction->getNewValue());
+      }
+    }
 
     $type_edge = PhabricatorTransactions::TYPE_EDGE;
     $edgetype_member = PhabricatorProjectProjectHasMemberEdgeType::EDGECONST;
@@ -444,6 +451,53 @@ final class PhabricatorProjectTransactionEditor
 
     $this->setIsMilestone($is_milestone);
     $this->setParentPHID($parent_phid);
+
+    $has_role = false;
+    foreach ($results as $xaction) {
+      if ($xaction->getTransactionType() === TeamProjectMemberRoleTransaction::TRANSACTIONTYPE) {
+        $has_role = true;
+      }
+    }
+    if (!$is_milestone && !$has_role) {
+      if ($this->getIsNewObject()) {
+        $results[] = id(new PhabricatorProjectTransaction())
+          ->setTransactionType(TeamProjectMemberRoleTransaction::TRANSACTIONTYPE)
+          ->setNewValue(array($object->getAuthorPHID() => 'admin'));
+      } else {
+        $roles = TeamProjectMembership::roleMap($object);
+        $members = array_fuse($object->getDirectMemberPHIDs());
+        $expected = null;
+        foreach ($results as $xaction) {
+          if ($xaction->getTransactionType() !== PhabricatorTransactions::TYPE_EDGE ||
+              $xaction->getMetadataValue('edge:type') !== PhabricatorProjectProjectHasMemberEdgeType::EDGECONST) {
+            continue;
+          }
+          $spec = $xaction->getNewValue();
+          if (isset($spec['='])) { $members = array_fuse(array_keys($spec['='])); }
+          foreach (idx($spec, '+', array()) as $phid => $value) { $members[$phid] = $phid; }
+          foreach (idx($spec, '-', array()) as $phid => $value) { unset($members[$phid]); }
+          $expected = $xaction->getMetadataValue(TeamProjectMembership::EXPECTED_STATE);
+        }
+        $removed = array_diff($object->getDirectMemberPHIDs(), array_keys($members));
+        $pruned = $roles;
+        foreach ($removed as $phid) {
+          // Leaving and rejoining must not let a read-only member discard
+          // an administrator's explicit edit ceiling.
+          if ($phid === $this->getActor()->getPHID() && idx($roles, $phid) === 'viewer' &&
+              !TeamProjectMembership::canManage($this->getActor(), $object)) {
+            continue;
+          }
+          unset($pruned[$phid]);
+        }
+        ksort($pruned, SORT_STRING); ksort($roles, SORT_STRING);
+        if ($pruned !== $roles) {
+          $results[] = id(new PhabricatorProjectTransaction())
+            ->setTransactionType(TeamProjectMemberRoleTransaction::TRANSACTIONTYPE)
+            ->setMetadataValue(TeamProjectMembership::EXPECTED_STATE, $expected)
+            ->setNewValue($pruned);
+        }
+      }
+    }
 
     return $results;
   }

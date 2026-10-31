@@ -1703,6 +1703,10 @@ final class PhabricatorProjectCoreTestCase extends PhabricatorTestCase {
 
     $this->applyTransactions($project, $user, $xactions);
 
+    // This suite exercises the original ACL semantics of existing projects.
+    // New-project administrative roles have dedicated regression coverage.
+    $project->setProperty(TeamProjectMembership::ROLES_PROPERTY, null)->save();
+
     // Force these values immediately; they are normally updated by the
     // index engine.
     if ($parent) {

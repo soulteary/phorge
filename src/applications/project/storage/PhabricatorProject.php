@@ -94,6 +94,7 @@ final class PhabricatorProject extends PhabricatorProjectDAO
 
     return id(new self())
       ->setAuthorPHID($actor->getPHID())
+      ->setProperty(TeamProjectMembership::ROLES_PROPERTY, array($actor->getPHID() => 'admin'))
       ->setIcon($default_icon)
       ->setColor($default_color)
       ->setViewPolicy($view_policy)
@@ -142,6 +143,12 @@ final class PhabricatorProject extends PhabricatorProjectDAO
     }
 
     $can_edit = PhabricatorPolicyCapability::CAN_EDIT;
+
+    if (($capability === PhabricatorPolicyCapability::CAN_VIEW &&
+          TeamProjectMembership::hasAutomaticViewRole($this, $viewer)) ||
+        ($capability === $can_edit && TeamProjectMembership::isAutomaticRole($this, $viewer))) {
+      return true;
+    }
 
     switch ($capability) {
       case PhabricatorPolicyCapability::CAN_VIEW:
@@ -204,6 +211,10 @@ final class PhabricatorProject extends PhabricatorProjectDAO
     $boundary = TeamOrganizationProjectBoundary::newGuard($this);
     if ($boundary) {
       $extended[] = array($boundary, PhabricatorPolicyCapability::CAN_VIEW);
+    }
+
+    if ($capability === PhabricatorPolicyCapability::CAN_EDIT) {
+      $extended[] = array(new TeamProjectMemberRoleGuard($this), PhabricatorPolicyCapability::CAN_VIEW);
     }
 
     return $extended;
