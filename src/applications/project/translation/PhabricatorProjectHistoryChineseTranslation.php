@@ -67,7 +67,7 @@ final class PhabricatorProjectHistoryChineseTranslation extends PhutilTranslatio
       'Record titles may contain at most 200 characters.' => '标题最多包含 200 个字符。',
       'Recorded' => '已记录',
       'Reported Project Completion' => '项目完成度',
-      'Reported Project Completion (%)' => '项目完成度 (%)',
+      'Reported Project Completion (%%)' => '项目完成度 (%%)',
       'Reported completion must be an integer from 0 to 100.' => '完成比例必须是 0 到 100 的整数。',
       'Status Not Set' => '未设置状态',
       'Summarize the result, decision, or discussion in one sentence.' => '用一句话概括阶段成果、关键决策或讨论主题。',

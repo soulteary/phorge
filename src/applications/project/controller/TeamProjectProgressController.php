@@ -211,7 +211,7 @@ final class TeamProjectProgressController extends PhabricatorProjectController {
         ->setCaption(pht('Record results, decisions, issues, and next steps. You may reference tasks such as T123. Discuss task details on the task; task links remain subject to their own policies.')));
     if ($kind === 'node') {
       $form->appendControl(id(new AphrontFormTextControl())
-        ->setName('percent')->setLabel(pht('Reported Project Completion (%)'))->setValue($input['percent'])
+        ->setName('percent')->setLabel(pht('Reported Project Completion (%%)'))->setValue($input['percent'])
         ->setCaption(pht('Optional manual project assessment (0–100). Leave blank to preserve the current value. This value is not calculated from closed tasks.')));
     }
     $form->appendControl(id(new AphrontFormTokenizerControl())
