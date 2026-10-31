@@ -47,6 +47,10 @@ final class PhabricatorProjectProfileController
 
     $properties = $this->buildPropertyListView($project);
 
+    $progress = id(new TeamProjectProgressSummaryView())
+      ->setViewer($viewer)
+      ->setProject($project);
+
     $watch_action = $this->renderWatchAction($project);
     $header->addActionLink($watch_action);
 
@@ -129,6 +133,7 @@ final class PhabricatorProjectProfileController
       ->addClass('project-view-people-home')
       ->setMainColumn(
         array(
+          $progress,
           $properties,
           $feed,
         ))

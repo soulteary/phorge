@@ -100,6 +100,16 @@ final class PhabricatorProjectSubprojectsController
       ->addClass('project-view-home')
       ->addClass('project-view-people-home')
       ->setMainColumn(array(
+          id(new PHUIInfoView())
+            ->setSeverity(PHUIInfoView::SEVERITY_NOTICE)
+            ->appendChild(array(
+              pht('这里的里程碑用于组织阶段任务。要记录验收、发布或阶段成果，请到'),
+              phutil_tag('a',
+                array('href' => '/project/progress/'.$project->getID().
+                  '/?compose=node#publish'),
+                pht('开发历史 → 发布项目记录')),
+              pht('，保留时间、参与者和具体成果。'),
+            )),
           $info_view,
           $subproject_list,
           $milestone_list,

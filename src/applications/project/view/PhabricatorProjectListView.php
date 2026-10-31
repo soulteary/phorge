@@ -73,6 +73,11 @@ final class PhabricatorProjectListView extends AphrontView {
         $item->setDisabled(true);
       }
 
+      $item->addAttribute(phutil_tag(
+        'a',
+        array('href' => "/project/progress/{$id}/"),
+        pht('开发历史')));
+
       if ($this->showMember) {
         $is_member = $project->isUserMember($viewer_phid);
         if ($is_member) {

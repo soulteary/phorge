@@ -30,11 +30,50 @@ final class ManiphestEditEngine
   }
 
   protected function newEditableObject() {
+    $controller = $this->getController();
+    if ($controller) {
+      $this->addContextParameter('projectNode');
+      $entry = $controller->getRequest()->getStr('projectNode', '');
+      if (strlen($entry)) {
+        try {
+          return TeamProjectProgress::newTaskDraft($this->getViewer(), $entry);
+        } catch (InvalidArgumentException $ex) {
+          throw $this->newProjectRecordDraftException();
+        } catch (PhabricatorPolicyException $ex) {
+          throw $this->newProjectRecordDraftException();
+        }
+      }
+    }
     return ManiphestTask::initializeNewTask($this->getViewer());
+  }
+
+  private function newProjectRecordDraftException() {
+    // Native policy dialogs use these fields, rather than Exception::message.
+    return id(new PhabricatorPolicyException('无法从项目记录创建卡片。'))
+      ->setTitle('无法从项目记录创建卡片')
+      ->setRejection('来源记录无效、不可查看，或您没有该项目的编辑权限。');
   }
 
   protected function newObjectQuery() {
     return id(new ManiphestTaskQuery());
+  }
+
+  protected function willBuildEditForm($object, array $fields) {
+    $fields = parent::willBuildEditForm($object, $fields);
+    $request = $this->getController()->getRequest();
+    if ($this->getIsCreate() && !$request->isHTTPPost() &&
+        strlen($request->getStr('projectNode', ''))) {
+      // The native project extension initializes all unsaved objects with an
+      // empty project field. Restore the already-authorized draft's initial
+      // value after that initialization. Submitted or locked fields retain
+      // their native behavior and all saves still use native transactions.
+      foreach ($fields as $field) {
+        if ($field->getKey() === 'projectPHIDs' && !$field->getIsLocked()) {
+          $field->setValue($object->getProjectPHIDs());
+        }
+      }
+    }
+    return $fields;
   }
 
   protected function getObjectCreateTitleText($object) {

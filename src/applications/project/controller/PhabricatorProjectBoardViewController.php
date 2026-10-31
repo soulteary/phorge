@@ -98,7 +98,11 @@ final class PhabricatorProjectBoardViewController
           ))
         ->setNavigation($nav)
         ->setCrumbs($crumbs)
-        ->appendChild($content);
+        ->appendChild(array(
+          id(new TeamProjectWorkspaceView())
+            ->setViewer($viewer)->setProject($project),
+          $content,
+        ));
     }
 
     $tasks = $state->getObjects();
@@ -110,7 +114,7 @@ final class PhabricatorProjectBoardViewController
 
     $board_id = celerity_generate_unique_node_id();
 
-    $board = id(new PHUIWorkboardView())
+    $board = id(new TeamProjectWorkspaceBoardView())
       ->setViewer($viewer)
       ->setID($board_id)
       ->addSigil('jx-workboard')
@@ -373,8 +377,6 @@ final class PhabricatorProjectBoardViewController
     $crumbs->addTextCrumb(pht('Workboard'));
     $crumbs->setBorder(true);
 
-    $crumbs->addAction($sort_menu);
-    $crumbs->addAction($filter_menu);
     $crumbs->addAction($divider);
     $crumbs->addAction($manage_menu);
     $crumbs->addAction($fullscreen);
@@ -395,6 +397,9 @@ final class PhabricatorProjectBoardViewController
         ))
       ->appendChild(
         array(
+          id(new TeamProjectWorkspaceView())
+            ->setViewer($viewer)->setProject($project)
+            ->addBoardControl($sort_menu)->addBoardControl($filter_menu),
           $board_box,
         ));
 
@@ -424,6 +429,16 @@ final class PhabricatorProjectBoardViewController
     $state = $this->getViewState();
     $base_uri = $state->newWorkboardURI();
 
+    $ordering_names = array(
+      'natural' => '看板顺序',
+      'priority' => '按优先级',
+      'owner' => '按负责人',
+      'status' => '按状态',
+      'title' => '按标题',
+      'created' => '按发布时间',
+      'author' => '按发布成员',
+      'points' => '按点数',
+    );
     $items = array();
     foreach ($ordering_map as $key => $ordering) {
       // TODO: It would be desirable to build a real "PHUIIconView" here, but
@@ -431,7 +446,7 @@ final class PhabricatorProjectBoardViewController
       // being fairly complex, since some callers read the icon out of other
       // views. For now, just stick with a string.
       $ordering_icon = $ordering->getMenuIconIcon();
-      $ordering_name = $ordering->getDisplayName();
+      $ordering_name = idx($ordering_names, $key, $ordering->getDisplayName());
 
       $is_selected = ($key === $sort_key);
       if ($is_selected) {
@@ -474,9 +489,10 @@ final class PhabricatorProjectBoardViewController
     }
 
     $sort_button = id(new PHUIListItemView())
-      ->setName($active_name)
+      ->setName('排序：'.$active_name)
       ->setIcon($active_icon)
       ->setHref('#')
+      ->addClass('team-project-board-sort')
       ->addSigil('boards-dropdown-menu')
       ->setMetadata(
         array(
@@ -499,16 +515,16 @@ final class PhabricatorProjectBoardViewController
     $state = $this->getViewState();
 
     $named = array(
-      'open' => pht('Open Tasks'),
-      'all' => pht('All Tasks'),
+      'open' => '未完成卡片',
+      'all' => '全部卡片',
     );
 
     if ($viewer->isLoggedIn()) {
-      $named['assigned'] = pht('Assigned to Me');
+      $named['assigned'] = '分配给我';
     }
 
     if ($custom_query) {
-      $named[$custom_query->getQueryKey()] = pht('Custom Filter');
+      $named[$custom_query->getQueryKey()] = '自定义筛选';
     }
 
     $items = array();
@@ -578,9 +594,10 @@ final class PhabricatorProjectBoardViewController
     }
 
     $filter_button = id(new PHUIListItemView())
-      ->setName($active_filter)
+      ->setName('筛选：'.$active_filter)
       ->setIcon('fa-search')
       ->setHref('#')
+      ->addClass('team-project-board-filter')
       ->addSigil('boards-dropdown-menu')
       ->setMetadata(
         array(
@@ -744,7 +761,9 @@ final class PhabricatorProjectBoardViewController
 
       $column_items[] = id(new PhabricatorActionView())
         ->setIcon($spec['icon'])
-        ->setName($spec['name'])
+        ->setName(count($specs) > 1
+          ? pht('在此列新建卡片：%s', $spec['name'])
+          : pht('在此列新建卡片'))
         ->setHref($spec_href)
         ->setDisabled($spec['disabled'])
         ->addSigil('column-add-task')
