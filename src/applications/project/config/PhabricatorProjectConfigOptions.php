@@ -126,6 +126,18 @@ EOTEXT
       ));
 
     return array(
+      $this->newOption('projects.default-navigation', 'enum', 'flat')
+        ->setLocked(true)
+        ->setEnumOptions(array(
+          'flat' => pht('Flat Project List'),
+          'hierarchy' => pht('Project Hierarchy'),
+        ))
+        ->setSummary(pht('Default project directory presentation.'))
+        ->setDescription(pht(
+          'Keep flat navigation to preserve the native default and saved '.
+          'queries. Choose hierarchy to browse root projects by default. '.
+          'Explicit searches and existing project permissions are unchanged; '.
+          'hierarchy query URLs remain available in either mode.')),
       $this->newOption('projects.custom-field-definitions', 'wild', array())
         ->setSummary(pht('Custom Projects fields.'))
         ->setDescription($fields_description)

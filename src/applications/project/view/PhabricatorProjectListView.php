@@ -6,6 +6,18 @@ final class PhabricatorProjectListView extends AphrontView {
   private $showMember;
   private $showWatching;
   private $noDataString;
+  private $browseHierarchy;
+  private $showHierarchyPath;
+
+  public function setBrowseHierarchy($browse) {
+    $this->browseHierarchy = $browse;
+    return $this;
+  }
+
+  public function setShowHierarchyPath($show) {
+    $this->showHierarchyPath = $show;
+    return $this;
+  }
 
   public function setProjects(array $projects) {
     $this->projects = $projects;
@@ -36,8 +48,6 @@ final class PhabricatorProjectListView extends AphrontView {
     $viewer_phid = $viewer->getPHID();
     $projects = $this->getProjects();
 
-    $handles = $viewer->loadHandles(mpull($projects, 'getPHID'));
-
     $no_data = pht('No projects found.');
     if ($this->noDataString) {
       $no_data = $this->noDataString;
@@ -67,6 +77,33 @@ final class PhabricatorProjectListView extends AphrontView {
             ' ',
             $icon_name,
           ));
+
+      if ($this->showHierarchyPath) {
+        $path = array();
+        foreach (array_reverse($project->getAncestorProjects()) as $ancestor) {
+          // Project queries attach ancestors for policy evaluation. Check
+          // visibility before rendering their names into search results.
+          if (!PhabricatorPolicyFilter::hasCapability(
+            $viewer, $ancestor, PhabricatorPolicyCapability::CAN_VIEW)) {
+            $path = array(pht('Restricted Parent Project'));
+            continue;
+          }
+          $path[] = phutil_tag(
+            'a',
+            array('href' => '/project/subprojects/'.$ancestor->getID().'/'),
+            $ancestor->getName());
+        }
+        $item->addAttribute($path
+          ? phutil_implode_html(' / ', $path)
+          : pht('Root Project'));
+      }
+
+      if ($this->browseHierarchy && $project->supportsSubprojects()) {
+        $item->addAttribute(phutil_tag(
+          'a',
+          array('href' => "/project/subprojects/{$id}/"),
+          pht('Browse Subprojects')));
+      }
 
       if ($project->getStatus() == PhabricatorProjectStatus::STATUS_ARCHIVED) {
         $item->addIcon('fa-ban', pht('Archived'));

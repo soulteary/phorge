@@ -37,6 +37,23 @@ final class PhabricatorProjectLogicalAncestorDatasource
       $phids = array_fuse($phids);
       $viewer = $this->getViewer();
 
+      // Check the original constraints before simplifying them. Otherwise a
+      // hidden parent may be removed as redundant when a visible ancestor and
+      // a visible descendant are also specified, bypassing the query's later
+      // permission checks on the remaining constraints.
+      $projects = id(new PhabricatorProjectQuery())
+        ->setViewer($viewer)
+        ->withPHIDs($phids)
+        ->execute();
+
+      if (count($projects) !== count($phids)) {
+        return array(
+          new PhabricatorQueryConstraint(
+            PhabricatorQueryConstraint::OPERATOR_EMPTY,
+            null),
+        );
+      }
+
       $all_projects = id(new PhabricatorProjectQuery())
         ->setViewer($viewer)
         ->withAncestorProjectPHIDs($phids)
@@ -52,7 +69,12 @@ final class PhabricatorProjectLogicalAncestorDatasource
         foreach ($project->getAncestorProjects() as $ancestor) {
           $ancestor_phid = $ancestor->getPHID();
 
-          if (isset($phids[$project_phid]) && isset($phids[$ancestor_phid])) {
+          // Only build mappings for the original, authorized constraints.
+          if (!isset($phids[$ancestor_phid])) {
+            continue;
+          }
+
+          if (isset($phids[$project_phid])) {
             // This is a descendant of some other project in the query, so
             // we don't need to query for that project. This happens if a user
             // runs a query for both "Engineering" and "Engineering > Warp

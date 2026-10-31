@@ -184,12 +184,30 @@ final class PhabricatorFileQuery
 
     // However, in some special cases where we know files will always be
     // visible, we skip this. See T8478 and T13106.
+    // Standalone profile images stay public. A derived profile must first
+    // prove that the viewer can see a real source, like other transforms.
+    $profile_phids = array();
+    foreach ($files as $file) {
+      if ($file->getIsProfileImage() && !$file->isBuiltin()) {
+        $profile_phids[] = $file->getPHID();
+      }
+    }
+    $profile_sources = array();
+    if ($profile_phids) {
+      $profile_xforms = id(new PhabricatorTransformedFile())->loadAllWhere(
+        'transformedPHID IN (%Ls) AND originalPHID != %s',
+        $profile_phids,
+        PhabricatorPHIDConstants::PHID_VOID);
+      $profile_sources = array_fuse(mpull($profile_xforms, 'getTransformedPHID'));
+    }
+
     $need_objects = array();
     $need_xforms = array();
     foreach ($files as $file) {
       $always_visible = false;
 
-      if ($file->getIsProfileImage()) {
+      if ($file->getIsProfileImage() &&
+          !isset($profile_sources[$file->getPHID()])) {
         $always_visible = true;
       }
 
@@ -252,8 +270,16 @@ final class PhabricatorFileQuery
       $xforms = id(new PhabricatorTransformedFile())->loadAllWhere(
         'transformedPHID IN (%Ls)',
         mpull($need_xforms, 'getPHID'));
-      $xform_phids = mpull($xforms, 'getOriginalPHID', 'getTransformedPHID');
-      foreach ($xform_phids as $derived_phid => $original_phid) {
+      $xform_phids = array();
+      foreach ($xforms as $xform) {
+        $original_phid = $xform->getOriginalPHID();
+        if ($original_phid === PhabricatorPHIDConstants::PHID_VOID) {
+          // VOID is the builtin sentinel, not an independent grant. In
+          // particular, it must not hide a real source of the same transform.
+          continue;
+        }
+        $derived_phid = $xform->getTransformedPHID();
+        $xform_phids[$derived_phid][$original_phid] = $original_phid;
         $object_phids[$original_phid] = true;
       }
     } else {
@@ -286,13 +312,21 @@ final class PhabricatorFileQuery
     }
 
     foreach ($files as $key => $file) {
-      $original_phid = idx($xform_phids, $file->getPHID());
-      if ($original_phid == PhabricatorPHIDConstants::PHID_VOID) {
-        // This is a special case for builtin files, which are handled
-        // oddly.
-        $original = null;
-      } else if ($original_phid) {
-        $original = idx($objects, $original_phid);
+      $original_phids = idx($xform_phids, $file->getPHID(), array());
+      $original = null;
+      if ($original_phids) {
+        // Content deduplication can give a transform multiple real sources.
+        // Match the native ANY-associated-object rule, rather than selecting
+        // whichever source MySQL returned last. Pick a deterministic visible
+        // witness for the existing single-original attachment API.
+        sort($original_phids, SORT_STRING);
+        foreach ($original_phids as $original_phid) {
+          $candidate = idx($objects, $original_phid);
+          if ($candidate instanceof PhabricatorFile) {
+            $original = $candidate;
+            break;
+          }
+        }
         if (!$original) {
           // If the viewer can't see the original file, also prevent them from
           // seeing the transformed file.
@@ -300,8 +334,6 @@ final class PhabricatorFileQuery
           unset($files[$key]);
           continue;
         }
-      } else {
-        $original = null;
       }
       $file->attachOriginalFile($original);
     }

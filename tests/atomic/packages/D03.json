@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "D03",
+  "tests": [
+    {
+      "class": "PhabricatorPolicyPresentationTestCase",
+      "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+      "methods": [
+        "testActionsAndSelectValuesAreLocalizedWithoutMutation",
+        "testUnknownSelectValueAndActionAreEscapedAndPreserved",
+        "testUnavailableStoredRulesRenderEscapedWithoutRestoringClasses",
+        "testEditorProfilesAndExplicitOverride",
+        "testInvalidEditorRuleConfigurationIsRejected",
+        "testHidingRuleDoesNotChangeItsEvaluationOrStoredValue",
+        "testFreshSelectOnlyEditorIsNotHistorical",
+        "testNewPolicyMessagesHaveChineseAndEnglishForms"
+      ]
+    },
+    {
+      "class": "PhabricatorPolicyEditorTestCase",
+      "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+      "methods": [
+        "testHistoricalPostCannotSilentlyDropUnavailableRules",
+        "testHistoricalPolicyRemainsReadableWhenEveryChoiceIsHidden",
+        "testInternalRulesAreReadOnlyEvenWithEmptyOverride",
+        "testMissingRuleStaysReadOnlyAndItsEvaluatorStillDenies",
+        "testUnknownSelectValueCannotBeCoercedIntoFirstOption",
+        "testFreshSelectOnlyPolicyCanBeOpenedAndSaved",
+        "testStartingOrCancellingReplacementCreatesNothing",
+        "testReplacementMarkerCannotBeUsedToSaveRules",
+        "testSavingReplacementDoesNotApplyItToOriginalObject",
+        "testMalformedOrUnavailablePostedRulesCreateNoPolicy"
+      ]
+    }
+  ],
+  "allowedSkips": {},
+  "atoms": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05"
+  ]
+}
