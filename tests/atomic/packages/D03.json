@@ -8,6 +8,7 @@
       "methods": [
         "testActionsAndSelectValuesAreLocalizedWithoutMutation",
         "testUnknownSelectValueAndActionAreEscapedAndPreserved",
+        "testUnavailableStoredRulesRenderEscapedWithoutRestoringClasses",
         "testEditorProfilesAndExplicitOverride",
         "testInvalidEditorRuleConfigurationIsRejected",
         "testHidingRuleDoesNotChangeItsEvaluationOrStoredValue",
@@ -21,6 +22,8 @@
         "testHistoricalPostCannotSilentlyDropUnavailableRules",
         "testHistoricalPolicyRemainsReadableWhenEveryChoiceIsHidden",
         "testInternalRulesAreReadOnlyEvenWithEmptyOverride",
+        "testMissingRuleStaysReadOnlyAndItsEvaluatorStillDenies",
+        "testUnknownSelectValueCannotBeCoercedIntoFirstOption",
         "testStartingOrCancellingReplacementCreatesNothing",
         "testReplacementMarkerCannotBeUsedToSaveRules",
         "testSavingReplacementDoesNotApplyItToOriginalObject",
@@ -28,5 +31,12 @@
       ]
     }
   ],
-  "allowedSkips": {}
+  "allowedSkips": {},
+  "atoms": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05"
+  ]
 }

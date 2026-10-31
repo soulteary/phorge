@@ -75,6 +75,66 @@ final class PhabricatorPolicyEditorTestCase extends PhabricatorTestCase {
     unset($env);
   }
 
+  public function testMissingRuleStaysReadOnlyAndItsEvaluatorStillDenies() {
+    $actor = $this->generateNewTestUser();
+    $rules = array(array(
+      'action' => 'deny', 'rule' => 'NotInstalledPolicyRule',
+      'value' => '<private-condition>',
+    ));
+    $policy = id(new PhabricatorPolicy())->setRules($rules)
+      ->setDefaultAction('allow')->save();
+    $project = PhabricatorProject::initializeNewProject($actor)
+      ->setName('Unavailable policy '.$this->getNextObjectSeed())
+      ->setViewPolicy($policy->getPHID())->save();
+    $before = $this->countPolicies();
+    $this->assertFalse(PhabricatorPolicyFilter::hasCapability(
+      $actor, $project, PhabricatorPolicyCapability::CAN_VIEW));
+    $response = $this->requestEditor($actor, $policy->getPHID(), array(
+      'rules' => '[]', 'default' => 'allow',
+    ));
+    $this->assertEqual(
+      pht('Historical Policy (Read Only)'), $response->getDialog()->getTitle());
+    $html = (string)hsprintf('%s', $response->getDialog());
+    $this->assertTrue(strpos($html, 'NotInstalledPolicyRule') !== false);
+    $this->assertTrue(strpos($html, '&lt;private-condition&gt;') !== false);
+    $this->assertEqual($before, $this->countPolicies());
+    $this->assertEqual($rules, $policy->reload()->getRules());
+    $this->assertFalse(PhabricatorPolicyFilter::hasCapability(
+      $actor, $project, PhabricatorPolicyCapability::CAN_VIEW));
+  }
+
+  public function testUnknownSelectValueCannotBeCoercedIntoFirstOption() {
+    $actor = $this->generateNewTestUser();
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('policy.editor.hidden-rules', array());
+    $rules = array(array(
+      'action' => 'allow', 'rule' => PhabricatorLunarPhasePolicyRule::class,
+      'value' => '<future-phase>',
+    ));
+    $policy = id(new PhabricatorPolicy())->setRules($rules)
+      ->setDefaultAction('deny')->save();
+    $before = $this->countPolicies();
+    $response = $this->requestEditor($actor, $policy->getPHID());
+    $this->assertEqual(
+      pht('Historical Policy (Read Only)'), $response->getDialog()->getTitle());
+    $html = (string)hsprintf('%s', $response->getDialog());
+    $this->assertTrue(strpos($html, '&lt;future-phase&gt;') !== false);
+    $response = $this->requestEditor($actor, $policy->getPHID(), array(
+      'rules' => json_encode($rules), 'default' => 'deny',
+    ));
+    $this->assertEqual(
+      pht('Historical Policy (Read Only)'), $response->getDialog()->getTitle());
+    $response = $this->requestEditor($actor,
+      AphrontFormPolicyControl::getSelectCustomKey(), array(
+        'rules' => json_encode($rules), 'default' => 'deny',
+      ));
+    $this->assertEqual(
+      pht('Unavailable Policy Rule'), $response->getDialog()->getTitle());
+    $this->assertEqual($before, $this->countPolicies());
+    $this->assertEqual($rules, $policy->reload()->getRules());
+    unset($env);
+  }
+
   public function testStartingOrCancellingReplacementCreatesNothing() {
     $actor = $this->generateNewTestUser();
     $before = $this->countPolicies();
@@ -162,6 +222,10 @@ final class PhabricatorPolicyEditorTestCase extends PhabricatorTestCase {
       'rule' => PhabricatorLunarPhasePolicyRule::class,
       'value' => 'full',
     ));
+    $array_class = $valid;
+    $array_class[0]['rule'] = array();
+    $array_action = $valid;
+    $array_action[0]['action'] = array('allow');
     foreach (array(
       array('rules' => '{'),
       array('rules' => 'null'),
@@ -169,6 +233,11 @@ final class PhabricatorPolicyEditorTestCase extends PhabricatorTestCase {
       array('rules' => json_encode($bad_action)),
       array('rules' => json_encode($hidden)),
       array('rules' => json_encode($valid), 'default' => '允许'),
+      array('rules' => json_encode($valid), 'default' => array('allow')),
+      array('rules' => json_encode($array_class)),
+      array('rules' => json_encode($array_action)),
+      array('rules' => array()),
+      array('rules' => json_encode($valid), 'capability' => array('view')),
     ) as $post) {
       $response = $this->requestEditor(
         $actor,

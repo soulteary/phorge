@@ -58,6 +58,31 @@ final class PhabricatorPolicyPresentationTestCase extends PhabricatorTestCase {
     $this->assertEqual($action, $policy->getDefaultAction());
   }
 
+  public function testUnavailableStoredRulesRenderEscapedWithoutRestoringClasses() {
+    $rules = array(
+      array('action' => 'deny', 'rule' => 'NotInstalledPolicyRule',
+        'value' => '<script>private-condition</script>'),
+      array('action' => 'allow', 'rule' => PhabricatorUser::class,
+        'value' => '<non-policy-class>'),
+    );
+    $policy = id(new PhabricatorPolicy())->setRules($rules)
+      ->setDefaultAction('deny');
+    foreach (array('en_US', 'zh_CN') as $code) {
+      $locale = PhabricatorEnv::beginScopedLocale($code);
+      try {
+        $html = $this->renderPolicy($policy);
+        $this->assertTrue(strpos($html, 'NotInstalledPolicyRule') !== false);
+        $this->assertTrue(strpos($html, '&lt;script&gt;') !== false);
+        $this->assertFalse(strpos($html, '<script>') !== false);
+        $this->assertTrue(strpos($html, '&lt;non-policy-class&gt;') !== false);
+        $this->assertEqual($rules, $policy->getRules());
+      } finally {
+        unset($locale);
+      }
+    }
+    $this->assertFalse(class_exists('NotInstalledPolicyRule'));
+  }
+
   public function testEditorProfilesAndExplicitOverride() {
     $env = PhabricatorEnv::beginScopedEnv();
     $env->overrideEnvConfig('policy.editor.hidden-rules', null);

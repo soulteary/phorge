@@ -21,7 +21,9 @@ final class PhabricatorPolicyRulesView
 
     $rule_objects = array();
     foreach ($policy->getCustomRuleClasses() as $class) {
-      $rule_objects[$class] = newv($class, array());
+      if (is_subclass_of($class, PhabricatorPolicyRule::class)) {
+        $rule_objects[$class] = newv($class, array());
+      }
     }
 
     $policy = clone $policy;
@@ -36,7 +38,22 @@ final class PhabricatorPolicyRulesView
       pht('These rules are processed in order:'));
 
     foreach ($policy->getRules() as $index => $rule) {
-      $rule_object = $rule_objects[$rule['rule']];
+      $rule_class = is_array($rule) ? idx($rule, 'rule') : null;
+      $rule_object = is_string($rule_class)
+        ? idx($rule_objects, $rule_class)
+        : null;
+      if (!$rule_object) {
+        // Removed classes must not be restored just to render their historical
+        // policies. Preserve every stored condition as escaped text instead.
+        $details[] = phutil_tag('div',
+          array('class' => 'policy-transaction-detail-row'),
+          array(
+            id(new PHUIIconView())->setIcon('fa-exclamation-triangle orange')
+              ->setText(pht('Unavailable Policy Rule')),
+            phutil_tag('pre', array(), phutil_json_encode($rule)),
+          ));
+        continue;
+      }
       if ($rule['action'] == 'allow') {
         $icon = 'fa-check-circle green';
       } else {

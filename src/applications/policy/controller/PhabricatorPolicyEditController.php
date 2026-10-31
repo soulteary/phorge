@@ -5,6 +5,13 @@ final class PhabricatorPolicyEditController
 
   public function handleRequest(AphrontRequest $request) {
     $viewer = $this->getViewer();
+    $request_data = $request->getRequestData();
+    $capability = idx($request_data, 'capability');
+    if ($capability !== null && $capability !== '' &&
+        (!is_string($capability) ||
+         !PhabricatorPolicyCapability::getCapabilityByKey($capability))) {
+      return $this->newUnavailableRuleResponse();
+    }
 
     $object_phid = $request->getURIData('objectPHID');
     if ($object_phid) {
@@ -93,7 +100,7 @@ final class PhabricatorPolicyEditController
     $starting_replacement = $request->getExists('__start_policy_replacement__');
     if ($starting_replacement &&
         (!$request->isFormPost() ||
-         $request->getStr('__start_policy_replacement__') !== '1' ||
+         idx($request_data, '__start_policy_replacement__') !== '1' ||
          $request->getExists('rules') || $phid)) {
       return $this->newUnavailableRuleResponse();
     }
@@ -105,7 +112,12 @@ final class PhabricatorPolicyEditController
 
     $errors = array();
     if ($request->isFormPost() && !$starting_replacement) {
-      $data = $request->getStr('rules');
+      $data = idx($request_data, 'rules');
+      $default_action = idx($request_data, 'default');
+      if (!is_string($data) || !is_string($default_action) ||
+          !isset($action_options[$default_action])) {
+        return $this->newUnavailableRuleResponse();
+      }
       try {
         $data = phutil_json_decode($data);
       } catch (PhutilJSONParserException $ex) {
@@ -115,17 +127,15 @@ final class PhabricatorPolicyEditController
         return $this->newUnavailableRuleResponse();
       }
 
-      $default_action = $request->getStr('default');
-      if (!isset($action_options[$default_action])) {
-        return $this->newUnavailableRuleResponse();
-      }
-
       $rule_data = array();
       foreach ($data as $rule) {
         if (!is_array($rule)) {
           return $this->newUnavailableRuleResponse();
         }
         $action = idx($rule, 'action');
+        if (!is_string($action)) {
+          return $this->newUnavailableRuleResponse();
+        }
         switch ($action) {
           case 'allow':
           case 'deny':
@@ -135,11 +145,14 @@ final class PhabricatorPolicyEditController
         }
 
         $rule_class = idx($rule, 'rule');
-        if (empty($rules[$rule_class])) {
+        if (!is_string($rule_class) || empty($rules[$rule_class])) {
           return $this->newUnavailableRuleResponse();
         }
 
         $rule_obj = $rules[$rule_class];
+        if (!self::isRuleValueAvailable($rule_obj, idx($rule, 'value'))) {
+          return $this->newUnavailableRuleResponse();
+        }
 
         $value = $rule_obj->getValueForStorage(idx($rule, 'value'));
 
@@ -307,29 +320,33 @@ final class PhabricatorPolicyEditController
     return msort($rules, 'getRuleOrder');
   }
 
-  private static function hasRetiredRules(PhabricatorPolicy $policy) {
+  private static function hasUnavailableRules(
+    PhabricatorPolicy $policy,
+    array $rules) {
+
     foreach ($policy->getRules() as $rule) {
-      if (in_array(idx($rule, 'rule'),
-          PhabricatorPolicyEditorRuleSet::getHiddenRuleClasses(), true)) {
+      if (!is_array($rule) || !is_string(idx($rule, 'rule')) ||
+          !isset($rules[$rule['rule']]) ||
+          !in_array(idx($rule, 'action'), array('allow', 'deny'), true) ||
+          !self::isRuleValueAvailable(
+            $rules[$rule['rule']], idx($rule, 'value'))) {
         return true;
       }
     }
     return false;
   }
 
-  private static function hasUnavailableRules(
-    PhabricatorPolicy $policy,
-    array $rules) {
+  private static function isRuleValueAvailable(
+    PhabricatorPolicyRule $rule,
+    $value) {
 
-    if (self::hasRetiredRules($policy)) {
+    if ($rule->getValueControlType() !==
+        PhabricatorPolicyRule::CONTROL_TYPE_SELECT) {
       return true;
     }
-    foreach ($policy->getRules() as $rule) {
-      if (!isset($rules[idx($rule, 'rule')])) {
-        return true;
-      }
-    }
-    return false;
+    $options = idx($rule->getValueControlTemplate(), 'options', array());
+    return (is_string($value) || is_int($value)) &&
+      array_key_exists($value, $options);
   }
 
   private static function newReplacementURI(AphrontRequest $request) {

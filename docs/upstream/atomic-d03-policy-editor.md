@@ -20,7 +20,11 @@ integrations are deferred to their own packages.
 A historical policy with an unavailable or internal rule opens read-only,
 including when every editor choice has been hidden. Submitting fewer rules to
 its old URL cannot create a partial replacement. Its full summary remains
-visible and its evaluator continues to enforce the original rules.
+visible and its evaluator continues to enforce the original rules. If a rule
+class was removed from the maintained product, the read-only summary shows
+its complete stored condition as escaped JSON rather than restoring the class
+or silently dropping the rule. Missing-rule policies retain the native
+fail-closed evaluation.
 
 To change such a policy, choose **Create Replacement Policy**, explicitly
 configure all intended rules, and choose **Save Policy**. Starting this workflow
@@ -31,13 +35,16 @@ saved through its normal authorized form or native edit API.
 The replacement marker requires a CSRF-validated form POST and cannot be used
 with submitted rules or an existing policy identifier. Unknown, hidden,
 inapplicable or internal rule classes cannot be posted as new rules. Invalid
-rule JSON and translated/unknown allow/deny values are rejected without writes.
+rule JSON, array-valued action/class/default parameters, and translated/unknown
+allow/deny values are rejected without writes.
 
 ## Localization
 
 Actions and known select values use native translated labels. Unknown values
 and action labels remain text and are HTML-escaped; rendering never rewrites
-stored values. New messages have English `pht()` sources and Chinese dictionary
+stored values. Unknown stored select values also open read-only, preventing
+the native select editor from coercing them to its first available option.
+New policies reject select values which have no available option. New messages have English `pht()` sources and Chinese dictionary
 entries. Both `en_US` and `zh_CN` are tested. Moon-phase labels are translated
 as moon phases rather than generic fullness or novelty.
 
