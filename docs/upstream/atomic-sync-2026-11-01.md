@@ -68,6 +68,21 @@ test-method list is not a test pass. Missing file engines, an unavailable
 service or an empty result set cannot be recorded as successful regression
 coverage.
 
+Post-merge verification at Phorge `246d0bdc4307d8f4c66f4b6afbb3d848a19110d1`
+found a provenance defect: the PHP 8.4 CI artifact passed 134 native methods
+and 30 HTTP assertions while recording `worktreeDirty: true`. Actions had
+placed its paired `.test-gorge` checkout inside the Phorge worktree, and the
+runners only recorded dirtiness instead of enforcing the clean-source release
+requirement. The follow-up moves that owned paired checkout outside Phorge
+and requires clean Phorge HEAD/status before and after both CI gates. Dirty
+source, source changes during testing and stale early-refusal evidence fail
+closed; local TDD remains explicitly available without a release claim.
+Real temporary-Git regressions reproduce the nested-checkout issue, tracked
+and untracked source changes, clean HEAD changes, stale successful reports,
+and ownership-safe handling of foreign/symlink log and output paths. The
+product features, PHP baseline, paired Gorge revision and production settings
+are unchanged; full native/HTTP execution remains required in the follow-up CI.
+
 For each following batch, append its PR/merge identity, actual source subset,
 test evidence and any limitations without marking unrelated deferred work
 complete. No retired application, repository-hosting/notification client,

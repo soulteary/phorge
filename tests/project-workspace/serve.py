@@ -66,13 +66,23 @@ class Forms(HTMLParser):
         if tag == 'option': self.option = None
 
 
-def main():
+def main(arguments=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--port', type=int, default=0)
     parser.add_argument('--exit-after-http', action='store_true')
-    args = parser.parse_args()
+    parser.add_argument('--require-clean-worktree', action='store_true',
+                        help='Require a clean Phorge worktree and unchanged HEAD before/after testing.')
+    args = parser.parse_args(arguments)
     output = args.output.resolve(); output.mkdir(parents=True, exist_ok=False, mode=0o700)
+    before = GATE.capture_source(ROOT)
+    report = {'passed': False, 'checks': [], 'cleanup': False,
+              'pairedGorgeRevision': os.environ.get('GORGE_CONTRACT_REF', ''),
+              'scope': 'Disposable native HTTP and persistence checks; browser layout is verified separately.'}
+    if GATE.record_source_provenance(report, before, None, args.require_clean_worktree):
+        GATE.publish_report(output/'http-results.json', report)
+        print(' '.join(report['sourceErrors']), file=sys.stderr)
+        return 1
     private = Path(tempfile.mkdtemp(prefix='phorge-workspace-')); private.chmod(0o700)
     config = GATE.configuration(os.environ)
     namespace = 'atomic_workspace_'+secrets.token_hex(8)
@@ -98,11 +108,6 @@ def main():
     owner_path = private/'owner.json'; owner_path.write_text(json.dumps(owner)); owner_path.chmod(0o600)
     env = dict(os.environ, ATOMIC_WORKSPACE_NAMESPACE=namespace,
                ATOMIC_WORKSPACE_PRIVATE=str(private))
-    report = {'passed': False, 'checks': [], 'cleanup': False,
-              'gitHead': subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
-              'worktreeDirty': bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip()),
-              'pairedGorgeRevision': os.environ['GORGE_CONTRACT_REF'],
-              'scope': 'Disposable native HTTP and persistence checks; browser layout is verified separately.'}
     server = None
     def command(name, argv, retain_stdout=True):
         result = subprocess.run(argv, cwd=ROOT, env=env, text=True, capture_output=True, timeout=300)
@@ -247,6 +252,9 @@ def main():
         if not args.exit_after_http:
             print('Serving the disposable native app until interrupted.',flush=True)
             while server.poll() is None: time.sleep(.5)
+    except BaseException:
+        report['passed'] = False
+        raise
     finally:
         if server is not None:
             server.terminate()
@@ -259,10 +267,14 @@ def main():
         private.rmdir()
         report['cleanup']=cleanup.returncode==0
         report['passed']=report['passed'] and report['cleanup']
+        GATE.record_source_provenance(report, before, GATE.capture_source(ROOT),
+                                      args.require_clean_worktree)
         # Never retain synthetic session/auth keys in ordinary HTTP request logs.
         if (output/'server.log').exists():
             (output/'server.log').write_text((output/'server.log').read_text().replace(key,'[redacted]'))
-        (output/'http-results.json').write_text(json.dumps(report,indent=2)+'\n')
+        GATE.publish_report(output/'http-results.json', report)
+    if report.get('sourceErrors'):
+        print(' '.join(report['sourceErrors']), file=sys.stderr)
     return 0 if report['passed'] else 1
 
 

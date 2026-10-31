@@ -70,8 +70,13 @@ jobs:
           ref: ${{ env.GORGE_CONTRACT_REF }}
           path: .test-gorge
           persist-credentials: false
+      - name: Move the owned paired checkout outside the Phorge source worktree
+        run: |
+          fixture_root=$(mktemp -d "$RUNNER_TEMP/atomic-gorge.XXXXXX")
+          mv -- .test-gorge "$fixture_root/source"
+          echo "ATOMIC_GORGE_SOURCE=$fixture_root/source" >> "$GITHUB_ENV"
       - name: Build actual file, image and render services from the paired source
-        run: python3 tests/atomic/build_gorge.py --gorge-dir .test-gorge --revision "$GORGE_CONTRACT_REF"
+        run: python3 tests/atomic/build_gorge.py --gorge-dir "$ATOMIC_GORGE_SOURCE" --revision "$GORGE_CONTRACT_REF"
       - name: Start isolated disposable dependencies
         env:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
@@ -106,13 +111,13 @@ jobs:
           php scripts/runtime/verify.php
           bash .github/scripts/check-retired-app-references.sh
       - name: Run every registered native package with mandatory dependency preflight
-        run: python3 tests/atomic/run.py --output "$RUNNER_TEMP/atomic-evidence"
+        run: python3 tests/atomic/run.py --require-clean-worktree --output "$RUNNER_TEMP/atomic-evidence"
       - name: Verify functional PHP server runtime without storage
         if: ${{ hashFiles('tests/atomic/packages/D06.json') != '' }}
         run: python3 -m unittest discover -s tests/project-workspace -p 'test_*.py' -v
       - name: Verify native workspace HTTP and persistence contracts when installed
         if: ${{ hashFiles('tests/atomic/packages/D06.json') != '' }}
-        run: python3 tests/project-workspace/serve.py --exit-after-http --output "$RUNNER_TEMP/workspace-http-evidence"
+        run: python3 tests/project-workspace/serve.py --require-clean-worktree --exit-after-http --output "$RUNNER_TEMP/workspace-http-evidence"
       - uses: actions/upload-artifact@v4
         if: always() && hashFiles('tests/atomic/packages/D06.json') != ''
         with:

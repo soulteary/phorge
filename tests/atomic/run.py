@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -85,68 +86,158 @@ def remove_configuration(path, digest):
     path.unlink()
 
 
+def capture_source(root):
+    """Keep Git's actual status, including all untracked source and submodules."""
+    head = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+    status = subprocess.check_output(
+        ["git", "status", "--porcelain=v1", "--untracked-files=all",
+         "--ignore-submodules=none"], cwd=root, text=True)
+    return {"gitHead": head, "worktreeDirty": bool(status), "worktreeStatus": status}
+
+
+def record_source_provenance(evidence, before, after, require_clean):
+    latest = after if after is not None else before
+    evidence.update({"gitHead": latest["gitHead"],
+                     "worktreeDirty": latest["worktreeDirty"],
+                     "sourceProvenance": {"requireCleanWorktree": require_clean,
+                                          "before": before, "after": after}})
+    errors = []
+    if require_clean:
+        if before["worktreeDirty"]:
+            errors.append("Phorge worktree was not clean before testing.")
+        if after is not None:
+            if after["worktreeDirty"]:
+                errors.append("Phorge worktree was not clean after testing.")
+            if after["gitHead"] != before["gitHead"]:
+                errors.append("Phorge HEAD changed while testing.")
+    evidence["sourceErrors"] = errors
+    if errors:
+        evidence["passed"] = False
+    return errors
+
+
+def publish_report(path, evidence):
+    """Publish only at an absent path, without following or replacing a new owner."""
+    descriptor, staging = tempfile.mkstemp(prefix=".atomic-report-", dir=path.parent)
+    try:
+        with os.fdopen(descriptor, "w") as output:
+            output.write(json.dumps(evidence, indent=2) + "\n")
+        try:
+            os.link(staging, path)
+        except FileExistsError as error:
+            raise RuntimeError("Result evidence was replaced; refusing to overwrite it.") from error
+    finally:
+        Path(staging).unlink()
+
+
+def verify_owned_log(path, identity):
+    try:
+        current = path.lstat()
+    except FileNotFoundError as error:
+        raise RuntimeError("Native log evidence was replaced; refusing to modify it.") from error
+    if (not stat.S_ISREG(current.st_mode) or
+            (current.st_dev, current.st_ino) != identity):
+        raise RuntimeError("Native log evidence was replaced; refusing to modify it.")
+
+
 def run(arguments=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--package", action="append", default=[])
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--require-clean-worktree", action="store_true",
+                        help="Require a clean Phorge worktree before/after testing and unchanged HEAD.")
     options = parser.parse_args(arguments)
     root = Path(__file__).resolve().parents[2]
     options.output = options.output.resolve()
     options.output.mkdir(parents=True, exist_ok=True)
-    config = configuration(os.environ)
-    for package in options.package:
-        if not re.fullmatch(r"D[0-9]{2}", package):
-            raise ValueError("Invalid package identifier.")
-    path, digest = reserve_configuration(root, config)
+    report = options.output / "native-results.json"
+    if report.is_symlink():
+        raise ValueError("Refusing symlinked native result evidence.")
+    # Invalidate old success before any configuration or provenance refusal.
+    report.unlink(missing_ok=True)
+    log_path = options.output / "native.log"
+    owned_log = None
+    log_stream = None
+    log_text = None
+    before = capture_source(root)
+    evidence = {"passed": False, "results": [], "errors": []}
+    produced_evidence = False
+    path = digest = None
     result = None
     try:
-        child = dict(os.environ, ATOMIC_TEST_PREPARED="1")
-        report = options.output / "native-results.json"
-        # A reused evidence directory must not turn an early exit into a pass
-        # from a previous checkout. Each child receives a fresh private path;
-        # the published report exists only after that child produced evidence.
-        report.unlink(missing_ok=True)
-        with tempfile.TemporaryDirectory(prefix=".native-current-", dir=options.output) as current:
-            current_report = Path(current) / "results.json"
-            command = ["php", "tests/atomic/run.php", "--report", str(current_report)]
+        errors = record_source_provenance(evidence, before, None,
+                                          options.require_clean_worktree)
+        if not errors:
+            config = configuration(os.environ)
             for package in options.package:
-                command.extend(["--package", package])
-            # Native fixtures allocate their own random namespaces, run native
-            # storage upgrades, and remove those databases at PHP process shutdown.
-            with (options.output / "native.log").open("w") as output:
+                if not re.fullmatch(r"D[0-9]{2}", package):
+                    raise ValueError("Invalid package identifier.")
+            path, digest = reserve_configuration(root, config)
+            child = dict(os.environ, ATOMIC_TEST_PREPARED="1")
+            # Each child receives a fresh private path, so an early exit cannot
+            # reuse successful native evidence from a previous checkout.
+            with tempfile.TemporaryDirectory(prefix=".native-current-", dir=options.output) as current:
+                current_report = Path(current) / "results.json"
+                command = ["php", "tests/atomic/run.php", "--report", str(current_report)]
+                for package in options.package:
+                    command.extend(["--package", package])
+                # Native fixtures allocate their own random namespaces, run native
+                # upgrades, and remove those databases at PHP process shutdown.
+                if log_path.is_symlink():
+                    raise ValueError("Refusing symlinked native log evidence.")
+                descriptor = os.open(log_path, os.O_RDWR | os.O_CREAT | os.O_TRUNC |
+                                     os.O_NOFOLLOW, 0o600)
+                log_stream = os.fdopen(descriptor, "w+")
+                identity = os.fstat(log_stream.fileno())
+                owned_log = (identity.st_dev, identity.st_ino)
                 result = subprocess.run(command, cwd=root, env=child,
-                                        stdout=output, stderr=subprocess.STDOUT,
+                                        stdout=log_stream, stderr=subprocess.STDOUT,
                                         timeout=1800, check=False)
-            if not current_report.is_file():
-                raise RuntimeError("Native runner failed without test-result evidence; inspect native.log.")
-            evidence = json.loads(current_report.read_text())
-        evidence["gitHead"] = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
-        evidence["worktreeDirty"] = bool(subprocess.check_output(
-            ["git", "status", "--porcelain"], cwd=root, text=True).strip())
-        evidence["pairedGorgeRevision"] = os.environ["GORGE_CONTRACT_REF"]
-        evidence["scope"] = "Selected native package regressions; not full application compatibility."
-        report.write_text(json.dumps(evidence, indent=2) + "\n")
-        # Emit redacted native output, including failures, into CI diagnostics.
-        log = (options.output / "native.log").read_text()
-        for name in ("GORGE_TEST_MYSQL_PASSWORD", "GORGE_TEST_FILE_TOKEN", "GORGE_TEST_IMAGE_TOKEN", "GORGE_TEST_RENDER_TOKEN"):
-            log = log.replace(os.environ[name], "[redacted]")
-        (options.output / "native.log").write_text(log)
-        print(log, end="")
-        if result.returncode or not evidence.get("passed"):
-            return 1
-        return 0
+                if not current_report.is_file():
+                    raise RuntimeError("Native runner failed without test-result evidence; inspect native.log.")
+                evidence = json.loads(current_report.read_text())
+                produced_evidence = True
+                if result.returncode:
+                    evidence["passed"] = False
+    except BaseException:
+        evidence["passed"] = False
+        raise
     finally:
         try:
-            log_path = options.output / "native.log"
-            if log_path.exists():
-                log = log_path.read_text()
+            if owned_log is not None:
+                verify_owned_log(log_path, owned_log)
+                log_stream.seek(0)
+                log = log_stream.read()
                 for name in ("GORGE_TEST_MYSQL_PASSWORD", "GORGE_TEST_FILE_TOKEN",
                              "GORGE_TEST_IMAGE_TOKEN", "GORGE_TEST_RENDER_TOKEN"):
-                    log = log.replace(os.environ[name], "[redacted]")
-                log_path.write_text(log)
+                    if os.environ.get(name):
+                        log = log.replace(os.environ[name], "[redacted]")
+                log_stream.seek(0)
+                log_stream.write(log)
+                log_stream.truncate()
+                log_stream.flush()
+                verify_owned_log(log_path, owned_log)
+                log_text = log
+        except BaseException:
+            evidence["passed"] = False
+            raise
         finally:
-            remove_configuration(path, digest)
+            if log_stream is not None:
+                log_stream.close()
+            if path is not None:
+                remove_configuration(path, digest)
+            record_source_provenance(evidence, before, capture_source(root),
+                                     options.require_clean_worktree)
+            evidence["pairedGorgeRevision"] = os.environ.get("GORGE_CONTRACT_REF", "")
+            evidence["scope"] = "Selected native package regressions; not full application compatibility."
+            if produced_evidence or options.require_clean_worktree:
+                publish_report(report, evidence)
+    if log_text is not None:
+        print(log_text, end="")
+    if evidence.get("sourceErrors"):
+        print(" ".join(evidence["sourceErrors"]), file=sys.stderr)
+    return 0 if result is not None and not result.returncode and evidence.get("passed") else 1
 
 
 if __name__ == "__main__":
