@@ -75,6 +75,9 @@ if ($mode === 'snapshot') {
   $columns = id(new PhabricatorProjectColumnQuery())->setViewer($viewer)
     ->withPHIDs(mpull($positions, 'getColumnPHID'))->execute();
   $columns = mpull($columns, 'getName', 'getPHID');
+  $authors = id(new PhabricatorPeopleQuery())->setViewer($viewer)
+    ->withPHIDs(mpull($tasks, 'getAuthorPHID'))->execute();
+  $authors = mpull($authors, 'getUsername', 'getPHID');
   $snapshot = array();
   foreach ($tasks as $task) {
     $placed = array();
@@ -85,8 +88,17 @@ if ($mode === 'snapshot') {
           'boardPHID' => $position->getBoardPHID());
       }
     }
+    $edges = id(new PhabricatorEdgeQuery())
+      ->withSourcePHIDs(array($task->getPHID()))
+      ->withEdgeTypes(array(PhabricatorProjectObjectHasProjectEdgeType::EDGECONST));
+    $edges->execute();
     $snapshot[] = array('id' => (int)$task->getID(), 'title' => $task->getTitle(),
-      'status' => $task->getStatus(), 'columns' => $placed);
+      'status' => $task->getStatus(), 'columns' => $placed,
+      'authorPHID' => $task->getAuthorPHID(),
+      'authorUsername' => idx($authors, $task->getAuthorPHID()),
+      'description' => $task->getDescription(), 'priority' => $task->getPriority(),
+      'viewPolicy' => $task->getViewPolicy(), 'editPolicy' => $task->getEditPolicy(),
+      'projectPHIDs' => $edges->getDestinationPHIDs());
   }
   echo json_encode($snapshot, JSON_PRETTY_PRINT)."\n";
   exit;
