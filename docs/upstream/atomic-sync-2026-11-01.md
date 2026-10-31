@@ -46,6 +46,16 @@ Runner result-policy regressions (14 checks) and isolation/release-inventory
 Python regressions also pass. The evidence is package-specific, not a claim
 that later package code or every production workload passed.
 
+Actual PR CI identified two gate integration defects: Ubuntu runners did not
+provide `rg`, and native ancestor-suite discovery pulled a root-level atomic
+preflight into existing cluster acceptance without its dedicated services.
+The workflow now installs ripgrep explicitly. The preflight moved to a
+dedicated testing subtree, retaining mandatory file/avatar/schema checks and
+adding native broad-versus-explicit discovery regressions. The bundled test
+engine and existing runtime acceptance selections remain unchanged.
+The corrected D01 suite passed all 49 native methods locally on PHP 8.5.8
+with the same disposable paired services; no required method was skipped.
+
 Required skips are failures. An explicitly documented optional skip remains a
 skip in the result JSON. A source author's acceptance count or a declared
 test-method list is not a test pass. Missing file engines, an unavailable
