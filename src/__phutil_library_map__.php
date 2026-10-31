@@ -4163,7 +4163,7 @@ phutil_register_library_map(array(
     'PhorgeApplicationMentionsListView' => 'applications/transactions/view/PhorgeApplicationMentionsListView.php',
     'PhorgeApplicationSettingsPanel' => 'applications/config/applicationpanel/PhorgeApplicationSettingsPanel.php',
     'PhorgeAtomicChineseFixtureTranslation' => 'infrastructure/internationalization/scope/__tests__/PhabricatorLocaleScopeGuardTestCase.php',
-    'PhorgeAtomicEnvironmentTestCase' => '__tests__/PhorgeAtomicEnvironmentTestCase.php',
+    'PhorgeAtomicEnvironmentTestCase' => 'infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php',
     'PhorgeCodeWarningSetupCheck' => 'applications/config/check/PhorgeCodeWarningSetupCheck.php',
     'PhorgeConfigOptionListView' => 'applications/config/view/PhorgeConfigOptionListView.php',
     'PhorgeCoreSubtypeTransaction' => 'applications/transactions/xaction/PhorgeCoreSubtypeTransaction.php',

@@ -11,8 +11,10 @@
   "tests": [
     {
       "class": "PhorgeAtomicEnvironmentTestCase",
-      "path": "src/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+      "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
       "methods": [
+        "testBroadRuntimeDiscoveryExcludesAtomicPreflight",
+        "testExplicitAtomicPreflightIsStillDiscovered",
         "testGorgeIsTheWritableFileEngine",
         "testUserAvatarAndImageServiceAreUsable",
         "testStorageUpgradeCanBeRepeated"
