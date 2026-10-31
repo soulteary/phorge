@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location("atomic_runner", Path(__file__).with_name("run.py"))
 runner = importlib.util.module_from_spec(spec)
@@ -90,6 +92,52 @@ class IsolationPolicyTest(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 runner.remove_configuration(path, digest)
             self.assertEqual(path.read_text(), "changed by user")
+
+    def test_early_successful_exit_cannot_reuse_old_passed_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            output = root / "evidence"
+            output.mkdir()
+            report = output / "native-results.json"
+            report.write_text(json.dumps({"passed": True, "results": [
+                {"id": "PreviousCheckout::testOld", "result": "pass"}]}))
+            with mock.patch.object(runner, "__file__", str(root / "tests/atomic/run.py")), \
+                    mock.patch.dict(runner.os.environ, self.environment(), clear=True), \
+                    mock.patch.object(runner.subprocess, "run", return_value=SimpleNamespace(returncode=0)), \
+                    mock.patch.object(runner.subprocess, "check_output", return_value="b" * 40):
+                with self.assertRaisesRegex(RuntimeError, "without test-result evidence"):
+                    runner.run(["--package", "D01", "--output", str(output)])
+            self.assertFalse((root / "conf/local/local.json").exists())
+            self.assertFalse(report.exists())
+
+    def test_only_current_native_evidence_receives_checkout_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            output = root / "evidence"
+            output.mkdir()
+            report = output / "native-results.json"
+            report.write_text(json.dumps({"passed": True, "results": [
+                {"id": "PreviousCheckout::testOld", "result": "pass"}]}))
+
+            def native(command, **_options):
+                current_report = Path(command[command.index("--report") + 1])
+                current_report.write_text(json.dumps({"passed": True, "results": [
+                    {"id": "CurrentCheckout::testCurrent", "result": "pass"}]}))
+                return SimpleNamespace(returncode=0)
+
+            def git(command, **_options):
+                return "b" * 40 if command[-1] == "HEAD" else ""
+
+            with mock.patch.object(runner, "__file__", str(root / "tests/atomic/run.py")), \
+                    mock.patch.dict(runner.os.environ, self.environment(), clear=True), \
+                    mock.patch.object(runner.subprocess, "run", side_effect=native), \
+                    mock.patch.object(runner.subprocess, "check_output", side_effect=git):
+                self.assertEqual(0, runner.run(["--package", "D01", "--output", str(output)]))
+            evidence = json.loads(report.read_text())
+            self.assertEqual([{"id": "CurrentCheckout::testCurrent", "result": "pass"}],
+                             evidence["results"])
+            self.assertEqual("b" * 40, evidence["gitHead"])
+            self.assertFalse((root / "conf/local/local.json").exists())
 
 
 if __name__ == "__main__":

@@ -78,14 +78,22 @@ manifest hashes, checkout identity and the paired Gorge revision. Dirty trees
 are marked explicitly. `native.log` and result details redact configured test
 passwords/tokens. Early configuration/parser failures may precede native
 result creation and fail CI directly; absence of evidence never means pass.
+Each native invocation writes to a fresh private report path. Reusing an
+output directory first invalidates its previous published report, so an early
+successful process exit cannot reuse or relabel an earlier checkout's pass.
 
 ## CI and release scope
 
 `.github/workflows/atomic-feature-regressions.yml` runs on every PR and main
 push. It builds all three actual services from `GORGE_CONTRACT_REF`, reuses the
-existing acceptance image lock, checks map reproducibility/runtime integrity
-and retired references, and runs all registered package suites. Missing
-paired source or unavailable dependencies fail instead of skipping.
+paired Gorge commit's `deploy/release/build-bases.json`, checks map
+reproducibility/runtime integrity and retired references, and runs all
+registered package suites. The fixture builder requires an exact clean Gorge
+checkout, reads that commit's build-base lock, and uses Gorge's own validator
+to require immutable multi-platform builder/runtime digests. Phorge's
+production acceptance lock is unchanged; it must not substitute an older Go
+builder for Gorge's required toolchain. Missing paired source, build-base lock
+or unavailable dependencies fail instead of skipping.
 
 PHP 8.3 remains the production baseline. PHP 8.4/8.5 are compatibility checks
 for these selected native packages; they do not establish complete production
