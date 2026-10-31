@@ -12,11 +12,11 @@ D05/D06 source feature contribution: `soulteary/phorge#49` at
 | D02 | [PR #53](https://github.com/soulteary/phorge/pull/53) | D01 | File transform visibility; a separate feature package. |
 | D03 | [PR #54](https://github.com/soulteary/phorge/pull/54) | D01 | Safe policy presentation, explicit replacement editing, and historical rule preservation; a separate feature package. |
 | D04 | [PR #55](https://github.com/soulteary/phorge/pull/55) | D01 | Opt-in hierarchy navigation and native ancestor privacy; a separate feature package. |
-| D05 | `feat/atomic-d05-project-records` | D01 | H01–H08, H13, H14: append-only native records, permission checks, historical readers, Feed/backlink filtering, English and Chinese text. |
+| D05 | [PR #56](https://github.com/soulteary/phorge/pull/56) | D01 | H01–H08, H13, H14: append-only native records, permission checks, historical readers, Feed/backlink filtering, English and Chinese text. |
 | D06 | `feat/atomic-d06-project-workspace` | D05 | W01–W04, W06–W08, H10–H12: optional native workspace, scoped shortcuts, native status presentation, authorized zero-write task drafts and explicit native Save. |
 
-The D05 and D06 references intentionally use branch names until review URLs
-exist. D02–D04 are independent feature reviews and are not prerequisites for
+The D06 reference intentionally uses its branch name until a review URL exists.
+D02–D04 are independent feature reviews and are not prerequisites for
 the records/workspace dependency chain. Foundation updates are merged normally
 into D05 and then D05 is merged normally into D06.
 
