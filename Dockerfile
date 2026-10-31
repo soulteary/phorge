@@ -5,7 +5,7 @@
 # Phorge 官方没有提供 Docker 镜像，本 Dockerfile 基于当前源码目录自建。
 # PHP 兼容运行库随源码交付，构建无需独立 Arcanist checkout。
 #
-ARG PHP_BASE_IMAGE=php:8.3.36-apache
+ARG PHP_BASE_IMAGE=php:8.5.12-apache
 FROM ${PHP_BASE_IMAGE}
 ARG APCU_VERSION=5.1.28
 ARG DEBIAN_SNAPSHOT=
@@ -46,7 +46,6 @@ RUN set -eux; \
         mbstring \
         pcntl \
         posix \
-        opcache \
         iconv \
         zip \
     ; \
@@ -69,6 +68,7 @@ RUN set -eux; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
     rm -rf /var/lib/apt/lists/*
 
+# PHP 8.5 includes OPcache in the engine; do not build it as a shared extension.
 # APCu 缓存扩展
 ARG APCU_SHA256=ca9c1820810a168786f8048a4c3f8c9e3fd941407ad1553259fb2e30b5f057bf
 RUN curl -fsSL --retry 3 --max-time 60 "https://pecl.php.net/get/apcu-${APCU_VERSION}.tgz" -o /tmp/apcu.tgz \

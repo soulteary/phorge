@@ -61,3 +61,19 @@ The `manifests` array must contain Linux AMD64 and ARM64 entries. The ARM64
 entry's digest must match the retained child listed above. The five version tags
 can help locate these parents, but the acceptance build uses the frozen index
 digests from `build-lock.json`.
+
+## PHP 8.5.12 production baseline (2026-11-01)
+
+The PHP lock is now the official `php:8.5.12-apache` multi-platform index
+`sha256:4cc63b3d4e05c40da73e7af5d39364ca2678ac07208919497bda3bbab975be95`.
+Its Linux AMD64 child is
+`sha256:9cc4f73d14eb46d07789a2a98b939b928f8a271a95416cb63902ebb460d31dbb`;
+its Linux ARM64 child is
+`sha256:26d83db3d12b0aa3a9de2486f384c1a996e4db917fbb66dbbf2863c30cd00275`.
+The Debian snapshot is `20261028T000000Z`, paired with this base image rather
+than an older package index. APCu remains 5.1.28 with its existing source hash.
+
+The Go builder lock is updated to Gorge's reviewed Go 1.27.3 index
+`sha256:d530cf60723abf1ffae0cd16bb546b379ec0550d2f3815e5b16ed69dbc00fba4`;
+the earlier Go 1.27.1 lock does not meet the paired module's current requirement.
+Historical entries above describe previous releases, not current support.

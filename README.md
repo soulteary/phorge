@@ -1,5 +1,9 @@
 **Phorge** is a collection of web applications which help software companies build better software.
 
+> PHP runtime: **8.5 only**, minimum **8.5.12**. Docker and CI pin 8.5.12;
+> Web and CLI reject other PHP branches. JIT is explicitly disabled.
+> See [upgrade and rollback](docs/releases/php-8.5.12-upgrade.md).
+
 Phorge is a community-maintained fork of [Phabricator](http://phabricator.org).
 
 Phorge includes applications for:

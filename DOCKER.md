@@ -752,10 +752,12 @@ manifest；不要重新构建后继续沿用旧验收结果。
 
 ## 内置 PHP 兼容运行库
 
-当前 Docker 与完整配对契约的 PHP 基线是 8.3。CI 的 `runtime-compatibility`
-矩阵另在 8.4/8.5 检查保留运行库、维护工具和响应安全；这些版本仍是运行库候选，
-尚不等于全应用、迁移或生产工作负载已支持。升级基线前须重新完成整套配对验收和
-有代表性的业务验证。维护流程见 [运行库说明](support/runtime/README.md)。
+唯一支持的 PHP 分支是 8.5，最低安全补丁及当前生产镜像为 **8.5.12**。
+Web、CLI、迁移、运维和 CI 使用同一版本策略；8.3/8.4 等其他分支不再支持。
+PHP 8.5 已内置 OPcache，镜像不再独立安装此扩展；Web 与 CLI 都显式设置
+`opcache.jit=disable`、`opcache.jit_buffer_size=0`。不得用 JIT 模式覆盖生产配置。
+运行库维护见 [运行库说明](support/runtime/README.md)，升级与回退见
+[8.5.12 升级说明](docs/releases/php-8.5.12-upgrade.md)。
 
 Phorge 的 PHP 基础运行库位于 `support/runtime/`，随本仓库源码和镜像交付。
 构建、网页、管理命令和契约测试都不需要相邻的 Arcanist checkout。内部库注册名

@@ -82,8 +82,8 @@ You will also need:
     You will need a server with multiple databases.
     From now on, both will be referred to as MySQL.
   - **PHP**: You need a PHP engine:
-    - PHP 7 - 7.2.25 or newer.
-    - PHP 8 - 8.0 or newer.
+    - PHP 8.5 - 8.5.12 or newer within the 8.5 branch.
+    - Explicitly disable JIT (opcache.jit=disable, opcache.jit_buffer_size=0).
   - **git**: You need git 2.5.0 or newer on the server.
     No particular version is needed on your clients.
 

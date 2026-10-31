@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__.'/php-version.php';
+phorge_assert_supported_php_version(PHP_VERSION);
+
 // The registered name is kept for PHP API/resource compatibility. Only this
 // project-owned copy may satisfy it; there is no external-directory fallback.
 $gorge_runtime_root = __DIR__.'/src';

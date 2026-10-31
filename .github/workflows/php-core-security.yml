@@ -5,6 +5,8 @@ on:
     paths:
       - Dockerfile
       - docker/php/uploads.ini
+      - docker/php/opcache.ini
+      - support/runtime/php-version.php
       - deploy/acceptance/build-lock.json
       - deploy/acceptance/php_security.php
       - deploy/acceptance/run.py
@@ -14,6 +16,8 @@ on:
     paths:
       - Dockerfile
       - docker/php/uploads.ini
+      - docker/php/opcache.ini
+      - support/runtime/php-version.php
       - deploy/acceptance/build-lock.json
       - deploy/acceptance/php_security.php
       - deploy/acceptance/run.py
@@ -33,8 +37,8 @@ jobs:
         run: |
           set -euo pipefail
           image="$(sed -n 's/^ARG PHP_BASE_IMAGE=//p' Dockerfile | head -n1)"
-          if [[ ! "$image" =~ ^php:8\.3\.[0-9]+-apache$ ]]; then
-            echo "::error::Expected a pinned PHP 8.3 Apache patch release, found: $image"
+          if [[ ! "$image" =~ ^php:8\.5\.12-apache$ ]]; then
+            echo "::error::Expected the PHP 8.5.12 Apache production baseline, found: $image"
             exit 1
           fi
           locked_image="$(python3 -c 'import json; print(json.load(open("deploy/acceptance/build-lock.json"))["images"]["php"])')"
@@ -42,6 +46,7 @@ jobs:
           for ref in "$image" "$locked_image"; do
             docker run --rm \
               -v "$PWD/docker/php/uploads.ini:/usr/local/etc/php/conf.d/phorge-uploads.ini:ro" \
+              -v "$PWD/docker/php/opcache.ini:/usr/local/etc/php/conf.d/phorge-opcache.ini:ro" \
               -v "$PWD/deploy/acceptance/php_security.php:/tmp/php_security.php:ro" \
               "$ref" php /tmp/php_security.php
           done

@@ -524,12 +524,11 @@ final class PhabricatorStartup {
    * @task validation
    */
   private static function verifyPHP() {
-    $required_version = '7.2.25';
-    if (version_compare(PHP_VERSION, $required_version) < 0) {
+    require_once dirname(__DIR__).'/runtime/php-version.php';
+    if (!phorge_php_version_is_supported(PHP_VERSION)) {
       self::didFatal(
-        "You are running PHP version '".PHP_VERSION."', which is older than ".
-        "the minimum version, '{$required_version}'. Update to at least ".
-        "'{$required_version}'.");
+        'Unsupported PHP runtime "'.PHP_VERSION.'". '.
+        'Phorge requires PHP 8.5.x, version 8.5.12 or newer.');
     }
 
     if (function_exists('get_magic_quotes_gpc')) {
