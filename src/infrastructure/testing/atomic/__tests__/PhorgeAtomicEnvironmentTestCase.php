@@ -7,6 +7,14 @@ final class PhorgeAtomicEnvironmentTestCase extends PhabricatorTestCase {
     return array(self::PHABRICATOR_TESTCONFIG_BUILD_STORAGE_FIXTURES => true);
   }
 
+  protected function willRunOneTest($test) {
+    parent::willRunOneTest($test);
+    // Real migrations and paired service calls need a bounded integration
+    // budget, especially after another package populated the shared fixture.
+    // The native parent teardown restores the caller's previous CPU budget.
+    set_time_limit(30);
+  }
+
   public function testBroadRuntimeDiscoveryExcludesAtomicPreflight() {
     $root = dirname(phutil_get_library_root('phabricator'));
     $engine = id(new PhutilUnitTestEngine())
