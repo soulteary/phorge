@@ -17,6 +17,20 @@ final class PhabricatorProjectProfileMenuEngine
     return "/project/{$id}/item/{$path}";
   }
 
+  public function getDefaultMenuItemConfiguration() {
+    $default = parent::getDefaultMenuItemConfiguration();
+    if (!$default && TeamProjectProgress::isWorkspaceEnabled() &&
+        PhabricatorApplication::isClassInstalledForViewer(
+        PhabricatorManiphestApplication::class, $this->getViewer())) {
+      // A stored default may point at the retired standalone node entry.
+      // Resolve it to the unified workspace without rewriting menu records.
+      return $this->newItem()
+        ->setBuiltinKey(PhabricatorProject::ITEM_WORKBOARD)
+        ->setMenuItemKey(PhabricatorProjectWorkboardProfileMenuItem::MENUITEMKEY);
+    }
+    return $default;
+  }
+
   protected function getBuiltinProfileItems($object) {
     $items = array();
 

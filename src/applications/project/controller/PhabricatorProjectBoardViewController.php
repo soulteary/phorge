@@ -98,7 +98,11 @@ final class PhabricatorProjectBoardViewController
           ))
         ->setNavigation($nav)
         ->setCrumbs($crumbs)
-        ->appendChild($content);
+        ->appendChild(array(
+          TeamProjectProgress::isWorkspaceEnabled() ? id(new TeamProjectWorkspaceView())
+            ->setViewer($viewer)->setProject($project) : null,
+          $content,
+        ));
     }
 
     $tasks = $state->getObjects();
@@ -110,7 +114,8 @@ final class PhabricatorProjectBoardViewController
 
     $board_id = celerity_generate_unique_node_id();
 
-    $board = id(new PHUIWorkboardView())
+    $board = id(TeamProjectProgress::isWorkspaceEnabled()
+      ? new TeamProjectWorkspaceBoardView() : new PHUIWorkboardView())
       ->setViewer($viewer)
       ->setID($board_id)
       ->addSigil('jx-workboard')
@@ -373,8 +378,10 @@ final class PhabricatorProjectBoardViewController
     $crumbs->addTextCrumb(pht('Workboard'));
     $crumbs->setBorder(true);
 
-    $crumbs->addAction($sort_menu);
-    $crumbs->addAction($filter_menu);
+    if (!TeamProjectProgress::isWorkspaceEnabled()) {
+      $crumbs->addAction($sort_menu);
+      $crumbs->addAction($filter_menu);
+    }
     $crumbs->addAction($divider);
     $crumbs->addAction($manage_menu);
     $crumbs->addAction($fullscreen);
@@ -395,6 +402,9 @@ final class PhabricatorProjectBoardViewController
         ))
       ->appendChild(
         array(
+          TeamProjectProgress::isWorkspaceEnabled() ? id(new TeamProjectWorkspaceView())
+            ->setViewer($viewer)->setProject($project)
+            ->addBoardControl($sort_menu)->addBoardControl($filter_menu) : null,
           $board_box,
         ));
 
@@ -474,9 +484,11 @@ final class PhabricatorProjectBoardViewController
     }
 
     $sort_button = id(new PHUIListItemView())
-      ->setName($active_name)
+      ->setName(TeamProjectProgress::isWorkspaceEnabled()
+        ? pht('Sort: %s', $active_name) : $active_name)
       ->setIcon($active_icon)
       ->setHref('#')
+      ->addClass('team-project-board-sort')
       ->addSigil('boards-dropdown-menu')
       ->setMetadata(
         array(
@@ -578,9 +590,11 @@ final class PhabricatorProjectBoardViewController
     }
 
     $filter_button = id(new PHUIListItemView())
-      ->setName($active_filter)
+      ->setName(TeamProjectProgress::isWorkspaceEnabled()
+        ? pht('Filter: %s', $active_filter) : $active_filter)
       ->setIcon('fa-search')
       ->setHref('#')
+      ->addClass('team-project-board-filter')
       ->addSigil('boards-dropdown-menu')
       ->setMetadata(
         array(
@@ -744,7 +758,11 @@ final class PhabricatorProjectBoardViewController
 
       $column_items[] = id(new PhabricatorActionView())
         ->setIcon($spec['icon'])
-        ->setName($spec['name'])
+        ->setName(TeamProjectProgress::isWorkspaceEnabled()
+          ? (count($specs) > 1
+            ? pht('Create Task in This Column: %s', $spec['name'])
+            : pht('Create Task in This Column'))
+          : $spec['name'])
         ->setHref($spec_href)
         ->setDisabled($spec['disabled'])
         ->addSigil('column-add-task')

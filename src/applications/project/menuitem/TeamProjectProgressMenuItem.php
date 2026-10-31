@@ -17,7 +17,10 @@ final class TeamProjectProgressProfileMenuItem
 
   public function shouldEnableForObject($object) {
     return $object instanceof PhabricatorProject &&
-      TeamProjectProgress::isHistoryVisible();
+      TeamProjectProgress::isHistoryVisible() &&
+      (!TeamProjectProgress::isWorkspaceEnabled() ||
+        !PhabricatorApplication::isClassInstalledForViewer(
+          PhabricatorManiphestApplication::class, $this->getViewer()));
   }
 
   public function canHideMenuItem(

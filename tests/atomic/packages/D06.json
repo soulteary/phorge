@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "D06",
+  "tests": [
+    {
+      "class": "TeamProjectWorkspaceStateTestCase",
+      "path": "src/applications/project/__tests__/TeamProjectWorkspaceStateTestCase.php",
+      "methods": [
+        "testWorkspaceAndDraftDefaultsPreserveNativeBehavior",
+        "testDraftMessagesRenderInEnglishAndChinese"
+      ]
+    },
+    {
+      "class": "TeamProjectWorkspaceTestCase",
+      "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+      "methods": [
+        "testDisabledDraftEntryDoesNotDisableOrdinaryTasksOrOldRecords",
+        "testStaleDisabledActorCannotOpenTaskDraft",
+        "testExplicitNativeSaveUsesCurrentDefaultsAndDoesNotCopySourceGrants",
+        "testWorkspaceVisibilityAndCustomStatusDoNotChangeNativeConfiguration",
+        "testProjectShortcutsRetainProjectScopeAndManiphestAvailability",
+        "testSharedControlsKeepNativeDropdownMetadataAndSigils",
+        "testSharedWorkCardsUseNativeStatusTransactions",
+        "testTaskDraftsPreserveSourceAndUseNativeCreationDefaults",
+        "testTaskDraftsRejectPrivateReadOnlyRevokedAndNonNodeSources"
+      ]
+    }
+  ],
+  "allowedSkips": {}
+}

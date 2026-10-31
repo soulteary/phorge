@@ -91,6 +91,8 @@ final class TeamProjectProgressController extends PhabricatorProjectController {
       ->setHeader(pht('Development History'))
       ->setViewer($viewer)
       ->setPolicyObject($project);
+    $project_actions = TeamProjectProgress::isWorkspaceEnabled()
+      ? TeamProjectWorkspaceView::newProjectActions($viewer, $project) : null;
     $summary = id(new TeamProjectProgressSummaryView())
       ->setViewer($viewer)
       ->setProject($project)
@@ -136,7 +138,10 @@ final class TeamProjectProgressController extends PhabricatorProjectController {
       ->appendChild(id(new PHUITwoColumnView())
         ->setHeader($header)
         ->setMainColumn(array(
-          $summary, $history, $form)));
+          TeamProjectProgress::isWorkspaceEnabled()
+            ? id(new TeamProjectWorkspaceView())->setViewer($viewer)
+              ->setProject($project)->setSection('history') : null,
+          $project_actions, $summary, $history, $form)));
   }
 
   private function newRecordView($record, $project, $uri) {
@@ -160,6 +165,16 @@ final class TeamProjectProgressController extends PhabricatorProjectController {
     }
     $body = id(new PHUIRemarkupView($viewer, $value['body']))
       ->setContextObject($project);
+    $card_action = null;
+    if ($kind === 'node' && TeamProjectProgress::areTaskDraftsEnabled() &&
+        TeamProjectProgress::canPublish($viewer, $project) &&
+        PhabricatorApplication::isClassInstalledForViewer(
+          PhabricatorManiphestApplication::class, $viewer)) {
+      $card_action = id(new TeamProjectProgressActionsView())
+        ->addAction(id(new PHUIButtonView())->setTag('a')->setIcon('fa-plus')
+          ->setText(pht('Create Task from This Record'))
+          ->setHref('/maniphest/task/edit/?projectNode='.$record->getID()));
+    }
     $record_name = $kind === 'node' && idx($value, 'version') === 2
       ? pht('Project Record') : $names[$kind];
     return id(new PHUITimelineEventView())
@@ -183,6 +198,7 @@ final class TeamProjectProgressController extends PhabricatorProjectController {
         phutil_tag('h3', array('class' => 'phui-header-header'), $value['title']),
         $properties,
         $body,
+        $card_action,
       ));
   }
 
@@ -211,7 +227,7 @@ final class TeamProjectProgressController extends PhabricatorProjectController {
         ->setCaption(pht('Record results, decisions, issues, and next steps. You may reference tasks such as T123. Discuss task details on the task; task links remain subject to their own policies.')));
     if ($kind === 'node') {
       $form->appendControl(id(new AphrontFormTextControl())
-        ->setName('percent')->setLabel(pht('Reported Project Completion (%)'))->setValue($input['percent'])
+        ->setName('percent')->setLabel(pht('Reported Project Completion (%%)'))->setValue($input['percent'])
         ->setCaption(pht('Optional manual project assessment (0–100). Leave blank to preserve the current value. This value is not calculated from closed tasks.')));
     }
     $form->appendControl(id(new AphrontFormTokenizerControl())

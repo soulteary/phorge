@@ -117,6 +117,15 @@ jobs:
           bash .github/scripts/check-retired-app-references.sh
       - name: Run every registered native package with mandatory dependency preflight
         run: python3 tests/atomic/run.py --output "$RUNNER_TEMP/atomic-evidence"
+      - name: Verify native workspace HTTP and persistence contracts when installed
+        if: ${{ hashFiles('tests/project-workspace/serve.py') != '' }}
+        run: python3 tests/project-workspace/serve.py --exit-after-http --output "$RUNNER_TEMP/workspace-http-evidence"
+      - uses: actions/upload-artifact@v4
+        if: always() && hashFiles('tests/project-workspace/serve.py') != ''
+        with:
+          name: atomic-workspace-http-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/workspace-http-evidence
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:

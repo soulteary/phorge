@@ -100,6 +100,14 @@ final class PhabricatorProjectSubprojectsController
       ->addClass('project-view-home')
       ->addClass('project-view-people-home')
       ->setMainColumn(array(
+          TeamProjectProgress::isWorkspaceEnabled() &&
+          TeamProjectProgress::isHistoryVisible() ? id(new PHUIInfoView())
+            ->setSeverity(PHUIInfoView::SEVERITY_NOTICE)
+            ->appendChild(pht(
+              'Milestones group phase tasks. Record releases, decisions, and results in %s.',
+              phutil_tag('a',
+                array('href' => '/project/progress/'.$project->getID().'/'),
+                pht('Development History')))) : null,
           $info_view,
           $subproject_list,
           $milestone_list,
