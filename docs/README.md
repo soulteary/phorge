@@ -15,6 +15,8 @@
 5. [PHP 运行库维护](../support/runtime/README.md)：来源身份、补丁记录、解析器/映射、
    manifest 更新与 PHP 版本支持范围。
 6. [中文本地化](../I18N-zh_CN.md)：翻译来源、提取、格式验证与维护流程。
+7. [可选入口与账户维护集成](integrations/optional-entry-and-maintenance.md)：
+   默认关闭的入口会话绑定、文件访问策略、账户维护 RPC 契约与迁移配置。
 
 [发布记录](../RELEASE_NOTES.md)与 [2026.10.08-r1 发布准备](releases/2026.10.08-r1.md)
 记录当前候选范围和发布步骤；[2026.10.07-r2 发布准备](releases/2026.10.07-r2.md)
