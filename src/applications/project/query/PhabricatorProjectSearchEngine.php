@@ -226,7 +226,9 @@ final class PhabricatorProjectSearchEngine
   }
 
   protected function getBuiltinQueryNames() {
-    $names = array();
+    $names = array(
+      'hierarchy' => pht('项目层级'),
+    );
 
     if ($this->requireViewer()->isLoggedIn()) {
       $names['joined'] = pht('Joined');
@@ -254,6 +256,14 @@ final class PhabricatorProjectSearchEngine
     $active = PhabricatorProjectStatus::STATUS_ACTIVE_KEY;
 
     switch ($query_key) {
+      case 'hierarchy':
+        // Paginate roots, not a flat mix of roots and descendants. Children
+        // are loaded separately, with the viewer's policy, at each level.
+        // Include archived roots so their active children remain reachable.
+        return $query
+          ->setParameter('isRoot', true)
+          ->setParameter('status', 'all')
+          ->setParameter('order', 'name');
       case 'all':
         return $query;
       case 'active':
@@ -344,6 +354,8 @@ final class PhabricatorProjectSearchEngine
     $list = id(new PhabricatorProjectListView())
       ->setViewer($viewer)
       ->setProjects($projects)
+      ->setBrowseHierarchy($query->getQueryKey() === 'hierarchy')
+      ->setShowHierarchyPath(true)
       ->setShowWatching(true)
       ->setShowMember(true)
       ->renderList();

@@ -29,6 +29,7 @@ final class PhabricatorProjectSubprojectsController
         ->withParentProjectPHIDs(array($project->getPHID()))
         ->needImages(true)
         ->withIsMilestone(false)
+        ->setOrderVector(array('name'))
         ->execute();
 
       $subproject_list = id(new PHUIObjectBoxView())
@@ -38,7 +39,8 @@ final class PhabricatorProjectSubprojectsController
           id(new PhabricatorProjectListView())
             ->setViewer($viewer)
             ->setProjects($subprojects)
-            ->setNoDataString(pht('This project has no subprojects.'))
+            ->setBrowseHierarchy(true)
+            ->setNoDataString(pht('没有可查看的子项目。'))
             ->renderList());
     } else {
       $subprojects = array();
@@ -60,7 +62,7 @@ final class PhabricatorProjectSubprojectsController
           id(new PhabricatorProjectListView())
             ->setViewer($viewer)
             ->setProjects($milestones)
-            ->setNoDataString(pht('This project has no milestones.'))
+            ->setNoDataString(pht('没有可查看的里程碑。'))
             ->renderList());
     } else {
       $milestones = array();

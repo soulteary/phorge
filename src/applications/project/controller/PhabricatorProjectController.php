@@ -116,10 +116,41 @@ abstract class PhabricatorProjectController extends PhabricatorController {
 
     $project = $this->getProject();
     if ($project) {
+      // Use the project hierarchy rather than browser history. This also
+      // works when a user opens a project through a bookmark or a search.
+      $parent = $this->getProjectNavigationParent();
+      $parent_uri = '/project/query/hierarchy/';
+      $parent_name = pht('返回项目列表');
+      if ($parent && PhabricatorPolicyFilter::hasCapability(
+          $this->getViewer(),
+          $parent,
+          PhabricatorPolicyCapability::CAN_VIEW)) {
+        $parent_uri = $this->getApplicationURI(
+          'subprojects/'.$parent->getID().'/');
+        $parent_name = pht('返回上一级');
+      }
+
+      $crumbs->addAction(
+        id(new PHUIListItemView())
+          ->setName($parent_name)
+          ->setIcon('fa-arrow-left')
+          ->setHref($parent_uri)
+          ->setMetadata(array('tip' => $parent_name))
+          ->addClass('team-project-parent-navigation'));
+
       $ancestors = $project->getAncestorProjects();
       $ancestors = array_reverse($ancestors);
-      $ancestors[] = $project;
+      if ($this->shouldAddCurrentProjectCrumb()) {
+        $ancestors[] = $project;
+      }
       foreach ($ancestors as $ancestor) {
+        if (!PhabricatorPolicyFilter::hasCapability(
+            $this->getViewer(),
+            $ancestor,
+            PhabricatorPolicyCapability::CAN_VIEW)) {
+          continue;
+        }
+
         if ($ancestor->getPHID() === $project->getPHID()) {
           // Link the current project's crumb to its profile no matter what,
           // since we're already on the right context page for it and linking
@@ -136,7 +167,8 @@ abstract class PhabricatorProjectController extends PhabricatorController {
               break;
             case 'profile':
             default:
-              $crumb_uri = $ancestor->getProfileURI();
+              $crumb_uri = $this->getApplicationURI(
+                'subprojects/'.$ancestor->getID().'/');
               break;
           }
         }
@@ -146,6 +178,15 @@ abstract class PhabricatorProjectController extends PhabricatorController {
     }
 
     return $crumbs;
+  }
+
+  protected function getProjectNavigationParent() {
+    $project = $this->getProject();
+    return $project ? $project->getParentProject() : null;
+  }
+
+  protected function shouldAddCurrentProjectCrumb() {
+    return true;
   }
 
   protected function getProfileMenuEngine() {
