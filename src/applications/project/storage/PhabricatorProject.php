@@ -166,6 +166,15 @@ final class PhabricatorProject extends PhabricatorProjectDAO
 
   public function describeAutomaticCapability($capability) {
 
+    if (TeamOrganizationProjectBoundary::newGuard($this)) {
+      switch ($capability) {
+        case PhabricatorPolicyCapability::CAN_VIEW:
+          return pht('项目成员也必须符合团队访问边界，才能查看此项目。');
+        case PhabricatorPolicyCapability::CAN_JOIN:
+          return pht('编辑者符合团队访问边界时可以加入此项目。');
+      }
+    }
+
     // TODO: Clarify the additional rules that parent and subprojects imply.
 
     switch ($capability) {
@@ -190,6 +199,11 @@ final class PhabricatorProject extends PhabricatorProjectDAO
           );
         }
         break;
+    }
+
+    $boundary = TeamOrganizationProjectBoundary::newGuard($this);
+    if ($boundary) {
+      $extended[] = array($boundary, PhabricatorPolicyCapability::CAN_VIEW);
     }
 
     return $extended;
