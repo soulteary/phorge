@@ -529,6 +529,11 @@ final class PhabricatorProjectCoreTestCase extends PhabricatorTestCase {
     $this->assertTrue((bool)$this->refreshProject($project, $user1));
     $this->assertFalse((bool)$this->refreshProject($project, $user2));
 
+    // Keep this test about the native member visibility rule. A successor
+    // administrator preserves the separate last-administrator invariant.
+    $project->setProperty(TeamProjectMembership::ROLES_PROPERTY, array(
+      $user2->getPHID() => 'admin',
+    ))->save();
     $this->leaveProject($project, $user1);
 
     $this->assertFalse((bool)$this->refreshProject($project, $user1));
@@ -1751,6 +1756,8 @@ final class PhabricatorProjectCoreTestCase extends PhabricatorTestCase {
     $user = new PhabricatorUser();
     $user->setUsername('unittestuser'.$rand);
     $user->setRealName(pht('Unit Test User %d', $rand));
+    $user->setIsApproved(1);
+    $user->setIsEmailVerified(1);
 
     return $user;
   }
