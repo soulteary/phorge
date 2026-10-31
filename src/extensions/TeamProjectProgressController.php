@@ -187,6 +187,15 @@ final class TeamProjectProgressController extends PhabricatorProjectController {
     }
     $body = id(new PHUIRemarkupView($viewer, $value['body']))
       ->setContextObject($project);
+    $card_action = null;
+    if ($kind === 'node' && TeamProjectProgress::canPublish($viewer, $project) &&
+        PhabricatorApplication::isClassInstalledForViewer(
+          PhabricatorManiphestApplication::class, $viewer)) {
+      $card_action = id(new TeamProjectProgressActionsView())
+        ->addAction(id(new PHUIButtonView())->setTag('a')->setIcon('fa-plus')
+          ->setText('从此记录新建卡片')
+          ->setHref('/maniphest/task/edit/?projectNode='.$record->getID()));
+    }
     $record_name = $kind === 'node' && idx($value, 'version') === 2
       ? '项目记录' : $names[$kind];
     return id(new PHUITimelineEventView())
@@ -210,6 +219,7 @@ final class TeamProjectProgressController extends PhabricatorProjectController {
         phutil_tag('h3', array('class' => 'phui-header-header'), $value['title']),
         $properties,
         $body,
+        $card_action,
       ));
   }
 

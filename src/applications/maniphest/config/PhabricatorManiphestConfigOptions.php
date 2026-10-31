@@ -67,7 +67,7 @@ final class PhabricatorManiphestConfigOptions
     $status_type = 'maniphest.statuses';
     $status_defaults = array(
       'open' => array(
-        'name' => pht('Open'),
+        'name' => pht('待完成'),
         'special' => ManiphestTaskStatus::SPECIAL_DEFAULT,
         'prefixes' => array(
           'open',
@@ -76,9 +76,20 @@ final class PhabricatorManiphestConfigOptions
           'reopens',
         ),
       ),
+      // Shared work-card lifecycle. Existing native status keys remain valid.
+      'active' => array(
+        'name' => pht('进行中'),
+        'transaction.icon' => 'fa-play-circle',
+        'transaction.color' => 'blue',
+      ),
+      'blocked' => array(
+        'name' => pht('有阻碍'),
+        'transaction.icon' => 'fa-pause-circle',
+        'transaction.color' => 'red',
+      ),
       'resolved' => array(
-        'name' => pht('Resolved'),
-        'name.full' => pht('Closed, Resolved'),
+        'name' => pht('已完成'),
+        'name.full' => pht('已完成'),
         'closed' => true,
         'special' => ManiphestTaskStatus::SPECIAL_CLOSED,
         'transaction.icon' => 'fa-check-circle',

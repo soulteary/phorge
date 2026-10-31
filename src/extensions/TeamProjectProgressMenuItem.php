@@ -16,7 +16,12 @@ final class TeamProjectProgressProfileMenuItem
   }
 
   public function shouldEnableForObject($object) {
-    return $object instanceof PhabricatorProject;
+    // Existing menu configurations remain in storage. When tasks are enabled,
+    // the native workboard is the single workspace entry; old record URLs and
+    // this fallback remain usable when Maniphest is unavailable.
+    return $object instanceof PhabricatorProject &&
+      !PhabricatorApplication::isClassInstalledForViewer(
+        PhabricatorManiphestApplication::class, $this->getViewer());
   }
 
   public function canHideMenuItem(
@@ -181,6 +186,40 @@ final class TeamProjectWorkspaceView extends AphrontView {
       ->appendChild($current);
   }
 
+}
+
+/**
+ * The native workboard markup in document flow, below the shared workspace.
+ * PHUIWorkboardView is final and its shadow is fixed at a viewport offset;
+ * retain the same panels, resources, sigils and multi-column renderer here.
+ */
+final class TeamProjectWorkspaceBoardView extends AphrontTagView {
+
+  private $panels = array();
+
+  public function addPanel(PHUIWorkpanelView $panel) {
+    $this->panels[] = $panel;
+    return $this;
+  }
+
+  protected function getTagAttributes() {
+    return array('class' => 'phui-workboard-view');
+  }
+
+  protected function getTagContent() {
+    require_celerity_resource('phui-workboard-view-css');
+    $columns = id(new AphrontMultiColumnView())
+      ->setGutter(AphrontMultiColumnView::GUTTER_MEDIUM);
+    foreach ($this->panels as $panel) {
+      $columns->addColumn($panel);
+    }
+    return javelin_tag('div', array(
+      'class' => 'phui-workboard-view-shadow',
+      'sigil' => 'workboard-shadow lock-scroll-y-while-dragging',
+      'style' => 'position:relative;top:auto;bottom:auto;left:auto;right:auto;'.
+        'overflow-x:auto;padding:16px;',
+    ), $columns);
+  }
 }
 
 /** The same summary can appear on the overview and the complete record page. */

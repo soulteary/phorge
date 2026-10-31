@@ -156,6 +156,71 @@ final class TeamProjectProgress extends Phobject {
     return '未标注';
   }
 
+  /**
+   * Build an editable task draft without saving either a task or a relation.
+   * Native creation forms still apply their field and policy validation.
+   */
+  public static function newTaskDraft(PhabricatorUser $viewer, $transaction_id) {
+    if (!self::isActiveUser($viewer)) {
+      throw new PhabricatorPolicyException('您没有从此记录创建任务的权限。');
+    }
+    if ((!is_int($transaction_id) && !is_string($transaction_id)) ||
+        !preg_match('/\A[1-9][0-9]*\z/', (string)$transaction_id)) {
+      throw new InvalidArgumentException('请选择有效的来源节点。');
+    }
+    $types = self::getTransactionTypes();
+    $record = id(new PhabricatorProjectTransactionQuery())
+      ->setViewer($viewer)
+      ->withIDs(array($transaction_id))
+      ->withTransactionTypes(array($types['node'], $types['update'],
+        $types['milestone']))
+      ->executeOne();
+    // Use one denial for missing, private, and non-node records. A transaction
+    // identifier must not disclose the source project or its record type.
+    if (!$record) {
+      throw new PhabricatorPolicyException('您没有从此记录创建任务的权限。');
+    }
+    $project = id(new PhabricatorProjectQuery())
+      ->setViewer($viewer)
+      ->withPHIDs(array($record->getObjectPHID()))
+      ->needMembers(true)
+      ->needAncestorMembers(true)
+      ->executeOne();
+    if (!$project || !self::canPublish($viewer, $project)) {
+      throw new PhabricatorPolicyException('您没有从此记录创建任务的权限。');
+    }
+    if (!PhabricatorApplication::isClassInstalledForViewer(
+        PhabricatorManiphestApplication::class, $viewer)) {
+      throw new PhabricatorPolicyException('您没有创建任务的权限。');
+    }
+    $value = $record->getNewValue();
+    if (!is_array($value) ||
+        self::normalizeKind(idx($value, 'kind')) !== 'node' ||
+        !is_string(idx($value, 'title')) ||
+        !is_string(idx($value, 'body'))) {
+      throw new InvalidArgumentException('此记录不能作为任务来源。');
+    }
+    $author = $viewer->loadHandles(array($record->getAuthorPHID()))
+      [$record->getAuthorPHID()];
+    $source_uri = '/project/progress/'.$project->getID().'/?entry='.
+      $record->getID().'#entry-'.$record->getID();
+    $source = pht(
+      '来源：[[%s | 节点记录 #%s]]' . "\n" .
+      '原记录作者：%s' . "\n" .
+      '原记录发布时间：%s（UTC）',
+      $source_uri, $record->getID(), $author->getFullName(),
+      gmdate('Y-m-d H:i:s', $record->getDateCreated()));
+    $old_status = idx(self::getStatusNames(), idx($value, 'status'));
+    if ($old_status !== null) {
+      $source .= "\n".pht('原节点状态：%s（来源历史信息）', $old_status);
+    }
+
+    return ManiphestTask::initializeNewTask($viewer)
+      ->setTitle($value['title'])
+      ->setDescription($value['body']."\n\n---\n\n".$source)
+      ->attachProjectPHIDs(array($project->getPHID()));
+  }
+
   public static function publish(
     $actor,
     $project,
