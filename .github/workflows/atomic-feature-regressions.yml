@@ -1,0 +1,130 @@
+name: Atomic feature regressions
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-packages:
+    name: Native packages (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: atomic-regressions-only
+          MYSQL_ROOT_HOST: '%'
+        ports: ['3306:3306']
+        options: --health-cmd "mysqladmin ping -patomic-regressions-only" --health-interval 5s --health-timeout 3s --health-retries 30
+    env:
+      GORGE_CONTRACT_REF: ${{ vars.GORGE_CONTRACT_REF }}
+      ATOMIC_TEST_DISPOSABLE: '1'
+      GORGE_TEST_MYSQL_PORT: '3306'
+      GORGE_TEST_MYSQL_PASSWORD: atomic-regressions-only
+      GORGE_TEST_FILE_URL: http://127.0.0.1:18100
+      GORGE_TEST_FILE_TOKEN: atomic-file-only
+      GORGE_TEST_IMAGE_URL: http://127.0.0.1:18190
+      GORGE_TEST_IMAGE_TOKEN: atomic-image-only
+      GORGE_TEST_RENDER_URL: http://127.0.0.1:18140
+      GORGE_TEST_RENDER_TOKEN: atomic-render-only
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mysqli, mbstring, curl, gd
+          coverage: none
+      - name: Check runner failure and isolation policy
+        run: |
+          php tests/atomic/test_gate.php
+          python3 -m unittest discover -s tests/atomic -p 'test_*.py' -v
+      - name: Require the same immutable Gorge revision as paired runtime contracts
+        run: |
+          python3 - <<'PY'
+          import os, re
+          if not re.fullmatch(r'[0-9a-f]{40}', os.environ.get('GORGE_CONTRACT_REF', '')):
+              raise SystemExit('Configure the immutable GORGE_CONTRACT_REF repository variable.')
+          PY
+      - uses: actions/checkout@v6
+        with:
+          repository: soulteary/gorge
+          ref: ${{ env.GORGE_CONTRACT_REF }}
+          path: .test-gorge
+          persist-credentials: false
+      - name: Build actual file, image and render services from the paired source
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          actual = subprocess.check_output(['git', '-C', '.test-gorge', 'rev-parse', 'HEAD'], text=True).strip()
+          if actual != os.environ['GORGE_CONTRACT_REF']:
+              raise SystemExit('Paired Gorge checkout identity differs from the requested commit.')
+          lock = json.loads(Path('deploy/acceptance/build-lock.json').read_text())
+          for service, port in [('gorge-file-storage', '8100'), ('gorge-image', '8190'), ('gorge-render', '8140')]:
+              subprocess.run(['docker', 'build', '--build-arg', 'SERVICE='+service,
+                              '--build-arg', 'PORT='+port,
+                              '--build-arg', 'GO_BASE_IMAGE='+lock['images']['go'],
+                              '--build-arg', 'RUNTIME_BASE_IMAGE='+lock['images']['alpine'],
+                              '--label', 'phorge.gorge-revision='+actual,
+                              '--tag', service+':atomic', '.test-gorge/go'], check=True)
+          PY
+      - name: Start isolated disposable dependencies
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+        run: |
+          docker exec -e MYSQL_PWD=atomic-regressions-only "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL sql_mode = 'STRICT_ALL_TABLES'"
+          docker network create atomic-fixtures
+          docker run -d --name atomic-file --network atomic-fixtures -p 127.0.0.1:18100:8100 --read-only --tmpfs /var/lib/gorge/files:rw,uid=10001,gid=10001,mode=0700 --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-file-only -e GORGE_FILE_LOCAL_DISK_PATH=/var/lib/gorge/files gorge-file-storage:atomic
+          docker run -d --name atomic-image --network atomic-fixtures -p 127.0.0.1:18190:8190 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-image-only gorge-image:atomic
+          docker run -d --name atomic-render --network atomic-fixtures -p 127.0.0.1:18140:8140 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-render-only gorge-render:atomic
+          python3 - <<'PY'
+          import time, urllib.request
+          for port in (18100, 18190, 18140):
+              for attempt in range(60):
+                  try:
+                      with urllib.request.urlopen(f'http://127.0.0.1:{port}/readyz', timeout=2) as response:
+                          if response.status == 200:
+                              break
+                  except OSError:
+                      pass
+                  time.sleep(1)
+              else:
+                  raise SystemExit(f'Disposable service on port {port} did not become ready.')
+          PY
+      - name: Prepare retained parsers and verify deterministic maps and product cuts
+        run: |
+          php scripts/runtime/build.php all
+          php bin/rebuild-library-map
+          git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
+          sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > /tmp/atomic-maps.sha256
+          php bin/rebuild-library-map
+          sha256sum --check /tmp/atomic-maps.sha256
+          php scripts/runtime/verify.php
+          bash .github/scripts/check-retired-app-references.sh
+      - name: Run every registered native package with mandatory dependency preflight
+        run: python3 tests/atomic/run.py --output "$RUNNER_TEMP/atomic-evidence"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: atomic-native-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/atomic-evidence
+          if-no-files-found: warn
+      - name: Remove only this job's disposable services
+        if: always()
+        run: |
+          docker rm -f atomic-file atomic-image atomic-render || true
+          docker network rm atomic-fixtures || true
