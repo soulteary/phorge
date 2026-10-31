@@ -24,3 +24,11 @@ Migrating builtin composition must be validated separately across repositories.
 Exact native/HTTP/browser results and the PR/commit identities are recorded by
 the integration batch. The source contribution's reported browser counts are
 not counted as tests reproduced by this package.
+
+The final native package gate covers 49 D01 foundation methods, 24 D05 record
+methods, and 11 D06 workspace/draft methods (84 total), with no allowed skips.
+Run `python3 tests/atomic/run.py --package D01 --package D05 --package D06
+--output <new-directory>` on a clean tree. The separate HTTP driver reproduces
+30 assertions against disposable native sessions and storage; its report must
+also confirm successful cleanup. Browser persistence and layout evidence is
+recorded separately and is not added to either automated count.
