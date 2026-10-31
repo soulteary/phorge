@@ -124,10 +124,10 @@ def main():
         # the container. Mount the isolated generated configuration separately.
         source = private/'source'
         source.mkdir(mode=0o755)
-        files = require(['git', '-C', str(ROOT), 'ls-files', '-z']).stdout.split('\0')
+        tracked_files = require(['git', '-C', str(ROOT), 'ls-files', '-z']).stdout.split('\0')
         digest = hashlib.sha256()
         count = 0
-        for name in files:
+        for name in tracked_files:
             if not name:
                 continue
             relative = Path(name)
@@ -150,7 +150,12 @@ def main():
         for name in ('run.py', 'fixture.php', 'browser.mjs'):
             if not (source/'tests'/'project-workspace'/name).is_file():
                 raise RuntimeError('Commit or stage the acceptance source before running it.')
-        report['sourceSnapshot'] = {'trackedFileCount': count, 'sha256': digest.hexdigest()}
+        report['sourceSnapshot'] = {
+            'trackedFileCount': count, 'sha256': digest.hexdigest(),
+            'commit': require(['git', '-C', str(ROOT), 'rev-parse', 'HEAD']).stdout.strip(),
+            'tree': require(['git', '-C', str(ROOT), 'rev-parse', 'HEAD^{tree}']).stdout.strip(),
+            'dirty': bool(require(['git', '-C', str(ROOT), 'status', '--porcelain']).stdout),
+        }
 
         class Forwarder(socketserver.BaseRequestHandler):
             def handle(self):
@@ -254,7 +259,8 @@ def main():
         execute = ['docker', 'exec', '-i', '-e', 'WORKSPACE_ACCEPTANCE=1',
                    '-e', 'WORKSPACE_ACCEPTANCE_RUN='+run,
                    '-e', 'WORKSPACE_PHORGE_ROOT='+root, application, 'php']
-        phase('schema-bootstrap', execute+[root+'/bin/storage', 'upgrade', '--force'])
+        phase('schema-bootstrap', execute+[root+'/bin/storage', 'upgrade', '--force',
+              '--allow-surplus'])
         if not args.skip_native:
             phase('native-regressions', execute+[root+'/bin/unit', '--no-coverage',
                   'src/applications/project/__tests__/TeamProjectProgressTestCase.php'])
