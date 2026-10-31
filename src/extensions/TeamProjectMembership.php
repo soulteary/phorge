@@ -173,8 +173,9 @@ final class TeamProjectMembership extends Phobject {
     return $current;
   }
 
-  /** Runs in the native editor's row lock, after old/new edge values exist. */
-  public static function validateTransactions($actor, $project, array $xactions, $is_new) {
+  /** Runs in the native editor's row lock before regular edge normalization. */
+  public static function validateTransactions(
+    $actor, $project, array $xactions, $is_new, $is_inverse = false) {
     $actor = self::currentUser($actor);
     if (!self::isActive($actor)) {
       throw new PhabricatorPolicyException('只有有效用户可以修改项目。');
@@ -198,18 +199,33 @@ final class TeamProjectMembership extends Phobject {
         if (array_key_exists('=', $spec)) { $new = array_fuse(array_keys((array)$spec['='])); }
         foreach ((array)idx($spec, '+', array()) as $phid => $value) { $new[$phid] = $phid; }
         foreach ((array)idx($spec, '-', array()) as $phid => $value) { unset($new[$phid]); }
-        if ($spec && !array_intersect(array_keys($spec), array('+', '-', '='))) {
-          // Inverse edge editors have already normalized these maps.
+        if ($is_inverse) {
+          // Native inverse edits supply complete maps, including an empty
+          // new map when the final member leaves. Unchanged other members
+          // in these maps are not additional management requests.
           $old = (array)$xaction->getOldValue(); $new = $spec;
         }
         $added = array_keys(array_diff_key($new, $old));
         $deleted = array_keys(array_diff_key($old, $new)); $removed = array_merge($removed, $deleted);
         $join = $added === array($actor->getPHID()) && !$deleted;
         $leave = $deleted === array($actor->getPHID()) && !$added;
+        if ($is_inverse) {
+          $self_request = $join || $leave;
+        } else {
+          $requested = array_merge(array_keys((array)idx($spec, '+', array())),
+            array_keys((array)idx($spec, '-', array())));
+          // Inspect intent as well as delta: setting the whole member list
+          // or naming any other user remains administrative even if those
+          // parts of a mixed request would be no-ops.
+          $self_request = $requested &&
+            !array_diff(array_keys($spec), array('+', '-')) &&
+            !array_diff($requested, array($actor->getPHID()));
+        }
+        $join = $self_request && $join;
+        $leave = $self_request && $leave;
         $self_leave = $self_leave || $leave;
-        // Native joins/leaves are idempotent. An unchanged edge set does
-        // not administer another member, even for an ordinary member.
-        $protected = (bool)($added || $deleted) && !$join && !$leave;
+        $self_no_effect = $self_request && !$added && !$deleted;
+        $protected = !$join && !$leave && !$self_no_effect;
         if ($join && !$is_new && !PhabricatorPolicyFilter::hasCapability($actor, $project, 'join')) {
           throw new PhabricatorPolicyException('您没有加入此项目的权限。');
         }

@@ -109,7 +109,8 @@ final class PhabricatorProjectTransactionEditor
     }
 
     TeamProjectMembership::validateTransactions(
-      $this->getActor(), $object, $xactions, $this->getIsNewObject());
+      $this->getActor(), $object, $xactions, $this->getIsNewObject(),
+      $this->getIsInverseEdgeEditor());
     return $errors;
   }
 
@@ -466,6 +467,7 @@ final class PhabricatorProjectTransactionEditor
       } else {
         $roles = TeamProjectMembership::roleMap($object);
         $members = array_fuse($object->getDirectMemberPHIDs());
+        $old_members = $members;
         $expected = null;
         foreach ($results as $xaction) {
           if ($xaction->getTransactionType() !== PhabricatorTransactions::TYPE_EDGE ||
@@ -473,12 +475,20 @@ final class PhabricatorProjectTransactionEditor
             continue;
           }
           $spec = $xaction->getNewValue();
-          if (isset($spec['='])) { $members = array_fuse(array_keys($spec['='])); }
-          foreach (idx($spec, '+', array()) as $phid => $value) { $members[$phid] = $phid; }
-          foreach (idx($spec, '-', array()) as $phid => $value) { unset($members[$phid]); }
+          if ($this->getIsInverseEdgeEditor()) {
+            // The originating editor already wrote these edges. Use its
+            // supplied before/after maps to prune roles and protect the final
+            // administrator, including when the resulting member list is empty.
+            $old_members = array_fuse(array_keys((array)$xaction->getOldValue()));
+            $members = array_fuse(array_keys((array)$spec));
+          } else {
+            if (isset($spec['='])) { $members = array_fuse(array_keys($spec['='])); }
+            foreach (idx($spec, '+', array()) as $phid => $value) { $members[$phid] = $phid; }
+            foreach (idx($spec, '-', array()) as $phid => $value) { unset($members[$phid]); }
+          }
           $expected = $xaction->getMetadataValue(TeamProjectMembership::EXPECTED_STATE);
         }
-        $removed = array_diff($object->getDirectMemberPHIDs(), array_keys($members));
+        $removed = array_diff(array_keys($old_members), array_keys($members));
         $pruned = $roles;
         foreach ($removed as $phid) {
           // Leaving and rejoining must not let a read-only member discard

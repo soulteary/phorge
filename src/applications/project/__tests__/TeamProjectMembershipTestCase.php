@@ -47,7 +47,7 @@ final class TeamProjectMembershipTestCase extends PhabricatorTestCase {
 
   public function testSelfJoinAndLeaveRemainIdempotentWithoutManagementRole() {
     $owner = $this->user(); $member = $this->user(); $other = $this->user();
-    $project = $this->project($owner, array(), array('view' => 'users', 'join' => 'users'));
+    $project = $this->project($owner, array(), array('view' => 'users', 'edit' => 'users', 'join' => 'users'));
     $this->assertFalse(TeamProjectMembership::canManage($member, $project));
     foreach (array('members.add', 'members.add') as $type) {
       $project = $this->edit($member, $project,
@@ -64,6 +64,74 @@ final class TeamProjectMembershipTestCase extends PhabricatorTestCase {
         array(array('type' => 'members.add', 'value' => array($other->getPHID()))));
     });
     $this->assertFalse(TeamProjectMembership::canManage($member, $project));
+  }
+
+  public function testSelfMembershipCannotHideAdministrativeIntentInNoEffectTargets() {
+    $owner = $this->user(); $member = $this->user();
+    $existing = $this->user(); $absent = $this->user();
+    $project = $this->project($owner, array($existing),
+      array('view' => 'users', 'edit' => 'users', 'join' => 'users'));
+    $me = $member->getPHID(); $there = $existing->getPHID(); $missing = $absent->getPHID();
+    foreach (array(
+      array('+' => array($there => $there)),
+      array('-' => array($missing => $missing)),
+      array('=' => array($there => $there)),
+      array('+' => array($me => $me, $there => $there)),
+      array('+' => array($me => $me), '-' => array($missing => $missing)),
+    ) as $spec) {
+      $this->reject(function() use ($member, $project, $spec) {
+        $this->memberSpec($member, $project, $spec);
+      });
+      $this->assertEqual(array($there), $this->fresh($project)->getDirectMemberPHIDs());
+    }
+    $project = $this->memberSpec($member, $project, array('+' => array($me => $me)));
+    foreach (array(
+      array('-' => array($me => $me, $missing => $missing)),
+      array('-' => array($me => $me), '+' => array($there => $there)),
+      array('=' => array($me => $me, $there => $there)),
+    ) as $spec) {
+      $this->reject(function() use ($member, $project, $spec) {
+        $this->memberSpec($member, $project, $spec);
+      });
+      $members = $this->fresh($project)->getDirectMemberPHIDs(); sort($members);
+      $expected = array($me, $there); sort($expected);
+      $this->assertEqual($expected, $members);
+    }
+  }
+
+  public function testNativeInverseSelfMembershipKeepsUnchangedOtherMembers() {
+    $owner = $this->user(); $member = $this->user(); $other = $this->user();
+    $project = $this->project($owner, array($other),
+      array('view' => 'users', 'edit' => 'users', 'join' => 'users'));
+    foreach (array('+', '-') as $operation) {
+      $this->inverseMembership($member, $project, $operation);
+      $members = $this->fresh($project)->getDirectMemberPHIDs(); sort($members);
+      $expected = $operation === '+'
+        ? array($other->getPHID(), $member->getPHID()) : array($other->getPHID());
+      sort($expected); $this->assertEqual($expected, $members);
+    }
+    // The complete normalized inverse newValue is empty for the last member.
+    $project = $this->project($owner, array(),
+      array('view' => 'users', 'edit' => 'users', 'join' => 'users'));
+    $this->inverseMembership($member, $project, '+');
+    $this->inverseMembership($member, $project, '-');
+    $this->assertEqual(array(), $this->fresh($project)->getDirectMemberPHIDs());
+    $this->assertFalse(TeamProjectMembership::canManage($member, $project));
+
+    $project = $this->project($owner, array($member, $other),
+      array('view' => 'users', 'edit' => 'users', 'join' => 'users'));
+    $project = $this->role($owner, $project, $member, 'editor');
+    $this->inverseMembership($member, $project, '-');
+    $this->assertEqual('policy', TeamProjectMembership::getRole($this->fresh($project), $member->getPHID()));
+    $this->assertEqual(array($other->getPHID()), $this->fresh($project)->getDirectMemberPHIDs());
+
+    $project = $this->project($owner, array($owner),
+      array('view' => 'users', 'edit' => 'users', 'join' => 'users'));
+    $this->reject(function() use ($owner, $project) {
+      $this->inverseMembership($owner, $project, '-');
+    });
+    $this->assertEqual('admin', TeamProjectMembership::getRole($this->fresh($project), $owner->getPHID()));
+    $this->assertEqual(array($owner->getPHID()), $this->fresh($project)->getDirectMemberPHIDs());
   }
 
   public function testViewerCeilingOverridesBroadPolicyAndSurvivesSelfLeaveAndRejoin() {
@@ -166,6 +234,21 @@ final class TeamProjectMembershipTestCase extends PhabricatorTestCase {
       $project->getProperty(TeamProjectMembership::ROLES_PROPERTY)[$owner->getPHID()]);
   }
 
+  private function memberSpec($actor, $project, array $spec) {
+    id(new PhabricatorProjectTransactionEditor())->setActor($actor)->setContentSource($this->source())
+      ->setContinueOnNoEffect(true)->setContinueOnMissingFields(true)->applyTransactions($this->fresh($project), array(
+        id(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
+          ->setMetadataValue('edge:type', PhabricatorProjectProjectHasMemberEdgeType::EDGECONST)
+          ->setNewValue($spec)));
+    return $this->fresh($project);
+  }
+  private function inverseMembership($actor, $project, $operation) {
+    id(new PhabricatorUserTransactionEditor())->setActor($actor)->setContentSource($this->source())
+      ->setContinueOnNoEffect(true)->setContinueOnMissingFields(true)->applyTransactions($actor, array(
+        id(new PhabricatorUserTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
+          ->setMetadataValue('edge:type', PhabricatorProjectMemberOfProjectEdgeType::EDGECONST)
+          ->setNewValue(array($operation => array($project->getPHID() => $project->getPHID())))));
+  }
   private function user($admin = false) {
     $user = $this->generateNewTestUser(); return $admin ? $user->setIsAdmin(1)->save() : $user;
   }
