@@ -1,0 +1,8 @@
+{
+  "name": "phorge-project-workspace-acceptance",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}
