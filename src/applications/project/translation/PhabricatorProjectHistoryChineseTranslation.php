@@ -8,7 +8,8 @@ final class PhabricatorProjectHistoryChineseTranslation extends PhutilTranslatio
 
   protected function getTranslations() {
     return array(
-      ' and %s others' => ' 等 %s 人',
+      ' and %s other participants' => '，另有 %s 位参与者',
+      ' and one other participant' => '，另有 1 位参与者',
       '%s on %s published %s: %s' => '%s 在 %s 发布了%s：%s',
       '%s published %s' => '%s 发布了%s',
       '%s published %s: %s' => '%s 发布了%s：%s',
