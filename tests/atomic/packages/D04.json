@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "D04",
+  "tests": [
+    {
+      "class": "PhabricatorProjectHierarchyNavigationTestCase",
+      "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+      "methods": [
+        "testFlatDefaultPreservesNativeQuerySelection",
+        "testHierarchyDefaultOnlySelectsUnfilteredGet",
+        "testExplicitSearchesAreNeverReplaced",
+        "testHierarchyQueryUsesRootsAndRetainsArchivedParents",
+        "testNavigationMessagesHaveEnglishAndChineseForms"
+      ]
+    },
+    {
+      "class": "PhabricatorProjectHierarchyStorageTestCase",
+      "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+      "methods": [
+        "testRootPaginationIncludesArchivedRootsWithoutChildren",
+        "testDefaultModeDoesNotChangeNativeAncestorPermissions",
+        "testAnonymousHierarchyUsesNativePublicVisibilitySetting",
+        "testHiddenHierarchyConstraintsAndQueryReuseStayPrivate",
+        "testOriginalAncestorTokensAreCheckedBeforeSimplification",
+        "testAttachedAncestorNamesAreFilteredInListsAndConduit",
+        "testParentNavigationUsesDirectParentOrRootAndCanBeDisabled",
+        "testCreationContextReturnsToHeldParentWithoutSkippingLevel",
+        "testCommentContextUsesViewBeforeNativeMethodValidation",
+        "testExistingEditBreadcrumbContainsCurrentProjectOnlyOnce"
+      ]
+    }
+  ],
+  "allowedSkips": {},
+  "atoms": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06"
+  ]
+}
