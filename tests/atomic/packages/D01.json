@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "id": "D01",
+  "atoms": [
+    "B01",
+    "B02",
+    "B03",
+    "B05",
+    "B07"
+  ],
+  "tests": [
+    {
+      "class": "PhorgeAtomicEnvironmentTestCase",
+      "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+      "methods": [
+        "testBroadRuntimeDiscoveryExcludesAtomicPreflight",
+        "testExplicitAtomicPreflightIsStillDiscovered",
+        "testGorgeIsTheWritableFileEngine",
+        "testUserAvatarAndImageServiceAreUsable",
+        "testStorageUpgradeCanBeRepeated"
+      ]
+    },
+    {
+      "class": "PhabricatorLibraryTestCase",
+      "path": "src/__tests__/PhabricatorLibraryTestCase.php",
+      "methods": [
+        "testEverythingImplemented",
+        "testLibraryMap",
+        "testMethodVisibility"
+      ]
+    },
+    {
+      "class": "PhorgeI18nTestCase",
+      "path": "src/__tests__/PhorgeI18nTestCase.php",
+      "methods": [
+        "testi18nValidation",
+        "testHistoricalTranslations",
+        "testActiveTranslationFormats",
+        "testExtractionRemovesDeletedSources"
+      ]
+    },
+    {
+      "class": "PhabricatorProjectCoreTestCase",
+      "path": "src/applications/project/__tests__/PhabricatorProjectCoreTestCase.php",
+      "methods": [
+        "testViewProject",
+        "testApplicationPolicy",
+        "testIsViewerMemberOrWatcher",
+        "testEditProject",
+        "testAncestorMembers",
+        "testAncestryQueries",
+        "testMemberMaterialization",
+        "testMilestones",
+        "testMilestoneMembership",
+        "testSameSlugAsName",
+        "testDuplicateSlugs",
+        "testNormalizeSlugs",
+        "testProjectMembersVisibility",
+        "testParentProject",
+        "testSlugMaps",
+        "testJoinLeaveProject",
+        "testComplexConstraints",
+        "testTagAncestryConflicts",
+        "testTagMilestoneConflicts",
+        "testBoardMoves",
+        "testMilestoneMoves",
+        "testColumnExtendedPolicies",
+        "testProjectPolicyRules",
+        "testProjectDestroy"
+      ]
+    },
+    {
+      "class": "PhabricatorLocaleScopeGuardTestCase",
+      "path": "src/infrastructure/internationalization/scope/__tests__/PhabricatorLocaleScopeGuardTestCase.php",
+      "methods": [
+        "testLocaleScopeGuard",
+        "testSelectiveUpstreamChineseMessages",
+        "testChineseModuleTranslationsAndOverridesFollowLocaleScope"
+      ]
+    },
+    {
+      "class": "PhutilRemarkupEngineTestCase",
+      "path": "src/infrastructure/markup/__tests__/PhutilRemarkupEngineTestCase.php",
+      "methods": [
+        "testEngine",
+        "testReservedTokenByteIsStripped"
+      ]
+    },
+    {
+      "class": "PhabricatorApplicationSearchEngineTestCase",
+      "path": "src/applications/search/engine/__tests__/PhabricatorApplicationSearchEngineTestCase.php",
+      "methods": [
+        "testGetAllEngines",
+        "testPageSizeClampedToMaximum",
+        "testPageSizeBelowMaximumIsUnchanged",
+        "testPageSizeDefaultsWhenUnset",
+        "testPagerLimitsAndInvalidInputs"
+      ]
+    },
+    {
+      "class": "PhabricatorHandleQueryTestCase",
+      "path": "src/applications/phid/query/__tests__/PhabricatorHandleQueryTestCase.php",
+      "methods": [
+        "testAnonymousPHIDsAreIgnored"
+      ]
+    },
+    {
+      "class": "PonderAddAnswerViewTestCase",
+      "path": "src/applications/ponder/view/__tests__/PonderAddAnswerViewTestCase.php",
+      "methods": [
+        "testAnonymousQuestionDoesNotLoadAnswers",
+        "testExistingAuthorCanNotAnswerTwice"
+      ]
+    }
+  ],
+  "allowedSkips": {}
+}
