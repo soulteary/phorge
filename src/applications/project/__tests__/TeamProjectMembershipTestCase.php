@@ -243,11 +243,32 @@ final class TeamProjectMembershipTestCase extends PhabricatorTestCase {
     return $this->fresh($project);
   }
   private function inverseMembership($actor, $project, $operation) {
-    id(new PhabricatorUserTransactionEditor())->setActor($actor)->setContentSource($this->source())
-      ->setContinueOnNoEffect(true)->setContinueOnMissingFields(true)->applyTransactions($actor, array(
-        id(new PhabricatorUserTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
-          ->setMetadataValue('edge:type', PhabricatorProjectMemberOfProjectEdgeType::EDGECONST)
-          ->setNewValue(array($operation => array($project->getPHID() => $project->getPHID())))));
+    // Reproduce applyInverseEdgeTransactions(): the originating editor owns
+    // its transaction, writes both edges, then supplies normalized maps to
+    // the project's inverse editor. UserTransactionEditor itself does not
+    // expose core:edge edits, so this fixture does not invent that endpoint.
+    $current = $this->fresh($project);
+    $old = array_fuse($current->getDirectMemberPHIDs());
+    $new = $old;
+    if ($operation === '+') { $new[$actor->getPHID()] = $actor->getPHID(); }
+    else { unset($new[$actor->getPHID()]); }
+    $actor->openTransaction(); $current->openTransaction();
+    try {
+      $edges = new PhabricatorEdgeEditor();
+      $type = PhabricatorProjectMemberOfProjectEdgeType::EDGECONST;
+      if ($operation === '+') { $edges->addEdge($actor->getPHID(), $type, $current->getPHID()); }
+      else { $edges->removeEdge($actor->getPHID(), $type, $current->getPHID()); }
+      $edges->save();
+      id(new PhabricatorProjectTransactionEditor())->setActor($actor)->setContentSource($this->source())
+        ->setContinueOnNoEffect(true)->setContinueOnMissingFields(true)->setIsInverseEdgeEditor(true)
+        ->applyTransactions($this->fresh($current), array(
+          id(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
+            ->setMetadataValue('edge:type', PhabricatorProjectProjectHasMemberEdgeType::EDGECONST)
+            ->setOldValue($old)->setNewValue($new)));
+      $current->saveTransaction(); $actor->saveTransaction();
+    } catch (Throwable $ex) {
+      $current->killTransaction(); $actor->killTransaction(); throw $ex;
+    }
   }
   private function user($admin = false) {
     $user = $this->generateNewTestUser(); return $admin ? $user->setIsAdmin(1)->save() : $user;
