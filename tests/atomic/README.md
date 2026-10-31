@@ -46,6 +46,16 @@ run native migrations and drop those databases at PHP process shutdown.
 The surrounding Docker job removes the disposable Gorge data; transaction
 rollback alone cannot clean up bytes already written to a service.
 
+The mandatory dependency preflight lives under
+`src/infrastructure/testing/atomic/__tests__/`, rather than root
+`src/__tests__/`. Native path-based selection includes ancestor test
+directories: placing the preflight at the root would accidentally require its
+disposable services in existing cluster/runtime acceptance jobs. Discovery
+regressions verify that broad cluster selection still includes ordinary
+library checks, excludes the atomic-only preflight, and that explicit atomic
+selection still discovers the required fixture. No dependency is skipped or
+removed from the D01 gate.
+
 ## Package contract
 
 Each package owns `tests/atomic/packages/DNN.json`:
