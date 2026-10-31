@@ -48,6 +48,10 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: mysqli, mbstring, curl, gd
           coverage: none
+      - name: Install the retained product-boundary checker dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
       - name: Check runner failure and isolation policy
         run: |
           php tests/atomic/test_gate.php

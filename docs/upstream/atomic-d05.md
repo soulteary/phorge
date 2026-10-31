@@ -17,3 +17,9 @@
 Validation results and the final PR/commit identity are recorded by the
 integration batch after the exact package gate runs. Author-reported upstream
 acceptance is not treated as independently reproduced validation.
+
+The final package gate covers 49 D01 foundation methods and 24 D05 record
+methods (73 total), with no allowed skips. Run it on a clean tree with
+`python3 tests/atomic/run.py --package D01 --package D05 --output <new-directory>`.
+The JSON evidence records the exact tested commit and worktree state; an older
+report or an unregistered test method cannot satisfy this gate.
