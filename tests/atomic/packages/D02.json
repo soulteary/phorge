@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "D02",
+  "tests": [
+    {
+      "class": "PhabricatorFileProfileAncestryTestCase",
+      "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+      "methods": [
+        "testPrivateProfileSourceIsRequiredForEveryViewer",
+        "testMultiSourceVisibilityDoesNotDependOnRowOrder",
+        "testVoidDoesNotMaskPrivateRealSources",
+        "testStandaloneProfilesAndBuiltinSentinelRemainPublic",
+        "testBuiltinLookingNameDoesNotBypassRealSource",
+        "testPublicRealSourceIsAVisibleWitnessUntilRevoked",
+        "testDeletedSourceRevokesPreviouslyVisibleProfile",
+        "testDeepProfileChainUsesNativeQueryAncestry",
+        "testMissingAndCyclicSourcesAreRejected",
+        "testInvalidSourceTypeDoesNotBecomeAFileGrant",
+        "testBatchQueryKeepsSourceDecisionsSeparate"
+      ]
+    },
+    {
+      "class": "PhabricatorPeopleProfileCrumbsTestCase",
+      "path": "src/applications/people/controller/__tests__/PhabricatorPeopleProfileCrumbsTestCase.php",
+      "methods": [
+        "testDeniedProfileCanBuildCrumbsWithoutAUser",
+        "testAssignedProfileRetainsNativeUserCrumb"
+      ]
+    }
+  ],
+  "allowedSkips": {},
+  "atoms": [
+    "B08",
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05"
+  ]
+}
