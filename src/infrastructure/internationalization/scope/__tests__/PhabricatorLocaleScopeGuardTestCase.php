@@ -57,4 +57,64 @@ final class PhabricatorLocaleScopeGuardTestCase
     }
   }
 
+  public function testChineseModuleTranslationsAndOverridesFollowLocaleScope() {
+    $original = PhabricatorEnv::getLocaleCode();
+    $english = PhabricatorEnv::beginScopedLocale('en_US');
+    $env = PhabricatorEnv::beginScopedEnv();
+    PhorgeAtomicChineseFixtureTranslation::setEnabled(true);
+    try {
+      $chinese = PhabricatorEnv::beginScopedLocale('zh-CN');
+      try {
+        $this->assertEqual('zh_CN', PhabricatorEnv::getLocaleCode());
+        $this->assertEqual('模块消息 example。', pht('Atomic module message %s.', 'example'));
+        $this->assertEqual('模块有 2 项。',
+          pht('Atomic module has %s item(s).', new PhutilNumber(2)));
+        // The package fixture deliberately collides with an existing message.
+        $this->assertEqual('每页结果数量已限制', pht('Page Size Limited'));
+      } finally {
+        unset($chinese);
+      }
+      $this->assertEqual('en_US', PhabricatorEnv::getLocaleCode());
+      $this->assertEqual('Atomic module message example.',
+        pht('Atomic module message %s.', 'example'));
+      $env->overrideEnvConfig('translation.override', array(
+        'Atomic module message %s.' => '站点覆盖 %s。',
+      ));
+      $chinese = PhabricatorEnv::beginScopedLocale('zh_CN');
+      try {
+        $this->assertEqual('站点覆盖 example。',
+          pht('Atomic module message %s.', 'example'));
+      } finally {
+        unset($chinese);
+      }
+    } finally {
+      PhorgeAtomicChineseFixtureTranslation::setEnabled(false);
+      unset($env);
+      unset($english);
+    }
+    $this->assertEqual($original, PhabricatorEnv::getLocaleCode());
+  }
+
+}
+
+/** A dormant module source: it contributes no messages outside this test. */
+final class PhorgeAtomicChineseFixtureTranslation extends PhutilTranslation {
+  private static $enabled = false;
+
+  public static function setEnabled($enabled) {
+    self::$enabled = $enabled;
+  }
+
+  public function getLocaleCode() {
+    return 'zh_CN';
+  }
+
+  protected function getTranslations() {
+    if (!self::$enabled) { return array(); }
+    return array(
+      'Atomic module message %s.' => '模块消息 %s。',
+      'Atomic module has %s item(s).' => array('模块有 %s 项。', '模块有 %s 项。'),
+      'Page Size Limited' => 'This fixture must not replace the maintained dictionary.',
+    );
+  }
 }
