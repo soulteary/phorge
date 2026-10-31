@@ -21,7 +21,9 @@ final class PhabricatorPolicyRulesView
 
     $rule_objects = array();
     foreach ($policy->getCustomRuleClasses() as $class) {
-      $rule_objects[$class] = newv($class, array());
+      if (is_subclass_of($class, PhabricatorPolicyRule::class)) {
+        $rule_objects[$class] = newv($class, array());
+      }
     }
 
     $policy = clone $policy;
@@ -36,7 +38,22 @@ final class PhabricatorPolicyRulesView
       pht('These rules are processed in order:'));
 
     foreach ($policy->getRules() as $index => $rule) {
-      $rule_object = $rule_objects[$rule['rule']];
+      $rule_class = is_array($rule) ? idx($rule, 'rule') : null;
+      $rule_object = is_string($rule_class)
+        ? idx($rule_objects, $rule_class)
+        : null;
+      if (!$rule_object) {
+        // Removed classes must not be restored just to render their historical
+        // policies. Preserve every stored condition as escaped text instead.
+        $details[] = phutil_tag('div',
+          array('class' => 'policy-transaction-detail-row'),
+          array(
+            id(new PHUIIconView())->setIcon('fa-exclamation-triangle orange')
+              ->setText(pht('Unavailable Policy Rule')),
+            phutil_tag('pre', array(), phutil_json_encode($rule)),
+          ));
+        continue;
+      }
       if ($rule['action'] == 'allow') {
         $icon = 'fa-check-circle green';
       } else {
@@ -45,7 +62,8 @@ final class PhabricatorPolicyRulesView
       $icon = id(new PHUIIconView())
         ->setIcon($icon)
         ->setText(
-          ucfirst($rule['action']).' '.$rule_object->getRuleDescription());
+          $this->getActionLabel($rule['action']).' '.
+          $rule_object->getRuleDescription());
 
       $handle_phids = $rule_object->getRequiredHandlePHIDsForSummary(
         $rule['value']);
@@ -55,6 +73,15 @@ final class PhabricatorPolicyRulesView
           ->setAsInline(true);
       } else {
         $value = $rule['value'];
+        if ($rule_object->getValueControlType() ===
+            PhabricatorPolicyRule::CONTROL_TYPE_SELECT) {
+          $template = $rule_object->getValueControlTemplate();
+          $options = idx($template, 'options', array());
+          if ((is_string($value) || is_int($value)) &&
+              array_key_exists($value, $options)) {
+            $value = $options[$value];
+          }
+        }
       }
 
       $details[] = phutil_tag('div',
@@ -76,9 +103,20 @@ final class PhabricatorPolicyRulesView
         'If no rules match, %s all other users.',
         phutil_tag('b',
         array(),
-        $policy->getDefaultAction())));
+        $this->getActionLabel($policy->getDefaultAction()))));
 
     return $details;
+  }
+
+  private function getActionLabel($action) {
+    switch ($action) {
+      case PhabricatorPolicy::ACTION_ALLOW:
+        return pht('Allow');
+      case PhabricatorPolicy::ACTION_DENY:
+        return pht('Deny');
+      default:
+        return $action;
+    }
   }
 
 }
