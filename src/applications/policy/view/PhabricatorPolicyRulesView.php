@@ -45,7 +45,8 @@ final class PhabricatorPolicyRulesView
       $icon = id(new PHUIIconView())
         ->setIcon($icon)
         ->setText(
-          ucfirst($rule['action']).' '.$rule_object->getRuleDescription());
+          $this->getActionLabel($rule['action']).' '.
+          $rule_object->getRuleDescription());
 
       $handle_phids = $rule_object->getRequiredHandlePHIDsForSummary(
         $rule['value']);
@@ -55,6 +56,15 @@ final class PhabricatorPolicyRulesView
           ->setAsInline(true);
       } else {
         $value = $rule['value'];
+        if ($rule_object->getValueControlType() ===
+            PhabricatorPolicyRule::CONTROL_TYPE_SELECT) {
+          $template = $rule_object->getValueControlTemplate();
+          $options = idx($template, 'options', array());
+          if ((is_string($value) || is_int($value)) &&
+              array_key_exists($value, $options)) {
+            $value = $options[$value];
+          }
+        }
       }
 
       $details[] = phutil_tag('div',
@@ -76,9 +86,20 @@ final class PhabricatorPolicyRulesView
         'If no rules match, %s all other users.',
         phutil_tag('b',
         array(),
-        $policy->getDefaultAction())));
+        $this->getActionLabel($policy->getDefaultAction()))));
 
     return $details;
+  }
+
+  private function getActionLabel($action) {
+    switch ($action) {
+      case PhabricatorPolicy::ACTION_ALLOW:
+        return pht('Allow');
+      case PhabricatorPolicy::ACTION_DENY:
+        return pht('Deny');
+      default:
+        return $action;
+    }
   }
 
 }

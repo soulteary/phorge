@@ -22,6 +22,11 @@ abstract class PhabricatorPeopleProfileController
     $crumbs = parent::buildApplicationCrumbs();
 
     $user = $this->getUser();
+    // Policy rejection may occur before the profile query assigns a user.
+    // Keep the original denial renderable without inventing profile context.
+    if (!$user) {
+      return $crumbs;
+    }
     $crumbs->addTextCrumb(
       $user->getUsername(),
       urisprintf('/p/%s/', $user->getUsername()));

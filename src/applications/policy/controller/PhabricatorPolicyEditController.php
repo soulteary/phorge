@@ -52,13 +52,7 @@ final class PhabricatorPolicyEditController
       ->setAncestorClass(PhabricatorPolicyRule::class)
       ->execute();
 
-    foreach ($rules as $key => $rule) {
-      if (!$rule->canApplyToObject($object)) {
-        unset($rules[$key]);
-      }
-    }
-
-    $rules = msort($rules, 'getRuleOrder');
+    $rules = self::selectBusinessRules($rules, $object);
 
     $default_rule = array(
       'action' => head_key($action_options),
@@ -81,13 +75,31 @@ final class PhabricatorPolicyEditController
         ->setDefaultAction(PhabricatorPolicy::ACTION_DENY);
     }
 
+    // Never pass an unavailable stored rule to the native JavaScript editor:
+    // its missing option/template could change what the person sees or saves.
+    // Policies are immutable and their original evaluation remains intact.
+    if (self::hasUnavailableRules($policy, $rules)) {
+      return $this->newHistoricalPolicyResponse($request, $policy);
+    }
+
+    // Continue the same policy-control Workflow, preserving its result handler.
+    // This first POST only opens a fresh editor; the next explicit Save Policy
+    // creates a policy and the outer object form still has to apply it.
+    $starting_replacement = $request->getExists('__start_policy_replacement__');
+    if ($starting_replacement &&
+        (!$request->isFormPost() ||
+         $request->getStr('__start_policy_replacement__') !== '1' ||
+         $request->getExists('rules') || $phid)) {
+      return $this->newUnavailableRuleResponse();
+    }
+
     $root_id = celerity_generate_unique_node_id();
 
     $default_action = $policy->getDefaultAction();
     $rule_data = $policy->getRules();
 
     $errors = array();
-    if ($request->isFormPost()) {
+    if ($request->isFormPost() && !$starting_replacement) {
       $data = $request->getStr('rules');
       try {
         $data = phutil_json_decode($data);
@@ -111,7 +123,7 @@ final class PhabricatorPolicyEditController
 
         $rule_class = idx($rule, 'rule');
         if (empty($rules[$rule_class])) {
-          throw new Exception(pht("Invalid rule class '%s'!", $rule_class));
+          return $this->newUnavailableRuleResponse();
         }
 
         $rule_obj = $rules[$rule_class];
@@ -228,7 +240,6 @@ final class PhabricatorPolicyEditController
       ),
       $form);
 
-    $rules = mfilter($rules, 'shouldHideFromUI', true);
     $rule_options = mpull($rules, 'getRuleDescription');
     $type_map = mpull($rules, 'getValueControlType');
     $templates = mpull($rules, 'getValueControlTemplate');
@@ -262,7 +273,107 @@ final class PhabricatorPolicyEditController
       ->addSubmitButton(pht('Save Policy'))
       ->addCancelButton('#');
 
+    if ($key) {
+      $dialog->addHiddenInput('capability', $key);
+    }
+
     return id(new AphrontDialogResponse())->setDialog($dialog);
+  }
+
+  private static function selectBusinessRules(
+    array $rules,
+    PhabricatorPolicyInterface $object) {
+
+    $hidden = array_fuse(PhabricatorPolicyEditorRuleSet::getHiddenRuleClasses());
+    foreach ($rules as $key => $rule) {
+      if (!$rule->canApplyToObject($object) || $rule->shouldHideFromUI() ||
+          isset($hidden[get_class($rule)])) {
+        unset($rules[$key]);
+      }
+    }
+    return msort($rules, 'getRuleOrder');
+  }
+
+  private static function hasRetiredRules(PhabricatorPolicy $policy) {
+    foreach ($policy->getRules() as $rule) {
+      if (in_array(idx($rule, 'rule'),
+          PhabricatorPolicyEditorRuleSet::getHiddenRuleClasses(), true)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static function hasUnavailableRules(
+    PhabricatorPolicy $policy,
+    array $rules) {
+
+    if (self::hasRetiredRules($policy)) {
+      return true;
+    }
+    foreach ($policy->getRules() as $rule) {
+      if (!isset($rules[idx($rule, 'rule')])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static function newReplacementURI(AphrontRequest $request) {
+    $base = '/policy/edit/';
+    $project_base = '/organization/project-policy/';
+    if (strncmp($request->getPath(), $project_base, strlen($project_base)) === 0) {
+      $base = $project_base;
+    }
+    if ($request->getURIData('objectPHID')) {
+      $context = 'object/'.rawurlencode($request->getURIData('objectPHID'));
+    } else if ($request->getURIData('objectType')) {
+      $context = 'type/'.rawurlencode($request->getURIData('objectType'));
+    } else {
+      $context = 'template/'.rawurlencode($request->getURIData('templateType'));
+    }
+    $uri = new PhutilURI($base.$context.'/'.
+      AphrontFormPolicyControl::getSelectCustomKey().'/');
+    $capability = $request->getStr('capability');
+    if ($capability !== '') {
+      $uri->replaceQueryParam('capability', $capability);
+    }
+    return $uri;
+  }
+
+  private function newHistoricalPolicyResponse(
+    AphrontRequest $request,
+    PhabricatorPolicy $policy) {
+
+    $dialog = id(new AphrontDialogView())
+      ->setViewer($this->getViewer())
+      ->setWidth(AphrontDialogView::WIDTH_FULL)
+      ->setTitle('历史策略（只读）')
+      ->appendParagraph('此策略包含已停用或系统内部规则，不能在此直接编辑。'.
+        '原有规则及权限继续生效，不会自动删除或改写。')
+      ->appendChild(id(new PhabricatorPolicyRulesView())
+        ->setViewer($this->getViewer())->setPolicy($policy))
+      ->appendParagraph('需要调整时，请新建替代策略并重新配置完整规则；'.
+        '保存新策略后，还需确认保存原对象的权限设置才会应用。')
+      ->setSubmitURI(self::newReplacementURI($request))
+      ->addHiddenInput('__start_policy_replacement__', '1')
+      ->addHiddenInput('capability', $request->getStr('capability'))
+      ->addSubmitButton('新建替代策略')
+      ->addCancelButton('#');
+    if ($request->isFormPost()) {
+      $dialog->setErrors(array('历史策略不可直接修改；本次提交未保存。'));
+    }
+    return id(new AphrontDialogResponse())->setDialog($dialog);
+  }
+
+  private function newUnavailableRuleResponse() {
+    return id(new AphrontDialogResponse())->setDialog(
+      id(new AphrontDialogView())
+        ->setViewer($this->getViewer())
+        ->setTitle('不支持的策略规则')
+        ->appendParagraph('该规则当前不可选或不适用于当前对象。'.
+          '本次提交未保存，请重新打开自定义策略并选择人员、项目或团队等业务规则。')
+        ->addCancelButton('#', '关闭'));
   }
 
   private function handleProjectRequest(AphrontRequest $request) {
