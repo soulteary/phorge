@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "D03",
+  "tests": [
+    {
+      "class": "PhabricatorPolicyPresentationTestCase",
+      "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+      "methods": [
+        "testActionsAndSelectValuesAreLocalizedWithoutMutation",
+        "testUnknownSelectValueAndActionAreEscapedAndPreserved",
+        "testEditorProfilesAndExplicitOverride",
+        "testInvalidEditorRuleConfigurationIsRejected",
+        "testHidingRuleDoesNotChangeItsEvaluationOrStoredValue",
+        "testNewPolicyMessagesHaveChineseAndEnglishForms"
+      ]
+    },
+    {
+      "class": "PhabricatorPolicyEditorTestCase",
+      "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+      "methods": [
+        "testHistoricalPostCannotSilentlyDropUnavailableRules",
+        "testHistoricalPolicyRemainsReadableWhenEveryChoiceIsHidden",
+        "testInternalRulesAreReadOnlyEvenWithEmptyOverride",
+        "testStartingOrCancellingReplacementCreatesNothing",
+        "testReplacementMarkerCannotBeUsedToSaveRules",
+        "testSavingReplacementDoesNotApplyItToOriginalObject",
+        "testMalformedOrUnavailablePostedRulesCreateNoPolicy"
+      ]
+    }
+  ],
+  "allowedSkips": {}
+}
