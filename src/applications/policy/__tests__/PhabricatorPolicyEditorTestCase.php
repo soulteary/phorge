@@ -105,8 +105,7 @@ final class PhabricatorPolicyEditorTestCase extends PhabricatorTestCase {
 
   public function testUnknownSelectValueCannotBeCoercedIntoFirstOption() {
     $actor = $this->generateNewTestUser();
-    $env = PhabricatorEnv::beginScopedEnv();
-    $env->overrideEnvConfig('policy.editor.hidden-rules', array());
+    $env = $this->newSelectOnlyEnv();
     $rules = array(array(
       'action' => 'allow', 'rule' => PhabricatorLunarPhasePolicyRule::class,
       'value' => '<future-phase>',
@@ -132,6 +131,49 @@ final class PhabricatorPolicyEditorTestCase extends PhabricatorTestCase {
       pht('Unavailable Policy Rule'), $response->getDialog()->getTitle());
     $this->assertEqual($before, $this->countPolicies());
     $this->assertEqual($rules, $policy->reload()->getRules());
+    unset($env);
+  }
+
+  public function testFreshSelectOnlyPolicyCanBeOpenedAndSaved() {
+    $actor = $this->generateNewTestUser();
+    $env = $this->newSelectOnlyEnv();
+    $phid = AphrontFormPolicyControl::getSelectCustomKey();
+    foreach (array('en_US', 'zh_CN') as $code) {
+      $locale = PhabricatorEnv::beginScopedLocale($code);
+      try {
+        $before = mpull(id(new PhabricatorPolicy())->loadAllWhere('1 = 1'),
+          'getPHID', 'getPHID');
+        foreach (array(null, array('__start_policy_replacement__' => '1'))
+          as $post) {
+          $response = $this->requestEditor($actor, $phid, $post);
+          $this->assertTrue($response instanceof AphrontDialogResponse);
+          $this->assertEqual(
+            pht('Custom Policy'), $response->getDialog()->getTitle());
+          $html = (string)hsprintf('%s', $response->getDialog());
+          $this->assertFalse(
+            strpos($html, '__start_policy_replacement__') !== false);
+          $this->assertEqual(count($before), $this->countPolicies());
+        }
+        $rules = array(array(
+          'action' => 'allow',
+          'rule' => PhabricatorLunarPhasePolicyRule::class,
+          'value' => PhabricatorLunarPhasePolicyRule::PHASE_NEW,
+        ));
+        $response = $this->requestEditor($actor, $phid, array(
+          'rules' => json_encode($rules), 'default' => 'deny',
+        ));
+        $this->assertTrue($response instanceof AphrontAjaxResponse);
+        $after = mpull(id(new PhabricatorPolicy())->loadAllWhere('1 = 1'),
+          null, 'getPHID');
+        $added = array_diff_key($after, $before);
+        $this->assertEqual(1, count($added));
+        $saved = head($added);
+        $this->assertEqual($rules, $saved->getRules());
+        $this->assertEqual('deny', $saved->getDefaultAction());
+      } finally {
+        unset($locale);
+      }
+    }
     unset($env);
   }
 
@@ -264,6 +306,16 @@ final class PhabricatorPolicyEditorTestCase extends PhabricatorTestCase {
 
   private function countPolicies() {
     return count(id(new PhabricatorPolicy())->loadAllWhere('1 = 1'));
+  }
+
+  private function newSelectOnlyEnv() {
+    $rules = id(new PhutilClassMapQuery())
+      ->setAncestorClass(PhabricatorPolicyRule::class)
+      ->execute();
+    unset($rules[PhabricatorLunarPhasePolicyRule::class]);
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('policy.editor.hidden-rules', array_keys($rules));
+    return $env;
   }
 
   private function requestEditor(

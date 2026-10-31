@@ -87,7 +87,7 @@ final class PhabricatorPolicyEditController
     // Never pass an unavailable stored rule to the native JavaScript editor:
     // its missing option/template could change what the person sees or saves.
     // Policies are immutable and their original evaluation remains intact.
-    if (self::hasUnavailableRules($policy, $rules)) {
+    if ($phid && self::hasUnavailableRules($policy, $rules)) {
       return $this->newHistoricalPolicyResponse($request, $policy);
     }
     if (!$rules) {

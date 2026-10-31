@@ -143,6 +143,31 @@ final class PhabricatorPolicyPresentationTestCase extends PhabricatorTestCase {
     }
   }
 
+  public function testFreshSelectOnlyEditorIsNotHistorical() {
+    $rules = id(new PhutilClassMapQuery())
+      ->setAncestorClass(PhabricatorPolicyRule::class)
+      ->execute();
+    unset($rules[PhabricatorLunarPhasePolicyRule::class]);
+    $env = PhabricatorEnv::beginScopedEnv();
+    $env->overrideEnvConfig('policy.editor.hidden-rules', array_keys($rules));
+    $actor = PhabricatorUser::getOmnipotentUser();
+    $phid = AphrontFormPolicyControl::getSelectCustomKey();
+    $request = id(new AphrontRequest('phabricator.example.com',
+      '/policy/edit/type/PROJ/'.$phid.'/'))
+      ->setUser($actor)
+      ->setRequestData(array())
+      ->setURIMap(array('objectType' => 'PROJ', 'phid' => $phid));
+    $response = id(new PhabricatorPolicyEditController())
+      ->setRequest($request)
+      ->handleRequest($request);
+    $this->assertTrue($response instanceof AphrontDialogResponse);
+    $this->assertEqual(pht('Custom Policy'), $response->getDialog()->getTitle());
+    $html = (string)hsprintf('%s', $response->getDialog());
+    $this->assertTrue(strpos($html, 'policy-rules-table') !== false);
+    $this->assertFalse(strpos($html, '__start_policy_replacement__') !== false);
+    unset($env);
+  }
+
   public function testNewPolicyMessagesHaveChineseAndEnglishForms() {
     $messages = array(
       'Historical Policy (Read Only)' => '历史策略（只读）',

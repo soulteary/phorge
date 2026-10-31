@@ -12,6 +12,7 @@
         "testEditorProfilesAndExplicitOverride",
         "testInvalidEditorRuleConfigurationIsRejected",
         "testHidingRuleDoesNotChangeItsEvaluationOrStoredValue",
+        "testFreshSelectOnlyEditorIsNotHistorical",
         "testNewPolicyMessagesHaveChineseAndEnglishForms"
       ]
     },
@@ -24,6 +25,7 @@
         "testInternalRulesAreReadOnlyEvenWithEmptyOverride",
         "testMissingRuleStaysReadOnlyAndItsEvaluatorStillDenies",
         "testUnknownSelectValueCannotBeCoercedIntoFirstOption",
+        "testFreshSelectOnlyPolicyCanBeOpenedAndSaved",
         "testStartingOrCancellingReplacementCreatesNothing",
         "testReplacementMarkerCannotBeUsedToSaveRules",
         "testSavingReplacementDoesNotApplyItToOriginalObject",

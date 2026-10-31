@@ -48,6 +48,11 @@ New policies reject select values which have no available option. New messages h
 entries. Both `en_US` and `zh_CN` are tested. Moon-phase labels are translated
 as moon phases rather than generic fullness or novelty.
 
+The historical-value check applies only to persisted policies. A fresh editor's
+initial empty select value remains editable, including when the sole available
+choice is a select-based rule. Opening or starting replacement writes nothing;
+an explicit save must still submit a supported select value.
+
 ## Validation and compatibility
 
 The pure presentation suite covers both locales, unknown-value escaping,
@@ -56,6 +61,9 @@ execution. The storage/controller suite exercises real native policy persistence
 CSRF form requests, read-only historical/internal rules, an empty choice set,
 zero-write replacement startup/cancellation, forged submissions and explicit
 application through `project.edit`.
+The select-only regression covers a fresh GET, replacement startup, and a valid
+POST which creates exactly one policy with the submitted value in both locales;
+the existing unknown-value policy stays read-only in that same configuration.
 
 Run the D01 gate after installing its foundation:
 
