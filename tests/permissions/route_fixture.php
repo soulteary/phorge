@@ -155,6 +155,25 @@ if ($mode === 'seed') {
   exit;
 }
 $fixture=json_decode(file_get_contents($private.'/fixture.json'),true);
+if ($mode==='compatibility-seed') {
+  $result=array();
+  foreach(array('ordinary','privateSibling','hiddenParent','openChild') as $alias){
+    $p=$fixture['projects'][$alias];$slug='Legacy:'.$fixture['token'].':'.$alias;
+    id(new PhabricatorProjectSlug())->setProjectPHID($p['phid'])->setSlug($slug)->save();
+    $result[$alias]=array('raw'=>$slug,'normalized'=>PhabricatorSlug::normalizeProjectSlug($slug),'canonical'=>$p['slug']);
+  }
+  echo json_encode($result,JSON_THROW_ON_ERROR);exit;
+}
+if ($mode==='compatibility-state') {
+  $p=new PhabricatorProject();$c=$p->establishConnection('r');
+  $slug=new PhabricatorProjectSlug();$tx=new PhabricatorProjectTransaction();
+  $state=array(
+    queryfx_all($c,'SELECT id,name,viewPolicy,editPolicy,joinPolicy,parentProjectPHID,hasSubprojects,isMembershipLocked FROM %T ORDER BY id',$p->getTableName()),
+    queryfx_all($c,'SELECT src,type,dst FROM edge ORDER BY src,type,dst'),
+    queryfx_all($c,'SELECT slug,projectPHID FROM %T ORDER BY slug',$slug->getTableName()),
+    queryfx_one($c,'SELECT COUNT(*) n FROM %T',$tx->getTableName()));
+  echo json_encode(array('fingerprint'=>hash('sha256',json_encode($state))),JSON_THROW_ON_ERROR);exit;
+}
 if (str_starts_with($mode, 'export-')) { require __DIR__.'/export_fixture.php'; exit; }
 if (str_starts_with($mode, 'recovery-')) { require __DIR__.'/recovery_fixture.php'; exit; }
 if (str_starts_with($mode, 'queue-') || str_starts_with($mode, 'cross-')) { require __DIR__.'/queue_fixture.php'; exit; }

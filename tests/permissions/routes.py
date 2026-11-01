@@ -11,6 +11,7 @@ import queue_boundaries
 import recovery
 import export_boundaries
 import go_xlsx
+import compatibility
 from route_spec import PROJECTS, SUBJECTS, PHASES, ROUTES, expected, validate_receipt
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -30,6 +31,7 @@ def main():
     out=args.output.resolve(); out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report={'passed':False,'baselineModel':'native-v1','candidateModelsRouteVerified':[],
             'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'boundarySchemaVersion':7,'boundaryCoverage':{},'boundaryChecks':[],'checks':[], 'cleanup':False}
+    report.update(compatibilitySchemaVersion=1,compatibilityCoverage={},compatibilityChecks=[])
     before=GATE.capture_source(ROOT)
     if GATE.record_source_provenance(report,before,None,args.require_clean_worktree):
         GATE.publish_report(out/'route-results.json',report); return 1
@@ -67,6 +69,9 @@ def main():
     def boundary_check(ok,label):
         report['boundaryChecks'].append({'name':label,'passed':bool(ok)})
         if not ok: raise RuntimeError(label)
+    def compatibility_check(ok,label):
+        report['compatibilityChecks'].append({'name':label,'passed':bool(ok)})
+        if not ok:raise RuntimeError(label)
     def run(argv):
         p=subprocess.run(argv,cwd=ROOT,env=env,capture_output=True,text=True,timeout=600)
         # Diagnostics may contain native object names or synthetic credentials.
@@ -138,6 +143,7 @@ def main():
             snapshot('import-base')
             report['baseRestoration']={'snapshotSHA256':manifest['snapshotSHA256'],'syntheticEnrichment':True}
         data=fixture('seed'); save('fixture.json',data)
+        legacy_aliases=fixture('compatibility-seed')
         initial=fixture('state'); receipt=snapshot('dump')
         owner['snapshotSHA256']=receipt['snapshotSHA256']; save('owner.json',owner)
         run(['php','bin/storage','destroy','--force','--namespace',ns]); snapshot('restore')
@@ -208,6 +214,7 @@ def main():
                       'denied Conduit mutation '+phase+' '+role+' '+alias)
             report['boundaryCoverage'][phase]=boundaries.project_reads(data,phase,sessions,request,client,boundary_check)
             report['boundaryCoverage'][phase].update(boundaries.effective_writes(data,phase,request,client,fixture,boundary_check,sessions,boundary_context))
+            report['compatibilityCoverage'][phase]=compatibility.execute(data,legacy_aliases,phase,sessions,client,base,fixture,compatibility_check)
             stop(); check(fixture('state')==fingerprint,'route reads preserve permission state '+phase)
         extra=fixture('seed-boundaries');start()
         report['boundaryCoverage']['cross-object']=boundaries.cross_object(data,extra,sessions,request,client,boundary_check)
@@ -224,6 +231,7 @@ def main():
         recovery.validate(report)
         queue_boundaries.validate(report)
         boundaries.validate_coverage(report)
+        compatibility.validate(report)
         report['boundaryScope']='Native canonical/member/slug routes, paginated attachments, effective edits, private tasks, configured user rule and Space; same-row transaction serialization, rollback, per-item bulk revocation, project selectors, cursor counts and JSON export bytes. Adjunct fixtures excluded from offline comparison snapshots; selected cross-object ancestor interleavings, CSV/TSV alignment, real large asynchronous JSON export and native leased retries; positive isolated HTTP XLSX downloads, exact loaded-page/next-page mid-export revocation and bounded native member/Space hierarchy transitions; no global retroactive cancellation, whole-job atomicity or arbitrary policy concurrency claim.'
         validate_receipt(report); report['passed']=True
     except Exception as e:
