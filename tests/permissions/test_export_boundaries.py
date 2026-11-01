@@ -3,7 +3,7 @@ from export_boundaries import validate,workbook
 
 
 def receipt():
-    return {'boundarySchemaVersion':6,'exportCoverage':{'invalidCSRFStatus':400,'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':21,'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}}
+    return {'boundarySchemaVersion':7,'exportCoverage':{'invalidCSRFStatus':400,'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':21,'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}}
 
 
 class ExportBoundaryTests(unittest.TestCase):

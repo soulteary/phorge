@@ -133,6 +133,15 @@ jobs:
       - name: Verify native workspace HTTP and persistence contracts when installed
         if: ${{ hashFiles('tests/atomic/packages/D06.json') != '' }}
         run: python3 tests/project-workspace/serve.py --require-clean-worktree --exit-after-http --output "$RUNNER_TEMP/workspace-http-evidence"
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: tests/permissions/xlsx-go/go.mod
+          cache: false
+      - name: Test and build the independent bounded Go XLSX reader
+        run: |
+          go -C tests/permissions/xlsx-go test ./...
+          go -C tests/permissions/xlsx-go vet ./...
+          CGO_ENABLED=0 go -C tests/permissions/xlsx-go build -o "$RUNNER_TEMP/phorge-xlsx-reader" .
       - name: Prepare isolated optional XLSX and paired queue fixtures
         run: |
           mkdir -p "$RUNNER_TEMP/permission-xlsx"
@@ -144,7 +153,7 @@ jobs:
           docker rm atomic-queue-binary
           chmod +x "$RUNNER_TEMP/gorge-taskqueue"
       - name: Verify native permission routes on an enriched restored snapshot
-        run: PERMISSION_XLSX_AUTOLOAD="$RUNNER_TEMP/permission-xlsx/vendor/autoload.php" GORGE_TEST_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" python3 tests/permissions/routes.py --require-clean-worktree --output "$RUNNER_TEMP/permission-route-evidence"
+        run: PERMISSION_XLSX_AUTOLOAD="$RUNNER_TEMP/permission-xlsx/vendor/autoload.php" GORGE_TEST_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" PERMISSION_XLSX_GO_BINARY="$RUNNER_TEMP/phorge-xlsx-reader" python3 tests/permissions/routes.py --require-clean-worktree --output "$RUNNER_TEMP/permission-route-evidence"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

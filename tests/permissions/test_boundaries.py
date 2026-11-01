@@ -4,7 +4,7 @@ from boundaries import validate_coverage, native_policy_denial, object_visible
 
 
 def receipt():
-    return {'boundarySchemaVersion':6,'boundaryChecks':[{'passed':True}],
+    return {'boundarySchemaVersion':7,'boundaryChecks':[{'passed':True}],
             'transactionBoundaries':{'independentProcesses':2,'databaseLockWaitObserved':True,'rollbackAfterObjectSave':True,'bulkRevocationAtExecution':True,'bulkItemRollback':True,'staleObjectReload':True},
             'disclosureCoverage':{'selectorCells':36,'queryExportCases':4,'exportConfirmationRoutes':4,'exportDownloadRoutes':4},
             'boundaryCoverage':{

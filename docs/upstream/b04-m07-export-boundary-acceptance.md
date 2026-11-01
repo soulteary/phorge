@@ -54,7 +54,7 @@ optional XLSX support. Shared records contain counts, booleans and source hashes
 not request cookies, download capability URLs, workbook contents, raw database
 fixtures, deployment addresses or credentials.
 
-Remaining scope includes Office-reader compatibility, isolated file-domain HTTP
+Remaining scope includes isolated file-domain HTTP
 coverage, arbitrary hierarchy/reparenting concurrency, broader policy-rule cache
 interleavings, queue fencing/partitions, Redis and mixed-worker deployment. The
 32 complete ADR designs remain partially covered rather than certified wholesale.
@@ -78,3 +78,21 @@ registered in D01 (148 native methods total). The source-only catalog adds the
 exception and both response boundaries (78 files, still 43 literal membership
 references); this is not broader runtime authorization certification. No new
 model, candidate activation, dependency or production configuration is introduced.
+
+## v7 independent Go XLSX reader
+
+The approved release scope replaces desktop Office acceptance with Go parsing.
+A bounded standard-library-only Go 1.27.3 reader independently checks six actual
+native XLSX files: owner and outsider CLI exports, their HTTP attachment bytes,
+and the in-flight and fresh exports after revocation. Exact data-row counts are
+2, 1, 2, 1, 1,001 and 1,000. Forty-eight assertions check viewer-specific rows,
+coordinates, string cells, date styles and absence of formulas. Formula metadata
+is never evaluated. The reader rejects malformed ZIP/XML, external worksheet
+relationships and inputs exceeding its explicit resource budgets.
+
+This adds 48 boundaries (1,908 cumulative) and four Python receipt tests (74
+permission unit tests total). Ten Go test functions cover valid and rejected
+workbooks. CI builds the reader outside the source tree; no Go runtime or new
+production dependency is added to the application. Desktop Excel/LibreOffice
+rendering or arbitrary third-party XLSX compatibility is not a release claim.
+Historical v5/v6 receipts retain their original counts and scope.

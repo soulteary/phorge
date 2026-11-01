@@ -10,6 +10,7 @@ import concurrency
 import queue_boundaries
 import recovery
 import export_boundaries
+import go_xlsx
 from route_spec import PROJECTS, SUBJECTS, PHASES, ROUTES, expected, validate_receipt
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -28,7 +29,7 @@ def main():
         raise ValueError('Inherited deployment configuration selectors refused before PHP execution.')
     out=args.output.resolve(); out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report={'passed':False,'baselineModel':'native-v1','candidateModelsRouteVerified':[],
-            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'boundarySchemaVersion':6,'boundaryCoverage':{},'boundaryChecks':[],'checks':[], 'cleanup':False}
+            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'boundarySchemaVersion':7,'boundaryCoverage':{},'boundaryChecks':[],'checks':[], 'cleanup':False}
     before=GATE.capture_source(ROOT)
     if GATE.record_source_provenance(report,before,None,args.require_clean_worktree):
         GATE.publish_report(out/'route-results.json',report); return 1
@@ -217,6 +218,8 @@ def main():
         report['queueWorkerCoverage']=queue_boundaries.workers(HERE,ROOT,env,private,fixture,boundary_check)
         report['recoveryCoverage']=recovery.execute(HERE,ROOT,env,private,boundary_check)
         report['exportCoverage']=export_boundaries.execute(HERE,ROOT,env,private,boundary_check)
+        report['goXLSXCoverage']=go_xlsx.execute(ROOT,env,private,boundary_check)
+        go_xlsx.validate(report)
         export_boundaries.validate(report)
         recovery.validate(report)
         queue_boundaries.validate(report)

@@ -70,6 +70,7 @@ def execute(here,root,env,private,check):
             check(status==200 and raw.startswith(b'PK'),'HTTP XLSX actual binary response '+role)
             check('spreadsheetml' in headers.get('Content-Type',''),'HTTP XLSX MIME '+role)
             check('attachment' in headers.get('Content-Disposition','').lower() and '.xlsx' in headers.get('Content-Disposition',''),'HTTP XLSX attachment filename '+role)
+            (private/(role+'-http.xlsx')).write_bytes(raw)
             rows=workbook(raw);text=json.dumps(rows)
             check(len(rows)==want+1 and 'HTTP XLSX visible canary' in text,'HTTP XLSX parsed visible rows '+role)
             check(('HTTP XLSX private canary' in text)==(role=='owner'),'HTTP XLSX private title boundary '+role)
@@ -115,5 +116,5 @@ def execute(here,root,env,private,check):
 
 def validate(report):
     expected={'invalidCSRFStatus':400,'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':21,'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}
-    if report.get('boundarySchemaVersion')!=6 or report.get('exportCoverage')!=expected:raise ValueError('Complete isolated HTTP/revocation/hierarchy v6 evidence required.')
+    if report.get('boundarySchemaVersion')!=7 or report.get('exportCoverage')!=expected:raise ValueError('Complete isolated HTTP/revocation/hierarchy v7 evidence required.')
     return True
