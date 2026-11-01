@@ -4,6 +4,7 @@ import argparse, hashlib, http.client, http.cookiejar, importlib.util, json, os
 from pathlib import Path
 import secrets, shutil, socket, subprocess, tempfile, time, re, datetime
 import urllib.request, urllib.parse, urllib.error
+from route_snapshot import remap_snapshot
 from route_spec import PROJECTS, SUBJECTS, PHASES, ROUTES, expected, validate_receipt
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -20,7 +21,7 @@ def main():
     args=ap.parse_args()
     out=args.output.resolve(); out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report={'passed':False,'baselineModel':'native-v1','candidateModelsRouteVerified':[],
-            'migrationReady':False,'matrix':[],'checks':[], 'cleanup':False}
+            'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'checks':[], 'cleanup':False}
     before=GATE.capture_source(ROOT)
     if GATE.record_source_provenance(report,before,None,args.require_clean_worktree):
         GATE.publish_report(out/'route-results.json',report); return 1
@@ -113,19 +114,7 @@ def main():
         if args.base_snapshot or args.base_manifest:
             if not args.base_snapshot or not args.base_manifest: raise ValueError('Both private snapshot inputs required.')
             raw=args.base_snapshot.read_bytes(); manifest=json.loads(args.base_manifest.read_text())
-            source_ns=manifest['namespace']
-            if not re.fullmatch(r'[a-zA-Z0-9_]+',source_ns): raise ValueError('Invalid private source namespace.')
-            if hashlib.sha256(raw).hexdigest()!=manifest['snapshotSHA256']: raise ValueError('Base snapshot hash mismatch.')
-            sql=raw.decode()
-            # mysqldump database selection statements only. Qualifying source
-            # identifiers elsewhere is refused, rather than broad replacement.
-            names=re.findall(r'^(?:CREATE DATABASE[^`]*|USE\s+)`([^`]+)`',sql,re.M)
-            permitted={source_ns+'_'+app for app in ('project','user','spaces','policy','config')}
-            if set(names)!=permitted: raise ValueError('Base snapshot schema inventory mismatch.')
-            for old in permitted:
-                new=ns+old[len(source_ns):]
-                sql=re.sub(r'(?m)^((?:CREATE DATABASE[^`]*|USE\s+)`)'+re.escape(old)+r'(`)',lambda m:m[1]+new+m[2],sql)
-            if any('`'+old+'`' in sql for old in permitted): raise ValueError('Qualified source schema refused.')
+            sql=remap_snapshot(raw,manifest,ns)
             (private/'base-remapped.sql').write_text(sql); (private/'base-remapped.sql').chmod(0o600)
             owner['baseSnapshotSHA256']=hashlib.sha256(sql.encode()).hexdigest(); save('owner.json',owner)
             snapshot('import-base')
