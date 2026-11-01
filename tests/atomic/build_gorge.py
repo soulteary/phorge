@@ -44,7 +44,8 @@ def build(gorge, revision, runner=subprocess.run):
         raise ValueError("Paired build bases must contain exactly go and alpine images.")
     verified = inspect_bases(gorge, lock, runner)
     for service, port in (("gorge-file-storage", "8100"),
-                          ("gorge-image", "8190"), ("gorge-render", "8140")):
+                          ("gorge-image", "8190"), ("gorge-render", "8140"),
+                          ("gorge-search", "8120")):
         runner(["docker", "build", "--build-arg", "SERVICE=" + service,
                 "--build-arg", "PORT=" + port,
                 "--build-arg", "GO_BASE_IMAGE=" + images["go"],

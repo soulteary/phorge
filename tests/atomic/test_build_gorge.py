@@ -45,7 +45,10 @@ class PairedBuildTest(unittest.TestCase):
             evidence = builder.build("/paired-gorge", self.revision, runner=run)
         inspect.assert_called_once_with(Path("/paired-gorge"), {"images": self.images}, run)
         builds = [command for command in calls if command[0] == "docker"]
-        self.assertEqual(3, len(builds))
+        self.assertEqual(4, len(builds))
+        self.assertEqual({"SERVICE=gorge-file-storage", "SERVICE=gorge-image",
+                          "SERVICE=gorge-render", "SERVICE=gorge-search"},
+                         {value for command in builds for value in command if value.startswith("SERVICE=")})
         for command in builds:
             self.assertIn("GO_BASE_IMAGE=" + self.images["go"], command)
             self.assertIn("RUNTIME_BASE_IMAGE=" + self.images["alpine"], command)

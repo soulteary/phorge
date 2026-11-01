@@ -8,7 +8,7 @@ No live permission migration or optional feature activation is part of this work
 This is a recommendation based on bounded evidence, not a finding that every
 candidate is unsafe or that a zero difference proves future compatibility.
 
-## Evidence and representativeness
+## Initial root-only evidence and representativeness
 
 The existing archived snapshot was restored first. It contained no projects,
 so it could validate restoration but could not support a model recommendation.
@@ -68,18 +68,66 @@ Spaces table-name mismatch and a GRANT OPTION exception-order defect. Both
 were corrected with canonical schema restoration and real grant refusal tests.
 These fixes do not relax the required checks or production authorization.
 
-## Remaining gates
+## Controlled enrichment and native route evidence
 
-The reports are **policy-layer and membership previews**, not full effective
-HTTP/Conduit/search/feed/board authorization proofs. All route categories remain
-explicitly unverified and `migrationReady` is false. Unsupported custom/named/
-project rules and Space controls produce unknown results and block a complete
-comparison; no policy fallback converts them into known denials.
+PR #64 adds six ordinary children and two milestones in a controlled graph on
+the already authorized restored snapshot. The full comparison inventory is
+**13 projects and 13 subjects**: the retained root and original accounts plus
+synthetic fixture accounts, anonymous and a synthetic logged-in nonmember.
+The 12 synthetic projects are exported with all 517 native tables, the owned
+namespace is destroyed and restored, and the permission-state fingerprint is
+checked before requests begin. Existing restored accounts are never used for
+web or API requests. No fresh live snapshot or permission migration is required.
 
-Before reconsidering the native model, obtain a representative approved snapshot
-with ordinary children and milestones, review every possible access expansion
-and edit loss, and run native route/transaction tests on disposable restored
-data. Select view, edit and aggregation decisions independently in a versioned
-ADR. Any migration still requires owner decisions on ambiguous old edges,
-shadow-index/replay/rollback evidence and explicit authorization. D07's remaining
-implementation atoms and optional packages are not completed by this auditor.
+The native-v1 route contract contains **1,440 cells** across two phases, ten
+synthetic/anonymous actors, twelve projects and six route families. A further
+**519 checks** cover capability oracles, Feed lists, edit forms, denied Conduit
+mutations, restoration and unchanged permission state. Search uses the paired
+Gorge service with Meilisearch; the restored-source verification uses version
+1.56.0. Stale browser sessions/API tokens are reused after revocation, without
+reindexing search or republishing stories. Each phase has its own logical dump
+hash and permission-state fingerprint. See the [test protocol](b04-m07-native-route-acceptance.md).
+
+Candidate comparisons remain policy previews: 845 cells per candidate per
+phase, five candidates and two phases. The following are counts of affected
+project/subject/capability cells, not people or HTTP requests. Each pair is
+**restored / revoked**, and all other capability counts are unchanged.
+
+| Candidate | View grants | View losses | Edit losses | Join losses | Member-index grants / losses | Leave losses |
+| --- | ---: | ---: | ---: | ---: | --- | ---: |
+| independent-view-v1 | 29 / 31 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0; 0 / 0 | 0 / 0 |
+| explicit-edit-v1 | 0 / 0 | 0 / 0 | 3 / 2 | 3 / 2 | 0 / 0; 0 / 0 | 0 / 0 |
+| self-descendants-v1 | 2 / 2 | 0 / 0 | 0 / 0 | 0 / 0 | +1 / -0; +1 / -0 | 0 / 0 |
+| direct-members-v1 | 2 / 2 | 9 / 6 | 0 / 0 | 0 / 0 | +1 / -7; +1 / -5 | 4 / 3 |
+| combined-v1 | 30 / 32 | 0 / 0 | 3 / 2 | 3 / 2 | +1 / -0; +1 / -0 | 0 / 0 |
+
+There are no unknown evaluations or graph integrity issues in this controlled
+inventory. That does not certify arbitrary named/custom/Space policies.
+The auditor marks six direct edges before revocation and five afterward as
+provenance-ambiguous. The fixture deliberately creates one old-shaped parent
+edge absent from native materialization; the other edges have known setup
+origins only in fixture metadata. These are not six discovered production
+historical defects. Every ambiguity is retained without automatic repair.
+
+The earlier root-only zero-difference result is retained above as historical
+evidence. The enriched comparison supersedes its lack of hierarchy coverage,
+but synthetic relationships still do not establish actual organizational intent.
+
+## Updated recommendation and remaining gates
+
+**Retain native-v1.** Independent child visibility demonstrably widens access;
+explicit editing removes inherited permissions; direct-only membership can hide
+ancestors from descendant members. Self-plus-descendants also changes access
+when old direct edges are present. Combining these axes does not cancel their
+risks. Choose view, edit and aggregation semantics independently in a versioned
+ADR after owners review the corresponding expansions and losses.
+
+The native route evidence is scoped to sampled project profile/query, Conduit,
+search, Feed and board behavior, including current-policy revocation. It does
+not implement candidate route semantics, task-card permission combinations,
+optional history, arbitrary custom policies or all Space boundaries. Candidate
+`routeVerification` values remain `not-verified`; `migrationReady` stays false.
+No candidate model activation, new role system, live permission migration or
+optional feature activation occurs. D07 and the original complete B04/M07 atoms
+remain partial; a future migration still requires owner decisions, shadow-index
+replay and rollback evidence, and separate explicit authorization.
