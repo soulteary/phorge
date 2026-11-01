@@ -14,6 +14,36 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/aphront/exception/AphrontMalformedRequestException.php",
+      "discovery": false,
+      "kind": "downstream-response-boundary",
+      "meaning": "Malformed client-request HTTP status; no authorization grant.",
+      "authority": "native request rejection only",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "error-classification",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/aphront/handler/PhabricatorDefaultRequestExceptionHandler.php",
+      "discovery": false,
+      "kind": "downstream-response-boundary",
+      "meaning": "Controller exception classification preserves denied CSRF and generic server errors.",
+      "authority": "native request rejection only",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "error-classification",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/aphront/response/AphrontUnhandledExceptionResponse.php",
+      "discovery": false,
+      "kind": "downstream-response-boundary",
+      "meaning": "Early standalone malformed-request classification; no policy bypass.",
+      "authority": "native request rejection only",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "error-classification",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/applications/calendar/policyrule/PhabricatorCalendarEventInviteesPolicyRule.php",
       "discovery": true,
       "kind": "calendar-policy-consumer",

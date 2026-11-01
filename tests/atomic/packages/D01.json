@@ -130,6 +130,19 @@
         "testNavigationRejectsStateChangingMethods",
         "testExistingProviderFormContractIsUnchanged"
       ]
+    },
+    {
+      "class": "AphrontRequestTestCase",
+      "path": "src/aphront/__tests__/AphrontRequestTestCase.php",
+      "methods": [
+        "testMalformedRequestStatusCode",
+        "testMalformedStandaloneResponseCode",
+        "testUnexpectedStandaloneResponseCode",
+        "testRequestDataAccess",
+        "testHostAttacks",
+        "testFlattenRequestData",
+        "testGetHTTPHeader"
+      ]
     }
   ],
   "allowedSkips": {}

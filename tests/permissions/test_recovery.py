@@ -4,7 +4,7 @@ from recovery import validate
 
 
 def receipt():
-    return {'boundarySchemaVersion':5,'recoveryCoverage':{'xlsxWorkbooks':2,'dependencyVersion':'5.10.0','dependencyLockSHA256':hashlib.sha256((Path(__file__).parent/'xlsx/composer.lock').read_bytes()).hexdigest(),'permissionInFlight':{'member':False,'space':True},'crashBoundaries':8,'queueOwners':['native','gorge'],'gorgeTransientRetryCases':1,'serviceStopped':True,'productionConfigurationChanged':False,'legacyRunningPolicy':'manual-reconciliation-no-write','creatorReplay':'acknowledge-versioned-atomic-batch'}}
+    return {'boundarySchemaVersion':6,'recoveryCoverage':{'xlsxWorkbooks':2,'dependencyVersion':'5.10.0','dependencyLockSHA256':hashlib.sha256((Path(__file__).parent/'xlsx/composer.lock').read_bytes()).hexdigest(),'permissionInFlight':{'member':False,'space':True},'crashBoundaries':8,'queueOwners':['native','gorge'],'gorgeTransientRetryCases':1,'serviceStopped':True,'productionConfigurationChanged':False,'legacyRunningPolicy':'manual-reconciliation-no-write','creatorReplay':'acknowledge-versioned-atomic-batch'}}
 
 
 class RecoveryEvidenceTests(unittest.TestCase):

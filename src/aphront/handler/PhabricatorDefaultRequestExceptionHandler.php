@@ -88,7 +88,10 @@ final class PhabricatorDefaultRequestExceptionHandler
 
     return id(new AphrontDialogResponse())
       ->setDialog($dialog)
-      ->setHTTPResponseCode(500);
+      ->setHTTPResponseCode(
+        ($throwable instanceof AphrontMalformedRequestException)
+          ? $throwable->getHTTPResponseCode()
+          : 500);
   }
 
 }

@@ -2,6 +2,27 @@
 
 final class AphrontRequestTestCase extends PhabricatorTestCase {
 
+  public function testMalformedRequestStatusCode() {
+    $exception = new AphrontMalformedRequestException(
+      'Invalid Request', 'Isolated malformed request', true);
+    $this->assertEqual(400, $exception->getHTTPResponseCode());
+    $this->assertEqual('Invalid Request', $exception->getTitle());
+    $this->assertEqual(true, $exception->getIsUnlogged());
+  }
+
+  public function testMalformedStandaloneResponseCode() {
+    $response = id(new AphrontUnhandledExceptionResponse())
+      ->setException(new AphrontMalformedRequestException(
+        'Invalid Request', 'Isolated malformed request', true));
+    $this->assertEqual(400, $response->getHTTPResponseCode());
+  }
+
+  public function testUnexpectedStandaloneResponseCode() {
+    $this->assertEqual(
+      500,
+      id(new AphrontUnhandledExceptionResponse())->getHTTPResponseCode());
+  }
+
   public function testRequestDataAccess() {
     $r = new AphrontRequest('example.com', '/');
     $r->setRequestData(
