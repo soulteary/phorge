@@ -33,7 +33,7 @@ function process(array $command, $input) {
 }
 function fingerprint($db, $namespace) {
   $values = array();
-  foreach (array('project' => array('project', 'edge'), 'user' => array('user'), 'spaces' => array('space'), 'policy' => array('policy')) as $app => $tables) {
+  foreach (array('project' => array('project', 'edge'), 'user' => array('user'), 'spaces' => array('spaces_namespace'), 'policy' => array('policy')) as $app => $tables) {
     foreach ($tables as $table) {
       $rows = $db->query('SELECT * FROM `'.$namespace.'_'.$app.'`.`'.$table.'`')->fetch_all(MYSQLI_ASSOC);
       usort($rows, static fn($a, $b) => strcmp(json_encode($a), json_encode($b)));
@@ -43,24 +43,43 @@ function fingerprint($db, $namespace) {
   return hash('sha256', json_encode($values));
 }
 try {
-  $schemas = array(
-    'project' => array(
-      'project' => 'id INT PRIMARY KEY, phid VARCHAR(64) NOT NULL, viewPolicy VARCHAR(64), editPolicy VARCHAR(64), joinPolicy VARCHAR(64), parentProjectPHID VARCHAR(64), milestoneNumber INT, hasSubprojects INT, isMembershipLocked INT, spacePHID VARCHAR(64)',
-      'edge' => 'src VARCHAR(64) COLLATE utf8mb4_bin, type INT, dst VARCHAR(64) COLLATE utf8mb4_bin, PRIMARY KEY(src,type,dst)'),
-    'user' => array('user' => 'id INT PRIMARY KEY, phid VARCHAR(64), isAdmin INT, isDisabled INT, isApproved INT'),
-    'spaces' => array('space' => 'id INT PRIMARY KEY, phid VARCHAR(64)'),
-    'policy' => array('policy' => 'id INT PRIMARY KEY, phid VARCHAR(64)'));
+  $schemas = array('project'=>array('project'=>null,'edge'=>null), 'user'=>array('user'=>null),
+    'spaces'=>array('spaces_namespace'=>null), 'policy'=>array('policy'=>null));
+  $quickstart=file_get_contents($root.'/resources/sql/quickstart.sql');
   foreach ($schemas as $app => $tables) {
     $database = $source.'_'.$app; $databases[] = $database;
     $db->query('CREATE DATABASE `'.$database.'`');
-    foreach ($tables as $table => $columns) {
-      $db->query('CREATE TABLE `'.$database.'`.`'.$table.'` ('.$columns.') ENGINE=InnoDB');
+    foreach ($tables as $table => $_) {
+      $pattern='/USE `\{\$NAMESPACE\}_'.preg_quote($app,'/').'`;\s*(CREATE TABLE `'.preg_quote($table,'/').'` \(.*?\) ENGINE=[^;]+;)/s';
+      if (!preg_match($pattern,$quickstart,$match)) {throw new Exception('native-schema-not-found');}
+      $ddl=strtr($match[1],array('{$CHARSET}'=>'utf8mb4','{$CHARSET_SORT}'=>'utf8mb4','{$CHARSET_FULLTEXT}'=>'utf8mb4','{$COLLATE_TEXT}'=>'utf8mb4_bin','{$COLLATE_SORT}'=>'utf8mb4_general_ci','{$COLLATE_FULLTEXT}'=>'utf8mb4_general_ci'));
+      $ddl=preg_replace('/\ACREATE TABLE `'.preg_quote($table,'/').'`/', 'CREATE TABLE `'.$database.'`.`'.$table.'`',$ddl);
+      $db->query($ddl);
     }
   }
+  verify('uses-native-quickstart-table-definitions',true);
+  $seed=static function($app,$table,$values) use ($db,$source) {
+    $name='`'.$source.'_'.$app.'`.`'.$table.'`';$row=array();
+    foreach($db->query('SHOW COLUMNS FROM '.$name)->fetch_all(MYSQLI_ASSOC) as $column) {
+      $field=$column['Field'];
+      if(array_key_exists($field,$values)){$row[$field]=$values[$field];}
+      else if($column['Default']!==null){$row[$field]=$column['Default'];}
+      else if($column['Null']==='YES'){$row[$field]=null;}
+      else if(preg_match('/int|decimal|double|float/',$column['Type'])){$row[$field]=0;}
+      else{$row[$field]=(string)($values['id']??'fixture');}
+    }
+    $quoted=array_map(static fn($v)=>$v===null?'NULL':"'".$db->real_escape_string((string)$v)."'",array_values($row));
+    $db->query('INSERT INTO '.$name.' (`'.implode('`,`',array_keys($row)).'`) VALUES ('.implode(',',$quoted).')');
+  };
   $a = 'PHID-USER-aaaaaaaaaaaaaaaaaaaa'; $b = 'PHID-USER-bbbbbbbbbbbbbbbbbbbb';
-  $db->query("INSERT INTO `{$source}_user`.`user` VALUES (1,'$a',1,0,1),(2,'$b',0,0,1)");
-  $db->query("INSERT INTO `{$source}_project`.`project` VALUES (1,'p','no-one','users','users',NULL,NULL,1,0,NULL),(2,'c','public','no-one','users','p',NULL,0,0,NULL),(3,'m','public','users','users','c',1,0,0,NULL)");
-  $db->query("INSERT INTO `{$source}_project`.`edge` VALUES ('p',13,'$b'),('c',13,'$a'),('p',60,'$a'),('c',60,'$a')");
+  $seed('user','user',array('id'=>1,'phid'=>$a,'isAdmin'=>1,'isDisabled'=>0,'isApproved'=>1));
+  $seed('user','user',array('id'=>2,'phid'=>$b,'isAdmin'=>0,'isDisabled'=>0,'isApproved'=>1));
+  foreach(array(array(1,'p','no-one','users',null,null,1),array(2,'c','public','no-one','p',null,0),array(3,'m','public','users','c',1,0)) as $p){
+    $seed('project','project',array('id'=>$p[0],'phid'=>$p[1],'viewPolicy'=>$p[2],'editPolicy'=>$p[3],'joinPolicy'=>'users','parentProjectPHID'=>$p[4],'milestoneNumber'=>$p[5],'hasSubprojects'=>$p[6],'isMembershipLocked'=>0,'spacePHID'=>null));
+  }
+  foreach(array(array('p',13,$b),array('c',13,$a),array('p',60,$a),array('c',60,$a)) as $edge){
+    $seed('project','edge',array('src'=>$edge[0],'type'=>$edge[1],'dst'=>$edge[2]));
+  }
   $before = fingerprint($db, $source);
   // Real logical dump/restore, with private contents kept out of artifacts.
   $dump = '';
@@ -85,7 +104,7 @@ try {
   foreach (array('INSERT INTO', 'UPDATE', 'DELETE FROM', 'ALTER TABLE', 'DROP TABLE', 'TRUNCATE TABLE') as $operation) {
     $table = '`'.$restore.'_project`.`edge`';
     $sql = match($operation) {
-      'INSERT INTO' => "INSERT INTO $table VALUES ('x',13,'y')",
+      'INSERT INTO' => "INSERT INTO $table (src,type,dst,dateCreated,seq) VALUES ('x',13,'y',0,0)",
       'UPDATE' => "UPDATE $table SET dst=dst",
       'DELETE FROM' => "DELETE FROM $table WHERE 1=0",
       'ALTER TABLE' => "ALTER TABLE $table ADD COLUMN forbidden INT",

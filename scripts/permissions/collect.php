@@ -121,7 +121,7 @@ try {
   $users = $read_rows($namespace.'_user', 'user', array(
     'id', 'phid', 'isAdmin', 'isDisabled', 'isApproved'), array('id'));
   $edges = $read_rows($namespace.'_project', 'edge', array('src', 'type', 'dst'), array('src', 'type', 'dst'));
-  $spaces = $read_rows($namespace.'_spaces', 'space', array('id', 'phid'), array('id'));
+  $spaces = $read_rows($namespace.'_spaces', 'spaces_namespace', array('id', 'phid'), array('id'));
   // No raw policies/names are exported. Their presence remains an explicit
   // unsupported-rule boundary; all current accounts are enumerated above.
   $policies = $read_rows($namespace.'_policy', 'policy', array('id', 'phid'), array('id'));
