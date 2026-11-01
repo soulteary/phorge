@@ -157,7 +157,7 @@ def cross_object(data,extra,sessions,request,client,check):
     return counts
 
 def validate_coverage(report):
-    if report.get("boundarySchemaVersion")!=4:raise ValueError("Boundary evidence version required.")
+    if report.get("boundarySchemaVersion")!=5:raise ValueError("Boundary evidence version required.")
     coverage=report.get("boundaryCoverage",{})
     if set(coverage)!={"restored","revoked","cross-object"}:raise ValueError("Missing boundary phase.")
     for phase in ("restored","revoked"):

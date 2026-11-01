@@ -155,6 +155,7 @@ if ($mode === 'seed') {
   exit;
 }
 $fixture=json_decode(file_get_contents($private.'/fixture.json'),true);
+if (str_starts_with($mode, 'export-')) { require __DIR__.'/export_fixture.php'; exit; }
 if (str_starts_with($mode, 'recovery-')) { require __DIR__.'/recovery_fixture.php'; exit; }
 if (str_starts_with($mode, 'queue-') || str_starts_with($mode, 'cross-')) { require __DIR__.'/queue_fixture.php'; exit; }
 if (str_starts_with($mode, 'transaction-')) {
