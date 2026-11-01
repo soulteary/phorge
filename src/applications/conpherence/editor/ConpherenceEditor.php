@@ -132,6 +132,15 @@ final class ConpherenceEditor extends PhabricatorApplicationTransactionEditor {
         array_keys($participants));
     }
 
+    return $xactions;
+  }
+
+  protected function didApplyTransactions($object, array $xactions) {
+    $xactions = parent::didApplyTransactions($object, $xactions);
+
+    // Final effects run inside the edit transaction. A browser can react to
+    // a notification before that transaction commits, read the old room state,
+    // and miss the update. Publish only after the editor has committed.
     if ($xactions) {
       $data = array(
         'type'        => 'message',
