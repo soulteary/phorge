@@ -48,7 +48,7 @@ def main():
   report.update(baseImage=image,baseStopSignal='SIGWINCH',daemonStopSignal=daemon['stop_signal'],daemonGracePeriodSeconds=45,webStopSignalUnchanged=True,foregroundScriptSHA256=hashlib.sha256(wrapper).hexdigest(),sourceRevision=command(['git','-C',str(ROOT),'rev-parse','HEAD']).strip(),worktreeDirty=bool(command(['git','-C',str(ROOT),'status','--porcelain']).strip()))
   for kind,signal,deadline in [('inherited-apache-negative-control',None,3),('configured-daemon-graceful-stop',daemon['stop_signal'],45)]:
    name='phorge-daemon-signal-'+owner[:12]+'-'+str(len(names));names.append(name)
-   args=engine+['create','--name',name,'--label',LABEL+'='+owner,'--network','none','--read-only','--no-healthcheck','--memory','128m','--pids-limit','64','--tmpfs','/opt/phorge:rw,size=1m,mode=755','--tmpfs','/tmp:rw,size=4m,mode=1777','--env','FAKE_PHD_B64='+base64.b64encode(FAKE.encode()).decode(),'--env','FOREGROUND_B64='+base64.b64encode(wrapper).decode(),'--entrypoint','/bin/sh']
+   args=engine+['create','--name',name,'--label',LABEL+'='+owner,'--network','none','--read-only','--no-healthcheck','--memory','128m','--pids-limit','64','--tmpfs','/opt/phorge:rw,exec,size=1m,mode=755','--tmpfs','/tmp:rw,size=4m,mode=1777','--env','FAKE_PHD_B64='+base64.b64encode(FAKE.encode()).decode(),'--env','FOREGROUND_B64='+base64.b64encode(wrapper).decode(),'--entrypoint','/bin/sh']
    if signal:args+=['--stop-signal',signal]
    command(args+[image,'-c',BOOT]);created=inspect(name)
    assert created['HostConfig']['NetworkMode']=='none' and not created['HostConfig'].get('Privileged') and not any(m.get('Type')=='bind' for m in created.get('Mounts',[]))
@@ -69,7 +69,7 @@ def main():
    report['cases'].append({'name':kind,'signal':signal or 'SIGWINCH','stopHandlerReached':handled,'exitCode':code,'forcedTerminationExpected':signal is None,'passed':True})
   report['passed']=True
  except BaseException as ex:
-  failed=ex;report['failureType']=type(ex).__name__
+  failed=ex;report['failureType']=type(ex).__name__;report['failureStage']=str(ex) if isinstance(ex,RuntimeError) else 'Contract assertion failed.'
  finally:
   cleanup=True
   owned=subprocess.run(engine+['ps','-aq','--filter','label='+LABEL+'='+owner],capture_output=True,text=True,timeout=20)
