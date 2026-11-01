@@ -43,8 +43,10 @@ final class PhabricatorTextExportFormat
     $row = array();
     foreach ($values as $value) {
       if (phutil_nonempty_string($value)) {
-        $row[] = addcslashes($value, "\0..\37\\\177..\377");
+        $value = addcslashes($value, "\0..\37\\\177..\377");
       }
+      // Keep empty fields in position so later columns match the headers.
+      $row[] = $value;
     }
 
     $this->rows[] = implode("\t", $row);

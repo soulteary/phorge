@@ -265,14 +265,18 @@ final class PhabricatorProjectTransactionEditor
 
     // See PHI1046. Milestones are always in the Space of their parent project.
     // Synchronize the database values to match the application values.
-    $conn = $object->establishConnection('w');
-    queryfx(
-      $conn,
-      'UPDATE %R SET spacePHID = %ns
-        WHERE parentProjectPHID = %s AND milestoneNumber IS NOT NULL',
-      $object,
-      $object->getSpacePHID(),
-      $object->getPHID());
+    // A milestone can not have milestones of its own. Avoid taking an empty
+    // child-range gap lock while a parent is synchronizing this milestone.
+    if ($object->supportsMilestones()) {
+      $conn = $object->establishConnection('w');
+      queryfx(
+        $conn,
+        'UPDATE %R SET spacePHID = %ns
+          WHERE parentProjectPHID = %s AND milestoneNumber IS NOT NULL',
+        $object,
+        $object->getSpacePHID(),
+        $object->getPHID());
+    }
 
     return parent::applyFinalEffects($object, $xactions);
   }

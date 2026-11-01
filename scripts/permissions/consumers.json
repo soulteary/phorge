@@ -554,6 +554,66 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/infrastructure/daemon/workers/bulk/PhabricatorWorkerBulkJobCreateWorker.php",
+      "discovery": false,
+      "kind": "bulk-create-worker",
+      "meaning": "Locks job, creates native item records and enqueues individual task workers.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-queue-state",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/daemon/workers/bulk/PhabricatorWorkerBulkJobTaskWorker.php",
+      "discovery": false,
+      "kind": "bulk-task-worker",
+      "meaning": "Persists per-item RUNNING/DONE/FAIL independently of outer queue archival result.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-queue-state",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/daemon/workers/bulk/PhabricatorWorkerBulkJobWorker.php",
+      "discovery": false,
+      "kind": "bulk-worker-boundary",
+      "meaning": "Reloads actor/job, acquires scoped locks and marks aggregate completion; COMPLETE does not mean all items succeeded.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-queue-state",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/daemon/workers/query/PhabricatorWorkerLeaseQuery.php",
+      "discovery": false,
+      "kind": "queue-lease-query",
+      "meaning": "Native SQL task-ID-scoped lease selection and expiry. Tests do not switch queue owner or run unrelated tasks.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-queue-state",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/daemon/workers/storage/PhabricatorWorkerActiveTask.php",
+      "discovery": false,
+      "kind": "queue-retry-boundary",
+      "meaning": "Native lease enforcement, transient failure count/backoff and permanent/success archival.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-queue-state",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/daemon/workers/storage/PhabricatorWorkerArchiveTask.php",
+      "discovery": false,
+      "kind": "queue-administrative-retry",
+      "meaning": "Native archived-task retry primitive preserves payload identity; not automatic business-item reset.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-queue-state",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/infrastructure/export/engine/PhabricatorExportEngine.php",
       "discovery": false,
       "kind": "export-byte-boundary",
@@ -561,6 +621,46 @@
       "authority": "native-current-viewer-policy",
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "writes-private-export-file",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/engine/PhabricatorExportEngineBulkJobType.php",
+      "discovery": false,
+      "kind": "async-export-worker",
+      "meaning": "Reloads actor saved query and format at execution, builds viewer-filtered private export file.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-private-export-and-job-state",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/format/PhabricatorCSVExportFormat.php",
+      "discovery": false,
+      "kind": "csv-export-format",
+      "meaning": "Native CSV cell quoting and spreadsheet formula protection; input objects remain current-viewer filtered.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/format/PhabricatorExcelExportFormat.php",
+      "discovery": false,
+      "kind": "excel-export-dependency",
+      "meaning": "Native unavailable-format boundary; do not install or enable optional dependencies to claim positive XLSX coverage.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/format/PhabricatorTextExportFormat.php",
+      "discovery": false,
+      "kind": "text-export-format",
+      "meaning": "Preserves field positions including empty cells and escapes separators; viewer filtering belongs to native export engine.",
+      "authority": "native-current-viewer-policy-and-worker-lifecycle",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
       "candidateGenerationIntroduced": false
     }
   ]

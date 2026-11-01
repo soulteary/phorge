@@ -7,6 +7,7 @@ import urllib.request, urllib.parse, urllib.error
 from route_snapshot import remap_snapshot
 import boundaries
 import concurrency
+import queue_boundaries
 from route_spec import PROJECTS, SUBJECTS, PHASES, ROUTES, expected, validate_receipt
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -25,7 +26,7 @@ def main():
         raise ValueError('Inherited deployment configuration selectors refused before PHP execution.')
     out=args.output.resolve(); out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report={'passed':False,'baselineModel':'native-v1','candidateModelsRouteVerified':[],
-            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'boundarySchemaVersion':2,'boundaryCoverage':{},'boundaryChecks':[],'checks':[], 'cleanup':False}
+            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'boundarySchemaVersion':3,'boundaryCoverage':{},'boundaryChecks':[],'checks':[], 'cleanup':False}
     before=GATE.capture_source(ROOT)
     if GATE.record_source_provenance(report,before,None,args.require_clean_worktree):
         GATE.publish_report(out/'route-results.json',report); return 1
@@ -69,7 +70,7 @@ def main():
         (private/('command-'+secrets.token_hex(4)+'.txt')).write_text(p.stdout+p.stderr)
         if p.returncode: raise RuntimeError('Disposable command failed: '+Path(argv[1]).name)
         return p.stdout
-    def fixture(mode): return json.loads(run(['php',str(HERE/'route_fixture.php'),mode]))
+    def fixture(mode,*arguments): return json.loads(run(['php',str(HERE/'route_fixture.php'),mode,*arguments]))
     def snapshot(mode): return json.loads(run(['php',str(HERE/'route_snapshot.php'),mode]))
     def save(name,value):
         p=private/name; p.write_text(json.dumps(value)); p.chmod(0o600)
@@ -208,10 +209,13 @@ def main():
         extra=fixture('seed-boundaries');start()
         report['boundaryCoverage']['cross-object']=boundaries.cross_object(data,extra,sessions,request,client,boundary_check)
         report['disclosureCoverage']=boundaries.disclosure(data,sessions,request,fixture,boundary_check)
+        report['queueWebCoverage']=queue_boundaries.web(data,sessions,request,fixture,boundary_check)
         stop()
         report['transactionBoundaries']=concurrency.transactions(HERE,ROOT,env,private,fixture,boundary_check)
+        report['queueWorkerCoverage']=queue_boundaries.workers(HERE,ROOT,env,private,fixture,boundary_check)
+        queue_boundaries.validate(report)
         boundaries.validate_coverage(report)
-        report['boundaryScope']='Native canonical/member/slug routes, paginated attachments, effective edits, private tasks, configured user rule and Space; same-row transaction serialization, rollback, per-item bulk revocation, project selectors, cursor counts and JSON export bytes. Adjunct fixtures excluded from offline comparison snapshots; no whole-job atomicity or arbitrary concurrent ancestor-policy claim.'
+        report['boundaryScope']='Native canonical/member/slug routes, paginated attachments, effective edits, private tasks, configured user rule and Space; same-row transaction serialization, rollback, per-item bulk revocation, project selectors, cursor counts and JSON export bytes. Adjunct fixtures excluded from offline comparison snapshots; selected cross-object ancestor interleavings, CSV/TSV alignment, real large asynchronous JSON export and native leased retries; no whole-job atomicity or arbitrary policy concurrency claim.'
         validate_receipt(report); report['passed']=True
     except Exception as e:
         report['failure']=str(e)

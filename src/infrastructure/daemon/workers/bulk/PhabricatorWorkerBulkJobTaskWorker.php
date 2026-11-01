@@ -6,24 +6,26 @@ final class PhabricatorWorkerBulkJobTaskWorker
   protected function doWork() {
     $lock = $this->acquireTaskLock();
 
-    $task = $this->loadTask();
-    $status = $task->getStatus();
-    switch ($task->getStatus()) {
-      case PhabricatorWorkerBulkTask::STATUS_WAITING:
-        // This is what we expect.
-        break;
-      default:
-        throw new PhabricatorWorkerPermanentFailureException(
-          pht(
-            'Found unexpected task status ("%s").',
-            $status));
+    try {
+      $task = $this->loadTask();
+      $status = $task->getStatus();
+      switch ($task->getStatus()) {
+        case PhabricatorWorkerBulkTask::STATUS_WAITING:
+          // This is what we expect.
+          break;
+        default:
+          throw new PhabricatorWorkerPermanentFailureException(
+            pht(
+              'Found unexpected task status ("%s").',
+              $status));
+      }
+
+      $task
+        ->setStatus(PhabricatorWorkerBulkTask::STATUS_RUNNING)
+        ->save();
+    } finally {
+      $lock->unlock();
     }
-
-    $task
-      ->setStatus(PhabricatorWorkerBulkTask::STATUS_RUNNING)
-      ->save();
-
-    $lock->unlock();
 
     $job = $this->loadJob();
     $actor = $this->loadActor($job);

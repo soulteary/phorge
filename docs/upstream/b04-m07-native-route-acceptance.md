@@ -136,3 +136,79 @@ This follow-up narrows ADR-E03/E04 and ADR-V03/L02 gaps. It does not certify
 arbitrary concurrent ancestor/member-policy changes, every selector datasource,
 all export formats, queued large exports, or all supplementary ADR test designs.
 B04/M07 and D07 remain partial; candidate models and optional features remain off.
+
+## Cross-object, formats and leased queue follow-up
+
+The v3 receipt adds separate route and worker coverage, retaining the four
+native permission axes and disabled optional controls. Only fixture-owned task
+IDs are leased/executed; no generic daemon is started and queue ownership stays
+native SQL. This does not certify the separately optional Gorge-owned queue.
+
+- Project-members, project-or-user and ancestor composite datasources add 36
+  autocomplete/browse/select observations with owner/outsider positive controls
+  and hidden title/identifier checks.
+- CSV and tab-separated text exports check owner/outsider visible row counts,
+  private file policy/author, quoting/formula protection or separator escaping,
+  and empty field positions. Text previously removed empty cells; it now keeps
+  those cells so values stay aligned with headers. Excel is tested through its
+  native unavailable-dependency rejection, without installing PHPExcel or
+  enabling an optional format; positive XLSX output is not certified.
+- An actual authenticated export submission has 1,005 visible tasks and one
+  hidden task, exceeds the native asynchronous threshold, and creates a real
+  queued job. Two tasks lose visibility before execution. Native create/task
+  workers must archive successfully and export exactly the remaining 1,003
+  unique tasks across the 1,000-row page boundary. Revoked/hidden titles and
+  identifiers must be absent, and the generated file stays private to its author.
+  Repeating the archived worker must fail permanently without replacing its file.
+- This exact-set check detected a native export pagination defect: reusing a
+  query retained the internal lookahead cursor and skipped one object per page
+  boundary. The export engine now rebuilds the same saved query per page, while
+  preserving the viewer and native filtering.
+- Real bulk creator/item workers use persisted jobs, items and leased SQL tasks.
+  A scoped SQL fault before item execution must retain a transient queue failure,
+  increment its counter and delay its lease, without business writes. The native
+  negative lease-duration testing API expires only that owned task. Retrying
+  either commits one authorized transaction or records a denied business item
+  after intervening revocation. The outer worker can archive SUCCESS while the
+  business item is FAIL; aggregate job COMPLETE is not an all-items-success flag.
+  Administrative unarchive/re-execution cannot duplicate the completed item.
+- Ordinary-child and milestone cases use separate processes and a deterministic
+  editor-instance barrier. Ordinary children retain their loaded-parent snapshot
+  for the in-flight edit even when ancestor revocation commits while paused.
+  Milestone synchronization waits on the locked child row: its revoker must be observed waiting
+  in MySQL before release. Both then deny fresh edits with unchanged business
+  state. These are distinct native boundaries, not a uniform cancellation rule. This is not a new global permission lock or retroactive-cancellation
+  guarantee. Native behavior must not be silently replaced by a candidate model.
+
+Raw exports, task payloads, fixture PHIDs, barriers and logs stay private. The
+shared receipt contains fixed coverage counts and boolean/alias assertions.
+Other application datasources, optional positive XLSX, arbitrary membership/Space
+concurrency, mid-export mutations, queue process-crash recovery and Gorge-owned
+queue transport remain separate obligations. No live migration or deployment is
+performed, and the 32 broader ADR designs remain not fully certified.
+
+The source catalog now includes 66 reviewed files: 43 literal membership-reference
+files and 23 selected downstream boundaries. Source review remains distinct
+from runtime certification of every path through these files.
+
+The milestone interleaving also exposed a lock cycle: policy-only parent saves
+rewrote unchanged datasource tokens before synchronizing the locked child, while
+child renames needed token locks. Project saves now skip token replacement when
+the existing and desired multisets are identical. Regression checks preserve
+parent token rows on policy changes and verify real child renames still update
+tokens. Permission and Space synchronization rules remain unchanged. This does
+not claim to eliminate every possible project-edit deadlock.
+
+The retry fault exposed process-local lock retention when native bulk creator or
+item workers threw before their explicit unlock. Both lock scopes now release
+in `finally`, preserving the normal work/status sequence. Same-process transient
+retry and repeated permanent-failure creator/task replay verify release and no
+duplicate business writes/items. Mid-creator crashes after item creation remain
+outside this bounded test; no whole-job exactly-once claim is made.
+
+A second observed lock cycle came from a milestone running the descendant-Space
+UPDATE even though milestones cannot contain milestones. That empty range scan
+could conflict with parent synchronization. The editor now uses the existing
+`supportsMilestones()` invariant to avoid this impossible child operation. A
+positive Space-change control verifies the parent still synchronizes the actual
+stored milestone Space. This does not change the Space or permission model.

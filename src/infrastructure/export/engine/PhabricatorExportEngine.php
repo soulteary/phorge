@@ -111,8 +111,6 @@ final class PhabricatorExportEngine
     $title = $this->getTitle();
     $filename = $this->getFilename();
 
-    $query = $engine->buildQueryFromSavedQuery($saved_query);
-
     $extension = $format->getFileExtension();
     $mime_type = $format->getMIMEContentType();
     $filename = $filename.'.'.$extension;
@@ -137,6 +135,9 @@ final class PhabricatorExportEngine
         $pager->setAfterID($page_cursor);
       }
 
+      // Queries retain an internal lookahead cursor after execution. Reusing
+      // one would skip the lookahead object at the next page boundary.
+      $query = $engine->buildQueryFromSavedQuery($saved_query);
       $objects = $engine->executeQuery($query, $pager);
       $objects = array_values($objects);
       $page_cursor = $pager->getNextPageID();
