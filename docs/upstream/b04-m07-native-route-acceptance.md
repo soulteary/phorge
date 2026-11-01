@@ -80,3 +80,59 @@ card visibility or every application permission. Candidate comparisons retain
 Review access expansion, edit loss and membership provenance separately before
 an owner decision. Keep native behavior by default. Do not bundle independent
 visibility, explicit editing and member aggregation into one activation switch.
+
+## Transaction and disclosure follow-up
+
+The native suite additionally checks these bounded cases. These tests retain
+all four native axes and run only in the owned disposable restored namespace.
+No application authorization code or runtime feature default changes. Task
+export omits null owner/closer handle lookups to avoid PHP 8.5 deprecations;
+export values and permission filtering remain native. The export-byte fixture
+turns deprecations into test failures.
+
+- A project instance loaded before edit-policy revocation is reloaded by the
+  native transaction editor and cannot commit a stale authorized edit.
+- Two independent PHP processes edit and revoke the **same project row**. A
+  test-instance validation extension pauses after native transaction/read locking,
+  before capability checks. MySQL `performance_schema.data_lock_waits`, joined
+  to the revoker's connection ID, must prove an actual wait. Releasing the
+  barrier allows the earlier edit to commit, then the revocation; a subsequent
+  edit is denied with an identical object/history fingerprint. This proves row
+  serialization, not retroactive cancellation of an already authorized write,
+  nor locking of unrelated membership, ancestor, Space or policy rows.
+- An owned-schema SQL trigger raises a recognizable error at transaction-history
+  insertion, after the object save. A two-field edit must roll back both fields
+  and history, then the same edit without the fault must commit two transactions.
+- Native bulk `createTasks`/`runTask` select two objects, revoke one before
+  execution, commit the allowed item, observe a typed native policy exception for the
+  revoked item, and leave that item's object/history unchanged. A separate two-field bulk task fails at history insertion and
+  must roll back both fields/history, while a different item still commits
+  two transactions. This checks the native per-object execution boundary; cross-object
+  jobs are not claimed to have whole-batch rollback. Queue scheduling, retry and
+  final job-status accounting are not certified by direct task execution.
+- Native project autocomplete and browse/select exercise visible and hidden
+  projects with positive controls, rejecting hidden titles and identifiers.
+- Native task queries use one-row cursor pages on mixed and hidden-only saved
+  queries. Exact visible sets, deduplicated counts and actual JSON export bytes
+  are checked for an owner and an outsider. Export files are uploaded/read back
+  through the paired Gorge service and must retain private policy/author.
+  Native HTTP export-confirmation routes must render their CSRF/format forms;
+  authenticated form submissions follow the native download and verify actual
+  JSON row counts and task titles for the same four cases.
+
+The v2 boundary receipt requires 36 selector cells, four query/export cases,
+four HTTP export confirmations/downloads, both worker processes, and observed database
+lock waiting. The catalog now reviews 56 source files (43 literal membership
+reference files plus 13 selected downstream boundaries). Historical v1 receipts
+retain their earlier scope and are not retroactively certified by v2.
+
+Barriers have bounded deadlines and process cleanup. The extension is injected
+into one editor instance using reflection, never registered in the application
+class map. Trigger cleanup runs in `finally`; normal namespace cleanup removes
+all test data. Raw worker logs, export bytes and saved-query identifiers remain
+private. CI publishes only boolean results and fixed coverage counts.
+
+This follow-up narrows ADR-E03/E04 and ADR-V03/L02 gaps. It does not certify
+arbitrary concurrent ancestor/member-policy changes, every selector datasource,
+all export formats, queued large exports, or all supplementary ADR test designs.
+B04/M07 and D07 remain partial; candidate models and optional features remain off.

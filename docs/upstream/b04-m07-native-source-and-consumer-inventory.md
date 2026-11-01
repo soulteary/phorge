@@ -93,8 +93,11 @@ No broad security or arbitrary custom-policy certification is claimed.
 
 This closes a bounded P0 implementation, not all 32 supplementary ADR designs
 or all of D07. The catalog makes untested consumers visible, rather than
-claiming email/calendar/Herald runtime certification. Concurrent mid-transaction
-revocation, every selector/count/export route, lifecycle graph changes and
-arbitrary custom/Space combinations remain distinct follow-ups. Candidate
+claiming email/calendar/Herald runtime certification. The transaction/disclosure
+follow-up in `b04-m07-native-route-acceptance.md` now checks same-row revocation
+serialization, object/bulk-item rollback, selected project selectors and task
+query/count/JSON export paths. Concurrent changes to unrelated ancestor/member
+policy rows, other datasources/formats, large queued exports, worker scheduling
+and lifecycle/arbitrary custom-Space combinations remain distinct follow-ups. Candidate
 routes, migration workers, correction manifests and recovery cutovers are not
 implemented or authorized. Keep legacy edges and the native four axes intact.

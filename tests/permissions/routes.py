@@ -6,6 +6,7 @@ import secrets, shutil, socket, subprocess, tempfile, time, re, datetime
 import urllib.request, urllib.parse, urllib.error
 from route_snapshot import remap_snapshot
 import boundaries
+import concurrency
 from route_spec import PROJECTS, SUBJECTS, PHASES, ROUTES, expected, validate_receipt
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -24,7 +25,7 @@ def main():
         raise ValueError('Inherited deployment configuration selectors refused before PHP execution.')
     out=args.output.resolve(); out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report={'passed':False,'baselineModel':'native-v1','candidateModelsRouteVerified':[],
-            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'boundarySchemaVersion':1,'boundaryCoverage':{},'boundaryChecks':[],'checks':[], 'cleanup':False}
+            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'boundarySchemaVersion':2,'boundaryCoverage':{},'boundaryChecks':[],'checks':[], 'cleanup':False}
     before=GATE.capture_source(ROOT)
     if GATE.record_source_provenance(report,before,None,args.require_clean_worktree):
         GATE.publish_report(out/'route-results.json',report); return 1
@@ -205,9 +206,12 @@ def main():
             report['boundaryCoverage'][phase].update(boundaries.effective_writes(data,phase,request,client,fixture,boundary_check,sessions,boundary_context))
             stop(); check(fixture('state')==fingerprint,'route reads preserve permission state '+phase)
         extra=fixture('seed-boundaries');start()
-        report['boundaryCoverage']['cross-object']=boundaries.cross_object(data,extra,sessions,request,client,boundary_check);stop()
+        report['boundaryCoverage']['cross-object']=boundaries.cross_object(data,extra,sessions,request,client,boundary_check)
+        report['disclosureCoverage']=boundaries.disclosure(data,sessions,request,fixture,boundary_check)
+        stop()
+        report['transactionBoundaries']=concurrency.transactions(HERE,ROOT,env,private,fixture,boundary_check)
         boundaries.validate_coverage(report)
-        report['boundaryScope']='Native canonical/member/slug routes, paginated attachments, effective edits, private tasks, configured user rule and Space; adjunct fixtures excluded from offline comparison snapshots.'
+        report['boundaryScope']='Native canonical/member/slug routes, paginated attachments, effective edits, private tasks, configured user rule and Space; same-row transaction serialization, rollback, per-item bulk revocation, project selectors, cursor counts and JSON export bytes. Adjunct fixtures excluded from offline comparison snapshots; no whole-job atomicity or arbitrary concurrent ancestor-policy claim.'
         validate_receipt(report); report['passed']=True
     except Exception as e:
         report['failure']=str(e)

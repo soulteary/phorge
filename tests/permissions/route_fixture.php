@@ -155,6 +155,11 @@ if ($mode === 'seed') {
   exit;
 }
 $fixture=json_decode(file_get_contents($private.'/fixture.json'),true);
+if (str_starts_with($mode, 'transaction-')) {
+  require __DIR__.'/transaction_fixture.php';
+  exit;
+}
+if ($mode==='disclosure') { require __DIR__.'/disclosure_fixture.php'; exit; }
 if ($mode==='seed-boundaries') {
   $users=array();foreach($fixture['users'] as $role=>$row){$users[$role]=id(new PhabricatorPeopleQuery())->setViewer($omni)->withPHIDs(array($row['phid']))->needUserSettings(true)->executeOne();}
   $actor=$users['owner'];$result=array('projects'=>array(),'tasks'=>array());
@@ -196,6 +201,7 @@ if ($mode==='seed-boundaries') {
     $story=id(new PhabricatorFeedStoryPublisher())->setStoryType('PhabricatorApplicationTransactionFeedStory')->setStoryData(array('objectPHID'=>$phid,'transactionPHIDs'=>mpull($transactions,'getPHID')))->setStoryTime(time())->setStoryAuthorPHID($actor->getPHID())->setRelatedPHIDs(array($phid))->setPrimaryObjectPHID($phid)->publish();
     $result['tasks'][$kind]=array('id'=>(int)$created['object']['id'],'phid'=>$phid,'title'=>$title,'storyKey'=>(string)$story->getChronologicalKey());
   }
+  file_put_contents(getenv('PERMISSION_ROUTES_PRIVATE').'/boundary-extra.json',json_encode($result));
   echo json_encode($result,JSON_THROW_ON_ERROR)."\n";exit;
 }
 if ($mode==='write-state') {

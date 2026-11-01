@@ -157,7 +157,7 @@ def cross_object(data,extra,sessions,request,client,check):
     return counts
 
 def validate_coverage(report):
-    if report.get("boundarySchemaVersion")!=1:raise ValueError("Boundary evidence version required.")
+    if report.get("boundarySchemaVersion")!=2:raise ValueError("Boundary evidence version required.")
     coverage=report.get("boundaryCoverage",{})
     if set(coverage)!={"restored","revoked","cross-object"}:raise ValueError("Missing boundary phase.")
     for phase in ("restored","revoked"):
@@ -165,4 +165,54 @@ def validate_coverage(report):
         if coverage[phase]!=want:raise ValueError("Incomplete native boundary coverage.")
     if coverage["cross-object"]!={"taskCells":60,"projectCells":140,"feedListCells":40,"defaultSpaceReuse":1}:raise ValueError("Incomplete cross-object boundaries.")
     if not report.get("boundaryChecks") or not all(c.get("passed") is True for c in report["boundaryChecks"]):raise ValueError("Boundary check failed.")
+    if report.get('transactionBoundaries')!={'independentProcesses':2,'databaseLockWaitObserved':True,'rollbackAfterObjectSave':True,'bulkRevocationAtExecution':True,'bulkItemRollback':True,'staleObjectReload':True}:raise ValueError('Incomplete transaction boundary evidence.')
+    if report.get('disclosureCoverage')!={'selectorCells':36,'queryExportCases':4,'exportConfirmationRoutes':4,'exportDownloadRoutes':4}:raise ValueError('Incomplete disclosure evidence.')
     return True
+
+
+def disclosure(data, sessions, request, fixture, check):
+    counts={'selectorCells':0,'queryExportCases':0,'exportConfirmationRoutes':0,'exportDownloadRoutes':0}
+    for role in ('owner','childEditor','outsider'):
+        visible=expected(role,'revoked')['view']
+        for alias in ('ordinary','privateSibling','hiddenParent','openChild'):
+            p=data['projects'][alias]
+            for action in ('class','browse','select'):
+                prefix='RouteCanary'+data['token']
+                fields={'q':prefix,'format':'html'}
+                if action=='select':fields={'select':json.dumps({'q':prefix,'offset':0,'phid':p['phid']})}
+                query=urllib.parse.urlencode(fields)
+                status,body=request(sessions[role],f'/typeahead/{"browse" if action=="select" else action}/PhabricatorProjectDatasource/?'+query)
+                want=alias in visible
+                check(object_visible(status,body,p['name'],p['phid'],want),f'selector {action} {role} {alias}')
+                counts['selectorCells']+=1
+    results=fixture('disclosure')
+    for role,cases in results.items():
+        for case,values in cases.items():
+            for key,value in values.items():
+                if key!='queryKey':check(value is True,f'query-count-export {role} {case} {key}')
+            counts['queryExportCases']+=1
+            status,body=request(sessions[role],'/maniphest/query/'+values['queryKey']+'/export/')
+            check(status==200 and '__csrf__' in body and 'format' in body,f'native export confirmation {role} {case}')
+            counts['exportConfirmationRoutes']+=1
+            class Fields(HTMLParser):
+                def __init__(self):super().__init__();self.values={};self.action=None
+                def handle_starttag(self,tag,attrs):
+                    attrs=dict(attrs)
+                    if tag=='form' and attrs.get('action'):self.action=attrs['action']
+                    if tag=='input' and attrs.get('name') and 'disabled' not in attrs:
+                        self.values[attrs['name']]=attrs.get('value','')
+            fields=Fields();fields.feed(body);fields.values['format']='json'
+            status,download=request(sessions[role],'/maniphest/query/'+values['queryKey']+'/export/',fields.values)
+            # Native primary-domain downloads require a second confirmation POST.
+            if not download.lstrip().startswith('['):
+                confirm=Fields();confirm.feed(download)
+                target=urllib.parse.urlsplit(confirm.action or '')
+                check(status==200 and target.path.startswith('/file/download/') and '__csrf__' in confirm.values,f'native file download confirmation {role} {case}')
+                status,download=request(sessions[role],target.path+('?' + target.query if target.query else ''),confirm.values)
+            rows=json.loads(download)
+            want=2 if role=='owner' and case=='mixed' else (0 if role=='outsider' and case=='hidden-only' else 1)
+            check(status==200 and isinstance(rows,list) and len(rows)==want,f'native export download visible count {role} {case}')
+            public_title='BoundaryTask'+data['token']+' public';private_title='BoundaryTask'+data['token']+' private'
+            check((public_title in download)==(case=='mixed') and (private_title in download)==(role=='owner'),f'native export download titles {role} {case}')
+            counts['exportDownloadRoutes']+=1
+    return counts

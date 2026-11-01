@@ -74,6 +74,16 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/applications/maniphest/query/ManiphestTaskSearchEngine.php",
+      "discovery": false,
+      "kind": "task-search-export",
+      "meaning": "Task search/query and native export fields; null optional handles are excluded without changing exported values.",
+      "authority": "native-current-viewer-policy",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/applications/metamta/query/PhabricatorMetaMTAMemberQuery.php",
       "discovery": true,
       "kind": "mail-expansion",
@@ -414,6 +424,16 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/applications/project/typeahead/PhabricatorProjectDatasource.php",
+      "discovery": false,
+      "kind": "project-selector",
+      "meaning": "Native project query filters autocomplete and browse results before rendering names, ancestry and tokens.",
+      "authority": "native-current-viewer-policy",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/applications/project/typeahead/PhabricatorProjectLogicalUserDatasource.php",
       "discovery": true,
       "kind": "selector",
@@ -439,6 +459,16 @@
       "kind": "selector",
       "meaning": "Viewer-filtered project selection/member expansion; hidden project metadata must not leak.",
       "authority": "native-query-then-selector",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/applications/search/engine/PhabricatorApplicationSearchEngine.php",
+      "discovery": false,
+      "kind": "search-export-query",
+      "meaning": "Native current-viewer execution and cursor/offset pagination before rendering, counting or export.",
+      "authority": "native-current-viewer-policy",
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "definition-or-read-consumer",
       "candidateGenerationIntroduced": false
@@ -474,6 +504,16 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/applications/transactions/bulk/PhabricatorEditEngineBulkJobType.php",
+      "discovery": false,
+      "kind": "bulk-execution-boundary",
+      "meaning": "Rechecks view/edit for each object when a native bulk task runs; separate items are not one atomic transaction.",
+      "authority": "native-current-viewer-policy",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
       "discovery": false,
       "kind": "effective-edit",
@@ -494,6 +534,16 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/applications/typeahead/controller/PhabricatorTypeaheadModularDatasourceController.php",
+      "discovery": false,
+      "kind": "selector-controller",
+      "meaning": "Wraps native datasource with application visibility and permits selection only from viewer-filtered results.",
+      "authority": "native-current-viewer-policy",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/infrastructure/cluster/PhabricatorGorgeSearchClient.php",
       "discovery": false,
       "kind": "gorge-search-transport",
@@ -501,6 +551,16 @@
       "authority": "native-current-viewer-policy",
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/engine/PhabricatorExportEngine.php",
+      "discovery": false,
+      "kind": "export-byte-boundary",
+      "meaning": "Executes current-viewer search pages and uploads actual export bytes under private policy and author.",
+      "authority": "native-current-viewer-policy",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-private-export-file",
       "candidateGenerationIntroduced": false
     }
   ]
