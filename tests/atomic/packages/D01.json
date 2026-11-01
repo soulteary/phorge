@@ -119,6 +119,17 @@
         "testSupportedSecurityPatchFloor",
         "testOtherBranchesAndUnpatchedVersionsAreRejected"
       ]
+    },
+    {
+      "class": "PhabricatorTraefikAuthProviderTestCase",
+      "path": "src/applications/auth/__tests__/PhabricatorTraefikAuthProviderTestCase.php",
+      "methods": [
+        "testForwardAuthUsesTopLevelNavigation",
+        "testNavigationPreservesLocalizedModeLabels",
+        "testNavigationPreservesQueryAndEscapesURI",
+        "testNavigationRejectsStateChangingMethods",
+        "testExistingProviderFormContractIsUnchanged"
+      ]
     }
   ],
   "allowedSkips": {}

@@ -480,6 +480,7 @@ abstract class PhabricatorAuthProvider extends Phobject {
    *
    *   - `uri`: URI the button should take the user to when clicked.
    *   - `method`: Optional HTTP method the button should use, defaults to GET.
+   *   - `navigation`: Render a GET navigation link instead of a form.
    *
    * @param   AphrontRequest $request HTTP request.
    * @param   string         $mode Request mode string.
@@ -498,6 +499,7 @@ abstract class PhabricatorAuthProvider extends Phobject {
         'method' => 'optional string',
         'uri' => 'string',
         'sigil' => 'optional string',
+        'navigation' => 'optional bool',
       ));
 
     $viewer = $request->getUser();
@@ -524,6 +526,14 @@ abstract class PhabricatorAuthProvider extends Phobject {
       ->setIcon($icon)
       ->setText($button_text)
       ->setSubtext($this->getProviderName());
+
+    if (idx($attributes, 'navigation', false)) {
+      if (strtoupper(idx($attributes, 'method', 'GET')) !== 'GET') {
+        throw new InvalidArgumentException(
+          'Navigation login buttons must use GET.');
+      }
+      return $button->setTag('a')->setHref($attributes['uri'])->render();
+    }
 
     $uri = $attributes['uri'];
     $uri = new PhutilURI($uri);
