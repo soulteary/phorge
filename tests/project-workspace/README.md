@@ -24,6 +24,15 @@ app available for browser checks. The driver prints the path to a private
 `handoff.json` containing synthetic login links and the bounded state-control
 endpoint. Ordinary evidence contains no session values or control secret.
 
+CI adds `--require-clean-worktree`, shared with the native gate. This checks
+Phorge HEAD and actual tracked/untracked status before any storage work and
+after cleanup. Dirty source or a changed HEAD makes the report fail even when
+all HTTP assertions passed. Both source snapshots are retained. Local TDD may
+omit the flag, with dirty status explicit in the report; such evidence is not
+a clean release gate. Keep paired Gorge source and output outside Phorge's
+worktree. An existing output directory is refused without overwriting its
+files, including another run's successful report.
+
 Every run uses a unique `*.localhost` hostname and a random loopback port.
 Chromium resolves this hostname to loopback; synthetic `phsid`/`phusr` cookies
 therefore cannot overwrite another localhost application's cookies. Python

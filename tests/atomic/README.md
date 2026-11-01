@@ -93,12 +93,26 @@ reason, and remains `skip` in the evidence. It is not a pass.
 
 `native-results.json` records exact methods, statuses, durations, package
 manifest hashes, checkout identity and the paired Gorge revision. Dirty trees
-are marked explicitly. `native.log` and result details redact configured test
+are marked explicitly. Use `--require-clean-worktree` for CI/release evidence:
+it requires a clean Phorge checkout before and after execution and unchanged
+HEAD. The report retains both actual Git statuses (paths only) and identities;
+any strict source error forces `passed: false` and a nonzero exit. Omit the
+flag for local TDD; dirty local results remain explicitly marked and cannot
+serve as clean release evidence. Put evidence outside the source checkout.
+`native.log` and result details redact configured test
 passwords/tokens. Early configuration/parser failures may precede native
 result creation and fail CI directly; absence of evidence never means pass.
 Each native invocation writes to a fresh private report path. Reusing an
 output directory first invalidates its previous published report, so an early
 successful process exit cannot reuse or relabel an earlier checkout's pass.
+Invalidation precedes configuration and source preflight. Strict early refusal
+publishes a failed report without launching PHP. Preflight does not read or
+rewrite a previous log; only this invocation's acquired log is sanitized.
+Symlink result/log paths are refused before writes, and a replaced acquired
+log is preserved and fails rather than modifying a foreign target. Log
+redaction uses the held no-follow descriptor, not a reopened pathname. Both
+native and HTTP reports publish atomically only while their destination is
+absent; a link/file inserted during testing is preserved and publication fails.
 
 ## CI and release scope
 
@@ -112,6 +126,12 @@ to require immutable multi-platform builder/runtime digests. Phorge's
 production acceptance lock is unchanged; it must not substitute an older Go
 builder for Gorge's required toolchain. Missing paired source, build-base lock
 or unavailable dependencies fail instead of skipping.
+After Actions checks out the paired Gorge repository, CI relocates that owned
+checkout to a unique `RUNNER_TEMP` directory before building it. This keeps
+external fixture sources outside Phorge's Git status without ignoring any
+tracked or untracked Phorge source. Both native and HTTP CI runners require
+the clean-worktree mode; the actual 134 native methods and 30 HTTP checks are
+unchanged by this provenance gate.
 
 PHP 8.5.12 is the sole CI and production baseline. The supported branch is
 8.5 with a security floor of 8.5.12; older and other minor branches are rejected.
@@ -129,4 +149,7 @@ activating new writers across multiple web/worker instances.
 - 头像 fixture 写入失败表示依赖未就绪；不能跳过用例、恢复 PHP 文件写入后端，
   也不能把依赖异常当作权限缺陷或通过结果。
 - 本工具保留实际执行状态；缺少结果、失败和未说明的跳过都会阻止通过。
+- CI/发布证据必须使用 `--require-clean-worktree`，测试前后 Phorge 工作树均须干净，
+  HEAD 不得变化。源码有改动时报告会失败；本地调试可省略此参数，但不能据此宣称发布门禁通过。
+- 配套 Gorge 源码及测试报告应放在 Phorge 工作树外，不要用忽略全部未跟踪文件的方式绕过校验。
 - 关闭业务入口仍须保留存量策略/类型的解释和当前权限校验；新写能力需按发布协议启用。
