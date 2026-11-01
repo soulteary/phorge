@@ -37,6 +37,8 @@ jobs:
       GORGE_TEST_IMAGE_TOKEN: atomic-image-only
       GORGE_TEST_RENDER_URL: http://127.0.0.1:18140
       GORGE_TEST_RENDER_TOKEN: atomic-render-only
+      GORGE_TEST_SEARCH_URL: http://127.0.0.1:18120
+      GORGE_TEST_SEARCH_TOKEN: atomic-search-only
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v6
@@ -82,7 +84,7 @@ jobs:
           fixture_root=$(mktemp -d "$RUNNER_TEMP/atomic-gorge.XXXXXX")
           mv -- .test-gorge "$fixture_root/source"
           echo "ATOMIC_GORGE_SOURCE=$fixture_root/source" >> "$GITHUB_ENV"
-      - name: Build actual file, image and render services from the paired source
+      - name: Build actual file, image, render and search services from the paired source
         run: python3 tests/atomic/build_gorge.py --gorge-dir "$ATOMIC_GORGE_SOURCE" --revision "$GORGE_CONTRACT_REF"
       - name: Start isolated disposable dependencies
         env:
@@ -93,9 +95,12 @@ jobs:
           docker run -d --name atomic-file --network atomic-fixtures -p 127.0.0.1:18100:8100 --read-only --tmpfs /var/lib/gorge/files:rw,uid=10001,gid=10001,mode=0700 --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-file-only -e GORGE_FILE_LOCAL_DISK_PATH=/var/lib/gorge/files gorge-file-storage:atomic
           docker run -d --name atomic-image --network atomic-fixtures -p 127.0.0.1:18190:8190 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-image-only gorge-image:atomic
           docker run -d --name atomic-render --network atomic-fixtures -p 127.0.0.1:18140:8140 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-render-only gorge-render:atomic
+          meili_image=$(python3 -c 'import json; print(json.load(open("deploy/acceptance/build-lock.json"))["images"]["meilisearch"])')
+          docker run -d --name atomic-meili --network atomic-fixtures --tmpfs /meili_data:rw -e MEILI_MASTER_KEY=atomic-search-fixture-secret-only -e MEILI_ENV=production -e MEILI_NO_ANALYTICS=true "$meili_image"
+          docker run -d --name atomic-search --network atomic-fixtures -p 127.0.0.1:18120:8120 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-search-only -e GORGE_SEARCH_ENGINE=meilisearch -e MEILI_HOST=atomic-meili:7700 -e MEILI_MASTER_KEY=atomic-search-fixture-secret-only -e MEILI_INDEX=atomic_permission_routes gorge-search:atomic
           python3 - <<'PY'
           import time, urllib.request
-          for port in (18100, 18190, 18140):
+          for port in (18100, 18190, 18140, 18120):
               for attempt in range(60):
                   try:
                       with urllib.request.urlopen(f'http://127.0.0.1:{port}/readyz', timeout=2) as response:
@@ -125,6 +130,14 @@ jobs:
       - name: Verify native workspace HTTP and persistence contracts when installed
         if: ${{ hashFiles('tests/atomic/packages/D06.json') != '' }}
         run: python3 tests/project-workspace/serve.py --require-clean-worktree --exit-after-http --output "$RUNNER_TEMP/workspace-http-evidence"
+      - name: Verify native permission routes on an enriched restored snapshot
+        run: python3 tests/permissions/routes.py --require-clean-worktree --output "$RUNNER_TEMP/permission-route-evidence"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: permission-routes-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/permission-route-evidence/route-results.json
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         if: always() && hashFiles('tests/atomic/packages/D06.json') != ''
         with:
@@ -140,5 +153,5 @@ jobs:
       - name: Remove only this job's disposable services
         if: always()
         run: |
-          docker rm -f atomic-file atomic-image atomic-render || true
+          docker rm -f atomic-file atomic-image atomic-render atomic-search atomic-meili || true
           docker network rm atomic-fixtures || true
