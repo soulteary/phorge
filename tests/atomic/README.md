@@ -130,8 +130,10 @@ After Actions checks out the paired Gorge repository, CI relocates that owned
 checkout to a unique `RUNNER_TEMP` directory before building it. This keeps
 external fixture sources outside Phorge's Git status without ignoring any
 tracked or untracked Phorge source. Both native and HTTP CI runners require
-the clean-worktree mode; the actual 134 native methods and 30 HTTP checks are
-unchanged by this provenance gate.
+the clean-worktree mode. The current registered suites contain 141 native
+methods and 30 HTTP assertions; neither number counts atomic design anchors.
+The earlier provenance run contained 134 methods, before the PHP floor and
+authentication-navigation regressions were added.
 
 PHP 8.5.12 is the sole CI and production baseline. The supported branch is
 8.5 with a security floor of 8.5.12; older and other minor branches are rejected.
@@ -153,3 +155,11 @@ activating new writers across multiple web/worker instances.
   HEAD 不得变化。源码有改动时报告会失败；本地调试可省略此参数，但不能据此宣称发布门禁通过。
 - 配套 Gorge 源码及测试报告应放在 Phorge 工作树外，不要用忽略全部未跟踪文件的方式绕过校验。
 - 关闭业务入口仍须保留存量策略/类型的解释和当前权限校验；新写能力需按发布协议启用。
+
+The reviewed pairing is committed in `paired-gorge.json`. Both paired workflows
+validate the repository variable (or manual contract input) against this lock
+before checking out Gorge. Advancing the pair requires a reviewed lock change,
+repository-variable update, and fresh native/HTTP/contract evidence.
+
+See `docs/upstream/atomic-required-gates-and-evidence.md` for required checks,
+case-level scope corrections and the browser acceptance ledger.

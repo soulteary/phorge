@@ -1,5 +1,23 @@
 # Atomic contribution synchronization — 2026-11-01
 
+## Current checkpoint (supersedes historical runtime statements below)
+
+D01–D06 merged through #52–#57; #58 enforces clean source provenance,
+#59 establishes sole PHP 8.5.12 support, #60 covers authentication navigation,
+and #61 fixes notification timing. The last runtime baseline is
+`5298239e0fe364046b2a60d5f76ab733a284fcd0`.
+The formal paired Gorge release is `2026.11.01-r3` at
+`55f8ba8e57b179a7dee92ad43c77038ca322f61c`.
+Current inventory: 141 native methods and 30 HTTP assertions. The 134 atoms
+and 268 design anchors describe planned scope, not executed test counts.
+D01–D06 cover 42 atoms; D07–D19 retain 92 deferred atoms. Optional controls
+remain native/off/false. No feature activation or permission migration is
+included in this checkpoint.
+
+The entries below retain their historical runtime and intermediate PR state.
+See `atomic-required-gates-and-evidence.md` for current merge requirements and
+`b04-m07-permission-decision-and-audit.md` for the next read-only design stage.
+
 ## Reviewed inputs
 
 - Main implementation baseline: `a6d18ba72c805bc54e703ba2c02a53d5ba3d2290`.
