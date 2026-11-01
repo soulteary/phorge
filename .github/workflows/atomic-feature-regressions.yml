@@ -66,11 +66,7 @@ jobs:
           python3 -m unittest discover -s tests/atomic -p 'test_*.py' -v
       - name: Require the same immutable Gorge revision as paired runtime contracts
         run: |
-          python3 - <<'PY'
-          import os, re
-          if not re.fullmatch(r'[0-9a-f]{40}', os.environ.get('GORGE_CONTRACT_REF', '')):
-              raise SystemExit('Configure the immutable GORGE_CONTRACT_REF repository variable.')
-          PY
+          python3 tests/atomic/check_pair.py
       - uses: actions/checkout@v6
         with:
           repository: soulteary/gorge

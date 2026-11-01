@@ -105,10 +105,7 @@ jobs:
         env:
           GORGE_REF: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
         run: |
-          if ! [[ "$GORGE_REF" =~ ^[0-9a-fA-F]{40}$ ]]; then
-            echo "Set GORGE_CONTRACT_REF or gorge_ref to the published matching Gorge commit SHA."
-            exit 1
-          fi
+          python3 tests/atomic/check_pair.py
       - uses: actions/checkout@v6
         with:
           repository: soulteary/gorge
@@ -250,10 +247,7 @@ jobs:
         env:
           GORGE_REF: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
         run: |
-          if ! [[ "$GORGE_REF" =~ ^[0-9a-fA-F]{40}$ ]]; then
-            echo "Set GORGE_CONTRACT_REF or gorge_ref to the published matching Gorge commit SHA."
-            exit 1
-          fi
+          python3 tests/atomic/check_pair.py
       - uses: actions/checkout@v6
         with:
           repository: soulteary/gorge

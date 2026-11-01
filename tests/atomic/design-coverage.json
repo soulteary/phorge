@@ -1,0 +1,2180 @@
+{
+  "schemaVersion": 1,
+  "scope": "D01-D06 design-to-evidence ledger; not a pass certificate",
+  "expectedAtoms": 42,
+  "expectedAnchors": 84,
+  "cases": [
+    {
+      "id": "B01-A",
+      "atom": "B01",
+      "package": "D01",
+      "designedAction": "按最终源码重建两次映射",
+      "designedExpectation": "结果一致，#51 修复与退役类集合保持",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/__tests__/PhabricatorLibraryTestCase.php",
+          "class": "PhabricatorLibraryTestCase",
+          "method": "testEverythingImplemented"
+        },
+        {
+          "path": "src/__tests__/PhabricatorLibraryTestCase.php",
+          "class": "PhabricatorLibraryTestCase",
+          "method": "testLibraryMap"
+        },
+        {
+          "path": "src/__tests__/PhabricatorLibraryTestCase.php",
+          "class": "PhabricatorLibraryTestCase",
+          "method": "testMethodVisibility"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "B01-B",
+      "atom": "B01",
+      "package": "D01",
+      "designedAction": "合并时导入含退役类的 map",
+      "designedExpectation": "门禁失败并指出符号",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/__tests__/PhabricatorLibraryTestCase.php",
+          "class": "PhabricatorLibraryTestCase",
+          "method": "testEverythingImplemented"
+        },
+        {
+          "path": "src/__tests__/PhabricatorLibraryTestCase.php",
+          "class": "PhabricatorLibraryTestCase",
+          "method": "testLibraryMap"
+        },
+        {
+          "path": "src/__tests__/PhabricatorLibraryTestCase.php",
+          "class": "PhabricatorLibraryTestCase",
+          "method": "testMethodVisibility"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "B02-A",
+      "atom": "B02",
+      "package": "D01",
+      "designedAction": "创建用户和头像并执行原生 fixture",
+      "designedExpectation": "可写文件且测试退出后容器/数据清理",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+          "class": "PhorgeAtomicEnvironmentTestCase",
+          "method": "testGorgeIsTheWritableFileEngine"
+        },
+        {
+          "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+          "class": "PhorgeAtomicEnvironmentTestCase",
+          "method": "testUserAvatarAndImageServiceAreUsable"
+        },
+        {
+          "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+          "class": "PhorgeAtomicEnvironmentTestCase",
+          "method": "testStorageUpgradeCanBeRepeated"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "B02-B",
+      "atom": "B02",
+      "package": "D01",
+      "designedAction": "未配置文件服务运行权限用例",
+      "designedExpectation": "明确报依赖缺失，不记为通过或权限缺陷",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+          "class": "PhorgeAtomicEnvironmentTestCase",
+          "method": "testGorgeIsTheWritableFileEngine"
+        },
+        {
+          "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+          "class": "PhorgeAtomicEnvironmentTestCase",
+          "method": "testUserAvatarAndImageServiceAreUsable"
+        },
+        {
+          "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+          "class": "PhorgeAtomicEnvironmentTestCase",
+          "method": "testStorageUpgradeCanBeRepeated"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "B03-A",
+      "atom": "B03",
+      "package": "D01",
+      "designedAction": "分别以 en_US/zh_CN 渲染状态、按钮和数字",
+      "designedExpectation": "语言正确且保存值相同",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/__tests__/PhorgeI18nTestCase.php",
+          "class": "PhorgeI18nTestCase",
+          "method": "testHistoricalTranslations"
+        },
+        {
+          "path": "src/__tests__/PhorgeI18nTestCase.php",
+          "class": "PhorgeI18nTestCase",
+          "method": "testActiveTranslationFormats"
+        },
+        {
+          "path": "src/infrastructure/internationalization/scope/__tests__/PhabricatorLocaleScopeGuardTestCase.php",
+          "class": "PhabricatorLocaleScopeGuardTestCase",
+          "method": "testLocaleScopeGuard"
+        },
+        {
+          "path": "src/infrastructure/internationalization/scope/__tests__/PhabricatorLocaleScopeGuardTestCase.php",
+          "class": "PhabricatorLocaleScopeGuardTestCase",
+          "method": "testChineseModuleTranslationsAndOverridesFollowLocaleScope"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "B03-B",
+      "atom": "B03",
+      "package": "D01",
+      "designedAction": "en_US 下出现固定中文默认状态",
+      "designedExpectation": "断言失败并定位源文案",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/__tests__/PhorgeI18nTestCase.php",
+          "class": "PhorgeI18nTestCase",
+          "method": "testHistoricalTranslations"
+        },
+        {
+          "path": "src/__tests__/PhorgeI18nTestCase.php",
+          "class": "PhorgeI18nTestCase",
+          "method": "testActiveTranslationFormats"
+        },
+        {
+          "path": "src/infrastructure/internationalization/scope/__tests__/PhabricatorLocaleScopeGuardTestCase.php",
+          "class": "PhabricatorLocaleScopeGuardTestCase",
+          "method": "testLocaleScopeGuard"
+        },
+        {
+          "path": "src/infrastructure/internationalization/scope/__tests__/PhabricatorLocaleScopeGuardTestCase.php",
+          "class": "PhabricatorLocaleScopeGuardTestCase",
+          "method": "testChineseModuleTranslationsAndOverridesFollowLocaleScope"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "B05-A",
+      "atom": "B05",
+      "package": "D01",
+      "designedAction": "提交使某条权限回归断言失败",
+      "designedExpectation": "相应必需 job 失败，禁止合并",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+          "class": "PhorgeAtomicEnvironmentTestCase",
+          "method": "testBroadRuntimeDiscoveryExcludesAtomicPreflight"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Discovery tests plus effective branch-protection API receipt are required; a workflow file alone is insufficient."
+      ]
+    },
+    {
+      "id": "B05-B",
+      "atom": "B05",
+      "package": "D01",
+      "designedAction": "普通 CI 通过但新增功能测试未发现/运行",
+      "designedExpectation": "清单检查失败而非绿色通过",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/infrastructure/testing/atomic/__tests__/PhorgeAtomicEnvironmentTestCase.php",
+          "class": "PhorgeAtomicEnvironmentTestCase",
+          "method": "testBroadRuntimeDiscoveryExcludesAtomicPreflight"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Discovery tests plus effective branch-protection API receipt are required; a workflow file alone is insufficient."
+      ]
+    },
+    {
+      "id": "F01-A",
+      "atom": "F01",
+      "package": "D02",
+      "designedAction": "作者与无权用户查询同一私有源头像派生",
+      "designedExpectation": "作者可见，另一用户不可见",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testPrivateProfileSourceIsRequiredForEveryViewer"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "F01-B",
+      "atom": "F01",
+      "package": "D02",
+      "designedAction": "把 isProfileImage 设为 true 再查询",
+      "designedExpectation": "不得绕过源文件策略",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testPrivateProfileSourceIsRequiredForEveryViewer"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "F02-A",
+      "atom": "F02",
+      "package": "D02",
+      "designedAction": "构造单真实源及多真实源的派生记录",
+      "designedExpectation": "分别记录核心查询/守卫开关下结果，与批准的来源模型比较",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testMultiSourceVisibilityDoesNotDependOnRowOrder"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testVoidDoesNotMaskPrivateRealSources"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBatchQueryKeepsSourceDecisionsSeparate"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBatchChainMatchesIndividualVisibility"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Core ANY-source model only; D14 bearer guard four-combination design is deferred and unexecuted."
+      ]
+    },
+    {
+      "id": "F02-B",
+      "atom": "F02",
+      "package": "D02",
+      "designedAction": "调换来源行顺序或加入 VOID+真实源",
+      "designedExpectation": "检测折叠顺序/忽略真实源的差异，未定义结果先阻断发布",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testMultiSourceVisibilityDoesNotDependOnRowOrder"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testVoidDoesNotMaskPrivateRealSources"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBatchQueryKeepsSourceDecisionsSeparate"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBatchChainMatchesIndividualVisibility"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Core ANY-source model only; D14 bearer guard four-combination design is deferred and unexecuted."
+      ]
+    },
+    {
+      "id": "F03-A",
+      "atom": "F03",
+      "package": "D02",
+      "designedAction": "匿名读取 builtin 登录资源及独立公开头像",
+      "designedExpectation": "资源仍能加载",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testStandaloneProfilesAndBuiltinSentinelRemainPublic"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBuiltinLookingNameDoesNotBypassRealSource"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "F03-B",
+      "atom": "F03",
+      "package": "D02",
+      "designedAction": "给普通文件伪造形似 builtin 名称",
+      "designedExpectation": "不能获得 builtin 专属可见性",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testStandaloneProfilesAndBuiltinSentinelRemainPublic"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBuiltinLookingNameDoesNotBypassRealSource"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "F04-A",
+      "atom": "F04",
+      "package": "D02",
+      "designedAction": "真实源被删除后查询非公开派生",
+      "designedExpectation": "不泄漏缺失源内容，错误/可见性按批准模型明确",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testDeletedSourceRevokesPreviouslyVisibleProfile"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testDeepProfileChainUsesNativeQueryAncestry"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testMissingAndCyclicSourcesAreRejected"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testInvalidSourceTypeDoesNotBecomeAFileGrant"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "F04-B",
+      "atom": "F04",
+      "package": "D02",
+      "designedAction": "构造核心循环/深层关系",
+      "designedExpectation": "测试有执行上限且结果可解释；不以守卫代码代替核心查询证据",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testDeletedSourceRevokesPreviouslyVisibleProfile"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testDeepProfileChainUsesNativeQueryAncestry"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testMissingAndCyclicSourcesAreRejected"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testInvalidSourceTypeDoesNotBecomeAFileGrant"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "F05-A",
+      "atom": "F05",
+      "package": "D02",
+      "designedAction": "无权查询人员资料且控制器无 user",
+      "designedExpectation": "原生拒绝页正常返回",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/people/controller/__tests__/PhabricatorPeopleProfileCrumbsTestCase.php",
+          "class": "PhabricatorPeopleProfileCrumbsTestCase",
+          "method": "testDeniedProfileCanBuildCrumbsWithoutAUser"
+        },
+        {
+          "path": "src/applications/people/controller/__tests__/PhabricatorPeopleProfileCrumbsTestCase.php",
+          "class": "PhabricatorPeopleProfileCrumbsTestCase",
+          "method": "testAssignedProfileRetainsNativeUserCrumb"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Controller crumb robustness is tested; this does not prove all anonymous/nonexistent-account HTTP variants."
+      ]
+    },
+    {
+      "id": "F05-B",
+      "atom": "F05",
+      "package": "D02",
+      "designedAction": "匿名及不存在账号分别访问",
+      "designedExpectation": "不披露对象细节、不变成 500",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/people/controller/__tests__/PhabricatorPeopleProfileCrumbsTestCase.php",
+          "class": "PhabricatorPeopleProfileCrumbsTestCase",
+          "method": "testDeniedProfileCanBuildCrumbsWithoutAUser"
+        },
+        {
+          "path": "src/applications/people/controller/__tests__/PhabricatorPeopleProfileCrumbsTestCase.php",
+          "class": "PhabricatorPeopleProfileCrumbsTestCase",
+          "method": "testAssignedProfileRetainsNativeUserCrumb"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Controller crumb robustness is tested; this does not prove all anonymous/nonexistent-account HTTP variants."
+      ]
+    },
+    {
+      "id": "P01-A",
+      "atom": "P01",
+      "package": "D03",
+      "designedAction": "中英文查看允许/拒绝规则",
+      "designedExpectation": "动作标签正确且规则数组未变",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testActionsAndSelectValuesAreLocalizedWithoutMutation"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P01-B",
+      "atom": "P01",
+      "package": "D03",
+      "designedAction": "切换显示语言后保存原策略",
+      "designedExpectation": "不得互换 allow 与 deny",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testActionsAndSelectValuesAreLocalizedWithoutMutation"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P02-A",
+      "atom": "P02",
+      "package": "D03",
+      "designedAction": "展示已知枚举与含 HTML 的未知值",
+      "designedExpectation": "前者翻译，后者按文本转义",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testUnknownSelectValueAndActionAreEscapedAndPreserved"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testUnknownSelectValueCannotBeCoercedIntoFirstOption"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P02-B",
+      "atom": "P02",
+      "package": "D03",
+      "designedAction": "未知值重新展示/读取",
+      "designedExpectation": "不被替换成第一个合法值",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testUnknownSelectValueAndActionAreEscapedAndPreserved"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testUnknownSelectValueCannotBeCoercedIntoFirstOption"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P03-A",
+      "atom": "P03",
+      "package": "D03",
+      "designedAction": "collaboration/full/显式空覆盖分别打开选择器",
+      "designedExpectation": "选项符合配置",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testEditorProfilesAndExplicitOverride"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testInvalidEditorRuleConfigurationIsRejected"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testHidingRuleDoesNotChangeItsEvaluationOrStoredValue"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P03-B",
+      "atom": "P03",
+      "package": "D03",
+      "designedAction": "关闭选项后已有 lunar/Legalpad 策略求值",
+      "designedExpectation": "结果与关闭前一致",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testEditorProfilesAndExplicitOverride"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testInvalidEditorRuleConfigurationIsRejected"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testHidingRuleDoesNotChangeItsEvaluationOrStoredValue"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P04-A",
+      "atom": "P04",
+      "package": "D03",
+      "designedAction": "打开包含隐藏条件的旧策略",
+      "designedExpectation": "完整只读展示，原对象权限不变",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testUnavailableStoredRulesRenderEscapedWithoutRestoringClasses"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testHistoricalPostCannotSilentlyDropUnavailableRules"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testHistoricalPolicyRemainsReadableWhenEveryChoiceIsHidden"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testInternalRulesAreReadOnlyEvenWithEmptyOverride"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testMissingRuleStaysReadOnlyAndItsEvaluatorStillDenies"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testMalformedOrUnavailablePostedRulesCreateNoPolicy"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P04-B",
+      "atom": "P04",
+      "package": "D03",
+      "designedAction": "直接 POST 缺失规则的旧策略",
+      "designedExpectation": "拒绝保存且旧规则和引用不变",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyPresentationTestCase.php",
+          "class": "PhabricatorPolicyPresentationTestCase",
+          "method": "testUnavailableStoredRulesRenderEscapedWithoutRestoringClasses"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testHistoricalPostCannotSilentlyDropUnavailableRules"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testHistoricalPolicyRemainsReadableWhenEveryChoiceIsHidden"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testInternalRulesAreReadOnlyEvenWithEmptyOverride"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testMissingRuleStaysReadOnlyAndItsEvaluatorStillDenies"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testMalformedOrUnavailablePostedRulesCreateNoPolicy"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P05-A",
+      "atom": "P05",
+      "package": "D03",
+      "designedAction": "新建替代策略后尚未保存对象",
+      "designedExpectation": "旧对象仍引用旧策略",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testStartingOrCancellingReplacementCreatesNothing"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testReplacementMarkerCannotBeUsedToSaveRules"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testSavingReplacementDoesNotApplyItToOriginalObject"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "P05-B",
+      "atom": "P05",
+      "package": "D03",
+      "designedAction": "伪造 replacement 参数或取消对象保存",
+      "designedExpectation": "无权限变更，旧策略不被原地改写",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testStartingOrCancellingReplacementCreatesNothing"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testReplacementMarkerCannotBeUsedToSaveRules"
+        },
+        {
+          "path": "src/applications/policy/__tests__/PhabricatorPolicyEditorTestCase.php",
+          "class": "PhabricatorPolicyEditorTestCase",
+          "method": "testSavingReplacementDoesNotApplyItToOriginalObject"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N01-A",
+      "atom": "N01",
+      "package": "D04",
+      "designedAction": "hierarchy 模式打开无查询参数入口",
+      "designedExpectation": "仅根项目并按名称排序",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testFlatDefaultPreservesNativeQuerySelection"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testHierarchyDefaultOnlySelectsUnfilteredGet"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testExplicitSearchesAreNeverReplaced"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testDefaultModeDoesNotChangeNativeAncestorPermissions"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N01-B",
+      "atom": "N01",
+      "package": "D04",
+      "designedAction": "携带明确 queryKey/搜索字段",
+      "designedExpectation": "保留指定查询而非强制层级",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testFlatDefaultPreservesNativeQuerySelection"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testHierarchyDefaultOnlySelectsUnfilteredGet"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testExplicitSearchesAreNeverReplaced"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testDefaultModeDoesNotChangeNativeAncestorPermissions"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N02-A",
+      "atom": "N02",
+      "package": "D04",
+      "designedAction": "超过一页根项目含归档父级",
+      "designedExpectation": "翻页无遗漏/重复，可导航其可见子项",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testHierarchyQueryUsesRootsAndRetainsArchivedParents"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testRootPaginationIncludesArchivedRootsWithoutChildren"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N02-B",
+      "atom": "N02",
+      "package": "D04",
+      "designedAction": "后代多于分页上限",
+      "designedExpectation": "不得让单个根项目导致无界子树加载",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testHierarchyQueryUsesRootsAndRetainsArchivedParents"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testRootPaginationIncludesArchivedRootsWithoutChildren"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N03-A",
+      "atom": "N03",
+      "package": "D04",
+      "designedAction": "父项目、叶项目及归档项目点击不同入口",
+      "designedExpectation": "到达预期目录或概况",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testNavigationMessagesHaveEnglishAndChineseForms"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testParentNavigationUsesDirectParentOrRootAndCanBeDisabled"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N03-B",
+      "atom": "N03",
+      "package": "D04",
+      "designedAction": "平铺模式关闭后附加入口",
+      "designedExpectation": "仍能从原生稳定地址进入对象",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyNavigationTestCase.php",
+          "class": "PhabricatorProjectHierarchyNavigationTestCase",
+          "method": "testNavigationMessagesHaveEnglishAndChineseForms"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testParentNavigationUsesDirectParentOrRootAndCanBeDisabled"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N04-A",
+      "atom": "N04",
+      "package": "D04",
+      "designedAction": "所选模型允许看子项目却不可看父级",
+      "designedExpectation": "导航/API/选择器不披露隐藏祖先名称/PHID",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testDefaultModeDoesNotChangeNativeAncestorPermissions"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testHiddenHierarchyConstraintsAndQueryReuseStayPrivate"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testOriginalAncestorTokensAreCheckedBeforeSimplification"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testAttachedAncestorNamesAreFilteredInListsAndConduit"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N04-B",
+      "atom": "N04",
+      "package": "D04",
+      "designedAction": "可见祖父+隐藏父+可见子全部 PHID 作为约束",
+      "designedExpectation": "在冗余简化前拒绝隐藏父，不能删父条件后通过",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testDefaultModeDoesNotChangeNativeAncestorPermissions"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testHiddenHierarchyConstraintsAndQueryReuseStayPrivate"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testOriginalAncestorTokensAreCheckedBeforeSimplification"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testAttachedAncestorNamesAreFilteredInListsAndConduit"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N05-A",
+      "atom": "N05",
+      "package": "D04",
+      "designedAction": "直接父级可见",
+      "designedExpectation": "返回该父级子项目目录",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testParentNavigationUsesDirectParentOrRootAndCanBeDisabled"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N05-B",
+      "atom": "N05",
+      "package": "D04",
+      "designedAction": "父级不可见而祖父可见",
+      "designedExpectation": "按当前设计回根目录；若要跳祖父必须另提需求",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testParentNavigationUsesDirectParentOrRootAndCanBeDisabled"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N06-A",
+      "atom": "N06",
+      "package": "D04",
+      "designedAction": "分别创建普通子项目/里程碑与编辑现有项目",
+      "designedExpectation": "返回上下文正确且当前 crumb 只出现一次",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testCreationContextReturnsToHeldParentWithoutSkippingLevel"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testCommentContextUsesViewBeforeNativeMethodValidation"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testExistingEditBreadcrumbContainsCurrentProjectOnlyOnce"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "N06-B",
+      "atom": "N06",
+      "package": "D04",
+      "designedAction": "评论操作只有查看权限",
+      "designedExpectation": "导航加载不得提前要求项目编辑能力",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testCreationContextReturnsToHeldParentWithoutSkippingLevel"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testCommentContextUsesViewBeforeNativeMethodValidation"
+        },
+        {
+          "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
+          "class": "PhabricatorProjectHierarchyStorageTestCase",
+          "method": "testExistingEditBreadcrumbContainsCurrentProjectOnlyOnce"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W01-A",
+      "atom": "W01",
+      "package": "D06",
+      "designedAction": "开启/关闭工作区分别访问原生看板",
+      "designedExpectation": "原生任务与列不变",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceStateTestCase.php",
+          "class": "TeamProjectWorkspaceStateTestCase",
+          "method": "testWorkspaceAndDraftDefaultsPreserveNativeBehavior"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testExplicitNativeSaveUsesCurrentDefaultsAndDoesNotCopySourceGrants"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testWorkspaceVisibilityAndCustomStatusDoNotChangeNativeConfiguration"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testTaskDraftsPreserveSourceAndUseNativeCreationDefaults"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W01-B",
+      "atom": "W01",
+      "package": "D06",
+      "designedAction": "Maniphest 未安装",
+      "designedExpectation": "退到受权限保护的历史入口，不报缺类",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceStateTestCase.php",
+          "class": "TeamProjectWorkspaceStateTestCase",
+          "method": "testWorkspaceAndDraftDefaultsPreserveNativeBehavior"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testExplicitNativeSaveUsesCurrentDefaultsAndDoesNotCopySourceGrants"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testWorkspaceVisibilityAndCustomStatusDoNotChangeNativeConfiguration"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testTaskDraftsPreserveSourceAndUseNativeCreationDefaults"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W02-A",
+      "atom": "W02",
+      "package": "D06",
+      "designedAction": "移动任务到别列但不改状态",
+      "designedExpectation": "徽标仍反映真实状态",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testWorkspaceVisibilityAndCustomStatusDoNotChangeNativeConfiguration"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testSharedWorkCardsUseNativeStatusTransactions"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W02-B",
+      "atom": "W02",
+      "package": "D06",
+      "designedAction": "自定义状态键/名称",
+      "designedExpectation": "保留配置名称和原值，不强制标准四态",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testWorkspaceVisibilityAndCustomStatusDoNotChangeNativeConfiguration"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testSharedWorkCardsUseNativeStatusTransactions"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W03-A",
+      "atom": "W03",
+      "package": "D06",
+      "designedAction": "切换 status/time/author 与任务筛选",
+      "designedExpectation": "列表顺序及 URL 一致",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testSharedControlsKeepNativeDropdownMetadataAndSigils"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W03-B",
+      "atom": "W03",
+      "package": "D06",
+      "designedAction": "权限隐藏任务、特殊自定义查询",
+      "designedExpectation": "不因统一工具栏扩大结果集",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testSharedControlsKeepNativeDropdownMetadataAndSigils"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W04-A",
+      "atom": "W04",
+      "package": "D06",
+      "designedAction": "长列底部跨第四列拖拽并刷新",
+      "designedExpectation": "列位置持久，任务状态不被误改",
+      "evidenceStatus": "browser_receipt_required",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testSharedControlsKeepNativeDropdownMetadataAndSigils"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testSharedWorkCardsUseNativeStatusTransactions"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Native methods check markup contracts, not mouse drag, scrolling or responsive layout."
+      ]
+    },
+    {
+      "id": "W04-B",
+      "atom": "W04",
+      "package": "D06",
+      "designedAction": "移动端/全屏/隐藏列切换与横纵滚动",
+      "designedExpectation": "控制可用，隐藏列计数保留",
+      "evidenceStatus": "browser_receipt_required",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testSharedControlsKeepNativeDropdownMetadataAndSigils"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testSharedWorkCardsUseNativeStatusTransactions"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Native methods check markup contracts, not mouse drag, scrolling or responsive layout."
+      ]
+    },
+    {
+      "id": "H01-A",
+      "atom": "H01",
+      "package": "D05",
+      "designedAction": "当前有效编辑者连续发布相同正文",
+      "designedExpectation": "形成两条独立记录，有各自事务 ID；不是 no-op 去重",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testDisabledAndUnapprovedStaleActorsCannotPublishForOtherParticipants"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testIdenticalContentAppendsDistinctEvents"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testOnlyEditorsCanPublishAllRecordTypes"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testRevokedEditPermissionImmediatelyStopsPublication"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H01-B",
+      "atom": "H01",
+      "package": "D05",
+      "designedAction": "项目撤权，或旧 actor 对应账号被禁用/取消批准后显式选其他参与者",
+      "designedExpectation": "拒绝且无事务/摘要/引用半写；账号旧对象路径须验证并按需修正",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testDisabledAndUnapprovedStaleActorsCannotPublishForOtherParticipants"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testIdenticalContentAppendsDistinctEvents"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testOnlyEditorsCanPublishAllRecordTypes"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testRevokedEditPermissionImmediatelyStopsPublication"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H02-A",
+      "atom": "H02",
+      "package": "D05",
+      "designedAction": "已有百分比后发布附带旧进度参数的评论",
+      "designedExpectation": "新增评论但摘要百分比不变",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testHistoryIsAppendOnlyAndCommentsPreserveCurrentProgress"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testInvalidRecordsAndInvisibleParticipantsDoNotWrite"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H02-B",
+      "atom": "H02",
+      "package": "D05",
+      "designedAction": "把 kind=comment 请求伪装节点或非法输入",
+      "designedExpectation": "无部分状态变更",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testHistoryIsAppendOnlyAndCommentsPreserveCurrentProgress"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testInvalidRecordsAndInvisibleParticipantsDoNotWrite"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H03-A",
+      "atom": "H03",
+      "package": "D05",
+      "designedAction": "空集合、重复成员、非直接成员但有查看权的有效用户",
+      "designedExpectation": "分别回退发布者、去重、允许参与",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testDisabledAndUnapprovedStaleActorsCannotPublishForOtherParticipants"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testParticipantsNeedVisibilityButNotDirectMembership"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testParticipantSummaryCountsOnlyUnshownPeopleInBothLocales"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testInvalidRecordsAndInvisibleParticipantsDoNotWrite"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H03-B",
+      "atom": "H03",
+      "package": "D05",
+      "designedAction": "原始51项重复输入/无权者/失活用户/超长正文",
+      "designedExpectation": "整条拒绝；不把去重后少于50作为绕过",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testDisabledAndUnapprovedStaleActorsCannotPublishForOtherParticipants"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testParticipantsNeedVisibilityButNotDirectMembership"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testParticipantSummaryCountsOnlyUnshownPeopleInBothLocales"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testInvalidRecordsAndInvisibleParticipantsDoNotWrite"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H04-A",
+      "atom": "H04",
+      "package": "D05",
+      "designedAction": "输入伪造作者、日期和元数据",
+      "designedExpectation": "保存真实 actor/time，不接受伪造字段",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testHistoryIsAppendOnlyAndCommentsPreserveCurrentProgress"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testCanonicalNodesMergeLegacyHistoryWithoutInheritingStatus"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H04-B",
+      "atom": "H04",
+      "package": "D05",
+      "designedAction": "尝试改写已发布正文",
+      "designedExpectation": "拒绝；新评论不覆盖旧记录",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testHistoryIsAppendOnlyAndCommentsPreserveCurrentProgress"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testCanonicalNodesMergeLegacyHistoryWithoutInheritingStatus"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H05-A",
+      "atom": "H05",
+      "package": "D05",
+      "designedAction": "先节点 70% 后评论带 100%",
+      "designedExpectation": "显示人工 70%，任务状态不变",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testHistoryIsAppendOnlyAndCommentsPreserveCurrentProgress"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNewStageRecordsNeverStoreASecondExecutionState"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H05-B",
+      "atom": "H05",
+      "package": "D05",
+      "designedAction": "非法 −1/101/非整数或空值",
+      "designedExpectation": "按规定拒绝/保留，不隐式重置为 0",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testHistoryIsAppendOnlyAndCommentsPreserveCurrentProgress"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNewStageRecordsNeverStoreASecondExecutionState"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H06-A",
+      "atom": "H06",
+      "package": "D05",
+      "designedAction": "读取旧六字段与新v2；调用旧type发布、伪造version且携带合法历史status",
+      "designedExpectation": "旧数据原样可读；新写服务端v2且status=null",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testCanonicalNodesMergeLegacyHistoryWithoutInheritingStatus"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNewStageRecordsNeverStoreASecondExecutionState"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H06-B",
+      "atom": "H06",
+      "package": "D05",
+      "designedAction": "携带未知status，或入口关闭/摘要已有旧状态",
+      "designedExpectation": "未知status拒写；旧记录仍能独立解码，不用摘要改写单条展示或任务状态",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testCanonicalNodesMergeLegacyHistoryWithoutInheritingStatus"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNewStageRecordsNeverStoreASecondExecutionState"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H07-A",
+      "atom": "H07",
+      "package": "D05",
+      "designedAction": "跨页旧 entry 与 node/update/milestone 过滤",
+      "designedExpectation": "单条稳定可达，node 列表包含三种历史记录且不混入 comment",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testKindFiltersAndCursorPagesPreserveCompleteHistory"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testCanonicalNodesMergeLegacyHistoryWithoutInheritingStatus"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H07-B",
+      "atom": "H07",
+      "package": "D05",
+      "designedAction": "零/负数/非整数或其他项目 entry ID、无权项目",
+      "designedExpectation": "拒绝且不披露对象；compose 不污染 kind 的过滤语义",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testKindFiltersAndCursorPagesPreserveCompleteHistory"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testCanonicalNodesMergeLegacyHistoryWithoutInheritingStatus"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H08-A",
+      "atom": "H08",
+      "package": "D05",
+      "designedAction": "记录提及用户/私有任务/文件",
+      "designedExpectation": "可见内容依对象策略渲染，关系正确",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNodeReferencesUseNativeMentionRelationships"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testMentionedUsersRenderInNativeDetailsAndPublishFeed"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNodeReferencesPreservePrivateTaskAndFileAccess"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testPrivateNodeBacklinksDoNotRevealTheSourceProject"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H08-B",
+      "atom": "H08",
+      "package": "D05",
+      "designedAction": "查看者无源项目或目标对象权限",
+      "designedExpectation": "反向链接和引用不透露私有名称",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNodeReferencesUseNativeMentionRelationships"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testMentionedUsersRenderInNativeDetailsAndPublishFeed"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNodeReferencesPreservePrivateTaskAndFileAccess"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testPrivateNodeBacklinksDoNotRevealTheSourceProject"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H10-A",
+      "atom": "H10",
+      "package": "D06",
+      "designedAction": "GET 打开/取消合法节点草稿",
+      "designedExpectation": "任务表和边表零新增，填入标题/来源",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testDisabledDraftEntryDoesNotDisableOrdinaryTasksOrOldRecords"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testStaleDisabledActorCannotOpenTaskDraft"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testTaskDraftsPreserveSourceAndUseNativeCreationDefaults"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testTaskDraftsRejectPrivateReadOnlyRevokedAndNonNodeSources"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H10-B",
+      "atom": "H10",
+      "package": "D06",
+      "designedAction": "私有、撤权、只读或评论记录作为源",
+      "designedExpectation": "统一拒绝，不泄露源项目",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testDisabledDraftEntryDoesNotDisableOrdinaryTasksOrOldRecords"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testStaleDisabledActorCannotOpenTaskDraft"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testTaskDraftsPreserveSourceAndUseNativeCreationDefaults"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testTaskDraftsRejectPrivateReadOnlyRevokedAndNonNodeSources"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H11-A",
+      "atom": "H11",
+      "package": "D06",
+      "designedAction": "保存节点草稿",
+      "designedExpectation": "一条新任务，当前作者及原生默认状态，保留来源说明",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testExplicitNativeSaveUsesCurrentDefaultsAndDoesNotCopySourceGrants"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testTaskDraftsPreserveSourceAndUseNativeCreationDefaults"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H11-B",
+      "atom": "H11",
+      "package": "D06",
+      "designedAction": "源参与者/原作者/进度不应成为授权",
+      "designedExpectation": "不复制来源 grants，不因项目 tag 共享私有任务",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testExplicitNativeSaveUsesCurrentDefaultsAndDoesNotCopySourceGrants"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testTaskDraftsPreserveSourceAndUseNativeCreationDefaults"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H12-A",
+      "atom": "H12",
+      "package": "D06",
+      "designedAction": "子项目/里程碑页点击发布记录引导",
+      "designedExpectation": "进入本项目历史而非新建 milestone",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H12-B",
+      "atom": "H12",
+      "package": "D06",
+      "designedAction": "工作区关闭或历史只读",
+      "designedExpectation": "不出现可写链接，旧地址仍可读",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "B07-A",
+      "atom": "B07",
+      "package": "D01",
+      "designedAction": "所有节点支持新数据且 schema 就绪",
+      "designedExpectation": "允许激活新写能力并记录版本",
+      "evidenceStatus": "operator_protocol_not_runtime_enforcement",
+      "nativeCandidates": [],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "check_release.py validates supplied inventory, not live node discovery or a production write guard."
+      ]
+    },
+    {
+      "id": "B07-B",
+      "atom": "B07",
+      "package": "D01",
+      "designedAction": "仍有旧节点或关闭 UI 后直达 API 写入",
+      "designedExpectation": "拒绝激活/写入，旧 ACL 与数据仍可解释",
+      "evidenceStatus": "operator_protocol_not_runtime_enforcement",
+      "nativeCandidates": [],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "check_release.py validates supplied inventory, not live node discovery or a production write guard."
+      ]
+    },
+    {
+      "id": "B08-A",
+      "atom": "B08",
+      "package": "D02",
+      "designedAction": "按批准模型跑两条查询路径和守卫四组合",
+      "designedExpectation": "结果有明确定义、稳定可追溯",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testMultiSourceVisibilityDoesNotDependOnRowOrder"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testVoidDoesNotMaskPrivateRealSources"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testPublicRealSourceIsAVisibleWitnessUntilRevoked"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBatchQueryKeepsSourceDecisionsSeparate"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBatchChainMatchesIndividualVisibility"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Core ANY-source model only; D14 bearer guard four-combination design is deferred and unexecuted."
+      ]
+    },
+    {
+      "id": "B08-B",
+      "atom": "B08",
+      "package": "D02",
+      "designedAction": "未决定多源含义或调换来源导致结果变动",
+      "designedExpectation": "阻断对应修复发布，避免静默收紧/放宽",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testMultiSourceVisibilityDoesNotDependOnRowOrder"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testVoidDoesNotMaskPrivateRealSources"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testPublicRealSourceIsAVisibleWitnessUntilRevoked"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBatchQueryKeepsSourceDecisionsSeparate"
+        },
+        {
+          "path": "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php",
+          "class": "PhabricatorFileProfileAncestryTestCase",
+          "method": "testBatchChainMatchesIndividualVisibility"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes.",
+        "Core ANY-source model only; D14 bearer guard four-combination design is deferred and unexecuted."
+      ]
+    },
+    {
+      "id": "W06-A",
+      "atom": "W06",
+      "package": "D06",
+      "designedAction": "当前项目点击全部活动",
+      "designedExpectation": "项目参数正确，不串其他项目",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W06-B",
+      "atom": "W06",
+      "package": "D06",
+      "designedAction": "无 Feed 应用访问权/项目撤权",
+      "designedExpectation": "目标仍按自身权限处理，不由快捷入口放行",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W07-A",
+      "atom": "W07",
+      "package": "D06",
+      "designedAction": "任务应用可用点击高级查询",
+      "designedExpectation": "进入本项目过滤的原生查询",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W07-B",
+      "atom": "W07",
+      "package": "D06",
+      "designedAction": "应用不可用或入口关闭",
+      "designedExpectation": "不展示误导操作，直接 URL 仍按原生授权",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W08-A",
+      "atom": "W08",
+      "package": "D06",
+      "designedAction": "点击项目变更历史",
+      "designedExpectation": "/project/manage/<id>/，不误跳到节点历史",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "W08-B",
+      "atom": "W08",
+      "package": "D06",
+      "designedAction": "无权查看项目者猜测链接",
+      "designedExpectation": "原生拒绝，不泄漏事务作者或摘要",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
+          "class": "TeamProjectWorkspaceTestCase",
+          "method": "testProjectShortcutsRetainProjectScopeAndManiphestAvailability"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H13-A",
+      "atom": "H13",
+      "package": "D05",
+      "designedAction": "发布后撤 view，再读历史/Feed/backlink",
+      "designedExpectation": "当前无查看权的内容隐藏或拒绝",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testRevokedViewHidesPreviouslyReadableRecords"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testRevokedEditPermissionImmediatelyStopsPublication"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNativeFeedPublishesProgressAndTaskActivityWithoutPolicyLeaks"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testRevokedNodeAuthorDoesNotBlockBackgroundPublication"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H13-B",
+      "atom": "H13",
+      "package": "D05",
+      "designedAction": "只撤 edit 保留 view，或后台提升权限发布已有事务",
+      "designedExpectation": "仍可读但拒写；查看端不继承后台特权",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testRevokedViewHidesPreviouslyReadableRecords"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testRevokedEditPermissionImmediatelyStopsPublication"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testNativeFeedPublishesProgressAndTaskActivityWithoutPolicyLeaks"
+        },
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testRevokedNodeAuthorDoesNotBlockBackgroundPublication"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H14-A",
+      "atom": "H14",
+      "package": "D05",
+      "designedAction": "allow-public=true 且项目公开，匿名读取历史",
+      "designedExpectation": "可读合法内容",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testAnonymousCanReadOnlyExplicitlyPublicHistory"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    },
+    {
+      "id": "H14-B",
+      "atom": "H14",
+      "package": "D05",
+      "designedAction": "匿名 POST 或 allow-public=false/项目私有",
+      "designedExpectation": "不能发布，受限历史不显示",
+      "evidenceStatus": "candidate_native_evidence",
+      "nativeCandidates": [
+        {
+          "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
+          "class": "TeamProjectProgressTestCase",
+          "method": "testAnonymousCanReadOnlyExplicitlyPublicHistory"
+        }
+      ],
+      "limitations": [
+        "Method references are candidate assertion evidence; inspect native results and assertion bodies. Design anchors are not test passes."
+      ]
+    }
+  ]
+}

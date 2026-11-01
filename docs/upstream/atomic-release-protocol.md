@@ -83,8 +83,9 @@ not a promise of distributed transaction rollback.
 
 The native package runner rejects missing dependency/discovery evidence and
 undocumented skips. Keep the exact package manifest, full Phorge/Gorge
-identities, PHP version and result JSON with each PR. Distinguish PHP 8.3
-production acceptance from selected PHP 8.4/8.5 compatibility coverage.
+identities, PHP version and result JSON with each PR. PHP 8.5.12 is the sole
+CI and production baseline; historical 8.3/8.4 results are archival evidence.
+JIT must be explicitly disabled, with a zero JIT buffer.
 Cold i18n validation and explicit en_US/zh_CN feature assertions are both
 required: a syntactically valid translation does not prove a product's labels
 are localized, and localization must not alter persisted keys.
