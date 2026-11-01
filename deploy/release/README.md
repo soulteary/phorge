@@ -21,7 +21,12 @@ The global workflow lock serializes source/version publication across versions.
 New images must pass the locked PHP security checks on both architectures
 before publication. The exact registry digest must equal this build's digest,
 or the unchanged preflight digest on a retry. Both published architectures are
-then checked again, including PHP 8.5.12 and disabled JIT. The verified digest
+then checked again by their independently verified child-manifest digests,
+including PHP 8.5.12 and disabled JIT. Pulling both platforms through one root
+index digest can collide in Docker's local reference store; distinct child
+references avoid that collision without weakening platform or source validation.
+The runtime receipt retains the root and both child digests, and signing remains
+blocked until both runtime checks pass. The verified root index digest
 receives GitHub provenance attestation and keyless Cosign signing. No `latest`
 tag is emitted. Platform, child-manifest and config identities are read from
 registry bytes with digest checks; registry credentials never reach a redirected
@@ -36,8 +41,11 @@ by itself, and these workflow guards are not a claim that a registry administrat
 cannot modify a tag outside this workflow.
 
 A signing or post-publication failure leaves the image unapproved for deployment.
-Rerun the same immutable source/tag after investigating; do not move source or
-image tags. This procedure does not enable optional features, install optional
+Retry the same immutable source/tag only when its existing workflow can safely
+complete. A workflow fix requires a reviewed new source revision and a new version;
+do not move source or image tags. The unsuccessful `2026.11.02-r1` publication
+stopped at post-publication runtime verification before signing, and remains
+unapproved for deployment. This procedure does not enable optional features, install optional
 XLSX dependencies in production, change permission semantics or migrate data.
 
 The isolated regression fixture pins Composer 2.11.1. This replaces the former
