@@ -11,8 +11,18 @@ or reload.
 Publication now runs in `didApplyTransactions()`, after the normal editor
 transaction commits. Participant read markers and cache invalidation remain in
 the original final-effects phase. The payload, subscription PHID, unique ID,
-notification transport and Gorge service boundary are unchanged. Empty edits
+notification transport and Gorge service boundary are retained. A stable
+deduplication ID also covers ambiguous delivery followed by a retry. Empty edits
 do not publish, and a rollback never reaches the publication hook.
+
+A required notification-service outage is logged and schedules the existing
+`PhabricatorNotificationPublishWorker` through the configured task queue, with
+the same message identity and cluster instance. Gorge retains ownership of this
+worker. Delivery failure must not abort the already-committed edit, draft
+cleanup, or subsequent mail processing. If both notification delivery and retry
+enqueueing fail, both failures are logged and the saved edit still completes;
+this small fix does not introduce a transactional Conpherence outbox, so it
+cannot guarantee notification retention across that simultaneous outage.
 
 ## Regression coverage
 
@@ -23,6 +33,9 @@ the old implementation publishes before the consumer can read the new row;
 the corrected implementation publishes once after commit and the consumer sees
 the row. It also checks rollback, empty edits, disabled notifications, and wire
 compatibility, including the last transaction ID of a multi-transaction edit.
+Failure injection also covers required notification failure, retry payload and
+instance preservation, and simultaneous notification/queue failure without
+rejecting the committed edit.
 
 The paired runtime workflow runs the contract with the default file origin and
 with an alternate resource origin. The baseline failure reproduces without an

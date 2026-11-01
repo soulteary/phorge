@@ -15,6 +15,8 @@ if (isset($argv[1]) && $argv[1] === '--serve') {
   $socket = stream_socket_server('tcp://127.0.0.1:0');
   file_put_contents($directory.'/address', stream_socket_get_name($socket, false));
   while ($connection = @stream_socket_accept($socket, 10)) {
+    $request = explode(' ', trim(fgets($connection)));
+    $target = $request[1];
     $length = 0;
     while (($line = fgets($connection)) !== false && trim($line) !== '') {
       if (preg_match('/^Content-Length: (\d+)/i', $line, $matches)) {
@@ -32,11 +34,19 @@ if (isset($argv[1]) && $argv[1] === '--serve') {
     $visible = (int)$reader->query('SELECT COUNT(*) AS n FROM committed_message')
       ->fetch_assoc()['n'];
     file_put_contents($directory.'/messages', json_encode(array(
+      'target' => $target,
       'visible' => $visible,
       'message' => json_decode($body, true),
     ))."\n", FILE_APPEND);
-    fwrite($connection, "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n".
-      "Connection: close\r\n\r\n{}");
+    $queue = strpos($target, '/api/queue/enqueue') === 0;
+    $failed = file_exists($directory.'/notification-down') && !$queue;
+    $failed = $failed || ($queue && file_exists($directory.'/queue-down'));
+    $response = $queue
+      ? json_encode(array('data' => array('id' => 123), 'error' => null))
+      : '{}';
+    fwrite($connection, 'HTTP/1.1 '.($failed ? '503 Unavailable' : '200 OK').
+      "\r\nContent-Length: ".strlen($response)."\r\n".
+      "Connection: close\r\n\r\n".$response);
     fclose($connection);
   }
   exit(0);
@@ -144,6 +154,34 @@ try {
   $after_commit->invoke($editor, $thread, $transactions);
   notification_commit_assert(count(notification_commit_messages($directory)) === 1,
     'Disabled notification service received a publication.');
+
+  // A post-commit outage must not reject an edit which has already succeeded.
+  $env->overrideEnvConfig('notification.servers', array(array(
+    'type' => 'admin', 'host' => $host, 'port' => (int)$port,
+    'protocol' => 'http')));
+  $env->overrideEnvConfig('gorge.taskqueue.uri', 'http://'.$host.':'.$port);
+  $env->overrideEnvConfig('gorge.taskqueue.owner', 'gorge');
+  $env->overrideEnvConfig('gorge.service-policy', 'required');
+  $env->overrideEnvConfig('cluster.instance', 'contract-instance');
+  PhabricatorCaches::destroyRequestCache();
+  touch($directory.'/notification-down');
+  $result = $after_commit->invoke($editor, $thread, $transactions);
+  $messages = notification_commit_messages($directory);
+  notification_commit_assert($result === $transactions && count($messages) === 3,
+    'Notification outage aborted completion or did not queue a retry.');
+  $retry = $messages[2]['message'];
+  $retry_data = json_decode($retry['data'], true);
+  notification_commit_assert(
+    $messages[2]['target'] === '/api/queue/enqueue' &&
+    $retry['taskClass'] === 'PhabricatorNotificationPublishWorker' &&
+    $retry_data['message'] === $message &&
+    $retry_data['instance'] === 'contract-instance' &&
+    $retry_data['deliveryVersion'] === 1,
+    'Retry changed message identity, instance, or Gorge worker routing.');
+  touch($directory.'/queue-down');
+  notification_commit_assert(
+    $after_commit->invoke($editor, $thread, $transactions) === $transactions,
+    'Simultaneous queue outage rejected an already-committed edit.');
   echo "Conpherence committed notification contract passed.\n";
 } finally {
   $writer->rollback();

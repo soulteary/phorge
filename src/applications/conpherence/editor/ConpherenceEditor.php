@@ -147,9 +147,32 @@ final class ConpherenceEditor extends PhabricatorApplicationTransactionEditor {
         'threadPHID'  => $object->getPHID(),
         'messageID'   => last($xactions)->getID(),
         'subscribers' => array($object->getPHID()),
+        // An ambiguous HTTP failure may enqueue a notification which was
+        // already delivered. Keep the browser deduplication key stable.
+        'uniqueID' => substr(hash('sha256',
+          'conpherence.message/'.$object->getPHID().'/'.
+          last($xactions)->getID()), 0, 32),
       );
 
-      PhabricatorNotificationClient::tryToPostMessage($data);
+      try {
+        PhabricatorNotificationClient::tryToPostMessage($data);
+      } catch (Exception $ex) {
+        // The message is committed. Do not turn a delivery outage into an
+        // apparent failed edit, skip mail, or encourage a duplicate submission.
+        phlog($ex);
+        try {
+          $event = PhabricatorNotificationPublishWorker::newGorgeEvent(
+            'conpherence/'.$object->getPHID().'/'.last($xactions)->getID(),
+            $data);
+          PhabricatorWorker::scheduleTask(
+            'PhabricatorNotificationPublishWorker',
+            phutil_json_decode($event['task']['data']));
+        } catch (Exception $queue_ex) {
+          // If both delivery services are unavailable, preserve edit success
+          // and log the lost retry instead of retrying the business operation.
+          phlog($queue_ex);
+        }
+      }
     }
 
     return $xactions;
