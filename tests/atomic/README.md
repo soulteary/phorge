@@ -163,3 +163,24 @@ repository-variable update, and fresh native/HTTP/contract evidence.
 
 See `docs/upstream/atomic-required-gates-and-evidence.md` for required checks,
 case-level scope corrections and the browser acceptance ledger.
+
+## Daemon role shutdown regression
+
+The required native CI job also runs `daemon_shutdown.py` separately from the
+40 offline Python tests. It renders the actual Compose configuration, pulls the
+existing digest-locked official PHP base, and runs the maintained foreground
+wrapper with a synthetic `phd` executable. Containers have no network, published
+ports, host mounts or production configuration; unique labels bound cleanup.
+
+The inherited Apache `SIGWINCH` negative control must miss the stop handler and
+reach the test-only kill deadline. The configured daemon `SIGTERM` must invoke
+the handler and exit without a forced kill. The web role retains Apache's signal
+and the daemon gets a 45-second native stop budget. A fresh JSON report records
+both cases, source identity and verified cleanup; no missing dependency is skipped.
+
+```sh
+ATOMIC_TEST_DISPOSABLE=1 python3 tests/atomic/daemon_shutdown.py \
+  --output /tmp/phorge-daemon-shutdown.json
+# Local Podman fixtures are also supported; Compose rendering uses Docker CLI.
+# Add --engine podman and use a fresh report filename.
+```

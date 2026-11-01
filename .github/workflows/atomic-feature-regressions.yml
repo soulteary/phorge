@@ -68,6 +68,8 @@ jobs:
           php tests/atomic/test_timeout.php
           python3 -m unittest discover -s tests/atomic -p 'test_*.py' -v
           python3 -m unittest discover -s tests/release -p 'test_*.py' -v
+      - name: Verify daemon role stop signal in network-isolated containers
+        run: python3 tests/atomic/daemon_shutdown.py --output "$RUNNER_TEMP/daemon-shutdown.json"
       - name: Verify read-only permission difference audits on restored snapshots
         run: |
           python3 -m unittest discover -s tests/permissions -p 'test_*.py' -v
@@ -174,6 +176,12 @@ jobs:
           name: atomic-native-php-${{ matrix.php }}
           path: ${{ runner.temp }}/atomic-evidence
           if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: daemon-shutdown-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/daemon-shutdown.json
+          if-no-files-found: error
       - name: Remove only this job's disposable services
         if: always()
         run: |
