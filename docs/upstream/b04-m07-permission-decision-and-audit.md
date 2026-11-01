@@ -122,3 +122,10 @@ is insufficient. Keep reads compatible before enabling any new writes. An
 unresolved privilege expansion, missing provenance or unknown policy blocks
 migration, while optional features remain off. Audit completion is not migration
 completion and never counts D07's ten atoms as delivered.
+
+## First read-only implementation
+
+See `b04-m07-readonly-auditor.md` for the snapshot collector, bounded offline
+hypotheses, native primitive-rule adapter and restored-snapshot tests. This
+implements comparison tooling only; unverified routes, unsupported rules,
+Space decisions and ambiguous historical edges still block model activation.
