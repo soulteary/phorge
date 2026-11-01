@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @phutil-external-symbol class PhpOffice\PhpSpreadsheet\Spreadsheet
+ * @phutil-external-symbol class PhpOffice\PhpSpreadsheet\IOFactory
+ * @phutil-external-symbol class PhpOffice\PhpSpreadsheet\Cell\Coordinate
+ */
 final class PhabricatorExcelExportFormat
   extends PhabricatorExportFormat {
 
@@ -18,6 +23,12 @@ final class PhabricatorExcelExportFormat
       return false;
     }
 
+    // Loading the optional modern library must be an explicit bootstrap step.
+    // Do not discover/install dependencies or enable it by default.
+    if (class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet', false)) {
+      return true;
+    }
+
     return @include_once 'PHPExcel.php';
   }
 
@@ -32,19 +43,20 @@ EOHELP
     }
 
     return pht(<<<EOHELP
-Data can not be exported to Excel because the PHPExcel library is not
+Data can not be exported to Excel because an optional spreadsheet library is not
 installed. This software component is required to create Excel files.
 
-You can install PHPExcel from GitHub:
+PhpSpreadsheet may be explicitly preloaded by an administrator:
 
-> https://github.com/PHPOffice/PHPExcel
+> https://github.com/PHPOffice/PhpSpreadsheet
 
 Briefly:
 
-  - Clone that repository somewhere on the sever
-    (like `/path/to/example/PHPExcel`).
-  - Update your PHP `%s` setting (in `php.ini`) to include the PHPExcel
-    `Classes` directory (like `/path/to/example/PHPExcel/Classes`).
+  - Install a compatible version in a separately managed dependency directory.
+  - Explicitly preload its autoloader and Spreadsheet class in the intended
+    PHP process. The format remains disabled without this bootstrap.
+
+Existing PHPExcel installations remain supported through PHP `%s`.
 EOHELP
       ,
       'include_path');
@@ -77,13 +89,11 @@ EOHELP
 
       $cell_name = $this->getCellName($col, $row);
 
-      $cell = $sheet->setCellValue(
-        $cell_name,
-        $cell_value,
-        $return_cell = true);
+      $sheet->setCellValue($cell_name, $cell_value);
+      $cell = $sheet->getCell($cell_name);
 
       $sheet->getStyle($cell_name)->applyFromArray($header_format);
-      $cell->setDataType(PHPExcel_Cell_DataType::TYPE_STRING);
+      $cell->setDataType('s');
 
       $width = $field->getCharacterWidth();
       if ($width !== null) {
@@ -106,10 +116,8 @@ EOHELP
 
       $cell_name = $this->getCellName($col, $this->rowCursor);
 
-      $cell = $sheet->setCellValue(
-        $cell_name,
-        $cell_value,
-        $return_cell = true);
+      $sheet->setCellValue($cell_name, $cell_value);
+      $cell = $sheet->getCell($cell_name);
 
       $style = $sheet->getStyle($cell_name);
       $field->formatPHPExcelCell($cell, $style);
@@ -125,7 +133,11 @@ EOHELP
    */
   public function newFileData() {
     $workbook = $this->getWorkbook();
-    $writer = PHPExcel_IOFactory::createWriter($workbook, 'Excel2007');
+    if ($workbook instanceof \PhpOffice\PhpSpreadsheet\Spreadsheet) {
+      $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($workbook, 'Xlsx');
+    } else {
+      $writer = PHPExcel_IOFactory::createWriter($workbook, 'Excel2007');
+    }
 
     ob_start();
     $writer->save('php://output');
@@ -145,6 +157,9 @@ EOHELP
    * @phutil-external-symbol class PHPExcel
    */
   private function newWorkbook() {
+    if (class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet', false)) {
+      return new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    }
     include_once 'PHPExcel.php';
     return new PHPExcel();
   }
@@ -170,7 +185,11 @@ EOHELP
    * @phutil-external-symbol class PHPExcel_Cell
    */
   private function getCellName($col, $row = null) {
-    $col_name = PHPExcel_Cell::stringFromColumnIndex($col);
+    if (class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet', false)) {
+      $col_name = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1);
+    } else {
+      $col_name = PHPExcel_Cell::stringFromColumnIndex($col);
+    }
 
     if ($row === null) {
       return $col_name;

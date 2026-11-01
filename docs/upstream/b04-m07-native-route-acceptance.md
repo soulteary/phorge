@@ -212,3 +212,13 @@ could conflict with parent synchronization. The editor now uses the existing
 `supportsMilestones()` invariant to avoid this impossible child operation. A
 positive Space-change control verifies the parent still synchronizes the actual
 stored milestone Space. This does not change the Space or permission model.
+
+## v4 isolated recovery extension
+
+See `b04-m07-isolated-recovery-acceptance.md` for positive optional XLSX, native
+member/Space interleavings, eight SIGKILL boundaries, Gorge transient retry and
+versioned batch/item recovery. Historical v3 creator replay expected permanent
+failure; v4 acknowledges a committed versioned creator batch without duplication.
+Unmarked legacy interrupted items remain untouched for manual reconciliation.
+The baseline stays native with optional features unavailable; only isolated
+helper processes preload dependencies or select Gorge ownership.

@@ -494,6 +494,16 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/applications/spaces/query/PhabricatorSpacesNamespaceQuery.php",
+      "discovery": false,
+      "kind": "space-visibility-cache",
+      "meaning": "Native Space visibility/admission and process-local namespace cache; in-flight behavior is distinct from fresh requests.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/applications/subscriptions/policyrule/PhabricatorSubscriptionsSubscribersPolicyRule.php",
       "discovery": true,
       "kind": "policy-consumer",
@@ -554,10 +564,30 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/infrastructure/cluster/PhabricatorGorgeServiceRegistry.php",
+      "discovery": false,
+      "kind": "gorge-service-ownership",
+      "meaning": "Queue owner and required service policy select the isolated Gorge path without service-failure fallback.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/cluster/PhabricatorGorgeTaskQueueClient.php",
+      "discovery": false,
+      "kind": "gorge-queue-client",
+      "meaning": "Authenticated paired legacy enqueue/lease/fail/complete client. This inventory does not certify lease fencing or filtered multi-consumer scheduling.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/infrastructure/daemon/workers/bulk/PhabricatorWorkerBulkJobCreateWorker.php",
       "discovery": false,
       "kind": "bulk-create-worker",
-      "meaning": "Locks job, creates native item records and enqueues individual task workers.",
+      "meaning": "Atomic worker-database batch commits items, RUNNING status, native child queue rows and version marker. Versioned replay acknowledges without duplication; unversioned jobs are not migrated.",
       "authority": "native-current-viewer-policy-and-worker-lifecycle",
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "writes-native-queue-state",
@@ -567,7 +597,7 @@
       "path": "src/infrastructure/daemon/workers/bulk/PhabricatorWorkerBulkJobTaskWorker.php",
       "discovery": false,
       "kind": "bulk-task-worker",
-      "meaning": "Persists per-item RUNNING/DONE/FAIL independently of outer queue archival result.",
+      "meaning": "Per-item lock spans business work. Versioned interrupted RUNNING items fail closed without replay; unversioned items require reconciliation without state/business writes.",
       "authority": "native-current-viewer-policy-and-worker-lifecycle",
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "writes-native-queue-state",
@@ -614,6 +644,26 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/infrastructure/env/PhabricatorEnv.php",
+      "discovery": false,
+      "kind": "scoped-test-environment",
+      "meaning": "In-memory environment overrides are process-scoped; tests never persist optional dependency or ownership configuration.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/env/PhabricatorScopedEnv.php",
+      "discovery": false,
+      "kind": "scoped-test-environment-lifetime",
+      "meaning": "Scoped override lifetime restores the previous environment stack; no database configuration write.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/infrastructure/export/engine/PhabricatorExportEngine.php",
       "discovery": false,
       "kind": "export-byte-boundary",
@@ -631,6 +681,46 @@
       "authority": "native-current-viewer-policy-and-worker-lifecycle",
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "writes-private-export-and-job-state",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/field/PhabricatorDoubleExportField.php",
+      "discovery": false,
+      "kind": "xlsx-field-typing",
+      "meaning": "Native export value conversion and shared OOXML string/numeric/date type codes, independent of optional backend.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/field/PhabricatorEpochExportField.php",
+      "discovery": false,
+      "kind": "xlsx-field-typing",
+      "meaning": "Native export value conversion and shared OOXML string/numeric/date type codes, independent of optional backend.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/field/PhabricatorExportField.php",
+      "discovery": false,
+      "kind": "xlsx-field-typing",
+      "meaning": "Native export value conversion and shared OOXML string/numeric/date type codes, independent of optional backend.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/export/field/PhabricatorIntExportField.php",
+      "discovery": false,
+      "kind": "xlsx-field-typing",
+      "meaning": "Native export value conversion and shared OOXML string/numeric/date type codes, independent of optional backend.",
+      "authority": "native-current-viewer-policy-or-explicit-test-scope",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
       "candidateGenerationIntroduced": false
     },
     {

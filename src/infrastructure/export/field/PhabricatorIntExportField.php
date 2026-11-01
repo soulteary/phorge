@@ -18,7 +18,7 @@ final class PhabricatorIntExportField
    * @phutil-external-symbol class PHPExcel_Cell_DataType
    */
   public function formatPHPExcelCell($cell, $style) {
-    $cell->setDataType(PHPExcel_Cell_DataType::TYPE_NUMERIC);
+    $cell->setDataType('n');
   }
 
   public function getCharacterWidth() {

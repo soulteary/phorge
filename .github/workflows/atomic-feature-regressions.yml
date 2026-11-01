@@ -49,7 +49,8 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
-          extensions: mysqli, mbstring, curl, gd
+          extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
+          tools: composer:2.8.12
           coverage: none
       - name: Install the retained product-boundary checker dependency
         timeout-minutes: 5
@@ -131,8 +132,18 @@ jobs:
       - name: Verify native workspace HTTP and persistence contracts when installed
         if: ${{ hashFiles('tests/atomic/packages/D06.json') != '' }}
         run: python3 tests/project-workspace/serve.py --require-clean-worktree --exit-after-http --output "$RUNNER_TEMP/workspace-http-evidence"
+      - name: Prepare isolated optional XLSX and paired queue fixtures
+        run: |
+          mkdir -p "$RUNNER_TEMP/permission-xlsx"
+          cp tests/permissions/xlsx/composer.json tests/permissions/xlsx/composer.lock "$RUNNER_TEMP/permission-xlsx/"
+          composer install --working-dir="$RUNNER_TEMP/permission-xlsx" --no-plugins --no-scripts --no-interaction --prefer-dist
+          composer audit --working-dir="$RUNNER_TEMP/permission-xlsx" --locked --no-interaction
+          docker create --name atomic-queue-binary gorge-taskqueue:atomic
+          docker cp atomic-queue-binary:/usr/local/bin/gorge-taskqueue "$RUNNER_TEMP/gorge-taskqueue"
+          docker rm atomic-queue-binary
+          chmod +x "$RUNNER_TEMP/gorge-taskqueue"
       - name: Verify native permission routes on an enriched restored snapshot
-        run: python3 tests/permissions/routes.py --require-clean-worktree --output "$RUNNER_TEMP/permission-route-evidence"
+        run: PERMISSION_XLSX_AUTOLOAD="$RUNNER_TEMP/permission-xlsx/vendor/autoload.php" GORGE_TEST_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" python3 tests/permissions/routes.py --require-clean-worktree --output "$RUNNER_TEMP/permission-route-evidence"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -156,5 +167,5 @@ jobs:
       - name: Remove only this job's disposable services
         if: always()
         run: |
-          docker rm -f atomic-file atomic-image atomic-render atomic-search atomic-meili || true
+          docker rm -f atomic-queue-binary atomic-file atomic-image atomic-render atomic-search atomic-meili || true
           docker network rm atomic-fixtures || true

@@ -24,6 +24,7 @@ function queue_project_state($phid) {
   return array('name'=>$p->getName(),'count'=>count($rows),'hash'=>hash('sha256',json_encode($rows)));
 }
 $actor=queue_actor('outsider');$creator=queue_actor('owner');
+if($mode==='recovery-bootstrap'){return;}
 if($mode==='queue-formats') {
   $rows=array();
   foreach(array('public','private') as $kind){
@@ -87,7 +88,7 @@ if($mode==='queue-retry') {
     foreach(array(1,2) as $attempt){
       $creator_repeat=queue_run($creator_repeat->unarchiveTask()->getID());
       $items=id(new PhabricatorWorkerBulkTask())->loadAllWhere('bulkJobPHID=%s',$job->getPHID());
-      $checks[$kind.'CreatorDuplicate'.$attempt]=$creator_repeat instanceof PhabricatorWorkerArchiveTask && $creator_repeat->getResult()===PhabricatorWorkerArchiveTask::RESULT_FAILURE && count($items)===1;
+      $checks[$kind.'CreatorDuplicate'.$attempt]=$creator_repeat instanceof PhabricatorWorkerArchiveTask && $creator_repeat->getResult()===PhabricatorWorkerArchiveTask::RESULT_SUCCESS && count($items)===1;
     }
 
   }

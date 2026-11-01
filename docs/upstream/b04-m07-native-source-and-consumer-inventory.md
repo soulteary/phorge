@@ -103,10 +103,17 @@ SQL lease retries with business/queue status separation. Its token, Space and
 lock controls remain native. Ordinary in-flight edits retain loaded-parent
 semantics; this is not a retroactive cancellation guarantee.
 
-Other application datasources, positive optional XLSX output, arbitrary member
-or Space-policy concurrency, mid-export mutations, mid-creator/process-crash
-recovery and Gorge-owned queue transport remain distinct follow-ups. Source
-review covers 66 files (43 literal references and 23 selected boundaries), not
-a complete call graph. Candidate routes, migration workers, correction manifests
-and recovery cutovers are not implemented or authorized. Keep legacy edges and
-the native four axes intact.
+The v4 isolated extension now verifies positive XLSX files with a locked,
+explicitly preloaded test-only dependency, member/Space revocation interleavings,
+eight actual process-crash boundaries under native/Gorge ownership and a real
+Gorge transient retry. Versioned batch creation is atomic and replay-safe;
+indeterminate items fail closed, while unversioned legacy items stay untouched
+for reconciliation. See `b04-m07-isolated-recovery-acceptance.md` for exact scope.
+
+Other application datasources, arbitrary membership/Space hierarchy changes,
+mid-export revocation, HTTP XLSX downloads/office-reader matrices, network
+partitions and stale-lease fencing, Redis and mixed-version workers remain
+separate follow-ups. Source review now covers 75 files (43 literal references
+and 32 selected boundaries), not a complete call graph. Candidate routes,
+permission migration workers and historical correction manifests remain
+unimplemented and unauthorized. Keep legacy edges and the native four axes intact.
