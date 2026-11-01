@@ -253,6 +253,10 @@ services:
 
   phorge-daemon:
     <<: *phorge-runtime
+    # Apache uses SIGWINCH; the daemon foreground wrapper handles SIGTERM.
+    stop_signal: SIGTERM
+    # Native phd stop can use 15s SIGINT plus 15s SIGTERM before returning.
+    stop_grace_period: 45s
     container_name: phorge-daemon
     restart: unless-stopped
     depends_on:
