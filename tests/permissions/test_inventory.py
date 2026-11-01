@@ -16,6 +16,9 @@ class ConsumerInventoryTests(unittest.TestCase):
         self.assertFalse(report['phpBootstrapped']);self.assertFalse(report['runtimeAuthorizationCertified'])
         self.assertTrue(any(r['kind']=='mail-expansion' for r in report['consumers']))
         self.assertTrue(any(r['kind']=='calendar-policy-consumer' for r in report['consumers']))
+        self.assertEqual({Path(r['path']).stem for r in report['consumers'] if r['kind']=='subject-preference-writer'},
+                         {'PhabricatorProjectWatchController','PhabricatorProjectSilenceController'})
+        self.assertTrue(all(r['candidateGenerationIntroduced'] is False for r in report['consumers']))
 
     def test_new_unreviewed_reference_fails_inventory(self):
         with tempfile.TemporaryDirectory() as tmp:

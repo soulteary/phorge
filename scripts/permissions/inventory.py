@@ -29,7 +29,7 @@ def collect(root=ROOT):
         path=root/row['path']
         if not row['path'].startswith('src/') or '..' in Path(row['path']).parts or path.is_symlink():
             raise ValueError('Invalid reviewed source path.')
-        for key in ('kind','meaning','authority','reviewStatus'):
+        for key in ('kind','meaning','authority','reviewStatus','sourceOperation'):
             if not row.get(key):raise ValueError('Incomplete consumer review.')
         rows.append(dict(row,sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
                          matchingLines=discovered.get(row['path'],[])))
@@ -48,6 +48,9 @@ def main():
     report=collect();report.update(sourceCommit=before,worktreeDirty=dirty)
     after=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     if after!=before:raise ValueError('Source revision changed.')
+    after_dirty=bool(subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],cwd=ROOT,text=True).strip())
+    report['worktreeDirty']=dirty or after_dirty
+    if args.require_clean and after_dirty:raise ValueError('Source worktree changed during inventory.')
     with args.output.open('x') as handle:json.dump(report,handle,indent=2);handle.write('\n')
     print('Reviewed membership consumer inventory:',report['consumerCount'])
 

@@ -9,7 +9,9 @@
       "kind": "generated-map",
       "meaning": "Generated symbol registration; not an authorization consumer.",
       "authority": "none",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/calendar/policyrule/PhabricatorCalendarEventInviteesPolicyRule.php",
@@ -17,7 +19,9 @@
       "kind": "calendar-policy-consumer",
       "meaning": "Calendar invitations/project expansion consume type60 or member-filtered projects; not direct-edge invitation provenance.",
       "authority": "native-calendar-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/calendar/query/PhabricatorCalendarEventQuery.php",
@@ -25,7 +29,9 @@
       "kind": "calendar-policy-consumer",
       "meaning": "Calendar invitations/project expansion consume type60 or member-filtered projects; not direct-edge invitation provenance.",
       "authority": "native-calendar-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/calendar/typeahead/PhabricatorCalendarInviteeDatasource.php",
@@ -33,7 +39,9 @@
       "kind": "calendar-policy-consumer",
       "meaning": "Calendar invitations/project expansion consume type60 or member-filtered projects; not direct-edge invitation provenance.",
       "authority": "native-calendar-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/feed/query/PhabricatorFeedSearchEngine.php",
@@ -41,7 +49,9 @@
       "kind": "feed-subscription-filter",
       "meaning": "Joined-project feed filter uses native membership; each story still has object-policy filtering.",
       "authority": "native-project-query-and-feed-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/feed/story/PhabricatorFeedStory.php",
@@ -49,7 +59,9 @@
       "kind": "feed-object-filter",
       "meaning": "Required story objects and handles are loaded for the current viewer before rendering.",
       "authority": "native-current-viewer-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/maniphest/herald/ManiphestTaskActingUsersProjectsHeraldField.php",
@@ -57,7 +69,9 @@
       "kind": "herald-consumer",
       "meaning": "Actor project membership selection uses native project query; not a new role or authentication grant.",
       "authority": "native-herald-field",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/metamta/query/PhabricatorMetaMTAMemberQuery.php",
@@ -65,7 +79,9 @@
       "kind": "mail-expansion",
       "meaning": "Viewer-policy-filtered projects expand materialized members plus watchers minus silenced members; final mail rules remain separate.",
       "authority": "native-mail-recipient-expansion",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/people/controller/PhabricatorPeopleProfileViewController.php",
@@ -73,7 +89,9 @@
       "kind": "directory-display",
       "meaning": "Profile project counts/lists are viewer-filtered native queries, not global membership counts.",
       "authority": "native-query-then-display",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/policy/filter/PhabricatorPolicyFilter.php",
@@ -81,7 +99,9 @@
       "kind": "effective-policy-filter",
       "meaning": "Current native capability, extended policy and Space boundaries; object query and edit engine combine applicable capabilities.",
       "authority": "native-current-viewer-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/policy/query/PhabricatorPolicyQuery.php",
@@ -89,7 +109,9 @@
       "kind": "policy-consumer",
       "meaning": "Native project membership affects policy evaluation or policy selection; do not substitute raw type13.",
       "authority": "native-policy-evaluation",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/__tests__/PhabricatorProjectCoreTestCase.php",
@@ -97,7 +119,9 @@
       "kind": "native-test",
       "meaning": "Native or optional-feature test support; not production activation.",
       "authority": "test-only",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "fixture-only",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/__tests__/PhabricatorProjectHierarchyStorageTestCase.php",
@@ -105,7 +129,9 @@
       "kind": "native-test",
       "meaning": "Native or optional-feature test support; not production activation.",
       "authority": "test-only",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "fixture-only",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/__tests__/TeamProjectProgressTestCase.php",
@@ -113,7 +139,9 @@
       "kind": "native-test",
       "meaning": "Native or optional-feature test support; not production activation.",
       "authority": "test-only",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "fixture-only",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/__tests__/TeamProjectWorkspaceTestCase.php",
@@ -121,7 +149,9 @@
       "kind": "native-test",
       "meaning": "Native or optional-feature test support; not production activation.",
       "authority": "test-only",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "fixture-only",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/conduit/ProjectConduitAPIMethod.php",
@@ -129,7 +159,9 @@
       "kind": "api-serialization",
       "meaning": "Project query/attachment serializes native loaded membership only after viewer filtering; API token is not object permission.",
       "authority": "native-query-then-serialization",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/conduit/ProjectCreateConduitAPIMethod.php",
@@ -137,7 +169,9 @@
       "kind": "membership-writer",
       "meaning": "Native edit/transaction membership path. Inventory must never invoke it; writes require native capabilities.",
       "authority": "native-transaction-and-edge-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/conduit/ProjectQueryConduitAPIMethod.php",
@@ -145,7 +179,9 @@
       "kind": "api-serialization",
       "meaning": "Project query/attachment serializes native loaded membership only after viewer filtering; API token is not object permission.",
       "authority": "native-query-then-serialization",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectBoardViewController.php",
@@ -153,7 +189,9 @@
       "kind": "board-cross-object-filter",
       "meaning": "Project access and task visibility remain separate native checks.",
       "authority": "native-current-viewer-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectController.php",
@@ -161,7 +199,9 @@
       "kind": "project-consumer",
       "meaning": "Viewer-loaded native project membership used by controller, query or optional progress integration; optional features stay off.",
       "authority": "native-policy-filtered-project",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectMembersAddController.php",
@@ -169,7 +209,9 @@
       "kind": "membership-writer",
       "meaning": "Native edit/transaction membership path. Inventory must never invoke it; writes require native capabilities.",
       "authority": "native-transaction-and-edge-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectMembersRemoveController.php",
@@ -177,7 +219,9 @@
       "kind": "membership-writer",
       "meaning": "Native edit/transaction membership path. Inventory must never invoke it; writes require native capabilities.",
       "authority": "native-transaction-and-edge-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectMembersViewController.php",
@@ -185,7 +229,9 @@
       "kind": "project-consumer",
       "meaning": "Viewer-loaded native project membership used by controller, query or optional progress integration; optional features stay off.",
       "authority": "native-policy-filtered-project",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectProfileController.php",
@@ -193,15 +239,19 @@
       "kind": "project-consumer",
       "meaning": "Viewer-loaded native project membership used by controller, query or optional progress integration; optional features stay off.",
       "authority": "native-policy-filtered-project",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectSilenceController.php",
       "discovery": true,
-      "kind": "project-consumer",
-      "meaning": "Viewer-loaded native project membership used by controller, query or optional progress integration; optional features stay off.",
-      "authority": "native-policy-filtered-project",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "kind": "subject-preference-writer",
+      "meaning": "Viewer-loaded project gates self-only watch/silence transactions. Watchers and silence preferences are not membership grants.",
+      "authority": "native-view-and-self-preference-transaction",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectUpdateController.php",
@@ -209,15 +259,19 @@
       "kind": "membership-writer",
       "meaning": "Native edit/transaction membership path. Inventory must never invoke it; writes require native capabilities.",
       "authority": "native-transaction-and-edge-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/controller/PhabricatorProjectWatchController.php",
       "discovery": true,
-      "kind": "project-consumer",
-      "meaning": "Viewer-loaded native project membership used by controller, query or optional progress integration; optional features stay off.",
-      "authority": "native-policy-filtered-project",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "kind": "subject-preference-writer",
+      "meaning": "Viewer-loaded project gates self-only watch/silence transactions. Watchers and silence preferences are not membership grants.",
+      "authority": "native-view-and-self-preference-transaction",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/edge/PhabricatorProjectMaterializedMemberEdgeType.php",
@@ -225,7 +279,9 @@
       "kind": "edge-definition",
       "meaning": "Stored direct edge 13, inverse edge, or materialized edge 60 definition; not historical provenance.",
       "authority": "native-edge-schema",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/edge/PhabricatorProjectMemberOfProjectEdgeType.php",
@@ -233,7 +289,9 @@
       "kind": "edge-definition",
       "meaning": "Stored direct edge 13, inverse edge, or materialized edge 60 definition; not historical provenance.",
       "authority": "native-edge-schema",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/edge/PhabricatorProjectProjectHasMemberEdgeType.php",
@@ -241,7 +299,9 @@
       "kind": "edge-definition",
       "meaning": "Stored direct edge 13, inverse edge, or materialized edge 60 definition; not historical provenance.",
       "authority": "native-edge-schema",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/editor/PhabricatorProjectTransactionEditor.php",
@@ -249,7 +309,9 @@
       "kind": "membership-writer",
       "meaning": "Native edit/transaction membership path. Inventory must never invoke it; writes require native capabilities.",
       "authority": "native-transaction-and-edge-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/engine/PhabricatorProjectEditEngine.php",
@@ -257,7 +319,9 @@
       "kind": "membership-writer",
       "meaning": "Native edit/transaction membership path. Inventory must never invoke it; writes require native capabilities.",
       "authority": "native-transaction-and-edge-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/engineextension/PhabricatorProjectsMembersSearchEngineAttachment.php",
@@ -265,7 +329,9 @@
       "kind": "api-serialization",
       "meaning": "Project query/attachment serializes native loaded membership only after viewer filtering; API token is not object permission.",
       "authority": "native-query-then-serialization",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/engineextension/PhabricatorProjectsMembershipIndexEngineExtension.php",
@@ -273,7 +339,9 @@
       "kind": "materializer",
       "meaning": "Writes type60 from native leaf/direct membership and milestone parent; retain native algorithm.",
       "authority": "native-derived-index-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-derived-index",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/lipsum/PhabricatorProjectTestDataGenerator.php",
@@ -281,7 +349,9 @@
       "kind": "synthetic-generator",
       "meaning": "Explicit synthetic data generator writes direct edges; not an audit or runtime route.",
       "authority": "test-data-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-synthetic-data",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/policyrule/PhabricatorProjectsBasePolicyRule.php",
@@ -289,15 +359,19 @@
       "kind": "policy-consumer",
       "meaning": "Native project membership affects policy evaluation or policy selection; do not substitute raw type13.",
       "authority": "native-policy-evaluation",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/progress/TeamProjectProgress.php",
       "discovery": true,
-      "kind": "project-consumer",
-      "meaning": "Viewer-loaded native project membership used by controller, query or optional progress integration; optional features stay off.",
-      "authority": "native-policy-filtered-project",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "kind": "optional-history-writer",
+      "meaning": "Optional project history publication uses current project capabilities; feature remains off in this follow-up.",
+      "authority": "native-project-policy-and-history-control",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/query/PhabricatorProjectQuery.php",
@@ -305,7 +379,9 @@
       "kind": "query-and-membership-reader",
       "meaning": "withMemberPHIDs and needMembers use materialized edges; viewer and ancestor policy filters remain authoritative.",
       "authority": "native-query-and-policy-filter",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/query/PhabricatorProjectSearchEngine.php",
@@ -313,7 +389,9 @@
       "kind": "project-consumer",
       "meaning": "Viewer-loaded native project membership used by controller, query or optional progress integration; optional features stay off.",
       "authority": "native-policy-filtered-project",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/storage/PhabricatorProject.php",
@@ -321,7 +399,9 @@
       "kind": "object-policy",
       "meaning": "Native stored policies, automatic membership/view and inherited edit; effective routes still need view and action capabilities.",
       "authority": "native-object-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/storage/PhabricatorProjectTransaction.php",
@@ -329,7 +409,9 @@
       "kind": "transaction-rendering",
       "meaning": "Native transaction membership rendering; retain distinction from underlying stored relations.",
       "authority": "native-transaction-rendering",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/typeahead/PhabricatorProjectLogicalUserDatasource.php",
@@ -337,7 +419,9 @@
       "kind": "selector",
       "meaning": "Viewer-filtered project selection/member expansion; hidden project metadata must not leak.",
       "authority": "native-query-then-selector",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/typeahead/PhabricatorProjectLogicalViewerDatasource.php",
@@ -345,7 +429,9 @@
       "kind": "selector",
       "meaning": "Viewer-filtered project selection/member expansion; hidden project metadata must not leak.",
       "authority": "native-query-then-selector",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/project/typeahead/PhabricatorProjectMembersDatasource.php",
@@ -353,7 +439,9 @@
       "kind": "selector",
       "meaning": "Viewer-filtered project selection/member expansion; hidden project metadata must not leak.",
       "authority": "native-query-then-selector",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/search/fulltextstorage/PhabricatorGorgeFulltextStorageEngine.php",
@@ -361,7 +449,9 @@
       "kind": "gorge-search-adapter",
       "meaning": "Native fulltext adapter delegates retrieval/index transport; viewer filtering remains in native search document query.",
       "authority": "native-current-viewer-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/search/query/PhabricatorSearchDocumentQuery.php",
@@ -369,7 +459,9 @@
       "kind": "search-post-filter",
       "meaning": "Gorge returns candidate PHIDs; native viewer-capability handle loading filters results.",
       "authority": "native-current-viewer-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/subscriptions/policyrule/PhabricatorSubscriptionsSubscribersPolicyRule.php",
@@ -377,7 +469,9 @@
       "kind": "policy-consumer",
       "meaning": "Native project membership affects policy evaluation or policy selection; do not substitute raw type13.",
       "authority": "native-policy-evaluation",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
@@ -385,7 +479,9 @@
       "kind": "effective-edit",
       "meaning": "Native edit engine checks view/edit and edit transactions; raw inherited CAN_EDIT is insufficient.",
       "authority": "native-current-viewer-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
@@ -393,7 +489,9 @@
       "kind": "membership-writer",
       "meaning": "Native edit/transaction membership path. Inventory must never invoke it; writes require native capabilities.",
       "authority": "native-transaction-and-edge-writer",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "writes-native-transactions",
+      "candidateGenerationIntroduced": false
     },
     {
       "path": "src/infrastructure/cluster/PhabricatorGorgeSearchClient.php",
@@ -401,7 +499,9 @@
       "kind": "gorge-search-transport",
       "meaning": "Authenticated search service transport returns candidates; it does not replace Phorge object-policy checks.",
       "authority": "native-current-viewer-policy",
-      "reviewStatus": "source-reviewed-not-route-certified"
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "definition-or-read-consumer",
+      "candidateGenerationIntroduced": false
     }
   ]
 }
