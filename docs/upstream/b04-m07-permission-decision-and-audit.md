@@ -129,3 +129,13 @@ See `b04-m07-readonly-auditor.md` for the snapshot collector, bounded offline
 hypotheses, native primitive-rule adapter and restored-snapshot tests. This
 implements comparison tooling only; unverified routes, unsupported rules,
 Space decisions and ambiguous historical edges still block model activation.
+
+
+## Current versioned proposal
+
+See [ADR-B04-M07-0001 v1.0.1](adr-b04-m07-0001-native-permissions-v1.md)
+and its [decision/test matrix](adr-b04-m07-0001-native-permissions-v1.json).
+It recommends retaining native behavior on four independent axes. The four native recommendations are accepted by explicit instruction; business
+exceptions and future migration parameters remain unresolved. No runtime
+selector or migration is authorized. The #64 native route evidence is retained; candidate route and
+unsupported-policy coverage remain separate future gates.
