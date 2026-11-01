@@ -45,6 +45,13 @@ function route_edge($project, $user, $add) {
   if ($add) { $editor->addEdge(...$args); } else { $editor->removeEdge(...$args); }
   $editor->save();
 }
+function route_default_space($actor) {
+  $default=id(new PhabricatorSpacesNamespaceQuery())->setViewer(PhabricatorUser::getOmnipotentUser())->withIsDefaultNamespace(true)->executeOne();
+  if (!$default) {
+    $default=PhabricatorSpacesNamespace::initializeNewNamespace($actor)->setNamespaceName('Boundary Default')->setIsDefaultNamespace(1)->setViewPolicy(PhabricatorPolicies::POLICY_USER)->save();
+  }
+  return $default;
+}
 if ($mode === 'seed') {
   $token = substr($namespace, -16);
   $roles = array('owner','parentEditor','childEditor','member','outsider','legacy','administrator','disabled','unapproved');
@@ -151,8 +158,14 @@ $fixture=json_decode(file_get_contents($private.'/fixture.json'),true);
 if ($mode==='seed-boundaries') {
   $users=array();foreach($fixture['users'] as $role=>$row){$users[$role]=id(new PhabricatorPeopleQuery())->setViewer($omni)->withPHIDs(array($row['phid']))->needUserSettings(true)->executeOne();}
   $actor=$users['owner'];$result=array('projects'=>array(),'tasks'=>array());
-  $default=PhabricatorSpacesNamespace::initializeNewNamespace($actor)->setNamespaceName('Boundary Default')->setIsDefaultNamespace(1)->setViewPolicy(PhabricatorPolicies::POLICY_USER)->save();
+  $default=route_default_space($actor);
+  $default_before=array((string)$default->getID(),(string)$default->getNamespaceName(),(string)$default->getViewPolicy(),(string)$default->getEditPolicy(),(bool)$default->getIsArchived(),(bool)$default->getIsDefaultNamespace());
+  $reused=route_default_space($actor);
+  $default_after=array((string)$reused->getID(),(string)$reused->getNamespaceName(),(string)$reused->getViewPolicy(),(string)$reused->getEditPolicy(),(bool)$reused->getIsArchived(),(bool)$reused->getIsDefaultNamespace());
+  if ($default_before!==$default_after) { throw new Exception('Existing default Space was modified.'); }
+  $result['defaultSpaceReusedUnchanged']=true;
   $private=PhabricatorSpacesNamespace::initializeNewNamespace($actor)->setNamespaceName('Boundary Private')->setViewPolicy($actor->getPHID())->save();
+  PhabricatorSpacesNamespaceQuery::destroySpacesCache();
   $rule=id(new PhabricatorPolicy())->setRules(array(array('action'=>PhabricatorPolicy::ACTION_ALLOW,'rule'=>PhabricatorUsersPolicyRule::class,'value'=>array($actor->getPHID(),$users['childEditor']->getPHID()))))->setDefaultAction(PhabricatorPolicy::ACTION_DENY)->save();
   foreach(array('space','custom') as $kind){
     $created=id(new ConduitCall('project.edit',array('transactions'=>array(

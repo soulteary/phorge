@@ -139,7 +139,7 @@ def main():
         check(fixture('state')==initial,'enriched snapshot round trip preserves ACL graph')
         report['restoration']=receipt
         reader=snapshot('reader'); save('reader.json',reader)
-        sessions={role:client() for role in SUBJECTS}
+        sessions={role:client() for role in SUBJECTS};boundary_context={}
         for phase in PHASES:
             if phase=='revoked':
                 stop(); report['revocation']=fixture('revoke')
@@ -202,7 +202,7 @@ def main():
                 check(status==200 and denied and 'permission' in response.get('error_info','').lower(),
                       'denied Conduit mutation '+phase+' '+role+' '+alias)
             report['boundaryCoverage'][phase]=boundaries.project_reads(data,phase,sessions,request,client,boundary_check)
-            report['boundaryCoverage'][phase].update(boundaries.effective_writes(data,phase,request,client,fixture,boundary_check))
+            report['boundaryCoverage'][phase].update(boundaries.effective_writes(data,phase,request,client,fixture,boundary_check,sessions,boundary_context))
             stop(); check(fixture('state')==fingerprint,'route reads preserve permission state '+phase)
         extra=fixture('seed-boundaries');start()
         report['boundaryCoverage']['cross-object']=boundaries.cross_object(data,extra,sessions,request,client,boundary_check);stop()

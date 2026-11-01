@@ -60,12 +60,21 @@ The authority boundaries are:
 ## Native boundary follow-up
 
 The original two-phase, ten-subject, twelve-project 1,440-cell contract is kept.
+Unknown slug/invalid-ID responses must not disclose project metadata. A real
+editable form is captured before revocation and replayed afterward with its
+original CSRF fields: a typed native policy rejection, not a generic CSRF error,
+is required and business transaction counts must stay unchanged. Native policy
+dialogs can legitimately use HTTP 200; status alone is not a denial oracle.
 Additional checks cover canonical view/member/slug routes; bounded, duplicate-free
 Conduit pagination with members and visible-ancestor attachments; historical
 parent direct edges absent from type60; positive edit persistence and exactly one
 native transaction per successful edit; and denied edits with unchanged names,
 policies and transaction counts. Synthetic successful edits restore the original
 fixture name. This is test setup, not an audit mutation or production migration.
+
+A restored default Space is reused without modifying its name, policies or
+archive state; a synthetic default is created only if absent. The fixture
+queries the same default twice to regress duplicate creation.
 
 After the original matrix and its audit snapshots, adjunct synthetic objects
 exercise configured user-list policies, a restricted Space, private/public task

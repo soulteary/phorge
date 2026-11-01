@@ -1,9 +1,18 @@
 """Additional native boundaries; never select an offline candidate model."""
 import json
+from html.parser import HTMLParser
 import urllib.parse
 from route_spec import PROJECTS, SUBJECTS, expected
 ACTIVE=set(SUBJECTS)-{'anonymous','disabled','unapproved'}
 
+
+def native_policy_denial(status, body):
+    # Native policy exceptions render a typed dialog, including on HTTP 200.
+    return status in (200,403,404) and 'aphront-policy-rejection' in body
+
+def object_visible(status, body, name, phid, want):
+    if want:return status==200 and name in body
+    return status<500 and name not in body and phid not in body
 
 def members(alias, phase):
     if alias in ('grandparent','hiddenParent','openChild','hiddenMilestone'):
@@ -14,7 +23,7 @@ def members(alias, phase):
 
 
 def project_reads(data, phase, sessions, request, client, check):
-    counts={'canonicalMemberSlugCells':0,'attachmentSubjects':0}
+    counts={'canonicalMemberSlugCells':0,'attachmentSubjects':0,'unknownObjectRoutes':0}
     projects=data['projects']
     for role in SUBJECTS:
         allowed=expected(role,phase)['view'];c=sessions[role]
@@ -26,6 +35,10 @@ def project_reads(data, phase, sessions, request, client, check):
                 present=p['name'] in body or p['phid'] in body
                 check(status<500 and present==(alias in allowed) and (alias not in allowed or status==200),
                       f'canonical-member-slug {phase} {role} {alias} {n}')
+        for uri in ('/tag/permission-missing-'+data['token']+'/', '/project/view/0/'):
+            status,body=request(c,uri);counts['unknownObjectRoutes']+=1
+            check(status<500 and all(p['name'] not in body and p['phid'] not in body for p in projects.values()),
+                  f'unknown route no project metadata {phase} {role} {counts["unknownObjectRoutes"]}')
         after=None;seen={};pages=0
         while True:
             params={'constraints':{'phids':[p['phid'] for p in projects.values()]},'attachments':{'members':True,'ancestors':True},'limit':2}
@@ -57,8 +70,28 @@ def project_reads(data, phase, sessions, request, client, check):
 
     return counts
 
-def effective_writes(data,phase,request,client,fixture,check):
-    counts={'deniedWrites':0,'authorizedWrites':0}
+def effective_writes(data,phase,request,client,fixture,check,sessions,context):
+    counts={'deniedWrites':0,'authorizedWrites':0,'staleForms':0}
+    uri=f"/project/edit/{data['projects']['ordinary']['id']}/"
+    if phase=='restored':
+        class Forms(HTMLParser):
+            def __init__(self):super().__init__();self.forms=[];self.current=None
+            def handle_starttag(self,tag,attrs):
+                attrs=dict(attrs)
+                if tag=='form':self.current={};self.forms.append(self.current)
+                if tag=='input' and self.current is not None and attrs.get('name') and 'disabled' not in attrs:
+                    if attrs.get('type') not in ('checkbox','radio') or 'checked' in attrs:self.current[attrs['name']]=attrs.get('value','')
+            def handle_endtag(self,tag):
+                if tag=='form':self.current=None
+        status,body=request(sessions['parentEditor'],uri);forms=Forms();forms.feed(body)
+        context['staleForm']=next(f for f in forms.forms if 'name' in f and '__csrf__' in f)
+        check(status==200 and bool(context['staleForm']['__csrf__']),'capture native editable form before revocation')
+    else:
+        before=fixture('write-state');fields=dict(context['staleForm'],name='Forbidden stale form mutation')
+        status,body=request(sessions['parentEditor'],uri,fields)
+        unchanged=fixture('write-state')==before
+        check(native_policy_denial(status,body) and unchanged,'stale native form rejected by current policy with zero business transactions')
+        counts['staleForms']+=1
     def edit(role,alias,value):
         params={'objectIdentifier':data['projects'][alias]['phid'],'transactions':[{'type':'name','value':value}],
                 '__conduit__':{'token':data['users'][role]['api']}}
@@ -82,39 +115,44 @@ def effective_writes(data,phase,request,client,fixture,check):
     return counts
 
 def cross_object(data,extra,sessions,request,client,check):
-    counts={'taskCells':0,'projectCells':0,'feedListCells':0}
+    counts={'taskCells':0,'projectCells':0,'feedListCells':0,'defaultSpaceReuse':0}
+    check(extra.get('defaultSpaceReusedUnchanged') is True,'existing default Space reused unchanged')
+    counts['defaultSpaceReuse']+=1
     for role in SUBJECTS:
         active=role in ACTIVE;c=sessions[role]
-        status,board=request(c,f"/project/board/{data['projects']['ordinary']['id']}/")
-        check(status<500,'cross-object board response '+role)
+        board_status,board=request(c,f"/project/board/{data['projects']['ordinary']['id']}/")
+        check(board_status<500,'cross-object board response '+role)
         feed_status,feed_body=request(c,'/feed/')
         for kind,t in extra['tasks'].items():
             want=active and (kind=='public' or role=='owner')
             counts['taskCells']+=1
             counts['feedListCells']+=1
-            check(feed_status<500 and (t['title'] in feed_body)==want,'task feed list '+role+' '+kind)
-            check((t['title'] in board)==want,'board task permission '+role+' '+kind)
+            check(object_visible(feed_status,feed_body,t['title'],t['phid'],want),'task feed list '+role+' '+kind)
+            check(object_visible(board_status,board,t['title'],t['phid'],want),'board task permission '+role+' '+kind)
             for route,uri in [('task',f"/T{t['id']}"),('feed',f"/feed/{t['storyKey']}/?text=1")]:
                 status,body=request(c,uri);counts['taskCells']+=1
-                check(status<500 and (t['title'] in body)==want and (not want or status==200),'task story object '+role+' '+kind+' '+route)
+                check(object_visible(status,body,t['title'],t['phid'],want),'task story object '+role+' '+kind+' '+route)
         for kind,p in extra['projects'].items():
             want=active and (role=='owner' or (kind=='custom' and role=='childEditor'))
             counts['feedListCells']+=1
-            check(feed_status<500 and (p['name'] in feed_body)==want,'project feed list '+role+' '+kind)
+            check(object_visible(feed_status,feed_body,p['name'],p['phid'],want),'project feed list '+role+' '+kind)
             for route in ('profile','view','board'):
                 status,body=request(c,f"/project/{route}/{p['id']}/");counts['projectCells']+=1
-                check(status<500 and (p['name'] in body or p['phid'] in body)==want and (not want or status==200),f'{kind} native {route} {role}')
+                check(object_visible(status,body,p['name'],p['phid'],want),f'{kind} native {route} {role}')
             for route,uri in [('feed',f"/feed/{p['storyKey']}/?text=1"),
                               ('query','/project/?'+urllib.parse.urlencode({'name':'BoundaryProject'+data['token'],'isMilestone':''})),
                               ('search','/search/?'+urllib.parse.urlencode({'query':'BoundaryProject'+data['token'],'types':'PROJ'}))]:
                 status,body=request(c,uri);counts['projectCells']+=1
-                check(status<500 and (p['name'] in body or p['phid'] in body)==want and (not want or status==200),f'{kind} native {route} {role}')
+                check(object_visible(status,body,p['name'],p['phid'],want),f'{kind} native {route} {role}')
             params={'constraints':{'phids':[p['phid']]},'attachments':{'members':True,'ancestors':True}}
             if role!='anonymous':params['__conduit__']={'token':data['users'][role]['api']}
             status,body=request(client(),'/api/project.search',{'params':json.dumps(params)})
             response=json.loads(body)
             counts['projectCells']+=1
-            check(status==200 and (p['phid'] in body)==want,f'{kind} native API {role}')
+            rows=response.get('result',{}).get('data',[]) if isinstance(response.get('result'),dict) else []
+            observed=[(row['phid'],row['fields']['name']) for row in rows]
+            admission=(response.get('error_code') is None) if active else (response.get('error_code') is not None and response.get('result') is None)
+            check(status==200 and admission and observed==([(p['phid'],p['name'])] if want else []) and (want or (p['phid'] not in body and p['name'] not in body)),f'{kind} native API {role}')
 
     return counts
 
@@ -123,8 +161,8 @@ def validate_coverage(report):
     coverage=report.get("boundaryCoverage",{})
     if set(coverage)!={"restored","revoked","cross-object"}:raise ValueError("Missing boundary phase.")
     for phase in ("restored","revoked"):
-        want={"canonicalMemberSlugCells":340,"attachmentSubjects":10,"deniedWrites":2 if phase=="restored" else 3,"authorizedWrites":2}
+        want={"canonicalMemberSlugCells":340,"attachmentSubjects":10,"unknownObjectRoutes":20,"deniedWrites":2 if phase=="restored" else 3,"authorizedWrites":2,"staleForms":0 if phase=="restored" else 1}
         if coverage[phase]!=want:raise ValueError("Incomplete native boundary coverage.")
-    if coverage["cross-object"]!={"taskCells":60,"projectCells":140,"feedListCells":40}:raise ValueError("Incomplete cross-object boundaries.")
+    if coverage["cross-object"]!={"taskCells":60,"projectCells":140,"feedListCells":40,"defaultSpaceReuse":1}:raise ValueError("Incomplete cross-object boundaries.")
     if not report.get("boundaryChecks") or not all(c.get("passed") is True for c in report["boundaryChecks"]):raise ValueError("Boundary check failed.")
     return True
