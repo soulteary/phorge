@@ -145,6 +145,10 @@ try {
   }
   list($status,$failed)=process(array('php',$root.'/scripts/permissions/collect.php'),json_encode(array_replace($config,array('user'=>'root','password'=>getenv('GORGE_TEST_MYSQL_PASSWORD')))));
   verify('privileged-principal-refused',$status===2);
+  $db->query("GRANT USAGE ON *.* TO '$user'@'%' WITH GRANT OPTION");
+  list($status,$denied_grant_option)=process(array('php',$root.'/scripts/permissions/collect.php'),json_encode($config));
+  verify('global-usage-grant-option-refused',$status===2);
+  $db->query("REVOKE GRANT OPTION ON *.* FROM '$user'@'%'");
   $db->query("GRANT SELECT ON *.* TO '$user'@'%'");
   list($status,$denied_global)=process(array('php',$root.'/scripts/permissions/collect.php'),json_encode($config));
   verify('global-read-privilege-refused',$status===2);

@@ -40,6 +40,9 @@ try {
   $seen = array();
   foreach ($grants as $grant) {
     $text = $grant[0];
+    if (str_contains($text, 'WITH GRANT OPTION')) {
+      throw new Exception('grant-option-refused');
+    }
     if (preg_match('/\AGRANT USAGE ON \*\.\* TO /', $text)) {
       continue;
     }
