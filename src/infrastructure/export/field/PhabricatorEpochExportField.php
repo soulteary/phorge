@@ -52,7 +52,7 @@ final class PhabricatorEpochExportField
    * @phutil-external-symbol class PHPExcel_Style_NumberFormat
    */
   public function formatPHPExcelCell($cell, $style) {
-    $code = PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2;
+    $code = 'yyyy-mm-dd';
 
     $style
       ->getNumberFormat()

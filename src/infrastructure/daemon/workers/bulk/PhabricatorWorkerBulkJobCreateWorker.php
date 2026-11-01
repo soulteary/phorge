@@ -11,40 +11,41 @@ final class PhabricatorWorkerBulkJobCreateWorker
       $actor = $this->loadActor($job);
 
       $status = $job->getStatus();
-      switch ($status) {
-        case PhabricatorWorkerBulkJob::STATUS_WAITING:
-          // This is what we expect. Other statuses indicate some kind of race
-          // is afoot.
-          break;
-        default:
-          throw new PhabricatorWorkerPermanentFailureException(
-            pht(
-              'Found unexpected job status ("%s").',
-              $status));
+      if ($job->getParameter('nativeQueueBatchVersion') === 1 &&
+          in_array($status, array(PhabricatorWorkerBulkJob::STATUS_RUNNING,
+            PhabricatorWorkerBulkJob::STATUS_COMPLETE), true)) {
+        // A previous execution committed the complete batch but lost its
+        // parent queue acknowledgement. Never create or enqueue it again.
+        return;
+      }
+      if ($status !== PhabricatorWorkerBulkJob::STATUS_WAITING) {
+        throw new PhabricatorWorkerPermanentFailureException(
+          pht('Found unexpected job status ("%s").', $status));
       }
 
-      $tasks = $job->createTasks();
-      foreach ($tasks as $task) {
-        $task->save();
+      $job->openTransaction();
+      try {
+        $tasks = $job->createTasks();
+        foreach ($tasks as $task) {
+          $task->save();
+          $this->queueTask(
+            PhabricatorWorkerBulkJobTaskWorker::class,
+            array('jobID' => $job->getID(), 'taskID' => $task->getID()),
+            array('priority' => PhabricatorWorker::PRIORITY_BULK));
+        }
+        $this->updateJobStatus($job, PhabricatorWorkerBulkJob::STATUS_RUNNING);
+        // These tables share the worker database. Persist items, status,
+        // child queue rows and the replay marker as one SQL batch, including
+        // when Gorge owns leasing. This is not a service-failure fallback.
+        $this->flushTaskQueueNatively();
+        $job->setParameter('nativeQueueBatchVersion', 1)->save();
+        $job->saveTransaction();
+      } catch (Throwable $ex) {
+        $job->killTransaction();
+        throw $ex;
       }
-
-      $this->updateJobStatus(
-        $job,
-        PhabricatorWorkerBulkJob::STATUS_RUNNING);
     } finally {
       $lock->unlock();
-    }
-
-    foreach ($tasks as $task) {
-      PhabricatorWorker::scheduleTask(
-        'PhabricatorWorkerBulkJobTaskWorker',
-        array(
-          'jobID' => $job->getID(),
-          'taskID' => $task->getID(),
-        ),
-        array(
-          'priority' => PhabricatorWorker::PRIORITY_BULK,
-        ));
     }
 
     $this->updateJob($job);

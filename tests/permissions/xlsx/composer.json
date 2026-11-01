@@ -1,0 +1,15 @@
+{
+  "name": "phorge/isolated-xlsx-fixture",
+  "description": "Test-only optional XLSX dependency; never install in production or the source root.",
+  "type": "project",
+  "require": {
+    "phpoffice/phpspreadsheet": "5.10.0"
+  },
+  "config": {
+    "platform": {
+      "php": "8.5.12"
+    },
+    "allow-plugins": false
+  },
+  "scripts": {}
+}

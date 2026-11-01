@@ -20,6 +20,8 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Unversioned interrupted bulk item requires manual reconciliation.' => '未标记版本的中断批量任务需要人工核对。',
+      'Interrupted bulk item has an indeterminate business result. Review the object before submitting another edit.' => '批量任务已中断，无法确定业务结果。请先核对对象，再提交新的编辑。',
       'Historical Policy (Read Only)' => '历史策略（只读）',
       'This policy contains rules which are unavailable in this editor. The existing rules continue to apply and will not be removed or rewritten automatically.' => '此策略包含当前编辑器中不可选的规则。原有规则继续生效，不会自动删除或改写。',
       'To make changes, create a replacement policy and configure all of its rules explicitly. After saving the new policy, save the original object to apply its new permission settings.' => '需要调整时，请新建替代策略并明确配置完整规则。保存新策略后，还需保存原对象，新的权限设置才会应用。',

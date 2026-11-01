@@ -49,7 +49,7 @@ abstract class PhabricatorExportField
    * @phutil-external-symbol class PHPExcel_Cell_DataType
    */
   public function formatPHPExcelCell($cell, $style) {
-    $cell->setDataType(PHPExcel_Cell_DataType::TYPE_STRING);
+    $cell->setDataType('s');
   }
 
   public function getCharacterWidth() {
