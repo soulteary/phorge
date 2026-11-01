@@ -36,6 +36,9 @@ jobs:
         run: python3 -m unittest discover -s tests/release -p 'test_*.py' -v
       - name: Require exact tag identity and refuse immutable tag overwrite
         id: existing
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 deploy/release/image_metadata.py --repository "$GITHUB_REPOSITORY" \
             --tag "$RELEASE_TAG" --sha "$GITHUB_SHA" --ref "$GITHUB_REF" \
@@ -123,6 +126,9 @@ jobs:
           cache-to: type=gha,mode=max,scope=phorge
       - name: Verify published version, source, architectures and immutable digest
         id: verified
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 deploy/release/image_metadata.py --repository "$GITHUB_REPOSITORY" \
             --tag "$RELEASE_TAG" --sha "$GITHUB_SHA" --ref "$GITHUB_REF" --require-published \

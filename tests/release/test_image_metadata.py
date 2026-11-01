@@ -1,4 +1,4 @@
-import importlib.util,json,unittest,urllib.error
+import base64,importlib.util,json,unittest,urllib.error
 from pathlib import Path
 from unittest.mock import Mock
 spec=importlib.util.spec_from_file_location('image_metadata',Path(__file__).resolve().parents[2]/'deploy/release/image_metadata.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -55,3 +55,19 @@ class ImagePublicationTests(unittest.TestCase):
         for target in ('http://objects.example.invalid/blob','https://user:password@objects.example.invalid/blob','file:///tmp/blob','https://127.0.0.1/blob','https://pkg-containers.githubusercontent.com:444/blob'):
             r=m.Registry(REPO);r.token='isolated-test';r.opener=Mock();r.opener.open.side_effect=urllib.error.HTTPError('https://ghcr.io/',302,'redirect',{'Location':target},None)
             with self.assertRaises(ValueError):r.get('https://ghcr.io/v2/'+REPO+'/blobs/test',authorized=True,blob=True)
+
+    def test_private_token_exchange_uses_workflow_credentials(self):
+        r=m.Registry(REPO,'release-user','isolated-package-token');response=Mock();response.__enter__=Mock(return_value=response);response.__exit__=Mock(return_value=False);response.read.return_value=b'{"token":"scoped-pull"}';r.opener=Mock();r.opener.open.return_value=response
+        r.authenticate();request=r.opener.open.call_args.args[0]
+        self.assertEqual(request.get_header('Authorization'),'Basic '+base64.b64encode(b'release-user:isolated-package-token').decode());self.assertTrue(request.full_url.startswith('https://ghcr.io/token?'));self.assertEqual(r.token,'scoped-pull')
+    def test_token_exchange_redirect_does_not_forward_credentials(self):
+        r=m.Registry(REPO,'release-user','isolated-package-token');r.opener=Mock();r.opener.open.side_effect=urllib.error.HTTPError('https://ghcr.io/token',302,'redirect',{'Location':'https://objects.example.invalid/token'},None)
+        with self.assertRaises(urllib.error.HTTPError):r.authenticate()
+        self.assertEqual(r.opener.open.call_count,1)
+    def test_incomplete_exchange_credentials_refused(self):
+        for user,password in [('release-user',None),(None,'isolated-package-token')]:
+            with self.assertRaises(ValueError):m.Registry(REPO,user,password)
+    def test_credentials_require_fixed_origins(self):
+        r=m.Registry(REPO,'release-user','isolated-package-token');r.token='scoped-pull'
+        for flag in ('exchange','authorized'):
+            with self.assertRaises(ValueError):r.get('https://objects.example.invalid/token',**{flag:True})

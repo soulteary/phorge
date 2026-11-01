@@ -6,7 +6,10 @@ that same tag, passing its name as `release_tag`. The tag checkout, tag target,
 event ref and event SHA must agree; a main-branch dispatch cannot publish a tag
 by substituting a checkout alone.
 
-The registry gate reads the dated version and full source-SHA aliases. Only an
+The registry gate reads the dated version and full source-SHA aliases. Workflow
+credentials are passed through step-scoped environment variables solely for the
+fixed GHCR token exchange, supporting private packages without new credentials.
+Anonymous reads remain available to external verification callers. Only an
 explicit HTTP 404 means absent. Authentication, timeout, throttling, server or
 metadata failures stop publication. Existing aliases must resolve to the same
 index and match source/version labels and both Linux AMD64/ARM64 configurations.

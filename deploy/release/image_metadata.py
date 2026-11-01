@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Read-only GHCR metadata gate. A missing tag is only an HTTP 404."""
-import argparse,datetime,hashlib,json,re,subprocess,urllib.error,urllib.parse,urllib.request
+import argparse,base64,datetime,hashlib,json,os,re,subprocess,urllib.error,urllib.parse,urllib.request
 from pathlib import Path
 
 ACCEPT='application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json'
@@ -18,11 +18,18 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):return None
 
 class Registry:
-    def __init__(self,repository):
+    def __init__(self,repository,username=None,password=None):
+        if bool(username)!=bool(password):raise ValueError('Both registry exchange credentials are required.')
         self.repository=repository;self.opener=urllib.request.build_opener(NoRedirect());self.token=None
-    def get(self,url,authorized=False,blob=False):
+        self.exchange_authorization='Basic '+base64.b64encode((username+':'+password).encode()).decode() if username else None
+    def get(self,url,authorized=False,blob=False,exchange=False):
         headers={'Accept':ACCEPT}
-        if authorized:headers['Authorization']='Bearer '+self.token
+        if exchange:
+            if not url.startswith('https://ghcr.io/token?'):raise ValueError('Fixed credential exchange endpoint required.')
+            if self.exchange_authorization:headers['Authorization']=self.exchange_authorization
+        if authorized:
+            if not url.startswith('https://ghcr.io/v2/'+self.repository+'/'):raise ValueError('Fixed registry origin required.')
+            headers['Authorization']='Bearer '+self.token
         try:
             with self.opener.open(urllib.request.Request(url,headers=headers),timeout=30) as r:return r.read()
         except urllib.error.HTTPError as ex:
@@ -34,7 +41,7 @@ class Registry:
             raise
     def authenticate(self):
         query=urllib.parse.urlencode({'service':'ghcr.io','scope':'repository:'+self.repository+':pull'})
-        result=json.loads(self.get('https://ghcr.io/token?'+query));self.token=result.get('token') or result.get('access_token')
+        result=json.loads(self.get('https://ghcr.io/token?'+query,exchange=True));self.token=result.get('token') or result.get('access_token')
         if not isinstance(self.token,str) or not self.token:raise ValueError('Registry token unavailable.')
     def manifest(self,reference,missing=False):
         if not re.fullmatch(r'(?:sha256:[a-f0-9]{64}|[a-zA-Z0-9_.-]+)',reference):raise ValueError('Invalid manifest reference.')
@@ -79,7 +86,7 @@ def main():
     ap=argparse.ArgumentParser();ap.add_argument('--repository',required=True);ap.add_argument('--tag',required=True);ap.add_argument('--sha',required=True);ap.add_argument('--ref',required=True);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--github-output',type=Path);ap.add_argument('--require-published',action='store_true');a=ap.parse_args()
     identity(a.repository,a.tag,a.sha,a.ref)
     if subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()!=a.sha or subprocess.check_output(['git','rev-parse','refs/tags/'+a.tag+'^{commit}'],text=True).strip()!=a.sha:raise ValueError('Tag, checkout and source event disagree.')
-    registry=Registry(a.repository);registry.authenticate();r=inspect(registry,a.repository,a.tag,a.sha)
+    registry=Registry(a.repository,os.environ.get('GHCR_USER'),os.environ.get('GHCR_TOKEN'));registry.authenticate();r=inspect(registry,a.repository,a.tag,a.sha)
     if a.require_published and not r['exists']:raise ValueError('Published image unavailable.')
     r.update(repository=a.repository,tag=a.tag,sourceRevision=a.sha,ref=a.ref,overwritePermitted=False);a.output.write_text(json.dumps(r,indent=2)+'\n')
     if a.github_output:
