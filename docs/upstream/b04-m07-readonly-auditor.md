@@ -94,7 +94,7 @@ cause a refusal rather than a partial all-clear. Schema drift or missing tables
 fails closed; no guessed SQL schema or automatic repair is attempted.
 
 The offline comparator has an independent cell/time budget and a 32-MiB private
-input cap. Unknown results, broken references and incomplete extraction produce
+input cap. Empty project inventories, unknown results, broken references and incomplete extraction produce
 nonzero exit status (2), never a clean no-difference certificate. Collection
 failures publish only a fixed redacted refusal. Existing output directories,
 symlinks for private input and existing report files are refused. Reports are

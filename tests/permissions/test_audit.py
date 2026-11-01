@@ -125,6 +125,13 @@ class PermissionDifferenceTest(unittest.TestCase):
             else: f['projects'][1]['spacePHID'] = 'PHID-SPCE-private'
             self.assertIsNone(comparison(f).evaluate('c', V, 'native-v1', 'view'))
 
+    def test_empty_snapshot_is_not_a_zero_difference_clearance(self):
+        f = fixture(); f['projects'] = []
+        summary, _ = comparison(f).run('combined-v1')
+        self.assertFalse(summary['evaluationComplete'])
+        self.assertEqual(summary['integrityIssues']['no-comparable-project-data'], 1)
+        self.assertFalse(summary['migrationReady'])
+
     def test_unknown_or_native_model_is_refused(self):
         for model in ('unknown', 'native-v1'):
             with self.assertRaises(audit.AuditError): comparison().run(model)

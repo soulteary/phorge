@@ -221,6 +221,8 @@ class Comparison:
                                         'capability': capability, 'before': before, 'after': after,
                                         'classification': status})
         unknown = sum(c['unknown'] for c in counts.values())
+        if not self.projects:
+            self.issues['no-comparable-project-data'] += 1
         complete = not unknown and not self.issues
         summary = {'schemaVersion': 1, 'baselineModel': 'native-v1', 'candidateModel': candidate,
                    'sourceCommit': self.snapshot['sourceCommit'], 'snapshotSHA256': self.snapshot['snapshotSHA256'],
