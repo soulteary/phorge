@@ -75,6 +75,9 @@ final class PhabricatorTraefikAuthProvider extends PhabricatorAuthProvider {
       $request,
       $mode,
       array(
+        // ForwardAuth may redirect to another origin. A navigation link keeps
+        // the existing form-action CSP intact without blocking that redirect.
+        'navigation' => true,
         'method' => 'GET',
         'uri' => $this->getLoginURI(),
       ));
