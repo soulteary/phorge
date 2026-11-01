@@ -96,8 +96,17 @@ or all of D07. The catalog makes untested consumers visible, rather than
 claiming email/calendar/Herald runtime certification. The transaction/disclosure
 follow-up in `b04-m07-native-route-acceptance.md` now checks same-row revocation
 serialization, object/bulk-item rollback, selected project selectors and task
-query/count/JSON export paths. Concurrent changes to unrelated ancestor/member
-policy rows, other datasources/formats, large queued exports, worker scheduling
-and lifecycle/arbitrary custom-Space combinations remain distinct follow-ups. Candidate
-routes, migration workers, correction manifests and recovery cutovers are not
-implemented or authorized. Keep legacy edges and the native four axes intact.
+query/count/JSON export paths. The v3 follow-up additionally characterizes
+ordinary-child and milestone ancestor-policy interleavings, three composite
+selectors, CSV/text exports, an actual queued multi-page JSON export and native
+SQL lease retries with business/queue status separation. Its token, Space and
+lock controls remain native. Ordinary in-flight edits retain loaded-parent
+semantics; this is not a retroactive cancellation guarantee.
+
+Other application datasources, positive optional XLSX output, arbitrary member
+or Space-policy concurrency, mid-export mutations, mid-creator/process-crash
+recovery and Gorge-owned queue transport remain distinct follow-ups. Source
+review covers 66 files (43 literal references and 23 selected boundaries), not
+a complete call graph. Candidate routes, migration workers, correction manifests
+and recovery cutovers are not implemented or authorized. Keep legacy edges and
+the native four axes intact.
