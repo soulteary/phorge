@@ -462,6 +462,21 @@ final class PhabricatorProject extends PhabricatorProjectDAO
 
     $tokens = PhabricatorTypeaheadDatasource::tokenizeString($all_strings);
 
+    // Policy-only edits do not change datasource tokens. Avoid taking token
+    // gap locks before synchronizing milestone rows when nothing has changed.
+    $existing = queryfx_all(
+      $conn_w,
+      'SELECT token FROM %T WHERE projectID = %d',
+      $table,
+      $id);
+    $old_tokens = ipull($existing, 'token');
+    $new_tokens = array_values($tokens);
+    sort($old_tokens);
+    sort($new_tokens);
+    if ($old_tokens === $new_tokens) {
+      return;
+    }
+
     $sql = array();
     foreach ($tokens as $token) {
       $sql[] = qsprintf($conn_w, '(%d, %s)', $id, $token);
