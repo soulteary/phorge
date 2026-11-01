@@ -117,3 +117,11 @@ separate follow-ups. Source review now covers 75 files (43 literal references
 and 32 selected boundaries), not a complete call graph. Candidate routes,
 permission migration workers and historical correction manifests remain
 unimplemented and unauthorized. Keep legacy edges and the native four axes intact.
+
+### Native production response-quality follow-up
+
+The v6 follow-up reviews three additional response-classification files: the
+malformed-request exception, controller handler and early standalone response.
+The current catalog contains 78 files / 43 literal-reference files. HTTP 400
+replaces the former malformed-request 500 response without altering CSRF or
+object authorization; prior 75-file catalogs remain historical source evidence.

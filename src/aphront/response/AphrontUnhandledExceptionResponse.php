@@ -37,6 +37,9 @@ final class AphrontUnhandledExceptionResponse
   }
 
   public function getHTTPResponseCode() {
+    if ($this->exception instanceof AphrontMalformedRequestException) {
+      return $this->exception->getHTTPResponseCode();
+    }
     return 500;
   }
 

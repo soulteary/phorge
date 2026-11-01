@@ -62,3 +62,19 @@ interleavings, queue fencing/partitions, Redis and mixed-worker deployment. The
 The extension adds 48 native boundary assertions (1,860 cumulative) and four
 receipt/parser unit tests (70 permission unit tests total). The unchanged
 source-only consumer catalog contains 75 files and 43 literal-reference files.
+
+## v6 client-error classification
+
+Malformed requests, including invalid CSRF submissions, now return HTTP 400 in
+both the application exception handler and the early standalone response. The
+same native CSRF validation and rejection content are retained; unexpected
+server failures still return HTTP 500. The HTTP fixture requires the specific
+malformed-request exception and CSRF content, not merely a non-workbook response.
+The v6 finite receipt explicitly records `invalidCSRFStatus: 400`; historical
+v5 evidence characterized the former 500 behavior and is not rewritten.
+
+Three new native request unit methods and four existing request methods are
+registered in D01 (148 native methods total). The source-only catalog adds the
+exception and both response boundaries (78 files, still 43 literal membership
+references); this is not broader runtime authorization certification. No new
+model, candidate activation, dependency or production configuration is introduced.

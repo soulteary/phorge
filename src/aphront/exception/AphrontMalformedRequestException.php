@@ -23,6 +23,10 @@ final class AphrontMalformedRequestException extends AphrontException {
     parent::__construct($message);
   }
 
+  public function getHTTPResponseCode() {
+    return 400;
+  }
+
   public function getTitle() {
     return $this->title;
   }

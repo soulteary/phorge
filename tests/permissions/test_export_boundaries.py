@@ -3,7 +3,7 @@ from export_boundaries import validate,workbook
 
 
 def receipt():
-    return {'boundarySchemaVersion':5,'exportCoverage':{'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':21,'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}}
+    return {'boundarySchemaVersion':6,'exportCoverage':{'invalidCSRFStatus':400,'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':21,'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}}
 
 
 class ExportBoundaryTests(unittest.TestCase):
@@ -13,7 +13,7 @@ class ExportBoundaryTests(unittest.TestCase):
             r=receipt();del r['exportCoverage'][key]
             with self.assertRaises(ValueError):validate(r)
     def test_retroactive_revocation_or_live_dependency_claim_refused(self):
-        for key,value in [('alreadyLoadedRowRetained',False),('nextPageRevokedRowOmitted',False),('completedSnapshotRetainedByAuthor',False),('dependencyScope','production'),('productionConfigurationChanged',True),('httpServerStopped',False),('midExportRows',1002),('freshExportRows',1001),('hierarchyAssertions',20)]:
+        for key,value in [('invalidCSRFStatus',500),('alreadyLoadedRowRetained',False),('nextPageRevokedRowOmitted',False),('completedSnapshotRetainedByAuthor',False),('dependencyScope','production'),('productionConfigurationChanged',True),('httpServerStopped',False),('midExportRows',1002),('freshExportRows',1001),('hierarchyAssertions',20)]:
             r=receipt();r['exportCoverage'][key]=value
             with self.assertRaises(ValueError):validate(r)
     def test_formula_xml_is_rejected(self):

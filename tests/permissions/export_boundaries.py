@@ -75,8 +75,8 @@ def execute(here,root,env,private,check):
             check(('HTTP XLSX private canary' in text)==(role=='owner'),'HTTP XLSX private title boundary '+role)
             status,_,raw=request(role,uri,dict(fields.values,format='excel',__csrf__='invalid'))
             (private/'csrf-status.json').write_text(json.dumps({'status':status}));(private/'csrf-body.html').write_bytes(raw)
-            # Native malformed-request handler intentionally returns 500.
-            check(not raw.startswith(b'PK') and status==500 and b'AphrontMalformedRequestException' in raw and b'csrf' in raw.lower(),'HTTP XLSX invalid CSRF never returns workbook '+role)
+            # Malformed requests are client errors; authorization behavior is unchanged.
+            check(not raw.startswith(b'PK') and status==400 and b'AphrontMalformedRequestException' in raw and b'csrf' in raw.lower(),'HTTP XLSX invalid CSRF never returns workbook '+role)
         status,_,raw=request(None,uri,{'format':'excel'})
         check(not raw.startswith(b'PK') and status in (200,302,403),'HTTP XLSX anonymous denial')
     finally:
@@ -110,10 +110,10 @@ def execute(here,root,env,private,check):
     checks=call('export-hierarchy')
     for key,value in checks.items():check(value is True,'native hierarchy '+key)
     for key,value in call('recovery-baseline').items():check(value is True,'post-export native baseline '+key)
-    return {'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':len(checks),'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}
+    return {'invalidCSRFStatus':400,'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':len(checks),'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}
 
 
 def validate(report):
-    expected={'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':21,'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}
-    if report.get('boundarySchemaVersion')!=5 or report.get('exportCoverage')!=expected:raise ValueError('Complete isolated HTTP/revocation/hierarchy v5 evidence required.')
+    expected={'invalidCSRFStatus':400,'httpWorkbooks':2,'httpAssertions':15,'midExportRows':1001,'freshExportRows':1000,'alreadyLoadedRowRetained':True,'nextPageRevokedRowOmitted':True,'completedSnapshotRetainedByAuthor':True,'hierarchyAssertions':21,'dependencyScope':'isolated-explicit-preload-only','productionConfigurationChanged':False,'httpServerStopped':True}
+    if report.get('boundarySchemaVersion')!=6 or report.get('exportCoverage')!=expected:raise ValueError('Complete isolated HTTP/revocation/hierarchy v6 evidence required.')
     return True

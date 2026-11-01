@@ -107,7 +107,7 @@ def execute(here,root,env,private,check):
 
 def validate(report):
     c=report.get('recoveryCoverage',{})
-    if report.get('boundarySchemaVersion')!=5:raise ValueError('Recovery receipt v5 required.')
+    if report.get('boundarySchemaVersion')!=6:raise ValueError('Recovery receipt v6 required.')
     if c.get('xlsxWorkbooks')!=2 or c.get('dependencyVersion')!='5.10.0':raise ValueError('Positive XLSX evidence missing.')
     expected=hashlib.sha256((Path(__file__).parent/'xlsx/composer.lock').read_bytes()).hexdigest()
     if c.get('dependencyLockSHA256')!=expected:raise ValueError('Dependency lock mismatch.')
