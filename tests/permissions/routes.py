@@ -19,6 +19,8 @@ def main():
     ap.add_argument('--base-snapshot',type=Path)
     ap.add_argument('--base-manifest',type=Path)
     args=ap.parse_args()
+    if any(name in os.environ for name in ('PHORGE_DEPLOYMENT_CONFIG','PHORGE_CONTROL_PLANE')):
+        raise ValueError('Inherited deployment configuration selectors refused before PHP execution.')
     out=args.output.resolve(); out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report={'passed':False,'baselineModel':'native-v1','candidateModelsRouteVerified':[],
             'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'checks':[], 'cleanup':False}
@@ -50,7 +52,8 @@ def main():
                 'gorge.search.token':os.environ['GORGE_TEST_SEARCH_TOKEN']})
     report['searchBackend']='paired-gorge-meilisearch'
     private=Path(tempfile.mkdtemp(prefix='permission-routes-')); private.chmod(0o700)
-    env=dict(os.environ,PERMISSION_ROUTES_PRIVATE=str(private),PERMISSION_ROUTES_NAMESPACE=ns)
+    env=dict(os.environ,PERMISSION_ROUTES_PRIVATE=str(private),PERMISSION_ROUTES_NAMESPACE=ns,
+             PHORGE_DEPLOYMENT_CONFIG=str(ROOT/'conf/local/deployment.json'),PHORGE_CONTROL_PLANE='deployment')
     owned=[]; server=None; collected=[]; reader=None; scoped=False
     def check(ok,label):
         report['checks'].append({'name':label,'passed':bool(ok)})

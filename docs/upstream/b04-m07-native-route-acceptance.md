@@ -56,6 +56,11 @@ identifiers. Raw data remains on the operator host. Existing restored accounts
 are never selected for HTTP or API requests. The controlled graph is synthetic
 enrichment, not evidence that production contains those relationships.
 
+Inherited `PHORGE_DEPLOYMENT_CONFIG` and `PHORGE_CONTROL_PLANE` selectors are
+refused before any PHP execution. Every child environment explicitly selects
+the owned deployment path and deployment mode, including cleanup commands.
+Wrappers must forward these pinned values rather than inheriting image defaults.
+
 Both local and highest-precedence deployment configuration files are exclusively
 owned and hash-checked before cleanup. An isolated network must fence the
 restore from deployment services. Never point the harness at a live database.

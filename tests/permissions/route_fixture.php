@@ -9,7 +9,8 @@ if (PHP_SAPI !== 'cli' || getenv('ATOMIC_TEST_DISPOSABLE') !== '1' ||
   throw new Exception('Explicit disposable route fixture required.');
 }
 $owner = json_decode(file_get_contents($private.'/owner.json'), true);
-if ($owner['root'] !== $root || $owner['namespace'] !== $namespace ||
+if (getenv('PHORGE_DEPLOYMENT_CONFIG') !== $root.'/conf/local/deployment.json' ||
+    getenv('PHORGE_CONTROL_PLANE') !== 'deployment' || $owner['root'] !== $root || $owner['namespace'] !== $namespace ||
     !hash_equals($owner['configurationHash'], hash_file('sha256', $root.'/conf/local/local.json')) ||
     !hash_equals($owner['deploymentHash'], hash_file('sha256', $root.'/conf/local/deployment.json'))) {
   throw new Exception('Disposable configuration ownership mismatch.');
