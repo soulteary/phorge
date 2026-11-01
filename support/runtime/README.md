@@ -63,12 +63,16 @@ are maintenance operations, never required to build or run a checkout.
 
 ## Maintenance and PHP versions
 
-The container and complete paired acceptance currently use PHP 8.3. The
-`runtime-compatibility` CI job additionally checks the retained runtime,
-maintenance tools and response safety contracts on PHP 8.4 and 8.5. Passing
-these narrower checks does not claim full application or migration support on
-those versions. Promote a new production baseline only after running the
-complete paired acceptance and a representative application workload on it.
+The only supported PHP branch is 8.5, with PHP 8.5.12 as the minimum
+security release and the pinned production image. Other minor versions are
+rejected by both the CLI runtime bootstrap and Web startup. CI runs PHP
+8.5.12 only; older compatibility matrices have been removed.
+
+OPcache is built into PHP 8.5. Do not install it as a shared extension. JIT
+must remain explicitly disabled (`opcache.jit=disable` and
+`opcache.jit_buffer_size=0`) for Web, CLI, acceptance and maintenance commands.
+A change to the production patch must update its image lock and run the paired
+acceptance and representative application workloads again.
 
 When evaluating upstream fixes, record the inspected source location and its
 commit if available, or preserve the original snapshot and its SHA-256 when

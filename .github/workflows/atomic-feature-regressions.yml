@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.3', '8.4', '8.5']
+        php: ['8.5.12']
     services:
       mysql:
         image: mysql:8.0
@@ -46,6 +46,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
           extensions: mysqli, mbstring, curl, gd
           coverage: none
       - name: Install the retained product-boundary checker dependency

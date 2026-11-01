@@ -4,7 +4,7 @@
     "libraryName": "arcanist",
     "upstreamRevision": null,
     "upstreamSnapshotSHA256": "a1d8fd74c7e68da6a54f114aac253bb2c0c8a7fe971eae5882b45fe99541f42a",
-    "contentSHA256": "3a030558bb48fb3ae929925d90152396f5417b8f94298d6b855e9e288ef784f0",
+    "contentSHA256": "b6b6850e975f8d7f847c739b56b2488d8c7755e43fd4bae96dd3e65dcb4aeff6",
     "generatedPaths": [
         "src/.phutil_module_cache",
         "src/parser/xhpast/bin/xhpast",
@@ -97,6 +97,11 @@
             "id": "anonymous-class-php-parser",
             "path": "support/php-parser/api/PHPASTDeclarationVisitor.php",
             "description": "Retain anonymous class parent/interface/trait requirements without creating a loadable class symbol."
+        },
+        {
+            "id": "php85-only-runtime-policy",
+            "path": "bootstrap.php",
+            "description": "Reject unsupported PHP minor branches and PHP 8.5 builds below the 8.5.12 security baseline before loading CLI tools."
         }
     ],
     "files": [
@@ -116,7 +121,7 @@
             "path": "README.md",
             "sourceSHA256": null,
             "reason": "project-runtime-maintenance",
-            "sha256": "905ae84b81b3ab4157af0eeb3bd4eb95da74b4f5e7eaf9ad9649f0027b9cc6d9"
+            "sha256": "5a58b11f37bd95e4c83187bb44d484728e484ef78876b9b20a60460d71a9b38d"
         },
         {
             "path": "bootstrap-cli.php",
@@ -128,7 +133,7 @@
             "path": "bootstrap.php",
             "sourceSHA256": null,
             "reason": "project-runtime-maintenance",
-            "sha256": "cce59fbda92b16f1daa2610d49586e1ed2aff55025118fbe97da7985521a6982"
+            "sha256": "d2dc333aae73fb45aa8af77f0b6ee15f8c4d72dcd393020ae6dd6743deaf3537"
         },
         {
             "path": "externals/README",
@@ -171,6 +176,12 @@
             "sha256": "60b201b41555cc681381d40850325ad293c46dd620ea5482f9ac6cc2015e7994",
             "sourceSHA256": "60b201b41555cc681381d40850325ad293c46dd620ea5482f9ac6cc2015e7994",
             "reason": "bootstrap-resource-or-tool"
+        },
+        {
+            "path": "php-version.php",
+            "sourceSHA256": null,
+            "reason": "project-runtime-maintenance",
+            "sha256": "4d363adfcaf8a6f70221d03d23dd6a789afacd428b218bbe4d79639012fe850e"
         },
         {
             "path": "resources/php/symbol-information.json",

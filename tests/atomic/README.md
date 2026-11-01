@@ -113,9 +113,11 @@ production acceptance lock is unchanged; it must not substitute an older Go
 builder for Gorge's required toolchain. Missing paired source, build-base lock
 or unavailable dependencies fail instead of skipping.
 
-PHP 8.3 remains the production baseline. PHP 8.4/8.5 are compatibility checks
-for these selected native packages; they do not establish complete production
-or migration support on those runtimes.
+PHP 8.5.12 is the sole CI and production baseline. The supported branch is
+8.5 with a security floor of 8.5.12; older and other minor branches are rejected.
+Set `opcache.jit=disable` and `opcache.jit_buffer_size=0` in CLI and Web INI.
+Selected native packages are still not a substitute for paired deployment,
+backup restoration, actual identity-provider and browser acceptance.
 
 See [release protocol](../../docs/upstream/atomic-release-protocol.md) before
 activating new writers across multiple web/worker instances.

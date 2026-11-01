@@ -111,6 +111,14 @@
         "testAnonymousQuestionDoesNotLoadAnswers",
         "testExistingAuthorCanNotAnswerTwice"
       ]
+    },
+    {
+      "class": "PhorgePHPVersionTestCase",
+      "path": "src/__tests__/PhorgePHPVersionTestCase.php",
+      "methods": [
+        "testSupportedSecurityPatchFloor",
+        "testOtherBranchesAndUnpatchedVersionsAreRejected"
+      ]
     }
   ],
   "allowedSkips": {}
