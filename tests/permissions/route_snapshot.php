@@ -11,8 +11,8 @@ try {
  if($o['namespace']!==$namespace||$o['root']!==$root||!hash_equals($o['configurationHash'],hash_file('sha256',$root.'/conf/local/local.json'))||!hash_equals($o['deploymentHash'],hash_file('sha256',$root.'/conf/local/deployment.json'))){throw new Exception('ownership');}
  $db=new mysqli('127.0.0.1','root',getenv('GORGE_TEST_MYSQL_PASSWORD'),'',(int)getenv('GORGE_TEST_MYSQL_PORT'));
  $db->set_charset('utf8mb4');$mode=$argv[1]??'';
- if($mode==='dump'){
-  $path=$private.'/enriched.sql';$handle=fopen($path,'x');if(!$handle){throw new Exception('exclusive');}chmod($path,0600);
+ if($mode==='dump'||$mode==='dump-revoked'){
+  $path=$private.'/'.($mode==='dump'?'enriched.sql':'enriched-revoked.sql');$handle=fopen($path,'x');if(!$handle){throw new Exception('exclusive');}chmod($path,0600);
   $databases=array_column($db->query('SHOW DATABASES')->fetch_all(MYSQLI_NUM),0);
   $databases=array_values(array_filter($databases,static fn($n)=>str_starts_with($n,$namespace.'_')));sort($databases);
   if(count($databases)<20){throw new Exception('incomplete-native-schema');}

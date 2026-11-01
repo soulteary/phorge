@@ -18,6 +18,9 @@ require_once $root.'/scripts/__init_script__.php';
 if (PhabricatorEnv::getEnvConfig('storage.default-namespace') !== $namespace ||
     PhabricatorEnv::getEnvConfig('mysql.host') !== '127.0.0.1' ||
     !PhabricatorEnv::getEnvConfig('phabricator.silent') ||
+    PhabricatorEnv::getEnvConfig('projects.default-navigation') !== 'flat' ||
+    PhabricatorEnv::getEnvConfig('gorge.search.source-scan') ||
+    PhabricatorEnv::getEnvConfig('gorge.search.projection-shadow') ||
     PhabricatorEnv::getEnvConfig('project.history-state') !== 'off' ||
     PhabricatorEnv::getEnvConfig('project.workspace-mode') !== 'native' ||
     PhabricatorEnv::getEnvConfig('project.history-task-drafts')) {
@@ -173,7 +176,7 @@ if ($mode==='oracle') {
 if($mode==='state') {
   $result=array();
   $p=new PhabricatorProject();$conn=$p->establishConnection('r');
-  $result['projects']=queryfx_all($conn,'SELECT id,phid,viewPolicy,editPolicy,joinPolicy,parentProjectPHID,milestoneNumber,hasSubprojects,isMembershipLocked,spacePHID FROM %T WHERE phid IN (%Ls) ORDER BY id',$p->getTableName(),array_column($fixture['projects'],'phid'));
+  $result['projects']=queryfx_all($conn,'SELECT id,phid,name,viewPolicy,editPolicy,joinPolicy,parentProjectPHID,milestoneNumber,hasSubprojects,isMembershipLocked,spacePHID FROM %T WHERE phid IN (%Ls) ORDER BY id',$p->getTableName(),array_column($fixture['projects'],'phid'));
   $result['edges']=queryfx_all($conn,'SELECT src,type,dst FROM edge WHERE src IN (%Ls) ORDER BY src,type,dst',array_column($fixture['projects'],'phid'));
   $user=new PhabricatorUser();$result['actors']=queryfx_all($user->establishConnection('r'),'SELECT phid,isAdmin,isDisabled,isApproved FROM %T WHERE phid IN (%Ls) ORDER BY phid',$user->getTableName(),array_column($fixture['users'],'phid'));
   echo json_encode(array('fingerprint'=>hash('sha256',json_encode($result))),JSON_THROW_ON_ERROR)."\n";exit;

@@ -26,6 +26,9 @@ children; changing the parent editor transfers this inherited permission.
 
 ## Route evidence
 
+Each phase has a distinct immutable logical snapshot hash and a permission-state
+fingerprint; the revoked comparison must not reuse the restored snapshot identity.
+
 Two phases × ten subjects × twelve projects × six route families = **1,440**
 required observations. The second phase reuses existing web sessions and API
 tokens after membership and parent-edit revocation. No fulltext reindex or Feed

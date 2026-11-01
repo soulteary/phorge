@@ -21,7 +21,7 @@ def main():
     args=ap.parse_args()
     out=args.output.resolve(); out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report={'passed':False,'baselineModel':'native-v1','candidateModelsRouteVerified':[],
-            'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'checks':[], 'cleanup':False}
+            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'checks':[], 'cleanup':False}
     before=GATE.capture_source(ROOT)
     if GATE.record_source_provenance(report,before,None,args.require_clean_worktree):
         GATE.publish_report(out/'route-results.json',report); return 1
@@ -36,7 +36,10 @@ def main():
                 'phabricator.base-uri':base+'/', 'policy.allow-public':False,
                 'auth.require-approval':True,'projects.default-navigation':'flat',
                 'project.history-state':'off','project.workspace-mode':'native',
-                'project.history-task-drafts':False})
+                'project.history-task-drafts':False,
+                'gorge.search.source-scan':False,'gorge.search.projection-shadow':False,
+                'gorge.taskqueue.owner':'phorge','gorge.taskqueue.uri':None,
+                'gorge.notification.outbox':False,'notification.servers':[]})
     search=os.environ.get('GORGE_TEST_SEARCH_URL')
     if not search: raise ValueError('Explicit loopback Gorge search required.')
     uri=urllib.parse.urlsplit(search)
@@ -48,7 +51,7 @@ def main():
     report['searchBackend']='paired-gorge-meilisearch'
     private=Path(tempfile.mkdtemp(prefix='permission-routes-')); private.chmod(0o700)
     env=dict(os.environ,PERMISSION_ROUTES_PRIVATE=str(private),PERMISSION_ROUTES_NAMESPACE=ns)
-    owned=[]; server=None; collected=[]; reader=None
+    owned=[]; server=None; collected=[]; reader=None; scoped=False
     def check(ok,label):
         report['checks'].append({'name':label,'passed':bool(ok)})
         if not ok: raise RuntimeError(label)
@@ -103,13 +106,16 @@ def main():
         # Highest precedence overlay prevents any restored DB configuration from
         # selecting deployment endpoints. Both files are exclusively owned.
         if (ROOT/'conf/local').is_symlink(): raise ValueError('Symlinked configuration directory refused.')
+        if any((ROOT/'conf/local'/name).exists() or (ROOT/'conf/local'/name).is_symlink()
+               for name in ('local.json','deployment.json')):
+            raise ValueError('Existing instance configuration refused before storage access.')
         for name in ('local.json','deployment.json'):
             p=ROOT/'conf/local'/name
             with p.open('x') as f: json.dump(cfg,f)
             p.chmod(0o600); owned.append((p,hashlib.sha256(p.read_bytes()).digest()))
         owner={'root':str(ROOT),'namespace':ns,'key':secrets.token_hex(32),
                'configurationHash':owned[0][1].hex(),'deploymentHash':owned[1][1].hex()}
-        save('owner.json',owner)
+        save('owner.json',owner); scoped=True
         run(['php','bin/storage','upgrade','--force','--namespace',ns])
         if args.base_snapshot or args.base_manifest:
             if not args.base_snapshot or not args.base_manifest: raise ValueError('Both private snapshot inputs required.')
@@ -134,8 +140,10 @@ def main():
             for role in SUBJECTS:
                 check({k:set(v) for k,v in oracle[role].items()}==expected(role,phase),'native capability oracle '+phase+' '+role)
             fingerprint=fixture('state')
+            phase_dump=receipt if phase=='restored' else snapshot('dump-revoked')
+            report['phaseSnapshots'][phase]=dict(phase_dump,permissionStateSHA256=fingerprint['fingerprint'])
             collector=dict(reader,restoredSnapshot=True,host='127.0.0.1',port=int(os.environ['GORGE_TEST_MYSQL_PORT']),
-                namespace=ns,snapshotSHA256=receipt['snapshotSHA256'],sourceCommit=before['gitHead'],
+                namespace=ns,snapshotSHA256=phase_dump['snapshotSHA256'],sourceCommit=before['gitHead'],
                 snapshotWatermark=datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),allowPublic=False)
             extracted=subprocess.run(['php',str(ROOT/'scripts/permissions/collect.php')],input=json.dumps(collector),
                 text=True,capture_output=True,cwd=ROOT,env=env,timeout=60)
@@ -197,8 +205,12 @@ def main():
     finally:
         stop()
         try:
-            if reader: snapshot('drop-reader')
-            run(['php','bin/storage','destroy','--force','--namespace',ns]); report['cleanup']=True
+            if scoped:
+                if any(path.is_symlink() or hashlib.sha256(path.read_bytes()).digest()!=digest for path,digest in owned):
+                    raise RuntimeError('Configuration ownership changed; storage cleanup refused.')
+                if reader: snapshot('drop-reader')
+                run(['php','bin/storage','destroy','--force','--namespace',ns])
+            report['cleanup']=True
         except Exception: report['cleanup']=False
         for path,digest in reversed(owned): GATE.remove_configuration(path,digest)
         if report['passed']:

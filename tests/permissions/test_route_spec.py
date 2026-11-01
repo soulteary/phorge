@@ -5,9 +5,13 @@ from route_spec import expected, expected_cells, validate_receipt
 
 def receipt():
     return {'baselineModel':'native-v1','candidateModelsRouteVerified':[],
-            'migrationReady':False,'matrix':[
+            'migrationReady':False,
+            'phaseSnapshots':{phase:{'snapshotSHA256':value*64,'permissionStateSHA256':value*64}
+                              for phase,value in [('restored','a'),('revoked','b')]},
+            'restoration':{'snapshotSHA256':'a'*64},
+            'revocation':{'revoked':True,'searchReindexed':False,'feedRepublished':False},'matrix':[
                 {'phase':phase,'subject':role,'project':project,'route':route,
-                 'expected':project in expected(role,phase)['view'],
+                 'status':200,'expected':project in expected(role,phase)['view'],
                  'observed':project in expected(role,phase)['view'],'passed':True}
                 for phase,role,project,route in sorted(expected_cells())]}
 
@@ -43,6 +47,19 @@ class RouteEvidenceTests(unittest.TestCase):
             r=receipt();r[key]=value
             with self.assertRaises(ValueError): validate_receipt(r)
 
+    def test_snapshot_and_staleness_linkage_required(self):
+        for mutate in [lambda r:r['phaseSnapshots'].pop('revoked'),
+                       lambda r:r['phaseSnapshots']['revoked'].update(snapshotSHA256='a'*64),
+                       lambda r:r['restoration'].update(snapshotSHA256='c'*64),
+                       lambda r:r['revocation'].update(searchReindexed=True)]:
+            r=receipt();mutate(r)
+            with self.assertRaises(ValueError): validate_receipt(r)
+
+    def test_server_error_or_false_positive_status_refused(self):
+        for status in (500,403,'200'):
+            r=receipt();next(c for c in r['matrix'] if c['expected'])['status']=status
+            with self.assertRaises(ValueError): validate_receipt(r)
+
     def test_historical_direct_edge_does_not_grant_native_view(self):
         self.assertNotIn('legacyParent',expected('legacy','restored')['view'])
         self.assertIn('legacyParent',expected('owner','restored')['view'])
@@ -51,6 +68,7 @@ class RouteEvidenceTests(unittest.TestCase):
         self.assertNotIn('privateSibling',expected('parentEditor','restored')['view'])
         self.assertNotIn('privateSibling',expected('parentEditor','restored')['edit'])
         self.assertIn('milestone',expected('parentEditor','restored')['edit'])
+        self.assertIn('milestone',expected('owner','revoked')['edit'])
         self.assertEqual(expected('parentEditor','revoked')['edit'],set())
 
     def test_inactive_and_admin_are_not_omnipotent(self):

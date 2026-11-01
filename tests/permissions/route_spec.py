@@ -1,4 +1,6 @@
 """Independent, finite native-v1 route acceptance matrix; no runtime model switch."""
+import re
+
 PROJECTS = ('visibleRoot','ordinary','milestone','privateSibling','grandparent',
             'hiddenParent','openChild','hiddenMilestone','legacyParent','legacyLeaf',
             'memberParent','memberLeaf')
@@ -37,12 +39,28 @@ def expected_cells():
 def validate_receipt(report):
     if report.get('baselineModel') != 'native-v1' or report.get('candidateModelsRouteVerified') != []:
         raise ValueError('Route evidence must not certify unimplemented candidates.')
+    snapshots=report.get('phaseSnapshots',{})
+    if set(snapshots)!=set(PHASES):
+        raise ValueError('Both immutable phase snapshot identities are required.')
+    for phase in PHASES:
+        snapshot=snapshots[phase]
+        if any(not re.fullmatch('[0-9a-f]{64}',snapshot.get(key,''))
+               for key in ('snapshotSHA256','permissionStateSHA256')):
+            raise ValueError('Missing snapshot or permission state identity.')
+    if snapshots['restored']['snapshotSHA256']!=report.get('restoration',{}).get('snapshotSHA256'):
+        raise ValueError('Restored evidence identity mismatch.')
+    if snapshots['restored']['snapshotSHA256']==snapshots['revoked']['snapshotSHA256']:
+        raise ValueError('Changed permission states require distinct snapshots.')
+    if report.get('revocation')!={'revoked':True,'searchReindexed':False,'feedRepublished':False}:
+        raise ValueError('Stale search and Feed controls were not preserved.')
     cells = report.get('matrix', [])
     identities = [(c['phase'], c['subject'], c['project'], c['route']) for c in cells]
     if len(identities) != len(set(identities)) or set(identities) != expected_cells():
         raise ValueError('Route matrix is incomplete, duplicated or invented.')
     for c in cells:
         expected_view = c['project'] in expected(c['subject'], c['phase'])['view']
+        if type(c.get('status')) is not int or not 100<=c['status']<500 or (expected_view and c['status']!=200):
+            raise ValueError('Invalid native HTTP outcome.')
         if c['expected'] is not expected_view or c['observed'] is not expected_view or c['passed'] is not True:
             raise ValueError('Route permission contract mismatch.')
     if report.get('migrationReady') is not False:
