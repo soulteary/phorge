@@ -35,11 +35,26 @@ try {
   // Refuse inherited roles, ALL, mutation grants or broader privileges. A
   // false dry-run flag can never substitute for database privilege separation.
   $grants = $connection->query('SHOW GRANTS')->fetch_all(MYSQLI_NUM);
+  $allowed = array_map(static fn($app) => $config['namespace'].'_'.$app,
+    array('project', 'user', 'spaces', 'policy'));
+  $seen = array();
   foreach ($grants as $grant) {
-    if (!preg_match('/\AGRANT (USAGE|SELECT) ON /', $grant[0]) ||
-        str_contains($grant[0], 'WITH GRANT OPTION')) {
-      throw new Exception('read-only-principal-required');
+    $text = $grant[0];
+    if (preg_match('/\AGRANT USAGE ON \*\.\* TO /', $text)) {
+      continue;
     }
+    if (!preg_match('/\AGRANT SELECT ON `([^`]+)`\.\* TO /', $text, $match) ||
+        str_contains($text, 'WITH GRANT OPTION')) {
+      throw new Exception('scoped-read-only-principal-required');
+    }
+    $database = str_replace('\\_', '_', $match[1]);
+    if (!in_array($database, $allowed, true)) {
+      throw new Exception('scoped-read-only-principal-required');
+    }
+    $seen[$database] = true;
+  }
+  if (count($seen) !== count($allowed)) {
+    throw new Exception('missing-snapshot-read-grants');
   }
   $connection->query('SET SESSION MAX_EXECUTION_TIME = '.($seconds * 1000));
   $connection->query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');

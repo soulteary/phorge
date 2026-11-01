@@ -17,6 +17,7 @@ $temporary = sys_get_temp_dir().'/permissions-'.$suffix;
 mkdir($temporary, 0700);
 $databases = array();
 $checks = array();
+$integration_failed = false;
 function verify($name, $value) {
   global $checks;
   $checks[$name] = (bool)$value;
@@ -125,6 +126,10 @@ try {
   }
   list($status,$failed)=process(array('php',$root.'/scripts/permissions/collect.php'),json_encode(array_replace($config,array('user'=>'root','password'=>getenv('GORGE_TEST_MYSQL_PASSWORD')))));
   verify('privileged-principal-refused',$status===2);
+  $db->query("GRANT SELECT ON *.* TO '$user'@'%'");
+  list($status,$denied_global)=process(array('php',$root.'/scripts/permissions/collect.php'),json_encode($config));
+  verify('global-read-privilege-refused',$status===2);
+  $db->query("REVOKE SELECT ON *.* FROM '$user'@'%'");
   $snapshot['projects'][1]['viewPolicy']='PHID-PLCY-private';file_put_contents($snapshot_file,json_encode($snapshot));
   list($status,$_)= $run('combined-v1',$temporary.'/unknown');
   $unknown=json_decode(file_get_contents($temporary.'/unknown/summary.json'),true);
@@ -134,11 +139,11 @@ try {
 } catch (Throwable $error) {
   fwrite(STDERR, "Read-only restored-snapshot integration failed.\n");
   echo json_encode(array('passed'=>false,'checks'=>$checks))."\n";
-  $failed=true;
+  $integration_failed=true;
 } finally {
   foreach ($databases as $database) { $db->query('DROP DATABASE IF EXISTS `'.$database.'`'); }
   $db->query("DROP USER IF EXISTS '$user'@'%'");
   $remove=static function($path) use (&$remove) { if(is_dir($path)){foreach(scandir($path) as $item){if($item!=='.'&&$item!=='..'){$remove($path.'/'.$item);}}rmdir($path);}else{unlink($path);} };
   $remove($temporary);
 }
-if (!empty($failed)) { exit(1); }
+if ($integration_failed) { exit(1); }
