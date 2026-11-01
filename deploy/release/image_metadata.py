@@ -55,8 +55,8 @@ class Registry:
         if digest(raw)!=expected:raise ValueError('Config digest mismatch.')
         return json.loads(raw)
 
-def validate_index(raw,registry,repository,tag,sha):
-    index=json.loads(raw);platforms=set()
+def runtime_digests(raw,registry,repository,tag,sha):
+    index=json.loads(raw);platforms={}
     if index.get('schemaVersion')!=2 or not isinstance(index.get('manifests'),list):raise ValueError('Multi-platform index required.')
     for row in index['manifests']:
         p=row.get('platform',{});arch=p.get('architecture');os_name=p.get('os')
@@ -70,17 +70,20 @@ def validate_index(raw,registry,repository,tag,sha):
         if config.get('architecture')!=arch or config.get('os')!='linux':raise ValueError('Runtime platform mismatch.')
         wanted={'org.opencontainers.image.revision':sha,'org.opencontainers.image.source':'https://github.com/'+repository,'org.opencontainers.image.version':tag}
         if any(labels.get(k)!=v for k,v in wanted.items()):raise ValueError('Image identity mismatch.')
-        platforms.add(arch)
-    if platforms!={'amd64','arm64'}:raise ValueError('Both runtime architectures required.')
-    return sorted(platforms)
+        platforms[arch]=expected
+    if set(platforms)!={'amd64','arm64'}:raise ValueError('Both runtime architectures required.')
+    return platforms
+
+def validate_index(raw,registry,repository,tag,sha):
+    return sorted(runtime_digests(raw,registry,repository,tag,sha))
 
 def inspect(registry,repository,tag,sha):
     version=registry.manifest(tag,missing=True);source=registry.manifest('sha-'+sha,missing=True)
-    if version is None and source is None:return {'exists':False,'digest':'','platforms':[]}
+    if version is None and source is None:return {'exists':False,'digest':'','platforms':[],'platformDigests':{}}
     if version is None or source is None:raise ValueError('Incomplete immutable tag set; do not overwrite or infer a repair.')
     if digest(version)!=digest(source):raise ValueError('Version/source tags disagree; overwrite refused.')
-    platforms=validate_index(version,registry,repository,tag,sha)
-    return {'exists':True,'digest':digest(version),'platforms':platforms}
+    platforms=runtime_digests(version,registry,repository,tag,sha)
+    return {'exists':True,'digest':digest(version),'platforms':sorted(platforms),'platformDigests':platforms}
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--repository',required=True);ap.add_argument('--tag',required=True);ap.add_argument('--sha',required=True);ap.add_argument('--ref',required=True);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--github-output',type=Path);ap.add_argument('--require-published',action='store_true');a=ap.parse_args()

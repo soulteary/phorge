@@ -144,15 +144,9 @@ jobs:
           [[ "$expected" =~ ^sha256:[0-9a-f]{64}$ ]]
           test "$expected" = "$VERIFIED_DIGEST"
       - name: Check the exact published runtime on both architectures
-        env:
-          DIGEST: ${{ steps.verified.outputs.digest }}
         run: |
-          set -euo pipefail
-          for arch in amd64 arm64; do
-            docker pull --platform "linux/$arch" "ghcr.io/$GITHUB_REPOSITORY@$DIGEST"
-            docker run --rm --network none --platform "linux/$arch" --entrypoint php \
-              "ghcr.io/$GITHUB_REPOSITORY@$DIGEST" /opt/phorge/phorge/deploy/acceptance/php_security.php
-          done
+          python3 deploy/release/check_published_runtime.py --metadata "$RUNNER_TEMP/phorge-release.json" \
+            --output "$RUNNER_TEMP/phorge-release-runtime.json"
       - name: Attest the verified container image
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:

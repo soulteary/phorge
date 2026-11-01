@@ -13,6 +13,12 @@ def fixture():
     registry=Mock();registry.manifest.side_effect=lambda ref,missing=False:records.get(ref);registry.config.side_effect=lambda ref:records[ref]
     return registry,records,raw
 class ImagePublicationTests(unittest.TestCase):
+    def test_runtime_child_digests_are_bound_to_the_verified_index(self):
+        registry,_,raw=fixture();value=m.inspect(registry,REPO,TAG,SHA)
+        expected={row['platform']['architecture']:row['digest'] for row in json.loads(raw)['manifests']}
+        self.assertEqual(value['platformDigests'],expected)
+        self.assertEqual(len(set(expected.values())),2)
+        self.assertNotIn(value['digest'],expected.values())
     def test_exact_version_source_and_two_architectures(self):
         registry,_,raw=fixture();r=m.inspect(registry,REPO,TAG,SHA);self.assertTrue(r['exists']);self.assertEqual(r['digest'],m.digest(raw));self.assertEqual(r['platforms'],['amd64','arm64'])
     def test_absent_pair_is_not_an_existing_publication(self):
