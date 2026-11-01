@@ -4,7 +4,9 @@ from boundaries import validate_coverage, native_policy_denial, object_visible
 
 
 def receipt():
-    return {'boundarySchemaVersion':1,'boundaryChecks':[{'passed':True}],
+    return {'boundarySchemaVersion':2,'boundaryChecks':[{'passed':True}],
+            'transactionBoundaries':{'independentProcesses':2,'databaseLockWaitObserved':True,'rollbackAfterObjectSave':True,'bulkRevocationAtExecution':True,'bulkItemRollback':True,'staleObjectReload':True},
+            'disclosureCoverage':{'selectorCells':36,'queryExportCases':4,'exportConfirmationRoutes':4,'exportDownloadRoutes':4},
             'boundaryCoverage':{
                 'restored':{'canonicalMemberSlugCells':340,'attachmentSubjects':10,'unknownObjectRoutes':20,'deniedWrites':2,'authorizedWrites':2,'staleForms':0},
                 'revoked':{'canonicalMemberSlugCells':340,'attachmentSubjects':10,'unknownObjectRoutes':20,'deniedWrites':3,'authorizedWrites':2,'staleForms':1},
@@ -50,3 +52,13 @@ class BoundaryEvidenceTests(unittest.TestCase):
     def test_unversioned_receipt_refused(self):
         data=receipt();del data['boundarySchemaVersion']
         with self.assertRaises(ValueError):validate_coverage(data)
+
+    def test_transaction_receipt_requires_real_lock_wait_and_both_processes(self):
+        for key in receipt()['transactionBoundaries']:
+            data=receipt();del data['transactionBoundaries'][key]
+            with self.assertRaises(ValueError):validate_coverage(data)
+
+    def test_disclosure_receipt_requires_selector_count_and_export_controls(self):
+        for key in receipt()['disclosureCoverage']:
+            data=receipt();data['disclosureCoverage'][key]-=1
+            with self.assertRaises(ValueError):validate_coverage(data)

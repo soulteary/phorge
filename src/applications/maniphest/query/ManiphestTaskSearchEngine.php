@@ -573,7 +573,9 @@ final class ManiphestTaskSearchEngine
       $phids[] = $task->getOwnerPHID();
       $phids[] = $task->getCloserPHID();
     }
-    $handles = $viewer->loadHandles($phids);
+    // Unassigned and open tasks have null owner/closer PHIDs. Do not queue
+    // them as handle-pool array keys (deprecated in PHP 8.5).
+    $handles = $viewer->loadHandles(array_filter($phids));
 
     $export = array();
     foreach ($tasks as $task) {
