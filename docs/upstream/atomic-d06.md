@@ -15,6 +15,18 @@
   immutable Gorge revision. HTTP validation preserves the production default
   builtin-composition mode; it does not silently migrate that optional mode.
 
+## Current checkpoint
+
+D06 merged as #57. The six-package inventory is now 141 native methods; the
+focused D01/D05/D06 selection is 56 + 24 + 11 = 91 methods. HTTP acceptance
+still has 30 assertions, separately recorded from browser checks. PHP 8.5.12
+is the sole supported baseline, with explicit JIT disable and zero buffer.
+Gorge's separately merged favicon fix and the formal r3 pair supersede the
+historical external API gap below; Phorge adds no rendering fallback. Keep
+optional controls disabled outside the disposable acceptance fixture.
+
+The following paragraphs preserve the original D06 integration history.
+
 The HTTP harness exposed a pre-existing optional-mode compatibility gap:
 native page favicons request 76/120/152-pixel outputs, while the paired Gorge
 composition recipe accepts 16/32/64/128. This package does not widen the external

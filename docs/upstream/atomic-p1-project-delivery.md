@@ -4,6 +4,17 @@ D05/D06 source feature contribution: `soulteary/phorge#49` at
 `4051759aedb701c46b0b859185d08b6873fbd066`. Implementation baseline:
 `a6d18ba72c805bc54e703ba2c02a53d5ba3d2290`.
 
+## Current merged checkpoint
+
+All six packages merged through #52–#57. Follow-ups #58–#61 added source
+provenance, the sole PHP 8.5.12 baseline, authentication-navigation coverage
+and notification fixes. Current native inventory is 141 methods plus a separate
+30-assertion HTTP gate, paired to formal Gorge `2026.11.01-r3` via
+`tests/atomic/paired-gorge.json`. Optional controls remain off/native/false.
+The branch integration narrative below is historical, not pending merge work.
+Current design-anchor and browser evidence boundaries are documented in
+`atomic-required-gates-and-evidence.md`.
+
 ## Review and dependency boundaries
 
 | Package | Review reference | Dependency | Included capability |
