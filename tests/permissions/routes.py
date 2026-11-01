@@ -5,6 +5,7 @@ from pathlib import Path
 import secrets, shutil, socket, subprocess, tempfile, time, re, datetime
 import urllib.request, urllib.parse, urllib.error
 from route_snapshot import remap_snapshot
+import boundaries
 from route_spec import PROJECTS, SUBJECTS, PHASES, ROUTES, expected, validate_receipt
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -23,7 +24,7 @@ def main():
         raise ValueError('Inherited deployment configuration selectors refused before PHP execution.')
     out=args.output.resolve(); out.mkdir(mode=0o700, parents=True, exist_ok=False)
     report={'passed':False,'baselineModel':'native-v1','candidateModelsRouteVerified':[],
-            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'checks':[], 'cleanup':False}
+            'phaseSnapshots':{},'migrationReady':False,'pairedGorgeRevision':os.environ.get('GORGE_CONTRACT_REF'),'matrix':[],'boundarySchemaVersion':1,'boundaryCoverage':{},'boundaryChecks':[],'checks':[], 'cleanup':False}
     before=GATE.capture_source(ROOT)
     if GATE.record_source_provenance(report,before,None,args.require_clean_worktree):
         GATE.publish_report(out/'route-results.json',report); return 1
@@ -57,6 +58,9 @@ def main():
     owned=[]; server=None; collected=[]; reader=None; scoped=False
     def check(ok,label):
         report['checks'].append({'name':label,'passed':bool(ok)})
+        if not ok: raise RuntimeError(label)
+    def boundary_check(ok,label):
+        report['boundaryChecks'].append({'name':label,'passed':bool(ok)})
         if not ok: raise RuntimeError(label)
     def run(argv):
         p=subprocess.run(argv,cwd=ROOT,env=env,capture_output=True,text=True,timeout=600)
@@ -197,7 +201,13 @@ def main():
                 denied=response.get('error_code') is not None and response.get('result') is None
                 check(status==200 and denied and 'permission' in response.get('error_info','').lower(),
                       'denied Conduit mutation '+phase+' '+role+' '+alias)
+            report['boundaryCoverage'][phase]=boundaries.project_reads(data,phase,sessions,request,client,boundary_check)
+            report['boundaryCoverage'][phase].update(boundaries.effective_writes(data,phase,request,client,fixture,boundary_check))
             stop(); check(fixture('state')==fingerprint,'route reads preserve permission state '+phase)
+        extra=fixture('seed-boundaries');start()
+        report['boundaryCoverage']['cross-object']=boundaries.cross_object(data,extra,sessions,request,client,boundary_check);stop()
+        boundaries.validate_coverage(report)
+        report['boundaryScope']='Native canonical/member/slug routes, paginated attachments, effective edits, private tasks, configured user rule and Space; adjunct fixtures excluded from offline comparison snapshots.'
         validate_receipt(report); report['passed']=True
     except Exception as e:
         report['failure']=str(e)

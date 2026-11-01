@@ -10,7 +10,14 @@ from pathlib import Path
 import re
 import subprocess
 import stat
+
 import time
+
+import importlib.util
+_source_spec = importlib.util.spec_from_file_location('permission_membership_sources', Path(__file__).with_name('sources.py'))
+_source_module = importlib.util.module_from_spec(_source_spec)
+_source_spec.loader.exec_module(_source_module)
+membership_inventory = _source_module.inventory
 
 MODELS = {
     'native-v1': (False, False, 'materialized'),
@@ -238,7 +245,10 @@ class Comparison:
                    'routeVerification': {route: 'not-verified' for route in ROUTES},
                    'migrationReady': False, 'recommendation': 'retain-native-pending-owner-and-route-review',
                    'writesPerformed': 0}
-        return summary, {'schemaVersion': 1, 'deltas': changes, 'ambiguities': ambiguous}
+        source_summary, source_rows = membership_inventory(self)
+        summary['membershipSources'] = source_summary
+        return summary, {'schemaVersion': 1, 'deltas': changes, 'ambiguities': ambiguous,
+                         'membershipSources': source_rows}
 
 
 def write_new(path, value):

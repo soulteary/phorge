@@ -1,13 +1,13 @@
 # ADR-B04-M07-0001: Versioned project permissions
 
-Document version: 1.0.0
-Status: **Proposed recommendation; not accepted or activated**
+Document version: 1.0.1
+Status: **Four native axes accepted; no candidate activation or migration**
 Date: 2026-11-01
 Evidence baseline: `0c02bb92a491d86c4492b815698cd89fe9cd1438` / [PR #64](https://github.com/soulteary/phorge/pull/64)
 
 ## Decision boundary
 
-建议保持 **native-v1**。本文件制定四个独立权限轴的决策，不更改运行代码、开关、物化索引、成员边或线上权限。`native-v1` 是既有审计基线标识；不新增运行时模型选择器。签署角色和四轴处置仍待确认。
+建议保持 **native-v1**。本文件制定四个独立权限轴的决策，不更改运行代码、开关、物化索引、成员边或线上权限。`native-v1` 是既有审计基线标识；不新增运行时模型选择器。本次明确指令已接受四轴保留原生；具体业务例外、消费者职责和未来迁移参数仍待逐项确认。
 
 ## Evidence and limitations
 
@@ -98,7 +98,7 @@ Evidence baseline: `0c02bb92a491d86c4492b815698cd89fe9cd1438` / [PR #64](https:/
 - 独立四轴组合必须有完整不可变模型定义，不能任意拼接现有候选ID或将combined-v1直接视为发布版本。
 - 未来代码/worker/索引generation须明确兼容；未知/混合版本的写入拒绝是待实现门禁，不是已验证能力。
 
-接受记录：维护者和策略负责人尚未签署；项目负责人尚未逐对象处置差异。四轴均为 pending。接受“保留原生”也不等于授权未来迁移。若未来拒绝其中某轴，只能开启独立后继设计，不能隐式使其他轴同时生效。
+接受记录：2026-11-01，本次用户明确指令接受四轴 retain-native。此接受不代表已指定所有未来责任人或逐对象批准候选模型差异。接受“保留原生”也不等于授权未来迁移。若未来拒绝其中某轴，只能开启独立后继设计，不能隐式使其他轴同时生效。
 
 ## Runtime responsibility and invariants
 
@@ -193,8 +193,9 @@ D07保留原包优先级P2；其中本次可推进的决策/验证工作优先P0
 
 B04交付版本化建议与待确认清单；M07已交付只读审计及受控原生路由证据。两项仍为partial_tooling，D07不是完整交付。保留134原子、268设计锚点、19包；42项既有范围、90项未开始、2项部分交付不变。
 
-本次只检查文档/数据一致性、依赖无环、证据链接与隐私；不把新增测试设计声明为已执行测试，也不重新认证线上业务。
+1.0.0阶段仅检查文档/数据一致性、依赖无环、证据链接与隐私。1.0.1的P0实现与有界原生测试见实施边界文档；并非全部32项补充设计已执行，也未重新认证线上业务。
 
 ## Change log
 
+- 1.0.1 / 2026-11-01: 四轴原生建议按明确指令接受；推进P0只读来源/消费者清单和有界原生测试，未采纳候选或授权迁移。见[实施边界](b04-m07-native-source-and-consumer-inventory.md)。
 - 1.0.0 / 2026-11-01: 基于#64审计提出四轴原生保留建议、负责人确认清单、分阶段优先级和32项补充测试设计。未接受、未激活、未迁移。

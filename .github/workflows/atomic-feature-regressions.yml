@@ -70,6 +70,7 @@ jobs:
         run: |
           python3 -m unittest discover -s tests/permissions -p 'test_*.py' -v
           php tests/permissions/restore_integration.php
+          python3 scripts/permissions/inventory.py --require-clean --output "$RUNNER_TEMP/permission-consumers.json"
       - name: Require the same immutable Gorge revision as paired runtime contracts
         run: |
           python3 tests/atomic/check_pair.py
@@ -136,7 +137,9 @@ jobs:
         if: always()
         with:
           name: permission-routes-php-${{ matrix.php }}
-          path: ${{ runner.temp }}/permission-route-evidence/route-results.json
+          path: |
+            ${{ runner.temp }}/permission-route-evidence/route-results.json
+            ${{ runner.temp }}/permission-consumers.json
           if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         if: always() && hashFiles('tests/atomic/packages/D06.json') != ''

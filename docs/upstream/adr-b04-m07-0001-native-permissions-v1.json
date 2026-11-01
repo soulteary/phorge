@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "adrId": "ADR-B04-M07-0001",
-  "documentVersion": "1.0.0",
-  "status": "proposed_recommended_not_accepted",
+  "documentVersion": "1.0.1",
+  "status": "accepted_native_axes_only_no_migration",
   "date": "2026-11-01",
   "recommendation": "retain-native-v1",
   "runtimeModelChanged": false,
@@ -1154,14 +1154,15 @@
     "partialTooling": 2
   },
   "acceptance": {
-    "acceptedBy": null,
-    "acceptedAt": null,
+    "acceptedBy": "Explicit user instruction retaining all four native recommendations",
+    "acceptedAt": "2026-11-01",
     "axisDispositions": {
-      "V": "pending",
-      "E": "pending",
-      "M": "pending",
-      "H": "pending"
-    }
+      "V": "retain-native",
+      "E": "retain-native",
+      "M": "retain-native",
+      "H": "retain-native"
+    },
+    "scope": "Four native axis recommendations only; outstanding business exceptions, consumer details and future migration parameters are not implicitly approved."
   },
   "versionRules": [
     "文档1.0.0是建议版，不代表模型已发布或负责人已接受。",
@@ -1169,5 +1170,12 @@
     "澄清、引用、无语义修订可递增文档补丁并记录原因；接受后语义变更须新ADR/新模型ID并显式supersede。",
     "独立四轴组合必须有完整不可变模型定义，不能任意拼接现有候选ID或将combined-v1直接视为发布版本。",
     "未来代码/worker/索引generation须明确兼容；未知/混合版本的写入拒绝是待实现门禁，不是已验证能力。"
-  ]
+  ],
+  "implementationFollowup": {
+    "scope": "P0 source/consumer inventory and bounded native boundary tests",
+    "reference": "b04-m07-native-source-and-consumer-inventory.md",
+    "optionalControlsRemainOff": true,
+    "productionMigrationPerformed": false,
+    "remainingSupplementaryDesignsNotAllClosed": true
+  }
 }

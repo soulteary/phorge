@@ -136,7 +136,7 @@ if ($mode === 'seed') {
     if (!$stories) { throw new Exception('Missing positive feed control: '.$key); }
     $story=head($stories);
     $fixture['projects'][$key]=array('id'=>(int)$p->getID(),'phid'=>$p->getPHID(),'name'=>$p->getName(),
-      'storyKey'=>(string)$story->getChronologicalKey());
+      'slug'=>$p->getPrimarySlug(),'storyKey'=>(string)$story->getChronologicalKey());
   }
   foreach ($users as $role=>$u) {
     $api=PhabricatorConduitToken::initializeNewToken($u->getPHID(),PhabricatorConduitToken::TYPE_STANDARD)->save();
@@ -148,6 +148,49 @@ if ($mode === 'seed') {
   exit;
 }
 $fixture=json_decode(file_get_contents($private.'/fixture.json'),true);
+if ($mode==='seed-boundaries') {
+  $users=array();foreach($fixture['users'] as $role=>$row){$users[$role]=id(new PhabricatorPeopleQuery())->setViewer($omni)->withPHIDs(array($row['phid']))->needUserSettings(true)->executeOne();}
+  $actor=$users['owner'];$result=array('projects'=>array(),'tasks'=>array());
+  $default=PhabricatorSpacesNamespace::initializeNewNamespace($actor)->setNamespaceName('Boundary Default')->setIsDefaultNamespace(1)->setViewPolicy(PhabricatorPolicies::POLICY_USER)->save();
+  $private=PhabricatorSpacesNamespace::initializeNewNamespace($actor)->setNamespaceName('Boundary Private')->setViewPolicy($actor->getPHID())->save();
+  $rule=id(new PhabricatorPolicy())->setRules(array(array('action'=>PhabricatorPolicy::ACTION_ALLOW,'rule'=>PhabricatorUsersPolicyRule::class,'value'=>array($actor->getPHID(),$users['childEditor']->getPHID()))))->setDefaultAction(PhabricatorPolicy::ACTION_DENY)->save();
+  foreach(array('space','custom') as $kind){
+    $created=id(new ConduitCall('project.edit',array('transactions'=>array(
+      array('type'=>'name','value'=>'BoundarySetup'.$fixture['token'].' '.$kind),
+      array('type'=>'view','value'=>$kind==='custom'?$rule->getPHID():PhabricatorPolicies::POLICY_USER),
+      array('type'=>'edit','value'=>$actor->getPHID()),
+    ))))->setUser($actor)->execute();
+    $p=route_project($created['object']['phid']);
+    if($kind==='space'){$p->setSpacePHID($private->getPHID())->save();}
+    id(new ConduitCall('project.edit',array('objectIdentifier'=>$p->getPHID(),'transactions'=>array(array('type'=>'name','value'=>'BoundaryProject'.$fixture['token'].' '.$kind)))))->setUser($actor)->execute();
+    $p=route_project($p->getPHID());$p->setHasWorkboard(1)->save();
+    id(new PhabricatorProjectColumn())->setProjectPHID($p->getPHID())->setName('Boundary Backlog')->setSequence(0)->setProperty('isDefault',true)->setStatus(PhabricatorProjectColumn::STATUS_ACTIVE)->save();
+    route_index($p);
+    $transactions=id(new PhabricatorProjectTransactionQuery())->setViewer($omni)->withObjectPHIDs(array($p->getPHID()))->execute();
+    $story=id(new PhabricatorFeedStoryPublisher())->setStoryType('PhabricatorApplicationTransactionFeedStory')->setStoryData(array('objectPHID'=>$p->getPHID(),'transactionPHIDs'=>mpull($transactions,'getPHID')))->setStoryTime(time())->setStoryAuthorPHID($actor->getPHID())->setRelatedPHIDs(array($p->getPHID()))->setPrimaryObjectPHID($p->getPHID())->publish();
+    $result['projects'][$kind]=array('id'=>(int)$p->getID(),'phid'=>$p->getPHID(),'name'=>$p->getName(),'slug'=>$p->getPrimarySlug(),'storyKey'=>(string)$story->getChronologicalKey());
+  }
+  foreach(array('public','private') as $kind){
+    $created=id(new ConduitCall('maniphest.edit',array('transactions'=>array(
+      array('type'=>'title','value'=>'BoundarySetup'.$fixture['token'].' '.$kind),
+      array('type'=>'view','value'=>$kind==='private'?$actor->getPHID():PhabricatorPolicies::POLICY_USER),
+      array('type'=>'edit','value'=>$actor->getPHID()),
+      array('type'=>'projects.add','value'=>array($fixture['projects']['ordinary']['phid'])),
+    ))))->setUser($actor)->execute();
+    $phid=$created['object']['phid'];$title='BoundaryTask'.$fixture['token'].' '.$kind;
+    id(new ConduitCall('maniphest.edit',array('objectIdentifier'=>$phid,'transactions'=>array(array('type'=>'title','value'=>$title)))))->setUser($actor)->execute();
+    $transactions=id(new ManiphestTransactionQuery())->setViewer($omni)->withObjectPHIDs(array($phid))->execute();
+    $story=id(new PhabricatorFeedStoryPublisher())->setStoryType('PhabricatorApplicationTransactionFeedStory')->setStoryData(array('objectPHID'=>$phid,'transactionPHIDs'=>mpull($transactions,'getPHID')))->setStoryTime(time())->setStoryAuthorPHID($actor->getPHID())->setRelatedPHIDs(array($phid))->setPrimaryObjectPHID($phid)->publish();
+    $result['tasks'][$kind]=array('id'=>(int)$created['object']['id'],'phid'=>$phid,'title'=>$title,'storyKey'=>(string)$story->getChronologicalKey());
+  }
+  echo json_encode($result,JSON_THROW_ON_ERROR)."\n";exit;
+}
+if ($mode==='write-state') {
+  $p=new PhabricatorProject();$conn=$p->establishConnection('r');
+  $rows=queryfx_all($conn,'SELECT id,name,viewPolicy,editPolicy,joinPolicy FROM %T WHERE phid IN (%Ls) ORDER BY id',$p->getTableName(),array_column($fixture['projects'],'phid'));
+  $tx=new PhabricatorProjectTransaction();$count=queryfx_one($conn,'SELECT COUNT(*) n FROM %T WHERE objectPHID IN (%Ls)',$tx->getTableName(),array_column($fixture['projects'],'phid'));
+  echo json_encode(array('fingerprint'=>hash('sha256',json_encode(array($rows,$count))),'transactions'=>(int)$count['n']));exit;
+}
 if ($mode==='revoke') {
   $u=id(new PhabricatorUser())->loadOneWhere('phid = %s',$fixture['users']['member']['phid']);
   $p=route_project($fixture['projects']['openChild']['phid']);route_edge($p,$u,false);
