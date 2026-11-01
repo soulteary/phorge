@@ -222,3 +222,8 @@ failure; v4 acknowledges a committed versioned creator batch without duplication
 Unmarked legacy interrupted items remain untouched for manual reconciliation.
 The baseline stays native with optional features unavailable; only isolated
 helper processes preload dependencies or select Gorge ownership.
+
+The v5 extension is documented in
+[b04-m07-export-boundary-acceptance.md](b04-m07-export-boundary-acceptance.md).
+It adds real isolated HTTP XLSX downloads, two-process mid-export revocation and
+native member/Space hierarchy transitions without changing production semantics.

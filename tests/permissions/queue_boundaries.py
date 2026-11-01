@@ -94,7 +94,7 @@ def workers(here,root,env,private,fixture,check):
 
 
 def validate(report):
-    if report.get("boundarySchemaVersion")!=4:raise ValueError("Queue evidence version required.")
+    if report.get("boundarySchemaVersion")!=5:raise ValueError("Queue evidence version required.")
     if report.get('queueWebCoverage')!={'additionalSelectorCells':36,'formatAssertions':25,'largeExportRows':1003,'largeExportAssertions':10,'httpAssertions':3}:raise ValueError('Incomplete queue/export route evidence.')
     if report.get('queueWorkerCoverage')!={'ancestorCases':2,'tokenControls':4,'spaceSynchronizationControls':1,'retryAssertions':24,'queueOwner':'native-sql','genericDaemonsStarted':0,'inFlightAncestorSemantics':'ordinary-loaded-parent/milestone-sync-waits-child;fresh-denies'}:raise ValueError('Incomplete cross-object/leased worker evidence.')
     return True
