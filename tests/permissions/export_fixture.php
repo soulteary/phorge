@@ -7,9 +7,9 @@ function export_query($viewer,$ids){$engine=id(new ManiphestTaskSearchEngine())-
 function export_file($viewer,$ids,$format){list($engine,$saved)=export_query($viewer,$ids);return id(new PhabricatorExportEngine())->setViewer($viewer)->setSearchEngine($engine)->setSavedQuery($saved)->setExportFormat($format)->setFilename('isolated-export')->setTitle('Isolated export')->exportFile();}
 if($mode==='export-seed'){
  $tasks=array();foreach(array('public','private') as $kind){$t=ManiphestTask::initializeNewTask($creator)->setTitle($kind==='public'?'HTTP XLSX visible canary':'HTTP XLSX private canary')->setViewPolicy($kind==='public'?PhabricatorPolicies::POLICY_USER:$creator->getPHID())->save();$tasks[$kind]=(int)$t->getID();}
- $queries=array();foreach(array('owner','outsider') as $role){list($engine,$saved)=export_query(queue_actor($role),array_values($tasks));$queries[$role]=$saved->getQueryKey();}
+ $queries=array();$columns=array();foreach(array('owner','outsider') as $role){list($engine,$saved)=export_query(queue_actor($role),array_values($tasks));$queries[$role]=$saved->getQueryKey();$columns[$role]=array_values(mpull($engine->newExportFieldList(),'getKey'));}
  $rows=array();for($i=0;$i<1002;$i++){$t=ManiphestTask::initializeNewTask($creator)->setTitle('Mid-export row '.$i)->setViewPolicy(PhabricatorPolicies::POLICY_USER)->setEditPolicy($creator->getPHID())->save();$rows[]=(int)$t->getID();}
- file_put_contents($path,json_encode(array('tasks'=>$tasks,'queries'=>$queries,'rows'=>$rows)));echo json_encode(array('queries'=>$queries));return;
+ file_put_contents($path,json_encode(array('tasks'=>$tasks,'queries'=>$queries,'rows'=>$rows,'columns'=>$columns)));echo json_encode(array('queries'=>$queries));return;
 }
 $s=is_file($path)?json_decode(file_get_contents($path),true):array();
 if($mode==='export-hold'){

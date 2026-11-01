@@ -4,7 +4,7 @@ from queue_boundaries import validate
 
 
 def receipt():
-    return {'boundarySchemaVersion':6,
+    return {'boundarySchemaVersion':7,
         'queueWebCoverage':{'additionalSelectorCells':36,'formatAssertions':25,'largeExportRows':1003,'largeExportAssertions':10,'httpAssertions':3},
         'queueWorkerCoverage':{'ancestorCases':2,'tokenControls':4,'spaceSynchronizationControls':1,'retryAssertions':24,'queueOwner':'native-sql','genericDaemonsStarted':0,'inFlightAncestorSemantics':'ordinary-loaded-parent/milestone-sync-waits-child;fresh-denies'}}
 
