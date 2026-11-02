@@ -85,3 +85,13 @@ class ConsumerInventoryTests(unittest.TestCase):
                 '<?php $query->needMembers(true);')
             with self.assertRaisesRegex(ValueError,'references changed'):
                 inventory.collect(root)
+
+    def test_native_source_observer_remains_reviewed_without_grant_authority(self):
+        row=next(r for r in inventory.collect()['consumers']
+                 if r['path']=='src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php')
+        self.assertTrue(row['discovery'])
+        self.assertTrue(row['matchingLines'])
+        self.assertEqual(row['kind'],'isolated-native-source-observer')
+        self.assertEqual(row['authority'],'none')
+        self.assertEqual(row['sourceOperation'],'read-only-native-source-observation')
+        self.assertIs(row['candidateGenerationIntroduced'],False)

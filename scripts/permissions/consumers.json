@@ -802,6 +802,16 @@
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "unit-test-only",
       "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php",
+      "discovery": true,
+      "kind": "isolated-native-source-observer",
+      "meaning": "Reads bounded native direct, inverse and materialized member rows in explicitly owned disposable schemas; source fingerprints remain partial, never membership authority or a runtime grant.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "read-only-native-source-observation",
+      "candidateGenerationIntroduced": false
     }
   ]
 }
