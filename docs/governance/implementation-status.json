@@ -102,8 +102,8 @@
       "depends_on": [
         "N00"
       ],
-      "status": "native-session-media-backend-verified-partial",
-      "remaining": "Native session/backend binding, issue-wins account switch, SQL fault rollback, actual concurrent single-use redemption and ABA invalidation verified. Cookie/HTTP/file-policy trust boundary and restore issuer rotation remain gates.",
+      "status": "native-media-issuer-and-table-restore-isolated-verified-partial",
+      "remaining": "External media-only issuer HMAC and narrow three-table restore verified while native session/API credentials are retained. Structured targets, quotas/cleanup and actual HTTP/cookie/bootstrap entry points remain; no public route activation.",
       "production_enabled": false
     },
     {
@@ -149,8 +149,8 @@
         "N11",
         "N12"
       ],
-      "status": "not-implemented",
-      "remaining": "Cross-package, release, test-machine deployment and browser acceptance remain required.",
+      "status": "media-only-table-restore-proof-partial",
+      "remaining": "Narrow media recovery non-revival is verified. Full application recovery, account-state quarantine, operational evidence and scoped handling of real native credentials remain separate; no mass session/API operation is authorized.",
       "production_enabled": false
     }
   ],

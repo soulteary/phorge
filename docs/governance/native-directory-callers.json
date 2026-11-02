@@ -286,7 +286,7 @@
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
       "symbol": "PhorgeGovernanceMediaExchangeService",
       "kind": "candidate-runtime-source",
-      "sha256": "cad35f3693e92941aa7a3d9b70de581d2908607fae63a0e75baf1e872089e666",
+      "sha256": "5f9153e49902f0560ca7e303fe6d4c99970c066eceb55d29a91db3801d120f4d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -297,7 +297,7 @@
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php",
       "symbol": "PhorgeGovernanceMediaSchemaSpec",
       "kind": "candidate-runtime-source",
-      "sha256": "6bd65947120b64be97478d00561c2507b290239740fc1c1886733a125764a1f1",
+      "sha256": "bccc3cd78a288c3e1b9e32606980c6f8acd5f6fcb95adf5ab938056945888d73",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -308,7 +308,18 @@
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php",
       "symbol": "PhorgeGovernanceMediaConfigOptions",
       "kind": "default-off-configuration",
-      "sha256": "a1a8fa454da87a507a3cd5a938fcd8151f8d8a12d5f94043848c1ef01cc393b8",
+      "sha256": "75e54c95b2da0bcc0f72bc528a7498bfccdecab561d2b8289fc4551f17fbbd7c",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaIssuer",
+      "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php",
+      "symbol": "PhorgeGovernanceMediaIssuer",
+      "kind": "media-only-external-issuer",
+      "sha256": "478f049956332abe308408e5bba22ddc7d79edf38e80bf4a7756d5af581f0b38",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -443,6 +454,22 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Both sources reference governance.media-exchange.enabled; configuration declaration/consumer only, not activation or runtime authorization proof."
+    },
+    {
+      "id": "NATIVE-LINK-17",
+      "from_id": "NATIVE.PhorgeGovernanceMediaExchangeService",
+      "to_id": "NATIVE.PhorgeGovernanceMediaIssuer",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed media-only external configuration and purpose-separated digest dependency; not a public route, native credential rotation or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-18",
+      "from_id": "NATIVE.PhorgeGovernanceMediaConfigOptions",
+      "to_id": "NATIVE.PhorgeGovernanceMediaIssuer",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed media-only external configuration and purpose-separated digest dependency; not a public route, native credential rotation or activation proof."
     }
   ],
   "scan": {
@@ -557,15 +584,19 @@
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php",
-        "sha256": "a1a8fa454da87a507a3cd5a938fcd8151f8d8a12d5f94043848c1ef01cc393b8"
+        "sha256": "75e54c95b2da0bcc0f72bc528a7498bfccdecab561d2b8289fc4551f17fbbd7c"
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
-        "sha256": "cad35f3693e92941aa7a3d9b70de581d2908607fae63a0e75baf1e872089e666"
+        "sha256": "5f9153e49902f0560ca7e303fe6d4c99970c066eceb55d29a91db3801d120f4d"
+      },
+      {
+        "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php",
+        "sha256": "478f049956332abe308408e5bba22ddc7d79edf38e80bf4a7756d5af581f0b38"
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php",
-        "sha256": "6bd65947120b64be97478d00561c2507b290239740fc1c1886733a125764a1f1"
+        "sha256": "bccc3cd78a288c3e1b9e32606980c6f8acd5f6fcb95adf5ab938056945888d73"
       },
       {
         "path": "src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php",
