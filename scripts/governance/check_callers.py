@@ -24,7 +24,8 @@ UNSUPPORTED = {'U%02d' % i for i in range(1, 9)}
 SOURCE_IDS = {
     'user.account', 'project.policy', 'project.member', 'project.parent',
     'policy.named', 'space.policy', 'org.appointment', 'org.membership',
-    'app.capability', 'auth.session',
+    'app.capability', 'auth.session', 'task.policy', 'task.owner',
+    'wiki.policy', 'wiki.parent',
 }
 OPERATIONS = {
     'project.description', 'task.title', 'task.description', 'wiki.title',

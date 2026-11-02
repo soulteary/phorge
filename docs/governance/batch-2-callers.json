@@ -35,7 +35,11 @@
     "project.parent",
     "project.policy",
     "space.policy",
-    "user.account"
+    "task.owner",
+    "task.policy",
+    "user.account",
+    "wiki.parent",
+    "wiki.policy"
   ],
   "operation_ids": [
     "account.enable",
@@ -60,9 +64,9 @@
         "policy.replace"
       ],
       "source_ids": [
-        "project.policy",
+        "app.capability",
         "project.parent",
-        "app.capability"
+        "project.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -80,9 +84,9 @@
         "project.members"
       ],
       "source_ids": [
-        "project.policy",
         "project.member",
-        "project.parent"
+        "project.parent",
+        "project.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -100,8 +104,8 @@
         "project.members"
       ],
       "source_ids": [
-        "project.policy",
-        "app.capability"
+        "app.capability",
+        "project.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -119,8 +123,8 @@
         "project.members"
       ],
       "source_ids": [
-        "project.policy",
-        "project.member"
+        "project.member",
+        "project.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -136,8 +140,8 @@
         "project.members"
       ],
       "source_ids": [
-        "project.policy",
-        "project.member"
+        "project.member",
+        "project.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -153,8 +157,8 @@
         "project.members"
       ],
       "source_ids": [
-        "project.policy",
-        "project.member"
+        "project.member",
+        "project.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -171,9 +175,9 @@
         "policy.replace"
       ],
       "source_ids": [
-        "project.policy",
         "project.member",
-        "project.parent"
+        "project.parent",
+        "project.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -255,9 +259,9 @@
         "policy.replace"
       ],
       "source_ids": [
-        "project.policy",
+        "project.member",
         "project.parent",
-        "project.member"
+        "project.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -275,9 +279,13 @@
         "policy.replace"
       ],
       "source_ids": [
-        "user.account",
+        "app.capability",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "app.capability"
+        "task.owner",
+        "task.policy",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -295,9 +303,13 @@
         "policy.replace"
       ],
       "source_ids": [
-        "user.account",
+        "app.capability",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "app.capability"
+        "task.owner",
+        "task.policy",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -316,9 +328,13 @@
         "object.relationship"
       ],
       "source_ids": [
-        "user.account",
         "policy.named",
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "task.owner",
+        "task.policy",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -336,8 +352,12 @@
         "policy.replace"
       ],
       "source_ids": [
-        "user.account",
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "task.owner",
+        "task.policy",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -355,8 +375,12 @@
         "policy.replace"
       ],
       "source_ids": [
-        "user.account",
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "task.owner",
+        "task.policy",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -374,8 +398,12 @@
         "policy.replace"
       ],
       "source_ids": [
-        "user.account",
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "task.owner",
+        "task.policy",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -394,7 +422,11 @@
       ],
       "source_ids": [
         "app.capability",
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "task.owner",
+        "task.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -413,7 +445,11 @@
       ],
       "source_ids": [
         "app.capability",
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "task.owner",
+        "task.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -429,6 +465,10 @@
         "task.title"
       ],
       "source_ids": [
+        "project.member",
+        "project.parent",
+        "task.owner",
+        "task.policy",
         "user.account"
       ],
       "coverage": "partial",
@@ -445,6 +485,10 @@
         "task.description"
       ],
       "source_ids": [
+        "project.member",
+        "project.parent",
+        "task.owner",
+        "task.policy",
         "user.account"
       ],
       "coverage": "partial",
@@ -462,8 +506,12 @@
         "wiki.content"
       ],
       "source_ids": [
+        "app.capability",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "app.capability"
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -477,8 +525,12 @@
       "entry_kind": "comments-only-web",
       "operation_ids": [],
       "source_ids": [
+        "app.capability",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "app.capability"
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -494,8 +546,12 @@
         "policy.replace"
       ],
       "source_ids": [
+        "policy.named",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "policy.named"
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -514,8 +570,12 @@
         "object.relationship"
       ],
       "source_ids": [
+        "policy.named",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "policy.named"
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -531,8 +591,12 @@
         "policy.replace"
       ],
       "source_ids": [
+        "app.capability",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "app.capability"
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -549,8 +613,12 @@
         "wiki.content"
       ],
       "source_ids": [
+        "app.capability",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "app.capability"
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -567,8 +635,12 @@
         "wiki.content"
       ],
       "source_ids": [
+        "app.capability",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "app.capability"
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -584,7 +656,11 @@
         "wiki.title"
       ],
       "source_ids": [
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -600,7 +676,11 @@
         "wiki.content"
       ],
       "source_ids": [
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -616,8 +696,8 @@
         "account.enable"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -633,8 +713,8 @@
         "account.enable"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -650,8 +730,8 @@
         "account.enable"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -667,8 +747,8 @@
         "account.enable"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -684,8 +764,8 @@
         "account.enable"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -701,8 +781,8 @@
         "account.enable"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -718,8 +798,8 @@
         "account.enable"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -756,8 +836,8 @@
       ],
       "source_ids": [
         "policy.named",
-        "space.policy",
-        "project.member"
+        "project.member",
+        "space.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -774,9 +854,9 @@
         "object.relationship"
       ],
       "source_ids": [
-        "user.account",
+        "app.capability",
         "space.policy",
-        "app.capability"
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -792,8 +872,8 @@
         "policy.replace"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -810,8 +890,8 @@
         "object.relationship"
       ],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -825,8 +905,8 @@
       "entry_kind": "bulk-worker",
       "operation_ids": [],
       "source_ids": [
-        "user.account",
-        "app.capability"
+        "app.capability",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -860,8 +940,12 @@
         "policy.replace"
       ],
       "source_ids": [
-        "user.account",
-        "space.policy"
+        "project.member",
+        "project.parent",
+        "space.policy",
+        "task.owner",
+        "task.policy",
+        "user.account"
       ],
       "coverage": "partial",
       "activation_blocked": true,
@@ -879,8 +963,12 @@
         "policy.replace"
       ],
       "source_ids": [
+        "policy.named",
+        "project.member",
+        "project.parent",
         "space.policy",
-        "policy.named"
+        "wiki.parent",
+        "wiki.policy"
       ],
       "coverage": "partial",
       "activation_blocked": true,

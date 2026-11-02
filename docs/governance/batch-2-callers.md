@@ -8,7 +8,7 @@ Consumer IDs identify source entries, not permission grants. Operation IDs match
 
 Operations: `account.enable`, `object.relationship`, `object.space`, `policy.replace`, `project.description`, `project.members`, `task.description`, `task.title`, `wiki.content`, `wiki.title`.
 
-Read-set categories: `app.capability`, `auth.session`, `org.appointment`, `org.membership`, `policy.named`, `project.member`, `project.parent`, `project.policy`, `space.policy`, `user.account`.
+Read-set categories: `app.capability`, `auth.session`, `org.appointment`, `org.membership`, `policy.named`, `project.member`, `project.parent`, `project.policy`, `space.policy`, `task.owner`, `task.policy`, `user.account`, `wiki.parent`, `wiki.policy`.
 
 ## Important source distinctions
 
@@ -138,3 +138,7 @@ Run `python3 -m unittest discover -s tests/governance -p test_callers.py`. Tests
 - `WIKI.POLICY.SOURCE`: [src/applications/phriction/storage/PhrictionDocument.php](../../src/applications/phriction/storage/PhrictionDocument.php), `PhrictionDocument`; partial/static reference only.
 
 The engine custom-field link and task/wiki object policy sources are explicit review anchors; they do not certify automatic-capability behavior. Generated scan/triage rows are compact for review; no evidence fields are removed.
+
+The task policy/owner and Wiki policy/parent kinds explicitly record native automatic-capability and ancestor dependencies. Their presence is an adapter obligation, not proof that the full referenced source set has been enumerated.
+
+Task and Wiki policies can reference project groups too; their partial source categories therefore also include `project.member` and `project.parent`. This does not establish a complete enumeration of group-policy dependencies.
