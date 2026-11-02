@@ -29,4 +29,11 @@ class CandidateAdoptionTests(unittest.TestCase):
   done=next(a for a in self.data['atoms'] if a['category']=='已完成');deferred=next(a for a in self.data['atoms'] if a['category']=='暂缓')
   done['candidateChangeUnintegrated']=True;deferred['candidateChangeUnintegrated']=False
   with self.assertRaises(ValueError):module.validate(self.data,self.design)
+ def test_unknown_swapped_anchor_and_wrong_delivered_package_are_rejected(self):
+  for change in ['unknown','swapped','package']:
+   data=copy.deepcopy(self.data);first=next(a for a in data['atoms'] if a['id']=='B01');second=next(a for a in data['atoms'] if a['id']=='F01')
+   if change=='unknown':first['caseIds'][0]='UNKNOWN-A'
+   elif change=='swapped':first['caseIds'],second['caseIds']=second['caseIds'],first['caseIds']
+   else:first['package']=second['package']
+   with self.subTest(change=change),self.assertRaises(ValueError):module.validate(data,self.design)
 if __name__=='__main__':unittest.main()

@@ -14,6 +14,11 @@ def validate(data,design):
  if data['constraints']!={'permissionAxes':'native','optionalFeaturesEnabled':False,'productionPermissionMigration':False,'deferredPackages':data['constraints']['deferredPackages']}:raise ValueError('Runtime scope changed')
  anchors=[c for a in atoms for c in a['caseIds']]
  if len(anchors)!=268 or len(set(anchors))!=268 or any(a['wholeDesignedCasesCertified'] is not False for a in atoms):raise ValueError('Design anchors must not become pass certificates')
+ if any(set(a['caseIds'])!={a['id']+'-A',a['id']+'-B'} for a in atoms):raise ValueError('Anchor identity or owning atom mismatch')
+ by_id={a['id']:a for a in atoms}
+ for case in design['cases']:
+  atom=by_id.get(case['atom'])
+  if atom is None or case['id'] not in atom['caseIds'] or atom['package']!=case['package']:raise ValueError('Delivered anchor ownership/package drift')
  if {a['id'] for a in atoms if a['category']=='已完成'}!={c['atom'] for c in design['cases']}:raise ValueError('Delivered package evidence mismatch')
  expected={'atoms':134,'anchors':268,'packages':19,'delivered':42,'nativeToolingOrCompatibility':6,'unselectedModelChanges':4,'deferred':82,'candidateChangesUnintegrated':86}
  if data['counts']!=expected or len({a['package'] for a in atoms})!=19:raise ValueError('Count mismatch')
