@@ -40,7 +40,7 @@ final class PhorgeGovernanceMediaExchangeServiceTestCase extends PhutilTestCase 
   }
 
   public function testTargetCannotBecomeAnOpenRedirectOrCredentialURL() {
-    foreach (array('/file/data/key/PHID-FILE-a/name.png', '/file/xform/PHID-FILE-a/thumbnail/') as $path) {
+    foreach (array('/file/data/key/PHID-FILE-aaaaaaaaaaaaaaaaaaaa/name.png', '/file/xform/thumbnail/PHID-FILE-aaaaaaaaaaaaaaaaaaaa/key/') as $path) {
       $this->assertEqual($path, PhorgeGovernanceMediaExchangeService::validateTarget(
         'phorge-files', 'private-media', $path));
     }

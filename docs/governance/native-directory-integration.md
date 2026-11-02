@@ -219,3 +219,9 @@ The tokenizer follow-up retains the native `raw` query rather than searching the
 
 
 Directory tokenizers explicitly select a fixed literal-casefold mode. Native query caching and client result matching retain punctuation and whitespace, avoiding normalized cache-key collisions such as `Ops_` versus `Ops`. All other datasources retain the native default mode; unknown mode names are rejected. Tests execute the real native JavaScript cache/match methods with explicit DOM/transport shims, and an actual complete native page decodes its Javelin configuration to prove both modes are wired. Celerity maps were rebuilt using PHP 8.5.12. The current isolated evidence is 139 pure methods, 209 SQL checks and 82 governance tests; this is not browser acceptance.
+
+## Prepared media targets integrated with current main
+
+The original signed target checkpoint `1ab1305` (138 pure methods /209 SQL checks) is preserved under `evidence/media-targets-checkpoint-1ab1305`. The combined current-main directory/issuer/target source now passed **142 pure methods and 245 real MySQL/Gorge checks**. All nine workers, 55 schemas, two runtime users and the reader were cleaned without failure. The schema proof covers 13 candidate tables, 530 current tables and 1566 source patches, including actual execution of the separate metadata, issuer and target migrations.
+
+`native-directory-evidence.json` and `evidence/media-targets-combined-20261103` contain the new combined evidence. The manually reviewed static inventory has 36 nodes, 26 links and 48 runtime files, still partial and not authority proof. The renamed redeem-race check observes the actual capacity mutex instead of an unreachable pair of browser-lock waits. No HTTP handoff, browser, deployment, optional activation or permission migration is certified.

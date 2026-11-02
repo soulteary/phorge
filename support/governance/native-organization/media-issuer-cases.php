@@ -23,7 +23,7 @@ function governance_native_media_legacy_upgrade_cases($fixture, callable $check)
   $check($row!==null && $row['issuerIncarnation']===null,
     'native-media-source-migration-keeps-real-v1-row-unassigned-to-current-issuer');
   $before=governance_native_media_fingerprint($fixture);
-  governance_native_refused(fn()=>(new PhorgeGovernanceMediaExchangeService())->beginBrowserTransaction($secret),
+  governance_native_refused(fn()=>governance_native_prepare_media(new PhorgeGovernanceMediaExchangeService(),$secret),
     'media_exchange_preparation_refused',$check,'native-media-source-migrated-sha-only-browser-is-not-upgraded');
   $check(governance_native_media_fingerprint($fixture)===$before,
     'native-media-source-migration-legacy-refusal-performs-no-promotion');
@@ -74,13 +74,13 @@ function governance_native_media_issuer_cases($fixture, callable $check, array &
   $fixture->assertOwned(); $media=$state['media'];
   $request=$state['admin']['request']; $viewer=$state['admin']['viewer'];
   $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$state['admin']['token'];
-  $path='/file/data/key/PHID-FILE-synthetic/name';
+  $path='/file/data/key/PHID-FILE-ssssssssssssssssssss/name';
   $issue=static function($prepared) use ($media,$request,$path) {
-    return $media->issue($request,$prepared['transaction_id'],'phorge-files','private-media',$path);
+    return $media->issue($request,$prepared['transaction_id'],'phorge-files','private-media',$path, governance_native_media_nonce($prepared['transaction_id']));
   };
   $redeem=static function($prepared,$issued) use ($media,$path) {
     return $media->redeem($prepared['transaction_id'],$issued['exchange_code']->openEnvelope(),
-      $prepared['browser_secret']->openEnvelope(),'phorge-files','private-media',$path);
+      $prepared['browser_secret']->openEnvelope(),'phorge-files','private-media',$path, governance_native_media_nonce($prepared['transaction_id']));
   };
   $issuer=PhorgeGovernanceMediaIssuer::newFromConfiguration();
   $legacy_secret=bin2hex(random_bytes(32));
@@ -93,7 +93,7 @@ function governance_native_media_issuer_cases($fixture, callable $check, array &
     finally { $statement->close(); }
   } finally { mysqli_report($mode); }
   $legacy_before=governance_native_media_fingerprint($fixture);
-  governance_native_refused(fn()=>$media->beginBrowserTransaction($legacy_secret),
+  governance_native_refused(fn()=>governance_native_prepare_media($media,$legacy_secret),
     'media_exchange_preparation_refused',$check,'native-media-null-legacy-incarnation-is-never-upgraded');
   $check(governance_native_media_fingerprint($fixture)===$legacy_before,
     'native-media-legacy-incarnation-refusal-does-not-promote-row');
@@ -110,7 +110,7 @@ function governance_native_media_issuer_cases($fixture, callable $check, array &
     if ($stack->popSource()!==$db_source) { throw new RuntimeException('media_restore_fixture_config_stack_changed'); }
     $db_entry->delete();
   }
-  $pending=$media->beginBrowserTransaction(); $pending_code=$issue($pending);
+  $pending=governance_native_prepare_media($media); $pending_code=$issue($pending);
   $snapshot=governance_native_media_snapshot($fixture);
   $snapshot_hash=hash('sha256',json_encode($snapshot,JSON_THROW_ON_ERROR));
   $token=PhabricatorConduitToken::initializeNewToken($viewer->getPHID(),PhabricatorConduitToken::TYPE_STANDARD)->save();
@@ -131,7 +131,7 @@ function governance_native_media_issuer_cases($fixture, callable $check, array &
   PhabricatorEnv::overrideConfig('governance.media-exchange.incarnation',$new_inc);
   // Write distinct current-incarnation rows, then actually restore the older
   // logical snapshot through SQL DELETE/INSERT under the owned setup role.
-  $temporary=$media->beginBrowserTransaction(); $temporary_code=$issue($temporary); $redeem($temporary,$temporary_code);
+  $temporary=governance_native_prepare_media($media); $temporary_code=$issue($temporary); $redeem($temporary,$temporary_code);
   governance_native_restore_media_tables($fixture,$snapshot);
   $restored=governance_native_media_snapshot($fixture);
   $check(hash('sha256',json_encode($restored,JSON_THROW_ON_ERROR))===$snapshot_hash,
@@ -141,7 +141,7 @@ function governance_native_media_issuer_cases($fixture, callable $check, array &
     'media_credential_refused',$check,'native-media-restored-old-credential-refused-by-external-incarnation');
   governance_native_refused(fn()=>$redeem($pending,$pending_code),
     'media_exchange_redemption_refused',$check,'native-media-restored-old-unconsumed-code-refused');
-  governance_native_refused(fn()=>$media->beginBrowserTransaction($state['media_browser']->openEnvelope()),
+  governance_native_refused(fn()=>governance_native_prepare_media($media,$state['media_browser']->openEnvelope()),
     'media_exchange_preparation_refused',$check,'native-media-restored-old-browser-slot-cannot-be-reused');
   $check(governance_native_media_fingerprint($fixture)===$before,
     'native-media-restored-old-state-is-not-promoted-or-upgraded');
@@ -160,23 +160,23 @@ function governance_native_media_issuer_cases($fixture, callable $check, array &
     'native-media-restore-does-not-revoke-replace-or-change-native-credential-metadata');
   PhabricatorEnv::overrideConfig('governance.media-exchange.issuer-key',null);
   try {
-    governance_native_refused(fn()=>$media->beginBrowserTransaction(),
+    governance_native_refused(fn()=>governance_native_prepare_media($media),
       'media_issuer_configuration_required',$check,'native-media-missing-external-key-does-not-fall-back-to-database-state');
   } finally { PhabricatorEnv::overrideConfig('governance.media-exchange.issuer-key',$new_key); }
-  $fresh=$media->beginBrowserTransaction(); $fresh_code=$issue($fresh); $fresh_credential=$redeem($fresh,$fresh_code);
+  $fresh=governance_native_prepare_media($media); $fresh_code=$issue($fresh); $fresh_credential=$redeem($fresh,$fresh_code);
   $check($media->authenticate($fresh_credential['credential']->openEnvelope())->getUserPHID()===$viewer->getPHID(),
     'native-media-after-restore-requires-new-browser-transaction-and-current-issuer');
   // Independently exercise incarnation-only rotation: retain the exact key.
-  $inc_pending=$media->beginBrowserTransaction();$inc_code=$issue($inc_pending);
+  $inc_pending=governance_native_prepare_media($media);$inc_code=$issue($inc_pending);
   PhabricatorEnv::overrideConfig('governance.media-exchange.incarnation',bin2hex(random_bytes(16)));
   $required=static function($ok,$name){if(!$ok){throw new RuntimeException('media_incarnation_axis_fixture_failed');}};
   governance_native_refused(fn()=>$media->authenticate($fresh_credential['credential']->openEnvelope()),
     'media_credential_refused',$required,'incarnation-only-old-credential');
   governance_native_refused(fn()=>$redeem($inc_pending,$inc_code),
     'media_exchange_redemption_refused',$required,'incarnation-only-old-code');
-  governance_native_refused(fn()=>$media->beginBrowserTransaction($fresh['browser_secret']->openEnvelope()),
+  governance_native_refused(fn()=>governance_native_prepare_media($media,$fresh['browser_secret']->openEnvelope()),
     'media_exchange_preparation_refused',$required,'incarnation-only-old-browser');
-  $fresh=$media->beginBrowserTransaction();$fresh_code=$issue($fresh);$fresh_credential=$redeem($fresh,$fresh_code);
+  $fresh=governance_native_prepare_media($media);$fresh_code=$issue($fresh);$fresh_credential=$redeem($fresh,$fresh_code);
   $inc_loaded=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$state['admin']['token']);
   $conn->openTransaction();
   try{$inc_api=PhorgeGovernanceNativeIdentitySource::lockCurrent($api_context,$conn);$conn->saveTransaction();}
