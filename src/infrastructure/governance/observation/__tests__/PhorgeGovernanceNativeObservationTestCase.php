@@ -616,4 +616,87 @@ final class PhorgeGovernanceNativeObservationTestCase extends PhutilTestCase {
     }
   }
 
+  private function newMemberTransaction() {
+    return (new PhabricatorProjectTransaction())
+      ->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
+      ->setMetadataValue('edge:type',
+        PhabricatorProjectProjectHasMemberEdgeType::EDGECONST)
+      ->setNewValue(array('+' => array(
+        'PHID-USER-aaaaaaaaaaaaaaaaaaaa' => array())));
+  }
+
+  public function testProjectLocalValidationOrdinaryAndParentMembership() {
+    foreach (array(false, true) as $has_children) {
+      $project = (new PhabricatorProject())->setID(1)
+        ->setHasSubprojects($has_children);
+      $member = $this->newMemberTransaction();
+      $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
+        ->observeProjectLocalValidation($project, array($member));
+      $this->assertEqual('observed-native-project-local-validation',
+        $result['status']);
+      $this->assertEqual($has_children ? 'invalid' : 'valid',
+        $result['local_validation']);
+      $this->assertEqual($has_children ? 1 : 0,
+        $result['validation_error_count']);
+      $this->assertFalse($result['pipeline_validation_complete']);
+      $this->assertFalse($result['risk_complete']);
+      $this->assertFalse($result['can_execute']);
+      $this->assertEqual(null, $member->getID());
+    }
+  }
+
+  public function testProjectLocalValidationMilestonePreludeRejectsMembers() {
+    $project = (new PhabricatorProject())->setID(1);
+    $milestone = (new PhabricatorProjectTransaction())
+      ->setTransactionType(PhabricatorProjectMilestoneTransaction::TRANSACTIONTYPE)
+      ->setNewValue('PHID-PROJ-ffffffffffffffffffff');
+    $member = $this->newMemberTransaction();
+    $result = PhorgeGovernanceNativeObservationVerifier::newIsolated()
+      ->observeProjectLocalValidation($project, array($milestone, $member));
+    $this->assertEqual('invalid', $result['local_validation']);
+    $this->assertEqual(array(PhabricatorTransactions::TYPE_EDGE),
+      $result['validation_error_types']);
+    $this->assertTrue($result['editor_context']['is_milestone']);
+    $this->assertEqual(null, $project->getMilestoneNumber());
+    $this->assertFalse($result['can_execute']);
+  }
+
+  public function testProjectLocalValidationParentMilestoneConflict() {
+    $parent = (new PhabricatorProjectTransaction())
+      ->setTransactionType(PhabricatorProjectParentTransaction::TRANSACTIONTYPE)
+      ->setNewValue('PHID-PROJ-ffffffffffffffffffff');
+    $milestone = (new PhabricatorProjectTransaction())
+      ->setTransactionType(PhabricatorProjectMilestoneTransaction::TRANSACTIONTYPE)
+      ->setNewValue('PHID-PROJ-eeeeeeeeeeeeeeeeeeee');
+    $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();
+    foreach (array(array($parent, $milestone), array($milestone, $parent))
+      as $batch) {
+      $result = $verifier->observeProjectLocalValidation(
+        (new PhabricatorProject())->setID(1), $batch);
+      $this->assertEqual('invalid', $result['local_validation']);
+      $this->assertEqual(1, $result['validation_error_count']);
+      $this->assertFalse($result['can_execute']);
+    }
+    $milestone->setNewValue(null);
+    $result = $verifier->observeProjectLocalValidation(
+      (new PhabricatorProject())->setID(1), array($parent, $milestone));
+    $this->assertEqual('valid', $result['local_validation']);
+    $this->assertFalse($result['can_execute']);
+  }
+
+  public function testProjectLocalValidationScopeAndUnknownClosureBlock() {
+    $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();
+    $unknown = (new PhabricatorProjectTransaction())
+      ->setTransactionType('unknown.synthetic')->setNewValue('');
+    $result = $verifier->observeProjectLocalValidation(
+      (new PhabricatorProject())->setID(1), array($unknown));
+    $this->assertEqual('blocked', $result['status']);
+    $this->assertFalse(isset($result['local_validation']));
+    putenv('PHORGE_GOVERNANCE_ISOLATED_TEST');
+    $result = $verifier->observeProjectLocalValidation(
+      (new PhabricatorProject())->setID(1), array($this->newMemberTransaction()));
+    $this->assertEqual('isolated_scope_required', $result['reason']);
+    $this->assertFalse($result['can_execute']);
+  }
+
 }

@@ -177,3 +177,54 @@ canonical string `"1"`, while the prepared-mysqli control hydrates as integer
 `1`. Both attached-content batches must succeed and report normalized integer
 version `1`. The native context closes in `finally`; inherited pools are
 refused before ownership and never cleared by this fixture.
+
+## Fifth-batch pipeline and policy composition observations
+
+Run `support/governance/fixtures/test-native-pipeline-composition-mysql.php` in a
+separate invocation with the existing explicit isolated environment. Keep the
+third-batch source receipt and fourth-batch branch receipt as independent
+regressions. This runner does not replace either.
+
+The project samples are loaded through actual Lisk `loadOneWhere` text-protocol
+SQL within a verified owned SELECT-only context. The observer invokes native
+project expansion followed only by the selected editor's
+`validateAllTransactions` method. Ordinary leaf membership, parent/milestone
+membership rejection, new milestone membership rejection, mutually exclusive
+parent/milestone input and explicit cleared input are tested. This is not the
+full transaction pipeline: per-type validation, authorization, support
+transactions, Herald, mail, persistence, queues and post-commit effects are not
+executed or certified. The observed twelve-table fingerprint remains unchanged;
+that is bounded storage evidence, not proof about all possible external effects.
+
+Composition samples use the real native filter and fresh native target/viewer
+queries. They cover first matching deny/allow ordering, unmatched and empty
+policy defaults, empty Projects-all local native behavior, named indirection,
+task owner automatic capability and Space precedence. Effective application
+view policy is injected into the owned in-memory Dictionary source; no claim is
+made that this fixture loads arbitrary stored deployment configuration.
+
+A privileged setup connection deliberately changes policy or membership source
+rows between the two observation samples. A separate test changes the effective
+in-memory application override and clears the effective Env cache consistently;
+configuration drift alone must also suppress all capability observations. Such differences must suppress all
+capability observations and return `changed-blocked`. Repeated finish is
+rejected. Setup changes are restored in `finally`, and the final bounded native
+row fingerprint must match the initial value. The observing principal has only
+SELECT grants and six explicit write-refusal checks; no observer writes are
+allowed. Unknown rules remain blocked.
+
+Stable samples mean equal sampled source fingerprints, not an atomic
+permission decision: ABA changes, intervening native read views, configuration
+source coverage, full native query resource bounds and execution atomicity
+remain unproved. No executor, route, production configuration, permission
+migration or feature activation is introduced. Receipts contain only named
+checks, source hashes, counts and owned cleanup status, without object content,
+identities, connection configuration or credentials.
+
+Captured unknown policy rules and expired approver sessions are rejected before
+opening the native filter context. The fixture removes the isolated opt-in
+after `begin` and requires the specific captured-source rejection, so a generic
+context failure cannot masquerade as that evidence. The opt-in and setup rows
+are restored in `finally`. A separate unknown-rule injection after `begin` must
+return `changed-blocked` even when native filter evaluation is unknown; no
+capability observations may escape.

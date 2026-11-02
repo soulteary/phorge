@@ -175,3 +175,56 @@ automatic parent-member capability and from ProjectMembers' inverse-edge rule.
 These observations preserve differences instead of normalizing them into a new
 permission model. Structural checks accept the canonical decimal string form
 of native Lisk depth hydration, while rejecting malformed numeric strings.
+
+## Batch 5: native policy composition and source samples
+
+`PhorgeGovernanceNativePolicyCompositionVerifier::begin(binding, capabilities)`
+captures bounded native sources in a verified owned fixture. `finish()` reloads
+the actor and target through actual native queries, invokes the actual native
+`PhabricatorPolicyFilter::hasCapability()` and automatic-capability method for
+view/edit/join, then captures another bounded source snapshot. The convenience
+`observe(binding, capabilities)` performs both steps. Each SQL phase requires
+the existing SELECT-only Context proof and closes only its owned connections.
+No caller user/target policy attachments or precomputed permission result are
+accepted. Missing/filtered native targets and unsupported dependencies remain
+unknown; a deny is reported only when returned by the actual native filter.
+
+The full native filter, rather than a copied local algorithm, determines ordered
+allow/deny rules, defaults, native ruleHasEffect, automatic rights, Space and
+application checks for that selected object/capability. The fixture separately
+exercises these native paths. Source account/session samples must remain
+eligible, but this still does not prove authentication protocol eligibility.
+Unsupported native rules and known missing/cyclic source dependencies block.
+
+If source snapshot fingerprints or private routing comparisons differ,
+`source_consistency=changed-blocked` and no capability observations are returned.
+Equal samples produce only `stable-sampled-not-atomic`. This does **not** prove
+that the native filter read the source snapshot, exclude ABA between samples,
+cover all runtime configuration/caches/extensions or bind a future write.
+The native loader may itself filter an unavailable application/object; that is
+an unknown prerequisite, not a fabricated policy deny. Full SQL time/memory
+bounds remain unproved. Existing Reader unknown reasons are retained, including
+unimplemented complete evaluator/organization/runtime source closure, because
+selected native method observations do not close those global obligations.
+
+No executor or transaction lock is introduced. Every result retains false
+native closure, risk completeness, execution permission, execution atomicity and
+source/native atomicity. `begin()` is one-shot: an additional `finish()` blocks.
+Results expose only native allow/deny booleans, aggregate source digest and fixed
+reasons. Routing comparisons and raw bindings remain private; credentials,
+principal/session values and underlying SQL exceptions are not public evidence.
+
+Batch 5 also privately compares the fixed effective application-settings,
+public/locked policy, prototype/uninstalled-app and serious-business keys.
+Changes between samples block even when SQL config rows and database routing
+are unchanged. Values are bounded scalar trees; neither original values nor
+these private comparison digests appear in reports. This fixed key sample is
+explicitly not a complete runtime/configuration/extension dependency closure.
+
+Known unsupported rules, missing/cyclic sources and unresolved account/session
+rows in the initial capture are rejected before entering the native filter.
+The final capture is checked again. A native-method exception does not skip the
+final source sample: changed samples take precedence over an unknown result.
+This does not guarantee that a concurrent rule change cannot be encountered
+inside native evaluation; dynamic-rule execution safety and atomic closure
+remain unproved activation blockers.

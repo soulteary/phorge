@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "source": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
+  "source_sha256": "f6c977699b669940586d66ebf89df1031ce8ce1ba5f8e4c29f7974222155bfa6",
+  "method": "PhabricatorApplicationTransactionEditor::applyTransactions",
+  "scope": "reviewed lexical stage inventory; not an AST graph or runtime authorization proof",
+  "runtime_certified": false,
+  "can_execute": false,
+  "activation_blocked": true,
+  "preview_read_only_proved": false,
+  "stages": [
+    {
+      "id": "old-recipients",
+      "anchor": "$this->buildOldRecipientLists($object, $xactions);",
+      "boundary": "native-queries-unverified",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "lock-reload",
+      "anchor": "$object->beginReadLocking();",
+      "boundary": "database-lock-reload",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "edit-parameters",
+      "anchor": "$this->validateEditParameters($object, $xactions);",
+      "boundary": "dynamic-parameters-and-mfa",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "local-expansion",
+      "anchor": "$xactions = $this->expandTransactions($object, $xactions);",
+      "boundary": "selected-local-observers-only",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "support-expansion",
+      "anchor": "$xactions = $this->expandSupportTransactions($object, $xactions);",
+      "boundary": "subscriptions-remarkup-files-unverified",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "combine-populate",
+      "anchor": "$xactions = $this->combineTransactions($xactions);",
+      "boundary": "combination-and-population-unverified",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "modular-validation",
+      "anchor": "$errors[] = $this->validateTransaction(",
+      "boundary": "modular-validation-unverified",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "cross-validation",
+      "anchor": "$errors[] = $this->validateAllTransactions($object, $xactions);",
+      "boundary": "selected-project-local-check-only",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "extension-validation",
+      "anchor": "$errors[] = $this->validateTransactionsWithExtensions(",
+      "boundary": "dynamic-extension-dispatch",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "capabilities",
+      "anchor": "$this->applyCapabilityChecks($object, $xactions);",
+      "boundary": "native-capabilities-and-mfa-unverified",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "required-mfa",
+      "anchor": "$this->requireMFA($object, $xactions);",
+      "boundary": "mfa-unverified",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "initial-effects",
+      "anchor": "$this->applyInitialEffects($object, $xactions);",
+      "boundary": "conditional-effects-before-preview-return",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "preview-return",
+      "anchor": "$this->loadHandles($xactions);",
+      "boundary": "preview-does-not-prove-read-only",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "internal-effects",
+      "anchor": "$this->applyInternalEffects($object, $xaction);",
+      "boundary": "internal-mutation",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "internal-hooks",
+      "anchor": "$xactions = $this->didApplyInternalEffects($object, $xactions);",
+      "boundary": "dynamic-internal-hooks",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "object-save",
+      "anchor": "$object->save();",
+      "boundary": "database-persistence",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "comment-records",
+      "anchor": "$comment_editor->applyEdit($xaction, $xaction->getComment());",
+      "boundary": "comment-persistence",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "transaction-records",
+      "anchor": "$xaction->save();",
+      "boundary": "transaction-and-edge-record-persistence",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "external-effects",
+      "anchor": "$this->applyExternalEffects($object, $xaction);",
+      "boundary": "external-effects",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "final-effects",
+      "anchor": "$xactions = $this->applyFinalEffects($object, $xactions);",
+      "boundary": "final-effects-and-subeditors-unverified",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "commit",
+      "anchor": "$object->saveTransaction();",
+      "boundary": "commit-boundary",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "post-commit",
+      "anchor": "$this->didCommitTransactions($object, $xactions);",
+      "boundary": "post-commit-hooks-cache",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "cache-update",
+      "anchor": "->updateObject($object);",
+      "boundary": "post-commit-cache-effects",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "herald",
+      "anchor": "$herald_xactions = $this->applyHeraldRules($object, $xactions);",
+      "boundary": "herald-and-subeditor-effects",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "post-transaction-hooks",
+      "anchor": "$xactions = $this->didApplyTransactions($object, $xactions);",
+      "boundary": "dynamic-post-transaction-hooks",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "indexes",
+      "anchor": "$fields->rebuildIndexes($object);",
+      "boundary": "index-mutation",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "herald-header",
+      "anchor": "HeraldTranscript::saveXHeraldRulesHeader(",
+      "boundary": "herald-header-persistence",
+      "whole_stage_verified": false
+    },
+    {
+      "id": "publishing",
+      "anchor": "$this->queuePublishing();",
+      "boundary": "publishing-queue",
+      "whole_stage_verified": false
+    }
+  ]
+}
