@@ -1,0 +1,237 @@
+{
+  "scope": "N05 existing fixed native product cut; create NAME only setup; no new role or production executor",
+  "shape_count": 24,
+  "operation_count": 9,
+  "status": "implemented-requires-matching-runtime-receipt",
+  "rows": [
+    {
+      "shape_id": "MAP.PROJECT.DESCRIPTION",
+      "operation": "project.description",
+      "check_ids": [
+        "pipeline-mapped-project-description"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.TASK.TITLE",
+      "operation": "task.title",
+      "check_ids": [
+        "pipeline-mapped-task-title"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.TASK.DESCRIPTION",
+      "operation": "task.description",
+      "check_ids": [
+        "pipeline-mapped-task-description"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.WIKI.TITLE",
+      "operation": "wiki.title",
+      "check_ids": [
+        "pipeline-mapped-wiki-title"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.WIKI.CONTENT",
+      "operation": "wiki.content",
+      "check_ids": [
+        "pipeline-wiki-update-new-version-committed"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.PROJECT.POLICY.VIEW",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-project-core:view-policy"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.PROJECT.POLICY.EDIT",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-project-core:edit-policy"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.PROJECT.POLICY.JOIN",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-project-join-policy"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.PROJECT.SPACE",
+      "operation": "object.space",
+      "check_ids": [
+        "pipeline-mapped-project-space"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.TASK.POLICY.VIEW",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-task-core:view-policy"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.TASK.POLICY.EDIT",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-task-core:edit-policy"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.TASK.SPACE",
+      "operation": "object.space",
+      "check_ids": [
+        "pipeline-mapped-task-space"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.WIKI.POLICY.VIEW",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-wiki-core:view-policy"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.WIKI.POLICY.EDIT",
+      "operation": "policy.replace",
+      "check_ids": [
+        "pipeline-mapped-wiki-core:edit-policy"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.WIKI.SPACE",
+      "operation": "object.space",
+      "check_ids": [
+        "pipeline-mapped-wiki-space"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.PROJECT.MEMBERS",
+      "operation": "project.members",
+      "check_ids": [
+        "pipeline-mapped-project-member-add",
+        "pipeline-mapped-project-member-remove",
+        "pipeline-parent-member-native-validation-rejected",
+        "pipeline-milestone-member-native-validation-rejected"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.PROJECT.PARENT",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-native-child-parent-link-created",
+        "pipeline-existing-project-project:parent-rejected"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "native-create-shape-and-existing-reparent-rejection"
+    },
+    {
+      "shape_id": "MAP.PROJECT.MILESTONE",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-native-milestone-parent-link-created",
+        "pipeline-existing-project-project:milestone-rejected"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "native-create-shape-and-existing-milestone-change-rejection"
+    },
+    {
+      "shape_id": "MAP.TASK.OWNER",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-task-owner-change-committed",
+        "pipeline-support-oldowner-subscribed"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.TASK.COLUMN",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-mapped-task-column",
+        "pipeline-native-column-move-record-not-noop"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.WIKI.MOVE",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-mapped-wiki-move-and-subeditor"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.TASK.PROJECT.EDGE",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-mapped-task-project-edge"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.WIKI.PROJECT.EDGE",
+      "operation": "object.relationship",
+      "check_ids": [
+        "pipeline-mapped-wiki-project-edge"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "real-native-pipeline-writable-owned"
+    },
+    {
+      "shape_id": "MAP.PROJECT.MEMBERS.HISTORICAL",
+      "operation": "project.members",
+      "check_ids": [
+        "pipeline-historical-member-write-remains-blocked-contract-only"
+      ],
+      "status": "implemented-requires-matching-runtime-receipt",
+      "evidence_boundary": "intentional-contract-blocked-no-native-write"
+    }
+  ],
+  "remaining_global_gates": [
+    "N03 appointment/organization source and optional governance writer remain blocked.",
+    "Arbitrary third-party extension/Herald action sets and external services not enabled.",
+    "Actual Gorge file and queue/outbox service receipts are required separately; external delivery workers are not executed.",
+    "Sampled/read-view evidence does not grant future business-write authorization."
+  ]
+}

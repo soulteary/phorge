@@ -119,3 +119,12 @@ class ConsumerInventoryTests(unittest.TestCase):
         self.assertEqual(testrow['authority'],'none')
         self.assertEqual(testrow['kind'],'isolated-native-project-validation-test')
         self.assertIs(testrow['candidateGenerationIntroduced'],False)
+
+    def test_shared_native_read_view_has_no_membership_grant_authority(self):
+        row=next(r for r in inventory.collect()['consumers']
+                 if r['path']=='src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php')
+        self.assertTrue(row['discovery'])
+        self.assertTrue(row['matchingLines'])
+        self.assertEqual(row['kind'],'isolated-shared-native-read-view')
+        self.assertEqual(row['authority'],'none')
+        self.assertIs(row['candidateGenerationIntroduced'],False)

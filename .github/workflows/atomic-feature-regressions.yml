@@ -239,6 +239,37 @@ jobs:
           docker cp atomic-queue-binary:/usr/local/bin/gorge-taskqueue "$RUNNER_TEMP/gorge-taskqueue"
           docker rm atomic-queue-binary
           chmod +x "$RUNNER_TEMP/gorge-taskqueue"
+      - name: Verify full native pipeline and shared read views in owned restored schemas
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/governance-completion"
+          docker exec -e MYSQL_PWD="$GORGE_TEST_MYSQL_PASSWORD" "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL log_bin_trust_function_creators = 1"
+          docker create --name atomic-completion-file-binary gorge-file-storage:atomic
+          docker cp atomic-completion-file-binary:/usr/local/bin/gorge-file-storage "$RUNNER_TEMP/gorge-file-storage"
+          docker rm atomic-completion-file-binary
+          chmod +x "$RUNNER_TEMP/gorge-file-storage"
+          cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-completion/native.json"
+          cp "$RUNNER_TEMP/governance-batch-3/native-source.json" "$RUNNER_TEMP/governance-completion/native-source.json"
+          cp "$RUNNER_TEMP/governance-batch-4/native-rule-branches.json" "$RUNNER_TEMP/governance-completion/native-rule-branches.json"
+          cp "$RUNNER_TEMP/governance-batch-5/native-pipeline-composition.json" "$RUNNER_TEMP/governance-completion/native-pipeline-composition.json"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_COMPLETION_QUEUE_PROFILE=gorge \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" \
+          PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" \
+          php support/governance/completion/fixture-run.php > "$RUNNER_TEMP/governance-completion/full-native.json"
+          python3 scripts/governance/check_completion.py --receipt "$RUNNER_TEMP/governance-completion/full-native.json" > "$RUNNER_TEMP/governance-completion/completion.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: governance-completion-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-completion
+          if-no-files-found: error
       - name: Verify native permission routes on an enriched restored snapshot
         run: PERMISSION_XLSX_AUTOLOAD="$RUNNER_TEMP/permission-xlsx/vendor/autoload.php" GORGE_TEST_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" PERMISSION_XLSX_GO_BINARY="$RUNNER_TEMP/phorge-xlsx-reader" python3 tests/permissions/routes.py --require-clean-worktree --output "$RUNNER_TEMP/permission-route-evidence"
       - uses: actions/upload-artifact@v4

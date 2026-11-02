@@ -250,6 +250,30 @@ final class PhorgeGovernanceNativeSourceReader extends Phobject {
     }
   }
 
+  /** Isolated bridge only: observe sources without ending the owned snapshot. */
+  public function sampleOpenReadOnlySnapshot() {
+    if (!$this->active) {
+      throw new RuntimeException('native_source_no_open_capture');
+    }
+    try {
+      self::assertIsolatedScope();
+      $this->verifyReadOnlyGrants();
+      $this->rows = array();
+      $this->schemas = array();
+      $this->bytes = 0;
+      foreach (self::getNativeTableContract() as $table => $columns) {
+        $this->readTable($table);
+      }
+      $this->assertTimeBudget();
+      $capture = $this->buildCapture();
+      $this->assertTimeBudget();
+      return $capture;
+    } catch (Throwable $error) {
+      $this->abortCapture();
+      throw new RuntimeException('native_source_open_snapshot_refused');
+    }
+  }
+
   private function abortCapture() {
     $clean = true;
     if ($this->active) {
