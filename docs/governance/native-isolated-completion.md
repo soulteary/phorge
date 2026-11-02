@@ -73,7 +73,7 @@ historical atomic counts are not reclassified. Public evidence contains no
 deployment addresses, credentials, raw identities or private fixture values.
 
 Supported local validation on PHP 8.5.12 / MySQL 8.4.13 passed 105 native test
-methods, 124 full integration checks, the independent 85/54/66 earlier SQL
+methods, 125 full integration checks, the independent 85/54/66 earlier SQL
 checks, 48 governance Python tests and 84 permission Python tests. The strict
 completion gate accepted all 24 shapes/nine operations. All 42 executed
 governance PHP, fixture and map files matched the worktree. Full integration
@@ -81,3 +81,8 @@ cleanup removed 55 owned schemas, two runtime principals and the reader;
 earlier fixtures each removed their eight schemas/reader and performed zero
 reader writes. These are source-copy development receipts; hosted PR/main
 results remain separate and must not be inferred from these local passes.
+
+Independent PR review additionally found an unsupported STRAIGHT_JOIN table-
+enumeration bypass. Complete anchored FROM-clause profiles now reject unconsumed
+table-reference syntax; pure adversarial cases and an actual bridge probe verify
+cross-schema rejection before fetch. Native query SQL is never rewritten.

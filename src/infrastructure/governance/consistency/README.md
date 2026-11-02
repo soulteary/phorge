@@ -93,3 +93,10 @@ into a successful cleanup receipt.
 Scopes and bridges cannot be cloned or serialized. This prevents an apparent
 foreign clone from retaining the same privately borrowed physical session.
 Debug summaries contain only scope/closed status, not environment or credentials.
+
+The complete FROM clause is anchored to one table with an optional alias, or
+the exact native Project materialized-member join and fixed ON condition.
+Enumerating FROM/JOIN tokens is not sufficient: STRAIGHT_JOIN, NATURAL/outer/
+cross joins, ODBC table references, parenthesized/derived factors, partition and
+index-hint grammars are unsupported and refuse before preflight/native fetch.
+Every consumed table must match this full grammar's table set.

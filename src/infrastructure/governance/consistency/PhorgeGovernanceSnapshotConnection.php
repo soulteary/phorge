@@ -8,6 +8,7 @@ final class PhorgeGovernanceSnapshotConnection extends AphrontDatabaseConnection
   private $rows = array();
   private $closed = false;
   private $queries = 0;
+  private $nativeFetchAttempts = 0;
   private $attempts = 0;
   private $preFetchRejections = 0;
   private $thread;
@@ -101,7 +102,7 @@ final class PhorgeGovernanceSnapshotConnection extends AphrontDatabaseConnection
     if (!preg_match('/\A\s*SELECT\s/i', $plain) ||
         preg_match('/[;@#]|--|\/\*|\*\//', $plain) ||
         preg_match('/\b(INTO|OUTFILE|DUMPFILE|FOR|LOCK|PROCEDURE|CALL|SET|'.
-          'INSERT|UPDATE|DELETE|REPLACE|UNION|WITH)\b/i', $plain)) {
+          'INSERT|UPDATE|DELETE|REPLACE|UNION|WITH|TABLE|VALUES|EXCEPT|INTERSECT)\b/i', $plain)) {
       return false;
     }
     preg_match_all('/\b([a-z_][a-z0-9_]*)\s*\(/i', $plain, $functions);
@@ -130,7 +131,15 @@ final class PhorgeGovernanceSnapshotConnection extends AphrontDatabaseConnection
     $identifiers_valid = true;
     $shape = preg_replace_callback('/`((?:``|[^`])*)`/',
       static function($match) use (&$identifiers_valid) {
-        if (!preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $match[1])) {
+        if (!preg_match('/\A[a-zA-Z_][a-zA-Z0-9_]*\z/', $match[1]) ||
+            in_array(strtoupper($match[1]), array('SELECT', 'FROM', 'JOIN',
+              'STRAIGHT_JOIN', 'WHERE', 'GROUP', 'ORDER', 'HAVING', 'LIMIT',
+              'NATURAL', 'CROSS', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'FULL',
+              'ON', 'USING', 'PARTITION', 'USE', 'FORCE', 'IGNORE', 'INDEX',
+              'TABLE', 'VALUES', 'EXCEPT', 'INTERSECT'), true)) {
+          // These quoted identifiers would lose their token identity when
+          // normalized and could masquerade as an early clause delimiter.
+          // None belongs to this fixed native table/column/alias profile.
           $identifiers_valid = false;
         }
         return $match[1];
@@ -139,6 +148,10 @@ final class PhorgeGovernanceSnapshotConnection extends AphrontDatabaseConnection
       return null;
     }
     $shape = ltrim($shape);
+    if (preg_match('/[{}]|\b(?:STRAIGHT_JOIN|NATURAL|CROSS|LEFT|RIGHT|'.
+        'INNER|OUTER|FULL)\b/i', $shape)) {
+      return null;
+    }
     if ($database !== null && (!is_string($database) ||
         !preg_match('/\Agovernance_native_[a-f0-9]{16}_'.
           '(user|project|maniphest|phriction|policy|spaces|config|governance)\z/',
@@ -190,6 +203,20 @@ final class PhorgeGovernanceSnapshotConnection extends AphrontDatabaseConnection
         preg_match('/\b(?:FROM|JOIN)\s+[a-z_][a-z0-9_]*\s*\./i', $shape)) {
       return null;
     }
+    // Enumerating FROM/JOIN tokens alone misses MySQL's STRAIGHT_JOIN and
+    // other table-reference grammars. Accept the complete fixed FROM clause,
+    // not a keyword count or a denylist of join spellings.
+    $from_profile = null;
+    if (preg_match('/\A\s*([a-z_][a-z0-9_]*)(?:\s+(?:AS\s+)?'.
+        '[a-z_][a-z0-9_]*)?\s*\z/i', $from_clause, $single)) {
+      $from_profile = array($single[1]);
+    } else if (preg_match('/\A\s*project\s+project\s+JOIN\s+edge\s+e\s+ON\s+'.
+        'e\.src\s*=\s*project\.phid\s+AND\s+e\.type\s*=\s*60\s*\z/i',
+        $from_clause)) {
+      $from_profile = array('project', 'edge');
+    } else {
+      return null;
+    }
     preg_match_all('/\b([a-z_][a-z0-9_]*)\s*\(/i', $shape, $calls);
     foreach ($calls[1] as $call) {
       if (!in_array(strtoupper($call), array('COUNT', 'IN', 'NOT', 'AND', 'OR',
@@ -198,7 +225,7 @@ final class PhorgeGovernanceSnapshotConnection extends AphrontDatabaseConnection
       }
     }
     preg_match_all('/\b(?:FROM|JOIN)\s+([a-z_][a-z0-9_]*)([.])?/i', $shape, $tables);
-    if (in_array('.', $tables[2], true)) {
+    if ($tables[1] !== $from_profile || in_array('.', $tables[2], true)) {
       return null;
     }
     if ((count($tables[1]) > 1 && $projection === '*') ||
@@ -303,6 +330,7 @@ final class PhorgeGovernanceSnapshotConnection extends AphrontDatabaseConnection
       }
       $this->connection->query('SET SESSION max_execution_time = '.
         $this->remainingMilliseconds());
+      $this->nativeFetchAttempts++;
       $result = $this->connection->query($query->getUnmaskedString(), MYSQLI_USE_RESULT);
       if (!$result instanceof mysqli_result) {
         throw new RuntimeException('snapshot_bridge_result_refused');
@@ -343,6 +371,7 @@ final class PhorgeGovernanceSnapshotConnection extends AphrontDatabaseConnection
   public function close() { $this->closed = true; $this->rows = array(); }
   public function getObservation() {
     return array('query_count' => $this->queries,
+      'native_fetch_attempts' => $this->nativeFetchAttempts,
       'pre_fetch_budget_rejections' => $this->preFetchRejections,
       'same_physical_connection' => !$this->closed &&
         $this->connection->thread_id === $this->thread);

@@ -94,6 +94,7 @@ REQUIRED_CHECKS = {
  'read-view-group-revocation-sees-snapshot-membership',
  'read-view-fresh-group-revocation-observes-absence',
  'read-view-forbidden-queries-do-not-end-or-write-snapshot',
+ 'read-view-straight-join-cross-schema-refused-before-fetch',
  'read-view-pool-drift-blocks-without-closing-caller-owned-connection',
  'read-view-huge-native-task-row-refused-before-select-fetch',
  'read-view-native-sql-mode-drift-blocked',

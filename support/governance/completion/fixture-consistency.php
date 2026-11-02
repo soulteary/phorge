@@ -136,6 +136,27 @@ function governance_completion_consistency($fixture, callable $check) {
       catch (RuntimeException $error) { $rejected = true; }
       $check($rejected,'read-view-forbidden-native-query-'.$index.'-refused');
     }
+    $straight_join_all_rejected = true;
+    foreach (array(
+      'SELECT c.content FROM user u STRAIGHT_JOIN %T.%T c ON 1=1',
+      'SELECT c.content FROM user `group` STRAIGHT_JOIN %T.%T c ON 1=1',
+      'SELECT c.content FROM user `where`, %T.%T c',
+      'SELECT id FROM user WHERE id IN (TABLE %T.%T)',
+    ) as $straight_join_sql) {
+      $query_count_before = $bridge->getObservation()['query_count'];
+      $native_fetch_attempts_before = $bridge->getObservation()['native_fetch_attempts'];
+      $straight_join_rejected = false;
+      try {
+        queryfx($bridge,'%Q',qsprintf($bridge,$straight_join_sql,
+          $reader['namespace'].'_phriction','phriction_content'));
+      } catch (RuntimeException $error) { $straight_join_rejected = true; }
+      $straight_join_all_rejected = $straight_join_all_rejected &&
+        $straight_join_rejected &&
+        $bridge->getObservation()['query_count'] === $query_count_before &&
+        $bridge->getObservation()['native_fetch_attempts'] === $native_fetch_attempts_before;
+    }
+    $check($straight_join_all_rejected,
+      'read-view-straight-join-cross-schema-refused-before-fetch');
     $assert_result($scope->finish(),'allow','read-view-forbidden-queries-do-not-end-or-write-snapshot');
     $scope = null;
     $writer_config = $fixture->getWriterConfig();
@@ -182,7 +203,8 @@ function governance_completion_consistency($fixture, callable $check) {
       $check($budget_result['status'] === 'blocked' &&
         !isset($budget_result['observations']) && !$budget_result['can_execute'] &&
         $budget_observation['pre_fetch_budget_rejections'] >= 1 &&
-        $budget_observation['query_count'] === 0,
+        $budget_observation['query_count'] === 0 &&
+        $budget_observation['native_fetch_attempts'] === 0,
         'read-view-huge-native-task-row-refused-before-select-fetch');
       unset($budget_bridge,$pool);
     } finally {

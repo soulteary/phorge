@@ -92,6 +92,7 @@ class CompletionReceiptTests(unittest.TestCase):
         data=valid_template();data['checks'].append(data['checks'][0]);data['check_count']+=1
         self.reject(data)
         for check in ['completion-gorge-publication-zero-native-fallbacks',
+                      'read-view-straight-join-cross-schema-refused-before-fetch',
                       'completion-real-comment-update-created-second-http-publication-task',
                       'completion-create-hidden-transactions-produce-no-mail-outbox',
                       'pipeline-midwrite-object-row-rolled-back',

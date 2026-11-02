@@ -89,6 +89,52 @@ SQL;
       'SELECT CAST(description AS CHAR(100000000)) FROM maniphest_task') as $query) {
       $this->assertEqual(null, PhorgeGovernanceSnapshotConnection::profileTables($query));
     }
+    $database = 'governance_native_'.str_repeat('a', 16).'_user';
+    foreach (array(
+      'SELECT c.content FROM user u STRAIGHT_JOIN governance_native_'.
+        str_repeat('a',16).'_phriction.phriction_content c ON 1=1',
+      'SELECT c.realName FROM user u STRAIGHT_JOIN user c ON 1=1',
+      'SELECT c.realName FROM user u NATURAL JOIN user c',
+      'SELECT c.realName FROM user u LEFT JOIN user c ON 1=1',
+      'SELECT c.realName FROM user u RIGHT OUTER JOIN user c ON 1=1',
+      'SELECT c.realName FROM user u CROSS JOIN user c',
+      'SELECT c.realName FROM user u INNER JOIN user c ON 1=1',
+      'SELECT c.realName FROM (user u JOIN user c ON 1=1)',
+      'SELECT c.realName FROM user u, user c',
+      'SELECT c.realName FROM {oj user u LEFT JOIN user c ON 1=1}',
+      'SELECT u.* FROM user PARTITION(p0) u',
+      'SELECT u.* FROM user u USE INDEX(PRIMARY)',
+      'SELECT user.phid FROM user WHERE user.phid IN '.
+        '(TABLE governance_native_'.str_repeat('a',16).'_phriction.one_column_table)',
+      'SELECT user.phid FROM user WHERE user.id IN (VALUES ROW(1),ROW(2))',
+      'SELECT user.phid FROM user EXCEPT TABLE user',
+      'SELECT user.phid FROM user INTERSECT TABLE user',
+      'SELECT DISTINCT project.* FROM project project JOIN edge e '.
+        'ON e.src=project.phid AND e.type=60 STRAIGHT_JOIN user c ON 1=1',
+      'SELECT DISTINCT project.* FROM project project JOIN edge e '.
+        'ON e.src=project.phid AND e.type=60 OR 1=1',
+    ) as $query) {
+      $this->assertEqual(null,
+        PhorgeGovernanceSnapshotConnection::profileTables($query, $database));
+    }
+    foreach (array('group', 'where', 'order', 'having', 'limit', 'from', 'join',
+      'table', 'values', 'except', 'intersect')
+      as $keyword_alias) {
+      foreach (array(' STRAIGHT_JOIN ', ', ') as $join_grammar) {
+        $query = 'SELECT c.content FROM user `'.$keyword_alias.'`'.$join_grammar.
+          'governance_native_'.str_repeat('a',16).'_phriction.phriction_content c';
+        if ($join_grammar !== ', ') { $query .= ' ON 1=1'; }
+        $this->assertEqual(null,
+          PhorgeGovernanceSnapshotConnection::profileTables($query, $database));
+      }
+    }
+    $this->assertEqual(array('project', 'edge'),
+      PhorgeGovernanceSnapshotConnection::profileTables(
+        'SELECT DISTINCT project.* FROM project project JOIN edge e '.
+        'ON e.src=project.phid AND e.type=60 WHERE e.dst IN (\'synthetic\')'));
+    $this->assertEqual(array('user'),
+      PhorgeGovernanceSnapshotConnection::profileTables(
+        'SELECT u.* FROM `'.$database.'`.`user` AS u WHERE u.id=1', $database));
   }
 
   public function testNativeRuntimeLibrariesRootsAndMapsFailClosed() {
@@ -135,5 +181,6 @@ SQL;
     $this->assertTrue($kept['replaced'] === $foreign);
     $this->assertTrue($kept['new-key'] === $new_foreign);
   }
+
 
 }
