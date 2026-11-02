@@ -127,6 +127,10 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
     if (!$unit || $unit['unitID']!==$team || $unit['kind']!=='team' || $unit['state']!=='active') {
       throw new RuntimeException('organization_approval_team_refused');
     }
+    if (($unit['visibilityModel']??null)!=='restricted-admin-v1' ||
+        (string)($unit['visibilityVersion']??'')!=='1') {
+      throw new RuntimeException('organization_approval_source_refused');
+    }
     if (PhorgeOrganizationService::version($unit['version'])<1) {
       throw new RuntimeException('organization_approval_source_refused');
     }

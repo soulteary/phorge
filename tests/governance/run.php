@@ -28,6 +28,7 @@ try {
     'PhorgeGovernanceOrganizationStoreTestCase',
     'PhorgeGovernanceOrganizationApprovalTestCase',
     'PhorgeOrganizationRequestTestCase',
+    'PhorgeOrganizationMetadataTestCase',
     'PhorgeGovernanceNativeIdentityTestCase',
     'PhorgeGovernanceNativeApprovalTestCase',
     'PhorgeGovernanceMediaExchangeServiceTestCase',

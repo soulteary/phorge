@@ -22,6 +22,16 @@
 JX.install('Prefab', {
 
   statics : {
+    getTokenizerNormalizer : function(mode) {
+      if (mode === undefined || mode === 'default') {
+        return JX.TypeaheadNormalizer.normalize;
+      }
+      if (mode === 'literal-casefold-v1') {
+        return function(value) { return ('' + value).toLowerCase(); };
+      }
+      throw new Error('Unsupported tokenizer normalizer mode.');
+    },
+
     renderSelect : function(map, selected, attrs, order) {
       var select = JX.$N('select', attrs || {});
 
@@ -102,6 +112,7 @@ JX.install('Prefab', {
         datasource = new JX.TypeaheadPreloadedSource(config.src);
       }
 
+      datasource.setNormalizer(JX.Prefab.getTokenizerNormalizer(config.normalizerMode));
       datasource.setSortHandler(
         JX.bind(datasource, JX.Prefab.sortHandler, config));
       datasource.setTransformer(JX.Prefab.transformDatasourceResults);

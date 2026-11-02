@@ -90,3 +90,45 @@ before commit. This is a statement-to-final-check boundary, not a promise that
 network delivery happens before a period expires. The count expiry fixture uses
 the real private capture and transaction-final gate as a staged test seam; it
 must not be described as a full public count route interrupted mid-request.
+
+## Directory completion candidate
+
+The follow-up metadata patch records the fixed `restricted-admin-v1` directory
+model and its version explicitly. It adds descriptive associated-department and
+contact references. These links do not confer authority. A team administrator
+receives no hidden department/parent reference; a contact outside the permitted
+current team roster is redacted. Unknown visibility models are not interpreted
+as ordinary readable units.
+
+`previewUnitChange` computes the real stored ancestor chain. Level 8 has no soft
+warning; level 9 warns but is allowed. The native editor offers a continuation
+instead of treating 8 as a hard limit. The separate 64-node traversal/cycle
+budget remains a defensive implementation bound, not the product soft limit or
+a restriction on native project hierarchies. The preview is administrator-only
+so depth/path metadata does not reveal hidden ancestors to team administrators.
+
+Clearing a main department sets the current reference to null and increases its
+version; it does not delete the row or reset its optimistic fence. System
+administrators have a bounded unassigned/invalid-department worklist. This is not
+a handover implementation. Direct changes from one non-null department to
+another remain blocked for the transfer workflow. Explicit clearing is an
+audited unassignment, not proof that native project access was removed.
+
+Unit/member reads now use stable keyset cursors. Search treats `%` and `_` as
+literal input, and filtered count uses the same protected search predicate. A
+native organization tokenizer is served by its own authenticated controller;
+a cached viewer passed to the generic datasource cannot substitute for the
+sealed request credential context. Preselected tokens are independently
+resolved through that protected projection.
+
+The small native management surface adds ordinary membership period update,
+end and suspend; administrator metadata, initial main-department assignment,
+clear, hierarchy and archive preview forms. All mutation forms retain native
+CSRF checks and expected versions. The archive preview retains relationships
+and audit records, makes no native-project revocation claim, and does not open a
+restore path. These candidate interfaces still need the matching native SQL,
+CSRF, rendering and browser receipts before completion is declared.
+
+No 365-day history deletion, transfer/handover state machine, dispatcher,
+implicit membership/appointment compound, project permission migration or
+production activation is included. O5–O8 remain separate dependent work.

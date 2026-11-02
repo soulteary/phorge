@@ -97,4 +97,33 @@ final class PhorgeOrganizationRequest extends Phobject {
     $copy = array(); foreach ($keys as $key) { $copy[$key] = $input[$key]; }
     return $copy;
   }
+
+
+  public static function metadata(array $input) {
+    $keys=array_keys($input);sort($keys);
+    if ($keys!==array('associated_department_id','contact_user_phid','expected_version','operation_id','unit_id') ||
+        !PhorgeGovernanceOrganizationRequest::identifier($input['operation_id']) ||
+        !PhorgeGovernanceOrganizationRequest::identifier($input['unit_id'],64) ||
+        !is_int($input['expected_version']) || $input['expected_version']<1 ||
+        $input['expected_version']>=PHP_INT_MAX ||
+        ($input['associated_department_id']!==null &&
+          !PhorgeGovernanceOrganizationRequest::identifier($input['associated_department_id'],64)) ||
+        ($input['contact_user_phid']!==null &&
+          !PhorgeGovernanceOrganizationRequest::userID($input['contact_user_phid']))) {
+      throw new InvalidArgumentException('organization_metadata_refused');
+    }
+    $copy=array();foreach($keys as $key){$copy[$key]=$input[$key];}return $copy;
+  }
+
+  public static function clearDepartment(array $input) {
+    $keys=array_keys($input);sort($keys);
+    if ($keys!==array('expected_version','operation_id','user_phid') ||
+        !PhorgeGovernanceOrganizationRequest::identifier($input['operation_id']) ||
+        !PhorgeGovernanceOrganizationRequest::userID($input['user_phid']) ||
+        !is_int($input['expected_version']) || $input['expected_version']<1 ||
+        $input['expected_version']>=PHP_INT_MAX) {
+      throw new InvalidArgumentException('organization_department_clear_refused');
+    }
+    $copy=array();foreach($keys as $key){$copy[$key]=$input[$key];}return $copy;
+  }
 }

@@ -11,7 +11,7 @@
       "path": "src/applications/people/application/PhabricatorPeopleApplication.php",
       "symbol": "PhabricatorPeopleApplication",
       "kind": "route-registration",
-      "sha256": "14a9750144da4f268510b94fa5cd54c77ba68ea285a54ffaa7d1f1c394b45f02",
+      "sha256": "b6f8b8df65d9edb527df573493f66d9e498aedc272525f4015711f961d3fe4d4",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -88,7 +88,7 @@
       "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
       "symbol": "PhorgeGovernanceNativeApprovalAdapter",
       "kind": "candidate-runtime-source",
-      "sha256": "9a17e03dccedd906ecc1cc0ed7aee5d9977487d332d20b77e395b8fd7b68adbd",
+      "sha256": "81ff443a2cdde47d832d1daa9722fd0ef1d3239d33919af7ec39f127c930ada2",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -165,7 +165,7 @@
       "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
       "symbol": "PhorgeOrganizationController",
       "kind": "candidate-runtime-source",
-      "sha256": "83fedfae7d57340772ab1314365c9876a3acdbf0e6b9d339ae367c24836b4694",
+      "sha256": "98b90679f8381158d47d8af2ce4f198c128d9f004a08508983fc98377190cb16",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -176,7 +176,7 @@
       "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
       "symbol": "PhorgeOrganizationQuery",
       "kind": "candidate-runtime-source",
-      "sha256": "e1750bd4dd3a09bc147689acdaa9f1a2967751de456ebce42e2e85b33ee575da",
+      "sha256": "26f06ca807540135c1cb9aa9d1c634d4256285a98cc52113b1b5eebffdd90900",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -198,7 +198,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
       "symbol": "PhorgeOrganizationEndpoint",
       "kind": "candidate-runtime-source",
-      "sha256": "ee282e6a26762e6f48b31e21f6bc5fc87926eaae60f1c62a2c9420499368a095",
+      "sha256": "ee6f77474dfe533163446b32f50614f91c2e80a92c5244af3fa1336a26313f7e",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -209,7 +209,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
       "symbol": "PhorgeOrganizationRequest",
       "kind": "candidate-runtime-source",
-      "sha256": "06841a5ca4a34f518346a96fe19a68ccee88a45b5668d2b045039b7739ee54a0",
+      "sha256": "2a57df0dee1a993bfd5cd1442bd413a5f95015398e929b8204465cbbcaa9fbe9",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -220,7 +220,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
       "symbol": "PhorgeOrganizationService",
       "kind": "candidate-runtime-source",
-      "sha256": "45d57594fbb37e8ab79a37fbe998b06b3137a25e877069d23262536a2c665896",
+      "sha256": "5d54056d625415e94d232cfc8169aead0468e8b55717bffe1bb70ef79d8f6df1",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -253,7 +253,7 @@
       "path": "src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php",
       "symbol": "PhorgeOrganizationPrimaryDepartment",
       "kind": "candidate-runtime-source",
-      "sha256": "9df42bcc396711082881fde98b9f6e7a62b6442c3c6e49cb2922d1e7482367f1",
+      "sha256": "6114d1284648f35f141860efbbb887ae6aad7719d7537cb5e1306c10ddab5632",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -275,7 +275,7 @@
       "path": "src/applications/people/governance/storage/PhorgeOrganizationUnit.php",
       "symbol": "PhorgeOrganizationUnit",
       "kind": "candidate-runtime-source",
-      "sha256": "67212907b43a58473d34e1966f0039183254bb73aa93e592f974b3c1e806e76e",
+      "sha256": "a5e678e8a33f8c7a0e049b622f28e4e6f5e35937075dfed38b17c83dc8b602f2",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -315,11 +315,77 @@
       "authority_proof": false
     },
     {
+      "id": "NATIVE.PhorgeOrganizationDatasource",
+      "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
+      "symbol": "PhorgeOrganizationDatasource",
+      "kind": "sealed-context-native-datasource",
+      "sha256": "2f5247ea99ce97130c102907213ce769306a3c759032f72888d5649dbbcb21a4",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationDatasourceController",
+      "path": "src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php",
+      "symbol": "PhorgeOrganizationDatasourceController",
+      "kind": "authenticated-datasource-controller",
+      "sha256": "c980a564ed00c2acd6825a2b3c073e4323fbcc799a181296d9c7f0463fb98e14",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
       "id": "NATIVE.PhorgeGovernanceMediaIssuer",
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php",
       "symbol": "PhorgeGovernanceMediaIssuer",
       "kind": "media-only-external-issuer",
       "sha256": "478f049956332abe308408e5bba22ddc7d79edf38e80bf4a7756d5af581f0b38",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "TYPEAHEAD.BASE",
+      "path": "src/applications/typeahead/datasource/PhabricatorTypeaheadDatasource.php",
+      "symbol": "PhabricatorTypeaheadDatasource",
+      "kind": "fixed-normalizer-default",
+      "sha256": "e1046ed33403267c8339135b2ebb51b320b69b9c2ef8a64dc76055ea41c89369",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "TOKENIZER.CONTROL",
+      "path": "src/view/form/control/AphrontFormTokenizerControl.php",
+      "symbol": "AphrontFormTokenizerControl",
+      "kind": "fixed-normalizer-metadata",
+      "sha256": "70d64446426a90655bd724ca34949afc802bb16b24193dfaf91af32bb859bd7f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.PREFAB",
+      "path": "webroot/rsrc/js/core/Prefab.js",
+      "symbol": "Prefab",
+      "kind": "fixed-client-normalizer",
+      "sha256": "2fb8d5560c45d7e0672f2bf46a577f3b5332d59f8d2663d396a5d94894b5c396",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "path": "webroot/rsrc/js/core/behavior-tokenizer.js",
+      "symbol": "aphront-basic-tokenizer",
+      "kind": "fixed-client-metadata-forwarder",
+      "sha256": "28a6fa2ce2d594a3aa334b3cf5200ea77382856d8c1aebd4dd62d27b4f19571e",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -457,6 +523,30 @@
     },
     {
       "id": "NATIVE-LINK-17",
+      "from_id": "ORG.ROUTES",
+      "to_id": "NATIVE.PhorgeOrganizationDatasourceController",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Registered protected datasource route and explicit class reference. Actual request credential and query behavior require separate runtime acceptance."
+    },
+    {
+      "id": "NATIVE-LINK-18",
+      "from_id": "NATIVE.PhorgeOrganizationDatasourceController",
+      "to_id": "NATIVE.PhorgeOrganizationDatasource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Registered protected datasource route and explicit class reference. Actual request credential and query behavior require separate runtime acceptance."
+    },
+    {
+      "id": "NATIVE-LINK-19",
+      "from_id": "NATIVE.PhorgeOrganizationDatasource",
+      "to_id": "NATIVE.PhorgeOrganizationQuery",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Registered protected datasource route and explicit class reference. Actual request credential and query behavior require separate runtime acceptance."
+    },
+    {
+      "id": "NATIVE-LINK-20",
       "from_id": "NATIVE.PhorgeGovernanceMediaExchangeService",
       "to_id": "NATIVE.PhorgeGovernanceMediaIssuer",
       "kind": "static-source-reference",
@@ -464,19 +554,51 @@
       "basis": "Reviewed media-only external configuration and purpose-separated digest dependency; not a public route, native credential rotation or activation proof."
     },
     {
-      "id": "NATIVE-LINK-18",
+      "id": "NATIVE-LINK-21",
       "from_id": "NATIVE.PhorgeGovernanceMediaConfigOptions",
       "to_id": "NATIVE.PhorgeGovernanceMediaIssuer",
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed media-only external configuration and purpose-separated digest dependency; not a public route, native credential rotation or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-22",
+      "from_id": "NATIVE.PhorgeOrganizationDatasource",
+      "to_id": "TYPEAHEAD.BASE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-23",
+      "from_id": "TOKENIZER.CONTROL",
+      "to_id": "TYPEAHEAD.BASE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-24",
+      "from_id": "TOKENIZER.CONTROL",
+      "to_id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-25",
+      "from_id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "to_id": "CLIENT.PREFAB",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Existing native behavior forwards the fixed metadata to Prefab; not browser or authority proof."
     }
   ],
   "scan": {
     "files": [
       {
         "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
-        "sha256": "9a17e03dccedd906ecc1cc0ed7aee5d9977487d332d20b77e395b8fd7b68adbd"
+        "sha256": "81ff443a2cdde47d832d1daa9722fd0ef1d3239d33919af7ec39f127c930ada2"
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php",
@@ -504,11 +626,19 @@
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
-        "sha256": "83fedfae7d57340772ab1314365c9876a3acdbf0e6b9d339ae367c24836b4694"
+        "sha256": "98b90679f8381158d47d8af2ce4f198c128d9f004a08508983fc98377190cb16"
+      },
+      {
+        "path": "src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php",
+        "sha256": "c980a564ed00c2acd6825a2b3c073e4323fbcc799a181296d9c7f0463fb98e14"
+      },
+      {
+        "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
+        "sha256": "2f5247ea99ce97130c102907213ce769306a3c759032f72888d5649dbbcb21a4"
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
-        "sha256": "e1750bd4dd3a09bc147689acdaa9f1a2967751de456ebce42e2e85b33ee575da"
+        "sha256": "26f06ca807540135c1cb9aa9d1c634d4256285a98cc52113b1b5eebffdd90900"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php",
@@ -516,15 +646,15 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
-        "sha256": "ee282e6a26762e6f48b31e21f6bc5fc87926eaae60f1c62a2c9420499368a095"
+        "sha256": "ee6f77474dfe533163446b32f50614f91c2e80a92c5244af3fa1336a26313f7e"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
-        "sha256": "06841a5ca4a34f518346a96fe19a68ccee88a45b5668d2b045039b7739ee54a0"
+        "sha256": "2a57df0dee1a993bfd5cd1442bd413a5f95015398e929b8204465cbbcaa9fbe9"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
-        "sha256": "45d57594fbb37e8ab79a37fbe998b06b3137a25e877069d23262536a2c665896"
+        "sha256": "5d54056d625415e94d232cfc8169aead0468e8b55717bffe1bb70ef79d8f6df1"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",
@@ -536,7 +666,7 @@
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php",
-        "sha256": "9df42bcc396711082881fde98b9f6e7a62b6442c3c6e49cb2922d1e7482367f1"
+        "sha256": "6114d1284648f35f141860efbbb887ae6aad7719d7537cb5e1306c10ddab5632"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationSchemaSpec.php",
@@ -544,7 +674,7 @@
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationUnit.php",
-        "sha256": "67212907b43a58473d34e1966f0039183254bb73aa93e592f974b3c1e806e76e"
+        "sha256": "a5e678e8a33f8c7a0e049b622f28e4e6f5e35937075dfed38b17c83dc8b602f2"
       },
       {
         "path": "src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php",

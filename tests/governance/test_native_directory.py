@@ -89,6 +89,54 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
         data = copy.deepcopy(self.data); data['scan']['files'][1] = data['scan']['files'][0]
         self.reject(data,'runtime source drift')
 
+    def test_datasource_and_authenticated_controller_are_explicit_sources(self):
+        ids = ('NATIVE.PhorgeOrganizationDatasource',
+               'NATIVE.PhorgeOrganizationDatasourceController')
+        for identity in ids:
+            data = copy.deepcopy(self.data)
+            data['sources'] = [row for row in data['sources'] if row['id'] != identity]
+            self.reject(data, 'source inventory drift')
+        data = copy.deepcopy(self.data)
+        row = next(row for row in data['sources'] if row['id'] == ids[0])
+        row['kind'] = 'cached-viewer-authority'
+        self.reject(data, 'source identity drift')
+
+    def test_datasource_links_cannot_skip_authenticated_request_boundary(self):
+        for identity in ('NATIVE-LINK-17','NATIVE-LINK-18','NATIVE-LINK-19'):
+            data = copy.deepcopy(self.data)
+            row = next(row for row in data['links'] if row['id'] == identity)
+            row['to_id'] = 'NATIVE.PhorgeOrganizationService'
+            self.reject(data, 'link topology drift')
+
+    def test_fixed_tokenizer_metadata_pipeline_is_explicit(self):
+        required={'TYPEAHEAD.BASE','TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB'}
+        self.assertTrue(required <= set(CHECKER.EXPECTED_SOURCES))
+        for identity in required:
+            data=copy.deepcopy(self.data)
+            data['sources']=[row for row in data['sources'] if row['id']!=identity]
+            with self.subTest(identity=identity),self.assertRaises(ValueError):
+                CHECKER.validate(data,ROOT)
+        for identity in ('NATIVE-LINK-22','NATIVE-LINK-23','NATIVE-LINK-24','NATIVE-LINK-25'):
+            data=copy.deepcopy(self.data)
+            data['links']=[row for row in data['links'] if row['id']!=identity]
+            with self.subTest(identity=identity),self.assertRaises(ValueError):
+                CHECKER.validate(data,ROOT)
+
+    def test_issuer_dependencies_survive_explicit_directory_link_merge(self):
+        expected = {
+            'NATIVE-LINK-20': ('NATIVE.PhorgeGovernanceMediaExchangeService', 'NATIVE.PhorgeGovernanceMediaIssuer'),
+            'NATIVE-LINK-21': ('NATIVE.PhorgeGovernanceMediaConfigOptions', 'NATIVE.PhorgeGovernanceMediaIssuer'),
+        }
+        for identity, pair in expected.items():
+            self.assertEqual(pair, CHECKER.EXPECTED_LINKS[identity])
+            data = copy.deepcopy(self.data)
+            row = next(row for row in data['links'] if row['id'] == identity)
+            row['runtime_verified'] = True
+            self.reject(data, 'not runtime proof')
+        data = copy.deepcopy(self.data)
+        data['sources'] = [row for row in data['sources'] if row['id'] != 'NATIVE.PhorgeGovernanceMediaIssuer']
+        self.reject(data, 'source inventory drift')
+
     def test_duplicate_json_keys_are_refused(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'manifest.json';path.write_text('{"scope":1,"scope":2}')

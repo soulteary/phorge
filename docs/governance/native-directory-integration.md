@@ -174,3 +174,48 @@ guards and notification integration remain separate work. Public routes and
 production optional features stay disabled.
 
 Issuer `assertCurrent` checks only the effective configuration stack in the current process. Recovery requires reloading every serving worker with the new external key/incarnation and preventing those external values from rolling back with the database. The current process check is not a fleet-wide reload certificate. The incarnation-only SQL case passed with a matching runtime receipt: it retains the key and native credentials while rejecting old browser slots, codes and credentials, then successfully establishes fresh media authority.
+
+## Directory completion checkpoint and combined-source gate
+
+The directory-only checkpoint independently passed 136 pure methods and 184 real
+MySQL/Gorge checks. Exact receipts are retained under
+`evidence/native-directory-checkpoint-20261103/`. It adds fixed versioned
+visibility metadata, department/contact redaction, actual eight-level soft
+warnings, main-department clearing and an administrator worklist, native
+search/datasource/keyset paging and protected member counts. Full native Chinese
+page rendering uses the real HTTP bootstrap and write guard. Actual form posts
+retain unavailable references by default and require explicit replace/clear;
+raw references are exposed only through a separate current-administrator
+management accessor, never ordinary lists, exports or tokenizer data.
+
+That checkpoint does not certify the subsequently integrated source. The
+combined directory and external media-issuer candidate must pass 139 pure
+methods and the exact 201-check strict native receipt, including both component
+summaries and all reviewed migrations. Source bookkeeping explicitly includes
+31 nodes, 21 static links and 47 runtime files; it remains partial, nonauthoritative
+and blocks activation. The two issuer links are explicitly numbered 20/21 in
+the combined graph so they do not replace the directory datasource links 17–19.
+
+O4 native batch/fault/direct-write coverage and complete browser workflows remain
+partial. O5–O8 compound approvals, protected history, transfer/handover and due
+workflows remain dependent work. No 365-day deletion, notification dispatcher,
+production activation, deployment, native four-axis change or permission
+migration follows from either isolated checkpoint or its source inventory.
+
+
+## Directory metadata and current-main issuer integration
+
+The directory checkpoint is preserved under `evidence/native-directory-checkpoint-20261103`: 136 pure methods and 184 native SQL checks. After explicitly merging the current-main issuer, the combined PHP 8.5.12 source passed 139 pure methods and 201 actual MySQL/Gorge checks. The current receipt is `native-directory-evidence.json`; combined pure results and the evidence index are under `evidence/native-directory-combined-20261103`. All owned schemas and runtime principals were cleaned without failures.
+
+The combined source inventory remains partial: 31 explicitly reviewed nodes, 21 links and 47 runtime files. Pure and isolated SQL evidence does not prove browser delivery, deployment, full governance source closure or optional-feature activation readiness. Native batch/fault coverage and the remaining organization appointment, history, transfer and reminder packages remain incomplete.
+
+
+### Directory review follow-up
+
+The subsequent exact-source run passed 139 pure methods and 204 SQL checks. Non-null native date-control values are converted to integer timestamps before strict mutation normalization, while null remains null. Inactive-department attention rows now expose an audited clear operation; reassignment is a separate explicit action. The transfer guard remains enforced. Three actual CSRF form/HTML/database assertions cover these fixes. This supersedes the preceding 201-check source as the current isolated receipt; hosted final-head CI and review remain required.
+
+
+The tokenizer follow-up retains the native `raw` query rather than searching the lossy normalized `q` literally. A dedicated case-insensitive selector path keeps punctuation and literal wildcard escaping, and shares the existing visibility predicate and expiry fence. Four actual controller regressions cover uppercase/hyphen names, lowercase partials, literal percent/underscore, and hidden units. The current exact-source receipt passed 139 pure methods and 208 SQL checks.
+
+
+Directory tokenizers explicitly select a fixed literal-casefold mode. Native query caching and client result matching retain punctuation and whitespace, avoiding normalized cache-key collisions such as `Ops_` versus `Ops`. All other datasources retain the native default mode; unknown mode names are rejected. Tests execute the real native JavaScript cache/match methods with explicit DOM/transport shims, and an actual complete native page decodes its Javelin configuration to prove both modes are wired. Celerity maps were rebuilt using PHP 8.5.12. The current isolated evidence is 139 pure methods, 209 SQL checks and 82 governance tests; this is not browser acceptance.

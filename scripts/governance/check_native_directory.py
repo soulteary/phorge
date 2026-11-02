@@ -5,9 +5,7 @@ import json
 from pathlib import Path
 import re
 
-EXPECTED_SOURCES = {'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
- 'PhorgeGovernanceMediaIssuer','media-only-external-issuer'),
- 'ORG.ROUTES': ('src/applications/people/application/PhabricatorPeopleApplication.php',
+EXPECTED_SOURCES = {'ORG.ROUTES': ('src/applications/people/application/PhabricatorPeopleApplication.php',
                 'PhabricatorPeopleApplication',
                 'route-registration'),
  'AUTH.CONDUIT.CONTROLLER': ('src/applications/conduit/controller/PhabricatorConduitAPIController.php',
@@ -90,59 +88,72 @@ EXPECTED_SOURCES = {'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/g
                                             'candidate-runtime-source'),
  'NATIVE.PhorgeGovernanceMediaConfigOptions': ('src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php',
                                                'PhorgeGovernanceMediaConfigOptions',
-                                               'default-off-configuration')}
+                                               'default-off-configuration'),
+ 'NATIVE.PhorgeOrganizationDatasource': ('src/applications/people/governance/query/PhorgeOrganizationDatasource.php',
+                                         'PhorgeOrganizationDatasource',
+                                         'sealed-context-native-datasource'),
+ 'NATIVE.PhorgeOrganizationDatasourceController': ('src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php',
+                                                   'PhorgeOrganizationDatasourceController',
+                                                   'authenticated-datasource-controller'),
+ 'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
+                                        'PhorgeGovernanceMediaIssuer',
+                                        'media-only-external-issuer')}
 
-EXPECTED_RUNTIME_FILES = [
-    'src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php',
-    'src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php',
-    'src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php',
-    'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySnapshot.php',
-    'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php',
-    'src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php',
-    'src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php',
-    'src/applications/people/governance/controller/PhorgeOrganizationController.php',
-    'src/applications/people/governance/query/PhorgeOrganizationQuery.php',
-    'src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php',
-    'src/applications/people/governance/service/PhorgeOrganizationEndpoint.php',
-    'src/applications/people/governance/service/PhorgeOrganizationRequest.php',
-    'src/applications/people/governance/service/PhorgeOrganizationService.php',
-    'src/applications/people/governance/storage/PhorgeOrganizationAppointment.php',
-    'src/applications/people/governance/storage/PhorgeOrganizationMember.php',
-    'src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php',
-    'src/applications/people/governance/storage/PhorgeOrganizationSchemaSpec.php',
-    'src/applications/people/governance/storage/PhorgeOrganizationUnit.php',
-    'src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php',
-    'src/infrastructure/governance/consistency/PhorgeGovernanceNativeRuntimeProfile.php',
-    'src/infrastructure/governance/consistency/PhorgeGovernanceSnapshotConnection.php',
-    'src/infrastructure/governance/contracts/PhorgeGovernanceApprovalRequest.php',
-    'src/infrastructure/governance/contracts/PhorgeGovernanceApprovalState.php',
-    'src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php',
-    'src/infrastructure/governance/directory/PhorgeGovernanceDirectoryReader.php',
-    'src/infrastructure/governance/directory/PhorgeGovernanceIsolatedDirectoryStore.php',
-    'src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php',
-    'src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php',
-    'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php',
-    'src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
-    'src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php',
-    'src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php',
-    'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
-    'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceCapture.php',
-    'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php',
-    'src/infrastructure/governance/observation/PhorgeGovernanceNativeCapabilityContext.php',
-    'src/infrastructure/governance/observation/PhorgeGovernanceNativeObservationVerifier.php',
-    'src/infrastructure/governance/organization/PhorgeGovernanceOrganizationApprovalAdapter.php',
-    'src/infrastructure/governance/organization/PhorgeGovernanceOrganizationReader.php',
-    'src/infrastructure/governance/organization/PhorgeGovernanceOrganizationRequest.php',
-    'src/infrastructure/governance/organization/PhorgeGovernanceOrganizationStore.php',
-    'src/infrastructure/governance/readset/PhorgeGovernanceIsolatedReadSetStore.php',
-    'src/infrastructure/governance/readset/PhorgeGovernanceReadSetSnapshot.php',
-    'src/infrastructure/governance/readset/PhorgeGovernanceReadSetValidator.php',
-    'src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php',
-]
+EXPECTED_SOURCES.update({
+ 'TYPEAHEAD.BASE': ('src/applications/typeahead/datasource/PhabricatorTypeaheadDatasource.php','PhabricatorTypeaheadDatasource','fixed-normalizer-default'),
+ 'TOKENIZER.CONTROL': ('src/view/form/control/AphrontFormTokenizerControl.php','AphrontFormTokenizerControl','fixed-normalizer-metadata'),
+ 'CLIENT.TOKENIZER.BEHAVIOR': ('webroot/rsrc/js/core/behavior-tokenizer.js','aphront-basic-tokenizer','fixed-client-metadata-forwarder'),
+ 'CLIENT.PREFAB': ('webroot/rsrc/js/core/Prefab.js','Prefab','fixed-client-normalizer')})
 
-EXPECTED_LINKS = {'NATIVE-LINK-17': ('NATIVE.PhorgeGovernanceMediaExchangeService','NATIVE.PhorgeGovernanceMediaIssuer'),
- 'NATIVE-LINK-18': ('NATIVE.PhorgeGovernanceMediaConfigOptions','NATIVE.PhorgeGovernanceMediaIssuer'),
- 'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationController'),
+EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php',
+ 'src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php',
+ 'src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php',
+ 'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySnapshot.php',
+ 'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php',
+ 'src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php',
+ 'src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php',
+ 'src/applications/people/governance/controller/PhorgeOrganizationController.php',
+ 'src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php',
+ 'src/applications/people/governance/query/PhorgeOrganizationDatasource.php',
+ 'src/applications/people/governance/query/PhorgeOrganizationQuery.php',
+ 'src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php',
+ 'src/applications/people/governance/service/PhorgeOrganizationEndpoint.php',
+ 'src/applications/people/governance/service/PhorgeOrganizationRequest.php',
+ 'src/applications/people/governance/service/PhorgeOrganizationService.php',
+ 'src/applications/people/governance/storage/PhorgeOrganizationAppointment.php',
+ 'src/applications/people/governance/storage/PhorgeOrganizationMember.php',
+ 'src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php',
+ 'src/applications/people/governance/storage/PhorgeOrganizationSchemaSpec.php',
+ 'src/applications/people/governance/storage/PhorgeOrganizationUnit.php',
+ 'src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php',
+ 'src/infrastructure/governance/consistency/PhorgeGovernanceNativeRuntimeProfile.php',
+ 'src/infrastructure/governance/consistency/PhorgeGovernanceSnapshotConnection.php',
+ 'src/infrastructure/governance/contracts/PhorgeGovernanceApprovalRequest.php',
+ 'src/infrastructure/governance/contracts/PhorgeGovernanceApprovalState.php',
+ 'src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php',
+ 'src/infrastructure/governance/directory/PhorgeGovernanceDirectoryReader.php',
+ 'src/infrastructure/governance/directory/PhorgeGovernanceIsolatedDirectoryStore.php',
+ 'src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php',
+ 'src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php',
+ 'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php',
+ 'src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
+ 'src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php',
+ 'src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php',
+ 'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
+ 'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceCapture.php',
+ 'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php',
+ 'src/infrastructure/governance/observation/PhorgeGovernanceNativeCapabilityContext.php',
+ 'src/infrastructure/governance/observation/PhorgeGovernanceNativeObservationVerifier.php',
+ 'src/infrastructure/governance/organization/PhorgeGovernanceOrganizationApprovalAdapter.php',
+ 'src/infrastructure/governance/organization/PhorgeGovernanceOrganizationReader.php',
+ 'src/infrastructure/governance/organization/PhorgeGovernanceOrganizationRequest.php',
+ 'src/infrastructure/governance/organization/PhorgeGovernanceOrganizationStore.php',
+ 'src/infrastructure/governance/readset/PhorgeGovernanceIsolatedReadSetStore.php',
+ 'src/infrastructure/governance/readset/PhorgeGovernanceReadSetSnapshot.php',
+ 'src/infrastructure/governance/readset/PhorgeGovernanceReadSetValidator.php',
+ 'src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php']
+
+EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationController'),
  'NATIVE-LINK-02': ('NATIVE.PhorgeOrganizationController', 'NATIVE.PhorgeOrganizationEndpoint'),
  'NATIVE-LINK-03': ('NATIVE.PeopleOrganizationQueryConduitAPIMethod',
                     'NATIVE.PhorgeOrganizationEndpoint'),
@@ -163,7 +174,21 @@ EXPECTED_LINKS = {'NATIVE-LINK-17': ('NATIVE.PhorgeGovernanceMediaExchangeServic
  'NATIVE-LINK-15': ('NATIVE.PhorgeGovernanceMediaExchangeService',
                     'NATIVE.PhorgeGovernanceNativeIdentitySource'),
  'NATIVE-LINK-16': ('NATIVE.PhorgeGovernanceMediaConfigOptions',
-                    'NATIVE.PhorgeGovernanceMediaExchangeService')}
+                    'NATIVE.PhorgeGovernanceMediaExchangeService'),
+ 'NATIVE-LINK-17': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationDatasourceController'),
+ 'NATIVE-LINK-18': ('NATIVE.PhorgeOrganizationDatasourceController',
+                    'NATIVE.PhorgeOrganizationDatasource'),
+ 'NATIVE-LINK-19': ('NATIVE.PhorgeOrganizationDatasource', 'NATIVE.PhorgeOrganizationQuery'),
+ 'NATIVE-LINK-20': ('NATIVE.PhorgeGovernanceMediaExchangeService',
+                    'NATIVE.PhorgeGovernanceMediaIssuer'),
+ 'NATIVE-LINK-21': ('NATIVE.PhorgeGovernanceMediaConfigOptions',
+                    'NATIVE.PhorgeGovernanceMediaIssuer')}
+
+EXPECTED_LINKS.update({
+ 'NATIVE-LINK-22': ('NATIVE.PhorgeOrganizationDatasource','TYPEAHEAD.BASE'),
+ 'NATIVE-LINK-23': ('TOKENIZER.CONTROL','TYPEAHEAD.BASE'),
+ 'NATIVE-LINK-24': ('TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR'),
+ 'NATIVE-LINK-25': ('CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB')})
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
@@ -224,8 +249,13 @@ def validate(data, root):
                 'source must remain non-authoritative')
         path = file(root, raw)
         require(row['sha256'] == hashlib.sha256(path.read_bytes()).hexdigest(), 'source hash drift')
-        require(re.search(r'\bclass\s+'+re.escape(symbol)+r'\b', path.read_text()) is not None,
-                'declared class reference missing')
+        if key=='CLIENT.TOKENIZER.BEHAVIOR':
+            require("JX.behavior('aphront-basic-tokenizer'," in path.read_text(),'fixed tokenizer behavior missing')
+        elif key=='CLIENT.PREFAB':
+            require("JX.install('Prefab'," in path.read_text(),'fixed client symbol reference missing')
+        else:
+            require(re.search(r'\bclass\s+'+re.escape(symbol)+r'\b', path.read_text()) is not None,
+                    'declared class reference missing')
     links = keyed(data['links'], 'link IDs refused')
     require(set(links) == set(EXPECTED_LINKS), 'link inventory drift')
     for key, pair in EXPECTED_LINKS.items():
