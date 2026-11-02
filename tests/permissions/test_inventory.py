@@ -26,3 +26,62 @@ class ConsumerInventoryTests(unittest.TestCase):
             (root/'scripts/permissions/consumers.json').write_text('{"patterns":"needMembers","entries":[]}')
             (root/'src/new.php').write_text('<?php $query->needMembers(true);')
             with self.assertRaisesRegex(ValueError,'references changed'):inventory.collect(root)
+
+    def test_inactive_member_shape_references_have_separate_non_authority_reviews(self):
+        report=inventory.collect()
+        rows={row['path']:row for row in report['consumers']}
+        expected={
+            'src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php':
+                ('isolated-transaction-shape-classifier','classification-only'),
+            'src/infrastructure/governance/mapping/__tests__/PhorgeGovernanceCapabilityMapTestCase.php':
+                ('isolated-native-shape-test','unit-test-only'),
+        }
+        for path,(kind,operation) in expected.items():
+            with self.subTest(path=path):
+                row=rows[path]
+                self.assertTrue(row['discovery'])
+                self.assertTrue(row['matchingLines'])
+                self.assertEqual(row['kind'],kind)
+                self.assertEqual(row['authority'],'none')
+                self.assertEqual(row['sourceOperation'],operation)
+                self.assertEqual(row['reviewStatus'],'source-reviewed-not-route-certified')
+                self.assertIs(row['candidateGenerationIntroduced'],False)
+        self.assertFalse(report['runtimeAuthorizationCertified'])
+        self.assertEqual(report['writesPerformed'],0)
+
+    def test_governance_literal_references_cannot_be_omitted_or_hidden(self):
+        import copy
+        import json
+        catalog=json.loads((ROOT/'scripts/permissions/consumers.json').read_text())
+        paths={
+            'src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php',
+            'src/infrastructure/governance/mapping/__tests__/PhorgeGovernanceCapabilityMapTestCase.php',
+        }
+        selected=[copy.deepcopy(row) for row in catalog['entries'] if row['path'] in paths]
+        self.assertEqual(len(selected),2)
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);(root/'scripts/permissions').mkdir(parents=True)
+            for row in selected:
+                target=root/row['path'];target.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copyfile(ROOT/row['path'],target)
+            minimal={'schemaVersion':1,'scope':'synthetic-review-regression',
+                     'patterns':catalog['patterns'],'entries':selected}
+            target=root/'scripts/permissions/consumers.json'
+            target.write_text(json.dumps(minimal))
+            report=inventory.collect(root)
+            self.assertEqual(report['discoveredFiles'],2)
+            for mutation in ('remove-review','disable-discovery','duplicate-review'):
+                with self.subTest(mutation=mutation):
+                    modified=copy.deepcopy(minimal)
+                    if mutation=='remove-review':modified['entries'].pop()
+                    elif mutation=='disable-discovery':modified['entries'][0]['discovery']=False
+                    else:modified['entries'].append(copy.deepcopy(modified['entries'][0]))
+                    target.write_text(json.dumps(modified))
+                    with self.assertRaisesRegex(ValueError,'references changed|Duplicate consumer'):
+                        inventory.collect(root)
+            # The governance namespace is still scanned, including native tests.
+            target.write_text(json.dumps(minimal))
+            (root/'src/infrastructure/governance/new-unreviewed.php').write_text(
+                '<?php $query->needMembers(true);')
+            with self.assertRaisesRegex(ValueError,'references changed'):
+                inventory.collect(root)

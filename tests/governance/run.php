@@ -18,6 +18,8 @@ try {
     'PhorgeGovernanceDirectoryReaderTestCase',
     'PhorgeGovernanceContentDecisionTestCase',
     'PhorgeGovernanceApprovalStateTestCase',
+    'PhorgeGovernanceCapabilityMapTestCase',
+    'PhorgeGovernanceReadSetTestCase',
   );
   $expected = array();
   $cases = array();
