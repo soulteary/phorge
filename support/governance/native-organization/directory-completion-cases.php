@@ -209,6 +209,37 @@ function governance_native_directory_completion_cases($fixture, callable $check,
         'directory-completion-real-chinese-page-localizes-inactive-department-status');
     }finally{$state['admin']['viewer']->setAllowInlineCacheGeneration($old_inline);
       PhabricatorEnv::setLocaleCode($old_locale);PhutilTranslator::setInstance($old_translator);}
+    $member=queryfx_one((new PhabricatorUser())->establishConnection('w'),
+      'SELECT m.*,u.version unitVersion FROM organization_member m JOIN organization_unit u ON u.unitID=m.unitID WHERE m.unitID=%s ORDER BY m.userPHID LIMIT 1','dc-page-000');
+    $zone=new DateTimeZone($state['admin']['viewer']->getTimezoneIdentifier());
+    $date=new DateTime('+10 days',$zone);$date->setTime(14,30,0);$expected=(int)$date->format('U');
+    list($date_response,$unused)=governance_native_route_response($state['admin'],'POST',array($csrf=>$token,
+      'form_action'=>'member.update','operation_id'=>'dc-form-finite-period','unit_id'=>'dc-page-000',
+      'user_phid'=>$member['userPHID'],'unit_version'=>$member['unitVersion'],'member_version'=>$member['version'],
+      'appointment_version'=>0,'valid_from'=>$member['validFrom'],'until_e'=>'1','until_d'=>$date->format('m/d/Y'),'until_t'=>'14:30'));
+    $period=queryfx_one((new PhabricatorUser())->establishConnection('w'),
+      'SELECT validUntil,version FROM organization_member WHERE unitID=%s AND userPHID=%s','dc-page-000',$member['userPHID']);
+    $check($date_response instanceof AphrontRedirectResponse && (int)$period['validUntil']===$expected &&
+      (int)$period['version']===(int)$member['version']+1,
+      'directory-completion-real-csrf-finite-date-form-persists-native-timestamp');
+    $primary=queryfx_one((new PhabricatorUser())->establishConnection('w'),
+      'SELECT version FROM organization_primarydepartment WHERE userPHID=%s',$render_subject['user_phid']);
+    list($clear_inactive,$unused)=governance_native_route_response($state['admin'],'POST',array($csrf=>$token,
+      'form_action'=>'department.clear','operation_id'=>'dc-form-inactive-clear','user_phid'=>$render_subject['user_phid'],
+      'primary_version'=>$primary['version']));
+    $cleared_primary=queryfx_one((new PhabricatorUser())->establishConnection('w'),
+      'SELECT unitID,version FROM organization_primarydepartment WHERE userPHID=%s',$render_subject['user_phid']);
+    $check(strpos($html,'value="department.clear"')!==false && $clear_inactive instanceof AphrontRedirectResponse &&
+      $cleared_primary['unitID']===null && (int)$cleared_primary['version']===(int)$primary['version']+1,
+      'directory-completion-inactive-attention-has-real-audited-clear-form');
+    list($reassign,$unused)=governance_native_route_response($state['admin'],'POST',array($csrf=>$token,
+      'form_action'=>'department.assign','operation_id'=>'dc-form-inactive-reassign','user_phid'=>$render_subject['user_phid'],
+      'primary_version'=>$cleared_primary['version'],'department'=>array('dc-dept')));
+    $assigned=queryfx_one((new PhabricatorUser())->establishConnection('w'),
+      'SELECT unitID,version FROM organization_primarydepartment WHERE userPHID=%s',$render_subject['user_phid']);
+    $check($reassign instanceof AphrontRedirectResponse && $assigned['unitID']==='dc-dept' &&
+      (int)$assigned['version']===(int)$cleared_primary['version']+1,
+      'directory-completion-cleared-inactive-department-can-explicitly-reassign');
     return array('native_hierarchy_and_metadata'=>true,'native_datasource'=>true,'schema_migration_test_environment_only'=>true,
       'native_project_permissions_changed'=>false,'audit_cleanup_enabled'=>false,'handover_implemented'=>false);
   }finally{$_COOKIE=$saved_cookie;$_SERVER=$saved_server;}

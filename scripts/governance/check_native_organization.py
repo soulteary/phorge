@@ -12,6 +12,9 @@ _spec = importlib.util.spec_from_file_location('native_completion_gate', ROOT/'s
 completion = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(completion)
 REQUIRED_CHECKS = frozenset({
+    'directory-completion-real-csrf-finite-date-form-persists-native-timestamp',
+    'directory-completion-inactive-attention-has-real-audited-clear-form',
+    'directory-completion-cleared-inactive-department-can-explicitly-reassign',
     'all-owned-full-native-schemas-and-principals-cleaned',
     'completion-reader-cannot-modify-ownership-marker',
     'completion-reader-forbidden-privilege-denied',

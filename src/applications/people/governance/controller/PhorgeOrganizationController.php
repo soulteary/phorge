@@ -105,7 +105,7 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
         'action'=>'member.update','approval_id'=>null,'expected_appointment_version'=>$request->getInt('appointment_version'),
         'expected_member_version'=>$request->getInt('member_version'),'expected_team_version'=>$request->getInt('unit_version'),
         'target_user'=>$request->getStr('user_phid'),'team'=>$request->getStr('unit_id'),
-        'valid_from'=>$request->getInt('valid_from'),'valid_until'=>$date->getValue()))));
+        'valid_from'=>$request->getInt('valid_from'),'valid_until'=>$date->getValue()===null?null:(int)$date->getValue()))));
     }
     if ($request->getStr('form_action') === 'department.assign') {
       $departments=$request->getArr('department');if(count($departments)!==1){throw new InvalidArgumentException('organization_department_required');}
@@ -294,6 +294,14 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
         ->appendControl(id(new AphrontFormTokenizerControl())->setLabel(pht('Department'))->setName('department')->setLimit(1)
           ->setDatasource((new PhorgeOrganizationDatasource())->setActorContext($context)))
         ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Assign Main Department')));
+        if($person['reason']==='inactive_department'){
+          // Clearing the inactive current reference is explicit and audited.
+          // Reassignment is a separate request; do not bypass transfer fencing.
+          $form=id(new AphrontFormView())->setUser($this->getViewer())
+            ->addHiddenInput('form_action','department.clear')->addHiddenInput('operation_id','web:'.bin2hex(random_bytes(16)))
+            ->addHiddenInput('user_phid',$person['user_phid'])->addHiddenInput('primary_version',$person['primary_department_version'])
+            ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Clear Main Department')));
+        }
         $reasons=array('unassigned'=>pht('Unassigned'),'inactive_department'=>pht('Inactive Department'));
         $unassigned_rows[]=array($person['name'],$person['username'],idx($reasons,$person['reason'],pht('Unavailable')),$form);}
       if(count($unassigned)===20){$uri=(new PhutilURI($this->getApplicationURI('organization/')))->setQueryParam('unassigned_after',last($unassigned)['user_phid']);

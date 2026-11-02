@@ -201,11 +201,14 @@
     "directory-completion-real-form-explicit-clear-does-not-add-contact-membership",
     "directory-completion-real-chinese-page-localizes-unassigned-status",
     "directory-completion-real-chinese-page-localizes-inactive-department-status",
+    "directory-completion-real-csrf-finite-date-form-persists-native-timestamp",
+    "directory-completion-inactive-attention-has-real-audited-clear-form",
+    "directory-completion-cleared-inactive-department-can-explicitly-reassign",
     "owned-native-write-guard-disposed",
     "owned-writer-environment-and-cache-restored",
     "all-owned-full-native-schemas-and-principals-cleaned"
   ],
-  "check_count": 201,
+  "check_count": 204,
   "php_version": "8.5.12",
   "source_restore": {
     "quickstart_sha256": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
@@ -276,7 +279,7 @@
     },
     "issuer_tests": {
       "restore_scope": "three-media-tables-logical-snapshot-and-real-sql-restore",
-      "restored_snapshot_sha256": "96ab285e3954bb46d30a384770a296cce4e77316decb8639190c4fe5130121e2",
+      "restored_snapshot_sha256": "db84a462cd455aa8f349e84abfd06f462b9d9ddf06a46a45e9421f0441b421be",
       "media_only_external_rotation": true,
       "incarnation_only_rotation_verified": true,
       "old_native_credentials_retained_and_verified": true,

@@ -165,7 +165,7 @@
       "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
       "symbol": "PhorgeOrganizationController",
       "kind": "candidate-runtime-source",
-      "sha256": "0f1af034ce9d1fa753fb18d61c54ba66994647a1fadb1dc6215afa7104a9e194",
+      "sha256": "98b90679f8381158d47d8af2ce4f198c128d9f004a08508983fc98377190cb16",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -550,7 +550,7 @@
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
-        "sha256": "0f1af034ce9d1fa753fb18d61c54ba66994647a1fadb1dc6215afa7104a9e194"
+        "sha256": "98b90679f8381158d47d8af2ce4f198c128d9f004a08508983fc98377190cb16"
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php",

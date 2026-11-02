@@ -208,3 +208,8 @@ migration follows from either isolated checkpoint or its source inventory.
 The directory checkpoint is preserved under `evidence/native-directory-checkpoint-20261103`: 136 pure methods and 184 native SQL checks. After explicitly merging the current-main issuer, the combined PHP 8.5.12 source passed 139 pure methods and 201 actual MySQL/Gorge checks. The current receipt is `native-directory-evidence.json`; combined pure results and the evidence index are under `evidence/native-directory-combined-20261103`. All owned schemas and runtime principals were cleaned without failures.
 
 The combined source inventory remains partial: 31 explicitly reviewed nodes, 21 links and 47 runtime files. Pure and isolated SQL evidence does not prove browser delivery, deployment, full governance source closure or optional-feature activation readiness. Native batch/fault coverage and the remaining organization appointment, history, transfer and reminder packages remain incomplete.
+
+
+### Directory review follow-up
+
+The subsequent exact-source run passed 139 pure methods and 204 SQL checks. Non-null native date-control values are converted to integer timestamps before strict mutation normalization, while null remains null. Inactive-department attention rows now expose an audited clear operation; reassignment is a separate explicit action. The transfer guard remains enforced. Three actual CSRF form/HTML/database assertions cover these fixes. This supersedes the preceding 201-check source as the current isolated receipt; hosted final-head CI and review remain required.
