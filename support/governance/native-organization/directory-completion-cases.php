@@ -194,7 +194,7 @@ function governance_native_directory_completion_cases($fixture, callable $check,
       PhutilTranslator::setInstance($translator);$_SERVER['REQUEST_METHOD']='GET';
       $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$state['admin']['token'];
       $application_configuration=(new AphrontApplicationConfiguration())->setHost('fixture.invalid')->setPath('/people/organization/');
-      $page_request=$application_configuration->buildRequest()->setUser($state['admin']['viewer'])->setRequestData(array());
+      $page_request=$application_configuration->buildRequest()->setUser($state['admin']['viewer'])->setRequestData(array('unit_id'=>'dc-preserve-child'));
       $application_configuration->setRequest($page_request);
       $page_controller=(new PhorgeOrganizationController())->setRequest($page_request)->setCurrentApplication(new PhabricatorPeopleApplication());
       $html=governance_native_with_request_write_guard($page_request,static function() use ($page_controller,$page_request) {
@@ -202,6 +202,29 @@ function governance_native_directory_completion_cases($fixture, callable $check,
         if(!($page instanceof PhabricatorStandardPageView)){throw new RuntimeException('directory_render_page_unavailable');}
         return (string)hsprintf('%s',$page);
       });
+      // Native Celerity serializes behavior JSON in HTML-escaped data
+      // attributes. Decode the attribute as DOM.getAttribute() does in the
+      // real Javelin initializer, then inspect the actual tokenizer configs.
+      preg_match_all('/data-javelin-init-data="([^"]*)"/',$html,$behavior_attributes);
+      $directory_mode=false;$people_mode=false;$safe_modes=array();
+      foreach($behavior_attributes[1]as$attribute){
+        $behavior_data=phutil_json_decode(html_entity_decode($attribute,ENT_QUOTES,'UTF-8'));
+        foreach(idx($behavior_data,'aphront-basic-tokenizer',array())as$config){
+          $src=idx($config,'src');$mode=idx($config,'normalizerMode');
+          if($src==='/people/organization/typeahead/'){$directory_mode=$directory_mode||$mode==='literal-casefold-v1';
+            $safe_modes[]=array('source'=>'organization','mode'=>$mode);}
+          if(is_string($src)&&strpos($src,'/typeahead/class/PhabricatorPeopleDatasource/')===0){
+            $people_mode=$people_mode||$mode==='default';$safe_modes[]=array('source'=>'people','mode'=>$mode);}
+        }
+      }
+      // Only names and modes: never persist HTML, CSRF/session data or URLs.
+      $metadata_file=tempnam(sys_get_temp_dir(),'governance-directory-tokenizer-');
+      if($metadata_file===false){throw new RuntimeException('directory_metadata_capture_failed');}
+      chmod($metadata_file,0600);file_put_contents($metadata_file,phutil_json_encode($safe_modes));
+      $check($directory_mode && $people_mode &&
+        (new PhorgeOrganizationDatasource())->getTokenizerNormalizerMode()==='literal-casefold-v1' &&
+        (new PhabricatorPeopleDatasource())->getTokenizerNormalizerMode()==='default',
+        'directory-completion-real-html-sends-directory-literal-normalizer-with-people-default');
       $check(strpos($html,pht('Unassigned'))!==false && pht('Unassigned')!=='Unassigned' && strpos($html,'>unassigned<')===false,
         'directory-completion-real-chinese-page-localizes-unassigned-status');
       $check(strpos($html,pht('Inactive Department'))!==false && pht('Inactive Department')!=='Inactive Department' &&
@@ -240,6 +263,27 @@ function governance_native_directory_completion_cases($fixture, callable $check,
     $check($reassign instanceof AphrontRedirectResponse && $assigned['unitID']==='dc-dept' &&
       (int)$assigned['version']===(int)$cleared_primary['version']+1,
       'directory-completion-cleared-inactive-department-can-explicitly-reassign');
+    foreach(array('dc-selector-literal'=>'Engineering-Team_%','dc-selector-decoy'=>'EngineeringXTeamXA')as$id=>$name){
+      $service->createUnit(array('operation_id'=>'create-'.$id,'unit_id'=>$id,'kind'=>'team','name'=>$name,'parent_id'=>null));}
+    $selector=function($session,$q,$raw) {
+      $_SERVER['REQUEST_METHOD']='GET';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$session['token'];
+      $request=(new AphrontRequest('fixture.invalid','/people/organization/typeahead/'))
+        ->setUser($session['viewer'])->setRequestData(array('q'=>$q,'raw'=>$raw));
+      $controller=(new PhorgeOrganizationDatasourceController())->setRequest($request)->setCurrentApplication(new PhabricatorPeopleApplication());
+      $response=governance_native_with_request_write_guard($request,static function()use($controller,$request){return $controller->handleRequest($request);});
+      if(!($response instanceof AphrontAjaxResponse)||$response->getHTTPResponseCode()!==200){throw new RuntimeException('directory_selector_response_refused');}
+      return array_column((new ReflectionProperty(AphrontAjaxResponse::class,'content'))->getValue($response),2);
+    };
+    $check($selector($state['admin'],'engineering team','Engineering-Team_%')===array('dc-selector-literal'),
+      'directory-completion-selector-native-normalized-q-preserves-raw-uppercase-punctuation');
+    $matches=$selector($state['admin'],'engineer','engineer');sort($matches);
+    $check($matches===array('dc-selector-decoy','dc-selector-literal'),
+      'directory-completion-selector-lowercase-partial-matches-uppercase-native-name');
+    $check($selector($state['admin'],'engineering team','engineering-Team_%')===array('dc-selector-literal'),
+      'directory-completion-selector-percent-underscore-remain-literal-not-wildcards');
+    $check($selector($manager,'engineering team','Engineering-Team_%')===array() &&
+      governance_native_route_guard_depth()===0,
+      'directory-completion-selector-case-folding-does-not-disclose-hidden-units');
     return array('native_hierarchy_and_metadata'=>true,'native_datasource'=>true,'schema_migration_test_environment_only'=>true,
       'native_project_permissions_changed'=>false,'audit_cleanup_enabled'=>false,'handover_implemented'=>false);
   }finally{$_COOKIE=$saved_cookie;$_SERVER=$saved_server;}

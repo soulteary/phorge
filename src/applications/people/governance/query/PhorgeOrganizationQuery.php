@@ -24,6 +24,9 @@ final class PhorgeOrganizationQuery extends Phobject {
   public function searchUnits($query, $limit = 100, $after = null) {
     return $this->service->readUnits($limit,$after,$query);
   }
+  public function searchSelectorUnits($query,$limit=100,$after=null) {
+    return $this->service->readUnits($limit,$after,$query,true);
+  }
   public function listUnassignedUsers($limit=100,$after=null) {
     return $this->service->readUnassignedUsers($limit,$after);
   }

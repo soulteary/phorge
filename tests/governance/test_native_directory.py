@@ -108,6 +108,20 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
             row['to_id'] = 'NATIVE.PhorgeOrganizationService'
             self.reject(data, 'link topology drift')
 
+    def test_fixed_tokenizer_metadata_pipeline_is_explicit(self):
+        required={'TYPEAHEAD.BASE','TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB'}
+        self.assertTrue(required <= set(CHECKER.EXPECTED_SOURCES))
+        for identity in required:
+            data=copy.deepcopy(self.data)
+            data['sources']=[row for row in data['sources'] if row['id']!=identity]
+            with self.subTest(identity=identity),self.assertRaises(ValueError):
+                CHECKER.validate(data,ROOT)
+        for identity in ('NATIVE-LINK-22','NATIVE-LINK-23','NATIVE-LINK-24','NATIVE-LINK-25'):
+            data=copy.deepcopy(self.data)
+            data['links']=[row for row in data['links'] if row['id']!=identity]
+            with self.subTest(identity=identity),self.assertRaises(ValueError):
+                CHECKER.validate(data,ROOT)
+
     def test_issuer_dependencies_survive_explicit_directory_link_merge(self):
         expected = {
             'NATIVE-LINK-20': ('NATIVE.PhorgeGovernanceMediaExchangeService', 'NATIVE.PhorgeGovernanceMediaIssuer'),

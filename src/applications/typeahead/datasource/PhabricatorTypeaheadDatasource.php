@@ -146,6 +146,8 @@ abstract class PhabricatorTypeaheadDatasource extends Phobject {
    */
   abstract public function getPlaceholderText();
 
+  public function getTokenizerNormalizerMode() { return 'default'; }
+
   /**
    * @return string Title to display in the selection popup dialog created
    * after selecting the magnifier icon, for example 'Browse Projects'

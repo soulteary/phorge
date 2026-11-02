@@ -213,3 +213,40 @@ The combined source inventory remains partial: 31 explicitly reviewed nodes, 21 
 ### Directory review follow-up
 
 The subsequent exact-source run passed 139 pure methods and 204 SQL checks. Non-null native date-control values are converted to integer timestamps before strict mutation normalization, while null remains null. Inactive-department attention rows now expose an audited clear operation; reassignment is a separate explicit action. The transfer guard remains enforced. Three actual CSRF form/HTML/database assertions cover these fixes. This supersedes the preceding 201-check source as the current isolated receipt; hosted final-head CI and review remain required.
+
+
+The tokenizer follow-up retains the native `raw` query rather than searching the lossy normalized `q` literally. A dedicated case-insensitive selector path keeps punctuation and literal wildcard escaping, and shares the existing visibility predicate and expiry fence. Four actual controller regressions cover uppercase/hyphen names, lowercase partials, literal percent/underscore, and hidden units. The current exact-source receipt passed 139 pure methods and 208 SQL checks.
+
+
+Directory tokenizers explicitly select a fixed literal-casefold mode. Native query caching and client result matching retain punctuation and whitespace, avoiding normalized cache-key collisions such as `Ops_` versus `Ops`. All other datasources retain the native default mode; unknown mode names are rejected. Tests execute the real native JavaScript cache/match methods with explicit DOM/transport shims, and an actual complete native page decodes its Javelin configuration to prove both modes are wired. Celerity maps were rebuilt using PHP 8.5.12. The current isolated evidence is 139 pure methods, 209 SQL checks and 82 governance tests; this is not browser acceptance.
+
+
+## Native lifecycle and explicit compound candidate
+
+The latest combined main plus lifecycle source passed **142 pure methods and
+244 real native MySQL/Gorge checks** under PHP 8.5.12. The exact receipt is
+`native-directory-evidence.json`, with separate pure/SQL receipts under
+`evidence/membership-lifecycle-checkpoint-20261103/`. All seven workers and their
+private directories, 55 schemas, two runtime users and the reader were cleaned
+without failures. The earlier 225-check receipt is retained separately, not
+relabeled as proof of this source.
+
+The strict gate fixes the full 244-check set, both new typed summaries and seven
+worker cleanups. It rejects promotion of incomplete lifecycle/compound/browser
+scope. Source bookkeeping is explicitly 35 sources, 25 static links and 47
+runtime files; it remains partial and grants no authorization. Current Python
+checks passed 83 governance tests (including native JavaScript cache tests) and
+84 permission tests.
+
+New evidence covers native multi-member batches and last-item failure, real SQL
+trigger failures with exact 1644 markers, concurrent same-operation writers,
+current team-manager ordinary-member actions, actual CSRF forms, independent
+compound approval review, before-source consumption and transactional
+member/appointment/audit/ledger changes. A standalone appointment ticket cannot
+authorize ending membership, and a revoked manager cannot replay an old result.
+
+O4/O5 remain partial: further expiry/credential waits, cross-team combinations,
+fault positions, API paths and full browser acceptance are not certified by this
+run. O6 restricted historical reporting, O7 transfer/handover and O8 due/outbox
+work remain unfinished. No optional activation, production migration, native
+project permission change, history deletion or dispatcher is included.

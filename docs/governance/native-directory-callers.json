@@ -88,7 +88,7 @@
       "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
       "symbol": "PhorgeGovernanceNativeApprovalAdapter",
       "kind": "candidate-runtime-source",
-      "sha256": "81ff443a2cdde47d832d1daa9722fd0ef1d3239d33919af7ec39f127c930ada2",
+      "sha256": "6cfb450f8624414b6767488cb467219fd67ccfa8aa91845b397912411bc0b204",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -165,7 +165,7 @@
       "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
       "symbol": "PhorgeOrganizationController",
       "kind": "candidate-runtime-source",
-      "sha256": "98b90679f8381158d47d8af2ce4f198c128d9f004a08508983fc98377190cb16",
+      "sha256": "643ca283a4d26a4edc772a6df720bfe76b5ef89acf0ddf129331120e661c9d0b",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -176,7 +176,7 @@
       "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
       "symbol": "PhorgeOrganizationQuery",
       "kind": "candidate-runtime-source",
-      "sha256": "66669795297efdc629ddc6f4ace0d37e9f805ef30fe5668789f6abdf02cd99c9",
+      "sha256": "26f06ca807540135c1cb9aa9d1c634d4256285a98cc52113b1b5eebffdd90900",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -198,7 +198,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
       "symbol": "PhorgeOrganizationEndpoint",
       "kind": "candidate-runtime-source",
-      "sha256": "ee6f77474dfe533163446b32f50614f91c2e80a92c5244af3fa1336a26313f7e",
+      "sha256": "964112a297b38c1399d50f57e908be69712f535a65cc9de8bf82f34ca9a94f9b",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -209,7 +209,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
       "symbol": "PhorgeOrganizationRequest",
       "kind": "candidate-runtime-source",
-      "sha256": "2a57df0dee1a993bfd5cd1442bd413a5f95015398e929b8204465cbbcaa9fbe9",
+      "sha256": "76bcc0f96465adc54a00e3c43fe8394b490e49b7eea8a8fa236274329507a80a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -220,7 +220,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
       "symbol": "PhorgeOrganizationService",
       "kind": "candidate-runtime-source",
-      "sha256": "ea7ba355323d41c052bbe0cb2e3d17cf36dad66d05c525aa1284e8b164fbddcc",
+      "sha256": "3de55694f3246719fd81d34055ca8979e2cfd65c7bd737366984452d126045b7",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -319,7 +319,7 @@
       "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
       "symbol": "PhorgeOrganizationDatasource",
       "kind": "sealed-context-native-datasource",
-      "sha256": "f76db0ba486c3757c4c8388ca7683cf50f18089f8bb12240371799e4384a0ea0",
+      "sha256": "2f5247ea99ce97130c102907213ce769306a3c759032f72888d5649dbbcb21a4",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -330,7 +330,7 @@
       "path": "src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php",
       "symbol": "PhorgeOrganizationDatasourceController",
       "kind": "authenticated-datasource-controller",
-      "sha256": "b270df0b31629b0ca8875c70db5054b1d8cb4758f72582184ed25a7c0f16ab79",
+      "sha256": "c980a564ed00c2acd6825a2b3c073e4323fbcc799a181296d9c7f0463fb98e14",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -342,6 +342,50 @@
       "symbol": "PhorgeGovernanceMediaIssuer",
       "kind": "media-only-external-issuer",
       "sha256": "478f049956332abe308408e5bba22ddc7d79edf38e80bf4a7756d5af581f0b38",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "TYPEAHEAD.BASE",
+      "path": "src/applications/typeahead/datasource/PhabricatorTypeaheadDatasource.php",
+      "symbol": "PhabricatorTypeaheadDatasource",
+      "kind": "fixed-normalizer-default",
+      "sha256": "e1046ed33403267c8339135b2ebb51b320b69b9c2ef8a64dc76055ea41c89369",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "TOKENIZER.CONTROL",
+      "path": "src/view/form/control/AphrontFormTokenizerControl.php",
+      "symbol": "AphrontFormTokenizerControl",
+      "kind": "fixed-normalizer-metadata",
+      "sha256": "70d64446426a90655bd724ca34949afc802bb16b24193dfaf91af32bb859bd7f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.PREFAB",
+      "path": "webroot/rsrc/js/core/Prefab.js",
+      "symbol": "Prefab",
+      "kind": "fixed-client-normalizer",
+      "sha256": "2fb8d5560c45d7e0672f2bf46a577f3b5332d59f8d2663d396a5d94894b5c396",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "path": "webroot/rsrc/js/core/behavior-tokenizer.js",
+      "symbol": "aphront-basic-tokenizer",
+      "kind": "fixed-client-metadata-forwarder",
+      "sha256": "28a6fa2ce2d594a3aa334b3cf5200ea77382856d8c1aebd4dd62d27b4f19571e",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -516,13 +560,45 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed media-only external configuration and purpose-separated digest dependency; not a public route, native credential rotation or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-22",
+      "from_id": "NATIVE.PhorgeOrganizationDatasource",
+      "to_id": "TYPEAHEAD.BASE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-23",
+      "from_id": "TOKENIZER.CONTROL",
+      "to_id": "TYPEAHEAD.BASE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-24",
+      "from_id": "TOKENIZER.CONTROL",
+      "to_id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-25",
+      "from_id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "to_id": "CLIENT.PREFAB",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Existing native behavior forwards the fixed metadata to Prefab; not browser or authority proof."
     }
   ],
   "scan": {
     "files": [
       {
         "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
-        "sha256": "81ff443a2cdde47d832d1daa9722fd0ef1d3239d33919af7ec39f127c930ada2"
+        "sha256": "6cfb450f8624414b6767488cb467219fd67ccfa8aa91845b397912411bc0b204"
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php",
@@ -550,19 +626,19 @@
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
-        "sha256": "98b90679f8381158d47d8af2ce4f198c128d9f004a08508983fc98377190cb16"
+        "sha256": "643ca283a4d26a4edc772a6df720bfe76b5ef89acf0ddf129331120e661c9d0b"
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php",
-        "sha256": "b270df0b31629b0ca8875c70db5054b1d8cb4758f72582184ed25a7c0f16ab79"
+        "sha256": "c980a564ed00c2acd6825a2b3c073e4323fbcc799a181296d9c7f0463fb98e14"
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
-        "sha256": "f76db0ba486c3757c4c8388ca7683cf50f18089f8bb12240371799e4384a0ea0"
+        "sha256": "2f5247ea99ce97130c102907213ce769306a3c759032f72888d5649dbbcb21a4"
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
-        "sha256": "66669795297efdc629ddc6f4ace0d37e9f805ef30fe5668789f6abdf02cd99c9"
+        "sha256": "26f06ca807540135c1cb9aa9d1c634d4256285a98cc52113b1b5eebffdd90900"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php",
@@ -570,15 +646,15 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
-        "sha256": "ee6f77474dfe533163446b32f50614f91c2e80a92c5244af3fa1336a26313f7e"
+        "sha256": "964112a297b38c1399d50f57e908be69712f535a65cc9de8bf82f34ca9a94f9b"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
-        "sha256": "2a57df0dee1a993bfd5cd1442bd413a5f95015398e929b8204465cbbcaa9fbe9"
+        "sha256": "76bcc0f96465adc54a00e3c43fe8394b490e49b7eea8a8fa236274329507a80a"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
-        "sha256": "ea7ba355323d41c052bbe0cb2e3d17cf36dad66d05c525aa1284e8b164fbddcc"
+        "sha256": "3de55694f3246719fd81d34055ca8979e2cfd65c7bd737366984452d126045b7"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",

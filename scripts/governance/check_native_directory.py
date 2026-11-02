@@ -99,6 +99,12 @@ EXPECTED_SOURCES = {'ORG.ROUTES': ('src/applications/people/application/Phabrica
                                         'PhorgeGovernanceMediaIssuer',
                                         'media-only-external-issuer')}
 
+EXPECTED_SOURCES.update({
+ 'TYPEAHEAD.BASE': ('src/applications/typeahead/datasource/PhabricatorTypeaheadDatasource.php','PhabricatorTypeaheadDatasource','fixed-normalizer-default'),
+ 'TOKENIZER.CONTROL': ('src/view/form/control/AphrontFormTokenizerControl.php','AphrontFormTokenizerControl','fixed-normalizer-metadata'),
+ 'CLIENT.TOKENIZER.BEHAVIOR': ('webroot/rsrc/js/core/behavior-tokenizer.js','aphront-basic-tokenizer','fixed-client-metadata-forwarder'),
+ 'CLIENT.PREFAB': ('webroot/rsrc/js/core/Prefab.js','Prefab','fixed-client-normalizer')})
+
 EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php',
  'src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php',
  'src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php',
@@ -178,6 +184,12 @@ EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationCon
  'NATIVE-LINK-21': ('NATIVE.PhorgeGovernanceMediaConfigOptions',
                     'NATIVE.PhorgeGovernanceMediaIssuer')}
 
+EXPECTED_LINKS.update({
+ 'NATIVE-LINK-22': ('NATIVE.PhorgeOrganizationDatasource','TYPEAHEAD.BASE'),
+ 'NATIVE-LINK-23': ('TOKENIZER.CONTROL','TYPEAHEAD.BASE'),
+ 'NATIVE-LINK-24': ('TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR'),
+ 'NATIVE-LINK-25': ('CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB')})
+
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
 def require(ok, message):
@@ -237,8 +249,13 @@ def validate(data, root):
                 'source must remain non-authoritative')
         path = file(root, raw)
         require(row['sha256'] == hashlib.sha256(path.read_bytes()).hexdigest(), 'source hash drift')
-        require(re.search(r'\bclass\s+'+re.escape(symbol)+r'\b', path.read_text()) is not None,
-                'declared class reference missing')
+        if key=='CLIENT.TOKENIZER.BEHAVIOR':
+            require("JX.behavior('aphront-basic-tokenizer'," in path.read_text(),'fixed tokenizer behavior missing')
+        elif key=='CLIENT.PREFAB':
+            require("JX.install('Prefab'," in path.read_text(),'fixed client symbol reference missing')
+        else:
+            require(re.search(r'\bclass\s+'+re.escape(symbol)+r'\b', path.read_text()) is not None,
+                    'declared class reference missing')
     links = keyed(data['links'], 'link IDs refused')
     require(set(links) == set(EXPECTED_LINKS), 'link inventory drift')
     for key, pair in EXPECTED_LINKS.items():
