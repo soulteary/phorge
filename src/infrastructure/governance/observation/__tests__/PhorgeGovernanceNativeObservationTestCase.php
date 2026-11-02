@@ -586,4 +586,34 @@ final class PhorgeGovernanceNativeObservationTestCase extends PhutilTestCase {
     $this->assertFalse($result['can_execute']);
   }
 
+  public function testWikiBatchNativeCanonicalVersionHydration() {
+    $transaction = (new PhrictionTransaction())
+      ->setTransactionType(PhrictionDocumentTitleTransaction::TRANSACTIONTYPE)
+      ->setNewValue('synthetic');
+    $verifier = PhorgeGovernanceNativeObservationVerifier::newIsolated();
+    foreach (array(1, '1', 4294967295, '4294967295') as $version) {
+      $document = $this->newWikiWithContent();
+      $document->getContent()->setVersion($version);
+      $result = $verifier->observeWikiBatchExpansion($document,
+        array($transaction));
+      $this->assertEqual('observed-native-local-expansion', $result['status']);
+      $this->assertEqual((int)$version,
+        $result['editor_context']['old_content_version']);
+      $this->assertTrue(is_int($result['editor_context']['old_content_version']));
+      $this->assertEqual($version, $document->getContent()->getVersion());
+      $this->assertFalse($result['can_execute']);
+    }
+    foreach (array('01', '1.0', true, false, null, 0, '0', -1, '-1',
+      ' 1', '1 ', '+1', '1e0', '4294967296', 4294967296,
+      '999999999999999999999999999999', 1.0, array()) as $version) {
+      $document = $this->newWikiWithContent();
+      $document->getContent()->setVersion($version);
+      $result = $verifier->observeWikiBatchExpansion($document,
+        array($transaction));
+      $this->assertEqual('unsupported_attached_wiki_content', $result['reason']);
+      $this->assertFalse(isset($result['transactions']));
+      $this->assertFalse($result['can_execute']);
+    }
+  }
+
 }

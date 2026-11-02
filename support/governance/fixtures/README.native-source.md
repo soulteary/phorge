@@ -169,3 +169,11 @@ milestone itself. The native Projects-any rule returns deny for that PHID, even
 though native milestone automatic capability observation can use its parent's
 members. These are distinct native consumers; this fixture preserves the
 difference instead of synthesizing membership or changing policy semantics.
+
+The Wiki fixture also loads `PhrictionContent` through the actual native Lisk
+`loadOneWhere` text-protocol SQL path inside a proven owned SELECT-only
+`NativeCapabilityContext`. It asserts the real stored version hydrates as the
+canonical string `"1"`, while the prepared-mysqli control hydrates as integer
+`1`. Both attached-content batches must succeed and report normalized integer
+version `1`. The native context closes in `finally`; inherited pools are
+refused before ownership and never cleared by this fixture.

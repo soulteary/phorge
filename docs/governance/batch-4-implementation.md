@@ -44,8 +44,8 @@ remain activation blockers even when selected observations pass.
 
 ## Development validation
 
-Supported PHP 8.5.12 / MySQL 8.4.13 in an owned network-none pod passed 87 pure
-native methods, the prior 85 native-source SQL checks and 51 new native rule/
+Supported PHP 8.5.12 / MySQL 8.4.13 in an owned network-none pod passed 88 pure
+native methods, the prior 85 native-source SQL checks and 54 new native rule/
 expansion SQL checks. All 32 executed governance PHP/SQL/map/runner files matched
 the source worktree. Governance Python has 31 tests; the permission suite has
 82, including explicit review of the new read-only member consumer. The fixture
@@ -60,3 +60,10 @@ uses the actual native WRDS PHID type, and the old 85 checks were rerun.
 These are source-copy development receipts, not release or production evidence.
 Final-head independent review, required PR CI and post-merge main verification
 must be recorded separately. Local counts alone do not authorize activation.
+
+Independent PR review found that a prepared-statement fixture had masked native
+ORM numeric-string Wiki versions. The observer now accepts canonical positive
+uint32 integers/decimal strings and normalizes the report. A real Lisk
+text-protocol load (not a cast or mock) is contrasted with the prepared integer
+control in the owned SELECT-only fixture. Malformed/overflow version inputs
+remain blocked. The fix reran all 88 native methods and both SQL suites (85/54).

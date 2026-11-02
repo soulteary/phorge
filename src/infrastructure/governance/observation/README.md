@@ -96,8 +96,10 @@ general production factory or proof of locking through a business write.
 
 `observeWikiBatchExpansion()` invokes the exact native Wiki batch prelude on
 an existing document with explicitly attached native `PhrictionContent`. Its
-stored content identity, document binding and positive integer version must
-match. The prelude records old content in the throwaway editor before the
+stored content identity and document binding must match. The native uint32
+version accepts a positive integer or canonical decimal string in 1–4294967295;
+leading zeroes, signs, floats, booleans and overflow are refused. The public
+version summary is normalized to an integer without mutating the input. The prelude records old content in the throwaway editor before the
 native per-item expansion. Tests cover combined move-policy and empty-content
 delete ordering. Returned context includes only version and identity digest;
 attached body text is not exported or modified. Attachment consistency is not

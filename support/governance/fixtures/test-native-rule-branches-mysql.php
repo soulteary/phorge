@@ -325,6 +325,33 @@ try {
   native_source_check($r['status'] === 'observed-native-local-expansion' && count($r['transactions']) === 2 &&
     $r['transactions'][1]['content_delete'] === true && $r['editor_context']['old_content_version'] === 1 &&
     !$r['can_execute'], 'wiki-real-content-empty-batch-expands-delete');
+  // Native Lisk text-protocol hydration differs from mysqli prepared results:
+  // the stored integer version is returned as a canonical decimal string.
+  // Acquire proven SELECT-only ownership before native DAO SQL, then close only
+  // that context. Do not reuse or clear an inherited SQL pool.
+  $orm_context = null;
+  try {
+    $orm_context = PhorgeGovernanceNativeCapabilityContext::newIsolated($wiki);
+    $orm_content = (new PhrictionContent())->loadOneWhere(
+      'phid = %s', $ids['wiki_content']);
+    native_source_check($orm_content instanceof PhrictionContent &&
+      $orm_content->getVersion() === '1' && $content->getVersion() === 1 &&
+      $orm_context->isCurrent(), 'wiki-native-orm-text-version-string-prepared-int-control');
+  } finally {
+    if ($orm_context !== null && !$orm_context->close()) {
+      throw new RuntimeException('Owned native ORM context cleanup failed.');
+    }
+  }
+  native_source_check((new ReflectionProperty(LiskDAO::class, 'connections'))
+      ->getValue() === array(), 'wiki-native-orm-owned-pool-closed');
+  $orm_wiki = clone $wiki;
+  $orm_wiki->attachContent($orm_content);
+  $r = $observer->observeWikiBatchExpansion($orm_wiki,array($empty));
+  native_source_check($r['status'] === 'observed-native-local-expansion' &&
+    count($r['transactions']) === 2 &&
+    $r['transactions'][1]['content_delete'] === true &&
+    $r['editor_context']['old_content_version'] === 1 &&
+    !$r['can_execute'], 'wiki-real-native-orm-content-batch-normalized-version');
   $move = (new PhrictionTransaction())->setTransactionType(PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE)->setNewValue(clone $wiki);
   $r = $observer->observeWikiBatchExpansion($wiki,array($move,$empty));
   $types = array_column($r['transactions'] ?? array(), 'transaction_type');

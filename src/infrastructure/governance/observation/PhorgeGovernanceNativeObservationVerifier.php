@@ -190,7 +190,7 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
           !preg_match('/\APHID-WRDS-[a-zA-Z0-9]{20}\z/',
             $content->getPHID()) ||
           $document->getContentPHID() !== $content->getPHID() ||
-          !is_int($content->getVersion()) || $content->getVersion() < 1) {
+          self::nativeContentVersion($content->getVersion()) === null) {
         return self::blocked('unsupported_attached_wiki_content');
       }
       $copy = clone $document;
@@ -316,7 +316,8 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
         $old_content = (new ReflectionMethod(
           PhrictionTransactionEditor::class, 'getOldContent'))->invoke($editor);
         $result['editor_context'] = array(
-          'old_content_version' => $old_content->getVersion(),
+          'old_content_version' =>
+            self::nativeContentVersion($old_content->getVersion()),
           'content_identity_digest' => hash('sha256',
             $old_content->getPHID()),
         );
@@ -364,6 +365,19 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
           PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE), true);
     }
     return false;
+  }
+
+  private static function nativeContentVersion($value) {
+    // Native uint32 columns can hydrate as canonical decimal strings.
+    if (is_int($value)) {
+      return $value >= 1 && $value <= 4294967295 ? $value : null;
+    }
+    if (!is_string($value) ||
+        !preg_match('/\A[1-9][0-9]{0,9}\z/', $value) ||
+        (strlen($value) === 10 && strcmp($value, '4294967295') > 0)) {
+      return null;
+    }
+    return (int)$value;
   }
 
   private static function isPolicyValue($value) {
