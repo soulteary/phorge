@@ -1,0 +1,125 @@
+# Native directory and session-bound media integration
+
+Status: native isolated candidate verified; full project goal remains active.
+This extends ADR v1.2 and MEDIA-EXCHANGE-001. It does not activate a feature or
+change the four native permission axes.
+
+## Implemented boundary
+
+The People application owns the new directory tables. A current native account
+and its specific web session or API/CLI token are verified through the actual
+native primary connection; a caller-supplied viewer or administrative Boolean
+is insufficient. The sealed context is attached by the existing Conduit
+authentication branch. Unsupported authentication modes fail closed.
+
+Organization units distinguish departments and business teams from projects.
+A user has one versioned primary department and may have multiple team
+relationships. Native project membership and project policies are not changed.
+System administrators create units and independently approve administrator
+appointments. Current exact-team administrators may maintain ordinary members;
+parent-team and project administration do not imply access to other rosters.
+
+List, selector, count and bounded export share the protected directory
+projection. Hidden parent references and unrelated team relationships are
+redacted. Writes use explicit versions and operation IDs. Native account locks
+precede the organization guard, and approval consumption, relationship changes,
+operation receipt and protected audit rows share one native transaction.
+Approval freshness uses current native account/credential sources and a fresh
+database clock. No audit-history search, timeline or export surface is installed.
+
+The media backend implements browser preparation, actual CSRF-protected native
+web-session issuance, one-use redemption and per-read source validation. Only
+credential/code digests are stored. Successful authenticated issuance advances
+the browser generation and invalidates previous credentials and pending codes;
+a failed issuance rolls back generation, revocation and code changes together.
+Redemption does not restore an older browser identity. The backend identity
+snapshot grants no file permission by itself.
+
+Native user transactions provide irreversible account-generation input. Two
+legacy direct role writers advance an additional epoch in the same native
+transaction. This metadata exists independently of feature activation so an
+off-window role change cannot silently revive a previously issued binding.
+Metadata initialization is a write, not a SELECT-only audit. The historical
+read-only audit bridge remains separate. Database-snapshot restoration still
+requires a future issuer-incarnation rotation; this batch does not claim
+backup rollback is safe for old credentials.
+
+## Release and activation gates
+
+Both `governance.organization.enabled` and `governance.media-exchange.enabled`
+default to false. The schema patches create storage without creating directory
+relationships or changing native project authorization. These patches must be
+applied before running the new legacy role-writer hooks; missing metadata is a
+hard failure, not a silent generation-zero fallback. Schema upgrade and rollback
+must be rehearsed before any test-machine release update.
+
+The native People route and two fixed Conduit methods are implemented, but
+actual HTTP-server and browser acceptance remain required. The media backend
+has no public route, cookie writer or file policy integration. Required follow-up
+includes host-only secure cookies, issuer/origin checks, bounded preparation and
+cleanup, safe active-content handling, native file/object checks for every data,
+transform, conditional response and avatar path, and private notification links.
+No fallback from failed media identity to an anonymous file capability is allowed.
+
+N04 handover, N08 all-source restoration approval, N11 notification producers,
+N12 operational revocation measurements and N13 release/deployment integration
+remain incomplete. Archive-to-active restoration is blocked. A newly enabled
+native account can obtain a new native session under existing native semantics;
+that is not evidence of the optional restoration workflow. Fixture TTL constants
+are technical test bounds, not production revocation SLAs.
+
+## Verification design
+
+The isolated integration restores the current quickstart and applies the
+reviewed source migrations to owned databases. It creates synthetic people
+using real People DAOs, establishes sessions through the native session engine,
+and calls actual service, approval, controller and authentication code. It
+never uses the old synthetic `org_user` projection as native authority.
+Direct controller invocation is identified separately from an HTTP server or
+browser test. Seeded pre-existing appointments only establish privacy fixtures;
+the durable grant workflow has its own independently authenticated proof.
+
+CI retains the earlier synthetic organization integration and full native
+pipeline regressions. A separate native-directory source manifest covers the
+new People sources, the Conduit authentication integration and media runtime,
+including additions under the historically excluded isolated-governance path.
+Source hashes and static call links are drift evidence, not authorization proof.
+The new bounded receipt gate rejects missing/duplicate scenarios, source-patch
+hash drift, untyped activation flags, failed cleanup and expanded evidence scope.
+Raw accounts, session tokens, mail codes and deployment details are excluded
+from published artifacts.
+
+## Current isolated evidence
+
+The supported PHP 8.5.12 run passed 132 native test methods and 144 native
+integration checks. All 12 candidate tables matched the actual native schema
+comparison without running adjustments. Separate processes proved guard-wait
+revocation for both lists and counts, list-period expiry, and competing one-use
+redemption. Count expiry during a request uses the documented fixture-only
+real capture/final-gate seam; it is not a full HTTP mid-request interruption.
+The shared connection kept its SESSION default and its next native transaction
+retained repeatable-read behavior.
+
+Five worker private directories were removed, with no remaining workers or
+private directories; 55 owned schemas, two runtime principals and the reader
+were removed. One real paired Gorge file service was started and stopped, and
+its private storage removed. The delivery-disabled flags refer to application
+worker/notification delivery, not an absence of this storage-service process.
+The retained full native/Gorge integration also passed its separate 125 checks.
+
+The two direct role-writer fault cases each retained one native search-indexing
+task, while the user role and epoch rolled back. This is measured existing
+indexing enqueue behavior, not an assertion of cross-database side-effect
+rollback. No delivery workers were run. The administrator-revocation test used
+the actual native no-factor MFA path; it does not prove a TOTP challenge.
+
+All 5,846 files in the copied application/governance PHP and migration
+inventory matched the test instance. This content match does not expand scenario coverage.
+Governance evidence gates passed 75 Python tests; permission-runner unit
+regressions are separate from hosted route acceptance. Three independent
+source reviews found no remaining material issue. Signed commit binding,
+hosted CI and final-head review still gate merge; release, HTTP/browser
+media guards and test-machine acceptance remain separate required work.
+
+The sanitized runtime receipt is `native-directory-evidence.json`. It contains
+no deployment address, token, raw account record or private worker pathname.

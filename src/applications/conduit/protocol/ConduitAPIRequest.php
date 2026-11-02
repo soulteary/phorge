@@ -4,6 +4,7 @@ final class ConduitAPIRequest extends Phobject {
 
   protected $params;
   private $user;
+  private $governanceActorContext;
   private $isClusterRequest = false;
   private $oauthToken;
   private $isStrictlyTyped = true;
@@ -56,6 +57,22 @@ final class ConduitAPIRequest extends Phobject {
           'shouldRequireAuthentication()'));
     }
     return $this->user;
+  }
+
+  public function attachGovernanceActorContext(
+    PhorgeGovernanceNativeActorContext $context) {
+    if (!$this->user || $context->getUserPHID() !== $this->user->getPHID()) {
+      throw new RuntimeException('governance_api_identity_mismatch');
+    }
+    $this->governanceActorContext = $context;
+    return $this;
+  }
+
+  public function getGovernanceActorContext(): PhorgeGovernanceNativeActorContext {
+    if ($this->governanceActorContext === null) {
+      throw new RuntimeException('governance_api_credential_mode_unsupported');
+    }
+    return $this->governanceActorContext;
   }
 
   public function getViewer() {

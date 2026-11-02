@@ -29,8 +29,8 @@ def valid_template():
             'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,
             'current_table_count':500,'restore_phase_workers_started':0,
             'restore_phase_network_endpoints_configured':0,
-            'patch_audit':{'source_patch_count':1561,'applied_patch_count':1561,
-                'pending_patch_keys':[],'current_patch_ledger_complete':True,'migrations_executed':24,
+            'patch_audit':{'source_patch_count':1563,'applied_patch_count':1563,
+                'pending_patch_keys':[],'current_patch_ledger_complete':True,'migrations_executed':len(gate.PATCHES),
                 'migration_source_hashes':{'phabricator:'+p:hashlib.sha256(
                     (ROOT/'resources/sql/autopatches'/p).read_bytes()).hexdigest() for p in gate.PATCHES}}},
         'pipeline':{'runtime_profile':copy.deepcopy(runtime),

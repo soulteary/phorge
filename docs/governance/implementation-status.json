@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "design_baseline": "ADR v1.2",
-  "date": "2026-11-02",
+  "date": "2026-11-03",
   "goal_status": "active",
   "scope": "Selected reasonable team-governance capabilities through actual test-machine deployment and browser acceptance; not just isolated contracts.",
   "packages": [
@@ -9,8 +9,8 @@
       "id": "N00",
       "title": "契约与只读来源清单",
       "depends_on": [],
-      "status": "partial",
-      "remaining": "Existing caller/source inventories remain partial; extend alongside every new real entry point.",
+      "status": "partial-native-directory-coverage-verified-partial",
+      "remaining": "New native directory/identity/media source closure and static links added; broader consumers remain tracked separately.",
       "production_enabled": false
     },
     {
@@ -19,8 +19,8 @@
       "depends_on": [
         "N00"
       ],
-      "status": "isolated-foundation-in-progress",
-      "remaining": "Organization schema exists; lifecycle, primary department and real identity adapter remain required.",
+      "status": "native-isolated-integration-verified-partial",
+      "remaining": "Native People storage/lifecycle/primary department implemented; hierarchy soft warnings, complete UI, recovery and browser acceptance remain.",
       "production_enabled": false
     },
     {
@@ -29,8 +29,8 @@
       "depends_on": [
         "N01"
       ],
-      "status": "isolated-in-progress",
-      "remaining": "New same-schema SELECT-only projections under database verification; application routes remain required.",
+      "status": "native-isolated-integration-verified-partial",
+      "remaining": "Native protected projections and real list/count revocation/expiry isolation verified. Full HTTP/browser and wider UI coverage remain required.",
       "production_enabled": false
     },
     {
@@ -40,8 +40,8 @@
         "N01",
         "N02"
       ],
-      "status": "isolated-in-progress",
-      "remaining": "Transactional ordinary membership and approved appointments under database/concurrency verification; synthetic identity is not production authority.",
+      "status": "native-isolated-integration-verified-partial",
+      "remaining": "Native ordinary membership and independently approved appointments verified in actual People/session fixtures. Full multi-operation rollback and broader lifecycle/UI remain required; not activated.",
       "production_enabled": false
     },
     {
@@ -81,8 +81,8 @@
       "depends_on": [
         "N05"
       ],
-      "status": "isolated-in-progress",
-      "remaining": "Durable approval/atomic consumption under verification; real identity/source and execution integration remain required.",
+      "status": "native-appointment-integration-verified-partial",
+      "remaining": "Native durable appointment approval, consumption, current web/API sources, expiry and revocation verified. Broader sensitive operations and full business integration remain required.",
       "production_enabled": false
     },
     {
@@ -102,8 +102,8 @@
       "depends_on": [
         "N00"
       ],
-      "status": "protocol-selected-implementation-pending",
-      "remaining": "User selected Phorge originating-session validation, one-use exchange and dedicated host-only file credential; irreversible invalidation required.",
+      "status": "native-session-media-backend-verified-partial",
+      "remaining": "Native session/backend binding, issue-wins account switch, SQL fault rollback, actual concurrent single-use redemption and ABA invalidation verified. Cookie/HTTP/file-policy trust boundary and restore issuer rotation remain gates.",
       "production_enabled": false
     },
     {

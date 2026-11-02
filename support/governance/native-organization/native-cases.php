@@ -1,0 +1,111 @@
+<?php
+
+/** This fixture factory authenticates through the actual native session engine. */
+function governance_native_request(PhabricatorUser $user, PhabricatorAuthSessionEngine $sessions) {
+  $token=$sessions->establishSession(PhabricatorAuthSession::TYPE_WEB,$user->getPHID(),false);
+  $viewer=$sessions->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$token);
+  if (!$viewer || !$viewer->hasSession()) { throw new RuntimeException('native_fixture_session_load_failed'); }
+  $_SERVER['REQUEST_METHOD']='POST';
+  $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$token;
+  $request=(new AphrontRequest('fixture.invalid','/'))->setUser($viewer);
+  $request->setRequestData(array(AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));
+  $request->validateCSRF();
+  return array('request'=>$request,'viewer'=>$viewer,'token'=>$token,
+    'context'=>PhorgeGovernanceNativeActorContext::newFromWebRequest($request));
+}
+function governance_native_refused(callable $action, $reason, callable $check, $name) {
+  $refused=false;
+  try { $action(); }
+  catch (Throwable $error) { if ($error->getMessage()!==$reason) { throw $error; } $refused=true; }
+  $check($refused,$name);
+}
+function governance_native_setup_query($fixture, $sql) {
+  $mode=(new mysqli_driver())->report_mode;
+  try {
+    mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
+    $fixture->assertOwned();
+    $result=$fixture->getAdmin()->query($sql);
+    if ($result===false) { throw new RuntimeException('native_fixture_setup_query_refused'); }
+    return $result;
+  } finally { mysqli_report($mode); }
+}
+function governance_native_media_fingerprint($fixture) {
+  $fixture->assertOwned(); $rows=array();
+  foreach (array('governance_mediabrowser','governance_mediaexchange','governance_mediacredential') as $table) {
+    $data=governance_native_setup_query($fixture,'SELECT * FROM '.$fixture->table('user',$table))->fetch_all(MYSQLI_ASSOC);
+    usort($data,static fn($a,$b)=>strcmp(json_encode($a),json_encode($b))); $rows[$table]=$data;
+  }
+  return hash('sha256',json_encode($rows,JSON_THROW_ON_ERROR));
+}
+
+/** Actual native models and credentials; all data and effects are fixture-owned. */
+function governance_native_organization_cases($fixture, callable $check) {
+  $fixture->assertOwned();
+  $namespace=$fixture->getNamespace();
+  require_once __DIR__.'/schema-cases.php';
+  $schema_summary=governance_native_schema_cases($fixture,$check);
+  require_once __DIR__.'/workers.php';
+
+  if ((new ReflectionProperty(PhabricatorWorker::class,'runAllTasksInProcess'))->getValue() !== false ||
+      PhabricatorGorgeTaskQueueClient::isConfigured()) {
+    throw new RuntimeException('native_fixture_background_delivery_refused');
+  }
+  $check(true,'native-fixture-background-execution-disabled');
+  $users=array();
+  foreach (array('admin','member') as $role) {
+    $user=(new PhabricatorUser())->setUsername('gn'.$role.substr($namespace,-12))
+      ->setRealName('Synthetic Native '.$role)->setIsApproved(1)
+      ->setIsAdmin($role==='admin'?1:0)->setIsEmailVerified(1)->save();
+    (new PhabricatorUserEmail())->setUserPHID($user->getPHID())
+      ->setAddress($user->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
+    $users[$role]=$user;
+  }
+  $check(true,'native-people-dao-synthetic-accounts-created');
+  $sessions=new PhabricatorAuthSessionEngine();
+  $admin=governance_native_request($users['admin'],$sessions);
+  $viewer=$admin['viewer']; $request=$admin['request']; $context=$admin['context'];
+  $check($viewer instanceof PhabricatorUser && $viewer->hasSession(),
+    'native-session-engine-issued-and-loaded-actual-web-session');
+  $check($context->getUserPHID()===$viewer->getPHID(),
+    'native-cookie-and-csrf-request-created-sealed-actor');
+  $service=PhorgeOrganizationService::newForActor($context);
+  $service->createUnit(array('operation_id'=>'native-create-dept','unit_id'=>'native-dept',
+    'kind'=>'department','name'=>'Synthetic Department','parent_id'=>null));
+  $service->createUnit(array('operation_id'=>'native-create-team','unit_id'=>'native-team',
+    'kind'=>'team','name'=>'Synthetic Team','parent_id'=>null));
+  $check($service->countUnits()===2,'native-organization-unit-create-and-protected-count');
+  $service->assignPrimaryDepartment(array('operation_id'=>'native-primary-dept','user_phid'=>$users['member']->getPHID(),
+    'unit_id'=>'native-dept','expected_version'=>0));
+  $check($fixture->countRows('user','organization_primarydepartment')===1,
+    'native-primary-department-real-people-table-commit');
+  $media=new PhorgeGovernanceMediaExchangeService();
+  $prepared=$media->beginBrowserTransaction();
+  $issued=$media->issue($request,$prepared['transaction_id'],'phorge-files','private-media','/file/data/key/PHID-FILE-synthetic/name');
+  $redeemed=$media->redeem($prepared['transaction_id'],$issued['exchange_code']->openEnvelope(),
+    $prepared['browser_secret']->openEnvelope(),'phorge-files','private-media','/file/data/key/PHID-FILE-synthetic/name');
+  $snapshot=$media->authenticate($redeemed['credential']->openEnvelope());
+  $check($snapshot->getUserPHID()===$viewer->getPHID(),
+    'native-media-session-bound-issue-redeem-authenticate');
+  $state=array('users'=>$users,'sessions'=>$sessions,'admin'=>$admin,'service'=>$service,
+    'media'=>$media,'media_credential'=>$redeemed['credential'],
+    'media_browser'=>$prepared['browser_secret']);
+  require_once __DIR__.'/route-cases.php';
+  $route_summary=governance_native_route_cases($fixture,$check,$state);
+  require_once __DIR__.'/privacy-cases.php';
+  $privacy_summary=governance_native_privacy_cases($fixture,$check,$state);
+  require_once __DIR__.'/concurrency-cases.php';
+  $concurrency_summary=governance_native_concurrency_cases($fixture,$check,$state);
+  require_once __DIR__.'/manager-projection-cases.php';
+  require_once __DIR__.'/media-cases.php';
+  $media_summary=governance_native_media_cases($fixture,$check,$state);
+  require_once __DIR__.'/auth-cases.php';
+  $auth_summary=governance_native_auth_cases($fixture,$check,$state);
+  require_once __DIR__.'/legacy-role-cases.php';
+  $legacy_role_summary=governance_native_legacy_role_cases($fixture,$check,$state);
+  return array('actual_native_account_source'=>true,'actual_session_engine'=>true,
+    'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
+    'production_features_enabled'=>false,'media_backend_only'=>true,
+    'daemon_or_external_delivery_executed'=>false,'schema_tests'=>$schema_summary,'route_tests'=>$route_summary,'privacy_tests'=>$privacy_summary,'concurrency_tests'=>$concurrency_summary,
+    'media_tests'=>$media_summary,'auth_tests'=>$auth_summary,'legacy_role_tests'=>$legacy_role_summary,
+    'native_approval_implemented'=>$auth_summary['native_durable_two_person_approval']);
+}

@@ -105,20 +105,34 @@ final class PhabricatorUserEditor extends PhabricatorEditor {
     }
 
     $user->openTransaction();
+    $owns_write_lock = false;
+    try {
       $user->beginWriteLocking();
+      $owns_write_lock = true;
+      PhorgeGovernanceIdentityEpoch::assertLegacyRoleTransaction($user);
 
         $user->reload();
         if ($user->getIsSystemAgent() == $system_agent) {
           $user->endWriteLocking();
+          $owns_write_lock = false;
           $user->killTransaction();
           return $this;
         }
 
         $user->setIsSystemAgent((int)$system_agent);
         $user->save();
+        PhorgeGovernanceIdentityEpoch::advanceLegacyRole($user);
 
       $user->endWriteLocking();
-    $user->saveTransaction();
+      $owns_write_lock = false;
+      $user->saveTransaction();
+    } catch (Throwable $error) {
+      if ($owns_write_lock) {
+        try { $user->endWriteLocking(); } catch (Throwable $ignored) {}
+      }
+      try { $user->killTransaction(); } catch (Throwable $ignored) {}
+      throw $error;
+    }
 
     return $this;
   }
@@ -134,20 +148,34 @@ final class PhabricatorUserEditor extends PhabricatorEditor {
     }
 
     $user->openTransaction();
+    $owns_write_lock = false;
+    try {
       $user->beginWriteLocking();
+      $owns_write_lock = true;
+      PhorgeGovernanceIdentityEpoch::assertLegacyRoleTransaction($user);
 
         $user->reload();
         if ($user->getIsMailingList() == $mailing_list) {
           $user->endWriteLocking();
+          $owns_write_lock = false;
           $user->killTransaction();
           return $this;
         }
 
         $user->setIsMailingList((int)$mailing_list);
         $user->save();
+        PhorgeGovernanceIdentityEpoch::advanceLegacyRole($user);
 
       $user->endWriteLocking();
-    $user->saveTransaction();
+      $owns_write_lock = false;
+      $user->saveTransaction();
+    } catch (Throwable $error) {
+      if ($owns_write_lock) {
+        try { $user->endWriteLocking(); } catch (Throwable $ignored) {}
+      }
+      try { $user->killTransaction(); } catch (Throwable $ignored) {}
+      throw $error;
+    }
 
     return $this;
   }
