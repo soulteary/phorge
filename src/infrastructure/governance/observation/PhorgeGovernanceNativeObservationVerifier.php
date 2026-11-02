@@ -169,6 +169,41 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
       'expandTransaction', null);
   }
 
+  /** Observe the Wiki batch prelude, never validation or final effects. */
+  public function observeWikiBatchExpansion(
+    PhrictionDocument $document,
+    array $transactions) {
+
+    if (!self::hasIsolatedScope()) {
+      return self::blocked('isolated_scope_required');
+    }
+    try {
+      $content = $document->getContent();
+      if (get_class($document) !== PhrictionDocument::class ||
+          get_class($content) !== PhrictionContent::class ||
+          $content->getID() === null ||
+          !is_string($document->getPHID()) ||
+          !preg_match('/\APHID-WIKI-[a-zA-Z0-9]{20}\z/',
+            $document->getPHID()) ||
+          $content->getDocumentPHID() !== $document->getPHID() ||
+          !is_string($content->getPHID()) ||
+          !preg_match('/\APHID-WRDS-[a-zA-Z0-9]{20}\z/',
+            $content->getPHID()) ||
+          $document->getContentPHID() !== $content->getPHID() ||
+          !is_int($content->getVersion()) || $content->getVersion() < 1) {
+        return self::blocked('unsupported_attached_wiki_content');
+      }
+      $copy = clone $document;
+      $copy->attachContent(clone $content);
+      return $this->observeLocal(
+        $copy, $transactions, PhrictionDocument::class,
+        PhrictionTransaction::class, PhrictionTransactionEditor::class,
+        'expandTransactions', null);
+    } catch (Throwable $error) {
+      return self::blocked('unsupported_attached_wiki_content');
+    }
+  }
+
   private function observeLocal(
     PhabricatorLiskDAO $object,
     array $transactions,
@@ -276,6 +311,26 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
       $result['status'] = 'observed-native-local-expansion';
       $result['method'] = $editor_class.'::'.$method;
       $result['transactions'] = $summaries;
+      if ($expected_object === PhrictionDocument::class &&
+          $method === 'expandTransactions') {
+        $old_content = (new ReflectionMethod(
+          PhrictionTransactionEditor::class, 'getOldContent'))->invoke($editor);
+        $result['editor_context'] = array(
+          'old_content_version' => $old_content->getVersion(),
+          'content_identity_digest' => hash('sha256',
+            $old_content->getPHID()),
+        );
+      }
+      if ($expected_object === PhabricatorProject::class) {
+        $parent = (new ReflectionMethod(
+          PhabricatorProjectTransactionEditor::class, 'getParentPHID'))
+          ->invoke($editor);
+        $result['editor_context'] = array(
+          'is_milestone' => $editor->getIsMilestone(),
+          'parent_identity_digest' => $parent === null ? null :
+            hash('sha256', $parent),
+        );
+      }
       return $result;
     } catch (Throwable $ex) {
       return self::blocked('unknown_native_expansion_context');
@@ -295,11 +350,15 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
           PhabricatorProjectMilestoneTransaction::TRANSACTIONTYPE), true);
       case ManiphestTask::class:
         return in_array($type, array(
+          PhabricatorTransactions::TYPE_VIEW_POLICY,
+          PhabricatorTransactions::TYPE_EDIT_POLICY,
           ManiphestTaskTitleTransaction::TRANSACTIONTYPE,
           ManiphestTaskDescriptionTransaction::TRANSACTIONTYPE,
           ManiphestTaskOwnerTransaction::TRANSACTIONTYPE), true);
       case PhrictionDocument::class:
         return in_array($type, array(
+          PhabricatorTransactions::TYPE_VIEW_POLICY,
+          PhabricatorTransactions::TYPE_EDIT_POLICY,
           PhrictionDocumentTitleTransaction::TRANSACTIONTYPE,
           PhrictionDocumentContentTransaction::TRANSACTIONTYPE,
           PhrictionDocumentMoveToTransaction::TRANSACTIONTYPE), true);

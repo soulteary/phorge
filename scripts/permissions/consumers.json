@@ -804,6 +804,16 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php",
+      "discovery": true,
+      "kind": "isolated-native-rule-hierarchy-observer",
+      "meaning": "Calls fixed actual native rule classes and bounded native project query in verified owned SELECT-only fixture context; partial local observations never grant authorization or establish complete source closure.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "native-rule-hierarchy-observation",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php",
       "discovery": true,
       "kind": "isolated-native-source-observer",

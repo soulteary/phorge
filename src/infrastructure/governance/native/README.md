@@ -130,3 +130,48 @@ commits, including missing table, MyISAM, schema/byte/row overflow, unknown rule
 scope withdrawal and consistent-snapshot/fresh-capture tests. No executor,
 production deployment, new domain, permission migration or feature activation
 is implemented here.
+
+## Batch 4: selected native rule and hierarchy observations
+
+`PhorgeGovernanceNativeRuleHierarchyVerifier::observe(binding, viewer, object,
+ruleClass, value)` is an isolated fixture observation, not a policy evaluator or
+executor. It accepts exactly Users, Projects, ProjectsAll and ProjectMembers
+native rule classes, at most 16 distinct typed PHIDs (ProjectMembers uses an
+empty value), and an existing exact project/task/wiki target bound to the actor.
+It verifies the existing owned Context, captures the bounded native sources,
+and blocks unknown/ineligible account/session rows, unsupported policy rules,
+missing references and parent cycles. Native PeopleQuery/ProjectQuery must find
+all requested subjects: missing or filtered dependencies are unknown, never a
+fabricated deny. ProjectQuery actually attaches parent, milestone and native
+member sources; native `willApplyRules()` and `applyRule()` compute the reported
+selected-rule result. Fresh native-loaded project targets replace caller
+attachments. The observed parent chain is limited to nine nodes and membership
+summaries to 256 rows per node. Public results contain only counts and digests.
+
+An empty all-projects value may produce native `allow`, which is the actual
+rule method's vacuous result. It never grants access. The selected rule/value
+are explicit observation inputs, not proof that a stored object's entire
+ordered allow/deny policy is represented. Non-project targets and the viewer
+are provided native objects, not a fresh authenticated request. Row eligibility
+does not validate the native session protocol. Existing global unknown reasons
+remain: arbitrary rules, full policy composition, runtime configuration,
+organization dependencies and execution remain unsupported.
+
+The bounded source capture and native ORM rule/query calls use distinct
+connections/read views. They are explicitly **not atomic**. A concurrent change
+can alter the selected native result or grow dependencies after preflight;
+post-query cardinality checks do not certify an execution-time memory or SQL
+resource bound. This is a disposable, bounded-fixture test instrument, not a
+production source adapter or proof that native rule closure is complete.
+All results retain `native_closure_complete=false`, `risk_complete=false`,
+`can_execute=false`, `execution_atomicity_proved=false`, and
+`source_and_native_observation_atomic=false`. No application registration,
+router, schema migration, policy mutation or native transaction executor is
+introduced. The prior Reader's unknown reasons are intentionally retained.
+
+The Projects/ProjectsAll rule membership query uses materialized-member edges
+on the selected project's own PHID. It is distinct from the milestone object's
+automatic parent-member capability and from ProjectMembers' inverse-edge rule.
+These observations preserve differences instead of normalizing them into a new
+permission model. Structural checks accept the canonical decimal string form
+of native Lisk depth hydration, while rejecting malformed numeric strings.

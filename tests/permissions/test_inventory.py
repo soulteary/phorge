@@ -95,3 +95,12 @@ class ConsumerInventoryTests(unittest.TestCase):
         self.assertEqual(row['authority'],'none')
         self.assertEqual(row['sourceOperation'],'read-only-native-source-observation')
         self.assertIs(row['candidateGenerationIntroduced'],False)
+
+    def test_native_rule_hierarchy_reference_is_reviewed_without_authority(self):
+        row=next(r for r in inventory.collect()['consumers']
+                 if r['path']=='src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php')
+        self.assertTrue(row['discovery'])
+        self.assertTrue(row['matchingLines'])
+        self.assertEqual(row['kind'],'isolated-native-rule-hierarchy-observer')
+        self.assertEqual(row['authority'],'none')
+        self.assertIs(row['candidateGenerationIntroduced'],False)

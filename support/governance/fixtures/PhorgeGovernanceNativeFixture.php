@@ -229,7 +229,7 @@ final class PhorgeGovernanceNativeFixture {
       'properties' => '{}', 'subtype' => 'default',
     ));
     $ids['wiki'] = self::phid('WIKI', 'a');
-    $ids['wiki_content'] = self::phid('WIKC', 'a');
+    $ids['wiki_content'] = self::phid(PhrictionContentPHIDType::TYPECONST, 'a');
     $this->seed('phriction', 'phriction_content', array(
       'id' => 1, 'version' => 1, 'authorPHID' => $ids['actor'],
       'title' => 'Synthetic wiki', 'slug' => 'synthetic/',
@@ -270,6 +270,50 @@ final class PhorgeGovernanceNativeFixture {
       ));
     }
     return $ids;
+  }
+
+  /** Deliberately asymmetric edges are diagnostic samples, not writers. */
+  public function seedBatch4Branches(array $ids) {
+    $extra = array();
+    foreach (array('unjoined', 'inverse_only', 'direct_only') as $i => $name) {
+      $phid = self::phid('PROJ', chr(101 + $i));
+      $extra[$name] = $phid;
+      $key = substr(PhabricatorHash::digestForIndex($phid), 0, 4);
+      $this->seed('project', 'project', array(
+        'id' => 5 + $i, 'phid' => $phid, 'name' => 'Synthetic '.$name,
+        'authorPHID' => $ids['actor'], 'status' => PhabricatorProjectStatus::STATUS_ACTIVE,
+        'viewPolicy' => 'users', 'editPolicy' => 'no-one', 'joinPolicy' => 'no-one',
+        'icon' => 'fa-briefcase', 'color' => 'blue', 'mailKey' => str_repeat('m', 20),
+        'primarySlug' => $name, 'parentProjectPHID' => null,
+        'projectPath' => $key, 'projectPathKey' => $key, 'projectDepth' => 0,
+        'properties' => '{}', 'spacePHID' => $ids['space'], 'subtype' => 'default'));
+      if ($name === 'inverse_only') {
+        $this->seed('user', 'edge', array('src' => $ids['actor'], 'type' => 14,
+          'dst' => $phid, 'dateCreated' => time(), 'seq' => 0));
+      } else if ($name === 'direct_only') {
+        $this->seed('project', 'edge', array('src' => $phid, 'type' => 13,
+          'dst' => $ids['actor'], 'dateCreated' => time(), 'seq' => 0));
+      }
+    }
+    $parent = null;
+    $path = '';
+    foreach (range(0, 9) as $depth) {
+      $phid = self::phid('PROJ', chr(104 + $depth));
+      $key = substr(PhabricatorHash::digestForIndex($phid), 0, 4);
+      $path .= $key;
+      $this->seed('project', 'project', array(
+        'id' => 10 + $depth, 'phid' => $phid, 'name' => 'Synthetic bounded chain',
+        'authorPHID' => $ids['actor'], 'status' => PhabricatorProjectStatus::STATUS_ACTIVE,
+        'viewPolicy' => 'users', 'editPolicy' => 'no-one', 'joinPolicy' => 'no-one',
+        'icon' => 'fa-briefcase', 'color' => 'blue', 'mailKey' => str_repeat('m', 20),
+        'primarySlug' => 'bounded-'.$depth, 'parentProjectPHID' => $parent,
+        'projectPath' => $path, 'projectPathKey' => $key, 'projectDepth' => $depth,
+        'hasSubprojects' => $depth < 9 ? 1 : 0,
+        'properties' => '{}', 'spacePHID' => $ids['space'], 'subtype' => 'default'));
+      $parent = $phid;
+    }
+    $extra['deep_leaf'] = $parent;
+    return $extra;
   }
 
   public function createReader() {
