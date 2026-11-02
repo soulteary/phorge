@@ -319,7 +319,7 @@
       "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
       "symbol": "PhorgeOrganizationDatasource",
       "kind": "sealed-context-native-datasource",
-      "sha256": "b5d14d194b01ad344f622f7b5ae4408831705f36f11d60b20d050cec085837c1",
+      "sha256": "2f5247ea99ce97130c102907213ce769306a3c759032f72888d5649dbbcb21a4",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -342,6 +342,50 @@
       "symbol": "PhorgeGovernanceMediaIssuer",
       "kind": "media-only-external-issuer",
       "sha256": "478f049956332abe308408e5bba22ddc7d79edf38e80bf4a7756d5af581f0b38",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "TYPEAHEAD.BASE",
+      "path": "src/applications/typeahead/datasource/PhabricatorTypeaheadDatasource.php",
+      "symbol": "PhabricatorTypeaheadDatasource",
+      "kind": "fixed-normalizer-default",
+      "sha256": "e1046ed33403267c8339135b2ebb51b320b69b9c2ef8a64dc76055ea41c89369",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "TOKENIZER.CONTROL",
+      "path": "src/view/form/control/AphrontFormTokenizerControl.php",
+      "symbol": "AphrontFormTokenizerControl",
+      "kind": "fixed-normalizer-metadata",
+      "sha256": "70d64446426a90655bd724ca34949afc802bb16b24193dfaf91af32bb859bd7f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.PREFAB",
+      "path": "webroot/rsrc/js/core/Prefab.js",
+      "symbol": "Prefab",
+      "kind": "fixed-client-normalizer",
+      "sha256": "2fb8d5560c45d7e0672f2bf46a577f3b5332d59f8d2663d396a5d94894b5c396",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "path": "webroot/rsrc/js/core/behavior-tokenizer.js",
+      "symbol": "aphront-basic-tokenizer",
+      "kind": "fixed-client-metadata-forwarder",
+      "sha256": "28a6fa2ce2d594a3aa334b3cf5200ea77382856d8c1aebd4dd62d27b4f19571e",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -516,6 +560,38 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed media-only external configuration and purpose-separated digest dependency; not a public route, native credential rotation or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-22",
+      "from_id": "NATIVE.PhorgeOrganizationDatasource",
+      "to_id": "TYPEAHEAD.BASE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-23",
+      "from_id": "TOKENIZER.CONTROL",
+      "to_id": "TYPEAHEAD.BASE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-24",
+      "from_id": "TOKENIZER.CONTROL",
+      "to_id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-25",
+      "from_id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "to_id": "CLIENT.PREFAB",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Existing native behavior forwards the fixed metadata to Prefab; not browser or authority proof."
     }
   ],
   "scan": {
@@ -558,7 +634,7 @@
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
-        "sha256": "b5d14d194b01ad344f622f7b5ae4408831705f36f11d60b20d050cec085837c1"
+        "sha256": "2f5247ea99ce97130c102907213ce769306a3c759032f72888d5649dbbcb21a4"
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",

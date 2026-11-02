@@ -12,6 +12,7 @@ _spec = importlib.util.spec_from_file_location('native_completion_gate', ROOT/'s
 completion = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(completion)
 REQUIRED_CHECKS = frozenset({
+    'directory-completion-real-html-sends-directory-literal-normalizer-with-people-default',
     'directory-completion-selector-native-normalized-q-preserves-raw-uppercase-punctuation',
     'directory-completion-selector-lowercase-partial-matches-uppercase-native-name',
     'directory-completion-selector-percent-underscore-remain-literal-not-wildcards',

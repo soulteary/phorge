@@ -3,12 +3,12 @@
   "upstream_main": "9a55f339d8189d9935da44ec5f6d71ebc7547e34",
   "php_runtime": "8.5.12",
   "native_methods": 139,
-  "native_sql_checks": 208,
-  "governance_python": 80,
+  "native_sql_checks": 209,
+  "governance_python": 82,
   "permissions_python": 84,
   "evidence_sha256": {
-    "docs/governance/native-directory-evidence.json": "ca30c91d430111f11e334ad27d2b6537019c05864cea79d8375b87d377d05d56",
-    "native-methods.json": "dfa493c40cd618153026001896db1b71b621e93acf04bba0e35d5486c9536a53"
+    "docs/governance/native-directory-evidence.json": "9df2ca751114d7fcb8c6fd31c5a3333f0b57e2eb0a99f61098c7633acf272a08",
+    "native-methods.json": "2cfe714fb2b7d8b0df6a9808a5c8cccdd59cabb4905d745362308887d204976a"
   },
   "production_enabled": false,
   "deployment": false,
@@ -18,6 +18,9 @@
   "review_fix_scope": [
     "native date-control integer normalization",
     "inactive department audited clear and explicit reassignment",
-    "native tokenizer q/raw protocol with case-insensitive literal selector search"
-  ]
+    "native tokenizer q/raw protocol with case-insensitive literal selector search",
+    "directory-specific literal casefold cache and match semantics with decoded native page metadata"
+  ],
+  "celerity_map_php_runtime": "8.5.12",
+  "native_javascript_cache_regressions": true
 }

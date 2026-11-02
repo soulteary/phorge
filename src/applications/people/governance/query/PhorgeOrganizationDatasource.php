@@ -6,6 +6,7 @@ final class PhorgeOrganizationDatasource extends PhabricatorTypeaheadDatasource 
   public function setActorContext(PhorgeGovernanceNativeActorContext $context) {
     $this->actorContext=$context;return $this;
   }
+  public function getTokenizerNormalizerMode() { return 'literal-casefold-v1'; }
   public function getDatasourceURI() { return '/people/organization/typeahead/'; }
   public function getBrowseURI() { return null; }
   public function getBrowseTitle() { return pht('Organization Directory'); }

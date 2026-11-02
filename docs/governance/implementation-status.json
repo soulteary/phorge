@@ -10,7 +10,7 @@
       "title": "契约与只读来源清单",
       "depends_on": [],
       "status": "native-directory-completion-source-inventory-reviewed-partial",
-      "remaining": "31 explicit sources, 21 static links and 47 runtime files pinned; broader consumers and runtime release stages remain separate.",
+      "remaining": "35 explicit sources, 25 static links and 47 scoped runtime files pinned; broader consumers and runtime release stages remain separate.",
       "production_enabled": false
     },
     {
@@ -30,7 +30,7 @@
         "N01"
       ],
       "status": "native-datasource-search-paging-verified-subset",
-      "remaining": "Native datasource/search/paging/counts, token-domain privacy, Chinese full-page rendering and unavailable-reference form preservation verified in the 136/184 directory checkpoint and 139/208 review-fixed combined current-main issuer run. Hosted CI and browser/test-machine acceptance remain separate.",
+      "remaining": "Native datasource/search/paging/counts, token-domain privacy, Chinese full-page rendering and unavailable-reference form preservation verified in the 136/184 directory checkpoint and 139/209 review-fixed combined current-main issuer run. Hosted CI and browser/test-machine acceptance remain separate.",
       "production_enabled": false
     },
     {
