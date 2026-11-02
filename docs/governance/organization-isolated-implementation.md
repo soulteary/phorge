@@ -60,13 +60,13 @@ remain unchanged. No SQL-over-HTTP service is introduced.
 
 ## Local validation
 
-Supported PHP 8.5.12 / MySQL 8.4.13 passed 115 native methods and 89 real SQL
+Supported PHP 8.5.12 / MySQL 8.4.13 passed 115 native methods and 94 real SQL
 integration checks. These include actual multi-process operation/version races,
 observed SQL lock waits across membership/approval expiry, multi-approval atomic
 commit and rollback, factory privilege/nonce/collation refusals, source filtering
 and physical-engine drift. Cleanup removed one owned schema, three principals
-and twelve private worker directories without errors. The strict receipt gate
-requires every one of the 89 checks and retains the synthetic identity scope.
+and thirteen private worker directories without errors. The strict receipt gate
+requires every one of the 94 checks and retains the synthetic identity scope.
 
 The retained native pipeline and actual paired Gorge file/queue acceptance also
 passed all 125 checks. Governance Python passed 56 tests and permission Python
@@ -85,3 +85,5 @@ semantic changes and concrete activation scope require separate confirmation.
 Owlmail v0.14.0-alpha.1 is a separately pinned, verified Standalone test candidate;
 its new-version smoke tests are not existing-service upgrade or integration
 acceptance. The full persistent goal remains active.
+
+PR review additionally required byte-exact SQL identity/relation comparisons: ascii_bin alone retains PAD SPACE semantics. Actual padded account, membership and appointment negatives verify refusal. Worker startup now registers owned directories before writing credentials or spawning a child; a real failed-start case verifies owned cleanup.

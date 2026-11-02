@@ -49,25 +49,58 @@ function organization_proposal($id,$operation,$actor,$action,$team,$target,$from
   return array('approval_id'=>$id,'operation_id'=>$operation,'actor'=>$actor,'action'=>$action,
     'team'=>$team,'target_user'=>$target,'valid_from'=>$from,'valid_until'=>$until,'ttl_seconds'=>$ttl);
 }
-function organization_start_worker(array $config,array $request,$nonce,$method='execute') {
+function organization_start_worker(array $config,array $request,$nonce,$method='execute',$spawn_fault=false) {
   if (!in_array($method,array('execute','proposeApproval','approveApproval'),true)) {
     throw new RuntimeException('organization_worker_method_refused'); }
   global $workers;
   $private=sys_get_temp_dir().'/governance-org-'.bin2hex(random_bytes(12));
   if (!mkdir($private,0700)) { throw new RuntimeException('organization_worker_private_failed'); }
-  file_put_contents($private.'/owner',$nonce,LOCK_EX); chmod($private.'/owner',0600);
+  $identity=lstat($private);
+  $index=count($workers);
+  $workers[]=array('process'=>null,'private'=>$private,'nonce'=>$nonce,
+    'device'=>$identity['dev'],'inode'=>$identity['ino'],'owner_ready'=>false,'cleaned'=>false);
+  if (file_put_contents($private.'/owner',$nonce,LOCK_EX)!==strlen($nonce) || !chmod($private.'/owner',0600)) {
+    throw new RuntimeException('organization_worker_marker_failed'); }
+  $workers[$index]['owner_ready']=true;
   file_put_contents($private.'/worker.json',json_encode(array('owner_nonce'=>$nonce,
     'config'=>$config,'request'=>$request,'method'=>$method),JSON_THROW_ON_ERROR),LOCK_EX); chmod($private.'/worker.json',0600);
-  $process=proc_open(array(PHP_BINARY,__FILE__,'--worker',$private),array(
+  // Fixed fixture-only fault: no caller command or host path is accepted.
+  $command=$spawn_fault?array($private.'/missing-worker'):array(PHP_BINARY,__FILE__,'--worker',$private);
+  try {
+    $process=proc_open($command,array(
     0=>array('file','/dev/null','r'),1=>array('file',$private.'/stdout.log','a'),
     2=>array('file',$private.'/stderr.log','a')),$pipes,null,array(
       'PATH'=>getenv('PATH') ?: '/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1'));
+  } catch (Throwable $error) {
+    throw new RuntimeException('organization_worker_spawn_failed');
+  }
+  $workers[$index]['process']=$process;
   if (!is_resource($process)) { throw new RuntimeException('organization_worker_spawn_failed'); }
-  $worker=array('process'=>$process,'private'=>$private,'nonce'=>$nonce); $workers[]=$worker;
+  $worker=$workers[$index];
   $deadline=microtime(true)+5;
   while (!is_file($private.'/ready') && microtime(true)<$deadline && proc_get_status($process)['running']) { usleep(20000); }
   if (!is_file($private.'/ready')) { throw new RuntimeException('organization_worker_not_ready'); }
   return $worker;
+}
+function organization_cleanup_worker(array &$worker) {
+  if ($worker['cleaned']) { return false; }
+  if (is_resource($worker['process'])) {
+    if (proc_get_status($worker['process'])['running']) { proc_terminate($worker['process']); }
+    proc_close($worker['process']); $worker['process']=null;
+  }
+  $path=$worker['private']; $identity=lstat($path);
+  if (is_link($path) || !is_array($identity) || $identity['dev']!==$worker['device'] ||
+      $identity['ino']!==$worker['inode'] ||
+      !preg_match('/\Agovernance-org-[a-f0-9]{24}\z/',basename($path)) ||
+      ($worker['owner_ready'] && (!is_file($path.'/owner') || is_link($path.'/owner') ||
+       !hash_equals($worker['nonce'],file_get_contents($path.'/owner'))))) {
+    throw new RuntimeException('organization_worker_cleanup_owner_refused'); }
+  foreach (glob($path.'/*') as $file) {
+    if (is_dir($file) && !is_link($file)) { throw new RuntimeException('organization_worker_cleanup_subdirectory_refused'); }
+    if (!unlink($file)) { throw new RuntimeException('organization_worker_cleanup_file_failed'); }
+  }
+  if (!rmdir($path)) { throw new RuntimeException('organization_worker_cleanup_directory_failed'); }
+  $worker['cleaned']=true; return true;
 }
 function organization_finish_worker(array &$worker) {
   $deadline=microtime(true)+10;
@@ -223,6 +256,20 @@ try {
     catch (mysqli_sql_exception $error) { $denied=in_array($error->getCode(),array(1142,1143,1044),true); }
     organization_check($denied,'organization-runtime-role-forbidden-write-'.$i); }
   } finally { $direct->close(); }
+  $fault_request=organization_request('spawn-fault',$users['admin'],array(
+    organization_mutation($setup,'member.add','team-a',$users['target'],$now,null)));
+  $spawn_refused=false;
+  try { organization_start_worker($config,$fault_request,$nonce,'execute',true); }
+  catch (RuntimeException $error) {
+    if (!in_array($error->getMessage(),array('organization_worker_spawn_failed',
+        'organization_worker_not_ready'),true)) { throw $error; }
+    $spawn_refused=true;
+  }
+  organization_check($spawn_refused,'organization-worker-fixed-spawn-failure-observed');
+  $last=count($workers)-1; $fault_path=$workers[$last]['private'];
+  organization_check(organization_cleanup_worker($workers[$last]) && !file_exists($fault_path),
+    'organization-worker-start-failure-removes-owned-credential-directory');
+  $cleanup['private_directories_removed']++;
   $mutation=organization_mutation($setup,'member.add','team-a',$users['target'],$now-10,null);
   $request=organization_request('members-first',$users['admin'],array($mutation));
   $result=$store->execute($request);
@@ -278,6 +325,30 @@ try {
     array('child-a',$users['childadmin']))->close();
   organization_check($reader->listUnits($users['childadmin'])===array(),
     'organization-reader-revoked-appointment-immediately-hidden');
+  organization_sql($setup,'UPDATE org_user SET user_id=? WHERE user_id=?',
+    array($users['admin'].' ',$users['admin']))->close();
+  try {
+    organization_check($reader->listUnits($users['admin'])===array() &&
+      $reader->listMembers($users['admin'],'team-a')===array(),
+      'organization-reader-trailing-pad-actor-not-current-identity');
+  } finally { organization_sql($setup,'UPDATE org_user SET user_id=? WHERE BINARY user_id=BINARY ?',
+    array($users['admin'],$users['admin'].' '))->close(); }
+  organization_sql($setup,'UPDATE org_member SET user_id=? WHERE team_id=? AND user_id=?',
+    array($users['member'].' ','team-a',$users['member']))->close();
+  try {
+    organization_check(!in_array($users['member'].' ',array_column($reader->listMembers($users['admin'],'team-a'),'user_id'),true) &&
+      $reader->listUserTeams($users['admin'],$users['member'])===array(),
+      'organization-reader-trailing-pad-subject-relation-not-current-fact');
+  } finally { organization_sql($setup,'UPDATE org_member SET user_id=? WHERE team_id=? AND BINARY user_id=BINARY ?',
+    array($users['member'],'team-a',$users['member'].' '))->close(); }
+  organization_sql($setup,'UPDATE org_appointment SET user_id=? WHERE team_id=? AND user_id=?',
+    array($users['admin'].' ','team-a',$users['admin']))->close();
+  try {
+    organization_check($reader->listUnits($users['admin'])===array() &&
+      $reader->listMembers($users['admin'],'team-a')===array(),
+      'organization-reader-trailing-pad-appointment-not-authority');
+  } finally { organization_sql($setup,'UPDATE org_appointment SET user_id=? WHERE team_id=? AND BINARY user_id=BINARY ?',
+    array($users['admin'],'team-a',$users['admin'].' '))->close(); }
   $member_version=organization_row($setup,'org_member','team-a',$users['member'])['version'];
   organization_sql($setup,'UPDATE org_member SET version=0 WHERE team_id=? AND user_id=?',
     array('team-a',$users['member']))->close();
@@ -565,22 +636,12 @@ try {
   if ($worker_mode) { if ($failure!==null && is_string($private) && is_dir($private)) {
       file_put_contents($private.'/result.json',json_encode(array('status'=>'failed','failure'=>$failure)),LOCK_EX); }
   } else {
-    foreach ($workers as $worker) {
+    foreach ($workers as &$worker) {
       try {
-        if (is_resource($worker['process'])) {
-          proc_terminate($worker['process']); proc_close($worker['process']);
-        }
-        $path=$worker['private'];
-        if (is_link($path) || !preg_match('/\Agovernance-org-[a-f0-9]{24}\z/',basename($path)) ||
-            !is_file($path.'/owner') || !hash_equals($worker['nonce'],file_get_contents($path.'/owner'))) {
-          throw new RuntimeException('organization_worker_cleanup_owner_refused'); }
-        foreach (glob($path.'/*') as $file) {
-          if (is_dir($file) && !is_link($file)) { throw new RuntimeException('organization_worker_cleanup_subdirectory_refused'); }
-          unlink($file);
-        }
-        rmdir($path); $cleanup['private_directories_removed']++;
+        if (organization_cleanup_worker($worker)) { $cleanup['private_directories_removed']++; }
       } catch (Throwable $error) { $cleanup_failures[]=array('stage'=>'worker-cleanup','error_type'=>get_class($error)); }
     }
+    unset($worker);
     if ($setup!==null) { $setup->close(); }
     if ($control!==null && $created) {
       try {

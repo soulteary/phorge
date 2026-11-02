@@ -8,6 +8,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = ROOT / 'support/governance/organization/schema.sql'
 REQUIRED_CHECKS = frozenset({
+    'organization-worker-fixed-spawn-failure-observed',
+    'organization-worker-start-failure-removes-owned-credential-directory',
+    'organization-reader-trailing-pad-actor-not-current-identity',
+    'organization-reader-trailing-pad-subject-relation-not-current-fact',
+    'organization-reader-trailing-pad-appointment-not-authority',
+
     'organization-propose-audit-gap-real-wait-observed',
     'organization-propose-audit-gap-final-expiry-refused',
     'organization-propose-audit-gap-ticket-state-and-audit-fully-rolled-back',
@@ -135,7 +141,7 @@ def validate(value):
     if (not isinstance(cleanup, dict) or set(cleanup) != {'owned_schema_removed', 'principals_removed', 'private_directories_removed'} or
         cleanup['owned_schema_removed'] is not True or type(cleanup['principals_removed']) is not int or
         cleanup['principals_removed'] != 3 or type(cleanup['private_directories_removed']) is not int or
-        cleanup['private_directories_removed'] != 12):
+        cleanup['private_directories_removed'] != 13):
         raise ValueError('cleanup refused')
     return {'passed': True, 'scope': value['scope'], 'check_count': len(checks),
             'identity_source': value['identity_source'], 'production_execution': False,

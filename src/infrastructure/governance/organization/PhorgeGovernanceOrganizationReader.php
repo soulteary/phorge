@@ -136,15 +136,32 @@ final class PhorgeGovernanceOrganizationReader {
       '.valid_until IS NULL OR '.$alias.'.valid_until>UNIX_TIMESTAMP())';
   }
 
+  private static function equalBytes($left, $right) {
+    // ascii_bin still has PAD SPACE semantics. Identity joins must compare
+    // complete byte strings, not just case-sensitive collation weights.
+    return 'CAST('.$left.' AS BINARY)=CAST('.$right.' AS BINARY)';
+  }
+
+  private static function literal($column, $value) {
+    // Both inputs are fixed SQL fragments from this class, never user input.
+    return self::equalBytes($column, "'".$value."'");
+  }
+
   private static function visible($unit) {
-    return '('.$unit.'.kind IN (\'team\',\'department\') AND '.$unit.
-      '.state IN (\'active\',\'archived\') AND '.$unit.
-      '.version>=1 AND (actor.is_admin=1 OR ('.$unit.'.kind=\'team\' AND '.$unit.
-      '.state=\'active\' AND EXISTS (SELECT 1 FROM org_appointment ap '.
-      'JOIN org_member am ON am.team_id=ap.team_id AND am.user_id=ap.user_id '.
-      'WHERE ap.team_id='.$unit.'.unit_id AND ap.user_id=actor.user_id '.
-      'AND ap.state=\'active\' AND ap.role=\'team_admin\' AND ap.version>=1 AND '.self::period('ap').
-      ' AND am.state=\'active\' AND am.version>=1 AND '.self::period('am').'))))';
+    return '(('.self::literal($unit.'.kind', 'team').' OR '.
+      self::literal($unit.'.kind', 'department').') AND ('.
+      self::literal($unit.'.state', 'active').' OR '.
+      self::literal($unit.'.state', 'archived').') AND '.$unit.
+      '.version>=1 AND (actor.is_admin=1 OR ('.self::literal($unit.'.kind', 'team').
+      ' AND '.self::literal($unit.'.state', 'active').
+      ' AND EXISTS (SELECT 1 FROM org_appointment ap JOIN org_member am ON '.
+      self::equalBytes('am.team_id', 'ap.team_id').' AND '.
+      self::equalBytes('am.user_id', 'ap.user_id').' WHERE '.
+      self::equalBytes('ap.team_id', $unit.'.unit_id').' AND '.
+      self::equalBytes('ap.user_id', 'actor.user_id').' AND '.
+      self::literal('ap.state', 'active').' AND '.self::literal('ap.role', 'team_admin').
+      ' AND ap.version>=1 AND '.self::period('ap').' AND '.
+      self::literal('am.state', 'active').' AND am.version>=1 AND '.self::period('am').'))))';
   }
 
   private function read($sql, array $parameters) {
@@ -194,10 +211,12 @@ final class PhorgeGovernanceOrganizationReader {
     return $this->read('SELECT u.unit_id,u.kind,u.state,u.name,u.version,'.
       'CASE WHEN '.self::visible('p').' THEN p.unit_id ELSE NULL END AS parent_id,'.
       'CASE WHEN actor.is_admin=1 THEN d.unit_id ELSE NULL END AS department_id '.
-      'FROM org_unit u LEFT JOIN org_unit p ON p.unit_id=u.parent_id '.
-      'LEFT JOIN org_unit d ON d.unit_id=u.department_id AND d.kind=\'department\' '.
-      'JOIN org_user actor ON actor.user_id=? WHERE '.self::eligible('actor').
-      ' AND u.kind=? AND u.state IN (\'active\',\'archived\') AND '.self::visible('u').
+      'FROM org_unit u LEFT JOIN org_unit p ON '.self::equalBytes('p.unit_id', 'u.parent_id').
+      ' LEFT JOIN org_unit d ON '.self::equalBytes('d.unit_id', 'u.department_id').
+      ' AND '.self::literal('d.kind', 'department').
+      ' JOIN org_user actor ON '.self::equalBytes('actor.user_id', '?').
+      ' WHERE '.self::eligible('actor').' AND '.self::equalBytes('u.kind', '?').
+      ' AND '.self::visible('u').
       ' AND u.unit_id>? AND LOCATE(?,u.name)>0 ORDER BY u.unit_id LIMIT '.(int)$limit,
       array($actor, $kind, $after, $query));
   }
@@ -214,8 +233,9 @@ final class PhorgeGovernanceOrganizationReader {
   public function countUnits($actor, $kind = 'team') {
     self::validateOptions($actor, '', 1, '', $kind);
     $rows = $this->read('SELECT COUNT(*) AS n FROM org_unit u '.
-      'JOIN org_user actor ON actor.user_id=? WHERE '.self::eligible('actor').
-      ' AND u.kind=? AND u.state IN (\'active\',\'archived\') AND '.self::visible('u'),
+      'JOIN org_user actor ON '.self::equalBytes('actor.user_id', '?').
+      ' WHERE '.self::eligible('actor').' AND '.self::equalBytes('u.kind', '?').
+      ' AND '.self::visible('u'),
       array($actor, $kind));
     return (int)$rows[0]['n'];
   }
@@ -232,11 +252,13 @@ final class PhorgeGovernanceOrganizationReader {
     }
     return $this->read('SELECT m.user_id,m.state,m.version,'.
       'CASE WHEN '.self::eligible('subject').' THEN 1 ELSE 0 END AS account_eligible '.
-      'FROM org_member m JOIN org_unit u ON u.unit_id=m.team_id '.
-      'JOIN org_user subject ON subject.user_id=m.user_id '.
-      'JOIN org_user actor ON actor.user_id=? WHERE '.self::eligible('actor').
-      ' AND u.kind=\'team\' AND u.state=\'active\' AND '.self::visible('u').
-      ' AND u.unit_id=? AND m.state=\'active\' AND m.version>=1 AND '.self::period('m').
+      'FROM org_member m JOIN org_unit u ON '.self::equalBytes('u.unit_id', 'm.team_id').
+      ' JOIN org_user subject ON '.self::equalBytes('subject.user_id', 'm.user_id').
+      ' JOIN org_user actor ON '.self::equalBytes('actor.user_id', '?').
+      ' WHERE '.self::eligible('actor').' AND '.self::literal('u.kind', 'team').
+      ' AND '.self::literal('u.state', 'active').' AND '.self::visible('u').
+      ' AND '.self::equalBytes('u.unit_id', '?').' AND '.self::literal('m.state', 'active').
+      ' AND m.version>=1 AND '.self::period('m').
       ' AND m.user_id>? ORDER BY m.user_id LIMIT '.(int)$limit,
       array($actor, $team, $after));
   }
@@ -245,10 +267,13 @@ final class PhorgeGovernanceOrganizationReader {
     self::validateOptions($actor, $after, $limit, '', 'team');
     PhorgeGovernanceDirectoryReader::validateOptions($subject, 0, 1, '');
     return $this->read('SELECT u.unit_id,u.name,u.version FROM org_unit u '.
-      'JOIN org_member m ON m.team_id=u.unit_id JOIN org_user s ON s.user_id=m.user_id '.
-      'JOIN org_user actor ON actor.user_id=? WHERE '.self::eligible('actor').
-      ' AND '.self::eligible('s').' AND u.kind=\'team\' AND u.state=\'active\' AND '.
-      self::visible('u').' AND m.user_id=? AND m.state=\'active\' AND m.version>=1 AND '.self::period('m').
+      'JOIN org_member m ON '.self::equalBytes('m.team_id', 'u.unit_id').
+      ' JOIN org_user s ON '.self::equalBytes('s.user_id', 'm.user_id').
+      ' JOIN org_user actor ON '.self::equalBytes('actor.user_id', '?').
+      ' WHERE '.self::eligible('actor').' AND '.self::eligible('s').
+      ' AND '.self::literal('u.kind', 'team').' AND '.self::literal('u.state', 'active').
+      ' AND '.self::visible('u').' AND '.self::equalBytes('m.user_id', '?').
+      ' AND '.self::literal('m.state', 'active').' AND m.version>=1 AND '.self::period('m').
       ' AND u.unit_id>? ORDER BY u.unit_id LIMIT '.(int)$limit,
       array($actor, $subject, $after));
   }

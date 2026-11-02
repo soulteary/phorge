@@ -202,7 +202,7 @@
   "current_component_validation": {
     "scope": "owned-synthetic-organization-integration",
     "native_methods": 115,
-    "organization_sql_checks": 89,
+    "organization_sql_checks": 94,
     "retained_native_pipeline_checks": 125,
     "governance_python": 56,
     "permissions_python": 84,

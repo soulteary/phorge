@@ -18,7 +18,7 @@ def template():
     return {'passed': True, 'checks': sorted(gate.REQUIRED_CHECKS),
         'check_count': len(gate.REQUIRED_CHECKS), 'failure': None,
         'cleanup_failures': [], 'cleanup': {'owned_schema_removed': True,
-            'principals_removed': 3, 'private_directories_removed': 12},
+            'principals_removed': 3, 'private_directories_removed': 13},
         'schema_sha256': hashlib.sha256(gate.SCHEMA.read_bytes()).hexdigest(),
         'scope': 'owned-synthetic-organization-integration',
         'identity_source': 'synthetic-native-account-projection-not-production-authority',
