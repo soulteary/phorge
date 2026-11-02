@@ -1,0 +1,3246 @@
+{
+  "schemaVersion": 1,
+  "snapshotDate": "2026-11-02",
+  "baselinePhorgeRevision": "fa2a811547f9942f12cbaffcdee531b320b97689",
+  "acceptedRelease": "2026.11.02-r3",
+  "counts": {
+    "atoms": 134,
+    "anchors": 268,
+    "packages": 19,
+    "delivered": 42,
+    "nativeToolingOrCompatibility": 6,
+    "unselectedModelChanges": 4,
+    "deferred": 82,
+    "candidateChangesUnintegrated": 86
+  },
+  "sourcePRs": [
+    {
+      "number": 47,
+      "url": "https://github.com/soulteary/phorge/pull/47",
+      "head": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "state": "open",
+      "mergeableState": "dirty"
+    },
+    {
+      "number": 48,
+      "url": "https://github.com/soulteary/phorge/pull/48",
+      "head": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "state": "open",
+      "mergeableState": "dirty"
+    },
+    {
+      "number": 49,
+      "url": "https://github.com/soulteary/phorge/pull/49",
+      "head": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "state": "open",
+      "mergeableState": "dirty"
+    },
+    {
+      "number": 50,
+      "url": "https://github.com/soulteary/phorge/pull/50",
+      "head": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "state": "open",
+      "mergeableState": "dirty"
+    }
+  ],
+  "sourcePRStateMeaning": "Snapshot only; future extraction must refresh head, conflicts, checks and review. Open candidate PRs are not merged as whole branches.",
+  "deliveredPackages": {
+    "D01": "https://github.com/soulteary/phorge/pull/52",
+    "D02": "https://github.com/soulteary/phorge/pull/53",
+    "D03": "https://github.com/soulteary/phorge/pull/54",
+    "D04": "https://github.com/soulteary/phorge/pull/55",
+    "D05": "https://github.com/soulteary/phorge/pull/56",
+    "D06": "https://github.com/soulteary/phorge/pull/57"
+  },
+  "atoms": [
+    {
+      "id": "B01",
+      "title": "固定集成基线与类映射",
+      "package": "D01",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        47,
+        48,
+        49,
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "B01-A",
+        "B01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "B02",
+      "title": "真实隔离测试依赖",
+      "package": "D01",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        48,
+        49,
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "B02-A",
+        "B02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "B03",
+      "title": "双语与占位符回归",
+      "package": "D01",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        48,
+        49,
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "B03-A",
+        "B03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "B04",
+      "title": "权限语义与升级 ADR",
+      "package": "D07",
+      "category": "保留原生",
+      "strategy": "保留原生",
+      "implementation": "已完成原生 ADR/只读工具范围",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "原生四轴 ADR、消费者/来源清单、只读差异审计与本轮退出证据已完成；不实施候选模型迁移。",
+      "caseIds": [
+        "B04-A",
+        "B04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "B05",
+      "title": "功能测试接入自动门禁",
+      "package": "D01",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        47,
+        48,
+        49,
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "main必需CI保护已实际生效，PR/main检查通过；无管理员绕过本次合并。",
+      "caseIds": [
+        "B05-A",
+        "B05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "F01",
+      "title": "私有原文件的一层头像派生",
+      "package": "D02",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "F01-A",
+        "F01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "F02",
+      "title": "多层派生与多来源模型差异核验",
+      "package": "D02",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "核心ANY来源模型D02实际通过；D14守卫组合未采用，不计为设计全通过。",
+      "caseIds": [
+        "F02-A",
+        "F02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "F03",
+      "title": "公开独立头像与 VOID/builtin 兼容",
+      "package": "D02",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "F03-A",
+        "F03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "F04",
+      "title": "核心派生查询的缺失源与循环核验",
+      "package": "D02",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "F04-A",
+        "F04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "F05",
+      "title": "人员拒绝页空对象保护",
+      "package": "D02",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "F05-A",
+        "F05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "P01",
+      "title": "策略动作本地化",
+      "package": "D03",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "P01-A",
+        "P01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "P02",
+      "title": "策略选项与未知值安全呈现",
+      "package": "D03",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "P02-A",
+        "P02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "P03",
+      "title": "按产品配置隐藏新增策略选项",
+      "package": "D03",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "沿用现有产品配置；隐藏选项不撤销已存策略",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "P03-A",
+        "P03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "P04",
+      "title": "含不可选规则的历史策略只读",
+      "package": "D03",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "P04-A",
+        "P04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "P05",
+      "title": "明确创建替代策略并应用对象",
+      "package": "D03",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "P05-A",
+        "P05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "P06",
+      "title": "项目创建者/管理员可选策略",
+      "package": "D13",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成创建者/管理员模板及 active/blocked 默认状态采纳；隐藏模板不等于不执行已存策略，旧任务状态需保持可读。",
+      "caseIds": [
+        "P06-A",
+        "P06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "P07",
+      "title": "任务创建者/管理员可选策略",
+      "package": "D13",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成创建者/管理员模板及 active/blocked 默认状态采纳；隐藏模板不等于不执行已存策略，旧任务状态需保持可读。",
+      "caseIds": [
+        "P07-A",
+        "P07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "N01",
+      "title": "默认目录层级/平铺选择",
+      "package": "D04",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "默认 flat；层级呈现不是权限模型开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "N01-A",
+        "N01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "N02",
+      "title": "根目录分页与归档父级",
+      "package": "D04",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "默认 flat；层级呈现不是权限模型开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "N02-A",
+        "N02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "N03",
+      "title": "列表条目与子项目入口",
+      "package": "D04",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "默认 flat；层级呈现不是权限模型开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "N03-A",
+        "N03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "N04",
+      "title": "祖先名称/PHID 的隐私过滤",
+      "package": "D04",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        47,
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "N04-A",
+        "N04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "N05",
+      "title": "返回直接父项目或根目录",
+      "package": "D04",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "默认 flat；层级呈现不是权限模型开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "N05-A",
+        "N05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "N06",
+      "title": "创建/编辑页面面包屑上下文",
+      "package": "D04",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "默认 flat；层级呈现不是权限模型开关",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "N06-A",
+        "N06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M01",
+      "title": "首个普通子项目不复制父成员",
+      "package": "D07",
+      "category": "未实现",
+      "strategy": "保留原生",
+      "implementation": "候选变更未集成/不选择",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "未采纳“首个普通子项目不复制父成员”的候选变更；继续原生成员语义。本轮不将其视为待修 bug。",
+      "caseIds": [
+        "M01-A",
+        "M01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M02",
+      "title": "父项目直接成员可独立编辑",
+      "package": "D07",
+      "category": "未实现",
+      "strategy": "保留原生",
+      "implementation": "候选变更未集成/不选择",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "未采纳“父项目直接成员独立编辑”的新模型；继续原生直接边与继承/汇总边处理。",
+      "caseIds": [
+        "M02-A",
+        "M02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M03",
+      "title": "取消父编辑权自动授权普通子项",
+      "package": "D07",
+      "category": "未实现",
+      "strategy": "保留原生",
+      "implementation": "候选变更未集成/不选择",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "未采纳取消普通子项目编辑继承的候选变更；继续原生编辑权限。",
+      "caseIds": [
+        "M03-A",
+        "M03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M04",
+      "title": "成员索引聚合模型迁移",
+      "package": "D07",
+      "category": "未实现",
+      "strategy": "保留原生",
+      "implementation": "候选变更未集成/不选择",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "未采纳 direct/self+descendants 成员索引模型迁移；继续原生成员聚合，不执行重建或线上边迁移。",
+      "caseIds": [
+        "M04-A",
+        "M04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M05",
+      "title": "普通子项目祖先查看边界",
+      "package": "D07",
+      "category": "保留原生",
+      "strategy": "保留原生",
+      "implementation": "原生查看边界已验证",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "保留原生祖先查看约束；直接 URL、查询、Conduit、搜索、Feed 和看板等按原生边界验证，未实现子项目独立可见新语义。",
+      "caseIds": [
+        "M05-A",
+        "M05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M06",
+      "title": "里程碑继承不变式",
+      "package": "D07",
+      "category": "保留原生",
+      "strategy": "保留原生",
+      "implementation": "原生里程碑兼容已验证",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "保留原生里程碑继承与层级约束；已有原生/隔离层级边界证据，不声称组织角色模型的不变量已实现。",
+      "caseIds": [
+        "M06-A",
+        "M06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M07",
+      "title": "旧成员与访问差异审计",
+      "package": "D07",
+      "category": "保留原生",
+      "strategy": "保留原生",
+      "implementation": "已完成原生 ADR/只读工具范围",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "已完成只读差异审计、隔离恢复样本及路由级验证；历史复制边来源不确定时不猜测删除，不写线上权限。",
+      "caseIds": [
+        "M07-A",
+        "M07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O01",
+      "title": "创建组织团队",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O01-A",
+        "O01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O02",
+      "title": "移动团队与层级合法性",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O02-A",
+        "O02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O03",
+      "title": "团队归档与后代独立性",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O03-A",
+        "O03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O04",
+      "title": "团队自身可见性",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O04-A",
+        "O04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O05",
+      "title": "花名册独立权限",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O05-A",
+        "O05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O06",
+      "title": "替换团队的直接成员集合",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O06-A",
+        "O06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O07",
+      "title": "组织审计记录与访问",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O07-A",
+        "O07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G01",
+      "title": "直接团队策略求值",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "G01-A",
+        "G01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G02",
+      "title": "包含下级团队策略求值",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "G02-A",
+        "G02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G03",
+      "title": "团队策略选择器与可读标签",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "G03-A",
+        "G03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G04",
+      "title": "增加授权来源",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "G04-A",
+        "G04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G05",
+      "title": "明确替换能力策略",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "G05-A",
+        "G05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G06",
+      "title": "撤销选定授权来源",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "G06-A",
+        "G06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G07",
+      "title": "严格团队边界",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "G07-A",
+        "G07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "R01",
+      "title": "viewer 查看授予与编辑上限",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "R01-A",
+        "R01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "R02",
+      "title": "editor 内容编辑与权限管理分离",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "R02-A",
+        "R02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "R03",
+      "title": "项目管理员角色管理",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "R03-A",
+        "R03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "R04",
+      "title": "新项目创建者角色初始化",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "R04-A",
+        "R04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "R05",
+      "title": "最后管理员与显式角色交接",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "R05-A",
+        "R05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "R06",
+      "title": "明确自身加入/退出与幂等",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "R06-A",
+        "R06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "R07",
+      "title": "原生反向边编辑及角色清理",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "R07-A",
+        "R07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "I01",
+      "title": "用户/团队/项目来源解析",
+      "package": "D10",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成用户/项目/团队来源的有界成员快照导入；需确认快照而非动态同步，及隐私/资格/人数上限。",
+      "caseIds": [
+        "I01-A",
+        "I01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "I02",
+      "title": "直接成员快照与去重",
+      "package": "D10",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成用户/项目/团队来源的有界成员快照导入；需确认快照而非动态同步，及隐私/资格/人数上限。",
+      "caseIds": [
+        "I02-A",
+        "I02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "I03",
+      "title": "来源隐私和失效用户过滤",
+      "package": "D10",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成用户/项目/团队来源的有界成员快照导入；需确认快照而非动态同步，及隐私/资格/人数上限。",
+      "caseIds": [
+        "I03-A",
+        "I03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "I04",
+      "title": "输入与展开人数上限",
+      "package": "D10",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成用户/项目/团队来源的有界成员快照导入；需确认快照而非动态同步，及隐私/资格/人数上限。",
+      "caseIds": [
+        "I04-A",
+        "I04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "W01",
+      "title": "统一工作区入口",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "workspace-mode=native；不启用 unified 工作区",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "W01-A",
+        "W01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "W02",
+      "title": "任务卡真实状态徽标",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "workspace-mode=native；不启用 unified 工作区",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "W02-A",
+        "W02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "W03",
+      "title": "集中原生筛选与排序",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "workspace-mode=native；不启用 unified 工作区",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "W03-A",
+        "W03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "W04",
+      "title": "看板容器与拖拽布局",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "workspace-mode=native；不启用 unified 工作区",
+      "scopeAndLimit": "当前源码树的12步隔离浏览器复验通过，真实跨第四列拖拽/刷新/DB状态证据齐备。",
+      "caseIds": [
+        "W04-A",
+        "W04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "W05",
+      "title": "全局默认 active/blocked 选择",
+      "package": "D13",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成创建者/管理员模板及 active/blocked 默认状态采纳；隐藏模板不等于不执行已存策略，旧任务状态需保持可读。",
+      "caseIds": [
+        "W05-A",
+        "W05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H01",
+      "title": "节点追加发布",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "history-state=off；不启用发布写入口",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H01-A",
+        "H01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H02",
+      "title": "工作评论发布",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "history-state=off；不启用发布写入口",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H02-A",
+        "H02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H03",
+      "title": "记录输入与参与者验证",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "历史写入口关闭；兼容解释与读取授权不得绕过",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H03-A",
+        "H03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H04",
+      "title": "原生归因与历史不可编辑",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "历史写入口关闭；兼容解释与读取授权不得绕过",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H04-A",
+        "H04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H05",
+      "title": "手填摘要与独立完成比例",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "history-state=off；不启用发布写入口",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H05-A",
+        "H05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H06",
+      "title": "旧事务/状态 payload 解释",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "历史写入口关闭；兼容解释与读取授权不得绕过",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H06-A",
+        "H06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H07",
+      "title": "记录游标分页和稳定链接",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "历史写入口关闭；兼容解释与读取授权不得绕过",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H07-A",
+        "H07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H08",
+      "title": "记录引用、提及与反向链接",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "历史写入口关闭；兼容解释与读取授权不得绕过",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H08-A",
+        "H08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H09",
+      "title": "团队与角色变更后的历史/Feed 组合撤权",
+      "package": "D12",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48,
+        49
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "原生项目撤权后的历史/Feed 隐藏已由 H13 验证；这里额外的组织/角色组合路径尚未集成。",
+      "caseIds": [
+        "H09-A",
+        "H09-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H10",
+      "title": "节点转任务的无写草稿",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "history-task-drafts=false；不启用记录转任务入口",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H10-A",
+        "H10-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H11",
+      "title": "显式保存任务与授权不复制",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "history-task-drafts=false；不启用记录转任务入口",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H11-A",
+        "H11-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H12",
+      "title": "历史与原生里程碑的入口说明",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "workspace-mode=native；不启用 unified 工作区",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H12-A",
+        "H12-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "X01",
+      "title": "最终权限状态验证",
+      "package": "D11",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        47
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成主动失去权限的确认与移交流程；锁下复核、接收者、令牌、批量失败语义须另定，原生批量编辑测试不能替代本能力。",
+      "caseIds": [
+        "X01-A",
+        "X01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "X02",
+      "title": "接收者及可验证策略集合",
+      "package": "D11",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        47
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成主动失去权限的确认与移交流程；锁下复核、接收者、令牌、批量失败语义须另定，原生批量编辑测试不能替代本能力。",
+      "caseIds": [
+        "X02-A",
+        "X02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "X03",
+      "title": "Web 确认令牌状态绑定",
+      "package": "D11",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        47
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成主动失去权限的确认与移交流程；锁下复核、接收者、令牌、批量失败语义须另定，原生批量编辑测试不能替代本能力。",
+      "caseIds": [
+        "X03-A",
+        "X03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "X04",
+      "title": "锁下撤权复核与整批回滚",
+      "package": "D11",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        47
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成主动失去权限的确认与移交流程；锁下复核、接收者、令牌、批量失败语义须另定，原生批量编辑测试不能替代本能力。",
+      "caseIds": [
+        "X04-A",
+        "X04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "X05",
+      "title": "Conduit 与 Web 相同授权",
+      "package": "D11",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        47
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成主动失去权限的确认与移交流程；锁下复核、接收者、令牌、批量失败语义须另定，原生批量编辑测试不能替代本能力。",
+      "caseIds": [
+        "X05-A",
+        "X05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E01",
+      "title": "独立文件 URL 当前策略守卫",
+      "package": "D14",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "文件隔离来源和能力链接下载已验收；额外“持有效链接仍需当前对象策略”的守卫未集成，是权限语义增强而非同一功能。",
+      "caseIds": [
+        "E01-A",
+        "E01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E02",
+      "title": "可信代理和 provider 配置",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E02-A",
+        "E02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E03",
+      "title": "原生外部账号身份匹配",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E03-A",
+        "E03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E04",
+      "title": "Web 会话首次原子绑定",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E04-A",
+        "E04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E05",
+      "title": "绑定有效期与原生会话同步",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E05-A",
+        "E05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E06",
+      "title": "安全文档导航重新认证",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E06-A",
+        "E06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E07",
+      "title": "机器 API 双凭据边界",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E07-A",
+        "E07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E08",
+      "title": "会话绑定 schema 兼容",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E08-A",
+        "E08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A01",
+      "title": "维护应用曝光与管理员门禁",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A01-A",
+        "A01-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A02",
+      "title": "RPC 实际字节签名",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A02-A",
+        "A02-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A03",
+      "title": "RPC 传输失败边界",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A03-A",
+        "A03-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A04",
+      "title": "维护 overview 只读查询",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A04-A",
+        "A04-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A05",
+      "title": "注册申请列表与分页",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A05-A",
+        "A05-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A06",
+      "title": "用户/准入列表与搜索",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A06-A",
+        "A06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A07",
+      "title": "维护审计列表",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A07-A",
+        "A07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A08",
+      "title": "批准注册申请",
+      "package": "D17",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "批准/拒绝注册、准入变更、密码等写能力未集成；依赖外部持久幂等、防重放及审计，不能用单纯 UI 开关替代授权。",
+      "caseIds": [
+        "A08-A",
+        "A08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A09",
+      "title": "拒绝注册申请",
+      "package": "D17",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "批准/拒绝注册、准入变更、密码等写能力未集成；依赖外部持久幂等、防重放及审计，不能用单纯 UI 开关替代授权。",
+      "caseIds": [
+        "A09-A",
+        "A09-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A10",
+      "title": "调整业务账号登录准入",
+      "package": "D17",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "批准/拒绝注册、准入变更、密码等写能力未集成；依赖外部持久幂等、防重放及审计，不能用单纯 UI 开关替代授权。",
+      "caseIds": [
+        "A10-A",
+        "A10-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A11",
+      "title": "不明确绑定的 entry-only 撤销",
+      "package": "D17",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "批准/拒绝注册、准入变更、密码等写能力未集成；依赖外部持久幂等、防重放及审计，不能用单纯 UI 开关替代授权。",
+      "caseIds": [
+        "A11-A",
+        "A11-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A12",
+      "title": "设置他人密码",
+      "package": "D17",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "批准/拒绝注册、准入变更、密码等写能力未集成；依赖外部持久幂等、防重放及审计，不能用单纯 UI 开关替代授权。",
+      "caseIds": [
+        "A12-A",
+        "A12-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A13",
+      "title": "修改自己密码后重新认证",
+      "package": "D17",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "批准/拒绝注册、准入变更、密码等写能力未集成；依赖外部持久幂等、防重放及审计，不能用单纯 UI 开关替代授权。",
+      "caseIds": [
+        "A13-A",
+        "A13-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A14",
+      "title": "写动作 CSRF/Origin/原因确认",
+      "package": "D17",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "批准/拒绝注册、准入变更、密码等写能力未集成；依赖外部持久幂等、防重放及审计，不能用单纯 UI 开关替代授权。",
+      "caseIds": [
+        "A14-A",
+        "A14-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "B06",
+      "title": "组织 schema 与 singleton lock 幂等安装",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "B06-A",
+        "B06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "B07",
+      "title": "混合版本发布与开关转换协议",
+      "package": "D01",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        47,
+        48,
+        49,
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "协议校验器已交付；未自动激活任意新模型",
+      "scopeAndLimit": "发布协议与事实清单校验器已交付；它不自动发现全体节点，不提供任意混合版本认证，也未激活可选新写能力。",
+      "caseIds": [
+        "B07-A",
+        "B07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "B08",
+      "title": "文件多来源权限模型决策",
+      "package": "D02",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "适用路径内正确性持续执行；不提供绕过开关",
+      "scopeAndLimit": "核心文件多来源 ANY 模型已有独立证据；未来 E01/E09 bearer 守卫组合不在已交付范围。",
+      "caseIds": [
+        "B08-A",
+        "B08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G08",
+      "title": "通用团队策略跨对象求值",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "G08-A",
+        "G08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G09",
+      "title": "严格边界的站点管理员例外",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "G09-A",
+        "G09-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "G10",
+      "title": "策略执行、选择器与标签隐私分离",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "G10-A",
+        "G10-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O08",
+      "title": "团队目录树与可见范围加载",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O08-A",
+        "O08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O09",
+      "title": "隐藏父级下的可见子团队提升",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O09-A",
+        "O09-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O10",
+      "title": "People 资料只读团队字段",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O10-A",
+        "O10-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O11",
+      "title": "团队恢复与保留成员关系复权",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O11-A",
+        "O11-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O12",
+      "title": "关系存储与账号有效资格分离",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O12-A",
+        "O12-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O13",
+      "title": "编辑团队信息的版本校验",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O13-A",
+        "O13-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O14",
+      "title": "按用户原子替换所属团队",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O14-A",
+        "O14-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O15",
+      "title": "团队名称搜索",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O15-A",
+        "O15-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O16",
+      "title": "目录归档过滤",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O16-A",
+        "O16-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "O17",
+      "title": "目录名称与 ID 的稳定排序",
+      "package": "D08",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "需要确认组织用途、目录/花名册可见范围、团队归档与账号有效性、规模预算；新组织 off/read-only 和持久策略解释器合同尚未集成。",
+      "caseIds": [
+        "O17-A",
+        "O17-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M08",
+      "title": "旧子项目警告 URL 的安全兼容",
+      "package": "D07",
+      "category": "保留原生",
+      "strategy": "保留原生",
+      "implementation": "原生兼容入口已验证",
+      "sourcePRs": [
+        47,
+        48
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "旧警告/别名入口按原生安全兼容处理；392 条兼容断言另计，未借旧入口启用独立成员新语义。",
+      "caseIds": [
+        "M08-A",
+        "M08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "M09",
+      "title": "Web slug 约束严格保留",
+      "package": "D07",
+      "category": "保留原生",
+      "strategy": "保留原生",
+      "implementation": "原生路由兼容已验证",
+      "sourcePRs": [
+        47
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "四轴原生；无候选切换、无权限迁移",
+      "scopeAndLimit": "按原生 slug 与历史入口合同核对大小写、未知值、CSRF 和无持久化变更；不借此实施候选模型的严格路由迁移。",
+      "caseIds": [
+        "M09-A",
+        "M09-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "R08",
+      "title": "历史创建者 legacy 角色解释",
+      "package": "D09",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        48
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成 viewer/editor/admin、授权来源管理、最后管理员和 legacy 角色合同；会影响权限结果，不能默认启用。",
+      "caseIds": [
+        "R08-A",
+        "R08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "W06",
+      "title": "项目全部活动快捷入口",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "workspace-mode=native；不启用 unified 工作区",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "W06-A",
+        "W06-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "W07",
+      "title": "任务高级查询快捷入口",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "workspace-mode=native；不启用 unified 工作区",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "W07-A",
+        "W07-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "W08",
+      "title": "项目变更历史快捷入口",
+      "package": "D06",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "workspace-mode=native；不启用 unified 工作区",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "W08-A",
+        "W08-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H13",
+      "title": "原生项目撤权后的历史/Feed 隐藏",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "历史写入口关闭；兼容解释与读取授权不得绕过",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H13-A",
+        "H13-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "H14",
+      "title": "匿名公开历史与禁止匿名发布",
+      "package": "D05",
+      "category": "已完成",
+      "strategy": "已交付",
+      "implementation": "已集成主干（包级范围）",
+      "sourcePRs": [
+        49
+      ],
+      "candidateChangeUnintegrated": false,
+      "productionControl": "历史写入口关闭；兼容解释与读取授权不得绕过",
+      "scopeAndLimit": "包级实现与测试证据存在；不据此将两个设计锚点自动标为逐断言通过。",
+      "caseIds": [
+        "H14-A",
+        "H14-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E09",
+      "title": "可选文件守卫的循环与16层界限",
+      "package": "D14",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "文件隔离来源和能力链接下载已验收；额外“持有效链接仍需当前对象策略”的守卫未集成，是权限语义增强而非同一功能。",
+      "caseIds": [
+        "E09-A",
+        "E09-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E10",
+      "title": "过期绑定保留与分批清理",
+      "package": "D19",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "未集成入口绑定过期与分批 GC；不等于通用任务队列清理，需证明不会解绑仍有效的原生会话并明确 Gorge/PHP owner。",
+      "caseIds": [
+        "E10-A",
+        "E10-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E11",
+      "title": "命名哈希键保留和迁移",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E11-A",
+        "E11-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E12",
+      "title": "入口 cookie 轮换使旧绑定失效",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E12-A",
+        "E12-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "E13",
+      "title": "登出清理对应会话绑定",
+      "package": "D15",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "现有 Stargate 登录已验收；额外 PHP 原生会话与入口 cookie 的绑定、轮换、登出和 API 双凭据路径未集成。",
+      "caseIds": [
+        "E13-A",
+        "E13-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A15",
+      "title": "账户操作目标精确 ID 匹配",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A15-A",
+        "A15-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A16",
+      "title": "敏感维护响应禁止缓存",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A16-A",
+        "A16-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A17",
+      "title": "完整导航与 referrer/Origin 兼容",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A17-A",
+        "A17-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A18",
+      "title": "后端业务错误与未知结果呈现",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A18-A",
+        "A18-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A19",
+      "title": "外部 nonce 时间窗与操作账本契约",
+      "package": "D18",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "外部持久 nonce/操作账本合同未被当前联调证明；Webhook HMAC 只能证明签名链路，不能证明账户写操作恰好一次。",
+      "caseIds": [
+        "A19-A",
+        "A19-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    },
+    {
+      "id": "A20",
+      "title": "稳定操作 ID 与参数绑定",
+      "package": "D16",
+      "category": "暂缓",
+      "strategy": "暂缓",
+      "implementation": "候选功能未集成主干",
+      "sourcePRs": [
+        50
+      ],
+      "candidateChangeUnintegrated": true,
+      "productionControl": "未集成；继续暂缓，不新增或启用开关",
+      "scopeAndLimit": "Owlmail/Herald/Webhook 隔离联调不等于账户维护系统；只读维护 UI、签名 RPC、操作 ID 和错误合同未集成。",
+      "caseIds": [
+        "A20-A",
+        "A20-B"
+      ],
+      "wholeDesignedCasesCertified": false
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "PR47-01",
+      "title": "普通项目直接成员独立",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "M01",
+        "M02",
+        "M08"
+      ]
+    },
+    {
+      "id": "PR47-02",
+      "title": "取消普通父项目的隐式编辑授权",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "M03"
+      ]
+    },
+    {
+      "id": "PR47-03",
+      "title": "普通子项目可脱离祖先可见性",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "M05"
+      ]
+    },
+    {
+      "id": "PR47-04",
+      "title": "成员索引与策略规则同步调整",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "M04",
+        "M06"
+      ]
+    },
+    {
+      "id": "PR47-05",
+      "title": "隐藏祖先信息过滤",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "N04",
+        "M09"
+      ]
+    },
+    {
+      "id": "PR47-06",
+      "title": "层级搜索约束校验",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "N04"
+      ]
+    },
+    {
+      "id": "PR47-07",
+      "title": "安全权限移交",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "X01",
+        "X05"
+      ]
+    },
+    {
+      "id": "PR47-08",
+      "title": "接收者与依赖验证",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "X02"
+      ]
+    },
+    {
+      "id": "PR47-09",
+      "title": "Web 二次确认与并发复核",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "X03",
+        "X04"
+      ]
+    },
+    {
+      "id": "PR47-10",
+      "title": "混合事务原子拒绝",
+      "sourcePR": 47,
+      "sourceRevision": "53f319fdff64d880699e127db3c3ffa7b6ae9739",
+      "atoms": [
+        "X04"
+      ]
+    },
+    {
+      "id": "PR48-01",
+      "title": "层级组织目录",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "O01",
+        "O02",
+        "O03",
+        "O06",
+        "B06",
+        "O08",
+        "O09",
+        "O11",
+        "O13",
+        "O15",
+        "O16",
+        "O17"
+      ]
+    },
+    {
+      "id": "PR48-02",
+      "title": "团队可见性与花名册分离",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "O04",
+        "O05",
+        "O10",
+        "O12",
+        "O14"
+      ]
+    },
+    {
+      "id": "PR48-03",
+      "title": "直接 / 包含下级团队授权",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "G01",
+        "G02",
+        "G08"
+      ]
+    },
+    {
+      "id": "PR48-04",
+      "title": "项目三类策略选择团队",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "G03",
+        "G10"
+      ]
+    },
+    {
+      "id": "PR48-05",
+      "title": "按能力增加 / 替换 / 撤销授权",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "G04",
+        "G05",
+        "G06"
+      ]
+    },
+    {
+      "id": "PR48-06",
+      "title": "可选严格团队边界",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "G07",
+        "G09"
+      ]
+    },
+    {
+      "id": "PR48-07",
+      "title": "项目内角色",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "R01",
+        "R02",
+        "R03"
+      ]
+    },
+    {
+      "id": "PR48-08",
+      "title": "只读角色上限",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "R01"
+      ]
+    },
+    {
+      "id": "PR48-09",
+      "title": "项目管理员保护",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "R03",
+        "R04",
+        "R05",
+        "R08"
+      ]
+    },
+    {
+      "id": "PR48-10",
+      "title": "独立直接成员与父级汇总",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "M01",
+        "M02",
+        "M03",
+        "M04",
+        "M05"
+      ]
+    },
+    {
+      "id": "PR48-11",
+      "title": "里程碑继承",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "M06"
+      ]
+    },
+    {
+      "id": "PR48-12",
+      "title": "一次性初始成员导入",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "I01",
+        "I02",
+        "I03",
+        "I04"
+      ]
+    },
+    {
+      "id": "PR48-13",
+      "title": "并发、撤权与自助操作保护",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "R06",
+        "R07"
+      ]
+    },
+    {
+      "id": "PR48-14",
+      "title": "审计与升级检查",
+      "sourcePR": 48,
+      "sourceRevision": "5b08bcdfca114bec1925a6c9d9d150f0096e5dd8",
+      "atoms": [
+        "O07",
+        "M07"
+      ]
+    },
+    {
+      "id": "PR49-01",
+      "title": "统一项目工作区",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "W01",
+        "H12",
+        "W06",
+        "W07",
+        "W08"
+      ]
+    },
+    {
+      "id": "PR49-02",
+      "title": "保留原生看板执行机制",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "W02",
+        "W03",
+        "W04"
+      ]
+    },
+    {
+      "id": "PR49-03",
+      "title": "卡片展示真实任务状态",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "W02",
+        "W05"
+      ]
+    },
+    {
+      "id": "PR49-04",
+      "title": "集中排序与筛选",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "W03"
+      ]
+    },
+    {
+      "id": "PR49-05",
+      "title": "追加式项目节点",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "H01",
+        "H03",
+        "H04"
+      ]
+    },
+    {
+      "id": "PR49-06",
+      "title": "工作评论",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "H02"
+      ]
+    },
+    {
+      "id": "PR49-07",
+      "title": "汇总与历史分离",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "H05"
+      ]
+    },
+    {
+      "id": "PR49-08",
+      "title": "节点转原生任务草稿",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "H10",
+        "H11"
+      ]
+    },
+    {
+      "id": "PR49-09",
+      "title": "草稿权限不复制来源权限",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "H11"
+      ]
+    },
+    {
+      "id": "PR49-10",
+      "title": "历史与 Feed 的当前权限检查",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "H08",
+        "H09",
+        "H13"
+      ]
+    },
+    {
+      "id": "PR49-11",
+      "title": "历史协议兼容",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "H06",
+        "H07",
+        "H14"
+      ]
+    },
+    {
+      "id": "PR49-12",
+      "title": "可复跑浏览器验收",
+      "sourcePR": 49,
+      "sourceRevision": "4051759aedb701c46b0b859185d08b6873fbd066",
+      "atoms": [
+        "B02",
+        "B05",
+        "W04"
+      ]
+    },
+    {
+      "id": "PR50-01",
+      "title": "项目目录按层级浏览",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "N01",
+        "N02",
+        "N03"
+      ]
+    },
+    {
+      "id": "PR50-02",
+      "title": "安全父级导航与层级路径",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "N04",
+        "N05",
+        "N06"
+      ]
+    },
+    {
+      "id": "PR50-03",
+      "title": "策略动作和值的本地化显示",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "P01",
+        "P02"
+      ]
+    },
+    {
+      "id": "PR50-04",
+      "title": "按产品配置精简策略选择",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "P03"
+      ]
+    },
+    {
+      "id": "PR50-05",
+      "title": "历史策略只读与明确替换",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "P04",
+        "P05"
+      ]
+    },
+    {
+      "id": "PR50-06",
+      "title": "创建者 + 站点管理员的私有策略",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "P06",
+        "P07"
+      ]
+    },
+    {
+      "id": "PR50-07",
+      "title": "修复私有原文件的头像派生可见性",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "F01",
+        "F02",
+        "F03",
+        "B08",
+        "F04"
+      ]
+    },
+    {
+      "id": "PR50-08",
+      "title": "人员拒绝页健壮性",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "F05"
+      ]
+    },
+    {
+      "id": "PR50-09",
+      "title": "可选文件 URL 当前策略检查",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "E01",
+        "E09"
+      ]
+    },
+    {
+      "id": "PR50-10",
+      "title": "可选网关身份一致性",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "id": "PR50-11",
+      "title": "入口会话与 Web 会话原子绑定",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "E04",
+        "E05",
+        "E08",
+        "E10",
+        "E11",
+        "E12",
+        "E13"
+      ]
+    },
+    {
+      "id": "PR50-12",
+      "title": "安全重新认证与机器 API 例外",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "E06",
+        "E07"
+      ]
+    },
+    {
+      "id": "PR50-13",
+      "title": "账户维护控制台",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "A01",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A15",
+        "A16",
+        "A17"
+      ]
+    },
+    {
+      "id": "PR50-14",
+      "title": "注册批准与拒绝",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "A08",
+        "A09"
+      ]
+    },
+    {
+      "id": "PR50-15",
+      "title": "准入启停与密码管理",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "A10",
+        "A11",
+        "A12",
+        "A13"
+      ]
+    },
+    {
+      "id": "PR50-16",
+      "title": "有签名的八类 RPC 与审计",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "A02",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A12",
+        "A19",
+        "A20"
+      ]
+    },
+    {
+      "id": "PR50-17",
+      "title": "RPC 边界与失败处理",
+      "sourcePR": 50,
+      "sourceRevision": "47f9cd049c1a436e6a5ac377123627c4d2f010b0",
+      "atoms": [
+        "A03",
+        "A14",
+        "A18"
+      ]
+    }
+  ],
+  "constraints": {
+    "permissionAxes": "native",
+    "optionalFeaturesEnabled": false,
+    "productionPermissionMigration": false,
+    "deferredPackages": [
+      "D08",
+      "D09",
+      "D10",
+      "D11",
+      "D12",
+      "D13",
+      "D14",
+      "D15",
+      "D16",
+      "D17",
+      "D18",
+      "D19"
+    ]
+  },
+  "certificationMeaning": "Package-level delivered scope and applicability disposition are separate from complete designed-case certification. No full 268-case or 32-design certification is claimed.",
+  "historicalObservation": "The original first-notification C04 observation remains unattributed; later positive acceptance does not erase it.",
+  "crossCuttingAtomsWithoutDirectCapability": [
+    "B01",
+    "B03",
+    "B04",
+    "B07"
+  ],
+  "capabilityMappingScope": "53 original capabilities directly map to 130 atomic IDs; four explicit cross-cutting baseline/ADR/protocol atoms complete the 134-unit inventory.",
+  "governanceReferences": {
+    "requiredMainCI": {
+      "repository": "soulteary/gorge",
+      "pr": 44,
+      "mergeCommit": "87cf3e145478e796d9adef89de3804169e9d330b"
+    },
+    "isolatedCrossServiceRegression": {
+      "repository": "soulteary/gorge",
+      "pr": 45,
+      "evidenceMeaning": "Read exact final-head and merged-main CI receipts; a PR link alone is not execution proof."
+    }
+  }
+}
