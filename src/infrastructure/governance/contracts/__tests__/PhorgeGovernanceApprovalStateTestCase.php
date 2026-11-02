@@ -177,6 +177,87 @@ final class PhorgeGovernanceApprovalStateTestCase extends PhutilTestCase {
     $this->assertFalse($a->getDigest() === $b->getDigest());
   }
 
+  public function testValidityDoesNotRetainCallerReferences() {
+    $issued = 100;
+    $expires = 200;
+    $data = $this->newData();
+    $data['issued_at'] = &$issued;
+    $data['expires_at'] = &$expires;
+    $request = new PhorgeGovernanceApprovalRequest($data);
+    $digest = $request->getDigest();
+
+    $issued = 0;
+    $expires = 300;
+    $this->assertFalse($request->isValidAt(99));
+    $this->assertFalse($request->isValidAt(250));
+    $this->assertTrue($request->isValidAt(150));
+    $this->assertEqual($digest, $request->getDigest());
+
+    $expires = 120;
+    $this->assertTrue($request->isValidAt(150));
+    $state = new PhorgeGovernanceApprovalState($request);
+    $this->assertEqual('submitted', $state->submit(150)->getState());
+  }
+
+  public function testIdentitiesDoNotRetainCallerReferences() {
+    foreach (array('requester', 'executor') as $key) {
+      $identity = 'synthetic-approver';
+      $data = $this->newData();
+      $data[$key] = &$identity;
+      $request = new PhorgeGovernanceApprovalRequest($data);
+      $digest = $request->getDigest();
+
+      $identity = 'different-identity';
+      $this->assertEqual('synthetic-approver',
+        $key === 'requester' ? $request->getRequester() :
+          $request->getExecutor());
+      $this->assertEqual($digest, $request->getDigest());
+      $state = new PhorgeGovernanceApprovalState($request);
+      $result = $state->submit(110)->approve(
+        'synthetic-approver', $this->newContext(), 120);
+      $this->assertEqual('not_independent', $result->getReason());
+    }
+  }
+
+  public function testNestedMapListAndReadSetAreDetached() {
+    $allowed = 'team-1';
+    $first = 'first';
+    $space = 'v1';
+    $parameters = array(
+      'policy' => array('allow' => &$allowed),
+      'ordered' => array(&$first, 'second'),
+    );
+    $read_set = array('actor' => 'v1', 'space' => &$space);
+    $data = $this->newData();
+    $data['parameters'] = &$parameters;
+    $data['read_set'] = &$read_set;
+    $request = new PhorgeGovernanceApprovalRequest($data);
+    $digest = $request->getDigest();
+
+    // There is no public parameter getter: inspect the immutable snapshot,
+    // taking an independent value copy before mutating the caller's graph.
+    $property = new ReflectionProperty(
+      PhorgeGovernanceApprovalRequest::class, 'data');
+    $snapshot = json_decode(json_encode($property->getValue($request)), true);
+    $allowed = 'team-2';
+    $first = 'changed-first';
+    $space = 'v2';
+    $this->assertEqual($snapshot, $property->getValue($request));
+    $this->assertEqual($digest, $request->getDigest());
+
+    $state = new PhorgeGovernanceApprovalState($request);
+    $approved = $state->submit(110)->approve(
+      'synthetic-approver', $this->newContext(), 120);
+    $changed = new PhorgeGovernanceApprovalRequest($data);
+    $this->assertEqual('stale_binding', $approved->evaluateExecution(
+      $changed, $this->newContext(), 130)->getReason());
+
+    $parameters = array('replaced' => true);
+    $read_set = array('different-source' => 'v3');
+    $this->assertEqual($snapshot, $property->getValue($request));
+    $this->assertEqual($digest, $request->getDigest());
+  }
+
   public function testRecursiveParametersFailWithBoundedDepth() {
     $params = array();
     $params['self'] = &$params;

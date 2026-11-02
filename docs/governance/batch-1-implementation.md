@@ -77,7 +77,7 @@ CREATE collision verifies that a pre-existing database is not deleted.
 The existing required native CI job runs these checks and publishes their JSON
 receipts. Local verification used PHP 8.5.12 and MySQL 8.4.13 in an owned,
 network-none pod with tmpfs data and no published ports: 14 Python mutation
-tests, 20 native methods and 34 real-MySQL checks passed. The copied executed
+tests, 23 native methods and 34 real-MySQL checks passed. The copied executed
 PHP/SQL files were hash-compared to the worktree. This is dirty-development
 fixture evidence, not a clean release receipt. The database's second-connection
 revocation check is sequential; it is not a mid-transaction race proof.
@@ -96,3 +96,14 @@ is a synthetic identity, not a real application session.
 No production permission migration, deployment, optional feature activation,
 public endpoint or mail delivery is part of this PR. Existing atomic delivery
 counts and historical acceptance receipts are not relabeled by this batch.
+
+## PR review correction: detached approval inputs
+
+Approval canonicalization now constructs fresh arrays at every depth. Copying
+an input array and assigning into its existing reference slots could retain
+caller-owned PHP references: later mutation changed stored identities or times
+without changing the precomputed digest. Three new regressions cover validity
+windows, independent requester/executor identity checks, and nested maps, ordered
+lists and authorization read-set bindings. All three failed against the original
+implementation; all 23 native methods passed after the fix on PHP 8.5.12.
+This is immutable-input correctness, not a durable replay or execution guarantee.

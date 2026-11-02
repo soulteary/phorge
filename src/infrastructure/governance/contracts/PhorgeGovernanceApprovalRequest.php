@@ -78,10 +78,13 @@ final class PhorgeGovernanceApprovalRequest extends Phobject {
       if (!$is_list) {
         ksort($value, SORT_STRING);
       }
+      // Assign into a fresh array: overwriting copied reference slots would
+      // retain aliases to caller-owned identities, times, and nested values.
+      $result = array();
       foreach ($value as $key => $item) {
-        $value[$key] = self::canonicalize($item, $depth + 1);
+        $result[$key] = self::canonicalize($item, $depth + 1);
       }
-      return $value;
+      return $result;
     }
     if ($value === null || is_bool($value) || is_string($value) ||
         is_int($value) || (is_float($value) && is_finite($value))) {
