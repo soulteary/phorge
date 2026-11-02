@@ -25,6 +25,8 @@ try {
     'PhorgeGovernanceNativeRuleHierarchyTestCase',
     'PhorgeGovernanceNativePolicyCompositionTestCase',
     'PhorgeGovernanceNativeReadViewTestCase',
+    'PhorgeGovernanceOrganizationStoreTestCase',
+    'PhorgeGovernanceOrganizationApprovalTestCase',
   );
   $expected = array();
   $cases = array();

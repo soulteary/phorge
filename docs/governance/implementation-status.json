@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "design_baseline": "ADR v1.2",
+  "date": "2026-11-02",
+  "goal_status": "active",
+  "scope": "Selected reasonable team-governance capabilities through actual test-machine deployment and browser acceptance; not just isolated contracts.",
+  "packages": [
+    {
+      "id": "N00",
+      "title": "契约与只读来源清单",
+      "depends_on": [],
+      "status": "partial",
+      "remaining": "Existing caller/source inventories remain partial; extend alongside every new real entry point.",
+      "production_enabled": false
+    },
+    {
+      "id": "N01",
+      "title": "组织目录存储与生命周期",
+      "depends_on": [
+        "N00"
+      ],
+      "status": "isolated-foundation-in-progress",
+      "remaining": "Organization schema exists; lifecycle, primary department and real identity adapter remain required.",
+      "production_enabled": false
+    },
+    {
+      "id": "N02",
+      "title": "目录读取与关系级隐私",
+      "depends_on": [
+        "N01"
+      ],
+      "status": "isolated-in-progress",
+      "remaining": "New same-schema SELECT-only projections under database verification; application routes remain required.",
+      "production_enabled": false
+    },
+    {
+      "id": "N03",
+      "title": "委派成员写入与管理员任职",
+      "depends_on": [
+        "N01",
+        "N02"
+      ],
+      "status": "isolated-in-progress",
+      "remaining": "Transactional ordinary membership and approved appointments under database/concurrency verification; synthetic identity is not production authority.",
+      "production_enabled": false
+    },
+    {
+      "id": "N04",
+      "title": "调动交接与处置清单",
+      "depends_on": [
+        "N03"
+      ],
+      "status": "not-implemented",
+      "remaining": "Handover workflow, per-project disposition and restricted reminders pending N03.",
+      "production_enabled": false
+    },
+    {
+      "id": "N05",
+      "title": "内容与敏感事务能力分离",
+      "depends_on": [
+        "N00"
+      ],
+      "status": "bounded-native-evidence-complete-business-integration-pending",
+      "remaining": "PR #82 proves fixed native pipeline; restricted content paths and full risk-gated entry integration remain required.",
+      "production_enabled": false
+    },
+    {
+      "id": "N06",
+      "title": "原生成员资格、join与动态来源回归",
+      "depends_on": [
+        "N05",
+        "N03"
+      ],
+      "status": "native-retained-integration-pending",
+      "remaining": "Native four-axis and join behavior retained; organization/business entry integration remains required.",
+      "production_enabled": false
+    },
+    {
+      "id": "N07",
+      "title": "风险分级与审批执行",
+      "depends_on": [
+        "N05"
+      ],
+      "status": "isolated-in-progress",
+      "remaining": "Durable approval/atomic consumption under verification; real identity/source and execution integration remain required.",
+      "production_enabled": false
+    },
+    {
+      "id": "N08",
+      "title": "账号恢复与团队复活审查",
+      "depends_on": [
+        "N03",
+        "N07"
+      ],
+      "status": "not-implemented",
+      "remaining": "All-source mechanical account re-enable gate remains required; no manual downgrade or production migration.",
+      "production_enabled": false
+    },
+    {
+      "id": "N09",
+      "title": "媒体身份与缓存协议试验",
+      "depends_on": [
+        "N00"
+      ],
+      "status": "protocol-selected-implementation-pending",
+      "remaining": "User selected Phorge originating-session validation, one-use exchange and dedicated host-only file credential; irreversible invalidation required.",
+      "production_enabled": false
+    },
+    {
+      "id": "N10",
+      "title": "D14独立守卫与禁止匿名头像",
+      "depends_on": [
+        "N09"
+      ],
+      "status": "not-implemented",
+      "remaining": "Private file/avatar guards, session-bound credential and cache coverage await N09.",
+      "production_enabled": false
+    },
+    {
+      "id": "N11",
+      "title": "私有通知链接化",
+      "depends_on": [
+        "N09",
+        "N10"
+      ],
+      "status": "bounded-existing-producer-proof-new-dispatch-pending",
+      "remaining": "Native outbox producer tested; full private-link notifications, current recipient rechecks and real delivery remain required.",
+      "production_enabled": false
+    },
+    {
+      "id": "N12",
+      "title": "会话撤销差异与D15采用报告",
+      "depends_on": [
+        "N00"
+      ],
+      "status": "measurement-integration-pending",
+      "remaining": "Actual selected transports need measured revocation evidence; no new SLA or D15 adoption inferred.",
+      "production_enabled": false
+    },
+    {
+      "id": "N13",
+      "title": "跨包隔离集成与发布就绪评审",
+      "depends_on": [
+        "N04",
+        "N06",
+        "N07",
+        "N08",
+        "N10",
+        "N11",
+        "N12"
+      ],
+      "status": "not-implemented",
+      "remaining": "Cross-package, release, test-machine deployment and browser acceptance remain required.",
+      "production_enabled": false
+    }
+  ],
+  "n09_selection": {
+    "authority": "explicit-user-selection",
+    "status": "confirmed",
+    "issuer": "Phorge validates its concrete application session",
+    "handoff": "one-use exchange to dedicated file-origin credential",
+    "application_session_bound": true,
+    "irreversible_invalidation_required": true,
+    "parent_domain_cookie": false,
+    "reusable_identity_token_in_links": false,
+    "new_public_domain_authorized": false
+  },
+  "constraints": {
+    "four_axes": "native",
+    "optional_features_enabled": false,
+    "production_permission_migration": false,
+    "candidate_D08_D19": "deferred-original-candidate-implementations",
+    "test_machine_deployment_authorized": true,
+    "browser_testing_authorized": true,
+    "feature_activation_scope_requires_separate_confirmation": true,
+    "new_public_domain_or_permission_semantics_requires_confirmation": true
+  },
+  "completion_requires": [
+    "Real source and complete supported entry-point integration; synthetic identity never certifies production authorization.",
+    "Applicable unit, owned SQL/concurrency, paired-service and browser evidence.",
+    "English PRs, final-head review and mandatory CI before dependency-ordered merge.",
+    "Paired release provenance, actual test-machine deployment and end-to-end acceptance.",
+    "Sanitized current evidence; no deployment addresses, credentials or raw people data."
+  ],
+  "historical_atomic_counts_unchanged": true,
+  "historical_adrs_unchanged": true,
+  "test_deployment_components": {
+    "owlmail": {
+      "selected_by_user": "v0.14.0-alpha.1",
+      "classification": "prerelease-test-only",
+      "mode": "standalone",
+      "source_commit": "39e3ced315a027f6e5938146387179fa683fe7b1",
+      "image_pin": "ghcr.io/soulteary/owlmail@sha256:05e730b44a2d614cc50f2f2e18764f4942f58450f6bf5e71486a827127393f95",
+      "cosign_verified": true,
+      "github_provenance_verified": true,
+      "upgrade_rehearsal_passed": false,
+      "deployed": false,
+      "mail_and_browser_acceptance_passed": false,
+      "release_url": "https://github.com/soulteary/owlmail/releases/tag/v0.14.0-alpha.1"
+    }
+  },
+  "current_component_validation": {
+    "scope": "owned-synthetic-organization-integration",
+    "native_methods": 115,
+    "organization_sql_checks": 94,
+    "retained_native_pipeline_checks": 125,
+    "governance_python": 56,
+    "permissions_python": 84,
+    "production_native_identity_proved": false,
+    "production_activation": false,
+    "hosted_ci_review_proved": false
+  }
+}
