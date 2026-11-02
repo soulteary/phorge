@@ -29,13 +29,18 @@ try {
   }
   $payload=json_decode(file_get_contents($path.'/payload.json'),true,16,JSON_THROW_ON_ERROR);
   $keys=array_keys($payload); sort($keys);
-  if ($keys!==array('action','config','directory_dev','directory_ino','fixture_nonce','owner_token','source_sha256') ||
+  if ($keys!==array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256') ||
       $payload['directory_dev']!==$stat['dev'] || $payload['directory_ino']!==$stat['ino'] ||
       !is_string($payload['owner_token']) || !preg_match('/\A[a-f0-9]{64}\z/',$payload['owner_token']) ||
       !hash_equals($payload['owner_token'],file_get_contents($path.'/owner')) ||
       !is_string($payload['fixture_nonce']) || !preg_match('/\A[a-f0-9]{64}\z/',$payload['fixture_nonce']) ||
       !hash_equals(hash_file('sha256',$root.'/resources/sql/quickstart.sql'),$payload['source_sha256'])) {
     throw new RuntimeException('native_worker_owner_refused');
+  }
+  if (!is_array($payload['media_issuer']) || array_keys($payload['media_issuer'])!==array('key','incarnation') ||
+      !is_string($payload['media_issuer']['key']) || !preg_match('/\A[a-f0-9]{64}\z/',$payload['media_issuer']['key']) ||
+      !is_string($payload['media_issuer']['incarnation']) || !preg_match('/\A[a-f0-9]{32}\z/',$payload['media_issuer']['incarnation'])) {
+    throw new RuntimeException('native_worker_issuer_refused');
   }
   $scope_owned=true;
   require_once $root.'/support/runtime/bootstrap-cli.php';
@@ -93,6 +98,8 @@ try {
     'phabricator.cache-namespace'=>$config['namespace'],'cluster.databases'=>array(),'cluster.search'=>array(),
     'phabricator.base-uri'=>'http://fixture.invalid/','phabricator.silent'=>false,'policy.allow-public'=>false,
     'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
+    'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
+    'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
     'project.history-task-drafts'=>false,'gorge.search.source-scan'=>false,'gorge.search.projection-shadow'=>false,
     'gorge.taskqueue.owner'=>'phorge','gorge.taskqueue.uri'=>null,'gorge.notification.outbox'=>false,

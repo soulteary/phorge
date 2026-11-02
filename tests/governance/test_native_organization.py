@@ -25,7 +25,7 @@ def template():
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
             'current_table_count': 529, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1564, 'applied_patch_count': 1564, 'pending_patch_keys': [],
+                'source_patch_count': 1565, 'applied_patch_count': 1565, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -49,6 +49,30 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         accepted=gate.validate(template(), file_digest='b'*64)
         for key in ('production_optional_features_enabled', 'deployment_proved', 'browser_proved', 'global_completion'):
             self.assertIs(accepted[key], False)
+
+    def test_media_only_restore_cannot_claim_native_revocation_or_full_recovery(self):
+        for key,value in [('media_only_external_rotation',False),
+                          ('incarnation_only_rotation_verified',False),
+                          ('old_native_credentials_retained_and_verified',False),
+                          ('native_credential_metadata_changed',True),
+                          ('old_media_rows_promoted',True),
+                          ('full_disaster_recovery_certified',True),
+                          ('restored_snapshot_sha256','not-a-hash')]:
+            data=template();data['native']['issuer_tests'][key]=value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['issuer_upgrade_tests']['migration_sha256']='0'*64
+        with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
+
+    def test_random_snapshot_digest_only_is_dynamic(self):
+        data=template();data['native']['issuer_tests']['restored_snapshot_sha256']='f'*64
+        gate.validate(data,file_digest='b'*64)
+        for value in (None, True, 4, 'F'*64, 'f'*63, 'f'*65):
+            mutated=template();mutated['native']['issuer_tests']['restored_snapshot_sha256']=value
+            with self.subTest(value=value),self.assertRaises(ValueError):
+                gate.validate(mutated,file_digest='b'*64)
+        data['native']['issuer_tests']['unknown_claim']=True
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:

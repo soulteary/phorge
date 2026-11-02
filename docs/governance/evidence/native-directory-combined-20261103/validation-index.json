@@ -1,0 +1,18 @@
+{
+  "scope": "current-main-issuer-and-directory-combined-isolated-evidence",
+  "upstream_main": "9a55f339d8189d9935da44ec5f6d71ebc7547e34",
+  "php_runtime": "8.5.12",
+  "native_methods": 139,
+  "native_sql_checks": 201,
+  "governance_python": 80,
+  "permissions_python": 84,
+  "evidence_sha256": {
+    "docs/governance/native-directory-evidence.json": "594e11052c96e8fe88af36dd2e4c22b7f6b5308a06006a40f2e665b27937080e",
+    "native-methods.json": "88e1d475f075cc0111f2523f4281d76161a0902551d301ee7fb7e57bcb7877df"
+  },
+  "production_enabled": false,
+  "deployment": false,
+  "browser_acceptance": false,
+  "full_goal_complete": false,
+  "strict_native_cli_accepted": true
+}

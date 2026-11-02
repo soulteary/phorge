@@ -94,7 +94,10 @@ EXPECTED_SOURCES = {'ORG.ROUTES': ('src/applications/people/application/Phabrica
                                          'sealed-context-native-datasource'),
  'NATIVE.PhorgeOrganizationDatasourceController': ('src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php',
                                                    'PhorgeOrganizationDatasourceController',
-                                                   'authenticated-datasource-controller')}
+                                                   'authenticated-datasource-controller'),
+ 'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
+                                        'PhorgeGovernanceMediaIssuer',
+                                        'media-only-external-issuer')}
 
 EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php',
  'src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php',
@@ -127,6 +130,7 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php',
+ 'src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php',
  'src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php',
  'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
@@ -168,7 +172,11 @@ EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationCon
  'NATIVE-LINK-17': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationDatasourceController'),
  'NATIVE-LINK-18': ('NATIVE.PhorgeOrganizationDatasourceController',
                     'NATIVE.PhorgeOrganizationDatasource'),
- 'NATIVE-LINK-19': ('NATIVE.PhorgeOrganizationDatasource', 'NATIVE.PhorgeOrganizationQuery')}
+ 'NATIVE-LINK-19': ('NATIVE.PhorgeOrganizationDatasource', 'NATIVE.PhorgeOrganizationQuery'),
+ 'NATIVE-LINK-20': ('NATIVE.PhorgeGovernanceMediaExchangeService',
+                    'NATIVE.PhorgeGovernanceMediaIssuer'),
+ 'NATIVE-LINK-21': ('NATIVE.PhorgeGovernanceMediaConfigOptions',
+                    'NATIVE.PhorgeGovernanceMediaIssuer')}
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 

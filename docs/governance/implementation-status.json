@@ -10,7 +10,7 @@
       "title": "契约与只读来源清单",
       "depends_on": [],
       "status": "native-directory-completion-source-inventory-reviewed-partial",
-      "remaining": "30 explicit sources, 19 static links and 46 runtime files pinned; broader consumers and runtime release stages remain separate.",
+      "remaining": "31 explicit sources, 21 static links and 47 runtime files pinned; broader consumers and runtime release stages remain separate.",
       "production_enabled": false
     },
     {
@@ -30,7 +30,7 @@
         "N01"
       ],
       "status": "native-datasource-search-paging-verified-subset",
-      "remaining": "Native datasource/search/unit-and-member paging, counts, dedicated organization token domain, Chinese full native page and hidden-reference preservation verified in the 184-check checkpoint. Broader browser/test-machine and latest-main combined acceptance remain separate.",
+      "remaining": "Native datasource/search/paging/counts, token-domain privacy, Chinese full-page rendering and unavailable-reference form preservation verified in the 136/184 directory checkpoint and 139/201 combined current-main issuer run. Hosted CI and browser/test-machine acceptance remain separate.",
       "production_enabled": false
     },
     {
@@ -102,8 +102,8 @@
       "depends_on": [
         "N00"
       ],
-      "status": "native-session-media-backend-verified-partial",
-      "remaining": "Native session/backend binding, issue-wins account switch, SQL fault rollback, actual concurrent single-use redemption and ABA invalidation verified. Cookie/HTTP/file-policy trust boundary and restore issuer rotation remain gates.",
+      "status": "native-media-issuer-and-table-restore-isolated-verified-partial",
+      "remaining": "External media-only issuer HMAC and narrow three-table restore verified while native session/API credentials are retained. Structured targets, quotas/cleanup and actual HTTP/cookie/bootstrap entry points remain; no public route activation.",
       "production_enabled": false
     },
     {
@@ -149,8 +149,8 @@
         "N11",
         "N12"
       ],
-      "status": "not-implemented",
-      "remaining": "Cross-package, release, test-machine deployment and browser acceptance remain required.",
+      "status": "media-only-table-restore-proof-partial",
+      "remaining": "Narrow media recovery non-revival is verified. Full application recovery, account-state quarantine, operational evidence and scoped handling of real native credentials remain separate; no mass session/API operation is authorized.",
       "production_enabled": false
     }
   ],
@@ -200,16 +200,15 @@
     }
   },
   "current_component_validation": {
-    "scope": "bounded-native-directory-completion-candidate",
+    "scope": "combined-directory-and-media-issuer-candidate",
     "php_runtime": "8.5.12",
-    "native_methods": 136,
-    "current_source_native_sql_required": 184,
-    "current_source_validation": "validated-directory-checkpoint-before-latest-main-integration",
+    "current_source_native_sql_required": 201,
+    "current_source_validation": "awaiting-combined-source-native-runtime",
     "governance_python_last_passed": 77,
     "source_inventory": {
-      "sources": 30,
-      "links": 19,
-      "runtime_files": 46,
+      "sources": 31,
+      "links": 21,
+      "runtime_files": 47,
       "coverage": "partial",
       "activation_blocked": true,
       "authority_proof": false
@@ -219,11 +218,10 @@
     "hosted_ci_review_proved": false,
     "global_goal_complete": false,
     "audit_history_deleted": false,
-    "native_sql_checks": 184,
     "permissions_python_last_passed": 84,
     "actual_native_identity_current_sources_exercised": true,
-    "evidence_directory": "docs/governance/evidence/native-directory-checkpoint-20261103",
-    "latest_main_combined_validation_required": true
+    "latest_main_combined_validation_required": true,
+    "native_methods_required": 139
   },
   "historical_component_validations": [
     {
@@ -236,6 +234,22 @@
       "production_native_identity_proved": false,
       "production_activation": false,
       "hosted_ci_review_proved": false
+    }
+  ],
+  "validated_component_checkpoints": [
+    {
+      "component": "native-directory-completion",
+      "native_methods": 136,
+      "native_sql_checks": 184,
+      "scope": "owned-native-directory-before-latest-main-integration",
+      "evidence_directory": "docs/governance/evidence/native-directory-checkpoint-20261103"
+    },
+    {
+      "component": "media-issuer",
+      "native_methods": 135,
+      "native_sql_checks": 173,
+      "scope": "owned-media-only-external-issuer-real-upgrade-and-restore",
+      "evidence_file": "docs/governance/native-directory-evidence.json"
     }
   ]
 }

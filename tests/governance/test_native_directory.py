@@ -108,6 +108,21 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
             row['to_id'] = 'NATIVE.PhorgeOrganizationService'
             self.reject(data, 'link topology drift')
 
+    def test_issuer_dependencies_survive_explicit_directory_link_merge(self):
+        expected = {
+            'NATIVE-LINK-20': ('NATIVE.PhorgeGovernanceMediaExchangeService', 'NATIVE.PhorgeGovernanceMediaIssuer'),
+            'NATIVE-LINK-21': ('NATIVE.PhorgeGovernanceMediaConfigOptions', 'NATIVE.PhorgeGovernanceMediaIssuer'),
+        }
+        for identity, pair in expected.items():
+            self.assertEqual(pair, CHECKER.EXPECTED_LINKS[identity])
+            data = copy.deepcopy(self.data)
+            row = next(row for row in data['links'] if row['id'] == identity)
+            row['runtime_verified'] = True
+            self.reject(data, 'not runtime proof')
+        data = copy.deepcopy(self.data)
+        data['sources'] = [row for row in data['sources'] if row['id'] != 'NATIVE.PhorgeGovernanceMediaIssuer']
+        self.reject(data, 'source inventory drift')
+
     def test_duplicate_json_keys_are_refused(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'manifest.json';path.write_text('{"scope":1,"scope":2}')

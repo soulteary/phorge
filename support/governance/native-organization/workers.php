@@ -40,6 +40,9 @@ function governance_native_start_worker($fixture,array $action) {
     'directory_dev'=>$stat['dev'],'directory_ino'=>$stat['ino'],
     'config'=>$fixture->getWriterConfig(),'fixture_nonce'=>$fixture_nonce,
     'source_sha256'=>hash_file('sha256',dirname(__DIR__,3).'/resources/sql/quickstart.sql'),
+    'media_issuer'=>array(
+      'key'=>PhabricatorEnv::getEnvConfig('governance.media-exchange.issuer-key'),
+      'incarnation'=>PhabricatorEnv::getEnvConfig('governance.media-exchange.incarnation')),
     'action'=>$action));
   $process=proc_open(array(PHP_BINARY,__DIR__.'/native-worker.php',$path),
     array(0=>array('file','/dev/null','r'),1=>array('file',$path.'/stdout.log','a'),

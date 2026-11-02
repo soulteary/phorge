@@ -140,8 +140,9 @@ function governance_native_media_cases($fixture, callable $check, array &$state)
   // The same issued code is presented by two independent PHP/MySQL processes.
   $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$state['admin']['token'];
   $race=$prepare(); $race_code=$issue($race['transaction_id']);
-  $browser_digest=hash('sha256',$race['browser_secret']->openEnvelope());
-  $transaction_digest=hash('sha256',$race['transaction_id']);
+  $issuer=PhorgeGovernanceMediaIssuer::newFromConfiguration();
+  $browser_digest=$issuer->digest('browser',$race['browser_secret']->openEnvelope());
+  $transaction_digest=$issuer->digest('transaction',$race['transaction_id']);
   $credential_before=$fixture->countRows('user','governance_mediacredential');
   $config=$fixture->getWriterConfig(); $report=(new mysqli_driver())->report_mode;
   $observer=null;

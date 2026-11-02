@@ -145,6 +145,8 @@ try {
     'phabricator.silent'=>false,'policy.allow-public'=>false,
     'governance.organization.enabled'=>!$legacy_compatibility,
     'governance.media-exchange.enabled'=>!$legacy_compatibility,
+    'governance.media-exchange.issuer-key'=>bin2hex(random_bytes(32)),
+    'governance.media-exchange.incarnation'=>bin2hex(random_bytes(16)),
     'projects.default-navigation'=>'flat','project.history-state'=>'off',
     'project.workspace-mode'=>'native','project.history-task-drafts'=>false,
     'gorge.search.source-scan'=>false,'gorge.search.projection-shadow'=>false,
