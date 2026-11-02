@@ -1,0 +1,11 @@
+{
+  "scope": "approval-id-form-and-concurrent-retry-fix",
+  "native_methods": 142,
+  "native_sql_checks": 250,
+  "workers": 9,
+  "runtime": "PHP 8.5.12; real isolated native SQL and paired Gorge",
+  "production_activation": false,
+  "browser_proved": false,
+  "full_lifecycle_complete": false,
+  "full_compound_matrix_complete": false
+}

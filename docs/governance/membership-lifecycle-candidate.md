@@ -28,3 +28,10 @@ O4/O5 remain partial: the complete timing, cross-team, fault-position and browse
 matrix is not certified by this checkpoint. Native history/transfer/handover/due
 worklist packages O6–O8 remain separate unfinished work. No dispatcher or history
 purge is enabled, and historical relationships are retained.
+
+
+The approval-ID retry correction subsequently passed 142 pure methods and 250
+real native SQL checks with nine workers cleaned. Current exact evidence is in
+`evidence/membership-lifecycle-retry-250-20261103/`; the 244-check checkpoint above
+remains unchanged. Native form and concurrent retries reach only a matching
+ledger replay and never consume an approval a second time.

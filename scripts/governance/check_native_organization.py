@@ -12,6 +12,12 @@ _spec = importlib.util.spec_from_file_location('native_completion_gate', ROOT/'s
 completion = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(completion)
 REQUIRED_CHECKS = frozenset({
+    'native-compound-concurrent-consumed-approval-id-retries-never-reconsume-or-duplicate-ledger',
+    'native-compound-consumed-approval-id-form-retries-committed-ledger-without-writes',
+    'native-compound-consumed-approval-id-refuses-executor-whose-native-admin-role-was-revoked',
+    'native-compound-consumed-approval-id-still-requires-bound-current-executor',
+    'native-compound-executor-revocation-uses-real-no-factor-normal-session',
+    'native-compound-two-approval-id-retries-really-wait-on-organization-mutex',
     'membership-lifecycle-audit-fault-rolls-back-member-unit-audit-ledger',
     'membership-lifecycle-concurrent-identical-operation-applies-once-and-replays-once',
     'membership-lifecycle-concurrent-operation-writes-one-audit-and-one-version',
@@ -343,7 +349,7 @@ NATIVE.update({'compound_tests': {'before_source_membership_not_fabricated': Tru
                                 'production_activation': False,
                                 'public_csrf_lifecycle_complete': False,
                                 'retained_relationship_history': True}})
-WORKERS = 7
+WORKERS = 9
 
 
 def exact_tree(actual, expected):

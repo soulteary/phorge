@@ -250,3 +250,20 @@ fault positions, API paths and full browser acceptance are not certified by this
 run. O6 restricted historical reporting, O7 transfer/handover and O8 due/outbox
 work remain unfinished. No optional activation, production migration, native
 project permission change, history deletion or dispatcher is included.
+
+
+## Approval-ID form retry correction
+
+The subsequent supported-runtime source passed **142 pure methods and 250 real
+native SQL checks**, with nine workers cleaned without failures. Current evidence
+is under `evidence/membership-lifecycle-retry-250-20261103/`; the previous 244-check
+receipt remains unchanged in its separate checkpoint directory.
+
+The approval-ID route now permits only the current authorized bound executor to
+recover a correctly bound consumed request and reach the existing operation
+ledger replay. It cannot consume an approval again. Real native CSRF form retry,
+two independent workers waiting on the actual mutex, wrong executor rejection,
+and native administrator revocation/recovery through the actual normal-session
+MFA path are covered. No forced high-security session or catch-all rejection
+stands in for these checks. This remains isolated/controller evidence, not full
+browser, production activation or completion of O4/O5.

@@ -81,8 +81,9 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             data=template();data['native'][section][key]=True
             with self.subTest(section=section,key=key),self.assertRaises(ValueError):
                 gate.validate(data,file_digest='b'*64)
-        data=template();data['worker_cleanup']['workers_registered']=5
-        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for old_worker_count in (5,7):
+            data=template();data['worker_cleanup']['workers_registered']=old_worker_count
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:

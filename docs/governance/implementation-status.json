@@ -202,8 +202,8 @@
   "current_component_validation": {
     "scope": "native-membership-lifecycle-and-explicit-compound-candidate",
     "php_runtime": "8.5.12",
-    "current_source_native_sql_required": 244,
-    "current_source_validation": "supported-runtime-isolated-native-244-passed",
+    "current_source_native_sql_required": 250,
+    "current_source_validation": "supported-runtime-isolated-native-250-passed",
     "source_inventory": {
       "sources": 35,
       "links": 25,
@@ -221,7 +221,7 @@
     "actual_native_identity_current_sources_exercised": true,
     "latest_main_combined_validation_required": false,
     "native_methods_required": 142,
-    "evidence_directory": "docs/governance/evidence/membership-lifecycle-checkpoint-20261103",
+    "evidence_directory": "docs/governance/evidence/membership-lifecycle-retry-250-20261103",
     "full_lifecycle_complete": false,
     "full_compound_matrix_complete": false,
     "governance_python_validation": "current-source-83-passed",
@@ -261,6 +261,13 @@
       "native_sql_checks": 225,
       "scope": "earlier-0f-source-before-full-O4-O5-and-latest-main",
       "evidence_directory": "docs/governance/evidence/membership-lifecycle-early-225-20261103"
+    },
+    {
+      "component": "native-lifecycle-pre-retry-fix",
+      "native_methods": 142,
+      "native_sql_checks": 244,
+      "scope": "earlier-native-source-before-approval-id-retry-fix",
+      "evidence_directory": "docs/governance/evidence/membership-lifecycle-checkpoint-20261103"
     }
   ]
 }

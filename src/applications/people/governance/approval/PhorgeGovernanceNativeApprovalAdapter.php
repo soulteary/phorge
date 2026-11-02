@@ -311,10 +311,17 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
   }
   public function getCompoundForExecution($id) {
     $actor=$this->actor();list($row,$data)=self::load($this->connection,$id,true);
-    if($row['state']!=='approved'||!isset($data['parameters']['compound'])||
+    if(!in_array($row['state'],array('approved','consumed'),true)||!isset($data['parameters']['compound'])||
       $data['executor']['userPHID']!==$actor->getUserPHID()){
       throw new RuntimeException('organization_approval_execution_binding_refused');}
-    $this->checkCurrentApproval($row,$data,true);
+    if($row['state']==='approved'){
+      $this->checkCurrentApproval($row,$data,true);
+    }else if($row['consumedByOperation']!==$data['operationID']){
+      throw new RuntimeException('organization_approval_execution_binding_refused');
+    }
+    // A committed request is recovered only for its current authorized executor.
+    // executeCompound must still find the matching operation-ledger replay;
+    // missing/mismatched ledgers reach consume(), which refuses consumed rows.
     return $data['parameters']['compound'];
   }
   public function consume($id,$operation,$team,$action,$subject,$from,$until,$compound=null) {
