@@ -9,8 +9,8 @@
       "id": "N00",
       "title": "契约与只读来源清单",
       "depends_on": [],
-      "status": "partial-native-directory-coverage-verified-partial",
-      "remaining": "New native directory/identity/media source closure and static links added; broader consumers remain tracked separately.",
+      "status": "native-directory-completion-source-inventory-reviewed-partial",
+      "remaining": "30 explicit sources, 19 static links and 46 runtime files pinned; broader consumers and runtime release stages remain separate.",
       "production_enabled": false
     },
     {
@@ -19,8 +19,8 @@
       "depends_on": [
         "N00"
       ],
-      "status": "native-isolated-integration-verified-partial",
-      "remaining": "Native People storage/lifecycle/primary department implemented; hierarchy soft warnings, complete UI, recovery and browser acceptance remain.",
+      "status": "native-directory-metadata-lifecycle-verified-subset",
+      "remaining": "Fixed visibility metadata, descriptive references, real 8-level soft preview, main-department clear/unassigned and archive preview implemented; recovery/handover/history and final browser release acceptance remain.",
       "production_enabled": false
     },
     {
@@ -29,8 +29,8 @@
       "depends_on": [
         "N01"
       ],
-      "status": "native-isolated-integration-verified-partial",
-      "remaining": "Native protected projections and real list/count revocation/expiry isolation verified. Full HTTP/browser and wider UI coverage remain required.",
+      "status": "native-datasource-search-paging-verified-subset",
+      "remaining": "Native datasource/search/unit-and-member paging, counts, dedicated organization token domain, Chinese full native page and hidden-reference preservation verified in the 184-check checkpoint. Broader browser/test-machine and latest-main combined acceptance remain separate.",
       "production_enabled": false
     },
     {
@@ -40,8 +40,8 @@
         "N01",
         "N02"
       ],
-      "status": "native-isolated-integration-verified-partial",
-      "remaining": "Native ordinary membership and independently approved appointments verified in actual People/session fixtures. Full multi-operation rollback and broader lifecycle/UI remain required; not activated.",
+      "status": "native-delegated-backend-ui-extended-partial",
+      "remaining": "Native period/end/suspend and metadata forms are implemented; real CSRF form preservation checks pass. Native batch/fault/concurrency direct-write proof and complete browser workflow remain. Explicit compound member/appointment operations are not implemented.",
       "production_enabled": false
     },
     {
@@ -50,8 +50,8 @@
       "depends_on": [
         "N03"
       ],
-      "status": "not-implemented",
-      "remaining": "Handover workflow, per-project disposition and restricted reminders pending N03.",
+      "status": "not-implemented-primary-department-metadata-only",
+      "remaining": "Initial/clear main department is metadata only. Versioned transfers, 14/30 calendar-day approvals/extensions/cumulative review, per-project manual dispositions, due worklist/outbox and receipts remain unimplemented.",
       "production_enabled": false
     },
     {
@@ -200,14 +200,42 @@
     }
   },
   "current_component_validation": {
-    "scope": "owned-synthetic-organization-integration",
-    "native_methods": 115,
-    "organization_sql_checks": 94,
-    "retained_native_pipeline_checks": 125,
-    "governance_python": 56,
-    "permissions_python": 84,
-    "production_native_identity_proved": false,
+    "scope": "bounded-native-directory-completion-candidate",
+    "php_runtime": "8.5.12",
+    "native_methods": 136,
+    "current_source_native_sql_required": 184,
+    "current_source_validation": "validated-directory-checkpoint-before-latest-main-integration",
+    "governance_python_last_passed": 77,
+    "source_inventory": {
+      "sources": 30,
+      "links": 19,
+      "runtime_files": 46,
+      "coverage": "partial",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
     "production_activation": false,
-    "hosted_ci_review_proved": false
-  }
+    "deployment": false,
+    "hosted_ci_review_proved": false,
+    "global_goal_complete": false,
+    "audit_history_deleted": false,
+    "native_sql_checks": 184,
+    "permissions_python_last_passed": 84,
+    "actual_native_identity_current_sources_exercised": true,
+    "evidence_directory": "docs/governance/evidence/native-directory-checkpoint-20261103",
+    "latest_main_combined_validation_required": true
+  },
+  "historical_component_validations": [
+    {
+      "scope": "owned-synthetic-organization-integration",
+      "native_methods": 115,
+      "organization_sql_checks": 94,
+      "retained_native_pipeline_checks": 125,
+      "governance_python": 56,
+      "permissions_python": 84,
+      "production_native_identity_proved": false,
+      "production_activation": false,
+      "hosted_ci_review_proved": false
+    }
+  ]
 }

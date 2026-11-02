@@ -88,7 +88,13 @@ EXPECTED_SOURCES = {'ORG.ROUTES': ('src/applications/people/application/Phabrica
                                             'candidate-runtime-source'),
  'NATIVE.PhorgeGovernanceMediaConfigOptions': ('src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php',
                                                'PhorgeGovernanceMediaConfigOptions',
-                                               'default-off-configuration')}
+                                               'default-off-configuration'),
+ 'NATIVE.PhorgeOrganizationDatasource': ('src/applications/people/governance/query/PhorgeOrganizationDatasource.php',
+                                         'PhorgeOrganizationDatasource',
+                                         'sealed-context-native-datasource'),
+ 'NATIVE.PhorgeOrganizationDatasourceController': ('src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php',
+                                                   'PhorgeOrganizationDatasourceController',
+                                                   'authenticated-datasource-controller')}
 
 EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php',
  'src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php',
@@ -98,6 +104,8 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php',
  'src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php',
  'src/applications/people/governance/controller/PhorgeOrganizationController.php',
+ 'src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php',
+ 'src/applications/people/governance/query/PhorgeOrganizationDatasource.php',
  'src/applications/people/governance/query/PhorgeOrganizationQuery.php',
  'src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php',
  'src/applications/people/governance/service/PhorgeOrganizationEndpoint.php',
@@ -156,7 +164,11 @@ EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationCon
  'NATIVE-LINK-15': ('NATIVE.PhorgeGovernanceMediaExchangeService',
                     'NATIVE.PhorgeGovernanceNativeIdentitySource'),
  'NATIVE-LINK-16': ('NATIVE.PhorgeGovernanceMediaConfigOptions',
-                    'NATIVE.PhorgeGovernanceMediaExchangeService')}
+                    'NATIVE.PhorgeGovernanceMediaExchangeService'),
+ 'NATIVE-LINK-17': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationDatasourceController'),
+ 'NATIVE-LINK-18': ('NATIVE.PhorgeOrganizationDatasourceController',
+                    'NATIVE.PhorgeOrganizationDatasource'),
+ 'NATIVE-LINK-19': ('NATIVE.PhorgeOrganizationDatasource', 'NATIVE.PhorgeOrganizationQuery')}
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 

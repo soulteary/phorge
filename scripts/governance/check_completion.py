@@ -36,7 +36,8 @@ PATCHES = '''20260907.herald.01.requeststatuskey.sql
 20261007.worker.scheduler.sql
 20261007.worker.scheduleridentity.sql
 20261102.people.organization.sql
-20261102.people.mediaexchange.sql'''.splitlines()
+20261102.people.mediaexchange.sql
+20261103.people.organizationmetadata.sql'''.splitlines()
 REQUIRED_CHECKS = {
  'full-current-source-quickstart-and-patch-ledger-restored',
  'completion-reader-real-select-only-grants-and-lineage-proved',

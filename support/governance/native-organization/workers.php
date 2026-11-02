@@ -97,11 +97,14 @@ function governance_native_finish_worker(array &$handle) {
         }
         foreach ($result['value'] as $row) {
           $row_keys=is_array($row)?array_keys($row):array(); sort($row_keys);
-          if ($row_keys!==array('kind','name','parent_id','unit_id','version') ||
+          if ($row_keys!==array('contact_user_phid','department_id','kind','name','parent_id','unit_id','version','visibility_model_version') ||
               !PhorgeGovernanceOrganizationRequest::identifier($row['unit_id'],64) ||
               !in_array($row['kind'],array('team','department'),true) ||
               !is_string($row['name']) || strlen($row['name'])>255 || !phutil_is_utf8($row['name']) ||
               !is_int($row['version']) || $row['version']<1 ||
+              $row['visibility_model_version']!==1 ||
+              ($row['department_id']!==null && !PhorgeGovernanceOrganizationRequest::identifier($row['department_id'],64)) ||
+              ($row['contact_user_phid']!==null && (!is_string($row['contact_user_phid']) || !preg_match('/\APHID-USER-[a-z0-9]{20}\z/',$row['contact_user_phid']))) ||
               ($row['parent_id']!==null && !PhorgeGovernanceOrganizationRequest::identifier($row['parent_id'],64))) {
             throw new RuntimeException('native_worker_result_refused');
           }

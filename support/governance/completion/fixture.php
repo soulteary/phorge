@@ -172,7 +172,8 @@ final class PhorgeGovernanceCompletionFixture {
       '20261007.file.01.gorgedeletion.sql','20261007.metamta.01.gorgeinbound.sql',
       '20261007.multimeter.01.cleanupindex.sql','20261007.multimeter.01.gorgecleanup.sql',
       '20261007.worker.scheduler.sql','20261007.worker.scheduleridentity.sql',
-      '20261102.people.organization.sql','20261102.people.mediaexchange.sql');
+      '20261102.people.organization.sql','20261102.people.mediaexchange.sql',
+      '20261103.people.organizationmetadata.sql');
     foreach ($pending as $key) {
       if (!str_starts_with($key,'phabricator:') ||
           !in_array(substr($key,12),$reviewed,true)) {

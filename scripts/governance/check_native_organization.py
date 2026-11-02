@@ -12,6 +12,34 @@ _spec = importlib.util.spec_from_file_location('native_completion_gate', ROOT/'s
 completion = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(completion)
 REQUIRED_CHECKS = frozenset({
+    'directory-completion-archive-preview-reports-effects-without-revocation-claim',
+    'directory-completion-archive-removes-new-directory-visibility',
+    'directory-completion-archive-restore-stays-review-gated',
+    'directory-completion-clear-main-department-retains-monotonic-row-fence',
+    'directory-completion-contact-visible-only-in-permitted-current-roster',
+    'directory-completion-depth-eight-nine-real-hierarchy-soft-warning',
+    'directory-completion-depth-nine-is-allowed-not-hard-limit',
+    'directory-completion-hidden-parent-department-nonmember-contact-redacted',
+    'directory-completion-hidden-phid-shaped-unit-token-never-falls-back-to-native-handle',
+    'directory-completion-member-keyset-and-count-over-first-hundred-native-rows',
+    'directory-completion-native-datasource-shares-privacy-projection',
+    'directory-completion-phid-shaped-unit-token-resolves-organization-domain',
+    'directory-completion-preview-cycle-refused',
+    'directory-completion-search-literal-wildcard-keyset-count-native-sql',
+    'directory-completion-stale-clear-refused',
+    'directory-completion-tokenless-native-datasource-real-csrf-guarded-get',
+    'directory-completion-unassigned-admin-warning-real-query',
+    'directory-completion-unassigned-query-denies-team-admin',
+    'directory-completion-unknown-model-approval-proposal-refused',
+    'directory-completion-unknown-model-independent-approval-refused',
+    'directory-completion-unknown-model-no-new-or-approved-ticket',
+    'directory-completion-unknown-visibility-model-fails-closed',
+    'directory-completion-real-chinese-page-localizes-unassigned-status',
+    'directory-completion-real-chinese-page-localizes-inactive-department-status',
+    'directory-completion-unavailable-current-references-admin-only-not-manager',
+    'directory-completion-real-form-rename-retains-unavailable-parent-reference',
+    'directory-completion-real-form-contact-edit-retains-unavailable-department-reference',
+    'directory-completion-real-form-explicit-clear-does-not-add-contact-membership',
     'all-owned-full-native-schemas-and-principals-cleaned',
     'completion-reader-cannot-modify-ownership-marker',
     'completion-reader-forbidden-privilege-denied',
@@ -179,6 +207,11 @@ FIELDS = {'batch', 'passed', 'scope', 'checks', 'check_count', 'php_version',
 BLOCKERS = ['media-http-and-cookie-integration', 'file-object-guards',
     'notification-producers', 'global-governance-completion']
 NATIVE = {
+    'directory_completion_tests': {
+        'native_hierarchy_and_metadata': True, 'native_datasource': True,
+        'schema_migration_test_environment_only': True,
+        'native_project_permissions_changed': False, 'audit_cleanup_enabled': False,
+        'handover_implemented': False},
     'actual_native_account_source': True, 'actual_session_engine': True,
     'actual_csrf_validation': True, 'isolated_features_enabled': True,
     'production_features_enabled': False, 'media_backend_only': True,
@@ -248,7 +281,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1563)
+    exact_tree(audit['source_patch_count'], 1564)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 

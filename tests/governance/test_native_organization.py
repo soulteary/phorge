@@ -25,7 +25,7 @@ def template():
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
             'current_table_count': 529, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1563, 'applied_patch_count': 1563, 'pending_patch_keys': [],
+                'source_patch_count': 1564, 'applied_patch_count': 1564, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {

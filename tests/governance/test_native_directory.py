@@ -89,6 +89,25 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
         data = copy.deepcopy(self.data); data['scan']['files'][1] = data['scan']['files'][0]
         self.reject(data,'runtime source drift')
 
+    def test_datasource_and_authenticated_controller_are_explicit_sources(self):
+        ids = ('NATIVE.PhorgeOrganizationDatasource',
+               'NATIVE.PhorgeOrganizationDatasourceController')
+        for identity in ids:
+            data = copy.deepcopy(self.data)
+            data['sources'] = [row for row in data['sources'] if row['id'] != identity]
+            self.reject(data, 'source inventory drift')
+        data = copy.deepcopy(self.data)
+        row = next(row for row in data['sources'] if row['id'] == ids[0])
+        row['kind'] = 'cached-viewer-authority'
+        self.reject(data, 'source identity drift')
+
+    def test_datasource_links_cannot_skip_authenticated_request_boundary(self):
+        for identity in ('NATIVE-LINK-17','NATIVE-LINK-18','NATIVE-LINK-19'):
+            data = copy.deepcopy(self.data)
+            row = next(row for row in data['links'] if row['id'] == identity)
+            row['to_id'] = 'NATIVE.PhorgeOrganizationService'
+            self.reject(data, 'link topology drift')
+
     def test_duplicate_json_keys_are_refused(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'manifest.json';path.write_text('{"scope":1,"scope":2}')

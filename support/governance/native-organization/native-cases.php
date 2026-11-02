@@ -102,7 +102,9 @@ function governance_native_organization_cases($fixture, callable $check) {
   $auth_summary=governance_native_auth_cases($fixture,$check,$state);
   require_once __DIR__.'/legacy-role-cases.php';
   $legacy_role_summary=governance_native_legacy_role_cases($fixture,$check,$state);
-  return array('actual_native_account_source'=>true,'actual_session_engine'=>true,
+  require_once __DIR__.'/directory-completion-cases.php';
+  $directory_completion_summary=governance_native_directory_completion_cases($fixture,$check,$state);
+  return array('directory_completion_tests'=>$directory_completion_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
     'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
     'production_features_enabled'=>false,'media_backend_only'=>true,
     'daemon_or_external_delivery_executed'=>false,'schema_tests'=>$schema_summary,'route_tests'=>$route_summary,'privacy_tests'=>$privacy_summary,'concurrency_tests'=>$concurrency_summary,

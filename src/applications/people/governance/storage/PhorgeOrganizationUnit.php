@@ -8,6 +8,10 @@ final class PhorgeOrganizationUnit extends PhabricatorUserDAO {
   protected $name;
   protected $parentID;
   protected $version;
+  protected $visibilityModel;
+  protected $visibilityVersion;
+  protected $associatedDepartmentID;
+  protected $contactUserPHID;
 
   public function getTableName() { return 'organization_unit'; }
 
@@ -21,6 +25,10 @@ final class PhorgeOrganizationUnit extends PhabricatorUserDAO {
         'name' => 'text255',
         'parentID' => 'varbytes64?',
         'version' => 'uint64',
+        'visibilityModel' => 'varbytes32',
+        'visibilityVersion' => 'uint64',
+        'associatedDepartmentID' => 'varbytes64?',
+        'contactUserPHID' => 'phid?',
       ),
       self::CONFIG_KEY_SCHEMA => array(
         'key_identity' => array('columns' => array('unitID'), 'unique' => true),

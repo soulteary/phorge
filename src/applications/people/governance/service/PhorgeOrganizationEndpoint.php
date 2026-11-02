@@ -13,7 +13,11 @@ final class PhorgeOrganizationEndpoint extends Phobject {
       case 'selector': return $query->selectUnits($limit, $after);
       case 'export': return $query->exportUnitsPage($limit, $after);
       case 'count': return $query->countUnits();
-      case 'members': return $query->listMembers($unit, $limit);
+      case 'search-count': return $query->countUnits($unit??'');
+      case 'member-count': return $query->countMembers($unit);
+      case 'members': return $query->listMembers($unit, $limit, $after);
+      case 'unassigned': return $query->listUnassignedUsers($limit,$after);
+      case 'search': return $query->searchUnits($unit??'', $limit,$after);
       case 'user-teams': return $query->listUserTeams($subject, $limit);
       default: throw new InvalidArgumentException('organization_query_mode_refused');
     }
@@ -27,6 +31,9 @@ final class PhorgeOrganizationEndpoint extends Phobject {
     $service = PhorgeOrganizationService::newForActor($context);
     switch ($action) {
       case 'unit.create': return $service->createUnit($payload);
+      case 'unit.preview': return $service->previewUnitChange($payload);
+      case 'unit.metadata': return $service->updateUnitMetadata($payload);
+      case 'department.clear': return $service->clearPrimaryDepartment($payload);
       case 'unit.update': return $service->updateUnit($payload);
       case 'department.assign': return $service->assignPrimaryDepartment($payload);
       case 'members.edit': return $service->execute($payload);
