@@ -34,7 +34,9 @@ PATCHES = '''20260907.herald.01.requeststatuskey.sql
 20261007.multimeter.01.cleanupindex.sql
 20261007.multimeter.01.gorgecleanup.sql
 20261007.worker.scheduler.sql
-20261007.worker.scheduleridentity.sql'''.splitlines()
+20261007.worker.scheduleridentity.sql
+20261102.people.organization.sql
+20261102.people.mediaexchange.sql'''.splitlines()
 REQUIRED_CHECKS = {
  'full-current-source-quickstart-and-patch-ledger-restored',
  'completion-reader-real-select-only-grants-and-lineage-proved',
@@ -228,8 +230,8 @@ def validate(data, root=ROOT):
         'Patch audit fields refused.')
     exact(audit['pending_patch_keys'], [], 'Pending current patches refused.')
     exact(audit['current_patch_ledger_complete'], True, 'Current patches unproved.')
-    exact(audit['migrations_executed'], 24, 'Actual migration count refused.')
-    require(type(audit['source_patch_count']) is int and audit['source_patch_count'] > 24,
+    exact(audit['migrations_executed'], len(PATCHES), 'Actual migration count refused.')
+    require(type(audit['source_patch_count']) is int and audit['source_patch_count'] > len(PATCHES),
             'Source patch count refused.')
     exact(audit['applied_patch_count'],audit['source_patch_count'],'Applied patch count drift.')
     hashes=audit['migration_source_hashes']

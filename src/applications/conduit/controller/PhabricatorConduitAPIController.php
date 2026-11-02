@@ -396,9 +396,16 @@ final class PhabricatorConduitAPIController
         );
       }
 
-      return $this->validateAuthenticatedUser(
-        $api_request,
-        $user);
+      $auth_error = $this->validateAuthenticatedUser($api_request, $user);
+      if ($auth_error === null &&
+          PhabricatorEnv::getEnvConfigIfExists('governance.organization.enabled', false) === true &&
+          in_array($token->getTokenType(), array(PhabricatorConduitToken::TYPE_STANDARD,
+            PhabricatorConduitToken::TYPE_COMMANDLINE), true)) {
+        $api_request->attachGovernanceActorContext(
+          PhorgeGovernanceNativeActorContext::newFromAuthenticatedAPIToken(
+            $user, new PhutilOpaqueEnvelope($token_string)));
+      }
+      return $auth_error;
     }
 
     $access_token = idx($metadata, 'access_token');

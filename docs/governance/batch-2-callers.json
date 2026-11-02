@@ -1319,8 +1319,8 @@
       "src/__phutil_library_map__.php"
     ],
     "excluded_test_directory": "__tests__",
-    "files_scanned": 4433,
-    "source_snapshot_sha256": "acebc93da78418fd83278eb7430b54f9e6c383e8451850c147ceeb8d6f18e2ea",
+    "files_scanned": 4451,
+    "source_snapshot_sha256": "a40238b7895ce1b3bc74724739381e28863fa337976f3c0e70dcf971a5f19e44",
     "candidates": [
       {"id":"CALL-e71899f6e4e06c5b","path":"src/applications/almanac/conduit/AlmanacBindingEditConduitAPIMethod.php","sha256":"e8fe213b44761574fc57a095588a42aa2e62beb4d4be92ef877546cb64d84312","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
       {"id":"CALL-63444e170e5adba3","path":"src/applications/almanac/conduit/AlmanacDeviceEditConduitAPIMethod.php","sha256":"a087ca89a2c7f9c43da8e31d50ce9335dd8c4bddff941e0b61848b68d6cae9b2","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},

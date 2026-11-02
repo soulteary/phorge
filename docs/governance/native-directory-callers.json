@@ -1,0 +1,628 @@
+{
+  "schema_version": 1,
+  "scope": "native-directory-source-inventory",
+  "coverage": "partial",
+  "activation_blocked": true,
+  "runtime_certified": false,
+  "authority_proof": false,
+  "sources": [
+    {
+      "id": "ORG.ROUTES",
+      "path": "src/applications/people/application/PhabricatorPeopleApplication.php",
+      "symbol": "PhabricatorPeopleApplication",
+      "kind": "route-registration",
+      "sha256": "14a9750144da4f268510b94fa5cd54c77ba68ea285a54ffaa7d1f1c394b45f02",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "AUTH.CONDUIT.CONTROLLER",
+      "path": "src/applications/conduit/controller/PhabricatorConduitAPIController.php",
+      "symbol": "PhabricatorConduitAPIController",
+      "kind": "authentication-boundary",
+      "sha256": "e26ea13a716eec108b271b7243c56d8b1629e89894bfdb24c0c9a1922e0fce6f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "AUTH.CONDUIT.REQUEST",
+      "path": "src/applications/conduit/protocol/ConduitAPIRequest.php",
+      "symbol": "ConduitAPIRequest",
+      "kind": "sealed-context-transport",
+      "sha256": "0da7a4499b02cd5eef23a05fdbe9b967b89c8f7110ae29ceb98ac39f8c4a8adf",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "AUTH.LEGACY.ROLE",
+      "path": "src/applications/people/editor/PhabricatorUserEditor.php",
+      "symbol": "PhabricatorUserEditor",
+      "kind": "native-role-generation-writer",
+      "sha256": "f03bad4bc3507ad28e2be567e920b1e60d1676bf989ff8ca3c69e4b201ec6fcf",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "AUTH.USER.DAO",
+      "path": "src/applications/people/storage/PhabricatorUser.php",
+      "symbol": "PhabricatorUser",
+      "kind": "native-account-source",
+      "sha256": "4d3cf905cf82031e6267453024bc88245b6cbbfc27eec8b20d0d52ed7defc89b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "AUTH.SESSION.DAO",
+      "path": "src/applications/auth/storage/PhabricatorAuthSession.php",
+      "symbol": "PhabricatorAuthSession",
+      "kind": "native-session-source",
+      "sha256": "b03587dfbfe950d049545b0e034d8bca2e7b719550ab40256194d8300acf1c38",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "AUTH.TOKEN.DAO",
+      "path": "src/applications/conduit/storage/PhabricatorConduitToken.php",
+      "symbol": "PhabricatorConduitToken",
+      "kind": "native-token-source",
+      "sha256": "90cb0ee876614ee19c2174088168b6792572a216db0f906058bff5972bcc4ad5",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceNativeApprovalAdapter",
+      "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
+      "symbol": "PhorgeGovernanceNativeApprovalAdapter",
+      "kind": "candidate-runtime-source",
+      "sha256": "9a17e03dccedd906ecc1cc0ed7aee5d9977487d332d20b77e395b8fd7b68adbd",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceIdentityEpoch",
+      "path": "src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php",
+      "symbol": "PhorgeGovernanceIdentityEpoch",
+      "kind": "candidate-runtime-source",
+      "sha256": "1beae58c032a75f3eb4860c71281b7dbf5af9a0a1b58d9b975758578d6e0987c",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceNativeActorContext",
+      "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php",
+      "symbol": "PhorgeGovernanceNativeActorContext",
+      "kind": "candidate-runtime-source",
+      "sha256": "58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceNativeIdentitySnapshot",
+      "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySnapshot.php",
+      "symbol": "PhorgeGovernanceNativeIdentitySnapshot",
+      "kind": "candidate-runtime-source",
+      "sha256": "095277dd53d5beacb0775bb46e9d744ab5ebffb73ea30263afa56be67a519b17",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
+      "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
+      "symbol": "PhorgeGovernanceNativeIdentitySource",
+      "kind": "candidate-runtime-source",
+      "sha256": "ff09a7fddfc5e4597a856a4e4e1fc5fbc6a246dd04dd838f4f4180ce7d98d693",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PeopleOrganizationEditConduitAPIMethod",
+      "path": "src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php",
+      "symbol": "PeopleOrganizationEditConduitAPIMethod",
+      "kind": "candidate-runtime-source",
+      "sha256": "7c430f90819470811475c1a9646e9f509d799732ac25f07d5e7831787ef540a4",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PeopleOrganizationQueryConduitAPIMethod",
+      "path": "src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php",
+      "symbol": "PeopleOrganizationQueryConduitAPIMethod",
+      "kind": "candidate-runtime-source",
+      "sha256": "35d439ad4d197768c4601e5ac7ece3d14c4cfd6f242c4a07522f4d284952594c",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationController",
+      "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
+      "symbol": "PhorgeOrganizationController",
+      "kind": "candidate-runtime-source",
+      "sha256": "83fedfae7d57340772ab1314365c9876a3acdbf0e6b9d339ae367c24836b4694",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationQuery",
+      "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
+      "symbol": "PhorgeOrganizationQuery",
+      "kind": "candidate-runtime-source",
+      "sha256": "e1750bd4dd3a09bc147689acdaa9f1a2967751de456ebce42e2e85b33ee575da",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationConfigOptions",
+      "path": "src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php",
+      "symbol": "PhorgeOrganizationConfigOptions",
+      "kind": "candidate-runtime-source",
+      "sha256": "25d736e86af34feacb7ae46c787b2d17fe5ea78224188d5370d08316fdef9f6d",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationEndpoint",
+      "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
+      "symbol": "PhorgeOrganizationEndpoint",
+      "kind": "candidate-runtime-source",
+      "sha256": "ee282e6a26762e6f48b31e21f6bc5fc87926eaae60f1c62a2c9420499368a095",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationRequest",
+      "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
+      "symbol": "PhorgeOrganizationRequest",
+      "kind": "candidate-runtime-source",
+      "sha256": "06841a5ca4a34f518346a96fe19a68ccee88a45b5668d2b045039b7739ee54a0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationService",
+      "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
+      "symbol": "PhorgeOrganizationService",
+      "kind": "candidate-runtime-source",
+      "sha256": "45d57594fbb37e8ab79a37fbe998b06b3137a25e877069d23262536a2c665896",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationAppointment",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",
+      "symbol": "PhorgeOrganizationAppointment",
+      "kind": "candidate-runtime-source",
+      "sha256": "f71043f1bb55bcc3ce790d7d904ff65decf8de1964df620c29b5f139de4a43cf",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationMember",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationMember.php",
+      "symbol": "PhorgeOrganizationMember",
+      "kind": "candidate-runtime-source",
+      "sha256": "e7f813d8c5ffc829c55ac823b12d43fb767229a9c377b64200c2a74e34195b5f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationPrimaryDepartment",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php",
+      "symbol": "PhorgeOrganizationPrimaryDepartment",
+      "kind": "candidate-runtime-source",
+      "sha256": "9df42bcc396711082881fde98b9f6e7a62b6442c3c6e49cb2922d1e7482367f1",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationSchemaSpec",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationSchemaSpec.php",
+      "symbol": "PhorgeOrganizationSchemaSpec",
+      "kind": "candidate-runtime-source",
+      "sha256": "e51c9dd334860c6aa701f34c1854d1bc8f43bd997b27caafce9e5f2f897dce3e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationUnit",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationUnit.php",
+      "symbol": "PhorgeOrganizationUnit",
+      "kind": "candidate-runtime-source",
+      "sha256": "67212907b43a58473d34e1966f0039183254bb73aa93e592f974b3c1e806e76e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaExchangeService",
+      "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
+      "symbol": "PhorgeGovernanceMediaExchangeService",
+      "kind": "candidate-runtime-source",
+      "sha256": "cad35f3693e92941aa7a3d9b70de581d2908607fae63a0e75baf1e872089e666",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaSchemaSpec",
+      "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php",
+      "symbol": "PhorgeGovernanceMediaSchemaSpec",
+      "kind": "candidate-runtime-source",
+      "sha256": "6bd65947120b64be97478d00561c2507b290239740fc1c1886733a125764a1f1",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaConfigOptions",
+      "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php",
+      "symbol": "PhorgeGovernanceMediaConfigOptions",
+      "kind": "default-off-configuration",
+      "sha256": "a1a8fa454da87a507a3cd5a938fcd8151f8d8a12d5f94043848c1ef01cc393b8",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    }
+  ],
+  "links": [
+    {
+      "id": "NATIVE-LINK-01",
+      "from_id": "ORG.ROUTES",
+      "to_id": "NATIVE.PhorgeOrganizationController",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-02",
+      "from_id": "NATIVE.PhorgeOrganizationController",
+      "to_id": "NATIVE.PhorgeOrganizationEndpoint",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-03",
+      "from_id": "NATIVE.PeopleOrganizationQueryConduitAPIMethod",
+      "to_id": "NATIVE.PhorgeOrganizationEndpoint",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-04",
+      "from_id": "NATIVE.PeopleOrganizationEditConduitAPIMethod",
+      "to_id": "NATIVE.PhorgeOrganizationEndpoint",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-05",
+      "from_id": "NATIVE.PhorgeOrganizationEndpoint",
+      "to_id": "NATIVE.PhorgeOrganizationService",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-06",
+      "from_id": "NATIVE.PhorgeOrganizationQuery",
+      "to_id": "NATIVE.PhorgeOrganizationService",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-07",
+      "from_id": "NATIVE.PhorgeOrganizationService",
+      "to_id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-08",
+      "from_id": "NATIVE.PhorgeOrganizationService",
+      "to_id": "NATIVE.PhorgeGovernanceNativeApprovalAdapter",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-09",
+      "from_id": "AUTH.CONDUIT.CONTROLLER",
+      "to_id": "AUTH.CONDUIT.REQUEST",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-10",
+      "from_id": "AUTH.CONDUIT.REQUEST",
+      "to_id": "NATIVE.PhorgeGovernanceNativeActorContext",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-11",
+      "from_id": "AUTH.LEGACY.ROLE",
+      "to_id": "NATIVE.PhorgeGovernanceIdentityEpoch",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-12",
+      "from_id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
+      "to_id": "AUTH.USER.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-13",
+      "from_id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
+      "to_id": "AUTH.SESSION.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-14",
+      "from_id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
+      "to_id": "AUTH.TOKEN.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-15",
+      "from_id": "NATIVE.PhorgeGovernanceMediaExchangeService",
+      "to_id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-16",
+      "from_id": "NATIVE.PhorgeGovernanceMediaConfigOptions",
+      "to_id": "NATIVE.PhorgeGovernanceMediaExchangeService",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Both sources reference governance.media-exchange.enabled; configuration declaration/consumer only, not activation or runtime authorization proof."
+    }
+  ],
+  "scan": {
+    "files": [
+      {
+        "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
+        "sha256": "9a17e03dccedd906ecc1cc0ed7aee5d9977487d332d20b77e395b8fd7b68adbd"
+      },
+      {
+        "path": "src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php",
+        "sha256": "1beae58c032a75f3eb4860c71281b7dbf5af9a0a1b58d9b975758578d6e0987c"
+      },
+      {
+        "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php",
+        "sha256": "58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66"
+      },
+      {
+        "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySnapshot.php",
+        "sha256": "095277dd53d5beacb0775bb46e9d744ab5ebffb73ea30263afa56be67a519b17"
+      },
+      {
+        "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
+        "sha256": "ff09a7fddfc5e4597a856a4e4e1fc5fbc6a246dd04dd838f4f4180ce7d98d693"
+      },
+      {
+        "path": "src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php",
+        "sha256": "7c430f90819470811475c1a9646e9f509d799732ac25f07d5e7831787ef540a4"
+      },
+      {
+        "path": "src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php",
+        "sha256": "35d439ad4d197768c4601e5ac7ece3d14c4cfd6f242c4a07522f4d284952594c"
+      },
+      {
+        "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
+        "sha256": "83fedfae7d57340772ab1314365c9876a3acdbf0e6b9d339ae367c24836b4694"
+      },
+      {
+        "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
+        "sha256": "e1750bd4dd3a09bc147689acdaa9f1a2967751de456ebce42e2e85b33ee575da"
+      },
+      {
+        "path": "src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php",
+        "sha256": "25d736e86af34feacb7ae46c787b2d17fe5ea78224188d5370d08316fdef9f6d"
+      },
+      {
+        "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
+        "sha256": "ee282e6a26762e6f48b31e21f6bc5fc87926eaae60f1c62a2c9420499368a095"
+      },
+      {
+        "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
+        "sha256": "06841a5ca4a34f518346a96fe19a68ccee88a45b5668d2b045039b7739ee54a0"
+      },
+      {
+        "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
+        "sha256": "45d57594fbb37e8ab79a37fbe998b06b3137a25e877069d23262536a2c665896"
+      },
+      {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",
+        "sha256": "f71043f1bb55bcc3ce790d7d904ff65decf8de1964df620c29b5f139de4a43cf"
+      },
+      {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationMember.php",
+        "sha256": "e7f813d8c5ffc829c55ac823b12d43fb767229a9c377b64200c2a74e34195b5f"
+      },
+      {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php",
+        "sha256": "9df42bcc396711082881fde98b9f6e7a62b6442c3c6e49cb2922d1e7482367f1"
+      },
+      {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationSchemaSpec.php",
+        "sha256": "e51c9dd334860c6aa701f34c1854d1bc8f43bd997b27caafce9e5f2f897dce3e"
+      },
+      {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationUnit.php",
+        "sha256": "67212907b43a58473d34e1966f0039183254bb73aa93e592f974b3c1e806e76e"
+      },
+      {
+        "path": "src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php",
+        "sha256": "bac094310783c6b05625e8bb1805bebaeecec15dc103b470f7caabbe983e1aa5"
+      },
+      {
+        "path": "src/infrastructure/governance/consistency/PhorgeGovernanceNativeRuntimeProfile.php",
+        "sha256": "7f9e7d98ff96577653186f458b288f6a56a9f38968e0e2a20c3bdef005941824"
+      },
+      {
+        "path": "src/infrastructure/governance/consistency/PhorgeGovernanceSnapshotConnection.php",
+        "sha256": "50a99ddf4f25a76377ed90952b06efd6da4edaa8aa73444c2ad73927e32b3bbb"
+      },
+      {
+        "path": "src/infrastructure/governance/contracts/PhorgeGovernanceApprovalRequest.php",
+        "sha256": "e059607a11f106dcd44f5d0568efaef8aa5c4b31b1a4227bc482d2522611be47"
+      },
+      {
+        "path": "src/infrastructure/governance/contracts/PhorgeGovernanceApprovalState.php",
+        "sha256": "b6b3f067e2b79abf92c90073aeaf2dfb3a798e6abcda6e52ce5f3dbea4c74e34"
+      },
+      {
+        "path": "src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php",
+        "sha256": "f3eb13b1a434219590c75f7fc331cc535fa13cf191c428d28acc8ca47b75a995"
+      },
+      {
+        "path": "src/infrastructure/governance/directory/PhorgeGovernanceDirectoryReader.php",
+        "sha256": "e4529fb2d09e7c25f4af446442a237bf0f2cbc145f4943b34e023ed106b2afa5"
+      },
+      {
+        "path": "src/infrastructure/governance/directory/PhorgeGovernanceIsolatedDirectoryStore.php",
+        "sha256": "6f6856acce50d4cf56722387fbfc2809f3b2fc3375fad6adf667037ad4852325"
+      },
+      {
+        "path": "src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php",
+        "sha256": "e7f8c2a843670d65184ac5d92613f00bfe591c0f334b3b099689dbf6626e3d9c"
+      },
+      {
+        "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php",
+        "sha256": "a1a8fa454da87a507a3cd5a938fcd8151f8d8a12d5f94043848c1ef01cc393b8"
+      },
+      {
+        "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
+        "sha256": "cad35f3693e92941aa7a3d9b70de581d2908607fae63a0e75baf1e872089e666"
+      },
+      {
+        "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php",
+        "sha256": "6bd65947120b64be97478d00561c2507b290239740fc1c1886733a125764a1f1"
+      },
+      {
+        "path": "src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php",
+        "sha256": "a503f3088502537e7e6881e75d0db1eebf0ec6f1b7ecda29b4ecd4b7fed8261f"
+      },
+      {
+        "path": "src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php",
+        "sha256": "21c8b69d97967d43f23103d80178493f7ab66eb45f2b1ab4e3739f135125a575"
+      },
+      {
+        "path": "src/infrastructure/governance/native/PhorgeGovernanceNativeSourceCapture.php",
+        "sha256": "41fcde78500526d3194fa9f8cc750b27acc0e626472e27c6925e9e8ef0f1887b"
+      },
+      {
+        "path": "src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php",
+        "sha256": "affcc1461b7591e922c5cd93c48132dff0868925defd8d3ba0ecd649a4a11344"
+      },
+      {
+        "path": "src/infrastructure/governance/observation/PhorgeGovernanceNativeCapabilityContext.php",
+        "sha256": "9a8258e28e1816681a94d80b01511e3a580a9a1840b2c04aeaf1933e86745df6"
+      },
+      {
+        "path": "src/infrastructure/governance/observation/PhorgeGovernanceNativeObservationVerifier.php",
+        "sha256": "21ae153a8a3cde5236e6a860b92ab46c80054373589311a08bf39653e70a00ef"
+      },
+      {
+        "path": "src/infrastructure/governance/organization/PhorgeGovernanceOrganizationApprovalAdapter.php",
+        "sha256": "7d017c303311b354e69d65adad6c2ea68ae82207e13a006aea67f3446e8afb69"
+      },
+      {
+        "path": "src/infrastructure/governance/organization/PhorgeGovernanceOrganizationReader.php",
+        "sha256": "e1f5a77ca95ce2cf7643613397d62c8596430c0177871a09601d087bce4bc5aa"
+      },
+      {
+        "path": "src/infrastructure/governance/organization/PhorgeGovernanceOrganizationRequest.php",
+        "sha256": "3c96bd1b2b085a65990747bed4710d5213c218ef7da49dcbf85d09d34c47ef4f"
+      },
+      {
+        "path": "src/infrastructure/governance/organization/PhorgeGovernanceOrganizationStore.php",
+        "sha256": "8e4a4673f04a5dfdb7b632492a91a865de02c0a82b9103150610ebe39aa14dd0"
+      },
+      {
+        "path": "src/infrastructure/governance/readset/PhorgeGovernanceIsolatedReadSetStore.php",
+        "sha256": "9fe422dcc5cbf69c8ff05f4028a25c28e0fccd1d56e6a409ebe20452ce9b7b8e"
+      },
+      {
+        "path": "src/infrastructure/governance/readset/PhorgeGovernanceReadSetSnapshot.php",
+        "sha256": "2c713ecc737706b7e4c37f7d735a8c93ef35cdbd81171fba8b16dc73c003f52f"
+      },
+      {
+        "path": "src/infrastructure/governance/readset/PhorgeGovernanceReadSetValidator.php",
+        "sha256": "c30cec49d1c56fd981dbc290fd0ae1900b7bc594eabb4b2b1e42c8445e2570bb"
+      },
+      {
+        "path": "src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php",
+        "sha256": "430c5826f8cdf6446a90beb4122582c6ff1cbbc8750faae52fb37e063bca6c9c"
+      }
+    ]
+  }
+}
