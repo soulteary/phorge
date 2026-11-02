@@ -117,3 +117,35 @@ status/configuration and may load notification project state, with auto-claim
 and creation paths requiring additional prerequisites. No full editor pipeline
 or final-effects method is invoked. All observations continue to report
 `can_execute=false`, `risk_complete=false`, `full_expansion_verified=false`.
+
+## Batch-5 selected validation and side-effect boundary
+
+`observeProjectLocalValidation()` first runs the already reviewed exact Project
+batch expansion on detached inputs, then invokes the exact native
+`PhabricatorProjectTransactionEditor::validateAllTransactions()` method. This
+method only inspects transaction type/value/edge metadata, the provided
+`hasSubprojects` state and the throwaway editor's milestone context, constructing
+validation errors in memory. It does not query or persist. The output reports
+`local_validation=valid|invalid`, error count and transaction types; it exports
+no raw validation message or member identities. Input models are not saved or
+modified.
+
+A local valid result means only this selected check returned no errors. It is
+not the complete native validation phase: inputs have not been combined,
+populated, checked per modular transaction, checked by editor extensions or
+checked for capabilities/MFA. Accordingly `pipeline_validation_complete=false`
+and all execution/full-closure flags remain false. The tests exercise ordinary
+project membership, parent-project and milestone membership restrictions,
+parent/milestone conflicts, both transaction orders, null cancellation and
+unknown/scope rejection. These are native constraints, not new role semantics.
+
+The real `applyTransactions()` entry point locks/reloads an object before many
+stages. Its support expansion loads subscribers and processes Remarkup, implicit
+CC, block and file references. Full validation dispatches modular transaction
+and extension code; adjustment/capability/filter/MFA stages have additional
+prerequisites. Internal/external/final effects save objects and may run
+subeditors. Herald can introduce more transactions and publishing schedules
+workers/mail/feed. None of these stages is executed by this observer. A preview
+or a transaction rolled back afterward does not establish absence of these
+side effects and is never used as read-only evidence. Source stage inventories
+are bookkeeping and do not certify runtime closure.

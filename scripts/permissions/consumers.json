@@ -804,6 +804,16 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php",
+      "discovery": true,
+      "kind": "isolated-native-policy-composition-observer",
+      "meaning": "Reloads exact native actors and targets and invokes actual PolicyFilter between bounded source samples in owned SELECT-only fixture context; stable samples never prove atomicity or grant authorization.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "native-policy-composition-observation",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php",
       "discovery": true,
       "kind": "isolated-native-rule-hierarchy-observer",
@@ -821,6 +831,16 @@
       "authority": "none",
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "read-only-native-source-observation",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/observation/__tests__/PhorgeGovernanceNativeObservationTestCase.php",
+      "discovery": true,
+      "kind": "isolated-native-project-validation-test",
+      "meaning": "Synthetic membership transaction shapes exercise fixed local native Project validation without applying transactions or granting membership; test-only literal consumer.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "native-local-validation-unit-test",
       "candidateGenerationIntroduced": false
     }
   ]

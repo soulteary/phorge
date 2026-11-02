@@ -193,6 +193,25 @@ jobs:
           name: governance-batch-4-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-batch-4
           if-no-files-found: error
+      - name: Verify native governance pipeline boundaries and policy composition
+        run: |
+          mkdir -p "$RUNNER_TEMP/governance-batch-5"
+          python3 scripts/governance/check_pipeline_boundaries.py > "$RUNNER_TEMP/governance-batch-5/pipeline-boundaries.json"
+          cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-batch-5/native.json"
+          cp "$RUNNER_TEMP/governance-batch-2/callers.json" "$RUNNER_TEMP/governance-batch-5/callers.json"
+          cp "$RUNNER_TEMP/governance-batch-3/native-source.json" "$RUNNER_TEMP/governance-batch-5/native-source.json"
+          cp "$RUNNER_TEMP/governance-batch-4/native-rule-branches.json" "$RUNNER_TEMP/governance-batch-5/native-rule-branches.json"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          php support/governance/fixtures/test-native-pipeline-composition-mysql.php > "$RUNNER_TEMP/governance-batch-5/native-pipeline-composition.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: governance-batch-5-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-batch-5
+          if-no-files-found: error
       - name: Run every registered native package with mandatory dependency preflight
         run: python3 tests/atomic/run.py --require-clean-worktree --output "$RUNNER_TEMP/atomic-evidence"
       - name: Verify functional PHP server runtime without storage

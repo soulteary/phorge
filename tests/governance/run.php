@@ -23,6 +23,7 @@ try {
     'PhorgeGovernanceNativeObservationTestCase',
     'PhorgeGovernanceNativeSourceReaderTestCase',
     'PhorgeGovernanceNativeRuleHierarchyTestCase',
+    'PhorgeGovernanceNativePolicyCompositionTestCase',
   );
   $expected = array();
   $cases = array();

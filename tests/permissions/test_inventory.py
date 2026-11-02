@@ -104,3 +104,18 @@ class ConsumerInventoryTests(unittest.TestCase):
         self.assertEqual(row['kind'],'isolated-native-rule-hierarchy-observer')
         self.assertEqual(row['authority'],'none')
         self.assertIs(row['candidateGenerationIntroduced'],False)
+
+    def test_native_composition_reference_is_reviewed_without_authority(self):
+        row=next(r for r in inventory.collect()['consumers']
+                 if r['path']=='src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php')
+        self.assertTrue(row['discovery'])
+        self.assertTrue(row['matchingLines'])
+        self.assertEqual(row['kind'],'isolated-native-policy-composition-observer')
+        self.assertEqual(row['authority'],'none')
+        self.assertIs(row['candidateGenerationIntroduced'],False)
+        testrow=next(r for r in inventory.collect()['consumers']
+                     if r['path']=='src/infrastructure/governance/observation/__tests__/PhorgeGovernanceNativeObservationTestCase.php')
+        self.assertTrue(testrow['discovery'])
+        self.assertEqual(testrow['authority'],'none')
+        self.assertEqual(testrow['kind'],'isolated-native-project-validation-test')
+        self.assertIs(testrow['candidateGenerationIntroduced'],False)

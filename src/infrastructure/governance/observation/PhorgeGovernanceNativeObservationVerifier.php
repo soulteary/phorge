@@ -143,6 +143,18 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
       PhabricatorProjectTransactionEditor::class, 'expandTransactions', null);
   }
 
+  /** A selected editor-local check, not the pipeline validation phase. */
+  public function observeProjectLocalValidation(
+    PhabricatorProject $project,
+    array $transactions) {
+
+    return $this->observeLocal(
+      $project, $transactions, PhabricatorProject::class,
+      PhabricatorProjectTransaction::class,
+      PhabricatorProjectTransactionEditor::class, 'expandTransactions', null,
+      true);
+  }
+
   public function observeTaskLocalExpansion(
     ManiphestTask $task,
     PhabricatorUser $viewer,
@@ -211,7 +223,8 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
     $expected_transaction,
     $editor_class,
     $method,
-    $viewer) {
+    $viewer,
+    $observe_project_validation = false) {
 
     if (!self::hasIsolatedScope()) {
       return self::blocked('isolated_scope_required');
@@ -311,6 +324,28 @@ final class PhorgeGovernanceNativeObservationVerifier extends Phobject {
       $result['status'] = 'observed-native-local-expansion';
       $result['method'] = $editor_class.'::'.$method;
       $result['transactions'] = $summaries;
+      if ($observe_project_validation) {
+        // Exact fixed method; it only inspects type/value/edge metadata and
+        // the editor-local milestone context established by expansion above.
+        $errors = (new ReflectionMethod(
+          PhabricatorProjectTransactionEditor::class, 'validateAllTransactions'))
+          ->invoke($editor, $detached_object, $observed);
+        $types = array();
+        foreach ($errors as $error) {
+          if (get_class($error) !==
+              PhabricatorApplicationTransactionValidationError::class) {
+            return self::blocked('unknown_local_validation_result');
+          }
+          $types[] = $error->getType();
+        }
+        $result['status'] = 'observed-native-project-local-validation';
+        $result['local_validation'] = $errors ? 'invalid' : 'valid';
+        $result['validation_error_count'] = count($errors);
+        $result['validation_error_types'] = $types;
+        $result['validation_method'] =
+          'PhabricatorProjectTransactionEditor::validateAllTransactions';
+        $result['pipeline_validation_complete'] = false;
+      }
       if ($expected_object === PhrictionDocument::class &&
           $method === 'expandTransactions') {
         $old_content = (new ReflectionMethod(

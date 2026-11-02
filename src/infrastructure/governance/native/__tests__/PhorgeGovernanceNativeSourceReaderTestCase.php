@@ -157,4 +157,43 @@ final class PhorgeGovernanceNativeSourceReaderTestCase extends PhutilTestCase {
     $this->assertEqual(array(), $capture->getSources());
   }
 
+  public function testStoredNativeRuleSubjectsMustBePresentAndTyped() {
+    // Pure parser/closure guard fixtures, not native SQL proof.
+    $method = new ReflectionMethod(PhorgeGovernanceNativeSourceReader::class,
+      'ruleSubjectReason');
+    $user = 'PHID-USER-'.str_repeat('a', 20);
+    $project = 'PHID-PROJ-'.str_repeat('b', 20);
+    $accounts = array($user => array());
+    $projects = array($project => array());
+    foreach (array(PhabricatorUsersPolicyRule::class => $user,
+      PhabricatorProjectsPolicyRule::class => $project,
+      PhabricatorProjectsAllPolicyRule::class => $project) as $class => $subject) {
+      foreach (array(array(), array($subject)) as $value) {
+        $this->assertEqual(null, $method->invoke(null,
+          array('rule' => $class, 'value' => $value), $accounts, $projects));
+      }
+      $this->assertEqual('missing_native_policy_rule_subject',
+        $method->invoke(null, array('rule' => $class, 'value' => array($subject)),
+          array(), array()));
+      foreach (array(null, $subject, array('key' => $subject), array(true),
+        array($class === PhabricatorUsersPolicyRule::class ? $project : $user))
+        as $value) {
+        $this->assertEqual('malformed_native_policy_rule_subjects',
+          $method->invoke(null, array('rule' => $class, 'value' => $value),
+            $accounts, $projects));
+      }
+      $this->assertEqual('native_policy_rule_subject_budget',
+        $method->invoke(null, array('rule' => $class,
+          'value' => array_fill(0, 17, $subject)), $accounts, $projects));
+    }
+    foreach (array(null, array(), '') as $empty) {
+      $this->assertEqual(null, $method->invoke(null,
+        array('rule' => PhabricatorProjectMembersPolicyRule::class,
+          'value' => $empty), $accounts, $projects));
+    }
+    $this->assertEqual('malformed_native_policy_rule_subjects',
+      $method->invoke(null, array('rule' => PhabricatorProjectMembersPolicyRule::class,
+        'value' => array($project)), $accounts, $projects));
+  }
+
 }
