@@ -53,3 +53,15 @@ must establish actual current-account/session revocation, expiry waits,
 disable-enable ABA, same-physical-source behavior and cleanup before this slice
 can be accepted. Durable native approval consumption remains a separate required
 adapter; synthetic organization tests are not its substitute.
+
+## SQL compatibility boundary
+
+Shared locks use `LOCK IN SHARE MODE`, supported by both the documented MariaDB
+baseline and MySQL. The always-on legacy-role epoch hook does not query
+`@@server_uuid` or `@@SESSION.transaction_isolation`. Its actual native editor
+path requires a dedicated MariaDB regression; a source-string assertion is not
+runtime proof. The optional organization/media backend is currently validated
+against the deployed MySQL profile. API-token same-primary verification still
+uses MySQL `@@server_uuid`, and the organization service reads MySQL's
+`transaction_isolation` variable. Those optional paths must not be advertised as
+fully MariaDB-compatible without explicit adapters and matching runtime evidence.

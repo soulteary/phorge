@@ -23,14 +23,14 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
     if ($conn !== $epoch_table->establishConnection('w')) {
       throw new RuntimeException('governance_same_native_writer_required');
     }
-    queryfx_one($conn, 'SELECT userPHID FROM %R WHERE 1=0 FOR SHARE', $epoch_table);
+    queryfx_one($conn, 'SELECT userPHID FROM %R WHERE 1=0 LOCK IN SHARE MODE', $epoch_table);
     $epoch_engine = queryfx_one($conn, 'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s', $epoch_table->getTableName());
     if (!$epoch_engine || $epoch_engine['ENGINE'] !== 'InnoDB') {
       throw new RuntimeException('governance_native_transactional_source_required');
     }
     foreach ($tables as $table) {
       // Current reads acquire MDL before engine inspection, retained by caller txn.
-      queryfx_one($conn, 'SELECT id FROM %R WHERE 1=0 FOR SHARE', $table);
+      queryfx_one($conn, 'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE', $table);
       $engine = queryfx_one($conn,
         'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s',
         $table->getTableName());
@@ -45,7 +45,7 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
     if (!is_string($phid) || !preg_match('/\APHID-USER-[a-zA-Z0-9]{20}\z/', $phid)) {
       throw new RuntimeException('governance_native_identity_required');
     }
-    $row = queryfx_one($conn, 'SELECT phid,isAdmin,isApproved,isDisabled,isSystemAgent,isMailingList,accountSecret,conduitCertificate FROM %R WHERE BINARY phid=BINARY %s FOR SHARE',
+    $row = queryfx_one($conn, 'SELECT phid,isAdmin,isApproved,isDisabled,isSystemAgent,isMailingList,accountSecret,conduitCertificate FROM %R WHERE BINARY phid=BINARY %s LOCK IN SHARE MODE',
       new PhabricatorUser(), $phid);
     if (!$row || $row['phid'] !== $phid) {
       throw new RuntimeException('governance_native_identity_required');
@@ -56,14 +56,14 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
       }
     }
     $generation = queryfx_one($conn,
-      'SELECT id FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id DESC LIMIT 1 FOR SHARE',
+      'SELECT id FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id DESC LIMIT 1 LOCK IN SHARE MODE',
       new PhabricatorUserTransaction(), $phid);
     $epoch = $generation ? (string)$generation['id'] : '0';
     if (!preg_match('/\A(?:0|[1-9][0-9]*)\z/', $epoch)) {
       throw new RuntimeException('governance_native_generation_unknown');
     }
     $legacy = queryfx_one($conn,
-      'SELECT userPHID,epoch FROM %R WHERE BINARY userPHID=BINARY %s FOR SHARE',
+      'SELECT userPHID,epoch FROM %R WHERE BINARY userPHID=BINARY %s LOCK IN SHARE MODE',
       new PhorgeGovernanceIdentityEpoch(), $phid);
     if ($legacy !== null && ($legacy['userPHID'] !== $phid ||
         !preg_match('/\A[1-9][0-9]*\z/', (string)$legacy['epoch']))) {
@@ -113,7 +113,7 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
         $primary['uuid'] !== $token_primary['uuid']) {
       throw new RuntimeException('governance_same_native_primary_required');
     }
-    queryfx_one($conn, 'SELECT id FROM %R WHERE 1=0 FOR SHARE', $table);
+    queryfx_one($conn, 'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE', $table);
     $engine = queryfx_one($conn,
       'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
       $token_primary['db'], $table->getTableName());
@@ -130,7 +130,7 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
     $table = new PhabricatorConduitToken();
     $secret = $context->getCredentialEnvelope()->openEnvelope();
     $row = queryfx_one($conn,
-      'SELECT id,objectPHID,tokenType,token,expires FROM %R WHERE BINARY token=BINARY %s FOR SHARE',
+      'SELECT id,objectPHID,tokenType,token,expires FROM %R WHERE BINARY token=BINARY %s LOCK IN SHARE MODE',
       $table, $secret);
     $now = queryfx_one($conn, 'SELECT UNIX_TIMESTAMP() AS n');
     if (!$row || !hash_equals($row['token'], $secret) ||
@@ -166,7 +166,7 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
       throw new RuntimeException('governance_native_credential_ineligible');
     }
     $row = queryfx_one($conn,
-      'SELECT phid,userPHID,type,sessionKey,sessionStart,sessionExpires,isPartial FROM %R WHERE BINARY phid=BINARY %s FOR SHARE',
+      'SELECT phid,userPHID,type,sessionKey,sessionStart,sessionExpires,isPartial FROM %R WHERE BINARY phid=BINARY %s LOCK IN SHARE MODE',
       new PhabricatorAuthSession(), $session);
     $now = queryfx_one($conn, 'SELECT UNIX_TIMESTAMP() AS n');
     if (!$row || $row['phid'] !== $session || $row['userPHID'] !== $user ||
@@ -215,7 +215,7 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
       }
       // This current read is through the same native user writer. The token
       // adapter below independently verifies configured-primary UUID and engine.
-      $row = queryfx_one($conn, 'SELECT id,objectPHID,tokenType,token,expires FROM %R WHERE id=%s FOR SHARE',
+      $row = queryfx_one($conn, 'SELECT id,objectPHID,tokenType,token,expires FROM %R WHERE id=%s LOCK IN SHARE MODE',
         new PhabricatorConduitToken(), substr($binding['sessionPHID'],10));
       if (!$row || ('api-token:'.(string)$row['id']) !== $binding['sessionPHID'] ||
           $row['objectPHID'] !== $binding['userPHID'] ||

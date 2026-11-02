@@ -69,8 +69,9 @@ mutations require CSRF; Conduit gets its sealed context from the actual
 authentication controller, never from a user or actor parameter. Error responses
 do not expose SQL, protected audit rows or approval bindings.
 
-These candidate UI/API and approval paths still require actual native SQL, HTTP
-and browser acceptance; source presence is not completion evidence. Broader
+The bounded native SQL and direct-controller profile is verified in
+`docs/governance/native-directory-evidence.json`. Full HTTP-server and browser
+acceptance remain required; source presence is not completion evidence. Broader
 lifecycle/handover, recovery, publication and deployment remain separate work
 until evidenced.
 

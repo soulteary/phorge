@@ -33,6 +33,10 @@
     "native-media-session-bound-issue-redeem-authenticate",
     "native-controller-feature-off-route-unavailable",
     "native-controller-current-session-list-real-service",
+    "native-controller-tokenless-get-first-issuer-metadata-initially-absent",
+    "native-controller-invalid-cookie-get-no-issuer-metadata-or-unguarded-leak",
+    "native-controller-tokenless-get-real-csrf-guard-first-issuer-initialized",
+    "native-controller-after-get-normal-writes-remain-csrf-guarded",
     "native-controller-json-post-without-csrf-refused-no-write",
     "native-controller-missing-json-payload-refused-without-native-warning",
     "native-controller-json-post-without-form-action-real-commit",
@@ -59,6 +63,14 @@
     "native-directory-count-final-db-clock-expiry-refused-fixture-seam",
     "native-directory-organization-transaction-does-not-change-session-isolation",
     "native-directory-next-native-transaction-retains-repeatable-read-view",
+    "native-media-valid-credential-authenticates-on-real-csrf-guarded-get",
+    "native-media-invalid-credential-refused-on-csrf-guarded-get",
+    "native-media-authentication-restores-request-guard-before-ordinary-write",
+    "native-media-csrf-guarded-get-does-not-unguard-public-prepare",
+    "native-media-csrf-guarded-get-does-not-unguard-public-redeem",
+    "native-media-csrf-guarded-get-does-not-enable-public-issuance",
+    "native-media-csrf-guarded-get-releases-identity-transactions",
+    "native-media-csrf-guarded-get-does-not-mutate-media-ledgers",
     "native-media-disabled-preparation-refused",
     "native-media-disabled-issuance-refused",
     "native-media-disabled-redemption-refused",
@@ -148,7 +160,7 @@
     "owned-writer-environment-and-cache-restored",
     "all-owned-full-native-schemas-and-principals-cleaned"
   ],
-  "check_count": 144,
+  "check_count": 156,
   "php_version": "8.5.12",
   "source_restore": {
     "quickstart_sha256": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
@@ -212,7 +224,9 @@
       "actual_controller_called": true,
       "http_server_executed": false,
       "browser_executed": false,
-      "csrf_and_cookie_checked": true
+      "csrf_and_cookie_checked": true,
+      "actual_request_write_guard_callback": true,
+      "readonly_unguarded_scope_restored": true
     },
     "privacy_tests": {
       "actual_people_accounts": true,
@@ -258,6 +272,8 @@
     },
     "native_approval_implemented": true
   },
+  "optional_source_reader_adapter_exercised": true,
+  "isolated_optional_features_enabled": true,
   "worker_cleanup": {
     "private_directories_removed": 5,
     "owned_processes_stopped": 0,

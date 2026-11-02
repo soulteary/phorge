@@ -91,7 +91,7 @@ from published artifacts.
 
 ## Current isolated evidence
 
-The supported PHP 8.5.12 run passed 132 native test methods and 144 native
+The supported PHP 8.5.12 run passed 132 native test methods and 156 native
 integration checks. All 12 candidate tables matched the actual native schema
 comparison without running adjustments. Separate processes proved guard-wait
 revocation for both lists and counts, list-period expiry, and competing one-use
@@ -113,7 +113,7 @@ indexing enqueue behavior, not an assertion of cross-database side-effect
 rollback. No delivery workers were run. The administrator-revocation test used
 the actual native no-factor MFA path; it does not prove a TOTP challenge.
 
-All 5,846 files in the copied application/governance PHP and migration
+All 5,847 files in the copied application/governance PHP and migration
 inventory matched the test instance. This content match does not expand scenario coverage.
 Governance evidence gates passed 75 Python tests; permission-runner unit
 regressions are separate from hosted route acceptance. Three independent
@@ -123,3 +123,28 @@ media guards and test-machine acceptance remain separate required work.
 
 The sanitized runtime receipt is `native-directory-evidence.json`. It contains
 no deployment address, token, raw account record or private worker pathname.
+
+## Remote review corrections
+
+The real request CSRF write guard is now exercised by the controller fixture.
+Only the five read-only directory entry points permit their transaction and
+first-use identity-metadata bookkeeping in an automatically restored scope.
+Mutation entry points retain the normal guard. Media identity authentication
+permits only its fixed transaction bookkeeping; preparation, issuance and
+redemption are not unguarded by this correction. Tokenless first-use GET, invalid
+credentials, normal-write guard restoration and CSRF-less mutation refusal were
+verified with the actual request callback. These are direct native controller/
+service checks, not yet HTTP-server or browser acceptance.
+
+Shared locking reads use `LOCK IN SHARE MODE`, which retains compatibility in
+the always-on legacy role hooks. A separate owned MariaDB 10.11.19 instance
+passed 17 focused checks using the actual native role editors while both
+optional features were disabled. It restored the full native source schema and
+current migrations, verified restricted writer/reader denial and removed all
+55 schemas and temporary principals. The sanitized receipt is
+`native-legacy-mariadb-evidence.json`. This does not certify the optional
+directory/media backends or the entire historical database-version matrix on
+MariaDB; the optional integration profile remains the tested MySQL 8.4 profile.
+The shared-lock syntax is documented by both
+[MariaDB](https://mariadb.com/docs/server/reference/sql-statements/data-manipulation/selecting-data/lock-in-share-mode)
+and [MySQL](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).

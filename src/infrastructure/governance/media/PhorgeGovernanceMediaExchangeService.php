@@ -71,7 +71,7 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
         'governance_mediaexchange' => 'transactionDigest',
         'governance_mediacredential' => 'secretDigest') as $table => $key) {
         // Retain native metadata locks until commit/rollback before any mutation.
-        queryfx_all($connection, 'SELECT %C FROM %T WHERE 1=0 FOR SHARE', $key, $table);
+        queryfx_all($connection, 'SELECT %C FROM %T WHERE 1=0 LOCK IN SHARE MODE', $key, $table);
         $engine = queryfx_one($connection,
           'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s', $table);
         if (!$engine || $engine['ENGINE'] !== 'InnoDB') {
@@ -225,11 +225,28 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     }
   }
 
+  private static function identityTransactionBookkeeping(
+    AphrontDatabaseConnection $connection, $action) {
+    // Native SQL classifies START/COMMIT/ROLLBACK as writes. Only these fixed
+    // identity-read transaction operations bypass the request CSRF write guard.
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try {
+      switch ($action) {
+        case 'begin': self::begin($connection); break;
+        case 'commit': $connection->saveTransaction(); break;
+        case 'rollback':
+          if ($connection->isInsideTransaction()) { $connection->killTransaction(); }
+          break;
+        default: throw new LogicException('media_identity_bookkeeping_refused');
+      }
+    } finally { unset($unguarded); }
+  }
+
   /** Resolves identity only; callers must still authorize the requested file. */
   public function authenticate($secret) {
     self::validateSecret($secret);
     $connection = self::connection();
-    self::begin($connection);
+    self::identityTransactionBookkeeping($connection,'begin');
     try {
       $digest = hash('sha256', $secret);
       $first = queryfx_one($connection, 'SELECT browserDigest FROM %T WHERE secretDigest=%s',
@@ -251,10 +268,10 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
       if (self::now($connection) >= min((int)$row['expiresAt'], (int)$browser['expiresAt'])) {
         throw new RuntimeException('media_credential_stale');
       }
-      $connection->saveTransaction();
+      self::identityTransactionBookkeeping($connection,'commit');
       return $snapshot;
     } catch (Throwable $error) {
-      $connection->killTransaction();
+      self::identityTransactionBookkeeping($connection,'rollback');
       throw new RuntimeException('media_credential_refused');
     }
   }

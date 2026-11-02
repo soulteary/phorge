@@ -36,6 +36,7 @@ def template():
         'file_service_cleanup': {'kind':'file','binary_sha256':'b'*64,
             'process_stopped':True,'private_storage_removed':True},
         'successful_owned_file_service_startups': 1,
+        'optional_source_reader_adapter_exercised': True, 'isolated_optional_features_enabled': True,
         'failure': None, 'cleanup_failures': [], 'terminal_failure_cleanup_rollbacks': 0,
         'captured_native_output_bytes': 323, 'captured_native_output_sha256': 'a'*64,
         'production_deployment': False, 'production_executor': False,
@@ -100,7 +101,9 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(path=path), self.assertRaises(ValueError): gate.validate(data, file_digest='b'*64)
 
     def test_unknown_runtime_and_unproved_completion_refused(self):
-        for key,value in [('php_version','8.5.8'),('scope','production'),('remaining_blocked',[]),('check_count',True)]:
+        for key,value in [('php_version','8.5.8'),('scope','production'),('remaining_blocked',[]),('check_count',True),
+                          ('batch','native-legacy-role-sql-compatibility'),
+                          ('optional_source_reader_adapter_exercised',False),('isolated_optional_features_enabled',False)]:
             data=template();data[key]=value
             with self.subTest(key=key), self.assertRaises(ValueError): gate.validate(data, file_digest='b'*64)
 

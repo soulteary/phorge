@@ -84,7 +84,7 @@ final class PhorgeOrganizationService extends Phobject {
           ? ($table === 'operation' ? 'operationID' : 'approvalID') : 'id';
         // A consistent COUNT here would create a stale RR read view before
         // waiting for the organization mutex. MDL must be a current read.
-        queryfx_one($conn, 'SELECT %C FROM %T WHERE 1=0 FOR SHARE',
+        queryfx_one($conn, 'SELECT %C FROM %T WHERE 1=0 LOCK IN SHARE MODE',
           $key, $this->table($table));
       }
       $database_row = queryfx_one($conn, 'SELECT DATABASE() AS n');
@@ -225,7 +225,7 @@ final class PhorgeOrganizationService extends Phobject {
 
   private function replay($operation, $digest) {
     $row = queryfx_one($this->connection,
-      'SELECT * FROM %T WHERE operationID=%s FOR SHARE',
+      'SELECT * FROM %T WHERE operationID=%s LOCK IN SHARE MODE',
       $this->table('operation'), $operation);
     if (!$row) { return null; }
     if ($row['operationID'] !== $operation || $row['actorPHID'] !== $this->actor() ||
@@ -652,35 +652,43 @@ final class PhorgeOrganizationService extends Phobject {
   }
 
   public function readActorCapabilities() {
-    $this->begin(array());
+    $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
-      $result = array('manage_units' => $this->actorSnapshot->isSystemAdmin());
-      $this->finish(true); return $result;
-    } catch (Throwable $error) { $this->finish(false); throw $error; }
+      $this->begin(array());
+      try {
+        $result = array('manage_units' => $this->actorSnapshot->isSystemAdmin());
+        $this->finish(true); return $result;
+      } catch (Throwable $error) { $this->finish(false); throw $error; }
+
+    } finally { unset($unguarded); }
   }
 
   public function readUnits($limit = 100, $after = null) {
-    $this->limit($limit);
-    if ($after !== null && !PhorgeGovernanceOrganizationRequest::identifier($after, 64)) {
-      throw new InvalidArgumentException('organization_cursor_refused');
-    }
-    $this->begin(array());
+    $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
-      $this->startRead();
-      $rows = queryfx_all($this->connection,
-        'SELECT u.* FROM %T u WHERE u.state=%s AND u.kind IN (%Ls) '.
-        'AND u.version>0 AND u.unitID>%s AND (%Q) ORDER BY u.unitID LIMIT %d',
-        $this->table('unit'), 'active', array('team', 'department'),
-        $after === null ? '' : $after, $this->visibleSQL(), $limit);
-      $result = array(); foreach ($rows as $row) { $result[] = $this->publicUnit($row); }
-      // A role expiring while producing a response does not return a stale list.
-      foreach ($rows as $row) {
-        if (!$this->visibleUnit($row['unitID'])) {
-          throw new RuntimeException('organization_read_authority_expired');
-        }
+      $this->limit($limit);
+      if ($after !== null && !PhorgeGovernanceOrganizationRequest::identifier($after, 64)) {
+        throw new InvalidArgumentException('organization_cursor_refused');
       }
-      $this->finish(true); return $result;
-    } catch (Throwable $error) { $this->finish(false); throw $error; }
+      $this->begin(array());
+      try {
+        $this->startRead();
+        $rows = queryfx_all($this->connection,
+          'SELECT u.* FROM %T u WHERE u.state=%s AND u.kind IN (%Ls) '.
+          'AND u.version>0 AND u.unitID>%s AND (%Q) ORDER BY u.unitID LIMIT %d',
+          $this->table('unit'), 'active', array('team', 'department'),
+          $after === null ? '' : $after, $this->visibleSQL(), $limit);
+        $result = array(); foreach ($rows as $row) { $result[] = $this->publicUnit($row); }
+        // A role expiring while producing a response does not return a stale list.
+        foreach ($rows as $row) {
+          if (!$this->visibleUnit($row['unitID'])) {
+            throw new RuntimeException('organization_read_authority_expired');
+          }
+        }
+        $this->finish(true); return $result;
+      } catch (Throwable $error) { $this->finish(false); throw $error; }
+
+    } finally { unset($unguarded); }
   }
 
   private function captureUnitCount() {
@@ -702,90 +710,102 @@ final class PhorgeOrganizationService extends Phobject {
   }
 
   public function countUnits() {
-    $this->begin(array());
+    $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
-      $this->startRead();
-      $result = $this->captureUnitCount(); $this->finish(true); return $result;
-    } catch (Throwable $error) { $this->finish(false); throw $error; }
+      $this->begin(array());
+      try {
+        $this->startRead();
+        $result = $this->captureUnitCount(); $this->finish(true); return $result;
+      } catch (Throwable $error) { $this->finish(false); throw $error; }
+
+    } finally { unset($unguarded); }
   }
 
   public function readMembers($unitID, $limit = 100) {
-    $this->limit($limit);
-    if (!PhorgeGovernanceOrganizationRequest::identifier($unitID, 64)) {
-      throw new InvalidArgumentException('organization_unit_refused');
-    }
-    $this->begin(array());
+    $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
-      $this->startRead();
-      $unit = $this->visibleUnit($unitID);
-      if (!$unit) { throw new RuntimeException('organization_not_visible'); }
-      if ($unit['kind'] === 'department') {
-        $rows = queryfx_all($this->connection,
-          'SELECT d.userPHID,d.version primaryVersion,p.isDisabled,p.isApproved,p.isSystemAgent,p.isMailingList '.
-          'FROM %T d JOIN %R p ON p.phid=d.userPHID '.
-          'WHERE d.unitID=%s AND d.version>0 ORDER BY d.userPHID LIMIT %d',
-          $this->table('primarydepartment'), new PhabricatorUser(), $unitID, $limit);
-      } else {
-        $rows = queryfx_all($this->connection,
-          'SELECT m.userPHID,m.version memberVersion,m.validFrom,m.validUntil,'.
-          '(SELECT a.version FROM %T a WHERE a.unitID=m.unitID AND a.userPHID=m.userPHID) appointmentVersion,'.
-          'p.isDisabled,p.isApproved,p.isSystemAgent,p.isMailingList '.
-          'FROM %T m JOIN %R p ON p.phid=m.userPHID '.
-          'WHERE m.unitID=%s AND m.state=%s AND m.version>0 '.
-          'AND m.validFrom<=UNIX_TIMESTAMP() '.
-          'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
-          'ORDER BY m.userPHID LIMIT %d', $this->table('appointment'), $this->table('member'),
-          new PhabricatorUser(), $unitID, 'active', $limit);
+      $this->limit($limit);
+      if (!PhorgeGovernanceOrganizationRequest::identifier($unitID, 64)) {
+        throw new InvalidArgumentException('organization_unit_refused');
       }
-      $result = array();
-      foreach ($rows as $row) {
-        if (array_key_exists('validUntil', $row)) { $this->fenceRead($row['validUntil']); }
-        $eligible = (string)$row['isDisabled'] === '0' &&
-          (string)$row['isApproved'] === '1' && (string)$row['isSystemAgent'] === '0' &&
-          (string)$row['isMailingList'] === '0';
-        $result[] = array('user_phid' => $row['userPHID'], 'account_eligible' => $eligible,
-          'member_version' => isset($row['memberVersion']) ? self::version($row['memberVersion']) : null,
-          'appointment_version' => isset($row['appointmentVersion']) ? self::version($row['appointmentVersion']) : 0,
-          'primary_department_version' => isset($row['primaryVersion']) ? self::version($row['primaryVersion']) : null,
-          'valid_from' => isset($row['validFrom']) ? self::version($row['validFrom']) : null,
-          'valid_until' => isset($row['validUntil']) ? self::version($row['validUntil']) : null);
-      }
-      if (!$this->visibleUnit($unitID)) {
-        throw new RuntimeException('organization_read_authority_expired');
-      }
-      $this->finish(true); return $result;
-    } catch (Throwable $error) { $this->finish(false); throw $error; }
+      $this->begin(array());
+      try {
+        $this->startRead();
+        $unit = $this->visibleUnit($unitID);
+        if (!$unit) { throw new RuntimeException('organization_not_visible'); }
+        if ($unit['kind'] === 'department') {
+          $rows = queryfx_all($this->connection,
+            'SELECT d.userPHID,d.version primaryVersion,p.isDisabled,p.isApproved,p.isSystemAgent,p.isMailingList '.
+            'FROM %T d JOIN %R p ON p.phid=d.userPHID '.
+            'WHERE d.unitID=%s AND d.version>0 ORDER BY d.userPHID LIMIT %d',
+            $this->table('primarydepartment'), new PhabricatorUser(), $unitID, $limit);
+        } else {
+          $rows = queryfx_all($this->connection,
+            'SELECT m.userPHID,m.version memberVersion,m.validFrom,m.validUntil,'.
+            '(SELECT a.version FROM %T a WHERE a.unitID=m.unitID AND a.userPHID=m.userPHID) appointmentVersion,'.
+            'p.isDisabled,p.isApproved,p.isSystemAgent,p.isMailingList '.
+            'FROM %T m JOIN %R p ON p.phid=m.userPHID '.
+            'WHERE m.unitID=%s AND m.state=%s AND m.version>0 '.
+            'AND m.validFrom<=UNIX_TIMESTAMP() '.
+            'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
+            'ORDER BY m.userPHID LIMIT %d', $this->table('appointment'), $this->table('member'),
+            new PhabricatorUser(), $unitID, 'active', $limit);
+        }
+        $result = array();
+        foreach ($rows as $row) {
+          if (array_key_exists('validUntil', $row)) { $this->fenceRead($row['validUntil']); }
+          $eligible = (string)$row['isDisabled'] === '0' &&
+            (string)$row['isApproved'] === '1' && (string)$row['isSystemAgent'] === '0' &&
+            (string)$row['isMailingList'] === '0';
+          $result[] = array('user_phid' => $row['userPHID'], 'account_eligible' => $eligible,
+            'member_version' => isset($row['memberVersion']) ? self::version($row['memberVersion']) : null,
+            'appointment_version' => isset($row['appointmentVersion']) ? self::version($row['appointmentVersion']) : 0,
+            'primary_department_version' => isset($row['primaryVersion']) ? self::version($row['primaryVersion']) : null,
+            'valid_from' => isset($row['validFrom']) ? self::version($row['validFrom']) : null,
+            'valid_until' => isset($row['validUntil']) ? self::version($row['validUntil']) : null);
+        }
+        if (!$this->visibleUnit($unitID)) {
+          throw new RuntimeException('organization_read_authority_expired');
+        }
+        $this->finish(true); return $result;
+      } catch (Throwable $error) { $this->finish(false); throw $error; }
+
+    } finally { unset($unguarded); }
   }
 
   public function readUserTeams($subject, $limit = 100) {
-    $this->limit($limit);
-    if (!PhorgeGovernanceOrganizationRequest::userID($subject)) {
-      throw new InvalidArgumentException('organization_subject_refused');
-    }
-    $this->begin(array($subject));
+    $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
-      $this->startRead();
-      $rows = queryfx_all($this->connection,
-        'SELECT u.*,m.validUntil AS subjectMemberUntil FROM %T u JOIN %T m ON m.unitID=u.unitID '.
-        'JOIN %R p ON p.phid=m.userPHID WHERE m.userPHID=%s '.
-        'AND p.isApproved=1 AND p.isDisabled=0 AND p.isSystemAgent=0 '.
-        'AND p.isMailingList=0 AND m.state=%s AND m.version>0 '.
-        'AND m.validFrom<=UNIX_TIMESTAMP() '.
-        'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
-        'AND u.kind=%s AND u.state=%s AND u.version>0 AND (%Q) '.
-        'ORDER BY u.unitID LIMIT %d', $this->table('unit'), $this->table('member'),
-        new PhabricatorUser(), $subject, 'active', 'team', 'active',
-        $this->visibleSQL(), $limit);
-      $result = array(); foreach ($rows as $row) {
-        $this->fenceRead($row['subjectMemberUntil']);
-        $result[] = $this->publicUnit($row);
+      $this->limit($limit);
+      if (!PhorgeGovernanceOrganizationRequest::userID($subject)) {
+        throw new InvalidArgumentException('organization_subject_refused');
       }
-      foreach ($rows as $row) {
-        if (!$this->visibleUnit($row['unitID'])) {
-          throw new RuntimeException('organization_read_authority_expired');
+      $this->begin(array($subject));
+      try {
+        $this->startRead();
+        $rows = queryfx_all($this->connection,
+          'SELECT u.*,m.validUntil AS subjectMemberUntil FROM %T u JOIN %T m ON m.unitID=u.unitID '.
+          'JOIN %R p ON p.phid=m.userPHID WHERE m.userPHID=%s '.
+          'AND p.isApproved=1 AND p.isDisabled=0 AND p.isSystemAgent=0 '.
+          'AND p.isMailingList=0 AND m.state=%s AND m.version>0 '.
+          'AND m.validFrom<=UNIX_TIMESTAMP() '.
+          'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
+          'AND u.kind=%s AND u.state=%s AND u.version>0 AND (%Q) '.
+          'ORDER BY u.unitID LIMIT %d', $this->table('unit'), $this->table('member'),
+          new PhabricatorUser(), $subject, 'active', 'team', 'active',
+          $this->visibleSQL(), $limit);
+        $result = array(); foreach ($rows as $row) {
+          $this->fenceRead($row['subjectMemberUntil']);
+          $result[] = $this->publicUnit($row);
         }
-      }
-      $this->finish(true); return $result;
-    } catch (Throwable $error) { $this->finish(false); throw $error; }
+        foreach ($rows as $row) {
+          if (!$this->visibleUnit($row['unitID'])) {
+            throw new RuntimeException('organization_read_authority_expired');
+          }
+        }
+        $this->finish(true); return $result;
+      } catch (Throwable $error) { $this->finish(false); throw $error; }
+
+    } finally { unset($unguarded); }
   }
 }

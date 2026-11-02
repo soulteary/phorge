@@ -20,7 +20,7 @@ final class PhorgeGovernanceIdentityEpoch extends PhabricatorUserDAO {
     }
     foreach (array($user, new self()) as $table) {
       $column = $table instanceof self ? 'userPHID' : 'id';
-      queryfx_one($conn, 'SELECT %C FROM %R WHERE 1=0 FOR SHARE', $column, $table);
+      queryfx_one($conn, 'SELECT %C FROM %R WHERE 1=0 LOCK IN SHARE MODE', $column, $table);
       $engine = queryfx_one($conn,
         'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s',
         $table->getTableName());

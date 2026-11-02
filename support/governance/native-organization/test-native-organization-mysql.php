@@ -4,7 +4,9 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phase=$arguments === array() ? 'all' : 'invalid';
+$phase=$arguments === array() ? 'all' :
+  ($arguments === array('--legacy-sql-compatibility') ? 'legacy-sql-compatibility' : 'invalid');
+$legacy_compatibility=$phase==='legacy-sql-compatibility';
 $fixture = null;
 $control = null;
 $environment_state = null;
@@ -28,6 +30,7 @@ $queue_profile = getenv('PHORGE_GOVERNANCE_COMPLETION_QUEUE_PROFILE');
 $queue_profile = $queue_profile === false || $queue_profile === '' ? 'native' : $queue_profile;
 $summary = array();
 $native=null;
+$reader_adapter_exercised=false;
 $worker_cleanup=null;
 $superglobal_state=array('_COOKIE'=>$_COOKIE,'_SERVER'=>$_SERVER);
 $check = function($condition,$name) use (&$checks,&$stage) {
@@ -90,27 +93,37 @@ try {
     $summary['app_schema_count'] === 54 &&
     $summary['patch_audit']['current_patch_ledger_complete'],
     'full-current-source-quickstart-and-patch-ledger-restored');
-  $reader_proof = PhorgeGovernanceNativeSourceReader::newFixture($fixture->getReaderConfig());
-  $reader_proof = null;
-  $check(true,'completion-reader-real-select-only-grants-and-lineage-proved');
-  foreach (array('writer'=>$fixture->getWriterConfig(),'reader'=>$fixture->getReaderConfig()) as $role=>$role_config) {
-    $role_connection = new mysqli($role_config['host'],$role_config['user'],
-      $role_config['password'],'',$role_config['port']);
-    try {
-      $sql = $role === 'writer' ?
-        'CREATE TABLE `'.$role_config['namespace'].'_user`.`forbidden_completion_ddl` (id INT)' :
-        'UPDATE '.$fixture->table('user','user').' SET dateModified=dateModified WHERE 1=0';
-      $denied = false;
-      try { $role_connection->query($sql); }
-      catch (mysqli_sql_exception $error) { $denied=in_array($error->getCode(),array(1142,1044),true); }
-      $check($denied,'completion-'.$role.'-forbidden-privilege-denied');
-      $denied = false;
-      try { $role_connection->query('UPDATE '.$fixture->table('governance','fixture_guard').
-        ' SET quickstart_sha256=quickstart_sha256 WHERE 1=0'); }
-      catch (mysqli_sql_exception $error) { $denied=in_array($error->getCode(),array(1142,1044),true); }
-      $check($denied,'completion-'.$role.'-cannot-modify-ownership-marker');
-    } finally { $role_connection->close(); }
+  if (!$legacy_compatibility) {
+    $reader_proof = PhorgeGovernanceNativeSourceReader::newFixture($fixture->getReaderConfig());
+    $reader_proof = null;
+    $reader_adapter_exercised=true;
+    $check(true,'completion-reader-real-select-only-grants-and-lineage-proved');
   }
+  // The focused legacy profile still checks actual restricted writer/reader
+  // privileges below, but does not exercise the optional source-reader adapter.
+
+  $privilege_probe_mode=(new mysqli_driver())->report_mode;
+  try {
+    mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
+    foreach (array('writer'=>$fixture->getWriterConfig(),'reader'=>$fixture->getReaderConfig()) as $role=>$role_config) {
+      $role_connection = new mysqli($role_config['host'],$role_config['user'],
+        $role_config['password'],'',$role_config['port']);
+      try {
+        $sql = $role === 'writer' ?
+          'CREATE TABLE `'.$role_config['namespace'].'_user`.`forbidden_completion_ddl` (id INT)' :
+          'UPDATE '.$fixture->table('user','user').' SET dateModified=dateModified WHERE 1=0';
+        $denied = false;
+        try { $role_connection->query($sql); }
+        catch (mysqli_sql_exception $error) { $denied=in_array($error->getCode(),array(1142,1044),true); }
+        $check($denied,'completion-'.$role.'-forbidden-privilege-denied');
+        $denied = false;
+        try { $role_connection->query('UPDATE '.$fixture->table('governance','fixture_guard').
+          ' SET quickstart_sha256=quickstart_sha256 WHERE 1=0'); }
+        catch (mysqli_sql_exception $error) { $denied=in_array($error->getCode(),array(1142,1044),true); }
+        $check($denied,'completion-'.$role.'-cannot-modify-ownership-marker');
+      } finally { $role_connection->close(); }
+    }
+  } finally { mysqli_report($privilege_probe_mode); }
   if (PhabricatorEnv::getConfigSourceStack() !== null ||
       (new ReflectionProperty(LiskDAO::class,'connections'))->getValue()) {
     throw new LogicException('Inherited native SQL/configuration refused before ownership.');
@@ -130,7 +143,8 @@ try {
     'cluster.databases'=>array(),'cluster.search'=>array(),
     'phabricator.base-uri'=>'http://fixture.invalid/',
     'phabricator.silent'=>false,'policy.allow-public'=>false,
-    'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
+    'governance.organization.enabled'=>!$legacy_compatibility,
+    'governance.media-exchange.enabled'=>!$legacy_compatibility,
     'projects.default-navigation'=>'flat','project.history-state'=>'off',
     'project.workspace-mode'=>'native','project.history-task-drafts'=>false,
     'gorge.search.source-scan'=>false,'gorge.search.projection-shadow'=>false,
@@ -154,15 +168,21 @@ try {
       }
     }
   });
-  require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
-  $stage='owned-real-gorge-file-service';
-  $file_service=governance_completion_start_gorge($fixture,'file',$check);
-  $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],
-    'gorge.file.token'=>$file_service['token']));
-  (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
-  $stage='native-organization-and-media-positive';
-  require_once __DIR__.'/native-cases.php';
-  $native=governance_native_organization_cases($fixture,$check);
+  if ($legacy_compatibility) {
+    $stage='focused-native-legacy-role-sql-compatibility';
+    require_once __DIR__.'/legacy-sql-compatibility-cases.php';
+    $native=governance_native_legacy_sql_compatibility_cases($fixture,$check);
+  } else {
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';
+    $file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],
+      'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+    $stage='native-organization-and-media-positive';
+    require_once __DIR__.'/native-cases.php';
+    $native=governance_native_organization_cases($fixture,$check);
+  }
 } catch (Throwable $error) {
   $failure = array('stage'=>$stage,'error_type'=>get_class($error),
     'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
@@ -241,9 +261,11 @@ if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)
   $failure = array('stage'=>'unexpected-native-runtime-output','error_type'=>'RuntimeWarning');
 }
 $passed = $failure === null && !$cleanup_failures;
-echo json_encode(array('batch'=>'native-organization-media-integration','passed'=>$passed,
-  'scope'=>'owned-full-native-source-synthetic-accounts','checks'=>$checks,'check_count'=>count($checks),
+echo json_encode(array('batch'=>$legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration','passed'=>$passed,
+  'scope'=>$legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts','checks'=>$checks,'check_count'=>count($checks),
   'php_version'=>PHP_VERSION,'source_restore'=>$summary,'native'=>$native,
+  'optional_source_reader_adapter_exercised'=>$reader_adapter_exercised,
+  'isolated_optional_features_enabled'=>!$legacy_compatibility,
   'worker_cleanup'=>$worker_cleanup,'file_service_cleanup'=>$file_service_cleanup,
   'successful_owned_file_service_startups'=>count(array_intersect($checks,array('completion-real-gorge-file-ready-loopback'))),
   'cleanup'=>$cleanup,'failure'=>$failure,'cleanup_failures'=>$cleanup_failures,
@@ -253,7 +275,8 @@ echo json_encode(array('batch'=>'native-organization-media-integration','passed'
   'production_deployment'=>false,'production_executor'=>false,
   'production_optional_features_enabled'=>false,
   'native_permission_axes_changed'=>false,
-  'remaining_blocked'=>array('media-http-and-cookie-integration',
-    'file-object-guards','notification-producers','global-governance-completion')),
+  'remaining_blocked'=>$legacy_compatibility
+    ? array('optional-backend-mariadb-compatibility','full-database-version-matrix','global-governance-completion')
+    : array('media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion')),
   JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
 exit($passed?0:1);

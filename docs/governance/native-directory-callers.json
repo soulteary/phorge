@@ -99,7 +99,7 @@
       "path": "src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php",
       "symbol": "PhorgeGovernanceIdentityEpoch",
       "kind": "candidate-runtime-source",
-      "sha256": "c55b9569f5b78d971554e52cc9eefa1c88b3b3455204499828e116f823b663a9",
+      "sha256": "1beae58c032a75f3eb4860c71281b7dbf5af9a0a1b58d9b975758578d6e0987c",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -132,7 +132,7 @@
       "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
       "symbol": "PhorgeGovernanceNativeIdentitySource",
       "kind": "candidate-runtime-source",
-      "sha256": "21cb8dd3efb3aefac5788e70e37b65a7cc8c39a7150dfd943ec5d5bc2cf905da",
+      "sha256": "ff09a7fddfc5e4597a856a4e4e1fc5fbc6a246dd04dd838f4f4180ce7d98d693",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -220,7 +220,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
       "symbol": "PhorgeOrganizationService",
       "kind": "candidate-runtime-source",
-      "sha256": "88ab6ba82af535c34d7c2bb01697288beb8c641a6daff8e272c6b79279f2bc29",
+      "sha256": "45d57594fbb37e8ab79a37fbe998b06b3137a25e877069d23262536a2c665896",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -286,7 +286,7 @@
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
       "symbol": "PhorgeGovernanceMediaExchangeService",
       "kind": "candidate-runtime-source",
-      "sha256": "b4cba3d8958f5c2aa53f670e1225b5796c40aa644181afdfef645a5e924772b0",
+      "sha256": "cad35f3693e92941aa7a3d9b70de581d2908607fae63a0e75baf1e872089e666",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -453,7 +453,7 @@
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php",
-        "sha256": "c55b9569f5b78d971554e52cc9eefa1c88b3b3455204499828e116f823b663a9"
+        "sha256": "1beae58c032a75f3eb4860c71281b7dbf5af9a0a1b58d9b975758578d6e0987c"
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php",
@@ -465,7 +465,7 @@
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
-        "sha256": "21cb8dd3efb3aefac5788e70e37b65a7cc8c39a7150dfd943ec5d5bc2cf905da"
+        "sha256": "ff09a7fddfc5e4597a856a4e4e1fc5fbc6a246dd04dd838f4f4180ce7d98d693"
       },
       {
         "path": "src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php",
@@ -497,7 +497,7 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
-        "sha256": "88ab6ba82af535c34d7c2bb01697288beb8c641a6daff8e272c6b79279f2bc29"
+        "sha256": "45d57594fbb37e8ab79a37fbe998b06b3137a25e877069d23262536a2c665896"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",
@@ -561,7 +561,7 @@
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
-        "sha256": "b4cba3d8958f5c2aa53f670e1225b5796c40aa644181afdfef645a5e924772b0"
+        "sha256": "cad35f3693e92941aa7a3d9b70de581d2908607fae63a0e75baf1e872089e666"
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php",

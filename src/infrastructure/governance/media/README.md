@@ -51,3 +51,11 @@ attributes and clearing, concrete file/read/transform guards, cache and active
 content controls, native session lifecycle tests, browser tests, and all mail
 producer integration. This engine alone is not N09/N10/N11 completion, production
 enablement, or a migration of any native project permission axis.
+
+Authentication grants a narrow scoped CSRF write-guard exception only for native
+START/COMMIT/ROLLBACK bookkeeping. Credential and identity-source reads execute
+after that short scope ends. Browser preparation, issuance, and redemption retain
+the request write guard; the identity-read exception does not authorize them.
+The shared metadata-lock spelling is portable to the focused legacy-role database
+profile, but this does not claim complete optional-directory support on every
+MariaDB version or topology.

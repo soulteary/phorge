@@ -11,6 +11,43 @@ function governance_native_media_cases($fixture, callable $check, array &$state)
   $redeem=static function($transaction,$code,$secret,$return=null) use ($media,$path) {
     return $media->redeem($transaction,$code,$secret,'phorge-files','private-media',$return??$path);
   };
+  // Exercise the actual request CSRF write guard, not only the fixture owner guard.
+  // All pooled native connections belong to this fixture and have no active txn.
+  LiskDAO::closeAllConnections();
+  $old_method=$_SERVER['REQUEST_METHOD'];
+  $before_get=governance_native_media_fingerprint($fixture);
+  try {
+    $_SERVER['REQUEST_METHOD']='GET';
+    $get_request=(new AphrontRequest('fixture.invalid',$path))->setUser($state['admin']['viewer'])
+      ->setRequestData(array());
+    governance_native_with_request_write_guard($get_request,function() use ($fixture,$media,$state,$get_request,$check,$path) {
+      $snapshot=$media->authenticate($state['media_credential']->openEnvelope());
+      $check($snapshot->getUserPHID()===$state['admin']['viewer']->getPHID(),
+        'native-media-valid-credential-authenticates-on-real-csrf-guarded-get');
+      governance_native_refused(fn()=>$media->authenticate(str_repeat('0',64)),
+        'media_credential_refused',$check,'native-media-invalid-credential-refused-on-csrf-guarded-get');
+      $conn=(new PhabricatorUser())->establishConnection('w');
+      $blocked=false;
+      try { queryfx($conn,'UPDATE %T SET generation=generation WHERE 1=0','governance_mediabrowser'); }
+      catch (AphrontMalformedRequestException $error) { $blocked=true; }
+      $check($blocked,'native-media-authentication-restores-request-guard-before-ordinary-write');
+      foreach (array('prepare','redeem') as $action) {
+        $blocked=false;
+        try {
+          if ($action==='prepare') { $media->beginBrowserTransaction(); }
+          else { $media->redeem(str_repeat('0',64),str_repeat('0',64),str_repeat('0',64),
+            'phorge-files','private-media',$path); }
+        } catch (AphrontMalformedRequestException $error) { $blocked=true; }
+        $check($blocked,'native-media-csrf-guarded-get-does-not-unguard-public-'.$action);
+      }
+      governance_native_refused(fn()=>$media->issue($get_request,str_repeat('0',64),
+        'phorge-files','private-media',$path),'media_exchange_request_refused',$check,
+        'native-media-csrf-guarded-get-does-not-enable-public-issuance');
+      $check(!$conn->isInsideTransaction(),'native-media-csrf-guarded-get-releases-identity-transactions');
+    });
+  } finally { $_SERVER['REQUEST_METHOD']=$old_method; }
+  $check(governance_native_media_fingerprint($fixture)===$before_get,
+    'native-media-csrf-guarded-get-does-not-mutate-media-ledgers');
   $old_enabled=PhabricatorEnv::getEnvConfig('governance.media-exchange.enabled');
   $before=governance_native_media_fingerprint($fixture);
   try {
