@@ -34,15 +34,11 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     return (int)$text+1;
   }
 
-  public static function validateTarget($audience, $purpose, $path) {
-    if ($audience !== self::AUDIENCE || $purpose !== self::PURPOSE ||
-        !is_string($path) || strlen($path) > 1024 ||
-        !preg_match('@\A/file/(?:data|xform)/[a-zA-Z0-9_./-]+\z@D', $path) ||
-        strpos($path, '..') !== false || strpos($path, '//') !== false ||
-        preg_match('@(?:^|/)\.(?:/|$)@', $path)) {
+  public static function validateTarget($audience, $purpose, $path, $instance = null) {
+    if ($audience!==self::AUDIENCE||$purpose!==self::PURPOSE) {
       throw new InvalidArgumentException('media_exchange_target_refused');
     }
-    return $path;
+    return PhorgeGovernanceMediaTarget::fromPath($path,$instance)->getReturnPath();
   }
 
   private static function enabled() {
@@ -65,11 +61,20 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
         $connection->isInsideTransaction()) {
       throw new RuntimeException('media_exchange_transaction_context_refused');
     }
-    $connection->openTransaction();
+    $default=queryfx_one($connection,'SELECT @@SESSION.transaction_isolation AS isolationLevel');
+    $restore=array('READ-UNCOMMITTED'=>'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
+      'READ-COMMITTED'=>'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
+      'REPEATABLE-READ'=>'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
+      'SERIALIZABLE'=>'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+    if(!$default||!isset($restore[$default['isolationLevel']])){throw new RuntimeException('media_transaction_isolation_refused');}
+    $queued=false;
     try {
+      queryfx($connection,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$queued=true;
+      $connection->openTransaction();$queued=false;
       foreach (array('governance_mediabrowser' => 'browserDigest',
         'governance_mediaexchange' => 'transactionDigest',
-        'governance_mediacredential' => 'secretDigest') as $table => $key) {
+        'governance_mediacredential' => 'secretDigest',
+        'governance_mediaquota' => 'bucketDigest') as $table => $key) {
         // Retain native metadata locks until commit/rollback before any mutation.
         queryfx_all($connection, 'SELECT %C FROM %T WHERE 1=0 LOCK IN SHARE MODE', $key, $table);
         $engine = queryfx_one($connection,
@@ -79,7 +84,9 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
         }
       }
     } catch (Throwable $error) {
-      $connection->killTransaction();
+      if($connection->isInsideTransaction()){$connection->killTransaction();}
+      if($queued){queryfx($connection,$restore[$default['isolationLevel']]);}
+      if($error instanceof AphrontMalformedRequestException){throw $error;}
       throw new RuntimeException('media_exchange_transactional_schema_required');
     }
   }
@@ -98,9 +105,16 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
   }
 
   /** Anonymous transaction preparation grants no file or account access. */
-  public function beginBrowserTransaction($browser_secret = null) {
+  public function beginBrowserTransaction($browser_secret = null,
+    ?PhorgeGovernanceMediaTarget $target = null, ?AphrontRequest $request = null, $client_nonce = null) {
     $connection = self::connection();
     $issuer = PhorgeGovernanceMediaIssuer::newFromConfiguration();
+    if ($target===null||$request===null) { throw new RuntimeException('media_prepared_target_required'); }
+    self::validateSecret($client_nonce);
+    self::validateTarget(self::AUDIENCE,self::PURPOSE,$target->getReturnPath(),
+      PhabricatorEnv::getEnvConfig('cluster.instance') ?: null);
+    $address=$request->getRemoteAddress();
+    if(!is_string($address)||filter_var($address,FILTER_VALIDATE_IP)===false){throw new RuntimeException('media_transport_address_required');}
     $new_browser = ($browser_secret === null);
     $secret = $new_browser ? bin2hex(random_bytes(32)) : self::validateSecret($browser_secret);
     $digest = $issuer->digest('browser', $secret);
@@ -108,15 +122,20 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     self::begin($connection);
     try {
       $now = self::now($connection);
+      $this->reservePreparation($connection,$issuer,$digest,$address,$now);
       if ($new_browser) {
+        $this->assertCapacity($connection,2);
         queryfx($connection, 'INSERT INTO %T (browserDigest,generation,expiresAt,issuerIncarnation) VALUES (%s,1,%d,%s)',
           'governance_mediabrowser', $digest, $now + self::BROWSER_TTL, $issuer->getIncarnation());
       }
       $browser = self::browser($connection, $digest, $issuer);
+      queryfx($connection,'DELETE FROM %T WHERE browserDigest=%s AND codeDigest IS NULL','governance_mediaexchange',$digest);
+      $this->assertCapacity($connection,1);
       $expires = min($now + self::TRANSACTION_TTL, (int)$browser['expiresAt']);
-      queryfx($connection, 'INSERT INTO %T (transactionDigest,browserDigest,generation,expiresAt,issuerIncarnation) VALUES (%s,%s,%d,%d,%s)',
+      queryfx($connection, 'INSERT INTO %T (transactionDigest,browserDigest,generation,expiresAt,issuerIncarnation,targetJSON,targetDigest,clientNonceDigest) VALUES (%s,%s,%d,%d,%s,%s,%s,%s)',
         'governance_mediaexchange', $issuer->digest('transaction', $transaction), $digest,
-        $browser['generation'], $expires, $issuer->getIncarnation());
+        $browser['generation'], $expires, $issuer->getIncarnation(),$target->getCanonicalJSON(),$target->getDigest(),
+        $issuer->digest('client-nonce',$client_nonce));
       $issuer->assertCurrent();
       $connection->saveTransaction();
       return array('transaction_id' => $transaction,
@@ -129,10 +148,10 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
   }
 
   /** Must be called from the actual application's CSRF-protected web request. */
-  public function issue(AphrontRequest $request, $transaction, $audience, $purpose, $path) {
+  public function issue(AphrontRequest $request, $transaction, $audience, $purpose, $path, $client_nonce = null) {
     self::enabled();
-    self::validateSecret($transaction);
-    self::validateTarget($audience, $purpose, $path);
+    self::validateSecret($transaction); self::validateSecret($client_nonce);
+    self::validateTarget($audience, $purpose, $path,PhabricatorEnv::getEnvConfig('cluster.instance') ?: null);
     if (!$request->isHTTPPost()) { throw new RuntimeException('media_exchange_request_refused'); }
     $request->validateCSRF();
     $context = PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
@@ -141,6 +160,7 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     self::begin($connection);
     try {
       $exchange = $this->lockExchange($connection, $transaction, $issuer);
+      $this->assertPreparedTarget($exchange,$issuer,$path,$client_nonce);
       $snapshot = PhorgeGovernanceNativeIdentitySource::lockCurrent($context, $connection);
       $now = self::now($connection);
       $expires = min($now + self::CODE_TTL, $snapshot->getExpiresAt(),
@@ -188,14 +208,16 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     return $row;
   }
 
-  public function redeem($transaction, $code, $browser_secret, $audience, $purpose, $path) {
-    self::validateSecret($transaction); self::validateSecret($code);
-    self::validateSecret($browser_secret); self::validateTarget($audience, $purpose, $path);
+  public function redeem($transaction, $code, $browser_secret, $audience, $purpose, $path, $client_nonce = null) {
+    self::validateSecret($transaction); self::validateSecret($code); self::validateSecret($client_nonce);
+    self::validateSecret($browser_secret); self::validateTarget($audience, $purpose, $path,PhabricatorEnv::getEnvConfig('cluster.instance') ?: null);
     $connection = self::connection();
     $issuer = PhorgeGovernanceMediaIssuer::newFromConfiguration();
     self::begin($connection);
     try {
+      $this->lockCapacity($connection);
       $row = $this->lockExchange($connection, $transaction, $issuer);
+      $this->assertPreparedTarget($row,$issuer,$path,$client_nonce);
       if (!hash_equals($row['browserDigest'], $issuer->digest('browser', $browser_secret)) ||
           !is_string($row['codeDigest']) || !hash_equals($row['codeDigest'], $issuer->digest('code', $code)) ||
           $row['audience'] !== $audience || $row['purpose'] !== $purpose || $row['returnPath'] !== $path) {
@@ -207,6 +229,7 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
       $expires = min($now + self::CREDENTIAL_TTL, $snapshot->getExpiresAt(),
         (int)$row['_browserExpiresAt']);
       if ($expires <= $now) { throw new RuntimeException('media_exchange_expired'); }
+      $this->assertCapacity($connection,1);
       $secret = bin2hex(random_bytes(32));
       $generation = (int)$row['generation'];
       queryfx($connection, 'UPDATE %T SET revokedAt=%d WHERE browserDigest=%s AND revokedAt IS NULL',
@@ -229,6 +252,68 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
       $connection->killTransaction();
       throw new RuntimeException('media_exchange_redemption_refused');
     }
+  }
+
+  private function assertPreparedTarget(array $row, PhorgeGovernanceMediaIssuer $issuer, $path, $nonce) {
+    $target=PhorgeGovernanceMediaTarget::fromPath($path,PhabricatorEnv::getEnvConfig('cluster.instance') ?: null);
+    if(!is_string($row['targetJSON']??null)||!hash_equals($row['targetJSON'],$target->getCanonicalJSON())||
+        !is_string($row['targetDigest']??null)||!hash_equals($row['targetDigest'],$target->getDigest())||
+        !is_string($row['clientNonceDigest']??null)||!hash_equals($row['clientNonceDigest'],$issuer->digest('client-nonce',$nonce))){
+      throw new RuntimeException('media_prepared_target_binding_refused');
+    }
+  }
+
+  private function reservePreparation(AphrontDatabaseConnection $conn, PhorgeGovernanceMediaIssuer $issuer,
+    $browser, $address, $now) {
+    $this->lockCapacity($conn);
+    // Fixed admission mutex precedes counters, browser and exchange locks.
+    foreach(array(array('global','all',600),array('client',$address,120),array('browser',$browser,6)) as $entry){
+      list($scope,$value,$limit)=$entry;
+      $digest=$issuer->digest('rate-client',$scope.':'.$value);
+      queryfx($conn,'INSERT IGNORE INTO %T (bucketDigest,windowStart,attempts,expiresAt) VALUES (%s,%d,0,%d)',
+        'governance_mediaquota',$digest,$now,$now+120);
+      $row=queryfx_one($conn,'SELECT * FROM %T WHERE bucketDigest=%s FOR UPDATE','governance_mediaquota',$digest);
+      $start=(int)$row['windowStart'];$count=(int)$row['attempts'];
+      if($now<$start){throw new RuntimeException('media_quota_clock_refused');}
+      if($now-$start>=60){$start=$now;$count=0;}
+      if($count>=$limit){throw new RuntimeException('media_preparation_quota_refused');}
+      queryfx($conn,'UPDATE %T SET windowStart=%d,attempts=%d,expiresAt=%d WHERE bucketDigest=%s',
+        'governance_mediaquota',$start,$count+1,$start+120,$digest);
+    }
+  }
+
+  private function lockCapacity(AphrontDatabaseConnection $conn) {
+    // This mutex is not an authentication secret. It spans issuer rotations.
+    $digest=hash('sha256','phorge-media-capacity-mutex:v1');
+    queryfx($conn,'INSERT IGNORE INTO %T (bucketDigest,windowStart,attempts,expiresAt) VALUES (%s,0,0,%d)',
+      'governance_mediaquota',$digest,PHP_INT_MAX-1);
+    $row=queryfx_one($conn,'SELECT * FROM %T WHERE bucketDigest=%s FOR UPDATE','governance_mediaquota',$digest);
+    if(!$row||(string)$row['expiresAt']!==(string)(PHP_INT_MAX-1)||
+      (string)$row['windowStart']!=='0'||(string)$row['attempts']!=='0'){
+      throw new RuntimeException('media_capacity_mutex_refused');
+    }
+  }
+
+  private function assertCapacity(AphrontDatabaseConnection $conn,$added) {
+    $total=0;
+    foreach(array('governance_mediaexchange','governance_mediabrowser','governance_mediacredential','governance_mediaquota') as $table){
+      // Scoped RC ensures fresh statement views after waiting for admission.
+      $count=queryfx_one($conn,'SELECT COUNT(*) n FROM %T',$table);$total+=(int)$count['n'];
+    }
+    if($total+$added>100000){throw new RuntimeException('media_preparation_capacity_refused');}
+  }
+
+  /** Explicit maintenance; no native session, epoch, file or account deletion. */
+  public function cleanupExpired($limit=500) {
+    if(!is_int($limit)||$limit<1||$limit>500){throw new InvalidArgumentException('media_cleanup_budget_refused');}
+    $conn=self::connection();$issuer=PhorgeGovernanceMediaIssuer::newFromConfiguration();self::begin($conn);
+    try{$now=self::now($conn);$removed=array();
+      foreach(array('governance_mediaexchange','governance_mediacredential','governance_mediabrowser','governance_mediaquota') as $table){
+        queryfx($conn,'DELETE FROM %T WHERE expiresAt<=%d ORDER BY expiresAt LIMIT %d',$table,$now,$limit);
+        $removed[$table]=$conn->getAffectedRows();
+      }
+      $issuer->assertCurrent();$conn->saveTransaction();return array('removed'=>$removed,'per_table_limit'=>$limit);
+    }catch(Throwable $error){$conn->killTransaction();throw new RuntimeException('media_cleanup_refused');}
   }
 
   private static function identityTransactionBookkeeping(

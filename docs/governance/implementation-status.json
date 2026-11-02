@@ -102,8 +102,8 @@
       "depends_on": [
         "N00"
       ],
-      "status": "native-media-issuer-and-table-restore-isolated-verified-partial",
-      "remaining": "External media-only issuer HMAC and narrow three-table restore verified while native session/API credentials are retained. Structured targets, quotas/cleanup and actual HTTP/cookie/bootstrap entry points remain; no public route activation.",
+      "status": "native-prepared-target-issuer-and-maintenance-isolated-verified-partial",
+      "remaining": "Current-main directory/issuer plus prepared-target source passed 142 pure /245 actual MySQL-Gorge checks. Original 138/209 target checkpoint retained separately. Canonical target/nonce, persistent quotas, exact total capacity with real waiters, cleanup rollback and native RR preservation verified. HTTP/cookie/file-guard/browser/deployment acceptance remains separate and unproved by this slice.",
       "production_enabled": false
     },
     {

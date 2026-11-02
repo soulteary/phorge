@@ -97,7 +97,10 @@ EXPECTED_SOURCES = {'ORG.ROUTES': ('src/applications/people/application/Phabrica
                                                    'authenticated-datasource-controller'),
  'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
                                         'PhorgeGovernanceMediaIssuer',
-                                        'media-only-external-issuer')}
+                                        'media-only-external-issuer'),
+ 'NATIVE.PhorgeGovernanceMediaTarget': ('src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php',
+                                        'PhorgeGovernanceMediaTarget',
+                                        'immutable-prepared-media-target')}
 
 EXPECTED_SOURCES.update({
  'TYPEAHEAD.BASE': ('src/applications/typeahead/datasource/PhabricatorTypeaheadDatasource.php','PhabricatorTypeaheadDatasource','fixed-normalizer-default'),
@@ -138,6 +141,7 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php',
+ 'src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php',
  'src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php',
  'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
  'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceCapture.php',
@@ -182,7 +186,9 @@ EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationCon
  'NATIVE-LINK-20': ('NATIVE.PhorgeGovernanceMediaExchangeService',
                     'NATIVE.PhorgeGovernanceMediaIssuer'),
  'NATIVE-LINK-21': ('NATIVE.PhorgeGovernanceMediaConfigOptions',
-                    'NATIVE.PhorgeGovernanceMediaIssuer')}
+                    'NATIVE.PhorgeGovernanceMediaIssuer'),
+ 'NATIVE-LINK-26': ('NATIVE.PhorgeGovernanceMediaExchangeService',
+                    'NATIVE.PhorgeGovernanceMediaTarget')}
 
 EXPECTED_LINKS.update({
  'NATIVE-LINK-22': ('NATIVE.PhorgeOrganizationDatasource','TYPEAHEAD.BASE'),

@@ -6,7 +6,7 @@ function governance_native_legacy_role_cases($fixture, callable $check, array $s
   $conn=(new PhabricatorUser())->establishConnection('w');
   $admin=$fixture->getAdmin(); $namespace=$fixture->getNamespace();
   $sessions=$state['sessions']; $actor=$state['users']['admin'];
-  $media=$state['media']; $path='/file/data/key/PHID-FILE-synthetic/name';
+  $media=$state['media']; $path='/file/data/key/PHID-FILE-ssssssssssssssssssss/name';
   $queue_deltas=array();
   $new_user=function($suffix,$is_admin=false) use ($namespace) {
     return (new PhabricatorUser())->setUsername('gl'.$suffix.substr($namespace,-10))
@@ -17,10 +17,10 @@ function governance_native_legacy_role_cases($fixture, callable $check, array $s
     $user=$new_user($kind); $phid=$user->getPHID();
     $request=governance_native_request($user,$sessions);
     $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$request['token'];
-    $browser=$media->beginBrowserTransaction();
-    $issued=$media->issue($request['request'],$browser['transaction_id'],'phorge-files','private-media',$path);
+    $browser=governance_native_prepare_media($media);
+    $issued=$media->issue($request['request'],$browser['transaction_id'],'phorge-files','private-media',$path, governance_native_media_nonce($browser['transaction_id']));
     $redeemed=$media->redeem($browser['transaction_id'],$issued['exchange_code']->openEnvelope(),
-      $browser['browser_secret']->openEnvelope(),'phorge-files','private-media',$path);
+      $browser['browser_secret']->openEnvelope(),'phorge-files','private-media',$path, governance_native_media_nonce($browser['transaction_id']));
     $media->authenticate($redeemed['credential']->openEnvelope());
     $before=queryfx_one($conn,'SELECT epoch FROM organization_identityepoch WHERE userPHID=%s',$phid);
     $transaction_before=queryfx_one($conn,'SELECT MAX(id) n FROM %R WHERE BINARY objectPHID=BINARY %s',new PhabricatorUserTransaction(),$phid);

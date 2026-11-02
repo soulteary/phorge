@@ -1,0 +1,33 @@
+{
+  "scope": "Actual combined current-main directory/issuer plus prepared-target slice; not HTTP/browser/deployment",
+  "base_main": "e74b817db9f31c422134fd6bb630137fbf62e874",
+  "prior_target_checkpoint": "1ab1305cafc8bb338cc4c4d0f73413e9826f1da5",
+  "passed": true,
+  "pure_methods": 142,
+  "native_sql_checks": 245,
+  "worker_cleanup": {
+    "private_directories_removed": 9,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 9
+  },
+  "schema": {
+    "tables": 13,
+    "source_patches": 1566,
+    "current_tables": 530
+  },
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "artifact_sha256": {
+    "integration.json": "6a8bd34cf88dd3ea2d13b3cc9b17b0283b58c04aef619e178c27a04fba685a3f",
+    "native-methods.json": "156b813f8ca3f6cc43fbb5e90b73596b906c02fbac69a4b75d399920b08a24c4"
+  },
+  "native_permission_axes_changed": false,
+  "production_optional_features_enabled": false,
+  "http_browser_deployment_proved": false
+}

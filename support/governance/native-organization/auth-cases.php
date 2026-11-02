@@ -153,10 +153,10 @@ function governance_native_auth_cases($fixture, callable $check, array $state) {
   $fresh_service=PhorgeOrganizationService::newForActor($fresh['context']);
   $fresh_service->countUnits();
   $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$fresh['token'];
-  $media=$state['media']; $browser=$media->beginBrowserTransaction();
-  $issued=$media->issue($fresh['request'],$browser['transaction_id'],'phorge-files','private-media','/file/data/key/PHID-FILE-synthetic/name');
+  $media=$state['media']; $browser=governance_native_prepare_media($media);
+  $issued=$media->issue($fresh['request'],$browser['transaction_id'],'phorge-files','private-media','/file/data/key/PHID-FILE-ssssssssssssssssssss/name', governance_native_media_nonce($browser['transaction_id']));
   $media_binding=$media->redeem($browser['transaction_id'],$issued['exchange_code']->openEnvelope(),
-    $browser['browser_secret']->openEnvelope(),'phorge-files','private-media','/file/data/key/PHID-FILE-synthetic/name');
+    $browser['browser_secret']->openEnvelope(),'phorge-files','private-media','/file/data/key/PHID-FILE-ssssssssssssssssssss/name', governance_native_media_nonce($browser['transaction_id']));
   $media->authenticate($media_binding['credential']->openEnvelope());
   $conn->openTransaction();
   try {
