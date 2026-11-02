@@ -901,6 +901,46 @@ final class PhorgeOrganizationService extends Phobject {
     }catch(Throwable $error){$this->finish(false);throw $error;}}finally{unset($unguarded);}
   }
 
+  public static function auditCursor($value) {
+    if($value===null){return 0;}
+    if(!is_string($value)&&!is_int($value)){throw new InvalidArgumentException('organization_audit_cursor_refused');}
+    $text=(string)$value;
+    if(!preg_match('/\A(?:0|[1-9][0-9]*)\z/D',$text)){throw new InvalidArgumentException('organization_audit_cursor_refused');}
+    try{return self::version($text);}catch(RuntimeException$error){throw new InvalidArgumentException('organization_audit_cursor_refused');}
+  }
+
+  public static function auditRetentionCandidate($created,$asOf) {
+    if(!is_int($created)||!is_int($asOf)||$created<0||$asOf<0){throw new InvalidArgumentException('organization_audit_time_refused');}
+    return $created<=$asOf && $asOf-$created>=365*86400;
+  }
+
+  /** Administrator-only bounded metadata. Never load credential/snapshot JSON. */
+  public function readAuditPage($limit=100,$after=null,$retentionOnly=false) {
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{
+      $this->limit($limit);$cursor=self::auditCursor($after);
+      if(!is_bool($retentionOnly)){throw new InvalidArgumentException('organization_audit_scope_refused');}
+      $this->begin(array());
+      try{
+        $this->requireAdmin();$this->startRead();$now=$this->now();$cutoff=$now-365*86400;
+        $filter=$retentionOnly?qsprintf($this->connection,'createdAt<=%d',$cutoff):qsprintf($this->connection,'1=1');
+        $rows=queryfx_all($this->connection,
+          'SELECT id,operationID,actorPHID,action,unitID,subjectPHID,createdAt FROM %T WHERE id>%d AND (%Q) ORDER BY id LIMIT %d',
+          $this->table('audit'),$cursor,$filter,$limit);
+        $result=array();foreach($rows as$row){
+          $id=self::version($row['id']);$created=self::version($row['createdAt']);
+          if($id<1){throw new RuntimeException('organization_audit_record_refused');}
+          $result[]=array('id'=>$id,'operation_id'=>$row['operationID'],'actor_phid'=>$row['actorPHID'],
+            'action'=>$row['action'],'unit_id'=>$row['unitID'],'subject_phid'=>$row['subjectPHID'],
+            'created_at'=>$created,'retention_candidate'=>self::auditRetentionCandidate($created,$now));
+        }
+        $this->requireAdmin();$this->finish(true);
+        return array('rows'=>$result,'next_cursor'=>count($result)===$limit?(string)last($result)['id']:null,
+          'as_of'=>$now,'retention_days'=>365,'deletion_enabled'=>false,'full_snapshot_included'=>false);
+      }catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+
   public function readActorCapabilities() {
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
