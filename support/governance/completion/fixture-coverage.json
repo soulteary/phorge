@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "scope": "N05/N07 current native product cut; isolated implementation and evidence, no production executor",
+  "runtime_receipt_required": "fixture-run.php strict single JSON plus executed-source hashes",
+  "rows": [
+    {
+      "id": "RESTORE.FULL",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Full source quickstart, owned schema/table inventory and patch ledger; fixed reviewed pending migrations execute through real native StorageManagementAPI before being marked applied."
+    },
+    {
+      "id": "ISOLATION.ROLES",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Control private; setup DDL on exact owned native schemas; writer CRUD; eight-schema SELECT-only reader; marker SELECT-only to runtime roles; nonce checked for cleanup."
+    },
+    {
+      "id": "N05.MAPPED",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Native pipeline matrix contains 24 fixed shapes across nine existing operation vocabularies; each required check must occur in the supported-runtime receipt."
+    },
+    {
+      "id": "N05.SUPPORT",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Actual support expansion, subscriptions, comments, metadata-backed file references and native transaction records; no synthetic replacement editor."
+    },
+    {
+      "id": "N05.COMMIT",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Real owned commits and native publishing queue rows; silent is false and no full-pipeline stage is skipped to manufacture pass."
+    },
+    {
+      "id": "N05.ROLLBACK",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Actual database fault injection and native validation failures, with object/transaction/publishing observations; does not prove rollback of arbitrary external effects."
+    },
+    {
+      "id": "N05.HERALD",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Current fixture's native Herald evaluation/transcripts; arbitrary configured third-party rules/actions are outside this fixed cut and are not certified."
+    },
+    {
+      "id": "N05.GORGE.BYTES",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Real immutable-paired Gorge file service on owned loopback storage; newFromFileData writes and reads bytes before native support attachment. Removed legacy writers stay removed."
+    },
+    {
+      "id": "N05.PUBLICATION",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Both native SQL fallback publication and explicitly selected real Gorge HTTP queue profile. Exactly selected owned publishing workers cover native create-with-no-mail and comment-update mail/feed outboxes; delivery workers and external sends are not executed or claimed."
+    },
+    {
+      "id": "N05.CALLERS",
+      "state": "existing-partial-boundary-retained",
+      "evidence": "Direct editor integration does not certify every HTTP, Conduit, batch or CLI entry point. Earlier unknown caller/source entries are not reclassified."
+    },
+    {
+      "id": "N07.ORDERED",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Retain independent ordered-policy, default, named-policy, automatic-capability, Space and missing-subject regression fixtures."
+    },
+    {
+      "id": "N07.READVIEW",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Native ORM/filter and source samples use one verified SELECT-only physical connection and actual RR read-only snapshot; A-to-B, fresh B, ABA and membership revocation cases."
+    },
+    {
+      "id": "N07.SQL_GUARD",
+      "state": "implemented-requires-matching-runtime-receipt",
+      "evidence": "Actual native SQL bridge rejects mutations, COMMIT, locks, sleep and outfile; SQL-mode drift blocks and owned reader session is closed."
+    },
+    {
+      "id": "N07.EXECUTION_FRESHNESS",
+      "state": "intentionally-unproved-no-executor",
+      "evidence": "A stable historical read view is not a future business-write authorization, execution-time lock or revocation freshness guarantee."
+    },
+    {
+      "id": "N07.RUNTIME_CLOSURE",
+      "state": "partial-remains-blocked",
+      "evidence": "Fixed supported rules, bounded native sources and sampled policy configuration do not close arbitrary extensions, organization appointments, every runtime setting or unlimited query resources."
+    },
+    {
+      "id": "RELEASE",
+      "state": "pending-separate-evidence",
+      "evidence": "Supported local receipts, exact committed-source hashes, hosted CI/review and merged-main results are distinct gates. No hosted or production result is inferred."
+    },
+    {
+      "id": "N05.EXTERNAL_DELIVERY",
+      "state": "separate-service-acceptance-not-certified",
+      "evidence": "Actual external mail/feed transport and generic worker retry delivery are separate from current owned publication producer tests; not marked complete by disabling them."
+    }
+  ],
+  "constraints": {
+    "four_axes_native": true,
+    "optional_features_enabled": false,
+    "production_permission_migration": false,
+    "production_executor": false
+  }
+}

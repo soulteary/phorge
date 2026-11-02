@@ -784,6 +784,16 @@
       "candidateGenerationIntroduced": false
     },
     {
+      "path": "src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php",
+      "discovery": true,
+      "kind": "isolated-shared-native-read-view",
+      "meaning": "Binds selected native member/query/filter reads and source observations to an owned SELECT-only physical snapshot. It supplies read-view evidence only, never new membership authority or execution freshness.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "same-physical-native-read-view",
+      "candidateGenerationIntroduced": false
+    },
+    {
       "path": "src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php",
       "discovery": true,
       "kind": "isolated-transaction-shape-classifier",
