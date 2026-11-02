@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 import re
 
-EXPECTED_SOURCES = {'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
+EXPECTED_SOURCES = {'NATIVE.PhorgeGovernanceMediaTarget': ('src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php', 'PhorgeGovernanceMediaTarget', 'immutable-prepared-media-target'),
+ 'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
  'PhorgeGovernanceMediaIssuer','media-only-external-issuer'),
  'ORG.ROUTES': ('src/applications/people/application/PhabricatorPeopleApplication.php',
                 'PhabricatorPeopleApplication',
@@ -124,6 +125,7 @@ EXPECTED_RUNTIME_FILES = [
     'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php',
     'src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
     'src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php',
+    'src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php',
     'src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php',
     'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
     'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceCapture.php',
@@ -140,7 +142,8 @@ EXPECTED_RUNTIME_FILES = [
     'src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php',
 ]
 
-EXPECTED_LINKS = {'NATIVE-LINK-17': ('NATIVE.PhorgeGovernanceMediaExchangeService','NATIVE.PhorgeGovernanceMediaIssuer'),
+EXPECTED_LINKS = {'NATIVE-LINK-19': ('NATIVE.PhorgeGovernanceMediaExchangeService','NATIVE.PhorgeGovernanceMediaTarget'),
+ 'NATIVE-LINK-17': ('NATIVE.PhorgeGovernanceMediaExchangeService','NATIVE.PhorgeGovernanceMediaIssuer'),
  'NATIVE-LINK-18': ('NATIVE.PhorgeGovernanceMediaConfigOptions','NATIVE.PhorgeGovernanceMediaIssuer'),
  'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationController'),
  'NATIVE-LINK-02': ('NATIVE.PhorgeOrganizationController', 'NATIVE.PhorgeOrganizationEndpoint'),

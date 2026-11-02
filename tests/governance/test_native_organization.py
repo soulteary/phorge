@@ -23,9 +23,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 529, 'restore_phase_workers_started': 0,
+            'current_table_count': 530, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1564, 'applied_patch_count': 1564, 'pending_patch_keys': [],
+                'source_patch_count': 1565, 'applied_patch_count': 1565, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -62,6 +62,13 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 gate.validate(data,file_digest='b'*64)
         data=template();data['native']['issuer_upgrade_tests']['migration_sha256']='0'*64
+        with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
+
+    def test_admission_claims_require_all_runtime_boundaries_and_owned_workers(self):
+        for key in gate.NATIVE['target_tests']['admission_tests']:
+            data=template();data['native']['target_tests']['admission_tests'][key]=False
+            with self.subTest(key=key), self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
+        data=template();data['worker_cleanup']['workers_registered']=5
         with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
 
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):

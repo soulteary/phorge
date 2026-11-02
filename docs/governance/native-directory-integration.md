@@ -174,3 +174,9 @@ guards and notification integration remain separate work. Public routes and
 production optional features stay disabled.
 
 Issuer `assertCurrent` checks only the effective configuration stack in the current process. Recovery requires reloading every serving worker with the new external key/incarnation and preventing those external values from rolling back with the database. The current process check is not a fleet-wide reload certificate. The incarnation-only SQL case passed with a matching runtime receipt: it retains the key and native credentials while rejecting old browser slots, codes and credentials, then successfully establishes fresh media authority.
+
+## Prepared targets and bounded admission candidate
+
+The dependent target slice passed 138 native pure methods and 209 actual MySQL/Gorge checks, including real preparation races, the 100,000-row total bound, current counts after capacity-mutex waits, database-clock quota transitions and cleanup SQL-fault rollback. All nine workers and owned database resources were cleaned. Canonical data/download/xform targets and client nonce digests are fixed at preparation and rechecked at issuance and redemption. The pooled SESSION default and the next ordinary native RR transaction remain unchanged. See `media-targets-and-maintenance.md` for the exact scope.
+
+This source snapshot does not include the separate directory-completion branch and does not certify their future combination. No public HTTP handoff or production activation is included.

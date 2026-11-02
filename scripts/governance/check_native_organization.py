@@ -101,6 +101,44 @@ REQUIRED_CHECKS = frozenset({
     'native-legacy-mail-fresh-session-after-role-roundtrip-usable',
     'native-media-after-restore-requires-new-browser-transaction-and-current-issuer',
     'native-media-incarnation-only-rotation-rejects-all-old-media-retains-native-and-allows-fresh',
+    'native-schema-governance_mediaquota-matches-retained-adjustment-spec',
+    'native-media-prepared-target-cannot-be-changed-at-issue',
+    'native-media-prepared-client-nonce-required-at-issue',
+    'native-media-target-and-nonce-refusal-no-generation-or-code-write',
+    'native-media-client-nonce-required-at-redemption',
+    'native-media-prepared-unicode-download-returns-exact-canonical-target',
+    'native-media-unbound-preparation-api-fails-closed',
+    'native-media-seventh-browser-preparation-refused-by-persistent-quota',
+    'native-media-rejected-preparation-rolls-back-all-quota-and-ledger-writes',
+    'native-media-browser-keeps-only-one-unissued-prepared-target',
+    'native-media-client-persistent-admission-quota-refuses-new-browser',
+    'native-media-client-quota-denial-no-partial-ledger',
+    'native-media-global-persistent-admission-quota-refuses-new-browser',
+    'native-media-global-quota-denial-no-partial-ledger',
+    'native-media-expired-cleanup-obeys-per-table-row-budget',
+    'native-media-bounded-cleanup-leaves-rest-for-next-invocation',
+    'native-media-cleanup-retains-current-credential-and-native-accounts',
+    'native-media-last-quota-slot-two-real-preparers-wait-on-capacity-mutex',
+    'native-media-last-quota-slot-only-one-real-preparation-commits',
+    'native-media-concurrent-preparation-does-not-exceed-six-browser-admissions',
+    'native-media-real-database-window-transition-resets-admission-counter',
+    'native-media-future-quota-window-refuses-clock-regression',
+    'native-media-clock-regression-refusal-no-partial-admission',
+    'native-media-hard-capacity-two-real-preparers-wait-on-capacity-mutex',
+    'native-media-hard-capacity-only-one-real-preparation-commits',
+    'native-media-waiting-preparer-fresh-count-honors-exact-total-capacity',
+    'native-media-expired-ledger-rows-still-count-against-total-capacity',
+    'native-media-hard-capacity-denial-rolls-back-new-quota-bucket',
+    'native-media-redemption-cannot-exceed-total-ledger-capacity',
+    'native-media-capacity-refused-redemption-does-not-consume-code-or-revoke-credential',
+    'native-media-capacity-denial-leaves-code-redeemable-after-space-is-freed',
+    'native-media-capacity-released-by-owned-expired-row-removal',
+    'native-media-later-table-cleanup-real-sql-fault-refused',
+    'native-media-cleanup-fault-rolls-back-earlier-expiration-deletes',
+    'native-media-cleanup-can-complete-after-owned-fault-is-removed',
+    'native-media-scoped-rc-does-not-change-next-native-repeatable-read',
+
+
     'native-media-authentication-restores-request-guard-before-ordinary-write',
     'native-media-binding-failures-do-not-prevent-legitimate-redemption',
     'native-media-browser-binding-refused',
@@ -159,7 +197,7 @@ REQUIRED_CHECKS = frozenset({
     'native-media-source-migrated-sha-only-browser-is-not-upgraded',
     'native-media-source-migration-keeps-real-v1-row-unassigned-to-current-issuer',
     'native-media-source-migration-legacy-refusal-performs-no-promotion',
-    'native-media-two-real-redeemers-wait-on-browser-lock',
+    'native-media-two-real-redeemers-wait-on-capacity-mutex',
     'native-media-valid-credential-authenticates-on-real-csrf-guarded-get',
     'native-organization-unit-create-and-protected-count',
     'native-people-dao-synthetic-accounts-created',
@@ -200,6 +238,10 @@ NATIVE = {
         'scope': 'disposable-v1-media-schema-reconstruction-and-real-source-v2-alter',
         'migration_sha256': hashlib.sha256((ROOT/'resources/sql/autopatches/20261103.people.mediaissuer.sql').read_bytes()).hexdigest(),
         'old_rows_reassigned_current_issuer': False},
+    'target_tests': {'admission_tests': {'real_prepare_races_verified': True, 'hard_total_capacity_verified': True,
+        'database_window_transition_verified': True, 'cleanup_sql_rollback_verified': True, 'next_native_rr_preserved': True},
+        'prepared_target_and_nonce_verified': True, 'persistent_admission_quotas_verified': True,
+        'bounded_expired_cleanup_verified': True, 'http_routes_enabled': False, 'native_authentication_rows_deleted': False},
     'issuer_tests': {
         'restore_scope': 'three-media-tables-logical-snapshot-and-real-sql-restore',
         'restored_snapshot_sha256': 'c'*64, 'media_only_external_rotation': True, 'incarnation_only_rotation_verified': True,
@@ -210,7 +252,7 @@ NATIVE = {
     'actual_csrf_validation': True, 'isolated_features_enabled': True,
     'production_features_enabled': False, 'media_backend_only': True,
     'daemon_or_external_delivery_executed': False,
-    'schema_tests': {'native_schema_comparison_executed': True, 'candidate_tables_compared': 12,
+    'schema_tests': {'native_schema_comparison_executed': True, 'candidate_tables_compared': 13,
         'schema_adjustment_executed': False, 'all_existing_schema_issues_claimed_resolved': False},
     'route_tests': {'actual_controller_called': True, 'http_server_executed': False,
         'browser_executed': False, 'csrf_and_cookie_checked': True,
@@ -237,7 +279,7 @@ NATIVE = {
         'rollback_claim': 'native user role and identityepoch only; existing indexing enqueue effects measured separately'},
     'native_approval_implemented': True,
 }
-WORKERS = 5
+WORKERS = 9
 
 
 def exact_tree(actual, expected):
@@ -263,7 +305,7 @@ def validate_restore(value, root):
         'restore_phase_workers_started': 0, 'restore_phase_network_endpoints_configured': 0}
     for key, target in expected.items():
         exact_tree(value[key], target)
-    exact_tree(value['current_table_count'], 529)
+    exact_tree(value['current_table_count'], 530)
     audit=value['patch_audit']
     if type(audit) is not dict or set(audit) != {'source_patch_count', 'applied_patch_count',
         'pending_patch_keys', 'current_patch_ledger_complete', 'migration_source_hashes', 'migrations_executed'}:
@@ -275,7 +317,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1564)
+    exact_tree(audit['source_patch_count'], 1565)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 

@@ -13,6 +13,19 @@ function governance_native_request(PhabricatorUser $user, PhabricatorAuthSession
   return array('request'=>$request,'viewer'=>$viewer,'token'=>$token,
     'context'=>PhorgeGovernanceNativeActorContext::newFromWebRequest($request));
 }
+/** Real transport address from the request; private fixture map is not runtime API. */
+function governance_native_prepare_media($media,$secret=null,$path='/file/data/key/PHID-FILE-ssssssssssssssssssss/name') {
+  $_SERVER['REMOTE_ADDR']='127.0.0.1';
+  $nonce=bin2hex(random_bytes(32));
+  $request=(new AphrontRequest('fixture.invalid','/media/session/prepare/'))->setRequestData(array());
+  $target=PhorgeGovernanceMediaTarget::fromPath($path,PhabricatorEnv::getEnvConfig('cluster.instance') ?: null);
+  $prepared=$media->beginBrowserTransaction($secret,$target,$request,$nonce);
+  $GLOBALS['governance_media_nonces'][$prepared['transaction_id']]=$nonce;
+  return $prepared;
+}
+function governance_native_media_nonce($transaction) {
+  return $GLOBALS['governance_media_nonces'][$transaction]??str_repeat('0',64);
+}
 function governance_native_refused(callable $action, $reason, callable $check, $name) {
   $refused=false;
   try { $action(); }
@@ -31,7 +44,7 @@ function governance_native_setup_query($fixture, $sql) {
 }
 function governance_native_media_fingerprint($fixture) {
   $fixture->assertOwned(); $rows=array();
-  foreach (array('governance_mediabrowser','governance_mediaexchange','governance_mediacredential') as $table) {
+  foreach (array('governance_mediabrowser','governance_mediaexchange','governance_mediacredential','governance_mediaquota') as $table) {
     $data=governance_native_setup_query($fixture,'SELECT * FROM '.$fixture->table('user',$table))->fetch_all(MYSQLI_ASSOC);
     usort($data,static fn($a,$b)=>strcmp(json_encode($a),json_encode($b))); $rows[$table]=$data;
   }
@@ -81,10 +94,10 @@ function governance_native_organization_cases($fixture, callable $check) {
   require_once __DIR__.'/media-issuer-cases.php';
   $issuer_upgrade_summary=governance_native_media_legacy_upgrade_cases($fixture,$check);
   $media=new PhorgeGovernanceMediaExchangeService();
-  $prepared=$media->beginBrowserTransaction();
-  $issued=$media->issue($request,$prepared['transaction_id'],'phorge-files','private-media','/file/data/key/PHID-FILE-synthetic/name');
+  $prepared=governance_native_prepare_media($media);
+  $issued=$media->issue($request,$prepared['transaction_id'],'phorge-files','private-media','/file/data/key/PHID-FILE-ssssssssssssssssssss/name', governance_native_media_nonce($prepared['transaction_id']));
   $redeemed=$media->redeem($prepared['transaction_id'],$issued['exchange_code']->openEnvelope(),
-    $prepared['browser_secret']->openEnvelope(),'phorge-files','private-media','/file/data/key/PHID-FILE-synthetic/name');
+    $prepared['browser_secret']->openEnvelope(),'phorge-files','private-media','/file/data/key/PHID-FILE-ssssssssssssssssssss/name', governance_native_media_nonce($prepared['transaction_id']));
   $snapshot=$media->authenticate($redeemed['credential']->openEnvelope());
   $check($snapshot->getUserPHID()===$viewer->getPHID(),
     'native-media-session-bound-issue-redeem-authenticate');
@@ -93,6 +106,8 @@ function governance_native_organization_cases($fixture, callable $check) {
     'media_browser'=>$prepared['browser_secret']);
   require_once __DIR__.'/media-issuer-cases.php';
   $issuer_summary=governance_native_media_issuer_cases($fixture,$check,$state);
+  require_once __DIR__.'/media-target-cases.php';
+  $target_summary=governance_native_media_target_cases($fixture,$check,$state);
   require_once __DIR__.'/route-cases.php';
   $route_summary=governance_native_route_cases($fixture,$check,$state);
   require_once __DIR__.'/privacy-cases.php';
@@ -109,7 +124,7 @@ function governance_native_organization_cases($fixture, callable $check) {
   return array('actual_native_account_source'=>true,'actual_session_engine'=>true,
     'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
     'production_features_enabled'=>false,'media_backend_only'=>true,
-    'daemon_or_external_delivery_executed'=>false,'issuer_upgrade_tests'=>$issuer_upgrade_summary,'issuer_tests'=>$issuer_summary,'schema_tests'=>$schema_summary,'route_tests'=>$route_summary,'privacy_tests'=>$privacy_summary,'concurrency_tests'=>$concurrency_summary,
+    'daemon_or_external_delivery_executed'=>false,'issuer_upgrade_tests'=>$issuer_upgrade_summary,'target_tests'=>$target_summary,'issuer_tests'=>$issuer_summary,'schema_tests'=>$schema_summary,'route_tests'=>$route_summary,'privacy_tests'=>$privacy_summary,'concurrency_tests'=>$concurrency_summary,
     'media_tests'=>$media_summary,'auth_tests'=>$auth_summary,'legacy_role_tests'=>$legacy_role_summary,
     'native_approval_implemented'=>$auth_summary['native_durable_two_person_approval']);
 }

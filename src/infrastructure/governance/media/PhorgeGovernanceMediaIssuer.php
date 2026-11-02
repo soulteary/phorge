@@ -51,7 +51,7 @@ final class PhorgeGovernanceMediaIssuer extends Phobject {
     $raw_key=$key->openEnvelope();
     if (!is_string($raw_key) || strlen($raw_key)!==32 ||
         !is_string($incarnation) || !preg_match('/\A[a-f0-9]{32}\z/D',$incarnation) ||
-        !in_array($purpose,array('browser','transaction','code','credential','configuration','rate-client'),true) ||
+        !in_array($purpose,array('browser','transaction','code','credential','configuration','rate-client','client-nonce'),true) ||
         !is_string($value) || strlen($value)>8192) {
       throw new InvalidArgumentException('media_issuer_digest_input_refused');
     }
