@@ -228,3 +228,13 @@ context failure cannot masquerade as that evidence. The opt-in and setup rows
 are restored in `finally`. A separate unknown-rule injection after `begin` must
 return `changed-blocked` even when native filter evaluation is unknown; no
 capability observations may escape.
+
+Stored policy subject dependencies are tested before native filtering: missing
+Projects-any/Projects-all subjects, missing Users subjects and named-policy
+indirection to a missing subject must remain unknown-blocked even when the
+custom policy default is allow. The tests revoke the isolated opt-in only after
+`begin` and require the specific recorded missing-subject reason. Malformed
+containers, wrong PHID types and the bounded subject-list budget are likewise
+rejected. Valid and empty Users/Projects-any/Projects-all controls retain the
+actual native filter semantics. Setup rows and opt-in state are restored in
+`finally`; these observer guards do not modify native production policies.

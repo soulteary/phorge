@@ -292,6 +292,11 @@ try {
       array('empty-default-allow',array(),'allow','allow'),
       array('empty-default-deny',array(),'deny','deny'),
       array('empty-projects-all-native-filter',array($allow_empty_all),'deny','allow'),
+      array('valid-user-subject-allow',array(array('action'=>'allow','rule'=>PhabricatorUsersPolicyRule::class,'value'=>array($ids['actor']))),'deny','allow'),
+      array('empty-users-native-filter',array(array('action'=>'allow','rule'=>PhabricatorUsersPolicyRule::class,'value'=>array())),'deny','deny'),
+      array('empty-projects-any-native-filter',array(array('action'=>'allow','rule'=>PhabricatorProjectsPolicyRule::class,'value'=>array())),'deny','deny'),
+      array('valid-projects-all-subject',array(array('action'=>'allow','rule'=>PhabricatorProjectsAllPolicyRule::class,'value'=>array($ids['project']))),'deny','allow'),
+
     ) as $case) {
       native_source_sql($admin,'UPDATE '.$policy_table.' SET rules=?,defaultAction=? WHERE phid=?',
         array(json_encode($case[1]),$case[2],$ids['policy']));
@@ -375,6 +380,52 @@ try {
   $unknown_rules = json_encode(array(array('action'=>'allow',
     'rule'=>'UnknownSyntheticRule','value'=>array())));
   $isolated_optin = getenv('PHORGE_GOVERNANCE_ISOLATED_TEST');
+  $missing_project = PhorgeGovernanceNativeFixture::phid('PROJ','z');
+  $missing_user = PhorgeGovernanceNativeFixture::phid('USER','z');
+  $subject_budget = array();
+  foreach (range('a','q') as $letter) {
+    $subject_budget[] = PhorgeGovernanceNativeFixture::phid('PROJ',$letter);
+  }
+  foreach (array(
+    array('malformed-subject-container',PhabricatorUsersPolicyRule::class,'not-a-list',
+      $policy_binding,'malformed_native_policy_rule_subjects'),
+    array('malformed-subject-type',PhabricatorUsersPolicyRule::class,array($ids['project']),
+      $policy_binding,'malformed_native_policy_rule_subjects'),
+    array('subject-budget',PhabricatorProjectsPolicyRule::class,$subject_budget,
+      $policy_binding,'native_policy_rule_subject_budget'),
+    array('any-missing-project',PhabricatorProjectsPolicyRule::class,array($missing_project),$policy_binding),
+    array('all-missing-project',PhabricatorProjectsAllPolicyRule::class,array($missing_project),$policy_binding),
+    array('users-missing-user',PhabricatorUsersPolicyRule::class,array($missing_user),$policy_binding),
+    array('named-effective-missing-project',PhabricatorProjectsPolicyRule::class,array($missing_project),
+      native_source_bind($ids,'task.description',ManiphestTask::class,$ids['named_task'])),
+  ) as $case) {
+    try {
+      native_source_sql($admin,'UPDATE '.$policy_table.' SET rules=?,defaultAction=? WHERE phid=?',
+        array(json_encode(array(array('action'=>'allow','rule'=>$case[1],'value'=>$case[2]))),
+          'allow',$ids['policy']));
+      if ($case[0] === 'any-missing-project') {
+        $hierarchy_actor = native_pipeline_orm(PhabricatorUser::class,$ids['actor']);
+        $hierarchy_target = native_pipeline_orm(ManiphestTask::class,$ids['policy_task']);
+        $hierarchy_missing = PhorgeGovernanceNativeRuleHierarchyVerifier::observe(
+          $case[3],$hierarchy_actor,$hierarchy_target,PhabricatorUsersPolicyRule::class,array($ids['actor']));
+        native_source_check($hierarchy_missing['status'] === 'blocked' &&
+          $hierarchy_missing['reason'] === 'missing_native_policy_rule_subject' &&
+          $hierarchy_missing['native_rule_result'] === 'unknown' &&
+          !$hierarchy_missing['can_execute'], 'hierarchy-consumer-stored-missing-subject-remains-unknown');
+      }
+      $missing_pending = PhorgeGovernanceNativePolicyCompositionVerifier::begin($case[3],array($view));
+      putenv('PHORGE_GOVERNANCE_ISOLATED_TEST=0');
+      $missing_result = $missing_pending->finish();
+      native_source_check($missing_result['status'] === 'blocked' &&
+        $missing_result['reason'] === ($case[4] ?? 'missing_native_policy_rule_subject') &&
+        !isset($missing_result['observations']) && !$missing_result['can_execute'],
+        'before-sample-default-allow-'.$case[0].'-dependency-blocked');
+    } finally {
+      putenv('PHORGE_GOVERNANCE_ISOLATED_TEST='.$isolated_optin);
+      native_source_sql($admin,'UPDATE '.$policy_table.' SET rules=?,defaultAction=? WHERE phid=?',
+        array($policy_original['rules'],$policy_original['defaultAction'],$ids['policy']));
+    }
+  }
   try {
     native_source_sql($admin,'UPDATE '.$policy_table.' SET rules=? WHERE phid=?',
       array($unknown_rules,$ids['policy']));

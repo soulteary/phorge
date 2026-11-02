@@ -228,3 +228,15 @@ final source sample: changed samples take precedence over an unknown result.
 This does not guarantee that a concurrent rule change cannot be encountered
 inside native evaluation; dynamic-rule execution safety and atomic closure
 remain unproved activation blockers.
+
+Stored native rules now require subject closure within the captured bounded
+source rows: Users values are typed USER lists whose accounts exist;
+Projects/ProjectsAll values are typed PROJ lists whose projects exist. Lists
+are limited to 16 entries (including duplicates, which native rules allow).
+Malformed values, missing subjects and excess budgets are explicit unknown
+reasons and block both composition and selected-rule observers before native
+rule evaluation. Empty lists retain their native meaning. ProjectMembers has
+no external subject list and accepts only the canonical null/empty value
+representations. The check scans the captured policy table, including custom
+policies reached through named-policy indirection. It does not implement rule
+evaluation or turn subject presence into an authorization/closure proof.

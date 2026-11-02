@@ -62,10 +62,19 @@ packages remain blocked. Historical atomic-feature counts and immutable ADR
 snapshots are not reclassified. Supported local test counts, final-head review,
 PR CI and merged-main results are separate evidence stages.
 
-Local PHP 8.5.12 / MySQL 8.4.13 validation passed 97 native methods, the prior
-85/54 SQL checks and 50 new pipeline/composition SQL checks. Governance Python
+Local PHP 8.5.12 / MySQL 8.4.13 validation passed 98 native methods, the prior
+85/54 SQL checks and 66 new pipeline/composition SQL checks. Governance Python
 passed 37 methods; permission Python passed 83. All 35 executed governance
 PHP/SQL/map/runner files matched the worktree. These are content-matched
 source-copy development receipts, not clean-release or production acceptance.
 The owned network-none fixtures publish no ports and each SQL run removes its
 eight owned schemas and reader. Hosted PR/main evidence is recorded separately.
+
+Independent PR review found that stored rule subjects could be missing even
+when explicit rule inputs were checked. Native captured Users/Projects-any/all
+subjects now require supported typed lists, bounded size and actual captured
+account/project presence. Missing, malformed or over-budget subjects are unknown
+before native filtering, including named-to-custom policies and the older rule/
+hierarchy observer. Empty/control-none native representations remain preserved.
+Default-allow negative fixtures and valid/empty controls reran all 98 native
+methods, prior 85/54 SQL checks and 66 pipeline/composition SQL checks.

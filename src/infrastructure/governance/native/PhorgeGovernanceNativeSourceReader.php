@@ -427,6 +427,11 @@ final class PhorgeGovernanceNativeSourceReader extends Phobject {
               'PhabricatorProjectsPolicyRule', 'PhabricatorProjectsAllPolicyRule',
               'PhabricatorProjectMembersPolicyRule'), true)) {
           $unknown[] = 'unsupported_native_policy_rule';
+          continue;
+        }
+        $subject_reason = self::ruleSubjectReason($rule, $accounts, $projects);
+        if ($subject_reason !== null) {
+          $unknown[] = $subject_reason;
         }
       }
     }
@@ -574,6 +579,37 @@ final class PhorgeGovernanceNativeSourceReader extends Phobject {
       'unknown_source_count' => $unknown_sources,
       'unknown_reasons' => $unknown,
     ));
+  }
+
+  private static function ruleSubjectReason(
+    array $rule, array $accounts, array $projects) {
+    $class = $rule['rule'];
+    $value = $rule['value'];
+    if ($class === PhabricatorProjectMembersPolicyRule::class) {
+      // Native control-none rules have no external subject list. Preserve
+      // canonical null/empty representations instead of inventing a subject.
+      return in_array($value, array(null, array(), ''), true) ? null :
+        'malformed_native_policy_rule_subjects';
+    }
+    if (!is_array($value) || !array_is_list($value)) {
+      return 'malformed_native_policy_rule_subjects';
+    }
+    if (count($value) > 16) {
+      return 'native_policy_rule_subject_budget';
+    }
+    $is_user = $class === PhabricatorUsersPolicyRule::class;
+    $type = $is_user ? 'USER' : 'PROJ';
+    $present = $is_user ? $accounts : $projects;
+    foreach ($value as $subject) {
+      if (!is_string($subject) ||
+          !preg_match('/\APHID-'.$type.'-[a-zA-Z0-9]{20}\z/', $subject)) {
+        return 'malformed_native_policy_rule_subjects';
+      }
+      if (!isset($present[$subject])) {
+        return 'missing_native_policy_rule_subject';
+      }
+    }
+    return null;
   }
 
   private function disconnect() {

@@ -217,7 +217,9 @@ final class PhorgeGovernanceNativePolicyCompositionVerifier extends Phobject {
     $summary = $capture->getSummary();
     foreach (array('missing_native_target', 'missing_project_parent',
       'cyclic_project_parent', 'missing_native_policy_reference',
-      'malformed_native_policy_rules', 'unsupported_native_policy_rule') as $reason) {
+      'malformed_native_policy_rules', 'unsupported_native_policy_rule',
+      'malformed_native_policy_rule_subjects', 'missing_native_policy_rule_subject',
+      'native_policy_rule_subject_budget') as $reason) {
       if (in_array($reason, $summary['unknown_reasons'], true)) {
         return $reason;
       }

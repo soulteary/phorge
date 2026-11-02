@@ -100,7 +100,9 @@ final class PhorgeGovernanceNativeRuleHierarchyVerifier extends Phobject {
     $reader = null;
     foreach (array('missing_project_parent', 'cyclic_project_parent',
       'missing_native_target', 'missing_native_policy_reference',
-      'unsupported_native_policy_rule', 'malformed_native_policy_rules')
+      'unsupported_native_policy_rule', 'malformed_native_policy_rules',
+      'malformed_native_policy_rule_subjects', 'missing_native_policy_rule_subject',
+      'native_policy_rule_subject_budget')
       as $blocking) {
       if (in_array($blocking, $summary['unknown_reasons'], true)) {
         $result = self::result($blocking);
