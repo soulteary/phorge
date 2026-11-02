@@ -782,6 +782,26 @@
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "definition-or-read-consumer",
       "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php",
+      "discovery": true,
+      "kind": "isolated-transaction-shape-classifier",
+      "meaning": "Inactive transaction-shape classifier references the native forward membership edge class and constant to describe sensitive member transactions. It does not execute an edge writer, materializer, membership query or authorization grant. All classifier results remain non-executable; this review is not runtime coverage.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "classification-only",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/mapping/__tests__/PhorgeGovernanceCapabilityMapTestCase.php",
+      "discovery": true,
+      "kind": "isolated-native-shape-test",
+      "meaning": "Isolated native unit tests reference the forward membership edge constant, instantiate its definition and read the inverse constant to check strict transaction metadata and blocked cases. They do not write membership edges, run a materializer or authorize a production request.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "unit-test-only",
+      "candidateGenerationIntroduced": false
     }
   ]
 }

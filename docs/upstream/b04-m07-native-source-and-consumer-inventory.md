@@ -125,3 +125,34 @@ malformed-request exception, controller handler and early standalone response.
 The current catalog contains 78 files / 43 literal-reference files. HTTP 400
 replaces the former malformed-request 500 response without altering CSRF or
 object authorization; prior 75-file catalogs remain historical source evidence.
+
+### Inactive governance classification references (PR #78)
+
+The current source catalog contains 80 files / 45 literal-reference files. The
+78-file / 43-reference response-quality snapshot above remains historical.
+Two newly discovered literal-reference files have been reviewed individually:
+
+- `src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php`:
+  `isolated-transaction-shape-classifier`, with no authorization authority.
+  It reads the native forward membership edge class/constant to describe a
+  sensitive transaction shape. Classification is not execution: the contract
+  remains partial and every result has `can_execute=false`. It does not invoke
+  a native edge writer, membership materializer or member query.
+- `src/infrastructure/governance/mapping/__tests__/PhorgeGovernanceCapabilityMapTestCase.php`:
+  `isolated-native-shape-test`, with no authorization authority. These tests
+  reference the native membership constant and instantiate an edge definition
+  only to read its inverse constant, checking strict metadata and blocked
+  cases. They do not write member edges or certify a production route.
+
+Both entries use `candidateGenerationIntroduced=false` specifically because
+neither changes the native membership candidate-generation or materialization
+algorithm. The field does not mean no code was added, no new classifier exists,
+or all dynamic effects have been certified. Native type-13/type-60 storage,
+source provenance uncertainty, the four native axes and all optional-feature
+activation gates remain unchanged.
+
+The original scanner and its literal pattern are unchanged. Governance sources
+and their native tests are not excluded. Regression tests require these
+separate non-authority reviews, and reject removal, disabled discovery,
+duplicate catalog entries and a new unreviewed governance reference. This
+corrects the inventory mismatch rather than weakening a required CI gate.

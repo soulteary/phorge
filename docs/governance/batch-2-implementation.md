@@ -107,3 +107,13 @@ adapters, expanded-transaction eligibility, media, mail, recovery, lifecycle and
 capacity/retention proof remain activation-blocking. No production permissions
 are migrated and no optional feature is enabled by this PR. Existing 134-atom
 planning counts and historical acceptance receipts are not reclassified.
+
+## Legacy consumer-review gate
+
+The existing membership inventory also scans the new classifier's and native
+unit test's literal edge references. Both are explicitly reviewed as inactive
+classification/test consumers with no authority and no change to native member
+candidate generation. The original scanner, matching pattern and prior review
+entries remain unchanged. Two new regressions ensure these reviews cannot be
+omitted or hidden and new governance references still fail closed. All 80
+permission Python tests pass, in addition to the 31 governance Python tests.
