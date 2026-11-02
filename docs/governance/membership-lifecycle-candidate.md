@@ -35,3 +35,12 @@ real native SQL checks with nine workers cleaned. Current exact evidence is in
 `evidence/membership-lifecycle-retry-250-20261103/`; the 244-check checkpoint above
 remains unchanged. Native form and concurrent retries reach only a matching
 ledger replay and never consume an approval a second time.
+
+
+After explicitly integrating the reviewed main media-target slice, the current
+combined source passed 145 pure methods and 286 actual native SQL checks. Exact
+combined evidence is retained separately under
+`evidence/membership-lifecycle-combined-286-20261103/`; all 13 workers and owned
+database resources were cleaned. Earlier 250/244/225 snapshots remain unchanged.
+Hosted final-head CI/review and remaining lifecycle/compound/browser scope still
+require separate evidence.

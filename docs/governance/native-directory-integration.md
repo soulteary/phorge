@@ -267,3 +267,21 @@ and native administrator revocation/recovery through the actual normal-session
 MFA path are covered. No forced high-security session or catch-all rejection
 stands in for these checks. This remains isolated/controller evidence, not full
 browser, production activation or completion of O4/O5.
+
+## Prepared media targets integrated with current main
+
+The original signed target checkpoint `1ab1305` (138 pure methods /209 SQL checks) is preserved under `evidence/media-targets-checkpoint-1ab1305`. The combined current-main directory/issuer/target source now passed **142 pure methods and 245 real MySQL/Gorge checks**. All nine workers, 55 schemas, two runtime users and the reader were cleaned without failure. The schema proof covers 13 candidate tables, 530 current tables and 1566 source patches, including actual execution of the separate metadata, issuer and target migrations.
+
+`native-directory-evidence.json` and `evidence/media-targets-combined-20261103` contain the new combined evidence. The manually reviewed static inventory has 36 nodes, 26 links and 48 runtime files, still partial and not authority proof. The renamed redeem-race check observes the actual capacity mutex instead of an unreachable pair of browser-lock waits. No HTTP handoff, browser, deployment, optional activation or permission migration is certified.
+
+
+## Combined-source validation
+
+The reviewed main media-target245 and lifecycle retry250 checkpoints remain
+separate. Their exact reviewed union subsequently passed 286 actual native SQL
+checks and 145 pure methods. All 13 workers and private directories, 55 schemas,
+two runtime accounts and the reader were cleaned without failures. Exact new
+receipts are under `evidence/membership-lifecycle-combined-286-20261103/`; the
+current receipt is `native-directory-evidence.json`. Old 250/244/225 evidence is
+unchanged. This is isolated source/controller evidence, not hosted final-head
+review, browser delivery, activation or completion of all O4/O5 work.

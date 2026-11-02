@@ -102,8 +102,8 @@
       "depends_on": [
         "N00"
       ],
-      "status": "native-media-issuer-and-table-restore-isolated-verified-partial",
-      "remaining": "External media-only issuer HMAC and narrow three-table restore verified while native session/API credentials are retained. Structured targets, quotas/cleanup and actual HTTP/cookie/bootstrap entry points remain; no public route activation.",
+      "status": "native-prepared-target-issuer-and-maintenance-isolated-verified-partial",
+      "remaining": "Current-main directory/issuer plus prepared-target source passed 142 pure /245 actual MySQL-Gorge checks. Original 138/209 target checkpoint retained separately. Canonical target/nonce, persistent quotas, exact total capacity with real waiters, cleanup rollback and native RR preservation verified. HTTP/cookie/file-guard/browser/deployment acceptance remains separate and unproved by this slice.",
       "production_enabled": false
     },
     {
@@ -200,14 +200,14 @@
     }
   },
   "current_component_validation": {
-    "scope": "native-membership-lifecycle-and-explicit-compound-candidate",
+    "scope": "main-media-target-and-native-lifecycle-combined-source",
     "php_runtime": "8.5.12",
-    "current_source_native_sql_required": 250,
-    "current_source_validation": "supported-runtime-isolated-native-250-passed",
+    "current_source_native_sql_required": 286,
+    "current_source_validation": "supported-runtime-isolated-native-286-passed",
     "source_inventory": {
-      "sources": 35,
-      "links": 25,
-      "runtime_files": 47,
+      "sources": 36,
+      "links": 26,
+      "runtime_files": 48,
       "coverage": "partial",
       "activation_blocked": true,
       "authority_proof": false
@@ -220,12 +220,12 @@
     "permissions_python_last_passed": 84,
     "actual_native_identity_current_sources_exercised": true,
     "latest_main_combined_validation_required": false,
-    "native_methods_required": 142,
-    "evidence_directory": "docs/governance/evidence/membership-lifecycle-retry-250-20261103",
+    "native_methods_required": 145,
     "full_lifecycle_complete": false,
     "full_compound_matrix_complete": false,
-    "governance_python_validation": "current-source-83-passed",
-    "governance_python_last_passed": 83
+    "governance_python_validation": "current-source-84-passed",
+    "governance_python_last_passed": 84,
+    "evidence_directory": "docs/governance/evidence/membership-lifecycle-combined-286-20261103"
   },
   "historical_component_validations": [
     {
