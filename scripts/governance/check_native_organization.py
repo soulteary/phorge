@@ -99,6 +99,8 @@ REQUIRED_CHECKS = frozenset({
     'native-legacy-mail-fault-rolls-back-and-preserves-only-outer-lock',
     'native-legacy-mail-fault-trigger-actually-installed',
     'native-legacy-mail-fresh-session-after-role-roundtrip-usable',
+    'native-media-after-restore-requires-new-browser-transaction-and-current-issuer',
+    'native-media-incarnation-only-rotation-rejects-all-old-media-retains-native-and-allows-fresh',
     'native-media-authentication-restores-request-guard-before-ordinary-write',
     'native-media-binding-failures-do-not-prevent-legitimate-redemption',
     'native-media-browser-binding-refused',
@@ -133,15 +135,30 @@ REQUIRED_CHECKS = frozenset({
     'native-media-governance_mediaexchange-myisam-refusal-no-write',
     'native-media-invalid-credential-refused-on-csrf-guarded-get',
     'native-media-issue-fault-trigger-really-installed',
+    'native-media-issuer-never-accepts-secret-restored-from-config-database',
+    'native-media-legacy-incarnation-refusal-does-not-promote-row',
+    'native-media-missing-external-key-does-not-fall-back-to-database-state',
     'native-media-new-authenticated-issue-immediately-revokes-old-credential',
+    'native-media-null-legacy-incarnation-is-never-upgraded',
     'native-media-old-account-pending-code-cannot-preempt-new-account-issue',
     'native-media-old-outstanding-transaction-cannot-replace-new-generation',
+    'native-media-old-table-snapshot-restored-exactly-through-real-sql',
+    'native-media-only-rotation-keeps-underlying-native-api-authentication',
+    'native-media-only-rotation-keeps-underlying-native-session-authentication',
     'native-media-preparation-alone-does-not-revoke-current-credential',
     'native-media-reissue-refusal-preserves-code',
     'native-media-repeat-redemption-no-extra-credential',
+    'native-media-restore-does-not-revoke-replace-or-change-native-credential-metadata',
+    'native-media-restored-old-browser-slot-cannot-be-reused',
+    'native-media-restored-old-credential-refused-by-external-incarnation',
+    'native-media-restored-old-state-is-not-promoted-or-upgraded',
+    'native-media-restored-old-unconsumed-code-refused',
     'native-media-return-path-binding-refused',
     'native-media-return-path-refusal-no-consume-or-generation-write',
     'native-media-session-bound-issue-redeem-authenticate',
+    'native-media-source-migrated-sha-only-browser-is-not-upgraded',
+    'native-media-source-migration-keeps-real-v1-row-unassigned-to-current-issuer',
+    'native-media-source-migration-legacy-refusal-performs-no-promotion',
     'native-media-two-real-redeemers-wait-on-browser-lock',
     'native-media-valid-credential-authenticates-on-real-csrf-guarded-get',
     'native-organization-unit-create-and-protected-count',
@@ -179,6 +196,16 @@ FIELDS = {'batch', 'passed', 'scope', 'checks', 'check_count', 'php_version',
 BLOCKERS = ['media-http-and-cookie-integration', 'file-object-guards',
     'notification-producers', 'global-governance-completion']
 NATIVE = {
+    'issuer_upgrade_tests': {
+        'scope': 'disposable-v1-media-schema-reconstruction-and-real-source-v2-alter',
+        'migration_sha256': hashlib.sha256((ROOT/'resources/sql/autopatches/20261103.people.mediaissuer.sql').read_bytes()).hexdigest(),
+        'old_rows_reassigned_current_issuer': False},
+    'issuer_tests': {
+        'restore_scope': 'three-media-tables-logical-snapshot-and-real-sql-restore',
+        'restored_snapshot_sha256': 'c'*64, 'media_only_external_rotation': True, 'incarnation_only_rotation_verified': True,
+        'old_native_credentials_retained_and_verified': True,
+        'native_credential_metadata_changed': False, 'old_media_rows_promoted': False,
+        'full_disaster_recovery_certified': False},
     'actual_native_account_source': True, 'actual_session_engine': True,
     'actual_csrf_validation': True, 'isolated_features_enabled': True,
     'production_features_enabled': False, 'media_backend_only': True,
@@ -248,13 +275,22 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1563)
+    exact_tree(audit['source_patch_count'], 1564)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
+    native=data.get('native')
+    if type(native) is not dict or type(native.get('issuer_tests')) is not dict:
+        raise ValueError('media issuer evidence missing')
+    snapshot=native['issuer_tests'].get('restored_snapshot_sha256')
+    if type(snapshot) is not str or not re.fullmatch(r'[a-f0-9]{64}',snapshot):
+        raise ValueError('media restore snapshot digest refused')
+    expected_native=dict(NATIVE)
+    expected_native['issuer_tests']=dict(NATIVE['issuer_tests'],restored_snapshot_sha256=snapshot)
+    exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',
         'failure': None, 'cleanup_failures': [], 'terminal_failure_cleanup_rollbacks': 0,
@@ -262,7 +298,7 @@ def validate(data, root=ROOT, file_digest=None):
         'production_optional_features_enabled': False, 'native_permission_axes_changed': False,
         'successful_owned_file_service_startups': 1,
         'optional_source_reader_adapter_exercised': True, 'isolated_optional_features_enabled': True,
-        'remaining_blocked': BLOCKERS, 'native': NATIVE,
+        'remaining_blocked': BLOCKERS,
         'worker_cleanup': {'workers_registered': WORKERS, 'private_directories_removed': WORKERS,
             'private_directories_remaining': 0, 'live_processes_after_cleanup': 0,
             'owned_processes_stopped': 0, 'cleanup_failures': 0},

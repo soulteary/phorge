@@ -84,11 +84,11 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     }
   }
 
-  private static function browser(AphrontDatabaseConnection $connection, $digest) {
+  private static function browser(AphrontDatabaseConnection $connection, $digest, PhorgeGovernanceMediaIssuer $issuer) {
     $row = queryfx_one($connection,
       'SELECT * FROM %T WHERE browserDigest=%s FOR UPDATE',
       'governance_mediabrowser', $digest);
-    if (!$row ||
+    if (!$row || !$issuer->matchesRow($row) ||
         (int)$row['expiresAt'] <= self::now($connection) ||
         !hash_equals($row['browserDigest'], $digest)) {
       throw new RuntimeException('media_exchange_browser_refused');
@@ -100,22 +100,24 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
   /** Anonymous transaction preparation grants no file or account access. */
   public function beginBrowserTransaction($browser_secret = null) {
     $connection = self::connection();
+    $issuer = PhorgeGovernanceMediaIssuer::newFromConfiguration();
     $new_browser = ($browser_secret === null);
     $secret = $new_browser ? bin2hex(random_bytes(32)) : self::validateSecret($browser_secret);
-    $digest = hash('sha256', $secret);
+    $digest = $issuer->digest('browser', $secret);
     $transaction = bin2hex(random_bytes(32));
     self::begin($connection);
     try {
       $now = self::now($connection);
       if ($new_browser) {
-        queryfx($connection, 'INSERT INTO %T (browserDigest,generation,expiresAt) VALUES (%s,1,%d)',
-          'governance_mediabrowser', $digest, $now + self::BROWSER_TTL);
+        queryfx($connection, 'INSERT INTO %T (browserDigest,generation,expiresAt,issuerIncarnation) VALUES (%s,1,%d,%s)',
+          'governance_mediabrowser', $digest, $now + self::BROWSER_TTL, $issuer->getIncarnation());
       }
-      $browser = self::browser($connection, $digest);
+      $browser = self::browser($connection, $digest, $issuer);
       $expires = min($now + self::TRANSACTION_TTL, (int)$browser['expiresAt']);
-      queryfx($connection, 'INSERT INTO %T (transactionDigest,browserDigest,generation,expiresAt) VALUES (%s,%s,%d,%d)',
-        'governance_mediaexchange', hash('sha256', $transaction), $digest,
-        $browser['generation'], $expires);
+      queryfx($connection, 'INSERT INTO %T (transactionDigest,browserDigest,generation,expiresAt,issuerIncarnation) VALUES (%s,%s,%d,%d,%s)',
+        'governance_mediaexchange', $issuer->digest('transaction', $transaction), $digest,
+        $browser['generation'], $expires, $issuer->getIncarnation());
+      $issuer->assertCurrent();
       $connection->saveTransaction();
       return array('transaction_id' => $transaction,
         'browser_secret' => new PhutilOpaqueEnvelope($secret),
@@ -135,9 +137,10 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     $request->validateCSRF();
     $context = PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
     $connection = self::connection();
+    $issuer = PhorgeGovernanceMediaIssuer::newFromConfiguration();
     self::begin($connection);
     try {
-      $exchange = $this->lockExchange($connection, $transaction);
+      $exchange = $this->lockExchange($connection, $transaction, $issuer);
       $snapshot = PhorgeGovernanceNativeIdentitySource::lockCurrent($context, $connection);
       $now = self::now($connection);
       $expires = min($now + self::CODE_TTL, $snapshot->getExpiresAt(),
@@ -152,12 +155,13 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
         'governance_mediacredential', $now, $exchange['browserDigest']);
       $code = bin2hex(random_bytes(32));
       queryfx($connection, 'UPDATE %T SET generation=%d,codeDigest=%s,userPHID=%s,sessionPHID=%s,credentialDigest=%s,accountEpoch=%s,sessionExpiresAt=%d,audience=%s,purpose=%s,returnPath=%s,expiresAt=%d WHERE transactionDigest=%s',
-        'governance_mediaexchange', $generation, hash('sha256', $code), $snapshot->getUserPHID(),
+        'governance_mediaexchange', $generation, $issuer->digest('code', $code), $snapshot->getUserPHID(),
         $snapshot->getSessionPHID(), $snapshot->getCredentialDigest(), $snapshot->getAccountEpoch(),
         $snapshot->getExpiresAt(), $audience, $purpose, $path, $expires,
-        hash('sha256', $transaction));
+        $issuer->digest('transaction', $transaction));
       PhorgeGovernanceNativeIdentitySource::revalidate($snapshot, $connection);
       if (self::now($connection) >= $expires) { throw new RuntimeException('media_exchange_expired'); }
+      $issuer->assertCurrent();
       $connection->saveTransaction();
       return array('exchange_code' => new PhutilOpaqueEnvelope($code), 'expires_at' => $expires);
     } catch (Throwable $error) {
@@ -166,16 +170,16 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     }
   }
 
-  private function lockExchange(AphrontDatabaseConnection $connection, $transaction) {
-    $digest = hash('sha256', $transaction);
+  private function lockExchange(AphrontDatabaseConnection $connection, $transaction, PhorgeGovernanceMediaIssuer $issuer) {
+    $digest = $issuer->digest('transaction', $transaction);
     // Discovery contains no authority. The browser lock always precedes row locks.
     $first = queryfx_one($connection, 'SELECT browserDigest FROM %T WHERE transactionDigest=%s',
       'governance_mediaexchange', $digest);
     if (!$first) { throw new RuntimeException('media_exchange_unknown'); }
-    $browser = self::browser($connection, $first['browserDigest']);
+    $browser = self::browser($connection, $first['browserDigest'], $issuer);
     $row = queryfx_one($connection, 'SELECT * FROM %T WHERE transactionDigest=%s FOR UPDATE',
       'governance_mediaexchange', $digest);
-    if (!$row || !hash_equals($row['browserDigest'], $browser['browserDigest']) ||
+    if (!$row || !$issuer->matchesRow($row) || !hash_equals($row['browserDigest'], $browser['browserDigest']) ||
         (string)$row['generation'] !== (string)$browser['generation'] ||
         $row['usedAt'] !== null || (int)$row['expiresAt'] <= self::now($connection)) {
       throw new RuntimeException('media_exchange_stale');
@@ -188,11 +192,12 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
     self::validateSecret($transaction); self::validateSecret($code);
     self::validateSecret($browser_secret); self::validateTarget($audience, $purpose, $path);
     $connection = self::connection();
+    $issuer = PhorgeGovernanceMediaIssuer::newFromConfiguration();
     self::begin($connection);
     try {
-      $row = $this->lockExchange($connection, $transaction);
-      if (!hash_equals($row['browserDigest'], hash('sha256', $browser_secret)) ||
-          !is_string($row['codeDigest']) || !hash_equals($row['codeDigest'], hash('sha256', $code)) ||
+      $row = $this->lockExchange($connection, $transaction, $issuer);
+      if (!hash_equals($row['browserDigest'], $issuer->digest('browser', $browser_secret)) ||
+          !is_string($row['codeDigest']) || !hash_equals($row['codeDigest'], $issuer->digest('code', $code)) ||
           $row['audience'] !== $audience || $row['purpose'] !== $purpose || $row['returnPath'] !== $path) {
         throw new RuntimeException('media_exchange_binding_refused');
       }
@@ -207,15 +212,16 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
       queryfx($connection, 'UPDATE %T SET revokedAt=%d WHERE browserDigest=%s AND revokedAt IS NULL',
         'governance_mediacredential', $now, $row['browserDigest']);
       queryfx($connection, 'UPDATE %T SET usedAt=%d WHERE transactionDigest=%s',
-        'governance_mediaexchange', $now, hash('sha256', $transaction));
-      queryfx($connection, 'INSERT INTO %T (secretDigest,browserDigest,generation,userPHID,sessionPHID,credentialDigest,accountEpoch,expiresAt,audience,purpose,revokedAt) VALUES (%s,%s,%d,%s,%s,%s,%s,%d,%s,%s,NULL)',
-        'governance_mediacredential', hash('sha256', $secret), $row['browserDigest'], $generation,
+        'governance_mediaexchange', $now, $issuer->digest('transaction', $transaction));
+      queryfx($connection, 'INSERT INTO %T (secretDigest,browserDigest,generation,userPHID,sessionPHID,credentialDigest,accountEpoch,expiresAt,audience,purpose,revokedAt,issuerIncarnation) VALUES (%s,%s,%d,%s,%s,%s,%s,%d,%s,%s,NULL,%s)',
+        'governance_mediacredential', $issuer->digest('credential', $secret), $row['browserDigest'], $generation,
         $snapshot->getUserPHID(), $snapshot->getSessionPHID(), $snapshot->getCredentialDigest(),
-        $snapshot->getAccountEpoch(), $expires, $audience, $purpose);
+        $snapshot->getAccountEpoch(), $expires, $audience, $purpose, $issuer->getIncarnation());
       PhorgeGovernanceNativeIdentitySource::revalidate($snapshot, $connection);
       if (self::now($connection) >= min($expires, (int)$row['expiresAt'])) {
         throw new RuntimeException('media_exchange_expired');
       }
+      $issuer->assertCurrent();
       $connection->saveTransaction();
       return array('credential' => new PhutilOpaqueEnvelope($secret), 'expires_at' => $expires,
         'return_path' => $path);
@@ -246,16 +252,17 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
   public function authenticate($secret) {
     self::validateSecret($secret);
     $connection = self::connection();
+    $issuer = PhorgeGovernanceMediaIssuer::newFromConfiguration();
     self::identityTransactionBookkeeping($connection,'begin');
     try {
-      $digest = hash('sha256', $secret);
+      $digest = $issuer->digest('credential', $secret);
       $first = queryfx_one($connection, 'SELECT browserDigest FROM %T WHERE secretDigest=%s',
         'governance_mediacredential', $digest);
       if (!$first) { throw new RuntimeException('media_credential_unknown'); }
-      $browser = self::browser($connection, $first['browserDigest']);
+      $browser = self::browser($connection, $first['browserDigest'], $issuer);
       $row = queryfx_one($connection, 'SELECT * FROM %T WHERE secretDigest=%s FOR UPDATE',
         'governance_mediacredential', $digest);
-      if (!$row || !hash_equals($row['secretDigest'], $digest) ||
+      if (!$row || !$issuer->matchesRow($row) || !hash_equals($row['secretDigest'], $digest) ||
           !hash_equals($row['browserDigest'], $browser['browserDigest']) ||
           $row['audience'] !== self::AUDIENCE || $row['purpose'] !== self::PURPOSE ||
           $row['revokedAt'] !== null || (string)$row['generation'] !== (string)$browser['generation'] ||
@@ -268,6 +275,7 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
       if (self::now($connection) >= min((int)$row['expiresAt'], (int)$browser['expiresAt'])) {
         throw new RuntimeException('media_credential_stale');
       }
+      $issuer->assertCurrent();
       self::identityTransactionBookkeeping($connection,'commit');
       return $snapshot;
     } catch (Throwable $error) {

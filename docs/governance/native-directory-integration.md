@@ -148,3 +148,29 @@ MariaDB; the optional integration profile remains the tested MySQL 8.4 profile.
 The shared-lock syntax is documented by both
 [MariaDB](https://mariadb.com/docs/server/reference/sql-statements/data-manipulation/selecting-data/lock-in-share-mode)
 and [MySQL](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
+
+## External media issuer and narrow restore verification
+
+The media-only issuer key and incarnation must come from an external configuration
+source. A database configuration entry is rejected even if it contains a valid
+key. Native application sessions and API credentials are not rotated or replaced.
+Browser, transaction, code and credential digests use distinct HMAC purposes.
+The new migration deliberately leaves prior candidate rows without an issuer;
+normal issuance never upgrades those rows.
+
+The isolated run passed 135 native pure methods and 173 real MySQL/Gorge checks.
+It reconstructed the previous media schema with an old SHA-only row, applied the
+actual source ALTER migration and verified rejection without promotion. It also
+restored an exact logical snapshot of the three media tables through real SQL
+while rotating the externally held media issuer. Old media credentials, pending
+codes and browser slots remained unusable. The underlying synthetic native web
+session and API credential were retained, still authenticated, and their security
+metadata was unchanged. Fresh media access required a new browser transaction.
+
+This is table-level media recovery evidence, not complete disaster recovery or
+authorization to revoke existing native sessions/API credentials. HTTP/cookie
+handoff, structured targets, quotas/cleanup, file policy/cache/active-content
+guards and notification integration remain separate work. Public routes and
+production optional features stay disabled.
+
+Issuer `assertCurrent` checks only the effective configuration stack in the current process. Recovery requires reloading every serving worker with the new external key/incarnation and preventing those external values from rolling back with the database. The current process check is not a fleet-wide reload certificate. The incarnation-only SQL case passed with a matching runtime receipt: it retains the key and native credentials while rejecting old browser slots, codes and credentials, then successfully establishes fresh media authority.
