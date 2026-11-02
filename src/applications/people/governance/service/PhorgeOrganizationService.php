@@ -819,10 +819,11 @@ final class PhorgeOrganizationService extends Phobject {
     } finally { unset($unguarded); }
   }
 
-  public function readUnits($limit = 100, $after = null, $query = '') {
+  public function readUnits($limit = 100, $after = null, $query = '', $selector = false) {
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
       $this->limit($limit);
+      if (!is_bool($selector)) { throw new InvalidArgumentException('organization_search_refused'); }
       if (!is_string($query) || strlen($query)>128 || !phutil_is_utf8($query)) {
         throw new InvalidArgumentException('organization_search_refused');
       }
@@ -832,12 +833,19 @@ final class PhorgeOrganizationService extends Phobject {
       $this->begin(array());
       try {
         $this->startRead();
+        $name_expression=$selector
+          ? qsprintf($this->connection,'LOWER(CONVERT(u.name USING utf8mb4))')
+          : qsprintf($this->connection,'u.name');
+        $pattern='%'.str_replace(array('=','%','_'),array('==','=%','=_'),$query).'%';
+        $pattern_expression=$selector
+          ? qsprintf($this->connection,'LOWER(CONVERT(%s USING utf8mb4))',$pattern)
+          : qsprintf($this->connection,'%s',$pattern);
         $rows = queryfx_all($this->connection,
           'SELECT u.* FROM %T u WHERE u.state=%s AND u.kind IN (%Ls) '.
-          'AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND u.unitID>%s AND u.name LIKE %s ESCAPE %s AND (%Q) ORDER BY u.unitID LIMIT %d',
+          'AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND u.unitID>%s AND %Q LIKE %Q ESCAPE %s AND (%Q) ORDER BY u.unitID LIMIT %d',
           $this->table('unit'), 'active', array('team', 'department'),
           $after === null ? '' : $after,
-          '%'.str_replace(array('=','%','_'),array('==','=%','=_'),$query).'%', '=',
+          $name_expression,$pattern_expression, '=',
           $this->visibleSQL(), $limit);
         $result = array(); foreach ($rows as $row) { $result[] = $this->publicUnit($row); }
         // A role expiring while producing a response does not return a stale list.

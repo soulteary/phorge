@@ -3,12 +3,12 @@
   "upstream_main": "9a55f339d8189d9935da44ec5f6d71ebc7547e34",
   "php_runtime": "8.5.12",
   "native_methods": 139,
-  "native_sql_checks": 204,
+  "native_sql_checks": 208,
   "governance_python": 80,
   "permissions_python": 84,
   "evidence_sha256": {
-    "docs/governance/native-directory-evidence.json": "d3e03490b6bf17c48b7d54c3cf79ee6ecae7e1f8c715da3e1d55c542316a61bf",
-    "native-methods.json": "8b3ad91b1e66d49ad6e23016d7c538fc631bf201fec07ce2c25c2672abb1d6a1"
+    "docs/governance/native-directory-evidence.json": "ca30c91d430111f11e334ad27d2b6537019c05864cea79d8375b87d377d05d56",
+    "native-methods.json": "dfa493c40cd618153026001896db1b71b621e93acf04bba0e35d5486c9536a53"
   },
   "production_enabled": false,
   "deployment": false,
@@ -17,6 +17,7 @@
   "strict_native_cli_accepted": true,
   "review_fix_scope": [
     "native date-control integer normalization",
-    "inactive department audited clear and explicit reassignment"
+    "inactive department audited clear and explicit reassignment",
+    "native tokenizer q/raw protocol with case-insensitive literal selector search"
   ]
 }

@@ -12,6 +12,10 @@ _spec = importlib.util.spec_from_file_location('native_completion_gate', ROOT/'s
 completion = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(completion)
 REQUIRED_CHECKS = frozenset({
+    'directory-completion-selector-native-normalized-q-preserves-raw-uppercase-punctuation',
+    'directory-completion-selector-lowercase-partial-matches-uppercase-native-name',
+    'directory-completion-selector-percent-underscore-remain-literal-not-wildcards',
+    'directory-completion-selector-case-folding-does-not-disclose-hidden-units',
     'directory-completion-real-csrf-finite-date-form-persists-native-timestamp',
     'directory-completion-inactive-attention-has-real-audited-clear-form',
     'directory-completion-cleared-inactive-department-can-explicitly-reassign',

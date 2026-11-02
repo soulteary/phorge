@@ -30,7 +30,7 @@
         "N01"
       ],
       "status": "native-datasource-search-paging-verified-subset",
-      "remaining": "Native datasource/search/paging/counts, token-domain privacy, Chinese full-page rendering and unavailable-reference form preservation verified in the 136/184 directory checkpoint and 139/204 review-fixed combined current-main issuer run. Hosted CI and browser/test-machine acceptance remain separate.",
+      "remaining": "Native datasource/search/paging/counts, token-domain privacy, Chinese full-page rendering and unavailable-reference form preservation verified in the 136/184 directory checkpoint and 139/208 review-fixed combined current-main issuer run. Hosted CI and browser/test-machine acceptance remain separate.",
       "production_enabled": false
     },
     {

@@ -23,7 +23,7 @@ final class PhorgeOrganizationDatasource extends PhabricatorTypeaheadDatasource 
   }
   public function loadResults() {
     if($this->actorContext===null){throw new RuntimeException('organization_credential_context_required');}
-    $rows=(new PhorgeOrganizationQuery($this->actorContext))->searchUnits($this->getRawQuery(),100);
+    $rows=(new PhorgeOrganizationQuery($this->actorContext))->searchSelectorUnits($this->getRawQuery(),100);
     $results=array();foreach($rows as $row){$results[]=id(new PhabricatorTypeaheadResult())
       ->setName($row['name'])->setPHID($row['unit_id'])->setPriorityString($row['name'])
       ->setURI('/people/organization/?unit_id='.rawurlencode($row['unit_id']))

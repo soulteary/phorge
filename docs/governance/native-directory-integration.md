@@ -213,3 +213,6 @@ The combined source inventory remains partial: 31 explicitly reviewed nodes, 21 
 ### Directory review follow-up
 
 The subsequent exact-source run passed 139 pure methods and 204 SQL checks. Non-null native date-control values are converted to integer timestamps before strict mutation normalization, while null remains null. Inactive-department attention rows now expose an audited clear operation; reassignment is a separate explicit action. The transfer guard remains enforced. Three actual CSRF form/HTML/database assertions cover these fixes. This supersedes the preceding 201-check source as the current isolated receipt; hosted final-head CI and review remain required.
+
+
+The tokenizer follow-up retains the native `raw` query rather than searching the lossy normalized `q` literally. A dedicated case-insensitive selector path keeps punctuation and literal wildcard escaping, and shares the existing visibility predicate and expiry fence. Four actual controller regressions cover uppercase/hyphen names, lowercase partials, literal percent/underscore, and hidden units. The current exact-source receipt passed 139 pure methods and 208 SQL checks.

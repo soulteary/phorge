@@ -240,6 +240,27 @@ function governance_native_directory_completion_cases($fixture, callable $check,
     $check($reassign instanceof AphrontRedirectResponse && $assigned['unitID']==='dc-dept' &&
       (int)$assigned['version']===(int)$cleared_primary['version']+1,
       'directory-completion-cleared-inactive-department-can-explicitly-reassign');
+    foreach(array('dc-selector-literal'=>'Engineering-Team_%','dc-selector-decoy'=>'EngineeringXTeamXA')as$id=>$name){
+      $service->createUnit(array('operation_id'=>'create-'.$id,'unit_id'=>$id,'kind'=>'team','name'=>$name,'parent_id'=>null));}
+    $selector=function($session,$q,$raw) {
+      $_SERVER['REQUEST_METHOD']='GET';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$session['token'];
+      $request=(new AphrontRequest('fixture.invalid','/people/organization/typeahead/'))
+        ->setUser($session['viewer'])->setRequestData(array('q'=>$q,'raw'=>$raw));
+      $controller=(new PhorgeOrganizationDatasourceController())->setRequest($request)->setCurrentApplication(new PhabricatorPeopleApplication());
+      $response=governance_native_with_request_write_guard($request,static function()use($controller,$request){return $controller->handleRequest($request);});
+      if(!($response instanceof AphrontAjaxResponse)||$response->getHTTPResponseCode()!==200){throw new RuntimeException('directory_selector_response_refused');}
+      return array_column((new ReflectionProperty(AphrontAjaxResponse::class,'content'))->getValue($response),2);
+    };
+    $check($selector($state['admin'],'engineering team','Engineering-Team_%')===array('dc-selector-literal'),
+      'directory-completion-selector-native-normalized-q-preserves-raw-uppercase-punctuation');
+    $matches=$selector($state['admin'],'engineer','engineer');sort($matches);
+    $check($matches===array('dc-selector-decoy','dc-selector-literal'),
+      'directory-completion-selector-lowercase-partial-matches-uppercase-native-name');
+    $check($selector($state['admin'],'engineering team','engineering-Team_%')===array('dc-selector-literal'),
+      'directory-completion-selector-percent-underscore-remain-literal-not-wildcards');
+    $check($selector($manager,'engineering team','Engineering-Team_%')===array() &&
+      governance_native_route_guard_depth()===0,
+      'directory-completion-selector-case-folding-does-not-disclose-hidden-units');
     return array('native_hierarchy_and_metadata'=>true,'native_datasource'=>true,'schema_migration_test_environment_only'=>true,
       'native_project_permissions_changed'=>false,'audit_cleanup_enabled'=>false,'handover_implemented'=>false);
   }finally{$_COOKIE=$saved_cookie;$_SERVER=$saved_server;}
