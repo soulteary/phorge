@@ -37,6 +37,12 @@ final class PhorgeOrganizationEndpoint extends Phobject {
       case 'unit.update': return $service->updateUnit($payload);
       case 'department.assign': return $service->assignPrimaryDepartment($payload);
       case 'members.edit': return $service->execute($payload);
+      case 'compound.execute-approved':
+        if(array_keys($payload)!==array('approval_id')){throw new InvalidArgumentException('organization_approval_request_refused');}
+        return $service->executeApprovedCompound($payload['approval_id']);
+      case 'compound.preview': return $service->previewCompound($payload);
+      case 'compound.propose': return $service->proposeCompoundApproval($payload);
+      case 'compound.execute': return $service->executeCompound($payload);
       case 'approval.propose': return $service->proposeApproval($payload);
       case 'approval.approve':
         if (array_keys($payload) !== array('approval_id')) {

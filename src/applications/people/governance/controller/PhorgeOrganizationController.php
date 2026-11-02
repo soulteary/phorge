@@ -58,8 +58,30 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
             ->appendParagraph(pht('Current and scheduled membership records: %s', $preview['effects']['member']))
             ->appendForm($form)->addSubmitButton(pht('Archive'))->addCancelButton($this->getApplicationURI('organization/'));
         }
+        if(!$json && $action==='approval.approve' && !$request->getBool('confirm_compound_approval')){
+          $preview=PhorgeOrganizationService::newForActor($context)->previewCompoundApproval($payload['approval_id']);
+          $form=id(new AphrontFormView())->setUser($this->getViewer())->addHiddenInput('action',$action)
+            ->addHiddenInput('payload',phutil_json_encode($payload))->addHiddenInput('confirm_compound_approval',1);
+          return $this->newDialog()->setTitle(pht('Review Compound Membership Impact'))
+            ->appendParagraph(pht('Team: %s; User: %s; Change: %s',$preview['team'],$preview['target_user'],
+              $preview['action']==='member.add-and-appoint'?pht('Add Membership and Appointment'):pht('Revoke Appointment and End Membership')))
+            ->appendParagraph(pht('Membership period: %s to %s; Appointment period: %s to %s',
+              $preview['member_from']===null?pht('Unchanged'):$preview['member_from'],
+              $preview['member_until']===null?pht('No End Date'):$preview['member_until'],
+              $preview['appointment_from']===null?pht('Unchanged'):$preview['appointment_from'],
+              $preview['appointment_until']===null?pht('No End Date'):$preview['appointment_until']))
+            ->appendParagraph(pht('Adding membership may grant business access through this team. Approval never changes native project permissions.'))
+            ->appendForm($form)->addSubmitButton(pht('Approve'))->addCancelButton($this->getApplicationURI('organization/'));
+        }
         $result = PhorgeOrganizationEndpoint::write($context, $action, $payload);
         if ($json) { return id(new AphrontJSONResponse())->setContent(array('result' => $result)); }
+        if($action==='compound.propose'){
+          return $this->newDialog()->setTitle(pht('Compound Approval Requested'))
+            ->appendParagraph(pht('Approval ID: %s', $result['approval_id']))
+            ->appendParagraph(pht('A different current system administrator must approve this request. The requester then executes it using this approval ID.'))
+            ->addCancelButton($this->getApplicationURI('organization/'),pht('Done'));
+        }
+
         return id(new AphrontRedirectResponse())->setURI($this->getApplicationURI('organization/'));
       }
       if ($json) {
@@ -82,6 +104,26 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
 
   private function formPayload(AphrontRequest $request, PhorgeGovernanceNativeActorContext $context) {
     $operation = $request->getStr('operation_id');
+    if(in_array($request->getStr('form_action'),array('compound.approve','compound.execute'),true)){
+      return array($request->getStr('form_action')==='compound.approve'?'approval.approve':'compound.execute-approved',
+        array('approval_id'=>$request->getStr('approval_id')));
+    }
+    if($request->getStr('form_action')==='compound.propose'){
+      $grant=$request->getStr('compound_action')==='member.add-and-appoint';
+      if(!$grant && $request->getStr('compound_action')!=='appointment.revoke-and-end'){
+        throw new InvalidArgumentException('organization_compound_request_refused');}
+      $members=$request->getArr('compound_subject');if(count($members)!==1){throw new InvalidArgumentException('organization_compound_request_refused');}
+      $input=array('action'=>$request->getStr('compound_action'),'approval_id'=>$request->getStr('approval_id'),
+        'operation_id'=>$operation,'team'=>$request->getStr('unit_id'),'target_user'=>head($members),
+        'expected_team_version'=>$request->getInt('unit_version'),'expected_member_version'=>$request->getInt('member_version'),
+        'expected_appointment_version'=>$request->getInt('appointment_version'),'impact_acknowledged'=>$request->getBool('impact_acknowledged'),
+        'member_from'=>$grant?0:null,'member_until'=>null,'appointment_from'=>$grant?0:null,'appointment_until'=>null,'ttl_seconds'=>3600);
+      if($grant){foreach(array('member','appointment')as$kind){
+        $date=(new AphrontFormDateControl())->setViewer($this->getViewer())->setName('compound_'.$kind.'_until')->setAllowNull(true);
+        $date->readValueFromRequest($request);if($date->getError()){throw new InvalidArgumentException('organization_period_refused');}
+        $input[$kind.'_until']=$date->getValue()===null?null:(int)$date->getValue();}}
+      return array('compound.propose',$input);
+    }
     if ($request->getStr('form_action') === 'unit.create') {
       if(count($request->getArr('parent'))>1){throw new InvalidArgumentException('organization_parent_refused');}
       return array('unit.create', array('operation_id' => $operation,
@@ -214,6 +256,17 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
             ->addHiddenInput('user_phid',$member['user_phid'])->addHiddenInput('primary_version',$member['primary_department_version'])
             ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Clear Main Department')));
         }
+        if($capabilities['manage_units'] && $unit['kind']==='team' && $member['appointment_version']>0){
+          $controls[]=id(new AphrontFormView())->setUser($this->getViewer())
+            ->addHiddenInput('form_action','compound.propose')->addHiddenInput('compound_action','appointment.revoke-and-end')
+            ->addHiddenInput('operation_id','web:'.bin2hex(random_bytes(16)))->addHiddenInput('approval_id','approval:'.bin2hex(random_bytes(16)))
+            ->addHiddenInput('unit_id',$selected)->addHiddenInput('unit_version',$unit['version'])
+            ->addHiddenInput('compound_subject[]',$member['user_phid'])->addHiddenInput('member_version',$member['member_version'])
+            ->addHiddenInput('appointment_version',$member['appointment_version'])
+            ->appendControl(id(new AphrontFormCheckboxControl())->addCheckbox('impact_acknowledged',1,
+              pht('I acknowledge that this explicitly ends membership and administrator appointment.'),false))
+            ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Request Revocation and Membership End')));
+        }
         $member_rows[] = array($member['user_phid'], $member['account_eligible']
           ? pht('Active Account') : pht('Inactive Account'),$controls);
       }
@@ -263,10 +316,32 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
           ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Add Ordinary Member')));
         $boxes[] = id(new PHUIObjectBoxView())->setHeaderText(pht('Add Ordinary Member'))
           ->appendChild($form);
+        if($capabilities['manage_units']){
+          $compound=id(new AphrontFormView())->setUser($this->getViewer())
+            ->addHiddenInput('form_action','compound.propose')->addHiddenInput('compound_action','member.add-and-appoint')
+            ->addHiddenInput('operation_id','web:'.bin2hex(random_bytes(16)))->addHiddenInput('approval_id','approval:'.bin2hex(random_bytes(16)))
+            ->addHiddenInput('unit_id',$selected)->addHiddenInput('unit_version',$unit['version'])
+            ->addHiddenInput('member_version',0)->addHiddenInput('appointment_version',0)
+            ->appendControl(id(new AphrontFormTokenizerControl())->setLabel(pht('User'))->setName('compound_subject')->setLimit(1)->setDatasource(new PhabricatorPeopleDatasource()));
+          foreach(array('member'=>pht('Membership Ends'),'appointment'=>pht('Appointment Ends'))as$kind=>$label){
+            $compound->appendControl(id(new AphrontFormDateControl())->setViewer($this->getViewer())->setName('compound_'.$kind.'_until')
+              ->setLabel($label)->setAllowNull(true)->setValue(null));}
+          $compound->appendControl(id(new AphrontFormCheckboxControl())->addCheckbox('impact_acknowledged',1,
+            pht('Adding membership may grant business access through this team. I request explicit membership and administrator approval.'),false))
+            ->appendControl(id(new AphrontFormSubmitControl())->setValue(pht('Request Membership and Appointment')));
+          $boxes[]=id(new PHUIObjectBoxView())->setHeaderText(pht('Explicit Membership and Appointment'))->appendChild($compound);
+        }
+
       }
     }
     $capabilities = $query->getActorCapabilities();
     if ($capabilities['manage_units']) {
+      foreach(array('compound.approve'=>pht('Approve Compound Request'),'compound.execute'=>pht('Execute Approved Compound'))as$action=>$label){
+        $approval_form=id(new AphrontFormView())->setUser($this->getViewer())->addHiddenInput('form_action',$action)
+          ->appendControl(id(new AphrontFormTextControl())->setLabel(pht('Approval ID'))->setName('approval_id'))
+          ->appendControl(id(new AphrontFormSubmitControl())->setValue($label));
+        $boxes[]=id(new PHUIObjectBoxView())->setHeaderText($label)->appendChild($approval_form);
+      }
       $form = id(new AphrontFormView())->setUser($this->getViewer())
         ->addHiddenInput('form_action', 'unit.create')
         ->addHiddenInput('operation_id', 'web:'.bin2hex(random_bytes(16)))
