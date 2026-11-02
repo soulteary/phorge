@@ -91,3 +91,29 @@ report mode, and rejects routing, scope-selector, object-connection or isolation
 before returning. Local expansion methods do not need
 or create this SQL context. This remains an isolated observation facility, not a
 general production factory or proof of locking through a business write.
+
+## Batch-4 bounded expansion additions
+
+`observeWikiBatchExpansion()` invokes the exact native Wiki batch prelude on
+an existing document with explicitly attached native `PhrictionContent`. Its
+stored content identity and document binding must match. The native uint32
+version accepts a positive integer or canonical decimal string in 1–4294967295;
+leading zeroes, signs, floats, booleans and overflow are refused. The public
+version summary is normalized to an integer without mutating the input. The prelude records old content in the throwaway editor before the
+native per-item expansion. Tests cover combined move-policy and empty-content
+delete ordering. Returned context includes only version and identity digest;
+attached body text is not exported or modified. Attachment consistency is not
+proof that the provided objects are fresh database rows.
+
+Task and Wiki view/edit policy items may now be observed through the exact
+local per-item method. The inherited method passes these items through; that
+observation neither validates policy semantics nor grants approval. Project
+observations expose only milestone state and a digest of the editor-local
+parent context. Parent/membership policy validation, support expansion and
+Herald remain outside the observed closure.
+
+Maniphest batch expansion is still unsupported: current native code reads
+status/configuration and may load notification project state, with auto-claim
+and creation paths requiring additional prerequisites. No full editor pipeline
+or final-effects method is invoked. All observations continue to report
+`can_execute=false`, `risk_complete=false`, `full_expansion_verified=false`.
