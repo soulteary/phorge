@@ -1,0 +1,442 @@
+{
+  "schema_version": 1,
+  "baseline_revision": "59dd12120d518d33add72cfbf4d4a8316e29cec3",
+  "scope": "batch-1 isolated foundation only",
+  "rules": [
+    {
+      "id": "V01",
+      "selected": "A",
+      "effect": "high_risk_independent_approval",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V02",
+      "selected": "A",
+      "effect": "new_content_only_native_edit_preserved",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V03",
+      "selected": "A",
+      "effect": "incomplete_recovery_blocks_enable",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V04",
+      "selected": "B",
+      "effect": "directory_scoped_admins_only",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V05",
+      "selected": "A",
+      "effect": "history_system_admins_only",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V06",
+      "selected": "A",
+      "effect": "media_parent_session_nonrevival",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V07",
+      "selected": "A",
+      "effect": "team_admin_requires_active_member",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V08",
+      "selected": "A",
+      "effect": "native_join_unchanged",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V09",
+      "selected": "A",
+      "effect": "handover_14_30_days_manual_disposition",
+      "authority": "user-selected-design"
+    },
+    {
+      "id": "V10",
+      "selected": "A",
+      "effect": "audit_365_days_directory_8_soft_levels",
+      "authority": "user-selected-design"
+    }
+  ],
+  "native_axes": {
+    "subproject_visibility": "native",
+    "edit_inheritance": "native",
+    "member_aggregation": "native",
+    "historical_edges": "native"
+  },
+  "constraints": {
+    "optional_features_enabled": false,
+    "production_permission_migration": false,
+    "production_registration": false,
+    "new_public_domains": false,
+    "d15_selected": false,
+    "new_revocation_sla": false
+  },
+  "production_registrations": [],
+  "packages": [
+    {
+      "id": "N00",
+      "interface_id": "N00.COVERAGE.v1",
+      "depends_on": [],
+      "active": false,
+      "status": "isolated-foundation",
+      "coverage": "partial",
+      "production_registration": false
+    },
+    {
+      "id": "N01",
+      "interface_id": "N01.ORG-SCHEMA.v1",
+      "depends_on": [
+        "N00"
+      ],
+      "active": false,
+      "status": "isolated-foundation",
+      "coverage": "partial",
+      "production_registration": false
+    },
+    {
+      "id": "N02",
+      "interface_id": "N02.DIRECTORY-VIEW.v1",
+      "depends_on": [
+        "N01"
+      ],
+      "active": false,
+      "status": "isolated-foundation",
+      "coverage": "partial",
+      "production_registration": false
+    },
+    {
+      "id": "N05-A",
+      "interface_id": "N05-A.CONTENT-CONTRACT.v1",
+      "depends_on": [
+        "N00"
+      ],
+      "active": false,
+      "status": "isolated-foundation",
+      "coverage": "partial",
+      "production_registration": false
+    },
+    {
+      "id": "N07-A",
+      "interface_id": "N07-A.APPROVAL-CONTRACT.v1",
+      "depends_on": [
+        "N00"
+      ],
+      "active": false,
+      "status": "isolated-foundation",
+      "coverage": "partial",
+      "production_registration": false
+    }
+  ],
+  "sources": [
+    {
+      "id": "PROJECT.EDIT.WEB",
+      "path": "src/applications/project/controller/PhabricatorProjectEditController.php",
+      "symbol": "PhabricatorProjectEditController",
+      "role": "project web edit",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.EDIT.ENGINE",
+      "path": "src/applications/project/engine/PhabricatorProjectEditEngine.php",
+      "symbol": "PhabricatorProjectEditEngine",
+      "role": "project edit field and transaction mapping",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.MEMBER.ADD",
+      "path": "src/applications/project/controller/PhabricatorProjectMembersAddController.php",
+      "symbol": "PhabricatorProjectMembersAddController",
+      "role": "project forward member add",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.MEMBER.REMOVE",
+      "path": "src/applications/project/controller/PhabricatorProjectMembersRemoveController.php",
+      "symbol": "PhabricatorProjectMembersRemoveController",
+      "role": "project forward member remove",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.MEMBER.EDITOR",
+      "path": "src/applications/project/editor/PhabricatorProjectTransactionEditor.php",
+      "symbol": "PhabricatorProjectTransactionEditor",
+      "role": "project transactions and final effects",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.MEMBER.INVERSE",
+      "path": "src/infrastructure/edges/editor/PhabricatorEdgeEditor.php",
+      "symbol": "PhabricatorEdgeEditor",
+      "role": "shared inverse edge edit candidate; full callers not yet inventoried",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.EDIT.CONDUIT",
+      "path": "src/applications/project/conduit/ProjectEditConduitAPIMethod.php",
+      "symbol": "ProjectEditConduitAPIMethod",
+      "role": "project.edit API",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.CREATE.CONDUIT",
+      "path": "src/applications/project/conduit/ProjectCreateConduitAPIMethod.php",
+      "symbol": "ProjectCreateConduitAPIMethod",
+      "role": "legacy project create API",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.POLICY.SOURCE",
+      "path": "src/applications/project/storage/PhabricatorProject.php",
+      "symbol": "PhabricatorProject",
+      "role": "native automatic capabilities, hierarchy and membership",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "PROJECT.QUERY.CONSUMER",
+      "path": "src/applications/project/query/PhabricatorProjectQuery.php",
+      "symbol": "PhabricatorProjectQuery",
+      "role": "native query visibility consumers",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "POLICY.FILTER",
+      "path": "src/applications/policy/filter/PhabricatorPolicyFilter.php",
+      "symbol": "PhabricatorPolicyFilter",
+      "role": "native policy filter and automatic capabilities",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "ACCOUNT.ENABLE.WEB",
+      "path": "src/applications/people/controller/PhabricatorPeopleDisableController.php",
+      "symbol": "PhabricatorPeopleDisableController",
+      "role": "web enable/disable",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "ACCOUNT.ENABLE.API",
+      "path": "src/applications/people/conduit/UserEditConduitAPIMethod.php",
+      "symbol": "UserEditConduitAPIMethod",
+      "role": "user.edit edit-engine API",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "ACCOUNT.DISABLE.LEGACY_API",
+      "path": "src/applications/people/conduit/UserDisableConduitAPIMethod.php",
+      "symbol": "UserDisableConduitAPIMethod",
+      "role": "legacy user disable API; do not infer enable coverage",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "ACCOUNT.ENABLE.CLI",
+      "path": "src/applications/people/management/PhabricatorPeopleManagementEnableWorkflow.php",
+      "symbol": "PhabricatorPeopleManagementEnableWorkflow",
+      "role": "people enable management workflow",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "ACCOUNT.ENABLE.ENGINE",
+      "path": "src/applications/people/editor/PhabricatorUserEditEngine.php",
+      "symbol": "PhabricatorUserEditEngine",
+      "role": "disabled edit-field mapping",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "ACCOUNT.ENABLE.TRANSACTION",
+      "path": "src/applications/people/xaction/PhabricatorUserDisableTransaction.php",
+      "symbol": "PhabricatorUserDisableTransaction",
+      "role": "user.disable transaction",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "ACCOUNT.SESSION",
+      "path": "src/applications/auth/engine/PhabricatorAuthSessionEngine.php",
+      "symbol": "PhabricatorAuthSessionEngine",
+      "role": "session load/expiry/logout boundary",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "FILE.DATA",
+      "path": "src/applications/files/controller/PhabricatorFileDataController.php",
+      "symbol": "PhabricatorFileDataController",
+      "role": "bearer data/download read and cache",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "FILE.TRANSFORM",
+      "path": "src/applications/files/controller/PhabricatorFileTransformController.php",
+      "symbol": "PhabricatorFileTransformController",
+      "role": "file transform route",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "FILE.ROUTES",
+      "path": "src/applications/files/application/PhabricatorFilesApplication.php",
+      "symbol": "PhabricatorFilesApplication",
+      "role": "native route definitions including instance variants",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "MAIL.QUEUE",
+      "path": "src/applications/metamta/PhabricatorMetaMTAWorker.php",
+      "symbol": "PhabricatorMetaMTAWorker",
+      "role": "queued outbound mail delivery",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "MAIL.MODEL",
+      "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
+      "symbol": "PhabricatorMetaMTAMail",
+      "role": "subject/body/recipient/attachment producer boundary",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "MAIL.ENGINE",
+      "path": "src/applications/metamta/engine/PhabricatorMailEmailEngine.php",
+      "symbol": "PhabricatorMailEmailEngine",
+      "role": "outbound payload assembly",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "MAIL.ADAPTER",
+      "path": "src/applications/metamta/adapter/PhabricatorMailGorgeAdapter.php",
+      "symbol": "PhabricatorMailGorgeAdapter",
+      "role": "Gorge transport boundary; not all producers",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "MAIL.HERALD",
+      "path": "src/applications/metamta/herald/PhabricatorMailOutboundMailHeraldAdapter.php",
+      "symbol": "PhabricatorMailOutboundMailHeraldAdapter",
+      "role": "outbound Herald modifications",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "CONTENT.TASK",
+      "path": "src/applications/maniphest/editor/ManiphestEditEngine.php",
+      "symbol": "ManiphestEditEngine",
+      "role": "task field mapping candidate, automatic capabilities need audit",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    },
+    {
+      "id": "CONTENT.WIKI",
+      "path": "src/applications/phriction/editor/PhrictionTransactionEditor.php",
+      "symbol": "PhrictionTransactionEditor",
+      "role": "wiki transaction mapping candidate, hierarchy needs audit",
+      "evidence_status": "static-reference-only",
+      "coverage": "partial",
+      "activation_blocked": true
+    }
+  ],
+  "unsupported": [
+    {
+      "id": "U01",
+      "description": "Complete legacy and inverse edge caller inventory remains pending.",
+      "status": "pending",
+      "blocks_activation": true
+    },
+    {
+      "id": "U02",
+      "description": "All account-enable callers and full recovery source inventory remain pending.",
+      "status": "pending",
+      "blocks_activation": true
+    },
+    {
+      "id": "U03",
+      "description": "Cross-database read-set, locking and adapter consistency remain unverified.",
+      "status": "pending",
+      "blocks_activation": true
+    },
+    {
+      "id": "U04",
+      "description": "Per-object native automatic capabilities and new content-field semantics remain unverified.",
+      "status": "pending",
+      "blocks_activation": true
+    },
+    {
+      "id": "U05",
+      "description": "Media identity protocol, irreversible session invalidation and all file/cache routes remain unimplemented.",
+      "status": "pending",
+      "blocks_activation": true
+    },
+    {
+      "id": "U06",
+      "description": "All mail producers, actual-send recipient revalidation and private payload coverage remain unverified.",
+      "status": "pending",
+      "blocks_activation": true
+    },
+    {
+      "id": "U07",
+      "description": "Actual capacity, retention exceptions and cleanup/recovery proof remain unverified.",
+      "status": "pending",
+      "blocks_activation": true
+    },
+    {
+      "id": "U08",
+      "description": "External identity, API credential, WebSocket and queue revocation semantics remain unverified.",
+      "status": "pending",
+      "blocks_activation": true
+    }
+  ],
+  "evidence_status": "structural-check-only-not-behavioral-pass"
+}
