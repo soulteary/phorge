@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "adr": "N12/LIFE-001/MEDIA-001 v1.2",
-  "baseline": "7c38bf7b4da36e0523aa23f85ec4d576d3d9bdb4",
+  "baseline": "e5409ca89aff15126cf6bbf9dad2d92714d785cf",
   "all_actual_measurement_profiles_available": false,
   "production_mutation": false,
   "SLA_selected": false,
@@ -63,17 +63,17 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "079ba53b45c67e6acb3a2d7d420c0c2fb870f45e831e9fef5e238412b94a23dd",
+          "sha256": "98d390ddcec1f74e854d2be463c9806cab5094a120bae52894abdfc6fa9c59be",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/native-worker.php",
-          "sha256": "ac22d36d3ead4e901927a702af57b8667390f3d7742d6519519c5887011b93eb",
+          "sha256": "aa11267f5e77b49ea1a4e006715c955c1c36fd0ceebd7f2fb1c76e83f431974e",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/workers.php",
-          "sha256": "2582b880beb5aaad3055fe1a8beeabab58d15810f249175071a2aa10751a23be",
+          "sha256": "410029374b824056f6c8ecf88c4e7ce155e6013a527c0b8cc3f2ef8740653346",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         }
       ],
@@ -117,24 +117,39 @@
       "runtime_gate": "Five new mandatory assertions and three additional registered workers; fresh whole source regression required",
       "event_schema_version": 2,
       "native_transaction_group_claimed": false,
-      "producer_sha256": "05ed0e061c59dc4fc8c4469f7bade628f0cb6441ae97b0e847ae038cb85651ce",
+      "producer_sha256": "81a28c43ae835e107023c176ca790a7323cec6d7d313a19a3c83924726e62de2",
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "079ba53b45c67e6acb3a2d7d420c0c2fb870f45e831e9fef5e238412b94a23dd",
+          "sha256": "98d390ddcec1f74e854d2be463c9806cab5094a120bae52894abdfc6fa9c59be",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/native-worker.php",
-          "sha256": "ac22d36d3ead4e901927a702af57b8667390f3d7742d6519519c5887011b93eb",
+          "sha256": "aa11267f5e77b49ea1a4e006715c955c1c36fd0ceebd7f2fb1c76e83f431974e",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/workers.php",
-          "sha256": "2582b880beb5aaad3055fe1a8beeabab58d15810f249175071a2aa10751a23be",
+          "sha256": "410029374b824056f6c8ecf88c4e7ce155e6013a527c0b8cc3f2ef8740653346",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         }
-      ]
+      ],
+      "cold_cache_dependency": "Fixed API measurement action only: actual owned loopback Gorge file backend; marker/source/namespace-bound private payload. No synthetic/prewarmed caches. Current runtime unrun.",
+      "http_successor": {
+        "status": "implemented-runtime-unrun",
+        "profile": "native-conduit-http-token-revocation-only",
+        "producer_path": "support/governance/native-organization/revocation-http-cases.php",
+        "producer_sha256": "3861940664d7ef87b0b526a7a6acf6102b1e000f838fabad0720f31bc9822b8c",
+        "router_path": "support/governance/native-organization/revocation-http-router.php",
+        "router_sha256": "acc25ad56ad63d1d1ef36ae22fccbb0343831dcdde848e9d53a86f6a89fc0c7f",
+        "expected_SQL_pending": 716,
+        "new_HTTP_obligations": 6,
+        "HTTP_proved": false,
+        "gateway_proved": false,
+        "SLA_proved": false,
+        "native_500_handler_proved": false
+      }
     },
     {
       "family": "media",
@@ -176,7 +191,7 @@
       "source_refs": [
         {
           "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",
-          "sha256": "cba0a2f2271cf5a74ae668d61cadc87870ab22856491eb321dd688c461a17268",
+          "sha256": "99488d39431c1a30d38d90d6a0394d9554e9da82ca3ea87c7fd6b3b2afea2e90",
           "evidence": "reviewed-source-seam-not-runtime-measurement"
         }
       ],
@@ -221,5 +236,6 @@
       "accepted_boundary": "No recall of completed responses, in-flight bytes, downloaded copies or sent mail. No global native session/API revocation change."
     }
   ],
-  "previous_source_checkpoint": "23f25cae9c"
+  "previous_source_checkpoint": "23f25cae9c",
+  "previous_catalog_baseline": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43"
 }

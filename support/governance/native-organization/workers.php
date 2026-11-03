@@ -20,6 +20,25 @@ function governance_native_worker_atomic($path,$name,$value) {
   if (!rename($temporary,$path.'/'.$name)) { throw new RuntimeException('native_worker_write_failed'); }
 }
 
+/** Fixed measurement-only cold-cache dependency; never an authority grant. */
+function governance_native_measurement_file_source($action,$value,$namespace,$owner,$source) {
+  if($action!=='measurement.api-token-auth'){
+    if($value!==null){throw new RuntimeException('native_worker_file_scope_refused');}
+    return null;
+  }
+  if(!is_array($value)){throw new RuntimeException('native_worker_file_scope_refused');}
+  $keys=array_keys($value);sort($keys);
+  if($keys!==array('namespace','token','uri')||!is_string($namespace)||
+    !preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)||$value['namespace']!==$namespace||
+    !is_string($value['uri'])||!preg_match('@\Ahttp://127\.0\.0\.1:([1-9][0-9]{0,4})\z@D',$value['uri'],$port)||(int)$port[1]>65535||
+    !is_string($value['token'])||!preg_match('/\A[a-f0-9]{64}\z/D',$value['token'])||
+    !is_string($owner)||!preg_match('/\A[a-f0-9]{64}\z/D',$owner)||
+    !is_string($source)||!preg_match('/\A[a-f0-9]{64}\z/D',$source)){
+    throw new RuntimeException('native_worker_file_scope_refused');
+  }
+  return $value+array('binding'=>hash('sha256',json_encode(array($namespace,$owner,$source,$value['uri'],$value['token']),JSON_THROW_ON_ERROR)));
+}
+
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
   if (!in_array($action['action']??null,array('measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute'),true)) {
@@ -36,14 +55,21 @@ function governance_native_start_worker($fixture,array $action) {
   governance_native_worker_atomic($path,'owner',$nonce);
   $GLOBALS['governance_native_workers'][$index]['owner_ready']=true;
   $fixture_nonce=(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'ownerNonce'))->getValue($fixture);
-  governance_native_worker_atomic($path,'payload.json',array('owner_token'=>$nonce,
+  $payload=array('owner_token'=>$nonce,
     'directory_dev'=>$stat['dev'],'directory_ino'=>$stat['ino'],
     'config'=>$fixture->getWriterConfig(),'fixture_nonce'=>$fixture_nonce,
     'source_sha256'=>hash_file('sha256',dirname(__DIR__,3).'/resources/sql/quickstart.sql'),
     'media_issuer'=>array(
       'key'=>PhabricatorEnv::getEnvConfig('governance.media-exchange.issuer-key'),
       'incarnation'=>PhabricatorEnv::getEnvConfig('governance.media-exchange.incarnation')),
-    'action'=>$action));
+    'action'=>$action);
+  if($action['action']==='measurement.api-token-auth'){
+    $asset=array('namespace'=>$fixture->getNamespace(),'uri'=>PhabricatorEnv::getEnvConfig('gorge.file.uri'),
+      'token'=>PhabricatorEnv::getEnvConfig('gorge.file.token'));
+    governance_native_measurement_file_source($action['action'],$asset,$fixture->getNamespace(),$fixture_nonce,$payload['source_sha256']);
+    $payload['measurement_file']=$asset;
+  }
+  governance_native_worker_atomic($path,'payload.json',$payload);
   $process=proc_open(array(PHP_BINARY,__DIR__.'/native-worker.php',$path),
     array(0=>array('file','/dev/null','r'),1=>array('file',$path.'/stdout.log','a'),
       2=>array('file',$path.'/stderr.log','a')),$pipes,null,
@@ -96,11 +122,11 @@ function governance_native_finish_worker(array &$handle) {
         if(!is_string($result[$key])||!preg_match('/\A[a-f0-9]{64}\z/',$result[$key])){
           throw new RuntimeException('native_worker_result_refused');}}
     }else if($worker['action']==='measurement.api-token-auth'){
-      if($keys!==array('authentication_code','boot_id_sha256','outcome','owner_binding','source_binding','status','token_present')||
+      if($keys!==array('asset_binding','authentication_code','boot_id_sha256','outcome','owner_binding','source_binding','status','token_present')||
         !in_array($result['outcome'],array('allowed','denied','unknown'),true)||
         !in_array($result['authentication_code'],array('native-success','ERR-INVALID-AUTH','unknown'),true)||
         !is_bool($result['token_present'])){throw new RuntimeException('native_worker_result_refused');}
-      foreach(array('boot_id_sha256','source_binding','owner_binding')as$key){
+      foreach(array('asset_binding','boot_id_sha256','source_binding','owner_binding')as$key){
         if(!is_string($result[$key])||!preg_match('/\A[a-f0-9]{64}\z/',$result[$key])){
           throw new RuntimeException('native_worker_result_refused');}}
     }else if($worker['action']==='media.prepare'){

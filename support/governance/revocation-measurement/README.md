@@ -1,11 +1,12 @@
-# N12 observation consumer foundation
+# N12 native Query and API-method observation component
 
 This test-only component fixes the event contract and inventories actual native
 seams. It does not change sessions, permission axes, cache settings or production
-features. Four inventory adapters remain **unsupported/uninstrumented**. The narrow
-application-session Query producer has a separate c419 runtime checkpoint;
-that is not proof of this changed API-token successor. Both current-source
-profiles require fresh execution. No SLA is adopted. The eleven tests use
+features. Four inventory adapters remain **unsupported/uninstrumented**. The two narrow
+profiles below passed at exact source `f3ceb7046b4f94ae791b4ca43b6de0b9d06faba9`:210
+native methods and710 SQL checks on PHP8.5.12. All6778 executed PHP/SQL and pinned
+PSL files matched an independent archive of that source. This documentation-only
+successor is not a new runtime execution. No SLA is adopted. The eleven tests use
 synthetic event data only to verify consumer behavior. Earlier
 SQL/HTTP receipts cannot be converted into timing evidence.
 
@@ -184,38 +185,66 @@ source. Both full-native and private-notification evidence CLI entrypoints
 receive the externally selected current source revision; neither infers it
 from a receipt. All private-mail and physical-wire obligations remain intact.
 
-## Separate real Conduit HTTP successor (unrun)
+## API worker cold-cache dependency correction (unrun)
 
-This branch preserves signed `2c268013e7fa299888bf722cc5bf2823d13c75ab`
-unchanged. Two new test-only files run three separately started PHP loopback
-HTTP servers, each with a fresh native bootstrap and real SiteMap/controller
-processing for `POST /api/user.whoami`. Standard Conduit token metadata travels
-in an actual form-encoded request. No reflection, preassigned viewer or direct
-method execution substitutes for that HTTP route. A private readiness route
-binds the actual Linux boot-clock hash, source revision and router digest; it
-returns no account or credential information.
+The frozen2c268 full attempt executed202 pure methods and682 SQL assertions
+(main677 plus the Query5), then failed at the first API worker. Its runtime
+hashes were exact and all owned resources were cleaned. A separate fresh-owned
+fixture reproduced the actual exception in `PhabricatorFile.php`: native token
+authentication may initialize a cold native user/profile cache, and that worker
+had no configured file-storage engine. This was an exception, not an observed
+authentication denial. Neither attempt proves the full API component passed.
 
-The parent creates one ephemeral token, observes successful HTTP authentication,
-then performs its own native DAO deletion and commit. Two new server processes
-must return the native `ERR-INVALID-AUTH` response with independently checked
-current row absence. A separate real malformed-parameter request must return
-`ERR-CONDUIT-CALL`; this is an unknown/non-authentication outcome, never a denial
-sample. Transport errors, malformed JSON, redirects or unexpected status codes
-cannot prove authentication denial. Raw native error text, tokens, user data
-and response bodies remain private/in memory and are not measurement output.
+The successor propagates the real fixture's paired Gorge file URI/token only
+for fixed action `measurement.api-token-auth`. The private payload must bind the
+same owned namespace, guard nonce and quickstart source digest, and only an
+exact `http://127.0.0.1:<port>` URI and64-hex token are accepted. The child checks
+its existing actual grants/marker first, then validates and installs that one
+fixed dependency. A hashed dependency binding must match the parent's binding
+on every API probe. Other actions cannot carry the file configuration and keep
+their previous service configuration. No cache is forged, prewarmed or attached
+by the fixture, no other worker gains a file endpoint, and storage failures still
+fail instead of becoming authentication denial.
 
-Schema3 intentionally distinguishes this HTTP profile from schema2's method-only
-profile. The operation boundary remains a conservative parent monotonic
-call/confirmed-commit-return bracket; observations include process startup,
-HTTP and teardown overhead. No SQL COMMIT-wire instrumentation, gateway,
-long-connection, global revocation SLA or stable convergence is claimed.
+Four host contract tests cover foreign paths/hosts/ports/credentials, rebound
+owners/sources, unknown fields and propagation to other actions. They execute
+the pure test helper in the host PHP binary; they are not supported-runtime or
+SQL evidence. The source correction keeps all existing687 SQL obligations and
+202 native methods at its2c base. A later main98 union must retain all700 main
+obligations plus the same Query5/API5, yielding710 and210 native methods. Every
+changed-source count remains pending a new isolated run and exact source seal.
 
-The strict union adds six literal SQL obligations to the frozen202/687 base:
-expected202 pure methods /693 SQL assertions /25 registered workers, plus three
-explicitly local HTTP server processes and private directories. Those local
-processes do not inflate the global worker registry. The server handles only
-fixed readiness and whoami paths, requires actual owned database grants/marker,
-rejects cookie/proxy authentication paths, and never becomes a production route.
-Each local process is terminated/reaped before its private, identity-checked
-folder is removed. Any cleanup uncertainty fails the full fixture. No current
-PHP-supported-runtime, SQL or HTTP execution has run for this successor.
+## Protected recovery main98 union (unrun)
+
+This new cold-cache correction explicitly includes protected main
+`dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43`. All700 main obligations,
+including account/web capture, invitation and VIEW, remain required; Query5
+and API5 make710 with210 expected native methods and25 worker cleanups.
+Those figures are pending current-source execution. The failed2c202/682
+checkpoint remains separately archived; no old success or failure is promoted
+to this new main union. The unrelated real HTTP successor is not included.
+
+## Exact-source acceptance
+
+The main98 union and cold-file correction passed at signed source
+`f3ceb7046b4f94ae791b4ca43b6de0b9d06faba9`:210 pure methods,710 SQL assertions,
+and the strict receipt validator. All6778 executed PHP/SQL and PSL files matched
+the independent committed archive. The55 owned schemas,2 runtime users, reader,
+25 worker directories, temporary image and source stage were removed, with zero
+live workers and cleanup failures. See
+`docs/governance/evidence/revocation-query-api-210-710/acceptance.json` and its
+reviewed-source manifest. Earlier sections labelled unrun describe historical
+checkpoints, not the final component state.
+
+The actual profiles are native authenticated Project Query and native Conduit
+`authenticateUser` method probes. They do not prove HTTP routing, gateway
+admission, global revocation, stable convergence, long-lived connections or an
+SLA. No optional production feature was enabled, no native permission axis was
+changed and no deployment was performed.
+
+
+## Native HTTP successor (unrun)
+
+Real loopback Conduit HTTP router and three independent owned PHP servers are separate from the accepted Query/API-method component. Main99 retains710 checks; six new HTTP obligations make716, with210 pure methods,25 registered workers plus three separately owned HTTP server cleanups. All new runtime/HTTP results are pending.
+
+A fixture catch-generated HTTP500 is always UNKNOWN. A future native error-handler test must independently bind a private response-stage receipt to normal native processRequest completion, or prove the native default handler exit provenance. An outer fixture exception cannot prove a native controller/default-handler500. This profile does not claim Legalpad error-handler coverage.
