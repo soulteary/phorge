@@ -65,7 +65,7 @@ function governance_project_view_form_cases($fixture,callable $check,array $stat
       ->setRequestData(array('__csrf__'=>$a['viewer']->getCSRFToken(),'governanceApprovalID'=>$ticket));
     return governance_native_with_request_write_guard($request,function()use($request,$a,$project,$policy){
       return(new PhabricatorProjectTransactionEditor())->setActor($a['viewer'])->setRequest($request)
-        ->setContentSource($request->newContentSource())->setContinueOnMissingFields(true)
+        ->setContentSourceFromRequest($request)->setContinueOnMissingFields(true)
         ->applyTransactions($project,array((new PhabricatorProjectTransaction())
           ->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY)->setNewValue($policy)));
     });
