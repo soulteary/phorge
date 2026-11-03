@@ -5,7 +5,7 @@ CREATE TABLE {$NAMESPACE}_user.recovery_stop (
   subjectPHID VARBINARY(64) NOT NULL,
   actorPHID VARBINARY(64) NOT NULL,
   category VARBINARY(32) NOT NULL,
-  reason TEXT NOT NULL,
+  reason LONGTEXT NOT NULL,
   operationID VARBINARY(128) NOT NULL,
   eventDigest VARBINARY(64) NOT NULL,
   requestDigest VARBINARY(64) NOT NULL,
