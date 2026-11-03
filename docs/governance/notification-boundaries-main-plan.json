@@ -3,11 +3,6 @@
   "version": 3,
   "base": "eafc8ee9c989cb2f17d6c20c23f8a958bc14af29",
   "status": "explicit-main96-union-host-prepared-runtime-unproven",
-  "prior_main_evidence": {
-    "pure": 202,
-    "native_sql": 647,
-    "applies_only_to_base": true
-  },
   "new_runtime_obligation_not_actual": {
     "pure": 207,
     "native_sql": 717,
@@ -79,5 +74,11 @@
     "production_Legalpad_hardening_included": true,
     "core_size_and_invitation_fixes_preserved": true
   },
-  "production_change_scope": "Existing explicitly approved Legalpad endpoint hardening plus its mail policy binding, integrated with current main; strengthened race/publication additions remain test-only."
+  "production_change_scope": "Existing explicitly approved Legalpad endpoint hardening plus its mail policy binding, integrated with current main; strengthened race/publication additions remain test-only.",
+  "historical_component_evidence": {
+    "pure": 202,
+    "native_sql": 647,
+    "source_revision": "2c841c2c9acdc3cb1716424072024f362f366e71",
+    "applies_only_to_this_historical_revision": true
+  }
 }
