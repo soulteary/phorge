@@ -30,7 +30,7 @@ jobs:
         options: --health-cmd "mysqladmin ping -pprivate-wire-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
       # Public immutable PR46 candidate; testing does not authorize its release.
-      GORGE_MAIL_WIRE_REF: b58fe520085f4a81a39518e6bc3c408fe7fc4e21
+      GORGE_MAIL_WIRE_REF: 9c757fc21aaaac0106908240e026d0dc602754ba
       OWLMAIL_WIRE_REF: 39e3ced315a027f6e5938146387179fa683fe7b1
       ATOMIC_TEST_DISPOSABLE: '1'
       GORGE_TEST_MYSQL_PASSWORD: private-wire-disposable-only
