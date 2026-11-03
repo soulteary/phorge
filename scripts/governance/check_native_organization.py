@@ -893,7 +893,7 @@ API_TOKEN_MEASUREMENT_CHECKS = frozenset({
     'n12-native-api-serial-parent-clock-binds-actual-delete-and-fresh-authentication',
 })
 REQUIRED_CHECKS = REQUIRED_CHECKS | API_TOKEN_MEASUREMENT_CHECKS
-WORKERS = 25
+WORKERS = 32
 NATIVE['api_token_revocation_measurement_tests'] = {
     'profile':'native-conduit-token-revoke-authentication-only','actual_source_checked':True,
     'actual_independent_authentication_processes':3,'token_rows_deleted':1,
@@ -1043,6 +1043,11 @@ NATIVE['project_execution_tests']['approved_native_view_policy'].update(actual_a
 
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['recovery-stop-active-account-not-classified-as-stopped', 'recovery-stop-actual-native-disable-committed-before-classification', 'recovery-stop-actual-session-logout-refuses-classification', 'recovery-stop-actual-session-logout-refuses-history', 'recovery-stop-conflicting-operation-payload-refused', 'recovery-stop-current-admin-history-has-bounded-native-id-pagination', 'recovery-stop-current-ordinary-user-cannot-replay-admin-operation', 'recovery-stop-disabled-candidate-refuses-before-transaction', 'recovery-stop-exact-operation-replay-does-not-duplicate-or-rewrite-audit', 'recovery-stop-existing-classification-not-silently-replaced', 'recovery-stop-history-not-visible-to-ordinary-user', 'recovery-stop-old-event-rejected-after-real-disable-enable-disable', 'recovery-stop-real-audit-fault-rolls-back-ledger-but-preserves-native-emergency-stop', 'recovery-stop-real-ledger-and-audit-commit-without-recovery-grant', 'recovery-stop-refusal-preserves-unrelated-native-outer-transaction'])
 NATIVE['recovery_stop_tests'] = {'actual_native_disable_then_separate_ledger': True, 'actual_audit_failure_rollback': True, 'emergency_disable_depends_on_ledger': False, 'recovery_authorized': False, 'concurrent_writer_proof': False, 'production_entry_registered': False}
+
+
+STOP_BOUNDARY_CHECKS = frozenset(['recovery-stop-concurrent-same-operation-commits-once-and-replays-once', 'recovery-stop-history-expired-during-native-user-lock-wait-is-refused', 'recovery-stop-history-rechecks-native-role-after-revocation', 'recovery-stop-independent-current-admin-history-before-revocation', 'recovery-stop-missing-audit-table-refuses-without-ledger-change', 'recovery-stop-nontransactional-audit-table-refuses-without-ledger-change', 'recovery-stop-raw-outer-rollback-restores-only-caller-write', 'recovery-stop-record-expired-during-native-user-lock-wait-is-refused', 'recovery-stop-record-expiry-wait-begins-with-real-live-credential', 'recovery-stop-revoked-current-admin-cannot-replay-after-real-wait', 'recovery-stop-session-expiry-wait-begins-with-real-live-credential', 'recovery-stop-two-real-sessions-wait-on-native-user-row', 'recovery-stop-unsupported-cluster-profile-refused-before-ledger-access', 'recovery-stop-untracked-physical-transaction-remains-owned-by-caller', 'recovery-stop-waiting-writer-observes-real-native-admin-removal'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | STOP_BOUNDARY_CHECKS
+NATIVE['recovery_stop_boundary_tests'] = {'two_session_same_operation_proof': True, 'current_admin_revocation_after_wait': True, 'real_session_expiry_during_wait': True, 'missing_and_nontransactional_table_refused': True, 'unsupported_routing_refused': True, 'raw_outer_transaction_preserved': True, 'recovery_authorized': False, 'all_sources_complete': False, 'production_entry_registered': False}
 
 def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     if type(data) is not dict or set(data) != FIELDS:

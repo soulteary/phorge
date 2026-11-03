@@ -317,7 +317,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),725)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),740)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -356,7 +356,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
 
     def test_stop_storage_evidence_cannot_grant_recovery_or_hide_missing_checks(self):
-        ids={v for v in gate.REQUIRED_CHECKS if v.startswith('recovery-stop-')}
+        ids={v for v in gate.REQUIRED_CHECKS if v.startswith('recovery-stop-')} - gate.STOP_BOUNDARY_CHECKS
         self.assertEqual(15,len(ids))
         for check in ids:
             data=template();data['checks'].remove(check);data['check_count']=len(data['checks'])
@@ -365,3 +365,17 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
                           ('recovery_authorized',True),('concurrent_writer_proof',True),('production_entry_registered',True)]:
             data=template();data['native']['recovery_stop_tests'][key]=value
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+
+class StopBoundaryEvidenceTest(unittest.TestCase):
+    def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
+        self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
+        self.assertEqual(740,validate(template(),file_digest='b'*64)['check_count'])
+        for name in gate.STOP_BOUNDARY_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key,value in [('two_session_same_operation_proof',False),('recovery_authorized',True),('all_sources_complete',True)]:
+            data=template();data['native']['recovery_stop_boundary_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        data=template();data['worker_cleanup']['workers_registered']=25
+        with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
