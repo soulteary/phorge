@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "adr": "N12/LIFE-001/MEDIA-001 v1.2",
-  "baseline": "7c38bf7b4da36e0523aa23f85ec4d576d3d9bdb4",
+  "baseline": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
   "all_actual_measurement_profiles_available": false,
   "production_mutation": false,
   "SLA_selected": false,
@@ -63,7 +63,7 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "4692aea2930ab41940677d9b84893aa9dc3576324802335e515c08cd9ccbf182",
+          "sha256": "f65acb4ba84b51d5777a432ae3c2a0e68fcc724d4ce9cc67f7fc22e8e15aa19b",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
@@ -121,7 +121,7 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "4692aea2930ab41940677d9b84893aa9dc3576324802335e515c08cd9ccbf182",
+          "sha256": "f65acb4ba84b51d5777a432ae3c2a0e68fcc724d4ce9cc67f7fc22e8e15aa19b",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
@@ -222,5 +222,6 @@
       "accepted_boundary": "No recall of completed responses, in-flight bytes, downloaded copies or sent mail. No global native session/API revocation change."
     }
   ],
-  "previous_source_checkpoint": "23f25cae9c"
+  "previous_source_checkpoint": "23f25cae9c",
+  "previous_catalog_baseline": "7c38bf7b4da36e0523aa23f85ec4d576d3d9bdb4"
 }

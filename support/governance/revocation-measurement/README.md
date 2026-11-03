@@ -212,3 +212,13 @@ SQL evidence. The source correction keeps all existing687 SQL obligations and
 202 native methods at its2c base. A later main98 union must retain all700 main
 obligations plus the same Query5/API5, yielding710 and210 native methods. Every
 changed-source count remains pending a new isolated run and exact source seal.
+
+## Protected recovery main98 union (unrun)
+
+This new cold-cache correction explicitly includes protected main
+`dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43`. All700 main obligations,
+including account/web capture, invitation and VIEW, remain required; Query5
+and API5 make710 with210 expected native methods and25 worker cleanups.
+Those figures are pending current-source execution. The failed2c202/682
+checkpoint remains separately archived; no old success or failure is promoted
+to this new main union. The unrelated real HTTP successor is not included.
