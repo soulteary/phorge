@@ -1,0 +1,12 @@
+{
+  "scope": "current-source-native-membership-lifecycle-and-compound-candidate",
+  "native_methods": 142,
+  "native_sql_checks": 244,
+  "workers": 7,
+  "runtime": "PHP 8.5.12; real isolated native SQL with paired Gorge service",
+  "production_activation": false,
+  "native_axes_changed": false,
+  "browser_proved": false,
+  "full_lifecycle_complete": false,
+  "full_compound_matrix_complete": false
+}

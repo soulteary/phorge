@@ -1,0 +1,13 @@
+{
+  "scope": "Preserved isolated target checkpoint; not the later combined source",
+  "checkpoint_commit": "1ab1305cafc8bb338cc4c4d0f73413e9826f1da5",
+  "pure_methods": 138,
+  "native_sql_checks": 209,
+  "integration_source": "exact signed checkpoint repository artifact",
+  "native_methods_source": "retained passed 138-method target run history",
+  "artifact_sha256": {
+    "integration.json": "7ac6046ecb94d7fa3671822ab7d6f5973c3b1e8804343dc0320f7f43a702a709",
+    "native-methods.json": "919c648d910182b216e4080d585afa4bf55e1ac636870e6273827d969105e4d5"
+  },
+  "combined_source_certified": false
+}

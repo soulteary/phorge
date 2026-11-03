@@ -25,7 +25,7 @@ def template():
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
             'current_table_count': 530, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1565, 'applied_patch_count': 1565, 'pending_patch_keys': [],
+                'source_patch_count': 1566, 'applied_patch_count': 1566, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -64,12 +64,66 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template();data['native']['issuer_upgrade_tests']['migration_sha256']='0'*64
         with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
 
+    def test_random_snapshot_digest_only_is_dynamic(self):
+        data=template();data['native']['issuer_tests']['restored_snapshot_sha256']='f'*64
+        gate.validate(data,file_digest='b'*64)
+        for value in (None, True, 4, 'F'*64, 'f'*63, 'f'*65):
+            mutated=template();mutated['native']['issuer_tests']['restored_snapshot_sha256']=value
+            with self.subTest(value=value),self.assertRaises(ValueError):
+                gate.validate(mutated,file_digest='b'*64)
+        data['native']['issuer_tests']['unknown_claim']=True
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_history_metadata_scope_cannot_delete_expose_or_promote(self):
+        for key,value in [('current_system_administrator_only',False),
+            ('snapshot_fields_returned',True),('retention_days',364),
+            ('history_deleted',True),('full_browser_acceptance',True),
+            ('production_activation',True)]:
+            data=template();data['native']['history_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+
+    def test_partial_lifecycle_and_compound_scope_cannot_be_promoted(self):
+        for section,key in [('compound_tests','full_compound_failure_matrix_complete'),
+            ('compound_tests','production_activation'),('membership_lifecycle_tests','public_csrf_lifecycle_complete'),
+            ('membership_lifecycle_tests','production_activation')]:
+            data=template();data['native'][section][key]=True
+            with self.subTest(section=section,key=key),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        for old_worker_count in (5,7,9):
+            data=template();data['worker_cleanup']['workers_registered']=old_worker_count
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_admission_claims_require_all_runtime_boundaries_and_owned_workers(self):
         for key in gate.NATIVE['target_tests']['admission_tests']:
             data=template();data['native']['target_tests']['admission_tests'][key]=False
             with self.subTest(key=key), self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
         data=template();data['worker_cleanup']['workers_registered']=5
         with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
+
+
+    def test_http_candidate_never_claims_wire_browser_or_full_guard_completion(self):
+        for path,key in [(('http_tests',),'wire_https_verified'),(('http_tests',),'browser_verified'),
+            (('http_tests',),'file_guard_complete'),(('http_tests',),'production_enabled'),
+            (('http_tests','file_guard_tests'),'custom_branding_verified'),
+            (('http_tests','file_guard_tests'),'browser_active_content_verified'),
+            (('http_tests','file_guard_tests'),'wire_https_verified')]:
+            data=template();part=data['native']
+            for section in path:part=part[section]
+            part[key]=True
+            with self.subTest(path=path,key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for value in (None,1,'x'*64,'d'*63):
+            data=template();data['native']['http_tests']['file_guard_tests']['image_tests']['backend_revision_sha256']=value
+            with self.subTest(value=value),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['http_tests']['unknown_claim']=True
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_old_component_receipts_and_missing_http_obligations_are_refused(self):
+        for name in gate.HTTP_REQUIRED_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();data['native'].pop('http_tests')
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:

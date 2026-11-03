@@ -11,7 +11,7 @@
       "path": "src/applications/people/application/PhabricatorPeopleApplication.php",
       "symbol": "PhabricatorPeopleApplication",
       "kind": "route-registration",
-      "sha256": "14a9750144da4f268510b94fa5cd54c77ba68ea285a54ffaa7d1f1c394b45f02",
+      "sha256": "a05f135c0dbf56d9ad04b30d0e8a67a470319c90e632b7bd708941260245d6d6",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -88,7 +88,7 @@
       "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
       "symbol": "PhorgeGovernanceNativeApprovalAdapter",
       "kind": "candidate-runtime-source",
-      "sha256": "9a17e03dccedd906ecc1cc0ed7aee5d9977487d332d20b77e395b8fd7b68adbd",
+      "sha256": "40f36aaf332546b219cc5dae691f6fc091796d4ad40d30154fc4cdd2a32ed756",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -165,7 +165,7 @@
       "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
       "symbol": "PhorgeOrganizationController",
       "kind": "candidate-runtime-source",
-      "sha256": "83fedfae7d57340772ab1314365c9876a3acdbf0e6b9d339ae367c24836b4694",
+      "sha256": "d951fae2af8e96f6ee6c1c0b831455e742a65cbf1c1237befbb5c8cd302f9642",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -176,7 +176,7 @@
       "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
       "symbol": "PhorgeOrganizationQuery",
       "kind": "candidate-runtime-source",
-      "sha256": "e1750bd4dd3a09bc147689acdaa9f1a2967751de456ebce42e2e85b33ee575da",
+      "sha256": "596eb4bdc9385181697fb0c15c7538a0465107190541c302bf30971f4c7f8e0b",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -198,7 +198,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
       "symbol": "PhorgeOrganizationEndpoint",
       "kind": "candidate-runtime-source",
-      "sha256": "ee282e6a26762e6f48b31e21f6bc5fc87926eaae60f1c62a2c9420499368a095",
+      "sha256": "c6f021c53b3f4012eee906385795d70b790e050a7796691aa803957c084bc033",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -209,7 +209,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
       "symbol": "PhorgeOrganizationRequest",
       "kind": "candidate-runtime-source",
-      "sha256": "06841a5ca4a34f518346a96fe19a68ccee88a45b5668d2b045039b7739ee54a0",
+      "sha256": "76bcc0f96465adc54a00e3c43fe8394b490e49b7eea8a8fa236274329507a80a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -220,7 +220,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
       "symbol": "PhorgeOrganizationService",
       "kind": "candidate-runtime-source",
-      "sha256": "45d57594fbb37e8ab79a37fbe998b06b3137a25e877069d23262536a2c665896",
+      "sha256": "259343b0563acfa5882dc3e30e4bca49481f25a69d37ee39946e7d0b25f77b0a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -253,7 +253,7 @@
       "path": "src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php",
       "symbol": "PhorgeOrganizationPrimaryDepartment",
       "kind": "candidate-runtime-source",
-      "sha256": "9df42bcc396711082881fde98b9f6e7a62b6442c3c6e49cb2922d1e7482367f1",
+      "sha256": "6114d1284648f35f141860efbbb887ae6aad7719d7537cb5e1306c10ddab5632",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -275,7 +275,7 @@
       "path": "src/applications/people/governance/storage/PhorgeOrganizationUnit.php",
       "symbol": "PhorgeOrganizationUnit",
       "kind": "candidate-runtime-source",
-      "sha256": "67212907b43a58473d34e1966f0039183254bb73aa93e592f974b3c1e806e76e",
+      "sha256": "a5e678e8a33f8c7a0e049b622f28e4e6f5e35937075dfed38b17c83dc8b602f2",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -286,7 +286,7 @@
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
       "symbol": "PhorgeGovernanceMediaExchangeService",
       "kind": "candidate-runtime-source",
-      "sha256": "bf2c04c03067956ab38e953fcb05354b0041d41d7f7252cc0bb5d491efc5ddb4",
+      "sha256": "9afb37b7d3b409333dfd01f614f85423ecd1192d795dffe1999cb0a5f8f3c7b0",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -308,7 +308,29 @@
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php",
       "symbol": "PhorgeGovernanceMediaConfigOptions",
       "kind": "default-off-configuration",
-      "sha256": "75e54c95b2da0bcc0f72bc528a7498bfccdecab561d2b8289fc4551f17fbbd7c",
+      "sha256": "1487d3278a48a293606efa76158d5925c012ffc5e95e36fa5cbf02b27fdfdbf9",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationDatasource",
+      "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
+      "symbol": "PhorgeOrganizationDatasource",
+      "kind": "sealed-context-native-datasource",
+      "sha256": "2f5247ea99ce97130c102907213ce769306a3c759032f72888d5649dbbcb21a4",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationDatasourceController",
+      "path": "src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php",
+      "symbol": "PhorgeOrganizationDatasourceController",
+      "kind": "authenticated-datasource-controller",
+      "sha256": "c980a564ed00c2acd6825a2b3c073e4323fbcc799a181296d9c7f0463fb98e14",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -326,11 +348,209 @@
       "authority_proof": false
     },
     {
+      "id": "TYPEAHEAD.BASE",
+      "path": "src/applications/typeahead/datasource/PhabricatorTypeaheadDatasource.php",
+      "symbol": "PhabricatorTypeaheadDatasource",
+      "kind": "fixed-normalizer-default",
+      "sha256": "e1046ed33403267c8339135b2ebb51b320b69b9c2ef8a64dc76055ea41c89369",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "TOKENIZER.CONTROL",
+      "path": "src/view/form/control/AphrontFormTokenizerControl.php",
+      "symbol": "AphrontFormTokenizerControl",
+      "kind": "fixed-normalizer-metadata",
+      "sha256": "70d64446426a90655bd724ca34949afc802bb16b24193dfaf91af32bb859bd7f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.PREFAB",
+      "path": "webroot/rsrc/js/core/Prefab.js",
+      "symbol": "Prefab",
+      "kind": "fixed-client-normalizer",
+      "sha256": "2fb8d5560c45d7e0672f2bf46a577f3b5332d59f8d2663d396a5d94894b5c396",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "path": "webroot/rsrc/js/core/behavior-tokenizer.js",
+      "symbol": "aphront-basic-tokenizer",
+      "kind": "fixed-client-metadata-forwarder",
+      "sha256": "28a6fa2ce2d594a3aa334b3cf5200ea77382856d8c1aebd4dd62d27b4f19571e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
       "id": "NATIVE.PhorgeGovernanceMediaTarget",
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php",
       "symbol": "PhorgeGovernanceMediaTarget",
       "kind": "immutable-prepared-media-target",
-      "sha256": "97d73207cf59895cac31119865dfb9fddf9ea7032c839af9dc00e246ed36d183",
+      "sha256": "75718db8219047fba8c47cc9f49fb1df1479b77b4a1d407ed8e968a2da787fa2",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationHistoryController",
+      "path": "src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php",
+      "symbol": "PhorgeOrganizationHistoryController",
+      "kind": "current-system-administrator-history-controller",
+      "sha256": "3e574eb706133104e44072d58247d30c378ad1a5c4ae8e20419cde069a3ba05c",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaAuthorizeController",
+      "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php",
+      "symbol": "PhorgeGovernanceMediaAuthorizeController",
+      "kind": "native-app-origin-authorization-controller",
+      "sha256": "646ef486659772ff75df6a02583a7cc1852e3ecdad5370fae8f45ba87c65ca81",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaResourceController",
+      "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php",
+      "symbol": "PhorgeGovernanceMediaResourceController",
+      "kind": "native-file-origin-exchange-controller",
+      "sha256": "a3da5cf5d3e515779de1293670d4bb3f08202b9e2e32fb684d1cbc100bc860eb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaStaticController",
+      "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaStaticController.php",
+      "symbol": "PhorgeGovernanceMediaStaticController",
+      "kind": "fixed-source-static-only-controller",
+      "sha256": "637c1bf341e4500ac7ae95f4ea00853e76c34a16ec4e26b0021221f26e30841f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaHTTPProtocol",
+      "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php",
+      "symbol": "PhorgeGovernanceMediaHTTPProtocol",
+      "kind": "fixed-origin-wire-cookie-protocol",
+      "sha256": "653808abf5cb294f93c6a11735a791d3f22e970f5613d3c37a3ac88cb69f8429",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaHTTPResponse",
+      "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPResponse.php",
+      "symbol": "PhorgeGovernanceMediaHTTPResponse",
+      "kind": "native-header-preserving-response",
+      "sha256": "ba28416295186a6efe66de70426b8562010e94ceb96dcc2540d1cff84898a397",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeGovernanceMediaFileGuard",
+      "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php",
+      "symbol": "PhorgeGovernanceMediaFileGuard",
+      "kind": "current-native-viewer-file-guard",
+      "sha256": "79afd0eb6661c0665d5af8aeba10080ac5accb9244dc33a647a91b91217f0379",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "FILES.ROUTES",
+      "path": "src/applications/files/application/PhabricatorFilesApplication.php",
+      "symbol": "PhabricatorFilesApplication",
+      "kind": "feature-off-media-route-registration",
+      "sha256": "b336adcf41ad57c790044f0c7dcc4bded6d945be7065fa86840f28f186ee0724",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "FILES.DATA",
+      "path": "src/applications/files/controller/PhabricatorFileDataController.php",
+      "symbol": "PhabricatorFileDataController",
+      "kind": "pre-metadata-native-file-authorization-consumer",
+      "sha256": "9217c2ece8428f535d08ce430724e3dc0e0a5639a13e52c1f37f8ad2185b6f0a",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "FILES.TRANSFORM",
+      "path": "src/applications/files/controller/PhabricatorFileTransformController.php",
+      "symbol": "PhabricatorFileTransformController",
+      "kind": "original-before-derived-file-authorization-consumer",
+      "sha256": "7fed8dda0fe42c70fabe335605a38278f843b6cd2456ed5f8dc1d0041c38c5e9",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "FILES.FAVICON",
+      "path": "src/applications/files/favicon/PhabricatorFaviconRefQuery.php",
+      "symbol": "PhabricatorFaviconRefQuery",
+      "kind": "fixed-static-default-favicon-producer",
+      "sha256": "b6c867cc49f0fc013e486f0e2b73bb5f14bac0d41094d16df8a431c9639dccc4",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "AUTH.MEDIA.FIREWALL",
+      "path": "src/aphront/configuration/AphrontApplicationConfiguration.php",
+      "symbol": "AphrontApplicationConfiguration",
+      "kind": "pre-native-session-media-cookie-firewall",
+      "sha256": "665648d554bc52f15733b57cdefc9ccdf35bc7cd027f7f1a6bc84177cc424d51",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "PAGE.MEDIA.BOOTSTRAP",
+      "path": "src/view/page/PhabricatorStandardPageView.php",
+      "symbol": "PhabricatorStandardPageView",
+      "kind": "native-session-media-bootstrap-config-consumer",
+      "sha256": "584537dae96024b9531e990f2ea2b83d34cbc607e56923506349ef5b900cd7be",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "CLIENT.MEDIA.HANDOFF",
+      "path": "webroot/rsrc/js/core/behavior-private-media-session.js",
+      "symbol": "private-media-session",
+      "kind": "fixed-origin-client-handoff",
+      "sha256": "f7e5dabcc8ee5f7d2c8507cce5f767fe2d273abff8583c8bca077e989ae68b22",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -468,6 +688,30 @@
     },
     {
       "id": "NATIVE-LINK-17",
+      "from_id": "ORG.ROUTES",
+      "to_id": "NATIVE.PhorgeOrganizationDatasourceController",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Registered protected datasource route and explicit class reference. Actual request credential and query behavior require separate runtime acceptance."
+    },
+    {
+      "id": "NATIVE-LINK-18",
+      "from_id": "NATIVE.PhorgeOrganizationDatasourceController",
+      "to_id": "NATIVE.PhorgeOrganizationDatasource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Registered protected datasource route and explicit class reference. Actual request credential and query behavior require separate runtime acceptance."
+    },
+    {
+      "id": "NATIVE-LINK-19",
+      "from_id": "NATIVE.PhorgeOrganizationDatasource",
+      "to_id": "NATIVE.PhorgeOrganizationQuery",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Registered protected datasource route and explicit class reference. Actual request credential and query behavior require separate runtime acceptance."
+    },
+    {
+      "id": "NATIVE-LINK-20",
       "from_id": "NATIVE.PhorgeGovernanceMediaExchangeService",
       "to_id": "NATIVE.PhorgeGovernanceMediaIssuer",
       "kind": "static-source-reference",
@@ -475,7 +719,7 @@
       "basis": "Reviewed media-only external configuration and purpose-separated digest dependency; not a public route, native credential rotation or activation proof."
     },
     {
-      "id": "NATIVE-LINK-18",
+      "id": "NATIVE-LINK-21",
       "from_id": "NATIVE.PhorgeGovernanceMediaConfigOptions",
       "to_id": "NATIVE.PhorgeGovernanceMediaIssuer",
       "kind": "static-source-reference",
@@ -483,19 +727,163 @@
       "basis": "Reviewed media-only external configuration and purpose-separated digest dependency; not a public route, native credential rotation or activation proof."
     },
     {
-      "id": "NATIVE-LINK-19",
+      "id": "NATIVE-LINK-22",
+      "from_id": "NATIVE.PhorgeOrganizationDatasource",
+      "to_id": "TYPEAHEAD.BASE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-23",
+      "from_id": "TOKENIZER.CONTROL",
+      "to_id": "TYPEAHEAD.BASE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-24",
+      "from_id": "TOKENIZER.CONTROL",
+      "to_id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit fixed normalizer enum metadata path; source reference is not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-25",
+      "from_id": "CLIENT.TOKENIZER.BEHAVIOR",
+      "to_id": "CLIENT.PREFAB",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Existing native behavior forwards the fixed metadata to Prefab; not browser or authority proof."
+    },
+    {
+      "id": "NATIVE-LINK-26",
       "from_id": "NATIVE.PhorgeGovernanceMediaExchangeService",
       "to_id": "NATIVE.PhorgeGovernanceMediaTarget",
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed immutable canonical prepared-target binding; static source reference, not file authority or public route readiness."
+    },
+    {
+      "id": "NATIVE-LINK-27",
+      "from_id": "ORG.ROUTES",
+      "to_id": "NATIVE.PhorgeOrganizationHistoryController",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit restricted history route and shared query projection; source reference is not runtime authorization proof."
+    },
+    {
+      "id": "NATIVE-LINK-28",
+      "from_id": "NATIVE.PhorgeOrganizationHistoryController",
+      "to_id": "NATIVE.PhorgeOrganizationQuery",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit restricted history route and shared query projection; source reference is not runtime authorization proof."
+    },
+    {
+      "id": "NATIVE-LINK-29",
+      "from_id": "FILES.ROUTES",
+      "to_id": "NATIVE.PhorgeGovernanceMediaResourceController",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-30",
+      "from_id": "FILES.ROUTES",
+      "to_id": "NATIVE.PhorgeGovernanceMediaStaticController",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-31",
+      "from_id": "FILES.DATA",
+      "to_id": "NATIVE.PhorgeGovernanceMediaFileGuard",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-32",
+      "from_id": "FILES.TRANSFORM",
+      "to_id": "NATIVE.PhorgeGovernanceMediaFileGuard",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-33",
+      "from_id": "NATIVE.PhorgeGovernanceMediaFileGuard",
+      "to_id": "NATIVE.PhorgeGovernanceMediaExchangeService",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-34",
+      "from_id": "NATIVE.PhorgeGovernanceMediaAuthorizeController",
+      "to_id": "NATIVE.PhorgeGovernanceMediaExchangeService",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-35",
+      "from_id": "NATIVE.PhorgeGovernanceMediaResourceController",
+      "to_id": "NATIVE.PhorgeGovernanceMediaHTTPProtocol",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-36",
+      "from_id": "PAGE.MEDIA.BOOTSTRAP",
+      "to_id": "NATIVE.PhorgeGovernanceMediaHTTPProtocol",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-37",
+      "from_id": "PAGE.MEDIA.BOOTSTRAP",
+      "to_id": "CLIENT.MEDIA.HANDOFF",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-38",
+      "from_id": "AUTH.MEDIA.FIREWALL",
+      "to_id": "NATIVE.PhorgeGovernanceMediaHTTPProtocol",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-39",
+      "from_id": "FILES.FAVICON",
+      "to_id": "NATIVE.PhorgeGovernanceMediaStaticController",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
+    },
+    {
+      "id": "NATIVE-LINK-40",
+      "from_id": "NATIVE.PhorgeGovernanceMediaResourceController",
+      "to_id": "NATIVE.PhorgeGovernanceMediaHTTPResponse",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit current HTTP/file/bootstrap candidate source reference only; combined runtime, wire/browser and activation are separate gates."
     }
   ],
   "scan": {
     "files": [
       {
         "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
-        "sha256": "9a17e03dccedd906ecc1cc0ed7aee5d9977487d332d20b77e395b8fd7b68adbd"
+        "sha256": "40f36aaf332546b219cc5dae691f6fc091796d4ad40d30154fc4cdd2a32ed756"
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php",
@@ -523,11 +911,23 @@
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
-        "sha256": "83fedfae7d57340772ab1314365c9876a3acdbf0e6b9d339ae367c24836b4694"
+        "sha256": "d951fae2af8e96f6ee6c1c0b831455e742a65cbf1c1237befbb5c8cd302f9642"
+      },
+      {
+        "path": "src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php",
+        "sha256": "c980a564ed00c2acd6825a2b3c073e4323fbcc799a181296d9c7f0463fb98e14"
+      },
+      {
+        "path": "src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php",
+        "sha256": "3e574eb706133104e44072d58247d30c378ad1a5c4ae8e20419cde069a3ba05c"
+      },
+      {
+        "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
+        "sha256": "2f5247ea99ce97130c102907213ce769306a3c759032f72888d5649dbbcb21a4"
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
-        "sha256": "e1750bd4dd3a09bc147689acdaa9f1a2967751de456ebce42e2e85b33ee575da"
+        "sha256": "596eb4bdc9385181697fb0c15c7538a0465107190541c302bf30971f4c7f8e0b"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php",
@@ -535,15 +935,15 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
-        "sha256": "ee282e6a26762e6f48b31e21f6bc5fc87926eaae60f1c62a2c9420499368a095"
+        "sha256": "c6f021c53b3f4012eee906385795d70b790e050a7796691aa803957c084bc033"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
-        "sha256": "06841a5ca4a34f518346a96fe19a68ccee88a45b5668d2b045039b7739ee54a0"
+        "sha256": "76bcc0f96465adc54a00e3c43fe8394b490e49b7eea8a8fa236274329507a80a"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
-        "sha256": "45d57594fbb37e8ab79a37fbe998b06b3137a25e877069d23262536a2c665896"
+        "sha256": "259343b0563acfa5882dc3e30e4bca49481f25a69d37ee39946e7d0b25f77b0a"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",
@@ -555,7 +955,7 @@
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php",
-        "sha256": "9df42bcc396711082881fde98b9f6e7a62b6442c3c6e49cb2922d1e7482367f1"
+        "sha256": "6114d1284648f35f141860efbbb887ae6aad7719d7537cb5e1306c10ddab5632"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationSchemaSpec.php",
@@ -563,7 +963,7 @@
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationUnit.php",
-        "sha256": "67212907b43a58473d34e1966f0039183254bb73aa93e592f974b3c1e806e76e"
+        "sha256": "a5e678e8a33f8c7a0e049b622f28e4e6f5e35937075dfed38b17c83dc8b602f2"
       },
       {
         "path": "src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php",
@@ -603,11 +1003,11 @@
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php",
-        "sha256": "75e54c95b2da0bcc0f72bc528a7498bfccdecab561d2b8289fc4551f17fbbd7c"
+        "sha256": "1487d3278a48a293606efa76158d5925c012ffc5e95e36fa5cbf02b27fdfdbf9"
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
-        "sha256": "bf2c04c03067956ab38e953fcb05354b0041d41d7f7252cc0bb5d491efc5ddb4"
+        "sha256": "9afb37b7d3b409333dfd01f614f85423ecd1192d795dffe1999cb0a5f8f3c7b0"
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php",
@@ -619,7 +1019,31 @@
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php",
-        "sha256": "97d73207cf59895cac31119865dfb9fddf9ea7032c839af9dc00e246ed36d183"
+        "sha256": "75718db8219047fba8c47cc9f49fb1df1479b77b4a1d407ed8e968a2da787fa2"
+      },
+      {
+        "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php",
+        "sha256": "646ef486659772ff75df6a02583a7cc1852e3ecdad5370fae8f45ba87c65ca81"
+      },
+      {
+        "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php",
+        "sha256": "79afd0eb6661c0665d5af8aeba10080ac5accb9244dc33a647a91b91217f0379"
+      },
+      {
+        "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php",
+        "sha256": "653808abf5cb294f93c6a11735a791d3f22e970f5613d3c37a3ac88cb69f8429"
+      },
+      {
+        "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPResponse.php",
+        "sha256": "ba28416295186a6efe66de70426b8562010e94ceb96dcc2540d1cff84898a397"
+      },
+      {
+        "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php",
+        "sha256": "a3da5cf5d3e515779de1293670d4bb3f08202b9e2e32fb684d1cbc100bc860eb"
+      },
+      {
+        "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaStaticController.php",
+        "sha256": "637c1bf341e4500ac7ae95f4ea00853e76c34a16ec4e26b0021221f26e30841f"
       },
       {
         "path": "src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php",

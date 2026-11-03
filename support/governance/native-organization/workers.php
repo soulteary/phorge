@@ -22,7 +22,7 @@ function governance_native_worker_atomic($path,$name,$value) {
 
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
-  if (!in_array($action['action']??null,array('org.list','org.count','media.redeem','media.prepare'),true)) {
+  if (!in_array($action['action']??null,array('org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved'),true)) {
     throw new RuntimeException('native_worker_action_refused');
   }
   $path=sys_get_temp_dir().'/governance-native-worker-'.bin2hex(random_bytes(12));
@@ -86,9 +86,11 @@ function governance_native_finish_worker(array &$handle) {
       throw new RuntimeException('native_worker_result_refused');
     }
   } else if (($result['status']??null)==='committed') {
-    if($worker['action']==='media.prepare'){
+    if(in_array($worker['action'],array('org.members.edit','org.compound.execute','org.compound.execute-approved'),true)){
+      if($keys!==array('replayed','status')||!is_bool($result['replayed'])){throw new RuntimeException('native_worker_result_refused');}
+    }else if($worker['action']==='media.prepare'){
       if($keys!==array('prepared','status')||$result['prepared']!==true){throw new RuntimeException('native_worker_result_refused');}
-    } else if ($worker['action']==='media.redeem') {
+    }else if ($worker['action']==='media.redeem') {
       if ($keys!==array('credential_authenticated','status') || $result['credential_authenticated']!==true) {
         throw new RuntimeException('native_worker_result_refused');
       }
@@ -102,11 +104,14 @@ function governance_native_finish_worker(array &$handle) {
         }
         foreach ($result['value'] as $row) {
           $row_keys=is_array($row)?array_keys($row):array(); sort($row_keys);
-          if ($row_keys!==array('kind','name','parent_id','unit_id','version') ||
+          if ($row_keys!==array('contact_user_phid','department_id','kind','name','parent_id','unit_id','version','visibility_model_version') ||
               !PhorgeGovernanceOrganizationRequest::identifier($row['unit_id'],64) ||
               !in_array($row['kind'],array('team','department'),true) ||
               !is_string($row['name']) || strlen($row['name'])>255 || !phutil_is_utf8($row['name']) ||
               !is_int($row['version']) || $row['version']<1 ||
+              $row['visibility_model_version']!==1 ||
+              ($row['department_id']!==null && !PhorgeGovernanceOrganizationRequest::identifier($row['department_id'],64)) ||
+              ($row['contact_user_phid']!==null && (!is_string($row['contact_user_phid']) || !preg_match('/\APHID-USER-[a-z0-9]{20}\z/',$row['contact_user_phid']))) ||
               ($row['parent_id']!==null && !PhorgeGovernanceOrganizationRequest::identifier($row['parent_id'],64))) {
             throw new RuntimeException('native_worker_result_refused');
           }

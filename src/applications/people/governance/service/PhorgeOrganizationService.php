@@ -184,6 +184,8 @@ final class PhorgeOrganizationService extends Phobject {
     if (!$unit || $unit['unitID'] !== $id ||
         !in_array($unit['kind'], array('team', 'department'), true) ||
         !in_array($unit['state'], array('active', 'archived'), true) ||
+        ($unit['visibilityModel'] ?? null) !== 'restricted-admin-v1' ||
+        (string)($unit['visibilityVersion'] ?? '') !== '1' ||
         self::version($unit['version']) < 1) {
       throw new RuntimeException('organization_unit_refused');
     }
@@ -311,6 +313,9 @@ final class PhorgeOrganizationService extends Phobject {
         'SELECT * FROM %T WHERE userPHID=%s FOR UPDATE',
         $this->table('primarydepartment'), $input['user_phid']);
       $version = $before ? self::version($before['version']) : 0;
+      if($before && $before['unitID']!==null && $before['unitID']!==$input['unit_id']) {
+        throw new RuntimeException('organization_transfer_workflow_required');
+      }
       if ($version !== $input['expected_version']) {
         throw new RuntimeException('organization_stale_version');
       }
@@ -480,6 +485,100 @@ final class PhorgeOrganizationService extends Phobject {
       $this->relationship('appointment', $mutation['team'], $mutation['target_user']));
   }
 
+
+  public function previewCompound(array $input) {
+    $input=PhorgeOrganizationRequest::compound($input);$this->begin(array($input['target_user']));
+    try{$this->requireAdmin();$unit=$this->unit($input['team']);
+      if($unit['kind']!=='team'||$unit['state']!=='active'){throw new RuntimeException('organization_team_required');}
+      $result=array('action'=>$input['action'],'team'=>$input['team'],'subject'=>$input['target_user'],
+        'impact'=> $input['action']==='member.add-and-appoint'?'explicit-membership-and-administrator-grant':'explicit-administrator-revocation-and-membership-end',
+        'impact_message'=>pht('Adding membership may grant access through references to this team. Approval covers the explicit membership and administrator changes; native project permissions are unchanged.'),
+        'native_project_permissions_changed'=>false,'independent_approval_required'=>true);
+      $this->requireAdmin();$this->finish(true);return $result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
+  public function proposeCompoundApproval(array $input) {
+    $input=PhorgeOrganizationRequest::compound($input,true);$ttl=$input['ttl_seconds'];unset($input['ttl_seconds']);
+    $subjects=array($input['target_user']);$conn=(new PhabricatorUser())->establishConnection('w');
+    $existing=queryfx_one($conn,'SELECT approvalID FROM organization_approval WHERE BINARY approvalID=BINARY %s',$input['approval_id']);
+    if($existing){$subjects=array_merge($subjects,PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($input['approval_id']),$conn));}
+    $this->begin($subjects);
+    try{$this->requireAdmin();$adapter=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this);
+      $result=$adapter->propose($input['approval_id'],$input['operation_id'],$input['team'],$input['action'],
+        $input['target_user'],$input['appointment_from'],$input['appointment_until'],$ttl,$input);
+      if(!$result['replayed']){$this->audit($input['operation_id'],'approval.propose',$input['team'],$input['target_user'],null,
+        array('approvalID'=>$input['approval_id'],'compoundAction'=>$input['action'],'membershipImpactAcknowledged'=>true));}
+      $adapter->assertCurrent($input['approval_id']);$this->finish(true);return $result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
+  public function previewCompoundApproval($approval) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($approval)){throw new InvalidArgumentException('organization_approval_request_refused');}
+    $conn=(new PhabricatorUser())->establishConnection('w');
+    $subjects=PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($approval),$conn);$this->begin($subjects);
+    try{$this->requireAdmin();$result=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this)->previewCompoundApproval($approval);
+      $this->finish(true);return $result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
+  public function executeApprovedCompound($approval) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($approval)){throw new InvalidArgumentException('organization_approval_request_refused');}
+    $conn=(new PhabricatorUser())->establishConnection('w');
+    $subjects=PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($approval),$conn);
+    $this->begin($subjects);
+    try{$this->requireAdmin();$input=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this)->getCompoundForExecution($approval);
+      $this->finish(true);
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+    // The new execution transaction re-locks and compares every source again.
+    return $this->executeCompound($input);
+  }
+
+  /** One explicitly approved compound; generic duplicate-target batches stay refused. */
+  public function executeCompound(array $input) {
+    $input=PhorgeOrganizationRequest::compound($input);$conn=(new PhabricatorUser())->establishConnection('w');
+    $subjects=array_merge(array($input['target_user']),
+      PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($input['approval_id']),$conn));
+    $this->begin($subjects);
+    try{$this->requireAdmin();$unit=$this->unit($input['team']);
+      if($unit['kind']!=='team'||$unit['state']!=='active'){throw new RuntimeException('organization_team_required');}
+      $digest=hash('sha256',phutil_json_encode(array('explicit-compound-v1',$input)));
+      $replay=$this->replay($input['operation_id'],$digest);
+      if($replay!==null){$this->requireAdmin();$this->finish(true);return $replay;}
+      $member=$this->relationship('member',$input['team'],$input['target_user']);
+      $appointment=$this->relationship('appointment',$input['team'],$input['target_user']);
+      if(self::version($unit['version'])!==$input['expected_team_version'] ||
+        ($member?self::version($member['version']):0)!==$input['expected_member_version'] ||
+        ($appointment?self::version($appointment['version']):0)!==$input['expected_appointment_version']){
+        throw new RuntimeException('organization_stale_version');}
+      $adapter=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this);
+      // Consume while actual rows still equal the approved before read-set.
+      $adapter->consume($input['approval_id'],$input['operation_id'],$input['team'],$input['action'],
+        $input['target_user'],$input['appointment_from'],$input['appointment_until'],$input);
+      $grant=$input['action']==='member.add-and-appoint';
+      if($grant){
+        queryfx($this->connection,'INSERT INTO %T (unitID,userPHID,state,validFrom,validUntil,version) VALUES (%s,%s,%s,%d,%nd,1)',
+          $this->table('member'),$input['team'],$input['target_user'],'active',$input['member_from'],$input['member_until']);
+        $action='appointment.grant';
+      }else{
+        // Revoke the appointment first. No ordinary member API can do this.
+        $action='appointment.revoke';
+      }
+      $mutation=array('action'=>$action,'team'=>$input['team'],'target_user'=>$input['target_user'],
+        'valid_from'=>$input['appointment_from'],'valid_until'=>$input['appointment_until']);
+      $this->applyAppointment($input['operation_id'],$mutation,
+        $grant?$this->relationship('member',$input['team'],$input['target_user']):$member,$appointment);
+      if(!$grant){queryfx($this->connection,'UPDATE %T SET state=%s,version=version+1 WHERE unitID=%s AND userPHID=%s',
+        $this->table('member'),'ended',$input['team'],$input['target_user']);}
+      $this->audit($input['operation_id'],$input['action'],$input['team'],$input['target_user'],$member,
+        $this->relationship('member',$input['team'],$input['target_user']));
+      queryfx($this->connection,'UPDATE %T SET version=version+1 WHERE unitID=%s',$this->table('unit'),$input['team']);
+      $result=$this->record($input['operation_id'],$digest,array($input['team']=>$input['expected_team_version']+1));
+      $adapter->assertCurrent($input['approval_id'],$input['operation_id']);$this->requireAdmin();
+      $this->finish(true);return $result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
   public function proposeApproval(array $input) {
     $input = PhorgeOrganizationRequest::approval($input);
     $subjects = array($input['target_user']);
@@ -561,7 +660,7 @@ final class PhorgeOrganizationService extends Phobject {
         throw new RuntimeException('organization_restore_workflow_required');
       }
       $cursor = $input['parent_id']; $seen = array($input['unit_id'] => true);
-      while ($cursor !== null) {
+      while ($cursor !== null && $input['parent_id'] !== $before['parentID']) {
         if (isset($seen[$cursor]) || count($seen) >= 64) {
           throw new RuntimeException('organization_parent_cycle_or_budget');
         }
@@ -581,6 +680,120 @@ final class PhorgeOrganizationService extends Phobject {
         array($input['unit_id'] => self::version($after['version'])));
       $this->requireAdmin(); $this->finish(true); return $result;
     } catch (Throwable $error) { $this->finish(false); throw $error; }
+  }
+
+  public function updateUnitMetadata(array $input) {
+    $input=PhorgeOrganizationRequest::metadata($input);
+    $this->begin($input['contact_user_phid']===null?array():array($input['contact_user_phid']));
+    try {
+      $this->requireAdmin();$before=$this->unit($input['unit_id']);
+      $digest=hash('sha256',phutil_json_encode(array('unit-metadata',$input)));
+      $replay=$this->replay($input['operation_id'],$digest);
+      if($replay!==null){$this->finish(true);return $replay;}
+      if(self::version($before['version'])!==$input['expected_version']){throw new RuntimeException('organization_stale_version');}
+      if($input['associated_department_id']!==null && $input['associated_department_id']!==$before['associatedDepartmentID']){
+        $department=$this->unit($input['associated_department_id']);
+        if($before['kind']!=='team'||$department['kind']!=='department'||$department['state']!=='active'){
+          throw new RuntimeException('organization_department_required');
+        }
+      }
+      if($input['contact_user_phid']!==null && $input['contact_user_phid']!==$before['contactUserPHID'] &&
+          $this->accounts[$input['contact_user_phid']]['eligible']!==true){
+        throw new RuntimeException('organization_subject_ineligible');
+      }
+      queryfx($this->connection,'UPDATE %T SET associatedDepartmentID=%ns,contactUserPHID=%ns,version=version+1 WHERE unitID=%s',
+        $this->table('unit'),$input['associated_department_id'],$input['contact_user_phid'],$input['unit_id']);
+      $after=$this->unit($input['unit_id']);
+      $this->audit($input['operation_id'],'unit.metadata',$input['unit_id'],null,$before,$after);
+      $result=$this->record($input['operation_id'],$digest,array($input['unit_id']=>self::version($after['version'])));
+      $this->requireAdmin();$this->finish(true);return $result;
+    }catch(Throwable $error){$this->finish(false);throw $error;}
+  }
+
+  public function clearPrimaryDepartment(array $input) {
+    $input=PhorgeOrganizationRequest::clearDepartment($input);$this->begin(array($input['user_phid']));
+    try{
+      $this->requireAdmin();$digest=hash('sha256',phutil_json_encode(array('clear-department',$input)));
+      $replay=$this->replay($input['operation_id'],$digest);if($replay!==null){$this->finish(true);return $replay;}
+      $before=queryfx_one($this->connection,'SELECT * FROM %T WHERE userPHID=%s FOR UPDATE',
+        $this->table('primarydepartment'),$input['user_phid']);
+      if(!$before||$before['userPHID']!==$input['user_phid']||self::version($before['version'])!==$input['expected_version']){
+        throw new RuntimeException('organization_stale_version');
+      }
+      queryfx($this->connection,'UPDATE %T SET unitID=NULL,version=version+1 WHERE userPHID=%s',
+        $this->table('primarydepartment'),$input['user_phid']);
+      $after=array('userPHID'=>$input['user_phid'],'unitID'=>null,'version'=>$input['expected_version']+1);
+      $this->audit($input['operation_id'],'department.clear','',$input['user_phid'],$before,$after);
+      $result=$this->record($input['operation_id'],$digest,array($input['user_phid']=>$after['version']));
+      $this->requireAdmin();$this->finish(true);return $result;
+    }catch(Throwable $error){$this->finish(false);throw $error;}
+  }
+
+  public function previewUnitChange(array $input) {
+    $keys=array_keys($input);sort($keys);
+    if($keys!==array('expected_version','kind','parent_id','unit_id')||
+      !PhorgeGovernanceOrganizationRequest::identifier($input['unit_id'],64)||
+      !in_array($input['kind'],array('team','department'),true)||
+      !is_int($input['expected_version'])||$input['expected_version']<0||
+      ($input['parent_id']!==null&&!PhorgeGovernanceOrganizationRequest::identifier($input['parent_id'],64))){
+      throw new InvalidArgumentException('organization_preview_refused');
+    }
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{
+      $this->begin(array());
+      try{
+        $this->requireAdmin();
+        if($input['expected_version']>0){$unit=$this->unit($input['unit_id']);
+          if(self::version($unit['version'])!==$input['expected_version']||$unit['kind']!==$input['kind']){
+            throw new RuntimeException('organization_stale_version');}}
+        $cursor=$input['parent_id'];$seen=array($input['unit_id']=>true);$versions=array();$depth=1;
+        while($cursor!==null){
+          if(isset($seen[$cursor])||$depth>=64){throw new RuntimeException('organization_parent_cycle_or_budget');}
+          $seen[$cursor]=true;$parent=$this->unit($cursor);
+          if($parent['kind']!==$input['kind']||$parent['state']!=='active'){throw new RuntimeException('organization_parent_refused');}
+          $versions[$cursor]=self::version($parent['version']);$depth++;$cursor=$parent['parentID'];
+        }
+        $result=array('depth'=>$depth,'soft_limit'=>8,'warnings'=>$depth>8?array('organization_depth_soft_limit'):array(),
+          'ancestor_versions'=>$versions,'blocking'=>false);
+        $this->requireAdmin();$this->finish(true);return $result;
+      }catch(Throwable $error){$this->finish(false);throw $error;}
+    }finally{unset($unguarded);}
+  }
+
+  public function previewUnitArchive($id) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($id,64)){throw new InvalidArgumentException('organization_unit_refused');}
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$this->begin(array());try{
+      $this->requireAdmin();$unit=$this->unit($id);$counts=array();
+      foreach(array('member','appointment') as $kind){$row=queryfx_one($this->connection,
+        'SELECT COUNT(*) n FROM %T WHERE unitID=%s AND state=%s AND (validUntil IS NULL OR validUntil>UNIX_TIMESTAMP())',
+        $this->table($kind),$id,'active');$counts[$kind]=self::version($row['n']);}
+      $row=queryfx_one($this->connection,'SELECT COUNT(*) n FROM %T WHERE parentID=%s AND state=%s',$this->table('unit'),$id,'active');
+      $counts['children']=self::version($row['n']);
+      $row=queryfx_one($this->connection,'SELECT COUNT(*) n FROM %T WHERE unitID=%s',$this->table('primarydepartment'),$id);
+      $counts['primary_departments']=self::version($row['n']);
+      $result=array('unit_id'=>$id,'version'=>self::version($unit['version']),'effects'=>$counts,
+        'history_deleted'=>false,'native_project_permissions_changed'=>false,'restore_supported'=>false);
+      $this->requireAdmin();$this->finish(true);return $result;
+    }catch(Throwable $error){$this->finish(false);throw $error;}}finally{unset($unguarded);}
+  }
+
+  public function readUnassignedUsers($limit=100,$after=null) {
+    $this->limit($limit);if($after!==null&&!PhorgeGovernanceOrganizationRequest::userID($after)){
+      throw new InvalidArgumentException('organization_member_cursor_refused');}
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$this->begin(array());try{
+      $this->requireAdmin();$rows=queryfx_all($this->connection,
+        'SELECT p.phid,p.userName,p.realName,d.unitID,d.version FROM %R p LEFT JOIN %T d ON d.userPHID=p.phid '.
+        'LEFT JOIN %T u ON u.unitID=d.unitID AND u.kind=%s AND u.state=%s AND u.visibilityModel=%s AND u.visibilityVersion=1 '.
+        'WHERE p.isApproved=1 AND p.isDisabled=0 AND p.isSystemAgent=0 AND p.isMailingList=0 '.
+        'AND p.phid>%s AND (d.unitID IS NULL OR u.unitID IS NULL) ORDER BY p.phid LIMIT %d',
+        new PhabricatorUser(),$this->table('primarydepartment'),$this->table('unit'),'department','active','restricted-admin-v1',$after??'',$limit);
+      $result=array();foreach($rows as $row){$result[]=array('user_phid'=>$row['phid'],'username'=>$row['userName'],
+        'name'=>$row['realName'],'primary_department_version'=>$row['version']===null?0:self::version($row['version']),
+        'reason'=>$row['unitID']===null?'unassigned':'inactive_department');}
+      $this->requireAdmin();$this->finish(true);return $result;
+    }catch(Throwable $error){$this->finish(false);throw $error;}}finally{unset($unguarded);}
   }
 
   private function startRead() { $this->readStartedAt = $this->now(); }
@@ -628,7 +841,7 @@ final class PhorgeOrganizationService extends Phobject {
   private function visibleUnit($id) {
     $row = queryfx_one($this->connection,
       'SELECT u.* FROM %T u WHERE u.unitID=%s AND u.state=%s '.
-      'AND u.kind IN (%Ls) AND u.version>0 AND (%Q)',
+      'AND u.kind IN (%Ls) AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND (%Q)',
       $this->table('unit'), $id, 'active', array('team', 'department'), $this->visibleSQL());
     if ($row && $row['unitID'] === $id) {
       $this->fenceVisibleUnit($id);
@@ -637,18 +850,97 @@ final class PhorgeOrganizationService extends Phobject {
     return null;
   }
 
+  private function visibleContact(array $unit) {
+    $contact=$unit['contactUserPHID']??null;
+    if ($contact===null || $this->actorSnapshot->isSystemAdmin()) { return $contact; }
+    $row=queryfx_one($this->connection,
+      'SELECT m.validUntil FROM %T m JOIN %R p ON p.phid=m.userPHID '.
+      'WHERE m.unitID=%s AND m.userPHID=%s AND m.state=%s AND m.version>0 '.
+      'AND m.validFrom<=UNIX_TIMESTAMP() AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
+      'AND p.isApproved=1 AND p.isDisabled=0 AND p.isSystemAgent=0 AND p.isMailingList=0',
+      $this->table('member'),new PhabricatorUser(),$unit['unitID'],$contact,'active');
+    if (!$row) { return null; } $this->fenceRead($row['validUntil']); return $contact;
+  }
+
   private function publicUnit(array $row) {
     $this->fenceVisibleUnit($row['unitID']);
-    return array('unit_id' => $row['unitID'], 'kind' => $row['kind'],
+    $result = array('unit_id' => $row['unitID'], 'kind' => $row['kind'],
       'name' => $row['name'], 'version' => self::version($row['version']),
+      'department_id' => ($row['associatedDepartmentID'] ?? null)!==null &&
+        $this->visibleUnit($row['associatedDepartmentID']) ? $row['associatedDepartmentID'] : null,
+      'contact_user_phid' => $this->visibleContact($row),
+      'visibility_model_version' => 1,
       'parent_id' => $row['parentID'] !== null && $this->visibleUnit($row['parentID'])
         ? $row['parentID'] : null);
+    return $result;
   }
 
   private function limit($limit) {
     if (!is_int($limit) || $limit < 1 || $limit > 100) {
       throw new InvalidArgumentException('organization_limit_refused');
     }
+  }
+
+  public function readUnitManagement($id) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($id,64)){throw new InvalidArgumentException('organization_unit_refused');}
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$this->begin(array());try{
+      $this->requireAdmin();$this->startRead();$row=$this->unit($id);$result=$this->publicUnit($row);
+      $result['management_references']=array('parent_id'=>$row['parentID'],
+        'department_id'=>$row['associatedDepartmentID']??null,'contact_user_phid'=>$row['contactUserPHID']??null);
+      $this->requireAdmin();$this->finish(true);return $result;
+    }catch(Throwable $error){$this->finish(false);throw $error;}}finally{unset($unguarded);}
+  }
+
+  public function readUnit($id) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($id,64)){throw new InvalidArgumentException('organization_unit_refused');}
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$this->begin(array());try{
+      $this->startRead();$row=$this->visibleUnit($id);$result=$row?$this->publicUnit($row):null;
+      $this->finish(true);return $result;
+    }catch(Throwable $error){$this->finish(false);throw $error;}}finally{unset($unguarded);}
+  }
+
+  public static function auditCursor($value) {
+    if($value===null){return 0;}
+    if(!is_string($value)&&!is_int($value)){throw new InvalidArgumentException('organization_audit_cursor_refused');}
+    $text=(string)$value;
+    if(!preg_match('/\A(?:0|[1-9][0-9]*)\z/D',$text)){throw new InvalidArgumentException('organization_audit_cursor_refused');}
+    try{return self::version($text);}catch(RuntimeException$error){throw new InvalidArgumentException('organization_audit_cursor_refused');}
+  }
+
+  public static function auditRetentionCandidate($created,$asOf) {
+    if(!is_int($created)||!is_int($asOf)||$created<0||$asOf<0){throw new InvalidArgumentException('organization_audit_time_refused');}
+    return $created<=$asOf && $asOf-$created>=365*86400;
+  }
+
+  /** Administrator-only bounded metadata. Never load credential/snapshot JSON. */
+  public function readAuditPage($limit=100,$after=null,$retentionOnly=false) {
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{
+      $this->limit($limit);$cursor=self::auditCursor($after);
+      if(!is_bool($retentionOnly)){throw new InvalidArgumentException('organization_audit_scope_refused');}
+      $this->begin(array());
+      try{
+        $this->requireAdmin();$this->startRead();$now=$this->now();
+        // Scan a bounded primary-key page before filtering retention candidates.
+        // A LIMIT on createdAt matches would still scan unbounded recent rows.
+        $rows=queryfx_all($this->connection,
+          'SELECT id,operationID,actorPHID,action,unitID,subjectPHID,createdAt FROM %T WHERE id>%d ORDER BY id LIMIT %d',
+          $this->table('audit'),$cursor,$limit);
+        $result=array();foreach($rows as$row){
+          $id=self::version($row['id']);$created=self::version($row['createdAt']);
+          if($id<1){throw new RuntimeException('organization_audit_record_refused');}
+          if($retentionOnly&&!self::auditRetentionCandidate($created,$now)){continue;}
+          $result[]=array('id'=>$id,'operation_id'=>$row['operationID'],'actor_phid'=>$row['actorPHID'],
+            'action'=>$row['action'],'unit_id'=>$row['unitID'],'subject_phid'=>$row['subjectPHID'],
+            'created_at'=>$created,'retention_candidate'=>self::auditRetentionCandidate($created,$now));
+        }
+        $this->requireAdmin();$this->finish(true);
+        return array('rows'=>$result,'next_cursor'=>count($rows)===$limit?(string)last($rows)['id']:null,
+          'as_of'=>$now,'retention_days'=>365,'deletion_enabled'=>false,'full_snapshot_included'=>false);
+      }catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
   }
 
   public function readActorCapabilities() {
@@ -663,21 +955,34 @@ final class PhorgeOrganizationService extends Phobject {
     } finally { unset($unguarded); }
   }
 
-  public function readUnits($limit = 100, $after = null) {
+  public function readUnits($limit = 100, $after = null, $query = '', $selector = false) {
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
       $this->limit($limit);
+      if (!is_bool($selector)) { throw new InvalidArgumentException('organization_search_refused'); }
+      if (!is_string($query) || strlen($query)>128 || !phutil_is_utf8($query)) {
+        throw new InvalidArgumentException('organization_search_refused');
+      }
       if ($after !== null && !PhorgeGovernanceOrganizationRequest::identifier($after, 64)) {
         throw new InvalidArgumentException('organization_cursor_refused');
       }
       $this->begin(array());
       try {
         $this->startRead();
+        $name_expression=$selector
+          ? qsprintf($this->connection,'LOWER(CONVERT(u.name USING utf8mb4))')
+          : qsprintf($this->connection,'u.name');
+        $pattern='%'.str_replace(array('=','%','_'),array('==','=%','=_'),$query).'%';
+        $pattern_expression=$selector
+          ? qsprintf($this->connection,'LOWER(CONVERT(%s USING utf8mb4))',$pattern)
+          : qsprintf($this->connection,'%s',$pattern);
         $rows = queryfx_all($this->connection,
           'SELECT u.* FROM %T u WHERE u.state=%s AND u.kind IN (%Ls) '.
-          'AND u.version>0 AND u.unitID>%s AND (%Q) ORDER BY u.unitID LIMIT %d',
+          'AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND u.unitID>%s AND %Q LIKE %Q ESCAPE %s AND (%Q) ORDER BY u.unitID LIMIT %d',
           $this->table('unit'), 'active', array('team', 'department'),
-          $after === null ? '' : $after, $this->visibleSQL(), $limit);
+          $after === null ? '' : $after,
+          $name_expression,$pattern_expression, '=',
+          $this->visibleSQL(), $limit);
         $result = array(); foreach ($rows as $row) { $result[] = $this->publicUnit($row); }
         // A role expiring while producing a response does not return a stale list.
         foreach ($rows as $row) {
@@ -691,7 +996,8 @@ final class PhorgeOrganizationService extends Phobject {
     } finally { unset($unguarded); }
   }
 
-  private function captureUnitCount() {
+  private function captureUnitCount($query = '') {
+    if(!is_string($query)||strlen($query)>128||!phutil_is_utf8($query)){throw new InvalidArgumentException('organization_search_refused');}
     if ($this->actorSnapshot->isSystemAdmin()) {
       $deadlines = qsprintf($this->connection, 'NULL AS memberDeadline,NULL AS appointmentDeadline');
     } else {
@@ -703,28 +1009,49 @@ final class PhorgeOrganizationService extends Phobject {
     $row = queryfx_one($this->connection,
       'SELECT COUNT(*) n,MIN(q.memberDeadline) memberDeadline,MIN(q.appointmentDeadline) appointmentDeadline '.
       'FROM (SELECT %Q FROM %T u WHERE u.state=%s AND u.kind IN (%Ls) '.
-      'AND u.version>0 AND (%Q)) q', $deadlines, $this->table('unit'), 'active',
-      array('team', 'department'), $this->visibleSQL());
+      'AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND u.name LIKE %s ESCAPE %s AND (%Q)) q', $deadlines, $this->table('unit'), 'active',
+      array('team', 'department'), '%'.str_replace(array('=','%','_'),array('==','=%','=_'),$query).'%', '=', $this->visibleSQL());
     $this->fenceRead($row['memberDeadline']); $this->fenceRead($row['appointmentDeadline']);
     return self::version($row['n']);
   }
 
-  public function countUnits() {
+  public function countUnits($query = '') {
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
       $this->begin(array());
       try {
         $this->startRead();
-        $result = $this->captureUnitCount(); $this->finish(true); return $result;
+        $result = $this->captureUnitCount($query); $this->finish(true); return $result;
       } catch (Throwable $error) { $this->finish(false); throw $error; }
 
     } finally { unset($unguarded); }
   }
 
-  public function readMembers($unitID, $limit = 100) {
+  public function countMembers($id) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($id,64)){throw new InvalidArgumentException('organization_unit_refused');}
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$this->begin(array());try{
+      $this->startRead();$unit=$this->visibleUnit($id);if(!$unit){throw new RuntimeException('organization_not_visible');}
+      if($unit['kind']==='department'){$row=queryfx_one($this->connection,
+        'SELECT COUNT(*) n,NULL AS deadline FROM %T d JOIN %R p ON p.phid=d.userPHID WHERE d.unitID=%s AND d.version>0',
+        $this->table('primarydepartment'),new PhabricatorUser(),$id);
+      }else{$row=queryfx_one($this->connection,
+        'SELECT COUNT(*) n,MIN(m.validUntil) deadline FROM %T m JOIN %R p ON p.phid=m.userPHID '.
+        'WHERE m.unitID=%s AND m.state=%s AND m.version>0 AND m.validFrom<=UNIX_TIMESTAMP() '.
+        'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP())',
+        $this->table('member'),new PhabricatorUser(),$id,'active');}
+      $this->fenceRead($row['deadline']);$result=self::version($row['n']);
+      $this->visibleUnit($id);$this->finish(true);return $result;
+    }catch(Throwable $error){$this->finish(false);throw $error;}}finally{unset($unguarded);}
+  }
+
+  public function readMembers($unitID, $limit = 100, $after = null) {
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
       $this->limit($limit);
+      if ($after!==null && !PhorgeGovernanceOrganizationRequest::userID($after)) {
+        throw new InvalidArgumentException('organization_member_cursor_refused');
+      }
       if (!PhorgeGovernanceOrganizationRequest::identifier($unitID, 64)) {
         throw new InvalidArgumentException('organization_unit_refused');
       }
@@ -737,8 +1064,8 @@ final class PhorgeOrganizationService extends Phobject {
           $rows = queryfx_all($this->connection,
             'SELECT d.userPHID,d.version primaryVersion,p.isDisabled,p.isApproved,p.isSystemAgent,p.isMailingList '.
             'FROM %T d JOIN %R p ON p.phid=d.userPHID '.
-            'WHERE d.unitID=%s AND d.version>0 ORDER BY d.userPHID LIMIT %d',
-            $this->table('primarydepartment'), new PhabricatorUser(), $unitID, $limit);
+            'WHERE d.unitID=%s AND d.version>0 AND d.userPHID>%s ORDER BY d.userPHID LIMIT %d',
+            $this->table('primarydepartment'), new PhabricatorUser(), $unitID, $after ?? '', $limit);
         } else {
           $rows = queryfx_all($this->connection,
             'SELECT m.userPHID,m.version memberVersion,m.validFrom,m.validUntil,'.
@@ -748,8 +1075,8 @@ final class PhorgeOrganizationService extends Phobject {
             'WHERE m.unitID=%s AND m.state=%s AND m.version>0 '.
             'AND m.validFrom<=UNIX_TIMESTAMP() '.
             'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
-            'ORDER BY m.userPHID LIMIT %d', $this->table('appointment'), $this->table('member'),
-            new PhabricatorUser(), $unitID, 'active', $limit);
+            'AND m.userPHID>%s ORDER BY m.userPHID LIMIT %d', $this->table('appointment'), $this->table('member'),
+            new PhabricatorUser(), $unitID, 'active', $after ?? '', $limit);
         }
         $result = array();
         foreach ($rows as $row) {
@@ -790,7 +1117,7 @@ final class PhorgeOrganizationService extends Phobject {
           'AND p.isMailingList=0 AND m.state=%s AND m.version>0 '.
           'AND m.validFrom<=UNIX_TIMESTAMP() '.
           'AND (m.validUntil IS NULL OR m.validUntil>UNIX_TIMESTAMP()) '.
-          'AND u.kind=%s AND u.state=%s AND u.version>0 AND (%Q) '.
+          'AND u.kind=%s AND u.state=%s AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND (%Q) '.
           'ORDER BY u.unitID LIMIT %d', $this->table('unit'), $this->table('member'),
           new PhabricatorUser(), $subject, 'active', 'team', 'active',
           $this->visibleSQL(), $limit);

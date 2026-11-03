@@ -7,56 +7,56 @@
   "packages": [
     {
       "id": "N00",
-      "title": "契约与只读来源清单",
+      "title": "\u5951\u7ea6\u4e0e\u53ea\u8bfb\u6765\u6e90\u6e05\u5355",
       "depends_on": [],
-      "status": "partial-native-directory-coverage-verified-partial",
-      "remaining": "New native directory/identity/media source closure and static links added; broader consumers remain tracked separately.",
+      "status": "native-directory-completion-source-inventory-reviewed-partial",
+      "remaining": "35 explicit sources, 25 static links and 47 scoped runtime files pinned; broader consumers and runtime release stages remain separate.",
       "production_enabled": false
     },
     {
       "id": "N01",
-      "title": "组织目录存储与生命周期",
+      "title": "\u7ec4\u7ec7\u76ee\u5f55\u5b58\u50a8\u4e0e\u751f\u547d\u5468\u671f",
       "depends_on": [
         "N00"
       ],
-      "status": "native-isolated-integration-verified-partial",
-      "remaining": "Native People storage/lifecycle/primary department implemented; hierarchy soft warnings, complete UI, recovery and browser acceptance remain.",
+      "status": "native-directory-metadata-lifecycle-verified-subset",
+      "remaining": "Fixed visibility metadata, descriptive references, real 8-level soft preview, main-department clear/unassigned and archive preview implemented; recovery/handover/history and final browser release acceptance remain.",
       "production_enabled": false
     },
     {
       "id": "N02",
-      "title": "目录读取与关系级隐私",
+      "title": "\u76ee\u5f55\u8bfb\u53d6\u4e0e\u5173\u7cfb\u7ea7\u9690\u79c1",
       "depends_on": [
         "N01"
       ],
-      "status": "native-isolated-integration-verified-partial",
-      "remaining": "Native protected projections and real list/count revocation/expiry isolation verified. Full HTTP/browser and wider UI coverage remain required.",
+      "status": "native-datasource-search-paging-verified-subset",
+      "remaining": "Native datasource/search/paging/counts, token-domain privacy, Chinese full-page rendering and unavailable-reference form preservation verified in the 136/184 directory checkpoint and 139/209 review-fixed combined current-main issuer run. Hosted CI and browser/test-machine acceptance remain separate.",
       "production_enabled": false
     },
     {
       "id": "N03",
-      "title": "委派成员写入与管理员任职",
+      "title": "\u59d4\u6d3e\u6210\u5458\u5199\u5165\u4e0e\u7ba1\u7406\u5458\u4efb\u804c",
       "depends_on": [
         "N01",
         "N02"
       ],
-      "status": "native-isolated-integration-verified-partial",
-      "remaining": "Native ordinary membership and independently approved appointments verified in actual People/session fixtures. Full multi-operation rollback and broader lifecycle/UI remain required; not activated.",
+      "status": "native-delegated-backend-ui-extended-partial",
+      "remaining": "Native period/end/suspend and metadata forms are implemented; real CSRF form preservation checks pass. Native batch/fault/concurrency direct-write proof and complete browser workflow remain. Explicit compound member/appointment operations are not implemented.",
       "production_enabled": false
     },
     {
       "id": "N04",
-      "title": "调动交接与处置清单",
+      "title": "\u8c03\u52a8\u4ea4\u63a5\u4e0e\u5904\u7f6e\u6e05\u5355",
       "depends_on": [
         "N03"
       ],
-      "status": "not-implemented",
-      "remaining": "Handover workflow, per-project disposition and restricted reminders pending N03.",
+      "status": "not-implemented-primary-department-metadata-only",
+      "remaining": "Initial/clear main department is metadata only. Versioned transfers, 14/30 calendar-day approvals/extensions/cumulative review, per-project manual dispositions, due worklist/outbox and receipts remain unimplemented.",
       "production_enabled": false
     },
     {
       "id": "N05",
-      "title": "内容与敏感事务能力分离",
+      "title": "\u5185\u5bb9\u4e0e\u654f\u611f\u4e8b\u52a1\u80fd\u529b\u5206\u79bb",
       "depends_on": [
         "N00"
       ],
@@ -66,7 +66,7 @@
     },
     {
       "id": "N06",
-      "title": "原生成员资格、join与动态来源回归",
+      "title": "\u539f\u751f\u6210\u5458\u8d44\u683c\u3001join\u4e0e\u52a8\u6001\u6765\u6e90\u56de\u5f52",
       "depends_on": [
         "N05",
         "N03"
@@ -77,7 +77,7 @@
     },
     {
       "id": "N07",
-      "title": "风险分级与审批执行",
+      "title": "\u98ce\u9669\u5206\u7ea7\u4e0e\u5ba1\u6279\u6267\u884c",
       "depends_on": [
         "N05"
       ],
@@ -87,7 +87,7 @@
     },
     {
       "id": "N08",
-      "title": "账号恢复与团队复活审查",
+      "title": "\u8d26\u53f7\u6062\u590d\u4e0e\u56e2\u961f\u590d\u6d3b\u5ba1\u67e5",
       "depends_on": [
         "N03",
         "N07"
@@ -98,17 +98,17 @@
     },
     {
       "id": "N09",
-      "title": "媒体身份与缓存协议试验",
+      "title": "\u5a92\u4f53\u8eab\u4efd\u4e0e\u7f13\u5b58\u534f\u8bae\u8bd5\u9a8c",
       "depends_on": [
         "N00"
       ],
       "status": "native-prepared-target-issuer-and-maintenance-isolated-verified-partial",
-      "remaining": "138 pure /209 actual MySQL-Gorge checks verify external media-only issuer, canonical prepared target/nonce, persistent quotas, exact total capacity with real waiting preparers, bounded cleanup and rollback. No HTTP/cookie handoff, file guard, browser or deployment acceptance; future directory-branch combination requires a fresh full run.",
+      "remaining": "Current-main directory/issuer plus prepared-target source passed 142 pure /245 actual MySQL-Gorge checks. Original 138/209 target checkpoint retained separately. Canonical target/nonce, persistent quotas, exact total capacity with real waiters, cleanup rollback and native RR preservation verified. HTTP/cookie/file-guard/browser/deployment acceptance remains separate and unproved by this slice. Current HTTP/file/cache/image/bootstrap candidate source is explicitly combined with current main but awaits a fresh full combined runtime receipt. Old 144/273 and 24 TLS checks are earlier component evidence only; the current 146-method source run does not certify combined SQL, wire/browser or activation.",
       "production_enabled": false
     },
     {
       "id": "N10",
-      "title": "D14独立守卫与禁止匿名头像",
+      "title": "D14\u72ec\u7acb\u5b88\u536b\u4e0e\u7981\u6b62\u533f\u540d\u5934\u50cf",
       "depends_on": [
         "N09"
       ],
@@ -118,7 +118,7 @@
     },
     {
       "id": "N11",
-      "title": "私有通知链接化",
+      "title": "\u79c1\u6709\u901a\u77e5\u94fe\u63a5\u5316",
       "depends_on": [
         "N09",
         "N10"
@@ -129,7 +129,7 @@
     },
     {
       "id": "N12",
-      "title": "会话撤销差异与D15采用报告",
+      "title": "\u4f1a\u8bdd\u64a4\u9500\u5dee\u5f02\u4e0eD15\u91c7\u7528\u62a5\u544a",
       "depends_on": [
         "N00"
       ],
@@ -139,7 +139,7 @@
     },
     {
       "id": "N13",
-      "title": "跨包隔离集成与发布就绪评审",
+      "title": "\u8de8\u5305\u9694\u79bb\u96c6\u6210\u4e0e\u53d1\u5e03\u5c31\u7eea\u8bc4\u5ba1",
       "depends_on": [
         "N04",
         "N06",
@@ -200,14 +200,120 @@
     }
   },
   "current_component_validation": {
-    "scope": "owned-synthetic-organization-integration",
-    "native_methods": 115,
-    "organization_sql_checks": 94,
-    "retained_native_pipeline_checks": 125,
-    "governance_python": 56,
-    "permissions_python": 84,
-    "production_native_identity_proved": false,
+    "scope": "pending-current-main-and-http-source-combination",
+    "php_runtime": "8.5.12",
+    "current_source_validation": "pending-fresh-full-combined-run",
+    "actual_combined_counts": null,
+    "source_inventory": {
+      "sources": 50,
+      "links": 40,
+      "runtime_files": 55,
+      "coverage": "partial",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
     "production_activation": false,
-    "hosted_ci_review_proved": false
+    "deployment": false,
+    "hosted_ci_review_proved": false,
+    "global_goal_complete": false,
+    "audit_history_deleted": false,
+    "latest_main_combined_validation_required": true,
+    "full_lifecycle_complete": false,
+    "full_compound_matrix_complete": false,
+    "old_component_counts_not_reused": true
+  },
+  "historical_component_validations": [
+    {
+      "scope": "owned-synthetic-organization-integration",
+      "native_methods": 115,
+      "organization_sql_checks": 94,
+      "retained_native_pipeline_checks": 125,
+      "governance_python": 56,
+      "permissions_python": 84,
+      "production_native_identity_proved": false,
+      "production_activation": false,
+      "hosted_ci_review_proved": false
+    },
+    {
+      "scope": "main-media-target-and-native-lifecycle-combined-source",
+      "native_methods": 145,
+      "organization_sql_checks": 286,
+      "evidence_directory": "docs/governance/evidence/membership-lifecycle-combined-286-20261103"
+    },
+    {
+      "scope": "restricted-history-before-retention-scan-review-fix",
+      "native_methods": 147,
+      "organization_sql_checks": 295,
+      "evidence_directory": "docs/governance/evidence/native-history-295-20261103"
+    },
+    {
+      "scope": "main-native-lifecycle-plus-restricted-history-source",
+      "php_runtime": "8.5.12",
+      "current_source_native_sql_required": 297,
+      "current_source_validation": "supported-runtime-isolated-native-297-passed",
+      "source_inventory": {
+        "sources": 37,
+        "links": 28,
+        "runtime_files": 49,
+        "coverage": "partial",
+        "activation_blocked": true,
+        "authority_proof": false
+      },
+      "production_activation": false,
+      "deployment": false,
+      "hosted_ci_review_proved": false,
+      "global_goal_complete": false,
+      "audit_history_deleted": false,
+      "permissions_python_last_passed": 84,
+      "actual_native_identity_current_sources_exercised": true,
+      "latest_main_combined_validation_required": false,
+      "native_methods_required": 147,
+      "full_lifecycle_complete": false,
+      "full_compound_matrix_complete": false,
+      "governance_python_validation": "current-source-86-passed",
+      "governance_python_last_passed": 86,
+      "evidence_directory": "docs/governance/evidence/native-history-297-20261103"
+    }
+  ],
+  "validated_component_checkpoints": [
+    {
+      "component": "native-directory-completion",
+      "native_methods": 136,
+      "native_sql_checks": 184,
+      "scope": "owned-native-directory-before-latest-main-integration",
+      "evidence_directory": "docs/governance/evidence/native-directory-checkpoint-20261103"
+    },
+    {
+      "component": "media-issuer",
+      "native_methods": 135,
+      "native_sql_checks": 173,
+      "scope": "owned-media-only-external-issuer-real-upgrade-and-restore",
+      "evidence_file": "docs/governance/native-directory-evidence.json"
+    },
+    {
+      "component": "early-native-membership-lifecycle-and-compound",
+      "native_methods": 142,
+      "native_sql_checks": 225,
+      "scope": "earlier-0f-source-before-full-O4-O5-and-latest-main",
+      "evidence_directory": "docs/governance/evidence/membership-lifecycle-early-225-20261103"
+    },
+    {
+      "component": "native-lifecycle-pre-retry-fix",
+      "native_methods": 142,
+      "native_sql_checks": 244,
+      "scope": "earlier-native-source-before-approval-id-retry-fix",
+      "evidence_directory": "docs/governance/evidence/membership-lifecycle-checkpoint-20261103"
+    }
+  ],
+  "pending_combination": {
+    "status": "not-runtime-validated",
+    "main_merge_commit": "6c12461b15b1d8d7fef8d1c7872ff3833ba2d70d",
+    "http_source_checkpoint": "28aa3bde87d0a683c53220fddf5034c1477fa786",
+    "source_inventory": "explicit reviewed HTTP/file/bootstrap nodes added to strict main catalog",
+    "old_component_receipts_are_not_combined_evidence": true,
+    "current_http_checkpoint_pure_methods": 146,
+    "current_http_sql_receipt_validated": false,
+    "combined_actual_counts": null,
+    "wire_browser_and_activation": false
   }
 }

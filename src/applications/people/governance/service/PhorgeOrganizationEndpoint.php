@@ -9,11 +9,17 @@ final class PhorgeOrganizationEndpoint extends Phobject {
     }
     $query = new PhorgeOrganizationQuery($context);
     switch ($mode) {
+      case 'audit': return $query->readAuditPage($limit,$after,false);
+      case 'audit-retention': return $query->readAuditPage($limit,$after,true);
       case 'list': return $query->listUnits($limit, $after);
       case 'selector': return $query->selectUnits($limit, $after);
       case 'export': return $query->exportUnitsPage($limit, $after);
       case 'count': return $query->countUnits();
-      case 'members': return $query->listMembers($unit, $limit);
+      case 'search-count': return $query->countUnits($unit??'');
+      case 'member-count': return $query->countMembers($unit);
+      case 'members': return $query->listMembers($unit, $limit, $after);
+      case 'unassigned': return $query->listUnassignedUsers($limit,$after);
+      case 'search': return $query->searchUnits($unit??'', $limit,$after);
       case 'user-teams': return $query->listUserTeams($subject, $limit);
       default: throw new InvalidArgumentException('organization_query_mode_refused');
     }
@@ -27,9 +33,18 @@ final class PhorgeOrganizationEndpoint extends Phobject {
     $service = PhorgeOrganizationService::newForActor($context);
     switch ($action) {
       case 'unit.create': return $service->createUnit($payload);
+      case 'unit.preview': return $service->previewUnitChange($payload);
+      case 'unit.metadata': return $service->updateUnitMetadata($payload);
+      case 'department.clear': return $service->clearPrimaryDepartment($payload);
       case 'unit.update': return $service->updateUnit($payload);
       case 'department.assign': return $service->assignPrimaryDepartment($payload);
       case 'members.edit': return $service->execute($payload);
+      case 'compound.execute-approved':
+        if(array_keys($payload)!==array('approval_id')){throw new InvalidArgumentException('organization_approval_request_refused');}
+        return $service->executeApprovedCompound($payload['approval_id']);
+      case 'compound.preview': return $service->previewCompound($payload);
+      case 'compound.propose': return $service->proposeCompoundApproval($payload);
+      case 'compound.execute': return $service->executeCompound($payload);
       case 'approval.propose': return $service->proposeApproval($payload);
       case 'approval.approve':
         if (array_keys($payload) !== array('approval_id')) {

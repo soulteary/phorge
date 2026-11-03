@@ -1,0 +1,18 @@
+{
+  "scope": "validated-directory-checkpoint-before-latest-main-integration",
+  "php_runtime": "8.5.12",
+  "native_methods": 136,
+  "native_sql_checks": 184,
+  "governance_python": 77,
+  "permissions_python": 84,
+  "strict_native_cli_accepted": true,
+  "evidence_sha256": {
+    "native-integration.json": "ed62fce8511dd0c63df28434013d4011111a3bb7cf7eeec5701f26908d346385",
+    "native-methods.json": "86359a0cfbeaab6fe634fcb39ff17d069f40c2678086f6819ded42d28247e18e"
+  },
+  "production_enabled": false,
+  "deployment": false,
+  "browser_acceptance": false,
+  "full_goal_complete": false,
+  "combined_main_rerun_required": true
+}

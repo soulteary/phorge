@@ -123,7 +123,15 @@ function governance_native_organization_cases($fixture, callable $check) {
   $legacy_role_summary=governance_native_legacy_role_cases($fixture,$check,$state);
   require_once __DIR__.'/media-http-cases.php';
   $http_summary=governance_native_media_http_cases($fixture,$check,$state);
-  return array('http_tests'=>$http_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
+  require_once __DIR__.'/directory-completion-cases.php';
+  $directory_completion_summary=governance_native_directory_completion_cases($fixture,$check,$state);
+  require_once __DIR__.'/membership-lifecycle-cases.php';
+  $lifecycle_summary=governance_native_membership_lifecycle_cases($fixture,$check,$state);
+  require_once __DIR__.'/compound-cases.php';
+  $compound_summary=governance_native_compound_cases($fixture,$check,$state);
+  require_once __DIR__.'/history-cases.php';
+  $history_summary=governance_native_history_cases($fixture,$check,$state);
+  return array('http_tests'=>$http_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
     'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
     'production_features_enabled'=>false,'media_backend_only'=>true,
     'daemon_or_external_delivery_executed'=>false,'issuer_upgrade_tests'=>$issuer_upgrade_summary,'target_tests'=>$target_summary,'issuer_tests'=>$issuer_summary,'schema_tests'=>$schema_summary,'route_tests'=>$route_summary,'privacy_tests'=>$privacy_summary,'concurrency_tests'=>$concurrency_summary,

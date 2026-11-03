@@ -94,6 +94,9 @@ final class AphrontFormTokenizerControl extends AphrontFormControl {
       $username = $this->getViewer()->getUsername();
     }
 
+    $normalizer_mode=$datasource->getTokenizerNormalizerMode();
+    if(!in_array($normalizer_mode,array('default','literal-casefold-v1'),true)){
+      throw new InvalidArgumentException('tokenizer_normalizer_mode_refused');}
     $datasource_uri = $datasource->getDatasourceURI();
     $browse_uri = $datasource->getBrowseURI();
     if ($browse_uri) {
@@ -104,6 +107,7 @@ final class AphrontFormTokenizerControl extends AphrontFormControl {
       Javelin::initBehavior('aphront-basic-tokenizer', array(
         'id' => $id,
         'src' => $datasource_uri,
+        'normalizerMode' => $normalizer_mode,
         'value' => mpull($tokens, 'getValue', 'getKey'),
         'icons' => mpull($tokens, 'getIcon', 'getKey'),
         'types' => mpull($tokens, 'getTokenType', 'getKey'),

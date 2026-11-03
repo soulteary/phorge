@@ -41,6 +41,8 @@ final class PhabricatorPeopleApplication extends PhabricatorApplication {
   public function getRoutes() {
     return array(
       '/people/' => array(
+        'organization/typeahead/' => 'PhorgeOrganizationDatasourceController',
+        'organization/history/' => 'PhorgeOrganizationHistoryController',
         'organization/' => 'PhorgeOrganizationController',
         $this->getQueryRoutePattern() => 'PhabricatorPeopleListController',
         'logs/' => array(

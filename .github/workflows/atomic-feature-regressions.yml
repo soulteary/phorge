@@ -305,6 +305,20 @@ jobs:
           name: governance-native-organization-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-native-organization
           if-no-files-found: error
+      - name: Verify deterministic historical push-event grouping
+        run: |
+          mkdir -p "$RUNNER_TEMP/push-groups-migration"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          python3 support/governance/migrations/push-groups-wrapper.py --profile push-groups-regression > "$RUNNER_TEMP/push-groups-migration/receipt.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: push-groups-migration-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/push-groups-migration
+          if-no-files-found: error
       - name: Verify native permission routes on an enriched restored snapshot
         run: PERMISSION_XLSX_AUTOLOAD="$RUNNER_TEMP/permission-xlsx/vendor/autoload.php" GORGE_TEST_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" PERMISSION_XLSX_GO_BINARY="$RUNNER_TEMP/phorge-xlsx-reader" python3 tests/permissions/routes.py --require-clean-worktree --output "$RUNNER_TEMP/permission-route-evidence"
       - uses: actions/upload-artifact@v4

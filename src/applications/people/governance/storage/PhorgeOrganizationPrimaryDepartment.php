@@ -13,7 +13,7 @@ final class PhorgeOrganizationPrimaryDepartment extends PhabricatorUserDAO {
       self::CONFIG_TIMESTAMPS => false,
       self::CONFIG_COLUMN_SCHEMA => array(
         'userPHID' => 'phid',
-        'unitID' => 'varbytes64',
+        'unitID' => 'varbytes64?',
         'version' => 'uint64',
       ),
       self::CONFIG_KEY_SCHEMA => array(

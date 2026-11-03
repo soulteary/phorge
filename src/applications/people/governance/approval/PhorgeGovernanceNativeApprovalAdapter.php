@@ -48,7 +48,14 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
   private static function identifier($value) {
     return PhorgeGovernanceOrganizationApprovalAdapter::validateIdentifier($value);
   }
-  private static function params($action,$subject,$from,$until) {
+  private static function params($action,$subject,$from,$until,$compound=null) {
+    if(in_array($action,array('member.add-and-appoint','appointment.revoke-and-end'),true)){
+      if(!is_array($compound)){throw new RuntimeException('organization_compound_request_refused');}
+      $checked=PhorgeOrganizationRequest::compound($compound);
+      if($checked['action']!==$action||$checked['target_user']!==$subject||$checked['appointment_from']!==$from||$checked['appointment_until']!==$until){throw new RuntimeException('organization_compound_request_refused');}
+      return array('subject'=>$subject,'valid_from'=>$from,'valid_until'=>$until,'compound'=>$checked);
+    }
+    if($compound!==null){throw new RuntimeException('organization_compound_request_refused');}
     if (!in_array($action,array('appointment.grant','appointment.revoke'),true)) {
       throw new RuntimeException('organization_approval_action_refused');
     }
@@ -111,7 +118,7 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
     if (!$snapshot->isSystemAdmin()) { throw new RuntimeException('organization_approval_admin_required'); }
     return $snapshot;
   }
-  private function sources($team,$action,array $parameters) {
+  private function sources($team,$action,array $parameters,$after=false) {
     self::identifier($team);
     if (strlen($team)>64) { throw new RuntimeException('organization_approval_team_refused'); }
     $accounts=self::property($this->service->get(),'accounts');
@@ -120,12 +127,16 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
       throw new RuntimeException('organization_approval_identity_plan_changed');
     }
     $identity=PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($parameters['subject'],$this->connection);
-    if ($action==='appointment.grant' && !$identity['eligible']) {
+    if (in_array($action,array('appointment.grant','member.add-and-appoint'),true) && !$identity['eligible']) {
       throw new RuntimeException('organization_approval_subject_ineligible');
     }
     $unit=queryfx_one($this->connection,'SELECT * FROM organization_unit WHERE BINARY unitID=BINARY %s FOR UPDATE',$team);
     if (!$unit || $unit['unitID']!==$team || $unit['kind']!=='team' || $unit['state']!=='active') {
       throw new RuntimeException('organization_approval_team_refused');
+    }
+    if (($unit['visibilityModel']??null)!=='restricted-admin-v1' ||
+        (string)($unit['visibilityVersion']??'')!=='1') {
+      throw new RuntimeException('organization_approval_source_refused');
     }
     if (PhorgeOrganizationService::version($unit['version'])<1) {
       throw new RuntimeException('organization_approval_source_refused');
@@ -152,6 +163,32 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
       $rows[$kind]=$row;
     }
     if ($action==='appointment.grant') { $this->membership($rows['member'],$parameters,$this->now()); }
+    if(isset($parameters['compound'])){
+      $c=$parameters['compound'];$now=$this->now();
+      if(!$after){
+        foreach(array('member','appointment')as$kind){$version=$rows[$kind]?PhorgeOrganizationService::version($rows[$kind]['version']):0;
+          if($version!==$c['expected_'.$kind.'_version']){throw new RuntimeException('organization_approval_stale');}}
+        if(PhorgeOrganizationService::version($unit['version'])!==$c['expected_team_version']){throw new RuntimeException('organization_approval_stale');}
+        if($action==='member.add-and-appoint' && ($rows['member']!==null || $rows['appointment']!==null)){
+          throw new RuntimeException('organization_compound_precondition');}
+        if($action==='appointment.revoke-and-end' && (!$rows['member']||!$rows['appointment'])){
+          throw new RuntimeException('organization_compound_precondition');}
+      }else{
+        if(PhorgeOrganizationService::version($unit['version'])!==$c['expected_team_version']+1){throw new RuntimeException('organization_compound_postcondition');}
+        foreach(array('member','appointment')as$kind){
+          $expected_state=$action==='member.add-and-appoint'?'active':'ended';
+          if(!$rows[$kind]||$rows[$kind]['state']!==$expected_state||
+            PhorgeOrganizationService::version($rows[$kind]['version'])!==$c['expected_'.$kind.'_version']+1){
+            throw new RuntimeException('organization_compound_postcondition');}
+          if($action==='member.add-and-appoint' && ((int)$rows[$kind]['validFrom']!==$c[$kind.'_from'] ||
+            ($rows[$kind]['validUntil']===null?null:(int)$rows[$kind]['validUntil'])!==$c[$kind.'_until'])){
+            throw new RuntimeException('organization_compound_postcondition');}
+        }
+      }
+      if($action==='member.add-and-appoint' && ($c['member_from']>$now ||
+        ($c['member_until']!==null&&$c['member_until']<=$now)||
+        ($c['appointment_until']!==null&&$c['appointment_until']<=$now))){throw new RuntimeException('organization_period_expired');}
+    }
     return $rows;
   }
   private function membership($member,array $parameters,$now) {
@@ -180,15 +217,22 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
       if ($now>=$data['expiresAt']) { throw new RuntimeException('organization_approval_expired'); }
       $this->membership($member,$data['parameters'],$now);
     }
+    if($data['action']==='member.add-and-appoint'){
+      $c=$data['parameters']['compound'];$now=$this->now();
+      if($now>=$data['expiresAt'] || $c['member_from']>$now ||
+        ($c['member_until']!==null&&$c['member_until']<=$now)||
+        ($c['appointment_until']!==null&&$c['appointment_until']<=$now)){
+        throw new RuntimeException('organization_approval_expired');}
+    }
     return $now;
   }
   private function receipt($id,$state,$replayed=false) {
     return array('approval_id'=>$id,'state'=>$state,'replayed'=>$replayed,
       'native_identity'=>true,'can_execute'=>false);
   }
-  public function propose($id,$operation,$team,$action,$subject,$from,$until,$ttl) {
+  public function propose($id,$operation,$team,$action,$subject,$from,$until,$ttl,$compound=null) {
     $actor=$this->actor(); self::identifier($id); self::identifier($operation);
-    $parameters=self::params($action,$subject,$from,$until);
+    $parameters=self::params($action,$subject,$from,$until,$compound);
     PhorgeGovernanceOrganizationApprovalAdapter::validateTTL($ttl);
     $existing=queryfx_one($this->connection,'SELECT approvalID FROM organization_approval WHERE BINARY approvalID=BINARY %s FOR UPDATE',$id);
     $now=$this->now(); $issued=$now; $expires=$now+$ttl;
@@ -232,8 +276,8 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
       }
     }
     $parameters=self::params($data['action'],$data['parameters']['subject'],
-      $data['parameters']['valid_from'],$data['parameters']['valid_until']);
-    $sources=$this->sources($data['team'],$data['action'],$parameters);
+      $data['parameters']['valid_from'],$data['parameters']['valid_until'],idx($data['parameters'],'compound'));
+    $sources=$this->sources($data['team'],$data['action'],$parameters,$row['state']==='consumed');
     if ($compare_sources && self::json($sources)!==self::json($data['sources'])) {
       throw new RuntimeException('organization_approval_stale');
     }
@@ -258,12 +302,34 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
     if ($this->connection->getAffectedRows()!==1) { throw new RuntimeException('organization_approval_transition_refused'); }
     return $this->receipt($id,'approved');
   }
-  public function consume($id,$operation,$team,$action,$subject,$from,$until) {
+  public function previewCompoundApproval($id) {
+    $this->actor();list($row,$data)=self::load($this->connection,$id,true);
+    if(!isset($data['parameters']['compound'])||$row['state']!=='submitted'){
+      throw new RuntimeException('organization_compound_request_refused');}
+    $this->checkCurrentApproval($row,$data,true);
+    return $data['parameters']['compound'];
+  }
+  public function getCompoundForExecution($id) {
+    $actor=$this->actor();list($row,$data)=self::load($this->connection,$id,true);
+    if(!in_array($row['state'],array('approved','consumed'),true)||!isset($data['parameters']['compound'])||
+      $data['executor']['userPHID']!==$actor->getUserPHID()){
+      throw new RuntimeException('organization_approval_execution_binding_refused');}
+    if($row['state']==='approved'){
+      $this->checkCurrentApproval($row,$data,true);
+    }else if($row['consumedByOperation']!==$data['operationID']){
+      throw new RuntimeException('organization_approval_execution_binding_refused');
+    }
+    // A committed request is recovered only for its current authorized executor.
+    // executeCompound must still find the matching operation-ledger replay;
+    // missing/mismatched ledgers reach consume(), which refuses consumed rows.
+    return $data['parameters']['compound'];
+  }
+  public function consume($id,$operation,$team,$action,$subject,$from,$until,$compound=null) {
     $actor=$this->actor(); list($row,$data)=self::load($this->connection,$id,true);
     if ($row['state']!=='approved' || $data['operationID']!==$operation ||
         $data['executor']['userPHID']!==$actor->getUserPHID() ||
         $data['team']!==$team || $data['action']!==$action ||
-        self::json($data['parameters'])!==self::json(self::params($action,$subject,$from,$until)) ||
+        self::json($data['parameters'])!==self::json(self::params($action,$subject,$from,$until,$compound)) ||
         self::json($data['executor'])!==self::json($actor->getSource()->getSnapshotData())) {
       throw new RuntimeException('organization_approval_execution_binding_refused');
     }

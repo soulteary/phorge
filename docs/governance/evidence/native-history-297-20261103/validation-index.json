@@ -1,0 +1,17 @@
+{
+  "scope": "main-native-lifecycle-plus-restricted-history-source",
+  "native_methods": 147,
+  "native_sql_checks": 297,
+  "workers": 13,
+  "runtime": "PHP 8.5.12; real isolated native SQL and paired Gorge",
+  "current_table_count": 530,
+  "source_patch_count": 1566,
+  "runtime_source_files_hash_matched": 5866,
+  "production_activation": false,
+  "browser_proved": false,
+  "history_deleted": false,
+  "full_lifecycle_complete": false,
+  "full_compound_matrix_complete": false,
+  "retention_examined_rows_bounded": true,
+  "empty_retention_page_next_link_rendered": true
+}

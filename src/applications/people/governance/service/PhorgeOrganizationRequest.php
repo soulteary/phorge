@@ -97,4 +97,65 @@ final class PhorgeOrganizationRequest extends Phobject {
     $copy = array(); foreach ($keys as $key) { $copy[$key] = $input[$key]; }
     return $copy;
   }
+
+
+  public static function metadata(array $input) {
+    $keys=array_keys($input);sort($keys);
+    if ($keys!==array('associated_department_id','contact_user_phid','expected_version','operation_id','unit_id') ||
+        !PhorgeGovernanceOrganizationRequest::identifier($input['operation_id']) ||
+        !PhorgeGovernanceOrganizationRequest::identifier($input['unit_id'],64) ||
+        !is_int($input['expected_version']) || $input['expected_version']<1 ||
+        $input['expected_version']>=PHP_INT_MAX ||
+        ($input['associated_department_id']!==null &&
+          !PhorgeGovernanceOrganizationRequest::identifier($input['associated_department_id'],64)) ||
+        ($input['contact_user_phid']!==null &&
+          !PhorgeGovernanceOrganizationRequest::userID($input['contact_user_phid']))) {
+      throw new InvalidArgumentException('organization_metadata_refused');
+    }
+    $copy=array();foreach($keys as $key){$copy[$key]=$input[$key];}return $copy;
+  }
+
+  public static function clearDepartment(array $input) {
+    $keys=array_keys($input);sort($keys);
+    if ($keys!==array('expected_version','operation_id','user_phid') ||
+        !PhorgeGovernanceOrganizationRequest::identifier($input['operation_id']) ||
+        !PhorgeGovernanceOrganizationRequest::userID($input['user_phid']) ||
+        !is_int($input['expected_version']) || $input['expected_version']<1 ||
+        $input['expected_version']>=PHP_INT_MAX) {
+      throw new InvalidArgumentException('organization_department_clear_refused');
+    }
+    $copy=array();foreach($keys as $key){$copy[$key]=$input[$key];}return $copy;
+  }
+  /** Explicit compound, never an implicit side effect of appointment.grant. */
+  public static function compound(array $input, $proposal = false) {
+    $required=array('action','approval_id','appointment_from','appointment_until',
+      'expected_appointment_version','expected_member_version','expected_team_version',
+      'impact_acknowledged','member_from','member_until','operation_id','target_user','team');
+    if($proposal){$required[]='ttl_seconds';}sort($required);$keys=array_keys($input);sort($keys);
+    if($keys!==$required || $input['impact_acknowledged']!==true ||
+      !in_array($input['action'],array('member.add-and-appoint','appointment.revoke-and-end'),true) ||
+      !PhorgeGovernanceOrganizationRequest::identifier($input['operation_id']) ||
+      !PhorgeGovernanceOrganizationRequest::identifier($input['approval_id']) ||
+      !PhorgeGovernanceOrganizationRequest::identifier($input['team'],64) ||
+      !PhorgeGovernanceOrganizationRequest::userID($input['target_user'])){
+      throw new InvalidArgumentException('organization_compound_request_refused');
+    }
+    foreach(array('expected_team_version','expected_member_version','expected_appointment_version')as$key){
+      if(!is_int($input[$key])||$input[$key]<($key==='expected_team_version'?1:0)||$input[$key]>=PHP_INT_MAX){
+        throw new InvalidArgumentException('organization_version_refused');}
+    }
+    if($proposal){PhorgeGovernanceOrganizationApprovalAdapter::validateTTL($input['ttl_seconds']);}
+    if($input['action']==='member.add-and-appoint'){
+      foreach(array('member','appointment')as$kind){$from=$input[$kind.'_from'];$until=$input[$kind.'_until'];
+        if(!is_int($from)||$from<0||($until!==null&&(!is_int($until)||$until<=$from))){throw new InvalidArgumentException('organization_period_refused');}}
+      if($input['member_from']>$input['appointment_from'] || ($input['member_until']!==null&&
+        ($input['appointment_until']===null||$input['appointment_until']>$input['member_until']))){
+        throw new InvalidArgumentException('organization_appointment_prerequisite');}
+    }else{
+      foreach(array('member_from','member_until','appointment_from','appointment_until')as$key){
+        if($input[$key]!==null){throw new InvalidArgumentException('organization_period_refused');}}
+    }
+    $copy=array();foreach($keys as$key){$copy[$key]=$input[$key];}return $copy;
+  }
+
 }
