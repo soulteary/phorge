@@ -38,12 +38,55 @@ function governance_native_history_cases($fixture,callable $check,array $state) 
     $check($keys===$expected && strpos($encoded,'must-not-be-returned')===false &&
       $page['deletion_enabled']===false && $page['full_snapshot_included']===false,
       'native-history-never-loads-or-returns-private-snapshots-or-credential-binding');
-    $before=$fixture->countRows('user','organization_audit');$old=$service->readAuditPage(100,null,true);
-    $old_ops=array_column($old['rows'],'operation_id');
+    $before=$fixture->countRows('user','organization_audit');$old_ops=array();$retention_cursor=null;$pages=0;
+    do{
+      $old=$service->readAuditPage(100,$retention_cursor,true);
+      $old_ops=array_merge($old_ops,array_column($old['rows'],'operation_id'));
+      $retention_cursor=$old['next_cursor'];$pages++;
+      if($pages>=(int)ceil($before/100)+2){throw new RuntimeException('history_fixture_pagination_not_bounded');}
+    }while($retention_cursor!==null);
     $check(in_array('history-fixture-0',$old_ops,true) && in_array('history-fixture-1',$old_ops,true) &&
       !in_array('history-fixture-2',$old_ops,true) && $old['retention_days']===365 &&
       $fixture->countRows('user','organization_audit')===$before,
       'native-history-365-day-candidate-report-retains-all-records');
+    $anchor=(int)governance_native_setup_query($fixture,'SELECT MAX(id) id FROM '.$audit)->fetch_assoc()['id'];
+    for($i=0;$i<102;$i++){
+      governance_native_concurrency_sql($fixture,'INSERT INTO '.$audit.
+        ' (operationID,actorPHID,action,unitID,subjectPHID,beforeJSON,afterJSON,createdAt) VALUES (?,?,?,?,?,?,?,?)',
+        array('history-bounded-'.$i,$admin,'member.update','history-test',null,'{}','{}',$i===101?$cutoff-86400:$now));
+    }
+    $scan_cursor=(string)governance_native_setup_query($fixture,
+      'SELECT id FROM '.$audit." WHERE BINARY operationID=BINARY 'history-bounded-99'")->fetch_assoc()['id'];
+    $scanned=$service->readAuditPage(100,(string)$anchor,true);
+    $later=$service->readAuditPage(100,$scanned['next_cursor'],true);
+    $check($scanned['rows']===array() && $scanned['next_cursor']===$scan_cursor &&
+      count($later['rows'])===1 && $later['rows'][0]['operation_id']==='history-bounded-101' && $later['next_cursor']===null,
+      'native-history-retention-raw-scan-is-bounded-and-empty-page-cursor-reaches-later-candidate');
+    $viewer=$state['admin']['viewer'];
+    $old_inline=(new ReflectionProperty(PhabricatorUser::class,'allowInlineCacheGeneration'))->getValue($viewer);
+    $state['sessions']->willServeRequestForUser($viewer);
+    // A separate HTTP request has a fresh native Celerity response. Preserve
+    // the earlier fixture page's locked response instead of reusing it.
+    $celerity_property=new ReflectionProperty(CelerityAPI::class,'response');
+    $old_celerity=$celerity_property->getValue();$celerity_property->setValue(null,null);
+    try{
+      $_SERVER['REQUEST_METHOD']='GET';
+      $configuration=(new AphrontApplicationConfiguration())->setHost('fixture.invalid')->setPath('/people/organization/history/');
+      $request=$configuration->buildRequest()->setUser($viewer)->setRequestData(array('retention_only'=>'true','limit'=>100,'after'=>(string)$anchor));
+      $configuration->setRequest($request);
+      $controller=(new PhorgeOrganizationHistoryController())->setRequest($request)->setCurrentApplication(new PhabricatorPeopleApplication());
+      $html=governance_native_with_request_write_guard($request,static function()use($controller,$request){
+        $page=$controller->handleRequest($request);
+        if(!($page instanceof PhabricatorStandardPageView)){throw new RuntimeException('history_render_page_unavailable');}
+        return(string)hsprintf('%s',$page);
+      });
+      $next_visible=false;preg_match_all('/href="([^"]*)"/',$html,$links);
+      foreach($links[1]as$link){$uri=new PhutilURI(html_entity_decode($link,ENT_QUOTES,'UTF-8'));
+        $params=$uri->getQueryParams();
+        if($uri->getPath()==='/people/organization/history/' && idx($params,'after')===$scan_cursor && idx($params,'retention_only')==='1'){$next_visible=true;}}
+      $check($next_visible,'native-history-empty-retention-page-real-html-keeps-next-scan-link');
+    }finally{$viewer->setAllowInlineCacheGeneration($old_inline);$celerity_property->setValue(null,$old_celerity);}
+    $before=$fixture->countRows('user','organization_audit');
     list($response,$body)=$route($state['admin'],'GET',array('json'=>'true','limit'=>10));
     $check($response->getHTTPResponseCode()===200 && count($body['result']['rows'])===10 && governance_native_route_guard_depth()===0,
       'native-history-actual-get-current-admin-without-csrf-read-scope-restored');

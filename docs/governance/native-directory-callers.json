@@ -220,7 +220,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
       "symbol": "PhorgeOrganizationService",
       "kind": "candidate-runtime-source",
-      "sha256": "c2317eba9f89b97ba5cabd39feb67c36a91e73bd5dda9b982a5a5018adc3390f",
+      "sha256": "259343b0563acfa5882dc3e30e4bca49481f25a69d37ee39946e7d0b25f77b0a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -704,7 +704,7 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
-        "sha256": "c2317eba9f89b97ba5cabd39feb67c36a91e73bd5dda9b982a5a5018adc3390f"
+        "sha256": "259343b0563acfa5882dc3e30e4bca49481f25a69d37ee39946e7d0b25f77b0a"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",

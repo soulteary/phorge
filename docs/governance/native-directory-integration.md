@@ -288,9 +288,9 @@ review, browser delivery, activation or completion of all O4/O5 work.
 
 ## Restricted history candidate
 
-The O6 candidate passed PHP 8.5.12 with 147 native test methods and 295
-real isolated SQL checks, including nine administrator-only history scenarios.
-The current receipt and `evidence/native-history-295-20261103` retain the exact
+The O6 candidate passed PHP 8.5.12 with 147 native test methods and 297
+real isolated SQL checks, including eleven administrator-only history scenarios.
+The current receipt and `evidence/native-history-297-20261103` retain the exact
 result. All 5866 executed PHP/SQL files matched the host. Governance mutation
 tests (86) and permission inventory tests (84) passed. History pages expose only
 bounded metadata; before/after snapshots and credential bindings are not loaded.

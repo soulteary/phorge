@@ -922,20 +922,22 @@ final class PhorgeOrganizationService extends Phobject {
       if(!is_bool($retentionOnly)){throw new InvalidArgumentException('organization_audit_scope_refused');}
       $this->begin(array());
       try{
-        $this->requireAdmin();$this->startRead();$now=$this->now();$cutoff=$now-365*86400;
-        $filter=$retentionOnly?qsprintf($this->connection,'createdAt<=%d',$cutoff):qsprintf($this->connection,'1=1');
+        $this->requireAdmin();$this->startRead();$now=$this->now();
+        // Scan a bounded primary-key page before filtering retention candidates.
+        // A LIMIT on createdAt matches would still scan unbounded recent rows.
         $rows=queryfx_all($this->connection,
-          'SELECT id,operationID,actorPHID,action,unitID,subjectPHID,createdAt FROM %T WHERE id>%d AND (%Q) ORDER BY id LIMIT %d',
-          $this->table('audit'),$cursor,$filter,$limit);
+          'SELECT id,operationID,actorPHID,action,unitID,subjectPHID,createdAt FROM %T WHERE id>%d ORDER BY id LIMIT %d',
+          $this->table('audit'),$cursor,$limit);
         $result=array();foreach($rows as$row){
           $id=self::version($row['id']);$created=self::version($row['createdAt']);
           if($id<1){throw new RuntimeException('organization_audit_record_refused');}
+          if($retentionOnly&&!self::auditRetentionCandidate($created,$now)){continue;}
           $result[]=array('id'=>$id,'operation_id'=>$row['operationID'],'actor_phid'=>$row['actorPHID'],
             'action'=>$row['action'],'unit_id'=>$row['unitID'],'subject_phid'=>$row['subjectPHID'],
             'created_at'=>$created,'retention_candidate'=>self::auditRetentionCandidate($created,$now));
         }
         $this->requireAdmin();$this->finish(true);
-        return array('rows'=>$result,'next_cursor'=>count($result)===$limit?(string)last($result)['id']:null,
+        return array('rows'=>$result,'next_cursor'=>count($rows)===$limit?(string)last($rows)['id']:null,
           'as_of'=>$now,'retention_days'=>365,'deletion_enabled'=>false,'full_snapshot_included'=>false);
       }catch(Throwable$error){$this->finish(false);throw$error;}
     }finally{unset($unguarded);}

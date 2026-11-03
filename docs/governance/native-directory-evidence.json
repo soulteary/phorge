@@ -289,6 +289,8 @@
         "native-history-real-keyset-pages-have-no-duplicate-records",
         "native-history-never-loads-or-returns-private-snapshots-or-credential-binding",
         "native-history-365-day-candidate-report-retains-all-records",
+        "native-history-retention-raw-scan-is-bounded-and-empty-page-cursor-reaches-later-candidate",
+        "native-history-empty-retention-page-real-html-keeps-next-scan-link",
         "native-history-actual-get-current-admin-without-csrf-read-scope-restored",
         "native-history-has-no-post-delete-or-mutation-surface",
         "native-history-ordinary-user-cannot-read-audit-or-retention-count",
@@ -299,7 +301,7 @@
         "owned-writer-environment-and-cache-restored",
         "all-owned-full-native-schemas-and-principals-cleaned"
     ],
-    "check_count": 295,
+    "check_count": 297,
     "php_version": "8.5.12",
     "source_restore": {
         "quickstart_sha256": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
@@ -409,7 +411,7 @@
         },
         "issuer_tests": {
             "restore_scope": "three-media-tables-logical-snapshot-and-real-sql-restore",
-            "restored_snapshot_sha256": "2598b921fe680a1b8f7cba842b62dba55f33027235a22bca47e7f23331aa30a7",
+            "restored_snapshot_sha256": "42fd5482a123c7846d0ad9c8f671640e99dd4b26fdb22903c242aa8901a751eb",
             "media_only_external_rotation": true,
             "incarnation_only_rotation_verified": true,
             "old_native_credentials_retained_and_verified": true,
