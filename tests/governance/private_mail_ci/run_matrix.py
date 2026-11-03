@@ -5,6 +5,7 @@ Uses actual native fixture/HTTP callbacks, paired mailer, Owlmail and an owned
 SMTP fault provider. The historical139 count is not a hardcoded pass condition.
 """
 import argparse
+import base64
 import json
 import os
 from pathlib import Path
@@ -277,6 +278,49 @@ def run_matrix(config, fault_manifest):
          decisions=observations()[before_calls:];check(len(decisions)==1 and decisions[0].get('http_status')==200 and decisions[0].get('native_json_valid')is True and decisions[0].get('native_allowed')is False,'security-'+case+'-observed-real-native-denial')
          check(result['status']==200 and json.loads(result['body'])['data']['state']=='failed'and captured()['total']==count,'security-'+case+'-current-source-refuses-smtp')
         state['security_physical_candidate_cases_passed']=16;state['security_flow_matrix_complete']=False
+        # Separate exact native producers retain payloads beyond the former64KiB
+        # ceiling. They are not synthesized from the smaller security snapshots.
+        large = ready['large_security_snapshots']
+        large_positive = ('large-body-allow', 'large-attachment-allow')
+        large_negative = ('large-body-revoked', 'large-attachment-revoked')
+        check(set(large) == set(large_positive + large_negative), 'large-security-private-manifest-matches-fixed-four-case-allowlist')
+        for case in large_positive:
+            snap = large[case]; expected = snap['message']
+            check(len(json.dumps(expected, separators=(',', ':')).encode()) > 65536, 'security-' + case + '-actual-native-payload-exceeds-former-budget')
+            before = captured(); old_ids = {item['id'] for item in before['emails']}
+            check(request(origin + '/api/mailer/prepare', 'POST', snap, headers)['status'] == 200, 'security-' + case + '-actual-native-snapshot-prepared')
+            before_calls = len(observations())
+            response = request(origin + '/api/mailer/execute', 'POST', {'deliveryID': snap['deliveryID'], 'allowSend': True}, headers)
+            decisions = observations()[before_calls:]
+            check(len(decisions) == 1 and decisions[0].get('http_status') == 200 and decisions[0].get('native_json_valid') is True and decisions[0].get('native_allowed') is True, 'security-' + case + '-observed-current-native-allow')
+            check(response['status'] == 200 and json.loads(response['body'])['data']['state'] == 'accepted', 'security-' + case + '-actual-native-callback-and-smtp-accepted')
+            after = captured(); new_ids = {item['id'] for item in after['emails']} - old_ids
+            check(after['total'] == before['total'] + 1 and len(new_ids) == 1, 'security-' + case + '-exactly-one-capture')
+            raw = request(ready['capture_uri'] + '/api/v1/emails/' + quote(next(iter(new_ids)), safe='') + '/raw', headers=capture_headers)
+            check(raw['status'] == 200, 'security-' + case + '-authenticated-raw-mime-read')
+            message = BytesParser(policy=policy.default).parsebytes(raw['body']); parts = list(message.walk())
+            texts = [part.get_payload(decode=True).decode(part.get_content_charset() or 'utf-8') for part in parts if part.get_content_type() == 'text/plain' and part.get_filename() is None]
+            actual_attachments = [(part.get_filename(), part.get_content_type(), part.get_payload(decode=True)) for part in parts if part.get_filename() is not None]
+            expected_attachments = [(item['filename'], item['mimeType'], base64.b64decode(item['data'], validate=True)) for item in expected.get('attachments', [])]
+            actual_to = [address for _, address in getaddresses(message.get_all('To', []))]
+            actual_cc = [address for _, address in getaddresses(message.get_all('Cc', []))]
+            check(actual_to == [item['address'] for item in expected.get('to', [])] and actual_cc == [item['address'] for item in expected.get('cc', [])] and message.get_all('Bcc') is None, 'security-' + case + '-mime-ToCc-exact-native-destination')
+            check(str(message['Subject']) == expected['subject'] and len(texts) == 1 and canonical_text(texts[0]) == canonical_text(expected['textBody']) and '/login/once/' in texts[0] and all(part.get_content_type() != 'text/html' for part in parts) and actual_attachments == expected_attachments, 'security-' + case + '-full-native-body-and-attachment-bytes-survive-smtp')
+            if case == 'large-body-allow':
+                check(len(expected['textBody'].encode()) > 65536 and not expected_attachments, 'security-large-body-size-and-no-attachment-positive-control')
+            else:
+                check(len(expected_attachments) == 1 and len(expected_attachments[0][2]) == 50 * 1024, 'security-large-attachment-decoded-50KiB-positive-control')
+        for case in large_negative:
+            snap = large[case]; count = captured()['total']
+            check(request(origin + '/api/mailer/prepare', 'POST', snap, headers)['status'] == 200, 'security-' + case + '-actual-native-snapshot-prepared')
+            mutation = native_control('security-rotate-secret', case)
+            check(json.loads(mutation.stdout).get('passed') is True, 'security-' + case + '-actual-native-secret-rotated')
+            before_calls = len(observations())
+            response = request(origin + '/api/mailer/execute', 'POST', {'deliveryID': snap['deliveryID'], 'allowSend': True}, headers)
+            decisions = observations()[before_calls:]
+            check(len(decisions) == 1 and decisions[0].get('http_status') == 200 and decisions[0].get('native_json_valid') is True and decisions[0].get('native_allowed') is False, 'security-' + case + '-observed-current-native-denial')
+            check(response['status'] == 200 and json.loads(response['body'])['data']['state'] == 'failed' and captured()['total'] == count, 'security-' + case + '-source-change-refuses-smtp')
+        state['large_security_cases_passed'] = 4
         validate_config(config); load_fault_manifest_value = fault_manifest
         check(digest(Path(load_fault_manifest_value['path'])) == load_fault_manifest_value['sha256'], 'fault_binary_unchanged_after_wire')
         revision = subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'], text=True).strip()
@@ -318,6 +362,7 @@ def run_matrix(config, fault_manifest):
       'native_cleanup_proved': native_clean, 'source_revision': config['source_revision'],
       'gorge_revision': config['gorge_revision'], 'binary_sha256': {k:v['sha256'] for k,v in config['binaries'].items()},
       'fault_binary_sha256': fault_manifest['sha256'], 'security_cases_passed': state.get('security_physical_candidate_cases_passed', 0),
+      'large_security_cases_passed': state.get('large_security_cases_passed', 0),
       'browser_proof': False, 'public_ports': 0, 'deployment': False,
       'portable_runtime_executed': True, 'full_matrix_business_assertions_passed': passed}
 
