@@ -170,6 +170,38 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
       $epoch ? $epoch['epoch'] : null);
   }
 
+  /** Reuse fixed readers inside an already owned restoration transaction.
+   * This method never opens, commits or rolls back its caller's transaction.
+   * Returned storage facts do not certify producer absence or restoration.
+   */
+  public static function captureForRestoration(PhorgeGovernanceNativeActorContext $context,
+    AphrontDatabaseConnection $conn,$target) {
+    PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
+    PhorgeRecoveryStopRequest::user($target);
+    $scope=new self();
+    $scope->connection=$conn;$scope->target=$target;
+    // Deliberately keep ownsTransaction=false. Destructor/error paths cannot
+    // end the service's transaction and no issuer epoch is initialized here.
+    $scope->preflight($context->getUserPHID());$scope->preflight($target);
+    $epoch=queryfx_one($conn,'SELECT userPHID,epoch FROM %R '.
+      'WHERE BINARY userPHID=BINARY %s LOCK IN SHARE MODE',
+      new PhorgeGovernanceIdentityEpoch(),$context->getUserPHID());
+    if (!$epoch || $epoch['userPHID']!==$context->getUserPHID()) {
+      throw new RuntimeException('recovery_actor_epoch_uninitialized');
+    }
+    $snapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
+    if (!$snapshot->isSystemAdmin()) {throw new RuntimeException('recovery_current_admin_required');}
+    $account=$scope->readAccount();$web=$scope->readWebCredentials();$api=$scope->readAPICredentials();
+    $current=PhorgeGovernanceNativeIdentitySource::revalidate($snapshot,$conn);
+    if (!$current->isSystemAdmin()) {throw new RuntimeException('recovery_current_admin_required');}
+    PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
+    return array('provider_schema'=>1,'account_facts'=>$account,
+      'web_storage_digest'=>$web['storage_set_digest'],'web_unknown_reasons'=>$web['unknown_reasons'],
+      'api_storage_digest'=>$api['storage_set_digest'],'api_unknown_reasons'=>$api['unknown_reasons'],
+      'all_producers_and_absence_fences_proved'=>false,'restore_lineage_complete'=>false,
+      'complete'=>false,'restoration_authorized'=>false);
+  }
+
   /** Capture selected direct credential resources, never an exhaustive family. */
   public function captureWebCredentials() {
     try {
