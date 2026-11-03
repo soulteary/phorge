@@ -1,6 +1,6 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 11,
+  "version": 12,
   "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
   "status": "explicit-PR100-source-union-host-prepared-current-runtime-unproven",
   "new_runtime_obligation_not_actual": {
@@ -183,5 +183,6 @@
     "dependency_component_actual_pure": 214,
     "dependency_component_actual_SQL": 725,
     "current_union_runtime_verified": false
-  }
+  },
+  "explicit_current_main": "0a43c0211c4ced7749d26187da29798c4439086b"
 }
