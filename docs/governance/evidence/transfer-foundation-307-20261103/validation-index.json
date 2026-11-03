@@ -1,0 +1,15 @@
+{
+  "scope": "versioned-transfer-storage-calendar-and-typed-intent-foundation",
+  "native_methods": 156,
+  "native_sql_checks": 307,
+  "runtime_php": "8.5.12",
+  "runtime_source_files_hash_matched": 5876,
+  "source_patch_count": 1567,
+  "current_table_count": 534,
+  "schema_tables_compared": 17,
+  "independent_approval_implemented": false,
+  "native_primary_switch_implemented": false,
+  "outbox_dispatch_registered": false,
+  "production_activation": false,
+  "browser_proved": false
+}

@@ -218,6 +218,44 @@ EXPECTED_LINKS.update({
 
 EXPECTED_LINKS.update({'NATIVE-LINK-27':('ORG.ROUTES','NATIVE.PhorgeOrganizationHistoryController'),'NATIVE-LINK-28':('NATIVE.PhorgeOrganizationHistoryController','NATIVE.PhorgeOrganizationQuery')})
 
+
+EXPECTED_SOURCES.update({'NATIVE.PhorgeOrganizationCalendar': ('src/applications/people/governance/service/PhorgeOrganizationCalendar.php', 'PhorgeOrganizationCalendar', 'calendar-intent-preview'), 'NATIVE.PhorgeOrganizationTransferRequest': ('src/applications/people/governance/service/PhorgeOrganizationTransferRequest.php', 'PhorgeOrganizationTransferRequest', 'typed-transfer-intent-only'), 'NATIVE.PhorgeOrganizationTransfer': ('src/applications/people/governance/storage/PhorgeOrganizationTransfer.php', 'PhorgeOrganizationTransfer', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationHandover': ('src/applications/people/governance/storage/PhorgeOrganizationHandover.php', 'PhorgeOrganizationHandover', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationProjectDisposition': ('src/applications/people/governance/storage/PhorgeOrganizationProjectDisposition.php', 'PhorgeOrganizationProjectDisposition', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationOutbox': ('src/applications/people/governance/storage/PhorgeOrganizationOutbox.php', 'PhorgeOrganizationOutbox', 'undispatched-reference-storage')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/service/PhorgeOrganizationCalendar.php', 'src/applications/people/governance/service/PhorgeOrganizationTransferRequest.php', 'src/applications/people/governance/storage/PhorgeOrganizationTransfer.php', 'src/applications/people/governance/storage/PhorgeOrganizationHandover.php', 'src/applications/people/governance/storage/PhorgeOrganizationProjectDisposition.php', 'src/applications/people/governance/storage/PhorgeOrganizationOutbox.php'])
+EXPECTED_LINKS.update({'NATIVE-LINK-41':('NATIVE.PhorgeOrganizationTransferRequest','NATIVE.PhorgeOrganizationService')})
+
+# Explicit organization successor identities; all remain partial and non-authoritative.
+EXPECTED_SOURCES.update({'NATIVE.PhorgeOrganizationTransferAdapter': ('src/applications/people/governance/service/PhorgeOrganizationTransferAdapter.php',
+                                              'PhorgeOrganizationTransferAdapter',
+                                              'sealed-native-approved-transfer-writer'),
+ 'NATIVE.PhorgeOrganizationHandoverAdapter': ('src/applications/people/governance/service/PhorgeOrganizationHandoverAdapter.php',
+                                              'PhorgeOrganizationHandoverAdapter',
+                                              'sealed-native-approved-handover-writer'),
+ 'NATIVE.PhorgeOrganizationTransferController': ('src/applications/people/governance/controller/PhorgeOrganizationTransferController.php',
+                                                 'PhorgeOrganizationTransferController',
+                                                 'current-admin-csrf-native-management-controller'),
+ 'NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource': ('src/applications/people/governance/auth/PhorgeGovernanceNativeNoncredentialIdentitySource.php',
+                                                              'PhorgeGovernanceNativeNoncredentialIdentitySource',
+                                                              'locked-versioned-noncredential-generation-facts'),
+ 'PROJECT.NATIVE.VIEWER.QUERY': ('src/applications/project/query/PhabricatorProjectQuery.php',
+                                 'PhabricatorProjectQuery',
+                                 'manual-receipt-current-viewer-filter-sampled-not-atomic')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/service/PhorgeOrganizationTransferAdapter.php', 'src/applications/people/governance/service/PhorgeOrganizationHandoverAdapter.php', 'src/applications/people/governance/controller/PhorgeOrganizationTransferController.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeNoncredentialIdentitySource.php'])
+EXPECTED_LINKS.update({'NATIVE-LINK-42': ('ORG.ROUTES',
+                    'NATIVE.PhorgeOrganizationTransferController'),
+ 'NATIVE-LINK-43': ('NATIVE.PhorgeOrganizationTransferController',
+                    'NATIVE.PhorgeOrganizationService'),
+ 'NATIVE-LINK-44': ('NATIVE.PhorgeOrganizationService',
+                    'NATIVE.PhorgeOrganizationTransferAdapter'),
+ 'NATIVE-LINK-45': ('NATIVE.PhorgeOrganizationService',
+                    'NATIVE.PhorgeOrganizationHandoverAdapter'),
+ 'NATIVE-LINK-46': ('NATIVE.PhorgeOrganizationTransferAdapter',
+                    'NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource'),
+ 'NATIVE-LINK-47': ('NATIVE.PhorgeOrganizationHandoverAdapter',
+                    'NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource'),
+ 'NATIVE-LINK-48': ('NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource',
+                    'NATIVE.PhorgeGovernanceNativeIdentitySource'),
+ 'NATIVE-LINK-49': ('NATIVE.PhorgeOrganizationHandoverAdapter',
+                    'PROJECT.NATIVE.VIEWER.QUERY')})
 # Explicit reviewed HTTP candidate identities, not an open-ended source union.
 EXPECTED_SOURCES.update({'NATIVE.PhorgeGovernanceMediaAuthorizeController': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php',
                                                      'PhorgeGovernanceMediaAuthorizeController',
@@ -311,20 +349,19 @@ EXPECTED_SOURCES.update({'MAIL.ACTOR.QUERY': ('src/applications/metamta/query/Ph
  'NATIVE.PhorgePrivateMailPolicy': ('src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php',
                                     'PhorgePrivateMailPolicy',
                                     'current-recipient-private-email-policy')})
-EXPECTED_LINKS.update({'NATIVE-LINK-41': ('MAIL.TRANSACTION.PRODUCER', 'MAIL.OUTBOUND'),
- 'NATIVE-LINK-42': ('MAIL.OUTBOUND', 'NATIVE.PhorgePrivateMailPolicy'),
- 'NATIVE-LINK-43': ('NATIVE.PhorgePrivateMailConfigOptions',
+EXPECTED_LINKS.update({'NATIVE-LINK-50': ('MAIL.TRANSACTION.PRODUCER', 'MAIL.OUTBOUND'),
+ 'NATIVE-LINK-51': ('MAIL.OUTBOUND', 'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-52': ('NATIVE.PhorgePrivateMailConfigOptions',
                     'NATIVE.PhorgePrivateMailPolicy'),
- 'NATIVE-LINK-44': ('MAIL.DELIVERY.API', 'MAIL.OUTBOUND'),
- 'NATIVE-LINK-45': ('MAIL.OUTBOUND', 'MAIL.ACTOR.QUERY'),
- 'NATIVE-LINK-46': ('MAIL.OUTBOUND', 'MAIL.MESSAGE.ENGINE'),
- 'NATIVE-LINK-47': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO'),
- 'NATIVE-LINK-48': ('MAIL.USER.RENAME.SOURCE', 'MAIL.MODULAR.EVENT.SOURCE'),
- 'NATIVE-LINK-49': ('MAIL.USER.RENAME.SOURCE', 'MAIL.PEOPLE.FLOW.ENGINE'),
- 'NATIVE-LINK-50': ('MAIL.PEOPLE.FLOW.ENGINE',
+ 'NATIVE-LINK-53': ('MAIL.DELIVERY.API', 'MAIL.OUTBOUND'),
+ 'NATIVE-LINK-54': ('MAIL.OUTBOUND', 'MAIL.ACTOR.QUERY'),
+ 'NATIVE-LINK-55': ('MAIL.OUTBOUND', 'MAIL.MESSAGE.ENGINE'),
+ 'NATIVE-LINK-56': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO'),
+ 'NATIVE-LINK-57': ('MAIL.USER.RENAME.SOURCE', 'MAIL.MODULAR.EVENT.SOURCE'),
+ 'NATIVE-LINK-58': ('MAIL.USER.RENAME.SOURCE', 'MAIL.PEOPLE.FLOW.ENGINE'),
+ 'NATIVE-LINK-59': ('MAIL.PEOPLE.FLOW.ENGINE',
                     'NATIVE.PhorgePrivateMailPolicy'),
- 'NATIVE-LINK-51': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO')})
-
+ 'NATIVE-LINK-60': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php', 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php', 'src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php'])
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
