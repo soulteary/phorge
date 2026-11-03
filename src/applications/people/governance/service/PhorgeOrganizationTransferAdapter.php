@@ -49,16 +49,23 @@ final class PhorgeOrganizationTransferAdapter extends Phobject {
     return $snapshot;
   }
   private function now(){return PhorgeOrganizationService::version(queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n']);}
-  private function identity($phid,$eligible=false){
+  private static function sourceVersion($schema){
+    if($schema==='native-organization-transfer-v1'){return 1;}
+    if($schema==='native-organization-transfer-v2'){return 2;}
+    throw new RuntimeException('organization_identity_binding_version_refused');
+  }
+  private function identity($phid,$eligible=false,$sourceVersion=2){
     if(!PhorgeGovernanceOrganizationRequest::userID($phid)){throw new RuntimeException('organization_transfer_identity_refused');}
     $accounts=self::property($this->service->get(),'accounts');
     if(!isset($accounts[$phid])||$accounts[$phid]['userPHID']!==$phid){throw new RuntimeException('organization_transfer_identity_plan_changed');}
-    $identity=PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($phid,$this->connection);
+    if($sourceVersion===1){$identity=PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($phid,$this->connection);}
+    else if($sourceVersion===2){$identity=PhorgeGovernanceNativeNoncredentialIdentitySource::lockIdentityPHID($phid,$this->connection);}
+    else{throw new RuntimeException('organization_identity_binding_version_refused');}
     if($eligible&&!$identity['eligible']){throw new RuntimeException('organization_transfer_identity_ineligible');}
     return $identity;
   }
   private function credential(array $binding){
-    $this->identity($binding['userPHID']??'',true);
+    $this->identity($binding['userPHID']??'',true,1);
     $snapshot=PhorgeGovernanceNativeIdentitySource::lockCredentialBinding($binding,$this->connection);
     if(!$snapshot->isSystemAdmin()){throw new RuntimeException('organization_transfer_current_admin_required');}
     return $snapshot;
@@ -80,7 +87,7 @@ final class PhorgeOrganizationTransferAdapter extends Phobject {
     $keys=array_keys($data);sort($keys,SORT_STRING);
     if($keys!==array('action','calendar','executor','expiresAt','intent','issuedAt','requester','responsiblePHID','schema','siteTimezone','sources')){
       throw new RuntimeException('organization_transfer_binding_fields_refused');}
-    if(($data['schema']??null)!=='native-organization-transfer-v1'||
+    if(!in_array($data['schema']??null,array('native-organization-transfer-v1','native-organization-transfer-v2'),true)||
       !hash_equals($row['requestDigest'],self::digest($data))||
       $row['operationID']!==($data['intent']['operation_id']??null)||
       $row['transferID']!==($data['intent']['transfer_id']??null)||
@@ -135,8 +142,8 @@ final class PhorgeOrganizationTransferAdapter extends Phobject {
       PhorgeOrganizationService::version($row['version'])<1){throw new RuntimeException('organization_transfer_department_refused');}
     return $row;
   }
-  private function initialSources(array $intent){
-    $subject=$this->identity($intent['subject_phid'],true);$responsible=$this->identity($intent['responsible_phid'],true);
+  private function initialSources(array $intent,$sourceVersion=2){
+    $subject=$this->identity($intent['subject_phid'],true,$sourceVersion);$responsible=$this->identity($intent['responsible_phid'],true,$sourceVersion);
     $ids=array($intent['from_department'],$intent['to_department']);sort($ids,SORT_STRING);$units=array();
     foreach($ids as$id){$units[$id]=$this->department($id,$id===$intent['to_department']);}
     $primary=queryfx_one($this->connection,'SELECT * FROM organization_primarydepartment WHERE BINARY userPHID=BINARY %s FOR UPDATE',$subject['userPHID']);
@@ -172,10 +179,10 @@ final class PhorgeOrganizationTransferAdapter extends Phobject {
         $reviewer->getUserPHID()===$row['executorPHID']){throw new RuntimeException('organization_transfer_independent_approver_required');}}
     if($data['action']!=='transfer'){throw new RuntimeException('organization_transfer_action_unsupported');}
     if($compareSources){
-      if(self::digest($this->initialSources($data['intent']))!==self::digest($data['sources'])){
+      if(self::digest($this->initialSources($data['intent'],self::sourceVersion($data['schema'])))!==self::digest($data['sources'])){
         throw new RuntimeException('organization_transfer_source_stale');}}
     else{foreach(array('subject','responsible')as$key){
-      $actual=$this->identity($data['sources'][$key]['userPHID'],true);
+      $actual=$this->identity($data['sources'][$key]['userPHID'],true,self::sourceVersion($data['schema']));
       if(self::digest($actual)!==self::digest($data['sources'][$key])){throw new RuntimeException('organization_transfer_identity_changed');}}
       foreach(array('from','to')as$key){$unit=$this->department($data['sources'][$key]['unitID'],$key==='to');
         if(self::digest($unit)!==self::digest($data['sources'][$key])){throw new RuntimeException('organization_transfer_department_changed');}}}
@@ -220,7 +227,7 @@ final class PhorgeOrganizationTransferAdapter extends Phobject {
     $calendar=PhorgeOrganizationCalendar::preview($now,$intent['handover_days'],$zone,$offset);
     if($calendar['resolution_required']){throw new RuntimeException('organization_transfer_calendar_resolution_required');}
     $credential=$actor->getSource()->getSnapshotData();
-    $data=array('schema'=>'native-organization-transfer-v1','action'=>'transfer','intent'=>$intent,
+    $data=array('schema'=>'native-organization-transfer-v2','action'=>'transfer','intent'=>$intent,
       'requester'=>$credential,'executor'=>$credential,'responsiblePHID'=>$intent['responsible_phid'],
       'sources'=>$sources,'siteTimezone'=>$zone,'calendar'=>$calendar,'issuedAt'=>$now,'expiresAt'=>$now+$ttl);
     queryfx($this->connection,'INSERT INTO %R (transferID,operationID,subjectPHID,responsiblePHID,requesterPHID,executorPHID,action,state,requestDigest,bindingJSON,expiresAt,version,createdAt) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%d,1,%d)',

@@ -8,6 +8,12 @@ final class PhorgeOrganizationQuery extends Phobject {
     $this->service = PhorgeOrganizationService::newForActor($context);
   }
 
+  public function getHandoverApproval($id){return $this->service->readHandoverApproval($id);}
+  public function getHandoverProjects($id){return $this->service->readHandoverProjects($id);}
+  public function getDueHandovers($limit,$after){
+    $cursor=$after===null?null:json_decode($after,true,4,JSON_THROW_ON_ERROR);
+    return $this->service->readDueHandovers($limit,$cursor);
+  }
   public function getTransfer($id){return $this->service->readTransfer($id);}
 
   public function readAuditPage($limit=100,$after=null,$retentionOnly=false) {
@@ -29,8 +35,8 @@ final class PhorgeOrganizationQuery extends Phobject {
   public function searchUnits($query, $limit = 100, $after = null) {
     return $this->service->readUnits($limit,$after,$query);
   }
-  public function searchSelectorUnits($query,$limit=100,$after=null) {
-    return $this->service->readUnits($limit,$after,$query,true);
+  public function searchSelectorUnits($query,$limit=100,$after=null,$kind=null) {
+    return $this->service->readUnits($limit,$after,$query,true,$kind);
   }
   public function listUnassignedUsers($limit=100,$after=null) {
     return $this->service->readUnassignedUsers($limit,$after);

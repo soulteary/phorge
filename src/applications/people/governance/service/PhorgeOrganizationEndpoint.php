@@ -9,6 +9,9 @@ final class PhorgeOrganizationEndpoint extends Phobject {
     }
     $query = new PhorgeOrganizationQuery($context);
     switch ($mode) {
+      case 'handover-approval':return $query->getHandoverApproval($unit);
+      case 'handover-projects':return $query->getHandoverProjects($unit);
+      case 'handover-due':return $query->getDueHandovers($limit,$after);
       case 'transfer': return $query->getTransfer($unit);
       case 'audit': return $query->readAuditPage($limit,$after,false);
       case 'audit-retention': return $query->readAuditPage($limit,$after,true);
@@ -33,6 +36,37 @@ final class PhorgeOrganizationEndpoint extends Phobject {
     }
     $service = PhorgeOrganizationService::newForActor($context);
     switch ($action) {
+      case 'handover.extend.preview':
+        $checked=PhorgeOrganizationTransferRequest::handoverEnvelope('extend',$payload,false);
+        return $service->previewHandover('extend',$checked['request'],$checked['deadline_offset']);
+      case 'handover.extend.propose':
+        $checked=PhorgeOrganizationTransferRequest::handoverEnvelope('extend',$payload,true);
+        return $service->proposeHandover('extend',$checked['request'],$checked['ttl_seconds'],$checked['deadline_offset']);
+      case 'handover.terminate.preview':
+        $checked=PhorgeOrganizationTransferRequest::handoverEnvelope('terminate',$payload,false);
+        return $service->previewHandover('terminate',$checked['request'],$checked['deadline_offset']);
+      case 'handover.terminate.propose':
+        $checked=PhorgeOrganizationTransferRequest::handoverEnvelope('terminate',$payload,true);
+        return $service->proposeHandover('terminate',$checked['request'],$checked['ttl_seconds'],$checked['deadline_offset']);
+      case 'handover.responsible.preview':
+        $checked=PhorgeOrganizationTransferRequest::handoverEnvelope('responsible',$payload,false);
+        return $service->previewHandover('responsible',$checked['request'],$checked['deadline_offset']);
+      case 'handover.responsible.propose':
+        $checked=PhorgeOrganizationTransferRequest::handoverEnvelope('responsible',$payload,true);
+        return $service->proposeHandover('responsible',$checked['request'],$checked['ttl_seconds'],$checked['deadline_offset']);
+      case 'handover.approve':
+        $keys=array_keys($payload);sort($keys,SORT_STRING);
+        if($keys!==array('request_digest','transfer_id')){throw new InvalidArgumentException('organization_handover_transport_refused');}
+        return $service->approveHandover($payload['transfer_id'],$payload['request_digest']);
+      case 'handover.execute':
+        $keys=array_keys($payload);sort($keys,SORT_STRING);
+        if($keys!==array('acknowledge_no_project_permission_change','transfer_id')){throw new InvalidArgumentException('organization_handover_transport_refused');}
+        return $service->executeHandover($payload['transfer_id'],$payload['acknowledge_no_project_permission_change']);
+      case 'handover.project.record':return $service->recordHandoverProject($payload);
+      case 'handover.due.record':
+        $keys=array_keys($payload);sort($keys,SORT_STRING);
+        if($keys!==array('expected_version','handover_id','operation_id')){throw new InvalidArgumentException('organization_handover_transport_refused');}
+        return $service->recordHandoverDue($payload['operation_id'],$payload['handover_id'],$payload['expected_version']);
       case 'transfer.preview':
         $checked=PhorgeOrganizationTransferRequest::envelope($payload,false);
         return $service->previewTransfer($checked['request'],$checked['deadline_offset']);

@@ -956,6 +956,112 @@ final class PhorgeOrganizationService extends Phobject {
     }catch(Throwable$error){$this->finish(false);throw$error;}
   }
 
+  /** UI selection is only a server-derived preview, never an approval. */
+  public function previewSelectedTransfer($subject,$responsible,$target,$days,$reason) {
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{
+      $caps=$this->readActorCapabilities();if($caps['manage_units']!==true){throw new RuntimeException('organization_transfer_current_admin_required');}
+      if(!PhorgeGovernanceOrganizationRequest::userID($subject)||!PhorgeGovernanceOrganizationRequest::userID($responsible)||
+        !PhorgeGovernanceOrganizationRequest::identifier($target,64)){throw new InvalidArgumentException('organization_transfer_selection_refused');}
+      $this->begin(array($subject,$responsible));try{
+        $primary=queryfx_one($this->connection,'SELECT * FROM organization_primarydepartment WHERE BINARY userPHID=BINARY %s FOR UPDATE',$subject);
+        if(!$primary||$primary['userPHID']!==$subject){throw new RuntimeException('organization_transfer_selection_refused');}
+        $ids=array($primary['unitID'],$target);sort($ids,SORT_STRING);$units=array();
+        foreach($ids as$id){$units[$id]=queryfx_one($this->connection,'SELECT * FROM organization_unit WHERE BINARY unitID=BINARY %s FOR UPDATE',$id);}
+        if(!$units[$primary['unitID']]||!$units[$target]){throw new RuntimeException('organization_transfer_selection_refused');}
+        $intent=array('operation_id'=>'transfer-execute-'.bin2hex(random_bytes(16)),'transfer_id'=>'transfer-'.bin2hex(random_bytes(16)),
+          'subject_phid'=>$subject,'responsible_phid'=>$responsible,'from_department'=>$primary['unitID'],'to_department'=>$target,
+          'primary_version'=>self::version($primary['version']),'from_version'=>self::version($units[$primary['unitID']]['version']),
+          'to_version'=>self::version($units[$target]['version']),'handover_days'=>$days,'reason'=>$reason,'acknowledge_no_project_permission_change'=>true);
+        $result=PhorgeOrganizationTransferAdapter::forLockedService($this)->previewInitial($intent);$this->finish(true);return$result;
+      }catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+  public function readHandoverPage($limit=25,$after=null) {
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$this->handoverSubjects();$this->begin(array());
+      try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->listPage($limit,$after);$this->finish(true);return$result;}
+      catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+  public function readHandoverDetail($id) {
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$subjects=$this->handoverSubjects(null,$id);$this->begin($subjects);
+      try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->detail($id);$this->finish(true);return$result;}
+      catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+
+  private function handoverSubjects($ticket=null,$handover=null,array $extra=array(),$optional=false) {
+    $caps=$this->readActorCapabilities();
+    if($caps['manage_units']!==true){throw new RuntimeException('organization_handover_current_admin_required');}
+    $conn=(new PhabricatorUser())->establishConnection('w');
+    if($ticket!==null&&$optional){$row=queryfx_one($conn,'SELECT transferID FROM %R WHERE BINARY transferID=BINARY %s',new PhorgeOrganizationTransfer(),$ticket);if(!$row){$ticket=null;}}
+    return PhorgeOrganizationHandoverAdapter::planningPHIDs($conn,$ticket,$handover,$extra);
+  }
+  private static function handoverIntent($action,array $intent) {
+    switch($action){
+      case 'extend':return PhorgeOrganizationTransferRequest::extension($intent);
+      case 'terminate':return PhorgeOrganizationTransferRequest::termination($intent);
+      case 'responsible':return PhorgeOrganizationTransferRequest::responsibility($intent);
+      default:throw new InvalidArgumentException('organization_handover_action_refused');
+    }
+  }
+  public function previewHandover($action,array $intent,$offset=null) {
+    $intent=self::handoverIntent($action,$intent);$unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$subjects=$this->handoverSubjects(null,$intent['handover_id'],isset($intent['responsible_phid'])?array($intent['responsible_phid']):array());
+      $this->begin($subjects);try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->preview($action,$intent,$offset);
+        $this->finish(true);return$result;}catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+  public function proposeHandover($action,array $intent,$ttl,$offset=null) {
+    $intent=self::handoverIntent($action,$intent);
+    $subjects=$this->handoverSubjects($intent['transfer_id'],$intent['handover_id'],isset($intent['responsible_phid'])?array($intent['responsible_phid']):array(),true);
+    $this->begin($subjects);try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->propose($action,$intent,$ttl,$offset);
+      $this->finish(true);return$result;}catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+  public function readHandoverApproval($id) {
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$subjects=$this->handoverSubjects($id);$this->begin($subjects);
+      try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->readTicket($id);$this->finish(true);return$result;}
+      catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+  public function approveHandover($id,$digest) {
+    $subjects=$this->handoverSubjects($id);$this->begin($subjects);
+    try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->approve($id,$digest);$this->finish(true);return$result;}
+    catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+  public function executeHandover($id,$ack) {
+    $subjects=$this->handoverSubjects($id);$this->begin($subjects);
+    try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->execute($id,$ack);$this->finish(true);return$result;}
+    catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+  public function readHandoverProjects($id) {
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$subjects=$this->handoverSubjects(null,$id);$this->begin($subjects);
+      try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->projectReceipts($id);$this->finish(true);return$result;}
+      catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+  public function recordHandoverProject(array $intent) {
+    $intent=PhorgeOrganizationTransferRequest::disposition($intent);$subjects=$this->handoverSubjects(null,$intent['handover_id']);$this->begin($subjects);
+    try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->recordProjectReceipt($intent);$this->finish(true);return$result;}
+    catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+  public function readDueHandovers($limit=100,$cursor=null) {
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$this->handoverSubjects();$this->begin(array());
+      try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->duePage($limit,$cursor);$this->finish(true);return$result;}
+      catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+  public function recordHandoverDue($operation,$id,$version) {
+    $subjects=$this->handoverSubjects(null,$id);$this->begin($subjects);
+    try{$result=PhorgeOrganizationHandoverAdapter::forLockedService($this)->recordDue($operation,$id,$version);$this->finish(true);return$result;}
+    catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
   public static function auditCursor($value) {
     if($value===null){return 0;}
     if(!is_string($value)&&!is_int($value)){throw new InvalidArgumentException('organization_audit_cursor_refused');}
@@ -1010,11 +1116,12 @@ final class PhorgeOrganizationService extends Phobject {
     } finally { unset($unguarded); }
   }
 
-  public function readUnits($limit = 100, $after = null, $query = '', $selector = false) {
+  public function readUnits($limit = 100, $after = null, $query = '', $selector = false, $kind = null) {
     $unguarded = AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
       $this->limit($limit);
       if (!is_bool($selector)) { throw new InvalidArgumentException('organization_search_refused'); }
+      if($kind!==null&&!in_array($kind,array('team','department'),true)){throw new InvalidArgumentException('organization_kind_refused');}
       if (!is_string($query) || strlen($query)>128 || !phutil_is_utf8($query)) {
         throw new InvalidArgumentException('organization_search_refused');
       }
@@ -1034,7 +1141,7 @@ final class PhorgeOrganizationService extends Phobject {
         $rows = queryfx_all($this->connection,
           'SELECT u.* FROM %T u WHERE u.state=%s AND u.kind IN (%Ls) '.
           'AND u.version>0 AND u.visibilityModel=\'restricted-admin-v1\' AND u.visibilityVersion=1 AND u.unitID>%s AND %Q LIKE %Q ESCAPE %s AND (%Q) ORDER BY u.unitID LIMIT %d',
-          $this->table('unit'), 'active', array('team', 'department'),
+          $this->table('unit'), 'active', $kind===null?array('team','department'):array($kind),
           $after === null ? '' : $after,
           $name_expression,$pattern_expression, '=',
           $this->visibleSQL(), $limit);

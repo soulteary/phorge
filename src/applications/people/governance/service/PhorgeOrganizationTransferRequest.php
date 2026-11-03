@@ -73,6 +73,14 @@ final class PhorgeOrganizationTransferRequest extends Phobject {
     ksort($out,SORT_STRING);return $out;
   }
 
+  public static function responsibility(array $value) {
+    self::exact($value,array('operation_id','transfer_id','handover_id','expected_version',
+      'responsible_phid','reason','acknowledge_no_project_permission_change'));
+    $out=self::handoverIntent($value);$out['transfer_id']=self::id($value['transfer_id']);
+    $out['responsible_phid']=self::user($value['responsible_phid']);
+    ksort($out,SORT_STRING);return$out;
+  }
+
   private static function handoverIntent(array $value) {
     if ($value['acknowledge_no_project_permission_change']!==true) {
       throw new InvalidArgumentException('organization_transfer_acknowledgement_refused');
@@ -103,6 +111,22 @@ final class PhorgeOrganizationTransferRequest extends Phobject {
       'project_phid'=>$value['project_phid'],'decision'=>$value['decision'],
       'manual_status'=>$value['manual_status'],'expected_version'=>$version,'note'=>$value['note']);
     ksort($out,SORT_STRING);return $out;
+  }
+
+  public static function handoverEnvelope($action,array $value,$propose) {
+    if(!is_bool($propose)){throw new InvalidArgumentException('organization_transfer_transport_refused');}
+    if(!array_key_exists('deadline_offset',$value)){$value['deadline_offset']=null;}
+    self::exact($value,$propose?array('request','ttl_seconds','deadline_offset'):array('request','deadline_offset'));
+    if(!is_array($value['request'])||($value['deadline_offset']!==null&&(!is_int($value['deadline_offset'])||abs($value['deadline_offset'])>86400))){
+      throw new InvalidArgumentException('organization_transfer_transport_refused');}
+    switch($action){case 'extend':$request=self::extension($value['request']);break;
+      case 'terminate':$request=self::termination($value['request']);break;
+      case 'responsible':$request=self::responsibility($value['request']);break;
+      default:throw new InvalidArgumentException('organization_handover_action_refused');}
+    if($action!=='extend'&&$value['deadline_offset']!==null){throw new InvalidArgumentException('organization_handover_offset_refused');}
+    $out=array('request'=>$request,'deadline_offset'=>$value['deadline_offset']);
+    if($propose){PhorgeGovernanceOrganizationApprovalAdapter::validateTTL($value['ttl_seconds']);$out['ttl_seconds']=$value['ttl_seconds'];}
+    return$out;
   }
 
   public static function envelope(array $value,$propose) {
