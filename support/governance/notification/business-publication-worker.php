@@ -14,6 +14,8 @@ try{
     !is_int($probe['task_id'])||$probe['task_id']<1||!is_string($probe['object_phid'])||!preg_match('/\APHID-(?:TASK|PROJ)-[a-zA-Z0-9]{20}\z/D',$probe['object_phid'])){throw new RuntimeException('business_publication_payload_refused');}
   require_once$root.'/support/runtime/bootstrap.php';ob_start();$buffer=true;phutil_load_library($root.'/src/');
   $proof=governance_private_mail_proof($data);governance_private_mail_install_env($data);$owned=true;
+  require_once __DIR__.'/business-queue-config.php';
+  $queue_scope=governance_private_business_queue_scope($directory,$data['owner']);
   $guard=new AphrontWriteGuard(static function()use($proof,$data){$row=$proof->query('SELECT owner_nonce FROM `'.$data['writer']['namespace'].'_governance`.`fixture_guard` WHERE id=1')->fetch_assoc();if(!$row||!hash_equals($data['fixture_nonce'],$row['owner_nonce'])){throw new RuntimeException('business_publication_owner_changed');}});
   $task=(new PhabricatorWorkerActiveTask())->load($probe['task_id']);
   if(!$task||$task->getTaskClass()!=='PhabricatorApplicationTransactionPublishWorker'||$task->getObjectPHID()!==$probe['object_phid']){throw new RuntimeException('business_publication_task_refused');}
@@ -34,7 +36,7 @@ try{
       'policy_authorized'=>$allowed,'prepared'=>isset($prepared['authorization']),
       'no_private_producer_payload'=>!str_contains(phutil_json_encode($prepared),'SYNTHETIC_PRIVATE_BUSINESS_COMMENT')&&!str_contains(phutil_json_encode($prepared),'Synthetic business '),
       'physical_gate_allowed'=>$physical,'quarantined'=>$item->getPrivateMailPolicyValue('governance.delivery-quarantined',false));}
-  $result=array('passed'=>true,'source_visible'=>$visible!==null,'native_publication_missing_source_permanent'=>$missing,
+  $result=array('passed'=>true,'actual_owned_taskqueue_http_ready'=>true,'source_visible'=>$visible!==null,'native_publication_missing_source_permanent'=>$missing,
     'publication_completed'=>!$missing,'envelopes'=>$envelopes,'physical_delivery_attempted'=>false);
 }catch(Throwable$error){$failure=array('type'=>get_class($error),'file'=>basename($error->getFile()),'line'=>$error->getLine());}
 finally{try{if($guard!==null){$guard->dispose();}if($owned){LiskDAO::closeAllConnections();}if($proof!==null){$proof->close();}}catch(Throwable$error){$failure=array('type'=>'cleanup_failed');}mysqli_report($mode);if($buffer){ob_end_clean();}}

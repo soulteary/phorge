@@ -1,11 +1,15 @@
 <?php
 /** Actual AppEditor publication ordering; SQL queue profile explicitly scoped. */
-function governance_private_mail_business_publication_cases($fixture,callable $check){
+function governance_private_mail_business_publication_cases($fixture,callable $check,array $queue){
   unset($GLOBALS['governance_private_business_child_failure']);
-  $fixture->assertOwned();$scope=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('gorge.taskqueue.owner','phorge')->overrideEnvConfig('gorge.taskqueue.uri',null);
+  $fixture->assertOwned();
+  if(($queue['kind']??null)!=='taskqueue'||!is_resource($queue['process']??null)||!proc_get_status($queue['process'])['running']||
+    !preg_match('/\Ahttp:\/\/127\.0\.0\.1:[1-9][0-9]{0,4}\z/D',$queue['uri']??'')||
+    !preg_match('/\A[a-f0-9]{64}\z/D',$queue['token']??'')){throw new RuntimeException('business_publication_real_queue_required');}
+  $scope=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('gorge.taskqueue.owner','phorge')->overrideEnvConfig('gorge.taskqueue.uri',null);
   try{
   $processes=0;$directories=0;$created=0;$live=0;
-  $probe=static function($task,$object)use($fixture,&$processes,&$directories,&$created,&$live){
+  $probe=static function($task,$object)use($fixture,$queue,&$processes,&$directories,&$created,&$live){
     $directory=sys_get_temp_dir().'/phorge-private-mail-wire-'.bin2hex(random_bytes(12));$owner=bin2hex(random_bytes(32));
     if(!mkdir($directory,0700)){throw new RuntimeException('private_mail_race_directory_failed');}
     $created++;$stat=lstat($directory);$process=null;$pipes=array();
@@ -17,6 +21,7 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
         'mailer_uri'=>'http://127.0.0.1:1','owner'=>$owner,'service_token'=>bin2hex(random_bytes(32)),
         'source_sha256'=>hash_file('sha256',dirname(phutil_get_library_root('phabricator')).'/resources/sql/quickstart.sql'),
         'writer'=>$fixture->getWriterConfig());
+      $write('queue.json',json_encode(array('owner'=>$owner,'uri'=>$queue['uri'],'token'=>$queue['token']),JSON_THROW_ON_ERROR));
       $write('router.json',json_encode($data,JSON_THROW_ON_ERROR));$write('probe.json',json_encode(array('owner'=>$owner,'task_id'=>(int)$task->getID(),'object_phid'=>$object->getPHID()),JSON_THROW_ON_ERROR));
       $process=proc_open(array(PHP_BINARY,__DIR__.'/business-publication-worker.php',$directory),array(0=>array('pipe','r'),1=>array('pipe','w'),2=>array('pipe','w')),$pipes);
       if(!is_resource($process)){throw new RuntimeException('private_mail_race_spawn_failed');}$processes++;$live++;fclose($pipes[0]);unset($pipes[0]);
@@ -27,7 +32,7 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
       }while(true);
       $out.=stream_get_contents($pipes[1]);$err.=stream_get_contents($pipes[2]);foreach($pipes as$pipe){fclose($pipe);}$pipes=array();proc_close($process);$process=null;$live--;
       $result=json_decode($out,true,8,JSON_THROW_ON_ERROR);
-      if($exit!==0||$err!==''||!is_array($result)||($result['passed']??null)!==true){
+      if($exit!==0||$err!==''||!is_array($result)||($result['passed']??null)!==true||($result['actual_owned_taskqueue_http_ready']??null)!==true){
         // Only bounded diagnostic metadata reaches the failed fixture receipt.
         // Never retain the child's message, stderr, envelope or credentials.
         $diagnostic=array('exit_code'=>(int)$exit,'stderr_present'=>$err!=='');
@@ -43,7 +48,7 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
     }finally{
       if(is_resource($process)){proc_terminate($process);foreach($pipes as$pipe){if(is_resource($pipe)){fclose($pipe);}}proc_close($process);$live--;}
       $current=lstat($directory);if(!$current||$current['dev']!==$stat['dev']||$current['ino']!==$stat['ino']||is_link($directory)){throw new RuntimeException('private_mail_race_cleanup_owner_refused');}
-      foreach(array('owner','router.json','probe.json')as$name){$path=$directory.'/'.$name;if(file_exists($path)){if(is_link($path)||!unlink($path)){throw new RuntimeException('private_mail_race_cleanup_failed');}}}
+      foreach(array('owner','router.json','probe.json','queue.json')as$name){$path=$directory.'/'.$name;if(file_exists($path)){if(is_link($path)||!unlink($path)){throw new RuntimeException('private_mail_race_cleanup_failed');}}}
       if(!rmdir($directory)){throw new RuntimeException('private_mail_race_cleanup_failed');}$directories++;
     }
   };
@@ -110,7 +115,7 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
         'postcompletion_source_visible'=>$second['source_visible'],'postcompletion_mail_envelopes'=>count($second['envelopes']));
     }finally{if($connection->isInsideTransaction()){$connection->killTransaction();}}
   }}
-  return array('actual_native_sql_queue_profile'=>true,'paired_gorge_queue_profile_proved'=>false,
+  return array('actual_native_sql_queue_profile'=>true,'actual_child_native_mail_taskqueue_http_proved'=>true,'paired_gorge_queue_profile_proved'=>false,
     'actual_task_and_project_editors'=>true,'samples'=>$samples,
     'independent_php_workers_executed'=>$processes,'private_directories_removed'=>$directories,
     'private_directories_remaining'=>$created-$directories,'live_processes_after_cleanup'=>$live,'manual_diagnostic_reexecution_is_daemon_retry'=>false,

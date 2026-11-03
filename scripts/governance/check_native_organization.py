@@ -1024,6 +1024,7 @@ NATIVE['private_mail_tests']['legalpad_tests']['inflight_source_tests'] = {'actu
  'last_view_to_commit_global_atomicity_proved': False,
  'production_source_changed': False}
 NATIVE['private_mail_tests']['business_publication_tests'] = {'actual_native_sql_queue_profile': True,
+ 'actual_child_native_mail_taskqueue_http_proved': True,
  'actual_task_and_project_editors': True,
  'independent_php_workers_executed': 10,
  'live_processes_after_cleanup': 0,
