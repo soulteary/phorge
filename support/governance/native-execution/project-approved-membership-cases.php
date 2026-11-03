@@ -118,6 +118,14 @@ function governance_project_approved_membership_cases($fixture,callable $check,a
     ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
     ->applyTransactions($disabled_member,array((new PhabricatorUserTransaction())
       ->setTransactionType(PhabricatorUserDisableTransaction::TRANSACTIONTYPE)->setNewValue(true)));
+  $history_before=queryfx_one($conn,'SELECT state,consumedAt,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$disabled_add);
+  $history_audit_before=queryfx_all($conn,'SELECT * FROM governance_executionaudit WHERE approvalID=%s ORDER BY id',$disabled_add);
+  $history=PhorgeProjectPolicyApprovalService::call($b['context'],'history',array('approval_id'=>$disabled_add));
+  $check($history['state']==='consumed'&&$history['operation']==='project.members.add'&&
+    $history['intent']['members']===array($disabled_phid)&&count($history['audit'])===count($history_audit_before)&&
+    queryfx_one($conn,'SELECT state,consumedAt,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$disabled_add)===$history_before&&
+    queryfx_all($conn,'SELECT * FROM governance_executionaudit WHERE approvalID=%s ORDER BY id',$disabled_add)===$history_audit_before,
+    'project-approved-members-current-admin-can-read-durable-add-history-after-subject-disabled');
   $disabled_remove=$proposal('project.members.remove',array($disabled_phid));
   $disabled_result=$execute('project.members.remove',array($disabled_phid),$disabled_remove);
   $check(count($disabled_result)===1&&!queryfx_all($conn,'SELECT dst FROM edge WHERE src=%s AND type IN (%Ld)',

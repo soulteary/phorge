@@ -93,7 +93,7 @@
       "supported_runtime": {
         "php": "8.5.12",
         "pure_methods": 161,
-        "native_checks": 410,
+        "native_checks": 411,
         "matched_runtime_files": 5903,
         "production_activation": false
       },

@@ -796,7 +796,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
-        "sha256": "dc9a620657be78204ac053faf744ee17efc9edb3db4e8e5c130cdf6f8308904d"
+        "sha256": "788c5147d814d619fe61a4475ae18d3e474e5ad7e1f320cb11445351b033dc2d"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",

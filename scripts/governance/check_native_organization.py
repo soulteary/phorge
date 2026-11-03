@@ -545,6 +545,7 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({
  'project-approved-members-add-agent-target-refused-without-write',
  'project-approved-members-add-mailing-target-refused-without-write',
  'project-approved-members-disabled-current-target-can-be-removed-with-approval',
+ 'project-approved-members-current-admin-can-read-durable-add-history-after-subject-disabled',
  'project-approved-members-first-issuer-beneficiary-approver-is-not-a-role-change',
  'project-approved-members-self-only-ticket-refused-retaining-native-path',
  'project-approved-members-unapproved-ticket-cannot-mutate',

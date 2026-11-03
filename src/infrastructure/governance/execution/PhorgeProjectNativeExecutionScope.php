@@ -192,7 +192,8 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       $policy_ids=array_unique($policy_ids); sort($policy_ids,SORT_STRING);
       foreach ($policy_ids as $id) {
         $identities[$id]=PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($id,$conn);
-        if($intent->isMembership() && $intent->isAddition() && in_array($id,$intent->getMembers(),true) &&
+        if(in_array($mode,array('propose','approve','execute'),true) &&
+            $intent->isMembership() && $intent->isAddition() && in_array($id,$intent->getMembers(),true) &&
             !$identities[$id]['eligible']) {
           throw new RuntimeException('project_execution_member_add_subject_ineligible');
         }
