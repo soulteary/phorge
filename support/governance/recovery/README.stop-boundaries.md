@@ -59,3 +59,25 @@ fresh exact-source runtime/cleanup proof and the remaining recovery work.
 Four host PHP result-contract tests and pure receipt mutations are not SQL,
 CSRF/HTTP or concurrency evidence. Generated map, full native execution, source
 hashes and the new current-source SQL result remain unrun at this checkpoint.
+
+## Failed first boundary checkpoint
+
+Signed `6bc84b827d01c263601c7df57616a0cb10efe991` passed214 pure methods and
+725 total assertions before failing at the missing-audit-table fixture. Ten of
+this successor's fifteen boundary assertions had run successfully, including
+both real waiters, one-new/one-replay, native administrator removal, and both
+post-login real expiry waits. This partial725 is not the prior0b full725 result,
+and is not a successful740 run. All6787 runtime files matched that signed
+source; all26 workers started so far, owned schemas/users/reader/image/stage
+were cleaned. The remaining five boundary assertions and the later N12 probes
+were not reached. Immutable failed receipts are retained separately.
+
+The native MySQL error mapper constructs its final SchemaQueryException with
+`#1146` in the message and the default Exception code0. The first fixture
+incorrectly expected getCode1146. The correction requires the exact native
+exception class, code0 and exact1146 message for the owned audit table, plus an
+independent Admin information_schema observation that the real table is absent
+and its owned renamed backup exists. Restoration is separately checked. Generic
+backend errors, other schema errors or other table names cannot satisfy this
+fixture. New host tests instantiate the original native exception classes;
+they do not replace the still-pending real missing-table/whole740 execution.

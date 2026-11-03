@@ -1,6 +1,17 @@
 <?php
 
 /** Owned native writers and storage faults. Not a public recovery endpoint. */
+function governance_recovery_stop_missing_audit_error(Throwable $error, $namespace) {
+  if(!is_string($namespace)||!preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)){
+    return false;
+  }
+  // The native common-error mapper deliberately constructs this final subtype
+  // without passing errno to Exception. Require its actual class/message, not
+  // a generic throwable or an invented nonzero Exception code.
+  return get_class($error)===AphrontSchemaQueryException::class&&$error->getCode()===0&&
+    $error->getMessage()==="#1146: Table '".$namespace."_user.recovery_stop_audit' doesn't exist";
+}
+
 function governance_recovery_stop_wait($fixture, mysqli $observer, array $workers) {
   governance_native_wait_worker_query($observer,$workers,'/SELECT phid FROM .*`user`.*FOR UPDATE/is');
   $threads=array();foreach($workers as$worker){$threads[]=(int)$worker['mysql_thread'];}
@@ -164,10 +175,20 @@ function governance_recovery_stop_boundary_cases($fixture, callable $check, arra
     $record=static function()use($state,$subject,$id,$operation){return PhorgeRecoveryStopService::recordAlreadyStopped(
       $state['admin']['context'],$subject->getPHID(),$id,'technical-pause','Synthetic bounded writer race',$operation);};
     governance_native_setup_query($fixture,'RENAME TABLE '.$audit.' TO '.$temporary);$missing=true;
+    $missing_shape=governance_native_concurrency_sql($fixture,
+      'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME IN (?,?) ORDER BY TABLE_NAME',
+      array($namespace.'_user','recovery_stop_audit','recovery_stop_audit_boundary_saved'));
+    if($missing_shape!==array(array('TABLE_NAME'=>'recovery_stop_audit_boundary_saved'))){
+      throw new RuntimeException('recovery_stop_missing_audit_precondition_failed');}
     $refused=false;
-    try{$record();}catch(AphrontQueryException$error){if($error->getCode()!==1146){throw$error;}$refused=true;}
+    try{$record();}catch(AphrontSchemaQueryException$error){
+      if(!governance_recovery_stop_missing_audit_error($error,$namespace)){throw$error;}$refused=true;}
     finally{governance_native_setup_query($fixture,'RENAME TABLE '.$temporary.' TO '.$audit);$missing=false;}
-    $check($refused&&!$conn->isInsideTransaction()&&$fingerprint()===$before,
+    $restored_shape=governance_native_concurrency_sql($fixture,
+      'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME IN (?,?) ORDER BY TABLE_NAME',
+      array($namespace.'_user','recovery_stop_audit','recovery_stop_audit_boundary_saved'));
+    $check($refused&&$restored_shape===array(array('TABLE_NAME'=>'recovery_stop_audit'))&&
+      !$conn->isInsideTransaction()&&$fingerprint()===$before,
       'recovery-stop-missing-audit-table-refuses-without-ledger-change');
     governance_native_setup_query($fixture,'ALTER TABLE '.$audit.' ENGINE=MyISAM');$myisam=true;
     $refused=false;
