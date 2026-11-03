@@ -704,7 +704,7 @@
       "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
       "symbol": "PhabricatorMetaMTAMail",
       "kind": "immutable-native-mail-and-attempt-gate",
-      "sha256": "34a0e7cdfe68cc47151624b157d1a79e933abcdb3842bfa31c0aad009706bf05",
+      "sha256": "c450be9fe4bf10eed680862f7da1e0dcee4f01d4c11d0be5ae8ba514905290b1",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,

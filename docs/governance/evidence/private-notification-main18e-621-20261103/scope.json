@@ -1,0 +1,20 @@
+{
+  "source_checkpoint": "cc90f705bb793071002bc8e23ebd251a5c9662fc",
+  "main_baseline": "18e7d018e5ecbbc2cf449494ed4060f92e575189",
+  "pure_methods": 197,
+  "native_SQL_checks": 621,
+  "Python_gate_tests": 99,
+  "strict_accepted": true,
+  "runtime_files_with_PSL": 5944,
+  "runtime_exact": true,
+  "owned_schemas_removed": 55,
+  "owned_runtime_users_removed": 2,
+  "reader_removed": true,
+  "paired_image_service_removed": true,
+  "prior_attempt": "0 SQL checks; isolated database OOM; owned database restarted before full successful rerun",
+  "current_combined_SMTP": "not yet verified; component107/139 proofs not substituted",
+  "optional_features_enabled": false,
+  "deployment": false,
+  "online_permission_migration": false,
+  "global_completion": false
+}

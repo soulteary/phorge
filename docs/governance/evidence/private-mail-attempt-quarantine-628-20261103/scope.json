@@ -1,0 +1,17 @@
+{
+  "source": "71c1fc172c44b26b0a0ce5fc1012ea6278ce70e0",
+  "pure_methods": 197,
+  "native_SQL_checks": 628,
+  "Python_gate_tests": 99,
+  "new_permanent_denial_regressions": 7,
+  "runtime_content_exact": true,
+  "owned_schemas_removed": 55,
+  "owned_runtime_users_removed": 2,
+  "reader_removed": true,
+  "paired_image_removed": true,
+  "current_source_physical_wire": "pending",
+  "optional_features_enabled": false,
+  "deployment": false,
+  "online_permission_migration": false,
+  "global_completion": false
+}

@@ -921,6 +921,14 @@ NATIVE['private_mail_tests']['legalpad_tests'] = {
     'physical_smtp_legalpad_proved': False,
 }
 WORKERS = 21
+# Durable callback denials must not revive after a later regrant.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-attempt-quarantine-persists-reload-with-immutable-snapshots',
+ 'private-mail-callback-and-direct-permanent-denial-quarantine-without-preparation',
+ 'private-mail-callback-only-regrant-cannot-revive-denied-delivery',
+ 'private-mail-malformed-attempt-payload-cannot-poison-current-mail',
+ 'private-mail-primary-email-aba-cannot-revive-quarantined-callback-delivery',
+ 'private-mail-primary-email-policy-change-denied-at-callback-without-prepare',
+ 'private-mail-unprepared-authorization-probe-does-not-quarantine'])
 
 
 def validate_restore(value, root):
