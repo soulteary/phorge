@@ -84,16 +84,14 @@ function governance_recovery_account_cases($fixture, callable $check) {
   $fixture->assertOwned();$admin=$fixture->getAdmin();
   $table=$fixture->table('user','organization_identityepoch');
   $temporary='`'.$fixture->getNamespace().'_user`.`organization_identityepoch_recovery_saved`';
-  $report=new mysqli_driver();$old=$report->report_mode;mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
   $renamed=false;
   try{
-    $admin->query('RENAME TABLE '.$table.' TO '.$temporary);$renamed=true;
+    governance_native_setup_query($fixture,'RENAME TABLE '.$table.' TO '.$temporary);$renamed=true;
     $rejected=false;
     try{$capture();}catch(AphrontSchemaQueryException$error){$rejected=true;}
     $check($rejected&&!$conn->isInsideTransaction(),'recovery-account-missing-actual-source-table-refused-with-owned-transaction-cleanup');
   }finally{
-    try{if($renamed){$admin->query('RENAME TABLE '.$temporary.' TO '.$table);}}
-    finally{mysqli_report($old);}
+    if($renamed){governance_native_setup_query($fixture,'RENAME TABLE '.$temporary.' TO '.$table);}
   }
   return array('actual_account_adapter'=>true,'source_writes_by_capture'=>false,
     'all_sources_complete'=>false,'can_execute'=>false,'other_twelve_families_complete'=>false);

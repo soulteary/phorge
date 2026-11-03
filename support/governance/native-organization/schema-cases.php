@@ -3,7 +3,21 @@
 /** Inspect actual native schema comparison; never execute an adjustment. */
 function governance_native_schema_cases($fixture, callable $check) {
   $fixture->assertOwned();
-  $query=new PhabricatorConfigSchemaQuery();
+  $namespace_property=new ReflectionProperty(PhabricatorLiskDAO::class,'namespaceStack');
+  $before=$namespace_property->getValue();
+  if($before!==array()){throw new RuntimeException('native_schema_inherited_namespace_refused');}
+  $query=new PhabricatorConfigSchemaQuery();$apis=array();
+  try {
+    // Native getAPI() creates a new StorageManagementAPI and pushes a namespace
+    // on each uncached lookup. Own/cache these exact APIs and restore only their
+    // pushes; do not leave an implicit namespace override for later fixtures.
+    foreach($query->getRefs()as$ref){
+      $api=(new PhabricatorStorageManagementAPI())->setRef($ref)
+        ->setUser($ref->getUser())->setHost($ref->getHost())->setPort($ref->getPort())
+        ->setPassword($ref->getPass());
+      $api->setNamespace($fixture->getNamespace());$apis[]=$api;
+    }
+    $query->setAPIs($apis);
   $expected=$query->loadExpectedSchemata();
   $actual=$query->loadActualSchemata();
   $comparison=$query->buildComparisonSchemata($expected,$actual);
@@ -24,4 +38,20 @@ function governance_native_schema_cases($fixture, callable $check) {
   }
   return array('native_schema_comparison_executed'=>true,'candidate_tables_compared'=>count($tables),
     'schema_adjustment_executed'=>false,'all_existing_schema_issues_claimed_resolved'=>false);
+  } finally {
+    $failed=false;$closed=array();
+    foreach($apis as$api){
+      $connections=(new ReflectionProperty(PhabricatorStorageManagementAPI::class,'conns'))->getValue($api);
+      foreach($connections as$users){foreach($users as$databases){foreach($databases as$connection){
+        $key=spl_object_id($connection);
+        if(isset($closed[$key])){continue;}$closed[$key]=true;
+        try{$connection->close();}catch(Throwable$error){$failed=true;}
+      }}}
+    }
+    $owned=$before;foreach($apis as$api){$owned[]=$fixture->getNamespace();}
+    if($namespace_property->getValue()!==$owned){$failed=true;}
+    else{foreach($apis as$api){PhabricatorLiskDAO::popStorageNamespace();}}
+    if($failed||$namespace_property->getValue()!==$before){
+      throw new RuntimeException('native_schema_owned_context_cleanup_failed');}
+  }
 }

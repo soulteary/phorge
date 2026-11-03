@@ -51,3 +51,20 @@ bound current-source runtime artifact is still required.
 
 **Current SQL status: not executed.** Hosted CI, production activation, browser
 acceptance, all-source recovery completion and deployment are not established.
+
+## First full-fixture attempt
+
+The exact signed first candidate completed 203 pure methods and all 659 existing
+SQL assertions, then **failed before any new R02 assertion**. The strict account
+scope correctly rejected a namespace override left by the schema-comparison
+fixture. That fixture used the native query's uncached StorageManagementAPI
+factory, which pushes a namespace on each lookup. The correction explicitly
+owns/caches those APIs and restores only the exact namespace pushes and raw
+connections it created. The account scope's empty-namespace guard is retained.
+Setup DDL also now uses the existing narrowly scoped strict-mysqli helper, so
+native missing-source exceptions are not changed by an ambient test report mode.
+
+The failed run's source hashes matched all 6771 PHP/SQL and public-suffix files;
+55 schemas, two runtime users, the reader, nineteen worker directories/processes,
+and the paired image service were cleaned. This is a failed checkpoint, not SQL
+acceptance. The corrected 669-check candidate still requires a fresh actual run.
