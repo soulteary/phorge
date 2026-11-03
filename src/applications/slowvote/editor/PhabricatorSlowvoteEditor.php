@@ -48,6 +48,7 @@ final class PhabricatorSlowvoteEditor
     $name = $object->getQuestion();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("{$monogram}: {$name}");
   }
 

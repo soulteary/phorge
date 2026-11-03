@@ -237,6 +237,7 @@ final class PhrictionTransactionEditor
     $title = $object->getContent()->getTitle();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject($title);
   }
 

@@ -91,6 +91,18 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
         if ($candidate!==null) { throw new RuntimeException('project_execution_native_form_multiple_changes'); }
         self::policy($xaction->getNewValue());$candidate=$type;continue;
       }
+      // Genuine native content fields may change without a policy ticket.
+      // With a policy candidate, retain them all: native filtering and the
+      // final one-effect closure must reject any second effective change.
+      $content=array(PhabricatorProjectNameTransaction::TRANSACTIONTYPE,
+        PhabricatorProjectColorTransaction::TRANSACTIONTYPE,
+        PhabricatorProjectIconTransaction::TRANSACTIONTYPE,
+        PhabricatorProjectSlugsTransaction::TRANSACTIONTYPE);
+      if (($metadata===array() && in_array($type,$content,true)) ||
+          ($type===PhabricatorTransactions::TYPE_CUSTOMFIELD &&
+           $metadata===array('customfield:key'=>'std:project:internal:description'))) {
+        continue;
+      }
       // These flags only identify a possible unchanged form field. Native
       // populate/validate/filter still run under the original scope, whose
       // beforeEffects requires exactly the one approved effective transaction.
@@ -108,7 +120,10 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
         throw new RuntimeException('project_execution_native_form_hierarchy_refused');
       }
     }
-    if ($candidate===null) { return null; }
+    // This result exists only inside the exact native form lease. Default
+    // flags never grant policy authority; the DAO still rejects any effective
+    // sensitive write without its separately authorized native scope.
+    if ($candidate===null) { return 'native'; }
     return $candidate===PhabricatorTransactions::TYPE_VIEW_POLICY?'view-policy':'edit-policy';
   }
   public static function policyTransaction($editor,$object,array $xactions,$decision) {

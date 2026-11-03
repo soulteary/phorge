@@ -321,6 +321,51 @@ EXPECTED_LINKS.update({'NATIVE-LINK-29': ('FILES.ROUTES',
  'NATIVE-LINK-40': ('NATIVE.PhorgeGovernanceMediaResourceController',
                     'NATIVE.PhorgeGovernanceMediaHTTPResponse')})
 
+EXPECTED_SOURCES.update({'MAIL.ACTOR.QUERY': ('src/applications/metamta/query/PhabricatorMetaMTAActorQuery.php',
+                      'PhabricatorMetaMTAActorQuery',
+                      'native-recipient-deliverability'),
+ 'MAIL.DELIVERY.API': ('src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php',
+                       'PhabricatorMailDeliveryConduitAPIMethod',
+                       'service-authenticated-email-attempt'),
+ 'MAIL.MESSAGE.ENGINE': ('src/applications/metamta/engine/PhabricatorMailEmailEngine.php',
+                         'PhabricatorMailEmailEngine',
+                         'native-email-message-construction'),
+ 'MAIL.MODULAR.EVENT.SOURCE': ('src/applications/transactions/storage/PhabricatorModularTransactionType.php',
+                               'PhabricatorModularTransactionType',
+                               'read-only-transaction-source-identity'),
+ 'MAIL.OUTBOUND': ('src/applications/metamta/storage/PhabricatorMetaMTAMail.php',
+                   'PhabricatorMetaMTAMail',
+                   'immutable-native-mail-and-attempt-gate'),
+ 'MAIL.PEOPLE.FLOW.ENGINE': ('src/applications/people/mail/PhabricatorPeopleMailEngine.php',
+                             'PhabricatorPeopleMailEngine',
+                             'native-security-producer-flow-binding'),
+ 'MAIL.TRANSACTION.PRODUCER': ('src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php',
+                               'PhabricatorApplicationTransactionEditor',
+                               'native-business-mail-producer'),
+ 'MAIL.USER.RENAME.SOURCE': ('src/applications/people/xaction/PhabricatorUserUsernameTransaction.php',
+                             'PhabricatorUserUsernameTransaction',
+                             'native-security-transaction-source'),
+ 'NATIVE.PhorgePrivateMailConfigOptions': ('src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php',
+                                           'PhorgePrivateMailConfigOptions',
+                                           'default-off-private-email-configuration'),
+ 'NATIVE.PhorgePrivateMailPolicy': ('src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php',
+                                    'PhorgePrivateMailPolicy',
+                                    'current-recipient-private-email-policy')})
+EXPECTED_LINKS.update({'NATIVE-LINK-50': ('MAIL.TRANSACTION.PRODUCER', 'MAIL.OUTBOUND'),
+ 'NATIVE-LINK-51': ('MAIL.OUTBOUND', 'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-52': ('NATIVE.PhorgePrivateMailConfigOptions',
+                    'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-53': ('MAIL.DELIVERY.API', 'MAIL.OUTBOUND'),
+ 'NATIVE-LINK-54': ('MAIL.OUTBOUND', 'MAIL.ACTOR.QUERY'),
+ 'NATIVE-LINK-55': ('MAIL.OUTBOUND', 'MAIL.MESSAGE.ENGINE'),
+ 'NATIVE-LINK-56': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO'),
+ 'NATIVE-LINK-57': ('MAIL.USER.RENAME.SOURCE', 'MAIL.MODULAR.EVENT.SOURCE'),
+ 'NATIVE-LINK-58': ('MAIL.USER.RENAME.SOURCE', 'MAIL.PEOPLE.FLOW.ENGINE'),
+ 'NATIVE-LINK-59': ('MAIL.PEOPLE.FLOW.ENGINE',
+                    'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-60': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php', 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php', 'src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php'])
+
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
 # Explicitly reviewed form provenance and final-effect references; never authority proof.
@@ -364,6 +409,12 @@ def keyed(rows, message):
                 row['id'] not in result, message)
         result[row['id']] = row
     return result
+
+EXPECTED_SOURCES.update({'RECOVERY.PhorgeGovernanceRecoverySourceInventory': ('src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php', 'PhorgeGovernanceRecoverySourceInventory', 'isolated-account-capture-not-recovery-authority'), 'RECOVERY.PhorgeRecoveryNativeAccountFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php', 'PhorgeRecoveryNativeAccountFacts', 'isolated-account-capture-not-recovery-authority'), 'RECOVERY.PhorgeRecoveryNativeCaptureScope': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php', 'PhorgeRecoveryNativeCaptureScope', 'isolated-account-capture-not-recovery-authority')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php'])
+
+EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryNativeWebFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php', 'PhorgeRecoveryNativeWebFacts', 'untrusted-web-storage-decoder-no-recovery-authority')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php'])
 
 def validate(data, root):
     root = Path(root)

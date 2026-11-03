@@ -106,6 +106,7 @@ final class PhabricatorPeopleEmailLoginMailEngine
     $body = implode("\n\n", $body);
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject($subject)
       ->setBody($body);
   }

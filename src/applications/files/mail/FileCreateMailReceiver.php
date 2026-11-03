@@ -45,6 +45,7 @@ final class FileCreateMailReceiver
     $body->addTextSection(pht('FILE LINKS'), implode("\n", $file_uris));
 
     id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addTos(array($sender->getPHID()))
       ->setSubject($subject)
       ->setSubjectPrefix($subject_prefix)

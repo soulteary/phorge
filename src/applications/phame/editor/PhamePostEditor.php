@@ -76,6 +76,7 @@ final class PhamePostEditor
     $title = $object->getTitle();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject($title);
   }
 

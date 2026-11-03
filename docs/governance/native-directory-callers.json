@@ -678,6 +678,160 @@
       "authority_proof": false
     },
     {
+      "id": "NATIVE.PhorgePrivateMailPolicy",
+      "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
+      "symbol": "PhorgePrivateMailPolicy",
+      "kind": "current-recipient-private-email-policy",
+      "sha256": "cc5a2f49840929b72a698202f448c4f2511c9ab3b8a89a964b2104dc4a274ecb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgePrivateMailConfigOptions",
+      "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
+      "symbol": "PhorgePrivateMailConfigOptions",
+      "kind": "default-off-private-email-configuration",
+      "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.OUTBOUND",
+      "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
+      "symbol": "PhabricatorMetaMTAMail",
+      "kind": "immutable-native-mail-and-attempt-gate",
+      "sha256": "a8f572501fb6c76f83ac2c30c891a16003c23ab15f9c2d38e26b4ad854983a5b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.DELIVERY.API",
+      "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",
+      "symbol": "PhabricatorMailDeliveryConduitAPIMethod",
+      "kind": "service-authenticated-email-attempt",
+      "sha256": "99488d39431c1a30d38d90d6a0394d9554e9da82ca3ea87c7fd6b3b2afea2e90",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.MESSAGE.ENGINE",
+      "path": "src/applications/metamta/engine/PhabricatorMailEmailEngine.php",
+      "symbol": "PhabricatorMailEmailEngine",
+      "kind": "native-email-message-construction",
+      "sha256": "982defa48c503da3720840e89c3686a8e847fcb8b2b91c2fbe59efeea91874a6",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.ACTOR.QUERY",
+      "path": "src/applications/metamta/query/PhabricatorMetaMTAActorQuery.php",
+      "symbol": "PhabricatorMetaMTAActorQuery",
+      "kind": "native-recipient-deliverability",
+      "sha256": "cb2cc84c77e191a72d217563c917c984b90aebe1b53619b32d4d3321baa24d09",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.TRANSACTION.PRODUCER",
+      "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
+      "symbol": "PhabricatorApplicationTransactionEditor",
+      "kind": "native-business-mail-producer",
+      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.PEOPLE.FLOW.ENGINE",
+      "path": "src/applications/people/mail/PhabricatorPeopleMailEngine.php",
+      "symbol": "PhabricatorPeopleMailEngine",
+      "kind": "native-security-producer-flow-binding",
+      "sha256": "26287542eb68899043ebecf12a24c589858c01917df2efd0dc4a64aff2dc355f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.USER.RENAME.SOURCE",
+      "path": "src/applications/people/xaction/PhabricatorUserUsernameTransaction.php",
+      "symbol": "PhabricatorUserUsernameTransaction",
+      "kind": "native-security-transaction-source",
+      "sha256": "2be81868a0d865c01a02c09a6d12197a0bf3602c3b96e01b128859aad2106356",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.MODULAR.EVENT.SOURCE",
+      "path": "src/applications/transactions/storage/PhabricatorModularTransactionType.php",
+      "symbol": "PhabricatorModularTransactionType",
+      "kind": "read-only-transaction-source-identity",
+      "sha256": "7a563d43d67d29ab886c251e185542b44c8dc7d73096408dc436bcabff5786af",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeGovernanceRecoverySourceInventory",
+      "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php",
+      "symbol": "PhorgeGovernanceRecoverySourceInventory",
+      "kind": "isolated-account-capture-not-recovery-authority",
+      "sha256": "2839d8bc66db7127da8be8e6518631f83cdd845811a8ea8964b5d1618e089f1b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeAccountFacts",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php",
+      "symbol": "PhorgeRecoveryNativeAccountFacts",
+      "kind": "isolated-account-capture-not-recovery-authority",
+      "sha256": "d7b7426ed5a265e4767882665ac49a639c666e5de4747c3576e7392b49c74660",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeCaptureScope",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
+      "symbol": "PhorgeRecoveryNativeCaptureScope",
+      "kind": "isolated-account-capture-not-recovery-authority",
+      "sha256": "f13b6abc4811f89d1b7e52be9c96376f7bfe863ee69f555c5522ec1e811779fb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeWebFacts",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
+      "symbol": "PhorgeRecoveryNativeWebFacts",
+      "kind": "untrusted-web-storage-decoder-no-recovery-authority",
+      "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
       "id": "VIEW.FORM.PROJECT.CONTROLLER",
       "path": "src/applications/project/controller/PhabricatorProjectEditController.php",
       "symbol": "PhabricatorProjectEditController",
@@ -715,7 +869,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
       "symbol": "PhorgeProjectExecutionCatalog",
       "kind": "scoped-native-form-envelope-classifier",
-      "sha256": "35c0164f89f02bb8ba66f81068e5146e5a131a640fcce8d20cfa9b20fc90aa6e",
+      "sha256": "8dd9e6bb2890e5da77ac7977e4a9725c3266998055c673efbd096ace7d032e0a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -737,7 +891,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-filter-before-effect-hook",
-      "sha256": "1f526eb845a4efa4c98ea9d5ea7fbc6416c2159ce91794f69daf4f2f63a54c60",
+      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1160,6 +1314,94 @@
       "basis": "Explicit protected organization workflow/versioned source/current native viewer reference only; combined runtime and activation require separate gates."
     },
     {
+      "id": "NATIVE-LINK-50",
+      "from_id": "MAIL.TRANSACTION.PRODUCER",
+      "to_id": "MAIL.OUTBOUND",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-51",
+      "from_id": "MAIL.OUTBOUND",
+      "to_id": "NATIVE.PhorgePrivateMailPolicy",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-52",
+      "from_id": "NATIVE.PhorgePrivateMailConfigOptions",
+      "to_id": "NATIVE.PhorgePrivateMailPolicy",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-53",
+      "from_id": "MAIL.DELIVERY.API",
+      "to_id": "MAIL.OUTBOUND",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-54",
+      "from_id": "MAIL.OUTBOUND",
+      "to_id": "MAIL.ACTOR.QUERY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-55",
+      "from_id": "MAIL.OUTBOUND",
+      "to_id": "MAIL.MESSAGE.ENGINE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-56",
+      "from_id": "NATIVE.PhorgePrivateMailPolicy",
+      "to_id": "AUTH.USER.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-57",
+      "from_id": "MAIL.USER.RENAME.SOURCE",
+      "to_id": "MAIL.MODULAR.EVENT.SOURCE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
+    },
+    {
+      "id": "NATIVE-LINK-58",
+      "from_id": "MAIL.USER.RENAME.SOURCE",
+      "to_id": "MAIL.PEOPLE.FLOW.ENGINE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
+    },
+    {
+      "id": "NATIVE-LINK-59",
+      "from_id": "MAIL.PEOPLE.FLOW.ENGINE",
+      "to_id": "NATIVE.PhorgePrivateMailPolicy",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
+    },
+    {
+      "id": "NATIVE-LINK-60",
+      "from_id": "NATIVE.PhorgePrivateMailPolicy",
+      "to_id": "AUTH.USER.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
+    },
+    {
       "id": "VIEW-FORM-LINK-01",
       "from_id": "VIEW.FORM.PROJECT.CONTROLLER",
       "to_id": "VIEW.FORM.PROJECT.ENGINE",
@@ -1392,7 +1634,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
-        "sha256": "35c0164f89f02bb8ba66f81068e5146e5a131a640fcce8d20cfa9b20fc90aa6e"
+        "sha256": "8dd9e6bb2890e5da77ac7977e4a9725c3266998055c673efbd096ace7d032e0a"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigOptions.php",
@@ -1503,6 +1745,18 @@
         "sha256": "affcc1461b7591e922c5cd93c48132dff0868925defd8d3ba0ecd649a4a11344"
       },
       {
+        "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
+        "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
+        "sha256": "cc5a2f49840929b72a698202f448c4f2511c9ab3b8a89a964b2104dc4a274ecb"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php",
+        "sha256": "42e80142f41eb43f9c12d5193dd8901b4acf0cf7196bd964f613772a157375e1"
+      },
+      {
         "path": "src/infrastructure/governance/observation/PhorgeGovernanceNativeCapabilityContext.php",
         "sha256": "9a8258e28e1816681a94d80b01511e3a580a9a1840b2c04aeaf1933e86745df6"
       },
@@ -1541,6 +1795,22 @@
       {
         "path": "src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php",
         "sha256": "430c5826f8cdf6446a90beb4122582c6ff1cbbc8750faae52fb37e063bca6c9c"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php",
+        "sha256": "2839d8bc66db7127da8be8e6518631f83cdd845811a8ea8964b5d1618e089f1b"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php",
+        "sha256": "d7b7426ed5a265e4767882665ac49a639c666e5de4747c3576e7392b49c74660"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
+        "sha256": "f13b6abc4811f89d1b7e52be9c96376f7bfe863ee69f555c5522ec1e811779fb"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
+        "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4"
       }
     ]
   }

@@ -286,6 +286,31 @@ final class PhorgeGovernanceCompletionFixture {
   public function getNamespace() { return $this->namespace; }
   public function getAdmin() { $this->assertOwned(); return $this->connections['setup']; }
   public function getWriterConfig() { $this->assertOwned(); return $this->configs['writer']; }
+  /** Optional physical-mail fixture account; never grants native authority reads. */
+  public function createPrivateMailerPrincipal() {
+    $this->assertOwned();
+    $tables=array($this->table('metamta','gorge_mail_delivery'),
+      $this->table('metamta','gorge_mail_attempt'));
+    $user='gov_c_mailer_'.bin2hex(random_bytes(6));
+    $password=bin2hex(random_bytes(24));
+    $driver=new mysqli_driver();$old_report=$driver->report_mode;
+    mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
+    try{
+      if($this->control->query("CREATE USER '".$user."'@'%' IDENTIFIED BY '".$password."'")!==true){
+        throw new RuntimeException('Private mail principal creation refused.');
+      }
+      // Register only after successful CREATE: failed name collisions are unowned.
+      $this->createdUsers[]=$user;
+      foreach($tables as$table){
+        if($this->control->query('GRANT SELECT, INSERT, UPDATE, DELETE ON '.$table.
+            " TO '".$user."'@'%'")!==true){
+          throw new RuntimeException('Private mail principal grant refused.');
+        }
+      }
+    }finally{mysqli_report($old_report);}
+    return array('host'=>$this->host,'port'=>$this->port,
+      'database'=>$this->namespace.'_metamta','user'=>$user,'password'=>$password);
+  }
   public function getReaderConfig() { $this->assertOwned(); return $this->configs['reader']; }
   public function getBaselineIDs() { $this->assertOwned(); return $this->baseline; }
   public function table($app,$table) {

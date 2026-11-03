@@ -200,6 +200,7 @@ final class ConpherenceEditor extends PhabricatorApplicationTransactionEditor {
     }
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("Z{$id}: {$title}");
   }
 

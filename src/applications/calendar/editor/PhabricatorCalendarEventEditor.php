@@ -329,6 +329,7 @@ final class PhabricatorCalendarEventEditor
     $monogram = $object->getMonogram();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("{$monogram}: {$name}");
   }
 

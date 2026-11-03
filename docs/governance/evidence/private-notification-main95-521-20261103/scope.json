@@ -1,0 +1,17 @@
+{
+  "source_checkpoint": "6e9b39c29e",
+  "main_baseline": "32fc7b692ebb61decbab7163914c4d838a251a73",
+  "notification_component": "8bf760a11d3aeb870a4ef656398db960477d4993",
+  "pure_methods": 175,
+  "SQL_checks": 521,
+  "Python_gate_tests": 96,
+  "missing_mandatory_obligations_added": 25,
+  "runtime_files_with_PSL": 5922,
+  "current_main18e_not_yet_integrated": true,
+  "current_union_SMTP_verified": false,
+  "old_component_wire_proofs_not_substituted": true,
+  "optional_features_enabled": false,
+  "deployment": false,
+  "permission_migration": false,
+  "global_completion": false
+}

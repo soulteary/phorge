@@ -152,6 +152,7 @@ final class PhabricatorMailManagementSendTestWorkflow
     $body = file_get_contents('php://stdin');
 
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addCCs($ccs)
       ->setSubject($subject)
       ->setBody($body)

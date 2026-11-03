@@ -506,6 +506,7 @@ EOBODY
       $headers);
 
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setIsErrorEmail(true)
       ->setSubject($title)
       ->addTos(array($viewer->getPHID()))

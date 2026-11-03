@@ -182,7 +182,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "2c262bf4637684fbe6d125b8850995c221720b7bd4e7560128e682145ec26ff8"
+      "sha256": "1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919"
     },
     {
       "id": "PROJECT.MEMBER.INVERSE",
@@ -339,7 +339,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "8f5f433dd42dab2b37a12d3e51edf1d8f6c96dac456efe8dc91ef5ed45770f19"
+      "sha256": "4f74bd7f08c63588ee0dd10fbb0b5f31a8222a37f6627d79485b8c8dec8f4bc7"
     },
     {
       "id": "TASK.EDIT.CONDUIT",
@@ -580,7 +580,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "adf9d23e8cb3d687c9428dc9fbd515cbf4cf2f3a0f6d41dfff3097fcace5b178"
+      "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d"
     },
     {
       "id": "WIKI.EDIT.CONDUIT",
@@ -842,7 +842,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "1f526eb845a4efa4c98ea9d5ea7fbc6416c2159ce91794f69daf4f2f63a54c60"
+      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84"
     },
     {
       "id": "TRANSACTION.EDIT.ENGINE",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4464,
-    "source_snapshot_sha256": "413743b4923202b06d304534e19fada130fc960146a41038615f7ccc4db45305",
+    "source_snapshot_sha256": "95b58e74286fbc70b67d7be04f3d713763535fcd688e28ad3123a566b10508a0",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -1550,7 +1550,7 @@
       {
         "id": "CALL-d0220256e8df86e6",
         "path": "src/applications/auth/controller/PhabricatorAuthRegisterController.php",
-        "sha256": "2debb9ad18dd847a5ee1f8fb189c4eb3567c9aac0341847d1ba90f33c6efe074",
+        "sha256": "c66ba8947af4800ed897e09a3b5a34175115b9d4e3a3fda4d68162817d53b8d0",
         "matches": [
           {
             "pattern": "transaction_apply",
@@ -1784,7 +1784,7 @@
       {
         "id": "CALL-5f366e42601ea9ea",
         "path": "src/applications/badges/editor/PhabricatorBadgesEditor.php",
-        "sha256": "d82c071cf5a81bb4f72b1d1bf4182b99bd29077e07a23bf4f6bc71418b1683dd",
+        "sha256": "eed4d502cafa4b103de4d945478f0d0a30a5ed3aa99586fff62ceb8b3a9286e1",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -1931,7 +1931,7 @@
       {
         "id": "CALL-e8c62278ab9ca3ec",
         "path": "src/applications/calendar/editor/PhabricatorCalendarEventEditor.php",
-        "sha256": "84e40aa3e0c8cc2645384c52ba6ce6090ea08c3421bb90c229646291dc44cb41",
+        "sha256": "e33992c45d2fdb14398764cb98d6e60cd3face10f1011008acb7a208682e2a98",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -2103,7 +2103,7 @@
       {
         "id": "CALL-ae607ad66528dd64",
         "path": "src/applications/conpherence/editor/ConpherenceEditor.php",
-        "sha256": "01e4d7445dab5ea966b994ef1f85c660bce754ecb2ca44e93d91ea2d97f6a170",
+        "sha256": "021527b1d7cd91fe5fcafcc19c551858e10033ba5da0d93b1ff24cd4469a313e",
         "matches": [
           {
             "pattern": "transaction_apply",
@@ -2162,7 +2162,7 @@
       {
         "id": "CALL-3e6e8f2460673004",
         "path": "src/applications/countdown/editor/PhabricatorCountdownEditor.php",
-        "sha256": "8661ba1e158720f31dea92757bc68374bf1edd209af492efcc6a0539f5086d90",
+        "sha256": "5a0a762eb1f07948da189e841fceca52b1898e493782f94435b803a1aad2592d",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -2439,7 +2439,7 @@
       {
         "id": "CALL-4f7b6d1a1d12bdeb",
         "path": "src/applications/files/editor/PhabricatorFileEditor.php",
-        "sha256": "0830739e9f2330e773288fba79a51e28a27c42e94c31da77264205a49ca4ae2a",
+        "sha256": "8cd85a17532df795392956d4bdb607f79af4a9ea30d6dfa18ed5b3df070d2c34",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -2531,7 +2531,7 @@
       {
         "id": "CALL-93131038a557cb99",
         "path": "src/applications/legalpad/editor/LegalpadDocumentEditor.php",
-        "sha256": "098db358ddeeb507746fff0303b3cd35cb20212ebe5aeb8ef56825eff1693f38",
+        "sha256": "d6c1449b9385f488a02ad24cb633e29f0da96551857122e3d63b75a8e5cfcba1",
         "matches": [
           {
             "pattern": "edge_writer",
@@ -2732,7 +2732,7 @@
       {
         "id": "CALL-c3cf95c5d6e3eaa9",
         "path": "src/applications/maniphest/editor/ManiphestTransactionEditor.php",
-        "sha256": "8f5f433dd42dab2b37a12d3e51edf1d8f6c96dac456efe8dc91ef5ed45770f19",
+        "sha256": "4f74bd7f08c63588ee0dd10fbb0b5f31a8222a37f6627d79485b8c8dec8f4bc7",
         "matches": [
           {
             "pattern": "transaction_apply",
@@ -2895,12 +2895,12 @@
       {
         "id": "CALL-498284c44ec14d0b",
         "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
-        "sha256": "b4bc171c495a2793a5386e00564b452576ccdb725bcc21c38dcb58e8aa0660af",
+        "sha256": "a8f572501fb6c76f83ac2c30c891a16003c23ab15f9c2d38e26b4ad854983a5b",
         "matches": [
           {
             "pattern": "edge_writer",
             "lines": [
-              519
+              544
             ]
           }
         ]
@@ -3520,7 +3520,7 @@
       {
         "id": "CALL-9209db2482f9b760",
         "path": "src/applications/phame/editor/PhameBlogEditor.php",
-        "sha256": "e4badd8c33f00270edc431e673bdbfc62ba24d271c1fd24ec7574c64c787c9c6",
+        "sha256": "bd9ca768e5a986b35f6083758e17bcf6fc16ded75482fa6e07c0bda710971d32",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -3614,7 +3614,7 @@
       {
         "id": "CALL-52c6c49dcdd339e0",
         "path": "src/applications/pholio/editor/PholioMockEditor.php",
-        "sha256": "b6ccb788189bb6b506ad531547e570f38be943ffdd569e9a948f80acc9b79e5b",
+        "sha256": "803935d88ef43f6e1d3b9407e33f36cb7983fb11036500c570074fc5f1cbd5ad",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -3826,7 +3826,7 @@
       {
         "id": "CALL-397ecc805a038eab",
         "path": "src/applications/phriction/editor/PhrictionTransactionEditor.php",
-        "sha256": "adf9d23e8cb3d687c9428dc9fbd515cbf4cf2f3a0f6d41dfff3097fcace5b178",
+        "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d",
         "matches": [
           {
             "pattern": "transaction_apply",
@@ -3880,7 +3880,7 @@
       {
         "id": "CALL-c8a90c52d9ac9c09",
         "path": "src/applications/phurl/editor/PhabricatorPhurlURLEditor.php",
-        "sha256": "811af90630e90306ec8d421b4cec20172853791917fc6202392b73f700e2fb36",
+        "sha256": "baebae357cafb543894debbc5b3a981959fcd6e264e437f2e1ae3026118f7471",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -3922,7 +3922,7 @@
       {
         "id": "CALL-5992ea1290ff9a7c",
         "path": "src/applications/policy/editor/PhorgePolicyNamedPolicyTransactionEditor.php",
-        "sha256": "4c6c18fbfdb4825b1019678c336f4848e7ac8d484f8e18ab6ad3dd3f6c807cd9",
+        "sha256": "beb67ec39fcbb0a1e6e6042e4e75b344c846a7b25a823e80be61e44fd9fd5772",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -4015,7 +4015,7 @@
       {
         "id": "CALL-177b030fe0f7244f",
         "path": "src/applications/ponder/editor/PonderQuestionEditor.php",
-        "sha256": "3be105c7a27f8c0e84b02a4adeff6cb34c963dfb21ff68de33a3eb245a85c9ef",
+        "sha256": "db66f161f61daabc50cef590ebf271af8879943890cce646c5c231efdb596b73",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -4544,21 +4544,21 @@
       {
         "id": "CALL-ad9c861b073f0418",
         "path": "src/applications/project/editor/PhabricatorProjectTransactionEditor.php",
-        "sha256": "2c262bf4637684fbe6d125b8850995c221720b7bd4e7560128e682145ec26ff8",
+        "sha256": "1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919",
         "matches": [
           {
             "pattern": "edge_writer",
             "lines": [
-              246
+              247
             ]
           },
           {
             "pattern": "member_edge",
             "lines": [
               96,
-              220,
-              237,
-              366
+              221,
+              238,
+              367
             ]
           },
           {
@@ -4888,7 +4888,7 @@
       {
         "id": "CALL-a3fe10ce99533953",
         "path": "src/applications/slowvote/editor/PhabricatorSlowvoteEditor.php",
-        "sha256": "f7014c1791f7ee717ea1b6de382f4a0d3534222e7f3030e5873f8960eb1ccf8b",
+        "sha256": "4d6817e0ca4544a4a52968de393f103ba8a73d43fd13a6d7a0efc7f633f73a23",
         "matches": [
           {
             "pattern": "policy_transaction",
@@ -5277,15 +5277,15 @@
       {
         "id": "CALL-f116bd8b9b12fc59",
         "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
-        "sha256": "1f526eb845a4efa4c98ea9d5ea7fbc6416c2159ce91794f69daf4f2f63a54c60",
+        "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
               1187,
               1524,
-              4508,
-              4998
+              4509,
+              4999
             ]
           },
           {
@@ -5338,14 +5338,14 @@
               1896,
               2169,
               2906,
-              4040,
-              4411,
-              4951,
-              4967,
-              5456,
-              5505,
-              5523,
-              5542
+              4041,
+              4412,
+              4952,
+              4968,
+              5457,
+              5506,
+              5524,
+              5543
             ]
           }
         ]

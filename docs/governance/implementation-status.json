@@ -498,5 +498,27 @@
     "database_clock_modified": false,
     "future_live_dst_transition_execution_proved": false,
     "evidence": "docs/governance/evidence/organization-dst-190-557-20261103"
+  },
+  "private_email_notification_candidate": {
+    "scope": "native link-only envelope, current native recipient/object query, immutable legacy quarantine; paired Go per-physical-attempt callback implementation",
+    "default_enabled": false,
+    "native_envelope_checks": 302,
+    "pure_methods": 148,
+    "paired_go_packages": 40,
+    "evidence": "docs/governance/evidence/private-notification-native-main-302-20261103/validation-index.json",
+    "source_catalog": "docs/governance/private-notification-producers.json",
+    "physical_smtp_acceptance": false,
+    "all_producer_runtime_matrix_complete": false,
+    "production_activation": false,
+    "global_completion": false,
+    "component_evidence_is_not_current_union": true
+  },
+  "pending_combination": {
+    "status": "not-runtime-validated",
+    "main_merge_commit": "18e7d018e5ecbbc2cf449494ed4060f92e575189",
+    "notification_source_checkpoint": "8bf760a11d3aeb870a4ef656398db960477d4993",
+    "component_receipts_are_not_combined_evidence": true,
+    "combined_actual_counts": null,
+    "wire_browser_and_activation": false
   }
 }

@@ -453,6 +453,24 @@ HTTP_REQUIRED_CHECKS=frozenset({'native-media-active-html-forced-attachment-octe
  'native-media-valid-bearer-file-key-alone-never-authorizes-bytes',
  'native-media-valid-other-user-cookie-does-not-grant-file-permission'})
 REQUIRED_CHECKS=REQUIRED_CHECKS|HTTP_REQUIRED_CHECKS
+# Actual prior isolated N11 checks; combined main receipt is required before acceptance.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['completion-real-gorge-taskqueue-ready-loopback',
+ 'private-mail-cached-snapshot-quarantined-without-immutable-rewrite',
+ 'private-mail-current-disabled-recipient-cannot-use-business-mail',
+ 'private-mail-current-native-file-query-revocation-stops-existing-snapshot',
+ 'private-mail-fresh-native-task-space-query-restores-request-cache',
+ 'private-mail-immutable-gorge-snapshot-generic-subject-body-headers',
+ 'private-mail-mutated-physical-payload-refused',
+ 'private-mail-owned-queue-cleanup',
+ 'private-mail-physical-attempt-binds-actual-current-recipient-object-and-message',
+ 'private-mail-real-config-default-off',
+ 'private-mail-real-owned-queue-ready-no-workers',
+ 'private-mail-real-persisted-business-envelope-no-private-bytes',
+ 'private-mail-regrant-cannot-resurrect-quarantined-immutable-delivery',
+ 'private-mail-space-revocation-cannot-reuse-stale-native-request-cache',
+ 'private-mail-unreviewed-producer-fails-closed',
+ 'private-mail-unsafe-legacy-snapshot-never-upgraded-or-resent'])
+
 # Exact PR94 review regressions; no new passing receipt exists until fresh runtime.
 REQUIRED_CHECKS=REQUIRED_CHECKS|frozenset({
  'native-handover-manual-confirmation-binds-two-observed-receipt-and-handover-versions',
@@ -808,9 +826,30 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | VIEW_FORM_CHECKS
 NATIVE['project_execution_tests']['native_policy_proposal_form'] = {'actual_native_controller_form': True, 'actual_chinese_form_render': True, 'policy_options_use_current_actor': True, 'actual_native_post_csrf': True, 'server_typed_view_intent': True, 'legacy_edit_meaning_retained': True, 'existing_json_controller_compatible': True, 'admin_history_gate_retained': True, 'native_self_view_validator_retained': True, 'actual_http_server': False, 'browser_proved': False}
 
 VIEW_EDIT_ROUTE_CHECKS = frozenset(['project-view-form-policy-options-render-under-current-space-cache-without-space-mutation-control', 'project-view-default-edit-controller-real-route-get-renders-native-fields-and-ticket-input', 'project-view-default-edit-controller-real-post-without-csrf-refused-without-write', 'project-view-default-edit-controller-second-actual-change-refuses-whole-transition', 'project-view-default-edit-controller-edit-ticket-cannot-authorize-view-form', 'project-view-default-edit-controller-noone-still-renders-native-self-view-validation', 'project-view-default-edit-controller-get-to-post-native-view-record-ticket-commit', 'project-view-default-edit-controller-provenance-and-native-locks-released'])
+VIEW_EDIT_ROUTE_CHECKS = VIEW_EDIT_ROUTE_CHECKS | frozenset(['project-view-default-edit-controller-native-content-only-post-needs-no-policy-ticket', 'project-view-default-edit-controller-empty-submit-retains-native-no-effect', 'project-view-default-edit-controller-join-change-and-forged-default-flags-refused-before-effects'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | VIEW_EDIT_ROUTE_CHECKS
 NATIVE['project_execution_tests']['native_policy_proposal_form'].update(policy_options_use_current_spaces=True,space_mutation_control_hidden=True,native_policy_behavior_metadata_checked=True)
 NATIVE['project_execution_tests']['native_default_policy_edit_form'] = {'actual_platform_routing': True, 'actual_default_edit_controller_get_post': True, 'native_field_generation_and_filtering_retained': True, 'single_effect_after_native_filter': True, 'caller_default_flag_authority': False, 'actual_http_server': False, 'browser_proved': False}
+NATIVE['project_execution_tests']['native_default_policy_edit_form'].update(native_content_only_post_retained=True,native_no_effect_post_retained=True,unsupported_join_post_refused_early=True)
+
+# R02.1 records actual current account observations only. All source families
+# remain incomplete and this summary cannot be promoted into a recovery permit.
+NATIVE['recovery_account_capture_tests'] = {
+    'actual_account_adapter': True, 'source_writes_by_capture': False,
+    'all_sources_complete': False, 'can_execute': False,
+    'other_twelve_families_complete': False}
+RECOVERY_ACCOUNT_CHECKS = frozenset(['recovery-account-uninitialized-actor-refused-without-initialization', 'recovery-account-unknown-refusal-no-source-write-or-open-transaction', 'recovery-account-real-storage-capture-keeps-absence-and-thirteen-family-block', 'recovery-account-success-no-hidden-epoch-initialization', 'recovery-account-outer-transaction-refused', 'recovery-account-refusal-does-not-end-or-rollback-caller-transaction', 'recovery-account-untracked-physical-outer-transaction-refused-without-rollback', 'recovery-account-real-native-disable-enable-aba-is-observable-not-recovery-authority', 'recovery-account-real-current-nonadmin-cannot-capture', 'recovery-account-missing-actual-source-table-refused-with-owned-transaction-cleanup'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | RECOVERY_ACCOUNT_CHECKS
+
+
+# Direct stored web/temporary rows are observed, not certified usable/recoverable.
+NATIVE['recovery_web_capture_tests'] = {
+    'actual_native_session_producer': True, 'actual_native_logout': True,
+    'actual_native_one_time_token_producer': True, 'actual_native_single_token_revoke': True,
+    'actual_password_controller_or_oauth_complete': False, 'web_family_complete': False,
+    'all_sources_complete': False, 'can_execute': False, 'source_writes_by_capture': False}
+RECOVERY_WEB_CHECKS = frozenset(['recovery-web-real-full-partial-expired-and-foreign-session-observations', 'recovery-web-native-token-and-session-keys-are-not-returned', 'recovery-web-real-single-session-logout-is-observed-without-global-revocation', 'recovery-web-real-logout-and-reissue-changes-credential-set-binding', 'recovery-web-real-native-one-time-token-is-captured-without-code-or-uri', 'recovery-web-real-single-temporary-token-revocation-is-observed', 'recovery-web-unknown-kind-email-resource-and-foreign-owner-remain-partial', 'recovery-web-native-account-aba-is-distinct-from-retained-credential-rows', 'recovery-web-selected-session-row-budget-refuses-before-payload-fetch', 'recovery-web-oversized-native-property-fixture-is-really-oversized', 'recovery-web-temporary-property-byte-budget-refuses-before-payload-fetch', 'recovery-web-aggregate-selected-property-byte-budget-refuses-before-payload-fetch', 'recovery-web-budget-refusals-release-owned-scope-without-source-poisoning'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | RECOVERY_WEB_CHECKS
 
 def exact_tree(actual, expected):
     if type(actual) is not type(expected):
@@ -822,6 +861,159 @@ def exact_tree(actual, expected):
             exact_tree(actual[key], expected[key])
     elif actual != expected:
         raise ValueError('evidence scope or result refused')
+
+
+# Explicit N12 Query-only producer obligations, not an adopted revocation SLA.
+MEASUREMENT_CHECKS = frozenset({
+    'n12-native-query-independent-current-session-pretransition-allow',
+    'n12-native-policy-transition-returns-only-after-owned-transaction-commit',
+    'n12-native-transition-record-and-group-persisted-with-actual-view-policy',
+    'n12-independent-fresh-native-query-observes-committed-source-and-denial',
+    'n12-query-attempts-use-serial-parent-clock-around-actual-commit',
+})
+REQUIRED_CHECKS = REQUIRED_CHECKS | MEASUREMENT_CHECKS
+WORKERS = 22
+_measurement_spec = importlib.util.spec_from_file_location('n12_observation_consumer', ROOT/'support/governance/revocation-measurement/consumer.py')
+measurement = importlib.util.module_from_spec(_measurement_spec)
+_measurement_spec.loader.exec_module(measurement)
+MEASUREMENT_PRODUCER = 'support/governance/native-organization/revocation-measurement-cases.php'
+# Synthetic template used only by gate mutation tests, never an executed receipt.
+NATIVE['revocation_measurement_tests'] = {
+    'profile': 'native-session-authenticated-project-query-only', 'actual_source_checked': True,
+    'actual_independent_query_processes': 3, 'HTTP_proved': False, 'gateway_proved': False,
+    'long_connection_proved': False, 'SLA_proved': False, 'convergence_proved': False,
+    'native_source_binding_sha256': 'f'*64,
+    'event': {'schema': 1, 'source_revision': 'a'*40,
+        'producer_sha256': hashlib.sha256((ROOT/MEASUREMENT_PRODUCER).read_bytes()).hexdigest(),
+        'family': 'app-session', 'clock': {'kind': 'monotonic_ns', 'boot_id_sha256': 'b'*64},
+        'transition': {'id': 'c'*64, 'action': 'revoke', 'native_commit_id_sha256': 'd'*64,
+            'boundary': 'native-transaction-operation-call-return', 'operation_start_ns': 80,
+            'commit_confirmed_return_ns': 100},
+        'attempts': [{'id': i, 'transition_id': 'c'*64, 'boot_id_sha256': 'b'*64,
+                     'start_ns': start, 'finish_ns': end, 'outcome': outcome}
+            for i,start,end,outcome in [(1,10,20,'allowed'),(2,110,120,'denied'),(3,130,140,'denied')]]}}
+
+
+API_TOKEN_MEASUREMENT_PRODUCER = 'support/governance/native-organization/revocation-api-token-cases.php'
+API_TOKEN_MEASUREMENT_CHECKS = frozenset({
+    'n12-native-api-independent-real-token-authentication-pretransition-allow',
+    'n12-native-api-token-source-and-no-outer-transaction-proved',
+    'n12-native-api-actual-owned-token-dao-delete-commits-exactly-one-row',
+    'n12-native-api-independent-absence-and-native-authentication-denial-after-revoke',
+    'n12-native-api-serial-parent-clock-binds-actual-delete-and-fresh-authentication',
+})
+REQUIRED_CHECKS = REQUIRED_CHECKS | API_TOKEN_MEASUREMENT_CHECKS
+WORKERS = 25
+NATIVE['api_token_revocation_measurement_tests'] = {
+    'profile':'native-conduit-token-revoke-authentication-only','actual_source_checked':True,
+    'actual_independent_authentication_processes':3,'token_rows_deleted':1,
+    'native_transaction_record_available':False,'HTTP_proved':False,'gateway_proved':False,
+    'SLA_proved':False,'convergence_proved':False,'before_source_binding_sha256':'e'*64,
+    'after_source_binding_sha256':'f'*64,
+    'event':{'schema':2,'source_revision':'a'*40,
+        'producer_sha256':hashlib.sha256((ROOT/API_TOKEN_MEASUREMENT_PRODUCER).read_bytes()).hexdigest(),
+        'family':'api-token','clock':{'kind':'monotonic_ns','boot_id_sha256':'b'*64},
+        'transition':{'id':'c'*64,'action':'revoke','operation_binding_sha256':'c'*64,
+            'boundary':'native-token-dao-delete-own-transaction','operation_start_ns':80,
+            'commit_confirmed_return_ns':100},
+        'attempts':[{'id':i,'transition_id':'c'*64,'boot_id_sha256':'b'*64,
+                    'start_ns':start,'finish_ns':end,'outcome':outcome}
+            for i,start,end,outcome in [(1,10,20,'allowed'),(2,110,120,'denied'),(3,130,140,'denied')]]}}
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-admin-notice-current-demotion-blocks-existing-immutable-delivery',
+ 'private-mail-admin-queue-generic-body-subject-no-pending-account-disclosure',
+ 'private-mail-approval-demoted-admin-copy-refused-owner-security-notice-preserved',
+ 'private-mail-configured-cluster-routing-refused-before-native-authorization',
+ 'private-mail-email-verification-rotated-native-code-rejects-old-message',
+ 'private-mail-email-verification-unverified-native-address-and-real-code-preserved',
+ 'private-mail-native-account-secret-rotation-rejects-prepared-login-challenge',
+ 'private-mail-native-invite-regeneration-rejects-prior-challenge',
+ 'private-mail-native-primary-switch-retaining-old-address-refuses-bound-login-delivery',
+ 'private-mail-native-readonly-profile-refused-without-replica-fallback',
+ 'private-mail-no-primary-email-native-approval-commits-without-owner-notice',
+ 'private-mail-no-primary-email-native-rename-commits-without-owner-notice',
+ 'private-mail-no-primary-email-native-withdrawal-commits-without-owner-notice',
+ 'private-mail-real-email-verification-producer-single-native-message',
+ 'private-mail-real-invite-worker-native-code-and-current-author-bound',
+ 'private-mail-real-login-producer-retains-native-one-time-challenge',
+ 'private-mail-real-native-approval-transaction-owner-admin-separated-and-event-bound',
+ 'private-mail-real-native-username-transaction-binds-committed-user-event',
+ 'private-mail-real-registration-admin-notice-producer-splits-native-recipients',
+ 'private-mail-real-welcome-producer-retains-native-challenge-and-admin-binding',
+ 'private-mail-security-class-name-alone-cannot-authorize-legacy-challenge',
+ 'private-mail-security-user-edits-use-real-native-session-and-request',
+ 'private-mail-welcome-current-sender-administrator-required-after-prepare'])
+
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-invite-native-nonadmin-people-capability-granted', 'private-mail-invite-native-nonadmin-worker-prepares-genuine-challenge', 'private-mail-invite-legacy-admin-binding-must-equal-author-subject', 'private-mail-invite-current-capability-revocation-refuses-callback', 'private-mail-invite-regrant-cannot-revive-permanently-quarantined-snapshot', 'private-mail-invite-nonadmin-without-native-capability-refused', 'private-mail-invite-native-default-admin-still-authorized', 'private-mail-invite-custom-policy-admin-result-matches-real-native-capability', 'private-mail-invite-capability-does-not-authorize-admin-only-welcome'])
+
+NATIVE['private_mail_tests'] = {'actual_native_queue': True,
+ 'actual_native_source_and_object_query': True,
+ 'all_producers_runtime_complete': False,
+ 'physical_callback_runtime_complete': False,
+ 'real_business_serialization_and_legacy_quarantine': True,
+ 'security_challenge_runtime_matrix_complete': False,
+ 'smtp_or_delivery_workers_executed': False}
+
+NATIVE['private_mail_tests']['security_flow_tests'] = {'actual_login_welcome_email_verification_and_registration_producers': True,
+ 'actual_username_approval_transactions_and_invite_worker': True,
+ 'all_security_producer_runtime_complete': False,
+ 'current_admin_and_challenge_sources_checked': True,
+ 'legalpad_signature_delivery_supported': False,
+ 'registration_private_method_seam_not_full_registration_http': True,
+ 'smtp_security_matrix_complete': False}
+
+# Independently executed native producer and transaction-race obligations.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-approval-independent-admin-revoked-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-approval-independent-admin-revoked-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-previously-quarantined-message-never-auto-restores-after-source-repair',
+ 'private-mail-ssh-no-primary-create-does-not-authorize-undeliverable-notice',
+ 'private-mail-ssh-real-create-notice-current-owner-key-and-address-bound',
+ 'private-mail-ssh-real-rename-publisher-owner-notice-bound',
+ 'private-mail-ssh-revocation-alert-retains-native-inactive-key-history',
+ 'private-mail-ssh-withmail-native-reactivation-stays-refused',
+ 'private-mail-ssh-withmail-real-native-create-and-owned-publish-commit',
+ 'private-mail-ssh-withmail-real-native-rename-commits',
+ 'private-mail-ssh-withmail-real-native-revoke-commits',
+ 'private-mail-ssh-withoutmail-native-reactivation-stays-refused',
+ 'private-mail-ssh-withoutmail-real-native-create-and-owned-publish-commit',
+ 'private-mail-ssh-withoutmail-real-native-rename-commits',
+ 'private-mail-ssh-withoutmail-real-native-revoke-commits',
+ 'private-mail-user-event-present-hash-mismatch-is-permanent-denial-not-pending',
+ 'private-mail-username-independent-commit-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-commit-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-independent-recipient-revoked-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-recipient-revoked-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-independent-rollback-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-rollback-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-outer-native-rollback-orphan-notice-cannot-deliver',
+ 'private-mail-username-real-producer-created-mail-inside-outer-native-transaction',
+ 'private-mail-username-rolled-back-missing-source-remains-unprivileged-during-bounded-retry'])
+NATIVE['private_mail_tests']['remaining_producer_tests'] = {
+    'actual_ssh_create_rename_revoke_and_reactivation_checks': True,
+    'owned_publication_tasks_executed': 6,
+    'actual_native_username_outer_rollback_source_checked': True,
+    'ssh_login_or_cryptographic_handshake_proved': False,
+    'smtp_producer_matrix_complete': False,
+    'device_ssh_producer_matrix_complete': False,
+    'legalpad_supported_signer_flow': False,
+}
+NATIVE['private_mail_tests']['commit_race_tests'] = {
+    'independent_process_native_commit_race_reproduced': True,
+    'samples': {name: {'precommit_pending': True, 'precommit_quarantined': False,
+                       'postcompletion_allowed': name == 'commit'}
+                for name in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked')},
+    'production_fix_implemented': True,
+    'physical_smtp_race_proved': False,
+}
+
+
+# Durable callback denials must not revive after a later regrant.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-attempt-quarantine-persists-reload-with-immutable-snapshots',
+ 'private-mail-callback-and-direct-permanent-denial-quarantine-without-preparation',
+ 'private-mail-callback-only-regrant-cannot-revive-denied-delivery',
+ 'private-mail-malformed-attempt-payload-cannot-poison-current-mail',
+ 'private-mail-primary-email-aba-cannot-revive-quarantined-callback-delivery',
+ 'private-mail-primary-email-policy-change-denied-at-callback-without-prepare',
+ 'private-mail-unprepared-authorization-probe-does-not-quarantine'])
 
 
 def validate_restore(value, root):
@@ -851,13 +1043,14 @@ def validate_restore(value, root):
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source'])
 NATIVE['project_execution_tests']['approved_native_view_policy'] = {'native_view_only': True, 'future_approver_view_not_added': True, 'whole_family_ready': False, 'join_and_space_supported': False}
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-override-native-self-view-validator', 'project-view-approved-transition-may-remove-approver-future-view', 'project-view-approver-current-view-does-not-require-edit', 'project-view-history-still-requires-current-native-view', 'project-view-native-record-policy-ticket-audit-commit-together', 'project-view-native-writer-scope-released'])
 
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only'])
 NATIVE['project_execution_tests']['approved_native_view_policy'].update(actual_api_token_conduit_path=True,view_ticket_cannot_edit_policy=True)
 
-def validate(data, root=ROOT, file_digest=None):
+def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
     native=data['native']
@@ -874,6 +1067,16 @@ def validate(data, root=ROOT, file_digest=None):
     expected_native['http_tests']=dict(NATIVE['http_tests'])
     expected_native['http_tests']['file_guard_tests']=dict(NATIVE['http_tests']['file_guard_tests'])
     expected_native['http_tests']['file_guard_tests']['image_tests']=dict(NATIVE['http_tests']['file_guard_tests']['image_tests'],backend_revision_sha256=revision)
+    if type(measurement_revision) is not str or not re.fullmatch('[a-f0-9]{40}', measurement_revision):
+        raise ValueError('explicit measurement source revision required')
+    producer_digest=hashlib.sha256((Path(root)/MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
+    observed=native.get('revocation_measurement_tests')
+    measurement.describe_native_query_receipt(observed,measurement_revision,producer_digest)
+    expected_native['revocation_measurement_tests']=observed
+    token_observed=native.get('api_token_revocation_measurement_tests')
+    token_digest=hashlib.sha256((Path(root)/API_TOKEN_MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
+    measurement.describe_native_token_receipt(token_observed,measurement_revision,token_digest)
+    expected_native['api_token_revocation_measurement_tests']=token_observed
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',
@@ -917,6 +1120,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', type=Path, required=True)
     parser.add_argument('--file-binary', type=Path, required=True)
+    parser.add_argument('--measurement-source-revision', required=True)
     args=parser.parse_args()
     try:
         if args.receipt.stat().st_size > 1048576:
@@ -925,7 +1129,7 @@ def main():
             parse_constant=lambda unused: (_ for _ in ()).throw(ValueError('invalid JSON constant')))
         if not args.file_binary.is_file():
             raise ValueError('paired binary missing')
-        accepted=validate(data, file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest())
+        accepted=validate(data, file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest(), measurement_revision=args.measurement_source_revision)
     except (OSError, ValueError, TypeError, KeyError):
         parser.exit(1, 'Native organization receipt rejected.\n')
     print(json.dumps(accepted, sort_keys=True))

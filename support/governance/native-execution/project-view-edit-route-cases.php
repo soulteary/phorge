@@ -113,12 +113,37 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
       $row['editPolicy']===$a['viewer']->getPHID()&&$row['joinPolicy']===PhabricatorPolicies::POLICY_USER&&
       $stored['state']==='consumed'&&is_string($stored['nativeGroupID'])&&count($records)===1&&$records[0]['transactionType']===PhabricatorTransactions::TYPE_VIEW_POLICY,
       'project-view-default-edit-controller-get-to-post-native-view-record-ticket-commit');
+    // Continue through the same actual native GET/POST form, without a ticket,
+    // for ordinary content and native no-effect submission.
+    list(,$content_html)=$call($uri,'GET',array(),true);$content=$extract($content_html);
+    $content_before=$fingerprint();$content['name']='Synthetic native content-only edit';
+    list($content_response)=$call($uri,'POST',$content);
+    $content_after=$fingerprint();
+    $check($content_response instanceof AphrontRedirectResponse&&
+      $content_after[0]['name']==='Synthetic native content-only edit'&&
+      $content_after[0]['viewPolicy']===$content_before[0]['viewPolicy']&&
+      $content_after[0]['editPolicy']===$content_before[0]['editPolicy']&&
+      $content_after[0]['joinPolicy']===$content_before[0]['joinPolicy']&&
+      $content_after[2]===$content_before[2]&&$content_after[3]===$content_before[3],
+      'project-view-default-edit-controller-native-content-only-post-needs-no-policy-ticket');
+    list(,$empty_html)=$call($uri,'GET',array(),true);$empty=$extract($empty_html);$empty_before=$fingerprint();
+    list($empty_response)=$call($uri,'POST',$empty);
+    $check($empty_response instanceof AphrontRedirectResponse&&$fingerprint()===$empty_before,
+      'project-view-default-edit-controller-empty-submit-retains-native-no-effect');
+    $join=$empty;$join['policy.join']=PhabricatorPolicies::POLICY_ADMIN;
+    $join['core.default']='1';$join['governanceNativeForm']='1';$join_refused=false;
+    try{$call($uri,'POST',$join);}catch(RuntimeException$error){
+      if($error->getMessage()!=='project_execution_native_form_multiple_changes'){throw$error;}$join_refused=true;}
+    $check($join_refused&&$fingerprint()===$empty_before,
+      'project-view-default-edit-controller-join-change-and-forged-default-flags-refused-before-effects');
     $proofs=(new ReflectionProperty(PhorgeProjectExecutionCatalog::class,'nativeForms'))->getValue();
     $check(($proofs===null||count($proofs)===0)&&!$conn->isInsideTransaction()&&!$conn->isReadLocking()&&!$conn->isWriteLocking(),
       'project-view-default-edit-controller-provenance-and-native-locks-released');
     return array('actual_platform_routing'=>true,'actual_default_edit_controller_get_post'=>true,
       'native_field_generation_and_filtering_retained'=>true,'single_effect_after_native_filter'=>true,
-      'caller_default_flag_authority'=>false,'actual_http_server'=>false,'browser_proved'=>false);
+      'caller_default_flag_authority'=>false,'native_content_only_post_retained'=>true,
+      'native_no_effect_post_retained'=>true,'unsupported_join_post_refused_early'=>true,
+      'actual_http_server'=>false,'browser_proved'=>false);
   }finally{
     try{PhabricatorEnv::setLocaleCode($locale);}finally{PhutilTranslator::setInstance($translator);$_SERVER=$server;$_COOKIE=$cookies;$_POST=$post;
       $cache->setValue(null,$saved_cache);$celerity->setValue(null,$saved_celerity);}

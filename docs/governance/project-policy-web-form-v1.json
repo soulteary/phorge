@@ -67,5 +67,14 @@
     "real native language preference read through SessionEngine; no manually installed translation map substituted for native locale",
     "stale admin viewer created by owned DB mutation after native bootstrap; old viewer positive option control and fresh actor hidden-name absence",
     "existing web JSON legacy edit and v3 VIEW submit/approve/history with native CSRF and nonadmin history refusal"
-  ]
+  ],
+  "current_main_union": {
+    "base": "e5409ca89aff15126cf6bbf9dad2d92714d785cf",
+    "expected_pure_not_actual": 213,
+    "expected_SQL_not_actual": 735,
+    "host_governance_passed": 128,
+    "host_permissions_passed": 85,
+    "native_runtime_passed": false,
+    "HTTP_or_browser_proved": false
+  }
 }
