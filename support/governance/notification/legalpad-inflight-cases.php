@@ -17,7 +17,7 @@ function governance_private_mail_legalpad_inflight_cases($fixture,callable $chec
     $table=$kind==='secret'?'legalpad_documentsignature':'legalpad_document';
     $qualified=$fixture->table('legalpad',$table);$id=$kind==='secret'?$signature->getID():$doc->getID();
     try{
-      $query('START TRANSACTION');$locked=true;
+      if(!$setup->begin_transaction()){throw new RuntimeException('legalpad_inflight_transaction_start_failed');}$locked=true;
       $row=$query('SELECT id FROM '.$qualified.' WHERE id=? FOR UPDATE',array($id));
       if(count($row)!==1){throw new RuntimeException('legalpad_inflight_lock_target_required');}
       $worker=governance_native_start_worker($fixture,array('action'=>'legalpad.verify','code'=>$code,'token'=>$auth['token']));
@@ -35,7 +35,7 @@ function governance_private_mail_legalpad_inflight_cases($fixture,callable $chec
       $newcode=$kind==='secret'?Filesystem::readRandomCharacters(20):$code;
       if($kind==='secret'){$query('UPDATE '.$qualified.' SET secretKey=? WHERE id=?',array($newcode,$id));}
       else{$query('UPDATE '.$qualified.' SET versions=? WHERE id=?',array((int)$version+1,$id));}
-      $changed=true;$query('COMMIT');$locked=false;
+      $changed=true;if(!$setup->commit()){throw new RuntimeException('legalpad_inflight_transaction_commit_failed');}$locked=false;
       $receipt=governance_native_finish_worker($worker);
       $stored=(new LegalpadDocumentSignature())->load($signature->getID());
       if($kind==='secret'){
@@ -50,7 +50,7 @@ function governance_private_mail_legalpad_inflight_cases($fixture,callable $chec
         'private-mail-legalpad-real-inflight-'.$kind.'-change-after-independent-source-lock-wait-refuses-stale-consumption');
       $outcomes[$kind]=array('independent_process'=>true,'actual_lock_wait'=>true,'stale_consumption_refused'=>true);
     }finally{
-      if($locked){$query('ROLLBACK');}
+      if($locked&&!$setup->rollback()){throw new RuntimeException('legalpad_inflight_transaction_rollback_failed');}
       $cleanup=governance_native_cleanup_workers();
       if($changed){if($kind==='secret'){$query('UPDATE '.$qualified.' SET secretKey=? WHERE id=?',array($code,$id));}
         else{$query('UPDATE '.$qualified.' SET versions=? WHERE id=?',array($version,$id));}}
