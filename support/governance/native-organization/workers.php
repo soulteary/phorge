@@ -41,7 +41,7 @@ function governance_native_measurement_file_source($action,$value,$namespace,$ow
 
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
-  if (!in_array($action['action']??null,array('measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
+  if (!in_array($action['action']??null,array('recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
     throw new RuntimeException('native_worker_action_refused');
   }
   $path=sys_get_temp_dir().'/governance-native-worker-'.bin2hex(random_bytes(12));
@@ -89,6 +89,29 @@ function governance_native_start_worker($fixture,array $action) {
   return $GLOBALS['governance_native_workers'][$index];
 }
 
+/** Exact results for the two isolated stop-ledger actions, never generic reasons. */
+function governance_native_stop_worker_result($action, array $result) {
+  if (!in_array($action,array('recovery.stop.record','recovery.stop.history'),true)) {
+    throw new RuntimeException('native_stop_worker_action_refused');
+  }
+  $keys=array_keys($result);sort($keys);
+  if (($result['status']??null)==='rejected') {
+    if ($keys!==array('reason','status') || !in_array($result['reason'],
+        array('recovery_stop_admin_required','governance_native_credential_ineligible'),true)) {
+      throw new RuntimeException('native_stop_worker_result_refused');
+    }
+  } else if ($action==='recovery.stop.record') {
+    if ($keys!==array('recovery_authorized','replayed','status') || $result['status']!=='committed' ||
+        !is_bool($result['replayed']) || $result['recovery_authorized']!==false) {
+      throw new RuntimeException('native_stop_worker_result_refused');
+    }
+  } else if ($keys!==array('count','status') || $result['status']!=='committed' ||
+      !is_int($result['count']) || $result['count']<0 || $result['count']>1) {
+    throw new RuntimeException('native_stop_worker_result_refused');
+  }
+  return $result;
+}
+
 function governance_native_finish_worker(array &$handle) {
   $index=$handle['index']; $worker=&$GLOBALS['governance_native_workers'][$index];
   $deadline=microtime(true)+15;
@@ -104,6 +127,9 @@ function governance_native_finish_worker(array &$handle) {
   }
   $result=json_decode(file_get_contents($path),true,16,JSON_THROW_ON_ERROR);
   if (!is_array($result)) { throw new RuntimeException('native_worker_result_refused'); }
+  if(in_array($worker['action'],array('recovery.stop.record','recovery.stop.history'),true)){
+    return governance_native_stop_worker_result($worker['action'],$result);
+  }
   if($worker['action']==='legalpad.observe'){return governance_native_validate_legalpad_observation($result);}
   $keys=array_keys($result); sort($keys);
   if (($result['status']??null)==='rejected') {

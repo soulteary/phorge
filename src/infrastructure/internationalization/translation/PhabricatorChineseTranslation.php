@@ -20,6 +20,10 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Account Stop Audit' => '账号停用审计',
+      'Administrator classification of committed account stops.' => '由管理员为已提交的账号停用事件记录类别。',
+      'Record classifications of previously committed account stops.' => '记录已提交的账号停用事件类别。',
+      'Disabled by default. Recording a stop never enables an account or authorizes recovery.' => '默认关闭。记录停用事件不会启用账号，也不会授予恢复权限。',
       'Handover' => '交接',
       'Executed' => '已执行',
       'Keep' => '保留',

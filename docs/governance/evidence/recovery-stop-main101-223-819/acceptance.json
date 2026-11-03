@@ -1,0 +1,50 @@
+{
+  "source_head": "a8bd344b6f1ffd3e19030a50678f799763da3f55",
+  "passed": true,
+  "pure_methods": 223,
+  "SQL_checks": 819,
+  "runtime_files_exact": 6806,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 38,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 38
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "browser_proved": false,
+  "deployment": false,
+  "stop_concurrency_proved": false,
+  "bounded_stop_boundary_tests": {
+    "two_session_same_operation_proof": true,
+    "current_admin_revocation_after_wait": true,
+    "real_session_expiry_during_wait": true,
+    "missing_and_nontransactional_table_refused": true,
+    "unsupported_routing_refused": true,
+    "raw_outer_transaction_preserved": true,
+    "recovery_authorized": false,
+    "all_sources_complete": false,
+    "production_entry_registered": false
+  },
+  "restoration_permission_granted": false,
+  "all_sources_complete": false,
+  "can_execute": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "recovery-stop-main101-token-full-native.json": "601bb8982a2d1cdd6ce16b2e21dd89d73fd5fe86beea2085b223b64d00ec8e7b",
+    "recovery-stop-main101-token-full-integration.json": "270b756df730cddc0985c860de043cd6f2265d6fba75b8e63d379a72d912d85c",
+    "recovery-stop-main101-token-full-parent.json": "34824915ba9e291a850adde3e17e4f967e9f5e0aa500840cf3aa3201788499db",
+    "recovery-stop-main101-token-full-source-runtime-match.json": "f69b1fd4a48530fd54cba0d5a47d8171ea6e263ef746e67b8ab41331051a310d",
+    "recovery-stop-main101-token-full-strict-accepted.json": "686979d36a49e1b632468f530d13b885fd54c9e9591a60ac22c20281c063260f"
+  },
+  "docs_only_successor_is_not_a_new_runtime_run": true
+}

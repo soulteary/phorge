@@ -101,6 +101,7 @@ try {
     'mysql.pass'=>$config['password'],'storage.default-namespace'=>$config['namespace'],
     'phabricator.cache-namespace'=>$config['namespace'],'cluster.databases'=>array(),'cluster.search'=>array(),
     'phabricator.base-uri'=>'http://fixture.invalid/','phabricator.silent'=>false,'policy.allow-public'=>false,
+    'governance.recovery-stop-ledger.enabled'=>in_array(($payload['action']['action']??null),array('recovery.stop.record','recovery.stop.history'),true),
     'governance.private-mail.enabled'=>in_array(($payload['action']['action']??null),array('legalpad.verify','legalpad.observe'),true),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
     'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
     'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
@@ -129,7 +130,32 @@ try {
   $action=$payload['action']; $kind=$action['action']??null;
   $conn=(new PhabricatorUser())->establishConnection('w');
   $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
-  if($kind==='legalpad.verify'||$kind==='legalpad.observe'){
+  if($kind==='recovery.stop.record'||$kind==='recovery.stop.history'){
+    $keys=array_keys($action);sort($keys);
+    $wanted=$kind==='recovery.stop.record'?array('action','category','event','operation','reason','subject','token'):
+      array('action','subject','token');
+    if($keys!==$wanted||!is_string($action['token'])||strlen($action['token'])>256){
+      throw new RuntimeException('native_worker_action_refused');}
+    PhorgeRecoveryStopRequest::user($action['subject']);
+    if($kind==='recovery.stop.record'){
+      PhorgeRecoveryStopRequest::validate($action['subject'],$action['event'],$action['category'],$action['reason'],$action['operation']);}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer){throw new RuntimeException('governance_native_credential_ineligible');}
+    $_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
+    $request=(new AphrontRequest('fixture.invalid','/people/recovery/fixture/'))->setUser($viewer)
+      ->setRequestData(array('__form__'=>true,AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));
+    $request->validateCSRF();$context=PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    if($kind==='recovery.stop.record'){
+      $receipt=PhorgeRecoveryStopService::recordAlreadyStopped($context,$action['subject'],$action['event'],
+        $action['category'],$action['reason'],$action['operation']);
+      if($receipt['native_transaction_id']!==$action['event']){throw new RuntimeException('native_stop_worker_binding_refused');}
+      $result=array('status'=>'committed','replayed'=>$receipt['replayed'],'recovery_authorized'=>$receipt['recovery_authorized']);
+    }else{
+      $rows=PhorgeRecoveryStopService::history($context,$action['subject'],'0',1);
+      $result=array('status'=>'committed','count'=>count($rows));
+    }
+  }else if($kind==='legalpad.verify'||$kind==='legalpad.observe'){
     $keys=array_keys($action);sort($keys);
     $expected_keys=$kind==='legalpad.observe'?array('action','code','signature_id','token'):array('action','code','token');
     if($keys!==$expected_keys||($kind==='legalpad.observe'&&(!is_int($action['signature_id'])||$action['signature_id']<1))||!is_string($action['token'])||strlen($action['token'])>256||
@@ -270,6 +296,12 @@ try {
     preg_match('/\A(?:organization|governance|media)_[a-z_]+\z/',$error->getMessage());
   $result=$expected?array('status'=>'rejected','reason'=>$error->getMessage()):
     array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
+  if(in_array(($kind??null),array('recovery.stop.record','recovery.stop.history'),true)){
+    $allowed=get_class($error)===RuntimeException::class&&in_array($error->getMessage(),
+      array('recovery_stop_admin_required','governance_native_credential_ineligible'),true);
+    $result=$allowed?array('status'=>'rejected','reason'=>$error->getMessage()):
+      array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
+  }
   if(($kind??null)==='legalpad.verify'&&get_class($error)===PhorgeLegalpadVerificationException::class){
     $result=array('status'=>'rejected','reason'=>'governance_legalpad_verification_refused');
   }

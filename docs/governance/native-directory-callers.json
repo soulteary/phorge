@@ -832,6 +832,94 @@
       "authority_proof": false
     },
     {
+      "id": "RECOVERY.PhorgeRecoveryStop",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStop.php",
+      "symbol": "PhorgeRecoveryStop",
+      "kind": "stop-classification-no-recovery-authority",
+      "sha256": "ba39209a1ebc822b11c087165e9305678687ac4215a04399a3bbcbb5ce236b52",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryStopConfigOptions",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopConfigOptions.php",
+      "symbol": "PhorgeRecoveryStopConfigOptions",
+      "kind": "stop-classification-no-recovery-authority",
+      "sha256": "b2cdfa525e7d39beaf614c7597cfa8fe0838722115dafdf988c6023ffeff391b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryStopRequest",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopRequest.php",
+      "symbol": "PhorgeRecoveryStopRequest",
+      "kind": "stop-classification-no-recovery-authority",
+      "sha256": "12779e19d17a24c550cb3863da981867cc0fe968279407624c70c1b10f8854fc",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryStopSchemaSpec",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopSchemaSpec.php",
+      "symbol": "PhorgeRecoveryStopSchemaSpec",
+      "kind": "stop-classification-no-recovery-authority",
+      "sha256": "ff1f18f9879eb37c840fe33a3b7f4d084efb1899b0fcbc6c70be0622fbfb0322",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryStopService",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php",
+      "symbol": "PhorgeRecoveryStopService",
+      "kind": "stop-classification-no-recovery-authority",
+      "sha256": "ab85e7fb1705bac4a88a9cc6832f3912952a4a5e6d0a7ca747d5cbacd25c1527",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.NATIVE.DISABLE.TYPE",
+      "path": "src/applications/people/xaction/PhabricatorUserDisableTransaction.php",
+      "symbol": "PhabricatorUserDisableTransaction",
+      "kind": "native-disable-event-semantics",
+      "sha256": "39cb74469972a2ad1926653e80fc82e821618991434bdc612c47d352578dc904",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.NATIVE.USER.TRANSACTION",
+      "path": "src/applications/people/storage/PhabricatorUserTransaction.php",
+      "symbol": "PhabricatorUserTransaction",
+      "kind": "native-committed-stop-source",
+      "sha256": "d88c3fcf642dde6b97f616b6377d35fe7c6f72b4d3951b9fa15be240792b7c09",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeAPIFacts",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php",
+      "symbol": "PhorgeRecoveryNativeAPIFacts",
+      "kind": "untrusted-api-storage-decoder-no-recovery-authority",
+      "sha256": "3d111c0e2ee777c7a4db78fddb5b6b4ef2bf62fe3c6eda9851292e085ee880e0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
       "id": "LEGALPAD.VERIFY.CONTROLLER",
       "path": "src/applications/legalpad/controller/LegalpadDocumentSignatureVerificationController.php",
       "symbol": "LegalpadDocumentSignatureVerificationController",
@@ -859,17 +947,6 @@
       "symbol": "PhorgeLegalpadVerification",
       "kind": "current-session-signer-and-document-policy-check",
       "sha256": "d735e7bb6a0467e33f713be9ff30630cdd693dfe1f0844e7a22e71ddbbfb6120",
-      "coverage": "partial",
-      "evidence_status": "static-reference-only",
-      "activation_blocked": true,
-      "authority_proof": false
-    },
-    {
-      "id": "RECOVERY.PhorgeRecoveryNativeAPIFacts",
-      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php",
-      "symbol": "PhorgeRecoveryNativeAPIFacts",
-      "kind": "untrusted-api-storage-decoder-no-recovery-authority",
-      "sha256": "3d111c0e2ee777c7a4db78fddb5b6b4ef2bf62fe3c6eda9851292e085ee880e0",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1396,6 +1473,54 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed current-account/signature/document verification source reference; no credential, object authorization, concurrency or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-66",
+      "from_id": "RECOVERY.PhorgeRecoveryStopService",
+      "to_id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
+    },
+    {
+      "id": "NATIVE-LINK-67",
+      "from_id": "RECOVERY.PhorgeRecoveryStopService",
+      "to_id": "AUTH.USER.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
+    },
+    {
+      "id": "NATIVE-LINK-68",
+      "from_id": "RECOVERY.PhorgeRecoveryStopService",
+      "to_id": "RECOVERY.NATIVE.USER.TRANSACTION",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
+    },
+    {
+      "id": "NATIVE-LINK-69",
+      "from_id": "RECOVERY.PhorgeRecoveryStopService",
+      "to_id": "RECOVERY.NATIVE.DISABLE.TYPE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
+    },
+    {
+      "id": "NATIVE-LINK-70",
+      "from_id": "RECOVERY.PhorgeRecoveryStopService",
+      "to_id": "RECOVERY.PhorgeRecoveryStopRequest",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
+    },
+    {
+      "id": "NATIVE-LINK-71",
+      "from_id": "RECOVERY.PhorgeRecoveryStopService",
+      "to_id": "RECOVERY.PhorgeRecoveryStop",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
     }
   ],
   "scan": {
@@ -1755,6 +1880,26 @@
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
         "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStop.php",
+        "sha256": "ba39209a1ebc822b11c087165e9305678687ac4215a04399a3bbcbb5ce236b52"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopConfigOptions.php",
+        "sha256": "b2cdfa525e7d39beaf614c7597cfa8fe0838722115dafdf988c6023ffeff391b"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopRequest.php",
+        "sha256": "12779e19d17a24c550cb3863da981867cc0fe968279407624c70c1b10f8854fc"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopSchemaSpec.php",
+        "sha256": "ff1f18f9879eb37c840fe33a3b7f4d084efb1899b0fcbc6c70be0622fbfb0322"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php",
+        "sha256": "ab85e7fb1705bac4a88a9cc6832f3912952a4a5e6d0a7ca747d5cbacd25c1527"
       }
     ]
   }

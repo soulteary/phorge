@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "adr": "N12/LIFE-001/MEDIA-001 v1.2",
-  "baseline": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
+  "baseline": "0b579a01abc0b44e9cd3ecd5395888d5979701c8",
   "all_actual_measurement_profiles_available": false,
   "production_mutation": false,
   "SLA_selected": false,
@@ -63,17 +63,17 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "f65acb4ba84b51d5777a432ae3c2a0e68fcc724d4ce9cc67f7fc22e8e15aa19b",
+          "sha256": "86e33ff4ca13f47ad90d19d2b48e3ad47bee3016cefa7bababe827919a9e8410",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/native-worker.php",
-          "sha256": "aa11267f5e77b49ea1a4e006715c955c1c36fd0ceebd7f2fb1c76e83f431974e",
+          "sha256": "3b323f88cb2ec73a1b220142a44131d727f4eb27c8e4260f519b69c49fe03547",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/workers.php",
-          "sha256": "410029374b824056f6c8ecf88c4e7ce155e6013a527c0b8cc3f2ef8740653346",
+          "sha256": "d6847a660db33137417ba81438de90b31a8cfa82840e8fe0c7e4eed00e5fd9f9",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         }
       ],
@@ -121,17 +121,17 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "f65acb4ba84b51d5777a432ae3c2a0e68fcc724d4ce9cc67f7fc22e8e15aa19b",
+          "sha256": "86e33ff4ca13f47ad90d19d2b48e3ad47bee3016cefa7bababe827919a9e8410",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/native-worker.php",
-          "sha256": "aa11267f5e77b49ea1a4e006715c955c1c36fd0ceebd7f2fb1c76e83f431974e",
+          "sha256": "3b323f88cb2ec73a1b220142a44131d727f4eb27c8e4260f519b69c49fe03547",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/workers.php",
-          "sha256": "410029374b824056f6c8ecf88c4e7ce155e6013a527c0b8cc3f2ef8740653346",
+          "sha256": "d6847a660db33137417ba81438de90b31a8cfa82840e8fe0c7e4eed00e5fd9f9",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         }
       ],
@@ -223,5 +223,5 @@
     }
   ],
   "previous_source_checkpoint": "23f25cae9c",
-  "previous_catalog_baseline": "7c38bf7b4da36e0523aa23f85ec4d576d3d9bdb4"
+  "previous_catalog_baseline": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43"
 }
