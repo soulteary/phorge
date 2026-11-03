@@ -208,6 +208,9 @@ try {
   $failure = array('stage'=>$stage,'error_type'=>get_class($error),
     'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   if ($error instanceof mysqli_sql_exception) { $failure['sql_errno']=$error->getCode(); }
+  if(isset($GLOBALS['governance_private_business_child_failure'])){
+    $failure['child_diagnostic']=$GLOBALS['governance_private_business_child_failure'];
+  }
 } finally {
   $_COOKIE=$superglobal_state['_COOKIE']; $_SERVER=$superglobal_state['_SERVER'];
   if ($fixture !== null) { $summary = $fixture->getSummary(); }
