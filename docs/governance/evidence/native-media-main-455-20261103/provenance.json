@@ -1,0 +1,18 @@
+{
+  "scope": "current main and media HTTP bounded isolated integration",
+  "main_basis": "e36bebc8a9bd5fbbdfe2dc872392dff773ee1fa6",
+  "source_checkpoint": "14c799b26bfd53929c1548dc5f27dd94503aeb39",
+  "executed_index_tree": "5710a3dd11528014a5f42baa25589c787e9fd37e",
+  "runtime_php_sql_files": 5908,
+  "runtime_content_exact": true,
+  "runtime_inventory_receipt_sha256": "69509e666319e7be145b712751447e92992c6b91db5c4dd6ff2a2ddefdec58e2",
+  "native_pure_methods": 166,
+  "native_SQL_checks": 455,
+  "browser_proof": false,
+  "custom_branding_complete": false,
+  "wire_HTTPS_current_source_verified": false,
+  "production_deployment": false,
+  "optional_features_activated": false,
+  "native_axes_changed": false,
+  "global_completion": false
+}

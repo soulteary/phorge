@@ -103,7 +103,7 @@
         "N00"
       ],
       "status": "native-prepared-target-issuer-and-maintenance-isolated-verified-partial",
-      "remaining": "Current-main directory/issuer plus prepared-target source passed 142 pure /245 actual MySQL-Gorge checks. Original 138/209 target checkpoint retained separately. Canonical target/nonce, persistent quotas, exact total capacity with real waiters, cleanup rollback and native RR preservation verified. HTTP/cookie/file-guard/browser/deployment acceptance remains separate and unproved by this slice.",
+      "remaining": "Current-main directory/issuer plus prepared-target source passed 142 pure /245 actual MySQL-Gorge checks. Original 138/209 target checkpoint retained separately. Canonical target/nonce, persistent quotas, exact total capacity with real waiters, cleanup rollback and native RR preservation verified. HTTP/cookie/file-guard/browser/deployment acceptance remains separate and unproved by this slice. Current HTTP/file/cache/image/bootstrap candidate source is explicitly combined with current main but awaits a fresh full combined runtime receipt. Old 144/273 and 24 TLS checks are earlier component evidence only; the current 146-method source run does not certify combined SQL, wire/browser or activation.",
       "production_enabled": false
     },
     {
@@ -200,14 +200,14 @@
     }
   },
   "current_component_validation": {
-    "scope": "main-native-lifecycle-plus-restricted-history-source",
+    "scope": "pending-current-main-and-http-source-combination",
     "php_runtime": "8.5.12",
-    "current_source_native_sql_required": 297,
-    "current_source_validation": "supported-runtime-isolated-native-297-passed",
+    "current_source_validation": "pending-fresh-full-combined-run",
+    "actual_combined_counts": null,
     "source_inventory": {
-      "sources": 37,
-      "links": 28,
-      "runtime_files": 49,
+      "sources": 50,
+      "links": 40,
+      "runtime_files": 55,
       "coverage": "partial",
       "activation_blocked": true,
       "authority_proof": false
@@ -217,15 +217,10 @@
     "hosted_ci_review_proved": false,
     "global_goal_complete": false,
     "audit_history_deleted": false,
-    "permissions_python_last_passed": 84,
-    "actual_native_identity_current_sources_exercised": true,
-    "latest_main_combined_validation_required": false,
-    "native_methods_required": 147,
+    "latest_main_combined_validation_required": true,
     "full_lifecycle_complete": false,
     "full_compound_matrix_complete": false,
-    "governance_python_validation": "current-source-86-passed",
-    "governance_python_last_passed": 86,
-    "evidence_directory": "docs/governance/evidence/native-history-297-20261103"
+    "old_component_counts_not_reused": true
   },
   "historical_component_validations": [
     {
@@ -250,6 +245,34 @@
       "native_methods": 147,
       "organization_sql_checks": 295,
       "evidence_directory": "docs/governance/evidence/native-history-295-20261103"
+    },
+    {
+      "scope": "main-native-lifecycle-plus-restricted-history-source",
+      "php_runtime": "8.5.12",
+      "current_source_native_sql_required": 297,
+      "current_source_validation": "supported-runtime-isolated-native-297-passed",
+      "source_inventory": {
+        "sources": 37,
+        "links": 28,
+        "runtime_files": 49,
+        "coverage": "partial",
+        "activation_blocked": true,
+        "authority_proof": false
+      },
+      "production_activation": false,
+      "deployment": false,
+      "hosted_ci_review_proved": false,
+      "global_goal_complete": false,
+      "audit_history_deleted": false,
+      "permissions_python_last_passed": 84,
+      "actual_native_identity_current_sources_exercised": true,
+      "latest_main_combined_validation_required": false,
+      "native_methods_required": 147,
+      "full_lifecycle_complete": false,
+      "full_compound_matrix_complete": false,
+      "governance_python_validation": "current-source-86-passed",
+      "governance_python_last_passed": 86,
+      "evidence_directory": "docs/governance/evidence/native-history-297-20261103"
     }
   ],
   "validated_component_checkpoints": [
@@ -281,5 +304,16 @@
       "scope": "earlier-native-source-before-approval-id-retry-fix",
       "evidence_directory": "docs/governance/evidence/membership-lifecycle-checkpoint-20261103"
     }
-  ]
+  ],
+  "pending_combination": {
+    "status": "not-runtime-validated",
+    "main_merge_commit": "6c12461b15b1d8d7fef8d1c7872ff3833ba2d70d",
+    "http_source_checkpoint": "28aa3bde87d0a683c53220fddf5034c1477fa786",
+    "source_inventory": "explicit reviewed HTTP/file/bootstrap nodes added to strict main catalog",
+    "old_component_receipts_are_not_combined_evidence": true,
+    "current_http_checkpoint_pure_methods": 146,
+    "current_http_sql_receipt_validated": false,
+    "combined_actual_counts": null,
+    "wire_browser_and_activation": false
+  }
 }

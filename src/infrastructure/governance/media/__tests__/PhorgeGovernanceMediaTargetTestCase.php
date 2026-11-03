@@ -1,6 +1,22 @@
 <?php
 
 final class PhorgeGovernanceMediaTargetTestCase extends PhutilTestCase {
+  public function testNativeUnicodeFileNameLimitFitsBoundedTargets() {
+    $instance=str_repeat('i',64);$key=str_repeat('k',64);$phid='PHID-FILE-aaaaaaaaaaaaaaaaaaaa';
+    foreach(array(str_repeat('测',250).'.xlsx',str_repeat('😀',250).'.txt')as$name){
+      $normalized=PhabricatorFile::normalizeFileName($name);
+      $path='/file/download/@'.$instance.'/'.$key.'/'.$phid.'/'.phutil_escape_uri($normalized);
+      $this->assertTrue(strlen($path)>2048);
+      $this->assertTrue(strlen($path)<=PhorgeGovernanceMediaTarget::MAX_RETURN_PATH_BYTES);
+      $target=PhorgeGovernanceMediaTarget::fromPath($path,$instance);
+      $this->assertEqual($path,$target->getReturnPath());
+      $this->assertEqual($normalized,phutil_json_decode($target->getCanonicalJSON())['filename']);
+    }
+    $refused=false;try{PhorgeGovernanceMediaTarget::fromPath('/file/data/key/'.$phid.'/'.
+      str_repeat('x',PhorgeGovernanceMediaTarget::MAX_FILENAME_BYTES+1));}
+    catch(InvalidArgumentException$error){$refused=true;}
+    $this->assertTrue($refused);
+  }
   public function testNativeDataDownloadTransformAndUnicodeCanonicalization() {
     $phid='PHID-FILE-aaaaaaaaaaaaaaaaaaaa';
     foreach(array('/file/data/key/'.$phid.'/report.txt','/file/download/key/'.$phid.'/'.rawurlencode('部门报告.xlsx'),

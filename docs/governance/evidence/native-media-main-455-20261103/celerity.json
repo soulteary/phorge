@@ -1,0 +1,9 @@
+{
+  "scope": "current main/media resource build",
+  "php": "8.5.12",
+  "exit_code": 0,
+  "resource_map_before_sha256": "a04024e565cceb3e987818958ef4f700a24398713ba1282648d0006993cb4a41",
+  "browser_proof": false,
+  "resource_map_after_sha256": "a04024e565cceb3e987818958ef4f700a24398713ba1282648d0006993cb4a41",
+  "resource_map_unchanged": true
+}

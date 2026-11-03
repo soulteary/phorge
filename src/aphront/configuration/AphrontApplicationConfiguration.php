@@ -27,6 +27,7 @@ final class AphrontApplicationConfiguration
     $request->setApplicationConfiguration($this);
     $request->setCookiePrefix($cookie_prefix);
 
+    PhorgeGovernanceMediaHTTPProtocol::restrictFileOriginCredentials($request);
     $request->updateEphemeralCookies();
 
     return $request;

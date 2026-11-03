@@ -3,11 +3,19 @@
 final class PhabricatorFileTransformController
   extends PhabricatorFileController {
 
+  private $mediaAuthorization;
+
   public function shouldRequireLogin() {
     return false;
   }
 
   public function handleRequest(AphrontRequest $request) {
+    $this->mediaAuthorization=null;
+    if(PhabricatorEnv::getEnvConfigIfExists('governance.media-exchange.http-enabled',false)===true){
+      try{$this->mediaAuthorization=PhorgeGovernanceMediaFileGuard::authorize($request);
+        $request->setUser($this->mediaAuthorization['viewer']);}
+      catch(Throwable $error){return PhorgeGovernanceMediaHTTPProtocol::deny();}
+    }
     $viewer = $this->getViewer();
 
     // NOTE: This is a public/CDN endpoint, and permission to see files is
@@ -17,7 +25,7 @@ final class PhabricatorFileTransformController
 
     $source_phid = $request->getURIData('phid');
     $file = id(new PhabricatorFileQuery())
-      ->setViewer(PhabricatorUser::getOmnipotentUser())
+      ->setViewer($this->mediaAuthorization!==null?$this->mediaAuthorization['viewer']:PhabricatorUser::getOmnipotentUser())
       ->withPHIDs(array($source_phid))
       ->executeOne();
     if (!$file) {
@@ -74,7 +82,8 @@ final class PhabricatorFileTransformController
     }
 
     if ($transient_failure) {
-      return $xformed_file->getRedirectResponse();
+      $response=$xformed_file->getRedirectResponse();
+      return $this->mediaAuthorization!==null?PhorgeGovernanceMediaFileGuard::secureResponse($response):$response;
     }
 
     $xform = id(new PhabricatorTransformedFile())
@@ -136,7 +145,7 @@ final class PhabricatorFileTransformController
     PhabricatorTransformedFile $xform) {
 
     $file = id(new PhabricatorFileQuery())
-      ->setViewer(PhabricatorUser::getOmnipotentUser())
+      ->setViewer($this->mediaAuthorization!==null?$this->mediaAuthorization['viewer']:PhabricatorUser::getOmnipotentUser())
       ->withPHIDs(array($xform->getTransformedPHID()))
       ->executeOne();
     if (!$file) {
@@ -146,7 +155,8 @@ final class PhabricatorFileTransformController
     // TODO: We could just delegate to the file view controller instead,
     // which would save the client a roundtrip, but is slightly more complex.
 
-    return $file->getRedirectResponse();
+    $response=$file->getRedirectResponse();
+    return $this->mediaAuthorization!==null?PhorgeGovernanceMediaFileGuard::secureResponse($response):$response;
   }
 
   private function destroyTransform(PhabricatorTransformedFile $xform) {

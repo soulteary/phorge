@@ -236,6 +236,8 @@ final class PhabricatorStandardPageView extends PhabricatorBarePageView
     Javelin::initBehavior('workflow', array());
 
     $user = $request->getUser();
+    $media_config=PhorgeGovernanceMediaHTTPProtocol::pageBootstrapConfig($request);
+    if($media_config!==null){Javelin::initBehavior('private-media-session',$media_config);}
     if ($user->isUserActivated()) {
       // Only bother user about timezone offset if they have not set UTC
       if ($user->getTimezoneIdentifier() !== 'UTC') {
@@ -913,6 +915,8 @@ final class PhabricatorStandardPageView extends PhabricatorBarePageView
       $response = id(new AphrontWebpageResponse())
         ->setContent($content)
         ->setFrameable($this->getFrameable());
+      $media_config=PhorgeGovernanceMediaHTTPProtocol::pageBootstrapConfig($this->getRequest());
+      if($media_config!==null){$response->addContentSecurityPolicyURI('frame-src',$media_config['files']);}
     }
 
     return $response;

@@ -2,6 +2,9 @@
 
 /** Immutable return target, not a file authorization decision. */
 final class PhorgeGovernanceMediaTarget extends Phobject {
+  // Native File names allow 255 Unicode characters; URI encoding expands bytes.
+  const MAX_FILENAME_BYTES = 1024;
+  const MAX_RETURN_PATH_BYTES = 4096;
   private $fields;
   private function __construct(array $fields) { $this->fields=$fields; }
   private function __clone() {}
@@ -10,7 +13,7 @@ final class PhorgeGovernanceMediaTarget extends Phobject {
   public function __debugInfo() { return array('scope'=>'prepared-media-target'); }
 
   public static function fromPath($path, $instance=null) {
-    if (!is_string($path)||strlen($path)>2048||!phutil_is_utf8($path)||
+    if (!is_string($path)||strlen($path)>self::MAX_RETURN_PATH_BYTES||!phutil_is_utf8($path)||
         ($instance!==null&&(!is_string($instance)||!preg_match('/\A[a-zA-Z0-9_-]{1,64}\z/D',$instance)))) {
       throw new InvalidArgumentException('media_exchange_target_refused');
     }
@@ -23,7 +26,7 @@ final class PhorgeGovernanceMediaTarget extends Phobject {
     if($kind==='data'||$kind==='download'){
       if(count($parts)!==3){throw new InvalidArgumentException('media_exchange_target_refused');}
       list($key,$phid,$encoded_name)=$parts;$name=rawurldecode($encoded_name);
-      if($name===''||strlen($name)>512||!phutil_is_utf8($name)||preg_match('/[\x00-\x1f\x7f\/\\\\]/',$name)||
+      if($name===''||strlen($name)>self::MAX_FILENAME_BYTES||!phutil_is_utf8($name)||preg_match('/[\x00-\x1f\x7f\/\\\\]/',$name)||
           $name==='.'||$name==='..'||strpos($name,'%')!==false||rawurlencode($name)!==$encoded_name){throw new InvalidArgumentException('media_exchange_target_refused');}
     }elseif($kind==='xform'){
       if(count($parts)!==4||$parts[3]!==''){throw new InvalidArgumentException('media_exchange_target_refused');}
