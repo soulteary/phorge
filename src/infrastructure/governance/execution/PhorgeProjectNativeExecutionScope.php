@@ -164,7 +164,8 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
         throw new RuntimeException('project_execution_materialized_members_inconsistent');
       }
       $scope->initialMembers=$members;
-      if($scope->hasMemberIntent() && count($scope->plannedMembers())>128){
+      if(in_array($mode,array('propose','approve','execute'),true) &&
+          $scope->hasMemberIntent() && count($scope->plannedMembers())>128){
         throw new RuntimeException('project_execution_source_budget');
       }
       $object->loadFromArray($scope->oldRow)->attachParentProject(null)->attachMemberPHIDs($members);

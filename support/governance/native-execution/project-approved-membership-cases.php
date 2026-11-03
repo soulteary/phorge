@@ -136,6 +136,37 @@ function governance_project_approved_membership_cases($fixture,callable $check,a
     ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
     ->applyTransactions($disabled_member,array((new PhabricatorUserTransaction())
       ->setTransactionType(PhabricatorUserDisableTransaction::TRANSACTIONTYPE)->setNewValue(false)));
+  // Actual current capacity, not a hypothetical replay of an old addition.
+  $capacity=array();for($i=0;$i<128;$i++){
+    $u=(new PhabricatorUser())->setUsername('gcapacity'.$suffix.$i)->setRealName('Synthetic history capacity')
+      ->setIsApproved(1)->setIsEmailVerified(1)->save();$capacity[$u->getPHID()]=$u->getPHID();}
+  $capacity_edit=function($add)use($a,$phid,$direct,$capacity){
+    $native=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.project-approval.enabled',false);
+    try{
+      $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$a['token'];
+      $target=(new PhabricatorProjectQuery())->setViewer($a['viewer'])->withPHIDs(array($phid))->needMembers(true)->executeOne();
+      (new PhabricatorProjectTransactionEditor())->setActor($a['viewer'])->setRequest($a['request'])
+        ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
+        ->setContinueOnMissingFields(true)->applyTransactions($target,array((new PhabricatorProjectTransaction())
+          ->setTransactionType(PhabricatorTransactions::TYPE_EDGE)->setMetadataValue('edge:type',$direct)
+          ->setNewValue(array($add?'+':'-'=>$capacity))));
+    }finally{unset($native);}
+  };
+  $capacity_edit(true);
+  try{
+    $history_baseline=$fingerprint();
+    $capacity_history=PhorgeProjectPolicyApprovalService::call($b['context'],'history',array('approval_id'=>$disabled_add));
+    $actual=queryfx_all($conn,'SELECT type,COUNT(*) n FROM edge WHERE src=%s AND type IN (%Ld) GROUP BY type ORDER BY type',
+      $phid,array($direct,$derived));
+    $check(count($actual)===2&&(int)$actual[0]['n']===128&&(int)$actual[1]['n']===128&&
+      $capacity_history['state']==='consumed'&&$capacity_history['intent']['members']===array($disabled_phid)&&
+      $fingerprint()===$history_baseline,
+      'project-approved-members-history-at-current-capacity-does-not-replay-removed-subject');
+    $oversize=false;try{$proposal('project.members.add',array($disabled_phid));}
+    catch(RuntimeException$error){if($error->getMessage()!=='project_execution_source_budget'){throw$error;}$oversize=true;}
+    $check($oversize&&$fingerprint()===$history_baseline,
+      'project-approved-members-new-addition-over-current-capacity-still-refused-without-write');
+  }finally{$capacity_edit(false);}
   foreach(array('inverse'=>array('user','edge','NEW.type='.$inverse),
       'derived'=>array('project','edge','NEW.type='.$derived),
       'record'=>array('project',(new PhabricatorProjectTransaction())->getTableName(),'1'),

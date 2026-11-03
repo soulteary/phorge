@@ -146,7 +146,7 @@ for one `project.members.add` or `project.members.remove` native edge transactio
 Up to 16 unique existing User PHIDs are canonicalized. Addition requires a
 currently eligible account; removal can reduce a disabled account's membership. The current flat project
 remains bounded to 128 direct/materialized members; unsupported hierarchy, data
-or mixed transaction envelopes fail closed. The matching supported PHP 8.5.12 fixture passed 161 pure methods and 411
+or mixed transaction envelopes fail closed. The matching supported PHP 8.5.12 fixture passed 161 pure methods and 413
 native checks, with 5903 runtime source files matched. This bounded evidence
 is not an activation recommendation or full hierarchy/source-closure proof.
 
@@ -169,3 +169,6 @@ Historical member-add records remain readable to a current system administrator
 with native Project VIEW after the subject is disabled. Execution eligibility
 is not reapplied as a historical-read prerequisite; history still stays inside
 this tested flat native profile.
+Historical reads check actual current source bounds, without hypothetically
+replaying an old addition against the current membership capacity. New mutations
+still enforce the planned-result member limit.
