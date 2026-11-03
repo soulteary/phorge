@@ -8,6 +8,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
   private $target;
   private $facts;
   private $webFacts;
+  private $apiFacts;
   private $route;
   private $runtime;
   private $ownsTransaction = false;
@@ -229,18 +230,24 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
     return $table;
   }
 
-  private function credentialRows($temporary, &$bytes) {
+  private function credentialRows($temporary, &$bytes, $api = false) {
+    $maximum_bytes = $api ? PhorgeRecoveryNativeAPIFacts::MAX_BYTES : PhorgeRecoveryNativeWebFacts::MAX_BYTES;
+    $budget_error = $api ? 'recovery_api_capture_budget_unknown' : 'recovery_web_capture_budget_unknown';
     $table=$this->credentialTable($temporary);
     $where=$temporary ? qsprintf($this->connection,
       '(BINARY tokenResource=BINARY %s OR BINARY userPHID=BINARY %s)',$this->target,$this->target) :
       qsprintf($this->connection,'BINARY userPHID=BINARY %s',$this->target);
+    if ($api) {
+      $where = qsprintf($this->connection, '%Q AND BINARY type=BINARY %s',
+        $where, PhabricatorAuthSession::TYPE_CONDUIT);
+    }
     $lengths=$temporary ? qsprintf($this->connection,
       'OCTET_LENGTH(tokenResource) a,OCTET_LENGTH(tokenType) b,OCTET_LENGTH(tokenCode) c,OCTET_LENGTH(userPHID) d,OCTET_LENGTH(properties) e') :
       qsprintf($this->connection,'OCTET_LENGTH(phid) a,OCTET_LENGTH(userPHID) b,OCTET_LENGTH(type) c,OCTET_LENGTH(sessionKey) d');
     $preflight=queryfx_all($this->connection,
       'SELECT id,%Q FROM %R WHERE %Q ORDER BY id LIMIT 65 LOCK IN SHARE MODE',
       $lengths,$table,$where);
-    if(count($preflight)>PhorgeRecoveryNativeWebFacts::MAX_ROWS){throw new RuntimeException('recovery_web_capture_budget_unknown');}
+    if(count($preflight)>PhorgeRecoveryNativeWebFacts::MAX_ROWS){throw new RuntimeException($budget_error);}
     $ids=array();
     foreach($preflight as$row){
       if((!is_string($row['id'])&&!is_int($row['id']))||
@@ -256,7 +263,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
         $bytes+=(int)$value;
       }
     }
-    if($bytes>PhorgeRecoveryNativeWebFacts::MAX_BYTES){throw new RuntimeException('recovery_web_capture_budget_unknown');}
+    if($bytes>$maximum_bytes){throw new RuntimeException($budget_error);}
     if(!$ids){return array();}
     $projection=$temporary ? qsprintf($this->connection,'id,tokenResource,tokenType,tokenExpires,tokenCode,userPHID,properties') :
       qsprintf($this->connection,'id,phid,userPHID,type,sessionKey,sessionStart,sessionExpires,highSecurityUntil,isPartial,signedLegalpadDocuments');
@@ -272,6 +279,99 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
     $bytes=0;$sessions=$this->credentialRows(false,$bytes);$tokens=$this->credentialRows(true,$bytes);
     $now=(int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n'];
     return PhorgeRecoveryNativeWebFacts::describe($sessions,$tokens,$this->target,$now);
+  }
+
+  /** Selected API resources only; no credential or recovery grant. */
+  public function captureAPICredentials() {
+    try {
+      $this->assertCurrent();
+      if ($this->apiFacts !== null) { throw new RuntimeException('recovery_api_already_captured'); }
+      $this->apiFacts = $this->readAPICredentials();
+      $this->assertCurrent();
+      return $this->apiFacts;
+    } catch (Throwable $error) { $this->close(); throw $error; }
+  }
+
+  private function apiProfiles() {
+    return array(
+      'conduit'=>array(new PhabricatorConduitToken(),'conduit','objectPHID',
+        array('id'=>'int','objectPHID'=>'varbinary','tokenType'=>'varchar','token'=>'varchar','expires'=>'int',
+          'dateCreated'=>'int','dateModified'=>'int','tokenName'=>'varchar')),
+      'oauth_tokens'=>array(new PhabricatorOAuthServerAccessToken(),'oauth_server','userPHID',
+        array('id'=>'int','token'=>'varchar','userPHID'=>'varbinary','clientPHID'=>'varbinary','dateCreated'=>'int','dateModified'=>'int')),
+      'oauth_authorizations'=>array(new PhabricatorOAuthClientAuthorization(),'oauth_server','userPHID',
+        array('id'=>'int','phid'=>'varbinary','userPHID'=>'varbinary','clientPHID'=>'varbinary','dateCreated'=>'int','dateModified'=>'int','scope'=>'longtext')),
+      'oauth_codes'=>array(new PhabricatorOAuthServerAuthorizationCode(),'oauth_server','userPHID',
+        array('id'=>'int','code'=>'varchar','clientPHID'=>'varbinary','clientSecret'=>'varchar','userPHID'=>'varbinary','dateCreated'=>'int','dateModified'=>'int','redirectURI'=>'varchar')),
+      'oauth_clients'=>array(new PhabricatorOAuthServerClient(),'oauth_server','phid',
+        array('id'=>'int','phid'=>'varbinary','name'=>'varchar','secret'=>'varchar','redirectURI'=>'varchar','creatorPHID'=>'varbinary',
+          'isTrusted'=>'tinyint','viewPolicy'=>'varbinary','editPolicy'=>'varbinary','dateCreated'=>'int','dateModified'=>'int','isDisabled'=>'tinyint')));
+  }
+
+  private function apiRows(array $profile, array $clients, &$bytes) {
+    list($table,$application,$owner,$columns)=$profile;
+    $route=$table->establishConnection('w');
+    if(get_class($route)!==AphrontMySQLiDatabaseConnection::class ||
+        ($route!==$this->connection&&($route->isInsideTransaction()||$route->isReadLocking()||$route->isWriteLocking()))){
+      throw new RuntimeException('recovery_api_route_unknown');}
+    $local=queryfx_one($this->connection,'SELECT @@server_uuid uuid');
+    $remote=queryfx_one($route,'SELECT @@server_uuid uuid,DATABASE() db');
+    $database=$this->route['storage.default-namespace'].'_'.$application;
+    if(!$local||!$remote||$remote['uuid']!==$local['uuid']||$remote['db']!==$database){
+      throw new RuntimeException('recovery_api_route_unknown');}
+    queryfx_one($this->connection,'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE',$table);
+    $engine=queryfx_one($this->connection,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
+      $database,$table->getTableName());
+    $actual=queryfx_all($this->connection,
+      'SELECT COLUMN_NAME,DATA_TYPE,COLUMN_TYPE,IS_NULLABLE,CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s ORDER BY ORDINAL_POSITION LIMIT 17',
+      $database,$table->getTableName());
+    if(!$engine||$engine['ENGINE']!=='InnoDB'||count($actual)!==count($columns)){
+      throw new RuntimeException('recovery_api_schema_unknown');}
+    foreach($actual as$row){$name=$row['COLUMN_NAME'];
+      $width=$row['DATA_TYPE']==='varbinary'?64:($row['DATA_TYPE']==='varchar'?(in_array($name,array('name','redirectURI'),true)?255:($name==='tokenName'?64:32)):null);
+      if(!isset($columns[$name])||$columns[$name]!==$row['DATA_TYPE']||
+          ($row['DATA_TYPE']==='int'&&strpos($row['COLUMN_TYPE'],'unsigned')===false)||
+          ($width!==null&&(string)$row['CHARACTER_MAXIMUM_LENGTH']!==(string)$width)||
+          $row['IS_NULLABLE']!==($application==='conduit'&&$name==='expires'?'YES':'NO')){
+        throw new RuntimeException('recovery_api_schema_unknown');}}
+    $where=$owner==='phid' ? ($clients ? qsprintf($this->connection,'BINARY phid IN (%Ls)',array_keys($clients)) : qsprintf($this->connection,'1=0')) :
+      qsprintf($this->connection,'BINARY %C=BINARY %s',$owner,$this->target);
+    $names=array_keys($columns);$lengths=array();
+    foreach($names as$name){$lengths[]=qsprintf($this->connection,'OCTET_LENGTH(%C)',$name);}
+    // Names and formats originate exclusively in the exact fixed registry above.
+    $sum=qsprintf($this->connection,implode('+',array_fill(0,count($lengths),'COALESCE(%Q,0)')),...$lengths);
+    $maximum=qsprintf($this->connection,'GREATEST('.implode(',',array_fill(0,count($lengths),'COALESCE(%Q,0)')).')',...$lengths);
+    $preflight=queryfx_all($this->connection,
+      'SELECT id,%Q bytes,%Q largest FROM %R WHERE %Q ORDER BY id LIMIT 65 LOCK IN SHARE MODE',$sum,$maximum,$table,$where);
+    if(count($preflight)>PhorgeRecoveryNativeAPIFacts::MAX_ROWS){throw new RuntimeException('recovery_api_capture_budget_unknown');}
+    $ids=array();foreach($preflight as$row){
+      if((!is_int($row['id'])&&!is_string($row['id']))||!preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$row['id'])||
+          (float)$row['id']>4294967295||isset($ids[(string)$row['id']])){throw new RuntimeException('recovery_api_shape_unknown');}
+      if((int)$row['largest']>4096){throw new RuntimeException('recovery_api_storage_budget_unknown');}
+      $bytes+=(int)$row['bytes']+count($names)*32;
+      if($bytes>PhorgeRecoveryNativeAPIFacts::MAX_BYTES){throw new RuntimeException('recovery_api_capture_budget_unknown');}
+      $ids[(string)$row['id']]=(int)$row['id'];}
+    if(!$ids){return array();}
+    $projection=qsprintf($this->connection,implode(',',array_fill(0,count($names),'%C')),...$names);
+    $rows=queryfx_all($this->connection,'SELECT %Q FROM %R WHERE id IN (%Ld) AND %Q ORDER BY id LOCK IN SHARE MODE',
+      $projection,$table,array_values($ids),$where);
+    if(count($rows)!==count($ids)){throw new RuntimeException('recovery_api_source_changed');}
+    return $rows;
+  }
+
+  private function readAPICredentials() {
+    $bytes=0;$groups=array();$clients=array();
+    foreach($this->apiProfiles()as$kind=>$profile){
+      $groups[$kind]=$this->apiRows($profile,$clients,$bytes);
+      if($kind!=='oauth_clients'){foreach($groups[$kind]as$row){if(isset($row['clientPHID'])){
+        if(!is_string($row['clientPHID'])||!preg_match('/\APHID-OASC-[a-zA-Z0-9]{20}\z/D',$row['clientPHID'])){
+          throw new RuntimeException('recovery_api_client_binding_unknown');}
+        $clients[$row['clientPHID']]=true;}}}
+    }
+    $groups['legacy_sessions']=array();
+    foreach($this->credentialRows(false,$bytes,true)as$row){if($row['type']===PhabricatorAuthSession::TYPE_CONDUIT){$groups['legacy_sessions'][]=$row;}}
+    $now=(int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n'];
+    return PhorgeRecoveryNativeAPIFacts::describe($groups,$this->target,$now);
   }
 
   private function assertCurrent() {
@@ -302,6 +402,12 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
           throw new RuntimeException('recovery_web_source_changed');}
         $this->assertCurrent();
       }
+      $api=null;
+      if($this->apiFacts!==null){
+        $api=$this->readAPICredentials();
+        if($api['storage_set_digest']!==$this->apiFacts['storage_set_digest']){throw new RuntimeException('recovery_api_source_changed');}
+        $this->assertCurrent();$api['consistency']='two-matching-current-samples-not-atomic';
+      }
       if($web!==null){$web['consistency']='two-matching-current-samples-not-atomic';}
       $families = array_fill_keys(PhorgeGovernanceRecoverySourceInventory::requiredFamilies(), 'uncovered');
       $result=array('schema_version'=>1, 'capture'=>'actual-locked-native-account',
@@ -309,6 +415,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
         'families'=>$families, 'all_sources_complete'=>false, 'can_execute'=>false,
         'future_execution_atomic'=>false, 'source_writes'=>false);
       if($web!==null){$result['web_credentials']=$web;}
+      if($api!==null){$result['api_credentials']=$api;}
       return $result;
     } finally { $this->close(); }
   }

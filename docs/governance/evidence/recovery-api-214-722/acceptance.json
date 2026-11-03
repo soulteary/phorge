@@ -1,0 +1,50 @@
+{
+  "source_head": "11df58bef765ec65f8c5cd9ee25a39905f65de71",
+  "passed": true,
+  "pure_methods": 214,
+  "SQL_checks": 722,
+  "runtime_files_exact": 6781,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 25,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 25
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "browser_proved": false,
+  "deployment": false,
+  "api_family_complete": false,
+  "all_sources_complete": false,
+  "can_execute": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "recovery-api-budget-p2-full-native.json": "377599d8897526b74386603e56941bc43de9ced6126e75eba94278588628821b",
+    "recovery-api-budget-p2-full-integration.json": "d2e9a015353fbdf28fc468d3a2e6838d2fb23c5c8f984c8b1969ab3497041a7a",
+    "recovery-api-budget-p2-full-parent.json": "7f556bc4a7441b32daba6191ef8523435dd1e1315aa4e19840c4b5013783bca1",
+    "recovery-api-budget-p2-full-source-runtime-match.json": "0e1160083d6d50a097262ab4a5701f38436a42f3266a5e91c188af3dd29a58e1",
+    "recovery-api-budget-p2-full-strict-accepted.json": "25804d34a2f0cb22c7845ce48cf8ab891ac2e8e3ff2134d4d399b2be773f55f5"
+  },
+  "scope": "isolated current account and selected native API credential source capture; no recovery permit",
+  "evidence_kind": "local real-native component execution; not hosted CI",
+  "runtime_source": "11df58bef765ec65f8c5cd9ee25a39905f65de71",
+  "base_main": "e5409ca89aff15126cf6bbf9dad2d92714d785cf",
+  "new_API_source_SQL_obligations": 12,
+  "retained_main_SQL_obligations": 710,
+  "registered_workers": 25,
+  "native_authentication_method_only": true,
+  "Conduit_HTTP_gateway_proved": false,
+  "OAuth_protocol_end_to_end_proved": false,
+  "capture_component_read_only": true,
+  "test_fixture_is_writable": true,
+  "docs_successor_is_new_runtime": false
+}

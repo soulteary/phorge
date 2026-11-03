@@ -63,7 +63,7 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "27d25c0f02d1703531eb5644487843881aa32b5fb1a0e9af57d0942f3bec6a4c",
+          "sha256": "86e33ff4ca13f47ad90d19d2b48e3ad47bee3016cefa7bababe827919a9e8410",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
@@ -121,7 +121,7 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "27d25c0f02d1703531eb5644487843881aa32b5fb1a0e9af57d0942f3bec6a4c",
+          "sha256": "86e33ff4ca13f47ad90d19d2b48e3ad47bee3016cefa7bababe827919a9e8410",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {

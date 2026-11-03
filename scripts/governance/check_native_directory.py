@@ -368,6 +368,9 @@ EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/govern
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
+EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryNativeAPIFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php', 'PhorgeRecoveryNativeAPIFacts', 'untrusted-api-storage-decoder-no-recovery-authority')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php'])
+
 def require(ok, message):
     if not ok:
         raise ValueError(message)

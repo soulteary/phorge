@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "status": "static-actual-source-inventory; not execution attestation",
+  "base": "8f39fb52e8b03ecacabc1cacbd0b84d8982ee293",
+  "profile": {
+    "conduit": "all direct objectPHID rows; api/cli/clr distinguished, unknown type explicit",
+    "legacy_certificate": "native User conduitCertificate included only in account security_fields_digest; no raw certificate export",
+    "legacy_session": "actual User phabricator_session type conduit; separate from web",
+    "oauth_server": "direct userPHID access tokens/authorization codes/client authorizations plus clients referenced by those rows"
+  },
+  "uncovered": [
+    "external OAuth1/2 provider accounts and identifiers",
+    "indirect email and resource associations",
+    "arbitrary plugin/auth provider consumers",
+    "network-dependent cluster token eligibility",
+    "scope authorization validity and future client policy changes",
+    "restore lineage and global convergence"
+  ],
+  "production_authentication_paths": {
+    "standard": "authenticateUser token branch",
+    "certificate": "authenticateUser authUser/authToken/authSignature branch",
+    "legacy_session": "authenticateUser sessionKey branch",
+    "oauth": "authorizeToken checks current authorization + client enabled; Conduit additionally checks method scope"
+  },
+  "can_execute": false,
+  "all_sources_complete": false,
+  "source_sha256": {
+    "src/applications/conduit/controller/PhabricatorConduitAPIController.php": "bbf41dddf16b9b9ebfbe1ed011a89c975f67fdbf90da92b3facc002d0a69fc4a",
+    "src/applications/conduit/storage/PhabricatorConduitToken.php": "90cb0ee876614ee19c2174088168b6792572a216db0f906058bff5972bcc4ad5",
+    "src/applications/auth/storage/PhabricatorAuthSession.php": "b03587dfbfe950d049545b0e034d8bca2e7b719550ab40256194d8300acf1c38",
+    "src/applications/oauthserver/PhabricatorOAuthServer.php": "0ac8f3f6676a0312658972df9e1e6c509fba52bd235bb4dcbb5274d21b5cd5fc",
+    "src/applications/oauthserver/storage/PhabricatorOAuthServerAccessToken.php": "5711abedfc02d98ac6919f67d83710c0dd712f13ac51471fa040358e41366310",
+    "src/applications/oauthserver/storage/PhabricatorOAuthClientAuthorization.php": "95e4a3a5cfee90ffdc2dcbcfb39d8236c63c72672eedd791572f1745bd21ff2f",
+    "src/applications/oauthserver/storage/PhabricatorOAuthServerAuthorizationCode.php": "47a6c99493cf8a0c644ae0263a9e6693f858469d8c7660042979d083c83acdfb",
+    "src/applications/oauthserver/storage/PhabricatorOAuthServerClient.php": "93b9640e49d0bf4eb657270395c45910f909001a80cf3eb1d7e4b5fb3abe012b"
+  }
+}

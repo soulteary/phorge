@@ -1,0 +1,43 @@
+{
+  "source_head": "44eee10c40496c47a642249e673c1ecaec0caf13",
+  "base_component": "0b579a01abc0b44e9cd3ecd5395888d5979701c8",
+  "previous_failed_source": "6bc84b827d01c263601c7df57616a0cb10efe991",
+  "source_sha256": {
+    "scripts/governance/check_native_organization.py": "f4042a9bd25c3df58983a440b943194147a73618f451c67b2832ab8c0d5d284e",
+    "support/governance/native-organization/native-cases.php": "27d25c0f02d1703531eb5644487843881aa32b5fb1a0e9af57d0942f3bec6a4c",
+    "support/governance/native-organization/native-worker.php": "6f115fc1e1b5e09f99e278409f1364daea42a3c5c0128e564ea4984e1ad2c89f",
+    "support/governance/native-organization/workers.php": "fb923a204a5f7e35a3ca6fed4a004c3cafacc8044b097290583ef5bdc34b516c",
+    "support/governance/recovery/README.stop-boundaries.md": "a3235f964e9366391a562d0273a9907b81f9d4ec212d2697b533ce816517e60a",
+    "support/governance/recovery/stop-boundary-cases.php": "1ebe729a4f01829b384cd6f9e5fbdb3e8b999027ee5447c62ecf54fcf97f2440",
+    "support/governance/revocation-measurement/adapters.json": "ac67a04dcab678d98bb8fd1622296f094a44f9c6451bc33a106f31448b14090b",
+    "tests/governance/test_native_organization.py": "fa51c0066c8ff21522906e5ae52298f027bf8e99125cf49f47539ed948e8f1fa",
+    "tests/governance/test_private_notifications.py": "1dca9a5568e5fea02bd22bd52cacd90f8af178e020ef1a788a19ffafbf2b8863",
+    "tests/governance/test_stop_missing_schema.py": "5c0833a8771facfed9ee0450f1dcc44ae77c0d0b60522211b388b8b8b5f1272a",
+    "tests/governance/test_stop_worker_results.py": "09f94ddae7861f767b01e70864167f6d265e5c0c85c5a91aebc912cd75bfb028"
+  },
+  "fix_scope": "exact native schema exception code0/message1146+owned audit name; independent Admin missing/backup and restore checks; host constructor regression and failureREADME",
+  "production_source_changed": false,
+  "expected_not_actual": {
+    "pure": 214,
+    "SQL": 740,
+    "registered_workers": 32
+  },
+  "host_actual": {
+    "governance_tests": 136,
+    "new_native_exception_host_tests": 3,
+    "PHP_lint": true,
+    "diff_check": true
+  },
+  "failed_source_archive": "recovery-stop-boundaries-6bc-failure-immutable.json14files",
+  "helper_sha256": {
+    "run-recovery-stop-boundaries-schema-full.py": "5964feaa587664dfc918695be67a8bb478960d90d93e42a843c8c7379d240c79",
+    "hash-recovery-stop-boundaries-schema-full.py": "80571a44749cb6d8ddb92e2dd9e3ec8c4ac4c1b07ac8379761fe29b0b5d27f57",
+    "seal-recovery-stop-boundaries-schema-full.py": "02735349081b7edeab9850e0127e455542b813be7c7ec84763c4203ff352cc86"
+  },
+  "current_runtime": "UNRUN; source/helperpeer and explicitCOMMONlease pending",
+  "concurrency_proof_accepted": false,
+  "recovery_authorized": false,
+  "all_sources_complete": false,
+  "adoption_blocked": true,
+  "COMMON_used": false
+}
