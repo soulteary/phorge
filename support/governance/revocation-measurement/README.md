@@ -1,11 +1,12 @@
-# N12 observation consumer foundation
+# N12 native Query and API-method observation component
 
 This test-only component fixes the event contract and inventories actual native
 seams. It does not change sessions, permission axes, cache settings or production
-features. Four inventory adapters remain **unsupported/uninstrumented**. The narrow
-application-session Query producer has a separate c419 runtime checkpoint;
-that is not proof of this changed API-token successor. Both current-source
-profiles require fresh execution. No SLA is adopted. The eleven tests use
+features. Four inventory adapters remain **unsupported/uninstrumented**. The two narrow
+profiles below passed at exact source `f3ceb7046b4f94ae791b4ca43b6de0b9d06faba9`:210
+native methods and710 SQL checks on PHP8.5.12. All6778 executed PHP/SQL and pinned
+PSL files matched an independent archive of that source. This documentation-only
+successor is not a new runtime execution. No SLA is adopted. The eleven tests use
 synthetic event data only to verify consumer behavior. Earlier
 SQL/HTTP receipts cannot be converted into timing evidence.
 
@@ -222,3 +223,21 @@ and API5 make710 with210 expected native methods and25 worker cleanups.
 Those figures are pending current-source execution. The failed2c202/682
 checkpoint remains separately archived; no old success or failure is promoted
 to this new main union. The unrelated real HTTP successor is not included.
+
+## Exact-source acceptance
+
+The main98 union and cold-file correction passed at signed source
+`f3ceb7046b4f94ae791b4ca43b6de0b9d06faba9`:210 pure methods,710 SQL assertions,
+and the strict receipt validator. All6778 executed PHP/SQL and PSL files matched
+the independent committed archive. The55 owned schemas,2 runtime users, reader,
+25 worker directories, temporary image and source stage were removed, with zero
+live workers and cleanup failures. See
+`docs/governance/evidence/revocation-query-api-210-710/acceptance.json` and its
+reviewed-source manifest. Earlier sections labelled unrun describe historical
+checkpoints, not the final component state.
+
+The actual profiles are native authenticated Project Query and native Conduit
+`authenticateUser` method probes. They do not prove HTTP routing, gateway
+admission, global revocation, stable convergence, long-lived connections or an
+SLA. No optional production feature was enabled, no native permission axis was
+changed and no deployment was performed.
