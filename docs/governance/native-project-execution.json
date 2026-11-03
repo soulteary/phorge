@@ -106,6 +106,16 @@
         "native_media_http_and_image_regressions_included": true,
         "browser_proof": false,
         "production_activation": false
+      },
+      "current_main_validation": {
+        "main": "18e7d018e5ecbbc2cf449494ed4060f92e575189",
+        "tested_source": "3806576465a8dda03ae65b695969758d3c919e16",
+        "pure_methods": 193,
+        "native_checks": 584,
+        "matched_runtime_files": 5936,
+        "evidence_directory": "docs/governance/evidence/project-approved-members-v2-main18",
+        "browser_proof": false,
+        "production_activation": false
       }
     }
   ]
