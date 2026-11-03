@@ -50,7 +50,7 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
                 result=subprocess.run(base+extra,capture_output=True,text=True)
                 self.assertEqual(expected,result.returncode)
                 if expected==0:
-                    value=json.loads(result.stdout);self.assertEqual(735,value['native_checks'])
+                    value=json.loads(result.stdout);self.assertEqual(750,value['native_checks'])
                     self.assertIs(value['smtp_proved'],False)
 
     def test_duplicate_json_fields_are_not_last_value_wins(self):

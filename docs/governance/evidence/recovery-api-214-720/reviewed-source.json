@@ -1,0 +1,25 @@
+{
+  "runtime_source": "72a7b5be72db1d2c565e91e7a6b76cdd066739b2",
+  "base_main": "e5409ca89aff15126cf6bbf9dad2d92714d785cf",
+  "source_sha256": {
+    "docs/governance/native-directory-callers.json": "247ffc7ef35d36ce93d63e0b65d8275e500b03cef2c10e168048681b070db6a0",
+    "docs/governance/recovery-api-capture.md": "93887c1bc61d5692156adf0aed1e71d3fba9de65158a2c341544c1f13e2519c8",
+    "docs/governance/recovery-api-producers.json": "81d9d149766800534e9fc796b66056d23c98a7df8b98f72756d2b81661c6936f",
+    "scripts/governance/check_native_directory.py": "de8b8e6b35f094142020028e26dc193c17334dd347a8eaec53063043b70fd9a3",
+    "scripts/governance/check_native_organization.py": "1b431390620ba1ae2b6c6554486c082bf97766d172fe52c62802f344e207047a",
+    "src/__phutil_library_map__.php": "d9592510f8a49b84dc6767aca2c9d7f2541d40812d5186987fe4265d74826023",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php": "3d111c0e2ee777c7a4db78fddb5b6b4ef2bf62fe3c6eda9851292e085ee880e0",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php": "dbfa0b7e948b437115313c3b2d34f11e9d2189c633b2b35241ef8aee048c2c51",
+    "src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryNativeAPIFactsTestCase.php": "68e840d7b4bef32e8351368f21bbd9a7a77ce5ebb3b5aed5506ec73eeab4328b",
+    "support/governance/native-organization/native-cases.php": "c3fc9fec214f90502dd2deded07e7f2e92ec8accc6b079fe7cecab0528feb3de",
+    "support/governance/recovery/api-cases.php": "abad0678ef0d035b01a383d287d3f70a28668f2f6250bfed88a55888d13fd18c",
+    "tests/governance/private_mail_ci/run_hosted.py": "34ce1e24c7a57ee395a3bcb9594602d05deb0eb48c3f1441ef29af172e130ad6",
+    "tests/governance/run.php": "cf15dd7bbce29f4df7e24dd68d6bd02379b755bcccf55834ae5d6dedc2b0b7d0",
+    "tests/governance/test_native_organization.py": "980fd23e8f6bc7da49daec698e8401610d1fc5e8c76658da4410c36fb21bafb9",
+    "tests/governance/test_private_notifications.py": "b743ffb10a9c365a223c30334c43d582054297017f5811e4c59d5b2682c805e1"
+  },
+  "source_hashes_scope": "current runtime-source checkpoint, including then-current documentation; never rewritten as docs successor hashes",
+  "source_runtime_index_sha256": "e14e3fac5dac9be414005ee43b46d61488383124160d0ada90a5adc7d2d95434",
+  "all_sources_complete": false,
+  "can_execute": false
+}

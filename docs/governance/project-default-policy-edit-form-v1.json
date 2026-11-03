@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "status": "current-main99-source-integrated-host-verified-awaiting-independent-review-and-native-runtime",
+  "version": 3,
+  "status": "main100-source-integrated-host-verified-native-runtime-unproven",
   "parent_source_checkpoint": "af43aae0f62f9aa6df1bb085eb3ed515cae57630",
   "parent_checkpoint_obligation_not_actual": {
     "pure_methods": 195,
@@ -42,13 +42,13 @@
     "arbitrary custom forms or unsupported structural execution"
   ],
   "remaining": [
-    "Actual PHP8.5.12 full213 methods and735 SQL checks, exact runtime source and all owned cleanup",
+    "Actual PHP8.5.12 full217 methods and750 SQL checks, exact runtime source and all owned cleanup",
     "Independent final source/lease/native-field review",
     "Safe actionable native form responses for missing/stale/mismatched approval input; unexpected backend failures remain failures",
     "Trusted HTTP/browser GET-to-POST and native MFA interaction",
     "Real concurrent default-field source change versus effective-sensitive DAO fence; broader hierarchy/Space execution remains blocked"
   ],
-  "base_main": "e5409ca89aff15126cf6bbf9dad2d92714d785cf",
+  "base_main": "0a43c0211c4ced7749d26187da29798c4439086b",
   "historical_obligation_not_actual": {
     "pure_methods": 197,
     "native_checks": 615,
@@ -56,14 +56,14 @@
     "additional_native_checks_after_parent": 8
   },
   "new_obligation_not_actual": {
-    "pure_methods": 213,
-    "native_checks": 735,
+    "pure_methods": 217,
+    "native_checks": 750,
     "native_workers": 25,
-    "retained_main_checks": 710,
+    "retained_main_checks": 725,
     "additional_form_checks": 25
   },
   "current_host_tests_actually_passed": {
-    "governance": 128,
+    "governance": 129,
     "permissions": 85
   },
   "source_compatibility": "All main710 mandatory IDs and every existing native summary field are retained; no unknown lexical candidate or blocker was removed.",

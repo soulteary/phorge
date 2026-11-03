@@ -48,6 +48,7 @@ try {
     'PhorgePrivateMailPolicyTestCase',
     'PhorgeRecoveryNativeAccountFactsTestCase',
     'PhorgeRecoveryNativeWebFactsTestCase',
+    'PhorgeRecoveryNativeAPIFactsTestCase',
   );
   $expected = array();
   $cases = array();
