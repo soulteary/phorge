@@ -48,6 +48,40 @@ function governance_recovery_api_cases($fixture,callable $check) {
     $check(is_array($legacy_rejected[0])&&$legacy_rejected[0][0]==='ERR-INVALID-SESSION'&&
       count($legacy_after['api_credentials']['api_credentials']['legacy_sessions'])===0,
       'recovery-api-real-single-legacy-session-logout-is-observed');
+    $mixed_sessions=array();
+    $load_session=function($raw)use($subject){
+      $row=(new PhabricatorAuthSession())->loadOneWhere('userPHID=%s AND sessionKey=%s',
+        $subject->getPHID(),PhabricatorAuthSession::newSessionDigest(new PhutilOpaqueEnvelope($raw)));
+      if(!$row){throw new RuntimeException('recovery_fixture_native_session_missing');}return$row;
+    };
+    try {
+      for($i=0;$i<65;$i++){
+        $mixed_sessions[]=$load_session($sessions->establishSession(PhabricatorAuthSession::TYPE_WEB,$subject->getPHID(),false));
+      }
+      $web_only=$capture();$web_refused=false;
+      $web_scope=PhorgeRecoveryNativeCaptureScope::open($actual['context'],$subject->getPHID());
+      try{$web_scope->captureWebCredentials();}catch(RuntimeException$error){
+        if(get_class($error)!==RuntimeException::class||$error->getMessage()!=='recovery_web_capture_budget_unknown'){throw$error;}
+        $web_refused=true;
+      }finally{$web_scope->close();}
+      $check(count($mixed_sessions)===65&&$web_refused&&
+        count($web_only['api_credentials']['api_credentials']['legacy_sessions'])===0&&!$conn->isInsideTransaction(),
+        'recovery-api-unrelated-web-session-budget-does-not-consume-api-budget');
+      $mixed_sessions[]=$load_session($sessions->establishSession(PhabricatorAuthSession::TYPE_CONDUIT,$subject->getPHID(),false));
+      $mixed=$capture();
+      $check(count($mixed['api_credentials']['api_credentials']['legacy_sessions'])===1&&
+        $mixed['can_execute']===false&&!$conn->isInsideTransaction(),
+        'recovery-api-mixed-session-capture-selects-only-native-conduit-type');
+      for($i=0;$i<64;$i++){
+        $mixed_sessions[]=$load_session($sessions->establishSession(PhabricatorAuthSession::TYPE_CONDUIT,$subject->getPHID(),false));
+      }
+      $selected_refused=false;try{$capture();}catch(RuntimeException$error){
+        if(get_class($error)!==RuntimeException::class||$error->getMessage()!=='recovery_api_capture_budget_unknown'){throw$error;}
+        $selected_refused=true;
+      }
+      $check($selected_refused&&!$conn->isInsideTransaction(),
+        'recovery-api-selected-legacy-session-row-budget-remains-enforced');
+    }finally{foreach($mixed_sessions as$row){$sessions->logoutSession($subject,$row);}}
     $client=PhabricatorOAuthServerClient::initializeNewClient($subject)->setName('Synthetic Recovery OAuth')->setRedirectURI('https://example.invalid/return')->save();
     $server=(new PhabricatorOAuthServer())->setUser($subject)->setClient($client);
     $authorization=$server->authorizeClient(array());$access=$server->generateAccessToken();

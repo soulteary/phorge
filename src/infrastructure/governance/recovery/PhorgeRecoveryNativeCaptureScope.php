@@ -237,6 +237,10 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
     $where=$temporary ? qsprintf($this->connection,
       '(BINARY tokenResource=BINARY %s OR BINARY userPHID=BINARY %s)',$this->target,$this->target) :
       qsprintf($this->connection,'BINARY userPHID=BINARY %s',$this->target);
+    if ($api) {
+      $where = qsprintf($this->connection, '%Q AND BINARY type=BINARY %s',
+        $where, PhabricatorAuthSession::TYPE_CONDUIT);
+    }
     $lengths=$temporary ? qsprintf($this->connection,
       'OCTET_LENGTH(tokenResource) a,OCTET_LENGTH(tokenType) b,OCTET_LENGTH(tokenCode) c,OCTET_LENGTH(userPHID) d,OCTET_LENGTH(properties) e') :
       qsprintf($this->connection,'OCTET_LENGTH(phid) a,OCTET_LENGTH(userPHID) b,OCTET_LENGTH(type) c,OCTET_LENGTH(sessionKey) d');

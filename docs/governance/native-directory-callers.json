@@ -814,7 +814,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
       "symbol": "PhorgeRecoveryNativeCaptureScope",
       "kind": "isolated-account-capture-not-recovery-authority",
-      "sha256": "f22350aacd7b7cf0c3fb8c1fc89a2c3670cccf0ab0be63d03e4d177dd2f0ccbe",
+      "sha256": "880a9f7ecd055d916faf132382aa9eac499a2a05c30161f7697862c68908d748",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1669,7 +1669,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
-        "sha256": "f22350aacd7b7cf0c3fb8c1fc89a2c3670cccf0ab0be63d03e4d177dd2f0ccbe"
+        "sha256": "880a9f7ecd055d916faf132382aa9eac499a2a05c30161f7697862c68908d748"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
