@@ -12,6 +12,9 @@ _spec = importlib.util.spec_from_file_location('native_completion_gate', ROOT/'s
 completion = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(completion)
 REQUIRED_CHECKS = frozenset({
+    'native-media-http-cross-site-configuration-refused-before-state-276dccdd1760a117d0e89f94163e0d013a17f639e2be134df07fb78aa62a1414',
+    'native-media-http-cross-site-configuration-refused-before-state-764abda848066874da61f25c69020fe1c5420068c5d5afa4272cbfa7712ede8c',
+
     'native-media-http-foreign-origin-preparation-refused',
     'native-media-http-missing-origin-preparation-refused',
     'native-media-http-null-origin-preparation-refused',

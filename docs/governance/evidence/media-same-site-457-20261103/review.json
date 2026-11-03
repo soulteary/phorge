@@ -1,0 +1,20 @@
+{
+  "status": "no confirmed P1/P2 in independent static review",
+  "source_sha256": {
+    "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php": "a6d4e9d50ec4f795ce75e8de52337a5af1afd31244a88222a2a3173c12984cd6",
+    "scripts/governance/build_media_site_rules.py": "c763c2daa3ed53f6ca52acae8a5c4cb4b085bfc412008dd8d46284f975342b35",
+    "resources/governance/publicsuffix/rules.json": "d0690c4291743adc4f60413942d95025b7de1d8fa0850a9f3496c53a6ef0f386",
+    "resources/governance/publicsuffix/test-cases.json": "297b6f00887a331d4fa0432f288d5cb769331ace7ec857929f153ecc550b48cd",
+    "resources/governance/publicsuffix/README.md": "2094f89aaf4105e8074ac603cdd2bf2a9b6af9eb1934de8125f51e613d5149dc"
+  },
+  "checks": [
+    "distinct canonical HTTPS hosts plus equal registrable domain; schemeful same-site enforced without parent cookie",
+    "longest exact/wildcard and exception PSL rules, default wildcard and PRIVATE rules retained",
+    "numeric final label rejects abbreviated/octal/hex browser IPv4 aliases; exact IPv4 cannot authorize another host",
+    "build-only UTS46 nontransitional STD3 normalization and pinned idna3.19; canonical-vs-pinned normalized set comparison",
+    "runtime offline ASCII only; unknown/malformed origin or missing rules refuses rather than weakens cookie behavior"
+  ],
+  "reviewer_runtime_executed": false,
+  "parent_reported_pure": "168/168 plus all78 upstream corpus cases; not independently rerun by reviewer",
+  "remaining": "new native cross-site config refusal and SQL nonmutation actual tests pending at review"
+}
