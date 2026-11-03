@@ -57,6 +57,7 @@ final class PonderAnswerEditor extends PonderEditor {
     $id = $object->getID();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("ANSR{$id}");
   }
 

@@ -759,7 +759,21 @@ final class PhabricatorAuthRegisterController
       return;
     }
 
+    if(PhorgePrivateMailPolicy::enabled()){
+      foreach($admins as$admin){
+        // Match native undeliverable-recipient handling without weakening the
+        // exact source binding for recipients that do have an email address.
+        $email=$admin->loadPrimaryEmail();
+        if(!$email||!$admin->canEstablishWebSessions()||!$admin->getIsApproved()||$admin->getIsDisabled()){continue;}
+        (new PhabricatorMetaMTAMail())->setPrivateMailProducer(__CLASS__)
+          ->setPrivateMailFlow('account.approval.queue',PhorgePrivateMailPolicy::userBinding($user,$admin,$email,$admin->getPHID()))
+          ->addTos(array($admin->getPHID()))->setSubject($title)->setBody($body->render())->saveAndSend();
+      }
+      return;
+    }
+
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addTos(mpull($admins, 'getPHID'))
       ->setSubject($title)
       ->setBody($body->render())

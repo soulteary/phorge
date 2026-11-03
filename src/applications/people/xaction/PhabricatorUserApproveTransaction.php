@@ -36,7 +36,30 @@ final class PhabricatorUserApproveTransaction
         $actor->getUsername()),
       PhabricatorEnv::getProductionURI('/'));
 
+    if(PhorgePrivateMailPolicy::enabled()){
+      $owner_email=$user->loadPrimaryEmail();
+      if($owner_email){
+      $binding=PhorgePrivateMailPolicy::userEventBinding($user,$user,
+        $this->getTransactionPHIDForMailSource(),self::TRANSACTIONTYPE,$owner_email);
+      (new PhabricatorMetaMTAMail())->setPrivateMailProducer(__CLASS__)->setPrivateMailFlow('account.approved.owner',$binding)
+        ->addTos(array($user->getPHID()))->setForceDelivery(true)
+        ->setSubject($value?pht('Account Approved'):pht('Account Approval Withdrawn'))
+        ->setBody(($value?pht('Your account has been approved. Sign in to continue.'):
+          pht('Your account approval has been withdrawn. Contact an administrator if you need access.'))."\n\n".PhabricatorEnv::getProductionURI('/'))
+        ->saveAndSend();
+      }
+      $actor_email=$actor->loadPrimaryEmail();
+      if($actor->getPHID()!==$user->getPHID()&&$actor_email){
+        $binding=PhorgePrivateMailPolicy::userEventBinding($user,$actor,
+          $this->getTransactionPHIDForMailSource(),self::TRANSACTIONTYPE,$actor_email,$actor->getPHID());
+        (new PhabricatorMetaMTAMail())->setPrivateMailProducer(__CLASS__)->setPrivateMailFlow('account.approved.admin',$binding)
+          ->addTos(array($actor->getPHID()))->setForceDelivery(true)->setSubject($title)->setBody($body)->saveAndSend();
+      }
+      return;
+    }
+
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addTos(array($user->getPHID()))
       ->addCCs(array($actor->getPHID()))
       ->setSubject(

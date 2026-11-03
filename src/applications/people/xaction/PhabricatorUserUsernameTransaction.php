@@ -31,6 +31,7 @@ final class PhabricatorUserUsernameTransaction
       ->setRecipient($object)
       ->setOldUsername($old_username)
       ->setNewUsername($new_username)
+      ->setPrivateMailSourceTransactionPHID($this->getTransactionPHIDForMailSource())
       ->sendMail();
   }
 

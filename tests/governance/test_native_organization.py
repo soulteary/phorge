@@ -124,6 +124,15 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(name=name),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
         data=template();data['native'].pop('http_tests')
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+    def test_private_notification_scope_requires_current_source_and_preserves_unproved_gates(self):
+        for key in ('actual_native_source_and_object_query','actual_native_queue',
+                    'real_business_serialization_and_legacy_quarantine'):
+            data=template();data['native']['private_mail_tests'][key]=False
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in ('smtp_or_delivery_workers_executed','security_challenge_runtime_matrix_complete',
+                    'all_producers_runtime_complete','physical_callback_runtime_complete'):
+            data=template();data['native']['private_mail_tests'][key]=True
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:
@@ -182,6 +191,13 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             data=template();data[key]=value
             with self.subTest(key=key), self.assertRaises(ValueError): gate.validate(data, file_digest='b'*64)
 
+    def test_security_source_receipt_cannot_be_promoted_to_smtp_or_legalpad_proof(self):
+        for key in ('smtp_security_matrix_complete','all_security_producer_runtime_complete','legalpad_signature_delivery_supported'):
+            data=template();data['native']['private_mail_tests']['security_flow_tests'][key]=True
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();name='private-mail-no-primary-email-native-rename-commits-without-owner-notice'
+        data['checks'].remove(name);data['check_count']-=1
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
     def test_actual_paired_binary_digest_is_required_and_must_match(self):
         with self.assertRaises(ValueError): gate.validate(template())
         for digest in ('c'*64, None, True):

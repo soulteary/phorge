@@ -39,6 +39,7 @@ try {
     'PhorgeGovernanceMediaHTTPProtocolTestCase',
     'PhorgeGovernanceMediaFileGuardTestCase',
     'PhorgeProjectExecutionTestCase',
+    'PhorgePrivateMailPolicyTestCase',
   );
   $expected = array();
   $cases = array();

@@ -71,6 +71,10 @@ abstract class PhabricatorPeopleMailEngine
 
   final public function sendMail() {
     $this->validateMail();
+    // Rename is a committed account mutation with an optional notification.
+    // An undeliverable account must not roll back the underlying rename.
+    if(PhorgePrivateMailPolicy::enabled()&&get_class($this)==='PhabricatorPeopleUsernameMailEngine'&&
+      !$this->hasRecipientAddress()&&!$this->getRecipient()->loadPrimaryEmail()){return null;}
     $mail = $this->newMail();
 
     if ($this->hasRecipientAddress()) {
@@ -79,6 +83,22 @@ abstract class PhabricatorPeopleMailEngine
     } else {
       $recipient = $this->getRecipient();
       $mail->addTos(array($recipient->getPHID()));
+    }
+
+    if(PhorgePrivateMailPolicy::enabled()){
+      $flows=array('PhabricatorPeopleEmailLoginMailEngine'=>'account.login',
+        'PhabricatorPeopleWelcomeMailEngine'=>'account.welcome','PhabricatorPeopleUsernameMailEngine'=>'account.username');
+      $flow=idx($flows,get_class($this));
+      if($flow!==null){$recipient=$this->getRecipient();$email=null;
+        if($this->hasRecipientAddress()){$email=(new PhabricatorUserEmail())->loadOneWhere('userPHID=%s AND address=%s',
+          $recipient->getPHID(),$this->getRecipientAddress()->getAddress());
+          if(!$email){throw new RuntimeException('private_mail_native_destination_required');}}
+        $admin=$flow==='account.welcome'?$this->getSender()->getPHID():null;
+        $binding=$flow==='account.username'?PhorgePrivateMailPolicy::userEventBinding($recipient,$recipient,
+          $this->getPrivateMailSourceTransactionPHID(),PhabricatorUserUsernameTransaction::TRANSACTIONTYPE,$email):
+          PhorgePrivateMailPolicy::userBinding($recipient,$recipient,$email,$admin);
+        $mail->setPrivateMailFlow($flow,$binding);
+      }
     }
 
     $activity_log = $this->getActivityLog();

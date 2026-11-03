@@ -141,6 +141,11 @@ abstract class PhabricatorModularTransactionType
     return $this;
   }
 
+  /** Read-only source identity for security-mail event binding. */
+  final protected function getTransactionPHIDForMailSource() {
+    return $this->getStorage()->getPHID();
+  }
+
   private function getStorage() {
     return $this->storage;
   }

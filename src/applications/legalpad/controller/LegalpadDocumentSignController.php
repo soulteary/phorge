@@ -695,6 +695,7 @@ final class LegalpadDocumentSignController extends LegalpadController {
       $doc_link);
 
     id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($email->getAddress()))
       ->setSubject(pht('[Legalpad] Signature Verification'))
       ->setForceDelivery(true)

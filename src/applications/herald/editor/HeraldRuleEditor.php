@@ -70,6 +70,7 @@ final class HeraldRuleEditor
     $subject = pht('%s: %s', $monogram, $name);
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject($subject);
   }
 

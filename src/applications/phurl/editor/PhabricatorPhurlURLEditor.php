@@ -68,6 +68,7 @@ final class PhabricatorPhurlURLEditor
     $name = $object->getName();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("U{$id}: {$name}");
   }
 

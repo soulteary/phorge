@@ -50,6 +50,7 @@ final class PhabricatorFileEditor
     $name = $object->getName();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("F{$id}: {$name}");
   }
 
