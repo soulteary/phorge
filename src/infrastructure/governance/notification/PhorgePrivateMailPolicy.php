@@ -150,14 +150,35 @@ final class PhorgePrivateMailPolicy extends Phobject {
     return self::userBinding($subject,$recipient,$email,$admin,$phid,$event);
   }
   private static function userEvent($phid,$subject,$type){
+    $result=self::observeUserEvent($phid,$subject,$type);
+    return $result['state']==='present'?$result['hash']:null;
+  }
+  private static function observeUserEvent($phid,$subject,$type){
     if(!is_string($phid)||!preg_match('/\APHID-XACT-USER-[a-zA-Z0-9]{15}\z/',$phid)||
-      !in_array($type,array(PhabricatorUserUsernameTransaction::TRANSACTIONTYPE,PhabricatorUserApproveTransaction::TRANSACTIONTYPE),true)){return null;}
+      !in_array($type,array(PhabricatorUserUsernameTransaction::TRANSACTIONTYPE,PhabricatorUserApproveTransaction::TRANSACTIONTYPE),true)){return array('state'=>'invalid');}
     $table=new PhabricatorUserTransaction();$conn=$table->establishConnection('w');
     $size=queryfx_one($conn,'SELECT COALESCE(OCTET_LENGTH(oldValue),0)+COALESCE(OCTET_LENGTH(newValue),0) n FROM %R WHERE phid=%s LIMIT 1',$table,$phid);
-    if(!$size||(int)$size['n']>8192){return null;}
+    if(!$size){return array('state'=>'missing');}
+    if((int)$size['n']>8192){return array('state'=>'invalid');}
     $row=queryfx_one($conn,'SELECT phid,objectPHID,authorPHID,transactionType,oldValue,newValue FROM %R WHERE phid=%s LIMIT 1',$table,$phid);
-    if(!$row||$row['phid']!==$phid||$row['objectPHID']!==$subject||$row['transactionType']!==$type){return null;}
-    return hash('sha256',phutil_json_encode($row));
+    if(!$row){return array('state'=>'missing');}
+    if($row['phid']!==$phid||$row['objectPHID']!==$subject||$row['transactionType']!==$type){return array('state'=>'invalid');}
+    return array('state'=>'present','hash'=>hash('sha256',phutil_json_encode($row)));
+  }
+  /** A retry budget, never a permission or revocation grace period. */
+  public static function sourceCanStillCommit($created,$now){
+    foreach(array($created,$now)as$value){
+      if((!is_int($value)&&!is_string($value))||!preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$value)||
+        (float)$value>4294967295){return false;}
+    }
+    return (int)$now>=(int)$created&&((int)$now-(int)$created)<300;
+  }
+  private static function deferMissingUserEvent(PhabricatorMetaMTAMail $mail){
+    if(!$mail->getID()){return false;}
+    $table=new PhabricatorUserTransaction();$row=queryfx_one($table->establishConnection('w'),'SELECT UNIX_TIMESTAMP() n');
+    if(!self::sourceCanStillCommit($mail->getDateCreated(),$row['n'])){return false;}
+    // No cache, quarantine, status or snapshot mutation occurs before this error.
+    throw new PhorgePrivateMailSourcePendingException(pht('Notification source transaction is still pending.'));
   }
   private static function accountHash(PhabricatorUser $user){
     $secret=$user->getAccountSecret();
@@ -178,10 +199,13 @@ final class PhorgePrivateMailPolicy extends Phobject {
       try{if(!hash_equals($binding['account_hash'],self::accountHash($subject))){return false;}}
       catch(InvalidArgumentException$error){return false;}
     }
+    $event_missing=false;
     if(in_array($flow,array('account.username','account.approved.owner','account.approved.admin'),true)){
       $type=$flow==='account.username'?PhabricatorUserUsernameTransaction::TRANSACTIONTYPE:PhabricatorUserApproveTransaction::TRANSACTIONTYPE;
-      $hash=self::userEvent($binding['source'],$binding['subject'],$type);
-      if($hash===null||!hash_equals($binding['source_hash'],$hash)){return false;}
+      $event=self::observeUserEvent($binding['source'],$binding['subject'],$type);
+      if($event['state']==='invalid'){return false;}
+      $event_missing=$event['state']==='missing';
+      if(!$event_missing&&!hash_equals($binding['source_hash'],$event['hash'])){return false;}
     }
     $alerts=array('account.username','account.email.old-primary','account.email.new-primary','account.approved.owner','account.ssh');
     if($subject->getIsDisabled()&&!in_array($flow,$alerts,true)){return false;}
@@ -203,6 +227,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
       $key=(new PhabricatorAuthSSHKey())->loadOneWhere('BINARY phid=BINARY %s',$binding['source']);
       if(!$key||$key->getPHID()!==$binding['source']||$key->getObjectPHID()!==$subject->getPHID()){return false;}
     }
+    if($event_missing){return self::deferMissingUserEvent($mail);}
     return true;
   }
   private static function destinationMatches(PhabricatorMetaMTAMail $mail,array $binding,$address){

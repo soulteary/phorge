@@ -35,25 +35,55 @@ function governance_private_mail_commit_race_cases($fixture,callable $check){
       if(!rmdir($directory)){throw new RuntimeException('private_mail_race_cleanup_failed');}
     }
   };
-  foreach(array('commit','rollback')as$ending){
+  foreach(array('commit','rollback','recipient-revoked','admin-revoked')as$ending){
     $admin=(new PhabricatorUser())->setUsername('pmraceadmin'.$ending.$suffix)->setRealName('Synthetic race administrator')->setIsApproved(1)->setIsEmailVerified(1)->setIsAdmin(1)->save();
-    $subject=(new PhabricatorUser())->setUsername('pmracesubject'.$ending.$suffix)->setRealName('Synthetic race subject')->setIsApproved(1)->setIsEmailVerified(1)->save();
+    (new PhabricatorUserEmail())->setUserPHID($admin->getPHID())->setAddress($admin->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
+    $subject=(new PhabricatorUser())->setUsername('pmracesubject'.$ending.$suffix)->setRealName('Synthetic race subject')->setIsApproved($ending==='admin-revoked'?0:1)->setIsEmailVerified(1)->save();
     (new PhabricatorUserEmail())->setUserPHID($subject->getPHID())->setAddress($subject->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
     $auth=governance_native_request($admin,new PhabricatorAuthSessionEngine());$table=new PhabricatorMetaMTAMail();
     $before=(int)queryfx_one($table->establishConnection('r'),'SELECT COALESCE(MAX(id),0) n FROM %R',$table)['n'];
     $conn=$subject->establishConnection('w');$conn->openTransaction();
     try{
       (new PhabricatorUserTransactionEditor())->setActor($auth['viewer'])->setContentSourceFromRequest($auth['request'])->setCancelURI('/people/')
-        ->applyTransactions($subject,array((new PhabricatorUserTransaction())->setTransactionType(PhabricatorUserUsernameTransaction::TRANSACTIONTYPE)->setNewValue('pmracedone'.$ending.$suffix)));
-      $mails=$table->loadAllWhere('id>%d ORDER BY id',$before);$selected=array();foreach($mails as$mail){if($mail->getPrivateMailPolicyValue('governance.mail-flow')==='account.username'){$selected[]=$mail;}}
+        ->applyTransactions($subject,array((new PhabricatorUserTransaction())->setTransactionType($ending==='admin-revoked'?PhabricatorUserApproveTransaction::TRANSACTIONTYPE:PhabricatorUserUsernameTransaction::TRANSACTIONTYPE)->setNewValue($ending==='admin-revoked'?true:'pmracedone'.$ending.$suffix)));
+      $mails=$table->loadAllWhere('id>%d ORDER BY id',$before);$selected=array();foreach($mails as$mail){if($mail->getPrivateMailPolicyValue('governance.mail-flow')===($ending==='admin-revoked'?'account.approved.admin':'account.username')){$selected[]=$mail;}}
       if(count($selected)!==1){throw new RuntimeException('private_mail_race_native_mail_cardinality');}$mail=head($selected);
-      $first=$probe($mail);$check($conn->isInsideTransaction()&&$first['allowed']===false&&$first['state']==='void'&&$first['quarantined']===true&&$first['physical_delivery_attempted']===false,
-        'private-mail-username-independent-'.$ending.'-precommit-current-code-denies-and-quarantines-real-mail');
+      $prepared=$mail->prepareGorgeDelivery();$digest=hash('sha256',phutil_json_encode($prepared));
+      $first=$probe($mail);$check($conn->isInsideTransaction()&&$first['allowed']===null&&$first['pending']===true&&
+        $first['state']==='pending'&&$first['callback_pending']===true&&$first['callback_allowed']===false&&
+        $first['quarantined']===false&&$first['snapshot_digest']===$digest&&$first['physical_delivery_attempted']===false,
+        'private-mail-'.($ending==='admin-revoked'?'approval':'username').'-independent-'.$ending.'-precommit-defers-without-quarantine-snapshot-rewrite-or-send');
       if($ending==='commit'){$conn->saveTransaction();}else{$conn->killTransaction();}
-      $second=$probe($mail);$check($second['source_event_visible']===($ending==='commit')&&$second['source_event_matches']===($ending==='commit')&&$second['allowed']===false&&$second['quarantined']===true&&$second['state']==='void'&&$second['physical_delivery_attempted']===false,
-        'private-mail-username-independent-'.$ending.'-postcompletion-current-quarantine-persists-despite-real-source-observation-without-smtp');
-      $samples[$ending]=array('precommit_allowed'=>false,'precommit_quarantined'=>true,'postcompletion_allowed'=>$second['allowed'],'postcompletion_source_visible'=>$second['source_event_visible'],'postcompletion_quarantined'=>$second['quarantined']);
+      if($ending==='admin-revoked'){$admin->setIsAdmin(0)->save();}
+      if($ending==='recipient-revoked'){
+        $email=(new PhabricatorUserEmail())->loadOneWhere('userPHID=%s AND isPrimary=1',$subject->getPHID());$email->setIsPrimary(0)->save();
+        (new PhabricatorUserEmail())->setUserPHID($subject->getPHID())->setAddress('replacement'.$subject->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
+      }
+      if($ending==='rollback'){
+        $still=$probe($mail);$check($still['pending']===true&&$still['quarantined']===false&&$still['callback_allowed']===false,
+          'private-mail-username-rolled-back-missing-source-remains-unprivileged-during-bounded-retry');
+        queryfx($table->establishConnection('w'),'UPDATE %R SET dateCreated=UNIX_TIMESTAMP()-301 WHERE id=%d',$table,$mail->getID());
+      }
+      $second=$probe($mail);$check($second['source_event_visible']===($ending==='commit')&&
+        $second['allowed']===($ending==='commit')&&$second['pending']===false&&$second['state']===($ending==='commit'?'prepared':'void')&&
+        $second['callback_allowed']===($ending==='commit')&&$second['quarantined']===($ending!=='commit')&&$second['snapshot_digest']===$digest&&
+        $second['physical_delivery_attempted']===false,
+        'private-mail-'.($ending==='admin-revoked'?'approval':'username').'-independent-'.$ending.'-durable-retry-rechecks-source-and-current-destination');
+      if($ending==='commit'){
+        $stored=(new PhabricatorMetaMTAMail())->load($mail->getID());$original_binding=$stored->getPrivateMailPolicyValue('governance.mail-binding');
+        $bad_binding=$original_binding;$bad_binding['source_hash']=str_repeat('0',64);
+        (new ReflectionMethod(PhabricatorMetaMTAMail::class,'setParam'))->invoke($stored,'governance.mail-binding',$bad_binding);$stored->save();
+        $mismatch=$probe($stored);$check($mismatch['pending']===false&&$mismatch['allowed']===false&&$mismatch['quarantined']===true&&$mismatch['snapshot_digest']===$digest,
+          'private-mail-user-event-present-hash-mismatch-is-permanent-denial-not-pending');
+        $stored=(new PhabricatorMetaMTAMail())->load($mail->getID());
+        (new ReflectionMethod(PhabricatorMetaMTAMail::class,'setParam'))->invoke($stored,'governance.mail-binding',$original_binding);$stored->save();
+        $historic=$probe($stored);$check($historic['source_event_matches']===true&&$historic['pending']===false&&$historic['allowed']===false&&
+          $historic['quarantined']===true&&$historic['snapshot_digest']===$digest,
+          'private-mail-previously-quarantined-message-never-auto-restores-after-source-repair');
+      }
+      $samples[$ending]=array('precommit_pending'=>true,'precommit_quarantined'=>false,'postcompletion_allowed'=>$second['allowed']);
+
     }catch(Throwable$error){if($conn->isInsideTransaction()){$conn->killTransaction();}throw$error;}
   }
-  return array('independent_process_native_commit_race_reproduced'=>true,'samples'=>$samples,'production_fix_implemented'=>false,'physical_smtp_race_proved'=>false);
+  return array('independent_process_native_commit_race_reproduced'=>true,'samples'=>$samples,'production_fix_implemented'=>true,'physical_smtp_race_proved'=>false);
 }

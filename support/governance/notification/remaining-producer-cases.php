@@ -97,6 +97,8 @@ function governance_private_mail_remaining_producer_cases($fixture, callable $ch
     $check(count($escaped)===1,'private-mail-username-real-producer-created-mail-inside-outer-native-transaction');
     $conn->killTransaction();
   }catch(Throwable$error){if($conn->isInsideTransaction()){$conn->killTransaction();}throw$error;}
+  $expired=head($escaped);queryfx($expired->establishConnection('w'),'UPDATE %R SET dateCreated=UNIX_TIMESTAMP()-301 WHERE id=%d',$expired,$expired->getID());
+  $escaped=array((new PhabricatorMetaMTAMail())->load($expired->getID()));
   $check((new PhabricatorUser())->load($subject->getID())->getUsername()===$old_name&&
     !PhorgePrivateMailPolicy::authorize(head($escaped))&&head($escaped)->prepareGorgeDelivery()===array('state'=>'void'),
     'private-mail-username-outer-native-rollback-orphan-notice-cannot-deliver');

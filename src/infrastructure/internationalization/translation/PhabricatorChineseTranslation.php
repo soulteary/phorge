@@ -20,6 +20,7 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Notification source transaction is still pending.' => '通知来源事务尚未提交，请稍后重试。',
       'Private Notifications' => '私有通知',
       'Account Approved' => '账号已批准',
       'Account Approval Withdrawn' => '账号批准已撤回',

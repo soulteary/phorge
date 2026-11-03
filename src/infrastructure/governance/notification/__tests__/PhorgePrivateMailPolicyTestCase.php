@@ -1,5 +1,11 @@
 <?php
 final class PhorgePrivateMailPolicyTestCase extends PhutilTestCase {
+  public function testSourcePendingHasABoundedCanonicalClockAndNeverGrantsPermission(){
+    foreach(array(array(100,100),array('100','399'))as$pair){$this->assertTrue(PhorgePrivateMailPolicy::sourceCanStillCommit($pair[0],$pair[1]));}
+    foreach(array(array(100,400),array(100,99),array('0100',100),array(100.0,100),array(true,100),array(null,100),array(0,100),array(100,4294967296))as$pair){
+      $this->assertFalse(PhorgePrivateMailPolicy::sourceCanStillCommit($pair[0],$pair[1]));}
+    $this->assertFalse(is_subclass_of(PhorgePrivateMailSourcePendingException::class,PhabricatorMetaMTAPermanentFailureException::class));
+  }
   public function testGenericEnvelopeCannotCarryOriginalPrivateMetadata(){
     $source=(new PhabricatorMailEmailMessage())->setFromAddress(new PhutilEmailAddress('Private Actor <actor@example.invalid>'))
       ->setToAddresses(array(new PhutilEmailAddress('Private Team Member <member@example.invalid>')))
