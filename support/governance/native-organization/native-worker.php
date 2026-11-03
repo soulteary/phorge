@@ -120,7 +120,59 @@ try {
   $action=$payload['action']; $kind=$action['action']??null;
   $conn=(new PhabricatorUser())->establishConnection('w');
   $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
-  if ($kind==='org.list' || $kind==='org.count') {
+  if($kind==='measurement.api-token-auth'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','owner_binding','token','token_id')||!is_string($action['token'])||
+      !preg_match('/\Aapi-[a-z0-9]{28}\z/',$action['token'])||!is_int($action['token_id'])||$action['token_id']<1||
+      !is_string($action['owner_binding'])||!preg_match('/\A[a-f0-9]{64}\z/',$action['owner_binding'])){
+      throw new RuntimeException('native_worker_action_refused');}
+    $token_conn=(new PhabricatorConduitToken())->establishConnection('w');
+    $row=queryfx_one($token_conn,'SELECT id,objectPHID,tokenType,token,expires FROM %R WHERE id=%d',
+      new PhabricatorConduitToken(),$action['token_id']);
+    if($row&&(!hash_equals($action['token'],$row['token'])||$row['tokenType']!==PhabricatorConduitToken::TYPE_STANDARD||
+      hash('sha256',$row['objectPHID'])!==$action['owner_binding'])){
+      throw new RuntimeException('measurement_token_binding_refused');}
+    $boot=trim(file_get_contents('/proc/sys/kernel/random/boot_id'));
+    if(!preg_match('/\A[a-f0-9-]{36}\z/',$boot)){throw new RuntimeException('measurement_linux_clock_required');}
+    $actual_thread=(int)queryfx_one($token_conn,'SELECT CONNECTION_ID() n')['n'];
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$actual_thread));
+    $api=new ConduitAPIRequest(array(),true);
+    $controller=(new PhabricatorConduitAPIController())->setRequest(
+      (new AphrontRequest('fixture.invalid','/api/user.whoami'))->setUser(new PhabricatorUser()));
+    $error=(new ReflectionMethod(PhabricatorConduitAPIController::class,'authenticateUser'))
+      ->invoke($controller,$api,array('token'=>$action['token']),'user.whoami');
+    $outcome='unknown';$code='unknown';
+    if($error===null&&$row&&hash('sha256',$api->getUser()->getPHID())===$action['owner_binding']){
+      $outcome='allowed';$code='native-success';
+    }else if(!$row&&is_array($error)&&array_keys($error)===array(0,1)&&$error[0]==='ERR-INVALID-AUTH'){
+      $outcome='denied';$code='ERR-INVALID-AUTH';
+    }
+    $result=array('status'=>'committed','outcome'=>$outcome,'authentication_code'=>$code,
+      'token_present'=>$row!==null,'boot_id_sha256'=>hash('sha256',$boot),
+      'owner_binding'=>$action['owner_binding'],
+      'source_binding'=>hash('sha256',phutil_json_encode(array('id'=>$action['token_id'],'row'=>$row))));
+  } else if($kind==='measurement.project-query'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','target','token')||!is_string($action['token'])||strlen($action['token'])>256||
+      !is_string($action['target'])||!preg_match('/\APHID-PROJ-[a-zA-Z0-9]{20}\z/',$action['target'])){
+      throw new RuntimeException('native_worker_action_refused');}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer||$viewer->getIsDisabled()||!$viewer->getIsApproved()||$viewer->getIsSystemAgent()||$viewer->getIsMailingList()){
+      throw new RuntimeException('governance_web_credential_required');}
+    $project_conn=(new PhabricatorProject())->establishConnection('w');
+    $row=queryfx_one($project_conn,'SELECT phid,viewPolicy FROM %R WHERE BINARY phid=BINARY %s',new PhabricatorProject(),$action['target']);
+    $latest=queryfx_one($project_conn,'SELECT id,metadata FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id DESC LIMIT 1',new PhabricatorProjectTransaction(),$action['target']);
+    if(!$row||$row['phid']!==$action['target']){throw new RuntimeException('measurement_target_missing');}
+    $boot=trim(file_get_contents('/proc/sys/kernel/random/boot_id'));
+    if(!preg_match('/\A[a-f0-9-]{36}\z/',$boot)){throw new RuntimeException('measurement_linux_clock_required');}
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    $object=null;
+    try{$object=(new PhabricatorProjectQuery())->setViewer($viewer)->withPHIDs(array($action['target']))->executeOne();}
+    catch(PhabricatorPolicyException$error){if(get_class($error)!==PhabricatorPolicyException::class){throw$error;}$object=null;}
+    $result=array('status'=>'committed','outcome'=>$object?'allowed':'denied',
+      'boot_id_sha256'=>hash('sha256',$boot),'target_binding'=>hash('sha256',$action['target']),
+      'source_binding'=>hash('sha256',phutil_json_encode(array($row,$latest))));
+  } else if ($kind==='org.list' || $kind==='org.count') {
     $keys=array_keys($action); sort($keys);
     if ($keys!==array('action','token') || !is_string($action['token']) || strlen($action['token'])>256) {
       throw new RuntimeException('native_worker_action_refused');

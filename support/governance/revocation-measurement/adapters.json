@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "adr": "N12/LIFE-001/MEDIA-001 v1.2",
+  "baseline": "7c38bf7b4da36e0523aa23f85ec4d576d3d9bdb4",
+  "all_actual_measurement_profiles_available": false,
+  "production_mutation": false,
+  "SLA_selected": false,
+  "D15_activated": false,
+  "profiles": [
+    {
+      "family": "gateway",
+      "actual_event_producer_available": false,
+      "status": "unsupported-uninstrumented",
+      "source_refs": [],
+      "implementation_obligations": [
+        "A test-owned Stargate/Warden committed revocation source and authenticated gateway probe must be selected. Identity admission is separate from native object authorization."
+      ],
+      "required_events": [
+        "actual-native-operation-call-and-commit-confirming-return",
+        "opaque-native-transaction-or-transition-binding",
+        "producer-source-revision-and-digest",
+        "same-boot-hashed-monotonic-clock-domain",
+        "per-attempt-start-finish-and-observed-protocol-outcome"
+      ],
+      "accepted_boundary": "No recall of completed responses, in-flight bytes, downloaded copies or sent mail. No global native session/API revocation change."
+    },
+    {
+      "family": "app-session",
+      "actual_event_producer_available": false,
+      "status": "query-only-producer-implemented-runtime-unrun",
+      "source_refs": [
+        {
+          "path": "src/applications/auth/engine/PhabricatorAuthSessionEngine.php",
+          "sha256": "81372aff5539c88d79d3a0f91af409b75fed91432eb137f65ae0621d3efb97ef",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        },
+        {
+          "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
+          "sha256": "7b5e9afbb599efcca6928251333136a96468254eeebfb9355fb306ab9b21992c",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        },
+        {
+          "path": "support/governance/native-organization/route-cases.php",
+          "sha256": "825a97d46b65b1b7cad98e3d1fe2d90931a35631d31ce9b6b62ed23ecba45d65",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        }
+      ],
+      "implementation_obligations": [
+        "Observe actual native account/session transaction commit, then fresh authenticated requests. Do not alter the accepted native cookie/session restoration semantics."
+      ],
+      "required_events": [
+        "actual-native-operation-call-and-commit-confirming-return",
+        "opaque-native-transaction-or-transition-binding",
+        "producer-source-revision-and-digest",
+        "same-boot-hashed-monotonic-clock-domain",
+        "per-attempt-start-finish-and-observed-protocol-outcome"
+      ],
+      "accepted_boundary": "No recall of completed responses, in-flight bytes, downloaded copies or sent mail. No global native session/API revocation change.",
+      "producer_path": "support/governance/native-organization/revocation-measurement-cases.php",
+      "producer_sha256": "c0266ce1d2ff7ab4d9445bb02b1fc2628eef4e80af30d9dee4ff053f13c10b02",
+      "implemented_scope": "Real native SessionEngine authentication and independent ProjectQuery, not HTTP/gateway or all account revocation sources",
+      "runtime_gate": "Must actually run on signed source; five mandatory assertions and three registered worker cleanup obligations",
+      "test_entry_source_refs": [
+        {
+          "path": "support/governance/native-organization/native-cases.php",
+          "sha256": "079ba53b45c67e6acb3a2d7d420c0c2fb870f45e831e9fef5e238412b94a23dd",
+          "evidence": "implemented-test-only-entry-current-source-unrun"
+        },
+        {
+          "path": "support/governance/native-organization/native-worker.php",
+          "sha256": "ac22d36d3ead4e901927a702af57b8667390f3d7742d6519519c5887011b93eb",
+          "evidence": "implemented-test-only-entry-current-source-unrun"
+        },
+        {
+          "path": "support/governance/native-organization/workers.php",
+          "sha256": "2582b880beb5aaad3055fe1a8beeabab58d15810f249175071a2aa10751a23be",
+          "evidence": "implemented-test-only-entry-current-source-unrun"
+        }
+      ],
+      "prior_component_proof": {
+        "source": "c41997e0d684535da50ed04571a5ddeb136c15ce",
+        "pure_methods": 193,
+        "native_checks": 589,
+        "runtime_dependency_files": 5937,
+        "scope": "Query-only checkpoint; not current API successor proof"
+      }
+    },
+    {
+      "family": "api-token",
+      "actual_event_producer_available": false,
+      "status": "native-authentication-producer-implemented-runtime-unrun",
+      "source_refs": [
+        {
+          "path": "src/applications/conduit/controller/PhabricatorConduitAPIController.php",
+          "sha256": "bbf41dddf16b9b9ebfbe1ed011a89c975f67fdbf90da92b3facc002d0a69fc4a",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        },
+        {
+          "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
+          "sha256": "7b5e9afbb599efcca6928251333136a96468254eeebfb9355fb306ab9b21992c",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        }
+      ],
+      "implementation_obligations": [
+        "Record actual native token source transition; run a real Conduit authenticated request, not setUser/viewer-only simulation. Native API re-enable policy is not silently changed."
+      ],
+      "required_events": [
+        "actual-native-operation-call-and-commit-confirming-return",
+        "opaque-native-transaction-or-transition-binding",
+        "producer-source-revision-and-digest",
+        "same-boot-hashed-monotonic-clock-domain",
+        "per-attempt-start-finish-and-observed-protocol-outcome"
+      ],
+      "accepted_boundary": "No recall of completed responses, in-flight bytes, downloaded copies or sent mail. No global native session/API revocation change.",
+      "producer_path": "support/governance/native-organization/revocation-api-token-cases.php",
+      "implemented_scope": "Actual standard-token DAO single-row deletion then independent native authenticateUser branch; not HTTP/gateway",
+      "runtime_gate": "Five new mandatory assertions and three additional registered workers; fresh whole source regression required",
+      "event_schema_version": 2,
+      "native_transaction_group_claimed": false,
+      "producer_sha256": "05ed0e061c59dc4fc8c4469f7bade628f0cb6441ae97b0e847ae038cb85651ce",
+      "test_entry_source_refs": [
+        {
+          "path": "support/governance/native-organization/native-cases.php",
+          "sha256": "079ba53b45c67e6acb3a2d7d420c0c2fb870f45e831e9fef5e238412b94a23dd",
+          "evidence": "implemented-test-only-entry-current-source-unrun"
+        },
+        {
+          "path": "support/governance/native-organization/native-worker.php",
+          "sha256": "ac22d36d3ead4e901927a702af57b8667390f3d7742d6519519c5887011b93eb",
+          "evidence": "implemented-test-only-entry-current-source-unrun"
+        },
+        {
+          "path": "support/governance/native-organization/workers.php",
+          "sha256": "2582b880beb5aaad3055fe1a8beeabab58d15810f249175071a2aa10751a23be",
+          "evidence": "implemented-test-only-entry-current-source-unrun"
+        }
+      ]
+    },
+    {
+      "family": "media",
+      "actual_event_producer_available": false,
+      "status": "unsupported-uninstrumented",
+      "source_refs": [
+        {
+          "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
+          "sha256": "9afb37b7d3b409333dfd01f614f85423ecd1192d795dffe1999cb0a5f8f3c7b0",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        },
+        {
+          "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php",
+          "sha256": "a6d4e9d50ec4f795ce75e8de52337a5af1afd31244a88222a2a3173c12984cd6",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        },
+        {
+          "path": "support/governance/native-organization/media-http-cases.php",
+          "sha256": "5d6057e414f20c91d8034726f40e935091f2c6676c977895ac3d2ca51385c8a2",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        }
+      ],
+      "implementation_obligations": [
+        "Instrument actual owned logout/disable/expiry and subsequent media HTTP authorization. Old media credential must not revive on re-enable; use a distinct transition/new exchange, without globally changing native sessions."
+      ],
+      "required_events": [
+        "actual-native-operation-call-and-commit-confirming-return",
+        "opaque-native-transaction-or-transition-binding",
+        "producer-source-revision-and-digest",
+        "same-boot-hashed-monotonic-clock-domain",
+        "per-attempt-start-finish-and-observed-protocol-outcome"
+      ],
+      "accepted_boundary": "No recall of completed responses, in-flight bytes, downloaded copies or sent mail. No global native session/API revocation change."
+    },
+    {
+      "family": "background",
+      "actual_event_producer_available": false,
+      "status": "unsupported-uninstrumented",
+      "source_refs": [
+        {
+          "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",
+          "sha256": "cba0a2f2271cf5a74ae668d61cadc87870ab22856491eb321dd688c461a17268",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        }
+      ],
+      "implementation_obligations": [
+        "Current main18e does not contain later N11 per-attempt source hooks. Add exact committed paired source only after union; queue boolean receipts do not provide timing."
+      ],
+      "required_events": [
+        "actual-native-operation-call-and-commit-confirming-return",
+        "opaque-native-transaction-or-transition-binding",
+        "producer-source-revision-and-digest",
+        "same-boot-hashed-monotonic-clock-domain",
+        "per-attempt-start-finish-and-observed-protocol-outcome"
+      ],
+      "accepted_boundary": "No recall of completed responses, in-flight bytes, downloaded copies or sent mail. No global native session/API revocation change."
+    },
+    {
+      "family": "long-connection",
+      "actual_event_producer_available": false,
+      "status": "unsupported-uninstrumented",
+      "source_refs": [
+        {
+          "path": "src/applications/notification/client/PhabricatorNotificationServerRef.php",
+          "sha256": "c4374cc4966c62c99a005dceb6c549613ca4a120650b7075d28b6b938dc034e1",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        },
+        {
+          "path": "src/applications/notification/application/PhabricatorNotificationsApplication.php",
+          "sha256": "603eaaa8a2a983919d9181e0127d85110d84a2d2368131451a5153ba661562b9",
+          "evidence": "reviewed-source-seam-not-runtime-measurement"
+        }
+      ],
+      "implementation_obligations": [
+        "The configured notification server reference is not proof of a current WebSocket/long-poll authorization callback. Select real paired protocol and reconnect/in-flight probes before measuring."
+      ],
+      "required_events": [
+        "actual-native-operation-call-and-commit-confirming-return",
+        "opaque-native-transaction-or-transition-binding",
+        "producer-source-revision-and-digest",
+        "same-boot-hashed-monotonic-clock-domain",
+        "per-attempt-start-finish-and-observed-protocol-outcome"
+      ],
+      "accepted_boundary": "No recall of completed responses, in-flight bytes, downloaded copies or sent mail. No global native session/API revocation change."
+    }
+  ],
+  "previous_source_checkpoint": "23f25cae9c"
+}

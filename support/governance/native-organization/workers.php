@@ -22,7 +22,7 @@ function governance_native_worker_atomic($path,$name,$value) {
 
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
-  if (!in_array($action['action']??null,array('org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute'),true)) {
+  if (!in_array($action['action']??null,array('measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute'),true)) {
     throw new RuntimeException('native_worker_action_refused');
   }
   $path=sys_get_temp_dir().'/governance-native-worker-'.bin2hex(random_bytes(12));
@@ -88,6 +88,21 @@ function governance_native_finish_worker(array &$handle) {
   } else if (($result['status']??null)==='committed') {
     if(in_array($worker['action'],array('org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute'),true)){
       if($keys!==array('replayed','status')||!is_bool($result['replayed'])){throw new RuntimeException('native_worker_result_refused');}
+    }else if($worker['action']==='measurement.project-query'){
+      if($keys!==array('boot_id_sha256','outcome','source_binding','status','target_binding')||
+        !in_array($result['outcome'],array('allowed','denied'),true)){
+        throw new RuntimeException('native_worker_result_refused');}
+      foreach(array('boot_id_sha256','source_binding','target_binding')as$key){
+        if(!is_string($result[$key])||!preg_match('/\A[a-f0-9]{64}\z/',$result[$key])){
+          throw new RuntimeException('native_worker_result_refused');}}
+    }else if($worker['action']==='measurement.api-token-auth'){
+      if($keys!==array('authentication_code','boot_id_sha256','outcome','owner_binding','source_binding','status','token_present')||
+        !in_array($result['outcome'],array('allowed','denied','unknown'),true)||
+        !in_array($result['authentication_code'],array('native-success','ERR-INVALID-AUTH','unknown'),true)||
+        !is_bool($result['token_present'])){throw new RuntimeException('native_worker_result_refused');}
+      foreach(array('boot_id_sha256','source_binding','owner_binding')as$key){
+        if(!is_string($result[$key])||!preg_match('/\A[a-f0-9]{64}\z/',$result[$key])){
+          throw new RuntimeException('native_worker_result_refused');}}
     }else if($worker['action']==='media.prepare'){
       if($keys!==array('prepared','status')||$result['prepared']!==true){throw new RuntimeException('native_worker_result_refused');}
     }else if ($worker['action']==='media.redeem') {
