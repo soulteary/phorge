@@ -128,6 +128,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
     foreach(array('email','source')as$key){$value=$binding[$key];if($value!==null&&(!is_string($value)||!preg_match('/\APHID-(?:[A-Z0-9]{4}-[a-zA-Z0-9]{20}|XACT-[A-Z0-9]{4}-[a-zA-Z0-9]{15})\z/',$value))){throw new InvalidArgumentException('private_mail_flow_source_refused');}}
     if($binding['source_hash']!==null&&(!is_string($binding['source_hash'])||!preg_match('/\A[a-f0-9]{64}\z/',$binding['source_hash']))){throw new InvalidArgumentException('private_mail_flow_digest_refused');}
     if(in_array($flow,array('account.welcome','account.approval.queue','account.approved.admin','account.invite'),true)&&$binding['admin']===null){throw new InvalidArgumentException('private_mail_flow_admin_required');}
+    if($flow==='account.invite'&&$binding['admin']!==$binding['subject']){throw new InvalidArgumentException('private_mail_flow_invite_author_required');}
     if($flow!=='account.invite'&&($binding['recipient']===null||$binding['email']===null)){throw new InvalidArgumentException('private_mail_flow_destination_required');}
     if(!in_array($flow,array('account.invite','account.approval.queue','account.approved.admin'),true)&&$binding['subject']!==$binding['recipient']){throw new InvalidArgumentException('private_mail_flow_owner_required');}
     if(in_array($flow,array('account.approval.queue','account.approved.admin'),true)&&$binding['admin']!==$binding['recipient']){throw new InvalidArgumentException('private_mail_flow_admin_destination_required');}
@@ -213,7 +214,14 @@ final class PhorgePrivateMailPolicy extends Phobject {
     $alerts=array('account.username','account.email.old-primary','account.email.new-primary','account.approved.owner','account.ssh');
     if($subject->getIsDisabled()&&!in_array($flow,$alerts,true)){return false;}
     if($binding['admin']!==null){$admin=self::currentUser($binding['admin']);
-      if(!$admin||!$admin->getIsAdmin()||!$admin->getIsApproved()||$admin->getIsDisabled()||!$admin->canEstablishWebSessions()){return false;}}
+      if(!$admin||!$admin->getIsApproved()||$admin->getIsDisabled()||!$admin->canEstablishWebSessions()){return false;}
+      // The legacy binding key names the inviter, not an administrator role.
+      // Match the native People invitation controller's current capability.
+      if($flow==='account.invite'){
+        if(!PhabricatorPolicyFilter::hasCapability($admin,new PhabricatorPeopleApplication(),
+          PeopleCreateUsersCapability::CAPABILITY)){return false;}
+      }else if(!$admin->getIsAdmin()){return false;}
+    }
     if($flow==='account.approval.queue'&&$subject->getIsApproved()){return false;}
     if($flow==='account.invite'){
       $invite=(new PhabricatorAuthInvite())->loadOneWhere('BINARY phid=BINARY %s',$binding['source']);

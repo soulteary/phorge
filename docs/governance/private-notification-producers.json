@@ -268,7 +268,7 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-      "sha256": "10dcfbce05a911b6092dcc6e38719ee8b8280e997502b0e83905d2ef9b90d0b8"
+      "sha256": "cc5a2f49840929b72a698202f448c4f2511c9ab3b8a89a964b2104dc4a274ecb"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
