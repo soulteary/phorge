@@ -14,6 +14,40 @@ final class PhorgeGovernanceMediaHTTPProtocolTestCase extends PhutilTestCase {
       $this->assertTrue($refused);
     }
   }
+  public function testSameSiteUsesPublicAndPrivateSuffixBoundaries(){
+    foreach(array(
+      array('app.example.co.uk','files.example.co.uk'),
+      array('app.tenant.github.io','files.tenant.github.io'),
+      array('app.www.ck','files.www.ck'),
+      array('app.xn--85x722f.xn--55qx5d.cn','files.xn--85x722f.xn--55qx5d.cn'),
+      array('app.fixture.invalid','files.fixture.invalid')) as $hosts){
+      PhorgeGovernanceMediaHTTPProtocol::assertSeparateOrigins('https://'.$hosts[0],'https://'.$hosts[1]);
+      $this->assertEqual(PhorgeGovernanceMediaHTTPProtocol::siteDomain($hosts[0]),
+        PhorgeGovernanceMediaHTTPProtocol::siteDomain($hosts[1]));
+    }
+    foreach(array(
+      array('app.example.com','files.other.com'),
+      array('example.co.uk','other.co.uk'),array('a.github.io','b.github.io'),
+      array('a.foo.ck','b.foo.ck'),array('co.uk','files.co.uk'),
+      array('127.0.0.1','127.0.0.2'),array('127.1','127.0.0.1'),
+      array('2130706433','127.0.0.1'),array('0x7f000001','127.0.0.1')) as $hosts){
+      $refused=false;
+      try{PhorgeGovernanceMediaHTTPProtocol::assertSeparateOrigins('https://'.$hosts[0],'https://'.$hosts[1]);}
+      catch(RuntimeException $error){$refused=true;}
+      $this->assertTrue($refused,implode(' / ',$hosts));
+    }
+  }
+  public function testPinnedUpstreamPublicSuffixCorpus(){
+    $path=dirname(__FILE__,6).'/resources/governance/publicsuffix/test-cases.json';
+    $data=json_decode(Filesystem::readFile($path),true,512,JSON_THROW_ON_ERROR);
+    $this->assertTrue(count($data['cases'])>=50);
+    foreach($data['cases'] as $case){
+      $actual=null;
+      try{$actual=PhorgeGovernanceMediaHTTPProtocol::siteDomain($case[0]);}
+      catch(RuntimeException $error){}
+      $this->assertEqual($case[1],$actual,var_export($case[0],true));
+    }
+  }
   public function testPayloadRejectsDuplicateEscapedKeysAndNonStringValues(){
     $valid='{"path":"/file/data/key/PHID-FILE-aaaaaaaaaaaaaaaaaaaa/name","client_nonce":"'.str_repeat('a',64).'"}';
     $parsed=PhorgeGovernanceMediaHTTPProtocol::parsePayload($valid,array('client_nonce','path'));

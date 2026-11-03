@@ -51,6 +51,42 @@ final class PhorgeGovernanceMediaHTTPProtocol extends Phobject {
     $app=self::origin($app);$files=self::origin($files);
     if($app===$files||(new PhutilURI($app))->getDomain()===(new PhutilURI($files))->getDomain()){
       throw new RuntimeException('media_http_separate_origin_required');}
+    $app_site=self::siteDomain((new PhutilURI($app))->getDomain());
+    $file_site=self::siteDomain((new PhutilURI($files))->getDomain());
+    if($app_site===null||$file_site===null||$app_site!==$file_site){
+      throw new RuntimeException('media_http_same_site_required');}
+  }
+  /** Registrable domain using the pinned ICANN and PRIVATE Public Suffix List.
+   * Both origins use HTTPS. Strict cookies require the same schemeful site,
+   * in addition to distinct hosts for origin isolation. No network lookup.
+   */
+  public static function siteDomain($host){
+    if(!is_string($host)||strlen($host)>253||
+      !preg_match('/\\A[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\\z/D',$host)){
+      throw new RuntimeException('media_http_site_host_refused');}
+    // Do not accept browser-specific abbreviated, octal or hexadecimal IPv4.
+    if(preg_match('/(?:^|\\.)(?:[0-9]+|0x[0-9a-f]+)\\z/iD',$host)){
+      if(filter_var($host,FILTER_VALIDATE_IP,FILTER_FLAG_IPV4)!==false){return $host;}
+      throw new RuntimeException('media_http_site_host_refused');
+    }
+    static $rules;
+    if($rules===null){
+      $path=dirname(__FILE__,6).'/resources/governance/publicsuffix/rules.json';
+      $data=json_decode(Filesystem::readFile($path),true,512,JSON_THROW_ON_ERROR);
+      if(idx($data,'schema')!==1||idx($data,'include_private')!==true||
+        !is_array(idx($data,'rules'))||count($data['rules'])<5000){
+        throw new RuntimeException('media_http_site_rules_refused');}
+      $rules=array_fill_keys($data['rules'],true);
+    }
+    $labels=explode('.',$host);$count=count($labels);$suffix=1;
+    for($i=0;$i<$count;$i++){
+      $candidate=implode('.',array_slice($labels,$i));$length=$count-$i;
+      if(isset($rules['!'.$candidate])){$suffix=$length-1;break;}
+      if(isset($rules[$candidate])){$suffix=max($suffix,$length);}
+      if($i>0&&isset($rules['*.'.$candidate])){$suffix=max($suffix,$length+1);}
+    }
+    if($count<=$suffix){return null;}
+    return implode('.',array_slice($labels,-($suffix+1)));
   }
   public static function origin($value){
     if(!is_string($value)||!preg_match('@\Ahttps://[a-z0-9.-]+(?::[1-9][0-9]{0,4})?/?\z@D',$value)){

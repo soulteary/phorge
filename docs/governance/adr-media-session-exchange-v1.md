@@ -16,7 +16,13 @@ object permission grant.
 
 Application cookies are not shared on a parent domain. Reusable viewer identity
 tokens do not appear in attachment URLs. The file credential must be host-only,
-Secure and HttpOnly, with an explicit compatible SameSite policy. The exchange
+Secure and HttpOnly, with `SameSite=Strict`. Application and file origins must
+use distinct HTTPS hostnames within the same registrable site. The pinned
+Public Suffix List includes PRIVATE rules: sibling names under separate
+`github.io` tenants, for example, are separate sites and are refused. Cross-site
+file origins are unsupported; do not relax cookies to `SameSite=None` to bypass
+this gate. This validation supplements origin isolation, not object permission.
+The exchange
 must bind issuer, audience, purpose, actual session, viewer, expiry and a
 browser transaction/CSRF challenge. Codes are one-use under real concurrent
 redemption; unknown or stale identity/invalidation/object sources fail closed.
