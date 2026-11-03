@@ -26,9 +26,22 @@ function governance_private_mail_business_gorge_cases($fixture,callable $check,a
     $tx=$family==='task'?new ManiphestTransaction():new PhabricatorProjectTransaction();
     $name=(clone $tx)->setTransactionType($family==='task'?ManiphestTaskTitleTransaction::TRANSACTIONTYPE:PhabricatorProjectNameTransaction::TRANSACTIONTYPE)
       ->setNewValue('Synthetic business gorge '.$family.' '.$ending.' '.$suffix);
-    $comment=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_COMMENT)
-      ->attachComment($tx->getApplicationTransactionCommentObject()->setContent('SYNTHETIC_PRIVATE_BUSINESS_COMMENT'));
-    $changes=array($name,$comment);
+    $content=clone $tx;
+    if($family==='task'){
+      $content->setTransactionType(PhabricatorTransactions::TYPE_COMMENT)
+        ->attachComment($content->getApplicationTransactionCommentObject()->setContent('SYNTHETIC_PRIVATE_BUSINESS_COMMENT'));
+    }else{
+      // Projects have native description custom fields, not comment objects.
+      $fields=PhabricatorCustomField::getObjectFields($object,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS);
+      $fields->readFieldsFromStorage($object);
+      $field=PhabricatorCustomField::getObjectField($object,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS,
+        'std:project:internal:description');
+      if(!$field){throw new RuntimeException('business_publication_native_project_description_missing');}
+      $content->setTransactionType(PhabricatorTransactions::TYPE_CUSTOMFIELD)
+        ->setMetadataValue('customfield:key',$field->getFieldKey())
+        ->setOldValue($field->getOldValueForApplicationTransactions())->setNewValue('SYNTHETIC_PRIVATE_BUSINESS_COMMENT');
+    }
+    $changes=array($name,$content);
     if($family==='task'){$changes[]=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_SUBSCRIBERS)
       ->setNewValue(array('+'=>array_fuse(array($users['subscriber']->getPHID()))));}
     $last=(int)queryfx_one($tasks->establishConnection('r'),'SELECT COALESCE(MAX(id),0) n FROM %R',$tasks)['n'];
@@ -83,6 +96,7 @@ function governance_private_mail_business_gorge_cases($fixture,callable $check,a
             $envelope['no_private_producer_payload']===true&&$envelope['physical_gate_allowed']===true&&$envelope['quarantined']===false;}
         $required=$family==='task'?array($users['owner']->getPHID(),$users['subscriber']->getPHID()):array($users['author']->getPHID());
         $okay=$result['handler_result']==='success'&&$result['source_visible']===true&&$safe&&
+          ($family!=='project'||($result['native_project_description_present']??null)===true)&&
           count($result['envelopes'])>=count($required)&&array_diff($required,$seen)===array()&&$archived&&
           (int)$archived->getResult()===PhabricatorWorkerArchiveTask::RESULT_SUCCESS&&$active===null;
       }

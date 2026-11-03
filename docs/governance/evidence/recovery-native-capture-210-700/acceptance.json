@@ -1,0 +1,43 @@
+{
+  "source_head": "8f39fb52e8b03ecacabc1cacbd0b84d8982ee293",
+  "protected_main": "eafc8ee9c989cb2f17d6c20c23f8a958bc14af29",
+  "actual_pure_methods": 210,
+  "actual_native_checks": 700,
+  "passed": true,
+  "strict_gate_passed": true,
+  "source_runtime": {
+    "source_head": "8f39fb52e8b03ecacabc1cacbd0b84d8982ee293",
+    "scope": "all PHP/SQL plus public-suffix data; not an assertion of SQL success",
+    "passed": true,
+    "expected_files": 6776,
+    "actual_files": 6776,
+    "missing": [],
+    "extra": [],
+    "changed": []
+  },
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 19,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 19
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "COMMON_released_to_root": true,
+  "web_family_complete": false,
+  "all_sources_complete": false,
+  "can_execute": false,
+  "production_features_enabled": false,
+  "browser_proved": false,
+  "deployment_proved": false,
+  "evidence_kind": "local-isolated-execution; not hosted CI or deployment",
+  "source_hash_index_sha256": "9fd4039c4cce4f871d9acaddf6e024e81c5e0e915281bb2681da39a270f5d99c",
+  "scope": "Current account, directly associated native sessions and temporary-token rows only. No recovery permit."
+}

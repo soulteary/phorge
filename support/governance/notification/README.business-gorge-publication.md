@@ -31,9 +31,13 @@ private owner-bound directories must be gone before the enclosing service stops.
 
 The eighteen required new checks, strict typed summary and mutation tests are
 source obligations until supported PHP 8.5.12 / real MySQL / paired Gorge runs.
-The component base requires 207 pure / 717 SQL checks; this candidate adds eighteen
-SQL obligations (735), with no new pure class or production source change.
-Current-main integration may require a different derived total and a new receipt.
+The historical component cf313 requires 207 pure / 735 SQL checks, and was not
+runtime certified. The explicit union with main98-derived 91a6 preserves all
+740 root checks and adds eighteen Gorge obligations: source-derived 215 pure /
+758 SQL, still unrun. The root SQL profile and new Gorge profile both use native
+Project description custom fields; independent children must read the stored
+private marker before accepting a Project positive. No Project comment support
+is invented. No production source differs from the root union.
 
 This does not prove HTTP Conduit gateway routing, the Go worker daemon, SMTP,
 legacy SQL/Gorge failover, or cross-schema atomic commit. Existing SQL-profile and

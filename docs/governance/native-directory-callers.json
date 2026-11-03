@@ -788,6 +788,50 @@
       "authority_proof": false
     },
     {
+      "id": "RECOVERY.PhorgeGovernanceRecoverySourceInventory",
+      "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php",
+      "symbol": "PhorgeGovernanceRecoverySourceInventory",
+      "kind": "isolated-account-capture-not-recovery-authority",
+      "sha256": "2839d8bc66db7127da8be8e6518631f83cdd845811a8ea8964b5d1618e089f1b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeAccountFacts",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php",
+      "symbol": "PhorgeRecoveryNativeAccountFacts",
+      "kind": "isolated-account-capture-not-recovery-authority",
+      "sha256": "d7b7426ed5a265e4767882665ac49a639c666e5de4747c3576e7392b49c74660",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeCaptureScope",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
+      "symbol": "PhorgeRecoveryNativeCaptureScope",
+      "kind": "isolated-account-capture-not-recovery-authority",
+      "sha256": "f13b6abc4811f89d1b7e52be9c96376f7bfe863ee69f555c5522ec1e811779fb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeWebFacts",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
+      "symbol": "PhorgeRecoveryNativeWebFacts",
+      "kind": "untrusted-web-storage-decoder-no-recovery-authority",
+      "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
       "id": "LEGALPAD.VERIFY.CONTROLLER",
       "path": "src/applications/legalpad/controller/LegalpadDocumentSignatureVerificationController.php",
       "symbol": "LegalpadDocumentSignatureVerificationController",
@@ -1680,6 +1724,22 @@
       {
         "path": "src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php",
         "sha256": "430c5826f8cdf6446a90beb4122582c6ff1cbbc8750faae52fb37e063bca6c9c"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php",
+        "sha256": "2839d8bc66db7127da8be8e6518631f83cdd845811a8ea8964b5d1618e089f1b"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php",
+        "sha256": "d7b7426ed5a265e4767882665ac49a639c666e5de4747c3576e7392b49c74660"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
+        "sha256": "f13b6abc4811f89d1b7e52be9c96376f7bfe863ee69f555c5522ec1e811779fb"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
+        "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4"
       }
     ]
   }

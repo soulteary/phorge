@@ -1,13 +1,17 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 3,
-  "base": "eafc8ee9c989cb2f17d6c20c23f8a958bc14af29",
-  "status": "explicit-main96-union-host-prepared-runtime-unproven",
+  "version": 5,
+  "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
+  "status": "current-main98-plus-real-gorge-publication-source-prepared-runtime-unproven",
   "new_runtime_obligation_not_actual": {
-    "pure": 207,
-    "native_sql": 717,
+    "pure": 215,
+    "native_sql": 758,
     "registered_native_workers": 25,
-    "additional_locally_owned_business_php_processes": 10
+    "additional_locally_owned_business_php_processes": 20,
+    "business_process_profiles": {
+      "sql": 10,
+      "gorge": 10
+    }
   },
   "production_source_changes": true,
   "current_cli_and_schema_and_migrations_preserved": true,
@@ -36,7 +40,18 @@
       "diagnostic_reexecution_is_daemon_retry": false,
       "mail_recipient_count": "Task owner and subscriber required; optional author yields 2..3 envelopes. Project has one actor envelope.",
       "paired_gorge_queue_scope_proved": false,
-      "smtp_proved": false
+      "smtp_proved": false,
+      "child_native_mail_queue": "Reuses the actual enclosing owned taskqueue; each private child verifies authenticated HTTP before native publication. Not evidence of a Gorge application-worker profile or physical SMTP."
+    },
+    "business_gorge": {
+      "checks": 18,
+      "source_checkpoint": "cf313babcd67da4fd3f41d042a72281fe900de89",
+      "queue_profile": "actual native AppEditor HTTP enqueue, bounded service lease, actual independent Conduit handler, fenced finalize/resolve",
+      "native_project_description_stored_read_required": true,
+      "daemon_or_http_gateway_proved": false,
+      "smtp_proved": false,
+      "permanent_source_denial_automatically_retried": false,
+      "actual_runtime_passed": false
     }
   },
   "union_deltas_from_frozen_components": [
@@ -49,13 +64,15 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual207/717 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual215/758 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh207/717 proof and exact runtime/source match remain required"
+    "Current main96 is explicitly merged; fresh215/758 proof and exact runtime/source match remain required",
+    "Physical CI must use the215 registered pure methods; final-head runtime evidence remains mandatory.",
+    "Actual new Gorge profile remains pending; the 64-task class-filter lease budget is a hard refusal, not a skipped case."
   ],
   "historical_stronger_component": {
     "pure": 202,
@@ -66,13 +83,15 @@
     "runtime_passed": false
   },
   "current_main_union": {
-    "retained_main_SQL": 677,
+    "retained_main_SQL": 700,
     "added_Legalpad_and_business_SQL": 40,
     "removed_main_SQL": 0,
-    "source_registered_pure_methods": 207,
+    "source_registered_pure_methods": 215,
     "current_runtime_passed": false,
     "production_Legalpad_hardening_included": true,
-    "core_size_and_invitation_fixes_preserved": true
+    "core_size_and_invitation_fixes_preserved": true,
+    "recovery_source_observations": "Retain all main98 account/web source capture code and mandatory evidence; all-source recovery and execution remain false.",
+    "added_Gorge_SQL": 18
   },
   "production_change_scope": "Existing explicitly approved Legalpad endpoint hardening plus its mail policy binding, integrated with current main; strengthened race/publication additions remain test-only.",
   "historical_component_evidence": {
@@ -80,5 +99,33 @@
     "native_sql": 647,
     "source_revision": "2c841c2c9acdc3cb1716424072024f362f366e71",
     "applies_only_to_this_historical_revision": true
+  },
+  "project_content_profile": "Task title/comment/subscriber transactions; Project name and native std:project:internal:description custom field. No invented Project comment support. Independent publisher reads stored Project description before accepting the positive case.",
+  "previous_failed_unions": [
+    {
+      "source_revision": "6bdafac742263a11d132402e8c1d57e9ba1154e2",
+      "pure_methods_passed": 207,
+      "observed_SQL_checks_including_cleanup": 473,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6779,
+      "failure": "Independent business publisher lacked mandatory native-mail Gorge taskqueue configuration.",
+      "cleanup_complete": true
+    },
+    {
+      "source_revision": "68849c8c59dac20d6fc4108d75406cfca850d8b1",
+      "pure_methods_passed": 207,
+      "observed_SQL_checks_including_cleanup": 480,
+      "task_publication_checks_passed": 7,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6780,
+      "failure": "Fixture attempted unsupported native Project comment object.",
+      "cleanup_complete": true
+    }
+  ],
+  "gorge_profile_source_union": {
+    "root_main98_union": "91a6d9ff3d64451d64de6e44d369d4fc2772866f",
+    "frozen_component": "cf313babcd67da4fd3f41d042a72281fe900de89",
+    "production_delta_from_root_union": false,
+    "source_union_runtime_verified": false
   }
 }
