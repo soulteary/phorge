@@ -831,7 +831,7 @@ VIEW_EDIT_ROUTE_CHECKS = VIEW_EDIT_ROUTE_CHECKS | frozenset(['project-view-defau
 REQUIRED_CHECKS = REQUIRED_CHECKS | VIEW_EDIT_ROUTE_CHECKS
 NATIVE['project_execution_tests']['native_policy_proposal_form'].update(policy_options_use_current_spaces=True,space_mutation_control_hidden=True,native_policy_behavior_metadata_checked=True)
 NATIVE['project_execution_tests']['native_default_policy_edit_form'] = {'actual_platform_routing': True, 'actual_default_edit_controller_get_post': True, 'native_field_generation_and_filtering_retained': True, 'single_effect_after_native_filter': True, 'caller_default_flag_authority': False, 'actual_http_server': False, 'browser_proved': False}
-NATIVE['project_execution_tests']['native_default_policy_edit_form'].update(native_content_only_post_retained=True,native_no_effect_post_retained=True,unsupported_join_post_refused_early=True,explicit_space_alias_inputs_refused=True)
+NATIVE['project_execution_tests']['native_default_policy_edit_form'].update(native_content_only_post_retained=True,native_no_effect_post_retained=True,unsupported_join_post_refused_early=True,explicit_space_alias_inputs_refused=True,native_description_initialized_before_policy=True,uninitialized_description_policy_profile_proved=False)
 
 # R02.1 records actual current account observations only. All source families
 # remain incomplete and this summary cannot be promoted into a recovery permit.

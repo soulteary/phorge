@@ -12,6 +12,39 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     ->setViewPolicy(PhabricatorPolicies::POLICY_USER)->setEditPolicy($a['viewer']->getPHID())
     ->setJoinPolicy(PhabricatorPolicies::POLICY_USER)->save();}finally{unset($off);}
   $project->attachParentProject(null)->attachMemberPHIDs(array());
+  // Seed an existing described object through the real native editor. A raw
+  // DAO-only creation has no description storage: NULL -> textarea empty string
+  // is a real second native effect, not a policy-only form submission.
+  $initial_description='Synthetic initialized native form description';
+  $setup=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.project-approval.enabled',false);
+  try{
+    $fields=PhabricatorCustomField::getObjectFields($project,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS);
+    $fields->readFieldsFromStorage($project);
+    $description=PhabricatorCustomField::getObjectField($project,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS,
+      'std:project:internal:description');
+    if(!$description){throw new RuntimeException('project_edit_form_native_description_field_required');}
+    (new PhabricatorProjectTransactionEditor())->setActor($a['viewer'])
+      ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
+      ->setIsSilent(true)->setContinueOnMissingFields(true)
+      ->applyTransactions($project,array((new PhabricatorProjectTransaction())
+        ->setTransactionType(PhabricatorTransactions::TYPE_CUSTOMFIELD)
+        ->setMetadataValue('customfield:key',$description->getFieldKey())
+        ->setOldValue($description->getOldValueForApplicationTransactions())->setNewValue($initial_description)));
+  }finally{unset($setup);}
+  $project=(new PhabricatorProjectQuery())->setViewer($a['viewer'])->withIDs(array($project->getID()))
+    ->needMembers(true)->needAncestorMembers(true)->executeOne();
+  if(!$project){throw new RuntimeException('project_edit_form_initialized_project_reload_required');}
+  $project->attachParentProject(null)->attachMemberPHIDs(array());
+  $fields=PhabricatorCustomField::getObjectFields($project,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS);
+  $fields->readFieldsFromStorage($project);
+  $description=PhabricatorCustomField::getObjectField($project,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS,
+    'std:project:internal:description');
+  if(!$description||$description->getOldValueForApplicationTransactions()!==$initial_description){
+    throw new RuntimeException('project_edit_form_native_description_storage_required');}
+  $initial_records=queryfx_all($conn,'SELECT transactionType FROM %R WHERE objectPHID=%s ORDER BY id',
+    new PhabricatorProjectTransaction(),$project->getPHID());
+  if(count($initial_records)!==1||$initial_records[0]['transactionType']!==PhabricatorTransactions::TYPE_CUSTOMFIELD){
+    throw new RuntimeException('project_edit_form_native_description_history_required');}
   $uri='/project/edit/'.$project->getID().'/';
   $attributes=function($tag){$result=array();preg_match_all('/([a-zA-Z_:][-a-zA-Z0-9_:]*)\s*=\s*(?:"([^"]*)"|\x27([^\x27]*)\x27)/',$tag,$matches,PREG_SET_ORDER);
     foreach($matches as$match){$result[strtolower($match[1])]=html_entity_decode($match[2]!==''?$match[2]:($match[3]??''),ENT_QUOTES,'UTF-8');}return$result;};
@@ -120,7 +153,7 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     $records=queryfx_all($conn,'SELECT transactionType,metadata FROM %R WHERE objectPHID=%s ORDER BY id',new PhabricatorProjectTransaction(),$project->getPHID());
     $check($response instanceof AphrontRedirectResponse&&$row['viewPolicy']===$a['viewer']->getPHID()&&
       $row['editPolicy']===$a['viewer']->getPHID()&&$row['joinPolicy']===PhabricatorPolicies::POLICY_USER&&
-      $stored['state']==='consumed'&&is_string($stored['nativeGroupID'])&&count($records)===1&&$records[0]['transactionType']===PhabricatorTransactions::TYPE_VIEW_POLICY,
+      $stored['state']==='consumed'&&is_string($stored['nativeGroupID'])&&count($records)===count($initial_records)+1&&$records[count($records)-1]['transactionType']===PhabricatorTransactions::TYPE_VIEW_POLICY,
       'project-view-default-edit-controller-get-to-post-native-view-record-ticket-commit');
     // Continue through the same actual native GET/POST form, without a ticket,
     // for ordinary content and native no-effect submission.
@@ -151,7 +184,7 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     return array('actual_platform_routing'=>true,'actual_default_edit_controller_get_post'=>true,
       'native_field_generation_and_filtering_retained'=>true,'single_effect_after_native_filter'=>true,
       'caller_default_flag_authority'=>false,'native_content_only_post_retained'=>true,
-      'native_no_effect_post_retained'=>true,'unsupported_join_post_refused_early'=>true,'explicit_space_alias_inputs_refused'=>true,
+      'native_no_effect_post_retained'=>true,'unsupported_join_post_refused_early'=>true,'explicit_space_alias_inputs_refused'=>true,'native_description_initialized_before_policy'=>true,'uninitialized_description_policy_profile_proved'=>false,
       'actual_http_server'=>false,'browser_proved'=>false);
   }finally{
     try{PhabricatorEnv::setLocaleCode($locale);}finally{PhutilTranslator::setInstance($translator);$_SERVER=$server;$_COOKIE=$cookies;$_POST=$post;

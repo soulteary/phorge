@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "status": "main100-source-integrated-host-verified-native-runtime-unproven",
+  "version": 4,
+  "status": "native-space-default-source-host-verified-initialized-description-runtime-unproven",
   "parent_source_checkpoint": "af43aae0f62f9aa6df1bb085eb3ed515cae57630",
   "parent_checkpoint_obligation_not_actual": {
     "pure_methods": 195,
@@ -31,7 +31,8 @@
     "private admin Space project favorite absent from real Celerity policy metadata after source role change",
     "ordinary content-only actual default GET/POST without a policy ticket",
     "actual no-effect POST retains native response and unchanged fingerprint",
-    "actual JOIN change with forged default flags refuses before effects"
+    "actual JOIN change with forged default flags refuses before effects",
+    "explicit Space primary key and both aliases cannot select the omitted-control semantic-default branch"
   ],
   "not_claimed": [
     "supported runtime pass",
@@ -46,7 +47,8 @@
     "Independent final source/lease/native-field review",
     "Safe actionable native form responses for missing/stale/mismatched approval input; unexpected backend failures remain failures",
     "Trusted HTTP/browser GET-to-POST and native MFA interaction",
-    "Real concurrent default-field source change versus effective-sensitive DAO fence; broader hierarchy/Space execution remains blocked"
+    "Real concurrent default-field source change versus effective-sensitive DAO fence; broader hierarchy/Space execution remains blocked",
+    "Uninitialized-description policy refusal and explicit content-initialization workflow; archived-only/multiple-visible/concurrent default Space profiles remain unproved."
   ],
   "base_main": "0a43c0211c4ced7749d26187da29798c4439086b",
   "historical_obligation_not_actual": {
@@ -60,16 +62,21 @@
     "native_checks": 751,
     "native_workers": 25,
     "retained_main_checks": 725,
-    "additional_form_checks": 25
+    "additional_form_checks": 26
   },
   "current_host_tests_actually_passed": {
     "governance": 129,
     "permissions": 85
   },
-  "source_compatibility": "All main710 mandatory IDs and every existing native summary field are retained; no unknown lexical candidate or blocker was removed.",
+  "source_compatibility": "All main725 mandatory IDs and every existing native summary field are retained; all277 lexical candidate IDs and dispositions remain. Only the reviewed EditEngine source/line positions and class-reference pattern changed.",
   "native_content_regression_fix": {
     "cause": "The old form classifier rejected changed native content fields, and treated all unchanged default fields as an unsupported sensitive batch.",
     "scope": "Only the exact WeakMap-backed native form lease accepts canonical name/color/icon/slugs/description transactions. No changed policy selects literal native; actual JOIN/Space/unknown or nonnull hierarchy transactions still reject early. Caller-provided default flags do not establish provenance.",
     "actual_production_runtime_proved": false
+  },
+  "native_object_profile": {
+    "description": "The representative existing project has a description persisted through the actual native editor before policy proposals. Its initial native transaction remains in history; acceptance checks one additional VIEW record, not total history size one.",
+    "uninitialized_description": "A DAO-only or API-created project may have NULL description storage. A browser textarea submitting empty string is a real additional native effect; single-effect approval must not silently authorize it. Safe refusal and separate content initialization require additional verification.",
+    "raw_transactions": "All generated transactions and raw values remain intact, including NULL Space; semantic-default metadata is only a candidate hint."
   }
 }
