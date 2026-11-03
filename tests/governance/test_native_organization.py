@@ -45,6 +45,25 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+
+    def test_recovery_account_requires_all_real_source_obligations(self):
+        self.assertEqual(10, len(gate.RECOVERY_ACCOUNT_CHECKS))
+        for obligation in gate.RECOVERY_ACCOUNT_CHECKS:
+            data=template();data['checks'].remove(obligation);data['check_count']-=1
+            with self.subTest(obligation=obligation), self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+
+    def test_recovery_account_capture_cannot_self_attest_full_recovery(self):
+        for key,value in [('actual_account_adapter',False),('actual_account_adapter',1),
+                          ('source_writes_by_capture',True),('all_sources_complete',True),
+                          ('can_execute',True),('other_twelve_families_complete',True)]:
+            data=template();data['native']['recovery_account_capture_tests'][key]=value
+            with self.subTest(key=key,value=value), self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['recovery_account_capture_tests']['permit']='complete'
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+
     def test_large_security_payload_regressions_are_required(self):
         for name in ['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source']:
             data=template();data['checks'].remove(name);data['check_count']-=1

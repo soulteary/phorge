@@ -821,6 +821,16 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({
  'project-approved-members-current-approver-role-revocation-invalidates-ticket'})
 
 
+
+# R02.1 records actual current account observations only. All source families
+# remain incomplete and this summary cannot be promoted into a recovery permit.
+NATIVE['recovery_account_capture_tests'] = {
+    'actual_account_adapter': True, 'source_writes_by_capture': False,
+    'all_sources_complete': False, 'can_execute': False,
+    'other_twelve_families_complete': False}
+RECOVERY_ACCOUNT_CHECKS = frozenset(['recovery-account-uninitialized-actor-refused-without-initialization', 'recovery-account-unknown-refusal-no-source-write-or-open-transaction', 'recovery-account-real-storage-capture-keeps-absence-and-thirteen-family-block', 'recovery-account-success-no-hidden-epoch-initialization', 'recovery-account-outer-transaction-refused', 'recovery-account-refusal-does-not-end-or-rollback-caller-transaction', 'recovery-account-untracked-physical-outer-transaction-refused-without-rollback', 'recovery-account-real-native-disable-enable-aba-is-observable-not-recovery-authority', 'recovery-account-real-current-nonadmin-cannot-capture', 'recovery-account-missing-actual-source-table-refused-with-owned-transaction-cleanup'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | RECOVERY_ACCOUNT_CHECKS
+
 def exact_tree(actual, expected):
     if type(actual) is not type(expected):
         raise ValueError('untyped evidence')
