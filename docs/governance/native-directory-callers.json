@@ -869,7 +869,7 @@
       "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
       "symbol": "PhabricatorEditEngine",
       "kind": "native-form-provenance-registrar",
-      "sha256": "c5ff0c63ef3471ca50399dd3f1de84063db4be09df75c683f98c124a8ba54664",
+      "sha256": "a894ab3c959ddade01d30922d494ad8b41cab5f45e9d47c64032cf83a63fa905",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,

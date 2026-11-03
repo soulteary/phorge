@@ -71,7 +71,7 @@
   "current_main_union": {
     "base": "0a43c0211c4ced7749d26187da29798c4439086b",
     "expected_pure_not_actual": 217,
-    "expected_SQL_not_actual": 750,
+    "expected_SQL_not_actual": 751,
     "host_governance_passed": 129,
     "host_permissions_passed": 85,
     "native_runtime_passed": false,

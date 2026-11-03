@@ -42,7 +42,7 @@
     "arbitrary custom forms or unsupported structural execution"
   ],
   "remaining": [
-    "Actual PHP8.5.12 full217 methods and750 SQL checks, exact runtime source and all owned cleanup",
+    "Actual PHP8.5.12 full217 methods and751 SQL checks, exact runtime source and all owned cleanup",
     "Independent final source/lease/native-field review",
     "Safe actionable native form responses for missing/stale/mismatched approval input; unexpected backend failures remain failures",
     "Trusted HTTP/browser GET-to-POST and native MFA interaction",
@@ -57,7 +57,7 @@
   },
   "new_obligation_not_actual": {
     "pure_methods": 217,
-    "native_checks": 750,
+    "native_checks": 751,
     "native_workers": 25,
     "retained_main_checks": 725,
     "additional_form_checks": 25

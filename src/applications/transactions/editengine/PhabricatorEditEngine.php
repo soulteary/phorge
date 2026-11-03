@@ -1163,7 +1163,29 @@ abstract class PhabricatorEditEngine
         foreach ($type_xactions as $type_xaction) {
           $default = $defaults[$key];
 
-          if ($default === $field->getValueForTransaction()) {
+          $is_default=($default === $field->getValueForTransaction());
+          // A native single-Space control has no submitted input. Its raw null
+          // normalizes to the same default later. This hint does not remove a
+          // transaction or grant Space authority: the form lease, fresh policy
+          // scope, native filtering and sensitive-write guard still apply.
+          if (!$is_default && !$this->getIsCreate() &&
+              get_class($this)===PhabricatorProjectEditEngine::class &&
+              get_class($this->getController())===PhabricatorProjectEditController::class &&
+              get_class($config)===PhabricatorEditEngineConfiguration::class && $config->getIsEdit() &&
+              PhorgeProjectExecutionCatalog::enabled() &&
+              $field instanceof PhabricatorSpaceEditField && $key==='spacePHID' &&
+              $field->getKey()==='spacePHID' && $field->getAliases()===array('space','policy.space') &&
+              $field->getObject()===$object && count($type_xactions)===1 &&
+              $type_xaction->getTransactionType()===PhabricatorTransactions::TYPE_SPACE &&
+              $type_xaction->getNewValue()===null && $type_xaction->getMetadata()===array() &&
+              !$request->getExists('spacePHID') && !$request->getExists('space') && !$request->getExists('policy.space') &&
+              !PhabricatorSpacesNamespaceQuery::getViewerSpacesExist($viewer)) {
+            $native_default=$viewer->getDefaultSpacePHID();
+            $is_default=is_string($native_default) &&
+              preg_match('/\APHID-SPCE-[a-zA-Z0-9]{20}\z/',$native_default)===1 &&
+              PhabricatorSpacesNamespaceQuery::getObjectSpacePHID($object)===$native_default;
+          }
+          if ($is_default) {
             $type_xaction->setIsDefaultTransaction(true);
           }
 

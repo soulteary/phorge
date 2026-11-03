@@ -273,6 +273,11 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
       'project_execution_expansion_unsupported');
     $form=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'classifyNativeForm');
     $this->assertEqual(null,$form->invoke(null,$editor,$project,array($view,$name)));
+    $space=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_SPACE)
+      ->setNewValue(null)->setIsDefaultTransaction(true);
+    $this->refused(function()use($classify,$editor,$project,$view,$space){$classify->invoke(null,$editor,$project,array($view,$space));},
+      'project_execution_expansion_unsupported');
+    $this->assertEqual(null,$form->invoke(null,$editor,$project,array($view,$space)));
   }
   public function testNativeFormProvenanceRejectsAnOffPathFactoryCall() {
     $assert=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'assertNativeFormCall');

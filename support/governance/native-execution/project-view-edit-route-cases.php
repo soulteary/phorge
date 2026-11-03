@@ -81,12 +81,21 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     PhutilTranslator::setInstance(clone $translator);
     list($page,$html)=$call($uri,'GET',array(),true);$body=$extract($html);
     $check($page instanceof PhabricatorStandardPageView&&isset($body['editEngine'],$body[AphrontRequest::TYPE_FORM],$body['governanceApprovalID'])&&
-      $body['policy.view']===PhabricatorPolicies::POLICY_USER&&$body['policy.edit']===$a['viewer']->getPHID()&&$body['name']===$project->getName(),
+      !isset($body['spacePHID'])&&!isset($body['space'])&&!isset($body['policy.space'])&&$body['policy.view']===PhabricatorPolicies::POLICY_USER&&$body['policy.edit']===$a['viewer']->getPHID()&&$body['name']===$project->getName(),
       'project-view-default-edit-controller-real-route-get-renders-native-fields-and-ticket-input');
     $ticket=$submit($a['viewer']->getPHID());$before=$fingerprint();
     $without=$body;unset($without[AphrontRequest::getCSRFTokenName()]);$without['policy.view']=$a['viewer']->getPHID();$without['governanceApprovalID']=$ticket;
     $refused=false;try{$call($uri,'POST',$without);}catch(AphrontMalformedRequestException$error){$refused=true;}
     $check($refused&&$before===$fingerprint(),'project-view-default-edit-controller-real-post-without-csrf-refused-without-write');
+    $aliases_refused=true;
+    foreach(array('spacePHID','space','policy.space')as$space_key){
+      $explicit=$body;$explicit['policy.view']=$a['viewer']->getPHID();
+      $explicit['governanceApprovalID']=$ticket;$explicit[$space_key]='';$refused=false;
+      try{$call($uri,'POST',$explicit);}catch(RuntimeException$error){
+        if($error->getMessage()!=='project_execution_native_form_multiple_changes'){throw$error;}$refused=true;}
+      $aliases_refused=$aliases_refused&&$refused&&$before===$fingerprint();
+    }
+    $check($aliases_refused,'project-view-default-edit-controller-explicit-space-alias-inputs-refused');
     $mixed=$body;$mixed['policy.view']=$a['viewer']->getPHID();$mixed['governanceApprovalID']=$ticket;$mixed['name']='Synthetic second actual mutation';
     $refused=false;try{$call($uri,'POST',$mixed);}catch(RuntimeException$error){
       if($error->getMessage()!=='project_execution_expanded_closure_unsupported'){throw$error;}$refused=true;}
@@ -142,7 +151,7 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     return array('actual_platform_routing'=>true,'actual_default_edit_controller_get_post'=>true,
       'native_field_generation_and_filtering_retained'=>true,'single_effect_after_native_filter'=>true,
       'caller_default_flag_authority'=>false,'native_content_only_post_retained'=>true,
-      'native_no_effect_post_retained'=>true,'unsupported_join_post_refused_early'=>true,
+      'native_no_effect_post_retained'=>true,'unsupported_join_post_refused_early'=>true,'explicit_space_alias_inputs_refused'=>true,
       'actual_http_server'=>false,'browser_proved'=>false);
   }finally{
     try{PhabricatorEnv::setLocaleCode($locale);}finally{PhutilTranslator::setInstance($translator);$_SERVER=$server;$_COOKIE=$cookies;$_POST=$post;
