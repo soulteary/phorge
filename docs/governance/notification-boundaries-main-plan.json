@@ -1,8 +1,8 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 1,
+  "version": 2,
   "base": "2c841c2c9acdc3cb1716424072024f362f366e71",
-  "status": "host-validated-awaiting-matching-main-runtime",
+  "status": "stronger-fact-matrix-host-prepared-runtime-unproven",
   "prior_main_evidence": {
     "pure": 202,
     "native_sql": 647,
@@ -10,8 +10,8 @@
   },
   "new_runtime_obligation_not_actual": {
     "pure": 202,
-    "native_sql": 665,
-    "registered_native_workers": 23,
+    "native_sql": 668,
+    "registered_native_workers": 25,
     "additional_locally_owned_business_php_processes": 10
   },
   "production_source_changes": false,
@@ -24,11 +24,14 @@
   ],
   "new_obligations": {
     "legalpad": {
-      "checks": 6,
+      "checks": 9,
       "project_membership_and_named_policy_new_request": true,
       "real_secret_and_version_inflight_waits": true,
       "last_view_to_commit_global_atomicity_proved": false,
-      "document_space_policy_invented": false
+      "document_space_policy_invented": false,
+      "deadlock_outcomes_follow_committed_facts": true,
+      "actual_service_victim_and_preclose_lock_proof_required": true,
+      "controller_http500_proved": false
     },
     "business": {
       "checks": 12,
@@ -45,16 +48,18 @@
     "Business helper reports observed subprocess and owned-directory cleanup counts in its safe summary; this does not change its test flow.",
     "Strict mandatory checks add all eighteen IDs, exact typed source/concurrency/scope flags, registered worker total23, and ten separately owned business process cleanups.",
     "Only Task positive envelope count permits the explicit bounded native self-mail alternative2..3; all other fields are exact.",
-    "Current N00 production-source inventory and current CLI are retained without scan refresh or exclusions."
+    "Current N00 production-source inventory and current CLI are retained without scan refresh or exclusions.",
+    "The failed always-deny secret-index assumption is replaced by an explicitly renamed committed-fact index matrix, plus a separately named before-first-read User barrier and forced service-victim proof. Previous real deadlocks remain recorded."
   ],
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual202/665 against this exact union with full runtime/source/resource hashes and cleanup",
-    "Any normal business outer-transaction publication failure is diagnostic evidence requiring supported-caller closure, not accepted data loss or proof of automatic retry",
-    "Actual paired Gorge queue publication lifecycle for this business timing profile",
+    "Actual202/668 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
+    "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
+    "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
-    "Last VIEW read to COMMIT remains the accepted native request boundary, not global source atomicity",
-    "Observed signature PRIMARY/secretKey deadlock remains distinct: initial victim was the source writer and signature state was not captured; verifier-victim rollback/controller500/no-mail acceptance still required."
+    "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
+    "Separate explicit union of Core budget checkpoint efa9 and new runtime proof; do not aggregate old component results"
   ]
 }

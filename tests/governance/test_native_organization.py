@@ -262,9 +262,9 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                 self.assertEqual(result.stdout,'')
                 self.assertNotIn('synthetic-private-canary',result.stderr)
 
-    def test_all_eighteen_successor_checks_are_mandatory(self):
-        self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),18)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),665)
+    def test_all_successor_checks_are_mandatory(self):
+        self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),668)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -301,6 +301,25 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                                   ('inflight_source_tests','last_view_to_commit_global_atomicity_proved',True)]:
             data=template();data['native']['private_mail_tests']['legalpad_tests'][section][key]=value
             with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
-        for kind in ('secret','version'):
+        for kind in ('version',):
             data=template();data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['actual_independent_source_mutation_cases'][kind]['actual_lock_wait']=False
             with self.subTest(kind=kind),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_index_race_committed_facts_never_turn_deadlock_into_permission_denial(self):
+        allowed=((True,False,'none','source-refused',False),
+                 (True,False,'verifier','deadlock',False),
+                 (False,True,'source-writer','verified',True))
+        keys=('source_writer_commit_ack','source_writer_deadlock_rollback','observed_victim','service_outcome','old_code_consumed')
+        for facts in allowed:
+            data=template();index=data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['index_race'];index.update(zip(keys,facts))
+            gate.validate(data,file_digest='b'*64)
+        for facts in ((True,False,'none','verified',True),
+                      (False,True,'source-writer','source-refused',False),
+                      (True,False,'verifier','source-refused',False),
+                      (1,False,'none','source-refused',False)):
+            data=template();index=data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['index_race'];index.update(zip(keys,facts))
+            with self.subTest(facts=facts),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key,value in [('actual_engine_victim_proved',False),('locks_released_before_connection_close',False),
+                          ('automatic_consume_retry_used',True),('controller_tested',True),('controller_http500_proved',True)]:
+            data=template();data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['forced_verifier_victim'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)

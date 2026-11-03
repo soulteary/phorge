@@ -1,18 +1,18 @@
 {
   "document": "LEGALPAD-POLICY-BOUNDARIES-001",
-  "version": 1,
+  "version": 2,
   "base_checkpoint": "873ff8d8b5d83f10a290c7c46d7f8e137832008c",
-  "status": "prepared-host-only-awaiting-supported-runtime",
+  "status": "stronger-fact-matrix-host-prepared-runtime-unproven",
   "production_verifier_source_changed": false,
   "production_optional_features_enabled": false,
   "prepared_cases": [
-    "Actual Project editor creates native membership and materialized source; saved native Projects rule permits the signer in a new authenticated verification request.",
-    "Actual native membership removal denies a new verification request and mail source lookup; re-add is a genuine positive control.",
-    "Actual named policy resolves to the native rule; changing its effective policy to no-one denies a new request and mail source lookup; restoring it permits a new request.",
-    "Independent PHP verifier waits on the actual signature row lock; the owning setup transaction rotates the real secret and commits; stale consumption is refused, current-secret GET remains valid.",
-    "Independent PHP verifier waits on the actual document row lock; the owning setup transaction advances the real document version and commits; old-version consumption is refused and the new request also rejects that stale signature."
+    "Actual native Project member and named-effective-policy new-request positive/revoke/restore controls.",
+    "A separately named native User-row barrier BEFORE the first signature read proves an acknowledged secret rotation refuses old code; it does not replace the index-race proof.",
+    "An actual signature PK/index race records committed rotation or the precise InnoDB victim. Source-writer rollback may legitimately leave old code usable; that is not called permission denial.",
+    "A 512-row owned temporary InnoDB transaction weights the source writer to force the verifier victim. Actual engine thread/victim proof, exact native deadlock exception, unverified state, zero follow-up mail, and released locks while the original writer connection remains alive are mandatory.",
+    "An independent document-row wait followed by acknowledged version change refuses stale verification."
   ],
-  "declared_additional_checks_not_actual": 6,
+  "declared_additional_checks_not_actual": 9,
   "native_semantics": {
     "project_membership": "Retained native ProjectTransactionEditor plus actual materialized member edge, not a caller authorization boolean or synthetic policy evaluator.",
     "project_candidate_model": "Disabled only in the isolated membership setup scope; document authorization still uses the actual viewer native query and native rule.",
@@ -28,11 +28,11 @@
     "Signature remains unverified and stored actor/contact data unchanged; every process and private file is cleaned and temporary source mutations restored."
   ],
   "not_proved": [
-    "Supported PHP/MySQL execution of these six cases",
+    "Supported runtime execution of the new stronger fact-based matrix",
+    "Actual native controller/default-handler HTTP500 response and complete HTTP exception path",
     "Revocation after the last VIEW read but before COMMIT",
-    "All transitive or plugin policy source atomic closure",
-    "Latest-main integration, Legalpad SMTP, trusted browser acceptance or production activation",
-    "Verifier-victim deadlock rollback, actual controller500 and released-lock/no-follow-up-mail evidence"
+    "All transitive/plugin policy source atomic closure",
+    "Latest-main/Core budget union, Legalpad SMTP, trusted browser acceptance or production activation"
   ],
   "new_public_domains": false,
   "online_permission_migration": false,
@@ -44,5 +44,35 @@
     "deterministic_stale_source_fixture": "Parent now acquires the verifier secretKey-first order, solely to test stale-source rechecking.",
     "production_deadlock_impossibility_claimed": false,
     "remaining_acceptance": "A separate verifier-victim test must prove rollback, released locks, native controller infrastructure error and no follow-up mail; do not swallow1213 or retry consumption as permission denial."
+  },
+  "race_outcome_contract": [
+    {
+      "rotation_commit_ack": true,
+      "native_outcome": "source-refused",
+      "old_code_consumed": false,
+      "victim": "none"
+    },
+    {
+      "rotation_commit_ack": true,
+      "native_outcome": "deadlock",
+      "old_code_consumed": false,
+      "victim": "verifier"
+    },
+    {
+      "rotation_commit_ack": false,
+      "native_outcome": "verified",
+      "old_code_consumed": true,
+      "victim": "source-writer",
+      "qualification": "Only when exact1213 and the observed engine victim prove source-writer rollback; no rotation was committed."
+    }
+  ],
+  "service_vs_controller": {
+    "service_exception_slice_only": true,
+    "controller_tested": false,
+    "controller_http500_proved": false,
+    "full_http_tested": false,
+    "controller_followup_mandatory_before_activation": true,
+    "no_deadlock_as_fake403": true,
+    "no_automatic_consume_retry": true
   }
 }

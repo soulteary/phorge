@@ -4,7 +4,7 @@
 $GLOBALS['governance_native_workers']=array();
 
 function governance_native_worker_atomic($path,$name,$value) {
-  if (!in_array($name,array('owner','payload.json','ready.json','result.json'),true)) {
+  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release'),true)) {
     throw new RuntimeException('native_worker_file_refused');
   }
   $temporary=$path.'/.write-'.bin2hex(random_bytes(8));
@@ -78,6 +78,7 @@ function governance_native_finish_worker(array &$handle) {
   }
   $result=json_decode(file_get_contents($path),true,16,JSON_THROW_ON_ERROR);
   if (!is_array($result)) { throw new RuntimeException('native_worker_result_refused'); }
+  if($worker['action']==='legalpad.observe'){return governance_native_validate_legalpad_observation($result);}
   $keys=array_keys($result); sort($keys);
   if (($result['status']??null)==='rejected') {
     if ($keys!==array('reason','status') || !is_string($result['reason']) ||
@@ -182,4 +183,55 @@ function governance_native_cleanup_workers() {
     'owned_processes_stopped'=>$stopped,'cleanup_failures'=>$failures,
     'private_directories_remaining'=>$remaining,'live_processes_after_cleanup'=>$live,
     'workers_registered'=>count($GLOBALS['governance_native_workers']));
+}
+
+/** Only the fixed service observation action uses this pre-close handshake. */
+function governance_native_validate_legalpad_observation($result){
+  if(!is_array($result)){throw new RuntimeException('native_legalpad_observation_refused');}
+  $keys=array_keys($result);sort($keys);
+  if($keys!==array('exception_class','mail_delta','outcome','status','transaction_open','verified')||
+    $result['status']!=='observed'||!in_array($result['outcome'],array('verified','already-verified','source-refused','deadlock'),true)||
+    !is_bool($result['transaction_open'])||!is_bool($result['verified'])||!is_int($result['mail_delta'])||$result['mail_delta']<0||$result['mail_delta']>64){
+    throw new RuntimeException('native_legalpad_observation_refused');}
+  $exception=$result['outcome']==='deadlock'?'AphrontDeadlockQueryException':($result['outcome']==='source-refused'?'PhorgeLegalpadVerificationException':null);
+  if($result['exception_class']!==$exception){throw new RuntimeException('native_legalpad_observation_refused');}
+  return$result;
+}
+function governance_native_observation_handle(array $handle){
+  $index=$handle['index']??null;$worker=is_int($index)?($GLOBALS['governance_native_workers'][$index]??null):null;
+  if(!$worker||$worker['action']!=='legalpad.observe'||$worker['cleaned']||
+    ($handle['dev']??null)!==$worker['dev']||($handle['ino']??null)!==$worker['ino']||
+    !is_string($handle['nonce']??null)||!hash_equals($worker['nonce'],$handle['nonce'])){throw new RuntimeException('native_legalpad_observation_refused');}
+  return$worker;
+}
+function governance_native_peek_legalpad_observation(array $handle){
+  $worker=governance_native_observation_handle($handle);
+  $path=$worker['private'].'/result.json';$deadline=microtime(true)+12;
+  while(!is_file($path)&&microtime(true)<$deadline&&is_resource($worker['process'])&&proc_get_status($worker['process'])['running']){usleep(20000);}
+  if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>4096){throw new RuntimeException('native_legalpad_observation_missing');}
+  return governance_native_validate_legalpad_observation(json_decode(file_get_contents($path),true,8,JSON_THROW_ON_ERROR));
+}
+function governance_native_release_legalpad_observation(array $handle){
+  $worker=governance_native_observation_handle($handle);
+  governance_native_worker_atomic($worker['private'],'observe-release',$worker['nonce']);
+}
+
+/** Reap only this helper's exact registered handles; outer fixture owns directories. */
+function governance_native_stop_fixture_handles(array $handles){
+  foreach($handles as$handle){
+    $index=$handle['index']??null;
+    if(!is_int($index)||!isset($GLOBALS['governance_native_workers'][$index])){throw new RuntimeException('native_worker_handle_refused');}
+    $worker=&$GLOBALS['governance_native_workers'][$index];
+    if(($handle['dev']??null)!==$worker['dev']||($handle['ino']??null)!==$worker['ino']||
+      !is_string($handle['nonce']??null)||!hash_equals($worker['nonce'],$handle['nonce'])){throw new RuntimeException('native_worker_handle_refused');}
+    if(is_resource($worker['process'])){
+      if(proc_get_status($worker['process'])['running']){
+        proc_terminate($worker['process']);$deadline=microtime(true)+2;
+        while(proc_get_status($worker['process'])['running']&&microtime(true)<$deadline){usleep(20000);}
+        if(proc_get_status($worker['process'])['running']){proc_terminate($worker['process'],9);}
+      }
+      proc_close($worker['process']);$worker['process']=null;
+    }
+    unset($worker);
+  }
 }

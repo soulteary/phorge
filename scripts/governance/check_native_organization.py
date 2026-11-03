@@ -946,24 +946,46 @@ NOTIFICATION_BOUNDARY_CHECKS = frozenset(['private-business-project-normal-actua
  'private-business-task-outer-rollback-orphan-worker-cannot-create-mail',
  'private-mail-legalpad-actual-named-effective-policy-change-rechecks-new-request-with-native-positive-controls',
  'private-mail-legalpad-actual-project-membership-policy-allows-current-signer-new-request',
+ 'private-mail-legalpad-before-first-signature-read-user-source-barrier-observes-committed-secret-and-refuses-old-code',
  'private-mail-legalpad-native-project-membership-revocation-denies-new-request-and-mail-source',
  'private-mail-legalpad-project-membership-restoration-is-real-native-positive-control',
- 'private-mail-legalpad-real-inflight-secret-change-after-independent-source-lock-wait-refuses-stale-consumption',
- 'private-mail-legalpad-real-inflight-version-change-after-independent-source-lock-wait-refuses-stale-consumption'])
+ 'private-mail-legalpad-real-inflight-version-change-after-independent-source-lock-wait-refuses-stale-consumption',
+ 'private-mail-legalpad-signature-index-race-follows-committed-rotation-or-observed-source-writer-rollback',
+ 'private-mail-legalpad-verifier-victim-rolls-back-and-releases-locks-before-connection-close-with-no-mail',
+ 'private-mail-legalpad-weighted-index-race-proves-actual-verifier-deadlock-victim-not-permission-denial'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | NOTIFICATION_BOUNDARY_CHECKS
-WORKERS = 23  # Two additional registered Legalpad in-flight exec workers.
+WORKERS = 25  # Four registered Legalpad source/race observations, not business subprocesses.
 NATIVE['private_mail_tests']['legalpad_tests']['policy_source_tests'] = {'actual_named_effective_policy': True,
  'actual_project_membership_editor_and_materialized_source': True,
  'all_policy_sources_atomically_locked': False,
  'document_space_acl_invented': False,
  'new_request_revocation_checked': True}
-NATIVE['private_mail_tests']['legalpad_tests']['inflight_source_tests'] = {'actual_independent_source_mutation_cases': {'secret': {'actual_lock_wait': True,
-                                                         'independent_process': True,
-                                                         'stale_consumption_refused': True},
-                                              'version': {'actual_lock_wait': True,
+NATIVE['private_mail_tests']['legalpad_tests']['inflight_source_tests'] = {'actual_independent_source_mutation_cases': {'version': {'actual_lock_wait': True,
                                                           'independent_process': True,
                                                           'stale_consumption_refused': True}},
+ 'before_first_signature_read': {'current_code_get_positive': True,
+                                 'native_user_barrier': True,
+                                 'old_code_refused': True,
+                                 'source_rotation_committed': True},
  'document_space_acl_invented': False,
+ 'forced_verifier_victim': {'actual_engine_victim_proved': True,
+                            'heavier_source_transaction_proved': True,
+                            'automatic_consume_retry_used': False,
+                            'controller_http500_proved': False,
+                            'controller_tested': False,
+                            'exact_native_deadlock_exception': True,
+                            'locks_released_before_connection_close': True,
+                            'no_followup_mail': True,
+                            'source_rotation_committed': True,
+                            'unverified_after_rollback': True},
+ 'index_race': {'actual_lock_wait': True,
+                'manual_retry_used': False,
+                'observed_victim': 'source-writer',
+                'old_code_consumed': True,
+                'outcome_follows_committed_facts': True,
+                'service_outcome': 'verified',
+                'source_writer_commit_ack': False,
+                'source_writer_deadlock_rollback': True},
  'last_view_to_commit_global_atomicity_proved': False,
  'production_source_changed': False}
 NATIVE['private_mail_tests']['business_publication_tests'] = {'actual_native_sql_queue_profile': True,
@@ -1066,7 +1088,30 @@ def validate(data, root=ROOT, file_digest=None):
             if type(count) is not int or not low <= count <= high:
                 raise ValueError('native business publication envelope count refused')
             expected_business['samples'][family][ending]['postcompletion_mail_envelopes']=count
-    expected_native['private_mail_tests']=dict(NATIVE['private_mail_tests'],business_publication_tests=expected_business)
+    legalpad=private_mail.get('legalpad_tests')
+    if type(legalpad) is not dict or type(legalpad.get('inflight_source_tests')) is not dict:
+        raise ValueError('native Legalpad race summary refused')
+    index=legalpad['inflight_source_tests'].get('index_race')
+    expected_index=NATIVE['private_mail_tests']['legalpad_tests']['inflight_source_tests']['index_race']
+    if type(index) is not dict or set(index)!=set(expected_index):
+        raise ValueError('native Legalpad index facts refused')
+    for key in ('actual_lock_wait','outcome_follows_committed_facts','manual_retry_used'):
+        exact_tree(index[key],expected_index[key])
+    for key in ('source_writer_commit_ack','source_writer_deadlock_rollback','old_code_consumed'):
+        if type(index[key]) is not bool:
+            raise ValueError('native Legalpad index boolean refused')
+    if type(index['observed_victim']) is not str or type(index['service_outcome']) is not str:
+        raise ValueError('native Legalpad index outcome refused')
+    facts=(index['source_writer_commit_ack'],index['source_writer_deadlock_rollback'],
+           index['observed_victim'],index['service_outcome'],index['old_code_consumed'])
+    if facts not in ((True,False,'none','source-refused',False),
+                     (True,False,'verifier','deadlock',False),
+                     (False,True,'source-writer','verified',True)):
+        raise ValueError('native Legalpad outcome contradicts committed facts')
+    expected_legalpad=json.loads(json.dumps(NATIVE['private_mail_tests']['legalpad_tests']))
+    expected_legalpad['inflight_source_tests']['index_race']=index
+    expected_native['private_mail_tests']=dict(NATIVE['private_mail_tests'],
+        business_publication_tests=expected_business,legalpad_tests=expected_legalpad)
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',

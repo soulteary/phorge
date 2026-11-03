@@ -12,8 +12,10 @@ function governance_private_mail_legalpad_inflight_cases($fixture,callable $chec
       if(!$statement||!$statement->execute($values)){throw new RuntimeException('legalpad_inflight_setup_failed');}
       return$statement->field_count?$statement->get_result()->fetch_all(MYSQLI_ASSOC):$statement->affected_rows;
     }finally{if($statement){$statement->close();}mysqli_report($mode);}};
+  require_once __DIR__.'/legalpad-index-race-cases.php';
+  $matrix=governance_private_mail_legalpad_index_race_cases($fixture,$check,$state);
   $outcomes=array();
-  foreach(array('secret','version')as$kind){$locked=false;$worker=null;$changed=false;
+  foreach(array('version')as$kind){$locked=false;$worker=null;$changed=false;
     $table=$kind==='secret'?'legalpad_documentsignature':'legalpad_document';
     $qualified=$fixture->table('legalpad',$table);$id=$kind==='secret'?$signature->getID():$doc->getID();
     try{
@@ -56,12 +58,11 @@ function governance_private_mail_legalpad_inflight_cases($fixture,callable $chec
       $outcomes[$kind]=array('independent_process'=>true,'actual_lock_wait'=>true,'stale_consumption_refused'=>true);
     }finally{
       if($locked&&!$setup->rollback()){throw new RuntimeException('legalpad_inflight_transaction_rollback_failed');}
-      $cleanup=governance_native_cleanup_workers();
+      governance_native_stop_fixture_handles($worker===null?array():array($worker));
       if($changed){if($kind==='secret'){$query('UPDATE '.$qualified.' SET secretKey=? WHERE id=?',array($code,$id));}
         else{$query('UPDATE '.$qualified.' SET versions=? WHERE id=?',array($version,$id));}}
-      if($cleanup['cleanup_failures']!==0||$cleanup['private_directories_remaining']!==0||$cleanup['live_processes_after_cleanup']!==0){throw new RuntimeException('legalpad_inflight_cleanup_failed');}
     }
   }
-  return array('actual_independent_source_mutation_cases'=>$outcomes,'last_view_to_commit_global_atomicity_proved'=>false,
+  return $matrix+array('actual_independent_source_mutation_cases'=>$outcomes,'last_view_to_commit_global_atomicity_proved'=>false,
     'document_space_acl_invented'=>false,'production_source_changed'=>false);
 }
