@@ -1,7 +1,7 @@
 {
   "adr": "LEGALPAD-VERIFICATION-001",
   "version": 1,
-  "status": "isolated-first-native-slice-verified-further-acceptance-required",
+  "status": "isolated-native-boundary-and-concurrent-consumption-verified-further-acceptance-required",
   "confirmed_on": "2026-11-03",
   "user_confirmed_direction": {
     "verification_requires_login": true,
@@ -47,14 +47,13 @@
   "runtime_status": {
     "php": "8.5.12",
     "pure_methods_passed": 157,
-    "native_sql_checks_passed": 360,
-    "source_files_exact": 7462,
+    "native_sql_checks_passed": 369,
+    "source_files_exact": 7465,
     "wire_browser_smtp_legalpad_proven": false
   },
   "remaining_acceptance": [
-    "Logout, document-version change, missing contact, legacy anonymous and third-party contact explicit cases",
-    "Independent concurrent verification, secret rotation and transactional fault rollback",
-    "Actual Project/named-policy revocation profile and request-boundary documentation; no invented document Space semantics",
+    "Independent in-flight secret rotation",
+    "Actual Project/named-policy revocation profile and native request-boundary acceptance",
     "Physical native-to-Gorge-to-SMTP Legalpad challenge matrix",
     "Latest-main integration, strict source/CI catalog and trusted browser acceptance"
   ],
@@ -68,6 +67,10 @@
     "Direct document VIEW revocation and disabled-account refusal",
     "Native CSRF and secret rotation refusal",
     "One-use CAS and sequential authorized repeat",
-    "Owned source restoration, cleanup and runtime source hash binding"
+    "Owned source restoration, cleanup and runtime source hash binding",
+    "Actual contact-unverified, version-change, historical-unbound-actor and mismatched-contact refusal",
+    "Actual MyISAM metadata rejection, SIGNAL1644 marker and transactional UPDATE rollback",
+    "Native logout/session deletion refusal and fresh-session positive contrast",
+    "Two independent PHP processes with two actual lock waiters, exactly one consumption UPDATE and second already-verified observation"
   ]
 }

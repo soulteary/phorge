@@ -97,7 +97,7 @@ try {
     'mysql.pass'=>$config['password'],'storage.default-namespace'=>$config['namespace'],
     'phabricator.cache-namespace'=>$config['namespace'],'cluster.databases'=>array(),'cluster.search'=>array(),
     'phabricator.base-uri'=>'http://fixture.invalid/','phabricator.silent'=>false,'policy.allow-public'=>false,
-    'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
+    'governance.private-mail.enabled'=>(($payload['action']['action']??null)==='legalpad.verify'),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
     'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
     'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
@@ -120,7 +120,20 @@ try {
   $action=$payload['action']; $kind=$action['action']??null;
   $conn=(new PhabricatorUser())->establishConnection('w');
   $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
-  if ($kind==='org.list' || $kind==='org.count') {
+  if($kind==='legalpad.verify'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','code','token')||!is_string($action['token'])||strlen($action['token'])>256||
+      !is_string($action['code'])||!preg_match('/\A[a-z2-7]{20}\z/D',$action['code'])){throw new RuntimeException('native_worker_action_refused');}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer){throw new RuntimeException('governance_web_credential_required');}
+    $_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
+    $request=(new AphrontRequest('fixture.invalid','/legalpad/verify/'.$action['code'].'/'))->setUser($viewer)
+      ->setRequestData(array('__form__'=>true,AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));
+    $request->validateCSRF();
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    $receipt=PhorgeLegalpadVerification::inspect($request,$action['code'],true);
+    $result=array('status'=>'committed','already_verified'=>$receipt['already_verified'],'verified'=>$receipt['verified']);
+  } else if ($kind==='org.list' || $kind==='org.count') {
     $keys=array_keys($action); sort($keys);
     if ($keys!==array('action','token') || !is_string($action['token']) || strlen($action['token'])>256) {
       throw new RuntimeException('native_worker_action_refused');
