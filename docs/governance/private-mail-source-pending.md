@@ -44,7 +44,8 @@ Nine additive SQL obligations cover a genuine non-administrator InviteWorker,
 current capability removal, persistent callback quarantine after regrant,
 missing capability, default administrator behavior, exact native custom-policy
 behavior and separation from administrator-only welcome mail. The required SQL
-set is 668; the current pure-method expectation is 201. These are pending
+set is 677 after the explicit PR97 VIEW union; the current pure-method
+expectation is 202. These are pending
 runtime obligations for this candidate, not results inherited from an old tree.
 
 The physical driver preserves all original sixteen security cases and four

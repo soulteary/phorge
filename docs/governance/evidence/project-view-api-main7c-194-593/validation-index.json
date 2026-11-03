@@ -1,0 +1,22 @@
+{
+  "tested_source": "3153bf8ffe14bd6afce5a224a217984b775498ed",
+  "main_base": "7c38bf7b4da36e0523aa23f85ec4d576d3d9bdb4",
+  "runtime": "8.5.12",
+  "pure_methods": 194,
+  "native_checks": 593,
+  "runtime_inventory_count": 5937,
+  "runtime_inventory_exact": true,
+  "runtime_inventory_report_sha256": "359d99825d05a457e6e517b3d936b246c0d297b9a23ac6890a7f717940b28ead",
+  "scope": "Owned native flat-root VIEW approval and real Conduit authentication/edit entry; no full HTTP/browser proof",
+  "paired_gorge_revision": "55f8ba8e57b179a7dee92ad43c77038ca322f61c",
+  "temporary_services_removed": true,
+  "optional_features_enabled_in_production": false,
+  "deployed": false,
+  "permission_migration": false,
+  "whole_family_ready": false,
+  "sha256": {
+    "native.json": "b5c054354c23323c9f6f948400e8a586569241d55eb30062f80799c91ab13456",
+    "integration.json": "c07f0cb97144c22aa63460b55f4e4422ecaac82d8917135f94b126f90ec60974",
+    "paired-image-parent.json": "ac2eafe839f3e8b261e973241735186b124c54c8ec0bfaac8b97e132371f3123"
+  }
+}

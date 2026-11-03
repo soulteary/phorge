@@ -2209,7 +2209,7 @@ abstract class PhabricatorEditEngine
     if ($project_mode !== 'native') {
       // Only the successful native API-token auth branch attaches this context.
       $editor->setProjectApprovalActorContext($request->getGovernanceActorContext());
-      if (in_array($project_mode, array('edit-policy', 'members-add', 'members-remove'), true)) {
+      if (in_array($project_mode, array('edit-policy', 'view-policy', 'members-add', 'members-remove'), true)) {
         $editor->setProjectApprovalID($request->getValue('governanceApprovalID'));
       } else if ($request->getValue('governanceApprovalID') !== null) {
         throw new RuntimeException('project_execution_membership_ticket_not_applicable');
