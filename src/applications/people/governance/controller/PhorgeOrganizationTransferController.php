@@ -72,13 +72,24 @@ final class PhorgeOrganizationTransferController extends PhabricatorPeopleContro
               $family==='transfer'?$service->approveTransfer($id,$digest):$service->approveHandover($id,$digest);
             }else{$this->ack($request);$family==='transfer'?$service->executeTransfer($id,true):$service->executeHandover($id,true);}
             return(new AphrontRedirectResponse())->setURI($this->ticketURI($family,$id));
-          case 'project.record':
-            $h=$service->readHandoverDetail($request->getStr('handover_id'));$project=$this->one($request,'project');$existing=$service->readHandoverProjects($h['handover_id']);$version=0;
-            foreach($existing['rows']as$row){if($row['project_phid']===$project){$version=$row['version'];}}
-            $service->recordHandoverProject(array('operation_id'=>$request->getStr('operation_id'),'handover_id'=>$h['handover_id'],
+          case 'project.preview':
+            $h=$service->readHandoverDetail($request->getStr('handover_id'));$project=$this->one($request,'project');
+            $existing=$service->readHandoverProjects($h['handover_id']);$version=0;$previous=null;
+            foreach($existing['rows']as$row){if($row['project_phid']===$project){$version=$row['version'];$previous=$row;}}
+            $intent=array('operation_id'=>$request->getStr('operation_id'),'handover_id'=>$h['handover_id'],
               'handover_version'=>$h['version'],'project_phid'=>$project,'decision'=>$request->getStr('decision'),
-              'manual_status'=>$request->getStr('manual_status'),'expected_version'=>$version,'note'=>$request->getStr('note','')));
-            break;
+              'manual_status'=>$request->getStr('manual_status'),'expected_version'=>$version,'note'=>$request->getStr('note',''));
+            $intent=PhorgeOrganizationTransferRequest::disposition($intent);
+            $confirm=$this->form()->addHiddenInput('form_action','project.record')->addHiddenInput('request',phutil_json_encode($intent));
+            $dialog=$this->newDialog()->setTitle(pht('Review Manual Project Decision'))
+              ->appendParagraph(pht('Observed handover version: %s; project receipt version: %s',$h['version'],$version));
+            if($previous!==null){$dialog->appendParagraph(pht('Previous decision: %s; %s; %s',
+              $this->decisionLabel($previous['decision']),$this->manualLabel($previous['manual_status']),$previous['note']));}
+            return$dialog->appendParagraph(pht('New decision: %s; %s; %s',
+                $this->decisionLabel($intent['decision']),$this->manualLabel($intent['manual_status']),$intent['note']))
+              ->appendForm($confirm)->addSubmitButton(pht('Record Manual Decision'))->addCancelButton($this->home());
+          case 'project.record':
+            $service->recordHandoverProject($this->raw($request));break;
           case 'due.record':$service->recordHandoverDue($request->getStr('operation_id'),$request->getStr('handover_id'),$this->integer($request,'expected_version'));break;
           default:throw new InvalidArgumentException('organization_transfer_form_refused');
         }
@@ -138,7 +149,7 @@ final class PhorgeOrganizationTransferController extends PhabricatorPeopleContro
       $box->appendChild(phutil_tag('p',array(),pht('Project decisions below are manual receipts, not executed permission changes or an exhaustive project list.')));
       foreach($receipts['rows']as$row){$box->appendChild(phutil_tag('p',array(),pht('%s: %s; %s; %s',
         $row['name'],$this->decisionLabel($row['decision']),$this->manualLabel($row['manual_status']),$row['note'])));}
-      $manual=$this->form()->addHiddenInput('form_action','project.record')->addHiddenInput('handover_id',$h['handover_id'])
+      $manual=$this->form()->addHiddenInput('form_action','project.preview')->addHiddenInput('handover_id',$h['handover_id'])
         ->addHiddenInput('operation_id','manual-receipt-'.bin2hex(random_bytes(16)))
         ->appendControl((new AphrontFormTokenizerControl())->setName('project')->setLabel(pht('Project'))->setLimit(1)->setDatasource(new PhabricatorProjectDatasource()))
         ->appendControl((new AphrontFormSelectControl())->setName('decision')->setLabel(pht('Manual Decision'))->setOptions(array('keep'=>pht('Keep'),'remove'=>pht('Remove'),'review'=>pht('Review'))))

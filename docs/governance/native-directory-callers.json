@@ -638,7 +638,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationHandoverAdapter.php",
       "symbol": "PhorgeOrganizationHandoverAdapter",
       "kind": "sealed-native-approved-handover-writer",
-      "sha256": "3c2b99dbf47378200f19b73ede500169450a2be288f6ffdf339b8780426fbdd8",
+      "sha256": "9436cd8f972ddd15e0d453f184509c30ede75395f6c9e5388d7bb509992ac88f",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -649,7 +649,7 @@
       "path": "src/applications/people/governance/controller/PhorgeOrganizationTransferController.php",
       "symbol": "PhorgeOrganizationTransferController",
       "kind": "current-admin-csrf-native-management-controller",
-      "sha256": "16fe95d9c47032e5f0ddd3471a523d06719cf3a3dc0374111011bccee78e14bb",
+      "sha256": "717d73f3321263efb09f27a4f1b2154548be1266ad75aec1139bf9788fa3f683",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1120,7 +1120,7 @@
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationTransferController.php",
-        "sha256": "16fe95d9c47032e5f0ddd3471a523d06719cf3a3dc0374111011bccee78e14bb"
+        "sha256": "717d73f3321263efb09f27a4f1b2154548be1266ad75aec1139bf9788fa3f683"
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
@@ -1144,7 +1144,7 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationHandoverAdapter.php",
-        "sha256": "3c2b99dbf47378200f19b73ede500169450a2be288f6ffdf339b8780426fbdd8"
+        "sha256": "9436cd8f972ddd15e0d453f184509c30ede75395f6c9e5388d7bb509992ac88f"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",

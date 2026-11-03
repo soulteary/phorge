@@ -531,6 +531,12 @@
         "native-handover-independent-approval-form-requires-real-csrf-and-distinct-current-admin",
         "native-handover-bound-executor-form-requires-explicit-ack-and-switches-primary-once",
         "native-handover-consumed-execution-form-retry-uses-ledger-without-reconsumption",
+        "native-handover-manual-confirmation-binds-two-observed-receipt-and-handover-versions",
+        "native-handover-stale-manual-confirmation-cannot-overwrite-another-administrator-and-real-csrf-is-required",
+        "native-handover-termination-ticket-before-primary-clear-still-refuses-changed-bound-source",
+        "native-handover-independent-termination-after-primary-clear-preserves-cleared-primary-and-ends-active-record",
+        "native-handover-manual-confirmation-refuses-lifecycle-version-changed-after-preview",
+        "native-handover-terminated-after-primary-clear-no-longer-blocks-next-approved-transfer",
         "native-handover-current-disabled-executor-cannot-replay-consumed-form",
         "native-noncredential-v2-proposal-binds-locked-generation-one-without-initializing-subject-credential",
         "native-noncredential-v2-first-real-subject-directory-access-preserves-independent-approval-and-execution",
@@ -549,7 +555,7 @@
         "owned-writer-environment-and-cache-restored",
         "all-owned-full-native-schemas-and-principals-cleaned"
     ],
-    "check_count": 545,
+    "check_count": 551,
     "php_version": "8.5.12",
     "source_restore": {
         "quickstart_sha256": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
@@ -805,7 +811,7 @@
         },
         "issuer_tests": {
             "restore_scope": "three-media-tables-logical-snapshot-and-real-sql-restore",
-            "restored_snapshot_sha256": "37c5f99c815b8e0e0c39f61487fd31b93819045c68d0678c32ae75b43d8b3a1e",
+            "restored_snapshot_sha256": "8635535891ec43f384a66d85724b467509efdd43521ce6a343ec54e073b13ac1",
             "media_only_external_rotation": true,
             "incarnation_only_rotation_verified": true,
             "old_native_credentials_retained_and_verified": true,

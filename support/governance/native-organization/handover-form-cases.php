@@ -85,6 +85,54 @@ function governance_native_handover_form_cases($fixture,callable $check,array $s
     $check($retry instanceof AphrontRedirectResponse&&
       (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_audit WHERE BINARY operationID=BINARY %s',$intent['operation_id'])['n']===$audits,
       'native-handover-consumed-execution-form-retry-uses-ledger-without-reconsumption');
+    // Two actual confirmation pages must not refresh their observed CAS values on submit.
+    $handover=queryfx_one($conn,'SELECT * FROM %R WHERE BINARY transferID=BINARY %s',new PhorgeOrganizationHandover(),$intent['transfer_id']);
+    $project=PhabricatorProject::initializeNewProject($requester['viewer'])->setName('Handover receipt confirmation')->setViewPolicy(PhabricatorPolicies::POLICY_USER)->save();
+    $manual=array('form_action'=>'project.preview','handover_id'=>$handover['handoverID'],'project'=>array($project->getPHID()),
+      'operation_id'=>'form-receipt-a','decision'=>'keep','manual_status'=>'pending','note'=>'First observed decision',$csrf=>$requester['viewer']->getCSRFToken());
+    list($dialog_a,$dialog_a_html)=$route($requester,'POST',$manual,true);$confirm_a=$hidden($dialog_a_html);
+    $manual['operation_id']='form-receipt-b';$manual['decision']='remove';$manual['note']='Stale second decision';$manual[$csrf]=$reviewer['viewer']->getCSRFToken();
+    list($dialog_b,$dialog_b_html)=$route($reviewer,'POST',$manual,true);$confirm_b=$hidden($dialog_b_html);
+    $a_intent=phutil_json_decode($confirm_a['request']);$b_intent=phutil_json_decode($confirm_b['request']);
+    $check($dialog_a instanceof AphrontDialogView&&$dialog_b instanceof AphrontDialogView&&
+      $a_intent['expected_version']===0&&$b_intent['expected_version']===0&&$a_intent['handover_version']===1&&$b_intent['handover_version']===1,
+      'native-handover-manual-confirmation-binds-two-observed-receipt-and-handover-versions');
+    list($no_csrf,$unused)=$route($requester,'POST',$confirm_a);$confirm_a[$csrf]=$requester['viewer']->getCSRFToken();
+    list($recorded,$unused)=$route($requester,'POST',$confirm_a);
+    $before_receipt=queryfx_one($conn,'SELECT * FROM %R WHERE BINARY handoverID=BINARY %s AND BINARY projectPHID=BINARY %s',new PhorgeOrganizationProjectDisposition(),$handover['handoverID'],$project->getPHID());
+    $confirm_b[$csrf]=$reviewer['viewer']->getCSRFToken();list($stale,$unused)=$route($reviewer,'POST',$confirm_b);
+    $after_receipt=queryfx_one($conn,'SELECT * FROM %R WHERE BINARY handoverID=BINARY %s AND BINARY projectPHID=BINARY %s',new PhorgeOrganizationProjectDisposition(),$handover['handoverID'],$project->getPHID());
+    $check($no_csrf instanceof AphrontJSONResponse&&$no_csrf->getHTTPResponseCode()===403&&$recorded instanceof AphrontRedirectResponse&&
+      $stale instanceof AphrontJSONResponse&&$stale->getHTTPResponseCode()===403&&$before_receipt===$after_receipt&&
+      $after_receipt['decision']==='keep'&&(int)$after_receipt['version']===1&&!queryfx_one($conn,'SELECT operationID FROM organization_operation WHERE BINARY operationID=BINARY %s','form-receipt-b'),
+      'native-handover-stale-manual-confirmation-cannot-overwrite-another-administrator-and-real-csrf-is-required');
+    $manual['operation_id']='form-receipt-after-lifecycle';
+    list($latest_dialog,$latest_dialog_html)=$route($reviewer,'POST',$manual,true);$old_lifecycle=$hidden($latest_dialog_html);
+    $termination=array('operation_id'=>'form-terminate-old-primary-op','transfer_id'=>'form-terminate-old-primary-ticket','handover_id'=>$handover['handoverID'],
+      'expected_version'=>1,'reason'=>'End descriptive handover','acknowledge_no_project_permission_change'=>true);
+    $service->proposeHandover('terminate',$termination,300);
+    $service->clearPrimaryDepartment(array('operation_id'=>'form-clear-primary-during-handover','user_phid'=>$subject->getPHID(),'expected_version'=>2));
+    $review_service=PhorgeOrganizationService::newForActor($reviewer['context']);$changed_source=false;
+    try{$d=$service->readHandoverApproval($termination['transfer_id']);$review_service->approveHandover($termination['transfer_id'],$d['request_digest']);}
+    catch(RuntimeException$error){if($error->getMessage()!=='organization_handover_source_stale'){throw$error;}$changed_source=true;}
+    $check($changed_source,'native-handover-termination-ticket-before-primary-clear-still-refuses-changed-bound-source');
+    $termination['operation_id']='form-terminate-cleared-primary-op';$termination['transfer_id']='form-terminate-cleared-primary-ticket';
+    $service->proposeHandover('terminate',$termination,300);$d=$service->readHandoverApproval($termination['transfer_id']);
+    $review_service->approveHandover($termination['transfer_id'],$d['request_digest']);$service->executeHandover($termination['transfer_id'],true);
+    $primary=queryfx_one($conn,'SELECT * FROM organization_primarydepartment WHERE BINARY userPHID=BINARY %s',$subject->getPHID());
+    $ended=queryfx_one($conn,'SELECT * FROM %R WHERE BINARY handoverID=BINARY %s',new PhorgeOrganizationHandover(),$handover['handoverID']);
+    $check($primary['unitID']===null&&(int)$primary['version']===3&&$ended['state']==='terminated'&&(int)$ended['version']===2,
+      'native-handover-independent-termination-after-primary-clear-preserves-cleared-primary-and-ends-active-record');
+    $old_lifecycle[$csrf]=$reviewer['viewer']->getCSRFToken();list($lifecycle_stale,$unused)=$route($reviewer,'POST',$old_lifecycle);
+    $check($lifecycle_stale instanceof AphrontJSONResponse&&$lifecycle_stale->getHTTPResponseCode()===403&&
+      queryfx_one($conn,'SELECT * FROM %R WHERE BINARY handoverID=BINARY %s AND BINARY projectPHID=BINARY %s',new PhorgeOrganizationProjectDisposition(),$handover['handoverID'],$project->getPHID())===$before_receipt,
+      'native-handover-manual-confirmation-refuses-lifecycle-version-changed-after-preview');
+    $service->assignPrimaryDepartment(array('operation_id'=>'form-primary-after-terminated-handover','user_phid'=>$subject->getPHID(),'unit_id'=>'handover-form-from','expected_version'=>3));
+    $next=$service->previewSelectedTransfer($subject->getPHID(),$owner->getPHID(),'handover-form-to',0,'Next independently approved transfer');
+    $service->proposeTransfer($next['intent'],300);$next_detail=$service->readTransfer($next['intent']['transfer_id']);
+    $review_service->approveTransfer($next['intent']['transfer_id'],$next_detail['request_digest']);$service->executeTransfer($next['intent']['transfer_id'],true);
+    $check(queryfx_one($conn,'SELECT unitID FROM organization_primarydepartment WHERE BINARY userPHID=BINARY %s',$subject->getPHID())['unitID']==='handover-form-to',
+      'native-handover-terminated-after-primary-clear-no-longer-blocks-next-approved-transfer');
     $disabled=(new PhabricatorUserTransaction())->setTransactionType(PhabricatorUserDisableTransaction::TRANSACTIONTYPE)->setNewValue(true);
     (new PhabricatorUserTransactionEditor())->setActor($state['users']['admin'])->setContentSource(PhabricatorContentSource::newForSource('console',array()))->applyTransactions($requester_user,array($disabled));
     list($blocked,$unused)=$route($requester,'POST',$execute);

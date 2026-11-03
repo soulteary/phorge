@@ -325,7 +325,7 @@
     "scope": "actual organization and media main union, isolated native regression only",
     "passed": true,
     "native_methods": 188,
-    "sql_checks": 545,
+    "sql_checks": 551,
     "runtime_files": 5930,
     "runtime_content_exact": true,
     "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
@@ -351,11 +351,22 @@
     "browser_or_wire_proved": false,
     "full_lifecycle_manual_due_form_POST_matrix_complete": false,
     "source_sha256": {
-      "organization-media-main-integration.json": "1ba3dd058c2b84fe96fcee48acb6103df74682a1a7d44e114c243579987e5a47",
-      "organization-media-main-native.json": "a8d38c641d8d833451a4828be509c72a9b2f4602e1e9c013147a9fa92adc0f2e",
-      "organization-media-main-source-runtime-match.json": "2d34e215dc7be1a76dd85a5af50d0c3b19f680a527ffb4bd8c308f64fccf5ee6"
+      "organization-media-main-integration.json": "02c34296a7166579e383a4161aa8d7723b06624a72ea5185c1f7314e52eea273",
+      "organization-media-main-native.json": "b94163b2616fad8a233a7f8ceae02a8c1b6ea237fc1bf1a549d937fc5e3a3163",
+      "organization-media-main-source-runtime-match.json": "0b58eeeb895782f2e94639e6376fb5650ca40771d940371c0e7a3c9d7426ee03"
     },
-    "evidence": "docs/governance/evidence/organization-main-188-545-20261103"
+    "signed_head": "pending signed P2 fix",
+    "pull_request": "https://github.com/soulteary/phorge/pull/94",
+    "hosted_CI": "pending new head",
+    "exact_head_review": "pending new head",
+    "merge_state": "open, mergeable",
+    "source_parent": "b2f6a133504330974b0f536c2b910fe0c87ad630",
+    "known_findings_fixed": [
+      "4451902435",
+      "4451902443"
+    ],
+    "same_site_main_union_required_before_merge": true,
+    "evidence": "docs/governance/evidence/organization-reviewfix-188-551-20261103"
   },
   "incoming_media_main_component_validation": {
     "current_component_validation": {

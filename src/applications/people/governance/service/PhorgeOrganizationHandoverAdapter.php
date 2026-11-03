@@ -193,7 +193,12 @@ final class PhorgeOrganizationHandoverAdapter extends Phobject {
     $ids=array($handover['fromDepartmentID'],$handover['toDepartmentID']);sort($ids,SORT_STRING);$units=array();
     foreach($ids as$id){$units[$id]=$this->unit($id);}
     $primary=queryfx_one($this->connection,'SELECT * FROM organization_primarydepartment WHERE BINARY userPHID=BINARY %s FOR UPDATE',$handover['subjectPHID']);
-    if(!$primary||$primary['userPHID']!==$handover['subjectPHID']||$primary['unitID']!==$handover['toDepartmentID']){
+    // Termination is a reduction: bind the actual current primary source even
+    // after it was explicitly cleared or reassigned. Other lifecycle changes
+    // still require the transfer destination to remain current.
+    if(!$primary||$primary['userPHID']!==$handover['subjectPHID']||
+      PhorgeOrganizationService::version($primary['version'])<1||
+      ($action!=='terminate'&&$primary['unitID']!==$handover['toDepartmentID'])){
       throw new RuntimeException('organization_handover_primary_changed');}
     $sources=array('handover'=>$handover,'subject'=>$subject,'oldResponsible'=>$owner,'primary'=>$primary,
       'from'=>$units[$handover['fromDepartmentID']],'to'=>$units[$handover['toDepartmentID']]);

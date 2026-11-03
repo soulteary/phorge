@@ -450,6 +450,14 @@ HTTP_REQUIRED_CHECKS=frozenset({'native-media-active-html-forced-attachment-octe
  'native-media-valid-bearer-file-key-alone-never-authorizes-bytes',
  'native-media-valid-other-user-cookie-does-not-grant-file-permission'})
 REQUIRED_CHECKS=REQUIRED_CHECKS|HTTP_REQUIRED_CHECKS
+# Exact PR94 review regressions; no new passing receipt exists until fresh runtime.
+REQUIRED_CHECKS=REQUIRED_CHECKS|frozenset({
+ 'native-handover-manual-confirmation-binds-two-observed-receipt-and-handover-versions',
+ 'native-handover-stale-manual-confirmation-cannot-overwrite-another-administrator-and-real-csrf-is-required',
+ 'native-handover-termination-ticket-before-primary-clear-still-refuses-changed-bound-source',
+ 'native-handover-independent-termination-after-primary-clear-preserves-cleared-primary-and-ends-active-record',
+ 'native-handover-manual-confirmation-refuses-lifecycle-version-changed-after-preview',
+ 'native-handover-terminated-after-primary-clear-no-longer-blocks-next-approved-transfer'})
 FIELDS = {'batch', 'passed', 'scope', 'checks', 'check_count', 'php_version',
     'source_restore', 'native', 'worker_cleanup', 'file_service_cleanup',
     'successful_owned_file_service_startups', 'cleanup', 'failure', 'cleanup_failures',
