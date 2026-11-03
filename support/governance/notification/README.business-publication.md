@@ -34,3 +34,10 @@ child private configuration is synthetic and owner/inode/nonce scoped; private
 stdout is parsed by the parent, and no object IDs, session tokens, mail payloads
 or recipient values enter the public summary. Processes and 0700/0600 files are
 cleaned in `finally` even when a native check fails.
+
+Project private content uses the existing description custom field
+`std:project:internal:description`; native Project transactions do not expose
+comment objects. Task fixtures retain native comments. The independent worker
+reads committed Project description storage before accepting a positive case,
+so absence of private bytes from the envelope is checked against genuine source
+content. This does not add a Project comment capability or change permissions.

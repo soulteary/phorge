@@ -22,6 +22,13 @@ try{
   $stored=(new PhabricatorWorkerTaskData())->load($task->getDataID());$payload=$stored?$stored->getData():null;
   if(!is_array($payload)||($payload['objectPHID']??null)!==$probe['object_phid']||!is_array($payload['xactionPHIDs']??null)||!$payload['xactionPHIDs']||count($payload['xactionPHIDs'])>16){throw new RuntimeException('business_publication_data_refused');}
   $visible=(new PhabricatorObjectQuery())->setViewer(PhabricatorUser::getOmnipotentUser())->withPHIDs(array($probe['object_phid']))->executeOne();
+  $project_description=false;
+  if($visible instanceof PhabricatorProject){
+    $fields=PhabricatorCustomField::getObjectFields($visible,PhabricatorCustomField::ROLE_VIEW);
+    $fields->readFieldsFromStorage($visible);
+    $field=PhabricatorCustomField::getObjectField($visible,PhabricatorCustomField::ROLE_VIEW,'std:project:internal:description');
+    $project_description=$field&&$field->getProxy()->getFieldValue()==='SYNTHETIC_PRIVATE_BUSINESS_COMMENT';
+  }
   $mail=new PhabricatorMetaMTAMail();$start=(int)queryfx_one($mail->establishConnection('r'),'SELECT COALESCE(MAX(id),0) n FROM %R',$mail)['n'];
   $missing=false;
   try{(new PhabricatorApplicationTransactionPublishWorker($payload))->executeTask();}
@@ -37,7 +44,7 @@ try{
       'no_private_producer_payload'=>!str_contains(phutil_json_encode($prepared),'SYNTHETIC_PRIVATE_BUSINESS_COMMENT')&&!str_contains(phutil_json_encode($prepared),'Synthetic business '),
       'physical_gate_allowed'=>$physical,'quarantined'=>$item->getPrivateMailPolicyValue('governance.delivery-quarantined',false));}
   $result=array('passed'=>true,'actual_owned_taskqueue_http_ready'=>true,'source_visible'=>$visible!==null,'native_publication_missing_source_permanent'=>$missing,
-    'publication_completed'=>!$missing,'envelopes'=>$envelopes,'physical_delivery_attempted'=>false);
+    'publication_completed'=>!$missing,'native_project_description_present'=>$project_description,'envelopes'=>$envelopes,'physical_delivery_attempted'=>false);
 }catch(Throwable$error){$failure=array('type'=>get_class($error),'file'=>basename($error->getFile()),'line'=>$error->getLine());}
 finally{try{if($guard!==null){$guard->dispose();}if($owned){LiskDAO::closeAllConnections();}if($proof!==null){$proof->close();}}catch(Throwable$error){$failure=array('type'=>'cleanup_failed');}mysqli_report($mode);if($buffer){ob_end_clean();}}
 echo json_encode($failure?array('passed'=>false,'failure'=>$failure):$result,JSON_THROW_ON_ERROR)."\n";exit($failure?1:0);

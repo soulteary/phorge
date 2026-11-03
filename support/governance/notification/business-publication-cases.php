@@ -67,9 +67,22 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
     $tx=$family==='task'?new ManiphestTransaction():new PhabricatorProjectTransaction();
     $name=clone $tx;$name->setTransactionType($family==='task'?ManiphestTaskTitleTransaction::TRANSACTIONTYPE:PhabricatorProjectNameTransaction::TRANSACTIONTYPE)
       ->setNewValue('Synthetic business '.$family.' '.$ending.' '.$suffix);
-    $comment=clone $tx;$comment->setTransactionType(PhabricatorTransactions::TYPE_COMMENT)
-      ->attachComment($comment->getApplicationTransactionCommentObject()->setContent('SYNTHETIC_PRIVATE_BUSINESS_COMMENT'));
-    $changes=array($name,$comment);
+    $content=clone $tx;
+    if($family==='task'){
+      $content->setTransactionType(PhabricatorTransactions::TYPE_COMMENT)
+        ->attachComment($content->getApplicationTransactionCommentObject()->setContent('SYNTHETIC_PRIVATE_BUSINESS_COMMENT'));
+    }else{
+      // Projects have native description custom fields, not comment objects.
+      $fields=PhabricatorCustomField::getObjectFields($object,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS);
+      $fields->readFieldsFromStorage($object);
+      $field=PhabricatorCustomField::getObjectField($object,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS,
+        'std:project:internal:description');
+      if(!$field){throw new RuntimeException('business_publication_native_project_description_missing');}
+      $content->setTransactionType(PhabricatorTransactions::TYPE_CUSTOMFIELD)
+        ->setMetadataValue('customfield:key',$field->getFieldKey())
+        ->setOldValue($field->getOldValueForApplicationTransactions())->setNewValue('SYNTHETIC_PRIVATE_BUSINESS_COMMENT');
+    }
+    $changes=array($name,$content);
     if($family==='task'){$changes[]=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_SUBSCRIBERS)->setNewValue(array('+' => array_fuse(array($users['subscriber']->getPHID()))));}
     $last=(int)queryfx_one($tasks->establishConnection('r'),'SELECT COALESCE(MAX(id),0) n FROM %R',$tasks)['n'];
     $connection=$object->establishConnection('w');if($connection->isInsideTransaction()){throw new RuntimeException('business_publication_inherited_context_refused');}
@@ -97,6 +110,7 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
           $envelope['policy_authorized']===true&&$envelope['prepared']===true&&$envelope['no_private_producer_payload']===true&&$envelope['physical_gate_allowed']===true&&$envelope['quarantined']===false;$seen=array_merge($seen,$envelope['recipients']);}
         $required=$family==='task'?array($users['owner']->getPHID(),$users['subscriber']->getPHID()):array($users['author']->getPHID());
         $check($second['source_visible']===true&&$second['publication_completed']===true&&$safe&&
+          ($family!=='project'||($second['native_project_description_present']??null)===true)&&
           count($second['envelopes'])>=count($required)&&array_diff($required,$seen)===array(),
           'private-business-'.$family.'-'.$ending.'-actual-publisher-current-source-and-isolated-native-recipient-envelopes');
       }

@@ -83,13 +83,26 @@
     "source_revision": "2c841c2c9acdc3cb1716424072024f362f366e71",
     "applies_only_to_this_historical_revision": true
   },
-  "previous_failed_union": {
-    "source_revision": "6bdafac742263a11d132402e8c1d57e9ba1154e2",
-    "pure_methods_passed": 207,
-    "observed_SQL_checks_including_cleanup": 473,
-    "SQL_matrix_complete": false,
-    "runtime_files_exact": 6779,
-    "failure": "Independent business publisher lacked mandatory native-mail Gorge taskqueue configuration.",
-    "cleanup_complete": true
-  }
+  "project_content_profile": "Task title/comment/subscriber transactions; Project name and native std:project:internal:description custom field. No invented Project comment support. Independent publisher reads stored Project description before accepting the positive case.",
+  "previous_failed_unions": [
+    {
+      "source_revision": "6bdafac742263a11d132402e8c1d57e9ba1154e2",
+      "pure_methods_passed": 207,
+      "observed_SQL_checks_including_cleanup": 473,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6779,
+      "failure": "Independent business publisher lacked mandatory native-mail Gorge taskqueue configuration.",
+      "cleanup_complete": true
+    },
+    {
+      "source_revision": "68849c8c59dac20d6fc4108d75406cfca850d8b1",
+      "pure_methods_passed": 207,
+      "observed_SQL_checks_including_cleanup": 480,
+      "task_publication_checks_passed": 7,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6780,
+      "failure": "Fixture attempted unsupported native Project comment object.",
+      "cleanup_complete": true
+    }
+  ]
 }
