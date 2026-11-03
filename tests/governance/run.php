@@ -29,6 +29,7 @@ try {
     'PhorgeGovernanceOrganizationApprovalTestCase',
     'PhorgeOrganizationRequestTestCase',
     'PhorgeOrganizationMetadataTestCase',
+    'PhorgeOrganizationCompoundTestCase',
     'PhorgeGovernanceNativeIdentityTestCase',
     'PhorgeGovernanceNativeApprovalTestCase',
     'PhorgeGovernanceMediaExchangeServiceTestCase',

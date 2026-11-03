@@ -74,6 +74,17 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data['native']['issuer_tests']['unknown_claim']=True
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
+    def test_partial_lifecycle_and_compound_scope_cannot_be_promoted(self):
+        for section,key in [('compound_tests','full_compound_failure_matrix_complete'),
+            ('compound_tests','production_activation'),('membership_lifecycle_tests','public_csrf_lifecycle_complete'),
+            ('membership_lifecycle_tests','production_activation')]:
+            data=template();data['native'][section][key]=True
+            with self.subTest(section=section,key=key),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        for old_worker_count in (5,7,9):
+            data=template();data['worker_cleanup']['workers_registered']=old_worker_count
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_admission_claims_require_all_runtime_boundaries_and_owned_workers(self):
         for key in gate.NATIVE['target_tests']['admission_tests']:
             data=template();data['native']['target_tests']['admission_tests'][key]=False

@@ -134,6 +134,21 @@ try {
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
     $value=$kind==='org.list'?$service->readUnits():$service->countUnits();
     $result=array('status'=>'committed','value'=>$value);
+  } else if ($kind==='org.members.edit' || $kind==='org.compound.execute' || $kind==='org.compound.execute-approved') {
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','payload','token')||!is_string($action['token'])||strlen($action['token'])>256||!is_array($action['payload'])){
+      throw new RuntimeException('native_worker_action_refused');}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer){throw new RuntimeException('governance_web_credential_required');}
+    $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
+    $request=(new AphrontRequest('fixture.invalid','/'))->setUser($viewer);
+    $service=PhorgeOrganizationService::newForActor(PhorgeGovernanceNativeActorContext::newFromWebRequest($request));
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    if($kind==='org.compound.execute-approved'){
+      if(array_keys($action['payload'])!==array('approval_id')){throw new RuntimeException('native_worker_action_refused');}
+      $receipt=$service->executeApprovedCompound($action['payload']['approval_id']);
+    }else{$receipt=$kind==='org.members.edit'?$service->execute($action['payload']):$service->executeCompound($action['payload']);}
+    $result=array('status'=>'committed','replayed'=>$receipt['replayed']);
   } else if($kind==='media.prepare'){
     $keys=array_keys($action);sort($keys);
     if($keys!==array('action','browser_secret','client_nonce','path')||

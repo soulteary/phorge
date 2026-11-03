@@ -485,6 +485,100 @@ final class PhorgeOrganizationService extends Phobject {
       $this->relationship('appointment', $mutation['team'], $mutation['target_user']));
   }
 
+
+  public function previewCompound(array $input) {
+    $input=PhorgeOrganizationRequest::compound($input);$this->begin(array($input['target_user']));
+    try{$this->requireAdmin();$unit=$this->unit($input['team']);
+      if($unit['kind']!=='team'||$unit['state']!=='active'){throw new RuntimeException('organization_team_required');}
+      $result=array('action'=>$input['action'],'team'=>$input['team'],'subject'=>$input['target_user'],
+        'impact'=> $input['action']==='member.add-and-appoint'?'explicit-membership-and-administrator-grant':'explicit-administrator-revocation-and-membership-end',
+        'impact_message'=>pht('Adding membership may grant access through references to this team. Approval covers the explicit membership and administrator changes; native project permissions are unchanged.'),
+        'native_project_permissions_changed'=>false,'independent_approval_required'=>true);
+      $this->requireAdmin();$this->finish(true);return $result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
+  public function proposeCompoundApproval(array $input) {
+    $input=PhorgeOrganizationRequest::compound($input,true);$ttl=$input['ttl_seconds'];unset($input['ttl_seconds']);
+    $subjects=array($input['target_user']);$conn=(new PhabricatorUser())->establishConnection('w');
+    $existing=queryfx_one($conn,'SELECT approvalID FROM organization_approval WHERE BINARY approvalID=BINARY %s',$input['approval_id']);
+    if($existing){$subjects=array_merge($subjects,PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($input['approval_id']),$conn));}
+    $this->begin($subjects);
+    try{$this->requireAdmin();$adapter=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this);
+      $result=$adapter->propose($input['approval_id'],$input['operation_id'],$input['team'],$input['action'],
+        $input['target_user'],$input['appointment_from'],$input['appointment_until'],$ttl,$input);
+      if(!$result['replayed']){$this->audit($input['operation_id'],'approval.propose',$input['team'],$input['target_user'],null,
+        array('approvalID'=>$input['approval_id'],'compoundAction'=>$input['action'],'membershipImpactAcknowledged'=>true));}
+      $adapter->assertCurrent($input['approval_id']);$this->finish(true);return $result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
+  public function previewCompoundApproval($approval) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($approval)){throw new InvalidArgumentException('organization_approval_request_refused');}
+    $conn=(new PhabricatorUser())->establishConnection('w');
+    $subjects=PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($approval),$conn);$this->begin($subjects);
+    try{$this->requireAdmin();$result=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this)->previewCompoundApproval($approval);
+      $this->finish(true);return $result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
+  public function executeApprovedCompound($approval) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($approval)){throw new InvalidArgumentException('organization_approval_request_refused');}
+    $conn=(new PhabricatorUser())->establishConnection('w');
+    $subjects=PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($approval),$conn);
+    $this->begin($subjects);
+    try{$this->requireAdmin();$input=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this)->getCompoundForExecution($approval);
+      $this->finish(true);
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+    // The new execution transaction re-locks and compares every source again.
+    return $this->executeCompound($input);
+  }
+
+  /** One explicitly approved compound; generic duplicate-target batches stay refused. */
+  public function executeCompound(array $input) {
+    $input=PhorgeOrganizationRequest::compound($input);$conn=(new PhabricatorUser())->establishConnection('w');
+    $subjects=array_merge(array($input['target_user']),
+      PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($input['approval_id']),$conn));
+    $this->begin($subjects);
+    try{$this->requireAdmin();$unit=$this->unit($input['team']);
+      if($unit['kind']!=='team'||$unit['state']!=='active'){throw new RuntimeException('organization_team_required');}
+      $digest=hash('sha256',phutil_json_encode(array('explicit-compound-v1',$input)));
+      $replay=$this->replay($input['operation_id'],$digest);
+      if($replay!==null){$this->requireAdmin();$this->finish(true);return $replay;}
+      $member=$this->relationship('member',$input['team'],$input['target_user']);
+      $appointment=$this->relationship('appointment',$input['team'],$input['target_user']);
+      if(self::version($unit['version'])!==$input['expected_team_version'] ||
+        ($member?self::version($member['version']):0)!==$input['expected_member_version'] ||
+        ($appointment?self::version($appointment['version']):0)!==$input['expected_appointment_version']){
+        throw new RuntimeException('organization_stale_version');}
+      $adapter=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this);
+      // Consume while actual rows still equal the approved before read-set.
+      $adapter->consume($input['approval_id'],$input['operation_id'],$input['team'],$input['action'],
+        $input['target_user'],$input['appointment_from'],$input['appointment_until'],$input);
+      $grant=$input['action']==='member.add-and-appoint';
+      if($grant){
+        queryfx($this->connection,'INSERT INTO %T (unitID,userPHID,state,validFrom,validUntil,version) VALUES (%s,%s,%s,%d,%nd,1)',
+          $this->table('member'),$input['team'],$input['target_user'],'active',$input['member_from'],$input['member_until']);
+        $action='appointment.grant';
+      }else{
+        // Revoke the appointment first. No ordinary member API can do this.
+        $action='appointment.revoke';
+      }
+      $mutation=array('action'=>$action,'team'=>$input['team'],'target_user'=>$input['target_user'],
+        'valid_from'=>$input['appointment_from'],'valid_until'=>$input['appointment_until']);
+      $this->applyAppointment($input['operation_id'],$mutation,
+        $grant?$this->relationship('member',$input['team'],$input['target_user']):$member,$appointment);
+      if(!$grant){queryfx($this->connection,'UPDATE %T SET state=%s,version=version+1 WHERE unitID=%s AND userPHID=%s',
+        $this->table('member'),'ended',$input['team'],$input['target_user']);}
+      $this->audit($input['operation_id'],$input['action'],$input['team'],$input['target_user'],$member,
+        $this->relationship('member',$input['team'],$input['target_user']));
+      queryfx($this->connection,'UPDATE %T SET version=version+1 WHERE unitID=%s',$this->table('unit'),$input['team']);
+      $result=$this->record($input['operation_id'],$digest,array($input['team']=>$input['expected_team_version']+1));
+      $adapter->assertCurrent($input['approval_id'],$input['operation_id']);$this->requireAdmin();
+      $this->finish(true);return $result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
   public function proposeApproval(array $input) {
     $input = PhorgeOrganizationRequest::approval($input);
     $subjects = array($input['target_user']);

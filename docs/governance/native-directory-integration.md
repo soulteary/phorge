@@ -220,8 +220,68 @@ The tokenizer follow-up retains the native `raw` query rather than searching the
 
 Directory tokenizers explicitly select a fixed literal-casefold mode. Native query caching and client result matching retain punctuation and whitespace, avoiding normalized cache-key collisions such as `Ops_` versus `Ops`. All other datasources retain the native default mode; unknown mode names are rejected. Tests execute the real native JavaScript cache/match methods with explicit DOM/transport shims, and an actual complete native page decodes its Javelin configuration to prove both modes are wired. Celerity maps were rebuilt using PHP 8.5.12. The current isolated evidence is 139 pure methods, 209 SQL checks and 82 governance tests; this is not browser acceptance.
 
+
+## Native lifecycle and explicit compound candidate
+
+The latest combined main plus lifecycle source passed **142 pure methods and
+244 real native MySQL/Gorge checks** under PHP 8.5.12. The exact receipt is
+`native-directory-evidence.json`, with separate pure/SQL receipts under
+`evidence/membership-lifecycle-checkpoint-20261103/`. All seven workers and their
+private directories, 55 schemas, two runtime users and the reader were cleaned
+without failures. The earlier 225-check receipt is retained separately, not
+relabeled as proof of this source.
+
+The strict gate fixes the full 244-check set, both new typed summaries and seven
+worker cleanups. It rejects promotion of incomplete lifecycle/compound/browser
+scope. Source bookkeeping is explicitly 35 sources, 25 static links and 47
+runtime files; it remains partial and grants no authorization. Current Python
+checks passed 83 governance tests (including native JavaScript cache tests) and
+84 permission tests.
+
+New evidence covers native multi-member batches and last-item failure, real SQL
+trigger failures with exact 1644 markers, concurrent same-operation writers,
+current team-manager ordinary-member actions, actual CSRF forms, independent
+compound approval review, before-source consumption and transactional
+member/appointment/audit/ledger changes. A standalone appointment ticket cannot
+authorize ending membership, and a revoked manager cannot replay an old result.
+
+O4/O5 remain partial: further expiry/credential waits, cross-team combinations,
+fault positions, API paths and full browser acceptance are not certified by this
+run. O6 restricted historical reporting, O7 transfer/handover and O8 due/outbox
+work remain unfinished. No optional activation, production migration, native
+project permission change, history deletion or dispatcher is included.
+
+
+## Approval-ID form retry correction
+
+The subsequent supported-runtime source passed **142 pure methods and 250 real
+native SQL checks**, with nine workers cleaned without failures. Current evidence
+is under `evidence/membership-lifecycle-retry-250-20261103/`; the previous 244-check
+receipt remains unchanged in its separate checkpoint directory.
+
+The approval-ID route now permits only the current authorized bound executor to
+recover a correctly bound consumed request and reach the existing operation
+ledger replay. It cannot consume an approval again. Real native CSRF form retry,
+two independent workers waiting on the actual mutex, wrong executor rejection,
+and native administrator revocation/recovery through the actual normal-session
+MFA path are covered. No forced high-security session or catch-all rejection
+stands in for these checks. This remains isolated/controller evidence, not full
+browser, production activation or completion of O4/O5.
+
 ## Prepared media targets integrated with current main
 
 The original signed target checkpoint `1ab1305` (138 pure methods /209 SQL checks) is preserved under `evidence/media-targets-checkpoint-1ab1305`. The combined current-main directory/issuer/target source now passed **142 pure methods and 245 real MySQL/Gorge checks**. All nine workers, 55 schemas, two runtime users and the reader were cleaned without failure. The schema proof covers 13 candidate tables, 530 current tables and 1566 source patches, including actual execution of the separate metadata, issuer and target migrations.
 
 `native-directory-evidence.json` and `evidence/media-targets-combined-20261103` contain the new combined evidence. The manually reviewed static inventory has 36 nodes, 26 links and 48 runtime files, still partial and not authority proof. The renamed redeem-race check observes the actual capacity mutex instead of an unreachable pair of browser-lock waits. No HTTP handoff, browser, deployment, optional activation or permission migration is certified.
+
+
+## Combined-source validation
+
+The reviewed main media-target245 and lifecycle retry250 checkpoints remain
+separate. Their exact reviewed union subsequently passed 286 actual native SQL
+checks and 145 pure methods. All 13 workers and private directories, 55 schemas,
+two runtime accounts and the reader were cleaned without failures. Exact new
+receipts are under `evidence/membership-lifecycle-combined-286-20261103/`; the
+current receipt is `native-directory-evidence.json`. Old 250/244/225 evidence is
+unchanged. This is isolated source/controller evidence, not hosted final-head
+review, browser delivery, activation or completion of all O4/O5 work.
