@@ -61,3 +61,11 @@ remain false.
 The successor explicitly integrates main `26f291add780672e41fea8afbe39a5c29da242a8` and the verified account fixture correction `556b8aebf40585e9f93f2da1068dedc5f8c5c95d`. The prior isolated account-only run passed 203 pure methods and 669 native checks with 6771 exact runtime source hashes. Those results do not certify this successor.
 
 The later candidate additionally integrates protected main `eafc8ee9c989cb2f17d6c20c23f8a958bc14af29`. Its new runtime proof is pending; prior b172 actual 209/691 is a separate checkpoint.
+
+## Verified isolated checkpoint
+
+Signed source `8f39fb52e8b03ecacabc1cacbd0b84d8982ee293` explicitly includes protected main `eafc8ee9c989cb2f17d6c20c23f8a958bc14af29`. PHP 8.5.12 executed all 210 pure methods and 700 native SQL obligations. The strict receipt gate accepted the result; 6,776 PHP, SQL and public-suffix files matched the signed archive exactly. The fixture removed 55 owned schemas, two runtime users, its reader, all 19 private worker directories and its paired image service; no live workers or cleanup failures remained. See [the sanitized acceptance record](evidence/recovery-native-capture-210-700/acceptance.json).
+
+A later documentation-only commit publishes this summary. Its documentation changes were not part of the SQL execution, and are not presented as a second runtime test. The runtime source hashes remain bound to the signed checkpoint above.
+
+This is an isolated read-only capture component. It adds no production route, activation option, recovery permit, global credential revocation or deployment. All 13 aggregate recovery families remain incomplete; `all_sources_complete` and `can_execute` stay false. The direct web/session and temporary-token readsets do not cover indirect OAuth, external identities, email resources, plugin consumers, object automatic capabilities or restore lineage.

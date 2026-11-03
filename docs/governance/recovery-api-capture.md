@@ -9,3 +9,5 @@ No production route, recovery permit, activation, mass revocation or account wri
 Four pure methods and ten real-native fixture obligations are prepared. They call native standard-token authentication/deletion, legacy certificate authentication/rotation, legacy session establishment, and actual OAuth server producers and authorization revocation. PHP syntax checks have passed; supported-runtime map, pure methods, SQL execution, source hashes and cleanup remain unrun for this successor. These are not covered by the prior 210/700 checkpoint.
 
 The additive CLI and strict evidence obligations require all 710 native checks (all old 700 retained), 214 pure methods and the existing 19-worker cleanup profile. Typed summaries cannot promote these observations to API-family completeness. The generated class map and supported-runtime execution are still pending.
+
+The candidate explicitly integrates protected main `dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43`. The earlier 210/700 proof remains a separate account/web-source checkpoint; this API successor still requires its own supported-runtime 214/710 evidence.
