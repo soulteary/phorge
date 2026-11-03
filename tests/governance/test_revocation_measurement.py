@@ -103,3 +103,30 @@ class NativeTokenEnvelopeTest(unittest.TestCase):
             with self.assertRaises(ValueError):m.describe_native_token_receipt(e,'a'*40,'b'*64)
         e=self.sample();e['after_source_binding_sha256']=e['before_source_binding_sha256']
         with self.assertRaises(ValueError):m.describe_native_token_receipt(e,'a'*40,'b'*64)
+
+
+class NativeHTTPEnvelopeTest(unittest.TestCase):
+    def sample(self):
+        e=NativeTokenEnvelopeTest().sample()['event'];e['schema']=3
+        e['transition']['boundary']='native-token-dao-delete-http-new-requests'
+        return {'profile':'native-conduit-http-token-revocation-only','HTTP_proved':True,
+            'gateway_proved':False,'long_connection_proved':False,'SLA_proved':False,'convergence_proved':False,
+            'actual_Conduit_HTTP_requests':4,'actual_independent_HTTP_processes':3,'native_parse_error_control_observed':True,
+            'token_rows_deleted':1,'native_transaction_record_available':False,
+            'server_cleanup':{'started':3,'stopped':3,'directories_removed':3,'remaining':0,'live':0},
+            'router_sha256':'e'*64,'before_source_binding_sha256':'e'*64,'after_source_binding_sha256':'f'*64,'event':e}
+
+    def test_actual_HTTP_shape_does_not_promote_gateway_or_method_only_profile(self):
+        r=m.describe_native_http_receipt(self.sample(),'a'*40,'b'*64,'e'*64)
+        self.assertFalse(r['measurement_acceptance']);self.assertFalse(r['SLA_proved'])
+        with self.assertRaises(ValueError):m.describe_native_token_receipt(self.sample(),'a'*40,'b'*64)
+        for key,value in [('HTTP_proved',False),('gateway_proved',True),('native_parse_error_control_observed',False),('actual_independent_HTTP_processes',True)]:
+            item=self.sample();item[key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):m.describe_native_http_receipt(item,'a'*40,'b'*64,'e'*64)
+
+    def test_unknown_denial_changed_router_and_incomplete_cleanup_refused(self):
+        item=self.sample();item['event']['attempts'][1]['outcome']='transport-error'
+        with self.assertRaises(ValueError):m.describe_native_http_receipt(item,'a'*40,'b'*64,'e'*64)
+        with self.assertRaises(ValueError):m.describe_native_http_receipt(self.sample(),'a'*40,'b'*64,'f'*64)
+        item=self.sample();item['server_cleanup']['stopped']=2
+        with self.assertRaises(ValueError):m.describe_native_http_receipt(item,'a'*40,'b'*64,'e'*64)

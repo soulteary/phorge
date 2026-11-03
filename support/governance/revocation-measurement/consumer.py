@@ -26,7 +26,7 @@ def uint(value):
 def describe_observation(event):
     """Pure input analysis, not proof that a native event actually occurred."""
     exact(event, ['schema', 'source_revision', 'producer_sha256', 'family', 'clock', 'transition', 'attempts'])
-    require(type(event['schema']) is int and event['schema'] in (1, 2), 'event_version_refused')
+    require(type(event['schema']) is int and event['schema'] in (1, 2, 3), 'event_version_refused')
     require(type(event['family']) is str and event['family'] in FAMILIES, 'adapter_family_refused')
     require(type(event['source_revision']) is str and re.fullmatch('[a-f0-9]{40}', event['source_revision']), 'source_revision_refused')
     require(type(event['producer_sha256']) is str and HEX64.fullmatch(event['producer_sha256']), 'producer_digest_refused')
@@ -43,7 +43,7 @@ def describe_observation(event):
         require(transition['boundary'] == 'native-transaction-operation-call-return', 'commit_boundary_refused')
     else:
         require(event['family'] == 'api-token' and transition['action'] == 'revoke' and
-            transition['boundary'] == 'native-token-dao-delete-own-transaction' and
+            transition['boundary'] == ('native-token-dao-delete-own-transaction' if event['schema'] == 2 else 'native-token-dao-delete-http-new-requests') and
             transition['operation_binding_sha256'] == transition['id'], 'token_delete_boundary_refused')
     send = uint(transition['operation_start_ns']); ack = uint(transition['commit_confirmed_return_ns'])
     require(send <= ack, 'commit_order_refused')
@@ -127,6 +127,37 @@ def describe_native_token_receipt(receipt, expected_revision, expected_producer_
         ['allowed', 'denied', 'denied'] and event['attempts'][0]['finish_ns'] <=
         event['transition']['operation_start_ns'] and result['postcommit_attempts'] == 2,
         'native_token_control_sequence_refused')
+    result['profile'] = receipt['profile']
+    result['producer_attestation'] = 'source-bound-envelope-execution-attestation-required'
+    return result
+
+
+def describe_native_http_receipt(receipt, expected_revision, expected_producer_digest, expected_router_digest):
+    """Schema3 actual loopback native Conduit, never gateway/long connections."""
+    exact(receipt, ['profile', 'HTTP_proved', 'gateway_proved', 'long_connection_proved',
+        'SLA_proved', 'convergence_proved', 'actual_Conduit_HTTP_requests', 'actual_independent_HTTP_processes',
+        'native_parse_error_control_observed', 'token_rows_deleted', 'native_transaction_record_available',
+        'server_cleanup', 'router_sha256', 'before_source_binding_sha256', 'after_source_binding_sha256', 'event'])
+    require(receipt['profile'] == 'native-conduit-http-token-revocation-only' and
+        receipt['HTTP_proved'] is True and receipt['native_parse_error_control_observed'] is True,
+        'native_http_profile_refused')
+    for key in ('gateway_proved', 'long_connection_proved', 'SLA_proved', 'convergence_proved', 'native_transaction_record_available'):
+        require(receipt[key] is False, 'native_http_scope_promotion_refused')
+    for key, value in [('actual_Conduit_HTTP_requests', 4), ('actual_independent_HTTP_processes', 3), ('token_rows_deleted', 1)]:
+        require(type(receipt[key]) is int and receipt[key] == value, 'native_http_count_refused')
+    cleanup = receipt['server_cleanup']; exact(cleanup, ['started', 'stopped', 'directories_removed', 'remaining', 'live'])
+    for key, value in [('started', 3), ('stopped', 3), ('directories_removed', 3), ('remaining', 0), ('live', 0)]:
+        require(type(cleanup[key]) is int and cleanup[key] == value, 'native_http_cleanup_refused')
+    for key in ('router_sha256', 'before_source_binding_sha256', 'after_source_binding_sha256'):
+        require(type(receipt[key]) is str and HEX64.fullmatch(receipt[key]), 'native_http_source_refused')
+    require(receipt['router_sha256'] == expected_router_digest and
+        receipt['before_source_binding_sha256'] != receipt['after_source_binding_sha256'], 'native_http_source_mismatch')
+    result = describe_observation(receipt['event']); event = receipt['event']
+    require(event['schema'] == 3 and event['source_revision'] == expected_revision and
+        event['producer_sha256'] == expected_producer_digest and event['family'] == 'api-token', 'native_http_producer_mismatch')
+    require(len(event['attempts']) == 3 and [a['outcome'] for a in event['attempts']] == ['allowed', 'denied', 'denied'] and
+        event['attempts'][0]['finish_ns'] <= event['transition']['operation_start_ns'] and result['postcommit_attempts'] == 2,
+        'native_http_control_sequence_refused')
     result['profile'] = receipt['profile']
     result['producer_attestation'] = 'source-bound-envelope-execution-attestation-required'
     return result

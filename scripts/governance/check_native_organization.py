@@ -1140,6 +1140,23 @@ NATIVE['private_mail_tests']['business_publication_tests'] = {'actual_native_sql
                                          'postcompletion_source_visible': False,
                                          'precompletion_native_permanent_failure': True,
                                          'precompletion_source_visible': False}}}}
+HTTP_MEASUREMENT_PRODUCER = 'support/governance/native-organization/revocation-http-cases.php'
+HTTP_MEASUREMENT_ROUTER = 'support/governance/native-organization/revocation-http-router.php'
+HTTP_MEASUREMENT_CHECKS = frozenset(['n12-conduit-http-independent-standard-token-pretransition-allow', 'n12-conduit-http-native-parse-error-is-unknown-not-auth-denial', 'n12-conduit-http-owned-token-delete-commit-and-absence-proof', 'n12-conduit-http-fresh-postcommit-native-auth-denial', 'n12-conduit-http-serial-parent-clock-same-boot-source-binding', 'n12-conduit-http-three-owned-servers-reaped-and-private-directories-removed'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | HTTP_MEASUREMENT_CHECKS
+# Mutation-test template only, never an executed observation.
+_http_event=json.loads(json.dumps(NATIVE['api_token_revocation_measurement_tests']['event']))
+_http_event['schema']=3
+_http_event['producer_sha256']=hashlib.sha256((ROOT/HTTP_MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
+_http_event['transition']['boundary']='native-token-dao-delete-http-new-requests'
+NATIVE['conduit_HTTP_revocation_measurement_tests']={
+    'profile':'native-conduit-http-token-revocation-only','HTTP_proved':True,'gateway_proved':False,
+    'long_connection_proved':False,'SLA_proved':False,'convergence_proved':False,
+    'actual_Conduit_HTTP_requests':4,'actual_independent_HTTP_processes':3,'native_parse_error_control_observed':True,
+    'token_rows_deleted':1,'native_transaction_record_available':False,
+    'server_cleanup':{'started':3,'stopped':3,'directories_removed':3,'remaining':0,'live':0},
+    'router_sha256':hashlib.sha256((ROOT/HTTP_MEASUREMENT_ROUTER).read_bytes()).hexdigest(),
+    'before_source_binding_sha256':'e'*64,'after_source_binding_sha256':'f'*64,'event':_http_event}
 
 
 def validate_restore(value, root):
@@ -1323,6 +1340,11 @@ def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     token_digest=hashlib.sha256((Path(root)/API_TOKEN_MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
     measurement.describe_native_token_receipt(token_observed,measurement_revision,token_digest)
     expected_native['api_token_revocation_measurement_tests']=token_observed
+    http_observed=native.get('conduit_HTTP_revocation_measurement_tests')
+    http_digest=hashlib.sha256((Path(root)/HTTP_MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
+    router_digest=hashlib.sha256((Path(root)/HTTP_MEASUREMENT_ROUTER).read_bytes()).hexdigest()
+    measurement.describe_native_http_receipt(http_observed,measurement_revision,http_digest,router_digest)
+    expected_native['conduit_HTTP_revocation_measurement_tests']=http_observed
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',

@@ -241,3 +241,17 @@ The actual profiles are native authenticated Project Query and native Conduit
 admission, global revocation, stable convergence, long-lived connections or an
 SLA. No optional production feature was enabled, no native permission axis was
 changed and no deployment was performed.
+
+
+## Native HTTP successor (historical component; current integration unrun)
+
+Real loopback Conduit HTTP router and three independent owned PHP servers are separate from the accepted Query/API-method component. Main99 retains710 checks; six new HTTP obligations make716, with210 pure methods,25 registered workers plus three separately owned HTTP server cleanups. The historical component was subsequently verified in isolation; those results are not acceptance of the current-main integration.
+
+The current integration retains all 819 main102 checks and the six HTTP obligations: 825 expected SQL checks, the unchanged 223-method pure entry, 38 global workers, the existing business workers and three separately owned HTTP servers. Both parent check sets and all native receipt leaf types and values are retained. This current source has not yet passed supported-runtime regression.
+
+A fixture catch-generated HTTP500 is always UNKNOWN. A future native error-handler test must independently bind a private response-stage receipt to normal native processRequest completion, or prove the native default handler exit provenance. An outer fixture exception cannot prove a native controller/default-handler500. This profile does not claim Legalpad error-handler coverage.
+
+The strict `actual_Conduit_HTTP_requests=4` count covers three authenticated
+Conduit probes plus one malformed-params native Conduit control request.
+Readiness GET requests are separate bootstrap traffic and are not included in
+that count. Three independently owned PHP servers still require full cleanup.
