@@ -1,0 +1,50 @@
+{
+  "source_head": "8f41045f696f45bcee3cd0ebc2eb3a31cd3a34df",
+  "passed": true,
+  "pure_methods": 218,
+  "SQL_checks": 755,
+  "runtime_files_exact": 6790,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 32,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 32
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "browser_proved": false,
+  "deployment": false,
+  "stop_concurrency_proved": false,
+  "bounded_stop_boundary_tests": {
+    "two_session_same_operation_proof": true,
+    "current_admin_revocation_after_wait": true,
+    "real_session_expiry_during_wait": true,
+    "missing_and_nontransactional_table_refused": true,
+    "unsupported_routing_refused": true,
+    "raw_outer_transaction_preserved": true,
+    "recovery_authorized": false,
+    "all_sources_complete": false,
+    "production_entry_registered": false
+  },
+  "restoration_permission_granted": false,
+  "all_sources_complete": false,
+  "can_execute": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "recovery-stop-main100-full-native.json": "b5473737a579e117327853f4fade339ce7c7b2b3af6aaec7ce47a81ead1bb92c",
+    "recovery-stop-main100-full-integration.json": "261cf75131e8c0e5e6babef339b47d22933a935dbf5e34eed8234293acefb81c",
+    "recovery-stop-main100-full-parent.json": "7e609c4aca6bbed7c862ab21c3356b3d7b8173c49557b4d06cae72839a3d8e42",
+    "recovery-stop-main100-full-source-runtime-match.json": "88caf6beada4f92001d5ed24a49269d7a0b5b901b44af1fd15d2620f80ef8361",
+    "recovery-stop-main100-full-strict-accepted.json": "dc7105dae7a5a9b1fef3ec39ac5ddffe3c7a68392b0aad29f717f3178b0655f5"
+  },
+  "documentation_only_successor_is_not_a_new_runtime_run": true
+}
