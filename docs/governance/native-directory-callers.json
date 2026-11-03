@@ -682,7 +682,7 @@
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
       "symbol": "PhorgePrivateMailPolicy",
       "kind": "current-recipient-private-email-policy",
-      "sha256": "3ae0f01019c7fe436f3cd89190a351497268e53ddab9d067ff654272868f0e41",
+      "sha256": "755647be61818858cd8b353eae7c424c04b5a2211722f56b3c42febebc75d520",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -704,7 +704,7 @@
       "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
       "symbol": "PhabricatorMetaMTAMail",
       "kind": "immutable-native-mail-and-attempt-gate",
-      "sha256": "c450be9fe4bf10eed680862f7da1e0dcee4f01d4c11d0be5ae8ba514905290b1",
+      "sha256": "a8f572501fb6c76f83ac2c30c891a16003c23ab15f9c2d38e26b4ad854983a5b",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1550,7 +1550,7 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-        "sha256": "3ae0f01019c7fe436f3cd89190a351497268e53ddab9d067ff654272868f0e41"
+        "sha256": "755647be61818858cd8b353eae7c424c04b5a2211722f56b3c42febebc75d520"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php",

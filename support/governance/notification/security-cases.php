@@ -33,6 +33,31 @@ function governance_private_mail_security_cases($fixture,callable $check){
   $check($mail->getPrivateMailPolicyValue('governance.mail-flow')==='account.login'&&
     isset($snapshot['authorization'])&&str_contains($mail->getBody(),'/login/'),
     'private-mail-real-login-producer-retains-native-one-time-challenge');
+  // Real native login provenance, with retained security payloads above the
+  // former 64 KiB callback ceiling. These checks do not send SMTP.
+  $large_security=array();
+  foreach(array('body','attachment')as$kind){
+    $large=(new PhabricatorPeopleEmailLoginMailEngine())->setSender(new PhabricatorUser())
+      ->setRecipient($users['owner'])->sendMail();
+    if($kind==='body'){$large->setBody(str_repeat('Synthetic security body. ',4096));}
+    else{$large->setAttachments(array(new PhabricatorMailAttachment(
+      str_repeat('A',50*1024),'synthetic-large.txt','text/plain')));}
+    $large->save();$large_snapshot=$large->prepareGorgeDelivery();
+    $large_json=phutil_json_encode($large_snapshot['message']);
+    $check(strlen($large_json)>65536&&
+      $large->authorizeGorgePhysicalDelivery($large_snapshot['deliveryID'],
+        $large_snapshot['authorization']['messageHash'],$large_json)===array('allowed'=>true),
+      'private-mail-physical-large-security-'.$kind.'-current-source-allowed');
+    $large_security[]=array($large,$large_snapshot,$large_json);
+  }
+  list($large,$large_snapshot,$large_json)=head($large_security);
+  $oversized=$large_json.str_repeat(' ',PhorgePrivateMailPolicy::MAX_PHYSICAL_MESSAGE_BYTES+1-strlen($large_json));
+  $check($large->authorizeGorgePhysicalDelivery($large_snapshot['deliveryID'],
+      $large_snapshot['authorization']['messageHash'],$oversized)===array('allowed'=>false)&&
+    $large->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===false&&
+    $large->authorizeGorgePhysicalDelivery($large_snapshot['deliveryID'],
+      $large_snapshot['authorization']['messageHash'],$large_json)===array('allowed'=>true),
+    'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot');
   $emails['owner']->setIsPrimary(0)->save();
   $alternate=(new PhabricatorUserEmail())->setUserPHID($users['owner']->getPHID())
     ->setAddress('pmsalternate'.$suffix.'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
@@ -43,6 +68,11 @@ function governance_private_mail_security_cases($fixture,callable $check){
   $users['owner']->setAccountSecret(Filesystem::readRandomCharacters(64))->save();
   $check(!PhorgePrivateMailPolicy::authorize($mail),
     'private-mail-native-account-secret-rotation-rejects-prepared-login-challenge');
+  $large_denied=true;
+  foreach($large_security as$entry){list($large,$large_snapshot,$large_json)=$entry;
+    $large_denied=$large_denied&&$large->authorizeGorgePhysicalDelivery($large_snapshot['deliveryID'],
+      $large_snapshot['authorization']['messageHash'],$large_json)===array('allowed'=>false);}
+  $check($large_denied,'private-mail-physical-large-security-payload-still-requires-current-native-source');
   $welcome=(new PhabricatorPeopleWelcomeMailEngine())->setSender($users['admin'])->setRecipient($users['owner'])->sendMail();
   $check(PhorgePrivateMailPolicy::authorize($welcome)&&str_contains($welcome->getBody(),'/login/'),
     'private-mail-real-welcome-producer-retains-native-challenge-and-admin-binding');

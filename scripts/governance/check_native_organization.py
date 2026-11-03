@@ -922,6 +922,8 @@ def validate_restore(value, root):
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source'])
+
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')

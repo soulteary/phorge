@@ -784,7 +784,7 @@ final class PhabricatorMetaMTAMail
       !is_string($message_hash)||!is_array(idx($snapshot,'authorization')) ||
       !is_string(idx($snapshot['authorization'],'messageHash')) ||
       !hash_equals($snapshot['authorization']['messageHash'],$message_hash) ||
-      !is_string($message_json)||strlen($message_json)>65536 ||
+      !is_string($message_json)||strlen($message_json)>PhorgePrivateMailPolicy::MAX_PHYSICAL_MESSAGE_BYTES ||
       !is_array(idx($snapshot,'message'))){return array('allowed'=>false);}
     try{$message=phutil_json_decode($message_json);}
     catch(PhutilJSONParserException $error){return array('allowed'=>false);}

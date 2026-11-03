@@ -1,6 +1,9 @@
 <?php
 /** Fixed source provenance and fresh native recipient/object query at egress. */
 final class PhorgePrivateMailPolicy extends Phobject {
+  // Serialized message bound matches the paired mailer transport profile.
+  // Gorge independently bounds the complete encoded Conduit request.
+  const MAX_PHYSICAL_MESSAGE_BYTES = 10 * 1024 * 1024;
   public static function enabled(){
     $value=PhabricatorEnv::getEnvConfigIfExists('governance.private-mail.enabled',false);
     if(!is_bool($value)){throw new RuntimeException('private_mail_control_unknown');}

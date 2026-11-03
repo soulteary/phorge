@@ -45,6 +45,11 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_large_security_payload_regressions_are_required(self):
+        for name in ['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_valid_schema_does_not_prove_activation_browser_or_completion(self):
         accepted=gate.validate(template(), file_digest='b'*64)
         for key in ('production_optional_features_enabled', 'deployment_proved', 'browser_proved', 'global_completion'):
