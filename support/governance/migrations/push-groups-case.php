@@ -31,7 +31,7 @@ $cleanup_owned=function() use (&$cleanup_ran,&$control,&$api,&$guard,&$created,
         }
       }
     }catch(Throwable $ex){$errors[]='owned_schema_cleanup';}
-    try{if($principal_created){$control->query("DROP USER '".$principal."'@'127.0.0.1'");$cleanup['principals_removed']++;}}
+    try{if($principal_created){$control->query("DROP USER '".$principal."'@'%'");$cleanup['principals_removed']++;}}
     catch(Throwable $ex){$errors[]='owned_principal_cleanup';}
     $control->close();
   }
@@ -83,11 +83,11 @@ try {
     $control->query('CREATE DATABASE '.$quote($database));$created[]=$database;
   }
   $principal='gb_'.bin2hex(random_bytes(8));
-  $control->query("CREATE USER '".$principal."'@'127.0.0.1' IDENTIFIED BY '".$password."'");
+  $control->query("CREATE USER '".$principal."'@'%' IDENTIFIED BY '".$password."'");
   $principal_created=true;
   foreach(array_slice($created,1) as $database){
     $escaped=str_replace(array('\\','_','%'),array('\\\\','\\_','\\%'),$database);
-    $control->query('GRANT ALL PRIVILEGES ON '.$quote($escaped).".* TO '".$principal."'@'127.0.0.1'");
+    $control->query('GRANT ALL PRIVILEGES ON '.$quote($escaped).".* TO '".$principal."'@'%'");
   }
   if(PhabricatorEnv::getConfigSourceStack()!==null ||
     (new ReflectionProperty(LiskDAO::class,'connections'))->getValue()!==array()){
