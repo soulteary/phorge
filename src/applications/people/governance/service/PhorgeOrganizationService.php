@@ -901,6 +901,61 @@ final class PhorgeOrganizationService extends Phobject {
     }catch(Throwable $error){$this->finish(false);throw $error;}}finally{unset($unguarded);}
   }
 
+  /** Planning is preceded by real current-admin authentication, then rechecked. */
+  private function transferSubjects($ticket=null,$handover=null,array $subjects=array(),$optionalTicket=false) {
+    $caps=$this->readActorCapabilities();
+    if($caps['manage_units']!==true){throw new RuntimeException('organization_transfer_current_admin_required');}
+    $conn=(new PhabricatorUser())->establishConnection('w');
+    if($ticket!==null && $optionalTicket){
+      $exists=queryfx_one($conn,'SELECT transferID FROM %R WHERE BINARY transferID=BINARY %s',new PhorgeOrganizationTransfer(),$ticket);
+      if(!$exists){$ticket=null;}
+    }
+    return array_merge($subjects,PhorgeOrganizationTransferAdapter::planningPHIDs($conn,$ticket,$handover));
+  }
+
+  public function previewTransfer(array $intent,$offset=null) {
+    $intent=PhorgeOrganizationTransferRequest::proposal($intent);
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$subjects=$this->transferSubjects(null,null,array($intent['subject_phid'],$intent['responsible_phid']));
+      $this->begin($subjects);try{
+        $result=PhorgeOrganizationTransferAdapter::forLockedService($this)->previewInitial($intent,$offset);
+        $this->finish(true);return$result;
+      }catch(Throwable$error){$this->finish(false);throw$error;}
+    }finally{unset($unguarded);}
+  }
+
+  public function proposeTransfer(array $intent,$ttl,$offset=null) {
+    $intent=PhorgeOrganizationTransferRequest::proposal($intent);
+    $subjects=$this->transferSubjects($intent['transfer_id'],null,array($intent['subject_phid'],$intent['responsible_phid']),true);
+    $this->begin($subjects);try{
+      $result=PhorgeOrganizationTransferAdapter::forLockedService($this)->proposeInitial($intent,$ttl,$offset);
+      $this->finish(true);return$result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
+  public function readTransfer($id) {
+    if(!PhorgeGovernanceOrganizationRequest::identifier($id,64)){throw new InvalidArgumentException('organization_transfer_identifier_refused');}
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try{$subjects=$this->transferSubjects($id);$this->begin($subjects);try{
+      $result=PhorgeOrganizationTransferAdapter::forLockedService($this)->previewTicket($id);
+      $this->finish(true);return$result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}}finally{unset($unguarded);}
+  }
+
+  public function approveTransfer($id,$expectedDigest) {
+    $subjects=$this->transferSubjects($id);$this->begin($subjects);try{
+      $result=PhorgeOrganizationTransferAdapter::forLockedService($this)->approve($id,$expectedDigest);
+      $this->finish(true);return$result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
+  public function executeTransfer($id,$acknowledged) {
+    $subjects=$this->transferSubjects($id);$this->begin($subjects);try{
+      $result=PhorgeOrganizationTransferAdapter::forLockedService($this)->execute($id,$acknowledged);
+      $this->finish(true);return$result;
+    }catch(Throwable$error){$this->finish(false);throw$error;}
+  }
+
   public static function auditCursor($value) {
     if($value===null){return 0;}
     if(!is_string($value)&&!is_int($value)){throw new InvalidArgumentException('organization_audit_cursor_refused');}

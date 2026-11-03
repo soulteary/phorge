@@ -104,4 +104,16 @@ final class PhorgeOrganizationTransferRequest extends Phobject {
       'manual_status'=>$value['manual_status'],'expected_version'=>$version,'note'=>$value['note']);
     ksort($out,SORT_STRING);return $out;
   }
+
+  public static function envelope(array $value,$propose) {
+    if(!is_bool($propose)){throw new InvalidArgumentException('organization_transfer_transport_refused');}
+    if(!array_key_exists('deadline_offset',$value)){$value['deadline_offset']=null;}
+    self::exact($value,$propose?array('request','ttl_seconds','deadline_offset'):array('request','deadline_offset'));
+    if(!is_array($value['request']) || ($value['deadline_offset']!==null &&
+      (!is_int($value['deadline_offset'])||abs($value['deadline_offset'])>86400))){
+      throw new InvalidArgumentException('organization_transfer_transport_refused');}
+    $out=array('request'=>self::proposal($value['request']),'deadline_offset'=>$value['deadline_offset']);
+    if($propose){PhorgeGovernanceOrganizationApprovalAdapter::validateTTL($value['ttl_seconds']);$out['ttl_seconds']=$value['ttl_seconds'];}
+    return$out;
+  }
 }

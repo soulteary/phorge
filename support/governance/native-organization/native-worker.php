@@ -134,7 +134,7 @@ try {
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
     $value=$kind==='org.list'?$service->readUnits():$service->countUnits();
     $result=array('status'=>'committed','value'=>$value);
-  } else if ($kind==='org.members.edit' || $kind==='org.compound.execute' || $kind==='org.compound.execute-approved') {
+  } else if ($kind==='org.members.edit' || $kind==='org.compound.execute' || $kind==='org.compound.execute-approved' || $kind==='org.transfer.execute') {
     $keys=array_keys($action);sort($keys);
     if($keys!==array('action','payload','token')||!is_string($action['token'])||strlen($action['token'])>256||!is_array($action['payload'])){
       throw new RuntimeException('native_worker_action_refused');}
@@ -144,7 +144,11 @@ try {
     $request=(new AphrontRequest('fixture.invalid','/'))->setUser($viewer);
     $service=PhorgeOrganizationService::newForActor(PhorgeGovernanceNativeActorContext::newFromWebRequest($request));
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
-    if($kind==='org.compound.execute-approved'){
+    if($kind==='org.transfer.execute'){
+      $keys=array_keys($action['payload']);sort($keys);
+      if($keys!==array('acknowledge_no_project_permission_change','transfer_id')){throw new RuntimeException('native_worker_action_refused');}
+      $receipt=$service->executeTransfer($action['payload']['transfer_id'],$action['payload']['acknowledge_no_project_permission_change']);
+    }else if($kind==='org.compound.execute-approved'){
       if(array_keys($action['payload'])!==array('approval_id')){throw new RuntimeException('native_worker_action_refused');}
       $receipt=$service->executeApprovedCompound($action['payload']['approval_id']);
     }else{$receipt=$kind==='org.members.edit'?$service->execute($action['payload']):$service->executeCompound($action['payload']);}

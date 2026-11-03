@@ -8,6 +8,8 @@ final class PhorgeOrganizationQuery extends Phobject {
     $this->service = PhorgeOrganizationService::newForActor($context);
   }
 
+  public function getTransfer($id){return $this->service->readTransfer($id);}
+
   public function readAuditPage($limit=100,$after=null,$retentionOnly=false) {
     return $this->service->readAuditPage($limit,$after,$retentionOnly);
   }

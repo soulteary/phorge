@@ -9,6 +9,7 @@ final class PhorgeOrganizationEndpoint extends Phobject {
     }
     $query = new PhorgeOrganizationQuery($context);
     switch ($mode) {
+      case 'transfer': return $query->getTransfer($unit);
       case 'audit': return $query->readAuditPage($limit,$after,false);
       case 'audit-retention': return $query->readAuditPage($limit,$after,true);
       case 'list': return $query->listUnits($limit, $after);
@@ -32,6 +33,20 @@ final class PhorgeOrganizationEndpoint extends Phobject {
     }
     $service = PhorgeOrganizationService::newForActor($context);
     switch ($action) {
+      case 'transfer.preview':
+        $checked=PhorgeOrganizationTransferRequest::envelope($payload,false);
+        return $service->previewTransfer($checked['request'],$checked['deadline_offset']);
+      case 'transfer.propose':
+        $checked=PhorgeOrganizationTransferRequest::envelope($payload,true);
+        return $service->proposeTransfer($checked['request'],$checked['ttl_seconds'],$checked['deadline_offset']);
+      case 'transfer.approve':
+        $keys=array_keys($payload);sort($keys);
+        if($keys!==array('request_digest','transfer_id')){throw new InvalidArgumentException('organization_transfer_transport_refused');}
+        return $service->approveTransfer($payload['transfer_id'],$payload['request_digest']);
+      case 'transfer.execute':
+        $keys=array_keys($payload);sort($keys);
+        if($keys!==array('acknowledge_no_project_permission_change','transfer_id')){throw new InvalidArgumentException('organization_transfer_transport_refused');}
+        return $service->executeTransfer($payload['transfer_id'],$payload['acknowledge_no_project_permission_change']);
       case 'unit.create': return $service->createUnit($payload);
       case 'unit.preview': return $service->previewUnitChange($payload);
       case 'unit.metadata': return $service->updateUnitMetadata($payload);
