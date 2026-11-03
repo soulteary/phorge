@@ -37,6 +37,7 @@ final class PhabricatorAuthContactNumberTestController
       $uri = new PhutilURI($uri);
 
       $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
         ->setMessageType(PhabricatorMailSMSMessage::MESSAGETYPE)
         ->addTos(array($viewer->getPHID()))
         ->setSensitiveContent(false)

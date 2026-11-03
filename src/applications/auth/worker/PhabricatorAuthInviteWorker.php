@@ -47,6 +47,7 @@ final class PhabricatorAuthInviteWorker
     $invite->save();
 
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($invite->getEmailAddress()))
       ->setForceDelivery(true)
       ->setSubject(

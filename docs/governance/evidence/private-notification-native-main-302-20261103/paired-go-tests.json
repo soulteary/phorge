@@ -1,0 +1,21 @@
+{
+  "scope": "all-Gorge-Go-packages-local-tests-not-SMTP-end-to-end",
+  "passed": true,
+  "toolchain": "go1.27.3 darwin/arm64",
+  "command": "go test -p 2 ./...",
+  "tested_packages": 40,
+  "packages_without_tests": 13,
+  "log_sha256": "82656c841b2926deb96fe700fc701c15b0022e028f5aafd7934d9603c7137fb3",
+  "source_base": "55f8ba8e57b179a7dee92ad43c77038ca322f61c",
+  "changed_source_hashes": {
+    "go/cmd/gorge-mailer/main.go": "5513443bb038446bc35821614616ae428bf25fcca67f6bc96dd5b8853c789c36",
+    "go/internal/contracts/mail_delivery.go": "ae57f2e51cd9c929d1a0e2d9496cefe92a641ec5c3475ba29d0e66c5f6709f71",
+    "go/internal/mailer/authorization.go": "71eecf7bd8af166f90c7d576d9490c1f3e17fbe6f6c5913890d8ae3c2a62b11f",
+    "go/internal/mailer/authorization_test.go": "e3a211c9b9b5ea46946e5d8bcbb089ae1f8a4ff41729f2f89d31d8c13539bdf6",
+    "go/internal/mailer/delivery.go": "2616b8a0af6a8f321f5dace04634dfbe73ff3ab2a8f2783ce0017dce9d4f9697",
+    "go/internal/mailer/dispatch.go": "ffaa5019460015d3ec685eff5574d5cc1f1ddecefc94d6393adbd0b80b6f355f",
+    "go/internal/mailer/http.go": "b41bec41df62a2f96a001e72b6a6a26924b13b53961e4d07b7f999779b2c23a0"
+  },
+  "native_sql_tested": false,
+  "smtp_end_to_end_tested": false
+}

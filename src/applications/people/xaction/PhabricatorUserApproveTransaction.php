@@ -37,6 +37,7 @@ final class PhabricatorUserApproveTransaction
       PhabricatorEnv::getProductionURI('/'));
 
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addTos(array($user->getPHID()))
       ->addCCs(array($actor->getPHID()))
       ->setSubject(

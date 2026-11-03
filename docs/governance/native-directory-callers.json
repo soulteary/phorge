@@ -401,6 +401,83 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgePrivateMailPolicy",
+      "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
+      "symbol": "PhorgePrivateMailPolicy",
+      "kind": "current-recipient-private-email-policy",
+      "sha256": "44700c40fde07616d1a36d87b621938f41b13738ed3d923845eb0947c63b2559",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgePrivateMailConfigOptions",
+      "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
+      "symbol": "PhorgePrivateMailConfigOptions",
+      "kind": "default-off-private-email-configuration",
+      "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.OUTBOUND",
+      "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
+      "symbol": "PhabricatorMetaMTAMail",
+      "kind": "immutable-native-mail-and-attempt-gate",
+      "sha256": "137514fe1d49b3ab7fd7c5a2b940845e77d1463a49ce8ebc4439913f984ab80b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.DELIVERY.API",
+      "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",
+      "symbol": "PhabricatorMailDeliveryConduitAPIMethod",
+      "kind": "service-authenticated-email-attempt",
+      "sha256": "99488d39431c1a30d38d90d6a0394d9554e9da82ca3ea87c7fd6b3b2afea2e90",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.MESSAGE.ENGINE",
+      "path": "src/applications/metamta/engine/PhabricatorMailEmailEngine.php",
+      "symbol": "PhabricatorMailEmailEngine",
+      "kind": "native-email-message-construction",
+      "sha256": "982defa48c503da3720840e89c3686a8e847fcb8b2b91c2fbe59efeea91874a6",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.ACTOR.QUERY",
+      "path": "src/applications/metamta/query/PhabricatorMetaMTAActorQuery.php",
+      "symbol": "PhabricatorMetaMTAActorQuery",
+      "kind": "native-recipient-deliverability",
+      "sha256": "cb2cc84c77e191a72d217563c917c984b90aebe1b53619b32d4d3321baa24d09",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.TRANSACTION.PRODUCER",
+      "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
+      "symbol": "PhabricatorApplicationTransactionEditor",
+      "kind": "native-business-mail-producer",
+      "sha256": "29f808be06edfd1f9e105179d2fea7db4f6c2ce4d22e808a2bf1d3f014e6ad78",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -611,6 +688,62 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed immutable canonical prepared-target binding; static source reference, not file authority or public route readiness."
+    },
+    {
+      "id": "NATIVE-LINK-27",
+      "from_id": "MAIL.TRANSACTION.PRODUCER",
+      "to_id": "MAIL.OUTBOUND",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-28",
+      "from_id": "MAIL.OUTBOUND",
+      "to_id": "NATIVE.PhorgePrivateMailPolicy",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-29",
+      "from_id": "NATIVE.PhorgePrivateMailConfigOptions",
+      "to_id": "NATIVE.PhorgePrivateMailPolicy",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-30",
+      "from_id": "MAIL.DELIVERY.API",
+      "to_id": "MAIL.OUTBOUND",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-31",
+      "from_id": "MAIL.OUTBOUND",
+      "to_id": "MAIL.ACTOR.QUERY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-32",
+      "from_id": "MAIL.OUTBOUND",
+      "to_id": "MAIL.MESSAGE.ENGINE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-33",
+      "from_id": "NATIVE.PhorgePrivateMailPolicy",
+      "to_id": "AUTH.USER.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
     }
   ],
   "scan": {
@@ -766,6 +899,14 @@
       {
         "path": "src/infrastructure/governance/native/PhorgeGovernanceNativeSourceReader.php",
         "sha256": "affcc1461b7591e922c5cd93c48132dff0868925defd8d3ba0ecd649a4a11344"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
+        "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
+        "sha256": "44700c40fde07616d1a36d87b621938f41b13738ed3d923845eb0947c63b2559"
       },
       {
         "path": "src/infrastructure/governance/observation/PhorgeGovernanceNativeCapabilityContext.php",

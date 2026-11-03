@@ -93,6 +93,16 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
 
 
+    def test_private_notification_scope_requires_current_source_and_preserves_unproved_gates(self):
+        for key in ('actual_native_source_and_object_query','actual_native_queue',
+                    'real_business_serialization_and_legacy_quarantine'):
+            data=template();data['native']['private_mail_tests'][key]=False
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in ('smtp_or_delivery_workers_executed','security_challenge_runtime_matrix_complete',
+                    'all_producers_runtime_complete','physical_callback_runtime_complete'):
+            data=template();data['native']['private_mail_tests'][key]=True
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:
             with self.subTest(name=name):

@@ -108,6 +108,28 @@ EXPECTED_SOURCES.update({
  'CLIENT.TOKENIZER.BEHAVIOR': ('webroot/rsrc/js/core/behavior-tokenizer.js','aphront-basic-tokenizer','fixed-client-metadata-forwarder'),
  'CLIENT.PREFAB': ('webroot/rsrc/js/core/Prefab.js','Prefab','fixed-client-normalizer')})
 
+EXPECTED_SOURCES.update({'MAIL.ACTOR.QUERY': ('src/applications/metamta/query/PhabricatorMetaMTAActorQuery.php',
+                      'PhabricatorMetaMTAActorQuery',
+                      'native-recipient-deliverability'),
+ 'MAIL.DELIVERY.API': ('src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php',
+                       'PhabricatorMailDeliveryConduitAPIMethod',
+                       'service-authenticated-email-attempt'),
+ 'MAIL.MESSAGE.ENGINE': ('src/applications/metamta/engine/PhabricatorMailEmailEngine.php',
+                         'PhabricatorMailEmailEngine',
+                         'native-email-message-construction'),
+ 'MAIL.OUTBOUND': ('src/applications/metamta/storage/PhabricatorMetaMTAMail.php',
+                   'PhabricatorMetaMTAMail',
+                   'immutable-native-mail-and-attempt-gate'),
+ 'MAIL.TRANSACTION.PRODUCER': ('src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php',
+                               'PhabricatorApplicationTransactionEditor',
+                               'native-business-mail-producer'),
+ 'NATIVE.PhorgePrivateMailConfigOptions': ('src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php',
+                                           'PhorgePrivateMailConfigOptions',
+                                           'default-off-private-email-configuration'),
+ 'NATIVE.PhorgePrivateMailPolicy': ('src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php',
+                                    'PhorgePrivateMailPolicy',
+                                    'current-recipient-private-email-policy')})
+
 EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php',
  'src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php',
  'src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php',
@@ -157,6 +179,8 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/infrastructure/governance/readset/PhorgeGovernanceReadSetValidator.php',
  'src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php']
 
+EXPECTED_RUNTIME_FILES = sorted(EXPECTED_RUNTIME_FILES + ['src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php', 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'])
+
 EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationController'),
  'NATIVE-LINK-02': ('NATIVE.PhorgeOrganizationController', 'NATIVE.PhorgeOrganizationEndpoint'),
  'NATIVE-LINK-03': ('NATIVE.PeopleOrganizationQueryConduitAPIMethod',
@@ -195,6 +219,15 @@ EXPECTED_LINKS.update({
  'NATIVE-LINK-23': ('TOKENIZER.CONTROL','TYPEAHEAD.BASE'),
  'NATIVE-LINK-24': ('TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR'),
  'NATIVE-LINK-25': ('CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB')})
+
+EXPECTED_LINKS.update({'NATIVE-LINK-27': ('MAIL.TRANSACTION.PRODUCER', 'MAIL.OUTBOUND'),
+ 'NATIVE-LINK-28': ('MAIL.OUTBOUND', 'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-29': ('NATIVE.PhorgePrivateMailConfigOptions',
+                    'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-30': ('MAIL.DELIVERY.API', 'MAIL.OUTBOUND'),
+ 'NATIVE-LINK-31': ('MAIL.OUTBOUND', 'MAIL.ACTOR.QUERY'),
+ 'NATIVE-LINK-32': ('MAIL.OUTBOUND', 'MAIL.MESSAGE.ENGINE'),
+ 'NATIVE-LINK-33': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO')})
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 

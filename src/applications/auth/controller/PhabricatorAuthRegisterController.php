@@ -760,6 +760,7 @@ final class PhabricatorAuthRegisterController
     }
 
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addTos(mpull($admins, 'getPHID'))
       ->setSubject($title)
       ->setBody($body->render())

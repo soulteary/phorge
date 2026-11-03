@@ -269,5 +269,18 @@
       "scope": "earlier-native-source-before-approval-id-retry-fix",
       "evidence_directory": "docs/governance/evidence/membership-lifecycle-checkpoint-20261103"
     }
-  ]
+  ],
+  "private_email_notification_candidate": {
+    "scope": "native link-only envelope, current native recipient/object query, immutable legacy quarantine; paired Go per-physical-attempt callback implementation",
+    "default_enabled": false,
+    "native_envelope_checks": 302,
+    "pure_methods": 148,
+    "paired_go_packages": 40,
+    "evidence": "docs/governance/evidence/private-notification-native-main-302-20261103/validation-index.json",
+    "source_catalog": "docs/governance/private-notification-producers.json",
+    "physical_smtp_acceptance": false,
+    "all_producer_runtime_matrix_complete": false,
+    "production_activation": false,
+    "global_completion": false
+  }
 }

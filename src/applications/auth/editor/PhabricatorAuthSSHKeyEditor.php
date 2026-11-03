@@ -257,6 +257,7 @@ final class PhabricatorAuthSSHKeyEditor
     $name = $object->getName();
 
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject(pht('SSH Key %d: %s', $id, $name));
 
     // The primary value of this mail is alerting users to account compromises,

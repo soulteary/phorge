@@ -382,6 +382,7 @@ final class PhabricatorSMSAuthFactor
     PhutilOpaqueEnvelope $envelope,
     PhabricatorUser $user) {
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setMessageType(PhabricatorMailSMSMessage::MESSAGETYPE)
       ->addTos(array($user->getPHID()))
       ->setForceDelivery(true)

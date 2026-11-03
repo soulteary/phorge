@@ -45,6 +45,7 @@ final class PhabricatorCountdownEditor
     $name = $object->getTitle();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("{$monogram}: {$name}");
   }
 

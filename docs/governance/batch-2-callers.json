@@ -182,7 +182,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "2c262bf4637684fbe6d125b8850995c221720b7bd4e7560128e682145ec26ff8"
+      "sha256": "1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919"
     },
     {
       "id": "PROJECT.MEMBER.INVERSE",
@@ -339,7 +339,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "8f5f433dd42dab2b37a12d3e51edf1d8f6c96dac456efe8dc91ef5ed45770f19"
+      "sha256": "4f74bd7f08c63588ee0dd10fbb0b5f31a8222a37f6627d79485b8c8dec8f4bc7"
     },
     {
       "id": "TASK.EDIT.CONDUIT",
@@ -580,7 +580,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "adf9d23e8cb3d687c9428dc9fbd515cbf4cf2f3a0f6d41dfff3097fcace5b178"
+      "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d"
     },
     {
       "id": "WIKI.EDIT.CONDUIT",
@@ -842,7 +842,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "f6c977699b669940586d66ebf89df1031ce8ce1ba5f8e4c29f7974222155bfa6"
+      "sha256": "29f808be06edfd1f9e105179d2fea7db4f6c2ce4d22e808a2bf1d3f014e6ad78"
     },
     {
       "id": "TRANSACTION.EDIT.ENGINE",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4453,
-    "source_snapshot_sha256": "7bb60d66775ae1750aac06090b58ed1b85465ada655da93376b4b24c0bbbd425",
+    "source_snapshot_sha256": "7fc4ec297236b96afb096c9a4c43f4a4e2a95b72871496eb0ada20c9a0413974",
     "candidates": [
       {"id":"CALL-e71899f6e4e06c5b","path":"src/applications/almanac/conduit/AlmanacBindingEditConduitAPIMethod.php","sha256":"e8fe213b44761574fc57a095588a42aa2e62beb4d4be92ef877546cb64d84312","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
       {"id":"CALL-63444e170e5adba3","path":"src/applications/almanac/conduit/AlmanacDeviceEditConduitAPIMethod.php","sha256":"a087ca89a2c7f9c43da8e31d50ce9335dd8c4bddff941e0b61848b68d6cae9b2","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
@@ -1339,7 +1339,7 @@
       {"id":"CALL-1e0f79e933232f68","path":"src/applications/almanac/storage/AlmanacBinding.php","sha256":"965e57460d727419756b1ff910442d7dd27e6d73c27b105ca98e7f80c072b4ff","matches":[{"pattern":"user_enable","lines":[28]}]},
       {"id":"CALL-b96f563b8e7e0c64","path":"src/applications/almanac/xaction/AlmanacBindingDisableTransaction.php","sha256":"8e8891c6fdcc65123bef2d4ea41d11fb033178d622f71fb0968d278d039cd1c3","matches":[{"pattern":"user_enable","lines":[13]}]},
       {"id":"CALL-a4fa160fa5225b3d","path":"src/applications/aphlict/management/PhabricatorAphlictManagementNotifyWorkflow.php","sha256":"11c9777dca8803a301425b0b2cb9cb8dbf1c91c169c8dc63d607e4071edc4a4f","matches":[{"pattern":"transaction_apply","lines":[72]}]},
-      {"id":"CALL-d0220256e8df86e6","path":"src/applications/auth/controller/PhabricatorAuthRegisterController.php","sha256":"2debb9ad18dd847a5ee1f8fb189c4eb3567c9aac0341847d1ba90f33c6efe074","matches":[{"pattern":"transaction_apply","lines":[468]}]},
+      {"id":"CALL-d0220256e8df86e6","path":"src/applications/auth/controller/PhabricatorAuthRegisterController.php","sha256":"01f9e1a73bcebab78fca603f2e84cb49248f3a6a39506a7262d2925767b15610","matches":[{"pattern":"transaction_apply","lines":[468]}]},
       {"id":"CALL-74a1cbfbd00061bd","path":"src/applications/auth/controller/PhabricatorAuthSSHKeyEditController.php","sha256":"d0c6fcd39ce6ce71cbfe5a391344bcc927c956ab4495b7bad315f1c5c61ebd7b","matches":[{"pattern":"transaction_apply","lines":[95]}]},
       {"id":"CALL-6481afc9aa55898c","path":"src/applications/auth/controller/PhabricatorAuthSSHKeyGenerateController.php","sha256":"7b1a1d50d7401af5c791e7255ddfa342d3c11e9eb697baa291659bd161e013a3","matches":[{"pattern":"transaction_apply","lines":[65]}]},
       {"id":"CALL-1afb658cc5aca0aa","path":"src/applications/auth/controller/PhabricatorAuthSSHKeyRevokeController.php","sha256":"b2293438160c4abbd733d1379657b216ce1cc72dccf268badc2a472e0971a7ee","matches":[{"pattern":"transaction_apply","lines":[41]}]},
@@ -1357,7 +1357,7 @@
       {"id":"CALL-e33f1827ae76ad39","path":"src/applications/badges/controller/PhabricatorBadgesCommentController.php","sha256":"e8aac860153c3f66af2ac19242810da7e19d557b5c1fe34730636858ab2f436d","matches":[{"pattern":"transaction_apply","lines":[41]}]},
       {"id":"CALL-2d506e9d9b149a11","path":"src/applications/badges/controller/PhabricatorBadgesEditRecipientsController.php","sha256":"fb7a41b6b1889fe2c963b8a33de7a5306d423615d779f6c9d98e9e16ba953f5a","matches":[{"pattern":"transaction_apply","lines":[52]}]},
       {"id":"CALL-b232f7a8682f4191","path":"src/applications/badges/controller/PhabricatorBadgesRemoveRecipientsController.php","sha256":"15b744abf9505fb69e8696d12f93fff7dc994dcda87935de750774af51a80e6c","matches":[{"pattern":"transaction_apply","lines":[38]}]},
-      {"id":"CALL-5f366e42601ea9ea","path":"src/applications/badges/editor/PhabricatorBadgesEditor.php","sha256":"d82c071cf5a81bb4f72b1d1bf4182b99bd29077e07a23bf4f6bc71418b1683dd","matches":[{"pattern":"policy_transaction","lines":[30]}]},
+      {"id":"CALL-5f366e42601ea9ea","path":"src/applications/badges/editor/PhabricatorBadgesEditor.php","sha256":"eed4d502cafa4b103de4d945478f0d0a30a5ed3aa99586fff62ceb8b3a9286e1","matches":[{"pattern":"policy_transaction","lines":[30]}]},
       {"id":"CALL-44620063ab739f89","path":"src/applications/calendar/conduit/PhabricatorCalendarEventEditConduitAPIMethod.php","sha256":"9a2a86d0a08d61d640aa289ed9bc63359e9fcb876e8a1849c58fa5fa8ff7145d","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
       {"id":"CALL-475538b4c70c94a7","path":"src/applications/calendar/controller/PhabricatorCalendarEventCancelController.php","sha256":"787331986999f4514cd0f299328308832e2b2c07482f135d1252839239092134","matches":[{"pattern":"transaction_apply","lines":[67,94]}]},
       {"id":"CALL-79d6bc73435283f9","path":"src/applications/calendar/controller/PhabricatorCalendarEventDragController.php","sha256":"59b869746d4a3f1eae6dae14b8bdbf37b9f982e0d09cb225347d656c4b1a45c2","matches":[{"pattern":"transaction_apply","lines":[60]}]},
@@ -1368,7 +1368,7 @@
       {"id":"CALL-da26f768e863d961","path":"src/applications/calendar/controller/PhabricatorCalendarImportDropController.php","sha256":"05a49e37ce27ee9e40c5119d6a53425c58c79587cdd291280451708ee84c5512","matches":[{"pattern":"transaction_apply","lines":[55]}]},
       {"id":"CALL-be7fc30c352f14a3","path":"src/applications/calendar/controller/PhabricatorCalendarImportReloadController.php","sha256":"00cd1e247714a6f738ea7a87c49bdbbbd392e55660859a6223d08e2fa3036d97","matches":[{"pattern":"transaction_apply","lines":[37]}]},
       {"id":"CALL-9b13768314f333c6","path":"src/applications/calendar/editor/PhabricatorCalendarEventEditEngine.php","sha256":"5e228a2b4750c202b11c4903a553bef7f8b86c2ba6a0ffafa51801b4ca66fd85","matches":[{"pattern":"transaction_apply","lines":[364,386,390,405]}]},
-      {"id":"CALL-e8c62278ab9ca3ec","path":"src/applications/calendar/editor/PhabricatorCalendarEventEditor.php","sha256":"84e40aa3e0c8cc2645384c52ba6ce6090ea08c3421bb90c229646291dc44cb41","matches":[{"pattern":"policy_transaction","lines":[98,99]}]},
+      {"id":"CALL-e8c62278ab9ca3ec","path":"src/applications/calendar/editor/PhabricatorCalendarEventEditor.php","sha256":"e33992c45d2fdb14398764cb98d6e60cd3face10f1011008acb7a208682e2a98","matches":[{"pattern":"policy_transaction","lines":[98,99]}]},
       {"id":"CALL-0a0eaf0bd521dbcd","path":"src/applications/calendar/editor/PhabricatorCalendarImportEditor.php","sha256":"83550dcaf4546ab1011b670ffb8251d5736c95af159dafd0da4926cc68916039","matches":[{"pattern":"policy_transaction","lines":[21,22]}]},
       {"id":"CALL-3a2e533a92e210b2","path":"src/applications/calendar/import/PhabricatorCalendarImportEngine.php","sha256":"8d8d64ccbd3f27a5bd807ab6369950adfe2a0e2a7b0d4970c68951b2bdda849a","matches":[{"pattern":"transaction_apply","lines":[377]}]},
       {"id":"CALL-c9ea8be4eb729ac6","path":"src/applications/calendar/storage/PhabricatorCalendarExport.php","sha256":"9cbef81e786d3eaa148de5daaf7fd1f502f87eec837adcf1b77d5ac8b890b333","matches":[{"pattern":"user_enable","lines":[23]}]},
@@ -1381,11 +1381,11 @@
       {"id":"CALL-896c16b9e68f1e15","path":"src/applications/conpherence/conduit/ConpherenceUpdateThreadConduitAPIMethod.php","sha256":"781b01f5f1ed2882e7045c394ea2dffa3a16135976441d4d191c3ce4c9ef20f1","matches":[{"pattern":"transaction_apply","lines":[111]}]},
       {"id":"CALL-33b7ae84e9f6a9a3","path":"src/applications/conpherence/controller/ConpherenceRoomPictureController.php","sha256":"27aceaee5ff3a817c394019353ee8168be55da5ee1729695edd0f7611eeee809","matches":[{"pattern":"transaction_apply","lines":[93]}]},
       {"id":"CALL-06248298054f3a5d","path":"src/applications/conpherence/controller/ConpherenceUpdateController.php","sha256":"a169f7d8328847e353553da7d933ccf4485fed2ec3d3e669d6b18cd9d0c8cf83","matches":[{"pattern":"transaction_apply","lines":[145]}]},
-      {"id":"CALL-ae607ad66528dd64","path":"src/applications/conpherence/editor/ConpherenceEditor.php","sha256":"01e4d7445dab5ea966b994ef1f85c660bce754ecb2ca44e93d91ea2d97f6a170","matches":[{"pattern":"transaction_apply","lines":[67]},{"pattern":"policy_transaction","lines":[92,93]}]},
+      {"id":"CALL-ae607ad66528dd64","path":"src/applications/conpherence/editor/ConpherenceEditor.php","sha256":"021527b1d7cd91fe5fcafcc19c551858e10033ba5da0d93b1ff24cd4469a313e","matches":[{"pattern":"transaction_apply","lines":[67]},{"pattern":"policy_transaction","lines":[92,93]}]},
       {"id":"CALL-028afdba4c8df27a","path":"src/applications/conpherence/mail/ConpherenceReplyHandler.php","sha256":"6ba5c3e0afbe71f46a53073efc2c3e87a1793c18729954066478c3894b042442","matches":[{"pattern":"transaction_apply","lines":[70]}]},
       {"id":"CALL-9a50e176749e9bad","path":"src/applications/console/controller/DarkConsoleController.php","sha256":"5ebf2810bb52c7058a47719698c1345a02e077f5a577dbecbe9004fbb1fcf672","matches":[{"pattern":"transaction_apply","lines":[62]}]},
       {"id":"CALL-13205f176bbb5436","path":"src/applications/countdown/conduit/CountdownEditConduitAPIMethod.php","sha256":"4e2f0ea67ebd3fbb2ff7081f8abe830c768fa7ef43e58ee1b240ee8e0261d85f","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
-      {"id":"CALL-3e6e8f2460673004","path":"src/applications/countdown/editor/PhabricatorCountdownEditor.php","sha256":"8661ba1e158720f31dea92757bc68374bf1edd209af492efcc6a0539f5086d90","matches":[{"pattern":"policy_transaction","lines":[19,20]}]},
+      {"id":"CALL-3e6e8f2460673004","path":"src/applications/countdown/editor/PhabricatorCountdownEditor.php","sha256":"5a0a762eb1f07948da189e841fceca52b1898e493782f94435b803a1aad2592d","matches":[{"pattern":"policy_transaction","lines":[19,20]}]},
       {"id":"CALL-4835937fad9d465b","path":"src/applications/daemon/controller/PhabricatorDaemonBulkJobMonitorController.php","sha256":"1e399240437a15913ff6d0965a966ca3a4b3295b413f802d17c9af2497365afc","matches":[{"pattern":"transaction_apply","lines":[47]}]},
       {"id":"CALL-35364854fba1b623","path":"src/applications/dashboard/conduit/PhabricatorDashboardPanelEditConduitAPIMethod.php","sha256":"fc53c49a3e2afc6283fe864bc694330bdf648f3f21991075575fe0432fdc0046","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
       {"id":"CALL-387527cc50451ad0","path":"src/applications/dashboard/conduit/PhabricatorDashboardPortalEditConduitAPIMethod.php","sha256":"c9f699338dcf31879f9df69a22ac6b44fd259ba3f5ed1a441c9f29ecb0b93c1e","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
@@ -1405,14 +1405,14 @@
       {"id":"CALL-821c8204149650d6","path":"src/applications/files/controller/PhabricatorFileDetachController.php","sha256":"ce2c79d9144d78988e263cb685705d8efb77627952163c2a1354c821a0d1dee6","matches":[{"pattern":"transaction_apply","lines":[114]}]},
       {"id":"CALL-ff10cd6418144e46","path":"src/applications/files/controller/PhabricatorFileLightboxController.php","sha256":"78b4cbcf9fb7eac699042cc406bfae0bcbc9d1f7ece64d98d9d7d728e5c142ec","matches":[{"pattern":"transaction_apply","lines":[36]}]},
       {"id":"CALL-68fcd2a15f395623","path":"src/applications/files/controller/PhabricatorFileUICurtainAttachController.php","sha256":"108ebab3157a2c597b49ca1041b9f23d3d949b40e5febe323239b8de1916527d","matches":[{"pattern":"transaction_apply","lines":[127]}]},
-      {"id":"CALL-4f7b6d1a1d12bdeb","path":"src/applications/files/editor/PhabricatorFileEditor.php","sha256":"0830739e9f2330e773288fba79a51e28a27c42e94c31da77264205a49ca4ae2a","matches":[{"pattern":"policy_transaction","lines":[18]}]},
+      {"id":"CALL-4f7b6d1a1d12bdeb","path":"src/applications/files/editor/PhabricatorFileEditor.php","sha256":"8cd85a17532df795392956d4bdb607f79af4a9ea30d6dfa18ed5b3df070d2c34","matches":[{"pattern":"policy_transaction","lines":[18]}]},
       {"id":"CALL-49632c1512e1764f","path":"src/applications/files/iconset/PhabricatorIconSetIcon.php","sha256":"5823f688903454abd6b6f8154dea99416c0b4f19a5cc39230cfe47f07563a58f","matches":[{"pattern":"user_enable","lines":[32]}]},
       {"id":"CALL-2634ced734fbc55f","path":"src/applications/herald/controller/HeraldDisableController.php","sha256":"e052f4509eb21d0e39d32f7dc1381d1ecf41bd3187c6e52edb6055cf187d6d93","matches":[{"pattern":"transaction_apply","lines":[41]}]},
       {"id":"CALL-1a4cb9d91a800625","path":"src/applications/herald/controller/HeraldRuleController.php","sha256":"50d0d0d8a569e1c17b6b5bdb9cdfaa711e1d7a9e2978a5758b70ce93f5105073","matches":[{"pattern":"transaction_apply","lines":[382]}]},
       {"id":"CALL-9a3ceb4a720e9747","path":"src/applications/herald/editor/HeraldWebhookEditor.php","sha256":"0394ff3d36caa0970b21b8068a1ebf8378039a02f2e6d395fb8a82008639713c","matches":[{"pattern":"policy_transaction","lines":[25,26]}]},
       {"id":"CALL-65c592db9e76613f","path":"src/applications/herald/management/HeraldRuleManagementWorkflow.php","sha256":"f7886db00020db9bd1a2e52cad69bf3d4160185c16653115e31332a4b555d604","matches":[{"pattern":"transaction_apply","lines":[96]}]},
       {"id":"CALL-d083ee20bcb130a4","path":"src/applications/herald/xaction/HeraldRuleDisableTransaction.php","sha256":"a96b88da11aedc9b8b72ec788a665fb3ab7fa387892177d08f8a1192a5f53c66","matches":[{"pattern":"user_enable","lines":[17]}]},
-      {"id":"CALL-93131038a557cb99","path":"src/applications/legalpad/editor/LegalpadDocumentEditor.php","sha256":"098db358ddeeb507746fff0303b3cd35cb20212ebe5aeb8ef56825eff1693f38","matches":[{"pattern":"edge_writer","lines":[64]},{"pattern":"policy_transaction","lines":[18,19]}]},
+      {"id":"CALL-93131038a557cb99","path":"src/applications/legalpad/editor/LegalpadDocumentEditor.php","sha256":"d6c1449b9385f488a02ad24cb633e29f0da96551857122e3d63b75a8e5cfcba1","matches":[{"pattern":"edge_writer","lines":[64]},{"pattern":"policy_transaction","lines":[18,19]}]},
       {"id":"CALL-68bfb15ada017766","path":"src/applications/macro/conduit/MacroEditConduitAPIMethod.php","sha256":"cdc7d2e655fad541c7e1cd5a93ae29a3160c7f932c4d543901b17169107647b4","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
       {"id":"CALL-614ddc43c0ded053","path":"src/applications/macro/controller/PhabricatorMacroAudioController.php","sha256":"5a007f34dc859143b90a25314d3193613573477532e043b8f5a110283aecc011","matches":[{"pattern":"transaction_apply","lines":[76]}]},
       {"id":"CALL-c371b0bc82e21d9c","path":"src/applications/macro/controller/PhabricatorMacroDisableController.php","sha256":"ea748d3bc61b3b4535f0f9bcb80fa11655550b8fbdcdd3182d154fbd26165c31","matches":[{"pattern":"transaction_apply","lines":[33]}]},
@@ -1425,7 +1425,7 @@
       {"id":"CALL-985624ec151d1f92","path":"src/applications/maniphest/controller/ManiphestTaskEditController.php","sha256":"6c6226375b1075f800fbf38883e689f7b4b6db683dbd371e72f19726cf2855cc","matches":[{"pattern":"task_editor","lines":[6]}]},
       {"id":"CALL-940a105346a75442","path":"src/applications/maniphest/controller/ManiphestTaskSubtaskController.php","sha256":"7852b6a55b42e2446c0f794f2bd1f346349383c1a0cf9f51d3e0d6aaec6721fd","matches":[{"pattern":"task_editor","lines":[20]}]},
       {"id":"CALL-162b70ff5e67a5c3","path":"src/applications/maniphest/editor/ManiphestEditEngine.php","sha256":"e33878e604fd83c42f8bba1c9f122e941acadb6d223ffaf7091fa8eaead2b17e","matches":[{"pattern":"task_editor","lines":[3]}]},
-      {"id":"CALL-c3cf95c5d6e3eaa9","path":"src/applications/maniphest/editor/ManiphestTransactionEditor.php","sha256":"8f5f433dd42dab2b37a12d3e51edf1d8f6c96dac456efe8dc91ef5ed45770f19","matches":[{"pattern":"transaction_apply","lines":[83]},{"pattern":"task_editor","lines":[3]},{"pattern":"policy_transaction","lines":[22,23]}]},
+      {"id":"CALL-c3cf95c5d6e3eaa9","path":"src/applications/maniphest/editor/ManiphestTransactionEditor.php","sha256":"4f74bd7f08c63588ee0dd10fbb0b5f31a8222a37f6627d79485b8c8dec8f4bc7","matches":[{"pattern":"transaction_apply","lines":[83]},{"pattern":"task_editor","lines":[3]},{"pattern":"policy_transaction","lines":[22,23]}]},
       {"id":"CALL-7f79bd39723ffab1","path":"src/applications/maniphest/lipsum/PhabricatorManiphestTaskTestDataGenerator.php","sha256":"2f0d9c73bfdd023f9566aa5f4969053bfec17c38a859b319ac0a46edc72e5c4f","matches":[{"pattern":"transaction_apply","lines":[59]},{"pattern":"task_editor","lines":[54]}]},
       {"id":"CALL-da1a46411fe2fb71","path":"src/applications/maniphest/query/ManiphestTaskSearchEngine.php","sha256":"79cd6fd69e4b5c3a9d498cee87a4935bc54242b0b28369a615b3f418d5ccef33","matches":[{"pattern":"task_editor","lines":[488]}]},
       {"id":"CALL-b92df3ba2949e35b","path":"src/applications/maniphest/relationship/ManiphestTaskCloseAsDuplicateRelationship.php","sha256":"15ce771e4ba058905ca0eb605cdfc868a7adcd25a328702a9239e2bc5b5e97a4","matches":[{"pattern":"transaction_apply","lines":[77]}]},
@@ -1436,7 +1436,7 @@
       {"id":"CALL-734d21e7f4a08f3c","path":"src/applications/meta/controller/PhabricatorApplicationUninstallController.php","sha256":"12fa2f41a8d75b892b1c0d656228b518c4aa75fe77f3915e8fa785b4d2d8c13e","matches":[{"pattern":"transaction_apply","lines":[62]}]},
       {"id":"CALL-9a7e1e00ab5f89c3","path":"src/applications/meta/editor/PhabricatorApplicationEditor.php","sha256":"6f3688d889791b981422d8f3d2eeb29ed702a4e479389675eb3ebbcd790b4085","matches":[{"pattern":"policy_transaction","lines":[20,21]}]},
       {"id":"CALL-a596dccc720c9a65","path":"src/applications/metamta/applicationpanel/PhabricatorMetaMTAApplicationEmailPanel.php","sha256":"da07abb6725e773fbb8687003420ad4a4f75d41f039aa102e3912e52b59214f2","matches":[{"pattern":"transaction_apply","lines":[221]}]},
-      {"id":"CALL-498284c44ec14d0b","path":"src/applications/metamta/storage/PhabricatorMetaMTAMail.php","sha256":"b4bc171c495a2793a5386e00564b452576ccdb725bcc21c38dcb58e8aa0660af","matches":[{"pattern":"edge_writer","lines":[519]}]},
+      {"id":"CALL-498284c44ec14d0b","path":"src/applications/metamta/storage/PhabricatorMetaMTAMail.php","sha256":"137514fe1d49b3ab7fd7c5a2b940845e77d1463a49ce8ebc4439913f984ab80b","matches":[{"pattern":"edge_writer","lines":[538]}]},
       {"id":"CALL-b36c78f4fe4dabef","path":"src/applications/notification/client/PhabricatorNotificationServerRef.php","sha256":"c4374cc4966c62c99a005dceb6c549613ca4a120650b7075d28b6b938dc034e1","matches":[{"pattern":"user_enable","lines":[60,98]}]},
       {"id":"CALL-d15f66dc26b79b7b","path":"src/applications/notification/controller/PhabricatorNotificationTestController.php","sha256":"392df76b045b5e35d84617d650a235faa5038ede27f9b30ea6ed6b6e2793ba63","matches":[{"pattern":"transaction_apply","lines":[33]}]},
       {"id":"CALL-3ef5521e62d83cff","path":"src/applications/nuance/command/NuanceCommandImplementation.php","sha256":"9f2e912bc250ca82d2d633c1600339c9e1a9b47e654819e3919ff92bdfcc1e08","matches":[{"pattern":"transaction_apply","lines":[85]}]},
@@ -1481,13 +1481,13 @@
       {"id":"CALL-3248c554dc436cea","path":"src/applications/phame/controller/post/PhamePostHeaderPictureController.php","sha256":"8dfdaa0ce3d2efe31f6560a61809838d6be84183c23ebc90539efed02fd1db59","matches":[{"pattern":"transaction_apply","lines":[77]}]},
       {"id":"CALL-83517846edb21050","path":"src/applications/phame/controller/post/PhamePostMoveController.php","sha256":"9fe478cb356de2f6269b3c5d0266a74fd5676f331e4368751ca091972e9ffdf6","matches":[{"pattern":"transaction_apply","lines":[40]}]},
       {"id":"CALL-0bc1db7eab325c68","path":"src/applications/phame/controller/post/PhamePostPublishController.php","sha256":"3b8ecb4c41a572c9fe9a3fcbd99e679eae91aa5c81d7a1a2334843a252751b14","matches":[{"pattern":"transaction_apply","lines":[45]}]},
-      {"id":"CALL-9209db2482f9b760","path":"src/applications/phame/editor/PhameBlogEditor.php","sha256":"e4badd8c33f00270edc431e673bdbfc62ba24d271c1fd24ec7574c64c787c9c6","matches":[{"pattern":"policy_transaction","lines":[25,26]}]},
+      {"id":"CALL-9209db2482f9b760","path":"src/applications/phame/editor/PhameBlogEditor.php","sha256":"bd9ca768e5a986b35f6083758e17bcf6fc16ded75482fa6e07c0bda710971d32","matches":[{"pattern":"policy_transaction","lines":[25,26]}]},
       {"id":"CALL-0a14621ead40372b","path":"src/applications/phlux/controller/PhluxEditController.php","sha256":"ee4ed5a4ccb296b335918d52b2b866c5b3b079746161ae8f24a350e8ad3c98cc","matches":[{"pattern":"transaction_apply","lines":[86]},{"pattern":"policy_transaction","lines":[78,82]}]},
       {"id":"CALL-20debdce448be47f","path":"src/applications/phlux/editor/PhluxVariableEditor.php","sha256":"1ac41834a1ce4ee90f3a6b76f839434ebf2153e5fce51520314feecea24fe43c","matches":[{"pattern":"policy_transaction","lines":[18,19]}]},
       {"id":"CALL-797960762306ce03","path":"src/applications/pholio/controller/PholioMockArchiveController.php","sha256":"bb056868c835b55888ba132c846b29e68e273a3306383f48819769213bccd1c3","matches":[{"pattern":"transaction_apply","lines":[43]}]},
       {"id":"CALL-037f0fa7dafe0c17","path":"src/applications/pholio/controller/PholioMockCommentController.php","sha256":"7571ceaf42530f09f8d562e5775b12cc256d496a433ce896d683e7c117808a3e","matches":[{"pattern":"transaction_apply","lines":[59]}]},
       {"id":"CALL-cbbc65335a7c2f9e","path":"src/applications/pholio/controller/PholioMockEditController.php","sha256":"84caa9a297cc421691759fce9b75940cd3cd5226fd8e59ac37ad12be0448a387","matches":[{"pattern":"transaction_apply","lines":[216]},{"pattern":"policy_transaction","lines":[68,69]}]},
-      {"id":"CALL-52c6c49dcdd339e0","path":"src/applications/pholio/editor/PholioMockEditor.php","sha256":"b6ccb788189bb6b506ad531547e570f38be943ffdd569e9a948f80acc9b79e5b","matches":[{"pattern":"policy_transaction","lines":[28,29]}]},
+      {"id":"CALL-52c6c49dcdd339e0","path":"src/applications/pholio/editor/PholioMockEditor.php","sha256":"803935d88ef43f6e1d3b9407e33f36cb7983fb11036500c570074fc5f1cbd5ad","matches":[{"pattern":"policy_transaction","lines":[28,29]}]},
       {"id":"CALL-fe544df795df9806","path":"src/applications/pholio/lipsum/PhabricatorPholioMockTestDataGenerator.php","sha256":"2f38434f3c3943792bc93b5e2ba67a69503f5f66a00b400c45b2f8fa6836cff4","matches":[{"pattern":"transaction_apply","lines":[66]},{"pattern":"policy_transaction","lines":[29]}]},
       {"id":"CALL-b464ba26655232eb","path":"src/applications/phriction/conduit/PhrictionCreateConduitAPIMethod.php","sha256":"972413ef43be26c74f49dd927e9121fe35077cdf61fbf743490cbcc170ce4422","matches":[{"pattern":"transaction_apply","lines":[63]},{"pattern":"wiki_editor","lines":[56]}]},
       {"id":"CALL-a2ae0c5f66221cd0","path":"src/applications/phriction/conduit/PhrictionDocumentEditConduitAPIMethod.php","sha256":"50fc4b7f50f0bbd8c6992e5f2456db604777fee0608fa98cde78d8a717876c44","matches":[{"pattern":"edit_engine_dispatch","lines":[10]},{"pattern":"wiki_editor","lines":[11]}]},
@@ -1499,20 +1499,20 @@
       {"id":"CALL-acb07f511e9e3219","path":"src/applications/phriction/controller/PhrictionMoveController.php","sha256":"2a9cad7455305d9941828d1f1be2ec357afdc7f4d2a59e5e6ebfc7cc60eefe52","matches":[{"pattern":"transaction_apply","lines":[87]},{"pattern":"wiki_editor","lines":[59]}]},
       {"id":"CALL-9c4976dcfaf01d80","path":"src/applications/phriction/controller/PhrictionPublishController.php","sha256":"4e8e5ae21015aca30844a3a374da1e4ba41c56562f87da15bce5bd4be41709e9","matches":[{"pattern":"transaction_apply","lines":[60]},{"pattern":"wiki_editor","lines":[55]}]},
       {"id":"CALL-ab4b9f2a38a2258b","path":"src/applications/phriction/editor/PhrictionDocumentEditEngine.php","sha256":"648f30de31e09cdf1c488f028ebca3686597a1dd62375b32c3b1025740aa7fcb","matches":[{"pattern":"wiki_editor","lines":[3]}]},
-      {"id":"CALL-397ecc805a038eab","path":"src/applications/phriction/editor/PhrictionTransactionEditor.php","sha256":"adf9d23e8cb3d687c9428dc9fbd515cbf4cf2f3a0f6d41dfff3097fcace5b178","matches":[{"pattern":"transaction_apply","lines":[175]},{"pattern":"wiki_editor","lines":[3]},{"pattern":"policy_transaction","lines":[90,91,135,138]}]},
+      {"id":"CALL-397ecc805a038eab","path":"src/applications/phriction/editor/PhrictionTransactionEditor.php","sha256":"3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d","matches":[{"pattern":"transaction_apply","lines":[175]},{"pattern":"wiki_editor","lines":[3]},{"pattern":"policy_transaction","lines":[90,91,135,138]}]},
       {"id":"CALL-62f4de412a333fa7","path":"src/applications/phriction/storage/PhrictionDocument.php","sha256":"9dabb6e3dbb73807bdc9a9e1056090f68793e413c052c524dc98f9402b400831","matches":[{"pattern":"wiki_editor","lines":[227]}]},
       {"id":"CALL-82a6b49f1fee6a00","path":"src/applications/phurl/conduit/PhabricatorPhurlURLEditConduitAPIMethod.php","sha256":"b89c795b9893c65f97b1ea361dc632203106fcdd9f583c4bb9174b49932d4672","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
-      {"id":"CALL-c8a90c52d9ac9c09","path":"src/applications/phurl/editor/PhabricatorPhurlURLEditor.php","sha256":"811af90630e90306ec8d421b4cec20172853791917fc6202392b73f700e2fb36","matches":[{"pattern":"policy_transaction","lines":[29,30]}]},
+      {"id":"CALL-c8a90c52d9ac9c09","path":"src/applications/phurl/editor/PhabricatorPhurlURLEditor.php","sha256":"baebae357cafb543894debbc5b3a981959fcd6e264e437f2e1ae3026118f7471","matches":[{"pattern":"policy_transaction","lines":[29,30]}]},
       {"id":"CALL-653df7c5e8475ba4","path":"src/applications/policy/controller/PhabricatorPolicyEditController.php","sha256":"5e2e62375a0141a4dbaa7017d9926a7ce06f9a6f38e44070fc994d716c8b0a75","matches":[{"pattern":"transaction_apply","lines":[451]}]},
       {"id":"CALL-235bdd2bd5acd30b","path":"src/applications/policy/editor/PhabricatorPolicyEditEngineExtension.php","sha256":"c01a26309f4eef5135092be4c4b1396bac9e07aa26b28c151ade67314e02fd1a","matches":[{"pattern":"policy_transaction","lines":[42,51,60]}]},
-      {"id":"CALL-5992ea1290ff9a7c","path":"src/applications/policy/editor/PhorgePolicyNamedPolicyTransactionEditor.php","sha256":"4c6c18fbfdb4825b1019678c336f4848e7ac8d484f8e18ab6ad3dd3f6c807cd9","matches":[{"pattern":"policy_transaction","lines":[24,25]}]},
+      {"id":"CALL-5992ea1290ff9a7c","path":"src/applications/policy/editor/PhorgePolicyNamedPolicyTransactionEditor.php","sha256":"beb67ec39fcbb0a1e6e6042e4e75b344c846a7b25a823e80be61e44fd9fd5772","matches":[{"pattern":"policy_transaction","lines":[24,25]}]},
       {"id":"CALL-d3e77bc65913a562","path":"src/applications/policy/management/PhabricatorPolicyManagementUnlockWorkflow.php","sha256":"0671c4d2d78a47d8a7c08598b98080840581a365226c5f95eca61c68034f5f45","matches":[{"pattern":"transaction_apply","lines":[120]}]},
       {"id":"CALL-5637a3effe27cdb6","path":"src/applications/ponder/controller/PonderAnswerCommentController.php","sha256":"6ad3fed23fee9a319d84a65b2c57c3c14919382e3415f124117f77bf8d389a08","matches":[{"pattern":"transaction_apply","lines":[43]}]},
       {"id":"CALL-01397681e5bf9c39","path":"src/applications/ponder/controller/PonderAnswerEditController.php","sha256":"89701fb0d0c8c5e6e48ccb352c09bdfdc843a74498d9a09e8c28b7a7d422a5df","matches":[{"pattern":"transaction_apply","lines":[57]}]},
       {"id":"CALL-0f8083a5c430c9e8","path":"src/applications/ponder/controller/PonderAnswerSaveController.php","sha256":"87d989f2793158866297f12bf85a2422195da361051a719ad5888849110b4b58","matches":[{"pattern":"transaction_apply","lines":[53,73]}]},
       {"id":"CALL-ca156d05b7da7b7e","path":"src/applications/ponder/controller/PonderQuestionCommentController.php","sha256":"ccffef215bb325ff3290a7016c4a89715dc5cddbc30d9f66c187bb5fa1a682e6","matches":[{"pattern":"transaction_apply","lines":[40]}]},
       {"id":"CALL-e79ff64db0ae9641","path":"src/applications/ponder/controller/PonderQuestionStatusController.php","sha256":"61bde3a479403a5bba2c97b916fd9cb178c8b770f8528d3292d00fab9750072b","matches":[{"pattern":"transaction_apply","lines":[38]}]},
-      {"id":"CALL-177b030fe0f7244f","path":"src/applications/ponder/editor/PonderQuestionEditor.php","sha256":"3be105c7a27f8c0e84b02a4adeff6cb34c963dfb21ff68de33a3eb245a85c9ef","matches":[{"pattern":"policy_transaction","lines":[76]}]},
+      {"id":"CALL-177b030fe0f7244f","path":"src/applications/ponder/editor/PonderQuestionEditor.php","sha256":"db66f161f61daabc50cef590ebf271af8879943890cce646c5c231efdb596b73","matches":[{"pattern":"policy_transaction","lines":[76]}]},
       {"id":"CALL-af0d37eb10eb25af","path":"src/applications/ponder/mail/PonderQuestionCreateMailReceiver.php","sha256":"b49d750ca09b9cd32cc3b304e26d6aa11af028142e923b59253264bc1d4d6c93","matches":[{"pattern":"transaction_apply","lines":[38]}]},
       {"id":"CALL-0ebbedf96e4c42a7","path":"src/applications/project/conduit/ProjectCreateConduitAPIMethod.php","sha256":"292e17bf1e13d26b8bf7adabd4ee3aadf3010f356c5f4d177c59ef2f714cc63d","matches":[{"pattern":"transaction_apply","lines":[90]},{"pattern":"member_edge","lines":[79]},{"pattern":"project_editor","lines":[85]}]},
       {"id":"CALL-3630ad93fcbcef77","path":"src/applications/project/conduit/ProjectEditConduitAPIMethod.php","sha256":"a20a7761c710e07656114b6dd3c37bcc200f7dc381dfd67d908e674ad9297180","matches":[{"pattern":"edit_engine_dispatch","lines":[10]},{"pattern":"project_editor","lines":[11]}]},
@@ -1540,7 +1540,7 @@
       {"id":"CALL-d630b5e62100d7f3","path":"src/applications/project/controller/trigger/PhabricatorProjectTriggerEditController.php","sha256":"8673b614557b36a147f2d1ba6d8c2f8bdae1dfdeb50bb29ee89c9b206ef99368","matches":[{"pattern":"transaction_apply","lines":[107,125]},{"pattern":"policy_transaction","lines":[94,138]}]},
       {"id":"CALL-7284c695c194a4ad","path":"src/applications/project/edge/PhabricatorProjectMemberOfProjectEdgeType.php","sha256":"48c91329f22531380714669bbc81f67c9f5780879258a1cb58bb4da6ce28ff8a","matches":[{"pattern":"member_edge","lines":[3,9]}]},
       {"id":"CALL-16a1a9351d13c8b7","path":"src/applications/project/edge/PhabricatorProjectProjectHasMemberEdgeType.php","sha256":"97fe7cd52dcff267a708529486201ec2d29e6a46bd0c31f0e69382e25cf44ee2","matches":[{"pattern":"member_edge","lines":[3,9]}]},
-      {"id":"CALL-ad9c861b073f0418","path":"src/applications/project/editor/PhabricatorProjectTransactionEditor.php","sha256":"2c262bf4637684fbe6d125b8850995c221720b7bd4e7560128e682145ec26ff8","matches":[{"pattern":"edge_writer","lines":[246]},{"pattern":"member_edge","lines":[96,220,237,366]},{"pattern":"project_editor","lines":[3]},{"pattern":"policy_transaction","lines":[47,48,49]}]},
+      {"id":"CALL-ad9c861b073f0418","path":"src/applications/project/editor/PhabricatorProjectTransactionEditor.php","sha256":"1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919","matches":[{"pattern":"edge_writer","lines":[247]},{"pattern":"member_edge","lines":[96,221,238,367]},{"pattern":"project_editor","lines":[3]},{"pattern":"policy_transaction","lines":[47,48,49]}]},
       {"id":"CALL-21a1454cff1d6df9","path":"src/applications/project/editor/PhabricatorProjectTriggerEditor.php","sha256":"29f664c5eca095128249cdf5a18844955f2d0fc825ae8c1e88c8b56b17da1ff9","matches":[{"pattern":"policy_transaction","lines":[25]}]},
       {"id":"CALL-87991d5ea753c15b","path":"src/applications/project/engine/PhabricatorProjectEditEngine.php","sha256":"a87de8ea2caf2a40bbdb117f7f534164dced04677e244260e389ab5b839fe011","matches":[{"pattern":"member_edge","lines":[345]},{"pattern":"project_editor","lines":[3]},{"pattern":"policy_transaction","lines":[116,117,118]}]},
       {"id":"CALL-e6ad025257ac76ef","path":"src/applications/project/engineextension/PhabricatorProjectsMembershipIndexEngineExtension.php","sha256":"7cad7846b7e565ab2ecd4191a954fd90d0a76ac94b4f3e4c10f193b399ab5a6f","matches":[{"pattern":"member_edge","lines":[38]}]},
@@ -1561,7 +1561,7 @@
       {"id":"CALL-594190d27db1792b","path":"src/applications/slowvote/controller/PhabricatorSlowvoteCloseController.php","sha256":"4eb57332f4eca76fbb704c5f2a00346f406a38a8ef561bae70cca739d3430280","matches":[{"pattern":"transaction_apply","lines":[44]}]},
       {"id":"CALL-4db51ee6c2f24893","path":"src/applications/slowvote/controller/PhabricatorSlowvoteCommentController.php","sha256":"2fb3ff53b366977d77e074091d2bbde4fbfaa4e1e1bdab5c1031e1b32e223d0b","matches":[{"pattern":"transaction_apply","lines":[41]}]},
       {"id":"CALL-22046eef2904c908","path":"src/applications/slowvote/controller/PhabricatorSlowvoteEditController.php","sha256":"9d05501ca34b6d1474936769bb957cf3261f4f1e1b3df4d673a214c672df8692","matches":[{"pattern":"transaction_apply","lines":[134]},{"pattern":"policy_transaction","lines":[115]}]},
-      {"id":"CALL-a3fe10ce99533953","path":"src/applications/slowvote/editor/PhabricatorSlowvoteEditor.php","sha256":"f7014c1791f7ee717ea1b6de382f4a0d3534222e7f3030e5873f8960eb1ccf8b","matches":[{"pattern":"policy_transaction","lines":[24]}]},
+      {"id":"CALL-a3fe10ce99533953","path":"src/applications/slowvote/editor/PhabricatorSlowvoteEditor.php","sha256":"4d6817e0ca4544a4a52968de393f103ba8a73d43fd13a6d7a0efc7f633f73a23","matches":[{"pattern":"policy_transaction","lines":[24]}]},
       {"id":"CALL-f56b8c9c341eb23e","path":"src/applications/spaces/controller/PhabricatorSpacesArchiveController.php","sha256":"ff42c4da6aae522d19c15876cb30ccbb97d8b608d65235bfa7eb31ca043834ba","matches":[{"pattern":"transaction_apply","lines":[40]}]},
       {"id":"CALL-1a48867fc8afc538","path":"src/applications/spaces/controller/PhabricatorSpacesEditController.php","sha256":"e3b4bfa39132f1984f244ea8a380d7bf226a676db37bc3309ea90a1ac5053442","matches":[{"pattern":"transaction_apply","lines":[107]},{"pattern":"policy_transaction","lines":[76,77]}]},
       {"id":"CALL-4b3fb14689779d62","path":"src/applications/spaces/editor/PhabricatorSpacesNamespaceEditor.php","sha256":"629e4f254363d3e062d89fc23ffa8bb673e17276f160aa566053e5bab3dcdd5f","matches":[{"pattern":"policy_transaction","lines":[17,18]}]},
@@ -1588,7 +1588,7 @@
       {"id":"CALL-e457f3ff983799df","path":"src/applications/transactions/editengine/PhabricatorEditEngine.php","sha256":"edf5ef459c19b8ce4b9a92ab4bf5ed060188b15d06aca57a36801c34d949beb0","matches":[{"pattern":"transaction_apply","lines":[1183,2072,2208]}]},
       {"id":"CALL-45141cefd737b321","path":"src/applications/transactions/editengine/PhabricatorEditEngineAPIMethod.php","sha256":"19ae2aa58109d233bbfeeffcccf6745b60413aeddaafc60d9784f6b77be1f528","matches":[{"pattern":"edit_engine_dispatch","lines":[6,13,30,46]}]},
       {"id":"CALL-f804ca499e98801d","path":"src/applications/transactions/editor/PhabricatorApplicationTransactionCommentEditor.php","sha256":"23593c6101f7041148a280a9e0cb73527ab156749d8f4abeb4e1b9313cad7920","matches":[{"pattern":"transaction_apply","lines":[122]}]},
-      {"id":"CALL-f116bd8b9b12fc59","path":"src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php","sha256":"f6c977699b669940586d66ebf89df1031ce8ce1ba5f8e4c29f7974222155bfa6","matches":[{"pattern":"transaction_apply","lines":[1175,1498,4470,4960]},{"pattern":"edge_writer","lines":[937,951]},{"pattern":"member_edge","lines":[1989]},{"pattern":"policy_transaction","lines":[525,530,535,615,616,617,768,769,770,833,834,835,883,886,889,958,2874,2881]},{"pattern":"modular_dispatch","lines":[368,403,498,602,720,753,790,1123,1858,2131,2868,4002,4373,4913,4929,5418,5467,5485,5504]}]},
+      {"id":"CALL-f116bd8b9b12fc59","path":"src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php","sha256":"29f808be06edfd1f9e105179d2fea7db4f6c2ce4d22e808a2bf1d3f014e6ad78","matches":[{"pattern":"transaction_apply","lines":[1175,1498,4471,4961]},{"pattern":"edge_writer","lines":[937,951]},{"pattern":"member_edge","lines":[1989]},{"pattern":"policy_transaction","lines":[525,530,535,615,616,617,768,769,770,833,834,835,883,886,889,958,2874,2881]},{"pattern":"modular_dispatch","lines":[368,403,498,602,720,753,790,1123,1858,2131,2868,4003,4374,4914,4930,5419,5468,5486,5505]}]},
       {"id":"CALL-0b2cb2fe2d5417c9","path":"src/applications/transactions/editor/PhabricatorEditEngineConfigurationEditor.php","sha256":"0484ec95502d30f22987d71bac7a88565a5d354881b331369f61ea390bdb45d8","matches":[{"pattern":"policy_transaction","lines":[20]}]},
       {"id":"CALL-7027b444ff9178fd","path":"src/applications/transactions/replyhandler/PhabricatorApplicationTransactionReplyHandler.php","sha256":"dfdfaa662c7d80c59ab51329576969e52bf5c0f6458101410751b3eead8fce94","matches":[{"pattern":"transaction_apply","lines":[112]}]},
       {"id":"CALL-924066ae905c1c26","path":"src/applications/transactions/storage/PhabricatorApplicationTransaction.php","sha256":"68cf54d7f717c17c67a0b5f89df3a873571f715a430467e223215fda52929efb","matches":[{"pattern":"policy_transaction","lines":[365,366,367,498,499,500,606,607,608,649,650,651,891,895,899,941,954,967,1303,1308,1313,1505,1506,1507]}]},
@@ -1602,283 +1602,2017 @@
     ]
   },
   "triage": [
-    {"id":"CALL-e71899f6e4e06c5b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-63444e170e5adba3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5e05deec70c5b3a3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4922334af674b368","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-fdd7d6309a96b0de","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a45b087d5420285d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-8abe25d54ce20941","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-799b222e757b891a","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-6c27b4cc5b087c86","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-6260544432720962","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-e7f34daab9a0db96","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-563ceb0d367fa5ce","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-40b539def3294cf4","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c44d90d735838bfc","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-1e0f79e933232f68","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-b96f563b8e7e0c64","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a4fa160fa5225b3d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d0220256e8df86e6","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-74a1cbfbd00061bd","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-6481afc9aa55898c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-1afb658cc5aca0aa","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f4ecd4b3732f0099","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f1c42bd7e2f12c6c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a4ec67fa29b57237","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-b862b169d9880c37","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5fb35f1f750b2869","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-523f2fea632ff433","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-70357173398b9608","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-03ce0784f19545e3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-10379c44d09f5e0f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0457d64a0059b2a5","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5fd281c18a1ae8c2","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-e33f1827ae76ad39","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-2d506e9d9b149a11","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-b232f7a8682f4191","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5f366e42601ea9ea","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-44620063ab739f89","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-475538b4c70c94a7","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-79d6bc73435283f9","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-3174c8d46eeec325","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-dd24824434f59400","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-efc78b7b0fbdbc77","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f240d0424bb53610","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-da26f768e863d961","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-be7fc30c352f14a3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9b13768314f333c6","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-e8c62278ab9ca3ec","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0a0eaf0bd521dbcd","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-3a2e533a92e210b2","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c9ea8be4eb729ac6","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-520d595b7b0cf378","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a971d5baf9abdcf4","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-3af9039669542593","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4d357d9dc43383d7","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-1fbbfde4b30e39ab","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-e1a9903129e3bf9d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-896c16b9e68f1e15","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-33b7ae84e9f6a9a3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-06248298054f3a5d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-ae607ad66528dd64","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-028afdba4c8df27a","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9a50e176749e9bad","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-13205f176bbb5436","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-3e6e8f2460673004","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4835937fad9d465b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-35364854fba1b623","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-387527cc50451ad0","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5a5832020270fa6d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-260de52c8d8d1ee0","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c8fea4f7108df9f9","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4d6ed98692db8b53","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-abf812cd20edfed0","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-93151888e9aed139","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4fac3330668fbcdd","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-877ce21db979d29f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-44ef57585db4eda3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-82dce1622c0a6535","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5cce68c92ae13ff7","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-138cc4ed373e68af","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-3d8711181b37b21c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-821c8204149650d6","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-ff10cd6418144e46","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-68fcd2a15f395623","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4f7b6d1a1d12bdeb","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-49632c1512e1764f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-2634ced734fbc55f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-1a4cb9d91a800625","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9a3ceb4a720e9747","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-65c592db9e76613f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d083ee20bcb130a4","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-93131038a557cb99","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-68bfb15ada017766","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-614ddc43c0ded053","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c371b0bc82e21d9c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c593546f87359ecf","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-ff24acb9aeb898fd","consumer_ids":["TASK.BULK.ENGINE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-7e0c17f567ba5c63","consumer_ids":["TASK.EDIT.CONDUIT.LEGACY.BASE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-8a73f16124767858","consumer_ids":["TASK.EDIT.CONDUIT"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-cb69f92331206f66","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9df38035cd0ac795","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-985624ec151d1f92","consumer_ids":["TASK.EDIT.WEB"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-940a105346a75442","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-162b70ff5e67a5c3","consumer_ids":["TASK.EDIT.ENGINE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-c3cf95c5d6e3eaa9","consumer_ids":["TASK.EDIT.EDITOR"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-7f79bd39723ffab1","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-da1a46411fe2fb71","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-b92df3ba2949e35b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9255d038f5edd0b8","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9b8a2081bc38eaef","consumer_ids":["TASK.POLICY.SOURCE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-cb19ae66fdd4f6ec","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0c80a04628644357","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-734d21e7f4a08f3c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9a7e1e00ab5f89c3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a596dccc720c9a65","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-498284c44ec14d0b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-b36c78f4fe4dabef","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d15f66dc26b79b7b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-3ef5521e62d83cff","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-08c1d358d72e59b7","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-58393f831d0656e3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a90b4957df449257","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-6e01c023f8900f9f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-ad081fd2b6218188","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-edbb59a93f00ede6","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-2c1fa7f4cce9b642","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a535fae693284127","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-43afd556ff53307e","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-cc4a50b70c88b377","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-02a59c9eed808501","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9430ff0126d64cc2","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9d22fcc2161a2358","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-6fb6852bdbe6ccb4","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-e1d2745f3ac98ff5","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4b36976cde68b061","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4f62002821cfd033","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d020a4384d2d180e","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4864a70b704f5afe","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-11266be4e2384711","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-df2180c514a4b9bf","consumer_ids":["ACCOUNT.ENABLE.API"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-28cbf13d450ddc9c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-6ef04c89f1acea65","consumer_ids":["ACCOUNT.ENABLE.WEB"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-21f7f6023d79a645","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f2c9bd8e451c687d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0b14b7487748cf25","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4ee235f9b9459ebf","consumer_ids":["ACCOUNT.ENABLE.ENGINE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-217e4e25c1435a21","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-21c69816f10f2d9c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-50a8f627906779ef","consumer_ids":["ACCOUNT.ENABLE.CLI"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-64eb5026b556a783","consumer_ids":["ACCOUNT.ENABLE.CLI.BASE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-b73188773130dc9c","consumer_ids":["ACCOUNT.ENABLE.TRANSACTION"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-d310264bc4883781","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-e0e301cd036ef1e8","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c016de58efddef8c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d4bb9070310bc3d5","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-1c74455f2a1b33f3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-899c5a94341e4577","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-3248c554dc436cea","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-83517846edb21050","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0bc1db7eab325c68","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9209db2482f9b760","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0a14621ead40372b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-20debdce448be47f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-797960762306ce03","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-037f0fa7dafe0c17","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-cbbc65335a7c2f9e","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-52c6c49dcdd339e0","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-fe544df795df9806","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-b464ba26655232eb","consumer_ids":["WIKI.CREATE.CONDUIT.LEGACY"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-a2ae0c5f66221cd0","consumer_ids":["WIKI.EDIT.CONDUIT"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-a0a3099e675f0c8c","consumer_ids":["WIKI.EDIT.CONDUIT.LEGACY"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-2af1c700b21d2c3b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-8d237c2a72bab7ed","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-eb5daa2e2476226d","consumer_ids":["WIKI.EDIT.WEB.LEGACY"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-596cc23abe3f8a6e","consumer_ids":["WIKI.COMMENT.ENGINE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-acb07f511e9e3219","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9c4976dcfaf01d80","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-ab4b9f2a38a2258b","consumer_ids":["WIKI.EDIT.ENGINE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-397ecc805a038eab","consumer_ids":["WIKI.EDIT.EDITOR"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-62f4de412a333fa7","consumer_ids":["WIKI.POLICY.SOURCE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-82a6b49f1fee6a00","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c8a90c52d9ac9c09","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-653df7c5e8475ba4","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-235bdd2bd5acd30b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5992ea1290ff9a7c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d3e77bc65913a562","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5637a3effe27cdb6","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-01397681e5bf9c39","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0f8083a5c430c9e8","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-ca156d05b7da7b7e","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-e79ff64db0ae9641","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-177b030fe0f7244f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-af0d37eb10eb25af","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0ebbedf96e4c42a7","consumer_ids":["PROJECT.CREATE.CONDUIT.LEGACY"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-3630ad93fcbcef77","consumer_ids":["PROJECT.EDIT.CONDUIT"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-95834b842db6bcfa","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-cd4f021814222ea2","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-7150cdc239b37254","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-108b061a28a0877c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0323770fd9e88fc8","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-21ada123a29e1dfa","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-58404057ce582782","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f43e22e1772bdb5f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-38315f8bec81478c","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-04bcdcac80b67efa","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-bb50496402c7a766","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4bad6f8ef27ffc95","consumer_ids":["PROJECT.EDIT.WEB"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-f6791c99760a620b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-adfeb2a2d09c062b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-02ef5c7c060833f7","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c880b3fa3715162a","consumer_ids":["PROJECT.MEMBER.ADD"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-43def4b57d7a636c","consumer_ids":["PROJECT.MEMBER.REMOVE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-2da9dfe85e093a28","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-77dd25591fe719f9","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-ab42bd2edf5162ba","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9c9e3ebe03662934","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d630b5e62100d7f3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-7284c695c194a4ad","consumer_ids":["PROJECT.MEMBER.EDGE.REVERSE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-16a1a9351d13c8b7","consumer_ids":["PROJECT.MEMBER.EDGE.FORWARD"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-ad9c861b073f0418","consumer_ids":["PROJECT.MEMBER.EDITOR"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-21a1454cff1d6df9","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-87991d5ea753c15b","consumer_ids":["PROJECT.EDIT.ENGINE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-e6ad025257ac76ef","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-2ea50744f3063bc3","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-04e0e08be6879bbf","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4a5a06580899d51d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-edd369ac8f9e25d8","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-66d8e27d1b7f91fe","consumer_ids":["PROJECT.POLICY.SOURCE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-a41873e7a5c0b76e","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4a3bd9e006b2daab","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f8e188d86e44eedb","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4b159156aa1ce755","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-773a44184ec1394d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-bac5a3d42c376322","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-2a07c01f7a3c2eff","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-6fbbb080aec9a76f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-7f56be708f54339d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-594190d27db1792b","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4db51ee6c2f24893","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-22046eef2904c908","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a3fe10ce99533953","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f56b8c9c341eb23e","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-1a48867fc8afc538","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-4b3fb14689779d62","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d4598c49e6e202d4","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-2df523499eb64cfe","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-549ba7db9c2dffdf","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-b7edad7bd4c6127d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-59a0235dc3241dc8","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a925320cec3ffbef","consumer_ids":["TRANSACTION.BULK.ENGINE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-63e5fb4913e8e285","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-776347bffb5b6c5d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-2dc53cb03daedd9e","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-318d8e676e467cda","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-8140cab19ffac95f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-5f99b4a0c028a42f","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-28bf79218b252aab","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-d11706fa50147fa5","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c506d8b6c28c378a","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-b7090d2851736b78","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-9823b79f75b68718","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-fb944166e8b8c925","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f50727304ae4a3e5","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-ccbc57db69056c49","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-e457f3ff983799df","consumer_ids":["TRANSACTION.EDIT.ENGINE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-45141cefd737b321","consumer_ids":["TRANSACTION.EDIT.API"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-f804ca499e98801d","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f116bd8b9b12fc59","consumer_ids":["TRANSACTION.LEGACY"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-0b2cb2fe2d5417c9","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-7027b444ff9178fd","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-924066ae905c1c26","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-0ef5e2f6270da31e","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-c32a2afd2e852549","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-de92839770be8717","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-04c085bb0a6c3c29","consumer_ids":["PROJECT.MEMBER.INVERSE"],"disposition":"mapped-static-only","activation_blocked":true,"reason":"Source explicitly included in manually associated partial graph; no runtime proof."},
-    {"id":"CALL-c0864b6356d2aab2","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-f172e31895cf5f35","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."},
-    {"id":"CALL-a3f90639445fd6d8","consumer_ids":[],"disposition":"unsupported","activation_blocked":true,"reason":"Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."}
+    {
+      "id": "CALL-e71899f6e4e06c5b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-63444e170e5adba3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5e05deec70c5b3a3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4922334af674b368",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-fdd7d6309a96b0de",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a45b087d5420285d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-8abe25d54ce20941",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-799b222e757b891a",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-6c27b4cc5b087c86",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-6260544432720962",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-e7f34daab9a0db96",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-563ceb0d367fa5ce",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-40b539def3294cf4",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c44d90d735838bfc",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-1e0f79e933232f68",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-b96f563b8e7e0c64",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a4fa160fa5225b3d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d0220256e8df86e6",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-74a1cbfbd00061bd",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-6481afc9aa55898c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-1afb658cc5aca0aa",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f4ecd4b3732f0099",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f1c42bd7e2f12c6c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a4ec67fa29b57237",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-b862b169d9880c37",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5fb35f1f750b2869",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-523f2fea632ff433",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-70357173398b9608",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-03ce0784f19545e3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-10379c44d09f5e0f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0457d64a0059b2a5",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5fd281c18a1ae8c2",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-e33f1827ae76ad39",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-2d506e9d9b149a11",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-b232f7a8682f4191",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5f366e42601ea9ea",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-44620063ab739f89",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-475538b4c70c94a7",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-79d6bc73435283f9",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-3174c8d46eeec325",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-dd24824434f59400",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-efc78b7b0fbdbc77",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f240d0424bb53610",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-da26f768e863d961",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-be7fc30c352f14a3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9b13768314f333c6",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-e8c62278ab9ca3ec",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0a0eaf0bd521dbcd",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-3a2e533a92e210b2",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c9ea8be4eb729ac6",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-520d595b7b0cf378",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a971d5baf9abdcf4",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-3af9039669542593",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4d357d9dc43383d7",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-1fbbfde4b30e39ab",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-e1a9903129e3bf9d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-896c16b9e68f1e15",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-33b7ae84e9f6a9a3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-06248298054f3a5d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-ae607ad66528dd64",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-028afdba4c8df27a",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9a50e176749e9bad",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-13205f176bbb5436",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-3e6e8f2460673004",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4835937fad9d465b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-35364854fba1b623",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-387527cc50451ad0",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5a5832020270fa6d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-260de52c8d8d1ee0",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c8fea4f7108df9f9",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4d6ed98692db8b53",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-abf812cd20edfed0",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-93151888e9aed139",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4fac3330668fbcdd",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-877ce21db979d29f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-44ef57585db4eda3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-82dce1622c0a6535",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5cce68c92ae13ff7",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-138cc4ed373e68af",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-3d8711181b37b21c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-821c8204149650d6",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-ff10cd6418144e46",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-68fcd2a15f395623",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4f7b6d1a1d12bdeb",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-49632c1512e1764f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-2634ced734fbc55f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-1a4cb9d91a800625",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9a3ceb4a720e9747",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-65c592db9e76613f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d083ee20bcb130a4",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-93131038a557cb99",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-68bfb15ada017766",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-614ddc43c0ded053",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c371b0bc82e21d9c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c593546f87359ecf",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-ff24acb9aeb898fd",
+      "consumer_ids": [
+        "TASK.BULK.ENGINE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-7e0c17f567ba5c63",
+      "consumer_ids": [
+        "TASK.EDIT.CONDUIT.LEGACY.BASE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-8a73f16124767858",
+      "consumer_ids": [
+        "TASK.EDIT.CONDUIT"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-cb69f92331206f66",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9df38035cd0ac795",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-985624ec151d1f92",
+      "consumer_ids": [
+        "TASK.EDIT.WEB"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-940a105346a75442",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-162b70ff5e67a5c3",
+      "consumer_ids": [
+        "TASK.EDIT.ENGINE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-c3cf95c5d6e3eaa9",
+      "consumer_ids": [
+        "TASK.EDIT.EDITOR"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-7f79bd39723ffab1",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-da1a46411fe2fb71",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-b92df3ba2949e35b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9255d038f5edd0b8",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9b8a2081bc38eaef",
+      "consumer_ids": [
+        "TASK.POLICY.SOURCE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-cb19ae66fdd4f6ec",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0c80a04628644357",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-734d21e7f4a08f3c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9a7e1e00ab5f89c3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a596dccc720c9a65",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-498284c44ec14d0b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-b36c78f4fe4dabef",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d15f66dc26b79b7b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-3ef5521e62d83cff",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-08c1d358d72e59b7",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-58393f831d0656e3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a90b4957df449257",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-6e01c023f8900f9f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-ad081fd2b6218188",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-edbb59a93f00ede6",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-2c1fa7f4cce9b642",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a535fae693284127",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-43afd556ff53307e",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-cc4a50b70c88b377",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-02a59c9eed808501",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9430ff0126d64cc2",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9d22fcc2161a2358",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-6fb6852bdbe6ccb4",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-e1d2745f3ac98ff5",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4b36976cde68b061",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4f62002821cfd033",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d020a4384d2d180e",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4864a70b704f5afe",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-11266be4e2384711",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-df2180c514a4b9bf",
+      "consumer_ids": [
+        "ACCOUNT.ENABLE.API"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-28cbf13d450ddc9c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-6ef04c89f1acea65",
+      "consumer_ids": [
+        "ACCOUNT.ENABLE.WEB"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-21f7f6023d79a645",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f2c9bd8e451c687d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0b14b7487748cf25",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4ee235f9b9459ebf",
+      "consumer_ids": [
+        "ACCOUNT.ENABLE.ENGINE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-217e4e25c1435a21",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-21c69816f10f2d9c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-50a8f627906779ef",
+      "consumer_ids": [
+        "ACCOUNT.ENABLE.CLI"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-64eb5026b556a783",
+      "consumer_ids": [
+        "ACCOUNT.ENABLE.CLI.BASE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-b73188773130dc9c",
+      "consumer_ids": [
+        "ACCOUNT.ENABLE.TRANSACTION"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-d310264bc4883781",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-e0e301cd036ef1e8",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c016de58efddef8c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d4bb9070310bc3d5",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-1c74455f2a1b33f3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-899c5a94341e4577",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-3248c554dc436cea",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-83517846edb21050",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0bc1db7eab325c68",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9209db2482f9b760",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0a14621ead40372b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-20debdce448be47f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-797960762306ce03",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-037f0fa7dafe0c17",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-cbbc65335a7c2f9e",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-52c6c49dcdd339e0",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-fe544df795df9806",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-b464ba26655232eb",
+      "consumer_ids": [
+        "WIKI.CREATE.CONDUIT.LEGACY"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-a2ae0c5f66221cd0",
+      "consumer_ids": [
+        "WIKI.EDIT.CONDUIT"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-a0a3099e675f0c8c",
+      "consumer_ids": [
+        "WIKI.EDIT.CONDUIT.LEGACY"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-2af1c700b21d2c3b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-8d237c2a72bab7ed",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-eb5daa2e2476226d",
+      "consumer_ids": [
+        "WIKI.EDIT.WEB.LEGACY"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-596cc23abe3f8a6e",
+      "consumer_ids": [
+        "WIKI.COMMENT.ENGINE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-acb07f511e9e3219",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9c4976dcfaf01d80",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-ab4b9f2a38a2258b",
+      "consumer_ids": [
+        "WIKI.EDIT.ENGINE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-397ecc805a038eab",
+      "consumer_ids": [
+        "WIKI.EDIT.EDITOR"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-62f4de412a333fa7",
+      "consumer_ids": [
+        "WIKI.POLICY.SOURCE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-82a6b49f1fee6a00",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c8a90c52d9ac9c09",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-653df7c5e8475ba4",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-235bdd2bd5acd30b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5992ea1290ff9a7c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d3e77bc65913a562",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5637a3effe27cdb6",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-01397681e5bf9c39",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0f8083a5c430c9e8",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-ca156d05b7da7b7e",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-e79ff64db0ae9641",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-177b030fe0f7244f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-af0d37eb10eb25af",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0ebbedf96e4c42a7",
+      "consumer_ids": [
+        "PROJECT.CREATE.CONDUIT.LEGACY"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-3630ad93fcbcef77",
+      "consumer_ids": [
+        "PROJECT.EDIT.CONDUIT"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-95834b842db6bcfa",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-cd4f021814222ea2",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-7150cdc239b37254",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-108b061a28a0877c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0323770fd9e88fc8",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-21ada123a29e1dfa",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-58404057ce582782",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f43e22e1772bdb5f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-38315f8bec81478c",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-04bcdcac80b67efa",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-bb50496402c7a766",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4bad6f8ef27ffc95",
+      "consumer_ids": [
+        "PROJECT.EDIT.WEB"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-f6791c99760a620b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-adfeb2a2d09c062b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-02ef5c7c060833f7",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c880b3fa3715162a",
+      "consumer_ids": [
+        "PROJECT.MEMBER.ADD"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-43def4b57d7a636c",
+      "consumer_ids": [
+        "PROJECT.MEMBER.REMOVE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-2da9dfe85e093a28",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-77dd25591fe719f9",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-ab42bd2edf5162ba",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9c9e3ebe03662934",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d630b5e62100d7f3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-7284c695c194a4ad",
+      "consumer_ids": [
+        "PROJECT.MEMBER.EDGE.REVERSE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-16a1a9351d13c8b7",
+      "consumer_ids": [
+        "PROJECT.MEMBER.EDGE.FORWARD"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-ad9c861b073f0418",
+      "consumer_ids": [
+        "PROJECT.MEMBER.EDITOR"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-21a1454cff1d6df9",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-87991d5ea753c15b",
+      "consumer_ids": [
+        "PROJECT.EDIT.ENGINE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-e6ad025257ac76ef",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-2ea50744f3063bc3",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-04e0e08be6879bbf",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4a5a06580899d51d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-edd369ac8f9e25d8",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-66d8e27d1b7f91fe",
+      "consumer_ids": [
+        "PROJECT.POLICY.SOURCE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-a41873e7a5c0b76e",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4a3bd9e006b2daab",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f8e188d86e44eedb",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4b159156aa1ce755",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-773a44184ec1394d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-bac5a3d42c376322",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-2a07c01f7a3c2eff",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-6fbbb080aec9a76f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-7f56be708f54339d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-594190d27db1792b",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4db51ee6c2f24893",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-22046eef2904c908",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a3fe10ce99533953",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f56b8c9c341eb23e",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-1a48867fc8afc538",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-4b3fb14689779d62",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d4598c49e6e202d4",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-2df523499eb64cfe",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-549ba7db9c2dffdf",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-b7edad7bd4c6127d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-59a0235dc3241dc8",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a925320cec3ffbef",
+      "consumer_ids": [
+        "TRANSACTION.BULK.ENGINE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-63e5fb4913e8e285",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-776347bffb5b6c5d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-2dc53cb03daedd9e",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-318d8e676e467cda",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-8140cab19ffac95f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-5f99b4a0c028a42f",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-28bf79218b252aab",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-d11706fa50147fa5",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c506d8b6c28c378a",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-b7090d2851736b78",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-9823b79f75b68718",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-fb944166e8b8c925",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f50727304ae4a3e5",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-ccbc57db69056c49",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-e457f3ff983799df",
+      "consumer_ids": [
+        "TRANSACTION.EDIT.ENGINE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-45141cefd737b321",
+      "consumer_ids": [
+        "TRANSACTION.EDIT.API"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-f804ca499e98801d",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f116bd8b9b12fc59",
+      "consumer_ids": [
+        "TRANSACTION.LEGACY"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-0b2cb2fe2d5417c9",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-7027b444ff9178fd",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-924066ae905c1c26",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-0ef5e2f6270da31e",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-c32a2afd2e852549",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-de92839770be8717",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-04c085bb0a6c3c29",
+      "consumer_ids": [
+        "PROJECT.MEMBER.INVERSE"
+      ],
+      "disposition": "mapped-static-only",
+      "activation_blocked": true,
+      "reason": "Source explicitly included in manually associated partial graph; no runtime proof."
+    },
+    {
+      "id": "CALL-c0864b6356d2aab2",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-f172e31895cf5f35",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    },
+    {
+      "id": "CALL-a3f90639445fd6d8",
+      "consumer_ids": [],
+      "disposition": "unsupported",
+      "activation_blocked": true,
+      "reason": "Broad shared/other-product textual candidate; not manually certified or assumed irrelevant. Remains unsupported until scoped review."
+    }
   ],
   "unsupported": [
     {

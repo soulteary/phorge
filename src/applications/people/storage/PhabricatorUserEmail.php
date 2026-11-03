@@ -211,6 +211,7 @@ final class PhabricatorUserEmail
       $signature);
 
     id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($address))
       ->setForceDelivery(true)
       ->setSubject(
@@ -252,6 +253,7 @@ final class PhabricatorUserEmail
         $new_address));
 
     id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($old_address))
       ->setForceDelivery(true)
       ->setSubject(
@@ -287,6 +289,7 @@ final class PhabricatorUserEmail
         $new_address));
 
     id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($new_address))
       ->setForceDelivery(true)
       ->setSubject(

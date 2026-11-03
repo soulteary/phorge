@@ -52,6 +52,7 @@ final class PhabricatorPeopleUsernameMailEngine
         $new_username));
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject(
         pht(
           '[%s] Username Changed',

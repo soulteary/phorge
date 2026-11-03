@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = 'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'
-SOURCE_SHA256 = 'f6c977699b669940586d66ebf89df1031ce8ce1ba5f8e4c29f7974222155bfa6'
+SOURCE_SHA256 = '29f808be06edfd1f9e105179d2fea7db4f6c2ce4d22e808a2bf1d3f014e6ad78'
 STAGES = [('old-recipients',
   '$this->buildOldRecipientLists($object, $xactions);',
   'native-queries-unverified'),

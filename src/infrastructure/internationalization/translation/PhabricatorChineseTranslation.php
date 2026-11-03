@@ -20,6 +20,14 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Private Notifications' => '私有通知',
+      'Authenticated link-only business notifications.' => '仅通过登录链接查看的业务通知。',
+      'Use authenticated links for private business mail.' => '私有业务邮件仅发送需要登录的链接。',
+      'Disabled by default. Requires a paired Gorge per-attempt authorization callback.' => '默认关闭。需要配套的 Gorge 在每次发送尝试前回调校验权限。',
+      'Private notifications require native Gorge delivery.' => '私有通知需要使用 Gorge 原生投递。',
+      'Private notification is no longer deliverable.' => '此私有通知已无法投递。',
+      'Private notification' => '私有通知',
+      'Sign in to view this notification.' => '请登录后查看此通知。',
       'Compound Approval Requested' => '复合变更审批已提交',
       'Approval ID: %s' => '审批编号：%s',
       'A different current system administrator must approve this request. The requester then executes it using this approval ID.' => '此请求须由另一位当前有效的系统管理员审批，之后由申请人使用该审批编号执行。',

@@ -297,6 +297,24 @@ REQUIRED_CHECKS = frozenset({
            'native-session-engine-issued-and-loaded-actual-web-session',
            'owned-native-write-guard-disposed',
            'owned-writer-environment-and-cache-restored'})
+# Actual prior isolated N11 checks; combined main receipt is required before acceptance.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['completion-real-gorge-taskqueue-ready-loopback',
+ 'private-mail-cached-snapshot-quarantined-without-immutable-rewrite',
+ 'private-mail-current-disabled-recipient-cannot-use-business-mail',
+ 'private-mail-current-native-file-query-revocation-stops-existing-snapshot',
+ 'private-mail-fresh-native-task-space-query-restores-request-cache',
+ 'private-mail-immutable-gorge-snapshot-generic-subject-body-headers',
+ 'private-mail-mutated-physical-payload-refused',
+ 'private-mail-owned-queue-cleanup',
+ 'private-mail-physical-attempt-binds-actual-current-recipient-object-and-message',
+ 'private-mail-real-config-default-off',
+ 'private-mail-real-owned-queue-ready-no-workers',
+ 'private-mail-real-persisted-business-envelope-no-private-bytes',
+ 'private-mail-regrant-cannot-resurrect-quarantined-immutable-delivery',
+ 'private-mail-space-revocation-cannot-reuse-stale-native-request-cache',
+ 'private-mail-unreviewed-producer-fails-closed',
+ 'private-mail-unsafe-legacy-snapshot-never-upgraded-or-resent'])
+
 FIELDS = {'batch', 'passed', 'scope', 'checks', 'check_count', 'php_version',
     'source_restore', 'native', 'worker_cleanup', 'file_service_cleanup',
     'successful_owned_file_service_startups', 'cleanup', 'failure', 'cleanup_failures',
@@ -407,6 +425,14 @@ def exact_tree(actual, expected):
     elif actual != expected:
         raise ValueError('evidence scope or result refused')
 
+
+NATIVE['private_mail_tests'] = {'actual_native_queue': True,
+ 'actual_native_source_and_object_query': True,
+ 'all_producers_runtime_complete': False,
+ 'physical_callback_runtime_complete': False,
+ 'real_business_serialization_and_legacy_quarantine': True,
+ 'security_challenge_runtime_matrix_complete': False,
+ 'smtp_or_delivery_workers_executed': False}
 
 def validate_restore(value, root):
     fields = {'quickstart_sha256', 'app_schema_count', 'owned_schema_count',

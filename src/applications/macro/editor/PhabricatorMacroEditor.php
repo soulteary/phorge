@@ -35,6 +35,7 @@ final class PhabricatorMacroEditor
     $name = 'Image Macro "'.$name.'"';
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject($name);
   }
 
