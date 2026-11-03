@@ -106,6 +106,7 @@ final class PhabricatorPeopleWelcomeMailEngine
     $message = implode("\n\n", $message);
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject(
         pht(
           '[%s] Welcome to %s',

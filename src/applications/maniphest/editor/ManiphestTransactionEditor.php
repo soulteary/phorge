@@ -147,6 +147,7 @@ final class ManiphestTransactionEditor
     $title = $object->getTitle();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("T{$id}: {$title}");
   }
 

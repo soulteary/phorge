@@ -249,7 +249,10 @@ final class PhabricatorGorgeMailerClient
       foreach ($headers as $header) {
         $header_list[] = array(
           'name' => $header->getName(),
-          'value' => $header->getValue(),
+          // Native headers (notably X-Phabricator-Mail-ID) may contain an
+          // integer before an ORM reload. SMTP headers are textual; preserve
+          // the native text while respecting Gorge's strict string contract.
+          'value' => phutil_string_cast($header->getValue()),
         );
       }
       $result['headers'] = $header_list;

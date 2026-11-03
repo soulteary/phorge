@@ -90,6 +90,7 @@ final class PhabricatorBadgesEditor
     $subject = pht('Badge %d: %s', $id, $name);
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject($subject);
   }
 

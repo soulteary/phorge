@@ -305,6 +305,7 @@ jobs:
           PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" \
           php support/governance/native-organization/test-native-organization-mysql.php > "$RUNNER_TEMP/governance-native-organization/integration.json"
           python3 scripts/governance/check_native_organization.py --receipt "$RUNNER_TEMP/governance-native-organization/integration.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" > "$RUNNER_TEMP/governance-native-organization/accepted.json"
+          python3 scripts/governance/check_private_notifications.py --receipt "$RUNNER_TEMP/governance-native-organization/integration.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" > "$RUNNER_TEMP/governance-native-organization/private-email-sources.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

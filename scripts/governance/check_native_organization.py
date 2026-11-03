@@ -453,6 +453,24 @@ HTTP_REQUIRED_CHECKS=frozenset({'native-media-active-html-forced-attachment-octe
  'native-media-valid-bearer-file-key-alone-never-authorizes-bytes',
  'native-media-valid-other-user-cookie-does-not-grant-file-permission'})
 REQUIRED_CHECKS=REQUIRED_CHECKS|HTTP_REQUIRED_CHECKS
+# Actual prior isolated N11 checks; combined main receipt is required before acceptance.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['completion-real-gorge-taskqueue-ready-loopback',
+ 'private-mail-cached-snapshot-quarantined-without-immutable-rewrite',
+ 'private-mail-current-disabled-recipient-cannot-use-business-mail',
+ 'private-mail-current-native-file-query-revocation-stops-existing-snapshot',
+ 'private-mail-fresh-native-task-space-query-restores-request-cache',
+ 'private-mail-immutable-gorge-snapshot-generic-subject-body-headers',
+ 'private-mail-mutated-physical-payload-refused',
+ 'private-mail-owned-queue-cleanup',
+ 'private-mail-physical-attempt-binds-actual-current-recipient-object-and-message',
+ 'private-mail-real-config-default-off',
+ 'private-mail-real-owned-queue-ready-no-workers',
+ 'private-mail-real-persisted-business-envelope-no-private-bytes',
+ 'private-mail-regrant-cannot-resurrect-quarantined-immutable-delivery',
+ 'private-mail-space-revocation-cannot-reuse-stale-native-request-cache',
+ 'private-mail-unreviewed-producer-fails-closed',
+ 'private-mail-unsafe-legacy-snapshot-never-upgraded-or-resent'])
+
 # Exact PR94 review regressions; no new passing receipt exists until fresh runtime.
 REQUIRED_CHECKS=REQUIRED_CHECKS|frozenset({
  'native-handover-manual-confirmation-binds-two-observed-receipt-and-handover-versions',
@@ -815,6 +833,103 @@ def exact_tree(actual, expected):
         raise ValueError('evidence scope or result refused')
 
 
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-admin-notice-current-demotion-blocks-existing-immutable-delivery',
+ 'private-mail-admin-queue-generic-body-subject-no-pending-account-disclosure',
+ 'private-mail-approval-demoted-admin-copy-refused-owner-security-notice-preserved',
+ 'private-mail-configured-cluster-routing-refused-before-native-authorization',
+ 'private-mail-email-verification-rotated-native-code-rejects-old-message',
+ 'private-mail-email-verification-unverified-native-address-and-real-code-preserved',
+ 'private-mail-native-account-secret-rotation-rejects-prepared-login-challenge',
+ 'private-mail-native-invite-regeneration-rejects-prior-challenge',
+ 'private-mail-native-primary-switch-retaining-old-address-refuses-bound-login-delivery',
+ 'private-mail-native-readonly-profile-refused-without-replica-fallback',
+ 'private-mail-no-primary-email-native-approval-commits-without-owner-notice',
+ 'private-mail-no-primary-email-native-rename-commits-without-owner-notice',
+ 'private-mail-no-primary-email-native-withdrawal-commits-without-owner-notice',
+ 'private-mail-real-email-verification-producer-single-native-message',
+ 'private-mail-real-invite-worker-native-code-and-current-author-bound',
+ 'private-mail-real-login-producer-retains-native-one-time-challenge',
+ 'private-mail-real-native-approval-transaction-owner-admin-separated-and-event-bound',
+ 'private-mail-real-native-username-transaction-binds-committed-user-event',
+ 'private-mail-real-registration-admin-notice-producer-splits-native-recipients',
+ 'private-mail-real-welcome-producer-retains-native-challenge-and-admin-binding',
+ 'private-mail-security-class-name-alone-cannot-authorize-legacy-challenge',
+ 'private-mail-security-user-edits-use-real-native-session-and-request',
+ 'private-mail-welcome-current-sender-administrator-required-after-prepare'])
+
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-invite-native-nonadmin-people-capability-granted', 'private-mail-invite-native-nonadmin-worker-prepares-genuine-challenge', 'private-mail-invite-legacy-admin-binding-must-equal-author-subject', 'private-mail-invite-current-capability-revocation-refuses-callback', 'private-mail-invite-regrant-cannot-revive-permanently-quarantined-snapshot', 'private-mail-invite-nonadmin-without-native-capability-refused', 'private-mail-invite-native-default-admin-still-authorized', 'private-mail-invite-custom-policy-admin-result-matches-real-native-capability', 'private-mail-invite-capability-does-not-authorize-admin-only-welcome'])
+
+NATIVE['private_mail_tests'] = {'actual_native_queue': True,
+ 'actual_native_source_and_object_query': True,
+ 'all_producers_runtime_complete': False,
+ 'physical_callback_runtime_complete': False,
+ 'real_business_serialization_and_legacy_quarantine': True,
+ 'security_challenge_runtime_matrix_complete': False,
+ 'smtp_or_delivery_workers_executed': False}
+
+NATIVE['private_mail_tests']['security_flow_tests'] = {'actual_login_welcome_email_verification_and_registration_producers': True,
+ 'actual_username_approval_transactions_and_invite_worker': True,
+ 'all_security_producer_runtime_complete': False,
+ 'current_admin_and_challenge_sources_checked': True,
+ 'legalpad_signature_delivery_supported': False,
+ 'registration_private_method_seam_not_full_registration_http': True,
+ 'smtp_security_matrix_complete': False}
+
+# Independently executed native producer and transaction-race obligations.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-approval-independent-admin-revoked-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-approval-independent-admin-revoked-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-previously-quarantined-message-never-auto-restores-after-source-repair',
+ 'private-mail-ssh-no-primary-create-does-not-authorize-undeliverable-notice',
+ 'private-mail-ssh-real-create-notice-current-owner-key-and-address-bound',
+ 'private-mail-ssh-real-rename-publisher-owner-notice-bound',
+ 'private-mail-ssh-revocation-alert-retains-native-inactive-key-history',
+ 'private-mail-ssh-withmail-native-reactivation-stays-refused',
+ 'private-mail-ssh-withmail-real-native-create-and-owned-publish-commit',
+ 'private-mail-ssh-withmail-real-native-rename-commits',
+ 'private-mail-ssh-withmail-real-native-revoke-commits',
+ 'private-mail-ssh-withoutmail-native-reactivation-stays-refused',
+ 'private-mail-ssh-withoutmail-real-native-create-and-owned-publish-commit',
+ 'private-mail-ssh-withoutmail-real-native-rename-commits',
+ 'private-mail-ssh-withoutmail-real-native-revoke-commits',
+ 'private-mail-user-event-present-hash-mismatch-is-permanent-denial-not-pending',
+ 'private-mail-username-independent-commit-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-commit-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-independent-recipient-revoked-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-recipient-revoked-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-independent-rollback-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-rollback-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-outer-native-rollback-orphan-notice-cannot-deliver',
+ 'private-mail-username-real-producer-created-mail-inside-outer-native-transaction',
+ 'private-mail-username-rolled-back-missing-source-remains-unprivileged-during-bounded-retry'])
+NATIVE['private_mail_tests']['remaining_producer_tests'] = {
+    'actual_ssh_create_rename_revoke_and_reactivation_checks': True,
+    'owned_publication_tasks_executed': 6,
+    'actual_native_username_outer_rollback_source_checked': True,
+    'ssh_login_or_cryptographic_handshake_proved': False,
+    'smtp_producer_matrix_complete': False,
+    'device_ssh_producer_matrix_complete': False,
+    'legalpad_supported_signer_flow': False,
+}
+NATIVE['private_mail_tests']['commit_race_tests'] = {
+    'independent_process_native_commit_race_reproduced': True,
+    'samples': {name: {'precommit_pending': True, 'precommit_quarantined': False,
+                       'postcompletion_allowed': name == 'commit'}
+                for name in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked')},
+    'production_fix_implemented': True,
+    'physical_smtp_race_proved': False,
+}
+
+
+# Durable callback denials must not revive after a later regrant.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-attempt-quarantine-persists-reload-with-immutable-snapshots',
+ 'private-mail-callback-and-direct-permanent-denial-quarantine-without-preparation',
+ 'private-mail-callback-only-regrant-cannot-revive-denied-delivery',
+ 'private-mail-malformed-attempt-payload-cannot-poison-current-mail',
+ 'private-mail-primary-email-aba-cannot-revive-quarantined-callback-delivery',
+ 'private-mail-primary-email-policy-change-denied-at-callback-without-prepare',
+ 'private-mail-unprepared-authorization-probe-does-not-quarantine'])
+
+
 def validate_restore(value, root):
     fields = {'quickstart_sha256', 'app_schema_count', 'owned_schema_count',
         'quickstart_source_table_count', 'current_table_count', 'patch_audit',
@@ -842,6 +957,7 @@ def validate_restore(value, root):
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source'])
 NATIVE['project_execution_tests']['approved_native_view_policy'] = {'native_view_only': True, 'future_approver_view_not_added': True, 'whole_family_ready': False, 'join_and_space_supported': False}
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-override-native-self-view-validator', 'project-view-approved-transition-may-remove-approver-future-view', 'project-view-approver-current-view-does-not-require-edit', 'project-view-history-still-requires-current-native-view', 'project-view-native-record-policy-ticket-audit-commit-together', 'project-view-native-writer-scope-released'])
 

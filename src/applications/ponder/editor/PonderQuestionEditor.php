@@ -148,6 +148,7 @@ final class PonderQuestionEditor
     $title = $object->getTitle();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("Q{$id}: {$title}");
   }
 

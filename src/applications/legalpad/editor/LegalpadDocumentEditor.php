@@ -127,6 +127,7 @@ final class LegalpadDocumentEditor
     $title = $object->getDocumentBody()->getTitle();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("L{$id}: {$title}");
   }
 

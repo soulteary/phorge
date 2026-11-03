@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "scope": "private-email-producer-and-attempt-inventory",
+  "production_default_off": true,
+  "activation_blocked": true,
+  "authority_proof": false,
+  "all_producers_runtime_complete": false,
+  "producers": [
+    {
+      "path": "src/applications/auth/controller/PhabricatorAuthRegisterController.php",
+      "symbol": "PhabricatorAuthRegisterController",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "c66ba8947af4800ed897e09a3b5a34175115b9d4e3a3fda4d68162817d53b8d0",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/auth/controller/contact/PhabricatorAuthContactNumberTestController.php",
+      "symbol": "PhabricatorAuthContactNumberTestController",
+      "purpose_review": "sms-outside-email-policy",
+      "sha256": "6ed9258057f234fa59695a1efacbdb6e806eab0787bf9187d47d13d2ce1ee8c1",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/auth/editor/PhabricatorAuthSSHKeyEditor.php",
+      "symbol": "PhabricatorAuthSSHKeyEditor",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "e260afa7c829f1c41d0c752144e567542eec6f4ffd4ad0616dedfd2dbcbbccac",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/auth/factor/PhabricatorSMSAuthFactor.php",
+      "symbol": "PhabricatorSMSAuthFactor",
+      "purpose_review": "sms-outside-email-policy",
+      "sha256": "3e3e477f48c29322ef334615494455f12a6ab5c2c834427707dfae3ada117a69",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/auth/worker/PhabricatorAuthInviteWorker.php",
+      "symbol": "PhabricatorAuthInviteWorker",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "3b9a6512feba679aa8b4aa98649830d57cb17e5c52fe181a7f721465ebe60122",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/badges/editor/PhabricatorBadgesEditor.php",
+      "symbol": "PhabricatorBadgesEditor",
+      "purpose_review": "business-producer",
+      "sha256": "eed4d502cafa4b103de4d945478f0d0a30a5ed3aa99586fff62ceb8b3a9286e1",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/calendar/editor/PhabricatorCalendarEventEditor.php",
+      "symbol": "PhabricatorCalendarEventEditor",
+      "purpose_review": "business-producer",
+      "sha256": "e33992c45d2fdb14398764cb98d6e60cd3face10f1011008acb7a208682e2a98",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php",
+      "symbol": "PhabricatorCalendarNotificationEngine",
+      "purpose_review": "business-producer",
+      "sha256": "aa0c9853cfd288f6ce575e4007fa1d8c6da75b7758e68ff61f72fbb9656951d9",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/conpherence/editor/ConpherenceEditor.php",
+      "symbol": "ConpherenceEditor",
+      "purpose_review": "business-producer",
+      "sha256": "021527b1d7cd91fe5fcafcc19c551858e10033ba5da0d93b1ff24cd4469a313e",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/countdown/editor/PhabricatorCountdownEditor.php",
+      "symbol": "PhabricatorCountdownEditor",
+      "purpose_review": "business-producer",
+      "sha256": "5a0a762eb1f07948da189e841fceca52b1898e493782f94435b803a1aad2592d",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/files/editor/PhabricatorFileEditor.php",
+      "symbol": "PhabricatorFileEditor",
+      "purpose_review": "business-producer",
+      "sha256": "8cd85a17532df795392956d4bdb607f79af4a9ea30d6dfa18ed5b3df070d2c34",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/files/mail/FileCreateMailReceiver.php",
+      "symbol": "FileCreateMailReceiver",
+      "purpose_review": "business-producer",
+      "sha256": "49fb6f1fdb7120d085c3eecbade4237a56e9cbd3b8c382a2adbfd7cd2e64ed47",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/herald/editor/HeraldRuleEditor.php",
+      "symbol": "HeraldRuleEditor",
+      "purpose_review": "business-producer",
+      "sha256": "fb1968f422cc29b48da92eec05b90451babd9b346de24670f92ceeae4baae30c",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/legalpad/controller/LegalpadDocumentSignController.php",
+      "symbol": "LegalpadDocumentSignController",
+      "purpose_review": "unsupported-signature-hard-refusal",
+      "sha256": "5ef8515bf973098b88f89d54ac9495e3f7d3e95d24560df5cfca9a1414fb9296",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/legalpad/editor/LegalpadDocumentEditor.php",
+      "symbol": "LegalpadDocumentEditor",
+      "purpose_review": "business-producer",
+      "sha256": "d6c1449b9385f488a02ad24cb633e29f0da96551857122e3d63b75a8e5cfcba1",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/macro/editor/PhabricatorMacroEditor.php",
+      "symbol": "PhabricatorMacroEditor",
+      "purpose_review": "business-producer",
+      "sha256": "b38f318188438e96b476a5b28a8c169f9aa670a51e6eaa8c1855930e3f1b3438",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/maniphest/editor/ManiphestTransactionEditor.php",
+      "symbol": "ManiphestTransactionEditor",
+      "purpose_review": "business-producer",
+      "sha256": "4f74bd7f08c63588ee0dd10fbb0b5f31a8222a37f6627d79485b8c8dec8f4bc7",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/metamta/management/PhabricatorMailManagementSendTestWorkflow.php",
+      "symbol": "PhabricatorMailManagementSendTestWorkflow",
+      "purpose_review": "operator-explicit-test-producer",
+      "sha256": "31b40cff13784dc38225334804fb4d0696d4dc2740df09791dbd4b03ed59ccee",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/metamta/storage/PhabricatorMetaMTAReceivedMail.php",
+      "symbol": "PhabricatorMetaMTAReceivedMail",
+      "purpose_review": "inbound-error-producer-private-original-body-and-headers",
+      "sha256": "f1f3a2dc45efefa5e1cfac45403e6aa0dd9c0777c0640453cc27a96e89b6f770",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/people/mail/PhabricatorPeopleEmailLoginMailEngine.php",
+      "symbol": "PhabricatorPeopleEmailLoginMailEngine",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "250b6d270eca51553351b9a4b0dcd1dec3949c6de78ac8e43c429a6044fa84d0",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/people/mail/PhabricatorPeopleUsernameMailEngine.php",
+      "symbol": "PhabricatorPeopleUsernameMailEngine",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "7ff252a5ff1ff860838731fad16a0d450c8bbeb2d57e5c94e4f603e8df2f1a4f",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/people/mail/PhabricatorPeopleWelcomeMailEngine.php",
+      "symbol": "PhabricatorPeopleWelcomeMailEngine",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "8ee2b12d6fef69877a98c8709b3376905bea67c4c3d4489b864bb9bd9c4054c3",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/people/storage/PhabricatorUserEmail.php",
+      "symbol": "PhabricatorUserEmail",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "0f0281a5a5e41e3ea8c67e0dc3f57793f22cf623ea1a76927f750de2bb4f5fca",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/people/xaction/PhabricatorUserApproveTransaction.php",
+      "symbol": "PhabricatorUserApproveTransaction",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "cbb02394fa815fcead7a82b1698bfa02d102088f7f6cf1603ff6a02b6ff891d5",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/phame/editor/PhameBlogEditor.php",
+      "symbol": "PhameBlogEditor",
+      "purpose_review": "business-producer",
+      "sha256": "bd9ca768e5a986b35f6083758e17bcf6fc16ded75482fa6e07c0bda710971d32",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/phame/editor/PhamePostEditor.php",
+      "symbol": "PhamePostEditor",
+      "purpose_review": "business-producer",
+      "sha256": "56309811e91701362c83e3a64acaa1a50453642a5739f08ca638351e84416589",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/pholio/editor/PholioMockEditor.php",
+      "symbol": "PholioMockEditor",
+      "purpose_review": "business-producer",
+      "sha256": "803935d88ef43f6e1d3b9407e33f36cb7983fb11036500c570074fc5f1cbd5ad",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/phriction/editor/PhrictionTransactionEditor.php",
+      "symbol": "PhrictionTransactionEditor",
+      "purpose_review": "business-producer",
+      "sha256": "3a3b1e9643a71b48d4123960a7f0f594c2258bfc96e450fe81625a1d26aaa55d",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/phurl/editor/PhabricatorPhurlURLEditor.php",
+      "symbol": "PhabricatorPhurlURLEditor",
+      "purpose_review": "business-producer",
+      "sha256": "baebae357cafb543894debbc5b3a981959fcd6e264e437f2e1ae3026118f7471",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/policy/editor/PhorgePolicyNamedPolicyTransactionEditor.php",
+      "symbol": "PhorgePolicyNamedPolicyTransactionEditor",
+      "purpose_review": "business-producer",
+      "sha256": "beb67ec39fcbb0a1e6e6042e4e75b344c846a7b25a823e80be61e44fd9fd5772",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/ponder/editor/PonderAnswerEditor.php",
+      "symbol": "PonderAnswerEditor",
+      "purpose_review": "business-producer",
+      "sha256": "4a69328827be8e160636b03744333abbe7fe868a1d7efc41ba651315d568f249",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/ponder/editor/PonderQuestionEditor.php",
+      "symbol": "PonderQuestionEditor",
+      "purpose_review": "business-producer",
+      "sha256": "db66f161f61daabc50cef590ebf271af8879943890cce646c5c231efdb596b73",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/project/editor/PhabricatorProjectTransactionEditor.php",
+      "symbol": "PhabricatorProjectTransactionEditor",
+      "purpose_review": "business-producer",
+      "sha256": "1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919",
+      "runtime_matrix_complete": false
+    },
+    {
+      "path": "src/applications/slowvote/editor/PhabricatorSlowvoteEditor.php",
+      "symbol": "PhabricatorSlowvoteEditor",
+      "purpose_review": "business-producer",
+      "sha256": "4d6817e0ca4544a4a52968de393f103ba8a73d43fd13a6d7a0efc7f633f73a23",
+      "runtime_matrix_complete": false
+    }
+  ],
+  "consumers": [
+    {
+      "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
+      "sha256": "a8f572501fb6c76f83ac2c30c891a16003c23ab15f9c2d38e26b4ad854983a5b"
+    },
+    {
+      "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",
+      "sha256": "99488d39431c1a30d38d90d6a0394d9554e9da82ca3ea87c7fd6b3b2afea2e90"
+    },
+    {
+      "path": "src/applications/metamta/query/PhabricatorMetaMTAActorQuery.php",
+      "sha256": "cb2cc84c77e191a72d217563c917c984b90aebe1b53619b32d4d3321baa24d09"
+    },
+    {
+      "path": "src/applications/metamta/engine/PhabricatorMailEmailEngine.php",
+      "sha256": "982defa48c503da3720840e89c3686a8e847fcb8b2b91c2fbe59efeea91874a6"
+    },
+    {
+      "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
+      "sha256": "8f02efd5f0a329b7b610d5e9da9bf7dba4773050ebf4f8a7c13c0095734e0a36"
+    },
+    {
+      "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
+      "sha256": "cc5a2f49840929b72a698202f448c4f2511c9ab3b8a89a964b2104dc4a274ecb"
+    },
+    {
+      "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
+      "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1"
+    },
+    {
+      "path": "src/applications/people/mail/PhabricatorPeopleMailEngine.php",
+      "sha256": "26287542eb68899043ebecf12a24c589858c01917df2efd0dc4a64aff2dc355f"
+    },
+    {
+      "path": "src/applications/people/xaction/PhabricatorUserUsernameTransaction.php",
+      "sha256": "2be81868a0d865c01a02c09a6d12197a0bf3602c3b96e01b128859aad2106356"
+    },
+    {
+      "path": "src/applications/transactions/storage/PhabricatorModularTransactionType.php",
+      "sha256": "7a563d43d67d29ab886c251e185542b44c8dc7d73096408dc436bcabff5786af"
+    }
+  ],
+  "remaining_gates": [
+    "physical-callback-and-smtp-owlmail-runtime",
+    "all-producer-and-security-purpose-matrix",
+    "direct-multi-recipient-business-splitting",
+    "paired-release-and-activation-readiness",
+    "trusted-browser-and-global-governance-completion"
+  ],
+  "security_flows": {
+    "account.login": "native-producer-and-source-tested",
+    "account.welcome": "native-producer-and-source-tested",
+    "account.username": "native-transaction-and-source-tested",
+    "account.email.verify": "native-producer-and-source-tested",
+    "account.email.old-primary": "source-reviewed-runtime-pending",
+    "account.email.new-primary": "source-reviewed-runtime-pending",
+    "account.approval.queue": "native-producer-method-not-registration-http-tested",
+    "account.approved.owner": "native-transaction-and-source-tested",
+    "account.approved.admin": "native-transaction-and-source-tested",
+    "account.invite": "native-worker-and-source-tested",
+    "account.ssh": "source-reviewed-full-key-mutation-runtime-pending"
+  },
+  "unsupported_security": {
+    "LegalpadDocumentSignController": "unbound-native-signature-refused-full-supported-flow-pending",
+    "SMS": "outside-email-policy-scope-no-new-runtime-proof"
+  }
+}

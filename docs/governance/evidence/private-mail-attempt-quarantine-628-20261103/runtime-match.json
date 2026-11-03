@@ -1,0 +1,9 @@
+{
+  "git_index_tree": "f7f54977ec495afe3dfaef958f6fa4a792cd5783",
+  "file_count": 5944,
+  "content_matches_runtime": true,
+  "missing": [],
+  "extra": [],
+  "changed": [],
+  "scope": "Runtime inventory content match; does not extend scenario coverage or establish release readiness."
+}

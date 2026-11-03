@@ -53,6 +53,7 @@ final class PhameBlogEditor
     $name = $object->getName();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject($name);
   }
 

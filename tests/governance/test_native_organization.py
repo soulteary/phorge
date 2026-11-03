@@ -45,6 +45,16 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_native_invitation_capability_regressions_cannot_be_omitted(self):
+        for name in ['private-mail-invite-native-nonadmin-people-capability-granted', 'private-mail-invite-native-nonadmin-worker-prepares-genuine-challenge', 'private-mail-invite-legacy-admin-binding-must-equal-author-subject', 'private-mail-invite-current-capability-revocation-refuses-callback', 'private-mail-invite-regrant-cannot-revive-permanently-quarantined-snapshot', 'private-mail-invite-nonadmin-without-native-capability-refused', 'private-mail-invite-native-default-admin-still-authorized', 'private-mail-invite-custom-policy-admin-result-matches-real-native-capability', 'private-mail-invite-capability-does-not-authorize-admin-only-welcome']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(check=name),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+
+    def test_large_security_payload_regressions_are_required(self):
+        for name in ['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
     def test_view_policy_public_entry_proof_cannot_be_omitted(self):
         for name in ['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only']:
             data=template();data['checks'].remove(name);data['check_count']-=1
@@ -162,6 +172,15 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(name=name),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
         data=template();data['native'].pop('http_tests')
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+    def test_private_notification_scope_requires_current_source_and_preserves_unproved_gates(self):
+        for key in ('actual_native_source_and_object_query','actual_native_queue',
+                    'real_business_serialization_and_legacy_quarantine'):
+            data=template();data['native']['private_mail_tests'][key]=False
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in ('smtp_or_delivery_workers_executed','security_challenge_runtime_matrix_complete',
+                    'all_producers_runtime_complete','physical_callback_runtime_complete'):
+            data=template();data['native']['private_mail_tests'][key]=True
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:
@@ -219,6 +238,27 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                           ('optional_source_reader_adapter_exercised',False),('isolated_optional_features_enabled',False)]:
             data=template();data[key]=value
             with self.subTest(key=key), self.assertRaises(ValueError): gate.validate(data, file_digest='b'*64)
+
+    def test_security_source_receipt_cannot_be_promoted_to_smtp_or_legalpad_proof(self):
+        for key in ('smtp_security_matrix_complete','all_security_producer_runtime_complete','legalpad_signature_delivery_supported'):
+            data=template();data['native']['private_mail_tests']['security_flow_tests'][key]=True
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();name='private-mail-no-primary-email-native-rename-commits-without-owner-notice'
+        data['checks'].remove(name);data['check_count']-=1
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+    def test_native_producer_race_receipt_cannot_claim_unproved_delivery_or_reactivation(self):
+        for key in ('ssh_login_or_cryptographic_handshake_proved',
+                    'smtp_producer_matrix_complete', 'device_ssh_producer_matrix_complete',
+                    'legalpad_supported_signer_flow'):
+            data=template(); data['native']['private_mail_tests']['remaining_producer_tests'][key]=True
+            with self.subTest(key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in ('precommit_pending', 'precommit_quarantined', 'postcompletion_allowed'):
+            for case in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked'):
+                data=template(); sample=data['native']['private_mail_tests']['commit_race_tests']['samples'][case]
+                sample[key]=not sample[key]
+                with self.subTest(case=case,key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template(); data['native']['private_mail_tests']['commit_race_tests']['physical_smtp_race_proved']=True
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_actual_paired_binary_digest_is_required_and_must_match(self):
         with self.assertRaises(ValueError): gate.validate(template())

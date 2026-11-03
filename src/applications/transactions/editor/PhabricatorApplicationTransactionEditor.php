@@ -3565,6 +3565,7 @@ abstract class PhabricatorApplicationTransactionEditor
     $mail_xactions = $this->getTransactionsForMail($object, $xactions);
 
     $mail = $this->buildMailTemplate($object);
+    $mail->setPrivateMailProducer(get_class($this));
     $body = $this->buildMailBody($object, $mail_xactions);
 
     $mail_tags = $this->getMailTags($object, $mail_xactions);
