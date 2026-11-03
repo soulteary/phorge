@@ -704,6 +704,51 @@ NATIVE['private_mail_tests']['security_flow_tests'] = {'actual_login_welcome_ema
  'registration_private_method_seam_not_full_registration_http': True,
  'smtp_security_matrix_complete': False}
 
+# Independently executed native producer and transaction-race obligations.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-approval-independent-admin-revoked-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-approval-independent-admin-revoked-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-previously-quarantined-message-never-auto-restores-after-source-repair',
+ 'private-mail-ssh-no-primary-create-does-not-authorize-undeliverable-notice',
+ 'private-mail-ssh-real-create-notice-current-owner-key-and-address-bound',
+ 'private-mail-ssh-real-rename-publisher-owner-notice-bound',
+ 'private-mail-ssh-revocation-alert-retains-native-inactive-key-history',
+ 'private-mail-ssh-withmail-native-reactivation-stays-refused',
+ 'private-mail-ssh-withmail-real-native-create-and-owned-publish-commit',
+ 'private-mail-ssh-withmail-real-native-rename-commits',
+ 'private-mail-ssh-withmail-real-native-revoke-commits',
+ 'private-mail-ssh-withoutmail-native-reactivation-stays-refused',
+ 'private-mail-ssh-withoutmail-real-native-create-and-owned-publish-commit',
+ 'private-mail-ssh-withoutmail-real-native-rename-commits',
+ 'private-mail-ssh-withoutmail-real-native-revoke-commits',
+ 'private-mail-user-event-present-hash-mismatch-is-permanent-denial-not-pending',
+ 'private-mail-username-independent-commit-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-commit-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-independent-recipient-revoked-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-recipient-revoked-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-independent-rollback-durable-retry-rechecks-source-and-current-destination',
+ 'private-mail-username-independent-rollback-precommit-defers-without-quarantine-snapshot-rewrite-or-send',
+ 'private-mail-username-outer-native-rollback-orphan-notice-cannot-deliver',
+ 'private-mail-username-real-producer-created-mail-inside-outer-native-transaction',
+ 'private-mail-username-rolled-back-missing-source-remains-unprivileged-during-bounded-retry'])
+NATIVE['private_mail_tests']['remaining_producer_tests'] = {
+    'actual_ssh_create_rename_revoke_and_reactivation_checks': True,
+    'owned_publication_tasks_executed': 6,
+    'actual_native_username_outer_rollback_source_checked': True,
+    'ssh_login_or_cryptographic_handshake_proved': False,
+    'smtp_producer_matrix_complete': False,
+    'device_ssh_producer_matrix_complete': False,
+    'legalpad_supported_signer_flow': False,
+}
+NATIVE['private_mail_tests']['commit_race_tests'] = {
+    'independent_process_native_commit_race_reproduced': True,
+    'samples': {name: {'precommit_pending': True, 'precommit_quarantined': False,
+                       'postcompletion_allowed': name == 'commit'}
+                for name in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked')},
+    'production_fix_implemented': True,
+    'physical_smtp_race_proved': False,
+}
+
+
 def validate_restore(value, root):
     fields = {'quickstart_sha256', 'app_schema_count', 'owned_schema_count',
         'quickstart_source_table_count', 'current_table_count', 'patch_audit',

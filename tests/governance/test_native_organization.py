@@ -198,6 +198,20 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template();name='private-mail-no-primary-email-native-rename-commits-without-owner-notice'
         data['checks'].remove(name);data['check_count']-=1
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+    def test_native_producer_race_receipt_cannot_claim_unproved_delivery_or_reactivation(self):
+        for key in ('ssh_login_or_cryptographic_handshake_proved',
+                    'smtp_producer_matrix_complete', 'device_ssh_producer_matrix_complete',
+                    'legalpad_supported_signer_flow'):
+            data=template(); data['native']['private_mail_tests']['remaining_producer_tests'][key]=True
+            with self.subTest(key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in ('precommit_pending', 'precommit_quarantined', 'postcompletion_allowed'):
+            for case in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked'):
+                data=template(); sample=data['native']['private_mail_tests']['commit_race_tests']['samples'][case]
+                sample[key]=not sample[key]
+                with self.subTest(case=case,key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template(); data['native']['private_mail_tests']['commit_race_tests']['physical_smtp_race_proved']=True
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_actual_paired_binary_digest_is_required_and_must_match(self):
         with self.assertRaises(ValueError): gate.validate(template())
         for digest in ('c'*64, None, True):
