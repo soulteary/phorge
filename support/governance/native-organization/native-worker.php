@@ -29,7 +29,9 @@ try {
   }
   $payload=json_decode(file_get_contents($path.'/payload.json'),true,16,JSON_THROW_ON_ERROR);
   $keys=array_keys($payload); sort($keys);
-  if ($keys!==array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256') ||
+  $wanted_keys=array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256');
+  if(($payload['action']['action']??null)==='measurement.api-token-auth'){$wanted_keys[]='measurement_file';sort($wanted_keys);}
+  if ($keys!==$wanted_keys ||
       $payload['directory_dev']!==$stat['dev'] || $payload['directory_ino']!==$stat['ino'] ||
       !is_string($payload['owner_token']) || !preg_match('/\A[a-f0-9]{64}\z/',$payload['owner_token']) ||
       !hash_equals($payload['owner_token'],file_get_contents($path.'/owner')) ||
@@ -91,8 +93,10 @@ try {
       (new ReflectionProperty(LiskDAO::class,'connections'))->getValue()) {
     throw new RuntimeException('native_worker_inherited_context_refused');
   }
+  $measurement_file=governance_native_measurement_file_source($payload['action']['action']??null,$payload['measurement_file']??null,
+    $config['namespace'],$payload['fixture_nonce'],$payload['source_sha256']);
   $stack=new PhabricatorConfigStackSource(); $stack->pushSource(new PhabricatorConfigDefaultSource());
-  $stack->pushSource(new PhabricatorConfigDictionarySource(array(
+  $settings=array(
     'mysql.host'=>$config['host'],'mysql.port'=>$config['port'],'mysql.user'=>$config['user'],
     'mysql.pass'=>$config['password'],'storage.default-namespace'=>$config['namespace'],
     'phabricator.cache-namespace'=>$config['namespace'],'cluster.databases'=>array(),'cluster.search'=>array(),
@@ -103,7 +107,12 @@ try {
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
     'project.history-task-drafts'=>false,'gorge.search.source-scan'=>false,'gorge.search.projection-shadow'=>false,
     'gorge.taskqueue.owner'=>'phorge','gorge.taskqueue.uri'=>null,'gorge.notification.outbox'=>false,
-    'notification.servers'=>array(),'gorge.db.uri'=>null,'gorge.file.uri'=>null,'gorge.image.uri'=>null,'gorge.render.uri'=>null)));
+    'notification.servers'=>array(),'gorge.db.uri'=>null,'gorge.file.uri'=>null,'gorge.image.uri'=>null,'gorge.render.uri'=>null);
+  if($measurement_file!==null){
+    $settings['gorge.file.uri']=$measurement_file['uri'];$settings['gorge.file.token']=$measurement_file['token'];
+    $settings['gorge.service-policies']=array('file'=>'required');
+  }
+  $stack->pushSource(new PhabricatorConfigDictionarySource($settings));
   (new ReflectionProperty(PhabricatorEnv::class,'sourceStack'))->setValue(null,$stack);
   (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
   if (AphrontWriteGuard::isGuardActive() ||
@@ -148,6 +157,58 @@ try {
       $result=array('status'=>'observed','outcome'=>$outcome,'exception_class'=>$exception,'verified'=>$stored->isVerified(),
         'transaction_open'=>$conn->isInsideTransaction(),'mail_delta'=>$after-$before);
     }
+  }else if($kind==='measurement.api-token-auth'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','owner_binding','token','token_id')||!is_string($action['token'])||
+      !preg_match('/\Aapi-[a-z0-9]{28}\z/',$action['token'])||!is_int($action['token_id'])||$action['token_id']<1||
+      !is_string($action['owner_binding'])||!preg_match('/\A[a-f0-9]{64}\z/',$action['owner_binding'])){
+      throw new RuntimeException('native_worker_action_refused');}
+    $token_conn=(new PhabricatorConduitToken())->establishConnection('w');
+    $row=queryfx_one($token_conn,'SELECT id,objectPHID,tokenType,token,expires FROM %R WHERE id=%d',
+      new PhabricatorConduitToken(),$action['token_id']);
+    if($row&&(!hash_equals($action['token'],$row['token'])||$row['tokenType']!==PhabricatorConduitToken::TYPE_STANDARD||
+      hash('sha256',$row['objectPHID'])!==$action['owner_binding'])){
+      throw new RuntimeException('measurement_token_binding_refused');}
+    $boot=trim(file_get_contents('/proc/sys/kernel/random/boot_id'));
+    if(!preg_match('/\A[a-f0-9-]{36}\z/',$boot)){throw new RuntimeException('measurement_linux_clock_required');}
+    $actual_thread=(int)queryfx_one($token_conn,'SELECT CONNECTION_ID() n')['n'];
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$actual_thread));
+    $api=new ConduitAPIRequest(array(),true);
+    $controller=(new PhabricatorConduitAPIController())->setRequest(
+      (new AphrontRequest('fixture.invalid','/api/user.whoami'))->setUser(new PhabricatorUser()));
+    $error=(new ReflectionMethod(PhabricatorConduitAPIController::class,'authenticateUser'))
+      ->invoke($controller,$api,array('token'=>$action['token']),'user.whoami');
+    $outcome='unknown';$code='unknown';
+    if($error===null&&$row&&hash('sha256',$api->getUser()->getPHID())===$action['owner_binding']){
+      $outcome='allowed';$code='native-success';
+    }else if(!$row&&is_array($error)&&array_keys($error)===array(0,1)&&$error[0]==='ERR-INVALID-AUTH'){
+      $outcome='denied';$code='ERR-INVALID-AUTH';
+    }
+    $result=array('status'=>'committed','outcome'=>$outcome,'authentication_code'=>$code,'asset_binding'=>$measurement_file['binding'],
+      'token_present'=>$row!==null,'boot_id_sha256'=>hash('sha256',$boot),
+      'owner_binding'=>$action['owner_binding'],
+      'source_binding'=>hash('sha256',phutil_json_encode(array('id'=>$action['token_id'],'row'=>$row))));
+  } else if($kind==='measurement.project-query'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','target','token')||!is_string($action['token'])||strlen($action['token'])>256||
+      !is_string($action['target'])||!preg_match('/\APHID-PROJ-[a-zA-Z0-9]{20}\z/',$action['target'])){
+      throw new RuntimeException('native_worker_action_refused');}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer||$viewer->getIsDisabled()||!$viewer->getIsApproved()||$viewer->getIsSystemAgent()||$viewer->getIsMailingList()){
+      throw new RuntimeException('governance_web_credential_required');}
+    $project_conn=(new PhabricatorProject())->establishConnection('w');
+    $row=queryfx_one($project_conn,'SELECT phid,viewPolicy FROM %R WHERE BINARY phid=BINARY %s',new PhabricatorProject(),$action['target']);
+    $latest=queryfx_one($project_conn,'SELECT id,metadata FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id DESC LIMIT 1',new PhabricatorProjectTransaction(),$action['target']);
+    if(!$row||$row['phid']!==$action['target']){throw new RuntimeException('measurement_target_missing');}
+    $boot=trim(file_get_contents('/proc/sys/kernel/random/boot_id'));
+    if(!preg_match('/\A[a-f0-9-]{36}\z/',$boot)){throw new RuntimeException('measurement_linux_clock_required');}
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    $object=null;
+    try{$object=(new PhabricatorProjectQuery())->setViewer($viewer)->withPHIDs(array($action['target']))->executeOne();}
+    catch(PhabricatorPolicyException$error){if(get_class($error)!==PhabricatorPolicyException::class){throw$error;}$object=null;}
+    $result=array('status'=>'committed','outcome'=>$object?'allowed':'denied',
+      'boot_id_sha256'=>hash('sha256',$boot),'target_binding'=>hash('sha256',$action['target']),
+      'source_binding'=>hash('sha256',phutil_json_encode(array($row,$latest))));
   } else if ($kind==='org.list' || $kind==='org.count') {
     $keys=array_keys($action); sort($keys);
     if ($keys!==array('action','token') || !is_string($action['token']) || strlen($action['token'])>256) {

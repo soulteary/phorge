@@ -853,6 +853,62 @@ def exact_tree(actual, expected):
         raise ValueError('evidence scope or result refused')
 
 
+# Explicit N12 Query-only producer obligations, not an adopted revocation SLA.
+MEASUREMENT_CHECKS = frozenset({
+    'n12-native-query-independent-current-session-pretransition-allow',
+    'n12-native-policy-transition-returns-only-after-owned-transaction-commit',
+    'n12-native-transition-record-and-group-persisted-with-actual-view-policy',
+    'n12-independent-fresh-native-query-observes-committed-source-and-denial',
+    'n12-query-attempts-use-serial-parent-clock-around-actual-commit',
+})
+REQUIRED_CHECKS = REQUIRED_CHECKS | MEASUREMENT_CHECKS
+WORKERS = 22
+_measurement_spec = importlib.util.spec_from_file_location('n12_observation_consumer', ROOT/'support/governance/revocation-measurement/consumer.py')
+measurement = importlib.util.module_from_spec(_measurement_spec)
+_measurement_spec.loader.exec_module(measurement)
+MEASUREMENT_PRODUCER = 'support/governance/native-organization/revocation-measurement-cases.php'
+# Synthetic template used only by gate mutation tests, never an executed receipt.
+NATIVE['revocation_measurement_tests'] = {
+    'profile': 'native-session-authenticated-project-query-only', 'actual_source_checked': True,
+    'actual_independent_query_processes': 3, 'HTTP_proved': False, 'gateway_proved': False,
+    'long_connection_proved': False, 'SLA_proved': False, 'convergence_proved': False,
+    'native_source_binding_sha256': 'f'*64,
+    'event': {'schema': 1, 'source_revision': 'a'*40,
+        'producer_sha256': hashlib.sha256((ROOT/MEASUREMENT_PRODUCER).read_bytes()).hexdigest(),
+        'family': 'app-session', 'clock': {'kind': 'monotonic_ns', 'boot_id_sha256': 'b'*64},
+        'transition': {'id': 'c'*64, 'action': 'revoke', 'native_commit_id_sha256': 'd'*64,
+            'boundary': 'native-transaction-operation-call-return', 'operation_start_ns': 80,
+            'commit_confirmed_return_ns': 100},
+        'attempts': [{'id': i, 'transition_id': 'c'*64, 'boot_id_sha256': 'b'*64,
+                     'start_ns': start, 'finish_ns': end, 'outcome': outcome}
+            for i,start,end,outcome in [(1,10,20,'allowed'),(2,110,120,'denied'),(3,130,140,'denied')]]}}
+
+
+API_TOKEN_MEASUREMENT_PRODUCER = 'support/governance/native-organization/revocation-api-token-cases.php'
+API_TOKEN_MEASUREMENT_CHECKS = frozenset({
+    'n12-native-api-independent-real-token-authentication-pretransition-allow',
+    'n12-native-api-token-source-and-no-outer-transaction-proved',
+    'n12-native-api-actual-owned-token-dao-delete-commits-exactly-one-row',
+    'n12-native-api-independent-absence-and-native-authentication-denial-after-revoke',
+    'n12-native-api-serial-parent-clock-binds-actual-delete-and-fresh-authentication',
+})
+REQUIRED_CHECKS = REQUIRED_CHECKS | API_TOKEN_MEASUREMENT_CHECKS
+WORKERS = 25
+NATIVE['api_token_revocation_measurement_tests'] = {
+    'profile':'native-conduit-token-revoke-authentication-only','actual_source_checked':True,
+    'actual_independent_authentication_processes':3,'token_rows_deleted':1,
+    'native_transaction_record_available':False,'HTTP_proved':False,'gateway_proved':False,
+    'SLA_proved':False,'convergence_proved':False,'before_source_binding_sha256':'e'*64,
+    'after_source_binding_sha256':'f'*64,
+    'event':{'schema':2,'source_revision':'a'*40,
+        'producer_sha256':hashlib.sha256((ROOT/API_TOKEN_MEASUREMENT_PRODUCER).read_bytes()).hexdigest(),
+        'family':'api-token','clock':{'kind':'monotonic_ns','boot_id_sha256':'b'*64},
+        'transition':{'id':'c'*64,'action':'revoke','operation_binding_sha256':'c'*64,
+            'boundary':'native-token-dao-delete-own-transaction','operation_start_ns':80,
+            'commit_confirmed_return_ns':100},
+        'attempts':[{'id':i,'transition_id':'c'*64,'boot_id_sha256':'b'*64,
+                    'start_ns':start,'finish_ns':end,'outcome':outcome}
+            for i,start,end,outcome in [(1,10,20,'allowed'),(2,110,120,'denied'),(3,130,140,'denied')]]}}
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-admin-notice-current-demotion-blocks-existing-immutable-delivery',
  'private-mail-admin-queue-generic-body-subject-no-pending-account-disclosure',
  'private-mail-approval-demoted-admin-copy-refused-owner-security-notice-preserved',
@@ -1009,7 +1065,7 @@ NOTIFICATION_BOUNDARY_CHECKS = frozenset(['private-business-project-normal-actua
  'private-mail-legalpad-verifier-victim-rolls-back-and-releases-locks-before-connection-close-with-no-mail',
  'private-mail-legalpad-weighted-index-race-proves-actual-verifier-deadlock-victim-not-permission-denial'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | NOTIFICATION_BOUNDARY_CHECKS
-WORKERS = 25  # Four registered Legalpad source/race observations, not business subprocesses.
+WORKERS = 31  # Root25 plus six N12 independent probes; local business subprocesses excluded.
 NATIVE['private_mail_tests']['legalpad_tests']['policy_source_tests'] = {'actual_named_effective_policy': True,
  'actual_project_membership_editor_and_materialized_source': True,
  'all_policy_sources_atomically_locked': False,
@@ -1165,7 +1221,8 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset([
  'private-business-project-outer-rollback-actual-native-create-envelope-visible-initial-fields-hidden'])
 NATIVE['private_mail_tests']['business_publication_tests']['actual_native_project_create_envelope_verified'] = True
 
-def validate(data, root=ROOT, file_digest=None):
+
+def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
     native=data['native']
@@ -1240,6 +1297,17 @@ def validate(data, root=ROOT, file_digest=None):
     expected_legalpad['inflight_source_tests']['index_race']=index
     expected_native['private_mail_tests']=dict(NATIVE['private_mail_tests'],
         business_gorge_publication_tests=expected_gorge, business_publication_tests=expected_business,legalpad_tests=expected_legalpad)
+
+    if type(measurement_revision) is not str or not re.fullmatch('[a-f0-9]{40}', measurement_revision):
+        raise ValueError('explicit measurement source revision required')
+    producer_digest=hashlib.sha256((Path(root)/MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
+    observed=native.get('revocation_measurement_tests')
+    measurement.describe_native_query_receipt(observed,measurement_revision,producer_digest)
+    expected_native['revocation_measurement_tests']=observed
+    token_observed=native.get('api_token_revocation_measurement_tests')
+    token_digest=hashlib.sha256((Path(root)/API_TOKEN_MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
+    measurement.describe_native_token_receipt(token_observed,measurement_revision,token_digest)
+    expected_native['api_token_revocation_measurement_tests']=token_observed
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',
@@ -1283,6 +1351,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', type=Path, required=True)
     parser.add_argument('--file-binary', type=Path, required=True)
+    parser.add_argument('--measurement-source-revision', required=True)
     args=parser.parse_args()
     try:
         if args.receipt.stat().st_size > 1048576:
@@ -1291,7 +1360,7 @@ def main():
             parse_constant=lambda unused: (_ for _ in ()).throw(ValueError('invalid JSON constant')))
         if not args.file_binary.is_file():
             raise ValueError('paired binary missing')
-        accepted=validate(data, file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest())
+        accepted=validate(data, file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest(), measurement_revision=args.measurement_source_revision)
     except (OSError, ValueError, TypeError, KeyError):
         parser.exit(1, 'Native organization receipt rejected.\n')
     print(json.dumps(accepted, sort_keys=True))

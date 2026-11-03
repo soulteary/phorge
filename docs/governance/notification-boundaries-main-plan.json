@@ -1,12 +1,12 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 7,
+  "version": 8,
   "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
-  "status": "explicit-root-native-create-plus-gorge-create-union-host-prepared-runtime-unproven",
+  "status": "explicit-main99-gorge-native-create-union-host-prepared-runtime-unproven",
   "new_runtime_obligation_not_actual": {
     "pure": 215,
-    "native_sql": 764,
-    "registered_native_workers": 25,
+    "native_sql": 774,
+    "registered_native_workers": 31,
     "additional_locally_owned_business_php_processes": 20,
     "business_process_profiles": {
       "sql": 10,
@@ -66,13 +66,13 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual215/764 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual215/774 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh215/764 proof and exact runtime/source match remain required",
+    "Current main96 is explicitly merged; fresh215/774 proof and exact runtime/source match remain required",
     "Physical CI must use the215 registered pure methods; final-head runtime evidence remains mandatory.",
     "The actual new Gorge profile and 64-task hard class-filter lease budget remain unverified; no daemon, worker HTTP gateway or SMTP proof is claimed."
   ],
@@ -85,7 +85,7 @@
     "runtime_passed": false
   },
   "current_main_union": {
-    "retained_main_SQL": 700,
+    "retained_main_SQL": 710,
     "added_Legalpad_and_business_SQL": 43,
     "removed_main_SQL": 0,
     "source_registered_pure_methods": 215,
@@ -141,5 +141,21 @@
     "Gorge_checks_added": 21,
     "production_delta_from_root_union": false,
     "source_union_runtime_verified": false
+  },
+  "main99_measurement_union": {
+    "source": "e5409ca89aff15126cf6bbf9dad2d92714d785cf",
+    "new_SQL_obligations": 10,
+    "additional_registered_workers": 6,
+    "measurement_revision_required_by_producer_and_gate": true,
+    "HTTP_gateway_stream_or_SLA_proved": false
+  },
+  "historical_root743_owner_evidence": {
+    "source": "6c155bf84945c6d23eee2134af371a52269830fd",
+    "pure": 215,
+    "SQL": 743,
+    "runtime_files_exact": 6788,
+    "passed": true,
+    "reviewer_executed": false,
+    "applies_only_to_that_source": true
   }
 }

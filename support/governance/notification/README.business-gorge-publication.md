@@ -52,3 +52,18 @@ Nonzero safe mail and independently stored description remain mandatory. The
 former intermediate d629 source-only215/761 checkpoint was not runtime-ready;
 its required root SQL creation correction is now explicitly merged from6c155.
 The union is still awaiting its own supported runtime, source hashes and cleanup.
+
+## Explicit main99 measurement union
+
+The later main99 union preserves all root743 checks and both N12 producer profiles
+(ten additional mandatory checks), plus the twenty-one Gorge checks:215 pure /774
+SQL obligations, unrun against this source. The registered worker requirement is
+31 (root25 plus three independent Query and three independent API observations);
+ten SQL-business and ten Gorge-business children are separately owned and counted.
+The actual215/743 root pass is historical component evidence only.
+
+For a supported run set PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION to the exact
+final signed source commit and pass the same commit through the strict gate's
+--measurement-source-revision argument. Source revision, producer hash and native
+measurement observations remain strictly bound; omission is not accepted. The
+actual HTTP gateway, Go daemon, SMTP and convergence/SLA gates remain independent.
