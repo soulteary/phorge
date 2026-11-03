@@ -410,6 +410,30 @@ EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/govern
 EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryNativeWebFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php', 'PhorgeRecoveryNativeWebFacts', 'untrusted-web-storage-decoder-no-recovery-authority')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php'])
 
+EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryStop': ('src/infrastructure/governance/recovery/PhorgeRecoveryStop.php',
+                                 'PhorgeRecoveryStop',
+                                 'stop-classification-no-recovery-authority'),
+ 'RECOVERY.PhorgeRecoveryStopConfigOptions': ('src/infrastructure/governance/recovery/PhorgeRecoveryStopConfigOptions.php',
+                                              'PhorgeRecoveryStopConfigOptions',
+                                              'stop-classification-no-recovery-authority'),
+ 'RECOVERY.PhorgeRecoveryStopRequest': ('src/infrastructure/governance/recovery/PhorgeRecoveryStopRequest.php',
+                                        'PhorgeRecoveryStopRequest',
+                                        'stop-classification-no-recovery-authority'),
+ 'RECOVERY.PhorgeRecoveryStopSchemaSpec': ('src/infrastructure/governance/recovery/PhorgeRecoveryStopSchemaSpec.php',
+                                           'PhorgeRecoveryStopSchemaSpec',
+                                           'stop-classification-no-recovery-authority'),
+ 'RECOVERY.PhorgeRecoveryStopService': ('src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php',
+                                        'PhorgeRecoveryStopService',
+                                        'stop-classification-no-recovery-authority'),
+ 'RECOVERY.NATIVE.DISABLE.TYPE': ('src/applications/people/xaction/PhabricatorUserDisableTransaction.php',
+                                  'PhabricatorUserDisableTransaction',
+                                  'native-disable-event-semantics'),
+ 'RECOVERY.NATIVE.USER.TRANSACTION': ('src/applications/people/storage/PhabricatorUserTransaction.php',
+                                      'PhabricatorUserTransaction',
+                                      'native-committed-stop-source')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryStop.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryStopConfigOptions.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryStopRequest.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryStopSchemaSpec.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php'])
+EXPECTED_LINKS.update({'NATIVE-LINK-61': ('RECOVERY.PhorgeRecoveryStopService', 'NATIVE.PhorgeGovernanceNativeIdentitySource'), 'NATIVE-LINK-62': ('RECOVERY.PhorgeRecoveryStopService', 'AUTH.USER.DAO'), 'NATIVE-LINK-63': ('RECOVERY.PhorgeRecoveryStopService', 'RECOVERY.NATIVE.USER.TRANSACTION'), 'NATIVE-LINK-64': ('RECOVERY.PhorgeRecoveryStopService', 'RECOVERY.NATIVE.DISABLE.TYPE'), 'NATIVE-LINK-65': ('RECOVERY.PhorgeRecoveryStopService', 'RECOVERY.PhorgeRecoveryStopRequest'), 'NATIVE-LINK-66': ('RECOVERY.PhorgeRecoveryStopService', 'RECOVERY.PhorgeRecoveryStop')})
+
 def validate(data, root):
     root = Path(root)
     fields(data, ('schema_version','scope','coverage','activation_blocked',

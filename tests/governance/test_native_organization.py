@@ -27,9 +27,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 538, 'restore_phase_workers_started': 0,
+            'current_table_count': 540, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1569, 'applied_patch_count': 1569, 'pending_patch_keys': [],
+                'source_patch_count': 1570, 'applied_patch_count': 1570, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -317,7 +317,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),710)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),725)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -354,3 +354,14 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
         data=template();data['native']['api_token_revocation_measurement_tests']['event']['producer_sha256']='f'*64
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+    def test_stop_storage_evidence_cannot_grant_recovery_or_hide_missing_checks(self):
+        ids={v for v in gate.REQUIRED_CHECKS if v.startswith('recovery-stop-')}
+        self.assertEqual(15,len(ids))
+        for check in ids:
+            data=template();data['checks'].remove(check);data['check_count']=len(data['checks'])
+            with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key,value in [('actual_audit_failure_rollback',False),('emergency_disable_depends_on_ledger',True),
+                          ('recovery_authorized',True),('concurrent_writer_proof',True),('production_entry_registered',True)]:
+            data=template();data['native']['recovery_stop_tests'][key]=value
+            with self.assertRaises(ValueError):validate(data,file_digest='b'*64)

@@ -54,3 +54,21 @@ API source capture remains a dependency gate. Required real SQL tests include:
 Pure request/DAO tests are not substitutes for these storage and concurrency
 requirements. Full-source recovery, restoration permits and recovery entry
 guards remain unimplemented and blocked. Four native project axes are unchanged.
+
+## First SQL successor (prepared, unrun)
+
+The first successor registers fifteen mandatory actual-SQL checks. It retains
+all 710 main99 checks and requires 725 total, with 214 registered pure methods.
+Its reviewed migration adds two User tables: the strict full-native schema
+count therefore becomes 540 tables and the source patch count becomes 1570.
+The migration filename and digest join the existing exact reviewed patch set;
+no old migration, source pin, caller candidate or required check is removed.
+
+The prepared fixture uses native session issuance and UserTransactionEditor
+stops, actual persisted event values, separate ledger/audit commits, exact
+replay, ordinary-user refusal, bounded history, native enable/disable ABA,
+an audit INSERT SIGNAL1644, caller transaction preservation and real logout.
+These fifteen cases have not run yet. Their strict summary explicitly retains
+`concurrent_writer_proof=false` and `recovery_authorized=false`. Independent
+concurrent writers, current role loss while waiting, schema/routing fault
+profiles and a raw physical transaction test remain adoption gates.

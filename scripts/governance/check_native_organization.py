@@ -1017,7 +1017,7 @@ def validate_restore(value, root):
         'restore_phase_workers_started': 0, 'restore_phase_network_endpoints_configured': 0}
     for key, target in expected.items():
         exact_tree(value[key], target)
-    exact_tree(value['current_table_count'], 538)
+    exact_tree(value['current_table_count'], 540)
     audit=value['patch_audit']
     if type(audit) is not dict or set(audit) != {'source_patch_count', 'applied_patch_count',
         'pending_patch_keys', 'current_patch_ledger_complete', 'migration_source_hashes', 'migrations_executed'}:
@@ -1029,7 +1029,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1569)
+    exact_tree(audit['source_patch_count'], 1570)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 
@@ -1039,6 +1039,10 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-o
 
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only'])
 NATIVE['project_execution_tests']['approved_native_view_policy'].update(actual_api_token_conduit_path=True,view_ticket_cannot_edit_policy=True)
+
+
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['recovery-stop-active-account-not-classified-as-stopped', 'recovery-stop-actual-native-disable-committed-before-classification', 'recovery-stop-actual-session-logout-refuses-classification', 'recovery-stop-actual-session-logout-refuses-history', 'recovery-stop-conflicting-operation-payload-refused', 'recovery-stop-current-admin-history-has-bounded-native-id-pagination', 'recovery-stop-current-ordinary-user-cannot-replay-admin-operation', 'recovery-stop-disabled-candidate-refuses-before-transaction', 'recovery-stop-exact-operation-replay-does-not-duplicate-or-rewrite-audit', 'recovery-stop-existing-classification-not-silently-replaced', 'recovery-stop-history-not-visible-to-ordinary-user', 'recovery-stop-old-event-rejected-after-real-disable-enable-disable', 'recovery-stop-real-audit-fault-rolls-back-ledger-but-preserves-native-emergency-stop', 'recovery-stop-real-ledger-and-audit-commit-without-recovery-grant', 'recovery-stop-refusal-preserves-unrelated-native-outer-transaction'])
+NATIVE['recovery_stop_tests'] = {'actual_native_disable_then_separate_ledger': True, 'actual_audit_failure_rollback': True, 'emergency_disable_depends_on_ledger': False, 'recovery_authorized': False, 'concurrent_writer_proof': False, 'production_entry_registered': False}
 
 def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     if type(data) is not dict or set(data) != FIELDS:
