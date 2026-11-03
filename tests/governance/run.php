@@ -31,6 +31,8 @@ try {
     'PhorgeOrganizationMetadataTestCase',
     'PhorgeOrganizationCompoundTestCase',
   'PhorgeOrganizationHistoryTestCase',
+  'PhorgeOrganizationCalendarTestCase',
+  'PhorgeOrganizationTransferRequestTestCase',
     'PhorgeGovernanceNativeIdentityTestCase',
     'PhorgeGovernanceNativeApprovalTestCase',
     'PhorgeGovernanceMediaExchangeServiceTestCase',

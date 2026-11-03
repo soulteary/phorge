@@ -412,6 +412,72 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationCalendar",
+      "path": "src/applications/people/governance/service/PhorgeOrganizationCalendar.php",
+      "symbol": "PhorgeOrganizationCalendar",
+      "kind": "calendar-intent-preview",
+      "sha256": "55ef5176a4a3d6d0c99611d03d768b38fd01def15345d6ebd2f6137d0cd99a66",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationTransferRequest",
+      "path": "src/applications/people/governance/service/PhorgeOrganizationTransferRequest.php",
+      "symbol": "PhorgeOrganizationTransferRequest",
+      "kind": "typed-transfer-intent-only",
+      "sha256": "c6c5a97050f9f7ffcb6b5b19a8f852edb7713193579385a76e6d6527be1f7984",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationTransfer",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationTransfer.php",
+      "symbol": "PhorgeOrganizationTransfer",
+      "kind": "protected-transfer-storage",
+      "sha256": "80555ac62455aecc52c3d97865a4cac480f50a54cab613b497ef96949a5dfb2c",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationHandover",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationHandover.php",
+      "symbol": "PhorgeOrganizationHandover",
+      "kind": "protected-transfer-storage",
+      "sha256": "4ac0ce13aa755b5488c495e406f22db15999ffe367f0319e809ebbcf3367e230",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationProjectDisposition",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationProjectDisposition.php",
+      "symbol": "PhorgeOrganizationProjectDisposition",
+      "kind": "protected-transfer-storage",
+      "sha256": "ad09a459b0f3fd450ea832f41dd1141d2c9119e832c5ebc11dfaff11566b5a87",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationOutbox",
+      "path": "src/applications/people/governance/storage/PhorgeOrganizationOutbox.php",
+      "symbol": "PhorgeOrganizationOutbox",
+      "kind": "undispatched-reference-storage",
+      "sha256": "86d287d03feaf83018993ff1e9a3c1c74bf0489b28415195b5f18b1dd72c2f3c",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -638,6 +704,14 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Explicit restricted history route and shared query projection; source reference is not runtime authorization proof."
+    },
+    {
+      "id": "NATIVE-LINK-29",
+      "from_id": "NATIVE.PhorgeOrganizationTransferRequest",
+      "to_id": "NATIVE.PhorgeOrganizationService",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Source reference only; no credential, transaction, authorization or activation proof."
     }
   ],
   "scan": {
@@ -691,6 +765,10 @@
         "sha256": "596eb4bdc9385181697fb0c15c7538a0465107190541c302bf30971f4c7f8e0b"
       },
       {
+        "path": "src/applications/people/governance/service/PhorgeOrganizationCalendar.php",
+        "sha256": "55ef5176a4a3d6d0c99611d03d768b38fd01def15345d6ebd2f6137d0cd99a66"
+      },
+      {
         "path": "src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php",
         "sha256": "25d736e86af34feacb7ae46c787b2d17fe5ea78224188d5370d08316fdef9f6d"
       },
@@ -707,20 +785,40 @@
         "sha256": "259343b0563acfa5882dc3e30e4bca49481f25a69d37ee39946e7d0b25f77b0a"
       },
       {
+        "path": "src/applications/people/governance/service/PhorgeOrganizationTransferRequest.php",
+        "sha256": "c6c5a97050f9f7ffcb6b5b19a8f852edb7713193579385a76e6d6527be1f7984"
+      },
+      {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",
         "sha256": "f71043f1bb55bcc3ce790d7d904ff65decf8de1964df620c29b5f139de4a43cf"
+      },
+      {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationHandover.php",
+        "sha256": "4ac0ce13aa755b5488c495e406f22db15999ffe367f0319e809ebbcf3367e230"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationMember.php",
         "sha256": "e7f813d8c5ffc829c55ac823b12d43fb767229a9c377b64200c2a74e34195b5f"
       },
       {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationOutbox.php",
+        "sha256": "86d287d03feaf83018993ff1e9a3c1c74bf0489b28415195b5f18b1dd72c2f3c"
+      },
+      {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationPrimaryDepartment.php",
         "sha256": "6114d1284648f35f141860efbbb887ae6aad7719d7537cb5e1306c10ddab5632"
       },
       {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationProjectDisposition.php",
+        "sha256": "ad09a459b0f3fd450ea832f41dd1141d2c9119e832c5ebc11dfaff11566b5a87"
+      },
+      {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationSchemaSpec.php",
         "sha256": "e51c9dd334860c6aa701f34c1854d1bc8f43bd997b27caafce9e5f2f897dce3e"
+      },
+      {
+        "path": "src/applications/people/governance/storage/PhorgeOrganizationTransfer.php",
+        "sha256": "80555ac62455aecc52c3d97865a4cac480f50a54cab613b497ef96949a5dfb2c"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationUnit.php",

@@ -396,6 +396,9 @@ NATIVE.update({'compound_tests': {'before_source_membership_not_fabricated': Tru
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['native-history-365-day-candidate-report-retains-all-records', 'native-history-actual-get-current-admin-without-csrf-read-scope-restored', 'native-history-administrator-revoked-between-pages-cannot-use-old-cursor', 'native-history-current-team-administrator-still-cannot-read-global-audit', 'native-history-has-no-post-delete-or-mutation-surface', 'native-history-never-loads-or-returns-private-snapshots-or-credential-binding', 'native-history-ordinary-user-cannot-read-audit-or-retention-count', 'native-history-reader-revocation-uses-actual-no-factor-normal-session', 'native-history-real-keyset-pages-have-no-duplicate-records'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({'native-history-retention-raw-scan-is-bounded-and-empty-page-cursor-reaches-later-candidate', 'native-history-empty-retention-page-real-html-keeps-next-scan-link'})
 NATIVE['history_tests'] = {'current_system_administrator_only': True, 'snapshot_fields_returned': False, 'retention_days': 365, 'history_deleted': False, 'full_browser_acceptance': False, 'production_activation': False}
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['native-schema-organization_handover-matches-retained-adjustment-spec', 'native-schema-organization_outbox-matches-retained-adjustment-spec', 'native-schema-organization_projectdisposition-matches-retained-adjustment-spec', 'native-schema-organization_transfer-matches-retained-adjustment-spec', 'native-transfer-foundation-exact-duplicate-event-fault-rolls-back-version-and-all-workflow-tables', 'native-transfer-foundation-fixture-storage-does-not-switch-primary-or-grant-membership', 'native-transfer-foundation-outbox-holds-only-protected-references-and-never-dispatches', 'native-transfer-foundation-physical-binary-identity-rejects-case-and-trailing-pad-aliases', 'native-transfer-foundation-real-people-dao-roundtrip-calendar-and-version', 'native-transfer-foundation-real-version-cas-refuses-stale-update'])
+NATIVE['transfer_foundation_tests'] = {'storage_only': True, 'version_cas_verified': True, 'storage_rollback_verified': True, 'independent_approval_implemented': False, 'native_primary_switch_implemented': False, 'outbox_dispatch_registered': False, 'production_activation': False}
+NATIVE['schema_tests']['candidate_tables_compared'] = 17
 WORKERS = 13
 
 
@@ -422,7 +425,7 @@ def validate_restore(value, root):
         'restore_phase_workers_started': 0, 'restore_phase_network_endpoints_configured': 0}
     for key, target in expected.items():
         exact_tree(value[key], target)
-    exact_tree(value['current_table_count'], 530)
+    exact_tree(value['current_table_count'], 534)
     audit=value['patch_audit']
     if type(audit) is not dict or set(audit) != {'source_patch_count', 'applied_patch_count',
         'pending_patch_keys', 'current_patch_ledger_complete', 'migration_source_hashes', 'migrations_executed'}:
@@ -434,7 +437,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1566)
+    exact_tree(audit['source_patch_count'], 1567)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 

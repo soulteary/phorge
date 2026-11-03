@@ -23,9 +23,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 530, 'restore_phase_workers_started': 0,
+            'current_table_count': 534, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1566, 'applied_patch_count': 1566, 'pending_patch_keys': [],
+                'source_patch_count': 1567, 'applied_patch_count': 1567, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -73,6 +73,18 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                 gate.validate(mutated,file_digest='b'*64)
         data['native']['issuer_tests']['unknown_claim']=True
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_transfer_foundation_never_certifies_approval_execution_or_dispatch(self):
+        for key,value in [('storage_only',False),('version_cas_verified',False),
+            ('storage_rollback_verified',False),('independent_approval_implemented',True),
+            ('native_primary_switch_implemented',True),('outbox_dispatch_registered',True),
+            ('production_activation',True)]:
+            data=template();data['native']['transfer_foundation_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        for key,value in [('current_table_count',530)]:
+            data=template();data['source_restore'][key]=value
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_history_metadata_scope_cannot_delete_expose_or_promote(self):
         for key,value in [('current_system_administrator_only',False),
