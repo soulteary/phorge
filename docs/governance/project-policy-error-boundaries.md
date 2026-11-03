@@ -12,4 +12,6 @@ The classifier is not yet wired into ApprovalController or native EditEngine res
 
 ## Verification scope
 
-Six unit methods cover real decoder/refusal boundaries, native MFA/CSRF exception classes, stored corruption, expiry versus clock corruption, and duplicate state versus locked CAS failure. The supported PHP 8.5.12 map build and unit execution remain pending. Host PHP 8.5.8 was correctly rejected before test execution; host lint is not runtime proof. No SQL, native HTTP, deployment or all-family completion is claimed.
+Six unit methods cover real decoder/refusal boundaries, native MFA/CSRF exception classes, stored corruption, expiry versus clock corruption, and duplicate state versus locked CAS failure. The signed source checkpoint `05dc4bb9efc7dc4231fc4fb39787808cfd64c51e` was executed in an isolated PHP 8.5.12 test container: all 223 registered pure methods passed, including the six new methods. The actual rebuilt map was byte-identical to the signed map (SHA256 `2744bbd4f6468a9815e3761ff005c5f1bdcd09205d96be21acce905dd4a329f0`). Both owned host and container source directories were removed with no cleanup failures. This documentation update is not another runtime execution.
+
+Host PHP 8.5.8 was correctly rejected before the supported run; host lint alone was not runtime proof. No SQL, native HTTP, deployment or all-family completion is claimed.
