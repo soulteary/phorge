@@ -44,6 +44,12 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
         }
         return array_keys($xaction->getNewValue())[0]==='+'?'self-join':'self-leave';
       }
+      if ($type===PhabricatorTransactions::TYPE_EDGE &&
+          $xaction->getMetadataValue('edge:type')===PhabricatorProjectProjectHasMemberEdgeType::EDGECONST) {
+        if (count($xactions)!==1) { throw new RuntimeException('project_execution_member_batch_unsupported'); }
+        $intent=PhorgeProjectExecutionIntent::newFromNativeMembership($xaction);
+        return $intent->isAddition()?'members-add':'members-remove';
+      }
       $sensitive=true;
     }
     if (!$sensitive) { return 'native'; }

@@ -9,16 +9,18 @@ final class PhorgeProjectPolicyApprovalService extends Phobject {
     }
     if ($action==='submit') {
       $keys=array_keys($payload); sort($keys,SORT_STRING);
-      if ($keys!==array('new_policy','reason','target_phid','ttl_seconds')) {
-        throw new InvalidArgumentException('project_execution_payload_refused');
-      }
-      $target=$payload['target_phid']; $policy=$payload['new_policy'];
+      if($keys===array('new_policy','reason','target_phid','ttl_seconds')){
+        $intent=PhorgeProjectExecutionIntent::newPolicy($payload['new_policy']);
+      }else if($keys===array('intent','reason','target_phid','ttl_seconds') && is_array($payload['intent'])){
+        $intent=PhorgeProjectExecutionIntent::newFromDescriptor($payload['intent']);
+      }else{throw new InvalidArgumentException('project_execution_payload_refused');}
+      $target=$payload['target_phid']; $policy=$intent->getPolicy();
     } else {
       if (array_keys($payload)!==array('approval_id')) {
         throw new InvalidArgumentException('project_execution_payload_refused');
       }
       $intent=PhorgeProjectPolicyApprovalStore::intent($payload['approval_id']);
-      $target=$intent['targetPHID']; $policy=$intent['newPolicy'];
+      $target=$intent['targetPHID']; $policy=$intent['newPolicy'];$intent=$intent['intent'];
     }
     if (!is_string($target) || !preg_match('/\APHID-PROJ-[a-zA-Z0-9]{20}\z/',$target)) {
       throw new InvalidArgumentException('project_execution_target_refused');
@@ -28,7 +30,7 @@ final class PhorgeProjectPolicyApprovalService extends Phobject {
     $object=$row?(new PhabricatorProject())->loadFromArray($row):null;
     if (!$object || $object->getPHID()!==$target) { throw new RuntimeException('project_execution_target_missing'); }
     $scope=PhorgeProjectNativeExecutionScope::open($context,$object,$policy,
-      $action==='submit'?'propose':$action,$action==='submit'?null:$payload['approval_id']);
+      $action==='submit'?'propose':$action,$action==='submit'?null:$payload['approval_id'],$intent);
     try {
       $store=PhorgeProjectPolicyApprovalStore::forScope($scope);
       if ($action==='submit') { $result=$store->submit($payload['reason'],$payload['ttl_seconds']); }

@@ -861,7 +861,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "d2f18f62a83277f8f252a6230cc406e91f5fa09f96a5d2df66d900987992fe93"
+      "sha256": "80ba0fc8db0a1d545291b64bb1079d4a8fab205840153136bf5dcc5460de7f9c"
     },
     {
       "id": "TRANSACTION.EDIT.API",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4454,
-    "source_snapshot_sha256": "8d2be384ea9d7b9c4ddf4fa7eb9f4b4fae1c6019d7758e1bc0d34447859c8aa8",
+    "source_snapshot_sha256": "92cc566977d00b84dd50eba557255f9cbc29ef73d3aefc926fbd8f7964161c7f",
     "candidates": [
       {"id":"CALL-e71899f6e4e06c5b","path":"src/applications/almanac/conduit/AlmanacBindingEditConduitAPIMethod.php","sha256":"e8fe213b44761574fc57a095588a42aa2e62beb4d4be92ef877546cb64d84312","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
       {"id":"CALL-63444e170e5adba3","path":"src/applications/almanac/conduit/AlmanacDeviceEditConduitAPIMethod.php","sha256":"a087ca89a2c7f9c43da8e31d50ce9335dd8c4bddff941e0b61848b68d6cae9b2","matches":[{"pattern":"edit_engine_dispatch","lines":[10]}]},
@@ -1585,7 +1585,7 @@
       {"id":"CALL-fb944166e8b8c925","path":"src/applications/transactions/controller/PhabricatorEditEngineConfigurationSortController.php","sha256":"90e4cb401ae9bea66df950390ed8265ac4879c00a010bb1129ae62e1e1dee865","matches":[{"pattern":"transaction_apply","lines":[88]}]},
       {"id":"CALL-f50727304ae4a3e5","path":"src/applications/transactions/controller/PhabricatorEditEngineConfigurationSubtypeController.php","sha256":"ab447d0f1daff0a898677b8e09ebddf5d1c7405bf8f223900c27f41c497b22c7","matches":[{"pattern":"transaction_apply","lines":[49]}]},
       {"id":"CALL-ccbc57db69056c49","path":"src/applications/transactions/draft/PhabricatorDraftEngine.php","sha256":"788a4102b68db5a3ed704cc93568158cd917a5fb282296f3052632af84966fbb","matches":[{"pattern":"edge_writer","lines":[90,92]}]},
-      {"id":"CALL-e457f3ff983799df","path":"src/applications/transactions/editengine/PhabricatorEditEngine.php","sha256":"d2f18f62a83277f8f252a6230cc406e91f5fa09f96a5d2df66d900987992fe93","matches":[{"pattern":"transaction_apply","lines":[1183,2072,2218]}]},
+      {"id":"CALL-e457f3ff983799df","path":"src/applications/transactions/editengine/PhabricatorEditEngine.php","sha256":"80ba0fc8db0a1d545291b64bb1079d4a8fab205840153136bf5dcc5460de7f9c","matches":[{"pattern":"transaction_apply","lines":[1183,2072,2218]}]},
       {"id":"CALL-45141cefd737b321","path":"src/applications/transactions/editengine/PhabricatorEditEngineAPIMethod.php","sha256":"808ab49d01de1ed6da219f6e592db30d6fc9ee92fad30afffc41784c369df57a","matches":[{"pattern":"edit_engine_dispatch","lines":[6,13,23,35,51]},{"pattern":"project_editor","lines":[23]}]},
       {"id":"CALL-f804ca499e98801d","path":"src/applications/transactions/editor/PhabricatorApplicationTransactionCommentEditor.php","sha256":"23593c6101f7041148a280a9e0cb73527ab156749d8f4abeb4e1b9313cad7920","matches":[{"pattern":"transaction_apply","lines":[122]}]},
       {"id":"CALL-f116bd8b9b12fc59","path":"src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php","sha256":"00d94ee856d67f6cd2bb0ee6be0c32bcf3e1ec4d1a20afc4ffae4c172af8a349","matches":[{"pattern":"transaction_apply","lines":[1187,1519,4503,4993]},{"pattern":"edge_writer","lines":[937,951]},{"pattern":"member_edge","lines":[2022]},{"pattern":"policy_transaction","lines":[525,530,535,615,616,617,768,769,770,833,834,835,883,886,889,958,2907,2914]},{"pattern":"modular_dispatch","lines":[368,403,498,602,720,753,790,1123,1891,2164,2901,4035,4406,4946,4962,5451,5500,5518,5537]}]},

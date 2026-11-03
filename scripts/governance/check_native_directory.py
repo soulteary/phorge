@@ -174,6 +174,8 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
 
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php'])
 
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/execution/PhorgeProjectExecutionIntent.php'])
+
 EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationController'),
  'NATIVE-LINK-02': ('NATIVE.PhorgeOrganizationController', 'NATIVE.PhorgeOrganizationEndpoint'),
  'NATIVE-LINK-03': ('NATIVE.PeopleOrganizationQueryConduitAPIMethod',
