@@ -117,13 +117,13 @@ def validate(data,root=ROOT):
     require(annotated==set(PRODUCERS)|{'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'},'unreviewed producer entry')
     return {'passed':True,'scope':'reviewed-private-email-sources-only','producers':len(PRODUCERS),'consumers':len(CONSUMERS),'smtp_proved':False,'all_producers_proved':False,'activation_blocked':True}
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--receipt',type=Path);parser.add_argument('--file-binary',type=Path);args=parser.parse_args()
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--receipt',type=Path);parser.add_argument('--file-binary',type=Path);parser.add_argument('--measurement-source-revision');args=parser.parse_args()
     try:
         result=validate(load(ROOT/'docs/governance/private-notification-producers.json'))
         if args.receipt:
             require(args.file_binary is not None and args.file_binary.is_file(),'paired file binary')
             spec=importlib.util.spec_from_file_location('native_notification_gate',ROOT/'scripts/governance/check_native_organization.py');gate=importlib.util.module_from_spec(spec);spec.loader.exec_module(gate)
-            accepted=gate.validate(load(args.receipt),file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest())
+            accepted=gate.validate(load(args.receipt),file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest(),measurement_revision=args.measurement_source_revision)
             result.update(native_envelope_evidence_accepted=True,native_checks=accepted['check_count'])
     except(ValueError,OSError,KeyError,TypeError):
         parser.exit(1,'Private notification evidence rejected.\n')

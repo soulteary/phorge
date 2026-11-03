@@ -1,0 +1,41 @@
+{
+  "source_head": "f3ceb7046b4f94ae791b4ca43b6de0b9d06faba9",
+  "passed": true,
+  "pure_methods": 210,
+  "SQL_checks": 710,
+  "runtime_files_exact": 6778,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 25,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 25
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "browser_proved": false,
+  "deployment": false,
+  "native_Conduit_HTTP_proved": false,
+  "gateway_proved": false,
+  "SLA_proved": false,
+  "convergence_proved": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "n12-main98-full-native.json": "3febb07a0b87d81b16fc3bb3d1da2ac80cabf02f8b1e4349b370a9d057a6589d",
+    "n12-main98-full-integration.json": "adf9400074aa738b36dfc81a05ab81da45b2a6b31783bf98ddb4e1e2d11243ba",
+    "n12-main98-full-parent.json": "52a74848fb8cb42cc727244d84a6ad08a6847b622fd6f04ef362791b989616a3",
+    "n12-main98-full-source-runtime-match.json": "218d58c6e23c5d1e0d330a505673a58b822a6cf143cfec70b4ce669b44243804",
+    "n12-main98-full-strict-accepted.json": "8e9b79d5044ffb44dd6f68c2823f0e4c0fb77681102610ae32cf87977e6f8779"
+  },
+  "scope": "isolated native Project Query and native Conduit authenticator-method observations",
+  "evidence_kind": "owner-executed component evidence, independently source-bound; not hosted CI",
+  "docs_successor_is_new_runtime": false
+}

@@ -1,0 +1,42 @@
+{
+  "head": "f3ceb7046b4f94ae791b4ca43b6de0b9d06faba9",
+  "baseline": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
+  "scope": "query-and-native-token-authentication-only",
+  "runtime_status": "passed-at-exact-source-head",
+  "expected_pure_methods": 210,
+  "expected_sql_checks": 710,
+  "expected_registered_workers": 25,
+  "historical_failure": {
+    "source": "2c268013e7fa299888bf722cc5bf2823d13c75ab",
+    "pure_passed": 202,
+    "sql_assertions_before_failure": 682,
+    "full_pass": false
+  },
+  "host_tests": {
+    "file_binding": 4,
+    "consumer": 11,
+    "native_gate": 32,
+    "private_notification_gate": 6,
+    "passed": true
+  },
+  "production_src_diff_from_main": false,
+  "sources": {
+    ".github/workflows/atomic-feature-regressions.yml": "f5fec86ee79af2d532696658e57ea6329a21452b3d63098efdd801e5e9bdcde9",
+    "scripts/governance/check_native_organization.py": "b600c37b0c1fb4050d4702508b2d271edafbb38fa5209a81ab315007dee23b68",
+    "scripts/governance/check_private_notifications.py": "6400d40b45804483c75ae67f965073507b891bd002dd18419c2d15cffbd1caa4",
+    "support/governance/native-organization/native-cases.php": "f65acb4ba84b51d5777a432ae3c2a0e68fcc724d4ce9cc67f7fc22e8e15aa19b",
+    "support/governance/native-organization/native-worker.php": "aa11267f5e77b49ea1a4e006715c955c1c36fd0ceebd7f2fb1c76e83f431974e",
+    "support/governance/native-organization/revocation-api-token-cases.php": "81a28c43ae835e107023c176ca790a7323cec6d7d313a19a3c83924726e62de2",
+    "support/governance/native-organization/revocation-measurement-cases.php": "c0266ce1d2ff7ab4d9445bb02b1fc2628eef4e80af30d9dee4ff053f13c10b02",
+    "support/governance/native-organization/workers.php": "410029374b824056f6c8ecf88c4e7ce155e6013a527c0b8cc3f2ef8740653346",
+    "support/governance/revocation-measurement/README.md": "bae207ad36a00e41c98c7b1d7d5d62c4f896395161477c0632cee2049657ff1b",
+    "support/governance/revocation-measurement/adapters.json": "24f51836685eeb62e8bd042b4bf328b2a1bf0d2627b6745467c2863daa1b51e5",
+    "support/governance/revocation-measurement/consumer.py": "bb9adc17900b7e6b66d476d3f7709541148352da76655aebe33aac03c891debd",
+    "tests/governance/test_native_organization.py": "ab5cbfead144964b8707ca72df86a573be252caac376e03a019b538df0808e6d",
+    "tests/governance/test_private_notifications.py": "d6fd991d60a7330c24f91b7111ecb9bc47aeae34eba9d0c3bcc68cdbffbbfd69",
+    "tests/governance/test_revocation_measurement.py": "9e1ebf839b7600dc9e6f38caa13a33f6b364717397f00bfb860245010962bd6b",
+    "tests/governance/test_revocation_worker_file.py": "9b2359c208e57107c32a927e1332b6ebc16c24470a469261313f9078b986a804"
+  },
+  "authority_proof": false,
+  "sla_proof": false
+}
