@@ -2,7 +2,7 @@
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
   "version": 3,
   "base": "eafc8ee9c989cb2f17d6c20c23f8a958bc14af29",
-  "status": "explicit-main96-union-host-prepared-runtime-unproven",
+  "status": "real-child-native-mail-queue-profile-host-prepared-runtime-unproven",
   "new_runtime_obligation_not_actual": {
     "pure": 207,
     "native_sql": 717,
@@ -36,7 +36,8 @@
       "diagnostic_reexecution_is_daemon_retry": false,
       "mail_recipient_count": "Task owner and subscriber required; optional author yields 2..3 envelopes. Project has one actor envelope.",
       "paired_gorge_queue_scope_proved": false,
-      "smtp_proved": false
+      "smtp_proved": false,
+      "child_native_mail_queue": "Reuses the actual enclosing owned taskqueue; each private child verifies authenticated HTTP before native publication. Not evidence of a Gorge application-worker profile or physical SMTP."
     }
   },
   "union_deltas_from_frozen_components": [
@@ -55,7 +56,8 @@
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh207/717 proof and exact runtime/source match remain required"
+    "Current main96 is explicitly merged; fresh207/717 proof and exact runtime/source match remain required",
+    "Physical CI must use the207 registered pure methods; final-head runtime evidence remains mandatory."
   ],
   "historical_stronger_component": {
     "pure": 202,
@@ -80,5 +82,14 @@
     "native_sql": 647,
     "source_revision": "2c841c2c9acdc3cb1716424072024f362f366e71",
     "applies_only_to_this_historical_revision": true
+  },
+  "previous_failed_union": {
+    "source_revision": "6bdafac742263a11d132402e8c1d57e9ba1154e2",
+    "pure_methods_passed": 207,
+    "observed_SQL_checks_including_cleanup": 473,
+    "SQL_matrix_complete": false,
+    "runtime_files_exact": 6779,
+    "failure": "Independent business publisher lacked mandatory native-mail Gorge taskqueue configuration.",
+    "cleanup_complete": true
   }
 }
