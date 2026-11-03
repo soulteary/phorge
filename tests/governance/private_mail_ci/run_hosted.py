@@ -10,6 +10,16 @@ import subprocess
 import sys
 
 
+def validate_matrix_counts(receipt):
+    for key, expected in (('security_cases_passed', 16), ('large_security_cases_passed', 4),
+                          ('invite_capability_cases_passed', 2), ('check_count', 180)):
+        if type(receipt.get(key)) is not int or receipt[key] != expected:
+            raise RuntimeError('hosted_wire_case_counts_refused')
+    checks = receipt.get('checks')
+    if type(checks) is not list or len(checks) != 180 or any(type(x) is not str for x in checks) or len(set(checks)) != 180:
+        raise RuntimeError('hosted_wire_case_counts_refused')
+
+
 def run(source, binaries, output, gorge_revision, owlmail_revision):
     source = Path(source).resolve(strict=True)
     binaries = Path(binaries).resolve(strict=True)
@@ -47,7 +57,7 @@ def run(source, binaries, output, gorge_revision, owlmail_revision):
     invoke([sys.executable, str(harness / 'make_config.py'), '--source-root', str(source),
         '--source-revision', revision, '--binary-manifest', str(private / 'binaries.json'),
         '--gorge-revision', gorge_revision, '--php', subprocess.check_output(['which', 'php'], text=True).strip(),
-        '--expected-pure-methods', '209', '--output', str(private / 'config.json')])
+        '--expected-pure-methods', '210', '--output', str(private / 'config.json')])
     for case in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked'):
         invoke([sys.executable, str(harness / 'run_pending.py'), '--config', str(private / 'config.json'),
             '--case', case, '--output', str(output / (case + '.json'))])
@@ -58,6 +68,8 @@ def run(source, binaries, output, gorge_revision, owlmail_revision):
         receipt = json.loads((output / (name + '.json')).read_text())
         if receipt.get('passed') is not True or receipt.get('source_revision') != revision:
             raise RuntimeError('hosted_wire_receipt_refused')
+        if name == 'matrix':
+            validate_matrix_counts(receipt)
     print('Five current-source private-mail wire receipts passed; no browser or deployment proof.')
 
 

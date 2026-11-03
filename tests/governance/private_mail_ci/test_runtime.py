@@ -141,11 +141,16 @@ class PortableRuntimeTests(unittest.TestCase):
         child = None
         identity = None
         try:
+            # Publish a fully closed PID file atomically: existence must imply
+            # complete contents, including for the environment-scrubbed child.
+            child_code = ("import os,time;from pathlib import Path;"
+                "marker=Path(" + repr(str(marker)) + ");"
+                "pending=marker.with_suffix('.pending');"
+                "pending.write_text(str(os.getpid()));os.replace(pending,marker);time.sleep(30)")
             if unproved:
-                child_code = "import os,time;open(" + repr(str(marker)) + ",'w').write(str(os.getpid()));time.sleep(30)"
                 code = "import os,sys;pid=os.fork();os.execve(sys.executable,[sys.executable,'-c'," + repr(child_code) + "],{'PATH':'/usr/bin:/bin'}) if pid==0 else os._exit(0)"
             else:
-                code = "import os,time;pid=os.fork();(open(" + repr(str(marker)) + ",'w').write(str(os.getpid())),time.sleep(30)) if pid==0 else os._exit(0)"
+                code = "import os;pid=os.fork();exec(" + repr(child_code) + ") if pid==0 else os._exit(0)"
             leader = runtime.spawn([sys.executable, '-c', code])
             self.assertEqual(0, leader.wait(timeout=5))
             deadline = time.monotonic() + 5

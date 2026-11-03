@@ -877,6 +877,8 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-admin-notice-curren
  'private-mail-security-user-edits-use-real-native-session-and-request',
  'private-mail-welcome-current-sender-administrator-required-after-prepare'])
 
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-invite-native-nonadmin-people-capability-granted', 'private-mail-invite-native-nonadmin-worker-prepares-genuine-challenge', 'private-mail-invite-legacy-admin-binding-must-equal-author-subject', 'private-mail-invite-current-capability-revocation-refuses-callback', 'private-mail-invite-regrant-cannot-revive-permanently-quarantined-snapshot', 'private-mail-invite-nonadmin-without-native-capability-refused', 'private-mail-invite-native-default-admin-still-authorized', 'private-mail-invite-custom-policy-admin-result-matches-real-native-capability', 'private-mail-invite-capability-does-not-authorize-admin-only-welcome'])
+
 NATIVE['private_mail_tests'] = {'actual_native_queue': True,
  'actual_native_source_and_object_query': True,
  'all_producers_runtime_complete': False,

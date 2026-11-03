@@ -3,7 +3,7 @@
 $root=dirname(__DIR__,3);$proof=null;$guard=null;$owned=false;$mode=(new mysqli_driver())->report_mode;$result=null;$failed=false;
 try{
   require_once$root.'/support/runtime/php-version.php';phorge_assert_supported_php_version(PHP_VERSION);
-  $security_actions=array('login-disable'=>'security-disable','login-secret-rotate'=>'security-rotate-secret',
+  $security_actions=array('invite-capability-allow'=>'security-grant-invite-capability','invite-capability-revoke'=>'security-revoke-invite-capability','login-disable'=>'security-disable','login-secret-rotate'=>'security-rotate-secret',
     'large-body-revoked'=>'security-rotate-secret','large-attachment-revoked'=>'security-rotate-secret',
     'login-primary-switch'=>'security-switch-primary','welcome-demote'=>'security-demote-admin',
     'queue-demote'=>'security-demote-admin','verify-code-rotate'=>'security-rotate-code',
@@ -33,6 +33,27 @@ try{
       if(!$user||$user->getPHID()!==$phid){throw new RuntimeException('private_mail_security_control_target_missing');}return$user;
     };
     switch($argv[1]){
+      case 'security-grant-invite-capability':
+        $inviter=$load_user('user_phid');
+        $peer=$control['security_targets']['invite-capability-revoke']??null;
+        if(!is_array($peer)||($peer['kind']??null)!=='account.invite'||($peer['user_phid']??null)!==$inviter->getPHID()||
+          ($target['kind']??null)!=='account.invite'||$inviter->getIsAdmin()||
+          PhabricatorPolicyFilter::hasCapability($inviter,new PhabricatorPeopleApplication(),PeopleCreateUsersCapability::CAPABILITY)){
+          throw new RuntimeException('private_mail_invite_control_grant_precondition_refused');}
+        require_once __DIR__.'/invite-capability-cases.php';
+        $settings=governance_private_mail_invite_capability_settings($inviter->getPHID());
+        PhabricatorConfigEntry::loadConfigEntry('phabricator.application-settings')->setValue($settings)->save();
+        $grant_scope=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('phabricator.application-settings',$settings);
+        try{if(!PhabricatorPolicyFilter::hasCapability($inviter,new PhabricatorPeopleApplication(),PeopleCreateUsersCapability::CAPABILITY)){
+          throw new RuntimeException('private_mail_invite_control_native_grant_refused');}}
+        finally{unset($grant_scope);}break;
+      case 'security-revoke-invite-capability':
+        $inviter=$load_user('user_phid');
+        if($inviter->getIsAdmin()||!PhabricatorPolicyFilter::hasCapability($inviter,new PhabricatorPeopleApplication(),PeopleCreateUsersCapability::CAPABILITY)){
+          throw new RuntimeException('private_mail_invite_control_capability_missing');}
+        require_once __DIR__.'/invite-capability-cases.php';
+        PhabricatorConfigEntry::loadConfigEntry('phabricator.application-settings')
+          ->setValue(governance_private_mail_invite_capability_settings(PhabricatorPolicies::POLICY_ADMIN))->save();break;
       case 'security-disable':$user=$load_user('user_phid');$user->setIsDisabled(1)->save();break;
       case 'security-rotate-secret':$user=$load_user('user_phid');$user->setAccountSecret(Filesystem::readRandomCharacters(64))->save();break;
       case 'security-demote-admin':$user=$load_user('admin_phid');$user->setIsAdmin(0)->save();break;

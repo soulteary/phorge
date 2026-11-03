@@ -78,6 +78,11 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template();data['native']['recovery_account_capture_tests']['permit']='complete'
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
+    def test_native_invitation_capability_regressions_cannot_be_omitted(self):
+        for name in ['private-mail-invite-native-nonadmin-people-capability-granted', 'private-mail-invite-native-nonadmin-worker-prepares-genuine-challenge', 'private-mail-invite-legacy-admin-binding-must-equal-author-subject', 'private-mail-invite-current-capability-revocation-refuses-callback', 'private-mail-invite-regrant-cannot-revive-permanently-quarantined-snapshot', 'private-mail-invite-nonadmin-without-native-capability-refused', 'private-mail-invite-native-default-admin-still-authorized', 'private-mail-invite-custom-policy-admin-result-matches-real-native-capability', 'private-mail-invite-capability-does-not-authorize-admin-only-welcome']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(check=name),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
 
     def test_large_security_payload_regressions_are_required(self):
         for name in ['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source']:

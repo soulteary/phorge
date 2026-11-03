@@ -24,6 +24,8 @@ SOURCE_FILES = frozenset({
     'support/governance/notification/wire-hold.php',
     'support/governance/notification/control.php',
     'support/governance/notification/security-wire-cases.php',
+    'support/governance/notification/invite-capability-cases.php',
+    'support/governance/notification/owned-config.php',
     'support/governance/notification/race-owned-config.php',
     'support/governance/notification/router.php',
     'support/governance/completion/fixture.php',
