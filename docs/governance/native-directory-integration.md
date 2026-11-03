@@ -299,6 +299,57 @@ revoked between pages cannot reuse the cursor. This is isolated source evidence,
 not production activation, browser certification, or complete O7/O8 delivery.
 
 
+## Organization source checkpoint and pending main union
+
+The separate signed source-only checkpoint `2eeb763a99` passed PHP 8.5.12 with
+169 native methods and 387 real isolated SQL checks. Its 5888 PHP/SQL Git archive
+files matched the executed staging/container exactly; 55 schemas, two runtime
+principals, the reader and 19 worker directories were cleaned without failures.
+The component receipts are retained under
+`evidence/organization-source-checkpoint-169-387-20261103`.
+
+That component covers initial transfers, independently approved handover changes,
+manual current-viewer project receipts, manual due-event persistence, initial
+two-person native forms/Chinese rendering and explicit v2 noncredential identity
+facts. First issuer initialization is stable for new v2 tickets; native/legacy
+role ABA and missing/nontransactional sources are refused. Stored v1 tickets keep
+their original source interpretation; actual credentials were not downgraded.
+It does not claim the full lifecycle/manual/due form POST matrix, wire/browser
+acceptance, notification dispatch, production activation or all governance work.
+
+The current tree explicitly integrates main `e36bebc8a9` and therefore needs a
+new full runtime/SQL/hash receipt. Old 169/387 source evidence is not acceptance
+of this main union. The generic receipt is intentionally pending and rejected.
+The strict expected scenario union and fixed new table/migration obligations are
+only pre-run obligations; actual counts must come from the new run. N00 remains
+partial/non-authoritative, and no native permission axis or live data is migrated.
+
+
+## Actual organization/current-main integration checkpoint
+
+The new e36-main union passed PHP 8.5.12 with **180 native methods and 476 actual
+SQL checks**. All 5917 executed PHP/SQL files matched the signed-parent staged
+source. The actual cold library map is identical to the explicitly merged map.
+Nineteen fixed-action worker directories, 55 schemas, two runtime principals and
+the reader were removed with no cleanup failures. The strict receipt gate accepts
+the exact scenario set and paired Gorge file binary. Governance Python (89) and
+permission Python (84) checks pass. Actual current table/patch totals are 538/1569.
+Receipts are retained under `evidence/organization-main-180-476-20261103`; the
+older 169/387 source component stays unchanged and is no longer substituted for
+the current main union.
+
+New v2 subject/responsible facts remain stable after first real directory use,
+while native disable/enable and legacy role ABA remain rejected. Restored v1
+transfer/handover tickets keep their original stable/stale rules. Missing and
+non-InnoDB epoch sources fail closed. The original actual credential source is
+byte-identical to incoming main. Native Chinese full-page rendering, initial
+CSRF proposal/independent approval/bound execution, response-loss retry, invalid
+number input and disabled-executor replay rejection are actual tested paths.
+Full lifecycle/manual/due form POST coverage, browser/wire validation, optional
+activation and production deployment are not certified by this checkpoint.
+Any later main/source changes still require explicit reconciliation and fresh
+runtime evidence when the executable source changes.
+
 ## Pending HTTP and current-main combination
 
 The HTTP source checkpoint `28aa3bde87` is now explicitly merged with main
@@ -323,3 +374,38 @@ page bootstrap. Full wire/browser verification, custom branding, complete guard
 coverage, notification integration, production rollout, and optional feature
 activation remain separate unresolved gates. Native permission semantics remain
 unchanged.
+
+
+### Current organization and media main union: awaiting fresh runtime
+
+The explicit merge of organization checkpoint `d30b4958d0` and main `06370b43c5` retains both fixed scenario sets and both strict partial-scope contracts. Its fresh combined runtime receipt is pending. The earlier 180/476 organization receipt and 166/455 media receipt certify their separate signed sources only. No new union runtime, browser, deployment, production activation, permission migration or dispatcher result is claimed.
+
+
+### Actual organization and media main union checkpoint
+
+The explicit `d30b4958d0` + `06370b43c5` source union passed PHP 8.5.12: **188 native methods and 545 actual isolated SQL checks**. All **5930 executed PHP/SQL files** match the signed-parent staging exactly, and the cold-generated map equals the merged map. Strict evidence acceptance, 91 governance Python and 84 permissions Python tests pass. All 19 workers, 55 owned schemas, two runtime users, the reader, file service/storage and disposable paired image service cleaned successfully.
+
+The separate 180/476 and 169/387 component checkpoints remain historical evidence. This union proves native HTTP/controller integration and isolated paired-image behavior; it does not certify current wire/browser/production acceptance, complete lifecycle/manual/due form POST coverage, dispatch activation or a permission migration. Hosted exact-head CI and review remain pending.
+
+
+### PR94 review regressions: actual 188/551 checkpoint
+
+The two valid review findings now have actual native regressions. An independently approved termination binds the real current primary-department row even after explicit clearing; old tickets still reject changed sources, termination preserves the cleared primary, and subsequent approved transfers are possible. Manual project receipts use a native preview/confirmation displaying observed handover and receipt versions; submission keeps those exact CAS values. Two-administrator stale confirmations, missing CSRF and lifecycle changes after preview cannot overwrite a receipt.
+
+PHP 8.5.12 passed **188 native methods and 551 isolated SQL checks**; all **5930 executed PHP/SQL hashes** match exact signed-parent plus four reviewed source overlays. Nineteen workers, 55 schemas, two runtime users, reader, file service/storage and paired image service cleaned fully. The first new fixture run exposed rendering outside its request Celerity scope and is retained as failed evidence; rendering now occurs within the same real request lifecycle. Strict receipt acceptance and 91 governance Python tests pass; unchanged permission surfaces retain the earlier 84-test result. This checkpoint does not certify the upcoming same-site main union; that source must be explicitly integrated and revalidated before merge.
+
+
+### PR95 same-site main union: actual 190/553 checkpoint
+
+The explicit signed `d5ff443a54` + main `32fc7b692e` union retains the reviewed organization regressions and the pinned-PSL same-site configuration gate. PHP 8.5.12 passed **190 native methods and 553 actual isolated SQL checks**. All **5930 executed PHP/SQL files plus four pinned PSL resources** match the signed-parent staging; the cold-generated map matches the merged map. Strict evidence acceptance, 91 governance Python and the unchanged 84 permissions Python results hold. All 19 workers, 55 owned schemas, two runtime users, reader, file service/storage and paired image cleaned successfully.
+
+Earlier 188/551, 188/545, 180/476 and 169/387 receipts remain separate source checkpoints. The same-site union is now actually validated; hosted CI and exact-head review for this new merge remain pending. Optional features/dispatch remain off, with no production activation, live permission migration or new browser/wire claim.
+
+
+### Initial-transfer DST resolution: actual 190/557 checkpoint
+
+The initial native transfer form now presents both candidate UTC offsets when its deadline is ambiguous and requires explicit selection before a fresh server preview. Current primary/unit versions, native identities, identifiers and database time are re-read; the old preview is not an approval. Missing/invalid offsets and missing real CSRF still refuse the request.
+
+A fixed 2026 New York repeated hour is tested only at the calendar/native-Dialog rendering seam. Separate real current-clock native HTTP-to-SQL checks verify selected-offset forwarding, newly derived identifiers/CAS values (despite deliberately stale preview versions), and persisted calendar time from the actual database clock. No database or authorization clock is changed, and future live DST execution/browser acceptance is not claimed.
+
+PHP 8.5.12 passed **190 native methods and 557 actual isolated SQL checks**. All **5930 executed PHP/SQL files plus four pinned PSL resources** match the exact signed-parent staging; all 19 workers and 55 schemas/two runtime users/reader/file/image resources cleaned successfully. Strict receipt acceptance, 91 governance Python and 84 permissions Python tests pass. The earlier 190/553 source remains separate evidence; new-head hosted CI and exact review are still required.

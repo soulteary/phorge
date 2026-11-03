@@ -37,6 +37,17 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
         self.assertFalse(result['authority_proof'])
         self.assertTrue(result['activation_blocked'])
 
+    def test_transfer_foundation_cannot_gain_runtime_approval_or_activation(self):
+        for name in ('Calendar','TransferRequest','Transfer','Handover','ProjectDisposition','Outbox'):
+            identifier='NATIVE.PhorgeOrganization'+name
+            data=copy.deepcopy(self.data);data['sources']=[r for r in data['sources'] if r['id']!=identifier]
+            self.reject(data,'source inventory drift')
+            data=copy.deepcopy(self.data)
+            next(r for r in data['sources'] if r['id']==identifier)['authority_proof']=True
+            self.reject(data,'non-authoritative')
+        data=copy.deepcopy(self.data);data['links']=[r for r in data['links'] if r['id']!='NATIVE-LINK-29']
+        self.reject(data,'link inventory drift')
+
     def test_top_level_activation_or_authority_is_refused(self):
         for key, value in [('coverage','complete'),('activation_blocked',False),
                            ('runtime_certified',True),('authority_proof',True)]:

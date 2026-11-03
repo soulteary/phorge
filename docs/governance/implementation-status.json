@@ -103,7 +103,7 @@
         "N00"
       ],
       "status": "native-prepared-target-issuer-and-maintenance-isolated-verified-partial",
-      "remaining": "Current-main directory/issuer plus prepared-target source passed 142 pure /245 actual MySQL-Gorge checks. Original 138/209 target checkpoint retained separately. Canonical target/nonce, persistent quotas, exact total capacity with real waiters, cleanup rollback and native RR preservation verified. HTTP/cookie/file-guard/browser/deployment acceptance remains separate and unproved by this slice. Current HTTP/file/cache/image/bootstrap candidate source is explicitly combined with current main but awaits a fresh full combined runtime receipt. Old 144/273 and 24 TLS checks are earlier component evidence only; the current 146-method source run does not certify combined SQL, wire/browser or activation.",
+      "remaining": "Current-main directory/issuer plus prepared-target source passed 142 pure /245 actual MySQL-Gorge checks. Original 138/209 target checkpoint retained separately. Canonical target/nonce, persistent quotas, exact total capacity with real waiters, cleanup rollback and native RR preservation verified. HTTP/cookie/file-guard/browser/deployment acceptance remains separate and unproved by this slice.",
       "production_enabled": false
     },
     {
@@ -200,27 +200,33 @@
     }
   },
   "current_component_validation": {
-    "scope": "pending-current-main-and-http-source-combination",
-    "php_runtime": "8.5.12",
-    "current_source_validation": "pending-fresh-full-combined-run",
-    "actual_combined_counts": null,
+    "scope": "e36-main-and-native-organization-versioned-source",
+    "current_source_validation": "supported-runtime-180-native-476-SQL-passed",
+    "native_methods_required": 180,
+    "current_source_native_sql_required": 476,
+    "runtime_source_files": 5917,
+    "current_runtime_source_exact": true,
+    "latest_main_combined_validation_required": false,
     "source_inventory": {
-      "sources": 50,
-      "links": 40,
-      "runtime_files": 55,
+      "sources": 48,
+      "links": 37,
+      "runtime_files": 72,
       "coverage": "partial",
       "activation_blocked": true,
       "authority_proof": false
     },
+    "governance_python_last_passed": 89,
+    "permissions_python_last_passed": 84,
     "production_activation": false,
     "deployment": false,
     "hosted_ci_review_proved": false,
     "global_goal_complete": false,
-    "audit_history_deleted": false,
-    "latest_main_combined_validation_required": true,
     "full_lifecycle_complete": false,
     "full_compound_matrix_complete": false,
-    "old_component_counts_not_reused": true
+    "native_permission_axes_changed": false,
+    "native_initial_forms_proved": true,
+    "wire_browser_proved": false,
+    "evidence_directory": "docs/governance/evidence/organization-main-180-476-20261103"
   },
   "historical_component_validations": [
     {
@@ -247,14 +253,20 @@
       "evidence_directory": "docs/governance/evidence/native-history-295-20261103"
     },
     {
-      "scope": "main-native-lifecycle-plus-restricted-history-source",
+      "scope": "restricted-native-history-final",
+      "native_methods": 147,
+      "organization_sql_checks": 297,
+      "evidence_directory": "docs/governance/evidence/native-history-297-20261103"
+    },
+    {
+      "scope": "versioned-transfer-storage-calendar-and-typed-intent-foundation",
       "php_runtime": "8.5.12",
-      "current_source_native_sql_required": 297,
-      "current_source_validation": "supported-runtime-isolated-native-297-passed",
+      "current_source_native_sql_required": 307,
+      "current_source_validation": "supported-runtime-isolated-native-307-passed",
       "source_inventory": {
-        "sources": 37,
-        "links": 28,
-        "runtime_files": 49,
+        "sources": 43,
+        "links": 29,
+        "runtime_files": 55,
         "coverage": "partial",
         "activation_blocked": true,
         "authority_proof": false
@@ -267,12 +279,16 @@
       "permissions_python_last_passed": 84,
       "actual_native_identity_current_sources_exercised": true,
       "latest_main_combined_validation_required": false,
-      "native_methods_required": 147,
+      "native_methods_required": 156,
       "full_lifecycle_complete": false,
       "full_compound_matrix_complete": false,
-      "governance_python_validation": "current-source-86-passed",
-      "governance_python_last_passed": 86,
-      "evidence_directory": "docs/governance/evidence/native-history-297-20261103"
+      "governance_python_validation": "current-source-88-passed",
+      "governance_python_last_passed": 88,
+      "evidence_directory": "docs/governance/evidence/transfer-foundation-307-20261103",
+      "full_transfer_implemented": false,
+      "independent_transfer_approval_implemented": false,
+      "native_primary_transfer_implemented": false,
+      "outbox_dispatch_registered": false
     }
   ],
   "validated_component_checkpoints": [
@@ -305,15 +321,182 @@
       "evidence_directory": "docs/governance/evidence/membership-lifecycle-checkpoint-20261103"
     }
   ],
-  "pending_combination": {
-    "status": "not-runtime-validated",
-    "main_merge_commit": "6c12461b15b1d8d7fef8d1c7872ff3833ba2d70d",
-    "http_source_checkpoint": "28aa3bde87d0a683c53220fddf5034c1477fa786",
-    "source_inventory": "explicit reviewed HTTP/file/bootstrap nodes added to strict main catalog",
-    "old_component_receipts_are_not_combined_evidence": true,
-    "current_http_checkpoint_pure_methods": 146,
-    "current_http_sql_receipt_validated": false,
-    "combined_actual_counts": null,
-    "wire_browser_and_activation": false
+  "current_main_union_validation": {
+    "scope": "actual organization and media main union, isolated native regression only",
+    "passed": true,
+    "native_methods": 188,
+    "sql_checks": 551,
+    "runtime_files": 5930,
+    "runtime_content_exact": true,
+    "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
+    "incoming_main": "06370b43c5242baa8cbd850b1c693cb7be34e3a6",
+    "executed_index_tree": "0f29f6cd666e6b8776a4cb6903dbd38cc8d909fd",
+    "governance_python": 91,
+    "permission_python": 84,
+    "worker_cleanup": {
+      "private_directories_removed": 19,
+      "owned_processes_stopped": 0,
+      "cleanup_failures": 0,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0,
+      "workers_registered": 19
+    },
+    "cleanup": {
+      "ownedSchemasRemoved": 55,
+      "ownedRuntimeUsersRemoved": 2,
+      "readerRemoved": true
+    },
+    "paired_image_removed": true,
+    "production_activation": false,
+    "browser_or_wire_proved": false,
+    "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+    "source_sha256": {
+      "organization-media-main-integration.json": "02c34296a7166579e383a4161aa8d7723b06624a72ea5185c1f7314e52eea273",
+      "organization-media-main-native.json": "b94163b2616fad8a233a7f8ceae02a8c1b6ea237fc1bf1a549d937fc5e3a3163",
+      "organization-media-main-source-runtime-match.json": "0b58eeeb895782f2e94639e6376fb5650ca40771d940371c0e7a3c9d7426ee03"
+    },
+    "signed_head": "pending signed P2 fix",
+    "pull_request": "https://github.com/soulteary/phorge/pull/94",
+    "hosted_CI": "pending new head",
+    "exact_head_review": "pending new head",
+    "merge_state": "open, mergeable",
+    "source_parent": "b2f6a133504330974b0f536c2b910fe0c87ad630",
+    "known_findings_fixed": [
+      "4451902435",
+      "4451902443"
+    ],
+    "same_site_main_union_required_before_merge": true,
+    "evidence": "docs/governance/evidence/organization-reviewfix-188-551-20261103"
+  },
+  "incoming_media_main_component_validation": {
+    "current_component_validation": {
+      "scope": "pending-current-main-and-http-source-combination",
+      "php_runtime": "8.5.12",
+      "current_source_validation": "pending-fresh-full-combined-run",
+      "actual_combined_counts": null,
+      "source_inventory": {
+        "sources": 50,
+        "links": 40,
+        "runtime_files": 55,
+        "coverage": "partial",
+        "activation_blocked": true,
+        "authority_proof": false
+      },
+      "production_activation": false,
+      "deployment": false,
+      "hosted_ci_review_proved": false,
+      "global_goal_complete": false,
+      "audit_history_deleted": false,
+      "latest_main_combined_validation_required": true,
+      "full_lifecycle_complete": false,
+      "full_compound_matrix_complete": false,
+      "old_component_counts_not_reused": true
+    }
+  },
+  "same_site_main_union_validation": {
+    "scope": "actual organization and media main union, isolated native regression only",
+    "passed": true,
+    "native_methods": 190,
+    "sql_checks": 553,
+    "runtime_files": 5930,
+    "runtime_content_exact": true,
+    "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
+    "incoming_main": "32fc7b692ebb61decbab7163914c4d838a251a73",
+    "executed_index_tree": "0f29f6cd666e6b8776a4cb6903dbd38cc8d909fd",
+    "governance_python": 91,
+    "permission_python": 84,
+    "worker_cleanup": {
+      "private_directories_removed": 19,
+      "owned_processes_stopped": 0,
+      "cleanup_failures": 0,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0,
+      "workers_registered": 19
+    },
+    "cleanup": {
+      "ownedSchemasRemoved": 55,
+      "ownedRuntimeUsersRemoved": 2,
+      "readerRemoved": true
+    },
+    "paired_image_removed": true,
+    "production_activation": false,
+    "browser_or_wire_proved": false,
+    "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+    "source_sha256": {
+      "organization-media-main-integration.json": "334a23ebdc4cebb8678a6b268eacea9925d24a33ac8a5937ea435d230b75fad6",
+      "organization-media-main-native.json": "0d41c149c8942edd7974ea0c3f72bc0b582e31bf25c5417dee6de0db36c828df",
+      "organization-media-main-source-runtime-match.json": "83638a0d287e373d8dc71ed53252590b3f095255a0871b18aa7ed137511d0467",
+      "organization-media-main-psl-runtime-match.json": "355c1493c65f0624c08b4661af806e599131f10d7f1f0fb2970b6251befe9ee2"
+    },
+    "signed_head": "pending signed main95 merge",
+    "pull_request": "https://github.com/soulteary/phorge/pull/94",
+    "hosted_CI": "pending new head",
+    "exact_head_review": "pending new head",
+    "known_findings_fixed": [
+      "4451902435",
+      "4451902443"
+    ],
+    "same_site_main_union_required_before_merge": false,
+    "pinned_psl_runtime_resources": 4,
+    "pinned_psl_exact": true,
+    "organization_parent": "d5ff443a54541580e228212d6903fdcde22f74c3",
+    "same_site_main_union_actual_verified": true,
+    "evidence": "docs/governance/evidence/organization-main95-190-553-20261103"
+  },
+  "initial_dst_reviewfix_validation": {
+    "scope": "actual organization and media main union, isolated native regression only",
+    "passed": true,
+    "native_methods": 190,
+    "sql_checks": 557,
+    "runtime_files": 5930,
+    "runtime_content_exact": true,
+    "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
+    "incoming_main": "32fc7b692ebb61decbab7163914c4d838a251a73",
+    "executed_index_tree": "0f29f6cd666e6b8776a4cb6903dbd38cc8d909fd",
+    "governance_python": 91,
+    "permission_python": 84,
+    "worker_cleanup": {
+      "private_directories_removed": 19,
+      "owned_processes_stopped": 0,
+      "cleanup_failures": 0,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0,
+      "workers_registered": 19
+    },
+    "cleanup": {
+      "ownedSchemasRemoved": 55,
+      "ownedRuntimeUsersRemoved": 2,
+      "readerRemoved": true
+    },
+    "paired_image_removed": true,
+    "production_activation": false,
+    "browser_or_wire_proved": false,
+    "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+    "source_sha256": {
+      "organization-media-main-integration.json": "534edf5e320ec4dda3dd44eaa77026d9381d7264085d501e41b171d092666c60",
+      "organization-media-main-native.json": "f9a1b8da492392169739cc13ffc2f950fde060300f64fe6f8c6e90a3e56decc5",
+      "organization-media-main-source-runtime-match.json": "6642d28063797ac5508c248c42adc207f8fb7eb5827e58b981d3a7c914dd54a7",
+      "organization-media-main-psl-runtime-match.json": "355c1493c65f0624c08b4661af806e599131f10d7f1f0fb2970b6251befe9ee2"
+    },
+    "signed_head": "pending signed DST fix",
+    "pull_request": "https://github.com/soulteary/phorge/pull/94",
+    "hosted_CI": "pending new head",
+    "exact_head_review": "pending new head",
+    "known_findings_fixed": [
+      "4451902435",
+      "4451902443",
+      "4452461139"
+    ],
+    "same_site_main_union_required_before_merge": false,
+    "pinned_psl_runtime_resources": 4,
+    "pinned_psl_exact": true,
+    "organization_parent": "d5ff443a54541580e228212d6903fdcde22f74c3",
+    "same_site_main_union_actual_verified": true,
+    "source_parent": "70fbad730941cbe2d89336f0e92ef21f3b63eb70",
+    "fixed_date_calendar_render_seam_only": true,
+    "actual_current_clock_http_sql_verified": true,
+    "database_clock_modified": false,
+    "future_live_dst_transition_execution_proved": false,
+    "evidence": "docs/governance/evidence/organization-dst-190-557-20261103"
   }
 }

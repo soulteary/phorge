@@ -14,7 +14,7 @@ function governance_native_concurrency_sql($fixture, $sql, array $values=array()
   } finally { if ($statement) {$statement->close();} mysqli_report($mode); }
 }
 function governance_native_concurrency_wait($fixture, mysqli $observer, array $worker, $table) {
-  if (!in_array($table,array('organization_guard','organization_appointment'),true)) {
+  if (!in_array($table,array('organization_guard','organization_appointment','organization_transfer'),true)) {
     throw new RuntimeException('native_concurrency_wait_target_refused');
   }
   governance_native_wait_worker_query($observer,array($worker),'/'.preg_quote($table,'/').'.*FOR UPDATE/is');

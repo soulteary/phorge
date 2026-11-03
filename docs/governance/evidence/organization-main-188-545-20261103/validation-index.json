@@ -1,0 +1,35 @@
+{
+  "scope": "actual organization and media main union, isolated native regression only",
+  "passed": true,
+  "native_methods": 188,
+  "sql_checks": 545,
+  "runtime_files": 5930,
+  "runtime_content_exact": true,
+  "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
+  "incoming_main": "06370b43c5242baa8cbd850b1c693cb7be34e3a6",
+  "executed_index_tree": "0f29f6cd666e6b8776a4cb6903dbd38cc8d909fd",
+  "governance_python": 91,
+  "permission_python": 84,
+  "worker_cleanup": {
+    "private_directories_removed": 19,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 19
+  },
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "paired_image_removed": true,
+  "production_activation": false,
+  "browser_or_wire_proved": false,
+  "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+  "source_sha256": {
+    "organization-media-main-integration.json": "1ba3dd058c2b84fe96fcee48acb6103df74682a1a7d44e114c243579987e5a47",
+    "organization-media-main-native.json": "a8d38c641d8d833451a4828be509c72a9b2f4602e1e9c013147a9fa92adc0f2e",
+    "organization-media-main-source-runtime-match.json": "2d34e215dc7be1a76dd85a5af50d0c3b19f680a527ffb4bd8c308f64fccf5ee6"
+  }
+}

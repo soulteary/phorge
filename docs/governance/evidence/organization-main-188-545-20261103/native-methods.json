@@ -1,0 +1,947 @@
+{
+    "passed": true,
+    "runtime": "8.5.12",
+    "results": [
+        {
+            "id": "PhorgeGovernanceDirectoryReaderTestCase::testDirectoryIdentityAndSearchValidation",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceDirectoryReaderTestCase::testDirectoryQueryBounds",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceDirectoryReaderTestCase::testExplicitFixtureConnectionBoundary",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceContentDecisionTestCase::testNativeEditDoesNotGrantOrganizationAppointments",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceContentDecisionTestCase::testContentPositiveIsNotAnExecutionGrant",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceContentDecisionTestCase::testContentCannotManageOrMoveObjects",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceContentDecisionTestCase::testNativeEditIsPreservedForLowRiskOnly",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceContentDecisionTestCase::testNewContentDoesNotInheritNativeManagement",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceContentDecisionTestCase::testMissingUnknownAndUnverifiedInputsBlock",
+            "result": "pass",
+            "detail": "17 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testOutOfOrderAndLocalReplayAreBlocked",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testSelfApprovalOrNonAdministratorIsBlocked",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testMissingOrTruthyProofDoesNotAuthorize",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testIdentitiesDoNotRetainCallerReferences",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testExpiryAndFutureRequestAreBlocked",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testRecursiveParametersFailWithBoundedDepth",
+            "result": "pass",
+            "detail": "1 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testReversedTransitionTimesAreBlocked",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testNestedMapListAndReadSetAreDetached",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testCanonicalBindingPreservesTypesAndListOrder",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testMalformedBindingFailsClosed",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testValidityDoesNotRetainCallerReferences",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testCurrentRevocationAndUnknownProofsBlock",
+            "result": "pass",
+            "detail": "13 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testOrderedTransitionsNeverExecute",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceApprovalStateTestCase::testParameterTargetAndReadSetChangesInvalidateApproval",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testSourceKindsAreBoundToNativeObjectFamily",
+            "result": "pass",
+            "detail": "157 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testUnknownCustomFieldsStatusAndEdgesDoNotBecomeContent",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testPolicyAndSpaceAreSensitiveWithoutCallerRisk",
+            "result": "pass",
+            "detail": "38 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testBatchRiskCannotBeDilutedByContentOrOrdering",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testWikiContentRequiresValueAndExpansionReview",
+            "result": "pass",
+            "detail": "12 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testReturnedDefinitionsDoNotRetainCallerMutation",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testModularContentMapsByObjectAndEnvelopeNotBareType",
+            "result": "pass",
+            "detail": "12 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testDefinitionsUseRealNativeClassesAndConstants",
+            "result": "pass",
+            "detail": "275 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testMalformedMixedObjectOrUnknownBatchIsWhollyBlocked",
+            "result": "pass",
+            "detail": "21 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testHistoricalMemberTypeIsRecognizedButNotWritable",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testRelationshipEffectsStayConservativelySensitive",
+            "result": "pass",
+            "detail": "16 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testBuiltinProjectDescriptionUsesActualCustomFieldKey",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceCapabilityMapTestCase::testProjectMemberEdgeIsStrictAndNotAnImplicitJoinGrant",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testOperationAndAllBindingIdentitiesAreBound",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testTaskAndWikiGroupDependenciesAreNotOmitted",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testEveryRequiredRoleIsRequiredNotJustItsKind",
+            "result": "pass",
+            "detail": "21 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testUnsupportedOperationAndClassBlock",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testMatchingReadSetNeverAuthorizesExecution",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testSourceAndBindingReferencesAreDetached",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testFixedCatalogAgreesWithCapabilityMapping",
+            "result": "pass",
+            "detail": "15 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testSelfApprovalIsNotACompleteReadSet",
+            "result": "pass",
+            "detail": "1 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testDuplicateAndUnknownSourceKindsBlock",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testCrossStoreMatchingDoesNotImplyConsistency",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testFixedCatalogIncludesNativeAutomaticDependencies",
+            "result": "pass",
+            "detail": "22 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testCurrentEligibilityAndEveryRevisionInvalidate",
+            "result": "pass",
+            "detail": "60 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testReadSetToApprovalStillBlocksWithoutNativeAdapter",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testSameKindCannotImpersonateAnotherRoleIdentity",
+            "result": "pass",
+            "detail": "1 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceReadSetTestCase::testAddedAndRemovedManifestSourcesInvalidate",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testCreationWrongEnvelopeAndUnknownBatchBlock",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testTaskReassignmentActuallyAddsOldOwnerSubscription",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWikiNonemptyBodyDoesNotClaimPublicationValidated",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testProjectLocalValidationScopeAndUnknownClosureBlock",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testTaskTextHasOnlyObservedSingleItemExpansion",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testIneligibleOwnerCannotBecomeAnAdmissionGrant",
+            "result": "pass",
+            "detail": "12 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWikiBatchRejectsMissingOrMismatchedContent",
+            "result": "pass",
+            "detail": "18 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testProjectLocalValidationMilestonePreludeRejectsMembers",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testFactoryAndRevokedScopeAreBlocked",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testInheritedNativePoolsAreRefusedWithoutCleanupOwnership",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testDeploymentEnvironmentIsRefused",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testTaskStatusAndBoardFullClosuresRemainUnsupported",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWikiBatchNativeCanonicalVersionHydration",
+            "result": "pass",
+            "detail": "74 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testProjectMilestonePreludeDoesNotChangeParentObject",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testTaskAndWikiPolicyItemsAreOnlyLocalPassThrough",
+            "result": "pass",
+            "detail": "18 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWrongPrimitivePayloadShapesBlockBeforeExpansion",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testNonCurrentTransactionTargetIsBlocked",
+            "result": "pass",
+            "detail": "1 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testTaskSameOwnerDoesNotAddSubscriber",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testLocalPayloadBudgetsAndUnsupportedValuesBlock",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testMalformedCapabilityValuesBlockBeforeNativeQueries",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testRoutingAndCacheDriftRefuseBeforeAnyProbeConnection",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testProjectLocalValidationParentMilestoneConflict",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testCapabilityObservationRequiresObjectIdentity",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testProjectLocalValidationOrdinaryAndParentMembership",
+            "result": "pass",
+            "detail": "14 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testProjectDescriptionUsesNativeLocalMethodOnly",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWikiMoveActuallyAddsDestinationPolicies",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWikiMoveCannotInjectAnArbitraryObject",
+            "result": "pass",
+            "detail": "1 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testCapabilityObservationDoesNotTrustAbsentSourceStack",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWikiBatchPreludeUsesAttachedNativeContent",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWikiEmptyBodyActuallyExpandsToDelete",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeObservationTestCase::testWikiBatchMoveAndDeletePreserveNativeOrder",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeSourceReaderTestCase::testBudgetsMayOnlyBeReduced",
+            "result": "pass",
+            "detail": "17 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeSourceReaderTestCase::testCaptureValuesNeverCertifyClosureOrExecution",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeSourceReaderTestCase::testStoredNativeRuleSubjectsMustBePresentAndTyped",
+            "result": "pass",
+            "detail": "31 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeSourceReaderTestCase::testOnlyExplicitIsolatedNativeNamespaceAndInputsAccepted",
+            "result": "pass",
+            "detail": "9 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeSourceReaderTestCase::testConfigurationReferencesAreDetached",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeSourceReaderTestCase::testTablesAreNativeSourcesNotSyntheticEpochs",
+            "result": "pass",
+            "detail": "16 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeSourceReaderTestCase::testDeploymentSelectorsAreRefusedBeforeConnection",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeRuleHierarchyTestCase::testUnknownRuleCannotProducePermissionOrTouchContext",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeRuleHierarchyTestCase::testExactNativeRuleValues",
+            "result": "pass",
+            "detail": "9 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeRuleHierarchyTestCase::testUnknownMalformedAndUnboundedRuleValuesBlock",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeRuleHierarchyTestCase::testNativeParentAttachmentStructuralInvariants",
+            "result": "pass",
+            "detail": "13 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativePolicyCompositionTestCase::testEffectivePolicySampleKeysAndBoundedScalarValues",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativePolicyCompositionTestCase::testKnownUnsupportedCaptureRefusesBeforeNativeContext",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativePolicyCompositionTestCase::testCompositionTargetCannotUseArbitraryClassOrPhid",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativePolicyCompositionTestCase::testCompositionCapabilitiesAreExactBoundedSet",
+            "result": "pass",
+            "detail": "11 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativePolicyCompositionTestCase::testCompositionUnsupportedInputCannotClaimAtomicPermission",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeReadViewTestCase::testReadViewInvalidInputCannotClaimExecutionFreshness",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeReadViewTestCase::testNativeReadQueryProfileRejectsResultAmplification",
+            "result": "pass",
+            "detail": "59 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeReadViewTestCase::testCleanupOwnershipUsesIdentityNotConnectionKey",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeReadViewTestCase::testBridgeDoesNotExposePublicConnectionConstruction",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeReadViewTestCase::testBridgePinsSqlModeAndRejectsParserAmbiguities",
+            "result": "pass",
+            "detail": "14 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeReadViewTestCase::testBridgeOnlyAllowsFixedReadOnlySqlShapes",
+            "result": "pass",
+            "detail": "19 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeReadViewTestCase::testNativeRuntimeLibrariesRootsAndMapsFailClosed",
+            "result": "pass",
+            "detail": "13 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationStoreTestCase::testFixtureAndMutationReferencesDetached",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationStoreTestCase::testEligibilityRequiresTypedCurrentSourceAndVersion",
+            "result": "pass",
+            "detail": "9 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationStoreTestCase::testUnknownCallerAuthorityAndInvalidVersionsRejected",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationStoreTestCase::testOnlyExplicitOwnedFixtureConfigAccepted",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationStoreTestCase::testAmbiguousBatchAndUngatedAppointmentRejected",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationApprovalTestCase::testBindingBudgetsRejectReferenceAmplificationAndUnknownValues",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationApprovalTestCase::testIntentDetachesExternalIdentityAndTimingReferences",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationApprovalTestCase::testCallerProofObjectsCannotCreateOwnedApprovalScope",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationApprovalTestCase::testOnlyExplicitAdministratorIntentsAreAccepted",
+            "result": "pass",
+            "detail": "14 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceOrganizationApprovalTestCase::testTtlAndSourceVersionsHaveNoCoerciveDefaults",
+            "result": "pass",
+            "detail": "20 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationRequestTestCase::testUnitShapeAndDetachedReferences",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationRequestTestCase::testUnitUpdateRejectsSelfParentAndImplicitVersions",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationRequestTestCase::testApprovalProposalRejectsActorAndImplicitTime",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationRequestTestCase::testAdminPredicateIsTypedQueryFragment",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationRequestTestCase::testCanonicalORMVersionAndPeriods",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationRequestTestCase::testDetachedNativeInputHasNoActorField",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationRequestTestCase::testPrimaryDepartmentRequiresExplicitVersion",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationRequestTestCase::testMalformedBatchAndVersionRefused",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationMetadataTestCase::testDatasourceViewerAloneDoesNotSupplyCredentials",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationMetadataTestCase::testClearDepartmentKeepsExplicitExistingVersionFence",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationMetadataTestCase::testMetadataIsDetachedAndCannotSelectAnotherVisibilityModel",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationMetadataTestCase::testMetadataReferenceAndVersionsAreStrict",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCompoundTestCase::testAcknowledgementAndPeriodContainmentRequired",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCompoundTestCase::testExplicitCompoundValueContractAndDetachedInput",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCompoundTestCase::testRevocationCompoundHasNoCallerReplacementPeriod",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationHistoryTestCase::testExact365DayReportNeverImpliesDeletion",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationHistoryTestCase::testHistoryCursorIsCanonicalAndBounded",
+            "result": "pass",
+            "detail": "14 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCalendarTestCase::testLeapCalendarAndFiniteSupportedEpoch",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCalendarTestCase::testSpringCalendarDaysPreserveLocalClock",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCalendarTestCase::testAmbiguousDeadlineNeedsExplicitOffset",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCalendarTestCase::testNonexistentDeadlineNeverSilentlyNormalizes",
+            "result": "pass",
+            "detail": "1 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCalendarTestCase::testEveryExtensionAndCumulativeExceptionAreExplicit",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationCalendarTestCase::testDefault14Immediate0And30DayBoundaries",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationTransferRequestTestCase::testManualDispositionIntentIsNotNativePermissionProof",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationTransferRequestTestCase::testExtensionAndTerminationCannotSmuggleSourcesOrApproval",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationTransferRequestTestCase::testDetachedProposalUses14ByDefaultAndExactVersions",
+            "result": "pass",
+            "detail": "11 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationTransferAdapterTestCase::testTransportEnvelopeRejectsCallerAuthorityAndUnboundedApprovalTime",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationTransferAdapterTestCase::testNativeCapabilityCannotSerializeOrExposeItsConnection",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationTransferAdapterTestCase::testPostconditionDoesNotIgnoreColumnsTypesOrUnexpectedWrites",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationHandoverAdapterTestCase::testFixedActionsRejectCallerAuthorityCumulativeAndUnknownFields",
+            "result": "pass",
+            "detail": "9 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationHandoverAdapterTestCase::testClosedNativeCapabilityFailsBeforeBorrowingSQL",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationHandoverAdapterTestCase::testStoredCalendarRejectsForgedTotalOffsetsAndWallTime",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationHandoverAdapterTestCase::testCumulativeCalendarUsesOriginalLocalDatesAcrossDST",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationTransferControllerTestCase::testSingleSelectorRequiresExactlyOneStringValue",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeOrganizationTransferControllerTestCase::testFormNumbersDoNotSilentlyCoerceToImmediateTransfer",
+            "result": "pass",
+            "detail": "13 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeNoncredentialIdentitySourceTestCase::testStoredBindingVersionSelectsLegacyWithoutReinterpretation",
+            "result": "pass",
+            "detail": "14 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeNoncredentialIdentitySourceTestCase::testGenerationValuesRemainCanonicalAndBounded",
+            "result": "pass",
+            "detail": "15 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeNoncredentialIdentitySourceTestCase::testFirstIssuerEpochOneNormalizationDoesNotIgnoreRealChanges",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeNoncredentialIdentitySourceTestCase::testFactHelperCannotConstructActorsOrCredentials",
+            "result": "pass",
+            "detail": "8 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeIdentityTestCase::testConduitViewerAndParametersDoNotSupplyCredentialProof",
+            "result": "pass",
+            "detail": "9 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeIdentityTestCase::testNativeIdentityTypesCannotBeCallerConstructedOrSerialized",
+            "result": "pass",
+            "detail": "15 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeIdentityTestCase::testActorRequiresActualWebCredentialNotViewerAlone",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeApprovalTestCase::testNativeApprovalIntentMappingIsBoundedAndExplicit",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceNativeApprovalTestCase::testNativeApprovalCannotBeConstructedFromCallerProof",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaExchangeServiceTestCase::testOpaqueSecretCanonicalShape",
+            "result": "pass",
+            "detail": "9 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaExchangeServiceTestCase::testBrowserGenerationIsCanonicalAndCannotWrap",
+            "result": "pass",
+            "detail": "13 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaExchangeServiceTestCase::testTargetCannotBecomeAnOpenRedirectOrCredentialURL",
+            "result": "pass",
+            "detail": "16 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaExchangeServiceTestCase::testConfigurationIsRegisteredDisabledAndLocked",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaIssuerTestCase::testExternalKeyIsARegisteredHiddenLockedSetting",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaIssuerTestCase::testUnknownIssuerInputsCannotFallBackToUnkeyedHashes",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaIssuerTestCase::testSecretDigestsAreKeyIncarnationAndPurposeSeparated",
+            "result": "pass",
+            "detail": "17 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaTargetTestCase::testTargetFieldsCannotBeMutatedOrSerialized",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaTargetTestCase::testNativeDataDownloadTransformAndUnicodeCanonicalization",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaTargetTestCase::testNativeUnicodeFileNameLimitFitsBoundedTargets",
+            "result": "pass",
+            "detail": "9 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaTargetTestCase::testAmbiguousAndForeignTargetsAreRefused",
+            "result": "pass",
+            "detail": "17 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaHTTPProtocolTestCase::testFileCookieFirewallPreservesRawAmbiguityAndNoNativeCredentials",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaHTTPProtocolTestCase::testPayloadRejectsDuplicateEscapedKeysAndNonStringValues",
+            "result": "pass",
+            "detail": "11 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaHTTPProtocolTestCase::testCookiesAreHostOnlyAndNeverParentDomainOrScriptReadable",
+            "result": "pass",
+            "detail": "16 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaHTTPProtocolTestCase::testOriginIsStrictHTTPSAuthorityOnly",
+            "result": "pass",
+            "detail": "16 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaFileGuardTestCase::testActiveFormatsCannotBecomeInlineThroughMimeConfiguration",
+            "result": "pass",
+            "detail": "13 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaFileGuardTestCase::testStaticSourcesAreFixedProducerBytesNotAvatarFileAuthority",
+            "result": "pass",
+            "detail": "13 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeGovernanceMediaFileGuardTestCase::testNativeResourceMapUsesEmptyUnmatchedInstanceCapture",
+            "result": "pass",
+            "detail": "2 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testInvalidConfigurationControlsNeverDegradeToFalse",
+            "result": "pass",
+            "detail": "29 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testCanonicalDetachedReferencesAndOrdering",
+            "result": "pass",
+            "detail": "3 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testBoundedDirectPolicyTypes",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testNativeConfigUniqueReplacementProfileAndEpochWriteRefusal",
+            "result": "pass",
+            "detail": "9 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testTicketIdentifiersAreExactBytes",
+            "result": "pass",
+            "detail": "7 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testNativeStoredMembershipRecordUsesSlimDeltaLists",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testStrictValueAndBudgets",
+            "result": "pass",
+            "detail": "5 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testNativeConfigEphemeralWritesRefuseBeforeConnection",
+            "result": "pass",
+            "detail": "4 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testDefaultOptionAndPrivateShapeClassifier",
+            "result": "pass",
+            "detail": "10 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testConfigurationEpochStrictUnsignedCanonicalValues",
+            "result": "pass",
+            "detail": "11 assertion(s) passed."
+        },
+        {
+            "id": "PhorgeProjectExecutionTestCase::testConfigurationGenerationPatchIsEarlyNativePrerequisite",
+            "result": "pass",
+            "detail": "6 assertion(s) passed."
+        }
+    ],
+    "expected_methods": 188
+}
