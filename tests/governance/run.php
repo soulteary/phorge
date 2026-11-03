@@ -49,6 +49,7 @@ try {
     'PhorgeLegalpadVerificationTestCase',
     'PhorgeRecoveryNativeAccountFactsTestCase',
     'PhorgeRecoveryNativeWebFactsTestCase',
+    'PhorgeRecoveryStopTestCase',
     'PhorgeRecoveryNativeAPIFactsTestCase',
   );
   $expected = array();

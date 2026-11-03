@@ -899,7 +899,7 @@ API_TOKEN_MEASUREMENT_CHECKS = frozenset({
     'n12-native-api-serial-parent-clock-binds-actual-delete-and-fresh-authentication',
 })
 REQUIRED_CHECKS = REQUIRED_CHECKS | API_TOKEN_MEASUREMENT_CHECKS
-WORKERS = 25
+WORKERS = 32
 NATIVE['api_token_revocation_measurement_tests'] = {
     'profile':'native-conduit-token-revoke-authentication-only','actual_source_checked':True,
     'actual_independent_authentication_processes':3,'token_rows_deleted':1,
@@ -1071,7 +1071,7 @@ NOTIFICATION_BOUNDARY_CHECKS = frozenset(['private-business-project-normal-actua
  'private-mail-legalpad-verifier-victim-rolls-back-and-releases-locks-before-connection-close-with-no-mail',
  'private-mail-legalpad-weighted-index-race-proves-actual-verifier-deadlock-victim-not-permission-denial'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | NOTIFICATION_BOUNDARY_CHECKS
-WORKERS = 31  # Root25 plus six N12 independent probes; local business subprocesses excluded.
+WORKERS = 38  # Root25 plus six N12 independent probes; local business subprocesses excluded.
 NATIVE['private_mail_tests']['legalpad_tests']['policy_source_tests'] = {'actual_named_effective_policy': True,
  'actual_project_membership_editor_and_materialized_source': True,
  'all_policy_sources_atomically_locked': False,
@@ -1153,7 +1153,7 @@ def validate_restore(value, root):
         'restore_phase_workers_started': 0, 'restore_phase_network_endpoints_configured': 0}
     for key, target in expected.items():
         exact_tree(value[key], target)
-    exact_tree(value['current_table_count'], 538)
+    exact_tree(value['current_table_count'], 540)
     audit=value['patch_audit']
     if type(audit) is not dict or set(audit) != {'source_patch_count', 'applied_patch_count',
         'pending_patch_keys', 'current_patch_ledger_complete', 'migration_source_hashes', 'migrations_executed'}:
@@ -1165,7 +1165,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1569)
+    exact_tree(audit['source_patch_count'], 1570)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 
@@ -1175,6 +1175,15 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-o
 
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only'])
 NATIVE['project_execution_tests']['approved_native_view_policy'].update(actual_api_token_conduit_path=True,view_ticket_cannot_edit_policy=True)
+
+
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['recovery-stop-active-account-not-classified-as-stopped', 'recovery-stop-actual-native-disable-committed-before-classification', 'recovery-stop-actual-session-logout-refuses-classification', 'recovery-stop-actual-session-logout-refuses-history', 'recovery-stop-conflicting-operation-payload-refused', 'recovery-stop-current-admin-history-has-bounded-native-id-pagination', 'recovery-stop-current-ordinary-user-cannot-replay-admin-operation', 'recovery-stop-disabled-candidate-refuses-before-transaction', 'recovery-stop-exact-operation-replay-does-not-duplicate-or-rewrite-audit', 'recovery-stop-existing-classification-not-silently-replaced', 'recovery-stop-history-not-visible-to-ordinary-user', 'recovery-stop-old-event-rejected-after-real-disable-enable-disable', 'recovery-stop-real-audit-fault-rolls-back-ledger-but-preserves-native-emergency-stop', 'recovery-stop-real-ledger-and-audit-commit-without-recovery-grant', 'recovery-stop-refusal-preserves-unrelated-native-outer-transaction'])
+NATIVE['recovery_stop_tests'] = {'actual_native_disable_then_separate_ledger': True, 'actual_audit_failure_rollback': True, 'emergency_disable_depends_on_ledger': False, 'recovery_authorized': False, 'concurrent_writer_proof': False, 'production_entry_registered': False}
+
+
+STOP_BOUNDARY_CHECKS = frozenset(['recovery-stop-concurrent-same-operation-commits-once-and-replays-once', 'recovery-stop-history-expired-during-native-user-lock-wait-is-refused', 'recovery-stop-history-rechecks-native-role-after-revocation', 'recovery-stop-independent-current-admin-history-before-revocation', 'recovery-stop-missing-audit-table-refuses-without-ledger-change', 'recovery-stop-nontransactional-audit-table-refuses-without-ledger-change', 'recovery-stop-raw-outer-rollback-restores-only-caller-write', 'recovery-stop-record-expired-during-native-user-lock-wait-is-refused', 'recovery-stop-record-expiry-wait-begins-with-real-live-credential', 'recovery-stop-revoked-current-admin-cannot-replay-after-real-wait', 'recovery-stop-session-expiry-wait-begins-with-real-live-credential', 'recovery-stop-two-real-sessions-wait-on-native-user-row', 'recovery-stop-unsupported-cluster-profile-refused-before-ledger-access', 'recovery-stop-untracked-physical-transaction-remains-owned-by-caller', 'recovery-stop-waiting-writer-observes-real-native-admin-removal'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | STOP_BOUNDARY_CHECKS
+NATIVE['recovery_stop_boundary_tests'] = {'two_session_same_operation_proof': True, 'current_admin_revocation_after_wait': True, 'real_session_expiry_during_wait': True, 'missing_and_nontransactional_table_refused': True, 'unsupported_routing_refused': True, 'raw_outer_transaction_preserved': True, 'recovery_authorized': False, 'all_sources_complete': False, 'production_entry_registered': False}
 
 BUSINESS_GORGE_CHECKS = frozenset(['private-business-gorge-task-normal-native-editor-http-enqueue-real-task',
  'private-business-gorge-task-normal-native-handler-and-fenced-queue-outcome-current-source',

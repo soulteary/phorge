@@ -1,10 +1,13 @@
 # Existing Wiki content publication fixture (not runtime verified)
 
-This independent successor is based on PR101's signed documentation head
-`4395d3102e16def28f1d080c911f2168cb83d4f8`. It adds 13 mandatory checks to
-its 789-check baseline: source-derived obligations are 219 pure / 802 SQL,
-31 registered workers and a separate set of five Wiki probe children. No
-supported-runtime result is claimed. Production PHP and resources are unchanged.
+This independent successor explicitly integrates protected main102
+`f4c5702a0fdeade575ecdcda98c568cd45e966ba`. It preserves all 819 mandatory
+main checks and adds 13 Wiki content checks: source-derived obligations are
+223 pure / 832 SQL, 38 registered workers, the existing 20 business children and
+a separate set of five Wiki probe children. Production PHP and resources are
+byte-identical to main102. No supported-runtime result is claimed for this union.
+The signed earlier `996bfd728bb75cbc48d559e0472e70817ce06f1b` component remains
+an unrun 219/802 historical source checkpoint, not current runtime evidence.
 
 Each sample first creates a genuine existing Phriction document, nonempty content
 and subscriber through the native editor with a real session/request. It reloads
