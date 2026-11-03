@@ -1,0 +1,105 @@
+name: Private mail physical wire
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '.github/workflows/private-mail-wire.yml'
+      - 'src/**'
+      - 'resources/**'
+      - 'bin/**'
+      - 'support/**'
+      - 'tests/governance/**'
+      - 'scripts/runtime/**'
+  workflow_dispatch:
+concurrency:
+  group: private-mail-wire-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  physical-wire:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: private-wire-disposable-only
+          MYSQL_ROOT_HOST: '%'
+        ports: ['127.0.0.1:3306:3306']
+        options: --health-cmd "mysqladmin ping -pprivate-wire-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
+    env:
+      # Public immutable PR46 candidate; testing does not authorize its release.
+      GORGE_MAIL_WIRE_REF: b58fe520085f4a81a39518e6bc3c408fe7fc4e21
+      OWLMAIL_WIRE_REF: 39e3ced315a027f6e5938146387179fa683fe7b1
+      ATOMIC_TEST_DISPOSABLE: '1'
+      GORGE_TEST_MYSQL_PASSWORD: private-wire-disposable-only
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require public immutable reviewed dependency pins
+        run: |
+          [[ "$GORGE_MAIL_WIRE_REF" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$OWLMAIL_WIRE_REF" =~ ^[a-f0-9]{40}$ ]]
+      - uses: actions/checkout@v6
+        with:
+          repository: soulteary/gorge
+          ref: ${{ env.GORGE_MAIL_WIRE_REF }}
+          path: .wire-gorge
+          persist-credentials: false
+      - uses: actions/checkout@v6
+        with:
+          repository: soulteary/owlmail
+          ref: ${{ env.OWLMAIL_WIRE_REF }}
+          path: .wire-owlmail
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.12'
+          extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
+          coverage: none
+      - name: Verify test-only harness units
+        working-directory: tests/governance/private_mail_ci
+        run: |
+          python3 -m unittest test_runtime test_matrix -v
+          go -C observer test ./...
+      - name: Build immutable paired services and private native observers
+        run: |
+          test "$(git -C .wire-gorge rev-parse HEAD)" = "$GORGE_MAIL_WIRE_REF"
+          test "$(git -C .wire-owlmail rev-parse HEAD)" = "$OWLMAIL_WIRE_REF"
+          mkdir -m 700 "$RUNNER_TEMP/private-mail-binaries"
+          for role in file-storage taskqueue mailer; do
+            name="$role"; [ "$role" != file-storage ] || name=file
+            CGO_ENABLED=0 go -C .wire-gorge/go build -o "$RUNNER_TEMP/private-mail-binaries/$name" "./cmd/gorge-$role"
+          done
+          CGO_ENABLED=0 go -C .wire-owlmail build -o "$RUNNER_TEMP/private-mail-binaries/owlmail" ./cmd/owlmail
+          CGO_ENABLED=0 go -C tests/governance/private_mail_ci/observer build -o "$RUNNER_TEMP/private-mail-binaries/observer" .
+          CGO_ENABLED=0 go build -o "$RUNNER_TEMP/private-mail-binaries/fault" support/governance/notification/smtp-fault.go
+      - name: Prepare standalone current committed source and native dependencies
+        run: |
+          python3 tests/governance/private_mail_ci/prepare_source.py --repository "$GITHUB_WORKSPACE" --revision "$GITHUB_SHA" --output "$RUNNER_TEMP/private-mail-source"
+          cd "$RUNNER_TEMP/private-mail-source"
+          php scripts/runtime/build.php all
+          php bin/rebuild-library-map
+          git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
+          php -r '$d=new mysqli("127.0.0.1","root",getenv("GORGE_TEST_MYSQL_PASSWORD"));$d->query("SET GLOBAL log_bin_trust_function_creators=1");$d->query("SET GLOBAL sql_mode=\"STRICT_ALL_TABLES,ONLY_FULL_GROUP_BY\"");'
+      - name: Execute current-source pending and provider-security matrix
+        run: |
+          python3 tests/governance/private_mail_ci/run_hosted.py --source "$RUNNER_TEMP/private-mail-source" --binaries "$RUNNER_TEMP/private-mail-binaries" --output "$RUNNER_TEMP/private-mail-receipts" --gorge-revision "$GORGE_MAIL_WIRE_REF" --owlmail-revision "$OWLMAIL_WIRE_REF"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-mail-physical-wire-sanitized
+          path: ${{ runner.temp }}/private-mail-receipts/*.json
+          if-no-files-found: error
