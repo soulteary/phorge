@@ -367,7 +367,7 @@ class NativeHTTPMeasurementGateTest(unittest.TestCase):
             with self.subTest(key=key),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
 
     def test_unknown_HTTP_or_missing_router_source_cannot_prove_denial(self):
-        for key,item in [('gateway_proved',True),('HTTP_proved',False),('actual_HTTP_requests',True),('router_sha256','f'*64)]:
+        for key,item in [('gateway_proved',True),('HTTP_proved',False),('actual_Conduit_HTTP_requests',True),('router_sha256','f'*64)]:
             value=template();value['native']['conduit_HTTP_revocation_measurement_tests'][key]=item
             with self.subTest(key=key),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
         value=template();value['native']['conduit_HTTP_revocation_measurement_tests']['event']['attempts'][1]['outcome']='unknown'

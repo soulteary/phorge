@@ -111,7 +111,7 @@ class NativeHTTPEnvelopeTest(unittest.TestCase):
         e['transition']['boundary']='native-token-dao-delete-http-new-requests'
         return {'profile':'native-conduit-http-token-revocation-only','HTTP_proved':True,
             'gateway_proved':False,'long_connection_proved':False,'SLA_proved':False,'convergence_proved':False,
-            'actual_HTTP_requests':4,'actual_independent_HTTP_processes':3,'native_parse_error_control_observed':True,
+            'actual_Conduit_HTTP_requests':4,'actual_independent_HTTP_processes':3,'native_parse_error_control_observed':True,
             'token_rows_deleted':1,'native_transaction_record_available':False,
             'server_cleanup':{'started':3,'stopped':3,'directories_removed':3,'remaining':0,'live':0},
             'router_sha256':'e'*64,'before_source_binding_sha256':'e'*64,'after_source_binding_sha256':'f'*64,'event':e}

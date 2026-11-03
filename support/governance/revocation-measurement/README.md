@@ -248,3 +248,8 @@ changed and no deployment was performed.
 Real loopback Conduit HTTP router and three independent owned PHP servers are separate from the accepted Query/API-method component. Main99 retains710 checks; six new HTTP obligations make716, with210 pure methods,25 registered workers plus three separately owned HTTP server cleanups. All new runtime/HTTP results are pending.
 
 A fixture catch-generated HTTP500 is always UNKNOWN. A future native error-handler test must independently bind a private response-stage receipt to normal native processRequest completion, or prove the native default handler exit provenance. An outer fixture exception cannot prove a native controller/default-handler500. This profile does not claim Legalpad error-handler coverage.
+
+The strict `actual_Conduit_HTTP_requests=4` count covers three authenticated
+Conduit probes plus one malformed-params native Conduit control request.
+Readiness GET requests are separate bootstrap traffic and are not included in
+that count. Three independently owned PHP servers still require full cleanup.

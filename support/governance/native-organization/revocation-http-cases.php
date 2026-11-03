@@ -106,7 +106,7 @@ function governance_native_revocation_http_cases($fixture,callable $check,array 
     $attempts=array();foreach(array($before,$after,$repeat)as$i=>$sample){$attempts[]=array('id'=>$i+1,'transition_id'=>$transition,
       'boot_id_sha256'=>$boot_hash,'start_ns'=>$sample['start_ns'],'finish_ns'=>$sample['finish_ns'],'outcome'=>$sample['outcome']);}
     return array('profile'=>'native-conduit-http-token-revocation-only','HTTP_proved'=>true,'gateway_proved'=>false,'long_connection_proved'=>false,
-      'SLA_proved'=>false,'convergence_proved'=>false,'actual_HTTP_requests'=>4,'actual_independent_HTTP_processes'=>3,
+      'SLA_proved'=>false,'convergence_proved'=>false,'actual_Conduit_HTTP_requests'=>4,'actual_independent_HTTP_processes'=>3,
       'native_parse_error_control_observed'=>true,'token_rows_deleted'=>1,'native_transaction_record_available'=>false,
       'server_cleanup'=>array('started'=>$started,'stopped'=>$stopped,'directories_removed'=>$removed,'remaining'=>0,'live'=>0),
       'router_sha256'=>$router_hash,'before_source_binding_sha256'=>$before['source_binding'],'after_source_binding_sha256'=>$absent_binding,

@@ -1018,7 +1018,7 @@ _http_event['transition']['boundary']='native-token-dao-delete-http-new-requests
 NATIVE['conduit_HTTP_revocation_measurement_tests']={
     'profile':'native-conduit-http-token-revocation-only','HTTP_proved':True,'gateway_proved':False,
     'long_connection_proved':False,'SLA_proved':False,'convergence_proved':False,
-    'actual_HTTP_requests':4,'actual_independent_HTTP_processes':3,'native_parse_error_control_observed':True,
+    'actual_Conduit_HTTP_requests':4,'actual_independent_HTTP_processes':3,'native_parse_error_control_observed':True,
     'token_rows_deleted':1,'native_transaction_record_available':False,
     'server_cleanup':{'started':3,'stopped':3,'directories_removed':3,'remaining':0,'live':0},
     'router_sha256':hashlib.sha256((ROOT/HTTP_MEASUREMENT_ROUTER).read_bytes()).hexdigest(),

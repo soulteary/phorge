@@ -135,7 +135,7 @@ def describe_native_token_receipt(receipt, expected_revision, expected_producer_
 def describe_native_http_receipt(receipt, expected_revision, expected_producer_digest, expected_router_digest):
     """Schema3 actual loopback native Conduit, never gateway/long connections."""
     exact(receipt, ['profile', 'HTTP_proved', 'gateway_proved', 'long_connection_proved',
-        'SLA_proved', 'convergence_proved', 'actual_HTTP_requests', 'actual_independent_HTTP_processes',
+        'SLA_proved', 'convergence_proved', 'actual_Conduit_HTTP_requests', 'actual_independent_HTTP_processes',
         'native_parse_error_control_observed', 'token_rows_deleted', 'native_transaction_record_available',
         'server_cleanup', 'router_sha256', 'before_source_binding_sha256', 'after_source_binding_sha256', 'event'])
     require(receipt['profile'] == 'native-conduit-http-token-revocation-only' and
@@ -143,7 +143,7 @@ def describe_native_http_receipt(receipt, expected_revision, expected_producer_d
         'native_http_profile_refused')
     for key in ('gateway_proved', 'long_connection_proved', 'SLA_proved', 'convergence_proved', 'native_transaction_record_available'):
         require(receipt[key] is False, 'native_http_scope_promotion_refused')
-    for key, value in [('actual_HTTP_requests', 4), ('actual_independent_HTTP_processes', 3), ('token_rows_deleted', 1)]:
+    for key, value in [('actual_Conduit_HTTP_requests', 4), ('actual_independent_HTTP_processes', 3), ('token_rows_deleted', 1)]:
         require(type(receipt[key]) is int and receipt[key] == value, 'native_http_count_refused')
     cleanup = receipt['server_cleanup']; exact(cleanup, ['started', 'stopped', 'directories_removed', 'remaining', 'live'])
     for key, value in [('started', 3), ('stopped', 3), ('directories_removed', 3), ('remaining', 0), ('live', 0)]:

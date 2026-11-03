@@ -140,7 +140,7 @@
         "status": "implemented-runtime-unrun",
         "profile": "native-conduit-http-token-revocation-only",
         "producer_path": "support/governance/native-organization/revocation-http-cases.php",
-        "producer_sha256": "3861940664d7ef87b0b526a7a6acf6102b1e000f838fabad0720f31bc9822b8c",
+        "producer_sha256": "ab4eeee599cfd3fd8e3f646e1f6f4ecaed0408c41751f5afe0712cdf91f2e36e",
         "router_path": "support/governance/native-organization/revocation-http-router.php",
         "router_sha256": "acc25ad56ad63d1d1ef36ae22fccbb0343831dcdde848e9d53a86f6a89fc0c7f",
         "expected_SQL_pending": 716,
