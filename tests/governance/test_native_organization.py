@@ -45,6 +45,22 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_view_policy_public_entry_proof_cannot_be_omitted(self):
+        for name in ['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in ('actual_api_token_conduit_path','view_ticket_cannot_edit_policy'):
+            data=template();data['native']['project_execution_tests']['approved_native_view_policy'][key]=False
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_view_policy_requires_actual_native_checks_and_refuses_family_claim(self):
+        for name in ['project-view-approval-does-not-override-native-self-view-validator', 'project-view-approved-transition-may-remove-approver-future-view', 'project-view-approver-current-view-does-not-require-edit', 'project-view-history-still-requires-current-native-view', 'project-view-native-record-policy-ticket-audit-commit-together', 'project-view-native-writer-scope-released']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for name in ('whole_family_ready','join_and_space_supported'):
+            data=template();data['native']['project_execution_tests']['approved_native_view_policy'][name]=True
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_valid_schema_does_not_prove_activation_browser_or_completion(self):
         accepted=gate.validate(template(), file_digest='b'*64)
         for key in ('production_optional_features_enabled', 'deployment_proved', 'browser_proved', 'global_completion'):

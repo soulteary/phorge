@@ -326,7 +326,16 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     $snapshot=PhorgeGovernanceNativeIdentitySource::lockCredentialBinding($binding,$this->connection);
     if ($approver && !$snapshot->isSystemAdmin()) { throw new RuntimeException('project_execution_approver_admin_required'); }
-    $user=$this->freshUser($snapshot); $this->requireNativeView($user);
+    $user=$this->freshUser($snapshot);
+    if ($this->state==='consumed' && $this->intent->isViewPolicy()) {
+      // The only accepted transition is the approved VIEW field. Re-evaluate
+      // native VIEW against the locked pre-transition object, not a stale user
+      // or an extra future-VIEW requirement. Credential/role/TTL remain fresh.
+      $current=$this->object;
+      $this->object=(new PhabricatorProject())->loadFromArray($this->oldRow)
+        ->attachParentProject(null)->attachMemberPHIDs($this->initialMembers);
+      try { $this->requireNativeView($user); } finally { $this->object=$current; }
+    } else { $this->requireNativeView($user); }
     $this->requireWebEnrollment($snapshot,$user);
     return $snapshot;
   }
@@ -362,8 +371,9 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if(!$membership){PhorgeProjectExecutionValue::identifier($approval);}
     else if($approval!==null && $approval!==''){throw new RuntimeException('project_execution_membership_ticket_not_applicable');}
     $intent=in_array($decision,array('members-add','members-remove'),true)?
-      PhorgeProjectExecutionIntent::newFromNativeMembership($xactions[0]):null;
-    $policy=$intent!==null?null:($membership?PhabricatorPolicies::POLICY_USER:$xactions[0]->getNewValue());
+      PhorgeProjectExecutionIntent::newFromNativeMembership($xactions[0]):
+      ($decision==='view-policy'?PhorgeProjectExecutionIntent::newViewPolicy($xactions[0]->getNewValue()):null);
+    $policy=$intent!==null?$intent->getPolicy():($membership?PhabricatorPolicies::POLICY_USER:$xactions[0]->getNewValue());
     $scope=self::open($context,$object,$policy,$membership?$decision:'execute',$membership?null:$approval,$intent);
     $scope->editor=$editor;
     try {
@@ -381,7 +391,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if($this->isMembership()){$this->authorizeMembershipEffects($xactions);return;}
     if ($this->state!=='open' || count($xactions)!==1 ||
         get_class($xactions[0])!==PhabricatorProjectTransaction::class ||
-        $xactions[0]->getTransactionType()!==PhabricatorTransactions::TYPE_EDIT_POLICY ||
+        $xactions[0]->getTransactionType()!==$this->intent->getTransactionType() ||
         $xactions[0]->getNewValue()!==$this->newPolicy || $xactions[0]->getComment()!==null) {
       throw new RuntimeException('project_execution_expanded_closure_unsupported');
     }
@@ -400,12 +410,13 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if($this->isMembership()){$this->finishMembership($xactions);return;}
     $rows=$this->boundedRows(new PhabricatorProject(),qsprintf($this->connection,'id=%d',$this->object->getID()),1,true);
     $row=$rows?head($rows):null;
-    if (!$row || $row['editPolicy']!==$this->newPolicy) {
+    $field=$this->intent->getPolicyField();
+    if (!$row || $row[$field]!==$this->newPolicy) {
       throw new RuntimeException('project_execution_planned_transition_mismatch');
     }
     // The approved field may change; no new post-policy EDIT requirement is
     // added. The original native validator/capabilities remain authoritative.
-    $row['editPolicy']=$this->oldRow['editPolicy'];
+    $row[$field]=$this->oldRow[$field];
     $row['dateModified']=$this->oldRow['dateModified'];
     if (self::digest($row)!==self::digest($this->oldRow)) {
       throw new RuntimeException('project_execution_unplanned_target_change');
@@ -436,7 +447,8 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if (!$changed) { return; }
     $ref=idx(self::$active,spl_object_id($conn)); $scope=$ref?$ref->get():null;
     if (!$scope || $scope->isMembership() || $scope->state!=='consumed' || $scope->object!==$object ||
-        $changed!==array('editPolicy') || $object->getEditPolicy()!==$scope->newPolicy) {
+        $changed!==array($scope->intent->getPolicyField()) ||
+        ($scope->intent->isViewPolicy()?$object->getViewPolicy():$object->getEditPolicy())!==$scope->newPolicy) {
       throw new RuntimeException('project_execution_direct_security_save_refused');
     }
   }

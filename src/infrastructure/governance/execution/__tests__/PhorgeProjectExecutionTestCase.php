@@ -140,6 +140,11 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
     $policy=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDIT_POLICY)
       ->setNewValue(PhabricatorPolicies::POLICY_USER);
     $this->assertEqual('edit-policy',$classify($editor,$project,array($policy)));
+    $view=clone$policy;$view->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY);
+    $this->assertEqual('view-policy',$classify($editor,$project,array($view)));
+    $this->refused(function() use($classify,$editor,$project,$view,$policy){
+      $classify($editor,$project,array($view,$policy));
+    },'project_execution_expansion_unsupported');
     $tagged=clone $policy;
     $tagged->setMetadataValue('herald:transcriptID',1);
     $this->refused(function() use ($classify,$editor,$project,$tagged) {
@@ -219,6 +224,26 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
     $classifier=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'classify');
     $editor=(new PhabricatorProjectTransactionEditor())->setActor((new PhabricatorUser())->setPHID($a));
     $this->assertEqual('members-add',$classifier->invoke(null,$editor,(new PhabricatorProject())->setID(1),array($transaction)));
+  }
+
+  public function testViewPolicyIntentIsExplicitAndCannotReinterpretOldTickets() {
+    $policy='PHID-USER-'.str_repeat('v',20);
+    $view=PhorgeProjectExecutionIntent::newViewPolicy($policy);
+    $this->assertEqual(false,$view->isMembership());
+    $this->assertEqual('viewPolicy',$view->getPolicyField());
+    $this->assertEqual(PhabricatorTransactions::TYPE_VIEW_POLICY,$view->getTransactionType());
+    $descriptor=array('version'=>3,'operation'=>'project.view-policy','policy'=>$policy);
+    $this->assertEqual($descriptor,$view->getDescriptor());
+    $binding=array('operation'=>'project.view-policy','newPolicy'=>$policy,'intent'=>$descriptor);
+    $this->assertEqual($descriptor,PhorgeProjectExecutionIntent::newFromBinding($binding)->getDescriptor());
+    $binding['newPolicy']=PhabricatorPolicies::POLICY_USER;
+    $this->refusedIntent(function() use($binding){PhorgeProjectExecutionIntent::newFromBinding($binding);},'project_execution_member_intent_refused');
+    $binding['operation']='project.edit-policy';
+    $this->refusedIntent(function() use($binding){PhorgeProjectExecutionIntent::newFromBinding($binding);},'project_execution_intent_version_refused');
+    foreach(array('project.join-policy','project.space','project.edit-policy') as$operation){
+      $bad=$descriptor;$bad['operation']=$operation;
+      $this->refusedIntent(function() use($bad){PhorgeProjectExecutionIntent::newFromDescriptor($bad);},'project_execution_intent_version_refused');
+    }
   }
 
 }
