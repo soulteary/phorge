@@ -172,3 +172,8 @@ this tested flat native profile.
 Historical reads check actual current source bounds, without hypothetically
 replaying an old addition against the current membership capacity. New mutations
 still enforce the planned-result member limit.
+
+The explicit union with main media HTTP support passed 169 pure methods and
+482 native checks, using the paired image service. The matched 5918-file runtime
+inventory also covers the media behavior and static resource manifest. This
+backend regression is not a browser or production-activation certificate.

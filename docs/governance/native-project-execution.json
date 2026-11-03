@@ -97,7 +97,16 @@
         "matched_runtime_files": 5903,
         "production_activation": false
       },
-      "subject_eligibility": "add requires current eligible user; remove permits a current disabled user"
+      "subject_eligibility": "add requires current eligible user; remove permits a current disabled user",
+      "main_union_validation": {
+        "main": "06370b43c5242baa8cbd850b1c693cb7be34e3a6",
+        "pure_methods": 169,
+        "native_checks": 482,
+        "matched_runtime_files": 5918,
+        "native_media_http_and_image_regressions_included": true,
+        "browser_proof": false,
+        "production_activation": false
+      }
     }
   ]
 }
