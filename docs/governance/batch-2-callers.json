@@ -91,7 +91,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "a87de8ea2caf2a40bbdb117f7f534164dced04677e244260e389ab5b839fe011"
+      "sha256": "05818f432ec09b928d7790e4ef6c311bbd5edae51dd65c65ca2ff7188333af0b"
     },
     {
       "id": "PROJECT.EDIT.CONDUIT",
@@ -842,7 +842,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "00d94ee856d67f6cd2bb0ee6be0c32bcf3e1ec4d1a20afc4ffae4c172af8a349"
+      "sha256": "1f526eb845a4efa4c98ea9d5ea7fbc6416c2159ce91794f69daf4f2f63a54c60"
     },
     {
       "id": "TRANSACTION.EDIT.ENGINE",
@@ -861,7 +861,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "43f1314497403a70e61a1bdae759d060cb42fbc99134f27dbc121e53f1e955ce"
+      "sha256": "c5ff0c63ef3471ca50399dd3f1de84063db4be09df75c683f98c124a8ba54664"
     },
     {
       "id": "TRANSACTION.EDIT.API",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4464,
-    "source_snapshot_sha256": "b1d8aac217feb596e33124ea3906ad405c7c1339ec54070be4c8553be808dc3a",
+    "source_snapshot_sha256": "413743b4923202b06d304534e19fada130fc960146a41038615f7ccc4db45305",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -4593,7 +4593,7 @@
       {
         "id": "CALL-87991d5ea753c15b",
         "path": "src/applications/project/engine/PhabricatorProjectEditEngine.php",
-        "sha256": "a87de8ea2caf2a40bbdb117f7f534164dced04677e244260e389ab5b839fe011",
+        "sha256": "05818f432ec09b928d7790e4ef6c311bbd5edae51dd65c65ca2ff7188333af0b",
         "matches": [
           {
             "pattern": "member_edge",
@@ -5226,14 +5226,14 @@
       {
         "id": "CALL-e457f3ff983799df",
         "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
-        "sha256": "43f1314497403a70e61a1bdae759d060cb42fbc99134f27dbc121e53f1e955ce",
+        "sha256": "c5ff0c63ef3471ca50399dd3f1de84063db4be09df75c683f98c124a8ba54664",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
-              1183,
-              2072,
-              2218
+              1185,
+              2075,
+              2221
             ]
           }
         ]
@@ -5277,15 +5277,15 @@
       {
         "id": "CALL-f116bd8b9b12fc59",
         "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
-        "sha256": "00d94ee856d67f6cd2bb0ee6be0c32bcf3e1ec4d1a20afc4ffae4c172af8a349",
+        "sha256": "1f526eb845a4efa4c98ea9d5ea7fbc6416c2159ce91794f69daf4f2f63a54c60",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
               1187,
-              1519,
-              4503,
-              4993
+              1524,
+              4508,
+              4998
             ]
           },
           {
@@ -5298,7 +5298,7 @@
           {
             "pattern": "member_edge",
             "lines": [
-              2022
+              2027
             ]
           },
           {
@@ -5320,8 +5320,8 @@
               886,
               889,
               958,
-              2907,
-              2914
+              2912,
+              2919
             ]
           },
           {
@@ -5335,17 +5335,17 @@
               753,
               790,
               1123,
-              1891,
-              2164,
-              2901,
-              4035,
-              4406,
-              4946,
-              4962,
-              5451,
-              5500,
-              5518,
-              5537
+              1896,
+              2169,
+              2906,
+              4040,
+              4411,
+              4951,
+              4967,
+              5456,
+              5505,
+              5523,
+              5542
             ]
           }
         ]

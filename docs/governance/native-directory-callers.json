@@ -676,6 +676,94 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.PROJECT.CONTROLLER",
+      "path": "src/applications/project/controller/PhabricatorProjectEditController.php",
+      "symbol": "PhabricatorProjectEditController",
+      "kind": "native-edit-request-controller",
+      "sha256": "11845ce029b93e4b5e35740af7c0169c0178c22e26cd4e1dff8a7710194e4c27",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.PROJECT.ENGINE",
+      "path": "src/applications/project/engine/PhabricatorProjectEditEngine.php",
+      "symbol": "PhabricatorProjectEditEngine",
+      "kind": "native-project-form-field-producer",
+      "sha256": "05818f432ec09b928d7790e4ef6c311bbd5edae51dd65c65ca2ff7188333af0b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.ENGINE",
+      "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
+      "symbol": "PhabricatorEditEngine",
+      "kind": "native-form-provenance-registrar",
+      "sha256": "c5ff0c63ef3471ca50399dd3f1de84063db4be09df75c683f98c124a8ba54664",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.CATALOG",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
+      "symbol": "PhorgeProjectExecutionCatalog",
+      "kind": "scoped-native-form-envelope-classifier",
+      "sha256": "35c0164f89f02bb8ba66f81068e5146e5a131a640fcce8d20cfa9b20fc90aa6e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.SCOPE",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
+      "symbol": "PhorgeProjectNativeExecutionScope",
+      "kind": "native-final-effect-and-current-source-fence",
+      "sha256": "092031e316f5c9a26ee9625462af073118a3c3c47b47fe8946a5376ecd66f9f5",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.BASE.EDITOR",
+      "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
+      "symbol": "PhabricatorApplicationTransactionEditor",
+      "kind": "native-filter-before-effect-hook",
+      "sha256": "1f526eb845a4efa4c98ea9d5ea7fbc6416c2159ce91794f69daf4f2f63a54c60",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.PROPOSAL.CONTROLLER",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
+      "symbol": "PhorgeProjectPolicyApprovalController",
+      "kind": "current-policy-preview-controller",
+      "sha256": "3ddd44a94baf759168b12ee1204d268e169a5664b19b9b5b49e777eb49260eba",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.POLICY.CONTROL",
+      "path": "src/view/form/control/AphrontFormPolicyControl.php",
+      "symbol": "AphrontFormPolicyControl",
+      "kind": "native-policy-presentation-control",
+      "sha256": "58da762783b3dceb350e08d71b707bbbd5e7a1f0a6f6a31e01b6ef6da698f4e9",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -1070,6 +1158,70 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Explicit protected organization workflow/versioned source/current native viewer reference only; combined runtime and activation require separate gates."
+    },
+    {
+      "id": "VIEW-FORM-LINK-01",
+      "from_id": "VIEW.FORM.PROJECT.CONTROLLER",
+      "to_id": "VIEW.FORM.PROJECT.ENGINE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-02",
+      "from_id": "VIEW.FORM.PROJECT.ENGINE",
+      "to_id": "VIEW.FORM.ENGINE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-03",
+      "from_id": "VIEW.FORM.ENGINE",
+      "to_id": "VIEW.FORM.CATALOG",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-04",
+      "from_id": "VIEW.FORM.ENGINE",
+      "to_id": "VIEW.FORM.BASE.EDITOR",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-05",
+      "from_id": "VIEW.FORM.BASE.EDITOR",
+      "to_id": "VIEW.FORM.SCOPE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-06",
+      "from_id": "VIEW.FORM.SCOPE",
+      "to_id": "VIEW.FORM.CATALOG",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-07",
+      "from_id": "VIEW.FORM.PROPOSAL.CONTROLLER",
+      "to_id": "VIEW.FORM.SCOPE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-08",
+      "from_id": "VIEW.FORM.PROPOSAL.CONTROLLER",
+      "to_id": "VIEW.FORM.POLICY.CONTROL",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
     }
   ],
   "scan": {
@@ -1240,7 +1392,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
-        "sha256": "20efcc36168fe0b07aea81e461424aa85514b14183576417ade0575095a7cee3"
+        "sha256": "35c0164f89f02bb8ba66f81068e5146e5a131a640fcce8d20cfa9b20fc90aa6e"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigOptions.php",
@@ -1268,11 +1420,11 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
-        "sha256": "b37c7f3a25345c2d0734a76e08190bd426ca04e458a7627fc83d27c6430d9070"
+        "sha256": "092031e316f5c9a26ee9625462af073118a3c3c47b47fe8946a5376ecd66f9f5"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
-        "sha256": "56458aa77928393c5b3bf3324cfd84cf65f619eac5dff0526f74f8dfac808f94"
+        "sha256": "3ddd44a94baf759168b12ee1204d268e169a5664b19b9b5b49e777eb49260eba"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalService.php",

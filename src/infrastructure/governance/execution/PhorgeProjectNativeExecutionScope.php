@@ -370,10 +370,12 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     $membership=in_array($decision,array('self-join','self-leave'),true);
     if(!$membership){PhorgeProjectExecutionValue::identifier($approval);}
     else if($approval!==null && $approval!==''){throw new RuntimeException('project_execution_membership_ticket_not_applicable');}
+    $policy_transaction=in_array($decision,array('view-policy','edit-policy'),true)?
+      PhorgeProjectExecutionCatalog::policyTransaction($editor,$object,$xactions,$decision):null;
     $intent=in_array($decision,array('members-add','members-remove'),true)?
       PhorgeProjectExecutionIntent::newFromNativeMembership($xactions[0]):
-      ($decision==='view-policy'?PhorgeProjectExecutionIntent::newViewPolicy($xactions[0]->getNewValue()):null);
-    $policy=$intent!==null?$intent->getPolicy():($membership?PhabricatorPolicies::POLICY_USER:$xactions[0]->getNewValue());
+      ($decision==='view-policy'?PhorgeProjectExecutionIntent::newViewPolicy($policy_transaction->getNewValue()):null);
+    $policy=$intent!==null?$intent->getPolicy():($membership?PhabricatorPolicies::POLICY_USER:$policy_transaction->getNewValue());
     $scope=self::open($context,$object,$policy,$membership?$decision:'execute',$membership?null:$approval,$intent);
     $scope->editor=$editor;
     try {

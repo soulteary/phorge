@@ -1180,7 +1180,10 @@ abstract class PhabricatorEditEngine
       try {
         $xactions = $this->willApplyTransactions($object, $xactions);
 
-        $editor->applyTransactions($object, $xactions);
+        $project_form=PhorgeProjectExecutionCatalog::openNativeForm(
+          $this,$editor,$object,$request,$config,$xactions);
+        try { $editor->applyTransactions($object, $xactions); }
+        finally { PhorgeProjectExecutionCatalog::closeNativeForm($editor,$project_form); }
 
         $this->didApplyTransactions($object, $xactions);
 

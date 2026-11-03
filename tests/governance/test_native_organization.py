@@ -45,6 +45,15 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_default_edit_controller_route_and_post_filter_scope_are_required(self):
+        for name in gate.VIEW_EDIT_ROUTE_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in gate.NATIVE['project_execution_tests']['native_default_policy_edit_form']:
+            data=template();row=data['native']['project_execution_tests']['native_default_policy_edit_form']
+            row[key]=not row[key]
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_actual_view_form_checks_and_scope_cannot_be_omitted_or_upgraded(self):
         for name in gate.VIEW_FORM_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1

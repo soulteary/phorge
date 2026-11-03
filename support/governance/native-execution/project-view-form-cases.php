@@ -7,6 +7,7 @@ function governance_project_view_form_cases($fixture,callable $check,array $stat
   $saved_translator=PhutilTranslator::getInstance();$saved_locale=PhabricatorEnv::getLocaleCode();
   $preferences=PhabricatorUserPreferences::loadUserPreferences($a['viewer']);
   $prior_translation=$preferences->getPreference(PhabricatorTranslationSetting::SETTINGKEY);
+  $prior_favorites=$preferences->getPreference(PhabricatorPolicyFavoritesSetting::SETTINGKEY);
   $cache_property=new ReflectionProperty(PhabricatorCaches::class,'requestCache');$saved_cache=$cache_property->getValue();
   $celerity_property=new ReflectionProperty(CelerityAPI::class,'response');$old_celerity=$celerity_property->getValue();
   $conn=(new PhabricatorProject())->establishConnection('w');
@@ -30,8 +31,10 @@ function governance_project_view_form_cases($fixture,callable $check,array $stat
     return governance_native_with_request_write_guard($request,function()use($controller,$request,$render,$after_bootstrap){
       $response=$controller->willBeginExecution();
       if($response===null){if($after_bootstrap!==null){$after_bootstrap($request);}$response=$controller->handleRequest($request);}
-      $html=null;if($render){$html=(string)hsprintf('%s',$response);}
-      return array($response,$request,$html);
+      $html=null;$transport=null;
+      if($render){$html=(string)hsprintf('%s',$response);
+        $transport=CelerityAPI::getStaticResourceResponse()->buildAjaxResponse($html);}
+      return array($response,$request,$html,$transport);
     });
   };
   $input_value=function($html,$name){$values=array();preg_match_all('/<input\b[^>]*>/',$html,$tags);
@@ -106,23 +109,39 @@ function governance_project_view_form_cases($fixture,callable $check,array $stat
     $private_name='Synthetic admin-only form option';
     $named=(new PhorgeNamedPolicy())->setName($private_name)->setEffectivePolicy(PhabricatorPolicies::POLICY_USER)
       ->setViewPolicy(PhabricatorPolicies::POLICY_ADMIN)->setEditPolicy(PhabricatorPolicies::POLICY_ADMIN)->save();
+    $private_space_name='Synthetic private admin Space option';
+    $private_space=PhabricatorSpacesNamespace::initializeNewNamespace($b['viewer'])->setNamespaceName($private_space_name)
+      ->setViewPolicy(PhabricatorPolicies::POLICY_ADMIN)->setEditPolicy(PhabricatorPolicies::POLICY_ADMIN)
+      ->setIsDefaultNamespace(0)->save();
+    $off=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.project-approval.enabled',false);
+    try{$private_project=PhabricatorProject::initializeNewProject($a['viewer'])->setName('Synthetic private Space policy favorite')
+      ->setViewPolicy(PhabricatorPolicies::POLICY_USER)->setEditPolicy($a['viewer']->getPHID())
+      ->setJoinPolicy(PhabricatorPolicies::POLICY_USER)->setSpacePHID($private_space->getPHID())->save();}finally{unset($off);}
+    $preferences->setPreference(PhabricatorPolicyFavoritesSetting::SETTINGKEY,array($private_project->getPHID()=>1))->save();
+    PhabricatorUserCache::clearCache(PhabricatorUserPreferencesCacheType::KEY_PREFERENCES,$a['viewer']->getPHID());
     // A real DB source change after native request bootstrap creates the stale
     // admin viewer. This is a fixture seam, not a native role-writer proof.
-    $set_admin(1);$loaded_admin=false;$stale_options_would_include=false;
+    $set_admin(1);$loaded_admin=false;$stale_options_would_include=false;$stale_space_project_would_include=false;
     try{
-      list($stale_response,,$stale_html)=$call($a,'POST',array('form'=>'policy','form_action'=>'preview','operation'=>'view',
+      list($stale_response,,$stale_html,$stale_transport)=$call($a,'POST',array('form'=>'policy','form_action'=>'preview','operation'=>'view',
         'projects'=>array($project->getPHID()),'__csrf__'=>$a['viewer']->getCSRFToken()),true,
-        function($request)use($set_admin,&$loaded_admin,&$stale_options_would_include,$project,$named,$private_name){
+        function($request)use($set_admin,&$loaded_admin,&$stale_options_would_include,&$stale_space_project_would_include,$project,$named,$private_name,$private_project){
           $loaded_admin=(bool)$request->getUser()->getIsAdmin();
           $options=(new PhabricatorPolicyQuery())->setViewer($request->getUser())->setObject($project)->execute();
-          foreach($options as$option){if($option->getPHID()===$named->getPHID()&&$option->getName()===$private_name){$stale_options_would_include=true;}}
+          foreach($options as$option){if($option->getPHID()===$named->getPHID()&&$option->getName()===$private_name){$stale_options_would_include=true;}
+            if($option->getPHID()===$private_project->getPHID()&&$option->getName()===$private_project->getName()){$stale_space_project_would_include=true;}}
           $set_admin(0);});
     }finally{
       $row=queryfx_one((new PhabricatorUser())->establishConnection('w'),'SELECT isAdmin FROM %R WHERE phid=%s',new PhabricatorUser(),$a['viewer']->getPHID());
       if((string)$row['isAdmin']==='1'){$set_admin(0);}
     }
-    $check($loaded_admin&&$stale_options_would_include&&$stale_response instanceof AphrontDialogView&&strpos($stale_html,$private_name)===false&&$fingerprint()===$before,
+    $serialized_options=json_encode($stale_transport,JSON_THROW_ON_ERROR);
+    $check(isset($stale_transport['javelin_behaviors']['policy-control'])&&$loaded_admin&&$stale_options_would_include&&
+      $stale_response instanceof AphrontDialogView&&strpos($serialized_options,$private_name)===false&&$fingerprint()===$before,
       'project-view-form-policy-options-use-current-scope-actor-after-real-role-source-change');
+    $check($stale_space_project_would_include&&strpos($serialized_options,$private_project->getName())===false&&
+      strpos($serialized_options,$private_space_name)===false&&strpos($stale_html,'name="spacePHID"')===false,
+      'project-view-form-policy-options-render-under-current-space-cache-without-space-mutation-control');
     $json_call=function(array$session,$action,array$payload)use($call){
       list($response)=$call($session,'POST',array('action'=>$action,'payload'=>json_encode($payload,JSON_THROW_ON_ERROR),
         '__csrf__'=>$session['viewer']->getCSRFToken()));
@@ -192,12 +211,14 @@ function governance_project_view_form_cases($fixture,callable $check,array $stat
       $row['joinPolicy']===PhabricatorPolicies::POLICY_USER&&$stored['state']==='consumed'&&
       $stored['nativeGroupID']===$applied[0]->getTransactionGroupID()&&!$conn->isInsideTransaction(),
       'project-view-form-approved-native-web-post-commits-view-ticket-and-native-record');
-    return array('actual_native_controller_form'=>true,'actual_chinese_form_render'=>true,'policy_options_use_current_actor'=>true,'actual_native_post_csrf'=>true,'server_typed_view_intent'=>true,
+    return array('actual_native_controller_form'=>true,'actual_chinese_form_render'=>true,'policy_options_use_current_actor'=>true,'native_policy_behavior_metadata_checked'=>true,'policy_options_use_current_spaces'=>true,'space_mutation_control_hidden'=>true,'actual_native_post_csrf'=>true,'server_typed_view_intent'=>true,
       'legacy_edit_meaning_retained'=>true,'existing_json_controller_compatible'=>true,'admin_history_gate_retained'=>true,'native_self_view_validator_retained'=>true,'actual_http_server'=>false,'browser_proved'=>false);
   }finally{
     try{
       if($prior_translation===null){$preferences->unsetPreference(PhabricatorTranslationSetting::SETTINGKEY);}
       else{$preferences->setPreference(PhabricatorTranslationSetting::SETTINGKEY,$prior_translation);}
+      if($prior_favorites===null){$preferences->unsetPreference(PhabricatorPolicyFavoritesSetting::SETTINGKEY);}
+      else{$preferences->setPreference(PhabricatorPolicyFavoritesSetting::SETTINGKEY,$prior_favorites);}
       $preferences->save();
       PhabricatorUserCache::clearCache(PhabricatorUserPreferencesCacheType::KEY_PREFERENCES,$a['viewer']->getPHID());
     }finally{

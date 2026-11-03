@@ -8,6 +8,8 @@ final class PhabricatorProjectWorkspaceChineseTranslation extends PhutilTranslat
 
   protected function getTranslations() {
     return array(
+      'For an approved VIEW or EDIT policy change, paste the matching approval ticket. Changing another field at the same time is not supported.' => '修改已获批准的查看或编辑策略时，请填写对应审批凭据。不支持同时修改其他字段。',
+      'Create a policy proposal before requesting independent approval: %s' => '请先创建策略提案，再请求另一位管理员独立审批：%s',
       'The project approval request could not be completed.' => '无法完成项目审批请求，请确认当前权限、会话和审批凭据。',
       'Submit Policy Proposal' => '提交策略提案',
       'Selected policy: %s. Return to project selection to change the policy field.' => '所选策略：%s。如需修改另一项策略，请返回项目选择。',

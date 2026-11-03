@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "status": "host-implemented-awaiting-independent-review-and-supported-runtime",
+  "parent_source_checkpoint": "af43aae0f62f9aa6df1bb085eb3ed515cae57630",
+  "parent_checkpoint_obligation_not_actual": {
+    "pure_methods": 195,
+    "native_checks": 607
+  },
+  "feature_default": false,
+  "activation_recommended": false,
+  "new_obligation_not_actual": {
+    "pure_methods": 197,
+    "native_checks": 615,
+    "native_workers": 19,
+    "additional_native_checks_after_parent": 8
+  },
+  "trust_boundary": [
+    "Native PhabricatorProjectEditController and exact final Project engine resolve the real edit configuration and authenticated request.",
+    "Only the private PhabricatorEditEngine::buildEditResponse call stack may register an in-process WeakMap lease bound to exact engine/controller/config/request/editor/object and raw transaction digest.",
+    "Default transaction metadata selects a candidate only; it never supplies permission or causes a transaction to be dropped.",
+    "All native populate, validation, capability checks and filtering remain before Scope.beforeEffects. The final closure still demands exactly one transaction matching approved intent.",
+    "Guarded-only array reindexing preserves count and values after native filtering; Scope selects the policy transaction from the proved envelope, not raw array index zero.",
+    "Conduit has no form lease and retains the exact single-transaction input grammar.",
+    "No non-Project or feature-off form behavior is changed."
+  ],
+  "default_edit_form_ui": "Feature-on existing Project form includes an approval identifier field with no transaction type, plus a proposal link. The identifier itself is not authority.",
+  "policy_preview_freshness": "Policy query and actual control rendering occur while Scope owns the fresh actor/Space cache; the proposal hides the native Space mutation control without changing its default in other forms.",
+  "fixture_evidence_required": [
+    "actual platform route match and native session bootstrap",
+    "parse complete native GET form including CSRF and ordinary defaults",
+    "actual matching native POST with approved VIEW ticket",
+    "missing CSRF refusal",
+    "second actual field change refusal with unchanged domain fingerprint",
+    "legacy EDIT ticket cannot execute VIEW",
+    "native NoOne/self-VIEW validation response with unchanged state",
+    "all provenance and native transaction locks released",
+    "private admin Space project favorite absent from real Celerity policy metadata after source role change"
+  ],
+  "not_claimed": [
+    "supported runtime pass",
+    "HTTP server emission",
+    "browser or MFA interaction acceptance",
+    "global atomic revocation across all policies",
+    "arbitrary plugin/custom-field/hierarchy/Space mutation execution",
+    "ordinary low-risk wide forms as a newly supported profile"
+  ],
+  "remaining": [
+    "PHP8.5.12 pure/classmap and615 real SQL checks with source hash and complete owned cleanup",
+    "independent peer review of native lease and effect ordering",
+    "trusted HTTP/browser GET-to-POST interaction",
+    "mandatory real concurrent default-field source-change versus beforeEffects case if activation requires that interleaving profile"
+  ]
+}

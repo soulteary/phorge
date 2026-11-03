@@ -323,6 +323,12 @@ EXPECTED_LINKS.update({'NATIVE-LINK-29': ('FILES.ROUTES',
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
+# Explicitly reviewed form provenance and final-effect references; never authority proof.
+VIEW_FORM_SOURCES = {'VIEW.FORM.PROJECT.CONTROLLER': ('src/applications/project/controller/PhabricatorProjectEditController.php', 'PhabricatorProjectEditController', 'native-edit-request-controller'), 'VIEW.FORM.PROJECT.ENGINE': ('src/applications/project/engine/PhabricatorProjectEditEngine.php', 'PhabricatorProjectEditEngine', 'native-project-form-field-producer'), 'VIEW.FORM.ENGINE': ('src/applications/transactions/editengine/PhabricatorEditEngine.php', 'PhabricatorEditEngine', 'native-form-provenance-registrar'), 'VIEW.FORM.CATALOG': ('src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php', 'PhorgeProjectExecutionCatalog', 'scoped-native-form-envelope-classifier'), 'VIEW.FORM.SCOPE': ('src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php', 'PhorgeProjectNativeExecutionScope', 'native-final-effect-and-current-source-fence'), 'VIEW.FORM.BASE.EDITOR': ('src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php', 'PhabricatorApplicationTransactionEditor', 'native-filter-before-effect-hook'), 'VIEW.FORM.PROPOSAL.CONTROLLER': ('src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php', 'PhorgeProjectPolicyApprovalController', 'current-policy-preview-controller'), 'VIEW.FORM.POLICY.CONTROL': ('src/view/form/control/AphrontFormPolicyControl.php', 'AphrontFormPolicyControl', 'native-policy-presentation-control')}
+EXPECTED_SOURCES.update(VIEW_FORM_SOURCES)
+VIEW_FORM_LINKS = {'VIEW-FORM-LINK-01': ('VIEW.FORM.PROJECT.CONTROLLER', 'VIEW.FORM.PROJECT.ENGINE'), 'VIEW-FORM-LINK-02': ('VIEW.FORM.PROJECT.ENGINE', 'VIEW.FORM.ENGINE'), 'VIEW-FORM-LINK-03': ('VIEW.FORM.ENGINE', 'VIEW.FORM.CATALOG'), 'VIEW-FORM-LINK-04': ('VIEW.FORM.ENGINE', 'VIEW.FORM.BASE.EDITOR'), 'VIEW-FORM-LINK-05': ('VIEW.FORM.BASE.EDITOR', 'VIEW.FORM.SCOPE'), 'VIEW-FORM-LINK-06': ('VIEW.FORM.SCOPE', 'VIEW.FORM.CATALOG'), 'VIEW-FORM-LINK-07': ('VIEW.FORM.PROPOSAL.CONTROLLER', 'VIEW.FORM.SCOPE'), 'VIEW-FORM-LINK-08': ('VIEW.FORM.PROPOSAL.CONTROLLER', 'VIEW.FORM.POLICY.CONTROL')}
+EXPECTED_LINKS.update(VIEW_FORM_LINKS)
+
 def require(ok, message):
     if not ok:
         raise ValueError(message)

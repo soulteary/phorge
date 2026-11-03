@@ -807,6 +807,11 @@ VIEW_FORM_CHECKS = frozenset(['project-view-form-existing-json-edit-proposal-app
 REQUIRED_CHECKS = REQUIRED_CHECKS | VIEW_FORM_CHECKS
 NATIVE['project_execution_tests']['native_policy_proposal_form'] = {'actual_native_controller_form': True, 'actual_chinese_form_render': True, 'policy_options_use_current_actor': True, 'actual_native_post_csrf': True, 'server_typed_view_intent': True, 'legacy_edit_meaning_retained': True, 'existing_json_controller_compatible': True, 'admin_history_gate_retained': True, 'native_self_view_validator_retained': True, 'actual_http_server': False, 'browser_proved': False}
 
+VIEW_EDIT_ROUTE_CHECKS = frozenset(['project-view-form-policy-options-render-under-current-space-cache-without-space-mutation-control', 'project-view-default-edit-controller-real-route-get-renders-native-fields-and-ticket-input', 'project-view-default-edit-controller-real-post-without-csrf-refused-without-write', 'project-view-default-edit-controller-second-actual-change-refuses-whole-transition', 'project-view-default-edit-controller-edit-ticket-cannot-authorize-view-form', 'project-view-default-edit-controller-noone-still-renders-native-self-view-validation', 'project-view-default-edit-controller-get-to-post-native-view-record-ticket-commit', 'project-view-default-edit-controller-provenance-and-native-locks-released'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | VIEW_EDIT_ROUTE_CHECKS
+NATIVE['project_execution_tests']['native_policy_proposal_form'].update(policy_options_use_current_spaces=True,space_mutation_control_hidden=True,native_policy_behavior_metadata_checked=True)
+NATIVE['project_execution_tests']['native_default_policy_edit_form'] = {'actual_platform_routing': True, 'actual_default_edit_controller_get_post': True, 'native_field_generation_and_filtering_retained': True, 'single_effect_after_native_filter': True, 'caller_default_flag_authority': False, 'actual_http_server': False, 'browser_proved': False}
+
 def exact_tree(actual, expected):
     if type(actual) is not type(expected):
         raise ValueError('untyped evidence')

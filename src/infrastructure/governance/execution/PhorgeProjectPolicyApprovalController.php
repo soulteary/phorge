@@ -110,20 +110,25 @@ final class PhorgeProjectPolicyApprovalController extends PhabricatorProjectCont
     $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
     try {
       $scope=PhorgeProjectNativeExecutionScope::open($context,$project,$current,'propose',null,$intent);
-      try { $project=$scope->getObject(); $actor=$scope->getActor(); $current=$project->getPolicy($capability); }
+      try {
+        $project=$scope->getObject(); $actor=$scope->getActor(); $current=$project->getPolicy($capability);
+        // Materialize protected choices while the scope still owns its fresh
+        // Space cache and actor locks. No post-close query reuses prior cache.
+        $policies=(new PhabricatorPolicyQuery())->setViewer($actor)->setObject($project)->execute();
+        $policy_control=(new AphrontFormPolicyControl())->setViewer($actor)->setName('new_policy')
+          ->setPolicyObject($project)->setCapability($capability)->setPolicies($policies)->setValue($current)
+          ->setShowSpaces(false);
+        $policy_html=hsprintf('%s',$policy_control);
+      }
       finally { $scope->close(); }
     } finally { unset($unguarded); }
-    // Policy option names are protected data too. Use the actor which the
-    // scope just reloaded, not an earlier request viewer's cached role flags.
-    $policies=(new PhabricatorPolicyQuery())->setViewer($actor)->setObject($project)->execute();
     $dialog->setViewer($actor);
     return $dialog->addHiddenInput('form_action','submit')->addHiddenInput('operation',$operation)
       ->addHiddenInput('target_phid',$project->getPHID())->addHiddenInput('ttl_seconds',120)
       ->appendParagraph(pht('Selected policy: %s. Return to project selection to change the policy field.',
         $operation==='view'?pht('View Policy'):pht('Edit Policy')))
       ->appendChild((new AphrontFormMarkupControl())->setLabel(pht('Project'))->setValue(phutil_tag('span',array(),$project->getName())))
-      ->appendChild((new AphrontFormPolicyControl())->setViewer($actor)->setName('new_policy')
-        ->setPolicyObject($project)->setCapability($capability)->setPolicies($policies)->setValue($current))
+      ->appendChild($policy_html)
       ->appendChild((new AphrontFormTextAreaControl())->setLabel(pht('Reason'))->setName('reason'))
       ->addSubmitButton(pht('Submit Policy Proposal'));
   }

@@ -262,4 +262,22 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
     }
   }
 
+  public function testCallerDefaultMetadataIsNotNativeFormProvenance() {
+    $project=(new PhabricatorProject())->setID(1);
+    $editor=new PhabricatorProjectTransactionEditor();
+    $view=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY)->setNewValue('users');
+    $name=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorProjectNameTransaction::TRANSACTIONTYPE)
+      ->setNewValue('Untrusted changed name')->setIsDefaultTransaction(true);
+    $classify=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'classify');
+    $this->refused(function()use($classify,$editor,$project,$view,$name){$classify->invoke(null,$editor,$project,array($view,$name));},
+      'project_execution_expansion_unsupported');
+    $form=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'classifyNativeForm');
+    $this->assertEqual(null,$form->invoke(null,$editor,$project,array($view,$name)));
+  }
+  public function testNativeFormProvenanceRejectsAnOffPathFactoryCall() {
+    $assert=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'assertNativeFormCall');
+    $this->refused(function()use($assert){$assert->invoke(null,array(),new stdClass(),new stdClass(),new stdClass(),null,new stdClass());},
+      'project_execution_native_form_provenance_refused');
+  }
+
 }
