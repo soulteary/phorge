@@ -1,0 +1,53 @@
+{
+  "source_head": "c308cc7622d21942b59d87cc7a1e72657a2ed5bc",
+  "passed": true,
+  "pure_methods": 237,
+  "SQL_checks": 854,
+  "runtime_files_exact": 6812,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 38,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 38
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "browser_proved": false,
+  "deployment": false,
+  "native_controller_form_profile_proved": true,
+  "initialized_description_profile_proved": true,
+  "uninitialized_description_profile_proved": true,
+  "actual_HTTP_proved": false,
+  "native_error_response_profile_proved": false,
+  "native_controller_typed_refusal_subset_proved": true,
+  "SLA_proved": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "project-policy-web-mfa-typed-full-native.json": "cc01659ec2972291d80adef87e26eae468094fb92e72eb26f5981b005b6a9777",
+    "project-policy-web-mfa-typed-full-integration.json": "7c5efd2ce705de4092f082540c2cffb29307feaa0230566726077fa6ebc921b4",
+    "project-policy-web-mfa-typed-full-parent.json": "b2bea60a1b4dfa2c8ef1923c354087d075a8e107cf2804741102bcb5ca8c202a",
+    "project-policy-web-mfa-typed-full-source-runtime-match.json": "551205fb650badd7efae9890f259fba7ab285e0d2d7672d45f2e0eea0b23e46e",
+    "project-policy-web-mfa-typed-full-strict-accepted.json": "24b228b95980f742d9c83b7594566c650f88b955fdd4ea59cfd1df7a0f466612",
+    "project-policy-web-mfa-typed-full-strict-cli.json": "77ef91a528dc6d510b504e29d10a5767a1291f37d513fc7a7c64f94ecb815b10"
+  },
+  "evidence_scope": "Local isolated exact signed source; not hosted CI or new documentation execution.",
+  "immutable_manifest_sha256": "14e33f73e00507f07947ddc15d206bfaf01de0267ebfbdf18d97ea7e5ca8b3a6",
+  "receipt_sha256": {
+    "project-policy-web-mfa-typed-full-checkpoint.json": "a2f1f93ff6dde47980169f175b73e1aaef4e5809409f8998b35f6f8d09a82d79",
+    "project-policy-web-mfa-typed-full-integration.json": "7c5efd2ce705de4092f082540c2cffb29307feaa0230566726077fa6ebc921b4",
+    "project-policy-web-mfa-typed-full-native.json": "cc01659ec2972291d80adef87e26eae468094fb92e72eb26f5981b005b6a9777",
+    "project-policy-web-mfa-typed-full-parent.json": "b2bea60a1b4dfa2c8ef1923c354087d075a8e107cf2804741102bcb5ca8c202a",
+    "project-policy-web-mfa-typed-full-source-runtime-match.json": "551205fb650badd7efae9890f259fba7ab285e0d2d7672d45f2e0eea0b23e46e",
+    "project-policy-web-mfa-typed-full-strict-accepted.json": "24b228b95980f742d9c83b7594566c650f88b955fdd4ea59cfd1df7a0f466612",
+    "project-policy-web-mfa-typed-full-strict-cli.json": "77ef91a528dc6d510b504e29d10a5767a1291f37d513fc7a7c64f94ecb815b10"
+  }
+}

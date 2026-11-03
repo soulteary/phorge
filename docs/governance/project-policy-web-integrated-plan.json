@@ -36,8 +36,6 @@
     "current_integrated_pure_executed": true
   },
   "remaining": [
-    "Actual854 SQL including new route/controller refusal and stored-corruption propagation cases",
-    "Whole runtime hashes, strict in-process/CLI equality and all owned cleanup",
     "English PR, exacthead CI/review, protected merge and main artifact closure",
     "Actual HTTP/browser/MFA interaction and concurrency/other-family/source closure"
   ],
@@ -59,6 +57,16 @@
   "retry_scope": {
     "production_changes": false,
     "fixture": "Exact final refusal class, native-edit reason and fixed native-edit message; all MFA assertions and source obligations retained.",
-    "SQL_retest_pending": true
+    "SQL_retest_pending": false
+  },
+  "accepted_retry": {
+    "runtime_source_head": "c308cc7622d21942b59d87cc7a1e72657a2ed5bc",
+    "pure_methods": 237,
+    "SQL_checks": 854,
+    "runtime_files_exact": 6812,
+    "strict_CLI_equality": true,
+    "cleanup_complete": true,
+    "acceptance": "evidence/project-policy-web-c308-237-854/acceptance.json",
+    "documentation_is_not_new_execution": true
   }
 }
