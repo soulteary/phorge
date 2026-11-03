@@ -272,6 +272,41 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     return $user;
   }
+  /** Read-only native display values for this exact locked web actor. */
+  private function attachWebDisplayCaches() {
+    $factories=array(PhabricatorUserPreferencesCacheType::KEY_PREFERENCES=>new PhabricatorUserPreferencesCacheType());
+    if(PhabricatorApplication::isClassInstalledForViewer(PhabricatorConpherenceApplication::class,$this->actor)){
+      $factories[PhabricatorUserMessageCountCacheType::KEY_COUNT]=new PhabricatorUserMessageCountCacheType();
+    }
+    if(PhabricatorApplication::isClassInstalledForViewer(PhabricatorNotificationsApplication::class,$this->actor)){
+      $factories[PhabricatorUserNotificationCountCacheType::KEY_COUNT]=new PhabricatorUserNotificationCountCacheType();
+    }
+    $phid=$this->actor->getPHID();$raw=array();
+    foreach($factories as$key=>$factory){
+      $values=$factory->newValueForUsers($key,array($this->actor));
+      if(array_keys($values)!==array($phid)||
+        ($key===PhabricatorUserPreferencesCacheType::KEY_PREFERENCES?!is_string($values[$phid]):
+          ((!is_int($values[$phid])&&!is_string($values[$phid]))||!preg_match('/\A(?:0|[1-9][0-9]*)\z/D',(string)$values[$phid])))){
+        throw new RuntimeException('project_execution_actor_display_cache_invalid');
+      }
+      $raw[$key]=$values[$phid];
+    }
+    // A real preceding GET normally already populated the native avatar cache.
+    // Reuse only an actual row valid for this locked actor; never call the
+    // profile factory, which may create files and save user authority fields.
+    $profile=new PhabricatorUserProfileImageCacheType();$profile_key=PhabricatorUserProfileImageCacheType::KEY_URI;
+    $profiles=PhabricatorUserCache::readCaches($profile,$profile_key,array($phid));
+    if(isset($profiles[$phid])&&is_string($profiles[$phid])&&
+      $profile->isRawCacheDataValid($this->actor,$profile_key,$profiles[$phid])){
+      $raw[$profile_key]=$profiles[$phid];
+    }
+    // Missing or invalid profile cache is deliberately left unattached. A
+    // direct editor need not render an avatar; no new cache-presence gate is
+    // added before mutation. A later renderer still fails rather than writes.
+    // Attach only computed raw display data. Never generate inline, write the
+    // durable user cache, replace the authority actor, or generate avatars.
+    $this->actor->attachRawCacheData($raw);
+  }
   private function captureSpaces() {
     $table=new PhabricatorSpacesNamespace();
     $schema=self::sourceDatabase($this->connection,$table);
@@ -379,6 +414,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     $scope=self::open($context,$object,$policy,$membership?$decision:'execute',$membership?null:$approval,$intent);
     $scope->editor=$editor;
     try {
+    if($request!==null){$scope->attachWebDisplayCaches();}
     $editor->setActor($scope->actor);
     if ($request!==null) {
       // Replace only this authenticated viewer with its locked current row and

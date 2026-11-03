@@ -891,7 +891,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
       "symbol": "PhorgeProjectNativeExecutionScope",
       "kind": "native-final-effect-and-current-source-fence",
-      "sha256": "092031e316f5c9a26ee9625462af073118a3c3c47b47fe8946a5376ecd66f9f5",
+      "sha256": "577dbc230ebb0e393b7f1b9a92f50f3c65a7f4c15322becaad0e88661f1bc730",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1673,7 +1673,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
-        "sha256": "092031e316f5c9a26ee9625462af073118a3c3c47b47fe8946a5376ecd66f9f5"
+        "sha256": "577dbc230ebb0e393b7f1b9a92f50f3c65a7f4c15322becaad0e88661f1bc730"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
