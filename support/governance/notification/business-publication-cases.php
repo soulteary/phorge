@@ -55,7 +55,7 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
     $comment=clone $tx;$comment->setTransactionType(PhabricatorTransactions::TYPE_COMMENT)
       ->attachComment($comment->getApplicationTransactionCommentObject()->setContent('SYNTHETIC_PRIVATE_BUSINESS_COMMENT'));
     $changes=array($name,$comment);
-    if($family==='task'){$changes[]=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_SUBSCRIBERS)->setNewValue(array($users['subscriber']->getPHID()));}
+    if($family==='task'){$changes[]=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_SUBSCRIBERS)->setNewValue(array('+' => array_fuse(array($users['subscriber']->getPHID()))));}
     $last=(int)queryfx_one($tasks->establishConnection('r'),'SELECT COALESCE(MAX(id),0) n FROM %R',$tasks)['n'];
     $connection=$object->establishConnection('w');if($connection->isInsideTransaction()){throw new RuntimeException('business_publication_inherited_context_refused');}
     $outer=$ending!=='normal';if($outer){$connection->openTransaction();}
