@@ -16,6 +16,7 @@ spec.loader.exec_module(gate)
 
 
 def validate(data, **kwargs):
+    kwargs.setdefault('render_digest','d05250617dfa12f0b7cfc9108423b55a91ce9dd56224c96335f847deb40c22d2')
     return gate.validate(data, measurement_revision='a'*40, **kwargs)
 
 
@@ -335,13 +336,22 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(digest=digest), self.assertRaises(ValueError):
                 validate(template(), file_digest=digest)
 
+    def test_render_input_is_mandatory_and_architecture_digest_must_match(self):
+        with self.assertRaises(ValueError):gate.validate(template(),file_digest='b'*64,measurement_revision='a'*40)
+        for value in (None,True,'wrong','c'*64):
+            with self.subTest(value=value),self.assertRaises(ValueError):validate(template(),file_digest='b'*64,render_digest=value)
+        data=template();data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']['binary_sha256']='c'*64
+        self.assertTrue(validate(data,file_digest='b'*64,render_digest='c'*64)['schema_valid'])
+        data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']['source_revision']='f'*40
+        with self.assertRaises(ValueError):validate(data,file_digest='b'*64,render_digest='c'*64)
+
     def test_cli_duplicate_keys_and_non_json_output_fail_safely(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'receipt.json'
             binary=Path(directory)/'paired-file'; binary.write_bytes(b'synthetic gate input')
             for raw in ('{"passed":true,"passed":true}', 'PHLOG: unsafe\n'+json.dumps(template()),'{"passed":NaN}'):
                 path.write_text(raw)
-                result=subprocess.run([sys.executable,str(ROOT/'scripts/governance/check_native_organization.py'),'--receipt',str(path),'--file-binary',str(binary),'--measurement-source-revision','a'*40],capture_output=True,text=True)
+                result=subprocess.run([sys.executable,str(ROOT/'scripts/governance/check_native_organization.py'),'--receipt',str(path),'--file-binary',str(binary),'--render-binary',str(binary),'--measurement-source-revision','a'*40],capture_output=True,text=True)
                 self.assertNotEqual(result.returncode,0)
                 self.assertEqual(result.stdout,'')
                 self.assertNotIn('synthetic-private-canary',result.stderr)
@@ -477,7 +487,7 @@ class NativeMeasurementGateTest(unittest.TestCase):
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
         data=template();data['native']['revocation_measurement_tests']['event']['attempts'][0]['outcome']='denied'
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
-        with self.assertRaises(ValueError):gate.validate(template(),file_digest='b'*64)
+        with self.assertRaises(ValueError):gate.validate(template(),file_digest='b'*64,render_digest='d05250617dfa12f0b7cfc9108423b55a91ce9dd56224c96335f847deb40c22d2')
 
 
 class NativeTokenMeasurementGateTest(unittest.TestCase):

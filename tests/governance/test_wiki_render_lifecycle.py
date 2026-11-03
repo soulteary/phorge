@@ -9,7 +9,7 @@ class WikiRenderLifecycle(unittest.TestCase):
             script=r'''
 require $argv[1];$directory=$argv[2].'/owned';mkdir($directory,0700);$owner=str_repeat('a',64);
 $service=array('process'=>null,'private'=>$directory,'identity'=>lstat($directory),'owner'=>$owner,
- 'marker_ready'=>$argv[3]!=='partial','binary_sha256'=>str_repeat('b',64));
+ 'marker_ready'=>$argv[3]!=='partial','binary_sha256'=>str_repeat('b',64),'source_revision'=>str_repeat('c',40));
 if($argv[3]!=='missing'){file_put_contents($directory.'/owner',$argv[3]==='partial'?substr($owner,0,12):$owner);chmod($directory.'/owner',0600);}
 if($argv[3]==='unknown'){file_put_contents($directory.'/unknown','PRIVATE_TEST_FILE');}
 $refused=false;$reason=null;try{$receipt=governance_wiki_render_stop($service);}catch(RuntimeException$e){$refused=true;$reason=$e->getMessage();}
@@ -23,7 +23,7 @@ echo json_encode(array('refused'=>$refused,'reason'=>$reason,'unknown_preserved'
             return json.loads(result.stdout)
     def test_partial_owner_write_failure_cleans_only_owned_directory(self):
         value=self.probe('partial');self.assertFalse(value['refused']);self.assertFalse(value['directory_retained'])
-        self.assertEqual({'binary_sha256':'b'*64,'process_stopped':True,'private_storage_removed':True},value['cleanup_receipt'])
+        self.assertEqual({'binary_sha256':'b'*64,'source_revision':'c'*40,'process_stopped':True,'private_storage_removed':True},value['cleanup_receipt'])
     def test_missing_expected_owner_and_unknown_files_refuse_cleanup(self):
         for mode,reason in [('missing','wiki_render_cleanup_owner_refused'),('unknown','wiki_render_cleanup_unknown_file')]:
             with self.subTest(mode=mode):

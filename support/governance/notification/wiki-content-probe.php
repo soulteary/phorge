@@ -13,7 +13,7 @@ function governance_wiki_content_probe_factory($fixture,array $queue,array $rend
         'mailer_uri'=>'http://127.0.0.1:1','owner'=>$owner,'service_token'=>bin2hex(random_bytes(32)),
         'source_sha256'=>hash_file('sha256',dirname(phutil_get_library_root('phabricator')).'/resources/sql/quickstart.sql'),
         'writer'=>$fixture->getWriterConfig());
-      $write('render.json',json_encode(array('owner'=>$owner,'uri'=>$render['uri'],'token'=>$render['token']),JSON_THROW_ON_ERROR));
+      $write('render.json',json_encode(array('owner'=>$owner,'uri'=>$render['uri'],'token'=>$render['token'],'source_revision'=>$render['source_revision']),JSON_THROW_ON_ERROR));
       $write('queue.json',json_encode(array('owner'=>$owner,'uri'=>$queue['uri'],'token'=>$queue['token']),JSON_THROW_ON_ERROR));
       $write('router.json',json_encode($data,JSON_THROW_ON_ERROR));$write('probe.json',json_encode(array('owner'=>$owner,'task_id'=>(int)$task->getID(),'object_phid'=>$object->getPHID(),'phase'=>$phase,'lease_owner'=>$task->getLeaseOwner(),'lease_expires'=>(int)$task->getLeaseExpires()),JSON_THROW_ON_ERROR));
       $process=proc_open(array(PHP_BINARY,__DIR__.'/wiki-content-publication-worker.php',$directory),array(0=>array('pipe','r'),1=>array('pipe','w'),2=>array('pipe','w')),$pipes);

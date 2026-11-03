@@ -64,3 +64,17 @@ tested total to 835. All 38 global worker directories, both sets of ten business
 children, six Wiki children, the renderer, temporary image, 55 schemas, two
 runtime principals and reader were cleaned successfully. This does not close
 the separate governance-producer, gateway, Go daemon, SMTP or browser matrix.
+
+### Portable CI successor (not yet reverified)
+
+The historical accepted binary was linux/arm64. A different architecture cannot
+reuse its checksum. The portable candidate retains the same reviewed immutable
+Gorge revision and existing locked-base atomic image build. CI inspects the
+actual render image revision label and immutable image ID, creates an unstarted
+owned extraction container, copies the real renderer and records its actual
+checksum and container cleanup. The receipt checkers require `--render-binary`
+and bind the reported checksum to that file; a caller-supplied hex string alone
+is not source provenance. The local lab runner independently retains its pinned
+paired55 build metadata and checksum. No second CI source or repository variable
+is introduced. This portability delta requires its own runtime/CI evidence and
+does not change the historical 82ec acceptance record.

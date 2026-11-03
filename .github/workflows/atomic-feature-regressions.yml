@@ -239,6 +239,8 @@ jobs:
           docker cp atomic-queue-binary:/usr/local/bin/gorge-taskqueue "$RUNNER_TEMP/gorge-taskqueue"
           docker rm atomic-queue-binary
           chmod +x "$RUNNER_TEMP/gorge-taskqueue"
+          mkdir -p "$RUNNER_TEMP/governance-native-organization"
+          python3 tests/atomic/extract_native_renderer.py --output "$RUNNER_TEMP/gorge-render" --provenance "$RUNNER_TEMP/governance-native-organization/render-binary-provenance.json" --revision "$GORGE_CONTRACT_REF"
       - name: Verify full native pipeline and shared read views in owned restored schemas
         env:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
@@ -303,10 +305,13 @@ jobs:
           PHORGE_GOVERNANCE_GORGE_IMAGE_TOKEN="$GORGE_TEST_IMAGE_TOKEN" \
           PHORGE_GOVERNANCE_GORGE_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" \
           PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_BINARY="$RUNNER_TEMP/gorge-render" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_SOURCE_REVISION="$GORGE_CONTRACT_REF" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
           php support/governance/native-organization/test-native-organization-mysql.php > "$RUNNER_TEMP/governance-native-organization/integration.json"
-          python3 scripts/governance/check_native_organization.py --receipt "$RUNNER_TEMP/governance-native-organization/integration.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --measurement-source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-native-organization/accepted.json"
-          python3 scripts/governance/check_private_notifications.py --receipt "$RUNNER_TEMP/governance-native-organization/integration.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --measurement-source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-native-organization/private-email-sources.json"
+          python3 scripts/governance/check_native_organization.py --receipt "$RUNNER_TEMP/governance-native-organization/integration.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --render-binary "$RUNNER_TEMP/gorge-render" --measurement-source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-native-organization/accepted.json"
+          python3 scripts/governance/check_private_notifications.py --receipt "$RUNNER_TEMP/governance-native-organization/integration.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --render-binary "$RUNNER_TEMP/gorge-render" --measurement-source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-native-organization/private-email-sources.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
