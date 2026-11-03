@@ -45,6 +45,39 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+
+    def test_recovery_web_partial_observations_cannot_approve_credentials(self):
+        self.assertEqual(13,len(gate.RECOVERY_WEB_CHECKS))
+        for obligation in gate.RECOVERY_WEB_CHECKS:
+            data=template();data['checks'].remove(obligation);data['check_count']-=1
+            with self.subTest(obligation=obligation), self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        for key in ('actual_password_controller_or_oauth_complete','web_family_complete',
+                    'all_sources_complete','can_execute','source_writes_by_capture'):
+            data=template();data['native']['recovery_web_capture_tests'][key]=True
+            with self.subTest(key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['recovery_web_capture_tests']['actual_native_logout']=1
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+
+
+    def test_recovery_account_requires_all_real_source_obligations(self):
+        self.assertEqual(10, len(gate.RECOVERY_ACCOUNT_CHECKS))
+        for obligation in gate.RECOVERY_ACCOUNT_CHECKS:
+            data=template();data['checks'].remove(obligation);data['check_count']-=1
+            with self.subTest(obligation=obligation), self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+
+    def test_recovery_account_capture_cannot_self_attest_full_recovery(self):
+        for key,value in [('actual_account_adapter',False),('actual_account_adapter',1),
+                          ('source_writes_by_capture',True),('all_sources_complete',True),
+                          ('can_execute',True),('other_twelve_families_complete',True)]:
+            data=template();data['native']['recovery_account_capture_tests'][key]=value
+            with self.subTest(key=key,value=value), self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['recovery_account_capture_tests']['permit']='complete'
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_native_invitation_capability_regressions_cannot_be_omitted(self):
         for name in ['private-mail-invite-native-nonadmin-people-capability-granted', 'private-mail-invite-native-nonadmin-worker-prepares-genuine-challenge', 'private-mail-invite-legacy-admin-binding-must-equal-author-subject', 'private-mail-invite-current-capability-revocation-refuses-callback', 'private-mail-invite-regrant-cannot-revive-permanently-quarantined-snapshot', 'private-mail-invite-nonadmin-without-native-capability-refused', 'private-mail-invite-native-default-admin-still-authorized', 'private-mail-invite-custom-policy-admin-result-matches-real-native-capability', 'private-mail-invite-capability-does-not-authorize-admin-only-welcome']:
             data=template();data['checks'].remove(name);data['check_count']-=1
