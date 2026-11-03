@@ -4,6 +4,7 @@ $root=dirname(__DIR__,3);$proof=null;$guard=null;$owned=false;$mode=(new mysqli_
 try{
   require_once$root.'/support/runtime/php-version.php';phorge_assert_supported_php_version(PHP_VERSION);
   $security_actions=array('login-disable'=>'security-disable','login-secret-rotate'=>'security-rotate-secret',
+    'large-body-revoked'=>'security-rotate-secret','large-attachment-revoked'=>'security-rotate-secret',
     'login-primary-switch'=>'security-switch-primary','welcome-demote'=>'security-demote-admin',
     'queue-demote'=>'security-demote-admin','verify-code-rotate'=>'security-rotate-code',
     'verify-completed'=>'security-complete-verification','invite-code-rotate'=>'security-rotate-invite',

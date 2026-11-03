@@ -39,7 +39,7 @@ function governance_private_mail_security_cases($fixture,callable $check){
   foreach(array('body','attachment')as$kind){
     $large=(new PhabricatorPeopleEmailLoginMailEngine())->setSender(new PhabricatorUser())
       ->setRecipient($users['owner'])->sendMail();
-    if($kind==='body'){$large->setBody(str_repeat('Synthetic security body. ',4096));}
+    if($kind==='body'){$large->setBody($large->getBody().str_repeat('Synthetic security body. ',4096));}
     else{$large->setAttachments(array(new PhabricatorMailAttachment(
       str_repeat('A',50*1024),'synthetic-large.txt','text/plain')));}
     $large->save();$large_snapshot=$large->prepareGorgeDelivery();
