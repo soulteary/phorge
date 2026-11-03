@@ -89,7 +89,7 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     $check($refused&&$before===$fingerprint(),'project-view-default-edit-controller-real-post-without-csrf-refused-without-write');
     $mixed=$body;$mixed['policy.view']=$a['viewer']->getPHID();$mixed['governanceApprovalID']=$ticket;$mixed['name']='Synthetic second actual mutation';
     $refused=false;try{$call($uri,'POST',$mixed);}catch(RuntimeException$error){
-      if($error->getMessage()!=='project_execution_native_form_multiple_changes'){throw$error;}$refused=true;}
+      if($error->getMessage()!=='project_execution_expanded_closure_unsupported'){throw$error;}$refused=true;}
     $check($refused&&$before===$fingerprint(),'project-view-default-edit-controller-second-actual-change-refuses-whole-transition');
     $wrong=$submit(PhabricatorPolicies::POLICY_USER,'edit');$before=$fingerprint();
     $wrong_body=$body;$wrong_body['policy.view']=$a['viewer']->getPHID();$wrong_body['governanceApprovalID']=$wrong;
