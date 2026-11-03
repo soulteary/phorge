@@ -108,6 +108,8 @@ EXPECTED_SOURCES.update({
  'CLIENT.TOKENIZER.BEHAVIOR': ('webroot/rsrc/js/core/behavior-tokenizer.js','aphront-basic-tokenizer','fixed-client-metadata-forwarder'),
  'CLIENT.PREFAB': ('webroot/rsrc/js/core/Prefab.js','Prefab','fixed-client-normalizer')})
 
+EXPECTED_SOURCES['NATIVE.PhorgeOrganizationHistoryController']=('src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php','PhorgeOrganizationHistoryController','current-system-administrator-history-controller')
+
 EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php',
  'src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php',
  'src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php',
@@ -157,6 +159,8 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/infrastructure/governance/readset/PhorgeGovernanceReadSetValidator.php',
  'src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php']
 
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php'])
+
 EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationController'),
  'NATIVE-LINK-02': ('NATIVE.PhorgeOrganizationController', 'NATIVE.PhorgeOrganizationEndpoint'),
  'NATIVE-LINK-03': ('NATIVE.PeopleOrganizationQueryConduitAPIMethod',
@@ -195,6 +199,8 @@ EXPECTED_LINKS.update({
  'NATIVE-LINK-23': ('TOKENIZER.CONTROL','TYPEAHEAD.BASE'),
  'NATIVE-LINK-24': ('TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR'),
  'NATIVE-LINK-25': ('CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB')})
+
+EXPECTED_LINKS.update({'NATIVE-LINK-27':('ORG.ROUTES','NATIVE.PhorgeOrganizationHistoryController'),'NATIVE-LINK-28':('NATIVE.PhorgeOrganizationHistoryController','NATIVE.PhorgeOrganizationQuery')})
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 

@@ -9,6 +9,8 @@ final class PhorgeOrganizationEndpoint extends Phobject {
     }
     $query = new PhorgeOrganizationQuery($context);
     switch ($mode) {
+      case 'audit': return $query->readAuditPage($limit,$after,false);
+      case 'audit-retention': return $query->readAuditPage($limit,$after,true);
       case 'list': return $query->listUnits($limit, $after);
       case 'selector': return $query->selectUnits($limit, $after);
       case 'export': return $query->exportUnitsPage($limit, $after);

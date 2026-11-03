@@ -285,3 +285,15 @@ receipts are under `evidence/membership-lifecycle-combined-286-20261103/`; the
 current receipt is `native-directory-evidence.json`. Old 250/244/225 evidence is
 unchanged. This is isolated source/controller evidence, not hosted final-head
 review, browser delivery, activation or completion of all O4/O5 work.
+
+## Restricted history candidate
+
+The O6 candidate passed PHP 8.5.12 with 147 native test methods and 297
+real isolated SQL checks, including eleven administrator-only history scenarios.
+The current receipt and `evidence/native-history-297-20261103` retain the exact
+result. All 5866 executed PHP/SQL files matched the host. Governance mutation
+tests (86) and permission inventory tests (84) passed. History pages expose only
+bounded metadata; before/after snapshots and credential bindings are not loaded.
+The elapsed 365-day report never deletes history. An actual native administrator
+revoked between pages cannot reuse the cursor. This is isolated source evidence,
+not production activation, browser certification, or complete O7/O8 delivery.

@@ -393,6 +393,9 @@ NATIVE.update({'compound_tests': {'before_source_membership_not_fabricated': Tru
                                 'production_activation': False,
                                 'public_csrf_lifecycle_complete': False,
                                 'retained_relationship_history': True}})
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['native-history-365-day-candidate-report-retains-all-records', 'native-history-actual-get-current-admin-without-csrf-read-scope-restored', 'native-history-administrator-revoked-between-pages-cannot-use-old-cursor', 'native-history-current-team-administrator-still-cannot-read-global-audit', 'native-history-has-no-post-delete-or-mutation-surface', 'native-history-never-loads-or-returns-private-snapshots-or-credential-binding', 'native-history-ordinary-user-cannot-read-audit-or-retention-count', 'native-history-reader-revocation-uses-actual-no-factor-normal-session', 'native-history-real-keyset-pages-have-no-duplicate-records'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({'native-history-retention-raw-scan-is-bounded-and-empty-page-cursor-reaches-later-candidate', 'native-history-empty-retention-page-real-html-keeps-next-scan-link'})
+NATIVE['history_tests'] = {'current_system_administrator_only': True, 'snapshot_fields_returned': False, 'retention_days': 365, 'history_deleted': False, 'full_browser_acceptance': False, 'production_activation': False}
 WORKERS = 13
 
 

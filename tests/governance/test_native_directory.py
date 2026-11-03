@@ -108,6 +108,17 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
             row['to_id'] = 'NATIVE.PhorgeOrganizationService'
             self.reject(data, 'link topology drift')
 
+    def test_restricted_history_route_and_projection_are_explicit(self):
+        identity='NATIVE.PhorgeOrganizationHistoryController'
+        self.assertIn(identity,CHECKER.EXPECTED_SOURCES)
+        data=copy.deepcopy(self.data)
+        data['sources']=[row for row in data['sources'] if row['id']!=identity]
+        with self.assertRaises(ValueError):CHECKER.validate(data,ROOT)
+        for identity in ('NATIVE-LINK-27','NATIVE-LINK-28'):
+            data=copy.deepcopy(self.data)
+            data['links']=[row for row in data['links'] if row['id']!=identity]
+            with self.subTest(identity=identity),self.assertRaises(ValueError):CHECKER.validate(data,ROOT)
+
     def test_fixed_tokenizer_metadata_pipeline_is_explicit(self):
         required={'TYPEAHEAD.BASE','TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB'}
         self.assertTrue(required <= set(CHECKER.EXPECTED_SOURCES))
