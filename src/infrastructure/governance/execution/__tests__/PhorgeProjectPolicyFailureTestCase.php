@@ -164,9 +164,9 @@ final class PhorgeProjectPolicyFailureTestCase extends PhutilTestCase {
       PhabricatorProjectSlugsTransaction::TRANSACTIONTYPE,PhabricatorTransactions::TYPE_CUSTOMFIELD)as$extra_type){
       $policy=(new PhabricatorProjectTransaction())->setTransactionType($type)->setNewValue('users');
       $extra=(new PhabricatorProjectTransaction())->setTransactionType($extra_type)->setNewValue(
-        $extra_type===PhabricatorProjectSlugsTransaction::TRANSACTIONTYPE?array('synthetic'):'');
+        $extra_type===PhabricatorProjectSlugsTransaction::TRANSACTIONTYPE?array('synthetic'):'Synthetic explicit content change');
       if($extra_type===PhabricatorTransactions::TYPE_CUSTOMFIELD){
-        $extra->setMetadataValue('customfield:key','std:project:internal:description')->setOldValue(null)->setIsDefaultTransaction(true);
+        $extra->setMetadataValue('customfield:key','std:project:internal:description')->setOldValue(null);
       }
       $batch=array($policy,$extra);$raw=$originals->invoke(null,$batch);
       foreach($batch as$xaction){$xaction->setAuthorPHID($author);}
@@ -180,6 +180,11 @@ final class PhorgeProjectPolicyFailureTestCase extends PhutilTestCase {
       $this->assertFalse($classify->invoke(null,$raw,$batch,$type,'users',$author));
     }
     $policy=(new PhabricatorProjectTransaction())->setTransactionType($type)->setNewValue('users');
+    $clear=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_CUSTOMFIELD)
+      ->setMetadataValue('customfield:key','std:project:internal:description')->setOldValue('Synthetic prior description')->setNewValue(null);
+    $clear_batch=array($policy,$clear);$clear_raw=$originals->invoke(null,$clear_batch);
+    foreach($clear_batch as$xaction){$xaction->setAuthorPHID($author);}
+    $this->assertTrue($classify->invoke(null,$clear_raw,$clear_batch,$type,'users',$author));
     $join=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_JOIN_POLICY)
       ->setNewValue('admin')->setIsDefaultTransaction(true);
     $batch=array($policy,$join);$raw=$originals->invoke(null,$batch);
@@ -189,6 +194,17 @@ final class PhorgeProjectPolicyFailureTestCase extends PhutilTestCase {
     $public=PhorgeProjectPolicyFailure::responseFor(PhorgeProjectPolicyRefusalException::newForReason('additional-effects'));
     $this->assertEqual(400,$public['status']);
     $this->assertEqual('project_approval_separate_changes_required',$public['error']);
+  }
+
+  public function testRealNativeTextareaRenderingRoundTripsBrowserInitialNewlineRule() {
+    require_once dirname(phutil_get_library_root('phabricator')).'/support/governance/native-execution/project-view-edit-route-cases.php';
+    $render=new ReflectionMethod(AphrontFormTextAreaControl::class,'renderInput');
+    foreach(array('', 'Synthetic nonempty description', "\nleading", "\n\nleading\n", "one\ntwo", '<&>')as$value){
+      $control=(new AphrontFormTextAreaControl())->setName('synthetic.description')->setValue($value);
+      $html=(string)$render->invoke($control);$matches=array();
+      $this->assertEqual(1,preg_match('/<textarea\b[^>]*>(.*?)<\/textarea>/s',$html,$matches));
+      $this->assertEqual($value,governance_project_edit_textarea_value($matches[1]));
+    }
   }
 
 }

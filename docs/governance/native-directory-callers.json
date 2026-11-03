@@ -880,7 +880,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
       "symbol": "PhorgeProjectExecutionCatalog",
       "kind": "scoped-native-form-envelope-classifier",
-      "sha256": "c7e76d1a228eeddb1277a2052a47f841aca06e2e2c61f96fc215236e7a9a9e6c",
+      "sha256": "97bd3ca80e3e174620b35bf2bd83cfb7b0d98e53ee6c5851aa65271dbe2e2957",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1753,7 +1753,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
-        "sha256": "c7e76d1a228eeddb1277a2052a47f841aca06e2e2c61f96fc215236e7a9a9e6c"
+        "sha256": "97bd3ca80e3e174620b35bf2bd83cfb7b0d98e53ee6c5851aa65271dbe2e2957"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigOptions.php",

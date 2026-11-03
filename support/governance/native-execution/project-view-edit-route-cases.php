@@ -1,5 +1,11 @@
 <?php
 
+/** Browser's initial textarea LF rule, applied after entity decoding only. */
+function governance_project_edit_textarea_value($encoded) {
+  $value=html_entity_decode($encoded,ENT_QUOTES,'UTF-8');
+  return str_starts_with($value,"\n")?substr($value,1):$value;
+}
+
 /** Actual platform route/bootstrap/default edit form; no HTTP/browser claim. */
 function governance_project_view_edit_route_cases($fixture,callable $check,array $state) {
   $fixture->assertOwned();$a=$state['executor'];$b=$state['approver'];
@@ -32,7 +38,7 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
       $append($attr['name'],$attr['value']??'');}
     preg_match_all('/<textarea\b([^>]*)>(.*?)<\/textarea>/is',$form[2],$areas,PREG_SET_ORDER);
     foreach($areas as$area){$attr=$attributes($area[1]);if(isset($attr['name'])&&!preg_match('/\bdisabled(?:\s|=|$)/i',$area[1])){
-      $append($attr['name'],html_entity_decode($area[2],ENT_QUOTES,'UTF-8'));}}
+      $append($attr['name'],governance_project_edit_textarea_value($area[2]));}}
     preg_match_all('/<select\b([^>]*)>(.*?)<\/select>/is',$form[2],$selects,PREG_SET_ORDER);
     foreach($selects as$select){$attr=$attributes($select[1]);if(!isset($attr['name'])||preg_match('/\bdisabled(?:\s|=|$)/i',$select[1])){continue;}
       preg_match_all('/<option\b([^>]*)>(.*?)<\/option>/is',$select[2],$options,PREG_SET_ORDER);$selected=array();$first=null;
@@ -172,10 +178,10 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
       if($error->getMessage()!=='project_execution_native_form_multiple_changes'){throw$error;}$join_refused=true;}
     $check($join_refused&&$fingerprint()===$empty_before,
       'project-view-default-edit-controller-join-change-and-forged-default-flags-refused-before-effects');
-    // A raw legacy object may genuinely lack description storage. Preserve
-    // that NULL-to-empty effect and give an actionable refusal, never drop it.
+    // Exercise an explicit nonempty description change, not a parser-created
+    // newline or an assumed NULL-to-empty native transition.
     $setup=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.project-approval.enabled',false);
-    try{$raw_project=PhabricatorProject::initializeNewProject($a['viewer'])->setName('Synthetic legacy empty-description form target')
+    try{$raw_project=PhabricatorProject::initializeNewProject($a['viewer'])->setName('Synthetic explicit description form target')
       ->setViewPolicy(PhabricatorPolicies::POLICY_USER)->setEditPolicy($a['viewer']->getPHID())
       ->setJoinPolicy(PhabricatorPolicies::POLICY_USER)->save();}finally{unset($setup);}
     $raw_uri='/project/edit/'.$raw_project->getID().'/';
@@ -187,38 +193,40 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
       if(!$field){throw new RuntimeException('project_policy_error_description_field_required');}
       return $field->getOldValueForApplicationTransactions();
     };
-    if($read_description()!==null){throw new RuntimeException('project_policy_error_real_missing_description_required');}
+    $description_before=$read_description();$description_value='Synthetic separately saved description';
+    $description_key='std:project:internal:description';
     list(,$raw_html)=$call($raw_uri,'GET',array(),true);$raw_body=$extract($raw_html,$raw_uri);
+    if(!array_key_exists($description_key,$raw_body)){throw new RuntimeException('project_policy_error_native_description_input_required');}
     $old_ticket=$submit($a['viewer']->getPHID(),'view',$raw_project);
     $raw_before=queryfx_one($conn,'SELECT * FROM %R WHERE id=%d',new PhabricatorProject(),$raw_project->getID());
     $audits_before=queryfx_all($conn,'SELECT * FROM governance_executionaudit ORDER BY id');
-    $raw_policy=$raw_body;$raw_policy['policy.view']=$a['viewer']->getPHID();$raw_policy['governanceApprovalID']=$old_ticket;
+    $raw_policy=$raw_body;$raw_policy['policy.view']=$a['viewer']->getPHID();$raw_policy['governanceApprovalID']=$old_ticket;$raw_policy[$description_key]=$description_value;
     list($raw_error,$raw_error_html)=$call($raw_uri,'POST',$raw_policy,true);
     $old_row=queryfx_one($conn,'SELECT state,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$old_ticket);
     $check($raw_error instanceof PhabricatorStandardPageView&&
       strpos(html_entity_decode(strip_tags($raw_error_html),ENT_QUOTES,'UTF-8'),
         pht('Save other project changes first, then create a new policy proposal.'))!==false&&
-      $read_description()===null&&$old_row['state']==='approved'&&$old_row['nativeGroupID']===null&&
+      $read_description()===$description_before&&$old_row['state']==='approved'&&$old_row['nativeGroupID']===null&&
       $raw_before===queryfx_one($conn,'SELECT * FROM %R WHERE id=%d',new PhabricatorProject(),$raw_project->getID())&&
       $audits_before===queryfx_all($conn,'SELECT * FROM governance_executionaudit ORDER BY id')&&
       queryfx_all($conn,'SELECT id FROM %R WHERE objectPHID=%s',new PhabricatorProjectTransaction(),$raw_project->getPHID())===array(),
-      'project-policy-errors-missing-description-extra-effect-refuses-actionably-without-consumption');
-    list(,$raw_fresh_html)=$call($raw_uri,'GET',array(),true);$raw_save=$extract($raw_fresh_html,$raw_uri);
+      'project-policy-errors-explicit-description-extra-effect-refuses-actionably-without-consumption');
+    list(,$raw_fresh_html)=$call($raw_uri,'GET',array(),true);$raw_save=$extract($raw_fresh_html,$raw_uri);$raw_save[$description_key]=$description_value;
     list($raw_saved)=$call($raw_uri,'POST',$raw_save);
     $old_policy=$raw_save;$old_policy['policy.view']=$a['viewer']->getPHID();$old_policy['governanceApprovalID']=$old_ticket;
     list($stale_page,$stale_html)=$call($raw_uri,'POST',$old_policy,true);
-    $check($raw_saved instanceof AphrontRedirectResponse&&$read_description()===''&&
+    $check($raw_saved instanceof AphrontRedirectResponse&&$read_description()===$description_value&&
       $stale_page instanceof PhabricatorStandardPageView&&
       strpos(html_entity_decode(strip_tags($stale_html),ENT_QUOTES,'UTF-8'),
         pht('A current approved ticket matching this change is required.'))!==false&&
       queryfx_one($conn,'SELECT state FROM governance_projectapproval WHERE approvalID=%s',$old_ticket)['state']==='approved',
-      'project-policy-errors-native-content-save-initializes-description-and-old-proposal-stays-stale');
+      'project-policy-errors-native-separate-content-save-persists-description-and-old-proposal-stays-stale');
     $fresh_ticket=$submit($a['viewer']->getPHID(),'view',$raw_project);
     list(,$ready_html)=$call($raw_uri,'GET',array(),true);$ready=$extract($ready_html,$raw_uri);
     $ready['policy.view']=$a['viewer']->getPHID();$ready['governanceApprovalID']=$fresh_ticket;
     list($ready_result)=$call($raw_uri,'POST',$ready);
     $ready_records=queryfx_all($conn,'SELECT transactionType FROM %R WHERE objectPHID=%s ORDER BY id',new PhabricatorProjectTransaction(),$raw_project->getPHID());
-    $check($ready_result instanceof AphrontRedirectResponse&&$read_description()===''&&count($ready_records)===2&&
+    $check($ready_result instanceof AphrontRedirectResponse&&$read_description()===$description_value&&count($ready_records)===2&&
       $ready_records[0]['transactionType']===PhabricatorTransactions::TYPE_CUSTOMFIELD&&
       $ready_records[1]['transactionType']===PhabricatorTransactions::TYPE_VIEW_POLICY&&
       queryfx_one($conn,'SELECT state FROM governance_projectapproval WHERE approvalID=%s',$fresh_ticket)['state']==='consumed',

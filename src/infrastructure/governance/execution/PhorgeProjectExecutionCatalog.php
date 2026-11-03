@@ -104,7 +104,7 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
         if($raw['metadata']!==array()||$metadata!==array()||$value!==$policy){return false;}$policies++;continue;
       }
       if($actual===PhabricatorTransactions::TYPE_CUSTOMFIELD){
-        if($metadata!==array('customfield:key'=>'std:project:internal:description')||!is_string($value)){return false;}
+        if($metadata!==array('customfield:key'=>'std:project:internal:description')||($value!==null&&!is_string($value))){return false;}
       }else if(in_array($actual,array(PhabricatorProjectNameTransaction::TRANSACTIONTYPE,
           PhabricatorProjectColorTransaction::TRANSACTIONTYPE,PhabricatorProjectIconTransaction::TRANSACTIONTYPE),true)){
         if($metadata!==array()||!is_string($value)){return false;}
