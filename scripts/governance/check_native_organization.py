@@ -1094,6 +1094,44 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-o
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only'])
 NATIVE['project_execution_tests']['approved_native_view_policy'].update(actual_api_token_conduit_path=True,view_ticket_cannot_edit_policy=True)
 
+BUSINESS_GORGE_CHECKS = frozenset(['private-business-gorge-task-normal-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-task-normal-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-task-outer-commit-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-task-outer-commit-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-task-outer-commit-real-handler-prepare-before-source-commit-no-mail',
+ 'private-business-gorge-task-outer-rollback-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-task-outer-rollback-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-task-outer-rollback-real-handler-prepare-before-source-commit-no-mail',
+ 'private-business-gorge-task-fenced-yield-awaken-same-task-released-again',
+ 'private-business-gorge-project-normal-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-project-normal-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-project-outer-commit-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-project-outer-commit-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-project-outer-commit-real-handler-prepare-before-source-commit-no-mail',
+ 'private-business-gorge-project-outer-rollback-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-project-outer-rollback-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-project-outer-rollback-real-handler-prepare-before-source-commit-no-mail',
+ 'private-business-gorge-project-fenced-yield-awaken-same-task-released-again'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | BUSINESS_GORGE_CHECKS
+NATIVE['private_mail_tests']['business_gorge_publication_tests'] = {'actual_native_conduit_handler': True,
+ 'actual_native_editor_http_enqueue': True,
+ 'actual_service_leases_and_fenced_outcomes': True,
+ 'explicit_yield_retry_proved': True,
+ 'gorge_worker_daemon_proved': False,
+ 'independent_php_workers_executed': 10,
+ 'live_processes_after_cleanup': 0,
+ 'permanent_source_denial_automatically_retried': False,
+ 'physical_smtp_proved': False,
+ 'private_directories_remaining': 0,
+ 'private_directories_removed': 10,
+ 'samples': {'project': {'normal': {'handler_result': 'success', 'mail_envelopes': 1},
+                         'outer-commit': {'handler_result': 'success', 'mail_envelopes': 1},
+                         'outer-rollback': {'handler_result': 'permanent-failure', 'mail_envelopes': 0}},
+             'task': {'normal': {'handler_result': 'success', 'mail_envelopes': 2},
+                      'outer-commit': {'handler_result': 'success', 'mail_envelopes': 2},
+                      'outer-rollback': {'handler_result': 'permanent-failure', 'mail_envelopes': 0}}},
+ 'worker_execute_http_gateway_proved': False}
+
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
@@ -1131,6 +1169,20 @@ def validate(data, root=ROOT, file_digest=None):
             if type(count) is not int or not low <= count <= high:
                 raise ValueError('native business publication envelope count refused')
             expected_business['samples'][family][ending]['postcompletion_mail_envelopes']=count
+    actual_gorge=private_mail.get('business_gorge_publication_tests')
+    if type(actual_gorge) is not dict or type(actual_gorge.get('samples')) is not dict:
+        raise ValueError('native Gorge publication summary refused')
+    expected_gorge=json.loads(json.dumps(NATIVE['private_mail_tests']['business_gorge_publication_tests']))
+    for family in ('task','project'):
+        for ending in ('normal','outer-commit','outer-rollback'):
+            samples=actual_gorge['samples'].get(family)
+            if type(samples) is not dict or type(samples.get(ending)) is not dict:
+                raise ValueError('native Gorge publication sample refused')
+            count=samples[ending].get('mail_envelopes')
+            low,high=(0,0) if ending=='outer-rollback' else ((2,3) if family=='task' else (1,1))
+            if type(count) is not int or not low <= count <= high:
+                raise ValueError('native Gorge publication envelope count refused')
+            expected_gorge['samples'][family][ending]['mail_envelopes']=count
     legalpad=private_mail.get('legalpad_tests')
     if type(legalpad) is not dict or type(legalpad.get('inflight_source_tests')) is not dict:
         raise ValueError('native Legalpad race summary refused')
@@ -1154,7 +1206,7 @@ def validate(data, root=ROOT, file_digest=None):
     expected_legalpad=json.loads(json.dumps(NATIVE['private_mail_tests']['legalpad_tests']))
     expected_legalpad['inflight_source_tests']['index_race']=index
     expected_native['private_mail_tests']=dict(NATIVE['private_mail_tests'],
-        business_publication_tests=expected_business,legalpad_tests=expected_legalpad)
+        business_gorge_publication_tests=expected_gorge, business_publication_tests=expected_business,legalpad_tests=expected_legalpad)
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',

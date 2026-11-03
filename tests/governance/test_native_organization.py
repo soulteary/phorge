@@ -290,7 +290,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),717)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),735)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -298,6 +298,26 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template();data['worker_cleanup']['workers_registered']=21
         data['worker_cleanup']['private_directories_removed']=21
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_gorge_publication_requires_real_lifecycle_and_bounded_scope(self):
+        for name in gate.BUSINESS_GORGE_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        for key,value in [('actual_native_editor_http_enqueue',False),
+                          ('actual_service_leases_and_fenced_outcomes',False),
+                          ('actual_native_conduit_handler',False),
+                          ('worker_execute_http_gateway_proved',True),
+                          ('gorge_worker_daemon_proved',True),
+                          ('permanent_source_denial_automatically_retried',True),
+                          ('physical_smtp_proved',True),('private_directories_removed',9)]:
+            data=template();data['native']['private_mail_tests']['business_gorge_publication_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        for count in (True,0,1,4):
+            data=template();data['native']['private_mail_tests']['business_gorge_publication_tests']['samples']['task']['normal']['mail_envelopes']=count
+            with self.subTest(count=count),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
 
     def test_business_summary_scope_counts_and_cleanup_cannot_be_upgraded(self):
         path=('private_mail_tests','business_publication_tests')
