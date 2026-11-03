@@ -8,6 +8,17 @@ final class PhabricatorProjectWorkspaceChineseTranslation extends PhutilTranslat
 
   protected function getTranslations() {
     return array(
+      'The project approval request could not be completed.' => '无法完成项目审批请求，请确认当前权限、会话和审批凭据。',
+      'Submit Policy Proposal' => '提交策略提案',
+      'Selected policy: %s. Return to project selection to change the policy field.' => '所选策略：%s。如需修改另一项策略，请返回项目选择。',
+      'Review Current Policy' => '查看当前策略',
+      'View Policy' => '查看策略',
+      'Edit Policy' => '编辑策略',
+      'Policy to Change' => '要修改的策略',
+      'Propose Project Policy Change' => '提出项目策略变更',
+      'Approval Ticket' => '审批凭据',
+      'The proposal does not change permissions. Independent approval and a matching native project edit are still required.' => '提案不会更改权限。仍须由另一位有资格的管理员批准，并通过匹配的原生项目编辑执行。',
+      'Project Policy Proposal Submitted' => '项目策略提案已提交',
       'Advanced Task Search' => '任务高级查询',
       'All Project Activity' => '项目全部活动',
       'Allow current project editors to open unsaved native task drafts from project records while history is active. Disabling rejects direct projectNode requests as well as hiding the action. Ordinary task creation and already saved tasks remain unchanged.' => '历史处于启用状态时，允许当前项目编辑者从记录打开尚未保存的原生任务草稿。停用后同时隐藏入口并拒绝直达 projectNode 请求；普通任务创建和已保存任务不受影响。',

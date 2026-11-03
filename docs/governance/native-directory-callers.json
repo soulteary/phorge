@@ -1272,7 +1272,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
-        "sha256": "d797bd46fbbdccd0e038007ac3f9d848ea45e39279968061187f3d8342286ca9"
+        "sha256": "56458aa77928393c5b3bf3324cfd84cf65f619eac5dff0526f74f8dfac808f94"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalService.php",

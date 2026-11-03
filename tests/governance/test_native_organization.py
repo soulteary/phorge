@@ -45,6 +45,15 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_actual_view_form_checks_and_scope_cannot_be_omitted_or_upgraded(self):
+        for name in gate.VIEW_FORM_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in gate.NATIVE['project_execution_tests']['native_policy_proposal_form']:
+            data=template();summary=data['native']['project_execution_tests']['native_policy_proposal_form']
+            summary[key]=not summary[key]
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_view_policy_public_entry_proof_cannot_be_omitted(self):
         for name in ['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only']:
             data=template();data['checks'].remove(name);data['check_count']-=1

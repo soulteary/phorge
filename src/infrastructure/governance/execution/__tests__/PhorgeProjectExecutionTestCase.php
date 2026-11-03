@@ -246,4 +246,20 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
     }
   }
 
+  public function testWebFormOperationIsExplicitAndLegacyEditStaysEdit() {
+    $target='PHID-PROJ-'.str_repeat('p',20);
+    $edit=PhorgeProjectPolicyApprovalController::newFormPayload('edit',$target,'users','reason',120);
+    $view=PhorgeProjectPolicyApprovalController::newFormPayload('view',$target,'users','reason',120);
+    $this->assertEqual('users',$edit['new_policy']);
+    $this->assertFalse(array_key_exists('intent',$edit));
+    $this->assertEqual(array('version'=>3,'operation'=>'project.view-policy','policy'=>'users'),$view['intent']);
+    $this->assertFalse(array_key_exists('new_policy',$view));
+    foreach(array('',null,true,'VIEW','project.view-policy','history')as$bad){
+      $caught=false;
+      try{PhorgeProjectPolicyApprovalController::newFormPayload($bad,$target,'users','reason',120);}
+      catch(InvalidArgumentException$error){$caught=$error->getMessage()==='project_execution_form_operation_refused';}
+      $this->assertTrue($caught);
+    }
+  }
+
 }

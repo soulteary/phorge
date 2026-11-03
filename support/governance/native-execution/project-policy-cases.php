@@ -89,12 +89,14 @@ function governance_project_policy_execution_cases($fixture, callable $check) {
   $approved_membership=governance_project_approved_membership_cases($fixture,$check,array('executor'=>$a,'approver'=>$b));
   require_once __DIR__.'/project-view-policy-cases.php';
   $view=governance_project_view_policy_cases($fixture,$check,array('executor'=>$a,'approver'=>$b));
+  require_once __DIR__.'/project-view-form-cases.php';
+  $view_form=governance_project_view_form_cases($fixture,$check,array('executor'=>$a,'approver'=>$b));
   require_once __DIR__.'/project-mfa-cases.php';
   $mfa=governance_project_mfa_cases($fixture,$check,array('approver'=>$b));
   require_once __DIR__.'/config-epoch-cases.php';
   $generations=governance_project_config_epoch_cases($fixture,$check,$b['viewer'],array(
     'executor'=>$a,'approver'=>$b,'project'=>$project));
-  return array('approved_native_view_policy'=>$view,'final_approver_expiry'=>$approver_expiry,'approved_native_membership'=>$approved_membership,'configured_native_mfa'=>$mfa,'native_self_membership'=>$membership,'flat_source_checks'=>$flat_sources,'configuration_generations'=>$generations,'negative_cases'=>$negative,'native_project_edit_policy'=>true,'native_capabilities_retained'=>true,
+  return array('native_policy_proposal_form'=>$view_form,'approved_native_view_policy'=>$view,'final_approver_expiry'=>$approver_expiry,'approved_native_membership'=>$approved_membership,'configured_native_mfa'=>$mfa,'native_self_membership'=>$membership,'flat_source_checks'=>$flat_sources,'configuration_generations'=>$generations,'negative_cases'=>$negative,'native_project_edit_policy'=>true,'native_capabilities_retained'=>true,
     'approver_view_not_edit'=>true,'same_native_transaction'=>true,
     'whole_family_ready'=>false,'whole_pipeline_side_effect_atomic'=>false);
   } finally {

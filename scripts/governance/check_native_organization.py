@@ -803,6 +803,10 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({
  'project-approved-members-current-approver-role-revocation-invalidates-ticket'})
 
 
+VIEW_FORM_CHECKS = frozenset(['project-view-form-existing-json-edit-proposal-approve-and-admin-history-compatible', 'project-view-form-existing-json-view-proposal-approve-and-admin-history-compatible', 'project-view-form-existing-json-history-still-denies-nonadmin-current-editor', 'project-view-form-policy-options-use-current-scope-actor-after-real-role-source-change', 'project-view-form-blank-native-controller-has-project-selector-and-no-business-write', 'project-view-form-preview-selects-corresponding-current-policy-without-persisting', 'project-view-form-native-post-without-csrf-refused-without-write', 'project-view-form-unknown-operation-refused-without-write', 'project-view-form-mixed-json-and-form-payload-refused-without-write', 'project-view-form-absent-operation-keeps-legacy-edit-policy-meaning', 'project-view-form-edit-ticket-cannot-authorize-native-view-post', 'project-view-form-approved-noone-still-refused-by-native-self-view-validator', 'project-view-form-submits-server-typed-view-intent', 'project-view-form-approved-native-web-post-commits-view-ticket-and-native-record'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | VIEW_FORM_CHECKS
+NATIVE['project_execution_tests']['native_policy_proposal_form'] = {'actual_native_controller_form': True, 'actual_chinese_form_render': True, 'policy_options_use_current_actor': True, 'actual_native_post_csrf': True, 'server_typed_view_intent': True, 'legacy_edit_meaning_retained': True, 'existing_json_controller_compatible': True, 'admin_history_gate_retained': True, 'native_self_view_validator_retained': True, 'actual_http_server': False, 'browser_proved': False}
+
 def exact_tree(actual, expected):
     if type(actual) is not type(expected):
         raise ValueError('untyped evidence')
