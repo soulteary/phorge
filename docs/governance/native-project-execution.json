@@ -117,6 +117,34 @@
         "browser_proof": false,
         "production_activation": false
       }
+    },
+    {
+      "id": "project.approved-view.flat-root.v3",
+      "state": "isolated-native-and-public-conduit-tests-passed-awaiting-final-ci-review",
+      "operation": "project.view-policy",
+      "ticket_semantics": "Version 3 does not reinterpret v1 edit-policy or v2 membership tickets",
+      "authority": "Executor retains current native VIEW/EDIT; independent current system administrator approver needs native VIEW, not EDIT; approved transition may remove future approver VIEW",
+      "entrypoints": [
+        "native Project editor",
+        "native successful API-token authentication branch with project.approval and project.edit view transaction"
+      ],
+      "native_evidence": {
+        "tested_source": "3153bf8ffe14bd6afce5a224a217984b775498ed",
+        "php": "8.5.12",
+        "pure_methods": 194,
+        "native_checks": 593,
+        "runtime_files_exact": 5937,
+        "evidence_directory": "docs/governance/evidence/project-view-api-main7c-194-593"
+      },
+      "not_proved": [
+        "dedicated VIEW proposal web form",
+        "full HTTP authentication route",
+        "trusted-origin browser acceptance",
+        "JOIN/Space mutation support",
+        "named/custom policy and hierarchy execution",
+        "production activation"
+      ],
+      "production_activation": false
     }
   ]
 }

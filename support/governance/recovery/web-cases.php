@@ -4,6 +4,7 @@
 function governance_recovery_web_cases($fixture,callable $check) {
   $fixture->assertOwned();$suffix=substr($fixture->getNamespace(),-10);
   $cookies=$_COOKIE;$method=$_SERVER['REQUEST_METHOD']??null;
+  $fixture_environment=governance_recovery_account_fixture_environment($fixture);
   try {
     $new_user=function($name,$admin=false)use($suffix){return(new PhabricatorUser())
       ->setUsername('recweb'.$name.$suffix)->setRealName('Synthetic Recovery Web '.$name)
@@ -116,6 +117,9 @@ function governance_recovery_web_cases($fixture,callable $check) {
       'actual_password_controller_or_oauth_complete'=>false,'web_family_complete'=>false,
       'all_sources_complete'=>false,'can_execute'=>false,'source_writes_by_capture'=>false);
   } finally {
-    $_COOKIE=$cookies;if($method===null){unset($_SERVER['REQUEST_METHOD']);}else{$_SERVER['REQUEST_METHOD']=$method;}
+    try { governance_recovery_account_restore_fixture_environment($fixture_environment); }
+    finally {
+      $_COOKIE=$cookies;if($method===null){unset($_SERVER['REQUEST_METHOD']);}else{$_SERVER['REQUEST_METHOD']=$method;}
+    }
   }
 }

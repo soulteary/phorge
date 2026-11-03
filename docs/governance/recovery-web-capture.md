@@ -52,8 +52,10 @@ Password controller, MFA enrollment and OAuth HTTP workflows are not claimed
 executed by this fixture.
 
 Five new pure methods and thirteen new SQL obligations are prepared. The
-successor expects 208 pure methods and 682 full-native checks (existing 669 are
+successor expects 209 pure methods and 691 full-native checks (existing 678 are
 retained). **Neither current supported-runtime pure tests nor SQL have run.**
 Earlier 203 pure evidence and any account-only SQL evidence remain scoped to
 R02.1. Production activation, all-source completion, browser proof and deployment
 remain false.
+
+The successor explicitly integrates main `26f291add780672e41fea8afbe39a5c29da242a8` and the verified account fixture correction `556b8aebf40585e9f93f2da1068dedc5f8c5c95d`. The prior isolated account-only run passed 203 pure methods and 669 native checks with 6771 exact runtime source hashes. Those results do not certify this successor.
