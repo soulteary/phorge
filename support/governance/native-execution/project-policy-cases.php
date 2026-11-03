@@ -78,6 +78,8 @@ function governance_project_policy_execution_cases($fixture, callable $check) {
   require_once __DIR__.'/project-policy-negative-cases.php';
   $negative=governance_project_policy_negative_cases($fixture,$check,array(
     'executor'=>$a,'approver'=>$b,'project'=>$project,'consumed_id'=>$id));
+  require_once __DIR__.'/project-approver-expiry-cases.php';
+  $approver_expiry=governance_project_approver_expiry_cases($fixture,$check,array('executor'=>$a));
   require_once __DIR__.'/project-flat-source-cases.php';
   $flat_sources=governance_project_flat_source_cases($fixture,$check,array(
     'executor'=>$a,'approver'=>$b,'project'=>$project));
@@ -88,7 +90,7 @@ function governance_project_policy_execution_cases($fixture, callable $check) {
   require_once __DIR__.'/config-epoch-cases.php';
   $generations=governance_project_config_epoch_cases($fixture,$check,$b['viewer'],array(
     'executor'=>$a,'approver'=>$b,'project'=>$project));
-  return array('configured_native_mfa'=>$mfa,'native_self_membership'=>$membership,'flat_source_checks'=>$flat_sources,'configuration_generations'=>$generations,'negative_cases'=>$negative,'native_project_edit_policy'=>true,'native_capabilities_retained'=>true,
+  return array('final_approver_expiry'=>$approver_expiry,'configured_native_mfa'=>$mfa,'native_self_membership'=>$membership,'flat_source_checks'=>$flat_sources,'configuration_generations'=>$generations,'negative_cases'=>$negative,'native_project_edit_policy'=>true,'native_capabilities_retained'=>true,
     'approver_view_not_edit'=>true,'same_native_transaction'=>true,
     'whole_family_ready'=>false,'whole_pipeline_side_effect_atomic'=>false);
   } finally {

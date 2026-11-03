@@ -776,11 +776,11 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigSource.php",
-        "sha256": "c3d43a0a9f19b42b7828eaa06bcd7a649e50cf72ce9d4bf9f5649381b905f227"
+        "sha256": "9b6dcc2a73ff64dd367224a994f33eb75030724d2fed05ef8baf856225aaf7b8"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionProducerFence.php",
-        "sha256": "a43057a8a469bf4b260a9ddbfed3125ccfa3b9ac68ad3fd95c107311757d529f"
+        "sha256": "556613398bc1a0b44a09908baa932abdfa5eb645affb294c517261bda6d7dd8f"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionSchemaSpec.php",
@@ -804,7 +804,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
-        "sha256": "1d43be65d20cb08c1749848fdf54d32073920e45e4e07f940756b0845ef33263"
+        "sha256": "00e73b792e6c44111792800d4c082726ce85060b132be019afc44f030c9bab04"
       },
       {
         "path": "src/infrastructure/governance/execution/ProjectPolicyApprovalConduitAPIMethod.php",

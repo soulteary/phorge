@@ -12,6 +12,16 @@ final class PhorgeProjectExecutionConfigSource extends Phobject {
   public function __unserialize(array $value) { throw new RuntimeException('project_execution_configuration_serialization_refused'); }
   public function __debugInfo() { return array('scope'=>'fenced-native-configuration'); }
   private static function keys() { return PhorgeProjectExecutionCatalog::configurationKeys(); }
+  /** Native nullable-string default, bounded before opening a new connection. */
+  public static function normalizePort($value) {
+    if ($value === null || $value === '') { return 3306; }
+    $text=is_int($value)?(string)$value:$value;
+    if (!is_string($text) || !preg_match('/\A[1-9][0-9]{0,4}\z/',$text) ||
+        (int)$text>65535) {
+      throw new RuntimeException('project_execution_configuration_control_type_refused');
+    }
+    return (int)$text;
+  }
   /** Pure shape validation; production values always come from the native stack. */
   public static function validateControlValues(array $values) {
     $booleans=array('governance.project-approval.enabled','policy.allow-public',
@@ -28,7 +38,9 @@ final class PhorgeProjectExecutionConfigSource extends Phobject {
     foreach ($strings as $key) {
       if (!array_key_exists($key,$values) || !is_string($values[$key])) { throw new RuntimeException('project_execution_configuration_control_type_refused'); }
     }
-    if (!is_int($values['mysql.port']??null) || $values['mysql.port']<1 || $values['mysql.port']>65535 ||
+    if (!array_key_exists('mysql.port',$values)) { throw new RuntimeException('project_execution_configuration_control_type_refused'); }
+    self::normalizePort($values['mysql.port']);
+    if (
         !in_array($values['phorge.product-profile']??null,array(PhorgeProductProfile::PROFILE_FULL,PhorgeProductProfile::PROFILE_COLLABORATION),true) ||
         !array_key_exists('gorge.db.uri',$values) || ($values['gorge.db.uri']!==null && !is_string($values['gorge.db.uri']))) {
       throw new RuntimeException('project_execution_configuration_control_type_refused');

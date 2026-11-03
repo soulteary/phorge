@@ -28,10 +28,10 @@ final class PhorgeProjectExecutionProducerFence extends Phobject {
       $route[$key]=PhabricatorEnv::getEnvConfig($key);
     }
     if (!is_string($route['mysql.host']) || $route['mysql.host']==='' ||
-        !is_int($route['mysql.port']) || $route['mysql.port']<1 || $route['mysql.port']>65535 ||
         !is_string($route['mysql.user']) || !is_string($route['mysql.pass'])) {
       throw new RuntimeException('project_execution_fence_profile_unsupported');
     }
+    $route['mysql.port']=PhorgeProjectExecutionConfigSource::normalizePort($route['mysql.port']);
     $project_identity=queryfx_one($project_writer,'SELECT @@server_uuid uuid,VERSION() version');
     $herald_writer=(new HeraldRule())->establishConnection('w');
     $herald_identity=queryfx_one($herald_writer,'SELECT @@server_uuid uuid,DATABASE() db');

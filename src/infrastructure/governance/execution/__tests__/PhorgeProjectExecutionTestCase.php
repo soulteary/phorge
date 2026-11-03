@@ -48,6 +48,18 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
       'mysql.pass'=>'synthetic-only','storage.default-namespace'=>'synthetic',
       'mysql.port'=>3306,'phorge.product-profile'=>PhorgeProductProfile::PROFILE_FULL,'gorge.db.uri'=>null);
     PhorgeProjectExecutionConfigSource::validateControlValues($valid);
+    foreach (array(null,'',3306,'3306','65535',1) as $port) {
+      $configured=$valid; $configured['mysql.port']=$port;
+      PhorgeProjectExecutionConfigSource::validateControlValues($configured);
+      $this->assertEqual(($port===null || $port==='')?3306:(int)$port,
+        PhorgeProjectExecutionConfigSource::normalizePort($port));
+    }
+    foreach (array(false,true,array(),0,'0','03306','3306 ','+3306','65536',65536,3.5) as $port) {
+      $this->refused(function() use ($port) {
+        PhorgeProjectExecutionConfigSource::normalizePort($port);
+      },'project_execution_configuration_control_type_refused');
+    }
+
     foreach (array('security.require-multi-factor-auth','policy.allow-public','governance.project-approval.enabled') as $key) {
       foreach (array(null,0,'false',array()) as $value) {
         $bad=$valid; $bad[$key]=$value;

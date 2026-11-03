@@ -6,6 +6,21 @@ function governance_project_config_epoch_cases($fixture,callable $check,Phabrica
   $config=(new PhabricatorConfigEntry())->establishConnection('w');
   $approval=null;
   if ($state) {
+    foreach (array('default-null'=>null,'native-string'=>'3306') as $profile=>$port) {
+      $port_override=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('mysql.port',$port);
+      try {
+        // These real calls acquire both fenced configuration and an independent
+        // live producer-fence connection using the native port representation.
+        $port_ticket=PhorgeProjectPolicyApprovalService::call($state['executor']['context'],'submit',array(
+          'target_phid'=>$state['project']->getPHID(),'new_policy'=>$state['executor']['viewer']->getPHID(),
+          'reason'=>'Synthetic native port representation','ttl_seconds'=>120));
+        $port_approved=PhorgeProjectPolicyApprovalService::call($state['approver']['context'],'approve',array(
+          'approval_id'=>$port_ticket['approval_id']));
+        $stored=queryfx_one($state['project']->establishConnection('w'),'SELECT state FROM governance_projectapproval WHERE approvalID=%s',$port_ticket['approval_id']);
+        $check($port_approved['approval_id']===$port_ticket['approval_id'] && $stored['state']==='approved','project-approval-native-mysql-port-'.$profile.'-actual-fences');
+      } finally { unset($port_override); }
+    }
+
     $approval=PhorgeProjectPolicyApprovalService::call($state['executor']['context'],'submit',array(
       'target_phid'=>$state['project']->getPHID(),'new_policy'=>$state['executor']['viewer']->getPHID(),
       'reason'=>'Synthetic config epoch ABA refusal','ttl_seconds'=>120));

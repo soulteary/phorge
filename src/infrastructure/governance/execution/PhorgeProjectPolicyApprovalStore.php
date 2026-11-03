@@ -179,6 +179,9 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     queryfx($this->connection,'UPDATE governance_projectapproval SET nativeGroupID=%s WHERE BINARY approvalID=BINARY %s AND state=%s',
       $group,$id,'consumed');
     $this->audit($id,$data,'executed',array('nativeTransactionPHID'=>$native['phid'],'nativeGroupID'=>$group));
-    $this->validTime($data,$row['approvedAt']);
+    // Row locks prevent credential revocation writes, not passage of time
+    // while native record/audit writes wait. Recheck both actual credentials
+    // after the last write; only the approved target transition is exempt.
+    $this->validate($row,$data,false);
   }
 }
