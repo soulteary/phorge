@@ -4,19 +4,35 @@ final class LegalpadDocumentSignatureVerificationController
   extends LegalpadController {
 
   public function shouldAllowPublic() {
-    return true;
+    return !PhorgeLegalpadVerification::enabled();
   }
 
   public function handleRequest(AphrontRequest $request) {
     $viewer = $request->getViewer();
     $code = $request->getURIData('code');
 
+    if(PhorgeLegalpadVerification::enabled()){
+      try{$result=PhorgeLegalpadVerification::inspect($request,$code,$request->isHTTPPost());}
+      catch(PhorgeLegalpadVerificationException $error){return $this->newVerificationUnavailableResponse();}
+      catch(RuntimeException $error){
+        if(!preg_match('/\A(?:governance_|legalpad_)/',$error->getMessage())){throw$error;}
+        return $this->newVerificationUnavailableResponse();
+      }
+      $signature=$result['signature'];
+      if($request->isHTTPPost()){
+        return$this->newDialog()->setTitle($result['already_verified']?pht('Signature Already Verified'):pht('Signature Verified'))
+          ->appendParagraph($result['already_verified']?pht('This signature has already been verified.'):pht('The signature is now verified.'))
+          ->addCancelButton('/',pht('Okay'));
+      }
+    }else{
     // NOTE: We're using the omnipotent user to handle logged-out signatures
     // and corporate signatures.
     $signature = id(new LegalpadDocumentSignatureQuery())
       ->setViewer(PhabricatorUser::getOmnipotentUser())
       ->withSecretKeys(array($code))
       ->executeOne();
+
+    }
 
     if (!$signature) {
       return $this->newDialog()
@@ -86,6 +102,10 @@ final class LegalpadDocumentSignatureVerificationController
       ->appendChild($form->buildLayoutView())
       ->addCancelButton('/')
       ->addSubmitButton(pht('Verify Signature'));
+  }
+
+  private function newVerificationUnavailableResponse(){
+    return(new Aphront403Response())->setForbiddenText(pht('This signature cannot be verified with the current account and document permissions.'));
   }
 
 }

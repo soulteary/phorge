@@ -234,6 +234,17 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template(); data['native']['private_mail_tests']['commit_race_tests']['physical_smtp_race_proved']=True
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
+    def test_legalpad_native_receipt_cannot_promote_delivery_or_substitute_sequential_work(self):
+        for key in ('anonymous_raw_or_third_party_adoption_supported',
+                    'configured_mfa_factor_proved', 'physical_smtp_legalpad_proved'):
+            data=template(); data['native']['private_mail_tests']['legalpad_tests'][key]=True
+            with self.subTest(key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key,value in (('independent_php_processes',1),('actual_same_source_lock_waiters',1),
+                          ('actual_consumption_updates',2),('sequential_repeat_substituted_for_concurrency',True),
+                          ('physical_smtp_proved',True)):
+            data=template(); data['native']['private_mail_tests']['legalpad_tests']['concurrency'][key]=value
+            with self.subTest(key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_actual_paired_binary_digest_is_required_and_must_match(self):
         with self.assertRaises(ValueError): gate.validate(template())
         for digest in ('c'*64, None, True):

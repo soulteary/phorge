@@ -101,7 +101,7 @@
       "path": "src/applications/legalpad/controller/LegalpadDocumentSignController.php",
       "symbol": "LegalpadDocumentSignController",
       "purpose_review": "unsupported-signature-hard-refusal",
-      "sha256": "5ef8515bf973098b88f89d54ac9495e3f7d3e95d24560df5cfca9a1414fb9296",
+      "sha256": "64179806b25e367c9ff4bef210a8a680e7b01dcc495515cb6d31f97e824d73de",
       "runtime_matrix_complete": false
     },
     {
@@ -268,11 +268,11 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-      "sha256": "3ae0f01019c7fe436f3cd89190a351497268e53ddab9d067ff654272868f0e41"
+      "sha256": "46f7400fb09f04460e483cd9608c6ea8cf6779ef8533de9402d1ee904a279e7d"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
-      "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1"
+      "sha256": "79a3b2df1ab7b37ece283ec47903f7a24b33d1ffe0d6015197be8b8ea8d9e656"
     },
     {
       "path": "src/applications/people/mail/PhabricatorPeopleMailEngine.php",

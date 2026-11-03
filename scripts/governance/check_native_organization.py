@@ -885,6 +885,44 @@ NATIVE['private_mail_tests']['commit_race_tests'] = {
 }
 
 
+# The approved Legalpad endpoint candidate adds two independently exec-created
+# native web workers. Physical SMTP and configured-factor claims remain absent.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-legalpad-actual-corporate-sign-controller-and-native-high-security-path-commits',
+ 'private-mail-legalpad-corporate-native-actor-remains-distinct-from-null-signer-and-verified-secondary-contact',
+ 'private-mail-legalpad-genuine-producer-binds-owned-verified-secondary-and-generic-challenge-without-private-document-content',
+ 'private-mail-legalpad-anonymous-and-switched-account-get-cannot-read-title-signer-or-email',
+ 'private-mail-legalpad-matching-native-session-and-current-view-can-read-verification-without-consuming',
+ 'private-mail-legalpad-real-csrf-failure-does-not-consume-signature',
+ 'private-mail-legalpad-current-document-view-revocation-denies-endpoint-and-queued-mail',
+ 'private-mail-legalpad-disabled-account-cannot-verify-or-authorize-queued-challenge',
+ 'private-mail-legalpad-native-secret-rotation-invalidates-old-link-and-immutable-old-mail',
+ 'private-mail-legalpad-current-contact-unverified-refuses-before-consuming',
+ 'private-mail-legalpad-current-document-version-change-refuses-old-signature',
+ 'private-mail-legalpad-legacy-unbound-corporate-row-not-adopted-by-owned-email',
+ 'private-mail-legalpad-signature-contact-data-mismatch-refuses',
+ 'private-mail-legalpad-actual-nontransactional-document-table-refused-without-signature-write',
+ 'private-mail-legalpad-real-update-fault-rolls-back-signature-and-closes-owned-transaction',
+ 'private-mail-legalpad-native-logout-old-cookie-cannot-consume',
+ 'private-mail-legalpad-two-independent-native-web-processes-actually-block-before-consumption',
+ 'private-mail-legalpad-concurrent-native-cas-consumes-once-second-observes-verified-without-extra-mail-or-worker',
+ 'private-mail-legalpad-after-concurrent-cas-sequential-repeat-keeps-state-and-corporate-null-signer'])
+NATIVE['private_mail_tests']['legalpad_tests'] = {
+    'actual_corporate_sign_and_verification_routes': True,
+    'verified_secondary_contact_supported': True,
+    'anonymous_raw_or_third_party_adoption_supported': False,
+    'current_view_and_identity_rechecked': True,
+    'configured_mfa_factor_proved': False,
+    'concurrent_process_verification_proved': True,
+    'concurrency': {'independent_php_processes': 2,
+                    'actual_same_source_lock_waiters': 2,
+                    'actual_consumption_updates': 1,
+                    'sequential_repeat_substituted_for_concurrency': False,
+                    'physical_smtp_proved': False},
+    'physical_smtp_legalpad_proved': False,
+}
+WORKERS = 21
+
+
 def validate_restore(value, root):
     fields = {'quickstart_sha256', 'app_schema_count', 'owned_schema_count',
         'quickstart_source_table_count', 'current_table_count', 'patch_audit',

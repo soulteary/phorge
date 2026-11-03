@@ -22,7 +22,7 @@ function governance_native_worker_atomic($path,$name,$value) {
 
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
-  if (!in_array($action['action']??null,array('org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute'),true)) {
+  if (!in_array($action['action']??null,array('org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify'),true)) {
     throw new RuntimeException('native_worker_action_refused');
   }
   $path=sys_get_temp_dir().'/governance-native-worker-'.bin2hex(random_bytes(12));
@@ -88,6 +88,8 @@ function governance_native_finish_worker(array &$handle) {
   } else if (($result['status']??null)==='committed') {
     if(in_array($worker['action'],array('org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute'),true)){
       if($keys!==array('replayed','status')||!is_bool($result['replayed'])){throw new RuntimeException('native_worker_result_refused');}
+    }else if($worker['action']==='legalpad.verify'){
+      if($keys!==array('already_verified','status','verified')||!is_bool($result['already_verified'])||$result['verified']!==true){throw new RuntimeException('native_worker_result_refused');}
     }else if($worker['action']==='media.prepare'){
       if($keys!==array('prepared','status')||$result['prepared']!==true){throw new RuntimeException('native_worker_result_refused');}
     }else if ($worker['action']==='media.redeem') {

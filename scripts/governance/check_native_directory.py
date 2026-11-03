@@ -364,7 +364,26 @@ EXPECTED_LINKS.update({'NATIVE-LINK-50': ('MAIL.TRANSACTION.PRODUCER', 'MAIL.OUT
  'NATIVE-LINK-60': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php', 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php', 'src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php'])
 
-ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
+EXPECTED_SOURCES.update({'LEGALPAD.SIGN.CONTROLLER': ('src/applications/legalpad/controller/LegalpadDocumentSignController.php',
+                              'LegalpadDocumentSignController',
+                              'native-signature-and-verification-mail-entry'),
+ 'LEGALPAD.VERIFY.CONTROLLER': ('src/applications/legalpad/controller/LegalpadDocumentSignatureVerificationController.php',
+                                'LegalpadDocumentSignatureVerificationController',
+                                'current-signer-verification-entry'),
+ 'NATIVE.PhorgeLegalpadVerification': ('src/applications/legalpad/governance/PhorgeLegalpadVerification.php',
+                                       'PhorgeLegalpadVerification',
+                                       'current-session-signer-and-document-policy-check')})
+EXPECTED_LINKS.update({'NATIVE-LINK-61': ('LEGALPAD.VERIFY.CONTROLLER',
+                    'NATIVE.PhorgeLegalpadVerification'),
+ 'NATIVE-LINK-62': ('NATIVE.PhorgeLegalpadVerification', 'AUTH.USER.DAO'),
+ 'NATIVE-LINK-63': ('NATIVE.PhorgeLegalpadVerification', 'AUTH.SESSION.DAO'),
+ 'NATIVE-LINK-64': ('LEGALPAD.SIGN.CONTROLLER',
+                    'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-65': ('NATIVE.PhorgePrivateMailPolicy',
+                    'NATIVE.PhorgeLegalpadVerification')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/legalpad/governance/PhorgeLegalpadVerification.php', 'src/applications/legalpad/governance/PhorgeLegalpadVerificationException.php'])
+
+ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance', 'src/applications/legalpad/governance')
 
 def require(ok, message):
     if not ok:
