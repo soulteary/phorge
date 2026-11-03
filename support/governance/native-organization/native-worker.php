@@ -134,7 +134,7 @@ try {
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
     $value=$kind==='org.list'?$service->readUnits():$service->countUnits();
     $result=array('status'=>'committed','value'=>$value);
-  } else if ($kind==='org.members.edit' || $kind==='org.compound.execute') {
+  } else if ($kind==='org.members.edit' || $kind==='org.compound.execute' || $kind==='org.compound.execute-approved') {
     $keys=array_keys($action);sort($keys);
     if($keys!==array('action','payload','token')||!is_string($action['token'])||strlen($action['token'])>256||!is_array($action['payload'])){
       throw new RuntimeException('native_worker_action_refused');}
@@ -144,17 +144,30 @@ try {
     $request=(new AphrontRequest('fixture.invalid','/'))->setUser($viewer);
     $service=PhorgeOrganizationService::newForActor(PhorgeGovernanceNativeActorContext::newFromWebRequest($request));
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
-    $receipt=$kind==='org.members.edit'?$service->execute($action['payload']):$service->executeCompound($action['payload']);
+    if($kind==='org.compound.execute-approved'){
+      if(array_keys($action['payload'])!==array('approval_id')){throw new RuntimeException('native_worker_action_refused');}
+      $receipt=$service->executeApprovedCompound($action['payload']['approval_id']);
+    }else{$receipt=$kind==='org.members.edit'?$service->execute($action['payload']):$service->executeCompound($action['payload']);}
     $result=array('status'=>'committed','replayed'=>$receipt['replayed']);
+  } else if($kind==='media.prepare'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','browser_secret','client_nonce','path')||
+      ($action['browser_secret']!==null&&!is_string($action['browser_secret']))){throw new RuntimeException('native_worker_action_refused');}
+    $_SERVER['REMOTE_ADDR']='127.0.0.1';
+    $request=(new AphrontRequest('fixture.invalid','/media/session/prepare/'))->setRequestData(array());
+    $target=PhorgeGovernanceMediaTarget::fromPath($action['path']);
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    (new PhorgeGovernanceMediaExchangeService())->beginBrowserTransaction($action['browser_secret'],$target,$request,$action['client_nonce']);
+    $result=array('status'=>'committed','prepared'=>true);
   } else if ($kind==='media.redeem') {
     $keys=array_keys($action); sort($keys);
-    if ($keys!==array('action','audience','browser_secret','code','path','purpose','transaction')) {
+    if ($keys!==array('action','audience','browser_secret','client_nonce','code','path','purpose','transaction')) {
       throw new RuntimeException('native_worker_action_refused');
     }
     $media=new PhorgeGovernanceMediaExchangeService();
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
     $redeemed=$media->redeem($action['transaction'],$action['code'],$action['browser_secret'],
-      $action['audience'],$action['purpose'],$action['path']);
+      $action['audience'],$action['purpose'],$action['path'], $action['client_nonce']);
     $snapshot=$media->authenticate($redeemed['credential']->openEnvelope());
     $result=array('status'=>'committed','credential_authenticated'=>$snapshot->getCredentialType()==='web');
   } else { throw new RuntimeException('native_worker_action_refused'); }

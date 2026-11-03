@@ -38,7 +38,8 @@ PATCHES = '''20260907.herald.01.requeststatuskey.sql
 20261102.people.organization.sql
 20261102.people.mediaexchange.sql
 20261103.people.organizationmetadata.sql
-20261103.people.mediaissuer.sql'''.splitlines()
+20261103.people.mediaissuer.sql
+20261103.people.mediatargets.sql'''.splitlines()
 REQUIRED_CHECKS = {
  'full-current-source-quickstart-and-patch-ledger-restored',
  'completion-reader-real-select-only-grants-and-lineage-proved',

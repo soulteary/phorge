@@ -10,7 +10,7 @@ final class PhorgeOrganizationHistoryController extends PhabricatorPeopleControl
         throw new RuntimeException('organization_audit_read_only');}
       $context=PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
       $result=(new PhorgeOrganizationQuery($context))->readAuditPage($request->getInt('limit',100),
-        $request->getStr('after')?:null,$request->getBool('retention_only'));
+        $request->getStr('after')?:null,$request->getBool('retention_only',false));
       if($request->getBool('json')){return (new AphrontJSONResponse())->setContent(array('result'=>$result));}
       $rows=array();foreach($result['rows']as$row){$rows[]=array($row['id'],$row['operation_id'],$row['actor_phid'],
         $row['action'],$row['unit_id'],$row['subject_phid'],$row['created_at'],
@@ -21,7 +21,7 @@ final class PhorgeOrganizationHistoryController extends PhabricatorPeopleControl
           pht('Team'),pht('User'),pht('Created'),pht('Retention Status'))));
       $page=$this->newPage()->setTitle(pht('Restricted Organization History'))->appendChild($box);
       if($result['next_cursor']!==null){$uri=(new PhutilURI($this->getApplicationURI('organization/history/')))
-          ->setQueryParam('after',$result['next_cursor'])->setQueryParam('retention_only',$request->getBool('retention_only')?1:0);
+          ->setQueryParam('after',$result['next_cursor'])->setQueryParam('retention_only',$request->getBool('retention_only',false)?1:0);
         $page->appendChild(phutil_tag('a',array('href'=>(string)$uri),pht('Next History Page')));}
       return $page;
     }catch(Throwable$error){return (new AphrontJSONResponse())->setHTTPResponseCode(403)

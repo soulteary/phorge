@@ -3,13 +3,13 @@
 function governance_native_media_cases($fixture, callable $check, array &$state) {
   $media=$state['media']; $request=$state['admin']['request'];
   $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$state['admin']['token'];
-  $path='/file/data/key/PHID-FILE-synthetic/name';
-  $prepare=static function($secret=null) use ($media) { return $media->beginBrowserTransaction($secret); };
+  $path='/file/data/key/PHID-FILE-ssssssssssssssssssss/name';
+  $prepare=static function($secret=null) use ($media) { return governance_native_prepare_media($media,$secret); };
   $issue=static function($transaction) use ($media,$request,$path) {
-    return $media->issue($request,$transaction,'phorge-files','private-media',$path);
+    return $media->issue($request,$transaction,'phorge-files','private-media',$path, governance_native_media_nonce($transaction));
   };
   $redeem=static function($transaction,$code,$secret,$return=null) use ($media,$path) {
-    return $media->redeem($transaction,$code,$secret,'phorge-files','private-media',$return??$path);
+    return $media->redeem($transaction,$code,$secret,'phorge-files','private-media',$return??$path, governance_native_media_nonce($transaction));
   };
   // Exercise the actual request CSRF write guard, not only the fixture owner guard.
   // All pooled native connections belong to this fixture and have no active txn.
@@ -34,14 +34,14 @@ function governance_native_media_cases($fixture, callable $check, array &$state)
       foreach (array('prepare','redeem') as $action) {
         $blocked=false;
         try {
-          if ($action==='prepare') { $media->beginBrowserTransaction(); }
+          if ($action==='prepare') { governance_native_prepare_media($media); }
           else { $media->redeem(str_repeat('0',64),str_repeat('0',64),str_repeat('0',64),
-            'phorge-files','private-media',$path); }
+            'phorge-files','private-media',$path, governance_native_media_nonce(str_repeat('0',64))); }
         } catch (AphrontMalformedRequestException $error) { $blocked=true; }
         $check($blocked,'native-media-csrf-guarded-get-does-not-unguard-public-'.$action);
       }
       governance_native_refused(fn()=>$media->issue($get_request,str_repeat('0',64),
-        'phorge-files','private-media',$path),'media_exchange_request_refused',$check,
+        'phorge-files','private-media',$path, governance_native_media_nonce(str_repeat('0',64))),'media_exchange_request_refused',$check,
         'native-media-csrf-guarded-get-does-not-enable-public-issuance');
       $check(!$conn->isInsideTransaction(),'native-media-csrf-guarded-get-releases-identity-transactions');
     });
@@ -69,7 +69,7 @@ function governance_native_media_cases($fixture, callable $check, array &$state)
     governance_native_refused(fn()=>$redeem($p['transaction_id'],
       $mismatch==='code'?str_repeat('0',64):$i['exchange_code']->openEnvelope(),
       $mismatch==='browser'?str_repeat('0',64):$p['browser_secret']->openEnvelope(),
-      $mismatch==='return-path'?'/file/data/different/PHID-FILE-synthetic/name':null),
+      $mismatch==='return-path'?'/file/data/different/PHID-FILE-ssssssssssssssssssss/name':null),
       'media_exchange_redemption_refused',$check,'native-media-'.$mismatch.'-binding-refused');
     $check(governance_native_media_fingerprint($fixture)===$before,
       'native-media-'.$mismatch.'-refusal-no-consume-or-generation-write');
@@ -98,7 +98,7 @@ function governance_native_media_cases($fixture, callable $check, array &$state)
   $new=$prepare($secret);
   $second_actor=governance_native_request($state['users']['member'],$state['sessions']);
   $new_code=$media->issue($second_actor['request'],$new['transaction_id'],
-    'phorge-files','private-media',$path);
+    'phorge-files','private-media',$path, governance_native_media_nonce($new['transaction_id']));
   $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$state['admin']['token'];
   governance_native_refused(fn()=>$redeem($old['transaction_id'],$old_code['exchange_code']->openEnvelope(),$secret),
     'media_exchange_redemption_refused',$check,'native-media-old-account-pending-code-cannot-preempt-new-account-issue');
@@ -151,17 +151,20 @@ function governance_native_media_cases($fixture, callable $check, array &$state)
     $observer=new mysqli($config['host'],$config['user'],$config['password'],'',$config['port']);
     $admin=$fixture->getAdmin(); $admin->begin_transaction();
     try {
+      $mutex=hash('sha256','phorge-media-capacity-mutex:v1');
+      governance_native_setup_query($fixture,'SELECT bucketDigest FROM '.
+        $fixture->table('user','governance_mediaquota')." WHERE bucketDigest='".$mutex."' FOR UPDATE");
       $locked=governance_native_setup_query($fixture,'SELECT generation FROM '.
         $fixture->table('user','governance_mediabrowser')." WHERE browserDigest='".$browser_digest."' FOR UPDATE")->fetch_assoc();
-      $action=array('action'=>'media.redeem','transaction'=>$race['transaction_id'],
+      $action=array('action'=>'media.redeem','transaction'=>$race['transaction_id'],'client_nonce'=>governance_native_media_nonce($race['transaction_id']),
         'code'=>$race_code['exchange_code']->openEnvelope(),
         'browser_secret'=>$race['browser_secret']->openEnvelope(),
         'audience'=>'phorge-files','purpose'=>'private-media','path'=>$path);
       $one=governance_native_start_worker($fixture,$action);
       $two=governance_native_start_worker($fixture,$action);
       governance_native_wait_worker_query($observer,array($one,$two),
-        '/\bgovernance_mediabrowser\b.*FOR UPDATE/is');
-      $check(true,'native-media-two-real-redeemers-wait-on-browser-lock');
+        '/governance_mediaquota.*'.preg_quote($mutex,'/').'/is');
+      $check(true,'native-media-two-real-redeemers-wait-on-capacity-mutex');
       if (!$admin->commit()) { throw new RuntimeException('native_fixture_setup_commit_refused'); }
       $first=governance_native_finish_worker($one); $second=governance_native_finish_worker($two);
       $states=array($first['status'],$second['status']); sort($states);

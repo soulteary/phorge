@@ -35,6 +35,7 @@ try {
     'PhorgeGovernanceNativeApprovalTestCase',
     'PhorgeGovernanceMediaExchangeServiceTestCase',
     'PhorgeGovernanceMediaIssuerTestCase',
+    'PhorgeGovernanceMediaTargetTestCase',
   );
   $expected = array();
   $cases = array();

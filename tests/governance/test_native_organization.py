@@ -23,9 +23,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 529, 'restore_phase_workers_started': 0,
+            'current_table_count': 530, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1565, 'applied_patch_count': 1565, 'pending_patch_keys': [],
+                'source_patch_count': 1566, 'applied_patch_count': 1566, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -74,6 +74,15 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data['native']['issuer_tests']['unknown_claim']=True
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
+    def test_history_metadata_scope_cannot_delete_expose_or_promote(self):
+        for key,value in [('current_system_administrator_only',False),
+            ('snapshot_fields_returned',True),('retention_days',364),
+            ('history_deleted',True),('full_browser_acceptance',True),
+            ('production_activation',True)]:
+            data=template();data['native']['history_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+
     def test_partial_lifecycle_and_compound_scope_cannot_be_promoted(self):
         for section,key in [('compound_tests','full_compound_failure_matrix_complete'),
             ('compound_tests','production_activation'),('membership_lifecycle_tests','public_csrf_lifecycle_complete'),
@@ -81,8 +90,17 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             data=template();data['native'][section][key]=True
             with self.subTest(section=section,key=key),self.assertRaises(ValueError):
                 gate.validate(data,file_digest='b'*64)
+        for old_worker_count in (5,7,9):
+            data=template();data['worker_cleanup']['workers_registered']=old_worker_count
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_admission_claims_require_all_runtime_boundaries_and_owned_workers(self):
+        for key in gate.NATIVE['target_tests']['admission_tests']:
+            data=template();data['native']['target_tests']['admission_tests'][key]=False
+            with self.subTest(key=key), self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
         data=template();data['worker_cleanup']['workers_registered']=5
-        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
+
 
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:

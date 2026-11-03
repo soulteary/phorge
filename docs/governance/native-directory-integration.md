@@ -250,3 +250,50 @@ fault positions, API paths and full browser acceptance are not certified by this
 run. O6 restricted historical reporting, O7 transfer/handover and O8 due/outbox
 work remain unfinished. No optional activation, production migration, native
 project permission change, history deletion or dispatcher is included.
+
+
+## Approval-ID form retry correction
+
+The subsequent supported-runtime source passed **142 pure methods and 250 real
+native SQL checks**, with nine workers cleaned without failures. Current evidence
+is under `evidence/membership-lifecycle-retry-250-20261103/`; the previous 244-check
+receipt remains unchanged in its separate checkpoint directory.
+
+The approval-ID route now permits only the current authorized bound executor to
+recover a correctly bound consumed request and reach the existing operation
+ledger replay. It cannot consume an approval again. Real native CSRF form retry,
+two independent workers waiting on the actual mutex, wrong executor rejection,
+and native administrator revocation/recovery through the actual normal-session
+MFA path are covered. No forced high-security session or catch-all rejection
+stands in for these checks. This remains isolated/controller evidence, not full
+browser, production activation or completion of O4/O5.
+
+## Prepared media targets integrated with current main
+
+The original signed target checkpoint `1ab1305` (138 pure methods /209 SQL checks) is preserved under `evidence/media-targets-checkpoint-1ab1305`. The combined current-main directory/issuer/target source now passed **142 pure methods and 245 real MySQL/Gorge checks**. All nine workers, 55 schemas, two runtime users and the reader were cleaned without failure. The schema proof covers 13 candidate tables, 530 current tables and 1566 source patches, including actual execution of the separate metadata, issuer and target migrations.
+
+`native-directory-evidence.json` and `evidence/media-targets-combined-20261103` contain the new combined evidence. The manually reviewed static inventory has 36 nodes, 26 links and 48 runtime files, still partial and not authority proof. The renamed redeem-race check observes the actual capacity mutex instead of an unreachable pair of browser-lock waits. No HTTP handoff, browser, deployment, optional activation or permission migration is certified.
+
+
+## Combined-source validation
+
+The reviewed main media-target245 and lifecycle retry250 checkpoints remain
+separate. Their exact reviewed union subsequently passed 286 actual native SQL
+checks and 145 pure methods. All 13 workers and private directories, 55 schemas,
+two runtime accounts and the reader were cleaned without failures. Exact new
+receipts are under `evidence/membership-lifecycle-combined-286-20261103/`; the
+current receipt is `native-directory-evidence.json`. Old 250/244/225 evidence is
+unchanged. This is isolated source/controller evidence, not hosted final-head
+review, browser delivery, activation or completion of all O4/O5 work.
+
+## Restricted history candidate
+
+The O6 candidate passed PHP 8.5.12 with 147 native test methods and 295
+real isolated SQL checks, including nine administrator-only history scenarios.
+The current receipt and `evidence/native-history-295-20261103` retain the exact
+result. All 5866 executed PHP/SQL files matched the host. Governance mutation
+tests (86) and permission inventory tests (84) passed. History pages expose only
+bounded metadata; before/after snapshots and credential bindings are not loaded.
+The elapsed 365-day report never deletes history. An actual native administrator
+revoked between pages cannot reuse the cursor. This is isolated source evidence,
+not production activation, browser certification, or complete O7/O8 delivery.

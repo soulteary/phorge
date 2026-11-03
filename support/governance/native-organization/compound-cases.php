@@ -76,6 +76,49 @@ function governance_native_compound_cases($fixture,callable $check,array $state)
     list($replay,$body)=$post($state['admin'],'compound.execute',$input);
     $check($replay->getHTTPResponseCode()===200 && $body['result']['replayed']===true,
       'native-compound-operation-replay-does-not-reconsume-approved-ticket');
+    $before_retry=$fingerprint();
+    list($form_retry,$retry_body)=governance_native_route_response($state['admin'],'POST',array('json'=>'true',
+      'form_action'=>'compound.execute','approval_id'=>$input['approval_id'],
+      AphrontRequest::getCSRFTokenName()=>$state['admin']['viewer']->getCSRFToken()));
+    $check($form_retry->getHTTPResponseCode()===200 && $retry_body['result']['replayed']===true && $fingerprint()===$before_retry,
+      'native-compound-consumed-approval-id-form-retries-committed-ledger-without-writes');
+    global $control;
+    if(!($control instanceof mysqli)){throw new RuntimeException('native_concurrency_observer_required');}
+    $setup=$fixture->getAdmin();$setup->begin_transaction();$held=true;$workers=array();
+    try{
+      governance_native_setup_query($fixture,'SELECT id FROM '.$fixture->table('user','organization_guard').' WHERE id=1 FOR UPDATE');
+      for($i=0;$i<2;$i++){$workers[]=governance_native_start_worker($fixture,array('action'=>'org.compound.execute-approved',
+        'token'=>$state['admin']['token'],'payload'=>array('approval_id'=>$input['approval_id'])));}
+      foreach($workers as$worker){governance_native_concurrency_wait($fixture,$control,$worker,'organization_guard');}
+      $check(true,'native-compound-two-approval-id-retries-really-wait-on-organization-mutex');
+      $setup->commit();$held=false;$retry_results=array();foreach($workers as&$worker){$retry_results[]=governance_native_finish_worker($worker);}unset($worker);
+      $check(array_column($retry_results,'status')===array('committed','committed') &&
+        array_column($retry_results,'replayed')===array(true,true) && $fingerprint()===$before_retry,
+        'native-compound-concurrent-consumed-approval-id-retries-never-reconsume-or-duplicate-ledger');
+    }finally{if($held){$setup->rollback();}}
+    list($wrong_executor,$unused)=$post($approver,'compound.execute-approved',array('approval_id'=>$input['approval_id']));
+    $check($wrong_executor->getHTTPResponseCode()===403 && $fingerprint()===$before_retry,
+      'native-compound-consumed-approval-id-still-requires-bound-current-executor');
+    $factors=(new PhabricatorAuthFactorConfigQuery())->setViewer($approver['viewer'])->withUserPHIDs(array($approver['viewer']->getPHID()))
+      ->withFactorProviderStatuses(array(PhabricatorAuthFactorProviderStatus::STATUS_ACTIVE,PhabricatorAuthFactorProviderStatus::STATUS_DEPRECATED))->execute();
+    $check(!$factors && !$approver['viewer']->getSession()->isHighSecuritySession(),
+      'native-compound-executor-revocation-uses-real-no-factor-normal-session');
+    $actor_user=(new PhabricatorUser())->loadOneWhere('phid=%s',$state['admin']['viewer']->getPHID());
+    $role_change=(new PhabricatorUserTransaction())->setTransactionType(PhabricatorUserEmpowerTransaction::TRANSACTIONTYPE)->setNewValue(false);
+    (new PhabricatorUserTransactionEditor())->setActor($approver['viewer'])
+      ->setContentSourceFromRequest($approver['request'])->setCancelURI('/people/manage/'.$actor_user->getID().'/')
+      ->applyTransactions($actor_user,array($role_change));
+    try{
+      list($revoked_executor,$unused)=$post($state['admin'],'compound.execute-approved',array('approval_id'=>$input['approval_id']));
+      $check($revoked_executor->getHTTPResponseCode()===403 && $fingerprint()===$before_retry,
+        'native-compound-consumed-approval-id-refuses-executor-whose-native-admin-role-was-revoked');
+    }finally{
+      $actor_user=(new PhabricatorUser())->loadOneWhere('phid=%s',$state['admin']['viewer']->getPHID());
+      $restore=(new PhabricatorUserTransaction())->setTransactionType(PhabricatorUserEmpowerTransaction::TRANSACTIONTYPE)->setNewValue(true);
+      (new PhabricatorUserTransactionEditor())->setActor($approver['viewer'])
+        ->setContentSourceFromRequest($approver['request'])->setCancelURI('/people/manage/'.$actor_user->getID().'/')
+        ->applyTransactions($actor_user,array($restore));
+    }
     $manager=governance_native_request($subject,$state['sessions']);
     $query=new PhorgeOrganizationQuery($manager['context']);
     $check($query->getUnit($team)!==null,'native-compound-explicit-member-and-appointment-enable-only-own-team-directory');

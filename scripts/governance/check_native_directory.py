@@ -97,13 +97,18 @@ EXPECTED_SOURCES = {'ORG.ROUTES': ('src/applications/people/application/Phabrica
                                                    'authenticated-datasource-controller'),
  'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
                                         'PhorgeGovernanceMediaIssuer',
-                                        'media-only-external-issuer')}
+                                        'media-only-external-issuer'),
+ 'NATIVE.PhorgeGovernanceMediaTarget': ('src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php',
+                                        'PhorgeGovernanceMediaTarget',
+                                        'immutable-prepared-media-target')}
 
 EXPECTED_SOURCES.update({
  'TYPEAHEAD.BASE': ('src/applications/typeahead/datasource/PhabricatorTypeaheadDatasource.php','PhabricatorTypeaheadDatasource','fixed-normalizer-default'),
  'TOKENIZER.CONTROL': ('src/view/form/control/AphrontFormTokenizerControl.php','AphrontFormTokenizerControl','fixed-normalizer-metadata'),
  'CLIENT.TOKENIZER.BEHAVIOR': ('webroot/rsrc/js/core/behavior-tokenizer.js','aphront-basic-tokenizer','fixed-client-metadata-forwarder'),
  'CLIENT.PREFAB': ('webroot/rsrc/js/core/Prefab.js','Prefab','fixed-client-normalizer')})
+
+EXPECTED_SOURCES['NATIVE.PhorgeOrganizationHistoryController']=('src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php','PhorgeOrganizationHistoryController','current-system-administrator-history-controller')
 
 EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php',
  'src/applications/people/governance/auth/PhorgeGovernanceIdentityEpoch.php',
@@ -138,6 +143,7 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaSchemaSpec.php',
+ 'src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php',
  'src/infrastructure/governance/native/PhorgeGovernanceNativePolicyCompositionVerifier.php',
  'src/infrastructure/governance/native/PhorgeGovernanceNativeRuleHierarchyVerifier.php',
  'src/infrastructure/governance/native/PhorgeGovernanceNativeSourceCapture.php',
@@ -152,6 +158,8 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/infrastructure/governance/readset/PhorgeGovernanceReadSetSnapshot.php',
  'src/infrastructure/governance/readset/PhorgeGovernanceReadSetValidator.php',
  'src/infrastructure/governance/readset/PhorgeGovernanceSourceSnapshot.php']
+
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php'])
 
 EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationController'),
  'NATIVE-LINK-02': ('NATIVE.PhorgeOrganizationController', 'NATIVE.PhorgeOrganizationEndpoint'),
@@ -182,13 +190,17 @@ EXPECTED_LINKS = {'NATIVE-LINK-01': ('ORG.ROUTES', 'NATIVE.PhorgeOrganizationCon
  'NATIVE-LINK-20': ('NATIVE.PhorgeGovernanceMediaExchangeService',
                     'NATIVE.PhorgeGovernanceMediaIssuer'),
  'NATIVE-LINK-21': ('NATIVE.PhorgeGovernanceMediaConfigOptions',
-                    'NATIVE.PhorgeGovernanceMediaIssuer')}
+                    'NATIVE.PhorgeGovernanceMediaIssuer'),
+ 'NATIVE-LINK-26': ('NATIVE.PhorgeGovernanceMediaExchangeService',
+                    'NATIVE.PhorgeGovernanceMediaTarget')}
 
 EXPECTED_LINKS.update({
  'NATIVE-LINK-22': ('NATIVE.PhorgeOrganizationDatasource','TYPEAHEAD.BASE'),
  'NATIVE-LINK-23': ('TOKENIZER.CONTROL','TYPEAHEAD.BASE'),
  'NATIVE-LINK-24': ('TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR'),
  'NATIVE-LINK-25': ('CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB')})
+
+EXPECTED_LINKS.update({'NATIVE-LINK-27':('ORG.ROUTES','NATIVE.PhorgeOrganizationHistoryController'),'NATIVE-LINK-28':('NATIVE.PhorgeOrganizationHistoryController','NATIVE.PhorgeOrganizationQuery')})
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
