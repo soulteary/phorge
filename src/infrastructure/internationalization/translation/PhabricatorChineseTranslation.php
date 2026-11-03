@@ -79,7 +79,7 @@ final class PhabricatorChineseTranslation
       'Department' => '部门',
       'Private Media Exchange' => '私有媒体交换',
       'Enable the isolated media HTTP exchange candidate.' => '启用隔离的媒体 HTTP 交换候选功能。',
-      'Disabled by default. Requires the separate file authorization and active-content guards before deployment.' => '默认关闭。部署前必须具备独立的文件授权与活动内容访问守卫。',
+      'Disabled by default. Requires distinct HTTPS hosts within the same registrable site, including private public-suffix boundaries, and the separate file authorization and active-content guards before deployment.' => '默认关闭。部署前要求应用与文件使用同一可注册站点下的不同 HTTPS 主机，包含私有公共后缀边界，并具备独立文件授权与主动内容防护。',
       'External media issuer key.' => '外置媒体签发密钥。',
       'A separate random media-only key held outside database backups. Native session and API credentials are not rotated by this setting.' => '仅用于媒体的独立随机密钥，须保存在数据库备份之外。此设置不会轮换原生会话或 API 凭据。',
       'External media issuer incarnation.' => '外置媒体签发代次。',

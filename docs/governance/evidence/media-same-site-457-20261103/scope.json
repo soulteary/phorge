@@ -1,0 +1,16 @@
+{
+  "source_checkpoint": "b849548db7592daf794d897764dc16d5c6e2ef8b",
+  "pure_methods": 168,
+  "SQL_checks": 457,
+  "python_gate_tests": 88,
+  "new_SQL_cases": 2,
+  "upstream_PSL_cases": 78,
+  "PSL_rules": 10396,
+  "schema_gate": "strict exact scenario set, no extra or missing checks",
+  "readiness": "isolated configuration regression evidence only",
+  "optional_features_enabled": false,
+  "deployed": false,
+  "browser_proved": false,
+  "online_permission_migration": false,
+  "global_completion": false
+}
