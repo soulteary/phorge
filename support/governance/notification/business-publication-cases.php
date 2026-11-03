@@ -1,6 +1,7 @@
 <?php
 /** Actual AppEditor publication ordering; SQL queue profile explicitly scoped. */
 function governance_private_mail_business_publication_cases($fixture,callable $check){
+  unset($GLOBALS['governance_private_business_child_failure']);
   $fixture->assertOwned();$scope=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('gorge.taskqueue.owner','phorge')->overrideEnvConfig('gorge.taskqueue.uri',null);
   try{
   $processes=0;$directories=0;$created=0;$live=0;
@@ -27,7 +28,16 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
       $out.=stream_get_contents($pipes[1]);$err.=stream_get_contents($pipes[2]);foreach($pipes as$pipe){fclose($pipe);}$pipes=array();proc_close($process);$process=null;$live--;
       $result=json_decode($out,true,8,JSON_THROW_ON_ERROR);
       if($exit!==0||$err!==''||!is_array($result)||($result['passed']??null)!==true){
-        // Fixed safe stage, never the child's source message or private payload.
+        // Only bounded diagnostic metadata reaches the failed fixture receipt.
+        // Never retain the child's message, stderr, envelope or credentials.
+        $diagnostic=array('exit_code'=>(int)$exit,'stderr_present'=>$err!=='');
+        $child=is_array($result)?($result['failure']??null):null;
+        if(is_array($child)&&is_string($child['type']??null)&&preg_match('/\A[A-Za-z_][A-Za-z0-9_]{0,127}\z/D',$child['type'])&&
+          is_string($child['file']??null)&&preg_match('/\A[A-Za-z0-9_.-]{1,128}\z/D',$child['file'])&&
+          is_int($child['line']??null)&&$child['line']>0&&$child['line']<100000){
+          $diagnostic['error_type']=$child['type'];$diagnostic['source_file']=$child['file'];$diagnostic['source_line']=$child['line'];
+        }
+        $GLOBALS['governance_private_business_child_failure']=$diagnostic;
         throw new RuntimeException('private_mail_race_worker_failed');}
       return$result;
     }finally{
