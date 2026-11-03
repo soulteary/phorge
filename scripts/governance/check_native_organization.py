@@ -842,6 +842,9 @@ def validate_restore(value, root):
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 
+NATIVE['project_execution_tests']['approved_native_view_policy'] = {'native_view_only': True, 'future_approver_view_not_added': True, 'whole_family_ready': False, 'join_and_space_supported': False}
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-override-native-self-view-validator', 'project-view-approved-transition-may-remove-approver-future-view', 'project-view-approver-current-view-does-not-require-edit', 'project-view-history-still-requires-current-native-view', 'project-view-native-record-policy-ticket-audit-commit-together', 'project-view-native-writer-scope-released'])
+
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')

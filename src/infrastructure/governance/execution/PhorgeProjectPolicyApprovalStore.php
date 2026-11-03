@@ -76,7 +76,7 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     $intent=$this->scope->getIntent();
     $delta=$intent->isMembership()?$this->scope->getProposedMembershipDelta():null;
     if ($intent->isMembership()?(!$delta['added']&&!$delta['removed']):
-        $this->scope->getObject()->getEditPolicy()===$this->scope->getNewPolicy()) {
+        ($intent->isViewPolicy()?$this->scope->getObject()->getViewPolicy():$this->scope->getObject()->getEditPolicy())===$this->scope->getNewPolicy()) {
       throw new RuntimeException('project_execution_no_change');
     }
     $id=bin2hex(random_bytes(32)); $now=$this->now();
@@ -85,7 +85,7 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
       'newPolicy'=>$this->scope->getNewPolicy(),'reason'=>$reason,
       'executor'=>$this->scope->getSnapshot()->getSource()->getSnapshotData(),
       'sources'=>$this->scope->getSources(),'issuedAt'=>$now,'expiresAt'=>$now+$ttl);
-    if($intent->isMembership()){$data['intent']=$intent->getDescriptor();}
+    if($intent->isMembership()||$intent->isViewPolicy()){$data['intent']=$intent->getDescriptor();}
     queryfx($this->connection,'INSERT INTO governance_projectapproval (approvalID,operationID,targetPHID,bindingJSON,bindingDigest,reason,state,version) VALUES (%s,%s,%s,%s,%s,%s,%s,1)',
       $id,$data['operationID'],$data['targetPHID'],PhorgeProjectExecutionValue::canonical($data),
       PhorgeProjectExecutionValue::digest($data),$reason,'submitted');
@@ -194,7 +194,7 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
       $expected=$this->scope->getMembershipDelta();
       if($added!==$expected['added']||$removed!==$expected['removed']){
         throw new RuntimeException('project_execution_native_record_mismatch');}
-    }else if($native['transactionType']!==PhabricatorTransactions::TYPE_EDIT_POLICY || $stored->getNewValue()!==$data['newPolicy']){
+    }else if($native['transactionType']!==$intent->getTransactionType() || $stored->getNewValue()!==$data['newPolicy']){
       throw new RuntimeException('project_execution_native_record_mismatch');
     }
     queryfx($this->connection,'UPDATE governance_projectapproval SET nativeGroupID=%s WHERE BINARY approvalID=BINARY %s AND state=%s',

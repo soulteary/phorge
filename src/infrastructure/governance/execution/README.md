@@ -177,3 +177,21 @@ The explicit union with main media HTTP support passed 169 pure methods and
 482 native checks, using the paired image service. The matched 5918-file runtime
 inventory also covers the media behavior and static resource manifest. This
 backend regression is not a browser or production-activation certificate.
+
+
+### Successor VIEW-only slice (implementation awaiting actual validation)
+
+Version-3 `project.view-policy` descriptors bind exactly one primitive VIEW
+policy and a native `TYPE_VIEW_POLICY` transaction. Version-1 edit-policy and
+version-2 membership tickets retain their old interpretation. JOIN and Space
+changes, mixed transactions, hierarchy and named-policy closure remain refused.
+
+The executor must still pass current native EDIT/VIEW/Space and native policy
+validation/MFA. An independent current system administrator must have native VIEW
+at approval and consumption; approval never adds EDIT or overrides validation.
+After the approved VIEW field changes, final credential/administrator/TTL checks
+remain fresh, but native VIEW is checked against the locked pre-transition
+object. Requiring the approver to retain future VIEW would narrow native policy
+transitions. History instead always requires current VIEW of the actual object.
+The postcondition allows exactly the bound field plus native dateModified; all
+other target fields remain unchanged. This slice is not yet runtime-certified.

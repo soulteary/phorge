@@ -20,6 +20,13 @@ final class PhorgeProjectExecutionIntent extends Phobject {
     return $intent;
   }
 
+  public static function newViewPolicy($policy) {
+    $intent = new self();
+    $intent->operation = 'project.view-policy';
+    $intent->policy = PhorgeProjectExecutionCatalog::policy($policy);
+    return $intent;
+  }
+
   public static function newMembers($operation, array $members) {
     if (!in_array($operation, array('project.members.add', 'project.members.remove'), true) ||
         !array_is_list($members) || !$members || count($members) > 16) {
@@ -43,6 +50,10 @@ final class PhorgeProjectExecutionIntent extends Phobject {
   public static function newFromDescriptor(array $descriptor) {
     $keys = array_keys($descriptor);
     sort($keys, SORT_STRING);
+    if ($keys === array('operation', 'policy', 'version') &&
+        $descriptor['version'] === 3 && $descriptor['operation'] === 'project.view-policy') {
+      return self::newViewPolicy($descriptor['policy']);
+    }
     if ($keys !== array('members', 'operation', 'version') ||
         $descriptor['version'] !== 2 || !is_array($descriptor['members'])) {
       throw new InvalidArgumentException('project_execution_intent_version_refused');
@@ -64,7 +75,7 @@ final class PhorgeProjectExecutionIntent extends Phobject {
     }
     $intent = self::newFromDescriptor($binding['intent']);
     if ($binding['operation'] !== $intent->getOperation() ||
-        ($binding['newPolicy'] ?? null) !== null) {
+        ($binding['newPolicy'] ?? null) !== $intent->getPolicy()) {
       throw new InvalidArgumentException('project_execution_member_intent_refused');
     }
     return $intent;
@@ -95,14 +106,22 @@ final class PhorgeProjectExecutionIntent extends Phobject {
       array_values($value[$key]));
   }
 
-  public function isMembership() { return $this->operation !== 'project.edit-policy'; }
+  public function isMembership() { return in_array($this->operation, array('project.members.add', 'project.members.remove'), true); }
+  public function isViewPolicy() { return $this->operation === 'project.view-policy'; }
+  public function getPolicyField() {
+    if ($this->isMembership()) { throw new RuntimeException('project_execution_policy_intent_required'); }
+    return $this->isViewPolicy() ? 'viewPolicy' : 'editPolicy';
+  }
+  public function getTransactionType() {
+    return $this->isViewPolicy() ? PhabricatorTransactions::TYPE_VIEW_POLICY : PhabricatorTransactions::TYPE_EDIT_POLICY;
+  }
   public function isAddition() { return $this->operation === 'project.members.add'; }
   public function getOperation() { return $this->operation; }
   public function getMembers() { return $this->members; }
   public function getPolicy() { return $this->policy; }
   public function getDescriptor() {
     if (!$this->isMembership()) {
-      return array('version' => 1, 'operation' => $this->operation, 'policy' => $this->policy);
+      return array('version' => $this->isViewPolicy() ? 3 : 1, 'operation' => $this->operation, 'policy' => $this->policy);
     }
     return array('version' => 2, 'operation' => $this->operation, 'members' => $this->members);
   }
