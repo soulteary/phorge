@@ -30,6 +30,7 @@ try {
     'PhorgeOrganizationRequestTestCase',
     'PhorgeOrganizationMetadataTestCase',
     'PhorgeOrganizationCompoundTestCase',
+  'PhorgeOrganizationHistoryTestCase',
     'PhorgeGovernanceNativeIdentityTestCase',
     'PhorgeGovernanceNativeApprovalTestCase',
     'PhorgeGovernanceMediaExchangeServiceTestCase',

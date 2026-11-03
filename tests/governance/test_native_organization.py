@@ -74,6 +74,15 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data['native']['issuer_tests']['unknown_claim']=True
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
+    def test_history_metadata_scope_cannot_delete_expose_or_promote(self):
+        for key,value in [('current_system_administrator_only',False),
+            ('snapshot_fields_returned',True),('retention_days',364),
+            ('history_deleted',True),('full_browser_acceptance',True),
+            ('production_activation',True)]:
+            data=template();data['native']['history_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+
     def test_partial_lifecycle_and_compound_scope_cannot_be_promoted(self):
         for section,key in [('compound_tests','full_compound_failure_matrix_complete'),
             ('compound_tests','production_activation'),('membership_lifecycle_tests','public_csrf_lifecycle_complete'),

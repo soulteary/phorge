@@ -51,6 +51,51 @@ function governance_project_membership_lease_cases($fixture,callable $check,arra
   $check(count($left)===1 && !$after['people_transaction_open'] && !$after['project'] && !$after['inverse'] &&
     $after['native_count']===$before['native_count']+2 && !$conn->isInsideTransaction(),
     'project-membership-native-self-leave-direct-inverse-derived-and-record-committed');
+  // Authenticate through the actual native API-token branch, then invoke the
+  // real public Conduit method and edit engine. Do not manufacture a viewer proof.
+  $api_off=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.project-approval.enabled',false);
+  try{$api_project=PhabricatorProject::initializeNewProject($a['viewer'])->setName('Synthetic Conduit Membership')
+    ->setViewPolicy(PhabricatorPolicies::POLICY_USER)->setEditPolicy($actor)
+    ->setJoinPolicy(PhabricatorPolicies::POLICY_USER)->save();}finally{unset($api_off);}
+  $api_phid=$api_project->getPHID();
+  $api_token=PhabricatorConduitToken::initializeNewToken($actor,PhabricatorConduitToken::TYPE_STANDARD)->save();
+  $api_call=function($operation,$ticket=null) use($api_phid,$actor,$api_token){
+    $params=array('objectIdentifier'=>$api_phid,
+      'transactions'=>array(array('type'=>$operation,'value'=>array($actor))));
+    if($ticket!==null){$params['governanceApprovalID']=$ticket;}
+    $request=new ConduitAPIRequest($params,true);
+    $http=(new AphrontRequest('fixture.invalid','/api/project.edit'))->setUser(new PhabricatorUser());
+    $controller=(new PhabricatorConduitAPIController())->setRequest($http);
+    $authenticate=new ReflectionMethod(PhabricatorConduitAPIController::class,'authenticateUser');
+    $error=$authenticate->invoke($controller,$request,array('token'=>$api_token->getToken()),'project.edit');
+    if($error!==null || $request->getGovernanceActorContext()->getCredentialType()!=='api-token'){
+      throw new RuntimeException('project_membership_actual_api_authentication_failed');
+    }
+    return (new ProjectEditConduitAPIMethod())->executeMethod($request);
+  };
+  try{
+    foreach(array('members.add'=>'join','members.remove'=>'leave') as $operation=>$label){
+      $result=$api_call($operation);
+      $edge_rows=queryfx_all($conn,'SELECT src,dst,type FROM edge WHERE src=%s AND type IN (%Ld) ORDER BY type,dst',
+        $api_phid,array($direct,$derived));
+      $inverse_rows=queryfx_all($conn,'SELECT src,dst,type FROM %T.edge WHERE src=%s AND type=%d AND dst=%s',
+        $people,$actor,$inverse,$api_phid);
+      $records=queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE objectPHID=%s',new PhabricatorProjectTransaction(),$api_phid);
+      $expected=$label==='join'?2:0;
+      $check(is_array($result) && count($edge_rows)===$expected && count($inverse_rows)===($label==='join'?1:0) &&
+        (int)$records['n']===($label==='join'?1:2) && !$conn->isInsideTransaction(),
+        'project-membership-native-conduit-api-token-self-'.$label.'-commits-without-ticket');
+    }
+    $refused=false;
+    try{$api_call('members.add','synthetic-membership-ticket');}
+    catch(RuntimeException $ex){
+      if(get_class($ex)!==RuntimeException::class || $ex->getMessage()!=='project_execution_membership_ticket_not_applicable'){throw $ex;}
+      $refused=true;
+    }
+    $edge_rows=queryfx_all($conn,'SELECT src,dst,type FROM edge WHERE src=%s AND type IN (%Ld)',$api_phid,array($direct,$derived));
+    $check($refused && !$edge_rows && !$conn->isInsideTransaction(),
+      'project-membership-native-conduit-rejects-inapplicable-ticket-without-write');
+  }finally{$api_token->delete();}
   foreach(array('inverse'=>array('user',$inverse),'derived'=>array('project',$derived)) as $label=>$definition){
     $baseline=$rows();$installed=false;$mode=(new mysqli_driver())->report_mode;
     $trigger='`'.$fixture->getNamespace().'_'.$definition[0].'`.`governance_membership_fault`';
