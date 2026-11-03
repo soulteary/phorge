@@ -174,7 +174,7 @@ final class PhorgeGovernanceCompletionFixture {
       '20261007.worker.scheduler.sql','20261007.worker.scheduleridentity.sql',
       '20261102.people.organization.sql','20261102.people.mediaexchange.sql',
       '20261103.people.organizationmetadata.sql','20261103.people.mediaissuer.sql','20261103.people.mediatargets.sql',
-      '20261103.project.approvalexecution.sql','20261103.project.configepoch.sql');
+      '20261103.people.organizationtransfer.sql','20261103.project.approvalexecution.sql','20261103.project.configepoch.sql');
     foreach ($pending as $key) {
       if (!str_starts_with($key,'phabricator:') ||
           !in_array(substr($key,12),$reviewed,true)) {

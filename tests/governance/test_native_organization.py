@@ -23,9 +23,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 534, 'restore_phase_workers_started': 0,
+            'current_table_count': 538, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1568, 'applied_patch_count': 1568, 'pending_patch_keys': [],
+                'source_patch_count': 1569, 'applied_patch_count': 1569, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -74,6 +74,18 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data['native']['issuer_tests']['unknown_claim']=True
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
+    def test_transfer_foundation_never_certifies_approval_execution_or_dispatch(self):
+        for key,value in [('storage_only',False),('version_cas_verified',False),
+            ('storage_rollback_verified',False),('independent_approval_implemented',True),
+            ('native_primary_switch_implemented',True),('outbox_dispatch_registered',True),
+            ('production_activation',True)]:
+            data=template();data['native']['transfer_foundation_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        for key,value in [('current_table_count',530)]:
+            data=template();data['source_restore'][key]=value
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_history_metadata_scope_cannot_delete_expose_or_promote(self):
         for key,value in [('current_system_administrator_only',False),
             ('snapshot_fields_returned',True),('retention_days',364),
@@ -101,6 +113,16 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template();data['worker_cleanup']['workers_registered']=5
         with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
 
+
+    def test_organization_successor_cannot_promote_partial_form_or_credential_claims(self):
+        for section,key in [('noncredential_source_v2_tests','credential_source_downgraded'),
+            ('noncredential_source_v2_tests','production_activation'),('handover_form_tests','wire_or_browser_proof'),
+            ('handover_lifecycle_tests','dispatcher_registered'),('handover_lifecycle_tests','native_ui_forms_exercised')]:
+            data=template();data['native'][section][key]=True
+            with self.subTest(section=section,key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for section in ('noncredential_source_v2_tests','handover_form_tests','handover_lifecycle_tests','transfer_execution_tests'):
+            data=template();data['native'].pop(section)
+            with self.subTest(section=section),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_http_candidate_never_claims_wire_browser_or_full_guard_completion(self):
         for path,key in [(('http_tests',),'wire_https_verified'),(('http_tests',),'browser_verified'),
@@ -198,6 +220,20 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template();name='private-mail-no-primary-email-native-rename-commits-without-owner-notice'
         data['checks'].remove(name);data['check_count']-=1
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+    def test_native_producer_race_receipt_cannot_claim_unproved_delivery_or_reactivation(self):
+        for key in ('ssh_login_or_cryptographic_handshake_proved',
+                    'smtp_producer_matrix_complete', 'device_ssh_producer_matrix_complete',
+                    'legalpad_supported_signer_flow'):
+            data=template(); data['native']['private_mail_tests']['remaining_producer_tests'][key]=True
+            with self.subTest(key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in ('precommit_pending', 'precommit_quarantined', 'postcompletion_allowed'):
+            for case in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked'):
+                data=template(); sample=data['native']['private_mail_tests']['commit_race_tests']['samples'][case]
+                sample[key]=not sample[key]
+                with self.subTest(case=case,key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template(); data['native']['private_mail_tests']['commit_race_tests']['physical_smtp_race_proved']=True
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_actual_paired_binary_digest_is_required_and_must_match(self):
         with self.assertRaises(ValueError): gate.validate(template())
         for digest in ('c'*64, None, True):

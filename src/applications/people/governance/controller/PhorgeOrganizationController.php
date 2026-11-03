@@ -336,6 +336,7 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
     }
     $capabilities = $query->getActorCapabilities();
     if ($capabilities['manage_units']) {
+      $boxes[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/transfer/')),pht('Organization Transfers'));
       $boxes[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/history/')),pht('Restricted Organization History'));
       foreach(array('compound.approve'=>pht('Approve Compound Request'),'compound.execute'=>pht('Execute Approved Compound'))as$action=>$label){
         $approval_form=id(new AphrontFormView())->setUser($this->getViewer())->addHiddenInput('form_action',$action)
