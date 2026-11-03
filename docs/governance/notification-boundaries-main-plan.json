@@ -1,11 +1,11 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 10,
+  "version": 11,
   "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
   "status": "explicit-PR100-source-union-host-prepared-current-runtime-unproven",
   "new_runtime_obligation_not_actual": {
     "pure": 219,
-    "native_sql": 786,
+    "native_sql": 789,
     "registered_native_workers": 31,
     "additional_locally_owned_business_php_processes": 20,
     "business_process_profiles": {
@@ -66,14 +66,14 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual219/786 with exact current-source hash and all cleanup is mandatory; the historical70a215/774 receipt cannot certify this API source union.",
-    "Actual219/786 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual219/789 with exact current-source hash and all cleanup is mandatory; the historical70a215/774 receipt cannot certify this API source union.",
+    "Actual219/789 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh219/786 proof and exact runtime/source match remain required",
+    "Current main96 is explicitly merged; fresh219/789 proof and exact runtime/source match remain required",
     "Physical CI must use the219 registered pure methods; final-head runtime evidence remains mandatory.",
     "The actual new Gorge profile and 64-task hard class-filter lease budget remain unverified; no daemon, worker HTTP gateway or SMTP proof is claimed."
   ],
@@ -176,10 +176,12 @@
     "does_not_certify_current_union": true
   },
   "api_dependency": {
-    "source_head": "11df58bef765ec65f8c5cd9ee25a39905f65de71",
+    "source_head": "fdbf5480ff7495bbe587e055dda53ee674e652e4",
+    "docs_head": "8706f1792f186bc42a00a54cfd90a55832f77365",
     "aggregate_budget_fix_included": true,
+    "selected_type_budget_fix_included": true,
     "dependency_component_actual_pure": 214,
-    "dependency_component_actual_SQL": 722,
+    "dependency_component_actual_SQL": 725,
     "current_union_runtime_verified": false
   }
 }
