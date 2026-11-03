@@ -54,6 +54,7 @@
     "Any normal business outer-transaction publication failure is diagnostic evidence requiring supported-caller closure, not accepted data loss or proof of automatic retry",
     "Actual paired Gorge queue publication lifecycle for this business timing profile",
     "Legalpad SMTP and trusted browser acceptance",
-    "Last VIEW read to COMMIT remains the accepted native request boundary, not global source atomicity"
+    "Last VIEW read to COMMIT remains the accepted native request boundary, not global source atomicity",
+    "Observed signature PRIMARY/secretKey deadlock remains distinct: initial victim was the source writer and signature state was not captured; verifier-victim rollback/controller500/no-mail acceptance still required."
   ]
 }

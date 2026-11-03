@@ -18,7 +18,12 @@ function governance_private_mail_legalpad_inflight_cases($fixture,callable $chec
     $qualified=$fixture->table('legalpad',$table);$id=$kind==='secret'?$signature->getID():$doc->getID();
     try{
       if(!$setup->begin_transaction()){throw new RuntimeException('legalpad_inflight_transaction_start_failed');}$locked=true;
-      $row=$query('SELECT id FROM '.$qualified.' WHERE id=? FOR UPDATE',array($id));
+      // Match the verifier's index order for the stale-source timing test.
+      // The separately observed PK/secondary deadlock remains its own
+      // victim/rollback obligation; it is not a permission-denial result.
+      $row=$kind==='secret'
+        ?$query('SELECT id FROM '.$qualified.' WHERE secretKey=? LIMIT 2 FOR UPDATE',array($code))
+        :$query('SELECT id FROM '.$qualified.' WHERE id=? FOR UPDATE',array($id));
       if(count($row)!==1){throw new RuntimeException('legalpad_inflight_lock_target_required');}
       $worker=governance_native_start_worker($fixture,array('action'=>'legalpad.verify','code'=>$code,'token'=>$auth['token']));
       governance_native_wait_worker_query($control,array($worker),'/'.preg_quote($table,'/').'.*FOR UPDATE/is');

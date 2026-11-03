@@ -31,8 +31,18 @@
     "Supported PHP/MySQL execution of these six cases",
     "Revocation after the last VIEW read but before COMMIT",
     "All transitive or plugin policy source atomic closure",
-    "Latest-main integration, Legalpad SMTP, trusted browser acceptance or production activation"
+    "Latest-main integration, Legalpad SMTP, trusted browser acceptance or production activation",
+    "Verifier-victim deadlock rollback, actual controller500 and released-lock/no-follow-up-mail evidence"
   ],
   "new_public_domains": false,
-  "online_permission_migration": false
+  "online_permission_migration": false,
+  "observed_deadlock_boundary": {
+    "sql_errno": 1213,
+    "observed_cycle": "Verifier holds secretKey and waits PRIMARY; competing source writer holds PRIMARY and waits secretKey.",
+    "observed_victim": "Source-rotation setup transaction, not the verifier.",
+    "signature_state_after_victim_selection": "Not captured before fixture cleanup; no unverified or denial claim is made.",
+    "deterministic_stale_source_fixture": "Parent now acquires the verifier secretKey-first order, solely to test stale-source rechecking.",
+    "production_deadlock_impossibility_claimed": false,
+    "remaining_acceptance": "A separate verifier-victim test must prove rollback, released locks, native controller infrastructure error and no follow-up mail; do not swallow1213 or retry consumption as permission denial."
+  }
 }
