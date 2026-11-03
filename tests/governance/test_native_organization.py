@@ -346,9 +346,20 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                 self.assertEqual(result.stdout,'')
                 self.assertNotIn('synthetic-private-canary',result.stderr)
 
+    def test_wiki_content_profile_requires_all_checks_and_actual_boundaries(self):
+        self.assertEqual(13,len(gate.WIKI_CONTENT_CHECKS))
+        for name in gate.WIKI_CONTENT_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key in ('actual_existing_wiki_content_editor','real_before_commit_execute_race_proved','move_mail_claimed','SMTP_proved'):
+            data=template();summary=data['native']['private_mail_tests']['wiki_content_publication_tests'];summary[key]=not summary[key]
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        data=template();data['native']['private_mail_tests']['wiki_content_publication_tests']['private_directories_removed']=4
+        with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),789)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),802)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -440,7 +451,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),789)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),802)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
