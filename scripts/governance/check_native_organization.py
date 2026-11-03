@@ -1114,6 +1114,12 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-o
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only'])
 NATIVE['project_execution_tests']['approved_native_view_policy'].update(actual_api_token_conduit_path=True,view_ticket_cannot_edit_policy=True)
 
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset([
+ 'private-business-project-normal-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-project-outer-commit-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-project-outer-rollback-actual-native-create-envelope-visible-initial-fields-hidden'])
+NATIVE['private_mail_tests']['business_publication_tests']['actual_native_project_create_envelope_verified'] = True
+
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')

@@ -1,11 +1,11 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 4,
+  "version": 5,
   "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
   "status": "current-main98-project-native-description-and-real-child-queue-host-prepared-runtime-unproven",
   "new_runtime_obligation_not_actual": {
     "pure": 215,
-    "native_sql": 740,
+    "native_sql": 743,
     "registered_native_workers": 25,
     "additional_locally_owned_business_php_processes": 10
   },
@@ -50,13 +50,13 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual215/740 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual215/743 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh215/740 proof and exact runtime/source match remain required",
+    "Current main96 is explicitly merged; fresh215/743 proof and exact runtime/source match remain required",
     "Physical CI must use the215 registered pure methods; final-head runtime evidence remains mandatory."
   ],
   "historical_stronger_component": {
@@ -69,7 +69,7 @@
   },
   "current_main_union": {
     "retained_main_SQL": 700,
-    "added_Legalpad_and_business_SQL": 40,
+    "added_Legalpad_and_business_SQL": 43,
     "removed_main_SQL": 0,
     "source_registered_pure_methods": 215,
     "current_runtime_passed": false,
@@ -104,6 +104,16 @@
       "runtime_files_exact": 6780,
       "failure": "Fixture attempted unsupported native Project comment object.",
       "cleanup_complete": true
+    },
+    {
+      "source_revision": "91a6d9ff3d64451d64de6e44d369d4fc2772866f",
+      "pure_methods_passed": 215,
+      "observed_SQL_checks_including_cleanup": 480,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6788,
+      "failure": "Project positive assertion failed before fixture was aligned with native create envelope.",
+      "cleanup_complete": true
     }
-  ]
+  ],
+  "native_create_envelope": "Task and Project direct Editor fixtures use the TYPE_CREATE emitted by native Web/Conduit create callers. Each Project case checks a visible create plus hidden initial name/description; no native visibility or preference rule is modified."
 }

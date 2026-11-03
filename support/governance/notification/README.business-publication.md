@@ -41,3 +41,9 @@ comment objects. Task fixtures retain native comments. The independent worker
 reads committed Project description storage before accepting a positive case,
 so absence of private bytes from the envelope is checked against genuine source
 content. This does not add a Project comment capability or change permissions.
+
+Direct Editor creation fixtures also include `TYPE_CREATE`, as native Web and
+Conduit create callers do. The Project cases inspect actual applied transactions:
+creation is mailable while initial name and description fields are hidden.
+Nonzero authorized mail and committed private-source-content requirements remain;
+no native hide or self-mail preference is changed.
