@@ -166,6 +166,12 @@ final class LegalpadDocumentSignController extends LegalpadController {
         $document,
         $request);
 
+      if(PhorgeLegalpadVerification::enabled()&&$viewer->isLoggedIn()&&!$is_individual){
+        try{PhorgeLegalpadVerification::assertSigningContact($request,idx($form_data,'email'));}
+        catch(PhorgeLegalpadVerificationException$error){$errors[]=pht('Use a verified email address owned by the signed-in account.');$field_errors['email']=pht('Invalid');}
+        catch(RuntimeException$error){if(!preg_match('/\Agovernance_/',$error->getMessage())){throw$error;}
+          $errors[]=pht('Sign in with an active account before signing this document.');}
+      }
       $signature_data = $form_data + $signature_data;
 
       $signature->setSignatureData($signature_data);
@@ -218,9 +224,12 @@ final class LegalpadDocumentSignController extends LegalpadController {
             $next_uri = (string)$request_uri;
           }
         } else {
-          $this->sendVerifySignatureEmail(
-            $document,
-            $signature);
+          $sent=$this->sendVerifySignatureEmail($document,$signature);
+          if(PhorgeLegalpadVerification::enabled()&&$sent===false){
+            return$this->newDialog()->setTitle(pht('Signature Recorded Without Verification Email'))
+              ->appendParagraph(pht('The signature was recorded, but this signer is not supported by authenticated email verification. No verification email was sent.'))
+              ->addCancelButton('/'.$document->getMonogram(),pht('Okay'));
+          }
 
           $next_uri = $this->getApplicationURI('done/');
         }
@@ -666,6 +675,18 @@ final class LegalpadDocumentSignController extends LegalpadController {
     LegalpadDocument $doc,
     LegalpadDocumentSignature $signature) {
 
+    if(PhorgeLegalpadVerification::enabled()){
+      try{$binding=PhorgeLegalpadVerification::prepareMail($this->getRequest(),$signature->getSecretKey());}
+      catch(PhorgeLegalpadVerificationException$error){return false;}
+      catch(RuntimeException$error){if(!preg_match('/\Agovernance_/',$error->getMessage())){throw$error;}return false;}
+      $path=$this->getApplicationURI(sprintf('/verify/%s/',$signature->getSecretKey()));
+      $link=PhabricatorEnv::getProductionURI($path);
+      (new PhabricatorMetaMTAMail())->setPrivateMailProducer(__CLASS__)->setPrivateMailFlow('legalpad.signature',$binding)
+        ->addRawTos(array($signature->getSignerEmail()))->setSubject(pht('[Legalpad] Signature Verification'))
+        ->setForceDelivery(true)->setBody(pht("Sign in with the account that signed the document, then verify the signature:\n\n%s\n",$link))
+        ->setRelatedPHID($signature->getDocumentPHID())->saveAndSend();
+      return true;
+    }
     $signature_data = $signature->getSignatureData();
     $email = new PhutilEmailAddress($signature_data['email']);
     $doc_name = $doc->getTitle();

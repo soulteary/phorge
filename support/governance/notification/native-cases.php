@@ -84,7 +84,9 @@ function governance_private_mail_native_cases($fixture,callable $check){
     $remaining=governance_private_mail_remaining_producer_cases($fixture,$check);
     require_once __DIR__.'/commit-race-cases.php';
     $race=governance_private_mail_commit_race_cases($fixture,$check);
-    return array('commit_race_tests'=>$race,'remaining_producer_tests'=>$remaining,'security_flow_tests'=>$security,'actual_native_source_and_object_query'=>true,'actual_native_queue'=>true,
+    require_once __DIR__.'/legalpad-cases.php';
+    $legalpad=governance_private_mail_legalpad_cases($fixture,$check);
+    return array('legalpad_tests'=>$legalpad,'commit_race_tests'=>$race,'remaining_producer_tests'=>$remaining,'security_flow_tests'=>$security,'actual_native_source_and_object_query'=>true,'actual_native_queue'=>true,
       'real_business_serialization_and_legacy_quarantine'=>true,'smtp_or_delivery_workers_executed'=>false,
       'security_challenge_runtime_matrix_complete'=>false,'all_producers_runtime_complete'=>false,
       'physical_callback_runtime_complete'=>false);

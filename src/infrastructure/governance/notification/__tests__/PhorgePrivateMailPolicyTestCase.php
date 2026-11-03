@@ -83,4 +83,18 @@ final class PhorgePrivateMailPolicyTestCase extends PhutilTestCase {
     $signature=(new PhabricatorMetaMTAMail())->setPrivateMailProducer('LegalpadDocumentSignController');
     $this->assertEqual('unsupported-signature',PhorgePrivateMailPolicy::purpose($signature));
   }
+  public function testNativeIntegerMailIdHeaderSerializesAsSMTPText(){
+    $integer=(new PhabricatorMailHeader())->setName('X-Phabricator-Mail-ID')->setValue(42);
+    $text=(new PhabricatorMailHeader())->setName('X-Synthetic-Text')->setValue('0042');
+    $message=(new PhabricatorMailEmailMessage())->setFromAddress(new PhutilEmailAddress('sender@example.invalid'))
+      ->setToAddresses(array(new PhutilEmailAddress('recipient@example.invalid')))->setSubject('Synthetic native header')
+      ->setTextBody('Synthetic body')->setHeaders(array($integer,$text));
+    $wire=(new PhabricatorGorgeMailerClient())->serializeMessage($message);
+    $this->assertEqual(array(array('name'=>'X-Phabricator-Mail-ID','value'=>'42'),
+      array('name'=>'X-Synthetic-Text','value'=>'0042')),$wire['headers']);
+    $decoded=json_decode(phutil_json_encode($wire),true);
+    $this->assertTrue(is_string($decoded['headers'][0]['value']));
+    $this->assertEqual(42,$integer->getValue());
+    $this->assertEqual('0042',$text->getValue());
+  }
 }
