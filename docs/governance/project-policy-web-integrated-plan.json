@@ -32,12 +32,10 @@
     "display_component_acceptance": "evidence/project-form-display-469-218-753/acceptance.json",
     "display_immutable_manifest_sha256": "34f2dec2f15a3b54b1aeeb328d5b446ee256815f84951d4ae737c2ba5897bb27",
     "error_pure_source_methods": 227,
-    "current_integrated_SQL_executed": false,
-    "current_integrated_pure_executed": false
+    "current_integrated_SQL_executed": true,
+    "current_integrated_pure_executed": true
   },
   "remaining": [
-    "Signed final source and independent peer",
-    "Supported PHP8.5.12 class-map rebuild and all237 pure methods",
     "Actual854 SQL including new route/controller refusal and stored-corruption propagation cases",
     "Whole runtime hashes, strict in-process/CLI equality and all owned cleanup",
     "English PR, exacthead CI/review, protected merge and main artifact closure",
@@ -47,5 +45,20 @@
   "all_families_complete": false,
   "can_execute_recovery": false,
   "deployment": false,
-  "optional_features_enabled": false
+  "optional_features_enabled": false,
+  "integrated_attempt": {
+    "source_head": "dce7afd4dd618b668eef43c77e68b4fe7d54d597",
+    "pure_methods_passed": 237,
+    "SQL_checks_completed_before_failure": 666,
+    "required_SQL_checks": 854,
+    "passed": false,
+    "runtime_files_exact": 6812,
+    "cleanup_complete": true,
+    "failure": "Old MFA fixture required exact RuntimeException rather than the native-edit typed business refusal. Production guard and current-role denial remain unchanged."
+  },
+  "retry_scope": {
+    "production_changes": false,
+    "fixture": "Exact final refusal class, native-edit reason and fixed native-edit message; all MFA assertions and source obligations retained.",
+    "SQL_retest_pending": true
+  }
 }
