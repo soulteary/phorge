@@ -6,9 +6,15 @@ its archive;31 registered workers and two separately owned sets of ten business
 children were cleaned. The source-bound acceptance record is under
 `docs/governance/evidence/business-gorge-main99-215-774/`.
 
-The subsequent explicit PR100 source union requires219 pure /789 SQL checks.
-It has not run yet. The historical774 result must not be relabeled as proof of
-this newer source. All optional production features remain off.
+The explicit main100 union signed `92a84013ce59a37f65fed347c908e5377dd5f392`
+independently passed PHP 8.5.12 **219 pure / 789 native MySQL/Gorge checks**.
+All 6797 PHP/SQL/public-suffix files matched its signed archive. Cleanup passed
+for 55 schemas, two runtime users, reader, 31 registered worker directories,
+two separately owned sets of ten business children, the paired image and source
+stage. The exact-source strict gate accepted the receipt, published as sanitized
+counts and digests in `docs/governance/evidence/business-gorge-main100-219-789/`.
+Historical 774 evidence and unrun 784/786 checkpoints are not relabeled. Optional
+production features remain off; the limits below still block activation.
 
 ## Actual queue and native handler
 
@@ -43,8 +49,8 @@ This is actual AppEditor, Gorge queue and native PHP handler proof. It is not
 worker.execute HTTP gateway, Go worker daemon, SMTP, legacy failover or cross-schema
 atomicity proof. Explicit yield is not automatic retry after a permanent source
 failure. Valid committed native callers must not silently lose notifications;
-retained outer-caller closure, including the separate actual Wiki-move
-interleaving obligation, remains an activation gate. No permissions are broadened.
+retained outer-caller closure, including actual Wiki content-edit mail and retained move/search
+interleaving obligations, remains an activation gate. No permissions are broadened.
 
 A supported run must bind PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION and the
 strict gate's --measurement-source-revision to the same final signed commit.
