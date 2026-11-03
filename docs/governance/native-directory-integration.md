@@ -205,7 +205,7 @@ migration follows from either isolated checkpoint or its source inventory.
 
 ## Directory metadata and current-main issuer integration
 
-The directory checkpoint is preserved under `evidence/native-directory-checkpoint-20261103`: 136 pure methods and 184 native SQL checks. After explicitly merging the current-main issuer, the combined PHP 8.5.12 source passed 139 pure methods and 201 actual MySQL/Gorge checks. The current receipt is `native-directory-evidence.json`; combined pure results and the evidence index are under `evidence/native-directory-combined-20261103`. All owned schemas and runtime principals were cleaned without failures.
+The directory checkpoint is preserved under `evidence/native-directory-checkpoint-20261103`: 136 pure methods and 184 native SQL checks. After explicitly merging the current-main issuer, the combined PHP 8.5.12 source passed 139 pure methods and 201 actual MySQL/Gorge checks. The receipt at that checkpoint is preserved in its component directory; the generic combined receipt is now pending; combined pure results and the evidence index are under `evidence/native-directory-combined-20261103`. All owned schemas and runtime principals were cleaned without failures.
 
 The combined source inventory remains partial: 31 explicitly reviewed nodes, 21 links and 47 runtime files. Pure and isolated SQL evidence does not prove browser delivery, deployment, full governance source closure or optional-feature activation readiness. Native batch/fault coverage and the remaining organization appointment, history, transfer and reminder packages remain incomplete.
 
@@ -282,7 +282,7 @@ separate. Their exact reviewed union subsequently passed 286 actual native SQL
 checks and 145 pure methods. All 13 workers and private directories, 55 schemas,
 two runtime accounts and the reader were cleaned without failures. Exact new
 receipts are under `evidence/membership-lifecycle-combined-286-20261103/`; the
-current receipt is `native-directory-evidence.json`. Old 250/244/225 evidence is
+receipt at that checkpoint is preserved in its component directory; the generic combined receipt is now pending. Old 250/244/225 evidence is
 unchanged. This is isolated source/controller evidence, not hosted final-head
 review, browser delivery, activation or completion of all O4/O5 work.
 
@@ -290,10 +290,36 @@ review, browser delivery, activation or completion of all O4/O5 work.
 
 The O6 candidate passed PHP 8.5.12 with 147 native test methods and 297
 real isolated SQL checks, including eleven administrator-only history scenarios.
-The current receipt and `evidence/native-history-297-20261103` retain the exact
+The historical receipt under `evidence/native-history-297-20261103` retains the exact
 result. All 5866 executed PHP/SQL files matched the host. Governance mutation
 tests (86) and permission inventory tests (84) passed. History pages expose only
 bounded metadata; before/after snapshots and credential bindings are not loaded.
 The elapsed 365-day report never deletes history. An actual native administrator
 revoked between pages cannot reuse the cursor. This is isolated source evidence,
 not production activation, browser certification, or complete O7/O8 delivery.
+
+
+## Pending HTTP and current-main combination
+
+The HTTP source checkpoint `28aa3bde87` is now explicitly merged with main
+`6c12461b15`. Neither the historical 144-method/273-check component and 24 TLS
+checks, the current HTTP-only 146-method run, nor main's 147-method/297-check
+receipt certifies this combined source. The generic current receipt is deliberately
+pending and rejected by the strict gate until a fresh full run supplies actual
+scenario IDs, summaries, cleanup, paired-service input, and source hashes.
+
+The proposed gate pins every main scenario plus 66 explicit current HTTP/file/
+image obligations, including the persisted long Unicode native file URI and four
+bootstrap/cookie-firewall checks. This is an expected literal scenario set, not an
+actual passing count. The static catalog contains 50 explicit sources, 40 links,
+and 55 reviewed runtime files; it remains partial, non-authoritative and activation
+blocked. No unknown source is accepted by a union fallback.
+
+Current candidate scope includes fixed-origin native exchange controllers,
+wire-cookie isolation before native session bootstrap, actual viewer file policy,
+protected cache/range/HEAD behavior, guarded derived files, active-format download
+responses, fixed default favicon sources, paired image generation and session-bound
+page bootstrap. Full wire/browser verification, custom branding, complete guard
+coverage, notification integration, production rollout, and optional feature
+activation remain separate unresolved gates. Native permission semantics remain
+unchanged.

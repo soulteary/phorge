@@ -5,7 +5,10 @@ import json
 from pathlib import Path
 import re
 
-EXPECTED_SOURCES = {'ORG.ROUTES': ('src/applications/people/application/PhabricatorPeopleApplication.php',
+EXPECTED_SOURCES = {'NATIVE.PhorgeGovernanceMediaTarget': ('src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php', 'PhorgeGovernanceMediaTarget', 'immutable-prepared-media-target'),
+ 'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
+ 'PhorgeGovernanceMediaIssuer','media-only-external-issuer'),
+ 'ORG.ROUTES': ('src/applications/people/application/PhabricatorPeopleApplication.php',
                 'PhabricatorPeopleApplication',
                 'route-registration'),
  'AUTH.CONDUIT.CONTROLLER': ('src/applications/conduit/controller/PhabricatorConduitAPIController.php',
@@ -217,6 +220,69 @@ EXPECTED_LINKS.update({
 
 EXPECTED_LINKS.update({'NATIVE-LINK-27':('ORG.ROUTES','NATIVE.PhorgeOrganizationHistoryController'),'NATIVE-LINK-28':('NATIVE.PhorgeOrganizationHistoryController','NATIVE.PhorgeOrganizationQuery')})
 
+# Explicit reviewed HTTP candidate identities, not an open-ended source union.
+EXPECTED_SOURCES.update({'NATIVE.PhorgeGovernanceMediaAuthorizeController': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php',
+                                                     'PhorgeGovernanceMediaAuthorizeController',
+                                                     'native-app-origin-authorization-controller'),
+ 'NATIVE.PhorgeGovernanceMediaResourceController': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php',
+                                                    'PhorgeGovernanceMediaResourceController',
+                                                    'native-file-origin-exchange-controller'),
+ 'NATIVE.PhorgeGovernanceMediaStaticController': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaStaticController.php',
+                                                  'PhorgeGovernanceMediaStaticController',
+                                                  'fixed-source-static-only-controller'),
+ 'NATIVE.PhorgeGovernanceMediaHTTPProtocol': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php',
+                                              'PhorgeGovernanceMediaHTTPProtocol',
+                                              'fixed-origin-wire-cookie-protocol'),
+ 'NATIVE.PhorgeGovernanceMediaHTTPResponse': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPResponse.php',
+                                              'PhorgeGovernanceMediaHTTPResponse',
+                                              'native-header-preserving-response'),
+ 'NATIVE.PhorgeGovernanceMediaFileGuard': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php',
+                                           'PhorgeGovernanceMediaFileGuard',
+                                           'current-native-viewer-file-guard'),
+ 'FILES.ROUTES': ('src/applications/files/application/PhabricatorFilesApplication.php',
+                  'PhabricatorFilesApplication',
+                  'feature-off-media-route-registration'),
+ 'FILES.DATA': ('src/applications/files/controller/PhabricatorFileDataController.php',
+                'PhabricatorFileDataController',
+                'pre-metadata-native-file-authorization-consumer'),
+ 'FILES.TRANSFORM': ('src/applications/files/controller/PhabricatorFileTransformController.php',
+                     'PhabricatorFileTransformController',
+                     'original-before-derived-file-authorization-consumer'),
+ 'FILES.FAVICON': ('src/applications/files/favicon/PhabricatorFaviconRefQuery.php',
+                   'PhabricatorFaviconRefQuery',
+                   'fixed-static-default-favicon-producer'),
+ 'AUTH.MEDIA.FIREWALL': ('src/aphront/configuration/AphrontApplicationConfiguration.php',
+                         'AphrontApplicationConfiguration',
+                         'pre-native-session-media-cookie-firewall'),
+ 'PAGE.MEDIA.BOOTSTRAP': ('src/view/page/PhabricatorStandardPageView.php',
+                          'PhabricatorStandardPageView',
+                          'native-session-media-bootstrap-config-consumer'),
+ 'CLIENT.MEDIA.HANDOFF': ('webroot/rsrc/js/core/behavior-private-media-session.js',
+                          'private-media-session',
+                          'fixed-origin-client-handoff')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaStaticController.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPResponse.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php'])
+EXPECTED_LINKS.update({'NATIVE-LINK-29': ('FILES.ROUTES',
+                    'NATIVE.PhorgeGovernanceMediaResourceController'),
+ 'NATIVE-LINK-30': ('FILES.ROUTES',
+                    'NATIVE.PhorgeGovernanceMediaStaticController'),
+ 'NATIVE-LINK-31': ('FILES.DATA', 'NATIVE.PhorgeGovernanceMediaFileGuard'),
+ 'NATIVE-LINK-32': ('FILES.TRANSFORM', 'NATIVE.PhorgeGovernanceMediaFileGuard'),
+ 'NATIVE-LINK-33': ('NATIVE.PhorgeGovernanceMediaFileGuard',
+                    'NATIVE.PhorgeGovernanceMediaExchangeService'),
+ 'NATIVE-LINK-34': ('NATIVE.PhorgeGovernanceMediaAuthorizeController',
+                    'NATIVE.PhorgeGovernanceMediaExchangeService'),
+ 'NATIVE-LINK-35': ('NATIVE.PhorgeGovernanceMediaResourceController',
+                    'NATIVE.PhorgeGovernanceMediaHTTPProtocol'),
+ 'NATIVE-LINK-36': ('PAGE.MEDIA.BOOTSTRAP',
+                    'NATIVE.PhorgeGovernanceMediaHTTPProtocol'),
+ 'NATIVE-LINK-37': ('PAGE.MEDIA.BOOTSTRAP', 'CLIENT.MEDIA.HANDOFF'),
+ 'NATIVE-LINK-38': ('AUTH.MEDIA.FIREWALL',
+                    'NATIVE.PhorgeGovernanceMediaHTTPProtocol'),
+ 'NATIVE-LINK-39': ('FILES.FAVICON',
+                    'NATIVE.PhorgeGovernanceMediaStaticController'),
+ 'NATIVE-LINK-40': ('NATIVE.PhorgeGovernanceMediaResourceController',
+                    'NATIVE.PhorgeGovernanceMediaHTTPResponse')})
+
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
 def require(ok, message):
@@ -276,7 +342,9 @@ def validate(data, root):
                 'source must remain non-authoritative')
         path = file(root, raw)
         require(row['sha256'] == hashlib.sha256(path.read_bytes()).hexdigest(), 'source hash drift')
-        if key=='CLIENT.TOKENIZER.BEHAVIOR':
+        if key=='CLIENT.MEDIA.HANDOFF':
+            require("JX.behavior('private-media-session'," in path.read_text(),'fixed media behavior missing')
+        elif key=='CLIENT.TOKENIZER.BEHAVIOR':
             require("JX.behavior('aphront-basic-tokenizer'," in path.read_text(),'fixed tokenizer behavior missing')
         elif key=='CLIENT.PREFAB':
             require("JX.install('Prefab'," in path.read_text(),'fixed client symbol reference missing')

@@ -5,6 +5,7 @@ final class PhabricatorFileDataController extends PhabricatorFileController {
   private $phid;
   private $key;
   private $file;
+  private $mediaAuthorization;
 
   public function shouldRequireLogin() {
     return false;
@@ -15,6 +16,12 @@ final class PhabricatorFileDataController extends PhabricatorFileController {
   }
 
   public function handleRequest(AphrontRequest $request) {
+    $this->mediaAuthorization=null;
+    if(PhabricatorEnv::getEnvConfigIfExists('governance.media-exchange.http-enabled',false)===true){
+      try{$this->mediaAuthorization=PhorgeGovernanceMediaFileGuard::authorize($request);
+        $request->setUser($this->mediaAuthorization['viewer']);}
+      catch(Throwable $error){return PhorgeGovernanceMediaHTTPProtocol::deny();}
+    }
     $viewer = $request->getViewer();
     $this->phid = $request->getURIData('phid');
     $this->key = $request->getURIData('key');
@@ -45,7 +52,7 @@ final class PhabricatorFileDataController extends PhabricatorFileController {
 
     $response = $this->loadFile();
     if ($response) {
-      return $response;
+      return $this->mediaAuthorization!==null?PhorgeGovernanceMediaFileGuard::secureResponse($response):$response;
     }
 
     $file = $this->getFile();
@@ -146,6 +153,7 @@ final class PhabricatorFileDataController extends PhabricatorFileController {
       $response->setCompressResponse(true);
     }
 
+    if($this->mediaAuthorization!==null){PhorgeGovernanceMediaFileGuard::secureResponse($response,$file);}
     return $response;
   }
 
@@ -162,7 +170,7 @@ final class PhabricatorFileDataController extends PhabricatorFileController {
     // sure we're consistent about returning HTTP 404 on bad requests instead
     // of serving HTTP 200 with a login page, which can mislead some clients.
 
-    $viewer = PhabricatorUser::getOmnipotentUser();
+    $viewer = $this->mediaAuthorization!==null ? $this->mediaAuthorization['viewer'] : PhabricatorUser::getOmnipotentUser();
 
     $file = id(new PhabricatorFileQuery())
       ->setViewer($viewer)

@@ -102,6 +102,29 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
 
 
+    def test_http_candidate_never_claims_wire_browser_or_full_guard_completion(self):
+        for path,key in [(('http_tests',),'wire_https_verified'),(('http_tests',),'browser_verified'),
+            (('http_tests',),'file_guard_complete'),(('http_tests',),'production_enabled'),
+            (('http_tests','file_guard_tests'),'custom_branding_verified'),
+            (('http_tests','file_guard_tests'),'browser_active_content_verified'),
+            (('http_tests','file_guard_tests'),'wire_https_verified')]:
+            data=template();part=data['native']
+            for section in path:part=part[section]
+            part[key]=True
+            with self.subTest(path=path,key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for value in (None,1,'x'*64,'d'*63):
+            data=template();data['native']['http_tests']['file_guard_tests']['image_tests']['backend_revision_sha256']=value
+            with self.subTest(value=value),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['http_tests']['unknown_claim']=True
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_old_component_receipts_and_missing_http_obligations_are_refused(self):
+        for name in gate.HTTP_REQUIRED_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();data['native'].pop('http_tests')
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:
             with self.subTest(name=name):

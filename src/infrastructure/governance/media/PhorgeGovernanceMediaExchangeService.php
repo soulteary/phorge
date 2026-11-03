@@ -140,7 +140,7 @@ final class PhorgeGovernanceMediaExchangeService extends Phobject {
       $connection->saveTransaction();
       return array('transaction_id' => $transaction,
         'browser_secret' => new PhutilOpaqueEnvelope($secret),
-        'expires_at' => $expires);
+        'expires_at' => $expires,'browser_expires_at'=>(int)$browser['expiresAt']);
     } catch (Throwable $error) {
       $connection->killTransaction();
       throw new RuntimeException('media_exchange_preparation_refused');
