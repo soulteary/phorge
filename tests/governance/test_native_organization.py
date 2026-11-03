@@ -46,6 +46,21 @@ def template():
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
 
+    def test_recovery_web_partial_observations_cannot_approve_credentials(self):
+        self.assertEqual(13,len(gate.RECOVERY_WEB_CHECKS))
+        for obligation in gate.RECOVERY_WEB_CHECKS:
+            data=template();data['checks'].remove(obligation);data['check_count']-=1
+            with self.subTest(obligation=obligation), self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        for key in ('actual_password_controller_or_oauth_complete','web_family_complete',
+                    'all_sources_complete','can_execute','source_writes_by_capture'):
+            data=template();data['native']['recovery_web_capture_tests'][key]=True
+            with self.subTest(key=key), self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['recovery_web_capture_tests']['actual_native_logout']=1
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+
+
     def test_recovery_account_requires_all_real_source_obligations(self):
         self.assertEqual(10, len(gate.RECOVERY_ACCOUNT_CHECKS))
         for obligation in gate.RECOVERY_ACCOUNT_CHECKS:

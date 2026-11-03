@@ -814,7 +814,18 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
       "symbol": "PhorgeRecoveryNativeCaptureScope",
       "kind": "isolated-account-capture-not-recovery-authority",
-      "sha256": "a39c2f89faa1370b3700794084300e83cb9c94c49b9bfa69117128990df7010f",
+      "sha256": "f13b6abc4811f89d1b7e52be9c96376f7bfe863ee69f555c5522ec1e811779fb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeWebFacts",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
+      "symbol": "PhorgeRecoveryNativeWebFacts",
+      "kind": "untrusted-web-storage-decoder-no-recovery-authority",
+      "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1643,7 +1654,11 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
-        "sha256": "a39c2f89faa1370b3700794084300e83cb9c94c49b9bfa69117128990df7010f"
+        "sha256": "f13b6abc4811f89d1b7e52be9c96376f7bfe863ee69f555c5522ec1e811779fb"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
+        "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4"
       }
     ]
   }

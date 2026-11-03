@@ -407,6 +407,9 @@ def keyed(rows, message):
 EXPECTED_SOURCES.update({'RECOVERY.PhorgeGovernanceRecoverySourceInventory': ('src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php', 'PhorgeGovernanceRecoverySourceInventory', 'isolated-account-capture-not-recovery-authority'), 'RECOVERY.PhorgeRecoveryNativeAccountFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php', 'PhorgeRecoveryNativeAccountFacts', 'isolated-account-capture-not-recovery-authority'), 'RECOVERY.PhorgeRecoveryNativeCaptureScope': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php', 'PhorgeRecoveryNativeCaptureScope', 'isolated-account-capture-not-recovery-authority')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php'])
 
+EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryNativeWebFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php', 'PhorgeRecoveryNativeWebFacts', 'untrusted-web-storage-decoder-no-recovery-authority')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php'])
+
 def validate(data, root):
     root = Path(root)
     fields(data, ('schema_version','scope','coverage','activation_blocked',

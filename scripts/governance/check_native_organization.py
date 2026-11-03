@@ -831,6 +831,16 @@ NATIVE['recovery_account_capture_tests'] = {
 RECOVERY_ACCOUNT_CHECKS = frozenset(['recovery-account-uninitialized-actor-refused-without-initialization', 'recovery-account-unknown-refusal-no-source-write-or-open-transaction', 'recovery-account-real-storage-capture-keeps-absence-and-thirteen-family-block', 'recovery-account-success-no-hidden-epoch-initialization', 'recovery-account-outer-transaction-refused', 'recovery-account-refusal-does-not-end-or-rollback-caller-transaction', 'recovery-account-untracked-physical-outer-transaction-refused-without-rollback', 'recovery-account-real-native-disable-enable-aba-is-observable-not-recovery-authority', 'recovery-account-real-current-nonadmin-cannot-capture', 'recovery-account-missing-actual-source-table-refused-with-owned-transaction-cleanup'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | RECOVERY_ACCOUNT_CHECKS
 
+
+# Direct stored web/temporary rows are observed, not certified usable/recoverable.
+NATIVE['recovery_web_capture_tests'] = {
+    'actual_native_session_producer': True, 'actual_native_logout': True,
+    'actual_native_one_time_token_producer': True, 'actual_native_single_token_revoke': True,
+    'actual_password_controller_or_oauth_complete': False, 'web_family_complete': False,
+    'all_sources_complete': False, 'can_execute': False, 'source_writes_by_capture': False}
+RECOVERY_WEB_CHECKS = frozenset(['recovery-web-real-full-partial-expired-and-foreign-session-observations', 'recovery-web-native-token-and-session-keys-are-not-returned', 'recovery-web-real-single-session-logout-is-observed-without-global-revocation', 'recovery-web-real-logout-and-reissue-changes-credential-set-binding', 'recovery-web-real-native-one-time-token-is-captured-without-code-or-uri', 'recovery-web-real-single-temporary-token-revocation-is-observed', 'recovery-web-unknown-kind-email-resource-and-foreign-owner-remain-partial', 'recovery-web-native-account-aba-is-distinct-from-retained-credential-rows', 'recovery-web-selected-session-row-budget-refuses-before-payload-fetch', 'recovery-web-oversized-native-property-fixture-is-really-oversized', 'recovery-web-temporary-property-byte-budget-refuses-before-payload-fetch', 'recovery-web-aggregate-selected-property-byte-budget-refuses-before-payload-fetch', 'recovery-web-budget-refusals-release-owned-scope-without-source-poisoning'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | RECOVERY_WEB_CHECKS
+
 def exact_tree(actual, expected):
     if type(actual) is not type(expected):
         raise ValueError('untyped evidence')

@@ -7,6 +7,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
   private $context;
   private $target;
   private $facts;
+  private $webFacts;
   private $route;
   private $runtime;
   private $ownsTransaction = false;
@@ -168,6 +169,111 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
       $epoch ? $epoch['epoch'] : null);
   }
 
+  /** Capture selected direct credential resources, never an exhaustive family. */
+  public function captureWebCredentials() {
+    try {
+      $this->assertCurrent();
+      if ($this->webFacts !== null) { throw new RuntimeException('recovery_web_already_captured'); }
+      $this->webFacts = $this->readWebCredentials();
+      $this->assertCurrent();
+      return $this->webFacts;
+    } catch (Throwable $error) {
+      // An unknown/budget/source failure cannot be caught and reused as a
+      // seemingly successful account-only capture on this same scope.
+      $this->close();
+      throw $error;
+    }
+  }
+
+  private function credentialTable($temporary) {
+    $table = $temporary ? new PhabricatorAuthTemporaryToken() : new PhabricatorAuthSession();
+    $route = $table->establishConnection('w');
+    if (get_class($route) !== AphrontMySQLiDatabaseConnection::class ||
+        ($route !== $this->connection && ($route->isInsideTransaction() ||
+          $route->isReadLocking() || $route->isWriteLocking()))) {
+      throw new RuntimeException('recovery_credential_route_unknown');
+    }
+    $local = queryfx_one($this->connection, 'SELECT @@server_uuid uuid');
+    $remote = queryfx_one($route, 'SELECT @@server_uuid uuid,DATABASE() db');
+    $database = $this->route['storage.default-namespace'].($temporary ? '_auth' : '_user');
+    if (!$local || !$remote || $remote['uuid'] !== $local['uuid'] || $remote['db'] !== $database) {
+      throw new RuntimeException('recovery_credential_route_unknown');
+    }
+    queryfx_one($this->connection,'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE',$table);
+    $engine=queryfx_one($this->connection,
+      'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
+      $database,$table->getTableName());
+    if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('recovery_credential_schema_unknown');}
+    $columns=queryfx_all($this->connection,
+      'SELECT COLUMN_NAME,DATA_TYPE,COLUMN_TYPE,IS_NULLABLE,CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s ORDER BY ORDINAL_POSITION LIMIT 17',
+      $database,$table->getTableName());
+    $expected=$temporary ? array('id'=>'int','tokenResource'=>'varbinary','tokenType'=>'varchar',
+      'tokenExpires'=>'int','tokenCode'=>'varchar','userPHID'=>'varbinary','properties'=>'longtext') :
+      array('id'=>'int','userPHID'=>'varbinary','type'=>'varchar','sessionKey'=>'varchar',
+        'sessionStart'=>'int','sessionExpires'=>'int','highSecurityUntil'=>'int',
+        'isPartial'=>'tinyint','signedLegalpadDocuments'=>'tinyint','phid'=>'varbinary');
+    $widths=$temporary ? array('tokenResource'=>64,'tokenType'=>64,'tokenCode'=>64,'userPHID'=>64) :
+      array('userPHID'=>64,'type'=>32,'sessionKey'=>64,'phid'=>64);
+    $nullable=$temporary ? array('userPHID') : array('highSecurityUntil');
+    if(count($columns)!==count($expected)){throw new RuntimeException('recovery_credential_schema_unknown');}
+    foreach($columns as$column){
+      $name=$column['COLUMN_NAME'];
+      if(!isset($expected[$name])||$column['DATA_TYPE']!==$expected[$name]||
+          ($expected[$name]==='int'&&strpos($column['COLUMN_TYPE'],'unsigned')===false)||
+          $column['IS_NULLABLE']!==(in_array($name,$nullable,true)?'YES':'NO')||
+          (isset($widths[$name])&&(string)$column['CHARACTER_MAXIMUM_LENGTH']!==(string)$widths[$name])){
+        throw new RuntimeException('recovery_credential_schema_unknown');}
+      unset($expected[$name]);
+    }
+    if($expected){throw new RuntimeException('recovery_credential_schema_unknown');}
+    return $table;
+  }
+
+  private function credentialRows($temporary, &$bytes) {
+    $table=$this->credentialTable($temporary);
+    $where=$temporary ? qsprintf($this->connection,
+      '(BINARY tokenResource=BINARY %s OR BINARY userPHID=BINARY %s)',$this->target,$this->target) :
+      qsprintf($this->connection,'BINARY userPHID=BINARY %s',$this->target);
+    $lengths=$temporary ? qsprintf($this->connection,
+      'OCTET_LENGTH(tokenResource) a,OCTET_LENGTH(tokenType) b,OCTET_LENGTH(tokenCode) c,OCTET_LENGTH(userPHID) d,OCTET_LENGTH(properties) e') :
+      qsprintf($this->connection,'OCTET_LENGTH(phid) a,OCTET_LENGTH(userPHID) b,OCTET_LENGTH(type) c,OCTET_LENGTH(sessionKey) d');
+    $preflight=queryfx_all($this->connection,
+      'SELECT id,%Q FROM %R WHERE %Q ORDER BY id LIMIT 65 LOCK IN SHARE MODE',
+      $lengths,$table,$where);
+    if(count($preflight)>PhorgeRecoveryNativeWebFacts::MAX_ROWS){throw new RuntimeException('recovery_web_capture_budget_unknown');}
+    $ids=array();
+    foreach($preflight as$row){
+      if((!is_string($row['id'])&&!is_int($row['id']))||
+          !preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$row['id'])||
+          (float)$row['id']>4294967295||isset($ids[(string)$row['id']])){
+        throw new RuntimeException('recovery_web_storage_shape_unknown');}
+      $ids[(string)$row['id']]=(int)$row['id'];$bytes+=128;
+      foreach($row as$key=>$value){
+        if($key==='id'){continue;}
+        if($value!==null&&(!preg_match('/\A(?:0|[1-9][0-9]*)\z/D',(string)$value)||
+            (float)$value>($key==='e'?PhorgeRecoveryNativeWebFacts::MAX_PROPERTIES:64))){
+          throw new RuntimeException('recovery_web_storage_budget_unknown');}
+        $bytes+=(int)$value;
+      }
+    }
+    if($bytes>PhorgeRecoveryNativeWebFacts::MAX_BYTES){throw new RuntimeException('recovery_web_capture_budget_unknown');}
+    if(!$ids){return array();}
+    $projection=$temporary ? qsprintf($this->connection,'id,tokenResource,tokenType,tokenExpires,tokenCode,userPHID,properties') :
+      qsprintf($this->connection,'id,phid,userPHID,type,sessionKey,sessionStart,sessionExpires,highSecurityUntil,isPartial,signedLegalpadDocuments');
+    // Only the already size-checked, current-lock-held IDs are fetched. New RC
+    // phantom rows cannot introduce an unbounded payload between these reads.
+    $rows=queryfx_all($this->connection,'SELECT %Q FROM %R WHERE id IN (%Ld) AND %Q ORDER BY id LOCK IN SHARE MODE',
+      $projection,$table,array_values($ids),$where);
+    if(count($rows)!==count($ids)){throw new RuntimeException('recovery_web_source_changed');}
+    return $rows;
+  }
+
+  private function readWebCredentials() {
+    $bytes=0;$sessions=$this->credentialRows(false,$bytes);$tokens=$this->credentialRows(true,$bytes);
+    $now=(int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n'];
+    return PhorgeRecoveryNativeWebFacts::describe($sessions,$tokens,$this->target,$now);
+  }
+
   private function assertCurrent() {
     if ($this->closed || !$this->ownsTransaction || !$this->connection->isInsideTransaction() ||
         self::routing() !== $this->route ||
@@ -189,11 +295,21 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
       if ($this->readAccount() !== $this->facts) { throw new RuntimeException('recovery_account_source_changed'); }
       // Locks prevent source writes, not credential expiry while reads wait.
       $this->assertCurrent();
+      $web=null;
+      if($this->webFacts!==null){
+        $web=$this->readWebCredentials();
+        if($web['storage_set_digest']!==$this->webFacts['storage_set_digest']){
+          throw new RuntimeException('recovery_web_source_changed');}
+        $this->assertCurrent();
+      }
+      if($web!==null){$web['consistency']='two-matching-current-samples-not-atomic';}
       $families = array_fill_keys(PhorgeGovernanceRecoverySourceInventory::requiredFamilies(), 'uncovered');
-      return array('schema_version'=>1, 'capture'=>'actual-locked-native-account',
+      $result=array('schema_version'=>1, 'capture'=>'actual-locked-native-account',
         'account_facts'=>$this->facts, 'account_adapter'=>'captured-partial',
         'families'=>$families, 'all_sources_complete'=>false, 'can_execute'=>false,
         'future_execution_atomic'=>false, 'source_writes'=>false);
+      if($web!==null){$result['web_credentials']=$web;}
+      return $result;
     } finally { $this->close(); }
   }
 
