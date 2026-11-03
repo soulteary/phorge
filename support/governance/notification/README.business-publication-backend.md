@@ -20,3 +20,7 @@ Run through the existing full native organization runner with pinned taskqueue a
 file binaries in the isolated parent harness. This source successor requires a new
 supported PHP 8.5.12 / real MySQL / Gorge runtime receipt; the earlier failure at
 check 473 and all older passes remain historical and do not certify this change.
+
+The real child backend profile passed as part of signed70a215/774 with full source
+hash matching and cleanup. Earlier473/480 failures remain historical. Any later
+API/main source union is unproved until its own supported run is accepted.

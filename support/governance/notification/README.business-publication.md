@@ -1,9 +1,12 @@
 # Native business publication transaction ordering probe
 
-Prepared only. This fixture is not a runtime result and does not prove a product
-bug before execution. Production code is unchanged from base `fdd2dfb6ad002a0dccba4651c7c3003aa262f99c`.
+The SQL profile executed successfully at signed70a445b77d60d821d69e3424da7edea03f4c4e66
+within the actual215-pure/774-SQL isolated component. This does not certify later
+source unions or a general product bug. The publication additions are fixtures,
+not production scheduling changes.
 
-The actual Task and Project editors create native objects and a genuine comment,
+The actual Task and Project editors create native objects with native create
+transactions, a Task comment or a Project description custom field,
 then schedule their real publication task. Only that exact task class/object and
 its persisted TaskData is executed in a new PHP process with separately owned
 connections. The child does not synthesize the editor's saved mail-recipient state.
@@ -29,7 +32,8 @@ commit before publication; this diagnostic tests ordinary native content editors
 not a substitute for testing those protected operations. No unsupported profile
 may be enabled on the strength of these checks.
 
-Twelve declared checks (Task7 and Project5) are obligations, not passed counts. All
+The twelve original checks (Task7 and Project5) and three Project create-visibility
+checks passed in that exact component. Later source unions require new proof. All
 child private configuration is synthetic and owner/inode/nonce scoped; private
 stdout is parsed by the parent, and no object IDs, session tokens, mail payloads
 or recipient values enter the public summary. Processes and 0700/0600 files are

@@ -1,69 +1,51 @@
 # Genuine Gorge application-publication diagnostic profile
 
-This successor is separate from the twelve SQL-profile business checks. It uses
-real synthetic native users/sessions, Task and Project editors, and the enclosing
-owned paired taskqueue. It requires a recorded actual HTTP enqueue service event
-and the exact task read back from that service. No task is manufactured directly.
+Signed `70a445b77d60d821d69e3424da7edea03f4c4e66` actually passed PHP8.5.12
+pure215 / native MySQL/Gorge SQL774. All6794 PHP/SQL/public-suffix files matched
+its archive;31 registered workers and two separately owned sets of ten business
+children were cleaned. The source-bound acceptance record is under
+`docs/governance/evidence/business-gorge-main99-215-774/`.
 
-The service only offers class-filtered leasing. The fixture bounds the owned
-PublishWorker set at 64, leases that class through authenticated HTTP, and yields
-non-target owned tasks without running them. It never expands the production API
-or sets lease columns with setup SQL. A larger class set is an explicit refusal,
-not a skipped success. All database schemas are disposable and owned; no daemon
-is running. Non-target leases may have their yield windows changed by this
-fixture, which does not certify untouched production scheduling semantics.
+The subsequent explicit PR100 source union requires219 pure /784 SQL checks.
+It has not run yet. The historical774 result must not be relabeled as proof of
+this newer source. All optional production features remain off.
 
-An independent PHP process verifies its exact current task/lease and payload,
-then invokes the actual token-checked versioned `worker.execute` Conduit handler.
-The handler is not replaced with a Boolean or a synthetic worker. Its actual
-followups go to Gorge's fenced finalization endpoint; missing rolled-back native
-objects produce the actual permanent result and are archived through resolve.
-The normal case additionally yields, awakens and leases the same task through
-real service endpoints before executing it. This is an explicit scheduling retry,
-not a claim that a permanent source denial will automatically retry.
+## Actual queue and native handler
 
-For outer transactions, prepare is observed while the object is not yet visible
-to the independent child, then execute happens after the actual parent commit or
-rollback. Prepare does not inspect business authorization and is not called a
-permission grant. Committed mail envelopes still pass actual fresh recipient and
-object authorization; rollback must create no envelopes. All child processes and
-private owner-bound directories must be gone before the enclosing service stops.
+This profile is separate from the SQL publication queue profile. Genuine Task
+and Project editors create native transactions and emit an observed HTTP enqueue
+request to the owned paired taskqueue. The exact task is read back and leased
+through that service, not manufactured with setup SQL. Native core:create follows
+the Web/Conduit creation envelope. Project checks require one visible create,
+two hidden initial fields and independently stored description content, while
+still requiring nonzero safe native mail.
 
-The twenty-one required Gorge checks, strict typed summary and mutation tests are
-source obligations until supported PHP 8.5.12 / real MySQL / paired Gorge runs.
-The historical cf313, bcf02 and d629 source-only checkpoints remain unrun.
-The explicit union with signed root6c155 preserves every root743 mandatory check
-and adds twenty-one Gorge checks: source-derived215 pure /764 SQL, still unrun.
-The root SQL and new Gorge profiles both include native core:create and native
-Project description fields, with independent storage-marker verification. No
-Project comment support or native visibility/preference change is invented.
-No production source differs from the root union.
+The service offers class-filtered leasing. The disposable fixture bounds the
+owned PublishWorker set at64, leases that class and yields non-target owned tasks
+without running them. Exceeding the bound is a refusal, not a skipped success.
+It does not set lease columns with setup SQL or certify untouched production
+scheduling: non-target yield windows can change in this diagnostic.
 
-This does not prove HTTP Conduit gateway routing, the Go worker daemon, SMTP,
-legacy SQL/Gorge failover, or cross-schema atomic commit. Existing SQL-profile and
-physical-mail evidence remain independent and cannot certify this new source.
+An independent PHP child verifies its current task, lease and stored payload,
+then invokes the actual token-checked versioned worker.execute Conduit handler.
+Real followups go through fenced finalization. A rolled-back source must produce
+the actual permanent result, zero mail and an archived failure. Normal cases
+also exercise explicit yield, awaken and re-leasing of the same task.
 
-## Native creation envelope and final root union
+Outer-transaction cases prepare without running work, then execute after actual
+parent commit or rollback. Prepare is not a permission grant. Committed envelopes
+must still pass fresh recipient/object authorization. All children and private
+owner-bound files must be gone before the enclosing service stops.
 
-The genuine core:create transaction comes from native Web and Conduit creation.
-The three additional Gorge Project checks require exactly one visible create,
-exactly two hidden initial name/description fields, and no other visible event.
-Nonzero safe mail and independently stored description remain mandatory. The
-former intermediate d629 source-only215/761 checkpoint was not runtime-ready;
-its required root SQL creation correction is now explicitly merged from6c155.
-The union is still awaiting its own supported runtime, source hashes and cleanup.
+## Boundaries and remaining work
 
-## Explicit main99 measurement union
+This is actual AppEditor, Gorge queue and native PHP handler proof. It is not
+worker.execute HTTP gateway, Go worker daemon, SMTP, legacy failover or cross-schema
+atomicity proof. Explicit yield is not automatic retry after a permanent source
+failure. Valid committed native callers must not silently lose notifications;
+retained outer-caller closure, including the separate actual Wiki-move
+interleaving obligation, remains an activation gate. No permissions are broadened.
 
-The later main99 union preserves all root743 checks and both N12 producer profiles
-(ten additional mandatory checks), plus the twenty-one Gorge checks:215 pure /774
-SQL obligations, unrun against this source. The registered worker requirement is
-31 (root25 plus three independent Query and three independent API observations);
-ten SQL-business and ten Gorge-business children are separately owned and counted.
-The actual215/743 root pass is historical component evidence only.
-
-For a supported run set PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION to the exact
-final signed source commit and pass the same commit through the strict gate's
---measurement-source-revision argument. Source revision, producer hash and native
-measurement observations remain strictly bound; omission is not accepted. The
-actual HTTP gateway, Go daemon, SMTP and convergence/SLA gates remain independent.
+A supported run must bind PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION and the
+strict gate's --measurement-source-revision to the same final signed commit.
+Producer hashes and native observations remain checked; omission is rejected.

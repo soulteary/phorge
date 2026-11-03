@@ -1,11 +1,11 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 8,
+  "version": 9,
   "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
-  "status": "explicit-main99-gorge-native-create-union-host-prepared-runtime-unproven",
+  "status": "explicit-PR100-source-union-host-prepared-current-runtime-unproven",
   "new_runtime_obligation_not_actual": {
-    "pure": 215,
-    "native_sql": 774,
+    "pure": 219,
+    "native_sql": 784,
     "registered_native_workers": 31,
     "additional_locally_owned_business_php_processes": 20,
     "business_process_profiles": {
@@ -66,14 +66,15 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual215/774 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual219/784 with exact current-source hash and all cleanup is mandatory; the historical70a215/774 receipt cannot certify this API source union.",
+    "Actual219/784 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh215/774 proof and exact runtime/source match remain required",
-    "Physical CI must use the215 registered pure methods; final-head runtime evidence remains mandatory.",
+    "Current main96 is explicitly merged; fresh219/784 proof and exact runtime/source match remain required",
+    "Physical CI must use the219 registered pure methods; final-head runtime evidence remains mandatory.",
     "The actual new Gorge profile and 64-task hard class-filter lease budget remain unverified; no daemon, worker HTTP gateway or SMTP proof is claimed."
   ],
   "historical_stronger_component": {
@@ -85,10 +86,10 @@
     "runtime_passed": false
   },
   "current_main_union": {
-    "retained_main_SQL": 710,
+    "retained_main_SQL": 720,
     "added_Legalpad_and_business_SQL": 43,
     "removed_main_SQL": 0,
-    "source_registered_pure_methods": 215,
+    "source_registered_pure_methods": 219,
     "current_runtime_passed": false,
     "production_Legalpad_hardening_included": true,
     "core_size_and_invitation_fixes_preserved": true,
@@ -157,5 +158,21 @@
     "passed": true,
     "reviewer_executed": false,
     "applies_only_to_that_source": true
+  },
+  "current_API_dependency": {
+    "PR": 100,
+    "source": "1c38703b7d68ed4759ae9ff039134fa976569c94",
+    "new_pure_methods": 4,
+    "new_SQL_obligations": 10,
+    "runtime_verified_for_this_union": false
+  },
+  "historical_774_component": {
+    "source": "70a445b77d60d821d69e3424da7edea03f4c4e66",
+    "passed": true,
+    "pure": 215,
+    "SQL": 774,
+    "runtime_files_exact": 6794,
+    "acceptance": "docs/governance/evidence/business-gorge-main99-215-774/acceptance.json",
+    "does_not_certify_current_union": true
   }
 }

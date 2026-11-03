@@ -1,0 +1,19 @@
+# Partial native API credential source capture
+
+This successor is isolated and read-only. It extends the sealed account capture scope with fixed native Conduit, legacy Conduit-session and OAuth-server tables. All reads execute as qualified queries on the already-owned People writer after actual same-primary routing, MDL/InnoDB and physical column-profile checks. Selected current rows are locked and size-checked before secret payloads are fetched. The scope returns only row digests and non-authoritative observations, resamples the same source sets before finishing, revalidates its actual current actor credential and deadline, and rolls back its own observation transaction.
+
+The legacy certificate is already included in account security-field binding, not exported. OAuth access tokens and authorization codes are not independently valid credentials: native authorization, client state and method-scope checks remain required. The capture records directly associated sources; it does not infer external-provider or email-associated closure. Unknown token kinds and cluster network context remain explicit blockers.
+
+No production route, recovery permit, activation, mass revocation or account write is added. `api_family_complete`, all 13 aggregate families, `all_sources_complete` and `can_execute` remain false. See the static [producer inventory](recovery-api-producers.json), which is not runtime evidence.
+
+## Verified isolated checkpoint
+
+Signed source `72a7b5be72db1d2c565e91e7a6b76cdd066739b2`, explicitly based on protected main `e5409ca89aff15126cf6bbf9dad2d92714d785cf`, passed PHP 8.5.12: all 214 pure methods and 720 native SQL obligations. The strict gate accepted all 710 main obligations plus ten API source cases; its externally supplied measurement revision matched the same signed source. All 6,781 PHP, SQL and public-suffix runtime files matched an independent committed archive exactly.
+
+The real native fixtures exercised standard-token authentication, deletion and expiry; legacy certificate authentication and rotation; legacy Conduit session authentication and individual logout; native OAuth-server authorization/code/access-token creation and authorization revocation; secret-free output; and the selected-token row bound. They use genuine native code and a writable owned fixture. The capture component itself does not write source rows.
+
+Cleanup removed 55 owned schemas, two runtime users, its reader, all 25 worker directories and its paired image service, with zero live workers, remaining directories or cleanup failures. See the [sanitized acceptance](evidence/recovery-api-214-720/acceptance.json) and [runtime source manifest](evidence/recovery-api-214-720/reviewed-source.json). Private original receipts are retained separately by content hash.
+
+A later documentation-only commit publishes this summary; it is not a new runtime execution. The source manifest preserves the original checkpoint hashes. Native Conduit method authentication is not HTTP gateway proof, and OAuth-server producer tests do not prove the complete external OAuth protocol or every provider/consumer. Hosted exact-head CI remains a separate gate.
+
+All 13 aggregate recovery families remain incomplete, including the API family. No restoration permit, production route, feature activation, global revocation, deployment or native permission change is added. Full recovery remains blocked until its actual missing source families, producers and consistency boundaries are implemented and proven.
