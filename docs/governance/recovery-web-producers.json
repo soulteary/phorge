@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "base": "361f5b50781e70f89816b502af100927ce42dfda",
+  "scope": "static producer inventory for a partial read-only account credential capture",
+  "producer_closure_complete": false,
+  "all_sources_complete": false,
+  "can_execute": false,
+  "direct_resource_kinds": [
+    "login:onetime",
+    "login:password",
+    "mfa.sync"
+  ],
+  "uncovered": [
+    "external-identity sessions",
+    "provider-namespaced OAuth1 handshake resources",
+    "email/contact and one-time-key-hash associations",
+    "legacy/unassociated/unknown temporary rows",
+    "unfenced insert-delete ABA and future producers",
+    "plugins and restore lineage"
+  ],
+  "sources": [
+    {
+      "id": "session-dao",
+      "path": "src/applications/auth/storage/PhabricatorAuthSession.php",
+      "sha256": "b03587dfbfe950d049545b0e034d8bca2e7b719550ab40256194d8300acf1c38",
+      "meaning": "user.phabricator_session; web/conduit, partial and high-security timestamps",
+      "runtime_verified": false
+    },
+    {
+      "id": "session-producer",
+      "path": "src/applications/auth/engine/PhabricatorAuthSessionEngine.php",
+      "sha256": "81372aff5539c88d79d3a0f91af409b75fed91432eb137f65ae0621d3efb97ef",
+      "meaning": "establishSession / logoutSession / terminateLoginSessions / session upgrade; getOneTimeLoginURI",
+      "runtime_verified": false
+    },
+    {
+      "id": "session-gc",
+      "path": "src/applications/auth/garbagecollector/PhabricatorAuthSessionGarbageCollector.php",
+      "sha256": "c65543893525306b574ac04202db0ab4432061f3f8480d72b448c2a0cf16279e",
+      "meaning": "expired row deletion",
+      "runtime_verified": false
+    },
+    {
+      "id": "temporary-dao",
+      "path": "src/applications/auth/storage/PhabricatorAuthTemporaryToken.php",
+      "sha256": "ed5a60fe3a6650037a50b6911086992014f5bb673b8bddcc669ab6d224074e87",
+      "meaning": "auth.auth_temporarytoken; nullable owner and non-PHID resource; per-token revokeToken",
+      "runtime_verified": false
+    },
+    {
+      "id": "password-token-producer",
+      "path": "src/applications/auth/controller/PhabricatorAuthOneTimeLoginController.php",
+      "sha256": "3f17c330662b499d180992ac8df292f2c84e43e9d1d710e7f783c12e75de26ef",
+      "meaning": "login:password creation after successful one-time login",
+      "runtime_verified": false
+    },
+    {
+      "id": "mfa-token-producer",
+      "path": "src/applications/auth/factor/PhabricatorAuthFactor.php",
+      "sha256": "733ba38092a0c557e8b0a72b806fcf83c2d1ca9706494e6b8ce789e043a61761",
+      "meaning": "mfa.sync USER-resource token; properties remain opaque",
+      "runtime_verified": false
+    },
+    {
+      "id": "oauth1-token-producer",
+      "path": "src/applications/auth/provider/PhabricatorOAuth1AuthProvider.php",
+      "sha256": "4ac04889a61404cb73f27b80b6df4a8cf4409d941d84dd6fcc90fb1f3c3aec0f",
+      "meaning": "oauth1:request:secret:<provider-id>; arbitrary handshake resource, not an account association",
+      "runtime_verified": false
+    },
+    {
+      "id": "temporary-revoker",
+      "path": "src/applications/auth/revoker/PhabricatorAuthTemporaryTokenRevoker.php",
+      "sha256": "f7b683260d44c572a023cb8202f1ac5e56fb084d5734d94d5823e8836e56eab4",
+      "meaning": "global/object deletion exists natively; capture never invokes it",
+      "runtime_verified": false
+    },
+    {
+      "id": "temporary-gc",
+      "path": "src/applications/auth/garbagecollector/PhabricatorAuthTemporaryTokenGarbageCollector.php",
+      "sha256": "4f6458cbee38073492cce09620139d1dd2d4deebed50b2c1cc2ca3f1148fad06",
+      "meaning": "expired row deletion",
+      "runtime_verified": false
+    }
+  ]
+}

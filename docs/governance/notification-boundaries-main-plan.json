@@ -1,11 +1,11 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 3,
-  "base": "eafc8ee9c989cb2f17d6c20c23f8a958bc14af29",
-  "status": "real-child-native-mail-queue-profile-host-prepared-runtime-unproven",
+  "version": 4,
+  "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
+  "status": "current-main98-project-native-description-and-real-child-queue-host-prepared-runtime-unproven",
   "new_runtime_obligation_not_actual": {
-    "pure": 207,
-    "native_sql": 717,
+    "pure": 215,
+    "native_sql": 740,
     "registered_native_workers": 25,
     "additional_locally_owned_business_php_processes": 10
   },
@@ -50,14 +50,14 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual207/717 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual215/740 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh207/717 proof and exact runtime/source match remain required",
-    "Physical CI must use the207 registered pure methods; final-head runtime evidence remains mandatory."
+    "Current main96 is explicitly merged; fresh215/740 proof and exact runtime/source match remain required",
+    "Physical CI must use the215 registered pure methods; final-head runtime evidence remains mandatory."
   ],
   "historical_stronger_component": {
     "pure": 202,
@@ -68,13 +68,14 @@
     "runtime_passed": false
   },
   "current_main_union": {
-    "retained_main_SQL": 677,
+    "retained_main_SQL": 700,
     "added_Legalpad_and_business_SQL": 40,
     "removed_main_SQL": 0,
-    "source_registered_pure_methods": 207,
+    "source_registered_pure_methods": 215,
     "current_runtime_passed": false,
     "production_Legalpad_hardening_included": true,
-    "core_size_and_invitation_fixes_preserved": true
+    "core_size_and_invitation_fixes_preserved": true,
+    "recovery_source_observations": "Retain all main98 account/web source capture code and mandatory evidence; all-source recovery and execution remain false."
   },
   "production_change_scope": "Existing explicitly approved Legalpad endpoint hardening plus its mail policy binding, integrated with current main; strengthened race/publication additions remain test-only.",
   "historical_component_evidence": {
