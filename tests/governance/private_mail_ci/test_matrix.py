@@ -51,3 +51,19 @@ class FaultManifestTests(unittest.TestCase):
         del self.value['allow_mock']; self.save(); self.manifest.chmod(0o644)
         with self.assertRaisesRegex(ValueError, 'private_file_scope_refused'):
             load_fault_manifest(self.manifest, self.config)
+
+
+class HostedMatrixCountsTests(unittest.TestCase):
+    def test_missing_invite_case_bool_or_stale_count_cannot_pass(self):
+        from run_hosted import validate_matrix_counts
+        good = {'security_cases_passed': 16, 'large_security_cases_passed': 4,
+                'invite_capability_cases_passed': 2, 'check_count': 180,
+                'checks': ['actual-check-' + str(i) for i in range(180)]}
+        validate_matrix_counts(good)
+        for key, value in [('invite_capability_cases_passed', True), ('invite_capability_cases_passed', 0),
+                           ('security_cases_passed', 15), ('large_security_cases_passed', 3),
+                           ('check_count', 168), ('checks', good['checks'][:-1]),
+                           ('checks', ['duplicate'] * 180)]:
+            bad = dict(good); bad[key] = value
+            with self.subTest(key=key, value_type=type(value).__name__), self.assertRaises(RuntimeError):
+                validate_matrix_counts(bad)

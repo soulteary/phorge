@@ -278,6 +278,31 @@ def run_matrix(config, fault_manifest):
          decisions=observations()[before_calls:];check(len(decisions)==1 and decisions[0].get('http_status')==200 and decisions[0].get('native_json_valid')is True and decisions[0].get('native_allowed')is False,'security-'+case+'-observed-real-native-denial')
          check(result['status']==200 and json.loads(result['body'])['data']['state']=='failed'and captured()['total']==count,'security-'+case+'-current-source-refuses-smtp')
         state['security_physical_candidate_cases_passed']=16;state['security_flow_matrix_complete']=False
+        # Distinct additive native capability profile; never included in16.
+        invite=ready['invite_capability_snapshots']
+        check(set(invite)=={'invite-capability-allow','invite-capability-revoke'},'invite-capability-two-fixed-native-snapshots')
+        grant=native_control('security-grant-invite-capability','invite-capability-allow')
+        check(json.loads(grant.stdout).get('passed')is True,'invite-capability-fixed-native-grant-after-original-sixteen-cases')
+        for case in ('invite-capability-allow','invite-capability-revoke'):
+         snap=invite[case];before=captured();count=before['total']
+         check(request(origin+'/api/mailer/prepare','POST',snap,headers)['status']==200,'security-'+case+'-actual-snapshot-prepared')
+         if case.endswith('revoke'):
+          mutation=native_control('security-revoke-invite-capability',case)
+          check(json.loads(mutation.stdout).get('passed')is True,'security-'+case+'-native-app-capability-revoked')
+         before_calls=len(observations());result=request(origin+'/api/mailer/execute','POST',{'deliveryID':snap['deliveryID'],'allowSend':True},headers)
+         decisions=observations()[before_calls:];allowed=case.endswith('allow')
+         check(len(decisions)==1 and decisions[0].get('http_status')==200 and decisions[0].get('native_json_valid')is True and decisions[0].get('native_allowed')is allowed,'security-'+case+'-fresh-native-capability-decision')
+         check(result['status']==200 and json.loads(result['body'])['data']['state']==('accepted'if allowed else'failed') and captured()['total']==count+(1 if allowed else 0),'security-'+case+'-exact-smtp-count')
+         if allowed:
+          new_ids={x['id']for x in captured()['emails']}-{x['id']for x in before['emails']}
+          check(len(new_ids)==1,'security-'+case+'-exactly-one-capture')
+          raw=request(ready['capture_uri']+'/api/v1/emails/'+quote(next(iter(new_ids)),safe='')+'/raw',headers=capture_headers)
+          msg=BytesParser(policy=policy.default).parsebytes(raw['body']);parts=list(msg.walk());texts=[p.get_payload(decode=True).decode(p.get_content_charset()or'utf-8')for p in parts if p.get_content_type()=='text/plain']
+          actual_to=[address for _,address in getaddresses(msg.get_all('To',[]))];actual_cc=[address for _,address in getaddresses(msg.get_all('Cc',[]))]
+          check(raw['status']==200 and str(msg['Subject'])==snap['message']['subject'] and len(texts)==1 and canonical_text(texts[0])==canonical_text(snap['message']['textBody']) and '/auth/invite/'in texts[0] and actual_to==[entry['address']for entry in snap['message'].get('to',[])] and actual_cc==[entry['address']for entry in snap['message'].get('cc',[])] and msg.get_all('Bcc')is None and all(p.get_content_type()!='text/html'and p.get_filename()is None for p in parts),'security-'+case+'-native-challenge-mime-exact')
+          count_after=captured()['total'];replay=request(origin+'/api/mailer/execute','POST',{'deliveryID':snap['deliveryID'],'allowSend':True},headers)
+          check(replay['status']==200 and json.loads(replay['body'])['data']['state']=='accepted'and captured()['total']==count_after,'security-'+case+'-accepted-replay-does-not-resend')
+        state['invite_capability_physical_cases_passed']=2
         # Separate exact native producers retain payloads beyond the former64KiB
         # ceiling. They are not synthesized from the smaller security snapshots.
         large = ready['large_security_snapshots']
@@ -363,6 +388,7 @@ def run_matrix(config, fault_manifest):
       'gorge_revision': config['gorge_revision'], 'binary_sha256': {k:v['sha256'] for k,v in config['binaries'].items()},
       'fault_binary_sha256': fault_manifest['sha256'], 'security_cases_passed': state.get('security_physical_candidate_cases_passed', 0),
       'large_security_cases_passed': state.get('large_security_cases_passed', 0),
+      'invite_capability_cases_passed': state.get('invite_capability_physical_cases_passed', 0),
       'browser_proof': False, 'public_ports': 0, 'deployment': False,
       'portable_runtime_executed': True, 'full_matrix_business_assertions_passed': passed}
 

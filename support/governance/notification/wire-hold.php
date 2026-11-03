@@ -67,7 +67,7 @@ function governance_private_mail_wire_hold($fixture,callable $check){
       'file_uri'=>PhabricatorEnv::getEnvConfig('gorge.file.uri'),'file_token'=>PhabricatorEnv::getEnvConfig('gorge.file.token'));
     $write('router.json',$config);$write('control.json',array('owner'=>$owner,'targets'=>$targets,'recipient_phid'=>$users['recipient']->getPHID(),'security_targets'=>$security['targets']));
     $write('ready.json',array('scope'=>'private-owned-native-mail-physical-fixture','owner'=>$owner,'snapshots'=>$snapshots,
-      'large_security_snapshots'=>$security['large_snapshots'],'security_snapshots'=>$security['snapshots'],'security_scope'=>$security['public_summary'],
+      'invite_capability_snapshots'=>$security['invite_snapshots'],'large_security_snapshots'=>$security['large_snapshots'],'security_snapshots'=>$security['snapshots'],'security_scope'=>$security['public_summary'],
       'mailer_database'=>$mailer_config,'callback_origin'=>$callback_origin,'smtp_port'=>$sink['smtp_port'],
       'capture_uri'=>$sink['uri'],'capture_authorization'=>$sink['authorization'],'capture_binary_sha256'=>$sink['binary_sha256'],
       'native_permission_model_changed'=>false,'real_delivery_proved_by_preparation'=>false));
