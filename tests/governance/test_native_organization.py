@@ -49,6 +49,18 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_api_capture_cannot_omit_native_sources_or_claim_recovery_permission(self):
+        self.assertEqual(15,len(gate.RECOVERY_API_CHECKS))
+        self.assertEqual(len(gate.REQUIRED_CHECKS),validate(template(),file_digest='b'*64)['check_count'])
+        for name in gate.RECOVERY_API_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(obligation=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for name in ('api_family_complete','all_sources_complete','can_execute','source_writes_by_capture'):
+            data=template();data['native']['recovery_api_capture_tests'][name]=True
+            with self.subTest(claim=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        data=template();data['native']['recovery_api_capture_tests']['actual_legacy_certificate_authentication']=1
+        with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
 
     def test_recovery_web_partial_observations_cannot_approve_credentials(self):
         self.assertEqual(13,len(gate.RECOVERY_WEB_CHECKS))
@@ -317,7 +329,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),710)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),725)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
