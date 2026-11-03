@@ -183,3 +183,39 @@ SQL assertions,202 expected native methods and25 worker cleanups. No component
 source. Both full-native and private-notification evidence CLI entrypoints
 receive the externally selected current source revision; neither infers it
 from a receipt. All private-mail and physical-wire obligations remain intact.
+
+## Separate real Conduit HTTP successor (unrun)
+
+This branch preserves signed `2c268013e7fa299888bf722cc5bf2823d13c75ab`
+unchanged. Two new test-only files run three separately started PHP loopback
+HTTP servers, each with a fresh native bootstrap and real SiteMap/controller
+processing for `POST /api/user.whoami`. Standard Conduit token metadata travels
+in an actual form-encoded request. No reflection, preassigned viewer or direct
+method execution substitutes for that HTTP route. A private readiness route
+binds the actual Linux boot-clock hash, source revision and router digest; it
+returns no account or credential information.
+
+The parent creates one ephemeral token, observes successful HTTP authentication,
+then performs its own native DAO deletion and commit. Two new server processes
+must return the native `ERR-INVALID-AUTH` response with independently checked
+current row absence. A separate real malformed-parameter request must return
+`ERR-CONDUIT-CALL`; this is an unknown/non-authentication outcome, never a denial
+sample. Transport errors, malformed JSON, redirects or unexpected status codes
+cannot prove authentication denial. Raw native error text, tokens, user data
+and response bodies remain private/in memory and are not measurement output.
+
+Schema3 intentionally distinguishes this HTTP profile from schema2's method-only
+profile. The operation boundary remains a conservative parent monotonic
+call/confirmed-commit-return bracket; observations include process startup,
+HTTP and teardown overhead. No SQL COMMIT-wire instrumentation, gateway,
+long-connection, global revocation SLA or stable convergence is claimed.
+
+The strict union adds six literal SQL obligations to the frozen202/687 base:
+expected202 pure methods /693 SQL assertions /25 registered workers, plus three
+explicitly local HTTP server processes and private directories. Those local
+processes do not inflate the global worker registry. The server handles only
+fixed readiness and whoami paths, requires actual owned database grants/marker,
+rejects cookie/proxy authentication paths, and never becomes a production route.
+Each local process is terminated/reaped before its private, identity-checked
+folder is removed. Any cleanup uncertainty fails the full fixture. No current
+PHP-supported-runtime, SQL or HTTP execution has run for this successor.

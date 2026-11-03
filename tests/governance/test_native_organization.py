@@ -284,7 +284,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),687)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),693)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -321,3 +321,21 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
         data=template();data['native']['api_token_revocation_measurement_tests']['event']['producer_sha256']='f'*64
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+
+class NativeHTTPMeasurementGateTest(unittest.TestCase):
+    def test_six_real_HTTP_obligations_and_local_cleanup_are_required(self):
+        self.assertEqual(6,len(gate.HTTP_MEASUREMENT_CHECKS))
+        for name in gate.HTTP_MEASUREMENT_CHECKS:
+            value=template();value['checks'].remove(name);value['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
+        for key,item in [('stopped',2),('directories_removed',True),('remaining',1),('live',1)]:
+            value=template();value['native']['conduit_HTTP_revocation_measurement_tests']['server_cleanup'][key]=item
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
+
+    def test_unknown_HTTP_or_missing_router_source_cannot_prove_denial(self):
+        for key,item in [('gateway_proved',True),('HTTP_proved',False),('actual_HTTP_requests',True),('router_sha256','f'*64)]:
+            value=template();value['native']['conduit_HTTP_revocation_measurement_tests'][key]=item
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
+        value=template();value['native']['conduit_HTTP_revocation_measurement_tests']['event']['attempts'][1]['outcome']='unknown'
+        with self.assertRaises(ValueError):validate(value,file_digest='b'*64)
