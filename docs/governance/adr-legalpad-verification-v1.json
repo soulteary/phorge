@@ -1,0 +1,76 @@
+{
+  "adr": "LEGALPAD-VERIFICATION-001",
+  "version": 1,
+  "status": "isolated-native-boundary-and-concurrent-consumption-verified-further-acceptance-required",
+  "confirmed_on": "2026-11-03",
+  "user_confirmed_direction": {
+    "verification_requires_login": true,
+    "verification_requires_stored_signer_account_match": true,
+    "verification_requires_current_document_view": true,
+    "disabled_account_denied": true,
+    "revoked_document_access_denied": true,
+    "explicit_native_semantic_change_scope": "Legalpad signature verification endpoint only"
+  },
+  "not_authorized_by_inference": [
+    "Changing the four native project permission axes",
+    "Changing unrelated anonymous endpoints or the native permission to create an anonymous signature record",
+    "Associating a legacy anonymous signature with an account solely by matching an email address",
+    "Changing corporate signerPHID to synthesize an individual signer",
+    "Production activation, deployment, new domains or online permission migration"
+  ],
+  "implementation_profile": {
+    "activation": "existing governance.private-mail.enabled option; default false",
+    "verification_get": "Authenticate the actual full native session, match immutable stored signer account, check current native document VIEW before returning document or signer metadata.",
+    "verification_post": "Actual native CSRF plus current session/account, stored actor, owned verified contact, current document version/VIEW and exact one-use secret; transactional compare-and-set and final source recheck.",
+    "individual_actor": "stored signerPHID",
+    "corporate_actor": "stored signatureData.actorPHID; signerPHID remains null",
+    "email_provenance": "A currently verified native UserEmail row owned by the immutable signer account; verified secondary aliases are supported. Current primary status is not required and form contacts are not silently rewritten.",
+    "notification": "Generic challenge text without document title, terms or signer name; exact source/recipient/contact and current document VIEW rechecked at each egress authorization.",
+    "unknown_or_third_party_contact": "No verification email is sent. Existing native anonymous signature-record semantics remain; the UI explicitly reports unsupported verification rather than claiming mail success."
+  },
+  "compatibility": [
+    "A legacy individual signature with no signerPHID or corporate signature with no stored actor cannot satisfy immutable-account matching and its verification link is rejected when the candidate is enabled.",
+    "No legacy row is adopted by email lookup, backfilled, deleted, re-signed or migrated.",
+    "Existing verified records remain unchanged. Repeated authorized verification does not perform another state transition.",
+    "Native anonymous signing and other public endpoint permissions are retained. An unbound anonymous record may remain unverified because the explicitly tightened verification endpoint cannot safely identify its signer.",
+    "When the candidate is disabled, the original native signing and verification paths remain. The selected tightened semantics are not claimed to be active online."
+  ],
+  "source_consistency": {
+    "profile": "actual configured single MySQL primary, native People session source, same-primary Legalpad tables, InnoDB and owned transaction",
+    "direct_sources": "Current native account/session plus signature and document rows are locked; actual viewer DocumentQuery is used, never Omnipotent for document permission.",
+    "native_policy_boundary": "Application and transitive custom-policy dependencies are queried again before commit. This is not a claim of an atomic closure over every policy, project or plugin source.",
+    "get_write_guard": "Only identity metadata initialization and explicit transaction bookkeeping use scoped unguarded writes; native policy/application queries run after guard restoration.",
+    "fresh_document_queries": "Each permission check uses a new actual viewer LegalpadDocumentQuery and private request cache restored in finally. Final consumption repeats this query.",
+    "transitive_boundary": "Project membership/materialized edges and named-policy sources are freshly queried but not all locked. Last permission query to commit retains the accepted native request revocation boundary; no global atomic closure is claimed.",
+    "spaces_boundary": "LegalpadDocument does not implement PhabricatorSpacesInterface. No document Space ACL is invented; native request-global Spaces entry remains unchanged."
+  },
+  "runtime_status": {
+    "php": "8.5.12",
+    "pure_methods_passed": 157,
+    "native_sql_checks_passed": 369,
+    "source_files_exact": 7465,
+    "wire_browser_smtp_legalpad_proven": false
+  },
+  "remaining_acceptance": [
+    "Independent in-flight secret rotation",
+    "Actual Project/named-policy revocation profile and native request-boundary acceptance",
+    "Physical native-to-Gorge-to-SMTP Legalpad challenge matrix",
+    "Latest-main integration, strict source/CI catalog and trusted browser acceptance"
+  ],
+  "production_optional_features_enabled": false,
+  "production_deployment": false,
+  "new_public_domains": false,
+  "native_permission_axes_changed": false,
+  "verified_acceptance": [
+    "Actual native corporate signing by ordinary non-admin actor with verified secondary contact",
+    "Account-switch and anonymous metadata refusal",
+    "Direct document VIEW revocation and disabled-account refusal",
+    "Native CSRF and secret rotation refusal",
+    "One-use CAS and sequential authorized repeat",
+    "Owned source restoration, cleanup and runtime source hash binding",
+    "Actual contact-unverified, version-change, historical-unbound-actor and mismatched-contact refusal",
+    "Actual MyISAM metadata rejection, SIGNAL1644 marker and transactional UPDATE rollback",
+    "Native logout/session deletion refusal and fresh-session positive contrast",
+    "Two independent PHP processes with two actual lock waiters, exactly one consumption UPDATE and second already-verified observation"
+  ]
+}

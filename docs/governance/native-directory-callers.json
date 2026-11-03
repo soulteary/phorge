@@ -682,7 +682,7 @@
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
       "symbol": "PhorgePrivateMailPolicy",
       "kind": "current-recipient-private-email-policy",
-      "sha256": "cc5a2f49840929b72a698202f448c4f2511c9ab3b8a89a964b2104dc4a274ecb",
+      "sha256": "1e5bd196f1280c7d526f694723addc6ecb713209d0fccc2fbdaa431c772e2206",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -693,7 +693,7 @@
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
       "symbol": "PhorgePrivateMailConfigOptions",
       "kind": "default-off-private-email-configuration",
-      "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1",
+      "sha256": "79a3b2df1ab7b37ece283ec47903f7a24b33d1ffe0d6015197be8b8ea8d9e656",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -914,6 +914,39 @@
       "symbol": "PhorgeRecoveryNativeAPIFacts",
       "kind": "untrusted-api-storage-decoder-no-recovery-authority",
       "sha256": "3d111c0e2ee777c7a4db78fddb5b6b4ef2bf62fe3c6eda9851292e085ee880e0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "LEGALPAD.VERIFY.CONTROLLER",
+      "path": "src/applications/legalpad/controller/LegalpadDocumentSignatureVerificationController.php",
+      "symbol": "LegalpadDocumentSignatureVerificationController",
+      "kind": "current-signer-verification-entry",
+      "sha256": "89a953c6f297575dc03d3c0f41c069f07ad37179922a306be415fe4e4f543950",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "LEGALPAD.SIGN.CONTROLLER",
+      "path": "src/applications/legalpad/controller/LegalpadDocumentSignController.php",
+      "symbol": "LegalpadDocumentSignController",
+      "kind": "native-signature-and-verification-mail-entry",
+      "sha256": "64179806b25e367c9ff4bef210a8a680e7b01dcc495515cb6d31f97e824d73de",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeLegalpadVerification",
+      "path": "src/applications/legalpad/governance/PhorgeLegalpadVerification.php",
+      "symbol": "PhorgeLegalpadVerification",
+      "kind": "current-session-signer-and-document-policy-check",
+      "sha256": "d735e7bb6a0467e33f713be9ff30630cdd693dfe1f0844e7a22e71ddbbfb6120",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1403,6 +1436,46 @@
     },
     {
       "id": "NATIVE-LINK-61",
+      "from_id": "LEGALPAD.VERIFY.CONTROLLER",
+      "to_id": "NATIVE.PhorgeLegalpadVerification",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed current-account/signature/document verification source reference; no credential, object authorization, concurrency or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-62",
+      "from_id": "NATIVE.PhorgeLegalpadVerification",
+      "to_id": "AUTH.USER.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed current-account/signature/document verification source reference; no credential, object authorization, concurrency or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-63",
+      "from_id": "NATIVE.PhorgeLegalpadVerification",
+      "to_id": "AUTH.SESSION.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed current-account/signature/document verification source reference; no credential, object authorization, concurrency or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-64",
+      "from_id": "LEGALPAD.SIGN.CONTROLLER",
+      "to_id": "NATIVE.PhorgePrivateMailPolicy",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed current-account/signature/document verification source reference; no credential, object authorization, concurrency or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-65",
+      "from_id": "NATIVE.PhorgePrivateMailPolicy",
+      "to_id": "NATIVE.PhorgeLegalpadVerification",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed current-account/signature/document verification source reference; no credential, object authorization, concurrency or activation proof."
+    },
+    {
+      "id": "NATIVE-LINK-66",
       "from_id": "RECOVERY.PhorgeRecoveryStopService",
       "to_id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
       "kind": "static-source-reference",
@@ -1410,7 +1483,7 @@
       "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
     },
     {
-      "id": "NATIVE-LINK-62",
+      "id": "NATIVE-LINK-67",
       "from_id": "RECOVERY.PhorgeRecoveryStopService",
       "to_id": "AUTH.USER.DAO",
       "kind": "static-source-reference",
@@ -1418,7 +1491,7 @@
       "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
     },
     {
-      "id": "NATIVE-LINK-63",
+      "id": "NATIVE-LINK-68",
       "from_id": "RECOVERY.PhorgeRecoveryStopService",
       "to_id": "RECOVERY.NATIVE.USER.TRANSACTION",
       "kind": "static-source-reference",
@@ -1426,7 +1499,7 @@
       "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
     },
     {
-      "id": "NATIVE-LINK-64",
+      "id": "NATIVE-LINK-69",
       "from_id": "RECOVERY.PhorgeRecoveryStopService",
       "to_id": "RECOVERY.NATIVE.DISABLE.TYPE",
       "kind": "static-source-reference",
@@ -1434,7 +1507,7 @@
       "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
     },
     {
-      "id": "NATIVE-LINK-65",
+      "id": "NATIVE-LINK-70",
       "from_id": "RECOVERY.PhorgeRecoveryStopService",
       "to_id": "RECOVERY.PhorgeRecoveryStopRequest",
       "kind": "static-source-reference",
@@ -1442,7 +1515,7 @@
       "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
     },
     {
-      "id": "NATIVE-LINK-66",
+      "id": "NATIVE-LINK-71",
       "from_id": "RECOVERY.PhorgeRecoveryStopService",
       "to_id": "RECOVERY.PhorgeRecoveryStop",
       "kind": "static-source-reference",
@@ -1452,6 +1525,14 @@
   ],
   "scan": {
     "files": [
+      {
+        "path": "src/applications/legalpad/governance/PhorgeLegalpadVerification.php",
+        "sha256": "d735e7bb6a0467e33f713be9ff30630cdd693dfe1f0844e7a22e71ddbbfb6120"
+      },
+      {
+        "path": "src/applications/legalpad/governance/PhorgeLegalpadVerificationException.php",
+        "sha256": "edc0c27fcaa23a13e176d8e3c1d2ea0e9de59d74ae70e63c4a22ef73d7cca604"
+      },
       {
         "path": "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php",
         "sha256": "40f36aaf332546b219cc5dae691f6fc091796d4ad40d30154fc4cdd2a32ed756"
@@ -1730,11 +1811,11 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
-        "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1"
+        "sha256": "79a3b2df1ab7b37ece283ec47903f7a24b33d1ffe0d6015197be8b8ea8d9e656"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-        "sha256": "cc5a2f49840929b72a698202f448c4f2511c9ab3b8a89a964b2104dc4a274ecb"
+        "sha256": "1e5bd196f1280c7d526f694723addc6ecb713209d0fccc2fbdaa431c772e2206"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php",

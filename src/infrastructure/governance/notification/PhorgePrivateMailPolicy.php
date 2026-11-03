@@ -17,7 +17,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
   }
   public static function purpose(PhabricatorMetaMTAMail $mail){
     $producer=$mail->getPrivateMailPolicyValue('governance.mail-producer');
-    if($producer==='LegalpadDocumentSignController'){return 'unsupported-signature';}
+    if($producer==='LegalpadDocumentSignController'&&$mail->getPrivateMailPolicyValue('governance.mail-flow')!=='legalpad.signature'){return 'unsupported-signature';}
     if($producer==='PhabricatorAuthRegisterController' ||
       ($producer==='PhabricatorUserApproveTransaction'&&$mail->getPrivateMailPolicyValue('governance.mail-flow')==='account.approved.admin')){return 'admin-notice';}
     return self::classify($producer);
@@ -113,7 +113,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
     'account.approved.owner'=>'PhabricatorUserApproveTransaction',
     'account.approved.admin'=>'PhabricatorUserApproveTransaction',
     'account.invite'=>'PhabricatorAuthInviteWorker',
-    'account.ssh'=>'PhabricatorAuthSSHKeyEditor');}
+    'account.ssh'=>'PhabricatorAuthSSHKeyEditor','legalpad.signature'=>'LegalpadDocumentSignController');}
   public static function validateFlow(PhabricatorMetaMTAMail $mail,$flow,array $binding){
     $catalog=self::flowCatalog();
     if(!is_string($flow)||!isset($catalog[$flow])||$catalog[$flow]!==$mail->getPrivateMailPolicyValue('governance.mail-producer')){
@@ -132,7 +132,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
     if($flow!=='account.invite'&&($binding['recipient']===null||$binding['email']===null)){throw new InvalidArgumentException('private_mail_flow_destination_required');}
     if(!in_array($flow,array('account.invite','account.approval.queue','account.approved.admin'),true)&&$binding['subject']!==$binding['recipient']){throw new InvalidArgumentException('private_mail_flow_owner_required');}
     if(in_array($flow,array('account.approval.queue','account.approved.admin'),true)&&$binding['admin']!==$binding['recipient']){throw new InvalidArgumentException('private_mail_flow_admin_destination_required');}
-    if(in_array($flow,array('account.username','account.approved.owner','account.approved.admin','account.email.verify','account.invite'),true)&&($binding['source']===null||$binding['source_hash']===null)){throw new InvalidArgumentException('private_mail_flow_source_required');}
+    if(in_array($flow,array('account.username','account.approved.owner','account.approved.admin','account.email.verify','account.invite','legalpad.signature'),true)&&($binding['source']===null||$binding['source_hash']===null)){throw new InvalidArgumentException('private_mail_flow_source_required');}
     if($flow==='account.ssh'&&$binding['source']===null){throw new InvalidArgumentException('private_mail_flow_source_required');}
     if($flow==='account.email.verify'&&$binding['source']!==$binding['email']){throw new InvalidArgumentException('private_mail_flow_email_source_refused');}
   }
@@ -237,6 +237,15 @@ final class PhorgePrivateMailPolicy extends Phobject {
     if($flow==='account.ssh'){
       $key=(new PhabricatorAuthSSHKey())->loadOneWhere('BINARY phid=BINARY %s',$binding['source']);
       if(!$key||$key->getPHID()!==$binding['source']||$key->getObjectPHID()!==$subject->getPHID()){return false;}
+    }
+    if($flow==='legalpad.signature'){
+      if(!$subject->getIsApproved()||!in_array($email->getIsVerified(),array(1,'1',true),true)||
+        !hash_equals($binding['account_hash'],self::accountHash($subject))){return false;}
+      $signature=(new LegalpadDocumentSignature())->loadOneWhere('BINARY phid=BINARY %s',$binding['source']);
+      if(!$signature||$signature->getPHID()!==$binding['source']){return false;}
+      try{$hash=PhorgeLegalpadVerification::mailSource($signature,$subject);}
+      catch(PhorgeLegalpadVerificationException$error){return false;}
+      if(!hash_equals($binding['source_hash'],$hash)||$signature->getSignerEmail()!==$email->getAddress()){return false;}
     }
     if($event_missing){return self::deferMissingUserEvent($mail);}
     return true;

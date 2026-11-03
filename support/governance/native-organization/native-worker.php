@@ -102,7 +102,7 @@ try {
     'phabricator.cache-namespace'=>$config['namespace'],'cluster.databases'=>array(),'cluster.search'=>array(),
     'phabricator.base-uri'=>'http://fixture.invalid/','phabricator.silent'=>false,'policy.allow-public'=>false,
     'governance.recovery-stop-ledger.enabled'=>in_array(($payload['action']['action']??null),array('recovery.stop.record','recovery.stop.history'),true),
-    'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
+    'governance.private-mail.enabled'=>in_array(($payload['action']['action']??null),array('legalpad.verify','legalpad.observe'),true),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
     'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
     'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
@@ -154,6 +154,34 @@ try {
     }else{
       $rows=PhorgeRecoveryStopService::history($context,$action['subject'],'0',1);
       $result=array('status'=>'committed','count'=>count($rows));
+    }
+  }else if($kind==='legalpad.verify'||$kind==='legalpad.observe'){
+    $keys=array_keys($action);sort($keys);
+    $expected_keys=$kind==='legalpad.observe'?array('action','code','signature_id','token'):array('action','code','token');
+    if($keys!==$expected_keys||($kind==='legalpad.observe'&&(!is_int($action['signature_id'])||$action['signature_id']<1))||!is_string($action['token'])||strlen($action['token'])>256||
+      !is_string($action['code'])||!preg_match('/\A[a-z2-7]{20}\z/D',$action['code'])){throw new RuntimeException('native_worker_action_refused');}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer){throw new RuntimeException('governance_web_credential_required');}
+    $_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
+    $request=(new AphrontRequest('fixture.invalid','/legalpad/verify/'.$action['code'].'/'))->setUser($viewer)
+      ->setRequestData(array('__form__'=>true,AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));
+    $request->validateCSRF();
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    if($kind==='legalpad.verify'){
+      $receipt=PhorgeLegalpadVerification::inspect($request,$action['code'],true);
+      $result=array('status'=>'committed','already_verified'=>$receipt['already_verified'],'verified'=>$receipt['verified']);
+    }else{
+      $signature=(new LegalpadDocumentSignature())->load($action['signature_id']);
+      if(!$signature||!hash_equals($signature->getSecretKey(),$action['code'])){throw new RuntimeException('native_legalpad_observation_target_refused');}
+      $mails=new PhabricatorMetaMTAMail();$before=(int)queryfx_one($mails->establishConnection('r'),'SELECT COUNT(*) n FROM %R',$mails)['n'];
+      $outcome=null;$exception=null;
+      try{$receipt=PhorgeLegalpadVerification::inspect($request,$action['code'],true);$outcome=$receipt['already_verified']?'already-verified':'verified';}
+      catch(PhorgeLegalpadVerificationException$error){$outcome='source-refused';$exception=get_class($error);}
+      catch(AphrontDeadlockQueryException$error){$outcome='deadlock';$exception=get_class($error);}
+      $stored=(new LegalpadDocumentSignature())->load($action['signature_id']);
+      $after=(int)queryfx_one($mails->establishConnection('r'),'SELECT COUNT(*) n FROM %R',$mails)['n'];
+      $result=array('status'=>'observed','outcome'=>$outcome,'exception_class'=>$exception,'verified'=>$stored->isVerified(),
+        'transaction_open'=>$conn->isInsideTransaction(),'mail_delta'=>$after-$before);
     }
   }else if($kind==='measurement.api-token-auth'){
     $keys=array_keys($action);sort($keys);
@@ -274,7 +302,22 @@ try {
     $result=$allowed?array('status'=>'rejected','reason'=>$error->getMessage()):
       array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   }
+  if(($kind??null)==='legalpad.verify'&&get_class($error)===PhorgeLegalpadVerificationException::class){
+    $result=array('status'=>'rejected','reason'=>'governance_legalpad_verification_refused');
+  }
 } finally {
+  // Expose the result while the original native writer connection is still
+  // alive, so the parent can prove rollback released its locks before close.
+  try{
+    if(($kind??null)==='legalpad.observe'&&($result['status']??null)==='observed'){
+      governance_native_worker_atomic($path,'result.json',$result);$deadline=microtime(true)+15;$released=false;
+      do{$release=$path.'/observe-release';
+        if(is_file($release)&&!is_link($release)&&(fileperms($release)&0777)===0600&&filesize($release)===64&&
+          hash_equals($payload['owner_token'],file_get_contents($release))){$released=true;break;}usleep(20000);
+      }while(microtime(true)<$deadline);
+      if(!$released){$result=array('status'=>'failed','error_type'=>'RuntimeException','reason'=>'native_legalpad_observation_release_timeout');}
+    }
+  }catch(Throwable$error){$result=array('status'=>'failed','error_type'=>'RuntimeException','reason'=>'native_legalpad_observation_handshake_failed');}
   try {
     if (class_exists('LiskDAO',false)) {
       foreach ((new ReflectionProperty(LiskDAO::class,'connections'))->getValue() as $connection) {

@@ -1002,6 +1002,42 @@ NATIVE['private_mail_tests']['commit_race_tests'] = {
 }
 
 
+# The approved Legalpad endpoint candidate adds two independently exec-created
+# native web workers. Physical SMTP and configured-factor claims remain absent.
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-legalpad-actual-corporate-sign-controller-and-native-high-security-path-commits',
+ 'private-mail-legalpad-corporate-native-actor-remains-distinct-from-null-signer-and-verified-secondary-contact',
+ 'private-mail-legalpad-genuine-producer-binds-owned-verified-secondary-and-generic-challenge-without-private-document-content',
+ 'private-mail-legalpad-anonymous-and-switched-account-get-cannot-read-title-signer-or-email',
+ 'private-mail-legalpad-matching-native-session-and-current-view-can-read-verification-without-consuming',
+ 'private-mail-legalpad-real-csrf-failure-does-not-consume-signature',
+ 'private-mail-legalpad-current-document-view-revocation-denies-endpoint-and-queued-mail',
+ 'private-mail-legalpad-disabled-account-cannot-verify-or-authorize-queued-challenge',
+ 'private-mail-legalpad-native-secret-rotation-invalidates-old-link-and-immutable-old-mail',
+ 'private-mail-legalpad-current-contact-unverified-refuses-before-consuming',
+ 'private-mail-legalpad-current-document-version-change-refuses-old-signature',
+ 'private-mail-legalpad-legacy-unbound-corporate-row-not-adopted-by-owned-email',
+ 'private-mail-legalpad-signature-contact-data-mismatch-refuses',
+ 'private-mail-legalpad-actual-nontransactional-document-table-refused-without-signature-write',
+ 'private-mail-legalpad-real-update-fault-rolls-back-signature-and-closes-owned-transaction',
+ 'private-mail-legalpad-native-logout-old-cookie-cannot-consume',
+ 'private-mail-legalpad-two-independent-native-web-processes-actually-block-before-consumption',
+ 'private-mail-legalpad-concurrent-native-cas-consumes-once-second-observes-verified-without-extra-mail-or-worker',
+ 'private-mail-legalpad-after-concurrent-cas-sequential-repeat-keeps-state-and-corporate-null-signer'])
+NATIVE['private_mail_tests']['legalpad_tests'] = {
+    'actual_corporate_sign_and_verification_routes': True,
+    'verified_secondary_contact_supported': True,
+    'anonymous_raw_or_third_party_adoption_supported': False,
+    'current_view_and_identity_rechecked': True,
+    'configured_mfa_factor_proved': False,
+    'concurrent_process_verification_proved': True,
+    'concurrency': {'independent_php_processes': 2,
+                    'actual_same_source_lock_waiters': 2,
+                    'actual_consumption_updates': 1,
+                    'sequential_repeat_substituted_for_concurrency': False,
+                    'physical_smtp_proved': False},
+    'physical_smtp_legalpad_proved': False,
+}
+WORKERS = 21
 # Durable callback denials must not revive after a later regrant.
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-attempt-quarantine-persists-reload-with-immutable-snapshots',
  'private-mail-callback-and-direct-permanent-denial-quarantine-without-preparation',
@@ -1010,6 +1046,100 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-attempt-quarantine-
  'private-mail-primary-email-aba-cannot-revive-quarantined-callback-delivery',
  'private-mail-primary-email-policy-change-denied-at-callback-without-prepare',
  'private-mail-unprepared-authorization-probe-does-not-quarantine'])
+
+
+# Host-prepared successor obligations; a matching runtime receipt is mandatory.
+NOTIFICATION_BOUNDARY_CHECKS = frozenset(['private-business-project-normal-actual-publisher-current-source-and-isolated-native-recipient-envelopes',
+ 'private-business-project-outer-commit-actual-publisher-current-source-and-isolated-native-recipient-envelopes',
+ 'private-business-project-outer-commit-independent-actual-worker-before-outer-commit-missing-source-not-mail-quarantine',
+ 'private-business-project-outer-rollback-independent-actual-worker-before-outer-commit-missing-source-not-mail-quarantine',
+ 'private-business-project-outer-rollback-orphan-worker-cannot-create-mail',
+ 'private-business-task-normal-actual-publisher-current-source-and-isolated-native-recipient-envelopes',
+ 'private-business-task-normal-fanout-current-native-owner-automatic-and-revoked-subscriber-are-independent',
+ 'private-business-task-outer-commit-actual-publisher-current-source-and-isolated-native-recipient-envelopes',
+ 'private-business-task-outer-commit-fanout-current-native-owner-automatic-and-revoked-subscriber-are-independent',
+ 'private-business-task-outer-commit-independent-actual-worker-before-outer-commit-missing-source-not-mail-quarantine',
+ 'private-business-task-outer-rollback-independent-actual-worker-before-outer-commit-missing-source-not-mail-quarantine',
+ 'private-business-task-outer-rollback-orphan-worker-cannot-create-mail',
+ 'private-mail-legalpad-actual-named-effective-policy-change-rechecks-new-request-with-native-positive-controls',
+ 'private-mail-legalpad-actual-project-membership-policy-allows-current-signer-new-request',
+ 'private-mail-legalpad-before-first-signature-read-user-source-barrier-observes-committed-secret-and-refuses-old-code',
+ 'private-mail-legalpad-native-project-membership-revocation-denies-new-request-and-mail-source',
+ 'private-mail-legalpad-project-membership-restoration-is-real-native-positive-control',
+ 'private-mail-legalpad-real-inflight-version-change-after-independent-source-lock-wait-refuses-stale-consumption',
+ 'private-mail-legalpad-signature-index-race-follows-committed-rotation-or-observed-source-writer-rollback',
+ 'private-mail-legalpad-verifier-victim-rolls-back-and-releases-locks-before-connection-close-with-no-mail',
+ 'private-mail-legalpad-weighted-index-race-proves-actual-verifier-deadlock-victim-not-permission-denial'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | NOTIFICATION_BOUNDARY_CHECKS
+WORKERS = 38  # Root25 plus six N12 independent probes; local business subprocesses excluded.
+NATIVE['private_mail_tests']['legalpad_tests']['policy_source_tests'] = {'actual_named_effective_policy': True,
+ 'actual_project_membership_editor_and_materialized_source': True,
+ 'all_policy_sources_atomically_locked': False,
+ 'document_space_acl_invented': False,
+ 'new_request_revocation_checked': True}
+NATIVE['private_mail_tests']['legalpad_tests']['inflight_source_tests'] = {'actual_independent_source_mutation_cases': {'version': {'actual_lock_wait': True,
+                                                          'independent_process': True,
+                                                          'stale_consumption_refused': True}},
+ 'before_first_signature_read': {'current_code_get_positive': True,
+                                 'native_user_barrier': True,
+                                 'old_code_refused': True,
+                                 'source_rotation_committed': True},
+ 'document_space_acl_invented': False,
+ 'forced_verifier_victim': {'actual_engine_victim_proved': True,
+                            'heavier_source_transaction_proved': True,
+                            'automatic_consume_retry_used': False,
+                            'controller_http500_proved': False,
+                            'controller_tested': False,
+                            'exact_native_deadlock_exception': True,
+                            'locks_released_before_connection_close': True,
+                            'no_followup_mail': True,
+                            'source_rotation_committed': True,
+                            'unverified_after_rollback': True},
+ 'index_race': {'actual_lock_wait': True,
+                'manual_retry_used': False,
+                'observed_victim': 'source-writer',
+                'old_code_consumed': True,
+                'outcome_follows_committed_facts': True,
+                'service_outcome': 'verified',
+                'source_writer_commit_ack': False,
+                'source_writer_deadlock_rollback': True},
+ 'last_view_to_commit_global_atomicity_proved': False,
+ 'production_source_changed': False}
+NATIVE['private_mail_tests']['business_publication_tests'] = {'actual_native_sql_queue_profile': True,
+ 'actual_child_native_mail_taskqueue_http_proved': True,
+ 'actual_task_and_project_editors': True,
+ 'independent_php_workers_executed': 10,
+ 'live_processes_after_cleanup': 0,
+ 'manual_diagnostic_reexecution_is_daemon_retry': False,
+ 'paired_gorge_queue_profile_proved': False,
+ 'physical_smtp_proved': False,
+ 'private_directories_remaining': 0,
+ 'private_directories_removed': 10,
+ 'production_permission_flags_changed': False,
+ 'samples': {'project': {'normal': {'postcompletion_mail_envelopes': 1,
+                                    'postcompletion_source_visible': True,
+                                    'precompletion_native_permanent_failure': False,
+                                    'precompletion_source_visible': True},
+                         'outer-commit': {'postcompletion_mail_envelopes': 1,
+                                          'postcompletion_source_visible': True,
+                                          'precompletion_native_permanent_failure': True,
+                                          'precompletion_source_visible': False},
+                         'outer-rollback': {'postcompletion_mail_envelopes': 0,
+                                            'postcompletion_source_visible': False,
+                                            'precompletion_native_permanent_failure': True,
+                                            'precompletion_source_visible': False}},
+             'task': {'normal': {'postcompletion_mail_envelopes': 2,
+                                 'postcompletion_source_visible': True,
+                                 'precompletion_native_permanent_failure': False,
+                                 'precompletion_source_visible': True},
+                      'outer-commit': {'postcompletion_mail_envelopes': 2,
+                                       'postcompletion_source_visible': True,
+                                       'precompletion_native_permanent_failure': True,
+                                       'precompletion_source_visible': False},
+                      'outer-rollback': {'postcompletion_mail_envelopes': 0,
+                                         'postcompletion_source_visible': False,
+                                         'precompletion_native_permanent_failure': True,
+                                         'precompletion_source_visible': False}}}}
 
 
 def validate_restore(value, root):
@@ -1055,6 +1185,58 @@ STOP_BOUNDARY_CHECKS = frozenset(['recovery-stop-concurrent-same-operation-commi
 REQUIRED_CHECKS = REQUIRED_CHECKS | STOP_BOUNDARY_CHECKS
 NATIVE['recovery_stop_boundary_tests'] = {'two_session_same_operation_proof': True, 'current_admin_revocation_after_wait': True, 'real_session_expiry_during_wait': True, 'missing_and_nontransactional_table_refused': True, 'unsupported_routing_refused': True, 'raw_outer_transaction_preserved': True, 'recovery_authorized': False, 'all_sources_complete': False, 'production_entry_registered': False}
 
+BUSINESS_GORGE_CHECKS = frozenset(['private-business-gorge-task-normal-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-task-normal-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-task-outer-commit-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-task-outer-commit-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-task-outer-commit-real-handler-prepare-before-source-commit-no-mail',
+ 'private-business-gorge-task-outer-rollback-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-task-outer-rollback-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-task-outer-rollback-real-handler-prepare-before-source-commit-no-mail',
+ 'private-business-gorge-task-fenced-yield-awaken-same-task-released-again',
+ 'private-business-gorge-project-normal-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-project-normal-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-project-outer-commit-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-project-outer-commit-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-project-outer-commit-real-handler-prepare-before-source-commit-no-mail',
+ 'private-business-gorge-project-outer-rollback-native-editor-http-enqueue-real-task',
+ 'private-business-gorge-project-outer-rollback-native-handler-and-fenced-queue-outcome-current-source',
+ 'private-business-gorge-project-outer-rollback-real-handler-prepare-before-source-commit-no-mail',
+ 'private-business-gorge-project-fenced-yield-awaken-same-task-released-again'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | BUSINESS_GORGE_CHECKS
+NATIVE['private_mail_tests']['business_gorge_publication_tests'] = {'actual_native_conduit_handler': True,
+ 'actual_native_editor_http_enqueue': True,
+ 'actual_service_leases_and_fenced_outcomes': True,
+ 'explicit_yield_retry_proved': True,
+ 'gorge_worker_daemon_proved': False,
+ 'independent_php_workers_executed': 10,
+ 'live_processes_after_cleanup': 0,
+ 'permanent_source_denial_automatically_retried': False,
+ 'physical_smtp_proved': False,
+ 'private_directories_remaining': 0,
+ 'private_directories_removed': 10,
+ 'samples': {'project': {'normal': {'handler_result': 'success', 'mail_envelopes': 1},
+                         'outer-commit': {'handler_result': 'success', 'mail_envelopes': 1},
+                         'outer-rollback': {'handler_result': 'permanent-failure', 'mail_envelopes': 0}},
+             'task': {'normal': {'handler_result': 'success', 'mail_envelopes': 2},
+                      'outer-commit': {'handler_result': 'success', 'mail_envelopes': 2},
+                      'outer-rollback': {'handler_result': 'permanent-failure', 'mail_envelopes': 0}}},
+ 'worker_execute_http_gateway_proved': False}
+
+BUSINESS_GORGE_CREATE_CHECKS = frozenset([
+ 'private-business-gorge-project-normal-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-gorge-project-outer-commit-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-gorge-project-outer-rollback-actual-native-create-envelope-visible-initial-fields-hidden'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | BUSINESS_GORGE_CREATE_CHECKS
+NATIVE['private_mail_tests']['business_gorge_publication_tests']['actual_native_project_create_envelope_verified'] = True
+
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset([
+ 'private-business-project-normal-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-project-outer-commit-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-project-outer-rollback-actual-native-create-envelope-visible-initial-fields-hidden'])
+NATIVE['private_mail_tests']['business_publication_tests']['actual_native_project_create_envelope_verified'] = True
+
+
 def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
@@ -1072,6 +1254,65 @@ def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     expected_native['http_tests']=dict(NATIVE['http_tests'])
     expected_native['http_tests']['file_guard_tests']=dict(NATIVE['http_tests']['file_guard_tests'])
     expected_native['http_tests']['file_guard_tests']['image_tests']=dict(NATIVE['http_tests']['file_guard_tests']['image_tests'],backend_revision_sha256=revision)
+    # Native self-mail preferences may omit the author, but both independent
+    # Task owner/subscriber envelopes are required. Accept only the bounded
+    # actual count (2 or 3); every other summary field remains exact and typed.
+    private_mail=native.get('private_mail_tests')
+    if type(private_mail) is not dict or type(private_mail.get('business_publication_tests')) is not dict:
+        raise ValueError('native business publication summary refused')
+    actual_business=private_mail['business_publication_tests']
+    if type(actual_business.get('samples')) is not dict:
+        raise ValueError('native business publication samples refused')
+    expected_business=json.loads(json.dumps(NATIVE['private_mail_tests']['business_publication_tests']))
+    for family in ('task','project'):
+        for ending in ('normal','outer-commit','outer-rollback'):
+            family_samples=actual_business['samples'].get(family)
+            if type(family_samples) is not dict or type(family_samples.get(ending)) is not dict:
+                raise ValueError('native business publication sample refused')
+            count=family_samples[ending].get('postcompletion_mail_envelopes')
+            low,high=(0,0) if ending=='outer-rollback' else ((2,3) if family=='task' else (1,1))
+            if type(count) is not int or not low <= count <= high:
+                raise ValueError('native business publication envelope count refused')
+            expected_business['samples'][family][ending]['postcompletion_mail_envelopes']=count
+    actual_gorge=private_mail.get('business_gorge_publication_tests')
+    if type(actual_gorge) is not dict or type(actual_gorge.get('samples')) is not dict:
+        raise ValueError('native Gorge publication summary refused')
+    expected_gorge=json.loads(json.dumps(NATIVE['private_mail_tests']['business_gorge_publication_tests']))
+    for family in ('task','project'):
+        for ending in ('normal','outer-commit','outer-rollback'):
+            samples=actual_gorge['samples'].get(family)
+            if type(samples) is not dict or type(samples.get(ending)) is not dict:
+                raise ValueError('native Gorge publication sample refused')
+            count=samples[ending].get('mail_envelopes')
+            low,high=(0,0) if ending=='outer-rollback' else ((2,3) if family=='task' else (1,1))
+            if type(count) is not int or not low <= count <= high:
+                raise ValueError('native Gorge publication envelope count refused')
+            expected_gorge['samples'][family][ending]['mail_envelopes']=count
+    legalpad=private_mail.get('legalpad_tests')
+    if type(legalpad) is not dict or type(legalpad.get('inflight_source_tests')) is not dict:
+        raise ValueError('native Legalpad race summary refused')
+    index=legalpad['inflight_source_tests'].get('index_race')
+    expected_index=NATIVE['private_mail_tests']['legalpad_tests']['inflight_source_tests']['index_race']
+    if type(index) is not dict or set(index)!=set(expected_index):
+        raise ValueError('native Legalpad index facts refused')
+    for key in ('actual_lock_wait','outcome_follows_committed_facts','manual_retry_used'):
+        exact_tree(index[key],expected_index[key])
+    for key in ('source_writer_commit_ack','source_writer_deadlock_rollback','old_code_consumed'):
+        if type(index[key]) is not bool:
+            raise ValueError('native Legalpad index boolean refused')
+    if type(index['observed_victim']) is not str or type(index['service_outcome']) is not str:
+        raise ValueError('native Legalpad index outcome refused')
+    facts=(index['source_writer_commit_ack'],index['source_writer_deadlock_rollback'],
+           index['observed_victim'],index['service_outcome'],index['old_code_consumed'])
+    if facts not in ((True,False,'none','source-refused',False),
+                     (True,False,'verifier','deadlock',False),
+                     (False,True,'source-writer','verified',True)):
+        raise ValueError('native Legalpad outcome contradicts committed facts')
+    expected_legalpad=json.loads(json.dumps(NATIVE['private_mail_tests']['legalpad_tests']))
+    expected_legalpad['inflight_source_tests']['index_race']=index
+    expected_native['private_mail_tests']=dict(NATIVE['private_mail_tests'],
+        business_gorge_publication_tests=expected_gorge, business_publication_tests=expected_business,legalpad_tests=expected_legalpad)
+
     if type(measurement_revision) is not str or not re.fullmatch('[a-f0-9]{40}', measurement_revision):
         raise ValueError('explicit measurement source revision required')
     producer_digest=hashlib.sha256((Path(root)/MEASUREMENT_PRODUCER).read_bytes()).hexdigest()

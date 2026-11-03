@@ -1,0 +1,51 @@
+{
+  "base": "57669e809c0d88a9c27cffe0cdae45acb149f25b",
+  "status": "isolated-native-boundary-and-two-process-consumption-verified",
+  "sources": {
+    "support/governance/notification/legalpad-cases.php": "446361f8453460a1abc39244541b0fe94d604e8f91c05aaae73b69b26cb243a2",
+    "support/governance/notification/legalpad-boundary-cases.php": "a02080b66264bcada436c06987605b2cf7838b77a836b15a036498a8735833d8",
+    "support/governance/notification/legalpad-concurrency-cases.php": "f1fcf305af92209ac52e1838f918068f34bec311ee791cba1668446442bc53db",
+    "support/governance/native-organization/native-worker.php": "77d2ad96fbe0d1bbf653762b34d3947b033c2a572533bec7cbddd9595123fc3c",
+    "support/governance/native-organization/workers.php": "3b0cfcb09c7f5235372db548cef974ce8b0cd1ec96be4ded0609476031b8238a",
+    "support/governance/notification/README.legalpad-boundaries.md": "9d1f0f7c8fe137f6117c5fe84424cc22501062a8e7829aad8e4bf62d78bdd463"
+  },
+  "new_checks": 9,
+  "host_php_lint_passed": true,
+  "supported_runtime_passed": true,
+  "remaining": [
+    "Independent in-flight secret rotation",
+    "Project/named policy fresh-query revocation with truthful native request boundary",
+    "Latest-main union, strict gates, SMTP and browser acceptance"
+  ],
+  "declared_expected_not_actual": {
+    "pure": 157,
+    "sql": 369
+  },
+  "concurrency": "two exec-created PHP processes, actual session/CSRF/service/current VIEW; two actual lock waiters; trigger counts exactly one consume",
+  "peer_review": {
+    "reviewer": "auth_design",
+    "result": "no-confirmed-API-P1-P2-before-runtime",
+    "runtime_executed_by_peer": false
+  },
+  "actual": {
+    "pure": 157,
+    "native_sql": 369,
+    "runtime_files_exact": 7465,
+    "worker_registry_registered": 15,
+    "worker_private_directories_remaining": 0,
+    "worker_live_processes": 0,
+    "cleanup_failures": [],
+    "owned_schemas_removed": 55,
+    "owned_runtime_users_removed": 2,
+    "reader_removed": true
+  },
+  "wire_browser_smtp_legalpad_proven": false,
+  "receipt_sha256": {
+    "legalpad-boundaries-native.json": "82fb305e05c444474e06435a0cf82d2050d2470e0ab2eeed6f10833988fa0bb2",
+    "legalpad-boundaries-integration.json": "0d1239bb6ca3b29dba9fa328ef20bee3c81cad2ba5b7ab2d8dff844c1f99bb0d",
+    "legalpad-boundaries-source-runtime-match.json": "184f9744aa460efcee0acfd4009f55d17acdde3386df0f1e0124eadeb557708e"
+  },
+  "runtime_inventory_scope": "Source/resources/JavaScript content match; does not prove extra scenario coverage.",
+  "production_sources_changed_from_signed_first_slice": false,
+  "original_prepared_readme": "README.legalpad-boundaries.md is retained as the prepared test contract; this evidence records its subsequent actual execution."
+}

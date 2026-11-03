@@ -68,12 +68,12 @@
         },
         {
           "path": "support/governance/native-organization/native-worker.php",
-          "sha256": "6f115fc1e1b5e09f99e278409f1364daea42a3c5c0128e564ea4984e1ad2c89f",
+          "sha256": "3b323f88cb2ec73a1b220142a44131d727f4eb27c8e4260f519b69c49fe03547",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/workers.php",
-          "sha256": "fb923a204a5f7e35a3ca6fed4a004c3cafacc8044b097290583ef5bdc34b516c",
+          "sha256": "d6847a660db33137417ba81438de90b31a8cfa82840e8fe0c7e4eed00e5fd9f9",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         }
       ],
@@ -126,12 +126,12 @@
         },
         {
           "path": "support/governance/native-organization/native-worker.php",
-          "sha256": "6f115fc1e1b5e09f99e278409f1364daea42a3c5c0128e564ea4984e1ad2c89f",
+          "sha256": "3b323f88cb2ec73a1b220142a44131d727f4eb27c8e4260f519b69c49fe03547",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
           "path": "support/governance/native-organization/workers.php",
-          "sha256": "fb923a204a5f7e35a3ca6fed4a004c3cafacc8044b097290583ef5bdc34b516c",
+          "sha256": "d6847a660db33137417ba81438de90b31a8cfa82840e8fe0c7e4eed00e5fd9f9",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         }
       ],

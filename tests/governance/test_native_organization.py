@@ -49,6 +49,15 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_real_project_create_visibility_evidence_is_mandatory(self):
+        for ending in ('normal','outer-commit','outer-rollback'):
+            name='private-business-project-'+ending+'-actual-native-create-envelope-visible-initial-fields-hidden'
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(ending=ending),self.assertRaises(ValueError):
+                validate(data,file_digest='b'*64)
+        data=template();data['native']['private_mail_tests']['business_publication_tests']['actual_native_project_create_envelope_verified']=False
+        with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
     def test_api_capture_cannot_omit_native_sources_or_claim_recovery_permission(self):
         self.assertEqual(15,len(gate.RECOVERY_API_CHECKS))
         self.assertEqual(len(gate.REQUIRED_CHECKS),validate(template(),file_digest='b'*64)['check_count'])
@@ -309,6 +318,17 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template(); data['native']['private_mail_tests']['commit_race_tests']['physical_smtp_race_proved']=True
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
 
+    def test_legalpad_native_receipt_cannot_promote_delivery_or_substitute_sequential_work(self):
+        for key in ('anonymous_raw_or_third_party_adoption_supported',
+                    'configured_mfa_factor_proved', 'physical_smtp_legalpad_proved'):
+            data=template(); data['native']['private_mail_tests']['legalpad_tests'][key]=True
+            with self.subTest(key=key), self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key,value in (('independent_php_processes',1),('actual_same_source_lock_waiters',1),
+                          ('actual_consumption_updates',2),('sequential_repeat_substituted_for_concurrency',True),
+                          ('physical_smtp_proved',True)):
+            data=template(); data['native']['private_mail_tests']['legalpad_tests']['concurrency'][key]=value
+            with self.subTest(key=key), self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
     def test_actual_paired_binary_digest_is_required_and_must_match(self):
         with self.assertRaises(ValueError): validate(template())
         for digest in ('c'*64, None, True):
@@ -326,10 +346,101 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                 self.assertEqual(result.stdout,'')
                 self.assertNotIn('synthetic-private-canary',result.stderr)
 
+    def test_all_successor_checks_are_mandatory(self):
+        self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),819)
+        for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):
+                validate(data,file_digest='b'*64)
+        data=template();data['worker_cleanup']['workers_registered']=21
+        data['worker_cleanup']['private_directories_removed']=21
+        with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+    def test_gorge_native_project_create_visibility_is_required(self):
+        for name in gate.BUSINESS_GORGE_CREATE_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):
+                validate(data,file_digest='b'*64)
+        data=template();data['native']['private_mail_tests']['business_gorge_publication_tests']['actual_native_project_create_envelope_verified']=False
+        with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+    def test_gorge_publication_requires_real_lifecycle_and_bounded_scope(self):
+        for name in gate.BUSINESS_GORGE_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):
+                validate(data,file_digest='b'*64)
+        for key,value in [('actual_native_editor_http_enqueue',False),
+                          ('actual_service_leases_and_fenced_outcomes',False),
+                          ('actual_native_conduit_handler',False),
+                          ('worker_execute_http_gateway_proved',True),
+                          ('gorge_worker_daemon_proved',True),
+                          ('permanent_source_denial_automatically_retried',True),
+                          ('physical_smtp_proved',True),('private_directories_removed',9)]:
+            data=template();data['native']['private_mail_tests']['business_gorge_publication_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                validate(data,file_digest='b'*64)
+        for count in (True,0,1,4):
+            data=template();data['native']['private_mail_tests']['business_gorge_publication_tests']['samples']['task']['normal']['mail_envelopes']=count
+            with self.subTest(count=count),self.assertRaises(ValueError):
+                validate(data,file_digest='b'*64)
+
+    def test_business_summary_scope_counts_and_cleanup_cannot_be_upgraded(self):
+        path=('private_mail_tests','business_publication_tests')
+        for key,value in [('actual_child_native_mail_taskqueue_http_proved',False),
+                          ('paired_gorge_queue_profile_proved',True),
+                          ('manual_diagnostic_reexecution_is_daemon_retry',True),
+                          ('physical_smtp_proved',True),('independent_php_workers_executed',9),
+                          ('private_directories_removed',9),('private_directories_remaining',1),
+                          ('live_processes_after_cleanup',1)]:
+            data=template();data['native'][path[0]][path[1]][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for invalid in (None,[], 'synthetic-private-canary'):
+            data=template();data['native'][path[0]][path[1]]=invalid
+            with self.subTest(invalid=invalid),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for family,ending,values in [('task','normal',[True,0,1,4]),
+                                     ('project','normal',[True,0,2]),
+                                     ('task','outer-rollback',[True,1])]:
+            for value in values:
+                data=template();data['native'][path[0]][path[1]]['samples'][family][ending]['postcompletion_mail_envelopes']=value
+                with self.subTest(family=family,value=value),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        data=template();data['native'][path[0]][path[1]]['samples']['task']['normal']['postcompletion_mail_envelopes']=3
+        validate(data,file_digest='b'*64)
+
+    def test_legalpad_transitive_and_inflight_obligations_remain_native_bounded(self):
+        for section,key,value in [('policy_source_tests','actual_named_effective_policy',False),
+                                  ('policy_source_tests','all_policy_sources_atomically_locked',True),
+                                  ('policy_source_tests','document_space_acl_invented',True),
+                                  ('inflight_source_tests','last_view_to_commit_global_atomicity_proved',True)]:
+            data=template();data['native']['private_mail_tests']['legalpad_tests'][section][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for kind in ('version',):
+            data=template();data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['actual_independent_source_mutation_cases'][kind]['actual_lock_wait']=False
+            with self.subTest(kind=kind),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+    def test_index_race_committed_facts_never_turn_deadlock_into_permission_denial(self):
+        allowed=((True,False,'none','source-refused',False),
+                 (True,False,'verifier','deadlock',False),
+                 (False,True,'source-writer','verified',True))
+        keys=('source_writer_commit_ack','source_writer_deadlock_rollback','observed_victim','service_outcome','old_code_consumed')
+        for facts in allowed:
+            data=template();index=data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['index_race'];index.update(zip(keys,facts))
+            validate(data,file_digest='b'*64)
+        for facts in ((True,False,'none','verified',True),
+                      (False,True,'source-writer','source-refused',False),
+                      (True,False,'verifier','source-refused',False),
+                      (1,False,'none','source-refused',False)):
+            data=template();index=data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['index_race'];index.update(zip(keys,facts))
+            with self.subTest(facts=facts),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key,value in [('actual_engine_victim_proved',False),('locks_released_before_connection_close',False),
+                          ('automatic_consume_retry_used',True),('controller_tested',True),('controller_http500_proved',True)]:
+            data=template();data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['forced_verifier_victim'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),755)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),819)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -382,7 +493,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(755,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(819,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
