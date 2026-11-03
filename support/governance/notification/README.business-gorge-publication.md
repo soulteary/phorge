@@ -6,7 +6,7 @@ its archive;31 registered workers and two separately owned sets of ten business
 children were cleaned. The source-bound acceptance record is under
 `docs/governance/evidence/business-gorge-main99-215-774/`.
 
-The subsequent explicit PR100 source union requires219 pure /784 SQL checks.
+The subsequent explicit PR100 source union requires219 pure /786 SQL checks.
 It has not run yet. The historical774 result must not be relabeled as proof of
 this newer source. All optional production features remain off.
 

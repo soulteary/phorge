@@ -17,3 +17,7 @@ Cleanup removed 55 owned schemas, two runtime users, its reader, all 25 worker d
 A later documentation-only commit publishes this summary; it is not a new runtime execution. The source manifest preserves the original checkpoint hashes. Native Conduit method authentication is not HTTP gateway proof, and OAuth-server producer tests do not prove the complete external OAuth protocol or every provider/consumer. Hosted exact-head CI remains a separate gate.
 
 All 13 aggregate recovery families remain incomplete, including the API family. No restoration permit, production route, feature activation, global revocation, deployment or native permission change is added. Full recovery remains blocked until its actual missing source families, producers and consistency boundaries are implemented and proven.
+
+## Aggregate budget correction awaiting fresh execution
+
+Exact-head review found that the shared legacy-session reader applied the Web 64 KiB aggregate ceiling to API observations, despite the API profile declaring 128 KiB. The candidate now selects the API ceiling and error classification explicitly while preserving the Web ceiling. Two additional real SQL obligations prepare native OAuth authorization scopes above 64 KiB but below 128 KiB, and above 128 KiB; they require successful observation or exact bounded refusal respectively, with owned transaction cleanup. The candidate requires 214 pure methods and 722 SQL obligations. These new boundary cases have not yet run; the 214/720 checkpoint above remains historical evidence for its original source.

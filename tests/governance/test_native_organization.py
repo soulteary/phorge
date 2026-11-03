@@ -59,7 +59,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
 
     def test_api_capture_cannot_omit_native_sources_or_claim_recovery_permission(self):
-        self.assertEqual(10,len(gate.RECOVERY_API_CHECKS))
+        self.assertEqual(12,len(gate.RECOVERY_API_CHECKS))
         self.assertEqual(len(gate.REQUIRED_CHECKS),validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.RECOVERY_API_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
@@ -348,7 +348,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),784)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),786)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -440,7 +440,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),784)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),786)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)

@@ -76,6 +76,35 @@ function governance_recovery_api_cases($fixture,callable $check) {
         if(get_class($error)!==RuntimeException::class||$error->getMessage()!=='recovery_api_capture_budget_unknown'){throw$error;}$refused=true;}
       $check($refused&&!$conn->isInsideTransaction(),'recovery-api-selected-token-row-budget-closes-own-scope-before-payload-fetch');
     }finally{foreach($created as$row){$row->delete();}}
+    // Real native OAuth rows cross the former Web-only 64KiB ceiling.
+    // Each individual scope remains below the fixed 4096-byte row bound.
+    $budget_clients=array();$budget_authorizations=array();
+    try {
+      for($i=0;$i<40;$i++){
+        $budget_client=PhabricatorOAuthServerClient::initializeNewClient($subject)
+          ->setName('Synthetic aggregate budget')->setRedirectURI('https://example.invalid/return')->save();
+        $budget_clients[]=$budget_client;
+        $budget_authorizations[]=(new PhabricatorOAuthServer())->setUser($subject)->setClient($budget_client)
+          ->authorizeClient(array(str_repeat('s',3500)=>true));
+        if($i===19){
+          $stored_bytes=(int)queryfx_one($conn,'SELECT SUM(OCTET_LENGTH(scope)) n FROM %R WHERE userPHID=%s',new PhabricatorOAuthClientAuthorization(),$subject->getPHID())['n'];
+          $large_capture=$capture();
+          $check($stored_bytes>PhorgeRecoveryNativeWebFacts::MAX_BYTES&&$stored_bytes<PhorgeRecoveryNativeAPIFacts::MAX_BYTES&&count($large_capture['api_credentials']['api_credentials']['oauth_authorizations'])===20&&
+            $large_capture['can_execute']===false&&!$conn->isInsideTransaction(),
+            'recovery-api-aggregate-above-web-budget-below-api-budget-is-observed');
+        }
+      }
+      $aggregate_refused=false;try{$capture();}catch(RuntimeException$error){
+        if(get_class($error)!==RuntimeException::class||$error->getMessage()!=='recovery_api_capture_budget_unknown'){throw$error;}
+        $aggregate_refused=true;
+      }
+      $stored_bytes=(int)queryfx_one($conn,'SELECT SUM(OCTET_LENGTH(scope)) n FROM %R WHERE userPHID=%s',new PhabricatorOAuthClientAuthorization(),$subject->getPHID())['n'];
+      $check($stored_bytes>PhorgeRecoveryNativeAPIFacts::MAX_BYTES&&$aggregate_refused&&!$conn->isInsideTransaction(),
+        'recovery-api-aggregate-above-api-budget-refuses-and-closes-owned-scope');
+    }finally{
+      foreach($budget_authorizations as$row){$row->delete();}
+      foreach($budget_clients as$row){$row->delete();}
+    }
     $encoded=json_encode($revoked,JSON_THROW_ON_ERROR);
     $check(strpos($encoded,$access->getToken())===false&&strpos($encoded,$client->getSecret())===false&&
       strpos($encoded,$code->getCode())===false&&strpos($encoded,$legacy)===false&&

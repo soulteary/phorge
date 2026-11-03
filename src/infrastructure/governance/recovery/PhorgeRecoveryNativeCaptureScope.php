@@ -230,7 +230,9 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
     return $table;
   }
 
-  private function credentialRows($temporary, &$bytes) {
+  private function credentialRows($temporary, &$bytes, $api = false) {
+    $maximum_bytes = $api ? PhorgeRecoveryNativeAPIFacts::MAX_BYTES : PhorgeRecoveryNativeWebFacts::MAX_BYTES;
+    $budget_error = $api ? 'recovery_api_capture_budget_unknown' : 'recovery_web_capture_budget_unknown';
     $table=$this->credentialTable($temporary);
     $where=$temporary ? qsprintf($this->connection,
       '(BINARY tokenResource=BINARY %s OR BINARY userPHID=BINARY %s)',$this->target,$this->target) :
@@ -241,7 +243,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
     $preflight=queryfx_all($this->connection,
       'SELECT id,%Q FROM %R WHERE %Q ORDER BY id LIMIT 65 LOCK IN SHARE MODE',
       $lengths,$table,$where);
-    if(count($preflight)>PhorgeRecoveryNativeWebFacts::MAX_ROWS){throw new RuntimeException('recovery_web_capture_budget_unknown');}
+    if(count($preflight)>PhorgeRecoveryNativeWebFacts::MAX_ROWS){throw new RuntimeException($budget_error);}
     $ids=array();
     foreach($preflight as$row){
       if((!is_string($row['id'])&&!is_int($row['id']))||
@@ -257,7 +259,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
         $bytes+=(int)$value;
       }
     }
-    if($bytes>PhorgeRecoveryNativeWebFacts::MAX_BYTES){throw new RuntimeException('recovery_web_capture_budget_unknown');}
+    if($bytes>$maximum_bytes){throw new RuntimeException($budget_error);}
     if(!$ids){return array();}
     $projection=$temporary ? qsprintf($this->connection,'id,tokenResource,tokenType,tokenExpires,tokenCode,userPHID,properties') :
       qsprintf($this->connection,'id,phid,userPHID,type,sessionKey,sessionStart,sessionExpires,highSecurityUntil,isPartial,signedLegalpadDocuments');
@@ -363,7 +365,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
         $clients[$row['clientPHID']]=true;}}}
     }
     $groups['legacy_sessions']=array();
-    foreach($this->credentialRows(false,$bytes)as$row){if($row['type']===PhabricatorAuthSession::TYPE_CONDUIT){$groups['legacy_sessions'][]=$row;}}
+    foreach($this->credentialRows(false,$bytes,true)as$row){if($row['type']===PhabricatorAuthSession::TYPE_CONDUIT){$groups['legacy_sessions'][]=$row;}}
     $now=(int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n'];
     return PhorgeRecoveryNativeAPIFacts::describe($groups,$this->target,$now);
   }
