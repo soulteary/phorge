@@ -173,3 +173,13 @@ and nine VIEW obligations. Its required SQL set is603 (593 main+5 Query+5 API),
 with25 registered workers and194 expected native methods. These are pending
 obligations, not reused c419 execution evidence. The original Query producer
 and API producer bytes are unchanged from their component checkpoints.
+
+## Private-mail protected main integration (unrun)
+
+The next explicit union retains protected main eafc8ee9 (including all VIEW
+and native invitation tests). Its gate is677 main+Query5+API5=687 mandatory
+SQL assertions,202 expected native methods and25 worker cleanups. No component
+193/594, c419193/589 or intermediate194/603 receipt is reused as proof of this
+source. Both full-native and private-notification evidence CLI entrypoints
+receive the externally selected current source revision; neither infers it
+from a receipt. All private-mail and physical-wire obligations remain intact.

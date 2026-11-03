@@ -1,0 +1,21 @@
+{
+  "scope": "candidate-native-envelope-and-source-query-only",
+  "production_default_off": true,
+  "pure_methods": 148,
+  "native_sql_checks": 302,
+  "go_tested_packages": 40,
+  "go_packages_without_tests": 13,
+  "python_governance_tests": 89,
+  "python_permission_tests": 84,
+  "runtime_source_files": 5867,
+  "runtime_source_match": true,
+  "runtime_source_manifest_sha256": "17142dc45e26bbb25a6484f3df8825f4aa891e9ac7a66b7979bc00a5978e7e11",
+  "files": {
+    "native-integration.json": "0deeabec98a93d04a2c4b8d42a4263423484bab0b0802d743db6f33318b74dcd",
+    "native-methods.json": "ad090573c5e42644b837deb45fd12ba214831903cac3c5f6b90d2e8fe838417c",
+    "paired-go-tests.json": "8b8b86198c4ef5c584e8afc5d6f8b0c7d9966ab560c29b5a105de90f447946ca"
+  },
+  "physical_callback_smtp_browser_proved": false,
+  "all_producers_runtime_complete": false,
+  "global_completion": false
+}

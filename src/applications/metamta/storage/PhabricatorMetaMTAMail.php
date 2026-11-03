@@ -68,6 +68,30 @@ final class PhabricatorMetaMTAMail
       PhabricatorMetaMTAMailPHIDType::TYPECONST);
   }
 
+  /** Fixed source provenance, never imported from incoming mail parameters. */
+  public function setPrivateMailProducer($producer) {
+    if(!is_string($producer)||!preg_match('/\A[A-Za-z][A-Za-z0-9_]{0,127}\z/',$producer)){
+      throw new InvalidArgumentException('private_mail_producer_refused');
+    }
+    return $this->setParam('governance.mail-producer',$producer);
+  }
+  public function getPrivateMailPolicyValue($key,$default=null) {
+    if(!in_array($key,array('governance.mail-producer','governance.delivery-policy',
+      'governance.delivery-quarantined','governance.mail-flow','governance.mail-binding'),true)){
+      throw new InvalidArgumentException('private_mail_policy_key_refused');
+    }
+    return $this->getParam($key,$default);
+  }
+  public function setPrivateMailFlow($flow,array $binding) {
+    if($this->getID()!==null){throw new InvalidArgumentException('private_mail_existing_flow_refused');}
+    PhorgePrivateMailPolicy::validateFlow($this,$flow,$binding);
+    $this->setParam('governance.mail-flow',$flow);
+    return $this->setParam('governance.mail-binding',$binding);
+  }
+  public function clearPrivateBusinessMailHeaders() {
+    return $this->setParam('headers',array());
+  }
+
   protected function setParam($param, $value) {
     $this->parameters[$param] = $value;
     return $this;
@@ -491,6 +515,7 @@ final class PhabricatorMetaMTAMail
    * @return $this
    */
   public function save() {
+    PhorgePrivateMailPolicy::sanitizeStored($this);
     if ($this->getID()) {
       return parent::save();
     }
@@ -520,6 +545,10 @@ final class PhabricatorMetaMTAMail
       }
       $editor->save();
 
+    if(PhorgePrivateMailPolicy::enabled() && $this->getMessageType()===PhabricatorMailEmailMessage::MESSAGETYPE &&
+      PhabricatorEnv::getEnvConfig('metamta.gorge-delivery-mode')!=='native'){
+      throw new PhabricatorMetaMTAPermanentFailureException(pht('Private notifications require native Gorge delivery.'));
+    }
     $native = PhabricatorEnv::getEnvConfig('metamta.gorge-delivery-mode') === 'native' &&
       $this->getMessageType() === PhabricatorMailEmailMessage::MESSAGETYPE;
     if ($native) {
@@ -615,9 +644,13 @@ final class PhabricatorMetaMTAMail
       throw new Exception(pht('Mail is not owned by Gorge.'));
     }
     $cached = $this->getParam('gorge.delivery-snapshot');
-    if ($cached) {
-      return $cached;
+    if (!PhorgePrivateMailPolicy::authorize($this) ||
+        ($cached && !PhorgePrivateMailPolicy::snapshotSafe($this,$cached))) {
+      // Never rewrite an immutable legacy payload or resend private bytes.
+      $this->setParam('governance.delivery-quarantined',true)->save();
+      return array('state'=>'void');
     }
+    if ($cached) { return $cached; }
     if ($this->getStatus() !== PhabricatorMailOutboundStatus::STATUS_QUEUE) {
       return array('state' => 'void');
     }
@@ -645,7 +678,9 @@ final class PhabricatorMetaMTAMail
       $target = head($this->getCcPHIDs());
     }
     $preferences = $this->loadPreferences($target);
-    foreach ($this->loadAttachedFiles(PhabricatorUser::getOmnipotentUser()) as $file) {
+    $delivery_files=PhorgePrivateMailPolicy::isLinkOnly($this)?array():
+      $this->loadAttachedFiles(PhabricatorUser::getOmnipotentUser());
+    foreach ($delivery_files as $file) {
       $file->attachToObject($this->getPHID());
     }
     $message = $this->newExternalMessageForMailer($mailer, $actors, $preferences);
@@ -676,6 +711,12 @@ final class PhabricatorMetaMTAMail
       'adapterKey' => $mailer->getKey(),
       'message' => id(new PhabricatorGorgeMailerClient())->serializeMessage($message),
     );
+    if(PhorgePrivateMailPolicy::enabled()){
+      $snapshot['authorization']=array('version'=>1,'mailID'=>(int)$this->getID(),
+        'deliveryID'=>$snapshot['deliveryID'],
+        'messageHash'=>hash('sha256',phutil_json_encode($snapshot['message'])));
+      $this->setParam('governance.delivery-policy',1);
+    }
     $this->setParam('gorge.delivery-snapshot', $snapshot)->save();
     return $snapshot;
   }
@@ -686,12 +727,13 @@ final class PhabricatorMetaMTAMail
     if (!$type) {
       throw new Exception(pht('Unknown mail message type.'));
     }
-    return $type->newMailMessageEngine()
+    $message=$type->newMailMessageEngine()
       ->setMailer($mailer)
       ->setMail($this)
       ->setActors($actors)
       ->setPreferences($preferences)
       ->newMessage($mailer);
+    return $message?PhorgePrivateMailPolicy::project($this,$message):null;
   }
 
   private function getGorgeActorPolicyHash(array $audit) {
@@ -700,6 +742,21 @@ final class PhabricatorMetaMTAMail
   }
 
   public function authorizeGorgeDelivery() {
+    $snapshot=$this->getParam('gorge.delivery-snapshot');
+    if(PhorgePrivateMailPolicy::enabled()){
+      // An out-of-order probe must not poison mail which has not been prepared.
+      if($snapshot===null){return array('changed'=>true);}
+      if(!is_array($snapshot)||
+        !PhorgePrivateMailPolicy::snapshotSafe($this,$snapshot)){
+        $this->setParam('governance.delivery-quarantined',true)->save();
+        return array('changed'=>true);
+      }
+      // SourcePending intentionally propagates without a quarantine write.
+      if(!PhorgePrivateMailPolicy::authorize($this)){
+        $this->setParam('governance.delivery-quarantined',true)->save();
+        return array('changed'=>true);
+      }
+    }
     $expected = $this->getParam('gorge.delivery-policy-hash');
     if (!$expected) {
       throw new Exception(pht('Prepared recipient policy is unavailable.'));
@@ -712,8 +769,29 @@ final class PhabricatorMetaMTAMail
         'reasons' => $actor->getDeliverabilityReasons(),
       );
     }
-    return array('changed' => !hash_equals($expected,
-      $this->getGorgeActorPolicyHash($audit)));
+    $changed=!hash_equals($expected,$this->getGorgeActorPolicyHash($audit));
+    if($changed&&PhorgePrivateMailPolicy::enabled()){
+      $this->setParam('governance.delivery-quarantined',true)->save();
+    }
+    return array('changed'=>$changed);
+  }
+
+  public function authorizeGorgePhysicalDelivery($delivery_id,$message_hash,$message_json){
+    $snapshot=$this->getParam('gorge.delivery-snapshot');
+    // Caller-supplied payload mismatches are not permanent source denials.
+    if(!PhorgePrivateMailPolicy::enabled() || !is_array($snapshot) ||
+      !is_string($delivery_id)||$delivery_id!==idx($snapshot,'deliveryID') ||
+      !is_string($message_hash)||!is_array(idx($snapshot,'authorization')) ||
+      !is_string(idx($snapshot['authorization'],'messageHash')) ||
+      !hash_equals($snapshot['authorization']['messageHash'],$message_hash) ||
+      !is_string($message_json)||strlen($message_json)>PhorgePrivateMailPolicy::MAX_PHYSICAL_MESSAGE_BYTES ||
+      !is_array(idx($snapshot,'message'))){return array('allowed'=>false);}
+    try{$message=phutil_json_decode($message_json);}
+    catch(PhutilJSONParserException $error){return array('allowed'=>false);}
+    if(!is_array($message)||PhorgePrivateMailPolicy::canonicalMessage($message)!==
+      PhorgePrivateMailPolicy::canonicalMessage($snapshot['message'])){return array('allowed'=>false);}
+    $gate=$this->authorizeGorgeDelivery();
+    return array('allowed'=>!$gate['changed']);
   }
 
   public function applyGorgeDelivery(array $result) {
@@ -929,6 +1007,9 @@ final class PhabricatorMetaMTAMail
   }
 
   public function sendWithMailers(array $mailers) {
+    if(PhorgePrivateMailPolicy::enabled() && $this->getMessageType()===PhabricatorMailEmailMessage::MESSAGETYPE){
+      throw new PhabricatorMetaMTAPermanentFailureException(pht('Private notifications require native Gorge delivery.'));
+    }
     if ($this->getStatus() === PhabricatorMailOutboundStatus::STATUS_UNKNOWN) {
       throw new PhabricatorMetaMTAUnknownOutcomeException(
         pht('Reconcile the unknown submission before sending this mail again.'));
@@ -975,6 +1056,7 @@ final class PhabricatorMetaMTAMail
         ->save();
     }
 
+    PhorgePrivateMailPolicy::requireCurrent($this);
     $actors = $this->loadAllActors();
 
     // If we're sending one mail to everyone, some recipients will be in
@@ -990,7 +1072,7 @@ final class PhabricatorMetaMTAMail
     // Attach any files we're about to send to this message, so the recipients
     // can view them.
     $viewer = PhabricatorUser::getOmnipotentUser();
-    $files = $this->loadAttachedFiles($viewer);
+    $files = PhorgePrivateMailPolicy::isLinkOnly($this)?array():$this->loadAttachedFiles($viewer);
     foreach ($files as $file) {
       $file->attachToObject($this->getPHID());
     }
@@ -1037,6 +1119,7 @@ final class PhabricatorMetaMTAMail
           }
           $message->setGorgeDeliveryID($this->getID());
         }
+        PhorgePrivateMailPolicy::requireCurrent($this);
         $mailer->sendMessage($message);
       } catch (PhabricatorMetaMTAUnknownOutcomeException $ex) {
         // There is no provider receipt to prove acceptance or rejection.
@@ -1165,6 +1248,7 @@ final class PhabricatorMetaMTAMail
 
 
   public static function shouldMailEachRecipient() {
+    if(PhorgePrivateMailPolicy::enabled()){return true;}
     return PhabricatorEnv::getEnvConfig('metamta.one-mail-per-recipient');
   }
 

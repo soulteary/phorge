@@ -47,6 +47,7 @@ final class PhabricatorAuthInviteWorker
     $invite->save();
 
     $mail = id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($invite->getEmailAddress()))
       ->setForceDelivery(true)
       ->setSubject(
@@ -55,8 +56,10 @@ final class PhabricatorAuthInviteWorker
           PlatformSymbols::getPlatformServerName(),
           $author->getFullName(),
           PlatformSymbols::getPlatformServerName()))
-      ->setBody($template)
-      ->saveAndSend();
+      ->setBody($template);
+    if(PhorgePrivateMailPolicy::enabled()){$mail->setPrivateMailFlow('account.invite',
+      PhorgePrivateMailPolicy::inviteBinding($invite,$author));}
+    $mail->saveAndSend();
   }
 
 }

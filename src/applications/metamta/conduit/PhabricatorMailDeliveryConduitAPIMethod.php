@@ -9,7 +9,8 @@ final class PhabricatorMailDeliveryConduitAPIMethod extends ConduitAPIMethod {
   public function shouldAllowUnguardedWrites() { return true; }
   protected function defineParamTypes() {
     return array('mailID' => 'required int', 'phase' => 'required string',
-      'result' => 'optional string');
+      'result' => 'optional string','deliveryID'=>'optional string',
+      'messageHash'=>'optional string','message'=>'optional string');
   }
   protected function defineReturnType() { return 'map<string, wild>'; }
   protected function defineErrorTypes() {
@@ -31,6 +32,8 @@ final class PhabricatorMailDeliveryConduitAPIMethod extends ConduitAPIMethod {
       if (!$mail) { throw new Exception(pht('Mail no longer exists.')); }
       switch ($request->getValue('phase')) {
         case 'prepare': return $mail->prepareGorgeDelivery();
+        case 'authorize-attempt': return $mail->authorizeGorgePhysicalDelivery(
+          $request->getValue('deliveryID'),$request->getValue('messageHash'),$request->getValue('message'));
         case 'authorize': return $mail->authorizeGorgeDelivery();
         case 'apply':
           $mail->applyGorgeDelivery(phutil_json_decode($request->getValue('result')));

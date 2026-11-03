@@ -47,6 +47,7 @@ extends PhabricatorApplicationTransactionEditor {
     $subject = pht('Named Policy %d: %s', $id, $name);
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject($subject);
   }
 

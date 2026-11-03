@@ -47,6 +47,7 @@ final class PholioMockEditor extends PhabricatorApplicationTransactionEditor {
     $name = $object->getName();
 
     return id(new PhabricatorMetaMTAMail())
+      ->setPrivateMailProducer(__CLASS__)
       ->setSubject("{$monogram}: {$name}");
   }
 

@@ -129,6 +129,8 @@ function governance_native_organization_cases($fixture, callable $check) {
   $lifecycle_summary=governance_native_membership_lifecycle_cases($fixture,$check,$state);
   require_once __DIR__.'/compound-cases.php';
   $compound_summary=governance_native_compound_cases($fixture,$check,$state);
+  require_once dirname(__DIR__).'/notification/native-cases.php';
+  $private_mail_summary=governance_private_mail_native_cases($fixture,$check);
   require_once __DIR__.'/history-cases.php';
   $history_summary=governance_native_history_cases($fixture,$check,$state);
   require_once dirname(__DIR__).'/native-execution/producer-fence-cases.php';
@@ -149,7 +151,7 @@ function governance_native_organization_cases($fixture, callable $check) {
   $measurement_summary=governance_native_revocation_measurement_cases($fixture,$check,$state);
   require_once __DIR__.'/revocation-api-token-cases.php';
   $api_measurement_summary=governance_native_revocation_api_token_cases($fixture,$check,$state);
-  return array('api_token_revocation_measurement_tests'=>$api_measurement_summary,'revocation_measurement_tests'=>$measurement_summary,'http_tests'=>$http_summary,'noncredential_source_v2_tests'=>$source_v2_summary,'handover_form_tests'=>$handover_form_summary,'handover_lifecycle_tests'=>$handover_summary,'transfer_execution_tests'=>$transfer_execution_summary,'transfer_foundation_tests'=>$transfer_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'producer_fence_tests'=>$producer_summary,'project_execution_tests'=>$execution_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
+  return array('private_mail_tests'=>$private_mail_summary,'api_token_revocation_measurement_tests'=>$api_measurement_summary,'revocation_measurement_tests'=>$measurement_summary,'http_tests'=>$http_summary,'noncredential_source_v2_tests'=>$source_v2_summary,'handover_form_tests'=>$handover_form_summary,'handover_lifecycle_tests'=>$handover_summary,'transfer_execution_tests'=>$transfer_execution_summary,'transfer_foundation_tests'=>$transfer_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'producer_fence_tests'=>$producer_summary,'project_execution_tests'=>$execution_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
 
     'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
     'production_features_enabled'=>false,'media_backend_only'=>true,
