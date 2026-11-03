@@ -28,7 +28,7 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
     if (isset(self::$nativeForms[$editor])) { throw new RuntimeException('project_execution_native_form_existing'); }
     $token=new stdClass();
     self::$nativeForms[$editor]=array('token'=>$token,'object'=>$object,'request'=>$request,
-      'digest'=>self::nativeFormDigest($xactions));
+      'digest'=>self::nativeFormDigest($xactions),'originals'=>self::formOriginals($xactions));
     return $token;
   }
   public static function closeNativeForm($editor,$token) {
@@ -69,6 +69,52 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
         'new'=>$xaction->getNewValue(),'metadata'=>$xaction->getMetadata());
     }
     return PhorgeProjectExecutionValue::digest($rows);
+  }
+  private static function formOriginals(array $xactions) {
+    $originals=array();
+    foreach($xactions as$xaction){$originals[spl_object_id($xaction)]=array(
+      'object'=>$xaction,'type'=>$xaction->getTransactionType(),'new'=>$xaction->getNewValue(),
+      'metadata'=>$xaction->getMetadata());}
+    return $originals;
+  }
+  /** Refusal classification only: this cannot authorize or discard any effect. */
+  public static function hasKnownAdditionalFormEffects($editor,$object,array $xactions,$type,$policy) {
+    if(self::$nativeForms===null||!isset(self::$nativeForms[$editor])){return false;}
+    $proof=self::$nativeForms[$editor];
+    if($proof['object']!==$object||$proof['request']!==$editor->getRequest()||!$editor->getActor()) {return false;}
+    return self::knownAdditionalEffects($proof['originals'],$xactions,$type,$policy,$editor->getActor()->getPHID());
+  }
+  private static function knownAdditionalEffects(array $originals,array $xactions,$type,$policy,$author) {
+    if(count($xactions)<2||count($xactions)>32||!in_array($type,array(
+      PhabricatorTransactions::TYPE_VIEW_POLICY,PhabricatorTransactions::TYPE_EDIT_POLICY),true)){return false;}
+    $policies=0;$extra=0;$seen=array();
+    foreach($xactions as$xaction){
+      if(get_class($xaction)!==PhabricatorProjectTransaction::class){return false;}
+      $id=spl_object_id($xaction);$raw=$originals[$id]??null;
+      if(isset($seen[$id])||!is_array($raw)||$raw['object']!==$xaction||$raw['type']!==$xaction->getTransactionType()||
+        $raw['new']!==$xaction->getNewValue()||$xaction->getComment()!==null||$xaction->getAuthorPHID()!==$author){return false;}
+      $seen[$id]=true;$metadata=$xaction->getMetadata();$original=$raw['metadata'];
+      foreach(array('core.default','core.mfa')as$key){
+        if(array_key_exists($key,$metadata)){if($metadata[$key]!==true){return false;}unset($metadata[$key]);}
+        if(array_key_exists($key,$original)){if($original[$key]!==true){return false;}unset($original[$key]);}
+      }
+      if($metadata!==$original){return false;}
+      $actual=$xaction->getTransactionType();$value=$xaction->getNewValue();
+      if($actual===$type){
+        if($raw['metadata']!==array()||$metadata!==array()||$value!==$policy){return false;}$policies++;continue;
+      }
+      if($actual===PhabricatorTransactions::TYPE_CUSTOMFIELD){
+        if($metadata!==array('customfield:key'=>'std:project:internal:description')||!is_string($value)){return false;}
+      }else if(in_array($actual,array(PhabricatorProjectNameTransaction::TRANSACTIONTYPE,
+          PhabricatorProjectColorTransaction::TRANSACTIONTYPE,PhabricatorProjectIconTransaction::TRANSACTIONTYPE),true)){
+        if($metadata!==array()||!is_string($value)){return false;}
+      }else if($actual===PhabricatorProjectSlugsTransaction::TRANSACTIONTYPE){
+        if($metadata!==array()||!is_array($value)||!array_is_list($value)){return false;}
+        foreach($value as$slug){if(!is_string($slug)){return false;}}
+      }else{return false;}
+      $extra++;
+    }
+    return $policies===1&&$extra>=1;
   }
   private static function classifyNativeForm($editor,$object,array $xactions) {
     if (self::$nativeForms===null || !isset(self::$nativeForms[$editor])) { return null; }

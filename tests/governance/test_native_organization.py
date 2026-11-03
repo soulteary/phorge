@@ -344,9 +344,18 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                 self.assertNotIn('synthetic-private-canary',result.stderr)
 
 
+class NativePolicyErrorRouteGateTest(unittest.TestCase):
+    def test_expected_controller_boundary_checks_are_mandatory(self):
+        self.assertEqual(7,len(gate.POLICY_ERROR_ROUTE_CHECKS))
+        validate(template(),file_digest='b'*64)
+        for check in gate.POLICY_ERROR_ROUTE_CHECKS:
+            data=template();data['checks'].remove(check);data['check_count']-=1
+            with self.subTest(check=check),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),750)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),757)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)

@@ -257,7 +257,7 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
     foreach(array('',null,true,'VIEW','project.view-policy','history')as$bad){
       $caught=false;
       try{PhorgeProjectPolicyApprovalController::newFormPayload($bad,$target,'users','reason',120);}
-      catch(InvalidArgumentException$error){$caught=$error->getMessage()==='project_execution_form_operation_refused';}
+      catch(PhorgeProjectPolicyRefusalException$error){$caught=$error->getRefusalReason()==='request-input';}
       $this->assertTrue($caught);
     }
   }

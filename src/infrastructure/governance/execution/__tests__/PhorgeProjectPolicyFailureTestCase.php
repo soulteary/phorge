@@ -41,7 +41,7 @@ final class PhorgeProjectPolicyFailureTestCase extends PhutilTestCase {
       new AphrontSchemaQueryException("#1146: Table 'synthetic.audit' doesn't exist"),
       new JsonException('Synthetic stored binding failure'),
       new RuntimeException('project_execution_scope_cleanup_failed'),
-      new TypeError('Synthetic programming failure'), new Error('Synthetic programming failure'));
+      new TypeError('Synthetic programming failure'), new Error('Synthetic programming failure'),new PhabricatorPolicyException());
     foreach ($errors as $error) {
       $this->assertEqual(null, PhorgeProjectPolicyFailure::responseFor($error));
     }
@@ -112,4 +112,83 @@ final class PhorgeProjectPolicyFailureTestCase extends PhutilTestCase {
     $this->assertEqual(InvalidArgumentException::class, get_class($unknown));
     $this->assertEqual(null, PhorgeProjectPolicyFailure::responseFor($unknown));
   }
+  public function testCallerJSONAndHTTPResponseHaveNarrowTypedBoundary() {
+    $this->assertEqual(array('approval_id' => str_repeat('a',64)),
+      PhorgeProjectPolicyFailure::decodeRequest('{"approval_id":"'.str_repeat('a',64).'"}'));
+    foreach (array('', '{', 'null', 'false', str_repeat(' ',8193)) as $raw) {
+      $error = $this->caught(function() use ($raw) { PhorgeProjectPolicyFailure::decodeRequest($raw); });
+      $this->assertEqual(PhorgeProjectPolicyRefusalException::class, get_class($error));
+      $response = PhorgeProjectPolicyFailure::newHTTPResponse($error);
+      $this->assertEqual(400, $response->getHTTPResponseCode());
+      $content = phutil_json_decode($response->setAddJSONShield(false)->buildResponseString());
+      $this->assertEqual('project_approval_invalid_input', $content['error']);
+    }
+    $payload=array('new_policy'=>'users','reason'=>'Synthetic reason','target_phid'=>'PHID-PROJ-'.str_repeat('p',20),'ttl_seconds'=>120);
+    $this->assertEqual('project.edit-policy',PhorgeProjectPolicyFailure::requestIntent($payload)->getOperation());
+    $payload['new_policy']='unknown';
+    $bad_intent=$this->caught(function()use($payload){PhorgeProjectPolicyFailure::requestIntent($payload);});
+    $this->assertEqual(400,PhorgeProjectPolicyFailure::responseFor($bad_intent)['status']);
+    $row=$this->row();$data=phutil_json_decode($row['bindingJSON']);$data['newPolicy']='unknown';
+    $row['bindingJSON']=PhorgeProjectExecutionValue::canonical($data);$row['bindingDigest']=PhorgeProjectExecutionValue::digest($data);
+    $stored=$this->caught(function()use($row){PhorgeProjectPolicyTicketState::decode($row['approvalID'],$row);});
+    $this->assertEqual(null,PhorgeProjectPolicyFailure::responseFor($stored));
+    $refusal = PhorgeProjectPolicyRefusalException::newForReason('ticket-unavailable');
+    $this->assertEqual(403, PhorgeProjectPolicyFailure::newHTTPResponse($refusal)->getHTTPResponseCode());
+  }
+
+  public function testNativeValidationConversionIsNotMissingFieldOrRawException() {
+    $refusal = PhorgeProjectPolicyRefusalException::newForReason('ticket-expired');
+    $validation = PhorgeProjectPolicyFailure::newValidationException($refusal);
+    $this->assertEqual(PhabricatorApplicationTransactionValidationException::class, get_class($validation));
+    $this->assertEqual(1, count($validation->getErrors()));
+    $error = head($validation->getErrors());
+    $this->assertEqual('governance:approval', $error->getType());
+    $this->assertFalse((bool)$error->getIsMissingFieldError());
+    $this->assertEqual(null, $error->getTransaction());
+    $this->assertEqual(null, PhorgeProjectPolicyFailure::responseFor($validation));
+    $translations=(new ReflectionMethod(PhabricatorProjectWorkspaceChineseTranslation::class,'getTranslations'))->invoke(new PhabricatorProjectWorkspaceChineseTranslation());
+    foreach(array('Enter a valid approval ticket.','The project approval request is invalid.',
+      'A current approved ticket matching this change is required.','Approval Required')as$key){
+      $this->assertTrue(isset($translations[$key])&&$translations[$key]!==$key);
+    }
+    $this->assertFalse(str_contains($validation->getMessage(), 'ticket-expired'));
+    $this->assertFalse(str_contains($validation->getMessage(), 'project_execution_ticket_expired'));
+  }
+
+  public function testKnownExtraEffectsAreRefusalsOnlyInsideActualFormLease() {
+    $originals=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'formOriginals');
+    $classify=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'knownAdditionalEffects');
+    $author='PHID-USER-'.str_repeat('u',20);$type=PhabricatorTransactions::TYPE_VIEW_POLICY;
+    foreach(array(PhabricatorProjectNameTransaction::TRANSACTIONTYPE,
+      PhabricatorProjectColorTransaction::TRANSACTIONTYPE,PhabricatorProjectIconTransaction::TRANSACTIONTYPE,
+      PhabricatorProjectSlugsTransaction::TRANSACTIONTYPE,PhabricatorTransactions::TYPE_CUSTOMFIELD)as$extra_type){
+      $policy=(new PhabricatorProjectTransaction())->setTransactionType($type)->setNewValue('users');
+      $extra=(new PhabricatorProjectTransaction())->setTransactionType($extra_type)->setNewValue(
+        $extra_type===PhabricatorProjectSlugsTransaction::TRANSACTIONTYPE?array('synthetic'):'');
+      if($extra_type===PhabricatorTransactions::TYPE_CUSTOMFIELD){
+        $extra->setMetadataValue('customfield:key','std:project:internal:description')->setOldValue(null)->setIsDefaultTransaction(true);
+      }
+      $batch=array($policy,$extra);$raw=$originals->invoke(null,$batch);
+      foreach($batch as$xaction){$xaction->setAuthorPHID($author);}
+      // Pure shape evidence is not a genuine native form lease.
+      $this->assertTrue($classify->invoke(null,$raw,$batch,$type,'users',$author));
+      $this->assertFalse(PhorgeProjectExecutionCatalog::hasKnownAdditionalFormEffects(
+        new PhabricatorProjectTransactionEditor(),new PhabricatorProject(),$batch,$type,'users'));
+      $this->assertFalse($classify->invoke(null,$raw,array($policy,clone $extra),$type,'users',$author));
+      $this->assertFalse($classify->invoke(null,$raw,$batch,$type,'admin',$author));
+      $extra->setMetadataValue('unknown.extension',true);
+      $this->assertFalse($classify->invoke(null,$raw,$batch,$type,'users',$author));
+    }
+    $policy=(new PhabricatorProjectTransaction())->setTransactionType($type)->setNewValue('users');
+    $join=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_JOIN_POLICY)
+      ->setNewValue('admin')->setIsDefaultTransaction(true);
+    $batch=array($policy,$join);$raw=$originals->invoke(null,$batch);
+    foreach($batch as$xaction){$xaction->setAuthorPHID($author);}
+    $this->assertFalse($classify->invoke(null,$raw,$batch,$type,'users',$author));
+    $this->assertFalse($classify->invoke(null,$raw,array($policy,$policy),$type,'users',$author));
+    $public=PhorgeProjectPolicyFailure::responseFor(PhorgeProjectPolicyRefusalException::newForReason('additional-effects'));
+    $this->assertEqual(400,$public['status']);
+    $this->assertEqual('project_approval_separate_changes_required',$public['error']);
+  }
+
 }

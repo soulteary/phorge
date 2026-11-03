@@ -55,15 +55,16 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
       PhorgeProjectExecutionValue::canonical($details),$this->now());
   }
   public function submit($reason,$ttl) {
-    if ($this->scope->getMode()!=='propose' || !is_string($reason) || trim($reason)==='' ||
+    if ($this->scope->getMode()!=='propose') { throw new RuntimeException('project_execution_proposal_mode_invalid'); }
+    if (!is_string($reason) || trim($reason)==='' ||
         strlen($reason)>2048 || !phutil_is_utf8($reason) || !is_int($ttl) || $ttl<1 || $ttl>86400) {
-      throw new RuntimeException('project_execution_proposal_refused');
+      throw PhorgeProjectPolicyRefusalException::newForReason('proposal-input');
     }
     $intent=$this->scope->getIntent();
     $delta=$intent->isMembership()?$this->scope->getProposedMembershipDelta():null;
     if ($intent->isMembership()?(!$delta['added']&&!$delta['removed']):
         ($intent->isViewPolicy()?$this->scope->getObject()->getViewPolicy():$this->scope->getObject()->getEditPolicy())===$this->scope->getNewPolicy()) {
-      throw new RuntimeException('project_execution_no_change');
+      throw PhorgeProjectPolicyRefusalException::newForReason('proposal-no-change');
     }
     $id=bin2hex(random_bytes(32)); $now=$this->now();
     $data=array('targetPHID'=>$this->scope->getObject()->getPHID(),

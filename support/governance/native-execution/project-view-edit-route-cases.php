@@ -15,13 +15,14 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
   $uri='/project/edit/'.$project->getID().'/';
   $attributes=function($tag){$result=array();preg_match_all('/([a-zA-Z_:][-a-zA-Z0-9_:]*)\s*=\s*(?:"([^"]*)"|\x27([^\x27]*)\x27)/',$tag,$matches,PREG_SET_ORDER);
     foreach($matches as$match){$result[strtolower($match[1])]=html_entity_decode($match[2]!==''?$match[2]:($match[3]??''),ENT_QUOTES,'UTF-8');}return$result;};
-  $extract=function($html)use($attributes,$uri){
+  $extract=function($html,$expected_uri=null)use($attributes,$uri){
+    if($expected_uri===null){$expected_uri=$uri;}
     if(!is_string($html)||strlen($html)>1048576){throw new RuntimeException('project_edit_form_html_budget');}
     preg_match_all('/<form\b([^>]*)>(.*?)<\/form>/is',$html,$forms,PREG_SET_ORDER);$found=array();
     foreach($forms as$form){if(strpos($form[2],'name="editEngine"')!==false){$found[]=$form;}}
     if(count($found)!==1){throw new RuntimeException('project_edit_form_exact_form_required');}
     $form=head($found);$form_attributes=$attributes($form[1]);$action=new PhutilURI($form_attributes['action']??'');
-    if($action->getPath()!==$uri||strtoupper($form_attributes['method']??'')!=='POST'){
+    if($action->getPath()!==$expected_uri||strtoupper($form_attributes['method']??'')!=='POST'){
       throw new RuntimeException('project_edit_form_action_refused');}
     $pairs=array();$append=function($name,$value)use(&$pairs){$pairs[]=rawurlencode($name).'='.rawurlencode($value);};
     preg_match_all('/<input\b[^>]*>/is',$form[2],$inputs);
@@ -67,10 +68,11 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     queryfx_all($conn,'SELECT approvalID,state,version,bindingDigest,nativeGroupID FROM governance_projectapproval ORDER BY approvalID'),
     queryfx_all($conn,'SELECT id,approvalID,action FROM governance_executionaudit ORDER BY id'));
   };
-  $submit=function($policy,$operation='view')use($call,$conn,$a,$b,$project){
+  $submit=function($policy,$operation='view',$target=null)use($call,$conn,$a,$b,$project){
+    if($target===null){$target=$project;}
     $before=ipull(queryfx_all($conn,'SELECT approvalID FROM governance_projectapproval'),'approvalID');
     list($response)=$call('/project/approval/','POST',array('form'=>'policy','form_action'=>'submit','operation'=>$operation,
-      'target_phid'=>$project->getPHID(),'new_policy'=>$policy,'reason'=>'Synthetic actual default form transition','ttl_seconds'=>'120',
+      'target_phid'=>$target->getPHID(),'new_policy'=>$policy,'reason'=>'Synthetic actual default form transition','ttl_seconds'=>'120',
       AphrontRequest::getCSRFTokenName()=>$a['viewer']->getCSRFToken()));
     if(!($response instanceof AphrontDialogView)){throw new RuntimeException('project_edit_form_real_proposal_failed');}
     $new=array_values(array_diff(ipull(queryfx_all($conn,'SELECT approvalID FROM governance_projectapproval'),'approvalID'),$before));
@@ -83,19 +85,53 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     $check($page instanceof PhabricatorStandardPageView&&isset($body['editEngine'],$body[AphrontRequest::TYPE_FORM],$body['governanceApprovalID'])&&
       $body['policy.view']===PhabricatorPolicies::POLICY_USER&&$body['policy.edit']===$a['viewer']->getPHID()&&$body['name']===$project->getName(),
       'project-view-default-edit-controller-real-route-get-renders-native-fields-and-ticket-input');
+    $bad_json=$body;$bad_json['payload']='{';$bad_json['action']='history';
+    list($bad_response)=$call('/project/approval/','POST',$bad_json);
+    $bad_content=$bad_response instanceof AphrontJSONResponse?
+      phutil_json_decode($bad_response->setAddJSONShield(false)->buildResponseString()):null;
+    $check($bad_response instanceof AphrontJSONResponse&&$bad_response->getHTTPResponseCode()===400&&
+      $bad_content['error']==='project_approval_invalid_input',
+      'project-policy-errors-real-controller-input-json-is-400');
+    $missing_json=$body;$missing_json['payload']=phutil_json_encode(array('approval_id'=>str_repeat('f',64)));
+    $missing_json['action']='history';$missing_before=$fingerprint();
+    list($missing_response)=$call('/project/approval/','POST',$missing_json);
+    $missing_content=$missing_response instanceof AphrontJSONResponse?
+      phutil_json_decode($missing_response->setAddJSONShield(false)->buildResponseString()):null;
+    $check($missing_response instanceof AphrontJSONResponse&&$missing_response->getHTTPResponseCode()===403&&
+      $missing_content['error']==='project_approval_refused'&&$missing_before===$fingerprint(),
+      'project-policy-errors-real-controller-missing-ticket-is-generic-403-without-write');
     $ticket=$submit($a['viewer']->getPHID());$before=$fingerprint();
+    $saved_binding=queryfx_one($conn,'SELECT bindingJSON FROM governance_projectapproval WHERE approvalID=%s',$ticket)['bindingJSON'];
+    queryfx($conn,'UPDATE governance_projectapproval SET bindingJSON=%s WHERE approvalID=%s','{',$ticket);
+    $stored_json=$body;$stored_json['payload']=phutil_json_encode(array('approval_id'=>$ticket));$stored_json['action']='history';
+    $stored_failed=false;
+    try { $call('/project/approval/','POST',$stored_json); }
+    catch (JsonException $error) { $stored_failed=get_class($error)===JsonException::class; }
+    finally { queryfx($conn,'UPDATE governance_projectapproval SET bindingJSON=%s WHERE approvalID=%s',$saved_binding,$ticket); }
+    $check($stored_failed&&$before===$fingerprint(),
+      'project-policy-errors-real-controller-stored-json-corruption-propagates-backend-error');
+    $missing_form=$body;$missing_form['policy.view']=$a['viewer']->getPHID();unset($missing_form['governanceApprovalID']);
+    list($missing_page,$missing_html)=$call($uri,'POST',$missing_form,true);
+    $check($missing_page instanceof PhabricatorStandardPageView&&
+      strpos(html_entity_decode(strip_tags($missing_html),ENT_QUOTES,'UTF-8'),pht('Enter a valid approval ticket.'))!==false&&
+      $before===$fingerprint(),'project-policy-errors-real-native-edit-missing-ticket-renders-validation-without-write');
     $without=$body;unset($without[AphrontRequest::getCSRFTokenName()]);$without['policy.view']=$a['viewer']->getPHID();$without['governanceApprovalID']=$ticket;
     $refused=false;try{$call($uri,'POST',$without);}catch(AphrontMalformedRequestException$error){$refused=true;}
     $check($refused&&$before===$fingerprint(),'project-view-default-edit-controller-real-post-without-csrf-refused-without-write');
     $mixed=$body;$mixed['policy.view']=$a['viewer']->getPHID();$mixed['governanceApprovalID']=$ticket;$mixed['name']='Synthetic second actual mutation';
-    $refused=false;try{$call($uri,'POST',$mixed);}catch(RuntimeException$error){
-      if($error->getMessage()!=='project_execution_expanded_closure_unsupported'){throw$error;}$refused=true;}
-    $check($refused&&$before===$fingerprint(),'project-view-default-edit-controller-second-actual-change-refuses-whole-transition');
+    list($mixed_page,$mixed_html)=$call($uri,'POST',$mixed,true);
+    $check($mixed_page instanceof PhabricatorStandardPageView&&
+      strpos(html_entity_decode(strip_tags($mixed_html),ENT_QUOTES,'UTF-8'),
+        pht('Save other project changes first, then create a new policy proposal.'))!==false&&
+      $before===$fingerprint(),'project-view-default-edit-controller-second-actual-change-refuses-whole-transition');
     $wrong=$submit(PhabricatorPolicies::POLICY_USER,'edit');$before=$fingerprint();
     $wrong_body=$body;$wrong_body['policy.view']=$a['viewer']->getPHID();$wrong_body['governanceApprovalID']=$wrong;
-    $refused=false;try{$call($uri,'POST',$wrong_body);}catch(RuntimeException$error){
-      if($error->getMessage()!=='project_execution_ticket_binding_changed'){throw$error;}$refused=true;}
-    $check($refused&&$before===$fingerprint(),'project-view-default-edit-controller-edit-ticket-cannot-authorize-view-form');
+    list($wrong_page,$wrong_html)=$call($uri,'POST',$wrong_body,true);
+    $check($wrong_page instanceof PhabricatorStandardPageView&&
+      strpos(html_entity_decode(strip_tags($wrong_html),ENT_QUOTES,'UTF-8'),
+        pht('A current approved ticket matching this change is required.'))!==false&&
+      strpos($wrong_html,'project_execution_ticket_binding_changed')===false&&$before===$fingerprint(),
+      'project-view-default-edit-controller-edit-ticket-cannot-authorize-view-form');
     $noone=$submit(PhabricatorPolicies::POLICY_NOONE);$before=$fingerprint();
     $invalid=$body;$invalid['policy.view']=PhabricatorPolicies::POLICY_NOONE;$invalid['governanceApprovalID']=$noone;
     list($invalid_page,$invalid_html)=$call($uri,'POST',$invalid,true);
@@ -136,6 +172,57 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
       if($error->getMessage()!=='project_execution_native_form_multiple_changes'){throw$error;}$join_refused=true;}
     $check($join_refused&&$fingerprint()===$empty_before,
       'project-view-default-edit-controller-join-change-and-forged-default-flags-refused-before-effects');
+    // A raw legacy object may genuinely lack description storage. Preserve
+    // that NULL-to-empty effect and give an actionable refusal, never drop it.
+    $setup=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.project-approval.enabled',false);
+    try{$raw_project=PhabricatorProject::initializeNewProject($a['viewer'])->setName('Synthetic legacy empty-description form target')
+      ->setViewPolicy(PhabricatorPolicies::POLICY_USER)->setEditPolicy($a['viewer']->getPHID())
+      ->setJoinPolicy(PhabricatorPolicies::POLICY_USER)->save();}finally{unset($setup);}
+    $raw_uri='/project/edit/'.$raw_project->getID().'/';
+    $read_description=function()use($raw_project,$a){
+      $fresh=(new PhabricatorProjectQuery())->setViewer($a['viewer'])->withPHIDs(array($raw_project->getPHID()))->executeOne();
+      $fields=PhabricatorCustomField::getObjectFields($fresh,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS);
+      $fields->setViewer($a['viewer'])->readFieldsFromStorage($fresh);
+      $field=PhabricatorCustomField::getObjectField($fresh,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS,'std:project:internal:description');
+      if(!$field){throw new RuntimeException('project_policy_error_description_field_required');}
+      return $field->getOldValueForApplicationTransactions();
+    };
+    if($read_description()!==null){throw new RuntimeException('project_policy_error_real_missing_description_required');}
+    list(,$raw_html)=$call($raw_uri,'GET',array(),true);$raw_body=$extract($raw_html,$raw_uri);
+    $old_ticket=$submit($a['viewer']->getPHID(),'view',$raw_project);
+    $raw_before=queryfx_one($conn,'SELECT * FROM %R WHERE id=%d',new PhabricatorProject(),$raw_project->getID());
+    $audits_before=queryfx_all($conn,'SELECT * FROM governance_executionaudit ORDER BY id');
+    $raw_policy=$raw_body;$raw_policy['policy.view']=$a['viewer']->getPHID();$raw_policy['governanceApprovalID']=$old_ticket;
+    list($raw_error,$raw_error_html)=$call($raw_uri,'POST',$raw_policy,true);
+    $old_row=queryfx_one($conn,'SELECT state,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$old_ticket);
+    $check($raw_error instanceof PhabricatorStandardPageView&&
+      strpos(html_entity_decode(strip_tags($raw_error_html),ENT_QUOTES,'UTF-8'),
+        pht('Save other project changes first, then create a new policy proposal.'))!==false&&
+      $read_description()===null&&$old_row['state']==='approved'&&$old_row['nativeGroupID']===null&&
+      $raw_before===queryfx_one($conn,'SELECT * FROM %R WHERE id=%d',new PhabricatorProject(),$raw_project->getID())&&
+      $audits_before===queryfx_all($conn,'SELECT * FROM governance_executionaudit ORDER BY id')&&
+      queryfx_all($conn,'SELECT id FROM %R WHERE objectPHID=%s',new PhabricatorProjectTransaction(),$raw_project->getPHID())===array(),
+      'project-policy-errors-missing-description-extra-effect-refuses-actionably-without-consumption');
+    list(,$raw_fresh_html)=$call($raw_uri,'GET',array(),true);$raw_save=$extract($raw_fresh_html,$raw_uri);
+    list($raw_saved)=$call($raw_uri,'POST',$raw_save);
+    $old_policy=$raw_save;$old_policy['policy.view']=$a['viewer']->getPHID();$old_policy['governanceApprovalID']=$old_ticket;
+    list($stale_page,$stale_html)=$call($raw_uri,'POST',$old_policy,true);
+    $check($raw_saved instanceof AphrontRedirectResponse&&$read_description()===''&&
+      $stale_page instanceof PhabricatorStandardPageView&&
+      strpos(html_entity_decode(strip_tags($stale_html),ENT_QUOTES,'UTF-8'),
+        pht('A current approved ticket matching this change is required.'))!==false&&
+      queryfx_one($conn,'SELECT state FROM governance_projectapproval WHERE approvalID=%s',$old_ticket)['state']==='approved',
+      'project-policy-errors-native-content-save-initializes-description-and-old-proposal-stays-stale');
+    $fresh_ticket=$submit($a['viewer']->getPHID(),'view',$raw_project);
+    list(,$ready_html)=$call($raw_uri,'GET',array(),true);$ready=$extract($ready_html,$raw_uri);
+    $ready['policy.view']=$a['viewer']->getPHID();$ready['governanceApprovalID']=$fresh_ticket;
+    list($ready_result)=$call($raw_uri,'POST',$ready);
+    $ready_records=queryfx_all($conn,'SELECT transactionType FROM %R WHERE objectPHID=%s ORDER BY id',new PhabricatorProjectTransaction(),$raw_project->getPHID());
+    $check($ready_result instanceof AphrontRedirectResponse&&$read_description()===''&&count($ready_records)===2&&
+      $ready_records[0]['transactionType']===PhabricatorTransactions::TYPE_CUSTOMFIELD&&
+      $ready_records[1]['transactionType']===PhabricatorTransactions::TYPE_VIEW_POLICY&&
+      queryfx_one($conn,'SELECT state FROM governance_projectapproval WHERE approvalID=%s',$fresh_ticket)['state']==='consumed',
+      'project-policy-errors-fresh-proposal-after-separate-content-save-executes-only-approved-policy');
     $proofs=(new ReflectionProperty(PhorgeProjectExecutionCatalog::class,'nativeForms'))->getValue();
     $check(($proofs===null||count($proofs)===0)&&!$conn->isInsideTransaction()&&!$conn->isReadLocking()&&!$conn->isWriteLocking(),
       'project-view-default-edit-controller-provenance-and-native-locks-released');
