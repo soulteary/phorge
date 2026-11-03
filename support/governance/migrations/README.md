@@ -3,7 +3,9 @@
 `push-groups-wrapper.py --profile push-groups-regression` requires the existing
 explicit isolated fixture environment and loopback disposable SQL control
 credentials. It creates a random namespace, exact ownership marker and restricted
-setup principal; restores only actual historical repository DDL; executes the
+setup principal (random credentials, exact owned-schema grants; account host
+`%` supports Docker service bridge peers while the connection target is fixed
+to loopback); restores only actual historical repository DDL; executes the
 actual PHP migration on three synthetic rows; and removes its owned schemas and
 principal. It refuses deployment selectors and local deployment configuration.
 
