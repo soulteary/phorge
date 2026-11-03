@@ -1,5 +1,5 @@
 """Mutation tests for reviewed sources; never runtime/mail authorization proof."""
-import copy,importlib.util,json,shutil,tempfile,unittest
+import copy,hashlib,importlib.util,json,shutil,subprocess,sys,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('private_mail_gate',ROOT/'scripts/governance/check_private_notifications.py')
@@ -36,6 +36,23 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
         with self.assertRaises(ValueError):gate.validate(data)
         data=copy.deepcopy(self.data);del data['security_flows']['account.login']
         with self.assertRaises(ValueError):gate.validate(data)
+    def test_native_envelope_requires_external_measurement_revision(self):
+        spec=importlib.util.spec_from_file_location('native_notification_template',ROOT/'tests/governance/test_native_organization.py')
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory()as directory:
+            private=Path(directory);binary=private/'file';binary.write_bytes(b'synthetic gate binary')
+            data=module.template();data['file_service_cleanup']['binary_sha256']=hashlib.sha256(binary.read_bytes()).hexdigest()
+            receipt=private/'receipt.json';receipt.write_text(json.dumps(data))
+            base=[sys.executable,str(ROOT/'scripts/governance/check_private_notifications.py'),
+                  '--receipt',str(receipt),'--file-binary',str(binary)]
+            for expected,extra in [(0,['--measurement-source-revision','a'*40]),
+                                   (1,[]),(1,['--measurement-source-revision','b'*40])]:
+                result=subprocess.run(base+extra,capture_output=True,text=True)
+                self.assertEqual(expected,result.returncode)
+                if expected==0:
+                    value=json.loads(result.stdout);self.assertEqual(710,value['native_checks'])
+                    self.assertIs(value['smtp_proved'],False)
+
     def test_duplicate_json_fields_are_not_last_value_wins(self):
         with tempfile.TemporaryDirectory()as directory:
             path=Path(directory)/'receipt.json';path.write_text('{"passed":false,"passed":true}')
