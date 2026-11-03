@@ -31,6 +31,8 @@ function governance_native_legacy_sql_compatibility_cases($fixture, callable $ch
         'native-legacy-sql-'.$kind.'-actual-native-role-roundtrip-and-monotonic-epoch');
       $epochs[$kind]=(string)$epoch['epoch'];
     }
+    require_once dirname(__DIR__).'/native-execution/config-epoch-cases.php';
+    $config_epoch=governance_project_config_epoch_cases($fixture,$check,$actor);
     $check(PhabricatorEnv::getEnvConfig('governance.organization.enabled')===false &&
       PhabricatorEnv::getEnvConfig('governance.media-exchange.enabled')===false,
       'native-legacy-sql-epoch-path-active-with-optional-features-disabled');
@@ -39,6 +41,6 @@ function governance_native_legacy_sql_compatibility_cases($fixture, callable $ch
     PhabricatorEnv::overrideConfig('governance.media-exchange.enabled',$old_media);
   }
   return array('server_version'=>$version,'vendor'=>stripos($version,'MariaDB')!==false?'MariaDB':'MySQL',
-    'actual_native_legacy_editors_executed'=>true,'independent_legacy_role_epochs'=>$epochs,
+    'actual_native_config_generations'=>$config_epoch,'actual_native_legacy_editors_executed'=>true,'independent_legacy_role_epochs'=>$epochs,
     'optional_backend_compatibility_claimed'=>false,'production_configuration_changed'=>false);
 }

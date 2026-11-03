@@ -167,7 +167,13 @@ try {
     $fixture->assertOwned();
     foreach (array('mysql.host'=>'host','mysql.port'=>'port','mysql.user'=>'user',
       'mysql.pass'=>'password','storage.default-namespace'=>'namespace') as $key=>$field) {
-      if (PhabricatorEnv::getEnvConfig($key) !== $writer[$field]) {
+      $actual=PhabricatorEnv::getEnvConfig($key);
+      $expected=$writer[$field];
+      if ($key==='mysql.port') {
+        $actual=PhorgeProjectExecutionConfigSource::normalizePort($actual);
+        $expected=PhorgeProjectExecutionConfigSource::normalizePort($expected);
+      }
+      if ($actual !== $expected) {
         throw new RuntimeException('Owned native writer route refused.');
       }
     }

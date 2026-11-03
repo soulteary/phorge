@@ -131,7 +131,11 @@ function governance_native_organization_cases($fixture, callable $check) {
   $compound_summary=governance_native_compound_cases($fixture,$check,$state);
   require_once __DIR__.'/history-cases.php';
   $history_summary=governance_native_history_cases($fixture,$check,$state);
-  return array('http_tests'=>$http_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
+  require_once dirname(__DIR__).'/native-execution/producer-fence-cases.php';
+  $producer_summary=governance_project_producer_fence_cases($fixture,$check,$users['admin']);
+  require_once dirname(__DIR__).'/native-execution/project-policy-cases.php';
+  $execution_summary=governance_project_policy_execution_cases($fixture,$check);
+  return array('http_tests'=>$http_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'producer_fence_tests'=>$producer_summary,'project_execution_tests'=>$execution_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
     'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
     'production_features_enabled'=>false,'media_backend_only'=>true,
     'daemon_or_external_delivery_executed'=>false,'issuer_upgrade_tests'=>$issuer_upgrade_summary,'target_tests'=>$target_summary,'issuer_tests'=>$issuer_summary,'schema_tests'=>$schema_summary,'route_tests'=>$route_summary,'privacy_tests'=>$privacy_summary,'concurrency_tests'=>$concurrency_summary,

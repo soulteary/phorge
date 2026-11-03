@@ -71,7 +71,11 @@ final class PhabricatorProjectsMembershipIndexEngineExtension
       $project_phid);
     $has_milestones = (bool)$any_milestone;
 
+    $governance_guard=PhorgeProjectNativeExecutionScope::guardEnabled();
     $project->openTransaction();
+    try {
+      if($governance_guard){PhorgeProjectNativeExecutionScope::guardMaterializationProject(
+        $project,$conn_w,$source_phids,$has_subprojects,$has_milestones);}
 
       // Copy current member edges to create new materialized edges.
 
@@ -104,6 +108,7 @@ final class PhabricatorProjectsMembershipIndexEngineExtension
 
       $add_phids = array_diff_key($want_phids, $have_phids);
       $add_phids = array_keys($add_phids);
+      if($governance_guard){PhorgeProjectNativeExecutionScope::guardMaterializationDiff($project,$add_phids,$rem_phids);}
 
       $rem_sql = array();
       foreach ($rem_phids as $rem_phid) {
@@ -171,6 +176,10 @@ final class PhabricatorProjectsMembershipIndexEngineExtension
         $project->getID());
 
     $project->saveTransaction();
+    } catch(Throwable $error) {
+      if($governance_guard && $conn_w->isInsideTransaction()){$project->killTransaction();}
+      throw $error;
+    }
   }
 
 }

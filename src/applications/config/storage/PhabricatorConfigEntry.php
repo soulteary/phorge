@@ -11,6 +11,30 @@ final class PhabricatorConfigEntry
   protected $value;
   protected $isDeleted;
 
+  // Lisk::save dispatches exactly once through insert() or update(). Cover
+  // direct native DAO entry points as well, without double-advancing epochs.
+  public function insert() { return $this->writeWithPermissionGeneration('insert'); }
+  public function update() { return $this->writeWithPermissionGeneration('update'); }
+  public function replace() { return $this->writeWithPermissionGeneration('replace'); }
+  public function delete() { return $this->writeWithPermissionGeneration('delete'); }
+
+  private function writeWithPermissionGeneration($operation) {
+    // Preserve the original native read-only-object refusal before any SQL.
+    (new ReflectionMethod(LiskDAO::class,'isEphemeralCheck'))->invoke($this);
+    if ($operation!=='delete') { $this->willSaveObject(); }
+    $generation=PhorgeProjectConfigEpochScope::begin($this,$operation);
+    try {
+      switch ($operation) {
+        case 'insert': $result=parent::insert(); break;
+        case 'update': $result=parent::update(); break;
+        case 'replace': $result=parent::replace(); break;
+        case 'delete': $result=parent::delete(); break;
+        default: throw new LogicException('configuration_generation_operation_refused');
+      }
+      $generation->finish(); return $result;
+    } catch (Throwable $error) { $generation->rollback(); throw $error; }
+  }
+
   protected function getConfiguration() {
     return array(
       self::CONFIG_AUX_PHID => true,

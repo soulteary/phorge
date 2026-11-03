@@ -397,6 +397,7 @@ final class PhabricatorProject extends PhabricatorProjectDAO
   }
 
   public function save() {
+    PhorgeProjectNativeExecutionScope::assertProjectSave($this);
     if (!$this->getMailKey()) {
       $this->setMailKey(Filesystem::readRandomCharacters(20));
     }

@@ -852,6 +852,36 @@
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "native-local-validation-unit-test",
       "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
+      "discovery": true,
+      "kind": "restricted-native-project-shape-catalog",
+      "meaning": "Classifies fixed edit-policy/self-membership envelopes; shape classification never grants native capabilities.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-bounded-profile-not-global-route-certification",
+      "sourceOperation": "fixed-native-transaction-shape-classification",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
+      "discovery": true,
+      "kind": "restricted-native-project-execution-scope",
+      "meaning": "Fresh locked native membership/identity/Space/config sources constrain an optional flat-root Project execution lease; approval never overrides native VIEW/EDIT/JOIN or changes aggregation semantics.",
+      "authority": "native-current-viewer-policy",
+      "reviewStatus": "source-reviewed-bounded-profile-not-global-route-certification",
+      "sourceOperation": "same-writer-native-policy-execution-and-self-membership-lease",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/execution/__tests__/PhorgeProjectExecutionTestCase.php",
+      "discovery": true,
+      "kind": "restricted-native-project-unit-test",
+      "meaning": "Synthetic transaction shapes and malformed envelopes exercise pure rejection; no transaction application or capability grant.",
+      "authority": "test-only",
+      "reviewStatus": "source-reviewed-bounded-profile-not-global-route-certification",
+      "sourceOperation": "fixed-native-project-shape-unit-test",
+      "candidateGenerationIntroduced": false
     }
   ]
 }
