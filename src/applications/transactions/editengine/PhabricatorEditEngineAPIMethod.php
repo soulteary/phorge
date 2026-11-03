@@ -16,10 +16,15 @@ abstract class PhabricatorEditEngineAPIMethod
   }
 
   final protected function defineParamTypes() {
-    return array(
+    $params = array(
       'transactions' => 'list<map<string, wild>>',
       'objectIdentifier' => 'optional id|phid|string',
     );
+    if (get_class($this->newEditEngine()) === PhabricatorProjectEditEngine::class &&
+        PhorgeProjectExecutionCatalog::enabled()) {
+      $params['governanceApprovalID'] = 'optional string';
+    }
+    return $params;
   }
 
   final protected function defineReturnType() {

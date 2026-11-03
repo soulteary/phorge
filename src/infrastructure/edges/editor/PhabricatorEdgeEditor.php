@@ -95,6 +95,7 @@ final class PhabricatorEdgeEditor extends Phobject {
    * @task edit
    */
   public function save() {
+    PhorgeProjectNativeExecutionScope::beforeMembershipEdgeWrite($this);
 
     $cycle_types = $this->getPreventCyclesEdgeTypes();
 
@@ -256,6 +257,8 @@ final class PhabricatorEdgeEditor extends Phobject {
     $inserts = array();
     foreach ($adds as $src_type => $edges) {
       $conn_w = PhabricatorEdgeConfig::establishConnection($src_type, 'w');
+      $governance_context=PhorgeProjectNativeExecutionScope::membershipEdgeWriteContext($this,$src_type);
+      if($governance_context!==null){$conn_w=$governance_context['connection'];}
       $sql = array();
       foreach ($edges as $edge) {
         $sql[] = qsprintf(
@@ -268,20 +271,20 @@ final class PhabricatorEdgeEditor extends Phobject {
           $edge['seq'],
           idx($edge, 'data_id'));
       }
-      $inserts[] = array($conn_w, $sql);
+      $inserts[] = array($conn_w, $sql, $governance_context);
     }
 
     foreach ($inserts as $insert) {
-      list($conn_w, $sql) = $insert;
+      list($conn_w, $sql, $governance_context) = $insert;
       $conn_w->openTransaction();
       $this->openTransactions[] = $conn_w;
 
       foreach (PhabricatorLiskDAO::chunkSQL($sql) as $chunk) {
         queryfx(
           $conn_w,
-          'INSERT INTO %T (src, type, dst, dateCreated, seq, dataID)
+          ($governance_context===null?'INSERT INTO %T':'INSERT INTO %Q').' (src, type, dst, dateCreated, seq, dataID)
             VALUES %LQ ON DUPLICATE KEY UPDATE dataID = VALUES(dataID)',
-          PhabricatorEdgeConfig::TABLE_NAME_EDGE,
+          $governance_context===null?PhabricatorEdgeConfig::TABLE_NAME_EDGE:$governance_context['table'],
           $chunk);
       }
     }
@@ -300,6 +303,8 @@ final class PhabricatorEdgeEditor extends Phobject {
     $deletes = array();
     foreach ($rems as $src_type => $edges) {
       $conn_w = PhabricatorEdgeConfig::establishConnection($src_type, 'w');
+      $governance_context=PhorgeProjectNativeExecutionScope::membershipEdgeWriteContext($this,$src_type);
+      if($governance_context!==null){$conn_w=$governance_context['connection'];}
       $sql = array();
       foreach ($edges as $edge) {
         $sql[] = qsprintf(
@@ -309,11 +314,11 @@ final class PhabricatorEdgeEditor extends Phobject {
           $edge['type'],
           $edge['dst']);
       }
-      $deletes[] = array($conn_w, $sql);
+      $deletes[] = array($conn_w, $sql, $governance_context);
     }
 
     foreach ($deletes as $delete) {
-      list($conn_w, $sql) = $delete;
+      list($conn_w, $sql, $governance_context) = $delete;
 
       $conn_w->openTransaction();
       $this->openTransactions[] = $conn_w;
@@ -321,8 +326,8 @@ final class PhabricatorEdgeEditor extends Phobject {
       foreach (array_chunk($sql, 256) as $chunk) {
         queryfx(
           $conn_w,
-          'DELETE FROM %T WHERE %LO',
-          PhabricatorEdgeConfig::TABLE_NAME_EDGE,
+          ($governance_context===null?'DELETE FROM %T':'DELETE FROM %Q').' WHERE %LO',
+          $governance_context===null?PhabricatorEdgeConfig::TABLE_NAME_EDGE:$governance_context['table'],
           $chunk);
       }
     }
