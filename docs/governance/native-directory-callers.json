@@ -913,7 +913,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
       "symbol": "PhorgeProjectPolicyApprovalController",
       "kind": "current-policy-preview-controller",
-      "sha256": "3ddd44a94baf759168b12ee1204d268e169a5664b19b9b5b49e777eb49260eba",
+      "sha256": "89c6063f3dd3a0928a54a29438ba6a62087d32151f62f3482942da1c0985e1f9",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1677,7 +1677,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
-        "sha256": "3ddd44a94baf759168b12ee1204d268e169a5664b19b9b5b49e777eb49260eba"
+        "sha256": "89c6063f3dd3a0928a54a29438ba6a62087d32151f62f3482942da1c0985e1f9"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalService.php",

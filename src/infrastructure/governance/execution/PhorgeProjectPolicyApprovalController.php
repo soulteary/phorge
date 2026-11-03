@@ -114,6 +114,17 @@ final class PhorgeProjectPolicyApprovalController extends PhabricatorProjectCont
         $project=$scope->getObject(); $actor=$scope->getActor(); $current=$project->getPolicy($capability);
         // Materialize protected choices while the scope still owns its fresh
         // Space cache and actor locks. No post-close query reuses prior cache.
+        // The locked actor is reconstructed from native authority rows and has
+        // no user-cache attachments. Build only its native preference value;
+        // do not replace this actor with a cached viewer or enable inline writes.
+        $preferences_key=PhabricatorUserPreferencesCacheType::KEY_PREFERENCES;
+        $preferences=(new PhabricatorUserPreferencesCacheType())->newValueForUsers(
+          $preferences_key,array($actor));
+        if (!array_key_exists($actor->getPHID(),$preferences) ||
+            !is_string($preferences[$actor->getPHID()])) {
+          throw new RuntimeException('project_execution_actor_preferences_missing');
+        }
+        $actor->attachRawCacheData(array($preferences_key=>$preferences[$actor->getPHID()]));
         $policies=(new PhabricatorPolicyQuery())->setViewer($actor)->setObject($project)->execute();
         $policy_control=(new AphrontFormPolicyControl())->setViewer($actor)->setName('new_policy')
           ->setPolicyObject($project)->setCapability($capability)->setPolicies($policies)->setValue($current)
