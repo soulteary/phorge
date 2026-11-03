@@ -22,7 +22,9 @@ function governance_private_mail_legalpad_policy_cases($fixture,callable $check,
         ->setNewValue('Synthetic Legalpad policy members '.substr($fixture->getNamespace(),-10))));});
     $membership=static function($add)use($project,$auth,$author,$with_author){
       return$with_author(static function()use($project,$auth,$author,$add){
-      $project=(new PhabricatorProject())->load($project->getID());
+      $project=(new PhabricatorProjectQuery())->setViewer($author['viewer'])->withIDs(array($project->getID()))
+        ->needMembers(true)->needAncestorMembers(true)->executeOne();
+      if(!$project){throw new RuntimeException('legalpad_fixture_native_project_unavailable');}
       (new PhabricatorProjectTransactionEditor())->setActor($author['viewer'])->setContentSourceFromRequest($author['request'])->setIsSilent(true)
         ->applyTransactions($project,array((new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
           ->setMetadataValue('edge:type',PhabricatorProjectProjectHasMemberEdgeType::EDGECONST)
