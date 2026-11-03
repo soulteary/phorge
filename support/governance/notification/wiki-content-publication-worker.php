@@ -11,12 +11,21 @@ try{
   $path=$directory.'/probe.json';if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>2048){throw new RuntimeException('business_publication_payload_refused');}
   $probe=json_decode(file_get_contents($path),true,4,JSON_THROW_ON_ERROR);
   if(!is_array($probe)||array_keys($probe)!==array('owner','task_id','object_phid','phase','lease_owner','lease_expires')||$probe['owner']!==$data['owner']||
-    !in_array($probe['phase'],array('prepare','execute'),true)||!is_string($probe['lease_owner'])||!preg_match('/\Abusiness-gorge-[a-f0-9]{32}\z/D',$probe['lease_owner'])||!is_int($probe['lease_expires'])||$probe['lease_expires']<=time()||
+    !in_array($probe['phase'],array('prepare','execute','execute-no-render'),true)||!is_string($probe['lease_owner'])||!preg_match('/\Abusiness-gorge-[a-f0-9]{32}\z/D',$probe['lease_owner'])||!is_int($probe['lease_expires'])||$probe['lease_expires']<=time()||
     !is_int($probe['task_id'])||$probe['task_id']<1||!is_string($probe['object_phid'])||!preg_match('/\APHID-WIKI-[a-zA-Z0-9]{20}\z/D',$probe['object_phid'])){throw new RuntimeException('business_publication_payload_refused');}
   require_once$root.'/support/runtime/bootstrap.php';ob_start();$buffer=true;phutil_load_library($root.'/src/');
   $proof=governance_private_mail_proof($data);governance_private_mail_install_env($data);$owned=true;
   require_once __DIR__.'/business-queue-config.php';
   $queue_scope=governance_private_business_queue_scope($directory,$data['owner']);
+  require_once __DIR__.'/wiki-render-service.php';
+  $render_scope=$probe['phase']==='execute-no-render'?null:governance_wiki_render_scope($directory,$data['owner']);
+  $render_uri=PhabricatorGorgeRenderClient::getConfiguredURI();
+  if($probe['phase']==='execute-no-render'&&($render_uri!==null||PhabricatorGorgeDiffClient::isEnabled())){throw new RuntimeException('wiki_missing_render_profile_required');}
+  $render_calls=0;$profiler=PhutilServiceProfiler::getInstance();
+  $listeners=new ReflectionProperty(PhutilServiceProfiler::class,'listeners');$prior_listeners=$listeners->getValue($profiler);
+  $profiler->addListener(static function($phase,$id,$event)use(&$render_calls,$render_uri){
+    if($phase==='end'&&($event['type']??null)==='http'&&$render_uri!==null&&($event['uri']??null)===$render_uri.'/api/diff/prose'){$render_calls++;}
+  });
   $guard=new AphrontWriteGuard(static function()use($proof,$data){$row=$proof->query('SELECT owner_nonce FROM `'.$data['writer']['namespace'].'_governance`.`fixture_guard` WHERE id=1')->fetch_assoc();if(!$row||!hash_equals($data['fixture_nonce'],$row['owner_nonce'])){throw new RuntimeException('business_publication_owner_changed');}});
   $task=(new PhabricatorWorkerActiveTask())->load($probe['task_id']);
   if(!$task||$task->getTaskClass()!=='PhabricatorApplicationTransactionPublishWorker'||$task->getObjectPHID()!==$probe['object_phid']||$task->getLeaseOwner()!==$probe['lease_owner']||(int)$task->getLeaseExpires()!==$probe['lease_expires']){throw new RuntimeException('business_publication_task_refused');}
@@ -36,11 +45,17 @@ try{
   $mail=new PhabricatorMetaMTAMail();$start=(int)queryfx_one($mail->establishConnection('r'),'SELECT COALESCE(MAX(id),0) n FROM %R',$mail)['n'];
   $_SERVER['HTTP_X_SERVICE_TOKEN']=$data['service_token'];
   $handler=(new ConduitCall('worker.execute',array('taskID'=>$probe['task_id'],'taskClass'=>$task->getTaskClass(),
-    'phase'=>$probe['phase'],'executionVersion'=>1,'failureCount'=>(int)$task->getFailureCount(),
+    'phase'=>$probe['phase']==='execute-no-render'?'execute':$probe['phase'],'executionVersion'=>1,'failureCount'=>(int)$task->getFailureCount(),
     'priority'=>(int)$task->getPriority(),'leaseOwner'=>$probe['lease_owner'],'leaseExpires'=>$probe['lease_expires'],
     'data'=>phutil_json_encode($payload))))->execute();
   $classification=$handler['result']??null;
-  if(!in_array($classification,array('prepared','success','permanent-failure'),true)){
+  $missing_render=$probe['phase']==='execute-no-render';
+  if($missing_render){
+    $expected='Gorge prose diff generation is required, but the render service is unavailable: either "gorge.render.uri" is not configured, or the Gorge service policy for "render" is "off". There is no native prose difference engine to fall back to.';
+    if($classification!=='failure'||($handler['failureType']??null)!=='transient'||($handler['failureReason']??null)!==$expected||$render_calls!==0){
+      throw new RuntimeException('wiki_publication_expected_missing_render_failure_required');}
+  }
+  if(!$missing_render&&!in_array($classification,array('prepared','success','permanent-failure'),true)){
     throw new RuntimeException('business_gorge_handler_unexpected_result');
   }
   $missing=$classification==='permanent-failure';
@@ -67,7 +82,7 @@ try{
       'no_private_producer_payload'=>!str_contains(phutil_json_encode($prepared),'SYNTHETIC_PRIVATE_BUSINESS_COMMENT')&&!str_contains(phutil_json_encode($prepared),'SYNTHETIC_PRIVATE_WIKI_CONTENT_EDIT')&&!str_contains(phutil_json_encode($prepared),'Synthetic Wiki publication '),
       'physical_gate_allowed'=>$physical,'quarantined'=>$item->getPrivateMailPolicyValue('governance.delivery-quarantined',false));}
   $result=array('passed'=>true,'actual_owned_taskqueue_http_ready'=>true,'source_visible'=>$visible!==null,'native_publication_missing_source_permanent'=>$missing,
-    'publication_completed'=>$classification==='success','native_wiki_content_present'=>$wiki_content,'handler_result'=>$classification,'envelopes'=>$envelopes,'physical_delivery_attempted'=>false);
+    'publication_completed'=>$classification==='success','missing_render_transient'=>$missing_render,'native_gorge_prose_diff_calls'=>$render_calls,'native_wiki_content_present'=>$wiki_content,'handler_result'=>$classification,'envelopes'=>$envelopes,'physical_delivery_attempted'=>false);
 }catch(Throwable$error){$failure=array('type'=>get_class($error),'file'=>basename($error->getFile()),'line'=>$error->getLine());}
-finally{try{if($guard!==null){$guard->dispose();}if($owned){LiskDAO::closeAllConnections();}if($proof!==null){$proof->close();}}catch(Throwable$error){$failure=array('type'=>'cleanup_failed');}mysqli_report($mode);if($buffer){ob_end_clean();}}
+finally{try{if(isset($listeners)&&isset($prior_listeners)){$listeners->setValue($profiler,$prior_listeners);}if($guard!==null){$guard->dispose();}if($owned){LiskDAO::closeAllConnections();}if($proof!==null){$proof->close();}}catch(Throwable$error){$failure=array('type'=>'cleanup_failed');}mysqli_report($mode);if($buffer){ob_end_clean();}}
 echo json_encode($failure?array('passed'=>false,'failure'=>$failure):$result,JSON_THROW_ON_ERROR)."\n";exit($failure?1:0);

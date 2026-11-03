@@ -38,3 +38,23 @@ All five children must exit, owned private directories must be removed and all
 profiler listeners and parent transactions must be restored. The queue's existing
 64-PublishWorker hard lease budget is retained: backlog exhaustion fails the run
 rather than silently raising the bound or skipping a sample.
+
+
+### Paired render dependency (candidate, not runtime acceptance)
+
+The actual native Wiki mail detail builder requires Gorge prose diff. The
+497-check failed runs established a missing render-service profile; their debug
+API instrumentation is excluded from this business successor. The new fixture
+uses the exact paired55 linux/arm64 renderer, an owned loopback process with a
+private token, and owner-checked child configuration. No retired diff switch or
+PHP diff fallback is enabled.
+
+A separate child intentionally omits the renderer and must produce the exact
+native transient failure, zero persisted mail and no successful archive. The
+same leased native publisher then executes with the real renderer: normal and
+committed content edits must actually call its prose route and retain nonzero,
+current-authorized subscriber mail. This is a controlled fixture retry, not a
+Go daemon or automatic retry proof. Six local Wiki children (in addition to
+38 global and the unchanged 20 business children), all service files and the
+renderer process must be removed. Three additional mandatory checks bring the
+candidate total to 835; no actual 835 acceptance has been established yet.

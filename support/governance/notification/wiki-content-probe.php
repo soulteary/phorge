@@ -1,7 +1,7 @@
 <?php
 /** Owned independent PHP probe; private payload is never copied into receipt. */
-function governance_wiki_content_probe_factory($fixture,array $queue,&$processes,&$directories,&$created,&$live){
-  return static function($task,$object,$phase)use($fixture,$queue,&$processes,&$directories,&$created,&$live){
+function governance_wiki_content_probe_factory($fixture,array $queue,array $render,&$processes,&$directories,&$created,&$live){
+  return static function($task,$object,$phase)use($fixture,$queue,$render,&$processes,&$directories,&$created,&$live){
     $directory=sys_get_temp_dir().'/phorge-private-mail-wire-'.bin2hex(random_bytes(12));$owner=bin2hex(random_bytes(32));
     if(!mkdir($directory,0700)){throw new RuntimeException('private_mail_race_directory_failed');}
     $created++;$stat=lstat($directory);$process=null;$pipes=array();
@@ -13,6 +13,7 @@ function governance_wiki_content_probe_factory($fixture,array $queue,&$processes
         'mailer_uri'=>'http://127.0.0.1:1','owner'=>$owner,'service_token'=>bin2hex(random_bytes(32)),
         'source_sha256'=>hash_file('sha256',dirname(phutil_get_library_root('phabricator')).'/resources/sql/quickstart.sql'),
         'writer'=>$fixture->getWriterConfig());
+      $write('render.json',json_encode(array('owner'=>$owner,'uri'=>$render['uri'],'token'=>$render['token']),JSON_THROW_ON_ERROR));
       $write('queue.json',json_encode(array('owner'=>$owner,'uri'=>$queue['uri'],'token'=>$queue['token']),JSON_THROW_ON_ERROR));
       $write('router.json',json_encode($data,JSON_THROW_ON_ERROR));$write('probe.json',json_encode(array('owner'=>$owner,'task_id'=>(int)$task->getID(),'object_phid'=>$object->getPHID(),'phase'=>$phase,'lease_owner'=>$task->getLeaseOwner(),'lease_expires'=>(int)$task->getLeaseExpires()),JSON_THROW_ON_ERROR));
       $process=proc_open(array(PHP_BINARY,__DIR__.'/wiki-content-publication-worker.php',$directory),array(0=>array('pipe','r'),1=>array('pipe','w'),2=>array('pipe','w')),$pipes);
@@ -40,7 +41,7 @@ function governance_wiki_content_probe_factory($fixture,array $queue,&$processes
     }finally{
       if(is_resource($process)){proc_terminate($process);foreach($pipes as$pipe){if(is_resource($pipe)){fclose($pipe);}}proc_close($process);$live--;}
       $current=lstat($directory);if(!$current||$current['dev']!==$stat['dev']||$current['ino']!==$stat['ino']||is_link($directory)){throw new RuntimeException('private_mail_race_cleanup_owner_refused');}
-      foreach(array('owner','router.json','probe.json','queue.json')as$name){$path=$directory.'/'.$name;if(file_exists($path)){if(is_link($path)||!unlink($path)){throw new RuntimeException('private_mail_race_cleanup_failed');}}}
+      foreach(array('owner','router.json','probe.json','queue.json','render.json')as$name){$path=$directory.'/'.$name;if(file_exists($path)){if(is_link($path)||!unlink($path)){throw new RuntimeException('private_mail_race_cleanup_failed');}}}
       if(!rmdir($directory)){throw new RuntimeException('private_mail_race_cleanup_failed');}$directories++;
     }
   };

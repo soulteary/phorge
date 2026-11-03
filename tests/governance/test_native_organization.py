@@ -347,7 +347,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                 self.assertNotIn('synthetic-private-canary',result.stderr)
 
     def test_wiki_content_profile_requires_all_checks_and_actual_boundaries(self):
-        self.assertEqual(13,len(gate.WIKI_CONTENT_CHECKS))
+        self.assertEqual(16,len(gate.WIKI_CONTENT_CHECKS))
         for name in gate.WIKI_CONTENT_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -357,9 +357,18 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template();data['native']['private_mail_tests']['wiki_content_publication_tests']['private_directories_removed']=4
         with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
 
+    def test_wiki_real_renderer_and_sixth_missing_service_worker_are_required(self):
+        for key,value in [('actual_paired55_prose_diff',False),('missing_render_transient_no_mail_proved',False),
+                          ('independent_php_workers_executed',5),('private_directories_removed',5)]:
+            data=template();data['native']['private_mail_tests']['wiki_content_publication_tests'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key,value in [('binary_sha256','0'*64),('process_stopped',False),('private_storage_removed',False)]:
+            data=template();data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),832)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),835)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -451,7 +460,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),832)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),835)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -504,7 +513,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(832,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(835,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)

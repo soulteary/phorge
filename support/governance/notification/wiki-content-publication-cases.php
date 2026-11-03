@@ -9,8 +9,12 @@ function governance_private_mail_wiki_content_cases($fixture,callable $check,arr
     PhabricatorGorgeTaskQueueClient::getConfiguredURI()!==$queue['uri']) {
     throw new RuntimeException('wiki_publication_owned_queue_required');
   }
+  require_once __DIR__.'/wiki-render-service.php';
+  $render=governance_wiki_render_start($fixture);
+  try{
+  $check(is_resource($render['process'])&&proc_get_status($render['process'])['running'],'private-wiki-content-paired55-render-owned-ready');
   $processes=0;$directories=0;$created=0;$live=0;
-  $probe=governance_wiki_content_probe_factory($fixture,$queue,$processes,$directories,$created,$live);
+  $probe=governance_wiki_content_probe_factory($fixture,$queue,$render,$processes,$directories,$created,$live);
   $suffix=substr($fixture->getNamespace(),-10);$users=array();
   foreach(array('author','subscriber')as$role) {
     $user=(new PhabricatorUser())->setUsername('pmwiki'.$role.$suffix)
@@ -77,18 +81,26 @@ function governance_private_mail_wiki_content_cases($fixture,callable $check,arr
       $owner='business-gorge-'.bin2hex(random_bytes(16));
       $lease=governance_business_gorge_lease($fixture,$queue,(int)$task->getID(),$owner);
       $task=(new PhabricatorWorkerActiveTask())->load($lease['id']);
+      if($ending==='normal'){
+        $absent=$probe($task,$document,'execute-no-render');
+        $still_queued=(new PhabricatorGorgeTaskQueueClient())->getTask($task->getID());
+        $check($absent['handler_result']==='failure'&&$absent['missing_render_transient']===true&&
+          $absent['publication_completed']===false&&$absent['envelopes']===array()&&$absent['native_gorge_prose_diff_calls']===0&&
+          is_array($still_queued)&&($still_queued['id']??null)===(int)$task->getID()&&$archive->load((int)$task->getID())===null,
+          'private-wiki-content-missing-render-transient-no-mail-or-success');
+      }
       if($ending!=='normal') {
         $prepared=$probe($task,$document,'prepare');
         $check($prepared['handler_result']==='prepared'&&$prepared['source_visible']===true&&
           $prepared['native_wiki_content_present']===false&&$prepared['envelopes']===array()&&
-          $prepared['publication_completed']===false&&$connection->isInsideTransaction(),
+          $prepared['publication_completed']===false&&$prepared['native_gorge_prose_diff_calls']===0&&$connection->isInsideTransaction(),
           'private-wiki-content-'.$ending.'-independent-prepare-sees-old-content-before-commit-no-mail');
         if($ending==='outer-commit'){$connection->saveTransaction();}else{$connection->killTransaction();}
       }
       $result=$probe($task,$document,'execute');$archived=$archive->load((int)$task->getID());
       $remaining=(new PhabricatorWorkerActiveTask())->load((int)$task->getID());
       if($ending==='outer-rollback') {
-        $okay=$result['handler_result']==='permanent-failure'&&$result['native_publication_missing_source_permanent']===true&&
+        $okay=$result['handler_result']==='permanent-failure'&&$result['native_gorge_prose_diff_calls']===0&&$result['native_publication_missing_source_permanent']===true&&
           $result['source_visible']===true&&$result['native_wiki_content_present']===false&&$result['envelopes']===array()&&
           $archived&&(int)$archived->getResult()===PhabricatorWorkerArchiveTask::RESULT_FAILURE&&$remaining===null;
       } else {
@@ -98,7 +110,7 @@ function governance_private_mail_wiki_content_cases($fixture,callable $check,arr
           $safe=$safe&&$envelope['recipient_count']===1&&$envelope['policy_authorized']===true&&$envelope['prepared']===true&&
             $envelope['no_private_producer_payload']===true&&$envelope['physical_gate_allowed']===true&&$envelope['quarantined']===false;
         }
-        $okay=$result['handler_result']==='success'&&$result['source_visible']===true&&$result['native_wiki_content_present']===true&&
+        $okay=$result['handler_result']==='success'&&$result['native_gorge_prose_diff_calls']>=1&&$result['source_visible']===true&&$result['native_wiki_content_present']===true&&
           $safe&&count($result['envelopes'])>=1&&count($result['envelopes'])<=2&&
           array_diff($seen,array($users['author']->getPHID(),$users['subscriber']->getPHID()))===array()&&
           in_array($users['subscriber']->getPHID(),$seen,true)&&
@@ -108,12 +120,16 @@ function governance_private_mail_wiki_content_cases($fixture,callable $check,arr
       $samples[$ending]=array('handler_result'=>$result['handler_result'],'safe_subscriber_mail'=>$ending!=='outer-rollback');
     } finally {if($connection->isInsideTransaction()){$connection->killTransaction();}}
   }
-  $check($processes===5&&$directories===5&&$created===5&&$live===0,
+  $check($processes===6&&$directories===6&&$created===6&&$live===0,
     'private-wiki-content-owned-independent-workers-and-directories-clean');
-  return array('actual_existing_wiki_content_editor'=>true,'actual_paired_queue_and_native_handler'=>true,
+  $summary=array('actual_existing_wiki_content_editor'=>true,'actual_paired_queue_and_native_handler'=>true,'actual_paired55_prose_diff'=>true,'missing_render_transient_no_mail_proved'=>true,
     'before_commit_probe_is_prepare_only'=>true,'real_before_commit_execute_race_proved'=>false,
     'move_mail_claimed'=>false,'automatic_retry_after_permanent_source_failure'=>false,
     'HTTP_gateway_proved'=>false,'Go_daemon_proved'=>false,'SMTP_proved'=>false,'samples'=>$samples,
     'independent_php_workers_executed'=>$processes,'private_directories_removed'=>$directories,
     'private_directories_remaining'=>$created-$directories,'live_processes_after_cleanup'=>$live);
+  }finally{$cleanup=governance_wiki_render_stop($render);
+    $check($cleanup['process_stopped']&&$cleanup['private_storage_removed'],'private-wiki-content-render-owned-process-storage-clean');}
+  $summary['render_cleanup']=$cleanup;
+  return$summary;
 }
