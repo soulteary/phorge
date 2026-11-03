@@ -23,9 +23,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 534, 'restore_phase_workers_started': 0,
+            'current_table_count': 538, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1567, 'applied_patch_count': 1567, 'pending_patch_keys': [],
+                'source_patch_count': 1569, 'applied_patch_count': 1569, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -113,6 +113,16 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
         data=template();data['worker_cleanup']['workers_registered']=5
         with self.assertRaises(ValueError): gate.validate(data,file_digest='b'*64)
 
+
+    def test_organization_successor_cannot_promote_partial_form_or_credential_claims(self):
+        for section,key in [('noncredential_source_v2_tests','credential_source_downgraded'),
+            ('noncredential_source_v2_tests','production_activation'),('handover_form_tests','wire_or_browser_proof'),
+            ('handover_lifecycle_tests','dispatcher_registered'),('handover_lifecycle_tests','native_ui_forms_exercised')]:
+            data=template();data['native'][section][key]=True
+            with self.subTest(section=section,key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for section in ('noncredential_source_v2_tests','handover_form_tests','handover_lifecycle_tests','transfer_execution_tests'):
+            data=template();data['native'].pop(section)
+            with self.subTest(section=section),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_each_actual_scenario_is_mandatory_and_duplicates_refused(self):
         for name in gate.REQUIRED_CHECKS:

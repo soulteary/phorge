@@ -129,6 +129,10 @@ function governance_native_organization_cases($fixture, callable $check) {
   $compound_summary=governance_native_compound_cases($fixture,$check,$state);
   require_once __DIR__.'/history-cases.php';
   $history_summary=governance_native_history_cases($fixture,$check,$state);
+  require_once dirname(__DIR__).'/native-execution/producer-fence-cases.php';
+  $producer_summary=governance_project_producer_fence_cases($fixture,$check,$users['admin']);
+  require_once dirname(__DIR__).'/native-execution/project-policy-cases.php';
+  $execution_summary=governance_project_policy_execution_cases($fixture,$check);
   require_once __DIR__.'/transfer-foundation-cases.php';
   $transfer_summary=governance_native_transfer_foundation_cases($fixture,$check,$state);
   require_once __DIR__.'/transfer-execution-cases.php';
@@ -139,7 +143,8 @@ function governance_native_organization_cases($fixture, callable $check) {
   $handover_form_summary=governance_native_handover_form_cases($fixture,$check,$state);
   require_once __DIR__.'/noncredential-source-v2-cases.php';
   $source_v2_summary=governance_native_noncredential_source_v2_cases($fixture,$check,$state);
-  return array('noncredential_source_v2_tests'=>$source_v2_summary,'handover_form_tests'=>$handover_form_summary,'handover_lifecycle_tests'=>$handover_summary,'transfer_execution_tests'=>$transfer_execution_summary,'transfer_foundation_tests'=>$transfer_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
+  return array('noncredential_source_v2_tests'=>$source_v2_summary,'handover_form_tests'=>$handover_form_summary,'handover_lifecycle_tests'=>$handover_summary,'transfer_execution_tests'=>$transfer_execution_summary,'transfer_foundation_tests'=>$transfer_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'producer_fence_tests'=>$producer_summary,'project_execution_tests'=>$execution_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
+
     'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
     'production_features_enabled'=>false,'media_backend_only'=>true,
     'daemon_or_external_delivery_executed'=>false,'issuer_upgrade_tests'=>$issuer_upgrade_summary,'target_tests'=>$target_summary,'issuer_tests'=>$issuer_summary,'schema_tests'=>$schema_summary,'route_tests'=>$route_summary,'privacy_tests'=>$privacy_summary,'concurrency_tests'=>$concurrency_summary,

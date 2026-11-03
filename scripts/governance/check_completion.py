@@ -40,7 +40,9 @@ PATCHES = '''20260907.herald.01.requeststatuskey.sql
 20261103.people.organizationmetadata.sql
 20261103.people.mediaissuer.sql
 20261103.people.mediatargets.sql
-20261103.people.organizationtransfer.sql'''.splitlines()
+20261103.people.organizationtransfer.sql
+20261103.project.approvalexecution.sql
+20261103.project.configepoch.sql'''.splitlines()
 REQUIRED_CHECKS = {
  'full-current-source-quickstart-and-patch-ledger-restored',
  'completion-reader-real-select-only-grants-and-lineage-proved',

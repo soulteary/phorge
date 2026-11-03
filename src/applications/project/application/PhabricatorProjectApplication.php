@@ -41,6 +41,7 @@ final class PhabricatorProjectApplication extends PhabricatorApplication {
   public function getRoutes() {
     return array(
       '/project/' => array(
+        'approval/' => 'PhorgeProjectPolicyApprovalController',
         '(?:query/(?P<queryKey>[^/]+)/)?' => 'PhabricatorProjectListController',
         'filter/(?P<filter>[^/]+)/' => 'PhabricatorProjectListController',
         'archive/(?P<id>[1-9]\d*)/'

@@ -297,3 +297,55 @@ bounded metadata; before/after snapshots and credential bindings are not loaded.
 The elapsed 365-day report never deletes history. An actual native administrator
 revoked between pages cannot reuse the cursor. This is isolated source evidence,
 not production activation, browser certification, or complete O7/O8 delivery.
+
+
+## Organization source checkpoint and pending main union
+
+The separate signed source-only checkpoint `2eeb763a99` passed PHP 8.5.12 with
+169 native methods and 387 real isolated SQL checks. Its 5888 PHP/SQL Git archive
+files matched the executed staging/container exactly; 55 schemas, two runtime
+principals, the reader and 19 worker directories were cleaned without failures.
+The component receipts are retained under
+`evidence/organization-source-checkpoint-169-387-20261103`.
+
+That component covers initial transfers, independently approved handover changes,
+manual current-viewer project receipts, manual due-event persistence, initial
+two-person native forms/Chinese rendering and explicit v2 noncredential identity
+facts. First issuer initialization is stable for new v2 tickets; native/legacy
+role ABA and missing/nontransactional sources are refused. Stored v1 tickets keep
+their original source interpretation; actual credentials were not downgraded.
+It does not claim the full lifecycle/manual/due form POST matrix, wire/browser
+acceptance, notification dispatch, production activation or all governance work.
+
+The current tree explicitly integrates main `e36bebc8a9` and therefore needs a
+new full runtime/SQL/hash receipt. Old 169/387 source evidence is not acceptance
+of this main union. The generic receipt is intentionally pending and rejected.
+The strict expected scenario union and fixed new table/migration obligations are
+only pre-run obligations; actual counts must come from the new run. N00 remains
+partial/non-authoritative, and no native permission axis or live data is migrated.
+
+
+## Actual organization/current-main integration checkpoint
+
+The new e36-main union passed PHP 8.5.12 with **180 native methods and 476 actual
+SQL checks**. All 5917 executed PHP/SQL files matched the signed-parent staged
+source. The actual cold library map is identical to the explicitly merged map.
+Nineteen fixed-action worker directories, 55 schemas, two runtime principals and
+the reader were removed with no cleanup failures. The strict receipt gate accepts
+the exact scenario set and paired Gorge file binary. Governance Python (89) and
+permission Python (84) checks pass. Actual current table/patch totals are 538/1569.
+Receipts are retained under `evidence/organization-main-180-476-20261103`; the
+older 169/387 source component stays unchanged and is no longer substituted for
+the current main union.
+
+New v2 subject/responsible facts remain stable after first real directory use,
+while native disable/enable and legacy role ABA remain rejected. Restored v1
+transfer/handover tickets keep their original stable/stale rules. Missing and
+non-InnoDB epoch sources fail closed. The original actual credential source is
+byte-identical to incoming main. Native Chinese full-page rendering, initial
+CSRF proposal/independent approval/bound execution, response-loss retry, invalid
+number input and disabled-executor replay rejection are actual tested paths.
+Full lifecycle/manual/due form POST coverage, browser/wire validation, optional
+activation and production deployment are not certified by this checkpoint.
+Any later main/source changes still require explicit reconciliation and fresh
+runtime evidence when the executable source changes.

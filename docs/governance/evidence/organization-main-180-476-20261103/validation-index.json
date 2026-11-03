@@ -1,0 +1,31 @@
+{
+  "scope": "current e36-main and native organization/versioned-source integration",
+  "native_methods": 180,
+  "sql_checks": 476,
+  "runtime_files": 5917,
+  "source_content_exact": true,
+  "signed_source_component": "2eeb763a99738e23f97cbe4e3ae6415bdcf946e4",
+  "incoming_main": "e36bebc8a9bd5fbbdfe2dc872392dff773ee1fa6",
+  "executed_index_tree": "3eafe3fd37d4ee0171db77879c792e5b366b64a8",
+  "worker_cleanup": {
+    "private_directories_removed": 19,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 19
+  },
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "governance_python": 89,
+  "permission_python": 84,
+  "native_initial_two_person_forms_verified": true,
+  "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+  "browser_or_wire_verified": false,
+  "production_activation": false,
+  "native_permission_axes_changed": false,
+  "global_goal_complete": false
+}

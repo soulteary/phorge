@@ -2205,6 +2205,16 @@ abstract class PhabricatorEditEngine
       $editor->setContinueOnMissingFields(true);
     }
 
+    $project_mode = PhorgeProjectExecutionCatalog::decide($editor,$object,$xactions);
+    if ($project_mode !== 'native') {
+      // Only the successful native API-token auth branch attaches this context.
+      $editor->setProjectApprovalActorContext($request->getGovernanceActorContext());
+      if ($project_mode === 'edit-policy') {
+        $editor->setProjectApprovalID($request->getValue('governanceApprovalID'));
+      } else if ($request->getValue('governanceApprovalID') !== null) {
+        throw new RuntimeException('project_execution_membership_ticket_not_applicable');
+      }
+    }
     $xactions = $editor->applyTransactions($object, $xactions);
 
     $xactions_struct = array();

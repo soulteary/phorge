@@ -1,0 +1,10 @@
+{
+  "scope": "historical source-only checkpoint before main integration",
+  "signed_commit": "2eeb763a99738e23f97cbe4e3ae6415bdcf946e4",
+  "native_methods": 169,
+  "sql_checks": 387,
+  "runtime_files": 5888,
+  "git_archive_runtime_match": true,
+  "certifies_current_main_union": false,
+  "production_activation": false
+}

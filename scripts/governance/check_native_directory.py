@@ -138,6 +138,19 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php',
  'src/infrastructure/governance/directory/PhorgeGovernanceDirectoryReader.php',
  'src/infrastructure/governance/directory/PhorgeGovernanceIsolatedDirectoryStore.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectConfigEpoch.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectConfigEpochScope.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectExecutionConfigOptions.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectExecutionConfigSource.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectExecutionProducerFence.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectExecutionValue.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectExecutionSchemaSpec.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalService.php',
+ 'src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php',
+ 'src/infrastructure/governance/execution/ProjectPolicyApprovalConduitAPIMethod.php',
  'src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php',
  'src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php',
@@ -206,6 +219,40 @@ EXPECTED_LINKS.update({'NATIVE-LINK-27':('ORG.ROUTES','NATIVE.PhorgeOrganization
 EXPECTED_SOURCES.update({'NATIVE.PhorgeOrganizationCalendar': ('src/applications/people/governance/service/PhorgeOrganizationCalendar.php', 'PhorgeOrganizationCalendar', 'calendar-intent-preview'), 'NATIVE.PhorgeOrganizationTransferRequest': ('src/applications/people/governance/service/PhorgeOrganizationTransferRequest.php', 'PhorgeOrganizationTransferRequest', 'typed-transfer-intent-only'), 'NATIVE.PhorgeOrganizationTransfer': ('src/applications/people/governance/storage/PhorgeOrganizationTransfer.php', 'PhorgeOrganizationTransfer', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationHandover': ('src/applications/people/governance/storage/PhorgeOrganizationHandover.php', 'PhorgeOrganizationHandover', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationProjectDisposition': ('src/applications/people/governance/storage/PhorgeOrganizationProjectDisposition.php', 'PhorgeOrganizationProjectDisposition', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationOutbox': ('src/applications/people/governance/storage/PhorgeOrganizationOutbox.php', 'PhorgeOrganizationOutbox', 'undispatched-reference-storage')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/service/PhorgeOrganizationCalendar.php', 'src/applications/people/governance/service/PhorgeOrganizationTransferRequest.php', 'src/applications/people/governance/storage/PhorgeOrganizationTransfer.php', 'src/applications/people/governance/storage/PhorgeOrganizationHandover.php', 'src/applications/people/governance/storage/PhorgeOrganizationProjectDisposition.php', 'src/applications/people/governance/storage/PhorgeOrganizationOutbox.php'])
 EXPECTED_LINKS.update({'NATIVE-LINK-29':('NATIVE.PhorgeOrganizationTransferRequest','NATIVE.PhorgeOrganizationService')})
+
+# Explicit organization successor identities; all remain partial and non-authoritative.
+EXPECTED_SOURCES.update({'NATIVE.PhorgeOrganizationTransferAdapter': ('src/applications/people/governance/service/PhorgeOrganizationTransferAdapter.php',
+                                              'PhorgeOrganizationTransferAdapter',
+                                              'sealed-native-approved-transfer-writer'),
+ 'NATIVE.PhorgeOrganizationHandoverAdapter': ('src/applications/people/governance/service/PhorgeOrganizationHandoverAdapter.php',
+                                              'PhorgeOrganizationHandoverAdapter',
+                                              'sealed-native-approved-handover-writer'),
+ 'NATIVE.PhorgeOrganizationTransferController': ('src/applications/people/governance/controller/PhorgeOrganizationTransferController.php',
+                                                 'PhorgeOrganizationTransferController',
+                                                 'current-admin-csrf-native-management-controller'),
+ 'NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource': ('src/applications/people/governance/auth/PhorgeGovernanceNativeNoncredentialIdentitySource.php',
+                                                              'PhorgeGovernanceNativeNoncredentialIdentitySource',
+                                                              'locked-versioned-noncredential-generation-facts'),
+ 'PROJECT.NATIVE.VIEWER.QUERY': ('src/applications/project/query/PhabricatorProjectQuery.php',
+                                 'PhabricatorProjectQuery',
+                                 'manual-receipt-current-viewer-filter-sampled-not-atomic')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/service/PhorgeOrganizationTransferAdapter.php', 'src/applications/people/governance/service/PhorgeOrganizationHandoverAdapter.php', 'src/applications/people/governance/controller/PhorgeOrganizationTransferController.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeNoncredentialIdentitySource.php'])
+EXPECTED_LINKS.update({'NATIVE-LINK-30': ('ORG.ROUTES',
+                    'NATIVE.PhorgeOrganizationTransferController'),
+ 'NATIVE-LINK-31': ('NATIVE.PhorgeOrganizationTransferController',
+                    'NATIVE.PhorgeOrganizationService'),
+ 'NATIVE-LINK-32': ('NATIVE.PhorgeOrganizationService',
+                    'NATIVE.PhorgeOrganizationTransferAdapter'),
+ 'NATIVE-LINK-33': ('NATIVE.PhorgeOrganizationService',
+                    'NATIVE.PhorgeOrganizationHandoverAdapter'),
+ 'NATIVE-LINK-34': ('NATIVE.PhorgeOrganizationTransferAdapter',
+                    'NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource'),
+ 'NATIVE-LINK-35': ('NATIVE.PhorgeOrganizationHandoverAdapter',
+                    'NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource'),
+ 'NATIVE-LINK-36': ('NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource',
+                    'NATIVE.PhorgeGovernanceNativeIdentitySource'),
+ 'NATIVE-LINK-37': ('NATIVE.PhorgeOrganizationHandoverAdapter',
+                    'PROJECT.NATIVE.VIEWER.QUERY')})
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
