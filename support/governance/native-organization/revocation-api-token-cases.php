@@ -14,13 +14,18 @@ function governance_native_revocation_api_token_cases($fixture,callable $check,a
   $token=PhabricatorConduitToken::initializeNewToken($user->getPHID(),PhabricatorConduitToken::TYPE_STANDARD)->save();
   $id=(int)$token->getID();$owner=hash('sha256',$user->getPHID());$boot_hash=hash('sha256',$boot);
   $conn=$token->establishConnection('w');$owned_transaction=false;
+  $asset=array('namespace'=>$fixture->getNamespace(),'uri'=>PhabricatorEnv::getEnvConfig('gorge.file.uri'),
+    'token'=>PhabricatorEnv::getEnvConfig('gorge.file.token'));
+  $asset_source=governance_native_measurement_file_source('measurement.api-token-auth',$asset,$fixture->getNamespace(),
+    (new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'ownerNonce'))->getValue($fixture),
+    hash_file('sha256',dirname(__DIR__,3).'/resources/sql/quickstart.sql'));
   try{
-    $probe=static function()use($fixture,$token,$id,$owner,$boot_hash){
+    $probe=static function()use($fixture,$token,$id,$owner,$boot_hash,$asset_source){
       $start=hrtime(true);
       $worker=governance_native_start_worker($fixture,array('action'=>'measurement.api-token-auth',
         'token'=>$token->getToken(),'token_id'=>$id,'owner_binding'=>$owner));
       $result=governance_native_finish_worker($worker);$end=hrtime(true);
-      if($result['status']!=='committed'||$result['boot_id_sha256']!==$boot_hash||$result['owner_binding']!==$owner){
+      if($result['status']!=='committed'||$result['boot_id_sha256']!==$boot_hash||$result['owner_binding']!==$owner||$result['asset_binding']!==$asset_source['binding']){
         throw new RuntimeException('measurement_probe_binding_refused');}
       return array('start_ns'=>$start,'finish_ns'=>$end,'outcome'=>$result['outcome'],
         'authentication_code'=>$result['authentication_code'],'token_present'=>$result['token_present'],

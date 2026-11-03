@@ -183,3 +183,32 @@ SQL assertions,202 expected native methods and25 worker cleanups. No component
 source. Both full-native and private-notification evidence CLI entrypoints
 receive the externally selected current source revision; neither infers it
 from a receipt. All private-mail and physical-wire obligations remain intact.
+
+## API worker cold-cache dependency correction (unrun)
+
+The frozen2c268 full attempt executed202 pure methods and682 SQL assertions
+(main677 plus the Query5), then failed at the first API worker. Its runtime
+hashes were exact and all owned resources were cleaned. A separate fresh-owned
+fixture reproduced the actual exception in `PhabricatorFile.php`: native token
+authentication may initialize a cold native user/profile cache, and that worker
+had no configured file-storage engine. This was an exception, not an observed
+authentication denial. Neither attempt proves the full API component passed.
+
+The successor propagates the real fixture's paired Gorge file URI/token only
+for fixed action `measurement.api-token-auth`. The private payload must bind the
+same owned namespace, guard nonce and quickstart source digest, and only an
+exact `http://127.0.0.1:<port>` URI and64-hex token are accepted. The child checks
+its existing actual grants/marker first, then validates and installs that one
+fixed dependency. A hashed dependency binding must match the parent's binding
+on every API probe. Other actions cannot carry the file configuration and keep
+their previous service configuration. No cache is forged, prewarmed or attached
+by the fixture, no other worker gains a file endpoint, and storage failures still
+fail instead of becoming authentication denial.
+
+Four host contract tests cover foreign paths/hosts/ports/credentials, rebound
+owners/sources, unknown fields and propagation to other actions. They execute
+the pure test helper in the host PHP binary; they are not supported-runtime or
+SQL evidence. The source correction keeps all existing687 SQL obligations and
+202 native methods at its2c base. A later main98 union must retain all700 main
+obligations plus the same Query5/API5, yielding710 and210 native methods. Every
+changed-source count remains pending a new isolated run and exact source seal.

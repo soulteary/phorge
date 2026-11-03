@@ -29,7 +29,9 @@ try {
   }
   $payload=json_decode(file_get_contents($path.'/payload.json'),true,16,JSON_THROW_ON_ERROR);
   $keys=array_keys($payload); sort($keys);
-  if ($keys!==array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256') ||
+  $wanted_keys=array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256');
+  if(($payload['action']['action']??null)==='measurement.api-token-auth'){$wanted_keys[]='measurement_file';sort($wanted_keys);}
+  if ($keys!==$wanted_keys ||
       $payload['directory_dev']!==$stat['dev'] || $payload['directory_ino']!==$stat['ino'] ||
       !is_string($payload['owner_token']) || !preg_match('/\A[a-f0-9]{64}\z/',$payload['owner_token']) ||
       !hash_equals($payload['owner_token'],file_get_contents($path.'/owner')) ||
@@ -91,8 +93,10 @@ try {
       (new ReflectionProperty(LiskDAO::class,'connections'))->getValue()) {
     throw new RuntimeException('native_worker_inherited_context_refused');
   }
+  $measurement_file=governance_native_measurement_file_source($payload['action']['action']??null,$payload['measurement_file']??null,
+    $config['namespace'],$payload['fixture_nonce'],$payload['source_sha256']);
   $stack=new PhabricatorConfigStackSource(); $stack->pushSource(new PhabricatorConfigDefaultSource());
-  $stack->pushSource(new PhabricatorConfigDictionarySource(array(
+  $settings=array(
     'mysql.host'=>$config['host'],'mysql.port'=>$config['port'],'mysql.user'=>$config['user'],
     'mysql.pass'=>$config['password'],'storage.default-namespace'=>$config['namespace'],
     'phabricator.cache-namespace'=>$config['namespace'],'cluster.databases'=>array(),'cluster.search'=>array(),
@@ -103,7 +107,12 @@ try {
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
     'project.history-task-drafts'=>false,'gorge.search.source-scan'=>false,'gorge.search.projection-shadow'=>false,
     'gorge.taskqueue.owner'=>'phorge','gorge.taskqueue.uri'=>null,'gorge.notification.outbox'=>false,
-    'notification.servers'=>array(),'gorge.db.uri'=>null,'gorge.file.uri'=>null,'gorge.image.uri'=>null,'gorge.render.uri'=>null)));
+    'notification.servers'=>array(),'gorge.db.uri'=>null,'gorge.file.uri'=>null,'gorge.image.uri'=>null,'gorge.render.uri'=>null);
+  if($measurement_file!==null){
+    $settings['gorge.file.uri']=$measurement_file['uri'];$settings['gorge.file.token']=$measurement_file['token'];
+    $settings['gorge.service-policies']=array('file'=>'required');
+  }
+  $stack->pushSource(new PhabricatorConfigDictionarySource($settings));
   (new ReflectionProperty(PhabricatorEnv::class,'sourceStack'))->setValue(null,$stack);
   (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
   if (AphrontWriteGuard::isGuardActive() ||
@@ -147,7 +156,7 @@ try {
     }else if(!$row&&is_array($error)&&array_keys($error)===array(0,1)&&$error[0]==='ERR-INVALID-AUTH'){
       $outcome='denied';$code='ERR-INVALID-AUTH';
     }
-    $result=array('status'=>'committed','outcome'=>$outcome,'authentication_code'=>$code,
+    $result=array('status'=>'committed','outcome'=>$outcome,'authentication_code'=>$code,'asset_binding'=>$measurement_file['binding'],
       'token_present'=>$row!==null,'boot_id_sha256'=>hash('sha256',$boot),
       'owner_binding'=>$action['owner_binding'],
       'source_binding'=>hash('sha256',phutil_json_encode(array('id'=>$action['token_id'],'row'=>$row))));
