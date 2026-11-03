@@ -845,6 +845,9 @@ def validate_restore(value, root):
 NATIVE['project_execution_tests']['approved_native_view_policy'] = {'native_view_only': True, 'future_approver_view_not_added': True, 'whole_family_ready': False, 'join_and_space_supported': False}
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-override-native-self-view-validator', 'project-view-approved-transition-may-remove-approver-future-view', 'project-view-approver-current-view-does-not-require-edit', 'project-view-history-still-requires-current-native-view', 'project-view-native-record-policy-ticket-audit-commit-together', 'project-view-native-writer-scope-released'])
 
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only'])
+NATIVE['project_execution_tests']['approved_native_view_policy'].update(actual_api_token_conduit_path=True,view_ticket_cannot_edit_policy=True)
+
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')

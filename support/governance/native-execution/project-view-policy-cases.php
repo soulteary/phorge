@@ -61,6 +61,55 @@ function governance_project_view_policy_cases($fixture,callable $check,array $st
     'project-view-history-still-requires-current-native-view');
   $check(!$conn->isInsideTransaction()&&!$conn->isReadLocking(),
     'project-view-native-writer-scope-released');
-  return array('native_view_only'=>true,'future_approver_view_not_added'=>true,
+  // Exercise the actual successful native API-token authentication branch
+  // and public Conduit edit engine, rather than only setting an editor ticket.
+  $off=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.project-approval.enabled',false);
+  try{$api_project=PhabricatorProject::initializeNewProject($a['viewer'])->setName('Synthetic API VIEW transition')
+    ->setViewPolicy(PhabricatorPolicies::POLICY_USER)->setEditPolicy($a['viewer']->getPHID())
+    ->setJoinPolicy(PhabricatorPolicies::POLICY_USER)->save();}finally{unset($off);}
+  $api_phid=$api_project->getPHID();
+  $token=PhabricatorConduitToken::initializeNewToken($a['viewer'],PhabricatorConduitToken::TYPE_STANDARD)->save();
+  $authenticate=function(array$params,$method)use($token){
+    $request=new ConduitAPIRequest($params,true);
+    $controller=(new PhabricatorConduitAPIController())->setRequest((new AphrontRequest('fixture.invalid','/api/'.$method))->setUser(new PhabricatorUser()));
+    $authenticate=new ReflectionMethod(PhabricatorConduitAPIController::class,'authenticateUser');
+    if($authenticate->invoke($controller,$request,array('token'=>$token->getToken()),$method)!==null){
+      throw new RuntimeException('project_view_api_authentication_failed');}
+    return$request;
+  };
+  $target_state=function()use($conn,$api_phid){return array(
+    queryfx_one($conn,'SELECT viewPolicy,editPolicy FROM %R WHERE phid=%s',new PhabricatorProject(),$api_phid),
+    queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE objectPHID=%s',new PhabricatorProjectTransaction(),$api_phid));};
+  try{
+    $before=$target_state();$refused=false;
+    try{(new ProjectEditConduitAPIMethod())->executeMethod($authenticate(array('objectIdentifier'=>$api_phid,
+      'transactions'=>array(array('type'=>'view','value'=>$a['viewer']->getPHID()))),'project.edit'));}
+    catch(RuntimeException$error){if($error->getMessage()!=='project_execution_identifier_refused'){throw$error;}$refused=true;}
+    $check($refused&&$target_state()===$before&&!$conn->isInsideTransaction(),
+      'project-view-real-api-token-edit-missing-ticket-refused-without-write');
+    $proposal=(new ProjectPolicyApprovalConduitAPIMethod())->executeMethod($authenticate(array('action'=>'submit',
+      'payload'=>array('target_phid'=>$api_phid,'intent'=>array('version'=>3,'operation'=>'project.view-policy',
+        'policy'=>$a['viewer']->getPHID()),'reason'=>'Synthetic API VIEW proposal','ttl_seconds'=>120)),'project.approval'));
+    PhorgeProjectPolicyApprovalService::call($b['context'],'approve',array('approval_id'=>$proposal['approval_id']));
+    $before=$target_state();$refused=false;
+    try{(new ProjectEditConduitAPIMethod())->executeMethod($authenticate(array('objectIdentifier'=>$api_phid,
+      'governanceApprovalID'=>$proposal['approval_id'],
+      'transactions'=>array(array('type'=>'edit','value'=>PhabricatorPolicies::POLICY_USER))),'project.edit'));}
+    catch(RuntimeException$error){if($error->getMessage()!=='project_execution_ticket_binding_changed'){throw$error;}$refused=true;}
+    $unused=queryfx_one($conn,'SELECT state,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$proposal['approval_id']);
+    $check($refused&&$unused['state']==='approved'&&$unused['nativeGroupID']===null&&$target_state()===$before,
+      'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy');
+    $result=(new ProjectEditConduitAPIMethod())->executeMethod($authenticate(array('objectIdentifier'=>$api_phid,
+      'governanceApprovalID'=>$proposal['approval_id'],
+      'transactions'=>array(array('type'=>'view','value'=>$a['viewer']->getPHID()))),'project.edit'));
+    $saved=$target_state();$ticket=queryfx_one($conn,'SELECT state,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$proposal['approval_id']);
+    $audit=queryfx_one($conn,'SELECT COUNT(*) n FROM governance_executionaudit WHERE approvalID=%s AND action=%s',$proposal['approval_id'],'executed');
+    $check(is_array($result)&&$saved[0]['viewPolicy']===$a['viewer']->getPHID()&&
+      $saved[0]['editPolicy']===$a['viewer']->getPHID()&&(int)$saved[1]['n']===1&&
+      $ticket['state']==='consumed'&&is_string($ticket['nativeGroupID'])&&(int)$audit['n']===1&&
+      !$conn->isInsideTransaction()&&!(new PhabricatorUser())->establishConnection('w')->isInsideTransaction(),
+      'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only');
+  }finally{$token->delete();}
+  return array('actual_api_token_conduit_path'=>true,'view_ticket_cannot_edit_policy'=>true,'native_view_only'=>true,'future_approver_view_not_added'=>true,
     'whole_family_ready'=>false,'join_and_space_supported'=>false);
 }
