@@ -783,6 +783,10 @@
         "sha256": "a43057a8a469bf4b260a9ddbfed3125ccfa3b9ac68ad3fd95c107311757d529f"
       },
       {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionSchemaSpec.php",
+        "sha256": "7b73f9c2bb1524251c287a69c7f714cb3eef2129be4a07a6f3d2d1bd738c7c07"
+      },
+      {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionValue.php",
         "sha256": "8850a72ccdb1ac4dae52c0a8312d134bedc5b7d46be2d59542e0d1d45387efc2"
       },
