@@ -27,8 +27,8 @@ function governance_recovery_stop_boundary_cases($fixture, callable $check, arra
   $fixture->assertOwned();$setup=$fixture->getAdmin();$conn=(new PhabricatorUser())->establishConnection('w');
   $cookies=$_COOKIE;$method=$_SERVER['REQUEST_METHOD']??null;$locked=false;$scope=null;
   $missing=false;$myisam=false;$suffix=substr($fixture->getNamespace(),-10);
-  $table=$fixture->table('user','recovery_stop');$audit=$fixture->table('user','recovery_stop_audit');
-  $users=$fixture->table('user','user');$sessions_table=$fixture->table('user','phabricator_session');
+  $audit=$fixture->table('user','recovery_stop_audit');
+  $users=$fixture->table('user','user');
   $namespace=$fixture->getNamespace();
   if(!preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)){
     throw new RuntimeException('recovery_stop_owned_namespace_required');}
@@ -114,14 +114,22 @@ function governance_recovery_stop_boundary_cases($fixture, callable $check, arra
     $expiry_actor=(new PhabricatorUser())->setUsername('stopboundexpiry'.$suffix)->setRealName('Synthetic Expiring Administrator')
       ->setIsApproved(1)->setIsAdmin(1)->save();
     $expiry=governance_native_request($expiry_actor,$state['sessions']);
-    $until=governance_native_concurrency_now($fixture)+12;
-    governance_native_concurrency_sql($fixture,'UPDATE '.$sessions_table.' SET sessionExpires=? WHERE phid=?',
-      array($until,$expiry['viewer']->getSession()->getPHID()));
     if(!$setup->begin_transaction()){throw new RuntimeException('recovery_stop_blocker_begin_failed');}$locked=true;
     governance_native_concurrency_sql($fixture,'SELECT id FROM '.$users.' WHERE id=? FOR UPDATE',array($subject->getID()));
     $expiry_payload=$payload;$expiry_payload['token']=$expiry['token'];
     $expiring_record=governance_native_start_worker($fixture,$expiry_payload);
     governance_recovery_stop_wait($fixture,$control,array($expiring_record));
+    // Native login may refresh a short-lived session. Shorten only after the
+    // real worker authenticated and is proved blocked before credential locks.
+    if($conn->isInsideTransaction()){throw new RuntimeException('recovery_stop_expiry_update_requires_autocommit');}
+    $until=(int)queryfx_one($conn,'SELECT UNIX_TIMESTAMP() n')['n']+3;
+    queryfx($conn,'UPDATE %R SET sessionExpires=%d WHERE BINARY phid=BINARY %s',
+      new PhabricatorAuthSession(),$until,$expiry['viewer']->getSession()->getPHID());
+    $expiry_row=queryfx_one($conn,'SELECT sessionExpires FROM %R WHERE BINARY phid=BINARY %s',
+      new PhabricatorAuthSession(),$expiry['viewer']->getSession()->getPHID());
+    if(!$expiry_row||(string)$expiry_row['sessionExpires']!==(string)$until||$conn->isInsideTransaction()){
+      throw new RuntimeException('recovery_stop_committed_session_expiry_required');}
+
     $check(governance_native_concurrency_now($fixture)<$until,
       'recovery-stop-record-expiry-wait-begins-with-real-live-credential');
     governance_native_concurrency_expire($fixture,$until);
@@ -131,13 +139,21 @@ function governance_recovery_stop_boundary_cases($fixture, callable $check, arra
       $expired_record===array('status'=>'rejected','reason'=>'governance_native_credential_ineligible')&&$fingerprint()===$before,
       'recovery-stop-record-expired-during-native-user-lock-wait-is-refused');
     $expiry=governance_native_request($expiry_actor,$state['sessions']);
-    $until=governance_native_concurrency_now($fixture)+12;
-    governance_native_concurrency_sql($fixture,'UPDATE '.$sessions_table.' SET sessionExpires=? WHERE phid=?',
-      array($until,$expiry['viewer']->getSession()->getPHID()));
     if(!$setup->begin_transaction()){throw new RuntimeException('recovery_stop_blocker_begin_failed');}$locked=true;
     governance_native_concurrency_sql($fixture,'SELECT id FROM '.$users.' WHERE id=? FOR UPDATE',array($expiry_actor->getID()));
     $expiring=governance_native_start_worker($fixture,array('action'=>'recovery.stop.history','token'=>$expiry['token'],'subject'=>$subject->getPHID()));
     governance_recovery_stop_wait($fixture,$control,array($expiring));
+    // Native login may refresh a short-lived session. Shorten only after the
+    // real worker authenticated and is proved blocked before credential locks.
+    if($conn->isInsideTransaction()){throw new RuntimeException('recovery_stop_expiry_update_requires_autocommit');}
+    $until=(int)queryfx_one($conn,'SELECT UNIX_TIMESTAMP() n')['n']+3;
+    queryfx($conn,'UPDATE %R SET sessionExpires=%d WHERE BINARY phid=BINARY %s',
+      new PhabricatorAuthSession(),$until,$expiry['viewer']->getSession()->getPHID());
+    $expiry_row=queryfx_one($conn,'SELECT sessionExpires FROM %R WHERE BINARY phid=BINARY %s',
+      new PhabricatorAuthSession(),$expiry['viewer']->getSession()->getPHID());
+    if(!$expiry_row||(string)$expiry_row['sessionExpires']!==(string)$until||$conn->isInsideTransaction()){
+      throw new RuntimeException('recovery_stop_committed_session_expiry_required');}
+
     $check(governance_native_concurrency_now($fixture)<$until,'recovery-stop-session-expiry-wait-begins-with-real-live-credential');
     governance_native_concurrency_expire($fixture,$until);
     if(!$setup->commit()){throw new RuntimeException('recovery_stop_blocker_commit_failed');}$locked=false;

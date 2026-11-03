@@ -31,8 +31,10 @@ independent fresh history call must also refuse. A positive fresh-worker history
 control precedes revocation.
 
 Record and history expiry cases use separate real native sessions, committed
-native sessionExpires values and the actual database clock. Each worker must be
-observed waiting while its credential is still live. The parent holds its one
+native sessionExpires values and the actual database clock. Each worker first loads its real native session and is observed waiting. Only
+then does the separate autocommit native parent connection commit the shorter
+expiry, avoiding the genuine SessionEngine login refresh. The test proves the
+credential is still live at that point. The parent holds its one
 account-row lock until database time reaches expiry. Releasing it must produce
 the exact native credential refusal, not an unknown exception. No clock or
 permission boolean is injected.
