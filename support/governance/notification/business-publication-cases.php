@@ -82,14 +82,27 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
         ->setMetadataValue('customfield:key',$field->getFieldKey())
         ->setOldValue($field->getOldValueForApplicationTransactions())->setNewValue('SYNTHETIC_PRIVATE_BUSINESS_COMMENT');
     }
-    $changes=array($name,$content);
+    // Match the real Web/Conduit create envelope, not just field updates.
+    $create=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_CREATE);
+    $changes=array($create,$name,$content);
     if($family==='task'){$changes[]=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_SUBSCRIBERS)->setNewValue(array('+' => array_fuse(array($users['subscriber']->getPHID()))));}
     $last=(int)queryfx_one($tasks->establishConnection('r'),'SELECT COALESCE(MAX(id),0) n FROM %R',$tasks)['n'];
     $connection=$object->establishConnection('w');if($connection->isInsideTransaction()){throw new RuntimeException('business_publication_inherited_context_refused');}
     $outer=$ending!=='normal';if($outer){$connection->openTransaction();}
     try{
       $editor=$object->getApplicationTransactionEditor()->setActor($auth['viewer'])->setContentSourceFromRequest($auth['request'])->setIsSilent(false);
-      $editor->applyTransactions($object,$changes);
+      $applied=$editor->applyTransactions($object,$changes);
+      if($family==='project'){
+        $creates=0;$visible_creates=0;$fields=0;$hidden_fields=0;
+        foreach($applied as$applied_transaction){
+          $type=$applied_transaction->getTransactionType();
+          if($type===PhabricatorTransactions::TYPE_CREATE){$creates++;if(!$applied_transaction->shouldHideForMail($applied)){$visible_creates++;}}
+          if(in_array($type,array(PhabricatorProjectNameTransaction::TRANSACTIONTYPE,PhabricatorTransactions::TYPE_CUSTOMFIELD),true)){
+            $fields++;if($applied_transaction->getIsCreateTransaction()&&$applied_transaction->shouldHideForMail($applied)){$hidden_fields++;}}
+        }
+        $check($creates===1&&$visible_creates===1&&$fields===2&&$hidden_fields===2,
+          'private-business-project-'.$ending.'-actual-native-create-envelope-visible-initial-fields-hidden');
+      }
       $queued=$tasks->loadAllWhere('id>%d AND taskClass=%s AND objectPHID=%s ORDER BY id',$last,'PhabricatorApplicationTransactionPublishWorker',$object->getPHID());
       if(count($queued)!==1){throw new RuntimeException('business_publication_actual_queue_cardinality_refused');}$task=head($queued);
       $first=$probe($task,$object);
@@ -109,6 +122,16 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
         $seen=array();$safe=true;foreach($second['envelopes']as$envelope){$safe=$safe&&$envelope['recipient_count']===1&&
           $envelope['policy_authorized']===true&&$envelope['prepared']===true&&$envelope['no_private_producer_payload']===true&&$envelope['physical_gate_allowed']===true&&$envelope['quarantined']===false;$seen=array_merge($seen,$envelope['recipients']);}
         $required=$family==='task'?array($users['owner']->getPHID(),$users['subscriber']->getPHID()):array($users['author']->getPHID());
+        // Fixed safe failure locations identify predicates without logging
+        // names, bodies, recipient PHIDs or credential-bearing snapshots.
+        if($family==='project'){
+          if($second['source_visible']!==true){throw new RuntimeException('business_project_source_not_visible');}
+          if($second['publication_completed']!==true){throw new RuntimeException('business_project_publication_incomplete');}
+          if(($second['native_project_description_present']??null)!==true){throw new RuntimeException('business_project_description_not_stored');}
+          if(count($second['envelopes'])<count($required)){throw new RuntimeException('business_project_expected_mail_missing');}
+          if(!$safe){throw new RuntimeException('business_project_envelope_not_safe');}
+          if(array_diff($required,$seen)!==array()){throw new RuntimeException('business_project_required_recipient_missing');}
+        }
         $check($second['source_visible']===true&&$second['publication_completed']===true&&$safe&&
           ($family!=='project'||($second['native_project_description_present']??null)===true)&&
           count($second['envelopes'])>=count($required)&&array_diff($required,$seen)===array(),
@@ -129,7 +152,7 @@ function governance_private_mail_business_publication_cases($fixture,callable $c
         'postcompletion_source_visible'=>$second['source_visible'],'postcompletion_mail_envelopes'=>count($second['envelopes']));
     }finally{if($connection->isInsideTransaction()){$connection->killTransaction();}}
   }}
-  return array('actual_native_sql_queue_profile'=>true,'actual_child_native_mail_taskqueue_http_proved'=>true,'paired_gorge_queue_profile_proved'=>false,
+  return array('actual_native_project_create_envelope_verified'=>true,'actual_native_sql_queue_profile'=>true,'actual_child_native_mail_taskqueue_http_proved'=>true,'paired_gorge_queue_profile_proved'=>false,
     'actual_task_and_project_editors'=>true,'samples'=>$samples,
     'independent_php_workers_executed'=>$processes,'private_directories_removed'=>$directories,
     'private_directories_remaining'=>$created-$directories,'live_processes_after_cleanup'=>$live,'manual_diagnostic_reexecution_is_daemon_retry'=>false,

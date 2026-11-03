@@ -1159,6 +1159,12 @@ BUSINESS_GORGE_CREATE_CHECKS = frozenset([
 REQUIRED_CHECKS = REQUIRED_CHECKS | BUSINESS_GORGE_CREATE_CHECKS
 NATIVE['private_mail_tests']['business_gorge_publication_tests']['actual_native_project_create_envelope_verified'] = True
 
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset([
+ 'private-business-project-normal-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-project-outer-commit-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-project-outer-rollback-actual-native-create-envelope-visible-initial-fields-hidden'])
+NATIVE['private_mail_tests']['business_publication_tests']['actual_native_project_create_envelope_verified'] = True
+
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')

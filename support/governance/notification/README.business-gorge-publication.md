@@ -29,28 +29,26 @@ permission grant. Committed mail envelopes still pass actual fresh recipient and
 object authorization; rollback must create no envelopes. All child processes and
 private owner-bound directories must be gone before the enclosing service stops.
 
-The eighteen required new checks, strict typed summary and mutation tests are
+The twenty-one required Gorge checks, strict typed summary and mutation tests are
 source obligations until supported PHP 8.5.12 / real MySQL / paired Gorge runs.
-The historical component cf313 requires 207 pure / 735 SQL checks, and was not
-runtime certified. The explicit union with main98-derived 91a6 preserves all
-740 root checks and adds eighteen Gorge obligations: source-derived 215 pure /
-758 SQL, still unrun. The root SQL profile and new Gorge profile both use native
-Project description custom fields; independent children must read the stored
-private marker before accepting a Project positive. No Project comment support
-is invented. No production source differs from the root union.
+The historical cf313, bcf02 and d629 source-only checkpoints remain unrun.
+The explicit union with signed root6c155 preserves every root743 mandatory check
+and adds twenty-one Gorge checks: source-derived215 pure /764 SQL, still unrun.
+The root SQL and new Gorge profiles both include native core:create and native
+Project description fields, with independent storage-marker verification. No
+Project comment support or native visibility/preference change is invented.
+No production source differs from the root union.
 
 This does not prove HTTP Conduit gateway routing, the Go worker daemon, SMTP,
 legacy SQL/Gorge failover, or cross-schema atomic commit. Existing SQL-profile and
 physical-mail evidence remain independent and cannot certify this new source.
 
-## Intermediate native creation envelope correction
+## Native creation envelope and final root union
 
-The successor now includes the genuine core:create transaction emitted by native
-Web and Conduit create paths. Three additional Project checks require exactly one
-visible create event, exactly two hidden initial name/description fields, and no
-other visible transaction. Nonzero safe mail and independently stored description
-remain mandatory. This adds three source obligations to the frozen bcf component:
-215 pure / 761 SQL, unrun. The analogous root SQL-profile creation correction is
-not yet merged into this intermediate checkpoint. It is not a runtime-ready main
-union and must not be accepted until that root delta and its three mandatory
-checks are explicitly integrated and the final set is recomputed and run.
+The genuine core:create transaction comes from native Web and Conduit creation.
+The three additional Gorge Project checks require exactly one visible create,
+exactly two hidden initial name/description fields, and no other visible event.
+Nonzero safe mail and independently stored description remain mandatory. The
+former intermediate d629 source-only215/761 checkpoint was not runtime-ready;
+its required root SQL creation correction is now explicitly merged from6c155.
+The union is still awaiting its own supported runtime, source hashes and cleanup.

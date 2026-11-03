@@ -45,6 +45,15 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_real_project_create_visibility_evidence_is_mandatory(self):
+        for ending in ('normal','outer-commit','outer-rollback'):
+            name='private-business-project-'+ending+'-actual-native-create-envelope-visible-initial-fields-hidden'
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(ending=ending),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['private_mail_tests']['business_publication_tests']['actual_native_project_create_envelope_verified']=False
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
 
     def test_recovery_web_partial_observations_cannot_approve_credentials(self):
         self.assertEqual(13,len(gate.RECOVERY_WEB_CHECKS))
@@ -323,7 +332,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),761)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),764)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):

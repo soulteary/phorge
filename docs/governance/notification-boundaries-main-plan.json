@@ -1,11 +1,11 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 6,
+  "version": 7,
   "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
-  "status": "intermediate-gorge-native-create-source-awaiting-root-sql-create-union-not-runtime-ready",
+  "status": "explicit-root-native-create-plus-gorge-create-union-host-prepared-runtime-unproven",
   "new_runtime_obligation_not_actual": {
     "pure": 215,
-    "native_sql": 761,
+    "native_sql": 764,
     "registered_native_workers": 25,
     "additional_locally_owned_business_php_processes": 20,
     "business_process_profiles": {
@@ -45,7 +45,7 @@
     },
     "business_gorge": {
       "checks": 21,
-      "source_checkpoint": "cf313babcd67da4fd3f41d042a72281fe900de89",
+      "source_checkpoint": "d629d3f60368ad44062d00cc730b72b0f12d2c90",
       "queue_profile": "actual native AppEditor HTTP enqueue, bounded service lease, actual independent Conduit handler, fenced finalize/resolve",
       "native_project_description_stored_read_required": true,
       "daemon_or_http_gateway_proved": false,
@@ -53,7 +53,7 @@
       "permanent_source_denial_automatically_retried": false,
       "actual_runtime_passed": false,
       "actual_native_create_visibility_required": true,
-      "root_SQL_create_fix_integrated": false
+      "root_SQL_create_fix_integrated": true
     }
   },
   "union_deltas_from_frozen_components": [
@@ -66,16 +66,15 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "BLOCKING: explicitly merge the root SQL native core:create envelope and its three mandatory checks before any combined acceptance. This intermediate source is not runtime-ready.",
-    "Actual215/761 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual215/764 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh215/761 proof and exact runtime/source match remain required",
+    "Current main96 is explicitly merged; fresh215/764 proof and exact runtime/source match remain required",
     "Physical CI must use the215 registered pure methods; final-head runtime evidence remains mandatory.",
-    "Actual new Gorge profile remains pending; the 64-task class-filter lease budget is a hard refusal, not a skipped case."
+    "The actual new Gorge profile and 64-task hard class-filter lease budget remain unverified; no daemon, worker HTTP gateway or SMTP proof is claimed."
   ],
   "historical_stronger_component": {
     "pure": 202,
@@ -87,7 +86,7 @@
   },
   "current_main_union": {
     "retained_main_SQL": 700,
-    "added_Legalpad_and_business_SQL": 40,
+    "added_Legalpad_and_business_SQL": 43,
     "removed_main_SQL": 0,
     "source_registered_pure_methods": 215,
     "current_runtime_passed": false,
@@ -123,11 +122,23 @@
       "runtime_files_exact": 6780,
       "failure": "Fixture attempted unsupported native Project comment object.",
       "cleanup_complete": true
+    },
+    {
+      "source_revision": "91a6d9ff3d64451d64de6e44d369d4fc2772866f",
+      "pure_methods_passed": 215,
+      "observed_SQL_checks_including_cleanup": 480,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6788,
+      "failure": "Project positive assertion failed before fixture was aligned with native create envelope.",
+      "cleanup_complete": true
     }
   ],
+  "native_create_envelope": "Task and Project direct Editor fixtures use the TYPE_CREATE emitted by native Web/Conduit create callers. Each Project case checks a visible create plus hidden initial name/description; no native visibility or preference rule is modified.",
   "gorge_profile_source_union": {
-    "root_main98_union": "91a6d9ff3d64451d64de6e44d369d4fc2772866f",
-    "frozen_component": "cf313babcd67da4fd3f41d042a72281fe900de89",
+    "root_SQL_native_create_checkpoint": "6c155bf84945c6d23eee2134af371a52269830fd",
+    "Gorge_native_create_checkpoint": "d629d3f60368ad44062d00cc730b72b0f12d2c90",
+    "root_743_checks_preserved": true,
+    "Gorge_checks_added": 21,
     "production_delta_from_root_union": false,
     "source_union_runtime_verified": false
   }
