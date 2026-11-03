@@ -285,4 +285,13 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
       'project_execution_native_form_provenance_refused');
   }
 
+  public function testNativeTextareaBrowserLeadingNewlineSemantics() {
+    require_once dirname(__DIR__,5).'/support/governance/native-execution/project-view-edit-route-cases.php';
+    foreach (array(array("\n",''),array("\nvalue",'value'),array("\n\nvalue","\nvalue"),
+      array('value','value'),array("\n&amp;lt;",'&lt;'),array("\r\n\r\nvalue","\nvalue"),
+      array("\n&lt;value&gt;",'<value>')) as $case) {
+      $this->assertEqual($case[1],governance_project_native_textarea_value($case[0]));
+    }
+  }
+
 }

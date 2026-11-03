@@ -1,6 +1,6 @@
 {
-  "version": 4,
-  "status": "native-space-default-source-host-verified-initialized-description-runtime-unproven",
+  "version": 5,
+  "status": "native-textarea-parser-corrected-source-host-verification-pending-runtime-unproven",
   "parent_source_checkpoint": "af43aae0f62f9aa6df1bb085eb3ed515cae57630",
   "parent_checkpoint_obligation_not_actual": {
     "pure_methods": 195,
@@ -32,7 +32,9 @@
     "ordinary content-only actual default GET/POST without a policy ticket",
     "actual no-effect POST retains native response and unchanged fingerprint",
     "actual JOIN change with forged default flags refuses before effects",
-    "explicit Space primary key and both aliases cannot select the omitted-control semantic-default branch"
+    "explicit Space primary key and both aliases cannot select the omitted-control semantic-default branch",
+    "uninitialized empty-description no-effect form POST",
+    "uninitialized description policy-only commit with ticket consumption"
   ],
   "not_claimed": [
     "supported runtime pass",
@@ -43,12 +45,12 @@
     "arbitrary custom forms or unsupported structural execution"
   ],
   "remaining": [
-    "Actual PHP8.5.12 full217 methods and751 SQL checks, exact runtime source and all owned cleanup",
+    "Actual PHP8.5.12 full218 methods and753 SQL checks, exact runtime source and all owned cleanup",
     "Independent final source/lease/native-field review",
     "Safe actionable native form responses for missing/stale/mismatched approval input; unexpected backend failures remain failures",
     "Trusted HTTP/browser GET-to-POST and native MFA interaction",
     "Real concurrent default-field source change versus effective-sensitive DAO fence; broader hierarchy/Space execution remains blocked",
-    "Uninitialized-description policy refusal and explicit content-initialization workflow; archived-only/multiple-visible/concurrent default Space profiles remain unproved."
+    "Archived-only/multiple-visible/concurrent default Space profiles remain unproved."
   ],
   "base_main": "0a43c0211c4ced7749d26187da29798c4439086b",
   "historical_obligation_not_actual": {
@@ -58,11 +60,11 @@
     "additional_native_checks_after_parent": 8
   },
   "new_obligation_not_actual": {
-    "pure_methods": 217,
-    "native_checks": 751,
+    "pure_methods": 218,
+    "native_checks": 753,
     "native_workers": 25,
     "retained_main_checks": 725,
-    "additional_form_checks": 26
+    "additional_form_checks": 28
   },
   "current_host_tests_actually_passed": {
     "governance": 129,
@@ -75,8 +77,9 @@
     "actual_production_runtime_proved": false
   },
   "native_object_profile": {
-    "description": "The representative existing project has a description persisted through the actual native editor before policy proposals. Its initial native transaction remains in history; acceptance checks one additional VIEW record, not total history size one.",
-    "uninitialized_description": "A DAO-only or API-created project may have NULL description storage. A browser textarea submitting empty string is a real additional native effect; single-effect approval must not silently authorize it. Safe refusal and separate content initialization require additional verification.",
-    "raw_transactions": "All generated transactions and raw values remain intact, including NULL Space; semantic-default metadata is only a candidate hint."
+    "description": "Test both uninitialized NULL storage with an empty textarea and a native-editor-initialized nonempty description. Preserve every native setup transaction; check each policy changes history by exactly one VIEW record.",
+    "textarea": "Native TextAreaControl prefixes LF because browsers discard the first LF. The fixture now decodes that serialization without trimming user-leading newlines. Prior extra customfield effects were caused by the fixture parser, not a required description initialization workflow.",
+    "no_effect": "Retain native no-effect behavior and unchanged business fields/history; native Lisk dateModified bookkeeping may advance.",
+    "raw_transactions": "All actual generated transactions and raw values remain intact. The parser corrects browser form emulation; production single-effect and sensitive-write guards are unchanged."
   }
 }
