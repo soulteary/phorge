@@ -1,0 +1,15 @@
+{
+  "schema_valid": true,
+  "accepted_scope": "bounded-native-directory-identity-media-backend",
+  "check_count": 455,
+  "production_optional_features_enabled": false,
+  "deployment_proved": false,
+  "browser_proved": false,
+  "global_completion": false,
+  "remaining_blocked": [
+    "media-http-and-cookie-integration",
+    "file-object-guards",
+    "notification-producers",
+    "global-governance-completion"
+  ]
+}

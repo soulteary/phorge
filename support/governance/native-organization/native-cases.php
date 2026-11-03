@@ -121,6 +121,8 @@ function governance_native_organization_cases($fixture, callable $check) {
   $auth_summary=governance_native_auth_cases($fixture,$check,$state);
   require_once __DIR__.'/legacy-role-cases.php';
   $legacy_role_summary=governance_native_legacy_role_cases($fixture,$check,$state);
+  require_once __DIR__.'/media-http-cases.php';
+  $http_summary=governance_native_media_http_cases($fixture,$check,$state);
   require_once __DIR__.'/directory-completion-cases.php';
   $directory_completion_summary=governance_native_directory_completion_cases($fixture,$check,$state);
   require_once __DIR__.'/membership-lifecycle-cases.php';
@@ -143,7 +145,7 @@ function governance_native_organization_cases($fixture, callable $check) {
   $handover_form_summary=governance_native_handover_form_cases($fixture,$check,$state);
   require_once __DIR__.'/noncredential-source-v2-cases.php';
   $source_v2_summary=governance_native_noncredential_source_v2_cases($fixture,$check,$state);
-  return array('noncredential_source_v2_tests'=>$source_v2_summary,'handover_form_tests'=>$handover_form_summary,'handover_lifecycle_tests'=>$handover_summary,'transfer_execution_tests'=>$transfer_execution_summary,'transfer_foundation_tests'=>$transfer_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'producer_fence_tests'=>$producer_summary,'project_execution_tests'=>$execution_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
+  return array('http_tests'=>$http_summary,'noncredential_source_v2_tests'=>$source_v2_summary,'handover_form_tests'=>$handover_form_summary,'handover_lifecycle_tests'=>$handover_summary,'transfer_execution_tests'=>$transfer_execution_summary,'transfer_foundation_tests'=>$transfer_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'producer_fence_tests'=>$producer_summary,'project_execution_tests'=>$execution_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
 
     'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
     'production_features_enabled'=>false,'media_backend_only'=>true,

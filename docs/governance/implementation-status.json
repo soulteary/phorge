@@ -320,5 +320,66 @@
       "scope": "earlier-native-source-before-approval-id-retry-fix",
       "evidence_directory": "docs/governance/evidence/membership-lifecycle-checkpoint-20261103"
     }
-  ]
+  ],
+  "current_main_union_validation": {
+    "scope": "actual organization and media main union, isolated native regression only",
+    "passed": true,
+    "native_methods": 188,
+    "sql_checks": 545,
+    "runtime_files": 5930,
+    "runtime_content_exact": true,
+    "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
+    "incoming_main": "06370b43c5242baa8cbd850b1c693cb7be34e3a6",
+    "executed_index_tree": "0f29f6cd666e6b8776a4cb6903dbd38cc8d909fd",
+    "governance_python": 91,
+    "permission_python": 84,
+    "worker_cleanup": {
+      "private_directories_removed": 19,
+      "owned_processes_stopped": 0,
+      "cleanup_failures": 0,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0,
+      "workers_registered": 19
+    },
+    "cleanup": {
+      "ownedSchemasRemoved": 55,
+      "ownedRuntimeUsersRemoved": 2,
+      "readerRemoved": true
+    },
+    "paired_image_removed": true,
+    "production_activation": false,
+    "browser_or_wire_proved": false,
+    "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+    "source_sha256": {
+      "organization-media-main-integration.json": "1ba3dd058c2b84fe96fcee48acb6103df74682a1a7d44e114c243579987e5a47",
+      "organization-media-main-native.json": "a8d38c641d8d833451a4828be509c72a9b2f4602e1e9c013147a9fa92adc0f2e",
+      "organization-media-main-source-runtime-match.json": "2d34e215dc7be1a76dd85a5af50d0c3b19f680a527ffb4bd8c308f64fccf5ee6"
+    },
+    "evidence": "docs/governance/evidence/organization-main-188-545-20261103"
+  },
+  "incoming_media_main_component_validation": {
+    "current_component_validation": {
+      "scope": "pending-current-main-and-http-source-combination",
+      "php_runtime": "8.5.12",
+      "current_source_validation": "pending-fresh-full-combined-run",
+      "actual_combined_counts": null,
+      "source_inventory": {
+        "sources": 50,
+        "links": 40,
+        "runtime_files": 55,
+        "coverage": "partial",
+        "activation_blocked": true,
+        "authority_proof": false
+      },
+      "production_activation": false,
+      "deployment": false,
+      "hosted_ci_review_proved": false,
+      "global_goal_complete": false,
+      "audit_history_deleted": false,
+      "latest_main_combined_validation_required": true,
+      "full_lifecycle_complete": false,
+      "full_compound_matrix_complete": false,
+      "old_component_counts_not_reused": true
+    }
+  }
 }

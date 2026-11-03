@@ -5,7 +5,10 @@ import json
 from pathlib import Path
 import re
 
-EXPECTED_SOURCES = {'ORG.ROUTES': ('src/applications/people/application/PhabricatorPeopleApplication.php',
+EXPECTED_SOURCES = {'NATIVE.PhorgeGovernanceMediaTarget': ('src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php', 'PhorgeGovernanceMediaTarget', 'immutable-prepared-media-target'),
+ 'NATIVE.PhorgeGovernanceMediaIssuer': ('src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php',
+ 'PhorgeGovernanceMediaIssuer','media-only-external-issuer'),
+ 'ORG.ROUTES': ('src/applications/people/application/PhabricatorPeopleApplication.php',
                 'PhabricatorPeopleApplication',
                 'route-registration'),
  'AUTH.CONDUIT.CONTROLLER': ('src/applications/conduit/controller/PhabricatorConduitAPIController.php',
@@ -218,7 +221,7 @@ EXPECTED_LINKS.update({'NATIVE-LINK-27':('ORG.ROUTES','NATIVE.PhorgeOrganization
 
 EXPECTED_SOURCES.update({'NATIVE.PhorgeOrganizationCalendar': ('src/applications/people/governance/service/PhorgeOrganizationCalendar.php', 'PhorgeOrganizationCalendar', 'calendar-intent-preview'), 'NATIVE.PhorgeOrganizationTransferRequest': ('src/applications/people/governance/service/PhorgeOrganizationTransferRequest.php', 'PhorgeOrganizationTransferRequest', 'typed-transfer-intent-only'), 'NATIVE.PhorgeOrganizationTransfer': ('src/applications/people/governance/storage/PhorgeOrganizationTransfer.php', 'PhorgeOrganizationTransfer', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationHandover': ('src/applications/people/governance/storage/PhorgeOrganizationHandover.php', 'PhorgeOrganizationHandover', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationProjectDisposition': ('src/applications/people/governance/storage/PhorgeOrganizationProjectDisposition.php', 'PhorgeOrganizationProjectDisposition', 'protected-transfer-storage'), 'NATIVE.PhorgeOrganizationOutbox': ('src/applications/people/governance/storage/PhorgeOrganizationOutbox.php', 'PhorgeOrganizationOutbox', 'undispatched-reference-storage')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/service/PhorgeOrganizationCalendar.php', 'src/applications/people/governance/service/PhorgeOrganizationTransferRequest.php', 'src/applications/people/governance/storage/PhorgeOrganizationTransfer.php', 'src/applications/people/governance/storage/PhorgeOrganizationHandover.php', 'src/applications/people/governance/storage/PhorgeOrganizationProjectDisposition.php', 'src/applications/people/governance/storage/PhorgeOrganizationOutbox.php'])
-EXPECTED_LINKS.update({'NATIVE-LINK-29':('NATIVE.PhorgeOrganizationTransferRequest','NATIVE.PhorgeOrganizationService')})
+EXPECTED_LINKS.update({'NATIVE-LINK-41':('NATIVE.PhorgeOrganizationTransferRequest','NATIVE.PhorgeOrganizationService')})
 
 # Explicit organization successor identities; all remain partial and non-authoritative.
 EXPECTED_SOURCES.update({'NATIVE.PhorgeOrganizationTransferAdapter': ('src/applications/people/governance/service/PhorgeOrganizationTransferAdapter.php',
@@ -237,22 +240,84 @@ EXPECTED_SOURCES.update({'NATIVE.PhorgeOrganizationTransferAdapter': ('src/appli
                                  'PhabricatorProjectQuery',
                                  'manual-receipt-current-viewer-filter-sampled-not-atomic')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/service/PhorgeOrganizationTransferAdapter.php', 'src/applications/people/governance/service/PhorgeOrganizationHandoverAdapter.php', 'src/applications/people/governance/controller/PhorgeOrganizationTransferController.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeNoncredentialIdentitySource.php'])
-EXPECTED_LINKS.update({'NATIVE-LINK-30': ('ORG.ROUTES',
+EXPECTED_LINKS.update({'NATIVE-LINK-42': ('ORG.ROUTES',
                     'NATIVE.PhorgeOrganizationTransferController'),
- 'NATIVE-LINK-31': ('NATIVE.PhorgeOrganizationTransferController',
+ 'NATIVE-LINK-43': ('NATIVE.PhorgeOrganizationTransferController',
                     'NATIVE.PhorgeOrganizationService'),
- 'NATIVE-LINK-32': ('NATIVE.PhorgeOrganizationService',
+ 'NATIVE-LINK-44': ('NATIVE.PhorgeOrganizationService',
                     'NATIVE.PhorgeOrganizationTransferAdapter'),
- 'NATIVE-LINK-33': ('NATIVE.PhorgeOrganizationService',
+ 'NATIVE-LINK-45': ('NATIVE.PhorgeOrganizationService',
                     'NATIVE.PhorgeOrganizationHandoverAdapter'),
- 'NATIVE-LINK-34': ('NATIVE.PhorgeOrganizationTransferAdapter',
+ 'NATIVE-LINK-46': ('NATIVE.PhorgeOrganizationTransferAdapter',
                     'NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource'),
- 'NATIVE-LINK-35': ('NATIVE.PhorgeOrganizationHandoverAdapter',
+ 'NATIVE-LINK-47': ('NATIVE.PhorgeOrganizationHandoverAdapter',
                     'NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource'),
- 'NATIVE-LINK-36': ('NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource',
+ 'NATIVE-LINK-48': ('NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource',
                     'NATIVE.PhorgeGovernanceNativeIdentitySource'),
- 'NATIVE-LINK-37': ('NATIVE.PhorgeOrganizationHandoverAdapter',
+ 'NATIVE-LINK-49': ('NATIVE.PhorgeOrganizationHandoverAdapter',
                     'PROJECT.NATIVE.VIEWER.QUERY')})
+# Explicit reviewed HTTP candidate identities, not an open-ended source union.
+EXPECTED_SOURCES.update({'NATIVE.PhorgeGovernanceMediaAuthorizeController': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php',
+                                                     'PhorgeGovernanceMediaAuthorizeController',
+                                                     'native-app-origin-authorization-controller'),
+ 'NATIVE.PhorgeGovernanceMediaResourceController': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php',
+                                                    'PhorgeGovernanceMediaResourceController',
+                                                    'native-file-origin-exchange-controller'),
+ 'NATIVE.PhorgeGovernanceMediaStaticController': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaStaticController.php',
+                                                  'PhorgeGovernanceMediaStaticController',
+                                                  'fixed-source-static-only-controller'),
+ 'NATIVE.PhorgeGovernanceMediaHTTPProtocol': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php',
+                                              'PhorgeGovernanceMediaHTTPProtocol',
+                                              'fixed-origin-wire-cookie-protocol'),
+ 'NATIVE.PhorgeGovernanceMediaHTTPResponse': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPResponse.php',
+                                              'PhorgeGovernanceMediaHTTPResponse',
+                                              'native-header-preserving-response'),
+ 'NATIVE.PhorgeGovernanceMediaFileGuard': ('src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php',
+                                           'PhorgeGovernanceMediaFileGuard',
+                                           'current-native-viewer-file-guard'),
+ 'FILES.ROUTES': ('src/applications/files/application/PhabricatorFilesApplication.php',
+                  'PhabricatorFilesApplication',
+                  'feature-off-media-route-registration'),
+ 'FILES.DATA': ('src/applications/files/controller/PhabricatorFileDataController.php',
+                'PhabricatorFileDataController',
+                'pre-metadata-native-file-authorization-consumer'),
+ 'FILES.TRANSFORM': ('src/applications/files/controller/PhabricatorFileTransformController.php',
+                     'PhabricatorFileTransformController',
+                     'original-before-derived-file-authorization-consumer'),
+ 'FILES.FAVICON': ('src/applications/files/favicon/PhabricatorFaviconRefQuery.php',
+                   'PhabricatorFaviconRefQuery',
+                   'fixed-static-default-favicon-producer'),
+ 'AUTH.MEDIA.FIREWALL': ('src/aphront/configuration/AphrontApplicationConfiguration.php',
+                         'AphrontApplicationConfiguration',
+                         'pre-native-session-media-cookie-firewall'),
+ 'PAGE.MEDIA.BOOTSTRAP': ('src/view/page/PhabricatorStandardPageView.php',
+                          'PhabricatorStandardPageView',
+                          'native-session-media-bootstrap-config-consumer'),
+ 'CLIENT.MEDIA.HANDOFF': ('webroot/rsrc/js/core/behavior-private-media-session.js',
+                          'private-media-session',
+                          'fixed-origin-client-handoff')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaStaticController.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPResponse.php', 'src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php'])
+EXPECTED_LINKS.update({'NATIVE-LINK-29': ('FILES.ROUTES',
+                    'NATIVE.PhorgeGovernanceMediaResourceController'),
+ 'NATIVE-LINK-30': ('FILES.ROUTES',
+                    'NATIVE.PhorgeGovernanceMediaStaticController'),
+ 'NATIVE-LINK-31': ('FILES.DATA', 'NATIVE.PhorgeGovernanceMediaFileGuard'),
+ 'NATIVE-LINK-32': ('FILES.TRANSFORM', 'NATIVE.PhorgeGovernanceMediaFileGuard'),
+ 'NATIVE-LINK-33': ('NATIVE.PhorgeGovernanceMediaFileGuard',
+                    'NATIVE.PhorgeGovernanceMediaExchangeService'),
+ 'NATIVE-LINK-34': ('NATIVE.PhorgeGovernanceMediaAuthorizeController',
+                    'NATIVE.PhorgeGovernanceMediaExchangeService'),
+ 'NATIVE-LINK-35': ('NATIVE.PhorgeGovernanceMediaResourceController',
+                    'NATIVE.PhorgeGovernanceMediaHTTPProtocol'),
+ 'NATIVE-LINK-36': ('PAGE.MEDIA.BOOTSTRAP',
+                    'NATIVE.PhorgeGovernanceMediaHTTPProtocol'),
+ 'NATIVE-LINK-37': ('PAGE.MEDIA.BOOTSTRAP', 'CLIENT.MEDIA.HANDOFF'),
+ 'NATIVE-LINK-38': ('AUTH.MEDIA.FIREWALL',
+                    'NATIVE.PhorgeGovernanceMediaHTTPProtocol'),
+ 'NATIVE-LINK-39': ('FILES.FAVICON',
+                    'NATIVE.PhorgeGovernanceMediaStaticController'),
+ 'NATIVE-LINK-40': ('NATIVE.PhorgeGovernanceMediaResourceController',
+                    'NATIVE.PhorgeGovernanceMediaHTTPResponse')})
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
@@ -313,7 +378,9 @@ def validate(data, root):
                 'source must remain non-authoritative')
         path = file(root, raw)
         require(row['sha256'] == hashlib.sha256(path.read_bytes()).hexdigest(), 'source hash drift')
-        if key=='CLIENT.TOKENIZER.BEHAVIOR':
+        if key=='CLIENT.MEDIA.HANDOFF':
+            require("JX.behavior('private-media-session'," in path.read_text(),'fixed media behavior missing')
+        elif key=='CLIENT.TOKENIZER.BEHAVIOR':
             require("JX.behavior('aphront-basic-tokenizer'," in path.read_text(),'fixed tokenizer behavior missing')
         elif key=='CLIENT.PREFAB':
             require("JX.install('Prefab'," in path.read_text(),'fixed client symbol reference missing')

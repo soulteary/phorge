@@ -12,6 +12,9 @@ _spec = importlib.util.spec_from_file_location('native_completion_gate', ROOT/'s
 completion = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(completion)
 REQUIRED_CHECKS = frozenset({
+    'native-media-http-foreign-origin-preparation-refused',
+    'native-media-http-missing-origin-preparation-refused',
+    'native-media-http-null-origin-preparation-refused',
     'membership-lifecycle-audit-fault-rolls-back-member-unit-audit-ledger',
     'membership-lifecycle-concurrent-identical-operation-applies-once-and-replays-once',
     'membership-lifecycle-concurrent-operation-writes-one-audit-and-one-version',
@@ -379,6 +382,74 @@ ORGANIZATION_REQUIRED_CHECKS=frozenset({'native-handover-above-thirty-preview-pr
  'native-transfer-same-operation-different-payload-refused-before-consumption',
  'native-transfer-two-real-native-writers-wait-in-existing-organization-lock-order'})
 REQUIRED_CHECKS=REQUIRED_CHECKS|ORGANIZATION_REQUIRED_CHECKS
+# Fixed candidate union; no combined passing receipt exists yet.
+HTTP_REQUIRED_CHECKS=frozenset({'native-media-active-html-forced-attachment-octetstream-sandbox-despite-viewable-config',
+ 'native-media-active-js-forced-attachment-octetstream-sandbox-despite-viewable-config',
+ 'native-media-active-pdf-forced-attachment-octetstream-sandbox-despite-viewable-config',
+ 'native-media-active-svg-forced-attachment-octetstream-sandbox-despite-viewable-config',
+ 'native-media-active-xml-forced-attachment-octetstream-sandbox-despite-viewable-config',
+ 'native-media-anonymous-avatar-transform-cache-does-not-leak-redirect',
+ 'native-media-anonymous-conditional-refused-before-byte-or-cache-metadata',
+ 'native-media-anonymous-cookie-absence-refused-before-real-file-metadata-or-storage-events',
+ 'native-media-anonymous-head-refused-before-byte-or-cache-metadata',
+ 'native-media-anonymous-range-refused-before-byte-or-cache-metadata',
+ 'native-media-anonymous-transform-generation-refused-before-native-cache-write',
+ 'native-media-authorized-native-cached-transform-redirect-remains-protected',
+ 'native-media-authorized-real-gorge-range-retains-correct-bytes',
+ 'native-media-authorized-uncached-transform-calls-real-paired-gorge-image-service',
+ 'native-media-cookie-identity-and-native-author-automatic-file-view',
+ 'native-media-default-favicon-native-producer-uses-fixed-static-origin-route',
+ 'native-media-derived-file-native-original-capability-allows-author',
+ 'native-media-direct-avatar-derived-file-is-not-anonymous',
+ 'native-media-file-author-automatic-capability-remains-native-after-object-revocation',
+ 'native-media-file-cookie-firewall-does-not-strip-application-session',
+ 'native-media-file-guard-fixture-uses-real-gorge-storage',
+ 'native-media-generated-derived-bytes-use-native-original-visibility',
+ 'native-media-http-app-issue-requires-real-native-csrf',
+ 'native-media-http-controller-scopes-leave-no-unguarded-depth',
+ 'native-media-http-duplicate-conflicting-wire-cookie-refused',
+ 'native-media-http-encoded-wire-cookie-never-uses-php-global-alias',
+ 'native-media-http-identity-cookie-does-not-bypass-file-object-guard',
+ 'native-media-http-invalid-wire-cookie-not-replaced-by-valid-php-global',
+ 'native-media-http-missing-wire-cookie-never-uses-php-global-alias',
+ 'native-media-http-native-stored-long-unicode-file-uri-remains-a-canonical-target',
+ 'native-media-http-normalized-wire-cookie-never-uses-php-global-alias',
+ 'native-media-http-once-code-post-replay-refused',
+ 'native-media-http-origin-rejection-before-ledger-write',
+ 'native-media-http-prepare-secret-only-in-host-secure-httponly-cookie',
+ 'native-media-http-public-post-restores-native-csrf-write-guard',
+ 'native-media-http-quoted-wire-cookie-never-uses-php-global-alias',
+ 'native-media-http-ready-verifies-current-native-bound-cookie-without-identity-leak',
+ 'native-media-http-real-platform-route-authenticated-authorize-page',
+ 'native-media-http-real-resource-route-pinned-frame-csp',
+ 'native-media-http-real-session-csrf-issue-code-in-post-response-only',
+ 'native-media-http-redeem-credential-only-in-host-secure-httponly-cookie',
+ 'native-media-http-redeem-requires-file-origin-browser-cookie',
+ 'native-media-http-valid-wire-cookie-does-not-trust-conflicting-php-global',
+ 'native-media-login-default-favicon-immutable-source-remains-anonymous',
+ 'native-media-native-any-visible-attachment-file-capability-is-preserved',
+ 'native-media-new-request-rechecks-object-policy-before-conditional-return',
+ 'native-media-page-bootstrap-config-requires-real-native-cookie-session-and-app-origin',
+ 'native-media-page-bootstrap-viewer-object-alone-cannot-export-csrf',
+ 'native-media-private-file-response-disables-shared-cache-and-sniffing',
+ 'native-media-real-generated-transform-cache-reuse-performs-no-image-transform-http',
+ 'native-media-real-image-generation-does-not-invoke-native-service-fallback',
+ 'native-media-real-image-transform-result-is-stored-in-gorge-with-native-relation',
+ 'native-media-real-profiler-observes-authorized-file-query-and-gorge-read-positive-control',
+ 'native-media-real-route-foreign-instance-still-refused-with-valid-cookie',
+ 'native-media-real-shared-stock-avatar-object-has-no-unique-public-purpose',
+ 'native-media-resource-bootstrap-strips-native-app-cookie-and-authorization-before-session-engine',
+ 'native-media-safe-png-mapped-to-active-html-is-still-forced-attachment',
+ 'native-media-source-policy-revoked-cached-refused-before-image-or-byte-service-call',
+ 'native-media-source-policy-revoked-derived-refused-before-image-or-byte-service-call',
+ 'native-media-source-policy-revoked-uncached-refused-before-image-or-byte-service-call',
+ 'native-media-stock-avatar-data-still-requires-login',
+ 'native-media-stock-avatar-download-still-requires-login',
+ 'native-media-uploaded-avatar-get-no-anonymous-conditional-or-range-bypass',
+ 'native-media-uploaded-avatar-head-no-anonymous-conditional-or-range-bypass',
+ 'native-media-valid-bearer-file-key-alone-never-authorizes-bytes',
+ 'native-media-valid-other-user-cookie-does-not-grant-file-permission'})
+REQUIRED_CHECKS=REQUIRED_CHECKS|HTTP_REQUIRED_CHECKS
 FIELDS = {'batch', 'passed', 'scope', 'checks', 'check_count', 'php_version',
     'source_restore', 'native', 'worker_cleanup', 'file_service_cleanup',
     'successful_owned_file_service_startups', 'cleanup', 'failure', 'cleanup_failures',
@@ -517,6 +588,31 @@ NATIVE.update({'noncredential_source_v2_tests': {'noncredential_first_issuer_sta
                               'native_project_permissions_changed': False,
                               'dispatcher_registered': False,
                               'production_activation': False}})
+WORKERS = 19
+NATIVE['http_tests']={'native_site_and_controller_exchange_verified': True,
+ 'host_only_cookie_attributes_verified': True,
+ 'real_origin_csrf_and_once_code_verified': True,
+ 'wire_https_verified': False,
+ 'browser_verified': False,
+ 'file_guard_tests': {'real_gorge_bytes_and_native_file_query': True,
+                      'native_author_and_any_attachment_verified': True,
+                      'all_file_avatar_origins_require_login': True,
+                      'cached_transform_original_guard_verified': True,
+                      'anonymous_transform_generation_blocked': True,
+                      'active_formats_forced_attachment': True,
+                      'default_favicon_producer_static_route_verified': True,
+                      'actual_transform_generation_verified': True,
+                      'image_tests': {'actual_paired_image_generation_verified': True,
+                                      'backend_revision_sha256': 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+                                      'real_cached_generation_reuse_verified': True,
+                                      'source_revocation_blocks_cached_derived_and_uncached': True,
+                                      'php_transform_fallback_enabled': False,
+                                      'service_lifecycle_owned_by_parent': True},
+                      'custom_branding_verified': False,
+                      'browser_active_content_verified': False,
+                      'wire_https_verified': False},
+ 'file_guard_complete': False,
+ 'production_enabled': False}
 WORKERS = 19
 
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({
@@ -707,6 +803,12 @@ def validate(data, root=ROOT, file_digest=None):
         raise ValueError('media restore snapshot digest refused')
     expected_native=dict(NATIVE)
     expected_native['issuer_tests']=dict(NATIVE['issuer_tests'],restored_snapshot_sha256=snapshot)
+    revision=native.get('http_tests',{}).get('file_guard_tests',{}).get('image_tests',{}).get('backend_revision_sha256')
+    if type(revision) is not str or not re.fullmatch(r'[a-f0-9]{64}',revision):
+        raise ValueError('paired image revision diagnostic digest refused')
+    expected_native['http_tests']=dict(NATIVE['http_tests'])
+    expected_native['http_tests']['file_guard_tests']=dict(NATIVE['http_tests']['file_guard_tests'])
+    expected_native['http_tests']['file_guard_tests']['image_tests']=dict(NATIVE['http_tests']['file_guard_tests']['image_tests'],backend_revision_sha256=revision)
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',

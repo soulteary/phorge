@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "scope": "explicit-native-default-favicon-producer-only-not-file-avatar-authority",
+  "files": [
+    {
+      "name": "favicon/default-76x76.png",
+      "sha256": "1c1971413ee764908dad1d66f419c00bb020f24022c453612cd57f94458e2ae0",
+      "bytes": 5112,
+      "width": 76
+    },
+    {
+      "name": "favicon/default-120x120.png",
+      "sha256": "8ef8a64b96ed4a08b48aec82e8b5bbc6325f4973ab1ec95a95d1425f9e8ce473",
+      "bytes": 9913,
+      "width": 120
+    },
+    {
+      "name": "favicon/default-128x128.png",
+      "sha256": "911eedc8288e9dd5c3542392c73137e9e6399b755d2ae87358b6bc61a67190cf",
+      "bytes": 6505,
+      "width": 128
+    },
+    {
+      "name": "favicon/default-152x152.png",
+      "sha256": "d9a2f30aba489e692948559c80da5550de46bb9f2e3e97fad3ac74146bb3beca",
+      "bytes": 16134,
+      "width": 152
+    }
+  ]
+}

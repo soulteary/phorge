@@ -17,6 +17,16 @@ final class PhabricatorFaviconRefQuery extends Phobject {
     $viewer = PhabricatorUser::getOmnipotentUser();
 
     $refs = $this->refs;
+    // Default public favicon bytes have their own immutable resource route.
+    // Do not publish a shared File object (which may also be an avatar).
+    if(PhabricatorEnv::getEnvConfigIfExists('governance.media-exchange.http-enabled',false)===true &&
+      !PhabricatorEnv::getEnvConfig('ui.favicons')){
+      $remaining=array();foreach($refs as $key=>$ref){
+        if(array_filter($ref->getEmblems(),static function($value){return $value!==null;})){$remaining[$key]=$ref;continue;}
+        $ref->setURI(PhorgeGovernanceMediaStaticController::defaultFaviconURI($ref->getWidth(),$ref->getHeight()));
+      }
+      $refs=$remaining;if(!$refs){return $this->refs;}
+    }
 
     $config_digest = PhabricatorFaviconRef::newConfigurationDigest();
 
@@ -51,7 +61,7 @@ final class PhabricatorFaviconRefQuery extends Phobject {
       $cache->setKeys($new_map);
     }
 
-    return $refs;
+    return $this->refs;
   }
 
 
