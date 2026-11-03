@@ -16,6 +16,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   private $mode;
   private $approvalID;
   private $newPolicy;
+  private $intent;
   private $sources;
   private $oldRow;
   private $fence;
@@ -61,7 +62,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   }
 
   public static function open(PhorgeGovernanceNativeActorContext $context,
-    PhabricatorProject $object,$new_policy,$mode,$approval_id=null) {
+    PhabricatorProject $object,$new_policy,$mode,$approval_id=null,$intent=null) {
     if (!PhorgeProjectExecutionCatalog::enabled() ||
         !in_array($mode,array('propose','approve','execute','history','self-join','self-leave'),true) ||
         get_class($object)!==PhabricatorProject::class || !$object->getID() ||
@@ -69,7 +70,13 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
         !preg_match('/\APHID-PROJ-[a-zA-Z0-9]{20}\z/',$object->getPHID())) {
       throw new RuntimeException('project_execution_profile_unsupported');
     }
-    PhorgeProjectExecutionCatalog::policy($new_policy);
+    $intent=$intent===null?PhorgeProjectExecutionIntent::newPolicy($new_policy):$intent;
+    if(!($intent instanceof PhorgeProjectExecutionIntent) || get_class($intent)!==PhorgeProjectExecutionIntent::class || $intent->getPolicy()!==$new_policy){
+      throw new RuntimeException('project_execution_intent_binding_refused');
+    }
+    if($mode==='propose' && $intent->isMembership() && $intent->getMembers()===array($context->getUserPHID())){
+      throw new RuntimeException('project_execution_membership_ticket_not_applicable');
+    }
     $conn=$object->establishConnection('w');
     if ($conn!==(new PhabricatorProject())->establishConnection('w') ||
         $object->getAphrontRefDatabaseName()!==(new PhabricatorProject())->getAphrontRefDatabaseName() ||
@@ -80,9 +87,9 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     PhorgeGovernanceNativeRuntimeProfile::assertCurrent();
     $scope=new self(); $scope->connection=$conn; $scope->context=$context;
-    $scope->object=$object; $scope->newPolicy=$new_policy; $scope->mode=$mode; $scope->approvalID=$approval_id;
+    $scope->object=$object; $scope->newPolicy=$new_policy; $scope->intent=$intent; $scope->mode=$mode; $scope->approvalID=$approval_id;
     try {
-      $ids=array($context->getUserPHID());
+      $ids=array_merge(array($context->getUserPHID()),$intent->getMembers());
       if ($approval_id!==null) {
         $ids=array_merge($ids,PhorgeProjectPolicyApprovalStore::planning($conn,$approval_id));
       }
@@ -93,7 +100,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       $policy_ids=array();
       $application=new PhabricatorProjectApplication();
       $application_policy=$application->getPolicy(PhabricatorPolicyCapability::CAN_VIEW);
-      foreach (array_merge(array_values($planning),array($new_policy,$application_policy)) as $policy) {
+      foreach (array_merge(array_values($planning),$intent->isMembership()?array($application_policy):array($new_policy,$application_policy)) as $policy) {
         PhorgeProjectExecutionCatalog::policy($policy);
         if (str_starts_with($policy,'PHID-USER-')) { $ids[]=$policy; $policy_ids[]=$policy; }
       }
@@ -143,6 +150,9 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       if (count($edges)>256) { throw new RuntimeException('project_execution_source_budget'); }
       $members=array();$direct_members=array();
       foreach ($edges as $edge) {
+        if($intent->isMembership() && $edge['dataID']!==null && (string)$edge['dataID']!=='0'){
+          throw new RuntimeException('project_execution_member_edge_data_unsupported');
+        }
         if ((int)$edge['type']===PhabricatorProjectMaterializedMemberEdgeType::EDGECONST) { $members[]=$edge['dst']; }
         else { $direct_members[]=$edge['dst']; }
       }
@@ -154,6 +164,10 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
         throw new RuntimeException('project_execution_materialized_members_inconsistent');
       }
       $scope->initialMembers=$members;
+      if(in_array($mode,array('propose','approve','execute'),true) &&
+          $scope->hasMemberIntent() && count($scope->plannedMembers())>128){
+        throw new RuntimeException('project_execution_source_budget');
+      }
       $object->loadFromArray($scope->oldRow)->attachParentProject(null)->attachMemberPHIDs($members);
       $scope->requireNativeView($scope->actor);
       $scope->requireWebEnrollment($scope->snapshot,$scope->actor);
@@ -171,11 +185,35 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       } else if (!$scope->snapshot->isSystemAdmin()) {
         throw new RuntimeException('project_execution_approver_admin_required');
       }
+      if($scope->hasMemberIntent()){$scope->lockInverseMembership();}
       $last=queryfx_one($conn,'SELECT id FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id DESC LIMIT 1 LOCK IN SHARE MODE',
         new PhabricatorProjectTransaction(),$object->getPHID());
       $identities=array();
+      $policy_ids=array_merge($policy_ids,$intent->getMembers());
       $policy_ids=array_unique($policy_ids); sort($policy_ids,SORT_STRING);
-      foreach ($policy_ids as $id) { $identities[$id]=PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($id,$conn); }
+      foreach ($policy_ids as $id) {
+        $identities[$id]=PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($id,$conn);
+        if(in_array($mode,array('propose','approve','execute'),true) &&
+            $intent->isMembership() && $intent->isAddition() && in_array($id,$intent->getMembers(),true) &&
+            !$identities[$id]['eligible']) {
+          throw new RuntimeException('project_execution_member_add_subject_ineligible');
+        }
+        if($intent->isMembership()){
+          $generation=queryfx_one($conn,'SELECT id FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id DESC LIMIT 1 LOCK IN SHARE MODE',new PhabricatorUserTransaction(),$id);
+          $legacy=queryfx_one($conn,'SELECT userPHID,epoch FROM %R WHERE BINARY userPHID=BINARY %s LOCK IN SHARE MODE',new PhorgeGovernanceIdentityEpoch(),$id);
+          // Initializing credential metadata at epoch 1 is not a role change.
+          // The mandatory legacy role writer starts at 2 on its first change.
+          // This source fact never initializes credentials or authorizes a user;
+          // actual executor/approver bindings retain their strict source checks.
+          $role_epoch=$legacy?(string)$legacy['epoch']:'1';
+          if(($legacy&&$legacy['userPHID']!==$id)||!preg_match('/\A[1-9][0-9]{0,19}\z/',$role_epoch)||
+            (strlen($role_epoch)===20&&strcmp($role_epoch,'18446744073709551615')>0)){
+            throw new RuntimeException('project_execution_subject_generation_unknown');}
+          unset($identities[$id]['accountEpoch']);
+          $identities[$id]['nativeTransactionID']=$generation?(string)$generation['id']:'0';
+          $identities[$id]['legacyRoleEpoch']=$role_epoch;
+        }
+      }
       $scope->sources=array('row'=>self::digest($scope->oldRow),'members'=>self::digest($edges),'identities'=>self::digest($identities),
         'configuration'=>$scope->configuration->getDigest(),'spaces'=>$scope->sources['spaces'],'nativeTransactionID'=>$last?(string)$last['id']:'0');
       $scope->fence=PhorgeProjectExecutionProducerFence::acquire($conn);
@@ -323,8 +361,10 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     $membership=in_array($decision,array('self-join','self-leave'),true);
     if(!$membership){PhorgeProjectExecutionValue::identifier($approval);}
     else if($approval!==null && $approval!==''){throw new RuntimeException('project_execution_membership_ticket_not_applicable');}
-    $scope=self::open($context,$object,$membership?PhabricatorPolicies::POLICY_USER:$xactions[0]->getNewValue(),
-      $membership?$decision:'execute',$membership?null:$approval);
+    $intent=in_array($decision,array('members-add','members-remove'),true)?
+      PhorgeProjectExecutionIntent::newFromNativeMembership($xactions[0]):null;
+    $policy=$intent!==null?null:($membership?PhabricatorPolicies::POLICY_USER:$xactions[0]->getNewValue());
+    $scope=self::open($context,$object,$policy,$membership?$decision:'execute',$membership?null:$approval,$intent);
     $scope->editor=$editor;
     try {
     $editor->setActor($scope->actor);
@@ -449,7 +489,32 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
   }
   private function isMembership() {
-    return in_array($this->mode,array('self-join','self-leave'),true);
+    return $this->hasMemberIntent() || in_array($this->mode,array('self-join','self-leave'),true);
+  }
+  private function hasMemberIntent() {
+    return $this->intent!==null && $this->intent->isMembership();
+  }
+  private function membershipSubjects() {
+    return $this->hasMemberIntent()?$this->intent->getMembers():array($this->snapshot->getUserPHID());
+  }
+  private function isMembershipAddition() {
+    return $this->hasMemberIntent()?$this->intent->isAddition():$this->mode==='self-join';
+  }
+  private function plannedMembers() {
+    $members=$this->isMembershipAddition()?array_values(array_unique(array_merge($this->initialMembers,$this->membershipSubjects()))):
+      array_values(array_diff($this->initialMembers,$this->membershipSubjects()));
+    sort($members,SORT_STRING);return $members;
+  }
+  public function getProposedMembershipDelta() {
+    if(!$this->hasMemberIntent()){throw new RuntimeException('project_execution_membership_scope_required');}
+    $planned=$this->plannedMembers();
+    return array('added'=>array_values(array_diff($planned,$this->initialMembers)),
+      'removed'=>array_values(array_diff($this->initialMembers,$planned)));
+  }
+  public function getMembershipDelta() {
+    if(!$this->isMembership()){throw new RuntimeException('project_execution_membership_scope_required');}
+    return array('added'=>array_values(array_diff($this->expectedMembers,$this->initialMembers)),
+      'removed'=>array_values(array_diff($this->initialMembers,$this->expectedMembers)));
   }
   private function lockInverseMembership($members=null) {
     $members=$members===null?$this->initialMembers:$members;
@@ -457,12 +522,12 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     queryfx_one($this->connection,'SELECT src FROM %T.%T WHERE 1=0 LOCK IN SHARE MODE',$database,'edge');
     $engine=queryfx_one($this->connection,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',$database,'edge');
     if(!$engine || $engine['ENGINE']!=='InnoDB'){throw new RuntimeException('project_execution_inverse_transactional_schema_required');}
-    $rows=queryfx_all($this->connection,'SELECT src,dst,type FROM %T.%T WHERE src=%s AND type=%d AND dst=%s LIMIT 2 FOR UPDATE',
-      $database,'edge',$this->snapshot->getUserPHID(),PhabricatorProjectMemberOfProjectEdgeType::EDGECONST,$this->object->getPHID());
-    $expected=in_array($this->snapshot->getUserPHID(),$members,true)?1:0;
-    if(count($rows)!==$expected || ($rows && ($rows[0]['src']!==$this->snapshot->getUserPHID() ||
-      $rows[0]['dst']!==$this->object->getPHID()))){
-      throw new RuntimeException('project_execution_inverse_membership_inconsistent');
+    foreach($this->membershipSubjects() as $subject){
+      $rows=queryfx_all($this->connection,'SELECT src,dst,type FROM %T.%T WHERE src=%s AND type=%d AND dst=%s LIMIT 2 FOR UPDATE',
+        $database,'edge',$subject,PhabricatorProjectMemberOfProjectEdgeType::EDGECONST,$this->object->getPHID());
+      $expected=in_array($subject,$members,true)?1:0;
+      if(count($rows)!==$expected || ($rows && ($rows[0]['src']!==$subject ||
+        $rows[0]['dst']!==$this->object->getPHID()))){throw new RuntimeException('project_execution_inverse_membership_inconsistent');}
     }
     return $database;
   }
@@ -471,11 +536,8 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if($this->state!=='open' || !is_string($nonce) || !preg_match('/\A[a-f0-9]{32}\z/',$nonce)){
       throw new RuntimeException('project_execution_native_effects_phase_required');
     }
-    $actor=$this->snapshot->getUserPHID();$expected=$this->initialMembers;
-    if($this->mode==='self-join'){$expected[]=$actor;$expected=array_values(array_unique($expected));}
-    else{$expected=array_values(array_diff($expected,array($actor)));}
-    sort($expected,SORT_STRING);
-    if(!$xactions && $expected===$this->initialMembers){
+    $actor=$this->snapshot->getUserPHID();$expected=$this->plannedMembers();
+    if(!$xactions && $expected===$this->initialMembers && !$this->hasMemberIntent()){
       $this->expectedMembers=$expected;$this->effectsNonce=$nonce;$this->state='consumed';return;
     }
     if(count($xactions)!==1 || get_class($xactions[0])!==PhabricatorProjectTransaction::class ||
@@ -495,6 +557,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if($old!==$this->initialMembers || $new!==$expected){
       throw new RuntimeException('project_execution_native_membership_delta_changed');
     }
+    if($this->hasMemberIntent()){PhorgeProjectPolicyApprovalStore::forScope($this)->consume($this->approvalID);}
     $this->expectedMembers=$expected;$this->effectsNonce=$nonce;$this->state='consumed';
   }
   private function assertMembershipLease() {
@@ -525,20 +588,24 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     if($scope===null){throw new RuntimeException('project_execution_native_membership_lease_required');}
     $scope->assertMembershipLease();
-    if($scope->membershipEdgeEditor!==null || count($adds)+count($removes)!==2 ||
-      ($scope->mode==='self-join' && $removes) || ($scope->mode==='self-leave' && $adds)){
+    $delta=$scope->getMembershipDelta();
+    $subjects=$scope->isMembershipAddition()?$delta['added']:$delta['removed'];
+    if($scope->membershipEdgeEditor!==null || !$subjects || count($adds)+count($removes)!==2*count($subjects) ||
+      ($scope->isMembershipAddition() && $removes) || (!$scope->isMembershipAddition() && $adds)){
       throw new RuntimeException('project_execution_membership_edge_batch_unsupported');
     }
-    $seen=array();$actor=$scope->snapshot->getUserPHID();$project=$scope->object->getPHID();
+    $seen=array();$project=$scope->object->getPHID();
     foreach(array_merge($adds,$removes) as $edge){
       $direct=$edge['type']===PhabricatorProjectProjectHasMemberEdgeType::EDGECONST;
       $inverse=$edge['type']===PhabricatorProjectMemberOfProjectEdgeType::EDGECONST;
-      if((!$direct && !$inverse) || $edge['src']!==($direct?$project:$actor) ||
-        $edge['dst']!==($direct?$actor:$project) || $edge['src_type']!==($direct?'PROJ':'USER') ||
-        $edge['dst_type']!==($direct?'USER':'PROJ') || $edge['data']!==array() || isset($seen[$edge['type']])){
+      $subject=$direct?$edge['dst']:$edge['src'];$key=$edge['type'].':'.$subject;
+      if((!$direct && !$inverse) || !in_array($subject,$subjects,true) ||
+        $edge['src']!==($direct?$project:$subject) || $edge['dst']!==($direct?$subject:$project) ||
+        $edge['src_type']!==($direct?'PROJ':'USER') || $edge['dst_type']!==($direct?'USER':'PROJ') ||
+        $edge['data']!==array() || isset($seen[$key])){
         throw new RuntimeException('project_execution_membership_edge_batch_unsupported');
       }
-      $seen[$edge['type']]=true;
+      $seen[$key]=true;
     }
     $id=spl_object_id($editor);$scope->membershipEdgeEditor=$id;
     self::$membershipEdgeWrites[$id]=array(WeakReference::create($editor),WeakReference::create($scope));
@@ -593,7 +660,9 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
         throw new RuntimeException('project_execution_membership_native_record_required');
       }
     }
+    if($this->hasMemberIntent()){PhorgeProjectPolicyApprovalStore::forScope($this)->finishNative($this->approvalID,$xactions);}
   }
+  public function getIntent() { return $this->intent; }
   public function getSnapshot() { return $this->snapshot; }
   public function getActor() { return $this->actor; }
   public function getObject() { return $this->object; }

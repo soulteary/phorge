@@ -63,7 +63,7 @@
     "SQL queue fixture evidence does not replace paired Gorge publication or trusted-domain browser acceptance."
   ],
   "remaining_blocked": [
-    "administrator-driven membership changes",
+    "third-party membership changes outside the tested flat typed profile",
     "subprojects and milestones",
     "named/custom policy execution profile",
     "view/join/Space policy mutations",
@@ -72,5 +72,51 @@
     "physical SQL and whole-database restore/issuer-generation recovery",
     "production activation and all-source closure"
   ],
-  "permission_axes": "native visibility/edit/member/historical-edge semantics retained"
+  "permission_axes": "native visibility/edit/member/historical-edge semantics retained",
+  "pending_profiles": [
+    {
+      "id": "project.approved-members.flat-root.v2",
+      "state": "bounded-native-tests-passed-awaiting-independent-review",
+      "operation": [
+        "project.members.add",
+        "project.members.remove"
+      ],
+      "members_per_request": 16,
+      "maximum_flat_project_members": 128,
+      "authority": "native EDIT/VIEW/Space/MFA plus independent current system-administrator approval; approval does not grant capabilities",
+      "not_supported": [
+        "hierarchy and named/custom policy source closure",
+        "mixed add/remove/support batches",
+        "legacy member transaction producer and all CLI producers"
+      ],
+      "source_generation": "actual user security digest + native USER transaction ID + legacy-role generation; absent metadata equals its first initialization at 1 only for noncredential subject facts; executor/approver credential bindings unchanged",
+      "supported_runtime": {
+        "php": "8.5.12",
+        "pure_methods": 161,
+        "native_checks": 413,
+        "matched_runtime_files": 5903,
+        "production_activation": false
+      },
+      "subject_eligibility": "add requires current eligible user; remove permits a current disabled user",
+      "main_union_validation": {
+        "main": "06370b43c5242baa8cbd850b1c693cb7be34e3a6",
+        "pure_methods": 169,
+        "native_checks": 482,
+        "matched_runtime_files": 5918,
+        "native_media_http_and_image_regressions_included": true,
+        "browser_proof": false,
+        "production_activation": false
+      },
+      "current_main_validation": {
+        "main": "18e7d018e5ecbbc2cf449494ed4060f92e575189",
+        "tested_source": "3806576465a8dda03ae65b695969758d3c919e16",
+        "pure_methods": 193,
+        "native_checks": 584,
+        "matched_runtime_files": 5936,
+        "evidence_directory": "docs/governance/evidence/project-approved-members-v2-main18",
+        "browser_proof": false,
+        "production_activation": false
+      }
+    }
+  ]
 }

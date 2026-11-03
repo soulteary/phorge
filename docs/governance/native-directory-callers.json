@@ -1240,7 +1240,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
-        "sha256": "022d8a235027e49ffa2a7c20b63d61f8115625943252cbb300b22c116bcc374f"
+        "sha256": "d5e7581fd9c4a17e159392c711c3d06db08e038c8d2ad94f723c62ccc91f870a"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigOptions.php",
@@ -1249,6 +1249,10 @@
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigSource.php",
         "sha256": "9b6dcc2a73ff64dd367224a994f33eb75030724d2fed05ef8baf856225aaf7b8"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionIntent.php",
+        "sha256": "8029f3df619bb8cfe41db42d4ff34b4420183616c41d9f26ad6c2fd62ad9b29c"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionProducerFence.php",
@@ -1264,7 +1268,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
-        "sha256": "7ab25e4d4ca60496db716a87769b47117f7307df98551cc487a54b6c3e21d135"
+        "sha256": "b77d45cabd9727fede5d0a3e38de51856300ba34874fdc5e3f6738fb58f1d877"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
@@ -1272,15 +1276,15 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalService.php",
-        "sha256": "ad12f19e25bb8b5f1b42fb443ccf9d7c2c0f3cc55e5e8aba4405f59b2a17562a"
+        "sha256": "ce1751a98f585ab53ccb966f6234064df25bc13f8a88c00a76800399b4c4f71f"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
-        "sha256": "00e73b792e6c44111792800d4c082726ce85060b132be019afc44f030c9bab04"
+        "sha256": "e2a890da0c39ec264b492b704ef00aeb1b51bda0c61874bed8af1a8e35e21b2f"
       },
       {
         "path": "src/infrastructure/governance/execution/ProjectPolicyApprovalConduitAPIMethod.php",
-        "sha256": "4a590c7d0aadfdba62f9d1dc2782d62eeb338bbb764f1c5455d9e21ac66dc1f2"
+        "sha256": "8f20e2c913330f4feae952d54265067f6e0908396b447e9d63cb04b7a0333518"
       },
       {
         "path": "src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php",
