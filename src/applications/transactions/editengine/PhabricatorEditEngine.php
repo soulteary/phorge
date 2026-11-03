@@ -1205,6 +1205,11 @@ abstract class PhabricatorEditEngine
         $project_form=PhorgeProjectExecutionCatalog::openNativeForm(
           $this,$editor,$object,$request,$config,$xactions);
         try { $editor->applyTransactions($object, $xactions); }
+        catch (PhorgeProjectPolicyRefusalException $error) {
+          // applyTransactions owns rollback/cleanup before this typed refusal
+          // reaches the native form's existing validation response path.
+          throw PhorgeProjectPolicyFailure::newValidationException($error);
+        }
         finally { PhorgeProjectExecutionCatalog::closeNativeForm($editor,$project_form); }
 
         $this->didApplyTransactions($object, $xactions);

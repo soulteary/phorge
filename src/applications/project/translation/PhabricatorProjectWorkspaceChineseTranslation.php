@@ -8,6 +8,11 @@ final class PhabricatorProjectWorkspaceChineseTranslation extends PhutilTranslat
 
   protected function getTranslations() {
     return array(
+      'Save other project changes first, then create a new policy proposal.' => '请先单独保存项目的其他修改，再重新创建策略提案。',
+      'Enter a valid approval ticket.' => '请输入有效的审批凭据。',
+      'The project approval request is invalid.' => '项目审批请求无效。',
+      'A current approved ticket matching this change is required.' => '需要与本次变更匹配、当前仍有效且已获批准的审批凭据。',
+      'Approval Required' => '需要审批',
       'For an approved VIEW or EDIT policy change, paste the matching approval ticket. Changing another field at the same time is not supported.' => '修改已获批准的查看或编辑策略时，请填写对应审批凭据。不支持同时修改其他字段。',
       'Create a policy proposal before requesting independent approval: %s' => '请先创建策略提案，再请求另一位管理员独立审批：%s',
       'The project approval request could not be completed.' => '无法完成项目审批请求，请确认当前权限、会话和审批凭据。',

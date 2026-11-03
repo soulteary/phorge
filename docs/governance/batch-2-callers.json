@@ -861,7 +861,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "a894ab3c959ddade01d30922d494ad8b41cab5f45e9d47c64032cf83a63fa905"
+      "sha256": "9f61d47dd662c46b49e27ebad655f92eb342a0b83ec3a78aa0e605b8395a86b7"
     },
     {
       "id": "TRANSACTION.EDIT.API",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4466,
-    "source_snapshot_sha256": "d9eff0f07fb8992fd3cab8b31bf84bec7402221aae86acd42b39357f2c311612",
+    "source_snapshot_sha256": "1f5a42c9bfc6899993cfa98cb3aae5c97693a084ab56a2e679380e4417498948",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -5226,14 +5226,14 @@
       {
         "id": "CALL-e457f3ff983799df",
         "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
-        "sha256": "a894ab3c959ddade01d30922d494ad8b41cab5f45e9d47c64032cf83a63fa905",
+        "sha256": "9f61d47dd662c46b49e27ebad655f92eb342a0b83ec3a78aa0e605b8395a86b7",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
               1207,
-              2097,
-              2243
+              2102,
+              2248
             ]
           },
           {

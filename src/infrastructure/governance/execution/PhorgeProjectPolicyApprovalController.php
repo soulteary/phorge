@@ -7,7 +7,7 @@ final class PhorgeProjectPolicyApprovalController extends PhabricatorProjectCont
     if (!$request->isHTTPPost()) {
       if ($request->getStr('form','') !== 'policy') { return new Aphront400Response(); }
       try { return $this->newPolicyForm($request); }
-      catch (Throwable $error) { return new Aphront403Response(); }
+      catch (PhorgeProjectPolicyRefusalException $error) { return PhorgeProjectPolicyFailure::newHTTPResponse($error); }
     }
     try {
       $request->validateCSRF();
@@ -15,14 +15,14 @@ final class PhorgeProjectPolicyApprovalController extends PhabricatorProjectCont
       if ($request->getStr('form','') === 'policy') {
         $content_type=AphrontRequest::getHTTPHeader('Content-Type');
         if (!is_string($content_type) || strtolower(trim(explode(';',$content_type,2)[0]))!=='application/x-www-form-urlencoded') {
-          throw new InvalidArgumentException('project_execution_form_content_type_refused');
+          throw PhorgeProjectPolicyRefusalException::newForReason('request-input');
         }
         if ($request->getStr('payload','') !== '' || $request->getStr('action','') !== '') {
-          throw new InvalidArgumentException('project_execution_mixed_payload_refused');
+          throw PhorgeProjectPolicyRefusalException::newForReason('request-input');
         }
         if ($request->getStr('form_action','') === 'preview') { return $this->newPolicyForm($request); }
         if ($request->getStr('form_action','') !== 'submit' || $request->getArr('projects',array())) {
-          throw new InvalidArgumentException('project_execution_form_action_refused');
+          throw PhorgeProjectPolicyRefusalException::newForReason('request-input');
         }
         $payload=self::newFormPayload($request->getStr('operation','edit'),
           $request->getStr('target_phid',''),$request->getStr('new_policy'),
@@ -34,23 +34,20 @@ final class PhorgeProjectPolicyApprovalController extends PhabricatorProjectCont
           ->addCancelButton('/project/',pht('Done'));
       }
       if ($request->getStr('form','') !== '' || $request->getStr('form_action','') !== '') {
-        throw new InvalidArgumentException('project_execution_form_marker_refused');
+        throw PhorgeProjectPolicyRefusalException::newForReason('request-input');
       }
       $raw=$request->getStr('payload','');
-      if (strlen($raw)>8192) { throw new InvalidArgumentException('project_execution_payload_refused'); }
-      $payload=json_decode($raw,true,8,JSON_THROW_ON_ERROR);
-      if (!is_array($payload)) { throw new InvalidArgumentException('project_execution_payload_refused'); }
+      $payload=PhorgeProjectPolicyFailure::decodeRequest($raw);
       $result=PhorgeProjectPolicyApprovalService::call($context,$request->getStr('action',''),$payload);
       return (new AphrontJSONResponse())->setContent(array('result'=>$result));
-    } catch (Throwable $error) {
-      return (new AphrontJSONResponse())->setHTTPResponseCode(403)
-        ->setContent(array('error'=>pht('The project approval request could not be completed.')));
+    } catch (PhorgeProjectPolicyRefusalException $error) {
+      return PhorgeProjectPolicyFailure::newHTTPResponse($error);
     }
   }
   /** Missing operation keeps the original edit-policy interpretation. */
   public static function newFormPayload($operation,$target,$policy,$reason,$ttl) {
     if (!in_array($operation,array('edit','view'),true)) {
-      throw new InvalidArgumentException('project_execution_form_operation_refused');
+      throw PhorgeProjectPolicyRefusalException::newForReason('request-input');
     }
     $payload=array('target_phid'=>$target,'reason'=>$reason,'ttl_seconds'=>$ttl);
     if ($operation==='edit') { $payload['new_policy']=$policy; }
@@ -98,12 +95,12 @@ final class PhorgeProjectPolicyApprovalController extends PhabricatorProjectCont
     }
     if (count($targets)!==1 || !is_string(head($targets)) ||
         !preg_match('/\APHID-PROJ-[a-zA-Z0-9]{20}\z/',head($targets))) {
-      throw new InvalidArgumentException('project_execution_target_refused');
+      throw PhorgeProjectPolicyRefusalException::newForReason('request-input');
     }
     $project=(new PhabricatorProjectQuery())->setViewer($this->getViewer())
       ->withPHIDs($targets)->requireCapabilities(array(PhabricatorPolicyCapability::CAN_VIEW,PhabricatorPolicyCapability::CAN_EDIT))
       ->needMembers(true)->needAncestorMembers(true)->executeOne();
-    if (!$project) { throw new RuntimeException('project_execution_target_missing'); }
+    if (!$project) { throw PhorgeProjectPolicyRefusalException::newForReason('target-unavailable'); }
     $capability=$operation==='view'?PhabricatorPolicyCapability::CAN_VIEW:PhabricatorPolicyCapability::CAN_EDIT;
     $current=$project->getPolicy($capability);
     $intent=$operation==='view'?PhorgeProjectExecutionIntent::newViewPolicy($current):PhorgeProjectExecutionIntent::newPolicy($current);

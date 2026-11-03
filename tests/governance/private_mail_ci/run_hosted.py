@@ -57,3 +57,29 @@ def run(source, binaries, output, gorge_revision, owlmail_revision):
     invoke([sys.executable, str(harness / 'make_config.py'), '--source-root', str(source),
         '--source-revision', revision, '--binary-manifest', str(private / 'binaries.json'),
         '--gorge-revision', gorge_revision, '--php', subprocess.check_output(['which', 'php'], text=True).strip(),
+        '--expected-pure-methods', '237', '--output', str(private / 'config.json')])
+    for case in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked'):
+        invoke([sys.executable, str(harness / 'run_pending.py'), '--config', str(private / 'config.json'),
+            '--case', case, '--output', str(output / (case + '.json'))])
+    invoke([sys.executable, str(harness / 'run_matrix.py'), '--config', str(private / 'config.json'),
+        '--fault-manifest', str(private / 'fault.json'), '--output', str(output / 'matrix.json')])
+    # Drivers fail closed, and this independent envelope rejects absent cases.
+    for name in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked', 'matrix'):
+        receipt = json.loads((output / (name + '.json')).read_text())
+        if receipt.get('passed') is not True or receipt.get('source_revision') != revision:
+            raise RuntimeError('hosted_wire_receipt_refused')
+        if name == 'matrix':
+            validate_matrix_counts(receipt)
+    print('Five current-source private-mail wire receipts passed; no browser or deployment proof.')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    for key in ('source', 'binaries', 'output', 'gorge-revision', 'owlmail-revision'):
+        parser.add_argument('--' + key, required=True)
+    args = parser.parse_args()
+    run(args.source, args.binaries, args.output, args.gorge_revision, args.owlmail_revision)
+
+
+if __name__ == '__main__':
+    main()

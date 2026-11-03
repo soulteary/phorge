@@ -173,7 +173,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       $scope->requireWebEnrollment($scope->snapshot,$scope->actor);
       if (in_array($mode,array('propose','execute'),true)) {
         if (!PhabricatorPolicyFilter::hasCapability($scope->actor,$object,PhabricatorPolicyCapability::CAN_EDIT)) {
-          throw new RuntimeException('project_execution_native_edit_required');
+          throw PhorgeProjectPolicyRefusalException::newForReason('native-edit');
         }
       } else if(in_array($mode,array('self-join','self-leave'),true)){
         if(($mode==='self-join' && !PhabricatorPolicyFilter::hasCapability($scope->actor,$object,PhabricatorPolicyCapability::CAN_JOIN)) ||
@@ -183,7 +183,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
         }
         $scope->lockInverseMembership();
       } else if (!$scope->snapshot->isSystemAdmin()) {
-        throw new RuntimeException('project_execution_approver_admin_required');
+        throw PhorgeProjectPolicyRefusalException::newForReason('current-approver');
       }
       if($scope->hasMemberIntent()){$scope->lockInverseMembership();}
       $last=queryfx_one($conn,'SELECT id FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id DESC LIMIT 1 LOCK IN SHARE MODE',
@@ -345,7 +345,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     $this->cache->deleteKeys(array($key));
     if (!PhabricatorPolicyFilter::hasCapability($user,$this->object,PhabricatorPolicyCapability::CAN_VIEW)) {
-      throw new RuntimeException('project_execution_native_view_required');
+      throw PhorgeProjectPolicyRefusalException::newForReason('native-view');
     }
   }
   private function requireWebEnrollment(PhorgeGovernanceNativeIdentitySnapshot $snapshot,PhabricatorUser $user) {
@@ -360,7 +360,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       throw new RuntimeException('project_execution_identity_plan_changed');
     }
     $snapshot=PhorgeGovernanceNativeIdentitySource::lockCredentialBinding($binding,$this->connection);
-    if ($approver && !$snapshot->isSystemAdmin()) { throw new RuntimeException('project_execution_approver_admin_required'); }
+    if ($approver && !$snapshot->isSystemAdmin()) { throw PhorgeProjectPolicyRefusalException::newForReason('current-approver'); }
     $user=$this->freshUser($snapshot);
     if ($this->state==='consumed' && $this->intent->isViewPolicy()) {
       // The only accepted transition is the approved VIEW field. Re-evaluate
@@ -403,7 +403,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     $approval=$editor->getProjectApprovalID();
     if ($approval===null && $request!==null) { $approval=$request->getStr('governanceApprovalID'); }
     $membership=in_array($decision,array('self-join','self-leave'),true);
-    if(!$membership){PhorgeProjectExecutionValue::identifier($approval);}
+    if(!$membership){PhorgeProjectPolicyTicketState::identifier($approval);}
     else if($approval!==null && $approval!==''){throw new RuntimeException('project_execution_membership_ticket_not_applicable');}
     $policy_transaction=in_array($decision,array('view-policy','edit-policy'),true)?
       PhorgeProjectExecutionCatalog::policyTransaction($editor,$object,$xactions,$decision):null;
@@ -431,6 +431,10 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
         get_class($xactions[0])!==PhabricatorProjectTransaction::class ||
         $xactions[0]->getTransactionType()!==$this->intent->getTransactionType() ||
         $xactions[0]->getNewValue()!==$this->newPolicy || $xactions[0]->getComment()!==null) {
+      if($this->state==='open'&&PhorgeProjectExecutionCatalog::hasKnownAdditionalFormEffects(
+          $this->editor,$this->object,$xactions,$this->intent->getTransactionType(),$this->newPolicy)){
+        throw PhorgeProjectPolicyRefusalException::newForReason('additional-effects');
+      }
       throw new RuntimeException('project_execution_expanded_closure_unsupported');
     }
     $metadata=$xactions[0]->getMetadata();

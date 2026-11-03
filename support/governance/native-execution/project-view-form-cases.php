@@ -98,9 +98,11 @@ function governance_project_view_form_cases($fixture,callable $check,array $stat
       'projects'=>array($project->getPHID()),'__csrf__'=>$a['viewer']->getCSRFToken()),true);
     list($edit,,$edit_html)=$call($a,'POST',array('form'=>'policy','form_action'=>'preview','operation'=>'edit',
       'projects'=>array($project->getPHID()),'__csrf__'=>$a['viewer']->getCSRFToken()),true);
-    list($read_only)=$call($b,'POST',array('form'=>'policy','form_action'=>'preview','operation'=>'view',
-      'projects'=>array($project->getPHID()),'__csrf__'=>$b['viewer']->getCSRFToken()));
-    $check($read_only instanceof AphrontJSONResponse&&$read_only->getHTTPResponseCode()===403&&
+    $read_only_refused=false;
+    try {$call($b,'POST',array('form'=>'policy','form_action'=>'preview','operation'=>'view',
+      'projects'=>array($project->getPHID()),'__csrf__'=>$b['viewer']->getCSRFToken()));}
+    catch(PhabricatorPolicyException$error){$read_only_refused=$error->getCapability()===PhabricatorPolicyCapability::CAN_EDIT;}
+    $check($read_only_refused&&
       $view instanceof AphrontDialogView&&$edit instanceof AphrontDialogView&&
       strpos($view_html,'value="view"')!==false&&strpos($edit_html,'value="edit"')!==false&&
       $input_value($view_html,'new_policy')===PhabricatorPolicies::POLICY_USER&&
@@ -150,10 +152,11 @@ function governance_project_view_form_cases($fixture,callable $check,array $stat
       if(!is_array($body['result']??null)){throw new RuntimeException('project_form_json_result_required');}return$body['result'];
     };
     $json_before=$fingerprint();
-    list($json_without_csrf)=$call($a,'POST',array('action'=>'submit','payload'=>json_encode(array(
+    $json_csrf_refused=false;
+    try {$call($a,'POST',array('action'=>'submit','payload'=>json_encode(array(
       'target_phid'=>$project->getPHID(),'new_policy'=>PhabricatorPolicies::POLICY_USER,
-      'reason'=>'Synthetic missing native JSON CSRF','ttl_seconds'=>120),JSON_THROW_ON_ERROR)));
-    $json_csrf_refused=$json_without_csrf instanceof AphrontJSONResponse&&$json_without_csrf->getHTTPResponseCode()===403&&$fingerprint()===$json_before;
+      'reason'=>'Synthetic missing native JSON CSRF','ttl_seconds'=>120),JSON_THROW_ON_ERROR)));}
+    catch(AphrontMalformedRequestException$error){$json_csrf_refused=$error->getHTTPResponseCode()===400&&$fingerprint()===$json_before;}
     $json_edit=$json_call($a,'submit',array('target_phid'=>$project->getPHID(),'new_policy'=>PhabricatorPolicies::POLICY_USER,
       'reason'=>'Synthetic existing JSON edit proposal','ttl_seconds'=>120));
     $json_call($b,'approve',array('approval_id'=>$json_edit['approval_id']));
@@ -175,14 +178,15 @@ function governance_project_view_form_cases($fixture,callable $check,array $stat
     $check($denied_history instanceof AphrontJSONResponse&&$denied_history->getHTTPResponseCode()===403&&$fingerprint()===$before,
       'project-view-form-existing-json-history-still-denies-nonadmin-current-editor');
     $data=$form('view',$a['viewer']->getPHID());unset($data['__csrf__']);
-    list($response)=$call($a,'POST',$data);
-    $check($response instanceof AphrontJSONResponse&&$response->getHTTPResponseCode()===403&&$fingerprint()===$before,
+    $csrf_refused=false;
+    try{$call($a,'POST',$data);}catch(AphrontMalformedRequestException$error){$csrf_refused=$error->getHTTPResponseCode()===400;}
+    $check($csrf_refused&&$fingerprint()===$before,
       'project-view-form-native-post-without-csrf-refused-without-write');
     $data=$form('join',$a['viewer']->getPHID());list($response)=$call($a,'POST',$data);
-    $check($response instanceof AphrontJSONResponse&&$response->getHTTPResponseCode()===403&&$fingerprint()===$before,
+    $check($response instanceof AphrontJSONResponse&&$response->getHTTPResponseCode()===400&&$fingerprint()===$before,
       'project-view-form-unknown-operation-refused-without-write');
     $data=$form('view',$a['viewer']->getPHID());$data['payload']='{}';list($response)=$call($a,'POST',$data);
-    $check($response instanceof AphrontJSONResponse&&$response->getHTTPResponseCode()===403&&$fingerprint()===$before,
+    $check($response instanceof AphrontJSONResponse&&$response->getHTTPResponseCode()===400&&$fingerprint()===$before,
       'project-view-form-mixed-json-and-form-payload-refused-without-write');
     $data=$form('edit',PhabricatorPolicies::POLICY_USER);unset($data['operation']);$legacy=$propose($data);
     $intent=PhorgeProjectPolicyApprovalStore::intent($legacy);

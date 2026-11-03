@@ -50,3 +50,11 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
                 result=subprocess.run(base+extra,capture_output=True,text=True)
                 self.assertEqual(expected,result.returncode)
                 if expected==0:
+                    value=json.loads(result.stdout);self.assertEqual(854,value['native_checks'])
+                    self.assertIs(value['smtp_proved'],False)
+
+    def test_duplicate_json_fields_are_not_last_value_wins(self):
+        with tempfile.TemporaryDirectory()as directory:
+            path=Path(directory)/'receipt.json';path.write_text('{"passed":false,"passed":true}')
+            with self.assertRaises(ValueError):gate.load(path)
+if __name__=='__main__':unittest.main()

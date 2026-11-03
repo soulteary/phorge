@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "scope": "latest-main explicit native policy form and typed refusal integration; partial",
+  "parents": {
+    "protected_main": "f4c5702a0fdeade575ecdcda98c568cd45e966ba",
+    "accepted_display_component": "469e6dc55b7af95cfd5c23cf153a61fa2c5235ab",
+    "typed_error_docs_head": "2da303793503026d5441b3a72f1da5b4efb22c0b",
+    "typed_error_actual_pure_source": "4cb2265e6268309131830cf57e08cd5a9e88af40"
+  },
+  "source_derived_obligations_not_results": {
+    "pure_methods": 237,
+    "registered_classes": 37,
+    "SQL_checks": 854,
+    "global_workers": 38,
+    "business_local_children": 20
+  },
+  "sets_verified": {
+    "all_parent_method_IDs": true,
+    "all_parent_check_IDs": true,
+    "all_parent_NATIVE_summary_leaves": true,
+    "277_legacy_candidate_IDs": true
+  },
+  "retained_semantics": [
+    "One unified native textarea HTML5/CR/initial-LF decoder; real leading LF remains content",
+    "Native NULL description normalization and both raw-empty and stored-nonempty policy profiles",
+    "Read-only display attachment to the locked authority actor and original real session",
+    "Native no-effect dateModified bookkeeping only; business/history/audit comparisons remain exact",
+    "Exact-one-effective approved mutation; known additional genuine content effects are an actionable refusal only",
+    "Unknown backend/storage/metadata/extension/programming errors propagate; native MFA, CSRF and policy exceptions stay native"
+  ],
+  "historical_evidence": {
+    "display_component_acceptance": "evidence/project-form-display-469-218-753/acceptance.json",
+    "display_immutable_manifest_sha256": "34f2dec2f15a3b54b1aeeb328d5b446ee256815f84951d4ae737c2ba5897bb27",
+    "error_pure_source_methods": 227,
+    "current_integrated_SQL_executed": false,
+    "current_integrated_pure_executed": false
+  },
+  "remaining": [
+    "Signed final source and independent peer",
+    "Supported PHP8.5.12 class-map rebuild and all237 pure methods",
+    "Actual854 SQL including new route/controller refusal and stored-corruption propagation cases",
+    "Whole runtime hashes, strict in-process/CLI equality and all owned cleanup",
+    "English PR, exacthead CI/review, protected merge and main artifact closure",
+    "Actual HTTP/browser/MFA interaction and concurrency/other-family/source closure"
+  ],
+  "actual_HTTP_or_browser_proved": false,
+  "all_families_complete": false,
+  "can_execute_recovery": false,
+  "deployment": false,
+  "optional_features_enabled": false
+}

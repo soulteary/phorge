@@ -1248,6 +1248,8 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset([
  'private-business-project-outer-rollback-actual-native-create-envelope-visible-initial-fields-hidden'])
 NATIVE['private_mail_tests']['business_publication_tests']['actual_native_project_create_envelope_verified'] = True
 
+POLICY_ERROR_ROUTE_CHECKS = frozenset(['project-policy-errors-real-controller-input-json-is-400', 'project-policy-errors-real-controller-missing-ticket-is-generic-403-without-write', 'project-policy-errors-real-controller-stored-json-corruption-propagates-backend-error', 'project-policy-errors-real-native-edit-missing-ticket-renders-validation-without-write', 'project-policy-errors-explicit-description-extra-effect-refuses-actionably-without-consumption', 'project-policy-errors-native-separate-content-save-persists-description-and-old-proposal-stays-stale', 'project-policy-errors-fresh-proposal-after-separate-content-save-executes-only-approved-policy'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | POLICY_ERROR_ROUTE_CHECKS
 
 def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     if type(data) is not dict or set(data) != FIELDS:
