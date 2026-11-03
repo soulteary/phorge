@@ -72,3 +72,16 @@ These fifteen cases have not run yet. Their strict summary explicitly retains
 `concurrent_writer_proof=false` and `recovery_authorized=false`. Independent
 concurrent writers, current role loss while waiting, schema/routing fault
 profiles and a raw physical transaction test remain adoption gates.
+
+### Recorded restore failure
+
+The first signed `b16b5de1` attempt passed all214 pure methods and matched6786
+runtime files exactly, but failed during native schema restoration before the
+stop cases ran. All55 owned schemas, two runtime users, reader, image and source
+stage were removed. The migration's line comment contained a semicolon; the
+existing native `applyPatchSQL()` reader splits at semicolon-plus-whitespace
+without recognizing comments. The resulting comment-only and malformed SQL
+chunks were reproduced independently. The successor changes only that comment
+punctuation and adds a native-reader compatibility regression. It does not
+change the native SQL parser or reduce the725 required checks. No successful
+725-check database result is claimed for the failed revision.

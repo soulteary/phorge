@@ -1,5 +1,5 @@
 -- Independent classification of an already committed native stop. Default OFF.
--- A classification is not a recovery permit; no native account row is changed.
+-- A classification is not a recovery permit. No native account row is changed.
 CREATE TABLE {$NAMESPACE}_user.recovery_stop (
   nativeTransactionID BIGINT UNSIGNED NOT NULL PRIMARY KEY,
   subjectPHID VARBINARY(64) NOT NULL,
