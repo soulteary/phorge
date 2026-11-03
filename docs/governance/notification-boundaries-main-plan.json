@@ -1,0 +1,188 @@
+{
+  "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
+  "version": 13,
+  "base": "0a43c0211c4ced7749d26187da29798c4439086b",
+  "status": "exact-source-isolated-native-union-runtime-passed-activation-blocked",
+  "production_source_changes": true,
+  "current_cli_and_schema_and_migrations_preserved": true,
+  "preserved_source_scopes": [
+    "Native project four axes unchanged; no new permission inheritance",
+    "Existing main N05/organization/Media/Legalpad/SourcePending/header compatibility retained",
+    "Existing anonymous/CSRF/MFA/session semantics untouched by these fixture-only additions",
+    "Production candidates default off; no deployment or migration"
+  ],
+  "new_obligations": {
+    "legalpad": {
+      "checks": 9,
+      "project_membership_and_named_policy_new_request": true,
+      "real_secret_and_version_inflight_waits": true,
+      "last_view_to_commit_global_atomicity_proved": false,
+      "document_space_policy_invented": false,
+      "deadlock_outcomes_follow_committed_facts": true,
+      "actual_service_victim_and_preclose_lock_proof_required": true,
+      "controller_http500_proved": false
+    },
+    "business": {
+      "checks": 12,
+      "queue_profile": "native SQL queue only",
+      "native_task_and_project_publish_workers": true,
+      "retained_outer_source_transaction_diagnostic": true,
+      "diagnostic_reexecution_is_daemon_retry": false,
+      "mail_recipient_count": "Task owner and subscriber required; optional author yields 2..3 envelopes. Project has one actor envelope.",
+      "paired_gorge_queue_scope_proved": false,
+      "smtp_proved": false,
+      "child_native_mail_queue": "Reuses the actual enclosing owned taskqueue; each private child verifies authenticated HTTP before native publication. Not evidence of a Gorge application-worker profile or physical SMTP."
+    },
+    "business_gorge": {
+      "checks": 21,
+      "source_checkpoint": "d629d3f60368ad44062d00cc730b72b0f12d2c90",
+      "queue_profile": "actual native AppEditor HTTP enqueue, bounded service lease, actual independent Conduit handler, fenced finalize/resolve",
+      "native_project_description_stored_read_required": true,
+      "daemon_or_http_gateway_proved": false,
+      "smtp_proved": false,
+      "permanent_source_denial_automatically_retried": false,
+      "actual_runtime_passed": true,
+      "actual_native_create_visibility_required": true,
+      "root_SQL_create_fix_integrated": true,
+      "actual_tested_source": "92a84013ce59a37f65fed347c908e5377dd5f392"
+    }
+  },
+  "union_deltas_from_frozen_components": [
+    "Business helper reports observed subprocess and owned-directory cleanup counts in its safe summary; this does not change its test flow.",
+    "Strict mandatory checks retain all main725 and component IDs, exact typed source/concurrency/scope flags,31 registered workers and two separately owned sets of ten business process cleanups.",
+    "Only Task positive envelope count permits the explicit bounded native self-mail alternative2..3; all other fields are exact.",
+    "Current N00 production-source inventory and current CLI are retained without scan refresh or exclusions.",
+    "The failed always-deny secret-index assumption is replaced by an explicitly renamed committed-fact index matrix, plus a separately named before-first-read User barrier and forced service-victim proof. Previous real deadlocks remain recorded."
+  ],
+  "activation_blocked": true,
+  "main_union_runtime_passed": true,
+  "remaining": [
+    "Actual Legalpad controller/default-handler500 and full HTTP exception path; service-only proof does not close activation",
+    "Actual Wiki content-edit publication and retained move/search publication with independent before-commit worker interleaving; committed supported callers must not lose notifications",
+    "Worker.execute HTTP gateway, Go worker daemon, SMTP and trusted browser acceptance remain independent gates",
+    "Explicit yield/awaken is not an automatic retry guarantee after permanent source failure",
+    "Last VIEW-to-COMMIT is the accepted native request boundary, not transitive global atomic revocation",
+    "Final PR head hosted CI and exact review remain mandatory; this isolated receipt applies only to its tested source"
+  ],
+  "historical_stronger_component": {
+    "pure": 202,
+    "native_sql": 668,
+    "registered_native_workers": 25,
+    "additional_locally_owned_business_php_processes": 10,
+    "base": "2c841c2c9acdc3cb1716424072024f362f366e71",
+    "runtime_passed": false
+  },
+  "current_main_union": {
+    "retained_main_SQL": 725,
+    "added_Legalpad_and_business_SQL": 43,
+    "removed_main_SQL": 0,
+    "source_registered_pure_methods": 219,
+    "current_runtime_passed": true,
+    "production_Legalpad_hardening_included": true,
+    "core_size_and_invitation_fixes_preserved": true,
+    "recovery_source_observations": "Retain all main98 account/web source capture code and mandatory evidence; all-source recovery and execution remain false.",
+    "added_Gorge_SQL": 21
+  },
+  "production_change_scope": "Existing explicitly approved Legalpad endpoint hardening plus its mail policy binding, integrated with current main; strengthened race/publication additions remain test-only.",
+  "historical_component_evidence": {
+    "pure": 202,
+    "native_sql": 647,
+    "source_revision": "2c841c2c9acdc3cb1716424072024f362f366e71",
+    "applies_only_to_this_historical_revision": true
+  },
+  "project_content_profile": "Task title/comment/subscriber transactions; Project name and native std:project:internal:description custom field. No invented Project comment support. Independent publisher reads stored Project description before accepting the positive case.",
+  "previous_failed_unions": [
+    {
+      "source_revision": "6bdafac742263a11d132402e8c1d57e9ba1154e2",
+      "pure_methods_passed": 207,
+      "observed_SQL_checks_including_cleanup": 473,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6779,
+      "failure": "Independent business publisher lacked mandatory native-mail Gorge taskqueue configuration.",
+      "cleanup_complete": true
+    },
+    {
+      "source_revision": "68849c8c59dac20d6fc4108d75406cfca850d8b1",
+      "pure_methods_passed": 207,
+      "observed_SQL_checks_including_cleanup": 480,
+      "task_publication_checks_passed": 7,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6780,
+      "failure": "Fixture attempted unsupported native Project comment object.",
+      "cleanup_complete": true
+    },
+    {
+      "source_revision": "91a6d9ff3d64451d64de6e44d369d4fc2772866f",
+      "pure_methods_passed": 215,
+      "observed_SQL_checks_including_cleanup": 480,
+      "SQL_matrix_complete": false,
+      "runtime_files_exact": 6788,
+      "failure": "Project positive assertion failed before fixture was aligned with native create envelope.",
+      "cleanup_complete": true
+    }
+  ],
+  "native_create_envelope": "Task and Project direct Editor fixtures use the TYPE_CREATE emitted by native Web/Conduit create callers. Each Project case checks a visible create plus hidden initial name/description; no native visibility or preference rule is modified.",
+  "gorge_profile_source_union": {
+    "root_SQL_native_create_checkpoint": "6c155bf84945c6d23eee2134af371a52269830fd",
+    "Gorge_native_create_checkpoint": "d629d3f60368ad44062d00cc730b72b0f12d2c90",
+    "root_743_checks_preserved": true,
+    "Gorge_checks_added": 21,
+    "production_delta_from_root_union": false,
+    "source_union_runtime_verified": true
+  },
+  "main99_measurement_union": {
+    "source": "e5409ca89aff15126cf6bbf9dad2d92714d785cf",
+    "new_SQL_obligations": 10,
+    "additional_registered_workers": 6,
+    "measurement_revision_required_by_producer_and_gate": true,
+    "HTTP_gateway_stream_or_SLA_proved": false
+  },
+  "historical_root743_owner_evidence": {
+    "source": "6c155bf84945c6d23eee2134af371a52269830fd",
+    "pure": 215,
+    "SQL": 743,
+    "runtime_files_exact": 6788,
+    "passed": true,
+    "reviewer_executed": false,
+    "applies_only_to_that_source": true
+  },
+  "current_API_dependency": {
+    "PR": 100,
+    "source": "fdbf5480ff7495bbe587e055dda53ee674e652e4",
+    "new_pure_methods": 4,
+    "new_SQL_obligations": 15,
+    "runtime_verified_for_this_union": true
+  },
+  "historical_774_component": {
+    "source": "70a445b77d60d821d69e3424da7edea03f4c4e66",
+    "passed": true,
+    "pure": 215,
+    "SQL": 774,
+    "runtime_files_exact": 6794,
+    "acceptance": "docs/governance/evidence/business-gorge-main99-215-774/acceptance.json",
+    "does_not_certify_current_union": true
+  },
+  "api_dependency": {
+    "source_head": "fdbf5480ff7495bbe587e055dda53ee674e652e4",
+    "docs_head": "8706f1792f186bc42a00a54cfd90a55832f77365",
+    "aggregate_budget_fix_included": true,
+    "selected_type_budget_fix_included": true,
+    "dependency_component_actual_pure": 214,
+    "dependency_component_actual_SQL": 725,
+    "current_union_runtime_verified": true
+  },
+  "explicit_current_main": "0a43c0211c4ced7749d26187da29798c4439086b",
+  "actual_runtime_profile": {
+    "pure": 219,
+    "native_sql": 789,
+    "registered_native_workers": 31,
+    "additional_locally_owned_business_php_processes": 20,
+    "business_process_profiles": {
+      "sql": 10,
+      "gorge": 10
+    },
+    "tested_source": "92a84013ce59a37f65fed347c908e5377dd5f392",
+    "runtime_files_exact": 6797
+  },
+  "current_acceptance": "docs/governance/evidence/business-gorge-main100-219-789/acceptance.json"
+}

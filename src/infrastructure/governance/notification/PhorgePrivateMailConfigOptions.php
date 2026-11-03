@@ -7,5 +7,5 @@ final class PhorgePrivateMailConfigOptions extends PhabricatorApplicationConfigO
   public function getApplicationClassName(){return PhabricatorMetaMTAApplication::class;}
   public function getOptions(){return array($this->newOption('governance.private-mail.enabled','bool',false)
     ->setLocked(true)->setSummary(pht('Use authenticated links for private business mail.'))
-    ->setDescription(pht('Disabled by default. Requires a paired Gorge per-attempt authorization callback.')));}
+    ->setDescription(pht('Disabled by default. Requires a paired Gorge per-attempt authorization callback. Legalpad verification also requires the stored signer account and current document visibility.')));}
 }

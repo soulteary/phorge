@@ -1,0 +1,70 @@
+{
+  "source_head": "92a84013ce59a37f65fed347c908e5377dd5f392",
+  "passed": true,
+  "pure_methods": 219,
+  "SQL_checks": 789,
+  "runtime_files_exact": 6797,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 31,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 31
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "browser_proved": false,
+  "deployment": false,
+  "controller_http_exception_proved": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "business-gorge-api789-full-native.json": "a249b9cbf3f8aa3da9ebb1f284be441eba6feb91b9e69ca23514145a43cab425",
+    "business-gorge-api789-full-integration.json": "a184b1266d975d8784c861f20dde740493e084ad6970808142790ab4199604dc",
+    "business-gorge-api789-full-parent.json": "f9a98d1c92a46a853b2ead24397ac9e1bc69bf84c712655b2844758841c33f28",
+    "business-gorge-api789-full-source-runtime-match.json": "c4bf7c80ca5dd28850b54cdfdd6c29c046db55e02e74c487f479e02b67d60b4c",
+    "business-gorge-api789-full-strict-accepted.json": "2e153ed42d32e83ca978b5b9e28992cd164bcce8760e53b63670c0b9bc339eb6"
+  },
+  "evidence_kind": "owner-executed isolated exact-source union; not hosted CI",
+  "runtime_manifest": {
+    "file_count": 6797,
+    "sha256": "4e1489f4b41f2e9073fd93f9edbd0ddc16bb5f895e1b8aa68f809610eb07bbf2",
+    "encoding": "UTF-8 JSON sorted [path,content_sha256] pairs, ensure_ascii=true, separators comma/colon"
+  },
+  "mandatory_check_set_sha256": "578ad75429527bca904e754d6c3ed92209cd5ed44d6c729f44c715ffa367e64d",
+  "local_business_cleanup": {
+    "business_publication_tests": {
+      "independent_php_workers_executed": 10,
+      "private_directories_removed": 10,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0
+    },
+    "business_gorge_publication_tests": {
+      "independent_php_workers_executed": 10,
+      "private_directories_removed": 10,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0
+    }
+  },
+  "tested_scope": [
+    "real native Legalpad current signer and document VIEW verification, verified owned secondary email binding",
+    "actual native Task/Project editors and stored private content",
+    "paired Gorge HTTP enqueue, lease, fenced resolve/finalize and independent native PHP Conduit handler",
+    "normal commit, retained outer commit/rollback and explicit yield/awaken diagnostics",
+    "current main native API source capture including both selected credential budget corrections"
+  ],
+  "worker_execute_HTTP_gateway_proved": false,
+  "Go_worker_daemon_proved": false,
+  "SMTP_proved": false,
+  "automatic_retry_after_permanent_source_failure_proved": false,
+  "cross_schema_atomic_commit_proved": false,
+  "activation_blocked": true,
+  "applies_only_to_tested_source": true
+}

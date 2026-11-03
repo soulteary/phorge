@@ -20,6 +20,10 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Account Stop Audit' => '账号停用审计',
+      'Administrator classification of committed account stops.' => '由管理员为已提交的账号停用事件记录类别。',
+      'Record classifications of previously committed account stops.' => '记录已提交的账号停用事件类别。',
+      'Disabled by default. Recording a stop never enables an account or authorizes recovery.' => '默认关闭。记录停用事件不会启用账号，也不会授予恢复权限。',
       'Handover' => '交接',
       'Executed' => '已执行',
       'Keep' => '保留',
@@ -88,6 +92,14 @@ final class PhabricatorChineseTranslation
       'Restricted Organization History' => '受限组织历史记录',
       'Retained' => '已保留',
       'Retained; Older Than 365 Days' => '已保留；超过 365 天',
+      'Disabled by default. Requires a paired Gorge per-attempt authorization callback. Legalpad verification also requires the stored signer account and current document visibility.' => '默认关闭。需要配套 Gorge 在每次发送前验证权限。Legalpad 验证还要求登录存储的签署账号，并具备当前文档查看权限。',
+      'Signature Recorded Without Verification Email' => '签名已记录，未发送验证邮件',
+      'The signature was recorded, but this signer is not supported by authenticated email verification. No verification email was sent.' => '签名已记录，但此签署者不符合登录账号验证要求。未发送验证邮件。',
+      'This signature cannot be verified with the current account and document permissions.' => '当前账号或文档权限不满足签名验证要求。',
+      'Use a verified email address owned by the signed-in account.' => '请使用当前登录账号名下已验证的邮箱地址。',
+      'Sign in with an active account before signing this document.' => '请先使用有效账号登录，再签署此文档。',
+      "Sign in with the account that signed the document, then verify the signature:\n\n%s\n" => "请使用签署此文档的账号登录，然后验证签名：\n\n%s\n",
+
       'Notification source transaction is still pending.' => '通知来源事务尚未提交，请稍后重试。',
       'Private Notifications' => '私有通知',
       'Account Approved' => '账号已批准',

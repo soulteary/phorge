@@ -3,6 +3,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -168,6 +169,23 @@ class CompletionReceiptTests(unittest.TestCase):
                 '--receipt',str(path)],capture_output=True,text=True)
             self.assertEqual(result.returncode,0)
             self.assertEqual(json.loads(result.stdout)['native_shapes'],24)
+
+
+class NativeStopMigrationCompatibilityTest(unittest.TestCase):
+    def test_native_semicolon_reader_receives_two_create_statements(self):
+        # Match the existing applyPatchSQL reader, rather than a general SQL
+        # parser: a semicolon in a line comment used to break this migration.
+        sql=(ROOT/'resources/sql/autopatches/20261104.people.recoverystop.sql').read_text()
+        def statements(payload):
+            return ['\n'.join(line for line in part.splitlines()
+                    if line.strip() and not line.lstrip().startswith('--'))
+                    for part in re.split(r';\s+',payload) if part.strip()]
+        parts=statements(sql)
+        self.assertEqual(2,len(parts))
+        self.assertTrue(parts[0].startswith('CREATE TABLE {$NAMESPACE}_user.recovery_stop ('))
+        self.assertTrue(parts[1].startswith('CREATE TABLE {$NAMESPACE}_user.recovery_stop_audit ('))
+        broken=sql.replace('recovery permit. No native', 'recovery permit; No native')
+        self.assertEqual('',statements(broken)[0])
 
 
 if __name__ == '__main__':

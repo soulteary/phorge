@@ -151,13 +151,17 @@ function governance_native_organization_cases($fixture, callable $check) {
   $recovery_account_summary=governance_recovery_account_cases($fixture,$check);
   require_once dirname(__DIR__).'/recovery/web-cases.php';
   $recovery_web_summary=governance_recovery_web_cases($fixture,$check);
+  require_once dirname(__DIR__).'/recovery/stop-cases.php';
+  $recovery_stop_summary=governance_recovery_stop_cases($fixture,$check);
+  require_once dirname(__DIR__).'/recovery/stop-boundary-cases.php';
+  $recovery_stop_boundary_summary=governance_recovery_stop_boundary_cases($fixture,$check,$state);
   require_once dirname(__DIR__).'/recovery/api-cases.php';
   $recovery_api_summary=governance_recovery_api_cases($fixture,$check);
   require_once __DIR__.'/revocation-measurement-cases.php';
   $measurement_summary=governance_native_revocation_measurement_cases($fixture,$check,$state);
   require_once __DIR__.'/revocation-api-token-cases.php';
   $api_measurement_summary=governance_native_revocation_api_token_cases($fixture,$check,$state);
-  return array('recovery_api_capture_tests'=>$recovery_api_summary,'recovery_web_capture_tests'=>$recovery_web_summary,'recovery_account_capture_tests'=>$recovery_account_summary,'private_mail_tests'=>$private_mail_summary,'api_token_revocation_measurement_tests'=>$api_measurement_summary,'revocation_measurement_tests'=>$measurement_summary,'http_tests'=>$http_summary,'noncredential_source_v2_tests'=>$source_v2_summary,'handover_form_tests'=>$handover_form_summary,'handover_lifecycle_tests'=>$handover_summary,'transfer_execution_tests'=>$transfer_execution_summary,'transfer_foundation_tests'=>$transfer_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'producer_fence_tests'=>$producer_summary,'project_execution_tests'=>$execution_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
+  return array('recovery_api_capture_tests'=>$recovery_api_summary,'recovery_stop_boundary_tests'=>$recovery_stop_boundary_summary,'recovery_stop_tests'=>$recovery_stop_summary,'recovery_web_capture_tests'=>$recovery_web_summary,'recovery_account_capture_tests'=>$recovery_account_summary,'private_mail_tests'=>$private_mail_summary,'api_token_revocation_measurement_tests'=>$api_measurement_summary,'revocation_measurement_tests'=>$measurement_summary,'http_tests'=>$http_summary,'noncredential_source_v2_tests'=>$source_v2_summary,'handover_form_tests'=>$handover_form_summary,'handover_lifecycle_tests'=>$handover_summary,'transfer_execution_tests'=>$transfer_execution_summary,'transfer_foundation_tests'=>$transfer_summary,'history_tests'=>$history_summary,'compound_tests'=>$compound_summary,'membership_lifecycle_tests'=>$lifecycle_summary,'directory_completion_tests'=>$directory_completion_summary,'producer_fence_tests'=>$producer_summary,'project_execution_tests'=>$execution_summary,'actual_native_account_source'=>true,'actual_session_engine'=>true,
 
     'actual_csrf_validation'=>true,'isolated_features_enabled'=>true,
     'production_features_enabled'=>false,'media_backend_only'=>true,

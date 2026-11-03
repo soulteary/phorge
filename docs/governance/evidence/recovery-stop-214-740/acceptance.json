@@ -1,0 +1,50 @@
+{
+  "source_head": "44eee10c40496c47a642249e673c1ecaec0caf13",
+  "passed": true,
+  "pure_methods": 214,
+  "SQL_checks": 740,
+  "runtime_files_exact": 6787,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 32,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 32
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "browser_proved": false,
+  "deployment": false,
+  "stop_concurrency_proved": false,
+  "bounded_stop_boundary_tests": {
+    "two_session_same_operation_proof": true,
+    "current_admin_revocation_after_wait": true,
+    "real_session_expiry_during_wait": true,
+    "missing_and_nontransactional_table_refused": true,
+    "unsupported_routing_refused": true,
+    "raw_outer_transaction_preserved": true,
+    "recovery_authorized": false,
+    "all_sources_complete": false,
+    "production_entry_registered": false
+  },
+  "restoration_permission_granted": false,
+  "all_sources_complete": false,
+  "can_execute": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "recovery-stop-boundaries-schema-full-native.json": "aefca9076269e02fa6afb7606d73da7ef94b82ae78a6131466560e878d0a1c18",
+    "recovery-stop-boundaries-schema-full-integration.json": "19e56835069af153fd39073e77727c932b5f9cb106b3e1966091a618c9526789",
+    "recovery-stop-boundaries-schema-full-parent.json": "2e35102c33bed99baadd45fa18cdcf083bd31e29da63ab89d480194a6762eca8",
+    "recovery-stop-boundaries-schema-full-source-runtime-match.json": "cea9af64287a149f73498c54e0949e4458db3274bbe994da38204ed2e6c7054c",
+    "recovery-stop-boundaries-schema-full-strict-accepted.json": "41d28beb38d350b3c70a5fda2e10480e1daca305cfc0f7b8f67e278aa8fa262a"
+  },
+  "scope": "Historical component only; subsequent main100 union is pending new runtime validation."
+}

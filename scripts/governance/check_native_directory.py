@@ -366,7 +366,26 @@ EXPECTED_LINKS.update({'NATIVE-LINK-50': ('MAIL.TRANSACTION.PRODUCER', 'MAIL.OUT
  'NATIVE-LINK-60': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php', 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php', 'src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php'])
 
-ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
+EXPECTED_SOURCES.update({'LEGALPAD.SIGN.CONTROLLER': ('src/applications/legalpad/controller/LegalpadDocumentSignController.php',
+                              'LegalpadDocumentSignController',
+                              'native-signature-and-verification-mail-entry'),
+ 'LEGALPAD.VERIFY.CONTROLLER': ('src/applications/legalpad/controller/LegalpadDocumentSignatureVerificationController.php',
+                                'LegalpadDocumentSignatureVerificationController',
+                                'current-signer-verification-entry'),
+ 'NATIVE.PhorgeLegalpadVerification': ('src/applications/legalpad/governance/PhorgeLegalpadVerification.php',
+                                       'PhorgeLegalpadVerification',
+                                       'current-session-signer-and-document-policy-check')})
+EXPECTED_LINKS.update({'NATIVE-LINK-61': ('LEGALPAD.VERIFY.CONTROLLER',
+                    'NATIVE.PhorgeLegalpadVerification'),
+ 'NATIVE-LINK-62': ('NATIVE.PhorgeLegalpadVerification', 'AUTH.USER.DAO'),
+ 'NATIVE-LINK-63': ('NATIVE.PhorgeLegalpadVerification', 'AUTH.SESSION.DAO'),
+ 'NATIVE-LINK-64': ('LEGALPAD.SIGN.CONTROLLER',
+                    'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-65': ('NATIVE.PhorgePrivateMailPolicy',
+                    'NATIVE.PhorgeLegalpadVerification')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/legalpad/governance/PhorgeLegalpadVerification.php', 'src/applications/legalpad/governance/PhorgeLegalpadVerificationException.php'])
+
+ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance', 'src/applications/legalpad/governance')
 
 # Explicitly reviewed form provenance and final-effect references; never authority proof.
 VIEW_FORM_SOURCES = {'VIEW.FORM.PROJECT.CONTROLLER': ('src/applications/project/controller/PhabricatorProjectEditController.php', 'PhabricatorProjectEditController', 'native-edit-request-controller'), 'VIEW.FORM.PROJECT.ENGINE': ('src/applications/project/engine/PhabricatorProjectEditEngine.php', 'PhabricatorProjectEditEngine', 'native-project-form-field-producer'), 'VIEW.FORM.ENGINE': ('src/applications/transactions/editengine/PhabricatorEditEngine.php', 'PhabricatorEditEngine', 'native-form-provenance-registrar'), 'VIEW.FORM.CATALOG': ('src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php', 'PhorgeProjectExecutionCatalog', 'scoped-native-form-envelope-classifier'), 'VIEW.FORM.SCOPE': ('src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php', 'PhorgeProjectNativeExecutionScope', 'native-final-effect-and-current-source-fence'), 'VIEW.FORM.BASE.EDITOR': ('src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php', 'PhabricatorApplicationTransactionEditor', 'native-filter-before-effect-hook'), 'VIEW.FORM.PROPOSAL.CONTROLLER': ('src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php', 'PhorgeProjectPolicyApprovalController', 'current-policy-preview-controller'), 'VIEW.FORM.POLICY.CONTROL': ('src/view/form/control/AphrontFormPolicyControl.php', 'AphrontFormPolicyControl', 'native-policy-presentation-control')}
@@ -417,6 +436,30 @@ EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/govern
 
 EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryNativeWebFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php', 'PhorgeRecoveryNativeWebFacts', 'untrusted-web-storage-decoder-no-recovery-authority')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php'])
+
+EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryStop': ('src/infrastructure/governance/recovery/PhorgeRecoveryStop.php',
+                                 'PhorgeRecoveryStop',
+                                 'stop-classification-no-recovery-authority'),
+ 'RECOVERY.PhorgeRecoveryStopConfigOptions': ('src/infrastructure/governance/recovery/PhorgeRecoveryStopConfigOptions.php',
+                                              'PhorgeRecoveryStopConfigOptions',
+                                              'stop-classification-no-recovery-authority'),
+ 'RECOVERY.PhorgeRecoveryStopRequest': ('src/infrastructure/governance/recovery/PhorgeRecoveryStopRequest.php',
+                                        'PhorgeRecoveryStopRequest',
+                                        'stop-classification-no-recovery-authority'),
+ 'RECOVERY.PhorgeRecoveryStopSchemaSpec': ('src/infrastructure/governance/recovery/PhorgeRecoveryStopSchemaSpec.php',
+                                           'PhorgeRecoveryStopSchemaSpec',
+                                           'stop-classification-no-recovery-authority'),
+ 'RECOVERY.PhorgeRecoveryStopService': ('src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php',
+                                        'PhorgeRecoveryStopService',
+                                        'stop-classification-no-recovery-authority'),
+ 'RECOVERY.NATIVE.DISABLE.TYPE': ('src/applications/people/xaction/PhabricatorUserDisableTransaction.php',
+                                  'PhabricatorUserDisableTransaction',
+                                  'native-disable-event-semantics'),
+ 'RECOVERY.NATIVE.USER.TRANSACTION': ('src/applications/people/storage/PhabricatorUserTransaction.php',
+                                      'PhabricatorUserTransaction',
+                                      'native-committed-stop-source')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryStop.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryStopConfigOptions.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryStopRequest.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryStopSchemaSpec.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php'])
+EXPECTED_LINKS.update({'NATIVE-LINK-66': ('RECOVERY.PhorgeRecoveryStopService', 'NATIVE.PhorgeGovernanceNativeIdentitySource'), 'NATIVE-LINK-67': ('RECOVERY.PhorgeRecoveryStopService', 'AUTH.USER.DAO'), 'NATIVE-LINK-68': ('RECOVERY.PhorgeRecoveryStopService', 'RECOVERY.NATIVE.USER.TRANSACTION'), 'NATIVE-LINK-69': ('RECOVERY.PhorgeRecoveryStopService', 'RECOVERY.NATIVE.DISABLE.TYPE'), 'NATIVE-LINK-70': ('RECOVERY.PhorgeRecoveryStopService', 'RECOVERY.PhorgeRecoveryStopRequest'), 'NATIVE-LINK-71': ('RECOVERY.PhorgeRecoveryStopService', 'RECOVERY.PhorgeRecoveryStop')})
 
 def validate(data, root):
     root = Path(root)
