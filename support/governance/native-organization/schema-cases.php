@@ -15,7 +15,8 @@ function governance_native_schema_cases($fixture, callable $check) {
   $tables=array('organization_guard','organization_identityepoch','organization_unit',
     'organization_member','organization_appointment','organization_primarydepartment',
     'organization_operation','organization_audit','organization_approval',
-    'governance_mediabrowser','governance_mediaexchange','governance_mediacredential','governance_mediaquota');
+    'governance_mediabrowser','governance_mediaexchange','governance_mediacredential','governance_mediaquota',
+    'organization_transfer','organization_handover','organization_projectdisposition','organization_outbox');
   foreach($tables as $name) {
     $table=$database->getTable($name);
     $check($table instanceof PhabricatorConfigTableSchema && !$table->getAllIssues(),

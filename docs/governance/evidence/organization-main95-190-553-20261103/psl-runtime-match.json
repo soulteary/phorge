@@ -1,0 +1,11 @@
+{
+  "scope": "four pinned PSL runtime resources, separately from PHP/SQL inventory",
+  "file_count": 4,
+  "content_matches_runtime": true,
+  "sha256": {
+    "resources/governance/publicsuffix/LICENSE": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+    "resources/governance/publicsuffix/README.md": "8f76d8eb14f5e0ea3b9fa21ed04394fe93c365e233fb2ec197fadbf6906a28a6",
+    "resources/governance/publicsuffix/rules.json": "d0690c4291743adc4f60413942d95025b7de1d8fa0850a9f3496c53a6ef0f386",
+    "resources/governance/publicsuffix/test-cases.json": "297b6f00887a331d4fa0432f288d5cb769331ace7ec857929f153ecc550b48cd"
+  }
+}

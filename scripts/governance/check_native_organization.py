@@ -303,6 +303,88 @@ REQUIRED_CHECKS = frozenset({
            'native-session-engine-issued-and-loaded-actual-web-session',
            'owned-native-write-guard-disposed',
            'owned-writer-environment-and-cache-restored'})
+# Explicit previously executed organization obligations; current main union still needs a fresh run.
+ORGANIZATION_REQUIRED_CHECKS=frozenset({'native-handover-above-thirty-preview-preserves-server-derived-total-and-explicit-exception',
+ 'native-handover-above-thirty-requires-distinct-exception-reason',
+ 'native-handover-actual-execution-consumes-and-extends-one-current-row-with-original-start',
+ 'native-handover-actual-preview-confirmation-form-persists-pending-ticket',
+ 'native-handover-actual-preview-form-binds-server-derived-primary-and-unit-versions-without-authority',
+ 'native-handover-approval-expiry-after-real-wait-cannot-consume-or-extend',
+ 'native-handover-approver-cannot-become-executor',
+ 'native-handover-bound-executor-form-requires-explicit-ack-and-switches-primary-once',
+ 'native-handover-committed-manual-replay-still-requires-current-project-visibility',
+ 'native-handover-committed-replay-does-not-consume-extend-or-audit-again',
+ 'native-handover-consumed-execution-form-retry-uses-ledger-without-reconsumption',
+ 'native-handover-current-disabled-executor-cannot-replay-consumed-form',
+ 'native-handover-current-native-viewer-query-refuses-hidden-project-receipts',
+ 'native-handover-different-operation-ids-cannot-amplify-one-deadline-event',
+ 'native-handover-due-audit-fault-rolls-new-event-and-operation-ledger-back',
+ 'native-handover-due-event-real-post-without-csrf-has-no-ledger-or-outbox-effects',
+ 'native-handover-due-fault-trigger-is-owned-and-actually-installed',
+ 'native-handover-due-operation-id-cannot-bind-another-handover',
+ 'native-handover-due-operation-replay-does-not-multiply-events-or-audit',
+ 'native-handover-due-page-does-not-classify-future-deadline-as-due-or-dispatch',
+ 'native-handover-expiry-worker-reaches-real-approval-row-wait-after-source-locks',
+ 'native-handover-explicit-due-post-persists-one-undispatched-reference-event',
+ 'native-handover-extension-preview-derives-total-from-stored-original-calendar',
+ 'native-handover-extension-real-csrf-route-persists-bound-pending-ticket',
+ 'native-handover-extension-real-post-without-csrf-cannot-propose',
+ 'native-handover-form-nonnumeric-calendar-day-cannot-silently-become-immediate-transfer',
+ 'native-handover-historical-state-due-keyset-pages-progress-by-stored-deadline-and-id',
+ 'native-handover-independent-approval-form-requires-real-csrf-and-distinct-current-admin',
+ 'native-handover-independent-current-admin-approval-uses-actual-credential-source',
+ 'native-handover-independent-review-page-renders-ticket-details-without-private-source-snapshots',
+ 'native-handover-independent-termination-preserves-current-primary-department',
+ 'native-handover-management-ordinary-member-cannot-read-admin-forms-or-ticket-identifiers',
+ 'native-handover-management-real-chinese-html-and-department-tokenizer-config-render',
+ 'native-handover-management-route-default-off-unavailable',
+ 'native-handover-manual-project-receipt-is-not-a-project-policy-mutation-or-exhaustive-list',
+ 'native-handover-native-account-disable-is-not-blocked-by-responsibility',
+ 'native-handover-ordinary-subject-cannot-read-approval-or-receive-self-exception',
+ 'native-handover-owned-audit-fault-trigger-actually-installed',
+ 'native-handover-parallel-approved-execution-extends-once-and-replays-once',
+ 'native-handover-preview-form-without-real-csrf-cannot-create-ticket',
+ 'native-handover-project-receipt-output-hides-now-invisible-reference-and-count',
+ 'native-handover-real-audit-fault-rolls-consumption-deadline-outbox-and-ledger-back',
+ 'native-handover-real-parallel-executors-wait-on-existing-organization-lock-order',
+ 'native-handover-requester-cannot-self-approve-extension',
+ 'native-handover-responsible-replacement-is-descriptive-with-no-team-membership-or-admin-grant',
+ 'native-noncredential-v1-handover-first-issuer-change-remains-stale-without-reinterpretation',
+ 'native-noncredential-v1-handover-restored-unchanged-facts-retain-original-execution-rules',
+ 'native-noncredential-v1-restored-ticket-keeps-original-first-issuer-stale-boundary-without-reinterpretation',
+ 'native-noncredential-v1-restored-unchanged-facts-remain-executable-under-legacy-rules',
+ 'native-noncredential-v2-facts-cannot-be-reinterpreted-by-restamping-stored-v1-schema',
+ 'native-noncredential-v2-first-real-subject-directory-access-preserves-independent-approval-and-execution',
+ 'native-noncredential-v2-handover-owner-first-real-directory-access-does-not-stale-unchanged-facts',
+ 'native-noncredential-v2-legacy-agent-aba-without-user-transaction-stales-pending-ticket',
+ 'native-noncredential-v2-legacy-mail-aba-without-user-transaction-stales-pending-ticket',
+ 'native-noncredential-v2-missing-epoch-table-never-falls-back-to-absent-row-one',
+ 'native-noncredential-v2-noninnodb-epoch-source-refused-before-returning-facts',
+ 'native-noncredential-v2-proposal-binds-locked-generation-one-without-initializing-subject-credential',
+ 'native-noncredential-v2-real-disable-enable-user-transaction-aba-stales-pending-ticket',
+ 'native-transfer-actual-csrf-post-dispatches-fixed-native-service-proposal',
+ 'native-transfer-actual-execute-without-csrf-never-consumes-approved-request',
+ 'native-transfer-actual-get-revalidates-current-admin-and-restores-read-guard',
+ 'native-transfer-actual-main-execution-waits-on-approved-row-after-native-source-locks',
+ 'native-transfer-actual-post-without-csrf-cannot-propose-or-write',
+ 'native-transfer-approved-consumption-primary-handover-and-ledger-commit-without-member-or-admin-grants',
+ 'native-transfer-concurrent-identical-execution-commits-one-primary-and-one-durable-result',
+ 'native-transfer-consumed-request-retries-durable-ledger-without-second-primary-switch-or-outbox',
+ 'native-transfer-does-not-change-native-project-policies-hierarchy-or-membership-edges',
+ 'native-transfer-execution-requires-explicit-no-native-permission-change-acknowledgement',
+ 'native-transfer-expiry-during-real-row-wait-refused-before-consumption-or-primary-change',
+ 'native-transfer-immediate-zero-day-switch-creates-no-active-handover',
+ 'native-transfer-independent-current-admin-approves-without-taking-executor-role',
+ 'native-transfer-ordinary-subject-has-no-request-history-or-self-directory-exception',
+ 'native-transfer-persisted-outbox-reference-remains-undispatched',
+ 'native-transfer-real-midwrite-audit-fault-rolls-back-consume-primary-handover-outbox-and-ledger',
+ 'native-transfer-real-midwrite-audit-trigger-installed-by-owned-setup',
+ 'native-transfer-real-preview-is-explicit-14-day-plan-not-permission-proof',
+ 'native-transfer-real-proposal-projects-no-native-credentials-or-private-source-snapshots',
+ 'native-transfer-requester-cannot-self-approve',
+ 'native-transfer-same-operation-different-payload-refused-before-consumption',
+ 'native-transfer-two-real-native-writers-wait-in-existing-organization-lock-order'})
+REQUIRED_CHECKS=REQUIRED_CHECKS|ORGANIZATION_REQUIRED_CHECKS
 # Fixed candidate union; no combined passing receipt exists yet.
 HTTP_REQUIRED_CHECKS=frozenset({'native-media-active-html-forced-attachment-octetstream-sandbox-despite-viewable-config',
  'native-media-active-js-forced-attachment-octetstream-sandbox-despite-viewable-config',
@@ -371,6 +453,20 @@ HTTP_REQUIRED_CHECKS=frozenset({'native-media-active-html-forced-attachment-octe
  'native-media-valid-bearer-file-key-alone-never-authorizes-bytes',
  'native-media-valid-other-user-cookie-does-not-grant-file-permission'})
 REQUIRED_CHECKS=REQUIRED_CHECKS|HTTP_REQUIRED_CHECKS
+# Exact PR94 review regressions; no new passing receipt exists until fresh runtime.
+REQUIRED_CHECKS=REQUIRED_CHECKS|frozenset({
+ 'native-handover-manual-confirmation-binds-two-observed-receipt-and-handover-versions',
+ 'native-handover-stale-manual-confirmation-cannot-overwrite-another-administrator-and-real-csrf-is-required',
+ 'native-handover-termination-ticket-before-primary-clear-still-refuses-changed-bound-source',
+ 'native-handover-independent-termination-after-primary-clear-preserves-cleared-primary-and-ends-active-record',
+ 'native-handover-manual-confirmation-refuses-lifecycle-version-changed-after-preview',
+ 'native-handover-terminated-after-primary-clear-no-longer-blocks-next-approved-transfer'})
+# Explicit initial-transfer DST UI regression obligations, runtime pending.
+REQUIRED_CHECKS=REQUIRED_CHECKS|frozenset({
+ 'native-handover-fixed-calendar-render-seam-shows-both-dst-offsets-without-authorizing-or-proposing',
+ 'native-handover-current-http-resolution-requires-explicit-valid-offset-and-real-csrf',
+ 'native-handover-current-http-selected-offset-runs-fresh-server-preview-and-new-identifiers',
+ 'native-handover-current-http-proposal-uses-real-db-time-and-chosen-offset-not-synthetic-calendar-start'})
 FIELDS = {'batch', 'passed', 'scope', 'checks', 'check_count', 'php_version',
     'source_restore', 'native', 'worker_cleanup', 'file_service_cleanup',
     'successful_owned_file_service_startups', 'cleanup', 'failure', 'cleanup_failures',
@@ -470,6 +566,46 @@ NATIVE.update({'compound_tests': {'before_source_membership_not_fabricated': Tru
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['native-history-365-day-candidate-report-retains-all-records', 'native-history-actual-get-current-admin-without-csrf-read-scope-restored', 'native-history-administrator-revoked-between-pages-cannot-use-old-cursor', 'native-history-current-team-administrator-still-cannot-read-global-audit', 'native-history-has-no-post-delete-or-mutation-surface', 'native-history-never-loads-or-returns-private-snapshots-or-credential-binding', 'native-history-ordinary-user-cannot-read-audit-or-retention-count', 'native-history-reader-revocation-uses-actual-no-factor-normal-session', 'native-history-real-keyset-pages-have-no-duplicate-records'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({'native-history-retention-raw-scan-is-bounded-and-empty-page-cursor-reaches-later-candidate', 'native-history-empty-retention-page-real-html-keeps-next-scan-link'})
 NATIVE['history_tests'] = {'current_system_administrator_only': True, 'snapshot_fields_returned': False, 'retention_days': 365, 'history_deleted': False, 'full_browser_acceptance': False, 'production_activation': False}
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['native-schema-organization_handover-matches-retained-adjustment-spec', 'native-schema-organization_outbox-matches-retained-adjustment-spec', 'native-schema-organization_projectdisposition-matches-retained-adjustment-spec', 'native-schema-organization_transfer-matches-retained-adjustment-spec', 'native-transfer-foundation-exact-duplicate-event-fault-rolls-back-version-and-all-workflow-tables', 'native-transfer-foundation-fixture-storage-does-not-switch-primary-or-grant-membership', 'native-transfer-foundation-outbox-holds-only-protected-references-and-never-dispatches', 'native-transfer-foundation-physical-binary-identity-rejects-case-and-trailing-pad-aliases', 'native-transfer-foundation-real-people-dao-roundtrip-calendar-and-version', 'native-transfer-foundation-real-version-cas-refuses-stale-update'])
+NATIVE['transfer_foundation_tests'] = {'storage_only': True, 'version_cas_verified': True, 'storage_rollback_verified': True, 'independent_approval_implemented': False, 'native_primary_switch_implemented': False, 'outbox_dispatch_registered': False, 'production_activation': False}
+NATIVE['schema_tests']['candidate_tables_compared'] = 17
+NATIVE.update({'noncredential_source_v2_tests': {'noncredential_first_issuer_stable': True,
+                                   'native_and_legacy_aba_refused': True,
+                                   'legacy_v1_not_reinterpreted': True,
+                                   'missing_and_nontransactional_schema_refused': True,
+                                   'credential_source_downgraded': False,
+                                   'production_activation': False},
+ 'handover_form_tests': {'native_html_forms': True,
+                         'two_current_native_admins': True,
+                         'actual_request_csrf': True,
+                         'committed_form_retry': True,
+                         'disabled_current_executor_refused': True,
+                         'wire_or_browser_proof': False,
+                         'production_activation': False},
+ 'handover_lifecycle_tests': {'native_extension_termination_responsible_backend': True,
+                              'independent_native_approval': True,
+                              'cumulative_server_derived': True,
+                              'manual_project_query_filtered': True,
+                              'due_future_negative_exercised': True,
+                              'positive_historical_due_fixture_exercised': True,
+                              'new_concurrency_exercised': True,
+                              'disabled_responsible_replacement_exercised': True,
+                              'native_ui_forms_exercised': False,
+                              'dispatcher_registered': False,
+                              'production_activation': False},
+ 'transfer_execution_tests': {'initial_transfer_profile_implemented': True,
+                              'independent_current_admin_approval': True,
+                              'one_native_people_transaction': True,
+                              'native_csrf_transport_exercised': True,
+                              'conduit_transport_proved': False,
+                              'same_operation_replay_verified': True,
+                              'native_concurrency_exercised': True,
+                              'real_expiry_wait_exercised': True,
+                              'extension_termination_responsible_implemented': False,
+                              'native_project_permissions_changed': False,
+                              'dispatcher_registered': False,
+                              'production_activation': False}})
+WORKERS = 19
 NATIVE['http_tests']={'native_site_and_controller_exchange_verified': True,
  'host_only_cookie_attributes_verified': True,
  'real_origin_csrf_and_once_code_verified': True,
@@ -494,7 +630,7 @@ NATIVE['http_tests']={'native_site_and_controller_exchange_verified': True,
                       'wire_https_verified': False},
  'file_guard_complete': False,
  'production_enabled': False}
-WORKERS = 13
+WORKERS = 19
 
 REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({
  'project-membership-native-conduit-api-token-self-join-commits-without-ticket',
@@ -690,7 +826,7 @@ def validate_restore(value, root):
         'restore_phase_workers_started': 0, 'restore_phase_network_endpoints_configured': 0}
     for key, target in expected.items():
         exact_tree(value[key], target)
-    exact_tree(value['current_table_count'], 534)
+    exact_tree(value['current_table_count'], 538)
     audit=value['patch_audit']
     if type(audit) is not dict or set(audit) != {'source_patch_count', 'applied_patch_count',
         'pending_patch_keys', 'current_patch_ledger_complete', 'migration_source_hashes', 'migrations_executed'}:
@@ -702,7 +838,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1568)
+    exact_tree(audit['source_patch_count'], 1569)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 

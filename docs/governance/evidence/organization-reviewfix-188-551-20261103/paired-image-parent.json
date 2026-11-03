@@ -1,0 +1,7 @@
+{
+  "scope": "owned-network-none-paired-image-integration",
+  "passed": true,
+  "service_removed": true,
+  "public_ports": 0,
+  "native_exit_code": 0
+}

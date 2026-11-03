@@ -1,0 +1,46 @@
+{
+  "scope": "actual organization and media main union, isolated native regression only",
+  "passed": true,
+  "native_methods": 188,
+  "sql_checks": 551,
+  "runtime_files": 5930,
+  "runtime_content_exact": true,
+  "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
+  "incoming_main": "06370b43c5242baa8cbd850b1c693cb7be34e3a6",
+  "executed_index_tree": "0f29f6cd666e6b8776a4cb6903dbd38cc8d909fd",
+  "governance_python": 91,
+  "permission_python": 84,
+  "worker_cleanup": {
+    "private_directories_removed": 19,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 19
+  },
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "paired_image_removed": true,
+  "production_activation": false,
+  "browser_or_wire_proved": false,
+  "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+  "source_sha256": {
+    "organization-media-main-integration.json": "02c34296a7166579e383a4161aa8d7723b06624a72ea5185c1f7314e52eea273",
+    "organization-media-main-native.json": "b94163b2616fad8a233a7f8ceae02a8c1b6ea237fc1bf1a549d937fc5e3a3163",
+    "organization-media-main-source-runtime-match.json": "0b58eeeb895782f2e94639e6376fb5650ca40771d940371c0e7a3c9d7426ee03"
+  },
+  "signed_head": "pending signed P2 fix",
+  "pull_request": "https://github.com/soulteary/phorge/pull/94",
+  "hosted_CI": "pending new head",
+  "exact_head_review": "pending new head",
+  "merge_state": "open, mergeable",
+  "source_parent": "b2f6a133504330974b0f536c2b910fe0c87ad630",
+  "known_findings_fixed": [
+    "4451902435",
+    "4451902443"
+  ],
+  "same_site_main_union_required_before_merge": true
+}
