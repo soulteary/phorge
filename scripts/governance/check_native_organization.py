@@ -787,6 +787,39 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({'native-config-generation-always-
  'project-producer-unblocks-only-after-independent-fence-release-hook-status',
  'project-producer-unblocks-only-after-independent-fence-release-rule-insert'})
 
+NATIVE['project_execution_tests']['approved_native_membership'] = {
+ 'actual_typed_member_add_remove': True, 'actual_multi_subject_delta': True,
+ 'same_writer_approval_native_and_edges': True, 'native_policy_not_granted_by_approval': True,
+ 'all_hierarchy_or_raw_producers_complete': False, 'production_activation': False}
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({
+ 'project-approved-members-add-disabled-target-refused-without-write',
+ 'project-approved-members-add-unapproved-target-refused-without-write',
+ 'project-approved-members-add-agent-target-refused-without-write',
+ 'project-approved-members-add-mailing-target-refused-without-write',
+ 'project-approved-members-disabled-current-target-can-be-removed-with-approval',
+ 'project-approved-members-current-admin-can-read-durable-add-history-after-subject-disabled',
+ 'project-approved-members-history-at-current-capacity-does-not-replay-removed-subject',
+ 'project-approved-members-new-addition-over-current-capacity-still-refused-without-write',
+ 'project-approved-members-first-issuer-beneficiary-approver-is-not-a-role-change',
+ 'project-approved-members-self-only-ticket-refused-retaining-native-path',
+ 'project-approved-members-unapproved-ticket-cannot-mutate',
+ 'project-approved-members-valid-ticket-does-not-grant-native-edit',
+ 'project-approved-members-wrong-subject-ticket-refused-without-write',
+ 'project-approved-members-two-user-add-consume-native-inverse-derived-audit-commit',
+ 'project-approved-members-wrong-operation-ticket-refused-without-write',
+ 'project-approved-members-two-user-remove-consume-native-inverse-derived-audit-commit',
+ 'project-approved-members-inverse-owned-native-fault-installed',
+ 'project-approved-members-inverse-actual-fault-rolls-back-ticket-edges-record-audit-queue',
+ 'project-approved-members-derived-owned-native-fault-installed',
+ 'project-approved-members-derived-actual-fault-rolls-back-ticket-edges-record-audit-queue',
+ 'project-approved-members-record-owned-native-fault-installed',
+ 'project-approved-members-record-actual-fault-rolls-back-ticket-edges-record-audit-queue',
+ 'project-approved-members-audit-owned-native-fault-installed',
+ 'project-approved-members-audit-actual-fault-rolls-back-ticket-edges-record-audit-queue',
+ 'project-approved-members-subject-native-disable-enable-aba-invalidates-ticket',
+ 'project-approved-members-actual-api-token-proposal-and-member-edit-commit',
+ 'project-approved-members-current-approver-role-revocation-invalidates-ticket'})
+
 
 def exact_tree(actual, expected):
     if type(actual) is not type(expected):

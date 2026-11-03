@@ -171,4 +171,54 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
     $this->assertEqual(array($third),$read->getAddedPHIDs());
     $this->assertEqual(array($third,$first),$read->getChangedPHIDs());
   }
+  private function refusedIntent($callback, $reason) {
+    $caught=null;
+    try{$callback();}catch(InvalidArgumentException $error){$caught=$error->getMessage();}
+    $this->assertEqual($reason,$caught);
+  }
+  public function testVersionedMembershipIntentIsDetachedAndCanonical() {
+    $a='PHID-USER-'.str_repeat('a',20);$b='PHID-USER-'.str_repeat('b',20);
+    $external=$b;$values=array(&$external,$a);
+    $intent=PhorgeProjectExecutionIntent::newMembers('project.members.add',$values);
+    $external='PHID-USER-'.str_repeat('c',20);$values[1]=$external;
+    $this->assertEqual(array($a,$b),$intent->getMembers());
+    $copy=$intent->getMembers();$copy[0]=$external;
+    $this->assertEqual(array($a,$b),$intent->getMembers());
+    $this->assertEqual(array('version'=>2,'operation'=>'project.members.add','members'=>array($a,$b)),$intent->getDescriptor());
+    $legacy=PhorgeProjectExecutionIntent::newFromBinding(array('operation'=>'project.edit-policy','newPolicy'=>PhabricatorPolicies::POLICY_USER));
+    $this->assertEqual(array('version'=>1,'operation'=>'project.edit-policy','policy'=>PhabricatorPolicies::POLICY_USER),$legacy->getDescriptor());
+    $descriptor=$intent->getDescriptor();$descriptor['version']=3;
+    $this->refusedIntent(function() use($descriptor){PhorgeProjectExecutionIntent::newFromDescriptor($descriptor);},'project_execution_intent_version_refused');
+    $this->refusedIntent(function() use($a){PhorgeProjectExecutionIntent::newMembers('project.members.add',array($a,$a));},'project_execution_member_identity_refused');
+    $this->refusedIntent(function() use($a){PhorgeProjectExecutionIntent::newMembers('project.members.add',array_fill(0,17,$a));},'project_execution_member_intent_refused');
+  }
+  public function testMembershipBindingCannotDowngradeOrChangeOperation() {
+    $a='PHID-USER-'.str_repeat('a',20);
+    $intent=PhorgeProjectExecutionIntent::newMembers('project.members.remove',array($a));
+    $binding=array('operation'=>'project.members.remove','newPolicy'=>null,'intent'=>$intent->getDescriptor());
+    $this->assertEqual($intent->getDescriptor(),PhorgeProjectExecutionIntent::newFromBinding($binding)->getDescriptor());
+    $binding['operation']='project.members.add';
+    $this->refusedIntent(function() use($binding){PhorgeProjectExecutionIntent::newFromBinding($binding);},'project_execution_member_intent_refused');
+    $binding['operation']='project.edit-policy';$binding['newPolicy']=PhabricatorPolicies::POLICY_USER;
+    $this->refusedIntent(function() use($binding){PhorgeProjectExecutionIntent::newFromBinding($binding);},'project_execution_intent_version_refused');
+    $this->refusedIntent(function() use($a){PhorgeProjectExecutionIntent::newFromDescriptor(array('version'=>'2','operation'=>'project.members.add','members'=>array($a)));},'project_execution_intent_version_refused');
+  }
+  public function testNativeThirdPartyMembershipEnvelopeIsFixedNotAuthority() {
+    $a='PHID-USER-'.str_repeat('a',20);$b='PHID-USER-'.str_repeat('b',20);
+    $transaction=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
+      ->setMetadataValue('edge:type',PhabricatorProjectProjectHasMemberEdgeType::EDGECONST)
+      ->setNewValue(array('+'=>array($b=>$b,$a=>$a)));
+    $intent=PhorgeProjectExecutionIntent::newFromNativeMembership($transaction);
+    $this->assertEqual(array($a,$b),$intent->getMembers());
+    foreach(array(array('+'=>array($a=>array('data'=>array()))),array('+'=>array($a=>$a),'-'=>array($b=>$b)),array('='=>array($a=>$a))) as$value){
+      $bad=clone$transaction;$bad->setNewValue($value);
+      $this->refusedIntent(function() use($bad){PhorgeProjectExecutionIntent::newFromNativeMembership($bad);},'project_execution_member_envelope_refused');
+    }
+    $tagged=clone$transaction;$tagged->setMetadataValue('producer',true);
+    $this->refusedIntent(function() use($tagged){PhorgeProjectExecutionIntent::newFromNativeMembership($tagged);},'project_execution_member_envelope_refused');
+    $classifier=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'classify');
+    $editor=(new PhabricatorProjectTransactionEditor())->setActor((new PhabricatorUser())->setPHID($a));
+    $this->assertEqual('members-add',$classifier->invoke(null,$editor,(new PhabricatorProject())->setID(1),array($transaction)));
+  }
+
 }

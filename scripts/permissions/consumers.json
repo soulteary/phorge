@@ -882,6 +882,26 @@
       "reviewStatus": "source-reviewed-bounded-profile-not-global-route-certification",
       "sourceOperation": "fixed-native-project-shape-unit-test",
       "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionIntent.php",
+      "discovery": true,
+      "kind": "versioned-native-project-member-intent",
+      "meaning": "Validates and detaches a fixed versioned member delta and native envelope; no credential or capability is supplied by this value.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-shape-not-runtime-authorization",
+      "sourceOperation": "typed-member-intent-parse",
+      "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
+      "discovery": true,
+      "kind": "native-project-approval-consumption-store",
+      "meaning": "Binds the typed member delta and actual native record to independent current approval on the Project writer. This additional approval restriction supplies no native capability or changed membership semantics.",
+      "authority": "native-current-viewer-policy-and-independent-approval",
+      "reviewStatus": "source-reviewed-awaiting-member-runtime-profile",
+      "sourceOperation": "durable-member-ticket-consume-and-native-record-binding",
+      "candidateGenerationIntroduced": false
     }
   ]
 }
