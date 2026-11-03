@@ -743,9 +743,20 @@ final class PhabricatorMetaMTAMail
 
   public function authorizeGorgeDelivery() {
     $snapshot=$this->getParam('gorge.delivery-snapshot');
-    if(PhorgePrivateMailPolicy::enabled() && (!$snapshot ||
-      !PhorgePrivateMailPolicy::snapshotSafe($this,$snapshot) ||
-      !PhorgePrivateMailPolicy::authorize($this))){return array('changed'=>true);}
+    if(PhorgePrivateMailPolicy::enabled()){
+      // An out-of-order probe must not poison mail which has not been prepared.
+      if($snapshot===null){return array('changed'=>true);}
+      if(!is_array($snapshot)||
+        !PhorgePrivateMailPolicy::snapshotSafe($this,$snapshot)){
+        $this->setParam('governance.delivery-quarantined',true)->save();
+        return array('changed'=>true);
+      }
+      // SourcePending intentionally propagates without a quarantine write.
+      if(!PhorgePrivateMailPolicy::authorize($this)){
+        $this->setParam('governance.delivery-quarantined',true)->save();
+        return array('changed'=>true);
+      }
+    }
     $expected = $this->getParam('gorge.delivery-policy-hash');
     if (!$expected) {
       throw new Exception(pht('Prepared recipient policy is unavailable.'));
@@ -758,18 +769,25 @@ final class PhabricatorMetaMTAMail
         'reasons' => $actor->getDeliverabilityReasons(),
       );
     }
-    return array('changed' => !hash_equals($expected,
-      $this->getGorgeActorPolicyHash($audit)));
+    $changed=!hash_equals($expected,$this->getGorgeActorPolicyHash($audit));
+    if($changed&&PhorgePrivateMailPolicy::enabled()){
+      $this->setParam('governance.delivery-quarantined',true)->save();
+    }
+    return array('changed'=>$changed);
   }
 
   public function authorizeGorgePhysicalDelivery($delivery_id,$message_hash,$message_json){
     $snapshot=$this->getParam('gorge.delivery-snapshot');
-    if(!PhorgePrivateMailPolicy::enabled() || !$snapshot ||
-      !PhorgePrivateMailPolicy::snapshotSafe($this,$snapshot) ||
-      !is_string($delivery_id)||$delivery_id!==$snapshot['deliveryID'] ||
-      !is_string($message_hash)||!hash_equals($snapshot['authorization']['messageHash'],$message_hash) ||
-      !is_string($message_json)||strlen($message_json)>65536){return array('allowed'=>false);}
-    $message=phutil_json_decode($message_json);
+    // Caller-supplied payload mismatches are not permanent source denials.
+    if(!PhorgePrivateMailPolicy::enabled() || !is_array($snapshot) ||
+      !is_string($delivery_id)||$delivery_id!==idx($snapshot,'deliveryID') ||
+      !is_string($message_hash)||!is_array(idx($snapshot,'authorization')) ||
+      !is_string(idx($snapshot['authorization'],'messageHash')) ||
+      !hash_equals($snapshot['authorization']['messageHash'],$message_hash) ||
+      !is_string($message_json)||strlen($message_json)>65536 ||
+      !is_array(idx($snapshot,'message'))){return array('allowed'=>false);}
+    try{$message=phutil_json_decode($message_json);}
+    catch(PhutilJSONParserException $error){return array('allowed'=>false);}
     if(!is_array($message)||PhorgePrivateMailPolicy::canonicalMessage($message)!==
       PhorgePrivateMailPolicy::canonicalMessage($snapshot['message'])){return array('allowed'=>false);}
     $gate=$this->authorizeGorgeDelivery();

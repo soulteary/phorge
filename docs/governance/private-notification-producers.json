@@ -248,7 +248,7 @@
   "consumers": [
     {
       "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
-      "sha256": "34a0e7cdfe68cc47151624b157d1a79e933abcdb3842bfa31c0aad009706bf05"
+      "sha256": "c450be9fe4bf10eed680862f7da1e0dcee4f01d4c11d0be5ae8ba514905290b1"
     },
     {
       "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",

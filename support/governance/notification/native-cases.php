@@ -45,6 +45,54 @@ function governance_private_mail_native_cases($fixture,callable $check){
     $changed=$snapshot['message'];$changed['subject']='SYNTHETIC_PRIVATE_INJECTED';
     $check($reloaded->authorizeGorgePhysicalDelivery($snapshot['deliveryID'],$snapshot['authorization']['messageHash'],
       phutil_json_encode($changed))===array('allowed'=>false),'private-mail-mutated-physical-payload-refused');
+    $address_mail=$new_mail('PhabricatorFileEditor')->save();$address_snapshot=$address_mail->prepareGorgeDelivery();
+    $primary=(new PhabricatorUserEmail())->loadOneWhere('userPHID = %s AND isPrimary = 1',$users['recipient']->getPHID());
+    $original_address=$primary->getAddress();
+    $primary->setAddress('alternate'.$users['recipient']->getUsername().'@example.invalid')->save();
+    $check($address_mail->authorizeGorgePhysicalDelivery($address_snapshot['deliveryID'],
+      $address_snapshot['authorization']['messageHash'],phutil_json_encode($address_snapshot['message']))===array('allowed'=>false),
+      'private-mail-primary-email-policy-change-denied-at-callback-without-prepare');
+    $primary->setAddress($original_address)->save();
+    $address_mail=(new PhabricatorMetaMTAMail())->load($address_mail->getID());
+    $check($address_mail->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===true&&
+      $address_mail->getParameters()['gorge.delivery-snapshot']===$address_snapshot&&
+      $address_mail->authorizeGorgePhysicalDelivery($address_snapshot['deliveryID'],
+        $address_snapshot['authorization']['messageHash'],phutil_json_encode($address_snapshot['message']))===array('allowed'=>false),
+      'private-mail-primary-email-aba-cannot-revive-quarantined-callback-delivery');
+    $unprepared=$new_mail('PhabricatorFileEditor')->save();
+    $check($unprepared->authorizeGorgeDelivery()===array('changed'=>true)&&
+      (new PhabricatorMetaMTAMail())->load($unprepared->getID())
+        ->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===false,
+      'private-mail-unprepared-authorization-probe-does-not-quarantine');
+    $physical=$new_mail('PhabricatorFileEditor')->save();$ps=$physical->prepareGorgeDelivery();
+    $direct=$new_mail('PhabricatorFileEditor')->save();$ds=$direct->prepareGorgeDelivery();
+    $file->setViewPolicy(PhabricatorPolicies::POLICY_NOONE)->save();
+    foreach(array(array($ps['deliveryID'].'/bad',$ps['authorization']['messageHash'],phutil_json_encode($ps['message'])),
+      array($ps['deliveryID'],str_repeat('0',64),phutil_json_encode($ps['message'])),
+      array($ps['deliveryID'],$ps['authorization']['messageHash'],'{broken'),
+      array($ps['deliveryID'],$ps['authorization']['messageHash'],phutil_json_encode($changed)))as$args){
+      $refused=call_user_func_array(array($physical,'authorizeGorgePhysicalDelivery'),$args);
+      if($refused!==array('allowed'=>false)){throw new RuntimeException('private_mail_malformed_attempt_allowed');}
+    }
+    $check((new PhabricatorMetaMTAMail())->load($physical->getID())
+      ->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===false,
+      'private-mail-malformed-attempt-payload-cannot-poison-current-mail');
+    $check($physical->authorizeGorgePhysicalDelivery($ps['deliveryID'],$ps['authorization']['messageHash'],
+      phutil_json_encode($ps['message']))===array('allowed'=>false)&&
+      $direct->authorizeGorgeDelivery()===array('changed'=>true),
+      'private-mail-callback-and-direct-permanent-denial-quarantine-without-preparation');
+    $physical=(new PhabricatorMetaMTAMail())->load($physical->getID());
+    $direct=(new PhabricatorMetaMTAMail())->load($direct->getID());
+    $check($physical->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===true&&
+      $direct->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===true&&
+      $physical->getParameters()['gorge.delivery-snapshot']===$ps&&
+      $direct->getParameters()['gorge.delivery-snapshot']===$ds,
+      'private-mail-attempt-quarantine-persists-reload-with-immutable-snapshots');
+    $file->setViewPolicy(PhabricatorPolicies::POLICY_USER)->save();
+    $check($physical->authorizeGorgePhysicalDelivery($ps['deliveryID'],$ps['authorization']['messageHash'],
+      phutil_json_encode($ps['message']))===array('allowed'=>false)&&
+      $direct->authorizeGorgeDelivery()===array('changed'=>true),
+      'private-mail-callback-only-regrant-cannot-revive-denied-delivery');
     $file->setViewPolicy(PhabricatorPolicies::POLICY_NOONE)->save();
     $check($reloaded->authorizeGorgeDelivery()===array('changed'=>true)&&
       $reloaded->authorizeGorgePhysicalDelivery($snapshot['deliveryID'],$snapshot['authorization']['messageHash'],
