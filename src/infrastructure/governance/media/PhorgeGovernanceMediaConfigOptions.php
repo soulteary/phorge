@@ -11,6 +11,9 @@ final class PhorgeGovernanceMediaConfigOptions
 
   public function getOptions() {
     return array(
+      $this->newOption('governance.media-exchange.http-enabled','bool',false)->setLocked(true)
+        ->setSummary(pht('Enable the isolated media HTTP exchange candidate.'))
+        ->setDescription(pht('Disabled by default. Requires the separate file authorization and active-content guards before deployment.')),
       $this->newOption('governance.media-exchange.issuer-key', 'string', null)
         ->setLocked(true)->setHidden(true)
         ->setSummary(pht('External media issuer key.'))

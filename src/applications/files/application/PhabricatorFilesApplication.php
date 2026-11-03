@@ -114,7 +114,10 @@ final class PhabricatorFilesApplication extends PhabricatorApplication {
   }
 
   public function getResourceRoutes() {
-    return array(
+    $media_routes=PhabricatorEnv::getEnvConfigIfExists('governance.media-exchange.http-enabled',false)===true
+      ? array('/media/session/(?P<mediaAction>bridge|prepare|redeem|ready)/'=>'PhorgeGovernanceMediaResourceController',
+          '/media/static/(?P<resourceDigest>[a-f0-9]{64})\.png'=>'PhorgeGovernanceMediaStaticController') : array();
+    return $media_routes + array(
       '/file/' => $this->getResourceSubroutes(),
     );
   }

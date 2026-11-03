@@ -407,6 +407,7 @@ return array(
     'rsrc/js/core/behavior-object-selector.js' => '98ef467f',
     'rsrc/js/core/behavior-oncopy.js' => 'd336267a',
     'rsrc/js/core/behavior-phabricator-remarkup-assist.js' => '7e1ac4f9',
+    'rsrc/js/core/behavior-private-media-session.js' => 'df860c20',
     'rsrc/js/core/behavior-read-only-warning.js' => 'b9109f8f',
     'rsrc/js/core/behavior-redirect.js' => '407ee861',
     'rsrc/js/core/behavior-refresh-csrf.js' => '345119db',
@@ -579,6 +580,7 @@ return array(
     'javelin-behavior-phuix-example' => '222f5d96',
     'javelin-behavior-policy-control' => '7068a45f',
     'javelin-behavior-policy-rule-editor' => '9347f172',
+    'javelin-behavior-private-media-session' => 'df860c20',
     'javelin-behavior-project-boards' => 'b852b68e',
     'javelin-behavior-project-create' => '34c53422',
     'javelin-behavior-quicksand-blacklist' => '5a6f6a06',
@@ -2066,6 +2068,9 @@ return array(
       'javelin-workboard-card-template',
       'javelin-workboard-order-template',
       'phabricator-keyboard-shortcut',
+    ),
+    'df860c20' => array(
+      'javelin-behavior',
     ),
     'e10d1263' => array(
       'javelin-behavior',

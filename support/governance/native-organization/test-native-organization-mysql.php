@@ -5,8 +5,10 @@ require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phase=$arguments === array() ? 'all' :
-  ($arguments === array('--legacy-sql-compatibility') ? 'legacy-sql-compatibility' : 'invalid');
+  ($arguments === array('--legacy-sql-compatibility') ? 'legacy-sql-compatibility' :
+    ($arguments===array('--http-wire-hold')?'http-wire-hold':'invalid'));
 $legacy_compatibility=$phase==='legacy-sql-compatibility';
+$wire_hold=$phase==='http-wire-hold';
 $fixture = null;
 $control = null;
 $environment_state = null;
@@ -182,8 +184,11 @@ try {
       'gorge.file.token'=>$file_service['token']));
     (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     $stage='native-organization-and-media-positive';
-    require_once __DIR__.'/native-cases.php';
-    $native=governance_native_organization_cases($fixture,$check);
+    if($wire_hold){
+      require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);
+    }else{
+      require_once __DIR__.'/native-cases.php';$native=governance_native_organization_cases($fixture,$check);
+    }
   }
 } catch (Throwable $error) {
   $failure = array('stage'=>$stage,'error_type'=>get_class($error),
@@ -263,8 +268,8 @@ if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)
   $failure = array('stage'=>'unexpected-native-runtime-output','error_type'=>'RuntimeWarning');
 }
 $passed = $failure === null && !$cleanup_failures;
-echo json_encode(array('batch'=>$legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration','passed'=>$passed,
-  'scope'=>$legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts','checks'=>$checks,'check_count'=>count($checks),
+echo json_encode(array('batch'=>$wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration'),'passed'=>$passed,
+  'scope'=>$wire_hold?'owned-native-media-wire-hold-synthetic-accounts':($legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts'),'checks'=>$checks,'check_count'=>count($checks),
   'php_version'=>PHP_VERSION,'source_restore'=>$summary,'native'=>$native,
   'optional_source_reader_adapter_exercised'=>$reader_adapter_exercised,
   'isolated_optional_features_enabled'=>!$legacy_compatibility,

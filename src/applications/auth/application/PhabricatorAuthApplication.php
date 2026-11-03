@@ -43,8 +43,10 @@ final class PhabricatorAuthApplication extends PhabricatorApplication {
   }
 
   public function getRoutes() {
+    $media_routes=PhabricatorEnv::getEnvConfigIfExists('governance.media-exchange.http-enabled',false)===true
+      ? array('media/(?P<mediaAction>authorize|issue)/'=>'PhorgeGovernanceMediaAuthorizeController') : array();
     return array(
-      '/auth/' => array(
+      '/auth/' => $media_routes + array(
         '' => 'PhabricatorAuthListController',
         'config/' => array(
           'new/' => 'PhabricatorAuthNewController',
