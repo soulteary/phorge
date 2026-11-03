@@ -16,22 +16,12 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     return $store;
   }
   private static function row(AphrontDatabaseConnection $conn,$id,$lock) {
-    PhorgeProjectExecutionValue::identifier($id);
+    PhorgeProjectPolicyTicketState::identifier($id);
     $row=queryfx_one($conn,'SELECT approvalID,operationID,targetPHID,bindingDigest,state,approvedAt,consumedAt,nativeGroupID,version,'.
       'CASE WHEN OCTET_LENGTH(bindingJSON)<=65536 THEN bindingJSON ELSE NULL END bindingJSON,'.
       'CASE WHEN OCTET_LENGTH(approverBindingJSON)<=65536 THEN approverBindingJSON ELSE NULL END approverBindingJSON '.
       'FROM governance_projectapproval WHERE BINARY approvalID=BINARY %s'.($lock?' FOR UPDATE':''),$id);
-    if (!$row || $row['approvalID']!==$id || !is_string($row['bindingJSON']) ||
-        !in_array($row['state'],array('submitted','approved','consumed'),true) || (int)$row['version']<1) {
-      throw new RuntimeException('project_execution_ticket_refused');
-    }
-    $data=json_decode($row['bindingJSON'],true,16,JSON_THROW_ON_ERROR);
-    if (!is_array($data) || !hash_equals($row['bindingDigest'],PhorgeProjectExecutionValue::digest($data)) ||
-        $row['targetPHID']!==($data['targetPHID']??null) || $row['operationID']!==($data['operationID']??null)) {
-      throw new RuntimeException('project_execution_ticket_refused');
-    }
-    PhorgeProjectExecutionIntent::newFromBinding($data);
-    return array($row,$data);
+    return PhorgeProjectPolicyTicketState::decode($id,$row);
   }
   public static function planning(AphrontDatabaseConnection $conn,$id) {
     if ($conn!==(new PhabricatorProject())->establishConnection('w')) { throw new RuntimeException('project_execution_writer_required'); }
@@ -57,11 +47,7 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
   private function now() { return (int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n']; }
   private function validTime(array $data,$approved=null) {
     $this->scope->assertOpen(); $now=$this->now();
-    if (!is_int($data['issuedAt']) || !is_int($data['expiresAt']) ||
-        $now<$data['issuedAt'] || $now>=$data['expiresAt'] || ($approved!==null && $now<(int)$approved)) {
-      throw new RuntimeException('project_execution_ticket_expired');
-    }
-    return $now;
+    return PhorgeProjectPolicyTicketState::validAt($data,$approved,$now);
   }
   private function audit($id,array $data,$action,$details) {
     queryfx($this->connection,'INSERT INTO governance_executionaudit (approvalID,operationID,targetPHID,actorPHID,action,dataJSON,createdAt) VALUES (%s,%s,%s,%s,%s,%s,%d)',
@@ -99,7 +85,7 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     if ($data['targetPHID']!==$this->scope->getObject()->getPHID() ||
         PhorgeProjectExecutionValue::canonical($intent->getDescriptor())!==
           PhorgeProjectExecutionValue::canonical($this->scope->getIntent()->getDescriptor())) {
-      throw new RuntimeException('project_execution_ticket_binding_changed');
+      throw PhorgeProjectPolicyRefusalException::newForReason('ticket-binding');
     }
     $this->scope->validateCredential($data['executor']);
     if ($row['state']!=='submitted') {
@@ -112,7 +98,7 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     }
     if ($compare_sources && PhorgeProjectExecutionValue::canonical($data['sources'])!==
         PhorgeProjectExecutionValue::canonical($this->scope->getSources())) {
-      throw new RuntimeException('project_execution_sources_stale');
+      throw PhorgeProjectPolicyRefusalException::newForReason('sources-stale');
     }
     return $this->validTime($data,$row['approvedAt']);
   }
@@ -122,17 +108,17 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     }
     list($row,$data)=self::row($this->connection,$id,true);
     $binding=$this->scope->getSnapshot()->getSource()->getSnapshotData();
-    if ($binding['userPHID']===$data['executor']['userPHID']) { throw new RuntimeException('project_execution_independent_admin_required'); }
+    if ($binding['userPHID']===$data['executor']['userPHID']) { throw PhorgeProjectPolicyRefusalException::newForReason('independent-approver'); }
     $this->validate($row,$data);
     if ($row['state']==='approved' &&
         PhorgeProjectExecutionValue::canonical(json_decode($row['approverBindingJSON'],true))===PhorgeProjectExecutionValue::canonical($binding)) {
       return array('approval_id'=>$id,'replayed'=>true);
     }
-    if ($row['state']!=='submitted') { throw new RuntimeException('project_execution_transition_refused'); }
+    PhorgeProjectPolicyTicketState::requireSubmitted($row['state']);
     $now=$this->validTime($data);
     queryfx($this->connection,'UPDATE governance_projectapproval SET state=%s,approverBindingJSON=%s,approvedAt=%d,version=version+1 WHERE BINARY approvalID=BINARY %s AND state=%s',
       'approved',PhorgeProjectExecutionValue::canonical($binding),$now,$id,'submitted');
-    if ($this->connection->getAffectedRows()!==1) { throw new RuntimeException('project_execution_transition_refused'); }
+    PhorgeProjectPolicyTicketState::requireUpdated($this->connection->getAffectedRows());
     $this->audit($id,$data,'approved',array('independent'=>true)); $this->validTime($data,$now);
     return array('approval_id'=>$id,'replayed'=>false);
   }
@@ -163,12 +149,12 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     if ($row['state']!=='approved' ||
         PhorgeProjectExecutionValue::canonical($data['executor'])!==
           PhorgeProjectExecutionValue::canonical($this->scope->getSnapshot()->getSource()->getSnapshotData())) {
-      throw new RuntimeException('project_execution_execution_binding_refused');
+      throw PhorgeProjectPolicyRefusalException::newForReason('execution-binding');
     }
     $this->validate($row,$data); $now=$this->validTime($data,$row['approvedAt']);
     queryfx($this->connection,'UPDATE governance_projectapproval SET state=%s,consumedAt=%d,version=version+1 WHERE BINARY approvalID=BINARY %s AND state=%s',
       'consumed',$now,$id,'approved');
-    if ($this->connection->getAffectedRows()!==1) { throw new RuntimeException('project_execution_transition_refused'); }
+    PhorgeProjectPolicyTicketState::requireUpdated($this->connection->getAffectedRows());
   }
   public function finishNative($id,array $xactions) {
     list($row,$data)=self::row($this->connection,$id,true);

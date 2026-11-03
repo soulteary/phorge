@@ -929,6 +929,50 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "POLICY.ERROR.STORE",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
+      "symbol": "PhorgeProjectPolicyApprovalStore",
+      "kind": "current-native-ticket-store-error-boundary",
+      "sha256": "d9043264eb5760a6f62ff47a27eb8ee19702b414fd7e2ff5c094388314766c86",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "POLICY.ERROR.STATE",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyTicketState.php",
+      "symbol": "PhorgeProjectPolicyTicketState",
+      "kind": "stored-ticket-consistency-not-authority",
+      "sha256": "001b4d319c474c52eac8c1771b74ed6f4342b524b68ba7814582cd7396f00f52",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "POLICY.ERROR.REFUSAL",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyRefusalException.php",
+      "symbol": "PhorgeProjectPolicyRefusalException",
+      "kind": "explicit-business-refusal-no-permit",
+      "sha256": "2cd85516963e4507f6fe02d1e489e9eb204fc4732d7f58aba19a67a5cf1165ef",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "POLICY.ERROR.PROJECTION",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyFailure.php",
+      "symbol": "PhorgeProjectPolicyFailure",
+      "kind": "sanitized-error-projection-no-permit",
+      "sha256": "398a634f5cc2a3fb1918c0f10b320bcd59b2fa1ef330a014cbc11dec393476ae",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -1475,6 +1519,38 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-01",
+      "from_id": "POLICY.ERROR.STORE",
+      "to_id": "POLICY.ERROR.STATE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact fixed class reference; not runtime authorization evidence."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-02",
+      "from_id": "POLICY.ERROR.STATE",
+      "to_id": "POLICY.ERROR.REFUSAL",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact fixed class reference; not runtime authorization evidence."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-03",
+      "from_id": "POLICY.ERROR.STORE",
+      "to_id": "POLICY.ERROR.REFUSAL",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact fixed class reference; not runtime authorization evidence."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-04",
+      "from_id": "POLICY.ERROR.PROJECTION",
+      "to_id": "POLICY.ERROR.REFUSAL",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact fixed class reference; not runtime authorization evidence."
     }
   ],
   "scan": {
@@ -1685,7 +1761,19 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
-        "sha256": "0800d2bfd2f66b6e5f02a485d76bd9515ef279322f7106aaa7f11dca8e332fe5"
+        "sha256": "d9043264eb5760a6f62ff47a27eb8ee19702b414fd7e2ff5c094388314766c86"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyFailure.php",
+        "sha256": "398a634f5cc2a3fb1918c0f10b320bcd59b2fa1ef330a014cbc11dec393476ae"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyRefusalException.php",
+        "sha256": "2cd85516963e4507f6fe02d1e489e9eb204fc4732d7f58aba19a67a5cf1165ef"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyTicketState.php",
+        "sha256": "001b4d319c474c52eac8c1771b74ed6f4342b524b68ba7814582cd7396f00f52"
       },
       {
         "path": "src/infrastructure/governance/execution/ProjectPolicyApprovalConduitAPIMethod.php",

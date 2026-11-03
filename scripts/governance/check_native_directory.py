@@ -418,6 +418,12 @@ EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/govern
 EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryNativeWebFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php', 'PhorgeRecoveryNativeWebFacts', 'untrusted-web-storage-decoder-no-recovery-authority')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php'])
 
+
+# Exact error-boundary references are not authorization evidence.
+EXPECTED_SOURCES.update({'POLICY.ERROR.STORE': ('src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php', 'PhorgeProjectPolicyApprovalStore', 'current-native-ticket-store-error-boundary'), 'POLICY.ERROR.STATE': ('src/infrastructure/governance/execution/PhorgeProjectPolicyTicketState.php', 'PhorgeProjectPolicyTicketState', 'stored-ticket-consistency-not-authority'), 'POLICY.ERROR.REFUSAL': ('src/infrastructure/governance/execution/PhorgeProjectPolicyRefusalException.php', 'PhorgeProjectPolicyRefusalException', 'explicit-business-refusal-no-permit'), 'POLICY.ERROR.PROJECTION': ('src/infrastructure/governance/execution/PhorgeProjectPolicyFailure.php', 'PhorgeProjectPolicyFailure', 'sanitized-error-projection-no-permit')})
+EXPECTED_LINKS.update({'POLICY-ERROR-LINK-01': ('POLICY.ERROR.STORE', 'POLICY.ERROR.STATE'), 'POLICY-ERROR-LINK-02': ('POLICY.ERROR.STATE', 'POLICY.ERROR.REFUSAL'), 'POLICY-ERROR-LINK-03': ('POLICY.ERROR.STORE', 'POLICY.ERROR.REFUSAL'), 'POLICY-ERROR-LINK-04': ('POLICY.ERROR.PROJECTION', 'POLICY.ERROR.REFUSAL')})
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/execution/PhorgeProjectPolicyFailure.php', 'src/infrastructure/governance/execution/PhorgeProjectPolicyRefusalException.php', 'src/infrastructure/governance/execution/PhorgeProjectPolicyTicketState.php'])
+
 def validate(data, root):
     root = Path(root)
     fields(data, ('schema_version','scope','coverage','activation_blocked',
