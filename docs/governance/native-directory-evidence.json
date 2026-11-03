@@ -525,6 +525,10 @@
         "native-handover-management-route-default-off-unavailable",
         "native-handover-management-ordinary-member-cannot-read-admin-forms-or-ticket-identifiers",
         "native-handover-management-real-chinese-html-and-department-tokenizer-config-render",
+        "native-handover-fixed-calendar-render-seam-shows-both-dst-offsets-without-authorizing-or-proposing",
+        "native-handover-current-http-resolution-requires-explicit-valid-offset-and-real-csrf",
+        "native-handover-current-http-selected-offset-runs-fresh-server-preview-and-new-identifiers",
+        "native-handover-current-http-proposal-uses-real-db-time-and-chosen-offset-not-synthetic-calendar-start",
         "native-handover-preview-form-without-real-csrf-cannot-create-ticket",
         "native-handover-form-nonnumeric-calendar-day-cannot-silently-become-immediate-transfer",
         "native-handover-actual-preview-form-binds-server-derived-primary-and-unit-versions-without-authority",
@@ -557,7 +561,7 @@
         "owned-writer-environment-and-cache-restored",
         "all-owned-full-native-schemas-and-principals-cleaned"
     ],
-    "check_count": 553,
+    "check_count": 557,
     "php_version": "8.5.12",
     "source_restore": {
         "quickstart_sha256": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
@@ -813,7 +817,7 @@
         },
         "issuer_tests": {
             "restore_scope": "three-media-tables-logical-snapshot-and-real-sql-restore",
-            "restored_snapshot_sha256": "ed8c8bcc391b356bc5e704604af02c73621e2e1e40fd06f1e16de9c96af53f85",
+            "restored_snapshot_sha256": "ce125a3d31b16d9e62c759bdd2c471780b84a557b2fb35c4cbf6a14727560d57",
             "media_only_external_rotation": true,
             "incarnation_only_rotation_verified": true,
             "old_native_credentials_retained_and_verified": true,

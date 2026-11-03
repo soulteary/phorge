@@ -26,7 +26,18 @@ final class PhorgeOrganizationTransferController extends PhabricatorPeopleContro
     $dialog=$this->newDialog()->setTitle(pht('Review Organization Transfer'))
       ->appendParagraph(pht('A different current system administrator must approve this request. No project authorization is changed.'));
     if($calendar!==null){
-      if($calendar['resolution_required']){throw new RuntimeException('organization_transfer_calendar_resolution_required');}
+      if($calendar['resolution_required']){
+        if($family!=='transfer'){throw new RuntimeException('organization_transfer_calendar_resolution_required');}
+        $choices=array(''=>pht('Choose an Explicit UTC Offset'));
+        foreach($calendar['candidate_offsets']as$offset){$choices[$offset]=pht('UTC offset: %s seconds',$offset);}
+        $resolution=$this->form()->addHiddenInput('form_action','transfer.resolve')
+          ->addHiddenInput('request',phutil_json_encode($preview['intent']))->addHiddenInput('ttl_seconds',$ttl)
+          ->appendControl((new AphrontFormSelectControl())->setName('deadline_offset')->setLabel(pht('Explicit UTC Offset (Seconds)'))->setOptions($choices)->setValue(''))
+          ->appendControl($this->ackControl());
+        return$dialog->appendParagraph(pht('The deadline %s in %s occurs twice. Choose an offset, then review a fresh preview. No approval has been requested.',
+            $calendar['deadline_local'],$calendar['timezone']))
+          ->appendForm($resolution)->addSubmitButton(pht('Preview with Selected Offset'))->addCancelButton($this->home());
+      }
       $form->addHiddenInput('deadline_offset',$calendar['deadline_offset']);
       $dialog->appendParagraph(pht('Deadline: %s (%s); cumulative days: %s',
         $calendar['deadline_local'],$calendar['timezone'],$calendar['cumulative_days']??$calendar['days']));
@@ -43,11 +54,20 @@ final class PhorgeOrganizationTransferController extends PhabricatorPeopleContro
       if($request->isHTTPPost()){
         $request->validateCSRF();$action=$request->getStr('form_action','');
         switch($action){
-          case 'transfer.preview':
-            $this->ack($request);$days=$this->integer($request,'handover_days',14);
+          case 'transfer.preview':case 'transfer.resolve':
+            $this->ack($request);$offset=$request->getStr('deadline_offset','');
+            $offset=$offset===''?null:$this->integer($request,'deadline_offset');
+            if($action==='transfer.resolve'){
+              if($offset===null){throw new InvalidArgumentException('organization_transfer_explicit_offset_required');}
+              // Only selection fields survive. Current primary/unit versions,
+              // request identifiers, time and native identities are re-read.
+              $selected=PhorgeOrganizationTransferRequest::proposal($this->raw($request));
+              $subject=$selected['subject_phid'];$responsible=$selected['responsible_phid'];$target=$selected['to_department'];
+              $days=$selected['handover_days'];$reason=$selected['reason'];
+            }else{$subject=$this->one($request,'subject');$responsible=$this->one($request,'responsible');
+              $target=$this->one($request,'department');$days=$this->integer($request,'handover_days',14);$reason=$request->getStr('reason','');}
             if(!in_array($days,array(0,14,30),true)){throw new InvalidArgumentException('organization_transfer_period_refused');}
-            $preview=$service->previewSelectedTransfer($this->one($request,'subject'),$this->one($request,'responsible'),
-              $this->one($request,'department'),$days,$request->getStr('reason',''));
+            $preview=$service->previewSelectedTransfer($subject,$responsible,$target,$days,$reason,$offset);
             return$this->previewDialog($preview,'transfer','transfer',$this->integer($request,'ttl_seconds',300));
           case 'handover.preview':
             $this->ack($request);$h=$service->readHandoverDetail($request->getStr('handover_id'));$kind=$request->getStr('lifecycle_action');
@@ -128,7 +148,8 @@ final class PhorgeOrganizationTransferController extends PhabricatorPeopleContro
       ->appendControl((new AphrontFormTokenizerControl())->setName('responsible')->setLabel(pht('Responsible Person'))->setLimit(1)->setDatasource(new PhabricatorPeopleDatasource()))
       ->appendControl((new AphrontFormTokenizerControl())->setName('department')->setLabel(pht('New Primary Department'))->setLimit(1)->setDatasource((new PhorgeOrganizationDatasource())->setActorContext($context)->setUnitKind('department')))
       ->appendControl((new AphrontFormSelectControl())->setName('handover_days')->setLabel(pht('Handover Days'))->setOptions(array(0=>pht('Immediate'),14=>pht('14 Days'),30=>pht('30 Days')))->setValue(14))
-      ->appendControl($this->control('reason',pht('Reason')))->appendControl($this->control('ttl_seconds',pht('Approval Validity (Seconds)'),300))
+      ->appendControl($this->control('reason',pht('Reason')))->appendControl($this->control('deadline_offset',pht('Explicit UTC Offset (Seconds)')))
+      ->appendControl($this->control('ttl_seconds',pht('Approval Validity (Seconds)'),300))
       ->appendControl($this->ackControl())->appendControl($this->submit(pht('Preview Transfer')));
     $page->appendChild((new PHUIObjectBoxView())->setHeaderText(pht('New Department Transfer'))->appendChild($form));
     $list=$service->readHandoverPage(25,$request->getStr('after')?:null);

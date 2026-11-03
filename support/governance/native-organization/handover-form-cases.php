@@ -6,7 +6,7 @@ function governance_native_handover_form_cases($fixture,callable $check,array $s
   $make=function($suffix,$admin)use($fixture){$u=(new PhabricatorUser())->setUsername('hf'.$suffix.substr($fixture->getNamespace(),-9))
     ->setRealName('Synthetic Handover Form '.$suffix)->setIsApproved(1)->setIsEmailVerified(1)->setIsAdmin($admin?1:0)->save();
     (new PhabricatorUserEmail())->setUserPHID($u->getPHID())->setAddress($u->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();return$u;};
-  $route=function($session,$method,array$data,$render=false)use($state){
+  $route=function($session,$method,array$data,$render=false,$calendar_seam=null)use($state){
     $_SERVER['REQUEST_METHOD']=$method;$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$session['token'];
     $viewer=$session['viewer'];$inline=new ReflectionProperty(PhabricatorUser::class,'allowInlineCacheGeneration');$old_inline=$inline->getValue($viewer);
     $celerity=new ReflectionProperty(CelerityAPI::class,'response');$old_celerity=$celerity->getValue();$celerity->setValue(null,null);
@@ -15,8 +15,10 @@ function governance_native_handover_form_cases($fixture,callable $check,array $s
       $configuration=(new AphrontApplicationConfiguration())->setHost('fixture.invalid')->setPath('/people/organization/transfer/');
       $request=$configuration->buildRequest()->setUser($viewer)->setRequestData($data);$configuration->setRequest($request);
       $controller=(new PhorgeOrganizationTransferController())->setRequest($request)->setCurrentApplication(new PhabricatorPeopleApplication());
-      return governance_native_with_request_write_guard($request,static function()use($request,$controller,$render){
-        $response=$controller->handleRequest($request);return array($response,$render?(string)hsprintf('%s',$response):null);
+      return governance_native_with_request_write_guard($request,static function()use($request,$controller,$render,$calendar_seam){
+        // Presentation-only seam for fixed calendar dates, never an actor or clock override.
+        $response=$calendar_seam===null?$controller->handleRequest($request):
+          (new ReflectionMethod(PhorgeOrganizationTransferController::class,'previewDialog'))->invoke($controller,$calendar_seam,'transfer','transfer',300);return array($response,$render?(string)hsprintf('%s',$response):null);
       });
     }finally{$inline->setValue($viewer,$old_inline);$celerity->setValue(null,$old_celerity);}
   };
@@ -44,6 +46,50 @@ function governance_native_handover_form_cases($fixture,callable $check,array $s
         strpos(html_entity_decode($html,ENT_QUOTES,'UTF-8'),'kind=department')!==false&&governance_native_route_guard_depth()===0,
         'native-handover-management-real-chinese-html-and-department-tokenizer-config-render');
     }finally{PhutilTranslator::setInstance($translator);PhabricatorEnv::setLocaleCode($locale);}
+    $csrf=AphrontRequest::getCSRFTokenName();
+    $zone_scope=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('phabricator.timezone','America/New_York');
+    try{
+      $fresh=$service->previewSelectedTransfer($subject->getPHID(),$owner->getPHID(),'handover-form-to',14,'Explicit calendar resolution');
+      $seam=$fresh;$seam['calendar']=PhorgeOrganizationCalendar::preview(
+        (new DateTimeImmutable('2026-10-18T01:30:00-04:00'))->getTimestamp(),14,'America/New_York');
+      $tickets_before=(int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R',new PhorgeOrganizationTransfer())['n'];
+      $ledger_before=(int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_operation')['n'];
+      list($offset_dialog,$offset_html)=$route($requester,'GET',array(),true,$seam);$resolution=$hidden($offset_html);
+      $check($offset_dialog instanceof AphrontDialogView&&$seam['calendar']['resolution_required']===true&&
+        strpos($offset_html,'value="-18000"')!==false&&strpos($offset_html,'value="-14400"')!==false&&
+        ($resolution['form_action']??null)==='transfer.resolve'&&strpos($offset_html,'transfer.propose')===false&&
+        (int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R',new PhorgeOrganizationTransfer())['n']===$tickets_before&&
+        (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_operation')['n']===$ledger_before,
+        'native-handover-fixed-calendar-render-seam-shows-both-dst-offsets-without-authorizing-or-proposing');
+      $stale_selection=phutil_json_decode($resolution['request']);$stale_selection['primary_version']+=100;$stale_selection['from_version']+=100;$stale_selection['to_version']+=100;
+      $resolution['request']=phutil_json_encode($stale_selection);
+      $resolution['acknowledge_no_project_permission_change']='1';$resolution['deadline_offset']='';$resolution[$csrf]=$requester['viewer']->getCSRFToken();
+      list($unselected,$unused)=$route($requester,'POST',$resolution);
+      $resolution['deadline_offset']='12345';list($invalid_offset,$unused)=$route($requester,'POST',$resolution);
+      $resolution['deadline_offset']=(string)head($fresh['calendar']['candidate_offsets']);$without_csrf=$resolution;unset($without_csrf[$csrf]);
+      list($missing_csrf,$unused)=$route($requester,'POST',$without_csrf);
+      $check($unselected instanceof AphrontJSONResponse&&$unselected->getHTTPResponseCode()===403&&
+        $invalid_offset instanceof AphrontJSONResponse&&$invalid_offset->getHTTPResponseCode()===403&&
+        $missing_csrf instanceof AphrontJSONResponse&&$missing_csrf->getHTTPResponseCode()===403&&
+        (int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R',new PhorgeOrganizationTransfer())['n']===$tickets_before,
+        'native-handover-current-http-resolution-requires-explicit-valid-offset-and-real-csrf');
+      list($resolved,$resolved_html)=$route($requester,'POST',$resolution,true);$resolved_proposal=$hidden($resolved_html);
+      $resolved_intent=isset($resolved_proposal['request'])?phutil_json_decode($resolved_proposal['request']):null;
+      $check($resolved instanceof AphrontDialogView&&is_array($resolved_intent)&&
+        $resolved_proposal['form_action']==='transfer.propose'&&$resolved_proposal['deadline_offset']===$resolution['deadline_offset']&&
+        $resolved_intent['transfer_id']!==$seam['intent']['transfer_id']&&$resolved_intent['operation_id']!==$seam['intent']['operation_id']&&
+        $resolved_intent['primary_version']===1&&$resolved_intent['from_version']===1&&$resolved_intent['to_version']===1,
+        'native-handover-current-http-selected-offset-runs-fresh-server-preview-and-new-identifiers');
+      $resolved_proposal[$csrf]=$requester['viewer']->getCSRFToken();$before_now=(int)queryfx_one($conn,'SELECT UNIX_TIMESTAMP() n')['n'];
+      list($persisted,$unused)=$route($requester,'POST',$resolved_proposal);$after_now=(int)queryfx_one($conn,'SELECT UNIX_TIMESTAMP() n')['n'];
+      $stored=queryfx_one($conn,'SELECT state,bindingJSON FROM %R WHERE BINARY transferID=BINARY %s',new PhorgeOrganizationTransfer(),$resolved_intent['transfer_id']);
+      $binding=$stored?phutil_json_decode($stored['bindingJSON']):null;
+      $check($persisted instanceof AphrontRedirectResponse&&$stored['state']==='submitted'&&
+        $binding['calendar']['start_at']>=$before_now&&$binding['calendar']['start_at']<=$after_now&&
+        $binding['calendar']['start_at']!==$seam['calendar']['start_at']&&
+        $binding['calendar']['deadline_offset']===(int)$resolution['deadline_offset']&&$binding['calendar']['resolution_required']===false,
+        'native-handover-current-http-proposal-uses-real-db-time-and-chosen-offset-not-synthetic-calendar-start');
+    }finally{unset($zone_scope);}
     $csrf=AphrontRequest::getCSRFTokenName();$input=array('form_action'=>'transfer.preview','subject'=>array($subject->getPHID()),
       'responsible'=>array($owner->getPHID()),'department'=>array('handover-form-to'),'handover_days'=>'14','reason'=>'Actual native forms transfer',
       'ttl_seconds'=>'300','acknowledge_no_project_permission_change'=>'1');

@@ -461,6 +461,12 @@ REQUIRED_CHECKS=REQUIRED_CHECKS|frozenset({
  'native-handover-independent-termination-after-primary-clear-preserves-cleared-primary-and-ends-active-record',
  'native-handover-manual-confirmation-refuses-lifecycle-version-changed-after-preview',
  'native-handover-terminated-after-primary-clear-no-longer-blocks-next-approved-transfer'})
+# Explicit initial-transfer DST UI regression obligations, runtime pending.
+REQUIRED_CHECKS=REQUIRED_CHECKS|frozenset({
+ 'native-handover-fixed-calendar-render-seam-shows-both-dst-offsets-without-authorizing-or-proposing',
+ 'native-handover-current-http-resolution-requires-explicit-valid-offset-and-real-csrf',
+ 'native-handover-current-http-selected-offset-runs-fresh-server-preview-and-new-identifiers',
+ 'native-handover-current-http-proposal-uses-real-db-time-and-chosen-offset-not-synthetic-calendar-start'})
 FIELDS = {'batch', 'passed', 'scope', 'checks', 'check_count', 'php_version',
     'source_restore', 'native', 'worker_cleanup', 'file_service_cleanup',
     'successful_owned_file_service_startups', 'cleanup', 'failure', 'cleanup_failures',

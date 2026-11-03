@@ -957,7 +957,7 @@ final class PhorgeOrganizationService extends Phobject {
   }
 
   /** UI selection is only a server-derived preview, never an approval. */
-  public function previewSelectedTransfer($subject,$responsible,$target,$days,$reason) {
+  public function previewSelectedTransfer($subject,$responsible,$target,$days,$reason,$offset=null) {
     $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
     try{
       $caps=$this->readActorCapabilities();if($caps['manage_units']!==true){throw new RuntimeException('organization_transfer_current_admin_required');}
@@ -973,7 +973,7 @@ final class PhorgeOrganizationService extends Phobject {
           'subject_phid'=>$subject,'responsible_phid'=>$responsible,'from_department'=>$primary['unitID'],'to_department'=>$target,
           'primary_version'=>self::version($primary['version']),'from_version'=>self::version($units[$primary['unitID']]['version']),
           'to_version'=>self::version($units[$target]['version']),'handover_days'=>$days,'reason'=>$reason,'acknowledge_no_project_permission_change'=>true);
-        $result=PhorgeOrganizationTransferAdapter::forLockedService($this)->previewInitial($intent);$this->finish(true);return$result;
+        $result=PhorgeOrganizationTransferAdapter::forLockedService($this)->previewInitial($intent,$offset);$this->finish(true);return$result;
       }catch(Throwable$error){$this->finish(false);throw$error;}
     }finally{unset($unguarded);}
   }

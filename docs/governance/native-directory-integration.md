@@ -400,3 +400,12 @@ PHP 8.5.12 passed **188 native methods and 551 isolated SQL checks**; all **5930
 The explicit signed `d5ff443a54` + main `32fc7b692e` union retains the reviewed organization regressions and the pinned-PSL same-site configuration gate. PHP 8.5.12 passed **190 native methods and 553 actual isolated SQL checks**. All **5930 executed PHP/SQL files plus four pinned PSL resources** match the signed-parent staging; the cold-generated map matches the merged map. Strict evidence acceptance, 91 governance Python and the unchanged 84 permissions Python results hold. All 19 workers, 55 owned schemas, two runtime users, reader, file service/storage and paired image cleaned successfully.
 
 Earlier 188/551, 188/545, 180/476 and 169/387 receipts remain separate source checkpoints. The same-site union is now actually validated; hosted CI and exact-head review for this new merge remain pending. Optional features/dispatch remain off, with no production activation, live permission migration or new browser/wire claim.
+
+
+### Initial-transfer DST resolution: actual 190/557 checkpoint
+
+The initial native transfer form now presents both candidate UTC offsets when its deadline is ambiguous and requires explicit selection before a fresh server preview. Current primary/unit versions, native identities, identifiers and database time are re-read; the old preview is not an approval. Missing/invalid offsets and missing real CSRF still refuse the request.
+
+A fixed 2026 New York repeated hour is tested only at the calendar/native-Dialog rendering seam. Separate real current-clock native HTTP-to-SQL checks verify selected-offset forwarding, newly derived identifiers/CAS values (despite deliberately stale preview versions), and persisted calendar time from the actual database clock. No database or authorization clock is changed, and future live DST execution/browser acceptance is not claimed.
+
+PHP 8.5.12 passed **190 native methods and 557 actual isolated SQL checks**. All **5930 executed PHP/SQL files plus four pinned PSL resources** match the exact signed-parent staging; all 19 workers and 55 schemas/two runtime users/reader/file/image resources cleaned successfully. Strict receipt acceptance, 91 governance Python and 84 permissions Python tests pass. The earlier 190/553 source remains separate evidence; new-head hosted CI and exact review are still required.

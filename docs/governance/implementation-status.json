@@ -442,5 +442,61 @@
     "organization_parent": "d5ff443a54541580e228212d6903fdcde22f74c3",
     "same_site_main_union_actual_verified": true,
     "evidence": "docs/governance/evidence/organization-main95-190-553-20261103"
+  },
+  "initial_dst_reviewfix_validation": {
+    "scope": "actual organization and media main union, isolated native regression only",
+    "passed": true,
+    "native_methods": 190,
+    "sql_checks": 557,
+    "runtime_files": 5930,
+    "runtime_content_exact": true,
+    "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
+    "incoming_main": "32fc7b692ebb61decbab7163914c4d838a251a73",
+    "executed_index_tree": "0f29f6cd666e6b8776a4cb6903dbd38cc8d909fd",
+    "governance_python": 91,
+    "permission_python": 84,
+    "worker_cleanup": {
+      "private_directories_removed": 19,
+      "owned_processes_stopped": 0,
+      "cleanup_failures": 0,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0,
+      "workers_registered": 19
+    },
+    "cleanup": {
+      "ownedSchemasRemoved": 55,
+      "ownedRuntimeUsersRemoved": 2,
+      "readerRemoved": true
+    },
+    "paired_image_removed": true,
+    "production_activation": false,
+    "browser_or_wire_proved": false,
+    "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+    "source_sha256": {
+      "organization-media-main-integration.json": "534edf5e320ec4dda3dd44eaa77026d9381d7264085d501e41b171d092666c60",
+      "organization-media-main-native.json": "f9a1b8da492392169739cc13ffc2f950fde060300f64fe6f8c6e90a3e56decc5",
+      "organization-media-main-source-runtime-match.json": "6642d28063797ac5508c248c42adc207f8fb7eb5827e58b981d3a7c914dd54a7",
+      "organization-media-main-psl-runtime-match.json": "355c1493c65f0624c08b4661af806e599131f10d7f1f0fb2970b6251befe9ee2"
+    },
+    "signed_head": "pending signed DST fix",
+    "pull_request": "https://github.com/soulteary/phorge/pull/94",
+    "hosted_CI": "pending new head",
+    "exact_head_review": "pending new head",
+    "known_findings_fixed": [
+      "4451902435",
+      "4451902443",
+      "4452461139"
+    ],
+    "same_site_main_union_required_before_merge": false,
+    "pinned_psl_runtime_resources": 4,
+    "pinned_psl_exact": true,
+    "organization_parent": "d5ff443a54541580e228212d6903fdcde22f74c3",
+    "same_site_main_union_actual_verified": true,
+    "source_parent": "70fbad730941cbe2d89336f0e92ef21f3b63eb70",
+    "fixed_date_calendar_render_seam_only": true,
+    "actual_current_clock_http_sql_verified": true,
+    "database_clock_modified": false,
+    "future_live_dst_transition_execution_proved": false,
+    "evidence": "docs/governance/evidence/organization-dst-190-557-20261103"
   }
 }
