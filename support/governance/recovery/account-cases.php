@@ -1,8 +1,67 @@
 <?php
 
+/** Install only a fixture subcontext; never relax the production scope. */
+function governance_recovery_account_fixture_environment(PhorgeGovernanceCompletionFixture $fixture) {
+  $fixture->assertOwned();
+  $saved=array();foreach(array('sourceStack','cache','overrideSource','repairSource')as$key){
+    $saved[$key]=(new ReflectionProperty(PhabricatorEnv::class,$key))->getValue();}
+  try {
+  $stack=PhabricatorEnv::getConfigSourceStack();
+  if(!$stack||get_class($stack)!==PhabricatorConfigStackSource::class){
+    throw new RuntimeException('recovery_fixture_environment_refused');}
+  $sources=$stack->getStack();$default=null;
+  if(count($sources)<2||count($sources)>8){throw new RuntimeException('recovery_fixture_environment_refused');}
+  foreach($sources as$index=>$source){
+    if(get_class($source)===PhabricatorConfigDefaultSource::class){
+      if($default!==null||$index!==count($sources)-1){throw new RuntimeException('recovery_fixture_environment_refused');}
+      $default=$source;
+    }else if(get_class($source)!==PhabricatorConfigDictionarySource::class){
+      throw new RuntimeException('recovery_fixture_environment_refused');}
+  }
+  if($default===null){throw new RuntimeException('recovery_fixture_environment_refused');}
+  $effective=$stack->getAllKeys();
+  foreach(array_keys($effective)as$key){$effective[$key]=PhabricatorEnv::getEnvConfig($key);}
+  $writer=$fixture->getWriterConfig();
+  foreach(array('mysql.host'=>'host','mysql.port'=>'port','mysql.user'=>'user',
+    'mysql.pass'=>'password','storage.default-namespace'=>'namespace')as$key=>$field){
+    $value=$effective[$key]??null;$current=PhabricatorEnv::getEnvConfig($key);$expected=$writer[$field];
+    if($key==='mysql.port'){
+      $value=PhorgeProjectExecutionConfigSource::normalizePort($value);
+      $current=PhorgeProjectExecutionConfigSource::normalizePort($current);
+      $expected=PhorgeProjectExecutionConfigSource::normalizePort($expected);
+    }
+    if($value!==$current||$value!==$expected){throw new RuntimeException('recovery_fixture_environment_refused');}
+  }
+  if(($effective['cluster.databases']??null)!==array()||
+    !in_array($effective['gorge.db.uri']??null,array('',null),true)){
+    throw new RuntimeException('recovery_fixture_environment_refused');}
+  $temporary=new PhabricatorConfigStackSource();$temporary->pushSource($default)
+    ->pushSource(new PhabricatorConfigDictionarySource($effective));
+  (new ReflectionProperty(PhabricatorEnv::class,'sourceStack'))->setValue(null,$temporary);
+  (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+  (new ReflectionProperty(PhabricatorEnv::class,'overrideSource'))->setValue(null,null);
+  (new ReflectionProperty(PhabricatorEnv::class,'repairSource'))->setValue(null,null);
+  return $saved;
+  } catch (Throwable $error) {
+    governance_recovery_account_restore_fixture_environment($saved);
+    throw $error;
+  }
+}
+function governance_recovery_account_restore_fixture_environment(array $saved) {
+  $keys=array_keys($saved);sort($keys,SORT_STRING);
+  if($keys!==array('cache','overrideSource','repairSource','sourceStack')){
+    throw new RuntimeException('recovery_fixture_environment_cleanup_failed');}
+  foreach($saved as$key=>$value){(new ReflectionProperty(PhabricatorEnv::class,$key))->setValue(null,$value);}
+  foreach($saved as$key=>$value){
+    if((new ReflectionProperty(PhabricatorEnv::class,$key))->getValue()!==$value){
+      throw new RuntimeException('recovery_fixture_environment_cleanup_failed');}
+  }
+}
+
 /** Prepared actual-SQL cases. Invoked only inside the owned full native fixture. */
 function governance_recovery_account_cases($fixture, callable $check) {
   $cookies=$_COOKIE;$method=$_SERVER['REQUEST_METHOD']??null;
+  $environment=governance_recovery_account_fixture_environment($fixture);
   try {
   $fixture->assertOwned(); $suffix=substr($fixture->getNamespace(),-10);
   $actor=(new PhabricatorUser())->setUsername('recoveractor'.$suffix)->setRealName('Synthetic Recovery Actor')
@@ -96,7 +155,10 @@ function governance_recovery_account_cases($fixture, callable $check) {
   return array('actual_account_adapter'=>true,'source_writes_by_capture'=>false,
     'all_sources_complete'=>false,'can_execute'=>false,'other_twelve_families_complete'=>false);
   } finally {
-    $_COOKIE=$cookies;
-    if($method===null){unset($_SERVER['REQUEST_METHOD']);}else{$_SERVER['REQUEST_METHOD']=$method;}
+    try { governance_recovery_account_restore_fixture_environment($environment); }
+    finally {
+      $_COOKIE=$cookies;
+      if($method===null){unset($_SERVER['REQUEST_METHOD']);}else{$_SERVER['REQUEST_METHOD']=$method;}
+    }
   }
 }

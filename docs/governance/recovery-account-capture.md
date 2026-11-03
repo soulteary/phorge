@@ -68,3 +68,17 @@ The failed run's source hashes matched all 6771 PHP/SQL and public-suffix files;
 55 schemas, two runtime users, the reader, nineteen worker directories/processes,
 and the paired image service were cleaned. This is a failed checkpoint, not SQL
 acceptance. The corrected 669-check candidate still requires a fresh actual run.
+
+A second exact candidate (`b746b9ebafe49942676a27b6136005cd0249055d`)
+again completed 203 pure methods and the original 659 SQL assertions, then failed
+before the new account checks: the production scope correctly rejected an extra
+configuration dictionary. Native `PhabricatorEnv::overrideConfig()` retains its
+own override-source layer after a test restores individual values. The fixture
+now creates an explicit temporary two-source subcontext from the current
+resolved values of only known dictionary/default sources, after proving the
+owned writer routing. It preserves the current rotated media issuer settings
+and restores the exact original stack, cache and override/repair references in
+`finally`. The production scope's exact two-source constraint is unchanged.
+This second failed checkpoint also matched all 6771 runtime source files and
+fully cleaned the fixture, workers, file/image services and own staging data.
+The scoped-fixture correction is not yet SQL-verified.
