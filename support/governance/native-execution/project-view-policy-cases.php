@@ -68,7 +68,7 @@ function governance_project_view_policy_cases($fixture,callable $check,array $st
     ->setViewPolicy(PhabricatorPolicies::POLICY_USER)->setEditPolicy($a['viewer']->getPHID())
     ->setJoinPolicy(PhabricatorPolicies::POLICY_USER)->save();}finally{unset($off);}
   $api_phid=$api_project->getPHID();
-  $token=PhabricatorConduitToken::initializeNewToken($a['viewer'],PhabricatorConduitToken::TYPE_STANDARD)->save();
+  $token=PhabricatorConduitToken::initializeNewToken($a['viewer']->getPHID(),PhabricatorConduitToken::TYPE_STANDARD)->save();
   $authenticate=function(array$params,$method)use($token){
     $request=new ConduitAPIRequest($params,true);
     $controller=(new PhabricatorConduitAPIController())->setRequest((new AphrontRequest('fixture.invalid','/api/'.$method))->setUser(new PhabricatorUser()));
