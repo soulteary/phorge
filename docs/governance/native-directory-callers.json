@@ -11,7 +11,7 @@
       "path": "src/applications/people/application/PhabricatorPeopleApplication.php",
       "symbol": "PhabricatorPeopleApplication",
       "kind": "route-registration",
-      "sha256": "b6f8b8df65d9edb527df573493f66d9e498aedc272525f4015711f961d3fe4d4",
+      "sha256": "a05f135c0dbf56d9ad04b30d0e8a67a470319c90e632b7bd708941260245d6d6",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -165,7 +165,7 @@
       "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
       "symbol": "PhorgeOrganizationController",
       "kind": "candidate-runtime-source",
-      "sha256": "643ca283a4d26a4edc772a6df720bfe76b5ef89acf0ddf129331120e661c9d0b",
+      "sha256": "d951fae2af8e96f6ee6c1c0b831455e742a65cbf1c1237befbb5c8cd302f9642",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -176,7 +176,7 @@
       "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
       "symbol": "PhorgeOrganizationQuery",
       "kind": "candidate-runtime-source",
-      "sha256": "26f06ca807540135c1cb9aa9d1c634d4256285a98cc52113b1b5eebffdd90900",
+      "sha256": "596eb4bdc9385181697fb0c15c7538a0465107190541c302bf30971f4c7f8e0b",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -198,7 +198,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
       "symbol": "PhorgeOrganizationEndpoint",
       "kind": "candidate-runtime-source",
-      "sha256": "964112a297b38c1399d50f57e908be69712f535a65cc9de8bf82f34ca9a94f9b",
+      "sha256": "c6f021c53b3f4012eee906385795d70b790e050a7796691aa803957c084bc033",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -220,7 +220,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
       "symbol": "PhorgeOrganizationService",
       "kind": "candidate-runtime-source",
-      "sha256": "3de55694f3246719fd81d34055ca8979e2cfd65c7bd737366984452d126045b7",
+      "sha256": "259343b0563acfa5882dc3e30e4bca49481f25a69d37ee39946e7d0b25f77b0a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -397,6 +397,17 @@
       "symbol": "PhorgeGovernanceMediaTarget",
       "kind": "immutable-prepared-media-target",
       "sha256": "97d73207cf59895cac31119865dfb9fddf9ea7032c839af9dc00e246ed36d183",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NATIVE.PhorgeOrganizationHistoryController",
+      "path": "src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php",
+      "symbol": "PhorgeOrganizationHistoryController",
+      "kind": "current-system-administrator-history-controller",
+      "sha256": "3e574eb706133104e44072d58247d30c378ad1a5c4ae8e20419cde069a3ba05c",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -611,6 +622,22 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed immutable canonical prepared-target binding; static source reference, not file authority or public route readiness."
+    },
+    {
+      "id": "NATIVE-LINK-27",
+      "from_id": "ORG.ROUTES",
+      "to_id": "NATIVE.PhorgeOrganizationHistoryController",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit restricted history route and shared query projection; source reference is not runtime authorization proof."
+    },
+    {
+      "id": "NATIVE-LINK-28",
+      "from_id": "NATIVE.PhorgeOrganizationHistoryController",
+      "to_id": "NATIVE.PhorgeOrganizationQuery",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit restricted history route and shared query projection; source reference is not runtime authorization proof."
     }
   ],
   "scan": {
@@ -645,11 +672,15 @@
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",
-        "sha256": "643ca283a4d26a4edc772a6df720bfe76b5ef89acf0ddf129331120e661c9d0b"
+        "sha256": "d951fae2af8e96f6ee6c1c0b831455e742a65cbf1c1237befbb5c8cd302f9642"
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationDatasourceController.php",
         "sha256": "c980a564ed00c2acd6825a2b3c073e4323fbcc799a181296d9c7f0463fb98e14"
+      },
+      {
+        "path": "src/applications/people/governance/controller/PhorgeOrganizationHistoryController.php",
+        "sha256": "3e574eb706133104e44072d58247d30c378ad1a5c4ae8e20419cde069a3ba05c"
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationDatasource.php",
@@ -657,7 +688,7 @@
       },
       {
         "path": "src/applications/people/governance/query/PhorgeOrganizationQuery.php",
-        "sha256": "26f06ca807540135c1cb9aa9d1c634d4256285a98cc52113b1b5eebffdd90900"
+        "sha256": "596eb4bdc9385181697fb0c15c7538a0465107190541c302bf30971f4c7f8e0b"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationConfigOptions.php",
@@ -665,7 +696,7 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php",
-        "sha256": "964112a297b38c1399d50f57e908be69712f535a65cc9de8bf82f34ca9a94f9b"
+        "sha256": "c6f021c53b3f4012eee906385795d70b790e050a7796691aa803957c084bc033"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationRequest.php",
@@ -673,7 +704,7 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
-        "sha256": "3de55694f3246719fd81d34055ca8979e2cfd65c7bd737366984452d126045b7"
+        "sha256": "259343b0563acfa5882dc3e30e4bca49481f25a69d37ee39946e7d0b25f77b0a"
       },
       {
         "path": "src/applications/people/governance/storage/PhorgeOrganizationAppointment.php",

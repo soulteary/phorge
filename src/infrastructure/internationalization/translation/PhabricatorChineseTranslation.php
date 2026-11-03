@@ -20,6 +20,12 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Next History Page' => '下一页历史记录',
+      'Retention Status' => '保留状态',
+      'Only current system administrators can read this history. Records are retained; this view never deletes history or includes private snapshots.' => '仅当前有效的系统管理员可以查看历史记录。记录保持保留，本页面不会删除历史或展示私有快照。',
+      'Restricted Organization History' => '受限组织历史记录',
+      'Retained' => '已保留',
+      'Retained; Older Than 365 Days' => '已保留；超过 365 天',
       'Compound Approval Requested' => '复合变更审批已提交',
       'Approval ID: %s' => '审批编号：%s',
       'A different current system administrator must approve this request. The requester then executes it using this approval ID.' => '此请求须由另一位当前有效的系统管理员审批，之后由申请人使用该审批编号执行。',
