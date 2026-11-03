@@ -60,8 +60,10 @@ function governance_private_mail_invite_capability_cases($fixture,callable $chec
     $custom_admin_mail=$produce('invitecustomadmin');
     $check(PhorgePrivateMailPolicy::authorize($custom_admin_mail)===$native_admin_capability,
       'private-mail-invite-custom-policy-admin-result-matches-real-native-capability');
-    $actor->setIsAdmin(0)->save();
+    // Produce genuine welcome mail while native administrator authority is
+    // valid, then revoke it before testing current-source authorization.
     $welcome=(new PhabricatorPeopleWelcomeMailEngine())->setSender($actor)->setRecipient($actor)->sendMail();
+    $actor->setIsAdmin(0)->save();
     $scope->overrideEnvConfig('phabricator.application-settings',governance_private_mail_invite_capability_settings($actor->getPHID()));
     $check(!PhorgePrivateMailPolicy::authorize($welcome),
       'private-mail-invite-capability-does-not-authorize-admin-only-welcome');
