@@ -1,20 +1,20 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 2,
-  "base": "2c841c2c9acdc3cb1716424072024f362f366e71",
-  "status": "stronger-fact-matrix-host-prepared-runtime-unproven",
+  "version": 3,
+  "base": "eafc8ee9c989cb2f17d6c20c23f8a958bc14af29",
+  "status": "explicit-main96-union-host-prepared-runtime-unproven",
   "prior_main_evidence": {
     "pure": 202,
     "native_sql": 647,
     "applies_only_to_base": true
   },
   "new_runtime_obligation_not_actual": {
-    "pure": 202,
-    "native_sql": 668,
+    "pure": 207,
+    "native_sql": 717,
     "registered_native_workers": 25,
     "additional_locally_owned_business_php_processes": 10
   },
-  "production_source_changes": false,
+  "production_source_changes": true,
   "current_cli_and_schema_and_migrations_preserved": true,
   "preserved_source_scopes": [
     "Native project four axes unchanged; no new permission inheritance",
@@ -46,7 +46,7 @@
   },
   "union_deltas_from_frozen_components": [
     "Business helper reports observed subprocess and owned-directory cleanup counts in its safe summary; this does not change its test flow.",
-    "Strict mandatory checks add all eighteen IDs, exact typed source/concurrency/scope flags, registered worker total23, and ten separately owned business process cleanups.",
+    "Strict mandatory checks add all mandatory component IDs, exact typed source/concurrency/scope flags, registered worker total25, and ten separately owned business process cleanups.",
     "Only Task positive envelope count permits the explicit bounded native self-mail alternative2..3; all other fields are exact.",
     "Current N00 production-source inventory and current CLI are retained without scan refresh or exclusions.",
     "The failed always-deny secret-index assumption is replaced by an explicitly renamed committed-fact index matrix, plus a separately named before-first-read User barrier and forced service-victim proof. Previous real deadlocks remain recorded."
@@ -54,12 +54,30 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual202/668 against this exact stronger union with full runtime hashes and cleanup",
+    "Actual207/717 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Separate explicit union of Core budget checkpoint efa9 and new runtime proof; do not aggregate old component results"
-  ]
+    "Current main96 is explicitly merged; fresh207/717 proof and exact runtime/source match remain required"
+  ],
+  "historical_stronger_component": {
+    "pure": 202,
+    "native_sql": 668,
+    "registered_native_workers": 25,
+    "additional_locally_owned_business_php_processes": 10,
+    "base": "2c841c2c9acdc3cb1716424072024f362f366e71",
+    "runtime_passed": false
+  },
+  "current_main_union": {
+    "retained_main_SQL": 677,
+    "added_Legalpad_and_business_SQL": 40,
+    "removed_main_SQL": 0,
+    "source_registered_pure_methods": 207,
+    "current_runtime_passed": false,
+    "production_Legalpad_hardening_included": true,
+    "core_size_and_invitation_fixes_preserved": true
+  },
+  "production_change_scope": "Existing explicitly approved Legalpad endpoint hardening plus its mail policy binding, integrated with current main; strengthened race/publication additions remain test-only."
 }

@@ -138,3 +138,60 @@ without upgrading the session. A completed authentication challenge can persist
 after the Project transaction rolls back; the fixture does not claim security
 token revival or transactional rollback of authentication effects. Other factor
 types, browser enrollment and full hierarchy closure remain separate gates.
+
+## Bounded version-2 approved member profile
+
+The next isolated slice uses an exact `{version:2, operation, members}` descriptor
+for one `project.members.add` or `project.members.remove` native edge transaction.
+Up to 16 unique existing User PHIDs are canonicalized. Addition requires a
+currently eligible account; removal can reduce a disabled account's membership. The current flat project
+remains bounded to 128 direct/materialized members; unsupported hierarchy, data
+or mixed transaction envelopes fail closed. The matching supported PHP 8.5.12 fixture passed 161 pure methods and 413
+native checks, with 5903 runtime source files matched. This bounded evidence
+is not an activation recommendation or full hierarchy/source-closure proof.
+
+Existing edit-policy tickets retain their version-1 interpretation. A member
+ticket binds the whole requested descriptor, current row/edges, subject identity
+and native transaction generations, concrete executor and independent current
+system-administrator approver credentials. Native EDIT, object/Space VIEW and
+native MFA remain prerequisites. Self-join/leave retains its ticket-free native
+path. Approval consumption, exact direct/inverse/derived changes, native record
+and audit use the real Project writer; native postcommit effects stay outside
+that transaction. The raw edge lease never accepts caller approval booleans.
+
+For noncredential subject facts, first issuer metadata initialization at generation
+1 is not treated as a role change. Native USER transaction IDs, current security
+fields, and the legacy role generation remain bound; first role changes advance
+to 2. The actual executor and approver credential bindings are not normalized
+or weakened. Physical metadata deletion and restoration remain recovery gates.
+
+Historical member-add records remain readable to a current system administrator
+with native Project VIEW after the subject is disabled. Execution eligibility
+is not reapplied as a historical-read prerequisite; history still stays inside
+this tested flat native profile.
+Historical reads check actual current source bounds, without hypothetically
+replaying an old addition against the current membership capacity. New mutations
+still enforce the planned-result member limit.
+
+The explicit union with main media HTTP support passed 169 pure methods and
+482 native checks, using the paired image service. The matched 5918-file runtime
+inventory also covers the media behavior and static resource manifest. This
+backend regression is not a browser or production-activation certificate.
+
+
+### Successor VIEW-only slice (implementation awaiting actual validation)
+
+Version-3 `project.view-policy` descriptors bind exactly one primitive VIEW
+policy and a native `TYPE_VIEW_POLICY` transaction. Version-1 edit-policy and
+version-2 membership tickets retain their old interpretation. JOIN and Space
+changes, mixed transactions, hierarchy and named-policy closure remain refused.
+
+The executor must still pass current native EDIT/VIEW/Space and native policy
+validation/MFA. An independent current system administrator must have native VIEW
+at approval and consumption; approval never adds EDIT or overrides validation.
+After the approved VIEW field changes, final credential/administrator/TTL checks
+remain fresh, but native VIEW is checked against the locked pre-transition
+object. Requiring the approver to retain future VIEW would narrow native policy
+transitions. History instead always requires current VIEW of the actual object.
+The postcondition allows exactly the bound field plus native dateModified; all
+other target fields remain unchanged. This slice is not yet runtime-certified.

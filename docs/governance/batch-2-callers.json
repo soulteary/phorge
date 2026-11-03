@@ -861,7 +861,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "d2f18f62a83277f8f252a6230cc406e91f5fa09f96a5d2df66d900987992fe93"
+      "sha256": "43f1314497403a70e61a1bdae759d060cb42fbc99134f27dbc121e53f1e955ce"
     },
     {
       "id": "TRANSACTION.EDIT.API",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4466,
-    "source_snapshot_sha256": "41cbd3e8d5f01457950726916d2d76bd07d49e7705f0fb7a7df65fec72213dac",
+    "source_snapshot_sha256": "969eacafc045c09f47c2f998a440370a757b5b91435948ba57e6012d8c5a82c2",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -2895,7 +2895,7 @@
       {
         "id": "CALL-498284c44ec14d0b",
         "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
-        "sha256": "c450be9fe4bf10eed680862f7da1e0dcee4f01d4c11d0be5ae8ba514905290b1",
+        "sha256": "a8f572501fb6c76f83ac2c30c891a16003c23ab15f9c2d38e26b4ad854983a5b",
         "matches": [
           {
             "pattern": "edge_writer",
@@ -5226,7 +5226,7 @@
       {
         "id": "CALL-e457f3ff983799df",
         "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
-        "sha256": "d2f18f62a83277f8f252a6230cc406e91f5fa09f96a5d2df66d900987992fe93",
+        "sha256": "43f1314497403a70e61a1bdae759d060cb42fbc99134f27dbc121e53f1e955ce",
         "matches": [
           {
             "pattern": "transaction_apply",

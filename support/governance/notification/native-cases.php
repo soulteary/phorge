@@ -128,6 +128,8 @@ function governance_private_mail_native_cases($fixture,callable $check){
     $check(!PhorgePrivateMailPolicy::authorize($mail),'private-mail-current-disabled-recipient-cannot-use-business-mail');
     require_once __DIR__.'/security-cases.php';
     $security=governance_private_mail_security_cases($fixture,$check);
+    require_once __DIR__.'/invite-capability-cases.php';
+    governance_private_mail_invite_capability_cases($fixture,$check);
     require_once __DIR__.'/remaining-producer-cases.php';
     $remaining=governance_private_mail_remaining_producer_cases($fixture,$check);
     require_once __DIR__.'/commit-race-cases.php';

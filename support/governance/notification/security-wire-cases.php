@@ -72,8 +72,46 @@ function governance_private_mail_security_wire_cases($fixture, callable $check) 
     });
     $capture($case,$mail,array('kind'=>$flow,'user_phid'=>$owner->getPHID()));
   }
+  // Additive invitation profile: keep the original sixteen cases unchanged.
+  require_once __DIR__.'/invite-capability-cases.php';
+  list($inviter)=$user('capinviter');
+  $settings=governance_private_mail_invite_capability_settings($inviter->getPHID());
+  $invite_scope=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('phabricator.application-settings',$settings);
+  $invite_snapshots=array();
+  try {
+    foreach(array('invite-capability-allow','invite-capability-revoke')as$case){
+      $address=$case.$suffix.'@example.invalid';
+      $mail=$produced('PhabricatorAuthInviteWorker','account.invite',function()use($inviter,$address){
+        (new PhabricatorAuthInviteWorker(array('address'=>$address,'authorPHID'=>$inviter->getPHID(),
+          'template'=>'Synthetic capability invitation {$INVITE_URI}')))->executeTask();
+      });
+      if($inviter->getIsAdmin()||!PhabricatorPolicyFilter::hasCapability($inviter,new PhabricatorPeopleApplication(),PeopleCreateUsersCapability::CAPABILITY)){
+        throw new RuntimeException('private_mail_invite_native_capability_missing');}
+      $invite_snapshots[$case]=$mail->prepareGorgeDelivery();
+      $targets[$case]=array('kind'=>'account.invite','user_phid'=>$inviter->getPHID(),'mail_id'=>$mail->getID());
+    }
+  }finally{unset($invite_scope);}
+  // Restore baseline before any original physical case obtains its callback.
+  PhabricatorConfigEntry::loadConfigEntry('phabricator.application-settings')
+    ->setValue(governance_private_mail_invite_capability_settings(PhabricatorPolicies::POLICY_ADMIN))->save();
+  $check(count($invite_snapshots)===2,'private-mail-invite-wire-two-nonadmin-native-capability-snapshots-prepared');
   $check(count($snapshots)===16,'private-mail-security-wire-sixteen-genuine-producer-snapshots-prepared-no-smtp-proof');
-  return array('snapshots'=>$snapshots,'targets'=>$targets,'public_summary'=>array(
+  $large_snapshots=array();
+  foreach(array('large-body-allow','large-attachment-allow','large-body-revoked','large-attachment-revoked')as$case){
+    list($owner,$email)=$user('large');
+    $mail=(new PhabricatorPeopleEmailLoginMailEngine())->setSender(new PhabricatorUser())->setRecipient($owner)->sendMail();
+    if(str_contains($case,'attachment')){$mail->setAttachments(array(new PhabricatorMailAttachment(
+      str_repeat('A',50*1024),'synthetic-large.txt','text/plain')));}
+    else{$mail->setBody($mail->getBody().str_repeat('Synthetic security body. ',4096));}
+    $mail->save();$snapshot=$mail->prepareGorgeDelivery();
+    if(!PhorgePrivateMailPolicy::authorize($mail)||!isset($snapshot['authorization'])||
+      strlen(phutil_json_encode($snapshot['message']))<=65536){
+      throw new RuntimeException('private_mail_large_security_snapshot_refused');}
+    $large_snapshots[$case]=$snapshot;$targets[$case]=array('kind'=>'account.login',
+      'user_phid'=>$owner->getPHID(),'email_phid'=>$email->getPHID(),'mail_id'=>$mail->getID());
+  }
+  $check(count($large_snapshots)===4,'private-mail-large-security-wire-four-distinct-native-login-sources-no-smtp-proof');
+  return array('snapshots'=>$snapshots,'targets'=>$targets,'large_snapshots'=>$large_snapshots,'invite_snapshots'=>$invite_snapshots,'public_summary'=>array(
     'actual_producer_snapshots'=>16,'synthetic_accounts_only'=>true,'class_name_authorization_mock_used'=>false,
     'registration_method_seam_not_full_http'=>true,'primary_alert_methods_not_full_change_http'=>true,
     'smtp_security_matrix_complete'=>false,'all_security_flows_complete'=>false));

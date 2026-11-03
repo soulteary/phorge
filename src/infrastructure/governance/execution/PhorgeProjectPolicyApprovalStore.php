@@ -30,12 +30,13 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
         $row['targetPHID']!==($data['targetPHID']??null) || $row['operationID']!==($data['operationID']??null)) {
       throw new RuntimeException('project_execution_ticket_refused');
     }
+    PhorgeProjectExecutionIntent::newFromBinding($data);
     return array($row,$data);
   }
   public static function planning(AphrontDatabaseConnection $conn,$id) {
     if ($conn!==(new PhabricatorProject())->establishConnection('w')) { throw new RuntimeException('project_execution_writer_required'); }
     list($row,$data)=self::row($conn,$id,false);
-    $ids=array($data['executor']['userPHID']);
+    $ids=array_merge(array($data['executor']['userPHID']),PhorgeProjectExecutionIntent::newFromBinding($data)->getMembers());
     if ($row['approverBindingJSON']!==null) {
       $approver=json_decode($row['approverBindingJSON'],true,16,JSON_THROW_ON_ERROR);
       $ids[]=$approver['userPHID'];
@@ -50,7 +51,8 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
   public static function intent($id) {
     $conn=(new PhabricatorProject())->establishConnection('w');
     list($row,$data)=self::row($conn,$id,false);
-    return array('targetPHID'=>$data['targetPHID'],'newPolicy'=>$data['newPolicy']);
+    return array('targetPHID'=>$data['targetPHID'],'newPolicy'=>$data['newPolicy'],
+      'intent'=>PhorgeProjectExecutionIntent::newFromBinding($data));
   }
   private function now() { return (int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n']; }
   private function validTime(array $data,$approved=null) {
@@ -71,27 +73,32 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
         strlen($reason)>2048 || !phutil_is_utf8($reason) || !is_int($ttl) || $ttl<1 || $ttl>86400) {
       throw new RuntimeException('project_execution_proposal_refused');
     }
-    if ($this->scope->getObject()->getEditPolicy()===$this->scope->getNewPolicy()) {
+    $intent=$this->scope->getIntent();
+    $delta=$intent->isMembership()?$this->scope->getProposedMembershipDelta():null;
+    if ($intent->isMembership()?(!$delta['added']&&!$delta['removed']):
+        ($intent->isViewPolicy()?$this->scope->getObject()->getViewPolicy():$this->scope->getObject()->getEditPolicy())===$this->scope->getNewPolicy()) {
       throw new RuntimeException('project_execution_no_change');
     }
     $id=bin2hex(random_bytes(32)); $now=$this->now();
     $data=array('targetPHID'=>$this->scope->getObject()->getPHID(),
-      'operationID'=>bin2hex(random_bytes(16)),'operation'=>'project.edit-policy',
+      'operationID'=>bin2hex(random_bytes(16)),'operation'=>$intent->getOperation(),
       'newPolicy'=>$this->scope->getNewPolicy(),'reason'=>$reason,
       'executor'=>$this->scope->getSnapshot()->getSource()->getSnapshotData(),
       'sources'=>$this->scope->getSources(),'issuedAt'=>$now,'expiresAt'=>$now+$ttl);
+    if($intent->isMembership()||$intent->isViewPolicy()){$data['intent']=$intent->getDescriptor();}
     queryfx($this->connection,'INSERT INTO governance_projectapproval (approvalID,operationID,targetPHID,bindingJSON,bindingDigest,reason,state,version) VALUES (%s,%s,%s,%s,%s,%s,%s,1)',
       $id,$data['operationID'],$data['targetPHID'],PhorgeProjectExecutionValue::canonical($data),
       PhorgeProjectExecutionValue::digest($data),$reason,'submitted');
-    $this->audit($id,$data,'submitted',array('operation'=>'project.edit-policy'));
+    $this->audit($id,$data,'submitted',array('operation'=>$intent->getOperation()));
     $this->validTime($data);
     return array('approval_id'=>$id);
   }
   private function validate(array $row,array $data,$compare_sources=true) {
     $this->scope->assertOpen();
-    if ($data['operation']!=='project.edit-policy' ||
-        $data['targetPHID']!==$this->scope->getObject()->getPHID() ||
-        $data['newPolicy']!==$this->scope->getNewPolicy()) {
+    $intent=PhorgeProjectExecutionIntent::newFromBinding($data);
+    if ($data['targetPHID']!==$this->scope->getObject()->getPHID() ||
+        PhorgeProjectExecutionValue::canonical($intent->getDescriptor())!==
+          PhorgeProjectExecutionValue::canonical($this->scope->getIntent()->getDescriptor())) {
       throw new RuntimeException('project_execution_ticket_binding_changed');
     }
     $this->scope->validateCredential($data['executor']);
@@ -144,9 +151,11 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     $this->scope->assertOpen();
     $rows=queryfx_all($this->connection,'SELECT actorPHID,action,createdAt FROM governance_executionaudit WHERE BINARY approvalID=BINARY %s ORDER BY id LIMIT 65 LOCK IN SHARE MODE',$id);
     if (count($rows)>64) { throw new RuntimeException('project_execution_history_budget'); }
-    return array('approval_id'=>$id,'target_phid'=>$data['targetPHID'],'operation'=>$data['operation'],
+    $result=array('approval_id'=>$id,'target_phid'=>$data['targetPHID'],'operation'=>$data['operation'],
       'new_policy'=>$data['newPolicy'],'reason'=>$data['reason'],'state'=>$row['state'],
       'native_group_id'=>$row['nativeGroupID'],'audit'=>$rows);
+    if(isset($data['intent'])){$result['intent']=$data['intent'];}
+    return $result;
   }
   public function consume($id) {
     if ($this->scope->getMode()!=='execute') { throw new RuntimeException('project_execution_scope_required'); }
@@ -166,22 +175,31 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     if ($row['state']!=='consumed' || count($xactions)!==1) { throw new RuntimeException('project_execution_commit_binding_refused'); }
     $this->validate($row,$data,false);
     $group=$xactions[0]->getTransactionGroupID();
-    $native=queryfx_one($this->connection,'SELECT phid,objectPHID,authorPHID,transactionType,newValue,metadata FROM %R WHERE id=%d LOCK IN SHARE MODE',
+    $native=queryfx_one($this->connection,'SELECT phid,objectPHID,authorPHID,transactionType,oldValue,newValue,metadata FROM %R WHERE id=%d LOCK IN SHARE MODE',
       new PhabricatorProjectTransaction(),$xactions[0]->getID());
     $stored=$native?(new PhabricatorProjectTransaction())->loadFromArray($native):null;
     if (!$native || $native['phid']!==$xactions[0]->getPHID() || $native['objectPHID']!==$data['targetPHID'] ||
-        $native['transactionType']!==PhabricatorTransactions::TYPE_EDIT_POLICY ||
         $native['authorPHID']!==$this->scope->getSnapshot()->getUserPHID() ||
-        $stored->getTransactionGroupID()!==$group ||
-        $stored->getNewValue()!==$data['newPolicy']) {
+        $stored->getTransactionGroupID()!==$group) {
+      throw new RuntimeException('project_execution_native_record_mismatch');
+    }
+    $intent=PhorgeProjectExecutionIntent::newFromBinding($data);
+    if($intent->isMembership()){
+      if($native['transactionType']!==PhabricatorTransactions::TYPE_EDGE ||
+        $stored->getMetadataValue('edge:type')!==PhabricatorProjectProjectHasMemberEdgeType::EDGECONST){
+        throw new RuntimeException('project_execution_native_record_mismatch');}
+      $change=PhabricatorEdgeChangeRecord::newFromTransaction($stored);
+      $added=$change->getAddedPHIDs();$removed=$change->getRemovedPHIDs();
+      sort($added,SORT_STRING);sort($removed,SORT_STRING);
+      $expected=$this->scope->getMembershipDelta();
+      if($added!==$expected['added']||$removed!==$expected['removed']){
+        throw new RuntimeException('project_execution_native_record_mismatch');}
+    }else if($native['transactionType']!==$intent->getTransactionType() || $stored->getNewValue()!==$data['newPolicy']){
       throw new RuntimeException('project_execution_native_record_mismatch');
     }
     queryfx($this->connection,'UPDATE governance_projectapproval SET nativeGroupID=%s WHERE BINARY approvalID=BINARY %s AND state=%s',
       $group,$id,'consumed');
     $this->audit($id,$data,'executed',array('nativeTransactionPHID'=>$native['phid'],'nativeGroupID'=>$group));
-    // Row locks prevent credential revocation writes, not passage of time
-    // while native record/audit writes wait. Recheck both actual credentials
-    // after the last write; only the approved target transition is exempt.
     $this->validate($row,$data,false);
   }
 }

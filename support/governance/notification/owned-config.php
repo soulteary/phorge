@@ -63,4 +63,16 @@ function governance_private_mail_install_env(array$data){
   (new ReflectionProperty(PhabricatorEnv::class,'sourceStack'))->setValue(null,$stack);
   (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
   (new ReflectionProperty(PhabricatorCaches::class,'requestCache'))->setValue(null,null);
+  // Real fixed native application setting is reloaded in every fresh callback.
+  // No caller-supplied capability boolean or arbitrary config key is accepted.
+  $entry=PhabricatorConfigEntry::loadConfigEntry('phabricator.application-settings');
+  if($entry->getID()&&!$entry->getIsDeleted()){
+    $value=$entry->getValue();$app=(new PhabricatorPeopleApplication())->getPHID();
+    if(!is_array($value)||array_keys($value)!==array($app)||
+      !isset($value[$app]['policy'][PeopleCreateUsersCapability::CAPABILITY])){
+      throw new RuntimeException('private_mail_invite_setting_refused');}
+    foreach($stack->getStack()as$source){if(get_class($source)===PhabricatorConfigDictionarySource::class){
+      $source->setKeys(array('phabricator.application-settings'=>$value));break;}}
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+  }
 }

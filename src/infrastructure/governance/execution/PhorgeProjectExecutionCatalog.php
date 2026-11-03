@@ -44,11 +44,17 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
         }
         return array_keys($xaction->getNewValue())[0]==='+'?'self-join':'self-leave';
       }
+      if ($type===PhabricatorTransactions::TYPE_EDGE &&
+          $xaction->getMetadataValue('edge:type')===PhabricatorProjectProjectHasMemberEdgeType::EDGECONST) {
+        if (count($xactions)!==1) { throw new RuntimeException('project_execution_member_batch_unsupported'); }
+        $intent=PhorgeProjectExecutionIntent::newFromNativeMembership($xaction);
+        return $intent->isAddition()?'members-add':'members-remove';
+      }
       $sensitive=true;
     }
     if (!$sensitive) { return 'native'; }
     if ($object->getID()===null || count($xactions)!==1 ||
-        $xactions[0]->getTransactionType()!==PhabricatorTransactions::TYPE_EDIT_POLICY ||
+        !in_array($xactions[0]->getTransactionType(),array(PhabricatorTransactions::TYPE_EDIT_POLICY,PhabricatorTransactions::TYPE_VIEW_POLICY),true) ||
         $xactions[0]->getComment()!==null) {
       throw new RuntimeException('project_execution_expansion_unsupported');
     }
@@ -56,7 +62,7 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
       throw new RuntimeException('project_execution_envelope_unsupported');
     }
     self::policy($xactions[0]->getNewValue());
-    return 'edit-policy';
+    return $xactions[0]->getTransactionType()===PhabricatorTransactions::TYPE_VIEW_POLICY?'view-policy':'edit-policy';
   }
   public static function policy($policy) {
     if (!is_string($policy) || !in_array($policy,array(PhabricatorPolicies::POLICY_USER,

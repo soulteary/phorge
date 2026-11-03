@@ -64,6 +64,19 @@ final class PhorgePrivateMailPolicyTestCase extends PhutilTestCase {
       $this->assertTrue($refused,$case);
     }
   }
+  public function testInviteAuthorityIsBoundToItsActualNativeAuthor(){
+    $author='PHID-USER-'.str_repeat('a',20);
+    $binding=array('account_hash'=>str_repeat('a',64),'address_hash'=>str_repeat('b',64),
+      'admin'=>$author,'email'=>null,'recipient'=>null,'subject'=>$author,
+      'source'=>'PHID-AINV-'.str_repeat('c',20),'source_hash'=>str_repeat('d',64));
+    $mail=(new PhabricatorMetaMTAMail())->setPrivateMailProducer('PhabricatorAuthInviteWorker');
+    $mail->setPrivateMailFlow('account.invite',$binding);
+    $this->assertEqual($binding,$mail->getPrivateMailPolicyValue('governance.mail-binding'));
+    $bad=$binding;$bad['admin']='PHID-USER-'.str_repeat('e',20);$refused=false;
+    try{PhorgePrivateMailPolicy::validateFlow($mail,'account.invite',$bad);}
+    catch(InvalidArgumentException$error){$this->assertEqual('private_mail_flow_invite_author_required',$error->getMessage());$refused=true;}
+    $this->assertTrue($refused);
+  }
   public function testAdminNoticeCannotUseOwnerFlowOrBlessExistingMail(){
     $user='PHID-USER-'.str_repeat('a',20);$admin='PHID-USER-'.str_repeat('b',20);
     $binding=array('account_hash'=>str_repeat('a',64),'address_hash'=>str_repeat('b',64),
@@ -82,9 +95,7 @@ final class PhorgePrivateMailPolicyTestCase extends PhutilTestCase {
     $this->assertTrue($refused);
     $signature=(new PhabricatorMetaMTAMail())->setPrivateMailProducer('LegalpadDocumentSignController');
     $this->assertEqual('unsupported-signature',PhorgePrivateMailPolicy::purpose($signature));
-  }
-
-  public function testNativeIntegerMailIdHeaderSerializesAsSMTPText(){
+  }  public function testNativeIntegerMailIdHeaderSerializesAsSMTPText(){
     $integer=(new PhabricatorMailHeader())->setName('X-Phabricator-Mail-ID')->setValue(42);
     $text=(new PhabricatorMailHeader())->setName('X-Synthetic-Text')->setValue('0042');
     $message=(new PhabricatorMailEmailMessage())->setFromAddress(new PhutilEmailAddress('sender@example.invalid'))
@@ -98,5 +109,4 @@ final class PhorgePrivateMailPolicyTestCase extends PhutilTestCase {
     $this->assertEqual(42,$integer->getValue());
     $this->assertEqual('0042',$text->getValue());
   }
-
 }

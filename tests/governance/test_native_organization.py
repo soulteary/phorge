@@ -45,6 +45,32 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_native_invitation_capability_regressions_cannot_be_omitted(self):
+        for name in ['private-mail-invite-native-nonadmin-people-capability-granted', 'private-mail-invite-native-nonadmin-worker-prepares-genuine-challenge', 'private-mail-invite-legacy-admin-binding-must-equal-author-subject', 'private-mail-invite-current-capability-revocation-refuses-callback', 'private-mail-invite-regrant-cannot-revive-permanently-quarantined-snapshot', 'private-mail-invite-nonadmin-without-native-capability-refused', 'private-mail-invite-native-default-admin-still-authorized', 'private-mail-invite-custom-policy-admin-result-matches-real-native-capability', 'private-mail-invite-capability-does-not-authorize-admin-only-welcome']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(check=name),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+
+    def test_large_security_payload_regressions_are_required(self):
+        for name in ['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+    def test_view_policy_public_entry_proof_cannot_be_omitted(self):
+        for name in ['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for key in ('actual_api_token_conduit_path','view_ticket_cannot_edit_policy'):
+            data=template();data['native']['project_execution_tests']['approved_native_view_policy'][key]=False
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_view_policy_requires_actual_native_checks_and_refuses_family_claim(self):
+        for name in ['project-view-approval-does-not-override-native-self-view-validator', 'project-view-approved-transition-may-remove-approver-future-view', 'project-view-approver-current-view-does-not-require-edit', 'project-view-history-still-requires-current-native-view', 'project-view-native-record-policy-ticket-audit-commit-together', 'project-view-native-writer-scope-released']:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for name in ('whole_family_ready','join_and_space_supported'):
+            data=template();data['native']['project_execution_tests']['approved_native_view_policy'][name]=True
+            with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
     def test_valid_schema_does_not_prove_activation_browser_or_completion(self):
         accepted=gate.validate(template(), file_digest='b'*64)
         for key in ('production_optional_features_enabled', 'deployment_proved', 'browser_proved', 'global_completion'):
@@ -264,7 +290,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),668)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),717)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):

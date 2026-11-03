@@ -248,7 +248,7 @@
   "consumers": [
     {
       "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
-      "sha256": "c450be9fe4bf10eed680862f7da1e0dcee4f01d4c11d0be5ae8ba514905290b1"
+      "sha256": "a8f572501fb6c76f83ac2c30c891a16003c23ab15f9c2d38e26b4ad854983a5b"
     },
     {
       "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",
@@ -268,7 +268,7 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-      "sha256": "46f7400fb09f04460e483cd9608c6ea8cf6779ef8533de9402d1ee904a279e7d"
+      "sha256": "1e5bd196f1280c7d526f694723addc6ecb713209d0fccc2fbdaa431c772e2206"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",

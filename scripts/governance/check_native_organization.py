@@ -787,6 +787,39 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({'native-config-generation-always-
  'project-producer-unblocks-only-after-independent-fence-release-hook-status',
  'project-producer-unblocks-only-after-independent-fence-release-rule-insert'})
 
+NATIVE['project_execution_tests']['approved_native_membership'] = {
+ 'actual_typed_member_add_remove': True, 'actual_multi_subject_delta': True,
+ 'same_writer_approval_native_and_edges': True, 'native_policy_not_granted_by_approval': True,
+ 'all_hierarchy_or_raw_producers_complete': False, 'production_activation': False}
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({
+ 'project-approved-members-add-disabled-target-refused-without-write',
+ 'project-approved-members-add-unapproved-target-refused-without-write',
+ 'project-approved-members-add-agent-target-refused-without-write',
+ 'project-approved-members-add-mailing-target-refused-without-write',
+ 'project-approved-members-disabled-current-target-can-be-removed-with-approval',
+ 'project-approved-members-current-admin-can-read-durable-add-history-after-subject-disabled',
+ 'project-approved-members-history-at-current-capacity-does-not-replay-removed-subject',
+ 'project-approved-members-new-addition-over-current-capacity-still-refused-without-write',
+ 'project-approved-members-first-issuer-beneficiary-approver-is-not-a-role-change',
+ 'project-approved-members-self-only-ticket-refused-retaining-native-path',
+ 'project-approved-members-unapproved-ticket-cannot-mutate',
+ 'project-approved-members-valid-ticket-does-not-grant-native-edit',
+ 'project-approved-members-wrong-subject-ticket-refused-without-write',
+ 'project-approved-members-two-user-add-consume-native-inverse-derived-audit-commit',
+ 'project-approved-members-wrong-operation-ticket-refused-without-write',
+ 'project-approved-members-two-user-remove-consume-native-inverse-derived-audit-commit',
+ 'project-approved-members-inverse-owned-native-fault-installed',
+ 'project-approved-members-inverse-actual-fault-rolls-back-ticket-edges-record-audit-queue',
+ 'project-approved-members-derived-owned-native-fault-installed',
+ 'project-approved-members-derived-actual-fault-rolls-back-ticket-edges-record-audit-queue',
+ 'project-approved-members-record-owned-native-fault-installed',
+ 'project-approved-members-record-actual-fault-rolls-back-ticket-edges-record-audit-queue',
+ 'project-approved-members-audit-owned-native-fault-installed',
+ 'project-approved-members-audit-actual-fault-rolls-back-ticket-edges-record-audit-queue',
+ 'project-approved-members-subject-native-disable-enable-aba-invalidates-ticket',
+ 'project-approved-members-actual-api-token-proposal-and-member-edit-commit',
+ 'project-approved-members-current-approver-role-revocation-invalidates-ticket'})
+
 
 def exact_tree(actual, expected):
     if type(actual) is not type(expected):
@@ -823,6 +856,8 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-admin-notice-curren
  'private-mail-security-class-name-alone-cannot-authorize-legacy-challenge',
  'private-mail-security-user-edits-use-real-native-session-and-request',
  'private-mail-welcome-current-sender-administrator-required-after-prepare'])
+
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-invite-native-nonadmin-people-capability-granted', 'private-mail-invite-native-nonadmin-worker-prepares-genuine-challenge', 'private-mail-invite-legacy-admin-binding-must-equal-author-subject', 'private-mail-invite-current-capability-revocation-refuses-callback', 'private-mail-invite-regrant-cannot-revive-permanently-quarantined-snapshot', 'private-mail-invite-nonadmin-without-native-capability-refused', 'private-mail-invite-native-default-admin-still-authorized', 'private-mail-invite-custom-policy-admin-result-matches-real-native-capability', 'private-mail-invite-capability-does-not-authorize-admin-only-welcome'])
 
 NATIVE['private_mail_tests'] = {'actual_native_queue': True,
  'actual_native_source_and_object_query': True,
@@ -1050,6 +1085,13 @@ def validate_restore(value, root):
     exact_tree(audit['source_patch_count'], 1569)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
+
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-physical-large-security-body-current-source-allowed', 'private-mail-physical-large-security-attachment-current-source-allowed', 'private-mail-physical-oversized-message-refused-without-poisoning-valid-snapshot', 'private-mail-physical-large-security-payload-still-requires-current-native-source'])
+NATIVE['project_execution_tests']['approved_native_view_policy'] = {'native_view_only': True, 'future_approver_view_not_added': True, 'whole_family_ready': False, 'join_and_space_supported': False}
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-approval-does-not-override-native-self-view-validator', 'project-view-approved-transition-may-remove-approver-future-view', 'project-view-approver-current-view-does-not-require-edit', 'project-view-history-still-requires-current-native-view', 'project-view-native-record-policy-ticket-audit-commit-together', 'project-view-native-writer-scope-released'])
+
+REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['project-view-real-api-token-edit-missing-ticket-refused-without-write', 'project-view-real-api-token-view-ticket-cannot-authorize-edit-policy', 'project-view-real-api-token-proposal-and-public-edit-commit-native-view-only'])
+NATIVE['project_execution_tests']['approved_native_view_policy'].update(actual_api_token_conduit_path=True,view_ticket_cannot_edit_policy=True)
 
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:

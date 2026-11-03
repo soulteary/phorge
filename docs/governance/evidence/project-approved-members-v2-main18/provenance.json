@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "source_commit": "3806576465a8dda03ae65b695969758d3c919e16",
+  "main_baseline": "18e7d018e5ecbbc2cf449494ed4060f92e575189",
+  "php_version": "8.5.12",
+  "native_methods": 193,
+  "native_sql_checks": 584,
+  "runtime_files": 5936,
+  "all_runtime_files_match_signed_git_archive": true,
+  "runtime_source_index_sha256": "31947771f69c5bbd65c333d94fabb3448de7db6cde05446b760798cecac43abc",
+  "image_parent": {
+    "scope": "owned-network-none-paired-image-integration",
+    "passed": true,
+    "service_removed": true,
+    "public_ports": 0,
+    "native_exit_code": 0
+  },
+  "feature_default_off": true,
+  "browser_proved": false,
+  "production_activation": false,
+  "permission_migration": false,
+  "new_view_join_space_profile_proved": false,
+  "whole_governance_complete": false
+}
