@@ -1,13 +1,16 @@
-# Existing Wiki content publication fixture (not runtime verified)
+# Existing Wiki content publication — isolated native verification
 
-This independent successor explicitly integrates protected main102
-`f4c5702a0fdeade575ecdcda98c568cd45e966ba`. It preserves all 819 mandatory
-main checks and adds 13 Wiki content checks: source-derived obligations are
-223 pure / 832 SQL, 38 registered workers, the existing 20 business children and
-a separate set of five Wiki probe children. Production PHP and resources are
-byte-identical to main102. No supported-runtime result is claimed for this union.
-The signed earlier `996bfd728bb75cbc48d559e0472e70817ce06f1b` component remains
-an unrun 219/802 historical source checkpoint, not current runtime evidence.
+The signed source `82ecf4296336f331e410f9a2e56482789c34386f` actually passed
+223 pure methods and 835 native SQL checks on PHP8.5.12. All 6810 PHP/SQL/PSL
+files matched that signed archive. The independent CLI strict receipt equalled
+the in-process verifier with empty stderr. See the bounded acceptance record
+in `docs/governance/evidence/wiki-content-main102-223-835/acceptance.json`.
+
+This explicitly retains protected main102 and all 819 main checks, adding the
+13 existing-content obligations and three renderer obligations. Production PHP
+and resources are byte-identical to main102. Earlier 802/832 source checkpoints
+were never accepted; failed 497-check diagnostic runs are preserved separately
+and their debug API is excluded. Documentation successors are not new runtimes.
 
 Each sample first creates a genuine existing Phriction document, nonempty content
 and subscriber through the native editor with a real session/request. It reloads
@@ -34,13 +37,13 @@ Retained move/search publication, worker.execute HTTP gateway routing, the Go
 worker daemon, SMTP and browser acceptance are not proved here. Paired Gorge
 services stay owned and isolated. Production features remain default off.
 
-All five children must exit, owned private directories must be removed and all
+All six children must exit, owned private directories must be removed and all
 profiler listeners and parent transactions must be restored. The queue's existing
 64-PublishWorker hard lease budget is retained: backlog exhaustion fails the run
 rather than silently raising the bound or skipping a sample.
 
 
-### Paired render dependency (candidate, not runtime acceptance)
+### Paired render dependency — actually exercised
 
 The actual native Wiki mail detail builder requires Gorge prose diff. The
 497-check failed runs established a missing render-service profile; their debug
@@ -57,4 +60,7 @@ current-authorized subscriber mail. This is a controlled fixture retry, not a
 Go daemon or automatic retry proof. Six local Wiki children (in addition to
 38 global and the unchanged 20 business children), all service files and the
 renderer process must be removed. Three additional mandatory checks bring the
-candidate total to 835; no actual 835 acceptance has been established yet.
+tested total to 835. All 38 global worker directories, both sets of ten business
+children, six Wiki children, the renderer, temporary image, 55 schemas, two
+runtime principals and reader were cleaned successfully. This does not close
+the separate governance-producer, gateway, Go daemon, SMTP or browser matrix.

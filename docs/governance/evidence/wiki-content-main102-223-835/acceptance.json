@@ -1,0 +1,89 @@
+{
+  "source_head": "82ecf4296336f331e410f9a2e56482789c34386f",
+  "passed": true,
+  "pure_methods": 223,
+  "SQL_checks": 835,
+  "runtime_files_exact": 6810,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 38,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 38
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "wiki_content_native_profile_proved": true,
+  "browser_proved": false,
+  "deployment": false,
+  "controller_http_exception_proved": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "wiki-render-main102-full-native.json": "cd03ab5e361672b5b955b8f7430adde1b7dbe7b4960ab9756fc0efc5e64be9ca",
+    "wiki-render-main102-full-integration.json": "adbc9737e5ca81a354ccb93b8a107d9982ee41c9b248d15e34cecd44e2f40683",
+    "wiki-render-main102-full-parent.json": "8ba59b80669c212de59d697c365beae9828db837ca712069022dba0ae1c1eeb4",
+    "wiki-render-main102-full-source-runtime-match.json": "edbc14a9b9361ecab906365510a6488bfa797470cb88afb2fd994f395991c588",
+    "wiki-render-main102-full-strict-accepted.json": "781e6ef06df86081d0ac9ff441690af5f7cbad94003ba948902d93167244529c",
+    "wiki-render-main102-full-strict-cli.json": "aba842d912c15dcb7fde1d667c67b7b65b499614fec5d84661e74793387018fc",
+    "wiki-render-main102-full-render-build.json": "8a67592e7a79e477f6272ec6901959bcf6089d741e56049bcb4a45234be4e1bc"
+  },
+  "evidence_kind": "owner-executed isolated signed-source native fixture; not hosted CI",
+  "runtime_manifest": {
+    "file_count": 6810,
+    "sha256": "6910c1821e50fb3d1ea6b7d6f9cdea6faee0262af56a3a5a577a151f164b1564",
+    "encoding": "UTF-8 JSON sorted [path,content_sha256] pairs, ensure_ascii=true, separators comma/colon"
+  },
+  "mandatory_check_set_sha256": "31bf33dc06b6b189539a6f63534a02a4c1b55529b6a6d0ddb31541c80696bfbf",
+  "local_cleanup": {
+    "business_publication_tests": {
+      "independent_php_workers_executed": 10,
+      "private_directories_removed": 10,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0
+    },
+    "business_gorge_publication_tests": {
+      "independent_php_workers_executed": 10,
+      "private_directories_removed": 10,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0
+    },
+    "wiki_content_publication_tests": {
+      "independent_php_workers_executed": 6,
+      "private_directories_removed": 6,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0
+    }
+  },
+  "worker_execute_HTTP_gateway_proved": false,
+  "Go_worker_daemon_proved": false,
+  "SMTP_proved": false,
+  "automatic_retry_after_permanent_source_failure_proved": false,
+  "cross_schema_atomic_commit_proved": false,
+  "activation_blocked": true,
+  "applies_only_to_tested_source": true,
+  "immutable_record_manifest_sha256": "d1ac8c54a4f5da70fd48a2b82af538f1b94ac3cf1c78033799a5ac2a0847ceae",
+  "paired_render_revision": "55f8ba8e57b179a7dee92ad43c77038ca322f61c",
+  "paired_render_binary_sha256": "d05250617dfa12f0b7cfc9108423b55a91ce9dd56224c96335f847deb40c22d2",
+  "governance_notification_new_producers_proved": false,
+  "render_cleanup": {
+    "binary_sha256": "d05250617dfa12f0b7cfc9108423b55a91ce9dd56224c96335f847deb40c22d2",
+    "process_stopped": true,
+    "private_storage_removed": true
+  },
+  "tested_scope": [
+    "real existing Phriction content editor, content version and actual subscriber",
+    "paired Gorge enqueue/lease plus independent native PHP versioned Conduit worker invocation and fenced outcome",
+    "actual paired55 prose renderer used by native mail detail generation",
+    "explicit missing-render transient result with zero mail and no success archive, followed by controlled same-lease native retry",
+    "nonzero current-authorized link-only subscriber mail for normal and committed edits; exact missing-transactions failure for rolled-back edit",
+    "two before-commit child probes are prepare only; not an execution race"
+  ]
+}

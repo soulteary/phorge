@@ -184,5 +184,19 @@
     "tested_source": "92a84013ce59a37f65fed347c908e5377dd5f392",
     "runtime_files_exact": 6797
   },
-  "current_acceptance": "docs/governance/evidence/business-gorge-main100-219-789/acceptance.json"
+  "current_acceptance": "docs/governance/evidence/business-gorge-main100-219-789/acceptance.json",
+  "wiki_content_native_component": {
+    "tested_source": "82ecf4296336f331e410f9a2e56482789c34386f",
+    "actual_pure": 223,
+    "actual_native_SQL": 835,
+    "runtime_files_exact": 6810,
+    "registry_workers": 38,
+    "existing_local_business_children": 20,
+    "local_wiki_children": 6,
+    "paired_renderer_revision": "55f8ba8e57b179a7dee92ad43c77038ca322f61c",
+    "native_only": true,
+    "HTTP_gateway_Go_daemon_SMTP_browser_proved": false,
+    "new_governance_producers_proved": false,
+    "acceptance": "docs/governance/evidence/wiki-content-main102-223-835/acceptance.json"
+  }
 }
