@@ -34,7 +34,7 @@ jobs:
       GORGE_TEST_FILE_URL: http://127.0.0.1:18100
       GORGE_TEST_FILE_TOKEN: atomic-file-only
       GORGE_TEST_IMAGE_URL: http://127.0.0.1:18190
-      GORGE_TEST_IMAGE_TOKEN: atomic-image-only
+      GORGE_TEST_IMAGE_TOKEN: a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
       GORGE_TEST_RENDER_URL: http://127.0.0.1:18140
       GORGE_TEST_RENDER_TOKEN: atomic-render-only
       GORGE_TEST_SEARCH_URL: http://127.0.0.1:18120
@@ -98,7 +98,7 @@ jobs:
           docker exec -e MYSQL_PWD=atomic-regressions-only "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL sql_mode = 'STRICT_ALL_TABLES'"
           docker network create atomic-fixtures
           docker run -d --name atomic-file --network atomic-fixtures -p 127.0.0.1:18100:8100 --read-only --tmpfs /var/lib/gorge/files:rw,uid=10001,gid=10001,mode=0700 --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-file-only -e GORGE_FILE_LOCAL_DISK_PATH=/var/lib/gorge/files gorge-file-storage:atomic
-          docker run -d --name atomic-image --network atomic-fixtures -p 127.0.0.1:18190:8190 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-image-only gorge-image:atomic
+          docker run -d --name atomic-image --network atomic-fixtures -p 127.0.0.1:18190:8190 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN="$GORGE_TEST_IMAGE_TOKEN" gorge-image:atomic
           docker run -d --name atomic-render --network atomic-fixtures -p 127.0.0.1:18140:8140 --read-only --tmpfs /tmp:rw -e GORGE_SERVICE_TOKEN=atomic-render-only gorge-render:atomic
           meili_image=$(python3 -c 'import json; print(json.load(open("deploy/acceptance/build-lock.json"))["images"]["meilisearch"])')
           docker run -d --name atomic-meili --network atomic-fixtures --tmpfs /meili_data:rw -e MEILI_MASTER_KEY=atomic-search-fixture-secret-only -e MEILI_ENV=production -e MEILI_NO_ANALYTICS=true "$meili_image"
