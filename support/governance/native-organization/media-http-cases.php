@@ -50,6 +50,16 @@ function governance_native_media_http_cases($fixture, callable $check, array $st
     return substr(explode(';',$found[0],2)[0],strlen($name)+1);
   };
   try{
+    $before_invalid_site=governance_native_media_fingerprint($fixture);
+    foreach(array('https://files.other.invalid/','https://other.github.io/') as $invalid_origin){
+      PhabricatorEnv::overrideConfig('security.alternate-file-domain',$invalid_origin);
+      $refused=false;
+      try{$call('files','prepare','POST',array('payload'=>json_encode(array('path'=>$path,'client_nonce'=>$nonce))));}
+      catch(RuntimeException $error){$refused=$error->getMessage()==='media_http_same_site_required';}
+      $check($refused&&governance_native_media_fingerprint($fixture)===$before_invalid_site,
+        'native-media-http-cross-site-configuration-refused-before-state-'.hash('sha256',$invalid_origin));
+    }
+    PhabricatorEnv::overrideConfig('security.alternate-file-domain',$settings['security.alternate-file-domain']);
     $long_name=str_repeat('测',250).'.xlsx';
     $long_file=PhabricatorFile::newFromFileData('synthetic-unicode-uri',array(
       'name'=>$long_name,'authorPHID'=>$state['admin']['viewer']->getPHID(),

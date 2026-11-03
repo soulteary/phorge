@@ -308,7 +308,7 @@
       "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php",
       "symbol": "PhorgeGovernanceMediaConfigOptions",
       "kind": "default-off-configuration",
-      "sha256": "1487d3278a48a293606efa76158d5925c012ffc5e95e36fa5cbf02b27fdfdbf9",
+      "sha256": "54e3996bb46a6a4a68310b05322e9b2f54644977543b18c7c7b6fe3aeadfe5a3",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -451,7 +451,7 @@
       "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php",
       "symbol": "PhorgeGovernanceMediaHTTPProtocol",
       "kind": "fixed-origin-wire-cookie-protocol",
-      "sha256": "653808abf5cb294f93c6a11735a791d3f22e970f5613d3c37a3ac88cb69f8429",
+      "sha256": "a6d4e9d50ec4f795ce75e8de52337a5af1afd31244a88222a2a3173c12984cd6",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1059,7 +1059,7 @@
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaConfigOptions.php",
-        "sha256": "1487d3278a48a293606efa76158d5925c012ffc5e95e36fa5cbf02b27fdfdbf9"
+        "sha256": "54e3996bb46a6a4a68310b05322e9b2f54644977543b18c7c7b6fe3aeadfe5a3"
       },
       {
         "path": "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php",
@@ -1087,7 +1087,7 @@
       },
       {
         "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php",
-        "sha256": "653808abf5cb294f93c6a11735a791d3f22e970f5613d3c37a3ac88cb69f8429"
+        "sha256": "a6d4e9d50ec4f795ce75e8de52337a5af1afd31244a88222a2a3173c12984cd6"
       },
       {
         "path": "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPResponse.php",
