@@ -22,7 +22,7 @@
       "path": "src/applications/conduit/controller/PhabricatorConduitAPIController.php",
       "symbol": "PhabricatorConduitAPIController",
       "kind": "authentication-boundary",
-      "sha256": "e26ea13a716eec108b271b7243c56d8b1629e89894bfdb24c0c9a1922e0fce6f",
+      "sha256": "bbf41dddf16b9b9ebfbe1ed011a89c975f67fdbf90da92b3facc002d0a69fc4a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -132,7 +132,7 @@
       "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
       "symbol": "PhorgeGovernanceNativeIdentitySource",
       "kind": "candidate-runtime-source",
-      "sha256": "ff09a7fddfc5e4597a856a4e4e1fc5fbc6a246dd04dd838f4f4180ce7d98d693",
+      "sha256": "7b5e9afbb599efcca6928251333136a96468254eeebfb9355fb306ab9b21992c",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -633,7 +633,7 @@
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
-        "sha256": "ff09a7fddfc5e4597a856a4e4e1fc5fbc6a246dd04dd838f4f4180ce7d98d693"
+        "sha256": "7b5e9afbb599efcca6928251333136a96468254eeebfb9355fb306ab9b21992c"
       },
       {
         "path": "src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php",
@@ -726,6 +726,54 @@
       {
         "path": "src/infrastructure/governance/directory/PhorgeGovernanceIsolatedDirectoryStore.php",
         "sha256": "6f6856acce50d4cf56722387fbfc2809f3b2fc3375fad6adf667037ad4852325"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectConfigEpoch.php",
+        "sha256": "65184b6de7f536aa355631c63248a3557cacbecb70509e798acf95d476f092dd"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectConfigEpochScope.php",
+        "sha256": "64d0b0ca41b7fe557a12b5c7df33c3a1c5ad45d001386312e813b3353c7c26c4"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
+        "sha256": "022d8a235027e49ffa2a7c20b63d61f8115625943252cbb300b22c116bcc374f"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigOptions.php",
+        "sha256": "52bc7d9b3cf746d35cd48a75149bdfe5ca8262aa1bfaf79a5002c7a09c502539"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigSource.php",
+        "sha256": "c3d43a0a9f19b42b7828eaa06bcd7a649e50cf72ce9d4bf9f5649381b905f227"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionProducerFence.php",
+        "sha256": "a43057a8a469bf4b260a9ddbfed3125ccfa3b9ac68ad3fd95c107311757d529f"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionValue.php",
+        "sha256": "8850a72ccdb1ac4dae52c0a8312d134bedc5b7d46be2d59542e0d1d45387efc2"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
+        "sha256": "7ab25e4d4ca60496db716a87769b47117f7307df98551cc487a54b6c3e21d135"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
+        "sha256": "d797bd46fbbdccd0e038007ac3f9d848ea45e39279968061187f3d8342286ca9"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalService.php",
+        "sha256": "ad12f19e25bb8b5f1b42fb443ccf9d7c2c0f3cc55e5e8aba4405f59b2a17562a"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
+        "sha256": "1d43be65d20cb08c1749848fdf54d32073920e45e4e07f940756b0845ef33263"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/ProjectPolicyApprovalConduitAPIMethod.php",
+        "sha256": "4a590c7d0aadfdba62f9d1dc2782d62eeb338bbb764f1c5455d9e21ac66dc1f2"
       },
       {
         "path": "src/infrastructure/governance/mapping/PhorgeGovernanceCapabilityMap.php",

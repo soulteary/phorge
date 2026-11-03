@@ -1172,10 +1172,24 @@ abstract class PhabricatorApplicationTransactionEditor
     return $this->transactionGroupID;
   }
 
+  private $projectGovernanceEffectsNonce;
+  private $projectApprovalActorContext;
+  private $projectApprovalID;
+  final public function setProjectApprovalActorContext(PhorgeGovernanceNativeActorContext $context) {
+    $this->projectApprovalActorContext=$context; return $this;
+  }
+  final public function getProjectApprovalActorContext() { return $this->projectApprovalActorContext; }
+  final public function setProjectApprovalID($id) {
+    PhorgeProjectExecutionValue::identifier($id); $this->projectApprovalID=$id; return $this;
+  }
+  final public function getProjectApprovalID() { return $this->projectApprovalID; }
+
   final public function applyTransactions(
     PhabricatorLiskDAO $object,
     array $xactions) {
 
+    $project_scope=PhorgeProjectNativeExecutionScope::beginEditor($this,$object,$xactions);
+    try {
     $is_new = ($object->getID() === null);
     $this->isNewObject = $is_new;
 
@@ -1192,7 +1206,7 @@ abstract class PhabricatorApplicationTransactionEditor
       if (!$is_new) {
         $this->buildOldRecipientLists($object, $xactions);
 
-        $object->openTransaction();
+        if ($project_scope===null) { $object->openTransaction(); }
         $transaction_open = true;
 
         $object->beginReadLocking();
@@ -1278,6 +1292,11 @@ abstract class PhabricatorApplicationTransactionEditor
         $this->hasRequiredMFA = true;
         if ($this->getShouldRequireMFA()) {
           $this->requireMFA($object, $xactions);
+        }
+
+        if ($project_scope!==null) {
+          $this->projectGovernanceEffectsNonce=bin2hex(random_bytes(16));
+          $project_scope->beforeEffects($xactions);
         }
 
         if ($this->shouldApplyInitialEffects($object, $xactions)) {
@@ -1411,8 +1430,10 @@ abstract class PhabricatorApplicationTransactionEditor
         $read_locking = false;
       }
 
+      if ($project_scope!==null) { $project_scope->beforeCommit($xactions); }
       $object->saveTransaction();
       $transaction_open = false;
+      if ($project_scope!==null) { $project_scope->didCommit(); }
 
       $this->didCommitTransactions($object, $xactions);
 
@@ -1563,6 +1584,18 @@ abstract class PhabricatorApplicationTransactionEditor
     }
 
     return $xactions;
+    } finally {
+      if ($project_scope!==null) {
+        // The scope rejects pre-existing locks. Unwind only this invocation's
+        // native read-lock mode on Throwable paths which predate the old catch.
+        try {
+          if (isset($read_locking) && $read_locking) { $object->endReadLocking(); }
+        } finally {
+          try { $project_scope->close(); }
+          finally { $this->projectGovernanceEffectsNonce=null; }
+        }
+      }
+    }
   }
 
   private function queuePublishing() {

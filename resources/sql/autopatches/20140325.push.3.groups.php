@@ -18,7 +18,9 @@ echo pht('Adding transaction log event groups...')."\n";
 
 $logs = queryfx_all(
   $conn_w,
-  'SELECT * FROM %T GROUP BY transactionKey ORDER BY id ASC',
+  'SELECT * FROM %T WHERE id IN '
+  .'(SELECT MIN(id) FROM %T GROUP BY transactionKey) ORDER BY id ASC',
+  'repository_pushlog',
   'repository_pushlog');
 foreach ($logs as $log) {
   $id = $log['id'];

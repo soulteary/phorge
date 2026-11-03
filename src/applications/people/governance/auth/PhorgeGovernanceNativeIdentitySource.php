@@ -11,29 +11,36 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
   public function __debugInfo() { return array('scope' => 'native-current-source'); }
 
   private static function assertConnection(AphrontDatabaseConnection $conn) {
+    $project_scope = class_exists('PhorgeProjectNativeExecutionScope', false) &&
+      PhorgeProjectNativeExecutionScope::isSourceConnection($conn);
     if (get_class($conn) !== AphrontMySQLiDatabaseConnection::class ||
         !$conn->isInsideTransaction() ||
-        $conn !== (new PhabricatorUser())->establishConnection('w') ||
-        $conn !== (new PhabricatorAuthSession())->establishConnection('w') ||
-        $conn !== (new PhabricatorUserTransaction())->establishConnection('w')) {
+        (!$project_scope && ($conn !== (new PhabricatorUser())->establishConnection('w') ||
+          $conn !== (new PhabricatorAuthSession())->establishConnection('w') ||
+          $conn !== (new PhabricatorUserTransaction())->establishConnection('w')))) {
       throw new RuntimeException('governance_same_native_writer_required');
     }
     $tables = array(new PhabricatorUser(), new PhabricatorAuthSession(), new PhabricatorUserTransaction());
     $epoch_table = new PhorgeGovernanceIdentityEpoch();
-    if ($conn !== $epoch_table->establishConnection('w')) {
+    if (!$project_scope && $conn !== $epoch_table->establishConnection('w')) {
       throw new RuntimeException('governance_same_native_writer_required');
     }
+    $epoch_schema = $project_scope
+      ? PhorgeProjectNativeExecutionScope::sourceDatabase($conn, $epoch_table)
+      : queryfx_one($conn, 'SELECT DATABASE() n')['n'];
     queryfx_one($conn, 'SELECT userPHID FROM %R WHERE 1=0 LOCK IN SHARE MODE', $epoch_table);
-    $epoch_engine = queryfx_one($conn, 'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s', $epoch_table->getTableName());
+    $epoch_engine = queryfx_one($conn, 'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s', $epoch_schema, $epoch_table->getTableName());
     if (!$epoch_engine || $epoch_engine['ENGINE'] !== 'InnoDB') {
       throw new RuntimeException('governance_native_transactional_source_required');
     }
     foreach ($tables as $table) {
-      // Current reads acquire MDL before engine inspection, retained by caller txn.
+      $schema = $project_scope
+        ? PhorgeProjectNativeExecutionScope::sourceDatabase($conn, $table)
+        : queryfx_one($conn, 'SELECT DATABASE() n')['n'];
       queryfx_one($conn, 'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE', $table);
       $engine = queryfx_one($conn,
-        'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s',
-        $table->getTableName());
+        'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
+        $schema, $table->getTableName());
       if (!$engine || $engine['ENGINE'] !== 'InnoDB') {
         throw new RuntimeException('governance_native_transactional_source_required');
       }

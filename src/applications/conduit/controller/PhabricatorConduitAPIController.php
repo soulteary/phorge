@@ -398,7 +398,8 @@ final class PhabricatorConduitAPIController
 
       $auth_error = $this->validateAuthenticatedUser($api_request, $user);
       if ($auth_error === null &&
-          PhabricatorEnv::getEnvConfigIfExists('governance.organization.enabled', false) === true &&
+          (PhabricatorEnv::getEnvConfigIfExists('governance.organization.enabled', false) === true ||
+           PhorgeProjectExecutionCatalog::enabled()) &&
           in_array($token->getTokenType(), array(PhabricatorConduitToken::TYPE_STANDARD,
             PhabricatorConduitToken::TYPE_COMMANDLINE), true)) {
         $api_request->attachGovernanceActorContext(

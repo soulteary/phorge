@@ -18,6 +18,12 @@ final class PhabricatorBuiltinPatchList extends PhabricatorSQLPatchList {
 
   public function getPatches() {
     $patches = array();
+    $root = dirname(phutil_get_library_root('phabricator'));
+    $automatic = $this->buildPatchesFromDirectory($root.'/resources/sql/autopatches/');
+    $generation_key = '20261103.project.configepoch.sql';
+    $generation = $automatic[$generation_key];
+    unset($automatic[$generation_key]);
+    $generation['after'] = array('db.config');
 
     foreach ($this->getOldPatches() as $old_name => $old_patch) {
       if (preg_match('/^db\./', $old_name)) {
@@ -35,11 +41,15 @@ final class PhabricatorBuiltinPatchList extends PhabricatorSQLPatchList {
       }
 
       $patches[$old_name] = $old_patch;
+      if ($old_name === 'db.config') {
+        // Native historical PHP patches call ConfigEntry producers. Install
+        // their always-on generation dependency as soon as the Config DB
+        // exists, including fresh --no-quickstart and normal upgrades.
+        $patches[$generation_key] = $generation;
+      }
     }
 
-    $root = dirname(phutil_get_library_root('phabricator'));
-    $auto_root = $root.'/resources/sql/autopatches/';
-    $patches += $this->buildPatchesFromDirectory($auto_root);
+    $patches += $automatic;
 
     return $patches;
   }

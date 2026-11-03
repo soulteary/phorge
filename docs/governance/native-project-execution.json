@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "feature_default": false,
+  "activation_recommended": false,
+  "scope": "Incremental native Project execution profile; not complete AUTH-NATIVE-07 or governance activation",
+  "supported_profiles": [
+    {
+      "id": "project.edit-policy.flat-root.v1",
+      "native_operations": [
+        "one edit-policy transaction"
+      ],
+      "target": "existing active default-subtype flat-root Project",
+      "policies": [
+        "native primitive policies",
+        "direct-user policies"
+      ],
+      "approval": "independent current system administrator with native VIEW; executor still needs native VIEW and EDIT",
+      "atomic_boundary": "ticket consumption, Project mutation, native transaction record and audit on the same Project writer"
+    },
+    {
+      "id": "project.self-membership.flat-root.v1",
+      "native_operations": [
+        "self-join",
+        "self-leave"
+      ],
+      "approval": "none; retain native JOIN or EDIT eligibility",
+      "atomic_boundary": "exact direct13/inverse14/derived60 writes on verified same-primary Project writer"
+    }
+  ],
+  "runtime_entrypoints": {
+    "web_edit": "PhabricatorEditEngine::buildResponse / PhabricatorApplicationTransactionEditor::applyTransactions",
+    "api_edit": "PhabricatorEditEngineAPIMethod / PhabricatorApplicationTransactionEditor::applyTransactions",
+    "ticket_web": "PhorgeProjectPolicyApprovalController",
+    "ticket_api": "ProjectPolicyApprovalConduitAPIMethod (native API token only)",
+    "raw_edges": "PhabricatorEdgeEditor::save before writeEdgeData",
+    "materialization": "PhabricatorProjectsMembershipIndexEngineExtension",
+    "direct_policy_save": "PhabricatorProject::save"
+  },
+  "source_fences": [
+    "fresh native account/session or API token/security generations",
+    "current Project/Space and flat child-index range",
+    "direct and derived membership consistency",
+    "16 fixed native ConfigEntry values and monotonic epochs",
+    "Herald rule and firehose webhook primary-key ranges"
+  ],
+  "credential_modes": {
+    "web_session": "supported fixed native credential binding",
+    "native_api_token": "supported fixed native token binding",
+    "oauth_legacy_or_unknown": "unsupported; no viewer-only fallback"
+  },
+  "mandatory_migration": {
+    "patch": "20261103.project.configepoch.sql",
+    "order": "immediately after db.config, before historical ConfigEntry writers",
+    "always_on": true,
+    "missing_table_or_row": "fail closed; no runtime DDL or revision-zero fallback",
+    "optional_feature_off": "generation increments still persist"
+  },
+  "evidence_boundaries": [
+    "Configured TOTP challenge/token/replay and rollback exercised in owned native fixture; not every factor type or browser enrollment.",
+    "Focused MariaDB evidence applies to always-on config and legacy-role metadata paths only; optional bridge remains MySQL same-primary profile.",
+    "Both formal default and no-quickstart bootstraps exercised; arbitrary historical external archives are not certified.",
+    "Native postcommit and completed authentication challenge effects are outside the main Project transaction.",
+    "SQL queue fixture evidence does not replace paired Gorge publication or trusted-domain browser acceptance."
+  ],
+  "remaining_blocked": [
+    "administrator-driven membership changes",
+    "subprojects and milestones",
+    "named/custom policy execution profile",
+    "view/join/Space policy mutations",
+    "mixed batches and support expansion",
+    "other native object families",
+    "physical SQL and whole-database restore/issuer-generation recovery",
+    "production activation and all-source closure"
+  ],
+  "permission_axes": "native visibility/edit/member/historical-edge semantics retained"
+}

@@ -2205,6 +2205,11 @@ abstract class PhabricatorEditEngine
       $editor->setContinueOnMissingFields(true);
     }
 
+    if (PhorgeProjectExecutionCatalog::decide($editor,$object,$xactions)!=='native') {
+      // Only the successful native API-token auth branch attaches this context.
+      $editor->setProjectApprovalActorContext($request->getGovernanceActorContext())
+        ->setProjectApprovalID($request->getValue('governanceApprovalID'));
+    }
     $xactions = $editor->applyTransactions($object, $xactions);
 
     $xactions_struct = array();

@@ -23,9 +23,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 530, 'restore_phase_workers_started': 0,
+            'current_table_count': 534, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1566, 'applied_patch_count': 1566, 'pending_patch_keys': [],
+                'source_patch_count': 1568, 'applied_patch_count': 1568, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
