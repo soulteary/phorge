@@ -42,3 +42,15 @@ is invented. No production source differs from the root union.
 This does not prove HTTP Conduit gateway routing, the Go worker daemon, SMTP,
 legacy SQL/Gorge failover, or cross-schema atomic commit. Existing SQL-profile and
 physical-mail evidence remain independent and cannot certify this new source.
+
+## Intermediate native creation envelope correction
+
+The successor now includes the genuine core:create transaction emitted by native
+Web and Conduit create paths. Three additional Project checks require exactly one
+visible create event, exactly two hidden initial name/description fields, and no
+other visible transaction. Nonzero safe mail and independently stored description
+remain mandatory. This adds three source obligations to the frozen bcf component:
+215 pure / 761 SQL, unrun. The analogous root SQL-profile creation correction is
+not yet merged into this intermediate checkpoint. It is not a runtime-ready main
+union and must not be accepted until that root delta and its three mandatory
+checks are explicitly integrated and the final set is recomputed and run.

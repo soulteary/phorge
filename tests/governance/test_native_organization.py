@@ -323,13 +323,21 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),758)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),761)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
                 gate.validate(data,file_digest='b'*64)
         data=template();data['worker_cleanup']['workers_registered']=21
         data['worker_cleanup']['private_directories_removed']=21
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_gorge_native_project_create_visibility_is_required(self):
+        for name in gate.BUSINESS_GORGE_CREATE_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        data=template();data['native']['private_mail_tests']['business_gorge_publication_tests']['actual_native_project_create_envelope_verified']=False
         with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
 
     def test_gorge_publication_requires_real_lifecycle_and_bounded_scope(self):

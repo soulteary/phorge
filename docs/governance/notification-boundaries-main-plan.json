@@ -1,11 +1,11 @@
 {
   "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
-  "version": 5,
+  "version": 6,
   "base": "dd1c23e1bc248ad1cf89c5c90fccaafc0a849a43",
-  "status": "current-main98-plus-real-gorge-publication-source-prepared-runtime-unproven",
+  "status": "intermediate-gorge-native-create-source-awaiting-root-sql-create-union-not-runtime-ready",
   "new_runtime_obligation_not_actual": {
     "pure": 215,
-    "native_sql": 758,
+    "native_sql": 761,
     "registered_native_workers": 25,
     "additional_locally_owned_business_php_processes": 20,
     "business_process_profiles": {
@@ -44,14 +44,16 @@
       "child_native_mail_queue": "Reuses the actual enclosing owned taskqueue; each private child verifies authenticated HTTP before native publication. Not evidence of a Gorge application-worker profile or physical SMTP."
     },
     "business_gorge": {
-      "checks": 18,
+      "checks": 21,
       "source_checkpoint": "cf313babcd67da4fd3f41d042a72281fe900de89",
       "queue_profile": "actual native AppEditor HTTP enqueue, bounded service lease, actual independent Conduit handler, fenced finalize/resolve",
       "native_project_description_stored_read_required": true,
       "daemon_or_http_gateway_proved": false,
       "smtp_proved": false,
       "permanent_source_denial_automatically_retried": false,
-      "actual_runtime_passed": false
+      "actual_runtime_passed": false,
+      "actual_native_create_visibility_required": true,
+      "root_SQL_create_fix_integrated": false
     }
   },
   "union_deltas_from_frozen_components": [
@@ -64,13 +66,14 @@
   "activation_blocked": true,
   "main_union_runtime_passed": false,
   "remaining": [
-    "Actual215/758 against this exact stronger union with full runtime hashes and cleanup",
+    "BLOCKING: explicitly merge the root SQL native core:create envelope and its three mandatory checks before any combined acceptance. This intermediate source is not runtime-ready.",
+    "Actual215/761 against this exact stronger union with full runtime hashes and cleanup",
     "Actual Legalpad controller/default-handler500 and fullHTTP exception path; service-only proof does not close activation",
     "Any normal business outer-transaction publication failure requires supported-caller closure, not accepted data loss or an automatic-retry claim",
     "Actual paired Gorge queue business publication lifecycle",
     "Legalpad SMTP and trusted browser acceptance",
     "LastVIEW-to-COMMIT remains the accepted native request boundary, not global atomicity",
-    "Current main96 is explicitly merged; fresh215/758 proof and exact runtime/source match remain required",
+    "Current main96 is explicitly merged; fresh215/761 proof and exact runtime/source match remain required",
     "Physical CI must use the215 registered pure methods; final-head runtime evidence remains mandatory.",
     "Actual new Gorge profile remains pending; the 64-task class-filter lease budget is a hard refusal, not a skipped case."
   ],
@@ -91,7 +94,7 @@
     "production_Legalpad_hardening_included": true,
     "core_size_and_invitation_fixes_preserved": true,
     "recovery_source_observations": "Retain all main98 account/web source capture code and mandatory evidence; all-source recovery and execution remain false.",
-    "added_Gorge_SQL": 18
+    "added_Gorge_SQL": 21
   },
   "production_change_scope": "Existing explicitly approved Legalpad endpoint hardening plus its mail policy binding, integrated with current main; strengthened race/publication additions remain test-only.",
   "historical_component_evidence": {

@@ -41,7 +41,9 @@ function governance_private_mail_business_gorge_cases($fixture,callable $check,a
         ->setMetadataValue('customfield:key',$field->getFieldKey())
         ->setOldValue($field->getOldValueForApplicationTransactions())->setNewValue('SYNTHETIC_PRIVATE_BUSINESS_COMMENT');
     }
-    $changes=array($name,$content);
+    // Native Web and Conduit creation both emit this real core transaction.
+    $create=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_CREATE);
+    $changes=array($create,$name,$content);
     if($family==='task'){$changes[]=(clone $tx)->setTransactionType(PhabricatorTransactions::TYPE_SUBSCRIBERS)
       ->setNewValue(array('+'=>array_fuse(array($users['subscriber']->getPHID()))));}
     $last=(int)queryfx_one($tasks->establishConnection('r'),'SELECT COALESCE(MAX(id),0) n FROM %R',$tasks)['n'];
@@ -53,9 +55,21 @@ function governance_private_mail_business_gorge_cases($fixture,callable $check,a
       $profiler->addListener(static function($phase,$id,$event)use(&$enqueue_calls,$queue){
         if($phase==='end'&&($event['type']??null)==='http'&&($event['uri']??null)===$queue['uri'].'/api/queue/enqueue'){$enqueue_calls++;}
       });
-      try{$object->getApplicationTransactionEditor()->setActor($auth['viewer'])->setContentSourceFromRequest($auth['request'])
+      try{$applied=$object->getApplicationTransactionEditor()->setActor($auth['viewer'])->setContentSourceFromRequest($auth['request'])
         ->setIsSilent(false)->applyTransactions($object,$changes);
       }finally{$listeners->setValue($profiler,$prior_listeners);}
+      if($family==='project'){
+        $creates=0;$visible_creates=0;$fields=0;$hidden_fields=0;$visible_total=0;
+        foreach($applied as$applied_transaction){
+          $type=$applied_transaction->getTransactionType();$hidden=$applied_transaction->shouldHideForMail($applied);
+          if(!$hidden){$visible_total++;}
+          if($type===PhabricatorTransactions::TYPE_CREATE){$creates++;if(!$hidden){$visible_creates++;}}
+          if(in_array($type,array(PhabricatorProjectNameTransaction::TRANSACTIONTYPE,PhabricatorTransactions::TYPE_CUSTOMFIELD),true)){
+            $fields++;if($applied_transaction->getIsCreateTransaction()&&$hidden){$hidden_fields++;}}
+        }
+        $check($creates===1&&$visible_creates===1&&$visible_total===1&&$fields===2&&$hidden_fields===2,
+          'private-business-gorge-project-'.$ending.'-actual-native-create-envelope-visible-initial-fields-hidden');
+      }
       $queued=$tasks->loadAllWhere('id>%d AND taskClass=%s AND objectPHID=%s',$last,'PhabricatorApplicationTransactionPublishWorker',$object->getPHID());
       if(count($queued)!==1){throw new RuntimeException('business_gorge_enqueue_cardinality');}$task=head($queued);
       $remote=(new PhabricatorGorgeTaskQueueClient())->getTask($task->getID());
@@ -104,7 +118,7 @@ function governance_private_mail_business_gorge_cases($fixture,callable $check,a
       $samples[$family][$ending]=array('handler_result'=>$result['handler_result'],'mail_envelopes'=>count($result['envelopes']));
     }finally{if($connection->isInsideTransaction()){$connection->killTransaction();}}
   }}
-  return array('actual_native_editor_http_enqueue'=>true,'actual_service_leases_and_fenced_outcomes'=>true,
+  return array('actual_native_project_create_envelope_verified'=>true,'actual_native_editor_http_enqueue'=>true,'actual_service_leases_and_fenced_outcomes'=>true,
     'actual_native_conduit_handler'=>true,'worker_execute_http_gateway_proved'=>false,'gorge_worker_daemon_proved'=>false,
     'explicit_yield_retry_proved'=>true,'permanent_source_denial_automatically_retried'=>false,
     'physical_smtp_proved'=>false,'samples'=>$samples,'independent_php_workers_executed'=>$processes,

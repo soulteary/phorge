@@ -1152,6 +1152,13 @@ NATIVE['private_mail_tests']['business_gorge_publication_tests'] = {'actual_nati
                       'outer-rollback': {'handler_result': 'permanent-failure', 'mail_envelopes': 0}}},
  'worker_execute_http_gateway_proved': False}
 
+BUSINESS_GORGE_CREATE_CHECKS = frozenset([
+ 'private-business-gorge-project-normal-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-gorge-project-outer-commit-actual-native-create-envelope-visible-initial-fields-hidden',
+ 'private-business-gorge-project-outer-rollback-actual-native-create-envelope-visible-initial-fields-hidden'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | BUSINESS_GORGE_CREATE_CHECKS
+NATIVE['private_mail_tests']['business_gorge_publication_tests']['actual_native_project_create_envelope_verified'] = True
+
 def validate(data, root=ROOT, file_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
