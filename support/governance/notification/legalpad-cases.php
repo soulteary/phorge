@@ -84,6 +84,11 @@ function governance_private_mail_legalpad_cases($fixture,callable $check){
     $auth['signer']=governance_private_mail_legalpad_boundary_cases($fixture,$check,array('document'=>$doc,'signature'=>$signature,
       'alias'=>$alias,'signer_auth'=>$auth['signer'],'sessions'=>$sessions,'call'=>$call,'signer'=>$users['signer'],
       'last_html'=>static function()use(&$last_html){return$last_html;}));
+    require_once __DIR__.'/legalpad-policy-cases.php';
+    $policy_tests=governance_private_mail_legalpad_policy_cases($fixture,$check,array('document'=>$doc,'signature'=>$signature,
+      'signer_auth'=>$auth['signer'],'author_auth'=>$auth['author'],'call'=>$call));
+    require_once __DIR__.'/legalpad-inflight-cases.php';
+    $inflight=governance_private_mail_legalpad_inflight_cases($fixture,$check,array('document'=>$doc,'signature'=>$signature,'signer_auth'=>$auth['signer'],'call'=>$call));
     require_once __DIR__.'/legalpad-concurrency-cases.php';
     $concurrency=governance_private_mail_legalpad_concurrency_cases($fixture,$check,array('signature'=>$signature,'auth'=>$auth['signer']));
     $csrf=AphrontRequest::getCSRFTokenName();$confirmed=$call($auth['signer'],$path,'POST',array('__form__'=>true,$csrf=>$auth['signer']['viewer']->getCSRFToken()));
@@ -93,6 +98,6 @@ function governance_private_mail_legalpad_cases($fixture,callable $check){
       'private-mail-legalpad-after-concurrent-cas-sequential-repeat-keeps-state-and-corporate-null-signer');
     return array('actual_corporate_sign_and_verification_routes'=>true,'verified_secondary_contact_supported'=>true,
       'anonymous_raw_or_third_party_adoption_supported'=>false,'current_view_and_identity_rechecked'=>true,
-      'configured_mfa_factor_proved'=>false,'concurrent_process_verification_proved'=>true,'concurrency'=>$concurrency,'physical_smtp_legalpad_proved'=>false);
+      'configured_mfa_factor_proved'=>false,'concurrent_process_verification_proved'=>true,'policy_source_tests'=>$policy_tests,'inflight_source_tests'=>$inflight,'concurrency'=>$concurrency,'physical_smtp_legalpad_proved'=>false);
   }finally{$_COOKIE=$cookie;$_SERVER=$server;$_POST=$post;(new ReflectionProperty(PhabricatorCaches::class,'requestCache'))->setValue(null,$cache);}
 }

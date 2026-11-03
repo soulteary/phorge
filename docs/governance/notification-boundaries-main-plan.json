@@ -1,0 +1,59 @@
+{
+  "plan": "NOTIFICATION-BOUNDARIES-MAIN-001",
+  "version": 1,
+  "base": "2c841c2c9acdc3cb1716424072024f362f366e71",
+  "status": "host-validated-awaiting-matching-main-runtime",
+  "prior_main_evidence": {
+    "pure": 202,
+    "native_sql": 647,
+    "applies_only_to_base": true
+  },
+  "new_runtime_obligation_not_actual": {
+    "pure": 202,
+    "native_sql": 665,
+    "registered_native_workers": 23,
+    "additional_locally_owned_business_php_processes": 10
+  },
+  "production_source_changes": false,
+  "current_cli_and_schema_and_migrations_preserved": true,
+  "preserved_source_scopes": [
+    "Native project four axes unchanged; no new permission inheritance",
+    "Existing main N05/organization/Media/Legalpad/SourcePending/header compatibility retained",
+    "Existing anonymous/CSRF/MFA/session semantics untouched by these fixture-only additions",
+    "Production candidates default off; no deployment or migration"
+  ],
+  "new_obligations": {
+    "legalpad": {
+      "checks": 6,
+      "project_membership_and_named_policy_new_request": true,
+      "real_secret_and_version_inflight_waits": true,
+      "last_view_to_commit_global_atomicity_proved": false,
+      "document_space_policy_invented": false
+    },
+    "business": {
+      "checks": 12,
+      "queue_profile": "native SQL queue only",
+      "native_task_and_project_publish_workers": true,
+      "retained_outer_source_transaction_diagnostic": true,
+      "diagnostic_reexecution_is_daemon_retry": false,
+      "mail_recipient_count": "Task owner and subscriber required; optional author yields 2..3 envelopes. Project has one actor envelope.",
+      "paired_gorge_queue_scope_proved": false,
+      "smtp_proved": false
+    }
+  },
+  "union_deltas_from_frozen_components": [
+    "Business helper reports observed subprocess and owned-directory cleanup counts in its safe summary; this does not change its test flow.",
+    "Strict mandatory checks add all eighteen IDs, exact typed source/concurrency/scope flags, registered worker total23, and ten separately owned business process cleanups.",
+    "Only Task positive envelope count permits the explicit bounded native self-mail alternative2..3; all other fields are exact.",
+    "Current N00 production-source inventory and current CLI are retained without scan refresh or exclusions."
+  ],
+  "activation_blocked": true,
+  "main_union_runtime_passed": false,
+  "remaining": [
+    "Actual202/665 against this exact union with full runtime/source/resource hashes and cleanup",
+    "Any normal business outer-transaction publication failure is diagnostic evidence requiring supported-caller closure, not accepted data loss or proof of automatic retry",
+    "Actual paired Gorge queue publication lifecycle for this business timing profile",
+    "Legalpad SMTP and trusted browser acceptance",
+    "Last VIEW read to COMMIT remains the accepted native request boundary, not global source atomicity"
+  ]
+}

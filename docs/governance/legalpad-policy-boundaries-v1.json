@@ -1,0 +1,38 @@
+{
+  "document": "LEGALPAD-POLICY-BOUNDARIES-001",
+  "version": 1,
+  "base_checkpoint": "873ff8d8b5d83f10a290c7c46d7f8e137832008c",
+  "status": "prepared-host-only-awaiting-supported-runtime",
+  "production_verifier_source_changed": false,
+  "production_optional_features_enabled": false,
+  "prepared_cases": [
+    "Actual Project editor creates native membership and materialized source; saved native Projects rule permits the signer in a new authenticated verification request.",
+    "Actual native membership removal denies a new verification request and mail source lookup; re-add is a genuine positive control.",
+    "Actual named policy resolves to the native rule; changing its effective policy to no-one denies a new request and mail source lookup; restoring it permits a new request.",
+    "Independent PHP verifier waits on the actual signature row lock; the owning setup transaction rotates the real secret and commits; stale consumption is refused, current-secret GET remains valid.",
+    "Independent PHP verifier waits on the actual document row lock; the owning setup transaction advances the real document version and commits; old-version consumption is refused and the new request also rejects that stale signature."
+  ],
+  "declared_additional_checks_not_actual": 6,
+  "native_semantics": {
+    "project_membership": "Retained native ProjectTransactionEditor plus actual materialized member edge, not a caller authorization boolean or synthetic policy evaluator.",
+    "project_candidate_model": "Disabled only in the isolated membership setup scope; document authorization still uses the actual viewer native query and native rule.",
+    "named_policy": "Actual native saved named/effective policy rows queried by the document policy engine.",
+    "document_space": "LegalpadDocument does not implement SpacesInterface. No document Space ACL is added or claimed.",
+    "freshness": "Each verification request and final verifier permission check has a private fresh request cache and actual viewer document query. Project/named dependencies are not all locked by the verifier.",
+    "atomicity_limit": "These cases prove only their observed timing profiles. They do not prove global atomic revocation between the final VIEW read and COMMIT. The accepted native request boundary is retained; no stronger permission model is introduced."
+  },
+  "concurrency_proof_required": [
+    "Independent exec-created PHP process with genuine native web session, native CSRF and unchanged verifier.",
+    "Actual worker SQL and performance_schema lock wait identify the exact held signature/document table and setup connection before mutation.",
+    "Only exact PhorgeLegalpadVerificationException is mapped to the fixed expected refusal; arbitrary SQL/type/source exceptions remain failed.",
+    "Signature remains unverified and stored actor/contact data unchanged; every process and private file is cleaned and temporary source mutations restored."
+  ],
+  "not_proved": [
+    "Supported PHP/MySQL execution of these six cases",
+    "Revocation after the last VIEW read but before COMMIT",
+    "All transitive or plugin policy source atomic closure",
+    "Latest-main integration, Legalpad SMTP, trusted browser acceptance or production activation"
+  ],
+  "new_public_domains": false,
+  "online_permission_migration": false
+}

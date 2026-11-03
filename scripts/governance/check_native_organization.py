@@ -931,6 +931,77 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset(['private-mail-attempt-quarantine-
  'private-mail-unprepared-authorization-probe-does-not-quarantine'])
 
 
+# Host-prepared successor obligations; a matching runtime receipt is mandatory.
+NOTIFICATION_BOUNDARY_CHECKS = frozenset(['private-business-project-normal-actual-publisher-current-source-and-isolated-native-recipient-envelopes',
+ 'private-business-project-outer-commit-actual-publisher-current-source-and-isolated-native-recipient-envelopes',
+ 'private-business-project-outer-commit-independent-actual-worker-before-outer-commit-missing-source-not-mail-quarantine',
+ 'private-business-project-outer-rollback-independent-actual-worker-before-outer-commit-missing-source-not-mail-quarantine',
+ 'private-business-project-outer-rollback-orphan-worker-cannot-create-mail',
+ 'private-business-task-normal-actual-publisher-current-source-and-isolated-native-recipient-envelopes',
+ 'private-business-task-normal-fanout-current-native-owner-automatic-and-revoked-subscriber-are-independent',
+ 'private-business-task-outer-commit-actual-publisher-current-source-and-isolated-native-recipient-envelopes',
+ 'private-business-task-outer-commit-fanout-current-native-owner-automatic-and-revoked-subscriber-are-independent',
+ 'private-business-task-outer-commit-independent-actual-worker-before-outer-commit-missing-source-not-mail-quarantine',
+ 'private-business-task-outer-rollback-independent-actual-worker-before-outer-commit-missing-source-not-mail-quarantine',
+ 'private-business-task-outer-rollback-orphan-worker-cannot-create-mail',
+ 'private-mail-legalpad-actual-named-effective-policy-change-rechecks-new-request-with-native-positive-controls',
+ 'private-mail-legalpad-actual-project-membership-policy-allows-current-signer-new-request',
+ 'private-mail-legalpad-native-project-membership-revocation-denies-new-request-and-mail-source',
+ 'private-mail-legalpad-project-membership-restoration-is-real-native-positive-control',
+ 'private-mail-legalpad-real-inflight-secret-change-after-independent-source-lock-wait-refuses-stale-consumption',
+ 'private-mail-legalpad-real-inflight-version-change-after-independent-source-lock-wait-refuses-stale-consumption'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | NOTIFICATION_BOUNDARY_CHECKS
+WORKERS = 23  # Two additional registered Legalpad in-flight exec workers.
+NATIVE['private_mail_tests']['legalpad_tests']['policy_source_tests'] = {'actual_named_effective_policy': True,
+ 'actual_project_membership_editor_and_materialized_source': True,
+ 'all_policy_sources_atomically_locked': False,
+ 'document_space_acl_invented': False,
+ 'new_request_revocation_checked': True}
+NATIVE['private_mail_tests']['legalpad_tests']['inflight_source_tests'] = {'actual_independent_source_mutation_cases': {'secret': {'actual_lock_wait': True,
+                                                         'independent_process': True,
+                                                         'stale_consumption_refused': True},
+                                              'version': {'actual_lock_wait': True,
+                                                          'independent_process': True,
+                                                          'stale_consumption_refused': True}},
+ 'document_space_acl_invented': False,
+ 'last_view_to_commit_global_atomicity_proved': False,
+ 'production_source_changed': False}
+NATIVE['private_mail_tests']['business_publication_tests'] = {'actual_native_sql_queue_profile': True,
+ 'actual_task_and_project_editors': True,
+ 'independent_php_workers_executed': 10,
+ 'live_processes_after_cleanup': 0,
+ 'manual_diagnostic_reexecution_is_daemon_retry': False,
+ 'paired_gorge_queue_profile_proved': False,
+ 'physical_smtp_proved': False,
+ 'private_directories_remaining': 0,
+ 'private_directories_removed': 10,
+ 'production_permission_flags_changed': False,
+ 'samples': {'project': {'normal': {'postcompletion_mail_envelopes': 1,
+                                    'postcompletion_source_visible': True,
+                                    'precompletion_native_permanent_failure': False,
+                                    'precompletion_source_visible': True},
+                         'outer-commit': {'postcompletion_mail_envelopes': 1,
+                                          'postcompletion_source_visible': True,
+                                          'precompletion_native_permanent_failure': True,
+                                          'precompletion_source_visible': False},
+                         'outer-rollback': {'postcompletion_mail_envelopes': 0,
+                                            'postcompletion_source_visible': False,
+                                            'precompletion_native_permanent_failure': True,
+                                            'precompletion_source_visible': False}},
+             'task': {'normal': {'postcompletion_mail_envelopes': 2,
+                                 'postcompletion_source_visible': True,
+                                 'precompletion_native_permanent_failure': False,
+                                 'precompletion_source_visible': True},
+                      'outer-commit': {'postcompletion_mail_envelopes': 2,
+                                       'postcompletion_source_visible': True,
+                                       'precompletion_native_permanent_failure': True,
+                                       'precompletion_source_visible': False},
+                      'outer-rollback': {'postcompletion_mail_envelopes': 0,
+                                         'postcompletion_source_visible': False,
+                                         'precompletion_native_permanent_failure': True,
+                                         'precompletion_source_visible': False}}}}
+
+
 def validate_restore(value, root):
     fields = {'quickstart_sha256', 'app_schema_count', 'owned_schema_count',
         'quickstart_source_table_count', 'current_table_count', 'patch_audit',
@@ -975,6 +1046,27 @@ def validate(data, root=ROOT, file_digest=None):
     expected_native['http_tests']=dict(NATIVE['http_tests'])
     expected_native['http_tests']['file_guard_tests']=dict(NATIVE['http_tests']['file_guard_tests'])
     expected_native['http_tests']['file_guard_tests']['image_tests']=dict(NATIVE['http_tests']['file_guard_tests']['image_tests'],backend_revision_sha256=revision)
+    # Native self-mail preferences may omit the author, but both independent
+    # Task owner/subscriber envelopes are required. Accept only the bounded
+    # actual count (2 or 3); every other summary field remains exact and typed.
+    private_mail=native.get('private_mail_tests')
+    if type(private_mail) is not dict or type(private_mail.get('business_publication_tests')) is not dict:
+        raise ValueError('native business publication summary refused')
+    actual_business=private_mail['business_publication_tests']
+    if type(actual_business.get('samples')) is not dict:
+        raise ValueError('native business publication samples refused')
+    expected_business=json.loads(json.dumps(NATIVE['private_mail_tests']['business_publication_tests']))
+    for family in ('task','project'):
+        for ending in ('normal','outer-commit','outer-rollback'):
+            family_samples=actual_business['samples'].get(family)
+            if type(family_samples) is not dict or type(family_samples.get(ending)) is not dict:
+                raise ValueError('native business publication sample refused')
+            count=family_samples[ending].get('postcompletion_mail_envelopes')
+            low,high=(0,0) if ending=='outer-rollback' else ((2,3) if family=='task' else (1,1))
+            if type(count) is not int or not low <= count <= high:
+                raise ValueError('native business publication envelope count refused')
+            expected_business['samples'][family][ending]['postcompletion_mail_envelopes']=count
+    expected_native['private_mail_tests']=dict(NATIVE['private_mail_tests'],business_publication_tests=expected_business)
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',

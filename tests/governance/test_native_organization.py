@@ -261,3 +261,46 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                 self.assertNotEqual(result.returncode,0)
                 self.assertEqual(result.stdout,'')
                 self.assertNotIn('synthetic-private-canary',result.stderr)
+
+    def test_all_eighteen_successor_checks_are_mandatory(self):
+        self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),18)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),665)
+        for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):
+                gate.validate(data,file_digest='b'*64)
+        data=template();data['worker_cleanup']['workers_registered']=21
+        data['worker_cleanup']['private_directories_removed']=21
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+
+    def test_business_summary_scope_counts_and_cleanup_cannot_be_upgraded(self):
+        path=('private_mail_tests','business_publication_tests')
+        for key,value in [('paired_gorge_queue_profile_proved',True),
+                          ('manual_diagnostic_reexecution_is_daemon_retry',True),
+                          ('physical_smtp_proved',True),('independent_php_workers_executed',9),
+                          ('private_directories_removed',9),('private_directories_remaining',1),
+                          ('live_processes_after_cleanup',1)]:
+            data=template();data['native'][path[0]][path[1]][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for invalid in (None,[], 'synthetic-private-canary'):
+            data=template();data['native'][path[0]][path[1]]=invalid
+            with self.subTest(invalid=invalid),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for family,ending,values in [('task','normal',[True,0,1,4]),
+                                     ('project','normal',[True,0,2]),
+                                     ('task','outer-rollback',[True,1])]:
+            for value in values:
+                data=template();data['native'][path[0]][path[1]]['samples'][family][ending]['postcompletion_mail_envelopes']=value
+                with self.subTest(family=family,value=value),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();data['native'][path[0]][path[1]]['samples']['task']['normal']['postcompletion_mail_envelopes']=3
+        gate.validate(data,file_digest='b'*64)
+
+    def test_legalpad_transitive_and_inflight_obligations_remain_native_bounded(self):
+        for section,key,value in [('policy_source_tests','actual_named_effective_policy',False),
+                                  ('policy_source_tests','all_policy_sources_atomically_locked',True),
+                                  ('policy_source_tests','document_space_acl_invented',True),
+                                  ('inflight_source_tests','last_view_to_commit_global_atomicity_proved',True)]:
+            data=template();data['native']['private_mail_tests']['legalpad_tests'][section][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        for kind in ('secret','version'):
+            data=template();data['native']['private_mail_tests']['legalpad_tests']['inflight_source_tests']['actual_independent_source_mutation_cases'][kind]['actual_lock_wait']=False
+            with self.subTest(kind=kind),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)

@@ -194,6 +194,9 @@ try {
     preg_match('/\A(?:organization|governance|media)_[a-z_]+\z/',$error->getMessage());
   $result=$expected?array('status'=>'rejected','reason'=>$error->getMessage()):
     array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
+  if(($kind??null)==='legalpad.verify'&&get_class($error)===PhorgeLegalpadVerificationException::class){
+    $result=array('status'=>'rejected','reason'=>'governance_legalpad_verification_refused');
+  }
 } finally {
   try {
     if (class_exists('LiskDAO',false)) {
