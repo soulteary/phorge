@@ -264,6 +264,13 @@ final class PhabricatorAuthSSHKeyEditor
     // so force delivery. In particular, this mail should still be delivered
     // even if "self mail" is disabled.
     $mail->setForceDelivery(true);
+    if(PhorgePrivateMailPolicy::enabled() && get_class($object->getObject())===PhabricatorUser::class){
+      $owner=$object->getObject();$email=$owner->loadPrimaryEmail();
+      if($email){$mail->setPrivateMailFlow('account.ssh',
+        PhorgePrivateMailPolicy::userBinding($owner,$owner,$email,null,$object->getPHID()));}
+      // Without a destination, leave the optional notice unbound: the delivery
+      // policy rejects it, while the underlying SSH-key mutation can commit.
+    }
 
     return $mail;
   }

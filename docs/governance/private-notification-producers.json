@@ -9,36 +9,36 @@
     {
       "path": "src/applications/auth/controller/PhabricatorAuthRegisterController.php",
       "symbol": "PhabricatorAuthRegisterController",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
-      "sha256": "01f9e1a73bcebab78fca603f2e84cb49248f3a6a39506a7262d2925767b15610",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "c66ba8947af4800ed897e09a3b5a34175115b9d4e3a3fda4d68162817d53b8d0",
       "runtime_matrix_complete": false
     },
     {
       "path": "src/applications/auth/controller/contact/PhabricatorAuthContactNumberTestController.php",
       "symbol": "PhabricatorAuthContactNumberTestController",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
+      "purpose_review": "sms-outside-email-policy",
       "sha256": "6ed9258057f234fa59695a1efacbdb6e806eab0787bf9187d47d13d2ce1ee8c1",
       "runtime_matrix_complete": false
     },
     {
       "path": "src/applications/auth/editor/PhabricatorAuthSSHKeyEditor.php",
       "symbol": "PhabricatorAuthSSHKeyEditor",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
-      "sha256": "ab24e5391c260423d44601468eedc889ad9caea59ba44b38e594872b7f97861c",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "e260afa7c829f1c41d0c752144e567542eec6f4ffd4ad0616dedfd2dbcbbccac",
       "runtime_matrix_complete": false
     },
     {
       "path": "src/applications/auth/factor/PhabricatorSMSAuthFactor.php",
       "symbol": "PhabricatorSMSAuthFactor",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
+      "purpose_review": "sms-outside-email-policy",
       "sha256": "3e3e477f48c29322ef334615494455f12a6ab5c2c834427707dfae3ada117a69",
       "runtime_matrix_complete": false
     },
     {
       "path": "src/applications/auth/worker/PhabricatorAuthInviteWorker.php",
       "symbol": "PhabricatorAuthInviteWorker",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
-      "sha256": "980e76175dbda88ce349ac88f9368ae08194ba916c1646a9354ceceebe197c4e",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "3b9a6512feba679aa8b4aa98649830d57cb17e5c52fe181a7f721465ebe60122",
       "runtime_matrix_complete": false
     },
     {
@@ -100,7 +100,7 @@
     {
       "path": "src/applications/legalpad/controller/LegalpadDocumentSignController.php",
       "symbol": "LegalpadDocumentSignController",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
+      "purpose_review": "unsupported-signature-hard-refusal",
       "sha256": "5ef8515bf973098b88f89d54ac9495e3f7d3e95d24560df5cfca9a1414fb9296",
       "runtime_matrix_complete": false
     },
@@ -142,36 +142,36 @@
     {
       "path": "src/applications/people/mail/PhabricatorPeopleEmailLoginMailEngine.php",
       "symbol": "PhabricatorPeopleEmailLoginMailEngine",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
+      "purpose_review": "per-flow-native-security-source-binding-required",
       "sha256": "250b6d270eca51553351b9a4b0dcd1dec3949c6de78ac8e43c429a6044fa84d0",
       "runtime_matrix_complete": false
     },
     {
       "path": "src/applications/people/mail/PhabricatorPeopleUsernameMailEngine.php",
       "symbol": "PhabricatorPeopleUsernameMailEngine",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
-      "sha256": "51466b1dbb0c91caf91880a2a7ee2fc7ccb95caf0bf4d131cc5ef7a3f8546a61",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "7ff252a5ff1ff860838731fad16a0d450c8bbeb2d57e5c94e4f603e8df2f1a4f",
       "runtime_matrix_complete": false
     },
     {
       "path": "src/applications/people/mail/PhabricatorPeopleWelcomeMailEngine.php",
       "symbol": "PhabricatorPeopleWelcomeMailEngine",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
+      "purpose_review": "per-flow-native-security-source-binding-required",
       "sha256": "8ee2b12d6fef69877a98c8709b3376905bea67c4c3d4489b864bb9bd9c4054c3",
       "runtime_matrix_complete": false
     },
     {
       "path": "src/applications/people/storage/PhabricatorUserEmail.php",
       "symbol": "PhabricatorUserEmail",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
-      "sha256": "76c94e566b9b44a6de4b40df24dd0aabd521db3bcdc9a8a5e7e51ef176ec04f2",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "0f0281a5a5e41e3ea8c67e0dc3f57793f22cf623ea1a76927f750de2bb4f5fca",
       "runtime_matrix_complete": false
     },
     {
       "path": "src/applications/people/xaction/PhabricatorUserApproveTransaction.php",
       "symbol": "PhabricatorUserApproveTransaction",
-      "purpose_review": "security-or-account-producer-review-explicit-exemption",
-      "sha256": "b1e0e92d2adb71e9cee77954c5af6b7688f5f68479e18b8028ca1f187c9e7c1b",
+      "purpose_review": "per-flow-native-security-source-binding-required",
+      "sha256": "cbb02394fa815fcead7a82b1698bfa02d102088f7f6cf1603ff6a02b6ff891d5",
       "runtime_matrix_complete": false
     },
     {
@@ -248,7 +248,7 @@
   "consumers": [
     {
       "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
-      "sha256": "137514fe1d49b3ab7fd7c5a2b940845e77d1463a49ce8ebc4439913f984ab80b"
+      "sha256": "34a0e7cdfe68cc47151624b157d1a79e933abcdb3842bfa31c0aad009706bf05"
     },
     {
       "path": "src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php",
@@ -268,11 +268,23 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-      "sha256": "44700c40fde07616d1a36d87b621938f41b13738ed3d923845eb0947c63b2559"
+      "sha256": "5f75acaec7a756db8f9df399699dc9ab442e0483ff0945ba5fe8dd9648a6a9bc"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
       "sha256": "0f1d2587421e1ef174ea7664b3b544c4c69b4573aa03223567a126180fcdd7e1"
+    },
+    {
+      "path": "src/applications/people/mail/PhabricatorPeopleMailEngine.php",
+      "sha256": "26287542eb68899043ebecf12a24c589858c01917df2efd0dc4a64aff2dc355f"
+    },
+    {
+      "path": "src/applications/people/xaction/PhabricatorUserUsernameTransaction.php",
+      "sha256": "2be81868a0d865c01a02c09a6d12197a0bf3602c3b96e01b128859aad2106356"
+    },
+    {
+      "path": "src/applications/transactions/storage/PhabricatorModularTransactionType.php",
+      "sha256": "7a563d43d67d29ab886c251e185542b44c8dc7d73096408dc436bcabff5786af"
     }
   ],
   "remaining_gates": [
@@ -281,5 +293,22 @@
     "direct-multi-recipient-business-splitting",
     "paired-release-and-activation-readiness",
     "trusted-browser-and-global-governance-completion"
-  ]
+  ],
+  "security_flows": {
+    "account.login": "native-producer-and-source-tested",
+    "account.welcome": "native-producer-and-source-tested",
+    "account.username": "native-transaction-and-source-tested",
+    "account.email.verify": "native-producer-and-source-tested",
+    "account.email.old-primary": "source-reviewed-runtime-pending",
+    "account.email.new-primary": "source-reviewed-runtime-pending",
+    "account.approval.queue": "native-producer-method-not-registration-http-tested",
+    "account.approved.owner": "native-transaction-and-source-tested",
+    "account.approved.admin": "native-transaction-and-source-tested",
+    "account.invite": "native-worker-and-source-tested",
+    "account.ssh": "source-reviewed-full-key-mutation-runtime-pending"
+  },
+  "unsupported_security": {
+    "LegalpadDocumentSignController": "unbound-native-signature-refused-full-supported-flow-pending",
+    "SMS": "outside-email-policy-scope-no-new-runtime-proof"
+  }
 }

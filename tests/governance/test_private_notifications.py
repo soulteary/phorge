@@ -28,6 +28,14 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
             with self.assertRaises(ValueError):gate.validate(self.data,root)
             extra.unlink();source=root/self.data['consumers'][0]['path'];source.write_text(source.read_text()+'\n// native changed\n')
             with self.assertRaises(ValueError):gate.validate(self.data,root)
+    def test_partial_security_flow_or_unsupported_signature_cannot_be_promoted(self):
+        for flow in gate.FLOW_STATUS:
+            data=copy.deepcopy(self.data);data['security_flows'][flow]='smtp-and-browser-complete'
+            with self.subTest(flow=flow),self.assertRaises(ValueError):gate.validate(data)
+        data=copy.deepcopy(self.data);data['unsupported_security']['LegalpadDocumentSignController']='supported'
+        with self.assertRaises(ValueError):gate.validate(data)
+        data=copy.deepcopy(self.data);del data['security_flows']['account.login']
+        with self.assertRaises(ValueError):gate.validate(data)
     def test_duplicate_json_fields_are_not_last_value_wins(self):
         with tempfile.TemporaryDirectory()as directory:
             path=Path(directory)/'receipt.json';path.write_text('{"passed":false,"passed":true}')

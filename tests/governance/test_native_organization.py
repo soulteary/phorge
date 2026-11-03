@@ -160,6 +160,13 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             data=template();data[key]=value
             with self.subTest(key=key), self.assertRaises(ValueError): gate.validate(data, file_digest='b'*64)
 
+    def test_security_source_receipt_cannot_be_promoted_to_smtp_or_legalpad_proof(self):
+        for key in ('smtp_security_matrix_complete','all_security_producer_runtime_complete','legalpad_signature_delivery_supported'):
+            data=template();data['native']['private_mail_tests']['security_flow_tests'][key]=True
+            with self.subTest(key=key),self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
+        data=template();name='private-mail-no-primary-email-native-rename-commits-without-owner-notice'
+        data['checks'].remove(name);data['check_count']-=1
+        with self.assertRaises(ValueError):gate.validate(data,file_digest='b'*64)
     def test_actual_paired_binary_digest_is_required_and_must_match(self):
         with self.assertRaises(ValueError): gate.validate(template())
         for digest in ('c'*64, None, True):

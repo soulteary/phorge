@@ -210,7 +210,7 @@ final class PhabricatorUserEmail
       $link,
       $signature);
 
-    id(new PhabricatorMetaMTAMail())
+    $mail=id(new PhabricatorMetaMTAMail())
       ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($address))
       ->setForceDelivery(true)
@@ -219,8 +219,10 @@ final class PhabricatorUserEmail
           '[%s] Email Verification',
           PlatformSymbols::getPlatformServerName()))
       ->setBody($body)
-      ->setRelatedPHID($user->getPHID())
-      ->saveAndSend();
+      ->setRelatedPHID($user->getPHID());
+    if(PhorgePrivateMailPolicy::enabled()){$mail->setPrivateMailFlow('account.email.verify',
+      PhorgePrivateMailPolicy::userBinding($user,$user,$this,null,$this->getPHID(),hash('sha256',$this->getVerificationCode())));}
+    $mail->saveAndSend();
 
     return $this;
   }
@@ -252,7 +254,7 @@ final class PhabricatorUserEmail
         $old_address,
         $new_address));
 
-    id(new PhabricatorMetaMTAMail())
+    $mail=id(new PhabricatorMetaMTAMail())
       ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($old_address))
       ->setForceDelivery(true)
@@ -262,8 +264,10 @@ final class PhabricatorUserEmail
           PlatformSymbols::getPlatformServerName()))
       ->setBody($body)
       ->setFrom($user->getPHID())
-      ->setRelatedPHID($user->getPHID())
-      ->saveAndSend();
+      ->setRelatedPHID($user->getPHID());
+    if(PhorgePrivateMailPolicy::enabled()){$mail->setPrivateMailFlow('account.email.old-primary',
+      PhorgePrivateMailPolicy::userBinding($user,$user,$this,null,$this->getPHID(),null));}
+    $mail->saveAndSend();
   }
 
 
@@ -288,7 +292,7 @@ final class PhabricatorUserEmail
         'all email will be sent here.',
         $new_address));
 
-    id(new PhabricatorMetaMTAMail())
+    $mail=id(new PhabricatorMetaMTAMail())
       ->setPrivateMailProducer(__CLASS__)
       ->addRawTos(array($new_address))
       ->setForceDelivery(true)
@@ -298,8 +302,10 @@ final class PhabricatorUserEmail
           PlatformSymbols::getPlatformServerName()))
       ->setBody($body)
       ->setFrom($user->getPHID())
-      ->setRelatedPHID($user->getPHID())
-      ->saveAndSend();
+      ->setRelatedPHID($user->getPHID());
+    if(PhorgePrivateMailPolicy::enabled()){$mail->setPrivateMailFlow('account.email.new-primary',
+      PhorgePrivateMailPolicy::userBinding($user,$user,$this,null,$this->getPHID(),null));}
+    $mail->saveAndSend();
 
     return $this;
   }

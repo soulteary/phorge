@@ -6,6 +6,10 @@ final class PhabricatorPeopleUsernameMailEngine
   private $oldUsername;
   private $newUsername;
 
+  private $privateMailSourceTransactionPHID;
+  public function setPrivateMailSourceTransactionPHID($phid){$this->privateMailSourceTransactionPHID=$phid;return $this;}
+  public function getPrivateMailSourceTransactionPHID(){return $this->privateMailSourceTransactionPHID;}
+
   public function setNewUsername($new_username) {
     $this->newUsername = $new_username;
     return $this;

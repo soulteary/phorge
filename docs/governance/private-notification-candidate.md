@@ -56,3 +56,52 @@ Evidence and reviewed producers are stored next to this document. The older
 isolated 145/261 candidate run is retained privately and is not substituted for
 the combined-main proof. A future main rebase or runtime source change requires
 fresh matching evidence.
+
+
+## Versioned security source checkpoint
+
+The later security-source slice passed **150 pure PHP methods and 325 actual
+native SQL checks**. The isolated runtime matched 7,453 explicitly collected
+source/resource files byte for byte; this broader collection count is not
+interchangeable with the older PHP-only source count. All 55 owned schemas,
+two runtime users and the reader were removed with no cleanup failures. The
+148/302 candidate evidence remains immutable and is not substituted for these
+new sources.
+
+Class names no longer exempt all security mail. Each supported email flow binds
+its actual native account, email address and source; PHID delivery must still
+resolve to the exact bound, unique current primary email. Login/welcome retain
+the real native challenge, email verification tracks its current code, and
+username/approval messages bind the actual committed native USER transaction.
+Registration queue notices are split per current administrator and projected to
+a generic authenticated link. A demoted administrator cannot receive a queued
+copy. The registration test invokes the real producer method; it does not claim
+to exercise the complete registration HTTP workflow.
+
+Accounts without a primary email retain their ordinary native rename,
+approval and approval-withdrawal behavior. These optional owner notices are
+skipped without inventing an email address; a deliverable administrator copy is
+independent. SSH notices without a valid owner destination remain unbound and
+fail closed at delivery, without blocking the key mutation. Full SSH mutation
+and device notification runtime coverage is still outstanding.
+
+This version supports only the deployed **single-primary database profile**.
+When the email feature is on, configured `cluster.databases` routing or native
+read-only state refuses authorization before and after the current-source
+queries. An `r`-labelled Lisk handle alone is not classified as a replica.
+Configured replica/failover topologies require a separately implemented and
+validated primary-only path; a fresh request cache is not a topology proof.
+
+Legalpad's unbound signature-verification producer is refused while this
+candidate is enabled. A supported document/signatory authorization flow remains
+unimplemented. Old/new primary email alerts are source-reviewed but need their
+own producer runtime cases. SMS is outside this email policy and has no new
+runtime certification. The producer catalog records these boundaries explicitly.
+
+Portable CI runs the reviewed source catalog and strict native receipt gate,
+with explicit paired file/taskqueue binaries. Mutation tests reject missing
+no-email regression cases, promoted SMTP/security completion flags, source drift
+and unsupported-signature claims. These checks must pass on a clean checkout;
+unknown annotated producer files are rejected, not silently excluded. The newer
+39-case physical business-mail evidence is a separate parent-owned checkpoint
+on older sources and does not certify SMTP delivery of these new security flows.

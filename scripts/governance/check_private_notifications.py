@@ -4,15 +4,15 @@ import argparse,hashlib,importlib.util,json,re
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 PRODUCERS={'src/applications/auth/controller/PhabricatorAuthRegisterController.php': ('PhabricatorAuthRegisterController',
-                                                                            'security-or-account-producer-review-explicit-exemption'),
+                                                                            'per-flow-native-security-source-binding-required'),
  'src/applications/auth/controller/contact/PhabricatorAuthContactNumberTestController.php': ('PhabricatorAuthContactNumberTestController',
-                                                                                             'security-or-account-producer-review-explicit-exemption'),
+                                                                                             'per-flow-native-security-source-binding-required'),
  'src/applications/auth/editor/PhabricatorAuthSSHKeyEditor.php': ('PhabricatorAuthSSHKeyEditor',
-                                                                  'security-or-account-producer-review-explicit-exemption'),
+                                                                  'per-flow-native-security-source-binding-required'),
  'src/applications/auth/factor/PhabricatorSMSAuthFactor.php': ('PhabricatorSMSAuthFactor',
-                                                               'security-or-account-producer-review-explicit-exemption'),
+                                                               'per-flow-native-security-source-binding-required'),
  'src/applications/auth/worker/PhabricatorAuthInviteWorker.php': ('PhabricatorAuthInviteWorker',
-                                                                  'security-or-account-producer-review-explicit-exemption'),
+                                                                  'per-flow-native-security-source-binding-required'),
  'src/applications/badges/editor/PhabricatorBadgesEditor.php': ('PhabricatorBadgesEditor',
                                                                 'business-producer'),
  'src/applications/calendar/editor/PhabricatorCalendarEventEditor.php': ('PhabricatorCalendarEventEditor',
@@ -30,7 +30,7 @@ PRODUCERS={'src/applications/auth/controller/PhabricatorAuthRegisterController.p
  'src/applications/herald/editor/HeraldRuleEditor.php': ('HeraldRuleEditor',
                                                          'business-producer'),
  'src/applications/legalpad/controller/LegalpadDocumentSignController.php': ('LegalpadDocumentSignController',
-                                                                             'security-or-account-producer-review-explicit-exemption'),
+                                                                             'per-flow-native-security-source-binding-required'),
  'src/applications/legalpad/editor/LegalpadDocumentEditor.php': ('LegalpadDocumentEditor',
                                                                  'business-producer'),
  'src/applications/macro/editor/PhabricatorMacroEditor.php': ('PhabricatorMacroEditor',
@@ -42,15 +42,15 @@ PRODUCERS={'src/applications/auth/controller/PhabricatorAuthRegisterController.p
  'src/applications/metamta/storage/PhabricatorMetaMTAReceivedMail.php': ('PhabricatorMetaMTAReceivedMail',
                                                                          'inbound-error-producer-private-original-body-and-headers'),
  'src/applications/people/mail/PhabricatorPeopleEmailLoginMailEngine.php': ('PhabricatorPeopleEmailLoginMailEngine',
-                                                                            'security-or-account-producer-review-explicit-exemption'),
+                                                                            'per-flow-native-security-source-binding-required'),
  'src/applications/people/mail/PhabricatorPeopleUsernameMailEngine.php': ('PhabricatorPeopleUsernameMailEngine',
-                                                                          'security-or-account-producer-review-explicit-exemption'),
+                                                                          'per-flow-native-security-source-binding-required'),
  'src/applications/people/mail/PhabricatorPeopleWelcomeMailEngine.php': ('PhabricatorPeopleWelcomeMailEngine',
-                                                                         'security-or-account-producer-review-explicit-exemption'),
+                                                                         'per-flow-native-security-source-binding-required'),
  'src/applications/people/storage/PhabricatorUserEmail.php': ('PhabricatorUserEmail',
-                                                              'security-or-account-producer-review-explicit-exemption'),
+                                                              'per-flow-native-security-source-binding-required'),
  'src/applications/people/xaction/PhabricatorUserApproveTransaction.php': ('PhabricatorUserApproveTransaction',
-                                                                           'security-or-account-producer-review-explicit-exemption'),
+                                                                           'per-flow-native-security-source-binding-required'),
  'src/applications/phame/editor/PhameBlogEditor.php': ('PhameBlogEditor',
                                                        'business-producer'),
  'src/applications/phame/editor/PhamePostEditor.php': ('PhamePostEditor',
@@ -71,8 +71,13 @@ PRODUCERS={'src/applications/auth/controller/PhabricatorAuthRegisterController.p
                                                                              'business-producer'),
  'src/applications/slowvote/editor/PhabricatorSlowvoteEditor.php': ('PhabricatorSlowvoteEditor',
                                                                     'business-producer')}
-CONSUMERS=['src/applications/metamta/storage/PhabricatorMetaMTAMail.php', 'src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php', 'src/applications/metamta/query/PhabricatorMetaMTAActorQuery.php', 'src/applications/metamta/engine/PhabricatorMailEmailEngine.php', 'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php', 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php', 'src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php']
+PRODUCERS['src/applications/legalpad/controller/LegalpadDocumentSignController.php'] = ('LegalpadDocumentSignController','unsupported-signature-hard-refusal')
+for _sms_path in ('src/applications/auth/controller/contact/PhabricatorAuthContactNumberTestController.php','src/applications/auth/factor/PhabricatorSMSAuthFactor.php'):
+    PRODUCERS[_sms_path]=(PRODUCERS[_sms_path][0],'sms-outside-email-policy')
+CONSUMERS=['src/applications/metamta/storage/PhabricatorMetaMTAMail.php', 'src/applications/metamta/conduit/PhabricatorMailDeliveryConduitAPIMethod.php', 'src/applications/metamta/query/PhabricatorMetaMTAActorQuery.php', 'src/applications/metamta/engine/PhabricatorMailEmailEngine.php', 'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php', 'src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php', 'src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php', 'src/applications/people/mail/PhabricatorPeopleMailEngine.php', 'src/applications/people/xaction/PhabricatorUserUsernameTransaction.php', 'src/applications/transactions/storage/PhabricatorModularTransactionType.php']
 BLOCKERS=['physical-callback-and-smtp-owlmail-runtime', 'all-producer-and-security-purpose-matrix', 'direct-multi-recipient-business-splitting', 'paired-release-and-activation-readiness', 'trusted-browser-and-global-governance-completion']
+
+FLOW_STATUS={'account.login': 'native-producer-and-source-tested', 'account.welcome': 'native-producer-and-source-tested', 'account.username': 'native-transaction-and-source-tested', 'account.email.verify': 'native-producer-and-source-tested', 'account.email.old-primary': 'source-reviewed-runtime-pending', 'account.email.new-primary': 'source-reviewed-runtime-pending', 'account.approval.queue': 'native-producer-method-not-registration-http-tested', 'account.approved.owner': 'native-transaction-and-source-tested', 'account.approved.admin': 'native-transaction-and-source-tested', 'account.invite': 'native-worker-and-source-tested', 'account.ssh': 'source-reviewed-full-key-mutation-runtime-pending'}
 
 def require(value,reason):
     if not value:raise ValueError(reason)
@@ -86,7 +91,7 @@ def load(path):
         parse_constant=lambda unused: (_ for _ in ()).throw(ValueError('JSON constant')))
 def validate(data,root=ROOT):
     root=Path(root)
-    require(type(data)is dict and set(data)=={'schema_version','scope','production_default_off','activation_blocked','authority_proof','all_producers_runtime_complete','producers','consumers','remaining_gates'},'fields')
+    require(type(data)is dict and set(data)=={'schema_version','scope','production_default_off','activation_blocked','authority_proof','all_producers_runtime_complete','producers','consumers','remaining_gates','security_flows','unsupported_security'},'fields')
     require(type(data['schema_version'])is int and data['schema_version']==1 and data['scope']=='private-email-producer-and-attempt-inventory','scope')
     require(data['production_default_off']is True and data['activation_blocked']is True and data['authority_proof']is False and data['all_producers_runtime_complete']is False,'partial scope')
     require(data['remaining_gates']==BLOCKERS,'remaining gates')
@@ -106,6 +111,8 @@ def validate(data,root=ROOT):
         path=row['path'];require(path in CONSUMERS and path not in seen,'consumer identity');seen.add(path)
         source=root/path;require(not source.is_symlink() and source.resolve().is_relative_to(root.resolve()) and source.is_file(),'consumer path')
         require(hashlib.sha256(source.read_bytes()).hexdigest()==row['sha256'],'consumer source drift')
+    require(data['security_flows']==FLOW_STATUS,'security flow scope')
+    require(data['unsupported_security']=={'LegalpadDocumentSignController':'unbound-native-signature-refused-full-supported-flow-pending','SMS':'outside-email-policy-scope-no-new-runtime-proof'},'unsupported flow scope')
     annotated={str(p.relative_to(root)) for p in(root/'src').rglob('*.php') if '__tests__'not in p.parts and '->setPrivateMailProducer('in p.read_text()}
     require(annotated==set(PRODUCERS)|{'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php'},'unreviewed producer entry')
     return {'passed':True,'scope':'reviewed-private-email-sources-only','producers':len(PRODUCERS),'consumers':len(CONSUMERS),'smtp_proved':False,'all_producers_proved':False,'activation_blocked':True}

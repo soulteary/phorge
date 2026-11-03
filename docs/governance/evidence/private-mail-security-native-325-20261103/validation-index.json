@@ -1,0 +1,32 @@
+{
+  "scope": "native-security-producer-source-checks-not-smtp",
+  "pure_methods": 150,
+  "native_checks": 325,
+  "runtime_source_files_compared": 7453,
+  "runtime_source_digest": "75a1e24e436ce97ea79f2c570cfc1547f408be9e22299bffa1171299a6f13901",
+  "source_base_commit": "114f08f7c93fce7c2cef7d5c92c91fb89e7a082e",
+  "reviewed_security_source_overlays": {
+    "src/applications/auth/controller/PhabricatorAuthRegisterController.php": "c66ba8947af4800ed897e09a3b5a34175115b9d4e3a3fda4d68162817d53b8d0",
+    "src/applications/auth/editor/PhabricatorAuthSSHKeyEditor.php": "e260afa7c829f1c41d0c752144e567542eec6f4ffd4ad0616dedfd2dbcbbccac",
+    "src/applications/auth/worker/PhabricatorAuthInviteWorker.php": "3b9a6512feba679aa8b4aa98649830d57cb17e5c52fe181a7f721465ebe60122",
+    "src/applications/metamta/storage/PhabricatorMetaMTAMail.php": "34a0e7cdfe68cc47151624b157d1a79e933abcdb3842bfa31c0aad009706bf05",
+    "src/applications/people/mail/PhabricatorPeopleMailEngine.php": "26287542eb68899043ebecf12a24c589858c01917df2efd0dc4a64aff2dc355f",
+    "src/applications/people/mail/PhabricatorPeopleUsernameMailEngine.php": "7ff252a5ff1ff860838731fad16a0d450c8bbeb2d57e5c94e4f603e8df2f1a4f",
+    "src/applications/people/storage/PhabricatorUserEmail.php": "0f0281a5a5e41e3ea8c67e0dc3f57793f22cf623ea1a76927f750de2bb4f5fca",
+    "src/applications/people/xaction/PhabricatorUserApproveTransaction.php": "cbb02394fa815fcead7a82b1698bfa02d102088f7f6cf1603ff6a02b6ff891d5",
+    "src/applications/people/xaction/PhabricatorUserUsernameTransaction.php": "2be81868a0d865c01a02c09a6d12197a0bf3602c3b96e01b128859aad2106356",
+    "src/applications/transactions/storage/PhabricatorModularTransactionType.php": "7a563d43d67d29ab886c251e185542b44c8dc7d73096408dc436bcabff5786af",
+    "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php": "5f75acaec7a756db8f9df399699dc9ab442e0483ff0945ba5fe8dd9648a6a9bc",
+    "src/infrastructure/governance/notification/__tests__/PhorgePrivateMailPolicyTestCase.php": "9e67fa9c99a23e01df830ec3393b7838a2f83a65fa84ea97b38cd8b6a67eb826",
+    "support/governance/notification/native-cases.php": "3e3e0bf37414415172be1963d587ea5a21f29c6313ead151f815dfbd116cda4d",
+    "support/governance/notification/security-cases.php": "7f37ab997d156b06e1bbfcef09deae6884176882234ef3f68f77f69a5cdd7223",
+    "src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php": "5963c2d11ef6418753124a2008b2a7de820c6e639e78741cc8286d5623daa618"
+  },
+  "source_overlay_collection": "Explicit canonical source allowlist; no unknown backup files admitted.",
+  "runtime_mismatch_count": 0,
+  "cleanup_failures": [],
+  "smtp_security_proved": false,
+  "all_producers_proved": false,
+  "production_activation": false,
+  "permission_semantics_changed": false
+}

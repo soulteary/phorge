@@ -34,4 +34,47 @@ final class PhorgePrivateMailPolicyTestCase extends PhutilTestCase {
     $b['subject']='Injected private title';
     $this->assertTrue(PhorgePrivateMailPolicy::canonicalMessage($a)!==PhorgePrivateMailPolicy::canonicalMessage($b));
   }
+  public function testSecurityFlowRequiresExactProducerAndBoundDestination(){
+    $user='PHID-USER-'.str_repeat('a',20);
+    $binding=array('account_hash'=>str_repeat('a',64),'address_hash'=>str_repeat('b',64),
+      'admin'=>null,'email'=>'PHID-UMAI-'.str_repeat('c',20),'recipient'=>$user,
+      'source'=>null,'source_hash'=>null,'subject'=>$user);
+    $mail=(new PhabricatorMetaMTAMail())->setPrivateMailProducer('PhabricatorPeopleEmailLoginMailEngine');
+    $mail->setPrivateMailFlow('account.login',$binding);
+    $this->assertEqual($binding,$mail->getPrivateMailPolicyValue('governance.mail-binding'));
+    $event_binding=$binding;$event_binding['source']=PhabricatorPHID::generateNewPHID('XACT','USER');
+    $event_binding['source_hash']=str_repeat('c',64);
+    (new PhabricatorMetaMTAMail())->setPrivateMailProducer('PhabricatorPeopleUsernameMailEngine')
+      ->setPrivateMailFlow('account.username',$event_binding);
+    foreach(array('wrong-producer','missing-destination','unknown-flow','missing-field')as$case){
+      $bad=$binding;$flow='account.login';$producer='PhabricatorPeopleEmailLoginMailEngine';
+      if($case==='wrong-producer'){$producer='PhabricatorUserEmail';}
+      if($case==='missing-destination'){$bad['email']=null;}
+      if($case==='unknown-flow'){$flow='security';}
+      if($case==='missing-field'){unset($bad['source_hash']);}
+      $refused=false;
+      try{(new PhabricatorMetaMTAMail())->setPrivateMailProducer($producer)->setPrivateMailFlow($flow,$bad);}
+      catch(InvalidArgumentException$error){$refused=true;}
+      $this->assertTrue($refused,$case);
+    }
+  }
+  public function testAdminNoticeCannotUseOwnerFlowOrBlessExistingMail(){
+    $user='PHID-USER-'.str_repeat('a',20);$admin='PHID-USER-'.str_repeat('b',20);
+    $binding=array('account_hash'=>str_repeat('a',64),'address_hash'=>str_repeat('b',64),
+      'admin'=>$admin,'email'=>'PHID-UMAI-'.str_repeat('c',20),'recipient'=>$admin,
+      'source'=>null,'source_hash'=>null,'subject'=>$user);
+    $mail=(new PhabricatorMetaMTAMail())->setPrivateMailProducer('PhabricatorAuthRegisterController');
+    $mail->setPrivateMailFlow('account.approval.queue',$binding);
+    $this->assertEqual('admin-notice',PhorgePrivateMailPolicy::purpose($mail));
+    $bad=$binding;$bad['admin']=$user;$refused=false;
+    try{PhorgePrivateMailPolicy::validateFlow($mail,'account.approval.queue',$bad);}
+    catch(InvalidArgumentException$error){$refused=true;}
+    $this->assertTrue($refused);
+    $mail->setID(1);$refused=false;
+    try{$mail->setPrivateMailFlow('account.approval.queue',$binding);}
+    catch(InvalidArgumentException$error){$refused=true;}
+    $this->assertTrue($refused);
+    $signature=(new PhabricatorMetaMTAMail())->setPrivateMailProducer('LegalpadDocumentSignController');
+    $this->assertEqual('unsupported-signature',PhorgePrivateMailPolicy::purpose($signature));
+  }
 }

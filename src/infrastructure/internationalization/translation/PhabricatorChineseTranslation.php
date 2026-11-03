@@ -21,6 +21,10 @@ final class PhabricatorChineseTranslation
   protected function getTranslations() {
     return array(
       'Private Notifications' => '私有通知',
+      'Account Approved' => '账号已批准',
+      'Account Approval Withdrawn' => '账号批准已撤回',
+      'Your account has been approved. Sign in to continue.' => '您的账号已获批准，请登录后继续。',
+      'Your account approval has been withdrawn. Contact an administrator if you need access.' => '您的账号批准已撤回。如需访问，请联系管理员。',
       'Authenticated link-only business notifications.' => '仅通过登录链接查看的业务通知。',
       'Use authenticated links for private business mail.' => '私有业务邮件仅发送需要登录的链接。',
       'Disabled by default. Requires a paired Gorge per-attempt authorization callback.' => '默认关闭。需要配套的 Gorge 在每次发送尝试前回调校验权限。',

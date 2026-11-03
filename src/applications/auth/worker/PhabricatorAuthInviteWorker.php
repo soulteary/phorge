@@ -56,8 +56,10 @@ final class PhabricatorAuthInviteWorker
           PlatformSymbols::getPlatformServerName(),
           $author->getFullName(),
           PlatformSymbols::getPlatformServerName()))
-      ->setBody($template)
-      ->saveAndSend();
+      ->setBody($template);
+    if(PhorgePrivateMailPolicy::enabled()){$mail->setPrivateMailFlow('account.invite',
+      PhorgePrivateMailPolicy::inviteBinding($invite,$author));}
+    $mail->saveAndSend();
   }
 
 }

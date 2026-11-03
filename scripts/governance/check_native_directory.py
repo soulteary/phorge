@@ -231,6 +231,21 @@ EXPECTED_LINKS.update({'NATIVE-LINK-27': ('MAIL.TRANSACTION.PRODUCER', 'MAIL.OUT
 
 ROOTS = ('src/applications/people/governance', 'src/infrastructure/governance')
 
+EXPECTED_SOURCES.update({'MAIL.MODULAR.EVENT.SOURCE': ('src/applications/transactions/storage/PhabricatorModularTransactionType.php',
+                               'PhabricatorModularTransactionType',
+                               'read-only-transaction-source-identity'),
+ 'MAIL.PEOPLE.FLOW.ENGINE': ('src/applications/people/mail/PhabricatorPeopleMailEngine.php',
+                             'PhabricatorPeopleMailEngine',
+                             'native-security-producer-flow-binding'),
+ 'MAIL.USER.RENAME.SOURCE': ('src/applications/people/xaction/PhabricatorUserUsernameTransaction.php',
+                             'PhabricatorUserUsernameTransaction',
+                             'native-security-transaction-source')})
+EXPECTED_LINKS.update({'NATIVE-LINK-34': ('MAIL.USER.RENAME.SOURCE', 'MAIL.MODULAR.EVENT.SOURCE'),
+ 'NATIVE-LINK-35': ('MAIL.USER.RENAME.SOURCE', 'MAIL.PEOPLE.FLOW.ENGINE'),
+ 'NATIVE-LINK-36': ('MAIL.PEOPLE.FLOW.ENGINE',
+                    'NATIVE.PhorgePrivateMailPolicy'),
+ 'NATIVE-LINK-37': ('NATIVE.PhorgePrivateMailPolicy', 'AUTH.USER.DAO')})
+
 def require(ok, message):
     if not ok:
         raise ValueError(message)

@@ -407,7 +407,7 @@
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
       "symbol": "PhorgePrivateMailPolicy",
       "kind": "current-recipient-private-email-policy",
-      "sha256": "44700c40fde07616d1a36d87b621938f41b13738ed3d923845eb0947c63b2559",
+      "sha256": "5f75acaec7a756db8f9df399699dc9ab442e0483ff0945ba5fe8dd9648a6a9bc",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -429,7 +429,7 @@
       "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
       "symbol": "PhabricatorMetaMTAMail",
       "kind": "immutable-native-mail-and-attempt-gate",
-      "sha256": "137514fe1d49b3ab7fd7c5a2b940845e77d1463a49ce8ebc4439913f984ab80b",
+      "sha256": "34a0e7cdfe68cc47151624b157d1a79e933abcdb3842bfa31c0aad009706bf05",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -474,6 +474,39 @@
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-business-mail-producer",
       "sha256": "29f808be06edfd1f9e105179d2fea7db4f6c2ce4d22e808a2bf1d3f014e6ad78",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.PEOPLE.FLOW.ENGINE",
+      "path": "src/applications/people/mail/PhabricatorPeopleMailEngine.php",
+      "symbol": "PhabricatorPeopleMailEngine",
+      "kind": "native-security-producer-flow-binding",
+      "sha256": "26287542eb68899043ebecf12a24c589858c01917df2efd0dc4a64aff2dc355f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.USER.RENAME.SOURCE",
+      "path": "src/applications/people/xaction/PhabricatorUserUsernameTransaction.php",
+      "symbol": "PhabricatorUserUsernameTransaction",
+      "kind": "native-security-transaction-source",
+      "sha256": "2be81868a0d865c01a02c09a6d12197a0bf3602c3b96e01b128859aad2106356",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "MAIL.MODULAR.EVENT.SOURCE",
+      "path": "src/applications/transactions/storage/PhabricatorModularTransactionType.php",
+      "symbol": "PhabricatorModularTransactionType",
+      "kind": "read-only-transaction-source-identity",
+      "sha256": "7a563d43d67d29ab886c251e185542b44c8dc7d73096408dc436bcabff5786af",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -744,6 +777,38 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Reviewed fixed producer, native message construction and authenticated per-attempt email policy boundary; static reference only, no SMTP or permission proof."
+    },
+    {
+      "id": "NATIVE-LINK-34",
+      "from_id": "MAIL.USER.RENAME.SOURCE",
+      "to_id": "MAIL.MODULAR.EVENT.SOURCE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
+    },
+    {
+      "id": "NATIVE-LINK-35",
+      "from_id": "MAIL.USER.RENAME.SOURCE",
+      "to_id": "MAIL.PEOPLE.FLOW.ENGINE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
+    },
+    {
+      "id": "NATIVE-LINK-36",
+      "from_id": "MAIL.PEOPLE.FLOW.ENGINE",
+      "to_id": "NATIVE.PhorgePrivateMailPolicy",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
+    },
+    {
+      "id": "NATIVE-LINK-37",
+      "from_id": "NATIVE.PhorgePrivateMailPolicy",
+      "to_id": "AUTH.USER.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
     }
   ],
   "scan": {
@@ -906,7 +971,7 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-        "sha256": "44700c40fde07616d1a36d87b621938f41b13738ed3d923845eb0947c63b2559"
+        "sha256": "5f75acaec7a756db8f9df399699dc9ab442e0483ff0945ba5fe8dd9648a6a9bc"
       },
       {
         "path": "src/infrastructure/governance/observation/PhorgeGovernanceNativeCapabilityContext.php",
