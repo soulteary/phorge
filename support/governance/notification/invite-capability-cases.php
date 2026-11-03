@@ -17,8 +17,11 @@ function governance_private_mail_invite_capability_cases($fixture,callable $chec
       'template'=>'Synthetic invitation {$INVITE_URI}')))->executeTask();
     $invite=(new PhabricatorAuthInvite())->loadOneWhere('emailAddress=%s',$address);
     $mails=(new PhabricatorMetaMTAMail())->loadAllWhere('id>0 ORDER BY id DESC LIMIT 100');
-    foreach($mails as$mail){if($mail->getPrivateMailPolicyValue('governance.mail-flow')==='account.invite'&&
-      str_contains($mail->getBody(),$invite->getVerificationCode())){return$mail;}}
+    // A persisted invite retains only its verification hash. Match the actual
+    // producer binding instead of trying to recover its one-time raw code.
+    foreach($mails as$mail){$binding=$mail->getPrivateMailPolicyValue('governance.mail-binding');
+      if($mail->getPrivateMailPolicyValue('governance.mail-flow')==='account.invite'&&
+        is_array($binding)&&($binding['source']??null)===$invite->getPHID()){return$mail;}}
     throw new RuntimeException('private_mail_invite_fixture_mail_missing');
   };
   try {
