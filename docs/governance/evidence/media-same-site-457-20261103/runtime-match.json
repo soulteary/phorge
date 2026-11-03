@@ -1,0 +1,10 @@
+{
+  "git_index_tree": "80c8478cdc2e29d894ad904787c1828c912f5c74",
+  "file_count": 5912,
+  "content_matches_runtime": true,
+  "missing": [],
+  "extra": [],
+  "changed": [],
+  "scope": "Runtime inventory content match; does not extend scenario coverage or establish release readiness.",
+  "runtime_data_included": "Complete offline PSL rules, license, readme and upstream corpus"
+}

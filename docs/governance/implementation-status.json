@@ -392,5 +392,55 @@
       "full_compound_matrix_complete": false,
       "old_component_counts_not_reused": true
     }
+  },
+  "same_site_main_union_validation": {
+    "scope": "actual organization and media main union, isolated native regression only",
+    "passed": true,
+    "native_methods": 190,
+    "sql_checks": 553,
+    "runtime_files": 5930,
+    "runtime_content_exact": true,
+    "signed_organization_parent": "d30b4958d0d9e9241756a48fa439da2f4700af13",
+    "incoming_main": "32fc7b692ebb61decbab7163914c4d838a251a73",
+    "executed_index_tree": "0f29f6cd666e6b8776a4cb6903dbd38cc8d909fd",
+    "governance_python": 91,
+    "permission_python": 84,
+    "worker_cleanup": {
+      "private_directories_removed": 19,
+      "owned_processes_stopped": 0,
+      "cleanup_failures": 0,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0,
+      "workers_registered": 19
+    },
+    "cleanup": {
+      "ownedSchemasRemoved": 55,
+      "ownedRuntimeUsersRemoved": 2,
+      "readerRemoved": true
+    },
+    "paired_image_removed": true,
+    "production_activation": false,
+    "browser_or_wire_proved": false,
+    "full_lifecycle_manual_due_form_POST_matrix_complete": false,
+    "source_sha256": {
+      "organization-media-main-integration.json": "334a23ebdc4cebb8678a6b268eacea9925d24a33ac8a5937ea435d230b75fad6",
+      "organization-media-main-native.json": "0d41c149c8942edd7974ea0c3f72bc0b582e31bf25c5417dee6de0db36c828df",
+      "organization-media-main-source-runtime-match.json": "83638a0d287e373d8dc71ed53252590b3f095255a0871b18aa7ed137511d0467",
+      "organization-media-main-psl-runtime-match.json": "355c1493c65f0624c08b4661af806e599131f10d7f1f0fb2970b6251befe9ee2"
+    },
+    "signed_head": "pending signed main95 merge",
+    "pull_request": "https://github.com/soulteary/phorge/pull/94",
+    "hosted_CI": "pending new head",
+    "exact_head_review": "pending new head",
+    "known_findings_fixed": [
+      "4451902435",
+      "4451902443"
+    ],
+    "same_site_main_union_required_before_merge": false,
+    "pinned_psl_runtime_resources": 4,
+    "pinned_psl_exact": true,
+    "organization_parent": "d5ff443a54541580e228212d6903fdcde22f74c3",
+    "same_site_main_union_actual_verified": true,
+    "evidence": "docs/governance/evidence/organization-main95-190-553-20261103"
   }
 }

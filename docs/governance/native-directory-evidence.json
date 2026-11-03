@@ -213,6 +213,8 @@
         "native-replay-revocation-uses-native-no-factor-mfa-path-without-forced-high-security",
         "native-committed-operation-replay-refused-after-real-admin-revocation",
         "native-revoked-replay-keeps-one-ledger-record-and-cleans-transaction",
+        "native-media-http-cross-site-configuration-refused-before-state-276dccdd1760a117d0e89f94163e0d013a17f639e2be134df07fb78aa62a1414",
+        "native-media-http-cross-site-configuration-refused-before-state-764abda848066874da61f25c69020fe1c5420068c5d5afa4272cbfa7712ede8c",
         "native-media-http-native-stored-long-unicode-file-uri-remains-a-canonical-target",
         "native-media-http-real-platform-route-authenticated-authorize-page",
         "native-media-http-real-resource-route-pinned-frame-csp",
@@ -555,7 +557,7 @@
         "owned-writer-environment-and-cache-restored",
         "all-owned-full-native-schemas-and-principals-cleaned"
     ],
-    "check_count": 551,
+    "check_count": 553,
     "php_version": "8.5.12",
     "source_restore": {
         "quickstart_sha256": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
@@ -811,7 +813,7 @@
         },
         "issuer_tests": {
             "restore_scope": "three-media-tables-logical-snapshot-and-real-sql-restore",
-            "restored_snapshot_sha256": "8635535891ec43f384a66d85724b467509efdd43521ce6a343ec54e073b13ac1",
+            "restored_snapshot_sha256": "ed8c8bcc391b356bc5e704604af02c73621e2e1e40fd06f1e16de9c96af53f85",
             "media_only_external_rotation": true,
             "incarnation_only_rotation_verified": true,
             "old_native_credentials_retained_and_verified": true,
