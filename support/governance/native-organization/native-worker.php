@@ -46,10 +46,34 @@ try {
       !is_string($payload['media_issuer']['incarnation']) || !preg_match('/\A[a-f0-9]{32}\z/',$payload['media_issuer']['incarnation'])) {
     throw new RuntimeException('native_worker_issuer_refused');
   }
+  $api_phase_state=array('owner'=>$payload['owner_token'],'phase'=>'payload-verified',
+    'proof_thread'=>null,'writer_thread'=>null,'reader_thread'=>null,'credential_thread'=>null);
+  $api_phase=function($phase,array$threads=array())use($path,$payload,&$api_phase_state){
+    if(!in_array($payload['action']['action']??null,array('recovery.api.current','recovery.oauth.authenticate'),true)){return;}
+    $phases=array('payload-verified','bootstrap-loaded','library-loaded','proof-connected','config-default-start',
+      'config-default-ready','config-installed','writer-connect-start','writer-connected','user-reader-connect-start',
+      'user-reader-connected','user-load-start','user-loaded','context-ready','ready-published','before-current-read',
+      'current-read-returned','oauth-reader-connect-start','oauth-reader-connected','before-native-oauth-auth','native-oauth-auth-returned');
+    if(!in_array($phase,$phases,true)){throw new RuntimeException('recovery_api_phase_refused');}
+    foreach($threads as$key=>$value){if(!in_array($key,array('proof_thread','writer_thread','reader_thread','credential_thread'),true)||
+      !is_int($value)||$value<1){throw new RuntimeException('recovery_api_phase_thread_refused');}$api_phase_state[$key]=$value;}
+    $directory=lstat($path);$owner=$path.'/owner';
+    if(!$directory||is_link($path)||$directory['dev']!==$payload['directory_dev']||$directory['ino']!==$payload['directory_ino']||
+      ($directory['mode']&0777)!==0700||!is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||
+      filesize($owner)!==64||!hash_equals($payload['owner_token'],file_get_contents($owner))){throw new RuntimeException('recovery_api_phase_owner_refused');}
+    $api_phase_state['phase']=$phase;$temporary=$path.'/.write-'.bin2hex(random_bytes(8));$stream=fopen($temporary,'x');
+    if(!$stream){throw new RuntimeException('recovery_api_phase_write_refused');}
+    try{if(!chmod($temporary,0600)){throw new RuntimeException('recovery_api_phase_write_refused');}
+      $raw=json_encode($api_phase_state,JSON_THROW_ON_ERROR);if(fwrite($stream,$raw)!==strlen($raw)||!fflush($stream)){
+        throw new RuntimeException('recovery_api_phase_write_refused');}}
+    finally{fclose($stream);}
+    if(!rename($temporary,$path.'/api-phase.json')){throw new RuntimeException('recovery_api_phase_write_refused');}
+  };
+  $api_phase('payload-verified');
   $scope_owned=true;
-  require_once $root.'/support/runtime/bootstrap-cli.php';
+  require_once $root.'/support/runtime/bootstrap-cli.php';$api_phase('bootstrap-loaded');
   ob_start();
-  phutil_load_library($root.'/src/');
+  phutil_load_library($root.'/src/');$api_phase('library-loaded');
   require_once __DIR__.'/workers.php';
   $quiet=PhutilConsole::newLocalConsole(); $quiet->disableOut(); PhutilConsole::setConsole($quiet);
   $config=$payload['config']; $keys=array_keys($config); sort($keys);
@@ -62,7 +86,7 @@ try {
   }
   mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
   $proof=new mysqli($config['host'],$config['user'],$config['password'],'',$config['port']);
-  $proof->set_charset('utf8mb4');
+  $proof->set_charset('utf8mb4');$api_phase('proof-connected',array('proof_thread'=>(int)$proof->thread_id));
   $seen_guard=false; $seen_user=false;
   foreach ($proof->query('SHOW GRANTS')->fetch_all(MYSQLI_NUM) as $entry) {
     $grant=$entry[0];
@@ -97,7 +121,9 @@ try {
   }
   $measurement_file=governance_native_measurement_file_source($payload['action']['action']??null,$payload['measurement_file']??null,
     $config['namespace'],$payload['fixture_nonce'],$payload['source_sha256']);
+  $api_phase('config-default-start');
   $stack=new PhabricatorConfigStackSource(); $stack->pushSource(new PhabricatorConfigDefaultSource());
+  $api_phase('config-default-ready');
   $settings=array(
     'mysql.host'=>$config['host'],'mysql.port'=>$config['port'],'mysql.user'=>$config['user'],
     'mysql.pass'=>$config['password'],'storage.default-namespace'=>$config['namespace'],
@@ -131,23 +157,30 @@ try {
       if (PhabricatorEnv::getEnvConfig($key)!==$config[$field]) { throw new RuntimeException('native_worker_route_refused'); }
     }
   });
+  $api_phase('config-installed');
   $action=$payload['action']; $kind=$action['action']??null;
+  $api_phase('writer-connect-start');
   $conn=(new PhabricatorUser())->establishConnection('w');
   $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
+  $api_phase('writer-connected',array('writer_thread'=>$thread));
   if($kind==='recovery.oauth.authenticate'){
     $keys=array_keys($action);sort($keys);
     if($keys!==array('action','token','user')||!is_string($action['token'])||
       !preg_match('/\A[A-Za-z0-9]{32}\z/D',$action['token'])){
       throw new RuntimeException('native_worker_action_refused');}
     PhorgeRecoveryStopRequest::user($action['user']);
+    $api_phase('oauth-reader-connect-start');
     $oauth_conn=(new PhabricatorOAuthServerAccessToken())->establishConnection('r');
     $oauth_thread=(int)queryfx_one($oauth_conn,'SELECT CONNECTION_ID() n')['n'];
+    $api_phase('oauth-reader-connected',array('credential_thread'=>$oauth_thread));
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$oauth_thread));
+    $api_phase('ready-published');$api_phase('before-native-oauth-auth');
     $api=new ConduitAPIRequest(array(),true);
     $controller=(new PhabricatorConduitAPIController())->setRequest(
       (new AphrontRequest('fixture.invalid','/api/user.whoami'))->setUser(new PhabricatorUser()));
     $error=(new ReflectionMethod(PhabricatorConduitAPIController::class,'authenticateUser'))
       ->invoke($controller,$api,array('access_token'=>$action['token']),'user.whoami');
+    $api_phase('native-oauth-auth-returned');
     if($error===null&&$api->getUser()->getPHID()===$action['user']){
       $outcome='allowed';$code='native-success';
     }else if(is_array($error)&&array_keys($error)===array(0,1)&&$error[0]==='ERR-INVALID-AUTH'){
@@ -161,16 +194,22 @@ try {
       !preg_match('/\A(?:api|cli)-[A-Za-z0-9]{28}\z/D',$action['token'])){
       throw new RuntimeException('native_worker_action_refused');}
     PhorgeRecoveryStopRequest::user($action['user']);
-    $viewer=(new PhabricatorUser())->loadOneWhere('phid=%s',$action['user']);
+    $viewer_dao=new PhabricatorUser();$api_phase('user-reader-connect-start');
+    $reader=$viewer_dao->establishConnection('r');$reader_thread=(int)queryfx_one($reader,'SELECT CONNECTION_ID() n')['n'];
+    $api_phase('user-reader-connected',array('reader_thread'=>$reader_thread));$api_phase('user-load-start');
+    $viewer=$viewer_dao->loadOneWhere('phid=%s',$action['user']);$api_phase('user-loaded');
     if(!$viewer){throw new RuntimeException('governance_native_credential_ineligible');}
     // This is the actual current-source reader, not a claim that the caller's
     // PHID authenticates a token. lockCurrent verifies the stored token binding.
     $context=PhorgeGovernanceNativeActorContext::newFromAuthenticatedAPIToken(
       $viewer,new PhutilOpaqueEnvelope($action['token']));
+    $api_phase('context-ready',array('credential_thread'=>$thread));
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    $api_phase('ready-published');
     queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$conn->openTransaction();
     try {
-      $current=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
+      $api_phase('before-current-read');
+      $current=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);$api_phase('current-read-returned');
       if($current->getUserPHID()!==$action['user']){
         throw new RuntimeException('recovery_api_current_binding_refused');}
       $conn->saveTransaction();

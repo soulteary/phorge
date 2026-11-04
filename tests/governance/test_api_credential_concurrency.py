@@ -23,6 +23,31 @@ catch(RuntimeException $e) { echo json_encode(array('accepted'=>false),JSON_THRO
         self.assertEqual(result.stderr, '')
         return json.loads(result.stdout)['accepted']
 
+    def test_startup_phase_validator_rejects_owner_unknown_and_noninteger_thread(self):
+        script = """require $argv[1];$x=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
+try { governance_native_api_startup_phase($x,str_repeat('a',64));echo '{"accepted":true}'; }
+catch(RuntimeException $e) { echo '{"accepted":false}'; }"""
+        good=dict(owner='a'*64,phase='before-current-read',proof_thread=1,writer_thread=2,reader_thread=3,credential_thread=2)
+        def run(value):
+            result=subprocess.run(['php','-r',script,str(WORKERS)],input=json.dumps(value),text=True,capture_output=True,check=True)
+            self.assertEqual(result.stderr,'');return json.loads(result.stdout)['accepted']
+        self.assertTrue(run(good))
+        for value in [dict(good,owner='b'*64),dict(good,phase='PRIVATE_SENTINEL'),
+                      dict(good,writer_thread='2'),dict(good,writer_thread=True),dict(good,writer_thread=0),
+                      dict(good,query='PRIVATE_SENTINEL')]:
+            self.assertFalse(run(value))
+
+    def test_startup_observation_never_replaces_the_original_timeout(self):
+        # Static integration contract only; the new SQL/P_S observation is unrun.
+        source=WORKERS.read_text()
+        begin=source.index("  if (!is_file($path+'/ready.json'))") if "  if (!is_file($path+'/ready.json'))" in source else source.index("  if (!is_file($path.'/ready.json'))")
+        end=source.index("  $ready=json_decode",begin)
+        branch=source[begin:end]
+        self.assertIn('governance_native_api_startup_diagnostic',branch)
+        self.assertIn('catch(Throwable$diagnostic_error)',branch)
+        self.assertIn("throw new RuntimeException('native_worker_not_ready')",branch)
+        self.assertNotIn('return ',branch)
+
     def test_observer_table_literals_are_real_source_tables(self):
         # Static fixture/schema integration check, not a native DAO runtime test.
         schema=(ROOT/'resources/sql/quickstart.sql').read_text()

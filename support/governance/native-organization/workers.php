@@ -86,7 +86,15 @@ function governance_native_start_worker($fixture,array $action) {
   while (!is_file($path.'/ready.json') && microtime(true)<$deadline && proc_get_status($process)['running']) {
     usleep(20000);
   }
-  if (!is_file($path.'/ready.json')) { throw new RuntimeException('native_worker_not_ready'); }
+  if (!is_file($path.'/ready.json')) {
+    if(in_array($action['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)){
+      try{$GLOBALS['governance_api_concurrency_child_failure']=governance_native_api_startup_diagnostic(
+        $GLOBALS['governance_native_workers'][$index],$fixture);}
+      catch(Throwable$diagnostic_error){$GLOBALS['governance_api_concurrency_child_failure']=array(
+        'diagnostic_unavailable'=>true,'error_type'=>get_class($diagnostic_error));}
+    }
+    throw new RuntimeException('native_worker_not_ready');
+  }
   $ready=json_decode(file_get_contents($path.'/ready.json'),true,8,JSON_THROW_ON_ERROR);
   if (!is_int($ready['mysql_thread']??null) || $ready['mysql_thread']<1 ||
       ($ready['status']??null)!=='ready') { throw new RuntimeException('native_worker_ready_refused'); }
@@ -443,4 +451,57 @@ function governance_native_api_concurrency_owner(array $handle) {
     ($stat['mode']&0777)!==0700||!is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||
     filesize($owner)!==64||!hash_equals($worker['nonce'],file_get_contents($owner))){
     throw new RuntimeException('recovery_api_worker_owner_refused');}
+}
+
+/** Failure-only startup observation. Never a ready, denial or success substitute. */
+function governance_native_api_startup_diagnostic(array$worker,$fixture) {
+  global$control;
+  $fixture->assertOwned();governance_native_api_concurrency_owner($worker);
+  $path=$worker['private'].'/api-phase.json';clearstatcache(true,$path);
+  if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>2048){
+    throw new RuntimeException('recovery_api_startup_phase_unavailable');}
+  $phase=json_decode(file_get_contents($path),true,8,JSON_THROW_ON_ERROR);
+  $phase=governance_native_api_startup_phase($phase,$worker['nonce']);
+  $out=array('startup_phase'=>$phase['phase'],'process_running'=>is_resource($worker['process'])&&proc_get_status($worker['process'])['running'],
+    'threads'=>array());
+  if(!($control instanceof mysqli)){throw new RuntimeException('recovery_api_startup_observer_unavailable');}
+  foreach(array('proof_thread','writer_thread','reader_thread','credential_thread')as$role){
+    $id=$phase[$role];if($id===null){continue;}
+    $row=$control->query('SELECT PROCESSLIST_COMMAND c FROM performance_schema.threads WHERE PROCESSLIST_ID='.(int)$id);
+    if(!$row){throw new RuntimeException('recovery_api_startup_observation_failed');}
+    $value=$row->fetch_assoc();$row->free();$command=$value===null?'absent':($value['c']==='Sleep'?'sleep':($value['c']==='Query'?'query':'other'));
+    $entry=array('role'=>$role,'command'=>$command,'waiting_on_owned_user'=>false,'waiting_on_owned_conduit'=>false,'waiting_on_owned_oauth'=>false);
+    foreach(array('user'=>'waiting_on_owned_user','conduit'=>'waiting_on_owned_conduit','oauth_server'=>'waiting_on_owned_oauth')as$app=>$key){
+      $schema=$fixture->getNamespace().'_'.$app;
+      $sql='SELECT COUNT(*) n FROM performance_schema.data_lock_waits w '.
+        'JOIN performance_schema.threads t ON t.THREAD_ID=w.REQUESTING_THREAD_ID '.
+        'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID '.
+        'WHERE t.PROCESSLIST_ID='.(int)$id." AND l.OBJECT_SCHEMA='".$control->real_escape_string($schema)."'";
+      $query=$control->query($sql);if(!$query){throw new RuntimeException('recovery_api_startup_observation_failed');}
+      $entry[$key]=(int)$query->fetch_assoc()['n']>0;$query->free();
+    }
+    $out['threads'][]=$entry;
+  }
+  $result_path=$worker['private'].'/result.json';clearstatcache(true,$result_path);
+  if(is_file($result_path)&&!is_link($result_path)&&(fileperms($result_path)&0777)===0600&&filesize($result_path)<=2048){
+    $result=json_decode(file_get_contents($result_path),true,8,JSON_THROW_ON_ERROR);
+    if(is_array($result)&&($result['status']??null)==='failed'){
+      $out['child_failure_location']=governance_native_session_failure_location($result);
+    }
+  }
+  return$out;
+}
+
+function governance_native_api_startup_phase(array$phase,$owner) {
+  $keys=array_keys($phase);sort($keys);
+  if($keys!==array('credential_thread','owner','phase','proof_thread','reader_thread','writer_thread')||
+    !is_string($phase['owner'])||!hash_equals($owner,$phase['owner'])||!in_array($phase['phase'],array(
+      'payload-verified','bootstrap-loaded','library-loaded','proof-connected','config-default-start','config-default-ready',
+      'config-installed','writer-connect-start','writer-connected','user-reader-connect-start','user-reader-connected',
+      'user-load-start','user-loaded','context-ready','ready-published','before-current-read','current-read-returned',
+      'oauth-reader-connect-start','oauth-reader-connected','before-native-oauth-auth','native-oauth-auth-returned'),true)){
+    throw new RuntimeException('recovery_api_startup_phase_refused');}
+  foreach(array('proof_thread','writer_thread','reader_thread','credential_thread')as$key){
+    if($phase[$key]!==null&&(!is_int($phase[$key])||$phase[$key]<1)){throw new RuntimeException('recovery_api_startup_phase_refused');}}
+  return$phase;
 }
