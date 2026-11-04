@@ -4,12 +4,9 @@
 final class PhorgeProjectPolicyRefusalException extends RuntimeException {
   private $reason;
 
-  private function __construct($reason, $message) {
-    $this->reason = $reason;
-    parent::__construct($message);
-  }
-
-  public static function newForReason($reason) {
+  // Native library overrides must preserve RuntimeException's public visibility.
+  // Construction still accepts only a fixed business reason, never free text.
+  public function __construct($reason) {
     $messages = array(
       'proposal-input' => 'project_execution_proposal_refused',
       'proposal-no-change' => 'project_execution_no_change',
@@ -28,10 +25,15 @@ final class PhorgeProjectPolicyRefusalException extends RuntimeException {
       'sources-stale' => 'project_execution_sources_stale',
       'independent-approver' => 'project_execution_independent_admin_required',
     );
-    if (!is_string($reason) || !isset($messages[$reason])) {
+    if (func_num_args() !== 1 || !is_string($reason) || !isset($messages[$reason])) {
       throw new InvalidArgumentException('project_policy_refusal_reason_invalid');
     }
-    return new self($reason, $messages[$reason]);
+    $this->reason = $reason;
+    parent::__construct($messages[$reason]);
+  }
+
+  public static function newForReason($reason) {
+    return new self($reason);
   }
 
   public function getRefusalReason() {

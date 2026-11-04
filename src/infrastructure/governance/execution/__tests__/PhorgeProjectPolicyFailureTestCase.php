@@ -111,6 +111,19 @@ final class PhorgeProjectPolicyFailureTestCase extends PhutilTestCase {
     $unknown = $this->caught(function() { PhorgeProjectPolicyRefusalException::newForReason('unrecognized'); });
     $this->assertEqual(InvalidArgumentException::class, get_class($unknown));
     $this->assertEqual(null, PhorgeProjectPolicyFailure::responseFor($unknown));
+    $constructor = new ReflectionMethod(PhorgeProjectPolicyRefusalException::class, '__construct');
+    $this->assertTrue($constructor->isPublic());
+    $direct = new PhorgeProjectPolicyRefusalException('native-edit');
+    $this->assertEqual('native-edit', $direct->getRefusalReason());
+    $this->assertEqual('project_execution_native_edit_required', $direct->getMessage());
+    foreach (array(array('unrecognized'), array(null), array(array()),
+      array('native-edit', 'arbitrary message'), array('native-edit', 403, new Exception('private'))) as $args) {
+      $bad = $this->caught(function() use ($args) {
+        (new ReflectionClass(PhorgeProjectPolicyRefusalException::class))->newInstanceArgs($args);
+      });
+      $this->assertEqual(InvalidArgumentException::class, get_class($bad));
+      $this->assertEqual(null, PhorgeProjectPolicyFailure::responseFor($bad));
+    }
   }
   public function testCallerJSONAndHTTPResponseHaveNarrowTypedBoundary() {
     $this->assertEqual(array('approval_id' => str_repeat('a',64)),

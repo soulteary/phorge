@@ -1067,7 +1067,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyRefusalException.php",
       "symbol": "PhorgeProjectPolicyRefusalException",
       "kind": "explicit-business-refusal-no-permit",
-      "sha256": "593d9eb81e56be7a4ec7d2213dc7517374bd8fc5e9f040de9ed2ad07f75a16a7",
+      "sha256": "16c33227d95f6391e6dd70b955cc03827cafeecdae1d7840cde921e7c932ca82",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -2007,7 +2007,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyRefusalException.php",
-        "sha256": "593d9eb81e56be7a4ec7d2213dc7517374bd8fc5e9f040de9ed2ad07f75a16a7"
+        "sha256": "16c33227d95f6391e6dd70b955cc03827cafeecdae1d7840cde921e7c932ca82"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyTicketState.php",
