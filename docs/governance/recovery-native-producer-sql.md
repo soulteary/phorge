@@ -111,3 +111,23 @@ unchanged. API-token `BINARY token` locking reads and other native identity/audi
 queries are unchanged and do not inherit this Web session concurrency evidence.
 API-token insertion/revocation stress remains an explicit follow-up. This is no
 claim of complete credential-source coverage, recovery permission or deployment.
+
+
+### Strict restore-consumer corrective candidate
+
+The owner-reported 8039 run passed all 243 pure methods and all 897 SQL checks,
+with 40 workers and owned storage/process cleanup complete. Its 6,836 runtime
+PHP/SQL/PSL files matched the signed source. Strict acceptance nevertheless
+failed: the consumer still required the pre-recovery 540 tables and 1,570 patch
+ledger entries, while actual source restoration had 543 tables and 1,571 applied
+entries with no pending patches. The native loader had already executed the
+reviewed recoveryrestore patch and reported all 34 migration source hashes;
+the consumer's explicit PATCHES list still omitted that patch.
+
+This gate-only successor fixes the exact profile at 543/1571, adds the already
+executed recoveryrestore source to the reviewed 34-file consumer list, and
+rejects the old values, missing/wrong patch digest and old executed count.
+It does not accept either profile interchangeably. Native PHP, SQL, all 897
+check IDs and 243 method IDs are unchanged. The original 8039 receipt/seal
+failure stays immutable; only a fresh run bound to this successor may establish
+strict acceptance. No restoration permission or activation follows from counts.

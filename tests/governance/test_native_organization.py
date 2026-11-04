@@ -28,9 +28,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 540, 'restore_phase_workers_started': 0,
+            'current_table_count': 543, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1570, 'applied_patch_count': 1570, 'pending_patch_keys': [],
+                'source_patch_count': 1571, 'applied_patch_count': 1571, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -300,6 +300,27 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
                           ('applied_patch_count',1562),('migrations_executed',1)]:
             data=template();data['source_restore']['patch_audit'][key]=value
             with self.subTest(key=key), self.assertRaises(ValueError): validate(data, file_digest='b'*64)
+
+    def test_current_recovery_restore_profile_refuses_old_counts_and_missing_migration(self):
+        self.assertEqual(897, validate(template(), file_digest='b'*64)['check_count'])
+        for value in (540, True, '543', 544):
+            data=template();data['source_restore']['current_table_count']=value
+            with self.subTest(table_count=value), self.assertRaises(ValueError):
+                validate(data, file_digest='b'*64)
+        for value in (1570, True, '1571', 1572):
+            data=template();audit=data['source_restore']['patch_audit']
+            audit['source_patch_count']=value;audit['applied_patch_count']=value
+            with self.subTest(patch_count=value), self.assertRaises(ValueError):
+                validate(data, file_digest='b'*64)
+        name='phabricator:20261104.people.recoveryrestore.sql'
+        self.assertIn(name, template()['source_restore']['patch_audit']['migration_source_hashes'])
+        for mutation in ('missing-source', 'bad-source-hash', 'old-executed-count'):
+            data=template();audit=data['source_restore']['patch_audit']
+            if mutation=='missing-source':del audit['migration_source_hashes'][name]
+            elif mutation=='bad-source-hash':audit['migration_source_hashes'][name]='0'*64
+            else:audit['migrations_executed']=33
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                validate(data, file_digest='b'*64)
 
     def test_raw_or_unknown_fields_refused_at_every_evidence_level(self):
         for path in ((),('native',),('native','auth_tests'),('cleanup',),('source_restore',),('source_restore','patch_audit')):
