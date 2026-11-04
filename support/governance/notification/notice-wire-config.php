@@ -2,7 +2,7 @@
 /** Isolated fixture extension; never a production configuration loader. */
 require_once __DIR__.'/owned-config.php';
 function governance_notice_wire_case($case){
-  if(!is_string($case)||!in_array($case,array('allow','admin-revoked','disabled','disable-enable',
+  if(!is_string($case)||!in_array($case,array('allow','admin-revoked','disabled','disable-enable','raw-disable-enable','source-rollback',
     'primary-changed','source-changed','between-attempts','config-notice-error','config-private-mail-error'),true)){
     throw new RuntimeException('notice_wire_case_refused');}
   return$case;

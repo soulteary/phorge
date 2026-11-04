@@ -82,6 +82,33 @@ try{
       $expected=$user->getUsername().'@example.invalid';$changed='changed-'.$expected;
       if($email->getAddress()!==($restore?$changed:$expected)){throw new RuntimeException('notice_wire_email_change_precondition');}
       $email->setAddress($restore?$expected:$changed)->save();
+    }elseif($case==='raw-disable-enable'){
+      if($restore||PhabricatorEnv::getEnvConfig('governance.notifications.enabled')!==true||
+        PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled')!==false){throw new RuntimeException('notice_wire_raw_profile_refused');}
+      $conn=$user->establishConnection('w');
+      $primary=queryfx_one($conn,'SELECT CONNECTION_ID() thread,@@server_uuid uuid');
+      $proof->query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+      $observer=$proof->query('SELECT CONNECTION_ID() thread,@@server_uuid uuid,@@autocommit ac')->fetch_assoc();
+      if((string)$primary['thread']===(string)$observer['thread']||$primary['uuid']!==$observer['uuid']||
+        !in_array($observer['ac'],array(1,'1'),true)) {throw new RuntimeException('notice_wire_raw_observer_refused');}
+      $before=queryfx_one($conn,'SELECT generation FROM governance_notice_identityepoch WHERE userPHID=%s',$user->getPHID());
+      $events_before=(int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE objectPHID=%s',new PhabricatorUserTransaction(),$user->getPHID())['n'];
+      $observe=$proof->prepare('SELECT isDisabled FROM `'.$data['writer']['namespace'].'_user`.`user` WHERE id=? AND phid=?');
+      $id=$user->getID();$phid=$user->getPHID();$observe->bind_param('is',$id,$phid);$seen=array();
+      try{foreach(array(1,0)as$value){
+        $target=(new PhabricatorUser())->load($id);
+        if(!$target||$target->getPHID()!==$phid){throw new RuntimeException('notice_wire_raw_target_refused');}
+        $target->setIsDisabled($value)->save();
+        if($conn->isInsideTransaction()){throw new RuntimeException('notice_wire_raw_commit_unproved');}
+        $observe->execute();$rows=$observe->get_result()->fetch_all(MYSQLI_ASSOC);
+        if(count($rows)!==1||(string)$rows[0]['isDisabled']!==(string)$value){throw new RuntimeException('notice_wire_raw_observed_commit_refused');}
+        $seen[]=$value;
+      }}finally{$observe->close();}
+      $after=queryfx_one($conn,'SELECT generation FROM governance_notice_identityepoch WHERE userPHID=%s',$phid);
+      $expected=PhorgeGovernanceNoticeIdentityScope::nextGeneration($before?(string)$before['generation']:'0');
+      $events_after=(int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE objectPHID=%s',new PhabricatorUserTransaction(),$phid)['n'];
+      if($seen!==array(1,0)||!$after||(string)$after['generation']!==$expected||$events_before!==$events_after){
+        throw new RuntimeException('notice_wire_raw_generation_not_proved');}
     }elseif(in_array($case,array('admin-revoked','between-attempts','disabled','disable-enable'),true)){
       $sessions=new PhabricatorAuthSessionEngine();
       $operator=$sessions->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$control['operator_session']);

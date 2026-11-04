@@ -62,7 +62,27 @@ function governance_notice_wire_hold($fixture,callable $check){
       'name'=>'SYNTHETIC_PRIVATE_NOTICE_UNIT','parent_id'=>null);
     // Restore the exact creator cookie: another real session was loaded above.
     $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$auth['token'];
-    $service=PhorgeOrganizationService::newForActor($auth['context']);$receipt=$service->createUnit($input);
+    $service=PhorgeOrganizationService::newForActor($auth['context']);
+    if($case==='source-rollback'){
+      $trigger='`'.$fixture->getNamespace().'_user`.`notice_wire_owned_fault`';$installed=false;
+      try{
+        governance_native_setup_query($fixture,'CREATE TRIGGER '.$trigger.' BEFORE INSERT ON '.$fixture->table('user','organization_operation').
+          " FOR EACH ROW BEGIN IF NEW.operationID='notice-wire-unit' THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='owned-notice-wire-source-fault'; END IF; END");$installed=true;
+        $fault=false;
+        try{$service->createUnit($input);}catch(AphrontQueryException$error){
+          if($error->getCode()!==1644||!str_contains($error->getMessage(),'owned-notice-wire-source-fault')){throw$error;}$fault=true;}
+        $meta_before=(new PhabricatorMetaMTAGorgeOutbox())->establishConnection('w');
+        $counts=array();
+        foreach(array('organization_unit','organization_audit','organization_operation')as$table){
+          $column=$table==='organization_unit'?'unitID':'operationID';
+          $counts[]=(int)queryfx_one($user_writer,'SELECT COUNT(*) n FROM %T WHERE %T=%s',$table,$column,'notice-wire-unit')['n'];}
+        foreach(array('governance_notice_event','governance_notice_delivery','metamta_gorgeoutbox')as$table){
+          $counts[]=(int)queryfx_one($meta_before,'SELECT COUNT(*) n FROM %T',$table)['n'];}
+        $check($fault&&$counts===array(0,0,0,0,0,0)&&!$user_writer->isInsideTransaction(),
+          'notice-wire-real-post-outbox-source-rollback-keeps-no-event-relay-or-mail-before-any-daemon');
+      }finally{if($installed){governance_native_setup_query($fixture,'DROP TRIGGER '.$trigger);}}
+    }
+    $receipt=$service->createUnit($input);
     $meta=(new PhabricatorMetaMTAGorgeOutbox())->establishConnection('w');
     $event=queryfx_one($meta,'SELECT eventID,state FROM governance_notice_event WHERE operationDigest=%s',hash('sha256',$input['operation_id']));
     if(!$event||$event['state']!=='pending'||$receipt['replayed']!==false){throw new RuntimeException('notice_wire_native_event_missing');}

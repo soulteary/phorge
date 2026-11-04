@@ -142,3 +142,11 @@ they are not completed by this first event. Native full-SQL hook coverage,
 current bounded admin audience, automatic daemon/HTTP/SMTP, in-app delivery,
 browser, restoration and production activation are distinct gates. Nothing
 here authorizes a recovery action or weakens native actor/VIEW/EDIT policy.
+
+### Unrun physical boundary successor
+
+`raw-disable-enable` uses two real native User DAO saves with notice on and recovery off. A separate owned primary connection, whose autocommit, UUID and distinct connection ID are checked, observes disabled then enabled states. The control requires one monotonic notice-generation increment and unchanged native USER transaction count; it never authorizes or prepares mail itself. The parent must prepare the original delivery first, invoke this fixed mutation once, then prove the real callback rejects it and stable Owlmail receives no additional message. Restore is refused for this irreversible ABA control.
+
+`source-rollback` installs an owned trigger on the native operation insert, after event/outbox creation in the real service. Exact native 1644 fault must leave no matching business/audit/operation and no notice event/delivery/relay. The trigger is removed in finally; the original source operation is retried normally and must produce exactly one real delivery. This is a pre-daemon rollback boundary, not a claim that a daemon raced an uncommitted transaction. A parent must separately prove capture initially empty and one accepted message after the successful retry. No fake mail, arbitrary source-kind override or caller recipient is used.
+
+Both cases are source-only candidates. Existing nine cases still need actual current-source physical runs. Project-approval and recovery-stop physical producers, expanded recipient audiences and a daemon running concurrently with rollback remain independent obligations. No previous SMTP matrix proves these additions. Production source is unchanged; no activation or deployment is provided.
