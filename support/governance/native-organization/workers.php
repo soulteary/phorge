@@ -4,7 +4,7 @@
 $GLOBALS['governance_native_workers']=array();
 
 function governance_native_worker_atomic($path,$name,$value) {
-  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release','producer-ready.json','producer-continue'),true)) {
+  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release','producer-ready.json','producer-continue','covering-control-ready.json','fence-continue'),true)) {
     throw new RuntimeException('native_worker_file_refused');
   }
   $temporary=$path.'/.write-'.bin2hex(random_bytes(8));
@@ -354,4 +354,20 @@ function governance_native_stop_fixture_handles(array $handles){
     }
     unset($worker);
   }
+}
+
+/** Observe the original covering SHARE returning before allowing native INSERT. */
+function governance_native_wait_session_covering_control(array $handle) {
+  $worker=governance_native_session_producer_handle($handle);
+  $path=$worker['private'].'/covering-control-ready.json';$deadline=microtime(true)+8;
+  while(!is_file($path)&&microtime(true)<$deadline&&is_resource($worker['process'])&&proc_get_status($worker['process'])['running']){usleep(20000);}
+  if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>512){
+    throw new RuntimeException('native_session_covering_control_missing');}
+  $value=json_decode(file_get_contents($path),true,4,JSON_THROW_ON_ERROR);
+  if($value!==array('status'=>'covering-control-returned','mysql_thread'=>$worker['mysql_thread'])){
+    throw new RuntimeException('native_session_covering_control_refused');}
+}
+function governance_native_continue_session_fence(array $handle) {
+  $worker=governance_native_session_producer_handle($handle);
+  governance_native_worker_atomic($worker['private'],'fence-continue',$worker['nonce']);
 }

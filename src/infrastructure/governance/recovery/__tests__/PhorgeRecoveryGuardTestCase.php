@@ -25,6 +25,40 @@ final class PhorgeRecoveryGuardTestCase extends PhutilTestCase {
       PhorgeGovernanceRecoveryGuard::state($malformed),PhorgeGovernanceRecoveryGuard::state($malformed));}
     catch(InvalidArgumentException$error){$refused=$error->getMessage()==='recovery_native_flag_refused';}
     $this->assertTrue($refused);
+    // Real native configuration reads: only explicit canonical false is OFF.
+    // A constructor-free native proxy has no source and throws in getKeys();
+    // do not simulate that failure by returning a caller-supplied boolean.
+    $stack_property=new ReflectionProperty(PhabricatorEnv::class,'sourceStack');
+    $cache_property=new ReflectionProperty(PhabricatorEnv::class,'cache');
+    $old_stack=$stack_property->getValue();$old_cache=$cache_property->getValue();
+    try {
+      foreach(array(false,true)as$flag){
+        $stack=(new PhabricatorConfigStackSource())->pushSource(
+          new PhabricatorConfigDictionarySource(array('governance.account-recovery.enabled'=>$flag)));
+        $stack_property->setValue(null,$stack);$cache_property->setValue(null,array());
+        $this->assertEqual($flag,PhorgeGovernanceRecoveryGuard::enabled());
+      }
+      foreach(array(new PhabricatorConfigDictionarySource(array()),
+        (new ReflectionClass(PhabricatorConfigLocalSource::class))->newInstanceWithoutConstructor())as$source){
+        $stack_property->setValue(null,(new PhabricatorConfigStackSource())->pushSource($source));
+        $cache_property->setValue(null,array());
+        // Emergency disable recognition remains independent of broken config.
+        $this->assertTrue(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled(
+          (new PhabricatorUser())->setIsDisabled('1')));
+        $refused=false;
+        try{PhorgeGovernanceRecoveryGuard::enabled();}
+        catch(Exception$error){$refused=true;}
+        $this->assertTrue($refused);
+      }
+      foreach(array(null,0,'0','false')as$flag){
+        $stack_property->setValue(null,(new PhabricatorConfigStackSource())->pushSource(
+          new PhabricatorConfigDictionarySource(array('governance.account-recovery.enabled'=>$flag))));
+        $cache_property->setValue(null,array());$refused=false;
+        try{PhorgeGovernanceRecoveryGuard::enabled();}
+        catch(RuntimeException$error){$refused=$error->getMessage()==='recovery_feature_flag_unknown';}
+        $this->assertTrue($refused);
+      }
+    }finally{$stack_property->setValue(null,$old_stack);$cache_property->setValue(null,$old_cache);}
     $translations=(new PhabricatorChineseTranslation())->getTranslationMap();
     foreach(array('Account Recovery Guard','Experimental native account restoration boundary.',
       'Refuse account restoration without complete source assessment.',

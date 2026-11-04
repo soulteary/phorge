@@ -395,7 +395,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),896)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),897)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -496,7 +496,7 @@ class NativePolicyErrorRouteGateTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),896)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),897)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -549,7 +549,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(896,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(897,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -579,13 +579,16 @@ class NativeHTTPMeasurementGateTest(unittest.TestCase):
 
 class RecoveryNativeProducerGateTest(unittest.TestCase):
     def test_selected_producer_checks_and_non_authority_are_mandatory(self):
-        self.assertEqual(19,len(gate.RECOVERY_NATIVE_PRODUCER_CHECKS))
-        self.assertEqual(896,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(20,len(gate.RECOVERY_NATIVE_PRODUCER_CHECKS))
+        self.assertEqual(897,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.RECOVERY_NATIVE_PRODUCER_CHECKS:
             value=template();value['checks'].remove(name);value['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
         for key in ('restore_service_review_profile_proved','all_13_source_families_complete','can_execute'):
             value=template();value['native']['recovery_native_producer_tests'][key]=True
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
+        for key in ('original_covering_share_positive_control','actual_primary_user_record_fence'):
+            value=template();value['native']['recovery_native_producer_tests']['sessions'][key]=False
             with self.subTest(key=key),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
         value=template();value['worker_cleanup']['workers_registered']=38
         with self.assertRaises(ValueError):validate(value,file_digest='b'*64)

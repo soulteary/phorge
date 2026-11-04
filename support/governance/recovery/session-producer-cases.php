@@ -43,15 +43,28 @@ function governance_recovery_session_producer_cases($fixture,callable $check,arr
     $payload=array('action'=>'recovery.session.issue','subject'=>$subject->getPHID(),'token'=>$one['token']);
     $handles[]=governance_native_start_worker($fixture,$payload);
     $payload['token']=$two['token'];$handles[]=governance_native_start_worker($fixture,$payload);
-    // Current-actor checks finish before the blocker. The worker never prelocks
-    // the target: its actual SessionEngine -> DAO fence must cause this wait.
+    // Current-actor checks finish before the blocker. The old covering SHARE
+    // control does not prelock the target PRIMARY: the actual DAO fence must wait.
     foreach($handles as$handle){governance_native_wait_session_producer_ready($handle);}
     if(!$setup->begin_transaction()){throw new RuntimeException('recovery_session_blocker_begin_failed');}$locked=true;
     governance_native_concurrency_sql($fixture,'SELECT id FROM '.$fixture->table('user','user').
       ' WHERE id=? FOR UPDATE',array($subject->getID()));
     foreach($handles as$handle){governance_native_continue_session_producer($handle);}
+    foreach($handles as$handle){governance_native_wait_session_covering_control($handle);}
+    $blocker=$control->query('SELECT COUNT(*) n FROM performance_schema.data_locks l '.
+      'JOIN performance_schema.threads t ON t.THREAD_ID=l.THREAD_ID '.
+      'JOIN information_schema.INNODB_TRX x ON x.trx_mysql_thread_id=t.PROCESSLIST_ID '.
+      'WHERE t.PROCESSLIST_ID='.(int)$setup->thread_id.
+      " AND l.OBJECT_SCHEMA='".$control->real_escape_string($fixture->getNamespace().'_user').
+      "' AND l.OBJECT_NAME='user' AND l.INDEX_NAME='PRIMARY' AND l.LOCK_TYPE='RECORD' ".
+      "AND l.LOCK_STATUS='GRANTED' AND l.LOCK_MODE LIKE 'X%' AND l.LOCK_DATA='".(int)$subject->getID()."'");
+    if(!$blocker){throw new RuntimeException('recovery_session_blocker_observation_failed');}
+    $blocker_present=(int)$blocker->fetch_assoc()['n']>=1;$blocker->free();
+    $check($blocker_present&&$count()===0,
+      'recovery-session-original-covering-share-returns-under-primary-x-without-session-write');
+    foreach($handles as$handle){governance_native_continue_session_fence($handle);}
     governance_native_wait_worker_query($control,$handles,
-      '/SELECT phid FROM .*[\x60]user[\x60].*'.preg_quote($subject->getPHID(),'/').'.*LOCK IN SHARE MODE/is');
+      '/SELECT id,phid FROM .*[\x60]user[\x60] FORCE INDEX \(PRIMARY\) WHERE id='.(int)$subject->getID().' LOCK IN SHARE MODE/is');
     $threads=array_map(static function($h){return (int)$h['mysql_thread'];},$handles);sort($threads);
     $deadline=microtime(true)+5;$seen=array();
     do {
@@ -61,7 +74,8 @@ function governance_recovery_session_producer_cases($fixture,callable $check,arr
         'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID '.
         'WHERE r.PROCESSLIST_ID IN ('.implode(',',$threads).') AND b.PROCESSLIST_ID='.(int)$setup->thread_id.
         " AND l.OBJECT_SCHEMA='".$control->real_escape_string($fixture->getNamespace()."_user").
-        "' AND l.OBJECT_NAME='user'";
+        "' AND l.OBJECT_NAME='user' AND l.INDEX_NAME='PRIMARY' AND l.LOCK_TYPE='RECORD' ".
+        "AND l.LOCK_STATUS='WAITING' AND l.LOCK_MODE LIKE 'S%' AND l.LOCK_DATA='".(int)$subject->getID()."'";
       $result=$control->query($sql);if(!$result){throw new RuntimeException('recovery_session_wait_observation_failed');}
       $seen=array();foreach($result->fetch_all(MYSQLI_ASSOC)as$row){$seen[]=(int)$row['id'];}$result->free();sort($seen);
       if($seen===$threads){break;}usleep(20000);
@@ -95,6 +109,7 @@ function governance_recovery_session_producer_cases($fixture,callable $check,arr
         'recovery-session-untracked-raw-transaction-1568-preserves-caller-write');
     }finally{queryfx($conn,'ROLLBACK');}
     return array('selected_native_session_insert_serialization'=>true,
+      'original_covering_share_positive_control'=>true,'actual_primary_user_record_fence'=>true,
       'independent_current_actor_credentials'=>true,'actor_epoch_initialization_outside_observed_fence'=>true,
       'all_session_producers_closed'=>false,'all_sources_complete'=>false,'restoration_executed'=>false);
   }finally{

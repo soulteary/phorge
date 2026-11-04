@@ -3,7 +3,7 @@
 This independent successor starts from signed 4c5 and explicitly merges protected
 main 8725545797c3b4edb57fac61e8d97f67068770ff. It does not alter the frozen Org
 policy/RR branches. Source obligations are **243 pure methods /39 classes** and
-**896 SQL checks**: every 877 main obligation plus exactly 19 selected producer
+**897 SQL checks**: every 877 main obligation plus exactly 20 selected producer
 checks. These counts are not execution results.
 
 The added SQL scope is the actual native User save/update/replace paths, a native
@@ -46,3 +46,32 @@ Current state: implementation and host checks only; supported map/pure, actual
 SQL, whole-runtime hashes and strict CLI/cleanup acceptance are pending a frozen
 source review and Root's exclusive lab lease. No COMMON access or deployment is
 claimed by this document.
+
+
+## PRIMARY-record corrective candidate (runtime pending)
+
+Signed ae770 passed 243 pure methods and 892 SQL checks, then failed before its
+four Session checks. Failure-only diagnostics showed both session calls returned
+while setup held the native User PRIMARY X lock; later work waited on setup.
+Those receipts do not certify insertion serialization or restoration.
+
+This functional successor uses a nonlocking PHID-to-ID planning read, then a
+current locking `FORCE INDEX (PRIMARY) WHERE id=...` point read with exact PHID
+revalidation. It does not force a PRIMARY scan by PHID or change eligibility.
+Guard configuration exceptions propagate; only explicit boolean false selects
+the native OFF path. Canonical emergency disable remains configuration-independent.
+
+Both real workers first execute the exact old covering SHARE under the owned
+PRIMARY X lock, without creating sessions. The new mandatory positive control
+requires both reads to return, setup's active transaction and exact PRIMARY X
+lock to remain, and zero subject sessions. Only then do native producers run.
+Their SQL and Performance Schema waits must identify the exact PRIMARY record,
+both worker threads, and owned setup blocker. This adds one mandatory SQL ID:
+897 checks, 243 methods/39 classes, 40 registry workers. All remain current-source
+runtime obligations, not passed results. The diagnostic source is excluded.
+
+Index choice controls record locking; a covering secondary SHARE alone does not
+prove conflict with a clustered PRIMARY X lock. See official
+[MySQL 8.4 locking rules](https://dev.mysql.com/doc/refman/8.4/en/innodb-locks-set.html).
+The executable old-query positive control must succeed on the installed isolated
+profile. All13 source completion and recovery execution remain false.

@@ -150,7 +150,7 @@ try {
       throw new RuntimeException('recovery_session_worker_lock_order_unknown');}
     queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$conn->openTransaction();
     try {
-      // The fixture chooses actor before subject. Do not prelock the subject:
+      // The fixture chooses actor before subject. Do not prelock its PRIMARY:
       // the actual SessionEngine -> DAO INSERT fence must cause its own wait.
       $snapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
       if(!$snapshot->isSystemAdmin()){throw new RuntimeException('recovery_restore_admin_required');}
@@ -169,6 +169,25 @@ try {
         usleep(20000);
       }while(microtime(true)<$deadline);
       if(!$released){throw new RuntimeException('recovery_session_producer_handshake_timeout');}
+      // Exact old source query, no INSERT or identity qualification effect.
+      $covering=queryfx_one($conn,'SELECT phid FROM %R WHERE BINARY phid=BINARY %s LOCK IN SHARE MODE',
+        new PhabricatorUser(),$action['subject']);
+      if(!$covering||$covering['phid']!==$action['subject']){throw new RuntimeException('recovery_session_covering_control_refused');}
+      governance_native_worker_atomic($path,'covering-control-ready.json',array('status'=>'covering-control-returned','mysql_thread'=>$thread));
+      $deadline=microtime(true)+12;$released=false;
+      do {
+        $directory=lstat($path);$owner=$path.'/owner';
+        if(!$directory||is_link($path)||$directory['dev']!==$payload['directory_dev']||
+          $directory['ino']!==$payload['directory_ino']||($directory['mode']&0777)!==0700||
+          !is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||filesize($owner)!==64||
+          !hash_equals($payload['owner_token'],file_get_contents($owner))){
+          throw new RuntimeException('recovery_session_producer_owner_changed');}
+        $continue=$path.'/fence-continue';
+        if(is_file($continue)&&!is_link($continue)&&(fileperms($continue)&0777)===0600&&filesize($continue)===64&&
+          hash_equals($payload['owner_token'],file_get_contents($continue))){$released=true;break;}
+        usleep(20000);
+      }while(microtime(true)<$deadline);
+      if(!$released){throw new RuntimeException('recovery_session_fence_handshake_timeout');}
       $secret=(new PhabricatorAuthSessionEngine())->establishSession(PhabricatorAuthSession::TYPE_WEB,$action['subject'],false);
       $digest=PhabricatorAuthSession::newSessionDigest(new PhutilOpaqueEnvelope($secret));unset($secret);
       $session=queryfx_one($conn,'SELECT id,userPHID FROM %R WHERE sessionKey=%s LOCK IN SHARE MODE',
