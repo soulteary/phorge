@@ -1,0 +1,44 @@
+# Indexed organization lifecycle facts — isolated development checkpoint
+
+This successor is based on the signed a27 metadata-tokenization candidate. The
+actual a70f result remains 235 pure methods and 33 focused SQL checks; b997 did
+not execute its six metadata assertions. Neither result proves this successor.
+No source in this checkpoint has run in the supported PHP/SQL environment.
+
+Approval requester, executor and subject indexes are derived copies of the
+original binding. New proposals persist them, and every load verifies each copy
+against the binding. Existing rows are version zero and remain explicitly
+unindexed. Capture refuses any such row; it never backfills authority. An eventual
+isolated backfill test must decode and validate known fixture bindings and verify
+exact derived values. There is no online backfill command or migration of policy.
+
+Lifecycle capture uses fixed role indexes for approvals, transfer participants,
+handover participants, manual project receipt actors, and linked outbox records.
+It locks current rows before fetching bounded JSON/text payloads. The budget is
+64 unique lifecycle rows, 32 KiB per large field and 128 KiB aggregate large
+fields. It hashes stored facts privately. No receipt grants project access or
+publishes hidden project identifiers/counts. Provider schema 2 changes the source
+digest; old snapshots are not reinterpreted as a complete lifecycle read set.
+
+Existing Service.record already increments the organization guard, including
+transfer and handover execution. Proposal and approval paths only append audits
+and previously omitted that increment. With recovery enabled, audit and record
+now share a once-per-transaction canonical uint64 increment with exact CAS and
+readback. Replay paths append no audit and increment nothing. With recovery off,
+record retains its original behavior and audit does not add an increment. No
+native team, project, policy or Space grant operation is introduced.
+
+Prepared actual native SQL probes cover Service success/replay, real proposal
+and independent approval success/replay, persisted indexed roles and current
+source capture, plus an installed audit SIGNAL trigger proving proposal and
+approval changes and generation roll back together. These probes are currently
+UNRUN and deliberately not added to the old passed component gate. Next required
+work includes Transfer/Handover success/replay/rollback, overflow and tampered or
+legacy participant rows, producer concurrency and retained metadata leases.
+The new migration must be explicitly reviewed and included by the isolated
+fixture loader before any run; the previous migration count is not evidence.
+
+All 13 families remain required. Unknown producers, unclosed metadata/privilege
+leases, application SQL restore lineage, projects, and other incomplete families
+still block a restore permit. This checkpoint has no controlled enable success,
+no complete source certificate, no deployment, activation or production migration.

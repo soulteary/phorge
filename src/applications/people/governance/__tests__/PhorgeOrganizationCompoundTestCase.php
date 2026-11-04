@@ -36,4 +36,29 @@ final class PhorgeOrganizationCompoundTestCase extends PhutilTestCase {
     try{PhorgeOrganizationRequest::compound($input);}catch(InvalidArgumentException$error){$refused=true;}
     $this->assertTrue($refused);
   }
+  public function testDerivedApprovalParticipantsNeverReplaceBindingAuthority() {
+    $subject='PHID-USER-aaaaaaaaaaaaaaaaaaaa';$actor='PHID-USER-bbbbbbbbbbbbbbbbbbbb';
+    $data=array('parameters'=>array('subject'=>$subject),
+      'requester'=>array('userPHID'=>$actor),'executor'=>array('userPHID'=>$actor));
+    $row=PhorgeGovernanceNativeApprovalAdapter::participantMetadata($data);
+    PhorgeGovernanceNativeApprovalAdapter::assertParticipantMetadata($row,$data,true);
+    $this->assertEqual($subject,$row['sourceSubjectPHID']);
+    $legacy=array('sourceParticipantVersion'=>0,'sourceSubjectPHID'=>null,
+      'sourceRequesterPHID'=>null,'sourceExecutorPHID'=>null);
+    PhorgeGovernanceNativeApprovalAdapter::assertParticipantMetadata($legacy,$data,false);
+    foreach(array($legacy,array_replace($row,array('sourceParticipantVersion'=>true)),
+      array_replace($row,array('sourceParticipantVersion'=>2)),
+      array_replace($row,array('sourceSubjectPHID'=>$actor)),
+      array_replace($row,array('sourceRequesterPHID'=>$subject)),
+      array_replace($row,array('sourceExecutorPHID'=>null))) as $bad) {
+      $refused=false;
+      try { PhorgeGovernanceNativeApprovalAdapter::assertParticipantMetadata($bad,$data,true); }
+      catch(RuntimeException $error) { $refused=true; }
+      $this->assertTrue($refused);
+    }
+    $legacy['sourceSubjectPHID']=$subject;$refused=false;
+    try { PhorgeGovernanceNativeApprovalAdapter::assertParticipantMetadata($legacy,$data,false); }
+    catch(RuntimeException $error) { $refused=true; }
+    $this->assertTrue($refused);
+  }
 }

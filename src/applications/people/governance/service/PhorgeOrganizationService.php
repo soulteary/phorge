@@ -9,6 +9,7 @@ final class PhorgeOrganizationService extends Phobject {
   private $accounts = array();
   private $readStartedAt;
   private $readDeadline;
+  private $recoveryGenerationAdvanced = false;
 
   private function __construct(PhorgeGovernanceNativeActorContext $context) {
     $this->context = $context;
@@ -68,6 +69,7 @@ final class PhorgeOrganizationService extends Phobject {
       $conn->openTransaction();
       $queued = false;
       $this->transactionNonce = bin2hex(random_bytes(16));
+      $this->recoveryGenerationAdvanced = false;
       // Planning identities are not authority. Accounts are current-read locked
       // in canonical order before the organization mutex or mutable sources.
       $subjects[] = $this->context->getUserPHID();
@@ -245,7 +247,38 @@ final class PhorgeOrganizationService extends Phobject {
     return $result;
   }
 
+  /** One generation per changed transaction, including approval-only writes. */
+  private function advanceRecoveryGeneration() {
+    $enabled=PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled');
+    if (!is_bool($enabled)) { throw new RuntimeException('recovery_org_producer_config_unknown'); }
+    if (!$enabled) { return false; }
+    if ($this->recoveryGenerationAdvanced) { return true; }
+    if (!$this->connection || !$this->connection->isInsideTransaction() ||
+        !is_string($this->transactionNonce)) {
+      throw new RuntimeException('recovery_org_producer_transaction_required');
+    }
+    $row=queryfx_one($this->connection,
+      'SELECT id,version FROM organization_guard WHERE id=1 FOR UPDATE');
+    if (!$row || (string)$row['id']!=='1') {
+      throw new RuntimeException('recovery_org_producer_guard_missing');
+    }
+    $current=PhorgeRecoveryStopRequest::transactionID($row['version']);
+    $next=PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($current);
+    queryfx($this->connection,'UPDATE organization_guard SET version=version+1 '.
+      'WHERE id=1 AND version=CAST(%s AS UNSIGNED) AND version<18446744073709551615',$current);
+    if ($this->connection->getAffectedRows()!==1) {
+      throw new RuntimeException('recovery_org_producer_generation_changed');
+    }
+    $actual=queryfx_one($this->connection,'SELECT version FROM organization_guard WHERE id=1');
+    if (!$actual || PhorgeRecoveryStopRequest::transactionID($actual['version'])!==$next) {
+      throw new RuntimeException('recovery_org_producer_generation_changed');
+    }
+    $this->recoveryGenerationAdvanced=true;
+    return true;
+  }
+
   private function audit($operation, $action, $unit, $subject, $before, $after) {
+    $this->advanceRecoveryGeneration();
     queryfx($this->connection,
       'INSERT INTO %T (operationID,actorPHID,action,unitID,subjectPHID,'.
       'beforeJSON,afterJSON,createdAt) VALUES (%s,%s,%s,%s,%ns,%s,%s,%d)',
@@ -254,8 +287,11 @@ final class PhorgeOrganizationService extends Phobject {
   }
 
   private function record($operation, $digest, array $versions) {
-    queryfx($this->connection, 'UPDATE %T SET version=version+1 WHERE id=1',
-      $this->table('guard'));
+    if (!$this->advanceRecoveryGeneration()) {
+      // Preserve the existing flag-off directory transaction contract.
+      queryfx($this->connection, 'UPDATE %T SET version=version+1 WHERE id=1',
+        $this->table('guard'));
+    }
     $result = array('status' => 'committed', 'replayed' => false, 'versions' => $versions);
     queryfx($this->connection,
       'INSERT INTO %T (operationID,actorPHID,requestDigest,resultJSON,createdAt) '.

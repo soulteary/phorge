@@ -80,6 +80,7 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
     $row=queryfx_one($conn,
       'SELECT approvalID,operationID,requestDigest,state,approverPHID,approverDigest,'.
       'approvedAt,consumedAt,consumedByOperation,version,'.
+      'sourceParticipantVersion,sourceSubjectPHID,sourceRequesterPHID,sourceExecutorPHID,'.
       'CASE WHEN OCTET_LENGTH(bindingJSON)<=32768 THEN bindingJSON ELSE NULL END bindingJSON,'.
       'CASE WHEN OCTET_LENGTH(approverBindingJSON)<=32768 THEN approverBindingJSON ELSE NULL END approverBindingJSON '.
       'FROM organization_approval WHERE BINARY approvalID=BINARY %s'.($locked?' FOR UPDATE':''),$id);
@@ -88,6 +89,9 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
       throw new RuntimeException('organization_approval_record_refused');
     }
     $data=self::decode($row['bindingJSON']);
+    $required=PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled');
+    if (!is_bool($required)) { throw new RuntimeException('organization_approval_participants_config_unknown'); }
+    self::assertParticipantMetadata($row,$data,$required);
     if (!hash_equals($row['requestDigest'],self::digest($data)) ||
         $row['operationID']!==($data['operationID']??null) ||
         !in_array($row['state'],array('submitted','approved','consumed'),true)) {
@@ -95,6 +99,39 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
     }
     return array($row,$data);
   }
+  /** Indexed copies are discovery metadata, never an alternative authority. */
+  public static function participantMetadata(array $data) {
+    $values=array('sourceSubjectPHID'=>$data['parameters']['subject']??null,
+      'sourceRequesterPHID'=>$data['requester']['userPHID']??null,
+      'sourceExecutorPHID'=>$data['executor']['userPHID']??null);
+    foreach ($values as $value) {
+      PhorgeRecoveryStopRequest::user($value);
+    }
+    return array('sourceParticipantVersion'=>1)+$values;
+  }
+
+  public static function assertParticipantMetadata(array $row,array $data,$required) {
+    if (!is_bool($required)) { throw new InvalidArgumentException('organization_approval_participants_refused'); }
+    $expected=self::participantMetadata($data);
+    if (in_array($row['sourceParticipantVersion']??null,array(0,'0'),true)) {
+      foreach (array('sourceSubjectPHID','sourceRequesterPHID','sourceExecutorPHID') as $key) {
+        if (!array_key_exists($key,$row) || $row[$key]!==null) {
+          throw new RuntimeException('organization_approval_participants_refused');
+        }
+      }
+      if (!$required) { return; }
+      throw new RuntimeException('organization_approval_participants_unindexed');
+    }
+    if (!in_array($row['sourceParticipantVersion']??null,array(1,'1'),true)) {
+      throw new RuntimeException('organization_approval_participants_refused');
+    }
+    foreach ($expected as $key=>$value) {
+      if ($key!=='sourceParticipantVersion' && ($row[$key]??null)!==$value) {
+        throw new RuntimeException('organization_approval_participants_refused');
+      }
+    }
+  }
+
   /** Planning is not authority; all rows and identities are reread under locks. */
   public static function planningPHIDs(array $ids,AphrontDatabaseConnection $conn) {
     if (count($ids)>32 || $conn!==(new PhabricatorUser())->establishConnection('w')) {
@@ -250,8 +287,10 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
       if (!hash_equals($row['requestDigest'],self::digest($data))) { throw new RuntimeException('organization_approval_stale'); }
       return $this->receipt($id,$row['state'],true);
     }
-    queryfx($this->connection,'INSERT INTO organization_approval (approvalID,operationID,requestDigest,bindingJSON,state,version) VALUES (%s,%s,%s,%s,%s,1)',
-      $id,$operation,self::digest($data),self::json($data),'submitted');
+    $participants=self::participantMetadata($data);
+    queryfx($this->connection,'INSERT INTO organization_approval (approvalID,operationID,requestDigest,bindingJSON,state,version,sourceParticipantVersion,sourceSubjectPHID,sourceRequesterPHID,sourceExecutorPHID) VALUES (%s,%s,%s,%s,%s,1,1,%s,%s,%s)',
+      $id,$operation,self::digest($data),self::json($data),'submitted',
+      $participants['sourceSubjectPHID'],$participants['sourceRequesterPHID'],$participants['sourceExecutorPHID']);
     return $this->receipt($id,'submitted');
   }
   private function checkCurrentApproval(array $row,array $data,$compare_sources) {
