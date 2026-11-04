@@ -13,14 +13,17 @@ final class PhorgeRecoveryGuardTestCase extends PhutilTestCase {
       $this->assertTrue(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled(
         (new PhabricatorUser())->setIsDisabled($value)));
     }
-    foreach(array(false,0,'0',null)as$value){
+    foreach(array(false,0,'0',null,'true','false','0.0','00',2,1.0)as$value){
       $this->assertFalse(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled(
         (new PhabricatorUser())->setIsDisabled($value)));
     }
-    // Native User::readField normalizes this public getter to boolean. This
-    // predicate is not a validator for raw SQL flag shapes or stored values.
-    $this->assertTrue(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled(
-      (new PhabricatorUser())->setIsDisabled('true')));
+    $malformed=(new PhabricatorUser())->setIsDisabled('0.0');
+    $this->assertTrue($malformed->getIsDisabled());
+    $refused=false;
+    try{PhorgeGovernanceRecoveryTransition::describe(
+      PhorgeGovernanceRecoveryGuard::state($malformed),PhorgeGovernanceRecoveryGuard::state($malformed));}
+    catch(InvalidArgumentException$error){$refused=$error->getMessage()==='recovery_native_flag_refused';}
+    $this->assertTrue($refused);
     $translations=(new PhabricatorChineseTranslation())->getTranslationMap();
     foreach(array('Account Recovery Guard','Experimental native account restoration boundary.',
       'Refuse account restoration without complete source assessment.',

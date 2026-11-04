@@ -14,7 +14,11 @@ final class PhorgeGovernanceRecoveryGuard extends Phobject {
   public static function isEmergencyDisabled(PhabricatorUser $user){
     // A final disabled account cannot gain authentication eligibility here.
     // Never add a recovery table/configuration dependency to emergency disable.
-    return in_array($user->getIsDisabled(),array(true,1,'1'),true);
+    // User's public getter casts arbitrary raw strings to bool, whereas Lisk
+    // serializes the actual property. Only a canonical raw1 may bypass the
+    // fence; permissive MySQL must not coerce a truthy '0.0' into enabled0.
+    $raw=(new ReflectionProperty(PhabricatorUser::class,'isDisabled'))->getValue($user);
+    return in_array($raw,array(true,1,'1'),true);
   }
   public static function enabled(){
     $flag=PhabricatorEnv::getEnvConfigIfExists('governance.account-recovery.enabled',false);
@@ -22,9 +26,11 @@ final class PhorgeGovernanceRecoveryGuard extends Phobject {
     return $flag;
   }
   public static function state(PhabricatorUser $user){
-    return array('userPHID'=>$user->getPHID(),'isApproved'=>$user->getIsApproved(),
-      'isDisabled'=>$user->getIsDisabled(),'isSystemAgent'=>$user->getIsSystemAgent(),
-      'isMailingList'=>$user->getIsMailingList());
+    $state=array('userPHID'=>$user->getPHID());
+    foreach(array('isApproved','isDisabled','isSystemAgent','isMailingList')as$key){
+      $state[$key]=(new ReflectionProperty(PhabricatorUser::class,$key))->getValue($user);
+    }
+    return $state;
   }
   public static function begin(PhabricatorUser $user,$mode){
     if(!self::enabled()||get_class($user)!==PhabricatorUser::class||

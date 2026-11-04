@@ -33,6 +33,43 @@ function governance_recovery_guard_cases($fixture,callable $check,array $state) 
     $refuse(static function()use($disabled){
       (new PhabricatorUser())->load($disabled->getID())->setIsDisabled(0)->saveWithoutIndex();},
       'recovery_all_sources_unavailable','recovery-guard-real-native-dao-enable-cannot-bypass-source-closure');
+    $mode=queryfx_one($conn,'SELECT @@SESSION.sql_mode mode')['mode'];
+    if(!is_string($mode)||$conn->isInsideTransaction()){throw new RuntimeException('recovery_guard_sql_mode_unknown');}
+    try {
+      queryfx($conn,'SET SESSION sql_mode=%s','');
+      $probe_before=$fingerprint();$coercion_control=true;
+      foreach(array('0.0','00','false')as$raw){
+        $conn->openTransaction();
+        try {
+          // Fixture-only rawSQL control, always rolled back. It proves the
+          // actual server coercion without ever committing an enabled user.
+          queryfx($conn,'UPDATE %R SET isDisabled=%s WHERE id=%d',new PhabricatorUser(),$raw,$disabled->getID());
+          $coerced=queryfx_one($conn,'SELECT isDisabled FROM %R WHERE id=%d',new PhabricatorUser(),$disabled->getID());
+          $coercion_control=$coercion_control&&(string)$coerced['isDisabled']==='0';
+        }finally{$conn->killTransaction();}
+      }
+      $check(queryfx_one($conn,'SELECT @@SESSION.sql_mode mode')['mode']===''&&
+        $coercion_control&&$probe_before===$fingerprint()&&!$conn->isInsideTransaction(),
+        'recovery-guard-real-permissive-session-sql-mode-control');
+      foreach(array(
+        'recovery-guard-permissive-raw-zero-decimal-refused'=>'0.0',
+        'recovery-guard-permissive-raw-double-zero-refused'=>'00',
+        'recovery-guard-permissive-raw-false-word-refused'=>'false')as$label=>$value){
+        $before=$fingerprint();$failed=false;
+        try{(new PhabricatorUser())->load($disabled->getID())->setIsDisabled($value)->saveWithoutIndex();}
+        catch(InvalidArgumentException$error){
+          if(get_class($error)!==InvalidArgumentException::class||$error->getMessage()!=='recovery_native_flag_refused'){throw$error;}
+          $failed=true;
+        }
+        $current=queryfx_one($conn,'SELECT isDisabled FROM %R WHERE id=%d',new PhabricatorUser(),$disabled->getID());
+        $check($failed&&!$conn->isInsideTransaction()&&(string)$current['isDisabled']==='1'&&
+          $before===$fingerprint(),$label);
+      }
+    }finally{
+      queryfx($conn,'SET SESSION sql_mode=%s',$mode);
+      if(queryfx_one($conn,'SELECT @@SESSION.sql_mode mode')['mode']!==$mode){
+        throw new RuntimeException('recovery_guard_sql_mode_restore_failed');}
+    }
     $refuse(static function()use($disabled,$state){
       $fresh=(new PhabricatorUser())->load($disabled->getID());
       (new PhabricatorUserTransactionEditor())->setActor($state['admin']['viewer'])

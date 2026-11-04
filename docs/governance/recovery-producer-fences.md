@@ -60,3 +60,12 @@ source modeling. Synthetic small-data success will not prove production scale.
 A complete supported profile still requires a genuine positive native restore
 with independent current administrators, final source/time checks, durable
 one-use ledger/audit and no policy-axis changes. No such success is claimed.
+
+The subsequent raw-storage correction reads the four native security flag
+properties before native getter boolean conversion. Only canonical disabled
+true/1/'1' retains the emergency fast path. Truthy malformed strings must not
+reach permissive SQL coercion. Prepared SQL cases temporarily remove only the
+owned writer session SQL mode, prove real raw UPDATE coercion within rolled-back
+transactions, then require native DAO refusal without domain writes and restore
+the exact prior session mode in finally. These new cases remain unrun; the
+frozen b3 229-method pure result does not validate this changed source.
