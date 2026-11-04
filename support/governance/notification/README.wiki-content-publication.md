@@ -65,7 +65,7 @@ children, six Wiki children, the renderer, temporary image, 55 schemas, two
 runtime principals and reader were cleaned successfully. This does not close
 the separate governance-producer, gateway, Go daemon, SMTP or browser matrix.
 
-### Portable CI successor (not yet reverified)
+### Portable successor — native reverified; hosted CI pending
 
 The historical accepted binary was linux/arm64. A different architecture cannot
 reuse its checksum. The portable candidate retains the same reviewed immutable
@@ -76,5 +76,11 @@ checksum and container cleanup. The receipt checkers require `--render-binary`
 and bind the reported checksum to that file; a caller-supplied hex string alone
 is not source provenance. The local lab runner independently retains its pinned
 paired55 build metadata and checksum. No second CI source or repository variable
-is introduced. This portability delta requires its own runtime/CI evidence and
-does not change the historical 82ec acceptance record.
+is introduced. The portable source `136325782c06d1ff581cdd72198a5818afb4e04d` was
+independently rerun on PHP8.5.12/linux-arm64: 223 pure methods, all 835 SQL checks,
+and 6810 exact runtime files passed. Both receipt CLIs actually passed with empty
+stderr; all 38 global workers, 20 business children, six Wiki children and owned
+services/storage were cleaned. The bounded record is
+`docs/governance/evidence/wiki-content-portable-223-835/acceptance.json`.
+Actual hosted AMD64 extraction/CI remains pending. This does not change the
+historical 82ec acceptance record or elevate gateway/daemon/SMTP/browser claims.

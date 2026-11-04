@@ -198,5 +198,21 @@
     "HTTP_gateway_Go_daemon_SMTP_browser_proved": false,
     "new_governance_producers_proved": false,
     "acceptance": "docs/governance/evidence/wiki-content-main102-223-835/acceptance.json"
+  },
+  "wiki_content_portable_native_component": {
+    "tested_source": "136325782c06d1ff581cdd72198a5818afb4e04d",
+    "actual_pure": 223,
+    "actual_native_SQL": 835,
+    "runtime_files_exact": 6810,
+    "registry_workers": 38,
+    "existing_local_business_children": 20,
+    "local_wiki_children": 6,
+    "paired_renderer_revision": "55f8ba8e57b179a7dee92ad43c77038ca322f61c",
+    "runtime_architecture": "linux/arm64",
+    "strict_Native_and_private_email_CLI_actually_passed": true,
+    "hosted_AMD64_CI_proved": false,
+    "HTTP_gateway_Go_daemon_SMTP_browser_proved": false,
+    "new_governance_producers_proved": false,
+    "acceptance": "docs/governance/evidence/wiki-content-portable-223-835/acceptance.json"
   }
 }
