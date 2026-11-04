@@ -27,9 +27,13 @@ function governance_notice_wire_config($directory){
 /** Real config-source failure, with no synthetic authorization decision. */
 function governance_notice_wire_install_env(array$config){
   governance_private_mail_install_env($config['base']);
-  PhabricatorEnv::overrideConfig(array('governance.notifications.enabled'=>true,'governance.organization.enabled'=>true,
+  governance_notice_wire_apply_overrides($config['notice']);
+}
+function governance_notice_wire_apply_overrides(array$notice){
+  $overrides=array('governance.notifications.enabled'=>true,'governance.organization.enabled'=>true,
     'governance.account-recovery.enabled'=>false,'governance.recovery-stop-ledger.enabled'=>false,
-    'gorge.taskqueue.owner'=>'gorge','gorge.taskqueue.uri'=>$config['notice']['queue_uri'],
-    'gorge.taskqueue.token'=>$config['notice']['queue_token'],
-    'gorge.service-policies'=>array('file'=>'required','mailer'=>'required','conduit'=>'required','taskqueue'=>'required')));
+    'gorge.taskqueue.owner'=>'gorge','gorge.taskqueue.uri'=>$notice['queue_uri'],
+    'gorge.taskqueue.token'=>$notice['queue_token'],
+    'gorge.service-policies'=>array('file'=>'required','mailer'=>'required','conduit'=>'required','taskqueue'=>'required'));
+  foreach($overrides as$key=>$value){PhabricatorEnv::overrideConfig($key,$value);}
 }
