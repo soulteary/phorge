@@ -36,14 +36,16 @@ profile independently passed 250 pure methods / 42 classes and 45 focused checks
 (36 component obligations). Each run matched all 6,855 PHP/SQL/public-suffix files
 to the signed source, passed strict CLI/in-process equality, and removed its
 owned schemas, users, workers, services, image and staging resources. These
-profiles are not summed. DAO/DDL33, metadata15 and policy23 remain pending for
+profiles are not summed. DAO/DDL33 and metadata15 remain pending for
 this union; earlier component results do not substitute for them.
 
 The [acceptance receipt](evidence/recovery-organization-main106-preparation/acceptance.json)
 records each checkpoint and immutable archive digest separately. The
 [reviewed source hashes](evidence/recovery-organization-main106-preparation/reviewed-source.json)
 remain bound to f5. Product PHP/SQL remains identical to f5; the later test-only
-Physical startup observation is a new path whose physical execution is pending.
+Physical startup observation passed on f59 within the existing private-mail
+180-matrix/92-pending scope. It does not prove notice/raw DAO profiles or the
+final policy successor.
 Its addition does not relabel these local f5 runs as a new diagnostic-source run.
 
 The first PR108 Physical run passed commit, rollback and recipient-revoked,
@@ -63,6 +65,14 @@ permission migration is provided. Complete 13-family coverage remains false.
 PR108 review found that the inherited policy18 fixture wrongly expected RR gap
 locks from the retained RC service. The test-only successor compares actual RC
 producer commits/current-read changes with separate fixture-owned RR controls.
-Its exact23 checks/four workers are pending; it changes no product PHP/SQL and
-provides no RC absence or restoration guarantee. The earlier full897 and
+Its signed 661fd799efad2c1c64926afea2bec3223d098198 source passed 250 pure
+methods and exact23 checks/four workers, with 6,855 runtime source hashes,
+strict CLI/in-process equality and complete owned cleanup. This focused profile
+changes no product PHP/SQL and provides no RC absence or restoration guarantee. The earlier full897 and
 lifecycle45 receipts remain bound to f5, not to this new fixture source.
+
+The policy checkpoint and immutable archive digest are recorded separately from
+f5 full897/lifecycle45. The RC source-change refusal is a fixture comparison,
+not a production absence lease. The historical RR-service claim is withdrawn.
+This docs successor is not another runtime execution; fresh final-head hosted
+CI and exact review must still pass before readiness or merge is considered.

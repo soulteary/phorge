@@ -113,8 +113,7 @@
   "can_execute": false,
   "current_source_runtime_pending": {
     "additional_focused_DAO_DDL_SQL": 33,
-    "additional_focused_metadata_SQL": 15,
-    "additional_focused_policy_SQL": 23
+    "additional_focused_metadata_SQL": 15
   },
   "deployment_proved": false,
   "historical_component_only": {
@@ -152,17 +151,69 @@
   "restoration_authorized": false,
   "reviewed_source_revision": "f5bb422a8f857b55d80158090415f0ee8d9a19fd",
   "schema": 1,
-  "scope": "local-f5-full-and-separate-lifecycle-acceptance-not-new-diagnostic-runtime",
+  "scope": "separate-local-f5-full-lifecycle-and-661-policy-acceptance-not-final-head-CI",
   "source_registered_classes": 42,
   "source_registered_methods": 250,
-  "new_Physical_startup_observation_executed": false,
+  "new_Physical_startup_observation_executed": true,
   "hosted_final_head_CI_and_review_pending": true,
   "policy_P2_corrective_profile": {
     "previous_integrated_18_executable_claim_withdrawn": true,
     "new_checks": 23,
     "new_workers": 4,
-    "current_source_run": false,
+    "current_source_run": true,
     "service_RC_retained": true,
-    "service_RR_or_absence_lease_proved": false
+    "service_RR_or_absence_lease_proved": false,
+    "checkpoint": {
+      "source_head": "661fd799efad2c1c64926afea2bec3223d098198",
+      "passed": true,
+      "scope": "bounded-policy-service-RC-and-fixture-RR-comparison-only",
+      "pure_methods": 250,
+      "pure_classes": 42,
+      "SQL_checks": 23,
+      "runtime_files_exact": 6855,
+      "cleanup": {
+        "ownedSchemasRemoved": 55,
+        "ownedRuntimeUsersRemoved": 2,
+        "readerRemoved": true
+      },
+      "worker_cleanup": {
+        "private_directories_removed": 4,
+        "owned_processes_stopped": 0,
+        "cleanup_failures": 0,
+        "private_directories_remaining": 0,
+        "live_processes_after_cleanup": 0,
+        "workers_registered": 4
+      },
+      "image_removed": true,
+      "host_stage_removed": true,
+      "cold_source_only": true,
+      "other_profile_run_inferred": false,
+      "all_sources_complete": false,
+      "restoration_authorized": false,
+      "can_execute": false,
+      "deployment_proved": false,
+      "browser_proved": false,
+      "evidence_sha256": {
+        "pr108-policy-isolation-23-native.json": "0e262d7fb04853300f3f13c1b47553c1cc239d837fb8887f93ded6c99c1d3bad",
+        "pr108-policy-isolation-23-integration.json": "d6cb944941c1be3f59a95a259a1bdcb496d4a301e3e24a56521df1324639fe19",
+        "pr108-policy-isolation-23-parent.json": "e94f8fbdb4f303ff60892a5f488ac5f277eaa570eddc2aa77e417706701161c1",
+        "pr108-policy-isolation-23-source-runtime-match.json": "a5cd7345ae5beb7d5a08581f62ff5c9799eda542a45f7191ba35ad8f55c826a0",
+        "pr108-policy-isolation-23-strict-cli.json": "3d799e534de4c1fae1532d68cf3b378f166c9e3c5f46b72bd40332e104ed6509",
+        "pr108-policy-isolation-23-strict-accepted.json": "5a5ef490f65dafdf9bcd6efb2d46dc8cd3ce841edba450e08c1ec3c5bc13bbf3",
+        "pr108-policy-isolation-23-render-build.json": "8a67592e7a79e477f6272ec6901959bcf6089d741e56049bcb4a45234be4e1bc",
+        "pr108-policy-isolation-23-map-cache-observation.json": "e962f220d7af8e12b68ca48fe7e8decb80dad7531facfa5d8e32ca19dbd224b0"
+      }
+    },
+    "checkpoint_sha256": "74212174536f7c07bde1bda4d24834ba8d2e4eeab443f6282997a33a7f9e946d",
+    "immutable_manifest_sha256": "3d99f56c037afa2c4f2cb4111b6bc2d26d379ede7b1f8e2edf31987c2cda87fa",
+    "source_revision": "661fd799efad2c1c64926afea2bec3223d098198"
+  },
+  "prior_f59_Physical_bound_scope": {
+    "passed": true,
+    "head": "f59e9c20bfcc7c72d5b6e1352464086d9512015d",
+    "matrix_checks": 180,
+    "pending_checks": 92,
+    "certifies_notice_or_raw_DAO_profiles": false,
+    "certifies_final_successor_head": false
   }
 }

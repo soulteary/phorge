@@ -81,5 +81,19 @@
     "lifecycle": "530b69debd40adf10c22dedfe2050ab48709878b11f22567f2a1e139ef3f0135"
   },
   "new_diagnostic_base_head": "ca7f9d5536774983f175bb00a8f3aba4f7032531",
-  "new_diagnostic_Physical_execution_proved": false
+  "new_diagnostic_Physical_execution_proved": true,
+  "policy_corrective_source_revision": "661fd799efad2c1c64926afea2bec3223d098198",
+  "policy_corrective_source_sha256": {
+    "support/governance/recovery/policy-range-cases.php": "0a2474370f3c2186642bcfb6fbccfbccb60cb50fb942e5674a84389544fda067",
+    "support/governance/recovery/policy-focused-cases.php": "93b280060df9952a0eb0ba2a1344a03d632661011160b6a890e2dacb5c244272",
+    "scripts/governance/check_recovery_policy_isolation.py": "032705d1b489677a247a656d9c0837d993517c5ee6c7255b97df1c514a460eb9",
+    "tests/governance/test_recovery_policy_isolation.py": "3bf4cd80adaef6f83bd91d79b0bd9959f47395c1c4bc416561c412a11cbc1436",
+    "docs/governance/recovery-policy-source-profile.md": "f0e27c8fdfb5779ba36e65d05555f49e93b7bc17e46d38dd24207e7692e9c522",
+    "docs/governance/recovery-organization-main106.md": "794b5428b3ec65502b6fade5530ef1bc770992f177d1178d0a4ead62e94cf1e4",
+    "docs/governance/evidence/recovery-organization-main106-preparation/acceptance.json": "c9e4c559da58facf632c072b9f5cc59a2f700682e02e97d1e0cd29c32d97f6ce"
+  },
+  "policy_runtime_checkpoint_sha256": "74212174536f7c07bde1bda4d24834ba8d2e4eeab443f6282997a33a7f9e946d",
+  "policy_independent_actual_review_sha256": "7ab8128bda6807ab06321ac9832415f60bdf934e7fb282a059fac82970a4f111",
+  "diagnostic_Physical_evidence_head": "f59e9c20bfcc7c72d5b6e1352464086d9512015d",
+  "final_successor_hosted_CI_required": true
 }

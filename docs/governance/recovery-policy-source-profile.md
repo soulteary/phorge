@@ -42,7 +42,7 @@ the digest, actual LONGTEXT over-budget refusal preserves the caller transaction
 and caller rollback restores original native bytes. It is not wired into the
 runner yet and supplies no empty-range or concurrent-producer proof.
 
-## Current isolation comparison successor (unrun)
+## Bounded isolation comparison acceptance
 
 The focused `--recovery-policy-only` profile explicitly distinguishes the retained
 READ COMMITTED service from a fixture-owned REPEATABLE READ control. The previous
@@ -77,7 +77,14 @@ old 18-count/two-worker/service-RR profile, missing IDs, authority claims, unkno
 fields and wrong source revisions. Native patch loading and exact restore
 543-table/1572-patch/35-migration verification remain required.
 
-Both RC and RR results are prepared and unrun for this successor. Policy/Space
+Root executed signed source `661fd799efad2c1c64926afea2bec3223d098198`: 250 pure
+methods / 42 classes and all 23 focused checks passed. All 6,855 runtime
+PHP/SQL/public-suffix hashes matched the signed archive; strict CLI and in-process
+acceptance agreed. All 55 schemas, two runtime users, reader, four workers,
+image and owned staging resources were cleaned. The immutable manifest SHA256
+is `3d99f56c037afa2c4f2cb4111b6bc2d26d379ede7b1f8e2edf31987c2cda87fa`.
+These are bounded comparison results, not a new run of this docs successor or
+final-head hosted CI. Policy/Space
 capture remains partial, `empty_range_absence_proved=false`, and all thirteen
 source families and restoration authorization remain incomplete. RR comparison
 results never upgrade the RC service to an absence fence. Automatic policy
