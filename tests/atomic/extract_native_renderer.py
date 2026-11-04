@@ -14,16 +14,17 @@ def image_identity(info,revision):
 def extract(output,provenance,revision,runner=subprocess.run):
     output=Path(output);provenance=Path(provenance)
     if output.exists()or output.is_symlink()or provenance.exists()or provenance.is_symlink():raise ValueError('renderer_output_exists')
-    def run(args,**kwargs):return runner(args,check=True,capture_output=True,text=True,**kwargs)
+    def run(args,check=True):return runner(args,check=check,capture_output=True,text=True)
     info=json.loads(run(['docker','image','inspect','gorge-render:atomic']).stdout)
     if type(info)is not list or len(info)!=1:raise ValueError('renderer_image_metadata_refused')
-    image=image_identity(info[0],revision);owner=secrets.token_hex(16);name='atomic-native-renderer-'+owner;created=False
+    image=image_identity(info[0],revision);owner=secrets.token_hex(16);name='atomic-native-renderer-'+owner;create_attempted=False
     output.parent.mkdir(parents=True,exist_ok=True);provenance.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='owned-renderer-',dir=output.parent)as private:
         os.chmod(private,0o700)
         try:
+            create_attempted=True
             run(['docker','create','--name',name,'--label','governance.fixture.owner='+owner,
-                '--network','none','--read-only',image]);created=True
+                '--network','none','--read-only',image])
             target=Path(private)/'gorge-render'
             run(['docker','cp',name+':/usr/local/bin/gorge-render',str(target)])
             if not target.is_file()or target.is_symlink()or not 0<target.stat().st_size<=134217728:raise ValueError('renderer_binary_refused')
@@ -32,12 +33,20 @@ def extract(output,provenance,revision,runner=subprocess.run):
             with output.open('xb')as destination,target.open('rb')as source:shutil.copyfileobj(source,destination)
             output.chmod(0o755)
         finally:
-            if created:
-                inspected=json.loads(run(['docker','inspect',name]).stdout)
-                if(type(inspected)is not list or len(inspected)!=1 or inspected[0].get('Image')!=image or
-                    inspected[0].get('Config',{}).get('Labels',{}).get('governance.fixture.owner')!=owner or
-                    inspected[0].get('State',{}).get('Running')is not False):raise ValueError('renderer_container_owner_refused')
-                run(['docker','rm',name])
+            if create_attempted:
+                # Creation may have reached the daemon even when its CLI reply
+                # was lost. Inspect this registered name on every attempted create.
+                inspection=run(['docker','inspect',name],check=False)
+                if inspection.returncode==0:
+                    inspected=json.loads(inspection.stdout)
+                    if(type(inspected)is not list or len(inspected)!=1 or inspected[0].get('Image')!=image or
+                        inspected[0].get('Config',{}).get('Labels',{}).get('governance.fixture.owner')!=owner or
+                        inspected[0].get('State',{}).get('Running')is not False):raise ValueError('renderer_container_owner_refused')
+                    run(['docker','rm',name])
+                elif not(inspection.stdout.strip()in ('','[]')and inspection.stderr.strip()in (
+                    'Error: No such object: '+name,'Error: No such container: '+name,
+                    'Error response from daemon: No such object: '+name,'Error response from daemon: No such container: '+name)):
+                    raise ValueError('renderer_container_absence_unproved')
     record={'reviewed_revision':revision,'image_id':image,'binary_sha256':digest,
         'source_image_revision_label_verified':True,
         'build_provenance_boundary':'Source cleanliness and locked build bases are verified by the preceding atomic build_gorge job step, not inferred from the image label alone.',
