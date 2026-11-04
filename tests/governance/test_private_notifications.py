@@ -41,17 +41,22 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
         module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
         with tempfile.TemporaryDirectory()as directory:
             private=Path(directory);binary=private/'file';binary.write_bytes(b'synthetic gate binary')
-            data=module.template();data['file_service_cleanup']['binary_sha256']=hashlib.sha256(binary.read_bytes()).hexdigest()
+            render=private/'render';render.write_bytes(b'synthetic render gate input')
+            data=module.template();data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']['binary_sha256']=hashlib.sha256(render.read_bytes()).hexdigest()
+            data['file_service_cleanup']['binary_sha256']=hashlib.sha256(binary.read_bytes()).hexdigest()
             receipt=private/'receipt.json';receipt.write_text(json.dumps(data))
             base=[sys.executable,str(ROOT/'scripts/governance/check_private_notifications.py'),
-                  '--receipt',str(receipt),'--file-binary',str(binary)]
+                  '--receipt',str(receipt),'--file-binary',str(binary),'--render-binary',str(render)]
             for expected,extra in [(0,['--measurement-source-revision','a'*40]),
                                    (1,[]),(1,['--measurement-source-revision','b'*40])]:
                 result=subprocess.run(base+extra,capture_output=True,text=True)
                 self.assertEqual(expected,result.returncode)
                 if expected==0:
-                    value=json.loads(result.stdout);self.assertEqual(861,value['native_checks'])
+                    value=json.loads(result.stdout);self.assertEqual(877,value['native_checks'])
                     self.assertIs(value['smtp_proved'],False)
+            index=base.index('--render-binary');without=base[:index]+base[index+2:]
+            missing=subprocess.run(without+['--measurement-source-revision','a'*40],capture_output=True,text=True)
+            self.assertNotEqual(0,missing.returncode);self.assertEqual('',missing.stdout)
 
     def test_duplicate_json_fields_are_not_last_value_wins(self):
         with tempfile.TemporaryDirectory()as directory:

@@ -1269,7 +1269,12 @@ NATIVE['private_mail_tests']['business_publication_tests']['actual_native_projec
 POLICY_ERROR_ROUTE_CHECKS = frozenset(['project-policy-errors-real-controller-input-json-is-400', 'project-policy-errors-real-controller-missing-ticket-is-generic-403-without-write', 'project-policy-errors-real-controller-stored-json-corruption-propagates-backend-error', 'project-policy-errors-real-native-edit-missing-ticket-renders-validation-without-write', 'project-policy-errors-explicit-description-extra-effect-refuses-actionably-without-consumption', 'project-policy-errors-native-separate-content-save-persists-description-and-old-proposal-stays-stale', 'project-policy-errors-fresh-proposal-after-separate-content-save-executes-only-approved-policy'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | POLICY_ERROR_ROUTE_CHECKS
 
-def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
+WIKI_CONTENT_CHECKS = frozenset(['private-wiki-content-real-native-editable-root-precondition', 'private-wiki-content-normal-actual-existing-content-transaction-visible-for-mail', 'private-wiki-content-normal-native-editor-real-gorge-http-enqueue', 'private-wiki-content-normal-native-publisher-current-source-and-fenced-outcome', 'private-wiki-content-outer-commit-actual-existing-content-transaction-visible-for-mail', 'private-wiki-content-outer-commit-native-editor-real-gorge-http-enqueue', 'private-wiki-content-outer-commit-native-publisher-current-source-and-fenced-outcome', 'private-wiki-content-outer-rollback-actual-existing-content-transaction-visible-for-mail', 'private-wiki-content-outer-rollback-native-editor-real-gorge-http-enqueue', 'private-wiki-content-outer-rollback-native-publisher-current-source-and-fenced-outcome', 'private-wiki-content-outer-commit-independent-prepare-sees-old-content-before-commit-no-mail', 'private-wiki-content-outer-rollback-independent-prepare-sees-old-content-before-commit-no-mail', 'private-wiki-content-owned-independent-workers-and-directories-clean'])
+WIKI_CONTENT_CHECKS = WIKI_CONTENT_CHECKS | frozenset(['private-wiki-content-paired55-render-owned-ready','private-wiki-content-missing-render-transient-no-mail-or-success','private-wiki-content-render-owned-process-storage-clean'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | WIKI_CONTENT_CHECKS
+NATIVE['private_mail_tests']['wiki_content_publication_tests'] = {'actual_existing_wiki_content_editor': True, 'actual_paired_queue_and_native_handler': True, 'before_commit_probe_is_prepare_only': True, 'real_before_commit_execute_race_proved': False, 'move_mail_claimed': False, 'automatic_retry_after_permanent_source_failure': False, 'HTTP_gateway_proved': False, 'Go_daemon_proved': False, 'SMTP_proved': False, 'samples': {'normal': {'handler_result': 'success', 'safe_subscriber_mail': True}, 'outer-commit': {'handler_result': 'success', 'safe_subscriber_mail': True}, 'outer-rollback': {'handler_result': 'permanent-failure', 'safe_subscriber_mail': False}}, 'independent_php_workers_executed': 6, 'private_directories_removed': 6, 'private_directories_remaining': 0, 'live_processes_after_cleanup': 0, 'actual_paired55_prose_diff': True, 'missing_render_transient_no_mail_proved': True, 'render_cleanup': {'binary_sha256': 'd05250617dfa12f0b7cfc9108423b55a91ce9dd56224c96335f847deb40c22d2', 'source_revision': '55f8ba8e57b179a7dee92ad43c77038ca322f61c', 'process_stopped': True, 'private_storage_removed': True}}
+
+def validate(data, root=ROOT, file_digest=None, measurement_revision=None, render_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
     native=data['native']
@@ -1344,6 +1349,11 @@ def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     expected_legalpad['inflight_source_tests']['index_race']=index
     expected_native['private_mail_tests']=dict(NATIVE['private_mail_tests'],
         business_gorge_publication_tests=expected_gorge, business_publication_tests=expected_business,legalpad_tests=expected_legalpad)
+    if type(render_digest)is not str or not re.fullmatch(r'[a-f0-9]{64}',render_digest):
+        raise ValueError('paired render binary input required')
+    expected_wiki=json.loads(json.dumps(NATIVE['private_mail_tests']['wiki_content_publication_tests']))
+    expected_wiki['render_cleanup']['binary_sha256']=render_digest
+    expected_native['private_mail_tests']['wiki_content_publication_tests']=expected_wiki
 
     if type(measurement_revision) is not str or not re.fullmatch('[a-f0-9]{40}', measurement_revision):
         raise ValueError('explicit measurement source revision required')
@@ -1403,6 +1413,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', type=Path, required=True)
     parser.add_argument('--file-binary', type=Path, required=True)
+    parser.add_argument('--render-binary', type=Path, required=True)
     parser.add_argument('--measurement-source-revision', required=True)
     args=parser.parse_args()
     try:
@@ -1410,9 +1421,9 @@ def main():
             raise ValueError('receipt size refused')
         data=json.loads(args.receipt.read_text(), object_pairs_hook=completion.strict_object,
             parse_constant=lambda unused: (_ for _ in ()).throw(ValueError('invalid JSON constant')))
-        if not args.file_binary.is_file():
+        if not args.file_binary.is_file() or not args.render_binary.is_file():
             raise ValueError('paired binary missing')
-        accepted=validate(data, file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest(), measurement_revision=args.measurement_source_revision)
+        accepted=validate(data, file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest(), measurement_revision=args.measurement_source_revision, render_digest=hashlib.sha256(args.render_binary.read_bytes()).hexdigest())
     except (OSError, ValueError, TypeError, KeyError):
         parser.exit(1, 'Native organization receipt rejected.\n')
     print(json.dumps(accepted, sort_keys=True))
