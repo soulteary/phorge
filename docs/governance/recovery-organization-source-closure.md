@@ -49,3 +49,11 @@ The next provider must bind these new sources with an explicit version; old
 v1/v2 reviews must retain their original scope and never gain authority from
 source upgrades. The final target still requires a real complete supported
 profile and controlled two-administrator restore success.
+
+Transaction ownership additionally records the exact native Lisk depth. Normal
+cleanup unwinds exactly that depth; unexpected caller-depth changes refuse. If
+native COMMIT throws after decrementing its depth, raw ROLLBACK is allowed only
+for this scope's original top-level transaction. Primary and cleanup failures
+are retained together as native aggregate backend failure, never projected as
+expected authorization denial or successful cleanup. This path needs actual
+commit/rollback fault coverage before adoption.

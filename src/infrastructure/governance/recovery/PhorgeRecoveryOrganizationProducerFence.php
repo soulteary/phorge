@@ -5,6 +5,7 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
   private $connection;
   private $profile;
   private $owned=false;
+  private $ownedDepth;
   private function __construct() {}
   private function __clone() {}
   public function __serialize(){throw new RuntimeException('recovery_org_fence_serialization_refused');}
@@ -72,7 +73,7 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
         // Reject a physically active raw START before claiming any transaction.
         queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$queued=true;
       }
-      $conn->openTransaction();$scope->owned=true;$queued=false;
+      $conn->openTransaction();$scope->owned=true;$scope->ownedDepth=self::depth($conn);$queued=false;
       PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
       foreach(array('organization_guard',$table)as$name){
         queryfx_all($conn,'SELECT id FROM %T WHERE 1=0 LOCK IN SHARE MODE',$name);
@@ -86,18 +87,40 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
       if(!$guard||(string)$guard['id']!=='1'){throw new RuntimeException('recovery_org_producer_guard_missing');}
       PhorgeRecoveryStopRequest::transactionID($guard['version']);
       return $scope;
-    }catch(Throwable$error){$scope->close();throw$error;}
+    }catch(Throwable$error){$scope->abort($error);}
     finally{if($queued&&$restore!==null){queryfx($conn,$restore);}}
   }
 
   public function finish() {
     if(!$this->owned||!$this->connection->isInsideTransaction()||
+      self::depth($this->connection)!==$this->ownedDepth||
       PhorgeRecoveryRestoreProfile::assertCurrent()!==$this->profile){
       throw new RuntimeException('recovery_org_producer_scope_changed');}
     $this->connection->saveTransaction();$this->owned=false;
   }
 
+  private static function depth(AphrontDatabaseConnection $connection) {
+    return (new ReflectionMethod(AphrontDatabaseConnection::class,'getTransactionState'))
+      ->invoke($connection)->getDepth();
+  }
+
+  public function abort(Throwable $original) {
+    try{$this->close();}
+    catch(Throwable$cleanup){
+      throw new PhutilAggregateException('recovery_org_producer_cleanup_failed',
+        array('original'=>$original,'cleanup'=>$cleanup));
+    }
+    throw $original;
+  }
+
   public function close() {
-    if($this->owned){$this->owned=false;$this->connection->killTransaction();}
+    if(!$this->owned){return;}$this->owned=false;
+    $depth=self::depth($this->connection);
+    if($depth===$this->ownedDepth){$this->connection->killTransaction();return;}
+    // Native saveTransaction decrements depth before sending COMMIT. If that
+    // send throws, only our own top-level transaction may be rolled back raw;
+    // never underflow Lisk state or unwind a caller's unrelated savepoint.
+    if($this->ownedDepth===1&&$depth===0){queryfx($this->connection,'ROLLBACK');return;}
+    throw new RuntimeException('recovery_org_producer_cleanup_depth_changed');
   }
 }
