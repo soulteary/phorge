@@ -55,7 +55,7 @@
       "path": "src/applications/people/storage/PhabricatorUser.php",
       "symbol": "PhabricatorUser",
       "kind": "native-account-source",
-      "sha256": "b8a483542e293bd03584aaa92858aa89ca657fef1402f7681c303866908defb6",
+      "sha256": "1b402225b9ecd675cbe752f7b2d1de9bd05807583bcbc15c1ee58bce1e6822eb",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1243,7 +1243,7 @@
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeMailPolicy.php",
       "symbol": "PhorgeGovernanceNoticeMailPolicy",
       "kind": "current-recipient-and-source-egress-filter",
-      "sha256": "27dd8322be6421efc8b359189d4b514c465cdb22f463d769469ffeaefb46c56f",
+      "sha256": "9351b984aba6f3d447a9b56f73dc128600b3783315505acd431c251818e5b28f",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1276,7 +1276,18 @@
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php",
       "symbol": "PhorgeGovernanceNoticeSchemaSpec",
       "kind": "native-notice-storage-contract",
-      "sha256": "f12041d8c78af5ddff39e0203da4ef3dd2780ccf40e742f53e4933cc4eecbcb2",
+      "sha256": "0f55cc64b599b0622070a0e9f0d04b7c06546e29d6f282e883d24d033c28d2e0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.IDENTITY",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeIdentityScope.php",
+      "symbol": "PhorgeGovernanceNoticeIdentityScope",
+      "kind": "notice-only-native-identity-generation-no-credential-authority",
+      "sha256": "2c7c9342ec157ea1c4885cf10c4c67eb92dd979c1530202fb7990c45de593e89",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -2123,6 +2134,30 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-13",
+      "from_id": "AUTH.USER.DAO",
+      "to_id": "NOTICE.IDENTITY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit reviewed notice-only same-User transaction generation dependency; not an authorization or activation proof."
+    },
+    {
+      "id": "NOTICE-LINK-14",
+      "from_id": "NOTICE.IDENTITY",
+      "to_id": "NOTICE.OUTBOX",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit reviewed notice-only same-User transaction generation dependency; not an authorization or activation proof."
+    },
+    {
+      "id": "NOTICE-LINK-15",
+      "from_id": "NOTICE.POLICY",
+      "to_id": "NOTICE.IDENTITY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit reviewed notice-only same-User transaction generation dependency; not an authorization or activation proof."
     }
   ],
   "scan": {
@@ -2432,8 +2467,12 @@
         "sha256": "fa3acb47a4e77ebeccdf7601270c04a86ae66bacb63a268d763597e7907e0bd4"
       },
       {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeIdentityScope.php",
+        "sha256": "2c7c9342ec157ea1c4885cf10c4c67eb92dd979c1530202fb7990c45de593e89"
+      },
+      {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeMailPolicy.php",
-        "sha256": "27dd8322be6421efc8b359189d4b514c465cdb22f463d769469ffeaefb46c56f"
+        "sha256": "9351b984aba6f3d447a9b56f73dc128600b3783315505acd431c251818e5b28f"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeOutbox.php",
@@ -2441,7 +2480,7 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php",
-        "sha256": "f12041d8c78af5ddff39e0203da4ef3dd2780ccf40e742f53e4933cc4eecbcb2"
+        "sha256": "0f55cc64b599b0622070a0e9f0d04b7c06546e29d6f282e883d24d033c28d2e0"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSource.php",

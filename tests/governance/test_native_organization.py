@@ -28,9 +28,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 545, 'restore_phase_workers_started': 0,
+            'current_table_count': 546, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1572, 'applied_patch_count': 1572, 'pending_patch_keys': [],
+                'source_patch_count': 1573, 'applied_patch_count': 1573, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -313,12 +313,12 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError): validate(data, file_digest='b'*64)
 
     def test_current_recovery_restore_profile_refuses_old_counts_and_missing_migration(self):
-        self.assertEqual(933, validate(template(), file_digest='b'*64)['check_count'])
+        self.assertEqual(934, validate(template(), file_digest='b'*64)['check_count'])
         for value in (540, True, '543', 544):
             data=template();data['source_restore']['current_table_count']=value
             with self.subTest(table_count=value), self.assertRaises(ValueError):
                 validate(data, file_digest='b'*64)
-        for value in (1570, True, '1572', 1573):
+        for value in (1570, True, '1573', 1574):
             data=template();audit=data['source_restore']['patch_audit']
             audit['source_patch_count']=value;audit['applied_patch_count']=value
             with self.subTest(patch_count=value), self.assertRaises(ValueError):
@@ -427,7 +427,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),933)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),934)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -528,7 +528,7 @@ class NativePolicyErrorRouteGateTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),933)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),934)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -581,7 +581,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(933,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(934,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -612,7 +612,7 @@ class NativeHTTPMeasurementGateTest(unittest.TestCase):
 class RecoveryNativeProducerGateTest(unittest.TestCase):
     def test_selected_producer_checks_and_non_authority_are_mandatory(self):
         self.assertEqual(20,len(gate.RECOVERY_NATIVE_PRODUCER_CHECKS))
-        self.assertEqual(933,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(934,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.RECOVERY_NATIVE_PRODUCER_CHECKS:
             value=template();value['checks'].remove(name);value['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(value,file_digest='b'*64)

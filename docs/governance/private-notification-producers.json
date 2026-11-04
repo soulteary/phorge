@@ -307,7 +307,7 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeMailPolicy.php",
-      "sha256": "27dd8322be6421efc8b359189d4b514c465cdb22f463d769469ffeaefb46c56f"
+      "sha256": "9351b984aba6f3d447a9b56f73dc128600b3783315505acd431c251818e5b28f"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeConfigOptions.php",
@@ -315,7 +315,7 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php",
-      "sha256": "f12041d8c78af5ddff39e0203da4ef3dd2780ccf40e742f53e4933cc4eecbcb2"
+      "sha256": "0f55cc64b599b0622070a0e9f0d04b7c06546e29d6f282e883d24d033c28d2e0"
     },
     {
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
@@ -328,6 +328,14 @@
     {
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php",
       "sha256": "fe0e6ce000553f0e3cc55679b15a5fcdeac612060c8a9e576352c0e8de7f50b5"
+    },
+    {
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeIdentityScope.php",
+      "sha256": "2c7c9342ec157ea1c4885cf10c4c67eb92dd979c1530202fb7990c45de593e89"
+    },
+    {
+      "path": "src/applications/people/storage/PhabricatorUser.php",
+      "sha256": "1b402225b9ecd675cbe752f7b2d1de9bd05807583bcbc15c1ee58bce1e6822eb"
     }
   ],
   "remaining_gates": [

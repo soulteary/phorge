@@ -2,6 +2,27 @@
 
 /** Pure event shape only: no caller data constitutes authorization. */
 final class PhorgeGovernanceNoticeEventTestCase extends PhutilTestCase {
+  public function testNoticeIdentityGenerationHasStrictUnsignedBoundary(){
+    foreach(array('0'=>'1','1'=>'2','9223372036854775807'=>'9223372036854775808',
+      '18446744073709551614'=>'18446744073709551615')as$old=>$next){
+      $this->assertEqual($next,PhorgeGovernanceNoticeIdentityScope::nextGeneration((string)$old));
+    }
+    foreach(array(true,false,'01','-1','18446744073709551615','18446744073709551616')as$value){
+      $failed=false;try{PhorgeGovernanceNoticeIdentityScope::nextGeneration($value);}catch(RuntimeException$error){$failed=true;}
+      $this->assertTrue($failed);
+    }
+  }
+  public function testNoticeIneligibleFastPathUsesOnlyCanonicalNativePolicyFields(){
+    $base=(new PhabricatorUser())->setIsAdmin(1)->setIsApproved(1)->setIsDisabled(0)->setIsSystemAgent(0)->setIsMailingList(0);
+    $this->assertFalse(PhorgeGovernanceNoticeIdentityScope::definitelyIneligible($base));
+    foreach(array('isDisabled'=>1,'isApproved'=>0,'isAdmin'=>0,'isSystemAgent'=>1,'isMailingList'=>1)as$field=>$value){
+      foreach(array($value,(string)$value,(bool)$value)as$raw){$user=clone$base;$user->{'set'.ucfirst($field)}($raw);
+        $this->assertTrue(PhorgeGovernanceNoticeIdentityScope::definitelyIneligible($user));}
+      foreach(array('false','0.0','01',null)as$unknown){$user=clone$base;$user->{'set'.ucfirst($field)}($unknown);
+        $this->assertFalse(PhorgeGovernanceNoticeIdentityScope::definitelyIneligible($user));}
+    }
+    $base->setIsEmailVerified(0);$this->assertFalse(PhorgeGovernanceNoticeIdentityScope::definitelyIneligible($base));
+  }
   public function testNoticeSwitchIsActuallyRegisteredFalseAndLocked(){
     $key='governance.notifications.enabled';$options=PhabricatorApplicationConfigOptions::loadAllOptions();
     $this->assertTrue(isset($options[$key]));$option=$options[$key];

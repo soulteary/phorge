@@ -40,10 +40,11 @@ final class PhorgeGovernanceNoticeMailPolicy extends Phobject {
       // notice. Eligibility transitions, legacy roles and security-row bytes
       // remain bound; this digest is never a credential or execution receipt.
       unset($facts['nativeTransactionID']);
+      $facts['noticeIdentityGeneration']=PhorgeGovernanceNoticeIdentityScope::readGeneration($conn,$phid);
       $facts['eligibilityTransactionID']=$security?(string)$security['id']:'0';
       if(!preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$facts['eligibilityTransactionID'])){
         throw new RuntimeException('governance_notice_generation_unknown');}
-      return hash('sha256',json_encode(array('notice-account-binding-v1',$facts),JSON_THROW_ON_ERROR));
+      return hash('sha256',json_encode(array('notice-account-binding-v2',$facts),JSON_THROW_ON_ERROR));
     }finally{
       if($owned&&$conn->isInsideTransaction()){$conn->killTransaction();}
       if($queued){queryfx($conn,$restore[$default['level']]);}

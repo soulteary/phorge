@@ -3,6 +3,9 @@
 /** Native MetaMTA storage; cross-application producers use their original writer. */
 final class PhorgeGovernanceNoticeSchemaSpec extends PhabricatorConfigSchemaSpec {
   public function buildSchemata(){
+    $this->buildRawSchema('user','governance_notice_identityepoch',array(
+      'userPHID'=>'varbytes64','generation'=>'uint64'),array(
+      'PRIMARY'=>array('columns'=>array('userPHID'),'unique'=>true)));
     $this->buildRawSchema('metamta','governance_notice_event',array(
       'eventID'=>'varbytes64','schemaVersion'=>'uint32','sourceKind'=>'varbytes32','sourceID'=>'uint64',
       'operationDigest'=>'varbytes64','actorDigest'=>'varbytes64','action'=>'varbytes32','metadataJSON'=>'text',

@@ -10,12 +10,12 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
         spec=(ROOT/'src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php').read_text()
         ddl=(ROOT/'resources/sql/autopatches/20261104.metamta.governancenotice.sql').read_text()
         def matches(source):
-            return source.count("=>'varbytes64'")==5 and "=>'bytes64'" not in source
+            return source.count("=>'varbytes64'")==6 and "=>'bytes64'" not in source
         self.assertTrue(matches(spec))
         self.assertEqual(5,ddl.count('VARBINARY(64) NOT NULL')-1)  # Exclude native recipient PHID.
         self.assertIn("'mailPHID'=>'phid?'",spec)
         self.assertIn('mailPHID VARBINARY(64) DEFAULT NULL',ddl)
-        for field in ('eventID','operationDigest','actorDigest','metadataDigest'):
+        for field in ('eventID','operationDigest','actorDigest','metadataDigest','userPHID'):
             old=spec.replace("'"+field+"'=>'varbytes64'","'"+field+"'=>'bytes64'",1)
             self.assertFalse(matches(old))
     def test_notice_failure_projection_never_exports_raw_query_or_reason(self):
@@ -86,7 +86,7 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
                 result=subprocess.run(base+extra,capture_output=True,text=True)
                 self.assertEqual(expected,result.returncode)
                 if expected==0:
-                    value=json.loads(result.stdout);self.assertEqual(933,value['native_checks'])
+                    value=json.loads(result.stdout);self.assertEqual(934,value['native_checks'])
                     self.assertIs(value['smtp_proved'],False)
             index=base.index('--render-binary');without=base[:index]+base[index+2:]
             missing=subprocess.run(without+['--measurement-source-revision','a'*40],capture_output=True,text=True)
