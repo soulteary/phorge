@@ -902,6 +902,16 @@
       "reviewStatus": "source-reviewed-awaiting-member-runtime-profile",
       "sourceOperation": "durable-member-ticket-consume-and-native-record-binding",
       "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
+      "discovery": true,
+      "kind": "native-policy-form-preview",
+      "meaning": "Feature-gated proposal form hydrates actual native Project membership and ancestor prerequisites for current VIEW/EDIT query; unchanged execution scope revalidates authority. No member writer or derived membership generator.",
+      "authority": "existing native Project query and sealed propose scope only; no independent grant",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "native-query-form-preview",
+      "candidateGenerationIntroduced": false
     }
   ]
 }

@@ -15,7 +15,7 @@ def template():
   'source_restore':{'quickstart_sha256':hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
    'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,'current_table_count':543,
    'restore_phase_workers_started':0,'restore_phase_network_endpoints_configured':0,
-   'patch_audit':{'source_patch_count':1571,'applied_patch_count':1571,'pending_patch_keys':[],'current_patch_ledger_complete':True,'migration_source_hashes':hashes,'migrations_executed':34}},
+   'patch_audit':{'source_patch_count':1572,'applied_patch_count':1572,'pending_patch_keys':[],'current_patch_ledger_complete':True,'migration_source_hashes':hashes,'migrations_executed':35}},
   'native':{'profile':'isolated-live-organization-metadata-observation-v1','source_revision':REV,
    'actual_global_control_and_limited_writer':True,'actual_role_none_proxy_null':True,
    'actual_trigger_incoming_outgoing_fk_negatives':True,'metadata_SQL_obligations':6,'metadata_control_connections_closed':2,

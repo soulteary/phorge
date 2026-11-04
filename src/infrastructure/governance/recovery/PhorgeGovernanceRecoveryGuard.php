@@ -21,7 +21,7 @@ final class PhorgeGovernanceRecoveryGuard extends Phobject {
     return in_array($raw,array(true,1,'1'),true);
   }
   public static function enabled(){
-    $flag=PhabricatorEnv::getEnvConfigIfExists('governance.account-recovery.enabled',false);
+    $flag=PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled');
     if(!is_bool($flag)){throw new RuntimeException('recovery_feature_flag_unknown');}
     return $flag;
   }

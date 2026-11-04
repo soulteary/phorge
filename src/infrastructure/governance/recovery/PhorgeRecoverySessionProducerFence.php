@@ -56,9 +56,17 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
       // Same ordering as the restoration service: User before credential rows.
       // Do not add eligibility rules or revoke anything: native session policy
       // remains in the existing authentication engine and current-source check.
-      $user=queryfx_one($conn,'SELECT phid FROM %R WHERE BINARY phid=BINARY %s LOCK IN SHARE MODE',
+      // The PHID lookup plans one native PRIMARY key; it grants no authority.
+      // A covering secondary SHARE can coexist with a clustered-record X lock.
+      // Current-lock the exact PRIMARY row, then revalidate its PHID under lock.
+      $plan=queryfx_one($conn,'SELECT id FROM %R WHERE BINARY phid=BINARY %s',
         new PhabricatorUser(),$subject);
-      if(!$user||$user['phid']!==$subject){throw new RuntimeException('recovery_session_subject_unknown');}
+      if(!$plan||!preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$plan['id'])||
+        (int)$plan['id']>4294967295){throw new RuntimeException('recovery_session_subject_unknown');}
+      $user=queryfx_one($conn,'SELECT id,phid FROM %R FORCE INDEX (PRIMARY) WHERE id=%d LOCK IN SHARE MODE',
+        new PhabricatorUser(),(int)$plan['id']);
+      if(!$user||(string)$user['id']!==(string)$plan['id']||$user['phid']!==$subject){
+        throw new RuntimeException('recovery_session_subject_unknown');}
       return $scope;
     }catch(Throwable $error){$scope->close();throw$error;}
     finally{if($queued&&$restore!==null){queryfx($conn,$restore);}}

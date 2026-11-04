@@ -45,6 +45,7 @@ try {
     'PhorgeGovernanceMediaHTTPProtocolTestCase',
     'PhorgeGovernanceMediaFileGuardTestCase',
     'PhorgeProjectExecutionTestCase',
+    'PhorgeProjectPolicyFailureTestCase',
     'PhorgePrivateMailPolicyTestCase',
     'PhorgeLegalpadVerificationTestCase',
     'PhorgeRecoveryNativeAccountFactsTestCase',

@@ -1,0 +1,56 @@
+{
+  "source_head": "9d36a0c3e84dda75d2ba7e9b18cd6428dbb02528",
+  "passed": true,
+  "pure_methods": 237,
+  "SQL_checks": 861,
+  "runtime_files_exact": 6814,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 38,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 38
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "native_no_effect_cross_second_regression_proved": true,
+  "native_Conduit_HTTP_scope": "fixed loopback user.whoami token revocation only",
+  "HTTP_server_cleanup": {
+    "started": 3,
+    "stopped": 3,
+    "directories_removed": 3,
+    "remaining": 0,
+    "live": 0
+  },
+  "browser_proved": false,
+  "deployment": false,
+  "native_Conduit_HTTP_proved": true,
+  "gateway_proved": false,
+  "native_controller_form_profile_proved": false,
+  "native_error_response_profile_proved": false,
+  "SLA_proved": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "revocation-http-main103-clock-full-native.json": "7ef293adb8d1d713f44ff984146dc26e070c3d6b91ca525476bd52d9a0de02f3",
+    "revocation-http-main103-clock-full-integration.json": "9c17b9d3453fbb100bf31ba53791851b5ba9d77c09e8982f208f06d0a18f3842",
+    "revocation-http-main103-clock-full-parent.json": "edcc298f8bd79cfd2be0aff825d518c587a080ff06bade4239bb9192baed817d",
+    "revocation-http-main103-clock-full-source-runtime-match.json": "7049ddd187e022af74a7e629a6f299922fcbdf1e11901920868ce44185ecaf4e",
+    "revocation-http-main103-clock-full-strict-accepted.json": "eb07de4dab0359427659ec60c91210aac8ab16966874e37e752c9cc29aac7767",
+    "revocation-http-main103-clock-full-strict-cli.json": "34c98de784a4effbdfe2a33a2506708d4567120483bbee2f93173289ce4c0c12"
+  },
+  "evidence_kind": "Owner-executed PHP8.5.12 isolated signed-source fixture; not hosted CI",
+  "applies_only_to_tested_source": true,
+  "immutable_manifest_sha256": "28d7420bdeeb6d25c29a3a48ea673611241111566d7e249e85835b388ede9378",
+  "source_archive_sha256": "786e60bdaedb03512670e022b302e6abfd9f33d304f4cecf3f848b9780d75416",
+  "original_main_failure_trace_did_not_include_raw_field_delta": true,
+  "deterministic_regression_proves_stale_pre_POST_fingerprint_is_different": true,
+  "negative_JOIN_fingerprint_includes_dateModified": true
+}

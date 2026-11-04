@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "scope": "latest-main explicit native policy form and typed refusal integration; partial",
+  "parents": {
+    "protected_main": "f4c5702a0fdeade575ecdcda98c568cd45e966ba",
+    "accepted_display_component": "469e6dc55b7af95cfd5c23cf153a61fa2c5235ab",
+    "typed_error_docs_head": "2da303793503026d5441b3a72f1da5b4efb22c0b",
+    "typed_error_actual_pure_source": "4cb2265e6268309131830cf57e08cd5a9e88af40"
+  },
+  "source_derived_obligations_not_results": {
+    "pure_methods": 237,
+    "registered_classes": 37,
+    "SQL_checks": 854,
+    "global_workers": 38,
+    "business_local_children": 20
+  },
+  "sets_verified": {
+    "all_parent_method_IDs": true,
+    "all_parent_check_IDs": true,
+    "all_parent_NATIVE_summary_leaves": true,
+    "277_legacy_candidate_IDs": true
+  },
+  "retained_semantics": [
+    "One unified native textarea HTML5/CR/initial-LF decoder; real leading LF remains content",
+    "Native NULL description normalization and both raw-empty and stored-nonempty policy profiles",
+    "Read-only display attachment to the locked authority actor and original real session",
+    "Native no-effect dateModified bookkeeping only; business/history/audit comparisons remain exact",
+    "Exact-one-effective approved mutation; known additional genuine content effects are an actionable refusal only",
+    "Unknown backend/storage/metadata/extension/programming errors propagate; native MFA, CSRF and policy exceptions stay native"
+  ],
+  "historical_evidence": {
+    "display_component_acceptance": "evidence/project-form-display-469-218-753/acceptance.json",
+    "display_immutable_manifest_sha256": "34f2dec2f15a3b54b1aeeb328d5b446ee256815f84951d4ae737c2ba5897bb27",
+    "error_pure_source_methods": 227,
+    "current_integrated_SQL_executed": true,
+    "current_integrated_pure_executed": true
+  },
+  "remaining": [
+    "English PR, exacthead CI/review, protected merge and main artifact closure",
+    "Actual HTTP/browser/MFA interaction and concurrency/other-family/source closure"
+  ],
+  "actual_HTTP_or_browser_proved": false,
+  "all_families_complete": false,
+  "can_execute_recovery": false,
+  "deployment": false,
+  "optional_features_enabled": false,
+  "integrated_attempt": {
+    "source_head": "dce7afd4dd618b668eef43c77e68b4fe7d54d597",
+    "pure_methods_passed": 237,
+    "SQL_checks_completed_before_failure": 666,
+    "required_SQL_checks": 854,
+    "passed": false,
+    "runtime_files_exact": 6812,
+    "cleanup_complete": true,
+    "failure": "Old MFA fixture required exact RuntimeException rather than the native-edit typed business refusal. Production guard and current-role denial remain unchanged."
+  },
+  "retry_scope": {
+    "production_changes": false,
+    "fixture": "Exact final refusal class, native-edit reason and fixed native-edit message; all MFA assertions and source obligations retained.",
+    "SQL_retest_pending": false
+  },
+  "accepted_retry": {
+    "runtime_source_head": "c308cc7622d21942b59d87cc7a1e72657a2ed5bc",
+    "pure_methods": 237,
+    "SQL_checks": 854,
+    "runtime_files_exact": 6812,
+    "strict_CLI_equality": true,
+    "cleanup_complete": true,
+    "acceptance": "evidence/project-policy-web-c308-237-854/acceptance.json",
+    "documentation_is_not_new_execution": true
+  },
+  "hosted_CI_followup": {
+    "failed_head": "b6ad5f2a850714a3644d573be4543a6244fc3d22",
+    "run_id": 41743627758,
+    "test": "PhabricatorLibraryTestCase::testMethodVisibility",
+    "failure": "Private refusal exception constructor differed from public RuntimeException visibility.",
+    "fix": "Public reason-only constructor validates the fixed whitelist and rejects extra arguments. No caller-supplied message or permission grant.",
+    "supported_validation_pending": false,
+    "fresh_full_CI_required": true,
+    "historical_c308_runtime_not_new_source_proof": true,
+    "supported_runtime_source": "ba3321c2f7f022219ffaf919d85871fd56e19387",
+    "supported_actual": {
+      "runtime": "8.5.12",
+      "pure_methods": 237,
+      "native_method_visibility_passed": true,
+      "generated_map_byte_exact": true,
+      "owned_stages_removed": true,
+      "SQL_executed": false
+    },
+    "supported_provenance_sha256": "1166c492550842d1245516f3c13210be18be22650b655e0ebe140db4e206c17f"
+  }
+}

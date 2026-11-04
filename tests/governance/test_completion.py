@@ -124,6 +124,8 @@ class CompletionReceiptTests(unittest.TestCase):
             data=valid_template();data[key]=True;self.reject(data)
 
     def test_source_patch_execution_and_owned_cleanup_required(self):
+        self.assertIn('20261104.people.recoveryrestore.sql', gate.PATCHES)
+        data=valid_template();del data['source_restore']['patch_audit']['migration_source_hashes']['phabricator:20261104.people.recoveryrestore.sql'];self.reject(data)
         data=valid_template();data['source_restore']['patch_audit']['pending_patch_keys']=['unapplied'];self.reject(data)
         data=valid_template();data['source_restore']['patch_audit']['migrations_executed']=0;self.reject(data)
         data=valid_template();data['source_restore']['patch_audit']['migration_source_hashes'][

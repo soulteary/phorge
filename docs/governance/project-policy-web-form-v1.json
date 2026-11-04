@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "status": "source-fixed-awaiting-peer-and-supported-runtime",
+  "base": "f5828da2fc8ba4d4bc11c8d4cffdfc7d2c8d28d3",
+  "feature_default": false,
+  "activation_recommended": false,
+  "scope": "native Project policy proposal form/controller and web editor POST; not HTTP server or browser proof",
+  "protocol": {
+    "explicit_marker": "form=policy",
+    "actions": [
+      "preview",
+      "submit"
+    ],
+    "operation_selector": {
+      "edit": "original new_policy payload; no descriptor added",
+      "view": "server-created version 3 project.view-policy descriptor"
+    },
+    "missing_operation": "legacy edit only",
+    "json_path": "existing POST action/payload preserved; mixed form and JSON rejected",
+    "target_selector": "native PhabricatorProjectDatasource followed by current native VIEW+EDIT query and unchanged propose Scope",
+    "preview": "operation is fixed hidden after selection, displays corresponding current VIEW or EDIT policy; changing field requires returning to project selection"
+  },
+  "gates_preserved": [
+    "current full native web session",
+    "eligible account",
+    "native MFA enrollment configuration",
+    "target VIEW and EDIT",
+    "native Space policy",
+    "bounded flat-root profile",
+    "POST native CSRF",
+    "independent current admin approval",
+    "history system-admin and VIEW requirements",
+    "native self-VIEW validation",
+    "ticket intent binding"
+  ],
+  "expected_not_actual": {
+    "pure_methods": 195,
+    "native_checks": 607,
+    "new_native_checks": 14
+  },
+  "actual_this_slice": {
+    "host_php_lint": true,
+    "strict_python_tests": 21,
+    "supported_php_runtime": false,
+    "native_sql_passed": false,
+    "http_server_proved": false,
+    "browser_proved": false,
+    "governance_python_tests": 94,
+    "permissions_python_tests": 85
+  },
+  "remaining": [
+    "supported PHP8.5.12 classmap/pure/native form run",
+    "current-main integration source inventory and all required regression proofs",
+    "trusted HTTP/browser interaction",
+    "remaining Project hierarchy/Space/JOIN broader execution profiles",
+    "Policy option rendering follows native request snapshot semantics; not global atomic revocation across all auxiliary policy objects."
+  ],
+  "source_review": {
+    "native_runtime_delta": [
+      "existing ApprovalController only"
+    ],
+    "literal_membership_consumer": "native-policy-form-preview, query hydration only, no membership generation",
+    "snapshot_review": "only explicit controller/translation bytes; lexical candidates unchanged; partial coverage and activation blockers preserved",
+    "current_policy_options": "Use the unchanged execution scope fresh actor for policy enumeration, dialog and policy control; request viewer may predate a role-source change."
+  },
+  "runtime_obligations": [
+    "real native language preference read through SessionEngine; no manually installed translation map substituted for native locale",
+    "stale admin viewer created by owned DB mutation after native bootstrap; old viewer positive option control and fresh actor hidden-name absence",
+    "existing web JSON legacy edit and v3 VIEW submit/approve/history with native CSRF and nonadmin history refusal"
+  ],
+  "current_main_union": {
+    "base": "0a43c0211c4ced7749d26187da29798c4439086b",
+    "expected_pure_not_actual": 218,
+    "expected_SQL_not_actual": 753,
+    "host_governance_passed": 129,
+    "host_permissions_passed": 85,
+    "native_runtime_passed": false,
+    "HTTP_or_browser_proved": false
+  }
+}

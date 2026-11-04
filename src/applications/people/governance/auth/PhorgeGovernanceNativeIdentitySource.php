@@ -172,11 +172,22 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
         ($epoch !== null && $epoch !== $identity['accountEpoch'])) {
       throw new RuntimeException('governance_native_credential_ineligible');
     }
+    // The PHID lookup is non-authoritative planning, not a locking scan.
+    // Current-lock only that native PRIMARY row: revalidation must not touch
+    // unrelated uncommitted sessions created by another native producer.
+    $session_table = new PhabricatorAuthSession();
+    $plan = queryfx_one($conn, 'SELECT id FROM %R WHERE phid=%s LIMIT 2',
+      $session_table, $session);
+    if (!$plan || !preg_match('/\A[1-9][0-9]{0,9}\z/D', (string)$plan['id']) ||
+        (int)$plan['id'] > 4294967295) {
+      throw new RuntimeException('governance_native_credential_ineligible');
+    }
     $row = queryfx_one($conn,
-      'SELECT phid,userPHID,type,sessionKey,sessionStart,sessionExpires,isPartial FROM %R WHERE BINARY phid=BINARY %s LOCK IN SHARE MODE',
-      new PhabricatorAuthSession(), $session);
+      'SELECT id,phid,userPHID,type,sessionKey,sessionStart,sessionExpires,isPartial FROM %R FORCE INDEX (PRIMARY) WHERE id=%d LOCK IN SHARE MODE',
+      $session_table, (int)$plan['id']);
     $now = queryfx_one($conn, 'SELECT UNIX_TIMESTAMP() AS n');
-    if (!$row || $row['phid'] !== $session || $row['userPHID'] !== $user ||
+    if (!$row || (string)$row['id'] !== (string)$plan['id'] ||
+        $row['phid'] !== $session || $row['userPHID'] !== $user ||
         $row['type'] !== PhabricatorAuthSession::TYPE_WEB || (string)$row['isPartial'] !== '0' ||
         !hash_equals($digest, hash('sha256', $row['sessionKey'])) ||
         (int)$row['sessionStart'] > (int)$now['n'] || (int)$row['sessionExpires'] <= (int)$now['n']) {

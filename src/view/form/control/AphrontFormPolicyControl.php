@@ -6,6 +6,13 @@ final class AphrontFormPolicyControl extends AphrontFormControl {
   private $capability;
   private $policies;
   private $spacePHID;
+  private $showSpaces = true;
+
+  public function setShowSpaces($show) {
+    if (!is_bool($show)) { throw new InvalidArgumentException('policy_control_spaces_boolean_required'); }
+    $this->showSpaces = $show;
+    return $this;
+  }
   private $templatePHIDType;
   private $templateObject;
 
@@ -386,6 +393,7 @@ final class AphrontFormPolicyControl extends AphrontFormControl {
   }
 
   private function buildSpacesControl() {
+    if (!$this->showSpaces) { return null; }
     if ($this->capability != PhabricatorPolicyCapability::CAN_VIEW) {
       return null;
     }
