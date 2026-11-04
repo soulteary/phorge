@@ -3,6 +3,9 @@
 /** Isolated component driver. Never substitutes for all-mode native evidence. */
 function governance_recovery_policy_focused_cases($fixture,callable $check) {
   $fixture->assertOwned();$namespace=$fixture->getNamespace();
+  $revision=getenv('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION');
+  if(!is_string($revision)||!preg_match('/\A[a-f0-9]{40}\z/D',$revision)){
+    throw new RuntimeException('recovery_policy_source_revision_required');}
   if(!preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)){
     throw new RuntimeException('recovery_policy_namespace_unknown');}
   $conn=(new PhabricatorUser())->establishConnection('w');
@@ -24,7 +27,7 @@ function governance_recovery_policy_focused_cases($fixture,callable $check) {
       ->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
     $environment=governance_recovery_account_fixture_environment($fixture);
     governance_recovery_policy_source_cases($fixture,$check);
-    return array('profile'=>'isolated-native-policy-range-component-v1',
+    return array('profile'=>'isolated-native-policy-range-component-v1','source_revision'=>$revision,
       'actual_native_policy_dao'=>true,'service_owned_rr_transaction'=>true,
       'actual_empty_and_populated_primary_insert_waits'=>true,
       'registered_policy_workers'=>2,'policy_source_SQL_obligations'=>9,
