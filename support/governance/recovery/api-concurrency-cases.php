@@ -151,11 +151,16 @@ function governance_recovery_api_observe($fixture,mysqli $observer,array $handle
       ($stat['mode']&0777)!==0700||!is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||
       filesize($owner)!==64||!hash_equals($worker['nonce'],file_get_contents($owner))){
       throw new RuntimeException('recovery_api_observer_owner_refused');}
+    // P_S thread/event identifies lock creation, not necessarily its transaction owner.
+    // An INSERT implicit lock can be materialized by this very waiting reader.
+    // MySQL8.4: INNODB_TRX requested-lock ID identifies the waiter without
+    // interpreting a read-only REQUESTING_ENGINE_TRANSACTION_ID.
     $sql='SELECT COUNT(*) n FROM performance_schema.data_lock_waits w '.
-      'JOIN performance_schema.threads r ON r.THREAD_ID=w.REQUESTING_THREAD_ID '.
-      'JOIN performance_schema.threads b ON b.THREAD_ID=w.BLOCKING_THREAD_ID '.
-      'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID '.
-      'WHERE r.PROCESSLIST_ID='.(int)$handle['mysql_thread'].' AND b.PROCESSLIST_ID='.(int)$blocker.
+      'JOIN information_schema.INNODB_TRX r ON r.TRX_REQUESTED_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID '.
+      'JOIN information_schema.INNODB_TRX b ON b.TRX_ID=CAST(w.BLOCKING_ENGINE_TRANSACTION_ID AS CHAR) '.
+      'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID AND l.ENGINE=w.ENGINE '.
+      "WHERE w.ENGINE='INNODB' AND r.TRX_STATE='LOCK WAIT' AND r.TRX_MYSQL_THREAD_ID=".(int)$handle['mysql_thread'].
+      ' AND b.TRX_MYSQL_THREAD_ID='.(int)$blocker.
       " AND l.OBJECT_SCHEMA='".$observer->real_escape_string($fixture->getNamespace().'_'.$app).
       "' AND l.OBJECT_NAME='".$observer->real_escape_string($table)."' AND l.LOCK_STATUS='WAITING'";
     $query=$observer->query($sql);if(!$query){throw new RuntimeException('recovery_api_lock_observation_failed');}
@@ -188,13 +193,15 @@ function governance_recovery_api_wait_diagnostic($fixture,mysqli$observer,array$
   // Capture only already-owned live connection objects after failure. No new app reader.
   $registry=governance_recovery_api_connection_registry($fixture,$observer,$producer_conn,$actor_conn,$roles);
   $ids=implode(',',array_map('intval',array_keys($roles)));
-  $sql='SELECT r.PROCESSLIST_ID requester,b.PROCESSLIST_ID blocker,l.OBJECT_SCHEMA schema_name,'.
+  $sql='SELECT r.TRX_MYSQL_THREAD_ID requester,b.TRX_MYSQL_THREAD_ID blocker,'.
+    'e.PROCESSLIST_ID blocker_event_creator,l.OBJECT_SCHEMA schema_name,'.
     'l.OBJECT_NAME table_name,l.INDEX_NAME index_name,l.LOCK_MODE mode_name,l.LOCK_TYPE type_name '.
     'FROM performance_schema.data_lock_waits w '.
-    'JOIN performance_schema.threads r ON r.THREAD_ID=w.REQUESTING_THREAD_ID '.
-    'JOIN performance_schema.threads b ON b.THREAD_ID=w.BLOCKING_THREAD_ID '.
-    'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID '.
-    'WHERE r.PROCESSLIST_ID IN ('.$ids.') LIMIT 17';
+    'JOIN information_schema.INNODB_TRX r ON r.TRX_REQUESTED_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID '.
+    'LEFT JOIN information_schema.INNODB_TRX b ON b.TRX_ID=CAST(w.BLOCKING_ENGINE_TRANSACTION_ID AS CHAR) '.
+    'LEFT JOIN performance_schema.threads e ON e.THREAD_ID=w.BLOCKING_THREAD_ID '.
+    'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID AND l.ENGINE=w.ENGINE '.
+    "WHERE w.ENGINE='INNODB' AND r.TRX_STATE='LOCK WAIT' AND r.TRX_MYSQL_THREAD_ID IN (".$ids.') LIMIT 17';
   $query=$observer->query($sql);if(!$query){throw new RuntimeException('recovery_api_wait_diagnostic_query_failed');}
   $rows=$query->fetch_all(MYSQLI_ASSOC);$query->free();
   $tables=array();foreach(array('user'=>new PhabricatorUser(),'user-transaction'=>new PhabricatorUserTransaction(),
@@ -229,10 +236,15 @@ function governance_recovery_api_wait_projection(array$rows,array$roles,$blocker
     $requester=(int)$row['requester'];if(!isset($roles[$requester])){throw new RuntimeException('recovery_api_wait_diagnostic_requester_refused');}
     $kind=governance_recovery_api_object_class($row,$namespace,$tables);
     $mode=$row['mode_name'];
+    $owner=governance_recovery_api_nullable_thread($row['blocker']);
+    $creator=governance_recovery_api_nullable_thread($row['blocker_event_creator']);
     $out[]=array('requester_roles'=>$roles[$requester],'requester_matches_observed_thread'=>true,
-      'blocker_matches_producer_connection'=>(int)$row['blocker']===$blocker,
-      'blocker_matches_parent_actor_connection'=>(int)$row['blocker']===$parent_user_thread,
-      'blocker_registry_roles'=>governance_recovery_api_registry_matches($registry,(int)$row['blocker']),
+      'requester_ownership_basis'=>'innodb-trx-requested-lock',
+      'blocking_transaction_owner_proved'=>$owner!==null,
+      'blocker_matches_producer_connection'=>$owner!==null&&$owner===$blocker,
+      'blocker_matches_parent_actor_connection'=>$owner!==null&&$owner===$parent_user_thread,
+      'blocker_registry_roles'=>$owner===null?array():governance_recovery_api_registry_matches($registry,$owner),
+      'blocker_event_creator_registry_roles'=>$creator===null?array():governance_recovery_api_registry_matches($registry,$creator),
       'object_class'=>$kind,'index_class'=>$row['index_name']===null?'none':($row['index_name']==='PRIMARY'?'primary':'other'),
       'lock_type'=>$row['type_name']==='RECORD'?'record':($row['type_name']==='TABLE'?'table':'other'),
       'lock_mode'=>is_string($mode)&&str_starts_with($mode,'S')?'shared':(is_string($mode)&&str_starts_with($mode,'X')?'exclusive':'other'));
@@ -291,4 +303,13 @@ function governance_recovery_api_registry_matches(array$registry,$id) {
 function governance_recovery_api_registry_role_names(array$registry) {
   $checked=array();foreach($registry as$role=>$value){governance_recovery_api_registry_add($checked,$role,$value);}
   $names=array_keys($checked);sort($names,SORT_STRING);return$names;
+}
+
+/** P_S absence stays unknown; never convert NULL/zero/bool to a proven owner. */
+function governance_recovery_api_nullable_thread($value) {
+  if($value===null){return null;}
+  if(is_string($value)&&preg_match('/\A[1-9][0-9]{0,18}\z/D',$value)&&
+    (strlen($value)<strlen((string)PHP_INT_MAX)||(strlen($value)===strlen((string)PHP_INT_MAX)&&strcmp($value,(string)PHP_INT_MAX)<=0))){$value=(int)$value;}
+  if(!is_int($value)||$value<1){throw new RuntimeException('recovery_api_thread_shape_refused');}
+  return$value;
 }

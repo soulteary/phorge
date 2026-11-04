@@ -32,7 +32,7 @@ catch(RuntimeException $e){echo '{"accepted":false}';}"""
         namespace='governance_native_'+'a'*16
         tables={'user':{'schema':namespace+'_user','table':'user'},
                 'conduit-token':{'schema':namespace+'_conduit','table':'conduit_token'}}
-        row=dict(requester='17',blocker='22',schema_name=namespace+'_user',table_name='user',
+        row=dict(requester='17',blocker='22',blocker_event_creator='22',schema_name=namespace+'_user',table_name='user',
                  index_name='PRIMARY',mode_name='S,REC_NOT_GAP',type_name='RECORD',
                  LOCK_DATA='PRIVATE_SENTINEL',query='PRIVATE_SENTINEL')
         def invoke(rows):
@@ -76,7 +76,7 @@ catch(RuntimeException $e){echo '{"accepted":false}';}"""
         script="""require $argv[1];$v=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
 $r=governance_recovery_api_wait_projection($v['rows'],array(17=>array('writer_thread')),21,22,
  'governance_native_aaaaaaaaaaaaaaaa',array(),array('parent-setup'=>23,'child-credential_thread'=>23));echo json_encode($r);"""
-        row=dict(requester='17',blocker='23',schema_name='PRIVATE_SENTINEL',table_name='PRIVATE_SENTINEL',index_name='PRIMARY',mode_name='S',type_name='RECORD')
+        row=dict(requester='17',blocker='23',blocker_event_creator='17',schema_name='PRIVATE_SENTINEL',table_name='PRIVATE_SENTINEL',index_name='PRIMARY',mode_name='S',type_name='RECORD')
         run=subprocess.run(['php','-r',script,str(cases)],input=json.dumps(dict(rows=[row])),text=True,capture_output=True,check=True)
         self.assertEqual(run.stderr,'');self.assertNotIn('PRIVATE_SENTINEL',run.stdout)
         value=json.loads(run.stdout)[0]
@@ -95,6 +95,39 @@ $r=governance_recovery_api_wait_projection($v['rows'],array(17=>array('writer_th
         self.assertIn("new ReflectionMethod(LiskDAO::class,'getEstablishedConnection')",source)
         self.assertIn("$setup=$fixture->getAdmin()",source)
         self.assertIn("'parent-control',(int)$observer->thread_id",source)
+
+    def test_implicit_lock_creator_is_not_the_blocking_transaction_owner(self):
+        cases=ROOT/'support/governance/recovery/api-concurrency-cases.php'
+        script="""require $argv[1];$v=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
+try{$r=governance_recovery_api_wait_projection($v['rows'],array(17=>array('writer_thread','reader_thread')),21,22,
+ 'governance_native_aaaaaaaaaaaaaaaa',array(),array('parent-producer'=>21,'child-writer_thread'=>17,'child-reader_thread'=>17));
+ echo json_encode(array('accepted'=>true,'value'=>$r));}catch(RuntimeException $e){echo '{"accepted":false}';}"""
+        row=dict(requester='17',blocker='21',blocker_event_creator='17',schema_name='PRIVATE_SENTINEL',table_name='PRIVATE_SENTINEL',index_name='PRIMARY',mode_name='S',type_name='RECORD')
+        def run(value):
+            p=subprocess.run(['php','-r',script,str(cases)],input=json.dumps(dict(rows=[value])),text=True,capture_output=True,check=True)
+            self.assertEqual('',p.stderr);self.assertNotIn('PRIVATE_SENTINEL',p.stdout);return json.loads(p.stdout)
+        value=run(row)['value'][0]
+        self.assertTrue(value['blocking_transaction_owner_proved']);self.assertTrue(value['blocker_matches_producer_connection'])
+        self.assertEqual(['parent-producer'],value['blocker_registry_roles'])
+        self.assertEqual(['child-reader_thread','child-writer_thread'],value['blocker_event_creator_registry_roles'])
+        unknown=run(dict(row,blocker=None))['value'][0]
+        self.assertFalse(unknown['blocking_transaction_owner_proved']);self.assertFalse(unknown['blocker_matches_producer_connection'])
+        self.assertEqual([],unknown['blocker_registry_roles'])
+        self.assertFalse(run(dict(row,blocker=True))['accepted'])
+        self.assertFalse(run(dict(row,blocker='9223372036854775808'))['accepted'])
+
+    def test_observer_uses_transaction_owner_and_full_engine_identity(self):
+        s=(ROOT/'support/governance/recovery/api-concurrency-cases.php').read_text()
+        begin=s.index("    $sql='SELECT COUNT(*) n FROM performance_schema.data_lock_waits w '")
+        end=s.index("    $query=$observer->query($sql)",begin);query=s[begin:end]
+        self.assertIn('r.TRX_REQUESTED_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID',query)
+        self.assertIn('b.TRX_ID=CAST(w.BLOCKING_ENGINE_TRANSACTION_ID AS CHAR)',query)
+        self.assertIn('l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID AND l.ENGINE=w.ENGINE',query)
+        self.assertIn("w.ENGINE='INNODB' AND r.TRX_STATE='LOCK WAIT'",query)
+        self.assertIn('r.TRX_MYSQL_THREAD_ID=',query);self.assertIn('b.TRX_MYSQL_THREAD_ID=',query)
+        self.assertNotIn('w.BLOCKING_THREAD_ID',query)
+        self.assertNotIn('w.REQUESTING_ENGINE_TRANSACTION_ID',query)
+        self.assertIn("$deadline=hrtime(true)+5000000000",s)
 
     def test_observer_timeout_stays_failure_after_diagnostic_fault(self):
         source=(ROOT/'support/governance/recovery/api-concurrency-cases.php').read_text()

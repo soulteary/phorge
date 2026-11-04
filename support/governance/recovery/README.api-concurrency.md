@@ -55,3 +55,30 @@ are added to receipts. The original blocker matcher, timeout, 46 success checks,
 original timeout and cannot count as a successful observation. SQL is unrun for
 this successor, and no API stress, restoration permit or full-family completion
 is claimed.
+
+
+### Transaction-owner correction (prepared, not runtime acceptance)
+
+The 581b registry experiment again passed 243 pure methods and 11 focused checks,
+then timed out. Its P_S blocking thread matched the child waiter itself. That is
+not proof of an InnoDB self-deadlock: MySQL can materialize an INSERT's implicit
+lock from the waiting reader's thread, on behalf of the writer's transaction.
+The creator thread/event and lock-owner transaction are different concepts.
+
+This test-only successor attributes ownership through actual InnoDB metadata.
+The waiter is identified by INNODB_TRX.TRX_REQUESTED_LOCK_ID matching the waiting
+lock, with actual LOCK WAIT state and the owned reader connection; it does not
+interpret the possibly internal read-only REQUESTING_ENGINE_TRANSACTION_ID.
+The blocking writer is identified by BLOCKING_ENGINE_TRANSACTION_ID joined to
+INNODB_TRX.TRX_ID, then actual TRX_MYSQL_THREAD_ID equals the owned producer.
+Lock joins include ENGINE and require INNODB, plus the unchanged waiting status
+and exact owned schema/table. Diagnostic owner roles and event-creator roles are
+separate; absent owner metadata stays unknown. The product token query, timeout,
+46 obligations and permission semantics remain unchanged. No SQL acceptance,
+product deadlock or production-query fix is claimed for this successor.
+
+Primary references: [MySQL8.4 data_locks](https://dev.mysql.com/doc/refman/8.4/en/performance-schema-data-locks-table.html),
+[INNODB_TRX](https://dev.mysql.com/doc/refman/8.4/en/information-schema-innodb-trx-table.html),
+and [MySQL engineer explanation of implicit-lock materialization](https://bugs.mysql.com/bug.php?id=104431).
+The [official8.4 P_S implementation](https://github.com/mysql/mysql-server/blob/8.4/storage/innobase/handler/p_s.cc)
+reports the blocking transaction ID separately from its lock-creation event.
