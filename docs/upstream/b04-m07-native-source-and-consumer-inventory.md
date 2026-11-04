@@ -156,3 +156,7 @@ and their native tests are not excluded. Regression tests require these
 separate non-authority reviews, and reject removal, disabled discovery,
 duplicate catalog entries and a new unreviewed governance reference. This
 corrects the inventory mismatch rather than weakening a required CI gate.
+
+### Policy proposal form preview
+
+`PhorgeProjectPolicyApprovalController` now calls the actual native Project query with member/ancestor hydration for form preview. The catalog records this read as `native-policy-form-preview`; it neither introduces membership generation nor grants authority. Submission still revalidates the unchanged native execution scope. Source inventory is not runtime form or browser certification.

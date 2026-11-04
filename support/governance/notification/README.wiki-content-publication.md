@@ -84,3 +84,15 @@ services/storage were cleaned. The bounded record is
 `docs/governance/evidence/wiki-content-portable-223-835/acceptance.json`.
 Actual hosted AMD64 extraction/CI remains pending. This does not change the
 historical 82ec acceptance record or elevate gateway/daemon/SMTP/browser claims.
+
+### Current main103 integration (offline candidate, not runtime accepted)
+
+Protected main `1f20bbdfeb060c5490ca4e1298f2c5d9b82e7a03` is now explicitly
+integrated. The actual source sets retain all 854 main checks and all 835 Wiki
+component checks, yielding 870 unique obligations. Both complete native summary
+leaf sets are retained unchanged; the source declares 37 pure classes / 237 test
+methods. This new union has not run and cannot borrow the old 47ffc/136 CI or
+local green results. Its production PHP/resources are byte-identical to main103.
+The main103 post-merge CI failure remains an upstream dependency under diagnosis.
+Before updating PR105, this candidate must also integrate the upcoming protected
+HTTP component and derive the final set; no old green authorizes a merge.

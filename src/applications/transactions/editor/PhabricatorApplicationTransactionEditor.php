@@ -1287,6 +1287,11 @@ abstract class PhabricatorApplicationTransactionEditor
       $this->applyCapabilityChecks($object, $xactions);
 
       $xactions = $this->filterTransactions($object, $xactions);
+      if ($project_scope!==null) {
+        // Native filtering may preserve sparse keys. Reindex without dropping
+        // any effect before the unchanged exact-one governance closure check.
+        $xactions=array_values($xactions);
+      }
 
       if (!$is_preview) {
         $this->hasRequiredMFA = true;
