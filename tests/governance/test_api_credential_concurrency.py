@@ -2,6 +2,9 @@
 import json
 import importlib.util
 import copy
+import tempfile
+import hashlib
+import sys
 from pathlib import Path
 import subprocess
 import unittest
@@ -72,6 +75,27 @@ class CredentialConcurrencyGateTests(unittest.TestCase):
     def test_positive_contract_before_mutations(self):
         self.assertTrue(self.validate(self.data)['accepted'])
         self.assertEqual(len(self.gate.required_checks()),46)
+
+    def test_actual_cli_duplicate_fields_rejected_after_positive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            binary=Path(directory)/'synthetic-binary'
+            binary.write_bytes(b'contract-only, not native binary evidence')
+            self.data['file_service_cleanup']['binary_sha256']=hashlib.sha256(binary.read_bytes()).hexdigest()
+            receipt=Path(directory)/'synthetic.json'
+            raw=json.dumps(self.data)
+            command=[sys.executable,'-B',str(ROOT/'scripts/governance/check_api_credential_concurrency.py'),
+                     '--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary)]
+            receipt.write_text(raw)
+            positive=subprocess.run(command,capture_output=True,text=True)
+            self.assertEqual(positive.returncode,0,positive.stderr)
+            for before, after in [
+                ('"source_revision": "'+'a'*40+'"','"source_revision": "'+'b'*40+'", "source_revision": "'+'a'*40+'"'),
+                ('"can_execute": false','"can_execute": true, "can_execute": false')]:
+                self.assertEqual(raw.count(before),1)
+                receipt.write_text(raw.replace(before,after))
+                refused=subprocess.run(command,capture_output=True,text=True)
+                self.assertNotEqual(refused.returncode,0)
+                self.assertIn('duplicate credential evidence field',refused.stderr)
 
     def test_missing_duplicate_wrong_source_and_authority_refused(self):
         self.validate(self.data)

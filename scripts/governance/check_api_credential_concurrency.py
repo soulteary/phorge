@@ -12,6 +12,19 @@ PROFILES = ('api', 'cli', 'oauth')
 OPERATIONS = ('insert', 'revoke')
 BOUNDARIES = ('commit', 'rollback')
 
+def strict_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError('duplicate credential evidence field')
+        result[key] = value
+    return result
+
+def load_json(raw):
+    def nonfinite(value):
+        raise ValueError('nonfinite credential evidence refused')
+    return json.loads(raw, object_pairs_hook=strict_object, parse_constant=nonfinite)
+
 def exact(actual, wanted):
     if type(actual) is not type(wanted):
         raise ValueError('credential fixture typed value refused')
@@ -104,4 +117,4 @@ if __name__ == '__main__':
     parser.add_argument('--file-binary',type=Path,required=True)
     args=parser.parse_args()
     digest=__import__('hashlib').sha256(args.file_binary.read_bytes()).hexdigest()
-    print(json.dumps(validate(json.loads(args.receipt.read_text()), args.source_revision, digest),sort_keys=True))
+    print(json.dumps(validate(load_json(args.receipt.read_text()), args.source_revision, digest),sort_keys=True))

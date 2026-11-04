@@ -40,18 +40,24 @@ function governance_recovery_api_concurrency_cases($fixture,callable $check) {
         foreach(array('commit','rollback')as$boundary){
           $fixture->assertOwned();
           $is_oauth=$profile==='oauth';
-          $dao=$is_oauth?new PhabricatorOAuthServerAccessToken():new PhabricatorConduitToken();
+          $dao=$is_oauth?($operation==='revoke'?new PhabricatorOAuthClientAuthorization():
+            new PhabricatorOAuthServerAccessToken()):new PhabricatorConduitToken();
           $conn=$dao->establishConnection('w');
           if($conn->isInsideTransaction()||$user_conn->isInsideTransaction()){
             throw new RuntimeException('recovery_api_inherited_transaction_refused');}
           // Fresh baseline per attempt: committed revocation must not poison
           // later rollback cases or the original credential under observation.
-          if($is_oauth){$target=$server->generateAccessToken();}
+          if($is_oauth){
+            list($authorized,$authorization)=$server->userHasAuthorizedClient(array($scope=>true));
+            if(!$authorized){$authorization=$server->authorizeClient(array($scope=>true));}
+            $target=$server->generateAccessToken();
+          }
           else{$target=(new PhabricatorConduitToken())->initializeNewToken($user->getPHID(),
             $profile==='api'?PhabricatorConduitToken::TYPE_STANDARD:PhabricatorConduitToken::TYPE_COMMANDLINE)->save();}
           $secret=$target->getToken();
           $check(governance_recovery_api_native_auth($secret,$is_oauth,$user->getPHID())==='allowed',
             'recovery-api-concurrency-'.$profile.'-'.$operation.'-'.$boundary.'-native-auth-baseline');
+          $old_expiry=$is_oauth?null:queryfx_one($conn,'SELECT expires FROM %R WHERE id=%d',$dao,(int)$target->getID())['expires'];
           $conn->openTransaction();$active=$conn;
           if($operation==='insert'){
             // Ordinary DAO writer, not forced onto the User connection.
@@ -59,7 +65,15 @@ function governance_recovery_api_concurrency_cases($fixture,callable $check) {
             else{$new=(new PhabricatorConduitToken())->initializeNewToken($user->getPHID(),
               $profile==='api'?PhabricatorConduitToken::TYPE_STANDARD:PhabricatorConduitToken::TYPE_COMMANDLINE)->save();}
             $changed_id=(int)$new->getID();
-          }else{$changed_id=(int)$target->getID();$target->delete();}
+          }else if($is_oauth){
+            // Actual OAuth authorization settings revocation leaves access
+            // tokens in place and deletes the user/client authorization.
+            $changed_id=(int)$authorization->getID();$authorization->delete();
+          }else{
+            // Match PhabricatorConduitTokenTerminateController exactly.
+            $changed_id=(int)$target->getID();
+            $target->setExpires(PhabricatorTime::getNow()-60)->save();
+          }
           $blocker=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
           $handle=governance_native_start_worker($fixture,array('action'=>$is_oauth?
             'recovery.oauth.authenticate':'recovery.api.current','token'=>$secret,'user'=>$user->getPHID()));
@@ -80,9 +94,16 @@ function governance_recovery_api_concurrency_cases($fixture,callable $check) {
           $expected_after=!($operation==='revoke'&&$boundary==='commit');
           $fresh=governance_recovery_api_native_auth($secret,$is_oauth,$user->getPHID());
           $current_ok=$is_oauth||$allowed===$expected_after;
-          $changed=queryfx_one($conn,'SELECT id FROM %R WHERE id=%d',$dao,$changed_id)!==null;
-          $expected_changed=$operation==='insert'?($boundary==='commit'):($boundary!=='commit');
-          $check($current_ok&&($fresh==='allowed')===$expected_after&&$changed===$expected_changed&&
+          if(!$is_oauth&&$operation==='revoke'){
+            $stored=queryfx_one($conn,'SELECT id,expires FROM %R WHERE id=%d',$dao,$changed_id);
+            $now=(int)queryfx_one($conn,'SELECT UNIX_TIMESTAMP() n')['n'];
+            $stored_ok=$stored!==null&&($boundary==='commit'?
+              ($stored['expires']!==null&&(int)$stored['expires']<=$now):$stored['expires']===$old_expiry);
+          }else{
+            $changed=queryfx_one($conn,'SELECT id FROM %R WHERE id=%d',$dao,$changed_id)!==null;
+            $stored_ok=$changed===($operation==='insert'?($boundary==='commit'):($boundary!=='commit'));
+          }
+          $check($current_ok&&($fresh==='allowed')===$expected_after&&$stored_ok&&
             !$conn->isInsideTransaction()&&!$user_conn->isInsideTransaction(),
             'recovery-api-concurrency-'.$profile.'-'.$operation.'-'.$boundary.'-fresh-native-postcondition');
           $observations[]=array('profile'=>$profile,'operation'=>$operation,'boundary'=>$boundary,
@@ -118,7 +139,8 @@ function governance_recovery_api_observe($fixture,mysqli $observer,array $handle
   $worker=$GLOBALS['governance_native_workers'][$handle['index']]??null;
   if(!is_array($worker)||!in_array($worker['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)||
     !in_array($app,array('conduit','oauth_server'),true)||
-    !in_array($table,array('conduit_token','oauth_server_oauthserveraccesstoken'),true)){
+    !in_array($table,$app==='conduit'?array('conduit_token'):
+      array('oauth_server_oauthserveraccesstoken','oauth_server_clientauthorization'),true)){
     throw new RuntimeException('recovery_api_observer_scope_refused');}
   $deadline=hrtime(true)+5000000000;
   do{
