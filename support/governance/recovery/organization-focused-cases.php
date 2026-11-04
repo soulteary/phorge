@@ -20,9 +20,10 @@ function governance_recovery_organization_focused_cases($fixture,callable $check
     governance_recovery_organization_metadata_ddl_cases($fixture,$check);
     return array('profile'=>'isolated-native-organization-producer-component-v1',
       'source_revision'=>$revision,'registered_organization_workers'=>2,
-      'organization_producer_SQL_obligations'=>12,'organization_metadata_DDL_SQL_obligations'=>8,
+      'organization_producer_SQL_obligations'=>16,'organization_metadata_DDL_SQL_obligations'=>8,
       'actual_native_dao_insert'=>true,'actual_primary_mutex_waits'=>true,
       'caller_nested_and_raw_transaction_controls'=>true,
+      'server_generation_aba_overflow_atomic_rollback_probes'=>true,
       'actual_fixed_parent_table_incoming_fk_write_mdl_probe'=>true,
       'all_table_all_ddl_absence_fence_proved'=>false,
       'metadata_live_privilege_collector_executed'=>false,

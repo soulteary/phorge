@@ -6,6 +6,7 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
   private $profile;
   private $owned=false;
   private $ownedDepth;
+  private $guardVersion;
   private function __construct() {}
   private function __clone() {}
   public function __serialize(){throw new RuntimeException('recovery_org_fence_serialization_refused');}
@@ -19,6 +20,19 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
       PhorgeOrganizationPrimaryDepartment::class=>'organization_primarydepartment');
     if(!is_string($class)||!isset($tables[$class])){throw new RuntimeException('recovery_org_producer_unknown');}
     return $tables[$class];
+  }
+
+  /** Canonical uint64 arithmetic, independent of platform signed integer size. */
+  public static function nextGuardVersion($value) {
+    $value=PhorgeRecoveryStopRequest::transactionID($value);
+    if($value==='18446744073709551615'){
+      throw new RuntimeException('recovery_org_producer_generation_exhausted');}
+    $digits=str_split($value);$carry=1;
+    for($i=count($digits)-1;$i>=0&&$carry;$i--){
+      $n=ord($digits[$i])-48+$carry;$digits[$i]=chr(48+($n%10));$carry=intdiv($n,10);
+    }
+    if($carry){array_unshift($digits,'1');}
+    return implode('',$digits);
   }
 
   public static function assertScalarModelData(PhorgeRecoveryOrganizationProducerDAO $object) {
@@ -73,7 +87,7 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
         // Reject a physically active raw START before claiming any transaction.
         queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$queued=true;
       }
-      $conn->openTransaction();$scope->owned=true;$scope->ownedDepth=self::depth($conn);$queued=false;
+      $conn->openTransaction();$scope->owned=true;$queued=false;$scope->ownedDepth=self::depth($conn);
       PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
       foreach(array('organization_guard',$table)as$name){
         queryfx_all($conn,'SELECT id FROM %T WHERE 1=0 LOCK IN SHARE MODE',$name);
@@ -85,7 +99,8 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
       // final DAOs use only native scalar serialization/timestamps=false hooks.
       $guard=queryfx_one($conn,'SELECT id,version FROM organization_guard WHERE id=1 FOR UPDATE');
       if(!$guard||(string)$guard['id']!=='1'){throw new RuntimeException('recovery_org_producer_guard_missing');}
-      PhorgeRecoveryStopRequest::transactionID($guard['version']);
+      $scope->guardVersion=PhorgeRecoveryStopRequest::transactionID($guard['version']);
+      self::nextGuardVersion($scope->guardVersion);
       return $scope;
     }catch(Throwable$error){$scope->abort($error);}
     finally{if($queued&&$restore!==null){queryfx($conn,$restore);}}
@@ -96,6 +111,16 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
       self::depth($this->connection)!==$this->ownedDepth||
       PhorgeRecoveryRestoreProfile::assertCurrent()!==$this->profile){
       throw new RuntimeException('recovery_org_producer_scope_changed');}
+    // The successful native write and its generation are one physical User
+    // transaction, including a caller-owned outer transaction/savepoint.
+    $next=self::nextGuardVersion($this->guardVersion);
+    queryfx($this->connection,'UPDATE organization_guard SET version=version+1 '.
+      'WHERE id=1 AND version=CAST(%s AS UNSIGNED) AND version<18446744073709551615',$this->guardVersion);
+    if($this->connection->getAffectedRows()!==1){
+      throw new RuntimeException('recovery_org_producer_generation_changed');}
+    $row=queryfx_one($this->connection,'SELECT version FROM organization_guard WHERE id=1');
+    if(!$row||PhorgeRecoveryStopRequest::transactionID($row['version'])!==$next){
+      throw new RuntimeException('recovery_org_producer_generation_changed');}
     $this->connection->saveTransaction();$this->owned=false;
   }
 

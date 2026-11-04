@@ -45,6 +45,31 @@ class OrganizationProducerWorkerTests(unittest.TestCase):
         ''')
         self.assertEqual([10, 10], result)
 
+    def test_actual_uint64_generation_uses_independent_integer_oracle(self):
+        values = ['1', '9', '99', str(2**63 - 1), str(2**64 - 2)]
+        values += [str(10**power - 1) for power in range(1, 19)]
+        script = ("class Phobject {} require $argv[1];require $argv[2];"
+                  "$out=[];foreach(json_decode(stream_get_contents(STDIN),true)as$v){"
+                  "$out[]=PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($v);}"
+                  "echo json_encode($out);")
+        recovery = ROOT / 'src/infrastructure/governance/recovery'
+        args = ['php', '-r', script, str(recovery / 'PhorgeRecoveryStopRequest.php'),
+                str(recovery / 'PhorgeRecoveryOrganizationProducerFence.php')]
+        result = subprocess.run(args, input=json.dumps(values), text=True,
+                                capture_output=True, check=True)
+        self.assertEqual('', result.stderr)
+        self.assertEqual([str(int(value) + 1) for value in values], json.loads(result.stdout))
+        bad_script = script.replace(
+            '$out[]=PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($v);',
+            "try{PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($v);$out[]=false;}"
+            "catch(RuntimeException|InvalidArgumentException $e){$out[]=true;}")
+        args[2] = bad_script
+        bad = [str(2**64 - 1), str(2**64), '0', '01', True, None, [], 1.5]
+        result = subprocess.run(args, input=json.dumps(bad), text=True,
+                                capture_output=True, check=True)
+        self.assertEqual('', result.stderr)
+        self.assertEqual([True] * len(bad), json.loads(result.stdout))
+
     def test_owned_real_directory_nonce_and_action_are_required(self):
         result = php('''
         $path=sys_get_temp_dir().'/org-worker-host-'.bin2hex(random_bytes(12));mkdir($path,0700);

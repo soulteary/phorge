@@ -39,4 +39,17 @@ final class PhorgeRecoveryOrganizationProducerTestCase extends PhutilTestCase {
     catch(RuntimeException$error){$refused=$error->getMessage()==='recovery_org_producer_row_budget';}
     $this->assertTrue($refused);
   }
+  public function testGenerationArithmeticIsCanonicalAndCannotWrap() {
+    foreach(array('1'=>'2','9'=>'10','99'=>'100','9223372036854775807'=>'9223372036854775808',
+      '18446744073709551614'=>'18446744073709551615')as$before=>$after){
+      $this->assertEqual($after,PhorgeRecoveryOrganizationProducerFence::nextGuardVersion((string)$before));
+    }
+    foreach(array('18446744073709551615','18446744073709551616','0','01',true,null,array(),1.5)as$bad){
+      $refused=false;try{PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($bad);}
+      catch(RuntimeException$error){$refused=true;}
+      catch(InvalidArgumentException$error){$refused=true;}
+      $this->assertTrue($refused);
+    }
+  }
+
 }

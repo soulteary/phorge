@@ -59,14 +59,17 @@ function governance_recovery_organization_producer_cases($fixture,callable $chec
     }
     // The DAO fence owns one nested layer; it must not commit its caller.
     $unit='recovery-nested-'.bin2hex(random_bytes(8));
+    $guard_before=queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version'];
     $conn->openTransaction();
     try{
       $unit_factory($unit)->save();
       $check($conn->isInsideTransaction()&&
+        (string)queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version']===PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($guard_before)&&
         (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_unit WHERE unitID=%s',$unit)['n']===1,
         'recovery-org-native-dao-preserves-caller-transaction');
     }finally{if($conn->isInsideTransaction()){$conn->killTransaction();}}
-    $check((int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_unit WHERE unitID=%s',$unit)['n']===0,
+    $check((int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_unit WHERE unitID=%s',$unit)['n']===0&&
+      queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version']===$guard_before,
       'recovery-org-caller-rollback-removes-native-dao-write');
     // A physically active but untracked raw transaction must remain caller-owned.
     queryfx($conn,'START TRANSACTION');$refused=false;
@@ -117,6 +120,58 @@ function governance_recovery_organization_producer_cases($fixture,callable $chec
       $check($conn->isInsideTransaction()&&(int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_unit WHERE unitID=%s',$unit)['n']===1,
         'recovery-org-feature-off-native-dao-path-remains-caller-owned');
     }finally{if($conn->isInsideTransaction()){$conn->killTransaction();}unset($off);}
+    $unit='recovery-aba-'.bin2hex(random_bytes(8));$unit_factory($unit)->save();
+    $member=(new PhorgeOrganizationMember())->setUnitID($unit)->setUserPHID($state['admin']['context']->getUserPHID())
+      ->setState('active')->setValidFrom(0)->setValidUntil(null)->setVersion(1)->save();
+    $conn->openTransaction();
+    try{
+      $before=PhorgeRecoveryRestoreOrganizationSource::capture($conn,$member->getUserPHID());
+      $row_before=queryfx_one($conn,'SELECT id,unitID,userPHID,state,validFrom,validUntil,version FROM organization_member WHERE id=%d',$member->getID());
+      $member->setState('inactive')->save();$member->setState('active')->save();
+      $after=PhorgeRecoveryRestoreOrganizationSource::capture($conn,$member->getUserPHID());
+      $row_after=queryfx_one($conn,'SELECT id,unitID,userPHID,state,validFrom,validUntil,version FROM organization_member WHERE id=%d',$member->getID());
+      $expected=PhorgeRecoveryOrganizationProducerFence::nextGuardVersion(
+        PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($before['guard_version']));
+      $check($row_before===$row_after&&$after['guard_version']===$expected&&
+        PhorgeRecoveryRestoreRequest::digest($before)!==PhorgeRecoveryRestoreRequest::digest($after),
+        'recovery-org-native-dao-aba-preserves-row-bytes-but-changes-generation');
+    }finally{if($conn->isInsideTransaction()){$conn->killTransaction();}}
+    $prior=queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version'];
+    $overflow=false;$preserved=false;$unit='recovery-overflow-'.bin2hex(random_bytes(8));
+    $conn->openTransaction();
+    try{
+      queryfx($conn,'UPDATE organization_guard SET version=18446744073709551615 WHERE id=1');
+      try{$unit_factory($unit)->save();}
+      catch(RuntimeException$error){
+        if(get_class($error)!==RuntimeException::class||$error->getMessage()!=='recovery_org_producer_generation_exhausted'){throw$error;}$overflow=true;
+      }
+      $preserved=$conn->isInsideTransaction()&&
+        (string)queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version']==='18446744073709551615'&&
+        (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_unit WHERE unitID=%s',$unit)['n']===0;
+    }finally{if($conn->isInsideTransaction()){$conn->killTransaction();}}
+    $check($overflow&&$preserved&&queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version']===$prior,
+      'recovery-org-generation-overflow-refuses-before-write-preserves-caller');
+    $namespace=$fixture->getNamespace();$fixture->assertOwned();
+    if(!preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)){
+      throw new RuntimeException('recovery_org_trigger_namespace_unknown');}
+    $trigger='`'.$namespace.'_user`.`recovery_org_generation_fault`';$installed=false;
+    $unit='recovery-fault-'.bin2hex(random_bytes(8));$refused=false;
+    try{
+      $setup->query('CREATE TRIGGER '.$trigger.' BEFORE UPDATE ON '.$qualified.
+        " FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='recovery_org_generation_fixture_fault'");$installed=true;
+      $proof=$setup->query("SELECT COUNT(*) n FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA='".
+        $namespace."_user' AND TRIGGER_NAME='recovery_org_generation_fault' AND EVENT_OBJECT_TABLE='organization_guard'");
+      $visible=(int)$proof->fetch_assoc()['n'];$proof->free();
+      $check($visible===1,'recovery-org-generation-fault-trigger-actually-installed');
+      try{$unit_factory($unit)->save();}
+      catch(AphrontQueryException$error){
+        if(get_class($error)!==AphrontQueryException::class||$error->getCode()!==1644){throw$error;}$refused=true;
+      }
+    }finally{if($installed){$setup->query('DROP TRIGGER '.$trigger);}}
+    $check($refused&&!$conn->isInsideTransaction()&&
+      queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version']===$prior&&
+      (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_unit WHERE unitID=%s',$unit)['n']===0,
+      'recovery-org-generation-sql-fault-rolls-back-native-row-and-guard-together');
     $check(queryfx_one($conn,'SELECT @@SESSION.transaction_isolation v')['v']===$level,
       'recovery-org-producer-does-not-change-session-isolation');
   }finally{
