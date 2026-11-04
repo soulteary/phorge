@@ -96,7 +96,12 @@ function governance_recovery_org_live_metadata_cases($fixture,callable $check,ar
     $limited_refused=false;
     try{$capture($limited);}
     catch(AphrontAccessDeniedQueryException$error){
-      if(!governance_recovery_org_metadata_limited_denial($error,$fixture->getWriterConfig()['user'])){throw$error;}$limited_refused=true;
+      $metadata_origin=false;
+      foreach($error->getTrace()as$frame){
+        if(($frame['class']??null)===PhorgeRecoveryOrganizationMetadataObservation::class&&
+          ($frame['function']??null)==='capture'){$metadata_origin=true;break;}
+      }
+      if(!$metadata_origin||!governance_recovery_org_metadata_limited_denial($error,$fixture->getWriterConfig()['user'])){throw$error;}$limited_refused=true;
     }
     $check($limited_refused&&!$writer->isInsideTransaction()&&!$limited->isInsideTransaction(),
       'recovery-org-live-limited-metadata-visibility-exact1142-never-proves-absence');
