@@ -10,6 +10,46 @@ final class PhorgeGovernanceNoticeEventTestCase extends PhutilTestCase {
     $this->assertEqual(PhorgeGovernanceNoticeConfigOptions::class,get_class($option->getGroup()));
     $defaults=(new PhabricatorConfigDefaultSource())->getKeys(array($key));
     $this->assertTrue(array_key_exists($key,$defaults)&&$defaults[$key]===false);
+    // Exercise the real configuration stack, including a native proxy whose
+    // missing backing source throws. Configuration failure is never OFF.
+    $stack_property=new ReflectionProperty(PhabricatorEnv::class,'sourceStack');
+    $cache_property=new ReflectionProperty(PhabricatorEnv::class,'cache');
+    $old_stack=$stack_property->getValue();$old_cache=$cache_property->getValue();
+    try{
+      foreach(array(
+        array('governance.notifications.enabled',PhorgeGovernanceNoticeOutbox::class,'governance_notice_control_unknown'),
+        array('governance.private-mail.enabled',PhorgePrivateMailPolicy::class,'private_mail_control_unknown'))as$control){
+        list($control_key,$reader,$reason)=$control;
+        foreach(array(false,true)as$flag){
+          $stack_property->setValue(null,(new PhabricatorConfigStackSource())->pushSource(
+            new PhabricatorConfigDictionarySource(array($control_key=>$flag))));
+          $cache_property->setValue(null,array());
+          $this->assertEqual($flag,$reader::enabled());
+        }
+        foreach(array(new PhabricatorConfigDictionarySource(array()),
+          (new ReflectionClass(PhabricatorConfigLocalSource::class))->newInstanceWithoutConstructor())as$source){
+          $stack_property->setValue(null,(new PhabricatorConfigStackSource())->pushSource($source));
+          $cache_property->setValue(null,array());$refused=false;
+          try{$reader::enabled();}catch(Exception$error){$refused=true;}
+          $this->assertTrue($refused);
+          if($reader===PhorgePrivateMailPolicy::class){
+            // The actual email authorization entry must propagate the broken
+            // source before touching SQL; it must not take the OFF=true exit.
+            $cache_property->setValue(null,array());$refused=false;
+            $mail=(new PhabricatorMetaMTAMail())->setMessageType(PhabricatorMailEmailMessage::MESSAGETYPE);
+            try{PhorgePrivateMailPolicy::authorize($mail);}catch(Exception$error){$refused=true;}
+            $this->assertTrue($refused);
+          }
+        }
+        foreach(array(null,0,'0','false')as$flag){
+          $stack_property->setValue(null,(new PhabricatorConfigStackSource())->pushSource(
+            new PhabricatorConfigDictionarySource(array($control_key=>$flag))));
+          $cache_property->setValue(null,array());$refused=false;
+          try{$reader::enabled();}catch(RuntimeException$error){$refused=$error->getMessage()===$reason;}
+          $this->assertTrue($refused);
+        }
+      }
+    }finally{$stack_property->setValue(null,$old_stack);$cache_property->setValue(null,$old_cache);}
   }
   private function row(){return array('source_kind'=>'organization','source_id'=>'1','operation_id'=>'synthetic-op',
     'actor_phid'=>'PHID-USER-'.str_repeat('a',20),'action'=>'unit.create','created_at'=>1);}

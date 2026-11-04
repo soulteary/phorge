@@ -5,7 +5,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
   // Gorge independently bounds the complete encoded Conduit request.
   const MAX_PHYSICAL_MESSAGE_BYTES = 10485760;
   public static function enabled(){
-    $value=PhabricatorEnv::getEnvConfigIfExists('governance.private-mail.enabled',false);
+    $value=PhabricatorEnv::getEnvConfig('governance.private-mail.enabled');
     if(!is_bool($value)){throw new RuntimeException('private_mail_control_unknown');}
     return $value;
   }

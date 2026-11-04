@@ -682,7 +682,7 @@
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
       "symbol": "PhorgePrivateMailPolicy",
       "kind": "current-recipient-private-email-policy",
-      "sha256": "2d95cbd96a9df8784f08d14b93e6b742b6d1aaf084cc2c0e01f792822712b2df",
+      "sha256": "c402b587fecc63af7d558b37b6f3dd7a46d7343bb7d8fa3c34d7a8d35d913225",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1100,7 +1100,7 @@
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeOutbox.php",
       "symbol": "PhorgeGovernanceNoticeOutbox",
       "kind": "same-source-transaction-qualified-outbox",
-      "sha256": "b965973be52f15dae226007372d847db791aa6942a0741ffc37e10fd8533b2ab",
+      "sha256": "8aa468a695776588bb4a931500f217f25d391df3930744885c41f351cf0a81c5",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -2268,7 +2268,7 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeOutbox.php",
-        "sha256": "b965973be52f15dae226007372d847db791aa6942a0741ffc37e10fd8533b2ab"
+        "sha256": "8aa468a695776588bb4a931500f217f25d391df3930744885c41f351cf0a81c5"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php",
@@ -2288,7 +2288,7 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-        "sha256": "2d95cbd96a9df8784f08d14b93e6b742b6d1aaf084cc2c0e01f792822712b2df"
+        "sha256": "c402b587fecc63af7d558b37b6f3dd7a46d7343bb7d8fa3c34d7a8d35d913225"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php",

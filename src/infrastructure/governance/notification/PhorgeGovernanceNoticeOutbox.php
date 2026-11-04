@@ -7,7 +7,7 @@
  */
 final class PhorgeGovernanceNoticeOutbox extends Phobject {
   public static function enabled(){
-    $value=PhabricatorEnv::getEnvConfigIfExists('governance.notifications.enabled',false);
+    $value=PhabricatorEnv::getEnvConfig('governance.notifications.enabled');
     if(!is_bool($value)){throw new RuntimeException('governance_notice_control_unknown');}
     return$value;
   }
