@@ -241,3 +241,24 @@ The actual profiles are native authenticated Project Query and native Conduit
 admission, global revocation, stable convergence, long-lived connections or an
 SLA. No optional production feature was enabled, no native permission axis was
 changed and no deployment was performed.
+
+
+## Native HTTP successor (isolated component accepted; delivery gates pending)
+
+Real loopback Conduit HTTP router and three independent owned PHP servers are separate from the accepted Query/API-method component. Main99 retains710 checks; six new HTTP obligations make716, with210 pure methods,25 registered workers plus three separately owned HTTP server cleanups. The historical component was subsequently verified in isolation; those results are not acceptance of the current-main integration.
+
+The current integration retains all 819 main102 checks and the six HTTP obligations: 825 expected SQL checks, the unchanged 223-method pure entry, 38 global workers, the existing business workers and three separately owned HTTP servers. Both parent check sets and all native receipt leaf types and values are retained. The signed main102 component `7db377724a1ffc4b7aa592c3382bb7b2cf77df54` has now passed PHP 8.5.12 regression: 223 pure methods and 825 SQL/HTTP obligations, with all 6808 PHP/SQL/public-suffix runtime files matching the signed source. Strict in-process validation and the actual CLI agreed. All 55 schemas, two runtime users, the reader, 38 registered worker directories, existing business subprocesses, three loopback HTTP servers, the image container and the private host stage were cleaned. These component results do not certify a later merged revision, hosted CI, gateway/browser behavior, long connections or a revocation SLA. See `docs/governance/evidence/revocation-http-main102-223-825/acceptance.json`.
+
+A fixture catch-generated HTTP500 is always UNKNOWN. A future native error-handler test must independently bind a private response-stage receipt to normal native processRequest completion, or prove the native default handler exit provenance. An outer fixture exception cannot prove a native controller/default-handler500. This profile does not claim Legalpad error-handler coverage.
+
+The strict `actual_Conduit_HTTP_requests=4` count covers three authenticated
+Conduit probes plus one malformed-params native Conduit control request.
+Readiness GET requests are separate bootstrap traffic and are not included in
+that count. Three independently owned PHP servers still require full cleanup.
+
+
+## Integration after the policy-form main merge
+
+The next integration explicitly includes main `1f20bbdfeb060c5490ca4e1298f2c5d9b82e7a03`. Its required check set is the exact union of the 854 main obligations and the prior HTTP component: 860 retained parent SQL/HTTP checks plus one mandatory cross-second regression (861 expected checks), 237 pure methods across 37 classes, 38 global workers and three separately owned HTTP servers. All parent native receipt leaf types and values are retained, and production source/SQL resources are identical to that main revision. The 223/825 acceptance above remains historical component evidence; it does not certify this new integration. Historical main1f20 failed the stale JOIN assertion described below. The revised signed candidate `9d36a0c3e84dda75d2ba7e9b18cd6428dbb02528` passed PHP 8.5.12 regression: 237 pure methods and all 861 SQL/HTTP checks, with 6814 runtime files matching the source. The cross-second control and exact JOIN no-write comparison both passed; strict in-process and actual CLI results agreed, and all owned resources were cleaned. Fresh final-head hosted CI and review remain required before merging. See `docs/governance/evidence/revocation-http-clock-main103-237-861/acceptance.json`.
+
+The main JOIN regression used a fingerprint taken before a legitimate native no-effect POST. A same-second run could hide its stale timestamp; a cross-second run could falsely fail the subsequent JOIN denial. The fixture now waits for the same PHP clock used by Lisk to advance, proves native `dateModified` actually increased while all business/history/audit fields stayed unchanged, then captures the current JOIN baseline. JOIN refusal still requires exact equality of every fingerprint field, including the timestamp. No production permission check is changed.

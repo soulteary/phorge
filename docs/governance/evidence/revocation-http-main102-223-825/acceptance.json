@@ -1,0 +1,58 @@
+{
+  "source_head": "7db377724a1ffc4b7aa592c3382bb7b2cf77df54",
+  "passed": true,
+  "pure_methods": 223,
+  "SQL_checks": 825,
+  "runtime_files_exact": 6808,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 38,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 38
+  },
+  "image_removed": true,
+  "host_stage_removed": true,
+  "native_Conduit_HTTP_scope": "fixed loopback user.whoami token revocation only",
+  "HTTP_server_cleanup": {
+    "started": 3,
+    "stopped": 3,
+    "directories_removed": 3,
+    "remaining": 0,
+    "live": 0
+  },
+  "browser_proved": false,
+  "deployment": false,
+  "native_Conduit_HTTP_proved": true,
+  "gateway_proved": false,
+  "native_controller_form_profile_proved": false,
+  "native_error_response_profile_proved": false,
+  "SLA_proved": false,
+  "global_completion": false,
+  "production_optional_features_enabled": false,
+  "native_permission_axes_changed": false,
+  "evidence_sha256": {
+    "revocation-http-main102-full-native.json": "4aaf7021884e38643caa028935b3ad06728bba4e7e5e0513bb212671cce365e9",
+    "revocation-http-main102-full-integration.json": "cff4423744477291ace769020edcf244051b8bcc516fab8eb136247bc09efd59",
+    "revocation-http-main102-full-parent.json": "87c53fb59c726ae92ca9c5cd9fa4c092d30e41f9ad27c439f103dbbb08c729b0",
+    "revocation-http-main102-full-source-runtime-match.json": "e7b4e24c3d52bdced74d1c1c76436e7f1b173adac45a486a588f92f951ceafe7",
+    "revocation-http-main102-full-strict-accepted.json": "613c2fff04374a1fc63eeef7ddbb1d8518742642f4f0985d3746f55dce065ad2",
+    "revocation-http-main102-full-strict-cli.json": "58a3f44801cf83b3f4eb5f9bc08b6626c48368ddbf7559d38df6efc9e17a2f2f"
+  },
+  "evidence_kind": "owner-executed supported PHP8.5.12 isolated signed-source fixture; not hosted CI",
+  "actual_runtime_source": "7db377724a1ffc4b7aa592c3382bb7b2cf77df54",
+  "immutable_record_manifest_sha256": "3d2e5f0ee2fa2d6fb97b68e5bda3ab78f5e264a0a50c4b2dcac0a0468e52cdfe",
+  "source_archive_sha256": "a33a83a801dee7969796ea02acbe5ceedbfc55a84e8c656074e81ec2fadc0381",
+  "applies_only_to_tested_source": true,
+  "actual_HTTP_requests": 4,
+  "HTTP_scope": "Three authenticated user.whoami probes and one malformed-parameters control; readiness requests are separate",
+  "native_default_handler_500_proved": false,
+  "long_connection_proved": false,
+  "SLA_or_global_convergence_proved": false
+}

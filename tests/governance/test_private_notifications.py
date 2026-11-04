@@ -52,7 +52,7 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
                 result=subprocess.run(base+extra,capture_output=True,text=True)
                 self.assertEqual(expected,result.returncode)
                 if expected==0:
-                    value=json.loads(result.stdout);self.assertEqual(870,value['native_checks'])
+                    value=json.loads(result.stdout);self.assertEqual(877,value['native_checks'])
                     self.assertIs(value['smtp_proved'],False)
             index=base.index('--render-binary');without=base[:index]+base[index+2:]
             missing=subprocess.run(without+['--measurement-source-revision','a'*40],capture_output=True,text=True)

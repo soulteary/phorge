@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "adr": "N12/LIFE-001/MEDIA-001 v1.2",
-  "baseline": "0b579a01abc0b44e9cd3ecd5395888d5979701c8",
+  "baseline": "f4c5702a0fdeade575ecdcda98c568cd45e966ba",
   "all_actual_measurement_profiles_available": false,
   "production_mutation": false,
   "SLA_selected": false,
@@ -63,7 +63,7 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "86e33ff4ca13f47ad90d19d2b48e3ad47bee3016cefa7bababe827919a9e8410",
+          "sha256": "990a9315393d385d56d135940fc26de33dad5238fc0e0ab534ebba26ddfdefda",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
@@ -121,7 +121,7 @@
       "test_entry_source_refs": [
         {
           "path": "support/governance/native-organization/native-cases.php",
-          "sha256": "86e33ff4ca13f47ad90d19d2b48e3ad47bee3016cefa7bababe827919a9e8410",
+          "sha256": "990a9315393d385d56d135940fc26de33dad5238fc0e0ab534ebba26ddfdefda",
           "evidence": "implemented-test-only-entry-current-source-unrun"
         },
         {
@@ -135,7 +135,21 @@
           "evidence": "implemented-test-only-entry-current-source-unrun"
         }
       ],
-      "cold_cache_dependency": "Fixed API measurement action only: actual owned loopback Gorge file backend; marker/source/namespace-bound private payload. No synthetic/prewarmed caches. Current runtime unrun."
+      "cold_cache_dependency": "Fixed API measurement action only: actual owned loopback Gorge file backend; marker/source/namespace-bound private payload. No synthetic/prewarmed caches. Current runtime unrun.",
+      "http_successor": {
+        "status": "implemented-runtime-unrun",
+        "profile": "native-conduit-http-token-revocation-only",
+        "producer_path": "support/governance/native-organization/revocation-http-cases.php",
+        "producer_sha256": "ab4eeee599cfd3fd8e3f646e1f6f4ecaed0408c41751f5afe0712cdf91f2e36e",
+        "router_path": "support/governance/native-organization/revocation-http-router.php",
+        "router_sha256": "acc25ad56ad63d1d1ef36ae22fccbb0343831dcdde848e9d53a86f6a89fc0c7f",
+        "expected_SQL_pending": 716,
+        "new_HTTP_obligations": 6,
+        "HTTP_proved": false,
+        "gateway_proved": false,
+        "SLA_proved": false,
+        "native_500_handler_proved": false
+      }
     },
     {
       "family": "media",
