@@ -101,6 +101,52 @@ final class PhorgeGovernanceNoticeOutbox extends Phobject {
       'operation_id'=>$row['operationID'],'actor_phid'=>$row['actorPHID'],'action'=>$row['action'],'created_at'=>(int)$row['createdAt']));
     $scope->assertOpen();
   }
+  private static function nativeAdminGrantTables(AphrontDatabaseConnection $conn){
+    foreach(array(new PhabricatorUser(),new PhabricatorUserTransaction())as$dao){
+      if($dao->establishConnection('w')!==$conn){throw new RuntimeException('notice_native_admin_same_writer_required');}
+      queryfx_one($conn,'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE',$dao);
+      $engine=queryfx_one($conn,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
+        $dao->getAphrontRefDatabaseName(),$dao->getTableName());
+      if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('notice_native_admin_innodb_required');}
+    }
+  }
+  public static function preflightNativeAdminGrant(PhabricatorUserTransactionEditor $editor,
+    PhabricatorLiskDAO $object,PhabricatorApplicationTransaction $xaction){
+    if(!self::enabled()){return;}
+    $editor->assertNoticeAdminGrantActive($object,$xaction,'preflight');
+    if(get_class($object)!==PhabricatorUser::class){throw new RuntimeException('notice_native_admin_owner_refused');}
+    $conn=$object->establishConnection('w');self::profile($conn,'user');self::nativeAdminGrantTables($conn);
+  }
+  public static function nativeAdminGrant(PhabricatorUserTransactionEditor $editor,
+    PhabricatorLiskDAO $object,PhabricatorApplicationTransaction $xaction){
+    if(!self::enabled()){return;}
+    $editor->assertNoticeAdminGrantActive($object,$xaction);
+    $actor=$editor->getActor();
+    if(get_class($editor)!==PhabricatorUserTransactionEditor::class||get_class($object)!==PhabricatorUser::class||
+      get_class($xaction)!==PhabricatorUserTransaction::class||!($actor instanceof PhabricatorUser)||
+      $actor->isOmnipotent()||!$actor->getPHID()||!$actor->getID()||!$xaction->getPHID()){
+      throw new RuntimeException('notice_native_admin_owner_refused');}
+    $conn=$object->establishConnection('w');self::profile($conn,'user');self::nativeAdminGrantTables($conn);
+    if((new PhabricatorUserTransaction())->establishConnection('w')!==$conn){
+      throw new RuntimeException('notice_native_admin_same_writer_required');}
+    $row=queryfx_one($conn,'SELECT id,phid,objectPHID,authorPHID,transactionType,dateCreated,'.
+      'CASE WHEN OCTET_LENGTH(oldValue)<=5 THEN oldValue ELSE NULL END oldValue,'.
+      'CASE WHEN OCTET_LENGTH(newValue)<=5 THEN newValue ELSE NULL END newValue '.
+      'FROM %R WHERE id=%d AND BINARY phid=BINARY %s LOCK IN SHARE MODE',new PhabricatorUserTransaction(),$xaction->getID(),$xaction->getPHID());
+    if(!$row||$row['objectPHID']!==$object->getPHID()||$row['authorPHID']!==$actor->getPHID()||
+      (string)$row['id']!==(string)$xaction->getID()){
+      throw new RuntimeException('notice_native_admin_source_refused');}
+    $subject=queryfx_one($conn,'SELECT id,phid,isAdmin FROM %R FORCE INDEX (PRIMARY) WHERE id=%d LOCK IN SHARE MODE',
+      new PhabricatorUser(),$object->getID());
+    if(!$subject||(string)$subject['id']!==(string)$object->getID()||$subject['phid']!==$object->getPHID()||
+      !in_array($subject['isAdmin'],array(1,'1'),true)){throw new RuntimeException('notice_native_admin_effect_refused');}
+    $fresh=queryfx_one($conn,'SELECT phid,isAdmin,isDisabled FROM %R '.
+      'WHERE id=%d AND BINARY phid=BINARY %s LOCK IN SHARE MODE',new PhabricatorUser(),$actor->getID(),$actor->getPHID());
+    if(!$fresh||$fresh['phid']!==$actor->getPHID()) {throw new RuntimeException('notice_native_admin_actor_refused');}
+    foreach(array('isAdmin'=>1,'isDisabled'=>0)as$key=>$value){
+      if(!in_array($fresh[$key],array($value,(string)$value),true)){throw new RuntimeException('notice_native_admin_actor_refused');}}
+    self::append($conn,'user',PhorgeGovernanceNoticeSource::nativeAdminGrantAudit($row));
+  }
   public static function recoveryStoppedAudit(AphrontDatabaseConnection $conn,PhorgeGovernanceNativeIdentitySnapshot $snapshot,$nativeID){
     if(!self::enabled()){return;}
     if(!$conn->isInsideTransaction()){throw new RuntimeException('governance_notice_owner_ended');}

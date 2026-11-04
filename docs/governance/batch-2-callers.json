@@ -787,7 +787,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "1c7d89657919bbb07c3393ff0d3d8ef51045f2f6221803134b33f3e4d330cab9"
+      "sha256": "a14a8f21aba7b720bfd35762f3321143e36edadfbfd2e8f3953a8155f1dbccf5"
     },
     {
       "id": "ACCOUNT.ENABLE.TRANSACTION",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4466,
-    "source_snapshot_sha256": "bf01175a1e25be20f667e5db7bda026263bbc1fa8bbd0d9e7403a9e437ce441f",
+    "source_snapshot_sha256": "56d5b0fc5635242c782d46e04e7711fb6c7da0b2d03300d641dbe42662c8ef9f",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",

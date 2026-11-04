@@ -395,6 +395,9 @@ EXPECTED_LINKS.update(VIEW_FORM_LINKS)
 EXPECTED_SOURCES.update({'RECOVERY.PhorgeRecoveryNativeAPIFacts': ('src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php', 'PhorgeRecoveryNativeAPIFacts', 'untrusted-api-storage-decoder-no-recovery-authority')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php'])
 
+EXPECTED_SOURCES.update({'NOTICE.NATIVE.ADMIN.EDITOR': ('src/applications/people/editor/PhabricatorUserTransactionEditor.php','PhabricatorUserTransactionEditor','native-admin-grant-only-outbox-no-role-authority')})
+EXPECTED_LINKS.update({'NOTICE-LINK-16': ('NOTICE.NATIVE.ADMIN.EDITOR','NOTICE.OUTBOX'),'NOTICE-LINK-17': ('NOTICE.SOURCE','RECOVERY.NATIVE.USER.TRANSACTION')})
+
 def require(ok, message):
     if not ok:
         raise ValueError(message)

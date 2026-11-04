@@ -1210,7 +1210,7 @@
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeEventValue.php",
       "symbol": "PhorgeGovernanceNoticeEventValue",
       "kind": "metadata-only-value-no-authority",
-      "sha256": "fa3acb47a4e77ebeccdf7601270c04a86ae66bacb63a268d763597e7907e0bd4",
+      "sha256": "cb85b815cd6a23f90dd3aea5b6db8f3c5615aaa462793a4f78fca2bdca3c898e",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1221,7 +1221,7 @@
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeOutbox.php",
       "symbol": "PhorgeGovernanceNoticeOutbox",
       "kind": "same-source-transaction-qualified-outbox",
-      "sha256": "8aa468a695776588bb4a931500f217f25d391df3930744885c41f351cf0a81c5",
+      "sha256": "33fe75d4657119e3246f85e074537a88ca139a434a546c6436de6898330d0c43",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1232,7 +1232,7 @@
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSource.php",
       "symbol": "PhorgeGovernanceNoticeSource",
       "kind": "committed-audit-reference-not-authority",
-      "sha256": "f0af3cd72057c609dd0a344116068a944c7ff6bd4b5dde8f3f6cceb78a56c980",
+      "sha256": "ee52b17f3f3a9c11bbf32ef845314e608806d576d34a2adf11f79aedb49b916e",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1243,7 +1243,7 @@
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeMailPolicy.php",
       "symbol": "PhorgeGovernanceNoticeMailPolicy",
       "kind": "current-recipient-and-source-egress-filter",
-      "sha256": "9351b984aba6f3d447a9b56f73dc128600b3783315505acd431c251818e5b28f",
+      "sha256": "8007d9596df2a9d667ce796f51f2eb770acae1623a955859b260de881de8216d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1343,6 +1343,17 @@
       "symbol": "PhorgeRecoveryRestorePolicySource",
       "kind": "isolated-bounded-organization-source-not-restore-authority",
       "sha256": "140dceff79dab8cf05a5a85e9b8e4798ba87d8065d8a956de1005bb5c1d084f6",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.NATIVE.ADMIN.EDITOR",
+      "path": "src/applications/people/editor/PhabricatorUserTransactionEditor.php",
+      "symbol": "PhabricatorUserTransactionEditor",
+      "kind": "native-admin-grant-only-outbox-no-role-authority",
+      "sha256": "a14a8f21aba7b720bfd35762f3321143e36edadfbfd2e8f3953a8155f1dbccf5",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -2253,6 +2264,22 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Bounded isolated source reference only; no all-family closure, recovery permit or activation."
+    },
+    {
+      "id": "NOTICE-LINK-16",
+      "from_id": "NOTICE.NATIVE.ADMIN.EDITOR",
+      "to_id": "NOTICE.OUTBOX",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Native USER grant transaction producer reference only; not role or activation authority."
+    },
+    {
+      "id": "NOTICE-LINK-17",
+      "from_id": "NOTICE.SOURCE",
+      "to_id": "RECOVERY.NATIVE.USER.TRANSACTION",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Native USER grant transaction producer reference only; not role or activation authority."
     }
   ],
   "scan": {
@@ -2559,7 +2586,7 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeEventValue.php",
-        "sha256": "fa3acb47a4e77ebeccdf7601270c04a86ae66bacb63a268d763597e7907e0bd4"
+        "sha256": "cb85b815cd6a23f90dd3aea5b6db8f3c5615aaa462793a4f78fca2bdca3c898e"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeIdentityScope.php",
@@ -2567,11 +2594,11 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeMailPolicy.php",
-        "sha256": "9351b984aba6f3d447a9b56f73dc128600b3783315505acd431c251818e5b28f"
+        "sha256": "8007d9596df2a9d667ce796f51f2eb770acae1623a955859b260de881de8216d"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeOutbox.php",
-        "sha256": "8aa468a695776588bb4a931500f217f25d391df3930744885c41f351cf0a81c5"
+        "sha256": "33fe75d4657119e3246f85e074537a88ca139a434a546c6436de6898330d0c43"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php",
@@ -2579,7 +2606,7 @@
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSource.php",
-        "sha256": "f0af3cd72057c609dd0a344116068a944c7ff6bd4b5dde8f3f6cceb78a56c980"
+        "sha256": "ee52b17f3f3a9c11bbf32ef845314e608806d576d34a2adf11f79aedb49b916e"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeWorker.php",

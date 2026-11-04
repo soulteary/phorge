@@ -82,6 +82,8 @@ BLOCKERS=['physical-callback-and-smtp-owlmail-runtime', 'all-producer-and-securi
 
 FLOW_STATUS={'account.login': 'native-producer-and-source-tested', 'account.welcome': 'native-producer-and-source-tested', 'account.username': 'native-transaction-and-source-tested', 'account.email.verify': 'native-producer-and-source-tested', 'account.email.old-primary': 'source-reviewed-runtime-pending', 'account.email.new-primary': 'source-reviewed-runtime-pending', 'account.approval.queue': 'native-producer-method-not-registration-http-tested', 'account.approved.owner': 'native-transaction-and-source-tested', 'account.approved.admin': 'native-transaction-and-source-tested', 'account.invite': 'native-worker-and-source-tested', 'account.ssh': 'source-reviewed-full-key-mutation-runtime-pending'}
 
+CONSUMERS += ['src/applications/people/editor/PhabricatorUserTransactionEditor.php']
+
 def require(value,reason):
     if not value:raise ValueError(reason)
 def strict_object(pairs):

@@ -8,7 +8,7 @@ final class PhorgeGovernanceNoticeEventValue extends Phobject {
       'member.add-and-appoint','appointment.revoke-and-end','approval.propose','approval.approve',
       'transfer.propose','transfer.approve','transfer.execute','handover.propose','handover.approve',
       'handover.execute','handover.project.receipt','handover.due'),
-      'project-approval'=>array('submitted','approved','executed'),'recovery-stop'=>array('classified-stopped'));
+      'native-admin-grant'=>array('admin.granted'),'project-approval'=>array('submitted','approved','executed'),'recovery-stop'=>array('classified-stopped'));
     if(!is_string($kind)||!isset($kinds[$kind])||!is_string($action)||!in_array($action,$kinds[$kind],true)||
       !is_string($id)||!preg_match('/\A[1-9][0-9]{0,19}\z/D',$id)||
       (strlen($id)===20&&strcmp($id,'18446744073709551615')>0)||!is_int($created)||$created<1){

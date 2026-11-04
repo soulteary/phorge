@@ -2,6 +2,59 @@
 
 /** Pure event shape only: no caller data constitutes authorization. */
 final class PhorgeGovernanceNoticeEventTestCase extends PhutilTestCase {
+  public function testNativeRemovalAndNoopDoNotReadNoticeConfiguration(){
+    $methods=array(new ReflectionMethod(PhabricatorUserTransactionEditor::class,'didApplyInternalEffects'),
+      new ReflectionMethod(PhabricatorUserTransactionEditor::class,'applyFinalEffects'));
+    $editor=new PhabricatorUserTransactionEditor();$object=new PhabricatorUser();
+    $cases=array();foreach(array(array(true,false),array(true,true),array(false,false))as$values){
+      $cases[]=(new PhabricatorUserTransaction())->setTransactionType(PhabricatorUserEmpowerTransaction::TRANSACTIONTYPE)
+        ->setOldValue($values[0])->setNewValue($values[1]);}
+    $grant=(new PhabricatorUserTransaction())->setTransactionType(PhabricatorUserEmpowerTransaction::TRANSACTIONTYPE)->setOldValue(false)->setNewValue(true);
+    $stack=new ReflectionProperty(PhabricatorEnv::class,'sourceStack');$cache=new ReflectionProperty(PhabricatorEnv::class,'cache');
+    $before_stack=$stack->getValue();$before_cache=$cache->getValue();
+    try{
+      $stack->setValue(null,(new PhabricatorConfigStackSource())->pushSource(new PhabricatorConfigDictionarySource(array())));$cache->setValue(null,array());
+      foreach($methods as$method){
+        foreach($cases as$xact){$this->assertEqual(array($xact),$method->invoke($editor,$object,array($xact)));}
+        $refused=false;try{$method->invoke($editor,$object,array($grant));}catch(Exception$error){$refused=true;}
+        $this->assertTrue($refused);
+        $closed=false;try{$editor->assertNoticeAdminGrantActive($object,$grant);}
+        catch(RuntimeException$error){$closed=$error->getMessage()==='notice_native_admin_phase_ended';}
+        $this->assertTrue($closed);
+      }
+    }finally{$stack->setValue(null,$before_stack);$cache->setValue(null,$before_cache);}
+  }
+  public function testNativeAdminGrantPhaseCannotBorrowAfterItsOwnerEnds(){
+    $editor=new PhabricatorUserTransactionEditor();$refused=false;
+    try{$editor->assertNoticeAdminGrantActive(new PhabricatorUser(),new PhabricatorUserTransaction());}
+    catch(RuntimeException$error){$refused=$error->getMessage()==='notice_native_admin_phase_ended';}
+    $this->assertTrue($refused);
+  }
+  public function testNativeAdminGrantUsesStoredNativeTransactionAndSubjectBinding(){
+    $row=array('id'=>'7','phid'=>'PHID-XACT-USER-'.str_repeat('x',15),
+      'objectPHID'=>'PHID-USER-'.str_repeat('s',20),'authorPHID'=>'PHID-USER-'.str_repeat('a',20),
+      'transactionType'=>PhabricatorUserEmpowerTransaction::TRANSACTIONTYPE,'oldValue'=>'false','newValue'=>'true','dateCreated'=>'1700000000');
+    $audit=PhorgeGovernanceNoticeSource::nativeAdminGrantAudit($row);
+    $event=PhorgeGovernanceNoticeEventValue::fromAudit($audit);
+    $this->assertEqual('native-admin-grant',$event['metadata']['source_kind']);
+    $this->assertEqual('admin.granted',$event['metadata']['action']);
+    $this->assertFalse(str_contains(json_encode($event),$row['objectPHID']));
+    $changed=$row;$changed['objectPHID']='PHID-USER-'.str_repeat('t',20);
+    $this->assertFalse($event['event_id']===PhorgeGovernanceNoticeEventValue::fromAudit(
+      PhorgeGovernanceNoticeSource::nativeAdminGrantAudit($changed))['event_id']);
+  }
+  public function testNativeAdminGrantRejectsDemotionNoopUnknownAndNoncanonicalSource(){
+    $base=array('id'=>'7','phid'=>'PHID-XACT-USER-'.str_repeat('x',15),
+      'objectPHID'=>'PHID-USER-'.str_repeat('s',20),'authorPHID'=>'PHID-USER-'.str_repeat('a',20),
+      'transactionType'=>PhabricatorUserEmpowerTransaction::TRANSACTIONTYPE,'oldValue'=>'false','newValue'=>'true','dateCreated'=>'1700000000');
+    foreach(array(array('oldValue','true'),array('newValue','false'),array('newValue','1'),array('newValue',true),
+      array('id',true),array('dateCreated',false),array('transactionType','user.disable'),array('phid','PHID-XACT-USER-unknown'),
+      array('authorPHID',$base['objectPHID']))as$mutation){
+      $row=$base;$row[$mutation[0]]=$mutation[1];$refused=false;
+      try{PhorgeGovernanceNoticeSource::nativeAdminGrantAudit($row);}catch(RuntimeException$error){$refused=true;}
+      $this->assertTrue($refused);
+    }
+  }
   public function testNoticeIdentityGenerationHasStrictUnsignedBoundary(){
     foreach(array('0'=>'1','1'=>'2','9223372036854775807'=>'9223372036854775808',
       '18446744073709551614'=>'18446744073709551615')as$old=>$next){

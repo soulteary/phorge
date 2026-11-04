@@ -6,7 +6,7 @@ final class PhorgeGovernanceNoticeMailPolicy extends Phobject {
     $keys=array_keys($binding);sort($keys);
     if($keys!==array('account_hash','address_hash','email','event_id','recipient','source_kind','target')){
       throw new InvalidArgumentException('governance_notice_mail_binding_refused');}
-    if(!in_array($binding['source_kind'],array('organization','project-approval','recovery-stop'),true)||
+    if(!in_array($binding['source_kind'],array('organization','project-approval','recovery-stop','native-admin-grant'),true)||
       ($binding['source_kind']==='project-approval'?
         (!is_string($binding['target'])||!preg_match('/\APHID-PROJ-[a-zA-Z0-9]{20}\z/D',$binding['target'])):
         $binding['target']!==null)){throw new InvalidArgumentException('governance_notice_mail_binding_refused');}
