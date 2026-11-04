@@ -10,6 +10,15 @@ inventory=importlib.util.module_from_spec(spec);spec.loader.exec_module(inventor
 
 
 class ConsumerInventoryTests(unittest.TestCase):
+    def test_policy_proposal_form_membership_hydration_has_no_generator_authority(self):
+        rows={row['path']:row for row in inventory.collect()['consumers']}
+        row=rows['src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php']
+        self.assertTrue(row['discovery'])
+        self.assertEqual('native-policy-form-preview',row['kind'])
+        self.assertEqual('native-query-form-preview',row['sourceOperation'])
+        self.assertFalse(row['candidateGenerationIntroduced'])
+        self.assertIn('no independent grant',row['authority'])
+
     def test_all_literal_membership_references_have_reviewed_meaning(self):
         report=inventory.collect();self.assertGreater(report['consumerCount'],40)
         self.assertEqual(report['databaseConnectionsOpened'],0)

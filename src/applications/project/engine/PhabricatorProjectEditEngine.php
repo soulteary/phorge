@@ -363,6 +363,18 @@ final class PhabricatorProjectEditEngine
       $fields[] = $members_field;
     }
 
+    if ($object->getID() && PhorgeProjectExecutionCatalog::enabled()) {
+      // This field supplies an identifier only. The native execution scope
+      // still proves current actor, permissions, intent and independent approval.
+      $fields[] = (new PhabricatorTextEditField())
+        ->setKey('governanceApprovalID')->setLabel(pht('Approval Ticket'))
+        ->setIsCopyable(false)->setIsDefaultable(false)->setIsLockable(false)
+        ->setControlInstructions(pht('For an approved VIEW or EDIT policy change, paste the matching approval ticket. Changing another field at the same time is not supported.'));
+      $fields[] = (new PhabricatorInstructionsEditField())
+        ->setKey('governance.approval.instructions')
+        ->setValue(pht('Create a policy proposal before requesting independent approval: %s',
+          '[[/project/approval/?form=policy&target_phid='.$object->getPHID().'|'.pht('Propose Project Policy Change').']]'));
+    }
     return $fields;
 
   }

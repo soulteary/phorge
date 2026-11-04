@@ -246,4 +246,52 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
     }
   }
 
+  public function testWebFormOperationIsExplicitAndLegacyEditStaysEdit() {
+    $target='PHID-PROJ-'.str_repeat('p',20);
+    $edit=PhorgeProjectPolicyApprovalController::newFormPayload('edit',$target,'users','reason',120);
+    $view=PhorgeProjectPolicyApprovalController::newFormPayload('view',$target,'users','reason',120);
+    $this->assertEqual('users',$edit['new_policy']);
+    $this->assertFalse(array_key_exists('intent',$edit));
+    $this->assertEqual(array('version'=>3,'operation'=>'project.view-policy','policy'=>'users'),$view['intent']);
+    $this->assertFalse(array_key_exists('new_policy',$view));
+    foreach(array('',null,true,'VIEW','project.view-policy','history')as$bad){
+      $caught=false;
+      try{PhorgeProjectPolicyApprovalController::newFormPayload($bad,$target,'users','reason',120);}
+      catch(PhorgeProjectPolicyRefusalException$error){$caught=$error->getRefusalReason()==='request-input';}
+      $this->assertTrue($caught);
+    }
+  }
+
+  public function testCallerDefaultMetadataIsNotNativeFormProvenance() {
+    $project=(new PhabricatorProject())->setID(1);
+    $editor=new PhabricatorProjectTransactionEditor();
+    $view=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY)->setNewValue('users');
+    $name=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorProjectNameTransaction::TRANSACTIONTYPE)
+      ->setNewValue('Untrusted changed name')->setIsDefaultTransaction(true);
+    $classify=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'classify');
+    $this->refused(function()use($classify,$editor,$project,$view,$name){$classify->invoke(null,$editor,$project,array($view,$name));},
+      'project_execution_expansion_unsupported');
+    $form=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'classifyNativeForm');
+    $this->assertEqual(null,$form->invoke(null,$editor,$project,array($view,$name)));
+    $space=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_SPACE)
+      ->setNewValue(null)->setIsDefaultTransaction(true);
+    $this->refused(function()use($classify,$editor,$project,$view,$space){$classify->invoke(null,$editor,$project,array($view,$space));},
+      'project_execution_expansion_unsupported');
+    $this->assertEqual(null,$form->invoke(null,$editor,$project,array($view,$space)));
+  }
+  public function testNativeFormProvenanceRejectsAnOffPathFactoryCall() {
+    $assert=new ReflectionMethod(PhorgeProjectExecutionCatalog::class,'assertNativeFormCall');
+    $this->refused(function()use($assert){$assert->invoke(null,array(),new stdClass(),new stdClass(),new stdClass(),null,new stdClass());},
+      'project_execution_native_form_provenance_refused');
+  }
+
+  public function testNativeTextareaBrowserLeadingNewlineSemantics() {
+    require_once dirname(__DIR__,5).'/support/governance/native-execution/project-view-edit-route-cases.php';
+    foreach (array(array("\n",''),array("\nvalue",'value'),array("\n\nvalue","\nvalue"),
+      array('value','value'),array("\n&amp;lt;",'&lt;'),array("\r\n\r\nvalue","\nvalue"),
+      array("\n&lt;value&gt;",'<value>')) as $case) {
+      $this->assertEqual($case[1],governance_project_native_textarea_value($case[0]));
+    }
+  }
+
 }

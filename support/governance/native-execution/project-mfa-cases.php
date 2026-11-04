@@ -128,8 +128,10 @@ function governance_project_mfa_cases($fixture,callable $check,array $state) {
       ->setTransactionType(PhabricatorUserEmpowerTransaction::TRANSACTIONTYPE)->setNewValue(false)));
   $current=queryfx_one((new PhabricatorUser())->establishConnection('r'),'SELECT isAdmin FROM %R WHERE phid=%s',
     new PhabricatorUser(),$revoked['user']->getPHID());
-  $refused=false;try{$execute($revoked,$role_work,$answer($revoked));}catch(RuntimeException $ex){
-    if(get_class($ex)!==RuntimeException::class || $ex->getMessage()!=='project_execution_native_edit_required'){throw $ex;}$refused=true;
+  $refused=false;try{$execute($revoked,$role_work,$answer($revoked));}catch(PhorgeProjectPolicyRefusalException $ex){
+    if(get_class($ex)!==PhorgeProjectPolicyRefusalException::class ||
+      $ex->getRefusalReason()!=='native-edit' ||
+      $ex->getMessage()!=='project_execution_native_edit_required'){throw $ex;}$refused=true;
   }
   $check($refused && (string)$current['isAdmin']==='0' && $revoked['web']['viewer']->getIsAdmin() &&
     $snapshot($role_work)===$role_before && !$role_work['project']->establishConnection('w')->isInsideTransaction(),
