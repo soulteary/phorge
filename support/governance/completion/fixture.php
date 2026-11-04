@@ -391,25 +391,42 @@ final class PhorgeGovernanceCompletionFixture {
         throw new RuntimeException('Completion cleanup ownership nonce refused.');
       }
     }
-    foreach ($this->connections as $connection) { $connection->close(); }
-    $this->connections = array();
+    $errors=array();$mode=(new mysqli_driver())->report_mode;$base=null;$removed=0;
     $auxiliary_count=count($this->auxiliarySetupThreads);
-    if($auxiliary_count){
-      $ids=array_values($this->auxiliarySetupThreads);
-      foreach($ids as$id){if(!is_int($id)||$id<1){
-        throw new RuntimeException('owned_auxiliary_setup_thread_refused');}}
-      $result=$this->control->query('SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE ID IN ('.implode(',',$ids).')');
-      if(!$result||(int)$result->fetch_assoc()['n']!==0){throw new RuntimeException('owned_auxiliary_setup_remaining');}
-      $result->free();
-    }
-    foreach ($this->createdUsers as $user) {
-      $this->control->query("DROP USER '".$user."'@'%'");
-    }
-    $removed = 0;
-    foreach (array_reverse($this->createdDatabases) as $database) {
-      $this->control->query('DROP DATABASE `'.$database.'`'); $removed++;
-    }
-    $base = $this->base->cleanup();
+    try{
+      mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
+      foreach($this->connections as$key=>$connection){
+        try{$connection->close();}catch(Throwable$error){$errors['connection-'.$key]=$error;}
+      }
+      $this->connections=array();
+      if($auxiliary_count){
+        try{
+          $ids=array_values($this->auxiliarySetupThreads);
+          foreach($ids as$id){if(!is_int($id)||$id<1){
+            throw new RuntimeException('owned_auxiliary_setup_thread_refused');}}
+          $deadline=microtime(true)+2;$absent=false;
+          do{
+            $result=$this->control->query('SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE ID IN ('.implode(',',$ids).')');
+            if(!$result){throw new RuntimeException('owned_auxiliary_setup_observation_failed');}
+            $absent=(int)$result->fetch_assoc()['n']===0;$result->free();
+            if($absent){break;}usleep(20000);
+          }while(microtime(true)<$deadline);
+          if(!$absent){throw new RuntimeException('owned_auxiliary_setup_remaining');}
+        }catch(Throwable$error){$errors['auxiliary-connections']=$error;}
+      }
+      // Preserve cleanup errors but continue every owned principal/schema. An
+      // auxiliary close/observation fault must not strand the rest of fixture.
+      foreach($this->createdUsers as$user){
+        try{if($this->control->query("DROP USER '".$user."'@'%'")!==true){throw new RuntimeException('owned_runtime_user_drop_failed');}}
+        catch(Throwable$error){$errors['user-'.$user]=$error;}
+      }
+      foreach(array_reverse($this->createdDatabases)as$database){
+        try{if($this->control->query('DROP DATABASE `'.$database.'`')!==true){throw new RuntimeException('owned_schema_drop_failed');}$removed++;}
+        catch(Throwable$error){$errors['schema-'.$database]=$error;}
+      }
+      try{$base=$this->base->cleanup();}catch(Throwable$error){$errors['base']=$error;}
+    }finally{mysqli_report($mode);}
+    if($errors){throw new PhutilAggregateException('owned_completion_cleanup_failed',$errors);}
     $result=array('ownedSchemasRemoved'=>$removed+$base['ownedSchemasRemoved'],
       'ownedRuntimeUsersRemoved'=>count($this->createdUsers),
       'readerRemoved'=>$base['readerRemoved']);
