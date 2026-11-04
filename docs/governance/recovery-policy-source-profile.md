@@ -73,9 +73,24 @@ observe the native saved PHID digest. The worker is a physical DAO producer
 probe, not an application publication authorization or HTTP endpoint.
 
 The focused component has nine explicit SQL obligations (five range/lifecycle
-and four source mutation/rollback), two registered workers, and bounded exact
+and four source mutation/rollback), six bootstrap/grant checks and three required
+cleanup checks (18 total), two registered workers, and bounded exact
 cleanup inherited from the main native harness. Pure registration is expected
 230 methods / 39 test classes, subject to genuine supported map/pure execution.
 No SQL, supported pure, next-transaction/default-isolation or range result has
 yet been observed. Empty-range source completion still stays false in public
 capture until actual proof and a versioned integrated assessment provider exist.
+
+The first 9c9 SQL attempt reached bootstrap but correctly refused the presumed
+empty policy table: the shared native baseline owns one known synthetic custom
+policy. A focused-only successor checks all six fields against that exact owned
+baseline row (including project rule, native PHIDs and zero timestamps), deletes
+it in an explicit transaction and COMMITs. An independent setup connection must
+observe zero rows before the parent range transaction begins. No parent-held
+DELETE lock can stand in for an empty-table gap. After both real producer races,
+the original seed bytes are restored and independently checked, preserving the
+shared named-policy reference for the remaining source cases. All-mode fixture
+seeding is unchanged. Unknown rows or changed seed bytes refuse, never delete.
+The old infrastructure errno2002 and seeded-policy failures remain historical;
+this changed source has not run SQL. The original 15-count plan omitted three
+existing cleanup assertions; the corrected exact contract retains all 18 IDs.
