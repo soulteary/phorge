@@ -28,19 +28,31 @@ source files and ran five map-helper controls. These are separate attributions.
 Root subsequently performed a real PHP8.5.12 cold map reconstruction for signed
 source f5bb422a8f857b55d80158090415f0ee8d9a19fd. The generated map SHA256
 `360f2bdfebcae8a9ffa7da914eefc750acb5f6a3c1728fd898941c84e6e64390`
-was byte-identical to the signed union map; no map change or new source commit
-was needed. Both private source stages were removed. This was map-only: none of
-the 250 supported pure methods, full 897 SQL checks or separate lifecycle45
-checks has been executed for this source yet. The other focused profiles are
-also pending for this union; historical counts are never summed into acceptance.
+was byte-identical to the signed union map; no map change was needed.
 
-This docs-only draft successor records preparation and keeps the source review
-bound to f5. It does not relabel an old component measurement as a new run. The
-[preparation receipt](evidence/recovery-organization-main106-preparation/acceptance.json)
-and [reviewed source hashes](evidence/recovery-organization-main106-preparation/reviewed-source.json)
-retain these boundaries. The PR remains Draft until current-source runtime,
-hosted CI and exact review gates are closed; it provides no readiness or merge
-authorization on its own.
+Root then executed two separate current-f5 profiles on PHP8.5.12. The full profile
+passed 250 pure methods / 42 classes and 897 integration checks. The lifecycle
+profile independently passed 250 pure methods / 42 classes and 45 focused checks
+(36 component obligations). Each run matched all 6,855 PHP/SQL/public-suffix files
+to the signed source, passed strict CLI/in-process equality, and removed its
+owned schemas, users, workers, services, image and staging resources. These
+profiles are not summed. DAO/DDL33, metadata15 and policy18 remain pending for
+this union; earlier component results do not substitute for them.
+
+The [acceptance receipt](evidence/recovery-organization-main106-preparation/acceptance.json)
+records each checkpoint and immutable archive digest separately. The
+[reviewed source hashes](evidence/recovery-organization-main106-preparation/reviewed-source.json)
+remain bound to f5. Product PHP/SQL remains identical to f5; the later test-only
+Physical startup observation is a new path whose physical execution is pending.
+Its addition does not relabel these local f5 runs as a new diagnostic-source run.
+
+The first PR108 Physical run passed commit, rollback and recipient-revoked,
+then failed admin-revoked at its pre-prepare capability assertion. Its native
+cleanup was not proved and its private directory was retained as failure evidence;
+no product regression or capability failure cause is inferred from that outer
+assertion. The successor projects only bounded failure status and owned-child
+state; original success conditions and timeouts remain unchanged. Fresh hosted
+CI and exact review for the final head are required. This PR remains Draft.
 
 The previously accepted ca63 236/45, a70f 235/33, a27 235/15 and 29ce 230/18 are
 historical component evidence only. They do not certify this union. Static source

@@ -4,7 +4,7 @@
   "restoration_authorized": false,
   "reviewed_source_revision": "f5bb422a8f857b55d80158090415f0ee8d9a19fd",
   "schema": 1,
-  "scope": "static-source-review-and-map-only-evidence-not-current-runtime-acceptance",
+  "scope": "reviewed-f5-runtime-source-with-separate-full-and-lifecycle-acceptance",
   "source_review_attribution_erratum_sha256": "31a9f5724d7bcb94b7d152ce50b248690a3876ff8f0df43e6e2ef73ad40ca4d6",
   "source_review_auth_sha256": "f3974ae8f75711182086ceab14650616a4329cb5efd696021355f7b691da0fc4",
   "source_sha256": {
@@ -75,5 +75,11 @@
     "tests/governance/test_recovery_organization_setup_cleanup.py": "6ba1dc3f074664ced317173016085aff397aec9f5fe52e8d7b2fc2a1df49b6d1",
     "tests/governance/test_recovery_organization_worker.py": "df5ee4e2185bb6782a29bb925c8a1dbd199788c90c0c28c692fa388c2f35edfa",
     "tests/governance/test_recovery_policy_worker.py": "2e297779bcc01442c7414119581007c56eae6cc1c8e51421f73a87e3340bf98d"
-  }
+  },
+  "runtime_checkpoint_sha256": {
+    "full": "24bc4ed075b58aa53ef50f0a7f3afafa361f412a3c082afe792c8ffa58eb8a1e",
+    "lifecycle": "530b69debd40adf10c22dedfe2050ab48709878b11f22567f2a1e139ef3f0135"
+  },
+  "new_diagnostic_base_head": "ca7f9d5536774983f175bb00a8f3aba4f7032531",
+  "new_diagnostic_Physical_execution_proved": false
 }
