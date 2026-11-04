@@ -66,4 +66,12 @@ registry; null cleanup is not zero. That fixture correction is in this draft.
 New DDL/SchemaSpec and an explicit reviewed migration entry are present; supported native classmap,
 source catalog and full exact-HEAD pure/native/physical proof are still pending.
 No current test evidence or old933 result proves this new candidate. PR107 stays
-Draft, production flags remain off and deployment is not authorized here.
+Draft and production flags remain off. This candidate has not passed its readiness
+gates; no deployment has been performed. This status does not revoke the user's
+authorization for eventual isolated test deployment after those gates close.
+
+Source-derived pending obligations at this checkpoint: 40 classes/250 pure methods,
+934 full native checks and65 focused raw/identity checks (6setup+2services+22schema
++7raw/observer/credential-preservation+25identity-matrix+3cleanup). Those numbers
+are obligations, not executed successes. Host177 governance and85 permission tests
+passed; the supported class map must still be generated from this signed source.
