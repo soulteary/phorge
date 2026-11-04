@@ -243,11 +243,11 @@ SLA. No optional production feature was enabled, no native permission axis was
 changed and no deployment was performed.
 
 
-## Native HTTP successor (historical component; current integration unrun)
+## Native HTTP successor (isolated component accepted; delivery gates pending)
 
 Real loopback Conduit HTTP router and three independent owned PHP servers are separate from the accepted Query/API-method component. Main99 retains710 checks; six new HTTP obligations make716, with210 pure methods,25 registered workers plus three separately owned HTTP server cleanups. The historical component was subsequently verified in isolation; those results are not acceptance of the current-main integration.
 
-The current integration retains all 819 main102 checks and the six HTTP obligations: 825 expected SQL checks, the unchanged 223-method pure entry, 38 global workers, the existing business workers and three separately owned HTTP servers. Both parent check sets and all native receipt leaf types and values are retained. This current source has not yet passed supported-runtime regression.
+The current integration retains all 819 main102 checks and the six HTTP obligations: 825 expected SQL checks, the unchanged 223-method pure entry, 38 global workers, the existing business workers and three separately owned HTTP servers. Both parent check sets and all native receipt leaf types and values are retained. The signed main102 component `7db377724a1ffc4b7aa592c3382bb7b2cf77df54` has now passed PHP 8.5.12 regression: 223 pure methods and 825 SQL/HTTP obligations, with all 6808 PHP/SQL/public-suffix runtime files matching the signed source. Strict in-process validation and the actual CLI agreed. All 55 schemas, two runtime users, the reader, 38 registered worker directories, existing business subprocesses, three loopback HTTP servers, the image container and the private host stage were cleaned. These component results do not certify a later merged revision, hosted CI, gateway/browser behavior, long connections or a revocation SLA. See `docs/governance/evidence/revocation-http-main102-223-825/acceptance.json`.
 
 A fixture catch-generated HTTP500 is always UNKNOWN. A future native error-handler test must independently bind a private response-stage receipt to normal native processRequest completion, or prove the native default handler exit provenance. An outer fixture exception cannot prove a native controller/default-handler500. This profile does not claim Legalpad error-handler coverage.
 
