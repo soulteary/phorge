@@ -208,6 +208,7 @@ try {
   $failure = array('stage'=>$stage,'error_type'=>get_class($error),
     'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   if ($error instanceof mysqli_sql_exception) { $failure['sql_errno']=$error->getCode(); }
+  if(isset($GLOBALS['governance_notice_wait_failure'])){$failure['notice_wait_diagnostic']=$GLOBALS['governance_notice_wait_failure'];}
   if(isset($GLOBALS['governance_private_business_child_failure'])){
     $failure['child_diagnostic']=$GLOBALS['governance_private_business_child_failure'];
   }

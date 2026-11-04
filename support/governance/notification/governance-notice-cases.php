@@ -26,6 +26,48 @@ function governance_notice_fixture_fingerprint($fixture){
   }
   return hash('sha256',json_encode($all,JSON_THROW_ON_ERROR));
 }
+/** Failure-only fixed classification. Never serialize SQL, reason or payload. */
+function governance_notice_wait_projection($info,$result){
+  $query='missing';
+  if($info!==false){$query=$info===null?'idle':(
+    preg_match('/INSERT INTO.*governance_notice_event/is',$info)?'notice_insert':(
+      preg_match('/SELECT.*notice_fixture_gate/is',$info)?'gate_select':'other_sql'));}
+  $out=array('phase'=>'independent-commit-wait','query_kind'=>$query,'child_status'=>'unavailable');
+  if(is_array($result)&&in_array($result['status']??null,array('committed','rejected','failed'),true)){
+    $out['child_status']=$result['status'];
+    if(($result['status']??null)==='rejected'){
+      $out['rejection_kind']=in_array($result['reason']??null,array('organization_account_ineligible',
+        'governance_notice_runtime_profile_refused','governance_notice_delivery_not_ready',
+        'governance_notice_primary_required','governance_notice_innodb_required'),true)?$result['reason']:'other_fixed_refusal';
+    }
+    if(($result['status']??null)==='failed'){
+      if(is_string($result['error_type']??null)&&preg_match('/\A[A-Za-z_][A-Za-z0-9_]{0,127}\z/D',$result['error_type'])){$out['error_type']=$result['error_type'];}
+      if(is_string($result['source_file']??null)&&preg_match('/\A[A-Za-z0-9_.-]{1,128}\.php\z/D',$result['source_file'])){$out['source_file']=$result['source_file'];}
+      if(is_int($result['source_line']??null)&&$result['source_line']>0){$out['source_line']=$result['source_line'];}
+    }
+  }
+  return$out;
+}
+function governance_notice_wait_breadcrumb(mysqli $observer,array $handle,$holder){
+  $index=$handle['index']??null;$worker=$GLOBALS['governance_native_workers'][$index]??null;
+  if(!is_array($worker)||$worker['action']!=='org.notice.create'||$worker['dev']!==($handle['dev']??null)||
+    $worker['ino']!==($handle['ino']??null)||!hash_equals($worker['nonce'],$handle['nonce']??'')){
+    throw new RuntimeException('governance_notice_diagnostic_handle_refused');}
+  $info=false;
+  foreach($observer->query('SHOW FULL PROCESSLIST')->fetch_all(MYSQLI_ASSOC)as$row){
+    if((int)$row['Id']===$worker['mysql_thread']){$info=$row['Info'];break;}}
+  $result=null;$path=$worker['private'].'/result.json';
+  if(is_file($path)&&!is_link($path)&&(fileperms($path)&0777)===0600&&filesize($path)<=65536){
+    $result=json_decode(file_get_contents($path),true,16,JSON_THROW_ON_ERROR);}
+  $out=governance_notice_wait_projection($info,$result);
+  $out['child_running']=is_resource($worker['process'])&&proc_get_status($worker['process'])['running'];
+  $wait=$observer->query('SELECT COUNT(*) n FROM performance_schema.data_lock_waits w '.
+    'JOIN performance_schema.threads r ON r.THREAD_ID=w.REQUESTING_THREAD_ID '.
+    'JOIN performance_schema.threads b ON b.THREAD_ID=w.BLOCKING_THREAD_ID '.
+    'WHERE r.PROCESSLIST_ID='.(int)$worker['mysql_thread'].' AND b.PROCESSLIST_ID='.(int)$holder);
+  if(!$wait){throw new RuntimeException('governance_notice_diagnostic_observer_failed');}
+  $out['exact_holder_lock_wait']=(int)$wait->fetch_assoc()['n']>0;$wait->free();return$out;
+}
 /** A real second PHP process waits inside the qualified INSERT trigger. */
 function governance_notice_independent_commit($fixture,callable $check,array $auth){
   global $control;
@@ -55,7 +97,12 @@ function governance_notice_independent_commit($fixture,callable $check,array $au
     if(!$setup->query('SELECT id FROM '.$gate.' WHERE id=1 FOR UPDATE')){throw new RuntimeException('governance_notice_parent_lock_failed');}
     $worker=governance_native_start_worker($fixture,array('action'=>'org.notice.create','token'=>$auth['token'],
       'payload'=>array('operation_id'=>'notice-independent','unit_id'=>'notice-independent','kind'=>'team','name'=>'PRIVATE_NOTICE_INDEPENDENT','parent_id'=>null)));
-    governance_native_wait_worker_query($control,array($worker),'/INSERT INTO.*governance_notice_event/is');
+    try{governance_native_wait_worker_query($control,array($worker),'/INSERT INTO.*governance_notice_event/is');}
+    catch(Throwable $error){
+      try{$GLOBALS['governance_notice_wait_failure']=governance_notice_wait_breadcrumb($control,$worker,$setup->thread_id);}
+      catch(Throwable $diagnostic){$GLOBALS['governance_notice_wait_failure']=array('phase'=>'independent-commit-wait','diagnostic_failed'=>true);}
+      throw$error;
+    }
     $deadline=microtime(true)+5;$waited=false;
     do{
       $result=$control->query('SELECT COUNT(*) n FROM performance_schema.data_lock_waits w '.

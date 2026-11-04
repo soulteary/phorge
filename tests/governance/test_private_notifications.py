@@ -18,6 +18,21 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
         for field in ('eventID','operationDigest','actorDigest','metadataDigest'):
             old=spec.replace("'"+field+"'=>'varbytes64'","'"+field+"'=>'bytes64'",1)
             self.assertFalse(matches(old))
+    def test_notice_failure_projection_never_exports_raw_query_or_reason(self):
+        source=ROOT/'support/governance/notification/governance-notice-cases.php'
+        code=r"""require $argv[1];$secret='SYNTHETIC_PRIVATE_DIAGNOSTIC_SENTINEL';
+        $rows=array(governance_notice_wait_projection('SELECT id INTO gate_id FROM notice_fixture_gate WHERE '.$secret,null),
+          governance_notice_wait_projection(false,array('status'=>'rejected','reason'=>$secret)),
+          governance_notice_wait_projection(null,array('status'=>'failed','error_type'=>'RuntimeException','source_file'=>'fixture.php','source_line'=>44,'message'=>$secret)),
+          governance_notice_wait_projection('INSERT INTO qualified.governance_notice_event VALUES ('.$secret.')',array('status'=>'committed')));
+        echo json_encode($rows,JSON_THROW_ON_ERROR);"""
+        result=subprocess.run(['php','-r',code,str(source)],capture_output=True,text=True)
+        self.assertEqual(0,result.returncode);self.assertEqual('',result.stderr)
+        self.assertNotIn('SYNTHETIC_PRIVATE_DIAGNOSTIC_SENTINEL',result.stdout)
+        rows=json.loads(result.stdout)
+        self.assertEqual(['gate_select','missing','idle','notice_insert'],[r['query_kind']for r in rows])
+        self.assertEqual('other_fixed_refusal',rows[1]['rejection_kind'])
+        self.assertEqual(44,rows[2]['source_line']);self.assertNotIn('message',rows[2])
     def test_reviewed_inventory_remains_partial(self):
         result=gate.validate(self.data)
         self.assertTrue(result['passed']);self.assertFalse(result['smtp_proved']);self.assertTrue(result['activation_blocked'])
