@@ -24,16 +24,26 @@ function governance_recovery_org_lifecycle_cases($fixture,callable $check,array 
     }finally{if($conn->isInsideTransaction()){$conn->killTransaction();}}
   };
   try{
-    $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.enabled',true)
-      ->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
-    $environment=governance_recovery_account_fixture_environment($fixture);
+    if(PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled')!==false){
+      throw new RuntimeException('recovery_org_lifecycle_preparation_profile');}
     $first=governance_native_request($state['users']['admin'],$state['sessions']);
     $second_user=(new PhabricatorUser())->setUsername('rl'.substr($fixture->getNamespace(),-12))
       ->setRealName('Synthetic lifecycle reviewer')->setIsApproved(1)->setIsAdmin(1)->setIsEmailVerified(1)->save();
     $second=governance_native_request($second_user,$state['sessions']);
+    $make=static function($suffix)use($fixture){
+      $user=(new PhabricatorUser())->setUsername('rl'.$suffix.substr($fixture->getNamespace(),-9))
+        ->setRealName('Synthetic lifecycle participant')->setIsApproved(1)->setIsAdmin(0)->setIsEmailVerified(1)->save();
+      (new PhabricatorUserEmail())->setUserPHID($user->getPHID())->setAddress($user->getUsername().'@example.invalid')
+        ->setIsPrimary(1)->setIsVerified(1)->save();return$user;
+    };
+    $moving=$make('moving');$owner=$make('owner');
     // Initialize the reviewer outside the observed production transactions.
     $conn->openTransaction();try{PhorgeGovernanceNativeIdentitySource::lockCurrent($second['context'],$conn);
       $conn->saveTransaction();}finally{if($conn->isInsideTransaction()){$conn->killTransaction();}}
+    // All identities and native sessions exist before the measured recovery profile.
+    $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.enabled',true)
+      ->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
+    $environment=governance_recovery_account_fixture_environment($fixture);
     $switch($first);$service=PhorgeOrganizationService::newForActor($first['context']);
     $reviewer=PhorgeOrganizationService::newForActor($second['context']);
     $subject=$state['users']['member']->getPHID();$team='recovery-lifecycle-team';
@@ -100,13 +110,6 @@ function governance_recovery_org_lifecycle_cases($fixture,callable $check,array 
       'recovery-org-approval-audit-fault-rolls-back-review-and-generation');
     governance_native_setup_query($fixture,'DROP TRIGGER '.$trigger_name);$trigger=false;
     $switch($first);
-    $make=static function($suffix)use($fixture){
-      $user=(new PhabricatorUser())->setUsername('rl'.$suffix.substr($fixture->getNamespace(),-9))
-        ->setRealName('Synthetic lifecycle participant')->setIsApproved(1)->setIsAdmin(0)->setIsEmailVerified(1)->save();
-      (new PhabricatorUserEmail())->setUserPHID($user->getPHID())->setAddress($user->getUsername().'@example.invalid')
-        ->setIsPrimary(1)->setIsVerified(1)->save();return$user;
-    };
-    $moving=$make('moving');$owner=$make('owner');
     foreach(array('recovery-lifecycle-from','recovery-lifecycle-to')as$department){
       $service->createUnit(array('operation_id'=>'create-'.$department,'unit_id'=>$department,
         'kind'=>'department','name'=>'Synthetic lifecycle department','parent_id'=>null));

@@ -88,3 +88,19 @@ prepared expectation, not measured evidence. It does not establish concurrent
 arbitrary SQL/DDL exclusion, retained metadata privilege leases, full native
 permission/source closure, or a restoration permit. The current-main union,
 N00 binding, supported native map/pure execution and SQL proof remain pending.
+
+## Actual initial-admission failure and narrow fixture successor
+
+The signed 3d279 candidate actually passed 236 native pure methods, then failed
+before the first lifecycle assertion: only the six bootstrap and three cleanup
+checks completed. Recovery had been enabled before creating approved synthetic
+reviewer/moving/responsible accounts, so the native initial-admission guard
+correctly rejected the fixture. This is not a product authorization defect and
+not 45 SQL checks passed.
+
+This successor requires the original recovery flag to be false, prepares all
+synthetic accounts and the genuine actor sessions/epoch initialization first,
+then enables recovery once for the measured Service/Source/writer operations.
+No protected write temporarily disables the guard. Production source and all
+45 obligations remain unchanged. The static host phase contract is not a native
+runtime proof; the successor still needs supported pure/SQL verification.
