@@ -209,6 +209,9 @@ try {
     'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   if ($error instanceof mysqli_sql_exception) { $failure['sql_errno']=$error->getCode(); }
   if(isset($GLOBALS['governance_notice_wait_failure'])){$failure['notice_wait_diagnostic']=$GLOBALS['governance_notice_wait_failure'];}
+  if(isset($GLOBALS['governance_session_producer_child_failure'])){
+    $failure['session_producer_child_failure']=$GLOBALS['governance_session_producer_child_failure'];
+  }
   if(isset($GLOBALS['governance_private_business_child_failure'])){
     $failure['child_diagnostic']=$GLOBALS['governance_private_business_child_failure'];
   }

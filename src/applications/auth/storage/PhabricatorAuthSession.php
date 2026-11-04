@@ -19,6 +19,18 @@ final class PhabricatorAuthSession extends PhabricatorAuthDAO
 
   private $identityObject = self::ATTACHABLE;
 
+  protected function insertRecordIntoDatabase($mode) {
+    if (!PhorgeGovernanceRecoveryGuard::enabled()) {
+      return parent::insertRecordIntoDatabase($mode);
+    }
+    $fence=PhorgeRecoverySessionProducerFence::begin($this,$mode);
+    try {
+      $result=parent::insertRecordIntoDatabase($mode);
+      $fence->finish();
+      return $result;
+    } finally { $fence->close(); }
+  }
+
   public static function newSessionDigest(PhutilOpaqueEnvelope $session_token) {
     return PhabricatorHash::digestWithNamedKey(
       $session_token->openEnvelope(),

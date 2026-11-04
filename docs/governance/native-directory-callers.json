@@ -55,7 +55,7 @@
       "path": "src/applications/people/storage/PhabricatorUser.php",
       "symbol": "PhabricatorUser",
       "kind": "native-account-source",
-      "sha256": "4d3cf905cf82031e6267453024bc88245b6cbbfc27eec8b20d0d52ed7defc89b",
+      "sha256": "b8a483542e293bd03584aaa92858aa89ca657fef1402f7681c303866908defb6",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -66,7 +66,7 @@
       "path": "src/applications/auth/storage/PhabricatorAuthSession.php",
       "symbol": "PhabricatorAuthSession",
       "kind": "native-session-source",
-      "sha256": "b03587dfbfe950d049545b0e034d8bca2e7b719550ab40256194d8300acf1c38",
+      "sha256": "8b529ad358b43ef6584c783f3e42cfec4a2bf4317a5015579fcc2f4af64d4fd8",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -132,7 +132,7 @@
       "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
       "symbol": "PhorgeGovernanceNativeIdentitySource",
       "kind": "candidate-runtime-source",
-      "sha256": "7b5e9afbb599efcca6928251333136a96468254eeebfb9355fb306ab9b21992c",
+      "sha256": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -814,7 +814,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
       "symbol": "PhorgeRecoveryNativeCaptureScope",
       "kind": "isolated-account-capture-not-recovery-authority",
-      "sha256": "880a9f7ecd055d916faf132382aa9eac499a2a05c30161f7697862c68908d748",
+      "sha256": "601eddb3c774ff9ab0d77b7862c28784e368f6f0a89097e34b6c3fa869414cee",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1079,6 +1079,127 @@
       "symbol": "PhorgeProjectPolicyFailure",
       "kind": "sanitized-error-projection-no-permit",
       "sha256": "812846d3ba2188be237a8eb08650cfd6c601b799d50264f3b9f94e2a88e62b70",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryConfigOptions",
+      "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php",
+      "symbol": "PhorgeGovernanceRecoveryConfigOptions",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "1fba208bd326bf728cc77ce6c5a6c9f8fd85c15240db80a1a9e9436f141dc481",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryGuard",
+      "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryGuard.php",
+      "symbol": "PhorgeGovernanceRecoveryGuard",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "6cf17ccc6be232bb65d09ff78a4ca0c91da92e8af68ab847edcc1feb52c6c614",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryTransition",
+      "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryTransition.php",
+      "symbol": "PhorgeGovernanceRecoveryTransition",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "9e9461f5bc37ba0e624f594fe37c089b4b967d90fdbf6ffbee7b0d0d3d12e0e8",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreAssessment",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php",
+      "symbol": "PhorgeRecoveryRestoreAssessment",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "a1c9c3dad9e4e9055319699c0a5e66774b4b7e360c2263622a885de9b8e676d9",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreMediaSource",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreMediaSource.php",
+      "symbol": "PhorgeRecoveryRestoreMediaSource",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "4bdcd5b672492ce712ebffd9e5c0a21977870e39416617031ad6f0ea1b224f17",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreOrganizationSource",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreOrganizationSource.php",
+      "symbol": "PhorgeRecoveryRestoreOrganizationSource",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "d33a5d5fece5b4a1f1e934427a4c43e7471df32fa6e0ce9cdcacf5a851673ff0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreProfile.php",
+      "symbol": "PhorgeRecoveryRestoreProfile",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "663938f8481b9d59998a82c6c648a4628d7db8a25bbfd48cf966f933e28b21cb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreRequest",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php",
+      "symbol": "PhorgeRecoveryRestoreRequest",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "b2f21a5be6800627325a1ac92c21d5dfecdcd7d1b65d08b22274a991417b182e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreSchemaSpec",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreSchemaSpec.php",
+      "symbol": "PhorgeRecoveryRestoreSchemaSpec",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "e5a596d8e7c2b2ca148ecdcdb2a4ae7908b90e4262a538eb55afab26c1937fbf",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreService",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
+      "symbol": "PhorgeRecoveryRestoreService",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "aa9c94a32951774a970871b1d431dc069d2d4a03899e919a934decf63202399e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoverySessionProducerFence",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
+      "symbol": "PhorgeRecoverySessionProducerFence",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "94df0c66eba195a7dd5bb8211a784ba753b79a1b7dab01ce68ac9fd880b0fcd6",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1860,6 +1981,54 @@
       "basis": "Known additional native-form effects are a refusal, never authorized or discarded."
     },
     {
+      "id": "RECOVERY-PRODUCER-LINK-01",
+      "from_id": "AUTH.USER.DAO",
+      "to_id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryGuard",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-02",
+      "from_id": "AUTH.SESSION.DAO",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoverySessionProducerFence",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-03",
+      "from_id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryGuard",
+      "to_id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryTransition",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-04",
+      "from_id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryGuard",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-05",
+      "from_id": "RECOVERY.PRODUCER.PhorgeRecoverySessionProducerFence",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-06",
+      "from_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "to_id": "RECOVERY.PhorgeRecoveryNativeCaptureScope",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
       "id": "NOTICE-LINK-01",
       "from_id": "NATIVE.PhorgeOrganizationService",
       "to_id": "NOTICE.OUTBOX",
@@ -1984,7 +2153,7 @@
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
-        "sha256": "7b5e9afbb599efcca6928251333136a96468254eeebfb9355fb306ab9b21992c"
+        "sha256": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922"
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeNoncredentialIdentitySource.php",
@@ -2335,8 +2504,20 @@
         "sha256": "430c5826f8cdf6446a90beb4122582c6ff1cbbc8750faae52fb37e063bca6c9c"
       },
       {
+        "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php",
+        "sha256": "1fba208bd326bf728cc77ce6c5a6c9f8fd85c15240db80a1a9e9436f141dc481"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryGuard.php",
+        "sha256": "6cf17ccc6be232bb65d09ff78a4ca0c91da92e8af68ab847edcc1feb52c6c614"
+      },
+      {
         "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php",
         "sha256": "2839d8bc66db7127da8be8e6518631f83cdd845811a8ea8964b5d1618e089f1b"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryTransition.php",
+        "sha256": "9e9461f5bc37ba0e624f594fe37c089b4b967d90fdbf6ffbee7b0d0d3d12e0e8"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php",
@@ -2348,11 +2529,43 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
-        "sha256": "880a9f7ecd055d916faf132382aa9eac499a2a05c30161f7697862c68908d748"
+        "sha256": "601eddb3c774ff9ab0d77b7862c28784e368f6f0a89097e34b6c3fa869414cee"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
         "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php",
+        "sha256": "a1c9c3dad9e4e9055319699c0a5e66774b4b7e360c2263622a885de9b8e676d9"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreMediaSource.php",
+        "sha256": "4bdcd5b672492ce712ebffd9e5c0a21977870e39416617031ad6f0ea1b224f17"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreOrganizationSource.php",
+        "sha256": "d33a5d5fece5b4a1f1e934427a4c43e7471df32fa6e0ce9cdcacf5a851673ff0"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreProfile.php",
+        "sha256": "663938f8481b9d59998a82c6c648a4628d7db8a25bbfd48cf966f933e28b21cb"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php",
+        "sha256": "b2f21a5be6800627325a1ac92c21d5dfecdcd7d1b65d08b22274a991417b182e"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreSchemaSpec.php",
+        "sha256": "e5a596d8e7c2b2ca148ecdcdb2a4ae7908b90e4262a538eb55afab26c1937fbf"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
+        "sha256": "aa9c94a32951774a970871b1d431dc069d2d4a03899e919a934decf63202399e"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
+        "sha256": "94df0c66eba195a7dd5bb8211a784ba753b79a1b7dab01ce68ac9fd880b0fcd6"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStop.php",
