@@ -23,6 +23,15 @@ catch(RuntimeException $e) { echo json_encode(array('accepted'=>false),JSON_THRO
         self.assertEqual(result.stderr, '')
         return json.loads(result.stdout)['accepted']
 
+    def test_observer_table_literals_are_real_source_tables(self):
+        # Static fixture/schema integration check, not a native DAO runtime test.
+        schema=(ROOT/'resources/sql/quickstart.sql').read_text()
+        fixture=(ROOT/'support/governance/recovery/api-concurrency-cases.php').read_text()
+        for table in ('conduit_token','oauth_server_oauthserveraccesstoken','oauth_server_oauthclientauthorization'):
+            self.assertIn('CREATE TABLE `'+table+'`',schema)
+            self.assertIn("'"+table+"'",fixture)
+        self.assertNotIn("'oauth_server_clientauthorization'",fixture)
+
     def test_exact_current_source_allowed_and_denied(self):
         self.assertTrue(self.validate('api', {'status':'committed','current_token_verified':True,'restoration_authorized':False}))
         self.assertTrue(self.validate('api', {'status':'rejected','reason':'governance_native_credential_ineligible'}))

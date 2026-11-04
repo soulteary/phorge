@@ -140,7 +140,7 @@ function governance_recovery_api_observe($fixture,mysqli $observer,array $handle
   if(!is_array($worker)||!in_array($worker['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)||
     !in_array($app,array('conduit','oauth_server'),true)||
     !in_array($table,$app==='conduit'?array('conduit_token'):
-      array('oauth_server_oauthserveraccesstoken','oauth_server_clientauthorization'),true)){
+      array('oauth_server_oauthserveraccesstoken','oauth_server_oauthclientauthorization'),true)){
     throw new RuntimeException('recovery_api_observer_scope_refused');}
   $deadline=hrtime(true)+5000000000;
   do{
