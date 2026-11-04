@@ -42,63 +42,55 @@ the digest, actual LONGTEXT over-budget refusal preserves the caller transaction
 and caller rollback restores original native bytes. It is not wired into the
 runner yet and supplies no empty-range or concurrent-producer proof.
 
-## Range integration successor (not yet run)
+## Bounded isolation comparison acceptance
 
-The subsequent isolated component adds a fixed `--recovery-policy-only` driver.
-It has a distinct batch and explicit `all_mode_native_evidence=false`; it cannot
-satisfy the all-mode strict checker. No old required case or family is removed.
-The exact development migration is explicitly added to the native fixture
-reviewed patch allowlist and source checker list. Native applyPatchSQL applies
-it during bootstrap; the real service verifies all three restore table layouts
-before entering the test callback. Full storage-upgrade and all-mode acceptance
-remain separate gates. No hand-created table shape substitutes for the native
-patch loader.
+The focused `--recovery-policy-only` profile explicitly distinguishes the retained
+READ COMMITTED service from a fixture-owned REPEATABLE READ control. The previous
+integrated profile incorrectly claimed that invoking the service acquired RR gap
+locks. PR108 review identified that mismatch; changing the session default cannot
+override the service's next-transaction RC setting. That old profile is not
+current-source acceptance and is not repaired by extending a wait timeout.
 
-The real RestoreService owns next-transaction RR; only its own transaction is
-committed/rolled back. Media size preflights are current row reads before this
-isolation change, preventing an RR consistent-view budget mismatch. A private
-fixture phase seam invokes that genuine transaction routine with current sealed
-admin identity, sorted User locking, final credential/time checks and normal
-commit. No HTTP, review approval or executable permit is synthesized by it.
+The new profile keeps product PHP/SQL unchanged. Two genuine service transactions
+capture an empty, then populated policy range under RC. An independent fixed
+native Policy DAO producer must actually commit while each service transaction
+is still open. A second current capture must include its new row and change the
+digest. A fixture-only comparator refuses that observed change, causing the real
+service transaction to roll back while the producer's independent commit remains.
+Unknown or falsely complete input facts also refuse. This comparator is test
+observation, not a production absence lease, restoration permit or interpreter.
 
-Two independent fixed native Policy DAO workers prove an actually empty PRIMARY
-range and a populated PRIMARY range. Their current bootstrap authentication and
-CSRF precede readiness, whose connection ID is the real Policy writer. The only
-work item is a fixed native custom-policy INSERT; no SQL or policy parameters
-are accepted. Owned handshake release starts the INSERT after capture. Actual
-performance_schema lock_waits must link that writer to the exact parent People
-connection and policy.PRIMARY. Stable capture is required during the wait; both
-commit and exception rollback must release the producer and independently
-observe the native saved PHID digest. The worker is a physical DAO producer
-probe, not an application publication authorization or HTTP endpoint.
+Separately, two fixture-owned RR transactions demonstrate empty and populated
+PRIMARY-range insertion waits and release on commit/rollback. They do not invoke
+or describe the service transaction routine. P_S ENGINE-composite lock identities
+and the blocking ENGINE_TRANSACTION_ID mapped to INNODB_TRX ownership must bind
+the actual worker/parent threads; lock-creation THREAD_ID is not owner evidence.
+Only the exact two native rows created by these RR workers may be deleted and
+committed before the empty RC control. The fixed native seed is independently
+recognized, removed and restored in finally; no held DELETE gap substitutes for
+an empty table. All-mode baseline seeding remains unchanged.
 
-The focused component has nine explicit SQL obligations (five range/lifecycle
-and four source mutation/rollback), six bootstrap/grant checks and three required
-cleanup checks (18 total), two registered workers, and bounded exact
-cleanup inherited from the main native harness. Pure registration is expected
-230 methods / 39 test classes, subject to genuine supported map/pure execution.
-No SQL, supported pure, next-transaction/default-isolation or range result has
-yet been observed. Empty-range source completion still stays false in public
-capture until actual proof and a versioned integrated assessment provider exist.
+The new exact contract has 14 SQL obligations, six bootstrap/grant checks and
+three cleanup checks: 23 total, with four registered Policy DAO workers. The
+source still registers 250 pure methods / 42 classes. The typed gate rejects the
+old 18-count/two-worker/service-RR profile, missing IDs, authority claims, unknown
+fields and wrong source revisions. Native patch loading and exact restore
+543-table/1572-patch/35-migration verification remain required.
 
-The first 9c9 SQL attempt reached bootstrap but correctly refused the presumed
-empty policy table: the shared native baseline owns one known synthetic custom
-policy. A focused-only successor checks all six fields against that exact owned
-baseline row (including project rule, native PHIDs and zero timestamps), deletes
-it in an explicit transaction and COMMITs. An independent setup connection must
-observe zero rows before the parent range transaction begins. No parent-held
-DELETE lock can stand in for an empty-table gap. In a finally after the real producer races (including failure),
-the original seed bytes are restored and independently checked, preserving the
-shared named-policy reference for the remaining source cases. All-mode fixture
-seeding is unchanged. Unknown rows or changed seed bytes refuse, never delete.
-The old infrastructure errno2002 and seeded-policy failures remain historical;
-this changed source has not run SQL. The original 15-count plan omitted three
-existing cleanup assertions; the corrected exact contract retains all 18 IDs.
+Root executed signed source `661fd799efad2c1c64926afea2bec3223d098198`: 250 pure
+methods / 42 classes and all 23 focused checks passed. All 6,855 runtime
+PHP/SQL/public-suffix hashes matched the signed archive; strict CLI and in-process
+acceptance agreed. All 55 schemas, two runtime users, reader, four workers,
+image and owned staging resources were cleaned. The immutable manifest SHA256
+is `3d99f56c037afa2c4f2cb4111b6bc2d26d379ede7b1f8e2edf31987c2cda87fa`.
+These are bounded comparison results, not a new run of this docs successor or
+final-head hosted CI. Policy/Space
+capture remains partial, `empty_range_absence_proved=false`, and all thirteen
+source families and restoration authorization remain incomplete. RR comparison
+results never upgrade the RC service to an absence fence. Automatic policy
+interpretation, source/DDL leases and actual restoration remain blocked.
 
-The temporary dangling named-policy/task references during the dedicated empty
-range interval are deliberately not an interpreter or restore-validity profile.
-Only the identified row is removed; no TRUNCATE or unqualified DELETE is used.
-The random owned-fixture marker is verified before seed access. Restoration
-cleanup failures remain separate from the original case failure, and cannot
-produce a passed component or erase the original cause. All-mode baseline
-seeding and its reference graph are untouched by this focused-only setup.
+The historical 9c9 seeded-table failure and later isolated RR component receipts
+remain separate evidence for their original sources. They do not certify this
+protected-main successor. The first 15-count plan omitted three cleanup checks;
+18 was its corrected historical count, not this new 23-check profile.

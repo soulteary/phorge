@@ -1,0 +1,27 @@
+{
+  "scope": "Source-only integration of accepted notice/organization candidate and actual merged main108",
+  "parents": [
+    "8835c06eedba4575da13b56cda4a8803bb4f182a",
+    "48c3aa98b2a2ed10a0608ff74d474de79409ed1e"
+  ],
+  "product_src_resources_exact_prior_candidate": true,
+  "main_policy_RC_correction_retained": true,
+  "strict_policy_source_shape": {
+    "reviewed_migrations": 37,
+    "patches": 1574,
+    "tables": 546
+  },
+  "actual_host_tests": {
+    "policy": 9,
+    "native_organization_gate": 54
+  },
+  "supported_pure_expected_unrun": 257,
+  "normal_SQL_expected_unrun": 934,
+  "policy_SQL_expected_separately_unrun": 23,
+  "prior_8835_physical_cases_not_relabelled": true,
+  "current_source_runtime_executed": false,
+  "all13_complete": false,
+  "restoration_authorized": false,
+  "optional_features_enabled": false,
+  "deployment": false
+}
