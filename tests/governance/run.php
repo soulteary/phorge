@@ -55,6 +55,7 @@ try {
     'PhorgeRecoveryGuardTestCase',
     'PhorgeRecoveryPolicySourceTestCase',
     'PhorgeRecoveryOrganizationProducerTestCase',
+    'PhorgeRecoveryMetadataGrantDescriptionTestCase',
   );
   $expected = array();
   $cases = array();
