@@ -1,10 +1,40 @@
-# Selected native User and Session producer SQL candidate
+# Selected native User and Session producer boundaries
 
-This independent successor starts from signed 4c5 and explicitly merges protected
+## Current isolated acceptance
+
+Signed runtime source `5275c63506b68d59f7db34121118d2045ca70d79` passed
+**243 native pure methods /39 classes on PHP 8.5.12 and all 897 SQL checks**.
+The independent whole-runtime comparison matched all 6,836 PHP/SQL/PSL files.
+The strict consumer and its actual CLI accepted the same receipt, including
+exact 543 tables, 1,571 applied source patches and all 34 reviewed migration hashes.
+
+Cleanup removed 55 owned schemas, 2 runtime users and the reader, 40 registry worker
+directories with no live worker remaining, 20 separate business children, 6 Wiki
+children and 3 HTTP servers, plus the owned paired image and host source stage.
+See [sanitized acceptance](evidence/recovery-native-producers-243-897/acceptance.json)
+and [measured source hashes](evidence/recovery-native-producers-243-897/reviewed-source.json).
+The immutable private evidence manifest is
+`8f234b694d6745279d462c54d82af3c0df3e653d8fb31357ef8714607b9c3cd4`.
+
+This is the selected isolated User/Session mechanical profile. All 13 source
+families remain incomplete; restoration execution and permits, the retained
+review-service workflow, API-token concurrency stress, browser end-to-end,
+new physical SMTP and release/deployment acceptance are not proved. The guard
+remains optional/defaultOFF. No recovery route or production activation was
+added. This documentation update is not a new runtime run; hosted CI and
+exact-head PR review remain separate gates.
+
+## Retained development history
+
+The candidate/pending statements and failures below are historical source-pinned
+checkpoints. They do not override the current 5275 strict acceptance above, and
+the old 8039 raw-pass/strict-refusal receipt was never relabeled as accepted.
+
+The development successor started from signed 4c5 and explicitly merges protected
 main 8725545797c3b4edb57fac61e8d97f67068770ff. It does not alter the frozen Org
-policy/RR branches. Source obligations are **243 pure methods /39 classes** and
+policy/RR branches. Its proposed source obligations were **243 pure methods /39 classes** and
 **897 SQL checks**: every 877 main obligation plus exactly 20 selected producer
-checks. These counts are not execution results.
+checks. These were candidate obligations at that historical checkpoint.
 
 The added SQL scope is the actual native User save/update/replace paths, a native
 pending registration, rejected first approval and enable, native emergency
@@ -42,13 +72,13 @@ production activation is added. Unknown eligibility increases remain refused.
 Optional guard OFF retains the old native path; enabled behavior is restricted
 to the actual isolated MySQL profile and is not general MariaDB certification.
 
-Current state: implementation and host checks only; supported map/pure, actual
+Historical pre-runtime state: implementation and host checks only; supported map/pure, actual
 SQL, whole-runtime hashes and strict CLI/cleanup acceptance are pending a frozen
 source review and Root's exclusive lab lease. No COMMON access or deployment is
 claimed by this document.
 
 
-## PRIMARY-record corrective candidate (runtime pending)
+## PRIMARY-record corrective candidate (historical checkpoint)
 
 Signed ae770 passed 243 pure methods and 892 SQL checks, then failed before its
 four Session checks. Failure-only diagnostics showed both session calls returned
@@ -67,14 +97,13 @@ requires both reads to return, setup's active transaction and exact PRIMARY X
 lock to remain, and zero subject sessions. Only then do native producers run.
 Their SQL and Performance Schema waits must identify the exact PRIMARY record,
 both worker threads, and owned setup blocker. This adds one mandatory SQL ID:
-897 checks, 243 methods/39 classes, 40 registry workers. All remain current-source
-runtime obligations, not passed results. The diagnostic source is excluded.
+897 checks, 243 methods/39 classes, 40 registry workers. At that checkpoint these were runtime obligations, not passed results. The diagnostic source is excluded.
 
 Index choice controls record locking; a covering secondary SHARE alone does not
 prove conflict with a clustered PRIMARY X lock. See official
 [MySQL 8.4 locking rules](https://dev.mysql.com/doc/refman/8.4/en/innodb-locks-set.html).
 The executable old-query positive control must succeed on the installed isolated
-profile. All13 source completion and recovery execution remain false.
+profile. All 13 source completion and recovery execution remain false.
 
 ### Failure-only worker observation successor
 
@@ -89,7 +118,7 @@ only `diagnostic_unavailable`; no message, SQL, identity or token is projected.
 The diagnostic-only 437/12d lock probes are not included in this source.
 
 
-### Current Web credential PRIMARY-read corrective candidate
+### Web credential PRIMARY-read corrective candidate (historical checkpoint)
 
 The owner-reported 4b23 run again passed 243 pure methods and 894 SQL checks.
 Its permanent failure-only projection identified an actual deadlock, and the
@@ -129,5 +158,5 @@ executed recoveryrestore source to the reviewed 34-file consumer list, and
 rejects the old values, missing/wrong patch digest and old executed count.
 It does not accept either profile interchangeably. Native PHP, SQL, all 897
 check IDs and 243 method IDs are unchanged. The original 8039 receipt/seal
-failure stays immutable; only a fresh run bound to this successor may establish
+failure stays immutable; the fresh 5275 run reported above subsequently established
 strict acceptance. No restoration permission or activation follows from counts.
