@@ -27,6 +27,7 @@ function governance_recovery_organization_focused_cases($fixture,callable $check
       'actual_fixed_parent_table_incoming_fk_write_mdl_probe'=>true,
       'all_table_all_ddl_absence_fence_proved'=>false,
       'metadata_live_privilege_collector_executed'=>false,
+      'dedicated_owned_async_setup_connection'=>true,
       'all_mode_native_evidence'=>false,'all_thirteen_families_complete'=>false,
       'restoration_authorized'=>false,'HTTP_controller_evidence'=>false);
   }finally{$_COOKIE=$cookies;$_SERVER=$server;}

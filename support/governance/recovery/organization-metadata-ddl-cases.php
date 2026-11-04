@@ -6,7 +6,7 @@ function governance_recovery_organization_metadata_ddl_cases($fixture,callable $
   $fixture->assertOwned();$namespace=$fixture->getNamespace();
   if(!($control instanceof mysqli)||!preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)){
     throw new RuntimeException('recovery_org_ddl_owned_observer_required');}
-  $writer=(new PhabricatorUser())->establishConnection('w');$setup=$fixture->getAdmin();
+  $writer=(new PhabricatorUser())->establishConnection('w');$setup=$fixture->newOwnedSetupConnection();
   if($writer->isInsideTransaction()){throw new RuntimeException('recovery_org_ddl_outer_transaction');}
   $child_schema=$namespace.'_policy';$parent_schema=$namespace.'_user';
   // An unknown existing object is never adopted or deleted by this fixture.

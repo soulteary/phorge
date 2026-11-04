@@ -19,6 +19,7 @@ final class PhorgeGovernanceCompletionFixture {
   private $sourceHash;
   private $patchAudit;
   private $ownerNonce;
+  private $auxiliarySetupThreads = array();
 
   public function __construct(mysqli $control, $root, $host, $port) {
     if (PHP_SAPI !== 'cli' || getenv('PHORGE_GOVERNANCE_ISOLATED_TEST') !== '1' ||
@@ -285,6 +286,47 @@ final class PhorgeGovernanceCompletionFixture {
 
   public function getNamespace() { return $this->namespace; }
   public function getAdmin() { $this->assertOwned(); return $this->connections['setup']; }
+
+  /** Dedicated async DDL socket; existing setup credentials never escape. */
+  public function newOwnedSetupConnection() {
+    $this->assertOwned();$config=$this->configs['setup'];
+    if($config['host']!==$this->host||$this->host!=='127.0.0.1'||
+      $config['port']!==$this->port||$config['namespace']!==$this->namespace||
+      !preg_match('/\Agov_c_setup_[a-f0-9]{12}\z/D',$config['user'])||
+      !preg_match('/\A[a-f0-9]{48}\z/D',$config['password'])){
+      throw new RuntimeException('owned_auxiliary_setup_profile_refused');}
+    $mode=(new mysqli_driver())->report_mode;$connection=null;$key=null;
+    try{
+      mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
+      $connection=new mysqli($config['host'],$config['user'],$config['password'],'',$config['port']);
+      // Register before charset/identity/marker queries: partial initialization
+      // is still owned by outer fixture cleanup, never an untracked connection.
+      $key='auxiliary-setup-'.count($this->auxiliarySetupThreads);
+      $this->connections[$key]=$connection;
+      $this->auxiliarySetupThreads[$key]=$connection->thread_id;
+      $connection->set_charset('utf8mb4');
+      $row=$connection->query('SELECT CURRENT_USER() actual_user,@@server_uuid server_uuid')->fetch_assoc();
+      $original=$this->connections['setup']->query('SELECT @@server_uuid server_uuid')->fetch_assoc();
+      $marker=$connection->query('SELECT marker,quickstart_sha256,owner_nonce FROM '.
+        $this->table('governance','fixture_guard').' WHERE id=1')->fetch_assoc();
+      if(!$row||!$original||$row['server_uuid']!==$original['server_uuid']||
+        !str_starts_with($row['actual_user'],$config['user'].'@')||
+        $connection->thread_id===$this->connections['setup']->thread_id||
+        !$marker||$marker['marker']!==PhorgeGovernanceNativeFixture::MARKER||
+        !hash_equals($this->sourceHash,$marker['quickstart_sha256'])||
+        !hash_equals($this->ownerNonce,$marker['owner_nonce'])){
+        throw new RuntimeException('owned_auxiliary_setup_identity_refused');}
+      return $connection;
+    }catch(Throwable$error){
+      if($connection!==null){
+        try{$connection->close();unset($this->connections[$key],$this->auxiliarySetupThreads[$key]);}
+        catch(Throwable$cleanup){throw new PhutilAggregateException('owned_auxiliary_setup_cleanup_failed',
+          array('original'=>$error,'cleanup'=>$cleanup));}
+      }
+      throw$error;
+    }finally{mysqli_report($mode);}
+  }
+
   public function getWriterConfig() { $this->assertOwned(); return $this->configs['writer']; }
   /** Optional physical-mail fixture account; never grants native authority reads. */
   public function createPrivateMailerPrincipal() {
@@ -351,6 +393,15 @@ final class PhorgeGovernanceCompletionFixture {
     }
     foreach ($this->connections as $connection) { $connection->close(); }
     $this->connections = array();
+    $auxiliary_count=count($this->auxiliarySetupThreads);
+    if($auxiliary_count){
+      $ids=array_values($this->auxiliarySetupThreads);
+      foreach($ids as$id){if(!is_int($id)||$id<1){
+        throw new RuntimeException('owned_auxiliary_setup_thread_refused');}}
+      $result=$this->control->query('SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE ID IN ('.implode(',',$ids).')');
+      if(!$result||(int)$result->fetch_assoc()['n']!==0){throw new RuntimeException('owned_auxiliary_setup_remaining');}
+      $result->free();
+    }
     foreach ($this->createdUsers as $user) {
       $this->control->query("DROP USER '".$user."'@'%'");
     }
@@ -359,8 +410,10 @@ final class PhorgeGovernanceCompletionFixture {
       $this->control->query('DROP DATABASE `'.$database.'`'); $removed++;
     }
     $base = $this->base->cleanup();
-    return array('ownedSchemasRemoved'=>$removed+$base['ownedSchemasRemoved'],
+    $result=array('ownedSchemasRemoved'=>$removed+$base['ownedSchemasRemoved'],
       'ownedRuntimeUsersRemoved'=>count($this->createdUsers),
       'readerRemoved'=>$base['readerRemoved']);
+    if($auxiliary_count){$result['ownedAuxiliarySetupConnectionsClosed']=$auxiliary_count;}
+    return $result;
   }
 }
