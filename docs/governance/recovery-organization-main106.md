@@ -76,3 +76,9 @@ f5 full897/lifecycle45. The RC source-change refusal is a fixture comparison,
 not a production absence lease. The historical RR-service claim is withdrawn.
 This docs successor is not another runtime execution; fresh final-head hosted
 CI and exact review must still pass before readiness or merge is considered.
+
+## Metadata observation correction (source-only)
+
+The original `global_visibility_grant_row_locked=true` result was not a proven MySQL grant-row fence. MySQL 8.4 explicitly exempts FOR SHARE grant-table reads from read locks. Metadata observation schema v2 therefore reports the actual row observed, row_locked=false, grant_revoke_absence_fence_proved=false; its live fixture demands these false boundaries. Historical33/15 receipts are not rewritten or promoted to privilege-revocation safety. The existing source-completion/permit gates still refuse incomplete families. This narrow correction adds no lease, credential, schema, native permission change, route, activation or deployment. Supported-runtime checks for this correction remain pending.
+
+The collector's SQL is observational; its SELECT/TRIGGER/PROCESS account is privileged because TRIGGER allows DDL. It must not be described as a read-only credential. A real grant visibility barrier remains a separately reviewed and actually tested dependency. Reference: https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html .

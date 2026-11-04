@@ -47,7 +47,9 @@ final class PhorgeRecoveryOrganizationMetadataObservation extends Phobject {
       'WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s','mysql','user');
     if(!$engine||$engine['ENGINE']!=='InnoDB'){
       throw new RuntimeException('recovery_metadata_grant_store_unknown');}
-    // Lock the actual authenticated grant row, never a caller account name.
+    // Observe the actual authenticated grant row, never a caller account name.
+    // MySQL 8.4 exempts grant-table reads from FOR SHARE row locking.
+    // This SQL modifier must NOT be interpreted as a REVOKE fence.
     // No authentication_string or User_attributes payload is retrieved.
     $privileges=queryfx_all($control,'SELECT Select_priv,Trigger_priv,Process_priv,'.
       'IF(JSON_CONTAINS_PATH(COALESCE(User_attributes,JSON_OBJECT()),'.
@@ -85,11 +87,13 @@ final class PhorgeRecoveryOrganizationMetadataObservation extends Phobject {
     }
     if($triggers!==0||$foreign_keys!==0){
       throw new RuntimeException('recovery_metadata_native_producers_unknown');}
-    return array('schema_version'=>1,'family'=>'organization',
+    return array('schema_version'=>2,'family'=>'organization',
       'server_digest'=>hash('sha256',$actual['uuid']),
       'grant_description_digest'=>$description['source_digest'],
       'all_twelve_table_mdl_acquired'=>true,
-      'global_visibility_grant_row_locked'=>true,
+      'global_visibility_grant_row_observed'=>true,
+      'global_visibility_grant_row_locked'=>false,
+      'grant_revoke_absence_fence_proved'=>false,
       'observed_trigger_and_incoming_outgoing_fk_absence'=>true,
       // SELECT MDL has not yet been proved to prevent concurrent incoming-FK
       // creation. Never promote a momentary zero count to an absence lease.
