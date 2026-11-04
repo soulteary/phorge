@@ -41,3 +41,41 @@ obligations: native DAO row capture, same-transaction source mutation changes
 the digest, actual LONGTEXT over-budget refusal preserves the caller transaction,
 and caller rollback restores original native bytes. It is not wired into the
 runner yet and supplies no empty-range or concurrent-producer proof.
+
+## Range integration successor (not yet run)
+
+The subsequent isolated component adds a fixed `--recovery-policy-only` driver.
+It has a distinct batch and explicit `all_mode_native_evidence=false`; it cannot
+satisfy the all-mode strict checker. No old required case or family is removed.
+The exact development migration is explicitly added to the native fixture
+reviewed patch allowlist and source checker list. Native applyPatchSQL applies
+it during bootstrap; the real service verifies all three restore table layouts
+before entering the test callback. Full storage-upgrade and all-mode acceptance
+remain separate gates. No hand-created table shape substitutes for the native
+patch loader.
+
+The real RestoreService owns next-transaction RR; only its own transaction is
+committed/rolled back. Media size preflights are current row reads before this
+isolation change, preventing an RR consistent-view budget mismatch. A private
+fixture phase seam invokes that genuine transaction routine with current sealed
+admin identity, sorted User locking, final credential/time checks and normal
+commit. No HTTP, review approval or executable permit is synthesized by it.
+
+Two independent fixed native Policy DAO workers prove an actually empty PRIMARY
+range and a populated PRIMARY range. Their current bootstrap authentication and
+CSRF precede readiness, whose connection ID is the real Policy writer. The only
+work item is a fixed native custom-policy INSERT; no SQL or policy parameters
+are accepted. Owned handshake release starts the INSERT after capture. Actual
+performance_schema lock_waits must link that writer to the exact parent People
+connection and policy.PRIMARY. Stable capture is required during the wait; both
+commit and exception rollback must release the producer and independently
+observe the native saved PHID digest. The worker is a physical DAO producer
+probe, not an application publication authorization or HTTP endpoint.
+
+The focused component has nine explicit SQL obligations (five range/lifecycle
+and four source mutation/rollback), two registered workers, and bounded exact
+cleanup inherited from the main native harness. Pure registration is expected
+230 methods / 39 test classes, subject to genuine supported map/pure execution.
+No SQL, supported pure, next-transaction/default-isolation or range result has
+yet been observed. Empty-range source completion still stays false in public
+capture until actual proof and a versioned integrated assessment provider exist.

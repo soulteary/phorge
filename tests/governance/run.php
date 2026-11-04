@@ -53,6 +53,7 @@ try {
     'PhorgeRecoveryNativeAPIFactsTestCase',
     'PhorgeRecoveryRestoreRequestTestCase',
     'PhorgeRecoveryGuardTestCase',
+    'PhorgeRecoveryPolicySourceTestCase',
   );
   $expected = array();
   $cases = array();

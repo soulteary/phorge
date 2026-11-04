@@ -41,7 +41,7 @@ function governance_native_measurement_file_source($action,$value,$namespace,$ow
 
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
-  if (!in_array($action['action']??null,array('recovery.session.issue','recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
+  if (!in_array($action['action']??null,array('recovery.policy.insert','recovery.session.issue','recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
     throw new RuntimeException('native_worker_action_refused');
   }
   $path=sys_get_temp_dir().'/governance-native-worker-'.bin2hex(random_bytes(12));
@@ -152,6 +152,7 @@ function governance_native_finish_worker(array &$handle) {
     return governance_native_stop_worker_result($worker['action'],$result);
   }
   if($worker['action']==='recovery.session.issue'){return governance_native_session_producer_result($result);}
+  if($worker['action']==='recovery.policy.insert'){return governance_native_policy_producer_result($result);}
   if($worker['action']==='legalpad.observe'){return governance_native_validate_legalpad_observation($result);}
   $keys=array_keys($result); sort($keys);
   if (($result['status']??null)==='rejected') {
@@ -354,4 +355,44 @@ function governance_native_stop_fixture_handles(array $handles){
     }
     unset($worker);
   }
+}
+
+/** Only the fixed native custom-policy INSERT probe, not arbitrary SQL or PHIDs. */
+function governance_native_policy_producer_result(array $result) {
+  $keys=array_keys($result);sort($keys,SORT_STRING);
+  if($keys!==array('native_policy_digest','restoration_authorized','status')||
+    $result['status']!=='committed'||$result['restoration_authorized']!==false||
+    !is_string($result['native_policy_digest'])||!preg_match('/\A[a-f0-9]{64}\z/D',$result['native_policy_digest'])){
+    throw new RuntimeException('native_policy_producer_result_refused');}
+  return $result;
+}
+
+function governance_native_policy_producer_handle(array $handle) {
+  $index=$handle['index']??null;$worker=is_int($index)?($GLOBALS['governance_native_workers'][$index]??null):null;
+  if(!$worker||$worker['action']!=='recovery.policy.insert'||$worker['cleaned']||
+    ($handle['dev']??null)!==$worker['dev']||($handle['ino']??null)!==$worker['ino']||
+    !is_string($handle['nonce']??null)||!hash_equals($worker['nonce'],$handle['nonce'])){
+    throw new RuntimeException('native_policy_producer_handle_refused');}
+  $stat=lstat($worker['private']);
+  $owner=$worker['private'].'/owner';
+  if(!$stat||is_link($worker['private'])||($stat['mode']&0777)!==0700||
+    $stat['dev']!==$worker['dev']||$stat['ino']!==$worker['ino']||
+    !is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||filesize($owner)!==64||
+    !hash_equals($worker['nonce'],file_get_contents($owner))){
+    throw new RuntimeException('native_policy_producer_handle_refused');}
+  return $worker;
+}
+function governance_native_wait_policy_producer_ready(array $handle) {
+  $worker=governance_native_policy_producer_handle($handle);
+  $path=$worker['private'].'/producer-ready.json';$deadline=microtime(true)+8;
+  while(!is_file($path)&&microtime(true)<$deadline&&is_resource($worker['process'])&&proc_get_status($worker['process'])['running']){usleep(20000);}
+  if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>512){
+    throw new RuntimeException('native_policy_producer_ready_missing');}
+  $value=json_decode(file_get_contents($path),true,4,JSON_THROW_ON_ERROR);
+  if($value!==array('status'=>'producer-ready','mysql_thread'=>$worker['mysql_thread'])){
+    throw new RuntimeException('native_policy_producer_ready_refused');}
+}
+function governance_native_continue_policy_producer(array $handle) {
+  $worker=governance_native_policy_producer_handle($handle);
+  governance_native_worker_atomic($worker['private'],'producer-continue',$worker['nonce']);
 }

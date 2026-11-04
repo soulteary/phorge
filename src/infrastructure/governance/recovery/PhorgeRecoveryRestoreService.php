@@ -81,7 +81,9 @@ final class PhorgeRecoveryRestoreService extends Phobject {
     if (!$level || !isset($levels[$level['level']])) { throw new RuntimeException('recovery_restore_isolation_unknown'); }
     $owned=false; $queued=false;
     try {
-      queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED'); $queued=true;
+      // Own the next transaction only: current primary-index scans retain
+      // row and end-gap locks until this service's final checks and commit.
+      queryfx($conn,'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ'); $queued=true;
       $conn->openTransaction(); $owned=true; $queued=false;
       $started=self::sourceNow($conn);
       PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
