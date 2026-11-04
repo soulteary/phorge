@@ -49,6 +49,23 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_default_edit_controller_route_and_post_filter_scope_are_required(self):
+        for name in gate.VIEW_EDIT_ROUTE_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key in gate.NATIVE['project_execution_tests']['native_default_policy_edit_form']:
+            data=template();row=data['native']['project_execution_tests']['native_default_policy_edit_form']
+            row[key]=not row[key]
+            with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+    def test_actual_view_form_checks_and_scope_cannot_be_omitted_or_upgraded(self):
+        for name in gate.VIEW_FORM_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key in gate.NATIVE['project_execution_tests']['native_policy_proposal_form']:
+            data=template();summary=data['native']['project_execution_tests']['native_policy_proposal_form']
+            summary[key]=not summary[key]
+            with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
     def test_real_project_create_visibility_evidence_is_mandatory(self):
         for ending in ('normal','outer-commit','outer-rollback'):
             name='private-business-project-'+ending+'-actual-native-create-envelope-visible-initial-fields-hidden'
@@ -348,7 +365,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),825)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),861)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -438,9 +455,18 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
 
 
+class NativePolicyErrorRouteGateTest(unittest.TestCase):
+    def test_expected_controller_boundary_checks_are_mandatory(self):
+        self.assertEqual(7,len(gate.POLICY_ERROR_ROUTE_CHECKS))
+        validate(template(),file_digest='b'*64)
+        for check in gate.POLICY_ERROR_ROUTE_CHECKS:
+            data=template();data['checks'].remove(check);data['check_count']-=1
+            with self.subTest(check=check),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
+
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),825)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),861)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -493,7 +519,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(825,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(861,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)

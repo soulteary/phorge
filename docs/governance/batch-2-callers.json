@@ -91,7 +91,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "a87de8ea2caf2a40bbdb117f7f534164dced04677e244260e389ab5b839fe011"
+      "sha256": "05818f432ec09b928d7790e4ef6c311bbd5edae51dd65c65ca2ff7188333af0b"
     },
     {
       "id": "PROJECT.EDIT.CONDUIT",
@@ -842,7 +842,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "8f02efd5f0a329b7b610d5e9da9bf7dba4773050ebf4f8a7c13c0095734e0a36"
+      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84"
     },
     {
       "id": "TRANSACTION.EDIT.ENGINE",
@@ -861,7 +861,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "43f1314497403a70e61a1bdae759d060cb42fbc99134f27dbc121e53f1e955ce"
+      "sha256": "9f61d47dd662c46b49e27ebad655f92eb342a0b83ec3a78aa0e605b8395a86b7"
     },
     {
       "id": "TRANSACTION.EDIT.API",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4466,
-    "source_snapshot_sha256": "76de528ac4501b0b3622e2b25bc5eeb915e5aaae734c7aee72cf0b7d08e3e79a",
+    "source_snapshot_sha256": "1f5a42c9bfc6899993cfa98cb3aae5c97693a084ab56a2e679380e4417498948",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -4593,7 +4593,7 @@
       {
         "id": "CALL-87991d5ea753c15b",
         "path": "src/applications/project/engine/PhabricatorProjectEditEngine.php",
-        "sha256": "a87de8ea2caf2a40bbdb117f7f534164dced04677e244260e389ab5b839fe011",
+        "sha256": "05818f432ec09b928d7790e4ef6c311bbd5edae51dd65c65ca2ff7188333af0b",
         "matches": [
           {
             "pattern": "member_edge",
@@ -5226,14 +5226,20 @@
       {
         "id": "CALL-e457f3ff983799df",
         "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
-        "sha256": "43f1314497403a70e61a1bdae759d060cb42fbc99134f27dbc121e53f1e955ce",
+        "sha256": "9f61d47dd662c46b49e27ebad655f92eb342a0b83ec3a78aa0e605b8395a86b7",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
-              1183,
-              2072,
-              2218
+              1207,
+              2102,
+              2248
+            ]
+          },
+          {
+            "pattern": "project_editor",
+            "lines": [
+              1172
             ]
           }
         ]
@@ -5277,15 +5283,15 @@
       {
         "id": "CALL-f116bd8b9b12fc59",
         "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
-        "sha256": "8f02efd5f0a329b7b610d5e9da9bf7dba4773050ebf4f8a7c13c0095734e0a36",
+        "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
               1187,
-              1519,
-              4504,
-              4994
+              1524,
+              4509,
+              4999
             ]
           },
           {
@@ -5298,7 +5304,7 @@
           {
             "pattern": "member_edge",
             "lines": [
-              2022
+              2027
             ]
           },
           {
@@ -5320,8 +5326,8 @@
               886,
               889,
               958,
-              2907,
-              2914
+              2912,
+              2919
             ]
           },
           {
@@ -5335,17 +5341,17 @@
               753,
               790,
               1123,
-              1891,
-              2164,
-              2901,
-              4036,
-              4407,
-              4947,
-              4963,
-              5452,
-              5501,
-              5519,
-              5538
+              1896,
+              2169,
+              2906,
+              4041,
+              4412,
+              4952,
+              4968,
+              5457,
+              5506,
+              5524,
+              5543
             ]
           }
         ]

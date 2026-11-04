@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "source_revision": "469e6dc55b7af95cfd5c23cf153a61fa2c5235ab",
+  "source_component_base_main": "0a43c0211c4ced7749d26187da29798c4439086b",
+  "PHP": "8.5.12",
+  "actual_pure_passed": 218,
+  "actual_SQL_passed": 753,
+  "whole_runtime_files_exact": 6783,
+  "strict_in_process_and_actual_CLI_agree": true,
+  "owned_cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "registered_workers": 25,
+  "owned_processes_remaining": 0,
+  "private_worker_directories_remaining": 0,
+  "owned_image_removed": true,
+  "host_stage_removed": true,
+  "actual_native_profiles": [
+    "Native proposal/current policy choices and Chinese rendering",
+    "Native default form empty and nonempty description policy-only commit",
+    "CSRF/ticket/extra actual effect/explicit Space alias refusal",
+    "Native NoOne self-view validation page",
+    "Content-only and no-effect form behavior with native timestamp bookkeeping"
+  ],
+  "not_proved": [
+    "Latest main integration and safe business-error adapter",
+    "Actual HTTP and browser interaction/MFA",
+    "Concurrent default Space/all hierarchy/custom forms",
+    "Complete recovery families, paired release or deployment"
+  ],
+  "native_four_axes_changed": false,
+  "optional_features_enabled": false,
+  "online_permission_migration": false,
+  "all_features_complete": false,
+  "immutable_manifest_sha256": "34f2dec2f15a3b54b1aeeb328d5b446ee256815f84951d4ae737c2ba5897bb27",
+  "evidence_archive": "work/team-readiness/native-directory/run-history/project-form-display-469-753",
+  "sensitive_deployment_information_included": false
+}

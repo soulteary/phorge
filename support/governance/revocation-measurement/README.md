@@ -255,3 +255,10 @@ The strict `actual_Conduit_HTTP_requests=4` count covers three authenticated
 Conduit probes plus one malformed-params native Conduit control request.
 Readiness GET requests are separate bootstrap traffic and are not included in
 that count. Three independently owned PHP servers still require full cleanup.
+
+
+## Integration after the policy-form main merge
+
+The next integration explicitly includes main `1f20bbdfeb060c5490ca4e1298f2c5d9b82e7a03`. Its required check set is the exact union of the 854 main obligations and the prior HTTP component: 860 retained parent SQL/HTTP checks plus one mandatory cross-second regression (861 expected checks), 237 pure methods across 37 classes, 38 global workers and three separately owned HTTP servers. All parent native receipt leaf types and values are retained, and production source/SQL resources are identical to that main revision. The 223/825 acceptance above remains historical component evidence; it does not certify this new integration. Current main post-merge CI is being investigated and fresh final-head CI and review are required before merging.
+
+The main JOIN regression used a fingerprint taken before a legitimate native no-effect POST. A same-second run could hide its stale timestamp; a cross-second run could falsely fail the subsequent JOIN denial. The fixture now waits for the same PHP clock used by Lisk to advance, proves native `dateModified` actually increased while all business/history/audit fields stayed unchanged, then captures the current JOIN baseline. JOIN refusal still requires exact equality of every fingerprint field, including the timestamp. No production permission check is changed.
