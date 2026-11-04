@@ -35,3 +35,9 @@ success is claimed. This source-only checkpoint follows the raw-flag correction;
 the historical b3 229-method run applies only to b3. R04/R05 adoption remains
 blocked pending a genuinely complete deployment profile and two-person native
 restore success with durable one-use permit/audit and final source validation.
+
+The separate prepared policy-source-cases.php contains four additive actual SQL
+obligations: native DAO row capture, same-transaction source mutation changes
+the digest, actual LONGTEXT over-budget refusal preserves the caller transaction,
+and caller rollback restores original native bytes. It is not wired into the
+runner yet and supplies no empty-range or concurrent-producer proof.
