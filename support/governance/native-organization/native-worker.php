@@ -376,6 +376,11 @@ try {
     $result=$allowed?array('status'=>'rejected','reason'=>$error->getMessage()):
       array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   }
+  if(($kind??null)==='recovery.session.issue'&&($result['status']??null)==='failed'&&
+    $error instanceof AphrontQueryException&&is_int($error->getCode())&&$error->getCode()>=0&&$error->getCode()<=65535){
+    // Exception code only; a native SchemaException may legitimately have zero.
+    $result['query_code']=$error->getCode();
+  }
   if(($kind??null)==='legalpad.verify'&&get_class($error)===PhorgeLegalpadVerificationException::class){
     $result=array('status'=>'rejected','reason'=>'governance_legalpad_verification_refused');
   }
@@ -402,7 +407,17 @@ try {
     if ($guard!==null) { $guard->dispose(); }
     if (class_exists('LiskDAO',false)) { LiskDAO::closeAllConnections(); }
     if ($proof!==null) { $proof->close(); }
-  } catch (Throwable $cleanup) { $result=array('status'=>'failed','error_type'=>'RuntimeException','reason'=>'native_worker_cleanup_failed'); }
+  } catch (Throwable $cleanup) {
+    if(($kind??null)==='recovery.session.issue'){
+      // Preserve an original failed child location if cleanup also fails.
+      if(($result['status']??null)!=='failed'||!isset($result['source_file'],$result['source_line'])){
+        $result=array('status'=>'failed','error_type'=>get_class($cleanup),
+          'source_file'=>basename($cleanup->getFile()),'source_line'=>$cleanup->getLine());
+        if($cleanup instanceof AphrontQueryException&&is_int($cleanup->getCode())&&
+          $cleanup->getCode()>=0&&$cleanup->getCode()<=65535){$result['query_code']=$cleanup->getCode();}
+      }
+    }else{$result=array('status'=>'failed','error_type'=>'RuntimeException','reason'=>'native_worker_cleanup_failed');}
+  }
   if ($scope_owned && function_exists('governance_native_worker_atomic')) {
     governance_native_worker_atomic($path,'result.json',$result);
   }

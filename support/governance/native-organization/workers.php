@@ -133,8 +133,25 @@ function governance_native_session_producer_result(array $result) {
   return $result;
 }
 
+/** Failure-only safe projection. Invalid diagnostics never become denial or success. */
+function governance_native_session_failure_location(array $result) {
+  $keys=array_keys($result);sort($keys);$with_code=array_key_exists('query_code',$result);
+  $expected=array('error_type','source_file','source_line','status');
+  if($with_code){$expected[]='query_code';sort($expected);}
+  if($keys!==$expected||$result['status']!=='failed'||
+    !is_string($result['error_type'])||!preg_match('/\A[A-Za-z_][A-Za-z0-9_]{0,159}\z/D',$result['error_type'])||
+    !is_string($result['source_file'])||!preg_match('/\A[A-Za-z0-9_][A-Za-z0-9_.-]{0,159}\z/D',$result['source_file'])||
+    !is_int($result['source_line'])||$result['source_line']<1||$result['source_line']>1000000||
+    ($with_code&&(!is_int($result['query_code'])||$result['query_code']<0||$result['query_code']>65535))){
+    return array('diagnostic_unavailable'=>true);
+  }
+  $out=array('error_type'=>$result['error_type'],'source_file'=>$result['source_file'],'source_line'=>$result['source_line']);
+  if($with_code){$out['query_code']=$result['query_code'];}return $out;
+}
+
 function governance_native_finish_worker(array &$handle) {
   $index=$handle['index']; $worker=&$GLOBALS['governance_native_workers'][$index];
+  if($worker['action']==='recovery.session.issue'){governance_native_session_producer_handle($handle);}
   $deadline=microtime(true)+15;
   while (is_resource($worker['process']) && proc_get_status($worker['process'])['running'] && microtime(true)<$deadline) { usleep(20000); }
   if (is_resource($worker['process']) && proc_get_status($worker['process'])['running']) {
@@ -151,7 +168,15 @@ function governance_native_finish_worker(array &$handle) {
   if(in_array($worker['action'],array('recovery.stop.record','recovery.stop.history'),true)){
     return governance_native_stop_worker_result($worker['action'],$result);
   }
-  if($worker['action']==='recovery.session.issue'){return governance_native_session_producer_result($result);}
+  if($worker['action']==='recovery.session.issue'){
+    governance_native_session_producer_handle($handle);
+    if((fileperms($path)&0777)!==0600){throw new RuntimeException('native_session_producer_result_refused');}
+    if(($result['status']??null)==='failed'){
+      $GLOBALS['governance_session_producer_child_failure']=governance_native_session_failure_location($result);
+    }
+    // Failed is still rejected by the original exact decoder below.
+    return governance_native_session_producer_result($result);
+  }
   if($worker['action']==='legalpad.observe'){return governance_native_validate_legalpad_observation($result);}
   $keys=array_keys($result); sort($keys);
   if (($result['status']??null)==='rejected') {

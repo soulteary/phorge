@@ -3,6 +3,7 @@
 /** Actual SessionEngine producer tests; no restoration or global closure claim. */
 function governance_recovery_session_producer_cases($fixture,callable $check,array $state) {
   global $control;
+  unset($GLOBALS['governance_session_producer_child_failure']);
   $fixture->assertOwned();
   if(!($control instanceof mysqli)){throw new RuntimeException('recovery_session_observer_required');}
   $setup=$fixture->getAdmin();$conn=(new PhabricatorUser())->establishConnection('w');

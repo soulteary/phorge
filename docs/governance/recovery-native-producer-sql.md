@@ -75,3 +75,15 @@ prove conflict with a clustered PRIMARY X lock. See official
 [MySQL 8.4 locking rules](https://dev.mysql.com/doc/refman/8.4/en/innodb-locks-set.html).
 The executable old-query positive control must succeed on the installed isolated
 profile. All13 source completion and recovery execution remain false.
+
+### Failure-only worker observation successor
+
+The owner-reported 84a isolated run passed 243 pure methods and 894 SQL checks,
+including the old covering-read control and both real PRIMARY-record waits.
+The next strict child result decoder rejected a failed worker; the remaining
+three Session obligations were not passed. This successor keeps the same 897
+success obligations and permanently records only a validated failed child's
+class, basename, bounded line and optional native query exception code. Failed
+remains failed, never authorization denial. Unknown diagnostic shape produces
+only `diagnostic_unavailable`; no message, SQL, identity or token is projected.
+The diagnostic-only 437/12d lock probes are not included in this source.
