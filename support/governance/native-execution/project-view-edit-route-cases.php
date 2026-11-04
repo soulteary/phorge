@@ -241,14 +241,23 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
       $content_after[2]===$content_before[2]&&$content_after[3]===$content_before[3],
       'project-view-default-edit-controller-native-content-only-post-needs-no-policy-ticket');
     list(,$empty_html)=$call($uri,'GET',array(),true);$empty=$extract($empty_html);$empty_before=$fingerprint();
+    // Native Lisk timestamp bookkeeping uses PHP time(). Deliberately cross
+    // that second so a stale pre-POST fingerprint cannot accidentally pass.
+    $clock_deadline=hrtime(true)+3000000000;
+    while(time()<=(int)$empty_before[0]['dateModified']&&hrtime(true)<$clock_deadline){usleep(20000);}
+    if(time()<=(int)$empty_before[0]['dateModified']){throw new RuntimeException('project_edit_form_native_clock_not_advanced');}
     list($empty_response)=$call($uri,'POST',$empty);
-    $check($empty_response instanceof AphrontRedirectResponse&&$same_native_no_effect($empty_before,$fingerprint()),
+    $empty_after=$fingerprint();
+    $check($empty_response instanceof AphrontRedirectResponse&&$same_native_no_effect($empty_before,$empty_after),
       'project-view-default-edit-controller-empty-submit-retains-native-no-effect');
+    $check((int)$empty_after[0]['dateModified']>(int)$empty_before[0]['dateModified']&&$empty_after!==$empty_before,
+      'project-view-default-edit-controller-no-effect-crosses-native-clock-before-join-refusal');
+    $join_before=$fingerprint();
     $join=$empty;$join['policy.join']=PhabricatorPolicies::POLICY_ADMIN;
     $join['core.default']='1';$join['governanceNativeForm']='1';$join_refused=false;
     try{$call($uri,'POST',$join);}catch(RuntimeException$error){
       if($error->getMessage()!=='project_execution_native_form_multiple_changes'){throw$error;}$join_refused=true;}
-    $check($join_refused&&$fingerprint()===$empty_before,
+    $check($join_refused&&$fingerprint()===$join_before,
       'project-view-default-edit-controller-join-change-and-forged-default-flags-refused-before-effects');
     // Exercise an explicit nonempty description change, not a parser-created
     // newline or an assumed NULL-to-empty native transition.
@@ -309,7 +318,7 @@ function governance_project_view_edit_route_cases($fixture,callable $check,array
     return array('actual_platform_routing'=>true,'actual_default_edit_controller_get_post'=>true,
       'native_field_generation_and_filtering_retained'=>true,'single_effect_after_native_filter'=>true,
       'caller_default_flag_authority'=>false,'native_content_only_post_retained'=>true,
-      'native_no_effect_post_retained'=>true,'unsupported_join_post_refused_early'=>true,'explicit_space_alias_inputs_refused'=>true,'native_description_initialized_before_policy'=>true,'uninitialized_description_policy_profile_proved'=>true,
+      'native_no_effect_post_retained'=>true,'native_no_effect_cross_second_clock_proved'=>true,'unsupported_join_post_refused_early'=>true,'explicit_space_alias_inputs_refused'=>true,'native_description_initialized_before_policy'=>true,'uninitialized_description_policy_profile_proved'=>true,
       'actual_http_server'=>false,'browser_proved'=>false);
   }finally{
     try{PhabricatorEnv::setLocaleCode($locale);}finally{PhutilTranslator::setInstance($translator);$_SERVER=$server;$_COOKIE=$cookies;$_POST=$post;
