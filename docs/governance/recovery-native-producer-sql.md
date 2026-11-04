@@ -1,0 +1,48 @@
+# Selected native User and Session producer SQL candidate
+
+This independent successor starts from signed 4c5 and explicitly merges protected
+main 8725545797c3b4edb57fac61e8d97f67068770ff. It does not alter the frozen Org
+policy/RR branches. Source obligations are **243 pure methods /39 classes** and
+**896 SQL checks**: every 877 main obligation plus exactly 19 selected producer
+checks. These counts are not execution results.
+
+The added SQL scope is the actual native User save/update/replace paths, a native
+pending registration, rejected first approval and enable, native emergency
+disable despite unavailable review storage, permissive MySQL SESSION-mode raw
+flag coercion, flag-ON refusal and a flag-OFF native DAO control. Raw UPDATE and
+flag-OFF controls are always inside an owned transaction and rolled back. The
+original SESSION sql_mode is read back after restoration; global mode is never
+changed. Fingerprints include user rows, native user transactions, identity
+epochs and the isolated review ledger. There is no committed enabled-user result
+from these coercion controls.
+
+Two independent PHP processes call the actual native SessionEngine. They use
+distinct current synthetic admin credentials and genuine PHIDs sorted before
+the common subject. Each actual issuer epoch is initialized and committed before
+the observed concurrency. The native User source locks are **shared**, not
+exclusive; the old same-actor missing-epoch initializer could contend on its
+INSERT. This fixture excludes that competition and requires two real
+performance_schema subject-lock waits before any Session row appears. It then
+requires two committed sessions, nested caller rollback, and exact1568 rejection
+of untracked raw transactions while preserving the caller write. Global registry
+workers increase from38 to40; existing20 business children, six Wiki children
+and three HTTP servers retain their separate cleanup accounting.
+
+The native patch loader applies only the explicitly reviewed recoveryrestore
+patch inside disposable owned schemas. Three actual schema-comparison checks
+cover its native declarations. No manual fake DDL, new global grant or production
+schema change is performed. Before deployment, any future enabled profile must
+have its required schema installed by the normal reviewed migration path.
+
+The retained blocked-review foundation classes are source dependencies, not a
+claim that their review service or restoration workflow was exercised here.
+The Org policy/RR/read-set work remains separate. All thirteen source families
+remain incomplete, no complete restoration permit exists, and no new route or
+production activation is added. Unknown eligibility increases remain refused.
+Optional guard OFF retains the old native path; enabled behavior is restricted
+to the actual isolated MySQL profile and is not general MariaDB certification.
+
+Current state: implementation and host checks only; supported map/pure, actual
+SQL, whole-runtime hashes and strict CLI/cleanup acceptance are pending a frozen
+source review and Root's exclusive lab lease. No COMMON access or deployment is
+claimed by this document.

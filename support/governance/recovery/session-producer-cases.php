@@ -9,18 +9,29 @@ function governance_recovery_session_producer_cases($fixture,callable $check,arr
   $cookies=$_COOKIE;$method=$_SERVER['REQUEST_METHOD']??null;
   $flags=null;$environment=null;$handles=array();$locked=false;
   try {
-    $suffix=substr($fixture->getNamespace(),-10);$actor=null;$subject=null;
-    for($i=0;$i<32;$i++){
-      $a=(new PhabricatorUser())->setUsername('sessionfenceactor'.$suffix.$i)
-        ->setRealName('Synthetic Session Actor')->setIsAdmin(1)->setIsApproved(1)->save();
-      $s=(new PhabricatorUser())->setUsername('sessionfencesubject'.$suffix.$i)
-        ->setRealName('Synthetic Session Subject')->setIsApproved(1)->save();
-      if(strcmp($a->getPHID(),$s->getPHID())<0){$actor=$a;$subject=$s;break;}
+    $suffix=substr($fixture->getNamespace(),-10);$identities=array();
+    foreach(array('one','two','subject')as$label){
+      $identities[]=(new PhabricatorUser())->setUsername('sessionfence'.$label.$suffix)
+        ->setRealName('Synthetic Session Fence Identity')->setIsApproved(1)->save();
     }
-    if(!$actor){throw new RuntimeException('recovery_session_sorted_pair_required');}
-    $one=governance_native_request($actor,$state['sessions']);
-    $two=governance_native_request($actor,$state['sessions']);
-    if($one['token']===$two['token']){throw new RuntimeException('recovery_session_independent_credentials_required');}
+    usort($identities,static function($left,$right){return strcmp($left->getPHID(),$right->getPHID());});
+    $subject=$identities[2];
+    foreach(array($identities[0],$identities[1])as$actor){$actor->setIsAdmin(1)->saveWithoutIndex();}
+    $one=governance_native_request($identities[0],$state['sessions']);
+    $two=governance_native_request($identities[1],$state['sessions']);
+    if($one['token']===$two['token']||$identities[0]->getPHID()===$identities[1]->getPHID()){
+      throw new RuntimeException('recovery_session_independent_credentials_required');}
+    // Actual current-source initialization is committed before concurrency.
+    // User locks are shared; this removes same-actor epoch INSERT competition
+    // from the observation, which must prove the subject's producer fence only.
+    foreach(array($one,$two)as$web){
+      $conn->openTransaction();
+      try{
+        $current=PhorgeGovernanceNativeIdentitySource::lockCurrent($web['context'],$conn);
+        if(!$current->isSystemAdmin()){throw new RuntimeException('recovery_session_current_admin_required');}
+        $conn->saveTransaction();
+      }catch(Throwable$error){$conn->killTransaction();throw$error;}
+    }
     $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.enabled',true)
       ->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
     $environment=governance_recovery_account_fixture_environment($fixture);
@@ -84,6 +95,7 @@ function governance_recovery_session_producer_cases($fixture,callable $check,arr
         'recovery-session-untracked-raw-transaction-1568-preserves-caller-write');
     }finally{queryfx($conn,'ROLLBACK');}
     return array('selected_native_session_insert_serialization'=>true,
+      'independent_current_actor_credentials'=>true,'actor_epoch_initialization_outside_observed_fence'=>true,
       'all_session_producers_closed'=>false,'all_sources_complete'=>false,'restoration_executed'=>false);
   }finally{
     try{if($locked&&!$setup->rollback()){throw new RuntimeException('recovery_session_blocker_cleanup_failed');}}

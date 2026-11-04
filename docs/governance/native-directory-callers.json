@@ -55,7 +55,7 @@
       "path": "src/applications/people/storage/PhabricatorUser.php",
       "symbol": "PhabricatorUser",
       "kind": "native-account-source",
-      "sha256": "4d3cf905cf82031e6267453024bc88245b6cbbfc27eec8b20d0d52ed7defc89b",
+      "sha256": "b8a483542e293bd03584aaa92858aa89ca657fef1402f7681c303866908defb6",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -66,7 +66,7 @@
       "path": "src/applications/auth/storage/PhabricatorAuthSession.php",
       "symbol": "PhabricatorAuthSession",
       "kind": "native-session-source",
-      "sha256": "b03587dfbfe950d049545b0e034d8bca2e7b719550ab40256194d8300acf1c38",
+      "sha256": "8b529ad358b43ef6584c783f3e42cfec4a2bf4317a5015579fcc2f4af64d4fd8",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -748,7 +748,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-business-mail-producer",
-      "sha256": "8f02efd5f0a329b7b610d5e9da9bf7dba4773050ebf4f8a7c13c0095734e0a36",
+      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -814,7 +814,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
       "symbol": "PhorgeRecoveryNativeCaptureScope",
       "kind": "isolated-account-capture-not-recovery-authority",
-      "sha256": "880a9f7ecd055d916faf132382aa9eac499a2a05c30161f7697862c68908d748",
+      "sha256": "601eddb3c774ff9ab0d77b7862c28784e368f6f0a89097e34b6c3fa869414cee",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -826,6 +826,105 @@
       "symbol": "PhorgeRecoveryNativeWebFacts",
       "kind": "untrusted-web-storage-decoder-no-recovery-authority",
       "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PhorgeRecoveryNativeAPIFacts",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php",
+      "symbol": "PhorgeRecoveryNativeAPIFacts",
+      "kind": "untrusted-api-storage-decoder-no-recovery-authority",
+      "sha256": "3d111c0e2ee777c7a4db78fddb5b6b4ef2bf62fe3c6eda9851292e085ee880e0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.PROJECT.CONTROLLER",
+      "path": "src/applications/project/controller/PhabricatorProjectEditController.php",
+      "symbol": "PhabricatorProjectEditController",
+      "kind": "native-edit-request-controller",
+      "sha256": "11845ce029b93e4b5e35740af7c0169c0178c22e26cd4e1dff8a7710194e4c27",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.PROJECT.ENGINE",
+      "path": "src/applications/project/engine/PhabricatorProjectEditEngine.php",
+      "symbol": "PhabricatorProjectEditEngine",
+      "kind": "native-project-form-field-producer",
+      "sha256": "05818f432ec09b928d7790e4ef6c311bbd5edae51dd65c65ca2ff7188333af0b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.ENGINE",
+      "path": "src/applications/transactions/editengine/PhabricatorEditEngine.php",
+      "symbol": "PhabricatorEditEngine",
+      "kind": "native-form-provenance-registrar",
+      "sha256": "9f61d47dd662c46b49e27ebad655f92eb342a0b83ec3a78aa0e605b8395a86b7",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.CATALOG",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
+      "symbol": "PhorgeProjectExecutionCatalog",
+      "kind": "scoped-native-form-envelope-classifier",
+      "sha256": "97bd3ca80e3e174620b35bf2bd83cfb7b0d98e53ee6c5851aa65271dbe2e2957",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.SCOPE",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
+      "symbol": "PhorgeProjectNativeExecutionScope",
+      "kind": "native-final-effect-and-current-source-fence",
+      "sha256": "bf105b65b30101b69a6c2029e3465cc413b5c217cb1f7744010f6172e57dad9a",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.BASE.EDITOR",
+      "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
+      "symbol": "PhabricatorApplicationTransactionEditor",
+      "kind": "native-filter-before-effect-hook",
+      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.PROPOSAL.CONTROLLER",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
+      "symbol": "PhorgeProjectPolicyApprovalController",
+      "kind": "current-policy-preview-controller",
+      "sha256": "99a02a687e23a7fe846830a36c9811d510f11bbbf13aa73c9fe11fd75d627427",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "VIEW.FORM.POLICY.CONTROL",
+      "path": "src/view/form/control/AphrontFormPolicyControl.php",
+      "symbol": "AphrontFormPolicyControl",
+      "kind": "native-policy-presentation-control",
+      "sha256": "58da762783b3dceb350e08d71b707bbbd5e7a1f0a6f6a31e01b6ef6da698f4e9",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -909,17 +1008,6 @@
       "authority_proof": false
     },
     {
-      "id": "RECOVERY.PhorgeRecoveryNativeAPIFacts",
-      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php",
-      "symbol": "PhorgeRecoveryNativeAPIFacts",
-      "kind": "untrusted-api-storage-decoder-no-recovery-authority",
-      "sha256": "3d111c0e2ee777c7a4db78fddb5b6b4ef2bf62fe3c6eda9851292e085ee880e0",
-      "coverage": "partial",
-      "evidence_status": "static-reference-only",
-      "activation_blocked": true,
-      "authority_proof": false
-    },
-    {
       "id": "LEGALPAD.VERIFY.CONTROLLER",
       "path": "src/applications/legalpad/controller/LegalpadDocumentSignatureVerificationController.php",
       "symbol": "LegalpadDocumentSignatureVerificationController",
@@ -947,6 +1035,171 @@
       "symbol": "PhorgeLegalpadVerification",
       "kind": "current-session-signer-and-document-policy-check",
       "sha256": "d735e7bb6a0467e33f713be9ff30630cdd693dfe1f0844e7a22e71ddbbfb6120",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "POLICY.ERROR.STORE",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
+      "symbol": "PhorgeProjectPolicyApprovalStore",
+      "kind": "current-native-ticket-store-error-boundary",
+      "sha256": "7dcb8bfc0a7ed45785a10b8652bf943bf9a4a870669401d3a2de92d532651903",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "POLICY.ERROR.STATE",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyTicketState.php",
+      "symbol": "PhorgeProjectPolicyTicketState",
+      "kind": "stored-ticket-consistency-not-authority",
+      "sha256": "001b4d319c474c52eac8c1771b74ed6f4342b524b68ba7814582cd7396f00f52",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "POLICY.ERROR.REFUSAL",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyRefusalException.php",
+      "symbol": "PhorgeProjectPolicyRefusalException",
+      "kind": "explicit-business-refusal-no-permit",
+      "sha256": "16c33227d95f6391e6dd70b955cc03827cafeecdae1d7840cde921e7c932ca82",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "POLICY.ERROR.PROJECTION",
+      "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyFailure.php",
+      "symbol": "PhorgeProjectPolicyFailure",
+      "kind": "sanitized-error-projection-no-permit",
+      "sha256": "812846d3ba2188be237a8eb08650cfd6c601b799d50264f3b9f94e2a88e62b70",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryConfigOptions",
+      "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php",
+      "symbol": "PhorgeGovernanceRecoveryConfigOptions",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "1fba208bd326bf728cc77ce6c5a6c9f8fd85c15240db80a1a9e9436f141dc481",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryGuard",
+      "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryGuard.php",
+      "symbol": "PhorgeGovernanceRecoveryGuard",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "3c339fc984c703350ff42637a032085f962d19010fd8e6cd510cbce45e6668a4",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryTransition",
+      "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryTransition.php",
+      "symbol": "PhorgeGovernanceRecoveryTransition",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "9e9461f5bc37ba0e624f594fe37c089b4b967d90fdbf6ffbee7b0d0d3d12e0e8",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreAssessment",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php",
+      "symbol": "PhorgeRecoveryRestoreAssessment",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "a1c9c3dad9e4e9055319699c0a5e66774b4b7e360c2263622a885de9b8e676d9",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreMediaSource",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreMediaSource.php",
+      "symbol": "PhorgeRecoveryRestoreMediaSource",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "4bdcd5b672492ce712ebffd9e5c0a21977870e39416617031ad6f0ea1b224f17",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreOrganizationSource",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreOrganizationSource.php",
+      "symbol": "PhorgeRecoveryRestoreOrganizationSource",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "d33a5d5fece5b4a1f1e934427a4c43e7471df32fa6e0ce9cdcacf5a851673ff0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreProfile.php",
+      "symbol": "PhorgeRecoveryRestoreProfile",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "663938f8481b9d59998a82c6c648a4628d7db8a25bbfd48cf966f933e28b21cb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreRequest",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php",
+      "symbol": "PhorgeRecoveryRestoreRequest",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "b2f21a5be6800627325a1ac92c21d5dfecdcd7d1b65d08b22274a991417b182e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreSchemaSpec",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreSchemaSpec.php",
+      "symbol": "PhorgeRecoveryRestoreSchemaSpec",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "e5a596d8e7c2b2ca148ecdcdb2a4ae7908b90e4262a538eb55afab26c1937fbf",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreService",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
+      "symbol": "PhorgeRecoveryRestoreService",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "aa9c94a32951774a970871b1d431dc069d2d4a03899e919a934decf63202399e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PRODUCER.PhorgeRecoverySessionProducerFence",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
+      "symbol": "PhorgeRecoverySessionProducerFence",
+      "kind": "isolated-recovery-foundation-static-no-permit",
+      "sha256": "6033903a3c6b597bbddd07231b1f15fac8a92b9fb3893ed8fb13cd770d9ad935",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1435,6 +1688,70 @@
       "basis": "Reviewed per-flow producer source binding / native security event identity. Static reference does not prove authorization."
     },
     {
+      "id": "VIEW-FORM-LINK-01",
+      "from_id": "VIEW.FORM.PROJECT.CONTROLLER",
+      "to_id": "VIEW.FORM.PROJECT.ENGINE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-02",
+      "from_id": "VIEW.FORM.PROJECT.ENGINE",
+      "to_id": "VIEW.FORM.ENGINE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-03",
+      "from_id": "VIEW.FORM.ENGINE",
+      "to_id": "VIEW.FORM.CATALOG",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-04",
+      "from_id": "VIEW.FORM.ENGINE",
+      "to_id": "VIEW.FORM.BASE.EDITOR",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-05",
+      "from_id": "VIEW.FORM.BASE.EDITOR",
+      "to_id": "VIEW.FORM.SCOPE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-06",
+      "from_id": "VIEW.FORM.SCOPE",
+      "to_id": "VIEW.FORM.CATALOG",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-07",
+      "from_id": "VIEW.FORM.PROPOSAL.CONTROLLER",
+      "to_id": "VIEW.FORM.SCOPE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
+      "id": "VIEW-FORM-LINK-08",
+      "from_id": "VIEW.FORM.PROPOSAL.CONTROLLER",
+      "to_id": "VIEW.FORM.POLICY.CONTROL",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Reviewed native form provenance/reference and unchanged final-effect fence; not runtime or authority certification."
+    },
+    {
       "id": "NATIVE-LINK-61",
       "from_id": "LEGALPAD.VERIFY.CONTROLLER",
       "to_id": "NATIVE.PhorgeLegalpadVerification",
@@ -1521,6 +1838,118 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Actual stop service source dependency; static pin is not a recovery authority or exhaustive source closure."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-01",
+      "from_id": "POLICY.ERROR.STORE",
+      "to_id": "POLICY.ERROR.STATE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact fixed class reference; not runtime authorization evidence."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-02",
+      "from_id": "POLICY.ERROR.STATE",
+      "to_id": "POLICY.ERROR.REFUSAL",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact fixed class reference; not runtime authorization evidence."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-03",
+      "from_id": "POLICY.ERROR.STORE",
+      "to_id": "POLICY.ERROR.REFUSAL",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact fixed class reference; not runtime authorization evidence."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-04",
+      "from_id": "POLICY.ERROR.PROJECTION",
+      "to_id": "POLICY.ERROR.REFUSAL",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact fixed class reference; not runtime authorization evidence."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-05",
+      "from_id": "VIEW.FORM.PROPOSAL.CONTROLLER",
+      "to_id": "POLICY.ERROR.PROJECTION",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact typed business response boundary; no authorization grant."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-06",
+      "from_id": "VIEW.FORM.ENGINE",
+      "to_id": "POLICY.ERROR.PROJECTION",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact typed business response boundary; no authorization grant."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-07",
+      "from_id": "VIEW.FORM.SCOPE",
+      "to_id": "POLICY.ERROR.STATE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Exact typed business response boundary; no authorization grant."
+    },
+    {
+      "id": "POLICY-ERROR-LINK-08",
+      "from_id": "VIEW.FORM.SCOPE",
+      "to_id": "VIEW.FORM.CATALOG",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Known additional native-form effects are a refusal, never authorized or discarded."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-01",
+      "from_id": "AUTH.USER.DAO",
+      "to_id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryGuard",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-02",
+      "from_id": "AUTH.SESSION.DAO",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoverySessionProducerFence",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-03",
+      "from_id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryGuard",
+      "to_id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryTransition",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-04",
+      "from_id": "RECOVERY.PRODUCER.PhorgeGovernanceRecoveryGuard",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-05",
+      "from_id": "RECOVERY.PRODUCER.PhorgeRecoverySessionProducerFence",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
+    },
+    {
+      "id": "RECOVERY-PRODUCER-LINK-06",
+      "from_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "to_id": "RECOVERY.PhorgeRecoveryNativeCaptureScope",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
     }
   ],
   "scan": {
@@ -1699,7 +2128,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
-        "sha256": "20efcc36168fe0b07aea81e461424aa85514b14183576417ade0575095a7cee3"
+        "sha256": "97bd3ca80e3e174620b35bf2bd83cfb7b0d98e53ee6c5851aa65271dbe2e2957"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigOptions.php",
@@ -1727,19 +2156,31 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
-        "sha256": "b37c7f3a25345c2d0734a76e08190bd426ca04e458a7627fc83d27c6430d9070"
+        "sha256": "bf105b65b30101b69a6c2029e3465cc413b5c217cb1f7744010f6172e57dad9a"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
-        "sha256": "d797bd46fbbdccd0e038007ac3f9d848ea45e39279968061187f3d8342286ca9"
+        "sha256": "99a02a687e23a7fe846830a36c9811d510f11bbbf13aa73c9fe11fd75d627427"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalService.php",
-        "sha256": "ce1751a98f585ab53ccb966f6234064df25bc13f8a88c00a76800399b4c4f71f"
+        "sha256": "1a87dbe9e42859609a80bea2a67ffeeb573f7cc539763693db45444d4f70fbf6"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
-        "sha256": "0800d2bfd2f66b6e5f02a485d76bd9515ef279322f7106aaa7f11dca8e332fe5"
+        "sha256": "7dcb8bfc0a7ed45785a10b8652bf943bf9a4a870669401d3a2de92d532651903"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyFailure.php",
+        "sha256": "812846d3ba2188be237a8eb08650cfd6c601b799d50264f3b9f94e2a88e62b70"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyRefusalException.php",
+        "sha256": "16c33227d95f6391e6dd70b955cc03827cafeecdae1d7840cde921e7c932ca82"
+      },
+      {
+        "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyTicketState.php",
+        "sha256": "001b4d319c474c52eac8c1771b74ed6f4342b524b68ba7814582cd7396f00f52"
       },
       {
         "path": "src/infrastructure/governance/execution/ProjectPolicyApprovalConduitAPIMethod.php",
@@ -1862,8 +2303,20 @@
         "sha256": "430c5826f8cdf6446a90beb4122582c6ff1cbbc8750faae52fb37e063bca6c9c"
       },
       {
+        "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php",
+        "sha256": "1fba208bd326bf728cc77ce6c5a6c9f8fd85c15240db80a1a9e9436f141dc481"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryGuard.php",
+        "sha256": "3c339fc984c703350ff42637a032085f962d19010fd8e6cd510cbce45e6668a4"
+      },
+      {
         "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoverySourceInventory.php",
         "sha256": "2839d8bc66db7127da8be8e6518631f83cdd845811a8ea8964b5d1618e089f1b"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryTransition.php",
+        "sha256": "9e9461f5bc37ba0e624f594fe37c089b4b967d90fdbf6ffbee7b0d0d3d12e0e8"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php",
@@ -1875,11 +2328,43 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
-        "sha256": "880a9f7ecd055d916faf132382aa9eac499a2a05c30161f7697862c68908d748"
+        "sha256": "601eddb3c774ff9ab0d77b7862c28784e368f6f0a89097e34b6c3fa869414cee"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
         "sha256": "d2d82350896a18c70ffd5682de5b739382a02dbd3ba6dddcc7ea425536893de4"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php",
+        "sha256": "a1c9c3dad9e4e9055319699c0a5e66774b4b7e360c2263622a885de9b8e676d9"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreMediaSource.php",
+        "sha256": "4bdcd5b672492ce712ebffd9e5c0a21977870e39416617031ad6f0ea1b224f17"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreOrganizationSource.php",
+        "sha256": "d33a5d5fece5b4a1f1e934427a4c43e7471df32fa6e0ce9cdcacf5a851673ff0"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreProfile.php",
+        "sha256": "663938f8481b9d59998a82c6c648a4628d7db8a25bbfd48cf966f933e28b21cb"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php",
+        "sha256": "b2f21a5be6800627325a1ac92c21d5dfecdcd7d1b65d08b22274a991417b182e"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreSchemaSpec.php",
+        "sha256": "e5a596d8e7c2b2ca148ecdcdb2a4ae7908b90e4262a538eb55afab26c1937fbf"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
+        "sha256": "aa9c94a32951774a970871b1d431dc069d2d4a03899e919a934decf63202399e"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
+        "sha256": "6033903a3c6b597bbddd07231b1f15fac8a92b9fb3893ed8fb13cd770d9ad935"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStop.php",

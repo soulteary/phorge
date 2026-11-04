@@ -20,6 +20,7 @@ function governance_recovery_guard_cases($fixture,callable $check,array $state) 
       return hash('sha256',phutil_json_encode(array(
         queryfx_all($conn,'SELECT id,phid,isApproved,isDisabled,isAdmin,isSystemAgent,isMailingList,realName FROM %R ORDER BY id',new PhabricatorUser()),
         queryfx_all($conn,'SELECT id,objectPHID,transactionType,oldValue,newValue FROM %R ORDER BY id',new PhabricatorUserTransaction()),
+        queryfx_all($conn,'SELECT userPHID,epoch FROM %R ORDER BY userPHID',new PhorgeGovernanceIdentityEpoch()),
         queryfx_all($conn,'SELECT * FROM recovery_restore_request ORDER BY requestID'),
         queryfx_all($conn,'SELECT * FROM recovery_restore_operation ORDER BY operationID'),
         queryfx_all($conn,'SELECT * FROM recovery_restore_audit ORDER BY id'))));
@@ -51,6 +52,20 @@ function governance_recovery_guard_cases($fixture,callable $check,array $state) 
       $check(queryfx_one($conn,'SELECT @@SESSION.sql_mode mode')['mode']===''&&
         $coercion_control&&$probe_before===$fingerprint()&&!$conn->isInsideTransaction(),
         'recovery-guard-real-permissive-session-sql-mode-control');
+      // Exact flag-OFF native DAO control, always rolled back. Do not turn
+      // the new mechanical fence into a hidden dependency of the old path.
+      $off=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.enabled',false);
+      $native_before=$fingerprint();$native_coercion=false;
+      try {
+        $conn->openTransaction();
+        try {
+          (new PhabricatorUser())->load($disabled->getID())->setIsDisabled('0.0')->saveWithoutIndex();
+          $native_row=queryfx_one($conn,'SELECT isDisabled FROM %R WHERE id=%d',new PhabricatorUser(),$disabled->getID());
+          $native_coercion=(string)$native_row['isDisabled']==='0';
+        }finally{$conn->killTransaction();}
+      }finally{unset($off);}
+      $check($native_coercion&&$native_before===$fingerprint()&&!$conn->isInsideTransaction(),
+        'recovery-guard-flag-off-real-native-dao-permissive-coercion-control');
       foreach(array(
         'recovery-guard-permissive-raw-zero-decimal-refused'=>'0.0',
         'recovery-guard-permissive-raw-double-zero-refused'=>'00',
@@ -73,6 +88,7 @@ function governance_recovery_guard_cases($fixture,callable $check,array $state) 
     $refuse(static function()use($disabled,$state){
       $fresh=(new PhabricatorUser())->load($disabled->getID());
       (new PhabricatorUserTransactionEditor())->setActor($state['admin']['viewer'])
+        ->setRequest($state['admin']['request'])->setCancelURI('/people/')
         ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
         ->applyTransactions($fresh,array((new PhabricatorUserTransaction())
           ->setTransactionType(PhabricatorUserDisableTransaction::TRANSACTIONTYPE)->setNewValue(false)));},
@@ -92,6 +108,7 @@ function governance_recovery_guard_cases($fixture,callable $check,array $state) 
     try {
       $fresh=(new PhabricatorUser())->load($active->getID());
       (new PhabricatorUserTransactionEditor())->setActor($state['admin']['viewer'])
+        ->setRequest($state['admin']['request'])->setCancelURI('/people/')
         ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
         ->applyTransactions($fresh,array((new PhabricatorUserTransaction())
           ->setTransactionType(PhabricatorUserDisableTransaction::TRANSACTIONTYPE)->setNewValue(true)));
@@ -110,7 +127,7 @@ function governance_recovery_guard_cases($fixture,callable $check,array $state) 
       $check($refused&&!$conn->isInsideTransaction()&&$current['realName']==='Synthetic raw guard write',
         'recovery-guard-untracked-native-raw-transaction-refused-without-implicit-commit');
     }finally{queryfx($conn,'ROLLBACK');}
-    return array('actual_native_orm_entry_profile'=>true,'initial_approval_supported'=>false,
+    return array('actual_native_orm_entry_profile'=>true,'actual_flag_off_native_DAO_control'=>true,'permissive_SQL_mode_raw_flags_refused'=>true,'initial_approval_supported'=>false,
       'complete_restoration_permit'=>false,'global_sources_complete'=>false,'production_activation'=>false);
   }finally{
     try{if($renamed){governance_native_setup_query($fixture,'RENAME TABLE '.$backup_table.' TO '.$request_table);}}

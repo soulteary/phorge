@@ -173,7 +173,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       $scope->requireWebEnrollment($scope->snapshot,$scope->actor);
       if (in_array($mode,array('propose','execute'),true)) {
         if (!PhabricatorPolicyFilter::hasCapability($scope->actor,$object,PhabricatorPolicyCapability::CAN_EDIT)) {
-          throw new RuntimeException('project_execution_native_edit_required');
+          throw PhorgeProjectPolicyRefusalException::newForReason('native-edit');
         }
       } else if(in_array($mode,array('self-join','self-leave'),true)){
         if(($mode==='self-join' && !PhabricatorPolicyFilter::hasCapability($scope->actor,$object,PhabricatorPolicyCapability::CAN_JOIN)) ||
@@ -183,7 +183,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
         }
         $scope->lockInverseMembership();
       } else if (!$scope->snapshot->isSystemAdmin()) {
-        throw new RuntimeException('project_execution_approver_admin_required');
+        throw PhorgeProjectPolicyRefusalException::newForReason('current-approver');
       }
       if($scope->hasMemberIntent()){$scope->lockInverseMembership();}
       $last=queryfx_one($conn,'SELECT id FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id DESC LIMIT 1 LOCK IN SHARE MODE',
@@ -272,6 +272,41 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     return $user;
   }
+  /** Read-only native display values for this exact locked web actor. */
+  private function attachWebDisplayCaches() {
+    $factories=array(PhabricatorUserPreferencesCacheType::KEY_PREFERENCES=>new PhabricatorUserPreferencesCacheType());
+    if(PhabricatorApplication::isClassInstalledForViewer(PhabricatorConpherenceApplication::class,$this->actor)){
+      $factories[PhabricatorUserMessageCountCacheType::KEY_COUNT]=new PhabricatorUserMessageCountCacheType();
+    }
+    if(PhabricatorApplication::isClassInstalledForViewer(PhabricatorNotificationsApplication::class,$this->actor)){
+      $factories[PhabricatorUserNotificationCountCacheType::KEY_COUNT]=new PhabricatorUserNotificationCountCacheType();
+    }
+    $phid=$this->actor->getPHID();$raw=array();
+    foreach($factories as$key=>$factory){
+      $values=$factory->newValueForUsers($key,array($this->actor));
+      if(array_keys($values)!==array($phid)||
+        ($key===PhabricatorUserPreferencesCacheType::KEY_PREFERENCES?!is_string($values[$phid]):
+          ((!is_int($values[$phid])&&!is_string($values[$phid]))||!preg_match('/\A(?:0|[1-9][0-9]*)\z/D',(string)$values[$phid])))){
+        throw new RuntimeException('project_execution_actor_display_cache_invalid');
+      }
+      $raw[$key]=$values[$phid];
+    }
+    // A real preceding GET normally already populated the native avatar cache.
+    // Reuse only an actual row valid for this locked actor; never call the
+    // profile factory, which may create files and save user authority fields.
+    $profile=new PhabricatorUserProfileImageCacheType();$profile_key=PhabricatorUserProfileImageCacheType::KEY_URI;
+    $profiles=PhabricatorUserCache::readCaches($profile,$profile_key,array($phid));
+    if(isset($profiles[$phid])&&is_string($profiles[$phid])&&
+      $profile->isRawCacheDataValid($this->actor,$profile_key,$profiles[$phid])){
+      $raw[$profile_key]=$profiles[$phid];
+    }
+    // Missing or invalid profile cache is deliberately left unattached. A
+    // direct editor need not render an avatar; no new cache-presence gate is
+    // added before mutation. A later renderer still fails rather than writes.
+    // Attach only computed raw display data. Never generate inline, write the
+    // durable user cache, replace the authority actor, or generate avatars.
+    $this->actor->attachRawCacheData($raw);
+  }
   private function captureSpaces() {
     $table=new PhabricatorSpacesNamespace();
     $schema=self::sourceDatabase($this->connection,$table);
@@ -310,7 +345,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     $this->cache->deleteKeys(array($key));
     if (!PhabricatorPolicyFilter::hasCapability($user,$this->object,PhabricatorPolicyCapability::CAN_VIEW)) {
-      throw new RuntimeException('project_execution_native_view_required');
+      throw PhorgeProjectPolicyRefusalException::newForReason('native-view');
     }
   }
   private function requireWebEnrollment(PhorgeGovernanceNativeIdentitySnapshot $snapshot,PhabricatorUser $user) {
@@ -325,7 +360,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       throw new RuntimeException('project_execution_identity_plan_changed');
     }
     $snapshot=PhorgeGovernanceNativeIdentitySource::lockCredentialBinding($binding,$this->connection);
-    if ($approver && !$snapshot->isSystemAdmin()) { throw new RuntimeException('project_execution_approver_admin_required'); }
+    if ($approver && !$snapshot->isSystemAdmin()) { throw PhorgeProjectPolicyRefusalException::newForReason('current-approver'); }
     $user=$this->freshUser($snapshot);
     if ($this->state==='consumed' && $this->intent->isViewPolicy()) {
       // The only accepted transition is the approved VIEW field. Re-evaluate
@@ -368,15 +403,18 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     $approval=$editor->getProjectApprovalID();
     if ($approval===null && $request!==null) { $approval=$request->getStr('governanceApprovalID'); }
     $membership=in_array($decision,array('self-join','self-leave'),true);
-    if(!$membership){PhorgeProjectExecutionValue::identifier($approval);}
+    if(!$membership){PhorgeProjectPolicyTicketState::identifier($approval);}
     else if($approval!==null && $approval!==''){throw new RuntimeException('project_execution_membership_ticket_not_applicable');}
+    $policy_transaction=in_array($decision,array('view-policy','edit-policy'),true)?
+      PhorgeProjectExecutionCatalog::policyTransaction($editor,$object,$xactions,$decision):null;
     $intent=in_array($decision,array('members-add','members-remove'),true)?
       PhorgeProjectExecutionIntent::newFromNativeMembership($xactions[0]):
-      ($decision==='view-policy'?PhorgeProjectExecutionIntent::newViewPolicy($xactions[0]->getNewValue()):null);
-    $policy=$intent!==null?$intent->getPolicy():($membership?PhabricatorPolicies::POLICY_USER:$xactions[0]->getNewValue());
+      ($decision==='view-policy'?PhorgeProjectExecutionIntent::newViewPolicy($policy_transaction->getNewValue()):null);
+    $policy=$intent!==null?$intent->getPolicy():($membership?PhabricatorPolicies::POLICY_USER:$policy_transaction->getNewValue());
     $scope=self::open($context,$object,$policy,$membership?$decision:'execute',$membership?null:$approval,$intent);
     $scope->editor=$editor;
     try {
+    if($request!==null){$scope->attachWebDisplayCaches();}
     $editor->setActor($scope->actor);
     if ($request!==null) {
       // Replace only this authenticated viewer with its locked current row and
@@ -393,6 +431,10 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
         get_class($xactions[0])!==PhabricatorProjectTransaction::class ||
         $xactions[0]->getTransactionType()!==$this->intent->getTransactionType() ||
         $xactions[0]->getNewValue()!==$this->newPolicy || $xactions[0]->getComment()!==null) {
+      if($this->state==='open'&&PhorgeProjectExecutionCatalog::hasKnownAdditionalFormEffects(
+          $this->editor,$this->object,$xactions,$this->intent->getTransactionType(),$this->newPolicy)){
+        throw PhorgeProjectPolicyRefusalException::newForReason('additional-effects');
+      }
       throw new RuntimeException('project_execution_expanded_closure_unsupported');
     }
     $metadata=$xactions[0]->getMetadata();

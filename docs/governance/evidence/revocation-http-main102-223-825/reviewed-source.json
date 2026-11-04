@@ -1,0 +1,17 @@
+{
+  "runtime_source_head": "7db377724a1ffc4b7aa592c3382bb7b2cf77df54",
+  "source_sha256": {
+    "scripts/governance/check_native_organization.py": "2d9cbc51ab550bfbaf23699964c9afc68b6e51d9964e3af57ec29cef74ef0d2b",
+    "support/governance/native-organization/native-cases.php": "990a9315393d385d56d135940fc26de33dad5238fc0e0ab534ebba26ddfdefda",
+    "support/governance/native-organization/revocation-http-cases.php": "ab4eeee599cfd3fd8e3f646e1f6f4ecaed0408c41751f5afe0712cdf91f2e36e",
+    "support/governance/native-organization/revocation-http-router.php": "acc25ad56ad63d1d1ef36ae22fccbb0343831dcdde848e9d53a86f6a89fc0c7f",
+    "support/governance/revocation-measurement/README.md": "6c752658a44d386c7b80197ebb9ca0f081c4e15a4de755e1932a4ef70f5cf2ad",
+    "support/governance/revocation-measurement/adapters.json": "19f888328e2abc2359ae8375f86a59f5a14202b8d827c4f4eea95f9809280072",
+    "support/governance/revocation-measurement/consumer.py": "abf79fb0e64e099e72dd3b6ad50d9d727eb758d33963f47f2923f91b754346a3",
+    "tests/governance/test_native_organization.py": "751fb9bfebe34587a0a032a5b0ec6083a87f83e0885b8786f069298e5c1283eb",
+    "tests/governance/test_private_notifications.py": "e68998d5114dd3589ca31c4e708cb48e04ff082957ccb16295f29c73d35c4930",
+    "tests/governance/test_revocation_measurement.py": "d0797e088b3fe6ddcfede070c5e8507ab0e88f89ed698de7e1052c64069e6cbc"
+  },
+  "documents_are_not_new_execution": true,
+  "source_archive_sha256": "a33a83a801dee7969796ea02acbe5ceedbfc55a84e8c656074e81ec2fadc0381"
+}

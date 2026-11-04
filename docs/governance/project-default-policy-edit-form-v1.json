@@ -1,0 +1,85 @@
+{
+  "version": 5,
+  "status": "native-textarea-parser-corrected-source-host-verification-pending-runtime-unproven",
+  "parent_source_checkpoint": "af43aae0f62f9aa6df1bb085eb3ed515cae57630",
+  "parent_checkpoint_obligation_not_actual": {
+    "pure_methods": 195,
+    "native_checks": 607
+  },
+  "feature_default": false,
+  "activation_recommended": false,
+  "trust_boundary": [
+    "Native PhabricatorProjectEditController and exact final Project engine resolve the real edit configuration and authenticated request.",
+    "Only the private PhabricatorEditEngine::buildEditResponse call stack may register an in-process WeakMap lease bound to exact engine/controller/config/request/editor/object and raw transaction digest.",
+    "Default transaction metadata selects a candidate only; it never supplies permission or causes a transaction to be dropped.",
+    "Native populate, validation, capability checks and filtering remain. A policy transition still requires exactly one approved effective transaction. Genuine fixed low-risk content and no-effect native form submissions retain the native path; no transaction is discarded.",
+    "Guarded-only array reindexing preserves count and values after native filtering; Scope selects the policy transaction from the proved envelope, not raw array index zero.",
+    "Conduit has no form lease and retains the exact single-transaction input grammar.",
+    "No non-Project or feature-off form behavior is changed."
+  ],
+  "default_edit_form_ui": "Feature-on existing Project form includes an approval identifier field with no transaction type, plus a proposal link. The identifier itself is not authority.",
+  "policy_preview_freshness": "Policy query and actual control rendering occur while Scope owns the fresh actor/Space cache; the proposal hides the native Space mutation control without changing its default in other forms.",
+  "fixture_evidence_required": [
+    "actual platform route match and native session bootstrap",
+    "parse complete native GET form including CSRF and ordinary defaults",
+    "actual matching native POST with approved VIEW ticket",
+    "missing CSRF refusal",
+    "second actual field change refusal with unchanged domain fingerprint",
+    "legacy EDIT ticket cannot execute VIEW",
+    "native NoOne/self-VIEW validation response with unchanged state",
+    "all provenance and native transaction locks released",
+    "private admin Space project favorite absent from real Celerity policy metadata after source role change",
+    "ordinary content-only actual default GET/POST without a policy ticket",
+    "actual no-effect POST retains native response and unchanged fingerprint",
+    "actual JOIN change with forged default flags refuses before effects",
+    "explicit Space primary key and both aliases cannot select the omitted-control semantic-default branch",
+    "uninitialized empty-description no-effect form POST",
+    "uninitialized description policy-only commit with ticket consumption"
+  ],
+  "not_claimed": [
+    "supported runtime pass",
+    "HTTP server emission",
+    "browser or MFA interaction acceptance",
+    "global atomic revocation across all policies",
+    "arbitrary plugin/custom-field/hierarchy/Space mutation execution",
+    "arbitrary custom forms or unsupported structural execution"
+  ],
+  "remaining": [
+    "Actual PHP8.5.12 full218 methods and753 SQL checks, exact runtime source and all owned cleanup",
+    "Independent final source/lease/native-field review",
+    "Safe actionable native form responses for missing/stale/mismatched approval input; unexpected backend failures remain failures",
+    "Trusted HTTP/browser GET-to-POST and native MFA interaction",
+    "Real concurrent default-field source change versus effective-sensitive DAO fence; broader hierarchy/Space execution remains blocked",
+    "Archived-only/multiple-visible/concurrent default Space profiles remain unproved."
+  ],
+  "base_main": "0a43c0211c4ced7749d26187da29798c4439086b",
+  "historical_obligation_not_actual": {
+    "pure_methods": 197,
+    "native_checks": 615,
+    "native_workers": 19,
+    "additional_native_checks_after_parent": 8
+  },
+  "new_obligation_not_actual": {
+    "pure_methods": 218,
+    "native_checks": 753,
+    "native_workers": 25,
+    "retained_main_checks": 725,
+    "additional_form_checks": 28
+  },
+  "current_host_tests_actually_passed": {
+    "governance": 129,
+    "permissions": 85
+  },
+  "source_compatibility": "All main725 mandatory IDs and every existing native summary field are retained; all277 lexical candidate IDs and dispositions remain. Only the reviewed EditEngine source/line positions and class-reference pattern changed.",
+  "native_content_regression_fix": {
+    "cause": "The old form classifier rejected changed native content fields, and treated all unchanged default fields as an unsupported sensitive batch.",
+    "scope": "Only the exact WeakMap-backed native form lease accepts canonical name/color/icon/slugs/description transactions. No changed policy selects literal native; actual JOIN/Space/unknown or nonnull hierarchy transactions still reject early. Caller-provided default flags do not establish provenance.",
+    "actual_production_runtime_proved": false
+  },
+  "native_object_profile": {
+    "description": "Test both uninitialized NULL storage with an empty textarea and a native-editor-initialized nonempty description. Preserve every native setup transaction; check each policy changes history by exactly one VIEW record.",
+    "textarea": "Native TextAreaControl prefixes LF because browsers discard the first LF. The fixture now decodes that serialization without trimming user-leading newlines. Prior extra customfield effects were caused by the fixture parser, not a required description initialization workflow.",
+    "no_effect": "Retain native no-effect behavior and unchanged business fields/history; native Lisk dateModified bookkeeping may advance.",
+    "raw_transactions": "All actual generated transactions and raw values remain intact. The parser corrects browser form emulation; production single-effect and sensitive-write guards are unchanged."
+  }
+}

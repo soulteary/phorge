@@ -821,6 +821,19 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset({
  'project-approved-members-current-approver-role-revocation-invalidates-ticket'})
 
 
+VIEW_FORM_CHECKS = frozenset(['project-view-form-existing-json-edit-proposal-approve-and-admin-history-compatible', 'project-view-form-existing-json-view-proposal-approve-and-admin-history-compatible', 'project-view-form-existing-json-history-still-denies-nonadmin-current-editor', 'project-view-form-policy-options-use-current-scope-actor-after-real-role-source-change', 'project-view-form-blank-native-controller-has-project-selector-and-no-business-write', 'project-view-form-preview-selects-corresponding-current-policy-without-persisting', 'project-view-form-native-post-without-csrf-refused-without-write', 'project-view-form-unknown-operation-refused-without-write', 'project-view-form-mixed-json-and-form-payload-refused-without-write', 'project-view-form-absent-operation-keeps-legacy-edit-policy-meaning', 'project-view-form-edit-ticket-cannot-authorize-native-view-post', 'project-view-form-approved-noone-still-refused-by-native-self-view-validator', 'project-view-form-submits-server-typed-view-intent', 'project-view-form-approved-native-web-post-commits-view-ticket-and-native-record'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | VIEW_FORM_CHECKS
+NATIVE['project_execution_tests']['native_policy_proposal_form'] = {'actual_native_controller_form': True, 'actual_chinese_form_render': True, 'policy_options_use_current_actor': True, 'actual_native_post_csrf': True, 'server_typed_view_intent': True, 'legacy_edit_meaning_retained': True, 'existing_json_controller_compatible': True, 'admin_history_gate_retained': True, 'native_self_view_validator_retained': True, 'actual_http_server': False, 'browser_proved': False}
+
+VIEW_EDIT_ROUTE_CHECKS = frozenset(['project-view-form-policy-options-render-under-current-space-cache-without-space-mutation-control', 'project-view-default-edit-controller-real-route-get-renders-native-fields-and-ticket-input', 'project-view-default-edit-controller-real-post-without-csrf-refused-without-write', 'project-view-default-edit-controller-second-actual-change-refuses-whole-transition', 'project-view-default-edit-controller-edit-ticket-cannot-authorize-view-form', 'project-view-default-edit-controller-noone-still-renders-native-self-view-validation', 'project-view-default-edit-controller-get-to-post-native-view-record-ticket-commit', 'project-view-default-edit-controller-provenance-and-native-locks-released'])
+VIEW_EDIT_ROUTE_CHECKS = VIEW_EDIT_ROUTE_CHECKS | frozenset(['project-view-default-edit-controller-native-content-only-post-needs-no-policy-ticket', 'project-view-default-edit-controller-empty-submit-retains-native-no-effect', 'project-view-default-edit-controller-join-change-and-forged-default-flags-refused-before-effects'])
+VIEW_EDIT_ROUTE_CHECKS = VIEW_EDIT_ROUTE_CHECKS | frozenset(['project-view-default-edit-controller-explicit-space-alias-inputs-refused'])
+VIEW_EDIT_ROUTE_CHECKS = VIEW_EDIT_ROUTE_CHECKS | frozenset(['project-view-default-edit-controller-uninitialized-empty-description-no-effect','project-view-default-edit-controller-uninitialized-description-policy-only-commit'])
+VIEW_EDIT_ROUTE_CHECKS = VIEW_EDIT_ROUTE_CHECKS | frozenset(['project-view-default-edit-controller-no-effect-crosses-native-clock-before-join-refusal'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | VIEW_EDIT_ROUTE_CHECKS
+NATIVE['project_execution_tests']['native_policy_proposal_form'].update(policy_options_use_current_spaces=True,space_mutation_control_hidden=True,native_policy_behavior_metadata_checked=True)
+NATIVE['project_execution_tests']['native_default_policy_edit_form'] = {'actual_platform_routing': True, 'actual_default_edit_controller_get_post': True, 'native_field_generation_and_filtering_retained': True, 'single_effect_after_native_filter': True, 'caller_default_flag_authority': False, 'actual_http_server': False, 'browser_proved': False}
+NATIVE['project_execution_tests']['native_default_policy_edit_form'].update(native_content_only_post_retained=True,native_no_effect_post_retained=True,native_no_effect_cross_second_clock_proved=True,unsupported_join_post_refused_early=True,explicit_space_alias_inputs_refused=True,native_description_initialized_before_policy=True,uninitialized_description_policy_profile_proved=True)
 
 # R02.1 records actual current account observations only. All source families
 # remain incomplete and this summary cannot be promoted into a recovery permit.
@@ -1071,7 +1084,7 @@ NOTIFICATION_BOUNDARY_CHECKS = frozenset(['private-business-project-normal-actua
  'private-mail-legalpad-verifier-victim-rolls-back-and-releases-locks-before-connection-close-with-no-mail',
  'private-mail-legalpad-weighted-index-race-proves-actual-verifier-deadlock-victim-not-permission-denial'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | NOTIFICATION_BOUNDARY_CHECKS
-WORKERS = 38  # Root25 plus six N12 independent probes; local business subprocesses excluded.
+WORKERS = 40  # Root25 plus six N12 independent probes; local business subprocesses excluded.
 NATIVE['private_mail_tests']['legalpad_tests']['policy_source_tests'] = {'actual_named_effective_policy': True,
  'actual_project_membership_editor_and_materialized_source': True,
  'all_policy_sources_atomically_locked': False,
@@ -1140,7 +1153,29 @@ NATIVE['private_mail_tests']['business_publication_tests'] = {'actual_native_sql
                                          'postcompletion_source_visible': False,
                                          'precompletion_native_permanent_failure': True,
                                          'precompletion_source_visible': False}}}}
+HTTP_MEASUREMENT_PRODUCER = 'support/governance/native-organization/revocation-http-cases.php'
+HTTP_MEASUREMENT_ROUTER = 'support/governance/native-organization/revocation-http-router.php'
+HTTP_MEASUREMENT_CHECKS = frozenset(['n12-conduit-http-independent-standard-token-pretransition-allow', 'n12-conduit-http-native-parse-error-is-unknown-not-auth-denial', 'n12-conduit-http-owned-token-delete-commit-and-absence-proof', 'n12-conduit-http-fresh-postcommit-native-auth-denial', 'n12-conduit-http-serial-parent-clock-same-boot-source-binding', 'n12-conduit-http-three-owned-servers-reaped-and-private-directories-removed'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | HTTP_MEASUREMENT_CHECKS
+# Mutation-test template only, never an executed observation.
+_http_event=json.loads(json.dumps(NATIVE['api_token_revocation_measurement_tests']['event']))
+_http_event['schema']=3
+_http_event['producer_sha256']=hashlib.sha256((ROOT/HTTP_MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
+_http_event['transition']['boundary']='native-token-dao-delete-http-new-requests'
+NATIVE['conduit_HTTP_revocation_measurement_tests']={
+    'profile':'native-conduit-http-token-revocation-only','HTTP_proved':True,'gateway_proved':False,
+    'long_connection_proved':False,'SLA_proved':False,'convergence_proved':False,
+    'actual_Conduit_HTTP_requests':4,'actual_independent_HTTP_processes':3,'native_parse_error_control_observed':True,
+    'token_rows_deleted':1,'native_transaction_record_available':False,
+    'server_cleanup':{'started':3,'stopped':3,'directories_removed':3,'remaining':0,'live':0},
+    'router_sha256':hashlib.sha256((ROOT/HTTP_MEASUREMENT_ROUTER).read_bytes()).hexdigest(),
+    'before_source_binding_sha256':'e'*64,'after_source_binding_sha256':'f'*64,'event':_http_event}
 
+
+# Selected User/Session producer evidence, never a restoration permit.
+RECOVERY_NATIVE_PRODUCER_CHECKS = frozenset(['recovery-guard-first-approval-remains-explicit-unreviewed-admission', 'recovery-guard-flag-off-real-native-dao-permissive-coercion-control', 'recovery-guard-native-aux-phid-allocation-preserves-only-pending-new-registration', 'recovery-guard-permissive-raw-double-zero-refused', 'recovery-guard-permissive-raw-false-word-refused', 'recovery-guard-permissive-raw-zero-decimal-refused', 'recovery-guard-real-emergency-disable-does-not-depend-on-review-storage', 'recovery-guard-real-native-dao-enable-cannot-bypass-source-closure', 'recovery-guard-real-native-user-editor-enable-rolls-back-without-permit', 'recovery-guard-real-permissive-session-sql-mode-control', 'recovery-guard-replace-cannot-reclassify-existing-native-identity-as-new', 'recovery-guard-untracked-native-raw-transaction-refused-without-implicit-commit', 'recovery-producer-schema-recovery_restore_audit-matches-retained-adjustment-spec', 'recovery-producer-schema-recovery_restore_operation-matches-retained-adjustment-spec', 'recovery-producer-schema-recovery_restore_request-matches-retained-adjustment-spec', 'recovery-session-nested-producer-savepoint-preserves-real-outer-rollback', 'recovery-session-release-persists-two-independent-native-sessions-without-restoration', 'recovery-session-two-real-native-inserts-wait-on-user-fence-before-source-write', 'recovery-session-untracked-raw-transaction-1568-preserves-caller-write'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | RECOVERY_NATIVE_PRODUCER_CHECKS
+NATIVE['recovery_native_producer_tests'] = {'schema': {'native_schema_comparison_executed': True, 'candidate_tables_compared': 3, 'schema_adjustment_executed': False, 'all_existing_schema_issues_claimed_resolved': False}, 'user': {'actual_native_orm_entry_profile': True, 'actual_flag_off_native_DAO_control': True, 'permissive_SQL_mode_raw_flags_refused': True, 'initial_approval_supported': False, 'complete_restoration_permit': False, 'global_sources_complete': False, 'production_activation': False}, 'sessions': {'selected_native_session_insert_serialization': True, 'independent_current_actor_credentials': True, 'actor_epoch_initialization_outside_observed_fence': True, 'all_session_producers_closed': False, 'all_sources_complete': False, 'restoration_executed': False}, 'selected_mechanical_producers_only': True, 'restore_service_review_profile_proved': False, 'all_13_source_families_complete': False, 'can_execute': False}
 
 def validate_restore(value, root):
     fields = {'quickstart_sha256', 'app_schema_count', 'owned_schema_count',
@@ -1236,8 +1271,15 @@ REQUIRED_CHECKS = REQUIRED_CHECKS | frozenset([
  'private-business-project-outer-rollback-actual-native-create-envelope-visible-initial-fields-hidden'])
 NATIVE['private_mail_tests']['business_publication_tests']['actual_native_project_create_envelope_verified'] = True
 
+POLICY_ERROR_ROUTE_CHECKS = frozenset(['project-policy-errors-real-controller-input-json-is-400', 'project-policy-errors-real-controller-missing-ticket-is-generic-403-without-write', 'project-policy-errors-real-controller-stored-json-corruption-propagates-backend-error', 'project-policy-errors-real-native-edit-missing-ticket-renders-validation-without-write', 'project-policy-errors-explicit-description-extra-effect-refuses-actionably-without-consumption', 'project-policy-errors-native-separate-content-save-persists-description-and-old-proposal-stays-stale', 'project-policy-errors-fresh-proposal-after-separate-content-save-executes-only-approved-policy'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | POLICY_ERROR_ROUTE_CHECKS
 
-def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
+WIKI_CONTENT_CHECKS = frozenset(['private-wiki-content-real-native-editable-root-precondition', 'private-wiki-content-normal-actual-existing-content-transaction-visible-for-mail', 'private-wiki-content-normal-native-editor-real-gorge-http-enqueue', 'private-wiki-content-normal-native-publisher-current-source-and-fenced-outcome', 'private-wiki-content-outer-commit-actual-existing-content-transaction-visible-for-mail', 'private-wiki-content-outer-commit-native-editor-real-gorge-http-enqueue', 'private-wiki-content-outer-commit-native-publisher-current-source-and-fenced-outcome', 'private-wiki-content-outer-rollback-actual-existing-content-transaction-visible-for-mail', 'private-wiki-content-outer-rollback-native-editor-real-gorge-http-enqueue', 'private-wiki-content-outer-rollback-native-publisher-current-source-and-fenced-outcome', 'private-wiki-content-outer-commit-independent-prepare-sees-old-content-before-commit-no-mail', 'private-wiki-content-outer-rollback-independent-prepare-sees-old-content-before-commit-no-mail', 'private-wiki-content-owned-independent-workers-and-directories-clean'])
+WIKI_CONTENT_CHECKS = WIKI_CONTENT_CHECKS | frozenset(['private-wiki-content-paired55-render-owned-ready','private-wiki-content-missing-render-transient-no-mail-or-success','private-wiki-content-render-owned-process-storage-clean'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | WIKI_CONTENT_CHECKS
+NATIVE['private_mail_tests']['wiki_content_publication_tests'] = {'actual_existing_wiki_content_editor': True, 'actual_paired_queue_and_native_handler': True, 'before_commit_probe_is_prepare_only': True, 'real_before_commit_execute_race_proved': False, 'move_mail_claimed': False, 'automatic_retry_after_permanent_source_failure': False, 'HTTP_gateway_proved': False, 'Go_daemon_proved': False, 'SMTP_proved': False, 'samples': {'normal': {'handler_result': 'success', 'safe_subscriber_mail': True}, 'outer-commit': {'handler_result': 'success', 'safe_subscriber_mail': True}, 'outer-rollback': {'handler_result': 'permanent-failure', 'safe_subscriber_mail': False}}, 'independent_php_workers_executed': 6, 'private_directories_removed': 6, 'private_directories_remaining': 0, 'live_processes_after_cleanup': 0, 'actual_paired55_prose_diff': True, 'missing_render_transient_no_mail_proved': True, 'render_cleanup': {'binary_sha256': 'd05250617dfa12f0b7cfc9108423b55a91ce9dd56224c96335f847deb40c22d2', 'source_revision': '55f8ba8e57b179a7dee92ad43c77038ca322f61c', 'process_stopped': True, 'private_storage_removed': True}}
+
+def validate(data, root=ROOT, file_digest=None, measurement_revision=None, render_digest=None):
     if type(data) is not dict or set(data) != FIELDS:
         raise ValueError('native receipt fields refused')
     native=data['native']
@@ -1312,6 +1354,11 @@ def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     expected_legalpad['inflight_source_tests']['index_race']=index
     expected_native['private_mail_tests']=dict(NATIVE['private_mail_tests'],
         business_gorge_publication_tests=expected_gorge, business_publication_tests=expected_business,legalpad_tests=expected_legalpad)
+    if type(render_digest)is not str or not re.fullmatch(r'[a-f0-9]{64}',render_digest):
+        raise ValueError('paired render binary input required')
+    expected_wiki=json.loads(json.dumps(NATIVE['private_mail_tests']['wiki_content_publication_tests']))
+    expected_wiki['render_cleanup']['binary_sha256']=render_digest
+    expected_native['private_mail_tests']['wiki_content_publication_tests']=expected_wiki
 
     if type(measurement_revision) is not str or not re.fullmatch('[a-f0-9]{40}', measurement_revision):
         raise ValueError('explicit measurement source revision required')
@@ -1323,6 +1370,11 @@ def validate(data, root=ROOT, file_digest=None, measurement_revision=None):
     token_digest=hashlib.sha256((Path(root)/API_TOKEN_MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
     measurement.describe_native_token_receipt(token_observed,measurement_revision,token_digest)
     expected_native['api_token_revocation_measurement_tests']=token_observed
+    http_observed=native.get('conduit_HTTP_revocation_measurement_tests')
+    http_digest=hashlib.sha256((Path(root)/HTTP_MEASUREMENT_PRODUCER).read_bytes()).hexdigest()
+    router_digest=hashlib.sha256((Path(root)/HTTP_MEASUREMENT_ROUTER).read_bytes()).hexdigest()
+    measurement.describe_native_http_receipt(http_observed,measurement_revision,http_digest,router_digest)
+    expected_native['conduit_HTTP_revocation_measurement_tests']=http_observed
     exact_tree(native,expected_native)
     for key, target in {'batch': 'native-organization-media-integration', 'passed': True,
         'scope': 'owned-full-native-source-synthetic-accounts', 'php_version': '8.5.12',
@@ -1366,6 +1418,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--receipt', type=Path, required=True)
     parser.add_argument('--file-binary', type=Path, required=True)
+    parser.add_argument('--render-binary', type=Path, required=True)
     parser.add_argument('--measurement-source-revision', required=True)
     args=parser.parse_args()
     try:
@@ -1373,9 +1426,9 @@ def main():
             raise ValueError('receipt size refused')
         data=json.loads(args.receipt.read_text(), object_pairs_hook=completion.strict_object,
             parse_constant=lambda unused: (_ for _ in ()).throw(ValueError('invalid JSON constant')))
-        if not args.file_binary.is_file():
+        if not args.file_binary.is_file() or not args.render_binary.is_file():
             raise ValueError('paired binary missing')
-        accepted=validate(data, file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest(), measurement_revision=args.measurement_source_revision)
+        accepted=validate(data, file_digest=hashlib.sha256(args.file_binary.read_bytes()).hexdigest(), measurement_revision=args.measurement_source_revision, render_digest=hashlib.sha256(args.render_binary.read_bytes()).hexdigest())
     except (OSError, ValueError, TypeError, KeyError):
         parser.exit(1, 'Native organization receipt rejected.\n')
     print(json.dumps(accepted, sort_keys=True))
