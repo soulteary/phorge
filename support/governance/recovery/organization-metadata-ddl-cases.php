@@ -27,7 +27,7 @@ function governance_recovery_organization_metadata_ddl_cases($fixture,callable $
       foreach(array(false,true)as$rollback){
         if($operation==='alter'){
           $attempted=true;
-          $setup->query('CREATE TABLE '.$quoted.' (id INT UNSIGNED NOT NULL PRIMARY KEY, parentID INT UNSIGNED NULL) ENGINE=InnoDB COMMENT=\''.$marker.'\'');
+          if($setup->query('CREATE TABLE '.$quoted.' (id INT UNSIGNED NOT NULL PRIMARY KEY, parentID INT UNSIGNED NULL) ENGINE=InnoDB COMMENT=\''.$marker.'\'')!==true){throw new RuntimeException('recovery_org_ddl_create_failed');}
         }
         $writer->openTransaction();
         try{
@@ -44,7 +44,7 @@ function governance_recovery_organization_metadata_ddl_cases($fixture,callable $
           $fk='FOREIGN KEY (parentID) REFERENCES `'.$parent_schema.'`.organization_guard(id)';
           $sql=$operation==='create'?'CREATE TABLE '.$quoted.' (id INT UNSIGNED NOT NULL PRIMARY KEY, parentID INT UNSIGNED NULL, '.$fk.') ENGINE=InnoDB COMMENT=\''.$marker.'\'':
             'ALTER TABLE '.$quoted.' ADD CONSTRAINT recovery_org_probe_fk '.$fk;
-          $attempted=true;$setup->query($sql,MYSQLI_ASYNC);$pending=true;
+          $attempted=true;if($setup->query($sql,MYSQLI_ASYNC)!==true){throw new RuntimeException('recovery_org_ddl_async_start_failed');}$pending=true;
           $deadline=microtime(true)+4;$waiting=false;
           do{
             $sql='SELECT COUNT(*) n FROM performance_schema.metadata_locks requested '.
@@ -69,7 +69,7 @@ function governance_recovery_organization_metadata_ddl_cases($fixture,callable $
         }finally{if($writer->isInsideTransaction()){$writer->killTransaction();}}
         $read=array($setup);$error=$reject=array();
         if(mysqli_poll($read,$error,$reject,4,0)!==1){throw new RuntimeException('recovery_org_ddl_completion_timeout');}
-        $setup->reap_async_query();$pending=false;
+        $pending=false;if($setup->reap_async_query()!==true){throw new RuntimeException('recovery_org_ddl_execution_failed');}
         $result=$control->query("SELECT COUNT(*) n FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='".
           $control->real_escape_string($child_schema)."' AND TABLE_NAME='".$table."' AND UNIQUE_CONSTRAINT_SCHEMA='".
           $control->real_escape_string($parent_schema)."' AND REFERENCED_TABLE_NAME='organization_guard'");
@@ -78,7 +78,7 @@ function governance_recovery_organization_metadata_ddl_cases($fixture,callable $
         $check($count===1,'recovery-org-incoming-'.$operation.'-fk-completes-after-'.($rollback?'rollback':'commit'));
         $row=$exists();if(!$row||$row['TABLE_COMMENT']!==$marker||$row['ENGINE']!=='InnoDB'){
           throw new RuntimeException('recovery_org_ddl_probe_ownership_changed');}
-        $setup->query('DROP TABLE '.$quoted);$attempted=false;
+        if($setup->query('DROP TABLE '.$quoted)!==true){throw new RuntimeException('recovery_org_ddl_drop_failed');}$attempted=false;
       }
     }
   }catch(Throwable$error){$primary_error=$error;throw$error;}finally{
@@ -89,12 +89,12 @@ function governance_recovery_organization_metadata_ddl_cases($fixture,callable $
     if($pending){
       $read=array($setup);$error=$reject=array();
       if(mysqli_poll($read,$error,$reject,4,0)!==1){throw new RuntimeException('recovery_org_ddl_pending_cleanup_failed');}
-      $setup->reap_async_query();
+      if($setup->reap_async_query()!==true){throw new RuntimeException('recovery_org_ddl_pending_execution_failed');}
     }
     if($attempted){$row=$exists();if($row!==null){
       if($row['TABLE_COMMENT']!==$marker||$row['ENGINE']!=='InnoDB'){
         throw new RuntimeException('recovery_org_ddl_cleanup_foreign_object');}
-      $setup->query('DROP TABLE '.$quoted);
+      if($setup->query('DROP TABLE '.$quoted)!==true){throw new RuntimeException('recovery_org_ddl_cleanup_drop_failed');}
     }}
     }catch(Throwable$cleanup){
       if($primary_error!==null){throw new PhutilAggregateException('recovery_org_ddl_cleanup_failed',

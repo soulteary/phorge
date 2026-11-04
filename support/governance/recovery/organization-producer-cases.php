@@ -104,12 +104,12 @@ function governance_recovery_organization_producer_cases($fixture,callable $chec
       'recovery-org-missing-mutex-not-initialized-caller-rollback-restores-row');
     $setup=$fixture->getAdmin();$qualified=$fixture->table('user','organization_guard');$changed=false;$bad_engine=false;
     try{
-      $setup->query('ALTER TABLE '.$qualified.' ENGINE=MyISAM');$changed=true;
+      if($setup->query('ALTER TABLE '.$qualified.' ENGINE=MyISAM')!==true){throw new RuntimeException('recovery_org_fixture_engine_change_failed');}$changed=true;
       try{$unit_factory('recovery-engine-'.bin2hex(random_bytes(8)))->save();}
       catch(RuntimeException$error){
         if(get_class($error)!==RuntimeException::class||$error->getMessage()!=='recovery_org_producer_schema_unknown'){throw$error;}$bad_engine=true;
       }
-    }finally{if($changed){$setup->query('ALTER TABLE '.$qualified.' ENGINE=InnoDB');}}
+    }finally{if($changed&&$setup->query('ALTER TABLE '.$qualified.' ENGINE=InnoDB')!==true){throw new RuntimeException('recovery_org_fixture_engine_restore_failed');}}
     $engine=queryfx_one($conn,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s','organization_guard');
     $check($bad_engine&&$engine['ENGINE']==='InnoDB'&&!$conn->isInsideTransaction(),
       'recovery-org-non-innodb-mutex-refused-and-owned-engine-restored');
@@ -157,17 +157,18 @@ function governance_recovery_organization_producer_cases($fixture,callable $chec
     $trigger='`'.$namespace.'_user`.`recovery_org_generation_fault`';$installed=false;
     $unit='recovery-fault-'.bin2hex(random_bytes(8));$refused=false;
     try{
-      $setup->query('CREATE TRIGGER '.$trigger.' BEFORE UPDATE ON '.$qualified.
-        " FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='recovery_org_generation_fixture_fault'");$installed=true;
+      if($setup->query('CREATE TRIGGER '.$trigger.' BEFORE UPDATE ON '.$qualified.
+        " FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='recovery_org_generation_fixture_fault'")!==true){throw new RuntimeException('recovery_org_fixture_trigger_create_failed');}$installed=true;
       $proof=$setup->query("SELECT COUNT(*) n FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA='".
         $namespace."_user' AND TRIGGER_NAME='recovery_org_generation_fault' AND EVENT_OBJECT_TABLE='organization_guard'");
+      if($proof===false){throw new RuntimeException('recovery_org_fixture_trigger_observation_failed');}
       $visible=(int)$proof->fetch_assoc()['n'];$proof->free();
       $check($visible===1,'recovery-org-generation-fault-trigger-actually-installed');
       try{$unit_factory($unit)->save();}
       catch(AphrontQueryException$error){
         if(get_class($error)!==AphrontQueryException::class||$error->getCode()!==1644){throw$error;}$refused=true;
       }
-    }finally{if($installed){$setup->query('DROP TRIGGER '.$trigger);}}
+    }finally{if($installed&&$setup->query('DROP TRIGGER '.$trigger)!==true){throw new RuntimeException('recovery_org_fixture_trigger_drop_failed');}}
     $check($refused&&!$conn->isInsideTransaction()&&
       queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version']===$prior&&
       (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_unit WHERE unitID=%s',$unit)['n']===0,
