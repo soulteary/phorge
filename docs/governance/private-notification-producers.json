@@ -315,7 +315,7 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php",
-      "sha256": "e31c098f603f6a011cbef287884faf58eba1eaedd4c51800f0dbe596a862d7d6"
+      "sha256": "f12041d8c78af5ddff39e0203da4ef3dd2780ccf40e742f53e4933cc4eecbcb2"
     },
     {
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",

@@ -51,6 +51,22 @@ final class PhorgeGovernanceNoticeEventTestCase extends PhutilTestCase {
       }
     }finally{$stack_property->setValue(null,$old_stack);$cache_property->setValue(null,$old_cache);}
   }
+  public function testNoticeSchemaPreservesExactNativeVariableBinaryTypes(){
+    $spec=(new PhorgeGovernanceNoticeSchemaSpec())->setUTF8Charset('utf8mb4')
+      ->setUTF8BinaryCollation('utf8mb4_bin')->setUTF8SortingCollation('utf8mb4_unicode_ci');
+    $method=new ReflectionMethod(PhabricatorConfigSchemaSpec::class,'getDetailsForDataType');
+    foreach(array('varbytes64'=>'varbinary(64)','phid'=>'varbinary(64)','phid?'=>'varbinary(64)',
+      'varbytes32'=>'varbinary(32)','varbytes16'=>'varbinary(16)','uint32'=>'int(10) unsigned',
+      'uint64'=>'bigint(20) unsigned','text'=>'longtext')as$type=>$physical){
+      $details=$method->invoke($spec,$type);$this->assertEqual($physical,$details['type']);
+      $this->assertEqual($type==='phid?',$details['nullable']);
+      $this->assertEqual($type==='text'?'utf8mb4':null,$details['charset']);
+      $this->assertEqual($type==='text'?'utf8mb4_bin':null,$details['collation']);
+    }
+    // bytes64 is fixed-width native BINARY and must not describe VARBINARY DDL.
+    $old=$method->invoke($spec,'bytes64');$this->assertEqual('binary(64)',$old['type']);
+    $this->assertFalse($old['type']===$method->invoke($spec,'varbytes64')['type']);
+  }
   private function row(){return array('source_kind'=>'organization','source_id'=>'1','operation_id'=>'synthetic-op',
     'actor_phid'=>'PHID-USER-'.str_repeat('a',20),'action'=>'unit.create','created_at'=>1);}
   public function testStableEventAndBoundedMetadataOnlyQueuePayload(){

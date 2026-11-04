@@ -6,6 +6,18 @@ spec=importlib.util.spec_from_file_location('private_mail_gate',ROOT/'scripts/go
 gate=importlib.util.module_from_spec(spec);spec.loader.exec_module(gate)
 class PrivateNotificationEvidenceTests(unittest.TestCase):
     def setUp(self):self.data=gate.load(ROOT/'docs/governance/private-notification-producers.json')
+    def test_notice_schema_uses_variable_binary_not_native_fixed_binary(self):
+        spec=(ROOT/'src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php').read_text()
+        ddl=(ROOT/'resources/sql/autopatches/20261104.metamta.governancenotice.sql').read_text()
+        def matches(source):
+            return source.count("=>'varbytes64'")==5 and "=>'bytes64'" not in source
+        self.assertTrue(matches(spec))
+        self.assertEqual(5,ddl.count('VARBINARY(64) NOT NULL')-1)  # Exclude native recipient PHID.
+        self.assertIn("'mailPHID'=>'phid?'",spec)
+        self.assertIn('mailPHID VARBINARY(64) DEFAULT NULL',ddl)
+        for field in ('eventID','operationDigest','actorDigest','metadataDigest'):
+            old=spec.replace("'"+field+"'=>'varbytes64'","'"+field+"'=>'bytes64'",1)
+            self.assertFalse(matches(old))
     def test_reviewed_inventory_remains_partial(self):
         result=gate.validate(self.data)
         self.assertTrue(result['passed']);self.assertFalse(result['smtp_proved']);self.assertTrue(result['activation_blocked'])
