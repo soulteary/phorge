@@ -235,16 +235,38 @@ function governance_recovery_org_lifecycle_cases($fixture,callable $check,array 
         !$conn->isInsideTransaction(),
         'recovery-org-real-oversized-binding-refused-before-payload-decode');
     }finally{$restore_participants();}
-    $guard_before=$read();
+    $guard_before=$read();$boundary_error=null;
+    if(queryfx_one($conn,'SELECT approvalID FROM organization_approval WHERE approvalID=%s',
+      'recovery-lifecycle-last-generation')||queryfx_one($conn,'SELECT id FROM organization_audit WHERE operationID=%s LIMIT 1',
+      'recovery-lifecycle-last-generation')){throw new RuntimeException('recovery_org_lifecycle_boundary_collision');}
     try{
-      queryfx($conn,'UPDATE organization_guard SET version=18446744073709551615 WHERE id=1');
+      queryfx($conn,'UPDATE organization_guard SET version=18446744073709551614 WHERE id=1');
+      $last=$proposal;$last['approval_id']='recovery-lifecycle-last-generation';$last['operation_id']='recovery-lifecycle-last-generation';
+      $last_result=$service->proposeApproval($last);
+      $last_committed=$last_result['state']==='submitted'&&$read()==='18446744073709551615';
       $overflow=$proposal;$overflow['approval_id']='recovery-lifecycle-overflow';$overflow['operation_id']='recovery-lifecycle-overflow';
-      $check($exact_refusal(static fn()=>$service->proposeApproval($overflow),
+      $check($last_committed&&$exact_refusal(static fn()=>$service->proposeApproval($overflow),
           'recovery_org_producer_generation_exhausted')&&$read()==='18446744073709551615'&&
         (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_approval WHERE approvalID=%s',$overflow['approval_id'])['n']===0&&
         !$conn->isInsideTransaction(),
         'recovery-org-real-uint64-exhaustion-rolls-back-proposal-without-wrap');
-    }finally{queryfx($conn,'UPDATE organization_guard SET version=CAST(%s AS UNSIGNED) WHERE id=1',$guard_before);}
+    }catch(Throwable$error){$boundary_error=$error;throw$error;}finally{
+      $boundary_cleanup=array();
+      // Fixed synthetic positive-control rows only; preserve every cleanup step
+      // and the original failure even when an individual restore query fails.
+      try{queryfx($conn,'DELETE FROM organization_audit WHERE operationID=%s AND actorPHID=%s '.
+        'AND action=%s AND unitID=%s AND subjectPHID=%s','recovery-lifecycle-last-generation',
+        $first['viewer']->getPHID(),'approval.propose',$team,$subject);}
+      catch(Throwable$error){$boundary_cleanup['audit']=$error;}
+      try{queryfx($conn,'DELETE FROM organization_approval WHERE approvalID=%s AND operationID=%s '.
+        'AND sourceSubjectPHID=%s AND sourceRequesterPHID=%s','recovery-lifecycle-last-generation',
+        'recovery-lifecycle-last-generation',$subject,$first['viewer']->getPHID());}
+      catch(Throwable$error){$boundary_cleanup['proposal']=$error;}
+      try{queryfx($conn,'UPDATE organization_guard SET version=CAST(%s AS UNSIGNED) WHERE id=1',$guard_before);}
+      catch(Throwable$error){$boundary_cleanup['guard']=$error;}
+      if($boundary_cleanup){if($boundary_error!==null){$boundary_cleanup=array('original'=>$boundary_error)+$boundary_cleanup;}
+        throw new PhutilAggregateException('recovery_org_lifecycle_boundary_cleanup_failed',$boundary_cleanup);}
+    }
     if(!($control instanceof mysqli)){throw new RuntimeException('recovery_org_lifecycle_observer_required');}
     foreach(array(false,true)as$rollback){
       $handle=governance_native_start_worker($fixture,array('action'=>'recovery.org.approval.propose',

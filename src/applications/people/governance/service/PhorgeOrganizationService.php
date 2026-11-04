@@ -106,7 +106,7 @@ final class PhorgeOrganizationService extends Phobject {
       }
       $guard = queryfx_one($conn,
         'SELECT * FROM %T WHERE id=1 FOR UPDATE', $this->table('guard'));
-      if (!$guard || self::version($guard['version']) < 1) {
+      if (!$guard || self::guardGeneration($guard['version'],PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled')) < 1) {
         throw new RuntimeException('organization_guard_refused');
       }
       PhorgeGovernanceNativeIdentitySource::revalidate($this->actorSnapshot, $conn);
@@ -152,6 +152,14 @@ final class PhorgeOrganizationService extends Phobject {
       $this->readStartedAt = null;
       $this->readDeadline = null;
     }
+  }
+
+  /** Internal mutex generation only. Public object versions retain signed ints. */
+  public static function guardGeneration($value,$recoveryEnabled) {
+    if(!is_bool($recoveryEnabled)){throw new RuntimeException('recovery_org_producer_config_unknown');}
+    if(!$recoveryEnabled){return self::version($value);}
+    try{return PhorgeRecoveryStopRequest::transactionID($value);}
+    catch(InvalidArgumentException$error){throw new RuntimeException('recovery_org_producer_generation_unknown');}
   }
 
   public static function version($value) {

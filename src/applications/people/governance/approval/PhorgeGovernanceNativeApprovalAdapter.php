@@ -36,7 +36,7 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
       self::property($service,'actorSnapshot'),$this->connection);
     if (!$snapshot->isSystemAdmin()) { throw new RuntimeException('organization_approval_admin_required'); }
     $guard=queryfx_one($this->connection,'SELECT id,version FROM organization_guard WHERE id=1 FOR UPDATE');
-    if (!$guard || (string)$guard['id']!=='1' || PhorgeOrganizationService::version($guard['version'])<1) {
+    if (!$guard || (string)$guard['id']!=='1' || PhorgeOrganizationService::guardGeneration($guard['version'],PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled'))<1) {
       throw new RuntimeException('organization_approval_guard_required');
     }
     return $snapshot;

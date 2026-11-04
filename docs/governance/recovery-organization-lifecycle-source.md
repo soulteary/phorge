@@ -104,3 +104,23 @@ then enables recovery once for the measured Service/Source/writer operations.
 No protected write temporarily disables the guard. Production source and all
 45 obligations remain unchanged. The static host phase contract is not a native
 runtime proof; the successor still needs supported pure/SQL verification.
+
+## Actual signed-integer guard mismatch and narrow uint64 correction
+
+The signed 1e9 candidate actually passed 236 pure methods and 40 SQL checks.
+Its oversized-binding assertion completed; failure occurred before the uint64
+exhaustion assertion because Service.begin validated the internal guard through
+public signed-integer version(). The same validation remained in Approval,
+Transfer and Handover actor checks. This was a product internal-counter domain
+mismatch, not a reason to weaken the SQL assertion.
+
+Only those four internal mutex checks now select canonical positive uint64 when
+recovery is strictly enabled. Flag-off checks continue through the original
+version() implementation; public unit/member/workflow version semantics and its
+signed bound are unchanged. MAX is a valid current guard, but advancing it still
+fails atomically through the existing exhaustion guard. The real SQL boundary
+probe first commits a synthetic proposal from MAX-1 to MAX, then requires the
+next proposal to fail and roll back. Its fixed positive-control rows and counter
+are restored with independent cleanup attempts preserving the primary failure.
+No permission axis, schema or existing 45 check IDs changed. Host counter tests
+are not native PHP/SQL proof; this successor remains UNRUN.

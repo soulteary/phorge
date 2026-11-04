@@ -57,6 +57,20 @@ final class PhorgeRecoveryOrganizationProducerTestCase extends PhutilTestCase {
     $this->assertTrue($refused);
   }
   public function testGenerationArithmeticIsCanonicalAndCannotWrap() {
+    foreach(array('18446744073709551614','18446744073709551615')as$value){
+      $this->assertEqual($value,PhorgeOrganizationService::guardGeneration($value,true));
+      $refused=false;try{PhorgeOrganizationService::guardGeneration($value,false);}
+      catch(RuntimeException$error){$refused=$error->getMessage()==='organization_version_refused';}
+      $this->assertTrue($refused);
+    }
+    $this->assertEqual(1,PhorgeOrganizationService::guardGeneration('1',false));
+    $this->assertEqual(0,PhorgeOrganizationService::guardGeneration('0',false));
+    foreach(array('0','01','18446744073709551616',true,null)as$bad){
+      $refused=false;try{PhorgeOrganizationService::guardGeneration($bad,true);}
+      catch(RuntimeException$error){$refused=$error->getMessage()==='recovery_org_producer_generation_unknown';}
+      $this->assertTrue($refused);
+    }
+
     foreach(array('1'=>'2','9'=>'10','99'=>'100','9223372036854775807'=>'9223372036854775808',
       '18446744073709551614'=>'18446744073709551615')as$before=>$after){
       $this->assertEqual($after,PhorgeRecoveryOrganizationProducerFence::nextGuardVersion((string)$before));
