@@ -1,7 +1,7 @@
 <?php
 
 /** People-owned organization storage. No native policy inheritance is added. */
-final class PhorgeOrganizationUnit extends PhabricatorUserDAO {
+final class PhorgeOrganizationUnit extends PhorgeRecoveryOrganizationProducerDAO {
   protected $unitID;
   protected $kind;
   protected $state;
