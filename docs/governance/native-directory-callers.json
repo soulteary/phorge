@@ -132,7 +132,7 @@
       "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
       "symbol": "PhorgeGovernanceNativeIdentitySource",
       "kind": "candidate-runtime-source",
-      "sha256": "7b5e9afbb599efcca6928251333136a96468254eeebfb9355fb306ab9b21992c",
+      "sha256": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1980,7 +1980,7 @@
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php",
-        "sha256": "7b5e9afbb599efcca6928251333136a96468254eeebfb9355fb306ab9b21992c"
+        "sha256": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922"
       },
       {
         "path": "src/applications/people/governance/auth/PhorgeGovernanceNativeNoncredentialIdentitySource.php",

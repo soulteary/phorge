@@ -87,3 +87,27 @@ class, basename, bounded line and optional native query exception code. Failed
 remains failed, never authorization denial. Unknown diagnostic shape produces
 only `diagnostic_unavailable`; no message, SQL, identity or token is projected.
 The diagnostic-only 437/12d lock probes are not included in this source.
+
+
+### Current Web credential PRIMARY-read corrective candidate
+
+The owner-reported 4b23 run again passed 243 pure methods and 894 SQL checks.
+Its permanent failure-only projection identified an actual deadlock, and the
+owned InnoDB report showed two session PRIMARY X holders requesting each
+other's PRIMARY S records through the shared `BINARY phid=...` credential read.
+The User PRIMARY fence and old covering-read controls had already passed.
+
+This successor changes only the existing Web credential read inside
+`PhorgeGovernanceNativeIdentitySource::lockMediaBinding`, also used by current
+Web actor revalidation. A nonlocking, sargable PHID lookup plans a bounded native
+ID; an exact `FORCE INDEX (PRIMARY) WHERE id=...` current shared read fetches the
+credential. ID, PHID, owner, digest, native type, partial status, start time,
+expiry and the final database-clock checks remain mandatory. No retry or failed
+child status is accepted as authorization. The original dual native producers
+and all three unfinished Session obligations must now pass on this source.
+
+The mandatory set stays 897; 243 methods/39 classes and cleanup accounting are
+unchanged. API-token `BINARY token` locking reads and other native identity/audit
+queries are unchanged and do not inherit this Web session concurrency evidence.
+API-token insertion/revocation stress remains an explicit follow-up. This is no
+claim of complete credential-source coverage, recovery permission or deployment.
