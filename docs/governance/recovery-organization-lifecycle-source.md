@@ -61,3 +61,30 @@ restore verification and are not accepted from a synthesized host template.
 Host gate tests only prove consumer rejection behavior, including missing every
 obligation and authority/type/source mutations. Existing historical gates and
 receipts are not relabeled, and a current-main union is still required.
+
+## Additional prepared boundaries
+
+The final focused draft adds five storage boundaries: mismatched derived roles
+are rejected by both native loading and source capture; a real legacy version-0
+row blocks absence; a known synthetic row can be restored exactly from its own
+existing binding without changing authority; oversized stored JSON is rejected
+by length before decoding; and uint64 generation exhaustion rolls back the new
+proposal without wrapping. The temporary malformed/overflow values are confined
+to the owned fixture and restored in finally.
+
+Two owned independent exec writers now use a fixed lifecycle proposal action.
+They authenticate real native sessions, validate native CSRF/current admin, and
+wait for an owner-bound continuation. The parent captures current sources while
+holding organization_guard, proves the exact child requester waits on its own
+PRIMARY row-1 lock with no early ticket, and releases by commit or rollback.
+Afterward the real Service proposal must commit exactly one generation and a
+matching persisted digest. Errors are never accepted as refusal or success.
+Workers are stopped/reaped by their exact registered handles; the outer fixture
+still owns all directory cleanup.
+
+The new expectation is 36 component obligations plus six bootstrap and three
+cleanup obligations, exactly 45 checks and two registered workers. This is a
+prepared expectation, not measured evidence. It does not establish concurrent
+arbitrary SQL/DDL exclusion, retained metadata privilege leases, full native
+permission/source closure, or a restoration permit. The current-main union,
+N00 binding, supported native map/pure execution and SQL proof remain pending.

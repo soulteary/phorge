@@ -9,18 +9,18 @@ REV='a'*40
 def template():
  hashes={'phabricator:'+n:hashlib.sha256((ROOT/'resources/sql/autopatches'/n).read_bytes()).hexdigest()for n in gate.completion.PATCHES}
  return {'batch':'native-recovery-organization-lifecycle-component','passed':True,'scope':'owned-full-native-source-synthetic-accounts',
-  'check_count':36,'checks':sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),'php_version':'8.5.12',
+  'check_count':45,'checks':sorted(gate.BOOTSTRAP|gate.SQL|gate.CLEANUP),'php_version':'8.5.12',
   'cleanup':{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True},
-  'worker_cleanup':{'private_directories_removed':0,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':0},
+  'worker_cleanup':{'private_directories_removed':2,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':2},
   'source_restore':{'quickstart_sha256':hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
    'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,'current_table_count':543,
    'restore_phase_workers_started':0,'restore_phase_network_endpoints_configured':0,
    'patch_audit':{'source_patch_count':1572,'applied_patch_count':1572,'pending_patch_keys':[],'current_patch_ledger_complete':True,'migration_source_hashes':hashes,'migrations_executed':35}},
   'native':{'profile':'isolated-indexed-organization-lifecycle-generation-v1','source_revision':REV,
    'actual_service_proposal_approval_success_rollback_replay':True,
-   'actual_transfer_handover_success_rollback_replay':True,'SQL_obligations':27,
+   'actual_transfer_handover_success_rollback_replay':True,'SQL_obligations':36,
    'derived_metadata_is_authority':False,'automatic_legacy_backfill':False,
-   'retained_metadata_privilege_DDL_lease':False,'producer_concurrency_proved':False,
+   'retained_metadata_privilege_DDL_lease':False,'producer_concurrency_proved':True,
    'organization_lifecycle_readset_complete':False,'all_thirteen_families_complete':False,
    'restoration_authorized':False,'HTTP_controller_evidence':False},
   'failure':None,'cleanup_failures':[],'file_service_cleanup':None,'successful_owned_file_service_startups':0,
@@ -37,19 +37,19 @@ class LifecycleGateTests(unittest.TestCase):
    result=subprocess.run([sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_org_lifecycle.py'),'--receipt',str(path),'--source-revision',REV],capture_output=True,text=True)
    self.assertEqual(0,result.returncode);self.assertEqual('',result.stderr);self.assertEqual(accepted,json.loads(result.stdout))
  def test_every_obligation_and_cleanup_count_is_required(self):
-  self.assertEqual(27,len(gate.SQL))
+  self.assertEqual(36,len(gate.SQL))
   for name in gate.SQL|gate.CLEANUP:
    data=template();data['checks'].remove(name)
    with self.subTest(name=name),self.assertRaises(ValueError):self.validate(data)
   data=template();data['checks'][0]=data['checks'][1]
   with self.assertRaises(ValueError):self.validate(data)
-  data=template();data['native']['SQL_obligations']=26
+  data=template();data['native']['SQL_obligations']=35
   with self.assertRaises(ValueError):self.validate(data)
  def test_unmeasured_authority_types_and_unknown_fields_refused(self):
-  for key in ('all_thirteen_families_complete','restoration_authorized','derived_metadata_is_authority','automatic_legacy_backfill','producer_concurrency_proved'):
+  for key in ('all_thirteen_families_complete','restoration_authorized','derived_metadata_is_authority','automatic_legacy_backfill','retained_metadata_privilege_DDL_lease'):
    data=template();data['native'][key]=True
    with self.subTest(key=key),self.assertRaises(ValueError):self.validate(data)
-  for value in (True,'36',35):
+  for value in (True,'45',44):
    data=template();data['check_count']=value
    with self.assertRaises(ValueError):self.validate(data)
   for target in ('root','native'):

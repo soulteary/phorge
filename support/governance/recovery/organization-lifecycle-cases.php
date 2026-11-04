@@ -2,9 +2,10 @@
 
 /** Prepared isolated native probes. Not hooked into a passed component profile. */
 function governance_recovery_org_lifecycle_cases($fixture,callable $check,array $state) {
+  global $control;
   $fixture->assertOwned();$conn=(new PhabricatorUser())->establishConnection('w');
   if($conn->isInsideTransaction()){throw new RuntimeException('recovery_org_lifecycle_outer_transaction');}
-  $cookies=$_COOKIE;$method=$_SERVER['REQUEST_METHOD']??null;$environment=null;$flags=null;$primary=null;
+  $cookies=$_COOKIE;$method=$_SERVER['REQUEST_METHOD']??null;$environment=null;$flags=null;$primary=null;$handles=array();
   $trigger=false;$trigger_name='`'.$fixture->getNamespace().'_user`.`recovery_lifecycle_audit_fault`';
   $read=static function()use($conn){return PhorgeRecoveryStopRequest::transactionID(
     queryfx_one($conn,'SELECT version FROM organization_guard WHERE id=1')['version']);};
@@ -185,8 +186,112 @@ function governance_recovery_org_lifecycle_cases($fixture,callable $check,array 
       'recovery-org-handover-execution-audit-record-advances-once');
     $observe(static fn()=>$service->executeHandover($extension['transfer_id'],true),true,
       'recovery-org-handover-execution-replay-preserves-generation');
+    // Stored discovery metadata is never allowed to disagree with the binding.
+    $original=queryfx_one($conn,'SELECT * FROM organization_approval WHERE approvalID=%s',$proposal['approval_id']);
+    $restore_participants=static function()use($conn,$proposal,$original){
+      queryfx($conn,'UPDATE organization_approval SET sourceParticipantVersion=%d,sourceSubjectPHID=%s,'.
+        'sourceRequesterPHID=%s,sourceExecutorPHID=%s,bindingJSON=%s WHERE approvalID=%s',
+        (int)$original['sourceParticipantVersion'],$original['sourceSubjectPHID'],$original['sourceRequesterPHID'],
+        $original['sourceExecutorPHID'],$original['bindingJSON'],$proposal['approval_id']);
+    };
+    $exact_refusal=static function(callable$call,$reason){
+      try{$call();}catch(RuntimeException$error){
+        if(get_class($error)!==RuntimeException::class||$error->getMessage()!==$reason){throw$error;}return true;
+      }return false;
+    };
+    try{
+      queryfx($conn,'UPDATE organization_approval SET sourceRequesterPHID=%s WHERE approvalID=%s',$subject,$proposal['approval_id']);
+      $before=$read();
+      $check($exact_refusal(static fn()=>$service->approveApproval($proposal['approval_id']),
+          'organization_approval_participants_refused')&&
+        $exact_refusal(static fn()=>$source($subject,$first['context']),'organization_approval_participants_refused')&&
+        $read()===$before&&!$conn->isInsideTransaction(),
+        'recovery-org-tampered-derived-role-refused-by-native-load-and-current-source');
+    }finally{$restore_participants();}
+    try{
+      queryfx($conn,'UPDATE organization_approval SET sourceParticipantVersion=0,sourceSubjectPHID=NULL,'.
+        'sourceRequesterPHID=NULL,sourceExecutorPHID=NULL WHERE approvalID=%s',$proposal['approval_id']);
+      $before=$read();
+      $check($exact_refusal(static fn()=>$source($subject,$first['context']),
+          'organization_approval_participants_unindexed')&&$read()===$before&&!$conn->isInsideTransaction(),
+        'recovery-org-real-legacy-unindexed-row-hard-blocks-current-absence');
+      // Only this known synthetic row is backfilled from its existing binding.
+      $data=json_decode($original['bindingJSON'],true,16,JSON_THROW_ON_ERROR);
+      $derived=PhorgeGovernanceNativeApprovalAdapter::participantMetadata($data);
+      queryfx($conn,'UPDATE organization_approval SET sourceParticipantVersion=1,sourceSubjectPHID=%s,'.
+        'sourceRequesterPHID=%s,sourceExecutorPHID=%s WHERE approvalID=%s',
+        $derived['sourceSubjectPHID'],$derived['sourceRequesterPHID'],$derived['sourceExecutorPHID'],$proposal['approval_id']);
+      $after=$source($subject,$first['context']);
+      $stored=queryfx_one($conn,'SELECT * FROM organization_approval WHERE approvalID=%s',$proposal['approval_id']);
+      $check($stored===$original&&$after['complete']===false&&$after['restoration_authorized']===false,
+        'recovery-org-isolated-known-binding-backfill-preserves-every-ticket-byte-and-no-authority');
+    }finally{$restore_participants();}
+    try{
+      queryfx($conn,'UPDATE organization_approval SET bindingJSON=%s WHERE approvalID=%s',str_repeat('x',32769),$proposal['approval_id']);
+      $check($exact_refusal(static fn()=>$source($subject,$first['context']),'recovery_restore_organization_budget')&&
+        !$conn->isInsideTransaction(),
+        'recovery-org-real-oversized-binding-refused-before-payload-decode');
+    }finally{$restore_participants();}
+    $guard_before=$read();
+    try{
+      queryfx($conn,'UPDATE organization_guard SET version=18446744073709551615 WHERE id=1');
+      $overflow=$proposal;$overflow['approval_id']='recovery-lifecycle-overflow';$overflow['operation_id']='recovery-lifecycle-overflow';
+      $check($exact_refusal(static fn()=>$service->proposeApproval($overflow),
+          'recovery_org_producer_generation_exhausted')&&$read()==='18446744073709551615'&&
+        (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_approval WHERE approvalID=%s',$overflow['approval_id'])['n']===0&&
+        !$conn->isInsideTransaction(),
+        'recovery-org-real-uint64-exhaustion-rolls-back-proposal-without-wrap');
+    }finally{queryfx($conn,'UPDATE organization_guard SET version=CAST(%s AS UNSIGNED) WHERE id=1',$guard_before);}
+    if(!($control instanceof mysqli)){throw new RuntimeException('recovery_org_lifecycle_observer_required');}
+    foreach(array(false,true)as$rollback){
+      $handle=governance_native_start_worker($fixture,array('action'=>'recovery.org.approval.propose',
+        'token'=>$second['token'],'subject'=>$subject));$handles[]=$handle;
+      governance_native_wait_lifecycle_producer_ready($handle);
+      $race_id='recovery-lifecycle-race-'.substr($handle['nonce'],0,16);
+      $before=$read();$conn->openTransaction();
+      try{
+        $phids=array_unique(array($subject,$first['context']->getUserPHID()));sort($phids,SORT_STRING);
+        foreach($phids as$phid){PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($phid,$conn);}
+        $actor=PhorgeGovernanceNativeIdentitySource::lockCurrent($first['context'],$conn);
+        if(!$actor->isSystemAdmin()){throw new RuntimeException('recovery_org_lifecycle_admin');}
+        $held=PhorgeRecoveryRestoreOrganizationSource::capture($conn,$subject);
+        $parent_thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
+        governance_native_continue_lifecycle_producer($handle);
+        $waiting=false;$deadline=microtime(true)+4;
+        do{
+          $sql='SELECT COUNT(*) n FROM performance_schema.data_lock_waits w '.
+            'JOIN performance_schema.threads r ON r.THREAD_ID=w.REQUESTING_THREAD_ID '.
+            'JOIN performance_schema.threads b ON b.THREAD_ID=w.BLOCKING_THREAD_ID '.
+            'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID '.
+            'WHERE r.PROCESSLIST_ID='.(int)$handle['mysql_thread'].' AND b.PROCESSLIST_ID='.$parent_thread.
+            " AND l.OBJECT_SCHEMA='".$control->real_escape_string($fixture->getNamespace().'_user').
+            "' AND l.OBJECT_NAME='organization_guard' AND l.INDEX_NAME='PRIMARY'".
+            " AND l.LOCK_TYPE='RECORD' AND l.LOCK_STATUS='WAITING' AND l.LOCK_DATA='1'";
+          $query=$control->query($sql);if(!$query){throw new RuntimeException('recovery_org_lifecycle_wait_observation');}
+          $waiting=(int)$query->fetch_assoc()['n']>0;$query->free();if($waiting){break;}usleep(20000);
+        }while(microtime(true)<$deadline);
+        $check($waiting&&$conn->isInsideTransaction()&&$read()===$before&&
+          (int)queryfx_one($conn,'SELECT COUNT(*) n FROM organization_approval WHERE approvalID=%s',$race_id)['n']===0,
+          $rollback?'recovery-org-real-service-proposal-waits-current-source-until-parent-rollback':
+            'recovery-org-real-service-proposal-waits-current-source-until-parent-commit');
+        PhorgeGovernanceNativeIdentitySource::revalidate($actor,$conn);
+        if($rollback){$conn->killTransaction();}else{$conn->saveTransaction();}
+      }finally{if($conn->isInsideTransaction()){$conn->killTransaction();}}
+      $result=governance_native_finish_worker($handle);
+      $stored=queryfx_one($conn,'SELECT * FROM organization_approval WHERE approvalID=%s',$race_id);
+      $after=$source($subject,$first['context']);
+      $check($stored&&$result['native_approval_digest']===PhorgeRecoveryRestoreRequest::digest($stored)&&
+        $read()===PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($before)&&
+        PhorgeRecoveryRestoreRequest::digest($held)!==PhorgeRecoveryRestoreRequest::digest($after)&&
+        $stored['sourceSubjectPHID']===$subject&&$stored['sourceRequesterPHID']===$second['viewer']->getPHID()&&
+        $result['restoration_authorized']===false&&!$conn->isInsideTransaction(),
+        $rollback?'recovery-org-real-service-proposal-after-parent-rollback-commits-one-new-source-generation':
+          'recovery-org-real-service-proposal-after-parent-commit-commits-one-new-source-generation');
+    }
   }catch(Throwable$error){$primary=$error;throw$error;}finally{
     $errors=array();
+    try{if($handles){governance_native_stop_fixture_handles($handles);}}
+    catch(Throwable$error){$errors['workers']=$error;}
     try{if($trigger){governance_native_setup_query($fixture,'DROP TRIGGER '.$trigger_name);}}
     catch(Throwable$error){$errors['trigger']=$error;}
     try{if($conn->isInsideTransaction()){$conn->killTransaction();}}
