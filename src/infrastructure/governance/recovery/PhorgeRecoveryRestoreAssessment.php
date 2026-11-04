@@ -50,13 +50,19 @@ final class PhorgeRecoveryRestoreAssessment extends Phobject {
     $credentials=PhorgeRecoveryNativeCaptureScope::captureForRestoration($context,$conn,$subject);
     $families['web-credentials']=array('status'=>'partial','complete'=>false);
     $families['api-credentials']=array('status'=>'partial','complete'=>false);
+    $profile=PhorgeRecoveryRestoreProfile::assertCurrent();
+    $lineage=array('provider_schema'=>1,'configured_incarnation_digest'=>$profile['incarnation_digest'],
+      'scope'=>'isolated-current-configuration-binding-only',
+      'physical_restore_rehearsal_proved'=>false,'complete'=>false);
+    $families['restore-lineage']=array('status'=>'partial','complete'=>false);
     $inventory=PhorgeGovernanceRecoverySourceInventory::inspectRuntime();
     $assessment=new self();
-    $assessment->binding=array('schema_version'=>1,'action'=>'native.enable','subject'=>$subject,
+    $assessment->binding=array('schema_version'=>2,'action'=>'native.enable','subject'=>$subject,
       'native_stop_transaction'=>$stop,'category'=>$classification['category'],
       'event_digest'=>$classification['eventDigest'],'identity'=>$identity,
       'runtime_inventory_digest'=>hash('sha256',json_encode($inventory,JSON_THROW_ON_ERROR)),
-      'families'=>$families,'media'=>$media,'organization'=>$organization,'credentials'=>$credentials,
+      'families'=>$families,'media'=>$media,'organization'=>$organization,'credentials'=>$credentials,'restore_lineage'=>$lineage,
+      'selected_producer_profile'=>'native-authsession-insert-fence-v1-not-all-producers',
       'native_web_API_disposition'=>'unreviewed-no-new-bulk-revocation-policy',
       'old_media_credential_disposition'=>'must-not-revive',
       'all_sources_complete'=>false,'restoration_authorized'=>false);

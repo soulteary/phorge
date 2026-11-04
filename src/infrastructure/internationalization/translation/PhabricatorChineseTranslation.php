@@ -20,6 +20,12 @@ final class PhabricatorChineseTranslation
 
   protected function getTranslations() {
     return array(
+      'Account Recovery Guard' => '账号恢复守卫',
+      'Experimental native account restoration boundary.' => '实验性的原生账号恢复边界。',
+      'Refuse account restoration without complete source assessment.' => '来源评估未完成时拒绝恢复账号。',
+      'Disabled by default. The initial isolated profile blocks all eligibility increases for existing accounts. It does not implement a restoration approval or enable production recovery.' => '默认关闭。初始隔离测试配置阻止已有账号扩大资格，尚未提供可执行的恢复许可，也不会启用生产恢复功能。',
+      'External recovery review incarnation.' => '恢复复核的外部实例代次。',
+      'Bind isolated restoration reviews to separately supplied recovery configuration. A database-only restore must not restore this value. This option does not enable restoration or certify restore lineage.' => '将隔离恢复复核绑定到单独提供的恢复配置。仅恢复数据库时不得还原此值。此选项不会启用恢复，也不证明恢复来源链已经完整。',
       'Account Stop Audit' => '账号停用审计',
       'Administrator classification of committed account stops.' => '由管理员为已提交的账号停用事件记录类别。',
       'Record classifications of previously committed account stops.' => '记录已提交的账号停用事件类别。',

@@ -31,6 +31,8 @@ try {
   $keys=array_keys($payload); sort($keys);
   $wanted_keys=array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256');
   if(($payload['action']['action']??null)==='measurement.api-token-auth'){$wanted_keys[]='measurement_file';sort($wanted_keys);}
+  if(($payload['action']['action']??null)==='recovery.session.issue'){$wanted_keys[]='recovery_incarnation';sort($wanted_keys);
+    if(!is_string($payload['recovery_incarnation']??null)||!preg_match('/\A[a-f0-9]{32}\z/D',$payload['recovery_incarnation'])){throw new RuntimeException('native_worker_recovery_incarnation_refused');}}
   if ($keys!==$wanted_keys ||
       $payload['directory_dev']!==$stat['dev'] || $payload['directory_ino']!==$stat['ino'] ||
       !is_string($payload['owner_token']) || !preg_match('/\A[a-f0-9]{64}\z/',$payload['owner_token']) ||
@@ -102,6 +104,8 @@ try {
     'phabricator.cache-namespace'=>$config['namespace'],'cluster.databases'=>array(),'cluster.search'=>array(),
     'phabricator.base-uri'=>'http://fixture.invalid/','phabricator.silent'=>false,'policy.allow-public'=>false,
     'governance.recovery-stop-ledger.enabled'=>in_array(($payload['action']['action']??null),array('recovery.stop.record','recovery.stop.history'),true),
+    'governance.account-recovery.enabled'=>($payload['action']['action']??null)==='recovery.session.issue',
+    'governance.account-recovery.incarnation'=>($payload['action']['action']??null)==='recovery.session.issue'?$payload['recovery_incarnation']:null,
     'governance.private-mail.enabled'=>in_array(($payload['action']['action']??null),array('legalpad.verify','legalpad.observe'),true),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
     'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
     'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
@@ -130,7 +134,52 @@ try {
   $action=$payload['action']; $kind=$action['action']??null;
   $conn=(new PhabricatorUser())->establishConnection('w');
   $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
-  if($kind==='recovery.stop.record'||$kind==='recovery.stop.history'){
+  if($kind==='recovery.session.issue'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','subject','token')||!is_string($action['token'])||strlen($action['token'])>256){
+      throw new RuntimeException('native_worker_action_refused');}
+    PhorgeRecoveryStopRequest::user($action['subject']);
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer){throw new RuntimeException('governance_native_credential_ineligible');}
+    $_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
+    $request=(new AphrontRequest('fixture.invalid','/people/recovery/session-fixture/'))->setUser($viewer)
+      ->setRequestData(array('__form__'=>true,AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));
+    $request->validateCSRF();$context=PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    if(strcmp($context->getUserPHID(),$action['subject'])>=0){
+      throw new RuntimeException('recovery_session_worker_lock_order_unknown');}
+    queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$conn->openTransaction();
+    try {
+      // The fixture chooses actor before subject. Do not prelock the subject:
+      // the actual SessionEngine -> DAO INSERT fence must cause its own wait.
+      $snapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
+      if(!$snapshot->isSystemAdmin()){throw new RuntimeException('recovery_restore_admin_required');}
+      governance_native_worker_atomic($path,'producer-ready.json',array('status'=>'producer-ready','mysql_thread'=>$thread));
+      $deadline=microtime(true)+12;$released=false;
+      do {
+        $directory=lstat($path);$owner=$path.'/owner';
+        if(!$directory||is_link($path)||$directory['dev']!==$payload['directory_dev']||
+          $directory['ino']!==$payload['directory_ino']||($directory['mode']&0777)!==0700||
+          !is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||filesize($owner)!==64||
+          !hash_equals($payload['owner_token'],file_get_contents($owner))){
+          throw new RuntimeException('recovery_session_producer_owner_changed');}
+        $continue=$path.'/producer-continue';
+        if(is_file($continue)&&!is_link($continue)&&(fileperms($continue)&0777)===0600&&filesize($continue)===64&&
+          hash_equals($payload['owner_token'],file_get_contents($continue))){$released=true;break;}
+        usleep(20000);
+      }while(microtime(true)<$deadline);
+      if(!$released){throw new RuntimeException('recovery_session_producer_handshake_timeout');}
+      $secret=(new PhabricatorAuthSessionEngine())->establishSession(PhabricatorAuthSession::TYPE_WEB,$action['subject'],false);
+      $digest=PhabricatorAuthSession::newSessionDigest(new PhutilOpaqueEnvelope($secret));unset($secret);
+      $session=queryfx_one($conn,'SELECT id,userPHID FROM %R WHERE sessionKey=%s LOCK IN SHARE MODE',
+        new PhabricatorAuthSession(),$digest);unset($digest);
+      if(!$session||$session['userPHID']!==$action['subject']){throw new RuntimeException('recovery_session_native_result_unknown');}
+      PhorgeGovernanceNativeIdentitySource::revalidate($snapshot,$conn);
+      $conn->saveTransaction();
+      $result=array('status'=>'committed','session_id_digest'=>hash('sha256',(string)$session['id']),
+        'restoration_authorized'=>false);
+    }catch(Throwable$error){if($conn->isInsideTransaction()){$conn->killTransaction();}throw$error;}
+  }else if($kind==='recovery.stop.record'||$kind==='recovery.stop.history'){
     $keys=array_keys($action);sort($keys);
     $wanted=$kind==='recovery.stop.record'?array('action','category','event','operation','reason','subject','token'):
       array('action','subject','token');
@@ -299,6 +348,12 @@ try {
   if(in_array(($kind??null),array('recovery.stop.record','recovery.stop.history'),true)){
     $allowed=get_class($error)===RuntimeException::class&&in_array($error->getMessage(),
       array('recovery_stop_admin_required','governance_native_credential_ineligible'),true);
+    $result=$allowed?array('status'=>'rejected','reason'=>$error->getMessage()):
+      array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
+  }
+  if(($kind??null)==='recovery.session.issue'){
+    $allowed=get_class($error)===RuntimeException::class&&in_array($error->getMessage(),
+      array('recovery_restore_admin_required','governance_native_credential_ineligible'),true);
     $result=$allowed?array('status'=>'rejected','reason'=>$error->getMessage()):
       array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   }

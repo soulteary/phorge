@@ -79,6 +79,12 @@ final class PhorgeGovernanceRecoveryGuard extends Phobject {
         $scope->before=self::rowState($row);
         self::requireNoIncrease($scope->before,self::state($user));
       }else{
+        // Lisk's parent insert allocates AUX_PHID in willSaveObject, after
+        // this fence. Allocate the same native identifier once before checking
+        // victims; do not call willSaveObject twice or manufacture authority.
+        if($mode==='INSERT'&&$user->getID()===null&&$user->getPHID()===null){
+          $user->setPHID($user->generatePHID());
+        }
         // MySQL REPLACE may delete by *any* native unique key. Never classify
         // an existing username/PHID/ID victim as fresh registration.
         $victims=queryfx_all($conn,'SELECT id,phid FROM %R WHERE id=%d OR phid=%s OR userName=%s ORDER BY id LIMIT 4 FOR UPDATE',
@@ -97,6 +103,7 @@ final class PhorgeGovernanceRecoveryGuard extends Phobject {
           !in_array($user->getIsMailingList(),array(false,0,'0'),true)){
           throw new RuntimeException('recovery_initial_admission_unknown');
         }
+        PhorgeGovernanceRecoveryTransition::describe(self::state($user),self::state($user));
       }
       return $scope;
     }catch(Throwable$error){$scope->close();throw$error;}
@@ -121,6 +128,7 @@ final class PhorgeGovernanceRecoveryGuard extends Phobject {
     if(!$row||$row['phid']!==$this->user->getPHID()){throw new RuntimeException('recovery_subject_identity_changed');}
     if($this->before!==null){self::requireNoIncrease($this->before,self::rowState($row));}
     else {
+      PhorgeGovernanceRecoveryTransition::describe(self::rowState($row),self::rowState($row));
       foreach(array('isAdmin','isApproved','isSystemAgent','isMailingList')as$key){
         if(!in_array($row[$key],array(0,'0'),true)){
           throw new RuntimeException('recovery_initial_admission_postcondition_failed');}

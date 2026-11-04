@@ -56,6 +56,31 @@ final class PhorgeRecoveryRestoreRequest extends Phobject {
     return $normalized;
   }
 
+  public static function sourceVersion(array $source) {
+    $version=$source['schema_version']??null;
+    $keys=array('schema_version','action','subject','native_stop_transaction','category',
+      'event_digest','identity','runtime_inventory_digest','families','media','organization','credentials',
+      'native_web_API_disposition','old_media_credential_disposition','all_sources_complete','restoration_authorized');
+    if($version===2){$keys[]='restore_lineage';$keys[]='selected_producer_profile';}
+    $actual=array_keys($source);sort($actual,SORT_STRING);sort($keys,SORT_STRING);
+    if(!in_array($version,array(1,2),true)||$actual!==$keys||
+      $source['all_sources_complete']!==false||$source['restoration_authorized']!==false){
+      throw new RuntimeException('recovery_restore_storage_invalid');}
+    if($version===2){
+      $lineage=$source['restore_lineage'];
+      $lineage_keys=is_array($lineage)?array_keys($lineage):array();sort($lineage_keys,SORT_STRING);
+      if(!is_array($lineage)||$lineage_keys!==array('complete','configured_incarnation_digest','physical_restore_rehearsal_proved','provider_schema','scope')||
+        ($lineage['provider_schema']??null)!==1||
+        ($lineage['scope']??null)!=='isolated-current-configuration-binding-only'||
+        ($lineage['physical_restore_rehearsal_proved']??null)!==false||($lineage['complete']??null)!==false||
+        !is_string($lineage['configured_incarnation_digest']??null)||
+        !preg_match('/\A[a-f0-9]{64}\z/D',$lineage['configured_incarnation_digest'])||
+        $source['selected_producer_profile']!=='native-authsession-insert-fence-v1-not-all-producers'){
+        throw new RuntimeException('recovery_restore_storage_invalid');}
+    }
+    return $version;
+  }
+
   private static function canonical($value, $depth) {
     if ($depth > 16) { throw new InvalidArgumentException('recovery_restore_binding_budget'); }
     if (is_array($value)) {

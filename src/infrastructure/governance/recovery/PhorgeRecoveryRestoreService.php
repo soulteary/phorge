@@ -2,6 +2,7 @@
 
 /** Durable isolated review. Acknowledgement never substitutes for complete sources. */
 final class PhorgeRecoveryRestoreService extends Phobject {
+  const MAX_OPERATION_SECONDS=10;
   private static function schema(AphrontDatabaseConnection $conn,$table) {
     $shared=array('requestID'=>'varbinary(64)','operationID'=>'varbinary(128)',
       'actorPHID'=>'varbinary(64)','action'=>'varbinary(32)','createdAt'=>'bigint unsigned');
@@ -37,6 +38,7 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       ?array('PRIMARY'=>array('requestID'),'key_operation'=>array('operationID'))
       :($table==='recovery_restore_operation'?array('PRIMARY'=>array('operationID'))
         :array('PRIMARY'=>array('id'),'key_operation'=>array('operationID')));
+    ksort($unique,SORT_STRING);ksort($expected_keys,SORT_STRING);
     if($unique!==$expected_keys){throw new RuntimeException('recovery_restore_schema_unknown');}
   }
   private static function sourceNow(AphrontDatabaseConnection $conn) {
@@ -81,6 +83,7 @@ final class PhorgeRecoveryRestoreService extends Phobject {
     try {
       queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED'); $queued=true;
       $conn->openTransaction(); $owned=true; $queued=false;
+      $started=self::sourceNow($conn);
       PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
       $subjects[]=$context->getUserPHID(); $subjects=array_values(array_unique($subjects));
       sort($subjects,SORT_STRING);
@@ -130,6 +133,8 @@ final class PhorgeRecoveryRestoreService extends Phobject {
         }
       }
       if ($plan['deadline']!==null && $now>=$plan['deadline']) { throw new RuntimeException('recovery_restore_expired'); }
+      if($now<$started||$now-$started>self::MAX_OPERATION_SECONDS){
+        throw new RuntimeException('recovery_restore_operation_deadline');}
       $conn->saveTransaction(); $owned=false;
       return $plan['result'];
     } catch (Throwable $error) {
@@ -164,6 +169,12 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       throw new RuntimeException('recovery_restore_storage_invalid');
     }
     PhorgeRecoveryRestoreRequest::storedInput($binding['input']);
+    if(!is_array($binding['sources']??null)){
+      throw new RuntimeException('recovery_restore_storage_invalid');}
+    PhorgeRecoveryRestoreRequest::sourceVersion($binding['sources']);
+    // Version1 remains stored evidence; it is never reinterpreted as the new
+    // external-incarnation/producer profile. Exact current assessment matching
+    // makes its review/execute path stale, while metadata history stays usable.
     $binding_keys=array_keys($binding);sort($binding_keys,SORT_STRING);
     $expected_keys=array('expiresAt','input','issuedAt','requester','schema_version','sources');
     if($row['reviewState']==='reviewed-blocked'){$expected_keys[]='approver';sort($expected_keys,SORT_STRING);}
@@ -320,6 +331,33 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       $assessment->requireCompleteForExecution();
       throw new RuntimeException('recovery_restore_native_transition_unimplemented');
     });
+  }
+
+  /** Live, source-bound review summary; never return credential bindings. */
+  public static function preview(PhorgeGovernanceNativeActorContext $context,$id,$version) {
+    $id=PhorgeRecoveryRestoreRequest::identifier($id);$version=PhorgeRecoveryStopRequest::transactionID($version);
+    PhorgeRecoveryRestoreProfile::assertCurrent();$subjects=self::planning($id);
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try {
+      return self::withTransaction($context,$subjects,
+        static function($conn,$actor,$planned)use($context,$id,$version){
+          list($row,$binding)=self::stored($conn,$id,$planned);
+          if((string)$row['version']!==$version){throw new RuntimeException('recovery_restore_version_stale');}
+          $assessment=PhorgeRecoveryRestoreAssessment::capture($context,$conn,$row['subjectPHID'],$row['nativeTransactionID']);
+          if($binding['sources']!==$assessment->getBinding()){throw new RuntimeException('recovery_restore_sources_stale');}
+          $sources=$assessment->getBinding();$blockers=array();
+          foreach(PhorgeGovernanceRecoverySourceInventory::requiredFamilies()as$family){
+            if(($sources['families'][$family]['complete']??null)!==true){$blockers[]=$family;}
+          }
+          $result=array('request_id'=>$id,'version'=>$version,'category'=>$sources['category'],
+            'review_state'=>$row['reviewState'],'permit_state'=>$row['permitState'],
+            'expires_at'=>$binding['expiresAt'],'source_schema_version'=>$sources['schema_version'],
+            'source_digest'=>$assessment->getDigest(),'families'=>$sources['families'],
+            'incomplete_families'=>$blockers,'preview_is_authorization'=>false,
+            'restoration_authorized'=>false);
+          return self::plan($assessment,$row,$binding,$result);
+        });
+    }finally{unset($unguarded);}
   }
 
   /** Current-admin metadata only; old credentials and expired tickets are not grants. */

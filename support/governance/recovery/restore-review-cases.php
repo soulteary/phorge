@@ -30,12 +30,25 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
     if (!$event) {throw new RuntimeException('recovery_restore_fixture_event_required');}
     $flags=PhabricatorEnv::beginScopedEnv()
       ->overrideEnvConfig('governance.recovery-stop-ledger.enabled',true)
-      ->overrideEnvConfig('governance.account-recovery.enabled',true);
+      ->overrideEnvConfig('governance.account-recovery.enabled',true)
+      ->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
     // Reuse the exact fixture-owned config subcontext, not a production guard
     // relaxation or arbitrary external configuration supplied to the service.
     $environment=governance_recovery_account_fixture_environment($fixture);
     PhorgeRecoveryStopService::recordAlreadyStopped($requester['context'],$subject->getPHID(),
       (string)$event['id'],'technical-pause','Synthetic review stop','restore-stop-'.$suffix);
+    $before_name=queryfx_one($conn,'SELECT realName FROM %R WHERE id=%d',new PhabricatorUser(),$subject->getID())['realName'];
+    $conn->openTransaction();$caller_preserved=false;
+    try {
+      queryfx($conn,'UPDATE %R SET realName=%s WHERE id=%d',new PhabricatorUser(),'Synthetic caller-owned source read',$subject->getID());
+      $facts=PhorgeRecoveryNativeCaptureScope::captureForRestoration($requester['context'],$conn,$subject->getPHID());
+      $caller_preserved=$conn->isInsideTransaction()&&$facts['account_facts']['flags']['isDisabled']===true&&
+        $facts['complete']===false&&strlen($facts['web_storage_digest'])===64&&strlen($facts['api_storage_digest'])===64&&
+        queryfx_one($conn,'SELECT realName FROM %R WHERE id=%d',new PhabricatorUser(),$subject->getID())['realName']==='Synthetic caller-owned source read';
+    }finally{if($conn->isInsideTransaction()){$conn->killTransaction();}}
+    $check($caller_preserved&&!$conn->isInsideTransaction()&&
+      queryfx_one($conn,'SELECT realName FROM %R WHERE id=%d',new PhabricatorUser(),$subject->getID())['realName']===$before_name,
+      'recovery-restore-direct-locked-account-web-api-readers-preserve-caller-transaction');
     $input=array('native_stop_transaction'=>(string)$event['id'],'operation_id'=>'restore-submit-'.$suffix,
       'reason'=>'Synthetic independent review','subject'=>$subject->getPHID(),'ttl_seconds'=>600);
     $fingerprint=static function()use($conn){
@@ -68,6 +81,15 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
     $before=$fingerprint();$replay=PhorgeRecoveryRestoreService::submit($requester['context'],$input);
     $check($replay['replayed']===true&&$before===$fingerprint(),'recovery-restore-submit-ledger-replay-no-second-audit');
     $id=$receipt['request_id'];
+    $before=$fingerprint();$preview=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
+    $preview_keys=array_keys($preview);sort($preview_keys,SORT_STRING);
+    $check($before===$fingerprint()&&$preview['source_schema_version']===2&&
+      strlen($preview['source_digest'])===64&&count($preview['incomplete_families'])===13&&
+      $preview['preview_is_authorization']===false&&$preview['restoration_authorized']===false&&
+      $preview_keys===array('category','expires_at','families','incomplete_families','permit_state',
+        'preview_is_authorization','request_id','restoration_authorized','review_state',
+        'source_digest','source_schema_version','version'),
+      'recovery-restore-live-independent-admin-preview-exposes-blockers-not-credentials-or-permit');
     $refuse(static function()use($requester,$id,$suffix){
       PhorgeRecoveryRestoreService::review($requester['context'],$id,'1','restore-self-'.$suffix);},
       'recovery_restore_independent_admin_required','recovery-restore-requester-cannot-self-review');
@@ -99,6 +121,22 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
       $reviewed['restoration_authorized']===false,'recovery-restore-independent-review-is-not-a-permit');
     $refuse(static function()use($requester,$id){PhorgeRecoveryRestoreService::execute($requester['context'],$id,'2');},
       'recovery_restore_sources_incomplete','recovery-restore-real-review-cannot-bypass-incomplete-families');
+    // Keep the durable database review unchanged while only separately
+    // supplied process configuration rotates. This is not a physical restore
+    // rehearsal and cannot certify the whole restore-lineage family.
+    $rotated=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig(
+      'governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
+    $rotated_environment=governance_recovery_account_fixture_environment($fixture);
+    try {
+      $refuse(static function()use($requester,$id){PhorgeRecoveryRestoreService::execute($requester['context'],$id,'2');},
+        'recovery_restore_sources_stale','recovery-restore-retained-database-review-refused-after-external-incarnation-change');
+    }finally{try{governance_recovery_account_restore_fixture_environment($rotated_environment);}finally{unset($rotated);}}
+    $invalid_incarnation=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.incarnation',null);
+    $invalid_environment=governance_recovery_account_fixture_environment($fixture);
+    try {
+      $refuse(static function()use($requester,$input){PhorgeRecoveryRestoreService::submit($requester['context'],$input);},
+        'recovery_restore_incarnation_unknown','recovery-restore-missing-external-incarnation-refuses-without-domain-write');
+    }finally{try{governance_recovery_account_restore_fixture_environment($invalid_environment);}finally{unset($invalid_incarnation);}}
     $history=PhorgeRecoveryRestoreService::history($requester['context'],$subject->getPHID());
     $keys=array_keys(head($history['rows']));sort($keys,SORT_STRING);
     $check(count($history['rows'])===1&&$keys===array('createdAt','expiresAt','nativeTransactionID',

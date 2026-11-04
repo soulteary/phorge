@@ -13,9 +13,19 @@ final class PhorgeRecoveryGuardTestCase extends PhutilTestCase {
       $this->assertTrue(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled(
         (new PhabricatorUser())->setIsDisabled($value)));
     }
-    foreach(array(false,0,'0',null,'true')as$value){
+    foreach(array(false,0,'0',null)as$value){
       $this->assertFalse(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled(
         (new PhabricatorUser())->setIsDisabled($value)));
+    }
+    // Native User::readField normalizes this public getter to boolean. This
+    // predicate is not a validator for raw SQL flag shapes or stored values.
+    $this->assertTrue(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled(
+      (new PhabricatorUser())->setIsDisabled('true')));
+    $translations=(new PhabricatorChineseTranslation())->getTranslationMap();
+    foreach(array('Account Recovery Guard','Experimental native account restoration boundary.',
+      'Refuse account restoration without complete source assessment.',
+      'External recovery review incarnation.')as$key){
+      $this->assertTrue(isset($translations[$key])&&is_string($translations[$key])&&$translations[$key]!==$key);
     }
   }
 

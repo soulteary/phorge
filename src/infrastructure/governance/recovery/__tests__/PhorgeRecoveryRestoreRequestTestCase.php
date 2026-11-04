@@ -31,6 +31,25 @@ final class PhorgeRecoveryRestoreRequestTestCase extends PhutilTestCase {
       catch (RuntimeException $error) { $refused=true; }
       $this->assertTrue($refused);
     }
+    // Pure persisted-schema tests only: these synthetic dictionaries grant
+    // nothing and do not stand in for a captured current native assessment.
+    $source=array_fill_keys(array('action','subject','native_stop_transaction','category',
+      'event_digest','identity','runtime_inventory_digest','families','media','organization','credentials',
+      'native_web_API_disposition','old_media_credential_disposition'),null);
+    $source['schema_version']=1;$source['all_sources_complete']=false;$source['restoration_authorized']=false;
+    $this->assertEqual(1,PhorgeRecoveryRestoreRequest::sourceVersion($source));
+    $source['schema_version']=2;
+    $source['restore_lineage']=array('provider_schema'=>1,'configured_incarnation_digest'=>str_repeat('a',64),
+      'scope'=>'isolated-current-configuration-binding-only','physical_restore_rehearsal_proved'=>false,'complete'=>false);
+    $source['selected_producer_profile']='native-authsession-insert-fence-v1-not-all-producers';
+    $this->assertEqual(2,PhorgeRecoveryRestoreRequest::sourceVersion($source));
+    foreach(array(array('schema_version',1),array('schema_version','2'),array('schema_version',3),
+      array('all_sources_complete',true),array('restoration_authorized',true),array('unknown',false))as$mutation){
+      $changed=$source;$changed[$mutation[0]]=$mutation[1];$refused=false;
+      try{PhorgeRecoveryRestoreRequest::sourceVersion($changed);}
+      catch(RuntimeException$error){$refused=true;}
+      $this->assertTrue($refused);
+    }
   }
 
   public function testBindingHashPreservesTypeAndOrderedSourceFacts() {

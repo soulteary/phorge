@@ -14,8 +14,12 @@ final class PhorgeRecoveryRestoreProfile extends Phobject {
     $routing=new ReflectionMethod(PhorgeRecoveryNativeCaptureScope::class,'routing');
     $route=$routing->invoke(null);
     PhorgeGovernanceNativeRuntimeProfile::assertCurrent();
+    $incarnation=PhabricatorEnv::getEnvConfig('governance.account-recovery.incarnation');
+    if(!is_string($incarnation)||!preg_match('/\A[a-f0-9]{32}\z/D',$incarnation)){
+      throw new RuntimeException('recovery_restore_incarnation_unknown');}
     return array('namespace'=>$route['storage.default-namespace'],
-      'routing_digest'=>hash('sha256',serialize($route)));
+      'routing_digest'=>hash('sha256',serialize($route)),
+      'incarnation_digest'=>hash('sha256',"recovery-review:v1\0".$incarnation));
   }
 
   public static function assertOwnedWriter(AphrontDatabaseConnection $conn) {
@@ -32,7 +36,7 @@ final class PhorgeRecoveryRestoreProfile extends Phobject {
       'WHERE id=1 LOCK IN SHARE MODE',$profile['namespace'].'_governance');
     if (!$marker || $marker['marker']!=='N07.NATIVE-SOURCE.v1:synthetic-only' ||
         $marker['quickstart_sha256']!==hash_file('sha256',
-          dirname(phutil_get_library_root('phabricator')).'/resources/sql/quickstart.sql')) {
+          dirname(__DIR__,4).'/resources/sql/quickstart.sql')) {
       throw new RuntimeException('recovery_restore_fixture_lineage_unknown');
     }
   }

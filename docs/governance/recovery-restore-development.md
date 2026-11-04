@@ -46,7 +46,12 @@ first approval, all producer paths and a real complete execution lease are not
 proved. New registrations, unique-key collision handling and nested rollback
 need actual native tests before this guard can be considered supported.
 
-Only host syntax checks have run. New pure methods are not yet registered or
+Only host syntax checks have run. Six new pure methods are registered in a candidate class map but have not
 executed on supported PHP. Map, SchemaSpec comparison, candidate migration,
 SQL/CSRF/concurrency/rollback, physical restoration and all-source coverage are
 unrun. No production activation, permission migration or deployment occurred.
+
+The signed first development checkpoint is 06a7568d. Its known schema-key
+ordering, uninitialized borrowed-reader route and native getter test assumptions
+are retained as unrun history. The producer successor corrects them; neither
+checkpoint is represented by main f4 runtime evidence.

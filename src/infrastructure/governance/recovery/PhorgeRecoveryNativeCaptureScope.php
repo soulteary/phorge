@@ -180,6 +180,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
     PhorgeRecoveryStopRequest::user($target);
     $scope=new self();
     $scope->connection=$conn;$scope->target=$target;
+    $scope->route=self::routing();
     // Deliberately keep ownsTransaction=false. Destructor/error paths cannot
     // end the service's transaction and no issuer epoch is initialized here.
     $scope->preflight($context->getUserPHID());$scope->preflight($target);
@@ -195,6 +196,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
     $current=PhorgeGovernanceNativeIdentitySource::revalidate($snapshot,$conn);
     if (!$current->isSystemAdmin()) {throw new RuntimeException('recovery_current_admin_required');}
     PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
+    if($scope->route!==self::routing()){throw new RuntimeException('recovery_capture_context_changed');}
     return array('provider_schema'=>1,'account_facts'=>$account,
       'web_storage_digest'=>$web['storage_set_digest'],'web_unknown_reasons'=>$web['unknown_reasons'],
       'api_storage_digest'=>$api['storage_set_digest'],'api_unknown_reasons'=>$api['unknown_reasons'],
