@@ -75,8 +75,18 @@
     "test": "PhabricatorLibraryTestCase::testMethodVisibility",
     "failure": "Private refusal exception constructor differed from public RuntimeException visibility.",
     "fix": "Public reason-only constructor validates the fixed whitelist and rejects extra arguments. No caller-supplied message or permission grant.",
-    "supported_validation_pending": true,
+    "supported_validation_pending": false,
     "fresh_full_CI_required": true,
-    "historical_c308_runtime_not_new_source_proof": true
+    "historical_c308_runtime_not_new_source_proof": true,
+    "supported_runtime_source": "ba3321c2f7f022219ffaf919d85871fd56e19387",
+    "supported_actual": {
+      "runtime": "8.5.12",
+      "pure_methods": 237,
+      "native_method_visibility_passed": true,
+      "generated_map_byte_exact": true,
+      "owned_stages_removed": true,
+      "SQL_executed": false
+    },
+    "supported_provenance_sha256": "1166c492550842d1245516f3c13210be18be22650b655e0ebe140db4e206c17f"
   }
 }
