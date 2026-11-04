@@ -6,9 +6,10 @@ $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phases=array('--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
-  '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold');
+  '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba');
 $phase=$arguments===array()?'all':
   (count($arguments)===1&&isset($phases[$arguments[0]])?$phases[$arguments[0]]:'invalid');
+$notice_raw_orm=$phase==='notice-raw-orm-aba';
 $notice_wire=$phase==='governance-notice-wire-hold';
 $private_mail_pending=$phase==='private-mail-pending-hold';
 $private_mail_wire=$phase==='private-mail-wire-hold'||$private_mail_pending||$notice_wire;
@@ -195,7 +196,9 @@ try {
       'gorge.file.token'=>$file_service['token']));
     (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     $stage='native-organization-and-media-positive';
-    if($wire_hold){
+    if($phase==='notice-raw-orm-aba'){
+      require_once dirname(__DIR__).'/notification/notice-raw-orm-aba-cases.php';$native=governance_notice_raw_orm_aba_cases($fixture,$check);
+    }elseif($wire_hold){
       require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);
     }elseif($private_mail_wire){
       $stage='private-native-mail-wire-fixture';
@@ -210,6 +213,8 @@ try {
   $failure = array('stage'=>$stage,'error_type'=>get_class($error),
     'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   if ($error instanceof mysqli_sql_exception) { $failure['sql_errno']=$error->getCode(); }
+  if(isset($GLOBALS['governance_notice_raw_orm_queue_cleanup_proved'])){$failure['notice_raw_orm_queue_cleanup_proved']=$GLOBALS['governance_notice_raw_orm_queue_cleanup_proved'];}
+  if(isset($GLOBALS['governance_notice_raw_orm_facts'])){$failure['notice_raw_orm_facts']=$GLOBALS['governance_notice_raw_orm_facts'];}
   if(isset($GLOBALS['governance_notice_wait_failure'])){$failure['notice_wait_diagnostic']=$GLOBALS['governance_notice_wait_failure'];}
   if(isset($GLOBALS['governance_session_producer_child_failure'])){
     $failure['session_producer_child_failure']=$GLOBALS['governance_session_producer_child_failure'];
@@ -291,8 +296,8 @@ if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)
   $failure = array('stage'=>'unexpected-native-runtime-output','error_type'=>'RuntimeWarning');
 }
 $passed = $failure === null && !$cleanup_failures;
-echo json_encode(array('batch'=>$private_mail_wire?'private-native-mail-wire-preparation':($wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration')),'passed'=>$passed,
-  'scope'=>$private_mail_wire?'owned-private-native-mail-wire-preparation':($wire_hold?'owned-native-media-wire-hold-synthetic-accounts':($legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts')),'checks'=>$checks,'check_count'=>count($checks),
+echo json_encode(array('batch'=>$notice_raw_orm?'native-notice-raw-orm-ABA-profile':($private_mail_wire?'private-native-mail-wire-preparation':($wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration'))),'passed'=>$passed,
+  'scope'=>$notice_raw_orm?'owned-notice-raw-native-DAO-restoration-off':($private_mail_wire?'owned-private-native-mail-wire-preparation':($wire_hold?'owned-native-media-wire-hold-synthetic-accounts':($legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts'))),'checks'=>$checks,'check_count'=>count($checks),
   'php_version'=>PHP_VERSION,'source_restore'=>$summary,'native'=>$native,
   'optional_source_reader_adapter_exercised'=>$reader_adapter_exercised,
   'isolated_optional_features_enabled'=>!$legacy_compatibility,
