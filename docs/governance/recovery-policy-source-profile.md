@@ -87,10 +87,18 @@ policy. A focused-only successor checks all six fields against that exact owned
 baseline row (including project rule, native PHIDs and zero timestamps), deletes
 it in an explicit transaction and COMMITs. An independent setup connection must
 observe zero rows before the parent range transaction begins. No parent-held
-DELETE lock can stand in for an empty-table gap. After both real producer races,
+DELETE lock can stand in for an empty-table gap. In a finally after the real producer races (including failure),
 the original seed bytes are restored and independently checked, preserving the
 shared named-policy reference for the remaining source cases. All-mode fixture
 seeding is unchanged. Unknown rows or changed seed bytes refuse, never delete.
 The old infrastructure errno2002 and seeded-policy failures remain historical;
 this changed source has not run SQL. The original 15-count plan omitted three
 existing cleanup assertions; the corrected exact contract retains all 18 IDs.
+
+The temporary dangling named-policy/task references during the dedicated empty
+range interval are deliberately not an interpreter or restore-validity profile.
+Only the identified row is removed; no TRUNCATE or unqualified DELETE is used.
+The random owned-fixture marker is verified before seed access. Restoration
+cleanup failures remain separate from the original case failure, and cannot
+produce a passed component or erase the original cause. All-mode baseline
+seeding and its reference graph are untouched by this focused-only setup.

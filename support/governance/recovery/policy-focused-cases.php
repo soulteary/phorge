@@ -61,8 +61,20 @@ function governance_recovery_policy_focused_cases($fixture,callable $check) {
       ->setRealName('Synthetic Policy Range Administrator')->setIsAdmin(1)->setIsApproved(1)->save();
     $sessions=new PhabricatorAuthSessionEngine();$admin=governance_native_request($actor,$sessions);
     $seed=governance_recovery_policy_remove_baseline_seed($fixture);
-    governance_recovery_policy_range_cases($fixture,$check,array('admin'=>$admin));
-    governance_recovery_policy_restore_baseline_seed($fixture,$seed);
+    $range_error=null;
+    try{governance_recovery_policy_range_cases($fixture,$check,array('admin'=>$admin));}
+    catch(Throwable$error){$range_error=$error;throw$error;}
+    finally{
+      try{governance_recovery_policy_restore_baseline_seed($fixture,$seed);}
+      catch(Throwable$seed_error){
+        // Preserve the original case failure and separately retain cleanup
+        // failure; never convert either into component acceptance.
+        if($range_error===null){throw$seed_error;}
+        global $cleanup_failures;
+        if(!is_array($cleanup_failures)){throw$seed_error;}
+        $cleanup_failures[]=array('stage'=>'owned-policy-baseline-seed-restore','error_type'=>get_class($seed_error));
+      }
+    }
     $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.enabled',true)
       ->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
     $environment=governance_recovery_account_fixture_environment($fixture);
