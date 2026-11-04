@@ -142,7 +142,9 @@ function governance_private_mail_native_cases($fixture,callable $check){
     $wiki_content=governance_private_mail_wiki_content_cases($fixture,$check,$queue);
     require_once __DIR__.'/business-publication-cases.php';
     $business=governance_private_mail_business_publication_cases($fixture,$check,$queue);
-    return array('wiki_content_publication_tests'=>$wiki_content,'business_gorge_publication_tests'=>$business_gorge,'business_publication_tests'=>$business,'legalpad_tests'=>$legalpad,'commit_race_tests'=>$race,'remaining_producer_tests'=>$remaining,'security_flow_tests'=>$security,'actual_native_source_and_object_query'=>true,'actual_native_queue'=>true,
+    require_once __DIR__.'/governance-notice-cases.php';
+    $governance_notices=governance_notice_cases($fixture,$check,$queue);
+    return array('governance_notice_tests'=>$governance_notices,'wiki_content_publication_tests'=>$wiki_content,'business_gorge_publication_tests'=>$business_gorge,'business_publication_tests'=>$business,'legalpad_tests'=>$legalpad,'commit_race_tests'=>$race,'remaining_producer_tests'=>$remaining,'security_flow_tests'=>$security,'actual_native_source_and_object_query'=>true,'actual_native_queue'=>true,
       'real_business_serialization_and_legacy_quarantine'=>true,'smtp_or_delivery_workers_executed'=>false,
       'security_challenge_runtime_matrix_complete'=>false,'all_producers_runtime_complete'=>false,
       'physical_callback_runtime_complete'=>false);

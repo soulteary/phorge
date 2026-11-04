@@ -1172,6 +1172,14 @@ NATIVE['conduit_HTTP_revocation_measurement_tests']={
     'before_source_binding_sha256':'e'*64,'after_source_binding_sha256':'f'*64,'event':_http_event}
 
 
+# Metadata-only governance notice vertical; never full producer/SMTP acceptance.
+GOVERNANCE_NOTICE_CHECKS=frozenset(['native-schema-governance_notice_delivery-matches-retained-adjustment-spec', 'native-schema-governance_notice_event-matches-retained-adjustment-spec', 'notice-actual-audit-row-change-refuses-bound-physical-delivery', 'notice-actual-nontransactional-outbox-refused-with-business-rollback', 'notice-current-native-admin-receives-one-durable-mail-mapping', 'notice-disabled-real-organization-write-creates-no-event', 'notice-disabled-recipient-refused-before-physical-send', 'notice-duplicate-primary-is-unknown-and-refused', 'notice-event-binds-actual-audit-without-private-body-name-or-authority', 'notice-independent-native-process-real-insert-lock-wait-proved', 'notice-independent-reader-sees-business-audit-event-and-relay-only-after-real-commit', 'notice-independent-reader-sees-no-business-audit-event-or-relay-before-commit', 'notice-malformed-event-metadata-with-valid-digest-is-not-authority', 'notice-native-benign-username-edit-does-not-discard-current-eligible-delivery', 'notice-native-disable-enable-without-intermediate-callback-cannot-revive-account-binding', 'notice-native-operation-replay-does-not-duplicate-event', 'notice-native-prepared-snapshot-is-private-link-only', 'notice-native-worker-retry-does-not-duplicate-fanout', 'notice-ordinary-user-is-not-implicitly-added-to-admin-audience', 'notice-physical-attempt-rechecks-current-admin-source-and-primary-email', 'notice-primary-email-change-denies-and-restore-cannot-revive-delivery', 'notice-project-audience-requires-real-view-even-for-system-admin', 'notice-project-current-view-revocation-stops-existing-prepared-mail', 'notice-real-gorge-event-inbox-replay-has-one-task', 'notice-real-gorge-lease-to-native-conduit-handler-prepares-mail-outbox', 'notice-real-native-audit-and-qualified-outbox-commit-together', 'notice-real-post-outbox-sql-fault-rolls-back-business-audit-event-and-relay', 'notice-real-project-approval-producer-commits-metadata-only-event', 'notice-real-stop-classification-producer-is-not-recovery-authority', 'notice-reenabled-recipient-cannot-revive-quarantined-snapshot', 'notice-same-address-new-native-email-row-refuses-old-binding', 'notice-stop-classification-replay-does-not-duplicate-event', 'notice-stop-worker-prepares-admin-mail-without-enabling-subject', 'notice-unverified-primary-refused-at-physical-attempt', 'notice-worker-retry-after-rollback-prepares-one-eligible-recipient-mapping', 'notice-worker-sql-fault-rolls-back-native-mail-recipient-edges-mapping-and-mail-outbox'])
+REQUIRED_CHECKS=REQUIRED_CHECKS|GOVERNANCE_NOTICE_CHECKS
+WORKERS=39
+NATIVE['schema_tests']['candidate_tables_compared']=19
+NATIVE['private_mail_tests']['governance_notice_tests']={'actual_native_producer': True, 'qualified_source_transaction': True, 'actual_gorge_inbox_and_lease': True, 'actual_native_handler': True, 'per_physical_current_eligibility': True, 'link_only': True, 'automatic_go_outbox_relay_proved': False, 'Go_daemon_proved': False, 'HTTP_gateway_proved': False, 'SMTP_proved': False, 'all_governance_producers_complete': False}
+
+
 def validate_restore(value, root):
     fields = {'quickstart_sha256', 'app_schema_count', 'owned_schema_count',
         'quickstart_source_table_count', 'current_table_count', 'patch_audit',
@@ -1183,7 +1191,7 @@ def validate_restore(value, root):
         'restore_phase_workers_started': 0, 'restore_phase_network_endpoints_configured': 0}
     for key, target in expected.items():
         exact_tree(value[key], target)
-    exact_tree(value['current_table_count'], 540)
+    exact_tree(value['current_table_count'], 542)
     audit=value['patch_audit']
     if type(audit) is not dict or set(audit) != {'source_patch_count', 'applied_patch_count',
         'pending_patch_keys', 'current_patch_ledger_complete', 'migration_source_hashes', 'migrations_executed'}:
@@ -1195,7 +1203,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1570)
+    exact_tree(audit['source_patch_count'], 1571)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 

@@ -102,13 +102,15 @@ try {
     'phabricator.cache-namespace'=>$config['namespace'],'cluster.databases'=>array(),'cluster.search'=>array(),
     'phabricator.base-uri'=>'http://fixture.invalid/','phabricator.silent'=>false,'policy.allow-public'=>false,
     'governance.recovery-stop-ledger.enabled'=>in_array(($payload['action']['action']??null),array('recovery.stop.record','recovery.stop.history'),true),
-    'governance.private-mail.enabled'=>in_array(($payload['action']['action']??null),array('legalpad.verify','legalpad.observe'),true),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
+    'governance.notifications.enabled'=>($payload['action']['action']??null)==='org.notice.create',
+    'governance.private-mail.enabled'=>in_array(($payload['action']['action']??null),array('org.notice.create','legalpad.verify','legalpad.observe'),true),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
     'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
     'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
     'project.history-task-drafts'=>false,'gorge.search.source-scan'=>false,'gorge.search.projection-shadow'=>false,
     'gorge.taskqueue.owner'=>'phorge','gorge.taskqueue.uri'=>null,'gorge.notification.outbox'=>false,
     'notification.servers'=>array(),'gorge.db.uri'=>null,'gorge.file.uri'=>null,'gorge.image.uri'=>null,'gorge.render.uri'=>null);
+  if(($payload['action']['action']??null)==='org.notice.create'){$settings['metamta.gorge-delivery-mode']='native';}
   if($measurement_file!==null){
     $settings['gorge.file.uri']=$measurement_file['uri'];$settings['gorge.file.token']=$measurement_file['token'];
     $settings['gorge.service-policies']=array('file'=>'required');
@@ -249,7 +251,7 @@ try {
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
     $value=$kind==='org.list'?$service->readUnits():$service->countUnits();
     $result=array('status'=>'committed','value'=>$value);
-  } else if ($kind==='org.members.edit' || $kind==='org.compound.execute' || $kind==='org.compound.execute-approved' || $kind==='org.transfer.execute' || $kind==='org.handover.execute') {
+  } else if ($kind==='org.notice.create' || $kind==='org.members.edit' || $kind==='org.compound.execute' || $kind==='org.compound.execute-approved' || $kind==='org.transfer.execute' || $kind==='org.handover.execute') {
     $keys=array_keys($action);sort($keys);
     if($keys!==array('action','payload','token')||!is_string($action['token'])||strlen($action['token'])>256||!is_array($action['payload'])){
       throw new RuntimeException('native_worker_action_refused');}
@@ -257,9 +259,11 @@ try {
     if(!$viewer){throw new RuntimeException('governance_web_credential_required');}
     $_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
     $request=(new AphrontRequest('fixture.invalid','/'))->setUser($viewer);
+    if($kind==='org.notice.create'){$_SERVER['REQUEST_METHOD']='POST';$request->setRequestData(array(AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));$request->validateCSRF();}
     $service=PhorgeOrganizationService::newForActor(PhorgeGovernanceNativeActorContext::newFromWebRequest($request));
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
-    if($kind==='org.transfer.execute'||$kind==='org.handover.execute'){
+    if($kind==='org.notice.create'){$receipt=$service->createUnit($action['payload']);}
+    else if($kind==='org.transfer.execute'||$kind==='org.handover.execute'){
       $keys=array_keys($action['payload']);sort($keys);
       if($keys!==array('acknowledge_no_project_permission_change','transfer_id')){throw new RuntimeException('native_worker_action_refused');}
       $receipt=$kind==='org.transfer.execute'?$service->executeTransfer($action['payload']['transfer_id'],$action['payload']['acknowledge_no_project_permission_change']):

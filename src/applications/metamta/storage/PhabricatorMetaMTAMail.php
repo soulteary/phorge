@@ -77,7 +77,7 @@ final class PhabricatorMetaMTAMail
   }
   public function getPrivateMailPolicyValue($key,$default=null) {
     if(!in_array($key,array('governance.mail-producer','governance.delivery-policy',
-      'governance.delivery-quarantined','governance.mail-flow','governance.mail-binding'),true)){
+      'governance.delivery-quarantined','governance.mail-flow','governance.mail-binding','governance.notice-binding'),true)){
       throw new InvalidArgumentException('private_mail_policy_key_refused');
     }
     return $this->getParam($key,$default);
@@ -87,6 +87,12 @@ final class PhabricatorMetaMTAMail
     PhorgePrivateMailPolicy::validateFlow($this,$flow,$binding);
     $this->setParam('governance.mail-flow',$flow);
     return $this->setParam('governance.mail-binding',$binding);
+  }
+  public function setGovernanceNoticeBinding(array $binding) {
+    if($this->getID()!==null||$this->getPrivateMailPolicyValue('governance.mail-producer')!==PhorgeGovernanceNoticeWorker::class){
+      throw new InvalidArgumentException('governance_notice_existing_mail_refused');}
+    PhorgeGovernanceNoticeMailPolicy::validateBinding($binding);
+    return $this->setParam('governance.notice-binding',$binding);
   }
   public function clearPrivateBusinessMailHeaders() {
     return $this->setParam('headers',array());

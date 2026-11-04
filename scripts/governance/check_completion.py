@@ -43,7 +43,8 @@ PATCHES = '''20260907.herald.01.requeststatuskey.sql
 20261103.people.organizationtransfer.sql
 20261103.project.approvalexecution.sql
 20261103.project.configepoch.sql
-20261104.people.recoverystop.sql'''.splitlines()
+20261104.people.recoverystop.sql
+20261104.metamta.governancenotice.sql'''.splitlines()
 REQUIRED_CHECKS = {
  'full-current-source-quickstart-and-patch-ledger-restored',
  'completion-reader-real-select-only-grants-and-lineage-proved',

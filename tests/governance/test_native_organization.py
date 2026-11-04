@@ -28,9 +28,9 @@ def template():
         'check_count': len(gate.REQUIRED_CHECKS), 'php_version': '8.5.12',
         'source_restore': {'quickstart_sha256': hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
-            'current_table_count': 540, 'restore_phase_workers_started': 0,
+            'current_table_count': 542, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1570, 'applied_patch_count': 1570, 'pending_patch_keys': [],
+                'source_patch_count': 1571, 'applied_patch_count': 1571, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -50,6 +50,17 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_governance_notice_cannot_drop_sources_attempt_checks_or_promote_transport(self):
+        self.assertEqual(36,len(gate.GOVERNANCE_NOTICE_CHECKS))
+        for name in gate.GOVERNANCE_NOTICE_CHECKS:
+            data=template();data['checks'].remove(name);data['check_count']-=1
+            with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        for key in gate.NATIVE['private_mail_tests']['governance_notice_tests']:
+            data=template();row=data['native']['private_mail_tests']['governance_notice_tests'];row[key]=not row[key]
+            with self.subTest(key=key),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+        data=template();data['worker_cleanup']['workers_registered']=38
+        with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
+
     def test_default_edit_controller_route_and_post_filter_scope_are_required(self):
         for name in gate.VIEW_EDIT_ROUTE_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
@@ -395,7 +406,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),877)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),913)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -496,7 +507,7 @@ class NativePolicyErrorRouteGateTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),877)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),913)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -549,7 +560,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(877,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(913,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
