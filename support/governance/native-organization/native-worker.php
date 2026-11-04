@@ -203,12 +203,15 @@ try {
     // PHID authenticates a token. lockCurrent verifies the stored token binding.
     $context=PhorgeGovernanceNativeActorContext::newFromAuthenticatedAPIToken(
       $viewer,new PhutilOpaqueEnvelope($action['token']));
-    $api_phase('context-ready',array('credential_thread'=>$thread));
+    $api_phase('context-ready');
     governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
     $api_phase('ready-published');
     queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$conn->openTransaction();
     try {
-      $api_phase('before-current-read');
+      // Observe the actual native Conduit connection; do not label the User writer as it.
+      $credential_conn=(new PhabricatorConduitToken())->establishConnection('w');
+      $credential_thread=(int)queryfx_one($credential_conn,'SELECT CONNECTION_ID() n')['n'];
+      $api_phase('before-current-read',array('credential_thread'=>$credential_thread));
       $current=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);$api_phase('current-read-returned');
       if($current->getUserPHID()!==$action['user']){
         throw new RuntimeException('recovery_api_current_binding_refused');}

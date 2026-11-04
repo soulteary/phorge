@@ -81,7 +81,7 @@ function governance_recovery_api_concurrency_cases($fixture,callable $check) {
             'recovery.oauth.authenticate':'recovery.api.current','token'=>$secret,'user'=>$user->getPHID()));
           $handles[]=$handle;
           $observation=governance_recovery_api_observe($fixture,$control,$handle,$blocker,
-            $is_oauth?'oauth_server':'conduit',$dao->getTableName(),$parent_user_thread,$parent_user_tracked);
+            $is_oauth?'oauth_server':'conduit',$dao->getTableName(),$parent_user_thread,$parent_user_tracked,$conn,$user_conn);
           // Both completed and exact owned blocking are honest observations.
           // Neither means source-family completeness or successful restoration.
           $check(in_array($observation['state'],array('completed-before-release','blocked-by-owned-writer'),true),
@@ -136,7 +136,7 @@ function governance_recovery_api_native_auth($secret,$oauth,$expected_user) {
   throw new RuntimeException('recovery_api_native_auth_unknown');
 }
 
-function governance_recovery_api_observe($fixture,mysqli $observer,array $handle,$blocker,$app,$table,$parent_user_thread,$parent_user_tracked) {
+function governance_recovery_api_observe($fixture,mysqli $observer,array $handle,$blocker,$app,$table,$parent_user_thread,$parent_user_tracked,$producer_conn,$actor_conn) {
   $fixture->assertOwned();
   $worker=$GLOBALS['governance_native_workers'][$handle['index']]??null;
   if(!is_array($worker)||!in_array($worker['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)||
@@ -168,7 +168,7 @@ function governance_recovery_api_observe($fixture,mysqli $observer,array $handle
     usleep(20000);
   }while(hrtime(true)<$deadline);
   try{$GLOBALS['governance_api_concurrency_child_failure']=governance_recovery_api_wait_diagnostic(
-    $fixture,$observer,$worker,$handle,$blocker,$parent_user_thread,$parent_user_tracked);}
+    $fixture,$observer,$worker,$handle,$blocker,$parent_user_thread,$parent_user_tracked,$producer_conn,$actor_conn);}
   catch(Throwable$diagnostic_error){$GLOBALS['governance_api_concurrency_child_failure']=array(
     'diagnostic_unavailable'=>true,'error_type'=>get_class($diagnostic_error));}
   throw new RuntimeException('recovery_api_observation_timeout');
@@ -176,7 +176,7 @@ function governance_recovery_api_observe($fixture,mysqli $observer,array $handle
 
 /** Actual requester/blocker relations, only on failure; never successful evidence. */
 function governance_recovery_api_wait_diagnostic($fixture,mysqli$observer,array$worker,array$handle,
-  $blocker,$parent_user_thread,$parent_user_tracked) {
+  $blocker,$parent_user_thread,$parent_user_tracked,$producer_conn,$actor_conn) {
   $fixture->assertOwned();governance_native_api_concurrency_owner($handle);
   $out=governance_native_api_startup_diagnostic($worker,$fixture);
   $path=$worker['private'].'/api-phase.json';clearstatcache(true,$path);
@@ -185,6 +185,8 @@ function governance_recovery_api_wait_diagnostic($fixture,mysqli$observer,array$
     if($phase[$key]!==null){$roles[$phase[$key]][]=$key;}}
   if(!$roles||!is_int($blocker)||$blocker<1||!is_int($parent_user_thread)||$parent_user_thread<1||!is_bool($parent_user_tracked)){
     throw new RuntimeException('recovery_api_wait_diagnostic_binding_refused');}
+  // Capture only already-owned live connection objects after failure. No new app reader.
+  $registry=governance_recovery_api_connection_registry($fixture,$observer,$producer_conn,$actor_conn,$roles);
   $ids=implode(',',array_map('intval',array_keys($roles)));
   $sql='SELECT r.PROCESSLIST_ID requester,b.PROCESSLIST_ID blocker,l.OBJECT_SCHEMA schema_name,'.
     'l.OBJECT_NAME table_name,l.INDEX_NAME index_name,l.LOCK_MODE mode_name,l.LOCK_TYPE type_name '.
@@ -199,7 +201,8 @@ function governance_recovery_api_wait_diagnostic($fixture,mysqli$observer,array$
     'account-epoch'=>new PhorgeGovernanceIdentityEpoch(),'conduit-token'=>new PhabricatorConduitToken(),
     'oauth-token'=>new PhabricatorOAuthServerAccessToken(),'oauth-authorization'=>new PhabricatorOAuthClientAuthorization())as$label=>$dao){
     $tables[$label]=array('schema'=>$fixture->getNamespace().'_'.$dao->getApplicationName(),'table'=>$dao->getTableName());}
-  $out['actual_waits']=governance_recovery_api_wait_projection($rows,$roles,$blocker,$parent_user_thread,$fixture->getNamespace(),$tables);
+  $out['actual_waits']=governance_recovery_api_wait_projection($rows,$roles,$blocker,$parent_user_thread,$fixture->getNamespace(),$tables,$registry);
+  $out['connection_registry_roles']=governance_recovery_api_registry_role_names($registry);
   $query=$observer->query('SELECT t.PROCESSLIST_ID requester,l.OBJECT_SCHEMA schema_name,l.OBJECT_NAME table_name '.
     'FROM performance_schema.metadata_locks l JOIN performance_schema.threads t ON t.THREAD_ID=l.OWNER_THREAD_ID '.
     "WHERE l.LOCK_STATUS='PENDING' AND t.PROCESSLIST_ID IN (".$ids.') LIMIT 9');
@@ -218,7 +221,7 @@ function governance_recovery_api_wait_diagnostic($fixture,mysqli$observer,array$
   return$out;
 }
 
-function governance_recovery_api_wait_projection(array$rows,array$roles,$blocker,$parent_user_thread,$namespace,array$tables) {
+function governance_recovery_api_wait_projection(array$rows,array$roles,$blocker,$parent_user_thread,$namespace,array$tables,array$registry=array()) {
   if(count($rows)>16||!is_string($namespace)||!preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)){
     throw new RuntimeException('recovery_api_wait_diagnostic_budget_refused');}
   $out=array();
@@ -229,6 +232,7 @@ function governance_recovery_api_wait_projection(array$rows,array$roles,$blocker
     $out[]=array('requester_roles'=>$roles[$requester],'requester_matches_observed_thread'=>true,
       'blocker_matches_producer_connection'=>(int)$row['blocker']===$blocker,
       'blocker_matches_parent_actor_connection'=>(int)$row['blocker']===$parent_user_thread,
+      'blocker_registry_roles'=>governance_recovery_api_registry_matches($registry,(int)$row['blocker']),
       'object_class'=>$kind,'index_class'=>$row['index_name']===null?'none':($row['index_name']==='PRIMARY'?'primary':'other'),
       'lock_type'=>$row['type_name']==='RECORD'?'record':($row['type_name']==='TABLE'?'table':'other'),
       'lock_mode'=>is_string($mode)&&str_starts_with($mode,'S')?'shared':(is_string($mode)&&str_starts_with($mode,'X')?'exclusive':'other'));
@@ -241,4 +245,50 @@ function governance_recovery_api_object_class(array$row,$namespace,array$tables)
   foreach($tables as$label=>$binding){
     if($schema===$binding['schema']&&$row['table_name']===$binding['table']){return$label;}}
   return$kind;
+}
+
+/** Failure-only registry. Raw IDs stay in this owned process, never in receipt. */
+function governance_recovery_api_connection_registry($fixture,mysqli$observer,$producer,$actor,array$child_roles) {
+  $fixture->assertOwned();
+  $setup=$fixture->getAdmin();
+  if(!($setup instanceof mysqli)||!($producer instanceof AphrontDatabaseConnection)||
+    !($actor instanceof AphrontDatabaseConnection)){
+    throw new RuntimeException('recovery_api_registry_connection_refused');}
+  $registry=array();
+  foreach(array('parent-producer'=>$producer,'parent-actor'=>$actor)as$role=>$conn){
+    governance_recovery_api_registry_add($registry,$role,(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n']);}
+  governance_recovery_api_registry_add($registry,'parent-control',(int)$observer->thread_id);
+  governance_recovery_api_registry_add($registry,'parent-setup',(int)$setup->thread_id);
+  // Reflection reads the native cache only; establishConnection('r') could create a new connection.
+  $cached=new ReflectionMethod(LiskDAO::class,'getEstablishedConnection');
+  foreach(array('conduit'=>new PhabricatorConduitToken(),'user'=>new PhabricatorUser())as$app=>$dao){
+    foreach(array('r','w')as$mode){
+      $conn=$cached->invoke($dao,$mode);if($conn===null){continue;}
+      if(!($conn instanceof AphrontDatabaseConnection)){throw new RuntimeException('recovery_api_registry_connection_refused');}
+      governance_recovery_api_registry_add($registry,'parent-cached-'.$app.'-'.$mode,
+        (int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n']);
+    }
+  }
+  foreach($child_roles as$id=>$names){foreach($names as$name){
+    governance_recovery_api_registry_add($registry,'child-'.$name,(int)$id);}}
+  return$registry;
+}
+function governance_recovery_api_registry_add(array&$registry,$role,$id) {
+  $allowed=array('parent-producer','parent-actor','parent-control','parent-setup',
+    'parent-cached-conduit-r','parent-cached-conduit-w','parent-cached-user-r','parent-cached-user-w',
+    'child-proof_thread','child-writer_thread','child-reader_thread','child-credential_thread');
+  if(!is_string($role)||!in_array($role,$allowed,true)||!is_int($id)||$id<1||count($registry)>12){
+    throw new RuntimeException('recovery_api_registry_shape_refused');}
+  if(isset($registry[$role])&&$registry[$role]!==$id){throw new RuntimeException('recovery_api_registry_identity_changed');}
+  $registry[$role]=$id;
+}
+function governance_recovery_api_registry_matches(array$registry,$id) {
+  if(!is_int($id)||$id<1||count($registry)>12){throw new RuntimeException('recovery_api_registry_shape_refused');}
+  $checked=array();foreach($registry as$role=>$value){governance_recovery_api_registry_add($checked,$role,$value);}
+  $out=array();foreach($checked as$role=>$value){if($value===$id){$out[]=$role;}}
+  sort($out,SORT_STRING);return$out;
+}
+function governance_recovery_api_registry_role_names(array$registry) {
+  $checked=array();foreach($registry as$role=>$value){governance_recovery_api_registry_add($checked,$role,$value);}
+  $names=array_keys($checked);sort($names,SORT_STRING);return$names;
 }

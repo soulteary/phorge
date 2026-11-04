@@ -31,3 +31,27 @@ This test-only successor records a private fixed phase/owner/thread manifest bef
 The `02b2a2d06ebd3aa1b08d9a387d6571116cd52f3e` run passed 243 pure methods and eleven focused checks. This time the child reached Ready; the run failed at the five-second `recovery_api_observation_timeout`. It is a separate failure from the earlier startup timeout, and no 46-check acceptance is claimed. Its whole-source comparison and cleanup were independently recorded by the owner; this successor does not relabel those receipts.
 
 A new failure-only collector reads the already owner-bound phase file before releasing the producer transaction. It preserves multiple connection roles sharing one actual MySQL connection, and examines their actual Performance Schema requester/blocker relations. Known table categories require both the exact fixture database and real DAO table name; other objects are labelled only `namespace-other` or `foreign-other`. It reports whether each blocker equals the producer connection or the parent's actor connection, index/lock classes, and bounded metadata-pending observations with **no inferred metadata blocker**. It also compares the parent's tracked User transaction state with actual `INNODB_TRX` presence. Connection IDs, database/table names, key values, SQL, credentials and raw errors are not emitted. Sixteen data waits/eight metadata waits bound the diagnostic; unknown or failed observation remains unavailable and the original timeout is still thrown. The existing accepted observation filter, timeout and all 46 success conditions are unchanged. The additional code has not run a database or real account interaction.
+
+
+### Actual a4f6 observation and registry successor
+
+The a4f6 isolated experiment passed all 243 pure methods and 11 focused checks,
+then failed the original five-second observation timeout. Its bounded diagnostic
+observed an actual Conduit PRIMARY shared-record wait; its blocker matched neither
+the recorded producer nor parent User connection. That does not prove a producer
+fence or token-scan deadlock. Cleanup and source hashing are separate owner records.
+
+This successor adds only failure-observation metadata. It obtains the child's
+actual native Conduit connection ID before the unmodified current-source call,
+rather than incorrectly labelling its User writer as the credential connection.
+The failure collector inspects actual parent producer/actor/control/setup objects
+and already-cached native User/Conduit reader/writer connections (without creating
+new parent connections). Every child role comes from the existing owned nonce
+phase file. Multiple roles may match one actual connection; an unrecognized
+blocker yields an empty role list, never an inferred owner. Only fixed role names
+leave memory; no connection IDs, SQL, usernames, schema/table names or token values
+are added to receipts. The original blocker matcher, timeout, 46 success checks,
+12 workers and product queries are unchanged. Registry failures preserve the
+original timeout and cannot count as a successful observation. SQL is unrun for
+this successor, and no API stress, restoration permit or full-family completion
+is claimed.

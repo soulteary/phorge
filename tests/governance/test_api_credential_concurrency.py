@@ -52,6 +52,50 @@ catch(RuntimeException $e){echo '{"accepted":false}';}"""
         self.assertFalse(invoke([row]*17)['accepted'])
         self.assertFalse(invoke([dict(row,requester='99')])['accepted'])
 
+    def test_failure_registry_multiple_roles_and_unknown_blocker_are_exact(self):
+        cases=ROOT/'support/governance/recovery/api-concurrency-cases.php'
+        script="""require $argv[1];$v=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
+try{$r=array();foreach($v['pairs']as$p){governance_recovery_api_registry_add($r,$p[0],$p[1]);}
+ echo json_encode(array('accepted'=>true,'roles'=>governance_recovery_api_registry_matches($r,$v['blocker']),
+ 'registered'=>governance_recovery_api_registry_role_names($r)),JSON_THROW_ON_ERROR);}
+catch(RuntimeException $e){echo '{"accepted":false}';}"""
+        def invoke(pairs,blocker=17):
+            run=subprocess.run(['php','-r',script,str(cases)],input=json.dumps(dict(pairs=pairs,blocker=blocker)),text=True,capture_output=True,check=True)
+            self.assertEqual(run.stderr,'');self.assertNotIn('PRIVATE_SENTINEL',run.stdout)
+            return json.loads(run.stdout)
+        pairs=[['parent-producer',17],['parent-cached-conduit-w',17],['child-credential_thread',18]]
+        self.assertEqual(invoke(pairs)['roles'],['parent-cached-conduit-w','parent-producer'])
+        self.assertEqual(invoke(pairs,18)['roles'],['child-credential_thread'])
+        self.assertEqual(invoke(pairs,99)['roles'],[])
+        for bad in ([['PRIVATE_SENTINEL',17]],[['parent-producer','17']],[['parent-producer',True]],
+                    [['parent-producer',0]],[['parent-producer',17],['parent-producer',18]]):
+            self.assertFalse(invoke(bad)['accepted'])
+
+    def test_wait_projection_registry_is_failure_metadata_not_evidence(self):
+        cases=ROOT/'support/governance/recovery/api-concurrency-cases.php'
+        script="""require $argv[1];$v=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
+$r=governance_recovery_api_wait_projection($v['rows'],array(17=>array('writer_thread')),21,22,
+ 'governance_native_aaaaaaaaaaaaaaaa',array(),array('parent-setup'=>23,'child-credential_thread'=>23));echo json_encode($r);"""
+        row=dict(requester='17',blocker='23',schema_name='PRIVATE_SENTINEL',table_name='PRIVATE_SENTINEL',index_name='PRIMARY',mode_name='S',type_name='RECORD')
+        run=subprocess.run(['php','-r',script,str(cases)],input=json.dumps(dict(rows=[row])),text=True,capture_output=True,check=True)
+        self.assertEqual(run.stderr,'');self.assertNotIn('PRIVATE_SENTINEL',run.stdout)
+        value=json.loads(run.stdout)[0]
+        self.assertEqual(value['blocker_registry_roles'],['child-credential_thread','parent-setup'])
+        self.assertFalse(value['blocker_matches_producer_connection'])
+        self.assertFalse(value['blocker_matches_parent_actor_connection'])
+        self.assertNotIn('state',value)
+
+    def test_child_credential_role_uses_real_conduit_connection(self):
+        worker=(ROOT/'support/governance/native-organization/native-worker.php').read_text()
+        self.assertIn("$credential_conn=(new PhabricatorConduitToken())->establishConnection('w')",worker)
+        self.assertIn("queryfx_one($credential_conn,'SELECT CONNECTION_ID() n')",worker)
+        self.assertIn("$api_phase('before-current-read',array('credential_thread'=>$credential_thread))",worker)
+        self.assertNotIn("$api_phase('context-ready',array('credential_thread'=>$thread))",worker)
+        source=(ROOT/'support/governance/recovery/api-concurrency-cases.php').read_text()
+        self.assertIn("new ReflectionMethod(LiskDAO::class,'getEstablishedConnection')",source)
+        self.assertIn("$setup=$fixture->getAdmin()",source)
+        self.assertIn("'parent-control',(int)$observer->thread_id",source)
+
     def test_observer_timeout_stays_failure_after_diagnostic_fault(self):
         source=(ROOT/'support/governance/recovery/api-concurrency-cases.php').read_text()
         boundary=source.index("  try{$GLOBALS['governance_api_concurrency_child_failure']=governance_recovery_api_wait_diagnostic")
