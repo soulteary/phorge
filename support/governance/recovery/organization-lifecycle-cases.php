@@ -44,6 +44,10 @@ function governance_recovery_org_lifecycle_cases($fixture,callable $check,array 
     $before=$read();$service->createUnit($unit);
     $check($read()===$before,'recovery-org-service-operation-replay-does-not-advance-generation');
     $now=(int)queryfx_one($conn,'SELECT UNIX_TIMESTAMP() n')['n'];
+    // Native appointment approval requires real active team membership.
+    $service->execute(array('operation_id'=>'recovery-lifecycle-member','mutations'=>array(array(
+      'action'=>'member.add','team'=>$team,'target_user'=>$subject,'valid_from'=>$now-60,'valid_until'=>null,
+      'approval_id'=>null,'expected_team_version'=>1,'expected_member_version'=>0,'expected_appointment_version'=>0))));
     $proposal=array('approval_id'=>'recovery-lifecycle-approval','operation_id'=>'recovery-lifecycle-grant',
       'team'=>$team,'action'=>'appointment.grant','target_user'=>$subject,
       'valid_from'=>$now,'valid_until'=>null,'ttl_seconds'=>120);
@@ -69,6 +73,10 @@ function governance_recovery_org_lifecycle_cases($fixture,callable $check,array 
     // Fail after generation advancement but before the audit can persist.
     governance_native_setup_query($fixture,'CREATE TRIGGER '.$trigger_name.' BEFORE INSERT ON '.
       $fixture->table('user','organization_audit')." FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='recovery_lifecycle_fixture_fault'");$trigger=true;
+    $proof=governance_native_setup_query($fixture,"SELECT COUNT(*) n FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA='".
+      $fixture->getNamespace()."_user' AND TRIGGER_NAME='recovery_lifecycle_audit_fault'");
+    $installed=(int)$proof->fetch_assoc()['n']===1;$proof->free();
+    if(!$installed){throw new RuntimeException('recovery_org_lifecycle_trigger_missing');}
     $before=$read();$failed=$proposal;$failed['approval_id']='recovery-lifecycle-rollback';$failed['operation_id']='recovery-lifecycle-rollback';
     $refused=false;
     try{$service->proposeApproval($failed);}catch(AphrontQueryException$error){
@@ -89,6 +97,94 @@ function governance_recovery_org_lifecycle_cases($fixture,callable $check,array 
     $ticket=queryfx_one($conn,'SELECT state,approverPHID FROM organization_approval WHERE approvalID=%s',$failed['approval_id']);
     $check($refused&&$read()===$before&&!$conn->isInsideTransaction()&&$ticket['state']==='submitted'&&$ticket['approverPHID']===null,
       'recovery-org-approval-audit-fault-rolls-back-review-and-generation');
+    governance_native_setup_query($fixture,'DROP TRIGGER '.$trigger_name);$trigger=false;
+    $switch($first);
+    $make=static function($suffix)use($fixture){
+      $user=(new PhabricatorUser())->setUsername('rl'.$suffix.substr($fixture->getNamespace(),-9))
+        ->setRealName('Synthetic lifecycle participant')->setIsApproved(1)->setIsAdmin(0)->setIsEmailVerified(1)->save();
+      (new PhabricatorUserEmail())->setUserPHID($user->getPHID())->setAddress($user->getUsername().'@example.invalid')
+        ->setIsPrimary(1)->setIsVerified(1)->save();return$user;
+    };
+    $moving=$make('moving');$owner=$make('owner');
+    foreach(array('recovery-lifecycle-from','recovery-lifecycle-to')as$department){
+      $service->createUnit(array('operation_id'=>'create-'.$department,'unit_id'=>$department,
+        'kind'=>'department','name'=>'Synthetic lifecycle department','parent_id'=>null));
+    }
+    $service->assignPrimaryDepartment(array('operation_id'=>'recovery-lifecycle-primary','user_phid'=>$moving->getPHID(),
+      'unit_id'=>'recovery-lifecycle-from','expected_version'=>0));
+    $intent=array('operation_id'=>'recovery-lifecycle-transfer-op','transfer_id'=>'recovery-lifecycle-transfer',
+      'subject_phid'=>$moving->getPHID(),'responsible_phid'=>$owner->getPHID(),
+      'from_department'=>'recovery-lifecycle-from','to_department'=>'recovery-lifecycle-to',
+      'primary_version'=>1,'from_version'=>1,'to_version'=>1,'reason'=>'Synthetic generation probe',
+      'acknowledge_no_project_permission_change'=>true);
+    $observe=static function(callable$call,$replay,$id)use($read,$check){
+      $before=$read();$result=$call();$expected=$replay?$before:PhorgeRecoveryOrganizationProducerFence::nextGuardVersion($before);
+      $check($read()===$expected&&$result['replayed']===$replay,$id);return$result;
+    };
+    $fault=static function(callable$call,$id)use($read,$check,$fixture,$trigger_name,&$trigger,$conn){
+      if($trigger){throw new RuntimeException('recovery_org_lifecycle_fault_already_installed');}
+      governance_native_setup_query($fixture,'CREATE TRIGGER '.$trigger_name.' BEFORE INSERT ON '.
+        $fixture->table('user','organization_audit')." FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='recovery_lifecycle_fixture_fault'");$trigger=true;
+      $before=$read();$fingerprint=static function()use($conn){$rows=array();
+        foreach(array('guard','unit','member','appointment','primarydepartment','transfer','handover','outbox','projectdisposition','audit','operation')as$table){
+          $key=$table==='operation'?'operationID':'id';
+          $rows[$table]=queryfx_all($conn,'SELECT * FROM %T ORDER BY %C','organization_'.$table,$key);
+        }
+        return PhorgeRecoveryRestoreRequest::digest($rows);
+      };
+      $original=$fingerprint();$denied=false;
+      try{$call();}catch(AphrontQueryException$error){
+        if(get_class($error)!==AphrontQueryException::class||$error->getCode()!==1644){throw$error;}$denied=true;
+      }finally{
+        governance_native_setup_query($fixture,'DROP TRIGGER '.$trigger_name);$trigger=false;
+      }
+      $check($denied&&$read()===$before&&!$conn->isInsideTransaction()&&$fingerprint()===$original,$id);
+    };
+    $fault(static fn()=>$service->proposeTransfer($intent,300),
+      'recovery-org-transfer-proposal-audit-fault-rolls-back-domain-and-generation');
+    $observe(static fn()=>$service->proposeTransfer($intent,300),false,
+      'recovery-org-transfer-proposal-advances-one-generation');
+    $observe(static fn()=>$service->proposeTransfer($intent,300),true,
+      'recovery-org-transfer-proposal-replay-preserves-generation');
+    $detail=$service->readTransfer($intent['transfer_id']);$switch($second);
+    $fault(static fn()=>$reviewer->approveTransfer($intent['transfer_id'],$detail['request_digest']),
+      'recovery-org-transfer-approval-audit-fault-rolls-back-domain-and-generation');
+    $observe(static fn()=>$reviewer->approveTransfer($intent['transfer_id'],$detail['request_digest']),false,
+      'recovery-org-transfer-approval-advances-one-generation');
+    $observe(static fn()=>$reviewer->approveTransfer($intent['transfer_id'],$detail['request_digest']),true,
+      'recovery-org-transfer-approval-replay-preserves-generation');
+    $switch($first);
+    $fault(static fn()=>$service->executeTransfer($intent['transfer_id'],true),
+      'recovery-org-transfer-execution-audit-fault-rolls-back-domain-and-generation');
+    $observe(static fn()=>$service->executeTransfer($intent['transfer_id'],true),false,
+      'recovery-org-transfer-execution-audit-record-advances-once');
+    $observe(static fn()=>$service->executeTransfer($intent['transfer_id'],true),true,
+      'recovery-org-transfer-execution-replay-preserves-generation');
+    $h=queryfx_one($conn,'SELECT * FROM organization_handover WHERE transferID=%s',$intent['transfer_id']);
+    if(!$h){throw new RuntimeException('recovery_org_lifecycle_handover_missing');}
+    $extension=array('operation_id'=>'recovery-lifecycle-extension-op','transfer_id'=>'recovery-lifecycle-extension',
+      'handover_id'=>$h['handoverID'],'expected_version'=>1,'handover_days'=>14,
+      'reason'=>'Synthetic actual extension','acknowledge_no_project_permission_change'=>true);
+    $fault(static fn()=>$service->proposeHandover('extend',$extension,300),
+      'recovery-org-handover-proposal-audit-fault-rolls-back-domain-and-generation');
+    $observe(static fn()=>$service->proposeHandover('extend',$extension,300),false,
+      'recovery-org-handover-proposal-advances-one-generation');
+    $observe(static fn()=>$service->proposeHandover('extend',$extension,300),true,
+      'recovery-org-handover-proposal-replay-preserves-generation');
+    $detail=$service->readHandoverApproval($extension['transfer_id']);$switch($second);
+    $fault(static fn()=>$reviewer->approveHandover($extension['transfer_id'],$detail['request_digest']),
+      'recovery-org-handover-approval-audit-fault-rolls-back-domain-and-generation');
+    $observe(static fn()=>$reviewer->approveHandover($extension['transfer_id'],$detail['request_digest']),false,
+      'recovery-org-handover-approval-advances-one-generation');
+    $observe(static fn()=>$reviewer->approveHandover($extension['transfer_id'],$detail['request_digest']),true,
+      'recovery-org-handover-approval-replay-preserves-generation');
+    $switch($first);
+    $fault(static fn()=>$service->executeHandover($extension['transfer_id'],true),
+      'recovery-org-handover-execution-audit-fault-rolls-back-domain-and-generation');
+    $observe(static fn()=>$service->executeHandover($extension['transfer_id'],true),false,
+      'recovery-org-handover-execution-audit-record-advances-once');
+    $observe(static fn()=>$service->executeHandover($extension['transfer_id'],true),true,
+      'recovery-org-handover-execution-replay-preserves-generation');
   }catch(Throwable$error){$primary=$error;throw$error;}finally{
     $errors=array();
     try{if($trigger){governance_native_setup_query($fixture,'DROP TRIGGER '.$trigger_name);}}
@@ -97,7 +193,7 @@ function governance_recovery_org_lifecycle_cases($fixture,callable $check,array 
     catch(Throwable$error){$errors['transaction']=$error;}
     try{if($environment!==null){governance_recovery_account_restore_fixture_environment($environment);}}
     catch(Throwable$error){$errors['environment']=$error;}
-    try{if($flags!==null){$flags->endScopedEnv();}}
+    try{unset($flags);}
     catch(Throwable$error){$errors['flags']=$error;}
     $_COOKIE=$cookies;if($method===null){unset($_SERVER['REQUEST_METHOD']);}else{$_SERVER['REQUEST_METHOD']=$method;}
     if($errors){if($primary!==null){$errors=array('original'=>$primary)+$errors;}throw new PhutilAggregateException('recovery_org_lifecycle_cleanup_failed',$errors);}

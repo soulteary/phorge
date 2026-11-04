@@ -4,7 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold');
 $phase=$arguments===array()?'all':
@@ -182,7 +182,12 @@ try {
       }
     }
   });
-  if($phase==='recovery-organization-metadata-only'){
+  if($phase==='recovery-organization-lifecycle-only'){
+    $stage='focused-indexed-organization-lifecycle';
+    require_once __DIR__.'/native-cases.php';
+    require_once dirname(__DIR__).'/recovery/organization-lifecycle-focused.php';
+    $native=governance_recovery_org_lifecycle_focused($fixture,$check);
+  }elseif($phase==='recovery-organization-metadata-only'){
     $stage='focused-live-organization-metadata';
     require_once __DIR__.'/native-cases.php';
     require_once dirname(__DIR__).'/recovery/organization-live-metadata-focused.php';
@@ -300,7 +305,7 @@ if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)
   $failure = array('stage'=>'unexpected-native-runtime-output','error_type'=>'RuntimeWarning');
 }
 $passed = $failure === null && !$cleanup_failures;
-echo json_encode(array('batch'=>$phase==='recovery-organization-metadata-only'?'native-recovery-organization-live-metadata-component':($phase==='recovery-organization-only'?'native-recovery-organization-producer-component':($phase==='recovery-policy-only'?'native-recovery-policy-range-component':($private_mail_wire?'private-native-mail-wire-preparation':($wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration'))))),'passed'=>$passed,
+echo json_encode(array('batch'=>$phase==='recovery-organization-lifecycle-only'?'native-recovery-organization-lifecycle-component':($phase==='recovery-organization-metadata-only'?'native-recovery-organization-live-metadata-component':($phase==='recovery-organization-only'?'native-recovery-organization-producer-component':($phase==='recovery-policy-only'?'native-recovery-policy-range-component':($private_mail_wire?'private-native-mail-wire-preparation':($wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration')))))),'passed'=>$passed,
   'scope'=>$private_mail_wire?'owned-private-native-mail-wire-preparation':($wire_hold?'owned-native-media-wire-hold-synthetic-accounts':($legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts')),'checks'=>$checks,'check_count'=>count($checks),
   'php_version'=>PHP_VERSION,'source_restore'=>$summary,'native'=>$native,
   'optional_source_reader_adapter_exercised'=>$reader_adapter_exercised,

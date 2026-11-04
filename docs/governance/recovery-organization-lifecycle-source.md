@@ -42,3 +42,22 @@ All 13 families remain required. Unknown producers, unclosed metadata/privilege
 leases, application SQL restore lineage, projects, and other incomplete families
 still block a restore permit. This checkpoint has no controlled enable success,
 no complete source certificate, no deployment, activation or production migration.
+
+## Prepared focused successor
+
+The subsequent fixture corrects two preflight issues in the initial source
+checkpoint: native appointment approval first creates actual team membership,
+and scoped config cleanup uses the real native destructor instead of a
+nonexistent endScopedEnv method. It also proves the owned audit trigger exists.
+
+The fixed CLI phase `--recovery-organization-lifecycle-only` now invokes 27
+prepared obligations: nine Service/approval/source probes and nine each for
+Transfer and Handover proposal/approval/execution success, replay and genuine
+audit-trigger rollback. Six bootstrap and three cleanup obligations make the
+strict focused receipt exactly 36. All remain UNRUN. The reviewed migration list
+now explicitly adds the new participant/index patch (35 source migrations,
+1572 total patches, 543 tables expected); those counts require actual native
+restore verification and are not accepted from a synthesized host template.
+Host gate tests only prove consumer rejection behavior, including missing every
+obligation and authority/type/source mutations. Existing historical gates and
+receipts are not relabeled, and a current-main union is still required.
