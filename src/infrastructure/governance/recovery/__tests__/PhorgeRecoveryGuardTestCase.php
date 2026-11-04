@@ -17,7 +17,8 @@ final class PhorgeRecoveryGuardTestCase extends PhutilTestCase {
       $this->assertFalse(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled(
         (new PhabricatorUser())->setIsDisabled($value)));
     }
-    $malformed=(new PhabricatorUser())->setIsDisabled('0.0');
+    $malformed=(new PhabricatorUser())->setPHID('PHID-USER-'.str_repeat('a',20))
+      ->setIsApproved(1)->setIsDisabled('0.0')->setIsSystemAgent(0)->setIsMailingList(0);
     $this->assertTrue($malformed->getIsDisabled());
     $refused=false;
     try{PhorgeGovernanceRecoveryTransition::describe(
