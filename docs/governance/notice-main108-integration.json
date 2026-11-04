@@ -1,0 +1,85 @@
+{
+  "scope": "Current-main notice native integration acceptance with separately identified historical Physical evidence",
+  "parents": [
+    "8835c06eedba4575da13b56cda4a8803bb4f182a",
+    "48c3aa98b2a2ed10a0608ff74d474de79409ed1e"
+  ],
+  "product_src_resources_exact_prior_candidate": true,
+  "main_policy_RC_correction_retained": true,
+  "strict_policy_source_shape": {
+    "reviewed_migrations": 37,
+    "patches": 1574,
+    "tables": 546
+  },
+  "actual_host_tests": {
+    "policy": 9,
+    "native_organization_gate": 54
+  },
+  "supported_pure_expected_unrun": null,
+  "normal_SQL_expected_unrun": null,
+  "policy_SQL_expected_separately_unrun": null,
+  "prior_8835_physical_cases_not_relabelled": true,
+  "current_source_runtime_executed": true,
+  "all13_complete": false,
+  "restoration_authorized": false,
+  "optional_features_enabled": false,
+  "deployment": false,
+  "actual_current_native": {
+    "source": "6157d3d5ef4007823557e4fc84024013ff26deaa",
+    "pure_methods": 257,
+    "classes": 43,
+    "SQL_checks": 934,
+    "runtime_files_exact": 6876,
+    "strict_CLI_equals_inprocess": true,
+    "owned_cleanup_passed": true,
+    "checkpoint_sha256": "7b5e32c6dfc3066c36cf0225dea4830f527bdc2b7f02041215cdf630e5349d17"
+  },
+  "current_source_Physical_executed": false,
+  "docs_successor_is_new_runtime": false,
+  "actual_current_policy_SQL_only": {
+    "source_head": "6157d3d5ef4007823557e4fc84024013ff26deaa",
+    "SQL_checks": 23,
+    "runtime_files_exact": 6876,
+    "pure_executions_this_run": 0,
+    "map_rebuild_executions_this_run": 0,
+    "pure_shared_from6157full934": {
+      "source_head": "6157d3d5ef4007823557e4fc84024013ff26deaa",
+      "checkpoint_sha256": "7b5e32c6dfc3066c36cf0225dea4830f527bdc2b7f02041215cdf630e5349d17",
+      "classmap_sha256": "11811e340db8e5953cedadfc3e5df6ff2d092c9ea7385521596edda53da761be",
+      "PHP_version": "8.5.12",
+      "pure_methods": 257,
+      "pure_classes": 43,
+      "executions_this_run": 0
+    },
+    "checkpoint_sha256": "0a21d070c6440ec1a90bb8e15d8ba24670c4a64e7bc02c3a41ae79b76918637b",
+    "evidence_sha256": {
+      "notice-main108-policy23-integration.json": "2f0e51b5b0c8ad2c725349a20c74deafe693ffae699d9d4b29bfc6be187c34d0",
+      "notice-main108-policy23-parent.json": "953c1f4301bb51d93cd10db38bc29dd3f8b507ae14761e6696e4bb925227a556",
+      "notice-main108-policy23-source-runtime-match.json": "deb098532dde7a97c80470158fbbba19953b2748ed7ae6e702a4a65012da7549",
+      "notice-main108-policy23-strict-cli.json": "c990cee289a253666678c751163a3c132cff0647eaea7568f1294662ca84cd83",
+      "notice-main108-policy23-strict-accepted.json": "2bed17b6077f197ec7ca57b69a4ed226ee9f89f12296ca488704a7e48fe5a891",
+      "notice-main108-policy23-render-build.json": "8a67592e7a79e477f6272ec6901959bcf6089d741e56049bcb4a45234be4e1bc",
+      "notice-main108-policy23-map-cache-observation.json": "98a560ca3cae519880b63d1da7abe4c038bdd376759ea9aeceed7f94a70fc833"
+    },
+    "immutable_manifest_sha256": "e6c7f5e04c71bede4bd927b166a2fc79c7370eab1f812ef8008aa9db34f61656",
+    "independent_review_auth_sha256": "d0200b9f5321cb66768fbb26360921a3e871d397f7d021de62c807117a685ee9",
+    "cleanup": {
+      "ownedSchemasRemoved": 55,
+      "ownedRuntimeUsersRemoved": 2,
+      "readerRemoved": true
+    },
+    "worker_cleanup": {
+      "private_directories_removed": 4,
+      "owned_processes_stopped": 0,
+      "cleanup_failures": 0,
+      "private_directories_remaining": 0,
+      "live_processes_after_cleanup": 0,
+      "workers_registered": 4
+    },
+    "actual_strict_CLI_equals_inprocess": true,
+    "service_RC_absence_fence_proved": false,
+    "fixture_RR_is_service_guarantee": false,
+    "all_sources_complete": false,
+    "restoration_authorized": false
+  }
+}
