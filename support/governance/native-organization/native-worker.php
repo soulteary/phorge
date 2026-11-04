@@ -30,7 +30,7 @@ try {
   $payload=json_decode(file_get_contents($path.'/payload.json'),true,16,JSON_THROW_ON_ERROR);
   $keys=array_keys($payload); sort($keys);
   $wanted_keys=array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256');
-  if(($payload['action']['action']??null)==='measurement.api-token-auth'){$wanted_keys[]='measurement_file';sort($wanted_keys);}
+  if(in_array(($payload['action']['action']??null),array('measurement.api-token-auth','recovery.oauth.authenticate'),true)){$wanted_keys[]='measurement_file';sort($wanted_keys);}
   if(($payload['action']['action']??null)==='recovery.session.issue'){$wanted_keys[]='recovery_incarnation';sort($wanted_keys);
     if(!is_string($payload['recovery_incarnation']??null)||!preg_match('/\A[a-f0-9]{32}\z/D',$payload['recovery_incarnation'])){throw new RuntimeException('native_worker_recovery_incarnation_refused');}}
   if ($keys!==$wanted_keys ||
@@ -134,7 +134,49 @@ try {
   $action=$payload['action']; $kind=$action['action']??null;
   $conn=(new PhabricatorUser())->establishConnection('w');
   $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
-  if($kind==='recovery.session.issue'){
+  if($kind==='recovery.oauth.authenticate'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','token','user')||!is_string($action['token'])||
+      !preg_match('/\A[A-Za-z0-9]{32}\z/D',$action['token'])){
+      throw new RuntimeException('native_worker_action_refused');}
+    PhorgeRecoveryStopRequest::user($action['user']);
+    $oauth_conn=(new PhabricatorOAuthServerAccessToken())->establishConnection('r');
+    $oauth_thread=(int)queryfx_one($oauth_conn,'SELECT CONNECTION_ID() n')['n'];
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$oauth_thread));
+    $api=new ConduitAPIRequest(array(),true);
+    $controller=(new PhabricatorConduitAPIController())->setRequest(
+      (new AphrontRequest('fixture.invalid','/api/user.whoami'))->setUser(new PhabricatorUser()));
+    $error=(new ReflectionMethod(PhabricatorConduitAPIController::class,'authenticateUser'))
+      ->invoke($controller,$api,array('access_token'=>$action['token']),'user.whoami');
+    if($error===null&&$api->getUser()->getPHID()===$action['user']){
+      $outcome='allowed';$code='native-success';
+    }else if(is_array($error)&&array_keys($error)===array(0,1)&&$error[0]==='ERR-INVALID-AUTH'){
+      $outcome='denied';$code='ERR-INVALID-AUTH';
+    }else{throw new RuntimeException('recovery_oauth_auth_unknown');}
+    $result=array('status'=>'committed','outcome'=>$outcome,'authentication_code'=>$code,
+      'restoration_authorized'=>false);
+  }else if($kind==='recovery.api.current'){
+    $keys=array_keys($action);sort($keys);
+    if($keys!==array('action','token','user')||!is_string($action['token'])||
+      !preg_match('/\A(?:api|cli)-[A-Za-z0-9]{28}\z/D',$action['token'])){
+      throw new RuntimeException('native_worker_action_refused');}
+    PhorgeRecoveryStopRequest::user($action['user']);
+    $viewer=(new PhabricatorUser())->loadOneWhere('phid=%s',$action['user']);
+    if(!$viewer){throw new RuntimeException('governance_native_credential_ineligible');}
+    // This is the actual current-source reader, not a claim that the caller's
+    // PHID authenticates a token. lockCurrent verifies the stored token binding.
+    $context=PhorgeGovernanceNativeActorContext::newFromAuthenticatedAPIToken(
+      $viewer,new PhutilOpaqueEnvelope($action['token']));
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');$conn->openTransaction();
+    try {
+      $current=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
+      if($current->getUserPHID()!==$action['user']){
+        throw new RuntimeException('recovery_api_current_binding_refused');}
+      $conn->saveTransaction();
+    }catch(Throwable$error){$conn->killTransaction();throw$error;}
+    $result=array('status'=>'committed','current_token_verified'=>true,'restoration_authorized'=>false);
+  }else if($kind==='recovery.session.issue'){
     $keys=array_keys($action);sort($keys);
     if($keys!==array('action','subject','token')||!is_string($action['token'])||strlen($action['token'])>256){
       throw new RuntimeException('native_worker_action_refused');}
