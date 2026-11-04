@@ -47,6 +47,30 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
     }
   }
 
+  public static function assertNativeScalarHooks(PhorgeRecoveryOrganizationProducerDAO $object) {
+    self::tableForClass(get_class($object));
+    if($object->getConfigOption(LiskDAO::CONFIG_TIMESTAMPS)!==false||
+      !in_array($object->getConfigOption(LiskDAO::CONFIG_AUX_PHID),array(null,false),true)){
+      throw new RuntimeException('recovery_org_producer_hooks_unknown');}
+    foreach(array(LiskDAO::CONFIG_SERIALIZATION,PhabricatorLiskDAO::CONFIG_APPLICATION_SERIALIZERS)as$option){
+      if(!in_array($object->getConfigOption($option),array(null,array()),true)){
+        throw new RuntimeException('recovery_org_producer_hooks_unknown');}
+    }
+    foreach(array('willSaveObject'=>LiskDAO::class,'willWriteData'=>PhabricatorLiskDAO::class,
+      'didWriteData'=>LiskDAO::class,'willDelete'=>LiskDAO::class,'didDelete'=>LiskDAO::class)as$hook=>$declaration){
+      if((new ReflectionMethod($object,$hook))->getDeclaringClass()->getName()!==$declaration){
+        throw new RuntimeException('recovery_org_producer_hooks_unknown');}
+    }
+    // Native PhabricatorLiskDAO caches serializers per concrete class. Also
+    // reject a pre-existing nonempty cache rather than trusting only today's
+    // Lisk metadata. Never invoke a serializer to test whether it is harmless.
+    $static=(new ReflectionMethod(PhabricatorLiskDAO::class,'willWriteData'))->getStaticVariables();
+    if(array_keys($static)!==array('custom')||!is_array($static['custom'])||
+      (array_key_exists(get_class($object),$static['custom'])&&
+       !in_array($static['custom'][get_class($object)],array(null,array()),true))){
+      throw new RuntimeException('recovery_org_producer_hooks_unknown');}
+  }
+
   public static function begin(PhorgeRecoveryOrganizationProducerDAO $object,$mode) {
     $table=self::tableForClass(get_class($object));
     if(!in_array($mode,array('INSERT','UPDATE','DELETE'),true)||$object->getTableName()!==$table||
@@ -55,17 +79,7 @@ final class PhorgeRecoveryOrganizationProducerFence extends Phobject {
       throw new RuntimeException('recovery_org_producer_mode_unknown');}
     if($mode!=='INSERT'){PhorgeRecoveryStopRequest::transactionID($object->getID());}
     self::assertScalarModelData($object);
-    if($object->getConfigOption(LiskDAO::CONFIG_TIMESTAMPS)!==false||
-      !in_array($object->getConfigOption(LiskDAO::CONFIG_AUX_PHID),array(null,false),true)){
-      throw new RuntimeException('recovery_org_producer_hooks_unknown');}
-    foreach(array(LiskDAO::CONFIG_SERIALIZATION,PhabricatorLiskDAO::CONFIG_APPLICATION_SERIALIZERS)as$option){
-      if(!in_array($object->getConfigOption($option),array(null,array()),true)){
-        throw new RuntimeException('recovery_org_producer_hooks_unknown');}
-    }
-    foreach(array('willSaveObject','willWriteData','didWriteData','willDelete','didDelete')as$hook){
-      if((new ReflectionMethod($object,$hook))->getDeclaringClass()->getName()!==LiskDAO::class){
-        throw new RuntimeException('recovery_org_producer_hooks_unknown');}
-    }
+    self::assertNativeScalarHooks($object);
     $profile=PhorgeRecoveryRestoreProfile::assertCurrent();
     if((new ReflectionProperty(LiskDAO::class,'forcedConnection'))->getValue($object)!==null){
       throw new RuntimeException('recovery_org_producer_writer_unknown');}

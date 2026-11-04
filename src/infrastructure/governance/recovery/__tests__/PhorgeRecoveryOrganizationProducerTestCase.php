@@ -12,10 +12,27 @@ final class PhorgeRecoveryOrganizationProducerTestCase extends PhutilTestCase {
       $object=new $class();
       $this->assertFalse($object->getConfigOption(LiskDAO::CONFIG_TIMESTAMPS));
       $this->assertTrue(in_array($object->getConfigOption(LiskDAO::CONFIG_AUX_PHID),array(null,false),true));
-      foreach(array('willSaveObject','willWriteData','didWriteData','willDelete','didDelete')as$hook){
-        $this->assertEqual(LiskDAO::class,(new ReflectionMethod($class,$hook))->getDeclaringClass()->getName());
+      foreach(array('willSaveObject'=>LiskDAO::class,'willWriteData'=>PhabricatorLiskDAO::class,
+        'didWriteData'=>LiskDAO::class,'willDelete'=>LiskDAO::class,'didDelete'=>LiskDAO::class)as$hook=>$declaring){
+        $this->assertEqual($declaring,(new ReflectionMethod($class,$hook))->getDeclaringClass()->getName());
       }
+      PhorgeRecoveryOrganizationProducerFence::assertNativeScalarHooks($object);
     }
+    // Exercise the actual native config cache on the exact final DAO. No
+    // serializer or arbitrary callback is executed, and every old entry is
+    // restored by reference/value after each negative control.
+    $metadata=new ReflectionProperty(LiskDAO::class,'liskMetadata');
+    $original=$metadata->getValue(null);$unit=new PhorgeOrganizationUnit();
+    try{
+      $unit->getConfigOption(LiskDAO::CONFIG_TIMESTAMPS);$baseline=$metadata->getValue(null);
+      foreach(array(LiskDAO::CONFIG_SERIALIZATION,PhabricatorLiskDAO::CONFIG_APPLICATION_SERIALIZERS)as$key){
+        $bad=$baseline;$bad[PhorgeOrganizationUnit::class]['config'][$key]=array('name'=>new PhutilOpaqueEnvelope('synthetic-only'));
+        $metadata->setValue(null,$bad);$refused=false;
+        try{PhorgeRecoveryOrganizationProducerFence::assertNativeScalarHooks($unit);}
+        catch(RuntimeException$error){$refused=get_class($error)===RuntimeException::class&&$error->getMessage()==='recovery_org_producer_hooks_unknown';}
+        $this->assertTrue($refused);$metadata->setValue(null,$baseline);
+      }
+    }finally{$metadata->setValue(null,$original);}
     foreach(array(PhorgeOrganizationTransfer::class,PhabricatorUser::class,'UnknownProducer',null,array())as$class){
       $refused=false;
       try{PhorgeRecoveryOrganizationProducerFence::tableForClass($class);}
