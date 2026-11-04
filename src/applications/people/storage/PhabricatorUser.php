@@ -264,6 +264,22 @@ final class PhabricatorUser
     return !($this->getPHID() === null);
   }
 
+  public function update() {
+    if(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled($this)||!PhorgeGovernanceRecoveryGuard::enabled()){
+      return parent::update();
+    }
+    $scope=PhorgeGovernanceRecoveryGuard::begin($this,'UPDATE');
+    try{$result=parent::update();$scope->finish();return$result;}
+    finally{$scope->close();}
+  }
+
+  protected function insertRecordIntoDatabase($mode) {
+    if(!PhorgeGovernanceRecoveryGuard::enabled()){return parent::insertRecordIntoDatabase($mode);}
+    $scope=PhorgeGovernanceRecoveryGuard::begin($this,$mode);
+    try{$result=parent::insertRecordIntoDatabase($mode);$scope->finish();return$result;}
+    finally{$scope->close();}
+  }
+
   public function saveWithoutIndex() {
     return parent::save();
   }

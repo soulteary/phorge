@@ -1,0 +1,348 @@
+{
+  "schema": 1,
+  "base_frozen_checkpoint": "06a7568d069f438123a3267a7f669d692909f9fb",
+  "scope": "development dependency ledger, never consumed as permission or caller-completion proof",
+  "families": [
+    {
+      "family": "account-stop",
+      "relevant_sources": [
+        "user.user",
+        "user.user_transaction",
+        "user.organization_identityepoch",
+        "user.recovery_stop"
+      ],
+      "required_identity_indexes": [
+        "User.id",
+        "UserTransaction.id",
+        "IdentityEpoch.userPHID",
+        "Stop.nativeTransactionID"
+      ],
+      "implemented": "Implemented current account/committed stop/generation capture. Native User update fence denies unknown increases; emergency disable remains independent.",
+      "remaining_producer_absence_lineage_gap": "Account fields and all disable generations must remain current; classify first approval separately from restoration.",
+      "required_actual_tests": [
+        "native disable/enable ABA",
+        "legacy role ABA",
+        "unknown stop generation",
+        "review binding after source mutation"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "web-credentials",
+      "relevant_sources": [
+        "user.phabricator_session",
+        "auth.auth_temporarytoken",
+        "user.user_email",
+        "user.user_externalaccount",
+        "auth.auth_sshkey",
+        "auth.auth_password",
+        "user.user_externalaccountidentifier"
+      ],
+      "required_identity_indexes": [
+        "native PK id plus subject-owned range indexes"
+      ],
+      "implemented": "Direct Session/temporary capture exists. New AuthSession INSERT neutral User SHARE fence and real SessionEngine worker implemented, not run.",
+      "remaining_producer_absence_lineage_gap": "UPDATE/REPLACE, legacy/raw issuers, email-resource temporary tokens, external providers and linked identities remain uncovered.",
+      "required_actual_tests": [
+        "actual two blocked DAO INSERTs",
+        "nested rollback and raw START1568",
+        "linked provider/email-resource issue/revoke",
+        "same-row credential changes while captured"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "api-credentials",
+      "relevant_sources": [
+        "conduit.conduit_token",
+        "oauth_server.oauth_server_oauthclientauthorization",
+        "oauth_server.oauth_server_oauthserverauthorizationcode",
+        "oauth_server.oauth_server_oauthserveraccesstoken",
+        "oauth_server.oauth_server_oauthserverclient",
+        "user.phabricator_session",
+        "user.user"
+      ],
+      "required_identity_indexes": [
+        "each native id PK; subject/token-owner indexed range"
+      ],
+      "implemented": "Existing bounded direct Conduit/OAuth/certificate/legacy-session readers reused in same transaction.",
+      "remaining_producer_absence_lineage_gap": "Conduit/OAuth create, refresh, update, client secret/capability changes and raw issuers require actual range/producer fences; no mass revoke selected.",
+      "required_actual_tests": [
+        "fresh direct token after empty capture",
+        "OAuth refresh/client changes",
+        "legacy certificate rotation",
+        "row/LOB budget overflow"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "media-credentials",
+      "relevant_sources": [
+        "user.governance_mediabrowser",
+        "user.governance_mediaexchange",
+        "user.governance_mediacredential",
+        "user.governance_mediaquota"
+      ],
+      "required_identity_indexes": [
+        "digest PKs; browser/subject indexed ranges"
+      ],
+      "implemented": "Selected browser/exchange/credential rows and external issuer captured.",
+      "remaining_producer_absence_lineage_gap": "Bind quota/current generation and every prepare/issue/redeem writer; old media nonrevival requires actual recovery/restore rehearsal.",
+      "required_actual_tests": [
+        "prepare/issue race against empty readset",
+        "old code/credential denied after recovery",
+        "quota/capacity rollback",
+        "outside-incarnation preserved across DB restore"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "organization",
+      "relevant_sources": [
+        "user.organization_guard",
+        "user.organization_unit",
+        "user.organization_member",
+        "user.organization_appointment",
+        "user.organization_primarydepartment",
+        "user.organization_approval",
+        "user.organization_transfer",
+        "user.organization_handover",
+        "user.organization_outbox"
+      ],
+      "required_identity_indexes": [
+        "Guard.id=1; unit/relationship IDs; subject ranges"
+      ],
+      "implemented": "Selected current directory facts captured under actual native directory mutex.",
+      "remaining_producer_absence_lineage_gap": "Interpret pending approval/transfer/handover eligibility/generation and enforce same mutex for every live producer; unknown/raw writers not certified.",
+      "required_actual_tests": [
+        "new member/appointment while locked",
+        "validUntil boundary",
+        "pending stale compound after native generation change",
+        "archive/parent/primary-department source change"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "project-relationships",
+      "relevant_sources": [
+        "project.edge",
+        "user.edge",
+        "project.project",
+        "project.governance_projectapproval"
+      ],
+      "required_identity_indexes": [
+        "edge(src,type,dst), inverse indexes, Project.id"
+      ],
+      "implemented": "Existing Project execution/edge leases are real source material but not yet a restoration adapter.",
+      "remaining_producer_absence_lineage_gap": "Direct/inverse/derived13/14/60, parents/milestones, materializers/rules and pending native tickets must be closed for an explicit supported profile.",
+      "required_actual_tests": [
+        "edge insertion into absent selected range",
+        "inverse/derived mutation",
+        "flat-profile rejection of unsupported hierarchy/rules",
+        "current-generation pending-ticket refusal"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "policy",
+      "relevant_sources": [
+        "policy.policy",
+        "policy.policy_namedpolicy",
+        "actual native policy-bearing object rows"
+      ],
+      "required_identity_indexes": [
+        "Policy.id; actual object PKs and policy reference ranges"
+      ],
+      "implemented": "No completed restoration adapter.",
+      "remaining_producer_absence_lineage_gap": "Enumerate native rule classes and concrete user/project/policy dependencies; reject unrecognized rules and unreadable required objects without exposing hidden IDs/counts.",
+      "required_actual_tests": [
+        "named policy JSON/source change",
+        "unknown rule rejection",
+        "native VIEW refusal without metadata leak",
+        "direct user/public/logged-in policy disposition"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "spaces",
+      "relevant_sources": [
+        "spaces.spaces_namespace",
+        "actual space-bearing object rows"
+      ],
+      "required_identity_indexes": [
+        "Namespace.id; object PK and spacePHID index"
+      ],
+      "implemented": "No completed restoration adapter.",
+      "remaining_producer_absence_lineage_gap": "Preserve Space independently from VIEW/EDIT/JOIN; current namespace/default and each indirect dependency need native policy interpretation.",
+      "required_actual_tests": [
+        "Space default change",
+        "hidden namespace refusal",
+        "explicit nondefault source",
+        "no automatic Space permission rewrite"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "object-automatic",
+      "relevant_sources": [
+        "maniphest.maniphest_task",
+        "file.file",
+        "all actual native automatic-policy object tables"
+      ],
+      "required_identity_indexes": [
+        "Task author/owner indexes, File author index, actual object PK"
+      ],
+      "implemented": "No completed restoration adapter.",
+      "remaining_producer_absence_lineage_gap": "Task owner, File author and other automatic-policy rules can restore access without membership. Pin native classes and enumerate their actual storage; do not infer absence from disabled applications.",
+      "required_actual_tests": [
+        "owner/author assignment while disabled",
+        "new automatic source in empty range",
+        "unknown automatic policy object class",
+        "current native viewer checks for reviewable objects"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "application-config",
+      "relevant_sources": [
+        "effective native config source stack",
+        "config.config_entry",
+        "project.governance_projectconfigepoch"
+      ],
+      "required_identity_indexes": [
+        "ConfigEntry.id/name; epoch primary key; immutable effective stack digest"
+      ],
+      "implemented": "Current isolated routing/optional flags and incarnation bound; broader config source still incomplete.",
+      "remaining_producer_absence_lineage_gap": "Bind installed applications/capabilities/default policy/provider configuration and SQL config generations; dictionary-only fixture is not production deployment proof.",
+      "required_actual_tests": [
+        "capability/default policy changed after review",
+        "DB config and process config mismatch",
+        "unknown source stack",
+        "representative deployed configuration"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "file-capabilities",
+      "relevant_sources": [
+        "file.file",
+        "file.file_attachment",
+        "file.file_transformedfile",
+        "source objects of every live attachment"
+      ],
+      "required_identity_indexes": [
+        "File.id/PHID, attachment and original/transform relation keys"
+      ],
+      "implemented": "Media native original/mime authorization exists; no complete restoration File-source adapter.",
+      "remaining_producer_absence_lineage_gap": "ANY readable attachment and original/derived relationships must be re-evaluated through actual native viewer queries; no File-author or cached-derived bypass.",
+      "required_actual_tests": [
+        "new attachment/derived source while locked",
+        "ANY attachment source change",
+        "original access lost",
+        "unknown attached object family refusal"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "extensions-producers",
+      "relevant_sources": [
+        "actual Bootloader/library source maps",
+        "installed native extensions and concrete authority readers/writers"
+      ],
+      "required_identity_indexes": [
+        "pinned class/source manifest; no synthetic row identifier"
+      ],
+      "implemented": "Runtime inventory actual, still uncovered.",
+      "remaining_producer_absence_lineage_gap": "Fixed deployed support profile must pin source/class semantics and explain each active rule/automatic-source/producer. Unknown plugins/opaque remote grants block; table locks cannot certify an unmodeled source.",
+      "required_actual_tests": [
+        "new unknown library/class",
+        "source byte drift",
+        "unmodeled raw/remote producer",
+        "semantic source catalog under actual deployment"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    },
+    {
+      "family": "restore-lineage",
+      "relevant_sources": [
+        "outside-database recovery incarnation",
+        "review/operation/audit persistence",
+        "native generation and backup lineage"
+      ],
+      "required_identity_indexes": [
+        "external incarnation digest; request/operation IDs"
+      ],
+      "implemented": "New isolated incarnation configuration binds reviews; DB row retained + rotated outside configuration negative prepared.",
+      "remaining_producer_absence_lineage_gap": "Must perform real bounded database restore with unchanged outside state, prove stale tickets/receipts cannot revive and distinguish native credential accepted boundaries from selected media nonrevival.",
+      "required_actual_tests": [
+        "retained DB review rejected under new incarnation",
+        "missing incarnation fail-closed",
+        "actual owned backup/restore replay",
+        "outside configuration rollback unsupported"
+      ],
+      "complete": false,
+      "fence_isolation_requirement": "Repeatable-read current indexed locking range reads (or proved equivalent), not matching samples under RC",
+      "same_physical_connection_requirement": "Qualified native source reads and final User transition on one evidenced MySQL primary/connection; distinct route/engine/namespace rejects",
+      "operational_boundary": "Bound relevant source ranges only. Explain unavoidable broader source-table locks; no unrelated business table locks as coverage substitute."
+    }
+  ],
+  "supported_complete_profile": null,
+  "global_completion": false,
+  "restoration_success_proved": false,
+  "native_axes_changed": false,
+  "deployment": false,
+  "completion_gate": [
+    "Actual same physical native writer and InnoDB/MDL for every relevant source",
+    "Fixed reviewed deployment/source catalog with no unknown active authority source",
+    "Explicit indexed current row/range/absence locks under actual proved isolation; no unrelated business locks as substitute",
+    "Per-source byte/row/time budgets; timeout/deadlock/unknown metadata atomically refuse and clean own scopes",
+    "Independent current administrators and bound credentials, durable ledger/CAS/audit, final fresh source/time",
+    "Actual full positive controlled restore plus missing/unknown/ABA/rollback/concurrency/restore-lineage negatives",
+    "Representative deployed data profile and operational impact review before any activation"
+  ],
+  "source_names_verified_against": "Current signed-base quickstart/202611 migrations and native DAO apiProfiles; dynamic object sources intentionally unresolved, not invented tables",
+  "operational_limits": {
+    "production_scale_proved": false,
+    "representative_deployment_profile_proved": false,
+    "unrelated_business_locks_allowed_as_coverage_substitute": false,
+    "unknown_or_over_budget_source": "atomic refusal",
+    "DDL_timeout_deadlock": "rollback owned scopes; no denial-as-success",
+    "required_future_range_fence_profile": "relevant source tables/ranges only; exact PK/index/isolation/physical connection facts and actual empty-range INSERT race proof"
+  }
+}

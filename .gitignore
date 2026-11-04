@@ -78,3 +78,7 @@ API_KEY.txt
 # Local bytecode from the offline permission audit tool.
 /scripts/permissions/__pycache__/
 /tests/permissions/__pycache__/
+
+# Python audit/test bytecode is never a reviewed source artifact.
+__pycache__/
+*.py[cod]

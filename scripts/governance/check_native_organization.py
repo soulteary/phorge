@@ -1084,7 +1084,7 @@ NOTIFICATION_BOUNDARY_CHECKS = frozenset(['private-business-project-normal-actua
  'private-mail-legalpad-verifier-victim-rolls-back-and-releases-locks-before-connection-close-with-no-mail',
  'private-mail-legalpad-weighted-index-race-proves-actual-verifier-deadlock-victim-not-permission-denial'])
 REQUIRED_CHECKS = REQUIRED_CHECKS | NOTIFICATION_BOUNDARY_CHECKS
-WORKERS = 38  # Root25 plus six N12 independent probes; local business subprocesses excluded.
+WORKERS = 40  # Root25 plus six N12 independent probes; local business subprocesses excluded.
 NATIVE['private_mail_tests']['legalpad_tests']['policy_source_tests'] = {'actual_named_effective_policy': True,
  'actual_project_membership_editor_and_materialized_source': True,
  'all_policy_sources_atomically_locked': False,
@@ -1172,6 +1172,11 @@ NATIVE['conduit_HTTP_revocation_measurement_tests']={
     'before_source_binding_sha256':'e'*64,'after_source_binding_sha256':'f'*64,'event':_http_event}
 
 
+# Selected User/Session producer evidence, never a restoration permit.
+RECOVERY_NATIVE_PRODUCER_CHECKS = frozenset(['recovery-guard-first-approval-remains-explicit-unreviewed-admission', 'recovery-guard-flag-off-real-native-dao-permissive-coercion-control', 'recovery-guard-native-aux-phid-allocation-preserves-only-pending-new-registration', 'recovery-guard-permissive-raw-double-zero-refused', 'recovery-guard-permissive-raw-false-word-refused', 'recovery-guard-permissive-raw-zero-decimal-refused', 'recovery-guard-real-emergency-disable-does-not-depend-on-review-storage', 'recovery-guard-real-native-dao-enable-cannot-bypass-source-closure', 'recovery-guard-real-native-user-editor-enable-rolls-back-without-permit', 'recovery-guard-real-permissive-session-sql-mode-control', 'recovery-guard-replace-cannot-reclassify-existing-native-identity-as-new', 'recovery-guard-untracked-native-raw-transaction-refused-without-implicit-commit', 'recovery-producer-schema-recovery_restore_audit-matches-retained-adjustment-spec', 'recovery-producer-schema-recovery_restore_operation-matches-retained-adjustment-spec', 'recovery-producer-schema-recovery_restore_request-matches-retained-adjustment-spec', 'recovery-session-nested-producer-savepoint-preserves-real-outer-rollback', 'recovery-session-original-covering-share-returns-under-primary-x-without-session-write', 'recovery-session-release-persists-two-independent-native-sessions-without-restoration', 'recovery-session-two-real-native-inserts-wait-on-user-fence-before-source-write', 'recovery-session-untracked-raw-transaction-1568-preserves-caller-write'])
+REQUIRED_CHECKS = REQUIRED_CHECKS | RECOVERY_NATIVE_PRODUCER_CHECKS
+NATIVE['recovery_native_producer_tests'] = {'schema': {'native_schema_comparison_executed': True, 'candidate_tables_compared': 3, 'schema_adjustment_executed': False, 'all_existing_schema_issues_claimed_resolved': False}, 'user': {'actual_native_orm_entry_profile': True, 'actual_flag_off_native_DAO_control': True, 'permissive_SQL_mode_raw_flags_refused': True, 'initial_approval_supported': False, 'complete_restoration_permit': False, 'global_sources_complete': False, 'production_activation': False}, 'sessions': {'selected_native_session_insert_serialization': True, 'original_covering_share_positive_control': True, 'actual_primary_user_record_fence': True, 'independent_current_actor_credentials': True, 'actor_epoch_initialization_outside_observed_fence': True, 'all_session_producers_closed': False, 'all_sources_complete': False, 'restoration_executed': False}, 'selected_mechanical_producers_only': True, 'restore_service_review_profile_proved': False, 'all_13_source_families_complete': False, 'can_execute': False}
+
 def validate_restore(value, root):
     fields = {'quickstart_sha256', 'app_schema_count', 'owned_schema_count',
         'quickstart_source_table_count', 'current_table_count', 'patch_audit',
@@ -1183,7 +1188,7 @@ def validate_restore(value, root):
         'restore_phase_workers_started': 0, 'restore_phase_network_endpoints_configured': 0}
     for key, target in expected.items():
         exact_tree(value[key], target)
-    exact_tree(value['current_table_count'], 540)
+    exact_tree(value['current_table_count'], 543)
     audit=value['patch_audit']
     if type(audit) is not dict or set(audit) != {'source_patch_count', 'applied_patch_count',
         'pending_patch_keys', 'current_patch_ledger_complete', 'migration_source_hashes', 'migrations_executed'}:
@@ -1195,7 +1200,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1570)
+    exact_tree(audit['source_patch_count'], 1571)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 

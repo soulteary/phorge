@@ -4,7 +4,7 @@
 $GLOBALS['governance_native_workers']=array();
 
 function governance_native_worker_atomic($path,$name,$value) {
-  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release'),true)) {
+  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release','producer-ready.json','producer-continue','covering-control-ready.json','fence-continue'),true)) {
     throw new RuntimeException('native_worker_file_refused');
   }
   $temporary=$path.'/.write-'.bin2hex(random_bytes(8));
@@ -41,7 +41,7 @@ function governance_native_measurement_file_source($action,$value,$namespace,$ow
 
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
-  if (!in_array($action['action']??null,array('recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
+  if (!in_array($action['action']??null,array('recovery.session.issue','recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
     throw new RuntimeException('native_worker_action_refused');
   }
   $path=sys_get_temp_dir().'/governance-native-worker-'.bin2hex(random_bytes(12));
@@ -68,6 +68,11 @@ function governance_native_start_worker($fixture,array $action) {
       'token'=>PhabricatorEnv::getEnvConfig('gorge.file.token'));
     governance_native_measurement_file_source($action['action'],$asset,$fixture->getNamespace(),$fixture_nonce,$payload['source_sha256']);
     $payload['measurement_file']=$asset;
+  }
+  if($action['action']==='recovery.session.issue'){
+    $incarnation=PhabricatorEnv::getEnvConfig('governance.account-recovery.incarnation');
+    if(!is_string($incarnation)||!preg_match('/\A[a-f0-9]{32}\z/D',$incarnation)){throw new RuntimeException('native_session_producer_incarnation_refused');}
+    $payload['recovery_incarnation']=$incarnation;
   }
   governance_native_worker_atomic($path,'payload.json',$payload);
   $process=proc_open(array(PHP_BINARY,__DIR__.'/native-worker.php',$path),
@@ -112,8 +117,41 @@ function governance_native_stop_worker_result($action, array $result) {
   return $result;
 }
 
+/** Fixed session-producer test action: no generic error-as-denial fallback. */
+function governance_native_session_producer_result(array $result) {
+  $keys=array_keys($result);sort($keys);
+  if(($result['status']??null)==='committed'){
+    if($keys!==array('restoration_authorized','session_id_digest','status')||
+      $result['restoration_authorized']!==false||!is_string($result['session_id_digest'])||
+      !preg_match('/\A[a-f0-9]{64}\z/D',$result['session_id_digest'])){
+      throw new RuntimeException('native_session_producer_result_refused');}
+  }else if(($result['status']??null)==='rejected'){
+    if($keys!==array('reason','status')||!in_array($result['reason'],
+      array('recovery_restore_admin_required','governance_native_credential_ineligible'),true)){
+      throw new RuntimeException('native_session_producer_result_refused');}
+  }else{throw new RuntimeException('native_session_producer_result_refused');}
+  return $result;
+}
+
+/** Failure-only safe projection. Invalid diagnostics never become denial or success. */
+function governance_native_session_failure_location(array $result) {
+  $keys=array_keys($result);sort($keys);$with_code=array_key_exists('query_code',$result);
+  $expected=array('error_type','source_file','source_line','status');
+  if($with_code){$expected[]='query_code';sort($expected);}
+  if($keys!==$expected||$result['status']!=='failed'||
+    !is_string($result['error_type'])||!preg_match('/\A[A-Za-z_][A-Za-z0-9_]{0,159}\z/D',$result['error_type'])||
+    !is_string($result['source_file'])||!preg_match('/\A[A-Za-z0-9_][A-Za-z0-9_.-]{0,159}\z/D',$result['source_file'])||
+    !is_int($result['source_line'])||$result['source_line']<1||$result['source_line']>1000000||
+    ($with_code&&(!is_int($result['query_code'])||$result['query_code']<0||$result['query_code']>65535))){
+    return array('diagnostic_unavailable'=>true);
+  }
+  $out=array('error_type'=>$result['error_type'],'source_file'=>$result['source_file'],'source_line'=>$result['source_line']);
+  if($with_code){$out['query_code']=$result['query_code'];}return $out;
+}
+
 function governance_native_finish_worker(array &$handle) {
   $index=$handle['index']; $worker=&$GLOBALS['governance_native_workers'][$index];
+  if($worker['action']==='recovery.session.issue'){governance_native_session_producer_handle($handle);}
   $deadline=microtime(true)+15;
   while (is_resource($worker['process']) && proc_get_status($worker['process'])['running'] && microtime(true)<$deadline) { usleep(20000); }
   if (is_resource($worker['process']) && proc_get_status($worker['process'])['running']) {
@@ -129,6 +167,15 @@ function governance_native_finish_worker(array &$handle) {
   if (!is_array($result)) { throw new RuntimeException('native_worker_result_refused'); }
   if(in_array($worker['action'],array('recovery.stop.record','recovery.stop.history'),true)){
     return governance_native_stop_worker_result($worker['action'],$result);
+  }
+  if($worker['action']==='recovery.session.issue'){
+    governance_native_session_producer_handle($handle);
+    if((fileperms($path)&0777)!==0600){throw new RuntimeException('native_session_producer_result_refused');}
+    if(($result['status']??null)==='failed'){
+      $GLOBALS['governance_session_producer_child_failure']=governance_native_session_failure_location($result);
+    }
+    // Failed is still rejected by the original exact decoder below.
+    return governance_native_session_producer_result($result);
   }
   if($worker['action']==='legalpad.observe'){return governance_native_validate_legalpad_observation($result);}
   $keys=array_keys($result); sort($keys);
@@ -283,6 +330,37 @@ function governance_native_release_legalpad_observation(array $handle){
   governance_native_worker_atomic($worker['private'],'observe-release',$worker['nonce']);
 }
 
+/** Exact private handshake for the one native session INSERT probe. */
+function governance_native_session_producer_handle(array $handle) {
+  $index=$handle['index']??null;$worker=is_int($index)?($GLOBALS['governance_native_workers'][$index]??null):null;
+  if(!$worker||$worker['action']!=='recovery.session.issue'||$worker['cleaned']||
+    ($handle['dev']??null)!==$worker['dev']||($handle['ino']??null)!==$worker['ino']||
+    !is_string($handle['nonce']??null)||!hash_equals($worker['nonce'],$handle['nonce'])){
+    throw new RuntimeException('native_session_producer_handle_refused');}
+  $stat=lstat($worker['private']);
+  $owner=$worker['private'].'/owner';
+  if(!$stat||is_link($worker['private'])||($stat['mode']&0777)!==0700||
+    $stat['dev']!==$worker['dev']||$stat['ino']!==$worker['ino']||
+    !is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||filesize($owner)!==64||
+    !hash_equals($worker['nonce'],file_get_contents($owner))){
+    throw new RuntimeException('native_session_producer_handle_refused');}
+  return $worker;
+}
+function governance_native_wait_session_producer_ready(array $handle) {
+  $worker=governance_native_session_producer_handle($handle);
+  $path=$worker['private'].'/producer-ready.json';$deadline=microtime(true)+8;
+  while(!is_file($path)&&microtime(true)<$deadline&&is_resource($worker['process'])&&proc_get_status($worker['process'])['running']){usleep(20000);}
+  if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>512){
+    throw new RuntimeException('native_session_producer_ready_missing');}
+  $value=json_decode(file_get_contents($path),true,4,JSON_THROW_ON_ERROR);
+  if($value!==array('status'=>'producer-ready','mysql_thread'=>$worker['mysql_thread'])){
+    throw new RuntimeException('native_session_producer_ready_refused');}
+}
+function governance_native_continue_session_producer(array $handle) {
+  $worker=governance_native_session_producer_handle($handle);
+  governance_native_worker_atomic($worker['private'],'producer-continue',$worker['nonce']);
+}
+
 /** Reap only this helper's exact registered handles; outer fixture owns directories. */
 function governance_native_stop_fixture_handles(array $handles){
   foreach($handles as$handle){
@@ -301,4 +379,20 @@ function governance_native_stop_fixture_handles(array $handles){
     }
     unset($worker);
   }
+}
+
+/** Observe the original covering SHARE returning before allowing native INSERT. */
+function governance_native_wait_session_covering_control(array $handle) {
+  $worker=governance_native_session_producer_handle($handle);
+  $path=$worker['private'].'/covering-control-ready.json';$deadline=microtime(true)+8;
+  while(!is_file($path)&&microtime(true)<$deadline&&is_resource($worker['process'])&&proc_get_status($worker['process'])['running']){usleep(20000);}
+  if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>512){
+    throw new RuntimeException('native_session_covering_control_missing');}
+  $value=json_decode(file_get_contents($path),true,4,JSON_THROW_ON_ERROR);
+  if($value!==array('status'=>'covering-control-returned','mysql_thread'=>$worker['mysql_thread'])){
+    throw new RuntimeException('native_session_covering_control_refused');}
+}
+function governance_native_continue_session_fence(array $handle) {
+  $worker=governance_native_session_producer_handle($handle);
+  governance_native_worker_atomic($worker['private'],'fence-continue',$worker['nonce']);
 }
