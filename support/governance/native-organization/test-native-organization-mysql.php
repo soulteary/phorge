@@ -6,11 +6,12 @@ $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phases=array('--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
-  '--private-mail-pending-hold'=>'private-mail-pending-hold');
+  '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold');
 $phase=$arguments===array()?'all':
   (count($arguments)===1&&isset($phases[$arguments[0]])?$phases[$arguments[0]]:'invalid');
+$notice_wire=$phase==='governance-notice-wire-hold';
 $private_mail_pending=$phase==='private-mail-pending-hold';
-$private_mail_wire=$phase==='private-mail-wire-hold'||$private_mail_pending;
+$private_mail_wire=$phase==='private-mail-wire-hold'||$private_mail_pending||$notice_wire;
 $legacy_compatibility=$phase==='legacy-sql-compatibility';
 $wire_hold=$phase==='http-wire-hold';
 $fixture = null;
@@ -198,7 +199,8 @@ try {
       require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);
     }elseif($private_mail_wire){
       $stage='private-native-mail-wire-fixture';
-      if($private_mail_pending){require_once dirname(__DIR__).'/notification/pending-wire-hold.php';$native=governance_private_mail_pending_hold($fixture,$check);}
+      if($notice_wire){require_once dirname(__DIR__).'/notification/notice-wire-hold.php';$native=governance_notice_wire_hold($fixture,$check);}
+      elseif($private_mail_pending){require_once dirname(__DIR__).'/notification/pending-wire-hold.php';$native=governance_private_mail_pending_hold($fixture,$check);}
       else{require_once dirname(__DIR__).'/notification/wire-hold.php';$native=governance_private_mail_wire_hold($fixture,$check);}
     }else{
       require_once __DIR__.'/native-cases.php';$native=governance_native_organization_cases($fixture,$check);

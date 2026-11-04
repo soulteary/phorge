@@ -311,6 +311,23 @@ final class PhorgeGovernanceCompletionFixture {
     return array('host'=>$this->host,'port'=>$this->port,
       'database'=>$this->namespace.'_metamta','user'=>$user,'password'=>$password);
   }
+  /** Optional daemon relay: no native authority tables and no mail INSERT. */
+  public function createPrivateNoticeRelayPrincipal() {
+    $this->assertOwned();$tables=array($this->table('metamta','metamta_gorgeoutbox'),
+      $this->table('metamta','gorge_mail_delivery'));
+    $user='gov_c_relay_'.bin2hex(random_bytes(6));$password=bin2hex(random_bytes(24));
+    $driver=new mysqli_driver();$old_report=$driver->report_mode;mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
+    try{
+      if($this->control->query("CREATE USER '".$user."'@'%' IDENTIFIED BY '".$password."'")!==true){
+        throw new RuntimeException('Private notice relay principal creation refused.');}
+      $this->createdUsers[]=$user;
+      foreach($tables as$table){
+        if($this->control->query('GRANT SELECT, UPDATE ON '.$table." TO '".$user."'@'%'")!==true){
+          throw new RuntimeException('Private notice relay grant refused.');}}
+    }finally{mysqli_report($old_report);}
+    return array('host'=>$this->host,'port'=>$this->port,'database'=>$this->namespace.'_metamta',
+      'user'=>$user,'password'=>$password);
+  }
   public function getReaderConfig() { $this->assertOwned(); return $this->configs['reader']; }
   public function getBaselineIDs() { $this->assertOwned(); return $this->baseline; }
   public function table($app,$table) {
