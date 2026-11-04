@@ -30,7 +30,7 @@ def template():
             'app_schema_count': 54, 'owned_schema_count': 55, 'quickstart_source_table_count': 500,
             'current_table_count': 546, 'restore_phase_workers_started': 0,
             'restore_phase_network_endpoints_configured': 0, 'patch_audit': {
-                'source_patch_count': 1573, 'applied_patch_count': 1573, 'pending_patch_keys': [],
+                'source_patch_count': 1574, 'applied_patch_count': 1574, 'pending_patch_keys': [],
                 'current_patch_ledger_complete': True, 'migration_source_hashes': hashes,
                 'migrations_executed': len(hashes)}},
         'native': copy.deepcopy(gate.NATIVE), 'cleanup': {
@@ -318,7 +318,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             data=template();data['source_restore']['current_table_count']=value
             with self.subTest(table_count=value), self.assertRaises(ValueError):
                 validate(data, file_digest='b'*64)
-        for value in (1570, True, '1573', 1574):
+        for value in (1571, True, '1574', 1575):
             data=template();audit=data['source_restore']['patch_audit']
             audit['source_patch_count']=value;audit['applied_patch_count']=value
             with self.subTest(patch_count=value), self.assertRaises(ValueError):

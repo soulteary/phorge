@@ -31,7 +31,7 @@ try {
   $keys=array_keys($payload); sort($keys);
   $wanted_keys=array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256');
   if(($payload['action']['action']??null)==='measurement.api-token-auth'){$wanted_keys[]='measurement_file';sort($wanted_keys);}
-  if(($payload['action']['action']??null)==='recovery.session.issue'){$wanted_keys[]='recovery_incarnation';sort($wanted_keys);
+  if(in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)){$wanted_keys[]='recovery_incarnation';sort($wanted_keys);
     if(!is_string($payload['recovery_incarnation']??null)||!preg_match('/\A[a-f0-9]{32}\z/D',$payload['recovery_incarnation'])){throw new RuntimeException('native_worker_recovery_incarnation_refused');}}
   if ($keys!==$wanted_keys ||
       $payload['directory_dev']!==$stat['dev'] || $payload['directory_ino']!==$stat['ino'] ||
@@ -106,8 +106,8 @@ try {
     'governance.recovery-stop-ledger.enabled'=>in_array(($payload['action']['action']??null),array('recovery.stop.record','recovery.stop.history'),true),
     'governance.notifications.enabled'=>($payload['action']['action']??null)==='org.notice.create',
     'governance.private-mail.enabled'=>in_array(($payload['action']['action']??null),array('org.notice.create','legalpad.verify','legalpad.observe'),true),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
-    'governance.account-recovery.enabled'=>($payload['action']['action']??null)==='recovery.session.issue',
-    'governance.account-recovery.incarnation'=>($payload['action']['action']??null)==='recovery.session.issue'?$payload['recovery_incarnation']:null,
+    'governance.account-recovery.enabled'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.org.member.insert','recovery.org.approval.propose'),true),
+    'governance.account-recovery.incarnation'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)?$payload['recovery_incarnation']:null,
     'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
     'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
@@ -136,7 +136,151 @@ try {
   $action=$payload['action']; $kind=$action['action']??null;
   $conn=(new PhabricatorUser())->establishConnection('w');
   $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
-  if($kind==='recovery.session.issue'){
+  if($kind==='recovery.org.approval.propose'){
+    $keys=array_keys($action);sort($keys,SORT_STRING);
+    if($keys!==array('action','subject','token')||!is_string($action['token'])||strlen($action['token'])>256){
+      throw new RuntimeException('native_worker_action_refused');}
+    PhorgeRecoveryStopRequest::user($action['subject']);
+    $owned_subject=queryfx_one($conn,'SELECT phid,username FROM user WHERE phid=%s',$action['subject']);
+    if(!$owned_subject||$owned_subject['phid']!==$action['subject']||
+      $owned_subject['username']!=='rlfmember'.substr($config['namespace'],-10)){
+      throw new RuntimeException('native_lifecycle_subject_refused');}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer){throw new RuntimeException('governance_native_credential_ineligible');}
+    $_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
+    $request=(new AphrontRequest('fixture.invalid','/people/recovery/organization-producer-fixture/'))->setUser($viewer)
+      ->setRequestData(array('__form__'=>true,AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));
+    $request->validateCSRF();$context=PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
+    $conn->openTransaction();
+    try {
+      $actor=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
+      if(!$actor->isSystemAdmin()){throw new RuntimeException('recovery_restore_admin_required');}
+      PhorgeGovernanceNativeIdentitySource::revalidate($actor,$conn);
+      $conn->saveTransaction();
+    }catch(Throwable$error){if($conn->isInsideTransaction()){$conn->killTransaction();}throw$error;}
+    // Observe the actual native organization DAO writer after actor bootstrap.
+    $conn=(new PhorgeOrganizationMember())->establishConnection('w');
+    $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    governance_native_worker_atomic($path,'producer-ready.json',array('status'=>'producer-ready','mysql_thread'=>$thread));
+    $deadline=microtime(true)+12;$released=false;
+    do {
+      $directory=lstat($path);$owner=$path.'/owner';$release=$path.'/producer-continue';
+      if(!$directory||is_link($path)||$directory['dev']!==$payload['directory_dev']||
+        $directory['ino']!==$payload['directory_ino']||($directory['mode']&0777)!==0700||
+        !is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||filesize($owner)!==64||
+        !hash_equals($payload['owner_token'],file_get_contents($owner))){throw new RuntimeException('native_organization_producer_owner_changed');}
+      if(is_file($release)){
+        if(is_link($release)||(fileperms($release)&0777)!==0600||filesize($release)!==64||
+          !hash_equals($payload['owner_token'],file_get_contents($release))){throw new RuntimeException('native_organization_producer_release_refused');}
+        $released=true;break;
+      }
+      usleep(20000);
+    }while(microtime(true)<$deadline);
+    if(!$released){throw new RuntimeException('native_organization_producer_timeout');}
+    $id='recovery-lifecycle-race-'.substr($payload['owner_token'],0,16);
+    $now=(int)queryfx_one($conn,'SELECT UNIX_TIMESTAMP() n')['n'];
+    $service=PhorgeOrganizationService::newForActor($context);
+    $receipt=$service->proposeApproval(array('approval_id'=>$id,'operation_id'=>$id,
+      'team'=>'recovery-lifecycle-team','action'=>'appointment.grant','target_user'=>$action['subject'],
+      'valid_from'=>$now,'valid_until'=>null,'ttl_seconds'=>120));
+    $stored=queryfx_one($conn,'SELECT * FROM organization_approval WHERE approvalID=%s',$id);
+    if(!$stored||$stored['approvalID']!==$id||$receipt['replayed']!==false||$conn->isInsideTransaction()){
+      throw new RuntimeException('native_lifecycle_producer_commit_unknown');}
+    $result=array('status'=>'committed','native_approval_digest'=>PhorgeRecoveryRestoreRequest::digest($stored),
+      'restoration_authorized'=>false);
+  }else if($kind==='recovery.org.member.insert'){
+    $keys=array_keys($action);sort($keys,SORT_STRING);
+    if($keys!==array('action','token')||!is_string($action['token'])||strlen($action['token'])>256){
+      throw new RuntimeException('native_worker_action_refused');}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer){throw new RuntimeException('governance_native_credential_ineligible');}
+    $_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
+    $request=(new AphrontRequest('fixture.invalid','/people/recovery/organization-producer-fixture/'))->setUser($viewer)
+      ->setRequestData(array('__form__'=>true,AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));
+    $request->validateCSRF();$context=PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
+    $conn->openTransaction();
+    try {
+      $actor=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
+      if(!$actor->isSystemAdmin()){throw new RuntimeException('recovery_restore_admin_required');}
+      PhorgeGovernanceNativeIdentitySource::revalidate($actor,$conn);
+      $conn->saveTransaction();
+    }catch(Throwable$error){if($conn->isInsideTransaction()){$conn->killTransaction();}throw$error;}
+    // Observe the actual native organization DAO writer after actor bootstrap.
+    $conn=(new PhorgeOrganizationMember())->establishConnection('w');
+    $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    governance_native_worker_atomic($path,'producer-ready.json',array('status'=>'producer-ready','mysql_thread'=>$thread));
+    $deadline=microtime(true)+12;$released=false;
+    do {
+      $directory=lstat($path);$owner=$path.'/owner';$release=$path.'/producer-continue';
+      if(!$directory||is_link($path)||$directory['dev']!==$payload['directory_dev']||
+        $directory['ino']!==$payload['directory_ino']||($directory['mode']&0777)!==0700||
+        !is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||filesize($owner)!==64||
+        !hash_equals($payload['owner_token'],file_get_contents($owner))){throw new RuntimeException('native_organization_producer_owner_changed');}
+      if(is_file($release)){
+        if(is_link($release)||(fileperms($release)&0777)!==0600||filesize($release)!==64||
+          !hash_equals($payload['owner_token'],file_get_contents($release))){throw new RuntimeException('native_organization_producer_release_refused');}
+        $released=true;break;
+      }
+      usleep(20000);
+    }while(microtime(true)<$deadline);
+    if(!$released){throw new RuntimeException('native_organization_producer_timeout');}
+    // Fixed synthetic unit comes only from this owned worker nonce, never an
+    // externally supplied identity or arbitrary SQL payload.
+    $unit='recovery-producer-'.substr($payload['owner_token'],0,16);
+    $member=(new PhorgeOrganizationMember())->setUnitID($unit)->setUserPHID($viewer->getPHID())
+      ->setState('active')->setValidFrom(0)->setValidUntil(null)->setVersion(1)->save();
+    if($conn->isInsideTransaction()){throw new RuntimeException('native_organization_producer_commit_unknown');}
+    $stored=queryfx_one($conn,'SELECT id,unitID,userPHID,state,validFrom,validUntil,version FROM organization_member WHERE id=%d',$member->getID());
+    if(!$stored||$stored['unitID']!==$unit||$stored['userPHID']!==$viewer->getPHID()){
+      throw new RuntimeException('native_organization_producer_result_unknown');}
+    $result=array('status'=>'committed','native_member_digest'=>PhorgeRecoveryRestoreRequest::digest($stored),'restoration_authorized'=>false);
+  }else if($kind==='recovery.policy.insert'){
+    $keys=array_keys($action);sort($keys,SORT_STRING);
+    if($keys!==array('action','token')||!is_string($action['token'])||strlen($action['token'])>256){
+      throw new RuntimeException('native_worker_action_refused');}
+    $viewer=(new PhabricatorAuthSessionEngine())->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$action['token']);
+    if(!$viewer){throw new RuntimeException('governance_native_credential_ineligible');}
+    $_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$action['token'];
+    $request=(new AphrontRequest('fixture.invalid','/people/recovery/policy-fixture/'))->setUser($viewer)
+      ->setRequestData(array('__form__'=>true,AphrontRequest::getCSRFTokenName()=>$viewer->getCSRFToken()));
+    $request->validateCSRF();$context=PhorgeGovernanceNativeActorContext::newFromWebRequest($request);
+    $conn->openTransaction();
+    try {
+      $actor=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
+      if(!$actor->isSystemAdmin()){throw new RuntimeException('recovery_restore_admin_required');}
+      PhorgeGovernanceNativeIdentitySource::revalidate($actor,$conn);
+      $conn->saveTransaction();
+    }catch(Throwable$error){if($conn->isInsideTransaction()){$conn->killTransaction();}throw$error;}
+    // Observe the actual native Policy DAO writer, not the bootstrap User thread.
+    $conn=(new PhabricatorPolicy())->establishConnection('w');
+    $thread=(int)queryfx_one($conn,'SELECT CONNECTION_ID() n')['n'];
+    governance_native_worker_atomic($path,'ready.json',array('status'=>'ready','mysql_thread'=>$thread));
+    governance_native_worker_atomic($path,'producer-ready.json',array('status'=>'producer-ready','mysql_thread'=>$thread));
+    $deadline=microtime(true)+12;$released=false;
+    do {
+      $directory=lstat($path);$owner=$path.'/owner';$release=$path.'/producer-continue';
+      if(!$directory||is_link($path)||$directory['dev']!==$payload['directory_dev']||
+        $directory['ino']!==$payload['directory_ino']||($directory['mode']&0777)!==0700||
+        !is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||filesize($owner)!==64||
+        !hash_equals($payload['owner_token'],file_get_contents($owner))){throw new RuntimeException('native_policy_producer_owner_changed');}
+      if(is_file($release)){
+        if(is_link($release)||(fileperms($release)&0777)!==0600||filesize($release)!==64||
+          !hash_equals($payload['owner_token'],file_get_contents($release))){throw new RuntimeException('native_policy_producer_release_refused');}
+        $released=true;break;
+      }
+      usleep(20000);
+    }while(microtime(true)<$deadline);
+    if(!$released){throw new RuntimeException('native_policy_producer_timeout');}
+    // No fake hasCapability boolean and no external SQL/policy payload. This
+    // action tests physical native DAO serialization, not a publication API.
+    $policy=(new PhabricatorPolicy())->setRules(array())->setDefaultAction(PhabricatorPolicy::ACTION_DENY)->save();
+    if($conn->isInsideTransaction()){throw new RuntimeException('native_policy_producer_commit_unknown');}
+    $stored=queryfx_one($conn,'SELECT phid FROM %R WHERE id=%d',new PhabricatorPolicy(),$policy->getID());
+    if(!$stored||$stored['phid']!==$policy->getPHID()){throw new RuntimeException('native_policy_producer_result_unknown');}
+    $result=array('status'=>'committed','native_policy_digest'=>hash('sha256',$stored['phid']),'restoration_authorized'=>false);
+  }else if($kind==='recovery.session.issue'){
     $keys=array_keys($action);sort($keys);
     if($keys!==array('action','subject','token')||!is_string($action['token'])||strlen($action['token'])>256){
       throw new RuntimeException('native_worker_action_refused');}
@@ -374,6 +518,9 @@ try {
     $result=$allowed?array('status'=>'rejected','reason'=>$error->getMessage()):
       array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   }
+  if(($kind??null)==='recovery.org.approval.propose'){$result=array('status'=>'failed','error_type'=>get_class($error),'reason'=>'native_lifecycle_producer_failed');}
+  if(($kind??null)==='recovery.org.member.insert'){$result=array('status'=>'failed','error_type'=>get_class($error),'reason'=>'native_organization_producer_failed');}
+  if(($kind??null)==='recovery.policy.insert'){$result=array('status'=>'failed','error_type'=>get_class($error),'reason'=>'native_policy_producer_failed');}
   if(($kind??null)==='recovery.session.issue'){
     $allowed=get_class($error)===RuntimeException::class&&in_array($error->getMessage(),
       array('recovery_restore_admin_required','governance_native_credential_ineligible'),true);

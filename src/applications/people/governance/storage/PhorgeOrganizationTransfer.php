@@ -50,6 +50,10 @@ final class PhorgeOrganizationTransfer extends PhabricatorUserDAO {
         'createdAt' => 'uint64',
       ),
       self::CONFIG_KEY_SCHEMA => array(
+        'key_responsible' => array('columns' => array('responsiblePHID')),
+        'key_requester' => array('columns' => array('requesterPHID')),
+        'key_executor' => array('columns' => array('executorPHID')),
+        'key_approver' => array('columns' => array('approverPHID')),
         'key_identity' => array('columns' => array('transferID'), 'unique' => true),
         'key_subject' => array('columns' => array('subjectPHID', 'state')),
         'key_operation' => array('columns' => array('operationID')),

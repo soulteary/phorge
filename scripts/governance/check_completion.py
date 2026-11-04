@@ -46,6 +46,7 @@ PATCHES = '''20260907.herald.01.requeststatuskey.sql
 20261104.people.recoverystop.sql
 20261104.metamta.governancenotice.sql
 20261104.people.recoveryrestore.sql
+20261104.people.organizationparticipants.sql
 20261105.people.noticeidentityepoch.sql'''.splitlines()
 REQUIRED_CHECKS = {
  'full-current-source-quickstart-and-patch-ledger-restored',

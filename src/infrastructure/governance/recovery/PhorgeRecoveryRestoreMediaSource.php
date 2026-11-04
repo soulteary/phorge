@@ -79,14 +79,21 @@ final class PhorgeRecoveryRestoreMediaSource extends Phobject {
       $projection[]='`'.$column.'`';
     }
     $sum=qsprintf($conn, implode('+', $lengths));
-    $size=queryfx_one($conn, 'SELECT COUNT(*) n,COALESCE(SUM(%Q),0) bytes FROM %T '.
-      'WHERE %T IN (%Ls)', $sum, $table, $profile[0], $keys);
-    if (!$size || (int)$size['n']!==count($keys) ||
-        !preg_match('/\A[0-9]+\z/D', (string)$size['bytes']) ||
-        strlen((string)$size['bytes'])>6 || (int)$size['bytes']>self::MAX_BYTES-$bytes) {
-      throw new RuntimeException('recovery_restore_media_budget');
+    // Current row reads precede payload access. An aggregate consistent read
+    // would be stale after switching the owned recovery transaction to RR.
+    $sizes=queryfx_all($conn,'SELECT %T identity_key,%Q bytes FROM %T '.
+      'WHERE %T IN (%Ls) ORDER BY %T LOCK IN SHARE MODE',
+      $profile[0],$sum,$table,$profile[0],$keys,$profile[0]);
+    if(count($sizes)!==count($keys)){throw new RuntimeException('recovery_restore_media_changed');}
+    $observed=array();
+    foreach($sizes as$size){
+      if(!preg_match('/\A[0-9]+\z/D',(string)$size['bytes'])||
+        strlen((string)$size['bytes'])>6||(int)$size['bytes']>self::MAX_BYTES-$bytes){
+        throw new RuntimeException('recovery_restore_media_budget');}
+      $bytes+=(int)$size['bytes'];$observed[]=$size['identity_key'];
     }
-    $bytes+=(int)$size['bytes'];
+    $wanted=$keys;sort($wanted,SORT_STRING);sort($observed,SORT_STRING);
+    if($wanted!==$observed){throw new RuntimeException('recovery_restore_media_changed');}
     $select=qsprintf($conn, implode(',', $projection));
     $rows=queryfx_all($conn, 'SELECT %Q FROM %T WHERE %T IN (%Ls) ORDER BY %T LOCK IN SHARE MODE',
       $select, $table, $profile[0], $keys, $profile[0]);

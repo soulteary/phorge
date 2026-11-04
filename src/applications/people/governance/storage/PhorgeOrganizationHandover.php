@@ -48,6 +48,7 @@ final class PhorgeOrganizationHandover extends PhabricatorUserDAO {
         'version' => 'uint64',
       ),
       self::CONFIG_KEY_SCHEMA => array(
+        'key_responsible' => array('columns' => array('responsiblePHID')),
         'key_identity' => array('columns' => array('handoverID'), 'unique' => true),
         'key_transfer' => array('columns' => array('transferID'), 'unique' => true),
         'key_due' => array('columns' => array('state', 'deadlineAt', 'id')),
