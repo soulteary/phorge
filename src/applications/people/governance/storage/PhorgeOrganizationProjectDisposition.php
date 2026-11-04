@@ -34,6 +34,7 @@ final class PhorgeOrganizationProjectDisposition extends PhabricatorUserDAO {
         'version' => 'uint64',
       ),
       self::CONFIG_KEY_SCHEMA => array(
+        'key_manual_actor' => array('columns' => array('manualActorPHID')),
         'key_identity' => array('columns' => array('handoverID', 'projectPHID'), 'unique' => true),
       ),
     ) + parent::getConfiguration();

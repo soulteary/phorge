@@ -1,0 +1,219 @@
+{
+  "HTTP_or_browser_proved": false,
+  "actual_current_source_evidence": {
+    "focused45_executed": true,
+    "full897_executed": true,
+    "native_map_only": {
+      "actual_map_sha256": "360f2bdfebcae8a9ffa7da914eefc750acb5f6a3c1728fd898941c84e6e64390",
+      "cleanup_failures": [],
+      "cold": true,
+      "equals_signed_union_map_bytes": true,
+      "map_delta": [],
+      "map_receipt_sha256": "06487cb134f80cb61c953e7158771005f9d83cd314e5bd9e0d0fb918cf15147a",
+      "owned_host_stage_removed": true,
+      "owned_remote_source_removed": true,
+      "runtime": "8.5.12"
+    },
+    "supported_pure_executed": true,
+    "separate_runtime_profiles": {
+      "full": {
+        "checkpoint": {
+          "source_head": "f5bb422a8f857b55d80158090415f0ee8d9a19fd",
+          "passed": true,
+          "scope": "current-main106-full-native-integration-only",
+          "pure_methods": 250,
+          "pure_classes": 42,
+          "SQL_checks": 897,
+          "runtime_files_exact": 6855,
+          "cleanup": {
+            "ownedSchemasRemoved": 55,
+            "ownedRuntimeUsersRemoved": 2,
+            "readerRemoved": true
+          },
+          "worker_cleanup": {
+            "private_directories_removed": 40,
+            "owned_processes_stopped": 0,
+            "cleanup_failures": 0,
+            "private_directories_remaining": 0,
+            "live_processes_after_cleanup": 0,
+            "workers_registered": 40
+          },
+          "image_removed": true,
+          "host_stage_removed": true,
+          "cold_source_only": true,
+          "other_profile_run_inferred": false,
+          "all_sources_complete": false,
+          "restoration_authorized": false,
+          "can_execute": false,
+          "deployment_proved": false,
+          "browser_proved": false,
+          "evidence_sha256": {
+            "recovery-organization-main106-full-native.json": "5cec5eea5503ce3b6c9692adb228458e6d129ceeaebbf027f703eb10a649f356",
+            "recovery-organization-main106-full-integration.json": "3571db3b5a273942b97454f422a4ccf579129b4c79fd9befdf8960e78b21a83f",
+            "recovery-organization-main106-full-parent.json": "d7de90ab20a61470cf96ec9d2c5417bf5f394c4d44891a3518ec0e09b7796c68",
+            "recovery-organization-main106-full-source-runtime-match.json": "81e2f7d07225e12559c7e4a580ed42a2632e734eeb03704115ad2851c844b0ae",
+            "recovery-organization-main106-full-strict-cli.json": "25f43da4677232db37294cba5ca1308d654908a196555fe573321a3de6c479b9",
+            "recovery-organization-main106-full-strict-accepted.json": "7b979c130969d506a1d0003d6d7ab0daf6e9d0396eb388d778a7656fb9f8bfd2",
+            "recovery-organization-main106-full-render-build.json": "8a67592e7a79e477f6272ec6901959bcf6089d741e56049bcb4a45234be4e1bc",
+            "recovery-organization-main106-full-map-cache-observation.json": "e962f220d7af8e12b68ca48fe7e8decb80dad7531facfa5d8e32ca19dbd224b0"
+          }
+        },
+        "checkpoint_sha256": "24bc4ed075b58aa53ef50f0a7f3afafa361f412a3c082afe792c8ffa58eb8a1e",
+        "immutable_manifest_sha256": "9ca1e6b071eaf14f154322c82fcd6b881afde9110a9c202cd47f8921044a018f"
+      },
+      "lifecycle": {
+        "checkpoint": {
+          "source_head": "f5bb422a8f857b55d80158090415f0ee8d9a19fd",
+          "passed": true,
+          "scope": "bounded-main106-organization-lifecycle-generation-component-only",
+          "pure_methods": 250,
+          "pure_classes": 42,
+          "SQL_checks": 45,
+          "runtime_files_exact": 6855,
+          "cleanup": {
+            "ownedSchemasRemoved": 55,
+            "ownedRuntimeUsersRemoved": 2,
+            "readerRemoved": true
+          },
+          "worker_cleanup": {
+            "private_directories_removed": 2,
+            "owned_processes_stopped": 0,
+            "cleanup_failures": 0,
+            "private_directories_remaining": 0,
+            "live_processes_after_cleanup": 0,
+            "workers_registered": 2
+          },
+          "image_removed": true,
+          "host_stage_removed": true,
+          "cold_source_only": true,
+          "other_profile_run_inferred": false,
+          "all_sources_complete": false,
+          "restoration_authorized": false,
+          "can_execute": false,
+          "deployment_proved": false,
+          "browser_proved": false,
+          "evidence_sha256": {
+            "recovery-organization-main106-lifecycle-native.json": "404ffaab5964632eb10b5cd2bf174aab2682107cce8de9af7abd03d592d5d9bf",
+            "recovery-organization-main106-lifecycle-integration.json": "6cbe27f7de106d854c1d9a602de53017dab3b8407ea22fb1ac458532e4802155",
+            "recovery-organization-main106-lifecycle-parent.json": "dea7422ed29e71597f1e6f210c626e6b2d2a05b2161447fe9c043ddfbac9f53a",
+            "recovery-organization-main106-lifecycle-source-runtime-match.json": "8d8601a96b56942c184639e7699c45decc49dd82299645444b90bdea798a50d8",
+            "recovery-organization-main106-lifecycle-strict-cli.json": "6764e1f67a38ed65d61d9eba25bda0f5443c0be7fa147f0e2788e207ead09b9f",
+            "recovery-organization-main106-lifecycle-strict-accepted.json": "2e5f3103a7e79b5f3d40b3652b075bed99f7f5d5865b2c59d5da0adc80646f12",
+            "recovery-organization-main106-lifecycle-render-build.json": "8a67592e7a79e477f6272ec6901959bcf6089d741e56049bcb4a45234be4e1bc",
+            "recovery-organization-main106-lifecycle-map-cache-observation.json": "e962f220d7af8e12b68ca48fe7e8decb80dad7531facfa5d8e32ca19dbd224b0"
+          }
+        },
+        "checkpoint_sha256": "530b69debd40adf10c22dedfe2050ab48709878b11f22567f2a1e139ef3f0135",
+        "immutable_manifest_sha256": "3fed85da7cf523965a9f9464e0ea456c607afb38db6c838d1fb918526fe2a527"
+      }
+    }
+  },
+  "aggregate_current_SQL_acceptance": false,
+  "all_sources_complete": false,
+  "can_execute": false,
+  "current_source_runtime_pending": {
+    "additional_focused_DAO_DDL_SQL": 33,
+    "additional_focused_metadata_SQL": 15
+  },
+  "deployment_proved": false,
+  "historical_component_only": {
+    "certifies_current_union": false,
+    "checkpoint_sha256": "d8db8040ed70328af4c8208d2312411faec23b6781abeedede7d82720b4dded5",
+    "cleanup": {
+      "ownedRuntimeUsersRemoved": 2,
+      "ownedSchemasRemoved": 55,
+      "readerRemoved": true
+    },
+    "component_SQL_obligations": 36,
+    "focused_checks": 45,
+    "pure_methods": 236,
+    "runtime_files_exact": 6842,
+    "source_revision": "ca63f3f7b9f8c40402b14548fa6ad5bc7e2b1e17",
+    "strict_CLI_and_inprocess_equal": true,
+    "worker_cleanup": {
+      "cleanup_failures": 0,
+      "live_processes_after_cleanup": 0,
+      "owned_processes_stopped": 0,
+      "private_directories_remaining": 0,
+      "private_directories_removed": 2,
+      "workers_registered": 2
+    }
+  },
+  "host_validation_attribution": {
+    "Auth_targeted_organization_methods": 20,
+    "Org_governance_methods": 193,
+    "Org_permission_methods": 85,
+    "Root_map_helper_controls": 5,
+    "Root_protected_source_files_compared": 5
+  },
+  "production_activation": false,
+  "protected_main_revision": "ae888333d9a24888f2ba7887904a2a7823fac8da",
+  "restoration_authorized": false,
+  "reviewed_source_revision": "f5bb422a8f857b55d80158090415f0ee8d9a19fd",
+  "schema": 1,
+  "scope": "separate-local-f5-full-lifecycle-and-661-policy-acceptance-not-final-head-CI",
+  "source_registered_classes": 42,
+  "source_registered_methods": 250,
+  "new_Physical_startup_observation_executed": true,
+  "hosted_final_head_CI_and_review_pending": true,
+  "policy_P2_corrective_profile": {
+    "previous_integrated_18_executable_claim_withdrawn": true,
+    "new_checks": 23,
+    "new_workers": 4,
+    "current_source_run": true,
+    "service_RC_retained": true,
+    "service_RR_or_absence_lease_proved": false,
+    "checkpoint": {
+      "source_head": "661fd799efad2c1c64926afea2bec3223d098198",
+      "passed": true,
+      "scope": "bounded-policy-service-RC-and-fixture-RR-comparison-only",
+      "pure_methods": 250,
+      "pure_classes": 42,
+      "SQL_checks": 23,
+      "runtime_files_exact": 6855,
+      "cleanup": {
+        "ownedSchemasRemoved": 55,
+        "ownedRuntimeUsersRemoved": 2,
+        "readerRemoved": true
+      },
+      "worker_cleanup": {
+        "private_directories_removed": 4,
+        "owned_processes_stopped": 0,
+        "cleanup_failures": 0,
+        "private_directories_remaining": 0,
+        "live_processes_after_cleanup": 0,
+        "workers_registered": 4
+      },
+      "image_removed": true,
+      "host_stage_removed": true,
+      "cold_source_only": true,
+      "other_profile_run_inferred": false,
+      "all_sources_complete": false,
+      "restoration_authorized": false,
+      "can_execute": false,
+      "deployment_proved": false,
+      "browser_proved": false,
+      "evidence_sha256": {
+        "pr108-policy-isolation-23-native.json": "0e262d7fb04853300f3f13c1b47553c1cc239d837fb8887f93ded6c99c1d3bad",
+        "pr108-policy-isolation-23-integration.json": "d6cb944941c1be3f59a95a259a1bdcb496d4a301e3e24a56521df1324639fe19",
+        "pr108-policy-isolation-23-parent.json": "e94f8fbdb4f303ff60892a5f488ac5f277eaa570eddc2aa77e417706701161c1",
+        "pr108-policy-isolation-23-source-runtime-match.json": "a5cd7345ae5beb7d5a08581f62ff5c9799eda542a45f7191ba35ad8f55c826a0",
+        "pr108-policy-isolation-23-strict-cli.json": "3d799e534de4c1fae1532d68cf3b378f166c9e3c5f46b72bd40332e104ed6509",
+        "pr108-policy-isolation-23-strict-accepted.json": "5a5ef490f65dafdf9bcd6efb2d46dc8cd3ce841edba450e08c1ec3c5bc13bbf3",
+        "pr108-policy-isolation-23-render-build.json": "8a67592e7a79e477f6272ec6901959bcf6089d741e56049bcb4a45234be4e1bc",
+        "pr108-policy-isolation-23-map-cache-observation.json": "e962f220d7af8e12b68ca48fe7e8decb80dad7531facfa5d8e32ca19dbd224b0"
+      }
+    },
+    "checkpoint_sha256": "74212174536f7c07bde1bda4d24834ba8d2e4eeab443f6282997a33a7f9e946d",
+    "immutable_manifest_sha256": "3d99f56c037afa2c4f2cb4111b6bc2d26d379ede7b1f8e2edf31987c2cda87fa",
+    "source_revision": "661fd799efad2c1c64926afea2bec3223d098198"
+  },
+  "prior_f59_Physical_bound_scope": {
+    "passed": true,
+    "head": "f59e9c20bfcc7c72d5b6e1352464086d9512015d",
+    "matrix_checks": 180,
+    "pending_checks": 92,
+    "certifies_notice_or_raw_DAO_profiles": false,
+    "certifies_final_successor_head": false
+  }
+}

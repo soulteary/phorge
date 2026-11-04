@@ -18,6 +18,9 @@ final class PhorgeOrganizationSchemaSpec extends PhabricatorConfigSchemaSpec {
       'key_operation' => array('columns' => array('operationID'))));
     $this->buildRawSchema('user', 'organization_approval', array(
       'approvalID' => 'varbytes128', 'operationID' => 'varbytes128',
+      'sourceParticipantVersion' => 'uint32',
+      'sourceSubjectPHID' => 'phid?', 'sourceRequesterPHID' => 'phid?',
+      'sourceExecutorPHID' => 'phid?',
       'requestDigest' => 'varbytes64', 'bindingJSON' => 'text', 'state' => 'varbytes16',
       'approverPHID' => 'phid?', 'approverVersion' => 'uint64?',
       'approverDigest' => 'varbytes64?', 'approverBindingJSON' => 'text?',
@@ -25,6 +28,11 @@ final class PhorgeOrganizationSchemaSpec extends PhabricatorConfigSchemaSpec {
       'consumedByOperation' => 'varbytes128?', 'version' => 'uint64'), array(
       'PRIMARY' => array('columns' => array('approvalID'), 'unique' => true),
       'key_operation' => array('columns' => array('operationID')),
-      'key_consumed' => array('columns' => array('consumedByOperation'))));
+      'key_consumed' => array('columns' => array('consumedByOperation')),
+      'key_source_approver' => array('columns' => array('approverPHID')),
+      'key_source_version' => array('columns' => array('sourceParticipantVersion')),
+      'key_source_subject' => array('columns' => array('sourceSubjectPHID')),
+      'key_source_requester' => array('columns' => array('sourceRequesterPHID')),
+      'key_source_executor' => array('columns' => array('sourceExecutorPHID'))));
   }
 }

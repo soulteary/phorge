@@ -34,6 +34,8 @@ final class PhorgeOrganizationOutbox extends PhabricatorUserDAO {
         'dispatchedAt' => 'uint64?',
       ),
       self::CONFIG_KEY_SCHEMA => array(
+        'key_transfer' => array('columns' => array('transferID')),
+        'key_handover' => array('columns' => array('handoverID')),
         'key_identity' => array('columns' => array('eventID'), 'unique' => true),
         'key_pending' => array('columns' => array('state', 'id')),
       ),

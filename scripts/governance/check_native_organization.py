@@ -1200,7 +1200,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1571)
+    exact_tree(audit['source_patch_count'], 1572)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 

@@ -30,6 +30,28 @@ def wait_until(check, process=None, seconds=30):
         time.sleep(.05)
 
 
+def capability_observation(status, raw, process):
+    """Bounded failure-only evidence; never project service message or body."""
+    code = 'unknown'
+    allowed = None
+    try:
+        value = json.loads(raw)
+        error = value.get('error')
+        candidate = error.get('code') if type(error) is dict else error
+        if candidate in ('ERR_DELIVERY_STORE', 'ERR_SEND_FAILED', 'ERR_INVALID_TOKEN'):
+            code = candidate
+        data = value.get('data')
+        if type(data) is dict and type(data.get('perPhysicalAttemptAuthorization')) is bool:
+            allowed = data['perPhysicalAttemptAuthorization']
+    except (ValueError, TypeError, AttributeError):
+        pass
+    exit_code = process.poll()
+    return {'http_status': status if type(status) is int and 100 <= status <= 599 else None,
+            'error_code': code, 'per_attempt_authorization': allowed,
+            'owned_mailer_running': exit_code is None,
+            'owned_mailer_exit_code': exit_code if type(exit_code) is int and -255 <= exit_code <= 255 else None}
+
+
 def preflight(config):
     if sys.platform != 'linux':
         raise RuntimeError('linux_profile_required')
@@ -57,6 +79,7 @@ def run_case(config, case):
     failure = None
     prepared = False
     cleanup = None
+    startup_observation = None
     source = Path(config['source_root'])
     owner_dir = runtime.directory
     php = config['php']
@@ -147,6 +170,7 @@ def run_case(config, case):
         wait_until(mailer_ready, mailer, 20)
         headers = {'X-Service-Token': mailer_token, 'Content-Type': 'application/json'}
         status, raw = request(origin + '/api/mailer/delivery-capabilities', headers=headers)
+        startup_observation = capability_observation(status, raw, mailer)
         check(status == 200 and json.loads(raw)['data']['perPhysicalAttemptAuthorization'] is True, 'actual_paired_per_attempt_authorization')
         check(request(ready['capture_uri'] + '/api/v1/emails?limit=1')[0] == 401 and capture(ready)['total'] == 0, 'actual_owlmail_auth_and_empty_capture')
         snapshot = ready['pending_snapshot']
@@ -194,6 +218,8 @@ def run_case(config, case):
         passed = True
     except Exception as error:
         failure = {'class': type(error).__name__, 'stage': str(error) if isinstance(error, RuntimeError) else 'transport_or_fixture'}
+        if startup_observation is not None and 'actual_paired_per_attempt_authorization' not in checks:
+            failure['capability_observation'] = startup_observation
     finally:
         if fixture is not None and fixture.poll() is None:
             try:
