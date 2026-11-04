@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "status": "draft-blocked",
+  "physical_runtime_source": "dd6d217ca7fa288ab74ded2776fb7128fff6c502",
+  "physical_allow_replay_checks": 23,
+  "supported_pure_methods_actual": 248,
+  "whole_runtime_source_files_exact": 6852,
+  "resolved_signed_archive_aliases": 36,
+  "actual_queue_native_HTTP_SMTP_allow_and_replay": true,
+  "one_actual_native_authorization_callback": true,
+  "single_synthetic_destination": true,
+  "link_only_generic_MIME": true,
+  "raw_MIME_sha256": "b4365754a3510520c8f1d8bf5f684d8c7d828de04616b1adba182e111ec8758b",
+  "full_parser_context_equal": true,
+  "parser_context_sha256": "5497a5eee102b8fc189e0e4c17eeee7dd3b7b54137415dab66ee19d7da04762a",
+  "all_owned_cleanup_passed": true,
+  "historical_native_component": {
+    "source": "23b138b7803f046d0e5a6a04c59d3f45bc905197",
+    "supported_pure_methods": 248,
+    "SQL_checks": 933,
+    "scope": "same-production-source component reference only; not current draft full933 acceptance"
+  },
+  "raw_ORM_fixture_original_source": "9bfe869c71bce338faf5c1687edca5b5bed31d68",
+  "raw_ORM_fixture_runtime_executed": false,
+  "raw_ORM_ABA_denial_proved": false,
+  "current_draft_full933_native_CI_proved": false,
+  "physical_revocation_and_rollback_matrix_complete": false,
+  "all_governance_producers_complete": false,
+  "all_recipient_profiles_complete": false,
+  "production_optional_features_enabled": false,
+  "deployment": false,
+  "merge_authorized_by_this_record": false,
+  "remaining_gates": [
+    "Actual raw ORM disable-enable safety test with notifications on and recovery off must deny old binding.",
+    "Physical revocation, rollback, remaining producer and recipient matrices.",
+    "Fresh exact draft HEAD full Native933 CI and independent source-bound review.",
+    "Root must close all remaining gates before ready or merge."
+  ]
+}
