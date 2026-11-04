@@ -1,0 +1,70 @@
+{
+  "HTTP_or_browser_proved": false,
+  "actual_current_source_evidence": {
+    "focused45_executed": false,
+    "full897_executed": false,
+    "native_map_only": {
+      "actual_map_sha256": "360f2bdfebcae8a9ffa7da914eefc750acb5f6a3c1728fd898941c84e6e64390",
+      "cleanup_failures": [],
+      "cold": true,
+      "equals_signed_union_map_bytes": true,
+      "map_delta": [],
+      "map_receipt_sha256": "06487cb134f80cb61c953e7158771005f9d83cd314e5bd9e0d0fb918cf15147a",
+      "owned_host_stage_removed": true,
+      "owned_remote_source_removed": true,
+      "runtime": "8.5.12"
+    },
+    "supported_pure_executed": false
+  },
+  "aggregate_current_SQL_acceptance": false,
+  "all_sources_complete": false,
+  "can_execute": false,
+  "current_source_runtime_pending": {
+    "additional_focused_DAO_DDL_SQL": 33,
+    "additional_focused_metadata_SQL": 15,
+    "additional_focused_policy_SQL": 18,
+    "classes": 42,
+    "full_SQL": 897,
+    "pure_methods": 250,
+    "separate_lifecycle_SQL": 45
+  },
+  "deployment_proved": false,
+  "historical_component_only": {
+    "certifies_current_union": false,
+    "checkpoint_sha256": "d8db8040ed70328af4c8208d2312411faec23b6781abeedede7d82720b4dded5",
+    "cleanup": {
+      "ownedRuntimeUsersRemoved": 2,
+      "ownedSchemasRemoved": 55,
+      "readerRemoved": true
+    },
+    "component_SQL_obligations": 36,
+    "focused_checks": 45,
+    "pure_methods": 236,
+    "runtime_files_exact": 6842,
+    "source_revision": "ca63f3f7b9f8c40402b14548fa6ad5bc7e2b1e17",
+    "strict_CLI_and_inprocess_equal": true,
+    "worker_cleanup": {
+      "cleanup_failures": 0,
+      "live_processes_after_cleanup": 0,
+      "owned_processes_stopped": 0,
+      "private_directories_remaining": 0,
+      "private_directories_removed": 2,
+      "workers_registered": 2
+    }
+  },
+  "host_validation_attribution": {
+    "Auth_targeted_organization_methods": 20,
+    "Org_governance_methods": 193,
+    "Org_permission_methods": 85,
+    "Root_map_helper_controls": 5,
+    "Root_protected_source_files_compared": 5
+  },
+  "production_activation": false,
+  "protected_main_revision": "ae888333d9a24888f2ba7887904a2a7823fac8da",
+  "restoration_authorized": false,
+  "reviewed_source_revision": "f5bb422a8f857b55d80158090415f0ee8d9a19fd",
+  "schema": 1,
+  "scope": "draft-protected-main-organization-union-preparation-not-current-SQL-acceptance",
+  "source_registered_classes": 42,
+  "source_registered_methods": 250
+}
