@@ -21,6 +21,13 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
     def test_notice_failure_projection_never_exports_raw_query_or_reason(self):
         source=ROOT/'support/governance/notification/governance-notice-cases.php'
         code=r"""require $argv[1];$secret='SYNTHETIC_PRIVATE_DIAGNOSTIC_SENTINEL';
+        $pattern=governance_notice_insert_wait_pattern();
+        $queries=array('INSERT INTO owned.governance_notice_event VALUES (1)',
+          'SELECT id INTO gate_id FROM owned.notice_fixture_gate WHERE id=1 FOR UPDATE',
+          'SELECT id FROM owned.other_gate FOR UPDATE','INSERT INTO owned.other_event VALUES (1)',
+          'SELECT id FROM owned.notice_fixture_gate_extra FOR UPDATE','SELECT * FROM governance_notice_event');
+        $matches=array_map(static function($q)use($pattern){return preg_match($pattern,$q)===1;},$queries);
+        if($matches!==array(true,true,false,false,false,false)){exit(2);}
         $rows=array(governance_notice_wait_projection('SELECT id INTO gate_id FROM notice_fixture_gate WHERE '.$secret,null),
           governance_notice_wait_projection(false,array('status'=>'rejected','reason'=>$secret)),
           governance_notice_wait_projection(null,array('status'=>'failed','error_type'=>'RuntimeException','source_file'=>'fixture.php','source_line'=>44,'message'=>$secret)),

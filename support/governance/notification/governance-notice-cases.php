@@ -26,6 +26,10 @@ function governance_notice_fixture_fingerprint($fixture){
   }
   return hash('sha256',json_encode($all,JSON_THROW_ON_ERROR));
 }
+/** PROCESSLIST may expose the active trigger statement rather than its INSERT. */
+function governance_notice_insert_wait_pattern(){
+  return '/(?:INSERT INTO.*\bgovernance_notice_event\b|SELECT.*\bnotice_fixture_gate\b)/is';
+}
 /** Failure-only fixed classification. Never serialize SQL, reason or payload. */
 function governance_notice_wait_projection($info,$result){
   $query='missing';
@@ -97,7 +101,7 @@ function governance_notice_independent_commit($fixture,callable $check,array $au
     if(!$setup->query('SELECT id FROM '.$gate.' WHERE id=1 FOR UPDATE')){throw new RuntimeException('governance_notice_parent_lock_failed');}
     $worker=governance_native_start_worker($fixture,array('action'=>'org.notice.create','token'=>$auth['token'],
       'payload'=>array('operation_id'=>'notice-independent','unit_id'=>'notice-independent','kind'=>'team','name'=>'PRIVATE_NOTICE_INDEPENDENT','parent_id'=>null)));
-    try{governance_native_wait_worker_query($control,array($worker),'/INSERT INTO.*governance_notice_event/is');}
+    try{governance_native_wait_worker_query($control,array($worker),governance_notice_insert_wait_pattern());}
     catch(Throwable $error){
       try{$GLOBALS['governance_notice_wait_failure']=governance_notice_wait_breadcrumb($control,$worker,$setup->thread_id);}
       catch(Throwable $diagnostic){$GLOBALS['governance_notice_wait_failure']=array('phase'=>'independent-commit-wait','diagnostic_failed'=>true);}
