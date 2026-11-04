@@ -114,7 +114,7 @@
   "current_source_runtime_pending": {
     "additional_focused_DAO_DDL_SQL": 33,
     "additional_focused_metadata_SQL": 15,
-    "additional_focused_policy_SQL": 18
+    "additional_focused_policy_SQL": 23
   },
   "deployment_proved": false,
   "historical_component_only": {
@@ -156,5 +156,13 @@
   "source_registered_classes": 42,
   "source_registered_methods": 250,
   "new_Physical_startup_observation_executed": false,
-  "hosted_final_head_CI_and_review_pending": true
+  "hosted_final_head_CI_and_review_pending": true,
+  "policy_P2_corrective_profile": {
+    "previous_integrated_18_executable_claim_withdrawn": true,
+    "new_checks": 23,
+    "new_workers": 4,
+    "current_source_run": false,
+    "service_RC_retained": true,
+    "service_RR_or_absence_lease_proved": false
+  }
 }

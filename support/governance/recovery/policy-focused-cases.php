@@ -79,10 +79,11 @@ function governance_recovery_policy_focused_cases($fixture,callable $check) {
       ->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
     $environment=governance_recovery_account_fixture_environment($fixture);
     governance_recovery_policy_source_cases($fixture,$check);
-    return array('profile'=>'isolated-native-policy-range-component-v1','source_revision'=>$revision,
-      'actual_native_policy_dao'=>true,'service_owned_rr_transaction'=>true,
+    return array('profile'=>'isolated-native-policy-isolation-comparison-v2','source_revision'=>$revision,
+      'actual_native_policy_dao'=>true,'service_owned_rr_transaction'=>false,'fixture_owned_rr_transaction'=>true,
+      'service_rc_producer_commits_and_current_read_changes'=>true,'service_rc_absence_fence_proved'=>false,'fixture_refuses_observed_rc_source_changes'=>true,
       'actual_empty_and_populated_primary_insert_waits'=>true,
-      'registered_policy_workers'=>2,'policy_source_SQL_obligations'=>9,
+      'registered_policy_workers'=>4,'policy_source_SQL_obligations'=>14,
       'identified_fixture_seed_restored'=>true,
       'all_mode_native_evidence'=>false,'full_storage_upgrade_acceptance'=>false,
       'all_thirteen_families_complete'=>false,'restoration_authorized'=>false,

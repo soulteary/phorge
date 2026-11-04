@@ -19,7 +19,7 @@ it does not claim a SELECT-only metadata account or retained privilege lease.
 The source registration is the exact union of both parents: 250 pure methods in
 42 classes. All main 897 mandatory SQL IDs and every typed NATIVE expected value
 are retained. Separate focused profiles retain their own exact obligations:
-lifecycle 45, DAO/DDL 33, live metadata 15 and policy range 18. They are not added
+lifecycle 45, DAO/DDL 33, live metadata 15 and policy isolation comparison 23. They are not added
 arithmetically to the full 897 claim and require actual current-source execution.
 Org actually ran 193 governance and 85 permission host tests. Auth independently
 ran 20 targeted organization host tests; Root compared five protected main
@@ -36,7 +36,7 @@ profile independently passed 250 pure methods / 42 classes and 45 focused checks
 (36 component obligations). Each run matched all 6,855 PHP/SQL/public-suffix files
 to the signed source, passed strict CLI/in-process equality, and removed its
 owned schemas, users, workers, services, image and staging resources. These
-profiles are not summed. DAO/DDL33, metadata15 and policy18 remain pending for
+profiles are not summed. DAO/DDL33, metadata15 and policy23 remain pending for
 this union; earlier component results do not substitute for them.
 
 The [acceptance receipt](evidence/recovery-organization-main106-preparation/acceptance.json)
@@ -59,3 +59,10 @@ historical component evidence only. They do not certify this union. Static sourc
 inventory remains partial; unknown or unimplemented source families hard-deny.
 No restoration permit, production recovery entry, activation, deployment or online
 permission migration is provided. Complete 13-family coverage remains false.
+
+PR108 review found that the inherited policy18 fixture wrongly expected RR gap
+locks from the retained RC service. The test-only successor compares actual RC
+producer commits/current-read changes with separate fixture-owned RR controls.
+Its exact23 checks/four workers are pending; it changes no product PHP/SQL and
+provides no RC absence or restoration guarantee. The earlier full897 and
+lifecycle45 receipts remain bound to f5, not to this new fixture source.
