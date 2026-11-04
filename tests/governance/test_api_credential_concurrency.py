@@ -23,6 +23,46 @@ catch(RuntimeException $e) { echo json_encode(array('accepted'=>false),JSON_THRO
         self.assertEqual(result.stderr, '')
         return json.loads(result.stdout)['accepted']
 
+    def test_actual_wait_projection_keeps_multiple_roles_and_hides_values(self):
+        cases=ROOT/'support/governance/recovery/api-concurrency-cases.php'
+        script="""require $argv[1];$v=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
+try{$out=governance_recovery_api_wait_projection($v['rows'],$v['roles'],21,22,
+ 'governance_native_aaaaaaaaaaaaaaaa',$v['tables']);echo json_encode(array('accepted'=>true,'value'=>$out),JSON_THROW_ON_ERROR);}
+catch(RuntimeException $e){echo '{"accepted":false}';}"""
+        namespace='governance_native_'+'a'*16
+        tables={'user':{'schema':namespace+'_user','table':'user'},
+                'conduit-token':{'schema':namespace+'_conduit','table':'conduit_token'}}
+        row=dict(requester='17',blocker='22',schema_name=namespace+'_user',table_name='user',
+                 index_name='PRIMARY',mode_name='S,REC_NOT_GAP',type_name='RECORD',
+                 LOCK_DATA='PRIVATE_SENTINEL',query='PRIVATE_SENTINEL')
+        def invoke(rows):
+            value={'rows':rows,'roles':{'17':['writer_thread','reader_thread','credential_thread']},'tables':tables}
+            result=subprocess.run(['php','-r',script,str(cases)],input=json.dumps(value),text=True,capture_output=True,check=True)
+            self.assertEqual(result.stderr,'');self.assertNotIn('PRIVATE_SENTINEL',result.stdout)
+            return json.loads(result.stdout)
+        result=invoke([row]);self.assertTrue(result['accepted']);value=result['value'][0]
+        self.assertEqual(value['requester_roles'],['writer_thread','reader_thread','credential_thread'])
+        self.assertTrue(value['blocker_matches_parent_actor_connection'])
+        self.assertFalse(value['blocker_matches_producer_connection'])
+        self.assertEqual(value['object_class'],'user');self.assertEqual(value['index_class'],'primary')
+        hidden=dict(row,schema_name=namespace+'_other',table_name='PRIVATE_SENTINEL',index_name='PRIVATE_SENTINEL')
+        result=invoke([hidden]);self.assertEqual(result['value'][0]['object_class'],'namespace-other')
+        foreign=dict(row,schema_name='PRIVATE_SENTINEL',table_name='user')
+        self.assertEqual(invoke([foreign])['value'][0]['object_class'],'foreign-other')
+        self.assertFalse(invoke([row]*17)['accepted'])
+        self.assertFalse(invoke([dict(row,requester='99')])['accepted'])
+
+    def test_observer_timeout_stays_failure_after_diagnostic_fault(self):
+        source=(ROOT/'support/governance/recovery/api-concurrency-cases.php').read_text()
+        boundary=source.index("  try{$GLOBALS['governance_api_concurrency_child_failure']=governance_recovery_api_wait_diagnostic")
+        end=source.index("/** Actual requester/blocker",boundary)
+        branch=source[boundary:end]
+        self.assertIn('catch(Throwable$diagnostic_error)',branch)
+        self.assertIn("throw new RuntimeException('recovery_api_observation_timeout')",branch)
+        self.assertNotIn('return ',branch)
+        self.assertIn('$deadline=hrtime(true)+5000000000',source)
+        self.assertIn("if($count>0){return array('state'=>'blocked-by-owned-writer'",source[:boundary])
+
     def test_startup_phase_validator_rejects_owner_unknown_and_noninteger_thread(self):
         script = """require $argv[1];$x=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);
 try { governance_native_api_startup_phase($x,str_repeat('a',64));echo '{"accepted":true}'; }
