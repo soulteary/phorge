@@ -8,6 +8,16 @@ final class PhorgeRecoveryMetadataGrantDescriptionTestCase extends PhutilTestCas
     $this->assertFalse($data['actual_live_privileges_proved']);
     $this->assertFalse($data['metadata_absence_proved']);
     $this->assertFalse($data['restoration_authorized']);
+    // Real MySQL static and dynamic SHOW GRANTS rows differ in comma
+    // spacing. This describes syntax; actual global flags remain live SQL.
+    foreach(array(', ', ',', ',   ')as$separator){
+      $static='GRANT '.implode($separator,array('SELECT','PROCESS','TRIGGER')).' ON *.* TO `synthetic`@`localhost`';
+      $dynamic='GRANT '.implode($separator,array('BACKUP_ADMIN','CONNECTION_ADMIN')).' ON *.* TO `synthetic`@`localhost`';
+      $described=PhorgeRecoveryMetadataGrantDescription::describe(array($static,$dynamic),'NONE',null);
+      $this->assertTrue($described['required_global_privileges_claimed']);
+      $this->assertFalse($described['actual_live_privileges_proved']);
+      $this->assertFalse($described['restoration_authorized']);
+    }
     $partial=PhorgeRecoveryMetadataGrantDescription::describe(array(
       'GRANT SELECT, PROCESS ON *.* TO `synthetic`@`localhost`',
       'GRANT TRIGGER ON `synthetic_user`.* TO `synthetic`@`localhost`'),'NONE',null);
@@ -24,6 +34,12 @@ final class PhorgeRecoveryMetadataGrantDescriptionTestCase extends PhutilTestCas
       array(array('GRANT SELECT ON *.* TO `synthetic`@`localhost`',
         'GRANT SELECT ON *.* TO `synthetic`@`localhost`'),'NONE',null),
       array(array('GRANT SELECT ON *.* TO `synthetic`@`localhost`'."\n"),'NONE',null),
+      array(array('GRANT SELECT,,PROCESS ON *.* TO `synthetic`@`localhost`'),'NONE',null),
+      array(array('GRANT SELECT,SELECT ON *.* TO `synthetic`@`localhost`'),'NONE',null),
+      array(array('GRANT SELECT, SELECT ON *.* TO `synthetic`@`localhost`'),'NONE',null),
+      array(array('GRANT SELECT, ON *.* TO `synthetic`@`localhost`'),'NONE',null),
+      array(array('GRANT SELECT ,PROCESS ON *.* TO `synthetic`@`localhost`'),'NONE',null),
+      array(array('GRANT SELECT,'."\t".'PROCESS ON *.* TO `synthetic`@`localhost`'),'NONE',null),
       array(array(true),'NONE',null))as$case){
       $refused=false;
       try{PhorgeRecoveryMetadataGrantDescription::describe($case[0],$case[1],$case[2]);}

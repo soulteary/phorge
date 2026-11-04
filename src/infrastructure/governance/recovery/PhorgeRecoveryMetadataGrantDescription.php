@@ -17,7 +17,7 @@ final class PhorgeRecoveryMetadataGrantDescription extends Phobject {
       if(!preg_match('/\AGRANT ([A-Z0-9_ ,]+) ON (\*\.\*|`(?:[^`]|``)+`\.\*) TO .+\z/D',$grant,$match)){
         // Includes role grants, partial REVOKE rows and unknown statement forms.
         throw new RuntimeException('recovery_metadata_grant_profile_unknown');}
-      $privileges=explode(', ',$match[1]);
+      $privileges=preg_split('/, */',$match[1]);
       if(count($privileges)!==count(array_unique($privileges))){
         throw new RuntimeException('recovery_metadata_grant_profile_unknown');}
       foreach($privileges as$privilege){
