@@ -16,8 +16,8 @@
   "all_parent_check_sets_retained": true,
   "all_parent_native_leaf_types_and_values_retained": true,
   "production_src_resources_exact_base_main": true,
-  "new_union_runtime_accepted": false,
-  "base_main_postmerge_CI": "Failure under investigation; do not inherit prior PR green as main proof",
+  "new_union_runtime_accepted": true,
+  "base_main_postmerge_CI": "Historical main1f20 failed the stale JOIN fingerprint assertion; this candidate fixes its baseline and has passed a deterministic real-clock isolated regression.",
   "four_axes": "native",
   "optional_features_enabled": false,
   "deployed": false,
@@ -26,5 +26,12 @@
   "additional_regressions": [
     "project-view-default-edit-controller-no-effect-crosses-native-clock-before-join-refusal"
   ],
-  "main_failure_fix": "Capture the exact JOIN baseline after the native no-effect POST; force an actual PHP clock boundary and verify the native dateModified increase without relaxing negative fingerprints."
+  "main_failure_fix": "Capture the exact JOIN baseline after the native no-effect POST; force an actual PHP clock boundary and verify the native dateModified increase without relaxing negative fingerprints.",
+  "actual_runtime_source": "9d36a0c3e84dda75d2ba7e9b18cd6428dbb02528",
+  "actual_pure": 237,
+  "actual_SQL_HTTP": 861,
+  "actual_runtime_files_exact": 6814,
+  "strict_actual_CLI_passed": true,
+  "cleanup_complete": true,
+  "current_candidate_hosted_CI_and_review_complete": false
 }
