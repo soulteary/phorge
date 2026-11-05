@@ -593,12 +593,12 @@ function governance_native_api_startup_diagnostic(array$worker,$fixture) {
     $row=$control->query('SELECT PROCESSLIST_COMMAND c FROM performance_schema.threads WHERE PROCESSLIST_ID='.(int)$id);
     if(!$row){throw new RuntimeException('recovery_api_startup_observation_failed');}
     $value=$row->fetch_assoc();$row->free();$command=$value===null?'absent':($value['c']==='Sleep'?'sleep':($value['c']==='Query'?'query':'other'));
-    $entry=array('role'=>$role,'command'=>$command,'waiting_on_owned_user'=>false,'waiting_on_owned_conduit'=>false,'waiting_on_owned_oauth'=>false);
-    foreach(array('user'=>'waiting_on_owned_user','conduit'=>'waiting_on_owned_conduit','oauth_server'=>'waiting_on_owned_oauth')as$app=>$key){
+    $entry=array('role'=>$role,'command'=>$command,'event_creator_is_transaction_owner_proved'=>false,'creator_wait_reference_to_owned_user'=>false,'creator_wait_reference_to_owned_conduit'=>false,'creator_wait_reference_to_owned_oauth'=>false);
+    foreach(array('user'=>'creator_wait_reference_to_owned_user','conduit'=>'creator_wait_reference_to_owned_conduit','oauth_server'=>'creator_wait_reference_to_owned_oauth')as$app=>$key){
       $schema=$fixture->getNamespace().'_'.$app;
       $sql='SELECT COUNT(*) n FROM performance_schema.data_lock_waits w '.
         'JOIN performance_schema.threads t ON t.THREAD_ID=w.REQUESTING_THREAD_ID '.
-        'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID '.
+        'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID AND l.ENGINE=w.ENGINE '.
         'WHERE t.PROCESSLIST_ID='.(int)$id." AND l.OBJECT_SCHEMA='".$control->real_escape_string($schema)."'";
       $query=$control->query($sql);if(!$query){throw new RuntimeException('recovery_api_startup_observation_failed');}
       $entry[$key]=(int)$query->fetch_assoc()['n']>0;$query->free();

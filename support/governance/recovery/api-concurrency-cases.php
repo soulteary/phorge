@@ -225,6 +225,10 @@ function governance_recovery_api_wait_diagnostic($fixture,mysqli$observer,array$
   $query=$observer->query('SELECT COUNT(*) n FROM information_schema.INNODB_TRX WHERE trx_mysql_thread_id='.(int)$parent_user_thread);
   if(!$query){throw new RuntimeException('recovery_api_wait_diagnostic_query_failed');}
   $out['parent_actor_actual_transaction_present']=(int)$query->fetch_assoc()['n']>0;$query->free();
+  try{
+    require_once __DIR__.'/api-wait-sampling.php';
+    $out['separate_wait_samples']=governance_recovery_api_wait_samples($fixture,$observer,$registry,$fixture->getNamespace(),$tables);
+  }catch(Throwable$sample_error){$out['separate_wait_samples']=array('diagnostic_unavailable'=>true);}
   return$out;
 }
 

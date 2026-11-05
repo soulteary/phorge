@@ -103,3 +103,33 @@ pure, normal/focused SQL, current-source strict sealing and independent review
 must be established for the eventual signed union head. Reflection of the native
 authentication method is not HTTP/gateway evidence. Source families, restoration
 permission, production activation and deployment remain unproved/default off.
+
+### Main107 failure-only split P_S / I_S sampling candidate
+
+The signed 9cf main107 integration completed its normal 261-method / 934-check
+profile with exact source hashing and cleanup. Its separate focused run reached
+14 checks and timed out during the second API insert attempt's observation;
+the last successful check label was its baseline, not the throwing operation.
+That run did not complete 46 checks and remains historical failure evidence.
+
+This successor changes no product query, success matcher, five-second deadline
+or 46-check contract. The old startup flags are renamed to creator references,
+with an explicit false transaction-owner proof marker and an ENGINE-qualified
+P_S lock join. Lisk may reuse the User writer for its reader role, so role aliases
+are not evidence of two independently blocked connections. The actual token
+current read remains on the supplied native User writer; the separate Conduit
+connection is not automatically its reader.
+
+Only after the original observation times out, the collector reads bounded P_S
+wait rows without any INNODB_TRX join, then separately reads the owned connection
+rows in INNODB_TRX. It emits fixed roles/states and opaque-ID equality booleans,
+not IDs, SQL, credentials, account names or lock data. Two samples are separated
+by a measured local pause of at least 250 milliseconds with no I_S read issued
+by this collector during the pause. Other sessions' monitoring reads are not
+controlled. Empty samples never prove a persistent wait. Event creators are not
+reinterpreted as transaction owners, and all ownership/cache-causality proof
+flags remain false. A separate real observation is required to determine whether
+cached I_S rows, requester identity, lock-ID matching, or another factor caused
+the original mismatch. The primary timeout is always preserved if diagnostics
+are unavailable. No SQL execution, current-source map/pure completion, producer
+fence fix or recovery permission is claimed by host tests.
