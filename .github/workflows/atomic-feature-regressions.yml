@@ -318,6 +318,37 @@ jobs:
           name: governance-native-organization-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-native-organization
           if-no-files-found: error
+      - name: Verify fresh native API credential concurrency after native regression
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir -p "$RUNNER_TEMP/governance-api-credential-concurrency"
+          git rev-parse HEAD > "$RUNNER_TEMP/governance-api-credential-concurrency/source-revision.txt"
+          sha256sum "$RUNNER_TEMP/gorge-file-storage" "$RUNNER_TEMP/gorge-taskqueue" "$RUNNER_TEMP/gorge-render" | sed "s|$RUNNER_TEMP/||g" > "$RUNNER_TEMP/governance-api-credential-concurrency/binary-sha256.txt"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_IMAGE_URI="$GORGE_TEST_IMAGE_URL" \
+          PHORGE_GOVERNANCE_GORGE_IMAGE_TOKEN="$GORGE_TEST_IMAGE_TOKEN" \
+          PHORGE_GOVERNANCE_GORGE_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" \
+          PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_BINARY="$RUNNER_TEMP/gorge-render" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_RENDER_SOURCE_REVISION="$GORGE_CONTRACT_REF" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          php support/governance/native-organization/test-native-organization-mysql.php --api-credential-concurrency > "$RUNNER_TEMP/governance-api-credential-concurrency/integration.json"
+          python3 -B scripts/governance/check_api_credential_concurrency.py --receipt "$RUNNER_TEMP/governance-api-credential-concurrency/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" > "$RUNNER_TEMP/governance-api-credential-concurrency/accepted.json"
+          cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-api-credential-concurrency/normal-regression-accepted.json"
+          cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-api-credential-concurrency/shared-native-pure.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: governance-api-credential-concurrency-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-api-credential-concurrency
+          if-no-files-found: error
       - name: Verify deterministic historical push-event grouping
         run: |
           mkdir -p "$RUNNER_TEMP/push-groups-migration"

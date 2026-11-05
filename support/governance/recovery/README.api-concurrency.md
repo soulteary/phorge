@@ -165,3 +165,34 @@ matched query or completed-result observation can pass only inside that same
 deadline. No creator-based fallback, extra time or missing-owner success is
 introduced. Actual execution must determine whether the complete46 profile
 passes; host schedule controls and the cache mechanism are not that proof.
+
+
+## Atomic CI invocation (candidate; CI execution pending)
+
+Local validation remains tied to its actual source: `0f5132daf83ddf592ae83c5fcbfe79209c7ae142`
+passed all 46 focused checks with 12 cleaned workers and 6,881 matching runtime
+files. Its strict CLI matched in-process validation; the immutable evidence
+manifest is `fce91b080343a31a6e090c7d7a17d395afc04d24f86b78f98f7cc6c504181ac4`.
+The earlier normal 934-check regression and 261 pure methods belong to
+`9cfadecf5903a2a43a39fd1217ed5ff99bd92f0b`, not this CI successor. Its production,
+runtime and pure-entry source equality authenticates shared pure evidence only.
+Neither result substitutes for the new CI execution below.
+
+Atomic CI runs this profile serially after the normal native regression and its
+strict consumers succeed, using the existing disposable MySQL and paired binary
+configuration. Its MySQL 8.0 service is a separate environment from the isolated
+MySQL 8.4.13 functional experiment; fresh CI must prove its result.
+With the same isolated fixture and binary environment as that normal step:
+
+```sh
+php support/governance/native-organization/test-native-organization-mysql.php --api-credential-concurrency > integration.json
+python3 -B scripts/governance/check_api_credential_concurrency.py --receipt integration.json --source-revision "$(git rev-parse HEAD)" --file-binary "$PHORGE_GOVERNANCE_GORGE_FILE_BINARY" > accepted.json
+```
+
+No private evidence pack is required. The separate CI artifact retains the fresh
+receipt and strict acceptance, checkout revision and binary digests, plus the
+already executed pure result and normal regression acceptance as shared references.
+These counts are not added together. Artifact upload always runs; it cannot turn
+a failed fixture or strict gate into acceptance. No production feature is enabled.
+The profile remains bounded: no all-source completion, restore permit, API scan
+deadlock proof, HTTP proof or deployment claim follows.

@@ -11,6 +11,18 @@ ROOT = Path(__file__).resolve().parents[2]
 PROFILES = ('api', 'cli', 'oauth')
 OPERATIONS = ('insert', 'revoke')
 BOUNDARIES = ('commit', 'rollback')
+FIELDS = {'batch', 'passed', 'scope', 'checks', 'check_count', 'php_version',
+    'source_restore', 'native', 'worker_cleanup', 'file_service_cleanup',
+    'successful_owned_file_service_startups', 'cleanup', 'failure', 'cleanup_failures',
+    'optional_source_reader_adapter_exercised', 'isolated_optional_features_enabled',
+    'terminal_failure_cleanup_rollbacks', 'captured_native_output_bytes',
+    'captured_native_output_sha256', 'production_deployment', 'production_executor',
+    'production_optional_features_enabled', 'native_permission_axes_changed', 'remaining_blocked'}
+BLOCKERS = ['api-two-producer-deadlock-stress', 'oauth-governance-current-reader',
+    'all-thirteen-source-families', 'restoration-permit', 'production-deployment']
+WORKER_FIELDS = {'workers_registered', 'private_directories_removed',
+    'private_directories_remaining', 'live_processes_after_cleanup',
+    'cleanup_failures', 'owned_processes_stopped'}
 
 def strict_object(pairs):
     result = {}
@@ -56,6 +68,15 @@ def required_checks():
 def validate(data, revision, file_digest, root=ROOT):
     if not re.fullmatch('[a-f0-9]{40}', revision) or not re.fullmatch('[a-f0-9]{64}', file_digest):
         raise ValueError('independent source and binary inputs required')
+    if type(data) is not dict or set(data) != FIELDS:
+        raise ValueError('credential receipt fields refused')
+    exact(data['remaining_blocked'], BLOCKERS)
+    exact(data['optional_source_reader_adapter_exercised'], True)
+    exact(data['isolated_optional_features_enabled'], True)
+    exact(data['terminal_failure_cleanup_rollbacks'], 0)
+    exact(data['successful_owned_file_service_startups'], 1)
+    if type(data['worker_cleanup']) is not dict or set(data['worker_cleanup']) != WORKER_FIELDS:
+        raise ValueError('credential worker fields refused')
     exact(data['batch'], 'native-api-credential-concurrency')
     exact(data['scope'], 'owned-native-credential-writer-reader-observation')
     exact(data['passed'], True)

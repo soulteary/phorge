@@ -206,7 +206,7 @@ class CredentialConcurrencyGateTests(unittest.TestCase):
         source=load('synthetic_native_template',ROOT/'tests/governance/test_native_organization.py')
         self.data=source.template()  # Synthetic gate input, never SQL evidence.
         self.data.update(batch='native-api-credential-concurrency',scope='owned-native-credential-writer-reader-observation',
-                         checks=sorted(self.gate.required_checks()),check_count=46)
+                         checks=sorted(self.gate.required_checks()),check_count=46,remaining_blocked=self.gate.BLOCKERS.copy())
         self.data['worker_cleanup'].update(workers_registered=12,private_directories_removed=12)
         rows=[]
         for p in self.gate.PROFILES:
@@ -227,6 +227,23 @@ class CredentialConcurrencyGateTests(unittest.TestCase):
         self.assertTrue(self.validate(self.data)['accepted'])
         self.assertEqual(len(self.gate.required_checks()),46)
 
+    def test_root_and_cleanup_metadata_are_exact_and_typed(self):
+        self.validate(self.data)
+        mutations=[]
+        for key,value in [('restoration_authorized',True),('raw_secret','SYNTHETIC_SENTINEL'),
+                          ('php_version','unsupported'),('terminal_failure_cleanup_rollbacks',False),
+                          ('successful_owned_file_service_startups',True),
+                          ('optional_source_reader_adapter_exercised',1),
+                          ('isolated_optional_features_enabled',False),('remaining_blocked',[])]:
+            d=copy.deepcopy(self.data);d[key]=value;mutations.append(d)
+        for key in self.gate.FIELDS:
+            d=copy.deepcopy(self.data);del d[key];mutations.append(d)
+        d=copy.deepcopy(self.data);d['worker_cleanup']['unknown']=0;mutations.append(d)
+        for key in self.gate.WORKER_FIELDS:
+            d=copy.deepcopy(self.data);d['worker_cleanup'][key]=False;mutations.append(d)
+        for d in mutations:
+            with self.assertRaises(ValueError):self.validate(d)
+
     def test_actual_cli_duplicate_fields_rejected_after_positive(self):
         with tempfile.TemporaryDirectory() as directory:
             binary=Path(directory)/'synthetic-binary'
@@ -239,6 +256,12 @@ class CredentialConcurrencyGateTests(unittest.TestCase):
             receipt.write_text(raw)
             positive=subprocess.run(command,capture_output=True,text=True)
             self.assertEqual(positive.returncode,0,positive.stderr)
+            for key,value in [('restoration_authorized',True),('raw_secret','SYNTHETIC_SENTINEL'),
+                              ('php_version','unsupported'),('terminal_failure_cleanup_rollbacks',False)]:
+                changed=copy.deepcopy(self.data);changed[key]=value
+                receipt.write_text(json.dumps(changed))
+                refused=subprocess.run(command,capture_output=True,text=True)
+                self.assertNotEqual(refused.returncode,0)
             for before, after in [
                 ('"source_revision": "'+'a'*40+'"','"source_revision": "'+'b'*40+'", "source_revision": "'+'a'*40+'"'),
                 ('"can_execute": false','"can_execute": true, "can_execute": false')]:
