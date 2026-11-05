@@ -258,6 +258,7 @@ try {
 } catch (Throwable $error) {
   $failure = array('stage'=>$stage,'error_type'=>get_class($error),
     'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
+  if($phase==='spaces-source-facts'&&isset($GLOBALS['governance_spaces_editor_failure'])){$failure['spaces_editor_diagnostic']=$GLOBALS['governance_spaces_editor_failure'];}
   if ($error instanceof mysqli_sql_exception) { $failure['sql_errno']=$error->getCode(); }
   if(isset($GLOBALS['governance_notice_admin_grant_cleanup_projection'])){$failure['notice_admin_grant_cleanup']=$GLOBALS['governance_notice_admin_grant_cleanup_projection'];}
   if(isset($GLOBALS['governance_notice_raw_orm_queue_cleanup_proved'])){$failure['notice_raw_orm_queue_cleanup_proved']=$GLOBALS['governance_notice_raw_orm_queue_cleanup_proved'];}

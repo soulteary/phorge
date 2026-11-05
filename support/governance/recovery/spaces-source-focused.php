@@ -12,6 +12,7 @@ function governance_spaces_fixture_observe($fixture,$phid){
   try{$statement->bind_param('s',$phid);$statement->execute();$row=$statement->get_result()->fetch_assoc();if(!$row||!is_string($row['description'])||strlen($row['description'])>16384){throw new RuntimeException('recovery_spaces_fixture_observation_unknown');}return$row;}finally{$statement->close();}
 }
 function governance_recovery_spaces_source_focused($fixture,callable$check){
+  require_once __DIR__.'/spaces-editor-diagnostic.php';
   $fixture->assertOwned();require_once dirname(__DIR__).'/native-organization/native-cases.php';require_once dirname(__DIR__).'/native-organization/workers.php';require_once __DIR__.'/project-source-focused.php';
   require_once dirname(__DIR__,3).'/src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php';
   $revision=getenv('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION');if(!is_string($revision)||!preg_match('/\A[a-f0-9]{40}\z/D',$revision)){throw new RuntimeException('recovery_spaces_fixture_revision_unknown');}
@@ -27,12 +28,12 @@ function governance_recovery_spaces_source_focused($fixture,callable$check){
     $auth=governance_native_request($actor,new PhabricatorAuthSessionEngine());$readAuth=governance_native_request($reader,new PhabricatorAuthSessionEngine());$viewer=$readAuth['viewer'];
     $check($viewer->hasSession()&&$viewer->getPHID()===$reader->getPHID()&&!$viewer->getIsAdmin()&&$viewer->getIsApproved(),
       'recovery-spaces-real-nonadmin-native-login-before-guard');
-    $edit=function($space,$transactions)use($auth){$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$auth['token'];$auth['request']->validateCSRF();return(new PhabricatorSpacesNamespaceEditor())->setActor($auth['viewer'])->setContentSourceFromRequest($auth['request'])->setContinueOnNoEffect(true)->applyTransactions($space,$transactions);};
-    $create=function($policy,$name)use($actor,$edit){$space=PhabricatorSpacesNamespace::initializeNewNamespace($actor);$edit($space,array(
+    $edit=function($space,$transactions,$phase)use($auth){return governance_spaces_editor_attempt($phase,function()use($auth,$space,$transactions){$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$auth['token'];$auth['request']->validateCSRF();return(new PhabricatorSpacesNamespaceEditor())->setActor($auth['viewer'])->setContentSourceFromRequest($auth['request'])->setContinueOnNoEffect(true)->applyTransactions($space,$transactions);});};
+    $create=function($policy,$name,$phase)use($actor,$edit){$space=PhabricatorSpacesNamespace::initializeNewNamespace($actor);$edit($space,array(
       (new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorSpacesNamespaceNameTransaction::TRANSACTIONTYPE)->setNewValue($name),
       (new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY)->setNewValue($policy),
-      (new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDIT_POLICY)->setNewValue(PhabricatorPolicies::POLICY_ADMIN)));return$space;};
-    $space=$create(PhabricatorPolicies::POLICY_USER,'Synthetic selected Space');$restricted=$create(PhabricatorPolicies::POLICY_NOONE,'Synthetic restricted Space');
+      (new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDIT_POLICY)->setNewValue(PhabricatorPolicies::POLICY_ADMIN)),$phase);return$space;};
+    $space=$create(PhabricatorPolicies::POLICY_USER,'Synthetic selected Space','create-user-visible');$restricted=$create(PhabricatorPolicies::POLICY_NOONE,'Synthetic restricted Space','create-restricted-noone');
     // Explicit new request cache, not a claim that native destroySpacesCache clears viewer caches.
     $freshCache=function(){(new ReflectionProperty(PhabricatorCaches::class,'requestCache'))->setValue(null,null);};$freshCache();$all=PhabricatorSpacesNamespaceQuery::getAllSpaces();
     $check(isset($all[$space->getPHID()])&&PhabricatorPolicyFilter::hasCapability($viewer,$all[$space->getPHID()],PhabricatorPolicyCapability::CAN_VIEW),
@@ -44,11 +45,11 @@ function governance_recovery_spaces_source_focused($fixture,callable$check){
     $result=governance_spaces_fixture_scope($writer,static fn($conn)=>PhorgeRecoverySpacesSourceFacts::capture($conn)->finish());
     $check($result['actual_SQL_reads_executed']===true&&$result['complete']===false&&$result['request_cache_policy_correctness_proved']===false,
       'recovery-spaces-qualified-current-row-and-real-query-cache-facts');
-    $edit($space,array((new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorSpacesNamespaceArchiveTransaction::TRANSACTIONTYPE)->setNewValue(true)));$freshCache();$all=PhabricatorSpacesNamespaceQuery::getAllSpaces();$active=PhabricatorSpacesNamespaceQuery::getViewerActiveSpaces($viewer);
+    $edit($space,array((new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorSpacesNamespaceArchiveTransaction::TRANSACTIONTYPE)->setNewValue(true)),'archive');$freshCache();$all=PhabricatorSpacesNamespaceQuery::getAllSpaces();$active=PhabricatorSpacesNamespaceQuery::getViewerActiveSpaces($viewer);
     $check(isset($all[$space->getPHID()])&&(bool)$all[$space->getPHID()]->getIsArchived()&&PhabricatorPolicyFilter::hasCapability($viewer,$all[$space->getPHID()],PhabricatorPolicyCapability::CAN_VIEW)&&!isset($active[$space->getPHID()]),
       'recovery-spaces-archived-all-space-policy-versus-active-ui-list');
     $before=governance_spaces_fixture_observe($fixture,$space->getPHID());$appwriter=(new PhabricatorSpacesNamespace())->establishConnection('w');
-    governance_spaces_fixture_scope($appwriter,function()use($edit,$space){$edit($space,array((new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorSpacesNamespaceDescriptionTransaction::TRANSACTIONTYPE)->setNewValue('Synthetic rolled-back description')));});
+    governance_spaces_fixture_scope($appwriter,function()use($edit,$space){$edit($space,array((new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorSpacesNamespaceDescriptionTransaction::TRANSACTIONTYPE)->setNewValue('Synthetic rolled-back description')),'description-rollback');});
     $check(governance_spaces_fixture_observe($fixture,$space->getPHID())===$before&&!$appwriter->isInsideTransaction(),
       'recovery-spaces-real-native-editor-description-and-history-rollback');
     $freshCache();PhabricatorSpacesNamespaceQuery::getAllSpaces();
