@@ -56,9 +56,9 @@ class MainFlow(unittest.TestCase):
    for path in p.OWNER_FILES+p.RECIPE_FILES:
     target=root/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(path.encode())
    env={'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'pull_request','GITHUB_REF':'refs/pull/12/merge','NATIVE_RR_LOCKED_GOMODCACHE':str(cache)}
-   calls=[];status_count=0
+   calls=[];status_count=0;verify_count=0
    def command(args,**kwargs):
-    nonlocal status_count
+    nonlocal status_count,verify_count
     calls.append(args)
     if args[0]=='git':
      if 'rev-parse'in args:return (REV+'\n').encode()
@@ -67,7 +67,11 @@ class MainFlow(unittest.TestCase):
       return b' M changed'if fault=='dirty-before'or(fault=='dirty-after'and status_count>1)else b''
      if 'show'in args:return args[-1].split(':',1)[1].encode()
     if args[1:]==['version']:return b'go version go1.27.3 linux/amd64\n'
-    if args[1:3]==['mod','verify']:return b'invalid modules'if fault=='module-verify'else b'All modules verified\n'
+    if args[1:3]==['mod','verify']:
+     verify_count+=1
+     if fault=='module-verify'or(fault=='module-verify-after'and verify_count==2):return b'invalid modules'
+     if fault=='uppercase-verify'or(fault=='uppercase-verify-after'and verify_count==2):return b'All modules verified\n'
+     return b'all modules verified\n'
     if args[1]=='build':
      binary=Path(args[args.index('-o')+1]);binary.write_bytes(b'synthetic-cross-build-output')
      if fault=='build-failed':raise RuntimeError('original-build-failure')
@@ -86,6 +90,8 @@ class MainFlow(unittest.TestCase):
      if fault=='unknown-output':self.assertEqual('original-build-failure',str(caught.exception));self.assertEqual('retain',(output/'foreign').read_text());self.assertTrue(any((outer/'retained-original').glob('native-rr-build-cache-*')))
      elif output.exists():self.assertEqual([],list(output.glob('native-rr-build-cache-*')))
      self.assertFalse((output/'build-record.json').exists())
+     if fault in ('uppercase-verify','module-verify'):self.assertEqual(1,verify_count);self.assertFalse(any(len(c)>1 and c[1]=='build'for c in calls))
+     if fault in ('uppercase-verify-after','module-verify-after'):self.assertEqual(2,verify_count);self.assertTrue(any(len(c)>1 and c[1]=='build'for c in calls))
     else:
      b.main(['--go',str(go),'--output-dir',str(output)])
      record=json.loads((output/'build-record.json').read_text());self.assertEqual(REV,record['source_revision']);self.assertEqual('pull-request-synthetic-merge',record['source_kind']);self.assertFalse(record['PR_head_measured']);self.assertFalse(record['descriptor_is_execution_authority']);self.assertFalse(record['external_trusted_anchor_established']);self.assertEqual([],list(output.glob('native-rr-build-cache-*')))
@@ -95,7 +101,7 @@ class MainFlow(unittest.TestCase):
   for fault in ('dirty-before','dirty-after'):
    with self.subTest(fault=fault):self.exercise(fault)
  def test_main_bad_build_info_and_failed_module_verify(self):
-  for fault in ('bad-build-info','module-verify'):
+  for fault in ('bad-build-info','module-verify','module-verify-after','uppercase-verify','uppercase-verify-after'):
    with self.subTest(fault=fault):self.exercise(fault)
  def test_main_original_failure_cleanup_and_unknown_retention(self):
   for fault in ('build-failed','unknown-output'):

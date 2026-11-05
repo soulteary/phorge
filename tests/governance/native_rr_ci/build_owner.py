@@ -57,10 +57,10 @@ def main(argv=None):
  try:
   binary=output/'native-rr-process-owner'
   module=ROOT/'support/governance/recovery/owned-process'
-  if command([str(go),'mod','verify'],env=env,cwd=module).strip()!=b'All modules verified':raise ValueError('locked module cache verification failed')
+  if command([str(go),'mod','verify'],env=env,cwd=module).strip()!=b'all modules verified':raise ValueError('locked module cache verification failed')
   command([str(go),'build','-mod=readonly','-buildvcs=true','-trimpath','-o',str(binary),'.'],env=env,cwd=ROOT/'support/governance/recovery/owned-process')
   info_raw=command([str(go),'version','-m','-json',str(binary)],env=env);info=decode(info_raw);verify_build_info(info,head,'amd64')
-  if command([str(go),'mod','verify'],env=env,cwd=module).strip()!=b'All modules verified':raise ValueError('module cache changed during build')
+  if command([str(go),'mod','verify'],env=env,cwd=module).strip()!=b'all modules verified':raise ValueError('module cache changed during build')
   if source_bindings(ROOT,committed)!=sources or command(['git','-C',str(ROOT),'status','--porcelain','--untracked-files=all']):raise ValueError('source changed during build')
   if binary.is_symlink()or not binary.is_file():raise ValueError('actual built regular binary required')
   raw=binary.read_bytes();os.chmod(binary,0o500)
