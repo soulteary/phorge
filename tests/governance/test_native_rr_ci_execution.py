@@ -54,12 +54,12 @@ class Controls(unittest.TestCase):
     with self.subTest(change=change),self.assertRaises(ValueError):e.extract_current_archive(raw.getvalue(),root)
     self.assertEqual([],list(root.iterdir()))
  def test_actual_current_pure_inventory_and_typed_outcome(self):
-  ids=e.pure_inventory(ROOT);self.assertEqual(274,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':274,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])
+  ids=e.pure_inventory(ROOT);self.assertEqual(277,len(ids));data={'passed':True,'runtime':'8.5.12','expected_methods':277,'results':[{'id':i,'result':'pass'}for i in ids]};self.assertTrue(e.validate_pure(data,ids)['passed'])
   for change in ('bool','duplicate','failed','old-count'):
    bad=copy.deepcopy(data)
    if change=='bool':bad['expected_methods']=True
    elif change=='duplicate':bad['results'][0]=bad['results'][1]
-   elif change=='old-count':bad['expected_methods']=271
+   elif change=='old-count':bad['expected_methods']=274
    else:bad['results'][0]['result']='fail'
    with self.subTest(change=change),self.assertRaises(ValueError):e.validate_pure(bad,ids)
  def test_cleanup_unknown_and_bool_are_never_zero(self):

@@ -3,6 +3,8 @@ from pathlib import Path
 import unittest,subprocess,hashlib
 ROOT=Path(__file__).resolve().parents[2]
 ADDITIONS={
+ 'PhorgeRecoveryTaskOwnerSource':('infrastructure/governance/recovery/PhorgeRecoveryTaskOwnerSource.php','Phobject'),
+ 'PhorgeRecoveryTaskOwnerSourceTestCase':('infrastructure/governance/recovery/__tests__/PhorgeRecoveryTaskOwnerSourceTestCase.php','PhutilTestCase'),
  'PhorgeRecoverySpacesSourceFacts':('infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php','Phobject'),
  'PhorgeRecoverySpacesSourceFactsTestCase':('infrastructure/governance/recovery/__tests__/PhorgeRecoverySpacesSourceFactsTestCase.php','PhutilTestCase'),
  'PhorgeRecoveryApplicationConfigFacts':('infrastructure/governance/recovery/PhorgeRecoveryApplicationConfigFacts.php','Phobject'),
@@ -16,9 +18,14 @@ RR='5594bac28722ba4cde67e8e326c67e4d38d98d27'
 # Exact source-audit pins for this new candidate; not a signature or runtime proof.
 PROJECT_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php': 'f9ba22cbe2745993631bdc503c5426b8f237672a3ebd527c96e6efa0484beb2d', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryProjectSourceFactsTestCase.php': '8cd4c9e6049f1bea2e45173149ffbd5c27044188e247df4b01c85d20489d85f1'}
 SPACES_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php': 'aeb2c53063335ff9e5e6748fbe59823f6238708be831966822872f48f04e2bbc', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoverySpacesSourceFactsTestCase.php': '7076c406175cb6530cfee32077c32ac2fb77f7d48e4c9e5a1ceed8d2910a5fef'}
+TASKOWNER_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryTaskOwnerSource.php': 'c74504d580aeed96008565a4660d296366171a77914ab6d3469f9333402ee03c', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryTaskOwnerSourceTestCase.php': 'f0b6d931ee30fca467ebf44b71a8f953d680be7011a48cdece4c2cdaaff0f4a2'}
 def reviewed_sources():
  result={}
  for name,(path,parent)in ADDITIONS.items():
+  if name.startswith('PhorgeRecoveryTaskOwnerSource'):
+   raw=(ROOT/'src'/path).read_bytes()
+   if hashlib.sha256(raw).hexdigest()!=TASKOWNER_SOURCE_PINS['src/'+path]:raise ValueError('Task owner source audit pin changed')
+   result['src/'+path]=raw;continue
   if name.startswith('PhorgeRecoverySpacesSourceFacts'):
    raw=(ROOT/'src'/path).read_bytes()
    if hashlib.sha256(raw).hexdigest()!=SPACES_SOURCE_PINS['src/'+path]:raise ValueError('Space source audit pin changed')
@@ -37,10 +44,11 @@ def validate_notice_product_delta(changed,current,frozen,baseline_map):
  for path in allowed-{'src/__phutil_library_map__.php'}:
   if current[path]!=frozen[path]:raise ValueError('reviewed config/RR source bytes changed')
  reduced=current['src/__phutil_library_map__.php']
- project_lines=[];spaces_lines=[]
+ project_lines=[];spaces_lines=[];task_lines=[]
  for name,(path,parent)in ADDITIONS.items():
   for value in (path,parent):
    line=("    '"+name+"' => '"+value+"',\n").encode()
+   if name.startswith('PhorgeRecoveryTaskOwnerSource'):task_lines.append(line);continue
    if name.startswith('PhorgeRecoveryProjectSourceFacts'):project_lines.append(line);continue
    if name.startswith('PhorgeRecoverySpacesSourceFacts'):spaces_lines.append(line);continue
    if reduced.count(line)!=1:raise ValueError('reviewed config/RR map delta changed')
@@ -54,6 +62,10 @@ def validate_notice_product_delta(changed,current,frozen,baseline_map):
  counts=[reduced.count(line)for line in spaces_lines]
  if counts not in ([0]*4,[1]*4):raise ValueError('partial Spaces map delta')
  for line in spaces_lines:
+  if reduced.count(line):reduced=reduced.replace(line,b'',1)
+ counts=[reduced.count(line)for line in task_lines]
+ if counts not in ([0]*4,[1]*4):raise ValueError('partial Task owner map delta')
+ for line in task_lines:
   if reduced.count(line):reduced=reduced.replace(line,b'',1)
  if reduced!=baseline_map:raise ValueError('old product map bytes changed')
  return True
@@ -87,7 +99,7 @@ class NativeAdminWire(unittest.TestCase):
   self.assertIn("'--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold'",text)
   self.assertIn('governance_notice_admin_wire_hold($fixture,$check)',text)
   self.assertIn('governance_notice_wire_hold($fixture,$check)',text)
-  # The independently reviewed config/RR, Project and Spaces components add exactly eight classes,
+  # The independently reviewed config/RR, Project, Spaces and Task owner components add exactly ten classes,
   # the exact default-off RR option file, and their actual mapper entries. Preserve every pre-existing notice/product
   # byte; never turn this historical fixture contract into a blanket new base.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'

@@ -58,6 +58,7 @@ try {
     'PhorgeRecoveryPolicySourceTestCase',
     'PhorgeRecoveryProjectSourceFactsTestCase',
     'PhorgeRecoverySpacesSourceFactsTestCase',
+    'PhorgeRecoveryTaskOwnerSourceTestCase',
     'PhorgeRecoveryApplicationConfigFactsTestCase',
     'PhorgeRecoveryOrganizationProducerTestCase',
     'PhorgeRecoveryMetadataGrantDescriptionTestCase',
