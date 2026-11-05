@@ -1,7 +1,7 @@
 <?php
 /** Failure-only fixed projection. Never reads validation messages or values. */
 function governance_spaces_editor_failure($phase,$error) {
-  $phases=array('create-user-visible','create-restricted-noone','archive','description-rollback');
+  $phases=array('create-user-visible','create-restricted-noone','create-restricted-admin','archive','description-rollback');
   if(!in_array($phase,$phases,true)||get_class($error)!==PhabricatorApplicationTransactionValidationException::class){throw new RuntimeException('spaces_editor_projection_unknown');}
   $errors=$error->getErrors();
   if(!is_array($errors)||count($errors)>16){throw new RuntimeException('spaces_editor_projection_budget');}

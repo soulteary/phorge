@@ -5,6 +5,10 @@ ROOT=Path(__file__).resolve().parents[2]
 NAME='      - name: Verify fresh native Project source facts after application configuration\n'
 ARTIFACT='governance-project-source-facts'
 MEMBERS={'integration.json','accepted.json','source-revision.txt','shared-native-pure.json','normal-regression-accepted.json'}
+def stable_stamp(path):
+ st=path.lstat()
+ # Reading an owned path may update atime; it is not evidence of a write.
+ return (st.st_dev,st.st_ino,st.st_mode,st.st_nlink,st.st_uid,st.st_gid,st.st_size,st.st_mtime_ns,st.st_ctime_ns)
 def validate_workflow(workflow):
  def need(value):
   if not value:raise ValueError('Project CI contract refused')
@@ -62,7 +66,7 @@ class ProjectSourceAtomic(unittest.TestCase):
   def snapshot(path):
    result={}
    for child in [path,*sorted(path.rglob('*'))]:
-    st=child.lstat();result[str(child.relative_to(path))]=(st.st_dev,st.st_ino,st.st_mode,child.read_bytes() if child.is_file() and not child.is_symlink() else None,os.readlink(child) if child.is_symlink() else None)
+    result[str(child.relative_to(path))]=(stable_stamp(child),child.read_bytes() if child.is_file() and not child.is_symlink() else None,os.readlink(child) if child.is_symlink() else None)
    return result
   with tempfile.TemporaryDirectory() as tmp:
    root=Path(tmp);foreign=root/'foreign';foreign.mkdir();(foreign/'sentinel').write_bytes(b'unchanged')
@@ -70,11 +74,11 @@ class ProjectSourceAtomic(unittest.TestCase):
    for kind in ('directory','symlink'):
     if kind=='directory':target.mkdir();(target/'sentinel').write_bytes(b'original')
     else:target.symlink_to(foreign,target_is_directory=True)
-    before=snapshot(foreign);target_before=target.lstat();own_before=snapshot(target) if kind=='directory' else None
+    before=snapshot(foreign);target_before=stable_stamp(target);own_before=snapshot(target) if kind=='directory' else None
     env=dict(os.environ,RUNNER_TEMP=tmp,GITHUB_SHA=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip())
     proc=subprocess.run(['bash','-e','-o','pipefail','-c',prefix],cwd=ROOT,env=env,capture_output=True)
     self.assertNotEqual(0,proc.returncode)
-    self.assertEqual(before,snapshot(foreign));self.assertEqual(target_before,target.lstat())
+    self.assertEqual(before,snapshot(foreign));self.assertEqual(target_before,stable_stamp(target))
     if kind=='directory':self.assertEqual(own_before,snapshot(target));(target/'sentinel').unlink();target.rmdir()
     else:target.unlink()
    proc=subprocess.run(['bash','-e','-o','pipefail','-c',prefix],cwd=ROOT,env=env,capture_output=True)

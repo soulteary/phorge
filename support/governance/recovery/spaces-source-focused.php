@@ -11,6 +11,16 @@ function governance_spaces_fixture_observe($fixture,$phid){
   $statement=$fixture->getAdmin()->prepare('SELECT n.description,n.isArchived,n.viewPolicy,(SELECT COUNT(*) FROM '.$fixture->table('spaces','spaces_namespacetransaction').' x WHERE x.objectPHID=n.phid) xactCount FROM '.$fixture->table('spaces','spaces_namespace').' n WHERE n.phid=?');
   try{$statement->bind_param('s',$phid);$statement->execute();$row=$statement->get_result()->fetch_assoc();if(!$row||!is_string($row['description'])||strlen($row['description'])>16384){throw new RuntimeException('recovery_spaces_fixture_observation_unknown');}return$row;}finally{$statement->close();}
 }
+/** Independent full-table counts for an isolated failed-create no-effect check. */
+function governance_spaces_fixture_counts($fixture){
+  $out=array();foreach(array('spaces_namespace','spaces_namespacetransaction')as$table){$row=$fixture->getAdmin()->query('SELECT COUNT(*) n FROM '.$fixture->table('spaces',$table))->fetch_assoc();if(!$row||!is_string($row['n'])&&!is_int($row['n'])||!preg_match('/\A[0-9]+\z/D',(string)$row['n'])){throw new RuntimeException('recovery_spaces_fixture_count_unknown');}$out[$table]=(string)$row['n'];}return$out;
+}
+/** The real native validation must reject the supplied self-excluding VIEW transaction. */
+function governance_spaces_noone_validation($error){
+  if(get_class($error)!==PhabricatorApplicationTransactionValidationException::class){return false;}$errors=$error->getErrors();
+  if(count($errors)!==1||get_class($errors[0])!==PhabricatorApplicationTransactionValidationError::class||$errors[0]->getType()!==PhabricatorTransactions::TYPE_VIEW_POLICY){return false;}
+  $transaction=$errors[0]->getTransaction();return$transaction!==null&&get_class($transaction)===PhabricatorSpacesNamespaceTransaction::class&&$transaction->getTransactionType()===PhabricatorTransactions::TYPE_VIEW_POLICY&&$transaction->getNewValue()===PhabricatorPolicies::POLICY_NOONE;
+}
 function governance_recovery_spaces_source_focused($fixture,callable$check){
   require_once __DIR__.'/spaces-editor-diagnostic.php';
   $fixture->assertOwned();require_once dirname(__DIR__).'/native-organization/native-cases.php';require_once dirname(__DIR__).'/native-organization/workers.php';require_once __DIR__.'/project-source-focused.php';
@@ -33,7 +43,19 @@ function governance_recovery_spaces_source_focused($fixture,callable$check){
       (new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorSpacesNamespaceNameTransaction::TRANSACTIONTYPE)->setNewValue($name),
       (new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY)->setNewValue($policy),
       (new PhabricatorSpacesNamespaceTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDIT_POLICY)->setNewValue(PhabricatorPolicies::POLICY_ADMIN)),$phase);return$space;};
-    $space=$create(PhabricatorPolicies::POLICY_USER,'Synthetic selected Space','create-user-visible');$restricted=$create(PhabricatorPolicies::POLICY_NOONE,'Synthetic restricted Space','create-restricted-noone');
+    $defaultsBefore=$fixture->getAdmin()->query('SELECT phid FROM '.$fixture->table('spaces','spaces_namespace').' WHERE isDefaultNamespace=1')->fetch_all(MYSQLI_ASSOC);
+    if(count($defaultsBefore)!==1){throw new RuntimeException('recovery_spaces_fixture_existing_default_unknown');}
+    $space=$create(PhabricatorPolicies::POLICY_USER,'Synthetic selected Space','create-user-visible');
+    $beforeRejected=governance_spaces_fixture_counts($fixture);$rejected=false;
+    try{$create(PhabricatorPolicies::POLICY_NOONE,'Synthetic rejected Space','create-restricted-noone');}
+    catch(PhabricatorApplicationTransactionValidationException$error){if(!governance_spaces_noone_validation($error)){throw$error;}$rejected=true;}
+    unset($GLOBALS['governance_spaces_editor_failure']);
+    $check($rejected&&governance_spaces_fixture_counts($fixture)===$beforeRejected,
+      'recovery-spaces-native-noone-selfexclusion-rejected-without-row-or-history');
+    $restricted=$create(PhabricatorPolicies::POLICY_ADMIN,'Synthetic restricted Space','create-restricted-admin');
+    $defaultsAfter=$fixture->getAdmin()->query('SELECT phid FROM '.$fixture->table('spaces','spaces_namespace').' WHERE isDefaultNamespace=1')->fetch_all(MYSQLI_ASSOC);
+    $check($space->getIsDefaultNamespace()===null&&$restricted->getIsDefaultNamespace()===null&&$defaultsAfter===$defaultsBefore,
+      'recovery-spaces-native-created-nondefault-spaces-preserve-existing-default');
     // Explicit new request cache, not a claim that native destroySpacesCache clears viewer caches.
     $freshCache=function(){(new ReflectionProperty(PhabricatorCaches::class,'requestCache'))->setValue(null,null);};$freshCache();$all=PhabricatorSpacesNamespaceQuery::getAllSpaces();
     $check(isset($all[$space->getPHID()])&&PhabricatorPolicyFilter::hasCapability($viewer,$all[$space->getPHID()],PhabricatorPolicyCapability::CAN_VIEW),
@@ -67,7 +89,7 @@ function governance_recovery_spaces_source_focused($fixture,callable$check){
     $freshCache();$final=governance_spaces_fixture_scope($writer,static fn($conn)=>PhorgeRecoverySpacesSourceFacts::capture($conn)->finish());
     $check($final['actual_SQL_reads_executed']===true&&!$writer->isInsideTransaction()&&PhabricatorSpacesNamespaceQuery::getDefaultSpace()!==null,
       'recovery-spaces-restored-current-facts-after-all-rollback-controls');
-    return array('profile'=>'native-spaces-source-facts-v1','source_revision'=>$revision,'native_Editor_and_nonadmin_session_VIEW'=>true,'native_archive_and_active_list_distinct'=>true,'native_editor_rollback_independently_observed'=>true,'owned_raw_source_change_and_missing_default_refused'=>true,'query_cache_is_policy_attestation'=>false,'history_complete'=>false,'absence_or_producer_lease_proved'=>false,'complete'=>false,'all_sources_complete'=>false,'restoration_authorized'=>false);
+    return array('profile'=>'native-spaces-source-facts-v1','source_revision'=>$revision,'native_Editor_and_nonadmin_session_VIEW'=>true,'native_archive_and_active_list_distinct'=>true,'native_noone_selfexclusion_rejected_without_persistence'=>true,'native_nondefault_creation_preserves_existing_default'=>true,'native_editor_rollback_independently_observed'=>true,'owned_raw_source_change_and_missing_default_refused'=>true,'query_cache_is_policy_attestation'=>false,'history_complete'=>false,'absence_or_producer_lease_proved'=>false,'complete'=>false,'all_sources_complete'=>false,'restoration_authorized'=>false);
   }catch(Throwable$error){$primary=$error;throw$error;}
   finally{
     $errors=array();if($primary){$errors['primary']=$primary;}
