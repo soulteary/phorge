@@ -6,11 +6,12 @@ $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phases=array('--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
-  '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant');
+  '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
   (count($arguments)===1&&isset($phases[$arguments[0]])?$phases[$arguments[0]]:'invalid');
 $notice_raw_orm=$phase==='notice-raw-orm-aba';
-$notice_wire=$phase==='governance-notice-wire-hold';
+$notice_admin_wire=$phase==='notice-admin-grant-wire-hold';
+$notice_wire=$phase==='governance-notice-wire-hold'||$notice_admin_wire;
 $private_mail_pending=$phase==='private-mail-pending-hold';
 $private_mail_wire=$phase==='private-mail-wire-hold'||$private_mail_pending||$notice_wire;
 $legacy_compatibility=$phase==='legacy-sql-compatibility';
@@ -224,7 +225,8 @@ try {
       require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);
     }elseif($private_mail_wire){
       $stage='private-native-mail-wire-fixture';
-      if($notice_wire){require_once dirname(__DIR__).'/notification/notice-wire-hold.php';$native=governance_notice_wire_hold($fixture,$check);}
+      if($notice_admin_wire){require_once dirname(__DIR__).'/notification/notice-admin-wire-hold.php';$native=governance_notice_admin_wire_hold($fixture,$check);}
+      elseif($notice_wire){require_once dirname(__DIR__).'/notification/notice-wire-hold.php';$native=governance_notice_wire_hold($fixture,$check);}
       elseif($private_mail_pending){require_once dirname(__DIR__).'/notification/pending-wire-hold.php';$native=governance_private_mail_pending_hold($fixture,$check);}
       else{require_once dirname(__DIR__).'/notification/wire-hold.php';$native=governance_private_mail_wire_hold($fixture,$check);}
     }else{
