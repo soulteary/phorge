@@ -10,6 +10,15 @@ final class PhorgeRecoveryProjectSourceFactsTestCase extends PhutilTestCase {
     catch(RuntimeException$error){return str_starts_with($error->getMessage(),'recovery_project_');}
     return false;
   }
+  public function testRealNativeUserPHIDIndexOverridesInheritedSchemaName(){
+    $config=(new ReflectionMethod(PhabricatorUser::class,'getConfiguration'))->invoke(new PhabricatorUser());
+    $schema=$config[LiskDAO::CONFIG_KEY_SCHEMA];
+    $this->assertTrue(array_key_exists('key_phid',$schema));
+    $this->assertEqual(null,$schema['key_phid']);
+    $this->assertEqual(array('columns'=>array('phid'),'unique'=>true),$schema['phid']);
+    $project=(new ReflectionMethod(PhabricatorProject::class,'getConfiguration'))->invoke(new PhabricatorProject());
+    $this->assertEqual(array('columns'=>array('parentProjectPHID','milestoneNumber'),'unique'=>true),$project[LiskDAO::CONFIG_KEY_SCHEMA]['key_milestone']);
+  }
   public function testRealNativeProjectStorageAndMilestoneDelegation(){
     $r=$this->rows();$rows=$r['snapshot']['projects'];
     $root=(new PhabricatorProject())->loadFromArray($rows[$r['root']]);

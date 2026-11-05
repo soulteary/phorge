@@ -12,7 +12,7 @@ ADDITIONS={
 EXTRA='src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php'
 RR='5594bac28722ba4cde67e8e326c67e4d38d98d27'
 # Exact source-audit pins for this new candidate; not a signature or runtime proof.
-PROJECT_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php': 'df37e656a2b02682b84e648fd94fde16f95f08d15d9f356f03340fe970a1f97b', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryProjectSourceFactsTestCase.php': '88afd97b8b8ec5a077b26f87425dfa34197cb7118aef21d6bfd4f0a368e7e801'}
+PROJECT_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php': '4380464b53f8b51c488dbf0bc29b9b1fc4e4aac302a4883ffb0ce3f5e1796eb9', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryProjectSourceFactsTestCase.php': '92ef366fa93d2f11b4bafe1210ec44ac353f24712ebc15aa198597f4bc9fd5a5'}
 def reviewed_sources():
  result={}
  for name,(path,parent)in ADDITIONS.items():

@@ -132,7 +132,7 @@ producer, DDL/privilege, absence and ABA gates remain pending.
 
 ## Registered integration successor (all runtime gates pending)
 
-The successor registers three native pure methods (derived269 total/46 classes,
+The successor registers four native pure methods (derived270 total/46 classes,
 not executed here). They use the real Project loadFromArray and explicit attachment
 APIs to check milestone policy/automatic VIEW delegation, archived status and
 attached-list precedence, plus pure direct/materialized/history and magic/length
@@ -157,7 +157,7 @@ A successful typed control does not mean the SQL fixture passed.
 Explicit N00 additions are static partial142sources/134links/124runtime files.
 B2 remains byte-identical with277candidates because the new governance class is in
 its existing excluded prefix; the new runtime source is instead explicitly pinned
-by N00. Supported map, all269 methods, real SQL11 and all future leases are pending.
+by N00. Supported map, all270 methods, real SQL11 and all future leases are pending.
 The legacy notice fixture's one-time whole-src freeze also needs an explicitly
 reviewed additive-source policy before final CI; untracked-source host success
 must not be mistaken for that post-signing integration gate.
@@ -190,3 +190,21 @@ and Env cache objects plus a synthetic writer that throws on isInsideTransaction
 or rollback. Both global restorations still run, original errors remain present,
 and dictionary-restoration failure still permits cache restoration. This is host
 control-flow proof only, not a SQL rollback or database-session closure proof.
+
+
+## Native User index correction on current main
+
+This independent successor explicitly unions protected main34c (PR113) with the
+28c component. The 28c run actually passed269 native methods/46 classes and the
+first native Project fixture check, then refused source capture before SQL11
+completion. A separately signed68df diagnostic observed all13 fixed index
+metadata queries with owned cleanup. Both real native and independent control
+queries found User `key_phid` absent; retained User schema declares that inherited
+key removed and the unique index named `phid`. Project retains `key_phid`.
+
+Only the User schema expectation and User planning FORCE INDEX change to `phid`;
+no DDL, migration or permissive index fallback is introduced. A fourth native
+method checks actual User schema configuration, with strict missing/wrong-column/
+nonunique metadata host negatives. Derived270 methods/46 classes and SQL11 on
+this successor remain unrun; prior269 and diagnostic observations are historical
+component evidence, not this source's acceptance or any complete source lease.

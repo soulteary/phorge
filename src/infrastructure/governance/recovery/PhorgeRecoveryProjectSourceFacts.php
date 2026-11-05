@@ -149,8 +149,8 @@ final class PhorgeRecoveryProjectSourceFacts extends Phobject {
     foreach(array('project','user')as$app){self::schema($conn,$prefix.'_'.$app,'edge',array('PRIMARY'=>array('src','type','dst'),'key_dst'=>array('dst','type','src')));}
     self::schema($conn,$prefix.'_project','project',array('PRIMARY'=>array('id'),'key_phid'=>array('phid'),'key_milestone'=>array('parentProjectPHID','milestoneNumber')));
     foreach(array('project','user')as$app){self::schema($conn,$prefix.'_'.$app,$app.'_transaction',array('PRIMARY'=>array('id'),'key_object'=>array('objectPHID')));}
-    self::schema($conn,$prefix.'_user','user',array('PRIMARY'=>array('id'),'key_phid'=>array('phid')));
-    $plan=queryfx_one($conn,'SELECT id FROM %T.user FORCE INDEX (key_phid) WHERE phid=%s',$prefix.'_user',$subject);
+    self::schema($conn,$prefix.'_user','user',array('PRIMARY'=>array('id'),'phid'=>array('phid')));
+    $plan=queryfx_one($conn,'SELECT id FROM %T.user FORCE INDEX (phid) WHERE phid=%s',$prefix.'_user',$subject);
     if(!$plan||self::integer($plan['id'])<1){throw new RuntimeException('recovery_project_subject_unknown');}
     $subject_row=queryfx_one($conn,'SELECT id,phid FROM %T.user FORCE INDEX (PRIMARY) WHERE id=%d LOCK IN SHARE MODE',$prefix.'_user',$plan['id']);
     if(!$subject_row||$subject_row['phid']!==$subject){throw new RuntimeException('recovery_project_subject_unknown');}
