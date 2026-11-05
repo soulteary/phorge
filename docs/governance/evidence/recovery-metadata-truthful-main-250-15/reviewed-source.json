@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "runtime_source_head": "a9d0ad31ee54eb35ae5e3b9c5d329b30ceef842d",
+  "reviewed_source_sha256": {
+    "docs/governance/recovery-organization-main106.md": "8c987e6bf67eaffadaa97f471b2bb7bf233df42f20b98454fb47804aa2a844b9",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationMetadataObservation.php": "fb0876db47a459660b27715043677575852c6a3d4dbfccac62e6c7dcc82248fb",
+    "support/governance/recovery/organization-live-metadata-cases.php": "9770ed37eef06cd3db7aa72cc619fec7d266d1f8474992ff473dffbaa95bf8da",
+    "tests/governance/test_recovery_metadata_observation_facts.py": "fee5c810636aed0d639b180eafb4b746e5fb20a1d37a8bb5b6dbaae27d2d46da",
+    "docs/governance/native-directory-callers.json": "e6d59ad3249d9a34b06a902552ca4dd073bf7044f6fbb759eedb9a5b8cc84245"
+  },
+  "source_freeze_sha256": "6a93cb624dad006aca1e8a12243a156e82ff228fa90d39d34e3d0e69052b77fa",
+  "actual_review_sha256": "beb4b5a9c5b5d2803a7fbdfa61439caced0e3387edf4e58bee16e7a271a94dd2",
+  "runtime_proof_binds_to_runtime_source_only": true,
+  "docs_successor_is_not_a_new_runtime_run": true,
+  "source_catalog_only_successor_to": "64c506ffa7fc0e4778fee391ca13835176e0ccc5",
+  "original_catalog_rejection_preserved": true,
+  "permissions_or_authorization_changed": false,
+  "global_completion": false,
+  "restoration_authorized": false,
+  "activation": false,
+  "deployment": false
+}
