@@ -4,7 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
@@ -187,7 +187,11 @@ try {
       }
     }
   });
-  if($native_rr){
+  if($phase==='project-source-facts'){
+    $stage='focused-native-project-source-facts';
+    require_once dirname(__DIR__).'/recovery/project-source-focused.php';
+    $native=governance_recovery_project_source_focused($fixture,$check);
+  }elseif($native_rr){
     require_once __DIR__.'/workers.php'; // Explicit empty registry, not an invented zero receipt.
     $stage='focused-same-native-User-writer-RR-MDL';
     require_once dirname(__DIR__).'/recovery/native-writer-rr-focused.php';
@@ -345,9 +349,11 @@ if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)
 $passed = $failure === null && !$cleanup_failures;
 $batch=$native_rr?'native-same-User-RR-MDL-component':($notice_raw_orm?'native-notice-raw-orm-ABA-profile':($phase==='recovery-organization-lifecycle-only'?'native-recovery-organization-lifecycle-component':($phase==='recovery-organization-metadata-only'?'native-recovery-organization-live-metadata-component':($phase==='recovery-organization-only'?'native-recovery-organization-producer-component':($phase==='recovery-policy-only'?'native-recovery-policy-range-component':($private_mail_wire?'private-native-mail-wire-preparation':($wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration'))))))));
 $batch=$phase==='notice-admin-grant'?'native-notice-admin-grant-profile':$batch;
+$batch=$phase==='project-source-facts'?'native-project-source-facts':$batch;
 $batch=$phase==='application-config-facts'?'native-application-config-facts':$batch;
 $batch=$credential_concurrency?'native-api-credential-concurrency':$batch;
 $receipt_scope=$phase==='notice-admin-grant'?'owned-native-admin-grant-and-transaction-outbox':($notice_raw_orm?'owned-notice-raw-native-DAO-restoration-off':($private_mail_wire?'owned-private-native-mail-wire-preparation':($wire_hold?'owned-native-media-wire-hold-synthetic-accounts':($legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts'))));
+$receipt_scope=$phase==='project-source-facts'?'owned-native-project-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$phase==='application-config-facts'?'owned-native-config-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$credential_concurrency?'owned-native-credential-writer-reader-observation':$receipt_scope;
 echo json_encode(array('batch'=>$batch,'passed'=>$passed,

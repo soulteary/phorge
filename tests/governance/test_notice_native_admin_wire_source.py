@@ -1,17 +1,25 @@
 """Host source contracts only; no claim of native SQL or physical delivery."""
 from pathlib import Path
-import unittest,subprocess
+import unittest,subprocess,hashlib
 ROOT=Path(__file__).resolve().parents[2]
 ADDITIONS={
  'PhorgeRecoveryApplicationConfigFacts':('infrastructure/governance/recovery/PhorgeRecoveryApplicationConfigFacts.php','Phobject'),
  'PhorgeRecoveryApplicationConfigFactsTestCase':('infrastructure/governance/recovery/__tests__/PhorgeRecoveryApplicationConfigFactsTestCase.php','PhutilTestCase'),
  'PhorgeRecoveryOwnedRRScope':('infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php','Phobject'),
- 'PhorgeRecoveryOwnedRRScopeTestCase':('infrastructure/governance/recovery/__tests__/PhorgeRecoveryOwnedRRScopeTestCase.php','PhutilTestCase')}
+ 'PhorgeRecoveryOwnedRRScopeTestCase':('infrastructure/governance/recovery/__tests__/PhorgeRecoveryOwnedRRScopeTestCase.php','PhutilTestCase'),
+ 'PhorgeRecoveryProjectSourceFacts':('infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php','Phobject'),
+ 'PhorgeRecoveryProjectSourceFactsTestCase':('infrastructure/governance/recovery/__tests__/PhorgeRecoveryProjectSourceFactsTestCase.php','PhutilTestCase')}
 EXTRA='src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php'
 RR='5594bac28722ba4cde67e8e326c67e4d38d98d27'
+# Exact source-audit pins for this new candidate; not a signature or runtime proof.
+PROJECT_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php': 'df37e656a2b02682b84e648fd94fde16f95f08d15d9f356f03340fe970a1f97b', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryProjectSourceFactsTestCase.php': '88afd97b8b8ec5a077b26f87425dfa34197cb7118aef21d6bfd4f0a368e7e801'}
 def reviewed_sources():
  result={}
  for name,(path,parent)in ADDITIONS.items():
+  if name.startswith('PhorgeRecoveryProjectSourceFacts'):
+   raw=(ROOT/'src'/path).read_bytes()
+   if hashlib.sha256(raw).hexdigest()!=PROJECT_SOURCE_PINS['src/'+path]:raise ValueError('Project source audit pin changed')
+   result['src/'+path]=raw;continue
   rev=RR if name.startswith('PhorgeRecoveryOwnedRRScope') else 'ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
   result['src/'+path]=subprocess.check_output(['git','-C',str(ROOT),'show',rev+':src/'+path])
  result[EXTRA]=subprocess.check_output(['git','-C',str(ROOT),'show',RR+':'+EXTRA])
@@ -22,11 +30,19 @@ def validate_notice_product_delta(changed,current,frozen,baseline_map):
  for path in allowed-{'src/__phutil_library_map__.php'}:
   if current[path]!=frozen[path]:raise ValueError('reviewed config/RR source bytes changed')
  reduced=current['src/__phutil_library_map__.php']
+ project_lines=[]
  for name,(path,parent)in ADDITIONS.items():
   for value in (path,parent):
    line=("    '"+name+"' => '"+value+"',\n").encode()
-   if reduced.count(line)!=1:raise ValueError('reviewed config map delta changed')
+   if name.startswith('PhorgeRecoveryProjectSourceFacts'):project_lines.append(line);continue
+   if reduced.count(line)!=1:raise ValueError('reviewed config/RR map delta changed')
    reduced=reduced.replace(line,b'',1)
+ # Before the cold mapper all four new lines are absent. Only an all-four
+ # additive result is accepted afterwards; partial/extra/drift is refused.
+ counts=[reduced.count(line)for line in project_lines]
+ if counts not in ([0]*4,[1]*4):raise ValueError('partial Project map delta')
+ for line in project_lines:
+  if reduced.count(line):reduced=reduced.replace(line,b'',1)
  if reduced!=baseline_map:raise ValueError('old product map bytes changed')
  return True
 
@@ -59,7 +75,7 @@ class NativeAdminWire(unittest.TestCase):
   self.assertIn("'--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold'",text)
   self.assertIn('governance_notice_admin_wire_hold($fixture,$check)',text)
   self.assertIn('governance_notice_wire_hold($fixture,$check)',text)
-  # The independently reviewed config and RR components add exactly four classes,
+  # The independently reviewed config/RR and Project components add exactly six classes,
   # the exact default-off RR option file, and their actual mapper entries. Preserve every pre-existing notice/product
   # byte; never turn this historical fixture contract into a blanket new base.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
@@ -82,6 +98,14 @@ class NativeAdminWire(unittest.TestCase):
   for path in allowed:
    bad=dict(current);bad[path]+=b'UNREVIEWED_CHANGE'
    with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad,frozen,old_map)
+  project_map_lines=[("    '"+name+"' => '"+value+"',\n").encode()for name,pair in ADDITIONS.items()if name.startswith('PhorgeRecoveryProjectSourceFacts')for value in pair]
+  unregistered=dict(current)
+  for line in project_map_lines:unregistered['src/__phutil_library_map__.php']=unregistered['src/__phutil_library_map__.php'].replace(line,b'')
+  self.assertTrue(validate_notice_product_delta(allowed,unregistered,frozen,old_map))
+  registered=dict(unregistered);registered['src/__phutil_library_map__.php']+=b''.join(project_map_lines)
+  self.assertTrue(validate_notice_product_delta(allowed,registered,frozen,old_map))
+  partial=dict(unregistered);partial['src/__phutil_library_map__.php']+=project_map_lines[0]
+  with self.assertRaises(ValueError):validate_notice_product_delta(allowed,partial,frozen,old_map)
   bad=dict(current);bad['src/__phutil_library_map__.php']+=b"    'ExtraClass' => 'extra.php',\n"
   with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad,frozen,old_map)
 if __name__=='__main__':unittest.main()

@@ -1,5 +1,5 @@
 """Bounded source preparation checks; mapper and SQL remain external gates."""
-import re, unittest
+import re, unittest, subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 def inventory():
@@ -12,7 +12,18 @@ def inventory():
  return classes,ids
 class Source(unittest.TestCase):
  def test_inventory_is_source_derived_not_runtime(self):
-  classes,ids=inventory();self.assertEqual(45,len(classes));self.assertEqual(266,len(ids));self.assertEqual(len(ids),len(set(ids)))
+  classes,ids=inventory();self.assertEqual(46,len(classes));self.assertEqual(269,len(ids));self.assertEqual(len(ids),len(set(ids)))
+  baseline='e41afddcb6c7fc76274a8273eeca4cb8e3599d1a'
+  old=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':tests/governance/run.php'],text=True)
+  old_classes=re.findall(r"'([A-Za-z0-9_]+TestCase)'",old.split('$classes = array(',1)[1].split(');',1)[0]);old_ids=set()
+  for name in old_classes:
+   path=next((ROOT/'src').rglob(name+'.php')).relative_to(ROOT).as_posix()
+   body=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':'+path],text=True)
+   old_ids.update(name+'::'+m for m in re.findall(r'public function (test[A-Za-z0-9_]+)\(',body))
+  self.assertEqual(266,len(old_ids));self.assertTrue(old_ids<=set(ids))
+  self.assertEqual({'PhorgeRecoveryProjectSourceFactsTestCase::testRealNativeProjectStorageAndMilestoneDelegation',
+   'PhorgeRecoveryProjectSourceFactsTestCase::testDistinctCurrentRowsDoNotImportHistoricalMembership',
+   'PhorgeRecoveryProjectSourceFactsTestCase::testPrimitiveAndLengthBoundsCannotInvokeSerializationCallbacks'},set(ids)-old_ids)
  def test_default_off_and_real_entry(self):
   options=(ROOT/'src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php').read_text()
   self.assertIn("'governance.account-recovery.owned-rr-scope.enabled','bool',false",options)

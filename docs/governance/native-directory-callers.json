@@ -1490,6 +1490,83 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PROJECT.FACTS",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php",
+      "symbol": "PhorgeRecoveryProjectSourceFacts",
+      "kind": "subject-current-project-source-facts-not-policy-or-lease",
+      "sha256": "df37e656a2b02682b84e648fd94fde16f95f08d15d9f356f03340fe970a1f97b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PROJECT.PhabricatorProject",
+      "path": "src/applications/project/storage/PhabricatorProject.php",
+      "symbol": "PhabricatorProject",
+      "kind": "fixed-native-project-storage-producer-or-consumer-reference",
+      "sha256": "4541295ea84293294f2b461243ab150a317b337e69be8c602793297f337dd84a",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PROJECT.PhabricatorProjectTransactionEditor",
+      "path": "src/applications/project/editor/PhabricatorProjectTransactionEditor.php",
+      "symbol": "PhabricatorProjectTransactionEditor",
+      "kind": "fixed-native-project-storage-producer-or-consumer-reference",
+      "sha256": "1a568eb88dcadd805624ba7cf8259b999bdab2d4d189a8a9ebf4cb0e49041919",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PROJECT.PhabricatorEdgeQuery",
+      "path": "src/infrastructure/edges/query/PhabricatorEdgeQuery.php",
+      "symbol": "PhabricatorEdgeQuery",
+      "kind": "fixed-native-project-storage-producer-or-consumer-reference",
+      "sha256": "a6ca97abf03dbad2a623075fabafb87235a01e3c34e78d57a577d3c5fd76ba2d",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PROJECT.PhabricatorEdgeEditor",
+      "path": "src/infrastructure/edges/editor/PhabricatorEdgeEditor.php",
+      "symbol": "PhabricatorEdgeEditor",
+      "kind": "fixed-native-project-storage-producer-or-consumer-reference",
+      "sha256": "87fce824bab9239d324d4414451d25c4f42633ad5c4e256962e48870efe467b2",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PROJECT.PhabricatorProjectsMembershipIndexEngineExtension",
+      "path": "src/applications/project/engineextension/PhabricatorProjectsMembershipIndexEngineExtension.php",
+      "symbol": "PhabricatorProjectsMembershipIndexEngineExtension",
+      "kind": "fixed-native-project-storage-producer-or-consumer-reference",
+      "sha256": "9c23e19acf9685384f18f3203db080039b63d441780dd9a40dc164e960b254eb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.PROJECT.PhabricatorProjectMembersPolicyRule",
+      "path": "src/applications/project/policyrule/PhabricatorProjectMembersPolicyRule.php",
+      "symbol": "PhabricatorProjectMembersPolicyRule",
+      "kind": "fixed-native-project-storage-producer-or-consumer-reference",
+      "sha256": "13b1569f11d3d595693f2d3934e68f54de76d0c424c6bc626b4e0f69160abec1",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -2500,6 +2577,70 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Isolated owned User writer RR mechanics only; not a production lease or restore permit."
+    },
+    {
+      "id": "RECOVERY-PROJECT-LINK-01",
+      "from_id": "RECOVERY.PROJECT.FACTS",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
+    },
+    {
+      "id": "RECOVERY-PROJECT-LINK-02",
+      "from_id": "RECOVERY.PROJECT.FACTS",
+      "to_id": "RECOVERY.PROJECT.PhabricatorProject",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
+    },
+    {
+      "id": "RECOVERY-PROJECT-LINK-03",
+      "from_id": "RECOVERY.PROJECT.FACTS",
+      "to_id": "PROJECT.NATIVE.VIEWER.QUERY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
+    },
+    {
+      "id": "RECOVERY-PROJECT-LINK-04",
+      "from_id": "RECOVERY.PROJECT.FACTS",
+      "to_id": "RECOVERY.PROJECT.PhabricatorProjectMembersPolicyRule",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
+    },
+    {
+      "id": "RECOVERY-PROJECT-LINK-05",
+      "from_id": "RECOVERY.PROJECT.PhabricatorProjectTransactionEditor",
+      "to_id": "RECOVERY.PROJECT.PhabricatorProjectsMembershipIndexEngineExtension",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
+    },
+    {
+      "id": "RECOVERY-PROJECT-LINK-06",
+      "from_id": "RECOVERY.PROJECT.PhabricatorProjectTransactionEditor",
+      "to_id": "RECOVERY.PROJECT.PhabricatorEdgeEditor",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
+    },
+    {
+      "id": "RECOVERY-PROJECT-LINK-07",
+      "from_id": "RECOVERY.PROJECT.PhabricatorProjectsMembershipIndexEngineExtension",
+      "to_id": "RECOVERY.PROJECT.PhabricatorEdgeQuery",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
+    },
+    {
+      "id": "RECOVERY-PROJECT-LINK-08",
+      "from_id": "RECOVERY.PROJECT.PhabricatorProjectMembersPolicyRule",
+      "to_id": "RECOVERY.PROJECT.PhabricatorEdgeQuery",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
     }
   ],
   "scan": {
@@ -2939,6 +3080,10 @@
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php",
         "sha256": "c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php",
+        "sha256": "df37e656a2b02682b84e648fd94fde16f95f08d15d9f356f03340fe970a1f97b"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php",
