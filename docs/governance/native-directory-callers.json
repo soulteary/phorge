@@ -1358,6 +1358,127 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.FACTS",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryApplicationConfigFacts.php",
+      "symbol": "PhorgeRecoveryApplicationConfigFacts",
+      "kind": "selected-process-source-dictionary-facts-not-authority",
+      "sha256": "0e73c13a19da167afc146bbc562ad89d3c560c39b3c34ed18a2c790bbee59a92",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorEnv",
+      "path": "src/infrastructure/env/PhabricatorEnv.php",
+      "symbol": "PhabricatorEnv",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "8b748c8c7ffadef14705c825d54649cf35d7e13b6dcce07f17a92e839d517507",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorConfigSource",
+      "path": "src/infrastructure/env/PhabricatorConfigSource.php",
+      "symbol": "PhabricatorConfigSource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "2ff0a7378ccf53964f0dc822566003a49eb325dbb7541f1f1e0dd813acb240c6",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorConfigProxySource",
+      "path": "src/infrastructure/env/PhabricatorConfigProxySource.php",
+      "symbol": "PhabricatorConfigProxySource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "2333dd5f70ec992677cd50b95be8d25b03a0f0fcfa4b2c9401c527e930343bfd",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorConfigDictionarySource",
+      "path": "src/infrastructure/env/PhabricatorConfigDictionarySource.php",
+      "symbol": "PhabricatorConfigDictionarySource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "c5b7bf8a7be5e3e2e39495812968c94033d4bda863df9aa90826c016af09f829",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorConfigStackSource",
+      "path": "src/infrastructure/env/PhabricatorConfigStackSource.php",
+      "symbol": "PhabricatorConfigStackSource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "6aeb3b8ef66ba0eb59dca655fd147ccd119455fa7d83f4d6d6b9792ccca748bb",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorConfigDefaultSource",
+      "path": "src/infrastructure/env/PhabricatorConfigDefaultSource.php",
+      "symbol": "PhabricatorConfigDefaultSource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "f81638d151ab8778b316b1924942f5b308f192ac1d5ef7df6ee408d441a42daf",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorConfigLocalSource",
+      "path": "src/infrastructure/env/PhabricatorConfigLocalSource.php",
+      "symbol": "PhabricatorConfigLocalSource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "1f31c03a5d853fa10e100b30712fda40610b172f64a26cd4b9615c3730fe55d0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorConfigDatabaseSource",
+      "path": "src/infrastructure/env/PhabricatorConfigDatabaseSource.php",
+      "symbol": "PhabricatorConfigDatabaseSource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "ac418c16290606aaf48f845dfd4c4616bcd7bd72572b05f847ea8a61d7780214",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorConfigFileSource",
+      "path": "src/infrastructure/env/PhabricatorConfigFileSource.php",
+      "symbol": "PhabricatorConfigFileSource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "a4b2c9f9aae8c2ca7673e1e0caabd4ed61223e5a30ccc12b82ee7db89068b541",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONFIG.PhabricatorDeploymentConfigSource",
+      "path": "src/infrastructure/env/PhabricatorDeploymentConfigSource.php",
+      "symbol": "PhabricatorDeploymentConfigSource",
+      "kind": "native-config-source-dependency-static-only",
+      "sha256": "21c05e9993cffe7d54ff2125c36edc8eb149eeccf5d3c58cfbf53c80fdb870f9",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -2280,6 +2401,86 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Native USER grant transaction producer reference only; not role or activation authority."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-01",
+      "from_id": "RECOVERY.CONFIG.FACTS",
+      "to_id": "RECOVERY.CONFIG.PhabricatorEnv",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-02",
+      "from_id": "RECOVERY.CONFIG.FACTS",
+      "to_id": "RECOVERY.CONFIG.PhabricatorConfigSource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-03",
+      "from_id": "RECOVERY.CONFIG.FACTS",
+      "to_id": "RECOVERY.CONFIG.PhabricatorConfigProxySource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-04",
+      "from_id": "RECOVERY.CONFIG.FACTS",
+      "to_id": "RECOVERY.CONFIG.PhabricatorConfigDictionarySource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-05",
+      "from_id": "RECOVERY.CONFIG.FACTS",
+      "to_id": "RECOVERY.CONFIG.PhabricatorConfigStackSource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-06",
+      "from_id": "RECOVERY.CONFIG.FACTS",
+      "to_id": "RECOVERY.CONFIG.PhabricatorConfigDefaultSource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-07",
+      "from_id": "RECOVERY.CONFIG.FACTS",
+      "to_id": "RECOVERY.CONFIG.PhabricatorConfigLocalSource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-08",
+      "from_id": "RECOVERY.CONFIG.FACTS",
+      "to_id": "RECOVERY.CONFIG.PhabricatorConfigDatabaseSource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-09",
+      "from_id": "RECOVERY.CONFIG.PhabricatorEnv",
+      "to_id": "RECOVERY.CONFIG.PhabricatorConfigFileSource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
+    },
+    {
+      "id": "RECOVERY-CONFIG-LINK-10",
+      "from_id": "RECOVERY.CONFIG.PhabricatorEnv",
+      "to_id": "RECOVERY.CONFIG.PhabricatorDeploymentConfigSource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit selected native source dictionary/proxy dependency or unsupported deployment input; not effective configuration or lease proof."
     }
   ],
   "scan": {
@@ -2679,6 +2880,10 @@
       {
         "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryTransition.php",
         "sha256": "9e9461f5bc37ba0e624f594fe37c089b4b967d90fdbf6ffbee7b0d0d3d12e0e8"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryApplicationConfigFacts.php",
+        "sha256": "0e73c13a19da167afc146bbc562ad89d3c560c39b3c34ed18a2c790bbee59a92"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryMetadataGrantDescription.php",
