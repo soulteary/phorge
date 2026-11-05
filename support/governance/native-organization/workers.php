@@ -22,7 +22,7 @@ function governance_native_worker_atomic($path,$name,$value) {
 
 /** Fixed measurement-only cold-cache dependency; never an authority grant. */
 function governance_native_measurement_file_source($action,$value,$namespace,$owner,$source) {
-  if($action!=='measurement.api-token-auth'){
+  if(!in_array($action,array('measurement.api-token-auth','recovery.oauth.authenticate'),true)){
     if($value!==null){throw new RuntimeException('native_worker_file_scope_refused');}
     return null;
   }
@@ -41,7 +41,7 @@ function governance_native_measurement_file_source($action,$value,$namespace,$ow
 
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
-  if (!in_array($action['action']??null,array('recovery.org.approval.propose','recovery.org.member.insert','recovery.policy.insert','recovery.session.issue','recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.notice.create','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
+  if (!in_array($action['action']??null,array('recovery.oauth.authenticate','recovery.api.current','recovery.org.approval.propose','recovery.org.member.insert','recovery.policy.insert','recovery.session.issue','recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.notice.create','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
     throw new RuntimeException('native_worker_action_refused');
   }
   $path=sys_get_temp_dir().'/governance-native-worker-'.bin2hex(random_bytes(12));
@@ -63,7 +63,7 @@ function governance_native_start_worker($fixture,array $action) {
       'key'=>PhabricatorEnv::getEnvConfig('governance.media-exchange.issuer-key'),
       'incarnation'=>PhabricatorEnv::getEnvConfig('governance.media-exchange.incarnation')),
     'action'=>$action);
-  if($action['action']==='measurement.api-token-auth'){
+  if(in_array($action['action'],array('measurement.api-token-auth','recovery.oauth.authenticate'),true)){
     $asset=array('namespace'=>$fixture->getNamespace(),'uri'=>PhabricatorEnv::getEnvConfig('gorge.file.uri'),
       'token'=>PhabricatorEnv::getEnvConfig('gorge.file.token'));
     governance_native_measurement_file_source($action['action'],$asset,$fixture->getNamespace(),$fixture_nonce,$payload['source_sha256']);
@@ -86,7 +86,15 @@ function governance_native_start_worker($fixture,array $action) {
   while (!is_file($path.'/ready.json') && microtime(true)<$deadline && proc_get_status($process)['running']) {
     usleep(20000);
   }
-  if (!is_file($path.'/ready.json')) { throw new RuntimeException('native_worker_not_ready'); }
+  if (!is_file($path.'/ready.json')) {
+    if(in_array($action['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)){
+      try{$GLOBALS['governance_api_concurrency_child_failure']=governance_native_api_startup_diagnostic(
+        $GLOBALS['governance_native_workers'][$index],$fixture);}
+      catch(Throwable$diagnostic_error){$GLOBALS['governance_api_concurrency_child_failure']=array(
+        'diagnostic_unavailable'=>true,'error_type'=>get_class($diagnostic_error));}
+    }
+    throw new RuntimeException('native_worker_not_ready');
+  }
   $ready=json_decode(file_get_contents($path.'/ready.json'),true,8,JSON_THROW_ON_ERROR);
   if (!is_int($ready['mysql_thread']??null) || $ready['mysql_thread']<1 ||
       ($ready['status']??null)!=='ready') { throw new RuntimeException('native_worker_ready_refused'); }
@@ -151,6 +159,7 @@ function governance_native_session_failure_location(array $result) {
 
 function governance_native_finish_worker(array &$handle) {
   $index=$handle['index']; $worker=&$GLOBALS['governance_native_workers'][$index];
+  if(in_array($worker['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)){governance_native_api_concurrency_owner($handle);}
   if($worker['action']==='recovery.session.issue'){governance_native_session_producer_handle($handle);}
   $deadline=microtime(true)+15;
   while (is_resource($worker['process']) && proc_get_status($worker['process'])['running'] && microtime(true)<$deadline) { usleep(20000); }
@@ -165,6 +174,10 @@ function governance_native_finish_worker(array &$handle) {
   }
   $result=json_decode(file_get_contents($path),true,16,JSON_THROW_ON_ERROR);
   if (!is_array($result)) { throw new RuntimeException('native_worker_result_refused'); }
+  if(in_array($worker['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)){
+    governance_native_api_concurrency_owner($handle);
+    if((fileperms($path)&0777)!==0600){throw new RuntimeException('recovery_api_result_mode_refused');}
+  }
   if(in_array($worker['action'],array('recovery.stop.record','recovery.stop.history'),true)){
     return governance_native_stop_worker_result($worker['action'],$result);
   }
@@ -180,6 +193,12 @@ function governance_native_finish_worker(array &$handle) {
   if($worker['action']==='recovery.org.approval.propose'){return governance_native_lifecycle_producer_result($result);}
   if($worker['action']==='recovery.org.member.insert'){return governance_native_organization_producer_result($result);}
   if($worker['action']==='recovery.policy.insert'){return governance_native_policy_producer_result($result);}
+  if(in_array($worker['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)&&
+    ($result['status']??null)==='failed'){
+    $GLOBALS['governance_api_concurrency_child_failure']=governance_native_session_failure_location($result);
+  }
+  if($worker['action']==='recovery.oauth.authenticate'){return governance_native_oauth_concurrency_result($result);}
+  if($worker['action']==='recovery.api.current'){return governance_native_api_concurrency_result($result);}
   if($worker['action']==='legalpad.observe'){return governance_native_validate_legalpad_observation($result);}
   $keys=array_keys($result); sort($keys);
   if (($result['status']??null)==='rejected') {
@@ -518,4 +537,94 @@ function governance_native_wait_session_covering_control(array $handle) {
 function governance_native_continue_session_fence(array $handle) {
   $worker=governance_native_session_producer_handle($handle);
   governance_native_worker_atomic($worker['private'],'fence-continue',$worker['nonce']);
+}
+
+/** Fixed credential stress decoders; failure/unknown never means denial. */
+function governance_native_oauth_concurrency_result(array $result) {
+    $keys=array_keys($result);sort($keys);
+    if($keys!==array('authentication_code','outcome','restoration_authorized','status')||
+      $result['status']!=='committed'||$result['restoration_authorized']!==false||
+      !(($result['outcome']==='allowed'&&$result['authentication_code']==='native-success')||
+        ($result['outcome']==='denied'&&$result['authentication_code']==='ERR-INVALID-AUTH'))){
+      throw new RuntimeException('recovery_oauth_auth_result_refused');}
+    return $result;
+}
+
+function governance_native_api_concurrency_result(array $result) {
+    $keys=array_keys($result);sort($keys);
+    $allowed=$keys===array('current_token_verified','restoration_authorized','status')&&
+      $result['status']==='committed'&&$result['current_token_verified']===true&&
+      $result['restoration_authorized']===false;
+    $denied=$keys===array('reason','status')&&$result['status']==='rejected'&&
+      $result['reason']==='governance_native_credential_ineligible';
+    if(!$allowed&&!$denied){throw new RuntimeException('recovery_api_current_result_refused');}
+    return $result;
+}
+
+/** Recheck only the existing registered credential worker's owned directory. */
+function governance_native_api_concurrency_owner(array $handle) {
+  $index=$handle['index']??null;
+  if(!is_int($index)||!isset($GLOBALS['governance_native_workers'][$index])){
+    throw new RuntimeException('recovery_api_worker_owner_refused');}
+  $worker=$GLOBALS['governance_native_workers'][$index];
+  if(!in_array($worker['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)||
+    ($handle['private']??null)!==$worker['private']){throw new RuntimeException('recovery_api_worker_owner_refused');}
+  $stat=lstat($worker['private']);$owner=$worker['private'].'/owner';
+  if(!$stat||is_link($worker['private'])||$stat['dev']!==$worker['dev']||$stat['ino']!==$worker['ino']||
+    ($stat['mode']&0777)!==0700||!is_file($owner)||is_link($owner)||(fileperms($owner)&0777)!==0600||
+    filesize($owner)!==64||!hash_equals($worker['nonce'],file_get_contents($owner))){
+    throw new RuntimeException('recovery_api_worker_owner_refused');}
+}
+
+/** Failure-only startup observation. Never a ready, denial or success substitute. */
+function governance_native_api_startup_diagnostic(array$worker,$fixture) {
+  global$control;
+  $fixture->assertOwned();governance_native_api_concurrency_owner($worker);
+  $path=$worker['private'].'/api-phase.json';clearstatcache(true,$path);
+  if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>2048){
+    throw new RuntimeException('recovery_api_startup_phase_unavailable');}
+  $phase=json_decode(file_get_contents($path),true,8,JSON_THROW_ON_ERROR);
+  $phase=governance_native_api_startup_phase($phase,$worker['nonce']);
+  $out=array('startup_phase'=>$phase['phase'],'process_running'=>is_resource($worker['process'])&&proc_get_status($worker['process'])['running'],
+    'threads'=>array());
+  if(!($control instanceof mysqli)){throw new RuntimeException('recovery_api_startup_observer_unavailable');}
+  foreach(array('proof_thread','writer_thread','reader_thread','credential_thread')as$role){
+    $id=$phase[$role];if($id===null){continue;}
+    $row=$control->query('SELECT PROCESSLIST_COMMAND c FROM performance_schema.threads WHERE PROCESSLIST_ID='.(int)$id);
+    if(!$row){throw new RuntimeException('recovery_api_startup_observation_failed');}
+    $value=$row->fetch_assoc();$row->free();$command=$value===null?'absent':($value['c']==='Sleep'?'sleep':($value['c']==='Query'?'query':'other'));
+    $entry=array('role'=>$role,'command'=>$command,'event_creator_is_transaction_owner_proved'=>false,'creator_wait_reference_to_owned_user'=>false,'creator_wait_reference_to_owned_conduit'=>false,'creator_wait_reference_to_owned_oauth'=>false);
+    foreach(array('user'=>'creator_wait_reference_to_owned_user','conduit'=>'creator_wait_reference_to_owned_conduit','oauth_server'=>'creator_wait_reference_to_owned_oauth')as$app=>$key){
+      $schema=$fixture->getNamespace().'_'.$app;
+      $sql='SELECT COUNT(*) n FROM performance_schema.data_lock_waits w '.
+        'JOIN performance_schema.threads t ON t.THREAD_ID=w.REQUESTING_THREAD_ID '.
+        'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID AND l.ENGINE=w.ENGINE '.
+        'WHERE t.PROCESSLIST_ID='.(int)$id." AND l.OBJECT_SCHEMA='".$control->real_escape_string($schema)."'";
+      $query=$control->query($sql);if(!$query){throw new RuntimeException('recovery_api_startup_observation_failed');}
+      $entry[$key]=(int)$query->fetch_assoc()['n']>0;$query->free();
+    }
+    $out['threads'][]=$entry;
+  }
+  $result_path=$worker['private'].'/result.json';clearstatcache(true,$result_path);
+  if(is_file($result_path)&&!is_link($result_path)&&(fileperms($result_path)&0777)===0600&&filesize($result_path)<=2048){
+    $result=json_decode(file_get_contents($result_path),true,8,JSON_THROW_ON_ERROR);
+    if(is_array($result)&&($result['status']??null)==='failed'){
+      $out['child_failure_location']=governance_native_session_failure_location($result);
+    }
+  }
+  return$out;
+}
+
+function governance_native_api_startup_phase(array$phase,$owner) {
+  $keys=array_keys($phase);sort($keys);
+  if($keys!==array('credential_thread','owner','phase','proof_thread','reader_thread','writer_thread')||
+    !is_string($phase['owner'])||!hash_equals($owner,$phase['owner'])||!in_array($phase['phase'],array(
+      'payload-verified','bootstrap-loaded','library-loaded','proof-connected','config-default-start','config-default-ready',
+      'config-installed','writer-connect-start','writer-connected','user-reader-connect-start','user-reader-connected',
+      'user-load-start','user-loaded','context-ready','ready-published','before-current-read','current-read-returned',
+      'oauth-reader-connect-start','oauth-reader-connected','before-native-oauth-auth','native-oauth-auth-returned'),true)){
+    throw new RuntimeException('recovery_api_startup_phase_refused');}
+  foreach(array('proof_thread','writer_thread','reader_thread','credential_thread')as$key){
+    if($phase[$key]!==null&&(!is_int($phase[$key])||$phase[$key]<1)){throw new RuntimeException('recovery_api_startup_phase_refused');}}
+  return$phase;
 }
