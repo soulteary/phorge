@@ -9,6 +9,7 @@ BOOTSTRAP={'full-current-source-quickstart-and-patch-ledger-restored',
  'completion-writer-forbidden-privilege-denied','completion-writer-cannot-modify-ownership-marker',
  'completion-reader-forbidden-privilege-denied','completion-reader-cannot-modify-ownership-marker'}
 SQL={'task-owner-native-disabled-assignee-unassign-committed', 'task-owner-empty-range-real-raw-update-after-commit', 'task-owner-empty-range-real-raw-update-waits-rollback', 'task-owner-real-raw-delete-waits-rollback', 'task-owner-real-raw-delete-waits-commit', 'task-owner-real-qualified-native-User-RR-source', 'task-owner-real-raw-insert-waits-commit', 'task-owner-native-disabled-assignee-still-direct-owner-not-account-admission', 'task-owner-real-raw-insert-completed-after-rollback', 'task-owner-empty-range-real-raw-update-waits-commit', 'task-owner-real-reassign-commit-current-owner', 'task-owner-real-reassign-and-history-rollback', 'task-owner-real-editor-author-not-owner', 'task-owner-real-unassign-removes-direct-automatic', 'task-owner-real-raw-insert-waits-rollback', 'task-owner-real-raw-insert-completed-after-commit', 'task-owner-real-raw-delete-completed-after-rollback', 'task-owner-real-raw-delete-completed-after-commit', 'task-owner-empty-range-real-raw-update-after-rollback'}
+PREPARATION={'completion-real-gorge-file-ready-loopback','task-owner-real-native-avatars-persisted-before-recovery'}
 CLEANUP={'owned-native-write-guard-disposed','owned-writer-environment-and-cache-restored',
  'all-owned-full-native-schemas-and-principals-cleaned'}
 def exact(actual,expected):completion.exact(actual,expected,'Task owner source evidence refused')
@@ -30,17 +31,22 @@ def source_obligations(root):
  if fixed|dynamic!=SQL or len(SQL)!=19:raise ValueError('Task owner obligations drift')
  return fixed|dynamic
 
-def validate(data,root=ROOT,*,source_revision):
+def validate(data,root=ROOT,*,source_revision,file_digest):
  if type(source_revision)is not str or not re.fullmatch('[a-f0-9]{40}',source_revision):raise ValueError('source revision required')
  completion.fields(data,native.FIELDS,'Task owner source evidence shape refused')
  for key,value in {'batch':'native-task-owner-source-facts','scope':'owned-native-task-owner-source-partial',
-  'passed':True,'php_version':'8.5.12','check_count':28,'failure':None,'cleanup_failures':[],
+  'passed':True,'php_version':'8.5.12','check_count':30,'failure':None,'cleanup_failures':[],
   'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,
-  'file_service_cleanup':None,'successful_owned_file_service_startups':0,'terminal_failure_cleanup_rollbacks':0,
+  'successful_owned_file_service_startups':1,'terminal_failure_cleanup_rollbacks':0,
   'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,
   'native_permission_axes_changed':False}.items():exact(data[key],value)
  checks=data['checks']
- if type(checks)is not list or len(checks)!=28 or any(type(x)is not str for x in checks) or len(set(checks))!=28 or set(checks)!=BOOTSTRAP|source_obligations(root)|CLEANUP:raise ValueError('Task owner source obligations refused')
+ if type(checks)is not list or len(checks)!=30 or any(type(x)is not str for x in checks) or len(set(checks))!=30 or set(checks)!=BOOTSTRAP|PREPARATION|source_obligations(root)|CLEANUP:raise ValueError('Task owner source obligations refused')
+ service=data['file_service_cleanup']
+ completion.fields(service,{'kind','binary_sha256','process_stopped','private_storage_removed'},'Task paired file cleanup shape refused')
+ for key,value in {'kind':'file','process_stopped':True,'private_storage_removed':True}.items():exact(service[key],value)
+ if type(file_digest)is not str or not re.fullmatch('[a-f0-9]{64}',file_digest):raise ValueError('paired binary input required')
+ exact(service['binary_sha256'],file_digest)
  exact(data['native'],summary(source_revision))
  exact(data['worker_cleanup'],{'private_directories_removed':0,'owned_processes_stopped':0,'cleanup_failures':0,
   'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':0})
@@ -50,7 +56,7 @@ def validate(data,root=ROOT,*,source_revision):
  if type(data['captured_native_output_bytes'])is not int or not 0<=data['captured_native_output_bytes']<=65536:raise ValueError('output budget refused')
  if not completion.digest(data['captured_native_output_sha256']):raise ValueError('output hash refused')
  return {'passed':True,'scope':'fixed-native-Task-owner-source-partial','source_revision':source_revision,
-  'checks':28,'SQL_obligations':19,'native_policy_interpreter_proved':False,'complete':False,
+  'checks':30,'SQL_obligations':21,'native_policy_interpreter_proved':False,'complete':False,
   'continuous_lease_or_ABA_proved':False,'all_sources_complete':False,'restoration_authorized':False}
 def read_receipt(path,limit=2097152):
  if type(limit)is not int or not 1<=limit<=4194304:raise ValueError('receipt limit refused')
@@ -71,12 +77,12 @@ def read_receipt(path,limit=2097152):
  finally:os.close(fd)
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);p.add_argument('--source-revision',required=True)
+ p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);p.add_argument('--source-revision',required=True);p.add_argument('--file-binary-sha256',required=True)
  a=p.parse_args()
  def nonfinite(value):raise ValueError('nonfinite Task owner source evidence refused')
  try:
   data=json.loads(read_receipt(a.receipt),object_pairs_hook=completion.strict_object,parse_constant=nonfinite)
-  accepted=validate(data,source_revision=a.source_revision)
+  accepted=validate(data,source_revision=a.source_revision,file_digest=a.file_binary_sha256)
  except (OSError,ValueError,TypeError,KeyError,UnicodeError):raise SystemExit('Task owner receipt refused')from None
  print(json.dumps(accepted,sort_keys=True))
 if __name__=='__main__':main()

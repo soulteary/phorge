@@ -8,6 +8,7 @@ function governance_recovery_task_owner_focused($fixture,mysqli$control,callable
   $source=$stack->getStack()[0];$values=(new ReflectionProperty(PhabricatorConfigDictionarySource::class,'dictionary'))->getValue($source);$cache=(new ReflectionProperty(PhabricatorEnv::class,'cache'))->getValue();$observer=null;$observerID=null;$primary=null;$observerClosed=false;
   try{
     $users=governance_task_owner_prepare($fixture);
+    $check(count($users)===4,'task-owner-real-native-avatars-persisted-before-recovery');
     $source->setKeys(array('governance.account-recovery.enabled'=>true,'governance.account-recovery.owned-rr-scope.enabled'=>true,'governance.account-recovery.incarnation'=>bin2hex(random_bytes(16))));(new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     // Existing isolated bootstrap control, not a new metadata principal/grant API.
     $observer=governance_recovery_org_metadata_control($fixture);$observerID=queryfx_one($observer,'SELECT CAST(CONNECTION_ID() AS CHAR) id')['id'];

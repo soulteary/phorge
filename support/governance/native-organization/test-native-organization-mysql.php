@@ -188,6 +188,12 @@ try {
     }
   });
   if($phase==='task-owner-source-facts'){
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';
+    $file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],
+      'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     $stage='focused-native-Task-owner-source';require_once dirname(__DIR__).'/recovery/task-owner-source-focused.php';$native=governance_recovery_task_owner_focused($fixture,$control,$check);
   }elseif($phase==='spaces-source-facts'){
     $stage='focused-native-spaces-source-facts';require_once dirname(__DIR__).'/recovery/spaces-source-focused.php';

@@ -5,6 +5,22 @@ function governance_task_owner_prepare($fixture){
   if(PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled')!==false){throw new RuntimeException('task_owner_preparation_guard_unknown');}
   $suffix=substr($fixture->getNamespace(),-12);$users=array();
   foreach(array('actor','subject','other','disabled')as$role){$users[$role]=(new PhabricatorUser())->setUsername('task'.$role.$suffix)->setRealName('Synthetic Task Fixture')->setIsAdmin($role==='actor'?1:0)->setIsApproved(1)->setIsDisabled($role==='disabled'?1:0)->save();}
+  // Native handles request profile images. Persist their real native avatars
+  // before recovery/RR admission, through the owned paired file service.
+  if(!is_string(PhabricatorEnv::getEnvConfig('gorge.file.uri'))||
+      PhabricatorEnv::getEnvConfig('gorge.image.builtin-mode')!=='legacy'){
+    throw new RuntimeException('task_owner_avatar_configuration_unknown');
+  }
+  foreach($users as$user){
+    $file=(new PhabricatorFilesComposeAvatarBuiltinFile())->updateUser($user);
+    $fresh=(new PhabricatorUser())->load($user->getID());
+    $stored=(new PhabricatorFile())->load($file->getID());
+    if(!$stored||$stored->getPHID()!==$file->getPHID()||!$fresh||$fresh->getDefaultProfileImagePHID()!==$file->getPHID()||
+        $fresh->getDefaultProfileImageVersion()!==PhabricatorFilesComposeAvatarBuiltinFile::VERSION||
+        $stored->getStorageEngine()!=='gorge'){
+      throw new RuntimeException('task_owner_native_avatar_preparation_unproved');
+    }
+  }
   return$users;
 }
 /** Real native Editor only; author never stands in for an owner grant. */
