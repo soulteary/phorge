@@ -80,20 +80,20 @@ def whole_runtime(root,expected,aliases):
  return {'passed':True,'expected_files':len(expected),'actual_files':len(actual),'missing':[],'extra':[],'changed':[],'signed_aliases_verified':len(aliases),'actual_sha256':actual,'signed_alias_targets':aliases}
 def pure_inventory(root):
  text=(root/'tests/governance/run.php').read_text();block=text.split('$classes = array(',1)[1].split(');',1)[0];classes=re.findall(r"'(Phorge[A-Za-z0-9_]+TestCase)'",block);ids=set()
- if len(classes)!=len(set(classes))or len(classes)!=45:raise ValueError('current pure classes refused')
+ if len(classes)!=len(set(classes))or len(classes)!=46:raise ValueError('current pure classes refused')
  for cls in classes:
   paths=list((root/'src').rglob(cls+'.php'))
   if len(paths)!=1:raise ValueError('pure class source ambiguous')
   methods=re.findall(r'public\s+function\s+(test[A-Za-z0-9_]+)\s*\(',paths[0].read_text())
   if len(methods)!=len(set(methods)):raise ValueError('pure method duplicate')
   ids.update(cls+'::'+method for method in methods)
- if len(ids)!=266:raise ValueError('current pure IDs refused')
+ if len(ids)!=271:raise ValueError('current pure IDs refused')
  return ids
 def validate_pure(data,ids):
- if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=266:raise ValueError('actual pure outcome refused')
+ if data.get('passed')is not True or data.get('runtime')!='8.5.12'or type(data.get('expected_methods'))is not int or data['expected_methods']!=271:raise ValueError('actual pure outcome refused')
  results=data.get('results')
- if type(results)is not list or len(results)!=266 or len({r['id']for r in results})!=266 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')
- return {'passed':True,'methods':266,'classes':45,'new_executions':1}
+ if type(results)is not list or len(results)!=271 or len({r['id']for r in results})!=271 or {r['id']for r in results}!=ids or any(r.get('result')!='pass'for r in results):raise ValueError('actual pure IDs refused')
+ return {'passed':True,'methods':271,'classes':46,'new_executions':1}
 def cleanup_proved(receipt,revision):
  try:
   exact(receipt['cleanup'],{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True})

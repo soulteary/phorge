@@ -19,6 +19,30 @@ class ConsumerInventoryTests(unittest.TestCase):
         self.assertFalse(row['candidateGenerationIntroduced'])
         self.assertIn('no independent grant',row['authority'])
 
+    def test_project_source_facts_unit_reference_is_reviewed_without_authority(self):
+        row=next(r for r in inventory.collect()['consumers']
+                 if r['path']=='src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryProjectSourceFactsTestCase.php')
+        self.assertTrue(row['discovery']);self.assertTrue(row['matchingLines'])
+        self.assertEqual('isolated-native-project-source-facts-test',row['kind'])
+        self.assertEqual('none',row['authority'])
+        self.assertEqual('native-project-policy-and-source-facts-unit-test',row['sourceOperation'])
+        self.assertIs(row['candidateGenerationIntroduced'],False)
+        import copy,json
+        base=json.loads((ROOT/'scripts/permissions/consumers.json').read_text())
+        selected=next(r for r in base['entries'] if r['path']==row['path'])
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);target=root/row['path'];target.parent.mkdir(parents=True)
+            shutil.copyfile(ROOT/row['path'],target)
+            catalog=root/'scripts/permissions/consumers.json';catalog.parent.mkdir(parents=True)
+            minimal={'patterns':base['patterns'],'scope':'synthetic-fixed-reference','entries':[selected]}
+            catalog.write_text(json.dumps(minimal));self.assertEqual(1,inventory.collect(root)['discoveredFiles'])
+            for mutation in ('missing','hidden'):
+                bad=copy.deepcopy(minimal)
+                if mutation=='missing':bad['entries']=[]
+                else:bad['entries'][0]['discovery']=False
+                catalog.write_text(json.dumps(bad))
+                with self.assertRaisesRegex(ValueError,'references changed'):inventory.collect(root)
+
     def test_all_literal_membership_references_have_reviewed_meaning(self):
         report=inventory.collect();self.assertGreater(report['consumerCount'],40)
         self.assertEqual(report['databaseConnectionsOpened'],0)
