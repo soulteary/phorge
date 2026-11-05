@@ -13,6 +13,7 @@ def ci_identity(env,head):
  for key in ('GITHUB_RUN_ID','GITHUB_RUN_ATTEMPT'):
   if not re.fullmatch('[1-9][0-9]{0,19}',env.get(key,'')):raise ValueError('same-run identity required')
  event=env.get('GITHUB_EVENT_NAME');ref=env.get('GITHUB_REF','')
+ if env.get('GITHUB_JOB')!='owner-build'or env.get('GITHUB_WORKFLOW_REF')!='soulteary/phorge/.github/workflows/native-rr-owner-build.yml@'+ref:raise ValueError('fixed reviewed workflow/job required')
  if event=='pull_request':
   if not re.fullmatch(r'refs/pull/[1-9][0-9]*/merge',ref):raise ValueError('synthetic PR checkout identity required')
   kind='pull-request-synthetic-merge'

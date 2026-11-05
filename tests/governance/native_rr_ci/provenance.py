@@ -2,7 +2,7 @@
 import hashlib,json,re
 from pathlib import Path
 OWNER_FILES=tuple('support/governance/recovery/owned-process/'+name for name in ('go.mod','go.sum','main_linux.go','request.go','request_test.go'))
-RECIPE_FILES=('tests/governance/native_rr_ci/build_owner.py','tests/governance/native_rr_ci/provenance.py','.github/workflows/native-rr-owner-build.yml')
+RECIPE_FILES=('tests/governance/native_rr_ci/build_owner.py','tests/governance/native_rr_ci/provenance.py','.github/workflows/native-rr-owner-build.yml','scripts/governance/check_native_user_rr_mdl.py','scripts/governance/check_completion.py','tests/governance/native_rr_ci/execution.py','tests/governance/native_rr_ci/anchor.py','tests/governance/native_rr_ci/runner.py','support/governance/recovery/native-writer-rr-ci-profile.php','support/governance/recovery/native-writer-rr-parent.php')
 MODULE='phorge-isolated-native-rr-owner'
 DEP={'Path':'golang.org/x/sys','Version':'v0.49.0','Sum':'h1:XbzkgYJHdqh/8m2Uu0W/dQv8nktxx4BFHp1M0gROTXA='}
 def digest(raw):return hashlib.sha256(raw).hexdigest()
