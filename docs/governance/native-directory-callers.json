@@ -1309,7 +1309,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationMetadataObservation.php",
       "symbol": "PhorgeRecoveryOrganizationMetadataObservation",
       "kind": "isolated-bounded-organization-source-not-restore-authority",
-      "sha256": "ea957d4bf41388001ba84d44af754f6a1597f8b98e142e3c8bbef353f3f3943f",
+      "sha256": "fb0876db47a459660b27715043677575852c6a3d4dbfccac62e6c7dcc82248fb",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -2702,7 +2702,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationMetadataObservation.php",
-        "sha256": "ea957d4bf41388001ba84d44af754f6a1597f8b98e142e3c8bbef353f3f3943f"
+        "sha256": "fb0876db47a459660b27715043677575852c6a3d4dbfccac62e6c7dcc82248fb"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationProducerDAO.php",
