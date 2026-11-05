@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+from pure_inventory import inventory
 
 
 def validate_matrix_counts(receipt):
@@ -57,7 +58,7 @@ def run(source, binaries, output, gorge_revision, owlmail_revision):
     invoke([sys.executable, str(harness / 'make_config.py'), '--source-root', str(source),
         '--source-revision', revision, '--binary-manifest', str(private / 'binaries.json'),
         '--gorge-revision', gorge_revision, '--php', subprocess.check_output(['which', 'php'], text=True).strip(),
-        '--expected-pure-methods', '274', '--output', str(private / 'config.json')])
+        '--expected-pure-methods', str(len(inventory(source))), '--output', str(private / 'config.json')])
     for case in ('commit', 'rollback', 'recipient-revoked', 'admin-revoked'):
         invoke([sys.executable, str(harness / 'run_pending.py'), '--config', str(private / 'config.json'),
             '--case', case, '--output', str(output / (case + '.json'))])

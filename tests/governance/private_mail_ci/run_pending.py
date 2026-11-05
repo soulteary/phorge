@@ -17,6 +17,7 @@ import subprocess
 import sys
 import time
 from runtime import OwnedRuntime, load_config, loopback_request, private_file, validate_config
+from pure_inventory import inventory, validate_pure
 
 
 def wait_until(check, process=None, seconds=30):
@@ -129,7 +130,7 @@ def run_case(config, case):
         unit = subprocess.run([php, str(source / 'tests/governance/run.php')], cwd=source, env=runtime.env(), capture_output=True, timeout=180)
         runtime.write('pure.json', unit.stdout)
         pure = json.loads(unit.stdout)
-        check(unit.returncode == 0 and pure.get('passed') is True and pure.get('runtime') == '8.5.12' and pure.get('expected_methods') == config['expected_pure_methods'], 'actual_supported_pure_suite')
+        check(unit.returncode == 0 and validate_pure(pure, inventory(source), config['expected_pure_methods']), 'actual_supported_pure_suite')
         db = config['database']
         env = {'PHORGE_GOVERNANCE_FIXTURE_DSN': 'mysql:host=127.0.0.1;port=' + str(db['port']) + ';dbname=governance_fixture_bootstrap;charset=utf8mb4',
                'PHORGE_GOVERNANCE_FIXTURE_USER': db['user'],
