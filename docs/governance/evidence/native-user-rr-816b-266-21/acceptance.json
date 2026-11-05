@@ -1,0 +1,90 @@
+{
+  "PHP_runtime": "8.5.12",
+  "RR21_hosted_execution_proved": false,
+  "RR21_portable_CI_profile_proved": false,
+  "SQL_checks": 21,
+  "SQL_obligations": 12,
+  "TERM_KILL_fault_matrix_proved": false,
+  "acceptance_scope": "Two normal same-native User writer commit/rollback cases; no production companion",
+  "actual_review_sha256": "854c2462eca679c5912b8d53f309ea13f18a4047923e08b70a545da606fda6b3",
+  "all_sources_complete": false,
+  "architecture_profile": "isolated-linux-arm64-rootbench",
+  "checkpoint_sha256": "fbeda9bd2d2dc5c61f5fd20ceeb11469ae27fdeb07c4e678d25f063bc89570de",
+  "classmap_sha256": "36b31ac60d4d9495c147904d170812ddeadd8990dd78724b95717e0c114e7a5e",
+  "cleanup": {
+    "ownedRuntimeUsersRemoved": 2,
+    "ownedSchemasRemoved": 55,
+    "readerRemoved": true
+  },
+  "deployment": false,
+  "docs_successor_is_new_runtime": false,
+  "evidence_sha256": {
+    "focused_SQL_results": "7e362b9b3ed0a39553b7f3a8a0fad577ce7c2c4674649944c602a844c9c1f93f",
+    "parent_lifecycle": "beec75abb50b85f4c91c333bd1dec0f74925bdd33f8561e90706aad56574bd88",
+    "pure_results": "7897b3232872feab410c8626d628943d65f29376f3af4b82786d39d09d74a74e",
+    "source_manifest": "dd3ea80c43fd9ce127852d9378331b75a132ec3bfb529869c8426366e13387a9",
+    "strict_actual_CLI": "10a2416e5027835aa710a2ea85b9528d2b42396eeccc961d47bae97468976c28",
+    "strict_inprocess": "f92ea83d5417e1c082cef56238674078680d515cef8fe0f44c26ddca4a4b7eee",
+    "whole_runtime_hash": "4fd4abc9050822082a9c5e7829c47d0adbfeafa90f843cb2dc9d2adea5be54e1"
+  },
+  "external_owner_leases_same_source_and_nonce_verified": true,
+  "final_owned_cleanup": {
+    "cleanup_proved": true,
+    "failures": [],
+    "local_children_registered": 2,
+    "principal_cleanup": {
+      "cleanup_proved": true,
+      "observer_removed": true,
+      "owned_observer_sessions_absent": true
+    },
+    "revoker_closed": true
+  },
+  "global_worker_registry": 0,
+  "immutable_archive_sha256": "0c4a04fb8dc2c560431e61a6111bca845156989b5815a4ccb9687a9b503f9a23",
+  "local_cleanup": [
+    {
+      "cleanup_proved": true,
+      "owned_SQL_sessions_ended": true,
+      "owned_processes_stopped": true,
+      "pidfd_remaining": 0,
+      "private_directory_removed": true
+    },
+    {
+      "cleanup_proved": true,
+      "owned_SQL_sessions_ended": true,
+      "owned_processes_stopped": true,
+      "pidfd_remaining": 0,
+      "private_directory_removed": true
+    }
+  ],
+  "local_native_children": 2,
+  "measurement_is_historical": true,
+  "minimal_grants_negative_SQL_complete": false,
+  "native_enable_executed": false,
+  "new_mapper_executions": 1,
+  "new_pure_executions": 1,
+  "normal_child_exits_proved": true,
+  "owner_binary_sha256": "b4656c9c5cd11a0ccede60eee41ee3f22cc6c3f9f9f97908b0187cc3547c74b4",
+  "passed": true,
+  "production_companion_fence_installed": false,
+  "pure_classes": 45,
+  "pure_methods": 266,
+  "restoration_authorized": false,
+  "role_proxy_dynamic_privileges_complete": false,
+  "runtime_files_exact": 6905,
+  "schema_version": 1,
+  "scope": "Bounded two normal same-nativeUser writer RR/MDL commit/rollback cases only",
+  "signed_archive_whole_manifest_independently_rebuilt": true,
+  "source_derived_IDs_independently_verified": true,
+  "source_head": "816b3449322d02388e3bc5ab25d76c914d56cef9",
+  "strict_actualCLI_empty_stderr_equals_inprocess": true,
+  "unknown_transport_fault_matrix_complete": false,
+  "worker_cleanup": {
+    "cleanup_failures": 0,
+    "live_processes_after_cleanup": 0,
+    "owned_processes_stopped": 0,
+    "private_directories_remaining": 0,
+    "private_directories_removed": 0,
+    "workers_registered": 0
+  }
+}
