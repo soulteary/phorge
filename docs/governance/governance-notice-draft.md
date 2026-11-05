@@ -1,77 +1,29 @@
-# Bounded governance notices — current-main successor
+# Bounded governance notices — selected producers and current integration
 
-This candidate explicitly integrates protected main48c (PR108). It records notices
-in the original qualified User transaction for selected organization, project
-approval and recovery-stop producers. Metadata binds fixed identities/digests,
-without private business text. A real worker creates a persistent recipient
-binding and link-only native mail. Eligibility is rechecked for each actual
-physical attempt. The bounded audience is current system administrators, with
-native object visibility where applicable; expanded audiences remain unproved.
+This candidate integrates protected main PR108 and PR109. Integration source `0281b4d7e01eb0117704f48b1b1d38128fcc9b05` has the same product, runtime, fixture and test code as `9442c0ecf1247b3802b1bbc12783e419482e2abf`; the merge adds the accepted truthful-metadata documentation and integration scope record. It is not another runtime execution. The receipts below remain tied to their actual source commits.
 
-All optional production features remain off. This PR provides no activation,
-public-service provisioning, deployment or restoration authorization. It remains
-a Draft pending fresh final-head CI, exact review and Root's explicit gate check.
+Selected organization, project-approval, recovery-stop classification and native administrator-grant producers append qualified notice/relay rows in the original physical User or Project transaction. Immutable metadata carries identities and digests rather than private names, business bodies or recipient lists. The central worker creates durable recipient bindings and generic sign-in links. Current account status, role, exact primary address and applicable native object VIEW are rechecked per physical attempt. The bounded audience is current eligible system administrators, limited to 128; this is not every future business audience.
 
-## Actual current-source native acceptance
+The administrator producer handles the actual native User transaction editor's false-to-true grant only. It binds the saved USER transaction PHID and actual author. Final-ineligible tightening paths keep their availability protection; the removal itself does not acquire a new synchronous notice-storage dependency. This does not implement administrator-removal notifications or all raw/global role writers. The notice-only identity generation prevents an old binding reviving after the tested raw DAO disable/enable cycle; it does not rotate native Session/API/media credentials or prove tracking while optional notices are off.
 
-Signed source `6157d3d5ef4007823557e4fc84024013ff26deaa` passed PHP8.5.12:
-257 pure methods / 43 classes and all 934 native integration checks. The signed
-archive matched all 6,876 runtime PHP/SQL/public-suffix files. The generated map
-matched the signed map, strict CLI and in-process acceptance agreed, and owned
-cleanup passed: 55 schemas, two runtime users, reader, 41 registered workers,
-two business groups of ten workers each, six Wiki workers, local fixture
-services, paired image, environment/compiler temporaries and staging directory.
-These are this run's owned resources, not a claim about historical foreign or
-unproved leftovers. The restore profile is 546 tables, 1574 source patches and
-37 explicitly reviewed migrations. Counts from other profiles are not added.
+Repository defaults remain off and the native permission axes remain unchanged. Isolated flags were enabled only inside owned fixtures. Nothing here provisions a public service, deploys or activates the candidate, grants restoration authority, or declares all producers complete. PR readiness still requires fresh exact-head CI, review and the explicit gate check.
 
-The [acceptance receipt](evidence/governance-notice-draft/acceptance.json) and
-[reviewed source hashes](evidence/governance-notice-draft/reviewed-source.json)
-bind current native evidence to 6157. This docs successor is not another run.
-Fresh final-head hosted CI and review are required; older PR107 green artifacts
-do not certify this new current-main successor.
+## Separately verified profiles
 
-## Separate current-source policy comparison
+- **Full native integration — e5f89aac:** PHP 8.5.12 cold mapper, 261 pure methods in 43 classes, 934 SQL checks, 6,877 exact runtime PHP/SQL/public-suffix files. The actual generated map equals the signed map; strict CLI and in-process results agree. Cleanup passed for 55 schemas, two runtime users, the reader, 41 registered workers, two independent business groups of ten workers each, six Wiki workers, services, image and owned temporary resources. Its restore profile is 37 migrations, 1,574 patches and 546 tables.
+- **Native administrator producer — 43ebc3b4:** 261 pure methods / 43 classes and a distinct 50-check profile, with 6,877 source files exact. It verifies the real editor/USER event, independent committed primary observation, same-physical-transaction outbox, real Gorge lease/native handler, no-effect/replay, late SQL-fault rollback/retry, nontransactional-source refusal and removal availability. It does not itself prove SMTP or rerun normal934.
+- **Truthful metadata — a9d0ad31:** 250 pure methods / 42 classes, a distinct 15-check metadata profile including six SQL obligations, and 6,855 exact files. Its separate restore profile is 35 migrations, 1,572 patches and 543 tables. Both metadata controls closed, zero workers remained, and 55 schemas/two users/reader were cleaned. Schema v2 observes the grant row but explicitly denies a row-lock or grant-revocation fence. This profile did not repeat the separate DAO33 profile.
+- **Raw DAO physical denial — e5f89aac:** 16 native checks and 20 parent checks. Two actual raw DAO commits with an independent primary observer were followed by the original immutable mail's native physical callback returning false, persistent quarantine and zero SMTP. Replay added no callback or SMTP. The negative case does not prove Submit-daemon execution.
+- **Source rollback/retry — e5f89aac:** 17 native checks and 23 parent checks. The injected source SQL failure left no event/relay/mail before any daemon. A normal retry then traversed the real Notice/Prepare/Submit daemons, native HTTP callback and stable Owlmail v0.14.0, producing one generic link-only MIME message. Mailer and relay replay produced no duplicate. This was not a daemon interleaved with an uncommitted rollback.
+- **Native administrator SMTP allow — 9442c0ec:** 16 native checks and 23 parent checks, with 6,879 exact files. The actual native USER grant and event committed together before Notice/Prepare/Submit execution; the real native physical callback returned true and stable Owlmail accepted exactly one generic link-only message. Replay added no message or callback.
+- **Native administrator revocation — 9442c0ec:** 16 native checks and 20 parent checks, with 6,879 exact files. After the real immutable snapshot was prepared, an actual User editor demotion committed and a distinct primary observer saw role zero. The original mail's real physical callback returned false, permanently quarantined the binding, and produced zero SMTP; replay added no callback or SMTP. Negative Submit-daemon execution is not claimed.
 
-The same signed 6157 source also passed an independent SQL-only policy profile:
-23 checks with four workers, the exact 546-table / 1574-patch / 37-migration
-restore profile, 6,876 source hashes and complete owned cleanup. Actual strict
-CLI and in-process acceptance agreed. This run reused the strongly pinned
-same-source full934 pure/map proof; it executed zero pure tests and zero map
-rebuilds. The counts are separate, not added to full934 or 257 pure methods.
-Fixture-owned RR controls remain distinct from the real service RC profile:
-producer commits and current-reader changes are observed and refused by the
-bounded fixture comparator. No service RC absence fence or restoration permit
-is claimed.
+The four physical profiles each performed a fresh cold signed-source copy with no unsealed symbol-cache adoption. Each executed **zero mapper rebuilds and zero pure tests**, sharing the hard-pinned e5 actual mapper/pure proof only after actual Git-object equality for production, runtime and pure-entry code. New fixture SQL/physical outcomes were not inherited. Each completed actual strict CLI/in-process equality and cleanup of 55 owned schemas, four runtime users, reader, native services, owned child processes/private storage and staging. The two 9442 cases cover newly signed fixture code; they are not relabelled e5 executions. Counts across profiles are never added.
 
-## Separate historical Physical evidence
+The [acceptance record](evidence/governance-notice-draft/acceptance.json) preserves separate source heads, checks, false boundaries, cleanup facts and content digests. The [reviewed source record](evidence/governance-notice-draft/reviewed-source.json) records exact code identities and source equivalence. Historical 6157/8835/dd6 and earlier failure/diagnostic records remain immutable; they do not certify the final docs head. This documentation update is not another supported-runtime or SQL run.
 
-The two accepted notice Physical profiles ran on source
-`8835c06eedba4575da13b56cda4a8803bb4f182a`, not 6157. Raw DAO disable/enable
-was followed by an actual native authorization callback denial, permanent old
-binding quarantine and zero SMTP. The source-rollback profile proved the real
-post-outbox transaction rolled back before any daemon, then a normal retry
-produced one accepted SMTP message with replay causing no duplicate. It did not
-prove a daemon interleaved with the rollback. The negative raw profile did not
-prove submit-daemon execution.
+## Remaining gates
 
-The complete production `src/` and `resources/` trees, plus the listed physical
-fixture/bootstrap/runtime paths, are byte-identical between 8835 and 6157.
-The eleven changed paths concern policy isolation, the older private-mail pending
-startup observer and documentation. The exact changed-path and equality hashes
-are recorded. This is source-equivalence evidence only: it does not turn the
-8835 measurements into a new 6157 Physical execution. The earlier dd6 allow/replay
-23-check evidence is retained as historical context, not current raw DAO proof.
+All notice types, all global administrator writers/removal notifications, Omnipotent or acting-as workflows outside the normal stored-author profile, expanded recipient classes, project/recovery physical producers and the complete failure/revocation matrix remain unfinished. OFF-to-ON activation requires an independently validated incarnation/lifecycle; changes while disabled are not claimed to have been tracked. Negative Submit-daemon and concurrent rollback/daemon interleaving remain separate. The recovery-stop notice is not a successful recovery/enable notice, and all thirteen recovery source families, absence fences and restoration permits remain incomplete. Production gateway/controller-500 handling, browser acceptance, activation and deployment are not proved by these native HTTP callbacks or SMTP fixtures.
 
-## Remaining scope
-
-Selected SQL/native producer coverage and two bounded historical Physical cases
-do not complete every producer, recipient, revocation, optional OFF/ON or failure
-matrix. Project/recovery physical producers, expanded recipient audiences,
-negative submit-daemon and concurrent rollback-daemon profiles remain distinct.
-Main48c's separately accepted organization33 and metadata15 are not relabelled
-as notice6157 focused runs. All thirteen recovery source families remain
-incomplete; `can_execute` and restoration authorization stay false. Browser,
-production gateway/controller-error handling and deployment remain unproved.
-No credentials, raw private logs, MIME bodies, caches, host data or public-domain
-configuration are included in these repository evidence summaries.
+No credentials, actual addresses, PHIDs, private logs/MIME, caches, host paths, deployment domains or raw run nonces are included in repository evidence summaries.
