@@ -9,3 +9,6 @@ The private build output is exclusive and outside the source tree. It includes t
 After that consumer and runner are independently reviewed, a separate RR21 job should use MySQL 8.4.13 with required Performance Schema instrumentation, a fresh owned source stage, the trusted native parser build, an exact cold mapper, all 266 native pure methods and the unchanged 21 SQL checks. The job must preserve CREATE-before external leases, pidfd ownership, independent SQL-session cleanup, fixed minimum grants, unknown-state retention, real CLI/in-process equality and whole-source hashing. MySQL 8.0 from the existing general Native job is not silently substituted for that profile. Minimum-grant negatives, transport failures and TERM/KILL fault coverage remain separate unproved gates.
 
 Host controls exercise provenance mutation rejection, actual exclusive filesystem artifacts, signed-source byte checks and same-run identity. They do not constitute a Linux AMD64 build, a trusted external anchor, a daemon run, a native SQL result, or hosted RR21 acceptance.
+
+
+The build-only stage above remains historical scope. The independent [owned hosted RR21 candidate](native-rr-portable-anchor-candidate.md) adds the external anchor, PHP consumer and full isolated runner; it still requires actual CI execution and artifact acceptance.

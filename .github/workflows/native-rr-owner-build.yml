@@ -1,7 +1,8 @@
-name: Native RR owner build candidate
+name: Native RR21 portable candidate
 on:
   pull_request:
     paths:
+      - 'support/governance/recovery/owned-process/**' # Trigger on any new module entry so inventory refusal is exercised.
       - 'support/governance/recovery/owned-process/go.mod'
       - 'support/governance/recovery/owned-process/go.sum'
       - 'support/governance/recovery/owned-process/main_linux.go'
@@ -10,6 +11,13 @@ on:
       - 'tests/governance/native_rr_ci/build_owner.py'
       - 'tests/governance/native_rr_ci/provenance.py'
       - 'tests/governance/test_native_rr_ci_provenance.py'
+      - 'tests/governance/test_native_rr_ci_anchor.py'
+      - 'tests/governance/native_rr_ci/anchor.py'
+      - 'tests/governance/native_rr_ci/execution.py'
+      - 'tests/governance/test_native_rr_ci_execution.py'
+      - 'tests/governance/native_rr_ci/runner.py'
+      - 'support/governance/recovery/native-writer-rr-ci-profile.php'
+      - 'support/governance/recovery/native-writer-rr-parent.php'
       - '.github/workflows/native-rr-owner-build.yml'
   workflow_dispatch:
 permissions:
@@ -17,7 +25,15 @@ permissions:
 jobs:
   owner-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.4.13
+        env:
+          MYSQL_ROOT_PASSWORD: native-rr-ci-disposable-only
+          MYSQL_ROOT_HOST: '%'
+        ports: ['127.0.0.1:3306:3306']
+        options: --health-cmd "mysqladmin ping -pnative-rr-ci-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -40,14 +56,21 @@ jobs:
           go -C support/governance/recovery/owned-process mod download golang.org/x/sys@v0.49.0
           go -C support/governance/recovery/owned-process mod verify
           git diff --exit-code -- support/governance/recovery/owned-process
-      - name: Build exact same-source Linux AMD64 owner without executing it
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.12'
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
+          extensions: mysqli, mbstring, posix
+          coverage: none
+      - name: Build same-source owner and execute isolated hosted RR21
         env:
           NATIVE_RR_LOCKED_GOMODCACHE: ${{ runner.temp }}/native-rr-module-cache
+          NATIVE_RR_MYSQL_SERVICE_ID: ${{ job.services.mysql.id }}
         run: |
-          python3 -B tests/governance/native_rr_ci/build_owner.py --go "$(readlink -f "$(command -v go)")" --output-dir "$RUNNER_TEMP/native-rr-owner-build"
+          python3 -B tests/governance/native_rr_ci/runner.py --go "$(readlink -f "$(command -v go)")" --execute-sql
       - uses: actions/upload-artifact@v4
-        if: success()
+        if: always()
         with:
-          name: native-rr-owner-build-candidate
+          name: native-rr21-portable-candidate
           path: ${{ runner.temp }}/native-rr-owner-build
           if-no-files-found: error
