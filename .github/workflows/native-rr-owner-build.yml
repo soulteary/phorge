@@ -1,0 +1,54 @@
+name: Native RR owner build candidate
+on:
+  pull_request:
+    paths:
+      - 'support/governance/recovery/owned-process/**' # New inputs must trigger exact-inventory refusal.
+      - 'support/governance/recovery/owned-process/go.mod'
+      - 'support/governance/recovery/owned-process/go.sum'
+      - 'support/governance/recovery/owned-process/main_linux.go'
+      - 'support/governance/recovery/owned-process/request.go'
+      - 'support/governance/recovery/owned-process/request_test.go'
+      - 'tests/governance/native_rr_ci/build_owner.py'
+      - 'tests/governance/native_rr_ci/provenance.py'
+      - 'tests/governance/test_native_rr_ci_provenance.py'
+      - '.github/workflows/native-rr-owner-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - name: Populate and verify only the locked module dependency
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=all)"
+          mkdir -m 0700 "$RUNNER_TEMP/native-rr-module-cache"
+          export GOMODCACHE="$RUNNER_TEMP/native-rr-module-cache"
+          export GOENV=off GOWORK=off GOTOOLCHAIN=local GOFLAGS= GOPROXY=https://proxy.golang.org GOSUMDB=sum.golang.org
+          go -C support/governance/recovery/owned-process mod download golang.org/x/sys@v0.49.0
+          go -C support/governance/recovery/owned-process mod verify
+          git diff --exit-code -- support/governance/recovery/owned-process
+      - name: Build exact same-source Linux AMD64 owner without executing it
+        env:
+          NATIVE_RR_LOCKED_GOMODCACHE: ${{ runner.temp }}/native-rr-module-cache
+        run: |
+          python3 -B tests/governance/native_rr_ci/build_owner.py --go "$(readlink -f "$(command -v go)")" --output-dir "$RUNNER_TEMP/native-rr-owner-build"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: native-rr-owner-build-candidate
+          path: ${{ runner.temp }}/native-rr-owner-build
+          if-no-files-found: error
