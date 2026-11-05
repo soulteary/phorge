@@ -435,6 +435,29 @@ jobs:
           name: governance-task-owner-source-facts-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-task-owner-source-facts
           if-no-files-found: error
+      - name: Verify fresh native File source facts after Task owner facts
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir "$RUNNER_TEMP/governance-file-source-facts"
+          git rev-parse HEAD > "$RUNNER_TEMP/governance-file-source-facts/source-revision.txt"
+          cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-file-source-facts/shared-native-pure.json"
+          cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-file-source-facts/normal-regression-accepted.json"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          php support/governance/native-organization/test-native-organization-mysql.php --file-source-facts > "$RUNNER_TEMP/governance-file-source-facts/integration.json"
+          python3 -B scripts/governance/check_recovery_file_source.py --receipt "$RUNNER_TEMP/governance-file-source-facts/integration.json" --source-revision "$GITHUB_SHA" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-source-facts/accepted.json"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: governance-file-source-facts-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-file-source-facts
+          if-no-files-found: error
       - name: Verify deterministic historical push-event grouping
         run: |
           mkdir -p "$RUNNER_TEMP/push-groups-migration"

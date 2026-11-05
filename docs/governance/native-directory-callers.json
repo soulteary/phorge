@@ -1710,6 +1710,116 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.FACTS",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php",
+      "symbol": "PhorgeRecoveryFileSourceFacts",
+      "kind": "author-rooted-File-topology-not-full-policy",
+      "sha256": "e2ae71b9236bfcf9550ef4c4098ed3b97384c2a62f7c0e818a04a416388af6af",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.FILE",
+      "path": "src/applications/files/storage/PhabricatorFile.php",
+      "symbol": "PhabricatorFile",
+      "kind": "native-File-author-policy-storage-consumer",
+      "sha256": "3edb7b26258ac2df70ed5e763d7d0f9773bc2565c9fea961d2c6a234ce57240f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.QUERY",
+      "path": "src/applications/files/query/PhabricatorFileQuery.php",
+      "symbol": "PhabricatorFileQuery",
+      "kind": "native-viewer-filtered-File-parent-transform-consumer",
+      "sha256": "2ccf285287e7f7e1f5889afce530b1a5073cfa7c076100a1129506816619e421",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.ATTACHMENT",
+      "path": "src/applications/files/storage/PhabricatorFileAttachment.php",
+      "symbol": "PhabricatorFileAttachment",
+      "kind": "native-attachment-mode-storage-reference",
+      "sha256": "785c0c5746355d4176d0ce72b30ba0f0ab65adf13e18a61eb591de9248bbdf58",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.ATTACHMENTQUERY",
+      "path": "src/applications/files/query/PhabricatorFileAttachmentQuery.php",
+      "symbol": "PhabricatorFileAttachmentQuery",
+      "kind": "native-parent-policy-attachment-query-reference",
+      "sha256": "fe72db99d2ec93397b9e368f7b13f001a770a4a634e63886c828630c5a63a5d9",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.TRANSFORMROW",
+      "path": "src/applications/files/storage/PhabricatorTransformedFile.php",
+      "symbol": "PhabricatorTransformedFile",
+      "kind": "native-transform-relation-storage-reference",
+      "sha256": "2475ff669cb2d6d7a97bda6ff5c8696e75cfc250782bd5488bc54026a41b9ed7",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.TRANSFORM",
+      "path": "src/applications/files/transform/PhabricatorFileTransform.php",
+      "symbol": "PhabricatorFileTransform",
+      "kind": "native-transform-generator-reference-not-exercised",
+      "sha256": "507e1a5f32faee2c6a49fd02dd1a7d44ccd43bb92d69dc54bc9acb679d50b43e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.EDITOR",
+      "path": "src/applications/files/editor/PhabricatorFileEditor.php",
+      "symbol": "PhabricatorFileEditor",
+      "kind": "native-File-policy-edit-reference",
+      "sha256": "8cd85a17532df795392956d4bdb607f79af4a9ea30d6dfa18ed5b3df070d2c34",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.GENERICEDITOR",
+      "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
+      "symbol": "PhabricatorApplicationTransactionEditor",
+      "kind": "native-attachment-reference-detach-producer",
+      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.FILE.DATA",
+      "path": "src/applications/files/controller/PhabricatorFileDataController.php",
+      "symbol": "PhabricatorFileDataController",
+      "kind": "native-secret-URI-consumer-not-covered",
+      "sha256": "9217c2ece8428f535d08ce430724e3dc0e0a5639a13e52c1f37f8ad2185b6f0a",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -2912,6 +3022,102 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-01",
+      "from_id": "RECOVERY.FILE.FACTS",
+      "to_id": "RECOVERY.OWNED.RR.SCOPE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-02",
+      "from_id": "RECOVERY.FILE.FACTS",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-03",
+      "from_id": "RECOVERY.FILE.FACTS",
+      "to_id": "RECOVERY.FILE.FILE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-04",
+      "from_id": "RECOVERY.FILE.FACTS",
+      "to_id": "RECOVERY.FILE.ATTACHMENT",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-05",
+      "from_id": "RECOVERY.FILE.FACTS",
+      "to_id": "RECOVERY.FILE.TRANSFORMROW",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-06",
+      "from_id": "RECOVERY.FILE.QUERY",
+      "to_id": "RECOVERY.FILE.FILE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-07",
+      "from_id": "RECOVERY.FILE.QUERY",
+      "to_id": "RECOVERY.FILE.ATTACHMENT",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-08",
+      "from_id": "RECOVERY.FILE.QUERY",
+      "to_id": "RECOVERY.FILE.TRANSFORMROW",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-09",
+      "from_id": "RECOVERY.FILE.EDITOR",
+      "to_id": "RECOVERY.FILE.FILE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-10",
+      "from_id": "RECOVERY.FILE.GENERICEDITOR",
+      "to_id": "RECOVERY.FILE.ATTACHMENT",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-11",
+      "from_id": "RECOVERY.FILE.TRANSFORM",
+      "to_id": "RECOVERY.FILE.TRANSFORMROW",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
+    },
+    {
+      "id": "RECOVERY-FILE-LINK-12",
+      "from_id": "RECOVERY.FILE.DATA",
+      "to_id": "RECOVERY.FILE.FILE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native File source reference only; no full File policy, source closure or restoration permit."
     }
   ],
   "scan": {
@@ -3315,6 +3521,10 @@
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryApplicationConfigFacts.php",
         "sha256": "0e73c13a19da167afc146bbc562ad89d3c560c39b3c34ed18a2c790bbee59a92"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php",
+        "sha256": "e2ae71b9236bfcf9550ef4c4098ed3b97384c2a62f7c0e818a04a416388af6af"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryMetadataGrantDescription.php",

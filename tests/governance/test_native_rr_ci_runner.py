@@ -41,7 +41,7 @@ class Flow(unittest.TestCase):
     else:sentinel(public_path)
     state['before']=snapshot(public_path)
    env={'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'pull_request','GITHUB_REF':'refs/pull/12/merge','GITHUB_JOB':'owner-build','GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/native-rr-owner-build.yml@refs/pull/12/merge','NATIVE_RR_LOCKED_GOMODCACHE':str(modules),'RUNNER_TEMP':str(temp),'NATIVE_RR_MYSQL_SERVICE_ID':ID}
-   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(277)}
+   sources=p.source_bindings(checkout,lambda path:(checkout/path).read_bytes());ids={f'Synthetic::test{i}'for i in range(280)}
    def build(args):
     out=Path(args[args.index('--output-dir')+1]);out.mkdir();raw=json.dumps(info()).encode();body=b'synthetic-owner'
     record={'schema_version':1,'source_revision':REV,'source_kind':'pull-request-synthetic-merge','PR_head_measured':False,'run_id':'12','run_attempt':'1','profile':'isolated-native-RR21-linux-amd64-v1','source_sha256':sources,'binary_sha256':p.digest(body),'build_info_sha256':p.digest(raw),'go_binary_sha256':p.digest(go.read_bytes()),'source_clean_before_after':True,'build_info_verified':True,'descriptor_is_execution_authority':False,'external_trusted_anchor_established':False,'PHP_executed':False,'SQL_executed':False}
@@ -65,7 +65,7 @@ class Flow(unittest.TestCase):
      if args[1]=='bin/rebuild-library-map':return b''
      if args[1]=='-r'and 'profile_accepted'in args[2]:return b'{"profile_accepted":true,"production_authority":false}'
      if args[1]=='-r'and 'new mysqli'in args[2]:return b'{"version":"8.4.13","principal":"root@%","role":"NONE","proxy":null}'
-     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':277,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()
+     if args[1].endswith('/tests/governance/run.php'):return json.dumps({'passed':True,'runtime':'8.5.12','expected_methods':280,'results':[{'id':i,'result':'pass'}for i in ids]}).encode()
     raise AssertionError('unexpected fixed command')
    real_seed=r.create_seed
    def seed(*args):seed_dirs.append(args[0]);return real_seed(*args)
