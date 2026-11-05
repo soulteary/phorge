@@ -12,7 +12,7 @@ def inventory():
  return classes,ids
 class Source(unittest.TestCase):
  def test_inventory_is_source_derived_not_runtime(self):
-  classes,ids=inventory();self.assertEqual(44,len(classes));self.assertEqual(265,len(ids));self.assertEqual(len(ids),len(set(ids)))
+  classes,ids=inventory();self.assertEqual(45,len(classes));self.assertEqual(266,len(ids));self.assertEqual(len(ids),len(set(ids)))
  def test_default_off_and_real_entry(self):
   options=(ROOT/'src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php').read_text()
   self.assertIn("'governance.account-recovery.owned-rr-scope.enabled','bool',false",options)
