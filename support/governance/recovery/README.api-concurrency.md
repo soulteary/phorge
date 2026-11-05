@@ -133,3 +133,35 @@ cached I_S rows, requester identity, lock-ID matching, or another factor caused
 the original mismatch. The primary timeout is always preserved if diagnostics
 are unavailable. No SQL execution, current-source map/pure completion, producer
 fence fix or recovery permission is claimed by host tests.
+
+### Local I_S polling cadence correction (unexecuted successor)
+
+The bf96 failure-only run preserved 14 checks, the original timeout and full
+cleanup. Its two snapshots showed the same live P_S wait identity and aliased
+child writer/reader throughout. Initially the child I_S row was absent and the
+producer transaction ID did not match the live blocking ID. After the local
+250ms no-I_S-read pause, the child I_S row was LOCK WAIT with the matching
+requested-lock ID and the producer transaction ID matched the blocking ID.
+These observations do not control other sessions' monitoring reads or prove
+all historical cache causality.
+
+Oracle's exact MySQL8.4.13 source confirms the cache mechanism: the eligibility
+check uses elapsed time since the cache's last read, requiring more than100ms;
+ineligible fetches return without rebuilding, while ending a read updates that
+last-read timestamp. Consequently local20ms I_S polling can keep the shared
+transaction cache ineligible even while P_S locks change. Root read the actual
+[eligibility check](https://github.com/mysql/mysql-server/blob/mysql-8.4.13/storage/innobase/trx/trx0i_s.cc#L681),
+[fetch guard](https://github.com/mysql/mysql-server/blob/mysql-8.4.13/storage/innobase/trx/trx0i_s.cc#L817)
+and[end-read timestamp](https://github.com/mysql/mysql-server/blob/mysql-8.4.13/storage/innobase/trx/trx0i_s.cc#L898)
+through the normal GitHub connector. No server cache or monitoring setting is
+changed by this fixture.
+
+This candidate retains the exact requester/transaction-owner matching SQL,
+original five-second monotonic deadline and all46 obligations. Only local I_S
+sampling is limited to a minimum250ms after the previous sample has completed;
+cheap result-file/process polling may continue at20ms without reading I_S.
+The first sample is immediate, no sample starts at/after the deadline, and a
+matched query or completed-result observation can pass only inside that same
+deadline. No creator-based fallback, extra time or missing-owner success is
+introduced. Actual execution must determine whether the complete46 profile
+passes; host schedule controls and the cache mechanism are not that proof.

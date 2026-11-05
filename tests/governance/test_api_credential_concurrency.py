@@ -138,7 +138,7 @@ try{$r=governance_recovery_api_wait_projection($v['rows'],array(17=>array('write
         self.assertIn("throw new RuntimeException('recovery_api_observation_timeout')",branch)
         self.assertNotIn('return ',branch)
         self.assertIn('$deadline=hrtime(true)+5000000000',source)
-        self.assertIn("if($count>0){return array('state'=>'blocked-by-owned-writer'",source[:boundary])
+        self.assertIn("if($count>0&&$last_sample_end<=$deadline){return array('state'=>'blocked-by-owned-writer'",source[:boundary])
 
     def test_startup_phase_validator_rejects_owner_unknown_and_noninteger_thread(self):
         script = """require $argv[1];$x=json_decode(stream_get_contents(STDIN),true,16,JSON_THROW_ON_ERROR);

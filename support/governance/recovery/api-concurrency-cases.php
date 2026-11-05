@@ -136,6 +136,14 @@ function governance_recovery_api_native_auth($secret,$oauth,$expected_user) {
   throw new RuntimeException('recovery_api_native_auth_unknown');
 }
 
+/** Local monotonic I_S sampling schedule; no transaction/owner inference. */
+function governance_recovery_api_sample_due($now,$last_sample_end,$deadline) {
+  if(!is_int($now)||!is_int($last_sample_end)||!is_int($deadline)||
+    $now<0||$last_sample_end<0||$deadline<0||$last_sample_end>$now){
+    throw new RuntimeException('recovery_api_sample_clock_unknown');}
+  return $now<$deadline&&($last_sample_end===0||$now-$last_sample_end>=250000000);
+}
+
 function governance_recovery_api_observe($fixture,mysqli $observer,array $handle,$blocker,$app,$table,$parent_user_thread,$parent_user_tracked,$producer_conn,$actor_conn) {
   $fixture->assertOwned();
   $worker=$GLOBALS['governance_native_workers'][$handle['index']]??null;
@@ -144,7 +152,7 @@ function governance_recovery_api_observe($fixture,mysqli $observer,array $handle
     !in_array($table,$app==='conduit'?array('conduit_token'):
       array('oauth_server_oauthserveraccesstoken','oauth_server_oauthclientauthorization'),true)){
     throw new RuntimeException('recovery_api_observer_scope_refused');}
-  $deadline=hrtime(true)+5000000000;
+  $deadline=hrtime(true)+5000000000;$last_sample_end=0;
   do{
     $stat=lstat($worker['private']);$owner=$worker['private'].'/owner';
     if(!$stat||is_link($worker['private'])||$stat['dev']!==$worker['dev']||$stat['ino']!==$worker['ino']||
@@ -163,11 +171,16 @@ function governance_recovery_api_observe($fixture,mysqli $observer,array $handle
       ' AND b.TRX_MYSQL_THREAD_ID='.(int)$blocker.
       " AND l.OBJECT_SCHEMA='".$observer->real_escape_string($fixture->getNamespace().'_'.$app).
       "' AND l.OBJECT_NAME='".$observer->real_escape_string($table)."' AND l.LOCK_STATUS='WAITING'";
-    $query=$observer->query($sql);if(!$query){throw new RuntimeException('recovery_api_lock_observation_failed');}
-    $count=(int)$query->fetch_assoc()['n'];$query->free();
-    if($count>0){return array('state'=>'blocked-by-owned-writer','exact_requester_and_blocker'=>true);}
-    if(is_file($worker['private'].'/result.json')){
+    // Do not repeatedly read I_S at the cheap result-file poll cadence.
+    // Only a completed exact owner match inside the original deadline passes.
+    if(governance_recovery_api_sample_due(hrtime(true),$last_sample_end,$deadline)){
+      $query=$observer->query($sql);if(!$query){throw new RuntimeException('recovery_api_lock_observation_failed');}
+      $count=(int)$query->fetch_assoc()['n'];$query->free();$last_sample_end=hrtime(true);
+      if($count>0&&$last_sample_end<=$deadline){return array('state'=>'blocked-by-owned-writer','exact_requester_and_blocker'=>true);}
+    }
+    if(is_file($worker['private'].'/result.json')&&hrtime(true)<=$deadline){
       return array('state'=>'completed-before-release','exact_requester_and_blocker'=>false);}
+    if(hrtime(true)>=$deadline){break;}
     if(!is_resource($worker['process'])||!proc_get_status($worker['process'])['running']){
       throw new RuntimeException('recovery_api_reader_exited_without_result');}
     usleep(20000);
