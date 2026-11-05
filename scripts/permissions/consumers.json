@@ -912,6 +912,16 @@
       "reviewStatus": "source-reviewed-not-route-certified",
       "sourceOperation": "native-query-form-preview",
       "candidateGenerationIntroduced": false
+    },
+    {
+      "path": "src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryProjectSourceFactsTestCase.php",
+      "discovery": true,
+      "kind": "isolated-native-project-source-facts-test",
+      "meaning": "Exercises actual native Project member policy and milestone VIEW requirements and bounded detached source rows in pure tests; it does not apply native membership transactions or grant capabilities.",
+      "authority": "none",
+      "reviewStatus": "source-reviewed-not-route-certified",
+      "sourceOperation": "native-project-policy-and-source-facts-unit-test",
+      "candidateGenerationIntroduced": false
     }
   ]
 }
