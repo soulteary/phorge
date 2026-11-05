@@ -1567,6 +1567,72 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.SPACES.FACTS",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php",
+      "symbol": "PhorgeRecoverySpacesSourceFacts",
+      "kind": "selected-native-Space-and-Query-cache-facts-not-policy-or-lease",
+      "sha256": "aeb2c53063335ff9e5e6748fbe59823f6238708be831966822872f48f04e2bbc",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.SPACES.NAMESPACE",
+      "path": "src/applications/spaces/storage/PhabricatorSpacesNamespace.php",
+      "symbol": "PhabricatorSpacesNamespace",
+      "kind": "fixed-native-Space-storage-reference",
+      "sha256": "084de183003c0ddae2ee2914e14af176260f0525db85f4a65dfeb25a1e5d3412",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.SPACES.QUERY",
+      "path": "src/applications/spaces/query/PhabricatorSpacesNamespaceQuery.php",
+      "symbol": "PhabricatorSpacesNamespaceQuery",
+      "kind": "fixed-native-Space-Query-cache-reference",
+      "sha256": "4f8b8ae26a5a2f6c5ea8273ea756554e36f7ff4a6b44a90f6618706e68f8acd3",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.SPACES.EDITOR",
+      "path": "src/applications/spaces/editor/PhabricatorSpacesNamespaceEditor.php",
+      "symbol": "PhabricatorSpacesNamespaceEditor",
+      "kind": "fixed-native-Space-transaction-producer-reference",
+      "sha256": "629e4f254363d3e062d89fc23ffa8bb673e17276f160aa566053e5bab3dcdd5f",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.SPACES.CACHE",
+      "path": "src/infrastructure/cache/PhutilInRequestKeyValueCache.php",
+      "symbol": "PhutilInRequestKeyValueCache",
+      "kind": "fixed-native-request-cache-storage-reference",
+      "sha256": "1f8955cf572b538873f0330e0fa0ffe6aaa5faab62c783e43d088d1b900fd112",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.SPACES.POLICYFILTER",
+      "path": "src/applications/policy/filter/PhabricatorPolicyFilter.php",
+      "symbol": "PhabricatorPolicyFilter",
+      "kind": "fixed-native-Space-selection-and-policy-reference",
+      "sha256": "365bc9693b960cb0b40f0b2961f5d1d1782af23b911cea490f9337fbd768f0ea",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -2641,6 +2707,62 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Audited fixed storage/producer/consumer semantic dependency, not a runtime caller or automatic permission proof."
+    },
+    {
+      "id": "RECOVERY-SPACES-LINK-01",
+      "from_id": "RECOVERY.SPACES.FACTS",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed namespace/Query/cache producer-consumer dependency only; no permission or lease proof."
+    },
+    {
+      "id": "RECOVERY-SPACES-LINK-02",
+      "from_id": "RECOVERY.SPACES.FACTS",
+      "to_id": "RECOVERY.SPACES.NAMESPACE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed namespace/Query/cache producer-consumer dependency only; no permission or lease proof."
+    },
+    {
+      "id": "RECOVERY-SPACES-LINK-03",
+      "from_id": "RECOVERY.SPACES.FACTS",
+      "to_id": "RECOVERY.SPACES.QUERY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed namespace/Query/cache producer-consumer dependency only; no permission or lease proof."
+    },
+    {
+      "id": "RECOVERY-SPACES-LINK-04",
+      "from_id": "RECOVERY.SPACES.FACTS",
+      "to_id": "RECOVERY.SPACES.CACHE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed namespace/Query/cache producer-consumer dependency only; no permission or lease proof."
+    },
+    {
+      "id": "RECOVERY-SPACES-LINK-05",
+      "from_id": "RECOVERY.SPACES.FACTS",
+      "to_id": "RECOVERY.SPACES.POLICYFILTER",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed namespace/Query/cache producer-consumer dependency only; no permission or lease proof."
+    },
+    {
+      "id": "RECOVERY-SPACES-LINK-06",
+      "from_id": "RECOVERY.SPACES.EDITOR",
+      "to_id": "RECOVERY.SPACES.NAMESPACE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed namespace/Query/cache producer-consumer dependency only; no permission or lease proof."
+    },
+    {
+      "id": "RECOVERY-SPACES-LINK-07",
+      "from_id": "RECOVERY.SPACES.QUERY",
+      "to_id": "RECOVERY.SPACES.CACHE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Audited fixed namespace/Query/cache producer-consumer dependency only; no permission or lease proof."
     }
   ],
   "scan": {
@@ -3120,6 +3242,10 @@
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
         "sha256": "94df0c66eba195a7dd5bb8211a784ba753b79a1b7dab01ce68ac9fd880b0fcd6"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php",
+        "sha256": "aeb2c53063335ff9e5e6748fbe59823f6238708be831966822872f48f04e2bbc"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStop.php",
