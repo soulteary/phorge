@@ -4,7 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
@@ -12,6 +12,7 @@ $phase=$arguments===array()?'all':
 $notice_raw_orm=$phase==='notice-raw-orm-aba';
 $notice_admin_wire=$phase==='notice-admin-grant-wire-hold';
 $notice_wire=$phase==='governance-notice-wire-hold'||$notice_admin_wire;
+$credential_concurrency=$phase==='api-credential-concurrency';
 $private_mail_pending=$phase==='private-mail-pending-hold';
 $private_mail_wire=$phase==='private-mail-wire-hold'||$private_mail_pending||$notice_wire;
 $legacy_compatibility=$phase==='legacy-sql-compatibility';
@@ -229,6 +230,9 @@ try {
       elseif($notice_wire){require_once dirname(__DIR__).'/notification/notice-wire-hold.php';$native=governance_notice_wire_hold($fixture,$check);}
       elseif($private_mail_pending){require_once dirname(__DIR__).'/notification/pending-wire-hold.php';$native=governance_private_mail_pending_hold($fixture,$check);}
       else{require_once dirname(__DIR__).'/notification/wire-hold.php';$native=governance_private_mail_wire_hold($fixture,$check);}
+    }elseif($phase==='api-credential-concurrency'){
+      require_once dirname(__DIR__).'/recovery/api-concurrency-cases.php';
+      $native=governance_recovery_api_concurrency_cases($fixture,$check);
     }else{
       require_once __DIR__.'/native-cases.php';$native=governance_native_organization_cases($fixture,$check);
     }
@@ -241,6 +245,9 @@ try {
   if(isset($GLOBALS['governance_notice_raw_orm_queue_cleanup_proved'])){$failure['notice_raw_orm_queue_cleanup_proved']=$GLOBALS['governance_notice_raw_orm_queue_cleanup_proved'];}
   if(isset($GLOBALS['governance_notice_raw_orm_facts'])){$failure['notice_raw_orm_facts']=$GLOBALS['governance_notice_raw_orm_facts'];}
   if(isset($GLOBALS['governance_notice_wait_failure'])){$failure['notice_wait_diagnostic']=$GLOBALS['governance_notice_wait_failure'];}
+  if(isset($GLOBALS['governance_api_concurrency_child_failure'])){
+    $failure['api_concurrency_child_failure']=$GLOBALS['governance_api_concurrency_child_failure'];
+  }
   if(isset($GLOBALS['governance_session_producer_child_failure'])){
     $failure['session_producer_child_failure']=$GLOBALS['governance_session_producer_child_failure'];
   }
@@ -323,7 +330,9 @@ if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)
 $passed = $failure === null && !$cleanup_failures;
 $batch=$notice_raw_orm?'native-notice-raw-orm-ABA-profile':($phase==='recovery-organization-lifecycle-only'?'native-recovery-organization-lifecycle-component':($phase==='recovery-organization-metadata-only'?'native-recovery-organization-live-metadata-component':($phase==='recovery-organization-only'?'native-recovery-organization-producer-component':($phase==='recovery-policy-only'?'native-recovery-policy-range-component':($private_mail_wire?'private-native-mail-wire-preparation':($wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration')))))));
 $batch=$phase==='notice-admin-grant'?'native-notice-admin-grant-profile':$batch;
+$batch=$credential_concurrency?'native-api-credential-concurrency':$batch;
 $receipt_scope=$phase==='notice-admin-grant'?'owned-native-admin-grant-and-transaction-outbox':($notice_raw_orm?'owned-notice-raw-native-DAO-restoration-off':($private_mail_wire?'owned-private-native-mail-wire-preparation':($wire_hold?'owned-native-media-wire-hold-synthetic-accounts':($legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts'))));
+$receipt_scope=$credential_concurrency?'owned-native-credential-writer-reader-observation':$receipt_scope;
 echo json_encode(array('batch'=>$batch,'passed'=>$passed,
   'scope'=>$receipt_scope,'checks'=>$checks,'check_count'=>count($checks),
   'php_version'=>PHP_VERSION,'source_restore'=>$summary,'native'=>$native,
@@ -338,8 +347,10 @@ echo json_encode(array('batch'=>$batch,'passed'=>$passed,
   'production_deployment'=>false,'production_executor'=>false,
   'production_optional_features_enabled'=>false,
   'native_permission_axes_changed'=>false,
-  'remaining_blocked'=>$legacy_compatibility
+  'remaining_blocked'=>$credential_concurrency
+    ? array('api-two-producer-deadlock-stress','oauth-governance-current-reader','all-thirteen-source-families','restoration-permit','production-deployment')
+    : ($legacy_compatibility
     ? array('optional-backend-mariadb-compatibility','full-database-version-matrix','global-governance-completion')
-    : array('media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion')),
+    : array('media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion'))),
   JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
 exit($passed?0:1);
