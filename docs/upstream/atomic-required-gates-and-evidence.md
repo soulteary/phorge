@@ -18,10 +18,11 @@ image job, failed review finding or release verification. Record the effective
 protection API response after applying the policy: committing this document
 alone does not protect a branch. Do not bypass the rules to merge this change.
 
-`tests/atomic/paired-gorge.json` pins the formal reviewed Gorge revision.
-Both workflows reject a missing, moving or mismatched variable/manual input.
-Updating the pair requires a lock change, matching repository variable and
-fresh check results. Use only PHP 8.5.12 with JIT explicitly disabled and zero
+`tests/atomic/paired-gorge.json` pins the reviewed, unreleased test-source
+revision; it is not a formal release lock. Push and pull-request checks resolve
+this checked-in source directly, ignoring repository variables. An explicit
+manual dispatch override must equal the checked-in immutable revision. Updating
+the test pair requires a reviewed source-pin change and fresh check results. Use only PHP 8.5.12 with JIT explicitly disabled and zero
 buffer; historical minor-version matrices are not supported configurations.
 
 ## Counts and evidence boundaries

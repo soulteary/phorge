@@ -103,13 +103,14 @@ jobs:
           php tests/contract/transport/runtime.php
       - name: Require immutable paired Gorge revision
         env:
-          GORGE_REF: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
+          GORGE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.gorge_ref || '' }}
         run: |
-          python3 tests/atomic/check_pair.py
+          revision=$(python3 tests/atomic/check_pair.py --print-revision)
+          echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
       - uses: actions/checkout@v6
         with:
           repository: soulteary/gorge
-          ref: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
+          ref: ${{ env.GORGE_CONTRACT_REF }}
           path: .test-gorge
       - uses: actions/setup-go@v6
         with:
@@ -245,13 +246,14 @@ jobs:
           php tests/contract/runtime/maintenance.php
       - name: Require immutable paired Gorge revision
         env:
-          GORGE_REF: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
+          GORGE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.gorge_ref || '' }}
         run: |
-          python3 tests/atomic/check_pair.py
+          revision=$(python3 tests/atomic/check_pair.py --print-revision)
+          echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
       - uses: actions/checkout@v6
         with:
           repository: soulteary/gorge
-          ref: ${{ inputs.gorge_ref || vars.GORGE_CONTRACT_REF }}
+          ref: ${{ env.GORGE_CONTRACT_REF }}
           path: .test-gorge
       - name: Start current render service for retained products
         run: |

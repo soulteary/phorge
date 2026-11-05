@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "55f8ba8e57b179a7dee92ad43c77038ca322f61c",
-  "release": "2026.11.01-r3"
+  "revision": "83351b0e7eba38e50ff076ba6763ca68ebc57e1b",
+  "release": null,
+  "scope": "unreleased-source-only-test-pair"
 }
