@@ -27,7 +27,6 @@ jobs:
         ports: ['3306:3306']
         options: --health-cmd "mysqladmin ping -patomic-regressions-only" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
-      GORGE_CONTRACT_REF: ${{ vars.GORGE_CONTRACT_REF }}
       ATOMIC_TEST_DISPOSABLE: '1'
       GORGE_TEST_MYSQL_PORT: '3306'
       GORGE_TEST_MYSQL_PASSWORD: atomic-regressions-only
@@ -77,7 +76,8 @@ jobs:
           python3 scripts/permissions/inventory.py --require-clean --output "$RUNNER_TEMP/permission-consumers.json"
       - name: Require the same immutable Gorge revision as paired runtime contracts
         run: |
-          python3 tests/atomic/check_pair.py
+          revision=$(python3 tests/atomic/check_pair.py --print-revision)
+          echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
       - uses: actions/checkout@v6
         with:
           repository: soulteary/gorge

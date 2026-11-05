@@ -5,7 +5,7 @@ function governance_wiki_render_start($fixture) {
   $fixture->assertOwned();$binary=getenv('PHORGE_GOVERNANCE_GORGE_RENDER_BINARY');
   $digest=getenv('PHORGE_GOVERNANCE_GORGE_RENDER_SHA256');
   $revision=getenv('PHORGE_GOVERNANCE_GORGE_RENDER_SOURCE_REVISION');
-  if($revision!=='55f8ba8e57b179a7dee92ad43c77038ca322f61c'||!is_string($digest)||!preg_match('/\A[a-f0-9]{64}\z/D',$digest)||
+  if($revision!=='83351b0e7eba38e50ff076ba6763ca68ebc57e1b'||!is_string($digest)||!preg_match('/\A[a-f0-9]{64}\z/D',$digest)||
     !is_string($binary)||!is_file($binary)||!is_executable($binary)||!hash_equals($digest,hash_file('sha256',$binary))){
     throw new RuntimeException('wiki_render_paired55_binary_required');}
   $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);
@@ -70,7 +70,7 @@ function governance_wiki_render_scope($directory,$owner){
   $path=$directory.'/render.json';
   if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>1024){throw new RuntimeException('wiki_render_child_config_refused');}
   $data=json_decode(file_get_contents($path),true,4,JSON_THROW_ON_ERROR);
-  if(!is_array($data)||array_keys($data)!==array('owner','uri','token','source_revision')||$data['owner']!==$owner||$data['source_revision']!=='55f8ba8e57b179a7dee92ad43c77038ca322f61c'||
+  if(!is_array($data)||array_keys($data)!==array('owner','uri','token','source_revision')||$data['owner']!==$owner||$data['source_revision']!=='83351b0e7eba38e50ff076ba6763ca68ebc57e1b'||
     !is_string($data['uri'])||!preg_match('/\Ahttp:\/\/127\.0\.0\.1:([1-9][0-9]{0,4})\z/D',$data['uri'],$match)||(int)$match[1]>65535||
     !is_string($data['token'])||!preg_match('/\A[a-f0-9]{64}\z/D',$data['token'])){throw new RuntimeException('wiki_render_child_config_refused');}
   $policies=PhabricatorEnv::getEnvConfig('gorge.service-policies');$policies['render']='required';

@@ -29,8 +29,8 @@ jobs:
         ports: ['127.0.0.1:3306:3306']
         options: --health-cmd "mysqladmin ping -pprivate-wire-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
-      # Public immutable PR46 candidate; testing does not authorize its release.
-      GORGE_MAIL_WIRE_REF: d3aac14d6eaadb8d7a08527734cf5e10cc7a76ae
+      # Reviewed immutable source-only test pair; testing does not authorize its release.
+      GORGE_MAIL_WIRE_REF: 83351b0e7eba38e50ff076ba6763ca68ebc57e1b
       OWLMAIL_WIRE_REF: 39e3ced315a027f6e5938146387179fa683fe7b1
       ATOMIC_TEST_DISPOSABLE: '1'
       GORGE_TEST_MYSQL_PASSWORD: private-wire-disposable-only

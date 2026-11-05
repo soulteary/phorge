@@ -157,9 +157,11 @@ activating new writers across multiple web/worker instances.
 - 关闭业务入口仍须保留存量策略/类型的解释和当前权限校验；新写能力需按发布协议启用。
 
 The reviewed pairing is committed in `paired-gorge.json`. Both paired workflows
-validate the repository variable (or manual contract input) against this lock
-before checking out Gorge. Advancing the pair requires a reviewed lock change,
-repository-variable update, and fresh native/HTTP/contract evidence.
+resolve the checked-in source revision before checking out Gorge; repository
+variables do not override push or pull-request gates. A manual runtime-contract
+override must equal that revision. This is an unreleased source-only test pair,
+not a published release lock. Advancing it requires fresh native/HTTP/contract
+and physical-wire evidence; no new execution is claimed by this change.
 
 See `docs/upstream/atomic-required-gates-and-evidence.md` for required checks,
 case-level scope corrections and the browser acceptance ledger.
