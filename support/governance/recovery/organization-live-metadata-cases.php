@@ -88,7 +88,8 @@ function governance_recovery_org_live_metadata_cases($fixture,callable $check,ar
     $before=$capture($metadata);
     $identity=queryfx_one($metadata,'SELECT CURRENT_ROLE() role_value,@@proxy_user proxy_value');
     $check($identity===array('role_value'=>'NONE','proxy_value'=>null)&&
-      $before['global_visibility_grant_row_locked']===true&&
+      $before['schema_version']===2&&$before['global_visibility_grant_row_observed']===true&&
+      $before['global_visibility_grant_row_locked']===false&&$before['grant_revoke_absence_fence_proved']===false&&
       $before['observed_trigger_and_incoming_outgoing_fk_absence']===true&&
       $before['all_twelve_table_mdl_acquired']===true&&$before['restoration_authorized']===false&&
       $before['concurrent_ddl_absence_fence_proved']===false,
