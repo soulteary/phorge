@@ -1089,7 +1089,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php",
       "symbol": "PhorgeGovernanceRecoveryConfigOptions",
       "kind": "isolated-recovery-foundation-static-no-permit",
-      "sha256": "1fba208bd326bf728cc77ce6c5a6c9f8fd85c15240db80a1a9e9436f141dc481",
+      "sha256": "b67c54b92dfbd791f58dbddadaddfd61702d202249efe36b2bbcef1ac2aee83b",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1354,6 +1354,17 @@
       "symbol": "PhabricatorUserTransactionEditor",
       "kind": "native-admin-grant-only-outbox-no-role-authority",
       "sha256": "a14a8f21aba7b720bfd35762f3321143e36edadfbfd2e8f3953a8155f1dbccf5",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.OWNED.RR.SCOPE",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php",
+      "symbol": "PhorgeRecoveryOwnedRRScope",
+      "kind": "candidate-runtime-source",
+      "sha256": "c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -2280,6 +2291,14 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Native USER grant transaction producer reference only; not role or activation authority."
+    },
+    {
+      "id": "RECOVERY-RR-LINK-01",
+      "from_id": "RECOVERY.OWNED.RR.SCOPE",
+      "to_id": "AUTH.USER.DAO",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Isolated owned User writer RR mechanics only; not a production lease or restore permit."
     }
   ],
   "scan": {
@@ -2666,7 +2685,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php",
-        "sha256": "1fba208bd326bf728cc77ce6c5a6c9f8fd85c15240db80a1a9e9436f141dc481"
+        "sha256": "b67c54b92dfbd791f58dbddadaddfd61702d202249efe36b2bbcef1ac2aee83b"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryGuard.php",
@@ -2711,6 +2730,10 @@
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationProducerFence.php",
         "sha256": "7df44b0695412389c8d39f5c71ff56b3987a9cc5714785bf077ce9baf0c2bf49"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php",
+        "sha256": "c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php",

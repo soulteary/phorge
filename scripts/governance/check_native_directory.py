@@ -489,6 +489,11 @@ EXPECTED_SOURCES.update({'RECOVERY.ORG.PhorgeRecoveryMetadataGrantDescription': 
 EXPECTED_LINKS.update({'RECOVERY-ORG-LINK-01': ('RECOVERY.ORG.PhorgeRecoveryOrganizationProducerDAO', 'RECOVERY.ORG.PhorgeRecoveryOrganizationProducerFence'), 'RECOVERY-ORG-LINK-02': ('RECOVERY.ORG.PhorgeRecoveryOrganizationProducerFence', 'RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile'), 'RECOVERY-ORG-LINK-03': ('RECOVERY.ORG.PhorgeRecoveryOrganizationMetadataObservation', 'RECOVERY.ORG.PhorgeRecoveryMetadataGrantDescription'), 'RECOVERY-ORG-LINK-04': ('RECOVERY.ORG.PhorgeRecoveryRestorePolicySource', 'RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile'), 'RECOVERY-ORG-LINK-05': ('NATIVE.PhorgeOrganizationService', 'RECOVERY.ORG.PhorgeRecoveryOrganizationProducerFence')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryMetadataGrantDescription.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationMetadataObservation.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationProducerDAO.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationProducerFence.php', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestorePolicySource.php'])
 
+# Isolated owned-RR mechanics candidate: static reference only, never a permit.
+EXPECTED_SOURCES['RECOVERY.OWNED.RR.SCOPE']=('src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php','PhorgeRecoveryOwnedRRScope','candidate-runtime-source')
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php'])
+EXPECTED_LINKS['RECOVERY-RR-LINK-01']=('RECOVERY.OWNED.RR.SCOPE','AUTH.USER.DAO')
+
 def validate(data, root):
     root = Path(root)
     fields(data, ('schema_version','scope','coverage','activation_blocked',
