@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "parents": [
+    "9442c0ecf1247b3802b1bbc12783e419482e2abf",
+    "965a72308747346c0de539e78c0a79a0ebaa47d0"
+  ],
+  "scope": "Normal main965 merge into native administrator notice candidate; preserve all merged metadata corrections and acceptance documents.",
+  "all_nondocument_source_byte_exact_9442": true,
+  "new_runtime_executed": false,
+  "parent_acceptance_kept_separate": true,
+  "all_producers_complete": false,
+  "OFF_ON_proved": false,
+  "activation_allowed": false,
+  "restoration_authorized": false,
+  "deployment": false
+}

@@ -1,0 +1,47 @@
+{
+  "source_head": "a9d0ad31ee54eb35ae5e3b9c5d329b30ceef842d",
+  "passed": true,
+  "pure_methods": 250,
+  "pure_classes": 42,
+  "SQL_checks": 15,
+  "metadata_SQL_obligations": 6,
+  "runtime_files_exact": 6855,
+  "other_DAO33_profile_retested": false,
+  "grant_row_lock_proved": false,
+  "grant_revoke_race_proved": false,
+  "concurrent_DDL_absence_lease_proved": false,
+  "all_sources_complete": false,
+  "restoration_authorized": false,
+  "HTTP_proved": false,
+  "activation": false,
+  "production_deployment": false,
+  "cleanup": {
+    "ownedSchemasRemoved": 55,
+    "ownedRuntimeUsersRemoved": 2,
+    "readerRemoved": true
+  },
+  "worker_cleanup": {
+    "private_directories_removed": 0,
+    "owned_processes_stopped": 0,
+    "cleanup_failures": 0,
+    "private_directories_remaining": 0,
+    "live_processes_after_cleanup": 0,
+    "workers_registered": 0
+  },
+  "schema_version": 1,
+  "scope": "bounded current-source live metadata observation only; no grant lock or restoration permit",
+  "source_restore": {
+    "tables": 543,
+    "patches": 1572,
+    "migrations": 35
+  },
+  "closed_metadata_control_connections": 2,
+  "new_accounts_or_grants": false,
+  "active_role_negative_proved": false,
+  "proxy_authentication_negative_proved": false,
+  "strict_CLI_equals_inprocess": true,
+  "immutable_archive_records": 19,
+  "immutable_archive_manifest_sha256": "6830185fee974190e5e6511769a24f6fb8b896b9420d1bd8249d477e129f5140",
+  "independent_actual_review_sha256": "beb4b5a9c5b5d2803a7fbdfa61439caced0e3387edf4e58bee16e7a271a94dd2",
+  "source_checkpoint_sha256": "178bc6ecd0f849394feecbbec6ad10cc5bd3cc2aaa9a78cdd44be728a4ae431a"
+}
