@@ -45,8 +45,10 @@ bootstrap's PHP-version check and arbitrary provider loading. Only DefaultSource
 constructor is bypassed to install an explicitly synthetic dictionary; this is not
 proof of real defaults/provider loading. Tests cover precedence, NULL/empty,
 missing/type refusal, unknown getter-not-called, dynamic PHP refusal, object
-replacement and terminal failures. Supported PHP 8.5.12 native map/unit execution and SQL execution remain pending;
-no map is hand-edited. The successor adds explicit static partial N00/B2 entries.
+replacement and terminal failures. The original source-only checkpoint had no supported map/unit or SQL result.
+The local ac5615b1d4f19ee50df39aa4d81fa07dc0231527 component was subsequently
+validated as recorded below. No map was hand-edited; static partial N00 entries
+are explicit, and the existing B2 candidate inventory is unchanged.
 
 ## Next executable isolated fixture
 
@@ -73,14 +75,17 @@ external owner lease before CREATE. Keep diagnostics fixed enums without values.
    independently, clean owned rows/principals/directories, and retain primary and
    cleanup errors separately. Never widen privileges or infer owner from a name.
 
-These are pending real SQL obligations, not executed results or a new permit.
+The broad obligations above remain incomplete. The bounded native DAO and cached
+DatabaseSource checks recorded below do not prove the entire list or a permit.
 
 
-## Integration successor (execution pending)
+## Local isolated component validation (historical source ac5615)
 
-The candidate now registers one native pure method (262 total/44 classes derived
-from the 261/43 base) reusing 13 real-class synthetic-dictionary controls. This is
-registration, not supported PHP execution. No generated map is hand-edited.
+The component adds one native pure method (262 total/44 classes derived from the
+261/43 base), reusing 13 real-class synthetic-dictionary controls. Root completed
+a cold supported PHP 8.5.12 map rebuild and all 262 methods on signed source
+ac5615b1d4f19ee50df39aa4d81fa07dc0231527; the actual generated map was signed,
+not hand-edited.
 The normal 934 SQL checks are preserved; this focused profile is separate.
 
 Actual Env::buildConfigurationSourceStack may install the final persistent
@@ -102,7 +107,11 @@ rolled-back, deleted, NULL and stale cached-dictionary facts. An independent set
 connection proves committed row values on the same primary; it is a read observer,
 not the runtime writer. All rows remain inside the disposable schema. The existing
 outer driver owns guard/env/cache cleanup, principal/schema cleanup and receipt.
-Supported map/pure and this SQL profile are unexecuted until Root leases them.
+On that exact local source, Root subsequently executed all 19 focused checks and
+verified 6,886 PHP/SQL/PSL source files against the signed archive. Strict public CLI
+output matched in-process validation, and all 55 schemas, two runtime principals,
+reader and owned parent resources were cleaned. Zero workers/services were started.
+This is local component evidence, not an executed CI result for this successor.
 
 
 Focused invocation after a supported native map build and the ordinary reviewed
@@ -113,10 +122,31 @@ php support/governance/native-organization/test-native-organization-mysql.php --
 python3 -B scripts/governance/check_recovery_application_config.py --receipt config-facts.json --source-revision "$PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION"
 ```
 
-The exact intended 19 checks are six bootstrap, ten focused SQL and three cleanup.
+The 19-check profile consists of six bootstrap, ten focused SQL and three cleanup.
 There are zero child workers and no paired file daemon in this profile. Normal934
-is a different profile. A separate cold runtime helper, source signature, supported
-map registration and Root lease are still required before running this candidate.
-The fixture covers native ConfigEntry DAO hooks, not ConfigEditor transaction
-producers or every deployment/source provider. No counts in this document are new
-SQL or supported-PHP test results.
+is a different profile. Independent local runs require the reviewed cold runtime helper, source signature
+and explicit Root lease. The fixture covers native ConfigEntry DAO hooks, not
+ConfigEditor transaction producers or every deployment/source provider. Historical
+local results are bound to ac5615 and are not relabeled onto the CI successor.
+
+
+## Atomic CI successor (not yet executed)
+
+Atomic runs this fresh fixture only after the normal934 and API46 strict checks
+succeed, with the existing disposable MySQL environment. It adds no service,
+paired binary dependency, feature activation or production configuration. CI uses
+MySQL 8.0; the local 8.4.13 result does not prove that environment. New-head CI must
+validate the candidate.
+
+The separate `governance-application-config-facts-php-*` artifact contains five
+members on success: `integration.json`, `accepted.json`, `source-revision.txt`,
+`shared-native-pure.json` and `normal-regression-accepted.json`. The latter two
+reference earlier executions from the same workflow/checkout; they are not new
+SQL results and their counts are never added to 19. No binary-digest placeholder
+is needed because this profile starts no paired daemon. A failed fixture or strict
+gate fails the job; always-upload preserves available failure evidence without
+manufacturing acceptance or claiming missing members passed.
+
+Configuration source completeness, Env cache binding, continuous/ABA protection,
+all13, restore permit, deployment immutability and production recovery remain
+unproved and blocked.
