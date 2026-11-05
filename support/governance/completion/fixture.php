@@ -175,7 +175,7 @@ final class PhorgeGovernanceCompletionFixture {
       '20261007.worker.scheduler.sql','20261007.worker.scheduleridentity.sql',
       '20261102.people.organization.sql','20261102.people.mediaexchange.sql',
       '20261103.people.organizationmetadata.sql','20261103.people.mediaissuer.sql','20261103.people.mediatargets.sql',
-      '20261103.people.organizationtransfer.sql','20261103.project.approvalexecution.sql','20261103.project.configepoch.sql','20261104.people.recoverystop.sql','20261104.people.recoveryrestore.sql','20261104.people.organizationparticipants.sql');
+      '20261103.people.organizationtransfer.sql','20261103.project.approvalexecution.sql','20261103.project.configepoch.sql','20261104.people.recoverystop.sql','20261104.metamta.governancenotice.sql','20261104.people.recoveryrestore.sql','20261104.people.organizationparticipants.sql','20261105.people.noticeidentityepoch.sql');
     foreach ($pending as $key) {
       if (!str_starts_with($key,'phabricator:') ||
           !in_array(substr($key,12),$reviewed,true)) {
@@ -352,6 +352,23 @@ final class PhorgeGovernanceCompletionFixture {
     }finally{mysqli_report($old_report);}
     return array('host'=>$this->host,'port'=>$this->port,
       'database'=>$this->namespace.'_metamta','user'=>$user,'password'=>$password);
+  }
+  /** Optional daemon relay: no native authority tables and no mail INSERT. */
+  public function createPrivateNoticeRelayPrincipal() {
+    $this->assertOwned();$tables=array($this->table('metamta','metamta_gorgeoutbox'),
+      $this->table('metamta','gorge_mail_delivery'));
+    $user='gov_c_relay_'.bin2hex(random_bytes(6));$password=bin2hex(random_bytes(24));
+    $driver=new mysqli_driver();$old_report=$driver->report_mode;mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
+    try{
+      if($this->control->query("CREATE USER '".$user."'@'%' IDENTIFIED BY '".$password."'")!==true){
+        throw new RuntimeException('Private notice relay principal creation refused.');}
+      $this->createdUsers[]=$user;
+      foreach($tables as$table){
+        if($this->control->query('GRANT SELECT, UPDATE ON '.$table." TO '".$user."'@'%'")!==true){
+          throw new RuntimeException('Private notice relay grant refused.');}}
+    }finally{mysqli_report($old_report);}
+    return array('host'=>$this->host,'port'=>$this->port,'database'=>$this->namespace.'_metamta',
+      'user'=>$user,'password'=>$password);
   }
   public function getReaderConfig() { $this->assertOwned(); return $this->configs['reader']; }
   public function getBaselineIDs() { $this->assertOwned(); return $this->baseline; }

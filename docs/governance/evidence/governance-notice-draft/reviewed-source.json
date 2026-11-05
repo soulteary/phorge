@@ -1,0 +1,124 @@
+{
+  "schema_version": 2,
+  "candidate_integration_source_head": "0281b4d7e01eb0117704f48b1b1d38128fcc9b05",
+  "candidate_integration_parents": [
+    "9442c0ecf1247b3802b1bbc12783e419482e2abf",
+    "965a72308747346c0de539e78c0a79a0ebaa47d0"
+  ],
+  "runtime_reference_head": "9442c0ecf1247b3802b1bbc12783e419482e2abf",
+  "production_reference_head": "e5f89aac566b121f2ebb3894aa4ba76b31222c10",
+  "code_surface_byte_identical_to_runtime_reference": true,
+  "surface": [
+    "src/",
+    "resources/",
+    "support/",
+    "scripts/",
+    "tests/"
+  ],
+  "reviewed_code_sha256": {
+    "resources/sql/autopatches/20261104.metamta.governancenotice.sql": "352c3da768fd722d141640fed61e54ff1088ba791c221cdd2133ebbe0fb9876a",
+    "resources/sql/autopatches/20261105.people.noticeidentityepoch.sql": "fc55ac4d7c97abf32d37f219cb1e9eab7a29cd1895943b86264d28227da7132f",
+    "scripts/governance/check_completion.py": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e",
+    "scripts/governance/check_native_directory.py": "54309f272030b4c78c36fbee5b7737cdbb8f4ad23a9761674d03db7f34867a9c",
+    "scripts/governance/check_native_organization.py": "6f10f1a433c36170a92dea85862bfe25ad9de4aea9039c47dc14d4f35993cbe4",
+    "scripts/governance/check_private_notifications.py": "5934588782d648bf3c1da43de6fa80f2ab099bc9744218f16bb0d7bd43ff9c12",
+    "scripts/governance/check_recovery_org_lifecycle.py": "b8dd5088ccf3bbda410c0081d3182f81f278bf1621604b5e12fe930a4e73557e",
+    "scripts/governance/check_recovery_org_metadata.py": "142b89dc88c4c48fa2f9ff3534474754d510a3277b57904adeebbcb3bf7f061f",
+    "scripts/governance/check_recovery_policy_isolation.py": "4a45cc33f57fea33ea9b0c7752f1645dda2e3754566758b2e3a528a1320f1d8a",
+    "src/__phutil_library_map__.php": "11811e340db8e5953cedadfc3e5df6ff2d092c9ea7385521596edda53da761be",
+    "src/applications/metamta/storage/PhabricatorMetaMTAMail.php": "56016d144982aa284ac0afc2fd272f65a785af26d85c502782d45fc3cfa07c28",
+    "src/applications/people/editor/PhabricatorUserTransactionEditor.php": "a14a8f21aba7b720bfd35762f3321143e36edadfbfd2e8f3953a8155f1dbccf5",
+    "src/applications/people/governance/service/PhorgeOrganizationService.php": "365186055dab3a4714bcc614ca0081c6cd8ffbc8409cc0ebd278d6ac85412010",
+    "src/applications/people/storage/PhabricatorUser.php": "1b402225b9ecd675cbe752f7b2d1de9bd05807583bcbc15c1ee58bce1e6822eb",
+    "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php": "141dbce810c552ffa0db87591de9bb672ae11ab681877ad6e8d9b648cd64a82a",
+    "src/infrastructure/governance/notification/PhorgeGovernanceNoticeConfigOptions.php": "3e09cdd11434639c0a3dc1f662b808c35ff1de97297cd8cdd67101def59fc42b",
+    "src/infrastructure/governance/notification/PhorgeGovernanceNoticeEventValue.php": "cb85b815cd6a23f90dd3aea5b6db8f3c5615aaa462793a4f78fca2bdca3c898e",
+    "src/infrastructure/governance/notification/PhorgeGovernanceNoticeIdentityScope.php": "2c7c9342ec157ea1c4885cf10c4c67eb92dd979c1530202fb7990c45de593e89",
+    "src/infrastructure/governance/notification/PhorgeGovernanceNoticeMailPolicy.php": "8007d9596df2a9d667ce796f51f2eb770acae1623a955859b260de881de8216d",
+    "src/infrastructure/governance/notification/PhorgeGovernanceNoticeOutbox.php": "33fe75d4657119e3246f85e074537a88ca139a434a546c6436de6898330d0c43",
+    "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php": "0f55cc64b599b0622070a0e9f0d04b7c06546e29d6f282e883d24d033c28d2e0",
+    "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSource.php": "ee52b17f3f3a9c11bbf32ef845314e608806d576d34a2adf11f79aedb49b916e",
+    "src/infrastructure/governance/notification/PhorgeGovernanceNoticeWorker.php": "430ec1065741e1a940eb697dc0fe50a0143b9e030d611666c9da4d556ccd3b42",
+    "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php": "c402b587fecc63af7d558b37b6f3dd7a46d7343bb7d8fa3c34d7a8d35d913225",
+    "src/infrastructure/governance/notification/__tests__/PhorgeGovernanceNoticeEventTestCase.php": "f30ee92839993848651587462159b0dcedac237c80e388ac5783041da239e5d6",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryOrganizationMetadataObservation.php": "fb0876db47a459660b27715043677575852c6a3d4dbfccac62e6c7dcc82248fb",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php": "fe0e6ce000553f0e3cc55679b15a5fcdeac612060c8a9e576352c0e8de7f50b5",
+    "src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php": "4c4694e300f8a0e437348dca8008298ecb25c423685d45173a33a185a289389b",
+    "support/governance/completion/fixture.php": "94f7f74871665d9857f617350c751db229c9f00530f5a6bae3d7e8ac27296795",
+    "support/governance/native-organization/native-worker.php": "a81a367d1d17c78af42c41e061ecb3d42a73b5d2e625b58226a33decc7acddde",
+    "support/governance/native-organization/schema-cases.php": "48f44882f67f707a75e8351ab062c931e0efa36208906b95b1d65090de4b03ab",
+    "support/governance/native-organization/test-native-organization-mysql.php": "3a10bb5e33b25a178401ab6e1e25f9b5c103828fd167b42e2200e8a3ab2a7591",
+    "support/governance/native-organization/workers.php": "61f99f399720b98158113a2e3fb84e9e0497c628ef42005d36956065c62ac29a",
+    "support/governance/notification/README.governance-outbox.md": "0143c5144e8ec1c5f30ea2604f22bea1c58f496a65c542a0b18ab5681bc83aa9",
+    "support/governance/notification/README.notice-raw-orm-aba.md": "57a1602d5487d9c83b38a4bd2f983d925666efb1b6dc349f4418cb983736ee81",
+    "support/governance/notification/README.notice-wire.md": "a48cafad3c0107ec6777d056798bf1a6dfa765ce85dc4cc02900b3a0a5d959ca",
+    "support/governance/notification/governance-notice-cases.php": "4e5be0c97a039afeea9ddca22cf23478b3b549d2a922d349ee2e5ef7f506f177",
+    "support/governance/notification/native-cases.php": "ce0866134d7f7cd73a7124f758c5286016b82f1b3fbeee1095662f6bc5e9716f",
+    "support/governance/notification/notice-admin-grant-cases.php": "6c624a286b4d0e8318420c9cf41c78b72bd63932de13228bc078b08e7a3fbbf4",
+    "support/governance/notification/notice-identity-fence-cases.php": "e577e6bbf016ecabdc815ee476e1bf7d27edd236a4be7eeb571897afd49193a7",
+    "support/governance/notification/notice-raw-orm-aba-cases.php": "1faa20dcfef3abf44e0884fb6e9283c53daaae03caa8fb1331064f842fefc2c9",
+    "support/governance/notification/notice-wire-config-fault.php": "5ac5aeccb776f8440d48d2e4b7ffbe9a6cf6a4558ccfd4441d5a2a93e7c92719",
+    "support/governance/notification/notice-wire-config.php": "67cd161cb6b9599af85475498e299025ee457f2d20c7fa8e125ede65b9914a44",
+    "support/governance/notification/notice-wire-control.php": "ce1c67fbb6daa81b11d3422c8fc089b5f3aefb840e61c660e1aecd16fcfe32d8",
+    "support/governance/notification/notice-wire-diagnostic.php": "b70a4a42406e9388792b920060339203434e5361509c4f08d6b203b26299d173",
+    "support/governance/notification/notice-wire-hold.php": "cf51631609da5661be86eccd33f1bc8577a0d7d05e96239bca82f04c1ef94040",
+    "support/governance/notification/notice-wire-router.php": "5ad48d729187f916daf847e9303eef0793b56db07e3b30344342009e0b72972d",
+    "support/governance/notification/test-notice-wire-boundaries.php": "a60be3c87471b5cd222a1e5d56e865b588866b409268687f9c1f4d33f134d5ad",
+    "support/governance/recovery/organization-live-metadata-cases.php": "9770ed37eef06cd3db7aa72cc619fec7d266d1f8474992ff473dffbaa95bf8da",
+    "tests/governance/private_mail_ci/run_hosted.py": "6ee27ea0a33da0815d05c33f3cd27ed6cb3d2f274fc6dc92f7755a0a17cf47ce",
+    "tests/governance/run.php": "40737f6355907d3fe46a2579a7eb5f9a6953b731577d1046fb46ec742e53d3b8",
+    "tests/governance/test_governance_notice_wire.py": "8fbddfb540e8b9c91d250bea7682b2267f2e45e78a39176c6fda3a1beebfa71c",
+    "tests/governance/test_native_organization.py": "4e3625daa1f7ef678f5e8387b40c3fa62a6a58256b374716d311970c300c5e95",
+    "tests/governance/test_notice_admin_grant_source.py": "e921cd13f729aa1a21e5c6902e7505f398481d4668f1db3951c070f2b7055195",
+    "tests/governance/test_notice_identity_generation.py": "080461c497ba1ddb54230e209fca1b4f13a8d00095e00658416cf28846365c7a",
+    "tests/governance/test_notice_raw_orm_projection.py": "d32a10fffc97d747b24bf4418afdd213280b8119094f0b77432a5a596b46f272",
+    "tests/governance/test_notice_router_diagnostic.py": "5aca76698e9f0e6f7b434dc6c075330983a83ad868865e49515652196d6c8f57",
+    "tests/governance/test_private_notifications.py": "5391cac18db6108de6fedd26c2d22f00474d7f74ab3c50dcc97481d5e867cbc5",
+    "tests/governance/test_recovery_metadata_observation_facts.py": "fee5c810636aed0d639b180eafb4b746e5fb20a1d37a8bb5b6dbaae27d2d46da",
+    "tests/governance/test_recovery_org_lifecycle_gate.py": "8596e1a3132c8886a945e77b524a58b2f4a982a4c59d413da4344465f8a51dff",
+    "tests/governance/test_recovery_org_metadata_gate.py": "8378dad0a017797c125cdc91bafd3a782619f58b7d80d7b57ea9ccb2de7e1b49",
+    "tests/governance/test_recovery_policy_isolation.py": "5cb73237cd74691f22b35194e2a8498f599a644639cbe7f1f0f33906a4fa6e02",
+    "support/governance/notification/notice-admin-wire-control.php": "46a13eeb726e4e6d2f4988cbe691d34775705179baebde40d92aa95abb609061",
+    "support/governance/notification/notice-admin-wire-hold.php": "5bfb535b194e2105c6aefed0d357b279e3ca692bdc184ea6c954cc93bb0b3b1b",
+    "tests/governance/test_notice_native_admin_wire_source.py": "efdde88e5a9b270637ae0e56f3f28322258733d92fa346b3d7f502fa9866dfb6"
+  },
+  "runtime_reference_source_freeze_sha256": "3b8c159a58d5a990106073a315cf0803c01af6ae635c6ac095f38ed5f9d18639",
+  "actual_profile_evidence_sha256": {
+    "full_native934": {
+      "actual_review_sha256": "c146c29736cd8fed240b15639d59b48f28a929798b1874e3cc89898f44d0c0a4",
+      "immutable_manifest_sha256": "c7fff8c1fa5603cb8ac7379e08136628c174006a2df40b57e7f0816a05da0e8e"
+    },
+    "native_admin_grant_focused50": {
+      "actual_review_sha256": "113eac2c94782a52fdee790d57dd9efc1f132c01d1648d173c3408231f3f3ef1",
+      "immutable_manifest_sha256": "89044dacedeaf645187d7485c2bd602b4588d689be25d3ec21ce784fd3d75190"
+    },
+    "truthful_metadata15": {
+      "actual_review_sha256": "beb4b5a9c5b5d2803a7fbdfa61439caced0e3387edf4e58bee16e7a271a94dd2",
+      "immutable_manifest_sha256": "6830185fee974190e5e6511769a24f6fb8b896b9420d1bd8249d477e129f5140"
+    },
+    "notice_raw_DAO_physical_denial": {
+      "actual_review_sha256": "601e75e36d5c4c62a91dfa2ffac9772ff75dfc6e3d3743a67685c8681def3313",
+      "immutable_manifest_sha256": "2609a8e810342d4252b435495ff5466b48e04a334d4e5007f352e03b686559dd"
+    },
+    "notice_source_rollback_retry_SMTP": {
+      "actual_review_sha256": "5e7c717d14e2e5256ab59ea70c709a6d39f5dc5a3af7c86e26426551a139174d",
+      "immutable_manifest_sha256": "fd3bf67797b1c11fd953c6e19adbe44900e6c089e75722d25c2d55d19e838f38"
+    },
+    "native_admin_grant_SMTP_allow": {
+      "actual_review_sha256": "fbc15b5c81bc23899e174a4ce2748151a6b31d4ce44d387cf271e78d9b7664aa",
+      "immutable_manifest_sha256": "44c824e62301d4a0e09ce02b8e9894583720df64d18365bc1c1be57c43c6772e"
+    },
+    "native_admin_grant_physical_revoke": {
+      "actual_review_sha256": "6b963d137916266e319a6e1559f5fd3566a5e43915cfb9e16687adcfd71845de",
+      "immutable_manifest_sha256": "9ec2d5c49112d71e614c865a722f3f9409f114ff3739f088008f805490563c81"
+    }
+  },
+  "proofs_remain_bound_to_their_original_source_heads": true,
+  "docs_successor_is_not_a_new_runtime_run": true,
+  "earlier6157_and8835_results_not_relabelled": true,
+  "all_producers_complete": false,
+  "OFF_ON_proved": false,
+  "restoration_authorized": false,
+  "activation": false,
+  "deployment": false
+}

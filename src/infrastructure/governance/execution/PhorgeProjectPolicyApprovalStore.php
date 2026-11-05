@@ -53,6 +53,7 @@ final class PhorgeProjectPolicyApprovalStore extends Phobject {
     queryfx($this->connection,'INSERT INTO governance_executionaudit (approvalID,operationID,targetPHID,actorPHID,action,dataJSON,createdAt) VALUES (%s,%s,%s,%s,%s,%s,%d)',
       $id,$data['operationID'],$data['targetPHID'],$this->scope->getSnapshot()->getUserPHID(),$action,
       PhorgeProjectExecutionValue::canonical($details),$this->now());
+    PhorgeGovernanceNoticeOutbox::projectApprovalAudit($this->scope,$this->connection->getInsertID());
   }
   public function submit($reason,$ttl) {
     if ($this->scope->getMode()!=='propose') { throw new RuntimeException('project_execution_proposal_mode_invalid'); }

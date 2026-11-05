@@ -1,0 +1,146 @@
+<?php
+/** Fixed owned CLI controls; no HTTP mutation route or caller-selected target. */
+$level=ob_get_level();ob_start();
+set_error_handler(static function($severity,$message,$file,$line){if(!(error_reporting()&$severity)){return false;}
+  throw new ErrorException('notice_wire_control_runtime_error',0,$severity,$file,$line);});
+$root=dirname(__DIR__,3);$proof=null;$guard=null;$installed=false;$result=null;$failed=false;
+try{
+  require_once$root.'/support/runtime/php-version.php';phorge_assert_supported_php_version(PHP_VERSION);
+  if(PHP_SAPI!=='cli'||getenv('PHORGE_GOVERNANCE_ISOLATED_TEST')!=='1'||count($argv)!==2||
+    !in_array($argv[1],array('status','mutate','restore','relay-retry'),true)){
+    throw new RuntimeException('notice_wire_control_action_refused');}
+  foreach(array('PHABRICATOR_ENV','PHORGE_DEPLOYMENT_CONFIG','PHORGE_CONTROL_PLANE')as$key){$v=getenv($key);
+    if($v!==false&&$v!==''){throw new RuntimeException('notice_wire_deployment_refused');}}
+  foreach(array('local.json','deployment.json','ENVIRONMENT')as$name){if(file_exists($root.'/conf/local/'.$name)){
+    throw new RuntimeException('notice_wire_deployment_refused');}}
+  require_once __DIR__.'/notice-wire-config.php';$config=governance_notice_wire_config(getenv('PHORGE_GOVERNANCE_PRIVATE_MAIL_DIR'));
+  $data=$config['base'];$control=governance_notice_wire_json($config['directory'],'notice-control.json',8192);
+  $keys=array_keys($control);sort($keys);
+  if($keys!==array('actor_phid','email_phid','event_id','operation_id','operator_phid','operator_session','owner','unit_id')||
+    ($control['owner']??null)!==$data['owner']||$control['operation_id']!=='notice-wire-unit'||$control['unit_id']!=='notice-wire-unit'||
+    !is_string($control['event_id'])||!preg_match('/\A[a-f0-9]{64}\z/D',$control['event_id'])||
+    !is_string($control['operator_session'])||strlen($control['operator_session'])>256){throw new RuntimeException('notice_wire_control_binding_refused');}
+  foreach(array('actor_phid','operator_phid','email_phid')as$key){$type=$key==='email_phid'?'EADR':'USER';
+    if(!is_string($control[$key])||!preg_match('/\APHID-'.$type.'-[a-zA-Z0-9]{20}\z/D',$control[$key])){
+      throw new RuntimeException('notice_wire_control_binding_refused');}}
+  require_once$root.'/support/runtime/bootstrap.php';phutil_load_library($root.'/src/');
+  if(!hash_equals($data['source_sha256'],hash_file('sha256',$root.'/resources/sql/quickstart.sql'))){throw new RuntimeException('notice_wire_source_refused');}
+  $console=PhutilConsole::newLocalConsole();$console->disableOut();PhutilConsole::setConsole($console);
+  $proof=governance_private_mail_proof($data);governance_notice_wire_install_env($config);$installed=true;
+  $guard=new AphrontWriteGuard(static function()use($proof,$data){
+    $row=$proof->query('SELECT owner_nonce FROM `'.$data['writer']['namespace'].'_governance`.`fixture_guard` WHERE id=1')->fetch_assoc();
+    if(!$row||!hash_equals($data['fixture_nonce'],$row['owner_nonce'])){throw new RuntimeException('notice_wire_owner_changed');}});
+  $meta=(new PhabricatorMetaMTAGorgeOutbox())->establishConnection('w');
+  $event=queryfx_one($meta,'SELECT eventID,state FROM governance_notice_event WHERE eventID=%s',$control['event_id']);
+  if(!$event||$event['eventID']!==$control['event_id']||!in_array($event['state'],array('pending','prepared'),true)){
+    throw new RuntimeException('notice_wire_event_refused');}
+  if($argv[1]==='status'){
+    $rows=queryfx_all($meta,'SELECT mailPHID FROM governance_notice_delivery WHERE eventID=%s ORDER BY recipientPHID',$event['eventID']);
+    if(count($rows)>128){throw new RuntimeException('notice_wire_mapping_budget_refused');}
+    $mails=array();
+    foreach($rows as$row){$mail=(new PhabricatorMetaMTAMail())->loadOneWhere('BINARY phid=BINARY %s',$row['mailPHID']);
+      if(!$mail||$mail->getPHID()!==$row['mailPHID']){throw new RuntimeException('notice_wire_mapped_mail_missing');}
+      if(!in_array($mail->getStatus(),array(PhabricatorMailOutboundStatus::STATUS_QUEUE,PhabricatorMailOutboundStatus::STATUS_SENT,
+        PhabricatorMailOutboundStatus::STATUS_FAIL,PhabricatorMailOutboundStatus::STATUS_VOID,PhabricatorMailOutboundStatus::STATUS_UNKNOWN,PhabricatorMailOutboundStatus::STATUS_EXPIRED),true)){
+        throw new RuntimeException('notice_wire_mail_state_refused');}
+      $snapshot=$mail->getParameters()['gorge.delivery-snapshot']??null;
+      $mails[]=array('status'=>$mail->getStatus(),'quarantined'=>$mail->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===true,
+        'snapshot_present'=>$snapshot!==null,'snapshot_sha256'=>$snapshot===null?null:hash('sha256',phutil_json_encode($snapshot)));
+    }
+    $relay=queryfx_one($meta,'SELECT deliveredEpoch,queueTaskID FROM metamta_gorgeoutbox WHERE eventID=%s','governance.notice/'.$event['eventID'].'/1');
+    $result=array('passed'=>true,'action'=>'status','event_state'=>$event['state'],'mail_count'=>count($rows),'mails'=>$mails,
+      'relay_delivered'=>$relay!==null&&$relay['deliveredEpoch']!==null,
+      'relay_task_present'=>$relay!==null&&$relay['queueTaskID']!==null);
+  }elseif($argv[1]==='relay-retry'){
+    queryfx($meta,'UPDATE metamta_gorgeoutbox SET deliveredEpoch=NULL,nextAttempt=0 WHERE eventID=%s AND deliveredEpoch IS NOT NULL',
+      'governance.notice/'.$event['eventID'].'/1');
+    if($meta->getAffectedRows()!==1){throw new RuntimeException('notice_wire_relay_replay_precondition');}
+    $result=array('passed'=>true,'action'=>'relay-retry','native_event_unchanged'=>true);
+  }else{
+    $restore=$argv[1]==='restore';$case=$config['notice']['case'];
+    $user=(new PhabricatorUser())->loadOneWhere('BINARY phid=BINARY %s',$control['actor_phid']);
+    if(!$user||$user->getPHID()!==$control['actor_phid']){throw new RuntimeException('notice_wire_target_missing');}
+    if(in_array($case,array('config-notice-error','config-private-mail-error'),true)){
+      $path=$config['directory'].'/notice-fault.json';
+      if($restore){$fault=governance_notice_wire_json($config['directory'],'notice-fault.json',1024);
+        if(($fault['owner']??null)!==$data['owner']){throw new RuntimeException('notice_wire_fault_owner_refused');}unlink($path);
+      }else{
+        if(file_exists($path)){throw new RuntimeException('notice_wire_fault_exists');}
+        $raw=json_encode(array('owner'=>$data['owner'],'key'=>$case==='config-notice-error'?'governance.notifications.enabled':'governance.private-mail.enabled'),JSON_THROW_ON_ERROR);
+        $stream=fopen($path,'x');if(!$stream){throw new RuntimeException('notice_wire_fault_write_refused');}
+        try{if(!chmod($path,0600)||fwrite($stream,$raw)!==strlen($raw)||!fflush($stream)){throw new RuntimeException('notice_wire_fault_write_refused');}}
+        finally{fclose($stream);}
+      }
+    }elseif($case==='source-changed'){
+      $conn=$user->establishConnection('w');
+      queryfx($conn,'UPDATE organization_audit SET action=%s WHERE operationID=%s',$restore?'unit.create':'unit.update',$control['operation_id']);
+      if($conn->getAffectedRows()!==1){throw new RuntimeException('notice_wire_source_change_precondition');}
+    }elseif($case==='primary-changed'){
+      $email=(new PhabricatorUserEmail())->loadOneWhere('BINARY phid=BINARY %s',$control['email_phid']);
+      if(!$email||$email->getPHID()!==$control['email_phid']||$email->getUserPHID()!==$user->getPHID()){
+        throw new RuntimeException('notice_wire_email_owner_refused');}
+      $expected=$user->getUsername().'@example.invalid';$changed='changed-'.$expected;
+      if($email->getAddress()!==($restore?$changed:$expected)){throw new RuntimeException('notice_wire_email_change_precondition');}
+      $email->setAddress($restore?$expected:$changed)->save();
+    }elseif($case==='raw-disable-enable'){
+      if($restore||PhabricatorEnv::getEnvConfig('governance.notifications.enabled')!==true||
+        PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled')!==false){throw new RuntimeException('notice_wire_raw_profile_refused');}
+      $conn=$user->establishConnection('w');
+      $primary=queryfx_one($conn,'SELECT CONNECTION_ID() thread,@@server_uuid uuid');
+      $proof->query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+      $observer=$proof->query('SELECT CONNECTION_ID() thread,@@server_uuid uuid,@@autocommit ac')->fetch_assoc();
+      if((string)$primary['thread']===(string)$observer['thread']||$primary['uuid']!==$observer['uuid']||
+        !in_array($observer['ac'],array(1,'1'),true)) {throw new RuntimeException('notice_wire_raw_observer_refused');}
+      $before=queryfx_one($conn,'SELECT generation FROM governance_notice_identityepoch WHERE userPHID=%s',$user->getPHID());
+      $events_before=(int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE objectPHID=%s',new PhabricatorUserTransaction(),$user->getPHID())['n'];
+      $observe=$proof->prepare('SELECT isDisabled FROM `'.$data['writer']['namespace'].'_user`.`user` WHERE id=? AND phid=?');
+      $id=$user->getID();$phid=$user->getPHID();$observe->bind_param('is',$id,$phid);$seen=array();
+      try{foreach(array(1,0)as$value){
+        $target=(new PhabricatorUser())->load($id);
+        if(!$target||$target->getPHID()!==$phid){throw new RuntimeException('notice_wire_raw_target_refused');}
+        $target->setIsDisabled($value)->save();
+        if($conn->isInsideTransaction()){throw new RuntimeException('notice_wire_raw_commit_unproved');}
+        $observe->execute();$rows=$observe->get_result()->fetch_all(MYSQLI_ASSOC);
+        if(count($rows)!==1||(string)$rows[0]['isDisabled']!==(string)$value){throw new RuntimeException('notice_wire_raw_observed_commit_refused');}
+        $seen[]=$value;
+      }}finally{$observe->close();}
+      $after=queryfx_one($conn,'SELECT generation FROM governance_notice_identityepoch WHERE userPHID=%s',$phid);
+      $expected=PhorgeGovernanceNoticeIdentityScope::nextGeneration($before?(string)$before['generation']:'0');
+      $events_after=(int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE objectPHID=%s',new PhabricatorUserTransaction(),$phid)['n'];
+      if($seen!==array(1,0)||!$after||(string)$after['generation']!==$expected||$events_before!==$events_after){
+        throw new RuntimeException('notice_wire_raw_generation_not_proved');}
+    }elseif(in_array($case,array('admin-revoked','between-attempts','disabled','disable-enable'),true)){
+      $sessions=new PhabricatorAuthSessionEngine();
+      $operator=$sessions->loadUserForSession(PhabricatorAuthSession::TYPE_WEB,$control['operator_session']);
+      if(!$operator||$operator->getPHID()!==$control['operator_phid']||!$operator->getIsAdmin()||$operator->getIsDisabled()){
+        throw new RuntimeException('notice_wire_operator_credential_refused');}
+      $_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$control['operator_session'];
+      $request=(new AphrontRequest('fixture.invalid','/people/fixture/'))->setUser($operator)
+        ->setRequestData(array(AphrontRequest::getCSRFTokenName()=>$operator->getCSRFToken()));$request->validateCSRF();
+      $values=(!$restore&&$case==='disable-enable')?array(true,false):array($restore);
+      $type=PhabricatorUserEmpowerTransaction::TRANSACTIONTYPE;
+      if(in_array($case,array('disabled','disable-enable'),true)){
+        $type=PhabricatorUserDisableTransaction::TRANSACTIONTYPE;
+        $values=(!$restore&&$case==='disable-enable')?array(true,false):array(!$restore);
+      }
+      $before=(int)queryfx_one($user->establishConnection('w'),'SELECT COALESCE(MAX(id),0) n FROM %R WHERE objectPHID=%s',new PhabricatorUserTransaction(),$user->getPHID())['n'];
+      foreach($values as$value){
+        $target=(new PhabricatorUser())->load($user->getID());
+        (new PhabricatorUserTransactionEditor())->setActor($operator)->setContentSourceFromRequest($request)->setCancelURI('/people/')
+          ->applyTransactions($target,array((new PhabricatorUserTransaction())->setTransactionType($type)->setNewValue($value)));
+      }
+      $added=(int)queryfx_one($user->establishConnection('w'),'SELECT COUNT(*) n FROM %R WHERE objectPHID=%s AND transactionType=%s AND id>%d',
+        new PhabricatorUserTransaction(),$user->getPHID(),$type,$before)['n'];
+      if($added!==count($values)){throw new RuntimeException('notice_wire_actual_user_event_missing');}
+    }else{throw new RuntimeException('notice_wire_no_mutation_for_case');}
+    $result=array('passed'=>true,'action'=>$argv[1],'case'=>$case,'native_mail_not_prepared_by_control'=>true);
+  }
+}catch(Throwable$error){$failed=true;$result=array('passed'=>false,'error_type'=>get_class($error),
+  'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());}
+finally{
+  try{if($guard!==null){$guard->dispose();}if($installed){LiskDAO::closeAllConnections();}if($proof!==null){$proof->close();}}
+  catch(Throwable$error){$failed=true;$result=array('passed'=>false,'error_type'=>'RuntimeException','cleanup_failed'=>true);}
+}
+$output='';while(ob_get_level()>$level){$output=ob_get_clean().$output;}restore_error_handler();
+if($output!==''){$failed=true;$result=array('passed'=>false,'unexpected_native_output_bytes'=>strlen($output),'unexpected_native_output_sha256'=>hash('sha256',$output));}
+echo json_encode($result,JSON_THROW_ON_ERROR)."\n";exit($failed?1:0);

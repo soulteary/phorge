@@ -265,6 +265,17 @@ final class PhabricatorUser
   }
 
   public function update() {
+    // Preserve canonical final-disabled emergency writes before notice config or storage.
+    if(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled($this)){return $this->updateWithRecoveryGuard();}
+    if(PhorgeGovernanceNoticeIdentityScope::definitelyIneligible($this)){return $this->updateWithRecoveryGuard();}
+    if(!PhorgeGovernanceNoticeOutbox::enabled()){return $this->updateWithRecoveryGuard();}
+    $notice=PhorgeGovernanceNoticeIdentityScope::begin($this);
+    try{$result=$this->updateWithRecoveryGuard();$notice->finish();return$result;}
+    catch(Throwable$error){$notice->abort($error);}
+    finally{$notice->close();}
+  }
+
+  private function updateWithRecoveryGuard() {
     if(PhorgeGovernanceRecoveryGuard::isEmergencyDisabled($this)||!PhorgeGovernanceRecoveryGuard::enabled()){
       return parent::update();
     }

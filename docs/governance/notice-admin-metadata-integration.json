@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "parents": [
+    "43ebc3b4b844a90ead4477526d11488db7173180",
+    "a9d0ad31ee54eb35ae5e3b9c5d329b30ceef842d"
+  ],
+  "scope": "Combine actual-tested native administrator-grant candidate with truthful metadata schema2 observation.",
+  "native_inventory_actual": {
+    "passed": true,
+    "sources": 123,
+    "links": 115,
+    "runtime_files": 121,
+    "activation_blocked": true,
+    "authority_proof": false
+  },
+  "metadata_host_tests_actual": 2,
+  "merged_runtime_executed": false,
+  "expected_unrun": {
+    "pure_methods": 261,
+    "pure_classes": 43,
+    "normal_SQL": 934
+  },
+  "prior_43ebc_261_50_and_a9_250_15_are_separate": true,
+  "grant_revoke_fence_proved": false,
+  "all_sources_complete": false,
+  "activation_allowed": false,
+  "restoration_authorized": false,
+  "deployment": false
+}

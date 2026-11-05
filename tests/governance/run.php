@@ -47,6 +47,7 @@ try {
     'PhorgeProjectExecutionTestCase',
     'PhorgeProjectPolicyFailureTestCase',
     'PhorgePrivateMailPolicyTestCase',
+    'PhorgeGovernanceNoticeEventTestCase',
     'PhorgeLegalpadVerificationTestCase',
     'PhorgeRecoveryNativeAccountFactsTestCase',
     'PhorgeRecoveryNativeWebFactsTestCase',

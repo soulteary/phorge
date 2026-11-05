@@ -292,6 +292,8 @@ final class PhorgeOrganizationService extends Phobject {
       'beforeJSON,afterJSON,createdAt) VALUES (%s,%s,%s,%s,%ns,%s,%s,%d)',
       $this->table('audit'), $operation, $this->actor(), $action, $unit, $subject,
       phutil_json_encode($before), phutil_json_encode($after), $this->now());
+    // Borrow this exact business transaction; a relay is never committed early.
+    PhorgeGovernanceNoticeOutbox::organizationAudit($this, $this->connection->getInsertID());
   }
 
   private function record($operation, $digest, array $versions) {

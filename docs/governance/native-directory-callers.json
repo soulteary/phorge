@@ -55,7 +55,7 @@
       "path": "src/applications/people/storage/PhabricatorUser.php",
       "symbol": "PhabricatorUser",
       "kind": "native-account-source",
-      "sha256": "b8a483542e293bd03584aaa92858aa89ca657fef1402f7681c303866908defb6",
+      "sha256": "1b402225b9ecd675cbe752f7b2d1de9bd05807583bcbc15c1ee58bce1e6822eb",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -220,7 +220,7 @@
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
       "symbol": "PhorgeOrganizationService",
       "kind": "candidate-runtime-source",
-      "sha256": "131c8aa22916b6c5ab199eeb4228d39354d5e8f1794fe52e48aa4371895559d5",
+      "sha256": "365186055dab3a4714bcc614ca0081c6cd8ffbc8409cc0ebd278d6ac85412010",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -682,7 +682,7 @@
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
       "symbol": "PhorgePrivateMailPolicy",
       "kind": "current-recipient-private-email-policy",
-      "sha256": "1e5bd196f1280c7d526f694723addc6ecb713209d0fccc2fbdaa431c772e2206",
+      "sha256": "c402b587fecc63af7d558b37b6f3dd7a46d7343bb7d8fa3c34d7a8d35d913225",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -704,7 +704,7 @@
       "path": "src/applications/metamta/storage/PhabricatorMetaMTAMail.php",
       "symbol": "PhabricatorMetaMTAMail",
       "kind": "immutable-native-mail-and-attempt-gate",
-      "sha256": "a8f572501fb6c76f83ac2c30c891a16003c23ab15f9c2d38e26b4ad854983a5b",
+      "sha256": "56016d144982aa284ac0afc2fd272f65a785af26d85c502782d45fc3cfa07c28",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -979,7 +979,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php",
       "symbol": "PhorgeRecoveryStopService",
       "kind": "stop-classification-no-recovery-authority",
-      "sha256": "ab85e7fb1705bac4a88a9cc6832f3912952a4a5e6d0a7ca747d5cbacd25c1527",
+      "sha256": "fe0e6ce000553f0e3cc55679b15a5fcdeac612060c8a9e576352c0e8de7f50b5",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1045,7 +1045,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
       "symbol": "PhorgeProjectPolicyApprovalStore",
       "kind": "current-native-ticket-store-error-boundary",
-      "sha256": "7dcb8bfc0a7ed45785a10b8652bf943bf9a4a870669401d3a2de92d532651903",
+      "sha256": "141dbce810c552ffa0db87591de9bb672ae11ab681877ad6e8d9b648cd64a82a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1206,6 +1206,94 @@
       "authority_proof": false
     },
     {
+      "id": "NOTICE.VALUE",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeEventValue.php",
+      "symbol": "PhorgeGovernanceNoticeEventValue",
+      "kind": "metadata-only-value-no-authority",
+      "sha256": "cb85b815cd6a23f90dd3aea5b6db8f3c5615aaa462793a4f78fca2bdca3c898e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.OUTBOX",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeOutbox.php",
+      "symbol": "PhorgeGovernanceNoticeOutbox",
+      "kind": "same-source-transaction-qualified-outbox",
+      "sha256": "33fe75d4657119e3246f85e074537a88ca139a434a546c6436de6898330d0c43",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.SOURCE",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSource.php",
+      "symbol": "PhorgeGovernanceNoticeSource",
+      "kind": "committed-audit-reference-not-authority",
+      "sha256": "ee52b17f3f3a9c11bbf32ef845314e608806d576d34a2adf11f79aedb49b916e",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.POLICY",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeMailPolicy.php",
+      "symbol": "PhorgeGovernanceNoticeMailPolicy",
+      "kind": "current-recipient-and-source-egress-filter",
+      "sha256": "8007d9596df2a9d667ce796f51f2eb770acae1623a955859b260de881de8216d",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.WORKER",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeWorker.php",
+      "symbol": "PhorgeGovernanceNoticeWorker",
+      "kind": "committed-native-notice-fanout",
+      "sha256": "430ec1065741e1a940eb697dc0fe50a0143b9e030d611666c9da4d556ccd3b42",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.CONFIG",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeConfigOptions.php",
+      "symbol": "PhorgeGovernanceNoticeConfigOptions",
+      "kind": "default-off-notice-control",
+      "sha256": "3e09cdd11434639c0a3dc1f662b808c35ff1de97297cd8cdd67101def59fc42b",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.SCHEMA",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php",
+      "symbol": "PhorgeGovernanceNoticeSchemaSpec",
+      "kind": "native-notice-storage-contract",
+      "sha256": "0f55cc64b599b0622070a0e9f0d04b7c06546e29d6f282e883d24d033c28d2e0",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.IDENTITY",
+      "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeIdentityScope.php",
+      "symbol": "PhorgeGovernanceNoticeIdentityScope",
+      "kind": "notice-only-native-identity-generation-no-credential-authority",
+      "sha256": "2c7c9342ec157ea1c4885cf10c4c67eb92dd979c1530202fb7990c45de593e89",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
       "id": "RECOVERY.ORG.PhorgeRecoveryMetadataGrantDescription",
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryMetadataGrantDescription.php",
       "symbol": "PhorgeRecoveryMetadataGrantDescription",
@@ -1255,6 +1343,17 @@
       "symbol": "PhorgeRecoveryRestorePolicySource",
       "kind": "isolated-bounded-organization-source-not-restore-authority",
       "sha256": "140dceff79dab8cf05a5a85e9b8e4798ba87d8065d8a956de1005bb5c1d084f6",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "NOTICE.NATIVE.ADMIN.EDITOR",
+      "path": "src/applications/people/editor/PhabricatorUserTransactionEditor.php",
+      "symbol": "PhabricatorUserTransactionEditor",
+      "kind": "native-admin-grant-only-outbox-no-role-authority",
+      "sha256": "a14a8f21aba7b720bfd35762f3321143e36edadfbfd2e8f3953a8155f1dbccf5",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -2007,6 +2106,126 @@
       "basis": "Isolated mechanical producer reference only; no recovery permit or exhaustive closure."
     },
     {
+      "id": "NOTICE-LINK-01",
+      "from_id": "NATIVE.PhorgeOrganizationService",
+      "to_id": "NOTICE.OUTBOX",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-02",
+      "from_id": "POLICY.ERROR.STORE",
+      "to_id": "NOTICE.OUTBOX",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-03",
+      "from_id": "RECOVERY.PhorgeRecoveryStopService",
+      "to_id": "NOTICE.OUTBOX",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-04",
+      "from_id": "NOTICE.OUTBOX",
+      "to_id": "NOTICE.VALUE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-05",
+      "from_id": "NOTICE.OUTBOX",
+      "to_id": "NATIVE.PhorgeGovernanceNativeIdentitySource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-06",
+      "from_id": "NOTICE.WORKER",
+      "to_id": "NOTICE.POLICY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-07",
+      "from_id": "NOTICE.WORKER",
+      "to_id": "MAIL.OUTBOUND",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-08",
+      "from_id": "NOTICE.WORKER",
+      "to_id": "NOTICE.SOURCE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-09",
+      "from_id": "NOTICE.POLICY",
+      "to_id": "NOTICE.SOURCE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-10",
+      "from_id": "NOTICE.POLICY",
+      "to_id": "NATIVE.PhorgeGovernanceNativeNoncredentialIdentitySource",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-11",
+      "from_id": "NATIVE.PhorgePrivateMailPolicy",
+      "to_id": "NOTICE.POLICY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-12",
+      "from_id": "NOTICE.SOURCE",
+      "to_id": "NOTICE.VALUE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit source reference in the isolated default-off governance-notice candidate; not authority or runtime proof."
+    },
+    {
+      "id": "NOTICE-LINK-13",
+      "from_id": "AUTH.USER.DAO",
+      "to_id": "NOTICE.IDENTITY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit reviewed notice-only same-User transaction generation dependency; not an authorization or activation proof."
+    },
+    {
+      "id": "NOTICE-LINK-14",
+      "from_id": "NOTICE.IDENTITY",
+      "to_id": "NOTICE.OUTBOX",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit reviewed notice-only same-User transaction generation dependency; not an authorization or activation proof."
+    },
+    {
+      "id": "NOTICE-LINK-15",
+      "from_id": "NOTICE.POLICY",
+      "to_id": "NOTICE.IDENTITY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Explicit reviewed notice-only same-User transaction generation dependency; not an authorization or activation proof."
+    },
+    {
       "id": "RECOVERY-ORG-LINK-01",
       "from_id": "RECOVERY.ORG.PhorgeRecoveryOrganizationProducerDAO",
       "to_id": "RECOVERY.ORG.PhorgeRecoveryOrganizationProducerFence",
@@ -2045,6 +2264,22 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Bounded isolated source reference only; no all-family closure, recovery permit or activation."
+    },
+    {
+      "id": "NOTICE-LINK-16",
+      "from_id": "NOTICE.NATIVE.ADMIN.EDITOR",
+      "to_id": "NOTICE.OUTBOX",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Native USER grant transaction producer reference only; not role or activation authority."
+    },
+    {
+      "id": "NOTICE-LINK-17",
+      "from_id": "NOTICE.SOURCE",
+      "to_id": "RECOVERY.NATIVE.USER.TRANSACTION",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Native USER grant transaction producer reference only; not role or activation authority."
     }
   ],
   "scan": {
@@ -2135,7 +2370,7 @@
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
-        "sha256": "131c8aa22916b6c5ab199eeb4228d39354d5e8f1794fe52e48aa4371895559d5"
+        "sha256": "365186055dab3a4714bcc614ca0081c6cd8ffbc8409cc0ebd278d6ac85412010"
       },
       {
         "path": "src/applications/people/governance/service/PhorgeOrganizationTransferAdapter.php",
@@ -2263,7 +2498,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",
-        "sha256": "7dcb8bfc0a7ed45785a10b8652bf943bf9a4a870669401d3a2de92d532651903"
+        "sha256": "141dbce810c552ffa0db87591de9bb672ae11ab681877ad6e8d9b648cd64a82a"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyFailure.php",
@@ -2346,12 +2581,44 @@
         "sha256": "affcc1461b7591e922c5cd93c48132dff0868925defd8d3ba0ecd649a4a11344"
       },
       {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeConfigOptions.php",
+        "sha256": "3e09cdd11434639c0a3dc1f662b808c35ff1de97297cd8cdd67101def59fc42b"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeEventValue.php",
+        "sha256": "cb85b815cd6a23f90dd3aea5b6db8f3c5615aaa462793a4f78fca2bdca3c898e"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeIdentityScope.php",
+        "sha256": "2c7c9342ec157ea1c4885cf10c4c67eb92dd979c1530202fb7990c45de593e89"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeMailPolicy.php",
+        "sha256": "8007d9596df2a9d667ce796f51f2eb770acae1623a955859b260de881de8216d"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeOutbox.php",
+        "sha256": "33fe75d4657119e3246f85e074537a88ca139a434a546c6436de6898330d0c43"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php",
+        "sha256": "0f55cc64b599b0622070a0e9f0d04b7c06546e29d6f282e883d24d033c28d2e0"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeSource.php",
+        "sha256": "ee52b17f3f3a9c11bbf32ef845314e608806d576d34a2adf11f79aedb49b916e"
+      },
+      {
+        "path": "src/infrastructure/governance/notification/PhorgeGovernanceNoticeWorker.php",
+        "sha256": "430ec1065741e1a940eb697dc0fe50a0143b9e030d611666c9da4d556ccd3b42"
+      },
+      {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
         "sha256": "79a3b2df1ab7b37ece283ec47903f7a24b33d1ffe0d6015197be8b8ea8d9e656"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-        "sha256": "1e5bd196f1280c7d526f694723addc6ecb713209d0fccc2fbdaa431c772e2206"
+        "sha256": "c402b587fecc63af7d558b37b6f3dd7a46d7343bb7d8fa3c34d7a8d35d913225"
       },
       {
         "path": "src/infrastructure/governance/notification/PhorgePrivateMailSourcePendingException.php",
@@ -2499,7 +2766,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php",
-        "sha256": "ab85e7fb1705bac4a88a9cc6832f3912952a4a5e6d0a7ca747d5cbacd25c1527"
+        "sha256": "fe0e6ce000553f0e3cc55679b15a5fcdeac612060c8a9e576352c0e8de7f50b5"
       }
     ]
   }

@@ -123,6 +123,7 @@ final class PhorgeRecoveryStopService extends Phobject {
           'requestDigest,eventDigest,createdAt) VALUES (%s,%s,%s,%s,%s,%s)',
           $request['native_disable_transaction'], $request['operation_id'], $actor->getUserPHID(),
           $digest, $source['event'], $now);
+        PhorgeGovernanceNoticeOutbox::recoveryStoppedAudit($conn,$actor,$request['native_disable_transaction']);
       }
       // Audit insertion can wait or fail. Recheck both physical rows, the native
       // stop source and the actor credential before the owned commit.

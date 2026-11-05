@@ -118,6 +118,13 @@ final class PhabricatorChineseTranslation
       'Private notifications require native Gorge delivery.' => '私有通知需要使用 Gorge 原生投递。',
       'Private notification is no longer deliverable.' => '此私有通知已无法投递。',
       'Private notification' => '私有通知',
+      'Private governance notification' => '私有治理通知',
+      'Governance Notifications' => '治理通知',
+      'Private notices for committed governance records.' => '已提交治理记录的私有通知。',
+      'Enable committed governance notices.' => '启用已提交治理记录的通知。',
+      'Disabled by default. Notices do not grant organization, project or recovery authority.' => '默认关闭。通知不授予组织、项目或恢复权限。',
+      'Invalid governance notification event.' => '治理通知事件无效。',
+
       'Sign in to view this notification.' => '请登录后查看此通知。',
       'Compound Approval Requested' => '复合变更审批已提交',
       'Approval ID: %s' => '审批编号：%s',

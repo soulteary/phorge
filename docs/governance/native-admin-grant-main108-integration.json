@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "parents": [
+    "b8c607be0263375ef15db28897005ade1fd3c7b0",
+    "c8400a9553dec992bc5f6f9169f3e38988342c26"
+  ],
+  "scope": "Native administrator-grant notice candidate combined with protected main48c and current PR107 acceptance documentation.",
+  "automatic_merge_conflicts": false,
+  "production_source_byte_exact_admin_grant_parent": true,
+  "actual_runtime_executed": false,
+  "expected_unrun": {
+    "pure_methods": 261,
+    "pure_classes": 43,
+    "focused_SQL_checks": 50,
+    "normal_SQL_checks_separate": 934
+  },
+  "historical_receipts_relabelled_current": false,
+  "older_6157_and_8835_records_remain_separate": true,
+  "main_policy_RC_fix_preserved": true,
+  "all_sources_complete": false,
+  "activation_allowed": false,
+  "restoration_authorized": false,
+  "deployment": false
+}

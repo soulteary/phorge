@@ -1,0 +1,44 @@
+{
+  "component_parents": [
+    "0c23d448a5650a93c26407d60105588c71c69e66",
+    "f5bb422a8f857b55d80158090415f0ee8d9a19fd"
+  ],
+  "scope": "source-only explicit union; not runtime or activation acceptance",
+  "source_derived": {
+    "pure_classes": 43,
+    "pure_methods": 257,
+    "normal_native_SQL_obligations": 934,
+    "normal_registered_workers": 41,
+    "reviewed_migrations": 37,
+    "patch_ledger_entries": 1574,
+    "restored_native_tables": 546
+  },
+  "focused_org_profiles_retained": true,
+  "known_derived_parent_leaf_changes": [
+    {
+      "parent": "orgf5",
+      "path": [
+        "schema_tests",
+        "candidate_tables_compared"
+      ],
+      "old": 17,
+      "union": 20
+    }
+  ],
+  "native_classmap_rebuilt_on_union": false,
+  "supported_pure_executed_on_union": false,
+  "SQL_executed_on_union": false,
+  "physical_executed_on_union": false,
+  "OFF_ON_proved": false,
+  "all_producers_complete": false,
+  "production_activation": false,
+  "deployment": false,
+  "remaining": [
+    "supported cold native map rebuild and exact union comparison",
+    "supported 257-method pure run",
+    "fresh normal934 and focused organization component validation on union",
+    "current-main merge reconciliation before PR107 update",
+    "fresh exact-head CI and isolated physical profiles; component evidence remains separate",
+    "activation lifecycle and remaining producer/recipient physical matrix"
+  ]
+}

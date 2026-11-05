@@ -5,7 +5,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
   // Gorge independently bounds the complete encoded Conduit request.
   const MAX_PHYSICAL_MESSAGE_BYTES = 10485760;
   public static function enabled(){
-    $value=PhabricatorEnv::getEnvConfigIfExists('governance.private-mail.enabled',false);
+    $value=PhabricatorEnv::getEnvConfig('governance.private-mail.enabled');
     if(!is_bool($value)){throw new RuntimeException('private_mail_control_unknown');}
     return $value;
   }
@@ -17,6 +17,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
   }
   public static function purpose(PhabricatorMetaMTAMail $mail){
     $producer=$mail->getPrivateMailPolicyValue('governance.mail-producer');
+    if($producer===PhorgeGovernanceNoticeWorker::class){return 'governance-notice';}
     if($producer==='LegalpadDocumentSignController'&&$mail->getPrivateMailPolicyValue('governance.mail-flow')!=='legalpad.signature'){return 'unsupported-signature';}
     if($producer==='PhabricatorAuthRegisterController' ||
       ($producer==='PhabricatorUserApproveTransaction'&&$mail->getPrivateMailPolicyValue('governance.mail-flow')==='account.approved.admin')){return 'admin-notice';}
@@ -24,7 +25,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
   }
   public static function isLinkOnly(PhabricatorMetaMTAMail $mail){
     return self::enabled()&&$mail->getMessageType()===PhabricatorMailEmailMessage::MESSAGETYPE&&
-      in_array(self::purpose($mail),array('business','private-error','admin-notice'),true);
+      in_array(self::purpose($mail),array('business','private-error','admin-notice','governance-notice'),true);
   }
   public static function authorize(PhabricatorMetaMTAMail $mail){
     if($mail->getMessageType()!==PhabricatorMailEmailMessage::MESSAGETYPE||!self::enabled()){return true;}
@@ -45,6 +46,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
   private static function authorizeInCurrentCache(PhabricatorMetaMTAMail $mail){
     if($mail->getPrivateMailPolicyValue('governance.delivery-quarantined',false)!==false){return false;}
     $purpose=self::purpose($mail);
+    if($purpose==='governance-notice'){return PhorgeGovernanceNoticeMailPolicy::authorize($mail);}
     if(in_array($purpose,array('security','admin-notice'),true)){return self::authorizeSecurityFlow($mail);}
     if(!in_array($purpose,array('business','private-error'),true)||$mail->getRawToAddresses()){return false;}
     $recipients=array_values(array_unique(array_merge($mail->getToPHIDs(),$mail->getCcPHIDs())));
@@ -99,6 +101,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
       ->setHTMLBody(null)->setAttachments(array())->setHeaders(array());
   }
   private static function linkPath(PhabricatorMetaMTAMail $mail){
+    if(self::purpose($mail)==='governance-notice'){return PhorgeGovernanceNoticeMailPolicy::path($mail);}
     if(self::purpose($mail)==='admin-notice'){return '/people/query/approval/';}
     return self::purpose($mail)==='business'?'/object/'.$mail->getRelatedPHID().'/':'/';
   }

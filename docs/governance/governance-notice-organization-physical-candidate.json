@@ -1,0 +1,31 @@
+{
+  "baseline": "5f5719efbc3a27826af47be365c54749b8136c4f",
+  "fixture_component": "a93004b38682ffe7d9f716805dc0cb669ec9c4fd",
+  "scope": "source-only fixture integration onto verified notice/organization product union",
+  "production_source_changed": false,
+  "schema_or_catalog_changed": false,
+  "source_derived": {
+    "pure_classes": 43,
+    "pure_methods": 257,
+    "normal_SQL_obligations": 934
+  },
+  "fixture_paths_byte_exact_to_component": [
+    "support/governance/notification/README.notice-wire.md",
+    "support/governance/notification/notice-wire-config.php",
+    "support/governance/notification/notice-wire-control.php",
+    "support/governance/notification/notice-wire-hold.php",
+    "support/governance/notification/test-notice-wire-boundaries.php"
+  ],
+  "current_candidate_native_or_physical_executed": false,
+  "historical_component_physical_only": {
+    "raw_DAO_ABA_denial": true,
+    "source_rollback_retry_SMTP": true
+  },
+  "current_union_physical_proved": false,
+  "OFF_ON_proved": false,
+  "rollback_daemon_interleaving_proved": false,
+  "negative_submit_daemon_proved": false,
+  "all_producers_complete": false,
+  "production_activation": false,
+  "deployment": false
+}

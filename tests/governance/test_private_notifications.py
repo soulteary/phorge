@@ -6,6 +6,40 @@ spec=importlib.util.spec_from_file_location('private_mail_gate',ROOT/'scripts/go
 gate=importlib.util.module_from_spec(spec);spec.loader.exec_module(gate)
 class PrivateNotificationEvidenceTests(unittest.TestCase):
     def setUp(self):self.data=gate.load(ROOT/'docs/governance/private-notification-producers.json')
+    def test_notice_schema_uses_variable_binary_not_native_fixed_binary(self):
+        spec=(ROOT/'src/infrastructure/governance/notification/PhorgeGovernanceNoticeSchemaSpec.php').read_text()
+        ddl=(ROOT/'resources/sql/autopatches/20261104.metamta.governancenotice.sql').read_text()
+        def matches(source):
+            return source.count("=>'varbytes64'")==6 and "=>'bytes64'" not in source
+        self.assertTrue(matches(spec))
+        self.assertEqual(5,ddl.count('VARBINARY(64) NOT NULL')-1)  # Exclude native recipient PHID.
+        self.assertIn("'mailPHID'=>'phid?'",spec)
+        self.assertIn('mailPHID VARBINARY(64) DEFAULT NULL',ddl)
+        for field in ('eventID','operationDigest','actorDigest','metadataDigest','userPHID'):
+            old=spec.replace("'"+field+"'=>'varbytes64'","'"+field+"'=>'bytes64'",1)
+            self.assertFalse(matches(old))
+    def test_notice_failure_projection_never_exports_raw_query_or_reason(self):
+        source=ROOT/'support/governance/notification/governance-notice-cases.php'
+        code=r"""require $argv[1];$secret='SYNTHETIC_PRIVATE_DIAGNOSTIC_SENTINEL';
+        $pattern=governance_notice_insert_wait_pattern();
+        $queries=array('INSERT INTO owned.governance_notice_event VALUES (1)',
+          'SELECT id INTO gate_id FROM owned.notice_fixture_gate WHERE id=1 FOR UPDATE',
+          'SELECT id FROM owned.other_gate FOR UPDATE','INSERT INTO owned.other_event VALUES (1)',
+          'SELECT id FROM owned.notice_fixture_gate_extra FOR UPDATE','SELECT * FROM governance_notice_event');
+        $matches=array_map(static function($q)use($pattern){return preg_match($pattern,$q)===1;},$queries);
+        if($matches!==array(true,true,false,false,false,false)){exit(2);}
+        $rows=array(governance_notice_wait_projection('SELECT id INTO gate_id FROM notice_fixture_gate WHERE '.$secret,null),
+          governance_notice_wait_projection(false,array('status'=>'rejected','reason'=>$secret)),
+          governance_notice_wait_projection(null,array('status'=>'failed','error_type'=>'RuntimeException','source_file'=>'fixture.php','source_line'=>44,'message'=>$secret)),
+          governance_notice_wait_projection('INSERT INTO qualified.governance_notice_event VALUES ('.$secret.')',array('status'=>'committed')));
+        echo json_encode($rows,JSON_THROW_ON_ERROR);"""
+        result=subprocess.run(['php','-r',code,str(source)],capture_output=True,text=True)
+        self.assertEqual(0,result.returncode);self.assertEqual('',result.stderr)
+        self.assertNotIn('SYNTHETIC_PRIVATE_DIAGNOSTIC_SENTINEL',result.stdout)
+        rows=json.loads(result.stdout)
+        self.assertEqual(['gate_select','missing','idle','notice_insert'],[r['query_kind']for r in rows])
+        self.assertEqual('other_fixed_refusal',rows[1]['rejection_kind'])
+        self.assertEqual(44,rows[2]['source_line']);self.assertNotIn('message',rows[2])
     def test_reviewed_inventory_remains_partial(self):
         result=gate.validate(self.data)
         self.assertTrue(result['passed']);self.assertFalse(result['smtp_proved']);self.assertTrue(result['activation_blocked'])
@@ -52,7 +86,7 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
                 result=subprocess.run(base+extra,capture_output=True,text=True)
                 self.assertEqual(expected,result.returncode)
                 if expected==0:
-                    value=json.loads(result.stdout);self.assertEqual(897,value['native_checks'])
+                    value=json.loads(result.stdout);self.assertEqual(934,value['native_checks'])
                     self.assertIs(value['smtp_proved'],False)
             index=base.index('--render-binary');without=base[:index]+base[index+2:]
             missing=subprocess.run(without+['--measurement-source-revision','a'*40],capture_output=True,text=True)
