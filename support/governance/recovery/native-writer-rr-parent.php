@@ -42,7 +42,7 @@ function governance_native_rr_sessions_ended($before,$after){
 final class GovernanceNativeRRWorker {
   // Actual clean 9a010 Linux/arm64 build and self-pidfd probe, not a TERM/KILL proof.
   private const OWNER_BINARY_SHA256='b4656c9c5cd11a0ccede60eee41ee3f22cc6c3f9f9f97908b0187cc3547c74b4';
-  private $directory;private $stat;private $owner;private $process;private $exitCode;
+  private $ciProfile;private $directory;private $stat;private $owner;private $process;private $exitCode;
   private $config;private $control;private $baseline;private $identity;private $ready;private $closed=false;
   private function __construct(){}
   private function __clone(){}
@@ -53,7 +53,10 @@ final class GovernanceNativeRRWorker {
   public static function create(mysqli$control){
     if(self::OWNER_BINARY_SHA256===null){throw new RuntimeException('native_rr_owner_artifact_not_pinned');}
     if(realpath(dirname(__DIR__,3))!=='/tmp/governance-src'){throw new RuntimeException('native_rr_fixed_runtime_root_refused');}
-    $self=new self();$self->control=$control;$self->owner=bin2hex(random_bytes(32));$self->directory=sys_get_temp_dir().'/governance-native-rr-mdl-'.bin2hex(random_bytes(12));
+    $self=new self();$profile=getenv('PHORGE_GOVERNANCE_NATIVE_RR_EXECUTION_PROFILE');$ci=getenv('PHORGE_GOVERNANCE_NATIVE_RR_CI_CONTROL');
+    if($profile!==false&&$profile!==''){if($profile!=='isolated-native-RR21-linux-amd64-v1'){throw new RuntimeException('native_rr_execution_profile_unknown');}require_once __DIR__.'/native-writer-rr-ci-profile.php';$self->ciProfile=GovernanceNativeRRCIProfile::fromEnvironment();}
+    elseif($ci!==false&&$ci!==''){throw new RuntimeException('native_rr_unselected_CI_control_refused');}
+    $self->control=$control;$self->owner=bin2hex(random_bytes(32));$self->directory=sys_get_temp_dir().'/governance-native-rr-mdl-'.bin2hex(random_bytes(12));
     if(!mkdir($self->directory,0700)){throw new RuntimeException('native_rr_parent_directory_failed');}$self->stat=lstat($self->directory);
     $GLOBALS['governance_native_rr_workers'][]=$self;
     governance_native_rr_write($self->directory,'owner',$self->owner,$self->owner,$self->stat['dev'],$self->stat['ino']);
@@ -61,10 +64,12 @@ final class GovernanceNativeRRWorker {
   }
   private function owned(){governance_native_rr_directory($this->directory,$this->stat['dev'],$this->stat['ino']);if(!hash_equals($this->owner,governance_native_rr_read($this->directory,'owner',64))){throw new RuntimeException('native_rr_parent_owner_changed');}}
   private function ownerCommand($action){
-    $this->owned();$binary='/tmp/governance-bin/native-rr-process-owner';
-    if(!is_string(self::OWNER_BINARY_SHA256)||is_link($binary)||!is_file($binary)||!is_executable($binary)||!hash_equals(self::OWNER_BINARY_SHA256,hash_file('sha256',$binary))){throw new RuntimeException('native_rr_owner_artifact_not_pinned');}
-    if(!in_array(PHP_BINARY,array('/usr/local/bin/php','/usr/bin/php'),true)){throw new RuntimeException('native_rr_php_binary_profile_refused');}
-    $request=array('action'=>$action,'directory'=>$this->directory,'owner'=>$this->owner,'dev'=>$this->stat['dev'],'ino'=>$this->stat['ino'],'targets'=>$action==='probe'?array():array(array('binary'=>PHP_BINARY,'args'=>array('/tmp/governance-src/support/governance/recovery/native-writer-rr-worker.php',$this->directory))));
+    $this->owned();$php=PHP_BINARY;
+    if($this->ciProfile){$binary=$this->ciProfile->getBinary();$php=$this->ciProfile->getPHP();}
+    else{$binary='/tmp/governance-bin/native-rr-process-owner';
+      if(!is_string(self::OWNER_BINARY_SHA256)||is_link($binary)||!is_file($binary)||!is_executable($binary)||!hash_equals(self::OWNER_BINARY_SHA256,hash_file('sha256',$binary))){throw new RuntimeException('native_rr_owner_artifact_not_pinned');}
+      if(!in_array(PHP_BINARY,array('/usr/local/bin/php','/usr/bin/php'),true)){throw new RuntimeException('native_rr_php_binary_profile_refused');}}
+    $request=array('action'=>$action,'directory'=>$this->directory,'owner'=>$this->owner,'dev'=>$this->stat['dev'],'ino'=>$this->stat['ino'],'targets'=>$action==='probe'?array():array(array('binary'=>$php,'args'=>array('/tmp/governance-src/support/governance/recovery/native-writer-rr-worker.php',$this->directory))));
     $pipes=array();$process=proc_open(array($binary),array(0=>array('pipe','r'),1=>array('pipe','w'),2=>array('pipe','w')),$pipes,$this->directory,array('PATH'=>'/usr/bin:/bin'));
     if(!is_resource($process)){throw new RuntimeException('native_rr_owner_start_failed');}
     fwrite($pipes[0],json_encode($request,JSON_THROW_ON_ERROR));fclose($pipes[0]);$out=stream_get_contents($pipes[1],4097);$err=stream_get_contents($pipes[2],4097);fclose($pipes[1]);fclose($pipes[2]);$code=proc_close($process);
@@ -85,7 +90,8 @@ final class GovernanceNativeRRWorker {
     $payload=array('directory_dev'=>$this->stat['dev'],'directory_ino'=>$this->stat['ino'],'owner_token'=>$this->owner,'writer'=>$config['writer'],'observer'=>$config['observer'],'metadata_owner'=>$config['metadata_owner'],'source_revision'=>$revision,'quickstart_sha256'=>hash_file('sha256',$root.'/resources/sql/quickstart.sql'),'classmap_sha256'=>hash_file('sha256',$root.'/src/__phutil_library_map__.php'),'fixture_nonce'=>$fixtureNonce,'incarnation'=>bin2hex(random_bytes(16)),'subject_phid'=>$subjectPhid,'ending'=>$ending,'variant'=>$variant);
     governance_native_rr_write($this->directory,'payload.json',$payload,$this->owner,$this->stat['dev'],$this->stat['ino']);
     $logs=array();foreach(array('stdout.log','stderr.log')as$name){$logs[]=fopen($this->directory.'/'.$name,'x');if(!is_resource(end($logs))||!chmod($this->directory.'/'.$name,0600)){throw new RuntimeException('native_rr_log_open_failed');}}
-    try{$this->process=proc_open(array(PHP_BINARY,$root.'/support/governance/recovery/native-writer-rr-worker.php',$this->directory),array(0=>array('file','/dev/null','r'),1=>$logs[0],2=>$logs[1]),$pipes,$this->directory,array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1','PHORGE_GOVERNANCE_NATIVE_RR_OWNER'=>$this->owner,'PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION'=>$revision));}finally{foreach($logs as$log){if(is_resource($log)){fclose($log);}}}
+    $php=$this->ciProfile?$this->ciProfile->getPHP():PHP_BINARY;
+    try{$this->process=proc_open(array($php,$root.'/support/governance/recovery/native-writer-rr-worker.php',$this->directory),array(0=>array('file','/dev/null','r'),1=>$logs[0],2=>$logs[1]),$pipes,$this->directory,array('PATH'=>getenv('PATH')?:'/usr/bin:/bin','PHORGE_GOVERNANCE_ISOLATED_TEST'=>'1','PHORGE_GOVERNANCE_NATIVE_RR_OWNER'=>$this->owner,'PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION'=>$revision));}finally{foreach($logs as$log){if(is_resource($log)){fclose($log);}}}
     if(!is_resource($this->process)){throw new RuntimeException('native_rr_child_start_failed');}
     $deadline=hrtime(true)+12000000000;while(!is_file($this->directory.'/ready.json')&&hrtime(true)<$deadline&&$this->running()){usleep(20000);}
     if(!is_file($this->directory.'/identity.json')||!is_file($this->directory.'/ready.json')){throw new RuntimeException('native_rr_child_ready_unproved');}

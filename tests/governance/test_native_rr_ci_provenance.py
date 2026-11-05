@@ -24,7 +24,7 @@ class Controls(unittest.TestCase):
    else:d['GoVersion']='go1.27.1'
    with self.subTest(change=change),self.assertRaises(ValueError):p.verify_build_info(d,REV,'amd64')
  def test_exact_same_run_not_caller_hash(self):
-  env={'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'pull_request','GITHUB_REF':'refs/pull/12/merge'}
+  env={'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'pull_request','GITHUB_REF':'refs/pull/12/merge','GITHUB_JOB':'owner-build','GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/native-rr-owner-build.yml@refs/pull/12/merge'}
   self.assertEqual(REV,b.ci_identity(env,REV)['source_revision'])
   for key in env:
    d=env.copy();d[key]='unknown'
@@ -35,7 +35,7 @@ class Controls(unittest.TestCase):
    for path in p.OWNER_FILES+p.RECIPE_FILES:
     target=root/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(path.encode())
    committed=lambda path:path.encode()
-   self.assertEqual(8,len(p.source_bindings(root,committed)))
+   self.assertEqual(15,len(p.source_bindings(root,committed)))
    target=root/p.OWNER_FILES[0];target.write_bytes(b'mutated')
    with self.assertRaises(ValueError):p.source_bindings(root,committed)
    target.unlink();target.symlink_to(root/p.OWNER_FILES[1])
@@ -71,7 +71,7 @@ class MainFlow(unittest.TestCase):
    for path in p.OWNER_FILES+p.RECIPE_FILES:
     target=root/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(path.encode())
    if fault=='extra-Go':(root/'support/governance/recovery/owned-process/extra.go').write_text('package main')
-   env={'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'pull_request','GITHUB_REF':'refs/pull/12/merge','NATIVE_RR_LOCKED_GOMODCACHE':str(cache)}
+   env={'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'pull_request','GITHUB_REF':'refs/pull/12/merge','GITHUB_JOB':'owner-build','GITHUB_WORKFLOW_REF':'soulteary/phorge/.github/workflows/native-rr-owner-build.yml@refs/pull/12/merge','NATIVE_RR_LOCKED_GOMODCACHE':str(cache)}
    calls=[];status_count=0;verify_count=0
    def command(args,**kwargs):
     nonlocal status_count,verify_count

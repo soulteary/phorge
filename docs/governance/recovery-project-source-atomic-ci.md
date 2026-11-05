@@ -1,0 +1,9 @@
+# Project source facts in Atomic CI
+
+The proposed Atomic step runs a fresh isolated `--project-source-facts` database fixture after normal934, API46 and Config19 have passed. It validates all 11 obligations with the public strict consumer and the actual checkout revision (`GITHUB_SHA`, including a pull-request synthetic merge). The same-run native pure receipt and normal acceptance are references, not new pure executions or inherited SQL success.
+
+Its separate artifact contains integration.json, accepted.json, source-revision.txt, shared-native-pure.json and normal-regression-accepted.json. The step exclusively creates its output directory and rejects an existing directory or symbolic link. Upload runs only after success; a failed or partial directory is not published as an artifact. The step adds no services or worker processes and uses the existing disposable database.
+
+Historical supported component source `1f6386015b73e190b1d9778624a4d4a50ac711e5` passed a fresh cold map, 271 native methods in 46 classes, and SQL11, with 6909 source files matching and strict CLI equal to in-process validation. The immutable private archive manifest is `047b1a3f7a39a66ae57fdd86048f542664d04baca6a2a13bf4c7a70a5e29b2c4`. This is historical component evidence, not a run of this CI candidate or its future main integration.
+
+The source facts remain partial: no native policy interpreter, continuous lease, ABA protection, all-source completeness, restoration permission, activation or deployment is established. This unsigned successor explicitly merges main `3adc1f45a52e4d3049e8d8438bec7a9bf00aeebd` into the historical component, preserving both profiles. Its current source inventory requires 271 methods in 46 classes, including the portable RR profile; no old 266-method acceptance is substituted. The integrated candidate still requires fresh hosted CI before acceptance.
