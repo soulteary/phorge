@@ -1633,6 +1633,83 @@
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
       "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.TASKOWNER.FACTS",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryTaskOwnerSource.php",
+      "symbol": "PhorgeRecoveryTaskOwnerSource",
+      "kind": "fixed-native-Task-owner-partial-source",
+      "sha256": "c74504d580aeed96008565a4660d296366171a77914ab6d3469f9333402ee03c",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.TASKOWNER.TASK",
+      "path": "src/applications/maniphest/storage/ManiphestTask.php",
+      "symbol": "ManiphestTask",
+      "kind": "native-owner-automatic-function-not-full-policy",
+      "sha256": "e8c02e38bb8062c4cdc711fa212bcd8644f0e23c4512ac21b886c08209e41c7a",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.TASKOWNER.OWNERTRANSACTION",
+      "path": "src/applications/maniphest/xaction/ManiphestTaskOwnerTransaction.php",
+      "symbol": "ManiphestTaskOwnerTransaction",
+      "kind": "native-reassign-storage-producer",
+      "sha256": "9b8888fe4dd14df05402a2b1b8a7d9428b0ba9fa8d523e3651dd401a6960f920",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.TASKOWNER.EDITOR",
+      "path": "src/applications/maniphest/editor/ManiphestTransactionEditor.php",
+      "symbol": "ManiphestTransactionEditor",
+      "kind": "native-Task-transaction-producer",
+      "sha256": "4f74bd7f08c63588ee0dd10fbb0b5f31a8222a37f6627d79485b8c8dec8f4bc7",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.TASKOWNER.STATUS",
+      "path": "src/applications/maniphest/constants/ManiphestTaskStatus.php",
+      "symbol": "ManiphestTaskStatus",
+      "kind": "native-comment-edit-lock-policy-reference",
+      "sha256": "4cd2747a9937e56bfa5abf497807ede4c1ab0e95a7c0d077d1c71e5dacd27d6a",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.TASKOWNER.PEOPLEQUERY",
+      "path": "src/applications/people/query/PhabricatorPeopleQuery.php",
+      "symbol": "PhabricatorPeopleQuery",
+      "kind": "native-assignee-validation-reference",
+      "sha256": "97ebd060e5bb629b8f062bc8733bc97d50a624c0a1c62c44748e6b436891bee2",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.TASKOWNER.POLICYFILTER",
+      "path": "src/applications/policy/filter/PhabricatorPolicyFilter.php",
+      "symbol": "PhabricatorPolicyFilter",
+      "kind": "native-Space-gate-before-automatic-capability-reference",
+      "sha256": "365bc9693b960cb0b40f0b2961f5d1d1782af23b911cea490f9337fbd768f0ea",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
     }
   ],
   "links": [
@@ -2763,6 +2840,78 @@
       "kind": "static-source-reference",
       "runtime_verified": false,
       "basis": "Audited fixed namespace/Query/cache producer-consumer dependency only; no permission or lease proof."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-01",
+      "from_id": "RECOVERY.TASKOWNER.FACTS",
+      "to_id": "RECOVERY.OWNED.RR.SCOPE",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-02",
+      "from_id": "RECOVERY.TASKOWNER.FACTS",
+      "to_id": "RECOVERY.PRODUCER.PhorgeRecoveryRestoreProfile",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-03",
+      "from_id": "RECOVERY.TASKOWNER.FACTS",
+      "to_id": "RECOVERY.TASKOWNER.TASK",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-04",
+      "from_id": "RECOVERY.TASKOWNER.FACTS",
+      "to_id": "RECOVERY.TASKOWNER.POLICYFILTER",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-05",
+      "from_id": "RECOVERY.TASKOWNER.TASK",
+      "to_id": "RECOVERY.TASKOWNER.STATUS",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-06",
+      "from_id": "RECOVERY.TASKOWNER.EDITOR",
+      "to_id": "RECOVERY.TASKOWNER.OWNERTRANSACTION",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-07",
+      "from_id": "RECOVERY.TASKOWNER.OWNERTRANSACTION",
+      "to_id": "RECOVERY.TASKOWNER.TASK",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-08",
+      "from_id": "RECOVERY.TASKOWNER.OWNERTRANSACTION",
+      "to_id": "RECOVERY.TASKOWNER.PEOPLEQUERY",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
+    },
+    {
+      "id": "RECOVERY-TASKOWNER-LINK-09",
+      "from_id": "RECOVERY.TASKOWNER.EDITOR",
+      "to_id": "RECOVERY.TASKOWNER.TASK",
+      "kind": "static-source-reference",
+      "runtime_verified": false,
+      "basis": "Fixed native Task-owner source/producer reference only; no policy, absence, producer lease or restoration permit."
     }
   ],
   "scan": {
@@ -3266,6 +3415,10 @@
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryStopService.php",
         "sha256": "fe0e6ce000553f0e3cc55679b15a5fcdeac612060c8a9e576352c0e8de7f50b5"
+      },
+      {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryTaskOwnerSource.php",
+        "sha256": "c74504d580aeed96008565a4660d296366171a77914ab6d3469f9333402ee03c"
       }
     ]
   }
