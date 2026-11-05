@@ -10,6 +10,12 @@ final class PhorgeRecoveryProjectSourceFactsTestCase extends PhutilTestCase {
     catch(RuntimeException$error){return str_starts_with($error->getMessage(),'recovery_project_');}
     return false;
   }
+  public function testActualNativePHIDGenerationUsesSubtypeLength(){
+    $method=new ReflectionMethod(PhorgeRecoveryProjectSourceFacts::class,'phid');
+    $objects=array('USER'=>new PhabricatorUser(),'PROJ'=>new PhabricatorProject(),'SPCE'=>new PhabricatorSpacesNamespace(),'XACT-USER'=>new PhabricatorUserTransaction(),'XACT-PROJ'=>new PhabricatorProjectTransaction());
+    foreach($objects as$type=>$object){$value=$object->generatePHID();$this->assertEqual($value,$method->invoke(null,$value,$type));$this->assertEqual(str_starts_with($type,'XACT-')?15:20,strlen(substr($value,strlen('PHID-'.$type.'-'))));}
+    foreach(array(array('PHID-XACT-PROJ-'.str_repeat('x',20),'XACT-PROJ'),array('PHID-XACT-USER-'.str_repeat('x',20),'XACT-USER'),array('PHID-USER-'.str_repeat('u',15),'USER'),array('PHID-XACT-TASK-'.str_repeat('x',15),'XACT-TASK'),array('PHID-XACT-USER-'.str_repeat('x',15),'XACT-PROJ'),array("PHID-XACT-PROJ-".str_repeat('x',15)."\n",'XACT-PROJ'))as$bad){$refused=false;try{$method->invoke(null,$bad[0],$bad[1]);}catch(RuntimeException$error){$refused=$error->getMessage()==='recovery_project_identity_unknown';}$this->assertTrue($refused);}
+  }
   public function testRealNativeUserPHIDIndexOverridesInheritedSchemaName(){
     $config=(new ReflectionMethod(PhabricatorUser::class,'getConfiguration'))->invoke(new PhabricatorUser());
     $schema=$config[LiskDAO::CONFIG_KEY_SCHEMA];
@@ -44,7 +50,7 @@ final class PhorgeRecoveryProjectSourceFactsTestCase extends PhutilTestCase {
   public function testDistinctCurrentRowsDoNotImportHistoricalMembership(){
     foreach(array(false,true)as$retained){$r=$this->rows($retained);$out=PhorgeRecoveryProjectSourceFacts::describeUntrustedRows($r['subject'],$r['snapshot']);
       $this->assertFalse($out['actual_SQL_queries_executed']);$this->assertFalse($out['complete']);$this->assertFalse(str_contains(json_encode($out),'PHID-'));}
-    $r=$this->rows();$x=$r['snapshot'];$x['history'][]=array('id'=>'1','phid'=>'PHID-XACT-PROJ-'.str_repeat('x',20),
+    $r=$this->rows();$x=$r['snapshot'];$x['history'][]=array('id'=>'1','phid'=>'PHID-XACT-PROJ-'.str_repeat('x',15),
       'objectPHID'=>$r['root'],'authorPHID'=>$r['subject'],'transactionType'=>'edge','oldValue'=>'[]',
       'newValue'=>'opaque former membership','metadata'=>'{}','dateCreated'=>'1');
     $this->assertFalse(PhorgeRecoveryProjectSourceFacts::describeUntrustedRows($r['subject'],$x)['selected_history_is_current_membership']);

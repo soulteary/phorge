@@ -53,7 +53,7 @@ class ProjectSourceFacts(unittest.TestCase):
   x=snapshot();x['user_edges']*=257;cases.append(x)
   for x in cases:self.assertFalse(self.run_php(x)['accepted'])
  def test_historical_values_never_create_current_membership(self):
-  x=snapshot();x['history']=[dict(id='1',phid='PHID-XACT-PROJ-'+'x'*20,objectPHID=R,authorPHID=USER,transactionType='edge',oldValue='[]',newValue='PRIVATE_RELATION',metadata='{}',dateCreated='1')]
+  x=snapshot();x['history']=[dict(id='1',phid='PHID-XACT-PROJ-'+'x'*15,objectPHID=R,authorPHID=USER,transactionType='edge',oldValue='[]',newValue='PRIVATE_RELATION',metadata='{}',dateCreated='1')]
   self.assertTrue(self.run_php(x)['accepted'])
   x['project_edges'].pop();self.assertFalse(self.run_php(x)['accepted'])
  def test_read_only_subject_indexes_and_private_binding_contract(self):

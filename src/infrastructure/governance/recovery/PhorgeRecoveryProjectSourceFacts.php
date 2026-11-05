@@ -20,7 +20,8 @@ final class PhorgeRecoveryProjectSourceFacts extends Phobject {
   public function __debugInfo(){return array('scope'=>'partial-project-source-facts');}
 
   private static function phid($value,$type){
-    if(!is_string($value)||!preg_match('/\APHID-'.$type.'-[a-zA-Z0-9]{20}\z/D',$value)){
+    $lengths=array('USER'=>20,'PROJ'=>20,'SPCE'=>20,'XACT-USER'=>15,'XACT-PROJ'=>15);
+    if(!is_string($type)||!isset($lengths[$type])||!is_string($value)||!preg_match('/\APHID-'.$type.'-[a-zA-Z0-9]{'.$lengths[$type].'}\z/D',$value)){
       throw new RuntimeException('recovery_project_identity_unknown');}
     return$value;
   }

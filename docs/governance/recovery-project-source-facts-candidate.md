@@ -132,7 +132,7 @@ producer, DDL/privilege, absence and ABA gates remain pending.
 
 ## Registered integration successor (all runtime gates pending)
 
-The successor registers four native pure methods (derived270 total/46 classes,
+The historical User-index successor registered four native pure methods (derived270 total/46 classes,
 not executed here). They use the real Project loadFromArray and explicit attachment
 APIs to check milestone policy/automatic VIEW delegation, archived status and
 attached-list precedence, plus pure direct/materialized/history and magic/length
@@ -157,7 +157,9 @@ A successful typed control does not mean the SQL fixture passed.
 Explicit N00 additions are static partial142sources/134links/124runtime files.
 B2 remains byte-identical with277candidates because the new governance class is in
 its existing excluded prefix; the new runtime source is instead explicitly pinned
-by N00. Supported map, all270 methods, real SQL11 and all future leases are pending.
+by N00. That successor subsequently passed its actual map and270 methods, while
+SQL11 remained incomplete at native transaction identity parsing. The current
+271-method successor and all future leases remain pending.
 The legacy notice fixture's one-time whole-src freeze also needs an explicitly
 reviewed additive-source policy before final CI; untracked-source host success
 must not be mistaken for that post-signing integration gate.
@@ -208,3 +210,26 @@ method checks actual User schema configuration, with strict missing/wrong-column
 nonunique metadata host negatives. Derived270 methods/46 classes and SQL11 on
 this successor remain unrun; prior269 and diagnostic observations are historical
 component evidence, not this source's acceptance or any complete source lease.
+
+
+## Native transaction PHID subtype correction
+
+The signed8083 run reproduced the map and passed270 native methods/46 classes.
+Its SQL profile then refused an identity while reading real native Project
+transaction history; all owned cleanup completed. This successor preserves that
+failure as history and corrects the fixed identity parser, without changing DDL.
+
+Native `PhabricatorPHID::generateNewPHID` uses20 random characters without a
+subtype and15 with a subtype (storage/PhabricatorPHID.php:5-20).
+`PhabricatorApplicationTransaction::generatePHID` supplies XACT plus its actual
+application subtype. Project/User transaction classes supply PROJ/USER.
+The accepted fixed table is USER/PROJ/SPCE with20, XACT-USER/XACT-PROJ with15;
+unknown types, wrong subtypes and wrong lengths fail closed. Existing synthetic
+transaction rows now use the same15-character format as the native producer.
+
+A fifth native method exercises actual User/Project/Space and transaction PHID
+generators. Host controls call the real primitive generator and reject wrong
+lengths, subtype, NULL and trailing newline. The source-derived271 methods/46
+classes and fresh SQL11 on this successor remain unrun. No row identity, binding
+or relationship is emitted in audit output. All source families/permit remain
+blocked; no old execution is relabeled as this successor's proof.

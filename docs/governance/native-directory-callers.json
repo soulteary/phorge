@@ -1496,7 +1496,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php",
       "symbol": "PhorgeRecoveryProjectSourceFacts",
       "kind": "subject-current-project-source-facts-not-policy-or-lease",
-      "sha256": "4380464b53f8b51c488dbf0bc29b9b1fc4e4aac302a4883ffb0ce3f5e1796eb9",
+      "sha256": "f9ba22cbe2745993631bdc503c5426b8f237672a3ebd527c96e6efa0484beb2d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3083,7 +3083,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php",
-        "sha256": "4380464b53f8b51c488dbf0bc29b9b1fc4e4aac302a4883ffb0ce3f5e1796eb9"
+        "sha256": "f9ba22cbe2745993631bdc503c5426b8f237672a3ebd527c96e6efa0484beb2d"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php",

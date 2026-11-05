@@ -28,7 +28,7 @@ if($resource){fclose($resource);}echo json_encode(array('accepted'=>$accepted,'c
  def reader(self,case):
   code=r'''
 $v=json_decode(stream_get_contents(STDIN),true);$object='PHID-PROJ-'.str_repeat('p',20);
-$plan=array('id'=>'1','phid'=>'PHID-XACT-PROJ-'.str_repeat('x',20),'objectPHID'=>$object,'transactionType'=>'edge','oldBytes'=>'2','newBytes'=>'2','metadataBytes'=>'2');
+$plan=array('id'=>'1','phid'=>'PHID-XACT-PROJ-'.str_repeat('x',15),'objectPHID'=>$object,'transactionType'=>'edge','oldBytes'=>'2','newBytes'=>'2','metadataBytes'=>'2');
 $row=array('id'=>'1','phid'=>$plan['phid'],'objectPHID'=>$object,'authorPHID'=>'PHID-USER-'.str_repeat('u',20),'transactionType'=>'edge','oldValue'=>'[]','newValue'=>'{}','metadata'=>'{}','dateCreated'=>'1');
 $GLOBALS['plans']=array($plan);$GLOBALS['rows']=array($row);$GLOBALS['payload_calls']=0;$GLOBALS['plan_calls']=0;
 if(isset($v['plan'])){foreach($v['plan']as$k=>$value){$GLOBALS['plans'][0][$k]=$value;}}
