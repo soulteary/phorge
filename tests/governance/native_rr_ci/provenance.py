@@ -1,5 +1,6 @@
 """Data-only verification of an actual owner-helper build; not an execution permit."""
 import hashlib,json,re
+from pathlib import Path
 OWNER_FILES=tuple('support/governance/recovery/owned-process/'+name for name in ('go.mod','go.sum','main_linux.go','request.go','request_test.go'))
 RECIPE_FILES=('tests/governance/native_rr_ci/build_owner.py','tests/governance/native_rr_ci/provenance.py','.github/workflows/native-rr-owner-build.yml')
 MODULE='phorge-isolated-native-rr-owner'
@@ -24,7 +25,18 @@ def verify_build_info(info,revision,arch):
  if set(values)-set(required)-{'vcs.time','GOAMD64','GOARM64'}:raise ValueError('unreviewed build setting')
  if values.get('GOAMD64','v1')!='v1' or values.get('GOARM64','v8.0')!='v8.0':raise ValueError('architecture profile refused')
  return {'revision':revision,'arch':arch,'go':'go1.27.3','CGO_ENABLED':0,'modified':False}
+def validate_owner_inventory(root):
+ current=root
+ if current.is_symlink()or not current.is_dir():raise ValueError('regular source root required')
+ # Validate each parent before inspecting a descendant: never follow an
+ # unreviewed module-directory alias into some other source tree.
+ for name in ('support','governance','recovery','owned-process'):
+  current=current/name
+  if current.is_symlink()or not current.is_dir():raise ValueError('owner module parent alias refused')
+ expected={Path(path).name for path in OWNER_FILES};entries=list(current.iterdir())
+ if {p.name for p in entries}!=expected or any(p.is_symlink()or not p.is_file()for p in entries):raise ValueError('unbound owner module entry refused')
 def source_bindings(root,read_committed):
+ validate_owner_inventory(root)
  result={}
  for path in OWNER_FILES+RECIPE_FILES:
   p=root/path

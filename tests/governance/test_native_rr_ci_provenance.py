@@ -40,6 +40,21 @@ class Controls(unittest.TestCase):
    with self.assertRaises(ValueError):p.source_bindings(root,committed)
    target.unlink();target.symlink_to(root/p.OWNER_FILES[1])
    with self.assertRaises(ValueError):p.source_bindings(root,committed)
+ def test_exact_module_inventory_rejects_extra_files_dirs_and_aliases(self):
+  for kind in ('tracked-Go','directory','resource','file-symlink','parent-symlink'):
+   with tempfile.TemporaryDirectory()as tmp:
+    root=Path(tmp);module=root/'support/governance/recovery/owned-process';module.mkdir(parents=True)
+    for path in p.OWNER_FILES:(root/path).write_bytes(path.encode())
+    p.validate_owner_inventory(root)
+    if kind=='parent-symlink':
+     original=root/'support';moved=root/'original-support';original.rename(moved);original.symlink_to(moved,target_is_directory=True)
+    else:
+     extra=module/('extra.go'if kind=='tracked-Go'else 'extra')
+     if kind=='directory':extra.mkdir()
+     elif kind=='file-symlink':extra.symlink_to(module/'request.go')
+     else:extra.write_bytes(b'unreviewed input')
+    with self.subTest(kind=kind),self.assertRaises(ValueError):p.validate_owner_inventory(root)
+ def test_actual_module_inventory_exact(self):p.validate_owner_inventory(ROOT)
  def test_real_exclusive_private_artifact_and_foreign_refusal(self):
   with tempfile.TemporaryDirectory()as tmp:
    path=Path(tmp)/'artifact';self.assertEqual(p.digest(b'bytes'),b.exclusive(path,b'bytes'));self.assertEqual(0o400,path.stat().st_mode&0o777)
@@ -55,6 +70,7 @@ class MainFlow(unittest.TestCase):
    outer=Path(tmp);root=outer/'source';root.mkdir();cache=outer/'locked-modules';cache.mkdir();go=outer/'go';go.write_bytes(b'synthetic-executable-toolchain');go.chmod(0o700);output=outer/'output'
    for path in p.OWNER_FILES+p.RECIPE_FILES:
     target=root/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(path.encode())
+   if fault=='extra-Go':(root/'support/governance/recovery/owned-process/extra.go').write_text('package main')
    env={'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64','GITHUB_SHA':REV,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1','GITHUB_EVENT_NAME':'pull_request','GITHUB_REF':'refs/pull/12/merge','NATIVE_RR_LOCKED_GOMODCACHE':str(cache)}
    calls=[];status_count=0;verify_count=0
    def command(args,**kwargs):
@@ -74,6 +90,7 @@ class MainFlow(unittest.TestCase):
      return b'all modules verified\n'
     if args[1]=='build':
      binary=Path(args[args.index('-o')+1]);binary.write_bytes(b'synthetic-cross-build-output')
+     if fault=='extra-Go-after':(root/'support/governance/recovery/owned-process/extra.go').write_text('package main')
      if fault=='build-failed':raise RuntimeError('original-build-failure')
      if fault=='unknown-output':
       output.rename(outer/'retained-original');output.mkdir();(output/'foreign').write_text('retain')
@@ -90,6 +107,8 @@ class MainFlow(unittest.TestCase):
      if fault=='unknown-output':self.assertEqual('original-build-failure',str(caught.exception));self.assertEqual('retain',(output/'foreign').read_text());self.assertTrue(any((outer/'retained-original').glob('native-rr-build-cache-*')))
      elif output.exists():self.assertEqual([],list(output.glob('native-rr-build-cache-*')))
      self.assertFalse((output/'build-record.json').exists())
+     if fault=='extra-Go':self.assertEqual('unbound owner module entry refused',str(caught.exception));self.assertFalse(output.exists());self.assertFalse(any(c[0]==str(go)for c in calls))
+     if fault=='extra-Go-after':self.assertEqual('unbound owner module entry refused',str(caught.exception));self.assertTrue(any(len(c)>1 and c[1]=='build'for c in calls));self.assertEqual(2,verify_count)
      if fault in ('uppercase-verify','module-verify'):self.assertEqual(1,verify_count);self.assertFalse(any(len(c)>1 and c[1]=='build'for c in calls))
      if fault in ('uppercase-verify-after','module-verify-after'):self.assertEqual(2,verify_count);self.assertTrue(any(len(c)>1 and c[1]=='build'for c in calls))
     else:
@@ -98,7 +117,7 @@ class MainFlow(unittest.TestCase):
    return calls
  def test_main_positive_actual_filesystem(self):self.assertTrue(self.exercise())
  def test_main_dirty_before_and_after(self):
-  for fault in ('dirty-before','dirty-after'):
+  for fault in ('dirty-before','dirty-after','extra-Go','extra-Go-after'):
    with self.subTest(fault=fault):self.exercise(fault)
  def test_main_bad_build_info_and_failed_module_verify(self):
   for fault in ('bad-build-info','module-verify','module-verify-after','uppercase-verify','uppercase-verify-after'):

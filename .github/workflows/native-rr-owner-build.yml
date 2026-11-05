@@ -2,6 +2,7 @@ name: Native RR owner build candidate
 on:
   pull_request:
     paths:
+      - 'support/governance/recovery/owned-process/**' # New inputs must trigger exact-inventory refusal.
       - 'support/governance/recovery/owned-process/go.mod'
       - 'support/governance/recovery/owned-process/go.sum'
       - 'support/governance/recovery/owned-process/main_linux.go'
