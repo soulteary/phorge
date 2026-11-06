@@ -115,7 +115,8 @@ function governance_recovery_partial_composition_cases($fixture,array $requester
     $deleted=array('id'=>(string)$policy->getID(),'phid'=>$policy->getPHID());
     $policy->delete();$policy=null;
     governance_recovery_partial_attempt('partial-restored-policy-preview');
-    try {$restored=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');}
+    try {$restored=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
+      $restored_again=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');}
     catch(Throwable $original) {
       if(get_class($original)===RuntimeException::class&&
           $original->getMessage()==='recovery_restore_sources_stale') {
@@ -133,7 +134,7 @@ function governance_recovery_partial_composition_cases($fixture,array $requester
       }
       throw $original;
     }
-    $check($before_restored_policy===$fingerprint()&&$restored['permit_state']==='blocked',
+    $check($before_restored_policy===$fingerprint()&&$restored['permit_state']==='blocked'&&$restored_again===$restored,
       'recovery-partial-restored-policy-rows-remain-blocked');
     governance_recovery_partial_attempt();
   } finally {
