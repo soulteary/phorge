@@ -4,7 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
@@ -225,6 +225,10 @@ try {
     require_once dirname(__DIR__).'/recovery/native-writer-rr-focused.php';
     $native=governance_native_rr_focused($fixture,$check);
     $native['final_owned_cleanup']=$GLOBALS['governance_native_rr_cleanup'];
+  }elseif($phase==='recovery-partial-composition'){
+    $stage='focused-native-recovery-partial-composition';
+    require_once dirname(__DIR__).'/recovery/partial-composition-focused.php';
+    $native=governance_recovery_partial_composition_focused($fixture,$check);
   }elseif($phase==='application-config-facts'){
     $stage='focused-native-application-config-facts';
     require_once dirname(__DIR__).'/recovery/application-config-focused.php';
@@ -388,6 +392,7 @@ $batch=$phase==='organization-approval-workbench'?'native-organization-approval-
 $batch=$phase==='file-source-facts'?'native-file-source-facts':$batch;
 $batch=$phase==='task-owner-source-facts'?'native-task-owner-source-facts':$batch;
 $batch=$phase==='spaces-source-facts'?'native-spaces-source-facts':$batch;
+$batch=$phase==='recovery-partial-composition'?'native-recovery-partial-composition':$batch;
 $batch=$phase==='application-config-facts'?'native-application-config-facts':$batch;
 $batch=$credential_concurrency?'native-api-credential-concurrency':$batch;
 $receipt_scope=$phase==='notice-admin-grant'?'owned-native-admin-grant-and-transaction-outbox':($notice_raw_orm?'owned-notice-raw-native-DAO-restoration-off':($private_mail_wire?'owned-private-native-mail-wire-preparation':($wire_hold?'owned-native-media-wire-hold-synthetic-accounts':($legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts'))));
@@ -397,6 +402,7 @@ $receipt_scope=$phase==='organization-approval-workbench'?'owned-native-organiza
 $receipt_scope=$phase==='file-source-facts'?'owned-native-File-source-partial':$receipt_scope;
 $receipt_scope=$phase==='task-owner-source-facts'?'owned-native-task-owner-source-partial':$receipt_scope;
 $receipt_scope=$phase==='spaces-source-facts'?'owned-native-spaces-source-facts-no-lease':$receipt_scope;
+$receipt_scope=$phase==='recovery-partial-composition'?'owned-native-partial-composition-no-permit':$receipt_scope;
 $receipt_scope=$phase==='application-config-facts'?'owned-native-config-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$credential_concurrency?'owned-native-credential-writer-reader-observation':$receipt_scope;
 echo json_encode(array('batch'=>$batch,'passed'=>$passed,

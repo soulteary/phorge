@@ -49,9 +49,9 @@ The original independent-admin, replay, audit fault, expiry/incarnation and
 blocked execution checks remain in the fixture.
 
 The SQL cases and supported mapper have **not been run** for this candidate.
-Root owns native-runner dispatch, VM scheduling and CI/PR operations. No passing
-SQL receipt is included. The integration entry for Root to dispatch in its fresh
-owned full-source fixture is:
+Root owns VM scheduling and CI/PR operations. No passing SQL receipt is included.
+The native driver now selects this entry with the single exact argument
+`--recovery-partial-composition` in its fresh owned full-source fixture:
 
 `governance_recovery_partial_composition_focused($fixture, $check)`
 
@@ -68,6 +68,25 @@ python3 scripts/governance/check_recovery_partial_composition.py \
 It requires 30 exact obligations (6 bootstrap, 21 real-source/review, 3 cleanup),
 the existing full-source restore provenance and least-privilege bootstrap,
 zero residual workers, all 55 owned schemas/principals cleaned, and all authority
-flags false. The native runner has not been edited to advertise this phase;
-Root must review and add that dispatch before any measured run. No classes were
-added and no class map was hand-edited.
+flags false. The CI step runs after the Space fixture, creates an exclusive
+private artifact directory, runs the native driver and then the public checker.
+`accepted.json` is published only after checker success. A native or checker
+failure leaves no accepted receipt. No classes were added and no class map was
+hand-edited.
+
+The focused wrapper also checks the actual case return flags and exactly 21
+unique executed case labels before returning its measured summary. Wrong source
+selection, missing/duplicate/foreign obligations and execution/authority flags
+are rejected. The 21 source/review cases are the original 14 durable review
+cases plus 7 partial-source cases; the public gate additionally requires all 9
+bootstrap/cleanup obligations.
+
+The Space mutation case inspects the already validated caller cache without
+creating or clearing it. It expects exactly `recovery_spaces_cache_rows_changed`
+when that selected Space is in an actual cached map, exactly
+`recovery_spaces_cache_default_changed` when it is the cached default, or exactly
+`recovery_restore_sources_stale` when no selected cached row shadows it. Other
+exceptions fail the run; cache errors are never relabeled as source-stale. Static
+inspection found no Space-query cache creation in the direct restoration
+profile/identity/credential/inventory call path after the fixture's explicit
+fresh-cache setup. That observation is not a replacement for the pending SQL run.

@@ -412,6 +412,28 @@ jobs:
           name: governance-spaces-source-facts-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-spaces-source-facts
           if-no-files-found: error
+      - name: Verify fresh native partial restoration facts after Space source facts
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir "$RUNNER_TEMP/governance-recovery-partial-composition"
+          git rev-parse HEAD > "$RUNNER_TEMP/governance-recovery-partial-composition/source-revision.txt"
+          cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-recovery-partial-composition/shared-native-pure.json"
+          cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-recovery-partial-composition/normal-regression-accepted.json"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          php support/governance/native-organization/test-native-organization-mysql.php --recovery-partial-composition > "$RUNNER_TEMP/governance-recovery-partial-composition/integration.json"
+          python3 -B scripts/governance/check_recovery_partial_composition.py --receipt "$RUNNER_TEMP/governance-recovery-partial-composition/integration.json" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json"
+          mv "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json" "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: governance-recovery-partial-composition-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-recovery-partial-composition
+          if-no-files-found: error
       - name: Verify fresh native Task owner source facts after Space source facts
         run: |
           umask 077
