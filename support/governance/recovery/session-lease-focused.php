@@ -2,6 +2,33 @@
 function governance_recovery_session_lease_obligations(){
   $labels=array();foreach(array('commit','rollback')as$ending){foreach(array('session-lease-real-INSERT-waits-through-protected-capture-','session-lease-real-INSERT-resumes-after-observed-','session-lease-new-native-producer-transition-invalidates-selected-binding-')as$prefix){$labels[]=$prefix.$ending;}}sort($labels,SORT_STRING);return$labels;
 }
+/** Native worker lock order is actor before either subject, not creation order. */
+function governance_recovery_session_lease_prepare_actor_order(array$users){
+  if(PhabricatorEnv::getEnvConfig('governance.account-recovery.enabled')!==false||
+    PhabricatorEnv::getEnvConfig('governance.account-recovery.session-lease.enabled')!==false){
+    throw new RuntimeException('session_lease_actor_preparation_after_enable');}
+  $keys=array_keys($users);sort($keys,SORT_STRING);
+  if($keys!==array('actor','disabled','other','subject')){throw new RuntimeException('session_lease_prepared_users_unknown');}
+  $eligible=array();$phids=array();$ids=array();
+  foreach(array('actor','subject','other','disabled')as$role){
+    $user=$users[$role];
+    if(!is_object($user)||get_class($user)!==PhabricatorUser::class||!is_int($user->getID())||$user->getID()<=0||
+      !is_string($user->getPHID())||preg_match('/\APHID-USER-[a-z0-9]{20}\z/D',$user->getPHID())!==1||
+      isset($phids[$user->getPHID()])||isset($ids[$user->getID()])||$user->getIsApproved()!==true||
+      $user->getIsSystemAgent()||$user->getIsMailingList()||$user->getIsDisabled()!==($role==='disabled')){
+      throw new RuntimeException('session_lease_prepared_users_unknown');}
+    $phids[$user->getPHID()]=true;$ids[$user->getID()]=true;
+    if($role!=='disabled'){$eligible[]=$user;}
+    elseif($user->getIsAdmin()){throw new RuntimeException('session_lease_disabled_admin_unknown');}
+  }
+  usort($eligible,static fn(PhabricatorUser$a,PhabricatorUser$b)=>strcmp($a->getPHID(),$b->getPHID()));
+  // Recovery is still OFF. Persist real native flags, without regenerating
+  // names, search tasks or already-owned native avatar files. Clear the old
+  // creation-role admin before granting the lexically first prepared user.
+  foreach($eligible as$user){$user->setIsAdmin(0)->saveWithoutIndex();}
+  $eligible[0]->setIsAdmin(1)->saveWithoutIndex();
+  return array('actor'=>$eligible[0],'subject'=>$eligible[1],'other'=>$eligible[2],'disabled'=>$users['disabled']);
+}
 function governance_recovery_session_lease_focused($fixture,mysqli $control,callable $check){
   $GLOBALS['governance_session_lease_cleanup']=array('cleanup_proved'=>false);
   $fixture->assertOwned();require_once __DIR__.'/session-lease-cases.php';require_once __DIR__.'/session-lease-observer.php';require_once __DIR__.'/task-owner-source-cases.php';require_once __DIR__.'/account-cases.php';require_once __DIR__.'/project-source-focused.php';
@@ -16,7 +43,7 @@ function governance_recovery_session_lease_focused($fixture,mysqli $control,call
     $source->setKeys(array('gorge.image.builtin-mode'=>'legacy'));(new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     // This actual helper prepares native Users and real stored avatars only;
     // it never enters a Task/File RR source scope or creates a Task here.
-    $users=governance_task_owner_prepare($fixture);
+    $users=governance_recovery_session_lease_prepare_actor_order(governance_task_owner_prepare($fixture));
     $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.session-lease.enabled',true)->overrideEnvConfig('governance.account-recovery.enabled',true)->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
     $environment=governance_recovery_account_fixture_environment($fixture);
     $owner=GovernanceSessionLeaseObserverOwner::prepare($fixture,$control,$revision);
