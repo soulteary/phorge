@@ -12,7 +12,7 @@ function governance_workbench_http_observe($fixture,array $roles) {
   }
   return array('fingerprint'=>governance_approval_workbench_fingerprint($fixture),'web_session_counts'=>$sessions,'native_user_flags'=>$users,'organization'=>$rows,'observer_autocommit'=>true,'observer_thread_private'=>(string)$probe['t'],'server_uuid_private'=>$probe['u']);
 }
-function governance_workbench_http_hold($fixture,$control,callable $check) {
+function governance_workbench_http_hold($fixture,$control,callable $check,array $file_service) {
   $fixture->assertOwned();$owner=getenv('PHORGE_GOVERNANCE_WORKBENCH_HTTP_OWNER');$directory=getenv('PHORGE_GOVERNANCE_WORKBENCH_HTTP_DIR');$journal=governance_workbench_http_journal($directory,$owner);
   try {
     $revision=getenv('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION');$prerequisite=getenv('PHORGE_GOVERNANCE_WORKBENCH_NATIVE26_PROOF_SHA256');
@@ -20,6 +20,8 @@ function governance_workbench_http_hold($fixture,$control,callable $check) {
     $origin=governance_workbench_http_origin(getenv('PHORGE_GOVERNANCE_WORKBENCH_HTTP_PORT'));$seconds=getenv('PHORGE_GOVERNANCE_WORKBENCH_HOLD_SECONDS');$seconds=$seconds===false?'900':$seconds;governance_workbench_http_need(is_string($seconds)&&preg_match('/\A[1-9][0-9]{2,3}\z/D',$seconds)===1&&(int)$seconds>=120&&(int)$seconds<=1800);
     governance_workbench_http_need(PhabricatorEnv::getEnvConfig('governance.organization.enabled')===true);
     foreach(array('governance.media-exchange.enabled','governance.media-exchange.http-enabled','governance.account-recovery.enabled','governance.notifications.enabled')as$key){governance_workbench_http_need(PhabricatorEnv::getEnvConfig($key)===false);}
+    $file_config=governance_workbench_http_file_config(array('uri'=>$file_service['uri'],'token'=>$file_service['token'],'binary_sha256'=>$file_service['binary_sha256']));
+    governance_workbench_http_need($file_service['kind']==='file'&&PhabricatorEnv::getEnvConfig('gorge.file.uri')===$file_config['uri']&&PhabricatorEnv::getEnvConfig('gorge.file.token')===$file_config['token']);
     $roles=array();foreach(array('requester'=>1,'reviewer'=>1,'ordinary'=>0)as$name=>$admin){
       $user=(new PhabricatorUser())->setUsername('wbhttp'.$name.substr($fixture->getNamespace(),-10))->setRealName('Synthetic workbench '.$name)->setIsApproved(1)->setIsAdmin($admin)->setIsEmailVerified(1)->save();
       (new PhabricatorUserEmail())->setUserPHID($user->getPHID())->setAddress($user->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
@@ -32,9 +34,12 @@ function governance_workbench_http_hold($fixture,$control,callable $check) {
     $check($physical['u']===$state['server_uuid_private']&&(string)$physical['t']!==$state['observer_thread_private'],'workbench-http-independent-same-primary-observer');
     $check($state['web_session_counts']===array('requester'=>0,'reviewer'=>0,'ordinary'=>0),'workbench-http-no-preseeded-native-web-sessions');
     $check($state['organization']['approval']===array()&&$state['organization']['member']===array()&&$state['organization']['appointment']===array(),'workbench-http-ui-will-create-original-requests');
-    $nonce=(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'ownerNonce'))->getValue($fixture);$config=array('owner'=>$owner,'fixture_nonce'=>$nonce,'quickstart_sha256'=>hash_file('sha256',dirname(__DIR__,3).'/resources/sql/quickstart.sql'),'source_revision'=>$revision,'native26_prerequisite_sha256'=>$prerequisite,'origin'=>$origin,'writer'=>$fixture->getWriterConfig());
+    $nonce=(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'ownerNonce'))->getValue($fixture);$config=array('owner'=>$owner,'fixture_nonce'=>$nonce,'quickstart_sha256'=>hash_file('sha256',dirname(__DIR__,3).'/resources/sql/quickstart.sql'),'source_revision'=>$revision,'native26_prerequisite_sha256'=>$prerequisite,'origin'=>$origin,'writer'=>$fixture->getWriterConfig(),'file_service'=>$file_config);
     $raw=json_encode($config,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);governance_workbench_http_config($raw,hash('sha256',$raw),$config['quickstart_sha256']);
     LiskDAO::closeAllConnections();$GLOBALS['governance_workbench_http_cleanup_permitted']=false;
+    $writer_closed=$fixture->closeOwnedWriterConnectionForHTTP();
+    governance_workbench_http_record($journal,array('phase'=>'owned-fixture-writer-closed','proof'=>$writer_closed));
+    $check($writer_closed['owned_fixture_writer_connection_closed']===true&&$writer_closed['exact_original_thread_absent']===true,'workbench-http-owned-independent-writer-closed-before-ready');
     governance_workbench_http_record($journal,array('phase'=>'ready','actual_namespace_private'=>$fixture->getNamespace(),'router_config'=>$config,'router_config_sha256'=>hash('sha256',$raw),'router_config_raw'=>$raw,'origin'=>$origin,'login_uri'=>$origin.$provider->getLoginURI(),'workbench_uri'=>$origin.'/people/organization/approvals/','organization_uri'=>$origin.'/people/organization/','roles'=>$roles,'browser_session_preseeded'=>false,'initial'=>$state,'native26_proof_pointer_only_not_verified_by_keeper'=>true,'HTTP_started_by_keeper'=>false));
     stream_set_blocking(STDIN,false);$deadline=microtime(true)+(int)$seconds;$buffer='';$observations=0;$released=false;
     while(microtime(true)<$deadline){

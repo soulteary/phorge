@@ -327,6 +327,45 @@ final class PhorgeGovernanceCompletionFixture {
     }finally{mysqli_report($mode);}
   }
 
+  /** Close this fixture's independent mysqli writer, not the native DAO pool.
+   * The HTTP parent must still prove ALL writer sessions zero after HTTP stops.
+   */
+  public function closeOwnedWriterConnectionForHTTP() {
+    $this->assertOwned();
+    if (!isset($this->connections['writer'])) { throw new RuntimeException('owned_HTTP_writer_handle_unknown'); }
+    $config=$this->configs['writer'];$writer=$this->connections['writer'];
+    if($config['host']!=='127.0.0.1'||$config['host']!==$this->host||$config['port']!==$this->port||
+      $config['namespace']!==$this->namespace||!preg_match('/\Agov_c_writer_[a-f0-9]{12}\z/D',$config['user'])){
+      throw new RuntimeException('owned_HTTP_writer_config_refused');}
+    $physical=$writer->query('SELECT CURRENT_USER() principal,@@server_uuid u,CONNECTION_ID() t,@@autocommit a')->fetch_assoc();
+    $observer=$this->control->query('SELECT @@server_uuid u,CONNECTION_ID() t,@@autocommit a')->fetch_assoc();$thread=$writer->thread_id;
+    if(!is_int($thread)||$thread<1||!$physical||!$observer||$physical['principal']!==$config['user'].'@%'||
+      $physical['u']!==$observer['u']||(string)$physical['t']!==(string)$thread||
+      (string)$observer['t']===(string)$thread||(string)$physical['a']!=='1'||(string)$observer['a']!=='1'){
+      throw new RuntimeException('owned_HTTP_writer_physical_identity_refused');}
+    $txn=$this->control->prepare("SELECT t.INSTRUMENTED instrumented,(SELECT ENABLED FROM performance_schema.setup_consumers WHERE NAME='global_instrumentation') global_consumer,(SELECT ENABLED FROM performance_schema.setup_consumers WHERE NAME='thread_instrumentation') thread_consumer,(SELECT ENABLED FROM performance_schema.setup_consumers WHERE NAME='events_transactions_current') consumer,(SELECT ENABLED FROM performance_schema.setup_instruments WHERE NAME='transaction') instrument,(SELECT COUNT(*) FROM performance_schema.events_transactions_current e WHERE e.THREAD_ID=t.THREAD_ID AND e.STATE='ACTIVE') active FROM performance_schema.threads t WHERE t.PROCESSLIST_ID=?");
+    $txn->bind_param('i',$thread);$txn->execute();$txrows=$txn->get_result()->fetch_all(MYSQLI_ASSOC);$txn->close();
+    if(count($txrows)!==1||($txrows[0]['global_consumer']??null)!=='YES'||($txrows[0]['thread_consumer']??null)!=='YES'||
+      ($txrows[0]['instrumented']??null)!=='YES'||($txrows[0]['consumer']??null)!=='YES'||
+      ($txrows[0]['instrument']??null)!=='YES'||(string)($txrows[0]['active']??null)!=='0'){
+      throw new RuntimeException('owned_HTTP_writer_transaction_unknown_or_active');}
+    $count=function()use($thread,$config){
+      $stmt=$this->control->prepare('SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE ID=? AND USER=?');
+      $stmt->bind_param('is',$thread,$config['user']);$stmt->execute();$row=$stmt->get_result()->fetch_assoc();$stmt->close();
+      if(!$row||!in_array((string)$row['n'],array('0','1'),true)){throw new RuntimeException('owned_HTTP_writer_thread_unknown');}
+      return (string)$row['n'];
+    };
+    if($count()!=='1'){throw new RuntimeException('owned_HTTP_writer_thread_not_observed');}
+    if($writer->close()!==true){throw new RuntimeException('owned_HTTP_writer_close_failed');}
+    unset($this->connections['writer']); // A successful close must not be closed twice by final cleanup.
+    $deadline=microtime(true)+2;$absent=false;
+    do{$absent=$count()==='0';if($absent){break;}usleep(20000);}while(microtime(true)<$deadline);
+    if(!$absent){throw new RuntimeException('owned_HTTP_writer_thread_still_present');}
+    return array('owned_fixture_writer_connection_closed'=>true,'same_primary_observer'=>true,
+      'exact_original_thread_absent'=>true,'closed_thread_private'=>(string)$thread,
+      'all_native_writer_sessions_zero_not_claimed'=>true);
+  }
+
   public function getWriterConfig() { $this->assertOwned(); return $this->configs['writer']; }
   /** Optional physical-mail fixture account; never grants native authority reads. */
   public function createPrivateMailerPrincipal() {

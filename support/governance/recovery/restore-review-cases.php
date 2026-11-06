@@ -18,6 +18,40 @@ function governance_recovery_restore_partial_project($actor,$subject,$suffix) {
   return $project;
 }
 
+/** Native memoization preparation before any durable review is bound. */
+function governance_recovery_restore_prime_space_cache($fixture,$conn,array $viewers) {
+  if(get_class($fixture)!==PhorgeGovernanceCompletionFixture::class||count($viewers)!==3||
+      $conn!==(new PhabricatorUser())->establishConnection('w')||$conn->isInsideTransaction()) {
+    throw new RuntimeException('recovery_restore_space_prime_scope_unknown');
+  }
+  $fixture->assertOwned();$seen=array();
+  PhabricatorSpacesNamespaceQuery::getAllSpaces();
+  PhabricatorSpacesNamespaceQuery::getDefaultSpace();
+  foreach($viewers as$viewer) {
+    if(get_class($viewer)!==PhabricatorUser::class||!is_string($viewer->getPHID())||
+        isset($seen[$viewer->getPHID()])) {
+      throw new RuntimeException('recovery_restore_space_prime_viewer_unknown');
+    }
+    $seen[$viewer->getPHID()]=true;
+    PhabricatorSpacesNamespaceQuery::getViewerSpaces($viewer);
+  }
+  // Observe the actual collector, not invented cache values. New DAO database
+  // refs naturally create unrelated request-cache keys. They must not shift a
+  // review from uninitialized cache to native cache after ticket creation.
+  $collect=static function()use($conn) {
+    if($conn->isInsideTransaction()){throw new RuntimeException('recovery_restore_space_prime_outer_transaction');}
+    $conn->openTransaction();
+    try {return PhorgeRecoverySpacesSourceFacts::capture($conn)->finish()['source_digest'];}
+    finally {if($conn->isInsideTransaction()){$conn->killTransaction();}}
+  };
+  $before=$collect();
+  PhabricatorDatabaseRef::getLiveIndividualRef();
+  $after=$collect();
+  if(!is_string($before)||!hash_equals($before,$after)) {
+    throw new RuntimeException('recovery_restore_space_prime_unstable');
+  }
+}
+
 /** Unrun native integration draft. Does not claim any successful restoration. */
 function governance_recovery_restore_review_cases($fixture,callable $check) {
   $fixture->assertOwned();$cookies=$_COOKIE;$method=$_SERVER['REQUEST_METHOD']??null;
@@ -77,6 +111,9 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
         ->setNewValue('Synthetic partial review '.$suffix)));
     // Fresh request-cache state is explicit test setup, never an absence lease.
     (new ReflectionProperty(PhabricatorCaches::class,'requestCache'))->setValue(null,null);
+    // Native queries establish the real Space cache before source-bound review.
+    // Never clear/repair it after creating a ticket to force an old match.
+    governance_recovery_restore_prime_space_cache($fixture,$conn,array($actor,$reviewer,$ordinary));
     $input=array('native_stop_transaction'=>(string)$event['id'],'operation_id'=>'restore-submit-'.$suffix,
       'reason'=>'Synthetic independent review','subject'=>$subject->getPHID(),'ttl_seconds'=>600);
     $fingerprint=static function()use($conn){
@@ -110,10 +147,11 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
     $check($replay['replayed']===true&&$before===$fingerprint(),'recovery-restore-submit-ledger-replay-no-second-audit');
     $id=$receipt['request_id'];
     $before=$fingerprint();$preview=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
+    $repeat_preview=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
     $preview_keys=array_keys($preview);sort($preview_keys,SORT_STRING);
     $check($before===$fingerprint()&&$preview['source_schema_version']===3&&
       strlen($preview['source_digest'])===64&&count($preview['incomplete_families'])===13&&
-      $preview['preview_is_authorization']===false&&$preview['restoration_authorized']===false&&
+      $preview['preview_is_authorization']===false&&$preview['restoration_authorized']===false&&$repeat_preview===$preview&&
       $preview_keys===array('category','expires_at','families','incomplete_families','permit_state',
         'preview_is_authorization','request_id','restoration_authorized','review_state',
         'source_digest','source_schema_version','version'),
