@@ -65,8 +65,60 @@ final class PhorgeRecoveryRestoreService extends Phobject {
     return $ids;
   }
 
+  // No production observer adoption/factory exists. Isolated support proofs
+  // may exercise this private seam after provisioning and proving ownership.
+  // No public configuration, descriptor, boolean or fixture API installs it.
+  private static $borrowedObserver;
+  private static $borrowedOwner;
+
+  public static function assertBorrowedOwner($token,$writer,$observer) {
+    $owner=self::$borrowedOwner;
+    if(!is_object($token)||!is_array($owner)||$owner['token']!==$token||
+      $owner['writer']!==$writer||$owner['observer']!==$observer||
+      self::$borrowedObserver!==$observer){
+      throw new RuntimeException('recovery_borrowed_owner_unknown');}
+  }
+  public static function registerBorrowedParticipant($token,PhorgeRecoverySessionProducerFence $participant) {
+    $owner=self::$borrowedOwner;
+    if(!is_array($owner)||$owner['token']!==$token||$owner['participant']!==null){
+      throw new RuntimeException('recovery_borrowed_registration_refused');}
+    self::$borrowedOwner['participant']=$participant;
+  }
+  public static function captureBorrowedSessionFacts(AphrontDatabaseConnection $writer,$subject) {
+    $owner=self::$borrowedOwner;
+    if(!is_array($owner)||$owner['writer']!==$writer||$owner['participant']===null){
+      throw new RuntimeException('recovery_borrowed_production_provider_unavailable');}
+    return$owner['participant']->borrowedCapture($subject);
+  }
+  private static function prepareBorrowedOwner(AphrontDatabaseConnection $writer) {
+    if(self::$borrowedObserver===null){return;}
+    if(self::$borrowedOwner!==null){throw new RuntimeException('recovery_borrowed_owner_reentry');}
+    $GLOBALS['governance_recovery_borrowed_cleanup_proved']=false;
+    $token=new stdClass();self::$borrowedOwner=array('token'=>$token,'writer'=>$writer,
+      'observer'=>self::$borrowedObserver,'participant'=>null);
+  }
+  private static function beginBorrowedOwner(AphrontDatabaseConnection $writer) {
+    if(self::$borrowedObserver===null){return;}
+    $owner=self::$borrowedOwner;
+    if(!is_array($owner)||$owner['writer']!==$writer||$owner['observer']!==self::$borrowedObserver||$owner['participant']!==null){
+      throw new RuntimeException('recovery_borrowed_owner_unknown');}
+    PhorgeRecoverySessionProducerFence::beginBorrowed($owner['token'],$writer,self::$borrowedObserver);
+  }
+  private static function finishBorrowedOwner() {
+    if(self::$borrowedObserver===null){return;}
+    $owner=self::$borrowedOwner;
+    if(!is_array($owner)||$owner['participant']===null){
+      throw new RuntimeException('recovery_borrowed_terminal_unknown');}
+    $facts=$owner['participant']->borrowedObserveTerminal();
+    if(($facts['cleanup_proved']??null)!==true){throw new RuntimeException('recovery_borrowed_terminal_unknown');}
+    $GLOBALS['governance_recovery_borrowed_cleanup_proved']=true;
+    $GLOBALS['governance_recovery_borrowed_terminal']=$facts;
+    self::$borrowedOwner=null;
+  }
+
   private static function withTransaction(PhorgeGovernanceNativeActorContext $context,
     array $subjects, callable $work) {
+    if(self::$borrowedOwner!==null){throw new RuntimeException('recovery_borrowed_owner_quarantined');}
     $profile=PhorgeRecoveryRestoreProfile::assertCurrent();
     $user=new PhabricatorUser(); $conn=$user->establishConnection('w');
     if (get_class($conn)!==AphrontMySQLiDatabaseConnection::class || $conn->isInsideTransaction() ||
@@ -79,11 +131,15 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       'REPEATABLE-READ'=>'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
       'SERIALIZABLE'=>'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');
     if (!$level || !isset($levels[$level['level']])) { throw new RuntimeException('recovery_restore_isolation_unknown'); }
-    $owned=false; $queued=false;
+    $owned=false; $queued=false; $primary=null;
+    if(self::$borrowedObserver!==null){$GLOBALS['governance_recovery_borrowed_cleanup_proved']=false;unset($GLOBALS['governance_recovery_borrowed_terminal']);}
     try {
       queryfx($conn,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED'); $queued=true;
+      // Quarantine the exact owner before BEGIN can lose its acknowledgement.
+      self::prepareBorrowedOwner($conn);
       $conn->openTransaction(); $owned=true; $queued=false;
       $started=self::sourceNow($conn);
+      self::beginBorrowedOwner($conn);
       PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
       $subjects[]=$context->getUserPHID(); $subjects=array_values(array_unique($subjects));
       sort($subjects,SORT_STRING);
@@ -122,6 +178,8 @@ final class PhorgeRecoveryRestoreService extends Phobject {
           throw new RuntimeException('recovery_restore_postcondition_failed');
         }
       }
+      $participant=self::$borrowedOwner['participant']??null;
+      if($participant!==null){$participant->borrowedValidateBeforeOwnerEnd();}
       if (PhorgeRecoveryRestoreProfile::assertCurrent()!==$profile) {
         throw new RuntimeException('recovery_restore_profile_changed');
       }
@@ -138,10 +196,17 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       $conn->saveTransaction(); $owned=false;
       return $plan['result'];
     } catch (Throwable $error) {
-      if ($owned && $conn->isInsideTransaction()) { $conn->killTransaction(); }
-      throw $error;
+      $primary=$error;$errors=array('primary'=>$error);
+      try{if ($owned && $conn->isInsideTransaction()) { $conn->killTransaction(); }}
+      catch(Throwable $cleanup){$errors['owner-rollback']=$cleanup;}
+      if(count($errors)>1){$primary=new PhutilAggregateException('recovery_restore_owner_cleanup_failed',$errors);}
+      throw$primary;
     } finally {
-      if ($queued) { queryfx($conn,$levels[$level['level']]); }
+      $errors=$primary===null?array():array('primary'=>$primary);
+      try{if ($queued) { queryfx($conn,$levels[$level['level']]); }}catch(Throwable $cleanup){$errors['isolation']=$cleanup;}
+      try{self::finishBorrowedOwner();}catch(Throwable $cleanup){$errors['borrowed-terminal']=$cleanup;}
+      if(count($errors)>($primary===null?0:1)){
+        throw new PhutilAggregateException('recovery_restore_participant_cleanup_failed',$errors);}
     }
   }
 
