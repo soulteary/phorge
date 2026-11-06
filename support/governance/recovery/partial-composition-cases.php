@@ -1,5 +1,59 @@
 <?php
 
+/** Actual adapter probe owns only its short reader transaction. */
+function governance_recovery_partial_policy_reader_probe($conn) {
+  if($conn->isInsideTransaction()) {
+    throw new RuntimeException('recovery_partial_policy_probe_outer_transaction');
+  }
+  $conn->openTransaction();
+  try {return PhorgeRecoveryRestorePolicySource::capture($conn);}
+  finally {if($conn->isInsideTransaction()){$conn->killTransaction();}}
+}
+
+/** Explicit raw fault injection, not native producer/serializer coverage. */
+function governance_recovery_partial_policy_budget_fault($fixture,$conn,PhabricatorPolicy $policy) {
+  $fixture->assertOwned();$namespace=$fixture->getNamespace();
+  if(!is_string($namespace)||!preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)||
+      $conn!==(new PhabricatorUser())->establishConnection('w')||$conn->isInsideTransaction()) {
+    throw new RuntimeException('recovery_partial_policy_fault_route_unproved');
+  }
+  $id=PhorgeRecoveryStopRequest::transactionID((string)$policy->getID());$phid=$policy->getPHID();
+  if(!is_string($phid)||strlen($phid)>64||!$phid) {
+    throw new RuntimeException('recovery_partial_policy_fault_identity_unproved');
+  }
+  // Prove this exact native DAO row was selected and consumed by the actual
+  // adapter's PRIMARY size/digest queries before introducing the one fault.
+  $before=governance_recovery_partial_policy_reader_probe($conn);$selected=false;
+  foreach($before['selected_source_rows']['policy']as$row) {
+    if($row['identity_digest']===hash('sha256',$id)&&
+        $row['field_digests']['phid']===hash('sha256','V'.strlen($phid).':'.$phid)) {
+      if($selected){throw new RuntimeException('recovery_partial_policy_fault_identity_unproved');}
+      $selected=true;
+    }
+  }
+  if(!$selected){throw new RuntimeException('recovery_partial_policy_fault_not_selected');}
+  $rules=phutil_json_encode(array(array('rule'=>str_repeat('x',
+    PhorgeRecoveryRestorePolicySource::MAX_ROW_BYTES+1))));
+  queryfx($conn,'UPDATE %T.policy SET rules=%s WHERE id=%s AND phid=%s',
+    $namespace.'_policy',$rules,$id,$phid);
+  $stored=queryfx_one($conn,'SELECT id,phid,OCTET_LENGTH(rules) rule_bytes,'.
+    'SHA2(CAST(rules AS BINARY),256) rules_sha FROM %T.policy WHERE id=%s AND phid=%s',
+    $namespace.'_policy',$id,$phid);
+  if(!$stored||(string)$stored['id']!==$id||$stored['phid']!==$phid||
+      (string)$stored['rule_bytes']!==(string)strlen($rules)||
+      $stored['rules_sha']!==hash('sha256',$rules)) {
+    throw new RuntimeException('recovery_partial_policy_fault_bytes_unproved');
+  }
+  $refused=false;
+  try {governance_recovery_partial_policy_reader_probe($conn);}
+  catch(RuntimeException $error) {
+    if(get_class($error)!==RuntimeException::class||
+        $error->getMessage()!=='recovery_policy_byte_budget'){throw $error;}
+    $refused=true;
+  }
+  if(!$refused){throw new RuntimeException('recovery_partial_policy_fault_budget_unproved');}
+}
+
 /** Isolated real-source durable-review cases. UNRUN until Root schedules SQL. */
 function governance_recovery_partial_composition_cases($fixture,array $requester,
   array $approver,$id,PhabricatorProject $project,
@@ -42,9 +96,12 @@ function governance_recovery_partial_composition_cases($fixture,array $requester
       ->setDefaultAction(PhabricatorPolicy::ACTION_DENY)->save();
     $refuse(static function()use($approver,$id){PhorgeRecoveryRestoreService::review($approver['context'],$id,'1','partial-policy-change');},
       'recovery_restore_sources_stale','recovery-partial-real-policy-row-addition-invalidates-durable-review');
-    // Check real adapter budget refusal before mutation can persist a review.
-    $policy->setRules(array(array('rule'=>str_repeat('x',20000))))->save();
-    $refuse(static function()use($approver,$id){PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');},
+    // Raw isolated fault injection is independently proved against the same
+    // current writer and actual adapter before expecting the service refusal.
+    $refuse(static function()use($fixture,$conn,$policy,$approver,$id){
+      governance_recovery_partial_policy_budget_fault($fixture,$conn,$policy);
+      PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
+    },
       'recovery_policy_byte_budget','recovery-partial-real-policy-budget-fails-closed-without-review-write');
     $policy->delete();$policy=null;
     $check(PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1')['permit_state']==='blocked',
