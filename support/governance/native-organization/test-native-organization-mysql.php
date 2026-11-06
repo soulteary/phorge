@@ -190,6 +190,7 @@ try {
     }
   });
   if($workbench_http){
+    require_once __DIR__.'/workers.php'; // Actual empty registry for the HTTP file1 cleanup profile.
     require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
     $stage='owned-real-gorge-file-service';
     $file_service=governance_completion_start_gorge($fixture,'file',$check);
