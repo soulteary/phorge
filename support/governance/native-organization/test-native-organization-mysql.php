@@ -4,13 +4,14 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--session-producer-lease'=>'session-producer-lease','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
   (count($arguments)===1&&isset($phases[$arguments[0]])?$phases[$arguments[0]]:'invalid');
 $workbench_http=$phase==='organization-approval-workbench-http-hold';
 $GLOBALS['governance_workbench_http_cleanup_permitted']=true;
+$GLOBALS['governance_session_lease_cleanup']=array('cleanup_proved'=>true);
 $native_rr=$phase==='native-user-rr-mdl-only';
 $notice_raw_orm=$phase==='notice-raw-orm-aba';
 $notice_admin_wire=$phase==='notice-admin-grant-wire-hold';
@@ -231,6 +232,16 @@ try {
     require_once dirname(__DIR__).'/recovery/native-writer-rr-focused.php';
     $native=governance_native_rr_focused($fixture,$check);
     $native['final_owned_cleanup']=$GLOBALS['governance_native_rr_cleanup'];
+  }elseif($phase==='session-producer-lease'){
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';
+    $file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],
+      'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+    $stage='focused-native-session-producer-lease';
+    require_once dirname(__DIR__).'/recovery/session-lease-focused.php';
+    $native=governance_recovery_session_lease_focused($fixture,$control,$check);
   }elseif($phase==='recovery-partial-composition'){
     require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
     $stage='owned-real-gorge-file-service';
@@ -386,6 +397,9 @@ try {
   }elseif($workbench_http&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){
     $cleanup_failures[]=array('stage'=>'workbench-http-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');
     // Retain ownership/schema evidence until the parent proves its server stopped.
+  }elseif($phase==='session-producer-lease'&&($GLOBALS['governance_session_lease_cleanup']['cleanup_proved']??null)!==true){
+    $cleanup_failures[]=array('stage'=>'session-lease-observer-or-physical-cleanup-unproved','error_type'=>'RuntimeException');
+    // Retain this owned fixture for Root reconciliation; never drop around unknown sessions.
   }elseif ($fixture !== null) {
     try { $cleanup = $fixture->cleanup(); $checks[]='all-owned-full-native-schemas-and-principals-cleaned'; }
     catch (Throwable $error) { $cleanup_error('owned-cleanup',$error); }
@@ -400,11 +414,13 @@ if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)
   $failure = array('stage'=>'unexpected-native-runtime-output','error_type'=>'RuntimeWarning');
 }
 $passed = $failure === null && !$cleanup_failures;
+if($phase==='session-producer-lease'&&!$passed){require_once dirname(__DIR__).'/recovery/session-lease-diagnostic.php';$diagnostic=governance_recovery_session_lease_failure_projection($phase,$passed,$failure,$GLOBALS['governance_session_producer_child_failure']??null);fwrite(STDERR,'native-session-lease-failure-v1 '.json_encode($diagnostic,JSON_UNESCAPED_SLASHES)."\n");}
 $batch=$native_rr?'native-same-User-RR-MDL-component':($notice_raw_orm?'native-notice-raw-orm-ABA-profile':($phase==='recovery-organization-lifecycle-only'?'native-recovery-organization-lifecycle-component':($phase==='recovery-organization-metadata-only'?'native-recovery-organization-live-metadata-component':($phase==='recovery-organization-only'?'native-recovery-organization-producer-component':($phase==='recovery-policy-only'?'native-recovery-policy-range-component':($private_mail_wire?'private-native-mail-wire-preparation':($wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration'))))))));
 $batch=$workbench_http?'native-workbench-basic-http-hold':$batch;
 $batch=$phase==='notice-admin-grant'?'native-notice-admin-grant-profile':$batch;
 $batch=$phase==='project-source-facts'?'native-project-source-facts':$batch;
 $batch=$phase==='organization-approval-workbench'?'native-organization-approval-workbench':$batch;
+$batch=$phase==='session-producer-lease'?'native-session-producer-lease':$batch;
 $batch=$phase==='file-source-facts'?'native-file-source-facts':$batch;
 $batch=$phase==='task-owner-source-facts'?'native-task-owner-source-facts':$batch;
 $batch=$phase==='spaces-source-facts'?'native-spaces-source-facts':$batch;
@@ -415,6 +431,7 @@ $receipt_scope=$phase==='notice-admin-grant'?'owned-native-admin-grant-and-trans
 $receipt_scope=$workbench_http?'owned-workbench-basic-http-synthetic-roles':$receipt_scope;
 $receipt_scope=$phase==='project-source-facts'?'owned-native-project-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$phase==='organization-approval-workbench'?'owned-native-organization-approval-workbench':$receipt_scope;
+$receipt_scope=$phase==='session-producer-lease'?'owned-native-session-producer-lease-no-permit':$receipt_scope;
 $receipt_scope=$phase==='file-source-facts'?'owned-native-File-source-partial':$receipt_scope;
 $receipt_scope=$phase==='task-owner-source-facts'?'owned-native-task-owner-source-partial':$receipt_scope;
 $receipt_scope=$phase==='spaces-source-facts'?'owned-native-spaces-source-facts-no-lease':$receipt_scope;
