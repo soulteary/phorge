@@ -190,8 +190,13 @@ try {
     }
   });
   if($workbench_http){
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';
+    $file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     $stage='owned-workbench-basic-http-hold';require_once dirname(__DIR__).'/organization/workbench-http-hold.php';
-    $native=governance_workbench_http_hold($fixture,$control,$check);
+    $native=governance_workbench_http_hold($fixture,$control,$check,$file_service);
   }elseif($phase==='organization-approval-workbench'){
     $stage='focused-organization-approval-workbench';
     require_once dirname(__DIR__).'/organization/approval-workbench-cases.php';

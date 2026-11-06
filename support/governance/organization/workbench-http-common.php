@@ -7,13 +7,21 @@ function governance_workbench_http_origin($port) {
   governance_workbench_http_need(is_string($port)&&preg_match('/\A[1-9][0-9]{0,4}\z/D',$port)===1&&(int)$port<=65535);
   return 'http://localhost:'.$port;
 }
+function governance_workbench_http_file_config($value) {
+  governance_workbench_http_need(is_array($value));$keys=array_keys($value);sort($keys);
+  governance_workbench_http_need($keys===array('binary_sha256','token','uri'));
+  foreach(array('binary_sha256','token')as$key){governance_workbench_http_need(is_string($value[$key])&&preg_match('/\A[a-f0-9]{64}\z/D',$value[$key])===1);}
+  governance_workbench_http_need(is_string($value['uri'])&&preg_match('@\Ahttp://127\.0\.0\.1:([1-9][0-9]{0,4})\z@D',$value['uri'],$port)===1&&(int)$port[1]<=65535);
+  return $value;
+}
 function governance_workbench_http_config($raw,$digest,$source_hash) {
   governance_workbench_http_need(is_string($raw)&&strlen($raw)<=32768&&is_string($digest)&&preg_match('/\A[a-f0-9]{64}\z/D',$digest)===1&&hash_equals($digest,hash('sha256',$raw)));
   $value=json_decode($raw,true,16,JSON_THROW_ON_ERROR);governance_workbench_http_need(is_array($value));$keys=array_keys($value);sort($keys);
-  governance_workbench_http_need($keys===array('fixture_nonce','native26_prerequisite_sha256','origin','owner','quickstart_sha256','source_revision','writer'));
+  governance_workbench_http_need($keys===array('file_service','fixture_nonce','native26_prerequisite_sha256','origin','owner','quickstart_sha256','source_revision','writer'));
   foreach(array('owner','fixture_nonce','quickstart_sha256','native26_prerequisite_sha256')as$key){governance_workbench_http_need(is_string($value[$key])&&preg_match('/\A[a-f0-9]{64}\z/D',$value[$key])===1);}
   governance_workbench_http_need(hash_equals($source_hash,$value['quickstart_sha256'])&&is_string($value['source_revision'])&&preg_match('/\A[a-f0-9]{40}\z/D',$value['source_revision'])===1);
   governance_workbench_http_need(is_string($value['origin'])&&preg_match('@\Ahttp://localhost:([1-9][0-9]{0,4})\z@D',$value['origin'],$port)===1&&governance_workbench_http_origin($port[1])===$value['origin']);
+  governance_workbench_http_file_config($value['file_service']);
   $writer=$value['writer'];governance_workbench_http_need(is_array($writer));$keys=array_keys($writer);sort($keys);
   governance_workbench_http_need($keys===array('host','namespace','password','port','user')&&$writer['host']==='127.0.0.1'&&is_int($writer['port'])&&$writer['port']>0&&$writer['port']<=65535);
   foreach(array('namespace'=>'/\Agovernance_native_[a-f0-9]{16}\z/D','user'=>'/\Agov_c_writer_[a-f0-9]{12}\z/D','password'=>'/\A[a-f0-9]{48}\z/D')as$key=>$pattern){governance_workbench_http_need(is_string($writer[$key])&&preg_match($pattern,$writer[$key])===1);}
@@ -21,7 +29,7 @@ function governance_workbench_http_config($raw,$digest,$source_hash) {
 }
 function governance_workbench_http_route($host,$uri,$origin) {
   governance_workbench_http_need(is_string($host)&&$host===substr($origin,7)&&is_string($uri)&&strlen($uri)<=4096&&strpos($uri,"\0")===false);
-  $path=parse_url($uri,PHP_URL_PATH);governance_workbench_http_need(is_string($path));$decoded=rawurldecode($path);governance_workbench_http_need(strpos($decoded,"\0")===false&&strpos($decoded,'\\')===false&&strpos($decoded,'%')===false&&!array_intersect(explode('/',$decoded),array('.','..')));governance_workbench_http_need(is_string($path)&&preg_match('@\A/(?:auth/[^\\\x00]*|logout/[^\\\x00]*|people/organization/[^\\\x00]*|typeahead/[^\\\x00]*|res/[^\\\x00]*|favicon\.ico|)\z@D',$path)===1);
+  $path=parse_url($uri,PHP_URL_PATH);governance_workbench_http_need(is_string($path));$decoded=rawurldecode($path);governance_workbench_http_need(strpos($decoded,"\0")===false&&strpos($decoded,'\\')===false&&strpos($decoded,'%')===false&&!array_intersect(explode('/',$decoded),array('.','..')));governance_workbench_http_need(is_string($path)&&preg_match('@\A/(?:file/(?:data|xform)/[^\\\x00]*|auth/[^\\\x00]*|logout/[^\\\x00]*|people/organization/[^\\\x00]*|typeahead/[^\\\x00]*|res/[^\\\x00]*|favicon\.ico|)\z@D',$path)===1);
   return $path;
 }
 function governance_workbench_http_directory($directory) {
