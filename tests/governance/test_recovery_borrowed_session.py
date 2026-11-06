@@ -87,3 +87,6 @@ class BorrowedSession(unittest.TestCase):
 
  def test_unknown_owner_quarantine_rejects_next_store_call_before_any_new_BEGIN(self):
   d=self.run_case('unknown-reentry');self.assertEqual(d['opens'],1);self.assertEqual(d['commits'],1);self.assertEqual(d['retry_error'],'recovery_borrowed_owner_quarantined');self.assertFalse(d['cleanup_proved']);self.assertTrue(d['retained_owner'])
+
+ def test_borrowed_recapture_cost_is_inside_real_store_deadline(self):
+  d=self.run_case('slow-finish');self.assertEqual(d['error'],'recovery_restore_operation_deadline');self.assertEqual(d['commits'],0);self.assertEqual(d['rollbacks'],1);self.assertTrue(d['cleanup_proved'])

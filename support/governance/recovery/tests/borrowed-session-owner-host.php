@@ -19,7 +19,7 @@ class PhabricatorUser {function establishConnection($m){return$GLOBALS['writer']
 class PhabricatorAuthSession extends PhabricatorUser {function getTableName(){return'session';}}
 function queryfx($c,$sql,...$args){$GLOBALS['statement_sql'][]=$sql;}
 function queryfx_one($c,$sql,...$args){
- if(str_contains($sql,'UNIX_TIMESTAMP'))return['n'=>'100'];
+ if(str_contains($sql,'UNIX_TIMESTAMP'))return['n'=>(string)($GLOBALS['clock']??100)];
  if(str_contains($sql,'@@SESSION.transaction_isolation'))return['level'=>'REPEATABLE-READ'];
  if(str_contains($sql,'writer_id'))return['writer_id'=>'1','uuid'=>str_repeat('a',36),'db'=>'governance_native_'.str_repeat('b',16).'_user','principal'=>'gov_c_writer_'.str_repeat('c',12).'@%','role'=>'NONE','proxy'=>null];
  if(str_contains($sql,'observer_id'))return['observer_id'=>$GLOBALS['mode']==='observer-end'&&$GLOBALS['writer']->depth===0?'3':'2','uuid'=>str_repeat('a',36),'principal'=>'gov_c_metadata_'.str_repeat('d',16).'@%','role'=>$GLOBALS['mode']==='role'?'foreign':'NONE','proxy'=>null];
@@ -44,6 +44,7 @@ function queryfx_all($c,$sql,...$args){
  if(str_contains($sql,'information_schema.STATISTICS')){
   $t=$args[0];$keys=$t==='recovery_restore_request'?['PRIMARY'=>['requestID'],'key_operation'=>['operationID']]:($t==='recovery_restore_operation'?['PRIMARY'=>['operationID']]:['PRIMARY'=>['id'],'key_operation'=>['operationID']]);$out=[];foreach($keys as$k=>$cols)foreach($cols as$n)$out[]=['INDEX_NAME'=>$k,'COLUMN_NAME'=>$n];return$out;
  }
+ if(str_contains($sql,'OCTET_LENGTH')){$GLOBALS['capture_reads']=($GLOBALS['capture_reads']??0)+1;if($GLOBALS['mode']==='slow-finish'&&$GLOBALS['capture_reads']>1)$GLOBALS['clock']=131;}
  if(str_contains($sql,'OCTET_LENGTH')&&in_array($GLOBALS['mode'],['budget','catch-budget'],true))return array_fill(0,65,['id'=>'1','row_bytes'=>'1']);
  return[];
 }

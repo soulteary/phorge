@@ -178,6 +178,8 @@ final class PhorgeRecoveryRestoreService extends Phobject {
           throw new RuntimeException('recovery_restore_postcondition_failed');
         }
       }
+      $participant=self::$borrowedOwner['participant']??null;
+      if($participant!==null){$participant->borrowedValidateBeforeOwnerEnd();}
       if (PhorgeRecoveryRestoreProfile::assertCurrent()!==$profile) {
         throw new RuntimeException('recovery_restore_profile_changed');
       }
@@ -191,8 +193,6 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       if ($plan['deadline']!==null && $now>=$plan['deadline']) { throw new RuntimeException('recovery_restore_expired'); }
       if($now<$started||$now-$started>self::MAX_OPERATION_SECONDS){
         throw new RuntimeException('recovery_restore_operation_deadline');}
-      $participant=self::$borrowedOwner['participant']??null;
-      if($participant!==null){$participant->borrowedValidateBeforeOwnerEnd();}
       $conn->saveTransaction(); $owned=false;
       return $plan['result'];
     } catch (Throwable $error) {

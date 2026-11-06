@@ -1188,7 +1188,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
       "symbol": "PhorgeRecoveryRestoreService",
       "kind": "isolated-recovery-foundation-static-no-permit",
-      "sha256": "94dec985d228df254fdaedca05719ab59633c585df14b6308fe7d2d128d0bfc8",
+      "sha256": "baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3627,7 +3627,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
-        "sha256": "94dec985d228df254fdaedca05719ab59633c585df14b6308fe7d2d128d0bfc8"
+        "sha256": "baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",

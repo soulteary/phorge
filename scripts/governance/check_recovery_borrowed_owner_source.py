@@ -4,7 +4,7 @@ from pathlib import Path
 import check_completion as completion
 import check_recovery_session_lease as source
 ROOT=Path(__file__).resolve().parents[2]
-SOURCE_INPUTS={'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php': '94dec985d228df254fdaedca05719ab59633c585df14b6308fe7d2d128d0bfc8', 'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': 'a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd'}
+SOURCE_INPUTS={'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php': 'baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f', 'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': 'a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd'}
 def validate(data,root=ROOT):
  expected={'schema':'n08-borrowed-owner-source-candidate-v1','source_sha256':SOURCE_INPUTS,
   'runtime_certified':False,'physical_SQL_cases_executed':False,
