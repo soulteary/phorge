@@ -37,6 +37,9 @@ function governance_workbench_http_hold($fixture,$control,callable $check,array 
     $nonce=(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'ownerNonce'))->getValue($fixture);$config=array('owner'=>$owner,'fixture_nonce'=>$nonce,'quickstart_sha256'=>hash_file('sha256',dirname(__DIR__,3).'/resources/sql/quickstart.sql'),'source_revision'=>$revision,'native26_prerequisite_sha256'=>$prerequisite,'origin'=>$origin,'writer'=>$fixture->getWriterConfig(),'file_service'=>$file_config);
     $raw=json_encode($config,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES);governance_workbench_http_config($raw,hash('sha256',$raw),$config['quickstart_sha256']);
     LiskDAO::closeAllConnections();$GLOBALS['governance_workbench_http_cleanup_permitted']=false;
+    $writer_closed=$fixture->closeOwnedWriterConnectionForHTTP();
+    governance_workbench_http_record($journal,array('phase'=>'owned-fixture-writer-closed','proof'=>$writer_closed));
+    $check($writer_closed['owned_fixture_writer_connection_closed']===true&&$writer_closed['exact_original_thread_absent']===true,'workbench-http-owned-independent-writer-closed-before-ready');
     governance_workbench_http_record($journal,array('phase'=>'ready','actual_namespace_private'=>$fixture->getNamespace(),'router_config'=>$config,'router_config_sha256'=>hash('sha256',$raw),'router_config_raw'=>$raw,'origin'=>$origin,'login_uri'=>$origin.$provider->getLoginURI(),'workbench_uri'=>$origin.'/people/organization/approvals/','organization_uri'=>$origin.'/people/organization/','roles'=>$roles,'browser_session_preseeded'=>false,'initial'=>$state,'native26_proof_pointer_only_not_verified_by_keeper'=>true,'HTTP_started_by_keeper'=>false));
     stream_set_blocking(STDIN,false);$deadline=microtime(true)+(int)$seconds;$buffer='';$observations=0;$released=false;
     while(microtime(true)<$deadline){
