@@ -5,7 +5,7 @@ existing isolated owned User RR reader. It invokes actual viewer-aware
 of two, and policy exceptions disabled on `execute()` (not `executeOne()`).
 Foreign, duplicate, stale and malformed results fail closed; native errors
 propagate. A current locked account row and the supplied native viewer must both
-be approved, enabled ordinary accounts. Anonymous and omnipotent viewers refuse
+be approved, enabled native human accounts with matching current flags. Anonymous and omnipotent viewers refuse
 before policy queries. This account admission is separate from the File model's
 author automatic capability, which alone does not reject disabled accounts.
 
@@ -42,7 +42,7 @@ must close and disappear before a successful native summary can be emitted.
 The independent checker derives six case obligations from exact pinned source
 bytes and combines the actual six bootstrap, one File readiness and three cleanup
 obligations: **16 checks**, not a SQL statement count. File39 and partial31 stay
-unchanged. The native summary binds ten selected producer/consumer source files;
+unchanged. The native summary binds eleven selected producer/consumer source files;
 the checker independently captures those bytes through bounded stable FDs and
 rejects changed sources. It also requires an external executable File binary and
 SHA256, one owned startup, exact process/private-storage cleanup, source revision,
@@ -69,3 +69,13 @@ SQL, real File service, physical transaction or mapper evidence. The six native
 cases and strict sixteen-check profile are **UNRUN**. Even a future accepted
 endpoint receipt cannot make this consumer durable-review compatible, complete
 any of the thirteen families or authorize restoration.
+
+The v2 profile binds the current locked SQL `isAdmin` flag as well as approved,
+disabled, system-agent and mailing-list flags. Native viewer getters must match
+those current flags. A stale admin object is rejected before policy queries;
+the native GlobalPolicy admin rule remains unchanged. The account-admission
+case group retains disabled/anonymous refusal and now includes a real admin
+positive, isolated same-writer SQL demotion with rollback, and a binding drift
+case whose native user visibility stays admitted. These SQL cases remain UNRUN.
+The v1 sixteen-check receipt, a missing `isAdmin` source/descriptor, unknown
+fields and caller-supplied replacement source hashes are rejected by v2.

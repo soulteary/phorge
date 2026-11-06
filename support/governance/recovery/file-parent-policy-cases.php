@@ -67,6 +67,74 @@ function governance_recovery_file_parent_policy_observe($fixture,$observer,array
     throw $error;
   }
 }
+/** Real native admin-policy decisions; raw role fault is isolated and rolled back. */
+function governance_recovery_file_parent_policy_admin_cases($fixture,$observer,array $state) {
+  $fixture->assertOwned();$admin=$state['users']['actor'];$subject=$state['users']['subject'];
+  $task=(new ManiphestTask())->load($state['task']->getID());$phid=$state['file']->getPHID();
+  $edit_policy=static function($policy)use($subject,$task) {
+    governance_task_owner_edit($subject,$task,array((new ManiphestTransaction())
+      ->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY)->setNewValue($policy)));
+  };
+  $edit_policy(PhabricatorPolicies::POLICY_ADMIN);
+  $rule=new PhorgeGlobalPolicyRule();
+  if(!$rule->applyRule($admin,PhabricatorPolicies::POLICY_ADMIN,$task)) {
+    throw new RuntimeException('file_parent_policy_native_admin_prerequisite');
+  }
+  $positive=governance_recovery_file_parent_policy_observe($fixture,$observer,$state,$admin);
+  if(($positive['observations'][$phid]['state']??null)!=='admitted'||
+      $positive['current_account_flags_bound']!==array('isAdmin','isApproved','isDisabled','isSystemAgent','isMailingList')) {
+    throw new RuntimeException('file_parent_policy_native_admin_positive_unproved');
+  }
+  foreach(array('stale-object','visible-binding-drift','malformed-SQL','malformed-viewer')as$mode) {
+    $edit_policy($mode==='visible-binding-drift'?PhabricatorPolicies::POLICY_USER:PhabricatorPolicies::POLICY_ADMIN);
+    $viewer=clone $admin;$scope=PhorgeRecoveryOwnedRRScope::begin($observer);
+    try {
+      $capture=PhorgeRecoveryFileSourceFacts::captureParentPolicies($scope,$subject->getPHID(),$viewer);
+      $writer=(new PhabricatorUser())->establishConnection('w');
+      // Explicit fault injection on the exact fixture viewer, never an online
+      // permission migration or a claim of full native role-producer coverage.
+      $wanted=$mode==='malformed-SQL'?2:($mode==='malformed-viewer'?1:0);
+      if($mode!=='malformed-viewer') {
+        queryfx($writer,'UPDATE %R SET isAdmin=%d WHERE id=%d AND phid=%s',
+          new PhabricatorUser(),$wanted,$admin->getID(),$admin->getPHID());
+      }
+      $current=queryfx_one($writer,'SELECT isAdmin FROM %R WHERE id=%d AND phid=%s',
+        new PhabricatorUser(),$admin->getID(),$admin->getPHID());
+      if(!$current||!in_array($current['isAdmin'],array($wanted,(string)$wanted),true)) {
+        throw new RuntimeException('file_parent_policy_admin_fault_unproved');
+      }
+      if($mode!=='visible-binding-drift') {
+        if($mode==='malformed-viewer'){$viewer->setIsAdmin('truthy-noncanonical');}
+        if(!$rule->applyRule($viewer,PhabricatorPolicies::POLICY_ADMIN,$task)) {
+          throw new RuntimeException('file_parent_policy_stale_admin_object_unproved');
+        }
+        $expected='recovery_file_parent_viewer_refused';
+      }else {
+        $viewer->setIsAdmin(0);
+        if(!$rule->applyRule($viewer,PhabricatorPolicies::POLICY_USER,$task)) {
+          throw new RuntimeException('file_parent_policy_user_visibility_prerequisite');
+        }
+        $expected='recovery_file_parent_review_stale';
+      }
+      $refused=false;
+      try{$capture->finishParentPolicies();}
+      catch(RuntimeException$error){if($error->getMessage()!==$expected){throw$error;}$refused=true;}
+      if(!$refused){throw new RuntimeException('file_parent_policy_admin_drift_admitted');}
+      $scope->rollback();
+      $restored=queryfx_one($writer,'SELECT isAdmin FROM %R WHERE id=%d AND phid=%s',
+        new PhabricatorUser(),$admin->getID(),$admin->getPHID());
+      if(!$restored||!in_array($restored['isAdmin'],array(1,'1'),true)) {
+        throw new RuntimeException('file_parent_policy_admin_rollback_unproved');
+      }
+    }catch(Throwable$error){
+      try{governance_task_owner_abort($scope);}catch(Throwable$cleanup){throw new PhutilAggregateException(
+        'file_parent_policy_admin_cleanup_unproved',array('primary'=>$error,'cleanup'=>$cleanup));}
+      throw$error;
+    }
+  }
+  return true;
+}
+
 function governance_recovery_file_parent_policy_cases($fixture,$observer,array $state,callable $check) {
   require_once __DIR__.'/file-source-cases.php';
   $reader=$state['users']['other'];$phid=$state['file']->getPHID();
@@ -99,13 +167,14 @@ function governance_recovery_file_parent_policy_cases($fixture,$observer,array $
     $attached['review_binding']!==$denied['review_binding'],
     'file-parent-policy-native-invisible-parent-policy-changes-binding');
   // The disabled account is created by the existing real fixture producer.
+  $admin_bound=governance_recovery_file_parent_policy_admin_cases($fixture,$observer,$state);
   $refused=false;
   try {governance_recovery_file_parent_policy_observe($fixture,$observer,$state,$state['users']['disabled']);}
   catch(RuntimeException $error) {
     if($error->getMessage()!=='recovery_file_parent_viewer_refused'){throw $error;}
     $refused=true;
   }
-  $check($refused,'file-parent-policy-disabled-current-account-refused');
+  $check($refused&&$admin_bound,'file-parent-policy-current-account-flags-admission-bound');
   $anonymous=(new PhabricatorUser());$refused=false;
   try {governance_recovery_file_parent_policy_observe($fixture,$observer,$state,$anonymous);}
   catch(RuntimeException $error) {

@@ -34,11 +34,13 @@ function governance_recovery_file_parent_policy_focused($fixture,mysqli$control,
     }
     $source_hashes[$path]=$digest;
   }
-  return array('profile'=>'native-File-parent-Task-policy-endpoints-v1','source_revision'=>$revision,
+  return array('profile'=>'native-File-parent-Task-policy-endpoints-v2-current-account-flags','source_revision'=>$revision,
     'executed_case_obligations'=>$labels,'source_inputs_sha256'=>$source_hashes,
     'native_reader_relationships'=>$result['native_reader_relationships'],
     'observer_closed_and_absent'=>$observerClosed,'native_File_and_Task_queries_executed'=>true,
-    'actual_current_account_admission_checked'=>true,'parent_policy_interpreter_complete'=>false,
+    'actual_current_account_admission_checked'=>true,
+    'current_account_flags_bound'=>array('isAdmin','isApproved','isDisabled','isSystemAgent','isMailingList'),
+    'parent_policy_interpreter_complete'=>false,
     'durable_review_compatible'=>false,'dependency_budget_proved'=>false,
     'all_object_classes_covered'=>false,'all_sources_complete'=>false,'complete'=>false,
     'restoration_authorized'=>false,'execution_blocked'=>true);
@@ -48,7 +50,7 @@ function governance_recovery_file_parent_policy_obligations() {
     'file-parent-policy-native-Task-attachment-changes-endpoint-binding',
     'file-parent-policy-native-endpoints-never-become-restoration-permit',
     'file-parent-policy-native-invisible-parent-policy-changes-binding',
-    'file-parent-policy-disabled-current-account-refused',
+    'file-parent-policy-current-account-flags-admission-bound',
     'file-parent-policy-anonymous-refused-before-native-author-grant');
 }
 function governance_recovery_file_parent_policy_source_inputs() {
@@ -56,6 +58,7 @@ function governance_recovery_file_parent_policy_source_inputs() {
     'src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php',
     'src/applications/files/query/PhabricatorFileQuery.php',
     'src/applications/maniphest/query/ManiphestTaskQuery.php',
+    'src/applications/policy/rule/PhorgeGlobalPolicyRule.php',
     'support/governance/recovery/file-parent-policy-cases.php',
     'support/governance/recovery/file-parent-policy-focused.php',
     'support/governance/recovery/file-source-cases.php',

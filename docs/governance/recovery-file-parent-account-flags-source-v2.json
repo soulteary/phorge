@@ -1,0 +1,13 @@
+{
+  "schema": "n08-file-parent-account-flags-source-v2",
+  "baseline": "a223ab9c4e5caa2ecc5a03e57138e72bb92c5dc7",
+  "reason": "Close stale admin object admission by binding current SQL isAdmin and matching the native viewer flag before queries. Preserve native rules, separate observation and all blockers.",
+  "source_review_status": "candidate-awaiting-independent-review",
+  "source_sha256": {
+    "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php": "c997c9a5abc3abebb78ff12d1f0927843d6295b948759f20dcfb137b85f6fcfe"
+  },
+  "v1_docs_preserved_as_history": true,
+  "all_sources_complete": false,
+  "restoration_authorized": false,
+  "SQL": "UNRUN"
+}

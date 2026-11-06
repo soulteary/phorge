@@ -9,10 +9,10 @@ SQL={'file-parent-policy-unattached-author-root-is-unsupported',
  'file-parent-policy-native-Task-attachment-changes-endpoint-binding',
  'file-parent-policy-native-endpoints-never-become-restoration-permit',
  'file-parent-policy-native-invisible-parent-policy-changes-binding',
- 'file-parent-policy-disabled-current-account-refused',
+ 'file-parent-policy-current-account-flags-admission-bound',
  'file-parent-policy-anonymous-refused-before-native-author-grant'}
 # Reviewed selected producer/consumer bytes, not receipt-supplied source proofs.
-SOURCE_INPUTS={'src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php': '3c3c5914e71601778e7e059c2b8887edb32da4d69ee4e5253b0d62dccf161e09', 'src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php': 'c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08', 'src/applications/files/query/PhabricatorFileQuery.php': '2ccf285287e7f7e1f5889afce530b1a5073cfa7c076100a1129506816619e421', 'src/applications/maniphest/query/ManiphestTaskQuery.php': '225b35fe0fa0154e444530e35ca83a5525d2f2a36965891e0fa1834931b772a5', 'support/governance/recovery/file-parent-policy-cases.php': '7ca3206b39bef042cdcb6b44c00b172c66c899010b942ce61bd1e0b20890c65e', 'support/governance/recovery/file-parent-policy-focused.php': '42a76dc119bf7b08ec23e1ecc2527a84bed9d857abe0fb3d65663a1a25d0d0ab', 'support/governance/recovery/file-source-cases.php': 'd106bc50447c9a6a62c1d115840d7272ee305d98b56d42f2fef0fd39558b2c10', 'support/governance/recovery/task-owner-source-cases.php': '56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1', 'support/governance/completion/pipeline-gorge.php': 'ff27390d7a7e5b5c14555758e8b8172fd401bb0dcf51221fe32251b11308fcda', 'support/governance/native-organization/test-native-organization-mysql.php': 'e666d117050fcf00a9073739e9bfaa0917d3b685258e2d62c84f5e16e88cac61'}
+SOURCE_INPUTS={'src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php': 'c997c9a5abc3abebb78ff12d1f0927843d6295b948759f20dcfb137b85f6fcfe', 'src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php': 'c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08', 'src/applications/files/query/PhabricatorFileQuery.php': '2ccf285287e7f7e1f5889afce530b1a5073cfa7c076100a1129506816619e421', 'src/applications/maniphest/query/ManiphestTaskQuery.php': '225b35fe0fa0154e444530e35ca83a5525d2f2a36965891e0fa1834931b772a5', 'src/applications/policy/rule/PhorgeGlobalPolicyRule.php': '7f0f1188915b7837fd1e52fecf87b4aae7249c44f3795c8cae6cc940fbd817e2', 'support/governance/recovery/file-parent-policy-cases.php': '0d1ca152b7979199a3cedcbfe9290db0350bb41d9bdc0b215b2f28fdd01ef891', 'support/governance/recovery/file-parent-policy-focused.php': '2813d8eb9f953033fbe335b7e90dde3a9194b878c0a8e7275e0a9fb31d4d4522', 'support/governance/recovery/file-source-cases.php': 'd106bc50447c9a6a62c1d115840d7272ee305d98b56d42f2fef0fd39558b2c10', 'support/governance/recovery/task-owner-source-cases.php': '56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1', 'support/governance/completion/pipeline-gorge.php': 'ff27390d7a7e5b5c14555758e8b8172fd401bb0dcf51221fe32251b11308fcda', 'support/governance/native-organization/test-native-organization-mysql.php': 'e666d117050fcf00a9073739e9bfaa0917d3b685258e2d62c84f5e16e88cac61'}
 RELATIONSHIPS={'owned_User_RR_scope_observed':True,'same_server_observed':True,
  'File_reader_is_User_writer':False,'Task_reader_is_User_writer':False,
  'File_Task_same_physical_reader':False,'same_snapshot_proved':False}
@@ -37,7 +37,7 @@ def read_source_checked(path):
  finally:os.close(fd)
 def source_obligations(root=ROOT):
  captured={}
- if len(SOURCE_INPUTS)!=10:raise ValueError('reviewed source set refused')
+ if len(SOURCE_INPUTS)!=11:raise ValueError('reviewed source set refused')
  for relative,pin in SOURCE_INPUTS.items():
   raw=read_source_checked(Path(root)/relative)
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed Fileparent source bytes changed')
@@ -48,10 +48,11 @@ def source_obligations(root=ROOT):
  return shared.BOOTSTRAP|shared.PREPARATION|set(labels)|shared.CLEANUP
 
 def summary(revision):
- return {'profile':'native-File-parent-Task-policy-endpoints-v1','source_revision':revision,
+ return {'profile':'native-File-parent-Task-policy-endpoints-v2-current-account-flags','source_revision':revision,
   'executed_case_obligations':sorted(SQL),'source_inputs_sha256':SOURCE_INPUTS,
   'native_reader_relationships':RELATIONSHIPS,'observer_closed_and_absent':True,
   'native_File_and_Task_queries_executed':True,'actual_current_account_admission_checked':True,
+  'current_account_flags_bound':['isAdmin','isApproved','isDisabled','isSystemAgent','isMailingList'],
   'parent_policy_interpreter_complete':False,'durable_review_compatible':False,
   'dependency_budget_proved':False,'all_object_classes_covered':False,
   'all_sources_complete':False,'complete':False,'restoration_authorized':False,'execution_blocked':True}

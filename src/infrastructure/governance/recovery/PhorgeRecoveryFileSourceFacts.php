@@ -160,19 +160,31 @@ final class PhorgeRecoveryFileSourceFacts extends Phobject {
       throw new RuntimeException('recovery_file_parent_route_unknown');
     }
     $account = queryfx_one($conn,
-      'SELECT id,phid,isApproved,isDisabled,isSystemAgent,isMailingList '.
+      'SELECT id,phid,isAdmin,isApproved,isDisabled,isSystemAgent,isMailingList '.
       'FROM %T.user FORCE INDEX (phid) WHERE phid=%s LOCK IN SHARE MODE',
       $match[1].'_user', $viewer_phid);
     if (!$account || self::uint($account['id']) < 1 ||
         $account['phid'] !== $viewer_phid) {
       throw new RuntimeException('recovery_file_parent_viewer_refused');
     }
+    // Native GlobalPolicy's admin rule reads this object flag directly. Bind
+    // the locked current SQL flag and reject a stale or noncanonical object;
+    // do not change the native rule or silently refresh the caller's viewer.
+    $viewer_admin = $viewer->getIsAdmin();
+    if (!in_array($account['isAdmin'] ?? null, array(0, 1, '0', '1'), true) ||
+        !in_array($viewer_admin, array(0, 1, '0', '1', false, true), true) ||
+        (int)$account['isAdmin'] !== (int)$viewer_admin) {
+      throw new RuntimeException('recovery_file_parent_viewer_refused');
+    }
+    $account['isAdmin'] = (int)$account['isAdmin'];
     foreach (array('isApproved'=>1, 'isDisabled'=>0, 'isSystemAgent'=>0,
       'isMailingList'=>0) as $flag=>$required) {
       $getter = 'get'.ucfirst($flag);
+      $object_flag = $viewer->$getter();
       if (!in_array($account[$flag], array(0, 1, '0', '1'), true) ||
+          !in_array($object_flag, array(0, 1, '0', '1', false, true), true) ||
           (int)$account[$flag] !== $required ||
-          (int)$viewer->$getter() !== $required) {
+          (int)$object_flag !== $required) {
         throw new RuntimeException('recovery_file_parent_viewer_refused');
       }
       $account[$flag] = $required;
@@ -276,7 +288,7 @@ final class PhorgeRecoveryFileSourceFacts extends Phobject {
       throw new RuntimeException('recovery_file_parent_byte_budget');
     }
     $scope->getFacts();
-    $facts = array('version'=>1, 'mode'=>'native-policy-endpoints-not-owned-snapshot',
+    $facts = array('version'=>2, 'mode'=>'native-policy-endpoints-current-account-flags-not-owned-snapshot',
       'viewer'=>$account, 'source'=>$source, 'Task_rows'=>$task_rows,
       'observations'=>$observations);
     if (strlen(serialize($facts)) > self::MAX_BYTES) {
@@ -296,10 +308,11 @@ final class PhorgeRecoveryFileSourceFacts extends Phobject {
           hash_hmac('sha256', serialize($facts), $this->key))) {
         throw new RuntimeException('recovery_file_parent_review_stale');
       }
-      return array('scope'=>'author-rooted-File-attached-Task-policy-endpoints-v1',
+      return array('scope'=>'author-rooted-File-attached-Task-policy-endpoints-v2-current-account-flags',
         'review_binding'=>hash('sha256', serialize($facts)),
         'observations'=>$facts['observations'],
         'native_policy_queries_executed'=>(bool)$facts['Task_rows'],
+        'current_account_flags_bound'=>array('isAdmin','isApproved','isDisabled','isSystemAgent','isMailingList'),
         'same_transaction_snapshot_proved'=>false,
         'durable_review_compatible'=>false, 'dependency_budget_proved'=>false,
         'all_object_classes_covered'=>false, 'all_sources_complete'=>false,

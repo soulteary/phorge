@@ -9,7 +9,7 @@ class PhabricatorUser {
  function isLoggedIn(){return $GLOBALS['case']!=='anonymous';}
  function isOmnipotent(){return $GLOBALS['case']==='omnipotent';}
  function getPHID(){return file_seam_phid('USER',2);}
- function getIsApproved(){return 1;} function getIsDisabled(){return 0;}
+ function getIsAdmin(){return 0;} function getIsApproved(){return 1;} function getIsDisabled(){return 0;}
  function getIsSystemAgent(){return 0;} function getIsMailingList(){return 0;}
 }
 class ManiphestTask {
@@ -46,7 +46,7 @@ class PhorgeRecoveryRestoreProfile{static function assertOwnedWriter($conn){}}
 $GLOBALS['file_seam_queries']=array();$GLOBALS['file_seam_roots']=array();
 function file_seam_phid($type,$id){return'PHID-'.$type.'-'.str_pad((string)$id,20,'0',STR_PAD_LEFT);}
 function queryfx_one($conn,$sql,...$args){
- if(str_contains($sql,'isApproved,isDisabled')){return ['id'=>'2','phid'=>file_seam_phid('USER',2),'isApproved'=>'1','isDisabled'=>$GLOBALS['case']==='disabled'?'1':'0','isSystemAgent'=>'0','isMailingList'=>'0'];}
+ if(str_contains($sql,'isApproved,isDisabled')){return ['id'=>'2','phid'=>file_seam_phid('USER',2),'isAdmin'=>'0','isApproved'=>'1','isDisabled'=>$GLOBALS['case']==='disabled'?'1':'0','isSystemAgent'=>'0','isMailingList'=>'0'];}
  if(str_contains($sql,'maniphest_task')){if($GLOBALS['case']==='deleted-parent')return null;return ['id'=>'1','phid'=>file_seam_phid('TASK',1),'ownerPHID'=>null,'viewPolicy'=>$GLOBALS['phase']&&$GLOBALS['case']==='policy-mutation'?'users':'no-one','editPolicy'=>'no-one','spacePHID'=>null,'dateModified'=>'1'];}
  if(str_contains($sql,'DATABASE()')){return array('db'=>'governance_native_'.str_repeat('a',16).'_user');}
  if(str_contains($sql,'information_schema.TABLES')){return array('ENGINE'=>'InnoDB');}

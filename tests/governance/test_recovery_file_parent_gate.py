@@ -65,3 +65,19 @@ class FileParentGate(unittest.TestCase):
      with self.assertRaises(ValueError):gate.read_source_checked(regular)
     if hard.exists():hard.unlink()
     regular.chmod(0o644)
+ def test_v2_rejects_old_profile_missing_admin_unknown_fields_and_self_asserted_source(self):
+  data=template()
+  for mode in ('old-v1','missing-admin','unknown-native','unknown-outer'):
+   bad=copy.deepcopy(data)
+   if mode=='old-v1':bad['native']['profile']='native-File-parent-Task-policy-endpoints-v1'
+   if mode=='missing-admin':bad['native']['current_account_flags_bound'].remove('isAdmin')
+   if mode=='unknown-native':bad['native']['unreviewed_extra']=False
+   if mode=='unknown-outer':bad['unreviewed_extra']=False
+   with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+  with tempfile.TemporaryDirectory()as temp:
+   root=Path(temp).resolve()
+   for name in gate.SOURCE_INPUTS:
+    path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((ROOT/name).read_bytes())
+   name='src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php';p=root/name;raw=p.read_text();self.assertIn('id,phid,isAdmin,isApproved',raw);p.write_text(raw.replace('id,phid,isAdmin,isApproved','id,phid,isApproved'))
+   bad=copy.deepcopy(data);bad['native']['source_inputs_sha256'][name]=hashlib.sha256(p.read_bytes()).hexdigest()
+   with self.assertRaises(ValueError):gate.validate(bad,root=root,source_revision='a'*40,file_digest='b'*64)
