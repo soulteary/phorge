@@ -22,10 +22,10 @@ function queryfx_all($conn,$sql,...$args){if(str_contains($sql,'WHERE 1=0')){ret
 $accepted=false;try{(new ReflectionMethod(PhorgeRecoverySpacesSourceFacts::class,'schema'))->invoke(null,null,'synthetic_spaces');$accepted=true;}catch(RuntimeException$e){}echo json_encode(['accepted'=>$accepted]);'''
   for kind in ['valid','missing','wrong','nonunique']:
    p=subprocess.run(['php','-r',code,str(ROOT)],input=json.dumps(kind),capture_output=True,text=True);self.assertEqual(0,p.returncode,p.stderr);self.assertEqual('',p.stderr);self.assertEqual({'accepted':kind=='valid'},json.loads(p.stdout))
- def test_no_production_wiring_or_ordinary_secret_hash(self):
+ def test_partial_assessment_wiring_preserves_private_endpoint_controls(self):
   s=(ROOT/'src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php').read_text();self.assertIn("hash_hmac('sha256'",s);self.assertIn("$this->finished=true",s)
   for token in ['setIsDisabled','->save(', '->getKeys(', 'getEnvConfig(', 'is_callable(', 'unserialize(']:
    if token=='unserialize(':continue
    self.assertNotIn(token,s)
-  self.assertNotIn('PhorgeRecoverySpacesSourceFacts',(ROOT/'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php').read_text())
+  self.assertIn('PhorgeRecoverySpacesSourceFacts::capture($conn)',(ROOT/'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php').read_text())
 if __name__=='__main__':unittest.main()

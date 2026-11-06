@@ -11,7 +11,7 @@ final class PhorgeRecoveryProjectSourceFacts extends Phobject {
   private $connection;
   private $subject;
   private $key;
-  private $digest;
+  private $digest;private $reviewDigest;
   private $finished=false;
   private function __construct() {}
   private function __clone() {}
@@ -223,11 +223,11 @@ final class PhorgeRecoveryProjectSourceFacts extends Phobject {
   }
   public static function capture(AphrontDatabaseConnection$conn,$subject){
     $snapshot=self::snapshot($conn,$subject);$facts=new self();$facts->connection=$conn;$facts->subject=$subject;$facts->key=random_bytes(32);
-    $facts->digest=hash_hmac('sha256',serialize($snapshot),$facts->key);return$facts;
+    $facts->digest=hash_hmac('sha256',serialize($snapshot),$facts->key);$facts->reviewDigest=hash('sha256',serialize($snapshot));return$facts;
   }
   public function finish(){
     if($this->finished){throw new RuntimeException('recovery_project_facts_finished');}$this->finished=true;
-    try{if(!hash_equals($this->digest,hash_hmac('sha256',serialize(self::snapshot($this->connection,$this->subject)),$this->key))){throw new RuntimeException('recovery_project_rows_changed');}return self::summary(true);}
-    finally{$this->key=null;$this->digest=null;$this->subject=null;$this->connection=null;}
+    try{if(!hash_equals($this->digest,hash_hmac('sha256',serialize(self::snapshot($this->connection,$this->subject)),$this->key))){throw new RuntimeException('recovery_project_rows_changed');}return self::summary(true)+array('source_digest'=>$this->reviewDigest);}
+    finally{$this->key=null;$this->digest=null;$this->reviewDigest=null;$this->subject=null;$this->connection=null;}
   }
 }

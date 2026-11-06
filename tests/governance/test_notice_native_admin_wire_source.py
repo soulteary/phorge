@@ -25,9 +25,23 @@ TASKOWNER_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryTas
 FILE_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php': 'e2ae71b9236bfcf9550ef4c4098ed3b97384c2a62f7c0e818a04a416388af6af', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryFileSourceFactsTestCase.php': '196112b4c2b06f5c1950dc7344ada02843aadb8d7ffe71e87f561912c5755e27'}
 WORKBENCH_CANDIDATE_SOURCE_PINS={'src/applications/people/application/PhabricatorPeopleApplication.php': '0af775d044044127d01d79846385caad016a008d47a0d7c4d923b0ba13c7e0d8', 'src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php': 'e47ec9eb30c91dcad6be9f6e9466190d9040681392037c0811cd1f41bf2a8a85', 'src/applications/people/governance/controller/PhorgeOrganizationApprovalController.php': '75e6431cbd5d86eaf85aab90545fb52eba41439e066ef3c5ce74f62be2515d9d', 'src/applications/people/governance/controller/PhorgeOrganizationController.php': 'c5666b6a72492844e9d22835de0fff191f60463ceb88cad99e8c13406af22604', 'src/applications/people/governance/service/PhorgeOrganizationService.php': '7f2a7e30de9f8229810d3c5894d48439f32afdab9df82c9ddbcb7f9d66dcb18f', 'src/applications/people/governance/service/README.approval-workbench.md': '3f015fb4300c7bb2deec5c5e858298d2497674e2058867295655fdda98148e09', 'src/infrastructure/internationalization/translation/PhabricatorChineseTranslation.php': '63655fedfcae251c561efac738d70b7617def93f9a72889449b02ce3050a4213'}
 
-def reviewed_sources():
+# Versioned independently reviewed N08 delta; exact five paths and bytes only.
+PARTIAL_SOURCE_REVIEW_VERSION='n08-partial-source-review-v1'
+PARTIAL_SOURCE_REVIEW_COMMIT='1686fc4ca165f5cdb12e88ab0fe5b245d615e91d'
+PARTIAL_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryApplicationConfigFacts.php': '4a1a500648b69d714e49aad0a0b1fd44d463d8826b873881033d227cd5300a0b', 'src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php': 'f3b0065ac240e32af80ce7f48096ef68791d8dcdb02dbba46f64b330e130fe6c', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php': 'dcf6226ee57ed303273a231e4c81f2505751e60a0e5a4c3701d2d703d7d45403', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php': '876eafed1c36c11006242587906419561b1688657f6494d90a2a25a0e29489cf', 'src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php': 'e905bf7f8a335440c7313575e28566d26aa83078e141bf3abb024aba8d5b49a7'}
+
+def reviewed_partial_sources(root=ROOT):
  result={}
+ for path,pin in PARTIAL_SOURCE_PINS.items():
+  raw=(root/path).read_bytes()
+  if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('N08 partial source audit pin changed')
+  result[path]=raw
+ return result
+
+def reviewed_sources():
+ result=reviewed_partial_sources()
  for name,(path,parent)in ADDITIONS.items():
+  if 'src/'+path in PARTIAL_SOURCE_PINS:continue
   if name=='PhorgeOrganizationApprovalController':continue
   if name.startswith('PhorgeRecoveryFileSourceFacts'):
    raw=(ROOT/'src'/path).read_bytes()
@@ -54,7 +68,7 @@ def reviewed_sources():
   result[path]=raw
  return result
 def validate_notice_product_delta(changed,current,frozen,baseline_map):
- allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)
+ allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)
  if set(changed)!=allowed or set(current)!=allowed:raise ValueError('unreviewed notice product delta')
  for path in allowed-{'src/__phutil_library_map__.php'}:
   if current[path]!=frozen[path]:raise ValueError('reviewed config/RR source bytes changed')
@@ -96,6 +110,25 @@ def validate_notice_product_delta(changed,current,frozen,baseline_map):
  return True
 
 class NativeAdminWire(unittest.TestCase):
+ def test_versioned_partial_review_matches_exact_reviewed_commit_and_rejects_corruption(self):
+  import tempfile
+  baseline='6da0112b8ee1723e0f688e1b8f18d6dd330f10af'
+  changed=set(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only',baseline,PARTIAL_SOURCE_REVIEW_COMMIT,'--','src','resources'],text=True).splitlines())
+  self.assertEqual(changed,set(PARTIAL_SOURCE_PINS))
+  self.assertEqual(PARTIAL_SOURCE_REVIEW_VERSION,'n08-partial-source-review-v1')
+  for path,pin in PARTIAL_SOURCE_PINS.items():
+   frozen=subprocess.check_output(['git','-C',str(ROOT),'show',PARTIAL_SOURCE_REVIEW_COMMIT+':'+path])
+   self.assertEqual(hashlib.sha256(frozen).hexdigest(),pin)
+  with tempfile.TemporaryDirectory() as tmp:
+   root=Path(tmp)
+   for path in PARTIAL_SOURCE_PINS:
+    p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/path).read_bytes())
+   self.assertEqual(set(reviewed_partial_sources(root)),changed)
+   for path in PARTIAL_SOURCE_PINS:
+    p=root/path;raw=p.read_bytes();p.write_bytes(raw+b'CORRUPTION')
+    with self.assertRaisesRegex(ValueError,'N08 partial source audit pin changed'):reviewed_partial_sources(root)
+    p.write_bytes(raw)
+
  def test_actual_native_source_not_handcrafted_notice_or_mail(self):
   text=(ROOT/'support/governance/notification/notice-admin-wire-hold.php').read_text()
   self.assertIn('new PhabricatorUserTransactionEditor()',text)
@@ -129,7 +162,7 @@ class NativeAdminWire(unittest.TestCase):
   # byte; never turn this historical fixture contract into a blanket new base.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
   config='ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)
   changed=set(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only',baseline,'--','src','resources'],text=True).splitlines())
   current={path:(ROOT/path).read_bytes()for path in allowed}
   frozen=reviewed_sources()
@@ -140,7 +173,7 @@ class NativeAdminWire(unittest.TestCase):
   # Use the existing fixed baseline and actual validator; documentation is an
   # exact reviewed source addition, never a suffix or directory exclusion.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)
   current={path:(ROOT/path).read_bytes()for path in allowed};frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
   self.assertEqual(WORKBENCH_CANDIDATE_SOURCE_PINS[doc],hashlib.sha256(current[doc]).hexdigest())
@@ -151,7 +184,7 @@ class NativeAdminWire(unittest.TestCase):
   with self.assertRaises(ValueError):validate_notice_product_delta(allowed|{foreign},bad,frozen,old_map)
  def test_actual_product_validator_rejects_unreviewed_and_corrupt_deltas(self):
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10';config='ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)
   current={path:(ROOT/path).read_bytes()for path in allowed}
   frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
