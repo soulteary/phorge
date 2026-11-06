@@ -1,0 +1,90 @@
+"""Strict source-bound native File/Task endpoint evidence; never a restore permit."""
+import argparse,hashlib,json,os,re,stat
+from pathlib import Path
+import check_completion as completion
+import check_native_organization as native
+import check_recovery_partial_composition as shared
+ROOT=Path(__file__).resolve().parents[2]
+SQL={'file-parent-policy-unattached-author-root-is-unsupported',
+ 'file-parent-policy-native-Task-attachment-changes-endpoint-binding',
+ 'file-parent-policy-native-endpoints-never-become-restoration-permit',
+ 'file-parent-policy-native-invisible-parent-policy-changes-binding',
+ 'file-parent-policy-disabled-current-account-refused',
+ 'file-parent-policy-anonymous-refused-before-native-author-grant'}
+# Reviewed selected producer/consumer bytes, not receipt-supplied source proofs.
+SOURCE_INPUTS={'src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php': '3c3c5914e71601778e7e059c2b8887edb32da4d69ee4e5253b0d62dccf161e09', 'src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php': 'c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08', 'src/applications/files/query/PhabricatorFileQuery.php': '2ccf285287e7f7e1f5889afce530b1a5073cfa7c076100a1129506816619e421', 'src/applications/maniphest/query/ManiphestTaskQuery.php': '225b35fe0fa0154e444530e35ca83a5525d2f2a36965891e0fa1834931b772a5', 'support/governance/recovery/file-parent-policy-cases.php': '7ca3206b39bef042cdcb6b44c00b172c66c899010b942ce61bd1e0b20890c65e', 'support/governance/recovery/file-parent-policy-focused.php': '42a76dc119bf7b08ec23e1ecc2527a84bed9d857abe0fb3d65663a1a25d0d0ab', 'support/governance/recovery/file-source-cases.php': 'd106bc50447c9a6a62c1d115840d7272ee305d98b56d42f2fef0fd39558b2c10', 'support/governance/recovery/task-owner-source-cases.php': '56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1', 'support/governance/completion/pipeline-gorge.php': 'ff27390d7a7e5b5c14555758e8b8172fd401bb0dcf51221fe32251b11308fcda', 'support/governance/native-organization/test-native-organization-mysql.php': 'e666d117050fcf00a9073739e9bfaa0917d3b685258e2d62c84f5e16e88cac61'}
+RELATIONSHIPS={'owned_User_RR_scope_observed':True,'same_server_observed':True,
+ 'File_reader_is_User_writer':False,'Task_reader_is_User_writer':False,
+ 'File_Task_same_physical_reader':False,'same_snapshot_proved':False}
+def read_source_checked(path):
+ path=Path(path);parents=[(p,os.lstat(p))for p in path.parents]
+ if any(not stat.S_ISDIR(v.st_mode)or stat.S_ISLNK(v.st_mode)for _,v in parents):raise ValueError('source parent alias refused')
+ stamp=lambda x:(x.st_dev,x.st_ino,x.st_uid,x.st_gid,x.st_mode,x.st_nlink,x.st_size,x.st_mtime_ns,x.st_ctime_ns)
+ fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+ try:
+  old=os.fstat(fd)
+  if not stat.S_ISREG(old.st_mode)or old.st_uid!=os.getuid()or old.st_nlink!=1 or old.st_mode&0o022 or not 0<old.st_size<=1048576:raise ValueError('bounded owned source required')
+  body=bytearray();remaining=old.st_size
+  while remaining:
+   chunk=os.read(fd,min(65536,remaining))
+   if not chunk:raise ValueError('source short read')
+   body.extend(chunk);remaining-=len(chunk)
+  if stamp(old)!=stamp(os.fstat(fd))or stamp(old)!=stamp(os.lstat(path)):raise ValueError('source changed during capture')
+  for p,was in parents:
+   now=os.lstat(p)
+   if (was.st_dev,was.st_ino,was.st_uid,was.st_gid,was.st_mode)!=(now.st_dev,now.st_ino,now.st_uid,now.st_gid,now.st_mode):raise ValueError('source parent changed')
+  return bytes(body)
+ finally:os.close(fd)
+def source_obligations(root=ROOT):
+ captured={}
+ if len(SOURCE_INPUTS)!=10:raise ValueError('reviewed source set refused')
+ for relative,pin in SOURCE_INPUTS.items():
+  raw=read_source_checked(Path(root)/relative)
+  if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed Fileparent source bytes changed')
+  captured[relative]=raw
+ text=captured['support/governance/recovery/file-parent-policy-cases.php'].decode('utf-8')
+ labels=re.findall(r"'(file-parent-policy-[A-Za-z0-9-]+)'\);",text)
+ if len(labels)!=len(set(labels))or set(labels)!=SQL:raise ValueError('actual Fileparent case obligations changed')
+ return shared.BOOTSTRAP|shared.PREPARATION|set(labels)|shared.CLEANUP
+
+def summary(revision):
+ return {'profile':'native-File-parent-Task-policy-endpoints-v1','source_revision':revision,
+  'executed_case_obligations':sorted(SQL),'source_inputs_sha256':SOURCE_INPUTS,
+  'native_reader_relationships':RELATIONSHIPS,'observer_closed_and_absent':True,
+  'native_File_and_Task_queries_executed':True,'actual_current_account_admission_checked':True,
+  'parent_policy_interpreter_complete':False,'durable_review_compatible':False,
+  'dependency_budget_proved':False,'all_object_classes_covered':False,
+  'all_sources_complete':False,'complete':False,'restoration_authorized':False,'execution_blocked':True}
+def validate(data,root=ROOT,*,source_revision,file_digest):
+ if type(source_revision)is not str or not re.fullmatch('[a-f0-9]{40}',source_revision):raise ValueError('source revision required')
+ obligations=source_obligations(root);count=len(obligations)
+ completion.fields(data,native.FIELDS,'Fileparent receipt shape refused')
+ def exact(a,b):completion.exact(a,b,'Fileparent evidence refused')
+ for k,v in {'batch':'native-File-parent-policy-endpoints','scope':'owned-native-File-parent-policy-endpoints-no-permit',
+  'passed':True,'php_version':'8.5.12','check_count':count,'failure':None,'cleanup_failures':[],
+  'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,
+  'successful_owned_file_service_startups':1,'terminal_failure_cleanup_rollbacks':0,
+  'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,
+  'native_permission_axes_changed':False}.items():exact(data[k],v)
+ checks=data['checks']
+ if type(checks)is not list or len(checks)!=count or any(type(x)is not str for x in checks)or len(set(checks))!=count or set(checks)!=obligations:raise ValueError('Fileparent obligations refused')
+ service=data['file_service_cleanup'];completion.fields(service,{'kind','binary_sha256','process_stopped','private_storage_removed'},'Fileparent file cleanup shape refused')
+ if type(file_digest)is not str or not re.fullmatch('[a-f0-9]{64}',file_digest):raise ValueError('independent paired binary pin required')
+ for k,v in {'kind':'file','binary_sha256':file_digest,'process_stopped':True,'private_storage_removed':True}.items():exact(service[k],v)
+ exact(data['native'],summary(source_revision))
+ exact(data['worker_cleanup'],{'private_directories_removed':0,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':0})
+ exact(data['cleanup'],{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True})
+ native.validate_restore(data['source_restore'],root);exact(data['remaining_blocked'],native.BLOCKERS)
+ if type(data['captured_native_output_bytes'])is not int or not 0<=data['captured_native_output_bytes']<=65536 or not completion.digest(data['captured_native_output_sha256']):raise ValueError('Fileparent output refused')
+ return {'passed':True,'scope':'selected-File-Task-policy-endpoints-no-permit','source_revision':source_revision,
+  'checks':count,'SQL_obligations':len(SQL),'source_inputs':len(SOURCE_INPUTS),
+  'same_snapshot_proved':False,'durable_review_compatible':False,'all_sources_complete':False,
+  'restoration_authorized':False,'execution_blocked':True}
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);p.add_argument('--source-revision',required=True)
+ p.add_argument('--file-binary',type=Path,required=True);p.add_argument('--file-binary-sha256',required=True);a=p.parse_args()
+ if not re.fullmatch('[a-f0-9]{64}',a.file_binary_sha256)or shared.read_checked(a.file_binary,binary=True)!=a.file_binary_sha256:raise ValueError('independent binary bytes/pin mismatch')
+ def nonfinite(_):raise ValueError('nonfinite Fileparent evidence refused')
+ data=json.loads(shared.read_checked(a.receipt),object_pairs_hook=completion.strict_object,parse_constant=nonfinite)
+ print(json.dumps(validate(data,source_revision=a.source_revision,file_digest=a.file_binary_sha256),sort_keys=True))
+if __name__=='__main__':main()

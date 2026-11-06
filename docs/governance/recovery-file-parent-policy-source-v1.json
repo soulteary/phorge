@@ -1,0 +1,21 @@
+{
+  "schema": "n08-file-parent-policy-source-candidate-v1",
+  "baseline": "b738223b5621a9fd8449531d3f209ea727176c1a",
+  "status": "candidate-awaiting-independent-review",
+  "scope": "Exact two existing classes changed; no new classmap entry, schema, route or optional setting. File author-rooted Task parent endpoint observation remains incompatible with durable RC assessment.",
+  "prior_source_sha256": {
+    "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php": "e2ae71b9236bfcf9550ef4c4098ed3b97384c2a62f7c0e818a04a416388af6af",
+    "src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryFileSourceFactsTestCase.php": "196112b4c2b06f5c1950dc7344ada02843aadb8d7ffe71e87f561912c5755e27"
+  },
+  "candidate_source_sha256": {
+    "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php": "3c3c5914e71601778e7e059c2b8887edb32da4d69ee4e5253b0d62dccf161e09",
+    "src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryFileSourceFactsTestCase.php": "8515ee72bdd25b911bc786c698728088e17752701551bb33aefcb21febc321b7"
+  },
+  "same_snapshot_proved": false,
+  "durable_review_compatible": false,
+  "all_sources_complete": false,
+  "restoration_authorized": false,
+  "SQL_cases": "UNRUN",
+  "supported_mapper": "UNRUN",
+  "permission_semantics_changed": false
+}
