@@ -425,4 +425,9 @@ echo json_encode(array('batch'=>$batch,'passed'=>$passed,
     ? array('optional-backend-mariadb-compatibility','full-database-version-matrix','global-governance-completion')
     : array('media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion'))),
   JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)."\n";
+if($phase==='recovery-partial-composition'&&$passed===false){
+  require_once dirname(__DIR__).'/recovery/partial-failure-diagnostic.php';
+  $diagnostic=governance_recovery_partial_failure_projection($phase,$passed,$failure);
+  fwrite(STDERR,json_encode($diagnostic,JSON_UNESCAPED_SLASHES)."\n");
+}
 exit($passed?0:1);
