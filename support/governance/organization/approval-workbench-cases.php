@@ -10,6 +10,32 @@ function governance_approval_workbench_route(array $auth,$method,array $data) {
   return governance_native_with_request_write_guard($request,static fn()=>$controller->handleRequest($request));
 }
 
+/** Failure-only bounded projection, never messages/arguments/identities/HTML. */
+function governance_approval_workbench_page_kind($value) {
+  if($value instanceof PhabricatorStandardPageView){return 'standard-page';}
+  if($value instanceof AphrontDialogView){return 'dialog';}
+  if($value instanceof AphrontRedirectResponse){return 'redirect';}
+  return is_object($value)?'other-object':'non-object';
+}
+function governance_approval_workbench_probe(callable $call) {
+  try{$call();return array('completed'=>true,'error_class'=>'none','source_file'=>'none','source_line'=>0);}
+  catch(Throwable$error){
+    $class=get_class($error);if(!in_array($class,array('Error','TypeError','RuntimeException','InvalidArgumentException','Exception','PhutilInvalidStateException'),true)){$class='other';}
+    $file=basename($error->getFile());if(!preg_match('/\A[A-Za-z][A-Za-z0-9_]{0,95}\.php\z/D',$file)){$file='other';}
+    $line=$error->getLine();if(!is_int($line)||$line<1||$line>10000000){$line=0;}
+    return array('completed'=>false,'error_class'=>$class,'source_file'=>$file,'source_line'=>$line);
+  }
+}
+function governance_approval_workbench_get_projection(array $value) {
+  $keys=array_keys($value);sort($keys);$expected=array('detail_kind','detail_standard','fingerprint_equal','list_kind','list_standard','may_approve_false','may_execute_false','probes');sort($expected);
+  if($keys!==$expected){throw new RuntimeException('workbench_GET_projection_refused');}
+  foreach(array('detail_standard','fingerprint_equal','list_standard','may_approve_false','may_execute_false')as$key){if(!is_bool($value[$key])){throw new RuntimeException('workbench_GET_projection_refused');}}
+  foreach(array('list_kind','detail_kind')as$key){if(!in_array($value[$key],array('standard-page','dialog','redirect','other-object','non-object'),true)){throw new RuntimeException('workbench_GET_projection_refused');}}
+  if(!is_array($value['probes'])||array_keys($value['probes'])!==array('people-labels','detail-render')){throw new RuntimeException('workbench_GET_projection_refused');}
+  foreach($value['probes']as$probe){if(!is_array($probe)||array_keys($probe)!==array('completed','error_class','source_file','source_line')||!is_bool($probe['completed'])||!in_array($probe['error_class'],array('none','Error','TypeError','RuntimeException','InvalidArgumentException','Exception','PhutilInvalidStateException','other'),true)||(!in_array($probe['source_file'],array('none','other'),true)&&(!is_string($probe['source_file'])||!preg_match('/\A[A-Za-z][A-Za-z0-9_]{0,95}\.php\z/D',$probe['source_file'])))||!is_int($probe['source_line'])||$probe['source_line']<0||$probe['source_line']>10000000){throw new RuntimeException('workbench_GET_projection_refused');}}
+  return $value;
+}
+
 /** Independent owned setup reads, complete fixed-schema rows, private hash only. */
 function governance_approval_workbench_fingerprint($fixture) {
   $fixture->assertOwned();$db=$fixture->getAdmin();
@@ -143,8 +169,16 @@ function governance_approval_workbench_focused($fixture,callable $check) {
     $before=$fingerprint();$response=governance_approval_workbench_route($auth['requester'],'GET',array());
     $detail_response=governance_approval_workbench_route($auth['requester'],'GET',array('approval'=>'10-grant'));
     $detail=$service->readApprovalWorkbenchDetail('10-grant');
-    $check($response instanceof PhabricatorStandardPageView&&$detail_response instanceof PhabricatorStandardPageView&&$detail['may_approve']===false&&$detail['may_execute']===false&&$before===$fingerprint(),
-      'approval-workbench-GET-list-and-detail-never-approve-or-consume');
+    $after=$fingerprint();$get_ok=$response instanceof PhabricatorStandardPageView&&$detail_response instanceof PhabricatorStandardPageView&&$detail['may_approve']===false&&$detail['may_execute']===false&&$before===$after;
+    if(!$get_ok){
+      $request=(new AphrontRequest('fixture.invalid','/people/organization/approvals/'))->setUser($auth['requester']['viewer']);
+      $observer=(new PhorgeOrganizationApprovalController())->setRequest($request)->setCurrentApplication(new PhabricatorPeopleApplication());
+      $GLOBALS['governance_approval_workbench_GET_failure']=array('list_kind'=>governance_approval_workbench_page_kind($response),'detail_kind'=>governance_approval_workbench_page_kind($detail_response),'list_standard'=>$response instanceof PhabricatorStandardPageView,'detail_standard'=>$detail_response instanceof PhabricatorStandardPageView,'may_approve_false'=>$detail['may_approve']===false,'may_execute_false'=>$detail['may_execute']===false,'fingerprint_equal'=>$before===$after,'probes'=>array());
+      foreach(array('people-labels'=>array('peopleLabels',$next['rows']),'detail-render'=>array('detail',$detail))as$name=>$probe){
+        $GLOBALS['governance_approval_workbench_GET_failure']['probes'][$name]=governance_approval_workbench_probe(static fn()=>governance_native_with_request_write_guard($request,static fn()=>(new ReflectionMethod($observer,$probe[0]))->invoke($observer,$probe[1])));
+      }
+    }
+    $check($get_ok,'approval-workbench-GET-list-and-detail-never-approve-or-consume');
     $post=static function($who,$action,$id,$csrf=true)use($auth){$data=array('approval'=>$id,'form_action'=>$action);
       if($csrf){$data[AphrontRequest::getCSRFTokenName()]=$auth[$who]['viewer']->getCSRFToken();}
       return governance_approval_workbench_route($auth[$who],'POST',$data);};
