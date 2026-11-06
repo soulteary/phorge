@@ -43,3 +43,12 @@ class SessionFocused(unittest.TestCase):
    p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/session-cleanup-gate-host.php'),str(ROOT),case],capture_output=True,text=True,timeout=10)
    self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');d=json.loads(p.stdout)
    self.assertFalse(d['physical_SQL_executed']);self.assertIsNone(d['error']);self.assertTrue(d['physical_cleanup_flag']);self.assertTrue(d['terminal']['cleanup_proved']);self.assertEqual(d['terminal']['state'],state);self.assertIsNone(d['focused_error']);self.assertEqual(d['driver_drops'],1);self.assertEqual(d['driver_cleanup_failures'],[])
+
+ def test_fresh_process_loads_actual_native_factory_before_any_SQL(self):
+  # Separate PHP processes: no previous normal fixture can mask the missing include.
+  negative="require$argv[1].'/support/governance/native-organization/workers.php';echo json_encode(function_exists('governance_native_request'));"
+  p=subprocess.run(['php','-r',negative,str(ROOT)],capture_output=True,text=True,timeout=10)
+  self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');self.assertFalse(json.loads(p.stdout))
+  positive=r"""require_once$argv[1].'/support/governance/recovery/session-lease-cases.php';require_once$argv[1].'/support/governance/recovery/session-lease-cases.php';$r=new ReflectionFunction('governance_native_request');echo json_encode(['file'=>realpath($r->getFileName()),'parameters'=>array_map(static fn($p)=>(string)$p->getType(),$r->getParameters()),'line'=>$r->getStartLine(),'SQL_executed'=>false]);"""
+  p=subprocess.run(['php','-r',positive,str(ROOT)],capture_output=True,text=True,timeout=10)
+  self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');self.assertEqual(json.loads(p.stdout),{'file':str((ROOT/'support/governance/native-organization/native-cases.php').resolve()),'parameters':['PhabricatorUser','PhabricatorAuthSessionEngine'],'line':4,'SQL_executed':False})

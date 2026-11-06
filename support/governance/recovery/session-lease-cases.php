@@ -1,4 +1,6 @@
 <?php
+// The focused fresh process does not load the normal native case dispatcher.
+require_once dirname(__DIR__).'/native-organization/native-cases.php';
 /** Callable physical SQL cases; requires the owned native fixture/observer.
  * Not wired into normal934 or any accepted receipt. SQL execution is pending. */
 function governance_recovery_session_lease_cases($fixture,AphrontDatabaseConnection $observer,array $state,callable $check) {

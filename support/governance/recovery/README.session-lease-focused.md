@@ -11,3 +11,17 @@ The real existing SessionEngine worker issues the selected native Session INSERT
 Host tests execute the actual selector, account owner with declared SQL/fixture collaborators, actual public CLI, and actual CI shell with command collaborators and real filesystem ownership failures. They do not execute physical SQL or certify lock waits. Fresh SQL16, supported mapper, actual account/P_S compatibility and hosted CI for this candidate remain UNRUN. Six successful selected cases cannot complete the fault matrix, all thirteen source families, durable restoration, or a permit. Default production optional flags remain off.
 
 Every attempted lease, including the second capture, closes the fixture cleanup gate before beginLease. Only a strictly proved terminal result reopens it. An exception before returning a scope, an unknown abort result, or a throwing abort retains the fixture; reaped workers and successful observer cleanup cannot override that state. Host controls execute the actual lease class and focused-to-driver cleanup handoff with explicit SQL collaborators. Physical SQL6/16 remains unrun for this successor.
+
+
+### Fresh native request factory dependency
+
+The selected fresh-process phase explicitly loads the existing native request
+factory from `native-organization/native-cases.php` before the lease cases call
+it. Loading the worker declarations alone does not define this factory. The
+public checker pins this dependency among 19 exact source inputs and rejects
+changes to its bytes. A separate-process host regression verifies the actual
+factory reflection path and native parameter types without opening SQL.
+
+This fixes the missing-function bootstrap failure observed in PR #123 run
+42267552308; it does not establish physical SQL6, observer event behavior, or
+restoration authority. Those gates remain pending actual isolated execution.
