@@ -291,8 +291,12 @@ try {
     }
   }
 } catch (Throwable $error) {
-  $failure = array('stage'=>$stage,'error_type'=>get_class($error),
+  $attempt=$phase==='recovery-partial-composition'?($GLOBALS['governance_recovery_partial_attempt']??null):null;
+  $failure = array('stage'=>is_string($attempt)?$attempt:$stage,'error_type'=>get_class($error),
     'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
+  if($phase==='recovery-partial-composition'&&isset($GLOBALS['governance_recovery_partial_source_difference'])) {
+    $failure['source_difference']=governance_recovery_partial_source_projection($GLOBALS['governance_recovery_partial_source_difference']);
+  }
   if($phase==='organization-approval-workbench'&&isset($GLOBALS['governance_approval_workbench_GET_failure'])){try{$failure['workbench_GET_diagnostic']=governance_approval_workbench_get_projection($GLOBALS['governance_approval_workbench_GET_failure']);}catch(Throwable$projection_error){$failure['workbench_GET_diagnostic']=array('projection_unproved'=>true);}}
   if($phase==='spaces-source-facts'&&isset($GLOBALS['governance_spaces_editor_failure'])){$failure['spaces_editor_diagnostic']=$GLOBALS['governance_spaces_editor_failure'];}
   if ($error instanceof mysqli_sql_exception) { $failure['sql_errno']=$error->getCode(); }

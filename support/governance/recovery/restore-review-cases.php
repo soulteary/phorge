@@ -119,7 +119,7 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
         'source_digest','source_schema_version','version'),
       'recovery-restore-live-independent-admin-preview-exposes-blockers-not-credentials-or-permit');
     require_once __DIR__.'/partial-composition-cases.php';
-    governance_recovery_partial_composition_cases($fixture,$requester,$approver,$id,$partial_project,$partial_space,$refuse,$check);
+    governance_recovery_partial_composition_cases($fixture,$requester,$approver,$id,$partial_project,$partial_space,$refuse,$check,$fingerprint);
     $refuse(static function()use($requester,$id,$suffix){
       PhorgeRecoveryRestoreService::review($requester['context'],$id,'1','restore-self-'.$suffix);},
       'recovery_restore_independent_admin_required','recovery-restore-requester-cannot-self-review');

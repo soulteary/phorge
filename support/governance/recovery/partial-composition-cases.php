@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/partial-source-diagnostic.php';
 
 /** Actual adapter probe owns only its short reader transaction. */
 function governance_recovery_partial_policy_reader_probe($conn) {
@@ -57,7 +58,7 @@ function governance_recovery_partial_policy_budget_fault($fixture,$conn,Phabrica
 /** Isolated real-source durable-review cases. UNRUN until Root schedules SQL. */
 function governance_recovery_partial_composition_cases($fixture,array $requester,
   array $approver,$id,PhabricatorProject $project,
-  PhabricatorSpacesNamespace $space,callable $refuse,callable $check) {
+  PhabricatorSpacesNamespace $space,callable $refuse,callable $check,callable $fingerprint) {
   $fixture->assertOwned();
   $conn=(new PhabricatorUser())->establishConnection('w');
   if($conn->isInsideTransaction()){throw new RuntimeException('recovery_partial_fixture_outer_transaction');}
@@ -73,17 +74,21 @@ function governance_recovery_partial_composition_cases($fixture,array $requester
   if(!$project_before||!$space_before){throw new RuntimeException('recovery_partial_fixture_source_missing');}
   try {
     // This changes the actual source dictionary, not the separate Env test cache.
+    governance_recovery_partial_attempt('partial-config-mutation');
     $dictionary->setKeys(array('account.minimum-password-length'=>($values['account.minimum-password-length']??null)===123?124:123));
     $refuse(static function()use($approver,$id){PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');},
       'recovery_restore_sources_stale','recovery-partial-real-config-source-change-invalidates-durable-preview');
     $property->setValue($dictionary,$values);
+    governance_recovery_partial_attempt('partial-restored-config-preview');
     $check(PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1')['permit_state']==='blocked',
       'recovery-partial-restored-config-remains-blocked');
+    governance_recovery_partial_attempt('partial-project-mutation');
     queryfx($conn,'UPDATE %T.project SET status=%d WHERE id=%d',$namespace.'_project',
       PhabricatorProjectStatus::STATUS_ARCHIVED,$project->getID());
     $refuse(static function()use($approver,$id){PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');},
       'recovery_restore_sources_stale','recovery-partial-real-project-row-change-invalidates-durable-preview');
     queryfx($conn,'UPDATE %T.project SET status=%s WHERE id=%d',$namespace.'_project',$project_before['status'],$project->getID());
+    governance_recovery_partial_attempt('partial-space-mutation');
     $space_failure=governance_recovery_partial_space_mutation_failure($space);
     queryfx($conn,'UPDATE %T.spaces_namespace SET description=%s WHERE id=%d',$namespace.'_spaces',
       'Synthetic partial changed description',$space->getID());
@@ -92,20 +97,45 @@ function governance_recovery_partial_composition_cases($fixture,array $requester
     queryfx($conn,'UPDATE %T.spaces_namespace SET description=%s WHERE id=%d',$namespace.'_spaces',$space_before['description'],$space->getID());
     // Real native DAO insertion changes a previously captured row set, including
     // an originally empty Policy range. It never supplies a fake adapter result.
+    governance_recovery_partial_attempt('partial-policy-addition');
     $policy=(new PhabricatorPolicy())->setRules(array())
       ->setDefaultAction(PhabricatorPolicy::ACTION_DENY)->save();
     $refuse(static function()use($approver,$id){PhorgeRecoveryRestoreService::review($approver['context'],$id,'1','partial-policy-change');},
       'recovery_restore_sources_stale','recovery-partial-real-policy-row-addition-invalidates-durable-review');
     // Raw isolated fault injection is independently proved against the same
     // current writer and actual adapter before expecting the service refusal.
+    governance_recovery_partial_attempt('partial-policy-budget');
     $refuse(static function()use($fixture,$conn,$policy,$approver,$id){
       governance_recovery_partial_policy_budget_fault($fixture,$conn,$policy);
       PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
     },
       'recovery_policy_byte_budget','recovery-partial-real-policy-budget-fails-closed-without-review-write');
+    $before_restored_policy=$fingerprint();
+    governance_recovery_partial_attempt('partial-policy-delete');
+    $deleted=array('id'=>(string)$policy->getID(),'phid'=>$policy->getPHID());
     $policy->delete();$policy=null;
-    $check(PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1')['permit_state']==='blocked',
+    governance_recovery_partial_attempt('partial-restored-policy-preview');
+    try {$restored=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');}
+    catch(Throwable $original) {
+      if(get_class($original)===RuntimeException::class&&
+          $original->getMessage()==='recovery_restore_sources_stale') {
+        try {$GLOBALS['governance_recovery_partial_source_difference']=
+          governance_recovery_partial_restored_source_diagnostic($fixture,$approver['context'],$id,$deleted);}
+        catch(Throwable $diagnostic_error) {$GLOBALS['governance_recovery_partial_source_difference']=
+          array('schema'=>'native-partial-source-difference-v1','reader_succeeded'=>false);}
+      }
+      $unchanged=false;
+      try {$unchanged=$before_restored_policy===$fingerprint();}catch(Throwable $fingerprint_error) {}
+      if(!$unchanged) {$GLOBALS['governance_recovery_partial_source_difference']=
+        array('schema'=>'native-partial-source-difference-v1','reader_succeeded'=>false);}
+      else if(isset($GLOBALS['governance_recovery_partial_source_difference'])) {
+        $GLOBALS['governance_recovery_partial_source_difference']['approval_fingerprint_unchanged']=true;
+      }
+      throw $original;
+    }
+    $check($before_restored_policy===$fingerprint()&&$restored['permit_state']==='blocked',
       'recovery-partial-restored-policy-rows-remain-blocked');
+    governance_recovery_partial_attempt();
   } finally {
     if($conn->isInsideTransaction()){$conn->killTransaction();}
     try{if($policy){$policy->delete();}}

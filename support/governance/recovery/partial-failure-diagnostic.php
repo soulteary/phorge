@@ -5,6 +5,9 @@ function governance_recovery_partial_failure_projection($phase,$passed,$failure)
   if($phase!=='recovery-partial-composition'||$passed!==false){return null;}
   $stages=array(
     'preflight',
+    'partial-config-mutation','partial-restored-config-preview',
+    'partial-project-mutation','partial-space-mutation','partial-policy-addition',
+    'partial-policy-budget','partial-policy-delete','partial-restored-policy-preview',
     'full-native-source-restore',
     'focused-native-recovery-partial-composition',
     'owned-real-gorge-file-service',
@@ -52,5 +55,9 @@ function governance_recovery_partial_failure_projection($phase,$passed,$failure)
   if(is_int($line)&&$line>0&&$line<=10000000){$out['source_line']=$line;}
   $errno=$failure['sql_errno']??null;
   if(is_int($errno)&&$errno>0&&$errno<=65535){$out['sql_errno']=$errno;}
+  if(isset($failure['source_difference'])) {
+    require_once __DIR__.'/partial-source-diagnostic.php';
+    $out['source_difference']=governance_recovery_partial_source_projection($failure['source_difference']);
+  }
   return $out;
 }
