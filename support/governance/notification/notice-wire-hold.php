@@ -1,6 +1,6 @@
 <?php
 /** Real producer only. The parent must run relay/daemon/SMTP, not this process. */
-function governance_notice_wire_hold($fixture,callable $check){
+function governance_notice_wire_hold($fixture,callable $check,?callable $prepare_browser=null){
   $fixture->assertOwned();$directory=getenv('PHORGE_GOVERNANCE_PRIVATE_MAIL_DIR');$owner=getenv('PHORGE_GOVERNANCE_PRIVATE_MAIL_OWNER');
   if(!is_string($directory)||is_link($directory)||realpath($directory)!==$directory||
     realpath(dirname($directory))!==realpath(sys_get_temp_dir())||!preg_match('/\Aphorge-private-mail-wire-[a-f0-9]{24}\z/D',basename($directory))||
@@ -18,7 +18,7 @@ function governance_notice_wire_hold($fixture,callable $check){
   $lease=getenv('PHORGE_GOVERNANCE_PRIVATE_MAIL_HOLD_SECONDS');
   if(!is_string($lease)||!preg_match('/\A[1-9][0-9]{2,3}\z/D',$lease)||(int)$lease<120||(int)$lease>1800){throw new RuntimeException('notice_wire_lease_refused');}
   $write=static function($name,array$value)use($directory){
-    if(!in_array($name,array('router.json','notice.json','notice-control.json','ready.json'),true)||file_exists($directory.'/'.$name)){
+    if(!in_array($name,array('router.json','notice.json','notice-control.json','ready.json','history-browser.json'),true)||file_exists($directory.'/'.$name)){
       throw new RuntimeException('notice_wire_manifest_exists');}
     $path=$directory.'/.notice-write-'.bin2hex(random_bytes(12));$stream=fopen($path,'x');
     if(!$stream){throw new RuntimeException('notice_wire_manifest_refused');}
@@ -48,6 +48,7 @@ function governance_notice_wire_hold($fixture,callable $check){
       ->setIsAdmin(1)->setIsApproved(1)->setIsEmailVerified(1)->save();
     $email=(new PhabricatorUserEmail())->setUserPHID($user->getPHID())->setAddress($user->getUsername().'@example.invalid')
       ->setIsPrimary(1)->setIsVerified(1)->save();
+    $browser=$prepare_browser===null?null:$prepare_browser($fixture,$user,$check);
     $user_writer=$user->establishConnection('w');
     $destinations=queryfx_all($user_writer,'SELECT u.phid FROM %R u JOIN %R e ON e.userPHID=u.phid '.
       'WHERE u.isAdmin=1 AND u.isDisabled=0 AND u.isApproved=1 AND u.isSystemAgent=0 AND u.isMailingList=0 '.
@@ -102,6 +103,16 @@ function governance_notice_wire_hold($fixture,callable $check){
     $write('notice-control.json',array('owner'=>$owner,'actor_phid'=>$user->getPHID(),'email_phid'=>$email->getPHID(),
       'operator_phid'=>$operator->getPHID(),'operator_session'=>$operator_auth['token'],'event_id'=>$event['eventID'],
       'operation_id'=>$input['operation_id'],'unit_id'=>$input['unit_id']));
+    if($browser!==null){
+      // Only this new native-browser profile waits for independent all-writer SQL0 before release.
+      $GLOBALS['governance_workbench_http_cleanup_permitted']=false;LiskDAO::closeAllConnections();
+      $closed=$fixture->closeOwnedWriterConnectionForHTTP();
+      $check($closed['owned_fixture_writer_connection_closed']===true&&$closed['exact_original_thread_absent']===true,
+        'notice-history-independent-fixture-writer-closed-before-browser-ready');
+      $browser['fixture_writer_close_proof']=$closed;
+      $write('history-browser.json',$browser+array('owner'=>$owner,'event_id'=>$event['eventID'],
+        'history_path'=>'/people/organization/history/','origin'=>$origin));
+    }
     $write('ready.json',array('scope'=>'private-owned-governance-notice-pipeline','owner'=>$owner,'case'=>$case,
       'event_id'=>$event['eventID'],'relay_event_id'=>$relay['eventID'],'callback_origin'=>$origin,
       'queue'=>array('uri'=>$queue['uri'],'token'=>$queue['token']),
@@ -112,7 +123,15 @@ function governance_notice_wire_hold($fixture,callable $check){
     $check(true,'notice-wire-owned-parent-manifest-ready-before-any-daemon-or-mail-prepare');
     $deadline=microtime(true)+(int)$lease;$released=false;
     do{$fixture->assertOwned();$release=$directory.'/release';
-      if(is_file($release)&&!is_link($release)&&(fileperms($release)&0777)===0600&&filesize($release)===64&&hash_equals($owner,file_get_contents($release))){$released=true;break;}
+      if(is_file($release)&&!is_link($release)&&(fileperms($release)&0777)===0600&&filesize($release)===64&&hash_equals($owner,file_get_contents($release))){
+        if($browser!==null){
+          $writer=$fixture->getWriterConfig();$query=$GLOBALS['control']->prepare('SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE USER=?');
+          $name=$writer['user'];$query->bind_param('s',$name);try{$query->execute();$remaining=$query->get_result()->fetch_assoc();}finally{$query->close();}
+          if(!is_array($remaining)||!in_array($remaining['n'],array(0,'0'),true)){throw new RuntimeException('notice_history_writer_SQL_not_zero');}
+          $GLOBALS['governance_workbench_http_cleanup_permitted']=true;
+        }
+        $released=true;break;
+      }
       usleep(200000);
     }while(microtime(true)<$deadline);
     if(!$released){throw new RuntimeException('notice_wire_parent_lease_expired');}
