@@ -1,0 +1,39 @@
+{
+  "schema": "n08-file-parent-focused-source-profile-v1",
+  "baseline": "f1faf4d2d09690fb856dab63bf9a8e5e881a3dd7",
+  "inherited_consumer_candidate": "fb210acc80446d1d3cd12cc17786e597c7268c8b",
+  "source_review_status": "candidate-awaiting-independent-cross-review",
+  "native_phase": "--file-parent-policy",
+  "public_checker": "scripts/governance/check_recovery_file_parent_policy.py",
+  "source_derived_obligations": {
+    "bootstrap": 6,
+    "real_File_startup": 1,
+    "native_case_checks": 6,
+    "cleanup": 3,
+    "total": 16,
+    "is_SQL_statement_count": false
+  },
+  "selected_source_sha256": {
+    "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php": "3c3c5914e71601778e7e059c2b8887edb32da4d69ee4e5253b0d62dccf161e09",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php": "c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08",
+    "src/applications/files/query/PhabricatorFileQuery.php": "2ccf285287e7f7e1f5889afce530b1a5073cfa7c076100a1129506816619e421",
+    "src/applications/maniphest/query/ManiphestTaskQuery.php": "225b35fe0fa0154e444530e35ca83a5525d2f2a36965891e0fa1834931b772a5",
+    "support/governance/recovery/file-parent-policy-cases.php": "7ca3206b39bef042cdcb6b44c00b172c66c899010b942ce61bd1e0b20890c65e",
+    "support/governance/recovery/file-parent-policy-focused.php": "42a76dc119bf7b08ec23e1ecc2527a84bed9d857abe0fb3d65663a1a25d0d0ab",
+    "support/governance/recovery/file-source-cases.php": "d106bc50447c9a6a62c1d115840d7272ee305d98b56d42f2fef0fd39558b2c10",
+    "support/governance/recovery/task-owner-source-cases.php": "56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1",
+    "support/governance/completion/pipeline-gorge.php": "ff27390d7a7e5b5c14555758e8b8172fd401bb0dcf51221fe32251b11308fcda",
+    "support/governance/native-organization/test-native-organization-mysql.php": "e666d117050fcf00a9073739e9bfaa0917d3b685258e2d62c84f5e16e88cac61"
+  },
+  "same_snapshot_proved": false,
+  "durable_review_compatible": false,
+  "dependency_budget_proved": false,
+  "all_thirteen_source_families_complete": false,
+  "restoration_authorized": false,
+  "execution_blocked": true,
+  "native_SQL_executed": false,
+  "supported_mapper_executed": false,
+  "permission_axes_changed": false,
+  "optional_defaults_changed": false,
+  "classmap_changed": false
+}

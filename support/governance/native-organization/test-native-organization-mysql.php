@@ -4,7 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--file-parent-policy'=>'file-parent-policy','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-history-wire-hold'=>'governance-notice-history-wire-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
@@ -203,6 +203,14 @@ try {
     $stage='focused-organization-approval-workbench';
     require_once dirname(__DIR__).'/organization/approval-workbench-cases.php';
     $native=governance_approval_workbench_focused($fixture,$check);
+  }elseif($phase==='file-parent-policy'){
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';
+    $file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],
+      'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+    $stage='focused-native-File-parent-policy';require_once dirname(__DIR__).'/recovery/file-parent-policy-focused.php';$native=governance_recovery_file_parent_policy_focused($fixture,$control,$check);
   }elseif($phase==='file-source-facts'){
     require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
     $stage='owned-real-gorge-file-service';
@@ -409,6 +417,7 @@ $batch=$workbench_http?'native-workbench-basic-http-hold':$batch;
 $batch=$phase==='notice-admin-grant'?'native-notice-admin-grant-profile':$batch;
 $batch=$phase==='project-source-facts'?'native-project-source-facts':$batch;
 $batch=$phase==='organization-approval-workbench'?'native-organization-approval-workbench':$batch;
+$batch=$phase==='file-parent-policy'?'native-File-parent-policy-endpoints':$batch;
 $batch=$phase==='file-source-facts'?'native-file-source-facts':$batch;
 $batch=$phase==='task-owner-source-facts'?'native-task-owner-source-facts':$batch;
 $batch=$phase==='spaces-source-facts'?'native-spaces-source-facts':$batch;
@@ -419,6 +428,7 @@ $receipt_scope=$phase==='notice-admin-grant'?'owned-native-admin-grant-and-trans
 $receipt_scope=$workbench_http?'owned-workbench-basic-http-synthetic-roles':$receipt_scope;
 $receipt_scope=$phase==='project-source-facts'?'owned-native-project-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$phase==='organization-approval-workbench'?'owned-native-organization-approval-workbench':$receipt_scope;
+$receipt_scope=$phase==='file-parent-policy'?'owned-native-File-parent-policy-endpoints-no-permit':$receipt_scope;
 $receipt_scope=$phase==='file-source-facts'?'owned-native-File-source-partial':$receipt_scope;
 $receipt_scope=$phase==='task-owner-source-facts'?'owned-native-task-owner-source-partial':$receipt_scope;
 $receipt_scope=$phase==='spaces-source-facts'?'owned-native-spaces-source-facts-no-lease':$receipt_scope;
