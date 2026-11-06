@@ -343,10 +343,11 @@ final class PhorgeGovernanceCompletionFixture {
       $physical['u']!==$observer['u']||(string)$physical['t']!==(string)$thread||
       (string)$observer['t']===(string)$thread||(string)$physical['a']!=='1'||(string)$observer['a']!=='1'){
       throw new RuntimeException('owned_HTTP_writer_physical_identity_refused');}
-    $txn=$this->control->prepare("SELECT t.INSTRUMENTED instrumented,(SELECT ENABLED FROM performance_schema.setup_consumers WHERE NAME='events_transactions_current') consumer,(SELECT ENABLED FROM performance_schema.setup_instruments WHERE NAME='transaction') instrument,(SELECT COUNT(*) FROM performance_schema.events_transactions_current e WHERE e.THREAD_ID=t.THREAD_ID AND e.STATE='ACTIVE') active FROM performance_schema.threads t WHERE t.PROCESSLIST_ID=?");
+    $txn=$this->control->prepare("SELECT t.INSTRUMENTED instrumented,(SELECT ENABLED FROM performance_schema.setup_consumers WHERE NAME='global_instrumentation') global_consumer,(SELECT ENABLED FROM performance_schema.setup_consumers WHERE NAME='thread_instrumentation') thread_consumer,(SELECT ENABLED FROM performance_schema.setup_consumers WHERE NAME='events_transactions_current') consumer,(SELECT ENABLED FROM performance_schema.setup_instruments WHERE NAME='transaction') instrument,(SELECT COUNT(*) FROM performance_schema.events_transactions_current e WHERE e.THREAD_ID=t.THREAD_ID AND e.STATE='ACTIVE') active FROM performance_schema.threads t WHERE t.PROCESSLIST_ID=?");
     $txn->bind_param('i',$thread);$txn->execute();$txrows=$txn->get_result()->fetch_all(MYSQLI_ASSOC);$txn->close();
-    if(count($txrows)!==1||$txrows[0]['instrumented']!=='YES'||$txrows[0]['consumer']!=='YES'||
-      $txrows[0]['instrument']!=='YES'||(string)$txrows[0]['active']!=='0'){
+    if(count($txrows)!==1||($txrows[0]['global_consumer']??null)!=='YES'||($txrows[0]['thread_consumer']??null)!=='YES'||
+      ($txrows[0]['instrumented']??null)!=='YES'||($txrows[0]['consumer']??null)!=='YES'||
+      ($txrows[0]['instrument']??null)!=='YES'||(string)($txrows[0]['active']??null)!=='0'){
       throw new RuntimeException('owned_HTTP_writer_transaction_unknown_or_active');}
     $count=function()use($thread,$config){
       $stmt=$this->control->prepare('SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE ID=? AND USER=?');
