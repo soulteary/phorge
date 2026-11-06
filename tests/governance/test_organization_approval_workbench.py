@@ -42,6 +42,12 @@ $accepted=PhorgeOrganizationRequest::approval($input);$refused=array();
 foreach(array(array('valid_from',0),array('valid_until',0),array('valid_from','0'),array('valid_from',false))as$case){$bad=$input;$bad[$case[0]]=$case[1];$caught=null;try{PhorgeOrganizationRequest::approval($bad);}catch(InvalidArgumentException$error){$caught=$error;}$refused[]=$caught!==null&&$caught->getMessage()==='organization_period_refused';}
 echo json_encode(array('accepted_null_period'=>$accepted['valid_from']===null&&$accepted['valid_until']===null,'action'=>$accepted['action'],'refused'=>$refused));'''
   value=self.php(code);self.assertTrue(value['accepted_null_period']);self.assertEqual('appointment.revoke',value['action']);self.assertEqual([True]*4,value['refused'])
+ def test_actual_controller_new_page_builder_returns_native_standard_page(self):
+  code=r'''ob_start();require$argv[1].'/support/governance/organization/tests/approval-workbench-controls.php';ob_end_clean();
+$viewer=new PhabricatorUser();$request=(new AphrontRequest('localhost','/people/organization/approvals/'))->setUser($viewer);$controller=(new PhorgeOrganizationApprovalController())->setRequest($request);$page=$controller->newPage();
+echo json_encode(array('class'=>get_class($page),'native_standard'=>$page instanceof PhabricatorStandardPageView,'native_bare'=>$page instanceof PhabricatorBarePageView,'request_same'=>$page->getRequest()===$request,'controller_same'=>$page->getController()===$controller,'viewer_same'=>$page->getViewer()===$viewer,'old_class_exists'=>class_exists('PHUIPageView')));'''
+  d=self.php(code);self.assertEqual('PhabricatorStandardPageView',d['class']);self.assertTrue(all(d[k]is True for k in ('native_standard','native_bare','request_same','controller_same','viewer_same')));self.assertFalse(d['old_class_exists'])
+  fixture=(ROOT/'support/governance/organization/approval-workbench-cases.php').read_text();self.assertNotIn('instanceof PHUIPageView',fixture)
  def test_actual_page_function_validates_all_lengths_before_payload(self):
   # Execute unchanged method bodies with explicit query/actor/load seams.
   funcs='\n'.join(method(n)for n in ['identifier','planWorkbenchRows','workbenchPage'])

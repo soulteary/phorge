@@ -143,7 +143,7 @@ function governance_approval_workbench_focused($fixture,callable $check) {
     $before=$fingerprint();$response=governance_approval_workbench_route($auth['requester'],'GET',array());
     $detail_response=governance_approval_workbench_route($auth['requester'],'GET',array('approval'=>'10-grant'));
     $detail=$service->readApprovalWorkbenchDetail('10-grant');
-    $check($response instanceof PHUIPageView&&$detail_response instanceof PHUIPageView&&$detail['may_approve']===false&&$detail['may_execute']===false&&$before===$fingerprint(),
+    $check($response instanceof PhabricatorStandardPageView&&$detail_response instanceof PhabricatorStandardPageView&&$detail['may_approve']===false&&$detail['may_execute']===false&&$before===$fingerprint(),
       'approval-workbench-GET-list-and-detail-never-approve-or-consume');
     $post=static function($who,$action,$id,$csrf=true)use($auth){$data=array('approval'=>$id,'form_action'=>$action);
       if($csrf){$data[AphrontRequest::getCSRFTokenName()]=$auth[$who]['viewer']->getCSRFToken();}
