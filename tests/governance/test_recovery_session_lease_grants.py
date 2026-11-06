@@ -28,6 +28,9 @@ class SessionLeaseGrants(unittest.TestCase):
   for rows in bad:self.assertFalse(self.decode(rows)['accepted'],rows)
   self.assertFalse(self.decode(base,principal='gov_c_writer_'+'d'*12+'@%')['accepted'])
  def test_only_independent_observer_accepts_PROCESS_and_known_legacy_TRIGGER_unused_profile(self):
+  minimal_observer=['GRANT PROCESS ON *.*'+to(OBSERVER),'GRANT SELECT ON `performance\\_schema`.*'+to(OBSERVER)]
+  self.assertTrue(self.decode(minimal_observer,'observer',OBSERVER)['accepted'])
+  for rows in (minimal_observer[:1],minimal_observer[1:],[x.replace('\\_','_')for x in minimal_observer],minimal_observer+[scoped('user')]):self.assertFalse(self.decode(rows,'observer',OBSERVER)['accepted'])
   for rights in ('SELECT, PROCESS','SELECT, TRIGGER, PROCESS'):
    rows=['GRANT '+rights+' ON *.*'+to(OBSERVER)]
    self.assertTrue(self.decode(rows,'observer',OBSERVER)['accepted']);self.assertTrue(self.decode(['GRANT USAGE ON *.*'+to(OBSERVER)]+rows,'observer',OBSERVER)['accepted'])

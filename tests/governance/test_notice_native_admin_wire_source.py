@@ -32,7 +32,7 @@ PARTIAL_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryAppli
 
 # Versioned isolated selected Session INSERT lease source delta; no SQL acceptance.
 SESSION_LEASE_SOURCE_REVIEW_VERSION='n08-native-session-lease-scoped-grants-source-v2'
-SESSION_LEASE_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': '672b7620134efdf02062649c55a8937df99f6d359eb8bcc4545b14724b686e41', 'src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php': 'e00c3042bd8bc82fc80c798246ecf4c46ebcf900fb661a77e48ded5d61e1fac8'}
+SESSION_LEASE_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': 'bf52343c21dffb2eb7fe257e59f023d1ad3f15eb33dc933e3bd4ab14d32e00db', 'src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php': 'e00c3042bd8bc82fc80c798246ecf4c46ebcf900fb661a77e48ded5d61e1fac8'}
 
 def reviewed_partial_sources(root=ROOT):
  result={}

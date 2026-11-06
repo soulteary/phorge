@@ -157,7 +157,7 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
       !preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)||!is_string($principal)||
       !preg_match($role==='writer'?'/\Agov_c_writer_[a-f0-9]{12}@%\z/D':'/\Agov_c_metadata_[a-f0-9]{16}@%\z/D',$principal)||
       !$grants||count($grants)>66){throw new RuntimeException('recovery_session_lease_grants_unknown');}
-    $user=substr($principal,0,-2);$recipient=' TO `'.$user.'`@`%`';$seen=array();$usage=0;$selected=false;$guard=false;$metadata=false;
+    $user=substr($principal,0,-2);$recipient=' TO `'.$user.'`@`%`';$seen=array();$usage=0;$selected=false;$guard=false;$metadata=false;$process=false;$performance=false;
     $source=file_get_contents(dirname(__DIR__,4).'/resources/sql/quickstart.sql');
     if(!is_string($source)||strlen($source)>1048576){throw new RuntimeException('recovery_session_lease_grants_unknown');}
     preg_match_all('/^CREATE DATABASE .*`\{\$NAMESPACE\}_([a-z_]+)`/m',$source,$matches);
@@ -173,9 +173,11 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
       $privileges=explode(', ',$m[1]);sort($privileges,SORT_STRING);
       if(count($privileges)!==count(array_unique($privileges))){throw new RuntimeException('recovery_session_lease_grants_unknown');}
       if($role==='observer'){
-        // PROCESS is observer-only. Existing owned RR metadata credentials may
-        // also have TRIGGER; that known extra permission is unused here.
-        if($m[2]!=='*.*'||$metadata||!in_array($privileges,array(array('PROCESS','SELECT'),array('PROCESS','SELECT','TRIGGER')),true)){
+        // Minimum separate observer: global PROCESS and schema-limited P_S
+        // SELECT. Also recognize the already owned legacy global profiles.
+        if($m[2]==='*.*'&&$privileges===array('PROCESS')&&!$process&&!$metadata){$process=true;continue;}
+        if($m[2]==='`performance\\_schema`.*'&&$privileges===array('SELECT')&&!$performance&&!$metadata){$performance=true;continue;}
+        if($m[2]!=='*.*'||$metadata||$process||$performance||!in_array($privileges,array(array('PROCESS','SELECT'),array('PROCESS','SELECT','TRIGGER')),true)){
           throw new RuntimeException('recovery_session_lease_grants_unknown');}
         $metadata=true;continue;
       }
@@ -185,10 +187,10 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
         throw new RuntimeException('recovery_session_lease_grants_unknown');}
       $selected=$selected||$db===$namespace.'_user';$guard=$guard||$db===$namespace.'_governance';
     }
-    if(($role==='writer'&&($usage!==1||!$selected||!$guard))||($role==='observer'&&!$metadata)){
+    if(($role==='writer'&&($usage!==1||!$selected||!$guard))||($role==='observer'&&!$metadata&&!($process&&$performance))){
       throw new RuntimeException('recovery_session_lease_grants_unknown');}
     $canonical=$grants;sort($canonical,SORT_STRING);
-    return array('profile'=>$role==='writer'?'owned-native-fixture-scoped-CRUD-v1':'independent-observer-SELECT-PROCESS-v1',
+    return array('profile'=>$role==='writer'?'owned-native-fixture-scoped-CRUD-v1':'independent-observer-PS-SELECT-PROCESS-v2',
       'source_digest'=>hash('sha256',serialize($canonical)),'writer_global_privileges_required'=>false,
       'grant_absence_lease_proved'=>false,'restoration_authorized'=>false);
   }
