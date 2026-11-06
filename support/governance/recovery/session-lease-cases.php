@@ -7,7 +7,6 @@ function governance_recovery_session_lease_cases($fixture,AphrontDatabaseConnect
   $GLOBALS['governance_session_lease_physical_cleanup_proved']=true;
   $fixture->assertOwned();require_once dirname(__DIR__).'/native-organization/workers.php';
   $conn=(new PhabricatorUser())->establishConnection('w');$handles=array();$scope=null;$primary=null;
-  $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.session-lease.enabled',true);
   try {
     $actor=governance_native_request($state['users']['admin'],$state['sessions']);
     // Actual actor source initialization must finish before the measured lease.
@@ -57,7 +56,6 @@ function governance_recovery_session_lease_cases($fixture,AphrontDatabaseConnect
     try{if($scope!==null){governance_recovery_session_lease_cleanup($scope);}}catch(Throwable $error){$errors['lease']=$error;}
     try{governance_native_stop_fixture_handles($handles);}catch(Throwable $error){$errors['workers']=$error;}
     try{governance_recovery_session_lease_workers_ended($observer,$handles);}catch(Throwable $error){$GLOBALS['governance_session_lease_physical_cleanup_proved']=false;$errors['worker-SQL']=$error;}
-    unset($flags);
     if($errors){if($primary!==null){$errors=array('primary'=>$primary)+$errors;}throw new PhutilAggregateException('session_lease_cases_cleanup_failed',$errors);}
   }
 }

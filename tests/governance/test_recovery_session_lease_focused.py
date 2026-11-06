@@ -52,3 +52,20 @@ class SessionFocused(unittest.TestCase):
   positive=r"""require_once$argv[1].'/support/governance/recovery/session-lease-cases.php';require_once$argv[1].'/support/governance/recovery/session-lease-cases.php';$r=new ReflectionFunction('governance_native_request');echo json_encode(['file'=>realpath($r->getFileName()),'parameters'=>array_map(static fn($p)=>(string)$p->getType(),$r->getParameters()),'line'=>$r->getStartLine(),'SQL_executed'=>false]);"""
   p=subprocess.run(['php','-r',positive,str(ROOT)],capture_output=True,text=True,timeout=10)
   self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');self.assertEqual(json.loads(p.stdout),{'file':str((ROOT/'support/governance/native-organization/native-cases.php').resolve()),'parameters':['PhabricatorUser','PhabricatorAuthSessionEngine'],'line':4,'SQL_executed':False})
+
+ def routing(self,mode):
+  p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/session-routing-native-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=10)
+  self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');d=json.loads(p.stdout);self.assertFalse(d['SQL_executed']);self.assertTrue(d['restored']);self.assertEqual(d['owned_assertions'],1);return d
+ def test_actual_native_Env_ScopedEnv_and_routing_reproduce_exact_third_dictionary_refusal(self):
+  d=self.routing('old-third');self.assertEqual(d['error'],'recovery_config_scope_unknown');self.assertEqual(d['site'],{'file':'PhorgeRecoveryNativeCaptureScope.php','line':49});self.assertEqual(d['classes'],['PhabricatorConfigDictionarySource']*2+['PhabricatorConfigDefaultSource']);self.assertFalse(d['route_equal'])
+ def test_actual_focused_flags_flatten_before_factory_and_restore_after_primary_failure(self):
+  for mode in ('good','primary'):
+   d=self.routing(mode);self.assertEqual(d['before_flatten_count'],3);self.assertEqual(d['classes'],['PhabricatorConfigDictionarySource','PhabricatorConfigDefaultSource']);self.assertTrue(d['lease_enabled']);self.assertTrue(d['route_equal']);self.assertEqual(d['primary_preserved'],mode=='primary');self.assertEqual(d['error'],'explicit-host-primary'if mode=='primary'else None)
+  cases=(ROOT/'support/governance/recovery/session-lease-cases.php').read_text();self.assertNotIn('beginScopedEnv',cases)
+  focused=(ROOT/'support/governance/recovery/session-lease-focused.php').read_text();self.assertLess(focused.index("overrideEnvConfig('governance.account-recovery.session-lease.enabled',true)"),focused.index('governance_recovery_account_fixture_environment($fixture)'))
+ def test_actual_worker_settings_build_one_dictionary_without_inheriting_parent_scope(self):
+  d=self.routing('worker');self.assertEqual(d['worker'],{'classes':['PhabricatorConfigDictionarySource','PhabricatorConfigDefaultSource'],'route_equal':True,'recovery_enabled':True,'incarnation_equal':True})
+ def test_routing_diagnostic_only_exposes_fixed_class_basenames_without_raw_error(self):
+  names=['PhorgeRecoveryNativeCaptureScope.php','PhorgeRecoveryRestoreProfile.php','PhorgeGovernanceNativeRuntimeProfile.php','account-cases.php','foreign.php']
+  code="require$argv[1].'/support/governance/recovery/session-lease-diagnostic.php';$out=[];foreach(json_decode($argv[2],true)as$name){$out[]=governance_recovery_session_lease_failure_projection('session-producer-lease',false,['source_file'=>$name,'source_line'=>49,'message'=>'raw-secret-SQL','error_type'=>'RuntimeException']);}echo json_encode($out);"
+  p=subprocess.run(['php','-r',code,str(ROOT),json.dumps(names)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');self.assertNotIn('raw-secret',p.stdout);d=json.loads(p.stdout);self.assertEqual([x['failure']['source_file']for x in d],names[:-1]+[None])

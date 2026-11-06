@@ -25,3 +25,21 @@ factory reflection path and native parameter types without opening SQL.
 This fixes the missing-function bootstrap failure observed in PR #123 run
 42267552308; it does not establish physical SQL6, observer event behavior, or
 restoration authority. Those gates remain pending actual isolated execution.
+
+
+### Native routing context ordering
+
+The lease feature flag now joins the focused fixture's existing scoped account
+flags before the owned account fixture subcontext is constructed. The existing
+restricted helper validates the writer and flattens dictionary sources into its
+single temporary dictionary plus the native default source. Lease cases do not
+push a further ScopedEnv. Production routing still requires exactly these two
+native source classes; that guard is unchanged. Existing finally restoration
+restores the saved environment before disposing the original scoped flags.
+
+Real Env/ConfigStack/ScopedEnv and native routing host controls reproduce the
+former third-dictionary rejection at NativeCaptureScope line49, exercise the
+fixed flag/flatten order and restoration after a primary failure, and evaluate
+the actual worker settings construction with two native sources. Fixture
+ownership/configuration are explicit collaborators in these no-SQL controls;
+they do not prove account ownership, native session creation or physical SQL6.

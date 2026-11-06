@@ -17,7 +17,7 @@ function governance_recovery_session_lease_focused($fixture,mysqli $control,call
     // This actual helper prepares native Users and real stored avatars only;
     // it never enters a Task/File RR source scope or creates a Task here.
     $users=governance_task_owner_prepare($fixture);
-    $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.enabled',true)->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
+    $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.session-lease.enabled',true)->overrideEnvConfig('governance.account-recovery.enabled',true)->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
     $environment=governance_recovery_account_fixture_environment($fixture);
     $owner=GovernanceSessionLeaseObserverOwner::prepare($fixture,$control,$revision);
     governance_recovery_session_lease_owned_entry($fixture,array('users'=>array('admin'=>$users['actor']),'sessions'=>new PhabricatorAuthSessionEngine(),'subjects'=>array('commit'=>$users['subject'],'rollback'=>$users['other'])),$owner->configuration(),$record);
