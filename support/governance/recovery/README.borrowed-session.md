@@ -7,8 +7,7 @@ provider, or complete family. Public submit/review/execute operations retain
 their existing blocked behavior. Task/File RR scopes and separate policy-reader
 observations are not composed.
 
-The real store privately mints an opaque owner token after its own transaction
-starts. Only that exact writer, observer and token may register a participant.
+The real store privately mints an opaque owner token before its BEGIN attempt. Only that exact writer, observer and token may register a participant.
 The participant verifies the final native connection classes, separate thread,
 same server, native scoped writer/independent observer grants and current RC
 P_S transaction event. It uses the existing bounded actual Session source
@@ -66,9 +65,29 @@ and observer account cleanup must be independently absent. No schema cleanup
 may run unless BOTH `governance_recovery_borrowed_cleanup_proved` and
 `governance_recovery_borrowed_fixture_cleanup.cleanup_proved` are exactly true.
 
-Physical SQL6 is authored but UNRUN. There is no normal/Atomic driver selector
-or CI execution authority in this package; Root must review a separate fixed
-entry/cleanup gate before execution. No mapper entries change. Full Session
+Physical SQL6 is authored but UNRUN. The independent successor adds the exact
+`--session-borrowed-owner` phase and a mandatory Atomic step after the existing
+Session lease step. The public receipt checker requires six source-derived SQL
+obligations and ten shared lifecycle obligations, independently supplied real
+Gorge file binary bytes/hash, current source revision and all 29 fixed source
+pins. Neither the selector nor an accepted receipt authorizes production use.
+
+Preparation creates five native Users with native Gorge-backed avatars while
+recovery is disabled. Four eligible Users are PHID-sorted into distinct issuer,
+owner and two subjects; only the first two become administrators. The issuer
+is outside the parent lock set and precedes both subjects. Both actual native
+identity epochs and separate native sessions are initialized before the parent.
+The runtime checks default new User and AuthSession connections share the same
+idle native writer, with no forced connection or namespace override. Host
+isolated-DAO preparation controls are explicitly not default-writer SQL proof.
+
+Before any generic pool rollback/close, configuration teardown or schema DROP,
+the new phase requires both strict cleanup flags and empty private core owner
+and observer state. Unknown state retains accounts, fixture and context for
+operator reconciliation, while exact owned child/file processes may be stopped.
+This only forbids explicit cleanup: PHP process shutdown can still close mysqli
+or OS resources and implicitly roll back. It does not promise a live lease after
+CLI exit. Existing phases retain their original cleanup behavior. No mapper entries change. Full Session
 mutation/temporary-token producer coverage, grant/DDL lease, physical fault
 matrix, restore lineage, File/Task shared snapshot, all13 completion and native
 enable remain blocked.

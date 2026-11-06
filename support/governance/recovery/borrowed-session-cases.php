@@ -10,7 +10,9 @@ function governance_recovery_borrowed_session_obligations(){
 function governance_recovery_borrowed_session_cases($fixture,mysqli $control,array $state,callable $check){
   $fixture->assertOwned();require_once __DIR__.'/borrowed-session-observer.php';require_once __DIR__.'/session-lease-cases.php';
   require_once dirname(__DIR__).'/native-organization/workers.php';
-  $actor=$state['actor'];$context=$actor['context'];
+  $actor=$state['issuer_auth'];$context=$state['owner_auth']['context'];
+  if($actor['context']->getUserPHID()===$context->getUserPHID()||in_array($actor['context']->getUserPHID(),array_map(static fn($u)=>$u->getPHID(),$state['subjects']),true)){throw new RuntimeException('borrowed_issuer_in_parent_lockset');}
+  foreach($state['subjects']as$subject){if(strcmp($actor['context']->getUserPHID(),$subject->getPHID())>=0){throw new RuntimeException('borrowed_issuer_lock_order_unknown');}}
   if(get_class($context)!==PhorgeGovernanceNativeActorContext::class){throw new RuntimeException('borrowed_native_actor_required');}
   $store=new ReflectionMethod(PhorgeRecoveryRestoreService::class,'withTransaction');
   $executed=array();$record=static function($ok,$label)use($check,&$executed){
