@@ -1,7 +1,37 @@
-"""Execute safe failure projection only; no native SQL or fixture acceptance."""
-import json,subprocess,unittest
+"""Safe partial failure metadata and exact retained-runtime contract outcomes."""
+import json,subprocess,unittest,re,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
+TRANSPORT_CONTRACT='tests/contract/transport/runtime.php'
+TRANSPORT_SUCCESS='Transport contracts passed: envelope, mail receipt/uncertainty and search retries.\n'
+
+def validate_runtime_contract_result(relative,result):
+ if type(result.returncode)is not int or result.returncode!=0:
+  raise ValueError('runtime contract nonzero exit: '+relative)
+ if relative!=TRANSPORT_CONTRACT:
+  if result.stderr!='':raise ValueError('unexpected runtime contract stderr: '+relative)
+  return
+ # This existing transport contract intentionally catches retryable database
+ # connection failures. Its normal diagnostic stream is not a failure receipt.
+ # Require its exact own success marker and only the two observed native retry
+ # frames; arbitrary warnings, other PHLOGs and different sources stay refused.
+ if result.stdout!=TRANSPORT_SUCCESS:raise ValueError('transport success marker missing or tainted')
+ if result.stderr=='':return
+ source=ROOT/'src/infrastructure/storage/connection/mysql/AphrontBaseMySQLDatabaseConnection.php'
+ source_lines=source.read_text().splitlines()
+ callers=[i for i,line in enumerate(source_lines,1)if line.strip()=='phlog($message);']
+ if len(callers)!=1:raise ValueError('native retry logging source ambiguous')
+ location=str(source)+':'+str(callers[0])
+ message=('Retrying database connection to "localhost" after connection failure '
+          '(attempt {attempt}; "AphrontConnectionQueryException"; error #2002): '
+          'Attempt to connect to root@localhost failed with error #2002: No such file or directory.')
+ frames=result.stderr.splitlines(keepends=True)
+ if len(frames)!=2:raise ValueError('unexpected native retry diagnostic count')
+ for attempt,line in enumerate(frames,1):
+  body="PHLOG: '"+message.format(attempt=attempt)+"' at ["+location+"]\n"
+  if re.fullmatch(r'\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] '+re.escape(body),line)is None:
+   raise ValueError('unexpected native retry diagnostic')
+
 class PartialDiagnostic(unittest.TestCase):
  def php(self,code):
   r=subprocess.run(['php','-r',"require$argv[1].'/support/governance/recovery/partial-failure-diagnostic.php';"+code,str(ROOT)],capture_output=True,text=True,timeout=10);self.assertEqual(r.returncode,0,r.stderr);self.assertEqual(r.stderr,'');return json.loads(r.stdout)
@@ -50,4 +80,20 @@ class PartialDiagnostic(unittest.TestCase):
                    'tests/contract/runtime/integrity.php','tests/contract/runtime/maintenance.php',
                    'tests/contract/transport/runtime.php'):
    result=subprocess.run(['php',str(ROOT/relative)],cwd=ROOT,capture_output=True,text=True,timeout=60)
-   self.assertEqual(result.returncode,0,relative+': '+result.stderr);self.assertEqual(result.stderr,'',relative)
+   validate_runtime_contract_result(relative,result)
+
+ def test_transport_wrapper_accepts_only_observed_retry_diagnostics_with_real_success(self):
+  source=ROOT/'src/infrastructure/storage/connection/mysql/AphrontBaseMySQLDatabaseConnection.php'
+  caller=next(i for i,line in enumerate(source.read_text().splitlines(),1)if line.strip()=='phlog($message);')
+  retry=''.join('[2026-11-06 06:22:59] PHLOG: \'Retrying database connection to "localhost" after connection failure (attempt '+str(attempt)+'; "AphrontConnectionQueryException"; error #2002): Attempt to connect to root@localhost failed with error #2002: No such file or directory.\' at ['+str(source)+':'+str(caller)+']\n'for attempt in (1,2))
+  def actual(stdout,stderr,code=0):
+   program='import sys;sys.stdout.write('+repr(stdout)+');sys.stderr.write('+repr(stderr)+');sys.exit('+str(code)+')'
+   return subprocess.run([sys.executable,'-c',program],capture_output=True,text=True,timeout=10)
+  validate_runtime_contract_result(TRANSPORT_CONTRACT,actual(TRANSPORT_SUCCESS,retry))
+  validate_runtime_contract_result(TRANSPORT_CONTRACT,actual(TRANSPORT_SUCCESS,''))
+  for output,error,code in [(TRANSPORT_SUCCESS,retry,7),('',retry,0),(TRANSPORT_SUCCESS+'tainted',retry,0),(TRANSPORT_SUCCESS,retry+'PHP Warning: unexpected\n',0),(TRANSPORT_SUCCESS,retry.replace('attempt 2','attempt 1'),0),(TRANSPORT_SUCCESS,retry.replace('error #2002','error #1045'),0),(TRANSPORT_SUCCESS,retry.replace('localhost','foreign-host'),0),(TRANSPORT_SUCCESS,retry.replace('AphrontBaseMySQLDatabaseConnection.php','Other.php'),0),(TRANSPORT_SUCCESS,retry.splitlines(keepends=True)[0],0)]:
+   with self.assertRaises(ValueError):validate_runtime_contract_result(TRANSPORT_CONTRACT,actual(output,error,code))
+ def test_other_runtime_contracts_keep_silent_stderr_and_nonzero_exit_refusal(self):
+  for output,error,code in [('success','',1),('success','PHP Warning: unexpected',0),('success','[2026-11-06 06:22:59] PHLOG: arbitrary',0)]:
+   result=subprocess.CompletedProcess([],code,output,error)
+   with self.assertRaises(ValueError):validate_runtime_contract_result('scripts/runtime/verify.php',result)
