@@ -1,5 +1,23 @@
 <?php
 
+/** Native Project membership producer, including materialized membership. */
+function governance_recovery_restore_partial_project($actor,$subject,$suffix) {
+  $project=PhabricatorProject::initializeNewProject($actor);
+  // Match ProjectMembersAddController: raw EdgeEditor writes direct/inverse
+  // edges but does not run the Project editor's membership final effects.
+  (new PhabricatorProjectTransactionEditor())->setActor($actor)
+    ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
+    ->applyTransactions($project,array(
+      (new PhabricatorProjectTransaction())
+        ->setTransactionType(PhabricatorProjectNameTransaction::TRANSACTIONTYPE)
+        ->setNewValue('Synthetic partial review '.$suffix),
+      (new PhabricatorProjectTransaction())
+        ->setTransactionType(PhabricatorTransactions::TYPE_EDGE)
+        ->setMetadataValue('edge:type',PhabricatorProjectProjectHasMemberEdgeType::EDGECONST)
+        ->setNewValue(array('+'=>array_fuse(array($subject->getPHID()))))));
+  return $project;
+}
+
 /** Unrun native integration draft. Does not claim any successful restoration. */
 function governance_recovery_restore_review_cases($fixture,callable $check) {
   $fixture->assertOwned();$cookies=$_COOKIE;$method=$_SERVER['REQUEST_METHOD']??null;
@@ -50,14 +68,7 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
       queryfx_one($conn,'SELECT realName FROM %R WHERE id=%d',new PhabricatorUser(),$subject->getID())['realName']===$before_name,
       'recovery-restore-direct-locked-account-web-api-readers-preserve-caller-transaction');
     // Real native producers establish bounded selected sources before submission.
-    $partial_project=PhabricatorProject::initializeNewProject($actor);
-    (new PhabricatorProjectTransactionEditor())->setActor($actor)
-      ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
-      ->applyTransactions($partial_project,array((new PhabricatorProjectTransaction())
-        ->setTransactionType(PhabricatorProjectNameTransaction::TRANSACTIONTYPE)
-        ->setNewValue('Synthetic partial review '.$suffix)));
-    (new PhabricatorEdgeEditor())->addEdge($partial_project->getPHID(),
-      PhabricatorProjectProjectHasMemberEdgeType::EDGECONST,$subject->getPHID())->save();
+    $partial_project=governance_recovery_restore_partial_project($actor,$subject,$suffix);
     $partial_space=PhabricatorSpacesNamespace::initializeNewNamespace($actor);
     (new PhabricatorSpacesNamespaceEditor())->setActor($actor)
       ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
