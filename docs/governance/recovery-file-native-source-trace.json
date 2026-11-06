@@ -1,0 +1,312 @@
+{
+  "VM_accessed": false,
+  "all_sources_complete": false,
+  "base_head": "c9ce3e28c6864c422c2103bf8c12f09b665a3686",
+  "complete": false,
+  "consumers": [
+    {
+      "meaning": "Author branch first; nonauthor VIEW depends on already attached objects/original. Not full policy or account admission.",
+      "native": {
+        "line": 1812,
+        "method": "hasAutomaticCapability",
+        "path": "src/applications/files/storage/PhabricatorFile.php"
+      }
+    },
+    {
+      "meaning": "Actual FileQuery.loadPage resolves VIEW dependencies using viewer-filtered ObjectQuery and ANY-associated-object semantics; not a direct automatic-function check.",
+      "native": {
+        "line": 174,
+        "method": "loadPage",
+        "path": "src/applications/files/query/PhabricatorFileQuery.php"
+      }
+    },
+    {
+      "meaning": "Only MODE_ATTACH. Reference/detach not grant.",
+      "native": {
+        "line": 344,
+        "method": "newAttachmentsMap",
+        "path": "src/applications/files/query/PhabricatorFileQuery.php"
+      }
+    },
+    {
+      "meaning": "profile/builtin metadata affects policy; edit policy NOONE differs from automatic author behavior.",
+      "native": {
+        "line": 1796,
+        "method": "getPolicy",
+        "path": "src/applications/files/storage/PhabricatorFile.php"
+      }
+    },
+    {
+      "meaning": "metadata builtin name, not builtinKey.",
+      "native": {
+        "line": 1496,
+        "method": "isBuiltin",
+        "path": "src/applications/files/storage/PhabricatorFile.php"
+      }
+    },
+    {
+      "meaning": "Separate bearer URI capability path; not bound by author facts.",
+      "native": {
+        "line": 1184,
+        "method": "validateSecretKey",
+        "path": "src/applications/files/storage/PhabricatorFile.php"
+      }
+    },
+    {
+      "meaning": "Actual secret-key validation, optionally media guard; do not treat FileQuery omnipotent load as ordinary VIEW.",
+      "native": {
+        "line": 160,
+        "method": "loadFile",
+        "path": "src/applications/files/controller/PhabricatorFileDataController.php"
+      }
+    }
+  ],
+  "development_packages": [
+    {
+      "coverage": "No metadata/profile/builtin/parent policy/secret URI interpretation; no actual SQL or full repository catalogs.",
+      "delivered": [
+        "author-rooted SQL facts class, exact scalar/index/engine checks, same User writer/owned scope, bounded Task attachment/transform topology",
+        "native actual model/schema controls and strict primitive/schema host controls",
+        "unregistered real newFromFileData and TYPE_FILE fixture preparation functions"
+      ],
+      "package": "A-reviewed-query-bounds-core"
+    },
+    {
+      "delivered": [
+        "explicit main c9ce ancestry",
+        "actual three native methods/28049 source inventory",
+        "additive N00/runtime source and narrow notice/source protections",
+        "typed bounded public consumer and prepared Atomic fresh File step"
+      ],
+      "package": "B-current-main-registration-prepared",
+      "pending": [
+        "supported cold generated map and signed mapper successor",
+        "supported PHP pure and SQL acceptance",
+        "fresh hosted source-bound CI acceptance"
+      ]
+    },
+    {
+      "cross_application_Editor_atomicity_claimed": false,
+      "delivered": [
+        "nine native component checks including ordinary FileQuery and exact File DAO rollback",
+        "twenty raw wait/reap checks over five targets and two source-scope terminal outcomes",
+        "existing paired file dependency and ten independently registered auxiliary connections",
+        "guarded cleanup preserving primary and refusing synthetic mutation on unknown release"
+      ],
+      "package": "C-producer-profile-code-prepared-not-executed",
+      "pending": [
+        "actual ordinary native policy and producer execution",
+        "actual P_S wait/physical source scope/readset proof",
+        "actual whole-source/strictCLI/cleanup acceptance"
+      ]
+    },
+    {
+      "package": "D-full-family-boundaries",
+      "pending": [
+        "recursive or otherwise complete parent-object/transform source closure with real policy consumers",
+        "profile/builtin metadata bounded length-before-payload protocol",
+        "secret URI/download-key and native policy-scramble producer coverage",
+        "all native/raw producers and actual DDL/FK/trigger/min-grant/privilege-change atomic evidence",
+        "restore transaction integration and remaining 13 families"
+      ]
+    }
+  ],
+  "family_assignment": {
+    "author_root_is_all_File": false,
+    "count_once": true,
+    "primary": "file-capabilities",
+    "shared_reference": "object-automatic"
+  },
+  "host_SQL_or_native_RR_executed": false,
+  "original_query_bounds_base_head": "e7cf4063f84c5eb2f60916e0db0edaf8f1c61586",
+  "producer_groups": [
+    {
+      "id": "native-upload-and-copy",
+      "sources": [
+        {
+          "line": 522,
+          "method": "newFromFileData",
+          "path": "src/applications/files/storage/PhabricatorFile.php"
+        },
+        {
+          "line": 1623,
+          "method": "readPropertiesFromParameters",
+          "path": "src/applications/files/storage/PhabricatorFile.php"
+        }
+      ],
+      "status": "Actual callable fixture candidate, unrun; upload/chunk/copy/management callers distinct and not all covered."
+    },
+    {
+      "id": "native-attachment-transaction",
+      "meaning": "reference preserves existing attachment; detach removes row; acting user must load File; actual upsert/delete plus parent history. Cross-writer rollback needs proof.",
+      "sources": [
+        {
+          "line": 430,
+          "method": "newFileTransactionInternalValues",
+          "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php"
+        },
+        {
+          "line": 2976,
+          "method": "validateFileTransactions",
+          "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php"
+        },
+        {
+          "line": 968,
+          "method": "applyFileTransaction",
+          "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php"
+        }
+      ],
+      "status": "Actual Task TYPE_FILE callable candidate, unrun."
+    },
+    {
+      "id": "direct-attachment-and-implicit-remarkup",
+      "sources": [
+        {
+          "line": 1569,
+          "method": "attachToObject",
+          "path": "src/applications/files/storage/PhabricatorFile.php"
+        },
+        {
+          "line": 1584,
+          "method": "attachFileToObject",
+          "path": "src/applications/files/storage/PhabricatorFile.php"
+        },
+        {
+          "line": 2287,
+          "method": "newFileTransaction",
+          "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php"
+        }
+      ],
+      "status": "Separate native producer paths; direct upsert is not Editor validation and must not substitute."
+    },
+    {
+      "id": "native-transform",
+      "meaning": "persist only nonbuiltin/nontransient generated relation; regeneration/destruction, dedup/multiple sources and VOID paths separate.",
+      "sources": [
+        {
+          "line": 81,
+          "method": "executeTransformExplicit",
+          "path": "src/applications/files/transform/PhabricatorFileTransform.php"
+        },
+        {
+          "line": 162,
+          "method": "destroyTransform",
+          "path": "src/applications/files/controller/PhabricatorFileTransformController.php"
+        }
+      ],
+      "status": "Producer plan only, no fabricated transform rows claimed native."
+    },
+    {
+      "id": "policy-and-secret-lifecycle",
+      "sources": [
+        {
+          "line": 4856,
+          "method": "scrambleFileSecrets",
+          "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php"
+        },
+        {
+          "line": 199,
+          "method": "scrambleSecret",
+          "path": "src/applications/files/storage/PhabricatorFile.php"
+        }
+      ],
+      "status": "Not collected; secrets never exported. Full restoration semantics remain blocked."
+    },
+    {
+      "id": "delete-storage-and-raw-writers",
+      "sources": [
+        {
+          "line": 728,
+          "method": "delete",
+          "path": "src/applications/files/storage/PhabricatorFile.php"
+        },
+        {
+          "line": 1886,
+          "method": "destroyObjectPermanently",
+          "path": "src/applications/files/storage/PhabricatorFile.php"
+        }
+      ],
+      "status": "Deletion outbox/storage/attachment destruction and raw SQL are mandatory later producer/cleanup gates."
+    }
+  ],
+  "query_boundary_correction": {
+    "actual_snapshot_SQL_seam_controls": 7,
+    "aggregate_checked_after_every_batch": true,
+    "aggregate_max": 256,
+    "per_query_rows_max": 128,
+    "physical_SQL_scope_proved": false,
+    "previous_local_sentinel_gap_preserved": "cecec source returned up to129 dependency rows while checking only global256; that could silently truncate.",
+    "reject_before_merge": true,
+    "sentinel_fetch_rows": 129
+  },
+  "registration_candidate": {
+    "N00_links": 162,
+    "N00_runtime_files": 127,
+    "N00_sources": 165,
+    "SQL_executed": false,
+    "auxiliary_connections": 10,
+    "dedicated_SQL_checks_source_derived": 39,
+    "dedicated_SQL_partition": {
+      "bootstrap": 6,
+      "cleanup": 3,
+      "file_ready": 1,
+      "native": 9,
+      "raw_wait_and_reap": 20
+    },
+    "file_services": 1,
+    "hosted_CI_executed": false,
+    "mapper_generated": false,
+    "native_classes_source_derived": 49,
+    "native_methods_source_derived": 280,
+    "native_query_boundary": "executeOne forces raisePolicyExceptions true; use execute with explicit false and exact zero/one object verification, never catch unknown as denial.",
+    "new_native_methods": 3,
+    "supported_pure_executed": false,
+    "worker_registry": 0
+  },
+  "registration_changed": false,
+  "restoration_authorized": false,
+  "scope": "Native File consumer/producer tracing and implementation split; no completed family",
+  "source_sha256": {
+    "resources/sql/quickstart.sql": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
+    "src/__phutil_library_map__.php": "3dba268ac5e19ecb7ba8c689fb1362188e6a7ffb11b0adcfefc7abedd64bd862",
+    "src/applications/files/conduit/FileDownloadConduitAPIMethod.php": "f8b2e21ffef1d7cec439030bc8d8435e8203e1ce91341c630bb6ba87498187cc",
+    "src/applications/files/conduit/FileUploadChunkConduitAPIMethod.php": "d21c81f4c5c39f8735d08c22acf29b5704b0690c7d5498c15dfe98501d69dc8d",
+    "src/applications/files/conduit/FileUploadConduitAPIMethod.php": "e322a5c7ab279cfba186e2229386a1f99266430bef139d898a490465fcb06f0a",
+    "src/applications/files/controller/PhabricatorFileDataController.php": "9217c2ece8428f535d08ce430724e3dc0e0a5639a13e52c1f37f8ad2185b6f0a",
+    "src/applications/files/controller/PhabricatorFileDetachController.php": "ce2c79d9144d78988e263cb685705d8efb77627952163c2a1354c821a0d1dee6",
+    "src/applications/files/controller/PhabricatorFileTransformController.php": "7fed8dda0fe42c70fabe335605a38278f843b6cd2456ed5f8dc1d0041c38c5e9",
+    "src/applications/files/controller/PhabricatorFileUploadController.php": "b823a23bc603298dabe67f63de0ee8307bc024722b7db20630f65eed66ddfc14",
+    "src/applications/files/editor/PhabricatorFileEditor.php": "8cd85a17532df795392956d4bdb607f79af4a9ea30d6dfa18ed5b3df070d2c34",
+    "src/applications/files/engineextension/PhabricatorFileAttachmentDestructionEngineExtension.php": "2e1903c9c11af298ae31d5f59efb940c1bf660e27b7806b9398143d62df22772",
+    "src/applications/files/query/PhabricatorFileAttachmentQuery.php": "fe72db99d2ec93397b9e368f7b13f001a770a4a634e63886c828630c5a63a5d9",
+    "src/applications/files/query/PhabricatorFileQuery.php": "2ccf285287e7f7e1f5889afce530b1a5073cfa7c076100a1129506816619e421",
+    "src/applications/files/storage/PhabricatorFile.php": "3edb7b26258ac2df70ed5e763d7d0f9773bc2565c9fea961d2c6a234ce57240f",
+    "src/applications/files/storage/PhabricatorFileAttachment.php": "785c0c5746355d4176d0ce72b30ba0f0ab65adf13e18a61eb591de9248bbdf58",
+    "src/applications/files/storage/PhabricatorFileDAO.php": "082efb537a44f7cb77783c3524131c4b85fb742d2048feaeadc5c9bf93b93383",
+    "src/applications/files/storage/PhabricatorFileGorgeDeletion.php": "f1b65940590f40094a364ae9de24ea72c1c7c12df114bad7ad30657c32103c8f",
+    "src/applications/files/storage/PhabricatorTransformedFile.php": "2475ff669cb2d6d7a97bda6ff5c8696e75cfc250782bd5488bc54026a41b9ed7",
+    "src/applications/files/storage/__tests__/PhabricatorFileProfileAncestryTestCase.php": "22a086d932f012a9129d800dfe214bbe3616217248dedc1b92f7be0c97e499b3",
+    "src/applications/files/transform/PhabricatorFileImageTransform.php": "c564445e43074b9db20aeef91693d261e617fdab2d6eaf351f75f541fb6f193a",
+    "src/applications/files/transform/PhabricatorFileTransform.php": "507e1a5f32faee2c6a49fd02dd1a7d44ccd43bb92d69dc54bc9acb679d50b43e",
+    "src/applications/phid/PhabricatorPHIDConstants.php": "2044a34d3067f71a43c2da8de29662ec9400cbb81ce172c9c25c498859328bc8",
+    "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
+    "src/infrastructure/governance/media/http/PhorgeGovernanceMediaFileGuard.php": "79afd0eb6661c0665d5af8aeba10080ac5accb9244dc33a647a91b91217f0379",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php": "c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreProfile.php": "663938f8481b9d59998a82c6c648a4628d7db8a25bbfd48cf966f933e28b21cb",
+    "src/infrastructure/query/policy/PhabricatorPolicyAwareQuery.php": "8629961278d61ef37ec689ef904387b321922403ae1ac6e72d307477f3109eba",
+    "src/infrastructure/storage/lisk/LiskDAO.php": "6694bc879ad68a8f7633292d9c34744c90112f031fa31dd006285741f2a26c34",
+    "src/infrastructure/storage/lisk/PhabricatorLiskDAO.php": "be5efdc526962fa3aaec73be56f5f2270951200f5318d16b004a456a4cb401b3",
+    "support/governance/recovery/task-owner-source-cases.php": "56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1"
+  },
+  "table_routing": {
+    "collector_connection": "same actual cached User writer, qualified isolated _file tables, explicit owned RR prototype",
+    "database_application": "file",
+    "important_boundary": "Lisk caches by database namespace and mode; never infer that Task Editor rollback rolls back File attachment writes. Require actual physical/session and independent persisted-state evidence.",
+    "native_producers": "ordinary File/Task writers keep native per-application routing; no forced sharing",
+    "tables": [
+      "file",
+      "file_attachment",
+      "file_transformedfile"
+    ]
+  }
+}

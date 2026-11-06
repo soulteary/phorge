@@ -139,7 +139,7 @@ def main(argv=None):
    execution.exact(mysql,{'version':'8.4.13','principal':'root@%','role':'NONE','proxy':None})
    pure_raw=command([str(php),str(SOURCE/'tests/governance/run.php')],cwd=SOURCE,env=env)
    pure=decode(pure_raw);pure_accepted=execution.validate_pure(pure,execution.pure_inventory(SOURCE))
-   public.write('native.json',pure_raw);result['pure_methods']=277;result['pure_classes']=48;result['new_pure_executions']=1
+   public.write('native.json',pure_raw);result['pure_methods']=280;result['pure_classes']=49;result['new_pure_executions']=1
    # Persist outside the staged source BEFORE the real producer can CREATE.
    metadata_user='gov_c_metadata_'+secrets.token_hex(8);metadata_owner=secrets.token_hex(32);measurement_run=secrets.token_hex(16)
    private_file(output/'metadata-owner.json',canonical({'source_revision':head,'run_id':identity['run_id'],'run_attempt':identity['run_attempt'],'principal':metadata_user,'host':'%','owner_nonce':metadata_owner,'measurement_run_nonce':measurement_run,'registered_before_SQL':True}))
