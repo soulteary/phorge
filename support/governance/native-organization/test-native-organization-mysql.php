@@ -226,6 +226,12 @@ try {
     $native=governance_native_rr_focused($fixture,$check);
     $native['final_owned_cleanup']=$GLOBALS['governance_native_rr_cleanup'];
   }elseif($phase==='recovery-partial-composition'){
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';
+    $file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],
+      'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     $stage='focused-native-recovery-partial-composition';
     require_once dirname(__DIR__).'/recovery/partial-composition-focused.php';
     $native=governance_recovery_partial_composition_focused($fixture,$check);

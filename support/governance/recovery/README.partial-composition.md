@@ -42,7 +42,10 @@ lineage, ABA coverage, producer absence and deployment immutability remain gaps.
 Offline tests execute actual native Config controls and composer/descriptor
 negative controls. PHP seams and synthetic gate receipts are not SQL evidence.
 The new isolated SQL function creates real native Project/Space sources and
-calls the existing durable submit/review/preview paths. It tests selected Config,
+calls the existing durable submit/review/preview paths. The isolated partial
+entry now starts the existing owned paired Gorge File service first, because
+native transaction USER handles may construct default avatars. It restores no
+permissions and supplies no fake avatar, session or cache shortcut. It tests selected Config,
 Project and Space mutations, a Policy insertion, and a Policy budget failure.
 Every refusal checks unchanged durable domain state and an unwound transaction.
 The original independent-admin, replay, audit fault, expiry/incarnation and
@@ -62,13 +65,21 @@ from `partial-composition-focused.php`. The expected native batch is
 ```sh
 python3 scripts/governance/check_recovery_partial_composition.py \
   --receipt /absolute/path/to/fresh-native-receipt.json \
-  --source-revision FULL_CANDIDATE_COMMIT
+  --source-revision FULL_CANDIDATE_COMMIT \
+  --file-binary /absolute/path/to/independently-built-gorge-file-storage \
+  --file-binary-sha256 INDEPENDENT_PAIRED_BUILD_SHA256
 ```
 
-It requires 30 exact obligations (6 bootstrap, 21 real-source/review, 3 cleanup),
+It requires 31 exact obligations (6 bootstrap, 1 real File readiness, 21
+source/review cases, 3 cleanup),
 the existing full-source restore provenance and least-privilege bootstrap,
-zero residual workers, all 55 owned schemas/principals cleaned, and all authority
-flags false. The CI step runs after the Space fixture, creates an exclusive
+zero residual workers, all 55 owned schemas/principals cleaned, exactly one
+owned File startup, and exact File process/private-storage cleanup with all
+authority flags false. The CLI captures the independently supplied executable
+binary through a bounded, nonblocking, stable file descriptor and compares its
+actual bytes with the externally declared paired-build SHA. The receipt
+cleanup SHA must match that independent proof; a receipt cannot certify its own
+binary. Unknown, changed, aliased, linked or non-executable binary inputs fail. The CI step runs after the Space fixture, creates an exclusive
 private artifact directory, runs the native driver and then the public checker.
 `accepted.json` is published only after checker success. A native or checker
 failure leaves no accepted receipt. The artifact action is success-only: a
@@ -81,7 +92,11 @@ unique executed case labels before returning its measured summary. Wrong source
 selection, missing/duplicate/foreign obligations and execution/authority flags
 are rejected. The 21 source/review cases are the original 14 durable review
 cases plus 7 partial-source cases; the public gate additionally requires all 9
-bootstrap/cleanup obligations.
+bootstrap/cleanup obligations and the separate real File readiness obligation.
+The file-v2 profile rejects historical 30-check/no-File receipts. Historical
+commits remain unchanged; no earlier failed CI run is reclassified as successful.
+This fixes a concrete dependency gap, not a claim that missing File was the
+unique cause of the earlier PR121 failure. File-v2 has not been SQL-executed.
 
 The Space mutation case inspects the already validated caller cache without
 creating or clearing it. It expects exactly `recovery_spaces_cache_rows_changed`

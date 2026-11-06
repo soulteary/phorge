@@ -7,6 +7,7 @@ function governance_recovery_partial_failure_projection($phase,$passed,$failure)
     'preflight',
     'full-native-source-restore',
     'focused-native-recovery-partial-composition',
+    'owned-real-gorge-file-service',
     'unexpected-native-runtime-output',
     'full-current-source-quickstart-and-patch-ledger-restored',
     'completion-reader-real-select-only-grants-and-lineage-proved',

@@ -18,7 +18,7 @@ function governance_recovery_partial_composition_focused($fixture,callable $chec
   };
   $result=governance_recovery_restore_review_cases($fixture,$record);
   governance_recovery_partial_composition_validate_result($result,array_keys($checks));
-  return array('profile'=>'native-recovery-partial-composition-v1','source_revision'=>$revision,
+  return array('profile'=>'native-recovery-partial-composition-file-v2','source_revision'=>$revision,
     'assessment_schema'=>3,'actual_current_writer_adapters'=>array('application-config','policy','project-relationships','spaces'),
     'Task_File_owned_RR_combined'=>false,'complete'=>false,'all_sources_complete'=>false,
     'restoration_authorized'=>false,'production_activation'=>false);
