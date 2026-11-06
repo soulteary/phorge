@@ -32,6 +32,16 @@ class Workbench(unittest.TestCase):
   p=subprocess.run(['php',str(ROOT/'support/governance/organization/tests/approval-workbench-controls.php'),str(ROOT)],capture_output=True,text=True,timeout=10)
   self.assertEqual(0,p.returncode,p.stderr);self.assertEqual('',p.stderr);v=json.loads(p.stdout)
   self.assertTrue(v['passed']);self.assertEqual(6,len(v['checks']));self.assertFalse(v['SQL_executed']);self.assertFalse(v['HTTP_server_executed'])
+ def test_actual_fixture_revoke_request_obeys_native_null_period_contract(self):
+  fixture=(ROOT/'support/governance/organization/approval-workbench-cases.php').read_text()
+  match=re.search(r"\$service->proposeApproval\((array\('approval_id'=>'00-noncompound'.*?\))\);",fixture,re.S)
+  self.assertIsNotNone(match)
+  code=r'''ob_start();require$argv[1].'/support/governance/organization/tests/approval-workbench-controls.php';ob_end_clean();
+$team='synthetic-team';$users=array('subject'=>(new PhabricatorUser())->setPHID('PHID-USER-'.str_repeat('s',20)));$input='''+match.group(1)+r''';
+$accepted=PhorgeOrganizationRequest::approval($input);$refused=array();
+foreach(array(array('valid_from',0),array('valid_until',0),array('valid_from','0'),array('valid_from',false))as$case){$bad=$input;$bad[$case[0]]=$case[1];$caught=null;try{PhorgeOrganizationRequest::approval($bad);}catch(InvalidArgumentException$error){$caught=$error;}$refused[]=$caught!==null&&$caught->getMessage()==='organization_period_refused';}
+echo json_encode(array('accepted_null_period'=>$accepted['valid_from']===null&&$accepted['valid_until']===null,'action'=>$accepted['action'],'refused'=>$refused));'''
+  value=self.php(code);self.assertTrue(value['accepted_null_period']);self.assertEqual('appointment.revoke',value['action']);self.assertEqual([True]*4,value['refused'])
  def test_actual_page_function_validates_all_lengths_before_payload(self):
   # Execute unchanged method bodies with explicit query/actor/load seams.
   funcs='\n'.join(method(n)for n in ['identifier','planWorkbenchRows','workbenchPage'])

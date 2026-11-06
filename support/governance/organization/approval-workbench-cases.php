@@ -128,7 +128,7 @@ function governance_approval_workbench_focused($fixture,callable $check) {
     $team='approval-workbench-team';$service->createUnit(array('operation_id'=>'awb-create','unit_id'=>$team,'kind'=>'team','name'=>'Synthetic approval team','parent_id'=>null));
     // An actual noncompound request makes an empty displayed page with progress.
     $service->proposeApproval(array('approval_id'=>'00-noncompound','operation_id'=>'awb-single','team'=>$team,
-      'action'=>'appointment.revoke','target_user'=>$users['subject']->getPHID(),'valid_from'=>0,'valid_until'=>null,'ttl_seconds'=>300));
+      'action'=>'appointment.revoke','target_user'=>$users['subject']->getPHID(),'valid_from'=>null,'valid_until'=>null,'ttl_seconds'=>300));
     $make=static function($id,$team,$version=1)use($users){return array('action'=>'member.add-and-appoint','approval_id'=>$id,
       'operation_id'=>'op-'.$id,'team'=>$team,'target_user'=>$users['subject']->getPHID(),
       'expected_team_version'=>$version,'expected_member_version'=>0,'expected_appointment_version'=>0,
