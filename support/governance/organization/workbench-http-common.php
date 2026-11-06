@@ -29,7 +29,7 @@ function governance_workbench_http_config($raw,$digest,$source_hash) {
 }
 function governance_workbench_http_route($host,$uri,$origin) {
   governance_workbench_http_need(is_string($host)&&$host===substr($origin,7)&&is_string($uri)&&strlen($uri)<=4096&&strpos($uri,"\0")===false);
-  $path=parse_url($uri,PHP_URL_PATH);governance_workbench_http_need(is_string($path));$decoded=rawurldecode($path);governance_workbench_http_need(strpos($decoded,"\0")===false&&strpos($decoded,'\\')===false&&strpos($decoded,'%')===false&&!array_intersect(explode('/',$decoded),array('.','..')));governance_workbench_http_need(is_string($path)&&preg_match('@\A/(?:file/(?:data|xform)/[^\\\x00]*|auth/[^\\\x00]*|logout/[^\\\x00]*|people/organization/[^\\\x00]*|typeahead/[^\\\x00]*|res/[^\\\x00]*|favicon\.ico|)\z@D',$path)===1);
+  $path=parse_url($uri,PHP_URL_PATH);governance_workbench_http_need(is_string($path));$decoded=rawurldecode($path);governance_workbench_http_need(strpos($decoded,"\0")===false&&strpos($decoded,'\\')===false&&strpos($decoded,'%')===false&&!array_intersect(explode('/',$decoded),array('.','..')));governance_workbench_http_need(is_string($path)&&preg_match('@\A/(?:file/(?:data|xform)/[^\x{00}\x{5c}]*|auth/[^\x{00}\x{5c}]*|logout/[^\x{00}\x{5c}]*|people/organization/[^\x{00}\x{5c}]*|typeahead/[^\x{00}\x{5c}]*|res/[^\x{00}\x{5c}]*|favicon\.ico|)\z@D',$path)===1);
   return $path;
 }
 function governance_workbench_http_directory($directory) {
