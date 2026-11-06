@@ -117,17 +117,8 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     $locked=queryfx_one($conn,'SELECT id,phid FROM %R FORCE INDEX (PRIMARY) WHERE id=%d FOR UPDATE',$user,(int)$plan['id']);
     if(!$locked||(string)$locked['id']!==(string)$plan['id']||$locked['phid']!==$this->leaseSubject){
       throw new RuntimeException('recovery_session_lease_subject_unknown');}
-    // Unknown grant forms, roles and proxy principals are not supported.
-    $grants=queryfx_all($conn,'SHOW GRANTS FOR CURRENT_USER()');$statements=array();
-    foreach($grants as$row){if(count($row)!==1){throw new RuntimeException('recovery_session_lease_grants_unknown');}$statements[]=reset($row);}
-    // Deliberately narrow isolated control-principal syntax. Dynamic grants,
-    // role/proxy/partial revoke and unreviewed per-object clauses are unknown.
-    foreach($statements as$grant){
-      if(!preg_match('/\AGRANT (ALL PRIVILEGES|SELECT, INSERT, UPDATE, DELETE, TRIGGER, PROCESS) ON \*\.\* TO `[^`\r\n]{1,128}`@`[^`\r\n]{1,255}`\z/D',$grant)){
-        throw new RuntimeException('recovery_session_lease_grants_unknown');}
-    }
-    $description=PhorgeRecoveryMetadataGrantDescription::describe($statements,'NONE',null);
-    if($description['required_global_privileges_claimed']!==true){throw new RuntimeException('recovery_session_lease_grants_unknown');}
+    $writerGrants=$this->leaseReadGrants($conn,'writer',$this->leaseIdentity['writer_principal']);
+    $observerGrants=$this->leaseReadGrants($this->leaseObserver,'observer',$this->leaseIdentity['observer_principal']);
     $lengths=queryfx_all($conn,'SELECT id,OCTET_LENGTH(phid)+OCTET_LENGTH(userPHID)+OCTET_LENGTH(type)+OCTET_LENGTH(sessionKey) row_bytes '.
       'FROM %R FORCE INDEX (key_identity) WHERE userPHID=%s ORDER BY id LIMIT 65 LOCK IN SHARE MODE',$session,$this->leaseSubject);
     if(count($lengths)>64){throw new RuntimeException('recovery_session_lease_budget');}$budget=0;
@@ -157,7 +148,54 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
       if($bytes>65536){throw new RuntimeException('recovery_session_lease_budget');}
     }
     return array('subject'=>$locked,'sessions_digest'=>hash('sha256',serialize($rows)),
-      'session_count'=>count($rows),'grant_description_digest'=>$description['source_digest']);
+      'session_count'=>count($rows),'writer_grants_digest'=>$writerGrants['source_digest'],'observer_grants_digest'=>$observerGrants['source_digest']);
+  }
+
+  /** Fixed native fixture grant syntax, never a privilege/absence lease. */
+  public static function leaseDescribeGrants(array $grants,$role,$principal,$namespace) {
+    if(!in_array($role,array('writer','observer'),true)||!is_string($namespace)||
+      !preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)||!is_string($principal)||
+      !preg_match($role==='writer'?'/\Agov_c_writer_[a-f0-9]{12}@%\z/D':'/\Agov_c_metadata_[a-f0-9]{16}@%\z/D',$principal)||
+      !$grants||count($grants)>66){throw new RuntimeException('recovery_session_lease_grants_unknown');}
+    $user=substr($principal,0,-2);$recipient=' TO `'.$user.'`@`%`';$seen=array();$usage=0;$selected=false;$guard=false;$metadata=false;
+    $source=file_get_contents(dirname(__DIR__,4).'/resources/sql/quickstart.sql');
+    if(!is_string($source)||strlen($source)>1048576){throw new RuntimeException('recovery_session_lease_grants_unknown');}
+    preg_match_all('/^CREATE DATABASE .*`\{\$NAMESPACE\}_([a-z_]+)`/m',$source,$matches);
+    $apps=$matches[1];if(count($apps)<2||count($apps)>64||count($apps)!==count(array_unique($apps))){throw new RuntimeException('recovery_session_lease_grants_unknown');}
+    $allowed=array();foreach($apps as$app){$db=$namespace.'_'.$app;$allowed['`'.str_replace('_','\\_',$db).'`.*']=$db;}
+    $allowed['`'.str_replace('_','\\_',$namespace.'_governance').'`.*']=$namespace.'_governance';
+    foreach($grants as$entry){
+      if(!is_string($entry)||strlen($entry)>4096||preg_match('/[\x00-\x1f\x7f]/',$entry)||!str_ends_with($entry,$recipient)||isset($seen[$entry])){
+        throw new RuntimeException('recovery_session_lease_grants_unknown');}
+      $seen[$entry]=true;$body=substr($entry,0,-strlen($recipient));
+      if($body==='GRANT USAGE ON *.*'){if(++$usage!==1){throw new RuntimeException('recovery_session_lease_grants_unknown');}continue;}
+      if(!preg_match('/\AGRANT ([A-Z, ]+) ON (.+)\z/D',$body,$m)){throw new RuntimeException('recovery_session_lease_grants_unknown');}
+      $privileges=explode(', ',$m[1]);sort($privileges,SORT_STRING);
+      if(count($privileges)!==count(array_unique($privileges))){throw new RuntimeException('recovery_session_lease_grants_unknown');}
+      if($role==='observer'){
+        // PROCESS is observer-only. Existing owned RR metadata credentials may
+        // also have TRIGGER; that known extra permission is unused here.
+        if($m[2]!=='*.*'||$metadata||!in_array($privileges,array(array('PROCESS','SELECT'),array('PROCESS','SELECT','TRIGGER')),true)){
+          throw new RuntimeException('recovery_session_lease_grants_unknown');}
+        $metadata=true;continue;
+      }
+      if(!isset($allowed[$m[2]])||isset($seen['db:'.$m[2]])){throw new RuntimeException('recovery_session_lease_grants_unknown');}
+      $seen['db:'.$m[2]]=true;$db=$allowed[$m[2]];
+      if($privileges!==($db===$namespace.'_governance'?array('SELECT'):array('DELETE','INSERT','SELECT','UPDATE'))){
+        throw new RuntimeException('recovery_session_lease_grants_unknown');}
+      $selected=$selected||$db===$namespace.'_user';$guard=$guard||$db===$namespace.'_governance';
+    }
+    if(($role==='writer'&&($usage!==1||!$selected||!$guard))||($role==='observer'&&!$metadata)){
+      throw new RuntimeException('recovery_session_lease_grants_unknown');}
+    $canonical=$grants;sort($canonical,SORT_STRING);
+    return array('profile'=>$role==='writer'?'owned-native-fixture-scoped-CRUD-v1':'independent-observer-SELECT-PROCESS-v1',
+      'source_digest'=>hash('sha256',serialize($canonical)),'writer_global_privileges_required'=>false,
+      'grant_absence_lease_proved'=>false,'restoration_authorized'=>false);
+  }
+  private function leaseReadGrants(AphrontDatabaseConnection $conn,$role,$principal) {
+    $rows=queryfx_all($conn,'SHOW GRANTS FOR CURRENT_USER()');$grants=array();
+    foreach($rows as$row){if(count($row)!==1){throw new RuntimeException('recovery_session_lease_grants_unknown');}$grants[]=reset($row);}
+    return self::leaseDescribeGrants($grants,$role,$principal,$this->leaseProfile['namespace']);
   }
 
   private static $leaseActive;
@@ -321,7 +359,7 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     $current=$this->leaseReadSessions();
     if($current!==$this->leaseSnapshot){throw new RuntimeException('recovery_session_lease_source_changed');}
     $this->leaseAssertActive();
-    return array('profile'=>'isolated-native-AuthSession-INSERT-lease-RC-v1',
+    return array('profile'=>'isolated-native-AuthSession-INSERT-lease-RC-v2-scoped-writer-grants',
       'source_binding'=>hash('sha256',serialize(array($this->leaseProfile,$this->leaseSubject,$current))),
       'selected_native_INSERT_interval_protected'=>true,'same_native_writer_transaction_observed'=>true,
       'isolation'=>'READ COMMITTED','all_session_producers_closed'=>false,

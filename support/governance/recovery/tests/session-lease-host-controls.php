@@ -40,7 +40,7 @@ function queryfx_one($c,$sql,...$args){
  if(str_contains($sql,'CONNECTION_ID()')){
   $key=$c===$GLOBALS['writer']?'writer_id':'observer_id';$r=array($key=>$c->id,'uuid'=>str_repeat('a',8).'-'.str_repeat('a',4).'-'.str_repeat('a',4).'-'.str_repeat('a',4).'-'.str_repeat('a',12));
   if($key==='writer_id'){$r['db']='governance_native_'.str_repeat('a',16).'_user';}
-  return$r+array('principal'=>'synthetic@localhost','role'=>$GLOBALS['case']==='role'?'role':'NONE','proxy'=>null);
+  return$r+array('principal'=>($key==='writer_id'?'gov_c_writer_'.str_repeat('b',12):'gov_c_metadata_'.str_repeat('c',16)).'@%','role'=>$GLOBALS['case']==='role'?'role':'NONE','proxy'=>null);
  }
  if(str_contains($sql,'transaction_isolation')){return array('level'=>'REPEATABLE-READ');}
  if(str_contains($sql,'ENGINE')){return array('ENGINE'=>'InnoDB');}
@@ -55,7 +55,12 @@ function queryfx_one($c,$sql,...$args){
 function queryfx_all($c,$sql,...$args){
  $GLOBALS['SQL_calls']++;
  if(str_contains($sql,'events_transactions_current')){if($GLOBALS['unknown']){return array();}$w=$GLOBALS['writer'];return array(array('THREAD_ID'=>'10','EVENT_ID'=>$w->event,'STATE'=>$w->physical,'END_EVENT_ID'=>$w->end,'ISOLATION_LEVEL'=>'READ COMMITTED'));}
- if($sql==='SHOW GRANTS FOR CURRENT_USER()'){return array(array('Grants'=>$GLOBALS['case']==='unknown-grants'?'GRANT SYSTEM_USER ON *.* TO x':'GRANT ALL PRIVILEGES ON *.* TO `synthetic`@`localhost`'));}
+ if($sql==='SHOW GRANTS FOR CURRENT_USER()'){
+  if($GLOBALS['case']==='unknown-grants'){return array(array('Grants'=>'GRANT SYSTEM_USER ON *.* TO x'));}
+  if($c!==$GLOBALS['writer']){return array(array('Grants'=>'GRANT SELECT, PROCESS ON *.* TO `gov_c_metadata_'.str_repeat('c',16).'`@`%`'));}
+  $to=' TO `gov_c_writer_'.str_repeat('b',12).'`@`%`';$ns='governance_native_'.str_repeat('a',16);
+  return array(array('Grants'=>'GRANT USAGE ON *.*'.$to),array('Grants'=>'GRANT SELECT, INSERT, UPDATE, DELETE ON `'.str_replace('_','\\_',$ns.'_user').'`.*'.$to),array('Grants'=>'GRANT SELECT ON `'.str_replace('_','\\_',$ns.'_governance').'`.*'.$to));
+ }
  if(str_contains($sql,'OCTET_LENGTH')){if($GLOBALS['case']==='budget'){return array_fill(0,65,array('id'=>'1','row_bytes'=>'1'));}if($GLOBALS['case']==='oversize'){return array(array('id'=>'1','row_bytes'=>'70000'));}return$GLOBALS['changed']?array(array('id'=>'1','row_bytes'=>'100')):array();}
  if(str_starts_with($sql,'SELECT id,phid,userPHID')){return$GLOBALS['changed']?array(array('id'=>'1','phid'=>'PHID-AUTH-'.str_repeat('s',20),'userPHID'=>'PHID-USER-'.str_repeat('a',20),'type'=>'web','sessionKey'=>str_repeat('b',64),'sessionStart'=>'1','sessionExpires'=>'2','isPartial'=>'0','highSecurityUntil'=>null,'signedLegalpadDocuments'=>'0')):array();}
  throw new RuntimeException('unexpected_SQL_rows');

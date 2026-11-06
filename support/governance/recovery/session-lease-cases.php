@@ -3,7 +3,7 @@
  * Not wired into normal934 or any accepted receipt. SQL execution is pending. */
 function governance_recovery_session_lease_cases($fixture,AphrontDatabaseConnection $observer,array $state,callable $check) {
   $fixture->assertOwned();require_once dirname(__DIR__).'/native-organization/workers.php';
-  $conn=(new PhabricatorUser())->establishConnection('w');$handles=array();$scope=null;
+  $conn=(new PhabricatorUser())->establishConnection('w');$handles=array();$scope=null;$primary=null;
   $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.session-lease.enabled',true);
   try {
     $actor=governance_native_request($state['users']['admin'],$state['sessions']);
@@ -38,8 +38,49 @@ function governance_recovery_session_lease_cases($fixture,AphrontDatabaseConnect
       $check($terminal['cleanup_proved']===true&&$terminal['state']===($ending==='commit'?'committed':'rolled-back')&&
         $result['status']==='committed'&&$count===1,'session-lease-real-INSERT-resumes-after-observed-'.$ending);
       $next=PhorgeRecoverySessionProducerFence::beginLease($observer,$subject->getPHID());
-      try{$after=$next->leaseGetFacts();$check($before['source_binding']!==$after['source_binding']&&$after['all_sources_complete']===false&&$after['restoration_authorized']===false,
-        'session-lease-new-native-producer-transition-invalidates-selected-binding-'.$ending);}finally{$next->leaseAbort();}
+      $nextPrimary=null;try{$after=$next->leaseGetFacts();$check($before['source_binding']!==$after['source_binding']&&$after['all_sources_complete']===false&&$after['restoration_authorized']===false,
+        'session-lease-new-native-producer-transition-invalidates-selected-binding-'.$ending);}catch(Throwable $error){$nextPrimary=$error;throw$error;}finally{governance_recovery_session_lease_cleanup($next,$nextPrimary);}
     }
-  }finally{try{if($scope!==null){$scope->leaseAbort();}}finally{governance_native_stop_fixture_handles($handles);unset($flags);}}
+  }catch(Throwable $error){$primary=$error;throw$error;}finally{try{if($scope!==null){governance_recovery_session_lease_cleanup($scope,$primary);}}finally{governance_native_stop_fixture_handles($handles);unset($flags);}}
+}
+
+/** Every extra capture must have proved terminal cleanup, not merely six checks. */
+function governance_recovery_session_lease_cleanup($scope,?Throwable $primary=null) {
+  try{$terminal=$scope->leaseAbort();if(($terminal['cleanup_proved']??null)!==true){throw new RuntimeException('session_lease_cleanup_unproved');}}
+  catch(Throwable $error){if($primary!==null){throw$primary;}throw$error;}
+}
+
+/** SQL6 callable entry using an already owned, separately provisioned observer.
+ * Does not invoke RRPrincipals::prepare: that helper widens the native writer.
+ * No CREATE USER, GRANT, REVOKE, or fixture account mutation is performed here. */
+function governance_recovery_session_lease_owned_entry($fixture,array $state,array $configuration,callable $check) {
+  if(PHP_SAPI!=='cli'||getenv('PHORGE_GOVERNANCE_ISOLATED_TEST')!=='1'||get_class($fixture)!==PhorgeGovernanceCompletionFixture::class){
+    throw new RuntimeException('session_lease_entry_scope_unknown');}
+  $fixture->assertOwned();$writer=$fixture->getWriterConfig();
+  $keys=array_keys($configuration);sort($keys);
+  if($keys!==array('metadata_owner','observer')||!is_array($configuration['observer'])||!is_array($configuration['metadata_owner'])){
+    throw new RuntimeException('session_lease_entry_configuration_unknown');}
+  $meta=$configuration['observer'];$keys=array_keys($meta);sort($keys);$owner=$configuration['metadata_owner'];$ownerKeys=array_keys($owner);sort($ownerKeys);
+  if($keys!==array('host','namespace','password','port','user')||$meta['host']!=='127.0.0.1'||$meta['host']!==$writer['host']||
+    !is_int($meta['port'])||$meta['port']<1||$meta['port']>65535||$meta['port']!==$writer['port']||$meta['namespace']!==$fixture->getNamespace()||
+    !is_string($meta['user'])||!preg_match('/\Agov_c_metadata_[a-f0-9]{16}\z/D',$meta['user'])||!is_string($meta['password'])||
+    !preg_match('/\A[a-f0-9]{48}\z/D',$meta['password'])||$ownerKeys!==array('governance_fixture_namespace','governance_fixture_owner','governance_run_nonce','governance_source_revision')||
+    $owner['governance_fixture_namespace']!==$fixture->getNamespace()||!is_string($owner['governance_fixture_owner'])||
+    !preg_match('/\A[a-f0-9]{64}\z/D',$owner['governance_fixture_owner'])||!is_string($owner['governance_run_nonce'])||
+    !preg_match('/\A[a-f0-9]{32}\z/D',$owner['governance_run_nonce'])||!is_string($owner['governance_source_revision'])||
+    !preg_match('/\A[a-f0-9]{40}\z/D',$owner['governance_source_revision'])||$owner['governance_source_revision']!==getenv('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION')){
+    throw new RuntimeException('session_lease_entry_configuration_unknown');}
+  $observer=new AphrontMySQLiDatabaseConnection(array('host'=>$meta['host'],'port'=>$meta['port'],'database'=>'',
+    'user'=>$meta['user'],'pass'=>new PhutilOpaqueEnvelope($meta['password']),'timeout'=>3));
+  try {
+    $identity=queryfx_one($observer,'SELECT CURRENT_USER() principal,CURRENT_ROLE() role,@@proxy_user proxy');
+    if(!$identity||$identity['principal']!==$meta['user'].'@%'||$identity['role']!=='NONE'||$identity['proxy']!==null){
+      throw new RuntimeException('session_lease_entry_observer_unknown');}
+    $rows=queryfx_all($observer,'SELECT ATTRIBUTE attributes FROM information_schema.USER_ATTRIBUTES WHERE USER=%s AND HOST=%s',$meta['user'],'%');
+    if(count($rows)!==1||!is_string($rows[0]['attributes'])||strlen($rows[0]['attributes'])>4096){throw new RuntimeException('session_lease_entry_owner_unknown');}
+    $actual=json_decode($rows[0]['attributes'],true,8,JSON_THROW_ON_ERROR);
+    if(!is_array($actual)||count($actual)!==count($owner)){throw new RuntimeException('session_lease_entry_owner_unknown');}
+    foreach($owner as$key=>$value){if(($actual[$key]??null)!==$value){throw new RuntimeException('session_lease_entry_owner_unknown');}}
+    governance_recovery_session_lease_cases($fixture,$observer,$state,$check);
+  }finally{$observer->closeConnection();}
 }

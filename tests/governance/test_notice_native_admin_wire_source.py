@@ -31,8 +31,8 @@ PARTIAL_SOURCE_REVIEW_COMMIT='1686fc4ca165f5cdb12e88ab0fe5b245d615e91d'
 PARTIAL_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryApplicationConfigFacts.php': '4a1a500648b69d714e49aad0a0b1fd44d463d8826b873881033d227cd5300a0b', 'src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php': 'f3b0065ac240e32af80ce7f48096ef68791d8dcdb02dbba46f64b330e130fe6c', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php': 'dcf6226ee57ed303273a231e4c81f2505751e60a0e5a4c3701d2d703d7d45403', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php': '876eafed1c36c11006242587906419561b1688657f6494d90a2a25a0e29489cf', 'src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php': 'e905bf7f8a335440c7313575e28566d26aa83078e141bf3abb024aba8d5b49a7'}
 
 # Versioned isolated selected Session INSERT lease source delta; no SQL acceptance.
-SESSION_LEASE_SOURCE_REVIEW_VERSION='n08-native-session-lease-source-v1'
-SESSION_LEASE_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': '6922b60c78af769f07b18b26459f9dbf31038eb36c06dbd6a45aa6fbc248bd48', 'src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php': 'e00c3042bd8bc82fc80c798246ecf4c46ebcf900fb661a77e48ded5d61e1fac8'}
+SESSION_LEASE_SOURCE_REVIEW_VERSION='n08-native-session-lease-scoped-grants-source-v2'
+SESSION_LEASE_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': '672b7620134efdf02062649c55a8937df99f6d359eb8bcc4545b14724b686e41', 'src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php': 'e00c3042bd8bc82fc80c798246ecf4c46ebcf900fb661a77e48ded5d61e1fac8'}
 
 def reviewed_partial_sources(root=ROOT):
  result={}
