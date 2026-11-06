@@ -90,6 +90,7 @@ $result=null;$error=null;$queries_at_capture=null;
 try {
  $capture=PhorgeRecoveryFileSourceFacts::captureParentPolicies(new PhorgeRecoveryOwnedRRScope(),file_seam_phid('USER',1),$viewer);
  $queries_at_capture=count($GLOBALS['queries']);
+ if($case==='late-malformed-viewer'){$viewer->setIsAdmin('truthy-noncanonical');}
  if(in_array($case,array('downgrade-during','binding-drift'),true)){$GLOBALS['SQL_admin']=0;}
  if($case==='binding-drift'){$viewer->setIsAdmin(0);}
  $result=$capture->finishParentPolicies();

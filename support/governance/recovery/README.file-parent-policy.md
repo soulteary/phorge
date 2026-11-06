@@ -79,3 +79,5 @@ positive, isolated same-writer SQL demotion with rollback, and a binding drift
 case whose native user visibility stays admitted. These SQL cases remain UNRUN.
 The v1 sixteen-check receipt, a missing `isAdmin` source/descriptor, unknown
 fields and caller-supplied replacement source hashes are rejected by v2.
+
+Native User boolean getters normalize noncanonical stored values to booleans. The selected consumer therefore checks the exact native protected flag value, its getter result and the current locked SQL value together. The source receipt also pins the actual native User implementation. The late-malformed-viewer regression retains SQL isAdmin=1 and changes only the captured viewer object; native GlobalPolicy remains unchanged and truthy, while this bounded review refuses the noncanonical value.

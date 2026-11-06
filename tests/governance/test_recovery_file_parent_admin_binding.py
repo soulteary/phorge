@@ -18,6 +18,8 @@ class FileParentAdminBinding(unittest.TestCase):
  def test_malformed_SQL_or_truthy_viewer_flags_do_not_become_admin(self):
   for name in ('malformed-sql','malformed-viewer','malformed-disabled','malformed-system','malformed-mail'):
    data=self.case(name);self.assertEqual(data['error'],'recovery_file_parent_viewer_refused');self.assertEqual(data['native_queries'],0);self.assertIsNone(data['result'])
+ def test_actual_native_boolean_getter_cannot_hide_late_noncanonical_flag(self):
+  data=self.case('late-malformed-viewer');self.assertTrue(data['native_global_rule_before']);self.assertTrue(data['native_global_rule_after']);self.assertEqual(data['error'],'recovery_file_parent_viewer_refused');self.assertEqual(data['native_queries'],data['native_queries_at_capture']);self.assertIsNone(data['result'])
  def test_original_disabled_anonymous_and_native_SQL_case_plan_retained(self):
   text=(ROOT/'support/governance/recovery/file-parent-policy-cases.php').read_text()
   for value in ("$state['users']['disabled']",'file-parent-policy-anonymous-refused-before-native-author-grant','governance_recovery_file_parent_policy_admin_cases','PhabricatorPolicies::POLICY_ADMIN',"array('stale-object','visible-binding-drift','malformed-SQL','malformed-viewer')",'UPDATE %R SET isAdmin=%d WHERE id=%d AND phid=%s','file_parent_policy_admin_rollback_unproved'):

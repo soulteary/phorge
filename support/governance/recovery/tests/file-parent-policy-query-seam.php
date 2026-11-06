@@ -5,6 +5,7 @@ $root=$argv[1];$case=$argv[2];
 require$root.'/support/runtime/src/object/Phobject.php';require$root.'/support/runtime/src/utils/utils.php';require$root.'/src/applications/phid/PhabricatorPHIDConstants.php';require$root.'/src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php';
 class PhorgeRecoveryOwnedRRScope{function getFacts(){return array();}}
 class PhabricatorUser {
+ protected $isAdmin=0,$isApproved=1,$isDisabled=0,$isSystemAgent=0,$isMailingList=0;
  function establishConnection($mode){return new stdClass();}
  function isLoggedIn(){return $GLOBALS['case']!=='anonymous';}
  function isOmnipotent(){return $GLOBALS['case']==='omnipotent';}

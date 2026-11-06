@@ -55,6 +55,7 @@ function governance_recovery_file_parent_policy_obligations() {
 }
 function governance_recovery_file_parent_policy_source_inputs() {
   return array('src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php',
+    'src/applications/people/storage/PhabricatorUser.php',
     'src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php',
     'src/applications/files/query/PhabricatorFileQuery.php',
     'src/applications/maniphest/query/ManiphestTaskQuery.php',

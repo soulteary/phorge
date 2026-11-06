@@ -139,6 +139,18 @@ final class PhorgeRecoveryFileSourceFacts extends Phobject {
     return $rows ? reset($rows) : null;
   }
 
+  /** Native User getters cast flags to bool; validate their stored value too. */
+  private static function canonicalViewerFlag(PhabricatorUser $viewer, $flag) {
+    $raw = (new ReflectionProperty(PhabricatorUser::class, $flag))->getValue($viewer);
+    $value = $viewer->{'get'.ucfirst($flag)}();
+    $canonical = array(0, 1, '0', '1', false, true);
+    if (!in_array($raw, $canonical, true) ||
+        !in_array($value, $canonical, true) || (int)$raw !== (int)$value) {
+      throw new RuntimeException('recovery_file_parent_viewer_refused');
+    }
+    return (int)$raw;
+  }
+
   private static function parentSnapshot(
     PhorgeRecoveryOwnedRRScope $scope,
     $subject,
@@ -170,7 +182,7 @@ final class PhorgeRecoveryFileSourceFacts extends Phobject {
     // Native GlobalPolicy's admin rule reads this object flag directly. Bind
     // the locked current SQL flag and reject a stale or noncanonical object;
     // do not change the native rule or silently refresh the caller's viewer.
-    $viewer_admin = $viewer->getIsAdmin();
+    $viewer_admin = self::canonicalViewerFlag($viewer, 'isAdmin');
     if (!in_array($account['isAdmin'] ?? null, array(0, 1, '0', '1'), true) ||
         !in_array($viewer_admin, array(0, 1, '0', '1', false, true), true) ||
         (int)$account['isAdmin'] !== (int)$viewer_admin) {
@@ -179,8 +191,7 @@ final class PhorgeRecoveryFileSourceFacts extends Phobject {
     $account['isAdmin'] = (int)$account['isAdmin'];
     foreach (array('isApproved'=>1, 'isDisabled'=>0, 'isSystemAgent'=>0,
       'isMailingList'=>0) as $flag=>$required) {
-      $getter = 'get'.ucfirst($flag);
-      $object_flag = $viewer->$getter();
+      $object_flag = self::canonicalViewerFlag($viewer, $flag);
       if (!in_array($account[$flag], array(0, 1, '0', '1'), true) ||
           !in_array($object_flag, array(0, 1, '0', '1', false, true), true) ||
           (int)$account[$flag] !== $required ||

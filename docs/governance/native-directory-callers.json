@@ -1716,7 +1716,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php",
       "symbol": "PhorgeRecoveryFileSourceFacts",
       "kind": "author-rooted-File-topology-not-full-policy",
-      "sha256": "c997c9a5abc3abebb78ff12d1f0927843d6295b948759f20dcfb137b85f6fcfe",
+      "sha256": "751adef2e7a90220fceac58cb2894edf442fa01d3e5fbdb7b600f561f749c723",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3555,7 +3555,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php",
-        "sha256": "c997c9a5abc3abebb78ff12d1f0927843d6295b948759f20dcfb137b85f6fcfe"
+        "sha256": "751adef2e7a90220fceac58cb2894edf442fa01d3e5fbdb7b600f561f749c723"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryMetadataGrantDescription.php",
