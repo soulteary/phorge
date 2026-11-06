@@ -23,7 +23,7 @@ PROJECT_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryProje
 SPACES_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php': 'aeb2c53063335ff9e5e6748fbe59823f6238708be831966822872f48f04e2bbc', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoverySpacesSourceFactsTestCase.php': '7076c406175cb6530cfee32077c32ac2fb77f7d48e4c9e5a1ceed8d2910a5fef'}
 TASKOWNER_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryTaskOwnerSource.php': 'c74504d580aeed96008565a4660d296366171a77914ab6d3469f9333402ee03c', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryTaskOwnerSourceTestCase.php': 'f0b6d931ee30fca467ebf44b71a8f953d680be7011a48cdece4c2cdaaff0f4a2'}
 FILE_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php': 'e2ae71b9236bfcf9550ef4c4098ed3b97384c2a62f7c0e818a04a416388af6af', 'src/infrastructure/governance/recovery/__tests__/PhorgeRecoveryFileSourceFactsTestCase.php': '196112b4c2b06f5c1950dc7344ada02843aadb8d7ffe71e87f561912c5755e27'}
-WORKBENCH_CANDIDATE_SOURCE_PINS={'src/applications/people/application/PhabricatorPeopleApplication.php': '0af775d044044127d01d79846385caad016a008d47a0d7c4d923b0ba13c7e0d8', 'src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php': 'e47ec9eb30c91dcad6be9f6e9466190d9040681392037c0811cd1f41bf2a8a85', 'src/applications/people/governance/controller/PhorgeOrganizationApprovalController.php': 'c8f3169b71b23fb53bfba5925b4ceca06eb0b5c8a51ad53e7929b4bbe3dc66dd', 'src/applications/people/governance/controller/PhorgeOrganizationController.php': 'c5666b6a72492844e9d22835de0fff191f60463ceb88cad99e8c13406af22604', 'src/applications/people/governance/service/PhorgeOrganizationService.php': '7f2a7e30de9f8229810d3c5894d48439f32afdab9df82c9ddbcb7f9d66dcb18f'}
+WORKBENCH_CANDIDATE_SOURCE_PINS={'src/applications/people/application/PhabricatorPeopleApplication.php': '0af775d044044127d01d79846385caad016a008d47a0d7c4d923b0ba13c7e0d8', 'src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php': 'e47ec9eb30c91dcad6be9f6e9466190d9040681392037c0811cd1f41bf2a8a85', 'src/applications/people/governance/controller/PhorgeOrganizationApprovalController.php': 'c8f3169b71b23fb53bfba5925b4ceca06eb0b5c8a51ad53e7929b4bbe3dc66dd', 'src/applications/people/governance/controller/PhorgeOrganizationController.php': 'c5666b6a72492844e9d22835de0fff191f60463ceb88cad99e8c13406af22604', 'src/applications/people/governance/service/PhorgeOrganizationService.php': '7f2a7e30de9f8229810d3c5894d48439f32afdab9df82c9ddbcb7f9d66dcb18f', 'src/applications/people/governance/service/README.approval-workbench.md': 'd2c3d26fac440c6cf30fa1051e281a93994e2ff63990db42e4d08189f6ae6d45'}
 
 def reviewed_sources():
  result={}
@@ -135,6 +135,20 @@ class NativeAdminWire(unittest.TestCase):
   frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
   self.assertTrue(validate_notice_product_delta(changed,current,frozen,old_map))
+ def test_exact_workbench_document_pin_rejects_corruption_and_other_docs(self):
+  doc='src/applications/people/governance/service/README.approval-workbench.md'
+  # Use the existing fixed baseline and actual validator; documentation is an
+  # exact reviewed source addition, never a suffix or directory exclusion.
+  baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)
+  current={path:(ROOT/path).read_bytes()for path in allowed};frozen=reviewed_sources()
+  old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
+  self.assertEqual(WORKBENCH_CANDIDATE_SOURCE_PINS[doc],hashlib.sha256(current[doc]).hexdigest())
+  self.assertTrue(validate_notice_product_delta(allowed,current,frozen,old_map))
+  bad=dict(current);bad[doc]+=b'corrupt'
+  with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad,frozen,old_map)
+  foreign='src/applications/people/governance/service/OTHER-README.md';bad=dict(current);bad[foreign]=b'unknown'
+  with self.assertRaises(ValueError):validate_notice_product_delta(allowed|{foreign},bad,frozen,old_map)
  def test_actual_product_validator_rejects_unreviewed_and_corrupt_deltas(self):
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10';config='ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
   allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)
