@@ -106,8 +106,12 @@ final class PhorgeOrganizationApprovalController extends PhabricatorPeopleContro
     $users=(new PhabricatorPeopleQuery())->setViewer($this->getViewer())->withPHIDs(array_keys($phids))
       ->needProfileImage(false)->setLimit(count($phids))->execute();
     $labels=array();foreach($users as$user){if(!isset($phids[$user->getPHID()])){throw new RuntimeException('organization_approval_label_changed');}
-      $labels[$user->getPHID()]=phutil_tag('a',array('href'=>$user->getURI()),$user->getFullName());}
+      $labels[$user->getPHID()]=$this->nativePersonLabel($user);}
     return $labels;
+  }
+  /** Same profile URI rule as native People handle loading, without images. */
+  private function nativePersonLabel(PhabricatorUser $user) {
+    return phutil_tag('a',array('href'=>'/p/'.$user->getUsername().'/'),$user->getFullName());
   }
   private function personLabel($phid,array $labels) { return idx($labels,$phid,pht('Unavailable Person')); }
   private function dateLabel($value) { return $value===null?pht('Unchanged / No End Date'):phabricator_datetime($value,$this->getViewer()); }

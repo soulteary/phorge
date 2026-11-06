@@ -1826,7 +1826,7 @@
       "path": "src/applications/people/governance/controller/PhorgeOrganizationApprovalController.php",
       "symbol": "PhorgeOrganizationApprovalController",
       "kind": "candidate-runtime-source",
-      "sha256": "c8f3169b71b23fb53bfba5925b4ceca06eb0b5c8a51ad53e7929b4bbe3dc66dd",
+      "sha256": "75e6431cbd5d86eaf85aab90545fb52eba41439e066ef3c5ce74f62be2515d9d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3191,7 +3191,7 @@
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationApprovalController.php",
-        "sha256": "c8f3169b71b23fb53bfba5925b4ceca06eb0b5c8a51ad53e7929b4bbe3dc66dd"
+        "sha256": "75e6431cbd5d86eaf85aab90545fb52eba41439e066ef3c5ce74f62be2515d9d"
       },
       {
         "path": "src/applications/people/governance/controller/PhorgeOrganizationController.php",

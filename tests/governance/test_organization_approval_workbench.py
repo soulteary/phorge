@@ -48,6 +48,11 @@ $viewer=new PhabricatorUser();$request=(new AphrontRequest('localhost','/people/
 echo json_encode(array('class'=>get_class($page),'native_standard'=>$page instanceof PhabricatorStandardPageView,'native_bare'=>$page instanceof PhabricatorBarePageView,'request_same'=>$page->getRequest()===$request,'controller_same'=>$page->getController()===$controller,'viewer_same'=>$page->getViewer()===$viewer,'old_class_exists'=>class_exists('PHUIPageView')));'''
   d=self.php(code);self.assertEqual('PhabricatorStandardPageView',d['class']);self.assertTrue(all(d[k]is True for k in ('native_standard','native_bare','request_same','controller_same','viewer_same')));self.assertFalse(d['old_class_exists'])
   fixture=(ROOT/'support/governance/organization/approval-workbench-cases.php').read_text();self.assertNotIn('instanceof PHUIPageView',fixture)
+ def test_actual_native_user_profile_link_and_label(self):
+  code=r'''ob_start();require$argv[1].'/support/governance/organization/tests/approval-workbench-controls.php';ob_end_clean();
+require$argv[1].'/src/infrastructure/markup/render.php';$controller=new PhorgeOrganizationApprovalController();$method=new ReflectionMethod($controller,'nativePersonLabel');$user=(new PhabricatorUser())->setUsername('synthetic.user')->setRealName('<Synthetic & User>');$tag=$method->invoke($controller,$user);$html=hsprintf('%s',$tag)->getHTMLContent();
+echo json_encode(array('html'=>$html,'native_name'=>$user->getFullName(),'native_getURI_exists'=>method_exists($user,'getURI')));'''
+  d=self.php(code);self.assertFalse(d['native_getURI_exists']);self.assertEqual('synthetic.user (<Synthetic & User>)',d['native_name']);self.assertIn('href="/p/synthetic.user/"',d['html']);self.assertIn('&lt;Synthetic &amp; User&gt;',d['html']);self.assertNotIn('<Synthetic',d['html'])
  def test_actual_page_function_validates_all_lengths_before_payload(self):
   # Execute unchanged method bodies with explicit query/actor/load seams.
   funcs='\n'.join(method(n)for n in ['identifier','planWorkbenchRows','workbenchPage'])
