@@ -7,6 +7,8 @@ function governance_approval_workbench_route(array $auth,$method,array $data) {
     ->setUser($auth['viewer'])->setRequestData($data);
   $controller=(new PhorgeOrganizationApprovalController())->setRequest($request)
     ->setCurrentApplication(new PhabricatorPeopleApplication());
+  // Native willBeginExecution performs this lifecycle before serving a viewer.
+  (new PhabricatorAuthSessionEngine())->willServeRequestForUser($auth['viewer']);
   return governance_native_with_request_write_guard($request,static fn()=>$controller->handleRequest($request));
 }
 
@@ -34,6 +36,12 @@ function governance_approval_workbench_get_projection(array $value) {
   if(!is_array($value['probes'])||array_keys($value['probes'])!==array('people-labels','detail-render')){throw new RuntimeException('workbench_GET_projection_refused');}
   foreach($value['probes']as$probe){if(!is_array($probe)||array_keys($probe)!==array('completed','error_class','source_file','source_line')||!is_bool($probe['completed'])||!in_array($probe['error_class'],array('none','Error','TypeError','RuntimeException','InvalidArgumentException','Exception','PhutilInvalidStateException','other'),true)||(!in_array($probe['source_file'],array('none','other'),true)&&(!is_string($probe['source_file'])||!preg_match('/\A[A-Za-z][A-Za-z0-9_]{0,95}\.php\z/D',$probe['source_file'])))||!is_int($probe['source_line'])||$probe['source_line']<0||$probe['source_line']>10000000){throw new RuntimeException('workbench_GET_projection_refused');}}
   return $value;
+}
+
+/** Restore every fixture global even if another restoration fails. */
+function governance_approval_workbench_restore(array $actions,?Throwable $primary) {
+  $errors=array();foreach($actions as$name=>$action){try{$action();}catch(Throwable$error){$errors[$name]=$error;}}
+  if($errors){if($primary!==null){$errors=array('primary'=>$primary)+$errors;}throw new PhutilAggregateException('workbench_fixture_restoration_failed',$errors);}
 }
 
 /** Independent owned setup reads, complete fixed-schema rows, private hash only. */
@@ -140,15 +148,24 @@ function governance_approval_workbench_focused($fixture,callable $check) {
   }
   $source=$stack->getStack()[0];$values=(new ReflectionProperty(PhabricatorConfigDictionarySource::class,'dictionary'))->getValue($source);
   $cache=(new ReflectionProperty(PhabricatorEnv::class,'cache'))->getValue();$cookies=$_COOKIE;$server=$_SERVER;$primary=null;
+  $locale=PhabricatorEnv::getLocaleCode();$translator=PhutilTranslator::getInstance();
   $switch=static function($auth){$_SERVER['REQUEST_METHOD']='POST';$_COOKIE[PhabricatorCookies::COOKIE_SESSION]=$auth['token'];};
   $fingerprint=static fn()=>governance_approval_workbench_fingerprint($fixture);
   try {
+    // Keep native lifecycle locale mutations off the caller's translator object.
+    PhutilTranslator::setInstance(clone $translator);
     $sessions=new PhabricatorAuthSessionEngine();$auth=array();$users=array();
     foreach(array('requester'=>true,'reviewer'=>true,'disabled'=>true,'subject'=>false,'ordinary'=>false)as$name=>$admin){
       $u=(new PhabricatorUser())->setUsername('awb'.$name.substr($fixture->getNamespace(),-10))
         ->setRealName('Synthetic approval '.$name)->setIsApproved(1)->setIsAdmin($admin?1:0)->setIsEmailVerified(1)->save();
       (new PhabricatorUserEmail())->setUserPHID($u->getPHID())->setAddress($u->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
       $users[$name]=$u;$auth[$name]=governance_native_request($u,$sessions);
+      // Actual native lifecycle generates/loads persisted preference cache, not a synthetic attachment.
+      $viewer=$auth[$name]['viewer'];$sessions->willServeRequestForUser($viewer);
+      $viewer->getTimezoneIdentifier();$viewer->getUserSetting(PhabricatorTimeFormatSetting::SETTINGKEY);
+      $type=new PhabricatorUserPreferencesCacheType();$key=PhabricatorUserPreferencesCacheType::KEY_PREFERENCES;
+      $stored=PhabricatorUserCache::readCaches($type,$key,array($viewer->getPHID()));
+      if(!array_key_exists($viewer->getPHID(),$stored)||!is_array($type->getValueFromStorage($stored[$viewer->getPHID()]))){throw new RuntimeException('workbench_native_preferences_cache_unproved');}
     }
     $switch($auth['requester']);$service=PhorgeOrganizationService::newForActor($auth['requester']['context']);
     $team='approval-workbench-team';$service->createUnit(array('operation_id'=>'awb-create','unit_id'=>$team,'kind'=>'team','name'=>'Synthetic approval team','parent_id'=>null));
@@ -246,7 +263,10 @@ function governance_approval_workbench_focused($fixture,callable $check) {
   } catch(Throwable $error) {$primary=$error;throw $error;}
   finally {
     $_COOKIE=$cookies;$_SERVER=$server;
-    governance_recovery_project_fixture_cleanup(null,$source,$values,$cache,$primary);
+    governance_approval_workbench_restore(array(
+      'locale'=>static fn()=>(new ReflectionProperty(PhabricatorEnv::class,'localeCode'))->setValue(null,$locale),
+      'translator'=>static fn()=>PhutilTranslator::setInstance($translator),
+      'configuration'=>static fn()=>governance_recovery_project_fixture_cleanup(null,$source,$values,$cache,$primary)), $primary);
   }
   return array('source_revision'=>$revision,'native_sessions_and_current_sysadmin_service'=>true,'native_controller_objects_exercised'=>true,
     'HTTP_server_or_browser_executed'=>false,'wall_clock_expiry_wait_proved'=>false,
