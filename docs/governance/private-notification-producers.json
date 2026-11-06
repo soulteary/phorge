@@ -319,7 +319,7 @@
     },
     {
       "path": "src/applications/people/governance/service/PhorgeOrganizationService.php",
-      "sha256": "365186055dab3a4714bcc614ca0081c6cd8ffbc8409cc0ebd278d6ac85412010"
+      "sha256": "7f2a7e30de9f8229810d3c5894d48439f32afdab9df82c9ddbcb7f9d66dcb18f"
     },
     {
       "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalStore.php",

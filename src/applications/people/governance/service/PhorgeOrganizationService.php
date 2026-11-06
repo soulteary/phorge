@@ -559,6 +559,37 @@ final class PhorgeOrganizationService extends Phobject {
     }catch(Throwable$error){$this->finish(false);throw$error;}
   }
 
+  /** Administrator discovery, not an execution preview or a source lease. */
+  public function readApprovalWorkbenchPage($limit=20,$after=null) {
+    // Validate before building SQL; the empty plan performs no reads/callbacks.
+    PhorgeGovernanceNativeApprovalAdapter::planWorkbenchRows(array(),$limit,$after);
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try { $this->begin(array()); try {
+      $this->requireAdmin();
+      $result=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this)->workbenchPage($limit,$after);
+      $this->requireAdmin();$this->finish(true);return $result;
+    } catch(Throwable $error) { $this->finish(false);throw $error; } }
+    finally { unset($unguarded); }
+  }
+
+  public function readApprovalWorkbenchDetail($approval) {
+    if (!PhorgeGovernanceOrganizationRequest::identifier($approval)) {
+      throw new InvalidArgumentException('organization_approval_request_refused');
+    }
+    $conn=(new PhabricatorUser())->establishConnection('w');
+    // planningPHIDs sorts all requester/executor/subject/approver identities;
+    // begin() adds the viewer, then locks the complete union canonically.
+    $subjects=PhorgeGovernanceNativeApprovalAdapter::planningPHIDs(array($approval),$conn);
+    $unguarded=AphrontWriteGuard::beginScopedUnguardedWrites();
+    try { $this->begin($subjects); try {
+      $this->requireAdmin();$this->startRead();
+      $result=PhorgeGovernanceNativeApprovalAdapter::forLockedService($this)->workbenchDetail($approval);
+      if ($result['state']!=='consumed') { $this->fenceRead($result['expires_at']); }
+      $this->requireAdmin();$this->finish(true);return $result;
+    } catch(Throwable $error) { $this->finish(false);throw $error; } }
+    finally { unset($unguarded); }
+  }
+
   public function previewCompoundApproval($approval) {
     if(!PhorgeGovernanceOrganizationRequest::identifier($approval)){throw new InvalidArgumentException('organization_approval_request_refused');}
     $conn=(new PhabricatorUser())->establishConnection('w');
