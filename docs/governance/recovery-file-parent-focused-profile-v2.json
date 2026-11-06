@@ -1,0 +1,43 @@
+{
+  "schema": "n08-file-parent-focused-source-profile-v2",
+  "baseline": "a223ab9c4e5caa2ecc5a03e57138e72bb92c5dc7",
+  "supersedes_profile": "native-File-parent-Task-policy-endpoints-v1",
+  "profile": "native-File-parent-Task-policy-endpoints-v2-current-account-flags",
+  "source_review_status": "candidate-awaiting-independent-cross-review",
+  "source_derived_obligations": {
+    "bootstrap": 6,
+    "real_File_startup": 1,
+    "native_case_groups": 6,
+    "cleanup": 3,
+    "total": 16,
+    "is_SQL_statement_count": false
+  },
+  "current_account_flags_bound": [
+    "isAdmin",
+    "isApproved",
+    "isDisabled",
+    "isSystemAgent",
+    "isMailingList"
+  ],
+  "selected_source_sha256": {
+    "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php": "c997c9a5abc3abebb78ff12d1f0927843d6295b948759f20dcfb137b85f6fcfe",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryOwnedRRScope.php": "c1f32b0b3d556a7a06f2273824d1ea528211ed76c6ab3c34436c0ed5ee5c8a08",
+    "src/applications/files/query/PhabricatorFileQuery.php": "2ccf285287e7f7e1f5889afce530b1a5073cfa7c076100a1129506816619e421",
+    "src/applications/maniphest/query/ManiphestTaskQuery.php": "225b35fe0fa0154e444530e35ca83a5525d2f2a36965891e0fa1834931b772a5",
+    "src/applications/policy/rule/PhorgeGlobalPolicyRule.php": "7f0f1188915b7837fd1e52fecf87b4aae7249c44f3795c8cae6cc940fbd817e2",
+    "support/governance/recovery/file-parent-policy-cases.php": "0d1ca152b7979199a3cedcbfe9290db0350bb41d9bdc0b215b2f28fdd01ef891",
+    "support/governance/recovery/file-parent-policy-focused.php": "2813d8eb9f953033fbe335b7e90dde3a9194b878c0a8e7275e0a9fb31d4d4522",
+    "support/governance/recovery/file-source-cases.php": "d106bc50447c9a6a62c1d115840d7272ee305d98b56d42f2fef0fd39558b2c10",
+    "support/governance/recovery/task-owner-source-cases.php": "56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1",
+    "support/governance/completion/pipeline-gorge.php": "ff27390d7a7e5b5c14555758e8b8172fd401bb0dcf51221fe32251b11308fcda",
+    "support/governance/native-organization/test-native-organization-mysql.php": "6fd534ebab919c2ef79121aacfb506411be35a8cc8fa10b8a724a0a740b4c15d"
+  },
+  "native_rules_changed": false,
+  "same_snapshot_proved": false,
+  "durable_review_compatible": false,
+  "all_sources_complete": false,
+  "restoration_authorized": false,
+  "execution_blocked": true,
+  "native_SQL_executed": false,
+  "supported_mapper_executed": false
+}

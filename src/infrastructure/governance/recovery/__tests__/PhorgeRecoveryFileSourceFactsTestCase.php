@@ -13,6 +13,18 @@ final class PhorgeRecoveryFileSourceFactsTestCase extends PhutilTestCase {
     $this->assertFalse($file->hasAutomaticCapability(PhabricatorPolicyCapability::CAN_VIEW,$viewer));
     $file->attachObjects(array((new ManiphestTask())->setPHID('PHID-TASK-'.str_repeat('t',20))));$this->assertTrue($file->hasAutomaticCapability(PhabricatorPolicyCapability::CAN_VIEW,$viewer));$this->assertFalse($file->hasAutomaticCapability(PhabricatorPolicyCapability::CAN_EDIT,$viewer));
     $file->attachObjects(array())->attachOriginalFile(new PhabricatorFile());$this->assertTrue($file->hasAutomaticCapability(PhabricatorPolicyCapability::CAN_VIEW,$viewer));$this->assertFalse($file->hasAutomaticCapability(PhabricatorPolicyCapability::CAN_EDIT,$viewer));
+    $phid='PHID-TASK-'.str_repeat('t',20);
+    $task=(new ManiphestTask())->setPHID($phid);
+    $decode=new ReflectionMethod(PhorgeRecoveryFileSourceFacts::class,'exactPolicyResult');
+    $this->assertTrue($decode->invoke(null,array($task),ManiphestTask::class,$phid)===$task);
+    $this->assertEqual(null,$decode->invoke(null,array(),ManiphestTask::class,$phid));
+    foreach(array(array($task,$task),array(new PhabricatorFile()),array(new stdClass()),
+      array((new ManiphestTask())->setPHID('PHID-TASK-'.str_repeat('x',20))))as$rows) {
+      $refused=false;
+      try {$decode->invoke(null,$rows,ManiphestTask::class,$phid);}
+      catch(RuntimeException $error){$refused=true;}
+      $this->assertTrue($refused);
+    }
   }
   public function testNativeFileIndexesAndMetadataBuiltinProfileDistinction(){
     $file=new PhabricatorFile();$keys=(new ReflectionMethod(PhabricatorFile::class,'getConfiguration'))->invoke($file)[LiskDAO::CONFIG_KEY_SCHEMA];$this->assertEqual(null,$keys['key_phid']);$this->assertEqual(array('columns'=>array('phid'),'unique'=>true),$keys['phid']);$this->assertEqual(array('columns'=>array('authorPHID')),$keys['authorPHID']);
@@ -21,4 +33,6 @@ final class PhorgeRecoveryFileSourceFactsTestCase extends PhutilTestCase {
     $native=(new PhabricatorFile())->generatePHID();$this->assertTrue((bool)preg_match('/\APHID-FILE-[a-zA-Z0-9]{20}\z/D',$native));$identity=new ReflectionMethod(PhorgeRecoveryFileSourceFacts::class,'phid');$this->assertEqual($native,$identity->invoke(null,$native,'FILE'));$refused=false;try{$identity->invoke(null,'PHID-FILE-'.str_repeat('x',15),'FILE');}catch(RuntimeException$error){$refused=true;}$this->assertTrue($refused);
     $file->setBuiltinKey('not-the-native-builtin-name');$this->assertFalse($file->isBuiltin());$file->setBuiltinName('synthetic');$this->assertTrue($file->isBuiltin());$file->setIsProfileImage(true);$this->assertTrue((bool)$file->getIsProfileImage());
   }
+
+
 }
