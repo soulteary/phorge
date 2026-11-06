@@ -9,6 +9,36 @@ final class PhorgeRecoveryRestoreAssessment extends Phobject {
   public function __unserialize(array $data) { throw new RuntimeException('recovery_assessment_serialization_refused'); }
   public function __debugInfo() { return array('scope'=>'partial-native-recovery-facts'); }
 
+  /** Fixed actual adapters sharing the caller-owned current writer, never owned RR. */
+  private static function capturePartialFacts(AphrontDatabaseConnection $conn,$subject) {
+    PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
+    $config=PhorgeRecoveryApplicationConfigFacts::capture();
+    $project=PhorgeRecoveryProjectSourceFacts::capture($conn,$subject);
+    $spaces=PhorgeRecoverySpacesSourceFacts::capture($conn);
+    $policy=PhorgeRecoveryRestorePolicySource::capture($conn);
+    $facts=array(
+      'application-config'=>array('scope'=>'selected-config-dictionaries-v1',
+        'mode'=>'process-local-endpoint-recapture','facts'=>$config->finish()),
+      'project-relationships'=>array('scope'=>'subject-project-rows-selected-history-v1',
+        'mode'=>'owned-writer-current-locking-reads','facts'=>$project->finish()),
+      'spaces'=>array('scope'=>'selected-space-rows-request-cache-v1',
+        'mode'=>'owned-writer-current-locking-reads','facts'=>$spaces->finish()),
+      'policy'=>array('scope'=>'selected-policy-namedpolicy-space-row-digests-v1',
+        'mode'=>'owned-writer-current-locking-reads','facts'=>$policy));
+    $out=array();
+    foreach($facts as$family=>$entry){
+      // Policy already returns hashes of actual fixed source rows; other adapters
+      // return a stable review hash alongside their endpoint-recapture controls.
+      $digest=$family==='policy'?PhorgeRecoveryRestoreRequest::digest($entry['facts']):($entry['facts']['source_digest']??null);
+      if(($entry['facts']['complete']??null)!==false||
+        !is_string($digest)||!preg_match('/\A[a-f0-9]{64}\z/D',$digest)){
+        throw new RuntimeException('recovery_restore_partial_facts_invalid');}
+      $out[$family]=array('provider_schema'=>1,'scope'=>$entry['scope'],
+        'mode'=>$entry['mode'],'source_digest'=>$digest,'complete'=>false);
+    }
+    return $out;
+  }
+
   public static function capture(PhorgeGovernanceNativeActorContext $context,
     AphrontDatabaseConnection $conn, $subject, $stop) {
     PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
@@ -55,9 +85,11 @@ final class PhorgeRecoveryRestoreAssessment extends Phobject {
       'scope'=>'isolated-current-configuration-binding-only',
       'physical_restore_rehearsal_proved'=>false,'complete'=>false);
     $families['restore-lineage']=array('status'=>'partial','complete'=>false);
+    $partial=self::capturePartialFacts($conn,$subject);
+    foreach($partial as$family=>$unused){$families[$family]=array('status'=>'partial','complete'=>false);}
     $inventory=PhorgeGovernanceRecoverySourceInventory::inspectRuntime();
     $assessment=new self();
-    $assessment->binding=array('schema_version'=>2,'action'=>'native.enable','subject'=>$subject,
+    $assessment->binding=array('schema_version'=>3,'partial_facts'=>$partial,'action'=>'native.enable','subject'=>$subject,
       'native_stop_transaction'=>$stop,'category'=>$classification['category'],
       'event_digest'=>$classification['eventDigest'],'identity'=>$identity,
       'runtime_inventory_digest'=>hash('sha256',json_encode($inventory,JSON_THROW_ON_ERROR)),

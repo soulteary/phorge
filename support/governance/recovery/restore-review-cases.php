@@ -49,6 +49,23 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
     $check($caller_preserved&&!$conn->isInsideTransaction()&&
       queryfx_one($conn,'SELECT realName FROM %R WHERE id=%d',new PhabricatorUser(),$subject->getID())['realName']===$before_name,
       'recovery-restore-direct-locked-account-web-api-readers-preserve-caller-transaction');
+    // Real native producers establish bounded selected sources before submission.
+    $partial_project=PhabricatorProject::initializeNewProject($actor);
+    (new PhabricatorProjectTransactionEditor())->setActor($actor)
+      ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
+      ->applyTransactions($partial_project,array((new PhabricatorProjectTransaction())
+        ->setTransactionType(PhabricatorProjectNameTransaction::TRANSACTIONTYPE)
+        ->setNewValue('Synthetic partial review '.$suffix)));
+    (new PhabricatorEdgeEditor())->addEdge($partial_project->getPHID(),
+      PhabricatorProjectProjectHasMemberEdgeType::EDGECONST,$subject->getPHID())->save();
+    $partial_space=PhabricatorSpacesNamespace::initializeNewNamespace($actor);
+    (new PhabricatorSpacesNamespaceEditor())->setActor($actor)
+      ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
+      ->applyTransactions($partial_space,array((new PhabricatorSpacesNamespaceTransaction())
+        ->setTransactionType(PhabricatorSpacesNamespaceNameTransaction::TRANSACTIONTYPE)
+        ->setNewValue('Synthetic partial review '.$suffix)));
+    // Fresh request-cache state is explicit test setup, never an absence lease.
+    (new ReflectionProperty(PhabricatorCaches::class,'requestCache'))->setValue(null,null);
     $input=array('native_stop_transaction'=>(string)$event['id'],'operation_id'=>'restore-submit-'.$suffix,
       'reason'=>'Synthetic independent review','subject'=>$subject->getPHID(),'ttl_seconds'=>600);
     $fingerprint=static function()use($conn){
@@ -83,13 +100,15 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
     $id=$receipt['request_id'];
     $before=$fingerprint();$preview=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
     $preview_keys=array_keys($preview);sort($preview_keys,SORT_STRING);
-    $check($before===$fingerprint()&&$preview['source_schema_version']===2&&
+    $check($before===$fingerprint()&&$preview['source_schema_version']===3&&
       strlen($preview['source_digest'])===64&&count($preview['incomplete_families'])===13&&
       $preview['preview_is_authorization']===false&&$preview['restoration_authorized']===false&&
       $preview_keys===array('category','expires_at','families','incomplete_families','permit_state',
         'preview_is_authorization','request_id','restoration_authorized','review_state',
         'source_digest','source_schema_version','version'),
       'recovery-restore-live-independent-admin-preview-exposes-blockers-not-credentials-or-permit');
+    require_once __DIR__.'/partial-composition-cases.php';
+    governance_recovery_partial_composition_cases($fixture,$requester,$approver,$id,$partial_project,$partial_space,$refuse,$check);
     $refuse(static function()use($requester,$id,$suffix){
       PhorgeRecoveryRestoreService::review($requester['context'],$id,'1','restore-self-'.$suffix);},
       'recovery_restore_independent_admin_required','recovery-restore-requester-cannot-self-review');

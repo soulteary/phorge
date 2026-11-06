@@ -61,12 +61,13 @@ final class PhorgeRecoveryRestoreRequest extends Phobject {
     $keys=array('schema_version','action','subject','native_stop_transaction','category',
       'event_digest','identity','runtime_inventory_digest','families','media','organization','credentials',
       'native_web_API_disposition','old_media_credential_disposition','all_sources_complete','restoration_authorized');
-    if($version===2){$keys[]='restore_lineage';$keys[]='selected_producer_profile';}
+    if(in_array($version,array(2,3),true)){$keys[]='restore_lineage';$keys[]='selected_producer_profile';}
+    if($version===3){$keys[]='partial_facts';}
     $actual=array_keys($source);sort($actual,SORT_STRING);sort($keys,SORT_STRING);
-    if(!in_array($version,array(1,2),true)||$actual!==$keys||
+    if(!in_array($version,array(1,2,3),true)||$actual!==$keys||
       $source['all_sources_complete']!==false||$source['restoration_authorized']!==false){
       throw new RuntimeException('recovery_restore_storage_invalid');}
-    if($version===2){
+    if(in_array($version,array(2,3),true)){
       $lineage=$source['restore_lineage'];
       $lineage_keys=is_array($lineage)?array_keys($lineage):array();sort($lineage_keys,SORT_STRING);
       if(!is_array($lineage)||$lineage_keys!==array('complete','configured_incarnation_digest','physical_restore_rehearsal_proved','provider_schema','scope')||
@@ -77,6 +78,25 @@ final class PhorgeRecoveryRestoreRequest extends Phobject {
         !preg_match('/\A[a-f0-9]{64}\z/D',$lineage['configured_incarnation_digest'])||
         $source['selected_producer_profile']!=='native-authsession-insert-fence-v1-not-all-producers'){
         throw new RuntimeException('recovery_restore_storage_invalid');}
+    }
+    if($version===3){
+      $profiles=array(
+        'application-config'=>array('selected-config-dictionaries-v1','process-local-endpoint-recapture'),
+        'project-relationships'=>array('subject-project-rows-selected-history-v1','owned-writer-current-locking-reads'),
+        'spaces'=>array('selected-space-rows-request-cache-v1','owned-writer-current-locking-reads'),
+        'policy'=>array('selected-policy-namedpolicy-space-row-digests-v1','owned-writer-current-locking-reads'));
+      $partial=$source['partial_facts'];
+      $names=is_array($partial)?array_keys($partial):array();sort($names,SORT_STRING);
+      $expected=array_keys($profiles);sort($expected,SORT_STRING);
+      if($names!==$expected){throw new RuntimeException('recovery_restore_storage_invalid');}
+      foreach($profiles as$family=>$profile){
+        $entry=$partial[$family];$fields=is_array($entry)?array_keys($entry):array();sort($fields,SORT_STRING);
+        if($fields!==array('complete','mode','provider_schema','scope','source_digest')||
+          $entry['provider_schema']!==1||$entry['scope']!==$profile[0]||$entry['mode']!==$profile[1]||
+          $entry['complete']!==false||!is_string($entry['source_digest'])||
+          !preg_match('/\A[a-f0-9]{64}\z/D',$entry['source_digest'])){
+          throw new RuntimeException('recovery_restore_storage_invalid');}
+      }
     }
     return $version;
   }

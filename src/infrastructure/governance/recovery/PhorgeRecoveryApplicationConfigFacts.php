@@ -5,6 +5,7 @@ final class PhorgeRecoveryApplicationConfigFacts extends Phobject {
   private $key;
   private $binding;
   private $summary;
+  private $reviewDigest;
   private $owners;
   private $finished = false;
 
@@ -113,9 +114,21 @@ final class PhorgeRecoveryApplicationConfigFacts extends Phobject {
     return hash_hmac('sha256',serialize(array(spl_object_id($stack),$bound,$resolved)),$this->key);
   }
 
+  /** Stable selected values and source order only; no process object IDs or raw output. */
+  private static function reviewDigest(array $snapshot) {
+    $sources=array();
+    foreach ($snapshot[1] as $row) {
+      $sources[]=array('class'=>$row['class'],
+        'selected_values'=>array_intersect_key($row['values'],self::selectedOptions()));
+    }
+    return hash('sha256',serialize(array('profile'=>'selected-config-review-v1',
+      'sources'=>$sources,'resolved'=>$snapshot[2])));
+  }
+
   public static function capture() {
     $snapshot=self::snapshot();$facts=new self();$facts->key=random_bytes(32);
     $facts->binding=$facts->fingerprint($snapshot);
+    $facts->reviewDigest=self::reviewDigest($snapshot);
     // Retain actual objects: object IDs must not be recycled into an ABA match.
     $facts->owners=array($snapshot[0]);
     foreach ($snapshot[1] as $row) { $facts->owners[]=$row['object'];$facts->owners[]=$row['dictionary']; }
@@ -134,7 +147,7 @@ final class PhorgeRecoveryApplicationConfigFacts extends Phobject {
       if (!hash_equals($this->binding,$this->fingerprint(self::snapshot()))) {
         throw new RuntimeException('recovery_config_facts_changed');
       }
-      return $this->summary;
-    } finally { $this->binding=null;$this->key=null;$this->owners=null; }
+      return $this->summary+array('source_digest'=>$this->reviewDigest);
+    } finally { $this->binding=null;$this->key=null;$this->owners=null;$this->reviewDigest=null; }
   }
 }

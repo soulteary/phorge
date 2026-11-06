@@ -4,7 +4,7 @@ final class PhorgeRecoverySpacesSourceFacts extends Phobject {
   const MAX_ROWS=64;
   const MAX_ROW_BYTES=16384;
   const MAX_TOTAL_BYTES=65536;
-  private $connection;private $key;private $digest;private $finished=false;
+  private $connection;private $key;private $digest;private $reviewDigest;private $finished=false;
   private function __construct(){}
   private function __clone(){}
   public function __serialize(){throw new RuntimeException('recovery_spaces_serialization_refused');}
@@ -107,11 +107,11 @@ final class PhorgeRecoverySpacesSourceFacts extends Phobject {
     $schema=$m[1].'_spaces';self::schema($conn,$schema);$rows=self::readRows($conn,$schema);
     return array('selected_rows'=>$rows,'query_request_cache'=>self::cacheFacts($rows));
   }
-  public static function capture(AphrontDatabaseConnection$conn){$value=new self();$value->connection=$conn;$value->key=random_bytes(32);$value->digest=hash_hmac('sha256',serialize(self::snapshot($conn)),$value->key);return$value;}
+  public static function capture(AphrontDatabaseConnection$conn){$value=new self();$value->connection=$conn;$value->key=random_bytes(32);$snapshot=self::snapshot($conn);$value->digest=hash_hmac('sha256',serialize($snapshot),$value->key);$value->reviewDigest=hash('sha256',serialize($snapshot));return$value;}
   public function finish(){
     if($this->finished){throw new RuntimeException('recovery_spaces_finished');}$this->finished=true;
     try{if(!hash_equals($this->digest,hash_hmac('sha256',serialize(self::snapshot($this->connection)),$this->key))){throw new RuntimeException('recovery_spaces_facts_changed');}
-      return array('profile'=>'selected-native-space-row-and-query-cache-facts-v1','actual_SQL_reads_executed'=>true,'request_cache_policy_correctness_proved'=>false,'implicit_default_is_authorization'=>false,'history_is_current_policy'=>false,'transaction_history_captured'=>false,'object_space_bindings_complete'=>false,'dynamic_policy_dependencies_complete'=>false,'absence_lease_proved'=>false,'producer_lease_proved'=>false,'continuous_cache_or_ABA_lease_proved'=>false,'complete'=>false,'all_sources_complete'=>false,'restoration_authorized'=>false);}
-    finally{$this->connection=null;$this->key=null;$this->digest=null;}
+      return array('source_digest'=>$this->reviewDigest,'profile'=>'selected-native-space-row-and-query-cache-facts-v1','actual_SQL_reads_executed'=>true,'request_cache_policy_correctness_proved'=>false,'implicit_default_is_authorization'=>false,'history_is_current_policy'=>false,'transaction_history_captured'=>false,'object_space_bindings_complete'=>false,'dynamic_policy_dependencies_complete'=>false,'absence_lease_proved'=>false,'producer_lease_proved'=>false,'continuous_cache_or_ABA_lease_proved'=>false,'complete'=>false,'all_sources_complete'=>false,'restoration_authorized'=>false);}
+    finally{$this->connection=null;$this->key=null;$this->digest=null;$this->reviewDigest=null;}
   }
 }
