@@ -33,6 +33,8 @@ class FileParentCI(unittest.TestCase):
    commands=tmp/'commands';commands.mkdir();env['PATH']=str(commands)+os.pathsep+env['PATH'];php=commands/'php';php.write_text('#!/bin/sh\ntest "$PHORGE_GOVERNANCE_GORGE_FILE_BINARY" = "$RUNNER_TEMP/gorge-file-storage" || exit 90\ntest -n "$PHORGE_GOVERNANCE_GORGE_FILE_SHA256" || exit 91\nexit 42\n');php.chmod(0o700)
    self.assertEqual(run().returncode,42);self.assertFalse((target/'accepted.json').exists());self.assertEqual(stat.S_IMODE(target.stat().st_mode),0o700);self.assertEqual(uploaded,[])
    import shutil
+   shutil.rmtree(target);diagnostic=commands/'python3';diagnostic.write_text('#!/bin/sh\nexit 43\n');diagnostic.chmod(0o700)
+   self.assertEqual(run().returncode,42);self.assertFalse((target/'accepted.json').exists());self.assertEqual(uploaded,[]);diagnostic.unlink()
    shutil.rmtree(target);php.write_text('#!/bin/sh\nprintf "synthetic-native-result"\n');checker=commands/'python3';checker.write_text('#!/bin/sh\nexit 43\n');checker.chmod(0o700)
    self.assertEqual(run().returncode,43);self.assertFalse((target/'accepted.json').exists());self.assertEqual((target/'integration.json').read_text(),'synthetic-native-result');self.assertEqual(uploaded,[])
    shutil.rmtree(target);checker.write_text('#!/bin/sh\ncase "$*" in *--file-binary*--file-binary-sha256*) ;; *) exit 92 ;; esac\nprintf "synthetic-accepted-only"\n')

@@ -499,7 +499,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
-          php support/governance/native-organization/test-native-organization-mysql.php --file-parent-policy > "$RUNNER_TEMP/governance-file-parent-policy/integration.json"
+          php support/governance/native-organization/test-native-organization-mysql.php --file-parent-policy > "$RUNNER_TEMP/governance-file-parent-policy/integration.json" || { native_status=$?; python3 -B scripts/governance/project_file_parent_failure.py --receipt "$RUNNER_TEMP/governance-file-parent-policy/integration.json" || true; exit "$native_status"; }
           python3 -B scripts/governance/check_recovery_file_parent_policy.py --receipt "$RUNNER_TEMP/governance-file-parent-policy/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json" "$RUNNER_TEMP/governance-file-parent-policy/accepted.json"
       - uses: actions/upload-artifact@v4
