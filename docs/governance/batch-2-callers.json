@@ -1319,8 +1319,8 @@
       "src/__phutil_library_map__.php"
     ],
     "excluded_test_directory": "__tests__",
-    "files_scanned": 4466,
-    "source_snapshot_sha256": "56d5b0fc5635242c782d46e04e7711fb6c7da0b2d03300d641dbe42662c8ef9f",
+    "files_scanned": 4467,
+    "source_snapshot_sha256": "cc4e188fa7e7f862f90f99c6e3aa67e86485ab22e3d8f33df3308406a3193045",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",

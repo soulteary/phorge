@@ -78,8 +78,8 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
         if($action==='compound.propose'){
           return $this->newDialog()->setTitle(pht('Compound Approval Requested'))
             ->appendParagraph(pht('Approval ID: %s', $result['approval_id']))
-            ->appendParagraph(pht('A different current system administrator must approve this request. The requester then executes it using this approval ID.'))
-            ->addCancelButton($this->getApplicationURI('organization/'),pht('Done'));
+            ->appendParagraph(pht('A different current system administrator must approve this request. The requester then executes it.'))
+            ->addCancelButton((string)(new PhutilURI($this->getApplicationURI('organization/approvals/')))->setQueryParam('approval',$result['approval_id']),pht('Open Approval Request'));
         }
 
         return id(new AphrontRedirectResponse())->setURI($this->getApplicationURI('organization/'));
@@ -338,6 +338,7 @@ final class PhorgeOrganizationController extends PhabricatorPeopleController {
     if ($capabilities['manage_units']) {
       $boxes[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/transfer/')),pht('Organization Transfers'));
       $boxes[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/history/')),pht('Restricted Organization History'));
+      $boxes[]=phutil_tag('a',array('href'=>$this->getApplicationURI('organization/approvals/')),pht('Compound Approval Workbench'));
       foreach(array('compound.approve'=>pht('Approve Compound Request'),'compound.execute'=>pht('Execute Approved Compound'))as$action=>$label){
         $approval_form=id(new AphrontFormView())->setUser($this->getViewer())->addHiddenInput('form_action',$action)
           ->appendControl(id(new AphrontFormTextControl())->setLabel(pht('Approval ID'))->setName('approval_id'))

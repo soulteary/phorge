@@ -393,4 +393,126 @@ final class PhorgeGovernanceNativeApprovalAdapter extends Phobject {
     $this->actor(); $this->validTime($data,$row['approvedAt']);
     return array('approval_id'=>$id,'commit_gate_checked'=>true);
   }
+
+  /** PRIMARY-ID discovery only. A page never confers approval authority. */
+  public static function planWorkbenchRows(array $rows, $limit, $after) {
+    if (!is_int($limit) || $limit<1 || $limit>25 ||
+        ($after!==null && (!is_string($after) || self::identifier($after)!==$after)) ||
+        !array_is_list($rows) || count($rows)>$limit+1) {
+      throw new InvalidArgumentException('organization_approval_page_refused');
+    }
+    $last=$after;$validated=array();
+    // Validate the complete bounded metadata response before loading any body.
+    foreach ($rows as $row) {
+      $keys=is_array($row)?array_keys($row):array();sort($keys);
+      $expected=array('approvalID','bindingBytes','approverBytes','sourceParticipantVersion',
+        'sourceSubjectPHID','sourceRequesterPHID','sourceExecutorPHID','approverPHID','rowVersion');sort($expected);
+      if ($keys!==$expected) { throw new RuntimeException('organization_approval_page_shape_refused'); }
+      $id=$row['approvalID'];self::identifier($id);
+      if ($last!==null && strcmp($id,$last)<=0) { throw new RuntimeException('organization_approval_page_order_refused'); }
+      foreach(array('bindingBytes','approverBytes')as$key){
+        $n=$row[$key];
+        if ($key==='approverBytes' && $n===null) { continue; }
+        if (is_string($n) && preg_match('/\A[1-9][0-9]{0,4}\z/D',$n)) { $n=(int)$n; }
+        if (!is_int($n) || $n<1 || $n>32768) { throw new RuntimeException('organization_approval_page_payload_refused'); }
+        $row[$key]=$n;
+      }
+      // Legacy/unindexed metadata is not silently backfilled or guessed.
+      if(!in_array($row['sourceParticipantVersion'],array(1,'1'),true)){
+        throw new RuntimeException('organization_approval_page_participants_unindexed');
+      }
+      $row['sourceParticipantVersion']=1;$phids=array();
+      foreach(array('sourceSubjectPHID','sourceRequesterPHID','sourceExecutorPHID','approverPHID')as$key){
+        if($key==='approverPHID'&&$row[$key]===null){continue;}
+        PhorgeRecoveryStopRequest::user($row[$key]);$phids[$row[$key]]=true;
+      }
+      $row['rowVersion']=PhorgeOrganizationService::version($row['rowVersion']);
+      if($row['rowVersion']<1){throw new RuntimeException('organization_approval_page_version_refused');}
+      $last=$id;$validated[]=array('row'=>$row,'participants'=>$phids);
+    }
+    $bytes=0;$subjects=array();$plan=array();
+    foreach($validated as$item){
+      $row=$item['row'];$next_bytes=$bytes+$row['bindingBytes']+($row['approverBytes']??0);
+      $next_subjects=$subjects+$item['participants'];
+      // Existing approval plans are bounded to32 and each binding to32KiB.
+      // Budget truncation stops BEFORE a body read. Its ID remains for next page.
+      if(count($plan)===$limit||$next_bytes>32*32768||count($next_subjects)>32){break;}
+      $bytes=$next_bytes;$subjects=$next_subjects;$plan[]=$row;
+    }
+    $more=count($plan)<count($validated);
+    if($more&&!$plan){throw new RuntimeException('organization_approval_page_progress_refused');}
+    return array('plan'=>$plan,'next_cursor'=>$more?last($plan)['approvalID']:null,
+      'payload_bytes'=>$bytes,'participant_count'=>count($subjects));
+  }
+
+  private function workbenchProjection(array $row, array $data) {
+    if (in_array($data['action'],array('appointment.grant','appointment.revoke'),true)) { return null; }
+    if (!in_array($data['action'],array('member.add-and-appoint','appointment.revoke-and-end'),true)) {
+      throw new RuntimeException('organization_approval_action_refused');
+    }
+    $intent=self::params($data['action'],$data['parameters']['subject'],
+      $data['parameters']['valid_from'],$data['parameters']['valid_until'],idx($data['parameters'],'compound'))['compound'];
+    if ($intent['approval_id']!==$row['approvalID'] || $intent['operation_id']!==$row['operationID'] ||
+        $intent['team']!==$data['team'] || !is_int($data['issuedAt']) || !is_int($data['expiresAt']) ||
+        $data['issuedAt']<0 || $data['expiresAt']<=$data['issuedAt']) {
+      throw new RuntimeException('organization_approval_projection_refused');
+    }
+    // Credentials, binding JSON, source snapshots and their hashes never leave this adapter.
+    return array('approval_id'=>$row['approvalID'],'state'=>$row['state'],
+      'version'=>PhorgeOrganizationService::version($row['version']),
+      'team'=>$intent['team'],'target_user'=>$intent['target_user'],'action'=>$intent['action'],
+      'requester'=>$data['requester']['userPHID'],'executor'=>$data['executor']['userPHID'],
+      'approver'=>$row['approverPHID'],'issued_at'=>$data['issuedAt'],'expires_at'=>$data['expiresAt'],
+      'member_from'=>$intent['member_from'],'member_until'=>$intent['member_until'],
+      'appointment_from'=>$intent['appointment_from'],'appointment_until'=>$intent['appointment_until'],
+      'expected_team_version'=>$intent['expected_team_version'],
+      'expected_member_version'=>$intent['expected_member_version'],
+      'expected_appointment_version'=>$intent['expected_appointment_version'],
+      'may_approve'=>false,'may_execute'=>false,'UI_hints_only'=>true);
+  }
+
+  public function workbenchPage($limit,$after) {
+    $this->actor();self::planWorkbenchRows(array(),$limit,$after);
+    $rows=queryfx_all($this->connection,
+      'SELECT approvalID,OCTET_LENGTH(bindingJSON) bindingBytes,OCTET_LENGTH(approverBindingJSON) approverBytes,'.
+      'sourceParticipantVersion,sourceSubjectPHID,sourceRequesterPHID,sourceExecutorPHID,approverPHID,version rowVersion '.
+      'FROM organization_approval FORCE INDEX (PRIMARY) WHERE approvalID>%s '.
+      'ORDER BY approvalID LIMIT %d LOCK IN SHARE MODE',$after??'',$limit+1);
+    // All lengths are checked before any payload read; no unindexed state scan.
+    $page=self::planWorkbenchRows($rows,$limit,$after);$result=array();
+    foreach ($page['plan'] as $item) {
+      list($row,$data)=self::load($this->connection,$item['approvalID'],true);
+      if (strlen($row['bindingJSON'])!==$item['bindingBytes'] ||
+          ($row['approverBindingJSON']===null?null:strlen($row['approverBindingJSON']))!==$item['approverBytes']) {
+        throw new RuntimeException('organization_approval_page_changed');
+      }
+      if(!in_array($row['sourceParticipantVersion'],array(1,'1'),true)||PhorgeOrganizationService::version($row['version'])!==$item['rowVersion']){throw new RuntimeException('organization_approval_page_changed');}
+      foreach(array('sourceSubjectPHID','sourceRequesterPHID','sourceExecutorPHID','approverPHID')as$key){
+        if($row[$key]!==$item[$key]){throw new RuntimeException('organization_approval_page_changed');}
+      }
+      $value=$this->workbenchProjection($row,$data);
+      if ($value!==null) { $result[]=$value; }
+    }
+    $this->actor();
+    return array('rows'=>$result,'next_cursor'=>$page['next_cursor'],
+      'bounded_scanned_rows'=>count($rows),'bounded_payload_rows'=>count($page['plan']),
+      'bounded_payload_bytes'=>$page['payload_bytes'],'bounded_participant_count'=>$page['participant_count'],'UI_hints_only'=>true);
+  }
+
+  public function workbenchDetail($id) {
+    $actor=$this->actor();list($row,$data)=self::load($this->connection,$id,true);
+    $result=$this->workbenchProjection($row,$data);
+    if ($result===null) { throw new RuntimeException('organization_compound_request_refused'); }
+    if ($row['state']!=='consumed') {
+      // Expiry, participant credentials and every original source are checked by
+      // the same native adapter used by approve/consume. Unknown errors propagate.
+      $this->checkCurrentApproval($row,$data,true);
+      $result['may_approve']=$row['state']==='submitted' &&
+        $actor->getUserPHID()!==$data['requester']['userPHID'] &&
+        $actor->getUserPHID()!==$data['executor']['userPHID'];
+      $result['may_execute']=$row['state']==='approved' &&
+        $actor->getUserPHID()===$data['executor']['userPHID'];
+    }
+    $this->actor();return $result;
+  }
 }

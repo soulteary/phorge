@@ -42,6 +42,7 @@ final class PhabricatorPeopleApplication extends PhabricatorApplication {
     return array(
       '/people/' => array(
         'organization/typeahead/' => 'PhorgeOrganizationDatasourceController',
+        'organization/approvals/' => 'PhorgeOrganizationApprovalController',
         'organization/transfer/' => 'PhorgeOrganizationTransferController',
         'organization/history/' => 'PhorgeOrganizationHistoryController',
         'organization/' => 'PhorgeOrganizationController',
