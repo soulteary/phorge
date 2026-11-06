@@ -20,24 +20,34 @@ class PartialWiring(unittest.TestCase):
  def test_actual_CI_step_refuses_foreign_paths_native_failure_and_checker_failure(self):
   workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();name='      - name: Verify fresh native partial restoration facts after Space source facts\n';step=workflow.split(name,1)[1].split('      - uses:',1)[0];script='\n'.join(line[10:] for line in step.splitlines() if line.startswith('          '))
   self.assertEqual(subprocess.run(['bash','-n'],input=script,text=True,capture_output=True).returncode,0)
+  upload=workflow.split(name,1)[1].split('      - uses: actions/upload-artifact@v4\n',1)[1].split('      - name:',1)[0]
+  self.assertIn('        if: success()\n',upload);self.assertNotIn('always()',upload)
+  self.assertIn('path: ${{ runner.temp }}/governance-recovery-partial-composition',upload)
   head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
   with tempfile.TemporaryDirectory() as temp:
    tmp=Path(temp);target=tmp/'governance-recovery-partial-composition';foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'private-foreign');env=dict(os.environ,RUNNER_TEMP=temp,GITHUB_SHA=head,GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
-   def run():return subprocess.run(['bash','-e','-o','pipefail','-c',script],cwd=ROOT,env=env,capture_output=True,text=True,timeout=10)
+   uploaded=[]
+   def run():
+    result=subprocess.run(['bash','-e','-o','pipefail','-c',script],cwd=ROOT,env=env,capture_output=True,text=True,timeout=10)
+    # Match the actual workflow's exact success-only action condition.
+    if result.returncode==0:uploaded.append((target/'accepted.json').read_bytes())
+    return result
    for kind in ('file','dir','symlink'):
     if kind=='file':target.write_bytes(b'foreign')
     elif kind=='dir':target.mkdir();(target/'sentinel').write_bytes(b'foreign')
     else:target.symlink_to(foreign,target_is_directory=True)
-    before=target.lstat();self.assertNotEqual(run().returncode,0);after=target.lstat();self.assertEqual((before.st_ino,before.st_mode),(after.st_ino,after.st_mode));self.assertEqual(sentinel.read_bytes(),b'private-foreign')
+    before=target.lstat();self.assertNotEqual(run().returncode,0);after=target.lstat();self.assertEqual((before.st_ino,before.st_mode),(after.st_ino,after.st_mode));self.assertEqual(sentinel.read_bytes(),b'private-foreign');self.assertEqual(uploaded,[])
     if kind=='dir':(target/'sentinel').unlink();target.rmdir()
     else:target.unlink()
    for name in ('governance-batch-1','governance-native-organization'):(tmp/name).mkdir()
    (tmp/'governance-batch-1/native.json').write_text('synthetic-reference');(tmp/'governance-native-organization/accepted.json').write_text('synthetic-reference')
    commands=tmp/'commands';commands.mkdir();env['PATH']=str(commands)+os.pathsep+env['PATH'];php=commands/'php';php.write_text('#!/bin/sh\nexit 42\n');php.chmod(0o700)
-   self.assertEqual(run().returncode,42);self.assertFalse((target/'accepted.json').exists());self.assertEqual(stat.S_IMODE(target.stat().st_mode),0o700)
+   self.assertEqual(run().returncode,42);self.assertFalse((target/'accepted.json').exists());self.assertEqual(stat.S_IMODE(target.stat().st_mode),0o700);self.assertEqual(uploaded,[])
    import shutil
    shutil.rmtree(target);php.write_text('#!/bin/sh\nprintf "synthetic-native-result"\n');checker=commands/'python3';checker.write_text('#!/bin/sh\nexit 43\n');checker.chmod(0o700)
-   self.assertEqual(run().returncode,43);self.assertFalse((target/'accepted.json').exists());self.assertEqual((target/'integration.json').read_text(),'synthetic-native-result')
+   self.assertEqual(run().returncode,43);self.assertFalse((target/'accepted.json').exists());self.assertEqual((target/'integration.json').read_text(),'synthetic-native-result');self.assertEqual(uploaded,[])
+   shutil.rmtree(target);checker.write_text('#!/bin/sh\nprintf "synthetic-accepted-only"\n')
+   self.assertEqual(run().returncode,0);self.assertEqual(uploaded,[b'synthetic-accepted-only']);self.assertFalse((target/'accepted.pending.json').exists())
  def test_actual_cache_expectation_preserves_state_and_requires_precise_error(self):
   code=r'''class PhabricatorSpacesNamespace{function __construct(private$p){}function getPHID(){return$this->p;}}class PhabricatorSpacesNamespaceQuery{const KEY_DEFAULT='spaces.default';}class PhabricatorCaches{private static$requestCache;static function put($v){self::$requestCache=$v;}static function read(){return self::$requestCache;}}class PhutilInRequestKeyValueCache{private$cache;function __construct($v){$this->cache=$v;}}require$argv[1].'/support/governance/recovery/partial-composition-cases.php';$space=new PhabricatorSpacesNamespace('synthetic');$out=[];foreach([null,new PhutilInRequestKeyValueCache([]),new PhutilInRequestKeyValueCache(['spaces.all'=>['synthetic'=>$space]]),new PhutilInRequestKeyValueCache(['spaces.default'=>$space]),new PhutilInRequestKeyValueCache(['spaces.all'=>['other'=>new PhabricatorSpacesNamespace('other')]])]as$value){PhabricatorCaches::put($value);$out[]=[governance_recovery_partial_space_mutation_failure($space),PhabricatorCaches::read()===$value];}PhabricatorCaches::put(new stdClass());$denied=false;try{governance_recovery_partial_space_mutation_failure($space);}catch(RuntimeException$e){$denied=$e->getMessage()==='recovery_partial_fixture_cache_unknown';}echo json_encode(['out'=>$out,'unknown'=>$denied]);'''
   p=subprocess.run(['php','-r',code,str(ROOT)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);d=json.loads(p.stdout)

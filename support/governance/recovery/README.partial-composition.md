@@ -71,7 +71,9 @@ zero residual workers, all 55 owned schemas/principals cleaned, and all authorit
 flags false. The CI step runs after the Space fixture, creates an exclusive
 private artifact directory, runs the native driver and then the public checker.
 `accepted.json` is published only after checker success. A native or checker
-failure leaves no accepted receipt. No classes were added and no class map was
+failure leaves no accepted receipt. The artifact action is success-only: a
+rejected pre-existing directory or symlink is never uploaded after setup failure.
+No classes were added and no class map was
 hand-edited.
 
 The focused wrapper also checks the actual case return flags and exactly 21

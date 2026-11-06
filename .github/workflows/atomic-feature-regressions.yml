@@ -429,7 +429,7 @@ jobs:
           python3 -B scripts/governance/check_recovery_partial_composition.py --receipt "$RUNNER_TEMP/governance-recovery-partial-composition/integration.json" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json" "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.json"
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: success()
         with:
           name: governance-recovery-partial-composition-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-recovery-partial-composition
