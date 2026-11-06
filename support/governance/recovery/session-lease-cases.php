@@ -17,6 +17,7 @@ function governance_recovery_session_lease_cases($fixture,AphrontDatabaseConnect
       if((int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE userPHID=%s',new PhabricatorAuthSession(),$subject->getPHID())['n']!==0){throw new RuntimeException('session_lease_fresh_subject_required');}
       $handle=governance_native_start_worker($fixture,array('action'=>'recovery.session.issue','subject'=>$subject->getPHID(),'token'=>$actor['token']));$handles[]=$handle;
       governance_native_wait_session_producer_ready($handle);
+      $GLOBALS['governance_session_lease_physical_cleanup_proved']=false;
       $scope=PhorgeRecoverySessionProducerFence::beginLease($observer,$subject->getPHID());$before=$scope->leaseGetFacts();
       governance_native_continue_session_producer($handle);governance_native_wait_session_covering_control($handle);
       governance_native_continue_session_fence($handle);
@@ -34,7 +35,9 @@ function governance_recovery_session_lease_cases($fixture,AphrontDatabaseConnect
       $count=(int)queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE userPHID=%s',new PhabricatorAuthSession(),$subject->getPHID())['n'];
       $check($observed&&$count===0&&$scope->leaseGetFacts()===$before,'session-lease-real-INSERT-waits-through-protected-capture-'.$ending);
       if($ending==='commit'){$scope->leaseCommit();}else{$scope->leaseRollback();}
-      $terminal=$scope->leaseGetTerminalFacts();$scope=null;
+      $terminal=$scope->leaseGetTerminalFacts();
+      if(($terminal['cleanup_proved']??null)!==true){throw new RuntimeException('session_lease_cleanup_unproved');}
+      $GLOBALS['governance_session_lease_physical_cleanup_proved']=true;$scope=null;
       $result=governance_native_finish_worker($handle);
       $deadline=microtime(true)+3;$gone=false;do{$rows=queryfx_all($observer,'SELECT CAST(PROCESSLIST_ID AS CHAR) id FROM performance_schema.threads WHERE PROCESSLIST_ID=%s',$handle['mysql_thread']);if($rows===array()){$gone=true;break;}usleep(20000);}while(microtime(true)<$deadline);
       if(!$gone){throw new RuntimeException('session_lease_worker_SQL_session_remaining');}
@@ -42,6 +45,7 @@ function governance_recovery_session_lease_cases($fixture,AphrontDatabaseConnect
       $persisted=queryfx_all($conn,'SELECT id FROM %R WHERE userPHID=%s ORDER BY id LIMIT 2',new PhabricatorAuthSession(),$subject->getPHID());
       $check(count($persisted)===1&&hash('sha256',(string)$persisted[0]['id'])===($result['session_id_digest']??null)&&$terminal['cleanup_proved']===true&&$terminal['state']===($ending==='commit'?'committed':'rolled-back')&&
         $result['status']==='committed'&&$count===1,'session-lease-real-INSERT-resumes-after-observed-'.$ending);
+      $GLOBALS['governance_session_lease_physical_cleanup_proved']=false;
       $next=PhorgeRecoverySessionProducerFence::beginLease($observer,$subject->getPHID());
       $nextPrimary=null;try{$after=$next->leaseGetFacts();$check($before['source_binding']!==$after['source_binding']&&$after['all_sources_complete']===false&&$after['restoration_authorized']===false,
         'session-lease-new-native-producer-transition-invalidates-selected-binding-'.$ending);}catch(Throwable $error){$nextPrimary=$error;throw$error;}finally{governance_recovery_session_lease_cleanup($next,$nextPrimary);}
@@ -68,7 +72,8 @@ function governance_recovery_session_lease_workers_ended(AphrontDatabaseConnecti
 
 /** Every extra capture must have proved terminal cleanup, not merely six checks. */
 function governance_recovery_session_lease_cleanup($scope,?Throwable $primary=null) {
-  try{$terminal=$scope->leaseAbort();if(($terminal['cleanup_proved']??null)!==true){$GLOBALS['governance_session_lease_physical_cleanup_proved']=false;throw new RuntimeException('session_lease_cleanup_unproved');}}
+  $GLOBALS['governance_session_lease_physical_cleanup_proved']=false;
+  try{$terminal=$scope->leaseAbort();if(($terminal['cleanup_proved']??null)!==true){$GLOBALS['governance_session_lease_physical_cleanup_proved']=false;throw new RuntimeException('session_lease_cleanup_unproved');}$GLOBALS['governance_session_lease_physical_cleanup_proved']=true;}
   catch(Throwable $error){if($primary!==null){throw new PhutilAggregateException('session_lease_cleanup_failed',array('primary'=>$primary,'cleanup'=>$error));}throw$error;}
 }
 
