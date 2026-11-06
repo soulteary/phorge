@@ -38,7 +38,7 @@ function governance_recovery_partial_failure_projection($phase,$passed,$failure)
   $types=array('RuntimeException','LogicException','TypeError','Error','mysqli_sql_exception',
     'PhutilAggregateException','PhabricatorApplicationTransactionValidationException',
     'PhabricatorApplicationTransactionNoEffectException','AphrontQueryException',
-    'AphrontObjectMissingQueryException','PhutilProxyException','InvalidArgumentException','RuntimeWarning');
+    'AphrontObjectMissingQueryException','InvalidArgumentException','RuntimeWarning');
   $out=array('schema'=>'native-partial-failure-diagnostic-v1','passed'=>false,
     'stage'=>'unknown-stage','error_type'=>'other-error-type','source_file'=>null,'source_line'=>null);
   if($failure===null){$out['stage']='cleanup-unproved';$out['error_type']='CleanupFailure';return $out;}
