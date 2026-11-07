@@ -31,7 +31,7 @@ try {
   $keys=array_keys($payload); sort($keys);
   $wanted_keys=array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256');
   if(in_array(($payload['action']['action']??null),array('measurement.api-token-auth','recovery.oauth.authenticate'),true)){$wanted_keys[]='measurement_file';sort($wanted_keys);}
-  if(in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)){$wanted_keys[]='recovery_incarnation';sort($wanted_keys);
+  if(in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)){$wanted_keys[]='recovery_incarnation';sort($wanted_keys);
     if(!is_string($payload['recovery_incarnation']??null)||!preg_match('/\A[a-f0-9]{32}\z/D',$payload['recovery_incarnation'])){throw new RuntimeException('native_worker_recovery_incarnation_refused');}}
   if ($keys!==$wanted_keys ||
       $payload['directory_dev']!==$stat['dev'] || $payload['directory_ino']!==$stat['ino'] ||
@@ -132,8 +132,8 @@ try {
     'governance.recovery-stop-ledger.enabled'=>in_array(($payload['action']['action']??null),array('recovery.stop.record','recovery.stop.history'),true),
     'governance.notifications.enabled'=>($payload['action']['action']??null)==='org.notice.create',
     'governance.private-mail.enabled'=>in_array(($payload['action']['action']??null),array('org.notice.create','legalpad.verify','legalpad.observe'),true),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
-    'governance.account-recovery.enabled'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.org.member.insert','recovery.org.approval.propose'),true),
-    'governance.account-recovery.incarnation'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)?$payload['recovery_incarnation']:null,
+    'governance.account-recovery.enabled'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true),
+    'governance.account-recovery.incarnation'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)?$payload['recovery_incarnation']:null,
     'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
     'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
@@ -364,6 +364,9 @@ try {
     $stored=queryfx_one($conn,'SELECT phid FROM %R WHERE id=%d',new PhabricatorPolicy(),$policy->getID());
     if(!$stored||$stored['phid']!==$policy->getPHID()){throw new RuntimeException('native_policy_producer_result_unknown');}
     $result=array('status'=>'committed','native_policy_digest'=>hash('sha256',$stored['phid']),'restoration_authorized'=>false);
+  }else if($kind==='recovery.session.borrowed-owner.issue'){
+    require_once dirname(__DIR__).'/recovery/borrowed-session-producer.php';
+    $result=governance_recovery_borrowed_session_native_producer($conn,$action,$path,$payload,$thread);
   }else if($kind==='recovery.session.issue'){
     $keys=array_keys($action);sort($keys);
     if($keys!==array('action','subject','token')||!is_string($action['token'])||strlen($action['token'])>256){
@@ -382,6 +385,7 @@ try {
     try {
       // The fixture chooses actor before subject. Do not prelock its PRIMARY:
       // the actual SessionEngine -> DAO INSERT fence must cause its own wait.
+      governance_native_worker_atomic($path,'producer-identity-started.json',array('status'=>'identity-started','mysql_thread'=>$thread));
       $snapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
       if(!$snapshot->isSystemAdmin()){throw new RuntimeException('recovery_restore_admin_required');}
       governance_native_worker_atomic($path,'producer-ready.json',array('status'=>'producer-ready','mysql_thread'=>$thread));
@@ -605,13 +609,13 @@ try {
   if(($kind??null)==='recovery.org.approval.propose'){$result=array('status'=>'failed','error_type'=>get_class($error),'reason'=>'native_lifecycle_producer_failed');}
   if(($kind??null)==='recovery.org.member.insert'){$result=array('status'=>'failed','error_type'=>get_class($error),'reason'=>'native_organization_producer_failed');}
   if(($kind??null)==='recovery.policy.insert'){$result=array('status'=>'failed','error_type'=>get_class($error),'reason'=>'native_policy_producer_failed');}
-  if(($kind??null)==='recovery.session.issue'){
+  if(in_array(($kind??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue'),true)){
     $allowed=get_class($error)===RuntimeException::class&&in_array($error->getMessage(),
       array('recovery_restore_admin_required','governance_native_credential_ineligible'),true);
     $result=$allowed?array('status'=>'rejected','reason'=>$error->getMessage()):
       array('status'=>'failed','error_type'=>get_class($error),'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   }
-  if(($kind??null)==='recovery.session.issue'&&($result['status']??null)==='failed'&&
+  if(in_array(($kind??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue'),true)&&($result['status']??null)==='failed'&&
     $error instanceof AphrontQueryException&&is_int($error->getCode())&&$error->getCode()>=0&&$error->getCode()<=65535){
     // Exception code only; a native SchemaException may legitimately have zero.
     $result['query_code']=$error->getCode();
@@ -643,7 +647,7 @@ try {
     if (class_exists('LiskDAO',false)) { LiskDAO::closeAllConnections(); }
     if ($proof!==null) { $proof->close(); }
   } catch (Throwable $cleanup) {
-    if(($kind??null)==='recovery.session.issue'){
+    if(in_array(($kind??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue'),true)){
       // Preserve an original failed child location if cleanup also fails.
       if(($result['status']??null)!=='failed'||!isset($result['source_file'],$result['source_line'])){
         $result=array('status'=>'failed','error_type'=>get_class($cleanup),

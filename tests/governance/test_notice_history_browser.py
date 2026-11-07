@@ -66,3 +66,33 @@ class NoticeHistoryBrowser(unittest.TestCase):
      else:bad['browser_proved_by_preparation']=True
      path.write_text(json.dumps(bad))
     self.assertFalse(self.php(code),mutation)
+
+class QueueQuiescence(unittest.TestCase):
+ def test_actual_keeper_owned_process_shutdown_and_ack(self):
+  # Execute both real PHP functions; only the fixture identity is a collaborator.
+  for fault in ('none','wrong-owner','hardlink','fifo','bad-storage','ack-write'):
+   code=r'''require $argv[1].'/support/governance/notification/notice-history-browser.php';
+require $argv[1].'/support/governance/completion/pipeline-gorge.php';
+$owner=str_repeat('a',64);$dir=sys_get_temp_dir().'/phorge-private-mail-wire-'.bin2hex(random_bytes(12));mkdir($dir,0700);$dir=realpath($dir);
+$service=sys_get_temp_dir().'/governance-service-'.bin2hex(random_bytes(12));mkdir($service,0700);file_put_contents($service.'/owner',$owner);
+foreach(['owner','history-queue-quiesce']as$n){file_put_contents($dir.'/'.$n,$owner);chmod($dir.'/'.$n,0600);}
+$mode=$argv[2];if($mode==='wrong-owner')file_put_contents($dir.'/history-queue-quiesce',str_repeat('b',64));
+if($mode==='hardlink')link($dir.'/history-queue-quiesce',$dir.'/extra');
+if($mode==='fifo'){unlink($dir.'/history-queue-quiesce');posix_mkfifo($dir.'/history-queue-quiesce',0600);}
+putenv('PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256='.str_repeat('c',64));putenv('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION='.str_repeat('d',40));
+$p=proc_open([PHP_BINARY,'-r','usleep(10000000);'],[['pipe','r'],['file','/dev/null','w'],['file','/dev/null','w']],$pipes);
+fclose($pipes[0]);$pid=proc_get_status($p)['pid'];$queue=['kind'=>'taskqueue','binary_sha256'=>str_repeat('c',64),'process'=>$p,'private'=>$service,'nonce'=>$mode==='bad-storage'?'wrong':$owner];
+$f=new class{function assertOwned(){}};$cleanup=[];$ack=null;$failed=false;
+try{governance_notice_history_queue_quiesce($f,$dir,$owner,$queue,$cleanup,function($n,$v)use(&$ack,$mode){if($mode==='ack-write')throw new Exception('owned fault');$ack=[$n,$v];});}catch(Throwable$e){$failed=true;}
+$null=$queue===null;$stopped=!is_resource($p);if(is_resource($p)){proc_terminate($p,9);proc_close($p);}
+$out=['failed'=>$failed,'ack'=>$ack!==null,'queue_null'=>$null,'stopped'=>$stopped,'proof'=>isset($cleanup['queue']),'SQL_executed'=>false];
+foreach(glob($dir.'/*')as$n)unlink($n);rmdir($dir);if(is_dir($service)){unlink($service.'/owner');rmdir($service);}echo json_encode($out);
+'''
+   v=subprocess.run(['php','-r',code,str(ROOT),fault],capture_output=True,timeout=5)
+   self.assertEqual(v.returncode,0,v.stderr);result=json.loads(v.stdout)
+   self.assertEqual(result['failed'],fault!='none');self.assertEqual(result['ack'],fault=='none');self.assertFalse(result['SQL_executed'])
+   if fault in ('none','ack-write'):self.assertTrue(result['queue_null']);self.assertTrue(result['proof']);self.assertTrue(result['stopped'])
+ def test_original_default_hold_path_and_history_gate_order(self):
+  s=(ROOT/'support/governance/notification/notice-wire-hold.php').read_text()
+  self.assertIn('$browser!==null&&!$history_queue_quiesced',s)
+  self.assertLess(s.index("notice_history_queue_not_quiesced"),s.index('SELECT COUNT(*) n FROM information_schema.PROCESSLIST'))

@@ -1,0 +1,14 @@
+{
+  "schema": "n08-borrowed-owner-source-candidate-v1",
+  "source_sha256": {
+    "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php": "baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f",
+    "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php": "a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd"
+  },
+  "runtime_certified": false,
+  "physical_SQL_cases_executed": false,
+  "production_observer_factory_available": false,
+  "business_submit_review_integration_proved": false,
+  "all_sources_complete": false,
+  "restoration_authorized": false,
+  "execution_blocked": true
+}

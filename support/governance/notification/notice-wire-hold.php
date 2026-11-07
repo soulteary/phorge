@@ -18,7 +18,7 @@ function governance_notice_wire_hold($fixture,callable $check,?callable $prepare
   $lease=getenv('PHORGE_GOVERNANCE_PRIVATE_MAIL_HOLD_SECONDS');
   if(!is_string($lease)||!preg_match('/\A[1-9][0-9]{2,3}\z/D',$lease)||(int)$lease<120||(int)$lease>1800){throw new RuntimeException('notice_wire_lease_refused');}
   $write=static function($name,array$value)use($directory){
-    if(!in_array($name,array('router.json','notice.json','notice-control.json','ready.json','history-browser.json'),true)||file_exists($directory.'/'.$name)){
+    if(!in_array($name,array('router.json','notice.json','notice-control.json','ready.json','history-browser.json','history-queue-quiesced.json'),true)||file_exists($directory.'/'.$name)){
       throw new RuntimeException('notice_wire_manifest_exists');}
     $path=$directory.'/.notice-write-'.bin2hex(random_bytes(12));$stream=fopen($path,'x');
     if(!$stream){throw new RuntimeException('notice_wire_manifest_refused');}
@@ -121,10 +121,15 @@ function governance_notice_wire_hold($fixture,callable $check,?callable $prepare
       'capture_binary_sha256'=>$sink['binary_sha256'],'capture_version_required'=>'v0.14.0',
       'expected_destination'=>$email->getAddress(),'native_source_only'=>true,'real_delivery_proved_by_preparation'=>false));
     $check(true,'notice-wire-owned-parent-manifest-ready-before-any-daemon-or-mail-prepare');
-    $deadline=microtime(true)+(int)$lease;$released=false;
-    do{$fixture->assertOwned();$release=$directory.'/release';
+    $deadline=microtime(true)+(int)$lease;$released=false;$history_queue_quiesced=false;
+    do{$fixture->assertOwned();
+      if($browser!==null&&!$history_queue_quiesced&&(file_exists($directory.'/history-queue-quiesce')||is_link($directory.'/history-queue-quiesce'))){
+        governance_notice_history_queue_quiesce($fixture,$directory,$owner,$queue,$cleanup,$write);$history_queue_quiesced=true;
+      }
+      $release=$directory.'/release';
       if(is_file($release)&&!is_link($release)&&(fileperms($release)&0777)===0600&&filesize($release)===64&&hash_equals($owner,file_get_contents($release))){
         if($browser!==null){
+          if($history_queue_quiesced!==true){throw new RuntimeException('notice_history_queue_not_quiesced');}
           $writer=$fixture->getWriterConfig();$query=$GLOBALS['control']->prepare('SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE USER=?');
           $name=$writer['user'];$query->bind_param('s',$name);try{$query->execute();$remaining=$query->get_result()->fetch_assoc();}finally{$query->close();}
           if(!is_array($remaining)||!in_array($remaining['n'],array(0,'0'),true)){throw new RuntimeException('notice_history_writer_SQL_not_zero');}
@@ -138,6 +143,7 @@ function governance_notice_wire_hold($fixture,callable $check,?callable $prepare
     $check(true,'notice-wire-parent-release-observed');
     $result=array('committed_notice_events'=>1,'source_only_preparation'=>true,'automatic_relay_proved'=>false,
       'Go_daemon_proved'=>false,'SMTP_proved'=>false,'all_governance_producers_complete'=>false,'parent_release_observed'=>true);
+    if($browser!==null){$result['queue_quiesced_before_parent_release']=$history_queue_quiesced;}
   }catch(Throwable$error){$failure=$error;}
   finally{
     unset($scope);

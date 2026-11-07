@@ -30,6 +30,14 @@ PARTIAL_SOURCE_REVIEW_VERSION='n08-partial-source-review-v1'
 PARTIAL_SOURCE_REVIEW_COMMIT='1686fc4ca165f5cdb12e88ab0fe5b245d615e91d'
 PARTIAL_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryApplicationConfigFacts.php': '4a1a500648b69d714e49aad0a0b1fd44d463d8826b873881033d227cd5300a0b', 'src/infrastructure/governance/recovery/PhorgeRecoveryProjectSourceFacts.php': 'f3b0065ac240e32af80ce7f48096ef68791d8dcdb02dbba46f64b330e130fe6c', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php': 'dcf6226ee57ed303273a231e4c81f2505751e60a0e5a4c3701d2d703d7d45403', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php': '876eafed1c36c11006242587906419561b1688657f6494d90a2a25a0e29489cf', 'src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php': 'e905bf7f8a335440c7313575e28566d26aa83078e141bf3abb024aba8d5b49a7'}
 
+# Versioned isolated selected Session INSERT lease source delta; no SQL acceptance.
+SESSION_LEASE_SOURCE_REVIEW_VERSION='n08-native-session-lease-scoped-grants-source-v2'
+SESSION_LEASE_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': 'bf52343c21dffb2eb7fe257e59f023d1ad3f15eb33dc933e3bd4ab14d32e00db', 'src/infrastructure/governance/recovery/PhorgeGovernanceRecoveryConfigOptions.php': 'e00c3042bd8bc82fc80c798246ecf4c46ebcf900fb661a77e48ded5d61e1fac8'}
+
+# Explicit two-path candidate delta; not runtime/SQL certification.
+BORROWED_SOURCE_VERSION='n08-borrowed-owner-source-candidate-v1'
+BORROWED_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php': 'baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f', 'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': 'a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd'}
+
 def reviewed_partial_sources(root=ROOT):
  result={}
  for path,pin in PARTIAL_SOURCE_PINS.items():
@@ -66,9 +74,18 @@ def reviewed_sources():
   raw=(ROOT/path).read_bytes()
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('Workbench candidate source pin changed')
   result[path]=raw
+ for path,pin in SESSION_LEASE_SOURCE_PINS.items():
+  if path in BORROWED_SOURCE_PINS:continue
+  raw=(ROOT/path).read_bytes()
+  if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('Session lease candidate source pin changed')
+  result[path]=raw
+ for path,pin in BORROWED_SOURCE_PINS.items():
+  raw=(ROOT/path).read_bytes()
+  if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('Borrowed owner candidate source pin changed')
+  result[path]=raw
  return result
 def validate_notice_product_delta(changed,current,frozen,baseline_map):
- allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)
+ allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
  if set(changed)!=allowed or set(current)!=allowed:raise ValueError('unreviewed notice product delta')
  for path in allowed-{'src/__phutil_library_map__.php'}:
   if current[path]!=frozen[path]:raise ValueError('reviewed config/RR source bytes changed')
@@ -162,7 +179,7 @@ class NativeAdminWire(unittest.TestCase):
   # byte; never turn this historical fixture contract into a blanket new base.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
   config='ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
   changed=set(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only',baseline,'--','src','resources'],text=True).splitlines())
   current={path:(ROOT/path).read_bytes()for path in allowed}
   frozen=reviewed_sources()
@@ -173,7 +190,7 @@ class NativeAdminWire(unittest.TestCase):
   # Use the existing fixed baseline and actual validator; documentation is an
   # exact reviewed source addition, never a suffix or directory exclusion.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
   current={path:(ROOT/path).read_bytes()for path in allowed};frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
   self.assertEqual(WORKBENCH_CANDIDATE_SOURCE_PINS[doc],hashlib.sha256(current[doc]).hexdigest())
@@ -184,7 +201,7 @@ class NativeAdminWire(unittest.TestCase):
   with self.assertRaises(ValueError):validate_notice_product_delta(allowed|{foreign},bad,frozen,old_map)
  def test_actual_product_validator_rejects_unreviewed_and_corrupt_deltas(self):
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10';config='ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
   current={path:(ROOT/path).read_bytes()for path in allowed}
   frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
@@ -213,3 +230,15 @@ class NativeAdminWire(unittest.TestCase):
   bad=dict(current);bad['src/__phutil_library_map__.php']+=b"    'ExtraClass' => 'extra.php',\n"
   with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad,frozen,old_map)
 if __name__=='__main__':unittest.main()
+
+class SessionLeaseExactSourcePins(unittest.TestCase):
+ def test_both_new_reviewed_pins_refuse_corruption_and_unknown_product(self):
+  baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
+  current={path:(ROOT/path).read_bytes()for path in allowed};frozen=reviewed_sources()
+  old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
+  for path in SESSION_LEASE_SOURCE_PINS:
+   bad=dict(current);bad[path]+=b'corrupt'
+   with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad,frozen,old_map)
+  bad=dict(current);bad['src/infrastructure/governance/recovery/Unknown.php']=b'unknown'
+  with self.assertRaises(ValueError):validate_notice_product_delta(set(bad),bad,frozen,old_map)
