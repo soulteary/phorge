@@ -535,6 +535,7 @@ jobs:
           path: ${{ runner.temp }}/governance-session-producer-lease
           if-no-files-found: error
       - name: Verify fresh borrowed native Session owner after Session producer lease
+        id: borrowed-owner
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
@@ -551,7 +552,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
-          php support/governance/native-organization/test-native-organization-mysql.php --session-borrowed-owner > "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json"
+          php support/governance/native-organization/test-native-organization-mysql.php --session-borrowed-owner > "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-borrowed-session-failure"; then if python3 -B scripts/governance/project_borrowed_failure.py --receipt "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" > "$RUNNER_TEMP/governance-borrowed-session-failure/diagnostic.json"; then cat "$RUNNER_TEMP/governance-borrowed-session-failure/diagnostic.json" >&2; echo "diagnostic_owned=true" >> "$GITHUB_OUTPUT"; fi; fi; exit "$native_status"; }
           python3 -B scripts/governance/check_recovery_borrowed_session.py --receipt "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json" "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.json"
       - uses: actions/upload-artifact@v4
@@ -559,6 +560,12 @@ jobs:
         with:
           name: governance-borrowed-session-owner-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-borrowed-session-owner
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.borrowed-owner.outputs.diagnostic_owned == 'true'
+        with:
+          name: governance-borrowed-session-failure-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-borrowed-session-failure/diagnostic.json
           if-no-files-found: error
       - name: Verify fresh native organization approval workbench after File source facts
         run: |

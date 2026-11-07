@@ -345,6 +345,7 @@ try {
   if(isset($GLOBALS['governance_private_business_child_failure'])){
     $failure['child_diagnostic']=$GLOBALS['governance_private_business_child_failure'];
   }
+  if($phase==='session-borrowed-owner'&&isset($GLOBALS['governance_borrowed_worker_diagnostic'])){$failure['borrowed_worker']=$GLOBALS['governance_borrowed_worker_diagnostic'];}
   if($native_rr&&isset($GLOBALS['governance_native_rr_failure'])){$failure['native_rr_child']=$GLOBALS['governance_native_rr_failure'];}
 } finally {
   $borrowed_unknown=$phase==='session-borrowed-owner'&&(!function_exists('governance_recovery_borrowed_cleanup_ready')||!governance_recovery_borrowed_cleanup_ready());

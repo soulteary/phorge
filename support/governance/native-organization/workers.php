@@ -4,7 +4,7 @@
 $GLOBALS['governance_native_workers']=array();
 
 function governance_native_worker_atomic($path,$name,$value) {
-  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release','producer-ready.json','producer-continue','covering-control-ready.json','fence-continue'),true)) {
+  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release','producer-ready.json','producer-identity-started.json','producer-continue','covering-control-ready.json','fence-continue'),true)) {
     throw new RuntimeException('native_worker_file_refused');
   }
   $temporary=$path.'/.write-'.bin2hex(random_bytes(8));

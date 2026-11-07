@@ -97,3 +97,22 @@ CLI exit. Existing phases retain their original cleanup behavior. No mapper entr
 mutation/temporary-token producer coverage, grant/DDL lease, physical fault
 matrix, restore lineage, File/Task shared snapshot, all13 completion and native
 enable remain blocked.
+
+## Failure-only worker observation
+
+A missing producer-ready marker proves neither an INSERT wait nor its cause.
+The worker publishes one fixed identity-started record immediately before its
+unchanged native current-identity read. On the original eight-second failure,
+the parent captures only that owned record and a bounded typed result record,
+then issues one bounded observer query for locks against this exact parent.
+Only fixed child location/type fields and User/epoch/Session wait booleans leave
+the private fixture. There is no SQL text, raw message, credential, identity or
+worker directory upload. The original exception is rethrown even when the
+observation is unavailable. Native ordering, waits, cleanup and permit gates
+remain unchanged; observation does not establish a root cause or a SQL6 pass.
+
+The optional failure artifact is produced by the pinned captured PHP projector
+from the failed receipt. Exclusive directory creation and a success output flag
+gate this single safe JSON upload; foreign directories/symlinks never set it.
+The normal success artifact remains success-only. This observation successor
+requires fresh source review and physical execution evidence.

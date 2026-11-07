@@ -382,6 +382,7 @@ try {
     try {
       // The fixture chooses actor before subject. Do not prelock its PRIMARY:
       // the actual SessionEngine -> DAO INSERT fence must cause its own wait.
+      governance_native_worker_atomic($path,'producer-identity-started.json',array('status'=>'identity-started','mysql_thread'=>$thread));
       $snapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
       if(!$snapshot->isSystemAdmin()){throw new RuntimeException('recovery_restore_admin_required');}
       governance_native_worker_atomic($path,'producer-ready.json',array('status'=>'producer-ready','mysql_thread'=>$thread));

@@ -29,7 +29,14 @@ function governance_recovery_borrowed_session_cases($fixture,mysqli $control,arr
           $returned=$store->invoke(null,$context,array($subject->getPHID()),static function($conn)use($fixture,$observer,$subject,$actor,$ending,$record,&$handles,&$handle,&$before,$rollback){
             $before=PhorgeRecoveryRestoreService::captureBorrowedSessionFacts($conn,$subject->getPHID());
             $handle=governance_native_start_worker($fixture,array('action'=>'recovery.session.issue','subject'=>$subject->getPHID(),'token'=>$actor['token']));$handles[]=$handle;
-            governance_native_wait_session_producer_ready($handle);governance_native_continue_session_producer($handle);
+            try{governance_native_wait_session_producer_ready($handle);}
+            catch(Throwable$error){
+              require_once __DIR__.'/borrowed-session-diagnostic.php';
+              try{$GLOBALS['governance_borrowed_worker_diagnostic']=governance_recovery_borrowed_worker_diagnostic($handle,$observer,$conn,$fixture->getNamespace());}
+              catch(Throwable$diagnostic){$GLOBALS['governance_borrowed_worker_diagnostic']=array('available'=>false);}
+              throw$error;
+            }
+            governance_native_continue_session_producer($handle);
             governance_native_wait_session_covering_control($handle);governance_native_continue_session_fence($handle);
             $writer=queryfx_one($conn,'SELECT CAST(CONNECTION_ID() AS CHAR) id')['id'];$deadline=microtime(true)+5;$waiting=false;
             do{
