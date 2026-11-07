@@ -31,7 +31,7 @@ try {
   $keys=array_keys($payload); sort($keys);
   $wanted_keys=array('action','config','directory_dev','directory_ino','fixture_nonce','media_issuer','owner_token','source_sha256');
   if(in_array(($payload['action']['action']??null),array('measurement.api-token-auth','recovery.oauth.authenticate'),true)){$wanted_keys[]='measurement_file';sort($wanted_keys);}
-  if(in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)){$wanted_keys[]='recovery_incarnation';sort($wanted_keys);
+  if(in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.conduit.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)){$wanted_keys[]='recovery_incarnation';sort($wanted_keys);
     if(!is_string($payload['recovery_incarnation']??null)||!preg_match('/\A[a-f0-9]{32}\z/D',$payload['recovery_incarnation'])){throw new RuntimeException('native_worker_recovery_incarnation_refused');}}
   if ($keys!==$wanted_keys ||
       $payload['directory_dev']!==$stat['dev'] || $payload['directory_ino']!==$stat['ino'] ||
@@ -132,8 +132,8 @@ try {
     'governance.recovery-stop-ledger.enabled'=>in_array(($payload['action']['action']??null),array('recovery.stop.record','recovery.stop.history'),true),
     'governance.notifications.enabled'=>($payload['action']['action']??null)==='org.notice.create',
     'governance.private-mail.enabled'=>in_array(($payload['action']['action']??null),array('org.notice.create','legalpad.verify','legalpad.observe'),true),'governance.organization.enabled'=>true,'governance.media-exchange.enabled'=>true,
-    'governance.account-recovery.enabled'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true),
-    'governance.account-recovery.incarnation'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)?$payload['recovery_incarnation']:null,
+    'governance.account-recovery.enabled'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.conduit.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true),
+    'governance.account-recovery.incarnation'=>in_array(($payload['action']['action']??null),array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.conduit.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)?$payload['recovery_incarnation']:null,
     'governance.media-exchange.issuer-key'=>$payload['media_issuer']['key'],
     'governance.media-exchange.incarnation'=>$payload['media_issuer']['incarnation'],
     'projects.default-navigation'=>'flat','project.history-state'=>'off','project.workspace-mode'=>'native',
@@ -364,6 +364,9 @@ try {
     $stored=queryfx_one($conn,'SELECT phid FROM %R WHERE id=%d',new PhabricatorPolicy(),$policy->getID());
     if(!$stored||$stored['phid']!==$policy->getPHID()){throw new RuntimeException('native_policy_producer_result_unknown');}
     $result=array('status'=>'committed','native_policy_digest'=>hash('sha256',$stored['phid']),'restoration_authorized'=>false);
+  }else if($kind==='recovery.conduit.borrowed-owner.issue'){
+    require_once dirname(__DIR__).'/recovery/conduit-producer.php';
+    $result=governance_recovery_conduit_native_producer($conn,$action,$path,$payload,$thread);
   }else if($kind==='recovery.session.borrowed-owner.issue'){
     require_once dirname(__DIR__).'/recovery/borrowed-session-producer.php';
     $result=governance_recovery_borrowed_session_native_producer($conn,$action,$path,$payload,$thread);
@@ -636,6 +639,10 @@ try {
       if(!$released){$result=array('status'=>'failed','error_type'=>'RuntimeException','reason'=>'native_legalpad_observation_release_timeout');}
     }
   }catch(Throwable$error){$result=array('status'=>'failed','error_type'=>'RuntimeException','reason'=>'native_legalpad_observation_handshake_failed');}
+  $conduit_cleanup_known=($kind??null)!=='recovery.conduit.borrowed-owner.issue'||
+    (($result['status']??null)==='committed'&&class_exists('PhorgeRecoveryConduitProducerFence',false)&&
+    (new ReflectionProperty(PhorgeRecoveryConduitProducerFence::class,'retained'))->getValue()===array());
+  if($conduit_cleanup_known){
   try {
     if (class_exists('LiskDAO',false)) {
       foreach ((new ReflectionProperty(LiskDAO::class,'connections'))->getValue() as $connection) {
@@ -656,6 +663,11 @@ try {
           $cleanup->getCode()>=0&&$cleanup->getCode()<=65535){$result['query_code']=$cleanup->getCode();}
       }
     }else{$result=array('status'=>'failed','error_type'=>'RuntimeException','reason'=>'native_worker_cleanup_failed');}
+  }
+  }else{
+    // No explicit pool rollback/close or guard/proof teardown on unknown NEW
+    // producer state. PHP shutdown may naturally close; not a live lease claim.
+    if(($result['status']??null)==='committed'){$result=array('status'=>'failed','error_type'=>'RuntimeException','reason'=>'native_conduit_terminal_unproved');}
   }
   if ($scope_owned && function_exists('governance_native_worker_atomic')) {
     governance_native_worker_atomic($path,'result.json',$result);

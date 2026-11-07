@@ -25,8 +25,20 @@ class SessionActorOrder(unittest.TestCase):
  def test_nineteen_source_map_composes_reviewed_focused_fence_and_current_driver(self):
   path='scripts/governance/check_recovery_session_lease.py';old=ast.parse(subprocess.check_output(['git','-C',str(ROOT),'show','586f940370431a3f2a0d1cb7240c9e9803f7fdca:'+path]).decode());new=ast.parse((ROOT/path).read_text())
   def pins(tree):return next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(x,ast.Name)and x.id=='SOURCE_INPUTS'for x in n.targets))
-  a=pins(old);b=pins(new);self.assertEqual(len(a),19);self.assertEqual(set(a),set(b));self.assertEqual(set(n for n in a if a[n]!=b[n]),{'support/governance/recovery/session-lease-focused.php','src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php','support/governance/native-organization/test-native-organization-mysql.php','support/governance/native-organization/native-worker.php','support/governance/native-organization/workers.php'});
+  a=pins(old);b=pins(new);self.assertEqual(len(a),19);self.assertEqual(set(a),set(b));self.assertEqual(set(n for n in a if a[n]!=b[n]),{'src/applications/auth/storage/PhabricatorAuthSession.php','src/__phutil_library_map__.php','support/governance/recovery/session-lease-focused.php','src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php','support/governance/native-organization/test-native-organization-mysql.php','support/governance/native-organization/native-worker.php','support/governance/native-organization/workers.php'});
   for relative,revision in [('support/governance/recovery/session-lease-focused.php','8805c4aa5f533605c1e0004a6691bda458f35202'),('src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php','2ebe6ea2140a836c53497b626f0209be371ab930')]:
-   self.assertEqual(b[relative],hashlib.sha256(subprocess.check_output(['git','-C',str(ROOT),'show',revision+':'+relative])).hexdigest())
+   historical=subprocess.check_output(['git','-C',str(ROOT),'show',revision+':'+relative])
+   if relative.endswith('/PhorgeRecoverySessionProducerFence.php'):
+    import sys
+    sys.path.insert(0,str(ROOT/'scripts/governance'))
+    import recovery_conduit_source_delta as conduit_delta
+    raw=(ROOT/relative).read_bytes();self.assertEqual(b[relative],hashlib.sha256(raw).hexdigest());self.assertEqual(conduit_delta.reduce_owner(relative,raw),historical)
+   else:self.assertEqual(b[relative],hashlib.sha256(historical).hexdigest())
+  relative='src/applications/auth/storage/PhabricatorAuthSession.php';raw=(ROOT/relative).read_bytes()
+  self.assertEqual(b[relative],hashlib.sha256(raw).hexdigest());self.assertEqual(a[relative],hashlib.sha256(conduit_delta.reduce_owner(relative,raw)).hexdigest())
+  generated=(ROOT/'src/__phutil_library_map__.php').read_bytes();reduced=generated
+  for line in [b"    'PhorgeRecoveryConduitProducerFence' => 'infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php',\n",b"    'PhorgeRecoveryConduitProducerFence' => 'Phobject',\n"]:
+   self.assertEqual(1,reduced.count(line));reduced=reduced.replace(line,b'',1)
+  self.assertEqual(hashlib.sha256(reduced).hexdigest(),a['src/__phutil_library_map__.php'])
   relative='support/governance/native-organization/test-native-organization-mysql.php';self.assertEqual(b[relative],hashlib.sha256((ROOT/relative).read_bytes()).hexdigest());self.assertEqual(b['support/governance/recovery/session-lease-focused.php'],hashlib.sha256((ROOT/'support/governance/recovery/session-lease-focused.php').read_bytes()).hexdigest())
 if __name__=='__main__':unittest.main()

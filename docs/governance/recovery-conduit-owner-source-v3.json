@@ -1,0 +1,18 @@
+{
+  "schema": "n08-conduit-owner-source-candidate-v3",
+  "source_sha256": {
+    "src/applications/conduit/storage/PhabricatorConduitToken.php": "6979f97a01b5c24d1d205a23fcb0397270c9159a98e302267cbce09fbf5593e1",
+    "src/applications/auth/storage/PhabricatorAuthSession.php": "8e9efa7fa53676ec28e13d8b3e02a99096894ebf05f53fdd6366d9199d212a56",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php": "cc3215429689c88c19758cc510315e39821ccd3e0a6d63e5a5dbd45e3dfd8b58",
+    "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php": "16efac7f44ca6cfe7338d672d5cc20c7ada81632ff19599e3b7dc7ba6291811f",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php": "3ed39e16e9c4243019404bfe3030b55aeb49666247938c24c943df182f8eb9a8",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php": "e8edd9f998987605b4102e66ef7ea05b8574ee9b6c1615c1158ca1c30885932d"
+  },
+  "runtime_certified": false,
+  "physical_SQL_cases_executed": false,
+  "production_observer_factory_available": false,
+  "business_submit_review_integration_proved": false,
+  "all_sources_complete": false,
+  "restoration_authorized": false,
+  "execution_blocked": true
+}

@@ -51,6 +51,7 @@ final class PhorgeRecoveryRestoreService extends Phobject {
 
   private static function planning($id, $operation=false) {
     $conn=(new PhabricatorUser())->establishConnection('w');
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($conn);}
     $row=$operation
       ? queryfx_one($conn,'SELECT r.subjectPHID,r.requesterPHID,r.approverPHID '.
         'FROM recovery_restore_operation o JOIN recovery_restore_request r ON r.requestID=o.requestID '.
@@ -90,6 +91,16 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       throw new RuntimeException('recovery_borrowed_production_provider_unavailable');}
     return$owner['participant']->borrowedCapture($subject);
   }
+  public static function assertConduitProducerOwnerAvailable($writer) {
+    if(self::$borrowedOwner!==null&&self::$borrowedOwner['writer']===$writer){
+      throw new RuntimeException('recovery_conduit_borrowed_owner_reserved');}
+  }
+  public static function captureBorrowedConduitFacts(AphrontDatabaseConnection $writer,$subject) {
+    $owner=self::$borrowedOwner;
+    if(!is_array($owner)||$owner['writer']!==$writer||$owner['participant']===null){
+      throw new RuntimeException('recovery_borrowed_production_provider_unavailable');}
+    return$owner['participant']->borrowedCaptureConduit($subject);
+  }
   private static function prepareBorrowedOwner(AphrontDatabaseConnection $writer) {
     if(self::$borrowedObserver===null){return;}
     if(self::$borrowedOwner!==null){throw new RuntimeException('recovery_borrowed_owner_reentry');}
@@ -121,6 +132,7 @@ final class PhorgeRecoveryRestoreService extends Phobject {
     if(self::$borrowedOwner!==null){throw new RuntimeException('recovery_borrowed_owner_quarantined');}
     $profile=PhorgeRecoveryRestoreProfile::assertCurrent();
     $user=new PhabricatorUser(); $conn=$user->establishConnection('w');
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($conn);}
     if (get_class($conn)!==AphrontMySQLiDatabaseConnection::class || $conn->isInsideTransaction() ||
         $conn->isReadLocking() || $conn->isWriteLocking()) {
       throw new RuntimeException('recovery_restore_outer_transaction_refused');
