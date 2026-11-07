@@ -10,7 +10,7 @@ class Gate(unittest.TestCase):
   d=native_template.template();d.update(batch='native-calendar-revocation-measurement-v1',scope='owned-native-calendar-revocation-measurement-no-SMTP-v1',native=gate.summary(REVISION,QUEUE),checks=sorted(gate.obligations()),check_count=len(gate.obligations()),worker_cleanup={'private_directories_removed':0,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':0},file_service_cleanup={'kind':'file','binary_sha256':FILE,'process_stopped':True,'private_storage_removed':True},cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True});d['native']['event']=Observer().actual();return d
  def validate(self,d):return gate.validate(d,source_revision=REVISION,file_digest=FILE,queue_digest=QUEUE)
  def test_exact_sources_and_callable_case_inventory(self):
-  self.assertEqual(17,len(gate.sources()));p=subprocess.run(['php','-r','require $argv[1];echo json_encode(governance_calendar_revocation_obligations());',str(ROOT/'support/governance/revocation-measurement/calendar-cases.php')],capture_output=True,text=True,check=True);self.assertEqual(gate.CASES,set(json.loads(p.stdout)))
+  self.assertEqual(18,len(gate.sources()));p=subprocess.run(['php','-r','require $argv[1];echo json_encode(governance_calendar_revocation_obligations());',str(ROOT/'support/governance/revocation-measurement/calendar-cases.php')],capture_output=True,text=True,check=True);self.assertEqual(gate.CASES,set(json.loads(p.stdout)))
  def test_valid_synthetic_receipt_still_never_accepts_measurement(self):
   r=self.validate(self.template());self.assertTrue(r['passed']);self.assertFalse(r['measurement_acceptance']);self.assertEqual('external-execution-attestation-required',r['producer_attestation'])
  def test_bad_source_boot_timing_cleanup_outcome_or_extra_field_refused(self):
@@ -50,3 +50,8 @@ class Gate(unittest.TestCase):
   with patch.object(gate.source_reader,'read_source_checked',side_effect=changed):
    with self.assertRaises(ValueError):self.validate(d)
   self.assertEqual(2,len(calls))
+
+ def test_actual_CLI_phase_loads_real_empty_worker_registry(self):
+  source=(ROOT/'support/governance/native-organization/test-calendar-revocation-measurement.php').read_text();phase=source.split("}elseif($phase==='calendar-reminders'){",1)[1].split("}elseif",1)[0];self.assertIn("require_once __DIR__.'/workers.php';",phase)
+  code="require $argv[1];echo json_encode(governance_native_cleanup_workers());"
+  p=subprocess.run(['php','-r',code,str(ROOT/'support/governance/native-organization/workers.php')],capture_output=True,text=True,check=True);self.assertEqual({'private_directories_removed':0,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':0},json.loads(p.stdout))

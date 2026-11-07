@@ -8,7 +8,7 @@ function governance_calendar_revocation_measurement_cases($fixture,callable $che
   $fixture->assertOwned();require_once __DIR__.'/calendar-observer.php';
   require_once dirname(__DIR__).'/notification/calendar-reminder-cases.php';
   require_once dirname(__DIR__).'/notification/calendar-wire-producer.php';
-  $queue=null;$scope=null;$event=null;$cleanup=null;
+  $queue=null;$scope=null;$event=null;$cleanup=null;$primary=null;
   try{
     $queue=governance_completion_start_gorge($fixture,'taskqueue',$check);
     $scope=governance_calendar_reminder_scope($queue);$suffix=substr($fixture->getNamespace(),-12);
@@ -25,7 +25,13 @@ function governance_calendar_revocation_measurement_cases($fixture,callable $che
     $check($outcomes===array('allowed','allowed','denied','allowed','denied'),'calendar-measurement-current-source-revocation-observed');
     $check($event['persisted_uninvited_observed']===true&&$event['attempts'][1]['finish_ns']<=$event['operation_start_ns']&&$event['commit_confirmed_return_ns']<=$event['attempts'][2]['start_ns'],'calendar-measurement-serial-clock-and-persisted-transition');
     $check($event['attempts'][3]['label']==='B'&&$event['attempts'][3]['outcome']==='allowed','calendar-measurement-positive-control-B-retained');
-  }finally{unset($scope);if($queue!==null){$cleanup=governance_completion_stop_gorge($queue);}}
+  }catch(Throwable$error){$primary=$error;throw$error;}
+  finally{
+    $errors=$primary===null?array():array('primary'=>$primary);
+    try{unset($scope);}catch(Throwable$error){$errors['scope_cleanup']=$error;}
+    if($queue!==null){try{$cleanup=governance_completion_stop_gorge($queue);}catch(Throwable$error){$errors['queue_cleanup']=$error;}}
+    if(count($errors)>($primary===null?0:1)){throw new PhutilAggregateException('calendar_measurement_cleanup_failed',$errors);}
+  }
   $check(is_array($cleanup)&&$cleanup['process_stopped']===true&&$cleanup['private_storage_removed']===true,'calendar-measurement-owned-queue-cleanup');
   return array('profile'=>'native-calendar-revocation-measurement-v1','event'=>$event,'queue_cleanup'=>$cleanup,
     'measurement_acceptance'=>false,'SLA_proved'=>false,'physical_SMTP_proved'=>false,'convergence_proved'=>false,'restoration_authorized'=>false);

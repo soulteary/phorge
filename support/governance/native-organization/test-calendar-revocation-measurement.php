@@ -214,6 +214,7 @@ try {
     $stage='owned-calendar-reminder-wire-hold';require_once dirname(__DIR__).'/notification/calendar-wire-hold.php';
     $native=governance_calendar_wire_hold($fixture,$check);
   }elseif($phase==='calendar-reminders'){
+    require_once __DIR__.'/workers.php'; // Real empty owned registry, never a fabricated cleanup receipt.
     require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
     $stage='owned-real-gorge-file-service';$file_service=governance_completion_start_gorge($fixture,'file',$check);
     $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],'gorge.file.token'=>$file_service['token']));
