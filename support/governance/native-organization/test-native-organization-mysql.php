@@ -5,7 +5,7 @@ require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phases=array('--file-parent-policy'=>'file-parent-policy','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
-  '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
+  '--http-wire-remote-hold'=>'http-wire-remote-hold','--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-history-wire-hold'=>'governance-notice-history-wire-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
   (count($arguments)===1&&isset($phases[$arguments[0]])?$phases[$arguments[0]]:'invalid');
@@ -20,7 +20,8 @@ $credential_concurrency=$phase==='api-credential-concurrency';
 $private_mail_pending=$phase==='private-mail-pending-hold';
 $private_mail_wire=$phase==='private-mail-wire-hold'||$private_mail_pending||$notice_wire;
 $legacy_compatibility=$phase==='legacy-sql-compatibility';
-$wire_hold=$phase==='http-wire-hold';
+$media_remote=$phase==='http-wire-remote-hold';
+$wire_hold=$phase==='http-wire-hold'||$media_remote;
 $fixture = null;
 $control = null;
 $environment_state = null;
@@ -291,7 +292,9 @@ try {
     }elseif($phase==='notice-admin-grant'){
       require_once dirname(__DIR__).'/notification/notice-admin-grant-cases.php';$native=governance_notice_admin_grant_cases($fixture,$check);
     }elseif($wire_hold){
-      require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);
+      require_once __DIR__.'/media-wire-fixture.php';
+      if($media_remote){require_once __DIR__.'/media-remote-profile.php';$native=governance_native_media_wire_hold($fixture,$check,governance_media_remote_profile());}
+      else{$native=governance_native_media_wire_hold($fixture,$check);}
     }elseif($private_mail_wire){
       $stage='private-native-mail-wire-fixture';
       if($notice_admin_wire){require_once dirname(__DIR__).'/notification/notice-admin-wire-hold.php';$native=governance_notice_admin_wire_hold($fixture,$check);}
@@ -395,6 +398,9 @@ try {
   if($native_rr&&($GLOBALS['governance_native_rr_cleanup']['cleanup_proved']??null)!==true){
     $cleanup_failures[]=array('stage'=>'native-rr-child-or-SQL-session-cleanup-unproved','error_type'=>'RuntimeException');
     // Retain owned schemas/principals for external owner reconciliation; never drop around unknown live child locks.
+  }elseif(($media_remote??false)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){
+    $cleanup_failures[]=array('stage'=>'media-remote-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');
+    // Retain this exact remote-only fixture until independent writerSQL0.
   }elseif(($workbench_http||$notice_history)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){
     $cleanup_failures[]=array('stage'=>'workbench-http-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');
     // Retain ownership/schema evidence until the parent proves its server stopped.

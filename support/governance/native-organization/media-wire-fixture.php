@@ -1,7 +1,7 @@
 <?php
 
 /** Seed real native password login and hold owned schemas for parent-run TLS/CUA. */
-function governance_native_media_wire_hold($fixture,callable $check){
+function governance_native_media_wire_hold($fixture,callable $check,?array $remote=null){
   $fixture->assertOwned();$directory=getenv('PHORGE_GOVERNANCE_HTTP_FIXTURE_DIR');$owner=getenv('PHORGE_GOVERNANCE_HTTP_FIXTURE_OWNER');
   $transport_proof=getenv('PHORGE_GOVERNANCE_HTTP_TRANSPORT_PROOF');
   if(!is_string($transport_proof)||!preg_match('/\A[a-f0-9]{64}\z/',$transport_proof)){throw new RuntimeException('media_wire_transport_proof_refused');}
@@ -66,26 +66,39 @@ function governance_native_media_wire_hold($fixture,callable $check){
   $check($file->getStorageEngine()==='gorge'&&$png->getStorageEngine()==='gorge'&&$active->getStorageEngine()==='gorge',
     'wire-fixture-synthetic-private-and-active-bytes-stored-in-real-gorge');
   $app='https://app.media.localhost:'.$port;$files='https://files.media.localhost:'.$port;
+  if($remote!==null){governance_media_remote_validate_profile($remote);$app=$remote['app_origin'];$files=$remote['file_origin'];}
   $fixture_nonce=(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'ownerNonce'))->getValue($fixture);
   $key=PhabricatorEnv::getEnvConfig('governance.media-exchange.issuer-key');$inc=PhabricatorEnv::getEnvConfig('governance.media-exchange.incarnation');
   $write('issuer.json',array('governance.media-exchange.issuer-key'=>$key,'governance.media-exchange.incarnation'=>$inc));
-  $write('router.json',array('owner'=>$owner,'fixture_nonce'=>$fixture_nonce,'source_sha256'=>hash_file('sha256',dirname(__DIR__,3).'/resources/sql/quickstart.sql'),
+  $router=array('owner'=>$owner,'fixture_nonce'=>$fixture_nonce,'source_sha256'=>hash_file('sha256',dirname(__DIR__,3).'/resources/sql/quickstart.sql'),
     'transport_proof'=>$transport_proof,'writer'=>$fixture->getWriterConfig(),
     'issuer_key'=>$key,'issuer_incarnation'=>$inc,'app_origin'=>$app,'file_origin'=>$files,
     'gorge_file_uri'=>PhabricatorEnv::getEnvConfig('gorge.file.uri'),'gorge_file_token'=>PhabricatorEnv::getEnvConfig('gorge.file.token'),
-    'gorge_image_uri'=>$image_uri,'gorge_image_token'=>$image_token));
-  $write('fixture-ready.json',array('scope'=>'private-synthetic-native-password-browser-fixture','owner'=>$owner,
+    'gorge_image_uri'=>$image_uri,'gorge_image_token'=>$image_token);
+  if($remote!==null){$router['remote_origin_profile']=$remote;}
+  $write('router.json',$router);
+  $writer_close=null;if($remote!==null){
+    // Unknown native writer outcome must retain the fixture before first fallible close.
+    $GLOBALS['governance_workbench_http_cleanup_permitted']=false;LiskDAO::closeAllConnections();
+    $writer_close=$fixture->closeOwnedWriterConnectionForHTTP();
+    $check(($writer_close['owned_fixture_writer_connection_closed']??null)===true&&($writer_close['exact_original_thread_absent']??null)===true,'wire-remote-independent-fixture-writer-closed-before-ready');
+  }
+  $ready=array('scope'=>'private-synthetic-native-password-browser-fixture','owner'=>$owner,
     'app_origin'=>$app,'files_origin'=>$files,'login_uri'=>$app.$provider->getLoginURI(),'login_username'=>$user->getUsername(),'login_password'=>$password,
     'manual_authorize_uri'=>$app.'/auth/media/authorize/?path='.rawurlencode($path($file)),
     'native_image_page_uri'=>$app.'/F'.$png->getID(),'private_file_uri'=>$files.$path($file),
     'private_second_uri'=>$files.$path($second),'active_html_uri'=>$files.$path($active),'active_svg_uri'=>$files.$path($svg),
     'expected_content_sha256'=>hash('sha256',$text),'private_content_marker'=>$text,
-    'browser_session_preseeded'=>false,'otp_tested'=>false));
+    'browser_session_preseeded'=>false,'otp_tested'=>false);
+  if($remote!==null){$ready['remote_origin_profile']=$remote;$ready['fixture_writer_close_proof']=$writer_close;$ready['keeper_process_identity']=governance_media_remote_self_process_identity();}
+  $write('fixture-ready.json',$ready);
   $check(true,'wire-fixture-private-parent-manifest-written-no-public-login-bypass');
   $deadline=microtime(true)+$seconds;$released=false;
   while(microtime(true)<$deadline){
     $fixture->assertOwned();$release=$directory.'/release';
-    if(is_file($release)&&!is_link($release)&&(fileperms($release)&0777)===0600&&filesize($release)===64&&file_get_contents($release)===$owner){$released=true;break;}
+    if(is_file($release)&&!is_link($release)&&(fileperms($release)&0777)===0600&&filesize($release)===64&&file_get_contents($release)===$owner){
+      if($remote!==null){governance_media_remote_release_after_SQL_zero($fixture);}
+      $released=true;break;}
     usleep(200000);
   }
   if(!$released){throw new RuntimeException('media_wire_parent_lease_expired');}
