@@ -49,7 +49,7 @@ class CalendarSQLGateTests(unittest.TestCase):
     def test_actual_scoped_configuration_disables_unrelated_media_hooks_and_restores_parent(self):
         code = r"""require $argv[1].'/support/runtime/src/init/init-library.php';phutil_load_library($argv[1].'/src/');
 require $argv[1].'/support/governance/notification/calendar-reminder-cases.php';
-$values=array('governance.private-mail.enabled'=>false,'governance.media-exchange.enabled'=>true,
+$values=array('governance.private-mail.enabled'=>false,'phabricator.show-prototypes'=>false,'governance.media-exchange.enabled'=>true,
 'governance.media-exchange.http-enabled'=>true,'governance.organization.enabled'=>true,'governance.notifications.enabled'=>true,
 'gorge.taskqueue.owner'=>'phorge','gorge.taskqueue.uri'=>null,'gorge.taskqueue.token'=>null,
 'cluster.mailers'=>array(array('key'=>'unchanged-parent-sentinel')));
@@ -71,6 +71,9 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
         self.assertIs(value['added_one_scope'], True)
         self.assertIs(value['restored_stack_depth'], True)
         self.assertIs(value['during']['governance.private-mail.enabled'], True)
+        self.assertIs(value['before']['phabricator.show-prototypes'], False)
+        self.assertIs(value['during']['phabricator.show-prototypes'], True)
+        self.assertIs(value['after']['phabricator.show-prototypes'], False)
         for key in ('governance.media-exchange.enabled', 'governance.media-exchange.http-enabled',
                     'governance.organization.enabled', 'governance.notifications.enabled'):
             self.assertIs(value['during'][key], False)
@@ -215,6 +218,25 @@ echo json_encode(array('factory'=>$method->getName(),'public_static'=>$method->i
             'defined_in_native_class':True,'actual_class':'PhabricatorCalendarEvent',
             'host_matches':True,'space':None,'unsaved':True,'mysqli_init_disabled':True,
             'old_error':'Error'}, json.loads(result.stdout))
+
+
+class NativeCalendarApplicationGate(unittest.TestCase):
+    def test_actual_prototype_install_gate_explains_both_normal_queries_and_scope_restores_default(self):
+        code=r'''require $argv[1].'/support/runtime/src/init/init-library.php';phutil_load_library($argv[1].'/src/');require $argv[1].'/support/governance/notification/calendar-reminder-cases.php';
+$stack=new PhabricatorConfigStackSource();$stack->pushSource(new PhabricatorConfigDefaultSource());$stack->pushSource(new PhabricatorConfigDictionarySource(['governance.private-mail.enabled'=>false,'phabricator.show-prototypes'=>false]));
+(new ReflectionProperty(PhabricatorEnv::class,'sourceStack'))->setValue(null,$stack);(new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,[]);PhabricatorEnv::setLocaleCode('en_US');
+$user=static fn($letter)=>(new PhabricatorUser())->setPHID('PHID-USER-'.str_repeat($letter,20));
+$normal=(new PhabricatorCalendarEventQuery())->setViewer($user('b'))->withPHIDs(['PHID-CEVT-'.str_repeat('c',20)]);
+$before=['prototype'=>(new PhabricatorCalendarApplication())->isPrototype(),'installed'=>(new PhabricatorCalendarApplication())->isInstalled(),'normal_gate'=>$normal->canViewerUseQueryApplication(),'normal_query_absent'=>$normal->executeOne()===null,'omnipotent_gate'=>(new PhabricatorCalendarEventQuery())->setViewer(PhabricatorUser::getOmnipotentUser())->canViewerUseQueryApplication()];
+$scope=governance_calendar_reminder_scope(['uri'=>'http://127.0.0.1:1','token'=>str_repeat('a',64)]);
+// Fresh users are constructed after the selected scope in the actual SQL
+// fixture. Do not clear or weaken the native per-viewer application cache.
+$during=['show_prototypes'=>PhabricatorEnv::getEnvConfig('phabricator.show-prototypes'),'installed'=>(new PhabricatorCalendarApplication())->isInstalled(),'normal_gate'=>(new PhabricatorCalendarEventQuery())->setViewer($user('d'))->canViewerUseQueryApplication()];unset($scope);
+$after=['show_prototypes'=>PhabricatorEnv::getEnvConfig('phabricator.show-prototypes'),'installed'=>(new PhabricatorCalendarApplication())->isInstalled(),'normal_gate'=>(new PhabricatorCalendarEventQuery())->setViewer($user('e'))->canViewerUseQueryApplication()];
+echo json_encode(['before'=>$before,'during'=>$during,'after'=>$after,'mysqli_disabled'=>!function_exists('mysqli_init')]);'''
+        result=subprocess.run(['php','-d','disable_functions=mysqli_init,mysqli_connect,stream_socket_client,fsockopen,pfsockopen,socket_connect','-r',code,str(ROOT)],capture_output=True,text=True,timeout=15)
+        self.assertEqual(0,result.returncode,result.stderr);self.assertEqual('',result.stderr)
+        self.assertEqual({'before':{'prototype':True,'installed':False,'normal_gate':False,'normal_query_absent':True,'omnipotent_gate':True},'during':{'show_prototypes':True,'installed':True,'normal_gate':True},'after':{'show_prototypes':False,'installed':False,'normal_gate':False},'mysqli_disabled':True},json.loads(result.stdout))
 
 if __name__ == '__main__':
     unittest.main()

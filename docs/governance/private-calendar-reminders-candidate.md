@@ -125,3 +125,19 @@ rows. It does not turn a diagnostic into successful SQL evidence or identify an
 unproven root cause. Host controls execute the actual old/new fixture loops with
 explicit native-query/mail collaborators; actual native mail getter and failure
 handoff controls additionally run with mysqli/network bootstrap functions disabled.
+
+Calendar is a native prototype application. The selected isolated Calendar
+fixture explicitly sets `phabricator.show-prototypes=true` inside its existing
+scoped environment before creating its host/recipient users. Without this,
+normal-viewer Calendar queries stop at the native application-install gate even
+when an event has an attending invitee or USER view policy, while the native
+omnipotent scheduler can still create mail. No VIEW/attendee rule or production
+configuration is changed. The actual native no-DB regression exercises the
+normal query's null result with the default flag OFF, the omnipotent bypass,
+and the application gate with fresh fixture-style viewers while selected ON.
+After scope disposal it checks OFF/default configuration restoration and a fresh
+viewer's denied gate. It does not clear or bypass the native per-viewer request
+cache or claim long-lived runtime/cache invalidation. Existing scope controls
+also verify the complete prior config values and stack depth are restored.
+Physical SQL acceptance still requires a fresh isolated fixture with new mail,
+not revival of messages quarantined by a prior failed attempt.

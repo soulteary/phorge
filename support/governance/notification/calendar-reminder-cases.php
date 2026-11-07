@@ -41,6 +41,7 @@ function governance_calendar_reminder_source_inputs() {
 }
 function governance_calendar_reminder_scope(array $queue) {
   return PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.private-mail.enabled',true)
+    ->overrideEnvConfig('phabricator.show-prototypes',true)
     ->overrideEnvConfig('governance.media-exchange.enabled',false)
     ->overrideEnvConfig('governance.media-exchange.http-enabled',false)
     ->overrideEnvConfig('governance.organization.enabled',false)->overrideEnvConfig('governance.notifications.enabled',false)
