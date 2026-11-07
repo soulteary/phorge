@@ -1,0 +1,13 @@
+{
+  "engine_policy_changed": false,
+  "runtime_authority": false,
+  "scope": "fixed unchanged host engine inputs and constructor dependencies only",
+  "source_head": "64234f025e8f09d7bb49395bcf8ac979f90775b7",
+  "source_sha256": {
+    "engine.py": "3a73b4d5d88802b5108b7dff211280cdeea1eb499a6ab1c8e4b50d77f928a07e",
+    "owned_container.py": "99dfc2308cef79de046c2e3e31c4535c986294dfa526b5747462bce41a70b6f7",
+    "requirements-linux-arm64-py312.lock": "37901497f34d399c0640da575e1939d5ae755a15009362e6fa2b9c043d9d5832",
+    "seccomp-playwright-v1.64.1.json": "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849"
+  },
+  "source_tree": "c9831a1336beadac8e64fe3da0acf71f03801358"
+}

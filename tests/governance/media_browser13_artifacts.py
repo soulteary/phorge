@@ -32,3 +32,28 @@ def build():
     raw=json.dumps(result,sort_keys=True,separators=(',',':')).encode()
     if len(raw)>installer.BUDGET:raise RuntimeError('runtime_13_bundle_budget')
     return raw,{n:hashlib.sha256(base64.b64decode(v)).hexdigest()for n,v in result.items()}
+
+
+# These host-side inputs are consumed by the unchanged actual FixedPodman
+# constructor. They are not guest source files and never expand FILES13.
+HOST_DEPENDENCIES = {'requirements-linux-arm64-py312.lock': '37901497f34d399c0640da575e1939d5ae755a15009362e6fa2b9c043d9d5832', 'seccomp-playwright-v1.64.1.json': 'cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849'}
+
+def build_host_dependencies():
+    data={}
+    for name,pin in HOST_DEPENDENCIES.items():
+        raw=read_source(BASE/name)
+        if hashlib.sha256(raw).hexdigest()!=pin:raise RuntimeError('browser_fixed_host_dependency_changed')
+        data[name]=raw
+    return data
+
+
+HOST_ENGINE_SOURCES = {'engine.py': '3a73b4d5d88802b5108b7dff211280cdeea1eb499a6ab1c8e4b50d77f928a07e', 'owned_container.py': '99dfc2308cef79de046c2e3e31c4535c986294dfa526b5747462bce41a70b6f7'}
+
+def build_host_engine_inputs():
+    # Fixed original modules plus their two same-directory data dependencies.
+    data=build_host_dependencies()
+    for name,pin in HOST_ENGINE_SOURCES.items():
+        raw=read_source(BASE.with_name('media_browser_host_base')/name)
+        if hashlib.sha256(raw).hexdigest()!=pin:raise RuntimeError('browser_host_engine_source_changed')
+        data[name]=raw
+    return data
