@@ -19,8 +19,9 @@ class SessionActorOrder(unittest.TestCase):
  def test_real_worker_source_unchanged_and_actor_setup_precedes_enable(self):
   relative='support/governance/native-organization/native-worker.php';old=subprocess.check_output(['git','-C',str(ROOT),'show','586f940370431a3f2a0d1cb7240c9e9803f7fdca:'+relative]);self.assertEqual((ROOT/relative).read_bytes(),old)
   focused=(ROOT/'support/governance/recovery/session-lease-focused.php').read_text();self.assertLess(focused.index('governance_recovery_session_lease_prepare_actor_order(governance_task_owner_prepare($fixture))'),focused.index("overrideEnvConfig('governance.account-recovery.enabled',true)"));self.assertIn("'subjects'=>array('commit'=>$users['subject'],'rollback'=>$users['other'])",focused)
- def test_nineteen_source_map_changes_only_actual_focused_hash(self):
+ def test_nineteen_source_map_changes_only_actual_focused_and_union_driver_hash(self):
   path='scripts/governance/check_recovery_session_lease.py';old=ast.parse(subprocess.check_output(['git','-C',str(ROOT),'show','586f940370431a3f2a0d1cb7240c9e9803f7fdca:'+path]).decode());new=ast.parse((ROOT/path).read_text())
   def pins(tree):return next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(x,ast.Name)and x.id=='SOURCE_INPUTS'for x in n.targets))
-  a=pins(old);b=pins(new);self.assertEqual(len(a),19);self.assertEqual(set(a),set(b));self.assertEqual([n for n in a if a[n]!=b[n]],['support/governance/recovery/session-lease-focused.php']);self.assertEqual(b['support/governance/recovery/session-lease-focused.php'],hashlib.sha256((ROOT/'support/governance/recovery/session-lease-focused.php').read_bytes()).hexdigest())
+  a=pins(old);b=pins(new);self.assertEqual(len(a),19);self.assertEqual(set(a),set(b));changed=['support/governance/recovery/session-lease-focused.php','support/governance/native-organization/test-native-organization-mysql.php'];self.assertEqual([n for n in a if a[n]!=b[n]],changed)
+  for n in changed:self.assertEqual(b[n],hashlib.sha256((ROOT/n).read_bytes()).hexdigest())
 if __name__=='__main__':unittest.main()

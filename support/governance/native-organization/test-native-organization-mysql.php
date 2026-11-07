@@ -6,7 +6,7 @@ $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phases=array('--file-parent-policy'=>'file-parent-policy','--session-producer-lease'=>'session-producer-lease','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
-  '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
+  '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-history-wire-hold'=>'governance-notice-history-wire-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
   (count($arguments)===1&&isset($phases[$arguments[0]])?$phases[$arguments[0]]:'invalid');
 $workbench_http=$phase==='organization-approval-workbench-http-hold';
@@ -15,7 +15,8 @@ $GLOBALS['governance_session_lease_cleanup']=array('cleanup_proved'=>true);
 $native_rr=$phase==='native-user-rr-mdl-only';
 $notice_raw_orm=$phase==='notice-raw-orm-aba';
 $notice_admin_wire=$phase==='notice-admin-grant-wire-hold';
-$notice_wire=$phase==='governance-notice-wire-hold'||$notice_admin_wire;
+$notice_history=$phase==='governance-notice-history-wire-hold';
+$notice_wire=$phase==='governance-notice-wire-hold'||$notice_admin_wire||$notice_history;
 $credential_concurrency=$phase==='api-credential-concurrency';
 $private_mail_pending=$phase==='private-mail-pending-hold';
 $private_mail_wire=$phase==='private-mail-wire-hold'||$private_mail_pending||$notice_wire;
@@ -305,6 +306,9 @@ try {
     }elseif($private_mail_wire){
       $stage='private-native-mail-wire-fixture';
       if($notice_admin_wire){require_once dirname(__DIR__).'/notification/notice-admin-wire-hold.php';$native=governance_notice_admin_wire_hold($fixture,$check);}
+      elseif($notice_history){require_once dirname(__DIR__).'/notification/notice-history-browser.php';
+        require_once dirname(__DIR__).'/notification/notice-wire-hold.php';
+        $native=governance_notice_wire_hold($fixture,$check,'governance_notice_history_prepare_browser');}
       elseif($notice_wire){require_once dirname(__DIR__).'/notification/notice-wire-hold.php';$native=governance_notice_wire_hold($fixture,$check);}
       elseif($private_mail_pending){require_once dirname(__DIR__).'/notification/pending-wire-hold.php';$native=governance_private_mail_pending_hold($fixture,$check);}
       else{require_once dirname(__DIR__).'/notification/wire-hold.php';$native=governance_private_mail_wire_hold($fixture,$check);}
@@ -402,7 +406,7 @@ try {
   if($native_rr&&($GLOBALS['governance_native_rr_cleanup']['cleanup_proved']??null)!==true){
     $cleanup_failures[]=array('stage'=>'native-rr-child-or-SQL-session-cleanup-unproved','error_type'=>'RuntimeException');
     // Retain owned schemas/principals for external owner reconciliation; never drop around unknown live child locks.
-  }elseif($workbench_http&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){
+  }elseif(($workbench_http||$notice_history)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){
     $cleanup_failures[]=array('stage'=>'workbench-http-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');
     // Retain ownership/schema evidence until the parent proves its server stopped.
   }elseif($phase==='session-producer-lease'&&($GLOBALS['governance_session_lease_cleanup']['cleanup_proved']??null)!==true){
