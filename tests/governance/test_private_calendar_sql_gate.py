@@ -180,5 +180,41 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
             data = template(); data[key] = value
             with self.subTest(key=key), self.assertRaises(ValueError): self.validate(data)
 
+class NativeCalendarFactoryEntry(unittest.TestCase):
+    def test_fixture_factory_executes_actual_native_initializer_without_SQL(self):
+        # Only Spaces request-cache and User UTC settings are collaborators.
+        # Disable DB/network entry functions even if an accidental dependency
+        # starts trying to connect; never use this as physical SQL evidence.
+        code = r"""
+require $argv[1].'/support/runtime/src/init/init-library.php';phutil_load_library($argv[1].'/src/');
+$stack=new PhabricatorConfigStackSource();$stack->pushSource(new PhabricatorConfigDefaultSource());
+$stack->pushSource(new PhabricatorConfigDictionarySource(array('phabricator.base-uri'=>'https://app.example.invalid/')));
+(new ReflectionProperty(PhabricatorEnv::class,'sourceStack'))->setValue(null,$stack);
+(new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());PhabricatorEnv::setLocaleCode('en_US');
+$user=(new PhabricatorUser())->setPHID('PHID-USER-'.str_repeat('u',20));
+(new ReflectionProperty(PhabricatorUser::class,'settingCache'))->setValue($user,array('timezone'=>'UTC'));
+(new ReflectionProperty(PhabricatorUser::class,'settingCacheKeys'))->setValue($user,array('timezone'=>true));
+// Explicit empty Spaces request-cache collaborator: no DB or permission proof.
+PhabricatorCaches::getRequestCache()->setKey(PhabricatorSpacesNamespaceQuery::KEY_ALL,array());
+$source=file_get_contents($argv[1].'/support/governance/notification/calendar-reminder-cases.php');
+if(!preg_match('/PhabricatorCalendarEvent::([A-Za-z_][A-Za-z0-9_]*)\(\$host\)/',$source,$matches))throw new RuntimeException('factory source absent');
+$method=new ReflectionMethod(PhabricatorCalendarEvent::class,$matches[1]);
+$event=$method->invoke(null,$user);
+$old_error=null;try{PhabricatorCalendarEvent::initializeNewEvent($user);}catch(Throwable$error){$old_error=get_class($error);}
+echo json_encode(array('factory'=>$method->getName(),'public_static'=>$method->isPublic()&&$method->isStatic(),
+'defined_in_native_class'=>realpath($method->getFileName())===realpath($argv[1].'/src/applications/calendar/storage/PhabricatorCalendarEvent.php'),
+'actual_class'=>get_class($event),'host_matches'=>$event->getHostPHID()===$user->getPHID(),'space'=>$event->getSpacePHID(),
+'unsaved'=>$event->getID()===null,'mysqli_init_disabled'=>!function_exists('mysqli_init'),'old_error'=>$old_error));
+"""
+        result = subprocess.run(['php', '-d',
+            'disable_functions=mysqli_init,mysqli_connect,stream_socket_client,fsockopen,pfsockopen,socket_connect',
+            '-r', code, str(ROOT)], capture_output=True, text=True, timeout=15)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual('', result.stderr)
+        self.assertEqual({'factory':'initializeNewCalendarEvent','public_static':True,
+            'defined_in_native_class':True,'actual_class':'PhabricatorCalendarEvent',
+            'host_matches':True,'space':None,'unsaved':True,'mysqli_init_disabled':True,
+            'old_error':'Error'}, json.loads(result.stdout))
+
 if __name__ == '__main__':
     unittest.main()

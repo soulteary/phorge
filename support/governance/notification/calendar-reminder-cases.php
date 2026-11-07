@@ -80,7 +80,7 @@ function governance_calendar_reminder_cases($fixture,callable $check) {
     };
     $host=$new_user('host');$recipient=$new_user('recipient');$off_recipient=$new_user('off');$recurring_recipient=$new_user('recurring');
     $make_event=static function($label,$viewer,$policy,$start)use($host){
-      $event=PhabricatorCalendarEvent::initializeNewEvent($host)->setName('SYNTHETIC_PRIVATE_CALENDAR_'.$label)
+      $event=PhabricatorCalendarEvent::initializeNewCalendarEvent($host)->setName('SYNTHETIC_PRIVATE_CALENDAR_'.$label)
         ->setDescription('SYNTHETIC_PRIVATE_CALENDAR_DESCRIPTION')->setViewPolicy($policy)
         ->setStartDateTime(PhutilCalendarAbsoluteDateTime::newFromEpoch($start,'UTC'))
         ->setEndDateTime(PhutilCalendarAbsoluteDateTime::newFromEpoch($start+1800,'UTC'))->save();

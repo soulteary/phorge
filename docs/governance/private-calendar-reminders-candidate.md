@@ -99,3 +99,15 @@ The diagnostic-owned step marker is also an explicit conditional failure path.
 A missing, empty, directory or unwritable `GITHUB_OUTPUT` sink cannot replace
 the original native exit status. Without a successfully written owned marker,
 no diagnostic artifact is selected; the safe stderr projection remains useful.
+
+The owned SQL fixture now uses the actual native
+`PhabricatorCalendarEvent::initializeNewCalendarEvent` entry point. The earlier
+`initializeNewEvent` name is absent from the native class and throws before
+persistence. A fresh-process host regression derives the selected method from
+the real fixture, reflects its native definition and invokes the complete real
+factory. It explicitly supplies only an empty Spaces request-cache and User UTC
+settings as collaborators, with mysqli initialization and network entry functions
+disabled. This proves native method compatibility and an unsaved native event,
+not physical SQL, policy authority or a successful scheduler execution. The
+actual application query/default policies, actor/date/Space/timezone initialization
+remain native; no substitute constructor or synthetic persisted event is used.
