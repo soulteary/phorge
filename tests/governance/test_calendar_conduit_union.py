@@ -8,7 +8,7 @@ DRIVER='support/governance/native-organization/test-native-organization-mysql.ph
 def git(*args):return subprocess.check_output(['git','-C',str(ROOT),*args])
 class CalendarConduitUnion(unittest.TestCase):
  def test_current_main_production_hooks_map_and_workflows_preserved(self):
-  self.assertEqual(b'',git('diff',MAIN,'--','src','resources','.github/workflows'))
+  self.assertEqual(b'',git('diff',MAIN,'--','src','resources'))
   for path in ['support/governance/recovery/conduit-producer.php','support/governance/recovery/conduit-focused.php','support/governance/recovery/conduit-cases.php','support/governance/recovery/conduit-diagnostic.php','support/governance/native-organization/native-worker.php','support/governance/native-organization/workers.php']:
    self.assertEqual((ROOT/path).read_bytes(),git('show',MAIN+':'+path))
  def test_signed_Calendar_fixture_files_are_exact_and_not_reimplemented(self):
@@ -34,3 +34,29 @@ class CalendarConduitUnion(unittest.TestCase):
   r=subprocess.run(['php','-d','disable_functions=mysqli_init,mysqli_connect,stream_socket_client,fsockopen','-r',program,str(ROOT/DRIVER)],capture_output=True,text=True,timeout=5)
   self.assertEqual(r.returncode,0,r.stderr);self.assertEqual(r.stderr,'');rows=json.loads(r.stdout)
   self.assertEqual(rows,[{'phase':'calendar-reminder-wire-hold','calendar':True,'calendar_cleanup':False,'conduit_cleanup':True,'drops':0,'failures':1},{'phase':'conduit-producer-owner','calendar':False,'calendar_cleanup':True,'conduit_cleanup':False,'drops':0,'failures':1}])
+
+ def test_workflow_exact_measurement_addition_preserves_existing_jobs(self):
+  path='.github/workflows/atomic-feature-regressions.yml'
+  prior=git('show','91632c6760eae0e451af78550e2c5322d03e9e6a:'+path)
+  start=prior.index(b'      - name: Describe actual native Calendar revocation observations\n')
+  end=prior.index(b'      - name: Verify fresh native organization approval workbench after File source facts\n',start)
+  addition=prior[start:end];current=(ROOT/path).read_bytes();self.assertEqual(1,current.count(addition))
+  self.assertEqual(git('show',MAIN+':'+path),current.replace(addition,b'',1))
+  # Every other workflow remains exact, including the actual Conduit SQL gate.
+  for name in git('ls-tree','-r','--name-only',MAIN,'--','.github/workflows').decode().splitlines():
+   if name!=path:self.assertEqual(git('show',MAIN+':'+name),(ROOT/name).read_bytes())
+
+ def test_measurement_lifecycle_exact_inverse_of_current_native_union(self):
+  native=(ROOT/DRIVER).read_bytes();actual=(ROOT/'support/governance/native-organization/test-calendar-revocation-measurement.php').read_bytes()
+  begin=native.index(b'$phases=array(');end=native.index(b'$calendar_wire=',begin)
+  edits=[(native[begin:end],b"$phase=$arguments===array('--calendar-revocation-measurement')?'calendar-reminders':'invalid';\n"),
+   (b"  }elseif($phase==='calendar-reminders'){\n",b"  }elseif($phase==='calendar-reminders'){\n    require_once __DIR__.'/workers.php'; // Real empty owned registry, never a fabricated cleanup receipt.\n"),
+   (b"$stage='focused-native-calendar-reminders';require_once dirname(__DIR__).'/notification/calendar-reminder-cases.php';\n    $native=governance_calendar_reminder_cases($fixture,$check);",b"$stage='focused-native-calendar-reminders';require_once dirname(__DIR__).'/revocation-measurement/calendar-cases.php';\n    $native=governance_calendar_revocation_measurement_cases($fixture,$check);"),
+   (b"$batch=$phase==='calendar-reminders'?'native-private-calendar-reminders':$batch;",b"$batch=$phase==='calendar-reminders'?'native-calendar-revocation-measurement-v1':$batch;"),
+   (b"$receipt_scope=$phase==='calendar-reminders'?'owned-native-calendar-reminders-no-SMTP':$receipt_scope;",b"$receipt_scope=$phase==='calendar-reminders'?'owned-native-calendar-revocation-measurement-no-SMTP-v1':$receipt_scope;")]
+  expected=native
+  for old,new in edits:self.assertEqual(1,expected.count(old));expected=expected.replace(old,new,1)
+  self.assertEqual(expected,actual)
+  for old,new in reversed(edits):self.assertEqual(1,actual.count(new));actual=actual.replace(new,old,1)
+  self.assertEqual(native,actual)
+  self.assertIn(b"if(($phase??null)==='conduit-producer-owner'",actual)
