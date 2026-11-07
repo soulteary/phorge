@@ -181,7 +181,11 @@ function governance_calendar_reminder_cases($fixture,callable $check) {
     $allowed_now=PhorgePrivateMailPolicy::authorize($by_event[$second[0]->getPHID()]);
     $record($allowed_now,'calendar-private-view-policy-alone-does-not-remove-native-attendee-access');
     $first[1]->setStatus(PhabricatorCalendarEventInvitee::STATUS_UNINVITED)->save();
+    try {
     $visible=(new PhabricatorCalendarEventQuery())->setViewer($recipient)->withPHIDs(array($first[0]->getPHID()))->executeOne();
+    } catch (PhabricatorPolicyException $error) {
+      $visible=null;
+    }
     $record($visible===null,'calendar-private-uninvited-and-hidden-event-current-query-denied');
     $callback=static function($phid)use($by_event,$snapshots){$mail=(new PhabricatorMetaMTAMail())->load($by_event[$phid]->getID());$s=$snapshots[$phid];
       return$mail->authorizeGorgePhysicalDelivery($s['deliveryID'],$s['authorization']['messageHash'],phutil_json_encode($s['message']));};

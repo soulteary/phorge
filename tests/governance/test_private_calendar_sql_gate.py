@@ -238,5 +238,36 @@ echo json_encode(['before'=>$before,'during'=>$during,'after'=>$after,'mysqli_di
         self.assertEqual(0,result.returncode,result.stderr);self.assertEqual('',result.stderr)
         self.assertEqual({'before':{'prototype':True,'installed':False,'normal_gate':False,'normal_query_absent':True,'omnipotent_gate':True},'during':{'show_prototypes':True,'installed':True,'normal_gate':True},'after':{'show_prototypes':False,'installed':False,'normal_gate':False},'mysqli_disabled':True},json.loads(result.stdout))
 
+class CalendarNativeDenialShapeTest(unittest.TestCase):
+    def test_actual_fixture_block_accepts_only_native_denial_shapes(self):
+        source=(ROOT/'support/governance/notification/calendar-reminder-cases.php').read_text()
+        start=source.index('    try {\n    $visible=')
+        end=source.index('    $callback=',start)
+        block=source[start:end]
+        # Actual final native method explicitly enables exception-shaped denial.
+        native=(ROOT/'src/infrastructure/query/policy/PhabricatorPolicyAwareQuery.php').read_text()
+        method=native[native.index('  final public function executeOne()'):native.index('  final public function executeOne()')+600]
+        self.assertIn('$this->setRaisePolicyExceptions(true);',method)
+        self.assertIn('throw $ex;',method)
+        code=r'''require $argv[1].'/support/runtime/src/init/init-library.php';phutil_load_library($argv[1].'/src/');
+class PhabricatorCalendarEventQuery {
+ public function setViewer($v){return $this;} public function withPHIDs($p){return $this;}
+ public function executeOne(){if($GLOBALS['failure'])throw $GLOBALS['failure'];return $GLOBALS['value'];}
+}
+$recipient=null;$first=[new class {function getPHID(){return 'PHID-EVNT-host-control';}}];
+$record=static function($ok,$label){$GLOBALS['accepted']=$ok;};
+$block=base64_decode($argv[2]);$result=[];
+foreach(['absent','policy','visible','other','error'] as $mode){
+ $GLOBALS['value']=$mode==='visible'?new stdClass():null;
+ $GLOBALS['failure']=$mode==='policy'?new PhabricatorPolicyException('host-control'):($mode==='other'?new RuntimeException('host-control'):($mode==='error'?new Error('host-control'):null));
+ $GLOBALS['accepted']=null;$caught=null;try{eval($block);}catch(Throwable $ex){$caught=$ex;}
+ $result[$mode]=['accepted'=>$GLOBALS['accepted'],'same_exception'=>$caught!==null&&$caught===$GLOBALS['failure']];
+}
+echo json_encode($result);'''
+        import base64
+        result=subprocess.run(['php','-d','disable_functions=mysqli_init,mysqli_connect,stream_socket_client,fsockopen,pfsockopen,socket_connect','-r',code,str(ROOT),base64.b64encode(block.encode()).decode()],capture_output=True,text=True,timeout=15)
+        self.assertEqual(0,result.returncode,result.stderr)
+        self.assertEqual({'absent':{'accepted':True,'same_exception':False},'policy':{'accepted':True,'same_exception':False},'visible':{'accepted':False,'same_exception':False},'other':{'accepted':None,'same_exception':True},'error':{'accepted':None,'same_exception':True}},json.loads(result.stdout))
+
 if __name__ == '__main__':
     unittest.main()
