@@ -59,7 +59,7 @@
       "path": "src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php",
       "symbol": "PhabricatorCalendarNotificationEngine",
       "purpose_review": "business-producer",
-      "sha256": "aa0c9853cfd288f6ce575e4007fa1d8c6da75b7758e68ff61f72fbb9656951d9",
+      "sha256": "f188d0d1e58fcea435853cefa4184a53518e24a69737ec3a7efc069e4413c43d",
       "runtime_matrix_complete": false
     },
     {
@@ -275,7 +275,7 @@
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
-      "sha256": "c402b587fecc63af7d558b37b6f3dd7a46d7343bb7d8fa3c34d7a8d35d913225"
+      "sha256": "67112136ba242de5c8ada4b22ee07958722fcf3fb93b34dabf08bc353364a361"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailConfigOptions.php",
