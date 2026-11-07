@@ -1,5 +1,6 @@
 """Strict selected native Session INSERT interval evidence, never a restore permit."""
 import argparse,hashlib,json,os,re,stat
+import recovery_worker_terminal_delta as worker_terminal
 from pathlib import Path
 import check_completion as completion
 import check_native_organization as native
@@ -29,7 +30,7 @@ def read_source_checked(path):
 def SQL_obligations(root=ROOT):
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
-  raw=read_source_checked(Path(root)/relative)
+  raw=worker_terminal.reduce_if_selected(relative,read_source_checked(Path(root)/relative))
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed Session lease source changed')
   captured[relative]=raw
  text=captured['support/governance/recovery/session-lease-cases.php'].decode('utf-8')
