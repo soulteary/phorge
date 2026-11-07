@@ -140,17 +140,41 @@ function governance_calendar_reminder_cases($fixture,callable $check) {
     $run();$record(count($load($start,$recipient->getPHID()))===2&&$marks($recipient->getPHID())===$rows,
       'calendar-private-repeated-scheduler-keeps-mail-and-mark-counts');
     $snapshots=array();$allowed=true;$safe=true;
+    $GLOBALS['governance_calendar_attempt']='calendar-private-each-original-event-current-query-and-egress-allow';
+    $GLOBALS['governance_calendar_egress_probe']=array('schema'=>'calendar-egress-bool-v1','rows'=>array());
     foreach($by_event as$phid=>$mail){
+      $index=count($GLOBALS['governance_calendar_egress_probe']['rows']);
+      $GLOBALS['governance_calendar_egress_probe']['rows'][$index]=array_fill_keys(array(
+        'object_query_attempted','object_query_found','object_identity_checked','object_identity_matched',
+        'prepare_attempted','queue_before','snapshot_cached_before','quarantined_before',
+        'snapshot_void','snapshot_authorization_present','snapshot_message_present','quarantined_after','queue_after',
+        'physical_callback_attempted','physical_callback_allowed'),false);
+      $probe=&$GLOBALS['governance_calendar_egress_probe']['rows'][$index];
+      $probe['object_query_attempted']=true;
       $object=(new PhabricatorCalendarEventQuery())->setViewer($recipient)->withPHIDs(array($phid))->executeOne();
+      $probe['object_query_found']=(bool)$object;
+      $probe['queue_before']=$mail->getStatus()===PhabricatorMailOutboundStatus::STATUS_QUEUE;
+      $probe['snapshot_cached_before']=($mail->getParameters()['gorge.delivery-snapshot']??null)!==null;
+      $probe['quarantined_before']=$mail->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===true;
+      $probe['prepare_attempted']=true;
       $snapshot=$mail->prepareGorgeDelivery();$snapshots[$phid]=$snapshot;
-      $allowed=$allowed&&$object&&$object->getPHID()===$phid&&isset($snapshot['authorization'])&&
-        $mail->authorizeGorgePhysicalDelivery($snapshot['deliveryID'],$snapshot['authorization']['messageHash'],phutil_json_encode($snapshot['message']))===array('allowed'=>true);
+      $probe['snapshot_void']=$snapshot===array('state'=>'void');
+      $probe['snapshot_authorization_present']=isset($snapshot['authorization']);
+      $probe['snapshot_message_present']=isset($snapshot['message']);
+      $probe['quarantined_after']=$mail->getPrivateMailPolicyValue('governance.delivery-quarantined',false)===true;
+      $probe['queue_after']=$mail->getStatus()===PhabricatorMailOutboundStatus::STATUS_QUEUE;
+      $allowed=$allowed&&$object&&($probe['object_identity_checked']=true)&&
+        ($probe['object_identity_matched']=$object->getPHID()===$phid)&&isset($snapshot['authorization'])&&
+        ($probe['physical_callback_attempted']=true)&&
+        ($probe['physical_callback_allowed']=$mail->authorizeGorgePhysicalDelivery($snapshot['deliveryID'],$snapshot['authorization']['messageHash'],phutil_json_encode($snapshot['message']))===array('allowed'=>true));
+      unset($probe);
       $reloaded=(new PhabricatorMetaMTAMail())->load($mail->getID());$raw=phutil_json_encode($snapshot);
       $safe=$safe&&!str_contains($raw,'SYNTHETIC_PRIVATE')&&!str_contains($reloaded->getBody(),'SYNTHETIC_PRIVATE')&&
         str_contains($reloaded->getBody(),'/object/'.$phid.'/')&&$reloaded->getHTMLBody()===null&&!$reloaded->getAttachments()&&
         !isset($snapshot['message']['htmlBody'])&&!isset($snapshot['message']['attachments']);
     }
     $record((bool)$allowed,'calendar-private-each-original-event-current-query-and-egress-allow');
+    unset($GLOBALS['governance_calendar_attempt']);
     $record((bool)$safe,'calendar-private-persisted-and-wire-payloads-have-no-private-content');
     $second[0]->setViewPolicy(PhabricatorPolicies::POLICY_NOONE)->save();
     $allowed_now=PhorgePrivateMailPolicy::authorize($by_event[$second[0]->getPHID()]);

@@ -57,6 +57,21 @@ def known(value, allowed):
     return value if type(value) is str and value in allowed else None
 
 
+EGRESS_KEYS=frozenset({'object_query_attempted','object_query_found','object_identity_checked','object_identity_matched',
+    'prepare_attempted','queue_before','snapshot_cached_before','quarantined_before','snapshot_void',
+    'snapshot_authorization_present','snapshot_message_present','quarantined_after','queue_after',
+    'physical_callback_attempted','physical_callback_allowed'})
+
+def egress_probe(value):
+    if type(value) is not dict or set(value)!={'schema','rows'} or value['schema']!='calendar-egress-bool-v1':
+        return None
+    rows=value['rows']
+    if type(rows) is not list or len(rows)>2 or any(type(row) is not dict or set(row)!=EGRESS_KEYS or
+            any(type(flag) is not bool for flag in row.values()) for row in rows):
+        return None
+    return {'schema':'calendar-egress-bool-v1','rows':[{key:row[key] for key in sorted(EGRESS_KEYS)} for row in rows]}
+
+
 def failure_fields(value, stages=STAGES):
     if type(value) is not dict:
         return None
@@ -64,6 +79,8 @@ def failure_fields(value, stages=STAGES):
         'error_type': known(value.get('error_type'), ERROR_TYPES),
         'source_file': known(value.get('source_file'), SOURCE_FILES),
         'source_line': integer(value.get('source_line'), 1, 1000000)}
+    if 'calendar_egress_probe' in value:
+        projected['calendar_egress_probe']=egress_probe(value['calendar_egress_probe'])
     if 'sql_errno' in value:
         projected['sql_errno'] = integer(value['sql_errno'], 1000, 9999)
     return projected

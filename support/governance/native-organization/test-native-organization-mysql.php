@@ -345,6 +345,10 @@ try {
   }
   if($phase==='organization-approval-workbench'&&isset($GLOBALS['governance_approval_workbench_GET_failure'])){try{$failure['workbench_GET_diagnostic']=governance_approval_workbench_get_projection($GLOBALS['governance_approval_workbench_GET_failure']);}catch(Throwable$projection_error){$failure['workbench_GET_diagnostic']=array('projection_unproved'=>true);}}
   if($phase==='spaces-source-facts'&&isset($GLOBALS['governance_spaces_editor_failure'])){$failure['spaces_editor_diagnostic']=$GLOBALS['governance_spaces_editor_failure'];}
+  if($phase==='calendar-reminders'&&isset($GLOBALS['governance_calendar_egress_probe'])){
+    $failure['calendar_egress_probe']=$GLOBALS['governance_calendar_egress_probe'];
+    if(($GLOBALS['governance_calendar_attempt']??null)==='calendar-private-each-original-event-current-query-and-egress-allow'){$failure['stage']='calendar-private-each-original-event-current-query-and-egress-allow';}
+  }
   if ($error instanceof mysqli_sql_exception) { $failure['sql_errno']=$error->getCode(); }
   if(isset($GLOBALS['governance_notice_admin_grant_cleanup_projection'])){$failure['notice_admin_grant_cleanup']=$GLOBALS['governance_notice_admin_grant_cleanup_projection'];}
   if(isset($GLOBALS['governance_notice_raw_orm_queue_cleanup_proved'])){$failure['notice_raw_orm_queue_cleanup_proved']=$GLOBALS['governance_notice_raw_orm_queue_cleanup_proved'];}

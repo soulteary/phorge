@@ -111,3 +111,17 @@ disabled. This proves native method compatibility and an unsaved native event,
 not physical SQL, policy authority or a successful scheduler execution. The
 actual application query/default policies, actor/date/Space/timezone initialization
 remain native; no substitute constructor or synthetic persisted event is used.
+
+The current egress diagnostic is observation only. The two original event probes
+record an exact bounded boolean shape for object-query presence/identity,
+preparation status/cached snapshot/quarantine, snapshot shape and attempted/exact
+physical allow. There are no event IDs, addresses, URLs, message bytes, hashes,
+SQL or credentials in that projection. Query/prepare/callback order, short-circuit
+calls and all existing assertions remain unchanged. Native getter reads add no
+query or permission decision. A failed egress attempt retains its existing case
+label across cleanup; the original error class/file/line and cleanup evidence
+remain intact. The strict projector drops unknown fields/types or more than two
+rows. It does not turn a diagnostic into successful SQL evidence or identify an
+unproven root cause. Host controls execute the actual old/new fixture loops with
+explicit native-query/mail collaborators; actual native mail getter and failure
+handoff controls additionally run with mysqli/network bootstrap functions disabled.
