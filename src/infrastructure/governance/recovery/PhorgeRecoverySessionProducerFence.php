@@ -12,6 +12,12 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
   public function __unserialize(array $data){throw new RuntimeException('recovery_session_fence_serialization_refused');}
   public function __debugInfo(){return array('scope'=>'native-session-insert-serialization-only');}
 
+  /** Cross-source producers must not reuse a quarantined selected lease. */
+  public static function assertConduitProducerWriterAvailable($writer) {
+    if(self::$leaseActive!==null&&isset(self::$leaseActive[$writer])){
+      throw new RuntimeException('recovery_conduit_session_lease_writer_reserved');}
+  }
+
   public static function begin(PhabricatorAuthSession $session,$mode) {
     if($mode!=='INSERT'||get_class($session)!==PhabricatorAuthSession::class||$session->getID()!==null){
       throw new RuntimeException('recovery_session_insert_profile_unknown');}
@@ -335,9 +341,40 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
   }
 
+  private $borrowedConduitSnapshots=array();
+  /** Bounded Conduit rows under the real User owner; not a full API lease. */
+  public function borrowedCaptureConduit($subject) {
+    try {
+      $this->borrowedAssertActive();$subject=PhorgeRecoveryStopRequest::user($subject);
+      $this->leaseSubject=$subject;$this->leaseReadSessions();
+      $table=new PhabricatorConduitToken();$native=$table->establishConnection('w');
+      if(get_class($native)!==AphrontMySQLiDatabaseConnection::class||$native===$this->leaseWriter||
+        $native->isInsideTransaction()||$native->isReadLocking()||$native->isWriteLocking()){
+        throw new RuntimeException('recovery_borrowed_conduit_route_unknown');}
+      $remote=queryfx_one($native,'SELECT @@server_uuid u');
+      $local=queryfx_one($this->leaseWriter,'SELECT @@server_uuid u');
+      if(!$remote||!$local||$remote!==$local){throw new RuntimeException('recovery_borrowed_conduit_primary_unknown');}
+      $rows=queryfx_all($this->leaseWriter,'SELECT id,objectPHID,tokenType,token,expires,dateCreated,dateModified,tokenName '.
+        'FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id LIMIT 65 LOCK IN SHARE MODE',$table,$subject);
+      if(count($rows)>64){throw new RuntimeException('recovery_borrowed_conduit_budget_unknown');}
+      $bytes=0;foreach($rows as$row){if(($row['objectPHID']??null)!==$subject){throw new RuntimeException('recovery_borrowed_conduit_owner_unknown');}
+        foreach($row as$value){if($value!==null&&!is_string($value)&&!is_int($value)){throw new RuntimeException('recovery_borrowed_conduit_shape_unknown');}
+          $length=$value===null?0:strlen((string)$value);if($length>4096){throw new RuntimeException('recovery_borrowed_conduit_budget_unknown');}$bytes+=$length+32;}}
+      if($bytes>131072){throw new RuntimeException('recovery_borrowed_conduit_budget_unknown');}
+      $digest=hash('sha256',serialize(array($this->leaseProfile,$subject,$table->getAphrontRefDatabaseName(),$rows)));
+      if(isset($this->borrowedConduitSnapshots[$subject])&&$this->borrowedConduitSnapshots[$subject]!==$digest){throw new RuntimeException('recovery_borrowed_conduit_source_changed');}
+      $this->borrowedConduitSnapshots[$subject]=$digest;$this->borrowedAssertActive();
+      return array('schema'=>1,'family'=>'api-credentials','selected_source'=>'native-conduit-token-rows',
+        'source_binding'=>$digest,'rows'=>count($rows),'mode'=>'borrowed-current-User-writer-RC-observation',
+        'cross_connection_atomicity_proved'=>false,'production_observer_factory_available'=>false,
+        'all_sources_complete'=>false,'restoration_authorized'=>false,'execution_blocked'=>true);
+    }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
+  }
+
   public function borrowedValidateBeforeOwnerEnd() {
     $this->borrowedAssertActive();
     foreach(array_keys($this->borrowedSnapshots)as$subject){$this->borrowedCapture($subject);}
+    foreach(array_keys($this->borrowedConduitSnapshots)as$subject){$this->borrowedCaptureConduit($subject);}
   }
 
   /** Read only after the owner ends; never rollback, reconnect or repair it. */

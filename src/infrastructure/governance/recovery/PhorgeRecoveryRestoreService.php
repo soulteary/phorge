@@ -90,6 +90,16 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       throw new RuntimeException('recovery_borrowed_production_provider_unavailable');}
     return$owner['participant']->borrowedCapture($subject);
   }
+  public static function assertConduitProducerOwnerAvailable($writer) {
+    if(self::$borrowedOwner!==null&&self::$borrowedOwner['writer']===$writer){
+      throw new RuntimeException('recovery_conduit_borrowed_owner_reserved');}
+  }
+  public static function captureBorrowedConduitFacts(AphrontDatabaseConnection $writer,$subject) {
+    $owner=self::$borrowedOwner;
+    if(!is_array($owner)||$owner['writer']!==$writer||$owner['participant']===null){
+      throw new RuntimeException('recovery_borrowed_production_provider_unavailable');}
+    return$owner['participant']->borrowedCaptureConduit($subject);
+  }
   private static function prepareBorrowedOwner(AphrontDatabaseConnection $writer) {
     if(self::$borrowedObserver===null){return;}
     if(self::$borrowedOwner!==null){throw new RuntimeException('recovery_borrowed_owner_reentry');}

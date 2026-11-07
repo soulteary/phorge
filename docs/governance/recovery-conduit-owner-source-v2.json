@@ -1,0 +1,16 @@
+{
+  "schema": "n08-conduit-owner-source-candidate-v2",
+  "source_sha256": {
+    "src/applications/conduit/storage/PhabricatorConduitToken.php": "8c8ef8affb4ace53f784925f537dc9d007ab0aaf638b5c3d4f57ae7bc521f5bb",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php": "b66bd8f1960f29adffbec60a010b45261f12a7cbe44edac015a034d3ed6ac2d5",
+    "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php": "cdb10d2a90e766a0ae761d5159675cf16ce4a2c4a661cdc7c511666090da6aa4",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php": "10498d2bf4b9455406704185c7f51c1cc02e121fa413407ba93ded3314d7c480"
+  },
+  "runtime_certified": false,
+  "physical_SQL_cases_executed": false,
+  "production_observer_factory_available": false,
+  "business_submit_review_integration_proved": false,
+  "all_sources_complete": false,
+  "restoration_authorized": false,
+  "execution_blocked": true
+}

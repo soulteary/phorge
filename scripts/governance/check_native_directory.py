@@ -398,6 +398,10 @@ EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/govern
 EXPECTED_SOURCES.update({'NOTICE.NATIVE.ADMIN.EDITOR': ('src/applications/people/editor/PhabricatorUserTransactionEditor.php','PhabricatorUserTransactionEditor','native-admin-grant-only-outbox-no-role-authority')})
 EXPECTED_LINKS.update({'NOTICE-LINK-16': ('NOTICE.NATIVE.ADMIN.EDITOR','NOTICE.OUTBOX'),'NOTICE-LINK-17': ('NOTICE.SOURCE','RECOVERY.NATIVE.USER.TRANSACTION')})
 
+# Exact selected Conduit producer addition; static source only.
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php'])
+EXPECTED_SOURCES['RECOVERY.CONDUIT.PRODUCER.FENCE']=('src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php','PhorgeRecoveryConduitProducerFence','selected-conduit-insert-participant')
+
 def require(ok, message):
     if not ok:
         raise ValueError(message)

@@ -77,7 +77,7 @@
       "path": "src/applications/conduit/storage/PhabricatorConduitToken.php",
       "symbol": "PhabricatorConduitToken",
       "kind": "native-token-source",
-      "sha256": "90cb0ee876614ee19c2174088168b6792572a216db0f906058bff5972bcc4ad5",
+      "sha256": "8c8ef8affb4ace53f784925f537dc9d007ab0aaf638b5c3d4f57ae7bc521f5bb",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1188,7 +1188,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
       "symbol": "PhorgeRecoveryRestoreService",
       "kind": "isolated-recovery-foundation-static-no-permit",
-      "sha256": "baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f",
+      "sha256": "b66bd8f1960f29adffbec60a010b45261f12a7cbe44edac015a034d3ed6ac2d5",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1199,7 +1199,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
       "symbol": "PhorgeRecoverySessionProducerFence",
       "kind": "isolated-recovery-foundation-static-no-permit",
-      "sha256": "a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd",
+      "sha256": "cdb10d2a90e766a0ae761d5159675cf16ce4a2c4a661cdc7c511666090da6aa4",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1827,6 +1827,17 @@
       "symbol": "PhorgeOrganizationApprovalController",
       "kind": "candidate-runtime-source",
       "sha256": "75e6431cbd5d86eaf85aab90545fb52eba41439e066ef3c5ce74f62be2515d9d",
+      "coverage": "partial",
+      "evidence_status": "static-reference-only",
+      "activation_blocked": true,
+      "authority_proof": false
+    },
+    {
+      "id": "RECOVERY.CONDUIT.PRODUCER.FENCE",
+      "path": "src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php",
+      "symbol": "PhorgeRecoveryConduitProducerFence",
+      "kind": "selected-conduit-insert-participant",
+      "sha256": "10498d2bf4b9455406704185c7f51c1cc02e121fa413407ba93ded3314d7c480",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3554,6 +3565,10 @@
         "sha256": "4a1a500648b69d714e49aad0a0b1fd44d463d8826b873881033d227cd5300a0b"
       },
       {
+        "path": "src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php",
+        "sha256": "10498d2bf4b9455406704185c7f51c1cc02e121fa413407ba93ded3314d7c480"
+      },
+      {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php",
         "sha256": "751adef2e7a90220fceac58cb2894edf442fa01d3e5fbdb7b600f561f749c723"
       },
@@ -3627,11 +3642,11 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
-        "sha256": "baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f"
+        "sha256": "b66bd8f1960f29adffbec60a010b45261f12a7cbe44edac015a034d3ed6ac2d5"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
-        "sha256": "a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd"
+        "sha256": "cdb10d2a90e766a0ae761d5159675cf16ce4a2c4a661cdc7c511666090da6aa4"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php",

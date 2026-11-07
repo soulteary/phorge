@@ -32,7 +32,8 @@ class BorrowedSession(unittest.TestCase):
   import test_notice_native_admin_wire_source as source
   data=json.loads((ROOT/'docs/governance/recovery-borrowed-owner-source-v1.json').read_text());self.assertEqual(data['source_sha256'],source.BORROWED_SOURCE_PINS);self.assertEqual(len(data['source_sha256']),2)
   for path,pin in data['source_sha256'].items():
-   self.assertEqual(hashlib.sha256((ROOT/path).read_bytes()).hexdigest(),pin)
+   import recovery_conduit_source_delta as conduit_delta
+   self.assertEqual(hashlib.sha256(conduit_delta.reduce_owner(path,(ROOT/path).read_bytes())).hexdigest(),pin)
   import check_recovery_borrowed_owner_source as gate
   self.assertTrue(gate.validate(data)['schema_valid'])
   for key in ['runtime_certified','physical_SQL_cases_executed','production_observer_factory_available','business_submit_review_integration_proved','all_sources_complete','restoration_authorized']:

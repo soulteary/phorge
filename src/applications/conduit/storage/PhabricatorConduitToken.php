@@ -4,6 +4,14 @@ final class PhabricatorConduitToken
   extends PhabricatorConduitDAO
   implements PhabricatorPolicyInterface {
 
+  protected function insertRecordIntoDatabase($mode) {
+    if (!PhorgeGovernanceRecoveryGuard::enabled()) {
+      return parent::insertRecordIntoDatabase($mode);
+    }
+    return PhorgeRecoveryConduitProducerFence::insert($this,$mode,
+      function()use($mode){return parent::insertRecordIntoDatabase($mode);});
+  }
+
   protected $objectPHID;
   protected $tokenType;
   protected $token;
