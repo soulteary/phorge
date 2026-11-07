@@ -1,5 +1,14 @@
 <?php
 
+/** Native unsaved identity; persistence remains the real fixture DAO path. */
+function governance_media_wire_new_switch_user($namespace){
+  if(!is_string($namespace)||!preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)){
+    throw new RuntimeException('media_wire_switch_namespace_refused');}
+  return (new PhabricatorUser())->setUsername('mediaswitch'.substr($namespace,-12))
+    ->setRealName('Synthetic ordinary media browser user')->setIsAdmin(0)
+    ->setIsApproved(1)->setIsEmailVerified(1);
+}
+
 /** Seed real native password login and hold owned schemas for parent-run TLS/CUA. */
 function governance_native_media_wire_hold($fixture,callable $check,?array $remote=null){
   $fixture->assertOwned();$directory=getenv('PHORGE_GOVERNANCE_HTTP_FIXTURE_DIR');$owner=getenv('PHORGE_GOVERNANCE_HTTP_FIXTURE_OWNER');
@@ -31,7 +40,7 @@ function governance_native_media_wire_hold($fixture,callable $check,?array $remo
   // Native account/password/provider storage. No HTTP test-login endpoint and
   // no browser session token is fabricated or preinserted for this account.
   $user=(new PhabricatorUser())->setUsername('mediawire'.substr($fixture->getNamespace(),-12))
-    ->setRealName('Synthetic media browser user')->setIsAdmin(1)->setIsApproved(1)->setIsEmailVerified(1)->save();
+    ->setRealName('Synthetic media browser user')->setIsAdmin($remote===null?1:0)->setIsApproved(1)->setIsEmailVerified(1)->save();
   (new PhabricatorUserEmail())->setUserPHID($user->getPHID())->setAddress($user->getUsername().'@example.invalid')
     ->setIsPrimary(1)->setIsVerified(1)->save();
   $password=bin2hex(random_bytes(24)).'!Synthetic';
@@ -49,6 +58,31 @@ function governance_native_media_wire_hold($fixture,callable $check,?array $remo
   $conn=(new PhabricatorUser())->establishConnection('w');
   $row=queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE userPHID=%s',new PhabricatorAuthSession(),$user->getPHID());
   $check((int)$row['n']===0,'wire-fixture-browser-account-has-no-seeded-native-session');
+  $switch_account=null;
+  if($remote!==null){
+    // An independent real native nonauthor account, never a preseeded session.
+    $ordinary=governance_media_wire_new_switch_user($fixture->getNamespace())->save();
+    (new PhabricatorUserEmail())->setUserPHID($ordinary->getPHID())
+      ->setAddress($ordinary->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
+    $ordinary_password=bin2hex(random_bytes(24)).'!Synthetic';
+    PhabricatorAuthPassword::initializeNewPassword($ordinary,PhabricatorAuthPassword::PASSWORD_TYPE_ACCOUNT)
+      ->setPassword(new PhutilOpaqueEnvelope($ordinary_password),$ordinary)->save();
+    $ordinary_engine=(new PhabricatorAuthPasswordEngine())->setViewer($ordinary)->setObject($ordinary)
+      ->setPasswordType(PhabricatorAuthPassword::PASSWORD_TYPE_ACCOUNT)
+      ->setContentSource(PhabricatorContentSource::newForSource('console',array()));
+    if(!$ordinary_engine->isValidPassword(new PhutilOpaqueEnvelope($ordinary_password))||
+       $ordinary->getIsAdmin()||$ordinary->getPHID()===$user->getPHID()){
+      throw new RuntimeException('media_wire_switch_native_account_refused');}
+    $ordinary_row=queryfx_one($conn,'SELECT COUNT(*) n FROM %R WHERE userPHID=%s',
+      new PhabricatorAuthSession(),$ordinary->getPHID());
+    if((int)$ordinary_row['n']!==0){throw new RuntimeException('media_wire_switch_preseeded_session_refused');}
+    $switch_account=array('schema_version'=>2,'scope'=>'owned-native-media-nonauthor-account-switch-v2',
+      'username'=>$ordinary->getUsername(),'password'=>$ordinary_password,
+      'user_phid'=>$ordinary->getPHID(),'author_phid'=>$user->getPHID(),
+      'native_password_verified'=>true,'is_admin'=>false,'is_file_author'=>false,
+      'author_is_admin'=>(bool)$user->getIsAdmin(),
+      'browser_session_preseeded'=>false);
+  }
   $text='Synthetic native media browser content '.bin2hex(random_bytes(8));
   $file=PhabricatorFile::newFromFileData($text,array('name'=>'synthetic-private.txt','mime-type'=>'text/plain',
     'authorPHID'=>$user->getPHID(),'viewPolicy'=>PhabricatorPolicies::POLICY_NOONE));
@@ -58,6 +92,14 @@ function governance_native_media_wire_hold($fixture,callable $check,?array $remo
     array('name'=>'synthetic-private-image.png','mime-type'=>'image/png','authorPHID'=>$user->getPHID(),'viewPolicy'=>PhabricatorPolicies::POLICY_NOONE));
   $user->setProfileImagePHID($png->getPHID())->save();
   $path=static function($object){return (new PhutilURI($object->getCDNURI('data')))->getPath();};
+  if($switch_account!==null){
+    $ordinary_text='Synthetic ordinary private media '.bin2hex(random_bytes(8));
+    $ordinary_file=PhabricatorFile::newFromFileData($ordinary_text,array(
+      'name'=>'ordinary-private.txt','mime-type'=>'text/plain',
+      'authorPHID'=>$ordinary->getPHID(),'viewPolicy'=>PhabricatorPolicies::POLICY_NOONE));
+    if($ordinary_file->getStorageEngine()!=='gorge'||$ordinary_file->getAuthorPHID()!==$ordinary->getPHID()){
+      throw new RuntimeException('media_wire_switch_owned_file_refused');}
+  }
   $script='fetch('.json_encode($path($second),JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_QUOT|JSON_HEX_APOS).', {credentials:"include"}).then(r=>r.text()).then(t=>{window.name="synthetic-exfil:"+t;});';
   $active=PhabricatorFile::newFromFileData('<!doctype html><script>'.$script.'</script>',array('name'=>'synthetic-active.html','mime-type'=>'text/html',
     'authorPHID'=>$user->getPHID(),'viewPolicy'=>PhabricatorPolicies::POLICY_NOONE));
@@ -91,6 +133,12 @@ function governance_native_media_wire_hold($fixture,callable $check,?array $remo
     'expected_content_sha256'=>hash('sha256',$text),'private_content_marker'=>$text,
     'browser_session_preseeded'=>false,'otp_tested'=>false);
   if($remote!==null){$ready['remote_origin_profile']=$remote;$ready['fixture_writer_close_proof']=$writer_close;$ready['keeper_process_identity']=governance_media_remote_self_process_identity();}
+  if($switch_account!==null){
+    $switch_account['own_file_uri']=$files.$path($ordinary_file);
+    $switch_account['own_authorize_uri']=$app.'/auth/media/authorize/?path='.rawurlencode($path($ordinary_file));
+    $switch_account['own_content_sha256']=hash('sha256',$ordinary_text);
+    $ready['account_switch']=$switch_account;
+  }
   $write('fixture-ready.json',$ready);
   $check(true,'wire-fixture-private-parent-manifest-written-no-public-login-bypass');
   $deadline=microtime(true)+$seconds;$released=false;

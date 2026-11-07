@@ -1,0 +1,13 @@
+{
+  "metadata_replacements": {
+    "from .. import remote_browser_stage": "from .. import media_browser_measured_executor as remote_browser_stage",
+    "media-owned-native-local-adapter.py": "media-owned-native-measured13-local-adapter.py",
+    "media-remote-transport-execution-review-root.private.json": "media-remote-measured13-execution-review-root.private.json",
+    "media-remote-transport-packet-root.private.json": "media-remote-measured13-packet-root.private.json",
+    "owned-media-private-remote-transport-only": "owned-media-private-remote-transport-and-measured-browser13",
+    "write('browser-flow-v2',browser_result)": "write('browser-flow-v4-measured',browser_result)"
+  },
+  "predecessor_source_sha256": "12b91f64d58861e0e4ff833c4e8f3e977519a0a3a7f168184bd9d0032211a910",
+  "runtime_authority": false,
+  "scope": "fixed measured-stage selector and new Root roles only"
+}

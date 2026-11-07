@@ -1,0 +1,8 @@
+{
+  "local_import": "    try:\n        from .media_browser_legacy_obligations import EXPECTED_CHECKS\n    except ImportError:\n        from media_browser_legacy_obligations import EXPECTED_CHECKS",
+  "original_executor_sha256": "99123f1d06fb6f35880fb89a410e71238f83ab26e2b5735519c6d3a684fcb436",
+  "original_flow_sha256": "8174b2b8f268b648b2128db4cee16b612d57621b70784c608f798037372ff3f5",
+  "original_guest_receipt_function_sha256": "fcd6e7e68a331131846614ddb98b51e645ab9c8ee229c47b4e0fb96ea038179c",
+  "original_import": "    from .flow import EXPECTED_CHECKS",
+  "scope": "source-only exact v2 compatibility; no original parent modified"
+}

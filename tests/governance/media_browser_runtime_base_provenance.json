@@ -1,0 +1,19 @@
+{
+  "legacy_installer_modified": false,
+  "legacy_nine_installer_sha256": "4b33bb8efdde000367c2d24d8f240294700cbbe251b16596a77b3df4d46e9f63",
+  "runtime_authority": false,
+  "scope": "unchanged normal-TLS nine guest source inputs, not execution authority",
+  "source_head": "64234f025e8f09d7bb49395bcf8ac979f90775b7",
+  "source_sha256": {
+    "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approved_origins.py": "0e266db34c0dfb063a26e1ca8c312b23da80a097a9fe72980a013292924b4f03",
+    "entry.py": "2348f1cf6bbff73d19246a36858f8434645f2317a19b97e147463cf53fddaa44",
+    "flow.py": "8174b2b8f268b648b2128db4cee16b612d57621b70784c608f798037372ff3f5",
+    "launcher.py": "bf7c87df76c6a3a0bccf18e3539693f5e5eafae9f3c567b8e6e10a10eb897f58",
+    "normal_tls_provider.py": "0d787cc3f13e2c882a1a0bf43d2d62c83c5bec0a5766c5079bdb48e1a1c4d458",
+    "nss_profile.py": "25a8b763e13a01ff0dcb92340d86a7497dff895c3d84af3361f1fa1a28eb30a1",
+    "origin_rules.json": "d0690c4291743adc4f60413942d95025b7de1d8fa0850a9f3496c53a6ef0f386",
+    "trust_controls.py": "2e583bc5c1a1d1f59f57502c9cab4d228506b038451022ed3256bbefb2390b3b"
+  },
+  "source_tree": "c9831a1336beadac8e64fe3da0acf71f03801358"
+}
