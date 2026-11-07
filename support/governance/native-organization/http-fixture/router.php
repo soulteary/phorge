@@ -23,6 +23,8 @@ try{
   foreach(array('owner','router.json','issuer.json') as $name){$path=$directory.'/'.$name;
     if(!is_file($path)||is_link($path)||(fileperms($path)&0777)!==0600||filesize($path)>65536){throw new RuntimeException('owned_http_private_config_refused');}}
   $config=json_decode(file_get_contents($directory.'/router.json'),true,16,JSON_THROW_ON_ERROR);
+  $remote=$config['remote_origin_profile']??null;
+  if($remote!==null){unset($config['remote_origin_profile']);}
   $keys=array_keys($config);sort($keys);
   if($keys!==array('app_origin','file_origin','fixture_nonce','gorge_file_token','gorge_file_uri','gorge_image_token','gorge_image_uri',
     'issuer_incarnation','issuer_key','owner','source_sha256','transport_proof','writer')){throw new RuntimeException('owned_http_config_refused');}
@@ -49,7 +51,10 @@ try{
   $console=PhutilConsole::newLocalConsole();$console->disableOut();PhutilConsole::setConsole($console);
   $app=PhorgeGovernanceMediaHTTPProtocol::origin($config['app_origin']);$files=PhorgeGovernanceMediaHTTPProtocol::origin($config['file_origin']);
   PhorgeGovernanceMediaHTTPProtocol::assertSeparateOrigins($app,$files);
-  if((new PhutilURI($app))->getDomain()!=='app.media.localhost'||(new PhutilURI($files))->getDomain()!=='files.media.localhost'){
+  if($remote!==null){require_once dirname(__DIR__).'/media-remote-profile.php';governance_media_remote_validate_profile($remote);}
+  if($remote!==null){
+    if($app!==$remote['app_origin']||$files!==$remote['file_origin']){throw new RuntimeException('owned_http_remote_origins_refused');}
+  }elseif((new PhutilURI($app))->getDomain()!=='app.media.localhost'||(new PhutilURI($files))->getDomain()!=='files.media.localhost'){
     throw new RuntimeException('owned_http_hosts_refused');}
   mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
   $proof=new mysqli($writer['host'],$writer['user'],$writer['password'],'',$writer['port']);$proof->set_charset('utf8mb4');
