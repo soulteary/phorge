@@ -13,9 +13,10 @@ class OAuthAccessWiring(unittest.TestCase):
   text=(ROOT/'support/governance/native-organization/test-oauth-access-owner-mysql.php').read_text();a=text.index('$arguments=');b=text.index('$workbench_http=',a);block=text[a:b]
   for argv,want in [(['--oauth-access-producer-owner'],'oauth-access-producer-owner'),(['--oauth-access-producer-owner','--session-borrowed-owner'],'invalid'),(['--oauth-access-producer-owner','--oauth-access-producer-owner'],'invalid'),(['--conduit'],'invalid')]:
    code='$argv=array_merge(["driver"],json_decode($argv[1],true));'+block+'echo json_encode($phase);';p=subprocess.run(['php','-r',code,json.dumps(argv)],capture_output=True,text=True,timeout=5);self.assertEqual(0,p.returncode,p.stderr);self.assertEqual(want,json.loads(p.stdout))
-  # Existing Conduit driver and contracts are byte-exact base e804.
+  # Remove only the exact reviewed Calendar additions; recover prior Conduit driver.
   original=ROOT/'support/governance/native-organization/test-native-organization-mysql.php'
-  self.assertEqual(original.read_bytes(),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:'+str(original.relative_to(ROOT))]))
+  import recovery_conduit_source_delta as calendar_delta
+  self.assertEqual(calendar_delta.reduce_calendar_wire_union(original.read_bytes()),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:'+str(original.relative_to(ROOT))]))
  def test_actual_whole_driver_finally_unknown_before_any_generic_cleanup(self):
   for mode in ['unknown','forged-flags','early','good','old']:
    p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/oauth-access-driver-cleanup-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=5);self.assertEqual(0,p.returncode,p.stderr);d=json.loads(p.stdout)

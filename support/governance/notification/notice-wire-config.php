@@ -15,7 +15,10 @@ function governance_notice_wire_json($directory,$name,$limit=65536){
   return json_decode(file_get_contents($path),true,16,JSON_THROW_ON_ERROR);
 }
 function governance_notice_wire_config($directory){
-  $base=governance_private_mail_config($directory);$extra=governance_notice_wire_json($directory,'notice.json');
+  $base=governance_private_mail_config($directory);
+  require_once __DIR__.'/calendar-wire-profile.php';$calendar=governance_calendar_wire_selected_profile($directory);
+  if($calendar!==null){return governance_calendar_wire_config($directory,$base,$calendar);}
+  $extra=governance_notice_wire_json($directory,'notice.json');
   $keys=array_keys($extra);sort($keys);
   if($keys!==array('case','owner','queue_token','queue_uri','stable_capture_version')||
     ($extra['owner']??null)!==$base['owner']||($extra['stable_capture_version']??null)!=='v0.14.0'||
@@ -26,6 +29,7 @@ function governance_notice_wire_config($directory){
 }
 /** Real config-source failure, with no synthetic authorization decision. */
 function governance_notice_wire_install_env(array$config){
+  if(($config['profile_kind']??null)==='calendar-native-browser-v1'){governance_calendar_wire_install_env($config);return;}
   governance_private_mail_install_env($config['base']);
   governance_notice_wire_apply_overrides($config['notice']);
 }

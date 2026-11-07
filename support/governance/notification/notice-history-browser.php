@@ -31,6 +31,12 @@ function governance_notice_history_route($host,$uri,$origin,$method){
   governance_notice_history_need(strpos($decoded,"\0")===false&&strpos($decoded,'\\')===false&&strpos($decoded,'%')===false&&!array_intersect(explode('/',$decoded),array('.','..')));
   // No organization mutation, arbitrary Conduit method, public object or setup route.
   $history=$path==='/people/organization/history/';$home=$path==='/';
+  $directory=getenv('PHORGE_GOVERNANCE_PRIVATE_MAIL_DIR');
+  if(is_string($directory)&&(file_exists($directory.'/calendar-browser.json')||is_link($directory.'/calendar-browser.json'))){
+    require_once __DIR__.'/calendar-wire-profile.php';$profile=governance_calendar_wire_selected_profile($directory);$allowed=array();
+    foreach($profile['events']as$event){$allowed[]=$event['path'];$allowed[]='/object/'.$event['event_phid'].'/';}
+    $history=in_array($path,$allowed,true);
+  }
   $auth=preg_match('@\A/(?:auth/(?:start/|validate/|finish/|loggedout/|login/password:[^/]+/)|logout/)\z@D',$path)===1;
   $asset=preg_match('@\A/(?:res/[^\x{00}\x{5c}]*|file/(?:data|xform)/[^\x{00}\x{5c}]*|favicon\.ico)\z@D',$path)===1;
   governance_notice_history_need($home||$history||$auth||$asset);

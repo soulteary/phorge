@@ -12,7 +12,7 @@ try{
   foreach(array('PHABRICATOR_ENV','PHORGE_DEPLOYMENT_CONFIG','PHORGE_CONTROL_PLANE')as$key){$v=getenv($key);governance_notice_history_need($v===false||$v==='');}
   foreach(array('local.json','deployment.json','ENVIRONMENT')as$name){governance_notice_history_need(!file_exists($root.'/conf/local/'.$name)&&!is_link($root.'/conf/local/'.$name));}
   require_once __DIR__.'/notice-wire-config.php';$config=governance_notice_wire_config(getenv('PHORGE_GOVERNANCE_PRIVATE_MAIL_DIR'));$data=$config['base'];
-  governance_notice_history_manifest($config['directory'],$data);
+  if(($config['profile_kind']??null)!=='calendar-native-browser-v1'){governance_notice_history_manifest($config['directory'],$data);}
   governance_notice_history_need(($_SERVER['REMOTE_ADDR']??null)==='127.0.0.1');
   $path=governance_notice_history_route($_SERVER['HTTP_HOST']??null,$uri,$data['callback_origin'],$_SERVER['REQUEST_METHOD']??null);
   // Browser requests must not gain the service-token callback authority.
