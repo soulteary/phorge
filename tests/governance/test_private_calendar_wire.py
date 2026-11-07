@@ -92,6 +92,28 @@ class PrivateCalendarWireHostControls(unittest.TestCase):
             self.assertEqual('calendar-wire-parent-or-live-writer-cleanup-unproved',
                 rows[index]['failures'][0]['stage'])
 
+    def test_actual_driver_initialization_blocks_cleanup_on_early_startup_errors(self):
+        source = (ROOT / 'support/governance/native-organization/test-native-organization-mysql.php').read_text()
+        guard = "if($calendar_wire){$GLOBALS['governance_workbench_http_cleanup_permitted']=false;}"
+        self.assertEqual(1, source.count(guard))
+        self.assertLess(source.index(guard), source.index('$fixture = null;'))
+        self.assertLess(source.index(guard), source.index("$stage='owned-real-gorge-file-service';"))
+        code = r'''$s=file_get_contents($argv[1].'/support/governance/native-organization/test-native-organization-mysql.php');$a=strpos($s,'$calendar_wire=$phase===');$b=strpos($s,"$"."GLOBALS['governance_session_lease_cleanup']",$a);$init=substr($s,$a,$b-$a);$a=strrpos($s,'  if($borrowed_unknown){');$b=strpos($s,'  if(!$borrowed_unknown){if ($control !== null)',$a);$guard=substr($s,$a,$b-$a);class EarlyCleanupFixture{function cleanup(){$GLOBALS['drops']++;return[];}}$out=[];foreach(['calendar-reminder-wire-hold','calendar-reminders']as$phase){foreach(['file-start','queue-start','capture-start','password-provider','producer']as$stage){$fixture=new EarlyCleanupFixture();$borrowed_unknown=false;$native_rr=false;$media_remote=false;$notice_history=false;$cleanup_failures=[];$checks=[];$drops=0;$primary=new RuntimeException($stage);try{eval($init);throw $primary;}catch(Throwable $error){$same=$error===$primary;}finally{eval($guard);}$out[]=['phase'=>$phase,'stage'=>$stage,'drops'=>$drops,'same_primary'=>$same,'failures'=>$cleanup_failures];}}echo json_encode($out);'''
+        result = subprocess.run(['php', '-r', code, str(ROOT)], capture_output=True,
+            text=True, check=True, timeout=15)
+        self.assertEqual('', result.stderr)
+        rows = json.loads(result.stdout)
+        self.assertEqual(10, len(rows))
+        for row in rows:
+            self.assertIs(True, row['same_primary'])
+            calendar = row['phase'] == 'calendar-reminder-wire-hold'
+            self.assertEqual(0 if calendar else 1, row['drops'])
+            if calendar:
+                self.assertEqual('calendar-wire-parent-or-live-writer-cleanup-unproved',
+                    row['failures'][0]['stage'])
+            else:
+                self.assertEqual([], row['failures'])
+
     def test_actual_keeper_loop_requires_quiescence_then_canonical_SQL_zero(self):
         value = self.invoke('calendar-wire-release-host.php', 11)
         self.assertIs(True, value['actual_keeper_loop'])

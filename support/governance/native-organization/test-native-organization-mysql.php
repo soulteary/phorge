@@ -12,6 +12,7 @@ $phase=$arguments===array()?'all':
 $calendar_wire=$phase==='calendar-reminder-wire-hold';
 $workbench_http=$phase==='organization-approval-workbench-http-hold';
 $GLOBALS['governance_workbench_http_cleanup_permitted']=true;
+if($calendar_wire){$GLOBALS['governance_workbench_http_cleanup_permitted']=false;}
 $GLOBALS['governance_session_lease_cleanup']=array('cleanup_proved'=>true);
 $native_rr=$phase==='native-user-rr-mdl-only';
 $notice_raw_orm=$phase==='notice-raw-orm-aba';
