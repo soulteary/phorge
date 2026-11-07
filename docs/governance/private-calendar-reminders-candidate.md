@@ -141,3 +141,19 @@ cache or claim long-lived runtime/cache invalidation. Existing scope controls
 also verify the complete prior config values and stack depth are restored.
 Physical SQL acceptance still requires a fresh isolated fixture with new mail,
 not revival of messages quarantined by a prior failed attempt.
+
+Fresh private-mail business authorization now requests native user settings on
+its existing `PhabricatorPeopleQuery` before using that viewer in the unchanged
+native object query. Calendar applies the viewer timezone while loading events;
+a fresh User without its required preferences cache throws
+`PhabricatorDataNotAttachedException` even when its event VIEW gate is valid.
+This is normal native `needUserSettings(true)` preparation, already used by the
+native mail actor query. No permission fallback, inline cache generation or
+exception suppression is enabled. The standard native query owns loading or
+building its settings cache. A no-DB regression derives the actual production
+query and verifies its requested cache key, then demonstrates the real native
+Calendar/User timezone path failing without attachment and succeeding with an
+explicit preferences-cache row collaborator. Actual database/cache preparation
+and physical delivery still require the isolated SQL/runtime gates. The exact
+named policy source delta has its own immutable c402 baseline inverse; unrelated
+bytes remain rejected even if a candidate hash is refreshed.

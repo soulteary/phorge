@@ -55,7 +55,7 @@ final class PhorgePrivateMailPolicy extends Phobject {
     foreach($recipients as $phid){
       if(!is_string($phid)||!preg_match('/\APHID-USER-[a-zA-Z0-9]{20}\z/',$phid)){return false;}
       $viewer=(new PhabricatorPeopleQuery())->setViewer(PhabricatorUser::getOmnipotentUser())
-        ->withPHIDs(array($phid))->executeOne();
+        ->withPHIDs(array($phid))->needUserSettings(true)->executeOne();
       if(!$viewer||$viewer->getPHID()!==$phid||$viewer->getIsDisabled()||!$viewer->getIsApproved()||$viewer->getIsSystemAgent()){return false;}
       if($purpose==='business'){
         $related=$mail->getRelatedPHID();

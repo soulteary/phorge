@@ -16,6 +16,7 @@ MAX_OUTPUT_BYTES = 16384
 ERROR_TYPES = frozenset({
     'Error', 'TypeError', 'ValueError', 'Exception', 'RuntimeException',
     'InvalidArgumentException', 'LogicException', 'BadMethodCallException',
+    'PhabricatorDataNotAttachedException',
     'PhutilAggregateException', 'PhutilProxyException', 'PhutilMethodNotImplementedException',
     'PhutilMissingSymbolException', 'PhutilPropertyNotFoundException',
     'PhutilBootloaderException', 'PhabricatorPolicyException',

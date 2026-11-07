@@ -55,9 +55,12 @@ class CurrentMainIntegration(MediaRemote):
    for name,pin in inputs.items():self.assertEqual(hashlib.sha256((ROOT/name).read_bytes()).hexdigest(),pin,name)
   changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72','--','src','resources'],text=True).splitlines()
   name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
-  self.assertEqual(changed,[name])
+  policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
+  self.assertEqual(set(changed),{name,policy})
   # Only the exact separately reviewed Calendar addition is allowed. Its
   # inverse must recover the original product bytes; every other path remains
   # excluded rather than making the historical source check a blanket pass.
   old=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+name])
   self.assertEqual(calendar_delta.reduce_reviewed_calendar_engine((ROOT/name).read_bytes()),old)
+  prior=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+policy])
+  self.assertEqual(calendar_delta.reduce_reviewed_private_mail_settings((ROOT/policy).read_bytes()),prior)
