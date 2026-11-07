@@ -1,0 +1,184 @@
+"""Synthetic receipt mutation controls; never actual SQL or SMTP evidence."""
+import copy
+import hashlib
+import tempfile
+import importlib.util
+import json
+from pathlib import Path
+import subprocess
+import sys
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS = ROOT / 'scripts/governance'
+sys.path.insert(0, str(SCRIPTS))
+import check_private_calendar_reminders as gate
+
+spec = importlib.util.spec_from_file_location('calendar_native_template', ROOT / 'tests/governance/test_native_organization.py')
+native_template = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(native_template)
+REVISION = 'a' * 40
+FILE = 'b' * 64
+QUEUE = 'c' * 64
+
+def template():
+    data = native_template.template()
+    data.update(batch='native-private-calendar-reminders', scope='owned-native-calendar-reminders-no-SMTP',
+        native=gate.summary(REVISION, QUEUE), checks=sorted(gate.obligations()), check_count=len(gate.obligations()),
+        worker_cleanup={'private_directories_removed': 0, 'owned_processes_stopped': 0, 'cleanup_failures': 0,
+            'private_directories_remaining': 0, 'live_processes_after_cleanup': 0, 'workers_registered': 0},
+        file_service_cleanup={'kind': 'file', 'binary_sha256': FILE, 'process_stopped': True, 'private_storage_removed': True},
+        cleanup={'ownedSchemasRemoved': 55, 'ownedRuntimeUsersRemoved': 2, 'readerRemoved': True})
+    return data
+
+class CalendarSQLGateTests(unittest.TestCase):
+    def validate(self, data, revision=REVISION, file=FILE, queue=QUEUE):
+        return gate.validate(data, source_revision=revision, file_digest=file, queue_digest=queue)
+
+    def test_actual_source_function_defines_exact_twenty_one_obligations_and_twelve_sources(self):
+        result = subprocess.run(['php', '-r',
+            'require $argv[1];echo json_encode([governance_calendar_reminder_obligations(),governance_calendar_reminder_source_inputs()]);',
+            str(ROOT / 'support/governance/notification/calendar-reminder-cases.php')],
+            capture_output=True, text=True, check=True, timeout=10)
+        self.assertEqual('', result.stderr)
+        cases, sources = json.loads(result.stdout)
+        self.assertEqual(set(cases), gate.CASES)
+        self.assertEqual(set(sources), set(gate.SOURCE_INPUTS))
+        self.assertEqual(12, len(gate.sources()))
+
+    def test_actual_scoped_configuration_disables_unrelated_media_hooks_and_restores_parent(self):
+        code = r"""require $argv[1].'/support/runtime/src/init/init-library.php';phutil_load_library($argv[1].'/src/');
+require $argv[1].'/support/governance/notification/calendar-reminder-cases.php';
+$values=array('governance.private-mail.enabled'=>false,'governance.media-exchange.enabled'=>true,
+'governance.media-exchange.http-enabled'=>true,'governance.organization.enabled'=>true,'governance.notifications.enabled'=>true,
+'gorge.taskqueue.owner'=>'phorge','gorge.taskqueue.uri'=>null,'gorge.taskqueue.token'=>null,
+'cluster.mailers'=>array(array('key'=>'unchanged-parent-sentinel')));
+$stack=new PhabricatorConfigStackSource();$stack->pushSource(new PhabricatorConfigDefaultSource());
+$stack->pushSource(new PhabricatorConfigDictionarySource($values));
+(new ReflectionProperty(PhabricatorEnv::class,'sourceStack'))->setValue(null,$stack);
+(new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+$read=static function()use($values){$out=array();foreach($values as$key=>$unused){$out[$key]=PhabricatorEnv::getEnvConfig($key);}return$out;};
+$before=$read();$count=count($stack->getStack());
+$scope=governance_calendar_reminder_scope(array('uri'=>'http://127.0.0.1:1','token'=>str_repeat('a',64)));
+$during=$read();$added=count($stack->getStack())===$count+1;
+unset($scope);$after=$read();
+echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'added_one_scope'=>$added,
+'restored_stack_depth'=>count($stack->getStack())===$count),JSON_THROW_ON_ERROR);"""
+        result = subprocess.run(['php', '-r', code, str(ROOT)], capture_output=True, text=True, check=True, timeout=15)
+        self.assertEqual('', result.stderr)
+        value = json.loads(result.stdout)
+        self.assertEqual(value['before'], value['after'])
+        self.assertIs(value['added_one_scope'], True)
+        self.assertIs(value['restored_stack_depth'], True)
+        self.assertIs(value['during']['governance.private-mail.enabled'], True)
+        for key in ('governance.media-exchange.enabled', 'governance.media-exchange.http-enabled',
+                    'governance.organization.enabled', 'governance.notifications.enabled'):
+            self.assertIs(value['during'][key], False)
+        self.assertEqual('gorge', value['during']['gorge.taskqueue.owner'])
+        self.assertEqual('http://127.0.0.1:1', value['during']['gorge.taskqueue.uri'])
+        self.assertEqual('calendar-isolated-serialization', value['during']['cluster.mailers'][0]['key'])
+
+    def test_historical_source_inverses_reject_unrelated_changes_even_if_pin_refreshed(self):
+        for name, inverse in (
+                ('src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php', gate.reduce_reviewed_calendar_engine),
+                ('support/governance/native-organization/test-native-organization-mysql.php', gate.reduce_reviewed_calendar_driver)):
+            raw = (ROOT / name).read_bytes()
+            baseline = subprocess.check_output(['git', '-C', str(ROOT), 'show',
+                '59b623978b82964581ccc769221121a03938a2ff:' + name])
+            self.assertEqual(baseline, inverse(raw))
+            changed = raw + b'\n// unrelated source change\n'
+            with self.subTest(name=name), self.assertRaises(ValueError): inverse(changed)
+            prior = gate.SOURCE_INPUTS[name]
+            try:
+                gate.SOURCE_INPUTS[name] = hashlib.sha256(changed).hexdigest()
+                with self.assertRaises(ValueError): inverse(changed)
+            finally:
+                gate.SOURCE_INPUTS[name] = prior
+
+    def test_exact_synthetic_receipt_accepts_only_narrow_scope(self):
+        value = self.validate(template())
+        self.assertEqual(32, value['checks'])
+        self.assertEqual(21, value['calendar_obligations'])
+        self.assertTrue(value['activation_blocked'])
+        for key in ('physical_SMTP_or_browser_proved', 'native_global_lock_or_daemon_proved',
+                    'ephemeral_ghost_delivery_supported', 'all_calendar_producer_paths_complete'):
+            self.assertIs(value[key], False)
+
+    def test_no_missing_duplicate_extra_or_boolean_checks(self):
+        for action in ('missing', 'duplicate', 'extra', 'bool'):
+            data = template()
+            if action == 'missing': data['checks'].pop()
+            if action == 'duplicate': data['checks'][0] = data['checks'][1]
+            if action == 'extra': data['checks'].append('imagined-SMTP-pass')
+            if action == 'bool': data['checks'][0] = True
+            data['check_count'] = len(data['checks'])
+            with self.subTest(action=action), self.assertRaises(ValueError): self.validate(data)
+
+    def test_revision_and_independent_service_digests_must_match(self):
+        for kwargs in ({'revision': 'd' * 40}, {'file': 'd' * 64}, {'queue': 'd' * 64},
+                       {'revision': 'main'}, {'file': None}, {'queue': True}):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError): self.validate(template(), **kwargs)
+
+    def test_source_pins_and_profile_cannot_be_substituted(self):
+        for action in ('pin', 'missing-pin', 'profile', 'obligation'):
+            data = template()
+            if action == 'pin': data['native']['source_inputs_sha256'][next(iter(gate.SOURCE_INPUTS))] = 'd' * 64
+            if action == 'missing-pin': data['native']['source_inputs_sha256'].pop(next(iter(gate.SOURCE_INPUTS)))
+            if action == 'profile': data['native']['profile'] = 'all-calendar-production'
+            if action == 'obligation': data['native']['executed_case_obligations'].pop()
+            with self.subTest(action=action), self.assertRaises(ValueError): self.validate(data)
+
+    def test_host_only_proof_cannot_promote_daemon_physical_or_complete_flags(self):
+        for key in ('native_global_lock_or_daemon_proved', 'physical_SMTP_or_browser_proved',
+                    'ephemeral_ghost_delivery_supported', 'all_calendar_producer_paths_complete', 'activation_blocked'):
+            data = template(); data['native'][key] = not data['native'][key]
+            with self.subTest(key=key), self.assertRaises(ValueError): self.validate(data)
+
+    def test_process_storage_schema_or_reader_cleanup_failure_refuses(self):
+        for section, key in (('native', 'queue_cleanup'), ('file_service_cleanup', 'process_stopped'),
+                             ('file_service_cleanup', 'private_storage_removed'), ('cleanup', 'readerRemoved'),
+                             ('worker_cleanup', 'live_processes_after_cleanup')):
+            data = template()
+            if section == 'native': data[section][key]['process_stopped'] = False
+            elif section == 'worker_cleanup': data[section][key] = 1
+            else: data[section][key] = False
+            with self.subTest(section=section, key=key), self.assertRaises(ValueError): self.validate(data)
+
+    def test_public_cli_requires_both_independent_binary_bytes_and_strict_json(self):
+        with tempfile.TemporaryDirectory() as directory:
+            private = Path(directory).resolve()
+            file = private / 'file'; file.touch(mode=0o700); file.write_bytes(b'synthetic-file-digest-input')
+            queue = private / 'queue'; queue.touch(mode=0o700); queue.write_bytes(b'synthetic-queue-digest-input')
+            file_digest = hashlib.sha256(file.read_bytes()).hexdigest()
+            queue_digest = hashlib.sha256(queue.read_bytes()).hexdigest()
+            data = template()
+            data['file_service_cleanup']['binary_sha256'] = file_digest
+            data['native']['queue_cleanup']['binary_sha256'] = queue_digest
+            receipt = private / 'receipt.json'; receipt.touch(mode=0o600)
+            command = [sys.executable, '-B', str(SCRIPTS / 'check_private_calendar_reminders.py'),
+                '--receipt', str(receipt), '--source-revision', REVISION,
+                '--file-binary', str(file), '--file-binary-sha256', file_digest,
+                '--queue-binary', str(queue), '--queue-binary-sha256', queue_digest]
+            receipt.write_text(json.dumps(data))
+            accepted = subprocess.run(command, capture_output=True, text=True, timeout=20)
+            self.assertEqual(0, accepted.returncode, accepted.stderr)
+            self.assertIs(json.loads(accepted.stdout)['physical_SMTP_or_browser_proved'], False)
+            queue.write_bytes(b'changed-after-expected-digest')
+            denied = subprocess.run(command, capture_output=True, text=True, timeout=20)
+            self.assertNotEqual(0, denied.returncode)
+            self.assertEqual('', denied.stdout)
+            queue.write_bytes(b'synthetic-queue-digest-input')
+            receipt.write_text(json.dumps(data).replace('"passed": true', '"passed": false, "passed": true', 1))
+            denied = subprocess.run(command, capture_output=True, text=True, timeout=20)
+            self.assertNotEqual(0, denied.returncode)
+            self.assertEqual('', denied.stdout)
+
+    def test_runtime_or_permission_scope_change_refuses(self):
+        for key, value in (('php_version', '8.5.8'), ('passed', False), ('native_permission_axes_changed', True),
+                           ('production_optional_features_enabled', True), ('production_deployment', True),
+                           ('terminal_failure_cleanup_rollbacks', 1), ('check_count', True)):
+            data = template(); data[key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError): self.validate(data)
+
+if __name__ == '__main__':
+    unittest.main()

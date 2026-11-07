@@ -59,7 +59,7 @@
       "path": "src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php",
       "symbol": "PhabricatorCalendarNotificationEngine",
       "purpose_review": "business-producer",
-      "sha256": "aa0c9853cfd288f6ce575e4007fa1d8c6da75b7758e68ff61f72fbb9656951d9",
+      "sha256": "f188d0d1e58fcea435853cefa4184a53518e24a69737ec3a7efc069e4413c43d",
       "runtime_matrix_complete": false
     },
     {

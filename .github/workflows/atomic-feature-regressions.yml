@@ -567,6 +567,33 @@ jobs:
           name: governance-borrowed-session-failure-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-borrowed-session-failure/diagnostic.json
           if-no-files-found: error
+      - name: Verify actual private Calendar reminder scheduler and current-policy egress
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir "$RUNNER_TEMP/governance-private-calendar-reminders"
+          sha256sum --check /tmp/atomic-maps.sha256
+          cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-private-calendar-reminders/verified-maps.sha256"
+          git rev-parse HEAD > "$RUNNER_TEMP/governance-private-calendar-reminders/source-revision.txt"
+          sha256sum "$RUNNER_TEMP/gorge-file-storage" "$RUNNER_TEMP/gorge-taskqueue" | sed "s|$RUNNER_TEMP/||g" > "$RUNNER_TEMP/governance-private-calendar-reminders/binary-sha256.txt"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_GORGE_TASKQUEUE_BINARY="$RUNNER_TEMP/gorge-taskqueue" \
+          PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          php support/governance/native-organization/test-native-organization-mysql.php --calendar-reminders > "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json"
+          python3 -B scripts/governance/check_private_calendar_reminders.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --queue-binary "$RUNNER_TEMP/gorge-taskqueue" --queue-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json"
+          mv "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json" "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.json"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: governance-private-calendar-reminders-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-private-calendar-reminders
+          if-no-files-found: error
       - name: Verify fresh native organization approval workbench after File source facts
         run: |
           umask 077

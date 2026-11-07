@@ -4,7 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--session-borrowed-owner'=>'session-borrowed-owner','--file-parent-policy'=>'file-parent-policy','--session-producer-lease'=>'session-producer-lease','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--calendar-reminders'=>'calendar-reminders','--session-borrowed-owner'=>'session-borrowed-owner','--file-parent-policy'=>'file-parent-policy','--session-producer-lease'=>'session-producer-lease','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-remote-hold'=>'http-wire-remote-hold','--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-history-wire-hold'=>'governance-notice-history-wire-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
@@ -201,6 +201,13 @@ try {
     (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     $stage='owned-workbench-basic-http-hold';require_once dirname(__DIR__).'/organization/workbench-http-hold.php';
     $native=governance_workbench_http_hold($fixture,$control,$check,$file_service);
+  }elseif($phase==='calendar-reminders'){
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';$file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+    $stage='focused-native-calendar-reminders';require_once dirname(__DIR__).'/notification/calendar-reminder-cases.php';
+    $native=governance_calendar_reminder_cases($fixture,$check);
   }elseif($phase==='organization-approval-workbench'){
     $stage='focused-organization-approval-workbench';
     require_once dirname(__DIR__).'/organization/approval-workbench-cases.php';
@@ -448,6 +455,7 @@ if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)
 $passed = $failure === null && !$cleanup_failures;
 if($phase==='session-producer-lease'&&!$passed){require_once dirname(__DIR__).'/recovery/session-lease-diagnostic.php';$diagnostic=governance_recovery_session_lease_failure_projection($phase,$passed,$failure,$GLOBALS['governance_session_producer_child_failure']??null);fwrite(STDERR,'native-session-lease-failure-v1 '.json_encode($diagnostic,JSON_UNESCAPED_SLASHES)."\n");}
 $batch=$native_rr?'native-same-User-RR-MDL-component':($notice_raw_orm?'native-notice-raw-orm-ABA-profile':($phase==='recovery-organization-lifecycle-only'?'native-recovery-organization-lifecycle-component':($phase==='recovery-organization-metadata-only'?'native-recovery-organization-live-metadata-component':($phase==='recovery-organization-only'?'native-recovery-organization-producer-component':($phase==='recovery-policy-only'?'native-recovery-policy-range-component':($private_mail_wire?'private-native-mail-wire-preparation':($wire_hold?'native-media-wire-fixture-preparation':($legacy_compatibility?'native-legacy-role-sql-compatibility':'native-organization-media-integration'))))))));
+$batch=$phase==='calendar-reminders'?'native-private-calendar-reminders':$batch;
 $batch=$workbench_http?'native-workbench-basic-http-hold':$batch;
 $batch=$phase==='notice-admin-grant'?'native-notice-admin-grant-profile':$batch;
 $batch=$phase==='project-source-facts'?'native-project-source-facts':$batch;
@@ -462,6 +470,7 @@ $batch=$phase==='recovery-partial-composition'?'native-recovery-partial-composit
 $batch=$phase==='application-config-facts'?'native-application-config-facts':$batch;
 $batch=$credential_concurrency?'native-api-credential-concurrency':$batch;
 $receipt_scope=$phase==='notice-admin-grant'?'owned-native-admin-grant-and-transaction-outbox':($notice_raw_orm?'owned-notice-raw-native-DAO-restoration-off':($private_mail_wire?'owned-private-native-mail-wire-preparation':($wire_hold?'owned-native-media-wire-hold-synthetic-accounts':($legacy_compatibility?'owned-full-native-legacy-role-hooks-only':'owned-full-native-source-synthetic-accounts'))));
+$receipt_scope=$phase==='calendar-reminders'?'owned-native-calendar-reminders-no-SMTP':$receipt_scope;
 $receipt_scope=$workbench_http?'owned-workbench-basic-http-synthetic-roles':$receipt_scope;
 $receipt_scope=$phase==='project-source-facts'?'owned-native-project-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$phase==='organization-approval-workbench'?'owned-native-organization-approval-workbench':$receipt_scope;

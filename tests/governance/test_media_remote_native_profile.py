@@ -1,7 +1,9 @@
 """Actual native origin protocol and fixture source boundary; no physical SQL."""
 from pathlib import Path
-import json,subprocess,unittest
+import json,subprocess,unittest,sys
 ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_private_calendar_reminders as calendar_delta
 LOADER=r'''$root=$argv[1];function phutil_register_library_map($map){foreach($map['class']as$c=>$p){$GLOBALS['paths'][$c]=$GLOBALS['base'].'/'.$p;}}foreach(['/support/runtime/src','/src']as$s){$GLOBALS['base']=$root.$s;require$root.$s.'/__phutil_library_map__.php';}spl_autoload_register(function($c){if(isset($GLOBALS['paths'][$c]))require_once$GLOBALS['paths'][$c];});require_once$root.'/support/runtime/src/utils/utils.php';require$root.'/support/governance/native-organization/media-remote-profile.php';'''
 class MediaRemote(unittest.TestCase):
  def php(self,code,*args):
@@ -25,7 +27,7 @@ if __name__=='__main__':unittest.main()
 class LegacySourceInverse(unittest.TestCase):
  def previous(self,name):return subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+name]).decode()
  def test_existing_localhost_driver_and_fixture_recover_exact_prior_bytes(self):
-  name='support/governance/native-organization/test-native-organization-mysql.php';s=(ROOT/name).read_text();s=s.replace("'--http-wire-remote-hold'=>'http-wire-remote-hold',",'').replace("$media_remote=$phase==='http-wire-remote-hold';\n$wire_hold=$phase==='http-wire-hold'||$media_remote;","$wire_hold=$phase==='http-wire-hold';");s=s.replace("require_once __DIR__.'/media-wire-fixture.php';\n      if($media_remote){require_once __DIR__.'/media-remote-profile.php';$native=governance_native_media_wire_hold($fixture,$check,governance_media_remote_profile());}\n      else{$native=governance_native_media_wire_hold($fixture,$check);}","require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);").replace("  }elseif(($media_remote??false)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){\n    $cleanup_failures[]=array('stage'=>'media-remote-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');\n    // Retain this exact remote-only fixture until independent writerSQL0.\n",'');self.assertEqual(s,self.previous(name))
+  name='support/governance/native-organization/test-native-organization-mysql.php';s=calendar_delta.reduce_reviewed_calendar_driver((ROOT/name).read_bytes()).decode();s=s.replace("'--http-wire-remote-hold'=>'http-wire-remote-hold',",'').replace("$media_remote=$phase==='http-wire-remote-hold';\n$wire_hold=$phase==='http-wire-hold'||$media_remote;","$wire_hold=$phase==='http-wire-hold';");s=s.replace("require_once __DIR__.'/media-wire-fixture.php';\n      if($media_remote){require_once __DIR__.'/media-remote-profile.php';$native=governance_native_media_wire_hold($fixture,$check,governance_media_remote_profile());}\n      else{$native=governance_native_media_wire_hold($fixture,$check);}","require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);").replace("  }elseif(($media_remote??false)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){\n    $cleanup_failures[]=array('stage'=>'media-remote-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');\n    // Retain this exact remote-only fixture until independent writerSQL0.\n",'');self.assertEqual(s,self.previous(name))
   name='support/governance/native-organization/media-wire-fixture.php';s=(ROOT/name).read_text().replace('function governance_native_media_wire_hold($fixture,callable $check,?array $remote=null){','function governance_native_media_wire_hold($fixture,callable $check){');s=s.replace("\n  if($remote!==null){governance_media_remote_validate_profile($remote);$app=$remote['app_origin'];$files=$remote['file_origin'];}",'')
   a=s.index("  if($remote!==null){$router['remote_origin_profile']");b=s.index('  $ready=array(',a);s=s[:a]+s[b:];s=s.replace("  $router=array(","  $write('router.json',array(").replace("'gorge_image_uri'=>$image_uri,'gorge_image_token'=>$image_token);","'gorge_image_uri'=>$image_uri,'gorge_image_token'=>$image_token));")
   a=s.index("  if($remote!==null){$ready['remote_origin_profile']");b=s.index("  $check(true,'wire-fixture-private-parent-manifest",a);s=s[:a]+s[b:];s=s.replace("  $ready=array(","  $write('fixture-ready.json',array(").replace("'browser_session_preseeded'=>false,'otp_tested'=>false);","'browser_session_preseeded'=>false,'otp_tested'=>false));")
@@ -51,5 +53,11 @@ class CurrentMainIntegration(MediaRemote):
    inputs=next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
    self.assertEqual(len(inputs),count)
    for name,pin in inputs.items():self.assertEqual(hashlib.sha256((ROOT/name).read_bytes()).hexdigest(),pin,name)
-  diff=subprocess.check_output(['git','-C',str(ROOT),'diff','5a3d412be4496d1b739d484fc4cd778b79d80f72','--','src','resources'])
-  self.assertEqual(diff,b'')
+  changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72','--','src','resources'],text=True).splitlines()
+  name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
+  self.assertEqual(changed,[name])
+  # Only the exact separately reviewed Calendar addition is allowed. Its
+  # inverse must recover the original product bytes; every other path remains
+  # excluded rather than making the historical source check a blanket pass.
+  old=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+name])
+  self.assertEqual(calendar_delta.reduce_reviewed_calendar_engine((ROOT/name).read_bytes()),old)

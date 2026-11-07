@@ -1,7 +1,9 @@
 """Host source contracts only; no claim of native SQL or physical delivery."""
 from pathlib import Path
-import unittest,subprocess,hashlib
+import unittest,subprocess,hashlib,sys
 ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_private_calendar_reminders as calendar_delta
 ADDITIONS={
  'PhorgeOrganizationApprovalController':('applications/people/governance/controller/PhorgeOrganizationApprovalController.php','PhabricatorPeopleController'),
  'PhorgeRecoveryFileSourceFacts':('infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php','Phobject'),
@@ -37,6 +39,9 @@ SESSION_LEASE_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecover
 # Explicit two-path candidate delta; not runtime/SQL certification.
 BORROWED_SOURCE_VERSION='n08-borrowed-owner-source-candidate-v1'
 BORROWED_SOURCE_PINS={'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php': 'baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f', 'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': 'a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd'}
+
+CALENDAR_SOURCE_PATH='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
+CALENDAR_SOURCE_PINS={CALENDAR_SOURCE_PATH:calendar_delta.SOURCE_INPUTS[CALENDAR_SOURCE_PATH]}
 
 def reviewed_partial_sources(root=ROOT):
  result={}
@@ -83,10 +88,15 @@ def reviewed_sources():
   raw=(ROOT/path).read_bytes()
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('Borrowed owner candidate source pin changed')
   result[path]=raw
+ raw=(ROOT/CALENDAR_SOURCE_PATH).read_bytes()
+ old=subprocess.check_output(['git','-C',str(ROOT),'show','59b623978b82964581ccc769221121a03938a2ff:'+CALENDAR_SOURCE_PATH])
+ if calendar_delta.reduce_reviewed_calendar_engine(raw)!=old:raise ValueError('Calendar historical product inverse changed')
+ result[CALENDAR_SOURCE_PATH]=raw
  return result
 def validate_notice_product_delta(changed,current,frozen,baseline_map):
- allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
+ allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)
  if set(changed)!=allowed or set(current)!=allowed:raise ValueError('unreviewed notice product delta')
+ calendar_delta.reduce_reviewed_calendar_engine(current[CALENDAR_SOURCE_PATH])
  for path in allowed-{'src/__phutil_library_map__.php'}:
   if current[path]!=frozen[path]:raise ValueError('reviewed config/RR source bytes changed')
  reduced=current['src/__phutil_library_map__.php']
@@ -179,7 +189,7 @@ class NativeAdminWire(unittest.TestCase):
   # byte; never turn this historical fixture contract into a blanket new base.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
   config='ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)
   changed=set(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only',baseline,'--','src','resources'],text=True).splitlines())
   current={path:(ROOT/path).read_bytes()for path in allowed}
   frozen=reviewed_sources()
@@ -190,7 +200,7 @@ class NativeAdminWire(unittest.TestCase):
   # Use the existing fixed baseline and actual validator; documentation is an
   # exact reviewed source addition, never a suffix or directory exclusion.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)
   current={path:(ROOT/path).read_bytes()for path in allowed};frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
   self.assertEqual(WORKBENCH_CANDIDATE_SOURCE_PINS[doc],hashlib.sha256(current[doc]).hexdigest())
@@ -201,7 +211,7 @@ class NativeAdminWire(unittest.TestCase):
   with self.assertRaises(ValueError):validate_notice_product_delta(allowed|{foreign},bad,frozen,old_map)
  def test_actual_product_validator_rejects_unreviewed_and_corrupt_deltas(self):
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10';config='ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)
   current={path:(ROOT/path).read_bytes()for path in allowed}
   frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
@@ -234,7 +244,7 @@ if __name__=='__main__':unittest.main()
 class SessionLeaseExactSourcePins(unittest.TestCase):
  def test_both_new_reviewed_pins_refuse_corruption_and_unknown_product(self):
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
-  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)
+  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)
   current={path:(ROOT/path).read_bytes()for path in allowed};frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
   for path in SESSION_LEASE_SOURCE_PINS:

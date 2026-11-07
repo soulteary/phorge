@@ -213,7 +213,9 @@ final class PhabricatorCalendarNotificationEngine
       $locale = PhabricatorEnv::beginScopedLocale($user->getTranslation());
       $caught = null;
       try {
-        $mail_list[] = $this->newMailMessage($user, $events);
+        $mail_list = array_merge(
+          $mail_list,
+          $this->newMailMessages($user, $events));
       } catch (Exception $ex) {
         $caught = $ex;
       }
@@ -253,6 +255,22 @@ final class PhabricatorCalendarNotificationEngine
     foreach ($mail_list as $mail) {
       $mail->saveAndSend();
     }
+  }
+
+
+  private function newMailMessages(PhabricatorUser $viewer, array $events) {
+    if (!PhorgePrivateMailPolicy::enabled()) {
+      return array($this->newMailMessage($viewer, $events));
+    }
+
+    // Link-only mail has one related object. Preserve each reminder's own
+    // destination and current VIEW check instead of discarding all but the
+    // first event when the native digest body is removed at private egress.
+    $messages = array();
+    foreach ($events as $event) {
+      $messages[] = $this->newMailMessage($viewer, array($event));
+    }
+    return $messages;
   }
 
 
