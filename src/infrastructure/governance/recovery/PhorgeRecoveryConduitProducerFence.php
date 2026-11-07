@@ -7,6 +7,18 @@
 final class PhorgeRecoveryConduitProducerFence extends Phobject {
   private static $retained=array();
   private function __construct() {}
+  /** Process-local reservation only; never a durable or cross-process lease. */
+  public static function assertWriterAvailable($writer) {
+    // A replaced pool connection does not make an unknown retained owner safe.
+    if(self::$retained){throw new RuntimeException('recovery_conduit_writer_quarantined');}
+  }
+  private static function lockTransactionalTable($conn,$table) {
+    if(!$conn->isInsideTransaction()){throw new RuntimeException('recovery_conduit_MDL_owner_required');}
+    queryfx_one($conn,'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE',$table);
+    $engine=queryfx_one($conn,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
+      $table->getAphrontRefDatabaseName(),$table->getTableName());
+    if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('recovery_conduit_transactional_source_required');}
+  }
   private static function state($conn) {
     $row=queryfx_one($conn,'SELECT @@autocommit a,@@server_uuid u');
     if(!$row||!in_array($row['a'],array(1,'1'),true)||
@@ -27,16 +39,10 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
     $subject=PhorgeRecoveryStopRequest::user($token->getObjectPHID());
     $user=new PhabricatorUser();$owner=$user->establishConnection('w');$writer=$token->establishConnection('w');
     if($owner===$writer){throw new RuntimeException('recovery_conduit_distinct_native_writers_required');}
-    foreach(self::$retained as$retained){
-      if($retained->owner===$owner||$retained->writer===$writer){throw new RuntimeException('recovery_conduit_writer_quarantined');}}
+    self::assertWriterAvailable($owner);
     PhorgeRecoveryRestoreService::assertConduitProducerOwnerAvailable($owner);
     PhorgeRecoverySessionProducerFence::assertConduitProducerWriterAvailable($owner);
     self::idle($owner);self::idle($writer);
-    foreach(array($user,$token)as$table){$conn=$table->establishConnection('w');
-      $engine=queryfx_one($conn,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
-        $table->getAphrontRefDatabaseName(),$table->getTableName());
-      if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('recovery_conduit_transactional_source_required');}}
-
     if(self::state($owner)['u']!==self::state($writer)['u']){throw new RuntimeException('recovery_conduit_primary_mismatch');}
     $ticket=new stdClass();$ticket->owner=$owner;$ticket->writer=$writer;
     $ticket->owner_started=false;$ticket->writer_started=false;$ticket->unknown=false;
@@ -46,6 +52,7 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
       queryfx($owner,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
       // Mark before BEGIN: an exception need not mean the server did not begin.
       $ticket->owner_started=true;$ticket->unknown=true;$owner->openTransaction();$ticket->unknown=false;
+      self::lockTransactionalTable($owner,$user);
       PhorgeRecoveryRestoreProfile::assertOwnedWriter($owner);
       $plan=queryfx_one($owner,'SELECT id FROM %R WHERE BINARY phid=BINARY %s',$user,$subject);
       if(!$plan||!preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$plan['id'])){throw new RuntimeException('recovery_conduit_subject_unknown');}
@@ -53,6 +60,7 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
       if(!$locked||$locked['phid']!==$subject){throw new RuntimeException('recovery_conduit_subject_changed');}
       queryfx($writer,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
       $ticket->writer_started=true;$ticket->unknown=true;$writer->openTransaction();$ticket->unknown=false;
+      self::lockTransactionalTable($writer,$token);
       $result=$insert();
       if($token->establishConnection('w')!==$writer||$user->establishConnection('w')!==$owner||
         $token->getObjectPHID()!==$subject||PhorgeRecoveryRestoreProfile::assertCurrent()!==$profile){

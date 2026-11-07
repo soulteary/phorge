@@ -85,7 +85,8 @@ def reviewed_sources():
  for path,pin in SESSION_LEASE_SOURCE_PINS.items():
   if path in BORROWED_SOURCE_PINS:continue
   raw=(ROOT/path).read_bytes()
-  if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('Session lease candidate source pin changed')
+  compared=conduit_delta.reduce_owner(path,raw) if path in conduit_delta.BASE_PINS else raw
+  if hashlib.sha256(compared).hexdigest()!=pin:raise ValueError('Session lease candidate source pin changed')
   result[path]=raw
  for path,pin in BORROWED_SOURCE_PINS.items():
   raw=(ROOT/path).read_bytes()

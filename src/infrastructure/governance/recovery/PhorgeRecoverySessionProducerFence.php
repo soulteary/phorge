@@ -34,6 +34,7 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     $forced=new ReflectionProperty(LiskDAO::class,'forcedConnection');
     if($forced->getValue($session)!==null){throw new RuntimeException('recovery_session_writer_unknown');}
     $conn=$session->establishConnection('w');
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($conn);}
     if($conn!==(new PhabricatorUser())->establishConnection('w')||
       get_class($conn)!==AphrontMySQLiDatabaseConnection::class||
       $conn->isReadLocking()||$conn->isWriteLocking()){
@@ -290,6 +291,7 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
 
   public static function beginBorrowed($token,AphrontDatabaseConnection $writer,
     AphrontDatabaseConnection $observer) {
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($writer);}
     PhorgeRecoveryRestoreService::assertBorrowedOwner($token,$writer,$observer);
     if(get_class($writer)!==AphrontMySQLiDatabaseConnection::class||
       get_class($observer)!==AphrontMySQLiDatabaseConnection::class||
@@ -315,6 +317,7 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
   }
 
   private function borrowedAssertActive() {
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($this->leaseWriter);}
     if(!$this->borrowed||$this->leaseState!=='active'){
       throw new RuntimeException('recovery_borrowed_not_active');}
     PhorgeRecoveryRestoreService::assertBorrowedOwner($this->borrowedToken,$this->leaseWriter,$this->leaseObserver);
@@ -354,6 +357,10 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
       $remote=queryfx_one($native,'SELECT @@server_uuid u');
       $local=queryfx_one($this->leaseWriter,'SELECT @@server_uuid u');
       if(!$remote||!$local||$remote!==$local){throw new RuntimeException('recovery_borrowed_conduit_primary_unknown');}
+      queryfx_one($this->leaseWriter,'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE',$table);
+      $engine=queryfx_one($this->leaseWriter,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
+        $table->getAphrontRefDatabaseName(),$table->getTableName());
+      if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('recovery_borrowed_conduit_engine_unknown');}
       $rows=queryfx_all($this->leaseWriter,'SELECT id,objectPHID,tokenType,token,expires,dateCreated,dateModified,tokenName '.
         'FROM %R WHERE BINARY objectPHID=BINARY %s ORDER BY id LIMIT 65 LOCK IN SHARE MODE',$table,$subject);
       if(count($rows)>64){throw new RuntimeException('recovery_borrowed_conduit_budget_unknown');}
@@ -406,6 +413,7 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     $subject=PhorgeRecoveryStopRequest::user($subject);
     $profile=PhorgeRecoveryRestoreProfile::assertCurrent();
     $writer=(new PhabricatorUser())->establishConnection('w');
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($writer);}
     if(get_class($writer)!==AphrontMySQLiDatabaseConnection::class||get_class($observer)!==AphrontMySQLiDatabaseConnection::class||
       $observer===$writer||$observer->isInsideTransaction()||$observer->isReadLocking()||$observer->isWriteLocking()||$writer->isInsideTransaction()||$writer->isReadLocking()||$writer->isWriteLocking()){
       throw new RuntimeException('recovery_session_lease_outer_transaction_refused');}
@@ -443,6 +451,7 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     unset(self::$leaseActive[$this->leaseWriter]);
   }
   private function leaseAssertActive() {
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($this->leaseWriter);}
     // Terminal/invalid reentry never changes state or invokes recovery.
     if($this->leaseState!=='active'){throw new RuntimeException('recovery_session_lease_scope_not_active');}
     try{

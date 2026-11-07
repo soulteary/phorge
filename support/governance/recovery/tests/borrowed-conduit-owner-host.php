@@ -25,13 +25,22 @@ function queryfx_one($c,$sql,...$args){
  if(str_contains($sql,'@@SESSION.transaction_isolation'))return['level'=>'REPEATABLE-READ'];
  if(str_contains($sql,'writer_id'))return['writer_id'=>'1','uuid'=>str_repeat('a',36),'db'=>'governance_native_'.str_repeat('b',16).'_user','principal'=>'gov_c_writer_'.str_repeat('c',12).'@%','role'=>'NONE','proxy'=>null];
  if(str_contains($sql,'observer_id'))return['observer_id'=>$GLOBALS['mode']==='observer-end'&&$GLOBALS['writer']->depth===0?'3':'2','uuid'=>str_repeat('a',36),'principal'=>'gov_c_metadata_'.str_repeat('d',16).'@%','role'=>$GLOBALS['mode']==='role'?'foreign':'NONE','proxy'=>null];
- if(str_contains($sql,'SELECT ENGINE'))return['ENGINE'=>'InnoDB'];
+ if(str_contains($sql,'WHERE 1=0')&&($args[0]??null) instanceof PhabricatorConduitToken){
+  if($c!==$GLOBALS['writer']||!$c->isInsideTransaction())throw new RuntimeException('host_wrong_Conduit_MDL_owner');
+  $GLOBALS['conduit_steps'][]='MDL';$GLOBALS['conduit_MDL']=true;return null;}
+ if(str_contains($sql,'SELECT ENGINE')){
+  if(($args[0]??null)==='owned_conduit'){
+   if($c!==$GLOBALS['writer']||empty($GLOBALS['conduit_MDL']))throw new RuntimeException('host_Conduit_ENGINE_before_MDL');
+   $GLOBALS['conduit_steps'][]='ENGINE';return['ENGINE'=>$GLOBALS['mode']==='conduit-engine'?'MyISAM':'InnoDB'];}
+  return['ENGINE'=>'InnoDB'];}
+
  if(str_contains($sql,'SELECT id,phid'))return['id'=>'1','phid'=>'PHID-USER-'.str_repeat('a',20)];
  if(str_contains($sql,'SELECT id FROM')&&str_contains($sql,'WHERE BINARY phid'))return['id'=>'1'];
  return null;
 }
 function queryfx_all($c,$sql,...$args){
  if(str_contains($sql,'SELECT id,objectPHID,tokenType')){
+   if(empty($GLOBALS['conduit_MDL']))throw new RuntimeException('host_Conduit_read_without_MDL');$GLOBALS['conduit_steps'][]='READ';
    $GLOBALS['conduit_reads']=($GLOBALS['conduit_reads']??0)+1;
    $row=['id'=>'1','objectPHID'=>'PHID-USER-'.str_repeat('a',20),'tokenType'=>'api','token'=>str_repeat('s',32),'expires'=>'0','dateCreated'=>'1','dateModified'=>'1','tokenName'=>'synthetic'];
    if($GLOBALS['mode']==='conduit-drift'&&$GLOBALS['conduit_reads']>1)$row['tokenName']='changed';
@@ -72,4 +81,4 @@ if($mode==='fake-token'){
  catch(Throwable$e){$error=$e->getMessage();$same=$e===$primary;if($e instanceof PhutilAggregateException){foreach($e->getExceptions()as$k=>$v){$children[$k]=$v->getMessage();}}}
 }
  $retryError=null;if($mode==='unknown-reentry'){try{(new ReflectionMethod(PhorgeRecoveryRestoreService::class,'withTransaction'))->invoke(null,new PhorgeGovernanceNativeActorContext(),[],static fn()=>[]);}catch(Throwable$e){$retryError=$e->getMessage();}}
-echo json_encode(['retry_error'=>$retryError,'mode'=>$mode,'error'=>$error,'same_primary'=>$same,'aggregate'=>$children,'opens'=>$opens,'commits'=>$commits,'rollbacks'=>$rollbacks,'statement_sql'=>$statement_sql,'depth'=>$writer->depth,'facts'=>$facts,'cleanup_proved'=>$GLOBALS['governance_recovery_borrowed_cleanup_proved']??false,'terminal'=>$GLOBALS['governance_recovery_borrowed_terminal']??null,'retained_owner'=>(new ReflectionProperty(PhorgeRecoveryRestoreService::class,'borrowedOwner'))->getValue()!==null,'physical_SQL_executed'=>false]);
+echo json_encode(['conduit_steps'=>$GLOBALS['conduit_steps']??[],'retry_error'=>$retryError,'mode'=>$mode,'error'=>$error,'same_primary'=>$same,'aggregate'=>$children,'opens'=>$opens,'commits'=>$commits,'rollbacks'=>$rollbacks,'statement_sql'=>$statement_sql,'depth'=>$writer->depth,'facts'=>$facts,'cleanup_proved'=>$GLOBALS['governance_recovery_borrowed_cleanup_proved']??false,'terminal'=>$GLOBALS['governance_recovery_borrowed_terminal']??null,'retained_owner'=>(new ReflectionProperty(PhorgeRecoveryRestoreService::class,'borrowedOwner'))->getValue()!==null,'physical_SQL_executed'=>false]);

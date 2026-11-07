@@ -13,7 +13,7 @@ class PhorgeRecoverySessionProducerFence {static function assertConduitProducerW
 class PhorgeRecoveryRestoreProfile {static function assertCurrent(){return ['synthetic-profile'];}static function assertOwnedWriter($w){if(!$w->isInsideTransaction())throw new RuntimeException("native-owner-required");}}
 class PhorgeRecoveryStopRequest {static function user($p){return $p;}}
 function queryfx($c,$q,...$a){$GLOBALS['events'][]=$c->name.'.sql';if($GLOBALS['mode']==='conduit-raw-outer'&&$c->name==='conduit')throw $GLOBALS['primary'];}
-function queryfx_one($c,$q,...$a){if(str_contains($q,'@@autocommit'))return ['a'=>'1','t'=>(string)$c->depth,'u'=>'same-server'];if(str_contains($q,'SELECT ENGINE'))return ['ENGINE'=>'InnoDB'];if(str_contains($q,'SELECT id'))return ['id'=>'1'];if(str_contains($q,'SELECT phid'))return ['phid'=>'PHID-USER-'.str_repeat('a',20)];return ['objectPHID'=>'PHID-USER-'.str_repeat('a',20),'token'=>'synthetic'];}
+function queryfx_one($c,$q,...$a){if(str_contains($q,'@@autocommit'))return ['a'=>'1','t'=>(string)$c->depth,'u'=>'same-server'];if(str_contains($q,'WHERE 1=0')){$GLOBALS['events'][]=$c->name.'.MDL';if(!$c->isInsideTransaction())throw new RuntimeException('MDL-outside-owner');$GLOBALS['MDL'][$c->name]=true;return null;}if(str_contains($q,'SELECT ENGINE')){$GLOBALS['events'][]=$c->name.'.ENGINE';if(!$c->isInsideTransaction()||empty($GLOBALS['MDL'][$c->name]))throw new RuntimeException('ENGINE-before-MDL');return ['ENGINE'=>$GLOBALS['mode']==='engine-'.$c->name?'MyISAM':'InnoDB'];}if(str_contains($q,'SELECT id'))return ['id'=>'1'];if(str_contains($q,'SELECT phid'))return ['phid'=>'PHID-USER-'.str_repeat('a',20)];return ['objectPHID'=>'PHID-USER-'.str_repeat('a',20),'token'=>'synthetic'];}
 '''
 class ConduitParticipant(unittest.TestCase):
  def invoke(self,mode):
@@ -40,6 +40,14 @@ $retained=(new ReflectionProperty(PhorgeRecoveryConduitProducerFence::class,'ret
   for mode in ['borrowed-reserved','lease-reserved']:
    d=self.invoke(mode);self.assertTrue(d['same_primary']);self.assertEqual([],d['events'])
 
+ def test_each_native_writer_holds_MDL_before_ENGINE_and_actual_write(self):
+  d=self.invoke('success');self.assertFalse(d['failed']);e=d['events']
+  for role in ['user','conduit']:
+   self.assertLess(e.index(role+'.begin'),e.index(role+'.MDL'));self.assertLess(e.index(role+'.MDL'),e.index(role+'.ENGINE'));self.assertLess(e.index(role+'.ENGINE'),e.index('actual-insert-collaborator'))
+ def test_nontransactional_source_refuses_before_actual_INSERT(self):
+  for mode in ['engine-user','engine-conduit']:
+   d=self.invoke(mode);self.assertTrue(d['failed']);self.assertNotIn('actual-insert-collaborator',d['events']);self.assertEqual(0,d['retained'])
+
 class NativeConduitEntry(unittest.TestCase):
  def test_actual_native_factory_and_callable_six_obligations_no_SQL(self):
   code=r"""require $argv[1].'/support/runtime/src/init/init-library.php';phutil_load_library($argv[1].'/src/');require $argv[1].'/support/governance/recovery/conduit-cases.php';$u='PHID-USER-'.str_repeat('a',20);$a=PhabricatorConduitToken::initializeNewToken($u,PhabricatorConduitToken::TYPE_STANDARD);$b=PhabricatorConduitToken::initializeNewToken($u,PhabricatorConduitToken::TYPE_CLUSTER);echo json_encode(['standard'=>$a->getTokenType(),'cluster'=>$b->getTokenType(),'owner'=>$a->getObjectPHID()===$u&&$b->getObjectPHID()===$u,'unsaved'=>$a->getID()===null&&$b->getID()===null,'obligations'=>count(governance_recovery_borrowed_conduit_obligations())]);"""
@@ -54,20 +62,24 @@ class BorrowedConduitCapture(unittest.TestCase):
   r=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/borrowed-conduit-owner-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=5);self.assertEqual(0,r.returncode,r.stderr);return json.loads(r.stdout)
  def test_real_Store_and_participant_capture_rechecks_then_observes_owner_terminal(self):
   d=self.invoke('success');self.assertIsNone(d['error']);self.assertTrue(d['cleanup_proved']);self.assertFalse(d['retained_owner']);self.assertEqual('native-conduit-token-rows',d['facts']['selected_source']);self.assertFalse(d['facts']['restoration_authorized'])
+ def test_borrowed_capture_MDL_ENGINE_rows_use_same_User_owner(self):
+  d=self.invoke('success');self.assertIsNone(d['error']);self.assertEqual(['MDL','ENGINE','READ']*2,d['conduit_steps'])
+
  def test_source_drift_budget_and_wrong_primary_refuse(self):
-  for mode in ['conduit-drift','conduit-budget','different-primary']:
+  for mode in ['conduit-drift','conduit-budget','different-primary','conduit-engine']:
    d=self.invoke(mode);self.assertIsNotNone(d['error']);self.assertFalse(d['physical_SQL_executed']);self.assertIsNone(d['facts'])
 
 class ConduitVersionedSource(unittest.TestCase):
- def test_v1_remains_historical_and_current_v2_pins_four_exact_sources(self):
+ def test_v1_v2_remain_historical_and_current_v3_pins_six_exact_sources(self):
   import sys,hashlib
   sys.path.insert(0,str(ROOT/'scripts/governance'))
   import check_recovery_borrowed_owner_source as gate
   old=json.loads((ROOT/'docs/governance/recovery-borrowed-owner-source-v1.json').read_bytes())
   new=json.loads((ROOT/'docs/governance/recovery-conduit-owner-source-v2.json').read_bytes())
-  self.assertEqual(2,len(old['source_sha256']));self.assertEqual(4,len(new['source_sha256']))
+  current=json.loads((ROOT/'docs/governance/recovery-conduit-owner-source-v3.json').read_bytes())
+  self.assertEqual(2,len(old['source_sha256']));self.assertEqual(4,len(new['source_sha256']));self.assertEqual(6,len(current['source_sha256']))
   self.assertEqual(2,gate.validate(old)['source_inputs']);self.assertEqual(4,gate.validate(new)['source_inputs'])
-  self.assertFalse(gate.validate(new)['runtime_certified'])
+  self.assertEqual(6,gate.validate(current)['source_inputs']);self.assertFalse(gate.validate(current)['runtime_certified'])
  def test_inverse_still_refuses_unrelated_bytes_even_after_current_hash_repin(self):
   import sys,hashlib
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_conduit_source_delta as delta

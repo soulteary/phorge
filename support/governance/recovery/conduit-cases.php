@@ -75,7 +75,7 @@ function governance_recovery_borrowed_conduit_cases($fixture,mysqli $control,arr
   });
   $labels=array_keys($executed);sort($labels,SORT_STRING);
   if($labels!==governance_recovery_borrowed_conduit_obligations()||($GLOBALS['governance_recovery_borrowed_fixture_cleanup']['cleanup_proved']??null)!==true){throw new RuntimeException('borrowed_complete_case_set_required');}
-  return array('profile'=>'isolated-borrowed-real-store-conduit-owner-v1','conduit_only_native_producer'=>true,'child_preflight_committed_before_owner'=>true,'child_preflight_no_record_locks_observed'=>true,'continuous_admin_lease_proved'=>false,'old_covering_positive_query_used'=>false,'executed_case_obligations'=>$labels,
+  return array('profile'=>'isolated-borrowed-real-store-conduit-owner-v2','conduit_only_native_producer'=>true,'child_preflight_committed_before_owner'=>true,'child_preflight_no_record_locks_observed'=>true,'continuous_admin_lease_proved'=>false,'old_covering_positive_query_used'=>false,'executed_case_obligations'=>$labels,
     'real_store_owner_and_native_conduit_INSERT'=>true,'participant_owns_transaction'=>false,
     'production_observer_factory_available'=>false,'business_submit_review_integration_proved'=>false,
     'durable_review_compatible'=>false,'Task_File_RR_combined'=>false,'all_sources_complete'=>false,

@@ -79,6 +79,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
       throw new RuntimeException('recovery_native_writer_unknown');
     }
     $conn = $user->establishConnection('w');
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($conn);}
     if (get_class($conn) !== AphrontMySQLiDatabaseConnection::class || $conn->isInsideTransaction() ||
         $conn->isReadLocking() || $conn->isWriteLocking()) {
       throw new RuntimeException('recovery_outer_transaction_refused');
@@ -176,6 +177,7 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
    */
   public static function captureForRestoration(PhorgeGovernanceNativeActorContext $context,
     AphrontDatabaseConnection $conn,$target) {
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){PhorgeRecoveryConduitProducerFence::assertWriterAvailable($conn);}
     PhorgeRecoveryRestoreProfile::assertOwnedWriter($conn);
     PhorgeRecoveryStopRequest::user($target);
     $scope=new self();

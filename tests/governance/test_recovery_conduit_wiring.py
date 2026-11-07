@@ -25,8 +25,8 @@ class ConduitWiring(unittest.TestCase):
    if mode in ['unknown','forged-flags','early']:self.assertEqual([0]*5,[d[k]for k in ['rollbacks','pool_closes','disposes','drops','control_closes']]);self.assertEqual('current',d['env'])
    else:self.assertEqual(1,d['drops']);self.assertEqual(1,d['control_closes'])
   source=(ROOT/'support/governance/native-organization/test-native-organization-mysql.php').read_text();self.assertLess(source.index("$GLOBALS['governance_recovery_conduit_cleanup_proved']=$phase!=="),source.index('$fixture = null;'))
- def test_source_derived_6_SQL_16_total_35_sources_and_strict_tamper(self):
-  d=self.template();v=gate.validate(d,source_revision='a'*40,file_digest='b'*64);self.assertEqual((6,16,35),(v['SQL_obligations'],v['checks'],v['source_inputs']))
+ def test_source_derived_6_SQL_16_total_36_sources_and_strict_tamper(self):
+  d=self.template();v=gate.validate(d,source_revision='a'*40,file_digest='b'*64);self.assertEqual((6,16,36),(v['SQL_obligations'],v['checks'],v['source_inputs']))
   for mutate in [lambda b:b['checks'].pop(),lambda b:b['native'].__setitem__('all_sources_complete',True),lambda b:b['native'].__setitem__('continuous_admin_lease_proved',True),lambda b:b['native'].__setitem__('source_revision','c'*40),lambda b:b['native']['observer_cleanup'].__setitem__('cleanup_proved',False),lambda b:b['file_service_cleanup'].__setitem__('process_stopped',False),lambda b:b.__setitem__('unknown',False)]:
    b=copy.deepcopy(d);mutate(b)
    with self.assertRaises(ValueError):gate.validate(b,source_revision='a'*40,file_digest='b'*64)

@@ -1,6 +1,6 @@
 """Real PHP fixture include/bootstrap and actual symbol resolution. Never SQL."""
 from pathlib import Path
-import json,subprocess,unittest,tempfile
+import json,subprocess,unittest,tempfile,hashlib
 ROOT=Path(__file__).resolve().parents[2]
 CODE=r'''
 require $argv[1].'/support/runtime/src/init/init-library.php';phutil_load_library($argv[1].'/src/');
@@ -27,7 +27,11 @@ class ConduitDependencies(unittest.TestCase):
   self.assertEqual('borrowed-session-diagnostic.php',d['symbols']['governance_recovery_borrowed_worker_diagnostic']['file']);self.assertEqual(4,d['symbols']['governance_recovery_borrowed_worker_diagnostic']['required'])
   self.assertTrue(d['methods']['PhabricatorConduitToken::insertRecordIntoDatabase']['protected']);self.assertEqual(3,d['methods']['PhorgeRecoveryConduitProducerFence::insert']['required']);self.assertEqual(2,d['methods']['PhorgeRecoveryRestoreService::captureBorrowedConduitFacts']['required'])
  def test_frozen_blocked_case_actually_fails_before_dependency_boundary(self):
-  old=subprocess.check_output(['git','-C',str(ROOT),'show','9b3d14056253cbf5fa563424a3a4e2fbc39b33b0:support/governance/recovery/conduit-cases.php'])
+  old=(ROOT/'support/governance/recovery/conduit-cases.php').read_bytes()
+  for fixed,broken in [(b"borrowed-session-observer.php",b"borrowed-conduit-observer.php"),(b"borrowed-session-diagnostic.php",b"borrowed-conduit-diagnostic.php")]:
+   self.assertEqual(1,old.count(fixed));old=old.replace(fixed,broken,1)
+  self.assertEqual(1,old.count(b'isolated-borrowed-real-store-conduit-owner-v2'));old=old.replace(b'isolated-borrowed-real-store-conduit-owner-v2',b'isolated-borrowed-real-store-conduit-owner-v1',1)
+  self.assertEqual('da7e2b3dc3307c5f83a0e362abbabfdca3a2b9671143a4e306a78b8e3e189274',hashlib.sha256(old).hexdigest())
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
    case=Path(tmp)/'conduit-cases.php';case.write_bytes(old);d=self.invoke(case);self.assertFalse(d['reached_after_dependencies']);self.assertTrue(d['missing_dependency'])
 if __name__=='__main__':unittest.main()
