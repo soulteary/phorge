@@ -5,7 +5,7 @@ function governance_recovery_borrowed_failure_projection($failure){
   if(!is_array($failure)){return$out;}
   $stages=array('preflight','full-native-source-restore','owned-real-gorge-file-service','focused-native-borrowed-session-owner','unexpected-native-runtime-output','borrowed-parent-or-observer-terminal-unproved');
   $types=array('RuntimeException','LogicException','TypeError','Error','mysqli_sql_exception','PhutilAggregateException','AphrontQueryException','AphrontObjectMissingQueryException','InvalidArgumentException');
-  $files=array('borrowed-session-focused.php','borrowed-session-cases.php','borrowed-session-observer.php','session-lease-observer.php','account-cases.php','PhorgeRecoveryRestoreService.php','PhorgeRecoverySessionProducerFence.php','PhorgeRecoveryRestoreProfile.php','PhorgeRecoveryNativeCaptureScope.php','PhorgeGovernanceNativeRuntimeProfile.php','PhorgeGovernanceNativeIdentitySource.php','PhabricatorAuthSessionEngine.php','PhabricatorAuthSession.php','PhabricatorUser.php','fixture.php','pipeline-gorge.php','native-worker.php','workers.php');
+  $files=array('borrowed-session-focused.php','borrowed-session-producer.php','borrowed-session-cases.php','borrowed-session-observer.php','session-lease-observer.php','account-cases.php','PhorgeRecoveryRestoreService.php','PhorgeRecoverySessionProducerFence.php','PhorgeRecoveryRestoreProfile.php','PhorgeRecoveryNativeCaptureScope.php','PhorgeGovernanceNativeRuntimeProfile.php','PhorgeGovernanceNativeIdentitySource.php','PhabricatorAuthSessionEngine.php','PhabricatorAuthSession.php','PhabricatorUser.php','fixture.php','pipeline-gorge.php','native-worker.php','workers.php');
   foreach(array('stage'=>$stages,'error_type'=>$types,'source_file'=>$files)as$key=>$values){if(in_array($failure[$key]??null,$values,true)){$out[$key]=$failure[$key];}}
   if(is_int($failure['source_line']??null)&&$failure['source_line']>0&&$failure['source_line']<=1000000){$out['source_line']=$failure['source_line'];}
   $code=$failure['query_code']??($failure['sql_errno']??null);if(is_int($code)&&$code>=0&&$code<=65535){$out['query_code']=$code;}
@@ -15,7 +15,7 @@ function governance_recovery_borrowed_failure_projection($failure){
 
 /** One fixed owned child record; bounded stable FD, never stdout/stderr/payload. */
 function governance_recovery_borrowed_worker_record($directory,$name){
-  if(!in_array($name,array('producer-identity-started.json','result.json'),true)){throw new RuntimeException('borrowed_diagnostic_record_refused');}
+  if(!in_array($name,array('producer-identity-started.json','borrowed-preflight-ready.json','result.json'),true)){throw new RuntimeException('borrowed_diagnostic_record_refused');}
   $parent=lstat($directory);
   $path=$directory.'/'.$name;clearstatcache(true,$path);$before=@lstat($path);if($before===false){return null;}
   if(($before['mode']&0170000)!==0100000||($before['mode']&07777)!==0600||$before['uid']!==posix_geteuid()||$before['nlink']!==1||$before['size']<1||$before['size']>4096){throw new RuntimeException('borrowed_diagnostic_record_refused');}
@@ -40,7 +40,7 @@ function governance_recovery_borrowed_worker_projection($value){
   foreach(array('error_type','source_file','source_line','query_code')as$key){$out['child_'.$key]=$child[$key];}return$out;
 }
 function governance_recovery_borrowed_worker_diagnostic(array$handle,$observer,$writer,$namespace){
-  $worker=governance_native_session_producer_handle($handle);$out=array('available'=>true);
+  $worker=($handle['action']??null)==='recovery.session.borrowed-owner.issue'?governance_native_borrowed_session_handle($handle):governance_native_session_producer_handle($handle);$out=array('available'=>true);
   $marker=governance_recovery_borrowed_worker_record($worker['private'],'producer-identity-started.json');
   $out['identity_started']=$marker===array('status'=>'identity-started','mysql_thread'=>$worker['mysql_thread']);
   $result=governance_recovery_borrowed_worker_record($worker['private'],'result.json');$out['result_available']=is_array($result);

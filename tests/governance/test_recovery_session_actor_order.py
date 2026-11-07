@@ -17,7 +17,10 @@ class SessionActorOrder(unittest.TestCase):
  def test_duplicate_native_identity_refuses_before_any_native_write(self):
   d=self.php('cab','duplicate');self.assertEqual(d['error'],'session_lease_prepared_users_unknown');self.assertEqual(d['native_update_statements'],0)
  def test_real_worker_only_fixed_identity_marker_and_actor_setup_precedes_enable(self):
-  relative='support/governance/native-organization/native-worker.php';old=subprocess.check_output(['git','-C',str(ROOT),'show','586f940370431a3f2a0d1cb7240c9e9803f7fdca:'+relative]);marker=b"      governance_native_worker_atomic($path,'producer-identity-started.json',array('status'=>'identity-started','mysql_thread'=>$thread));\n";current=(ROOT/relative).read_bytes();self.assertEqual(current.count(marker),1);self.assertEqual(current.replace(marker,b''),old)
+  relative='support/governance/native-organization/native-worker.php';old=subprocess.check_output(['git','-C',str(ROOT),'show','4e12882595da85afc8ffc8b7b83aed1feb255c5a:'+relative]).decode();current=(ROOT/relative).read_text()
+  def lease_body(s):
+   a=s.index("  }else if($kind==='recovery.session.issue'){");b=s.index("  }else if($kind==='recovery.stop.record'",a);return s[a:b]
+  self.assertEqual(lease_body(current),lease_body(old))
   focused=(ROOT/'support/governance/recovery/session-lease-focused.php').read_text();self.assertLess(focused.index('governance_recovery_session_lease_prepare_actor_order(governance_task_owner_prepare($fixture))'),focused.index("overrideEnvConfig('governance.account-recovery.enabled',true)"));self.assertIn("'subjects'=>array('commit'=>$users['subject'],'rollback'=>$users['other'])",focused)
  def test_nineteen_source_map_composes_reviewed_focused_fence_and_current_driver(self):
   path='scripts/governance/check_recovery_session_lease.py';old=ast.parse(subprocess.check_output(['git','-C',str(ROOT),'show','586f940370431a3f2a0d1cb7240c9e9803f7fdca:'+path]).decode());new=ast.parse((ROOT/path).read_text())

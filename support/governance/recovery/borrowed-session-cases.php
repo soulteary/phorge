@@ -8,7 +8,7 @@ function governance_recovery_borrowed_session_obligations(){
   sort($out,SORT_STRING);return$out;
 }
 function governance_recovery_borrowed_session_cases($fixture,mysqli $control,array $state,callable $check){
-  $fixture->assertOwned();require_once __DIR__.'/borrowed-session-observer.php';require_once __DIR__.'/session-lease-cases.php';
+  $fixture->assertOwned();require_once __DIR__.'/borrowed-session-observer.php';require_once __DIR__.'/borrowed-session-producer.php';require_once __DIR__.'/session-lease-cases.php';
   require_once dirname(__DIR__).'/native-organization/workers.php';
   $actor=$state['issuer_auth'];$context=$state['owner_auth']['context'];
   if($actor['context']->getUserPHID()===$context->getUserPHID()||in_array($actor['context']->getUserPHID(),array_map(static fn($u)=>$u->getPHID(),$state['subjects']),true)){throw new RuntimeException('borrowed_issuer_in_parent_lockset');}
@@ -25,19 +25,20 @@ function governance_recovery_borrowed_session_cases($fixture,mysqli $control,arr
       if(get_class($subject)!==PhabricatorUser::class){throw new RuntimeException('borrowed_native_subject_required');}
       $handles=array();$handle=null;$before=null;$returned=null;$primary=null;$rollback=new RuntimeException('borrowed_intentional_owner_rollback');
       try{
+        $preflightWriter=(new PhabricatorUser())->establishConnection('w');
+        $handle=governance_native_start_worker($fixture,array('action'=>'recovery.session.borrowed-owner.issue','subject'=>$subject->getPHID(),'token'=>$actor['token']));$handles[]=$handle;
+        try{governance_native_wait_borrowed_session_preflight($handle,$observer);}
+        catch(Throwable$error){
+          require_once __DIR__.'/borrowed-session-diagnostic.php';
+          try{$GLOBALS['governance_borrowed_worker_diagnostic']=governance_recovery_borrowed_worker_diagnostic($handle,$observer,$preflightWriter,$fixture->getNamespace());}
+          catch(Throwable$diagnostic){$GLOBALS['governance_borrowed_worker_diagnostic']=array('available'=>false);}
+          throw$error;
+        }
         try{
-          $returned=$store->invoke(null,$context,array($subject->getPHID()),static function($conn)use($fixture,$observer,$subject,$actor,$ending,$record,&$handles,&$handle,&$before,$rollback){
+          $returned=$store->invoke(null,$context,array($subject->getPHID()),static function($conn)use($fixture,$observer,$subject,$actor,$ending,$record,&$handles,&$handle,&$before,$rollback,$preflightWriter){
+            if($conn!==$preflightWriter){throw new RuntimeException('borrowed_preflight_writer_changed');}
             $before=PhorgeRecoveryRestoreService::captureBorrowedSessionFacts($conn,$subject->getPHID());
-            $handle=governance_native_start_worker($fixture,array('action'=>'recovery.session.issue','subject'=>$subject->getPHID(),'token'=>$actor['token']));$handles[]=$handle;
-            try{governance_native_wait_session_producer_ready($handle);}
-            catch(Throwable$error){
-              require_once __DIR__.'/borrowed-session-diagnostic.php';
-              try{$GLOBALS['governance_borrowed_worker_diagnostic']=governance_recovery_borrowed_worker_diagnostic($handle,$observer,$conn,$fixture->getNamespace());}
-              catch(Throwable$diagnostic){$GLOBALS['governance_borrowed_worker_diagnostic']=array('available'=>false);}
-              throw$error;
-            }
-            governance_native_continue_session_producer($handle);
-            governance_native_wait_session_covering_control($handle);governance_native_continue_session_fence($handle);
+            governance_native_continue_borrowed_session($handle);
             $writer=queryfx_one($conn,'SELECT CAST(CONNECTION_ID() AS CHAR) id')['id'];$deadline=microtime(true)+5;$waiting=false;
             do{
               $rows=queryfx_all($observer,'SELECT CAST(r.PROCESSLIST_ID AS CHAR) requester,CAST(b.PROCESSLIST_ID AS CHAR) blocker,l.OBJECT_SCHEMA schema_name,l.OBJECT_NAME table_name,l.INDEX_NAME index_name,l.LOCK_STATUS status,l.LOCK_MODE mode,l.LOCK_DATA lock_data '.
@@ -74,7 +75,7 @@ function governance_recovery_borrowed_session_cases($fixture,mysqli $control,arr
   });
   $labels=array_keys($executed);sort($labels,SORT_STRING);
   if($labels!==governance_recovery_borrowed_session_obligations()||($GLOBALS['governance_recovery_borrowed_fixture_cleanup']['cleanup_proved']??null)!==true){throw new RuntimeException('borrowed_complete_case_set_required');}
-  return array('profile'=>'isolated-borrowed-real-store-session-owner-v1','executed_case_obligations'=>$labels,
+  return array('profile'=>'isolated-borrowed-real-store-session-owner-v2','borrowed_only_native_producer'=>true,'child_preflight_committed_before_owner'=>true,'child_preflight_no_record_locks_observed'=>true,'actor_revalidated_before_child_commit'=>true,'old_covering_positive_query_used'=>false,'executed_case_obligations'=>$labels,
     'real_store_owner_and_native_session_INSERT'=>true,'participant_owns_transaction'=>false,
     'production_observer_factory_available'=>false,'business_submit_review_integration_proved'=>false,
     'durable_review_compatible'=>false,'Task_File_RR_combined'=>false,'all_sources_complete'=>false,

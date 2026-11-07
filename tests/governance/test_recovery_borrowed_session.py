@@ -54,7 +54,7 @@ class BorrowedSession(unittest.TestCase):
   code="require$argv[1].'/support/governance/recovery/borrowed-session-cases.php';echo json_encode(governance_recovery_borrowed_session_obligations());"
   p=subprocess.run(['php','-r',code,str(ROOT)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);labels=json.loads(p.stdout);self.assertEqual(len(labels),6);self.assertEqual(len(set(labels)),6)
   text=(ROOT/'support/governance/recovery/borrowed-session-cases.php').read_text()
-  for token in ['withTransaction','captureBorrowedSessionFacts',"'action'=>'recovery.session.issue'",'performance_schema.data_lock_waits','governance_recovery_session_lease_workers_ended','borrowed_intentional_owner_rollback']:
+  for token in ['withTransaction','captureBorrowedSessionFacts',"'action'=>'recovery.session.borrowed-owner.issue'",'performance_schema.data_lock_waits','governance_recovery_session_lease_workers_ended','borrowed_intentional_owner_rollback']:
    self.assertIn(token,text)
   support=(ROOT/'support/governance/recovery/borrowed-session-observer.php').read_text();self.assertIn('GovernanceSessionLeaseObserverOwner::prepare',support);self.assertIn('USER_ATTRIBUTES',support);self.assertIn('borrowed_fixture_parent_terminal_unproved',support);self.assertNotIn('GRANT PROCESS',support)
 

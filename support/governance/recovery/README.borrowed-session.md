@@ -69,7 +69,7 @@ Physical SQL6 is authored but UNRUN. The independent successor adds the exact
 `--session-borrowed-owner` phase and a mandatory Atomic step after the existing
 Session lease step. The public receipt checker requires six source-derived SQL
 obligations and ten shared lifecycle obligations, independently supplied real
-Gorge file binary bytes/hash, current source revision and all 29 fixed source
+Gorge file binary bytes/hash, current source revision and all 30 fixed source
 pins. Neither the selector nor an accepted receipt authorizes production use.
 
 Preparation creates five native Users with native Gorge-backed avatars while
@@ -116,3 +116,31 @@ from the failed receipt. Exclusive directory creation and a success output flag
 gate this single safe JSON upload; foreign directories/symlinks never set it.
 The normal success artifact remains success-only. This observation successor
 requires fresh source review and physical execution evidence.
+
+## Borrowed-only native producer v2
+
+The real Store owns PHID secondary as well as clustered User X locks. The old
+Lease producer's post-capture covering-positive query is therefore unsuitable
+for this owner; its original Lease16 worker body/handshakes remain unchanged.
+The separate fixed `recovery.session.borrowed-owner.issue` test action validates
+the actual native admin credential in its own RC preflight, commits that
+transaction, and pauses without subject locks. Before Store entry the separate
+owned observer must see the completed RC transaction, enabled instrumentation,
+the exact live child thread, zero INNODB_TRX rows and zero record locks. Missing
+or unknown observations refuse the case, never infer idle from bookkeeping.
+
+After the real Store captures its subject, the parent releases the exact owned
+handshake. The same child/default native writer opens a new RC transaction and
+calls the unchanged SessionEngine -> DAO INSERT directly. There is no covering
+control query. The existing six obligations still require the actual subject
+PRIMARY SHARE wait, both parent terminal outcomes and changed next binding.
+After INSERT returns, the child revalidates its original native actor binding
+and current admin status before COMMIT; failure rolls back its own transaction.
+This is an isolated real-Store lock-topology correction, not a continuous admin
+lease, production provider, complete producer inventory or whole-N08 permit.
+
+The strict receipt profile is v2 and pins the new helper (30 source inputs).
+Old v1 receipts and missing preflight/revalidation facts are rejected. New host
+controls execute the actual case callback/finally, native transaction methods,
+real captured SessionEngine method and native event classifier with explicitly
+labeled model/identity/SQL collaborators. They do not prove physical SQL6.

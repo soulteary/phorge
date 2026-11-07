@@ -4,7 +4,7 @@
 $GLOBALS['governance_native_workers']=array();
 
 function governance_native_worker_atomic($path,$name,$value) {
-  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release','producer-ready.json','producer-identity-started.json','producer-continue','covering-control-ready.json','fence-continue'),true)) {
+  if (!in_array($name,array('owner','payload.json','ready.json','result.json','observe-release','producer-ready.json','producer-identity-started.json','borrowed-preflight-ready.json','producer-continue','covering-control-ready.json','fence-continue'),true)) {
     throw new RuntimeException('native_worker_file_refused');
   }
   $temporary=$path.'/.write-'.bin2hex(random_bytes(8));
@@ -41,7 +41,7 @@ function governance_native_measurement_file_source($action,$value,$namespace,$ow
 
 function governance_native_start_worker($fixture,array $action) {
   $fixture->assertOwned();
-  if (!in_array($action['action']??null,array('recovery.oauth.authenticate','recovery.api.current','recovery.org.approval.propose','recovery.org.member.insert','recovery.policy.insert','recovery.session.issue','recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.notice.create','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
+  if (!in_array($action['action']??null,array('recovery.oauth.authenticate','recovery.api.current','recovery.org.approval.propose','recovery.org.member.insert','recovery.policy.insert','recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.stop.record','recovery.stop.history','measurement.api-token-auth','measurement.project-query','org.list','org.count','media.redeem','media.prepare','org.notice.create','org.members.edit','org.compound.execute','org.compound.execute-approved','org.transfer.execute','org.handover.execute','legalpad.verify','legalpad.observe'),true)) {
     throw new RuntimeException('native_worker_action_refused');
   }
   $path=sys_get_temp_dir().'/governance-native-worker-'.bin2hex(random_bytes(12));
@@ -69,7 +69,7 @@ function governance_native_start_worker($fixture,array $action) {
     governance_native_measurement_file_source($action['action'],$asset,$fixture->getNamespace(),$fixture_nonce,$payload['source_sha256']);
     $payload['measurement_file']=$asset;
   }
-  if(in_array($action['action'],array('recovery.session.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)){
+  if(in_array($action['action'],array('recovery.session.issue','recovery.session.borrowed-owner.issue','recovery.org.member.insert','recovery.org.approval.propose'),true)){
     $incarnation=PhabricatorEnv::getEnvConfig('governance.account-recovery.incarnation');
     if(!is_string($incarnation)||!preg_match('/\A[a-f0-9]{32}\z/D',$incarnation)){throw new RuntimeException('native_session_producer_incarnation_refused');}
     $payload['recovery_incarnation']=$incarnation;
@@ -160,6 +160,7 @@ function governance_native_session_failure_location(array $result) {
 function governance_native_finish_worker(array &$handle) {
   $index=$handle['index']; $worker=&$GLOBALS['governance_native_workers'][$index];
   if(in_array($worker['action'],array('recovery.api.current','recovery.oauth.authenticate'),true)){governance_native_api_concurrency_owner($handle);}
+  if($worker['action']==='recovery.session.borrowed-owner.issue'){require_once dirname(__DIR__).'/recovery/borrowed-session-producer.php';governance_native_borrowed_session_handle($handle);}
   if($worker['action']==='recovery.session.issue'){governance_native_session_producer_handle($handle);}
   $deadline=microtime(true)+15;
   while (is_resource($worker['process']) && proc_get_status($worker['process'])['running'] && microtime(true)<$deadline) { usleep(20000); }
@@ -181,6 +182,7 @@ function governance_native_finish_worker(array &$handle) {
   if(in_array($worker['action'],array('recovery.stop.record','recovery.stop.history'),true)){
     return governance_native_stop_worker_result($worker['action'],$result);
   }
+  if($worker['action']==='recovery.session.borrowed-owner.issue'){governance_native_borrowed_session_handle($handle);if((fileperms($path)&0777)!==0600){throw new RuntimeException('borrowed_producer_result_refused');}return governance_native_borrowed_session_result($result);}
   if($worker['action']==='recovery.session.issue'){
     governance_native_session_producer_handle($handle);
     if((fileperms($path)&0777)!==0600){throw new RuntimeException('native_session_producer_result_refused');}

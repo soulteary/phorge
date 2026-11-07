@@ -103,3 +103,13 @@ class BorrowedWiring(unittest.TestCase):
       aliased=alias/source.parent.name/source.name
       with self.assertRaisesRegex(ValueError,'source parent alias refused'):gate.read_source_checked(aliased)
       self.assertEqual(gate.read_source_checked(aliased.resolve(strict=True)),source.read_bytes())
+
+ def test_actual_borrowed_callback_preflight_ends_before_owner_and_continue_waits_for_capture(self):
+  for mode in ['continue-fail','capture-fail','owner-fail','ready-fail','dual','ready-dual','writer-changed']:
+   d=self.php('support/governance/recovery/tests/borrowed-preflight-order-host.php',mode);self.assertTrue(d['actual_case_function']);self.assertFalse(d['physical_SQL_executed']);trace=d['trace'];self.assertEqual(trace[:2],['start','ready']);self.assertEqual(trace[-2:],['stop','worker-SQL-ended'])
+   if mode in ['ready-fail','ready-dual']:self.assertNotIn('owner-enter',trace)
+   else:self.assertLess(trace.index('ready'),trace.index('owner-enter'))
+   if mode in ['continue-fail','dual']:self.assertLess(trace.index('capture'),trace.index('continue'))
+   if mode=='capture-fail':self.assertNotIn('continue',trace)
+   if mode=='writer-changed':self.assertTrue(d['writer_changed_refused']);self.assertNotIn('capture',trace)
+   else:self.assertEqual(d['primary_exact'],mode not in ['dual','ready-dual']);self.assertEqual(d['aggregate_exact'],mode in ['dual','ready-dual'])
