@@ -1,0 +1,94 @@
+<?php
+/** Callable physical SQL compatibility cases. Not business provider wiring. */
+function governance_recovery_borrowed_oauth_access_obligations(){
+  $out=array();foreach(array('commit','rollback')as$ending){foreach(array(
+    'borrowed-oauth-access-owner-held-MDL-and-InnoDB-',
+    'borrowed-oauth-access-native-INSERT-waits-on-real-store-owner-',
+    'borrowed-oauth-access-owner-terminal-native-producer-resumes-',
+    'borrowed-oauth-access-next-store-event-new-oauth-access-binding-')as$prefix){$out[]=$prefix.$ending;}}
+  sort($out,SORT_STRING);return$out;
+}
+function governance_recovery_borrowed_oauth_access_cases($fixture,mysqli $control,array $state,callable $check){
+  $fixture->assertOwned();require_once __DIR__.'/borrowed-session-observer.php';require_once __DIR__.'/oauth-access-producer.php';require_once __DIR__.'/oauth-access-diagnostic.php';require_once __DIR__.'/session-lease-cases.php';
+  require_once dirname(__DIR__).'/native-organization/oauth-access-workers.php';
+  $actor=$state['issuer_auth'];$context=$state['owner_auth']['context'];
+  if($actor['context']->getUserPHID()===$context->getUserPHID()||in_array($actor['context']->getUserPHID(),array_map(static fn($u)=>$u->getPHID(),$state['subjects']),true)){throw new RuntimeException('borrowed_issuer_in_parent_lockset');}
+  foreach($state['subjects']as$subject){if(strcmp($actor['context']->getUserPHID(),$subject->getPHID())>=0){throw new RuntimeException('borrowed_issuer_lock_order_unknown');}}
+  if(get_class($context)!==PhorgeGovernanceNativeActorContext::class){throw new RuntimeException('borrowed_native_actor_required');}
+  $store=new ReflectionMethod(PhorgeRecoveryRestoreService::class,'withTransaction');
+  $executed=array();$record=static function($ok,$label)use($check,&$executed){
+    if($ok!==true||!in_array($label,governance_recovery_borrowed_oauth_access_obligations(),true)||isset($executed[$label])){throw new RuntimeException('borrowed_case_failed');}
+    $check(true,$label);$executed[$label]=true;
+  };
+  governance_recovery_borrowed_with_observer($fixture,$control,static function($observer)use($fixture,$state,$actor,$context,$store,$record){
+    foreach(array('commit','rollback')as$ending){
+      $subject=$state['subjects'][$ending];
+      if(get_class($subject)!==PhabricatorUser::class){throw new RuntimeException('borrowed_native_subject_required');}
+      $handles=array();$handle=null;$before=null;$returned=null;$primary=null;$rollback=new RuntimeException('borrowed_intentional_owner_rollback');
+      try{
+        $preflightWriter=(new PhabricatorUser())->establishConnection('w');
+        $handle=governance_oauth_native_start_worker($fixture,array('action'=>'recovery.oauth-access.borrowed-owner.issue','subject'=>$subject->getPHID(),'token'=>$actor['token']));$handles[]=$handle;
+        try{governance_oauth_native_wait_borrowed_oauth_access_preflight($handle,$observer);}
+        catch(Throwable$error){
+          require_once __DIR__.'/borrowed-session-diagnostic.php';
+          try{$GLOBALS['governance_oauth_access_worker_diagnostic']=governance_recovery_oauth_access_child_diagnostic($handle);}
+          catch(Throwable$diagnostic){$GLOBALS['governance_oauth_access_worker_diagnostic']=array('child_available'=>false);}
+          throw$error;
+        }
+        try{
+          $returned=$store->invoke(null,$context,array($subject->getPHID()),static function($conn)use($fixture,$observer,$subject,$actor,$ending,$record,&$handles,&$handle,&$before,$rollback,$preflightWriter){
+            if($conn!==$preflightWriter){throw new RuntimeException('borrowed_preflight_writer_changed');}
+            $before=PhorgeRecoveryRestoreService::captureBorrowedOAuthAccessFacts($conn,$subject->getPHID());
+            $writer=queryfx_one($conn,'SELECT CAST(CONNECTION_ID() AS CHAR) id')['id'];
+            $table=new PhabricatorOAuthServerAccessToken();
+            $instrument=queryfx_one($observer,'SELECT ENABLED FROM performance_schema.setup_instruments WHERE NAME=%s','wait/lock/metadata/sql/mdl');
+            $mdl=queryfx_all($observer,'SELECT m.OBJECT_TYPE,m.OBJECT_SCHEMA,m.OBJECT_NAME,m.LOCK_DURATION,m.LOCK_STATUS FROM performance_schema.metadata_locks m JOIN performance_schema.threads t ON t.THREAD_ID=m.OWNER_THREAD_ID WHERE t.PROCESSLIST_ID=%s AND m.OBJECT_TYPE=%s AND m.OBJECT_SCHEMA=%s AND m.OBJECT_NAME=%s',$writer,'TABLE',$fixture->getNamespace().'_oauth_server',$table->getTableName());
+            $granted=false;foreach($mdl as$row){if($row===array('OBJECT_TYPE'=>'TABLE','OBJECT_SCHEMA'=>$fixture->getNamespace().'_oauth_server','OBJECT_NAME'=>$table->getTableName(),'LOCK_DURATION'=>'TRANSACTION','LOCK_STATUS'=>'GRANTED')){$granted=true;}}
+            // This query is deliberately AFTER actual capture's MDL acquisition.
+            $engine=queryfx_one($conn,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',$fixture->getNamespace().'_oauth_server',$table->getTableName());
+            $record($instrument===array('ENABLED'=>'YES')&&$granted&&$engine===array('ENGINE'=>'InnoDB'),'borrowed-oauth-access-owner-held-MDL-and-InnoDB-'.$ending);
+            governance_oauth_native_continue_borrowed_oauth_access($handle);
+            $deadline=microtime(true)+5;$waiting=false;
+            do{
+              $rows=queryfx_all($observer,'SELECT CAST(r.PROCESSLIST_ID AS CHAR) requester,CAST(b.PROCESSLIST_ID AS CHAR) blocker,l.OBJECT_SCHEMA schema_name,l.OBJECT_NAME table_name,l.INDEX_NAME index_name,l.LOCK_STATUS status,l.LOCK_MODE mode,l.LOCK_DATA lock_data '.
+                'FROM performance_schema.data_lock_waits w JOIN performance_schema.threads r ON r.THREAD_ID=w.REQUESTING_THREAD_ID JOIN performance_schema.threads b ON b.THREAD_ID=w.BLOCKING_THREAD_ID '.
+                'JOIN performance_schema.data_locks l ON l.ENGINE_LOCK_ID=w.REQUESTING_ENGINE_LOCK_ID WHERE l.ENGINE=%s AND w.ENGINE=%s AND r.PROCESSLIST_ID=%s AND b.PROCESSLIST_ID=%s','INNODB','INNODB',$handle['mysql_thread'],$writer);
+              $waiting=count($rows)===1&&$rows[0]['requester']===(string)$handle['mysql_thread']&&$rows[0]['blocker']===$writer&&
+                $rows[0]['schema_name']===$fixture->getNamespace().'_user'&&$rows[0]['table_name']==='user'&&$rows[0]['index_name']==='PRIMARY'&&
+                $rows[0]['lock_data']===(string)$subject->getID()&&$rows[0]['status']==='WAITING'&&str_starts_with($rows[0]['mode'],'S');
+              if($waiting){break;}usleep(20000);
+            }while(microtime(true)<$deadline);
+            $record($waiting&&$before===PhorgeRecoveryRestoreService::captureBorrowedOAuthAccessFacts($conn,$subject->getPHID()),'borrowed-oauth-access-native-INSERT-waits-on-real-store-owner-'.$ending);
+            if($ending==='rollback'){throw$rollback;}
+            return array('result'=>$before,'bindings'=>array(),'deadline'=>null);
+          });
+          if($ending!=='commit'){throw new RuntimeException('borrowed_expected_owner_rollback');}
+        }catch(Throwable$error){if($ending!=='rollback'||$error!==$rollback){throw$error;}}
+        $terminal=$GLOBALS['governance_recovery_borrowed_terminal']??null;
+        $result=governance_oauth_native_finish_worker($handle);governance_oauth_native_threads_ended($observer,$handles);
+        $record(($GLOBALS['governance_recovery_borrowed_cleanup_proved']??null)===true&&is_array($terminal)&&
+          $terminal['cleanup_proved']===true&&$terminal['state']===($ending==='commit'?'committed':'rolled-back')&&
+          $result['status']==='committed'&&($ending!=='commit'||$returned===$before),
+          'borrowed-oauth-access-owner-terminal-native-producer-resumes-'.$ending);
+        $after=$store->invoke(null,$context,array($subject->getPHID()),static function($conn)use($subject){return array('result'=>PhorgeRecoveryRestoreService::captureBorrowedOAuthAccessFacts($conn,$subject->getPHID()),'bindings'=>array(),'deadline'=>null);});
+        $record($before['source_binding']!==$after['source_binding']&&$after['cross_connection_atomicity_proved']===false&&$after['restoration_authorized']===false,
+          'borrowed-oauth-access-next-store-event-new-oauth-access-binding-'.$ending);
+      }catch(Throwable$error){$GLOBALS['governance_recovery_borrowed_cleanup_proved']=false;$primary=$error;
+        if($handle!==null){$GLOBALS['governance_oauth_access_worker_diagnostic']=governance_recovery_oauth_access_child_diagnostic($handle);}
+        throw$error;}
+      finally{
+        $errors=$primary===null?array():array('primary'=>$primary);
+        try{governance_oauth_native_stop_fixture_handles($handles);}catch(Throwable$error){$errors['workers']=$error;}
+        try{governance_oauth_native_threads_ended($observer,$handles);}catch(Throwable$error){$GLOBALS['governance_recovery_borrowed_cleanup_proved']=false;$errors['worker-SQL']=$error;}
+        if(count($errors)>($primary===null?0:1)){throw new PhutilAggregateException('borrowed_physical_case_cleanup_failed',$errors);}
+      }
+    }
+  });
+  $labels=array_keys($executed);sort($labels,SORT_STRING);
+  if($labels!==governance_recovery_borrowed_oauth_access_obligations()||($GLOBALS['governance_recovery_borrowed_fixture_cleanup']['cleanup_proved']??null)!==true){throw new RuntimeException('borrowed_complete_case_set_required');}
+  return array('profile'=>'isolated-borrowed-real-store-oauth-access-owner-v3-dual-writer','oauth_access_only_native_producer'=>true,'both_owned_native_SQL_threads_observed'=>true,'owned_child_exit0_proved'=>true,'child_preflight_committed_before_owner'=>true,'child_preflight_no_record_locks_observed'=>true,'continuous_admin_lease_proved'=>false,'old_covering_positive_query_used'=>false,'executed_case_obligations'=>$labels,
+    'real_store_owner_and_native_oauth_access_INSERT'=>true,'participant_owns_transaction'=>false,
+    'production_observer_factory_available'=>false,'business_submit_review_integration_proved'=>false,
+    'durable_review_compatible'=>false,'Task_File_RR_combined'=>false,'all_sources_complete'=>false,
+    'restoration_authorized'=>false,'execution_blocked'=>true,'all_13_sources_complete'=>false,'permit'=>false);
+}

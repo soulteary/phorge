@@ -611,6 +611,54 @@ jobs:
           name: governance-conduit-producer-failure-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-conduit-producer-failure/diagnostic.json
           if-no-files-found: error
+      # BEGIN isolated OAuth access-token SQL8 (does not replace Conduit).
+      - name: Verify fresh native OAuth access-token producer ownership after Conduit owner
+        id: oauth-access-owner
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          mkdir "$RUNNER_TEMP/governance-oauth-access-producer-owner"
+          sha256sum --check /tmp/atomic-maps.sha256
+          cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-oauth-access-producer-owner/verified-maps.sha256"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/governance-oauth-access-producer-owner/source-tree.txt"
+          sha256sum "$RUNNER_TEMP/gorge-file-storage" | sed "s|$RUNNER_TEMP/||g" > "$RUNNER_TEMP/governance-oauth-access-producer-owner/binary-sha256.txt"
+          git rev-parse HEAD > "$RUNNER_TEMP/governance-oauth-access-producer-owner/source-revision.txt"
+          cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-oauth-access-producer-owner/shared-native-pure.json"
+          cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-oauth-access-producer-owner/normal-regression-accepted.json"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          php support/governance/native-organization/test-oauth-access-owner-mysql.php --oauth-access-producer-owner > "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" 2> "$RUNNER_TEMP/oauth-access-native.stderr.private" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/governance-oauth-access-producer-failure"; then
+              if python3 -B scripts/governance/project_oauth_access_failure.py --receipt "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" --stderr "$RUNNER_TEMP/oauth-access-native.stderr.private" > "$RUNNER_TEMP/governance-oauth-access-producer-failure/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/governance-oauth-access-producer-failure/diagnostic.pending.json" "$RUNNER_TEMP/governance-oauth-access-producer-failure/diagnostic.json"; then
+                  if cat "$RUNNER_TEMP/governance-oauth-access-producer-failure/diagnostic.json" >&2; then :; fi
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
+          python3 -B scripts/governance/check_recovery_oauth_access_producer_v2.py --receipt "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json"
+          mv "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json" "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.json"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: governance-oauth-access-producer-owner-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-oauth-access-producer-owner
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.oauth-access-owner.outputs.diagnostic_owned == 'true'
+        with:
+          name: governance-oauth-access-producer-failure-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-oauth-access-producer-failure/diagnostic.json
+          if-no-files-found: error
+      # END isolated OAuth access-token SQL8.
       - name: Verify actual private Calendar reminder scheduler and current-policy egress
         id: calendar-reminders
         run: |
