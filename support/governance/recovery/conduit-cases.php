@@ -8,7 +8,7 @@ function governance_recovery_borrowed_conduit_obligations(){
   sort($out,SORT_STRING);return$out;
 }
 function governance_recovery_borrowed_conduit_cases($fixture,mysqli $control,array $state,callable $check){
-  $fixture->assertOwned();require_once __DIR__.'/borrowed-conduit-observer.php';require_once __DIR__.'/conduit-producer.php';require_once __DIR__.'/session-lease-cases.php';
+  $fixture->assertOwned();require_once __DIR__.'/borrowed-session-observer.php';require_once __DIR__.'/conduit-producer.php';require_once __DIR__.'/session-lease-cases.php';
   require_once dirname(__DIR__).'/native-organization/workers.php';
   $actor=$state['issuer_auth'];$context=$state['owner_auth']['context'];
   if($actor['context']->getUserPHID()===$context->getUserPHID()||in_array($actor['context']->getUserPHID(),array_map(static fn($u)=>$u->getPHID(),$state['subjects']),true)){throw new RuntimeException('borrowed_issuer_in_parent_lockset');}
@@ -29,7 +29,7 @@ function governance_recovery_borrowed_conduit_cases($fixture,mysqli $control,arr
         $handle=governance_native_start_worker($fixture,array('action'=>'recovery.conduit.borrowed-owner.issue','subject'=>$subject->getPHID(),'token'=>$actor['token']));$handles[]=$handle;
         try{governance_native_wait_borrowed_conduit_preflight($handle,$observer);}
         catch(Throwable$error){
-          require_once __DIR__.'/borrowed-conduit-diagnostic.php';
+          require_once __DIR__.'/borrowed-session-diagnostic.php';
           try{$GLOBALS['governance_borrowed_worker_diagnostic']=governance_recovery_borrowed_worker_diagnostic($handle,$observer,$preflightWriter,$fixture->getNamespace());}
           catch(Throwable$diagnostic){$GLOBALS['governance_borrowed_worker_diagnostic']=array('available'=>false);}
           throw$error;
