@@ -1,0 +1,19 @@
+{
+  "schema": "n08-oauth-access-owner-source-candidate-v4",
+  "source_sha256": {
+    "src/applications/conduit/storage/PhabricatorConduitToken.php": "6979f97a01b5c24d1d205a23fcb0397270c9159a98e302267cbce09fbf5593e1",
+    "src/applications/auth/storage/PhabricatorAuthSession.php": "8e9efa7fa53676ec28e13d8b3e02a99096894ebf05f53fdd6366d9199d212a56",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php": "b2978b1bca3eea757c4be7e4fdbf84038fb61493e23f2cf39b1421162d6ebc04",
+    "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php": "5d2bf5ef3cd86da509428de2a63af35f1ca11a7de8b3665bd80f061c7c6f42c4",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php": "3ed39e16e9c4243019404bfe3030b55aeb49666247938c24c943df182f8eb9a8",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php": "9f2f670b730233a5024343a22cdeb935e4d0c46188105ff2d247ab4a8cb5fd81",
+    "src/applications/oauthserver/storage/PhabricatorOAuthServerAccessToken.php": "4abee85463c6f49856612ff0df5d1519f5d63c2ab87469587f1b472f6c6d2199"
+  },
+  "runtime_certified": false,
+  "physical_SQL_cases_executed": false,
+  "production_observer_factory_available": false,
+  "business_submit_review_integration_proved": false,
+  "all_sources_complete": false,
+  "restoration_authorized": false,
+  "execution_blocked": true
+}

@@ -378,10 +378,49 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
   }
 
+  private $borrowedOAuthAccessSnapshots=array();
+  /** Bounded OAuth access-token rows under the real User owner; not a full OAuth/API lease. */
+  public function borrowedCaptureOAuthAccess($subject) {
+    try {
+      $this->borrowedAssertActive();$subject=PhorgeRecoveryStopRequest::user($subject);
+      $this->leaseSubject=$subject;$this->leaseReadSessions();
+      $table=new PhabricatorOAuthServerAccessToken();$native=$table->establishConnection('w');
+      if($table->getAphrontRefDatabaseName()!==$this->leaseProfile['namespace'].'_oauth_server'){
+        throw new RuntimeException('recovery_borrowed_oauth_access_namespace_unknown');}
+      if(get_class($native)!==AphrontMySQLiDatabaseConnection::class||$native===$this->leaseWriter||
+        $native->isInsideTransaction()||$native->isReadLocking()||$native->isWriteLocking()){
+        throw new RuntimeException('recovery_borrowed_oauth_access_route_unknown');}
+      $remote=queryfx_one($native,'SELECT @@server_uuid u');
+      $local=queryfx_one($this->leaseWriter,'SELECT @@server_uuid u');
+      if(!$remote||!$local||$remote!==$local){throw new RuntimeException('recovery_borrowed_oauth_access_primary_unknown');}
+      queryfx_one($this->leaseWriter,'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE',$table);
+      $engine=queryfx_one($this->leaseWriter,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
+        $table->getAphrontRefDatabaseName(),$table->getTableName());
+      if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('recovery_borrowed_oauth_access_engine_unknown');}
+      $rows=queryfx_all($this->leaseWriter,'SELECT id,userPHID,clientPHID,token,dateCreated,dateModified '.
+        'FROM %R WHERE BINARY userPHID=BINARY %s ORDER BY id LIMIT 65 LOCK IN SHARE MODE',$table,$subject);
+      if(count($rows)>64){throw new RuntimeException('recovery_borrowed_oauth_access_budget_unknown');}
+      $bytes=0;foreach($rows as$row){$keys=array_keys($row);sort($keys,SORT_STRING);
+        if($keys!==array('clientPHID','dateCreated','dateModified','id','token','userPHID')){throw new RuntimeException('recovery_borrowed_oauth_access_shape_unknown');}
+        if(($row['userPHID']??null)!==$subject){throw new RuntimeException('recovery_borrowed_oauth_access_owner_unknown');}
+        foreach($row as$value){if($value!==null&&!is_string($value)&&!is_int($value)){throw new RuntimeException('recovery_borrowed_oauth_access_shape_unknown');}
+          $length=$value===null?0:strlen((string)$value);if($length>4096){throw new RuntimeException('recovery_borrowed_oauth_access_budget_unknown');}$bytes+=$length+32;}}
+      if($bytes>131072){throw new RuntimeException('recovery_borrowed_oauth_access_budget_unknown');}
+      $digest=hash('sha256',serialize(array($this->leaseProfile,$subject,$table->getAphrontRefDatabaseName(),$rows)));
+      if(isset($this->borrowedOAuthAccessSnapshots[$subject])&&$this->borrowedOAuthAccessSnapshots[$subject]!==$digest){throw new RuntimeException('recovery_borrowed_oauth_access_source_changed');}
+      $this->borrowedOAuthAccessSnapshots[$subject]=$digest;$this->borrowedAssertActive();
+      return array('schema'=>1,'family'=>'api-credentials','selected_source'=>'native-oauth-access-token-rows',
+        'source_binding'=>$digest,'rows'=>count($rows),'mode'=>'borrowed-current-User-writer-RC-observation',
+        'OAuth_authorization_complete'=>false,'cross_connection_atomicity_proved'=>false,'production_observer_factory_available'=>false,
+        'all_sources_complete'=>false,'restoration_authorized'=>false,'execution_blocked'=>true);
+    }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
+  }
+
   public function borrowedValidateBeforeOwnerEnd() {
     $this->borrowedAssertActive();
     foreach(array_keys($this->borrowedSnapshots)as$subject){$this->borrowedCapture($subject);}
     foreach(array_keys($this->borrowedConduitSnapshots)as$subject){$this->borrowedCaptureConduit($subject);}
+    foreach(array_keys($this->borrowedOAuthAccessSnapshots)as$subject){$this->borrowedCaptureOAuthAccess($subject);}
   }
 
   /** Read only after the owner ends; never rollback, reconnect or repair it. */
