@@ -56,7 +56,14 @@ class CurrentMainIntegration(MediaRemote):
   changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72','--','src','resources'],text=True).splitlines()
   name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
   policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
-  self.assertEqual(set(changed),{name,policy})
+  import recovery_conduit_source_delta as conduit_delta
+  extra=set(conduit_delta.SOURCE_INPUTS)
+  map_path='src/__phutil_library_map__.php'
+  expected={name,policy}|extra
+  if map_path in changed:expected.add(map_path)
+  self.assertEqual(set(changed),expected)
+  for path in conduit_delta.BASE_PINS:
+   self.assertEqual(conduit_delta.reduce_owner(path,(ROOT/path).read_bytes()),subprocess.check_output(['git','-C',str(ROOT),'show','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504:'+path]))
   # Only the exact separately reviewed Calendar addition is allowed. Its
   # inverse must recover the original product bytes; every other path remains
   # excluded rather than making the historical source check a blanket pass.

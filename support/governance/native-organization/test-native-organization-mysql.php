@@ -4,7 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--calendar-reminder-wire-hold'=>'calendar-reminder-wire-hold','--calendar-reminders'=>'calendar-reminders','--session-borrowed-owner'=>'session-borrowed-owner','--file-parent-policy'=>'file-parent-policy','--session-producer-lease'=>'session-producer-lease','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--calendar-reminder-wire-hold'=>'calendar-reminder-wire-hold','--conduit-producer-owner'=>'conduit-producer-owner','--calendar-reminders'=>'calendar-reminders','--session-borrowed-owner'=>'session-borrowed-owner','--file-parent-policy'=>'file-parent-policy','--session-producer-lease'=>'session-producer-lease','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-remote-hold'=>'http-wire-remote-hold','--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-history-wire-hold'=>'governance-notice-history-wire-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
@@ -12,6 +12,7 @@ $phase=$arguments===array()?'all':
 $calendar_wire=$phase==='calendar-reminder-wire-hold';
 $workbench_http=$phase==='organization-approval-workbench-http-hold';
 $GLOBALS['governance_workbench_http_cleanup_permitted']=true;
+$GLOBALS['governance_recovery_conduit_cleanup_proved']=$phase!=='conduit-producer-owner';
 if($calendar_wire){$GLOBALS['governance_workbench_http_cleanup_permitted']=false;}
 $GLOBALS['governance_session_lease_cleanup']=array('cleanup_proved'=>true);
 $native_rr=$phase==='native-user-rr-mdl-only';
@@ -265,6 +266,13 @@ try {
     require_once dirname(__DIR__).'/recovery/native-writer-rr-focused.php';
     $native=governance_native_rr_focused($fixture,$check);
     $native['final_owned_cleanup']=$GLOBALS['governance_native_rr_cleanup'];
+  }elseif($phase==='conduit-producer-owner'){
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';$file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+    $stage='focused-native-conduit-producer-owner';require_once dirname(__DIR__).'/recovery/conduit-focused.php';
+    $native=governance_recovery_conduit_focused($fixture,$control,$check);
   }elseif($phase==='session-borrowed-owner'){
     require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
     $stage='owned-real-gorge-file-service';$file_service=governance_completion_start_gorge($fixture,'file',$check);
@@ -380,9 +388,15 @@ try {
     $failure['child_diagnostic']=$GLOBALS['governance_private_business_child_failure'];
   }
   if($phase==='session-borrowed-owner'&&isset($GLOBALS['governance_borrowed_worker_diagnostic'])){$failure['borrowed_worker']=$GLOBALS['governance_borrowed_worker_diagnostic'];}
+  if($phase==='conduit-producer-owner'){
+    require_once dirname(__DIR__).'/recovery/conduit-diagnostic.php';
+    $failure['conduit_diagnostic']=governance_recovery_conduit_failure_projection($GLOBALS['governance_conduit_failure_diagnostic']??$failure);
+    governance_recovery_conduit_emit_failure($failure['conduit_diagnostic']);
+  }
   if($native_rr&&isset($GLOBALS['governance_native_rr_failure'])){$failure['native_rr_child']=$GLOBALS['governance_native_rr_failure'];}
 } finally {
   $borrowed_unknown=$phase==='session-borrowed-owner'&&(!function_exists('governance_recovery_borrowed_cleanup_ready')||!governance_recovery_borrowed_cleanup_ready());
+  if(($phase??null)==='conduit-producer-owner'&&(!function_exists('governance_recovery_conduit_cleanup_ready')||!governance_recovery_conduit_cleanup_ready())){$borrowed_unknown=true;}
   if(!$borrowed_unknown){$_COOKIE=$superglobal_state['_COOKIE']; $_SERVER=$superglobal_state['_SERVER'];}
   if ($fixture !== null) { $summary = $fixture->getSummary(); }
   if (function_exists('governance_native_cleanup_workers')) {
@@ -485,6 +499,7 @@ $batch=$phase==='notice-admin-grant'?'native-notice-admin-grant-profile':$batch;
 $batch=$phase==='project-source-facts'?'native-project-source-facts':$batch;
 $batch=$phase==='organization-approval-workbench'?'native-organization-approval-workbench':$batch;
 $batch=$phase==='session-borrowed-owner'?'native-borrowed-session-owner':$batch;
+$batch=$phase==='conduit-producer-owner'?'native-conduit-producer-owner':$batch;
 $batch=$phase==='session-producer-lease'?'native-session-producer-lease':$batch;
 $batch=$phase==='file-parent-policy'?'native-File-parent-policy-endpoints':$batch;
 $batch=$phase==='file-source-facts'?'native-file-source-facts':$batch;
@@ -500,6 +515,7 @@ $receipt_scope=$workbench_http?'owned-workbench-basic-http-synthetic-roles':$rec
 $receipt_scope=$phase==='project-source-facts'?'owned-native-project-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$phase==='organization-approval-workbench'?'owned-native-organization-approval-workbench':$receipt_scope;
 $receipt_scope=$phase==='session-borrowed-owner'?'owned-native-borrowed-session-owner-no-permit':$receipt_scope;
+$receipt_scope=$phase==='conduit-producer-owner'?'owned-native-conduit-producer-owner-no-permit':$receipt_scope;
 $receipt_scope=$phase==='session-producer-lease'?'owned-native-session-producer-lease-no-permit':$receipt_scope;
 $receipt_scope=$phase==='file-parent-policy'?'owned-native-File-parent-policy-endpoints-no-permit':$receipt_scope;
 $receipt_scope=$phase==='file-source-facts'?'owned-native-File-source-partial':$receipt_scope;
