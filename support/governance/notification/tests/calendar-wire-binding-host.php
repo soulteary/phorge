@@ -18,6 +18,16 @@ $deny=static function($e,$m,$r,$u,$n,$enabled)use($ok){try{governance_calendar_w
  catch(RuntimeException $error){$ok(true);return;}throw new RuntimeException('binding_host_missing_denial');};
 $result=governance_calendar_wire_binding($events,$mails,$marks,$user,$now,true);
 $ok(count($result)===2&&$result[0]['event_phid']!==$result[1]['event_phid']&&$result[0]['relay_event_id']!==$result[1]['relay_event_id']);
+// Native Lisk/mysqli reloads decimal ID columns as strings, unlike insert IDs.
+$reloaded=array_map(static function($mail){$mail=clone$mail;$mail->id=(string)$mail->id;return$mail;},$mails);
+$normalized=governance_calendar_wire_binding($events,$reloaded,$marks,$user,$now,true);
+$ok($normalized===$result&&is_int($normalized[0]['mail_id'])&&is_int($normalized[1]['mail_id']));
+$ok(governance_calendar_wire_positive_id((string)PHP_INT_MAX)===PHP_INT_MAX);
+foreach(array(0,-1,'0','01','+1',' 1','1 ','1.0','1e0',true,false,1.0,null,'',str_repeat('9',strlen((string)PHP_INT_MAX)+1))as$invalid){
+ $bad=clone$mails[0];$bad->id=$invalid;$deny($events,array($bad,$mails[1]),$marks,$user,$now,true);
+}
+$duplicate=clone$mails[1];$duplicate->id=(string)$mails[0]->id;
+$deny($events,array($mails[0],$duplicate),$marks,$user,$now,true);
 $off=governance_calendar_wire_binding($events,array($mails[0]),$marks,$user,$now,false);$ok(count($off)===1);
 $deny($events,array($mails[0]),$marks,$user,$now,true);
 $deny($events,$mails,$marks,$user,$now,false);

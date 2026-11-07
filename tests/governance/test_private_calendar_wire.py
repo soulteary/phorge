@@ -19,7 +19,7 @@ class PrivateCalendarWireHostControls(unittest.TestCase):
         return value
 
     def test_native_mail_occurrence_binding_positive_and_negative_controls(self):
-        self.invoke('calendar-wire-binding-host.php', 14)
+        self.invoke('calendar-wire-binding-host.php', 32)
 
     def test_actual_owned_filesystem_publication_and_no_overwrite(self):
         value = self.invoke('calendar-wire-publication-host.php', 33)
@@ -30,7 +30,7 @@ class PrivateCalendarWireHostControls(unittest.TestCase):
         self.assertIs(False, value['actual_process_cleanup'])
 
     def test_real_native_factory_entry_without_DB_access(self):
-        value = self.invoke('calendar-wire-factory-host.php', 1, native_factory=True)
+        value = self.invoke('calendar-wire-factory-host.php', 2, native_factory=True)
         self.assertIs(True, value['actual_unsaved_native_factory'])
 
     def test_actual_regular_FIFO_and_replacement_safe_zero_write_reads(self):

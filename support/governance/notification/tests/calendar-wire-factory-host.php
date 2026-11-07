@@ -20,4 +20,10 @@ if($method->getName()!=='initializeNewCalendarEvent'||!$method->isPublic()||!$me
  get_class($event)!=='PhabricatorCalendarEvent'||$event->getHostPHID()!==$user->getPHID()||$event->getSpacePHID()!==null||
  $event->getID()!==null||function_exists('mysqli_init')||$old_error!=='Error'){
  throw new RuntimeException('calendar_wire_real_factory_regression_failed');}
-echo json_encode(array('passed'=>1,'SQL'=>false,'SMTP'=>false,'browser'=>false,'actual_unsaved_native_factory'=>true),JSON_THROW_ON_ERROR)."\n";
+// Exercise actual native Lisk deserialization, not the binding test double.
+// SQL transports are disabled above by the host runner; this is row decoding only.
+require dirname(__DIR__).'/calendar-wire-producer.php';
+$loaded=(new PhabricatorMetaMTAMail())->loadFromArray(array('id'=>'17'));
+if($loaded->getID()!=='17'||governance_calendar_wire_positive_id($loaded->getID())!==17){
+ throw new RuntimeException('calendar_wire_real_lisk_id_regression_failed');}
+echo json_encode(array('passed'=>2,'SQL'=>false,'SMTP'=>false,'browser'=>false,'actual_unsaved_native_factory'=>true),JSON_THROW_ON_ERROR)."\n";

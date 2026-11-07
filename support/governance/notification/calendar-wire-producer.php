@@ -1,5 +1,14 @@
 <?php
 /** Test-only real scheduler producer. Caller owns queue, environment and hold. */
+/** Lisk reloads MySQL integer columns as strings; normalize without coercion. */
+function governance_calendar_wire_positive_id($value) {
+  if(is_int($value)&&$value>0){return$value;}
+  if(is_string($value)&&preg_match('/\A[1-9][0-9]*\z/D',$value)){
+    $normalized=(int)$value;
+    if($normalized>0&&(string)$normalized===$value){return$normalized;}
+  }
+  throw new RuntimeException('calendar_wire_native_id_refused');
+}
 function governance_calendar_wire_binding(array $events,array $mails,array $marks,$recipient,$now,$enabled) {
   if(count($events)!==2||!is_bool($enabled)||!is_int($now)||$now<1||!is_string($recipient)||
     !preg_match('/\APHID-USER-[a-z0-9]{20}\z/D',$recipient)){
@@ -19,8 +28,8 @@ function governance_calendar_wire_binding(array $events,array $mails,array $mark
     $seen[$phid]=true;}
   if(count($seen)!==2||count($mails)!==($enabled?2:1)){throw new RuntimeException('calendar_wire_native_count_refused');}
   $bindings=array();$ids=array();$phids=array();foreach($mails as$mail){
-    $event=$mail->getRelatedPHID();$id=$mail->getID();$phid=$mail->getPHID();
-    if(!isset($expected[$event])||isset($bindings[$event])||!is_int($id)||$id<1||isset($ids[$id])||
+    $event=$mail->getRelatedPHID();$id=governance_calendar_wire_positive_id($mail->getID());$phid=$mail->getPHID();
+    if(!isset($expected[$event])||isset($bindings[$event])||isset($ids[$id])||
       !is_string($phid)||isset($phids[$phid])||!preg_match('/\APHID-MTAM-[a-z0-9]{20}\z/D',$phid)||
       $mail->getToPHIDs()!==array($recipient)||$mail->getPrivateMailPolicyValue('governance.mail-producer')!==PhabricatorCalendarNotificationEngine::class){
       throw new RuntimeException('calendar_wire_native_mail_refused');}
@@ -45,9 +54,10 @@ function governance_calendar_wire_produce($fixture,callable $check,$recipient,$h
     $invitee=PhabricatorCalendarEventInvitee::initializeNewCalendarEventInvitee($host,$event)
       ->setInviteePHID($recipient->getPHID())->setStatus(PhabricatorCalendarEventInvitee::STATUS_ATTENDING)->save();
     $events[]=array('event_phid'=>$event->getPHID(),'epoch'=>$now+$offset);$invitees[]=$invitee;
-    $path=$event->getURI();if(!is_int($event->getID())||$event->getID()<1||!preg_match('@\A/E[1-9][0-9]*\z@D',$path)){throw new RuntimeException('calendar_wire_native_event_path_refused');}
+    $event_id=governance_calendar_wire_positive_id($event->getID());
+    $path=$event->getURI();if(!preg_match('@\A/E[1-9][0-9]*\z@D',$path)){throw new RuntimeException('calendar_wire_native_event_path_refused');}
     $browser_events[]=array('label'=>$label,'event_phid'=>$event->getPHID(),'path'=>$path);
-    $event_ids[$label]=$event->getID();$native_paths[$label]=$path;
+    $event_ids[$label]=$event_id;$native_paths[$label]=$path;
   }
   $table=new PhabricatorMetaMTAMail();$conn=$table->establishConnection('w');
   $before=(int)queryfx_one($conn,'SELECT COALESCE(MAX(id),0) n FROM %R',$table)['n'];
