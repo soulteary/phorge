@@ -11,6 +11,9 @@ function governance_calendar_revocation_observe($fixture,PhabricatorCalendarEven
   if(get_class($connection)!==AphrontMySQLiDatabaseConnection::class||$connection->isInsideTransaction()||$connection->isReadLocking()||$connection->isWriteLocking()||count($mails)!==2||!PhorgePrivateMailPolicy::enabled()){
     throw new RuntimeException('calendar_measurement_scope_refused');}
   if((new ReflectionProperty(LiskDAO::class,'forcedConnection'))->getValue($invitee)!==null){throw new RuntimeException('calendar_measurement_forced_writer_refused');}
+  // MySQL rejects this statement inside a raw START TRANSACTION even when
+  // autocommit remains1 and native client bookkeeping is zero. Never rollback caller state.
+  queryfx($connection,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
   $physical=queryfx_one($connection,'SELECT @@autocommit a');if(!is_array($physical)||!in_array($physical['a']??null,array(1,'1'),true)){throw new RuntimeException('calendar_measurement_autocommit_required');}
   $namespace=$fixture->getNamespace();
   if(preg_match('/\Agovernance_native_[a-f0-9]{16}\z/D',$namespace)!==1||$invitee->getAphrontRefDatabaseName()!==$namespace.'_calendar'){
