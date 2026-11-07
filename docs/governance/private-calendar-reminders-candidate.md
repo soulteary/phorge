@@ -76,3 +76,26 @@ its source snapshot changes only for the exact Calendar engine bytes. Existing
 historical product/driver closure checks allow this one named additive change
 through exact source hashes and reversible deltas anchored to the prior source.
 Unrelated changes still reject even if the candidate pin is refreshed.
+
+## Failure-only diagnostic boundary
+
+If the required Calendar driver exits nonzero, the workflow retains that exact
+exit status. A trusted Python projector reads the owned, bounded receipt through
+a stable descriptor and strict JSON parser. Only this failed profile can yield
+fixed failure class/location, known completed case IDs, and typed cleanup
+booleans/counts. SQL text, message/body data, email, arguments and credentials
+are never copied. Unknown metadata becomes null or an explicitly unavailable
+diagnostic; it never becomes a passing SQL receipt.
+
+The safe JSON is written to a new private exclusive file with held-directory
+and held-file identity, mode, link-count and readback checks. The same captured
+safe bytes go to stderr without reopening the path. Only that single owned
+safe file is uploaded on failure, while the original full receipt remains
+private and the success consumer/artifact gates remain unchanged. Source,
+filesystem and shell-sequence controls do not establish the failed run's cause
+or a successful Calendar SQL execution.
+
+The diagnostic-owned step marker is also an explicit conditional failure path.
+A missing, empty, directory or unwritable `GITHUB_OUTPUT` sink cannot replace
+the original native exit status. Without a successfully written owned marker,
+no diagnostic artifact is selected; the safe stderr projection remains useful.

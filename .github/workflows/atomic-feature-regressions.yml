@@ -568,6 +568,7 @@ jobs:
           path: ${{ runner.temp }}/governance-borrowed-session-failure/diagnostic.json
           if-no-files-found: error
       - name: Verify actual private Calendar reminder scheduler and current-policy egress
+        id: calendar-reminders
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
@@ -585,7 +586,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
-          php support/governance/native-organization/test-native-organization-mysql.php --calendar-reminders > "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json"
+          php support/governance/native-organization/test-native-organization-mysql.php --calendar-reminders > "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-private-calendar-failure"; then if python3 -B scripts/governance/project_calendar_failure.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --output "$RUNNER_TEMP/governance-private-calendar-failure/diagnostic.json"; then if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi; fi; fi; exit "$native_status"; }
           python3 -B scripts/governance/check_private_calendar_reminders.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --queue-binary "$RUNNER_TEMP/gorge-taskqueue" --queue-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json" "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.json"
       - uses: actions/upload-artifact@v4
@@ -593,6 +594,12 @@ jobs:
         with:
           name: governance-private-calendar-reminders-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-private-calendar-reminders
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.calendar-reminders.outputs.diagnostic_owned == 'true'
+        with:
+          name: governance-private-calendar-failure-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-private-calendar-failure/diagnostic.json
           if-no-files-found: error
       - name: Verify fresh native organization approval workbench after File source facts
         run: |
