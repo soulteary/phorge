@@ -275,6 +275,94 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     $this->leaseIdentity=$actual;
   }
 
+  // Borrowed observation is distinct from the owning lease above. Only the
+  // actual RestoreService owner can mint its opaque token. No production
+  // observer factory is installed by this source-only compatibility stage.
+  private $borrowed=false;
+  private $borrowedToken;
+  private $borrowedSnapshots=array();
+
+  public static function beginBorrowed($token,AphrontDatabaseConnection $writer,
+    AphrontDatabaseConnection $observer) {
+    PhorgeRecoveryRestoreService::assertBorrowedOwner($token,$writer,$observer);
+    if(get_class($writer)!==AphrontMySQLiDatabaseConnection::class||
+      get_class($observer)!==AphrontMySQLiDatabaseConnection::class||
+      $writer===$observer||self::leaseDepth($writer)!==1||
+      !$writer->isInsideTransaction()||$writer->isReadLocking()||$writer->isWriteLocking()||
+      $observer->isInsideTransaction()||$observer->isReadLocking()||$observer->isWriteLocking()){
+      throw new RuntimeException('recovery_borrowed_owner_scope_unknown');}
+    $self=new self();$self->borrowed=true;$self->borrowedToken=$token;
+    $self->leaseWriter=$writer;$self->leaseObserver=$observer;
+    $self->leaseProfile=PhorgeRecoveryRestoreProfile::assertCurrent();
+    // Register before any fallible physical observation. Unknown begin never
+    // disappears merely because no scope was returned to the owner.
+    PhorgeRecoveryRestoreService::registerBorrowedParticipant($token,$self);
+    $self->leaseAssertIdentity();
+    $self->leaseReadGrants($writer,'writer',$self->leaseIdentity['writer_principal']);
+    $self->leaseReadGrants($observer,'observer',$self->leaseIdentity['observer_principal']);
+    $rows=$self->leaseObserve();
+    if(count($rows)!==1||!isset($rows[0]['THREAD_ID'],$rows[0]['EVENT_ID'])){throw new RuntimeException('recovery_borrowed_event_unknown');}
+    $self->leaseEvent=array('thread'=>$rows[0]['THREAD_ID'],'event'=>$rows[0]['EVENT_ID']);
+    if($self->leaseObservationState()!=='active'){
+      throw new RuntimeException('recovery_borrowed_event_unknown');}
+    $self->leaseState='active';return$self;
+  }
+
+  private function borrowedAssertActive() {
+    if(!$this->borrowed||$this->leaseState!=='active'){
+      throw new RuntimeException('recovery_borrowed_not_active');}
+    PhorgeRecoveryRestoreService::assertBorrowedOwner($this->borrowedToken,$this->leaseWriter,$this->leaseObserver);
+    if(self::leaseDepth($this->leaseWriter)!==1||!$this->leaseWriter->isInsideTransaction()||
+      PhorgeRecoveryRestoreProfile::assertCurrent()!==$this->leaseProfile){
+      throw new RuntimeException('recovery_borrowed_owner_changed');}
+    $this->leaseAssertIdentity();
+    if($this->leaseObservationState()!=='active'){
+      throw new RuntimeException('recovery_borrowed_event_changed');}
+  }
+
+  public function borrowedCapture($subject) {
+    try {
+    $this->borrowedAssertActive();$subject=PhorgeRecoveryStopRequest::user($subject);
+    $this->leaseSubject=$subject;$snapshot=$this->leaseReadSessions();
+    if(isset($this->borrowedSnapshots[$subject])&&$this->borrowedSnapshots[$subject]!==$snapshot){
+      throw new RuntimeException('recovery_borrowed_source_changed');}
+    $this->borrowedSnapshots[$subject]=$snapshot;$this->borrowedAssertActive();
+    return array('schema'=>1,'mode'=>'borrowed-current-User-writer-RC-observation',
+      'source_binding'=>hash('sha256',serialize(array($this->leaseProfile,$subject,$snapshot))),
+      'same_native_writer_transaction_observed'=>true,'participant_owns_transaction'=>false,
+      'production_observer_factory_available'=>false,'all_sources_complete'=>false,
+      'restoration_authorized'=>false,'execution_blocked'=>true);
+    }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
+  }
+
+  public function borrowedValidateBeforeOwnerEnd() {
+    $this->borrowedAssertActive();
+    foreach(array_keys($this->borrowedSnapshots)as$subject){$this->borrowedCapture($subject);}
+  }
+
+  /** Read only after the owner ends; never rollback, reconnect or repair it. */
+  public function borrowedObserveTerminal() {
+    if(!$this->borrowed){throw new RuntimeException('recovery_borrowed_scope_required');}
+    PhorgeRecoveryRestoreService::assertBorrowedOwner($this->borrowedToken,$this->leaseWriter,$this->leaseObserver);
+    $this->leaseCleanupProved=false;$this->leaseFailureState='unknown';
+    if(self::leaseDepth($this->leaseWriter)!==0||$this->leaseWriter->isInsideTransaction()){
+      throw new RuntimeException('recovery_borrowed_owner_not_ended');}
+    $observer=queryfx_one($this->leaseObserver,'SELECT CAST(CONNECTION_ID() AS CHAR) observer_id,'.
+      '@@server_uuid uuid,CURRENT_USER() principal,CURRENT_ROLE() role,@@proxy_user proxy');
+    if(!$observer||$this->leaseIdentity===null||$observer['observer_id']!==$this->leaseIdentity['observer_id']||
+      $observer['uuid']!==$this->leaseIdentity['writer_uuid']||
+      $observer['principal']!==$this->leaseIdentity['observer_principal']||
+      $observer['role']!=='NONE'||$observer['proxy']!==null){
+      throw new RuntimeException('recovery_borrowed_observer_changed');}
+    // Do not issue a query on the writer here: it could replace the original
+    // P_S event. Missing/changed event remains unknown, including begin failure.
+    if($this->leaseEvent!==null){$this->leaseFailureState=$this->leaseObservationState();}
+    if(!in_array($this->leaseFailureState,array('committed-observed','rollback-observed'),true)){
+      throw new RuntimeException('recovery_borrowed_terminal_unknown');}
+    $this->leaseState=$this->leaseFailureState==='committed-observed'?'committed':'rolled-back';
+    $this->leaseCleanupProved=true;return$this->leaseGetTerminalFacts();
+  }
+
   public static function beginLease(AphrontDatabaseConnection $observer,$subject) {
     if(PhabricatorEnv::getEnvConfig('governance.account-recovery.session-lease.enabled')!==true){
       throw new RuntimeException('recovery_session_lease_scope_disabled');}

@@ -1188,7 +1188,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
       "symbol": "PhorgeRecoveryRestoreService",
       "kind": "isolated-recovery-foundation-static-no-permit",
-      "sha256": "aa9c94a32951774a970871b1d431dc069d2d4a03899e919a934decf63202399e",
+      "sha256": "baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1199,7 +1199,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
       "symbol": "PhorgeRecoverySessionProducerFence",
       "kind": "isolated-recovery-foundation-static-no-permit",
-      "sha256": "bf52343c21dffb2eb7fe257e59f023d1ad3f15eb33dc933e3bd4ab14d32e00db",
+      "sha256": "a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3627,11 +3627,11 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
-        "sha256": "aa9c94a32951774a970871b1d431dc069d2d4a03899e919a934decf63202399e"
+        "sha256": "baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
-        "sha256": "bf52343c21dffb2eb7fe257e59f023d1ad3f15eb33dc933e3bd4ab14d32e00db"
+        "sha256": "a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php",
