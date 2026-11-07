@@ -106,6 +106,12 @@ try {
   $stage = 'full-native-source-restore';
   $fixture = new PhorgeGovernanceCompletionFixture($control,$root,'127.0.0.1',$port);
   $fixture->create();
+  if($calendar_wire){
+    $stage='calendar-wire-pre-ready-identity';
+    require_once dirname(__DIR__).'/notification/calendar-wire-identity-source.php';
+    require_once dirname(__DIR__).'/notification/calendar-wire-cleanup-identity.php';
+    governance_calendar_wire_publish_cleanup_identity(governance_calendar_wire_fixture_identity($fixture));
+  }
   $summary = $fixture->getSummary();
   $check($summary['quickstart_source_table_count'] === 500 &&
     $summary['app_schema_count'] === 54 &&

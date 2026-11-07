@@ -21,6 +21,22 @@ class PrivateCalendarWireHostControls(unittest.TestCase):
     def test_native_mail_occurrence_binding_positive_and_negative_controls(self):
         self.invoke('calendar-wire-binding-host.php', 32)
 
+    def test_pre_ready_identity_private_filesystem_publication_controls(self):
+        self.invoke('calendar-wire-cleanup-identity-host.php', 33)
+
+    def test_pre_ready_identity_projects_only_owned_credential_free_fields(self):
+        self.invoke('calendar-wire-identity-source-host.php', 2)
+
+    def test_early_identity_publishes_before_any_post_create_operation(self):
+        source = (ROOT / 'support/governance/native-organization/test-native-organization-mysql.php').read_text()
+        begin = source.index('  $fixture->create();')
+        end = source.index('  $summary = $fixture->getSummary();', begin)
+        block = source[begin:end]
+        self.assertIn('if($calendar_wire)', block)
+        self.assertIn('governance_calendar_wire_publish_cleanup_identity(governance_calendar_wire_fixture_identity($fixture));', block)
+        self.assertNotIn('start_gorge', block)
+        self.assertNotIn('getAdmin', block)
+
     def test_actual_owned_filesystem_publication_and_no_overwrite(self):
         value = self.invoke('calendar-wire-publication-host.php', 33)
         self.assertIs(True, value['actual_filesystem'])
