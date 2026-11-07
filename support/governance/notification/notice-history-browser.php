@@ -65,3 +65,36 @@ function governance_notice_history_prepare_browser($fixture,PhabricatorUser $rec
     'browser_cookie_injected'=>false,'producer_native_session_is_separate'=>true,
     'SMTP_proved_by_preparation'=>false,'browser_proved_by_preparation'=>false);
 }
+
+/** History-only owned service shutdown. This never proves independent SQL0. */
+function governance_notice_history_queue_quiesce($fixture,$directory,$owner,&$queue,array &$cleanup,callable $write){
+  governance_notice_history_need(is_string($owner)&&preg_match('/\A[a-f0-9]{64}\z/D',$owner)===1&&
+    is_string($directory)&&realpath($directory)===$directory&&realpath(dirname($directory))===realpath(sys_get_temp_dir())&&
+    preg_match('/\Aphorge-private-mail-wire-[a-f0-9]{24}\z/D',basename($directory))===1);
+  $fixture->assertOwned();$before=lstat($directory);
+  governance_notice_history_need(is_array($before)&&($before['mode']&0170000)===0040000&&($before['mode']&07777)===0700&&$before['uid']===posix_geteuid()&&$before['gid']===posix_getegid());
+  foreach(array('owner','history-queue-quiesce')as$name){
+    $path=$directory.'/'.$name;clearstatcache(true,$path);$entry=lstat($path);
+    governance_notice_history_need(is_array($entry)&&($entry['mode']&0170000)===0100000&&($entry['mode']&07777)===0600&&$entry['uid']===posix_geteuid()&&$entry['gid']===posix_getegid()&&$entry['nlink']===1&&$entry['size']===64);
+    $stream=fopen($path,'r+b');governance_notice_history_need(is_resource($stream));
+    try{
+      $fd=fstat($stream);clearstatcache(true,$path);$now=lstat($path);
+      foreach(array('dev','ino','mode','uid','gid','nlink','size','mtime','ctime')as$key){governance_notice_history_need(is_array($now)&&$entry[$key]===$fd[$key]&&$fd[$key]===$now[$key]);}
+      $bytes=stream_get_contents($stream,65);governance_notice_history_need(is_string($bytes)&&strlen($bytes)===64&&hash_equals($owner,$bytes));
+      $after=fstat($stream);clearstatcache(true,$path);$now=lstat($path);
+      foreach(array('dev','ino','mode','uid','gid','nlink','size','mtime','ctime')as$key){governance_notice_history_need(is_array($now)&&$fd[$key]===$after[$key]&&$after[$key]===$now[$key]);}
+    }finally{fclose($stream);}
+  }
+  clearstatcache(true,$directory);$after=lstat($directory);
+  foreach(array('dev','ino','mode','uid','gid')as$key){governance_notice_history_need(is_array($after)&&$before[$key]===$after[$key]);}
+  $expected=getenv('PHORGE_GOVERNANCE_GORGE_TASKQUEUE_SHA256');$revision=getenv('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION');
+  governance_notice_history_need(is_string($expected)&&preg_match('/\A[a-f0-9]{64}\z/D',$expected)===1&&is_string($revision)&&preg_match('/\A[a-f0-9]{40}\z/D',$revision)===1&&
+    is_array($queue)&&($queue['kind']??null)==='taskqueue'&&($queue['binary_sha256']??null)===$expected&&is_resource($queue['process']??null)&&!isset($cleanup['queue']));
+  $proof=governance_completion_stop_gorge($queue);$keys=array_keys($proof);sort($keys,SORT_STRING);
+  governance_notice_history_need($keys===array('binary_sha256','kind','private_storage_removed','process_stopped')&&$proof['kind']==='taskqueue'&&$proof['binary_sha256']===$expected&&$proof['process_stopped']===true&&$proof['private_storage_removed']===true);
+  $cleanup['queue']=$proof;$queue=null;
+  // Publish only after the actual keeper-owned process/storage cleanup returned.
+  // Parent must separately re-prove all writer SQL sessions absent after this ACK.
+  $write('history-queue-quiesced.json',array('scope'=>'owned-notice-history-queue-quiescence','owner'=>$owner,'source_revision'=>$revision,'queue_cleanup'=>$proof,'independent_SQL_zero_proved'=>false));
+  return true;
+}

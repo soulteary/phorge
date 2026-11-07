@@ -66,3 +66,17 @@ remains blocked on errors, timeout or unknown parent state. Only an owned
 release file plus a second exact-writer SQL-zero check permits cleanup.
 Closing a host handle or the former fixture writer alone proves neither all
 writer sessions absent nor a successful browser run.
+
+History-only queue shutdown now precedes the parent's independent SQL0 check.
+After its other children stop and reap, the parent writes the fixed owned
+`history-queue-quiesce` request. The keeper validates its private owner/request,
+stops the already-held queue process/storage using the existing native cleanup
+function, and publishes `history-queue-quiesced.json` bound to owner, source
+revision and queue binary. The ACK explicitly does not prove SQL0. Missing or
+invalid ACK, stop/storage failure, or nonzero/unknown SQL prevents release.
+The keeper independently refuses a history release before this shutdown. The
+null callback path and the 19 success checks remain unchanged. This source is
+integrated with main e51ae; Root must sign and install a fresh source archive
+and independently rebind the new parent. Old 96ea approval cannot be reused.
+Host tests use the actual PHP cleanup function with an owned sleeping child;
+no SQL, SMTP, browser or VM execution is claimed.
