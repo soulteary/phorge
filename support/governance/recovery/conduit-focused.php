@@ -1,6 +1,7 @@
 <?php
 /** Fixed isolated phase; uses original native fixture preparation, never production observer adoption. */
 require_once __DIR__.'/borrowed-session-focused.php';
+require_once __DIR__.'/conduit-diagnostic.php';
 function governance_recovery_conduit_cleanup_ready(){
   return($GLOBALS['governance_recovery_conduit_cleanup_proved']??null)===true&&governance_recovery_borrowed_cleanup_ready();
 }
@@ -15,18 +16,25 @@ function governance_recovery_conduit_focused($fixture,mysqli $control,callable $
   $stack=PhabricatorEnv::getConfigSourceStack();$sources=$stack->getStack();
   if(get_class($stack)!==PhabricatorConfigStackSource::class||count($sources)!==2||get_class($sources[0])!==PhabricatorConfigDictionarySource::class){throw new RuntimeException('borrowed_config_scope_unknown');}
   $source=$sources[0];$values=(new ReflectionProperty(PhabricatorConfigDictionarySource::class,'dictionary'))->getValue($source);$cache=(new ReflectionProperty(PhabricatorEnv::class,'cache'))->getValue();
-  $flags=null;$environment=null;$primary=null;$result=null;$cookies=$_COOKIE;$server=$_SERVER;
+  $attempt='preflight';$flags=null;$environment=null;$primary=null;$result=null;$cookies=$_COOKIE;$server=$_SERVER;
   try{
     $source->setKeys(array('gorge.image.builtin-mode'=>'legacy'));(new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
+    $attempt='prepare-users';
     $users=governance_task_owner_prepare($fixture);
+    $attempt='prepare-extra-avatar';
     $extra=(new PhabricatorUser())->setUsername('borrowedextra'.substr($fixture->getNamespace(),-12))->setRealName('Synthetic Borrowed Observer Fixture')->setIsApproved(1)->setIsAdmin(0)->save();
     $avatar=(new PhabricatorFilesComposeAvatarBuiltinFile())->updateUser($extra);
     $fresh=(new PhabricatorUser())->load($extra->getID());$stored=(new PhabricatorFile())->load($avatar->getID());
     if(!$fresh||!$stored||$stored->getStorageEngine()!=='gorge'||$fresh->getDefaultProfileImagePHID()!==$avatar->getPHID()||$fresh->getDefaultProfileImageVersion()!==PhabricatorFilesComposeAvatarBuiltinFile::VERSION){throw new RuntimeException('borrowed_avatar_unproved');}
+    $attempt='prepare-roles';
     $users=governance_recovery_borrowed_prepare_roles(array($users['actor'],$users['subject'],$users['other'],$extra),$users['disabled']);
+    $attempt='flags';
     $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.enabled',true)->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
-    $environment=governance_recovery_account_fixture_environment($fixture);$writer=governance_recovery_borrowed_default_writer();
-    $sessions=new PhabricatorAuthSessionEngine();$issuer=governance_native_request($users['issuer'],$sessions);$owner=governance_native_request($users['owner'],$sessions);
+    $attempt='environment';
+    $environment=governance_recovery_account_fixture_environment($fixture);$attempt='default-writer';$writer=governance_recovery_borrowed_default_writer();
+    $attempt='issuer-session';
+    $sessions=new PhabricatorAuthSessionEngine();$issuer=governance_native_request($users['issuer'],$sessions);$attempt='owner-session';$owner=governance_native_request($users['owner'],$sessions);
+    $attempt='prewarm';
     $prewarmOwned=false;$prewarmCommitAttempted=false;
     $prewarmStateReader=new ReflectionMethod(AphrontDatabaseConnection::class,'getTransactionState');
     $prewarmState=$prewarmStateReader->invoke($writer);
@@ -47,12 +55,20 @@ function governance_recovery_conduit_focused($fixture,mysqli $control,callable $
       }
       throw$error;
     }
+    $attempt='physical-cases';
     $result=governance_recovery_borrowed_conduit_cases($fixture,$control,array('issuer_auth'=>$issuer,'owner_auth'=>$owner,'subjects'=>array('commit'=>$users['subject'],'rollback'=>$users['other'])),$check);
     if(!governance_recovery_borrowed_cleanup_ready()){throw new RuntimeException('borrowed_cleanup_unproved');}
     $result['observer_cleanup']=$GLOBALS['governance_recovery_borrowed_fixture_cleanup'];$result['both_native_identity_epochs_prewarmed']=true;
     $result['source_revision']=$revision;$result['default_native_User_writer']=true;$result['forced_connection_used']=false;
     // Return only after the actual finally cleanup below.
-  }catch(Throwable$error){$primary=$error;throw$error;}
+  }catch(Throwable$error){$primary=$error;
+    $GLOBALS['governance_conduit_failure_diagnostic']=governance_recovery_conduit_throwable_projection($attempt,$error);
+    if(isset($GLOBALS['governance_conduit_worker_diagnostic'])){
+      $child=governance_recovery_conduit_failure_projection($GLOBALS['governance_conduit_worker_diagnostic']);
+      foreach(array('child_available','child_status','child_identity_started','child_result_available','child')as$key){if(array_key_exists($key,$child)){$GLOBALS['governance_conduit_failure_diagnostic'][$key]=$child[$key];}}
+    }
+    governance_recovery_conduit_emit_failure($GLOBALS['governance_conduit_failure_diagnostic']);
+    throw$error;}
   finally{
     if(governance_recovery_borrowed_cleanup_ready()){
       $errors=$primary===null?array():array('primary'=>$primary);

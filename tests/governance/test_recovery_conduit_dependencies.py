@@ -22,12 +22,15 @@ class ConduitDependencies(unittest.TestCase):
  def invoke(self,case):
   r=subprocess.run(['php','-d','disable_functions=mysqli_init,mysqli_connect,stream_socket_client,fsockopen,pfsockopen,socket_connect','-r',CODE,str(ROOT),str(case)],capture_output=True,text=True,timeout=10);self.assertEqual(0,r.returncode,r.stderr);return json.loads(r.stdout)
  def test_actual_case_entry_reaches_first_actor_only_after_loading_real_dependencies(self):
-  d=self.invoke(ROOT/'support/governance/recovery/conduit-cases.php');self.assertTrue(d['reached_after_dependencies']);self.assertFalse(d['missing_dependency']);self.assertEqual(1,d['owned_assertions']);self.assertTrue(d['DB_functions_disabled']);self.assertEqual({'borrowed-session-observer.php','conduit-producer.php','session-lease-cases.php','workers.php','borrowed-session-diagnostic.php'},set(d['paths']))
+  d=self.invoke(ROOT/'support/governance/recovery/conduit-cases.php');self.assertTrue(d['reached_after_dependencies']);self.assertFalse(d['missing_dependency']);self.assertEqual(1,d['owned_assertions']);self.assertTrue(d['DB_functions_disabled']);self.assertEqual({'borrowed-session-observer.php','conduit-producer.php','session-lease-cases.php','workers.php','borrowed-session-diagnostic.php','conduit-diagnostic.php'},set(d['paths']))
   self.assertEqual('borrowed-session-observer.php',d['symbols']['governance_recovery_borrowed_with_observer']['file']);self.assertEqual((3,3),(d['symbols']['governance_recovery_borrowed_with_observer']['required'],d['symbols']['governance_recovery_borrowed_with_observer']['total']))
   self.assertEqual('borrowed-session-diagnostic.php',d['symbols']['governance_recovery_borrowed_worker_diagnostic']['file']);self.assertEqual(4,d['symbols']['governance_recovery_borrowed_worker_diagnostic']['required'])
   self.assertTrue(d['methods']['PhabricatorConduitToken::insertRecordIntoDatabase']['protected']);self.assertEqual(3,d['methods']['PhorgeRecoveryConduitProducerFence::insert']['required']);self.assertEqual(2,d['methods']['PhorgeRecoveryRestoreService::captureBorrowedConduitFacts']['required'])
  def test_frozen_blocked_case_actually_fails_before_dependency_boundary(self):
-  old=(ROOT/'support/governance/recovery/conduit-cases.php').read_bytes()
+  import sys
+  sys.path.insert(0,str(ROOT/'scripts/governance'))
+  from recovery_conduit_source_delta import reduce_diagnostic_case
+  old=reduce_diagnostic_case((ROOT/'support/governance/recovery/conduit-cases.php').read_bytes())
   for fixed,broken in [(b"borrowed-session-observer.php",b"borrowed-conduit-observer.php"),(b"borrowed-session-diagnostic.php",b"borrowed-conduit-diagnostic.php")]:
    self.assertEqual(1,old.count(fixed));old=old.replace(fixed,broken,1)
   self.assertEqual(1,old.count(b'isolated-borrowed-real-store-conduit-owner-v2'));old=old.replace(b'isolated-borrowed-real-store-conduit-owner-v2',b'isolated-borrowed-real-store-conduit-owner-v1',1)

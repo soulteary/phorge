@@ -568,6 +568,7 @@ jobs:
           path: ${{ runner.temp }}/governance-borrowed-session-failure/diagnostic.json
           if-no-files-found: error
       - name: Verify fresh native Conduit producer ownership after borrowed Session owner
+        id: conduit-owner
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
@@ -584,7 +585,18 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
-          php support/governance/native-organization/test-native-organization-mysql.php --conduit-producer-owner > "$RUNNER_TEMP/governance-conduit-producer-owner/integration.json"
+          php support/governance/native-organization/test-native-organization-mysql.php --conduit-producer-owner > "$RUNNER_TEMP/governance-conduit-producer-owner/integration.json" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/governance-conduit-producer-failure"; then
+              if python3 -B scripts/governance/project_conduit_failure.py --receipt "$RUNNER_TEMP/governance-conduit-producer-owner/integration.json" > "$RUNNER_TEMP/governance-conduit-producer-failure/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/governance-conduit-producer-failure/diagnostic.pending.json" "$RUNNER_TEMP/governance-conduit-producer-failure/diagnostic.json"; then
+                  if cat "$RUNNER_TEMP/governance-conduit-producer-failure/diagnostic.json" >&2; then :; fi
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
           python3 -B scripts/governance/check_recovery_conduit_producer.py --receipt "$RUNNER_TEMP/governance-conduit-producer-owner/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.pending.json" "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.json"
       - uses: actions/upload-artifact@v4
@@ -592,6 +604,12 @@ jobs:
         with:
           name: governance-conduit-producer-owner-php-${{ matrix.php }}
           path: ${{ runner.temp }}/governance-conduit-producer-owner
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.conduit-owner.outputs.diagnostic_owned == 'true'
+        with:
+          name: governance-conduit-producer-failure-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/governance-conduit-producer-failure/diagnostic.json
           if-no-files-found: error
       - name: Verify actual private Calendar reminder scheduler and current-policy egress
         id: calendar-reminders

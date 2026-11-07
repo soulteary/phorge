@@ -38,3 +38,28 @@ The selected phase starts cleanup-blocked before any File/fixture work. Unknown 
 An actual retained Conduit reservation blocks the selected Session INSERT, User Store/planning, owned/borrowed lease and current-capture entries in the same PHP process. Storage INSERT hooks check an already loaded registry even after a config-scope reset to OFF; an empty/unloaded registry adds no SQL, grant or eligibility decision and preserves the original OFF parent call. Replacing the pool object cannot clear a retained reservation. This is process-local state, not a durable or cross-process fence, and does not claim interception of every raw User DAO writer.
 
 Each producer table takes a `WHERE 1=0 LOCK IN SHARE MODE` metadata lock inside its own owned transaction before checking ENGINE and before reading/writing real rows. The borrowed current-reader takes Conduit MDL in the same User-owner transaction, then checks ENGINE and reads bounded rows. No ALTER privilege is requested. Missing SELECT, unsupported engine or unknown metadata is fail-closed. Host controls prove actual code ordering and refusal; independent physical DDL-wait/fault testing is still pending and is not one of the six already declared SQL obligations.
+
+
+## Failure metadata before retained-scope destruction
+
+The first hosted SQL6 attempt failed. Its visible `PhabricatorEnv` scoped-env
+shutdown error is a secondary observation; the original SQL failure remains
+unknown. An unknown owner keeps the flattened fixture environment and the prior
+ScopedEnv object. PHP shutdown still destroys that object, whose native stack
+key belongs to the saved pre-flatten stack. No change here restores an unknown
+transaction, closes its writer or pretends that shutdown cleanup is proved.
+
+The selected Conduit catch now emits bounded fixed stage/type/file/line/query-code
+metadata before its finally and shutdown. A separate child reader validates the
+actual Conduit handle and reads only the existing held-FD bounded owned marker
+and result records. No message, SQL text, subject, credentials or raw child logs
+are projected. The driver retains this projection in the failed receipt. The
+failure-only CLI is `python3 -B scripts/governance/project_conduit_failure.py
+--receipt PRIVATE_RECEIPT`; it compiles only captured SHA-checked projection
+bytes. Missing/invalid input produces a fixed unavailable record. Runtime exit
+remains failure and original unknown cleanup guards remain unchanged.
+
+The current descriptor explicitly has37 pinned sources and reports
+`native-conduit-producer-v3-diagnostic`; native SQL6/16 obligations and the v2
+fixture semantics are unchanged. This diagnostic source is not physical SQL6,
+MDL/DDL race, unknown-COMMIT fault, all13 or restoration-permit proof.

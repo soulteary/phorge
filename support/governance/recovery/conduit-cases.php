@@ -8,7 +8,7 @@ function governance_recovery_borrowed_conduit_obligations(){
   sort($out,SORT_STRING);return$out;
 }
 function governance_recovery_borrowed_conduit_cases($fixture,mysqli $control,array $state,callable $check){
-  $fixture->assertOwned();require_once __DIR__.'/borrowed-session-observer.php';require_once __DIR__.'/conduit-producer.php';require_once __DIR__.'/session-lease-cases.php';
+  $fixture->assertOwned();require_once __DIR__.'/borrowed-session-observer.php';require_once __DIR__.'/conduit-producer.php';require_once __DIR__.'/conduit-diagnostic.php';require_once __DIR__.'/session-lease-cases.php';
   require_once dirname(__DIR__).'/native-organization/workers.php';
   $actor=$state['issuer_auth'];$context=$state['owner_auth']['context'];
   if($actor['context']->getUserPHID()===$context->getUserPHID()||in_array($actor['context']->getUserPHID(),array_map(static fn($u)=>$u->getPHID(),$state['subjects']),true)){throw new RuntimeException('borrowed_issuer_in_parent_lockset');}
@@ -30,8 +30,8 @@ function governance_recovery_borrowed_conduit_cases($fixture,mysqli $control,arr
         try{governance_native_wait_borrowed_conduit_preflight($handle,$observer);}
         catch(Throwable$error){
           require_once __DIR__.'/borrowed-session-diagnostic.php';
-          try{$GLOBALS['governance_borrowed_worker_diagnostic']=governance_recovery_borrowed_worker_diagnostic($handle,$observer,$preflightWriter,$fixture->getNamespace());}
-          catch(Throwable$diagnostic){$GLOBALS['governance_borrowed_worker_diagnostic']=array('available'=>false);}
+          try{$GLOBALS['governance_conduit_worker_diagnostic']=governance_recovery_conduit_child_diagnostic($handle);}
+          catch(Throwable$diagnostic){$GLOBALS['governance_conduit_worker_diagnostic']=array('child_available'=>false);}
           throw$error;
         }
         try{
@@ -64,7 +64,9 @@ function governance_recovery_borrowed_conduit_cases($fixture,mysqli $control,arr
         $after=$store->invoke(null,$context,array($subject->getPHID()),static function($conn)use($subject){return array('result'=>PhorgeRecoveryRestoreService::captureBorrowedConduitFacts($conn,$subject->getPHID()),'bindings'=>array(),'deadline'=>null);});
         $record($before['source_binding']!==$after['source_binding']&&$after['cross_connection_atomicity_proved']===false&&$after['restoration_authorized']===false,
           'borrowed-conduit-next-store-event-new-conduit-binding-'.$ending);
-      }catch(Throwable$error){$GLOBALS['governance_recovery_borrowed_cleanup_proved']=false;$primary=$error;throw$error;}
+      }catch(Throwable$error){$GLOBALS['governance_recovery_borrowed_cleanup_proved']=false;$primary=$error;
+        if($handle!==null){$GLOBALS['governance_conduit_worker_diagnostic']=governance_recovery_conduit_child_diagnostic($handle);}
+        throw$error;}
       finally{
         $errors=$primary===null?array():array('primary'=>$primary);
         try{governance_native_stop_fixture_handles($handles);}catch(Throwable$error){$errors['workers']=$error;}
