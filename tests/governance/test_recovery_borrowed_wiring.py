@@ -5,6 +5,8 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import check_recovery_borrowed_session as gate
 import test_recovery_session_lease_gate as previous
+def canonical_temp_base():
+ return Path(tempfile.gettempdir()).resolve(strict=True)
 class BorrowedWiring(unittest.TestCase):
  def php(self,path,*args):
   p=subprocess.run(['php',str(ROOT/path),str(ROOT),*args],capture_output=True,text=True,timeout=12);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');return json.loads(p.stdout)
@@ -74,8 +76,8 @@ class BorrowedWiring(unittest.TestCase):
 
  def test_actual_source_pins_reject_one_changed_dependency_before_obligations(self):
   import shutil
-  with tempfile.TemporaryDirectory(dir='/private/tmp')as tmp:
-   root=Path(tmp)
+  with tempfile.TemporaryDirectory(dir=canonical_temp_base())as tmp:
+   root=Path(tmp).resolve(strict=True)
    for relative in gate.SOURCE_INPUTS:
     dst=root/relative;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/relative,dst)
    self.assertEqual(len(gate.SQL_obligations(root)),6)
@@ -88,3 +90,16 @@ class BorrowedWiring(unittest.TestCase):
    if mode=='depth':self.assertEqual(len(d['queries']),2);self.assertTrue(d['queries'][1].startswith('SAVEPOINT '));self.assertTrue(d['inside'])
    else:self.assertEqual(d['queries'],queries)
    if mode=='unowned':self.assertTrue(d['refused_unowned'])
+
+ def test_portable_temp_topologies_resolve_alias_without_weakening_source_guard(self):
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory(dir=canonical_temp_base())as tmp:
+   root=Path(tmp).resolve(strict=True);native=root/'linux-temp';native.mkdir();alias=root/'mac-temp-alias';alias.symlink_to(native,target_is_directory=True)
+   for candidate in [native,alias]:
+    with patch.object(tempfile,'gettempdir',return_value=str(candidate)):
+     base=canonical_temp_base();self.assertEqual(base,native)
+     with tempfile.TemporaryDirectory(dir=base)as owned:
+      source=Path(owned)/'source.php';source.write_bytes(b'<?php // owned temporary source\n');self.assertEqual(gate.read_source_checked(source),source.read_bytes())
+      aliased=alias/source.parent.name/source.name
+      with self.assertRaisesRegex(ValueError,'source parent alias refused'):gate.read_source_checked(aliased)
+      self.assertEqual(gate.read_source_checked(aliased.resolve(strict=True)),source.read_bytes())
