@@ -56,8 +56,26 @@ function governance_recovery_borrowed_focused($fixture,mysqli $control,callable 
     $flags=PhabricatorEnv::beginScopedEnv()->overrideEnvConfig('governance.account-recovery.enabled',true)->overrideEnvConfig('governance.account-recovery.incarnation',bin2hex(random_bytes(16)));
     $environment=governance_recovery_account_fixture_environment($fixture);$writer=governance_recovery_borrowed_default_writer();
     $sessions=new PhabricatorAuthSessionEngine();$issuer=governance_native_request($users['issuer'],$sessions);$owner=governance_native_request($users['owner'],$sessions);
-    $writer->openTransaction();try{$issuerSnapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($issuer['context'],$writer);$ownerSnapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($owner['context'],$writer);if(!$issuerSnapshot->isSystemAdmin()||!$ownerSnapshot->isSystemAdmin()){throw new RuntimeException('borrowed_current_admin_preparation_unproved');}$writer->saveTransaction();}
-    catch(Throwable$error){$writer->killTransaction();throw$error;}
+    $prewarmOwned=false;$prewarmCommitAttempted=false;
+    $prewarmStateReader=new ReflectionMethod(AphrontDatabaseConnection::class,'getTransactionState');
+    $prewarmState=$prewarmStateReader->invoke($writer);
+    if($writer->isInsideTransaction()||$prewarmState->getDepth()!==0){throw new RuntimeException('borrowed_prewarm_outer_transaction_refused');}
+    try{
+      $writer->openTransaction();$prewarmOwned=true;
+      $issuerSnapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($issuer['context'],$writer);
+      $ownerSnapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($owner['context'],$writer);
+      if(!$issuerSnapshot->isSystemAdmin()||!$ownerSnapshot->isSystemAdmin()){throw new RuntimeException('borrowed_current_admin_preparation_unproved');}
+      $prewarmCommitAttempted=true;$writer->saveTransaction();$prewarmOwned=false;
+    }catch(Throwable$error){
+      // Native commit bookkeeping decreases depth before the physical COMMIT.
+      // A failed begin/commit is not authority to issue another transaction end.
+      if($prewarmOwned&&!$prewarmCommitAttempted&&$writer->isInsideTransaction()&&
+        $prewarmStateReader->invoke($writer)===$prewarmState&&$prewarmState->getDepth()===1){
+        try{$writer->killTransaction();}
+        catch(Throwable$cleanup){throw new PhutilAggregateException('borrowed_prewarm_cleanup_failed',array('primary'=>$error,'cleanup'=>$cleanup));}
+      }
+      throw$error;
+    }
     $result=governance_recovery_borrowed_session_cases($fixture,$control,array('issuer_auth'=>$issuer,'owner_auth'=>$owner,'subjects'=>array('commit'=>$users['subject'],'rollback'=>$users['other'])),$check);
     if(!governance_recovery_borrowed_cleanup_ready()){throw new RuntimeException('borrowed_cleanup_unproved');}
     $result['observer_cleanup']=$GLOBALS['governance_recovery_borrowed_fixture_cleanup'];$result['both_native_identity_epochs_prewarmed']=true;

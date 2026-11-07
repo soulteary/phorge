@@ -81,3 +81,10 @@ class BorrowedWiring(unittest.TestCase):
    self.assertEqual(len(gate.SQL_obligations(root)),6)
    path=root/'support/governance/recovery/project-source-focused.php';path.write_bytes(path.read_bytes()+b'\n// corruption negative control\n')
    with self.assertRaisesRegex(ValueError,'reviewed borrowed source changed'):gate.SQL_obligations(root)
+
+ def test_actual_native_transaction_prewarm_preserves_both_failures_and_ownership(self):
+  for mode,queries,primary,dual in [('good',['START TRANSACTION','COMMIT'],False,False),('primary',['START TRANSACTION','ROLLBACK'],True,False),('dual',['START TRANSACTION','ROLLBACK'],False,True),('begin',['START TRANSACTION'],True,False),('commit',['START TRANSACTION','COMMIT'],True,False),('unowned',[],False,False),('depth',['START TRANSACTION','SAVEPOINT AphrontDatabaseTransactionState_1'],True,False)]:
+   d=self.php('support/governance/recovery/tests/borrowed-prewarm-native-host.php',mode);self.assertEqual(d['native_transaction_method'],'AphrontDatabaseConnection');self.assertFalse(d['physical_SQL_executed']);self.assertEqual(d['primary_exact'],primary);self.assertEqual(d['children_exact'],dual)
+   if mode=='depth':self.assertEqual(len(d['queries']),2);self.assertTrue(d['queries'][1].startswith('SAVEPOINT '));self.assertTrue(d['inside'])
+   else:self.assertEqual(d['queries'],queries)
+   if mode=='unowned':self.assertTrue(d['refused_unowned'])

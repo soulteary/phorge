@@ -77,6 +77,12 @@ recovery is disabled. Four eligible Users are PHID-sorted into distinct issuer,
 owner and two subjects; only the first two become administrators. The issuer
 is outside the parent lock set and precedes both subjects. Both actual native
 identity epochs and separate native sessions are initialized before the parent.
+Prewarm preserves the original Throwable. An active preparation failure may
+roll back only its successfully opened, unchanged native depth-one transaction
+before any commit attempt; rollback failure aggregates the exact primary and
+cleanup objects. Failed BEGIN or COMMIT remains unknown and does not authorize
+a speculative transaction end. Fixture cleanup stays blocked on preparation
+failure, including when native bookkeeping reports depth zero.
 The runtime checks default new User and AuthSession connections share the same
 idle native writer, with no forced connection or namespace override. Host
 isolated-DAO preparation controls are explicitly not default-writer SQL proof.
