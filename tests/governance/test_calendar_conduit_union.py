@@ -10,7 +10,11 @@ class CalendarConduitUnion(unittest.TestCase):
  def test_current_main_production_hooks_map_and_workflows_preserved(self):
   self.assertEqual(b'',git('diff','46a1b044950584006cba754bc9841031d452eb76','--','src','resources','.github/workflows'))
   for path in ['support/governance/recovery/conduit-producer.php','support/governance/recovery/conduit-focused.php','support/governance/recovery/conduit-cases.php','support/governance/recovery/conduit-diagnostic.php','support/governance/native-organization/native-worker.php','support/governance/native-organization/workers.php']:
-   self.assertEqual((ROOT/path).read_bytes(),git('show',MAIN+':'+path))
+   raw=(ROOT/path).read_bytes()
+   if path=='support/governance/native-organization/workers.php':
+    sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_worker_terminal_delta as worker_delta
+    raw=worker_delta.reduce_current(path,raw)
+   self.assertEqual(raw,git('show',MAIN+':'+path))
  def test_signed_Calendar_fixture_files_are_exact_and_not_reimplemented(self):
   paths=git('diff','--name-only','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504',WIRE,'--','support/governance/notification').decode().splitlines()
   self.assertGreater(len(paths),10)
@@ -45,6 +49,37 @@ class CalendarConduitUnion(unittest.TestCase):
     p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes());p.chmod(0o600)
    self.assertEqual(current.SQL_obligations(root),current.SQL_obligations())
    p=root/DRIVER;p.write_bytes(p.read_bytes()+b'// unrelated edit')
+   with self.assertRaises(ValueError):current.SQL_obligations(root)
+ def test_worker_terminal_layer_composes_without_changing_Calendar_or_historical_pins(self):
+  import ast
+  sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_worker_terminal_delta as worker
+  for name in ('check_recovery_session_lease','check_recovery_borrowed_session','check_recovery_conduit_producer'):
+   gate=__import__(name);path='scripts/governance/'+name+'.py'
+   def pins(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
+   self.assertEqual(gate.SOURCE_INPUTS,pins(git('show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+path)))
+   self.assertEqual(gate.SOURCE_INPUTS[DRIVER],hashlib.sha256((ROOT/DRIVER).read_bytes()).hexdigest())
+   self.assertTrue(gate.SQL_obligations())
+  self.assertEqual(worker.reduce_current(worker.PATH,(ROOT/worker.PATH).read_bytes()),git('show',MAIN+':'+worker.PATH))
+ def test_OAuth_worker_source_view_accepts_only_exact_old_or_terminal_inverse(self):
+  import tempfile
+  sys.path.insert(0,str(ROOT/'scripts/governance'))
+  import check_recovery_oauth_access_producer as old
+  import check_recovery_oauth_access_producer_v2 as current
+  import check_recovery_conduit_producer as conduit
+  import recovery_worker_terminal_delta as worker
+  actual=(ROOT/worker.PATH).read_bytes();prior=git('show',MAIN+':'+worker.PATH)
+  for module in (old,current):
+   self.assertEqual(module.worker_terminal.reduce_if_selected(worker.PATH,actual),prior)
+   self.assertEqual(module.worker_terminal.reduce_if_selected(worker.PATH,prior),prior)
+   with self.assertRaises(ValueError):module.worker_terminal.reduce_if_selected(worker.PATH,actual+b'// other change')
+  self.assertEqual((len(current.SQL_obligations()),len(conduit.SQL_obligations())),(8,6))
+  with tempfile.TemporaryDirectory()as tmp:
+   root=Path(tmp).resolve()
+   for name in current.SOURCE_INPUTS:
+    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes());p.chmod(0o600)
+   self.assertEqual(current.SQL_obligations(root),current.SQL_obligations())
+   (root/worker.PATH).write_bytes(prior);self.assertEqual(current.SQL_obligations(root),current.SQL_obligations())
+   (root/worker.PATH).write_bytes(actual+b'// other change')
    with self.assertRaises(ValueError):current.SQL_obligations(root)
  def test_actual_PHP_both_selectors_and_independent_unknown_cleanup_guards(self):
   program=r'''$s=file_get_contents($argv[1]);$a=strpos($s,'$arguments=array_slice');$b=strpos($s,'$fixture = null;',$a);$init=substr($s,$a,$b-$a);$a=strpos($s,'$borrowed_unknown=$phase===');$b=strpos($s,'  if(!$borrowed_unknown){$_COOKIE',$a);$unknown=substr($s,$a,$b-$a);$a=strrpos($s,'  if($borrowed_unknown){');$b=strpos($s,'  if(!$borrowed_unknown){if ($control !== null)',$a);$guard=substr($s,$a,$b-$a);function governance_recovery_conduit_cleanup_ready(){return($GLOBALS['governance_recovery_conduit_cleanup_proved']??null)===true;}class UnionFixture{function cleanup(){$GLOBALS['drops']++;return[];}}$rows=[];foreach(['--calendar-reminder-wire-hold','--conduit-producer-owner']as$selector){$argv=['owned',$selector];eval($init);$fixture=new UnionFixture();$cleanup_failures=[];$checks=[];$drops=0;eval($unknown);eval($guard);$rows[]=['phase'=>$phase,'calendar'=>$calendar_wire,'calendar_cleanup'=>$GLOBALS['governance_workbench_http_cleanup_permitted'],'conduit_cleanup'=>$GLOBALS['governance_recovery_conduit_cleanup_proved'],'drops'=>$drops,'failures'=>count($cleanup_failures)];}echo json_encode($rows);'''

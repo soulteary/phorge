@@ -1,6 +1,7 @@
 """Strict isolated borrowed real-store OAuth INSERT compatibility, never a production provider."""
 import argparse,hashlib,json,os,re,stat
 from pathlib import Path
+import recovery_worker_terminal_delta as worker_terminal
 import check_completion as completion
 import check_native_organization as native
 import check_recovery_partial_composition as shared
@@ -29,7 +30,7 @@ def read_source_checked(path):
 def SQL_obligations(root=ROOT):
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
-  raw=read_source_checked(Path(root)/relative)
+  raw=worker_terminal.reduce_if_selected(relative,read_source_checked(Path(root)/relative))
   if relative=='support/governance/native-organization/test-native-organization-mysql.php' and hashlib.sha256(raw).hexdigest()!=pin:
    import recovery_conduit_source_delta as calendar_delta
    raw=calendar_delta.reduce_calendar_wire_union(raw)
