@@ -163,13 +163,26 @@ function governance_native_finish_worker(array &$handle) {
   if($worker['action']==='recovery.conduit.borrowed-owner.issue'){require_once dirname(__DIR__).'/recovery/conduit-producer.php';governance_native_borrowed_conduit_handle($handle);}
   if($worker['action']==='recovery.session.borrowed-owner.issue'){require_once dirname(__DIR__).'/recovery/borrowed-session-producer.php';governance_native_borrowed_session_handle($handle);}
   if($worker['action']==='recovery.session.issue'){governance_native_session_producer_handle($handle);}
-  $deadline=microtime(true)+15;
-  while (is_resource($worker['process']) && proc_get_status($worker['process'])['running'] && microtime(true)<$deadline) { usleep(20000); }
-  if (is_resource($worker['process']) && proc_get_status($worker['process'])['running']) {
-    throw new RuntimeException('native_worker_timeout');
+  $deadline=microtime(true)+15;$terminal=null;
+  if(!is_resource($worker['process'])){throw new RuntimeException('native_worker_terminal_handle_missing');}
+  do{
+    if(microtime(true)>=$deadline){throw new RuntimeException('native_worker_timeout');}
+    $status=proc_get_status($worker['process']);
+    if(microtime(true)>=$deadline){throw new RuntimeException('native_worker_timeout');}
+    if(!is_array($status)||!is_bool($status['running']??null)){
+      throw new RuntimeException('native_worker_terminal_unknown');}
+    if($status['running']===false){$terminal=$status;break;}
+    usleep(20000);
+  }while(microtime(true)<$deadline);
+  if($terminal===null){throw new RuntimeException('native_worker_timeout');}
+  // proc_close may return -1 after status was consumed. Only the actual owned
+  // handle's terminal status can prove exit0; valid JSON is never that proof.
+  $exit=$terminal['exitcode']??null;$closed=proc_close($worker['process']);
+  $worker['process']=null;$handle['process']=null;
+  if(!is_int($exit)||$exit!==0||($terminal['signaled']??null)!==false||
+    ($terminal['stopped']??null)!==false||!is_int($closed)||!in_array($closed,array(0,-1),true)){
+    throw new RuntimeException('native_worker_nonzero_or_unknown_terminal');
   }
-  if (is_resource($worker['process'])) { proc_close($worker['process']); }
-  $worker['process']=null; $handle['process']=null;
   $path=$worker['private'].'/result.json';
   if (!is_file($path) || is_link($path) || filesize($path)>65536) {
     throw new RuntimeException('native_worker_result_missing');

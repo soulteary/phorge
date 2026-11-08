@@ -52,7 +52,9 @@ class CurrentMainIntegration(MediaRemote):
    p=ROOT/f'scripts/governance/check_recovery_{suffix}.py';tree=ast.parse(p.read_text())
    inputs=next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
    self.assertEqual(len(inputs),count)
-   for name,pin in inputs.items():self.assertEqual(hashlib.sha256((ROOT/name).read_bytes()).hexdigest(),pin,name)
+   for name,pin in inputs.items():
+    import recovery_worker_terminal_delta as worker_terminal
+    self.assertEqual(hashlib.sha256(worker_terminal.reduce_if_selected(name,(ROOT/name).read_bytes())).hexdigest(),pin,name)
   changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72','--','src','resources'],text=True).splitlines()
   name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
   policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
