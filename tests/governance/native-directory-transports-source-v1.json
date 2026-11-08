@@ -1,0 +1,135 @@
+{
+  "schema": "native-directory-transports-source-v1",
+  "base_revision": "149f315b4c29cdc5a9f3b2d10a92c6eab0403e1f",
+  "production_git_tree_inventory_sha256": "f55c3299246476417b065d3ffeecc58b22c372fd24e1319d06bc3bc98c6b7203",
+  "pins": {
+    ".github/workflows/native-directory-transports-v1.yml": {
+      "bytes": 4269,
+      "sha256": "713ed67169e0055e9a8a684a0feea207751316e800a7976fbd0443df87e08469"
+    },
+    "scripts/governance/check_completion.py": {
+      "bytes": 16569,
+      "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
+    },
+    "scripts/governance/check_directory_transports_v1.py": {
+      "bytes": 12177,
+      "sha256": "79eb0e4fb87c55f29d1362762b268d60b6971697def86bb4cbf9410adb4ec212"
+    },
+    "scripts/governance/check_native_organization.py": {
+      "bytes": 125030,
+      "sha256": "fe17940d22092e0813f30ec5b4cba7c0a66d567366c05f7e3536557303c45214"
+    },
+    "src/applications/conduit/call/ConduitCall.php": {
+      "bytes": 4275,
+      "sha256": "a4e834b7a512f32de4e6ece564448ad7cf0530810ffb339a623fd9719209fc32"
+    },
+    "src/applications/conduit/controller/PhabricatorConduitAPIController.php": {
+      "bytes": 23757,
+      "sha256": "bbf41dddf16b9b9ebfbe1ed011a89c975f67fdbf90da92b3facc002d0a69fc4a"
+    },
+    "src/applications/conduit/method/ConduitAPIMethod.php": {
+      "bytes": 13230,
+      "sha256": "655a65bc13eb3189428ac5681ad0a96e9dd53cc346b8cfe351c511bdeb5a78a6"
+    },
+    "src/applications/conduit/protocol/ConduitAPIRequest.php": {
+      "bytes": 3162,
+      "sha256": "0da7a4499b02cd5eef23a05fdbe9b967b89c8f7110ae29ceb98ac39f8c4a8adf"
+    },
+    "src/applications/conduit/storage/PhabricatorConduitToken.php": {
+      "bytes": 6281,
+      "sha256": "6979f97a01b5c24d1d205a23fcb0397270c9159a98e302267cbce09fbf5593e1"
+    },
+    "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php": {
+      "bytes": 31859,
+      "sha256": "e47ec9eb30c91dcad6be9f6e9466190d9040681392037c0811cd1f41bf2a8a85"
+    },
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php": {
+      "bytes": 3054,
+      "sha256": "58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66"
+    },
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySnapshot.php": {
+      "bytes": 1485,
+      "sha256": "095277dd53d5beacb0775bb46e9d744ab5ebffb73ea30263afa56be67a519b17"
+    },
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php": {
+      "bytes": 16287,
+      "sha256": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922"
+    },
+    "src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php": {
+      "bytes": 1045,
+      "sha256": "7c430f90819470811475c1a9646e9f509d799732ac25f07d5e7831787ef540a4"
+    },
+    "src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php": {
+      "bytes": 1180,
+      "sha256": "35d439ad4d197768c4601e5ac7ece3d14c4cfd6f242c4a07522f4d284952594c"
+    },
+    "src/applications/people/governance/controller/PhorgeOrganizationController.php": {
+      "bytes": 31884,
+      "sha256": "c5666b6a72492844e9d22835de0fff191f60463ceb88cad99e8c13406af22604"
+    },
+    "src/applications/people/governance/query/PhorgeOrganizationQuery.php": {
+      "bytes": 2407,
+      "sha256": "7d0ffd0d6cc39a80e4cdf719f13601c7ee553f9fb8ed4fb1a0a679740feebc5e"
+    },
+    "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php": {
+      "bytes": 7137,
+      "sha256": "5f01cdbdfbcf385d752f24ed71b4f4f9e803f635e5ea880fed1bbac25aa8b42e"
+    },
+    "src/applications/people/governance/service/PhorgeOrganizationRequest.php": {
+      "bytes": 9166,
+      "sha256": "76bcc0f96465adc54a00e3c43fe8394b490e49b7eea8a8fa236274329507a80a"
+    },
+    "src/applications/people/governance/service/PhorgeOrganizationService.php": {
+      "bytes": 77025,
+      "sha256": "7f2a7e30de9f8229810d3c5894d48439f32afdab9df82c9ddbcb7f9d66dcb18f"
+    },
+    "support/governance/completion/fixture.php": {
+      "bytes": 27824,
+      "sha256": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b"
+    },
+    "support/governance/fixtures/PhorgeGovernanceNativeFixture.php": {
+      "bytes": 17233,
+      "sha256": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e"
+    },
+    "support/governance/native-organization/README.directory-transports.md": {
+      "bytes": 6060,
+      "sha256": "b37625c12145c1f47fd64d659920129f9ca1e9f18555fd7706cdb955ec3bdcb9"
+    },
+    "support/governance/native-organization/directory-transport-cases.php": {
+      "bytes": 15112,
+      "sha256": "695c3d7da710d5632bb52780dd076b45a625d5a1784a1ac2156dd9e1706165bb"
+    },
+    "support/governance/native-organization/native-cases.php": {
+      "bytes": 12618,
+      "sha256": "b87c5eac435b11ccb158e9922dd0a3c0a561cc8c2ad38a0ab68e6ef2891eaedc"
+    },
+    "support/governance/native-organization/privacy-cases.php": {
+      "bytes": 6592,
+      "sha256": "1aed59aa5fbfb442f9b5ceebc036844d5db2dd66a0b1839f3729598ee128f31b"
+    },
+    "support/governance/native-organization/route-cases.php": {
+      "bytes": 8117,
+      "sha256": "825a97d46b65b1b7cad98e3d1fe2d90931a35631d31ce9b6b62ed23ecba45d65"
+    },
+    "support/governance/native-organization/test-directory-transports-v1-mysql.php": {
+      "bytes": 38321,
+      "sha256": "837508a26079799dd23283430a4aa46f683dc69df79a7de97cbbdb14f3f12c88"
+    },
+    "support/governance/native-organization/test-native-organization-mysql.php": {
+      "bytes": 39675,
+      "sha256": "12f3da8ac1ff4f0eda73200a28247add24066378c9295cb10f23339d6bf589c7"
+    },
+    "support/runtime/php-version.php": {
+      "bytes": 596,
+      "sha256": "4d363adfcaf8a6f70221d03d23dd6a789afacd428b218bbe4d79639012fe850e"
+    },
+    "tests/governance/test_directory_transports.py": {
+      "bytes": 4527,
+      "sha256": "a9cdf62c0696832860712dc5f35f1dc4925f9a088f0b50f15024da01b5b18773"
+    },
+    "tests/governance/test_directory_transports_receipt_v1.py": {
+      "bytes": 7918,
+      "sha256": "c8a5339f3950049a24e90472ce00ff4e5246705744d04033fea7824553430f39"
+    }
+  }
+}
