@@ -104,6 +104,7 @@ def reviewed_sources():
   raw=(ROOT/path).read_bytes()
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('Conduit source pin changed')
   if path in conduit_delta.BASE_PINS:conduit_delta.reduce_owner(path,raw)
+  if path in conduit_delta.oauth_delta.SOURCE_INPUTS:conduit_delta.oauth_delta.reduce_current(path,raw)
   result[path]=raw
  return result
 def validate_notice_product_delta(changed,current,frozen,baseline_map):
@@ -114,6 +115,7 @@ def validate_notice_product_delta(changed,current,frozen,baseline_map):
  for path in allowed-{'src/__phutil_library_map__.php'}:
   if current[path]!=frozen[path]:raise ValueError('reviewed config/RR source bytes changed')
  for path in conduit_delta.BASE_PINS:conduit_delta.reduce_owner(path,current[path])
+ for path in conduit_delta.oauth_delta.SOURCE_INPUTS:conduit_delta.oauth_delta.reduce_current(path,current[path])
  reduced=current['src/__phutil_library_map__.php']
  conduit_lines=[b"    'PhorgeRecoveryConduitProducerFence' => 'infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php',\n",b"    'PhorgeRecoveryConduitProducerFence' => 'Phobject',\n"]
  if [reduced.count(x)for x in conduit_lines]not in ([0,0],[1,1]):raise ValueError('partial Conduit mapper delta')
