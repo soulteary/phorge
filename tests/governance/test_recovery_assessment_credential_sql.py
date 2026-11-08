@@ -43,10 +43,14 @@ class AssessmentCredentialSQL(unittest.TestCase):
     self.assertEqual([0]*5,[d[k]for k in ['rollbacks','pool_closes','disposes','drops','control_closes']]);self.assertEqual(d['env'],'current')
    else:self.assertEqual(d['drops'],1)
  def test_production_and_all_previous_entry_bytes_remain_exact_a953(self):
-  changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','a95392ab03b9b4568e535a4926fdcbd2e173d39b','--','src','resources'],text=True);self.assertEqual(changed,'')
-  for relative in ['support/governance/native-organization/test-oauth-access-owner-mysql.php','src/__phutil_library_map__.php']:
-   self.assertEqual((ROOT/relative).read_bytes(),subprocess.check_output(['git','-C',str(ROOT),'show','a95392ab03b9b4568e535a4926fdcbd2e173d39b:'+relative]))
+  # Captured from the actually reviewed a953 tree and blobs. Development
+  # commits need not be reachable in a fresh GitHub checkout; immutable pins do.
+  for relative,pin in {'src':'3944b8003bb59a9b67f685df67acbd2354820b1c','resources':'fa7bf1dc07a23696de5fb22a9564f17259ecd33d'}.items():
+   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD:'+relative],text=True).strip(),pin)
+  self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','HEAD','--','src','resources'],text=True),'')
+  for relative,pin in {'support/governance/native-organization/test-oauth-access-owner-mysql.php':'9f0a879c8a93de3db6ac45e3d3034604ae614be808f07b6f4c88ceda7fceefed','src/__phutil_library_map__.php':'935d1248704b581fe294467ee23648138bf73186f8fa7b336f88e057b0cc75b0'}.items():
+   self.assertEqual(hashlib.sha256((ROOT/relative).read_bytes()).hexdigest(),pin)
   driver='support/governance/native-organization/test-native-organization-mysql.php'
-  prior=subprocess.check_output(['git','-C',str(ROOT),'show','a95392ab03b9b4568e535a4926fdcbd2e173d39b:'+driver])
-  self.assertEqual(gate.source_view(driver,(ROOT/driver).read_bytes(),hashlib.sha256(prior).hexdigest()),prior)
+  pin='adc0a4016c22c836942905c2072ded5e52975932699e58971597edb52056b42a'
+  self.assertEqual(hashlib.sha256(gate.source_view(driver,(ROOT/driver).read_bytes(),pin)).hexdigest(),pin)
 if __name__=='__main__':unittest.main()

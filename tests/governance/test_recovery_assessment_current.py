@@ -11,14 +11,15 @@ DRIVER='support/governance/native-organization/test-native-organization-mysql.ph
 WORKER='support/governance/native-organization/workers.php'
 class CurrentAssessment(unittest.TestCase):
  def test_historical_source_map_and_consumer_preserved_current_exact_inverse_only(self):
-  raw=subprocess.check_output(['git','-C',str(ROOT),'show','e4bc95bb43edae84f372145cf7972028a73959e9:'+ 'scripts/governance/check_recovery_assessment_credentials.py'])
-  self.assertEqual(raw,(ROOT/'scripts/governance/check_recovery_assessment_credentials.py').read_bytes())
+  raw=(ROOT/'scripts/governance/check_recovery_assessment_credentials.py').read_bytes()
+  self.assertEqual(hashlib.sha256(raw).hexdigest(),'d9cc649ed637a80abbc8d962ee2eeaf740920c472d10d21fc17b2d4c564bb609')
   self.assertEqual(historical.SOURCE_INPUTS,current.SOURCE_INPUTS);self.assertEqual(len(current.SOURCE_INPUTS),220)
   self.assertEqual(len(current.ADAPTER_SOURCE_INPUTS),2);self.assertEqual(len(current.SQL_obligations()),8)
   manifest=json.loads((ROOT/'docs/governance/recovery-assessment-credential-SQL-source-v2.json').read_bytes());self.assertEqual(manifest['source_sha256'],current.SOURCE_INPUTS);self.assertEqual(manifest['reviewed_source_adapter_sha256'],current.ADAPTER_SOURCE_INPUTS);self.assertFalse(manifest['physical_SQL_cases_executed'])
   with self.assertRaises(ValueError):historical.SQL_obligations()
   for path in (DRIVER,WORKER):
-   body=(ROOT/path).read_bytes();old=subprocess.check_output(['git','-C',str(ROOT),'show','a95392ab03b9b4568e535a4926fdcbd2e173d39b:'+path])
+   body=(ROOT/path).read_bytes();old=current.source_view(path,body,current.SOURCE_INPUTS[path])
+   self.assertEqual(hashlib.sha256(old).hexdigest(),{DRIVER:'adc0a4016c22c836942905c2072ded5e52975932699e58971597edb52056b42a',WORKER:'11df3cffa66837d56ffaf720a65846ed33e4aede6213893ffb5db817436f169d'}[path])
    self.assertEqual(current.source_view(path,body,current.SOURCE_INPUTS[path]),old)
    self.assertEqual(current.source_view(path,old,current.SOURCE_INPUTS[path]),old)
    with self.assertRaises(ValueError):current.source_view(path,body+b'\n// unrelated',current.SOURCE_INPUTS[path])
