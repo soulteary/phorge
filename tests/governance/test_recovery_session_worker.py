@@ -63,7 +63,7 @@ class SessionProducerResultTests(unittest.TestCase):
 
     def finish_owned(self, value):
         # Executes the real finish/owner/decoder functions with owned files only.
-        # No PHP application bootstrap, native authentication, process or SQL.
+        # A real owned exit0 child is explicit; no app bootstrap, auth or SQL.
         program = r'''
 require $argv[1];
 $value=json_decode(stream_get_contents(STDIN),true,8,JSON_THROW_ON_ERROR);
@@ -73,8 +73,9 @@ $stat=lstat($path);$nonce=bin2hex(random_bytes(32));
 try{
   governance_native_worker_atomic($path,'owner',$nonce);
   governance_native_worker_atomic($path,'result.json',$value);
+  $process=proc_open(array(PHP_BINARY,'-r','exit(0);'),array(0=>array('file','/dev/null','r'),1=>array('file','/dev/null','w'),2=>array('file','/dev/null','w')),$pipes);
   $handle=array('index'=>0,'private'=>$path,'dev'=>$stat['dev'],'ino'=>$stat['ino'],
-    'nonce'=>$nonce,'cleaned'=>false,'action'=>'recovery.session.issue','process'=>null);
+    'nonce'=>$nonce,'cleaned'=>false,'action'=>'recovery.session.issue','process'=>$process);
   $GLOBALS['governance_native_workers']=array($handle);
   unset($GLOBALS['governance_session_producer_child_failure']);
   $accepted=false;$reason=null;
@@ -83,6 +84,7 @@ try{
   echo json_encode(array('accepted'=>$accepted,'reason'=>$reason,
     'diagnostic'=>$GLOBALS['governance_session_producer_child_failure']??null));
 }finally{
+  if(isset($process)&&is_resource($process)){if(proc_get_status($process)['running']){proc_terminate($process);}proc_close($process);}
   foreach(array('result.json','owner')as$file){if(is_file($path.'/'.$file)){unlink($path.'/'.$file);}}
   if(!rmdir($path)){throw new Exception('unit_owned_directory_cleanup_failed');}
 }
