@@ -77,6 +77,7 @@ final class PhorgeRecoveryRestoreAssessment extends Phobject {
     }
     $organization=PhorgeRecoveryRestoreOrganizationSource::capture($conn,$subject);
     $families['organization']=array('status'=>'partial','complete'=>false);
+    $credential_readset=PhorgeRecoveryRestoreService::captureAssessmentCredentialSources($conn,$subject);
     $credentials=PhorgeRecoveryNativeCaptureScope::captureForRestoration($context,$conn,$subject);
     $families['web-credentials']=array('status'=>'partial','complete'=>false);
     $families['api-credentials']=array('status'=>'partial','complete'=>false);
@@ -89,12 +90,12 @@ final class PhorgeRecoveryRestoreAssessment extends Phobject {
     foreach($partial as$family=>$unused){$families[$family]=array('status'=>'partial','complete'=>false);}
     $inventory=PhorgeGovernanceRecoverySourceInventory::inspectRuntime();
     $assessment=new self();
-    $assessment->binding=array('schema_version'=>3,'partial_facts'=>$partial,'action'=>'native.enable','subject'=>$subject,
+    $assessment->binding=array('schema_version'=>4,'credential_readset'=>$credential_readset,'partial_facts'=>$partial,'action'=>'native.enable','subject'=>$subject,
       'native_stop_transaction'=>$stop,'category'=>$classification['category'],
       'event_digest'=>$classification['eventDigest'],'identity'=>$identity,
       'runtime_inventory_digest'=>hash('sha256',json_encode($inventory,JSON_THROW_ON_ERROR)),
       'families'=>$families,'media'=>$media,'organization'=>$organization,'credentials'=>$credentials,'restore_lineage'=>$lineage,
-      'selected_producer_profile'=>'native-authsession-insert-fence-v1-not-all-producers',
+      'selected_producer_profile'=>'native-selected-Session-Conduit-OAuth-INSERT-v1-not-all-producers',
       'native_web_API_disposition'=>'unreviewed-no-new-bulk-revocation-policy',
       'old_media_credential_disposition'=>'must-not-revive',
       'all_sources_complete'=>false,'restoration_authorized'=>false);

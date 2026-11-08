@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest,sys,subprocess,json,tempfile,hashlib,copy
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
-import check_recovery_oauth_access_producer_v2 as gate
+import check_recovery_oauth_access_producer_v3 as gate
 
 import test_recovery_session_lease_gate as previous
 class OAuthAccessWiring(unittest.TestCase):
@@ -24,13 +24,13 @@ class OAuthAccessWiring(unittest.TestCase):
    else:self.assertEqual(1,d['drops']);self.assertEqual(1,d['control_closes'])
   source=(ROOT/'support/governance/native-organization/test-oauth-access-owner-mysql.php').read_text();self.assertLess(source.index("$GLOBALS['governance_recovery_oauth_access_cleanup_proved']=$phase!=="),source.index('$fixture = null;'))
  def test_source_derived_8_SQL_18_total_48_sources_and_strict_tamper(self):
-  d=self.template();v=gate.validate(d,source_revision='a'*40,file_digest='b'*64);self.assertEqual((8,18,48),(v['SQL_obligations'],v['checks'],v['source_inputs']))
+  d=self.template();v=gate.validate(d,source_revision='a'*40,file_digest='b'*64);self.assertEqual((8,18,50),(v['SQL_obligations'],v['checks'],v['source_inputs']))
   for mutate in [lambda b:b['checks'].pop(),lambda b:b['native'].__setitem__('all_sources_complete',True),lambda b:b['native'].__setitem__('continuous_admin_lease_proved',True),lambda b:b['native'].__setitem__('source_revision','c'*40),lambda b:b['native']['observer_cleanup'].__setitem__('cleanup_proved',False),lambda b:b['file_service_cleanup'].__setitem__('process_stopped',False),lambda b:b.__setitem__('unknown',False)]:
    b=copy.deepcopy(d);mutate(b)
    with self.assertRaises(ValueError):gate.validate(b,source_revision='a'*40,file_digest='b'*64)
  def test_actual_public_CLI_requires_independent_binary_and_rejects_duplicate_receipt(self):
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
-   p=Path(tmp);binary=p/'file-data';binary.write_bytes(b'binary data only; never executed');binary.chmod(0o700);digest=hashlib.sha256(binary.read_bytes()).hexdigest();receipt=p/'receipt';receipt.touch(mode=0o600);body=json.dumps(self.template(digest));cmd=[sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_oauth_access_producer_v2.py'),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
+   p=Path(tmp);binary=p/'file-data';binary.write_bytes(b'binary data only; never executed');binary.chmod(0o700);digest=hashlib.sha256(binary.read_bytes()).hexdigest();receipt=p/'receipt';receipt.touch(mode=0o600);body=json.dumps(self.template(digest));cmd=[sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_oauth_access_producer_v3.py'),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
    for raw,good in [(body,True),(body.replace('"passed": true','"passed": true,"passed": true',1),False),(body[:-1]+',"unknown":false}',False)]:
     receipt.write_text(raw);r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertEqual(good,r.returncode==0,r.stderr)
    receipt.write_text(body);binary.write_bytes(b'changed');r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertNotEqual(0,r.returncode)
@@ -52,7 +52,7 @@ echo json_encode(['failed'=>$failed,'owned'=>$f->owned,'registered'=>count($GLOB
    p=subprocess.run(['php','-d','disable_functions=proc_open,mkdir,mysqli_init,mysqli_connect,stream_socket_client,fsockopen','-r',code,str(ROOT),action],capture_output=True,text=True,timeout=5)
    self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),{'failed':True,'owned':1,'registered':0})
  def test_data_source_manifest_matches_versioned_consumer_without_execution_claim(self):
-  manifest=json.loads((ROOT/'docs/governance/recovery-oauth-access-SQL-source-v2.json').read_text())
+  manifest=json.loads((ROOT/'docs/governance/recovery-oauth-access-SQL-source-v3.json').read_text())
   self.assertEqual(manifest['source_sha256'],gate.SOURCE_INPUTS)
   for key in ['runtime_certified','physical_SQL_cases_executed','all_13_sources_complete','permit','restoration_authorized']:
    self.assertIs(manifest[key],False)

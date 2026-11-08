@@ -107,6 +107,50 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       throw new RuntimeException('recovery_borrowed_production_provider_unavailable');}
     return$owner['participant']->borrowedCaptureOAuthAccess($subject);
   }
+  /** Actual assessment consumer of the three selected native participants.
+   * No observer is created/adopted here. Missing production provenance stays
+   * explicit; an existing invalid/quarantined owner never downgrades to absent.
+   */
+  public static function captureAssessmentCredentialSources(AphrontDatabaseConnection $writer,$subject) {
+    PhorgeRecoveryRestoreProfile::assertOwnedWriter($writer);
+    $subject=PhorgeRecoveryStopRequest::user($subject);
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){
+      PhorgeRecoveryConduitProducerFence::assertWriterAvailable($writer);}
+    $owner=self::$borrowedOwner;$available=false;$facts=array();
+    if($owner!==null||self::$borrowedObserver!==null){
+      if(!is_array($owner)||$owner['writer']!==$writer||$owner['observer']!==self::$borrowedObserver||
+        !is_object($owner['participant']??null)||
+        get_class($owner['participant'])!==PhorgeRecoverySessionProducerFence::class){
+        throw new RuntimeException('recovery_assessment_credential_owner_unknown');}
+      self::assertBorrowedOwner($owner['token'],$writer,$owner['observer']);
+      // These are real source reads under this Store owner, not incoming hashes.
+      $facts=array('session'=>self::captureBorrowedSessionFacts($writer,$subject),
+        'conduit'=>self::captureBorrowedConduitFacts($writer,$subject),
+        'oauth-access'=>self::captureBorrowedOAuthAccessFacts($writer,$subject));
+      foreach($facts as$row){
+        if(!is_array($row)||($row['schema']??null)!==1||
+          ($row['mode']??null)!=='borrowed-current-User-writer-RC-observation'||
+          ($row['all_sources_complete']??null)!==false||($row['restoration_authorized']??null)!==false||
+          ($row['execution_blocked']??null)!==true||!is_string($row['source_binding']??null)||
+          !preg_match('/\A[a-f0-9]{64}\z/D',$row['source_binding'])){
+          throw new RuntimeException('recovery_assessment_credential_facts_unknown');}}
+      // Revalidate every actual captured source and the private owner identity.
+      $owner['participant']->borrowedValidateBeforeOwnerEnd();
+      self::assertBorrowedOwner($owner['token'],$writer,$owner['observer']);$available=true;
+    }
+    $profiles=array('session'=>array('web-credentials','native-authsession-rows-v1'),
+      'conduit'=>array('api-credentials','native-conduit-token-rows-v1'),
+      'oauth-access'=>array('api-credentials','native-oauth-access-token-rows-v1'));
+    $sources=array();foreach($profiles as$name=>$profile){$sources[$name]=array(
+      'provider_schema'=>1,'family'=>$profile[0],'scope'=>$profile[1],
+      'source_digest'=>$available?$facts[$name]['source_binding']:null,'complete'=>false);}
+    $readset=array('provider_schema'=>1,'scope'=>'selected-native-credential-participants-v1',
+      'mode'=>'borrowed-current-User-writer-RC-observation',
+      'availability'=>$available?'observed-partial':'production-observer-unavailable','sources'=>$sources,
+      'production_observer_factory_available'=>false,'complete'=>false,'all_sources_complete'=>false,
+      'restoration_authorized'=>false,'execution_blocked'=>true);
+    PhorgeRecoveryRestoreRequest::credentialReadSet($readset);return$readset;
+  }
   private static function prepareBorrowedOwner(AphrontDatabaseConnection $writer) {
     if(self::$borrowedObserver===null){return;}
     if(self::$borrowedOwner!==null){throw new RuntimeException('recovery_borrowed_owner_reentry');}

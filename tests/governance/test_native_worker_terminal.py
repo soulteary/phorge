@@ -59,6 +59,11 @@ class WorkerTerminal(unittest.TestCase):
    driver='support/governance/native-organization/test-native-organization-mysql.php'
    self.assertEqual(current[driver],hashlib.sha256((ROOT/driver).read_bytes()).hexdigest())
    historical=dict(current);historical[driver]=hashlib.sha256(calendar.reduce_calendar_wire_union((ROOT/driver).read_bytes())).hexdigest()
-   self.assertEqual(current,pins(subprocess.check_output(['git','-C',str(ROOT),'show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+source])))
+   import recovery_assessment_source_delta as assessment
+   compared=dict(current)
+   for name,pin in assessment.SOURCE_INPUTS.items():
+    if name in compared:
+     self.assertEqual(compared[name],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(name,(ROOT/name).read_bytes())).hexdigest(),assessment.BASE_PINS[name]);compared[name]=assessment.BASE_PINS[name]
+   self.assertEqual(compared,pins(subprocess.check_output(['git','-C',str(ROOT),'show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+source])))
    self.assertEqual(historical[driver],pins(subprocess.check_output(['git','-C',str(ROOT),'show','fc0369af9d84c4a5f23a7080528e70f1ce84c4e7:'+source]))[driver])
 if __name__=='__main__':unittest.main()
