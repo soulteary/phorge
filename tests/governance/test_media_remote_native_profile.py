@@ -59,7 +59,8 @@ class CurrentMainIntegration(MediaRemote):
   name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
   policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
   import recovery_conduit_source_delta as conduit_delta
-  extra=set(conduit_delta.SOURCE_INPUTS)
+  import recovery_assessment_source_delta as assessment_delta
+  extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)
   map_path='src/__phutil_library_map__.php'
   expected={name,policy}|extra
   if map_path in changed:expected.add(map_path)

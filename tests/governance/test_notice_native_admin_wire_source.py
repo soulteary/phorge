@@ -49,7 +49,8 @@ PRIVATE_MAIL_SETTINGS_PINS={PRIVATE_MAIL_SETTINGS_PATH:calendar_delta.SOURCE_INP
 def reviewed_partial_sources(root=ROOT):
  result={}
  for path,pin in PARTIAL_SOURCE_PINS.items():
-  raw=(root/path).read_bytes()
+  try:raw=__import__('recovery_assessment_source_delta').reduce_current(path,(root/path).read_bytes())
+  except ValueError as e:raise ValueError('N08 partial source audit pin changed')from e
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('N08 partial source audit pin changed')
   result[path]=raw
  return result
@@ -115,7 +116,8 @@ def validate_notice_product_delta(changed,current,frozen,baseline_map):
  calendar_delta.reduce_reviewed_calendar_engine(current[CALENDAR_SOURCE_PATH])
  calendar_delta.reduce_reviewed_private_mail_settings(current[PRIVATE_MAIL_SETTINGS_PATH])
  for path in allowed-{'src/__phutil_library_map__.php'}:
-  if current[path]!=frozen[path]:raise ValueError('reviewed config/RR source bytes changed')
+  compared=__import__('recovery_assessment_source_delta').reduce_current(path,current[path])if path in PARTIAL_SOURCE_PINS else current[path]
+  if compared!=frozen[path]:raise ValueError('reviewed config/RR source bytes changed')
  for path in conduit_delta.BASE_PINS:conduit_delta.reduce_owner(path,current[path])
  for path in conduit_delta.oauth_delta.SOURCE_INPUTS:conduit_delta.oauth_delta.reduce_current(path,current[path])
  reduced=current['src/__phutil_library_map__.php']

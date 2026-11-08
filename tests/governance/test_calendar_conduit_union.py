@@ -8,7 +8,16 @@ DRIVER='support/governance/native-organization/test-native-organization-mysql.ph
 def git(*args):return subprocess.check_output(['git','-C',str(ROOT),*args])
 class CalendarConduitUnion(unittest.TestCase):
  def test_current_main_production_hooks_map_and_workflows_preserved(self):
-  self.assertEqual(b'',git('diff','46a1b044950584006cba754bc9841031d452eb76','--','src','resources','.github/workflows'))
+  sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_assessment_source_delta as assessment
+  previous='46a1b044950584006cba754bc9841031d452eb76'
+  changed=set(git('diff','--name-only',previous,'--','src','resources').decode().splitlines())
+  self.assertEqual(changed,set(assessment.SOURCE_INPUTS))
+  for path in changed:self.assertEqual(assessment.reduce_current(path,(ROOT/path).read_bytes()),git('show',previous+':'+path))
+  workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
+  self.assertEqual(set(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines()),workflows)
+  for path in workflows-{'.github/workflows/assessment-credential-focused.yml'}:
+   raw=(ROOT/path).read_bytes();needle=b'check_recovery_oauth_access_producer_v3.py';self.assertEqual(raw.count(needle),1)
+   self.assertEqual(raw.replace(needle,b'check_recovery_oauth_access_producer_v2.py'),git('show',previous+':'+path))
   for path in ['support/governance/recovery/conduit-producer.php','support/governance/recovery/conduit-focused.php','support/governance/recovery/conduit-cases.php','support/governance/recovery/conduit-diagnostic.php','support/governance/native-organization/native-worker.php','support/governance/native-organization/workers.php']:
    raw=(ROOT/path).read_bytes()
    if path=='support/governance/native-organization/workers.php':
@@ -36,10 +45,11 @@ class CalendarConduitUnion(unittest.TestCase):
  def test_OAuth_current_and_historical_consumers_keep_manifests_and_reject_driver_tamper(self):
   import ast,tempfile
   sys.path.insert(0,str(ROOT/'scripts/governance'))
-  import check_recovery_oauth_access_producer_v2 as current
+  import check_recovery_oauth_access_producer_v3 as current
   import check_recovery_oauth_access_producer as historical
-  self.assertEqual((48,8,18),(len(current.SOURCE_INPUTS),len(current.SQL_obligations()),len(current.obligations())))
-  for module in (historical,current):
+  self.assertEqual((50,8,18),(len(current.SOURCE_INPUTS),len(current.SQL_obligations()),len(current.obligations())))
+  import check_recovery_oauth_access_producer_v2 as historical_v2
+  for module in (historical,historical_v2):
    path='scripts/governance/'+module.__name__+'.py'
    def pins(raw):return next(ast.literal_eval(x.value)for x in ast.parse(raw).body if isinstance(x,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in x.targets))
    self.assertEqual(module.SOURCE_INPUTS,pins(git('show','46a1b044950584006cba754bc9841031d452eb76:'+path)))
@@ -56,7 +66,12 @@ class CalendarConduitUnion(unittest.TestCase):
   for name in ('check_recovery_session_lease','check_recovery_borrowed_session','check_recovery_conduit_producer'):
    gate=__import__(name);path='scripts/governance/'+name+'.py'
    def pins(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
-   self.assertEqual(gate.SOURCE_INPUTS,pins(git('show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+path)))
+   import recovery_assessment_source_delta as assessment
+   historical=dict(gate.SOURCE_INPUTS)
+   for source,pin in assessment.SOURCE_INPUTS.items():
+    if source in historical:
+     self.assertEqual(historical[source],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(source,(ROOT/source).read_bytes())).hexdigest(),assessment.BASE_PINS[source]);historical[source]=assessment.BASE_PINS[source]
+   self.assertEqual(historical,pins(git('show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+path)))
    self.assertEqual(gate.SOURCE_INPUTS[DRIVER],hashlib.sha256((ROOT/DRIVER).read_bytes()).hexdigest())
    self.assertTrue(gate.SQL_obligations())
   self.assertEqual(worker.reduce_current(worker.PATH,(ROOT/worker.PATH).read_bytes()),git('show',MAIN+':'+worker.PATH))
@@ -64,7 +79,7 @@ class CalendarConduitUnion(unittest.TestCase):
   import tempfile
   sys.path.insert(0,str(ROOT/'scripts/governance'))
   import check_recovery_oauth_access_producer as old
-  import check_recovery_oauth_access_producer_v2 as current
+  import check_recovery_oauth_access_producer_v3 as current
   import check_recovery_conduit_producer as conduit
   import recovery_worker_terminal_delta as worker
   actual=(ROOT/worker.PATH).read_bytes();prior=git('show',MAIN+':'+worker.PATH)

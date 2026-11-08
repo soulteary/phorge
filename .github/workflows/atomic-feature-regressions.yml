@@ -644,7 +644,7 @@ jobs:
             fi
             exit "$native_status"
           }
-          python3 -B scripts/governance/check_recovery_oauth_access_producer_v2.py --receipt "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json"
+          python3 -B scripts/governance/check_recovery_oauth_access_producer_v3.py --receipt "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json" "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()

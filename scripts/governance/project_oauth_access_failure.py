@@ -1,7 +1,7 @@
 """Failure-only bounded metadata from captured pinned PHP. Never print raw receipt."""
 import argparse,hashlib,json,subprocess
 from pathlib import Path
-import check_recovery_oauth_access_producer_v2 as gate
+import check_recovery_oauth_access_producer_v3 as gate
 import check_recovery_partial_composition as shared
 import check_completion as completion
 
