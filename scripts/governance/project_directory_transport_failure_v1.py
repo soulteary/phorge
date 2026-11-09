@@ -52,11 +52,36 @@ def project(raw,root=ROOT):
     return dict(schema='native-directory-safe-failure-v1',diagnostic_only=True,selected_matrix_accepted=False,
         runtime_authority=False,stderr_bytes=len(raw),stderr_sha256=hashlib.sha256(raw).hexdigest(),failures=records)
 
+TERMINALS=frozenset({'native-exit','native-stderr','strict-consumer'})
+def optional_summary(path):
+    try:raw=raw_stderr(path)
+    except FileNotFoundError:return dict(available=False)
+    return dict(available=True,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
+def project_terminal(raw,terminal,receipt_path,consumer_path,root=ROOT):
+    gate.need(terminal in TERMINALS)
+    # A missing marker is diagnostic unavailability, never license to ignore a
+    # malformed/extra marker. The original strict projector remains unchanged.
+    if any(line.startswith(PREFIX) for line in raw.splitlines()):out=project(raw,root)
+    else:
+        gate.need(type(raw) is bytes and len(raw)<=1024*1024)
+        out=dict(schema='native-directory-safe-failure-v1',diagnostic_only=True,
+            selected_matrix_accepted=False,runtime_authority=False,
+            stderr_bytes=len(raw),stderr_sha256=hashlib.sha256(raw).hexdigest(),failures=[])
+    out['terminal_classification']=terminal
+    out['private_receipt']=optional_summary(receipt_path)
+    out['private_consumer_output']=optional_summary(consumer_path)
+    return out
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--stderr',required=True);parser.add_argument('--source-revision',required=True);args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--stderr',required=True);parser.add_argument('--source-revision',required=True);parser.add_argument('--terminal',choices=sorted(TERMINALS));parser.add_argument('--receipt');parser.add_argument('--consumer-output');args=parser.parse_args()
     try:
         gate.source(ROOT,args.source_revision)
-        result=project(raw_stderr(args.stderr));result['source_revision']=args.source_revision
+        raw=raw_stderr(args.stderr)
+        if args.terminal:
+            gate.need(type(args.receipt) is str and type(args.consumer_output) is str)
+            result=project_terminal(raw,args.terminal,args.receipt,args.consumer_output)
+        else:result=project(raw)
+        result['source_revision']=args.source_revision
         print(json.dumps(result,sort_keys=True));return 0
     except Exception:
         print('{"schema":"native-directory-safe-failure-v1","diagnostic_available":false,"selected_matrix_accepted":false}');return 1

@@ -147,6 +147,7 @@
     "PhutilUnreachableRuleParserGeneratorException",
     "PhutilUnreachableTerminalParserGeneratorException",
     "RuntimeException",
+    "RuntimeWarning",
     "TypeError",
     "ValueError",
     "XHPASTSyntaxErrorException",
@@ -293,6 +294,7 @@
     "owned-writer-environment-and-cache-restored",
     "owned-writer-pool-cleanup",
     "preflight",
+    "unexpected-native-runtime-output",
     "unknown-stage",
     "write-guard-cleanup"
   ]

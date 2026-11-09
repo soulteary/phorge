@@ -51,6 +51,7 @@ jobs:
           python3 -B -m unittest discover -s tests/governance -p test_directory_transports.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_transports_receipt_v1.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_transport_failure_v1.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_terminal_failure_v1.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_avatar_fixture.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_file_build.py -v
           (cd tests/governance && python3 -B -m unittest test_calendar_conduit_union.CalendarConduitUnion.test_current_main_production_hooks_map_and_workflows_preserved -v)
@@ -137,7 +138,7 @@ jobs:
           php support/governance/native-organization/test-directory-transports-v1-mysql.php --directory-transports > "$RUNNER_TEMP/directory-transports-v1/integration.json" 2> "$RUNNER_TEMP/directory-transports-native.private.stderr" || {
             native_status=$?
             if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
-              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal native-exit --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
                 if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
                   if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
                 fi
@@ -145,8 +146,28 @@ jobs:
             fi
             exit "$native_status"
           }
-          test ! -s "$RUNNER_TEMP/directory-transports-native.private.stderr"
-          python3 -B scripts/governance/check_directory_transports_v1.py --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json"
+          test ! -s "$RUNNER_TEMP/directory-transports-native.private.stderr" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal native-stderr --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
+          python3 -B scripts/governance/check_directory_transports_v1.py --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal strict-consumer --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
           mv "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" "$RUNNER_TEMP/directory-transports-v1/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()

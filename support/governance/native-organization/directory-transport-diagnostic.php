@@ -26,3 +26,13 @@ function governance_directory_transport_emit_failure(Throwable $error,$root,$sta
     // A failed optional diagnostic must not replace or clear the primary failure.
   }
 }
+
+/** Fixed terminal classification; no warning text or claimed origin. */
+function governance_directory_transport_emit_runtime_warning() {
+  try {
+  fwrite(STDERR,'native-directory-transports-failure-v1 '.json_encode(array(
+    'schema'=>'native-directory-failure-marker-v1','kind'=>'primary',
+    'class'=>'RuntimeWarning','source'=>'unknown-source','line'=>0,
+    'stage'=>'unexpected-native-runtime-output'),JSON_UNESCAPED_SLASHES)."\n");
+  }catch(Throwable $diagnostic_error){ /* Preserve the original failed outcome. */ }
+}

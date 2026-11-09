@@ -496,6 +496,7 @@ try {
 $native_output = $capture_active ? ob_get_clean() : '';
 if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)/',$native_output) && $failure === null) {
   $failure = array('stage'=>'unexpected-native-runtime-output','error_type'=>'RuntimeWarning');
+  governance_directory_transport_emit_runtime_warning();
 }
 $passed = $failure === null && !$cleanup_failures;
 if($phase==='session-producer-lease'&&!$passed){require_once dirname(__DIR__).'/recovery/session-lease-diagnostic.php';$diagnostic=governance_recovery_session_lease_failure_projection($phase,$passed,$failure,$GLOBALS['governance_session_producer_child_failure']??null);fwrite(STDERR,'native-session-lease-failure-v1 '.json_encode($diagnostic,JSON_UNESCAPED_SLASHES)."\n");}

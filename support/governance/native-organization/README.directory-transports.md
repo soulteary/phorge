@@ -63,7 +63,7 @@ N01–N04, browser, performance, all-source or activation approval.
 
 ## Versioned source and CI binding
 
-`tests/governance/native-directory-transports-source-v1.json` fixes 57 exact
+`tests/governance/native-directory-transports-source-v1.json` fixes 58 exact
 source/dependency roles and the entire Git149 `src`/`resources` inventory. The v1
 consumer requires its literal keyset, file lengths/digests, unchanged production
 Git inventory and current worktree. In CLI mode every selected file and the
@@ -192,3 +192,30 @@ workflow path in its diff-set. Its original three workflow checks, production
 source assertions and inverse checks are retained; no wildcard exclusion or
 runtime Calendar phase is used by this change. Actual SQL remains pending the
 next public CI run; the prior failed artifact is preserved and never relabeled.
+
+
+## Safe terminal diagnostics after the File-dependency run
+
+The f9d0 public CI log establishes successful File build/extraction and a
+nonzero selected step, but does not identify which terminal check failed.
+Captured runtime-warning rejection occurs after the Throwable catch; it now
+emits a fixed `RuntimeWarning` / `unexpected-native-runtime-output` marker with
+unknown source and line zero. This is a classification, not attribution of the
+original warning. No warning message or buffered native output is copied.
+
+Three explicit terminal paths (`native-exit`, `native-stderr`, `strict-consumer`)
+now use the same guarded safe projection before returning their original exit
+status. When no marker exists, only that fixed path and bounded held-file byte
+counts/digests of private stderr/receipt/consumer output are published. Malformed
+or extra markers still fail strict projection; they cannot become hash-only
+fallback success. Every diagnostic remains non-accepting and cannot replace
+source, matrix, storage, permission or cleanup checks. Raw failed receipts and
+stderr remain outside uploaded artifacts. The prior failed run is retained;
+its actual failure cause and selected SQL result are still unknown.
+
+Local controls execute the exact PHP warning branch and all three extracted
+Bash terminal blocks using explicit synthetic native/consumer exits and real
+private files/readers/projector. Current Git source admission is a stated
+collaborator in that shell control; the production CLI still enforces it.
+These controls perform no SQL, File service, Docker, SSH or application network
+execution and cannot stand in for the next public CI result.
