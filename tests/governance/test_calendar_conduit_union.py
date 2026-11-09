@@ -5,7 +5,14 @@ ROOT=Path(__file__).resolve().parents[2]
 MAIN='fc0369af9d84c4a5f23a7080528e70f1ce84c4e7'
 WIRE='9710b9edd56b9acf99b7c79b8c7d84669f7f2559'
 DRIVER='support/governance/native-organization/test-native-organization-mysql.php'
+MEDIA_WORKFLOW='.github/workflows/native-media-session-positive-sql.yml'
+MEDIA_WORKFLOW_SHA256='d0b00933b908aa5e8da92ca3a1c6c154d7a082adaea9883a762324e4e8a3d786'
 def git(*args):return subprocess.check_output(['git','-C',str(ROOT),*args])
+def validate_workflow_union(changed,historical,read):
+ if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW}:
+  raise ValueError('unreviewed workflow union')
+ if hashlib.sha256(read(MEDIA_WORKFLOW)).hexdigest()!=MEDIA_WORKFLOW_SHA256:
+  raise ValueError('reviewed media workflow changed')
 class CalendarConduitUnion(unittest.TestCase):
  def test_current_main_production_hooks_map_and_workflows_preserved(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_assessment_source_delta as assessment
@@ -14,7 +21,8 @@ class CalendarConduitUnion(unittest.TestCase):
   self.assertEqual(changed,set(assessment.SOURCE_INPUTS))
   for path in changed:self.assertEqual(assessment.reduce_current(path,(ROOT/path).read_bytes()),git('show',previous+':'+path))
   workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
-  self.assertEqual(set(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines()),workflows|{'.github/workflows/native-directory-transports-v1.yml'})
+  validate_workflow_union(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines(),workflows,lambda path:(ROOT/path).read_bytes())
+  self.assertEqual(git('ls-tree',previous,'--',MEDIA_WORKFLOW),b'')
   for path in workflows-{'.github/workflows/assessment-credential-focused.yml'}:
    raw=(ROOT/path).read_bytes();needle=b'check_recovery_oauth_access_producer_v3.py';self.assertEqual(raw.count(needle),1)
    self.assertEqual(raw.replace(needle,b'check_recovery_oauth_access_producer_v2.py'),git('show',previous+':'+path))
@@ -24,6 +32,14 @@ class CalendarConduitUnion(unittest.TestCase):
     sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_worker_terminal_delta as worker_delta
     raw=worker_delta.reduce_current(path,raw)
    self.assertEqual(raw,git('show',MAIN+':'+path))
+ def test_reviewed_media_workflow_union_rejects_unknown_addition_or_mutation(self):
+  historical={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
+  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW}
+  raw=(ROOT/MEDIA_WORKFLOW).read_bytes()
+  validate_workflow_union(expected,historical,lambda path:raw)
+  for changed in (expected|{'.github/workflows/unreviewed.yml'},expected-{MEDIA_WORKFLOW}):
+   with self.assertRaises(ValueError):validate_workflow_union(changed,historical,lambda path:raw)
+  with self.assertRaises(ValueError):validate_workflow_union(expected,historical,lambda path:raw+b'\n# unreviewed mutation\n')
  def test_signed_Calendar_fixture_files_are_exact_and_not_reimplemented(self):
   paths=git('diff','--name-only','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504',WIRE,'--','support/governance/notification').decode().splitlines()
   self.assertGreater(len(paths),10)
