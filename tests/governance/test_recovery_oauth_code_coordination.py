@@ -65,7 +65,10 @@ class CodeCoordination(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('oauth_code_media_snapshot',directory/'snapshot.py');snapshot=importlib.util.module_from_spec(spec);spec.loader.exec_module(snapshot)
   with patch.dict(sys.modules,{'snapshot':snapshot}):
    spec=importlib.util.spec_from_file_location('oauth_code_media_freshness',ROOT/'support/governance/media-session-ci/freshness.py');freshness=importlib.util.module_from_spec(spec);spec.loader.exec_module(freshness)
-   self.assertEqual(snapshot.BASE,'9bc725ea3643cf24b6df0e806738b55496d8b388');self.assertEqual(len(snapshot.OVERLAY),8)
-   with self.assertRaisesRegex(ValueError,'protected inventory changed; rebase required|protected source changed|committed protected source changed; rebase required'):
-    freshness.verify(ROOT)
+   self.assertEqual(snapshot.BASE,'4d111b8cba5648f6a82f683e7ab1c75a43deef51');self.assertEqual(len(snapshot.OVERLAY),8)
+   self.assertTrue(freshness.verify(ROOT)['protected_source_equal'])
+   # Retain the actual old runtime-baseline rejection as a negative witness.
+   with patch.object(snapshot,'BASE','9bc725ea3643cf24b6df0e806738b55496d8b388'),patch.object(snapshot,'ROOT_TREE','3b0f19730d8175fe71c4e5c486dbb17d4d39a790'):
+    with self.assertRaisesRegex(ValueError,'protected inventory changed; rebase required|protected source changed|committed protected source changed; rebase required'):
+     freshness.verify(ROOT)
 if __name__=='__main__':unittest.main()
