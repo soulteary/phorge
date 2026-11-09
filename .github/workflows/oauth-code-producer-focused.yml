@@ -1,0 +1,186 @@
+name: Focused native OAuth authorization-code ownership SQL
+
+# Additional debugging signal; never a replacement for required Atomic CI.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/oauth-code-producer-focused.yml'
+      - 'src/applications/auth/**'
+      - 'src/applications/conduit/**'
+      - 'src/applications/oauthserver/**'
+      - 'src/applications/people/**'
+      - 'src/applications/files/**'
+      - 'src/infrastructure/governance/**'
+      - 'src/infrastructure/storage/**'
+      - 'src/infrastructure/env/**'
+      - 'src/__phutil_library_map__.php'
+      - 'support/governance/**'
+      - 'support/runtime/**'
+      - 'scripts/governance/**'
+      - 'scripts/runtime/**'
+      - 'resources/sql/**'
+      - 'bin/rebuild-library-map'
+      - 'tests/governance/test_recovery_oauth_code_*.py'
+      # Access-token controls also exercise the shared producer fence/owner protocol.
+      - 'tests/governance/test_recovery_oauth_access_*.py'
+      - 'tests/atomic/paired-gorge.json'
+      - 'tests/atomic/check_pair.py'
+      - 'tests/atomic/build_gorge.py'
+      - 'tests/atomic/build_directory_file.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  oauth-code-owner:
+    name: Focused OAuth authorization-code SQL8 (PHP 8.5.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: oauth-code-focused-disposable-only
+          MYSQL_ROOT_HOST: '%'
+        ports: ['3306:3306']
+        options: --health-cmd "mysqladmin ping -poauth-code-focused-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
+    env:
+      GORGE_TEST_MYSQL_PASSWORD: oauth-code-focused-disposable-only
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.12'
+          ini-values: opcache.enable_cli=0, opcache.jit=disable, opcache.jit_buffer_size=0
+          extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
+          tools: composer:2.11.1
+          coverage: none
+      - name: Own fresh focused output and require the reviewed pair
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          php -r 'if (PHP_VERSION !== "8.5.12" || ini_get("opcache.jit") !== "disable" || (int)ini_get("opcache.jit_buffer_size") !== 0) { exit(1); }'
+          mkdir "$RUNNER_TEMP/governance-oauth-code-focused" "$RUNNER_TEMP/oauth-code-focused-binary"
+          git rev-parse HEAD > "$RUNNER_TEMP/governance-oauth-code-focused/source-revision.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/governance-oauth-code-focused/source-tree.txt"
+          revision=$(python3 tests/atomic/check_pair.py --print-revision)
+          echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
+      - name: Offline focused phase, source and failure controls
+        run: |
+          python3 -B -m unittest discover -s tests/governance -p test_recovery_oauth_code_ci.py -v
+      - uses: actions/checkout@v6
+        with:
+          repository: soulteary/gorge
+          ref: ${{ env.GORGE_CONTRACT_REF }}
+          path: .test-gorge
+          persist-credentials: false
+      - name: Move the owned paired checkout outside the Phorge source tree
+        run: |
+          fixture_root=$(mktemp -d "$RUNNER_TEMP/oauth-code-gorge.XXXXXX")
+          mv -- .test-gorge "$fixture_root/source"
+          echo "ATOMIC_GORGE_SOURCE=$fixture_root/source" >> "$GITHUB_ENV"
+      - name: Build only actual paired File and retain structured provenance
+        run: |
+          umask 077
+          python3 - <<'PY'
+          import json, os, pathlib, runpy
+          module = runpy.run_path('tests/atomic/build_directory_file.py', run_name='focused_paired_File_builder')
+          result = module['build_file'](pathlib.Path(os.environ['ATOMIC_GORGE_SOURCE']), os.environ['GORGE_CONTRACT_REF'])
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'governance-oauth-code-focused'
+          pending = out / 'build-provenance.pending.json'
+          with pending.open('x') as stream:
+              json.dump(result, stream, sort_keys=True)
+              stream.write('\n')
+          pending.rename(out / 'build-provenance.json')
+          PY
+          sha256sum tests/atomic/check_pair.py tests/atomic/build_gorge.py tests/atomic/build_directory_file.py tests/atomic/paired-gorge.json > "$RUNNER_TEMP/governance-oauth-code-focused/build-input-sha256.txt"
+      - name: Extract only the actual paired File binary without starting a container
+        run: |
+          umask 077
+          out="$RUNNER_TEMP/governance-oauth-code-focused"
+          image_id=$(docker image inspect gorge-file-storage:atomic --format '{{.Id}}')
+          [[ "$image_id" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
+          test "$(docker image inspect "$image_id" --format '{{index .Config.Labels "phorge.gorge-revision"}}')" = "$GORGE_CONTRACT_REF"
+          docker image inspect "$image_id" --format '{"image_id":{{json .Id}},"paired_revision":{{json (index .Config.Labels "phorge.gorge-revision")}}}' > "$out/file-image-provenance.json"
+          created=''
+          cleanup_extract() {
+            oauth_code_extract_rc=$?
+            trap - EXIT
+            if [ -n "$created" ]; then
+              if docker rm "$created" > /dev/null; then
+                printf '%s\n' '{"created_container_started":false,"exact_created_container_removed":true}' > "$out/extraction-cleanup.json"
+              elif [ "$oauth_code_extract_rc" -eq 0 ]; then
+                oauth_code_extract_rc=1
+              fi
+            fi
+            exit "$oauth_code_extract_rc"
+          }
+          trap cleanup_extract EXIT
+          candidate=$(docker create --pull=never --name "oauth-code-file-extract-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" "$image_id")
+          [[ "$candidate" =~ ^[a-f0-9]{64}$ ]] || exit 1
+          created="$candidate"
+          docker cp "$created:/usr/local/bin/gorge-file-storage" "$RUNNER_TEMP/oauth-code-focused-binary/gorge-file-storage"
+          chmod 0700 "$RUNNER_TEMP/oauth-code-focused-binary/gorge-file-storage"
+          sha256sum "$RUNNER_TEMP/oauth-code-focused-binary/gorge-file-storage" | sed "s|$RUNNER_TEMP/oauth-code-focused-binary/||g" > "$out/binary-sha256.txt"
+      - name: Build retained runtime and verify two deterministic standard map passes
+        run: |
+          umask 077
+          php scripts/runtime/build.php all
+          php bin/rebuild-library-map
+          git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
+          sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > "$RUNNER_TEMP/governance-oauth-code-focused/verified-maps.sha256"
+          php bin/rebuild-library-map
+          sha256sum --check "$RUNNER_TEMP/governance-oauth-code-focused/verified-maps.sha256"
+          php scripts/runtime/verify.php
+      - name: Configure only the disposable MySQL fixture prerequisite
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+        run: |
+          docker exec -e MYSQL_PWD="$GORGE_TEST_MYSQL_PASSWORD" "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL sql_mode = 'STRICT_ALL_TABLES'; SET GLOBAL log_bin_trust_function_creators = 1"
+      - name: Run only actual native OAuth authorization-code ownership SQL8 and strict source receipt
+        id: oauth-code-owner
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          sha256sum --check "$RUNNER_TEMP/governance-oauth-code-focused/verified-maps.sha256"
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/oauth-code-focused-binary/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/oauth-code-focused-binary/gorge-file-storage" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          php -d opcache.enable_cli=0 -d opcache.jit=disable -d opcache.jit_buffer_size=0 support/governance/native-organization/test-oauth-code-owner-mysql.php --oauth-code-producer-owner > "$RUNNER_TEMP/governance-oauth-code-focused/integration.json" 2> "$RUNNER_TEMP/oauth-code-native.stderr.private" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/oauth-code-focused-failure"; then
+              if python3 -B scripts/governance/project_oauth_code_failure.py --receipt "$RUNNER_TEMP/governance-oauth-code-focused/integration.json" --stderr "$RUNNER_TEMP/oauth-code-native.stderr.private" > "$RUNNER_TEMP/oauth-code-focused-failure/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/oauth-code-focused-failure/diagnostic.pending.json" "$RUNNER_TEMP/oauth-code-focused-failure/diagnostic.json"; then
+                  if cat "$RUNNER_TEMP/oauth-code-focused-failure/diagnostic.json" >&2; then :; fi
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
+          python3 -B scripts/governance/check_recovery_oauth_code_producer_v1.py --receipt "$RUNNER_TEMP/governance-oauth-code-focused/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/oauth-code-focused-binary/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/oauth-code-focused-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-code-focused/accepted.pending.json"
+          mv "$RUNNER_TEMP/governance-oauth-code-focused/accepted.pending.json" "$RUNNER_TEMP/governance-oauth-code-focused/accepted.json"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: focused-oauth-code-owner-php-8.5.12
+          path: ${{ runner.temp }}/governance-oauth-code-focused
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.oauth-code-owner.outputs.diagnostic_owned == 'true'
+        with:
+          name: focused-oauth-code-failure-php-8.5.12
+          path: ${{ runner.temp }}/oauth-code-focused-failure/diagnostic.json
+          if-no-files-found: error

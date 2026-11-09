@@ -10,10 +10,12 @@ MEDIA_WORKFLOW='.github/workflows/native-media-session-positive-sql.yml'
 MEDIA_WORKFLOW_SHA256='d0b00933b908aa5e8da92ca3a1c6c154d7a082adaea9883a762324e4e8a3d786'
 def git(*args):return subprocess.check_output(['git','-C',str(ROOT),*args])
 def validate_workflow_union(changed,historical,read):
- if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW}:
+ import recovery_oauth_code_ci_delta as code_ci
+ if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW}:
   raise ValueError('unreviewed workflow union')
  if hashlib.sha256(read(MEDIA_WORKFLOW)).hexdigest()!=MEDIA_WORKFLOW_SHA256:
   raise ValueError('reviewed media workflow changed')
+ code_ci.assert_workflow(code_ci.WORKFLOW,read(code_ci.WORKFLOW))
 class CalendarConduitUnion(unittest.TestCase):
  def test_current_main_production_hooks_map_and_workflows_preserved(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_assessment_source_delta as assessment
@@ -36,9 +38,10 @@ class CalendarConduitUnion(unittest.TestCase):
    self.assertEqual(raw,git('show',MAIN+':'+path))
  def test_reviewed_media_workflow_union_rejects_unknown_addition_or_mutation(self):
   historical={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
-  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW}
+  import recovery_oauth_code_ci_delta as code_ci
+  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW}
   raw=(ROOT/MEDIA_WORKFLOW).read_bytes()
-  validate_workflow_union(expected,historical,lambda path:raw)
+  validate_workflow_union(expected,historical,lambda path:raw if path==MEDIA_WORKFLOW else(ROOT/code_ci.WORKFLOW).read_bytes())
   for changed in (expected|{'.github/workflows/unreviewed.yml'},expected-{MEDIA_WORKFLOW}):
    with self.assertRaises(ValueError):validate_workflow_union(changed,historical,lambda path:raw)
   with self.assertRaises(ValueError):validate_workflow_union(expected,historical,lambda path:raw+b'\n# unreviewed mutation\n')

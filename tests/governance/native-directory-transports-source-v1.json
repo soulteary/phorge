@@ -244,8 +244,8 @@
       "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
     },
     "tests/governance/test_calendar_conduit_union.py": {
-      "bytes": 10844,
-      "sha256": "acd48ac39892363de6c0b4ebdd4429911bd7cf655fd03a91217619e0b10376d0"
+      "bytes": 11106,
+      "sha256": "b78b263cb288ff096bf2e1df963683805e0b993ab245a9dc54c919ab39b8ede1"
     },
     "tests/governance/test_directory_avatar_fixture.py": {
       "bytes": 4915,
