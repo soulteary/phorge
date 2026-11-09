@@ -70,6 +70,19 @@ def project_terminal(raw,terminal,receipt_path,consumer_path,root=ROOT):
     out['terminal_classification']=terminal
     out['private_receipt']=optional_summary(receipt_path)
     out['private_consumer_output']=optional_summary(consumer_path)
+    if terminal=='strict-consumer':
+        label='unavailable'
+        if out['private_consumer_output']['available']:
+            body=raw_stderr(consumer_path)
+            gate.need(hashlib.sha256(body).hexdigest()==out['private_consumer_output']['sha256'])
+            try:
+                value=json.loads(body,object_pairs_hook=gate.unique)
+                if (type(value) is dict and set(value)=={'accepted','scope','failed_check'} and
+                    value['accepted'] is False and value['scope']=='native-directory-transports-v1' and
+                    type(value['failed_check']) is str and value['failed_check'] in gate.FAILED_CHECKS):
+                    label=value['failed_check']
+            except (ValueError,TypeError):pass
+        out['consumer_failed_check']=label
     return out
 
 def main():

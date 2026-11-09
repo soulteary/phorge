@@ -37,4 +37,43 @@ class TerminalTest(unittest.TestCase):
     env=dict(PATH='/usr/bin:/bin',RUNNER_TEMP=str(root),GITHUB_SHA='a'*40,GITHUB_OUTPUT=str(root/'output'))
     result=subprocess.run(['/bin/bash'],input=setup+block,text=True,env=env,capture_output=True,timeout=10);self.assertEqual(result.returncode,code,result.stderr)
     safe=(root/'directory-transports-safe-failure-v1/diagnostic.json').read_text();self.assertNotIn('SECRET_',safe);d=json.loads(safe);self.assertEqual(d['terminal_classification'],phase);self.assertFalse(d['selected_matrix_accepted']);self.assertEqual((root/'output').read_text(),'safe_diagnostic_owned=true\n')
+
+class FixedCheckLabelTest(unittest.TestCase):
+ def test_every_fixed_top_field_rejects_with_only_its_literal_label(self):
+  import copy
+  from test_directory_transports_receipt_v1 import template,FILE_DIGEST
+  for key in p.gate.TOP_FIELDS:
+   d=template();d[key]=None if d[key] is not None else {'SECRET_CANARY':True}
+   with self.subTest(key=key),self.assertRaises(ValueError):p.gate.validate(d,file_digest=FILE_DIGEST)
+   self.assertEqual(p.gate.failed_check(),'top.'+key)
+ def test_existing_exact_checks_and_native_asserts_keep_rejection_and_fixed_groups(self):
+  from test_directory_transports_receipt_v1 import template,FILE_DIGEST
+  for field,change,label in [('checks',[], 'checks-exact'),('check_count',-1,'checks-count'),('native',{},'avatars-shape')]:
+   d=template();d[field]=change
+   with self.subTest(field=field),self.assertRaises(ValueError):p.gate.validate(d,file_digest=FILE_DIGEST)
+   self.assertEqual(p.gate.failed_check(),label)
+  d=template();d['native']['read_samples'][0]['row_count']=-1
+  with self.assertRaises(ValueError):p.gate.validate(d,file_digest=FILE_DIGEST)
+  self.assertEqual(p.gate.failed_check(),'native-exact')
+ def test_safe_projector_only_selects_exact_fixed_refusal_JSON_no_values(self):
+  with tempfile.TemporaryDirectory()as td:
+   root=Path(td);receipt=root/'receipt';receipt.write_bytes(b'SECRET_RECEIPT');consumer=root/'consumer'
+   good=dict(accepted=False,scope='native-directory-transports-v1',failed_check='top.captured_native_output_bytes')
+   for value,expected in [(good,good['failed_check']),({**good,'message':'SECRET_CANARY'},'unavailable'),({**good,'failed_check':'SECRET_CANARY'},'unavailable'),({**good,'accepted':0},'unavailable'),({**good,'scope':'SECRET_CANARY'},'unavailable')]:
+    consumer.write_text(json.dumps(value));d=p.project_terminal(b'','strict-consumer',receipt,consumer)
+    self.assertEqual(d['consumer_failed_check'],expected);self.assertNotIn('SECRET_',json.dumps(d));self.assertFalse(d['selected_matrix_accepted'])
+ def test_source_validator_AST_only_adds_fixed_mark_calls(self):
+  import ast
+  # The frozen signed predecessor is used only for local source inverse proof.
+  # This test does not run its fixture or authenticate any receipt.
+  old=subprocess.check_output(['git','-C',str(ROOT),'show','14afc2df12360b6f7ebd2074031748c710bd0881:scripts/governance/check_directory_transports_v1.py'])
+  before=ast.parse(old);after=ast.parse((ROOT/'scripts/governance/check_directory_transports_v1.py').read_text())
+  class Strip(ast.NodeTransformer):
+   def visit_Expr(self,node):
+    if isinstance(node.value,ast.Call) and isinstance(node.value.func,ast.Name) and node.value.func.id=='mark':return None
+    return self.generic_visit(node)
+  for name in ['need','exact','source','validate','file_binary_digest']:
+   a=next(x for x in before.body if isinstance(x,ast.FunctionDef)and x.name==name)
+   b=next(x for x in after.body if isinstance(x,ast.FunctionDef)and x.name==name)
+   self.assertEqual(ast.dump(a,include_attributes=False),ast.dump(Strip().visit(b),include_attributes=False),name)
 if __name__=='__main__':unittest.main()

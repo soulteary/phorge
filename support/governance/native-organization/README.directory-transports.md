@@ -219,3 +219,26 @@ private files/readers/projector. Current Git source admission is a stated
 collaborator in that shell control; the production CLI still enforces it.
 These controls perform no SQL, File service, Docker, SSH or application network
 execution and cannot stand in for the next public CI result.
+
+
+## Fixed strict-consumer failed-check labels
+
+The 14af safe CI artifact identifies strict-consumer rejection after native
+exit zero and empty stderr, but does not contain the private receipt values.
+Source comparison alone has not established the exact failed predicate. Native
+exit zero is not selected matrix acceptance, and nonempty captured native output
+remains refused even if it does not contain the driver's warning-pattern text.
+
+The current strict consumer now tracks fixed source-defined check groups and
+exact top-level field names. Its nonzero rejection JSON contains only `accepted`
+false, the fixed scope and one allowlisted `failed_check`; no actual/expected
+value, exception text, identity or caller-provided field name is exposed. The
+safe terminal projector extracts that label only from the exact rejection shape
+and fixed label set; unknown/extra/raw shapes become `unavailable` with only
+previously allowed byte/hash metadata. Malformed native markers still refuse.
+No check, count, cleanup or zero-output requirement is changed. Unit source
+inverse tests strip only diagnostic `mark()` calls and prove the original
+need/exact/source/validate/binary-admission functions identical to signed14af.
+The next actual public CI result, not synthetic mutation templates, must identify
+and validate the failed predicate. No SQL/File/Docker/remote execution is run by
+this source-only diagnostic change.

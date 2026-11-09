@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Strict selected native-directory receipt/source replay; never activation."""
-import argparse, hashlib, importlib.util, json, os, re, stat, subprocess
+import argparse, contextvars, hashlib, importlib.util, json, os, re, stat, subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 MANIFEST='tests/governance/native-directory-transports-source-v1.json'
@@ -8,6 +8,22 @@ SOURCE_FILES=frozenset(('tests/governance/test_directory_terminal_failure_v1.py'
 ROLES={'admin':['dt-child','dt-parent'],'ordinary':[],'parent':['dt-parent'],'child':['dt-child'],'both':['dt-child','dt-parent']}
 AVATAR_ROLES=['admin','ordinary','parent','child','both','addedweb','addedapi']
 ACTIONS=['grant','revoke','propose','compound-propose','compound-execute']
+
+TOP_FIELDS=frozenset(('batch','passed','scope','php_version','optional_source_reader_adapter_exercised',
+ 'isolated_optional_features_enabled','worker_cleanup','file_service_cleanup','successful_owned_file_service_startups',
+ 'cleanup','failure','cleanup_failures','terminal_failure_cleanup_rollbacks','captured_native_output_bytes',
+ 'captured_native_output_sha256','production_deployment','production_executor','production_optional_features_enabled',
+ 'native_permission_axes_changed','remaining_blocked'))
+FAILED_CHECKS=frozenset({'unknown','arguments','source-inventory','file-binary','receipt-read','receipt-shape',
+ 'checks-shape','checks-exact','checks-count','avatars-shape','avatar-row-shape','avatar-fixed-fields',
+ 'avatar-readback-bytes','avatar-readback-hash','native-exact','source-restore'}|{'top.'+k for k in TOP_FIELDS})
+_FAILURE_CHECK=contextvars.ContextVar('directory_failed_check',default='unknown')
+def mark(label):
+    if label not in FAILED_CHECKS:raise ValueError('invalid fixed diagnostic label')
+    _FAILURE_CHECK.set(label)
+def failed_check():
+    value=_FAILURE_CHECK.get()
+    return value if value in FAILED_CHECKS else 'unknown'
 
 def need(ok):
     if not ok: raise ValueError('directory transport evidence refused')
@@ -74,6 +90,7 @@ def expected_checks():
     return checks
 
 def source(root=ROOT,revision=None):
+    mark('source-inventory')
     root=Path(root);manifest=read_json(root/MANIFEST)
     need(type(manifest) is dict and set(manifest)=={'schema','base_revision','production_git_tree_inventory_sha256','pins'})
     exact(manifest['schema'],'native-directory-transports-source-v1')
@@ -95,10 +112,12 @@ def source(root=ROOT,revision=None):
     return manifest
 
 def validate(data,root=ROOT,file_digest=None):
+    mark('file-binary')
     need(type(file_digest) is str and re.fullmatch('[a-f0-9]{64}',file_digest))
     # Preserve exact historical full-restore validation; do not relax old consumers.
     spec=importlib.util.spec_from_file_location('directory_v1_restore',Path(root)/'scripts/governance/check_native_organization.py')
     inherited=importlib.util.module_from_spec(spec);spec.loader.exec_module(inherited)
+    mark('receipt-shape')
     need(type(data) is dict and set(data)=={'batch','passed','scope','checks','check_count','php_version','source_restore','native',
         'optional_source_reader_adapter_exercised','isolated_optional_features_enabled','worker_cleanup','file_service_cleanup',
         'successful_owned_file_service_startups','cleanup','failure','cleanup_failures','terminal_failure_cleanup_rollbacks',
@@ -109,27 +128,38 @@ def validate(data,root=ROOT,file_digest=None):
         successful_owned_file_service_startups=1,cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True},failure=None,
         cleanup_failures=[],terminal_failure_cleanup_rollbacks=0,captured_native_output_bytes=0,captured_native_output_sha256=hashlib.sha256(b'').hexdigest(),
         production_deployment=False,production_executor=False,production_optional_features_enabled=False,native_permission_axes_changed=False,
-        remaining_blocked=['media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion']).items():exact(data[k],v)
+        remaining_blocked=['media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion']).items():
+        mark('top.'+k);exact(data[k],v)
+    mark('checks-shape')
     checks=data['checks'];need(type(checks) is list and all(type(x) is str for x in checks))
-    need(len(checks)==len(set(checks)) and set(checks)==expected_checks());exact(data['check_count'],len(checks))
+    mark('checks-exact');need(len(checks)==len(set(checks)) and set(checks)==expected_checks())
+    mark('checks-count');exact(data['check_count'],len(checks))
+    mark('avatars-shape')
     need(type(data['native']) is dict)
     native=dict(data['native']);avatars=native.pop('avatars',None);need(type(avatars) is list and len(avatars)==7)
     for role,row in zip(AVATAR_ROLES,avatars):
+        mark('avatar-row-shape')
         need(type(row) is dict and set(row)=={'role','storage_engine','fresh_native_user_and_file_match','readback_bytes','readback_sha256','width','height','actual_PNG_decode','content_hash_match'})
+        mark('avatar-fixed-fields')
         for k,v in dict(role=role,storage_engine='gorge',fresh_native_user_and_file_match=True,width=400,height=400,actual_PNG_decode=True,content_hash_match=True).items():exact(row[k],v)
+        mark('avatar-readback-bytes')
         need(type(row['readback_bytes']) is int and 1<=row['readback_bytes']<=1048576)
+        mark('avatar-readback-hash')
         need(type(row['readback_sha256']) is str and re.fullmatch('[a-f0-9]{64}',row['readback_sha256']))
+    mark('native-exact')
     exact(native,dict(schema='native-directory-transports-v1-file-dependency',read_samples=expected_samples(),
         negative_actions=[dict(action=a,web_status=403,conduit_generic_error=True,business_unchanged=True) for a in ACTIONS],
         ordinary_adds=[dict(transport=t,member_present=True,appointment_version=0) for t in ['web','conduit']],
         actual_native_ConduitCall=True,actual_native_token_authentication=True,actual_native_Web_controller=True,
         fake_query_or_actor=False,HTTP_server_or_browser=False,production_authority=False,native_permission_axes_changed=False))
+    mark('source-restore')
     inherited.validate_restore(data['source_restore'],Path(root))
     return dict(schema='native-directory-transports-accepted-v1-file-dependency',selected_inprocess_matrix_accepted=True,
         read_samples=45,avatars=7,paired_file_binary_sha256=file_digest,checks=len(checks),source_bound_by_CLI=False,runtime_authority=False,
         HTTP_browser_proved=False,full_N01_N04_complete=False,production_enabled=False)
 
 def file_binary_digest(path,expected):
+    mark('file-binary')
     need(type(path) is str and type(expected) is str and re.fullmatch('[a-f0-9]{64}',expected))
     fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
     try:
@@ -150,16 +180,18 @@ def file_binary_digest(path,expected):
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--receipt');parser.add_argument('--source-only',action='store_true');parser.add_argument('--source-revision',required=True);parser.add_argument('--file-binary');parser.add_argument('--file-binary-sha256');args=parser.parse_args()
     try:
+        mark('arguments')
         need(bool(args.receipt) != args.source_only)
         source(ROOT,args.source_revision)
         if args.source_only:
             print(json.dumps(dict(schema='native-directory-transports-source-only-v1',source_revision=args.source_revision,selected_inprocess_matrix_accepted=False,runtime_authority=False)));return 0
         actual_file=file_binary_digest(args.file_binary,args.file_binary_sha256)
+        mark('receipt-read')
         data,digest=read_json(args.receipt,True);out=validate(data,file_digest=actual_file);out['source_revision']=args.source_revision;out['source_bound_by_CLI']=True
         out['source_tree']=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD^{tree}']).decode().strip()
         out['receipt_sha256']=digest
         print(json.dumps(out,sort_keys=True))
     except Exception:
-        print('{"accepted":false,"scope":"native-directory-transports-v1"}');return 1
+        print(json.dumps(dict(accepted=False,scope='native-directory-transports-v1',failed_check=failed_check()),sort_keys=True));return 1
     return 0
 if __name__=='__main__':raise SystemExit(main())

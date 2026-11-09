@@ -12,16 +12,16 @@
       "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
     },
     "scripts/governance/check_directory_transports_v1.py": {
-      "bytes": 16344,
-      "sha256": "eebd8c3fe7d3ed618aeb238360b9b00d177100a90017a2cf290756e6ff9a41ad"
+      "bytes": 18047,
+      "sha256": "978b69878cc0a831d3a3f48e19e05d2efa0c203b9414107f79a79180e92ca58f"
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
       "sha256": "fe17940d22092e0813f30ec5b4cba7c0a66d567366c05f7e3536557303c45214"
     },
     "scripts/governance/project_directory_transport_failure_v1.py": {
-      "bytes": 5407,
-      "sha256": "1f0faf78f401d8e6968be40f6cbca851ea9723e6aab0ef0fc2ef4b06354bd686"
+      "bytes": 6197,
+      "sha256": "d6d0a189964a61496b52770bb71c815deb490e66f8b306194400eeef8839b7ed"
     },
     "src/applications/conduit/call/ConduitCall.php": {
       "bytes": 4275,
@@ -148,8 +148,8 @@
       "sha256": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e"
     },
     "support/governance/native-organization/README.directory-transports.md": {
-      "bytes": 14444,
-      "sha256": "22aa94f833ff5ea181fbf875731513a8d848f76a7dc2d786ece566a0b25b9b82"
+      "bytes": 15862,
+      "sha256": "aad298e72706a685cd83b7cc001b200680226317c23389eb742b909e4b57d5b6"
     },
     "support/governance/native-organization/directory-avatar-fixture.php": {
       "bytes": 3778,
@@ -220,8 +220,8 @@
       "sha256": "6ef0bfb66fd31717f5206e8b5c44372b992cf5b18aa654c9d7c7f2884739aef0"
     },
     "tests/governance/test_directory_terminal_failure_v1.py": {
-      "bytes": 5352,
-      "sha256": "8c38d330a163588c295bb397521a430ae386ce8c82757d5e43c9045add3be8f9"
+      "bytes": 8419,
+      "sha256": "69a32f779310cc46226d654aff835d793e7ee2af284f13a2fbaa7c2edca8d59d"
     },
     "tests/governance/test_directory_transport_failure_v1.py": {
       "bytes": 7955,
