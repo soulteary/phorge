@@ -44,6 +44,22 @@ class OAuthCI(unittest.TestCase):
   import check_directory_transports_v1 as gate
   revision=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD']).decode().strip();self.assertEqual(gate.source(ROOT,revision=revision)['schema'],'native-directory-transports-source-v1')
   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','060ac7f2b631cc5964f28cd783082dd6e2fb1565','--','src','resources','support/governance']),b'')
+ def test_yaml_dependency_is_explicit_isolated_and_precedes_controls(self):
+  import yaml
+  steps=yaml.safe_load(FOCUSED.read_text())['jobs']['oauth-code-owner']['steps']
+  def check(items):
+   dependency=next(i for i,v in enumerate(items)if v.get('name')=='Provision isolated offline-control Python dependencies')
+   controls=next(i for i,v in enumerate(items)if v.get('name')=='Offline focused phase, source and failure controls')
+   self.assertLess(dependency,controls)
+   body=items[dependency]['run']
+   for required in ['python3 -m venv', '"$RUNNER_TEMP/oauth-code-control-python/bin/python" -m pip', "--only-binary=:all: 'PyYAML==6.0.3'", 'import yaml; assert yaml.__version__ == "6.0.3"', '>> "$GITHUB_PATH"']:self.assertIn(required,body)
+  check(steps)
+  for mutate in ['remove','late','unpin']:
+   altered=copy.deepcopy(steps);i=next(i for i,v in enumerate(altered)if v.get('name')=='Provision isolated offline-control Python dependencies')
+   if mutate=='remove':altered.pop(i)
+   elif mutate=='late':altered.append(altered.pop(i))
+   else:altered[i]['run']=altered[i]['run'].replace('PyYAML==6.0.3','PyYAML')
+   with self.assertRaises((AssertionError,StopIteration)):check(altered)
  def test_code_only_PR_changes_schedule_job_and_unrelated_docs_do_not(self):
   import fnmatch,yaml
   wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));paths=events['pull_request']['paths']

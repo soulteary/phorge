@@ -73,6 +73,12 @@ jobs:
           git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/governance-oauth-code-focused/source-tree.txt"
           revision=$(python3 tests/atomic/check_pair.py --print-revision)
           echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
+      - name: Provision isolated offline-control Python dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/oauth-code-control-python"
+          "$RUNNER_TEMP/oauth-code-control-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.3'
+          "$RUNNER_TEMP/oauth-code-control-python/bin/python" -c 'import yaml; assert yaml.__version__ == "6.0.3"'
+          echo "$RUNNER_TEMP/oauth-code-control-python/bin" >> "$GITHUB_PATH"
       - name: Offline focused phase, source and failure controls
         run: |
           python3 -B -m unittest discover -s tests/governance -p test_recovery_oauth_code_ci.py -v
