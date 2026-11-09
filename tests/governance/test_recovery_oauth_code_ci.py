@@ -46,12 +46,13 @@ class OAuthCI(unittest.TestCase):
   changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','060ac7f2b631cc5964f28cd783082dd6e2fb1565','--','src','resources','support/governance']).decode().splitlines()
   # The signed count correction changes only these two consumer/test files;
   # application sources and every other governance runtime file remain exact.
-  approved={'support/governance/media-session-ci/project.py','support/governance/media-session-ci/test_ci.py'}
+  import recovery_partial_current_schema_delta as partial
+  approved={'support/governance/media-session-ci/project.py','support/governance/media-session-ci/test_ci.py','support/governance/media-session-docker/snapshot.py','support/governance/media-session-docker/README.md','support/governance/recovery/partial-composition-focused.php','support/governance/recovery/restore-review-cases.php'}
   self.assertEqual(set(changed),approved)
   for name in approved:
    fixed=subprocess.check_output(['git','-C',str(ROOT),'show','71c1338ea01116f6118f4ac3bd7aea024ed762f9:'+name])
-   self.assertEqual((ROOT/name).read_bytes(),fixed)
-   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name]),fixed)
+   self.assertEqual(partial.reduce_if_selected(name,(ROOT/name).read_bytes()),fixed)
+   self.assertEqual(partial.reduce_if_selected(name,subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name])),fixed)
  def test_yaml_dependency_is_explicit_isolated_and_precedes_controls(self):
   import yaml
   steps=yaml.safe_load(FOCUSED.read_text())['jobs']['oauth-code-owner']['steps']

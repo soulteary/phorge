@@ -4,12 +4,13 @@ import hashlib,sys
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import recovery_oauth_code_source_delta as delta
+import recovery_partial_current_schema_delta as partial_delta
 
 def complete_source_cohort(root):
     root=Path(root)
     # This helper only supplies missing real source files. It never replaces a
     # test's existing or deliberately corrupted input.
-    for path,pin in delta.SOURCE_INPUTS.items():
+    for path,pin in {**delta.SOURCE_INPUTS,**partial_delta.SOURCE_INPUTS}.items():
         source=(ROOT/path).read_bytes()
         if hashlib.sha256(source).hexdigest()!=pin:
             raise ValueError('test source cohort changed')
