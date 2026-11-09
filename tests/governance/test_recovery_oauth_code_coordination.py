@@ -1,5 +1,5 @@
 """Exact public-source compatibility, never current-runtime or SQL evidence."""
-import ast,hashlib,json,sys,tempfile,unittest
+import ast,hashlib,json,os,subprocess,sys,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 from recovery_oauth_code_test_cohort import complete_source_cohort,normalized_source_tree
@@ -66,9 +66,34 @@ class CodeCoordination(unittest.TestCase):
   with patch.dict(sys.modules,{'snapshot':snapshot}):
    spec=importlib.util.spec_from_file_location('oauth_code_media_freshness',ROOT/'support/governance/media-session-ci/freshness.py');freshness=importlib.util.module_from_spec(spec);spec.loader.exec_module(freshness)
    self.assertEqual(snapshot.BASE,'4d111b8cba5648f6a82f683e7ab1c75a43deef51');self.assertEqual(len(snapshot.OVERLAY),8)
-   self.assertTrue(freshness.verify(ROOT)['protected_source_equal'])
-   # Retain the actual old runtime-baseline rejection as a negative witness.
-   with patch.object(snapshot,'BASE','9bc725ea3643cf24b6df0e806738b55496d8b388'),patch.object(snapshot,'ROOT_TREE','3b0f19730d8175fe71c4e5c486dbb17d4d39a790'):
-    with self.assertRaisesRegex(ValueError,'protected inventory changed; rebase required|protected source changed|committed protected source changed; rebase required'):
-     freshness.verify(ROOT)
+   # This is a whole-current-Git source invariant, not an assertion that the
+   # Atomic parser-prepared checkout is clean. The media workflow retains its
+   # separate unchanged real-checkout freshness gates before any preparation.
+   revision=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD'],env=snapshot.git_environment(),text=True).strip()
+   with tempfile.TemporaryDirectory()as temporary:
+    clean=Path(temporary).resolve()/'source';clean.mkdir(mode=0o700)
+    environment={**snapshot.git_environment(),'GIT_ALLOW_PROTOCOL':'file'}
+    def git(*args):return subprocess.check_output(['git','-c','core.hooksPath=/dev/null','-c','core.attributesFile=/dev/null','-C',str(clean),*args],env=environment,stderr=subprocess.PIPE,text=True,timeout=60).strip()
+    git('init','-q')
+    git('fetch','--no-tags','--depth=1',str(ROOT),revision,snapshot.BASE,'9bc725ea3643cf24b6df0e806738b55496d8b388')
+    git('update-ref','HEAD',revision)
+    entries=freshness.head_entries(clean,revision)
+    self.assertEqual(entries,freshness.head_entries(ROOT,revision));self.assertGreater(len(entries),9000)
+    # Materialize every verified raw Git blob, without archive attributes,
+    # checkout filters, hooks, selected-file substitution or inherited config.
+    for name,(kind,value,mode)in entries.items():
+     snapshot.validate_name(name);target=clean/name;target.parent.mkdir(parents=True,exist_ok=True)
+     self.assertEqual(target.parent.resolve(),target.parent)
+     if kind=='symlink':snapshot.validate_link(name,value);target.symlink_to(value)
+     else:target.write_bytes(value);target.chmod(mode)
+    self.assertEqual(git('rev-parse','HEAD'),revision)
+    self.assertEqual(git('rev-parse','HEAD^{tree}'),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',revision+'^{tree}'],env=environment,text=True).strip())
+    self.assertTrue(freshness.verify(clean)['protected_source_equal'])
+    for name in ['src/unreviewed-extra.php','support/runtime/src/parser/xhpast/bin/xhpast']:
+     extra=clean/name;self.assertFalse(extra.exists());extra.write_bytes(b'owned synthetic extra, never executed')
+     with self.assertRaisesRegex(ValueError,'protected inventory changed; rebase required'):freshness.verify(clean)
+     extra.unlink()
+    # Retain the old baseline rejection against the same complete current tree.
+    with patch.object(snapshot,'BASE','9bc725ea3643cf24b6df0e806738b55496d8b388'),patch.object(snapshot,'ROOT_TREE','3b0f19730d8175fe71c4e5c486dbb17d4d39a790'):
+     with self.assertRaisesRegex(ValueError,'protected inventory changed; rebase required|protected source changed|committed protected source changed; rebase required'):freshness.verify(clean)
 if __name__=='__main__':unittest.main()
