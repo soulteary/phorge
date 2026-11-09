@@ -4,6 +4,7 @@ import hashlib,sys
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import recovery_oauth_code_source_delta as delta
+import project_content_grant_source_delta as n05_delta
 import recovery_oauth_authorization_source_delta as authorization_delta
 import recovery_partial_current_schema_delta as partial_delta
 
@@ -26,13 +27,16 @@ def normalized_source_tree(root):
     root=Path(root)
     if subprocess.check_output(['git','-C',str(root),'ls-files','--others','--exclude-standard','--','src']):
         raise ValueError('unexpected native source leaf')
+    n05_delta.assert_production_cohort(root)
     tree={}
     paths=subprocess.check_output(['git','-C',str(root),'ls-files','-z','--','src']).split(b'\0')
     for item in paths:
         if not item:continue
         path=item.decode();target=root/path
         if target.is_symlink():raise ValueError('unexpected source alias')
-        raw=delta.reduce_if_selected(path,target.read_bytes())
+        raw=n05_delta.reduce_production(path,target.read_bytes())
+        if raw is None:continue
+        raw=delta.reduce_if_selected(path,raw)
         oid=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).digest()
         cursor=tree
         parts=path.split('/')[1:]

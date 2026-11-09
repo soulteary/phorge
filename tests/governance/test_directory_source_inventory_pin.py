@@ -19,7 +19,17 @@ spec.loader.exec_module(gate)
 
 class DirectorySourceInventoryPin(unittest.TestCase):
     def test_current_source_and_only_reviewed_manifest_entry_changed(self):
-        actual = gate.source(ROOT)
+        import sys
+        sys.path.insert(0,str(ROOT/'scripts/governance'))
+        import project_content_grant_source_delta as n05_delta
+        raw=(ROOT/gate.MANIFEST).read_bytes();actual=json.loads(raw)
+        dirty=subprocess.run(['git','-C',str(ROOT),'diff','--quiet','HEAD','--','src','resources']).returncode!=0
+        if dirty:
+            with self.assertRaises((ValueError,subprocess.CalledProcessError)):gate.source(ROOT)
+        else:self.assertEqual(gate.source(ROOT),actual)
+        for name,pin in actual['pins'].items():
+            source=(ROOT/name).read_bytes();self.assertEqual(pin,{'bytes':len(source),'sha256':hashlib.sha256(source).hexdigest()})
+        actual=json.loads(n05_delta.reduce_if_selected(gate.MANIFEST,raw))
         import sys
         sys.path.insert(0,str(ROOT/'scripts/governance'))
         import recovery_oauth_code_coordinator_delta as coord

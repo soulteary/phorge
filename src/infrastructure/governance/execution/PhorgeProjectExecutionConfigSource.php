@@ -24,7 +24,7 @@ final class PhorgeProjectExecutionConfigSource extends Phobject {
   }
   /** Pure shape validation; production values always come from the native stack. */
   public static function validateControlValues(array $values) {
-    $booleans=array('governance.project-approval.enabled','policy.allow-public',
+    $booleans=array('governance.project-approval.enabled','governance.project-content-grants.enabled','governance.organization.enabled','policy.allow-public',
       'phabricator.show-prototypes','security.require-multi-factor-auth');
     $arrays=array('policy.locked','phabricator.application-settings',
       'phabricator.uninstalled-applications','load-libraries','cluster.databases');

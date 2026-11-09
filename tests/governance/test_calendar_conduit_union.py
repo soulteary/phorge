@@ -25,8 +25,11 @@ class CalendarConduitUnion(unittest.TestCase):
   changed=set(git('diff','--name-only',previous,'--','src','resources').decode().splitlines())
   import recovery_oauth_code_source_delta as code_delta
   import recovery_oauth_authorization_source_delta as authorization_delta
+  import project_content_grant_source_delta as n05_delta
+  n05_delta.assert_production_cohort(ROOT)
+  changed,reviewed=n05_delta.historical_inputs(ROOT,previous,changed,{path:(ROOT/path).read_bytes()for path in changed})
   self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS))
-  for path in changed:self.assertEqual(assessment.reduce_current(path,(ROOT/path).read_bytes()),git('show',previous+':'+path))
+  for path in changed:self.assertEqual(assessment.reduce_current(path,reviewed[path]),git('show',previous+':'+path))
   workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   validate_workflow_union(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines(),workflows,lambda path:(ROOT/path).read_bytes())
   self.assertEqual(git('ls-tree',previous,'--',MEDIA_WORKFLOW),b'')
@@ -76,7 +79,8 @@ class CalendarConduitUnion(unittest.TestCase):
   for module in (historical,historical_v2):
    path='scripts/governance/'+module.__name__+'.py'
    def pins(raw):return next(ast.literal_eval(x.value)for x in ast.parse(raw).body if isinstance(x,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in x.targets))
-   self.assertEqual(module.SOURCE_INPUTS,pins(git('show','46a1b044950584006cba754bc9841031d452eb76:'+path)))
+   import project_content_grant_source_delta as n05_delta
+   self.assertEqual(pins(n05_delta.reduce_if_selected(path,(ROOT/path).read_bytes())),pins(git('show','46a1b044950584006cba754bc9841031d452eb76:'+path)))
   with tempfile.TemporaryDirectory()as tmp:
    root=Path(tmp).resolve()
    for n in current.SOURCE_INPUTS:
@@ -92,7 +96,8 @@ class CalendarConduitUnion(unittest.TestCase):
    gate=__import__(name);path='scripts/governance/'+name+'.py'
    def pins(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
    import recovery_assessment_source_delta as assessment
-   historical=dict(gate.SOURCE_INPUTS)
+   import project_content_grant_source_delta as n05_delta
+   historical=pins(n05_delta.reduce_if_selected(path,(ROOT/path).read_bytes()))
    for source,pin in assessment.SOURCE_INPUTS.items():
     if source in historical:
      self.assertEqual(historical[source],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(source,(ROOT/source).read_bytes())).hexdigest(),assessment.BASE_PINS[source]);historical[source]=assessment.BASE_PINS[source]

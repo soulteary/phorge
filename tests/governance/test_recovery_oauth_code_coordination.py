@@ -32,7 +32,8 @@ class CodeCoordination(unittest.TestCase):
    return out
   for path in coord.SOURCE_INPUTS:
    if path.endswith('.py'):
-    raw=(ROOT/path).read_bytes();self.assertEqual(dictionaries(raw),dictionaries(coord.source_view(path,raw)))
+    raw=(ROOT/path).read_bytes();import project_content_grant_source_delta as n05_delta
+    reviewed=n05_delta.reduce_if_selected(path,raw);self.assertEqual(dictionaries(reviewed),dictionaries(coord.source_view(path,raw)))
  def test_complete_current_or_complete_baseline_only_missing_mixed_unknown_refuse(self):
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
    root=Path(tmp);complete_source_cohort(root);self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))

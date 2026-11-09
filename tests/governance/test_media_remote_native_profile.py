@@ -64,7 +64,9 @@ class CurrentMainIntegration(MediaRemote):
   import recovery_oauth_authorization_source_delta as authorization_delta
   extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)
   map_path='src/__phutil_library_map__.php'
-  expected={name,policy}|extra
+  import project_content_grant_source_delta as n05_delta
+  n05_paths=n05_delta.assert_production_cohort(ROOT)
+  expected={name,policy}|extra|n05_paths
   if map_path in changed:expected.add(map_path)
   self.assertEqual(set(changed),expected)
   for path in authorization_delta.PRODUCTION_PATHS:

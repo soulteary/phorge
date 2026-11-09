@@ -41,6 +41,7 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
   }
   public function testInvalidConfigurationControlsNeverDegradeToFalse() {
     $valid=array('governance.project-approval.enabled'=>true,'policy.allow-public'=>false,
+      'governance.project-content-grants.enabled'=>false,'governance.organization.enabled'=>false,
       'phabricator.show-prototypes'=>false,'security.require-multi-factor-auth'=>false,
       'policy.locked'=>array(),'phabricator.application-settings'=>array(),
       'phabricator.uninstalled-applications'=>array(),'load-libraries'=>array(),
@@ -48,6 +49,12 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
       'mysql.pass'=>'synthetic-only','storage.default-namespace'=>'synthetic',
       'mysql.port'=>3306,'phorge.product-profile'=>PhorgeProductProfile::PROFILE_FULL,'gorge.db.uri'=>null);
     PhorgeProjectExecutionConfigSource::validateControlValues($valid);
+    foreach (array('governance.project-content-grants.enabled','governance.organization.enabled') as $key) {
+      $missing=$valid; unset($missing[$key]);
+      $this->refused(function() use ($missing) {
+        PhorgeProjectExecutionConfigSource::validateControlValues($missing);
+      },'project_execution_configuration_control_type_refused');
+    }
     foreach (array(null,'',3306,'3306','65535',1) as $port) {
       $configured=$valid; $configured['mysql.port']=$port;
       PhorgeProjectExecutionConfigSource::validateControlValues($configured);
@@ -60,7 +67,8 @@ final class PhorgeProjectExecutionTestCase extends PhutilTestCase {
       },'project_execution_configuration_control_type_refused');
     }
 
-    foreach (array('security.require-multi-factor-auth','policy.allow-public','governance.project-approval.enabled') as $key) {
+    foreach (array('security.require-multi-factor-auth','policy.allow-public','governance.project-approval.enabled',
+      'governance.project-content-grants.enabled','governance.organization.enabled') as $key) {
       foreach (array(null,0,'false',array()) as $value) {
         $bad=$valid; $bad[$key]=$value;
         $this->refused(function() use ($bad) { PhorgeProjectExecutionConfigSource::validateControlValues($bad); },'project_execution_configuration_control_type_refused');

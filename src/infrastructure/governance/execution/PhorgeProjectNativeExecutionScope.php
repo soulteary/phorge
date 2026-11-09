@@ -43,8 +43,16 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if (!self::isSourceConnection($conn) || !in_array(get_class($table),array(
       PhabricatorUser::class,PhabricatorAuthSession::class,PhabricatorUserTransaction::class,
       PhorgeGovernanceIdentityEpoch::class,PhabricatorSpacesNamespace::class,
-      PhabricatorProject::class,PhabricatorProjectTransaction::class,PhabricatorConfigEntry::class,PhorgeProjectConfigEpoch::class),true)) {
+      PhabricatorProject::class,PhabricatorProjectTransaction::class,PhabricatorConfigEntry::class,PhorgeProjectConfigEpoch::class,
+      PhorgeOrganizationUnit::class,PhorgeOrganizationMember::class),true)) {
       throw new RuntimeException('project_execution_source_scope_required');
+    }
+    if (in_array(get_class($table),array(PhorgeOrganizationUnit::class,PhorgeOrganizationMember::class),true)) {
+      $ref=self::$active[spl_object_id($conn)]??null;$scope=$ref?$ref->get():null;
+      if (!$scope || $scope->mode!=='history' || $scope->snapshot===null || !$scope->snapshot->isSystemAdmin()) {
+        throw new RuntimeException('content_grant_team_source_scope_required');
+      }
+      PhorgeProjectContentGrantService::assertEnabled();
     }
     $route=$table->establishConnection('w');
     if (get_class($route)!==AphrontMySQLiDatabaseConnection::class ||
@@ -62,13 +70,22 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   }
 
   public static function open(PhorgeGovernanceNativeActorContext $context,
-    PhabricatorProject $object,$new_policy,$mode,$approval_id=null,$intent=null) {
+    PhabricatorProject $object,$new_policy,$mode,$approval_id=null,$intent=null,?PhorgeProjectContentGrantPlan $content_plan=null) {
     if (!PhorgeProjectExecutionCatalog::enabled() ||
         !in_array($mode,array('propose','approve','execute','history','self-join','self-leave'),true) ||
         get_class($object)!==PhabricatorProject::class || !$object->getID() ||
         !is_string($object->getPHID()) ||
         !preg_match('/\APHID-PROJ-[a-zA-Z0-9]{20}\z/',$object->getPHID())) {
       throw new RuntimeException('project_execution_profile_unsupported');
+    }
+    $content_participants=array();
+    if ($content_plan!==null) {
+      PhorgeProjectContentGrantService::assertEnabled();
+      if (get_class($content_plan)!==PhorgeProjectContentGrantPlan::class) {
+        throw new RuntimeException('project_execution_content_participant_plan_refused');
+      }
+      $content_plan->assertScope($mode,$object->getPHID());
+      $content_participants=$content_plan->getIdentityPHIDs();
     }
     $intent=$intent===null?PhorgeProjectExecutionIntent::newPolicy($new_policy):$intent;
     if(!($intent instanceof PhorgeProjectExecutionIntent) || get_class($intent)!==PhorgeProjectExecutionIntent::class || $intent->getPolicy()!==$new_policy){
@@ -89,7 +106,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     $scope=new self(); $scope->connection=$conn; $scope->context=$context;
     $scope->object=$object; $scope->newPolicy=$new_policy; $scope->intent=$intent; $scope->mode=$mode; $scope->approvalID=$approval_id;
     try {
-      $ids=array_merge(array($context->getUserPHID()),$intent->getMembers());
+      $ids=array_merge(array($context->getUserPHID()),$intent->getMembers(),$content_participants);
       if ($approval_id!==null) {
         $ids=array_merge($ids,PhorgeProjectPolicyApprovalStore::planning($conn,$approval_id));
       }

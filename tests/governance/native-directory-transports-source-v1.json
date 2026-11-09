@@ -1,11 +1,13 @@
 {
-  "schema": "native-directory-transports-source-v1",
   "base_revision": "149f315b4c29cdc5a9f3b2d10a92c6eab0403e1f",
-  "production_git_tree_inventory_sha256": "eedb5d0382f9cfff47be45a7da54bfa48ae0c693b997e54c2159793eaa6949ba",
   "pins": {
     ".github/workflows/native-directory-transports-v1.yml": {
       "bytes": 12225,
       "sha256": "dd20782aa33ba830e13a838153699d462c7b1e5f90f6929baa8608e9933395cd"
+    },
+    ".github/workflows/oauth-authorization-producer-focused.yml": {
+      "bytes": 13476,
+      "sha256": "dd271ba8d3590edf2d07d77e29b824aaef475d63775759f2482f06b68ba73bf7"
     },
     "resources/sql/autopatches/20260911.differential.01.appemail.php": {
       "bytes": 1804,
@@ -43,9 +45,17 @@
       "bytes": 125030,
       "sha256": "fe17940d22092e0813f30ec5b4cba7c0a66d567366c05f7e3536557303c45214"
     },
+    "scripts/governance/probe_oauth_authorization_mysql84.php": {
+      "bytes": 2795,
+      "sha256": "6eb1a8e9c5eb21eac699c507d65046d6b54497eecef3223e88c3ce70483d4847"
+    },
     "scripts/governance/project_directory_transport_failure_v1.py": {
       "bytes": 8490,
       "sha256": "5f11463a7e3fd9caa3f994f95da0a80beb394567218a5a2d816f32ccd7c8fa1b"
+    },
+    "scripts/governance/qualify_oauth_authorization_mysql84.py": {
+      "bytes": 3285,
+      "sha256": "d24bbde68146aa9972ac7a901048551e7eda56493162dc47294034c6e236303f"
     },
     "src/applications/conduit/call/ConduitCall.php": {
       "bytes": 4275,
@@ -244,8 +254,8 @@
       "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
     },
     "tests/governance/test_calendar_conduit_union.py": {
-      "bytes": 11424,
-      "sha256": "fe3833c3e78ef1788dcfb171bba4ce570140cdf80ee302d81b116fc990a54aff"
+      "bytes": 11837,
+      "sha256": "b91049813f197373759e5649eccbae48c25254a80758573ef82520ca4d8c0570"
     },
     "tests/governance/test_directory_avatar_fixture.py": {
       "bytes": 4915,
@@ -282,18 +292,8 @@
     "tests/governance/test_directory_transports_receipt_v1.py": {
       "bytes": 10413,
       "sha256": "a4ee1ecb3a8f9bfd11b5d9ac23522131c6424352c40764b814445514f5b47cd4"
-    },
-    ".github/workflows/oauth-authorization-producer-focused.yml": {
-      "bytes": 13476,
-      "sha256": "dd271ba8d3590edf2d07d77e29b824aaef475d63775759f2482f06b68ba73bf7"
-    },
-    "scripts/governance/probe_oauth_authorization_mysql84.php": {
-      "bytes": 2795,
-      "sha256": "6eb1a8e9c5eb21eac699c507d65046d6b54497eecef3223e88c3ce70483d4847"
-    },
-    "scripts/governance/qualify_oauth_authorization_mysql84.py": {
-      "bytes": 3285,
-      "sha256": "d24bbde68146aa9972ac7a901048551e7eda56493162dc47294034c6e236303f"
     }
-  }
+  },
+  "production_git_tree_inventory_sha256": "49fbf7ab4815db3f1070735b6d398cd645cb02b8d7cebc488ed841d9bba4b658",
+  "schema": "native-directory-transports-source-v1"
 }
