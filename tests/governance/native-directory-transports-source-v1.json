@@ -4,16 +4,40 @@
   "production_git_tree_inventory_sha256": "f55c3299246476417b065d3ffeecc58b22c372fd24e1319d06bc3bc98c6b7203",
   "pins": {
     ".github/workflows/native-directory-transports-v1.yml": {
-      "bytes": 12122,
-      "sha256": "fe8d93ea94f37af7ae32d01f32fa7107d470f902c1b29827b353643b54360498"
+      "bytes": 12225,
+      "sha256": "dd20782aa33ba830e13a838153699d462c7b1e5f90f6929baa8608e9933395cd"
+    },
+    "resources/sql/autopatches/20260911.differential.01.appemail.php": {
+      "bytes": 1804,
+      "sha256": "61ab359cfbae16c8d2c3e3f05473455af9df37bda1a13c5f5fb2f3bdac35273c"
+    },
+    "resources/sql/autopatches/20260911.paste.01.appemail.php": {
+      "bytes": 1723,
+      "sha256": "5a677f91030f566f2e2b514b4056b9e44f6c0695c2c1150982713c5d14be3ccb"
+    },
+    "resources/sql/autopatches/20260918.differential.01.heraldrules.php": {
+      "bytes": 3842,
+      "sha256": "63070e85cdb02ad9ece1071277e328a996f173747b5cab0afcf142826b18344d"
+    },
+    "resources/sql/autopatches/20260918.differential.02.diffpolicy.php": {
+      "bytes": 2449,
+      "sha256": "98bb5656f16cfa2598a351ecdef8c2647911e3567b354133cc6ac05c9b13eaa8"
+    },
+    "resources/sql/autopatches/20260918.owners.01.heraldrules.php": {
+      "bytes": 2773,
+      "sha256": "cb738e99d308675ee34981b3376568b81892d7ad1d42bccda21edcffd681b700"
+    },
+    "resources/sql/autopatches/20260918.owners.02.auditrequests.php": {
+      "bytes": 4995,
+      "sha256": "dd21689d3e8ff767a3149343796b1ffeba0c7c78681c5ad1ee5dd8de81054c27"
     },
     "scripts/governance/check_completion.py": {
       "bytes": 16569,
       "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
     },
     "scripts/governance/check_directory_transports_v1.py": {
-      "bytes": 18298,
-      "sha256": "9d3800032f3d71f4e31f842ee68b5ae7e757c4d0e8d2d42948e934af29296dd0"
+      "bytes": 20629,
+      "sha256": "62f96ab4b31879e7635fc73c6bf564e81fb96c592a2fc418d78fb17ef4226ed8"
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
@@ -148,8 +172,8 @@
       "sha256": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e"
     },
     "support/governance/native-organization/README.directory-transports.md": {
-      "bytes": 20421,
-      "sha256": "a3171fddb9f0a1ba9937bd359187a98cd7d5566ebdf21660e6c5784dfeda4715"
+      "bytes": 22917,
+      "sha256": "c545bbc814c0f9b265fcccc9594885e047fb09c1a54d08dc2305a13bbf04ce08"
     },
     "support/governance/native-organization/directory-avatar-fixture.php": {
       "bytes": 3778,
@@ -162,6 +186,10 @@
     "support/governance/native-organization/directory-output-origin.php": {
       "bytes": 4810,
       "sha256": "7170a2fa5cca287139d6f9e64f189e0f74e407931c4e10973078d811b9f83d0b"
+    },
+    "support/governance/native-organization/directory-restore-progress.php": {
+      "bytes": 3124,
+      "sha256": "1c32b2709cf2dcebd0e9c29d079dce2f5ab2471caeb70320708561021c2d410c"
     },
     "support/governance/native-organization/directory-transport-cases.php": {
       "bytes": 15277,
@@ -188,8 +216,8 @@
       "sha256": "825a97d46b65b1b7cad98e3d1fe2d90931a35631d31ce9b6b62ed23ecba45d65"
     },
     "support/governance/native-organization/test-directory-transports-v1-mysql.php": {
-      "bytes": 39297,
-      "sha256": "50164cee333aba3d06e5fb1cd2ef9c570bf46c541d1a97945570423502e2e183"
+      "bytes": 39570,
+      "sha256": "37f7bf6da26affaee1b418d0ff319cb6d6e090c9443945a66a2ac53ec4eb89d2"
     },
     "support/governance/native-organization/test-native-organization-mysql.php": {
       "bytes": 39675,
@@ -235,9 +263,13 @@
       "bytes": 6773,
       "sha256": "06e6b3365237fc948811eefe51f6f6834cfc873fc24284f6ad92d421d0483642"
     },
+    "tests/governance/test_directory_restore_progress.py": {
+      "bytes": 6813,
+      "sha256": "af8f44e98172d47f97cdbe416f0964f987b9def872d78cf823d302c70267e516"
+    },
     "tests/governance/test_directory_terminal_failure_v1.py": {
-      "bytes": 8620,
-      "sha256": "cd5e0f71f0ee6a669f5f1b36a370b7baabac8e3980a36b8db853229511fcc908"
+      "bytes": 8685,
+      "sha256": "ebe07a114792a73800a0a73a83daad2617edee199b02e4e64c33b1b43b9fab4b"
     },
     "tests/governance/test_directory_transport_failure_v1.py": {
       "bytes": 7955,
@@ -248,8 +280,8 @@
       "sha256": "a9cdf62c0696832860712dc5f35f1dc4925f9a088f0b50f15024da01b5b18773"
     },
     "tests/governance/test_directory_transports_receipt_v1.py": {
-      "bytes": 9856,
-      "sha256": "8a797130a3dd388ea2753987886f36d82a91df0ef8fa09f1d1567d851fee861e"
+      "bytes": 10413,
+      "sha256": "a4ee1ecb3a8f9bfd11b5d9ac23522131c6424352c40764b814445514f5b47cd4"
     }
   }
 }

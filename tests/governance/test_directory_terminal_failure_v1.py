@@ -62,9 +62,10 @@ class FixedCheckLabelTest(unittest.TestCase):
    for value,expected in [(good,good['failed_check']),({**good,'message':'SECRET_CANARY'},'unavailable'),({**good,'failed_check':'SECRET_CANARY'},'unavailable'),({**good,'accepted':0},'unavailable'),({**good,'scope':'SECRET_CANARY'},'unavailable')]:
     consumer.write_text(json.dumps(value));d=p.project_terminal(b'','strict-consumer',receipt,consumer)
     self.assertEqual(d['consumer_failed_check'],expected);self.assertNotIn('SECRET_',json.dumps(d));self.assertFalse(d['selected_matrix_accepted'])
- def test_source_validator_AST_only_adds_fixed_mark_calls(self):
+ def test_source_primitives_AST_keep_historical_inverse(self):
   import ast
-  # The frozen signed predecessor is used only for local source inverse proof.
+  # Non-validator primitive functions still preserve the historical inverse.
+  # The selected validator now adds mandatory versioned restore progress proof.
   # This test does not run its fixture or authenticate any receipt.
   old=subprocess.check_output(['git','-C',str(ROOT),'show','14afc2df12360b6f7ebd2074031748c710bd0881:scripts/governance/check_directory_transports_v1.py'])
   before=ast.parse(old);after=ast.parse((ROOT/'scripts/governance/check_directory_transports_v1.py').read_text())
@@ -72,7 +73,7 @@ class FixedCheckLabelTest(unittest.TestCase):
    def visit_Expr(self,node):
     if isinstance(node.value,ast.Call) and isinstance(node.value.func,ast.Name) and node.value.func.id=='mark':return None
     return self.generic_visit(node)
-  for name in ['need','exact','source','validate','file_binary_digest']:
+  for name in ['need','exact','source','file_binary_digest']:
    a=next(x for x in before.body if isinstance(x,ast.FunctionDef)and x.name==name)
    b=next(x for x in after.body if isinstance(x,ast.FunctionDef)and x.name==name)
    self.assertEqual(ast.dump(a,include_attributes=False),ast.dump(Strip().visit(b),include_attributes=False),name)

@@ -4,6 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 require_once __DIR__.'/directory-transport-diagnostic.php';
 require_once __DIR__.'/directory-output-origin.php';
+require_once __DIR__.'/directory-restore-progress.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phase=$arguments===array('--directory-transports')?'directory-transports':'invalid';
@@ -38,6 +39,7 @@ $console_state = null;
 $console_owned = false;
 $capture_active = false;
 $output_origin = null;
+$restore_progress = null;
 $cleanup = array();
 $pipeline = null;
 $consistency = null;
@@ -106,7 +108,8 @@ try {
   $control->set_charset('utf8mb4');
   $stage = 'full-native-source-restore';
   $fixture = new PhorgeGovernanceCompletionFixture($control,$root,'127.0.0.1',$port);
-  $fixture->create();
+  $restore_progress=governance_directory_capture_restore_progress(
+    static function()use($fixture){$fixture->create();},$root);
   if($calendar_wire){
     $stage='calendar-wire-pre-ready-identity';
     require_once dirname(__DIR__).'/notification/calendar-wire-identity-source.php';
@@ -538,11 +541,11 @@ $receipt_scope=$phase==='spaces-source-facts'?'owned-native-spaces-source-facts-
 $receipt_scope=$phase==='recovery-partial-composition'?'owned-native-partial-composition-no-permit':$receipt_scope;
 $receipt_scope=$phase==='application-config-facts'?'owned-native-config-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$credential_concurrency?'owned-native-credential-writer-reader-observation':$receipt_scope;
-$batch=$phase==='directory-transports'?'native-directory-transports-v1':$batch;
-$receipt_scope=$phase==='directory-transports'?'owned-native-directory-transport-matrix-with-paired-file':$receipt_scope;
+$batch=$phase==='directory-transports'?'native-directory-transports-v2-restore-progress':$batch;
+$receipt_scope=$phase==='directory-transports'?'owned-native-directory-transport-matrix-with-paired-file-and-exact-restore-progress':$receipt_scope;
 echo json_encode(array('batch'=>$batch,'passed'=>$passed,
   'scope'=>$receipt_scope,'checks'=>$checks,'check_count'=>count($checks),
-  'php_version'=>PHP_VERSION,'source_restore'=>$summary,'native'=>$native,
+  'php_version'=>PHP_VERSION,'source_restore'=>$summary,'restore_progress'=>$restore_progress,'native'=>$native,
   'optional_source_reader_adapter_exercised'=>$reader_adapter_exercised,
   'isolated_optional_features_enabled'=>!$legacy_compatibility,
   'worker_cleanup'=>$worker_cleanup,'file_service_cleanup'=>$file_service_cleanup,

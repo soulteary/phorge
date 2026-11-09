@@ -63,7 +63,7 @@ N01–N04, browser, performance, all-source or activation approval.
 
 ## Versioned source and CI binding
 
-`tests/governance/native-directory-transports-source-v1.json` fixes 62 exact
+`tests/governance/native-directory-transports-source-v1.json` fixes 70 exact
 source/dependency roles and the entire Git149 `src`/`resources` inventory. The v1
 consumer requires its literal keyset, file lengths/digests, unchanged production
 Git inventory and current worktree. In CLI mode every selected file and the
@@ -315,3 +315,41 @@ at frame zero and a public caller at frame one; unknown origin remains unknown.
 Private caller paths and arguments are excluded, real C-emitted PNG is classified
 only by its signature, malformed/extra/too-many/boolean-position hints refuse.
 These local controls do not establish the actual CI output class or source.
+
+
+## Selected v2 exact empty-restore progress capture
+
+The actual fd2d public hint record points to the storage applyPatch require path
+inside owned fixture create. Exact current source contains six reviewed PHP
+migration scripts which directly echo fixed empty-table progress lines; console
+output disabling does not intercept echo. Their nonempty branches may include
+addresses or rule names, so no generic migration output is admissible.
+
+Only this directory driver's fixed fixture->create() call now has a separate
+owned, 4096B-bounded restore capture. It accepts exactly the six English public
+empty-state lines, once each, byte-for-byte with LF; any unknown/extra/duplicate,
+missing, warning, CRLF, trimming variation or overflow rejects. Order is not
+assumed from the source dependency graph: the consumer permits only the bounded
+720 SHA256 values of the six exact-line permutations. The exact total is323B.
+A distinct mandatory restore_progress proof contains profile, actual bytes/hash,
+line count and six actual source hashes. Existing full-restore checks separately
+bind the reviewed migration source hashes and patch ledger. Local synthetic
+transcript controls are not proof that SQL executed the empty branches.
+
+The selected batch is native-directory-transports-v2-restore-progress, with
+scope owned-native-directory-transport-matrix-with-paired-file-and-exact-restore-progress.
+Its accepted schema is native-directory-transports-accepted-v2-exact-restore-progress;
+old missing-proof/old-profile receipts refuse. The original 130 checks, 45 read
+observations, five denials, two ordinary additions, File/avatar dependency,
+cleanup and business capture zero-byte/hash requirements are retained. Native
+inner matrix rows and their schema are unchanged. Shared completion fixture,
+original driver, old consumers and production migrations are byte-exact.
+
+The scoped restore capture tracks its own FINAL phase and closes only its own
+still-live matching-depth buffer. Same-depth replacement/deeper foreign buffers
+are not popped or adopted. An original create Throwable is rethrown as the same
+object even if transcript or cleanup is unproved; no diagnostic exception may
+replace it. Known exact progress is separated only after strict validation;
+unknown progress can never produce accepted evidence. No SQL/File/Docker/SSH or
+application network was run locally. Actual public CI must still establish the
+new transcript proof, complete matrix and cleanup; prior failures stay failed.
