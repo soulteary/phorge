@@ -14,7 +14,7 @@ CLEANUP={'owned-native-write-guard-disposed','owned-writer-environment-and-cache
  'all-owned-full-native-schemas-and-principals-cleaned'}
 def exact(actual,expected):completion.exact(actual,expected,'partial composition evidence refused')
 def summary(revision):
- return {'profile':'native-recovery-partial-composition-file-v3-assessment-readset','source_revision':revision,'assessment_schema':4,
+ return {'profile':'native-recovery-partial-composition-file-v4-assessment5-readset2','source_revision':revision,'assessment_schema':5,'credential_readset_schema':2,
   'actual_current_writer_adapters':['application-config','policy','project-relationships','spaces'],
   'Task_File_owned_RR_combined':False,'complete':False,'all_sources_complete':False,
   'restoration_authorized':False,'production_activation':False}
