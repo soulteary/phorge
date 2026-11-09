@@ -1,0 +1,73 @@
+name: Native media session selected SQL
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'resources/**'
+      - 'conf/**'
+      - 'externals/**'
+      - 'webroot/**'
+      - 'support/runtime/**'
+      - 'support/governance/**'
+      - '.github/workflows/native-media-session-positive-sql.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-media-session:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.12'
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0, opcache.enable_cli=0
+          extensions: mysqli, mbstring, posix, pcntl
+          coverage: none
+      - name: Pure controls and protected current source freshness
+        run: |
+          set -euo pipefail
+          python3 -B -m unittest discover -s support/governance/media-session-docker -p 'test_*.py'
+          python3 -B -m unittest discover -s support/governance/media-session-ci -p 'test_*.py'
+          php support/governance/media-session-docker/test_helper.php
+          php support/governance/media-session-positive/test-guards.php
+          php support/governance/media-session-positive/test-diagnostic.php
+          python3 -B support/governance/media-session-ci/freshness.py
+      - name: Pull only the two fixed public runtime indexes
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -m 700 "$RUNNER_TEMP/media-positive-pull-config"
+          env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull ghcr.io/soulteary/phorge@sha256:6e5b5b230fa07c0d4b1b0c6a948791ed77eb1583c54a13d7c8b2f7927adc7dda
+          env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull mysql@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7
+          python3 -B support/governance/media-session-ci/prepare.py --output "$RUNNER_TEMP/media-positive-images"
+      - name: Fresh isolated selected SQL fixture and success-only disposal
+        id: selected
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 -B support/governance/media-session-ci/freshness.py > "$RUNNER_TEMP/media-positive-current-source.json"
+          python3 -B support/governance/media-session-docker/run.py --execute --config "$RUNNER_TEMP/media-positive-images/config.private.json" --output "$RUNNER_TEMP/media-positive-run" --cleanup-on-success
+      - name: Safe failure or success projection only
+        if: always()
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -m 700 media-positive-safe
+          python3 -B support/governance/media-session-ci/project.py --run "$RUNNER_TEMP/media-positive-run" --output media-positive-safe/selected-safe.json --freshness "$RUNNER_TEMP/media-positive-current-source.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-media-session-selected-safe
+          path: media-positive-safe/selected-safe.json
+          if-no-files-found: error
+          retention-days: 7

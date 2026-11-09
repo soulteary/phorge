@@ -1,0 +1,21 @@
+{
+  "resources/sql/autopatches/20261102.people.mediaexchange.sql": "33abbbf48a2a43035e3d3de1eb56c69bbda825819b469ecd95a6d530b8e8a980",
+  "resources/sql/autopatches/20261103.people.mediaissuer.sql": "2cb870c03069cffd2be3ef801b963265f1f5d7c866c0ee80935f1ebfdaac2957",
+  "resources/sql/autopatches/20261103.people.mediatargets.sql": "abbf90c5ff77d8a0c027a02396e12206dc09274ed2c9028ade7e0cf628c2e191",
+  "resources/sql/quickstart.sql": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
+  "src/applications/auth/application/PhabricatorAuthApplication.php": "56675e2b360d3de7f4028d3966f1469b6493835904df3cc88c84e2ed17868713",
+  "src/applications/auth/engine/PhabricatorAuthSessionEngine.php": "81372aff5539c88d79d3a0f91af409b75fed91432eb137f65ae0621d3efb97ef",
+  "src/applications/auth/storage/PhabricatorAuthSession.php": "8e9efa7fa53676ec28e13d8b3e02a99096894ebf05f53fdd6366d9199d212a56",
+  "src/applications/files/application/PhabricatorFilesApplication.php": "b336adcf41ad57c790044f0c7dcc4bded6d945be7065fa86840f28f186ee0724",
+  "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php": "58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66",
+  "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922",
+  "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php": "9afb37b7d3b409333dfd01f614f85423ecd1192d795dffe1999cb0a5f8f3c7b0",
+  "src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php": "91695c3f3442d6eed9ee04e52d3fdedcb719f6a52ca6c8c0f4457d801de98f9f",
+  "src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php": "75718db8219047fba8c47cc9f49fb1df1479b77b4a1d407ed8e968a2da787fa2",
+  "src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php": "646ef486659772ff75df6a02583a7cc1852e3ecdad5370fae8f45ba87c65ca81",
+  "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php": "a6d4e9d50ec4f795ce75e8de52337a5af1afd31244a88222a2a3173c12984cd6",
+  "src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php": "a3da5cf5d3e515779de1293670d4bb3f08202b9e2e32fb684d1cbc100bc860eb",
+  "support/governance/completion/fixture.php": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b",
+  "support/governance/fixtures/PhorgeGovernanceNativeFixture.php": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e",
+  "support/governance/native-organization/directory-restore-progress.php": "1c32b2709cf2dcebd0e9c29d079dce2f5ab2471caeb70320708561021c2d410c"
+}
