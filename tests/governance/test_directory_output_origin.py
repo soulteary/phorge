@@ -14,7 +14,7 @@ class OutputOriginTest(unittest.TestCase):
   d,stderr=self.run_php("governance_directory_output_origin_test_write('SECRET_ARGUMENT_CANARY');")
   line=next(i for i,x in enumerate((ROOT/FIXTURE).read_text().splitlines(),1)if 'echo $private_argument;'in x)
   self.assertEqual(d['origin'],dict(source=FIXTURE,line=line));self.assertTrue(d['observer_ended']);self.assertTrue(d['depth_restored']);self.assertNotIn(b'SECRET_ARGUMENT_CANARY',stderr)
-  marker=json.loads(stderr.split(b' ',1)[1]);self.assertEqual(set(marker),{'schema','kind','class','source','line','stage'});self.assertEqual(marker['class'],'CapturedNativeOutput')
+  marker=json.loads(stderr.splitlines()[0].split(b' ',1)[1]);self.assertEqual(set(marker),{'schema','kind','class','source','line','stage'});self.assertEqual(marker['class'],'CapturedNativeOutput')
  def test_exact_original_bytes_and_hash_keep_binary_NUL_newline_and_all_writes(self):
   import base64,hashlib
   expected=b'A\0B\nC'
@@ -30,7 +30,7 @@ class OutputOriginTest(unittest.TestCase):
    self.assertEqual(d['origin'],dict(source='unknown-source',line=0));self.assertNotIn(b'PRIVATE_',stderr);self.assertNotIn(td.encode(),stderr)
  def test_only_first_origin_is_kept_even_for_many_chunks(self):
   d,stderr=self.run_php("for($i=0;$i<100;$i++){governance_directory_output_origin_test_write('X');}")
-  self.assertEqual(len(stderr.splitlines()),1);self.assertEqual(set(d['origin']),{'source','line'});self.assertTrue(d['depth_restored'])
+  self.assertEqual(len(stderr.splitlines()),2);self.assertEqual(set(d['origin']),{'source','line'});self.assertTrue(d['depth_restored'])
  def test_inert_missing_outer_buffer_never_changes_output_stack(self):
   body="require$argv[1].'/"+HELPER+"';$before=ob_get_level();$state=governance_directory_output_origin_start($argv[1]);governance_directory_output_origin_finish($state);echo json_encode(array(ob_get_level()===$before,$state->observer_depth===null));"
   p=subprocess.run(['php','-r',body,str(ROOT)],capture_output=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),[True,True]);self.assertEqual(p.stderr,b'')

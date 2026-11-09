@@ -4,24 +4,24 @@
   "production_git_tree_inventory_sha256": "f55c3299246476417b065d3ffeecc58b22c372fd24e1319d06bc3bc98c6b7203",
   "pins": {
     ".github/workflows/native-directory-transports-v1.yml": {
-      "bytes": 12023,
-      "sha256": "31751bdcd69a9d1b5c9cca029884c56de6b73a84f315c7b8a4557e6ae47d4e16"
+      "bytes": 12122,
+      "sha256": "fe8d93ea94f37af7ae32d01f32fa7107d470f902c1b29827b353643b54360498"
     },
     "scripts/governance/check_completion.py": {
       "bytes": 16569,
       "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
     },
     "scripts/governance/check_directory_transports_v1.py": {
-      "bytes": 18247,
-      "sha256": "82d77f8e20012d9b4d6fac751eef4dd17e3db81740cffff03187b42c0c2aee9f"
+      "bytes": 18298,
+      "sha256": "9d3800032f3d71f4e31f842ee68b5ae7e757c4d0e8d2d42948e934af29296dd0"
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
       "sha256": "fe17940d22092e0813f30ec5b4cba7c0a66d567366c05f7e3536557303c45214"
     },
     "scripts/governance/project_directory_transport_failure_v1.py": {
-      "bytes": 6197,
-      "sha256": "d6d0a189964a61496b52770bb71c815deb490e66f8b306194400eeef8839b7ed"
+      "bytes": 8490,
+      "sha256": "5f11463a7e3fd9caa3f994f95da0a80beb394567218a5a2d816f32ccd7c8fa1b"
     },
     "src/applications/conduit/call/ConduitCall.php": {
       "bytes": 4275,
@@ -148,20 +148,20 @@
       "sha256": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e"
     },
     "support/governance/native-organization/README.directory-transports.md": {
-      "bytes": 18512,
-      "sha256": "3ca27dd845822bdf2429001f7a6ce6664c07ad66e2cf2cdeb6291701a264621b"
+      "bytes": 20421,
+      "sha256": "a3171fddb9f0a1ba9937bd359187a98cd7d5566ebdf21660e6c5784dfeda4715"
     },
     "support/governance/native-organization/directory-avatar-fixture.php": {
       "bytes": 3778,
       "sha256": "b660a4a2e4b6e841da2a37724748d380ac0ad36397fa21b681a278951acf20d6"
     },
     "support/governance/native-organization/directory-output-origin-fixture.php": {
-      "bytes": 377,
-      "sha256": "b6726f32c314839ef28b0bc720ca4e6ef5d902df1b6b80c59808a38e2b812f93"
+      "bytes": 640,
+      "sha256": "be0f147a1eb32396ea63a278da556f1558b8af12f56fe01030ee1d017588c11c"
     },
     "support/governance/native-organization/directory-output-origin.php": {
-      "bytes": 3117,
-      "sha256": "ad7e19953c2511571092053c28f50148c9570b9ba3645a0f9b20ae522663e9d2"
+      "bytes": 4810,
+      "sha256": "7170a2fa5cca287139d6f9e64f189e0f74e407931c4e10973078d811b9f83d0b"
     },
     "support/governance/native-organization/directory-transport-cases.php": {
       "bytes": 15277,
@@ -227,9 +227,13 @@
       "bytes": 2127,
       "sha256": "6ef0bfb66fd31717f5206e8b5c44372b992cf5b18aa654c9d7c7f2884739aef0"
     },
+    "tests/governance/test_directory_output_hints.py": {
+      "bytes": 5638,
+      "sha256": "00055409c4751ae0f81ce2fe020d863af42e5f1af9e8d16f8c938ec4673bb643"
+    },
     "tests/governance/test_directory_output_origin.py": {
-      "bytes": 6757,
-      "sha256": "6efaf667c42d824cd9839e9a0cf8a4effbff218f28a5e0a243fb3c5c927aca6b"
+      "bytes": 6773,
+      "sha256": "06e6b3365237fc948811eefe51f6f6834cfc873fc24284f6ad92d421d0483642"
     },
     "tests/governance/test_directory_terminal_failure_v1.py": {
       "bytes": 8620,

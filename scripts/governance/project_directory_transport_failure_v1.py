@@ -52,6 +52,29 @@ def project(raw,root=ROOT):
     return dict(schema='native-directory-safe-failure-v1',diagnostic_only=True,selected_matrix_accepted=False,
         runtime_authority=False,stderr_bytes=len(raw),stderr_sha256=hashlib.sha256(raw).hexdigest(),failures=records)
 
+HINT_PREFIX=b'native-directory-output-hints-v1 '
+def output_hints(raw,root=ROOT):
+    rows=[line for line in raw.splitlines()if line.startswith(HINT_PREFIX)]
+    if not rows:return None
+    gate.need(len(rows)==1 and len(rows[0])<=8192)
+    item=json.loads(rows[0][len(HINT_PREFIX):],object_pairs_hook=gate.unique)
+    gate.need(type(item)is dict and set(item)=={'schema','evidence_kind','first_frame_scope','first_chunk_kind','hints'})
+    gate.exact(item['schema'],'native-directory-output-hints-v1')
+    gate.exact(item['evidence_kind'],'public-stack-hints-not-emitting-origin')
+    gate.need(type(item['first_frame_scope'])is str and item['first_frame_scope']in {'no-file','repository-outsideallowed','outside-repository','public'})
+    gate.need(type(item['first_chunk_kind'])is str and item['first_chunk_kind']in {'whitespace','Deprecated','Notice','Warning','PNGsignature','unclassified'})
+    gate.need(type(item['hints'])is list and len(item['hints'])<=8);known=paths(root);last=-1
+    for row in item['hints']:
+        gate.need(type(row)is dict and set(row)=={'frame','source','line'})
+        position=row['frame'];source=row['source'];line=row['line']
+        gate.need(type(position)is int and last<position<8);last=position
+        gate.need(type(source)is str and len(source)<=384 and re.fullmatch(r'(?:src|support)/[A-Za-z0-9_./-]+\.php',source)is not None)
+        gate.need(not any(p in {'','.','..'}for p in source.split('/'))and source in known)
+        gate.need(type(line)is int and 1<=line<=len((Path(root)/source).read_bytes().splitlines()))
+        if position==0:gate.exact(item['first_frame_scope'],'public')
+    gate.need((item['first_frame_scope']=='public')==any(row['frame']==0 for row in item['hints']))
+    return item
+
 TERMINALS=frozenset({'native-exit','native-stderr','strict-consumer'})
 def optional_summary(path):
     try:raw=raw_stderr(path)
@@ -67,6 +90,15 @@ def project_terminal(raw,terminal,receipt_path,consumer_path,root=ROOT):
         out=dict(schema='native-directory-safe-failure-v1',diagnostic_only=True,
             selected_matrix_accepted=False,runtime_authority=False,
             stderr_bytes=len(raw),stderr_sha256=hashlib.sha256(raw).hexdigest(),failures=[])
+    hints=output_hints(raw,root)
+    if hints is not None:
+        origins=[row for row in out['failures']if row['class']=='CapturedNativeOutput']
+        gate.need(len(origins)==1)
+        if hints['first_frame_scope']=='public':
+            first=next(row for row in hints['hints']if row['frame']==0)
+            gate.exact(origins[0]['source'],first['source']);gate.exact(origins[0]['line'],first['line'])
+        else:gate.exact(origins[0]['source'],'unknown-source');gate.exact(origins[0]['line'],0)
+        out['output_hints']=hints
     out['terminal_classification']=terminal
     out['private_receipt']=optional_summary(receipt_path)
     out['private_consumer_output']=optional_summary(consumer_path)

@@ -53,6 +53,7 @@ jobs:
           python3 -B -m unittest discover -s tests/governance -p test_directory_transport_failure_v1.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_terminal_failure_v1.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_output_origin.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_output_hints.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_avatar_fixture.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_file_build.py -v
           (cd tests/governance && python3 -B -m unittest test_calendar_conduit_union.CalendarConduitUnion.test_current_main_production_hooks_map_and_workflows_preserved -v)

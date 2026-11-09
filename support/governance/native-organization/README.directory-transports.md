@@ -63,7 +63,7 @@ N01–N04, browser, performance, all-source or activation approval.
 
 ## Versioned source and CI binding
 
-`tests/governance/native-directory-transports-source-v1.json` fixes 61 exact
+`tests/governance/native-directory-transports-source-v1.json` fixes 62 exact
 source/dependency roles and the entire Git149 `src`/`resources` inventory. The v1
 consumer requires its literal keyset, file lengths/digests, unchanged production
 Git inventory and current worktree. In CLI mode every selected file and the
@@ -285,3 +285,33 @@ PHP buffers to verify this refusal and test-owned later cleanup. Exact byte/hash
 preservation applies to the validated native owned-buffer paths; arbitrary
 third-party buffer-stack operations are not claimed to be transparent. No
 foreign buffer cleanup or global handler mutation is authorized by this helper.
+
+
+### Separate public stack hints, never an emitting-origin substitution
+
+The actual 21374 artifact retains an unknown-source/0 emitting origin. That
+result is preserved. The separate native-directory-output-hints-v1 schema adds
+one bounded record with at most eight argument-free stack frames, of which only
+public src/support PHP source/line and original zero-based frame positions may
+survive. The original first frame remains the emitting-origin record: a public
+caller at frame one or later is only a hint and never replaces unknown origin.
+First-frame scope is one fixed enum: no-file, repository-outsideallowed,
+outside-repository, or public. No function names, values, args, messages, raw
+chunks or absolute/private paths enter the hint record.
+
+First chunk content is classified only by fixed markers: whitespace, Deprecated,
+Notice, Warning, PNGsignature, or unclassified. At most the first128 private
+bytes are inspected; whitespace is asserted only for a complete chunk <=128B.
+This is a content-marker classification, NOT proof of a PHP error, deprecation,
+benign output or the actual cause. Original bytes/hash and FINAL ownership gates
+remain unchanged. The original six-key marker and strict marker projector are
+unchanged. The new hint parser has an exact schema, one-record/8192B/eight-frame
+caps, integer positions0..7 in increasing order, and current Git-tracked regular
+public source/actual-line checks. It requires correspondence with the original
+origin marker and never grants acceptance.
+
+Own-memory controls trigger a real default PHP C-emitted warning with no file
+at frame zero and a public caller at frame one; unknown origin remains unknown.
+Private caller paths and arguments are excluded, real C-emitted PNG is classified
+only by its signature, malformed/extra/too-many/boolean-position hints refuse.
+These local controls do not establish the actual CI output class or source.

@@ -9,3 +9,11 @@ function governance_directory_output_origin_test_inner_image() {
   ob_start();imagepng($image);$bytes=ob_get_clean();unset($image);
   return $bytes;
 }
+
+function governance_directory_output_origin_test_C_warning($private_argument) {
+  trigger_error($private_argument,E_USER_WARNING);
+}
+
+function governance_directory_output_origin_test_C_png() {
+  $image=imagecreatetruecolor(2,2);imagepng($image);unset($image);
+}
