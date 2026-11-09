@@ -1,0 +1,355 @@
+# Native directory transport matrix
+
+This test-only phase exercises the current native Web controller and real
+`ConduitCall` dispatch for `people.organization.query` / `.edit`. It changes no
+production class, permission, route, map or default feature setting.
+
+Root/CI may run `support/governance/native-organization/test-directory-transports-v1-mysql.php` with the single fixed argument
+`--directory-transports`, using the driver's existing explicit isolated-test and
+private fixture DSN/credential environment. The driver retains its PHP 8.5.12,
+loopback, no deployment selectors/config, owned full source restore, principals,
+writer routing and complete fixture cleanup checks. This successor keeps media exchange,
+notification delivery, uploads, deletion outbox and all non-File Gorge routes
+disabled. It starts exactly one owned loopback core Gorge File storage service
+for real native avatars; no application HTTP listener, worker or browser starts. The original driver is byte-exact Git149 and its default/all phases are unchanged. This v1 entry rejects empty arguments and every other selector. Its existing full restore/cleanup lifecycle is copied from149 with an explicit inverse; the old literal source maps need no repinning.
+No credential belongs in an argument, checked-in file, test output or public log.
+
+The matrix uses five freshly created native accounts and actual native web
+sessions/API tokens: system administrator, ordinary member, parent-only manager,
+child-only manager and separately appointed manager of both teams. Membership and
+existing-appointment seeds reuse the reviewed privacy fixture helpers; those
+seeds do not prove the appointment approval workflow. The query and transport
+results are compared with explicit team IDs, parent redaction and counts, not
+only with each other. Read modes cover list, selector, bounded export, count,
+other-user teams, each team's members and member count. Hidden roster reads must
+produce the generic Web 403 / Conduit error without a result.
+
+Conduit authentication invokes the actual native controller's private
+`authenticateUser` branch on a real token and request, then executes the real
+`ConduitCall`; `setUser` alone never supplies authority. These are in-process
+native calls, not an HTTP server or browser receipt. Web calls use the real
+controller and the existing owned request write/CSRF guard. Expired/deleted API
+tokens and unknown modes are explicitly refused.
+
+Team-admin appointment grant/revoke, approval proposal and compound proposal /
+execution are rejected through both transports, with all six organization
+business tables fingerprinted before and after. Submitted tickets are real
+system-admin proposals so missing ticket planning is not mistaken for an actor
+refusal. Ordinary member additions succeed through each transport without an
+appointment or extra sensitive-action approval. No native project permission
+changes are performed.
+
+## Local evidence and pending execution
+
+`python3 -B -m unittest discover -s tests/governance -p test_directory_transports.py -v`
+runs six real native class/dispatch admission tests without SQL. Only default
+and memory configuration sources supply a synthetic cache namespace; Query,
+Service, authentication, SQL and authorization are not replaced. The tests call
+real query/edit methods, real ConduitCall parameter validation and the actual Web
+feature-off and enabled-but-uncredentialed routes. They prove those refusal paths only. They do **not** run the
+positive five-account matrix or establish SQL cleanup/transport privacy.
+
+The first local run retained one failure because the test had omitted native
+cache initialization before Conduit class-map lookup. The corrected test supplies
+only in-memory defaults and a synthetic cache namespace. No production code or
+assertion was removed to pass it.
+
+The full matrix, exact signed candidate/full-source binding, actual PHP 8.5.12
+and owned SQL cleanup remain unproved until Root/CI executes this phase. Existing
+strict old receipt consumers are unchanged and must not accept this new scope as
+old full-suite evidence. Source inventories/CI integration require a separate
+reviewed successor; no source hash is blindly repinned here. This is not full
+N01–N04, browser, performance, all-source or activation approval.
+
+## Versioned source and CI binding
+
+`tests/governance/native-directory-transports-source-v1.json` fixes 70 exact
+source/dependency roles and the entire Git149 `src`/`resources` inventory. The v1
+consumer requires its literal keyset, file lengths/digests, unchanged production
+Git inventory and current worktree. In CLI mode every selected file and the
+manifest must also exactly match the supplied current Git revision. A signed
+candidate may be accepted before merge; this gate does not require main/merged
+status or claim signature verification. Old source maps and all old receipt
+consumers remain byte-for-byte unchanged.
+
+The new workflow `native-directory-transports-v1.yml` runs on every PR and manual
+invocation, uses the existing PHP 8.5.12 / disposable MySQL8 mechanism and two
+standard mapper passes, performs source-only admission **before** the matrix,
+then invokes only the fixed new CLI. It uses only the exact paired File fixture described below; no image backend or application listener runs.
+The strict consumer requires all 45 read observations, all five sensitive-action
+negative results, both ordinary-add results, every actual check, the existing
+full restore/migration proof, empty captured native output and completed
+55-schema/two-runtime-user/reader cleanup. Duplicate/extra/missing/raw fields and
+integer-as-boolean substitutions fail. JSON templates in unit tests are consumer
+mutation fixtures, never actual SQL evidence. The pure `validate()` return marks
+source binding false; only the CLI can set it true after actual Git checks.
+
+Only successful selected runs upload integration/accepted/source/map evidence.
+Native stderr is outside that upload tree; failure is nonzero and does not
+publish an accepted artifact. No production credentials or deployment input are
+used. The workflow is source-only until Root publishes the candidate and actual
+CI completes. Its MySQL service and runtime setup are not executed locally here.
+
+
+## Safe failure observability successor
+
+PR135's initial candidate703 exited nonzero in the actual SQL step; its
+success-only artifact contained no failure detail. The cause is not inferred
+from that exit. This successor does not change matrix behavior or make the
+failed run pass. The fixed CLI catch and existing cleanup-error callback emit a
+separate bounded diagnostic marker containing only an allowlisted exception
+class, repository-relative PHP source path, positive line number and fixed
+progress label. Unknown classes/stages and outside paths use explicit fixed
+fallbacks. No message, stack, arguments, SQL, DSN, username, session or token is
+emitted by this helper. Its optional diagnostic failure cannot replace the
+original exception/failure state.
+
+The failure projector reads at most1MiB from a held, regular, single-link,
+NOFOLLOW/nonblocking stderr FD with a final identity/stamp check. It ignores
+unmarked raw lines without copying them, then strictly validates every marker's
+six fields, literal class/stage allowlists, current Git-tracked regular PHP path
+and actual public file line bound. Escapes, absolute/private/untracked paths,
+extra/missing/duplicate fields, duplicate markers, trailing payload and oversized
+input fail. At most eight distinct primary/cleanup clues can be projected. A
+source-unknown clue has line0. These are debugging clues, not independently
+attested causes or SQL acceptance.
+
+Only after the projector's current-source admission and validation succeeds
+does the workflow publish `native-directory-safe-failure-v1/diagnostic.json` on
+failure. Raw native stderr and failed integration.json are never uploaded or
+printed; no `cat` of stderr exists. The original native nonzero exit is retained.
+An absent/invalid marker yields no diagnostic artifact, not a guessed result.
+The old success consumer and acceptance criteria are unchanged. The source
+inventory is versioned with the four added diagnostic roles (36total); old
+maps/consumers and the original driver stay immutable.
+
+Eight additional local tests include a real native request-normalizer exception
+through the PHP diagnostic helper and Python projector, message/canary refusal,
+path/key/type/stage injection negatives and actual FIFO/symlink/hardlink/size
+refusals. These plus the existing15 local methods are source/host evidence only;
+no SQL/remote execution or root-cause claim is made by this change.
+
+### Preserve the native exit if workflow-output metadata cannot be appended
+
+The first diagnostic successor had an unguarded `GITHUB_OUTPUT` append under
+Bash errexit. A failed append could replace native exit37 with exit1. This narrow
+successor guards the optional append (including an unset/empty variable) so the
+handler always reaches its original `exit "$native_status"`. It neither changes
+the SQL fixture nor treats a missing diagnostic output as native success.
+
+Five pure-shell tests extract the actual workflow handler. A successful
+projector is an explicit test collaborator; native37, Bash `set -euo pipefail`,
+mkdir/mv and the output append are real own-filesystem operations. The old
+unguarded line is reconstructed only in the red control and actually returns1;
+new unset/empty/directory/valid output cases all return37. No SQL/projector
+runtime acceptance is inferred from the shell collaborator. The previous
+source and test freeze stays unchanged.
+
+
+## Real paired File and native-avatar dependency successor
+
+The actual safe failure on bb5 identified `PhabricatorFile.php:369` after the
+admin projection. Source order puts the first real Conduit call before the Web
+call: native token authentication loads its owner via ObjectQuery, the User PHID
+type requests profile images, and a fresh user's image cache generates/persists a
+native default avatar. With `gorge.file.uri` null, no production engine can write;
+historical PHP blob/local-disk/S3 engines correctly remain read-only. This is a
+missing fixture dependency, not a directory authorization change. The safe clue
+does not include a full runtime trace; the chain is derived from exact149 source.
+
+The new scope is `owned-native-directory-transport-matrix-with-paired-file` and
+its native schema is `native-directory-transports-v1-file-dependency`. Old
+no-File receipts cannot satisfy it. Only this isolated phase binds one fresh
+paired Gorge File service using the existing core fixture start/stop helper.
+The File-only builder reuses exact-pair/clean-checkout checks and the unchanged
+locked-base inspector, but issues only `SERVICE=gorge-file-storage`; it does not
+build the ImageMagick/image service. CI extracts from the inspected immutable
+local File image without starting that extraction container, hashes the actual
+binary, and removes that exact extraction container. Build/pair/bases/image/hash
+provenance is retained. The old general builder and its consumers are unchanged.
+
+All seven synthetic users receive real `updateUser()` avatars. Fresh User and
+File DAOs must agree on the stored profile/version and `gorge` engine. A fresh
+File DAO reads the actual Gorge bytes back; byte size, native content hash and
+actual 400x400 PNG decode must pass. No fake cache, made-up PHID or legacy writable
+engine is used. Native GD remains the existing `legacy` builtin compose mode;
+no ImageMagick/image backend, media exchange, uploads or delivery option is enabled.
+Native authentication may write profile/cache data: these route checks are not a
+claim of globally read-only SQL.
+
+The strict consumer requires all seven avatar witnesses plus 130 actual checks,
+exactly one File startup, actual hashed Linux File binary input and successful
+process/storage cleanup, in addition to the unchanged 45 read observations,
+five sensitive-action denials, two ordinary additions and full SQL cleanup.
+The binary parser's header-only ownFS unit fixture is data admission only, not a
+usable Go program or runtime/source attestation. CI's actual native command and
+paired builder are mandatory for real evidence. Safe failure diagnostics and
+native-exit preservation are retained unchanged apart from the explicit new
+fixed progress labels/source roles.
+
+The static Calendar/Conduit preservation test admits exactly this one new
+workflow path in its diff-set. Its original three workflow checks, production
+source assertions and inverse checks are retained; no wildcard exclusion or
+runtime Calendar phase is used by this change. Actual SQL remains pending the
+next public CI run; the prior failed artifact is preserved and never relabeled.
+
+
+## Safe terminal diagnostics after the File-dependency run
+
+The f9d0 public CI log establishes successful File build/extraction and a
+nonzero selected step, but does not identify which terminal check failed.
+Captured runtime-warning rejection occurs after the Throwable catch; it now
+emits a fixed `RuntimeWarning` / `unexpected-native-runtime-output` marker with
+unknown source and line zero. This is a classification, not attribution of the
+original warning. No warning message or buffered native output is copied.
+
+Three explicit terminal paths (`native-exit`, `native-stderr`, `strict-consumer`)
+now use the same guarded safe projection before returning their original exit
+status. When no marker exists, only that fixed path and bounded held-file byte
+counts/digests of private stderr/receipt/consumer output are published. Malformed
+or extra markers still fail strict projection; they cannot become hash-only
+fallback success. Every diagnostic remains non-accepting and cannot replace
+source, matrix, storage, permission or cleanup checks. Raw failed receipts and
+stderr remain outside uploaded artifacts. The prior failed run is retained;
+its actual failure cause and selected SQL result are still unknown.
+
+Local controls execute the exact PHP warning branch and all three extracted
+Bash terminal blocks using explicit synthetic native/consumer exits and real
+private files/readers/projector. Current Git source admission is a stated
+collaborator in that shell control; the production CLI still enforces it.
+These controls perform no SQL, File service, Docker, SSH or application network
+execution and cannot stand in for the next public CI result.
+
+
+## Fixed strict-consumer failed-check labels
+
+The 14af safe CI artifact identifies strict-consumer rejection after native
+exit zero and empty stderr, but does not contain the private receipt values.
+Source comparison alone has not established the exact failed predicate. Native
+exit zero is not selected matrix acceptance, and nonempty captured native output
+remains refused even if it does not contain the driver's warning-pattern text.
+
+The current strict consumer now tracks fixed source-defined check groups and
+exact top-level field names. Its nonzero rejection JSON contains only `accepted`
+false, the fixed scope and one allowlisted `failed_check`; no actual/expected
+value, exception text, identity or caller-provided field name is exposed. The
+safe terminal projector extracts that label only from the exact rejection shape
+and fixed label set; unknown/extra/raw shapes become `unavailable` with only
+previously allowed byte/hash metadata. Malformed native markers still refuse.
+No check, count, cleanup or zero-output requirement is changed. Unit source
+inverse tests strip only diagnostic `mark()` calls and prove the original
+need/exact/source/validate/binary-admission functions identical to signed14af.
+The next actual public CI result, not synthetic mutation templates, must identify
+and validate the failed predicate. No SQL/File/Docker/remote execution is run by
+this source-only diagnostic change.
+
+
+## Private-buffer output-origin observer
+
+The b8a actual safe artifact identifies nonzero captured native output as the
+first strict-consumer rejection. It does not establish that output's contents
+or origin. No output is assumed benign and the zero-byte assertion is unchanged.
+
+A test-only nested output handler (chunk size one) now observes writes inside
+the original private capture. Every chunk is returned unchanged into that outer
+buffer; inner GD image buffers are not drained or treated as emitted output.
+The observer keeps at most one origin record, requests at most eight backtrace
+frames with DEBUG_BACKTRACE_IGNORE_ARGS, and uses only the emitting frame's
+public src/support path and line. It never substitutes an outer public caller
+for a private origin. Unknown/private frames become unknown-source/line zero.
+No chunk, message, value, argument or raw absolute path enters a marker. The
+unchanged artifact projector additionally checks that any public source is a
+currently tracked regular PHP file with a valid exact-source line.
+
+After finishing only its own buffer, the original capture bytes/length/hash
+are computed unchanged. A nonempty capture adds a fixed CapturedNativeOutput
+marker for that first source point; it is not an actual Throwable class or a
+claim that a deprecation occurred. The original warning and strict zero-output
+failures remain. No global error handler/listener is installed or replaced.
+Diagnostic errors are caught without changing emitted bytes or acceptance.
+Pure own-memory PHP tests verify actual source-line attribution, private path
+and argument canaries, NUL/newline byte and hash equality, many writes with one
+record, real nested GD PNG capture, diagnostic-fault preservation and buffer
+cleanup. They do not prove the current CI output origin or any SQL/File result.
+
+
+### Output-buffer lifecycle corrective
+
+The earlier observer's depth-only finish check could pop a third-party buffer
+that replaced the removed observer at the same depth. That source freeze is
+blocked and retained. The callback now records its own FINAL phase even for an
+empty CLEAN event. Finish requires both matching depth and an observer that has
+not finalized; only its own normal finalization may mark it ended. A same-depth
+replacement or deeper unknown buffer remains untouched. Local controls use real
+PHP buffers to verify this refusal and test-owned later cleanup. Exact byte/hash
+preservation applies to the validated native owned-buffer paths; arbitrary
+third-party buffer-stack operations are not claimed to be transparent. No
+foreign buffer cleanup or global handler mutation is authorized by this helper.
+
+
+### Separate public stack hints, never an emitting-origin substitution
+
+The actual 21374 artifact retains an unknown-source/0 emitting origin. That
+result is preserved. The separate native-directory-output-hints-v1 schema adds
+one bounded record with at most eight argument-free stack frames, of which only
+public src/support PHP source/line and original zero-based frame positions may
+survive. The original first frame remains the emitting-origin record: a public
+caller at frame one or later is only a hint and never replaces unknown origin.
+First-frame scope is one fixed enum: no-file, repository-outsideallowed,
+outside-repository, or public. No function names, values, args, messages, raw
+chunks or absolute/private paths enter the hint record.
+
+First chunk content is classified only by fixed markers: whitespace, Deprecated,
+Notice, Warning, PNGsignature, or unclassified. At most the first128 private
+bytes are inspected; whitespace is asserted only for a complete chunk <=128B.
+This is a content-marker classification, NOT proof of a PHP error, deprecation,
+benign output or the actual cause. Original bytes/hash and FINAL ownership gates
+remain unchanged. The original six-key marker and strict marker projector are
+unchanged. The new hint parser has an exact schema, one-record/8192B/eight-frame
+caps, integer positions0..7 in increasing order, and current Git-tracked regular
+public source/actual-line checks. It requires correspondence with the original
+origin marker and never grants acceptance.
+
+Own-memory controls trigger a real default PHP C-emitted warning with no file
+at frame zero and a public caller at frame one; unknown origin remains unknown.
+Private caller paths and arguments are excluded, real C-emitted PNG is classified
+only by its signature, malformed/extra/too-many/boolean-position hints refuse.
+These local controls do not establish the actual CI output class or source.
+
+
+## Selected v2 exact empty-restore progress capture
+
+The actual fd2d public hint record points to the storage applyPatch require path
+inside owned fixture create. Exact current source contains six reviewed PHP
+migration scripts which directly echo fixed empty-table progress lines; console
+output disabling does not intercept echo. Their nonempty branches may include
+addresses or rule names, so no generic migration output is admissible.
+
+Only this directory driver's fixed fixture->create() call now has a separate
+owned, 4096B-bounded restore capture. It accepts exactly the six English public
+empty-state lines, once each, byte-for-byte with LF; any unknown/extra/duplicate,
+missing, warning, CRLF, trimming variation or overflow rejects. Order is not
+assumed from the source dependency graph: the consumer permits only the bounded
+720 SHA256 values of the six exact-line permutations. The exact total is323B.
+A distinct mandatory restore_progress proof contains profile, actual bytes/hash,
+line count and six actual source hashes. Existing full-restore checks separately
+bind the reviewed migration source hashes and patch ledger. Local synthetic
+transcript controls are not proof that SQL executed the empty branches.
+
+The selected batch is native-directory-transports-v2-restore-progress, with
+scope owned-native-directory-transport-matrix-with-paired-file-and-exact-restore-progress.
+Its accepted schema is native-directory-transports-accepted-v2-exact-restore-progress;
+old missing-proof/old-profile receipts refuse. The original 130 checks, 45 read
+observations, five denials, two ordinary additions, File/avatar dependency,
+cleanup and business capture zero-byte/hash requirements are retained. Native
+inner matrix rows and their schema are unchanged. Shared completion fixture,
+original driver, old consumers and production migrations are byte-exact.
+
+The scoped restore capture tracks its own FINAL phase and closes only its own
+still-live matching-depth buffer. Same-depth replacement/deeper foreign buffers
+are not popped or adopted. An original create Throwable is rethrown as the same
+object even if transcript or cleanup is unproved; no diagnostic exception may
+replace it. Known exact progress is separated only after strict validation;
+unknown progress can never produce accepted evidence. No SQL/File/Docker/SSH or
+application network was run locally. Actual public CI must still establish the
+new transcript proof, complete matrix and cleanup; prior failures stay failed.

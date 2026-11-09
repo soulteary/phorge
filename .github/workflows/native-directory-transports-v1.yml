@@ -1,0 +1,186 @@
+name: Native directory transport matrix v1
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  directory-transports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: directory-transports-disposable-only
+          MYSQL_ROOT_HOST: '%'
+        ports: ['3306:3306']
+        options: --health-cmd "mysqladmin ping -pdirectory-transports-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.12'
+          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
+          extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
+          tools: composer:2.11.1
+          coverage: none
+      - name: Existing retained runtime and two standard mapper passes
+        run: |
+          python3 -B scripts/governance/check_directory_transports_v1.py --source-only --source-revision "$GITHUB_SHA"
+          php -r 'exit(PHP_VERSION === "8.5.12" ? 0 : 1);'
+          php scripts/runtime/build.php all
+          php bin/rebuild-library-map
+          git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
+          umask 077
+          mkdir "$RUNNER_TEMP/directory-transports-v1"
+          sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > "$RUNNER_TEMP/directory-transports-v1/verified-maps.sha256"
+          php bin/rebuild-library-map
+          sha256sum --check "$RUNNER_TEMP/directory-transports-v1/verified-maps.sha256"
+          php scripts/runtime/verify.php
+      - name: Actual local admission and strict-consumer regressions
+        run: |
+          python3 -B -m unittest discover -s tests/governance -p test_directory_transports.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_transports_receipt_v1.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_transport_failure_v1.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_terminal_failure_v1.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_output_origin.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_output_hints.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_restore_progress.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_avatar_fixture.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_file_build.py -v
+          (cd tests/governance && python3 -B -m unittest test_calendar_conduit_union.CalendarConduitUnion.test_current_main_production_hooks_map_and_workflows_preserved -v)
+      - name: Require exact reviewed source pair for the core File fixture
+        run: |
+          umask 077
+          mkdir "$RUNNER_TEMP/directory-file-binary"
+          revision=$(python3 tests/atomic/check_pair.py --print-revision)
+          echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v6
+        with:
+          repository: soulteary/gorge
+          ref: ${{ env.GORGE_CONTRACT_REF }}
+          path: .test-gorge
+          persist-credentials: false
+      - name: Move the owned paired checkout outside the Phorge source tree
+        run: |
+          fixture_root=$(mktemp -d "$RUNNER_TEMP/directory-file-gorge.XXXXXX")
+          mv -- .test-gorge "$fixture_root/source"
+          echo "ATOMIC_GORGE_SOURCE=$fixture_root/source" >> "$GITHUB_ENV"
+      - name: Build only paired File with unchanged locked-base inspection
+        run: |
+          umask 077
+          python3 - <<'PY'
+          import json, os, pathlib, runpy
+          module = runpy.run_path('tests/atomic/build_directory_file.py', run_name='directory_file_fixture_builder')
+          result = module['build_file'](pathlib.Path(os.environ['ATOMIC_GORGE_SOURCE']), os.environ['GORGE_CONTRACT_REF'])
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'directory-transports-v1'
+          pending = out / 'build-provenance.pending.json'
+          with pending.open('x') as stream:
+              json.dump(result, stream, sort_keys=True)
+              stream.write('\n')
+          pending.rename(out / 'build-provenance.json')
+          PY
+          sha256sum tests/atomic/check_pair.py tests/atomic/build_gorge.py tests/atomic/build_directory_file.py tests/atomic/paired-gorge.json > "$RUNNER_TEMP/directory-transports-v1/build-input-sha256.txt"
+      - name: Extract only the actual paired File binary without starting a container
+        run: |
+          umask 077
+          out="$RUNNER_TEMP/directory-transports-v1"
+          image_id=$(docker image inspect gorge-file-storage:atomic --format '{{.Id}}')
+          [[ "$image_id" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
+          test "$(docker image inspect "$image_id" --format '{{index .Config.Labels "phorge.gorge-revision"}}')" = "$GORGE_CONTRACT_REF"
+          docker image inspect "$image_id" --format '{"image_id":{{json .Id}},"paired_revision":{{json (index .Config.Labels "phorge.gorge-revision")}}}' > "$out/file-image-provenance.json"
+          created=''
+          cleanup_extract() {
+            status=$?
+            trap - EXIT
+            if [ -n "$created" ]; then
+              if docker rm "$created" > /dev/null; then
+                printf '%s\n' '{"created_container_started":false,"exact_created_container_removed":true}' > "$out/extraction-cleanup.json"
+              elif [ "$status" -eq 0 ]; then
+                status=1
+              fi
+            fi
+            exit "$status"
+          }
+          trap cleanup_extract EXIT
+          candidate=$(docker create --pull=never --name "directory-file-extract-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" "$image_id")
+          [[ "$candidate" =~ ^[a-f0-9]{64}$ ]] || exit 1
+          created="$candidate"
+          docker cp "$created:/usr/local/bin/gorge-file-storage" "$RUNNER_TEMP/directory-file-binary/gorge-file-storage"
+          chmod 0700 "$RUNNER_TEMP/directory-file-binary/gorge-file-storage"
+          sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | sed "s|$RUNNER_TEMP/directory-file-binary/||g" > "$out/binary-sha256.txt"
+      - name: Configure only disposable MySQL prerequisite
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+          MYSQL_PWD: directory-transports-disposable-only
+        run: |
+          docker exec -e MYSQL_PWD "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL sql_mode = 'STRICT_ALL_TABLES'; SET GLOBAL log_bin_trust_function_creators = 1"
+      - name: Real selected native matrix and strict source/receipt replay
+        id: directory-sql
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          sha256sum --check "$RUNNER_TEMP/directory-transports-v1/verified-maps.sha256"
+          git rev-parse HEAD > "$RUNNER_TEMP/directory-transports-v1/source-revision.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/directory-transports-v1/source-tree.txt"
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/directory-file-binary/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | cut -d ' ' -f1)" \
+          PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
+          PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
+          PHORGE_GOVERNANCE_FIXTURE_USER=root \
+          PHORGE_GOVERNANCE_FIXTURE_PASSWORD=directory-transports-disposable-only \
+          php support/governance/native-organization/test-directory-transports-v1-mysql.php --directory-transports > "$RUNNER_TEMP/directory-transports-v1/integration.json" 2> "$RUNNER_TEMP/directory-transports-native.private.stderr" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal native-exit --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
+          test ! -s "$RUNNER_TEMP/directory-transports-native.private.stderr" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal native-stderr --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
+          python3 -B scripts/governance/check_directory_transports_v1.py --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal strict-consumer --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
+          mv "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" "$RUNNER_TEMP/directory-transports-v1/accepted.json"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: native-directory-transports-v1-php-8.5.12
+          path: ${{ runner.temp }}/directory-transports-v1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.directory-sql.outputs.safe_diagnostic_owned == 'true'
+        with:
+          name: native-directory-safe-failure-v1
+          path: ${{ runner.temp }}/directory-transports-safe-failure-v1/diagnostic.json
+          if-no-files-found: error

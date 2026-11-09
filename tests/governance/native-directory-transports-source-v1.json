@@ -1,0 +1,287 @@
+{
+  "schema": "native-directory-transports-source-v1",
+  "base_revision": "149f315b4c29cdc5a9f3b2d10a92c6eab0403e1f",
+  "production_git_tree_inventory_sha256": "f55c3299246476417b065d3ffeecc58b22c372fd24e1319d06bc3bc98c6b7203",
+  "pins": {
+    ".github/workflows/native-directory-transports-v1.yml": {
+      "bytes": 12225,
+      "sha256": "dd20782aa33ba830e13a838153699d462c7b1e5f90f6929baa8608e9933395cd"
+    },
+    "resources/sql/autopatches/20260911.differential.01.appemail.php": {
+      "bytes": 1804,
+      "sha256": "61ab359cfbae16c8d2c3e3f05473455af9df37bda1a13c5f5fb2f3bdac35273c"
+    },
+    "resources/sql/autopatches/20260911.paste.01.appemail.php": {
+      "bytes": 1723,
+      "sha256": "5a677f91030f566f2e2b514b4056b9e44f6c0695c2c1150982713c5d14be3ccb"
+    },
+    "resources/sql/autopatches/20260918.differential.01.heraldrules.php": {
+      "bytes": 3842,
+      "sha256": "63070e85cdb02ad9ece1071277e328a996f173747b5cab0afcf142826b18344d"
+    },
+    "resources/sql/autopatches/20260918.differential.02.diffpolicy.php": {
+      "bytes": 2449,
+      "sha256": "98bb5656f16cfa2598a351ecdef8c2647911e3567b354133cc6ac05c9b13eaa8"
+    },
+    "resources/sql/autopatches/20260918.owners.01.heraldrules.php": {
+      "bytes": 2773,
+      "sha256": "cb738e99d308675ee34981b3376568b81892d7ad1d42bccda21edcffd681b700"
+    },
+    "resources/sql/autopatches/20260918.owners.02.auditrequests.php": {
+      "bytes": 4995,
+      "sha256": "dd21689d3e8ff767a3149343796b1ffeba0c7c78681c5ad1ee5dd8de81054c27"
+    },
+    "scripts/governance/check_completion.py": {
+      "bytes": 16569,
+      "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
+    },
+    "scripts/governance/check_directory_transports_v1.py": {
+      "bytes": 20629,
+      "sha256": "62f96ab4b31879e7635fc73c6bf564e81fb96c592a2fc418d78fb17ef4226ed8"
+    },
+    "scripts/governance/check_native_organization.py": {
+      "bytes": 125030,
+      "sha256": "fe17940d22092e0813f30ec5b4cba7c0a66d567366c05f7e3536557303c45214"
+    },
+    "scripts/governance/project_directory_transport_failure_v1.py": {
+      "bytes": 8490,
+      "sha256": "5f11463a7e3fd9caa3f994f95da0a80beb394567218a5a2d816f32ccd7c8fa1b"
+    },
+    "src/applications/conduit/call/ConduitCall.php": {
+      "bytes": 4275,
+      "sha256": "a4e834b7a512f32de4e6ece564448ad7cf0530810ffb339a623fd9719209fc32"
+    },
+    "src/applications/conduit/controller/PhabricatorConduitAPIController.php": {
+      "bytes": 23757,
+      "sha256": "bbf41dddf16b9b9ebfbe1ed011a89c975f67fdbf90da92b3facc002d0a69fc4a"
+    },
+    "src/applications/conduit/method/ConduitAPIMethod.php": {
+      "bytes": 13230,
+      "sha256": "655a65bc13eb3189428ac5681ad0a96e9dd53cc346b8cfe351c511bdeb5a78a6"
+    },
+    "src/applications/conduit/protocol/ConduitAPIRequest.php": {
+      "bytes": 3162,
+      "sha256": "0da7a4499b02cd5eef23a05fdbe9b967b89c8f7110ae29ceb98ac39f8c4a8adf"
+    },
+    "src/applications/conduit/query/PhabricatorConduitTokenQuery.php": {
+      "bytes": 2617,
+      "sha256": "ed906a65c6dc7a348643b2305ab74595605835b21f7fa52645e875a7e2deb4bc"
+    },
+    "src/applications/conduit/storage/PhabricatorConduitToken.php": {
+      "bytes": 6281,
+      "sha256": "6979f97a01b5c24d1d205a23fcb0397270c9159a98e302267cbce09fbf5593e1"
+    },
+    "src/applications/files/builtin/PhabricatorFilesComposeAvatarBuiltinFile.php": {
+      "bytes": 10702,
+      "sha256": "ba6828a206f57ad53a70659a59d8375e239e85f8b2d837904c20a1b1a41b86f0"
+    },
+    "src/applications/files/engine/PhabricatorFileStorageEngine.php": {
+      "bytes": 10684,
+      "sha256": "f5aa22459088dbb28cb578b7e32421dbcd0096c99ced2e3475323e8661c624f4"
+    },
+    "src/applications/files/engine/PhabricatorGorgeFileStorageEngine.php": {
+      "bytes": 6930,
+      "sha256": "42ad10e46d1538a79d6caae4a272d160e9e14cb7ceac6296ff912bd9695259ba"
+    },
+    "src/applications/files/storage/PhabricatorFile.php": {
+      "bytes": 57828,
+      "sha256": "3edb7b26258ac2df70ed5e763d7d0f9773bc2565c9fea961d2c6a234ce57240f"
+    },
+    "src/applications/people/cache/PhabricatorUserProfileImageCacheType.php": {
+      "bytes": 3042,
+      "sha256": "e4859f605bb1a68b6c26faa14890800b406f21948cab3968b37f8f3a8082068a"
+    },
+    "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php": {
+      "bytes": 31859,
+      "sha256": "e47ec9eb30c91dcad6be9f6e9466190d9040681392037c0811cd1f41bf2a8a85"
+    },
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php": {
+      "bytes": 3054,
+      "sha256": "58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66"
+    },
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySnapshot.php": {
+      "bytes": 1485,
+      "sha256": "095277dd53d5beacb0775bb46e9d744ab5ebffb73ea30263afa56be67a519b17"
+    },
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php": {
+      "bytes": 16287,
+      "sha256": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922"
+    },
+    "src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php": {
+      "bytes": 1045,
+      "sha256": "7c430f90819470811475c1a9646e9f509d799732ac25f07d5e7831787ef540a4"
+    },
+    "src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php": {
+      "bytes": 1180,
+      "sha256": "35d439ad4d197768c4601e5ac7ece3d14c4cfd6f242c4a07522f4d284952594c"
+    },
+    "src/applications/people/governance/controller/PhorgeOrganizationController.php": {
+      "bytes": 31884,
+      "sha256": "c5666b6a72492844e9d22835de0fff191f60463ceb88cad99e8c13406af22604"
+    },
+    "src/applications/people/governance/query/PhorgeOrganizationQuery.php": {
+      "bytes": 2407,
+      "sha256": "7d0ffd0d6cc39a80e4cdf719f13601c7ee553f9fb8ed4fb1a0a679740feebc5e"
+    },
+    "src/applications/people/governance/service/PhorgeOrganizationEndpoint.php": {
+      "bytes": 7137,
+      "sha256": "5f01cdbdfbcf385d752f24ed71b4f4f9e803f635e5ea880fed1bbac25aa8b42e"
+    },
+    "src/applications/people/governance/service/PhorgeOrganizationRequest.php": {
+      "bytes": 9166,
+      "sha256": "76bcc0f96465adc54a00e3c43fe8394b490e49b7eea8a8fa236274329507a80a"
+    },
+    "src/applications/people/governance/service/PhorgeOrganizationService.php": {
+      "bytes": 77025,
+      "sha256": "7f2a7e30de9f8229810d3c5894d48439f32afdab9df82c9ddbcb7f9d66dcb18f"
+    },
+    "src/applications/people/phid/PhabricatorPeopleUserPHIDType.php": {
+      "bytes": 3530,
+      "sha256": "83f3ca7d3e52c487d560d4b62bc557a4fc5e86284a10ee02a5fe980157073e71"
+    },
+    "src/applications/people/query/PhabricatorPeopleQuery.php": {
+      "bytes": 16670,
+      "sha256": "97ebd060e5bb629b8f062bc8733bc97d50a624c0a1c62c44748e6b436891bee2"
+    },
+    "src/applications/people/storage/PhabricatorUser.php": {
+      "bytes": 44249,
+      "sha256": "1b402225b9ecd675cbe752f7b2d1de9bd05807583bcbc15c1ee58bce1e6822eb"
+    },
+    "src/applications/phid/query/PhabricatorObjectQuery.php": {
+      "bytes": 7292,
+      "sha256": "ef2d695851150515219638d0aab5fbfdc65def6450ccbfaf49e77831c0798dd2"
+    },
+    "src/applications/phid/type/PhabricatorPHIDType.php": {
+      "bytes": 7338,
+      "sha256": "84b59826dbdb0280ef1619f9d01de4e86ab1026422655eed0191cc3eee972514"
+    },
+    "src/infrastructure/cluster/PhabricatorGorgeFileStorageClient.php": {
+      "bytes": 13563,
+      "sha256": "7660ecc409446d321b4781353ac99d7130f31eed6eedcb3b1deff6e5ff31000a"
+    },
+    "support/governance/completion/fixture.php": {
+      "bytes": 27824,
+      "sha256": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b"
+    },
+    "support/governance/completion/pipeline-gorge.php": {
+      "bytes": 14808,
+      "sha256": "ff27390d7a7e5b5c14555758e8b8172fd401bb0dcf51221fe32251b11308fcda"
+    },
+    "support/governance/fixtures/PhorgeGovernanceNativeFixture.php": {
+      "bytes": 17233,
+      "sha256": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e"
+    },
+    "support/governance/native-organization/README.directory-transports.md": {
+      "bytes": 22917,
+      "sha256": "c545bbc814c0f9b265fcccc9594885e047fb09c1a54d08dc2305a13bbf04ce08"
+    },
+    "support/governance/native-organization/directory-avatar-fixture.php": {
+      "bytes": 3778,
+      "sha256": "b660a4a2e4b6e841da2a37724748d380ac0ad36397fa21b681a278951acf20d6"
+    },
+    "support/governance/native-organization/directory-output-origin-fixture.php": {
+      "bytes": 640,
+      "sha256": "be0f147a1eb32396ea63a278da556f1558b8af12f56fe01030ee1d017588c11c"
+    },
+    "support/governance/native-organization/directory-output-origin.php": {
+      "bytes": 4810,
+      "sha256": "7170a2fa5cca287139d6f9e64f189e0f74e407931c4e10973078d811b9f83d0b"
+    },
+    "support/governance/native-organization/directory-restore-progress.php": {
+      "bytes": 3124,
+      "sha256": "1c32b2709cf2dcebd0e9c29d079dce2f5ab2471caeb70320708561021c2d410c"
+    },
+    "support/governance/native-organization/directory-transport-cases.php": {
+      "bytes": 15277,
+      "sha256": "7e232d6423dfd14ce905cf4e9fb899e2ab4d8f5f0090835a51f7f0c39482c933"
+    },
+    "support/governance/native-organization/directory-transport-diagnostic-v1.json": {
+      "bytes": 14714,
+      "sha256": "41ccafe920d8d84665980066d9089c5b6822fd22423db59ef13bed37f30fb26e"
+    },
+    "support/governance/native-organization/directory-transport-diagnostic.php": {
+      "bytes": 2114,
+      "sha256": "80b03b0b29545605d8f342b4169000a4eabe0c03df0b6f776a912ae04e1eb83b"
+    },
+    "support/governance/native-organization/native-cases.php": {
+      "bytes": 12618,
+      "sha256": "b87c5eac435b11ccb158e9922dd0a3c0a561cc8c2ad38a0ab68e6ef2891eaedc"
+    },
+    "support/governance/native-organization/privacy-cases.php": {
+      "bytes": 6592,
+      "sha256": "1aed59aa5fbfb442f9b5ceebc036844d5db2dd66a0b1839f3729598ee128f31b"
+    },
+    "support/governance/native-organization/route-cases.php": {
+      "bytes": 8117,
+      "sha256": "825a97d46b65b1b7cad98e3d1fe2d90931a35631d31ce9b6b62ed23ecba45d65"
+    },
+    "support/governance/native-organization/test-directory-transports-v1-mysql.php": {
+      "bytes": 39570,
+      "sha256": "37f7bf6da26affaee1b418d0ff319cb6d6e090c9443945a66a2ac53ec4eb89d2"
+    },
+    "support/governance/native-organization/test-native-organization-mysql.php": {
+      "bytes": 39675,
+      "sha256": "12f3da8ac1ff4f0eda73200a28247add24066378c9295cb10f23339d6bf589c7"
+    },
+    "support/runtime/php-version.php": {
+      "bytes": 596,
+      "sha256": "4d363adfcaf8a6f70221d03d23dd6a789afacd428b218bbe4d79639012fe850e"
+    },
+    "tests/atomic/build_directory_file.py": {
+      "bytes": 1881,
+      "sha256": "3274f1fc434fdcaac7e16df68088d81483be78da464955c43d6c3033e3980c38"
+    },
+    "tests/atomic/build_gorge.py": {
+      "bytes": 3276,
+      "sha256": "dfe6348098659874f9cee4ce1d679df2e5639e1e1d7a458743b2e26b5449dee4"
+    },
+    "tests/atomic/check_pair.py": {
+      "bytes": 1277,
+      "sha256": "7c4eade458fed85c1b9c340205ef4ca9644bc9ce25f82b6a49771621304c36aa"
+    },
+    "tests/atomic/paired-gorge.json": {
+      "bytes": 149,
+      "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
+    },
+    "tests/governance/test_calendar_conduit_union.py": {
+      "bytes": 9302,
+      "sha256": "1b7a7eccda85748728b0cef14edf88b823ae965e55ad037b5ebff0a9ef7577fb"
+    },
+    "tests/governance/test_directory_avatar_fixture.py": {
+      "bytes": 4915,
+      "sha256": "9d6e6a5f00e7462f99fe7bb5eb40970c582b60c7d420be4e60cced40723cf0cb"
+    },
+    "tests/governance/test_directory_file_build.py": {
+      "bytes": 2127,
+      "sha256": "6ef0bfb66fd31717f5206e8b5c44372b992cf5b18aa654c9d7c7f2884739aef0"
+    },
+    "tests/governance/test_directory_output_hints.py": {
+      "bytes": 5638,
+      "sha256": "00055409c4751ae0f81ce2fe020d863af42e5f1af9e8d16f8c938ec4673bb643"
+    },
+    "tests/governance/test_directory_output_origin.py": {
+      "bytes": 6773,
+      "sha256": "06e6b3365237fc948811eefe51f6f6834cfc873fc24284f6ad92d421d0483642"
+    },
+    "tests/governance/test_directory_restore_progress.py": {
+      "bytes": 6813,
+      "sha256": "af8f44e98172d47f97cdbe416f0964f987b9def872d78cf823d302c70267e516"
+    },
+    "tests/governance/test_directory_terminal_failure_v1.py": {
+      "bytes": 8685,
+      "sha256": "ebe07a114792a73800a0a73a83daad2617edee199b02e4e64c33b1b43b9fab4b"
+    },
+    "tests/governance/test_directory_transport_failure_v1.py": {
+      "bytes": 7955,
+      "sha256": "ce32e4c33ee51a33bb92ef7b45a64640201075d5d2102fae68a0cc8d01d33783"
+    },
+    "tests/governance/test_directory_transports.py": {
+      "bytes": 4527,
+      "sha256": "a9cdf62c0696832860712dc5f35f1dc4925f9a088f0b50f15024da01b5b18773"
+    },
+    "tests/governance/test_directory_transports_receipt_v1.py": {
+      "bytes": 10413,
+      "sha256": "a4ee1ecb3a8f9bfd11b5d9ac23522131c6424352c40764b814445514f5b47cd4"
+    }
+  }
+}
