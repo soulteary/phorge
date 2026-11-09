@@ -62,7 +62,7 @@ N01–N04, browser, performance, all-source or activation approval.
 
 ## Versioned source and CI binding
 
-`tests/governance/native-directory-transports-source-v1.json` fixes thirty-two exact
+`tests/governance/native-directory-transports-source-v1.json` fixes thirty-six exact
 source/dependency roles and the entire Git149 `src`/`resources` inventory. The v1
 consumer requires its literal keyset, file lengths/digests, unchanged production
 Git inventory and current worktree. In CLI mode every selected file and the
@@ -88,3 +88,58 @@ Native stderr is outside that upload tree; failure is nonzero and does not
 publish an accepted artifact. No production credentials or deployment input are
 used. The workflow is source-only until Root publishes the candidate and actual
 CI completes. Its MySQL service and runtime setup are not executed locally here.
+
+
+## Safe failure observability successor
+
+PR135's initial candidate703 exited nonzero in the actual SQL step; its
+success-only artifact contained no failure detail. The cause is not inferred
+from that exit. This successor does not change matrix behavior or make the
+failed run pass. The fixed CLI catch and existing cleanup-error callback emit a
+separate bounded diagnostic marker containing only an allowlisted exception
+class, repository-relative PHP source path, positive line number and fixed
+progress label. Unknown classes/stages and outside paths use explicit fixed
+fallbacks. No message, stack, arguments, SQL, DSN, username, session or token is
+emitted by this helper. Its optional diagnostic failure cannot replace the
+original exception/failure state.
+
+The failure projector reads at most1MiB from a held, regular, single-link,
+NOFOLLOW/nonblocking stderr FD with a final identity/stamp check. It ignores
+unmarked raw lines without copying them, then strictly validates every marker's
+six fields, literal class/stage allowlists, current Git-tracked regular PHP path
+and actual public file line bound. Escapes, absolute/private/untracked paths,
+extra/missing/duplicate fields, duplicate markers, trailing payload and oversized
+input fail. At most eight distinct primary/cleanup clues can be projected. A
+source-unknown clue has line0. These are debugging clues, not independently
+attested causes or SQL acceptance.
+
+Only after the projector's current-source admission and validation succeeds
+does the workflow publish `native-directory-safe-failure-v1/diagnostic.json` on
+failure. Raw native stderr and failed integration.json are never uploaded or
+printed; no `cat` of stderr exists. The original native nonzero exit is retained.
+An absent/invalid marker yields no diagnostic artifact, not a guessed result.
+The old success consumer and acceptance criteria are unchanged. The source
+inventory is versioned with the four added diagnostic roles (36total); old
+maps/consumers and the original driver stay immutable.
+
+Eight additional local tests include a real native request-normalizer exception
+through the PHP diagnostic helper and Python projector, message/canary refusal,
+path/key/type/stage injection negatives and actual FIFO/symlink/hardlink/size
+refusals. These plus the existing15 local methods are source/host evidence only;
+no SQL/remote execution or root-cause claim is made by this change.
+
+### Preserve the native exit if workflow-output metadata cannot be appended
+
+The first diagnostic successor had an unguarded `GITHUB_OUTPUT` append under
+Bash errexit. A failed append could replace native exit37 with exit1. This narrow
+successor guards the optional append (including an unset/empty variable) so the
+handler always reaches its original `exit "$native_status"`. It neither changes
+the SQL fixture nor treats a missing diagnostic output as native success.
+
+Five pure-shell tests extract the actual workflow handler. A successful
+projector is an explicit test collaborator; native37, Bash `set -euo pipefail`,
+mkdir/mv and the output append are real own-filesystem operations. The old
+unguarded line is reconstructed only in the red control and actually returns1;
+new unset/empty/directory/valid output cases all return37. No SQL/projector
+runtime acceptance is inferred from the shell collaborator. The previous
+source and test freeze stays unchanged.

@@ -50,6 +50,7 @@ jobs:
         run: |
           python3 -B -m unittest discover -s tests/governance -p test_directory_transports.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_transports_receipt_v1.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_transport_failure_v1.py -v
       - name: Configure only disposable MySQL prerequisite
         env:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
@@ -57,6 +58,7 @@ jobs:
         run: |
           docker exec -e MYSQL_PWD "$MYSQL_CONTAINER" mysql --user=root --execute="SET GLOBAL sql_mode = 'STRICT_ALL_TABLES'; SET GLOBAL log_bin_trust_function_creators = 1"
       - name: Real selected native matrix and strict source/receipt replay
+        id: directory-sql
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
@@ -67,7 +69,17 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD=directory-transports-disposable-only \
-          php support/governance/native-organization/test-directory-transports-v1-mysql.php --directory-transports > "$RUNNER_TEMP/directory-transports-v1/integration.json" 2> "$RUNNER_TEMP/directory-transports-native.private.stderr"
+          php support/governance/native-organization/test-directory-transports-v1-mysql.php --directory-transports > "$RUNNER_TEMP/directory-transports-v1/integration.json" 2> "$RUNNER_TEMP/directory-transports-native.private.stderr" || {
+            native_status=$?
+            if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+                if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
+                  if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
+                fi
+              fi
+            fi
+            exit "$native_status"
+          }
           test ! -s "$RUNNER_TEMP/directory-transports-native.private.stderr"
           python3 -B scripts/governance/check_directory_transports_v1.py --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json"
           mv "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" "$RUNNER_TEMP/directory-transports-v1/accepted.json"
@@ -76,4 +88,10 @@ jobs:
         with:
           name: native-directory-transports-v1-php-8.5.12
           path: ${{ runner.temp }}/directory-transports-v1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.directory-sql.outputs.safe_diagnostic_owned == 'true'
+        with:
+          name: native-directory-safe-failure-v1
+          path: ${{ runner.temp }}/directory-transports-safe-failure-v1/diagnostic.json
           if-no-files-found: error

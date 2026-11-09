@@ -4,20 +4,24 @@
   "production_git_tree_inventory_sha256": "f55c3299246476417b065d3ffeecc58b22c372fd24e1319d06bc3bc98c6b7203",
   "pins": {
     ".github/workflows/native-directory-transports-v1.yml": {
-      "bytes": 4269,
-      "sha256": "713ed67169e0055e9a8a684a0feea207751316e800a7976fbd0443df87e08469"
+      "bytes": 5485,
+      "sha256": "ed65f651f3732cb5778562782a79d3035a2c03e73588ae1fa70c2293756d61cd"
     },
     "scripts/governance/check_completion.py": {
       "bytes": 16569,
       "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
     },
     "scripts/governance/check_directory_transports_v1.py": {
-      "bytes": 12177,
-      "sha256": "79eb0e4fb87c55f29d1362762b268d60b6971697def86bb4cbf9410adb4ec212"
+      "bytes": 12458,
+      "sha256": "cc644e609370a93f76f8f53b9ae4402c12602e326b7fab5a6c9492308d51e1e5"
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
       "sha256": "fe17940d22092e0813f30ec5b4cba7c0a66d567366c05f7e3536557303c45214"
+    },
+    "scripts/governance/project_directory_transport_failure_v1.py": {
+      "bytes": 3916,
+      "sha256": "fce03b6447434ca6d2a37662eab675f4687b4b7e87bfa2f21a9edb8a1ce9f189"
     },
     "src/applications/conduit/call/ConduitCall.php": {
       "bytes": 4275,
@@ -92,12 +96,20 @@
       "sha256": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e"
     },
     "support/governance/native-organization/README.directory-transports.md": {
-      "bytes": 6060,
-      "sha256": "b37625c12145c1f47fd64d659920129f9ca1e9f18555fd7706cdb955ec3bdcb9"
+      "bytes": 9440,
+      "sha256": "72839d2e933fceb1c17c4805753e4eef01dffa64e3a76f7b642230c7c1f8a320"
     },
     "support/governance/native-organization/directory-transport-cases.php": {
       "bytes": 15112,
       "sha256": "695c3d7da710d5632bb52780dd076b45a625d5a1784a1ac2156dd9e1706165bb"
+    },
+    "support/governance/native-organization/directory-transport-diagnostic-v1.json": {
+      "bytes": 13988,
+      "sha256": "415f9f6539489cc920009f445dcd9f7fde9240646b66761d4bfa869e5389f061"
+    },
+    "support/governance/native-organization/directory-transport-diagnostic.php": {
+      "bytes": 1585,
+      "sha256": "c8cbbfc4dd77d2e03d0001650e1e802f7ab10ca8e11d46cac0e438831f1a9ba6"
     },
     "support/governance/native-organization/native-cases.php": {
       "bytes": 12618,
@@ -112,8 +124,8 @@
       "sha256": "825a97d46b65b1b7cad98e3d1fe2d90931a35631d31ce9b6b62ed23ecba45d65"
     },
     "support/governance/native-organization/test-directory-transports-v1-mysql.php": {
-      "bytes": 38321,
-      "sha256": "837508a26079799dd23283430a4aa46f683dc69df79a7de97cbbdb14f3f12c88"
+      "bytes": 38535,
+      "sha256": "61e4cae390c70f9d79ee509592264a30109837590cd4e728fd1a0a19bb4eb40a"
     },
     "support/governance/native-organization/test-native-organization-mysql.php": {
       "bytes": 39675,
@@ -122,6 +134,10 @@
     "support/runtime/php-version.php": {
       "bytes": 596,
       "sha256": "4d363adfcaf8a6f70221d03d23dd6a789afacd428b218bbe4d79639012fe850e"
+    },
+    "tests/governance/test_directory_transport_failure_v1.py": {
+      "bytes": 7955,
+      "sha256": "ce32e4c33ee51a33bb92ef7b45a64640201075d5d2102fae68a0cc8d01d33783"
     },
     "tests/governance/test_directory_transports.py": {
       "bytes": 4527,

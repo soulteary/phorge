@@ -2,6 +2,7 @@
 
 require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
+require_once __DIR__.'/directory-transport-diagnostic.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phase=$arguments===array('--directory-transports')?'directory-transports':'invalid';
@@ -364,6 +365,7 @@ try {
   $attempt=$phase==='recovery-partial-composition'?($GLOBALS['governance_recovery_partial_attempt']??null):null;
   $failure = array('stage'=>is_string($attempt)?$attempt:$stage,'error_type'=>get_class($error),
     'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
+  governance_directory_transport_emit_failure($error,$root,$stage);
   if($phase==='recovery-partial-composition'&&isset($GLOBALS['governance_recovery_partial_source_difference'])) {
     $failure['source_difference']=governance_recovery_partial_source_projection($GLOBALS['governance_recovery_partial_source_difference']);
   }
@@ -412,7 +414,8 @@ try {
     }
   }
 
-  $cleanup_error = function($stage,$error) use (&$cleanup_failures) {
+  $cleanup_error = function($stage,$error) use (&$cleanup_failures,$root) {
+    governance_directory_transport_emit_failure($error,$root,$stage,'cleanup');
     $cleanup_failures[] = array('stage'=>$stage,'error_type'=>get_class($error),
       'source_file'=>basename($error->getFile()),'source_line'=>$error->getLine());
   };
