@@ -54,13 +54,14 @@ class CurrentMainIntegration(MediaRemote):
    self.assertEqual(len(inputs),count)
    for name,pin in inputs.items():
     import recovery_worker_terminal_delta as worker_terminal
-    self.assertEqual(hashlib.sha256(worker_terminal.reduce_if_selected(name,(ROOT/name).read_bytes())).hexdigest(),pin,name)
+    import recovery_oauth_code_source_delta as code_delta
+    self.assertEqual(hashlib.sha256(worker_terminal.reduce_if_selected(name,code_delta.reduce_if_selected(name,(ROOT/name).read_bytes()))).hexdigest(),pin,name)
   changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72','--','src','resources'],text=True).splitlines()
   name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
   policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
   import recovery_conduit_source_delta as conduit_delta
   import recovery_assessment_source_delta as assessment_delta
-  extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)
+  extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)
   map_path='src/__phutil_library_map__.php'
   expected={name,policy}|extra
   if map_path in changed:expected.add(map_path)

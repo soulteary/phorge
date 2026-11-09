@@ -1,4 +1,5 @@
 """Strict isolated borrowed real-store OAuth INSERT compatibility, never a production provider."""
+import recovery_oauth_code_coordinator_delta as code_coord
 import argparse,hashlib,json,os,re,stat
 import recovery_worker_terminal_delta as worker_terminal
 import recovery_conduit_source_delta as calendar_delta
@@ -29,9 +30,10 @@ def read_source_checked(path):
  finally:os.close(fd)
 
 def SQL_obligations(root=ROOT):
+ code_coord.assert_cohort(root,read_source_checked)
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
-  raw=worker_terminal.reduce_if_selected(relative,read_source_checked(Path(root)/relative))
+  raw=worker_terminal.reduce_if_selected(relative,code_coord.source_view(relative,read_source_checked(Path(root)/relative)))
   if relative=='support/governance/native-organization/test-native-organization-mysql.php' and hashlib.sha256(raw).hexdigest()!=pin:
    raw=calendar_delta.reduce_calendar_wire_union(raw)
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed borrowed source changed')

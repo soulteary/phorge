@@ -149,7 +149,7 @@ function governance_recovery_restore_review_cases($fixture,callable $check) {
     $before=$fingerprint();$preview=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
     $repeat_preview=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
     $preview_keys=array_keys($preview);sort($preview_keys,SORT_STRING);
-    $check($before===$fingerprint()&&$preview['source_schema_version']===4&&
+    $check($before===$fingerprint()&&$preview['source_schema_version']===5&&
       strlen($preview['source_digest'])===64&&count($preview['incomplete_families'])===13&&
       $preview['preview_is_authorization']===false&&$preview['restoration_authorized']===false&&$repeat_preview===$preview&&
       $preview_keys===array('category','expires_at','families','incomplete_families','permit_state',

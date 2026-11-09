@@ -4,16 +4,16 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 class AssessmentCredentials(unittest.TestCase):
  def run_case(self,mode):
-  p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/assessment-credential-owner-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=15)
+  p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/assessment-oauth-code-owner-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=15)
   self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');d=json.loads(p.stdout);self.assertFalse(d['physical_SQL_executed']);return d
- def test_real_assessment_reads_three_actual_participants_under_only_store_owner(self):
-  d=self.run_case('good');self.assertIsNone(d['error']);self.assertEqual((d['opens'],d['commits'],d['rollbacks']),(1,1,0));self.assertEqual(set(d['reads']),{'session','conduit','oauth-access'})
-  b=d['facts']['before'];self.assertEqual(b['schema_version'],4);self.assertEqual(len(b['families']),13);self.assertTrue(all(not f['complete']for f in b['families'].values()));self.assertTrue(d['facts']['blocked']);self.assertEqual(b['credential_readset']['availability'],'observed-partial');self.assertFalse(b['credential_readset']['production_observer_factory_available']);self.assertFalse(b['restoration_authorized']);self.assertTrue(d['cleanup_proved'])
+ def test_real_assessment_reads_four_actual_participants_under_only_store_owner(self):
+  d=self.run_case('good');self.assertIsNone(d['error']);self.assertEqual((d['opens'],d['commits'],d['rollbacks']),(1,1,0));self.assertEqual(set(d['reads']),{'session','conduit','oauth-access','oauth-code'})
+  b=d['facts']['before'];self.assertEqual(b['schema_version'],5);self.assertEqual(len(b['families']),13);self.assertTrue(all(not f['complete']for f in b['families'].values()));self.assertTrue(d['facts']['blocked']);self.assertEqual(b['credential_readset']['availability'],'observed-partial');self.assertFalse(b['credential_readset']['production_observer_factory_available']);self.assertFalse(b['restoration_authorized']);self.assertTrue(d['cleanup_proved'])
  def test_each_real_source_change_changes_next_owner_assessment_binding(self):
-  for name in ['session','conduit','oauth-access']:
+  for name in ['session','conduit','oauth-access','oauth-code']:
    d=self.run_case('next-'+name);self.assertIsNone(d['error']);before=d['facts']['before'];after=d['facts']['after']['binding'];self.assertNotEqual(d['facts']['digest'],d['facts']['after']['digest']);changed=[k for k in before['credential_readset']['sources']if before['credential_readset']['sources'][k]!=after['credential_readset']['sources'][k]];self.assertEqual(changed,[name]);self.assertEqual(d['commits'],2)
  def test_real_store_review_recapture_refuses_each_stale_selected_source(self):
-  for name in ['session','conduit','oauth-access']:
+  for name in ['session','conduit','oauth-access','oauth-code']:
    d=self.run_case('stale-'+name);self.assertEqual(d['error'],'recovery_restore_sources_stale');self.assertEqual((d['opens'],d['commits'],d['rollbacks']),(2,1,1));self.assertTrue(d['cleanup_proved'])
  def test_same_owner_changes_and_unsupported_reads_fail_closed_without_downgrade(self):
   for mode in ['mutate-session','mutate-conduit','mutate-oauth-access','unsupported-conduit','unsupported-oauth-access','budget-conduit','budget-oauth-access']:
@@ -31,11 +31,11 @@ class AssessmentCredentials(unittest.TestCase):
    elif kind=='scope':x['sources']['conduit']['scope']='all-api'
    elif kind=='complete':x['complete']=True
    elif kind=='factory':x['production_observer_factory_available']=True
-   elif kind=='version':x['provider_schema']=2
+   elif kind=='version':x['provider_schema']=3
    elif kind=='absence':x['availability']='production-observer-unavailable'
    cases.append(b)
   code="require$argv[1].'/support/runtime/src/object/Phobject.php';require$argv[1].'/src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php';$out=[];foreach(json_decode(stream_get_contents(STDIN),true)as$x){try{$out[]=PhorgeRecoveryRestoreRequest::sourceVersion($x);}catch(Throwable$e){$out[]=false;}}echo json_encode($out);"
-  p=subprocess.run(['php','-r',code,str(ROOT)],input=json.dumps([r]+cases),capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),[4]+[False]*len(cases))
+  p=subprocess.run(['php','-r',code,str(ROOT)],input=json.dumps([r]+cases),capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),[5]+[False]*len(cases))
  def test_unknown_observer_events_retain_owner_and_caught_read_failure_cannot_commit(self):
   for mode in ['unknown-begin','unknown-end']:
    d=self.run_case(mode);self.assertIsNotNone(d['error']);self.assertFalse(d['cleanup_proved']);self.assertTrue(d['retained_owner']);self.assertEqual(d['rollbacks'],1 if mode=='unknown-begin'else 0)

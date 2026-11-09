@@ -1,0 +1,38 @@
+"""Exact signed S1 media source metadata, no SQL or runtime execution."""
+from pathlib import Path
+import ast,hashlib,importlib.util,json,subprocess,sys,unittest
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import recovery_partial_current_schema_delta as partial
+BASE='08453b13afc7980ca485ecf8b4d5094769bb4438'
+TREE='12b8bad06b03bef09bebf67f1770000e55fa9fcb'
+PATH='support/governance/media-session-docker/snapshot.py'
+METADATA={PATH,'support/governance/media-session-ci/project.py','support/governance/media-session-docker/README.md','support/governance/media-session-ci/test_ci.py'}
+class SignedSourceBinding(unittest.TestCase):
+ def git(self,*args):return subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),*args])
+ def test_exact_literal_sites_restore_signed_source_bytes(self):
+  for name in METADATA:
+   raw=(ROOT/name).read_bytes();self.assertEqual(partial.reduce_if_selected(name,raw),self.git('show',BASE+':'+name))
+   with self.assertRaises(ValueError):partial.reduce_if_selected(name,raw+b'\n# unknown edit')
+  self.assertEqual(self.git('rev-parse',BASE+'^{tree}').decode().strip(),TREE)
+  for name in [PATH,'support/governance/media-session-ci/project.py','support/governance/media-session-docker/README.md']:
+   self.assertEqual((ROOT/name).read_text().count(BASE),1);self.assertEqual((ROOT/name).read_text().count(TREE),1)
+ def test_exact_nineteen_pins_from_signed_Git_blobs_and_unchanged_eight_overlay(self):
+  rel='support/governance/media-session-positive/source-pins.json';raw=(ROOT/rel).read_bytes();self.assertEqual(raw,self.git('show',BASE+':'+rel));pins=json.loads(raw);self.assertEqual(len(pins),19)
+  for name,pin in pins.items():
+   source=self.git('show',BASE+':'+name);self.assertEqual((ROOT/name).read_bytes(),source);self.assertEqual(hashlib.sha256(source).hexdigest(),pin)
+  def overlay(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='OVERLAY'for t in n.targets))
+  current=overlay((ROOT/PATH).read_bytes());self.assertEqual(len(current),8);self.assertEqual(current,overlay(self.git('show',BASE+':'+PATH)))
+  for name,pin in current.items():self.assertEqual(hashlib.sha256((ROOT/name).read_bytes()).hexdigest(),pin)
+ def test_exact_signed_raw_Git_inventory_count_is_9184(self):
+  spec=importlib.util.spec_from_file_location('partial_media_count_snapshot',ROOT/PATH);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+  entries,provenance=module.base_entries(ROOT)
+  for name in module.OVERLAY:entries.setdefault(name,None)
+  self.assertEqual(len(entries),9184);self.assertEqual(provenance['root_tree'],TREE)
+ def test_all_other_fixture_runtime_and_source_guards_byteexact_signed_source(self):
+  paths=self.git('ls-tree','-r','--name-only',BASE,'--','support/governance/media-session-ci','support/governance/media-session-docker','support/governance/media-session-positive').decode().splitlines();self.assertGreaterEqual(len(paths),17)
+  for name in paths:
+   raw=(ROOT/name).read_bytes()
+   if name in METADATA:raw=partial.reduce_if_selected(name,raw)
+   self.assertEqual(raw,self.git('show',BASE+':'+name),name)
+if __name__=='__main__':unittest.main()

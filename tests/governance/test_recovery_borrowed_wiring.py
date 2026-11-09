@@ -1,4 +1,5 @@
 """Actual selector/native role methods/whole finally/public receipt controls, no SQL."""
+from recovery_oauth_code_test_cohort import complete_source_cohort
 from pathlib import Path
 import subprocess,json,unittest,itertools,sys,copy,hashlib,tempfile
 ROOT=Path(__file__).resolve().parents[2]
@@ -80,6 +81,7 @@ class BorrowedWiring(unittest.TestCase):
    root=Path(tmp).resolve(strict=True)
    for relative in gate.SOURCE_INPUTS:
     dst=root/relative;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/relative,dst)
+   complete_source_cohort(root)
    self.assertEqual(len(gate.SQL_obligations(root)),6)
    path=root/'support/governance/recovery/project-source-focused.php';path.write_bytes(path.read_bytes()+b'\n// corruption negative control\n')
    with self.assertRaisesRegex(ValueError,'reviewed borrowed source changed'):gate.SQL_obligations(root)

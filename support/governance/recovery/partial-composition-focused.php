@@ -12,14 +12,18 @@ function governance_recovery_partial_composition_focused($fixture,callable $chec
   require_once __DIR__.'/restore-review-cases.php';
   $checks=array();
   $record=static function($condition,$name)use($check,&$checks){
-    if($condition!==true||!is_string($name)||isset($checks[$name])){
+    $known=is_string($name)&&in_array($name,governance_recovery_partial_composition_expected_checks(),true);
+    if($condition!==true||!$known||isset($checks[$name])){
+      // Fixed allowlist only: do not report the previous successful condition,
+      // and never export a caller-supplied or credential-bearing label.
+      $GLOBALS['governance_recovery_partial_attempt']=$known?$name:'focused-native-recovery-partial-composition';
       throw new RuntimeException('recovery_partial_case_result_refused');}
     $checks[$name]=true;$check($condition,$name);
   };
   $result=governance_recovery_restore_review_cases($fixture,$record);
   governance_recovery_partial_composition_validate_result($result,array_keys($checks));
-  return array('profile'=>'native-recovery-partial-composition-file-v3-assessment-readset','source_revision'=>$revision,
-    'assessment_schema'=>4,'actual_current_writer_adapters'=>array('application-config','policy','project-relationships','spaces'),
+  return array('profile'=>'native-recovery-partial-composition-file-v4-assessment5-readset2','source_revision'=>$revision,
+    'assessment_schema'=>5,'credential_readset_schema'=>2,'actual_current_writer_adapters'=>array('application-config','policy','project-relationships','spaces'),
     'Task_File_owned_RR_combined'=>false,'complete'=>false,'all_sources_complete'=>false,
     'restoration_authorized'=>false,'production_activation'=>false);
 }
@@ -30,7 +34,15 @@ function governance_recovery_partial_composition_validate_result($result,array $
     'restoration_executed'=>false,'all_sources_complete'=>false,'production_activation'=>false);
   if(!is_array($result)){throw new RuntimeException('recovery_partial_case_result_refused');}
   ksort($result,SORT_STRING);ksort($expected_result,SORT_STRING);
-  $expected_checks=array(
+  $expected_checks=governance_recovery_partial_composition_expected_checks();
+  sort($checks,SORT_STRING);sort($expected_checks,SORT_STRING);
+  if($result!==$expected_result||$checks!==$expected_checks){
+    throw new RuntimeException('recovery_partial_case_result_refused');}
+}
+
+/** Exactly the native fixed case labels; never accepts incoming labels. */
+function governance_recovery_partial_composition_expected_checks() {
+  return array(
     'recovery-partial-real-config-source-change-invalidates-durable-preview',
     'recovery-partial-real-policy-budget-fails-closed-without-review-write',
     'recovery-partial-real-policy-row-addition-invalidates-durable-review',
@@ -52,7 +64,4 @@ function governance_recovery_partial_composition_validate_result($result,array $
     'recovery-restore-requester-cannot-self-review',
     'recovery-restore-retained-database-review-refused-after-external-incarnation-change',
     'recovery-restore-submit-ledger-replay-no-second-audit');
-  sort($checks,SORT_STRING);sort($expected_checks,SORT_STRING);
-  if($result!==$expected_result||$checks!==$expected_checks){
-    throw new RuntimeException('recovery_partial_case_result_refused');}
 }

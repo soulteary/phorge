@@ -1,4 +1,5 @@
 """Real store/participant code with explicit host SQL collaborators; no physical proof."""
+from recovery_oauth_code_test_cohort import complete_source_cohort
 from pathlib import Path
 import subprocess,json,unittest,sys
 ROOT=Path(__file__).resolve().parents[2]
@@ -46,10 +47,11 @@ class BorrowedSession(unittest.TestCase):
    fresh=Path(tmp).resolve()
    for path in gate.SOURCE_INPUTS:
     p=fresh/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/path).read_bytes())
+   complete_source_cohort(fresh)
    gate.validate(data,fresh)
    for path in gate.SOURCE_INPUTS:
     p=fresh/path;raw=p.read_bytes();p.write_bytes(raw+b'CORRUPTION')
-    with self.assertRaisesRegex(ValueError,'source bytes changed'):gate.validate(data,fresh)
+    with self.assertRaisesRegex(ValueError,'source bytes changed|mixed or unreviewed OAuth code cohort'):gate.validate(data,fresh)
     p.write_bytes(raw)
  def test_six_physical_cases_call_real_store_and_native_worker_but_are_not_host_pass_claims(self):
   code="require$argv[1].'/support/governance/recovery/borrowed-session-cases.php';echo json_encode(governance_recovery_borrowed_session_obligations());"

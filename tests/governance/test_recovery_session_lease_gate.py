@@ -1,4 +1,5 @@
 """Strict actual public CLI tampering controls; receipts are synthetic, no SQL."""
+from recovery_oauth_code_test_cohort import complete_source_cohort
 from pathlib import Path
 import copy,hashlib,importlib.util,json,os,subprocess,sys,tempfile,unittest
 import test_recovery_partial_composition_gate as previous
@@ -33,6 +34,7 @@ class SessionGate(unittest.TestCase):
    root=Path(temp).resolve()
    for name in gate.SOURCE_INPUTS:
     p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes())
+   complete_source_cohort(root)
    self.assertEqual(gate.SQL_obligations(root),gate.SQL_obligations())
    for name in ('support/governance/native-organization/native-cases.php','support/governance/recovery/session-lease-cases.php','support/governance/recovery/session-lease-observer.php','src/applications/auth/storage/PhabricatorAuthSession.php'):
     p=root/name;old=p.read_bytes();p.write_bytes(old+b'\n// unauthorized source drift\n')

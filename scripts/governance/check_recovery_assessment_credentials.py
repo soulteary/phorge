@@ -1,4 +1,5 @@
 """Strict isolated borrowed real-store OAuth INSERT compatibility, never a production provider."""
+import recovery_oauth_code_coordinator_delta as code_coord
 import argparse,hashlib,json,os,re,stat
 from pathlib import Path
 import check_completion as completion
@@ -27,9 +28,10 @@ def read_source_checked(path):
  finally:os.close(fd)
 
 def SQL_obligations(root=ROOT):
+ code_coord.assert_cohort(root,read_source_checked)
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
-  raw=read_source_checked(Path(root)/relative)
+  raw=code_coord.source_view(relative,read_source_checked(Path(root)/relative))
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed Assessment source changed')
   captured[relative]=raw
  text=captured['support/governance/recovery/assessment-credential-cases.php'].decode('utf-8')

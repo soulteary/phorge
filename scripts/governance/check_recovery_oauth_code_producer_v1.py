@@ -1,0 +1,85 @@
+"""Strict isolated borrowed real-store OAuth INSERT compatibility, never a production provider."""
+import recovery_oauth_code_source_delta as code_delta
+import argparse,hashlib,json,os,re,stat
+import recovery_worker_terminal_delta as worker_terminal
+import recovery_conduit_source_delta as calendar_delta
+from pathlib import Path
+import check_completion as completion
+import check_native_organization as native
+import check_recovery_partial_composition as shared
+ROOT=Path(__file__).resolve().parents[2]
+SOURCE_INPUTS={'support/governance/native-organization/native-cases.php': 'b87c5eac435b11ccb158e9922dd0a3c0a561cc8c2ad38a0ab68e6ef2891eaedc', 'src/__phutil_library_map__.php': '935d1248704b581fe294467ee23648138bf73186f8fa7b336f88e057b0cc75b0', 'support/runtime/src/__phutil_library_map__.php': '17f893fa28fa0ec3e5858e522376de40f425d88afbb0028e2140f51619cbdd27', 'support/runtime/manifest.json': '5f3168f23959a240d4323f9fa882237a1e41fa164807665ea6268ece8b70ba95', 'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': '9768d57571cf5bed871d1e4a48899453e04a948570bf9501194ca1a5afa236a1', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreProfile.php': '663938f8481b9d59998a82c6c648a4628d7db8a25bbfd48cf966f933e28b21cb', 'src/applications/auth/storage/PhabricatorAuthSession.php': '8e9efa7fa53676ec28e13d8b3e02a99096894ebf05f53fdd6366d9199d212a56', 'src/applications/auth/engine/PhabricatorAuthSessionEngine.php': '81372aff5539c88d79d3a0f91af409b75fed91432eb137f65ae0621d3efb97ef', 'support/governance/completion/fixture.php': 'f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b', 'support/governance/completion/pipeline-gorge.php': 'ff27390d7a7e5b5c14555758e8b8172fd401bb0dcf51221fe32251b11308fcda', 'support/governance/recovery/session-lease-focused.php': '35987c1398aa7fc134c8cb7864cd4619722f644a95a65164faf7b0e972a5d090', 'support/governance/recovery/session-lease-diagnostic.php': 'c9fe7c4d3160be80eee2a869d37db8e1654cbf99fe7698b0aca27f117d60cbe4', 'support/governance/recovery/session-lease-observer.php': '1c321303ee1618025d25bc4702fc7218573a85921df7dc9907d9d3618d226e72', 'support/governance/recovery/session-lease-cases.php': '126b9dbe10f93b4f41f6207800aca3ab25f0a3fac4b7538f2d8bd86e37f109b3', 'support/governance/recovery/task-owner-source-cases.php': '56ccc81c0b5dcb664484862f93bc8e14df4dcd9a10db27de3f20469a2355d7a1', 'support/governance/recovery/account-cases.php': '18692fa80a4f52dae9009b4103499949644499365e582cb689752989a9d126a7', 'support/governance/native-organization/native-worker.php': '14860aa459cdf4834d108a20f776a33b67740fad3da1fe6129da36b50202baf7', 'support/governance/native-organization/workers.php': '07df892319f7eaac68bde2181df05e067190336334085620875bc05fabeefcbc', 'support/governance/native-organization/test-native-organization-mysql.php': '12f3da8ac1ff4f0eda73200a28247add24066378c9295cb10f23339d6bf589c7', 'support/governance/recovery/project-source-focused.php': '8528452412088a02c8f87d4bc06473f9f2af49daf7d72f189b674e82eabfabf4', 'src/applications/files/builtin/PhabricatorFilesComposeAvatarBuiltinFile.php': 'ba6828a206f57ad53a70659a59d8375e239e85f8b2d837904c20a1b1a41b86f0', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php': '6620f86ae47bc330cef5d8bd3be2c25f61212797eaddf4f024a9534d41172d7d', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreSchemaSpec.php': 'e5a596d8e7c2b2ca148ecdcdb2a4ae7908b90e4262a538eb55afab26c1937fbf', 'src/applications/people/storage/PhabricatorUser.php': '1b402225b9ecd675cbe752f7b2d1de9bd05807583bcbc15c1ee58bce1e6822eb', 'src/infrastructure/governance/consistency/PhorgeGovernanceNativeRuntimeProfile.php': '7f9e7d98ff96577653186f458b288f6a56a9f38968e0e2a20c3bdef005941824', 'support/governance/recovery/borrowed-session-focused.php': 'edf99247ab931cbd8baa84c0226d5721ae50e66a26d2b153b0fd3cdffefaa988', 'support/governance/recovery/borrowed-session-cases.php': 'a8791d8508b399775dd2244cc9c8f0db07a56a4bb916cf52a1cbce972c89bd31', 'support/governance/recovery/borrowed-session-observer.php': '89adc88560855248c128625e5acb2ca12ae30e222d4ee01d2dcd283f82a34383', 'support/governance/recovery/borrowed-session-diagnostic.php': 'fa92eac7fdef7bfec9285af28f8923edd64ca10d2f4637f1abada460f300cc3d', 'support/governance/recovery/borrowed-session-producer.php': 'c2c3259df33273d92de3b23d3631ce031de1046f043b495e9651e8e1a1a8e970', 'src/applications/conduit/storage/PhabricatorConduitToken.php': '6979f97a01b5c24d1d205a23fcb0397270c9159a98e302267cbce09fbf5593e1', 'src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php': 'aac29df4fe2744225b63f6b51ad7c70ca63000a0bd04d0e776704ce64c010abe', 'support/governance/recovery/conduit-cases.php': 'e9a70140a63cd3f82b861af8e2f125aeccb4ab558cf66e683a4a80350d0c6584', 'support/governance/recovery/conduit-producer.php': '5bb0aa011bb20157e578e347da2e6e8a5e02a1271f77924e90ea01e9ddda2b2d', 'support/governance/recovery/conduit-focused.php': '11129020ae3e8d9d7d212bcc21b3566ce9a1aafaa5162424199e893bb4a02959', 'src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php': '3ed39e16e9c4243019404bfe3030b55aeb49666247938c24c943df182f8eb9a8', 'support/governance/recovery/conduit-diagnostic.php': '061208e77d17363d799ad37cde8540f6ac9acd6d29b097c74f6f0be3e299491d', 'src/applications/oauthserver/PhabricatorOAuthServer.php': '0ac8f3f6676a0312658972df9e1e6c509fba52bd235bb4dcbb5274d21b5cd5fc', 'src/applications/oauthserver/storage/PhabricatorOAuthServerAccessToken.php': '4abee85463c6f49856612ff0df5d1519f5d63c2ab87469587f1b472f6c6d2199', 'src/applications/oauthserver/storage/PhabricatorOAuthServerClient.php': '93b9640e49d0bf4eb657270395c45910f909001a80cf3eb1d7e4b5fb3abe012b', 'support/governance/recovery/oauth-code-diagnostic.php': '646d4b910ed6cada4a83d498198dcf41185035c59aaf938bd59dc9091ef664fe', 'support/governance/recovery/oauth-code-cases.php': '7bbf723e3bbf9c45eb90bb552750172c1fe31f6d7236c92bc520db192500f7ab', 'support/governance/recovery/oauth-code-producer.php': '4b62694f65b4c0e26a18c025846bd3aec4e904dc290c5b05025d4f0478d07205', 'support/governance/recovery/oauth-code-focused.php': 'ca7886b16da666a199b246b8aabf8a7bcd609e22bd672119a11d9cad3459fb88', 'support/governance/native-organization/oauth-code-worker.php': '115c0e8e1960ef2025b008792d8ed54589953558b6a941cbd339a27aafa08acf', 'support/governance/native-organization/oauth-code-workers.php': '368dc98262021cd9400bc3afccde7083b9a57d3e959a65fe48b3a92e7647f9f0', 'support/governance/native-organization/test-oauth-code-owner-mysql.php': 'd02f958583b1bc74a6837cb198c99162d8b0b1f928ec0014d47df4184f6566b9', 'src/applications/oauthserver/storage/PhabricatorOAuthServerDAO.php': 'cde05448f450aa79c099719f6a34ab8ee75aea64682902002e725517dd1ff4c0', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php': 'cf8f98961700c259d40e8032bd0e26374ae4c9a4e446eecccc020cd612b534c4', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php': 'dd475b365776354f015a31f48c747ab45446991cce8eea4bf38afbf24cd01c5a', 'src/applications/oauthserver/storage/PhabricatorOAuthServerAuthorizationCode.php': '36068f9bd492b0c000f6a1ec1c497f1ceda668cc80ff26619a8652782e647829'}
+def read_source_checked(path):
+ path=Path(path);parents=[(p,os.lstat(p))for p in path.parents]
+ if any(not stat.S_ISDIR(v.st_mode)or stat.S_ISLNK(v.st_mode)for _,v in parents):raise ValueError('source parent alias refused')
+ stamp=lambda x:(x.st_dev,x.st_ino,x.st_uid,x.st_gid,x.st_mode,x.st_nlink,x.st_size,x.st_mtime_ns,x.st_ctime_ns)
+ fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+ try:
+  old=os.fstat(fd)
+  if not stat.S_ISREG(old.st_mode)or old.st_uid!=os.getuid()or old.st_nlink!=1 or old.st_mode&0o022 or not 0<old.st_size<=1048576:raise ValueError('bounded owned source required')
+  body=bytearray();remaining=old.st_size
+  while remaining:
+   chunk=os.read(fd,min(65536,remaining))
+   if not chunk:raise ValueError('source short read')
+   body.extend(chunk);remaining-=len(chunk)
+  if stamp(old)!=stamp(os.fstat(fd))or stamp(old)!=stamp(os.lstat(path)):raise ValueError('source changed during capture')
+  for p,was in parents:
+   now=os.lstat(p)
+   if (was.st_dev,was.st_ino,was.st_uid,was.st_gid,was.st_mode)!=(now.st_dev,now.st_ino,now.st_uid,now.st_gid,now.st_mode):raise ValueError('source parent changed')
+  return bytes(body)
+ finally:os.close(fd)
+
+def SQL_obligations(root=ROOT):
+ if not code_delta.assert_cohort(root,read_source_checked):raise ValueError('current OAuth code cohort required')
+ captured={}
+ for relative,pin in SOURCE_INPUTS.items():
+  raw=read_source_checked(Path(root)/relative)
+  if relative=='support/governance/native-organization/test-native-organization-mysql.php' and hashlib.sha256(raw).hexdigest()!=pin:
+   raw=calendar_delta.reduce_calendar_wire_union(raw)
+  if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed borrowed source changed')
+  captured[relative]=raw
+ text=captured['support/governance/recovery/oauth-code-cases.php'].decode('utf-8')
+ prefixes=re.findall(r"'(borrowed-oauth-code-[A-Za-z0-9-]+-)'",text)
+ prefixes={p for p in prefixes if p.endswith(('owner-','resumes-','binding-','InnoDB-'))}
+ if len(prefixes)!=4:raise ValueError('borrowed source obligations changed')
+ return {p+ending for p in prefixes for ending in ('commit','rollback')}
+def obligations(root=ROOT):return shared.BOOTSTRAP|shared.PREPARATION|shared.CLEANUP|SQL_obligations(root)
+def observer_cleanup():return {'owned_observer_removed':True,'owned_observer_SQL_sessions_absent':True,'native_writer_grants_unchanged':True,'cleanup_proved':True}
+def summary(revision):
+ return {'profile':'isolated-borrowed-real-store-oauth-code-owner-v1-dual-writer','oauth_code_only_native_producer':True,'both_owned_native_SQL_threads_observed':True,'owned_child_exit0_proved':True,'child_preflight_committed_before_owner':True,'child_preflight_no_record_locks_observed':True,'continuous_admin_lease_proved':False,'old_covering_positive_query_used':False,'executed_case_obligations':sorted(SQL_obligations()),
+  'real_store_owner_and_native_oauth_code_INSERT':True,'participant_owns_transaction':False,
+  'production_observer_factory_available':False,'business_submit_review_integration_proved':False,
+  'durable_review_compatible':False,'Task_File_RR_combined':False,'all_sources_complete':False,
+  'restoration_authorized':False,'execution_blocked':True,'source_revision':revision,
+  'default_native_User_writer':True,'forced_connection_used':False,
+  'both_native_identity_epochs_prewarmed':True,'observer_cleanup':observer_cleanup(),'all_13_sources_complete':False,'permit':False}
+def exact(a,b):completion.exact(a,b,'Conduit producer evidence refused')
+def validate(data,root=ROOT,*,source_revision,file_digest):
+ if type(source_revision)is not str or not re.fullmatch('[a-f0-9]{40}',source_revision):raise ValueError('source revision required')
+ expected=obligations(root)
+ completion.fields(data,native.FIELDS,'Conduit producer evidence shape refused')
+ for k,v in {'batch':'native-oauth-code-producer-owner','scope':'owned-native-oauth-code-producer-owner-no-permit','passed':True,'php_version':'8.5.12','check_count':len(expected),'failure':None,'cleanup_failures':[],
+  'optional_source_reader_adapter_exercised':True,'isolated_optional_features_enabled':True,'successful_owned_file_service_startups':1,'terminal_failure_cleanup_rollbacks':0,
+  'production_deployment':False,'production_executor':False,'production_optional_features_enabled':False,'native_permission_axes_changed':False}.items():exact(data[k],v)
+ checks=data['checks']
+ if type(checks)is not list or any(type(x)is not str for x in checks)or len(checks)!=len(expected)or len(set(checks))!=len(expected)or set(checks)!=expected:raise ValueError('Conduit producer obligations refused')
+ service=data['file_service_cleanup'];completion.fields(service,{'kind','binary_sha256','process_stopped','private_storage_removed'},'File lifecycle evidence refused')
+ if type(file_digest)is not str or not re.fullmatch('[a-f0-9]{64}',file_digest):raise ValueError('independent binary pin required')
+ exact(service,{'kind':'file','binary_sha256':file_digest,'process_stopped':True,'private_storage_removed':True})
+ exact(data['native'],summary(source_revision))
+ exact(data['worker_cleanup'],{'private_directories_removed':2,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':2})
+ exact(data['cleanup'],{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True})
+ native.validate_restore(data['source_restore'],root);exact(data['remaining_blocked'],native.BLOCKERS)
+ if type(data['captured_native_output_bytes'])is not int or not 0<=data['captured_native_output_bytes']<=65536 or not completion.digest(data['captured_native_output_sha256']):raise ValueError('captured output refused')
+ return {'passed':True,'scope':'isolated-oauth-code-real-store-owner-no-production-provider','source_revision':source_revision,'checks':len(expected),'receipt_version':'native-oauth-code-producer-v1','source_inputs':len(SOURCE_INPUTS),'SQL_obligations':len(SQL_obligations(root)),
+  'production_observer_factory_available':False,'business_submit_review_integration_proved':False,'all_sources_complete':False,'restoration_authorized':False,'execution_blocked':True}
+def main():
+ p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);p.add_argument('--source-revision',required=True);p.add_argument('--file-binary',type=Path,required=True);p.add_argument('--file-binary-sha256',required=True);a=p.parse_args()
+ try:
+  if not re.fullmatch('[a-f0-9]{64}',a.file_binary_sha256)or shared.read_checked(a.file_binary,binary=True)!=a.file_binary_sha256:raise ValueError('independent binary mismatch')
+  def nonfinite(v):raise ValueError('nonfinite')
+  data=json.loads(shared.read_checked(a.receipt),object_pairs_hook=completion.strict_object,parse_constant=nonfinite)
+  result=validate(data,source_revision=a.source_revision,file_digest=a.file_binary_sha256)
+ except (ValueError,OSError,TypeError,KeyError,UnicodeError):raise SystemExit('Conduit producer receipt refused')from None
+ print(json.dumps(result,sort_keys=True))
+if __name__=='__main__':main()
