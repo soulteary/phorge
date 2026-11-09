@@ -8,9 +8,10 @@ Root/CI may run `support/governance/native-organization/test-directory-transport
 `--directory-transports`, using the driver's existing explicit isolated-test and
 private fixture DSN/credential environment. The driver retains its PHP 8.5.12,
 loopback, no deployment selectors/config, owned full source restore, principals,
-writer routing and complete fixture cleanup checks. This phase keeps media
-exchange, notification delivery and all Gorge routes disabled and starts no
-listeners, workers or browser. The original driver is byte-exact Git149 and its default/all phases are unchanged. This v1 entry rejects empty arguments and every other selector. Its existing full restore/cleanup lifecycle is copied from149 with an explicit inverse; the old literal source maps need no repinning.
+writer routing and complete fixture cleanup checks. This successor keeps media exchange,
+notification delivery, uploads, deletion outbox and all non-File Gorge routes
+disabled. It starts exactly one owned loopback core Gorge File storage service
+for real native avatars; no application HTTP listener, worker or browser starts. The original driver is byte-exact Git149 and its default/all phases are unchanged. This v1 entry rejects empty arguments and every other selector. Its existing full restore/cleanup lifecycle is copied from149 with an explicit inverse; the old literal source maps need no repinning.
 No credential belongs in an argument, checked-in file, test output or public log.
 
 The matrix uses five freshly created native accounts and actual native web
@@ -62,7 +63,7 @@ N01–N04, browser, performance, all-source or activation approval.
 
 ## Versioned source and CI binding
 
-`tests/governance/native-directory-transports-source-v1.json` fixes thirty-six exact
+`tests/governance/native-directory-transports-source-v1.json` fixes 57 exact
 source/dependency roles and the entire Git149 `src`/`resources` inventory. The v1
 consumer requires its literal keyset, file lengths/digests, unchanged production
 Git inventory and current worktree. In CLI mode every selected file and the
@@ -74,7 +75,7 @@ consumers remain byte-for-byte unchanged.
 The new workflow `native-directory-transports-v1.yml` runs on every PR and manual
 invocation, uses the existing PHP 8.5.12 / disposable MySQL8 mechanism and two
 standard mapper passes, performs source-only admission **before** the matrix,
-then invokes only the fixed new CLI. It uses no Gorge binary/build or listener.
+then invokes only the fixed new CLI. It uses only the exact paired File fixture described below; no image backend or application listener runs.
 The strict consumer requires all 45 read observations, all five sensitive-action
 negative results, both ordinary-add results, every actual check, the existing
 full restore/migration proof, empty captured native output and completed
@@ -143,3 +144,51 @@ unguarded line is reconstructed only in the red control and actually returns1;
 new unset/empty/directory/valid output cases all return37. No SQL/projector
 runtime acceptance is inferred from the shell collaborator. The previous
 source and test freeze stays unchanged.
+
+
+## Real paired File and native-avatar dependency successor
+
+The actual safe failure on bb5 identified `PhabricatorFile.php:369` after the
+admin projection. Source order puts the first real Conduit call before the Web
+call: native token authentication loads its owner via ObjectQuery, the User PHID
+type requests profile images, and a fresh user's image cache generates/persists a
+native default avatar. With `gorge.file.uri` null, no production engine can write;
+historical PHP blob/local-disk/S3 engines correctly remain read-only. This is a
+missing fixture dependency, not a directory authorization change. The safe clue
+does not include a full runtime trace; the chain is derived from exact149 source.
+
+The new scope is `owned-native-directory-transport-matrix-with-paired-file` and
+its native schema is `native-directory-transports-v1-file-dependency`. Old
+no-File receipts cannot satisfy it. Only this isolated phase binds one fresh
+paired Gorge File service using the existing core fixture start/stop helper.
+The File-only builder reuses exact-pair/clean-checkout checks and the unchanged
+locked-base inspector, but issues only `SERVICE=gorge-file-storage`; it does not
+build the ImageMagick/image service. CI extracts from the inspected immutable
+local File image without starting that extraction container, hashes the actual
+binary, and removes that exact extraction container. Build/pair/bases/image/hash
+provenance is retained. The old general builder and its consumers are unchanged.
+
+All seven synthetic users receive real `updateUser()` avatars. Fresh User and
+File DAOs must agree on the stored profile/version and `gorge` engine. A fresh
+File DAO reads the actual Gorge bytes back; byte size, native content hash and
+actual 400x400 PNG decode must pass. No fake cache, made-up PHID or legacy writable
+engine is used. Native GD remains the existing `legacy` builtin compose mode;
+no ImageMagick/image backend, media exchange, uploads or delivery option is enabled.
+Native authentication may write profile/cache data: these route checks are not a
+claim of globally read-only SQL.
+
+The strict consumer requires all seven avatar witnesses plus 130 actual checks,
+exactly one File startup, actual hashed Linux File binary input and successful
+process/storage cleanup, in addition to the unchanged 45 read observations,
+five sensitive-action denials, two ordinary additions and full SQL cleanup.
+The binary parser's header-only ownFS unit fixture is data admission only, not a
+usable Go program or runtime/source attestation. CI's actual native command and
+paired builder are mandatory for real evidence. Safe failure diagnostics and
+native-exit preservation are retained unchanged apart from the explicit new
+fixed progress labels/source roles.
+
+The static Calendar/Conduit preservation test admits exactly this one new
+workflow path in its diff-set. Its original three workflow checks, production
+source assertions and inverse checks are retained; no wildcard exclusion or
+runtime Calendar phase is used by this change. Actual SQL remains pending the
+next public CI run; the prior failed artifact is preserved and never relabeled.

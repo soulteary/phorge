@@ -14,7 +14,7 @@ class CalendarConduitUnion(unittest.TestCase):
   self.assertEqual(changed,set(assessment.SOURCE_INPUTS))
   for path in changed:self.assertEqual(assessment.reduce_current(path,(ROOT/path).read_bytes()),git('show',previous+':'+path))
   workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
-  self.assertEqual(set(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines()),workflows)
+  self.assertEqual(set(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines()),workflows|{'.github/workflows/native-directory-transports-v1.yml'})
   for path in workflows-{'.github/workflows/assessment-credential-focused.yml'}:
    raw=(ROOT/path).read_bytes();needle=b'check_recovery_oauth_access_producer_v3.py';self.assertEqual(raw.count(needle),1)
    self.assertEqual(raw.replace(needle,b'check_recovery_oauth_access_producer_v2.py'),git('show',previous+':'+path))

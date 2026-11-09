@@ -4,16 +4,16 @@
   "production_git_tree_inventory_sha256": "f55c3299246476417b065d3ffeecc58b22c372fd24e1319d06bc3bc98c6b7203",
   "pins": {
     ".github/workflows/native-directory-transports-v1.yml": {
-      "bytes": 5485,
-      "sha256": "ed65f651f3732cb5778562782a79d3035a2c03e73588ae1fa70c2293756d61cd"
+      "bytes": 9765,
+      "sha256": "96019af9379215c39fb9b7a0d4a4537251580ed11e6ed115cfc21c78507a8274"
     },
     "scripts/governance/check_completion.py": {
       "bytes": 16569,
       "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
     },
     "scripts/governance/check_directory_transports_v1.py": {
-      "bytes": 12458,
-      "sha256": "cc644e609370a93f76f8f53b9ae4402c12602e326b7fab5a6c9492308d51e1e5"
+      "bytes": 16286,
+      "sha256": "328d00e1ec9f83fa7f0d5b784bc754301bc64a32c46ea5171fd29455e28e73bf"
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
@@ -39,9 +39,33 @@
       "bytes": 3162,
       "sha256": "0da7a4499b02cd5eef23a05fdbe9b967b89c8f7110ae29ceb98ac39f8c4a8adf"
     },
+    "src/applications/conduit/query/PhabricatorConduitTokenQuery.php": {
+      "bytes": 2617,
+      "sha256": "ed906a65c6dc7a348643b2305ab74595605835b21f7fa52645e875a7e2deb4bc"
+    },
     "src/applications/conduit/storage/PhabricatorConduitToken.php": {
       "bytes": 6281,
       "sha256": "6979f97a01b5c24d1d205a23fcb0397270c9159a98e302267cbce09fbf5593e1"
+    },
+    "src/applications/files/builtin/PhabricatorFilesComposeAvatarBuiltinFile.php": {
+      "bytes": 10702,
+      "sha256": "ba6828a206f57ad53a70659a59d8375e239e85f8b2d837904c20a1b1a41b86f0"
+    },
+    "src/applications/files/engine/PhabricatorFileStorageEngine.php": {
+      "bytes": 10684,
+      "sha256": "f5aa22459088dbb28cb578b7e32421dbcd0096c99ced2e3475323e8661c624f4"
+    },
+    "src/applications/files/engine/PhabricatorGorgeFileStorageEngine.php": {
+      "bytes": 6930,
+      "sha256": "42ad10e46d1538a79d6caae4a272d160e9e14cb7ceac6296ff912bd9695259ba"
+    },
+    "src/applications/files/storage/PhabricatorFile.php": {
+      "bytes": 57828,
+      "sha256": "3edb7b26258ac2df70ed5e763d7d0f9773bc2565c9fea961d2c6a234ce57240f"
+    },
+    "src/applications/people/cache/PhabricatorUserProfileImageCacheType.php": {
+      "bytes": 3042,
+      "sha256": "e4859f605bb1a68b6c26faa14890800b406f21948cab3968b37f8f3a8082068a"
     },
     "src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php": {
       "bytes": 31859,
@@ -87,25 +111,57 @@
       "bytes": 77025,
       "sha256": "7f2a7e30de9f8229810d3c5894d48439f32afdab9df82c9ddbcb7f9d66dcb18f"
     },
+    "src/applications/people/phid/PhabricatorPeopleUserPHIDType.php": {
+      "bytes": 3530,
+      "sha256": "83f3ca7d3e52c487d560d4b62bc557a4fc5e86284a10ee02a5fe980157073e71"
+    },
+    "src/applications/people/query/PhabricatorPeopleQuery.php": {
+      "bytes": 16670,
+      "sha256": "97ebd060e5bb629b8f062bc8733bc97d50a624c0a1c62c44748e6b436891bee2"
+    },
+    "src/applications/people/storage/PhabricatorUser.php": {
+      "bytes": 44249,
+      "sha256": "1b402225b9ecd675cbe752f7b2d1de9bd05807583bcbc15c1ee58bce1e6822eb"
+    },
+    "src/applications/phid/query/PhabricatorObjectQuery.php": {
+      "bytes": 7292,
+      "sha256": "ef2d695851150515219638d0aab5fbfdc65def6450ccbfaf49e77831c0798dd2"
+    },
+    "src/applications/phid/type/PhabricatorPHIDType.php": {
+      "bytes": 7338,
+      "sha256": "84b59826dbdb0280ef1619f9d01de4e86ab1026422655eed0191cc3eee972514"
+    },
+    "src/infrastructure/cluster/PhabricatorGorgeFileStorageClient.php": {
+      "bytes": 13563,
+      "sha256": "7660ecc409446d321b4781353ac99d7130f31eed6eedcb3b1deff6e5ff31000a"
+    },
     "support/governance/completion/fixture.php": {
       "bytes": 27824,
       "sha256": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b"
+    },
+    "support/governance/completion/pipeline-gorge.php": {
+      "bytes": 14808,
+      "sha256": "ff27390d7a7e5b5c14555758e8b8172fd401bb0dcf51221fe32251b11308fcda"
     },
     "support/governance/fixtures/PhorgeGovernanceNativeFixture.php": {
       "bytes": 17233,
       "sha256": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e"
     },
     "support/governance/native-organization/README.directory-transports.md": {
-      "bytes": 9440,
-      "sha256": "72839d2e933fceb1c17c4805753e4eef01dffa64e3a76f7b642230c7c1f8a320"
+      "bytes": 12785,
+      "sha256": "4df41c67dc3cec9ab3e74bb711599cf1510b175db0f2e34a73e70b574683dc85"
+    },
+    "support/governance/native-organization/directory-avatar-fixture.php": {
+      "bytes": 3778,
+      "sha256": "b660a4a2e4b6e841da2a37724748d380ac0ad36397fa21b681a278951acf20d6"
     },
     "support/governance/native-organization/directory-transport-cases.php": {
-      "bytes": 15112,
-      "sha256": "695c3d7da710d5632bb52780dd076b45a625d5a1784a1ac2156dd9e1706165bb"
+      "bytes": 15277,
+      "sha256": "7e232d6423dfd14ce905cf4e9fb899e2ab4d8f5f0090835a51f7f0c39482c933"
     },
     "support/governance/native-organization/directory-transport-diagnostic-v1.json": {
-      "bytes": 13988,
-      "sha256": "415f9f6539489cc920009f445dcd9f7fde9240646b66761d4bfa869e5389f061"
+      "bytes": 14588,
+      "sha256": "2625882e7898d5ac3575d4cd456e6a8fd865491fec5d5638a602f5a018aa368a"
     },
     "support/governance/native-organization/directory-transport-diagnostic.php": {
       "bytes": 1585,
@@ -124,8 +180,8 @@
       "sha256": "825a97d46b65b1b7cad98e3d1fe2d90931a35631d31ce9b6b62ed23ecba45d65"
     },
     "support/governance/native-organization/test-directory-transports-v1-mysql.php": {
-      "bytes": 38535,
-      "sha256": "61e4cae390c70f9d79ee509592264a30109837590cd4e728fd1a0a19bb4eb40a"
+      "bytes": 38952,
+      "sha256": "c0e226fcfe5481471b87f960e277ec2ed0411e0f0acb5a65d81470d0b17a681a"
     },
     "support/governance/native-organization/test-native-organization-mysql.php": {
       "bytes": 39675,
@@ -134,6 +190,34 @@
     "support/runtime/php-version.php": {
       "bytes": 596,
       "sha256": "4d363adfcaf8a6f70221d03d23dd6a789afacd428b218bbe4d79639012fe850e"
+    },
+    "tests/atomic/build_directory_file.py": {
+      "bytes": 1881,
+      "sha256": "3274f1fc434fdcaac7e16df68088d81483be78da464955c43d6c3033e3980c38"
+    },
+    "tests/atomic/build_gorge.py": {
+      "bytes": 3276,
+      "sha256": "dfe6348098659874f9cee4ce1d679df2e5639e1e1d7a458743b2e26b5449dee4"
+    },
+    "tests/atomic/check_pair.py": {
+      "bytes": 1277,
+      "sha256": "7c4eade458fed85c1b9c340205ef4ca9644bc9ce25f82b6a49771621304c36aa"
+    },
+    "tests/atomic/paired-gorge.json": {
+      "bytes": 149,
+      "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
+    },
+    "tests/governance/test_calendar_conduit_union.py": {
+      "bytes": 9302,
+      "sha256": "1b7a7eccda85748728b0cef14edf88b823ae965e55ad037b5ebff0a9ef7577fb"
+    },
+    "tests/governance/test_directory_avatar_fixture.py": {
+      "bytes": 4915,
+      "sha256": "9d6e6a5f00e7462f99fe7bb5eb40970c582b60c7d420be4e60cced40723cf0cb"
+    },
+    "tests/governance/test_directory_file_build.py": {
+      "bytes": 2127,
+      "sha256": "6ef0bfb66fd31717f5206e8b5c44372b992cf5b18aa654c9d7c7f2884739aef0"
     },
     "tests/governance/test_directory_transport_failure_v1.py": {
       "bytes": 7955,
@@ -144,8 +228,8 @@
       "sha256": "a9cdf62c0696832860712dc5f35f1dc4925f9a088f0b50f15024da01b5b18773"
     },
     "tests/governance/test_directory_transports_receipt_v1.py": {
-      "bytes": 7918,
-      "sha256": "c8a5339f3950049a24e90472ce00ff4e5246705744d04033fea7824553430f39"
+      "bytes": 9856,
+      "sha256": "8a797130a3dd388ea2753987886f36d82a91df0ef8fa09f1d1567d851fee861e"
     }
   }
 }

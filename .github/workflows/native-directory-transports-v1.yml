@@ -7,7 +7,7 @@ permissions:
 jobs:
   directory-transports:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     services:
       mysql:
         image: mysql:8.0
@@ -51,6 +51,69 @@ jobs:
           python3 -B -m unittest discover -s tests/governance -p test_directory_transports.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_transports_receipt_v1.py -v
           python3 -B -m unittest discover -s tests/governance -p test_directory_transport_failure_v1.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_avatar_fixture.py -v
+          python3 -B -m unittest discover -s tests/governance -p test_directory_file_build.py -v
+          (cd tests/governance && python3 -B -m unittest test_calendar_conduit_union.CalendarConduitUnion.test_current_main_production_hooks_map_and_workflows_preserved -v)
+      - name: Require exact reviewed source pair for the core File fixture
+        run: |
+          umask 077
+          mkdir "$RUNNER_TEMP/directory-file-binary"
+          revision=$(python3 tests/atomic/check_pair.py --print-revision)
+          echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v6
+        with:
+          repository: soulteary/gorge
+          ref: ${{ env.GORGE_CONTRACT_REF }}
+          path: .test-gorge
+          persist-credentials: false
+      - name: Move the owned paired checkout outside the Phorge source tree
+        run: |
+          fixture_root=$(mktemp -d "$RUNNER_TEMP/directory-file-gorge.XXXXXX")
+          mv -- .test-gorge "$fixture_root/source"
+          echo "ATOMIC_GORGE_SOURCE=$fixture_root/source" >> "$GITHUB_ENV"
+      - name: Build only paired File with unchanged locked-base inspection
+        run: |
+          umask 077
+          python3 - <<'PY'
+          import json, os, pathlib, runpy
+          module = runpy.run_path('tests/atomic/build_directory_file.py', run_name='directory_file_fixture_builder')
+          result = module['build_file'](pathlib.Path(os.environ['ATOMIC_GORGE_SOURCE']), os.environ['GORGE_CONTRACT_REF'])
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'directory-transports-v1'
+          pending = out / 'build-provenance.pending.json'
+          with pending.open('x') as stream:
+              json.dump(result, stream, sort_keys=True)
+              stream.write('\n')
+          pending.rename(out / 'build-provenance.json')
+          PY
+          sha256sum tests/atomic/check_pair.py tests/atomic/build_gorge.py tests/atomic/build_directory_file.py tests/atomic/paired-gorge.json > "$RUNNER_TEMP/directory-transports-v1/build-input-sha256.txt"
+      - name: Extract only the actual paired File binary without starting a container
+        run: |
+          umask 077
+          out="$RUNNER_TEMP/directory-transports-v1"
+          image_id=$(docker image inspect gorge-file-storage:atomic --format '{{.Id}}')
+          [[ "$image_id" =~ ^sha256:[a-f0-9]{64}$ ]] || exit 1
+          test "$(docker image inspect "$image_id" --format '{{index .Config.Labels "phorge.gorge-revision"}}')" = "$GORGE_CONTRACT_REF"
+          docker image inspect "$image_id" --format '{"image_id":{{json .Id}},"paired_revision":{{json (index .Config.Labels "phorge.gorge-revision")}}}' > "$out/file-image-provenance.json"
+          created=''
+          cleanup_extract() {
+            status=$?
+            trap - EXIT
+            if [ -n "$created" ]; then
+              if docker rm "$created" > /dev/null; then
+                printf '%s\n' '{"created_container_started":false,"exact_created_container_removed":true}' > "$out/extraction-cleanup.json"
+              elif [ "$status" -eq 0 ]; then
+                status=1
+              fi
+            fi
+            exit "$status"
+          }
+          trap cleanup_extract EXIT
+          candidate=$(docker create --pull=never --name "directory-file-extract-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" "$image_id")
+          [[ "$candidate" =~ ^[a-f0-9]{64}$ ]] || exit 1
+          created="$candidate"
+          docker cp "$created:/usr/local/bin/gorge-file-storage" "$RUNNER_TEMP/directory-file-binary/gorge-file-storage"
+          chmod 0700 "$RUNNER_TEMP/directory-file-binary/gorge-file-storage"
+          sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | sed "s|$RUNNER_TEMP/directory-file-binary/||g" > "$out/binary-sha256.txt"
       - name: Configure only disposable MySQL prerequisite
         env:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
@@ -65,6 +128,8 @@ jobs:
           sha256sum --check "$RUNNER_TEMP/directory-transports-v1/verified-maps.sha256"
           git rev-parse HEAD > "$RUNNER_TEMP/directory-transports-v1/source-revision.txt"
           git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/directory-transports-v1/source-tree.txt"
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/directory-file-binary/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | cut -d ' ' -f1)" \
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
@@ -81,7 +146,7 @@ jobs:
             exit "$native_status"
           }
           test ! -s "$RUNNER_TEMP/directory-transports-native.private.stderr"
-          python3 -B scripts/governance/check_directory_transports_v1.py --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json"
+          python3 -B scripts/governance/check_directory_transports_v1.py --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json"
           mv "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" "$RUNNER_TEMP/directory-transports-v1/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()

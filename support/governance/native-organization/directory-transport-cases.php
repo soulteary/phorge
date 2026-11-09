@@ -4,6 +4,7 @@
 require_once __DIR__.'/native-cases.php';
 require_once __DIR__.'/privacy-cases.php';
 require_once __DIR__.'/route-cases.php';
+require_once __DIR__.'/directory-avatar-fixture.php';
 
 function governance_directory_transport_api($method,array $params,$token) {
   if(!in_array($method,array('people.organization.query','people.organization.edit'),true)){
@@ -57,6 +58,7 @@ function governance_directory_transport_cases($fixture,callable $check) {
         $tokens[$role]=PhabricatorConduitToken::initializeNewToken($user->getPHID(),PhabricatorConduitToken::TYPE_STANDARD)->save();
       }
     }
+    $avatars=governance_directory_prepare_avatars($fixture,$users,$check);
     $service=PhorgeOrganizationService::newForActor($web['admin']['context']);
     foreach(array('dt-parent'=>null,'dt-child'=>'dt-parent')as$id=>$parent){
       $service->createUnit(array('operation_id'=>'create-'.$id,'unit_id'=>$id,'kind'=>'team','name'=>'Synthetic '.$id,'parent_id'=>$parent));
@@ -182,7 +184,7 @@ function governance_directory_transport_cases($fixture,callable $check) {
     $refused=false;try{governance_directory_transport_api('people.organization.query',array('mode'=>'count'),$deleted_token);}
     catch(RuntimeException$error){if($error->getMessage()!=='directory_transport_authentication_refused'){throw$error;}$refused=true;}
     $check($refused,'directory-transports-deleted-token-native-authentication-refused');
-    return array('schema'=>'native-directory-transports-v1','read_samples'=>$samples,
+    return array('schema'=>'native-directory-transports-v1-file-dependency','avatars'=>$avatars,'read_samples'=>$samples,
       'negative_actions'=>$negative_actions,'ordinary_adds'=>$ordinary_adds,'actual_native_ConduitCall'=>true,'actual_native_token_authentication'=>true,
       'actual_native_Web_controller'=>true,'fake_query_or_actor'=>false,'HTTP_server_or_browser'=>false,
       'production_authority'=>false,'native_permission_axes_changed'=>false);

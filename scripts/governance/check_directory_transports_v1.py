@@ -4,8 +4,9 @@ import argparse, hashlib, importlib.util, json, os, re, stat, subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 MANIFEST='tests/governance/native-directory-transports-source-v1.json'
-SOURCE_FILES=frozenset(('support/governance/native-organization/directory-transport-diagnostic.php', 'support/governance/native-organization/directory-transport-diagnostic-v1.json', 'scripts/governance/project_directory_transport_failure_v1.py', 'tests/governance/test_directory_transport_failure_v1.py', 'support/governance/fixtures/PhorgeGovernanceNativeFixture.php', 'support/runtime/php-version.php', 'support/governance/native-organization/test-directory-transports-v1-mysql.php', 'support/governance/native-organization/test-native-organization-mysql.php', 'support/governance/native-organization/directory-transport-cases.php', 'support/governance/native-organization/native-cases.php', 'support/governance/native-organization/privacy-cases.php', 'support/governance/native-organization/route-cases.php', 'support/governance/completion/fixture.php', 'src/applications/people/governance/query/PhorgeOrganizationQuery.php', 'src/applications/people/governance/service/PhorgeOrganizationService.php', 'src/applications/people/governance/service/PhorgeOrganizationEndpoint.php', 'src/applications/people/governance/service/PhorgeOrganizationRequest.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySnapshot.php', 'src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php', 'src/applications/people/governance/controller/PhorgeOrganizationController.php', 'src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php', 'src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php', 'src/applications/conduit/controller/PhabricatorConduitAPIController.php', 'src/applications/conduit/protocol/ConduitAPIRequest.php', 'src/applications/conduit/call/ConduitCall.php', 'src/applications/conduit/method/ConduitAPIMethod.php', 'src/applications/conduit/storage/PhabricatorConduitToken.php', 'scripts/governance/check_native_organization.py', 'scripts/governance/check_completion.py', 'scripts/governance/check_directory_transports_v1.py', 'tests/governance/test_directory_transports.py', 'tests/governance/test_directory_transports_receipt_v1.py', '.github/workflows/native-directory-transports-v1.yml', 'support/governance/native-organization/README.directory-transports.md'))
+SOURCE_FILES=frozenset(('tests/atomic/build_directory_file.py', 'tests/governance/test_directory_file_build.py', 'support/governance/native-organization/directory-avatar-fixture.php', 'tests/governance/test_directory_avatar_fixture.py', 'support/governance/completion/pipeline-gorge.php', 'tests/atomic/paired-gorge.json', 'tests/atomic/check_pair.py', 'tests/atomic/build_gorge.py', 'tests/governance/test_calendar_conduit_union.py', 'src/applications/people/storage/PhabricatorUser.php', 'src/applications/conduit/query/PhabricatorConduitTokenQuery.php', 'src/applications/phid/query/PhabricatorObjectQuery.php', 'src/applications/phid/type/PhabricatorPHIDType.php', 'src/applications/people/phid/PhabricatorPeopleUserPHIDType.php', 'src/applications/people/query/PhabricatorPeopleQuery.php', 'src/applications/people/cache/PhabricatorUserProfileImageCacheType.php', 'src/applications/files/builtin/PhabricatorFilesComposeAvatarBuiltinFile.php', 'src/applications/files/storage/PhabricatorFile.php', 'src/applications/files/engine/PhabricatorFileStorageEngine.php', 'src/applications/files/engine/PhabricatorGorgeFileStorageEngine.php', 'src/infrastructure/cluster/PhabricatorGorgeFileStorageClient.php', 'support/governance/native-organization/directory-transport-diagnostic.php', 'support/governance/native-organization/directory-transport-diagnostic-v1.json', 'scripts/governance/project_directory_transport_failure_v1.py', 'tests/governance/test_directory_transport_failure_v1.py', 'support/governance/fixtures/PhorgeGovernanceNativeFixture.php', 'support/runtime/php-version.php', 'support/governance/native-organization/test-directory-transports-v1-mysql.php', 'support/governance/native-organization/test-native-organization-mysql.php', 'support/governance/native-organization/directory-transport-cases.php', 'support/governance/native-organization/native-cases.php', 'support/governance/native-organization/privacy-cases.php', 'support/governance/native-organization/route-cases.php', 'support/governance/completion/fixture.php', 'src/applications/people/governance/query/PhorgeOrganizationQuery.php', 'src/applications/people/governance/service/PhorgeOrganizationService.php', 'src/applications/people/governance/service/PhorgeOrganizationEndpoint.php', 'src/applications/people/governance/service/PhorgeOrganizationRequest.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php', 'src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySnapshot.php', 'src/applications/people/governance/approval/PhorgeGovernanceNativeApprovalAdapter.php', 'src/applications/people/governance/controller/PhorgeOrganizationController.php', 'src/applications/people/governance/conduit/PeopleOrganizationQueryConduitAPIMethod.php', 'src/applications/people/governance/conduit/PeopleOrganizationEditConduitAPIMethod.php', 'src/applications/conduit/controller/PhabricatorConduitAPIController.php', 'src/applications/conduit/protocol/ConduitAPIRequest.php', 'src/applications/conduit/call/ConduitCall.php', 'src/applications/conduit/method/ConduitAPIMethod.php', 'src/applications/conduit/storage/PhabricatorConduitToken.php', 'scripts/governance/check_native_organization.py', 'scripts/governance/check_completion.py', 'scripts/governance/check_directory_transports_v1.py', 'tests/governance/test_directory_transports.py', 'tests/governance/test_directory_transports_receipt_v1.py', '.github/workflows/native-directory-transports-v1.yml', 'support/governance/native-organization/README.directory-transports.md'))
 ROLES={'admin':['dt-child','dt-parent'],'ordinary':[],'parent':['dt-parent'],'child':['dt-child'],'both':['dt-child','dt-parent']}
+AVATAR_ROLES=['admin','ordinary','parent','child','both','addedweb','addedapi']
 ACTIONS=['grant','revoke','propose','compound-propose','compound-execute']
 
 def need(ok):
@@ -68,6 +69,8 @@ def expected_checks():
             checks.update(f'directory-transports-{role}-{unit}-{mode}-'+('visible' if unit in ids else 'hidden') for mode in ['members','member-count'])
     checks.update(f'directory-transports-team-admin-{a}-denied-unchanged' for a in ACTIONS)
     for t in ['web','conduit']:checks.update([f'directory-transports-ordinary-add-{t}-native-success',f'directory-transports-ordinary-add-{t}-no-appointment'])
+    checks.add('completion-real-gorge-file-ready-loopback');checks.add('directory-transports-paired-file-profile-isolated')
+    checks.update(f'directory-transports-native-avatar-{role}-stored-readback' for role in AVATAR_ROLES)
     return checks
 
 def source(root=ROOT,revision=None):
@@ -91,7 +94,8 @@ def source(root=ROOT,revision=None):
             exact(subprocess.check_output(['git','-C',str(root),'show',revision+':'+path]),(root/path).read_bytes())
     return manifest
 
-def validate(data,root=ROOT):
+def validate(data,root=ROOT,file_digest=None):
+    need(type(file_digest) is str and re.fullmatch('[a-f0-9]{64}',file_digest))
     # Preserve exact historical full-restore validation; do not relax old consumers.
     spec=importlib.util.spec_from_file_location('directory_v1_restore',Path(root)/'scripts/governance/check_native_organization.py')
     inherited=importlib.util.module_from_spec(spec);spec.loader.exec_module(inherited)
@@ -100,32 +104,58 @@ def validate(data,root=ROOT):
         'successful_owned_file_service_startups','cleanup','failure','cleanup_failures','terminal_failure_cleanup_rollbacks',
         'captured_native_output_bytes','captured_native_output_sha256','production_deployment','production_executor',
         'production_optional_features_enabled','native_permission_axes_changed','remaining_blocked'})
-    for k,v in dict(batch='native-directory-transports-v1',passed=True,scope='owned-native-directory-transport-matrix',php_version='8.5.12',
-        optional_source_reader_adapter_exercised=True,isolated_optional_features_enabled=True,worker_cleanup=None,file_service_cleanup=None,
-        successful_owned_file_service_startups=0,cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True},failure=None,
+    for k,v in dict(batch='native-directory-transports-v1',passed=True,scope='owned-native-directory-transport-matrix-with-paired-file',php_version='8.5.12',
+        optional_source_reader_adapter_exercised=True,isolated_optional_features_enabled=True,worker_cleanup=None,file_service_cleanup=dict(kind='file',binary_sha256=file_digest,process_stopped=True,private_storage_removed=True),
+        successful_owned_file_service_startups=1,cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True},failure=None,
         cleanup_failures=[],terminal_failure_cleanup_rollbacks=0,captured_native_output_bytes=0,captured_native_output_sha256=hashlib.sha256(b'').hexdigest(),
         production_deployment=False,production_executor=False,production_optional_features_enabled=False,native_permission_axes_changed=False,
         remaining_blocked=['media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion']).items():exact(data[k],v)
     checks=data['checks'];need(type(checks) is list and all(type(x) is str for x in checks))
     need(len(checks)==len(set(checks)) and set(checks)==expected_checks());exact(data['check_count'],len(checks))
-    exact(data['native'],dict(schema='native-directory-transports-v1',read_samples=expected_samples(),
+    need(type(data['native']) is dict)
+    native=dict(data['native']);avatars=native.pop('avatars',None);need(type(avatars) is list and len(avatars)==7)
+    for role,row in zip(AVATAR_ROLES,avatars):
+        need(type(row) is dict and set(row)=={'role','storage_engine','fresh_native_user_and_file_match','readback_bytes','readback_sha256','width','height','actual_PNG_decode','content_hash_match'})
+        for k,v in dict(role=role,storage_engine='gorge',fresh_native_user_and_file_match=True,width=400,height=400,actual_PNG_decode=True,content_hash_match=True).items():exact(row[k],v)
+        need(type(row['readback_bytes']) is int and 1<=row['readback_bytes']<=1048576)
+        need(type(row['readback_sha256']) is str and re.fullmatch('[a-f0-9]{64}',row['readback_sha256']))
+    exact(native,dict(schema='native-directory-transports-v1-file-dependency',read_samples=expected_samples(),
         negative_actions=[dict(action=a,web_status=403,conduit_generic_error=True,business_unchanged=True) for a in ACTIONS],
         ordinary_adds=[dict(transport=t,member_present=True,appointment_version=0) for t in ['web','conduit']],
         actual_native_ConduitCall=True,actual_native_token_authentication=True,actual_native_Web_controller=True,
         fake_query_or_actor=False,HTTP_server_or_browser=False,production_authority=False,native_permission_axes_changed=False))
     inherited.validate_restore(data['source_restore'],Path(root))
-    return dict(schema='native-directory-transports-accepted-v1',selected_inprocess_matrix_accepted=True,
-        read_samples=45,checks=len(checks),source_bound_by_CLI=False,runtime_authority=False,
+    return dict(schema='native-directory-transports-accepted-v1-file-dependency',selected_inprocess_matrix_accepted=True,
+        read_samples=45,avatars=7,paired_file_binary_sha256=file_digest,checks=len(checks),source_bound_by_CLI=False,runtime_authority=False,
         HTTP_browser_proved=False,full_N01_N04_complete=False,production_enabled=False)
 
+def file_binary_digest(path,expected):
+    need(type(path) is str and type(expected) is str and re.fullmatch('[a-f0-9]{64}',expected))
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    try:
+        before=os.fstat(fd);need(stat.S_ISREG(before.st_mode) and before.st_nlink==1 and 64<=before.st_size<=64*1024*1024)
+        need(stat.S_IMODE(before.st_mode) in {0o700,0o755})
+        digest=hashlib.sha256();total=0;header=b''
+        while total<before.st_size:
+            block=os.read(fd,min(65536,before.st_size-total));need(bool(block))
+            if not header:header=block[:64]
+            digest.update(block);total+=len(block)
+        need(os.read(fd,1)==b'')
+        stamp=lambda s:(s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+        need(stamp(before)==stamp(os.fstat(fd))==stamp(os.stat(path,follow_symlinks=False)))
+        need(header[:6]==b'\x7fELF\x02\x01' and int.from_bytes(header[18:20],'little') in {62,183})
+        actual=digest.hexdigest();exact(actual,expected);return actual
+    finally:os.close(fd)
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--receipt');parser.add_argument('--source-only',action='store_true');parser.add_argument('--source-revision',required=True);args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--receipt');parser.add_argument('--source-only',action='store_true');parser.add_argument('--source-revision',required=True);parser.add_argument('--file-binary');parser.add_argument('--file-binary-sha256');args=parser.parse_args()
     try:
         need(bool(args.receipt) != args.source_only)
         source(ROOT,args.source_revision)
         if args.source_only:
             print(json.dumps(dict(schema='native-directory-transports-source-only-v1',source_revision=args.source_revision,selected_inprocess_matrix_accepted=False,runtime_authority=False)));return 0
-        data,digest=read_json(args.receipt,True);out=validate(data);out['source_revision']=args.source_revision;out['source_bound_by_CLI']=True
+        actual_file=file_binary_digest(args.file_binary,args.file_binary_sha256)
+        data,digest=read_json(args.receipt,True);out=validate(data,file_digest=actual_file);out['source_revision']=args.source_revision;out['source_bound_by_CLI']=True
         out['source_tree']=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD^{tree}']).decode().strip()
         out['receipt_sha256']=digest
         print(json.dumps(out,sort_keys=True))

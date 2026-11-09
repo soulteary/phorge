@@ -199,6 +199,11 @@ try {
     }
   });
   if($phase==='directory-transports'){
+    require_once dirname(__DIR__).'/completion/pipeline-gorge.php';
+    $stage='owned-real-gorge-file-service';
+    $file_service=governance_completion_start_gorge($fixture,'file',$check);
+    $stack->getStack()[0]->setKeys(array('gorge.file.uri'=>$file_service['uri'],'gorge.file.token'=>$file_service['token']));
+    (new ReflectionProperty(PhabricatorEnv::class,'cache'))->setValue(null,array());
     $stage='focused-native-directory-transports';
     require_once __DIR__.'/directory-transport-cases.php';
     $native=governance_directory_transport_cases($fixture,$check);
@@ -528,7 +533,7 @@ $receipt_scope=$phase==='recovery-partial-composition'?'owned-native-partial-com
 $receipt_scope=$phase==='application-config-facts'?'owned-native-config-source-facts-no-lease':$receipt_scope;
 $receipt_scope=$credential_concurrency?'owned-native-credential-writer-reader-observation':$receipt_scope;
 $batch=$phase==='directory-transports'?'native-directory-transports-v1':$batch;
-$receipt_scope=$phase==='directory-transports'?'owned-native-directory-transport-matrix':$receipt_scope;
+$receipt_scope=$phase==='directory-transports'?'owned-native-directory-transport-matrix-with-paired-file':$receipt_scope;
 echo json_encode(array('batch'=>$batch,'passed'=>$passed,
   'scope'=>$receipt_scope,'checks'=>$checks,'check_count'=>count($checks),
   'php_version'=>PHP_VERSION,'source_restore'=>$summary,'native'=>$native,
