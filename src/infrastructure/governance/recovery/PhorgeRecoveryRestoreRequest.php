@@ -61,14 +61,14 @@ final class PhorgeRecoveryRestoreRequest extends Phobject {
     $keys=array('schema_version','action','subject','native_stop_transaction','category',
       'event_digest','identity','runtime_inventory_digest','families','media','organization','credentials',
       'native_web_API_disposition','old_media_credential_disposition','all_sources_complete','restoration_authorized');
-    if(in_array($version,array(2,3,4,5),true)){$keys[]='restore_lineage';$keys[]='selected_producer_profile';}
-    if(in_array($version,array(3,4,5),true)){$keys[]='partial_facts';}
-    if(in_array($version,array(4,5),true)){$keys[]='credential_readset';}
+    if(in_array($version,array(2,3,4,5,6),true)){$keys[]='restore_lineage';$keys[]='selected_producer_profile';}
+    if(in_array($version,array(3,4,5,6),true)){$keys[]='partial_facts';}
+    if(in_array($version,array(4,5,6),true)){$keys[]='credential_readset';}
     $actual=array_keys($source);sort($actual,SORT_STRING);sort($keys,SORT_STRING);
-    if(!in_array($version,array(1,2,3,4,5),true)||$actual!==$keys||
+    if(!in_array($version,array(1,2,3,4,5,6),true)||$actual!==$keys||
       $source['all_sources_complete']!==false||$source['restoration_authorized']!==false){
       throw new RuntimeException('recovery_restore_storage_invalid');}
-    if(in_array($version,array(2,3,4,5),true)){
+    if(in_array($version,array(2,3,4,5,6),true)){
       $lineage=$source['restore_lineage'];
       $lineage_keys=is_array($lineage)?array_keys($lineage):array();sort($lineage_keys,SORT_STRING);
       if(!is_array($lineage)||$lineage_keys!==array('complete','configured_incarnation_digest','physical_restore_rehearsal_proved','provider_schema','scope')||
@@ -77,10 +77,10 @@ final class PhorgeRecoveryRestoreRequest extends Phobject {
         ($lineage['physical_restore_rehearsal_proved']??null)!==false||($lineage['complete']??null)!==false||
         !is_string($lineage['configured_incarnation_digest']??null)||
         !preg_match('/\A[a-f0-9]{64}\z/D',$lineage['configured_incarnation_digest'])||
-        $source['selected_producer_profile']!==($version===5?'native-selected-Session-Conduit-OAuth-access-code-INSERT-v2-not-all-producers':($version===4?'native-selected-Session-Conduit-OAuth-INSERT-v1-not-all-producers':'native-authsession-insert-fence-v1-not-all-producers'))){
+        $source['selected_producer_profile']!==($version===6?'native-selected-Session-Conduit-OAuth-access-code-authorization-save-v3-not-all-producers':($version===5?'native-selected-Session-Conduit-OAuth-access-code-INSERT-v2-not-all-producers':($version===4?'native-selected-Session-Conduit-OAuth-INSERT-v1-not-all-producers':'native-authsession-insert-fence-v1-not-all-producers')))){
         throw new RuntimeException('recovery_restore_storage_invalid');}
     }
-    if(in_array($version,array(3,4,5),true)){
+    if(in_array($version,array(3,4,5,6),true)){
       $profiles=array(
         'application-config'=>array('selected-config-dictionaries-v1','process-local-endpoint-recapture'),
         'project-relationships'=>array('subject-project-rows-selected-history-v1','owned-writer-current-locking-reads'),
@@ -99,9 +99,9 @@ final class PhorgeRecoveryRestoreRequest extends Phobject {
           throw new RuntimeException('recovery_restore_storage_invalid');}
       }
     }
-    if(in_array($version,array(4,5),true)){
+    if(in_array($version,array(4,5,6),true)){
       self::credentialReadSet($source['credential_readset']);
-      if($source['credential_readset']['provider_schema']!==($version===5?2:1)){throw new RuntimeException('recovery_restore_storage_invalid');}
+      if($source['credential_readset']['provider_schema']!==($version===6?3:($version===5?2:1))){throw new RuntimeException('recovery_restore_storage_invalid');}
     }
     return $version;
   }
@@ -112,7 +112,7 @@ final class PhorgeRecoveryRestoreRequest extends Phobject {
     $keys=array_keys($readset);sort($keys,SORT_STRING);
     if($keys!==array('all_sources_complete','availability','complete','execution_blocked','mode',
       'production_observer_factory_available','provider_schema','restoration_authorized','scope','sources')||
-      !in_array($schema,array(1,2),true)||$readset['scope']!==($schema===2?'selected-native-credential-participants-v2':'selected-native-credential-participants-v1')||
+      !in_array($schema,array(1,2,3),true)||$readset['scope']!==($schema===3?'selected-native-credential-participants-v3':($schema===2?'selected-native-credential-participants-v2':'selected-native-credential-participants-v1'))||
       $readset['mode']!=='borrowed-current-User-writer-RC-observation'||
       !in_array($readset['availability'],array('observed-partial','production-observer-unavailable'),true)||
       $readset['production_observer_factory_available']!==false||$readset['complete']!==false||
@@ -122,7 +122,8 @@ final class PhorgeRecoveryRestoreRequest extends Phobject {
     $profiles=array('session'=>array('web-credentials','native-authsession-rows-v1'),
       'conduit'=>array('api-credentials','native-conduit-token-rows-v1'),
       'oauth-access'=>array('api-credentials','native-oauth-access-token-rows-v1'));
-    if($schema===2){$profiles['oauth-code']=array('api-credentials','native-oauth-authorization-code-rows-v1');}
+    if($schema>=2){$profiles['oauth-code']=array('api-credentials','native-oauth-authorization-code-rows-v1');}
+    if($schema===3){$profiles['oauth-authorization']=array('api-credentials','native-oauth-client-authorization-rows-v1');}
     $names=array_keys($readset['sources']);sort($names,SORT_STRING);
     $expected=array_keys($profiles);sort($expected,SORT_STRING);
     if($names!==$expected){throw new RuntimeException('recovery_restore_credential_readset_invalid');}

@@ -1,7 +1,7 @@
 {
   "schema": "native-directory-transports-source-v1",
   "base_revision": "149f315b4c29cdc5a9f3b2d10a92c6eab0403e1f",
-  "production_git_tree_inventory_sha256": "77a88c672b34106875511616d9c0a508a62473293445aae1c610c176afea87ea",
+  "production_git_tree_inventory_sha256": "eedb5d0382f9cfff47be45a7da54bfa48ae0c693b997e54c2159793eaa6949ba",
   "pins": {
     ".github/workflows/native-directory-transports-v1.yml": {
       "bytes": 12225,
@@ -244,8 +244,8 @@
       "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
     },
     "tests/governance/test_calendar_conduit_union.py": {
-      "bytes": 11106,
-      "sha256": "b78b263cb288ff096bf2e1df963683805e0b993ab245a9dc54c919ab39b8ede1"
+      "bytes": 11222,
+      "sha256": "fa50d603850252382bd8ec9330e01b1e75770b66bc63e8d0dc2842926cec33c2"
     },
     "tests/governance/test_directory_avatar_fixture.py": {
       "bytes": 4915,

@@ -61,11 +61,14 @@ class CurrentMainIntegration(MediaRemote):
   policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
   import recovery_conduit_source_delta as conduit_delta
   import recovery_assessment_source_delta as assessment_delta
-  extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)
+  import recovery_oauth_authorization_source_delta as authorization_delta
+  extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)
   map_path='src/__phutil_library_map__.php'
   expected={name,policy}|extra
   if map_path in changed:expected.add(map_path)
   self.assertEqual(set(changed),expected)
+  for path in authorization_delta.PRODUCTION_PATHS:
+   self.assertEqual(authorization_delta.reduce_current(path,(ROOT/path).read_bytes()),subprocess.check_output(['git','-C',str(ROOT),'show','0436e865b8431b9f064fe7b8a92dcad5e6623997:'+path]))
   for path in conduit_delta.BASE_PINS:
    self.assertEqual(conduit_delta.reduce_owner(path,(ROOT/path).read_bytes()),subprocess.check_output(['git','-C',str(ROOT),'show','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504:'+path]))
   # Only the exact separately reviewed Calendar addition is allowed. Its

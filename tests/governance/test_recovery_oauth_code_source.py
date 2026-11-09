@@ -57,10 +57,10 @@ echo json_encode(['class'=>get_class($x),'id_assigned'=>$x->getID()!==null,'code
 
 class CodeAssessment(unittest.TestCase):
  def run_case(self,mode):
-  p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/assessment-oauth-code-owner-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=10)
+  p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/assessment-oauth-authorization-owner-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=10)
   self.assertEqual(p.returncode,0,p.stderr);return json.loads(p.stdout)
- def test_actual_assessment_consumes_four_sources_and_blocks_execution(self):
-  d=self.run_case('good');self.assertIsNone(d['error']);r=d['facts']['before'];self.assertEqual(r['schema_version'],5);self.assertEqual(r['credential_readset']['provider_schema'],2);self.assertEqual(sorted(r['credential_readset']['sources']),['conduit','oauth-access','oauth-code','session']);self.assertTrue(d['facts']['blocked']);self.assertIn('oauth-code',d['reads'])
+ def test_actual_assessment_consumes_five_sources_and_blocks_execution(self):
+  d=self.run_case('good');self.assertIsNone(d['error']);r=d['facts']['before'];self.assertEqual(r['schema_version'],6);self.assertEqual(r['credential_readset']['provider_schema'],3);self.assertEqual(sorted(r['credential_readset']['sources']),['conduit','oauth-access','oauth-authorization','oauth-code','session']);self.assertTrue(d['facts']['blocked']);self.assertIn('oauth-code',d['reads'])
  def test_actual_owner_recapture_detects_code_change_and_missing_source(self):
   for mode in ['mutate-oauth-code','unsupported-oauth-code','unknown-end']:
    d=self.run_case(mode);self.assertIsNotNone(d['error'])
@@ -69,10 +69,10 @@ class CodeAssessment(unittest.TestCase):
   d=self.run_case('stale-oauth-code');self.assertIsNotNone(d['error'])
  def test_unknown_owner_is_retained_without_automatic_reentry(self):
   d=self.run_case('unknown-reentry');self.assertTrue(d['retained_owner']);self.assertIsNotNone(d['retry_error']);self.assertFalse(d['cleanup_proved'])
- def test_current_v5_and_historical_v4_readsets_are_strictly_separate(self):
-  source=self.run_case('good')['facts']['before'];old=copy.deepcopy(source);old['schema_version']=4;old['selected_producer_profile']='native-selected-Session-Conduit-OAuth-INSERT-v1-not-all-producers';old['credential_readset']['provider_schema']=1;old['credential_readset']['scope']='selected-native-credential-participants-v1';del old['credential_readset']['sources']['oauth-code']
+ def test_current_v6_and_historical_v4_readsets_are_strictly_separate(self):
+  source=self.run_case('good')['facts']['before'];old=copy.deepcopy(source);old['schema_version']=4;old['selected_producer_profile']='native-selected-Session-Conduit-OAuth-INSERT-v1-not-all-producers';old['credential_readset']['provider_schema']=1;old['credential_readset']['scope']='selected-native-credential-participants-v1';del old['credential_readset']['sources']['oauth-code'];del old['credential_readset']['sources']['oauth-authorization']
   bad=copy.deepcopy(source);bad['credential_readset']=old['credential_readset']
   badold=copy.deepcopy(old);badold['credential_readset']=source['credential_readset']
   code="require$argv[1].'/support/runtime/src/object/Phobject.php';require$argv[1].'/src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php';$out=[];foreach(json_decode(stream_get_contents(STDIN),true)as$x){try{$out[]=PhorgeRecoveryRestoreRequest::sourceVersion($x);}catch(Throwable$e){$out[]=false;}}echo json_encode($out);"
-  p=subprocess.run(['php','-r',code,str(ROOT)],input=json.dumps([source,old,bad,badold]),capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),[5,4,False,False])
+  p=subprocess.run(['php','-r',code,str(ROOT)],input=json.dumps([source,old,bad,badold]),capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),[6,4,False,False])
 if __name__=='__main__':unittest.main()

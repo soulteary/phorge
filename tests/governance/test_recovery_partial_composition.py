@@ -19,7 +19,7 @@ echo json_encode(['stable'=>$one['source_digest']===$two['source_digest'],'chang
    self.assertIn(name,s)
   for name in ('TaskOwnerSource::capture','FileSourceFacts::capture','setIsDisabled','saveTransaction','openTransaction'):
    self.assertNotIn(name,s)
-  self.assertIn("'schema_version'=>5,'credential_readset'=>$credential_readset,'partial_facts'=>$partial",s)
+  self.assertIn("'schema_version'=>6,'credential_readset'=>$credential_readset,'partial_facts'=>$partial",s)
   self.assertIn('recovery_restore_sources_incomplete',s)
  def test_durable_source_profiles_reject_missing_mode_scope_digest_and_completion(self):
   d=self.php(r'''require$argv[1].'/support/runtime/src/object/Phobject.php';require$argv[1].'/src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php';

@@ -22,7 +22,8 @@ class CalendarConduitUnion(unittest.TestCase):
   previous='46a1b044950584006cba754bc9841031d452eb76'
   changed=set(git('diff','--name-only',previous,'--','src','resources').decode().splitlines())
   import recovery_oauth_code_source_delta as code_delta
-  self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS))
+  import recovery_oauth_authorization_source_delta as authorization_delta
+  self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS))
   for path in changed:self.assertEqual(assessment.reduce_current(path,(ROOT/path).read_bytes()),git('show',previous+':'+path))
   workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   validate_workflow_union(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines(),workflows,lambda path:(ROOT/path).read_bytes())

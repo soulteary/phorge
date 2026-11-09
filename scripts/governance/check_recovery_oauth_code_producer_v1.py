@@ -1,3 +1,4 @@
+import recovery_oauth_authorization_source_delta as authorization_delta
 """Strict isolated borrowed real-store OAuth INSERT compatibility, never a production provider."""
 import recovery_oauth_code_source_delta as code_delta
 import argparse,hashlib,json,os,re,stat
@@ -33,7 +34,7 @@ def SQL_obligations(root=ROOT):
  if not code_delta.assert_cohort(root,read_source_checked):raise ValueError('current OAuth code cohort required')
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
-  raw=read_source_checked(Path(root)/relative)
+  raw=authorization_delta.reduce_if_selected(relative,read_source_checked(Path(root)/relative))
   if relative=='support/governance/native-organization/test-native-organization-mysql.php' and hashlib.sha256(raw).hexdigest()!=pin:
    raw=calendar_delta.reduce_calendar_wire_union(raw)
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed borrowed source changed')

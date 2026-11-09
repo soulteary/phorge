@@ -54,8 +54,8 @@ def SQL_obligations(root=ROOT):
 def obligations(root=ROOT):return shared.BOOTSTRAP|shared.PREPARATION|shared.CLEANUP|SQL_obligations(root)
 def observer_cleanup():return {'owned_observer_removed':True,'owned_observer_SQL_sessions_absent':True,'native_writer_grants_unchanged':True,'cleanup_proved':True}
 def summary(revision):
- return {'profile':'isolated-durable-assessment-native-credential-readset-v1','executed_case_obligations':sorted(SQL_obligations()),
-  'actual_durable_submit_preview_review':True,'three_native_credential_sources_consumed':True,'native_DAO_revocations_exercised':True,
+ return {'profile':'isolated-durable-assessment-native-credential-readset-v2-assessment6-readset3','executed_case_obligations':sorted(SQL_obligations()),
+  'actual_durable_submit_preview_review':True,'five_native_credential_sources_consumed':True,'native_DAO_revocations_exercised':True,
   'participant_owns_transaction':False,'production_observer_factory_available':False,'all_13_sources_complete':False,
   'restoration_authorized':False,'permit':False,'execution_blocked':True,'cross_database_atomicity_proved':False,
   'observer_cleanup':observer_cleanup(),'both_native_identity_epochs_prewarmed':True,'source_revision':revision,

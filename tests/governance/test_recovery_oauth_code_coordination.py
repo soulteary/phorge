@@ -6,6 +6,7 @@ from recovery_oauth_code_test_cohort import complete_source_cohort,normalized_so
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import recovery_oauth_code_source_delta as prod
+import recovery_oauth_authorization_source_delta as authorization_delta
 import recovery_oauth_code_coordinator_delta as coord
 import check_recovery_session_lease as reader
 import check_recovery_oauth_code_producer_v1 as current
@@ -43,6 +44,9 @@ class CodeCoordination(unittest.TestCase):
     p.write_bytes(raw)
    for path in prod.SOURCE_INPUTS:
     p=root/path;p.write_bytes(prod.reduce_current(path,p.read_bytes()))
+   for path in authorization_delta.PRODUCTION_PATHS:
+    if path not in prod.SOURCE_INPUTS:
+     p=root/path;p.write_bytes(authorization_delta.reduce_if_selected(path,p.read_bytes()))
    self.assertFalse(prod.assert_cohort(root,reader.read_source_checked))
    with self.assertRaises(ValueError):current.SQL_obligations(root)
    (root/next(iter(prod.SOURCE_INPUTS))).unlink()
@@ -57,7 +61,7 @@ class CodeCoordination(unittest.TestCase):
   self.assertEqual(normalized_source_tree(ROOT),'3944b8003bb59a9b67f685df67acbd2354820b1c')
  def test_current_51_source_gate_keeps_raw_current_code_and_old_maps_unchanged(self):
   self.assertEqual(len(current.SOURCE_INPUTS),51);self.assertEqual(len(current.SQL_obligations()),8)
-  for path,pin in current.SOURCE_INPUTS.items():self.assertEqual(hashlib.sha256(current.read_source_checked(ROOT/path)).hexdigest(),pin)
+  for path,pin in current.SOURCE_INPUTS.items():self.assertEqual(hashlib.sha256(authorization_delta.reduce_if_selected(path,current.read_source_checked(ROOT/path))).hexdigest(),pin)
 
  def test_inherited_media_current_runtime_gate_is_not_reduced_to_historical_view(self):
   import importlib.util
