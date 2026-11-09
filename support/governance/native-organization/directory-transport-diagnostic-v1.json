@@ -28,6 +28,7 @@
     "ArgumentCountError",
     "ArithmeticError",
     "AssertionError",
+    "CapturedNativeOutput",
     "CommandException",
     "ConduitApplicationNotInstalledException",
     "ConduitClientException",
@@ -156,6 +157,7 @@
   ],
   "stages": [
     "all-owned-full-native-schemas-and-principals-cleaned",
+    "captured-native-output-write",
     "completion-reader-cannot-modify-ownership-marker",
     "completion-reader-forbidden-privilege-denied",
     "completion-reader-real-select-only-grants-and-lineage-proved",

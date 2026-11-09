@@ -6,9 +6,9 @@ sp=importlib.util.spec_from_file_location('terminal_projector',ROOT/'scripts/gov
 class TerminalTest(unittest.TestCase):
  def test_exact_warning_terminal_branch_emits_fixed_classification_without_raw(self):
   source=(ROOT/'support/governance/native-organization/test-directory-transports-v1-mysql.php').read_text();a=source.index('$native_output = $capture_active ? ob_get_clean()');b=source.index('$batch=$native_rr',a)
-  code="require$argv[1].'/support/governance/native-organization/directory-transport-diagnostic.php';$phase='directory-transports';$failure=null;$cleanup_failures=array();$capture_active=true;ob_start();echo 'Warning: SECRET_CANARY';"+source[a:b]+"echo json_encode(array('passed'=>$passed));"
+  code="require$argv[1].'/support/governance/native-organization/directory-transport-diagnostic.php';require$argv[1].'/support/governance/native-organization/directory-output-origin.php';$output_origin=null;$phase='directory-transports';$failure=null;$cleanup_failures=array();$capture_active=true;ob_start();echo 'Warning: SECRET_CANARY';"+source[a:b]+"echo json_encode(array('passed'=>$passed));"
   child=subprocess.run(['php','-r',code,str(ROOT)],capture_output=True,timeout=10);self.assertEqual(child.returncode,0);self.assertFalse(json.loads(child.stdout)['passed']);self.assertNotIn(b'SECRET_CANARY',child.stdout+child.stderr)
-  item=p.project(child.stderr)['failures'][0];self.assertEqual(item,dict(schema='native-directory-failure-marker-v1',kind='primary',**{'class':'RuntimeWarning'},source='unknown-source',line=0,stage='unexpected-native-runtime-output'))
+  records=p.project(child.stderr)['failures'];self.assertEqual(len(records),2);item=next(x for x in records if x['class']=='RuntimeWarning');self.assertEqual(item,dict(schema='native-directory-failure-marker-v1',kind='primary',**{'class':'RuntimeWarning'},source='unknown-source',line=0,stage='unexpected-native-runtime-output'))
  def test_missing_marker_only_hashes_bounded_private_material_and_never_accepts(self):
   with tempfile.TemporaryDirectory()as td:
    receipt=Path(td)/'receipt';receipt.write_bytes(b'{"raw":"SECRET_RECEIPT"}');consumer=Path(td)/'consumer';consumer.write_bytes(b'SECRET_CONSUMER')

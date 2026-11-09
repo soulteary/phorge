@@ -63,7 +63,7 @@ N01–N04, browser, performance, all-source or activation approval.
 
 ## Versioned source and CI binding
 
-`tests/governance/native-directory-transports-source-v1.json` fixes 58 exact
+`tests/governance/native-directory-transports-source-v1.json` fixes 61 exact
 source/dependency roles and the entire Git149 `src`/`resources` inventory. The v1
 consumer requires its literal keyset, file lengths/digests, unchanged production
 Git inventory and current worktree. In CLI mode every selected file and the
@@ -242,3 +242,46 @@ need/exact/source/validate/binary-admission functions identical to signed14af.
 The next actual public CI result, not synthetic mutation templates, must identify
 and validate the failed predicate. No SQL/File/Docker/remote execution is run by
 this source-only diagnostic change.
+
+
+## Private-buffer output-origin observer
+
+The b8a actual safe artifact identifies nonzero captured native output as the
+first strict-consumer rejection. It does not establish that output's contents
+or origin. No output is assumed benign and the zero-byte assertion is unchanged.
+
+A test-only nested output handler (chunk size one) now observes writes inside
+the original private capture. Every chunk is returned unchanged into that outer
+buffer; inner GD image buffers are not drained or treated as emitted output.
+The observer keeps at most one origin record, requests at most eight backtrace
+frames with DEBUG_BACKTRACE_IGNORE_ARGS, and uses only the emitting frame's
+public src/support path and line. It never substitutes an outer public caller
+for a private origin. Unknown/private frames become unknown-source/line zero.
+No chunk, message, value, argument or raw absolute path enters a marker. The
+unchanged artifact projector additionally checks that any public source is a
+currently tracked regular PHP file with a valid exact-source line.
+
+After finishing only its own buffer, the original capture bytes/length/hash
+are computed unchanged. A nonempty capture adds a fixed CapturedNativeOutput
+marker for that first source point; it is not an actual Throwable class or a
+claim that a deprecation occurred. The original warning and strict zero-output
+failures remain. No global error handler/listener is installed or replaced.
+Diagnostic errors are caught without changing emitted bytes or acceptance.
+Pure own-memory PHP tests verify actual source-line attribution, private path
+and argument canaries, NUL/newline byte and hash equality, many writes with one
+record, real nested GD PNG capture, diagnostic-fault preservation and buffer
+cleanup. They do not prove the current CI output origin or any SQL/File result.
+
+
+### Output-buffer lifecycle corrective
+
+The earlier observer's depth-only finish check could pop a third-party buffer
+that replaced the removed observer at the same depth. That source freeze is
+blocked and retained. The callback now records its own FINAL phase even for an
+empty CLEAN event. Finish requires both matching depth and an observer that has
+not finalized; only its own normal finalization may mark it ended. A same-depth
+replacement or deeper unknown buffer remains untouched. Local controls use real
+PHP buffers to verify this refusal and test-owned later cleanup. Exact byte/hash
+preservation applies to the validated native owned-buffer paths; arbitrary
+third-party buffer-stack operations are not claimed to be transparent. No
+foreign buffer cleanup or global handler mutation is authorized by this helper.

@@ -3,6 +3,7 @@
 require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 require_once __DIR__.'/directory-transport-diagnostic.php';
+require_once __DIR__.'/directory-output-origin.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
 $phase=$arguments===array('--directory-transports')?'directory-transports':'invalid';
@@ -36,6 +37,7 @@ $failure_cleanup_rollbacks = 0;
 $console_state = null;
 $console_owned = false;
 $capture_active = false;
+$output_origin = null;
 $cleanup = array();
 $pipeline = null;
 $consistency = null;
@@ -79,6 +81,7 @@ try {
   // Own our JSON capture only after that bootstrap has completed.
   ob_start();
   $capture_active = true;
+  $output_origin=governance_directory_output_origin_start($root);
   phutil_load_library($root.'/src/');
   $console_property = new ReflectionProperty(PhutilConsole::class,'console');
   $console_state = $console_property->getValue();
@@ -493,7 +496,9 @@ try {
     (new ReflectionProperty(PhutilConsole::class,'console'))->setValue(null,$console_state);
   }
 }
+governance_directory_output_origin_finish($output_origin);
 $native_output = $capture_active ? ob_get_clean() : '';
+if(strlen($native_output)>0){governance_directory_output_origin_emit($output_origin);}
 if (preg_match('/(?:PHP Warning|Warning:|Fatal error:|PHLOG:|UNSAFE: Raw string)/',$native_output) && $failure === null) {
   $failure = array('stage'=>'unexpected-native-runtime-output','error_type'=>'RuntimeWarning');
   governance_directory_transport_emit_runtime_warning();
