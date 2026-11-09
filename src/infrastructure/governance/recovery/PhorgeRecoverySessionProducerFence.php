@@ -459,12 +459,64 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
   }
 
+  private $borrowedOAuthAuthorizationSnapshots=array();
+  private $borrowedOAuthAuthorizationThreads=array();
+  /** Persisted client authorization under the actual User owner; no OAuth grant. */
+  public function borrowedCaptureOAuthAuthorization($subject) {
+    try {
+      $this->borrowedAssertActive();$subject=PhorgeRecoveryStopRequest::user($subject);
+      $this->leaseSubject=$subject;$this->leaseReadSessions();
+      $table=new PhabricatorOAuthClientAuthorization();$native=$table->establishConnection('w');
+      if($table->getAphrontRefDatabaseName()!==$this->leaseProfile['namespace'].'_oauth_server'||
+        get_class($native)!==AphrontMySQLiDatabaseConnection::class||$native===$this->leaseWriter||
+        $native->isInsideTransaction()||$native->isReadLocking()||$native->isWriteLocking()){
+        throw new RuntimeException('recovery_borrowed_oauth_authorization_route_unknown');}
+      $remote=queryfx_one($native,'SELECT CAST(CONNECTION_ID() AS CHAR) id,@@server_uuid u');
+      $local=queryfx_one($this->leaseWriter,'SELECT CAST(CONNECTION_ID() AS CHAR) id,@@server_uuid u');
+      foreach(array($remote,$local)as$row){if(!$row||!is_string($row['id'])||!preg_match('/\A[1-9][0-9]{0,19}\z/D',$row['id'])||!is_string($row['u'])){
+        throw new RuntimeException('recovery_borrowed_oauth_authorization_primary_unknown');}}
+      if($remote['u']!==$local['u']||$remote['id']===$local['id']){throw new RuntimeException('recovery_borrowed_oauth_authorization_primary_unknown');}
+      $threads=array($local,$remote);
+      if(isset($this->borrowedOAuthAuthorizationThreads[$subject])&&$this->borrowedOAuthAuthorizationThreads[$subject]!==$threads){
+        throw new RuntimeException('recovery_borrowed_oauth_authorization_thread_changed');}
+      $this->borrowedOAuthAuthorizationThreads[$subject]=$threads;
+      queryfx_one($this->leaseWriter,'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE',$table);
+      $engine=queryfx_one($this->leaseWriter,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
+        $table->getAphrontRefDatabaseName(),$table->getTableName());
+      if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('recovery_borrowed_oauth_authorization_engine_unknown');}
+      $rows=queryfx_all($this->leaseWriter,'SELECT id,phid,userPHID,clientPHID,scope,dateCreated,dateModified '.
+        'FROM %R WHERE BINARY userPHID=BINARY %s ORDER BY id LIMIT 65 LOCK IN SHARE MODE',$table,$subject);
+      if(count($rows)>64){throw new RuntimeException('recovery_borrowed_oauth_authorization_budget_unknown');}
+      $bytes=0;foreach($rows as$row){$keys=array_keys($row);sort($keys,SORT_STRING);
+        if($keys!==array('clientPHID','dateCreated','dateModified','id','phid','scope','userPHID')||$row['userPHID']!==$subject||
+          !is_string($row['phid'])||!preg_match('/\APHID-OASA-[a-zA-Z0-9]{20}\z/D',$row['phid'])||
+          !is_string($row['clientPHID'])||!preg_match('/\APHID-OASC-[a-zA-Z0-9]{20}\z/D',$row['clientPHID'])||
+          !is_string($row['scope'])||strlen($row['scope'])>16384){throw new RuntimeException('recovery_borrowed_oauth_authorization_shape_unknown');}
+        foreach(array('id','dateCreated','dateModified')as$key){
+          if((!is_int($row[$key])&&!is_string($row[$key]))||!preg_match('/\A[0-9]{1,10}\z/D',(string)$row[$key])||
+            (float)$row[$key]>4294967295||($key==='id'&&(int)$row[$key]<1)){throw new RuntimeException('recovery_borrowed_oauth_authorization_shape_unknown');}}
+        PhorgeRecoveryConduitProducerFence::authorizationScope(json_decode($row['scope'],true,8,JSON_THROW_ON_ERROR));
+        foreach($row as$value){if(!is_string($value)&&!is_int($value)){throw new RuntimeException('recovery_borrowed_oauth_authorization_shape_unknown');}$bytes+=strlen((string)$value)+32;}
+      }
+      if($bytes>131072){throw new RuntimeException('recovery_borrowed_oauth_authorization_budget_unknown');}
+      $digest=hash('sha256',serialize(array($this->leaseProfile,$subject,$table->getAphrontRefDatabaseName(),$rows)));
+      if(isset($this->borrowedOAuthAuthorizationSnapshots[$subject])&&$this->borrowedOAuthAuthorizationSnapshots[$subject]!==$digest){
+        throw new RuntimeException('recovery_borrowed_oauth_authorization_source_changed');}
+      $this->borrowedOAuthAuthorizationSnapshots[$subject]=$digest;$this->borrowedAssertActive();
+      return array('schema'=>1,'family'=>'api-credentials','selected_source'=>'native-oauth-client-authorization-rows',
+        'source_binding'=>$digest,'rows'=>count($rows),'mode'=>'borrowed-current-User-writer-RC-observation',
+        'OAuth_authorization_complete'=>false,'cross_connection_atomicity_proved'=>false,'production_observer_factory_available'=>false,
+        'all_sources_complete'=>false,'restoration_authorized'=>false,'execution_blocked'=>true);
+    }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
+  }
+
   public function borrowedValidateBeforeOwnerEnd() {
     $this->borrowedAssertActive();
     foreach(array_keys($this->borrowedSnapshots)as$subject){$this->borrowedCapture($subject);}
     foreach(array_keys($this->borrowedConduitSnapshots)as$subject){$this->borrowedCaptureConduit($subject);}
     foreach(array_keys($this->borrowedOAuthAccessSnapshots)as$subject){$this->borrowedCaptureOAuthAccess($subject);}
     foreach(array_keys($this->borrowedOAuthCodeSnapshots)as$subject){$this->borrowedCaptureOAuthCode($subject);}
+    foreach(array_keys($this->borrowedOAuthAuthorizationSnapshots)as$subject){$this->borrowedCaptureOAuthAuthorization($subject);}
   }
 
   /** Read only after the owner ends; never rollback, reconnect or repair it. */

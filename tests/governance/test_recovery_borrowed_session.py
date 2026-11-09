@@ -51,7 +51,7 @@ class BorrowedSession(unittest.TestCase):
    gate.validate(data,fresh)
    for path in gate.SOURCE_INPUTS:
     p=fresh/path;raw=p.read_bytes();p.write_bytes(raw+b'CORRUPTION')
-    with self.assertRaisesRegex(ValueError,'source bytes changed|mixed or unreviewed OAuth code cohort'):gate.validate(data,fresh)
+    with self.assertRaisesRegex(ValueError,'source bytes changed|mixed or unreviewed OAuth code cohort|mixed or unknown authorization source cohort'):gate.validate(data,fresh)
     p.write_bytes(raw)
  def test_six_physical_cases_call_real_store_and_native_worker_but_are_not_host_pass_claims(self):
   code="require$argv[1].'/support/governance/recovery/borrowed-session-cases.php';echo json_encode(governance_recovery_borrowed_session_obligations());"

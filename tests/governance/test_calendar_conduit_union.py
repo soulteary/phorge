@@ -11,18 +11,21 @@ MEDIA_WORKFLOW_SHA256='d0b00933b908aa5e8da92ca3a1c6c154d7a082adaea9883a762324e4e
 def git(*args):return subprocess.check_output(['git','-C',str(ROOT),*args])
 def validate_workflow_union(changed,historical,read):
  import recovery_oauth_code_ci_delta as code_ci
- if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW}:
+ import recovery_oauth_authorization_ci_delta as authorization_ci
+ if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,authorization_ci.WORKFLOW}:
   raise ValueError('unreviewed workflow union')
  if hashlib.sha256(read(MEDIA_WORKFLOW)).hexdigest()!=MEDIA_WORKFLOW_SHA256:
   raise ValueError('reviewed media workflow changed')
  code_ci.assert_workflow(code_ci.WORKFLOW,read(code_ci.WORKFLOW))
+ authorization_ci.assert_workflow(authorization_ci.WORKFLOW,read(authorization_ci.WORKFLOW))
 class CalendarConduitUnion(unittest.TestCase):
  def test_current_main_production_hooks_map_and_workflows_preserved(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_assessment_source_delta as assessment
   previous='46a1b044950584006cba754bc9841031d452eb76'
   changed=set(git('diff','--name-only',previous,'--','src','resources').decode().splitlines())
   import recovery_oauth_code_source_delta as code_delta
-  self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS))
+  import recovery_oauth_authorization_source_delta as authorization_delta
+  self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS))
   for path in changed:self.assertEqual(assessment.reduce_current(path,(ROOT/path).read_bytes()),git('show',previous+':'+path))
   workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   validate_workflow_union(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines(),workflows,lambda path:(ROOT/path).read_bytes())
@@ -39,9 +42,9 @@ class CalendarConduitUnion(unittest.TestCase):
  def test_reviewed_media_workflow_union_rejects_unknown_addition_or_mutation(self):
   historical={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   import recovery_oauth_code_ci_delta as code_ci
-  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW}
+  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,'.github/workflows/oauth-authorization-producer-focused.yml'}
   raw=(ROOT/MEDIA_WORKFLOW).read_bytes()
-  validate_workflow_union(expected,historical,lambda path:raw if path==MEDIA_WORKFLOW else(ROOT/code_ci.WORKFLOW).read_bytes())
+  validate_workflow_union(expected,historical,lambda path:(ROOT/path).read_bytes())
   for changed in (expected|{'.github/workflows/unreviewed.yml'},expected-{MEDIA_WORKFLOW}):
    with self.assertRaises(ValueError):validate_workflow_union(changed,historical,lambda path:raw)
   with self.assertRaises(ValueError):validate_workflow_union(expected,historical,lambda path:raw+b'\n# unreviewed mutation\n')

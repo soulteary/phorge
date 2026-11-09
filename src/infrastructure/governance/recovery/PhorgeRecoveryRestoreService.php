@@ -117,6 +117,13 @@ final class PhorgeRecoveryRestoreService extends Phobject {
    * No observer is created/adopted here. Missing production provenance stays
    * explicit; an existing invalid/quarantined owner never downgrades to absent.
    */
+  public static function captureBorrowedOAuthAuthorizationFacts(AphrontDatabaseConnection $writer,$subject) {
+    $owner=self::$borrowedOwner;
+    if(!is_array($owner)||$owner['writer']!==$writer||$owner['observer']!==self::$borrowedObserver){
+      throw new RuntimeException('recovery_assessment_credential_owner_unknown');}
+    self::assertBorrowedOwner($owner['token'],$writer,$owner['observer']);
+    return$owner['participant']->borrowedCaptureOAuthAuthorization($subject);
+  }
   public static function captureAssessmentCredentialSources(AphrontDatabaseConnection $writer,$subject) {
     PhorgeRecoveryRestoreProfile::assertOwnedWriter($writer);
     $subject=PhorgeRecoveryStopRequest::user($subject);
@@ -133,7 +140,8 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       $facts=array('session'=>self::captureBorrowedSessionFacts($writer,$subject),
         'conduit'=>self::captureBorrowedConduitFacts($writer,$subject),
         'oauth-access'=>self::captureBorrowedOAuthAccessFacts($writer,$subject),
-        'oauth-code'=>self::captureBorrowedOAuthCodeFacts($writer,$subject));
+        'oauth-code'=>self::captureBorrowedOAuthCodeFacts($writer,$subject),
+        'oauth-authorization'=>self::captureBorrowedOAuthAuthorizationFacts($writer,$subject));
       foreach($facts as$row){
         if(!is_array($row)||($row['schema']??null)!==1||
           ($row['mode']??null)!=='borrowed-current-User-writer-RC-observation'||
@@ -148,11 +156,12 @@ final class PhorgeRecoveryRestoreService extends Phobject {
     $profiles=array('session'=>array('web-credentials','native-authsession-rows-v1'),
       'conduit'=>array('api-credentials','native-conduit-token-rows-v1'),
       'oauth-access'=>array('api-credentials','native-oauth-access-token-rows-v1'),
-      'oauth-code'=>array('api-credentials','native-oauth-authorization-code-rows-v1'));
+      'oauth-code'=>array('api-credentials','native-oauth-authorization-code-rows-v1'),
+      'oauth-authorization'=>array('api-credentials','native-oauth-client-authorization-rows-v1'));
     $sources=array();foreach($profiles as$name=>$profile){$sources[$name]=array(
       'provider_schema'=>1,'family'=>$profile[0],'scope'=>$profile[1],
       'source_digest'=>$available?$facts[$name]['source_binding']:null,'complete'=>false);}
-    $readset=array('provider_schema'=>2,'scope'=>'selected-native-credential-participants-v2',
+    $readset=array('provider_schema'=>3,'scope'=>'selected-native-credential-participants-v3',
       'mode'=>'borrowed-current-User-writer-RC-observation',
       'availability'=>$available?'observed-partial':'production-observer-unavailable','sources'=>$sources,
       'production_observer_factory_available'=>false,'complete'=>false,'all_sources_complete'=>false,

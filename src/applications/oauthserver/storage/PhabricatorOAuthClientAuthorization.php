@@ -4,6 +4,24 @@ final class PhabricatorOAuthClientAuthorization
   extends PhabricatorOAuthServerDAO
   implements PhabricatorPolicyInterface {
 
+  protected function insertRecordIntoDatabase($mode) {
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){
+      PhorgeRecoveryConduitProducerFence::assertWriterAvailable(null);}
+    if(!PhorgeGovernanceRecoveryGuard::enabled()){
+      return parent::insertRecordIntoDatabase($mode);
+    }
+    return PhorgeRecoveryConduitProducerFence::saveOAuthClientAuthorization($this,$mode,
+      function()use($mode){return parent::insertRecordIntoDatabase($mode);});
+  }
+
+  public function update() {
+    if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){
+      PhorgeRecoveryConduitProducerFence::assertWriterAvailable(null);}
+    if(!PhorgeGovernanceRecoveryGuard::enabled()){return parent::update();}
+    return PhorgeRecoveryConduitProducerFence::saveOAuthClientAuthorization($this,'UPDATE',
+      function(){return parent::update();});
+  }
+
   protected $userPHID;
   protected $clientPHID;
   protected $scope;

@@ -44,11 +44,56 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
       throw new RuntimeException('recovery_oauth_code_class_unknown');}
     return self::insertSelected($code,$mode,$insert,'authorization-code');
   }
+  /** Bound persisted scope syntax, not an authorization or a new native scope. */
+  public static function authorizationScope($scope) {
+    if(!is_array($scope)||count($scope)>64){throw new RuntimeException('recovery_oauth_authorization_scope_unknown');}
+    foreach($scope as$key=>$value){
+      if(!is_string($key)||!preg_match('/\A[a-zA-Z0-9._:-]{1,128}\z/D',$key)||$value!==$key){
+        throw new RuntimeException('recovery_oauth_authorization_scope_unknown');}}
+    ksort($scope,SORT_STRING);
+    if(strlen(json_encode($scope,JSON_THROW_ON_ERROR))>16384){throw new RuntimeException('recovery_oauth_authorization_scope_budget');}
+    return$scope;
+  }
+  private static function authorizationThreads($owner,$writer) {
+    $ids=array();$uuid=null;
+    foreach(array($owner,$writer)as$conn){
+      $row=queryfx_one($conn,'SELECT CAST(CONNECTION_ID() AS CHAR) id,@@server_uuid u');
+      if(!$row||!is_string($row['id'])||!preg_match('/\A[1-9][0-9]{0,19}\z/D',$row['id'])||
+        !is_string($row['u'])||($uuid!==null&&$uuid!==$row['u'])){throw new RuntimeException('recovery_oauth_authorization_thread_unknown');}
+      $uuid=$row['u'];$ids[]=$row;
+    }
+    if($ids[0]['id']===$ids[1]['id']){throw new RuntimeException('recovery_oauth_authorization_thread_unknown');}
+    return$ids;
+  }
+  /** Real DAO INSERT and scope UPDATE; owner/client/PHID reassignment is refused. */
+  public static function saveOAuthClientAuthorization(PhabricatorOAuthClientAuthorization $authorization,$mode,callable $save) {
+    if(get_class($authorization)!==PhabricatorOAuthClientAuthorization::class){
+      throw new RuntimeException('recovery_oauth_authorization_class_unknown');}
+    return self::insertSelected($authorization,$mode,$save,'client-authorization');
+  }
   private static function insertSelected($token,$mode,callable $insert,$oauth) {
-    if($mode!=='INSERT'||$token->getID()!==null||
+    $authorization=$oauth==='client-authorization';$update=$authorization&&$mode==='UPDATE';
+    if(($update?(!is_int($token->getID())&&!is_string($token->getID())||!preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$token->getID())||(float)$token->getID()>4294967295):($mode!=='INSERT'||$token->getID()!==null))||
       (new ReflectionProperty(LiskDAO::class,'forcedConnection'))->getValue($token)!==null){
       throw new RuntimeException('recovery_conduit_insert_scope_unknown');}
     $code=$oauth==='authorization-code';
+    $authorizationExpected=null;
+    if($authorization){
+      $client=$token->getClientPHID();
+      if(!is_string($client)||!preg_match('/\APHID-OASC-[a-zA-Z0-9]{20}\z/D',$client)){
+        throw new RuntimeException('recovery_oauth_authorization_client_unknown');}
+      $authorizationExpected=array('userPHID'=>$token->getUserPHID(),'clientPHID'=>$client,
+        'scope'=>self::authorizationScope($token->getScope()));
+      if($update){
+        if(!is_string($token->getPHID())||!preg_match('/\APHID-OASA-[a-zA-Z0-9]{20}\z/D',$token->getPHID())){
+          throw new RuntimeException('recovery_oauth_authorization_identity_unknown');}
+        $authorizationExpected['phid']=$token->getPHID();
+        $created=$token->getDateCreated();
+        if((!is_int($created)&&!is_string($created))||!preg_match('/\A[0-9]{1,10}\z/D',(string)$created)||(float)$created>4294967295){
+          throw new RuntimeException('recovery_oauth_authorization_identity_unknown');}
+        $authorizationExpected['dateCreated']=(string)$created;
+      }
+    }
     $profile=PhorgeRecoveryRestoreProfile::assertCurrent();
     $subject=PhorgeRecoveryStopRequest::user($oauth?$token->getUserPHID():$token->getObjectPHID());
     $user=new PhabricatorUser();$owner=$user->establishConnection('w');$writer=$token->establishConnection('w');
@@ -60,6 +105,8 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
     PhorgeRecoverySessionProducerFence::assertConduitProducerWriterAvailable($owner);
     self::idle($owner);self::idle($writer);
     if(self::state($owner)['u']!==self::state($writer)['u']){throw new RuntimeException('recovery_conduit_primary_mismatch');}
+    $authorizationID=$token->getID();
+    $authorizationThreads=$authorization?self::authorizationThreads($owner,$writer):null;
     $ticket=new stdClass();$ticket->owner=$owner;$ticket->writer=$writer;
     $ticket->owner_started=false;$ticket->writer_started=false;$ticket->unknown=false;
     self::$retained[]=$ticket;
@@ -77,11 +124,29 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
       queryfx($writer,'SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
       $ticket->writer_started=true;$ticket->unknown=true;$writer->openTransaction();$ticket->unknown=false;
       self::lockTransactionalTable($writer,$token);
+      if($update){
+        $prior=queryfx_one($writer,'SELECT userPHID,clientPHID,phid,dateCreated FROM %R FORCE INDEX(PRIMARY) WHERE id=%d FOR UPDATE',$token,$token->getID());
+        if($prior&&isset($prior['dateCreated'])&&(is_string($prior['dateCreated'])||is_int($prior['dateCreated']))){$prior['dateCreated']=(string)$prior['dateCreated'];}
+        if(!$prior||$prior!==array('userPHID'=>$subject,'clientPHID'=>$authorizationExpected['clientPHID'],'phid'=>$authorizationExpected['phid'],'dateCreated'=>$authorizationExpected['dateCreated'])){
+          throw new RuntimeException('recovery_oauth_authorization_identity_changed');}
+      }
       $result=$insert();
       if($token->establishConnection('w')!==$writer||$user->establishConnection('w')!==$owner||
         ($oauth?$token->getUserPHID():$token->getObjectPHID())!==$subject||PhorgeRecoveryRestoreProfile::assertCurrent()!==$profile){
+        if($authorization){$ticket->unknown=true;}
         throw new RuntimeException('recovery_conduit_route_changed');}
-      if($code){
+      if($authorization){
+        if(($update&&$token->getID()!==$authorizationID)||self::authorizationThreads($owner,$writer)!==$authorizationThreads){
+          $ticket->unknown=true;throw new RuntimeException('recovery_oauth_authorization_thread_changed');}
+        $row=queryfx_one($writer,'SELECT userPHID,clientPHID,phid,scope FROM %R WHERE id=%d LOCK IN SHARE MODE',$token,$token->getID());
+        if(!$row||!is_string($row['scope'])||strlen($row['scope'])>16384){throw new RuntimeException('recovery_oauth_authorization_postcondition_failed');}
+        $actualScope=json_decode($row['scope'],true,8,JSON_THROW_ON_ERROR);
+        $expectedPHID=$update?$authorizationExpected['phid']:$token->getPHID();
+        if(!is_string($expectedPHID)||!preg_match('/\APHID-OASA-[a-zA-Z0-9]{20}\z/D',$expectedPHID)||
+          $row['userPHID']!==$subject||$row['clientPHID']!==$authorizationExpected['clientPHID']||$row['phid']!==$expectedPHID||
+          self::authorizationScope($actualScope)!==$authorizationExpected['scope']){
+          throw new RuntimeException('recovery_oauth_authorization_postcondition_failed');}
+      }elseif($code){
         $row=queryfx_one($writer,'SELECT userPHID,clientPHID,code,clientSecret,redirectURI FROM %R WHERE id=%d LOCK IN SHARE MODE',$token,$token->getID());
         $expected=array('userPHID'=>$subject,'clientPHID'=>$token->getClientPHID(),
           'code'=>$token->getCode(),'clientSecret'=>$token->getClientSecret(),'redirectURI'=>$token->getRedirectURI());
@@ -96,11 +161,19 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
       // A failed COMMIT transport is never called rollback or noncommit.
       $ticket->unknown=true;$writer->saveTransaction();
       if($writer->isInsideTransaction()){throw new RuntimeException('recovery_conduit_commit_unknown');}
+      if($authorization&&self::authorizationThreads($owner,$writer)!==$authorizationThreads){throw new RuntimeException('recovery_oauth_authorization_thread_changed');}
       $ticket->writer_started=false;$ticket->unknown=false;
       $ticket->unknown=true;$owner->killTransaction();
       if($owner->isInsideTransaction()){throw new RuntimeException('recovery_conduit_owner_end_unknown');}
+      if($authorization&&self::authorizationThreads($owner,$writer)!==$authorizationThreads){throw new RuntimeException('recovery_oauth_authorization_thread_changed');}
       $ticket->owner_started=false;$ticket->unknown=false;
-    }catch(Throwable$error){$primary=$error;}
+    }catch(Throwable$error){
+      if($authorization&&($error instanceof AphrontConnectionLostQueryException||$error instanceof AphrontConnectionQueryException||
+        ($error instanceof mysqli_sql_exception&&in_array($error->getCode(),array(2006,2013,2055),true)))){
+        $ticket->unknown=true;
+      }
+      $primary=$error;
+    }
     if(!$ticket->unknown){
       foreach(array('writer','owner')as$role){
         if(!$ticket->{$role.'_started'}){continue;}

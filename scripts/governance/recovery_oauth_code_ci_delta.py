@@ -1,5 +1,6 @@
 """Exact focused-job allowance; current-runtime gates still read raw source."""
 import hashlib
+import recovery_oauth_authorization_source_delta as authorization_delta
 WORKFLOW='.github/workflows/oauth-code-producer-focused.yml'
 WORKFLOW_SHA256='f503a8b2d7e323c16bff6daab395d1fd92fa690260adc70dc6580942cd7bf248'
 SOURCE_INPUTS={'tests/governance/test_calendar_conduit_union.py': 'b78b263cb288ff096bf2e1df963683805e0b993ab245a9dc54c919ab39b8ede1', 'tests/governance/native-directory-transports-source-v1.json': '46e80b35a55be2c5b661cd0a714af2f041272cea8b9186838deddb32871fdd11'}
@@ -8,6 +9,7 @@ EDITS={'tests/governance/test_calendar_conduit_union.py': [(b"MEDIA_WORKFLOW_SHA
 def assert_workflow(path,raw):
  if path!=WORKFLOW or type(raw)is not bytes or hashlib.sha256(raw).hexdigest()!=WORKFLOW_SHA256:raise ValueError('unreviewed OAuth code focused workflow')
 def reduce_if_selected(path,raw):
+ raw=authorization_delta.reduce_if_selected(path,raw)
  if path not in SOURCE_INPUTS:return raw
  if hashlib.sha256(raw).hexdigest()==BASE_PINS[path]:return raw
  if hashlib.sha256(raw).hexdigest()!=SOURCE_INPUTS[path]:raise ValueError('unreviewed OAuth code CI delta')

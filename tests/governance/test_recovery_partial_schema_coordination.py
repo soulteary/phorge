@@ -5,11 +5,12 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import recovery_partial_current_schema_delta as partial
+import recovery_oauth_authorization_source_delta as authorization_delta
 class PartialSchemaCoordination(unittest.TestCase):
  def test_all_eight_exact_inverses_recover_real_prior_Git_bytes(self):
   self.assertEqual(len(partial.SOURCE_INPUTS),8)
   for path,pin in partial.SOURCE_INPUTS.items():
-   raw=(ROOT/path).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
+   raw=(ROOT/path).read_bytes();self.assertEqual(hashlib.sha256(authorization_delta.reduce_if_selected(path,raw)).hexdigest(),pin)
    old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','1a0297901709227e80815ae4aeede1b17d06f7dd:'+path]);self.assertEqual(partial.reduce_if_selected(path,raw),old)
    for bad in [raw+b'\n# unknown',raw.replace(b'4',b'7',1)]:
     with patch.dict(partial.SOURCE_INPUTS,{path:hashlib.sha256(bad).hexdigest()}):
@@ -28,5 +29,7 @@ class PartialSchemaCoordination(unittest.TestCase):
    with self.assertRaises(FileNotFoundError):partial.assert_cohort(root,read)
  def test_old_literal_maps_remain_byte_exact(self):
   for name in ['scripts/governance/check_recovery_assessment_credentials.py','scripts/governance/check_recovery_assessment_credentials_v2.py']:
-   raw=(ROOT/name).read_bytes();self.assertEqual(raw,subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','08453b13afc7980ca485ecf8b4d5094769bb4438:'+name]))
+   raw=(ROOT/name).read_bytes();baseline=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','08453b13afc7980ca485ecf8b4d5094769bb4438:'+name]);self.assertEqual(authorization_delta.reduce_if_selected(name,raw),baseline)
+   def maps(body):return {n.targets[0].id:ast.dump(n.value,include_attributes=False)for n in ast.parse(body).body if isinstance(n,ast.Assign)and isinstance(n.value,ast.Dict)}
+   self.assertEqual(maps(raw),maps(baseline))
 if __name__=='__main__':unittest.main()
