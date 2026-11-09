@@ -1,4 +1,5 @@
 """Current-main source views and runnable focused CLI; no physical SQL claim."""
+from recovery_oauth_code_test_cohort import complete_source_cohort
 from pathlib import Path
 import ast,copy,hashlib,json,os,subprocess,sys,tempfile,unittest
 from unittest.mock import patch
@@ -11,7 +12,8 @@ DRIVER='support/governance/native-organization/test-native-organization-mysql.ph
 WORKER='support/governance/native-organization/workers.php'
 class CurrentAssessment(unittest.TestCase):
  def test_historical_source_map_and_consumer_preserved_current_exact_inverse_only(self):
-  raw=(ROOT/'scripts/governance/check_recovery_assessment_credentials.py').read_bytes()
+  path='scripts/governance/check_recovery_assessment_credentials.py'
+  raw=current.code_coord.source_view(path,(ROOT/path).read_bytes())
   self.assertEqual(hashlib.sha256(raw).hexdigest(),'d9cc649ed637a80abbc8d962ee2eeaf740920c472d10d21fc17b2d4c564bb609')
   self.assertEqual(historical.SOURCE_INPUTS,current.SOURCE_INPUTS);self.assertEqual(len(current.SOURCE_INPUTS),220)
   self.assertEqual(len(current.ADAPTER_SOURCE_INPUTS),2);self.assertEqual(len(current.SQL_obligations()),8)
@@ -34,6 +36,7 @@ class CurrentAssessment(unittest.TestCase):
    root=Path(temp)
    for name in set(current.SOURCE_INPUTS)|set(current.ADAPTER_SOURCE_INPUTS):
     p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes());p.chmod(0o600)
+   complete_source_cohort(root)
    self.assertEqual(current.SQL_obligations(root),current.SQL_obligations())
    p=root/next(iter(current.ADAPTER_SOURCE_INPUTS));p.write_bytes(p.read_bytes()+b'\n# unrelated')
    with self.assertRaises(ValueError):current.SQL_obligations(root)

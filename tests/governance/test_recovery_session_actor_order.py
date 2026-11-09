@@ -32,7 +32,8 @@ class SessionActorOrder(unittest.TestCase):
     import sys
     sys.path.insert(0,str(ROOT/'scripts/governance'))
     import recovery_conduit_source_delta as conduit_delta
-    raw=(ROOT/relative).read_bytes();self.assertEqual(b[relative],hashlib.sha256(raw).hexdigest());self.assertEqual(conduit_delta.reduce_owner(relative,raw),historical)
+    import recovery_oauth_code_source_delta as code_delta
+    raw=code_delta.reduce_if_selected(relative,(ROOT/relative).read_bytes());self.assertEqual(b[relative],hashlib.sha256(raw).hexdigest());self.assertEqual(conduit_delta.reduce_owner(relative,raw),historical)
    else:self.assertEqual(b[relative],hashlib.sha256(historical).hexdigest())
   relative='src/applications/auth/storage/PhabricatorAuthSession.php';raw=(ROOT/relative).read_bytes()
   self.assertEqual(b[relative],hashlib.sha256(raw).hexdigest());self.assertEqual(a[relative],hashlib.sha256(conduit_delta.reduce_owner(relative,raw)).hexdigest())

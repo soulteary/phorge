@@ -1,4 +1,5 @@
 """Exact borrowed-owner source candidate checks; never physical runtime proof."""
+import recovery_oauth_code_coordinator_delta as code_coord
 import argparse,hashlib,json
 from pathlib import Path
 import check_completion as completion
@@ -10,6 +11,7 @@ V4_PINS={'src/applications/conduit/storage/PhabricatorConduitToken.php': '6979f9
 V5_PINS={**conduit_delta.SOURCE_INPUTS,**assessment_delta.SOURCE_INPUTS}
 SOURCE_INPUTS={'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php': 'baffc7626462c6c1af2e7765d1901d9b9342a9063a553410dc4f207d466aef9f', 'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': 'a3a9c2ff5ab45ad825d817fcc4caeb0b34711a33e8b1210357c37a6dbe8b86bd'}
 def validate(data,root=ROOT):
+ code_coord.assert_cohort(root,source.read_source_checked)
  version=data.get('schema')
  assessment=version=='n08-assessment-native-credential-source-v5'
  oauth=version=='n08-oauth-access-owner-source-candidate-v4'
@@ -24,7 +26,7 @@ def validate(data,root=ROOT):
  for k,v in expected.items():completion.exact(data[k],v,'borrowed source candidate claims refused')
  if len(SOURCE_INPUTS)!=2:raise ValueError('borrowed source set refused')
  for path,pin in pins.items():
-  raw=source.read_source_checked(Path(root)/path)
+  raw=code_coord.source_view(path,source.read_source_checked(Path(root)/path))
   if oauth:raw=assessment_delta.reduce_current(path,raw)
   if current and path in conduit_delta.oauth_delta.SOURCE_INPUTS:raw=conduit_delta.oauth_delta.reduce_current(path,raw)
   if not current and not oauth and not assessment:

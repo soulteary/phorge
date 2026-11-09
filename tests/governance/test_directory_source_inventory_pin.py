@@ -20,12 +20,18 @@ spec.loader.exec_module(gate)
 class DirectorySourceInventoryPin(unittest.TestCase):
     def test_current_source_and_only_reviewed_manifest_entry_changed(self):
         actual = gate.source(ROOT)
+        import sys
+        sys.path.insert(0,str(ROOT/'scripts/governance'))
+        import recovery_oauth_code_coordinator_delta as coord
+        original = json.loads(coord.source_view(gate.MANIFEST,(ROOT/gate.MANIFEST).read_bytes()))
         previous = json.loads(subprocess.check_output(['git', '-C', str(ROOT), 'show', BASE + ':' + gate.MANIFEST]))
         self.assertEqual(set(actual['pins']), gate.SOURCE_FILES)
-        self.assertEqual(actual['pins'][PATH], {'bytes': 10627, 'sha256': '1de4e9eacef2f6844c7a91972218cc532be71d6368d75c371788b864e591a591'})
+        self.assertEqual(actual['pins'][PATH], {'bytes': 10844, 'sha256': 'acd48ac39892363de6c0b4ebdd4429911bd7cf655fd03a91217619e0b10376d0'})
+        self.assertEqual(actual['production_git_tree_inventory_sha256'],'77a88c672b34106875511616d9c0a508a62473293445aae1c610c176afea87ea')
+        self.assertEqual(original['pins'][PATH], {'bytes': 10627, 'sha256': '1de4e9eacef2f6844c7a91972218cc532be71d6368d75c371788b864e591a591'})
         self.assertEqual(previous['pins'][PATH], {'bytes': 9302, 'sha256': '1b7a7eccda85748728b0cef14edf88b823ae965e55ad037b5ebff0a9ef7577fb'})
-        previous['pins'][PATH] = actual['pins'][PATH]
-        self.assertEqual(actual, previous)
+        previous['pins'][PATH] = original['pins'][PATH]
+        self.assertEqual(original, previous)
 
     def test_calendar_mutation_and_unknown_source_still_refused_before_git(self):
         for mutation in ('calendar-bytes', 'unknown-source'):

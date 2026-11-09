@@ -1,6 +1,7 @@
 """Exact main/Calendar union controls. Native PHP selector/cleanup, no SQL."""
 import hashlib,json,subprocess,sys,unittest
 from pathlib import Path
+from recovery_oauth_code_test_cohort import complete_source_cohort
 ROOT=Path(__file__).resolve().parents[2]
 MAIN='fc0369af9d84c4a5f23a7080528e70f1ce84c4e7'
 WIRE='9710b9edd56b9acf99b7c79b8c7d84669f7f2559'
@@ -18,7 +19,8 @@ class CalendarConduitUnion(unittest.TestCase):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_assessment_source_delta as assessment
   previous='46a1b044950584006cba754bc9841031d452eb76'
   changed=set(git('diff','--name-only',previous,'--','src','resources').decode().splitlines())
-  self.assertEqual(changed,set(assessment.SOURCE_INPUTS))
+  import recovery_oauth_code_source_delta as code_delta
+  self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS))
   for path in changed:self.assertEqual(assessment.reduce_current(path,(ROOT/path).read_bytes()),git('show',previous+':'+path))
   workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   validate_workflow_union(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines(),workflows,lambda path:(ROOT/path).read_bytes())
@@ -73,6 +75,7 @@ class CalendarConduitUnion(unittest.TestCase):
    root=Path(tmp).resolve()
    for n in current.SOURCE_INPUTS:
     p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes());p.chmod(0o600)
+   complete_source_cohort(root)
    self.assertEqual(current.SQL_obligations(root),current.SQL_obligations())
    p=root/DRIVER;p.write_bytes(p.read_bytes()+b'// unrelated edit')
    with self.assertRaises(ValueError):current.SQL_obligations(root)
@@ -108,6 +111,7 @@ class CalendarConduitUnion(unittest.TestCase):
    root=Path(tmp).resolve()
    for name in current.SOURCE_INPUTS:
     p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes());p.chmod(0o600)
+   complete_source_cohort(root)
    self.assertEqual(current.SQL_obligations(root),current.SQL_obligations())
    (root/worker.PATH).write_bytes(prior);self.assertEqual(current.SQL_obligations(root),current.SQL_obligations())
    (root/worker.PATH).write_bytes(actual+b'// other change')

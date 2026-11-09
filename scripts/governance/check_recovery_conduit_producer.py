@@ -1,4 +1,5 @@
 """Strict isolated borrowed real-store Session compatibility, never a production provider."""
+import recovery_oauth_code_coordinator_delta as code_coord
 import argparse,hashlib,json,os,re,stat
 import recovery_worker_terminal_delta as worker_terminal
 from pathlib import Path
@@ -28,9 +29,10 @@ def read_source_checked(path):
  finally:os.close(fd)
 
 def SQL_obligations(root=ROOT):
+ code_coord.assert_cohort(root,read_source_checked)
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
-  raw=worker_terminal.reduce_if_selected(relative,read_source_checked(Path(root)/relative))
+  raw=worker_terminal.reduce_if_selected(relative,code_coord.source_view(relative,read_source_checked(Path(root)/relative)))
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed borrowed source changed')
   captured[relative]=raw
  text=captured['support/governance/recovery/conduit-cases.php'].decode('utf-8')

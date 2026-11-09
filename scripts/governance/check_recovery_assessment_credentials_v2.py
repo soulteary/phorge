@@ -1,4 +1,5 @@
 """Strict isolated borrowed real-store OAuth INSERT compatibility, never a production provider."""
+import recovery_oauth_code_coordinator_delta as code_coord
 import argparse,hashlib,json,os,re,stat
 import recovery_worker_terminal_delta as worker_terminal
 import recovery_conduit_source_delta as calendar_delta
@@ -37,11 +38,12 @@ def source_view(relative,raw,pin):
   raw=calendar_delta.reduce_calendar_wire_union(raw)
  return raw
 def SQL_obligations(root=ROOT):
+ code_coord.assert_cohort(root,read_source_checked)
  for relative,pin in ADAPTER_SOURCE_INPUTS.items():
-  if hashlib.sha256(read_source_checked(Path(root)/relative)).hexdigest()!=pin:raise ValueError('reviewed Assessment source adapter changed')
+  if hashlib.sha256(code_coord.source_view(relative,read_source_checked(Path(root)/relative))).hexdigest()!=pin:raise ValueError('reviewed Assessment source adapter changed')
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
-  raw=source_view(relative,read_source_checked(Path(root)/relative),pin)
+  raw=source_view(relative,code_coord.source_view(relative,read_source_checked(Path(root)/relative)),pin)
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed Assessment source changed')
   captured[relative]=raw
  text=captured['support/governance/recovery/assessment-credential-cases.php'].decode('utf-8')

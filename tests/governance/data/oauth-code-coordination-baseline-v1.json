@@ -1,0 +1,29 @@
+{
+  "base_revision": "9bc725ea3643cf24b6df0e806738b55496d8b388",
+  "production_base_sha256": {
+    "src/applications/oauthserver/storage/PhabricatorOAuthServerAuthorizationCode.php": "47a6c99493cf8a0c644ae0263a9e6693f858469d8c7660042979d083c83acdfb",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php": "9f2f670b730233a5024343a22cdeb935e4d0c46188105ff2d247ab4a8cb5fd81",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php": "fdb3ffd468d6635310c182a866b4c6c19e93d7a0ebd8c684fcad7e0034f0d597",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php": "51607456c813feeee17c046fc708395fe55a008f1f4f03645d5827281b7bfaaa",
+    "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php": "04e75340a1959594da97fc9047abbd98d9f61e72d1dd16b02ded098e86c94aa5",
+    "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php": "5d2bf5ef3cd86da509428de2a63af35f1ca11a7de8b3665bd80f061c7c6f42c4"
+  },
+  "historical_tooling_and_case_base_sha256": {
+    "scripts/governance/recovery_assessment_source_delta.py": "0e30e23eb8d818dcb2b153014e48f786116903f78b3c50050b63ebff9c9938cd",
+    "scripts/governance/recovery_oauth_source_delta.py": "7dd6211603615281f742d0be156f888cf8a9684bf2b7d18b900ba2cf1fe34225",
+    "scripts/governance/recovery_conduit_source_delta.py": "b41e04b15ecbd40b7110dcdd2996e2e5a7cca6aae475b73579bcedb544441184",
+    "scripts/governance/check_recovery_session_lease.py": "6528cc0193e3d413778a2918af07404cd997c77afdfdc74ecc07c6d9e8040c64",
+    "scripts/governance/check_recovery_borrowed_session.py": "44326ef0a3380c2b3c5a0c19f6011c9991fe1a153b146c2566161dceff5f7e7d",
+    "scripts/governance/check_recovery_conduit_producer.py": "f7f711a4c38ca9b2f7031e1e51e1ae847413383c765bb971aeb91e9ecbe1c217",
+    "scripts/governance/check_recovery_oauth_access_producer.py": "c5545d0a93413d473efddcc0ef75c564e0fbedffca9670c0301e9e0ebd936dbc",
+    "scripts/governance/check_recovery_oauth_access_producer_v2.py": "5dd999ee9613c2e0b2f5f901b5eb4016028151c5640f05a459b222578fe56e8b",
+    "scripts/governance/check_recovery_oauth_access_producer_v3.py": "49fecfa66d4229e5776995c9abc2806f34100198303177f9de65c5357420047c",
+    "scripts/governance/check_recovery_assessment_credentials.py": "d9cc649ed637a80abbc8d962ee2eeaf740920c472d10d21fc17b2d4c564bb609",
+    "scripts/governance/check_recovery_assessment_credentials_v2.py": "67f7ab4069c5810c25c9b120b20d02dcb87e219de7b57ee1c81024aa6cf37d60",
+    "scripts/governance/check_recovery_borrowed_owner_source.py": "3d2ea190a7b2cea7b6d5263fbe7e948ad92be40219deb5489c7af4db182a26bf",
+    "support/governance/recovery/assessment-credential-cases.php": "6ec7b6542f37464a322b860fa56ff154905aed81d49a4f8fd265515e1b40f04b",
+    "docs/governance/batch-2-callers.json": "3d61ecc589cad8de3b74c608b8acdb7b0cc461854872a5d0bc5c6e71cafc75e9",
+    "docs/governance/native-directory-callers.json": "fd8d2fd4187e2aeefa858d4685736837ef79c0c998a3813ce1f990e78a3ea48c",
+    "tests/governance/native-directory-transports-source-v1.json": "2e8a73749bd7bad963917db98d0750c54d12579410715909426a1cfc55b172e8"
+  }
+}

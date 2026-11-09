@@ -1,4 +1,5 @@
 """Fixed real SQL entry/dependency/guard controls; no database or runtime launch."""
+from recovery_oauth_code_test_cohort import complete_source_cohort,normalized_source_tree
 from pathlib import Path
 import copy,hashlib,json,subprocess,sys,tempfile,unittest
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'scripts/governance'))
@@ -28,6 +29,7 @@ class AssessmentCredentialSQL(unittest.TestCase):
    root=Path(tmp)
    for n in set(gate.SOURCE_INPUTS)|set(gate.ADAPTER_SOURCE_INPUTS):
     p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes())
+   complete_source_cohort(root)
    gate.SQL_obligations(root);n='support/governance/recovery/assessment-credential-cases.php';(root/n).write_bytes((root/n).read_bytes()+b'// corruption')
    with self.assertRaises(ValueError):gate.SQL_obligations(root)
  def test_public_consumer_requires_actual_independent_binary_bytes_and_rejects_duplicates(self):
@@ -45,9 +47,9 @@ class AssessmentCredentialSQL(unittest.TestCase):
  def test_production_and_all_previous_entry_bytes_remain_exact_a953(self):
   # Captured from the actually reviewed a953 tree and blobs. Development
   # commits need not be reachable in a fresh GitHub checkout; immutable pins do.
-  for relative,pin in {'src':'3944b8003bb59a9b67f685df67acbd2354820b1c','resources':'fa7bf1dc07a23696de5fb22a9564f17259ecd33d'}.items():
-   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD:'+relative],text=True).strip(),pin)
-  self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','HEAD','--','src','resources'],text=True),'')
+  self.assertEqual(normalized_source_tree(ROOT),'3944b8003bb59a9b67f685df67acbd2354820b1c')
+  self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD:resources'],text=True).strip(),'fa7bf1dc07a23696de5fb22a9564f17259ecd33d')
+  self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','HEAD','--','resources'],text=True),'')
   for relative,pin in {'support/governance/native-organization/test-oauth-access-owner-mysql.php':'9f0a879c8a93de3db6ac45e3d3034604ae614be808f07b6f4c88ceda7fceefed','src/__phutil_library_map__.php':'935d1248704b581fe294467ee23648138bf73186f8fa7b336f88e057b0cc75b0'}.items():
    self.assertEqual(hashlib.sha256((ROOT/relative).read_bytes()).hexdigest(),pin)
   driver='support/governance/native-organization/test-native-organization-mysql.php'

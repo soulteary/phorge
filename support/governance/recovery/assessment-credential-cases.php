@@ -59,7 +59,7 @@ function governance_recovery_assessment_credential_cases($fixture,mysqli$control
         $assessment=PhorgeRecoveryRestoreAssessment::capture($requester['context'],$writer,$subject->getPHID(),$stop);
         $binding=$assessment->getBinding();PhorgeRecoveryRestoreRequest::sourceVersion($binding);
         $thread=queryfx_one($writer,'SELECT CAST(CONNECTION_ID() AS CHAR) id')['id'];$held=true;
-        foreach(array(new PhabricatorAuthSession(),new PhabricatorConduitToken(),new PhabricatorOAuthServerAccessToken())as$table){
+        foreach(array(new PhabricatorAuthSession(),new PhabricatorConduitToken(),new PhabricatorOAuthServerAccessToken(),new PhabricatorOAuthServerAuthorizationCode())as$table){
           $rows=queryfx_all($observer,'SELECT m.LOCK_DURATION,m.LOCK_STATUS FROM performance_schema.metadata_locks m JOIN performance_schema.threads t ON t.THREAD_ID=m.OWNER_THREAD_ID WHERE t.PROCESSLIST_ID=%s AND m.OBJECT_TYPE=%s AND m.OBJECT_SCHEMA=%s AND m.OBJECT_NAME=%s',$thread,'TABLE',$table->getAphrontRefDatabaseName(),$table->getTableName());
           $found=false;foreach($rows as$row){if($row===array('LOCK_DURATION'=>'TRANSACTION','LOCK_STATUS'=>'GRANTED')){$found=true;}}
           $engine=queryfx_one($writer,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',$table->getAphrontRefDatabaseName(),$table->getTableName());
@@ -68,18 +68,19 @@ function governance_recovery_assessment_credential_cases($fixture,mysqli$control
       });};
     $initial=$sample();$readset=$initial['binding']['credential_readset'];
     $record($initial['held']&&$readset['availability']==='observed-partial'&&$readset['production_observer_factory_available']===false&&
-      count($initial['binding']['families'])===13&&$readset['complete']===false,
+      count($initial['binding']['families'])===13&&$readset['complete']===false&&
+      $readset['provider_schema']===2&&count($readset['sources'])===4&&isset($readset['sources']['oauth-code']),
       'assessment-credential-current-owner-three-native-MDL-and-readsets');
       foreach(array('session'=>$native_session,'conduit'=>$conduit,'oauth-access'=>$oauth)as$name=>$row){
       $receipt=PhorgeRecoveryRestoreService::submit($requester['context'],array('native_stop_transaction'=>$stop,
         'operation_id'=>'assessment-submit-'.$name.'-'.$suffix,'reason'=>'Synthetic native credential readset','subject'=>$subject->getPHID(),'ttl_seconds'=>600));
       $id=$receipt['request_id'];$stored=queryfx_one($conn,'SELECT bindingJSON FROM recovery_restore_request WHERE requestID=%s',$id);
       $binding=json_decode($stored['bindingJSON'],true,32,JSON_THROW_ON_ERROR);$before=$sample()['binding'];
-      if($binding['sources']['credential_readset']!==$before['credential_readset']||$binding['sources']['schema_version']!==4||
+      if($binding['sources']['credential_readset']!==$before['credential_readset']||$binding['sources']['schema_version']!==5||
         $receipt['review_state']!=='submitted-blocked'||$receipt['restoration_authorized']!==false){throw new RuntimeException('assessment_credential_durable_readset_missing');}
       $fingerprint=governance_recovery_assessment_credential_fingerprint($conn);
       $preview=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');$repeat=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
-      if($preview!==$repeat||$preview['source_schema_version']!==4||count($preview['incomplete_families'])!==13||
+      if($preview!==$repeat||$preview['source_schema_version']!==5||count($preview['incomplete_families'])!==13||
         $preview['preview_is_authorization']!==false||$fingerprint!==governance_recovery_assessment_credential_fingerprint($conn)){
         throw new RuntimeException('assessment_credential_preview_not_stable');}
       $review=PhorgeRecoveryRestoreService::review($approver['context'],$id,'1','assessment-review-'.$name.'-'.$suffix);

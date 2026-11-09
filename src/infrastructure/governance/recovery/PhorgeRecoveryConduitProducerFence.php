@@ -38,10 +38,17 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
   public static function insertOAuthAccessToken(PhabricatorOAuthServerAccessToken $token,$mode,callable $insert) {
     return self::insertSelected($token,$mode,$insert,true);
   }
+  /** Selected authorization-code INSERT only; not authorization scope/client mutation. */
+  public static function insertOAuthAuthorizationCode(PhabricatorOAuthServerAuthorizationCode $code,$mode,callable $insert) {
+    if(get_class($code)!==PhabricatorOAuthServerAuthorizationCode::class){
+      throw new RuntimeException('recovery_oauth_code_class_unknown');}
+    return self::insertSelected($code,$mode,$insert,'authorization-code');
+  }
   private static function insertSelected($token,$mode,callable $insert,$oauth) {
     if($mode!=='INSERT'||$token->getID()!==null||
       (new ReflectionProperty(LiskDAO::class,'forcedConnection'))->getValue($token)!==null){
       throw new RuntimeException('recovery_conduit_insert_scope_unknown');}
+    $code=$oauth==='authorization-code';
     $profile=PhorgeRecoveryRestoreProfile::assertCurrent();
     $subject=PhorgeRecoveryStopRequest::user($oauth?$token->getUserPHID():$token->getObjectPHID());
     $user=new PhabricatorUser();$owner=$user->establishConnection('w');$writer=$token->establishConnection('w');
@@ -74,11 +81,18 @@ final class PhorgeRecoveryConduitProducerFence extends Phobject {
       if($token->establishConnection('w')!==$writer||$user->establishConnection('w')!==$owner||
         ($oauth?$token->getUserPHID():$token->getObjectPHID())!==$subject||PhorgeRecoveryRestoreProfile::assertCurrent()!==$profile){
         throw new RuntimeException('recovery_conduit_route_changed');}
+      if($code){
+        $row=queryfx_one($writer,'SELECT userPHID,clientPHID,code,clientSecret,redirectURI FROM %R WHERE id=%d LOCK IN SHARE MODE',$token,$token->getID());
+        $expected=array('userPHID'=>$subject,'clientPHID'=>$token->getClientPHID(),
+          'code'=>$token->getCode(),'clientSecret'=>$token->getClientSecret(),'redirectURI'=>$token->getRedirectURI());
+        if(!$row||$row!==$expected){throw new RuntimeException('recovery_oauth_code_insert_postcondition_failed');}
+      }else{
       $row=$oauth
         ?queryfx_one($writer,'SELECT userPHID,token FROM %R WHERE id=%d LOCK IN SHARE MODE',$token,$token->getID())
         :queryfx_one($writer,'SELECT objectPHID,token FROM %R WHERE id=%d LOCK IN SHARE MODE',$token,$token->getID());
       if(!$row||$row[$oauth?'userPHID':'objectPHID']!==$subject||!hash_equals($token->getToken(),$row['token'])){
         throw new RuntimeException('recovery_conduit_insert_postcondition_failed');}
+      }
       // A failed COMMIT transport is never called rollback or noncommit.
       $ticket->unknown=true;$writer->saveTransaction();
       if($writer->isInsideTransaction()){throw new RuntimeException('recovery_conduit_commit_unknown');}
