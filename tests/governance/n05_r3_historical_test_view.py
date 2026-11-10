@@ -47,15 +47,21 @@ def historical_authorization_source(path,raw):
  current.assert_current_recipe(ROOT);coordinator=checked_modules();module=coordinator.authorization_delta
  if type(path)is not str or path not in module.SOURCE_INPUTS or type(raw)is not bytes or raw!=(ROOT/path).read_bytes():raise ValueError('unknown actual authorization test source')
  import n05_legacy_audit_test_view as original
- if path in original.METADATA_PATHS:raw=original.historical_metadata_source(path,raw)
+ if path in _DOCUMENT_PATHS:raw=_historical_document_source(path,raw)
+ elif path in original.METADATA_PATHS:raw=original.historical_metadata_source(path,raw)
  else:raw=current._normalize_metadata(path,raw)
+ if path in _DOCUMENT_PATHS and hashlib.sha256(module.lifecycle_delta.reduce_if_selected(path,raw)).hexdigest()!=module.SOURCE_INPUTS[path]:raise ValueError('unknown authorization document stage')
  return module.reduce_current(path,raw)
 def historical_lifecycle_source(path,raw):
  current.assert_current_recipe(ROOT);coordinator=checked_modules();module=coordinator.authorization_delta.lifecycle_delta
  if type(path)is not str or path not in module.SOURCE_INPUTS or type(raw)is not bytes or raw!=(ROOT/path).read_bytes():raise ValueError('unknown actual lifecycle test source')
- from test_recovery_oauth_client_lifecycle_coordination import current_descriptor_test_view
- raw=current_descriptor_test_view(path,raw)
- if path not in {'tests/governance/native-directory-transports-source-v1.json','tests/governance/test_recovery_oauth_code_ci.py'}:raw=current._normalize_metadata(path,raw)
+ if path in _DOCUMENT_PATHS:
+  raw=_historical_document_source(path,raw)
+  if hashlib.sha256(raw).hexdigest()!=module.SOURCE_INPUTS[path]:raise ValueError('unknown lifecycle document stage')
+ else:
+  from test_recovery_oauth_client_lifecycle_coordination import current_descriptor_test_view
+  raw=current_descriptor_test_view(path,raw)
+  if path not in {'tests/governance/native-directory-transports-source-v1.json','tests/governance/test_recovery_oauth_code_ci.py'}:raw=current._normalize_metadata(path,raw)
  return module.reduce_current(path,raw)
 
 def historical_R3_media_recipe_source(path,raw):
@@ -98,3 +104,13 @@ def _historical_batch_scan_source(path,raw,root=ROOT):
  module=checked_modules()
  if hashlib.sha256(module.authorization_delta.reduce_if_selected(path,prior)).hexdigest()!=module.SOURCE_INPUTS[path]:raise ValueError('unknown historical batch scan')
  return prior
+
+_DOCUMENT_PATHS=frozenset(('docs/governance/batch-2-callers.json','docs/governance/native-directory-callers.json'))
+def _historical_document_source(path,raw,root=ROOT):
+ current.assert_current_recipe(root)
+ if type(path)is not str or path not in _DOCUMENT_PATHS or type(raw)is not bytes:raise ValueError('unselected historical document')
+ target=Path(root)/path
+ if target.stat().st_mode&0o7777!=0o644 or raw!=current.description.checked_bytes(target):raise ValueError('unknown actual historical document')
+ if path=='docs/governance/batch-2-callers.json':return _historical_batch_scan_source(path,raw,root)
+ import n05_legacy_audit_test_view as original
+ return original.historical_metadata_source(path,raw,root)

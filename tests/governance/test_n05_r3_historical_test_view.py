@@ -72,6 +72,29 @@ class R3HistoricalView(unittest.TestCase):
     self.assertEqual(view.historical_authorization_source(path,raw),expected)
     for bad in (raw+b'unknown',previous,prior):
      with self.assertRaises(ValueError):view.historical_authorization_source(path,bad)
+ def test_authorization_and_lifecycle_document_stages_keep_current_inputs_strict(self):
+  import hashlib,subprocess,shutil,tempfile
+  from pathlib import Path
+  from unittest.mock import patch
+  module=view.checked_modules()
+  families=((view.historical_authorization_source,module.authorization_delta),(view.historical_lifecycle_source,module.authorization_delta.lifecycle_delta))
+  for path in sorted(view._DOCUMENT_PATHS):
+   raw=(view.ROOT/path).read_bytes();prior=view._historical_document_source(path,raw)
+   for function,current_module in families:
+    if path not in current_module.SOURCE_INPUTS:continue
+    self.assertEqual(function(path,raw),current_module.reduce_current(path,prior))
+    for bad in (raw+b'unknown',prior):
+     with self.subTest(path=path,family=function.__name__),self.assertRaises(ValueError):function(path,bad)
+    with patch.object(view.current,'TARGET',view.REVISION),self.assertRaises(ValueError):function(path,raw)
+  with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as td:
+   root=Path(td)/'source';shutil.copytree(view.ROOT,root,symlinks=True,ignore=shutil.ignore_patterns('.git','__pycache__'))
+   for path in sorted(view._DOCUMENT_PATHS):
+    target=root/path;raw=target.read_bytes()
+    for mode in (0o755,0o1644):
+     target.chmod(mode)
+     try:
+      with self.subTest(path=path,mode=mode),self.assertRaises(ValueError):view._historical_document_source(path,raw,root)
+     finally:target.chmod(0o644)
  def test_no_runtime_source_imports_test_view(self):
   for p in (view.ROOT/'scripts/governance').glob('*.py'):
    self.assertNotIn(b'import n05_r3_historical_test_view',p.read_bytes())
