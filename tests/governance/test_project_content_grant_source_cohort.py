@@ -16,7 +16,7 @@ class NativeGrantCohort(unittest.TestCase):
    with self.assertRaises(ValueError):delta.reduce_production(n,raw+b'\n// unreviewed native change')
  def test_live_tooling_pins_are_real_and_inverse_preserves_all_prior_bytes(self):
   for n,pin in delta.SOURCE_INPUTS.items():
-   raw=(ROOT/n).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),pin,n)
+   raw=(ROOT/n).read_bytes();prior=delta.media_source_delta().reduce_if_selected(n,raw);self.assertEqual(hashlib.sha256(prior).hexdigest(),pin,n)
    self.assertEqual(delta.reduce_if_selected(n,raw),subprocess.check_output(['git','-C',str(ROOT),'show',BASE+':'+n]),n)
    with self.assertRaises(ValueError):delta.reduce_if_selected(n,raw+b'\n# unreviewed tooling change')
  def test_complete_cohort_refuses_missing_or_unknown_new_source(self):
@@ -31,5 +31,19 @@ class NativeGrantCohort(unittest.TestCase):
    with self.assertRaises(ValueError):delta.assert_production_cohort(root)
  def test_signed_media_sources_and_overlay_are_unchanged_from_current_main(self):
   for n in ('support/governance/media-session-positive/source-pins.json','support/governance/media-session-docker/snapshot.py','support/governance/media-session-ci/project.py'):
-   self.assertEqual((ROOT/n).read_bytes(),subprocess.check_output(['git','-C',str(ROOT),'show',BASE+':'+n]),n)
+   raw=delta.media_source_delta().reduce_if_selected(n,(ROOT/n).read_bytes());self.assertEqual(raw,subprocess.check_output(['git','-C',str(ROOT),'show',BASE+':'+n]),n)
 if __name__=='__main__':unittest.main()
+
+class ExactMediaSourceRebind(unittest.TestCase):
+ def test_six_current_metadata_files_restore_exact_signed_recipe_and_reject_mutation(self):
+  from unittest.mock import patch
+  m=delta.media_source_delta();self.assertEqual(len(m.SOURCE_INPUTS),6)
+  for name,pin in m.SOURCE_INPUTS.items():
+   raw=(ROOT/name).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),pin);old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','0fff49b76fcb6852787e7f1408eca2a591e53ffb:'+name]);self.assertEqual(m.reduce_current(name,raw),old)
+   bad=raw+b'\n# unknown metadata'
+   with self.assertRaises(ValueError):m.reduce_current(name,bad)
+   with patch.dict(m.SOURCE_INPUTS,{name:hashlib.sha256(bad).hexdigest()}),self.assertRaises(ValueError):m.reduce_current(name,bad)
+ def test_SQL_runtime_binding_and_existing_two_metadata_exceptions_unchanged(self):
+  import importlib.util
+  p=ROOT/'support/governance/project-content-grants-ci/ci.py';spec=importlib.util.spec_from_file_location('exact_N05_runtime_ci_source',p);ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(ci)
+  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'79987a76658150e77fc5266fae13c2eaed934ff2');self.assertEqual(ci.TREE,'797f5bad3c10eb2fbee30c95c6019e6c0a2393ee');self.assertEqual(ci.OFFLINE_METADATA,('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py'))

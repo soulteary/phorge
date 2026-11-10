@@ -70,7 +70,7 @@ class CodeCoordination(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('oauth_code_media_snapshot',directory/'snapshot.py');snapshot=importlib.util.module_from_spec(spec);spec.loader.exec_module(snapshot)
   with patch.dict(sys.modules,{'snapshot':snapshot}):
    spec=importlib.util.spec_from_file_location('oauth_code_media_freshness',ROOT/'support/governance/media-session-ci/freshness.py');freshness=importlib.util.module_from_spec(spec);spec.loader.exec_module(freshness)
-   self.assertEqual(snapshot.BASE,'d3b4d5f12c7290bf3d6303c4447ce61168926018');self.assertEqual(len(snapshot.OVERLAY),8)
+   self.assertEqual(snapshot.BASE,'0fff49b76fcb6852787e7f1408eca2a591e53ffb');self.assertEqual(len(snapshot.OVERLAY),8)
    # This is a whole-current-Git source invariant, not an assertion that the
    # Atomic parser-prepared checkout is clean. The media workflow retains its
    # separate unchanged real-checkout freshness gates before any preparation.
