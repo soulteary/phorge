@@ -113,31 +113,39 @@ function governance_recovery_oauth_client_lifecycle_store_cases($fixture,array$s
   $fixture->assertOwned();$requester=$state['issuer_auth'];$approver=$state['owner_auth'];$subject=$state['subjects']['commit'];
   if($requester['context']->getUserPHID()===$approver['context']->getUserPHID()){throw new RuntimeException('oauth_client_lifecycle_independent_admin_required');}
   $conn=(new PhabricatorUser())->establishConnection('w');if($conn->isInsideTransaction()){throw new RuntimeException('oauth_client_lifecycle_store_outer_transaction');}
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-prepare-client';
   $client=PhabricatorOAuthServerClient::initializeNewClient($requester['viewer'])->setName('Synthetic lifecycle durable')->setRedirectURI('https://fixture.invalid/lifecycle/durable/')->save();
   $row=(new PhabricatorOAuthServer())->setUser($subject)->setClient($client)->authorizeClient(array());
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-disable-subject';
   (new PhabricatorUserTransactionEditor())->setActor($requester['viewer'])
     ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
     ->applyTransactions($subject,array((new PhabricatorUserTransaction())->setTransactionType(PhabricatorUserDisableTransaction::TRANSACTIONTYPE)->setNewValue(true)));
   if($conn->isInsideTransaction()){throw new RuntimeException('oauth_client_lifecycle_stop_not_committed');}
   $event=queryfx_one($conn,'SELECT id FROM %R WHERE BINARY objectPHID=BINARY %s AND transactionType=%s ORDER BY id DESC LIMIT 1',new PhabricatorUserTransaction(),$subject->getPHID(),PhabricatorUserDisableTransaction::TRANSACTIONTYPE);
   if(!$event){throw new RuntimeException('oauth_client_lifecycle_stop_missing');}$stop=(string)$event['id'];$suffix=substr($fixture->getNamespace(),-10);
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-record-stop';
   PhorgeRecoveryStopService::recordAlreadyStopped($requester['context'],$subject->getPHID(),$stop,'technical-pause','Synthetic authorization source','oauth-client-life-stop-'.$suffix);
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-prime-spaces';
   governance_recovery_restore_prime_space_cache($fixture,$conn,array($requester['viewer'],$approver['viewer'],$subject));
   $fingerprint=static function()use($conn){$rows=array();foreach(array('recovery_restore_request','recovery_restore_operation','recovery_restore_audit')as$table){$rows[$table]=queryfx_all($conn,'SELECT * FROM %T ORDER BY 1',$table);}return hash('sha256',phutil_json_encode($rows));};
   $input=array('native_stop_transaction'=>$stop,'operation_id'=>'oauth-client-life-submit-'.$suffix,'reason'=>'Synthetic durable authorization','subject'=>$subject->getPHID(),'ttl_seconds'=>600);
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-submit';
   $receipt=PhorgeRecoveryRestoreService::submit($requester['context'],$input);$id=$receipt['request_id'];
   $stored=queryfx_one($conn,'SELECT bindingJSON FROM recovery_restore_request WHERE requestID=%s',$id);$binding=json_decode($stored['bindingJSON'],true,32,JSON_THROW_ON_ERROR);
   $readset=$binding['sources']['credential_readset'];
   $record($binding['sources']['schema_version']===6&&$readset['provider_schema']===3&&count($readset['sources'])===5&&
     is_string($readset['sources']['oauth-client-lifecycle']['source_digest'])&&$readset['complete']===false&&
     $receipt['review_state']==='submitted-blocked'&&$receipt['restoration_authorized']===false,'oauth-client-lifecycle-durable-submit-five-sources');
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-replay-preview';
   $before=$fingerprint();$replay=PhorgeRecoveryRestoreService::submit($requester['context'],$input);
   $preview=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');$repeat=PhorgeRecoveryRestoreService::preview($approver['context'],$id,'1');
   if($replay['replayed']!==true||$before!==$fingerprint()||$preview!==$repeat||$preview['source_schema_version']!==6||count($preview['incomplete_families'])!==13||$preview['preview_is_authorization']!==false){throw new RuntimeException('oauth_client_lifecycle_Store_replay_or_preview_unproved');}
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-review';
   $review=PhorgeRecoveryRestoreService::review($approver['context'],$id,'1','oauth-client-life-review-'.$suffix);
   $reviewed=queryfx_one($conn,'SELECT reviewState,permitState,version,approverPHID FROM recovery_restore_request WHERE requestID=%s',$id);
   $record($review['review_state']==='reviewed-blocked'&&$review['restoration_authorized']===false&&is_array($reviewed)&&array_keys($reviewed)===array('reviewState','permitState','version','approverPHID')&&$reviewed['reviewState']==='reviewed-blocked'&&$reviewed['permitState']==='blocked'&&(string)$reviewed['version']==='2'&&$reviewed['approverPHID']===$approver['context']->getUserPHID(),'oauth-client-lifecycle-durable-replay-review-blocked');
   // An actual changed native field, not a sleep or assumed timestamp tick.
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-trust-save';
   $clientConnection=$client->establishConnection('w');
   $oldTrust=queryfx_one($clientConnection,'SELECT isTrusted FROM %R WHERE id=%d',new PhabricatorOAuthServerClient(),$client->getID());
   if(!$oldTrust||!in_array((string)$oldTrust['isTrusted'],array('0','1'),true)){throw new RuntimeException('oauth_client_lifecycle_trust_shape_unknown');}
@@ -145,10 +153,13 @@ function governance_recovery_oauth_client_lifecycle_store_cases($fixture,array$s
   $newTrust=queryfx_one($clientConnection,'SELECT isTrusted FROM %R WHERE id=%d',new PhabricatorOAuthServerClient(),$client->getID());
   if(!$newTrust||(string)$newTrust['isTrusted']===(string)$oldTrust['isTrusted']||$clientConnection->isInsideTransaction()){throw new RuntimeException('oauth_client_lifecycle_native_update_missing');}
   $before=$fingerprint();$stale=false;
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-stale-review';
   try{PhorgeRecoveryRestoreService::review($approver['context'],$id,'2','oauth-client-life-stale-'.$suffix);}catch(RuntimeException$error){if(get_class($error)!==RuntimeException::class||$error->getMessage()!=='recovery_restore_sources_stale'){throw$error;}$stale=true;}
   $record($stale&&!$conn->isInsideTransaction()&&$before===$fingerprint(),'oauth-client-lifecycle-native-trust-save-invalidates-review');
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-fresh-submit-review';
   $input['operation_id']='oauth-client-life-fresh-'.$suffix;$fresh=PhorgeRecoveryRestoreService::submit($requester['context'],$input);
   PhorgeRecoveryRestoreService::review($approver['context'],$fresh['request_id'],'1','oauth-client-life-fresh-review-'.$suffix);$before=$fingerprint();$blocked=false;
+  $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-execute-incomplete';
   try{PhorgeRecoveryRestoreService::execute($requester['context'],$fresh['request_id'],'2');}catch(RuntimeException$error){if(get_class($error)!==RuntimeException::class||$error->getMessage()!=='recovery_restore_sources_incomplete'){throw$error;}$blocked=true;}
   $record($blocked&&!$conn->isInsideTransaction()&&$before===$fingerprint(),'oauth-client-lifecycle-execute-requires-complete-sources');
 }
