@@ -26,8 +26,8 @@ class DirectorySourceInventoryPin(unittest.TestCase):
         original = json.loads(coord.source_view(gate.MANIFEST,(ROOT/gate.MANIFEST).read_bytes()))
         previous = json.loads(subprocess.check_output(['git', '-C', str(ROOT), 'show', BASE + ':' + gate.MANIFEST]))
         self.assertEqual(set(actual['pins']), gate.SOURCE_FILES)
-        self.assertEqual(actual['pins'][PATH], {'bytes': 11424, 'sha256': 'fe3833c3e78ef1788dcfb171bba4ce570140cdf80ee302d81b116fc990a54aff'})
-        self.assertEqual(actual['production_git_tree_inventory_sha256'],'eedb5d0382f9cfff47be45a7da54bfa48ae0c693b997e54c2159793eaa6949ba')
+        self.assertEqual(actual['pins'][PATH], {'bytes': 11751, 'sha256': '5144cbebed28f04bb091b20a34fc819853e5823baedc10fad89565b6c793375c'})
+        self.assertEqual(actual['production_git_tree_inventory_sha256'],'d19f592b9c4a06b5e9335dbbed7c4ecd5849eaa855ffcbcb20231f75ba7d712d')
         self.assertEqual(original['pins'][PATH], {'bytes': 10627, 'sha256': '1de4e9eacef2f6844c7a91972218cc532be71d6368d75c371788b864e591a591'})
         self.assertEqual(previous['pins'][PATH], {'bytes': 9302, 'sha256': '1b7a7eccda85748728b0cef14edf88b823ae965e55ad037b5ebff0a9ef7577fb'})
         previous['pins'][PATH] = original['pins'][PATH]

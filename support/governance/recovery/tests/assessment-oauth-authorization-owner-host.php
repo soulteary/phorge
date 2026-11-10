@@ -76,7 +76,7 @@ class PhabricatorUserTransaction{}class PhabricatorUserDisableTransaction{const 
 class PhorgeGovernanceNativeNoncredentialIdentitySource{static function lockIdentityPHID(...$x){return ['host-current'=>true];}}
 class PhabricatorEnv{static function getEnvConfig($x){return false;}}
 class PhorgeRecoveryRestoreOrganizationSource{static function capture(...$x){return ['complete'=>false];}}
-class PhorgeRecoveryNativeCaptureScope{static function captureForRestoration(...$x){return ['complete'=>false];}}
+class PhorgeRecoveryNativeCaptureScope{static function prepareBorrowedOAuthClients($token,$writer,$observer,$target){PhorgeRecoveryRestoreService::assertBorrowedOwner($token,$writer,$observer);PhorgeRecoveryRestoreProfile::assertOwnedWriter($writer);return hash('sha256','explicit-host-client-row-collaborator');}static function captureForRestoration(...$x){return ['complete'=>false];}}
 class PhorgeGovernanceRecoverySourceInventory{static function requiredFamilies(){return ['account-stop','application-config','api-credentials','extensions-producers','file-capabilities','media-credentials','object-automatic','organization','policy','project-relationships','restore-lineage','spaces','web-credentials'];}static function inspectRuntime(){return ['host-collaborator'=>true];}}
 class Fact{function finish(){return ['complete'=>false,'source_digest'=>str_repeat('f',64)];}}
 class PhorgeRecoveryApplicationConfigFacts{static function capture(...$x){return new Fact();}}

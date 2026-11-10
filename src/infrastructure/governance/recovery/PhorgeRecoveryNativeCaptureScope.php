@@ -328,6 +328,25 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
     } catch (Throwable $error) { $this->close(); throw $error; }
   }
 
+  /** Only the actual borrowed owner may prelock referenced clients. No permit. */
+  public static function prepareBorrowedOAuthClients($token,AphrontDatabaseConnection $writer,
+    AphrontDatabaseConnection $observer,$target) {
+    PhorgeRecoveryRestoreService::assertBorrowedOwner($token,$writer,$observer);
+    PhorgeRecoveryRestoreProfile::assertOwnedWriter($writer);PhorgeRecoveryStopRequest::user($target);
+    $profile=PhorgeRecoveryRestoreProfile::assertCurrent();$scope=new self();
+    $scope->connection=$writer;$scope->target=$target;
+    $scope->route=array('storage.default-namespace'=>$profile['namespace']);
+    $references=$scope->apiClientReferences();$profiles=$scope->apiProfiles();$bytes=0;
+    $rows=$scope->apiRows($profiles['oauth_clients'],$references,$bytes);
+    $found=array();foreach($rows as$row){
+      if(!is_string($row['phid']??null)||!isset($references[$row['phid']])||isset($found[$row['phid']])){throw new RuntimeException('recovery_api_client_source_changed');}
+      $found[$row['phid']]=true;
+    }
+    ksort($found,SORT_STRING);if(array_keys($found)!==array_keys($references)){throw new RuntimeException('recovery_api_client_source_changed');}
+    PhorgeRecoveryRestoreService::assertBorrowedOwner($token,$writer,$observer);
+    return hash('sha256',serialize(array($profile,$target,$references,$rows)));
+  }
+
   private function apiProfiles() {
     return array(
       'conduit'=>array(new PhabricatorConduitToken(),'conduit','objectPHID',
@@ -344,8 +363,11 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
           'isTrusted'=>'tinyint','viewPolicy'=>'varbinary','editPolicy'=>'varbinary','dateCreated'=>'int','dateModified'=>'int','isDisabled'=>'tinyint')));
   }
 
-  private function apiRows(array $profile, array $clients, &$bytes) {
+  private function apiRows(array $profile, array $clients, &$bytes, $plan_clients=false) {
     list($table,$application,$owner,$columns)=$profile;
+    if($plan_clients&&($owner!=='userPHID'||!isset($columns['clientPHID']))){throw new RuntimeException('recovery_api_client_plan_unknown');}
+    $locking=$plan_clients?'':' LOCK IN SHARE MODE';
+    $primary=$owner==='phid'?' FORCE INDEX (PRIMARY)':'';
     $route=$table->establishConnection('w');
     if(get_class($route)!==AphrontMySQLiDatabaseConnection::class ||
         ($route!==$this->connection&&($route->isInsideTransaction()||$route->isReadLocking()||$route->isWriteLocking()))){
@@ -372,13 +394,25 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
         throw new RuntimeException('recovery_api_schema_unknown');}}
     $where=$owner==='phid' ? ($clients ? qsprintf($this->connection,'BINARY phid IN (%Ls)',array_keys($clients)) : qsprintf($this->connection,'1=0')) :
       qsprintf($this->connection,'BINARY %C=BINARY %s',$owner,$this->target);
+    if($owner==='phid'&&$clients){
+      // Resolve bounded exact IDs without record SHARE, then lock only those
+      // clustered records. Never FORCE PRIMARY across the whole client table.
+      $planned=queryfx_all($this->connection,'SELECT id,phid FROM %R WHERE BINARY phid IN (%Ls) ORDER BY id LIMIT 65',$table,array_keys($clients));
+      if(count($planned)!==count($clients)||count($planned)>PhorgeRecoveryNativeAPIFacts::MAX_ROWS){throw new RuntimeException('recovery_api_client_source_changed');}
+      $client_ids=array();$client_phids=array();foreach($planned as$row){
+        if((!is_int($row['id']??null)&&!is_string($row['id']??null))||preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$row['id'])!==1||
+          (float)$row['id']>4294967295||isset($client_ids[(string)$row['id']])||!is_string($row['phid']??null)||!isset($clients[$row['phid']])||isset($client_phids[$row['phid']])){throw new RuntimeException('recovery_api_client_source_changed');}
+        $client_ids[(string)$row['id']]=(int)$row['id'];$client_phids[$row['phid']]=true;
+      }
+      $where=qsprintf($this->connection,'id IN (%Ld) AND BINARY phid IN (%Ls)',array_values($client_ids),array_keys($clients));
+    }
     $names=array_keys($columns);$lengths=array();
     foreach($names as$name){$lengths[]=qsprintf($this->connection,'OCTET_LENGTH(%C)',$name);}
     // Names and formats originate exclusively in the exact fixed registry above.
     $sum=qsprintf($this->connection,implode('+',array_fill(0,count($lengths),'COALESCE(%Q,0)')),...$lengths);
     $maximum=qsprintf($this->connection,'GREATEST('.implode(',',array_fill(0,count($lengths),'COALESCE(%Q,0)')).')',...$lengths);
     $preflight=queryfx_all($this->connection,
-      'SELECT id,%Q bytes,%Q largest FROM %R WHERE %Q ORDER BY id LIMIT 65 LOCK IN SHARE MODE',$sum,$maximum,$table,$where);
+      'SELECT id,%Q bytes,%Q largest FROM %R'.$primary.' WHERE %Q ORDER BY id LIMIT 65'.$locking,$sum,$maximum,$table,$where);
     if(count($preflight)>PhorgeRecoveryNativeAPIFacts::MAX_ROWS){throw new RuntimeException('recovery_api_capture_budget_unknown');}
     $ids=array();foreach($preflight as$row){
       if((!is_int($row['id'])&&!is_string($row['id']))||!preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$row['id'])||
@@ -388,22 +422,47 @@ final class PhorgeRecoveryNativeCaptureScope extends Phobject {
       if($bytes>PhorgeRecoveryNativeAPIFacts::MAX_BYTES){throw new RuntimeException('recovery_api_capture_budget_unknown');}
       $ids[(string)$row['id']]=(int)$row['id'];}
     if(!$ids){return array();}
+    if($plan_clients){$names=array('id','clientPHID');}
     $projection=qsprintf($this->connection,implode(',',array_fill(0,count($names),'%C')),...$names);
-    $rows=queryfx_all($this->connection,'SELECT %Q FROM %R WHERE id IN (%Ld) AND %Q ORDER BY id LOCK IN SHARE MODE',
+    $rows=queryfx_all($this->connection,'SELECT %Q FROM %R'.$primary.' WHERE id IN (%Ld) AND %Q ORDER BY id'.$locking,
       $projection,$table,array_values($ids),$where);
     if(count($rows)!==count($ids)){throw new RuntimeException('recovery_api_source_changed');}
     return $rows;
   }
 
+  private function apiClientReferences() {
+    $profiles=$this->apiProfiles();$clients=array();$bytes=0;
+    foreach(array('oauth_tokens','oauth_authorizations','oauth_codes')as$kind){
+      $ids=array();foreach($this->apiRows($profiles[$kind],array(),$bytes,true)as$row){
+        $keys=array_keys($row);sort($keys,SORT_STRING);
+        if($keys!==array('clientPHID','id')||(!is_int($row['id'])&&!is_string($row['id']))||
+          preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$row['id'])!==1||(float)$row['id']>4294967295||isset($ids[(string)$row['id']])||
+          !is_string($row['clientPHID'])||preg_match('/\APHID-OASC-[a-zA-Z0-9]{20}\z/D',$row['clientPHID'])!==1){throw new RuntimeException('recovery_api_client_plan_unknown');}
+        $ids[(string)$row['id']]=true;$clients[$row['clientPHID']]=true;
+        if(count($clients)>PhorgeRecoveryNativeAPIFacts::MAX_ROWS){throw new RuntimeException('recovery_api_client_plan_budget');}
+      }
+    }
+    ksort($clients,SORT_STRING);return$clients;
+  }
+
   private function readAPICredentials() {
-    $bytes=0;$groups=array();$clients=array();
-    foreach($this->apiProfiles()as$kind=>$profile){
-      $groups[$kind]=$this->apiRows($profile,$clients,$bytes);
-      if($kind!=='oauth_clients'){foreach($groups[$kind]as$row){if(isset($row['clientPHID'])){
+    $bytes=0;$groups=array();$profiles=$this->apiProfiles();$clients=$this->apiClientReferences();
+    // Client record SHARE precedes every OAuth credential record SHARE.
+    $groups['oauth_clients']=$this->apiRows($profiles['oauth_clients'],$clients,$bytes);
+    $found=array();foreach($groups['oauth_clients']as$row){
+      if(!is_string($row['phid']??null)||!isset($clients[$row['phid']])||isset($found[$row['phid']])){throw new RuntimeException('recovery_api_client_source_changed');}
+      $found[$row['phid']]=true;
+    }
+    ksort($found,SORT_STRING);if(array_keys($found)!==array_keys($clients)){throw new RuntimeException('recovery_api_client_source_changed');}
+    $observed=array();foreach($profiles as$kind=>$profile){
+      if($kind==='oauth_clients'){continue;}
+      $groups[$kind]=$this->apiRows($profile,array(),$bytes);
+      foreach($groups[$kind]as$row){if(isset($row['clientPHID'])){
         if(!is_string($row['clientPHID'])||!preg_match('/\APHID-OASC-[a-zA-Z0-9]{20}\z/D',$row['clientPHID'])){
           throw new RuntimeException('recovery_api_client_binding_unknown');}
-        $clients[$row['clientPHID']]=true;}}}
+        $observed[$row['clientPHID']]=true;}}
     }
+    ksort($observed,SORT_STRING);if(array_keys($observed)!==array_keys($clients)||$this->apiClientReferences()!==$clients){throw new RuntimeException('recovery_api_client_source_changed');}
     $groups['legacy_sessions']=array();
     foreach($this->credentialRows(false,$bytes,true)as$row){if($row['type']===PhabricatorAuthSession::TYPE_CONDUIT){$groups['legacy_sessions'][]=$row;}}
     $now=(int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n'];

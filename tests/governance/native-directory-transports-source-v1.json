@@ -1,7 +1,7 @@
 {
   "schema": "native-directory-transports-source-v1",
   "base_revision": "149f315b4c29cdc5a9f3b2d10a92c6eab0403e1f",
-  "production_git_tree_inventory_sha256": "eedb5d0382f9cfff47be45a7da54bfa48ae0c693b997e54c2159793eaa6949ba",
+  "production_git_tree_inventory_sha256": "d19f592b9c4a06b5e9335dbbed7c4ecd5849eaa855ffcbcb20231f75ba7d712d",
   "pins": {
     ".github/workflows/native-directory-transports-v1.yml": {
       "bytes": 12225,
@@ -36,8 +36,8 @@
       "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
     },
     "scripts/governance/check_directory_transports_v1.py": {
-      "bytes": 20812,
-      "sha256": "c2ebbae25dd0f44e27f94a392efa77e00efe6de685d73a2fbce637e31e92c752"
+      "bytes": 20868,
+      "sha256": "87e378cdfc47351c66e08b2663c2c96cb6b5c1fc0fb21fa2c6b02030c55fa6fb"
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
@@ -244,8 +244,8 @@
       "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
     },
     "tests/governance/test_calendar_conduit_union.py": {
-      "bytes": 11424,
-      "sha256": "fe3833c3e78ef1788dcfb171bba4ce570140cdf80ee302d81b116fc990a54aff"
+      "bytes": 11751,
+      "sha256": "5144cbebed28f04bb091b20a34fc819853e5823baedc10fad89565b6c793375c"
     },
     "tests/governance/test_directory_avatar_fixture.py": {
       "bytes": 4915,
@@ -294,6 +294,10 @@
     "scripts/governance/qualify_oauth_authorization_mysql84.py": {
       "bytes": 3285,
       "sha256": "d24bbde68146aa9972ac7a901048551e7eda56493162dc47294034c6e236303f"
+    },
+    ".github/workflows/oauth-client-lifecycle-focused.yml": {
+      "bytes": 13680,
+      "sha256": "9036405ba276507a05b59e1be4cf5e2bd200d41bb0cb266daa8e93b48c3b5dce"
     }
   }
 }

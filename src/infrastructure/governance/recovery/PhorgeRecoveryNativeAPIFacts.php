@@ -15,6 +15,8 @@ final class PhorgeRecoveryNativeAPIFacts extends Phobject {
       'oauth-external-provider-and-email-associations-uncovered',
       'cluster-and-plugin-credential-consumers-uncovered',
       'legacy-certificate-secret-generation-is-account-binding-only',
+      'owned-oauth-clients-without-credential-references-uncovered',
+      'oauth-client-create-and-owner-reassignment-phantoms-unfenced',
       'future-producer-and-restore-lineage-unfenced');
     foreach ($expected as $kind) {
       $rows = $groups[$kind];

@@ -91,6 +91,10 @@ final class PhorgeRecoveryRestoreService extends Phobject {
       throw new RuntimeException('recovery_borrowed_production_provider_unavailable');}
     return$owner['participant']->borrowedCapture($subject);
   }
+  /** A same-process client write must not wait on its own borrowed source locks. */
+  public static function assertOAuthLifecycleWriteAvailable() {
+    if(self::$borrowedOwner!==null){throw new RuntimeException('recovery_oauth_lifecycle_borrowed_owner_reserved');}
+  }
   public static function assertConduitProducerOwnerAvailable($writer) {
     if(self::$borrowedOwner!==null&&self::$borrowedOwner['writer']===$writer){
       throw new RuntimeException('recovery_conduit_borrowed_owner_reserved');}
@@ -136,6 +140,8 @@ final class PhorgeRecoveryRestoreService extends Phobject {
         get_class($owner['participant'])!==PhorgeRecoverySessionProducerFence::class){
         throw new RuntimeException('recovery_assessment_credential_owner_unknown');}
       self::assertBorrowedOwner($owner['token'],$writer,$owner['observer']);
+      // Client locks precede every OAuth credential record SHARE lock.
+      $owner['participant']->borrowedPrepareOAuthClients($subject);
       // These are real source reads under this Store owner, not incoming hashes.
       $facts=array('session'=>self::captureBorrowedSessionFacts($writer,$subject),
         'conduit'=>self::captureBorrowedConduitFacts($writer,$subject),

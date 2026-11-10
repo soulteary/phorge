@@ -5,6 +5,7 @@ final class PhabricatorOAuthClientAuthorization
   implements PhabricatorPolicyInterface {
 
   protected function insertRecordIntoDatabase($mode) {
+    self::assertRecoveryLifecycleWriteAvailable();
     if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){
       PhorgeRecoveryConduitProducerFence::assertWriterAvailable(null);}
     if(!PhorgeGovernanceRecoveryGuard::enabled()){
@@ -15,6 +16,7 @@ final class PhabricatorOAuthClientAuthorization
   }
 
   public function update() {
+    self::assertRecoveryLifecycleWriteAvailable();
     if(class_exists(PhorgeRecoveryConduitProducerFence::class,false)){
       PhorgeRecoveryConduitProducerFence::assertWriterAvailable(null);}
     if(!PhorgeGovernanceRecoveryGuard::enabled()){return parent::update();}

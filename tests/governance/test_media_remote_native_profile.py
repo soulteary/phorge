@@ -62,7 +62,8 @@ class CurrentMainIntegration(MediaRemote):
   import recovery_conduit_source_delta as conduit_delta
   import recovery_assessment_source_delta as assessment_delta
   import recovery_oauth_authorization_source_delta as authorization_delta
-  extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)
+  import recovery_oauth_client_lifecycle_delta as lifecycle_delta
+  extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)
   map_path='src/__phutil_library_map__.php'
   expected={name,policy}|extra
   if map_path in changed:expected.add(map_path)

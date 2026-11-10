@@ -7,6 +7,21 @@ final class PhabricatorOAuthServerClient
     PhabricatorApplicationTransactionInterface,
     PhabricatorDestructibleInterface {
 
+  protected function insertRecordIntoDatabase($mode) {
+    self::assertRecoveryLifecycleWriteAvailable();
+    return parent::insertRecordIntoDatabase($mode);
+  }
+
+  public function update() {
+    self::assertRecoveryLifecycleWriteAvailable();
+    return parent::update();
+  }
+
+  public function openTransaction() {
+    self::assertRecoveryLifecycleWriteAvailable();
+    return parent::openTransaction();
+  }
+
   protected $secret;
   protected $name;
   protected $redirectURI;
