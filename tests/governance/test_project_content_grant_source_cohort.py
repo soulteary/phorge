@@ -47,3 +47,13 @@ class ExactMediaSourceRebind(unittest.TestCase):
   import importlib.util
   p=ROOT/'support/governance/project-content-grants-ci/ci.py';spec=importlib.util.spec_from_file_location('exact_N05_runtime_ci_source',p);ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(ci)
   self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'ef7be9c5c62e1fd93e358c556706261e85558960');self.assertEqual(ci.TREE,'a11e40493fc4adf8a3569326d3e98cf415b27bc4');self.assertEqual(ci.OFFLINE_METADATA,('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py'))
+
+class StageCExactRecipeBinding(unittest.TestCase):
+ def test_exact_current_metadata_restores_actual_signed_StageB_and_rejects_mixed_bytes(self):
+  m=delta.media_source_delta()
+  for name in m.SOURCE_INPUTS:
+   raw=(ROOT/name).read_bytes();old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','8df48ed5273fc7d534d93a3d220025389c6a011c:'+name])
+   self.assertEqual(m.reduce_stageB(name,raw),old,name)
+   with self.assertRaises(ValueError):m.reduce_stageB(name,raw+b'unknown')
+   if old!=raw:
+    with self.assertRaises(ValueError):m.reduce_stageB(name,old)

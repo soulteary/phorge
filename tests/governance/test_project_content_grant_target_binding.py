@@ -17,7 +17,13 @@ class ActualTargetBinding(unittest.TestCase):
    if kind=='prerequisites':self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'show',revision+':bin/storage']),b'../scripts/sql/manage_storage.php')
  def test_real_qualification_manifest_and_old_schema_or_identity_fail_closed(self):
   folder=ROOT/'support/governance/project-content-grants-qualification';path=ROOT/'support/governance/project-content-grants-ci/qualification-template.json'
-  bound=CI.bind_manifest(path,folder,'qualification',ROOT);self.assertEqual(bound['schema'],'N05-CI-bound-reviewed-source-v2');self.assertEqual(bound['native_git_revision'],CI.TARGET)
+  # Recipe HEAD legitimately advances; qualification must use a real exact-target checkout.
+  with tempfile.TemporaryDirectory()as td:
+   native=Path(td).resolve()/'native'
+   subprocess.run(['/usr/bin/git','clone','--shared','--no-checkout','--',str(ROOT),str(native)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
+   subprocess.run(['/usr/bin/git','-C',str(native),'checkout','--detach',CI.TARGET],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
+   bound=CI.bind_manifest(path,folder,'qualification',native);self.assertEqual(bound['schema'],'N05-CI-bound-reviewed-source-v2');self.assertEqual(bound['native_git_revision'],CI.TARGET)
+  with self.assertRaises(ValueError):CI.bind_manifest(path,folder,'qualification',ROOT)
   f=json.loads(path.read_bytes())
   for key,value in [('schema','N05-CI-reviewed-source-template-v1'),('native_git_revision','79987a76658150e77fc5266fae13c2eaed934ff2'),('native_git_tree','0'*40)]:
    with tempfile.TemporaryDirectory()as td:

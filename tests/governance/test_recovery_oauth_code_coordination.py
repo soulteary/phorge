@@ -32,7 +32,7 @@ class CodeCoordination(unittest.TestCase):
    return out
   for path in coord.SOURCE_INPUTS:
    if path.endswith('.py'):
-    raw=(ROOT/path).read_bytes();self.assertEqual(dictionaries(raw),dictionaries(coord.source_view(path,raw)))
+    raw=authorization_delta.reduce_if_selected(path,(ROOT/path).read_bytes());self.assertEqual(dictionaries(raw),dictionaries(coord.source_view(path,raw)))
  def test_complete_current_or_complete_baseline_only_missing_mixed_unknown_refuse(self):
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
    root=Path(tmp);complete_source_cohort(root);self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))
@@ -69,7 +69,7 @@ class CodeCoordination(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('oauth_code_media_snapshot',directory/'snapshot.py');snapshot=importlib.util.module_from_spec(spec);spec.loader.exec_module(snapshot)
   with patch.dict(sys.modules,{'snapshot':snapshot}):
    spec=importlib.util.spec_from_file_location('oauth_code_media_freshness',ROOT/'support/governance/media-session-ci/freshness.py');freshness=importlib.util.module_from_spec(spec);spec.loader.exec_module(freshness)
-   self.assertEqual(snapshot.BASE,'cc39f46941cb8f06eb3e7648f5da38db79be83dc');self.assertEqual(len(snapshot.OVERLAY),8)
+   self.assertEqual(snapshot.BASE,'8df48ed5273fc7d534d93a3d220025389c6a011c');self.assertEqual(len(snapshot.OVERLAY),8)
    # This is a whole-current-Git source invariant, not an assertion that the
    # Atomic parser-prepared checkout is clean. The media workflow retains its
    # separate unchanged real-checkout freshness gates before any preparation.
