@@ -25,7 +25,7 @@ class SignedSourceBinding(unittest.TestCase):
    with self.assertRaises(ValueError):media_binding.reduce_current(name,raw+b'\n# unknown edit')
   self.assertEqual(self.git('rev-parse',BASE+'^{tree}').decode().strip(),TREE)
   for name in [PATH,'support/governance/media-session-ci/project.py','support/governance/media-session-docker/README.md']:
-   self.assertEqual((ROOT/name).read_text().count('3e02336621298f5877e30e05690f57e9a499bdda'),1);self.assertEqual((ROOT/name).read_text().count('fe1724593b9bc1610245cdd25af4d1cea5cd70b9'),1)
+   self.assertEqual((ROOT/name).read_text().count('5665cf16663b0e44da2aed5a800835dc9cb563cf'),1);self.assertEqual((ROOT/name).read_text().count('0edb85b33cd7554e8653c1c310d2978e8c32ef3d'),1)
  def test_all_current_metadata_and_hook_inverses_restore_exact_signed_S1(self):
   self.assertEqual(len(media_binding.SOURCE_INPUTS),10)
   for name in media_binding.SOURCE_INPUTS:
@@ -54,11 +54,11 @@ class SignedSourceBinding(unittest.TestCase):
   def overlay(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='OVERLAY'for t in n.targets))
   current=overlay((ROOT/PATH).read_bytes());self.assertEqual(len(current),8);before=overlay(self.git('show',BASE+':'+PATH));self.assertEqual(set(current),set(before));self.assertEqual({n for n in current if current[n]!=before[n]},{'support/governance/media-session-positive/source-pins.json','support/governance/media-session-positive/run.php'})
   for name,pin in current.items():self.assertEqual(hashlib.sha256((ROOT/name).read_bytes()).hexdigest(),pin)
- def test_exact_signed_raw_Git_inventory_count_is_9272(self):
+ def test_exact_signed_raw_Git_inventory_count_is_9276(self):
   spec=importlib.util.spec_from_file_location('partial_media_count_snapshot',ROOT/PATH);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
   entries,provenance=module.base_entries(ROOT)
   for name in module.OVERLAY:entries.setdefault(name,None)
-  self.assertEqual(len(entries),9272);self.assertEqual(provenance['root_tree'],'fe1724593b9bc1610245cdd25af4d1cea5cd70b9');self.assertEqual(provenance['commit'],'3e02336621298f5877e30e05690f57e9a499bdda')
+  self.assertEqual(len(entries),9276);self.assertEqual(provenance['root_tree'],'0edb85b33cd7554e8653c1c310d2978e8c32ef3d');self.assertEqual(provenance['commit'],'5665cf16663b0e44da2aed5a800835dc9cb563cf')
  def test_all_other_fixture_runtime_and_source_guards_byteexact_signed_source(self):
   paths=self.git('ls-tree','-r','--name-only',BASE,'--','support/governance/media-session-ci','support/governance/media-session-docker','support/governance/media-session-positive').decode().splitlines();self.assertGreaterEqual(len(paths),17)
   for name in paths:
@@ -74,4 +74,11 @@ class SignedSourceBinding(unittest.TestCase):
    self.assertEqual(raw,actual)
    self.assertEqual(m.reduce_previous_recipe(path,raw),m.BASE_BYTES[path])
    with self.assertRaises(ValueError):m.reduce_previous_recipe(path,raw+b'unknown')
+ def test_repair_signed_recipe_predecessor_is_exact_and_unknown_refused(self):
+  import project_content_grant_source_delta as n05
+  m=n05.media_source_delta();self.assertEqual(set(m.REPAIR_RECIPE_BYTES),set(m.SOURCE_INPUTS))
+  for path,raw in m.REPAIR_RECIPE_BYTES.items():
+   actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','5665cf16663b0e44da2aed5a800835dc9cb563cf:'+path]);self.assertEqual(raw,actual)
+   self.assertEqual(m.reduce_repair_recipe(path,raw),m.BASE_BYTES[path])
+   with self.assertRaises(ValueError):m.reduce_repair_recipe(path,raw+b'unknown')
 if __name__=='__main__':unittest.main()
