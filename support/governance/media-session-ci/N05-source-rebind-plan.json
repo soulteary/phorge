@@ -13,7 +13,7 @@
     "runtime_verified": false,
     "selected19_changed_count": 1
   },
-  "current_snapshot_base": "432bd0166880b4a6ab4820cfebcd4482cf89bb27",
+  "current_snapshot_base": "0496112f7d6706bb3d854117b7fd94a759978987",
   "current_snapshot_overlay": {
     "support/governance/media-session-positive/README.md": "a3cc5c39b8e327085490621a1d0dc167d27c9e9c7e96dcb435953653bdc6938a",
     "support/governance/media-session-positive/cases.php": "ec93f85e5827b281e0605556f423d0837b44c5b467eed4223fb3075fb7203708",
@@ -24,7 +24,7 @@
     "support/governance/media-session-positive/test-diagnostic.php": "0f308b02a47f1d4c56faf71e1557036014a781ac5341eae30c8785c8a8a9865e",
     "support/governance/media-session-positive/test-guards.php": "dbe79fe6b78beed08b47cb339b2248ad45cc0fde70ecd6faa454d57f1a522e2e"
   },
-  "current_snapshot_tree": "27ca8aef4f23fd3fe9abd4a12781db0878f2742a",
+  "current_snapshot_tree": "4c80c759bac5af9add4963335439efa677024396",
   "current_stage_overlay8_changed_count": 0,
   "current_stage_selected19_changed_count": 0,
   "historical_mediaC_guide": "support/governance/project-content-grants-ci/media-C-rebind-plan.json",
@@ -35,9 +35,10 @@
   "online_permission_migration": false,
   "optional_features_OFF": true,
   "overlay8_inherited_byteexact_from_current_snapshot": true,
+  "protected_delta_from_F4": 0,
   "protected_leaf_count": 8407,
   "publication_or_runtime_authority": false,
-  "raw_leaf_count": 9301,
+  "raw_leaf_count": 9303,
   "remaining": [
     "Independent Stage C whole-source review",
     "Root signature and publication of complete source cohort",
@@ -52,11 +53,11 @@
     "scripts/governance/recovery_oauth_authorization_source_delta.py",
     "scripts/governance/check_directory_transports_v1.py"
   ],
-  "runtime_exclusions_scope": "Native PHP/SQL/48-source target and strict media PREFIXES/EXCEPT unchanged. Reviewed offline source-consumer metadata exclusions in metadata ci current_source increase5to6; actual full current cohort/selfpin guard must pass before these exclusions.",
-  "runtime_exclusions_unchanged": false,
+  "runtime_exclusions_scope": "The reviewed six Python source-consumer tooling exclusions are inherited exactly from signed F4. No protected source, CI.py, metadata-lock, PHP/SQL/48 native target, media PREFIXES/EXCEPT or overlay change in this narrow F5 inheritance.",
+  "runtime_exclusions_unchanged": true,
   "schema": "N05-StageC-signed-recipe-media-rebind-v2",
   "selected19_inherited_byteexact_from_current_snapshot": true,
   "source_only": true,
   "verified_tree_count": 1691,
-  "verified_unique_blob_count": 9195
+  "verified_unique_blob_count": 9197
 }

@@ -79,10 +79,10 @@ class OAuthCI(unittest.TestCase):
    self.assertEqual(partial.reduce_if_selected(name,(ROOT/name).read_bytes()),fixed)
    committed=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name])
    if committed!=(ROOT/name).read_bytes():
-    self.assertEqual(revision,'432bd0166880b4a6ab4820cfebcd4482cf89bb27')
-    self.assertEqual(subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD^{tree}']).decode().strip(),'27ca8aef4f23fd3fe9abd4a12781db0878f2742a')
-    from n05_r3_historical_test_view import historical_R3_media_recipe_source
-    old=historical_R3_media_recipe_source(name,committed)
+    self.assertEqual(revision,'0496112f7d6706bb3d854117b7fd94a759978987')
+    self.assertEqual(subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD^{tree}']).decode().strip(),'4c80c759bac5af9add4963335439efa677024396')
+    from n05_r3_historical_test_view import historical_F4_media_recipe_source
+    old=historical_F4_media_recipe_source(name,committed)
    else:old=partial.reduce_if_selected(name,committed)
    self.assertEqual(old,fixed)
  def test_yaml_dependency_is_explicit_isolated_and_precedes_controls(self):

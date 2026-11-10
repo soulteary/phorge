@@ -64,3 +64,12 @@ def historical_R3_media_recipe_source(path,raw):
  actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','432bd0166880b4a6ab4820cfebcd4482cf89bb27:'+path])
  if raw!=actual or raw!=old.CURRENT_BYTES[path]:raise ValueError('unknown signed R3 media predecessor')
  return checked_modules().partial_delta.reduce_if_selected(path,old.reduce_current(path,raw))
+
+def historical_F4_media_recipe_source(path,raw):
+ current.assert_current_recipe(ROOT)
+ old=current.legacy.media_source_delta()
+ if type(path)is not str or path not in old.SOURCE_INPUTS or type(raw)is not bytes:raise ValueError('unknown F4 media source')
+ actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','0496112f7d6706bb3d854117b7fd94a759978987:'+path])
+ if raw!=actual:raise ValueError('unknown signed F4 media predecessor')
+ prior=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','432bd0166880b4a6ab4820cfebcd4482cf89bb27:'+path])
+ return historical_R3_media_recipe_source(path,prior)

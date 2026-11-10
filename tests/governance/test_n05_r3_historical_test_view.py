@@ -20,6 +20,13 @@ class R3HistoricalView(unittest.TestCase):
   self.assertIsInstance(view.historical_R3_media_recipe_source(name,raw),bytes)
   with self.assertRaises(ValueError):view.historical_R3_media_recipe_source(name,raw+b'unknown')
   with self.assertRaises(ValueError):view.historical_R3_media_recipe_source('tests/unknown.py',raw)
+ def test_signed_F4_media_predecessor_is_exact_and_unknown_refused(self):
+  import subprocess
+  name='support/governance/media-session-docker/snapshot.py'
+  raw=subprocess.check_output(['git','--no-replace-objects','-C',str(view.ROOT),'show','0496112f7d6706bb3d854117b7fd94a759978987:'+name])
+  self.assertIsInstance(view.historical_F4_media_recipe_source(name,raw),bytes)
+  with self.assertRaises(ValueError):view.historical_F4_media_recipe_source(name,raw+b'unknown')
+  with self.assertRaises(ValueError):view.historical_F4_media_recipe_source('tests/unknown.py',raw)
  def test_no_runtime_source_imports_test_view(self):
   for p in (view.ROOT/'scripts/governance').glob('*.py'):
    self.assertNotIn(b'import n05_r3_historical_test_view',p.read_bytes())
