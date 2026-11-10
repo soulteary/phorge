@@ -10,14 +10,16 @@ MEDIA_WORKFLOW='.github/workflows/native-media-session-positive-sql.yml'
 MEDIA_WORKFLOW_SHA256='d0b00933b908aa5e8da92ca3a1c6c154d7a082adaea9883a762324e4e8a3d786'
 def git(*args):return subprocess.check_output(['git','-C',str(ROOT),*args])
 def validate_workflow_union(changed,historical,read):
+ import project_content_grant_ci_source_delta as n05_ci
  import recovery_oauth_code_ci_delta as code_ci
  import recovery_oauth_authorization_ci_delta as authorization_ci
- if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,authorization_ci.WORKFLOW}:
+ if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,authorization_ci.WORKFLOW,n05_ci.WORKFLOW}:
   raise ValueError('unreviewed workflow union')
  if hashlib.sha256(read(MEDIA_WORKFLOW)).hexdigest()!=MEDIA_WORKFLOW_SHA256:
   raise ValueError('reviewed media workflow changed')
  code_ci.assert_workflow(code_ci.WORKFLOW,read(code_ci.WORKFLOW))
  authorization_ci.assert_workflow(authorization_ci.WORKFLOW,read(authorization_ci.WORKFLOW))
+ n05_ci.assert_workflow(n05_ci.WORKFLOW,read(n05_ci.WORKFLOW))
 class CalendarConduitUnion(unittest.TestCase):
  def test_current_main_production_hooks_map_and_workflows_preserved(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_assessment_source_delta as assessment
@@ -45,7 +47,8 @@ class CalendarConduitUnion(unittest.TestCase):
  def test_reviewed_media_workflow_union_rejects_unknown_addition_or_mutation(self):
   historical={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   import recovery_oauth_code_ci_delta as code_ci
-  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,'.github/workflows/oauth-authorization-producer-focused.yml'}
+  import project_content_grant_ci_source_delta as n05_ci
+  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,'.github/workflows/oauth-authorization-producer-focused.yml',n05_ci.WORKFLOW}
   raw=(ROOT/MEDIA_WORKFLOW).read_bytes()
   validate_workflow_union(expected,historical,lambda path:(ROOT/path).read_bytes())
   for changed in (expected|{'.github/workflows/unreviewed.yml'},expected-{MEDIA_WORKFLOW}):

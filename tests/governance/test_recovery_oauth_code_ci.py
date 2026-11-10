@@ -44,7 +44,7 @@ class OAuthCI(unittest.TestCase):
  def test_current_committed_N01_source_revision_and_app_payload_are_real(self):
   import check_directory_transports_v1 as gate
   revision=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD']).decode().strip()
-  dirty=subprocess.run(['git','-C',str(ROOT),'diff','--quiet','HEAD','--','src','resources']).returncode!=0
+  dirty=subprocess.run(['git','-C',str(ROOT),'diff','--quiet','HEAD','--','src','resources',gate.MANIFEST,*sorted(gate.SOURCE_FILES)]).returncode!=0
   if dirty:
    with self.assertRaises((ValueError,subprocess.CalledProcessError)):gate.source(ROOT,revision=revision)
   else:self.assertEqual(gate.source(ROOT,revision=revision)['schema'],'native-directory-transports-source-v1')

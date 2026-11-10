@@ -1,0 +1,88 @@
+{
+  "schema": "N05-CI-exact-media-C-rebind-plan-only-v1",
+  "baseline_source": "4c2245300dc1d78d042b95190dd537eb6b1f9861",
+  "target_source": "79987a76658150e77fc5266fae13c2eaed934ff2",
+  "target_tree": "797f5bad3c10eb2fbee30c95c6019e6c0a2393ee",
+  "executed": false,
+  "media_freshness_passed": false,
+  "source_pins_path": "support/governance/media-session-positive/source-pins.json",
+  "signed_media19_preserved": {
+    "resources/sql/autopatches/20261102.people.mediaexchange.sql": "33abbbf48a2a43035e3d3de1eb56c69bbda825819b469ecd95a6d530b8e8a980",
+    "resources/sql/autopatches/20261103.people.mediaissuer.sql": "2cb870c03069cffd2be3ef801b963265f1f5d7c866c0ee80935f1ebfdaac2957",
+    "resources/sql/autopatches/20261103.people.mediatargets.sql": "abbf90c5ff77d8a0c027a02396e12206dc09274ed2c9028ade7e0cf628c2e191",
+    "resources/sql/quickstart.sql": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
+    "src/applications/auth/application/PhabricatorAuthApplication.php": "56675e2b360d3de7f4028d3966f1469b6493835904df3cc88c84e2ed17868713",
+    "src/applications/auth/engine/PhabricatorAuthSessionEngine.php": "81372aff5539c88d79d3a0f91af409b75fed91432eb137f65ae0621d3efb97ef",
+    "src/applications/auth/storage/PhabricatorAuthSession.php": "8e9efa7fa53676ec28e13d8b3e02a99096894ebf05f53fdd6366d9199d212a56",
+    "src/applications/files/application/PhabricatorFilesApplication.php": "b336adcf41ad57c790044f0c7dcc4bded6d945be7065fa86840f28f186ee0724",
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php": "58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66",
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922",
+    "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php": "9afb37b7d3b409333dfd01f614f85423ecd1192d795dffe1999cb0a5f8f3c7b0",
+    "src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php": "91695c3f3442d6eed9ee04e52d3fdedcb719f6a52ca6c8c0f4457d801de98f9f",
+    "src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php": "75718db8219047fba8c47cc9f49fb1df1479b77b4a1d407ed8e968a2da787fa2",
+    "src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php": "646ef486659772ff75df6a02583a7cc1852e3ecdad5370fae8f45ba87c65ca81",
+    "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php": "a6d4e9d50ec4f795ce75e8de52337a5af1afd31244a88222a2a3173c12984cd6",
+    "src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php": "a3da5cf5d3e515779de1293670d4bb3f08202b9e2e32fb684d1cbc100bc860eb",
+    "support/governance/completion/fixture.php": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b",
+    "support/governance/fixtures/PhorgeGovernanceNativeFixture.php": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e",
+    "support/governance/native-organization/directory-restore-progress.php": "1c32b2709cf2dcebd0e9c29d079dce2f5ab2471caeb70320708561021c2d410c"
+  },
+  "target_actual_raw_sha256": {
+    "resources/sql/autopatches/20261102.people.mediaexchange.sql": "33abbbf48a2a43035e3d3de1eb56c69bbda825819b469ecd95a6d530b8e8a980",
+    "resources/sql/autopatches/20261103.people.mediaissuer.sql": "2cb870c03069cffd2be3ef801b963265f1f5d7c866c0ee80935f1ebfdaac2957",
+    "resources/sql/autopatches/20261103.people.mediatargets.sql": "abbf90c5ff77d8a0c027a02396e12206dc09274ed2c9028ade7e0cf628c2e191",
+    "resources/sql/quickstart.sql": "ce0587c8d169031ae24bf90570c3711e10f4e53dea682e11ecc0c33da8c84ad3",
+    "src/applications/auth/application/PhabricatorAuthApplication.php": "56675e2b360d3de7f4028d3966f1469b6493835904df3cc88c84e2ed17868713",
+    "src/applications/auth/engine/PhabricatorAuthSessionEngine.php": "81372aff5539c88d79d3a0f91af409b75fed91432eb137f65ae0621d3efb97ef",
+    "src/applications/auth/storage/PhabricatorAuthSession.php": "8e9efa7fa53676ec28e13d8b3e02a99096894ebf05f53fdd6366d9199d212a56",
+    "src/applications/files/application/PhabricatorFilesApplication.php": "b336adcf41ad57c790044f0c7dcc4bded6d945be7065fa86840f28f186ee0724",
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php": "58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66",
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922",
+    "src/infrastructure/governance/media/PhorgeGovernanceMediaExchangeService.php": "9afb37b7d3b409333dfd01f614f85423ecd1192d795dffe1999cb0a5f8f3c7b0",
+    "src/infrastructure/governance/media/PhorgeGovernanceMediaIssuer.php": "91695c3f3442d6eed9ee04e52d3fdedcb719f6a52ca6c8c0f4457d801de98f9f",
+    "src/infrastructure/governance/media/PhorgeGovernanceMediaTarget.php": "75718db8219047fba8c47cc9f49fb1df1479b77b4a1d407ed8e968a2da787fa2",
+    "src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php": "646ef486659772ff75df6a02583a7cc1852e3ecdad5370fae8f45ba87c65ca81",
+    "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php": "a6d4e9d50ec4f795ce75e8de52337a5af1afd31244a88222a2a3173c12984cd6",
+    "src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php": "a3da5cf5d3e515779de1293670d4bb3f08202b9e2e32fb684d1cbc100bc860eb",
+    "support/governance/completion/fixture.php": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b",
+    "support/governance/fixtures/PhorgeGovernanceNativeFixture.php": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e",
+    "support/governance/native-organization/directory-restore-progress.php": "1c32b2709cf2dcebd0e9c29d079dce2f5ab2471caeb70320708561021c2d410c"
+  },
+  "stages": [
+    "Root review exact staged N05CI source, publish reviewed signed candidate with no production source changes from799",
+    "Root bind candidate commit/tree and actual raw19hashes; preserve original signed evidence and reject unknown/mixed bytes",
+    "Recompute only actual required media fixture/overlay/projection source-cohort descriptors against exact candidate, with inverse/mutation tests; no freshness skip or broad normalization",
+    "Run actual source-only admission and affected native/media host checks against clean published source; inspect every failure",
+    "Root only: perform required genuine media runtime/native/browser checks and normal TLS, retain failures; no inherited runtime receipts",
+    "Only after actual required CI/freshness checks pass consider push/PR; eventual N08 native changes require renewed target/templates/pins/review"
+  ],
+  "unchanged_until_Root_phase": [
+    "all signed media pins",
+    "media runtime scripts and existing workflows",
+    "eight reviewed media overlays",
+    "freshness checks and current source revision admission"
+  ],
+  "blocked_claims": [
+    "No mediaC publication performed",
+    "No runtime/browser/SQL success",
+    "No complete13source or production execution permit"
+  ],
+  "current_snapshot_base": "d3b4d5f12c7290bf3d6303c4447ce61168926018",
+  "current_snapshot_overlay": {
+    "support/governance/media-session-positive/README.md": "a3cc5c39b8e327085490621a1d0dc167d27c9e9c7e96dcb435953653bdc6938a",
+    "support/governance/media-session-positive/cases.php": "ec93f85e5827b281e0605556f423d0837b44c5b467eed4223fb3075fb7203708",
+    "support/governance/media-session-positive/diagnostic.php": "7248c628ff94caabba218ae02762842311aa204d6c7792e049f17f6499f84f55",
+    "support/governance/media-session-positive/profile.php": "50db5b55613f03b3297bfc780301da485ba896410237e82c1b0475b6ba79d83d",
+    "support/governance/media-session-positive/run.php": "2e71c22445d69b46b60524f3cac75906ade9f308b4ae69c03cfdc978418668dd",
+    "support/governance/media-session-positive/source-pins.json": "68950bf554978bbb774e520a982802724e23004abdd23cad5d02ba8515c5f919",
+    "support/governance/media-session-positive/test-diagnostic.php": "0f308b02a47f1d4c56faf71e1557036014a781ac5341eae30c8785c8a8a9865e",
+    "support/governance/media-session-positive/test-guards.php": "dbe79fe6b78beed08b47cb339b2248ad45cc0fde70ecd6faa454d57f1a522e2e"
+  },
+  "target_native_git_inventory_sha256": "49fbf7ab4815db3f1070735b6d398cd645cb02b8d7cebc488ed841d9bba4b658",
+  "consumer_rebind_sites": [
+    "support/governance/media-session-positive/source-pins.json raw19",
+    "support/governance/media-session-docker/snapshot.py BASE and exact8overlay/provenance/inventory",
+    "support/governance/media-session-ci/project.py exact protected-source base/tree/overlay/inventory contract",
+    "Existing media source-freshness producer and corresponding source-cohort tests, only after Root review"
+  ]
+}

@@ -22,6 +22,16 @@ def private(path):
   b=os.read(fd,65537);stamp=lambda s:(s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
   need(len(b)==a.st_size and stamp(a)==stamp(os.fstat(fd))==stamp(p.lstat()));return b
  finally:os.close(fd)
+def native_source_bytes(root,relative):
+ need(type(relative)is str and not Path(relative).is_absolute()and '..'not in Path(relative).parts and str(Path(relative))==relative)
+ path=root/relative
+ if relative=='bin/storage':
+  # This committed native entry is intentionally a symlink, not a regular file.
+  # Inventory pins bind its script bytes; also require the exact reviewed link.
+  need(path.is_symlink()and os.readlink(path)=='../scripts/sql/manage_storage.php')
+  target=root/'scripts/sql/manage_storage.php';need(target.resolve()==target and path.resolve()==target and target.is_file())
+  return target.read_bytes()
+ need(path.resolve()==path and path.is_file());return path.read_bytes()
 def bind(profile,review,freeze):
  need(all(type(v)is str and re.fullmatch('[a-f0-9]{64}',v)for v in (ROOT_PROFILE_SHA,ROOT_REVIEW_SHA,FREEZE_PIN)))
  raw=private(profile);rr=private(review);need(sha(raw)==ROOT_PROFILE_SHA and sha(rr)==ROOT_REVIEW_SHA);p=decode(raw)
@@ -36,7 +46,7 @@ def bind(profile,review,freeze):
  need(f['source_directory']==str(HERE)and sha(canon(f['native_source_inventory']))==p['source_inventory_sha256'])
  root=Path(p['source_root']);need(root.is_absolute()and root.resolve()==root)
  for n,pin in f['native_source_inventory'].items():
-  path=root/n;need(path.resolve()==path and path.is_file()and sha(path.read_bytes())==pin['sha256'])
+  raw=native_source_bytes(root,n);need(len(raw)==pin['bytes']and sha(raw)==pin['sha256'])
  for n,pin in f['source_sha256'].items():need(sha((HERE/n).read_bytes())==pin['sha256'])
  need(sha(Path(p['php']).read_bytes())==p['php_sha256'])
  need(sha(private(root/'conf/local/local.json'))==p['local_configuration_sha256'])
