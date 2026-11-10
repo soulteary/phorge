@@ -42,8 +42,8 @@
       "sha256": "39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649"
     },
     "scripts/governance/check_directory_transports_v1.py": {
-      "bytes": 20868,
-      "sha256": "87e378cdfc47351c66e08b2663c2c96cb6b5c1fc0fb21fa2c6b02030c55fa6fb"
+      "bytes": 21024,
+      "sha256": "df5dd1a3ad39d5b3c53f17343ccd15232a37bc8a37a3c3de954174c92e6f5462"
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
@@ -52,6 +52,14 @@
     "scripts/governance/probe_oauth_authorization_mysql84.php": {
       "bytes": 2795,
       "sha256": "6eb1a8e9c5eb21eac699c507d65046d6b54497eecef3223e88c3ce70483d4847"
+    },
+    "scripts/governance/project_description_admission_delta.py": {
+      "bytes": 100068,
+      "sha256": "1c4f5fc6332311c03fcaa02c1799f929389329fcce8cfa54a2f78288737f1646"
+    },
+    "scripts/governance/project_description_source_delta.py": {
+      "bytes": 148224,
+      "sha256": "903cea29522e10be5471a1774118984faa70916a343a3d7d1a865c9507ea8fde"
     },
     "scripts/governance/project_directory_transport_failure_v1.py": {
       "bytes": 8490,
@@ -298,6 +306,6 @@
       "sha256": "73f23b9eb86b5bb4b41ac3055ba7b552d8f9f5d7bc52ec9b10687d785e1a5ac0"
     }
   },
-  "production_git_tree_inventory_sha256": "4281e6dd202c327a7b619847eb147b10d06ae6311663e2f478a3934524128686",
+  "production_git_tree_inventory_sha256": "bfc20abfbc118dc29ed9ac4a958b7769f654d7f8fd13e3e1849f12f702b8ddb3",
   "schema": "native-directory-transports-source-v1"
 }

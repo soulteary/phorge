@@ -4,10 +4,10 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
 sys.path.insert(0,str(ROOT/'scripts/governance'))
-import project_content_grant_source_delta as delta
+import project_description_admission_delta as delta
 class NativeGrantCohort(unittest.TestCase):
  def test_reviewed_native_files_restore_exact_current_main_or_new_leaf(self):
-  self.assertEqual(len(delta.assert_production_cohort(ROOT)),14)
+  self.assertEqual(len(delta.assert_production_cohort(ROOT)),17)
   for n in delta.PRODUCTION_PINS:
    raw=(ROOT/n).read_bytes();old=subprocess.run(['git','-C',str(ROOT),'show',BASE+':'+n],capture_output=True)
    restored=delta.reduce_production(n,raw)
@@ -22,7 +22,8 @@ class NativeGrantCohort(unittest.TestCase):
  def test_complete_cohort_refuses_missing_or_unknown_new_source(self):
   with tempfile.TemporaryDirectory()as t:
    root=Path(t).resolve()
-   for n in delta.PRODUCTION_PINS:
+   names=set(delta.PRODUCTION_PINS)|set(delta.CURRENT_METADATA)|{delta.MANIFEST,delta.BRIDGE,delta.PREPARATION,delta.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
+   for n in names:
     p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes())
    delta.assert_production_cohort(root)
    n='src/infrastructure/governance/content/PhorgeProjectContentGrantService.php';p=root/n;raw=p.read_bytes();p.write_bytes(raw+b'\n// unknown')
@@ -43,10 +44,11 @@ class ExactMediaSourceRebind(unittest.TestCase):
    bad=raw+b'\n# unknown metadata'
    with self.assertRaises(ValueError):m.reduce_current(name,bad)
    with patch.dict(m.SOURCE_INPUTS,{name:hashlib.sha256(bad).hexdigest()}),self.assertRaises(ValueError):m.reduce_current(name,bad)
- def test_SQL_runtime_binding_and_existing_two_metadata_exceptions_unchanged(self):
+ def test_SQL_runtime_binding_uses_T3_and_exclusions_require_current_recipe_guard(self):
   import importlib.util
   p=ROOT/'support/governance/project-content-grants-ci/ci.py';spec=importlib.util.spec_from_file_location('exact_N05_runtime_ci_source',p);ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(ci)
-  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'512282be298c7996fc6370156c333d7557b1685a');self.assertEqual(ci.TREE,'405202c353072f5ee0a4d9687d550fe497ff01d1');self.assertEqual(ci.OFFLINE_METADATA,('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py'))
+  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'15d4f76d9c1c12256f82e53435be038422e205a5');self.assertEqual(ci.TREE,'2affc55aa9e4aecd3175b8b56adf31d0a93828a3');self.assertEqual(set(ci.OFFLINE_METADATA),{'scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py'})
+  delta.assert_current_recipe(ROOT)
 
 class StageCExactRecipeBinding(unittest.TestCase):
  def test_exact_current_metadata_restores_actual_signed_StageB_and_rejects_mixed_bytes(self):

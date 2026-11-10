@@ -1,0 +1,53 @@
+"""Actual source admission graph and real Git bindings; never SQL execution."""
+import copy,hashlib,importlib.util,json,subprocess,sys,tempfile,unittest
+from pathlib import Path
+from unittest.mock import patch
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import project_description_admission_delta as admission
+import check_directory_transports_v1 as directory
+def ci_module():
+ p=ROOT/'support/governance/project-content-grants-ci/ci.py';s=importlib.util.spec_from_file_location('actual_T3_admission_CI',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+class DescriptionAdmission(unittest.TestCase):
+ def copy_recipe(self,root):
+  paths=set(admission.CURRENT_METADATA)|set(admission.description.CURRENT_PINS)|{admission.MANIFEST,admission.BRIDGE,admission.PREPARATION,admission.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
+  for p in paths:
+   target=root/p;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes((ROOT/p).read_bytes())
+ def test_actual_current_recipe_and_full_production_inventory_pass_before_revision_binding(self):
+  self.assertEqual(admission.assert_current_recipe(ROOT)['production_paths'],17)
+  data=directory.source(ROOT);self.assertEqual(data,admission.expected_manifest(ROOT));self.assertEqual(len(data['pins']),76)
+  tree=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree','-r',admission.TARGET,'--','src','resources']);self.assertEqual(hashlib.sha256(tree).hexdigest(),data['production_git_tree_inventory_sha256'])
+ def test_clean_exact_T3_native_Git_source_and_actual48_manifest_bind(self):
+  ci=ci_module();self.assertEqual(ci.TARGET,admission.TARGET)
+  with tempfile.TemporaryDirectory()as t:
+   native=Path(t).resolve()/'native';subprocess.run(['git','clone','--shared','--no-checkout','--',str(ROOT),str(native)],check=True,capture_output=True);subprocess.run(['git','-C',str(native),'checkout','--detach',ci.TARGET],check=True,capture_output=True)
+   self.assertEqual(ci.source(native,ci.TARGET),ci.TREE)
+   manifest=ci.bind_manifest(ROOT/'support/governance/project-content-grants-ci/qualification-template.json',ROOT/'support/governance/project-content-grants-qualification','qualification',native);self.assertEqual(len(manifest['native_source_inventory']),48)
+   # A native target is not the later reviewed recipe; no borrowed current-source approval.
+   with self.assertRaises((ValueError,OSError)):ci.current_source(native,ci.TARGET)
+ def test_real_dirty_unsigned_recipe_is_refused_without_mocking_Git(self):
+  ci=ci_module();revision=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
+  with self.assertRaises(ValueError):ci.current_source(ROOT,revision)
+  with self.assertRaises(ValueError):directory.source(ROOT,revision=revision)
+ def test_unknown_metadata_mutation_and_tampered_pin_refuse(self):
+  for path in admission.CURRENT_METADATA:
+   with self.assertRaises(ValueError):admission._normalize_metadata(path,(ROOT/path).read_bytes()+b'\n# unknown')
+  path=next(iter(admission.CURRENT_METADATA));fake=copy.deepcopy(admission.CURRENT_METADATA[path]);fake['sha256']='0'*64
+  with patch.dict(admission.CURRENT_METADATA,{path:fake}),self.assertRaises(ValueError):admission.assert_current_recipe(ROOT)
+ def test_real_complete_recipe_refuses_each_mixed_old_metadata_file(self):
+  with tempfile.TemporaryDirectory()as t:
+   root=Path(t).resolve();self.copy_recipe(root);admission.assert_current_recipe(root)
+   for path,pin in admission.CURRENT_METADATA.items():
+    if pin['target_sha256']is None:continue
+    p=root/path;good=p.read_bytes();p.write_bytes(admission._target_bytes(path))
+    with self.assertRaises(ValueError):admission.assert_current_recipe(root)
+    p.write_bytes(good)
+ def test_old_reducers_and_entire36_baseline_identity_preserved(self):
+  for path in [admission.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py']:
+   actual=(ROOT/path).read_bytes();old=subprocess.check_output(['git','-C',str(ROOT),'show',admission.description.MAIN_BASELINE['git_revision']+':'+path]);self.assertEqual(actual,old)
+  path='support/governance/project-content-grants-ci/prerequisites-template.json';old=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show',admission.description.MAIN_BASELINE['git_revision']+':'+path]));now=json.loads((ROOT/path).read_bytes());keys=['native_git_revision','native_git_tree','native_public_source_dependencies'];self.assertEqual({k:old[k]for k in keys},{k:now[k]for k in keys});self.assertEqual(len(now['native_public_source_dependencies']),36)
+ def test_current_offline_exceptions_are_guarded_and_SQL_profile_still_null(self):
+  ci=ci_module();self.assertEqual(set(ci.OFFLINE_METADATA),{admission.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py',admission.BRIDGE,'scripts/governance/recovery_oauth_authorization_source_delta.py',admission.CHECKER})
+  source=(ROOT/'support/governance/project-description-qualification/native.php').read_text();self.assertIn('const N05_DESCRIPTION_ROOT_PROFILE_SHA256=null;',source)
+  self.assertFalse(admission.assert_current_recipe(ROOT)['runtime_qualified'])
+if __name__=='__main__':unittest.main()

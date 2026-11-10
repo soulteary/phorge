@@ -58,7 +58,8 @@ $before=dstate(['target_phid'=>$phid],$read);$rows[0]['id']='8';$after=dstate(['
   self.assertEqual(out,[True,False,True,False,False])
  def test_unreviewed_entry_refuses_before_native_bootstrap_or_any_fixture_io(self):
   q=subprocess.run(['php',str(ROOT/'support/governance/project-description-qualification/native.php'),'/nonexistent','/nonexistent'],capture_output=True,text=True)
-  self.assertEqual(q.returncode,1);self.assertEqual(q.stdout,'');self.assertEqual(q.stderr,'description_qualification_refused_retain_no_retry\n')
+  self.assertEqual(q.returncode,1);self.assertEqual(q.stdout,'');from test_project_description_ci import ci
+  diagnostic=ci.diagnostic(q.stderr.encode());self.assertEqual(diagnostic['phase'],'entry');self.assertEqual(diagnostic['family'],'runtime');self.assertIsNone(diagnostic['errno']);self.assertEqual(diagnostic['SQL_execution_status'],'unknown');self.assertFalse(diagnostic['execution_authorized'])
  def test_fixture_uses_real_sources_and_no_business_writer_or_permission_patch(self):
   s=CASES.read_text();self.assertIn('newFromAuthenticatedAPIToken',s);self.assertIn('PhorgeProjectContentGrantService::call',s);self.assertIn('PhorgeProjectDescriptionExecutor::execute',s);self.assertIn('PhabricatorUserDisableTransaction::TRANSACTIONTYPE',s)
   self.assertNotIn('getOmnipotentUser',s);self.assertNotIn('setIsAdmin',s);self.assertNotIn('UPDATE governance_contentgrant',s);self.assertNotIn('INSERT INTO governance_contentgrant',s)

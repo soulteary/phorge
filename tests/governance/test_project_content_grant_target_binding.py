@@ -8,8 +8,8 @@ def load(name,path):
 CI=load('stageB_CI',ROOT/'support/governance/project-content-grants-ci/ci.py')
 Q=load('stageB_qualification',ROOT/'support/governance/project-content-grants-qualification/qualify.py')
 class ActualTargetBinding(unittest.TestCase):
- def test_actual_36_baseline_and45_target_Git_pins_and_typed_symlinks(self):
-  for kind,key,count,revision,tree in [('prerequisites','native_public_source_dependencies',36,CI.BASE,CI.BASE_TREE),('qualification','native_source_inventory',45,CI.TARGET,CI.TREE)]:
+ def test_actual_36_baseline_and48_T3_target_Git_pins_and_typed_symlinks(self):
+  for kind,key,count,revision,tree in [('prerequisites','native_public_source_dependencies',36,CI.BASE,CI.BASE_TREE),('qualification','native_source_inventory',48,CI.TARGET,CI.TREE)]:
    f=json.loads((ROOT/'support/governance/project-content-grants-ci'/(kind+'-template.json')).read_bytes());self.assertEqual(f['schema'],'N05-CI-reviewed-source-template-v2');self.assertEqual((f['native_git_revision'],f['native_git_tree']),(revision,tree));self.assertEqual(len(f[key]),count)
    for n,pin in f[key].items():
     name='scripts/sql/manage_storage.php'if kind=='qualification'and n=='bin/storage'else n
@@ -41,7 +41,7 @@ class ActualTargetBinding(unittest.TestCase):
    Q.source_root_identity(Path('/synthetic'));run.assert_called_once_with(['/usr/bin/git','--no-replace-objects','-C','/synthetic','diff','--quiet','HEAD'],check=True)
  def test_signed_repair_target_inventory_changes_only_reviewed_DDL_and_Store(self):
   path=ROOT/'support/governance/project-content-grants-ci/qualification-template.json'
-  current=json.loads(path.read_bytes());previous=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','05a45fa349d7afc63a89846ad663538bf994ef38:support/governance/project-content-grants-ci/qualification-template.json']))
+  repaired=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','c4b2ae7cc72a91ff942f08f9b4725104f114640c:support/governance/project-content-grants-ci/qualification-template.json']));current=repaired;previous=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','05a45fa349d7afc63a89846ad663538bf994ef38:support/governance/project-content-grants-ci/qualification-template.json']))
   key='native_source_inventory';self.assertEqual(set(current[key]),set(previous[key]));self.assertEqual(len(current[key]),45)
   changed={n for n in current[key]if current[key][n]!=previous[key][n]}
   self.assertEqual(changed,{'resources/sql/autopatches/20261110.project.contentgrants.sql','src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php'})
@@ -51,6 +51,12 @@ class ActualTargetBinding(unittest.TestCase):
   baseline='support/governance/project-content-grants-ci/prerequisites-template.json'
   old=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','05a45fa349d7afc63a89846ad663538bf994ef38:'+baseline]));now=json.loads((ROOT/baseline).read_bytes())
   self.assertEqual(now['native_public_source_dependencies'],old['native_public_source_dependencies']);self.assertEqual(len(now['native_public_source_dependencies']),36)
+ def test_T3_adds_only_three_description_classes_and_four_reviewed_native_deltas(self):
+  path='support/governance/project-content-grants-ci/qualification-template.json';current=json.loads((ROOT/path).read_bytes());previous=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','c4b2ae7cc72a91ff942f08f9b4725104f114640c:'+path]));key='native_source_inventory'
+  added=set(current[key])-set(previous[key]);self.assertEqual(added,{'src/applications/project/xaction/PhorgeProjectDescriptionTransaction.php','src/infrastructure/governance/content/PhorgeProjectDescriptionExecutor.php','src/infrastructure/governance/content/PhorgeProjectDescriptionRequest.php'})
+  changed={n for n in set(previous[key])&set(current[key])if previous[key][n]!=current[key][n]};self.assertEqual(changed,{'src/__phutil_library_map__.php','src/infrastructure/governance/content/PhorgeProjectContentGrantService.php','src/infrastructure/governance/content/PhorgeProjectContentSource.php','src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php'})
+  path='support/governance/project-content-grants-ci/prerequisites-template.json';old=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','c4b2ae7cc72a91ff942f08f9b4725104f114640c:'+path]));now=json.loads((ROOT/path).read_bytes())
+  self.assertEqual({k:now[k]for k in ['native_git_revision','native_git_tree','native_public_source_dependencies']},{k:old[k]for k in ['native_git_revision','native_git_tree','native_public_source_dependencies']})
  def test_four_fixture_metadata_paths_need_complete_exact_root_and_historical_bytes(self):
   d=load('stageB_N05_delta',ROOT/'scripts/governance/project_content_grant_source_delta.py');raw={n:(ROOT/n).read_bytes()for n in d.FIXTURE_METADATA_PINS};changed,out=d.fixture_historical_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',set(raw),raw);self.assertEqual(changed,set());self.assertEqual(out,{})
   bad=dict(raw);name=next(iter(raw));bad[name]+=b'unknown'

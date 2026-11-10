@@ -1,14 +1,15 @@
 """Root-only native prerequisites. Imports and host controls never execute SQL."""
 import argparse,hashlib,json,os,re,stat,subprocess
 from pathlib import Path
+DESCRIPTION_FIXTURE_SHA='754546ac5223a5631fcec55d354293564e0dc8e89a8b0ff616bbd55551fe1955'
 ROOT_PROFILE_SHA=None
 ROOT_REVIEW_SHA=None
 ROOT_SOURCE_FREEZE_SHA=None
 HERE=Path(__file__).resolve().parent
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
 BASE_TREE='69180e43fba7476257cc534c1934d544995a4443'
-TARGET='512282be298c7996fc6370156c333d7557b1685a'
-TARGET_TREE='405202c353072f5ee0a4d9687d550fe497ff01d1'
+TARGET='15d4f76d9c1c12256f82e53435be038422e205a5'
+TARGET_TREE='2affc55aa9e4aecd3175b8b56adf31d0a93828a3'
 def need(v):
  if not v:raise ValueError('N05_prerequisites_refused_retain_no_retry')
 def sha(b):return hashlib.sha256(b).hexdigest()
@@ -80,7 +81,8 @@ def native(j,p,profile,action,extra):
  inp=j.path/f'input-{j.n:02d}.json';j.write(inp.name,canon(extra));profile_hash=sha(private(profile));need(profile_hash==ROOT_PROFILE_SHA);argv=[p['php'],str(HERE/'native.php'),p['base_root'],str(profile),action,str(inp),str(j.path),profile_hash,'native-v1']
  r=decode(j.run(argv,p['base_root']));need(r.get('execution_authorized')is False);return r
 
-def sequence(j,p,d,profile):
+def sequence(j,p,d,profile,description_fixture=False):
+ need(type(description_fixture)is bool)
  basecfg=Path(p['base_root'])/'conf/local/local.json';new_private(basecfg,configuration(p,d))
  native(j,p,profile,'empty',{})
  j.run(upgrade_argv(p),p['base_root'],timeout=900)
@@ -91,12 +93,23 @@ def sequence(j,p,d,profile):
  actors=j.path/'actors.private.json';need(sha(private(actors))==tokens['actors_sha256'])
  chain={'actors_sha256':tokens['actors_sha256']};structure=native(j,p,profile,'structure',chain);ready=native(j,p,profile,'readback',chain)
  need(ready['target_phid']==structure['target_phid']and ready['real_native_admin_API_sources']==2 and ready['native_user_team_member_and_Project_readback']is True and ready['N05_grant_tables_absent']is True)
+ if description_fixture:
+  # Fixed early fixture only: no callback, old-object edit or late flag bypass.
+  fixture=HERE.parent.parent/'project-description-ci/fixture.php';raw=fixture.read_bytes()
+  need(sha(raw)==DESCRIPTION_FIXTURE_SHA and raw.count(b'const N05_DESCRIPTION_FIXTURE_PROFILE_SHA256=null;')==1)
+  helper=j.path/'description-fixture-helper';helper.mkdir(mode=0o700)
+  new_private(helper/'native.php',(HERE/'native.php').read_bytes())
+  new_private(helper/'fixture.php',raw.replace(b'const N05_DESCRIPTION_FIXTURE_PROFILE_SHA256=null;',('const N05_DESCRIPTION_FIXTURE_PROFILE_SHA256='+repr(ROOT_PROFILE_SHA)+';').encode()))
+  created=decode(j.run([p['php'],str(helper/'fixture.php'),p['base_root'],str(profile),str(j.path),ROOT_PROFILE_SHA],p['base_root'],timeout=180))
+  need(created=={'native_fixture_created':True,'execution_authorized':False})
  targetcfg=Path(p['target_root'])/'conf/local/local.json';new_private(targetcfg,configuration(p,d,True))
  # Root must review, set runtime_authorized=true and bind the separate qualifier's None pins.
  template={'schema':'N05-native-SQL-qualification-v1','runtime_authorized':False,'owner':p['owner'],'source_root':p['target_root'],'source_inventory_sha256':None,'php':p['php'],'php_sha256':p['php_sha256'],'local_configuration_sha256':sha(private(targetcfg)),'namespace':p['namespace'],'server_uuid':p['server_uuid'],'actors_path':str(actors),'actors_sha256':tokens['actors_sha256'],'target_phid':ready['target_phid'],'subjects':ready['subjects']}
  j.write('qualification-profile-template.private.json',canon(template));result={'schema':'N05-native-prerequisites-ready-for-Root-review-v1','owner':p['owner'],'namespace':p['namespace'],'base_commit':p['base_commit'],'target_commit':p['target_commit'],'target_config_sha256':sha(private(targetcfg)),'actors_sha256':tokens['actors_sha256'],'native_prerequisites_observed':True,'N05_SQL_qualification_executed':False,'online_activation':False,'web_MFA_qualified':False,'execution_authorized':False};j.write('prerequisites-receipt.json',canon(result));return result
 
-def execute(profile,review,freeze,output):p,d=bind(profile,review,freeze);return sequence(Journal(output),p,d,profile)
+def execute(profile,review,freeze,output,*,description_fixture=False):
+ need(type(description_fixture)is bool)
+ p,d=bind(profile,review,freeze);return sequence(Journal(output),p,d,profile,description_fixture)
 if __name__=='__main__':
  a=argparse.ArgumentParser()
  for n in('profile','review','freeze','output'):a.add_argument('--'+n,required=True,type=Path)

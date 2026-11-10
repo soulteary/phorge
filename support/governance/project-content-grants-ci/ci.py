@@ -4,11 +4,11 @@ from pathlib import Path
 
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
 BASE_TREE='69180e43fba7476257cc534c1934d544995a4443'
-TARGET='512282be298c7996fc6370156c333d7557b1685a'
-TREE='405202c353072f5ee0a4d9687d550fe497ff01d1'
+TARGET='15d4f76d9c1c12256f82e53435be038422e205a5'
+TREE='2affc55aa9e4aecd3175b8b56adf31d0a93828a3'
 MYSQL='mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
-REVIEWED_PINS={'prerequisites': {'native.php': {'bytes': 9741, 'sha256': '3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'}, 'provision.py': {'bytes': 10580, 'sha256': '77f887a24add6548591112417e7eb6f75735fceaa913c0010d3a4ad0eb03368f'}}, 'qualification': {'native.php': {'bytes': 17158, 'sha256': '68fc4a94a86140c7c0a6ef01af0d6daa3e5d5982c20c89061c8d9b64650d869d'}, 'qualify.py': {'bytes': 9451, 'sha256': 'd2648158c6d5e748f94fb04f9acc14a49cbb4c5ad55459339092ce3cbe70ac3b'}}}
-REVIEWED_INVENTORIES={'prerequisites': 'dd641e2b38de82e6cf829ff6a71f891887ab2815b9171d1ba0e9c96d2259e896', 'qualification': '3a7dbb74198e7329819b1d2db0de9e4dba64da21bef5bcf99458e999316a11d7'}
+REVIEWED_PINS={'prerequisites': {'native.php': {'bytes': 9741, 'sha256': '3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'}, 'provision.py': {'bytes': 11688, 'sha256': '6bb25b3eb64c1d53450a84f1a4e6eb97511672c4b98c69791e81f638d846d574'}}, 'qualification': {'native.php': {'bytes': 17158, 'sha256': '68fc4a94a86140c7c0a6ef01af0d6daa3e5d5982c20c89061c8d9b64650d869d'}, 'qualify.py': {'bytes': 9451, 'sha256': '5c9c3d321df204c572719c39a508fb62bdc4d03d7d1dd6a89837d66782dc7158'}}}
+REVIEWED_INVENTORIES={'prerequisites': 'dd641e2b38de82e6cf829ff6a71f891887ab2815b9171d1ba0e9c96d2259e896', 'qualification': '14dd5d483c1554b726ee3a6e5ccbbe606a83f339ac8f250837a9d4a920a1b16e'}
 sha=lambda b:hashlib.sha256(b).hexdigest()
 canon=lambda d:json.dumps(d,sort_keys=True,separators=(',',':')).encode()+b'\n'
 
@@ -42,7 +42,7 @@ def runtime(v):
 # Includes every tracked production runtime location; support/governance contains
 # the new offline recipe, so its exact helpers are bound separately below.
 RUNTIME_PATHS=('src','resources','bin','scripts','externals','webroot','support/runtime','support/startup','support/phame','support/preamble.proxy-https.php','conf')
-OFFLINE_METADATA=('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py')
+OFFLINE_METADATA=('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py')
 def git(root,*args):
     return subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),*args],stderr=subprocess.DEVNULL).strip().decode()
 def clean(root):
@@ -55,6 +55,11 @@ def source(root,commit):
     return git(root,'rev-parse','HEAD^{tree}')
 def current_source(root,revision):
     clean(root)
+    import sys
+    folder=str(root/'scripts/governance')
+    if folder not in sys.path:sys.path.insert(0,folder)
+    import project_description_admission_delta as admission
+    admission.assert_current_recipe(root)
     need(re.fullmatch('[a-f0-9]{40}',revision) and git(root,'rev-parse','HEAD')==revision)
     subprocess.run(['/usr/bin/git','--no-replace-objects','-C',str(root),'diff','--exit-code',TARGET,'HEAD','--',*RUNTIME_PATHS,*(':(exclude)'+p for p in OFFLINE_METADATA)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     return revision
@@ -236,7 +241,8 @@ def failure_summary(error):
     allowed={'ValueError':'gate-refused','TimeoutExpired':'child-terminal-unknown','CalledProcessError':'source-command-failed','OSError':'local-operation-failed','KeyError':'required-field-missing','JSONDecodeError':'invalid-json'}
     return {'passed':False,'error_code':allowed.get(type(error).__name__,'unclassified-failure'),**DIAGNOSTIC,'retained':True,'automatic_retry_or_cleanup':False,'SQL_execution_status':'unknown','execution_authorized':False}
 
-def execute(a):
+def execute(a,*,description_fixture=False):
+    need(type(description_fixture)is bool)
     stage("entry")
     need(os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('RUNNER_OS')=='Linux')
     need(re.fullmatch('[a-f0-9]{64}',a.mysql_container))
@@ -273,7 +279,7 @@ def execute(a):
     pmod.ROOT_PROFILE_SHA=sha(raw);pmod.ROOT_REVIEW_SHA=sha(review);pmod.ROOT_SOURCE_FREEZE_SHA=sha(pf)
     instrument_journal(pmod.Journal,'prerequisites')
     stage('prerequisites-bind')
-    ready=pmod.execute(pp,pr,pfr,a.output/'native-prerequisites-private')
+    ready=pmod.execute(pp,pr,pfr,a.output/'native-prerequisites-private',description_fixture=description_fixture)
     need(ready['native_prerequisites_observed']is True and ready['execution_authorized']is False)
     stage('qualification-profile-publication')
     q=json.loads((a.output/'native-prerequisites-private/qualification-profile-template.private.json').read_bytes())
