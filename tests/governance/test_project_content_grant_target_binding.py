@@ -39,13 +39,14 @@ class ActualTargetBinding(unittest.TestCase):
   with patch.object(Q.subprocess,'check_output',side_effect=[Q.TARGET.encode(),Q.TARGET_TREE.encode()]),patch.object(Q.subprocess,'run',side_effect=subprocess.CalledProcessError(1,['git'])),self.assertRaises(subprocess.CalledProcessError):Q.source_root_identity(Path('/synthetic'))
   with patch.object(Q.subprocess,'check_output',side_effect=[Q.TARGET.encode(),Q.TARGET_TREE.encode()]),patch.object(Q.subprocess,'run')as run:
    Q.source_root_identity(Path('/synthetic'));run.assert_called_once_with(['/usr/bin/git','--no-replace-objects','-C','/synthetic','diff','--quiet','HEAD'],check=True)
- def test_signed_commentfix_target_inventory_changes_only_the_reviewed_DDL(self):
+ def test_signed_repair_target_inventory_changes_only_reviewed_DDL_and_Store(self):
   path=ROOT/'support/governance/project-content-grants-ci/qualification-template.json'
   current=json.loads(path.read_bytes());previous=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','05a45fa349d7afc63a89846ad663538bf994ef38:support/governance/project-content-grants-ci/qualification-template.json']))
   key='native_source_inventory';self.assertEqual(set(current[key]),set(previous[key]));self.assertEqual(len(current[key]),45)
   changed={n for n in current[key]if current[key][n]!=previous[key][n]}
-  self.assertEqual(changed,{'resources/sql/autopatches/20261110.project.contentgrants.sql'})
-  self.assertEqual(current[key][next(iter(changed))]['sha256'],'16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e')
+  self.assertEqual(changed,{'resources/sql/autopatches/20261110.project.contentgrants.sql','src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php'})
+  self.assertEqual(current[key]['resources/sql/autopatches/20261110.project.contentgrants.sql']['sha256'],'16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e')
+  store='src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php';actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',CI.TARGET+':'+store]);self.assertEqual(current[key][store],{'bytes':len(actual),'sha256':hashlib.sha256(actual).hexdigest()});self.assertEqual(current[key][store]['sha256'],'983e7885bf7dcb7335437dc7b203c5b1a1605385a220a6242461a3ee43cb5612')
   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'rev-parse',CI.TARGET+'^{tree}']).decode().strip(),CI.TREE)
   baseline='support/governance/project-content-grants-ci/prerequisites-template.json'
   old=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','05a45fa349d7afc63a89846ad663538bf994ef38:'+baseline]));now=json.loads((ROOT/baseline).read_bytes())

@@ -38,8 +38,8 @@
       "sha256": "dd21689d3e8ff767a3149343796b1ffeba0c7c78681c5ad1ee5dd8de81054c27"
     },
     "scripts/governance/check_completion.py": {
-      "bytes": 16569,
-      "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
+      "bytes": 16475,
+      "sha256": "39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649"
     },
     "scripts/governance/check_directory_transports_v1.py": {
       "bytes": 20868,
@@ -47,7 +47,7 @@
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
-      "sha256": "fe17940d22092e0813f30ec5b4cba7c0a66d567366c05f7e3536557303c45214"
+      "sha256": "0191dca0cbbf00384153a46a0ed8cadcbd5c846d1e7486a34d18d15cb5151c3a"
     },
     "scripts/governance/probe_oauth_authorization_mysql84.php": {
       "bytes": 2795,
@@ -295,9 +295,9 @@
     },
     "tests/governance/test_directory_transports_receipt_v1.py": {
       "bytes": 10413,
-      "sha256": "a4ee1ecb3a8f9bfd11b5d9ac23522131c6424352c40764b814445514f5b47cd4"
+      "sha256": "73f23b9eb86b5bb4b41ac3055ba7b552d8f9f5d7bc52ec9b10687d785e1a5ac0"
     }
   },
-  "production_git_tree_inventory_sha256": "d9032eb0282befb7739b0b088b282c1d7bed25389e8d6229da6cb9011beb767c",
+  "production_git_tree_inventory_sha256": "4281e6dd202c327a7b619847eb147b10d06ae6311663e2f478a3934524128686",
   "schema": "native-directory-transports-source-v1"
 }

@@ -5,11 +5,13 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import recovery_oauth_authorization_source_delta as delta
+import n05_legacy_audit_test_view as legacy_view
 class AuthorizationCoordination(unittest.TestCase):
  def test_exact_whole_bytes_match_real_0436_git_blobs(self):
   for path in delta.SOURCE_INPUTS:
    old=subprocess.check_output(['git','-C',str(ROOT),'show','0436e865b8431b9f064fe7b8a92dcad5e6623997:'+path])
    current=(ROOT/path).read_bytes()
+   if path in legacy_view.METADATA_PATHS:current=legacy_view.historical_metadata_source(path,current)
    self.assertEqual(delta.reduce_current(path,current),old)
    self.assertEqual(hashlib.sha256(old).hexdigest(),delta.BASE_PINS[path])
    bad=current+b'\n// unknown mutation'

@@ -9,7 +9,7 @@ identity. CI environment flags select this recipe; they provide no application
 authorization.
 
 Baseline 4c2245300dc1d78d042b95190dd537eb6b1f9861 and signed target
-08629b78bc8b05f3b4e378bab591c303c053185a/treeae817bb0bbb423467088588965750c73827019f8
+512282be298c7996fc6370156c333d7557b1685a/tree405202c353072f5ee0a4d9687d550fe497ff01d1
 use distinct fresh worktrees. Normal native runtime dependency builders and
 verification run in both before any local configuration is written. The baseline
 runs standard storage upgrade without quickstart and creates real native users,
@@ -20,8 +20,8 @@ ordinary executor and online activation stay disabled. The target then runs the
 standard discovered native patch and real durable dual-admin grant/revoke cases.
 No fixture CREATE TABLE replaces the production SchemaSpec.
 
-The prerequisite and qualification native.php payloads are inherited unchanged
-from their reviewed source packages. The standard native provisioning behavior
+The prerequisite native.php payload is inherited unchanged. The qualification
+native.php includes the reviewed bounded failure-only diagnostic projection. The standard native provisioning behavior
 and the reviewed 8fefd storage-symlink behavior are retained. Both provision.py
 and qualify.py now bind the current target and source identity; their current
 exact bytes are independently pinned by the CI cohort and portable templates.
@@ -63,9 +63,9 @@ protected native-source change requires a new exact target/cohort review.
 
 ## Combined signed target and source-template v2
 
-The target is the real locally signed combined source `08629b78bc8b05f3b4e378bab591c303c053185a`, tree `ae817bb0bbb423467088588965750c73827019f8`, containing main PR140 and the reviewed N05 diagnostics/fixture migration allowance. Baseline4c remains only the standard-upgrade starting source. This source configuration does not claim a real SQL pass.
+The target is the real locally signed combined source `512282be298c7996fc6370156c333d7557b1685a`, tree `405202c353072f5ee0a4d9687d550fe497ff01d1`, containing main PR140, the reviewed N05 fixture migration allowance, Store visibility correction, exact restore-consumer schema binding and bounded failure-only diagnostics. Baseline4c remains only the standard-upgrade starting source. This source configuration does not claim a real SQL pass.
 
-Both reviewed source templates now explicitly bind Git revision and tree using schema-v2. The CI loader verifies these against the actual native source roots before loading helpers. The prerequisite helper enforces the exact4c tree; the qualifier independently requires the exact combined target HEAD/tree and no tracked source changes. All36 baseline dependencies and45 target inventory entries were read from those actual Git objects, including the distinct symlink representation of bin/storage. The45 selected paths are unchanged:44 payloads are inherited from799, while the reviewed DDL differs by one comment byte to preserve native statement splitting. Their selected hashes alone do not prove the complete target identity, hence the separate actual Git checks.
+Both reviewed source templates now explicitly bind Git revision and tree using schema-v2. The CI loader verifies these against the actual native source roots before loading helpers. The prerequisite helper enforces the exact4c tree; the qualifier independently requires the exact combined target HEAD/tree and no tracked source changes. All36 baseline dependencies and45 target inventory entries were read from those actual Git objects, including the distinct symlink representation of bin/storage. The45 selected paths are unchanged:43 payloads are inherited from799, while the reviewed DDL comment delimiter and Store private-method visibility fix change the other two payloads. Their selected hashes alone do not prove the complete target identity, hence the separate actual Git checks.
 
 The runtime equality policy still has the original exactly two offline metadata exceptions. The four known fixture/positive/docs changes are handled only by the source-audit historical-input reducer, after checking the complete exact current cohort and exact older baseline hashes. Actual runtime fixture reads retain the new fixture hash; this is not a runtime exception. Unknown bytes, partial/mixed cohorts and unreviewed historical baselines fail closed.
 

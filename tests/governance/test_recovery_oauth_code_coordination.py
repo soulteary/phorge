@@ -8,6 +8,7 @@ sys.path.insert(0,str(ROOT/'scripts/governance'))
 import recovery_oauth_code_source_delta as prod
 import recovery_oauth_authorization_source_delta as authorization_delta
 import recovery_oauth_code_coordinator_delta as coord
+import n05_legacy_audit_test_view as legacy_view
 import check_recovery_session_lease as reader
 import check_recovery_oauth_code_producer_v1 as current
 
@@ -20,7 +21,9 @@ class CodeCoordination(unittest.TestCase):
   b=self.baseline();self.assertEqual(prod.BASE_PINS,b['production_base_sha256']);self.assertEqual(coord.BASE_PINS,b['historical_tooling_and_case_base_sha256'])
   self.assertEqual(len(prod.SOURCE_INPUTS),6);self.assertEqual(len(coord.SOURCE_INPUTS),16)
   for path,pin in {**prod.BASE_PINS,**coord.BASE_PINS}.items():
-   raw=(ROOT/path).read_bytes();self.assertEqual(hashlib.sha256(coord.source_view(path,raw)).hexdigest(),pin)
+   raw=(ROOT/path).read_bytes()
+   if path in legacy_view.METADATA_PATHS:raw=legacy_view.historical_metadata_source(path,raw)
+   self.assertEqual(hashlib.sha256(coord.source_view(path,raw)).hexdigest(),pin)
    with self.assertRaises(ValueError):coord.source_view(path,raw+b'\n# unauthorized change')
  def test_literal_maps_and_inverse_tables_are_unchanged(self):
   def dictionaries(raw):

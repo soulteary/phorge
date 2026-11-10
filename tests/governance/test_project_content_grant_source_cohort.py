@@ -46,7 +46,7 @@ class ExactMediaSourceRebind(unittest.TestCase):
  def test_SQL_runtime_binding_and_existing_two_metadata_exceptions_unchanged(self):
   import importlib.util
   p=ROOT/'support/governance/project-content-grants-ci/ci.py';spec=importlib.util.spec_from_file_location('exact_N05_runtime_ci_source',p);ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(ci)
-  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'08629b78bc8b05f3b4e378bab591c303c053185a');self.assertEqual(ci.TREE,'ae817bb0bbb423467088588965750c73827019f8');self.assertEqual(ci.OFFLINE_METADATA,('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py'))
+  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'512282be298c7996fc6370156c333d7557b1685a');self.assertEqual(ci.TREE,'405202c353072f5ee0a4d9687d550fe497ff01d1');self.assertEqual(ci.OFFLINE_METADATA,('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py'))
 
 class StageCExactRecipeBinding(unittest.TestCase):
  def test_exact_current_metadata_restores_actual_signed_StageB_and_rejects_mixed_bytes(self):
