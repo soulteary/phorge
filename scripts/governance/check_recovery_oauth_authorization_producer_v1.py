@@ -29,11 +29,79 @@ def read_source_checked(path):
   return bytes(body)
  finally:os.close(fd)
 
+def assert_historical_source(root,current):
+ # A removable map/class sentinel never authorizes bypass of current admission.
+ # The only legacy source branch is the complete canonical real main baseline.
+ import subprocess
+ root=Path(root)
+ if not root.is_absolute()or root.resolve()!=root:raise ValueError('historical native source refused')
+ env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_SYSTEM':'/dev/null','GIT_CONFIG_GLOBAL':'/dev/null','GIT_ATTR_NOSYSTEM':'1','GIT_NO_REPLACE_OBJECTS':'1','GIT_CONFIG_COUNT':'0','GIT_NO_LAZY_FETCH':'1','GIT_TERMINAL_PROMPT':'0'}
+ def git(*args):return subprocess.check_output(['git','--no-replace-objects','-c','protocol.allow=never','-c','core.filemode=true','-c','core.hooksPath=/dev/null','-C',str(root),*args],env=env,stderr=subprocess.DEVNULL)
+ baseline=current.description.MAIN_BASELINE
+ if git('rev-parse','--show-toplevel').decode().strip()!=str(root)or git('rev-parse','HEAD').decode().strip()!=baseline['git_revision']or git('rev-parse','HEAD^{tree}').decode().strip()!=baseline['git_tree']:raise ValueError('historical native identity refused')
+ if git('status','--porcelain','--untracked-files=all'):raise ValueError('historical native source dirty')
+ expected={}
+ for item in git('ls-tree','-r','-z','HEAD').split(b'\0'):
+  if not item:continue
+  info,name=item.split(b'\t',1);mode,kind,oid=info.split();name=name.decode()
+  if kind!=b'blob'or mode not in (b'100644',b'100755',b'120000'):raise ValueError('historical native mode refused')
+  expected[name]=(mode,oid.decode())
+ seen={}
+ for directory,dirs,files in os.walk(root,followlinks=False):
+  if Path(directory)==root and ' .git'.strip()in dirs:dirs.remove('.git')
+  for name in list(dirs)+files:
+   path=Path(directory)/name;rel=path.relative_to(root).as_posix();st=os.lstat(path)
+   if rel=='.git':continue
+   if not stat.S_ISDIR(st.st_mode)and rel not in expected:raise ValueError('historical unknown file refused')
+   if stat.S_ISLNK(st.st_mode):
+    if name in dirs:dirs.remove(name)
+    raw=os.readlink(path).encode();mode=b'120000'
+   elif stat.S_ISREG(st.st_mode):
+    if st.st_nlink!=1 or st.st_uid!=os.getuid()or st.st_mode&0o022 or not 0<=st.st_size<=32*1024*1024:raise ValueError('historical native bytes refused')
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    try:
+     raw=bytearray()
+     while len(raw)<st.st_size:
+      b=os.read(fd,min(65536,st.st_size-len(raw)))
+      if not b:raise ValueError('historical native short read')
+      raw.extend(b)
+     fields=lambda z:(z.st_dev,z.st_ino,z.st_uid,z.st_gid,z.st_mode,z.st_nlink,z.st_size,z.st_mtime_ns,z.st_ctime_ns)
+     if os.read(fd,1)!=b''or fields(st)!=fields(os.fstat(fd))or fields(st)!=fields(os.lstat(path)):raise ValueError('historical native bytes changed')
+     raw=bytes(raw)
+    finally:os.close(fd)
+    mode=b'100755'if st.st_mode&0o111 else b'100644'
+   elif stat.S_ISDIR(st.st_mode):continue
+   else:raise ValueError('historical native file refused')
+   seen[rel]=(mode,hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest())
+ if seen!=expected:raise ValueError('historical native closure refused')
+ for name,pin in baseline['production_pins'].items():
+  path=root/name
+  if pin is None:
+   if path.exists()or path.is_symlink():raise ValueError('historical native absence refused')
+  else:current.description.exact(current.description.checked_bytes(path),pin)
+
 def SQL_obligations(root=ROOT):
+ # Current17 files are source-check inputs, never an actor/profile projection.
+ # Full current admission precedes the exact C1 current17 -> real main14 view.
+ import project_description_admission_delta as current
+ root=Path(root)
+ map_name='src/__phutil_library_map__.php'
+ current_source=False
+ if hashlib.sha256(read_source_checked(root/map_name)).hexdigest()==current.description.CURRENT_PINS[map_name]['sha256']:
+  current_source=True
+ for name in current.description.CURRENT_PINS:
+  if current.description.MAIN_BASELINE['production_pins'][name] is None and (root/name).exists():current_source=True
+ prior={}
+ if current_source:
+  current.assert_current_recipe(root)
+  prior=current.description.reconstruct_main(current.description.current_snapshot(root))
+ else:assert_historical_source(root,current)
  lifecycle_delta.assert_cohort(root,read_source_checked)
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
-  raw=lifecycle_delta.reduce_if_selected(relative,read_source_checked(Path(root)/relative))
+  raw=read_source_checked(Path(root)/relative)
+  if relative in prior:raw=prior[relative]
+  raw=lifecycle_delta.reduce_if_selected(relative,raw)
   if relative=='support/governance/native-organization/test-native-organization-mysql.php' and hashlib.sha256(raw).hexdigest()!=pin:
    raw=calendar_delta.reduce_calendar_wire_union(raw)
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed borrowed source changed')

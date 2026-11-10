@@ -120,7 +120,7 @@ def reviewed_sources():
   if path not in result:result[path]=lifecycle_delta.reduce_current(path,(ROOT/path).read_bytes())
  return result
 def validate_notice_product_delta(changed,current,frozen,baseline_map):
- import project_content_grant_source_delta as n05_delta
+ import project_description_admission_delta as n05_delta
  changed,current=n05_delta.historical_inputs(ROOT,'e5f89aac566b121f2ebb3894aa4ba76b31222c10',changed,current)
  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)|set(PRIVATE_MAIL_SETTINGS_PINS)|set(conduit_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)
  if set(changed)!=allowed or set(current)!=allowed:raise ValueError('unreviewed notice product delta')
@@ -259,7 +259,7 @@ class NativeAdminWire(unittest.TestCase):
    bad=dict(current);bad[path]+=b'UNREVIEWED_CHANGE'
    with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad,frozen,old_map)
   # Legacy cold-mapper variants follow the exact N05 inverse; no broad source skip.
-  import project_content_grant_source_delta as n05_delta
+  import project_description_admission_delta as n05_delta
   allowed,current=n05_delta.historical_inputs(ROOT,baseline,allowed,current)
   project_map_lines=[("    '"+name+"' => '"+value+"',\n").encode()for name,pair in ADDITIONS.items()if name.startswith('PhorgeRecoveryProjectSourceFacts')for value in pair]
   unregistered=dict(current)

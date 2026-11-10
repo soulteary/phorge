@@ -2,6 +2,8 @@
   "actual_SQL_acceptance": false,
   "baseline_source": "4c2245300dc1d78d042b95190dd537eb6b1f9861",
   "current_fixture_delta": {
+    "comparison_base_commit": "19e0792cf90321b89de750f27a32af0c343597be",
+    "comparison_scope": "Historical allowlist fix relative to explicit pre-fix commit; already inherited by signed recipe R. These historical1/2 counts do not describe this Stage C.",
     "migration": "20261110.project.contentgrants.sql",
     "migration_sha256": "16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e",
     "new_sha256": "8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b",
@@ -9,11 +11,9 @@
     "overlay8_changed_count": 2,
     "path": "support/governance/completion/fixture.php",
     "runtime_verified": false,
-    "selected19_changed_count": 1,
-    "comparison_scope": "Historical allowlist fix relative to explicit pre-fix commit; already inherited by signed recipe R. These historical1/2 counts do not describe this Stage C.",
-    "comparison_base_commit": "19e0792cf90321b89de750f27a32af0c343597be"
+    "selected19_changed_count": 1
   },
-  "current_snapshot_base": "5665cf16663b0e44da2aed5a800835dc9cb563cf",
+  "current_snapshot_base": "432bd0166880b4a6ab4820cfebcd4482cf89bb27",
   "current_snapshot_overlay": {
     "support/governance/media-session-positive/README.md": "a3cc5c39b8e327085490621a1d0dc167d27c9e9c7e96dcb435953653bdc6938a",
     "support/governance/media-session-positive/cases.php": "ec93f85e5827b281e0605556f423d0837b44c5b467eed4223fb3075fb7203708",
@@ -24,30 +24,39 @@
     "support/governance/media-session-positive/test-diagnostic.php": "0f308b02a47f1d4c56faf71e1557036014a781ac5341eae30c8785c8a8a9865e",
     "support/governance/media-session-positive/test-guards.php": "dbe79fe6b78beed08b47cb339b2248ad45cc0fde70ecd6faa454d57f1a522e2e"
   },
-  "current_snapshot_tree": "0edb85b33cd7554e8653c1c310d2978e8c32ef3d",
+  "current_snapshot_tree": "27ca8aef4f23fd3fe9abd4a12781db0878f2742a",
+  "current_stage_overlay8_changed_count": 0,
+  "current_stage_selected19_changed_count": 0,
   "historical_mediaC_guide": "support/governance/project-content-grants-ci/media-C-rebind-plan.json",
-  "native_runtime_target": "512282be298c7996fc6370156c333d7557b1685a",
-  "native_runtime_target_tree": "405202c353072f5ee0a4d9687d550fe497ff01d1",
+  "immutable_old_reducers_and_media_literals_preserved": true,
+  "native_runtime_target": "15d4f76d9c1c12256f82e53435be038422e205a5",
+  "native_runtime_target_tree": "2affc55aa9e4aecd3175b8b56adf31d0a93828a3",
+  "new_description_SQL9_executed": false,
   "online_permission_migration": false,
   "optional_features_OFF": true,
   "overlay8_inherited_byteexact_from_current_snapshot": true,
+  "protected_leaf_count": 8407,
   "publication_or_runtime_authority": false,
-  "raw_leaf_count": 9276,
+  "raw_leaf_count": 9301,
   "remaining": [
     "Independent Stage C whole-source review",
     "Root signature and publication of complete source cohort",
     "Actual hosted CI including genuine standard-upgrade and durable SQL qualification",
     "No acceptance inferred from source-only or historical 799 target"
   ],
-  "runtime_exclusions_unchanged": [
+  "reviewed_tooling_exclusions": [
+    "scripts/governance/check_recovery_oauth_authorization_producer_v1.py",
     "scripts/governance/project_content_grant_source_delta.py",
-    "scripts/governance/project_content_grant_ci_source_delta.py"
+    "scripts/governance/project_content_grant_ci_source_delta.py",
+    "scripts/governance/project_description_admission_delta.py",
+    "scripts/governance/recovery_oauth_authorization_source_delta.py",
+    "scripts/governance/check_directory_transports_v1.py"
   ],
+  "runtime_exclusions_scope": "Native PHP/SQL/48-source target and strict media PREFIXES/EXCEPT unchanged. Reviewed offline source-consumer metadata exclusions in metadata ci current_source increase5to6; actual full current cohort/selfpin guard must pass before these exclusions.",
+  "runtime_exclusions_unchanged": false,
   "schema": "N05-StageC-signed-recipe-media-rebind-v2",
   "selected19_inherited_byteexact_from_current_snapshot": true,
   "source_only": true,
-  "verified_tree_count": 1689,
-  "verified_unique_blob_count": 9170,
-  "current_stage_selected19_changed_count": 0,
-  "current_stage_overlay8_changed_count": 0
+  "verified_tree_count": 1691,
+  "verified_unique_blob_count": 9195
 }

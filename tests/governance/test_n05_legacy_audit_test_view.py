@@ -6,7 +6,7 @@ import n05_legacy_audit_test_view as view
 ROOT=Path(__file__).resolve().parents[2]
 class LegacyView(unittest.TestCase):
  def fixture(self,root):
-  for n in set(view.CLOSED_PATHS)|set(view.n05.PRODUCTION_PINS)|set(view.n05.FIXTURE_METADATA_PINS)|set(view.REPAIR_SOURCE_PINS)|set(view.METADATA_PATHS):
+  for n in set(view.CLOSED_PATHS)|set(view.n05.PRODUCTION_PINS)|set(view.n05.FIXTURE_METADATA_PINS)|set(view.REPAIR_SOURCE_PINS)|set(view.METADATA_PATHS)|set(view.n05.description.CURRENT_PINS)|set(view.n05.CURRENT_METADATA)|{view.n05.MANIFEST,view.n05.BRIDGE,view.n05.PREPARATION,view.n05.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}:
    p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes())
  def test_six_whole_sources_equal_real_prior_Git_without_changing_runtime_files(self):
   for path in view.CLOSED_PATHS:
@@ -36,7 +36,7 @@ class LegacyView(unittest.TestCase):
  def test_missing_mixed_and_double_patched_metadata_cannot_become_historical(self):
   for mode in ('missing','mixed','double-patched'):
    with self.subTest(mode=mode),tempfile.TemporaryDirectory()as td:
-    root=Path(td);self.fixture(root);path=view.METADATA_PATHS[-1];p=root/path
+    root=Path(td).resolve();self.fixture(root);path=view.METADATA_PATHS[-1];p=root/path
     if mode=='missing':p.unlink()
     elif mode=='mixed':p.write_bytes(view.git_bytes(view.METADATA_PRIOR_REVISION,path))
     else:
@@ -49,14 +49,14 @@ class LegacyView(unittest.TestCase):
   with self.assertRaises(ValueError):view.historical_library_map((ROOT/'src/__phutil_library_map__.php').read_bytes()+b'unknown')
   path=view.CLOSED_PATHS[0]
   with tempfile.TemporaryDirectory()as td:
-   root=Path(td);self.fixture(root);raw=(root/path).read_bytes();bad=raw+b'unknown';(root/path).write_bytes(bad)
+   root=Path(td).resolve();self.fixture(root);raw=(root/path).read_bytes();bad=raw+b'unknown';(root/path).write_bytes(bad)
    with self.assertRaises(ValueError):view.historical_tooling_source(path,root)
    with patch.dict(view.CURRENT_PINS,{path:hashlib.sha256(bad).hexdigest()}),patch.dict(view.n05.SOURCE_INPUTS,{path:hashlib.sha256(bad).hexdigest()}),self.assertRaises(ValueError):view.historical_tooling_source(path,root)
  def test_missing_mixed_or_unreviewed_actual_fixture_cohort_refuses(self):
   path=view.CLOSED_PATHS[0]
   for mode in ['missing','mixed','fixture','repair-missing','repair-unknown','repair-patchpin']:
    with self.subTest(mode=mode),tempfile.TemporaryDirectory()as td:
-    root=Path(td);self.fixture(root)
+    root=Path(td).resolve();self.fixture(root)
     if mode=='missing':(root/view.CLOSED_PATHS[-1]).unlink()
     elif mode=='mixed':(root/view.CLOSED_PATHS[-1]).write_bytes(view.git_bytes(view.PRIOR_REVISION,view.CLOSED_PATHS[-1]))
     elif mode.startswith('repair-'):

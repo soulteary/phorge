@@ -30,7 +30,7 @@ class CalendarConduitUnion(unittest.TestCase):
   import recovery_oauth_code_source_delta as code_delta
   import recovery_oauth_authorization_source_delta as authorization_delta
   import recovery_oauth_client_lifecycle_delta as lifecycle_delta
-  import project_content_grant_source_delta as n05_delta
+  import project_description_admission_delta as n05_delta
   n05_delta.assert_production_cohort(ROOT)
   changed,reviewed=n05_delta.historical_inputs(ROOT,previous,changed,{path:(ROOT/path).read_bytes()for path in changed})
   self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS))
@@ -85,7 +85,7 @@ class CalendarConduitUnion(unittest.TestCase):
   for module in (historical,historical_v2):
    path='scripts/governance/'+module.__name__+'.py'
    def pins(raw):return next(ast.literal_eval(x.value)for x in ast.parse(raw).body if isinstance(x,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in x.targets))
-   import project_content_grant_source_delta as n05_delta
+   import project_description_admission_delta as n05_delta
    self.assertEqual(pins(n05_delta.reduce_if_selected(path,(ROOT/path).read_bytes())),pins(git('show','46a1b044950584006cba754bc9841031d452eb76:'+path)))
   with tempfile.TemporaryDirectory()as tmp:
    root=Path(tmp).resolve()
@@ -102,7 +102,7 @@ class CalendarConduitUnion(unittest.TestCase):
    gate=__import__(name);path='scripts/governance/'+name+'.py'
    def pins(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
    import recovery_assessment_source_delta as assessment
-   import project_content_grant_source_delta as n05_delta
+   import project_description_admission_delta as n05_delta
    historical=pins(n05_delta.reduce_if_selected(path,(ROOT/path).read_bytes()))
    for source,pin in assessment.SOURCE_INPUTS.items():
     if source in historical:

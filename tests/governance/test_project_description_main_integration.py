@@ -12,9 +12,11 @@ class CurrentMainIntegration(unittest.TestCase):
   import project_description_admission_delta as cohort
   self.assertEqual(len(cohort.assert_production_cohort(ROOT)),17)
   cohort.assert_current_recipe(ROOT)
- def test_unsigned_recipe_revision_stays_blocked_and_no_SQL_profile_is_admitted(self):
+ def test_actual_revision_cleanliness_and_no_SQL_profile_are_separate_gates(self):
   rev=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
   q=subprocess.run([sys.executable,'-B',str(ROOT/'scripts/governance/check_directory_transports_v1.py'),'--source-only','--source-revision',rev],cwd=ROOT,capture_output=True,text=True)
-  self.assertNotEqual(q.returncode,0)
+  changed=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'diff','--name-only','HEAD'],text=True).strip()
+  if changed:self.assertNotEqual(q.returncode,0)
+  else:self.assertEqual(q.returncode,0,q.stdout+q.stderr)
   source=(ROOT/'support/governance/project-description-qualification/native.php').read_text();self.assertIn('const N05_DESCRIPTION_ROOT_PROFILE_SHA256=null;',source)
 if __name__=='__main__':unittest.main()

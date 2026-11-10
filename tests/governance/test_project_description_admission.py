@@ -38,7 +38,7 @@ class DescriptionAdmission(unittest.TestCase):
   with tempfile.TemporaryDirectory()as t:
    root=Path(t).resolve();self.copy_recipe(root);admission.assert_current_recipe(root)
    for path,pin in admission.CURRENT_METADATA.items():
-    if pin['target_sha256']is None:continue
+    if pin['target_sha256']is None or pin['target_sha256']==pin['sha256']:continue
     p=root/path;good=p.read_bytes();p.write_bytes(admission._target_bytes(path))
     with self.assertRaises(ValueError):admission.assert_current_recipe(root)
     p.write_bytes(good)
@@ -47,7 +47,7 @@ class DescriptionAdmission(unittest.TestCase):
    actual=(ROOT/path).read_bytes();old=subprocess.check_output(['git','-C',str(ROOT),'show',admission.description.MAIN_BASELINE['git_revision']+':'+path]);self.assertEqual(actual,old)
   path='support/governance/project-content-grants-ci/prerequisites-template.json';old=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show',admission.description.MAIN_BASELINE['git_revision']+':'+path]));now=json.loads((ROOT/path).read_bytes());keys=['native_git_revision','native_git_tree','native_public_source_dependencies'];self.assertEqual({k:old[k]for k in keys},{k:now[k]for k in keys});self.assertEqual(len(now['native_public_source_dependencies']),36)
  def test_current_offline_exceptions_are_guarded_and_SQL_profile_still_null(self):
-  ci=ci_module();self.assertEqual(set(ci.OFFLINE_METADATA),{admission.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py',admission.BRIDGE,'scripts/governance/recovery_oauth_authorization_source_delta.py',admission.CHECKER})
+  ci=ci_module();self.assertEqual(set(ci.OFFLINE_METADATA),{'scripts/governance/check_recovery_oauth_authorization_producer_v1.py',admission.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py',admission.BRIDGE,'scripts/governance/recovery_oauth_authorization_source_delta.py',admission.CHECKER})
   source=(ROOT/'support/governance/project-description-qualification/native.php').read_text();self.assertIn('const N05_DESCRIPTION_ROOT_PROFILE_SHA256=null;',source)
   self.assertFalse(admission.assert_current_recipe(ROOT)['runtime_qualified'])
 if __name__=='__main__':unittest.main()

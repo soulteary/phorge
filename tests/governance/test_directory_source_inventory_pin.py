@@ -21,7 +21,7 @@ class DirectorySourceInventoryPin(unittest.TestCase):
     def test_current_source_and_only_reviewed_manifest_entry_changed(self):
         import sys
         sys.path.insert(0,str(ROOT/'scripts/governance'))
-        import project_content_grant_source_delta as n05_delta
+        import project_description_admission_delta as n05_delta
         raw=(ROOT/gate.MANIFEST).read_bytes();actual=json.loads(raw)
         dirty=subprocess.run(['git','-C',str(ROOT),'diff','--quiet','HEAD','--','src','resources']).returncode!=0
         if dirty:

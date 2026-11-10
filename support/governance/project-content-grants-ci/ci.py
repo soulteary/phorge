@@ -42,7 +42,7 @@ def runtime(v):
 # Includes every tracked production runtime location; support/governance contains
 # the new offline recipe, so its exact helpers are bound separately below.
 RUNTIME_PATHS=('src','resources','bin','scripts','externals','webroot','support/runtime','support/startup','support/phame','support/preamble.proxy-https.php','conf')
-OFFLINE_METADATA=('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py')
+OFFLINE_METADATA=('scripts/governance/check_recovery_oauth_authorization_producer_v1.py','scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py')
 def git(root,*args):
     return subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),*args],stderr=subprocess.DEVNULL).strip().decode()
 def clean(root):

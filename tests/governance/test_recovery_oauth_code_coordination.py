@@ -1,3 +1,4 @@
+from n05_r3_historical_test_view import historical_coordinator_source
 """Exact public-source compatibility, never current-runtime or SQL evidence."""
 import ast,hashlib,json,os,subprocess,sys,tempfile,unittest
 from pathlib import Path
@@ -22,9 +23,8 @@ class CodeCoordination(unittest.TestCase):
   self.assertEqual(len(prod.SOURCE_INPUTS),6);self.assertEqual(len(coord.SOURCE_INPUTS),16)
   for path,pin in {**prod.BASE_PINS,**coord.BASE_PINS}.items():
    raw=(ROOT/path).read_bytes()
-   if path in legacy_view.METADATA_PATHS:raw=legacy_view.historical_metadata_source(path,raw)
-   self.assertEqual(hashlib.sha256(coord.source_view(path,raw)).hexdigest(),pin)
-   with self.assertRaises(ValueError):coord.source_view(path,raw+b'\n# unauthorized change')
+   self.assertEqual(hashlib.sha256(historical_coordinator_source(path,raw)).hexdigest(),pin)
+   with self.assertRaises(ValueError):historical_coordinator_source(path,raw+b'\n# unauthorized change')
  def test_literal_maps_and_inverse_tables_are_unchanged(self):
   def dictionaries(raw):
    out={}
@@ -35,10 +35,10 @@ class CodeCoordination(unittest.TestCase):
    return out
   for path in coord.SOURCE_INPUTS:
    if path.endswith('.py'):
-    raw=authorization_delta.reduce_if_selected(path,(ROOT/path).read_bytes());self.assertEqual(dictionaries(raw),dictionaries(coord.source_view(path,raw)))
+    raw=(ROOT/path).read_bytes();project_view=legacy_view.n05.reduce_if_selected(path,raw);self.assertEqual(dictionaries(project_view),dictionaries(historical_coordinator_source(path,raw)))
  def test_complete_current_or_complete_baseline_only_missing_mixed_unknown_refuse(self):
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
-   root=Path(tmp);complete_source_cohort(root);self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))
+   root=Path(tmp).resolve();complete_source_cohort(root);self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))
    for path in prod.SOURCE_INPUTS:
     p=root/path;raw=p.read_bytes();p.write_bytes(prod.reduce_current(path,raw))
     with self.assertRaises(ValueError):prod.assert_cohort(root,reader.read_source_checked)
@@ -59,7 +59,7 @@ class CodeCoordination(unittest.TestCase):
    for path in module.SOURCE_INPUTS:
     raw=(ROOT/path).read_bytes()+b'\n// unrelated';pins={**module.SOURCE_INPUTS,path:hashlib.sha256(raw).hexdigest()}
     with patch.object(module,'SOURCE_INPUTS',pins):
-     with self.assertRaises(ValueError):coord.source_view(path,raw)
+     with self.assertRaises(ValueError):historical_coordinator_source(path,raw)
  def test_full_actual_src_tree_restores_reviewed_base_not_only_changed_names(self):
   self.assertEqual(normalized_source_tree(ROOT),'3944b8003bb59a9b67f685df67acbd2354820b1c')
  def test_current_51_source_gate_keeps_raw_current_code_and_old_maps_unchanged(self):
@@ -72,7 +72,7 @@ class CodeCoordination(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('oauth_code_media_snapshot',directory/'snapshot.py');snapshot=importlib.util.module_from_spec(spec);spec.loader.exec_module(snapshot)
   with patch.dict(sys.modules,{'snapshot':snapshot}):
    spec=importlib.util.spec_from_file_location('oauth_code_media_freshness',ROOT/'support/governance/media-session-ci/freshness.py');freshness=importlib.util.module_from_spec(spec);spec.loader.exec_module(freshness)
-   self.assertEqual(snapshot.BASE,'5665cf16663b0e44da2aed5a800835dc9cb563cf');self.assertEqual(len(snapshot.OVERLAY),8)
+   self.assertEqual(snapshot.BASE,'432bd0166880b4a6ab4820cfebcd4482cf89bb27');self.assertEqual(len(snapshot.OVERLAY),8)
    # This is a whole-current-Git source invariant, not an assertion that the
    # Atomic parser-prepared checkout is clean. The media workflow retains its
    # separate unchanged real-checkout freshness gates before any preparation.

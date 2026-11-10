@@ -54,8 +54,8 @@
       "sha256": "6eb1a8e9c5eb21eac699c507d65046d6b54497eecef3223e88c3ce70483d4847"
     },
     "scripts/governance/project_description_admission_delta.py": {
-      "bytes": 100068,
-      "sha256": "1c4f5fc6332311c03fcaa02c1799f929389329fcce8cfa54a2f78288737f1646"
+      "bytes": 225095,
+      "sha256": "6881a42b4698b218beaaeb8d402b979176c882b671d3d83b5dfc0aee9f05213e"
     },
     "scripts/governance/project_description_source_delta.py": {
       "bytes": 148224,
@@ -266,8 +266,8 @@
       "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
     },
     "tests/governance/test_calendar_conduit_union.py": {
-      "bytes": 12372,
-      "sha256": "a6bbbef2100b183823870686cfbebd1e8bdaf1764f072d8e816959a0e89f1895"
+      "bytes": 12375,
+      "sha256": "ef5450d4ae02cf01ac1add976baae8e2ce2d31afff0bfe678712a60ab598f3a5"
     },
     "tests/governance/test_directory_avatar_fixture.py": {
       "bytes": 4915,
