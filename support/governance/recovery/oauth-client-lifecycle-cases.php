@@ -133,8 +133,10 @@ function governance_recovery_oauth_client_lifecycle_store_cases($fixture,array$s
   $receipt=PhorgeRecoveryRestoreService::submit($requester['context'],$input);$id=$receipt['request_id'];
   $stored=queryfx_one($conn,'SELECT bindingJSON FROM recovery_restore_request WHERE requestID=%s',$id);$binding=json_decode($stored['bindingJSON'],true,32,JSON_THROW_ON_ERROR);
   $readset=$binding['sources']['credential_readset'];
+  PhorgeRecoveryRestoreRequest::credentialReadSet($readset);
+  if($readset['availability']!=='observed-partial'){throw new RuntimeException('oauth_client_lifecycle_durable_sources_unobserved');}
   $record($binding['sources']['schema_version']===6&&$readset['provider_schema']===3&&count($readset['sources'])===5&&
-    is_string($readset['sources']['oauth-client-lifecycle']['source_digest'])&&$readset['complete']===false&&
+    preg_match('/\A[a-f0-9]{64}\z/D',$readset['sources']['oauth-authorization']['source_digest'])===1&&$readset['complete']===false&&
     $receipt['review_state']==='submitted-blocked'&&$receipt['restoration_authorized']===false,'oauth-client-lifecycle-durable-submit-five-sources');
   $GLOBALS['governance_oauth_client_lifecycle_attempt']='durable-replay-preview';
   $before=$fingerprint();$replay=PhorgeRecoveryRestoreService::submit($requester['context'],$input);
