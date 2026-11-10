@@ -1,15 +1,61 @@
 """Actual native patch admission without executing SQL or manufacturing ledger rows."""
-import hashlib,json,re,subprocess,unittest
+import hashlib,json,re,subprocess,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 PATCH='20261110.project.contentgrants.sql'
-PIN='2dbbd2c1305a467c164470fd9e7b2830e32ad282fa2cc6a1ec74e8bef0d7a249'
+PIN='16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e'
 def php(code):
  pre='require '+json.dumps(str(ROOT/'support/runtime/src/__phutil_library_init__.php'))+';phutil_load_library('+json.dumps(str(ROOT/'src'))+');'
  p=subprocess.run(['php','-r',pre+code],cwd=ROOT,capture_output=True,text=True,timeout=20)
  if p.returncode:raise AssertionError(p.stderr)
  return json.loads(p.stdout)
 class ContentGrantMigration(unittest.TestCase):
+ def test_actual_native_patch_SQL_parser_preserves_comment_and_four_statements(self):
+  raw=(ROOT/'resources/sql/autopatches'/PATCH).read_bytes()
+  old=raw.replace(b'metadata, no native',b'metadata; no native',1)
+  self.assertEqual(hashlib.sha256(old).hexdigest(),'2dbbd2c1305a467c164470fd9e7b2830e32ad282fa2cc6a1ec74e8bef0d7a249')
+  with tempfile.TemporaryDirectory()as td:
+   previous=Path(td)/'old.sql';previous.write_bytes(old)
+   d=php(r"""
+   // The real native applyPatchSQL performs file read, statement splitting,
+   // namespace/charset replacement and queryfx formatting. Only final execution
+   // is intercepted by an in-memory connection. No database implementation or
+   // credentials are installed; any attempt to open a connection fails closed.
+   final class NativePatchSQLCapture extends AphrontDatabaseConnection {
+    public $queries=[];
+    public function openConnection(){throw new LogicException('capture_no_database');}
+    public function close(){}
+    public function getInsertID(){return 0;}
+    public function getAffectedRows(){return 0;}
+    public function selectAllResults(){throw new LogicException('capture_no_results');}
+    public function executeRawQueries(array $queries){throw new LogicException('capture_no_raw_bypass');}
+    public function simulateErrorOnNextQuery($error){throw new LogicException('capture_no_simulation');}
+    public function escapeUTF8String($v){return str_replace("'","''",$v);}
+    public function escapeBinaryString($v){return $this->escapeUTF8String($v);}
+    public function escapeColumnName($v){return '`'.str_replace('`','``',$v).'`';}
+    public function escapeMultilineComment($v){return '';}
+    public function escapeStringForLikeClause($v){return $v;}
+    public function executeQuery(PhutilQueryString $query){$this->queries[]=$query->getUnmaskedString();}
+   }
+   $results=[];
+   foreach([ROOT_CURRENT,ROOT_OLD]as$file){
+    $capture=new NativePatchSQLCapture();
+    $api=(new PhabricatorStorageManagementAPI())->setHost('capture-only')->setUser('capture-only')->setNamespace('capture_only');
+    (new ReflectionProperty(PhabricatorStorageManagementAPI::class,'conns'))->setValue($api,['capture-only'=>['capture-only'=>['capture_only_'=>$capture]]]);
+    $api->applyPatchSQL($file);
+    $results[]=$capture->queries;
+   }
+   echo json_encode(['queries'=>$results,'Lisk_connections'=>(new ReflectionProperty(LiskDAO::class,'connections'))->getValue()]);
+   """.replace('ROOT_CURRENT',json.dumps(str(ROOT/'resources/sql/autopatches'/PATCH))).replace('ROOT_OLD',json.dumps(str(previous))))
+  self.assertEqual(d['Lisk_connections'],[])
+  current,previous=d['queries'];self.assertEqual(len(current),4);self.assertEqual(len(previous),5)
+  def statement_kind(query):
+   executable=re.sub(r'^\s*--[^\n]*(?:\n|$)','',query).lstrip()
+   self.assertRegex(executable,r'^(?:INSERT INTO|CREATE TABLE) ')
+   return executable.split()[0]
+  self.assertEqual([statement_kind(q)for q in current],['INSERT','CREATE','CREATE','CREATE'])
+  self.assertTrue(previous[1].startswith('no native capability or role migration.'))
+  with self.assertRaises(AssertionError):[statement_kind(q)for q in previous]
  def test_real_patch_is_live_and_quickstart_does_not_forge_its_ledger(self):
   d=php("$p=PhabricatorSQLPatchList::buildAllPatches();$x=$p['phabricator:"+PATCH+"'];echo json_encode(['dead'=>$x->isDead(),'type'=>$x->getType(),'name'=>basename($x->getName()),'sha256'=>hash_file('sha256',$x->getName())]);")
   self.assertEqual(d,{'dead':False,'type':'sql','name':PATCH,'sha256':PIN})

@@ -1,4 +1,4 @@
--- Disabled-by-default explicit grant metadata; no native capability or role migration.
+-- Disabled-by-default explicit grant metadata, no native capability or role migration.
 INSERT INTO {$NAMESPACE}_config.governance_configepoch (namespace,configKey,epoch)
 VALUES ('default','governance.project-content-grants.enabled',1),
 ('default','governance.organization.enabled',1);
