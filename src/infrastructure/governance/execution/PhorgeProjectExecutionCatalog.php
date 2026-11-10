@@ -250,7 +250,7 @@ final class PhorgeProjectExecutionCatalog extends Phobject {
     return in_array($op,array('+','-'),true) && $value[$op]===array($actor=>$actor);
   }
   public static function configurationKeys() {
-    return array('governance.project-approval.enabled','policy.allow-public','policy.locked',
+    return array('governance.project-approval.enabled','governance.project-content-grants.enabled','governance.organization.enabled','policy.allow-public','policy.locked',
       'phabricator.application-settings','phabricator.uninstalled-applications',
       'phabricator.show-prototypes','phorge.product-profile','load-libraries',
       'cluster.databases','gorge.db.uri','mysql.host','mysql.port','mysql.user',

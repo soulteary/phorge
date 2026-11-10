@@ -15,7 +15,7 @@
   "src/infrastructure/governance/media/http/PhorgeGovernanceMediaAuthorizeController.php": "646ef486659772ff75df6a02583a7cc1852e3ecdad5370fae8f45ba87c65ca81",
   "src/infrastructure/governance/media/http/PhorgeGovernanceMediaHTTPProtocol.php": "a6d4e9d50ec4f795ce75e8de52337a5af1afd31244a88222a2a3173c12984cd6",
   "src/infrastructure/governance/media/http/PhorgeGovernanceMediaResourceController.php": "a3da5cf5d3e515779de1293670d4bb3f08202b9e2e32fb684d1cbc100bc860eb",
-  "support/governance/completion/fixture.php": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b",
+  "support/governance/completion/fixture.php": "8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b",
   "support/governance/fixtures/PhorgeGovernanceNativeFixture.php": "98da6da4dc3a6b0c0bec65c41310c3cd10c2db0bee2cbbcd6a77088298020a9e",
   "support/governance/native-organization/directory-restore-progress.php": "1c32b2709cf2dcebd0e9c29d079dce2f5ab2471caeb70320708561021c2d410c"
 }

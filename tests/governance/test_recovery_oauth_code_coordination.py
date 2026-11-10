@@ -8,6 +8,7 @@ sys.path.insert(0,str(ROOT/'scripts/governance'))
 import recovery_oauth_code_source_delta as prod
 import recovery_oauth_authorization_source_delta as authorization_delta
 import recovery_oauth_code_coordinator_delta as coord
+import n05_legacy_audit_test_view as legacy_view
 import check_recovery_session_lease as reader
 import check_recovery_oauth_code_producer_v1 as current
 
@@ -20,7 +21,9 @@ class CodeCoordination(unittest.TestCase):
   b=self.baseline();self.assertEqual(prod.BASE_PINS,b['production_base_sha256']);self.assertEqual(coord.BASE_PINS,b['historical_tooling_and_case_base_sha256'])
   self.assertEqual(len(prod.SOURCE_INPUTS),6);self.assertEqual(len(coord.SOURCE_INPUTS),16)
   for path,pin in {**prod.BASE_PINS,**coord.BASE_PINS}.items():
-   raw=(ROOT/path).read_bytes();self.assertEqual(hashlib.sha256(coord.source_view(path,raw)).hexdigest(),pin)
+   raw=(ROOT/path).read_bytes()
+   if path in legacy_view.METADATA_PATHS:raw=legacy_view.historical_metadata_source(path,raw)
+   self.assertEqual(hashlib.sha256(coord.source_view(path,raw)).hexdigest(),pin)
    with self.assertRaises(ValueError):coord.source_view(path,raw+b'\n# unauthorized change')
  def test_literal_maps_and_inverse_tables_are_unchanged(self):
   def dictionaries(raw):
@@ -32,7 +35,7 @@ class CodeCoordination(unittest.TestCase):
    return out
   for path in coord.SOURCE_INPUTS:
    if path.endswith('.py'):
-    raw=(ROOT/path).read_bytes();self.assertEqual(dictionaries(raw),dictionaries(coord.source_view(path,raw)))
+    raw=authorization_delta.reduce_if_selected(path,(ROOT/path).read_bytes());self.assertEqual(dictionaries(raw),dictionaries(coord.source_view(path,raw)))
  def test_complete_current_or_complete_baseline_only_missing_mixed_unknown_refuse(self):
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
    root=Path(tmp);complete_source_cohort(root);self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))
@@ -69,7 +72,7 @@ class CodeCoordination(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('oauth_code_media_snapshot',directory/'snapshot.py');snapshot=importlib.util.module_from_spec(spec);spec.loader.exec_module(snapshot)
   with patch.dict(sys.modules,{'snapshot':snapshot}):
    spec=importlib.util.spec_from_file_location('oauth_code_media_freshness',ROOT/'support/governance/media-session-ci/freshness.py');freshness=importlib.util.module_from_spec(spec);spec.loader.exec_module(freshness)
-   self.assertEqual(snapshot.BASE,'cc39f46941cb8f06eb3e7648f5da38db79be83dc');self.assertEqual(len(snapshot.OVERLAY),8)
+   self.assertEqual(snapshot.BASE,'5665cf16663b0e44da2aed5a800835dc9cb563cf');self.assertEqual(len(snapshot.OVERLAY),8)
    # This is a whole-current-Git source invariant, not an assertion that the
    # Atomic parser-prepared checkout is clean. The media workflow retains its
    # separate unchanged real-checkout freshness gates before any preparation.

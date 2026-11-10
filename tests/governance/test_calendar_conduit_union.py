@@ -10,16 +10,18 @@ MEDIA_WORKFLOW='.github/workflows/native-media-session-positive-sql.yml'
 MEDIA_WORKFLOW_SHA256='d0b00933b908aa5e8da92ca3a1c6c154d7a082adaea9883a762324e4e8a3d786'
 def git(*args):return subprocess.check_output(['git','-C',str(ROOT),*args])
 def validate_workflow_union(changed,historical,read):
+ import project_content_grant_ci_source_delta as n05_ci
  import recovery_oauth_code_ci_delta as code_ci
  import recovery_oauth_authorization_ci_delta as authorization_ci
  import recovery_oauth_client_lifecycle_ci_delta as lifecycle_ci
- if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,authorization_ci.WORKFLOW,lifecycle_ci.WORKFLOW}:
+ if set(changed)!=set(historical)|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,authorization_ci.WORKFLOW,lifecycle_ci.WORKFLOW,n05_ci.WORKFLOW}:
   raise ValueError('unreviewed workflow union')
  if hashlib.sha256(read(MEDIA_WORKFLOW)).hexdigest()!=MEDIA_WORKFLOW_SHA256:
   raise ValueError('reviewed media workflow changed')
  code_ci.assert_workflow(code_ci.WORKFLOW,read(code_ci.WORKFLOW))
  authorization_ci.assert_workflow(authorization_ci.WORKFLOW,read(authorization_ci.WORKFLOW))
  lifecycle_ci.assert_workflow(lifecycle_ci.WORKFLOW,read(lifecycle_ci.WORKFLOW))
+ n05_ci.assert_workflow(n05_ci.WORKFLOW,read(n05_ci.WORKFLOW))
 class CalendarConduitUnion(unittest.TestCase):
  def test_current_main_production_hooks_map_and_workflows_preserved(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_assessment_source_delta as assessment
@@ -28,8 +30,11 @@ class CalendarConduitUnion(unittest.TestCase):
   import recovery_oauth_code_source_delta as code_delta
   import recovery_oauth_authorization_source_delta as authorization_delta
   import recovery_oauth_client_lifecycle_delta as lifecycle_delta
+  import project_content_grant_source_delta as n05_delta
+  n05_delta.assert_production_cohort(ROOT)
+  changed,reviewed=n05_delta.historical_inputs(ROOT,previous,changed,{path:(ROOT/path).read_bytes()for path in changed})
   self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS))
-  for path in changed:self.assertEqual(assessment.reduce_current(path,(ROOT/path).read_bytes()),git('show',previous+':'+path))
+  for path in changed:self.assertEqual(assessment.reduce_current(path,reviewed[path]),git('show',previous+':'+path))
   workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   validate_workflow_union(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines(),workflows,lambda path:(ROOT/path).read_bytes())
   self.assertEqual(git('ls-tree',previous,'--',MEDIA_WORKFLOW),b'')
@@ -45,7 +50,8 @@ class CalendarConduitUnion(unittest.TestCase):
  def test_reviewed_media_workflow_union_rejects_unknown_addition_or_mutation(self):
   historical={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   import recovery_oauth_code_ci_delta as code_ci
-  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,'.github/workflows/oauth-authorization-producer-focused.yml','.github/workflows/oauth-client-lifecycle-focused.yml'}
+  import project_content_grant_ci_source_delta as n05_ci
+  expected=historical|{'.github/workflows/native-directory-transports-v1.yml',MEDIA_WORKFLOW,code_ci.WORKFLOW,'.github/workflows/oauth-authorization-producer-focused.yml','.github/workflows/oauth-client-lifecycle-focused.yml',n05_ci.WORKFLOW}
   raw=(ROOT/MEDIA_WORKFLOW).read_bytes()
   validate_workflow_union(expected,historical,lambda path:(ROOT/path).read_bytes())
   for changed in (expected|{'.github/workflows/unreviewed.yml'},expected-{MEDIA_WORKFLOW}):
@@ -79,7 +85,8 @@ class CalendarConduitUnion(unittest.TestCase):
   for module in (historical,historical_v2):
    path='scripts/governance/'+module.__name__+'.py'
    def pins(raw):return next(ast.literal_eval(x.value)for x in ast.parse(raw).body if isinstance(x,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in x.targets))
-   self.assertEqual(module.SOURCE_INPUTS,pins(git('show','46a1b044950584006cba754bc9841031d452eb76:'+path)))
+   import project_content_grant_source_delta as n05_delta
+   self.assertEqual(pins(n05_delta.reduce_if_selected(path,(ROOT/path).read_bytes())),pins(git('show','46a1b044950584006cba754bc9841031d452eb76:'+path)))
   with tempfile.TemporaryDirectory()as tmp:
    root=Path(tmp).resolve()
    for n in current.SOURCE_INPUTS:
@@ -95,7 +102,8 @@ class CalendarConduitUnion(unittest.TestCase):
    gate=__import__(name);path='scripts/governance/'+name+'.py'
    def pins(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
    import recovery_assessment_source_delta as assessment
-   historical=dict(gate.SOURCE_INPUTS)
+   import project_content_grant_source_delta as n05_delta
+   historical=pins(n05_delta.reduce_if_selected(path,(ROOT/path).read_bytes()))
    for source,pin in assessment.SOURCE_INPUTS.items():
     if source in historical:
      self.assertEqual(historical[source],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(source,(ROOT/source).read_bytes())).hexdigest(),assessment.BASE_PINS[source]);historical[source]=assessment.BASE_PINS[source]

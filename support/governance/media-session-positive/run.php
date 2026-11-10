@@ -15,7 +15,7 @@ try {
   foreach(array('local.json','deployment.json','ENVIRONMENT')as$name){if(file_exists($root.'/conf/local/'.$name)){throw new RuntimeException('media_positive_deployment_refused');}}
   $p=media_positive_profile_file($argv[2]);
   $manifest=file_get_contents(__DIR__.'/source-pins.json');
-  if(hash('sha256',$manifest)!=='68950bf554978bbb774e520a982802724e23004abdd23cad5d02ba8515c5f919'){throw new RuntimeException('media_positive_source_manifest');}
+  if(hash('sha256',$manifest)!=='5d708748e4bf47af83ae97edac0fb9f37ac89d41ce11b1d7d371fb595e24d222'){throw new RuntimeException('media_positive_source_manifest');}
   foreach(json_decode($manifest,true,32,JSON_THROW_ON_ERROR)as$relative=>$expected){if(!hash_equals($expected,hash_file('sha256',$root.'/'.$relative))){throw new RuntimeException('media_positive_source_changed');}}
   require_once $root.'/support/runtime/php-version.php';phorge_assert_supported_php_version(PHP_VERSION);
   require_once $root.'/support/runtime/src/__phutil_library_init__.php';phutil_load_library($root.'/src');

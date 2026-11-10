@@ -1,4 +1,5 @@
 """Actual fixed driver selection/whole cleanup and strict synthetic receipts; no SQL."""
+from n05_legacy_audit_test_view import historical_source_inputs
 from pathlib import Path
 import unittest,sys,subprocess,json,tempfile,hashlib,copy
 ROOT=Path(__file__).resolve().parents[2]
@@ -53,7 +54,7 @@ echo json_encode(['failed'=>$failed,'owned'=>$f->owned,'registered'=>count($GLOB
    self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),{'failed':True,'owned':1,'registered':0})
  def test_data_source_manifest_matches_versioned_consumer_without_execution_claim(self):
   manifest=json.loads((ROOT/'docs/governance/recovery-oauth-access-SQL-source-v3.json').read_text())
-  self.assertEqual(manifest['source_sha256'],gate.SOURCE_INPUTS)
+  self.assertEqual(manifest['source_sha256'],historical_source_inputs('scripts/governance/check_recovery_oauth_access_producer_v3.py'))
   for key in ['runtime_certified','physical_SQL_cases_executed','all_13_sources_complete','permit','restoration_authorized']:
    self.assertIs(manifest[key],False)
  def test_actual_native_factory_and_SQL_writer_route_are_distinct(self):

@@ -21,9 +21,9 @@ def template():
  full_storage_upgrade_acceptance=False,all_thirteen_families_complete=False,restoration_authorized=False,
  production_scale_ready=False,HTTP_controller_evidence=False),
  source_restore=dict(quickstart_sha256=hashlib.sha256((ROOT/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),app_schema_count=54,
- owned_schema_count=55,quickstart_source_table_count=500,current_table_count=546,restore_phase_workers_started=0,restore_phase_network_endpoints_configured=0,
- patch_audit=dict(source_patch_count=1574,applied_patch_count=1574,pending_patch_keys=[],current_patch_ledger_complete=True,
- migration_source_hashes={'phabricator:'+n:hashlib.sha256((ROOT/'resources/sql/autopatches'/n).read_bytes()).hexdigest()for n in completion.PATCHES},migrations_executed=37)),
+ owned_schema_count=55,quickstart_source_table_count=500,current_table_count=549,restore_phase_workers_started=0,restore_phase_network_endpoints_configured=0,
+ patch_audit=dict(source_patch_count=1575,applied_patch_count=1575,pending_patch_keys=[],current_patch_ledger_complete=True,
+ migration_source_hashes={'phabricator:'+n:hashlib.sha256((ROOT/'resources/sql/autopatches'/n).read_bytes()).hexdigest()for n in completion.PATCHES},migrations_executed=38)),
  captured_native_output_bytes=0,captured_native_output_sha256=hashlib.sha256(b'').hexdigest(),remaining_blocked=['media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion'])
 class PolicyIsolationTests(unittest.TestCase):
  def test_real_partial_difference_guard_rejects_change_and_unknown_authority(self):

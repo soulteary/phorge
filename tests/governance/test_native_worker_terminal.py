@@ -1,4 +1,5 @@
 """Actual shared finish_worker, owned real PHP children, no native app/SQL/VM."""
+from n05_legacy_audit_test_view import historical_tooling_source
 from pathlib import Path
 import ast,hashlib,json,subprocess,sys,tempfile,unittest
 ROOT=Path(__file__).resolve().parents[2]
@@ -60,7 +61,7 @@ class WorkerTerminal(unittest.TestCase):
    self.assertEqual(current[driver],hashlib.sha256((ROOT/driver).read_bytes()).hexdigest())
    historical=dict(current);historical[driver]=hashlib.sha256(calendar.reduce_calendar_wire_union((ROOT/driver).read_bytes())).hexdigest()
    import recovery_assessment_source_delta as assessment
-   compared=dict(current)
+   compared=dict(pins(historical_tooling_source(source)))
    for name,pin in assessment.SOURCE_INPUTS.items():
     if name in compared:
      self.assertEqual(compared[name],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(name,(ROOT/name).read_bytes())).hexdigest(),assessment.BASE_PINS[name]);compared[name]=assessment.BASE_PINS[name]

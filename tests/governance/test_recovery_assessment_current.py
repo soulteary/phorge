@@ -1,5 +1,6 @@
 """Current-main source views and runnable focused CLI; no physical SQL claim."""
 from recovery_oauth_code_test_cohort import complete_source_cohort
+from n05_legacy_audit_test_view import historical_source_inputs
 from pathlib import Path
 import ast,copy,hashlib,json,os,subprocess,sys,tempfile,unittest
 from unittest.mock import patch
@@ -17,7 +18,7 @@ class CurrentAssessment(unittest.TestCase):
   self.assertEqual(hashlib.sha256(raw).hexdigest(),'d9cc649ed637a80abbc8d962ee2eeaf740920c472d10d21fc17b2d4c564bb609')
   self.assertEqual(historical.SOURCE_INPUTS,current.SOURCE_INPUTS);self.assertEqual(len(current.SOURCE_INPUTS),220)
   self.assertEqual(len(current.ADAPTER_SOURCE_INPUTS),2);self.assertEqual(len(current.SQL_obligations()),8)
-  manifest=json.loads((ROOT/'docs/governance/recovery-assessment-credential-SQL-source-v2.json').read_bytes());self.assertEqual(manifest['source_sha256'],current.SOURCE_INPUTS);self.assertEqual(manifest['reviewed_source_adapter_sha256'],current.ADAPTER_SOURCE_INPUTS);self.assertFalse(manifest['physical_SQL_cases_executed'])
+  manifest=json.loads((ROOT/'docs/governance/recovery-assessment-credential-SQL-source-v2.json').read_bytes());self.assertEqual(manifest['source_sha256'],historical_source_inputs('scripts/governance/check_recovery_assessment_credentials_v2.py'));self.assertEqual(manifest['reviewed_source_adapter_sha256'],current.ADAPTER_SOURCE_INPUTS);self.assertFalse(manifest['physical_SQL_cases_executed'])
   with self.assertRaises(ValueError):historical.SQL_obligations()
   for path in (DRIVER,WORKER):
    body=(ROOT/path).read_bytes();old=current.source_view(path,body,current.SOURCE_INPUTS[path])
