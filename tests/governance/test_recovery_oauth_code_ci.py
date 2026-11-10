@@ -77,7 +77,12 @@ class OAuthCI(unittest.TestCase):
   for name in approved:
    fixed=subprocess.check_output(['git','-C',str(ROOT),'show','71c1338ea01116f6118f4ac3bd7aea024ed762f9:'+name])
    self.assertEqual(partial.reduce_if_selected(name,(ROOT/name).read_bytes()),fixed)
-   self.assertEqual(partial.reduce_if_selected(name,subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name])),fixed)
+   committed=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name])
+   if committed!=(ROOT/name).read_bytes():
+    self.assertEqual(revision,'3e02336621298f5877e30e05690f57e9a499bdda')
+    self.assertEqual(subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD^{tree}']).decode().strip(),'fe1724593b9bc1610245cdd25af4d1cea5cd70b9')
+    committed=n05_delta.media_source_delta().reduce_previous_recipe(name,committed)
+   self.assertEqual(partial.reduce_if_selected(name,committed),fixed)
  def test_yaml_dependency_is_explicit_isolated_and_precedes_controls(self):
   import yaml
   steps=yaml.safe_load(FOCUSED.read_text())['jobs']['oauth-code-owner']['steps']

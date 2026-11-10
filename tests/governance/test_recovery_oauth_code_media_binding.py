@@ -25,7 +25,7 @@ class SignedSourceBinding(unittest.TestCase):
    with self.assertRaises(ValueError):media_binding.reduce_current(name,raw+b'\n# unknown edit')
   self.assertEqual(self.git('rev-parse',BASE+'^{tree}').decode().strip(),TREE)
   for name in [PATH,'support/governance/media-session-ci/project.py','support/governance/media-session-docker/README.md']:
-   self.assertEqual((ROOT/name).read_text().count('8df48ed5273fc7d534d93a3d220025389c6a011c'),1);self.assertEqual((ROOT/name).read_text().count('2cff1c95b02dee170e858847b3875d0aa86cbebc'),1)
+   self.assertEqual((ROOT/name).read_text().count('3e02336621298f5877e30e05690f57e9a499bdda'),1);self.assertEqual((ROOT/name).read_text().count('fe1724593b9bc1610245cdd25af4d1cea5cd70b9'),1)
  def test_all_current_metadata_and_hook_inverses_restore_exact_signed_S1(self):
   self.assertEqual(len(media_binding.SOURCE_INPUTS),10)
   for name in media_binding.SOURCE_INPUTS:
@@ -58,11 +58,20 @@ class SignedSourceBinding(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('partial_media_count_snapshot',ROOT/PATH);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
   entries,provenance=module.base_entries(ROOT)
   for name in module.OVERLAY:entries.setdefault(name,None)
-  self.assertEqual(len(entries),9272);self.assertEqual(provenance['root_tree'],'2cff1c95b02dee170e858847b3875d0aa86cbebc');self.assertEqual(provenance['commit'],'8df48ed5273fc7d534d93a3d220025389c6a011c')
+  self.assertEqual(len(entries),9272);self.assertEqual(provenance['root_tree'],'fe1724593b9bc1610245cdd25af4d1cea5cd70b9');self.assertEqual(provenance['commit'],'3e02336621298f5877e30e05690f57e9a499bdda')
  def test_all_other_fixture_runtime_and_source_guards_byteexact_signed_source(self):
   paths=self.git('ls-tree','-r','--name-only',BASE,'--','support/governance/media-session-ci','support/governance/media-session-docker','support/governance/media-session-positive').decode().splitlines();self.assertGreaterEqual(len(paths),17)
   for name in paths:
    raw=(ROOT/name).read_bytes()
    if name in media_binding.SOURCE_INPUTS:raw=media_binding.reduce_current(name,raw)
    self.assertEqual(raw,self.git('show',BASE+':'+name),name)
+ def test_previous_signed_recipe_literals_are_exact_test_only_and_unknown_refused(self):
+  import project_content_grant_source_delta as n05
+  m=n05.media_source_delta()
+  self.assertEqual(set(m.PREVIOUS_RECIPE_BYTES),set(m.SOURCE_INPUTS))
+  for path,raw in m.PREVIOUS_RECIPE_BYTES.items():
+   actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','3e02336621298f5877e30e05690f57e9a499bdda:'+path])
+   self.assertEqual(raw,actual)
+   self.assertEqual(m.reduce_previous_recipe(path,raw),m.BASE_BYTES[path])
+   with self.assertRaises(ValueError):m.reduce_previous_recipe(path,raw+b'unknown')
 if __name__=='__main__':unittest.main()
