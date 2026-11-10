@@ -6,8 +6,9 @@ ROOT_REVIEW_SHA=None
 ROOT_SOURCE_FREEZE_SHA=None
 HERE=Path(__file__).resolve().parent
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
-TARGET='79987a76658150e77fc5266fae13c2eaed934ff2'
-TARGET_TREE='797f5bad3c10eb2fbee30c95c6019e6c0a2393ee'
+BASE_TREE='69180e43fba7476257cc534c1934d544995a4443'
+TARGET='ef7be9c5c62e1fd93e358c556706261e85558960'
+TARGET_TREE='a11e40493fc4adf8a3569326d3e98cf415b27bc4'
 def need(v):
  if not v:raise ValueError('N05_prerequisites_refused_retain_no_retry')
 def sha(b):return hashlib.sha256(b).hexdigest()
@@ -53,10 +54,10 @@ def bind(profile,review,freeze):
  p=decode(raw);need(decode(rr)=={'schema':'N05-prerequisites-Root-review-v1','profile_sha256':sha(raw),'scope':'new-owned-native-namespace-offline-bootstrap-only'})
  keys={'schema','owner','namespace','base_root','base_commit','base_tree','target_root','target_commit','target_tree','php','php_sha256','db_port','server_uuid','db_credentials_path','db_credentials_sha256','owned_db_receipt_path','owned_db_receipt_sha256','isolated_features_authorized'}
  need(set(p)==keys and p['schema']=='N05-native-prerequisites-v1'and p['isolated_features_authorized']is True and re.fullmatch('[a-f0-9]{32}',p['owner'])and p['namespace']=='n05_grants_'+p['owner'])
- need(p['base_commit']==BASE and p['target_tree']==TARGET_TREE and p['target_commit']==TARGET and re.fullmatch('[a-f0-9]{40}',p['base_tree']))
+ need(p['base_commit']==BASE and p['target_tree']==TARGET_TREE and p['target_commit']==TARGET and p['base_tree']==BASE_TREE)
  need(p['php']in('/usr/bin/php','/usr/local/bin/php','/opt/homebrew/bin/php')and sha(Path(p['php']).read_bytes())==p['php_sha256'])
  need(type(p['db_port'])is int and 1<=p['db_port']<=65535 and re.fullmatch('[a-f0-9-]{36}',p['server_uuid']))
- f=decode(fr);need(f['source_directory']==str(HERE))
+ f=decode(fr);need(f['source_directory']==str(HERE)and f['schema']=='N05-CI-bound-reviewed-source-v2'and f['kind']=='prerequisites'and f['native_git_revision']==BASE and f['native_git_tree']==BASE_TREE)
  for n,pin in f['source_sha256'].items():need(sha((HERE/n).read_bytes())==pin['sha256'])
  source_root(p['base_root'],p['base_commit'],p['base_tree']);source_root(p['target_root'],p['target_commit'],p['target_tree']);need(p['base_root']!=p['target_root'])
  credential=private(p['db_credentials_path']);need(sha(credential)==p['db_credentials_sha256']);d=decode(credential);need(set(d)=={'owner','user','password'}and d['owner']==p['owner']and re.fullmatch('[a-zA-Z0-9_]{1,64}',d['user'])and type(d['password'])is str and 1<=len(d['password'])<=256 and '\x00'not in d['password'])

@@ -3,13 +3,12 @@ import argparse,hashlib,json,os,re,subprocess,sys,types,uuid
 from pathlib import Path
 
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
-TARGET='79987a76658150e77fc5266fae13c2eaed934ff2'
-TREE='797f5bad3c10eb2fbee30c95c6019e6c0a2393ee'
+BASE_TREE='69180e43fba7476257cc534c1934d544995a4443'
+TARGET='ef7be9c5c62e1fd93e358c556706261e85558960'
+TREE='a11e40493fc4adf8a3569326d3e98cf415b27bc4'
 MYSQL='mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
-REVIEWED_PINS={
- 'prerequisites':{'native.php':{'bytes':9741,'sha256':'3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'},'provision.py':{'bytes':10395,'sha256':'220450cf1b4c611784c753d01ff18fb15a3340e9b2127163ca9bb37d5cca3e87'}},
- 'qualification':{'native.php':{'bytes':12077,'sha256':'5990cfa0fcaed15ba49659bb145650a06ffa51f51e88d0f39a6f3d67fb4b096b'},'qualify.py':{'bytes':8752,'sha256':'8fefd6736c5483407208ab83e7b02d16f4df14087b1230a87dd404e7a94f5cde'}}}
-REVIEWED_INVENTORIES={'prerequisites':'dd641e2b38de82e6cf829ff6a71f891887ab2815b9171d1ba0e9c96d2259e896','qualification':'cb7f584c528471c435925f0f1675b56ffb8e8a9af887d052880d25ca81c1f264'}
+REVIEWED_PINS={'prerequisites': {'native.php': {'sha256': '3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e', 'bytes': 9741}, 'provision.py': {'sha256': '9c941b99272206df143a7ca8efc7afa262c2a2088cf1d0c8a579c8431938568c', 'bytes': 10580}}, 'qualification': {'native.php': {'sha256': '5990cfa0fcaed15ba49659bb145650a06ffa51f51e88d0f39a6f3d67fb4b096b', 'bytes': 12077}, 'qualify.py': {'sha256': '18c7521ac834875b83a97646c6fe6d985dc37c18e9e739ae23fe14d312eded77', 'bytes': 9451}}}
+REVIEWED_INVENTORIES={'prerequisites': 'dd641e2b38de82e6cf829ff6a71f891887ab2815b9171d1ba0e9c96d2259e896', 'qualification': 'cb7f584c528471c435925f0f1675b56ffb8e8a9af887d052880d25ca81c1f264'}
 sha=lambda b:hashlib.sha256(b).hexdigest()
 canon=lambda d:json.dumps(d,sort_keys=True,separators=(',',':')).encode()+b'\n'
 
@@ -64,7 +63,9 @@ def bind_manifest(template,folder,kind,root):
     need(kind in REVIEWED_PINS)
     f=json.loads(template.read_bytes())
     key='native_public_source_dependencies' if kind=='prerequisites' else 'native_source_inventory'
-    need(set(f)=={'schema','kind','source_sha256',key} and f['schema']=='N05-CI-reviewed-source-template-v1' and f['kind']==kind)
+    need(set(f)=={'schema','kind','source_sha256',key,'native_git_revision','native_git_tree'} and f['schema']=='N05-CI-reviewed-source-template-v2' and f['kind']==kind)
+    revision,tree=(BASE,BASE_TREE)if kind=='prerequisites'else(TARGET,TREE)
+    need(f['native_git_revision']==revision and f['native_git_tree']==tree and git(root,'rev-parse','HEAD')==revision and git(root,'rev-parse','HEAD^{tree}')==tree)
     # Independently reviewed constants anchor the template before any module exec.
     need(f['source_sha256']==REVIEWED_PINS[kind] and sha(canon(f[key]))==REVIEWED_INVENTORIES[kind])
     for n,p in REVIEWED_PINS[kind].items():
@@ -81,7 +82,7 @@ def bind_manifest(template,folder,kind,root):
         else:
             need(path.resolve()==path and path.is_file());raw=path.read_bytes()
         need(len(raw)==p['bytes']and sha(raw)==p['sha256'])
-    return {**f,'schema':'N05-CI-bound-reviewed-source-v1','source_directory':str(folder)}
+    return {**f,'schema':'N05-CI-bound-reviewed-source-v2','source_directory':str(folder)}
 
 # Password is read from the private owned file, never a command-line argument.
 PROBE=r'''$d=json_decode(file_get_contents($argv[1]),true,8,JSON_THROW_ON_ERROR);mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);$c=new mysqli('127.0.0.1',$d['user'],$d['password'],'',(int)$argv[2]);$r=$c->query('SELECT VERSION() version,@@server_uuid uuid')->fetch_assoc();echo json_encode(['php_version'=>PHP_VERSION,'mysql_version'=>$r['version'],'server_uuid'=>$r['uuid'],'opcache_jit'=>ini_get('opcache.jit'),'opcache_jit_buffer_size'=>ini_get('opcache.jit_buffer_size'),'opcache_enable_cli'=>ini_get('opcache.enable_cli')]);$c->close();'''

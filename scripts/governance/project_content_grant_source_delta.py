@@ -50,7 +50,25 @@ def reduce_production(path,raw):
  if hashlib.sha256(raw).hexdigest()!=PREVIOUS_PRODUCTION_PINS[path]:raise ValueError('N05 inverse changed other native bytes')
  return raw
 
-QUALIFICATION_PINS={'support/governance/project-content-grants-qualification/native.php': '5990cfa0fcaed15ba49659bb145650a06ffa51f51e88d0f39a6f3d67fb4b096b', 'support/governance/project-content-grants-qualification/README.md': '720726c4d4ea4240d06f3d89c9abe82511324b3ca60a3da855eb50dd4f77d696', 'support/governance/project-content-grants-qualification/qualify.py': '8fefd6736c5483407208ab83e7b02d16f4df14087b1230a87dd404e7a94f5cde'}
+QUALIFICATION_PINS={'support/governance/project-content-grants-qualification/native.php': '5990cfa0fcaed15ba49659bb145650a06ffa51f51e88d0f39a6f3d67fb4b096b', 'support/governance/project-content-grants-qualification/README.md': '720726c4d4ea4240d06f3d89c9abe82511324b3ca60a3da855eb50dd4f77d696', 'support/governance/project-content-grants-qualification/qualify.py': '18c7521ac834875b83a97646c6fe6d985dc37c18e9e739ae23fe14d312eded77'}
+
+FIXTURE_METADATA_PINS={'support/governance/completion/fixture.php': '8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b', 'support/governance/media-session-positive/source-pins.json': '5d708748e4bf47af83ae97edac0fb9f37ac89d41ce11b1d7d371fb595e24d222', 'support/governance/media-session-positive/run.php': 'bd3504a2212eaedafae27bbde8f6ca824086f8573d0cec95871af35a3f012f81', 'support/governance/media-session-ci/README.md': 'cfab3429cd1749015226cace1e9108df4a0a4f8ac1d59298260a5ea227f64629'}
+FIXTURE_METADATA_BASE_PINS={'support/governance/completion/fixture.php': 'f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b', 'support/governance/media-session-positive/source-pins.json': '68950bf554978bbb774e520a982802724e23004abdd23cad5d02ba8515c5f919', 'support/governance/media-session-positive/run.php': '2e71c22445d69b46b60524f3cac75906ade9f308b4ae69c03cfdc978418668dd', 'support/governance/media-session-ci/README.md': '1759afc44225d6abf8440ee53b691e13d8b3695a80c68cb93447df78fe92c57c'}
+def fixture_historical_inputs(root,baseline,changed,current):
+ """Exact four-file source-audit delta only; never normalizes runtime source reads."""
+ import subprocess
+ selected=set(current)&set(FIXTURE_METADATA_PINS)
+ if not selected:return changed,current
+ for name,pin in FIXTURE_METADATA_PINS.items():
+  p=Path(root)/name
+  if p.resolve()!=p or not p.is_file()or hashlib.sha256(p.read_bytes()).hexdigest()!=pin:raise ValueError('mixed fixture source-audit cohort')
+ changed=set(changed);current=dict(current)
+ for name in selected:
+  if hashlib.sha256(current[name]).hexdigest()!=FIXTURE_METADATA_PINS[name]:raise ValueError('unreviewed fixture source-audit bytes')
+  old=subprocess.run(['git','--no-replace-objects','-C',str(root),'show',baseline+':'+name],capture_output=True)
+  if old.returncode or hashlib.sha256(old.stdout).hexdigest()!=FIXTURE_METADATA_BASE_PINS[name]:raise ValueError('unreviewed fixture historical baseline')
+  changed.discard(name);current.pop(name)
+ return changed,current
 
 def historical_inputs(root,baseline,changed,current):
  """Remove only exact reviewed N05 bytes, preserving the original historical guard."""
@@ -72,5 +90,6 @@ def historical_inputs(root,baseline,changed,current):
   old=subprocess.run(['git','-C',str(root),'cat-file','-e',baseline+':'+name],capture_output=True)
   if old.returncode==0:raise ValueError('qualification source unexpectedly replaces historical path')
   current.pop(name);changed.discard(name)
+ changed,current=fixture_historical_inputs(root,baseline,changed,current)
  import project_content_grant_ci_source_delta as ci_delta
  return ci_delta.historical_inputs(root,baseline,changed,current)

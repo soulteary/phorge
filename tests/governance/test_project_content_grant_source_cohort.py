@@ -46,4 +46,4 @@ class ExactMediaSourceRebind(unittest.TestCase):
  def test_SQL_runtime_binding_and_existing_two_metadata_exceptions_unchanged(self):
   import importlib.util
   p=ROOT/'support/governance/project-content-grants-ci/ci.py';spec=importlib.util.spec_from_file_location('exact_N05_runtime_ci_source',p);ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(ci)
-  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'79987a76658150e77fc5266fae13c2eaed934ff2');self.assertEqual(ci.TREE,'797f5bad3c10eb2fbee30c95c6019e6c0a2393ee');self.assertEqual(ci.OFFLINE_METADATA,('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py'))
+  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'ef7be9c5c62e1fd93e358c556706261e85558960');self.assertEqual(ci.TREE,'a11e40493fc4adf8a3569326d3e98cf415b27bc4');self.assertEqual(ci.OFFLINE_METADATA,('scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py'))

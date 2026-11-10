@@ -4,6 +4,8 @@ from pathlib import Path
 ROOT_PROFILE_SHA=None
 ROOT_REVIEW_SHA=None
 HERE=Path(__file__).resolve().parent
+TARGET='ef7be9c5c62e1fd93e358c556706261e85558960'
+TARGET_TREE='a11e40493fc4adf8a3569326d3e98cf415b27bc4'
 FREEZE_PIN=None # Root rebinds reviewed source cohort before any execution.
 def need(v):
  if not v:raise ValueError('N05_qualification_refused_retain_no_retry')
@@ -32,6 +34,10 @@ def native_source_bytes(root,relative):
   target=root/'scripts/sql/manage_storage.php';need(target.resolve()==target and path.resolve()==target and target.is_file())
   return target.read_bytes()
  need(path.resolve()==path and path.is_file());return path.read_bytes()
+def source_root_identity(root):
+ need(subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'rev-parse','HEAD']).decode().strip()==TARGET and subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'rev-parse','HEAD^{tree}']).decode().strip()==TARGET_TREE)
+ subprocess.run(['/usr/bin/git','--no-replace-objects','-C',str(root),'diff','--quiet','HEAD'],check=True)
+
 def bind(profile,review,freeze):
  need(all(type(v)is str and re.fullmatch('[a-f0-9]{64}',v)for v in (ROOT_PROFILE_SHA,ROOT_REVIEW_SHA,FREEZE_PIN)))
  raw=private(profile);rr=private(review);need(sha(raw)==ROOT_PROFILE_SHA and sha(rr)==ROOT_REVIEW_SHA);p=decode(raw)
@@ -43,8 +49,9 @@ def bind(profile,review,freeze):
  need(re.fullmatch('PHID-PROJ-[A-Za-z0-9]{20}',p['target_phid'])and set(p['subjects'])=={'user','business-team'})
  need(re.fullmatch('PHID-USER-[A-Za-z0-9]{20}',p['subjects']['user'])and re.fullmatch('[A-Za-z0-9._-]{1,64}',p['subjects']['business-team']))
  fraw=Path(freeze).read_bytes();need(sha(fraw)==FREEZE_PIN);f=decode(fraw)
- need(f['source_directory']==str(HERE)and sha(canon(f['native_source_inventory']))==p['source_inventory_sha256'])
+ need(f['source_directory']==str(HERE)and f['schema']=='N05-CI-bound-reviewed-source-v2'and f['kind']=='qualification'and f['native_git_revision']==TARGET and f['native_git_tree']==TARGET_TREE and sha(canon(f['native_source_inventory']))==p['source_inventory_sha256'])
  root=Path(p['source_root']);need(root.is_absolute()and root.resolve()==root)
+ source_root_identity(root)
  for n,pin in f['native_source_inventory'].items():
   raw=native_source_bytes(root,n);need(len(raw)==pin['bytes']and sha(raw)==pin['sha256'])
  for n,pin in f['source_sha256'].items():need(sha((HERE/n).read_bytes())==pin['sha256'])
