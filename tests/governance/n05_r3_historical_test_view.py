@@ -38,7 +38,8 @@ def historical_coordinator_source(path,raw):
  if path in source:
   raw=current.description.reconstruct_historical(source,ROOT).get(path)
   if raw is None:raise ValueError('new native leaf has no old source')
- else:raw=current._normalize_metadata(path,raw)
+ elif path=='docs/governance/batch-2-callers.json':raw=_historical_batch_scan_source(path,raw)
+ elif path not in original_test_view.METADATA_PATHS:raw=current._normalize_metadata(path,raw)
  if raw is None:raise ValueError('new metadata leaf has no old source')
  return coordinator.source_view(path,raw)
 
@@ -47,7 +48,7 @@ def historical_authorization_source(path,raw):
  if type(path)is not str or path not in module.SOURCE_INPUTS or type(raw)is not bytes or raw!=(ROOT/path).read_bytes():raise ValueError('unknown actual authorization test source')
  import n05_legacy_audit_test_view as original
  if path in original.METADATA_PATHS:raw=original.historical_metadata_source(path,raw)
- raw=current._normalize_metadata(path,raw)
+ else:raw=current._normalize_metadata(path,raw)
  return module.reduce_current(path,raw)
 def historical_lifecycle_source(path,raw):
  current.assert_current_recipe(ROOT);coordinator=checked_modules();module=coordinator.authorization_delta.lifecycle_delta
@@ -73,3 +74,27 @@ def historical_F4_media_recipe_source(path,raw):
  if raw!=actual:raise ValueError('unknown signed F4 media predecessor')
  prior=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','432bd0166880b4a6ab4820cfebcd4482cf89bb27:'+path])
  return historical_R3_media_recipe_source(path,prior)
+
+def historical_D95_media_recipe_source(path,raw):
+ current.assert_current_recipe(ROOT)
+ old=current.legacy.media_source_delta()
+ if type(path)is not str or path not in old.SOURCE_INPUTS or type(raw)is not bytes:raise ValueError('unknown D95 media source')
+ actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','d95b3bd2253afb6fdce615f4041920bdce5df625:'+path])
+ if raw!=actual:raise ValueError('unknown signed D95 media predecessor')
+ prior=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','0496112f7d6706bb3d854117b7fd94a759978987:'+path])
+ return historical_F4_media_recipe_source(path,prior)
+
+def _historical_batch_scan_source(path,raw,root=ROOT):
+ current.assert_current_recipe(root)
+ if path!='docs/governance/batch-2-callers.json' or type(raw)is not bytes:raise ValueError('unselected historical batch scan')
+ target=Path(root)/path
+ if target.stat().st_mode&0o7777!=0o644 or raw!=current.description.checked_bytes(target):raise ValueError('unknown actual batch scan')
+ revision='577ae2eb82d854753b88f2985a154e409272068a'
+ if current.TARGET!=revision:raise ValueError('unreviewed native batch scan target')
+ mode=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree',revision,'--',path]).split(b' ',1)[0]
+ actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',revision+':'+path])
+ if mode!=b'100644' or raw!=actual:raise ValueError('unknown native batch scan')
+ prior=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',REVISION+':'+path])
+ module=checked_modules()
+ if hashlib.sha256(module.authorization_delta.reduce_if_selected(path,prior)).hexdigest()!=module.SOURCE_INPUTS[path]:raise ValueError('unknown historical batch scan')
+ return prior

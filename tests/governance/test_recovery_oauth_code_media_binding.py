@@ -28,7 +28,7 @@ class SignedSourceBinding(unittest.TestCase):
    with self.assertRaises(ValueError):media_binding.reduce_current(name,raw+b'\n# unknown edit')
   self.assertEqual(self.git('rev-parse',BASE+'^{tree}').decode().strip(),TREE)
   for name in [PATH,'support/governance/media-session-ci/project.py','support/governance/media-session-docker/README.md']:
-   self.assertEqual((ROOT/name).read_text().count('0496112f7d6706bb3d854117b7fd94a759978987'),1);self.assertEqual((ROOT/name).read_text().count('4c80c759bac5af9add4963335439efa677024396'),1)
+   self.assertEqual((ROOT/name).read_text().count('d95b3bd2253afb6fdce615f4041920bdce5df625'),1);self.assertEqual((ROOT/name).read_text().count('4af5ae154be5b9fd01565762edbb712450c41c34'),1)
  def test_all_current_metadata_and_hook_inverses_restore_exact_signed_S1(self):
   self.assertEqual(len(media_binding.SOURCE_INPUTS),10)
   for name in media_binding.SOURCE_INPUTS:
@@ -61,7 +61,7 @@ class SignedSourceBinding(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('partial_media_count_snapshot',ROOT/PATH);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
   entries,provenance=module.base_entries(ROOT)
   for name in module.OVERLAY:entries.setdefault(name,None)
-  self.assertEqual(len(entries),9303);self.assertEqual(provenance['root_tree'],'4c80c759bac5af9add4963335439efa677024396');self.assertEqual(provenance['commit'],'0496112f7d6706bb3d854117b7fd94a759978987')
+  self.assertEqual(len(entries),9303);self.assertEqual(provenance['root_tree'],'4af5ae154be5b9fd01565762edbb712450c41c34');self.assertEqual(provenance['commit'],'d95b3bd2253afb6fdce615f4041920bdce5df625')
  def test_all_other_fixture_runtime_and_source_guards_byteexact_signed_source(self):
   paths=self.git('ls-tree','-r','--name-only',BASE,'--','support/governance/media-session-ci','support/governance/media-session-docker','support/governance/media-session-positive').decode().splitlines();self.assertGreaterEqual(len(paths),17)
   for name in paths:
