@@ -32,6 +32,9 @@ final class PhabricatorDestructionEngine extends Phobject {
   }
 
   public function destroyObject(PhabricatorDestructibleInterface $object) {
+    if($object instanceof PhabricatorOAuthServerClient){
+      PhabricatorOAuthServerDAO::assertRecoveryLifecycleWriteAvailable();
+    }
     if (!PhabricatorSearchDeletionRecovery::shouldCapture($object)) {
       return $this->destroyObjectWithExtensions($object);
     }

@@ -842,7 +842,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84"
+      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a"
     },
     {
       "id": "TRANSACTION.EDIT.ENGINE",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4467,
-    "source_snapshot_sha256": "4fb450f37b72282e5c735ede1a5f3c9682d41bef8b798e2218fc2737d04f535d",
+    "source_snapshot_sha256": "e90c8c90dbb299079069c86c3f7c5b98600c3dfcde2cc8257588e2a7734720d5",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -3068,12 +3068,12 @@
       {
         "id": "CALL-43afd556ff53307e",
         "path": "src/applications/oauthserver/storage/PhabricatorOAuthServerClient.php",
-        "sha256": "93b9640e49d0bf4eb657270395c45910f909001a80cf3eb1d7e4b5fb3abe012b",
+        "sha256": "2173ae0c4d5e136b1c4b7c156adf6ec0ba5378645dd7e9a2b2e59dd085987a60",
         "matches": [
           {
             "pattern": "user_enable",
             "lines": [
-              35
+              50
             ]
           }
         ]
@@ -5283,15 +5283,15 @@
       {
         "id": "CALL-f116bd8b9b12fc59",
         "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
-        "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
+        "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
               1187,
-              1524,
-              4509,
-              4999
+              1527,
+              4512,
+              5002
             ]
           },
           {
@@ -5304,7 +5304,7 @@
           {
             "pattern": "member_edge",
             "lines": [
-              2027
+              2030
             ]
           },
           {
@@ -5326,8 +5326,8 @@
               886,
               889,
               958,
-              2912,
-              2919
+              2915,
+              2922
             ]
           },
           {
@@ -5341,17 +5341,17 @@
               753,
               790,
               1123,
-              1896,
-              2169,
-              2906,
-              4041,
-              4412,
-              4952,
-              4968,
-              5457,
-              5506,
-              5524,
-              5543
+              1899,
+              2172,
+              2909,
+              4044,
+              4415,
+              4955,
+              4971,
+              5460,
+              5509,
+              5527,
+              5546
             ]
           }
         ]
