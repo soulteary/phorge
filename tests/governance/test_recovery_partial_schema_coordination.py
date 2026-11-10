@@ -1,4 +1,5 @@
 """Exact historical inverse and current source separation, no runtime proof."""
+from n05_legacy_audit_test_view import historical_tooling_source
 from pathlib import Path
 import ast,hashlib,json,subprocess,sys,tempfile,unittest
 from unittest.mock import patch
@@ -31,5 +32,5 @@ class PartialSchemaCoordination(unittest.TestCase):
   for name in ['scripts/governance/check_recovery_assessment_credentials.py','scripts/governance/check_recovery_assessment_credentials_v2.py']:
    raw=(ROOT/name).read_bytes();baseline=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','08453b13afc7980ca485ecf8b4d5094769bb4438:'+name]);self.assertEqual(authorization_delta.reduce_if_selected(name,raw),baseline)
    def maps(body):return {n.targets[0].id:ast.dump(n.value,include_attributes=False)for n in ast.parse(body).body if isinstance(n,ast.Assign)and isinstance(n.value,ast.Dict)}
-   self.assertEqual(maps(raw),maps(baseline))
+   self.assertEqual(maps(historical_tooling_source(name)),maps(baseline))
 if __name__=='__main__':unittest.main()

@@ -1196,7 +1196,7 @@ def validate_restore(value, root):
         'restore_phase_workers_started': 0, 'restore_phase_network_endpoints_configured': 0}
     for key, target in expected.items():
         exact_tree(value[key], target)
-    exact_tree(value['current_table_count'], 546)
+    exact_tree(value['current_table_count'], 549)
     audit=value['patch_audit']
     if type(audit) is not dict or set(audit) != {'source_patch_count', 'applied_patch_count',
         'pending_patch_keys', 'current_patch_ledger_complete', 'migration_source_hashes', 'migrations_executed'}:
@@ -1208,7 +1208,7 @@ def validate_restore(value, root):
     exact_tree(audit['migrations_executed'], len(completion.PATCHES))
     exact_tree(audit['pending_patch_keys'], [])
     exact_tree(audit['current_patch_ledger_complete'], True)
-    exact_tree(audit['source_patch_count'], 1574)
+    exact_tree(audit['source_patch_count'], 1575)
     exact_tree(audit['applied_patch_count'], audit['source_patch_count'])
 
 

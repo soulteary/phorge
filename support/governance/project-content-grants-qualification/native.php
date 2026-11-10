@@ -1,5 +1,44 @@
 <?php
 // Root-only real native qualification. No table creation, fake context or source provider.
+// Failure-only projection: exact public labels, never native message/args/identities.
+function qphase($phase){
+ $allowed=array('approve-service','before-upgrade','credential-profile','deny-service','discover','entry','native-api-context','native-bootstrap','native-user','profile','readback','schema','service-preflight','submit-request','submit-service','target');
+ $GLOBALS['n05_qualification_diagnostic_phase']=in_array($phase,$allowed,true)?$phase:'entry';
+}
+function qcomponent($file,$root){
+ if($file===__FILE__)return'qualification-helper';
+ $map=array(
+  '/src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php'=>'project-scope',
+  '/src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php'=>'identity-source',
+  '/src/infrastructure/governance/execution/PhorgeProjectExecutionConfigSource.php'=>'configuration-source',
+  '/src/infrastructure/governance/execution/PhorgeProjectConfigEpochScope.php'=>'configuration-epochs',
+  '/src/infrastructure/governance/content/PhorgeProjectContentGrantService.php'=>'content-service',
+  '/src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php'=>'content-store',
+  '/src/infrastructure/governance/content/PhorgeProjectContentSource.php'=>'content-source',
+  '/src/infrastructure/governance/content/PhorgeProjectContentGrantRequest.php'=>'content-request',
+  '/src/infrastructure/governance/content/PhorgeProjectContentGrantPlan.php'=>'content-plan',
+  '/src/infrastructure/storage/connection/mysql/AphrontBaseMySQLDatabaseConnection.php'=>'query-driver',
+  '/src/infrastructure/governance/consistency/PhorgeGovernanceNativeRuntimeProfile.php'=>'runtime-profile');
+ foreach($map as$path=>$label)if(is_string($root)&&$root!==''&&$file===$root.$path)return$label;
+ return'other';
+}
+function qfailure_line($line){return is_int($line)&&$line>=1&&$line<=100000?$line:null;}
+function qfailure(Throwable$error,$root){
+ qphase($GLOBALS['n05_qualification_diagnostic_phase']??'entry');
+ $exceptions=[];
+ for($i=0;$i<2&&$error!==null;$i++,$error=$error->getPrevious()){
+  $class=get_class($error);$family='other';
+  if($class==='RuntimeException')$family='runtime';
+  else if($class==='InvalidArgumentException')$family='argument';
+  else if($class==='PhorgeProjectPolicyRefusalException')$family='policy';
+  else if(in_array($class,array('AphrontQueryException','AphrontConnectionQueryException','AphrontAccessDeniedQueryException','AphrontDeadlockQueryException'),true))$family='query';
+  $allowed=array('content_grant_admin_required','content_grant_disabled','content_grant_identity_plan_required','content_grant_native_scope_required','content_grant_schema_required','content_grant_subject_ineligible','content_grant_target_refused','content_grant_target_unavailable','governance_native_credential_ineligible','native_grant_qualification_refused','native_runtime_library_profile_refused','native_runtime_root_or_extension_refused','other','project_execution_configuration_cache_stale','project_execution_configuration_control_type_refused','project_execution_configuration_database_not_loaded','project_execution_configuration_database_stale','project_execution_configuration_precedence_unsupported','project_execution_configuration_scope_required','project_execution_configuration_stack_unsupported','project_execution_configuration_unknown','project_execution_existing_scope_refused','project_execution_guard_required','project_execution_hierarchy_unsupported','project_execution_identity_plan_changed','project_execution_materialized_members_inconsistent','project_execution_profile_unsupported','project_execution_scope_cleanup_failed','project_execution_source_budget','qualification_action_refused');$message=$error->getMessage();$reason=in_array($message,$allowed,true)?$message:'other';
+  $code=$error->getCode();$code=$family==='query'&&is_int($code)&&$code>=0&&$code<=65535?$code:null;
+  $trace=[];foreach(array_slice($error->getTrace(),0,2)as$frame)$trace[]=['component'=>qcomponent($frame['file']??null,$root),'line'=>qfailure_line($frame['line']??null)];
+  $exceptions[]=['family'=>$family,'component'=>qcomponent($error->getFile(),$root),'line'=>qfailure_line($error->getLine()),'reason'=>$reason,'query_code'=>$code,'trace'=>$trace];
+ }
+ return['schema'=>'N05-native-failure-v1','passed'=>false,'phase'=>$GLOBALS['n05_qualification_diagnostic_phase']??'entry','exceptions'=>$exceptions,'execution_authorized'=>false,'SQL_execution_status'=>'unknown'];
+}
 function qneed($v){if(!$v)throw new RuntimeException('native_grant_qualification_refused');}
 function qprivate($p){
  qneed(is_string($p)&&realpath($p)===$p);$s=lstat($p);
@@ -33,12 +72,13 @@ function qschema(array$p,$before){
  return['standard_patch_recorded'=>true,'productionSchemaSpec'=>true,'actual_tables_match_native_schema'=>true,'execution_authorized'=>false];
 }
 function qcontext(array$p,$role){
+ qphase('credential-profile');
  $raw=qprivate($p['actors_path']);qneed(hash('sha256',$raw)===$p['actors_sha256']);$a=json_decode($raw,true,8,JSON_THROW_ON_ERROR);
  qneed(array_keys($a)===['requester','approver']&&$a['requester']['user_phid']!==$a['approver']['user_phid']);
  foreach($a as$r){qneed(array_keys($r)===['user_phid','token']&&preg_match('/\APHID-USER-[a-zA-Z0-9]{20}\z/D',$r['user_phid'])&&preg_match('/\A(?:api|cli)-[a-zA-Z0-9]{28}\z/D',$r['token']));}
- $r=$a[$role];$u=(new PhabricatorUser())->loadOneWhere('phid = %s',$r['user_phid']);qneed($u!==null&&$u->getIsAdmin()&&!$u->getIsDisabled()&&$u->getIsApproved());
+ qphase('native-user');$r=$a[$role];$u=(new PhabricatorUser())->loadOneWhere('phid = %s',$r['user_phid']);qneed($u!==null&&$u->getIsAdmin()&&!$u->getIsDisabled()&&$u->getIsApproved());
  // The real native source revalidates token, account and source locks inside service.
- return PhorgeGovernanceNativeActorContext::newFromAuthenticatedAPIToken($u,new PhutilOpaqueEnvelope($r['token']));
+ qphase('native-api-context');return PhorgeGovernanceNativeActorContext::newFromAuthenticatedAPIToken($u,new PhutilOpaqueEnvelope($r['token']));
 }
 function qrequest(array$p,$kind,$action,$grant=null){
  qneed(in_array($kind,['user','business-team'],true));return['action'=>$action,'grant_id'=>$grant,'reason'=>'Fresh isolated native SQL qualification','subject_id'=>$p['subjects'][$kind],'subject_kind'=>$kind,'target_phid'=>$p['target_phid'],'valid_for_seconds'=>$action==='grant'?86400:null];
@@ -83,32 +123,34 @@ function qstate(array$p,$id){
  }catch(Throwable$e){$c->killTransaction();throw$e;}
 }
 function qservice(array$p,$action,$kind,$input){
+ qphase('service-preflight');
  qconnection($p);qneed(PhorgeProjectContentGrantService::executionStatus()['can_execute']===false);PhorgeProjectContentGrantService::assertEnabled();
- if($action==='submit-grant')return PhorgeProjectContentGrantService::call(qcontext($p,'requester'),'submit',qrequest($p,$kind,'grant'));
- if($action==='submit-revoke'){qneed(isset($input['grant_id']));return PhorgeProjectContentGrantService::call(qcontext($p,'requester'),'submit',qrequest($p,$kind,'revoke',$input['grant_id']));}
- if($action==='readback')return qstate($p,$input['approval_id']);
+ if($action==='submit-grant'){$ctx=qcontext($p,'requester');qphase('submit-request');$request=qrequest($p,$kind,'grant');qphase('submit-service');return PhorgeProjectContentGrantService::call($ctx,'submit',$request);}
+ if($action==='submit-revoke'){qneed(isset($input['grant_id']));$ctx=qcontext($p,'requester');qphase('submit-request');$request=qrequest($p,$kind,'revoke',$input['grant_id']);qphase('submit-service');return PhorgeProjectContentGrantService::call($ctx,'submit',$request);}
+ if($action==='readback'){qphase('readback');return qstate($p,$input['approval_id']);}
  if(in_array($action,['approve','deny-self','deny-replay'],true)){
   $before=qstate($p,$input['approval_id']);
-  if($action==='approve')return PhorgeProjectContentGrantService::call(qcontext($p,'approver'),'approve',['approval_id'=>$input['approval_id']]);
-  $denied=false;try{PhorgeProjectContentGrantService::call(qcontext($p,$action==='deny-self'?'requester':'approver'),'approve',['approval_id'=>$input['approval_id']]);}catch(RuntimeException$e){qneed($e->getMessage()==='content_grant_independent_approver_required');$denied=true;}
+  if($action==='approve'){$ctx=qcontext($p,'approver');qphase('approve-service');return PhorgeProjectContentGrantService::call($ctx,'approve',['approval_id'=>$input['approval_id']]);}
+  $denied=false;try{$ctx=qcontext($p,$action==='deny-self'?'requester':'approver');qphase('deny-service');PhorgeProjectContentGrantService::call($ctx,'approve',['approval_id'=>$input['approval_id']]);}catch(RuntimeException$e){qneed($e->getMessage()==='content_grant_independent_approver_required');$denied=true;}
   qneed($denied&&qstate($p,$input['approval_id'])===$before);return['denied'=>true,'durable_state_unchanged'=>true,'execution_authorized'=>false];
  }
  throw new RuntimeException('qualification_action_refused');
 }
 // Library-only permits actual pure native registration tests, never actor injection.
 if(defined('N05_QUALIFICATION_LIBRARY_ONLY')&&N05_QUALIFICATION_LIBRARY_ONLY===true)return;
+qphase('entry');
 try{
  qneed($argc===6);[$script,$root,$profile,$action,$input_path,$kind]=$argv;
  qneed(in_array($action,['discover','before-upgrade','schema','target','submit-grant','submit-revoke','approve','deny-self','deny-replay','readback'],true));
- if($action==='discover'){qload($root);$out=qdiscover();}
+ if($action==='discover'){qphase('discover');qload($root);$out=qdiscover();}
  else{
-  $p=json_decode(qprivate($profile),true,8,JSON_THROW_ON_ERROR);qneed($p['runtime_authorized']===true&&$p['source_root']===$root);
+  qphase('profile');$p=json_decode(qprivate($profile),true,8,JSON_THROW_ON_ERROR);qneed($p['runtime_authorized']===true&&$p['source_root']===$root);
   $input=json_decode(qprivate($input_path),true,8,JSON_THROW_ON_ERROR);
-  $argv=[$script];$argc=1;require $root.'/scripts/init/init-script.php';
-  if($action==='before-upgrade')$out=qschema($p,true);
-  else if($action==='schema')$out=qschema($p,false);
-  else if($action==='target')$out=qtarget($p);
+  qphase('native-bootstrap');$argv=[$script];$argc=1;require $root.'/scripts/init/init-script.php';
+  if($action==='before-upgrade'){qphase('before-upgrade');$out=qschema($p,true);}
+  else if($action==='schema'){qphase('schema');$out=qschema($p,false);}
+  else if($action==='target'){qphase('target');$out=qtarget($p);}
   else $out=qservice($p,$action,$kind,$input);
  }
  qneed(($out['execution_authorized']??null)===false);echo json_encode($out,JSON_THROW_ON_ERROR)."\n";
-}catch(Throwable$e){fwrite(STDERR,"qualification_refused\n");exit(1);}
+}catch(Throwable$e){echo json_encode(qfailure($e,isset($root)&&is_string($root)?$root:''),JSON_THROW_ON_ERROR)."\n";fwrite(STDERR,"qualification_refused\n");exit(1);}

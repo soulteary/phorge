@@ -56,7 +56,7 @@ final class PhorgeProjectContentGrantStore extends Phobject {
     return PhorgeProjectContentGrantPlan::newForStoredApproval($row['targetPHID'],array_values(array_unique($ids)));
   }
   private function now() { return (int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n']; }
-  private function current() {
+  private function assertCurrentGrantScope() {
     PhorgeProjectContentGrantService::assertEnabled();$this->scope->assertOpen();
     if (!$this->scope->getSnapshot()->isSystemAdmin()) { throw new RuntimeException('content_grant_admin_required'); }
   }
@@ -84,7 +84,7 @@ final class PhorgeProjectContentGrantStore extends Phobject {
       $approval,$grant,$this->scope->getObject()->getPHID(),$this->scope->getSnapshot()->getUserPHID(),$action,$this->now());
   }
   public function submit(array $r) {
-    $this->current();$r=PhorgeProjectContentGrantRequest::stored($r);
+    $this->assertCurrentGrantScope();$r=PhorgeProjectContentGrantRequest::stored($r);
     if ($r['target_phid']!==$this->scope->getObject()->getPHID()) { throw new RuntimeException('content_grant_target_refused'); }
     $subject=$this->subject($r);$now=$this->now();$id=bin2hex(random_bytes(32));
     $grant=$r['action']==='grant'?bin2hex(random_bytes(32)):$r['grant_id'];
@@ -93,10 +93,10 @@ final class PhorgeProjectContentGrantStore extends Phobject {
       'grantExpiresAt'=>$r['action']==='grant'?$now+$r['valid_for_seconds']:null);
     queryfx($this->connection,'INSERT INTO governance_contentapproval (approvalID,targetPHID,bindingJSON,bindingDigest,state,version) VALUES (%s,%s,%s,%s,%s,1)',
       $id,$r['target_phid'],PhorgeProjectExecutionValue::canonical($d),PhorgeProjectExecutionValue::digest($d),'submitted');
-    $this->audit($id,$grant,'submitted');$this->current();return array('approval_id'=>$id,'execution_authorized'=>false);
+    $this->audit($id,$grant,'submitted');$this->assertCurrentGrantScope();return array('approval_id'=>$id,'execution_authorized'=>false);
   }
   public function approve($id) {
-    $this->current();list($row,$d)=self::ticket($this->connection,$id,true);$r=$d['request'];
+    $this->assertCurrentGrantScope();list($row,$d)=self::ticket($this->connection,$id,true);$r=$d['request'];
     if ($row['state']!=='submitted' || $row['targetPHID']!==$this->scope->getObject()->getPHID() ||
         $d['requester']['userPHID']===$this->scope->getSnapshot()->getUserPHID()) { throw new RuntimeException('content_grant_independent_approver_required'); }
     $requester=$this->scope->validateCredential($d['requester'],true);
@@ -118,7 +118,7 @@ final class PhorgeProjectContentGrantStore extends Phobject {
     queryfx($this->connection,'UPDATE governance_contentapproval SET state=%s,approverBindingJSON=%s,appliedAt=%d,version=version+1 WHERE approvalID=%s AND state=%s','applied',PhorgeProjectExecutionValue::canonical($binding),$now,$id,'submitted');
     if ($this->connection->getAffectedRows()!==1) { throw new RuntimeException('content_grant_ticket_stale'); }
     $this->audit($id,$d['grantID'],$r['action']==='grant'?'granted':'revoked');
-    $this->scope->validateCredential($d['requester'],true);$this->current();
+    $this->scope->validateCredential($d['requester'],true);$this->assertCurrentGrantScope();
     if ($this->now()>=$d['ticketExpiresAt'] || ($r['action']==='grant' && $this->now()>=$d['grantExpiresAt'])) { throw new RuntimeException('content_grant_ticket_expired'); }
     return array('approval_id'=>$id,'grant_id'=>$d['grantID'],'grant_persisted'=>$r['action']==='grant','grant_revoked'=>$r['action']==='revoke','execution_authorized'=>false);
   }

@@ -1,4 +1,5 @@
 """All PHID permutations through actual native helper/User write/context guard."""
+from n05_legacy_audit_test_view import historical_tooling_source,historical_library_map
 from pathlib import Path
 import itertools,json,subprocess,unittest,hashlib,ast
 ROOT=Path(__file__).resolve().parents[2]
@@ -23,7 +24,7 @@ class SessionActorOrder(unittest.TestCase):
   self.assertEqual(lease_body(current),lease_body(old))
   focused=(ROOT/'support/governance/recovery/session-lease-focused.php').read_text();self.assertLess(focused.index('governance_recovery_session_lease_prepare_actor_order(governance_task_owner_prepare($fixture))'),focused.index("overrideEnvConfig('governance.account-recovery.enabled',true)"));self.assertIn("'subjects'=>array('commit'=>$users['subject'],'rollback'=>$users['other'])",focused)
  def test_nineteen_source_map_composes_reviewed_focused_fence_and_current_driver(self):
-  path='scripts/governance/check_recovery_session_lease.py';old=ast.parse(subprocess.check_output(['git','-C',str(ROOT),'show','586f940370431a3f2a0d1cb7240c9e9803f7fdca:'+path]).decode());new=ast.parse((ROOT/path).read_text())
+  path='scripts/governance/check_recovery_session_lease.py';old=ast.parse(subprocess.check_output(['git','-C',str(ROOT),'show','586f940370431a3f2a0d1cb7240c9e9803f7fdca:'+path]).decode());new=ast.parse(historical_tooling_source(path))
   def pins(tree):return next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(x,ast.Name)and x.id=='SOURCE_INPUTS'for x in n.targets))
   a=pins(old);b=pins(new);self.assertEqual(len(a),19);self.assertEqual(set(a),set(b));self.assertEqual(set(n for n in a if a[n]!=b[n]),{'src/applications/auth/storage/PhabricatorAuthSession.php','src/__phutil_library_map__.php','support/governance/recovery/session-lease-focused.php','src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php','support/governance/native-organization/test-native-organization-mysql.php','support/governance/native-organization/native-worker.php','support/governance/native-organization/workers.php'});
   for relative,revision in [('support/governance/recovery/session-lease-focused.php','8805c4aa5f533605c1e0004a6691bda458f35202'),('src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php','2ebe6ea2140a836c53497b626f0209be371ab930')]:
@@ -37,7 +38,7 @@ class SessionActorOrder(unittest.TestCase):
    else:self.assertEqual(b[relative],hashlib.sha256(historical).hexdigest())
   relative='src/applications/auth/storage/PhabricatorAuthSession.php';raw=(ROOT/relative).read_bytes()
   self.assertEqual(b[relative],hashlib.sha256(raw).hexdigest());self.assertEqual(a[relative],hashlib.sha256(conduit_delta.reduce_owner(relative,raw)).hexdigest())
-  generated=(ROOT/'src/__phutil_library_map__.php').read_bytes();reduced=generated
+  generated=(ROOT/'src/__phutil_library_map__.php').read_bytes();reduced=historical_library_map(generated)
   for line in [b"    'PhorgeRecoveryConduitProducerFence' => 'infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php',\n",b"    'PhorgeRecoveryConduitProducerFence' => 'Phobject',\n"]:
    self.assertEqual(1,reduced.count(line));reduced=reduced.replace(line,b'',1)
   self.assertEqual(hashlib.sha256(reduced).hexdigest(),a['src/__phutil_library_map__.php'])

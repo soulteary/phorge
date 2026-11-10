@@ -45,13 +45,13 @@ def validate(data,root=ROOT,*,source_revision):
   'organization_lifecycle_readset_complete':False,'all_thirteen_families_complete':False,
   'restoration_authorized':False,'production_metadata_credentials_provisioned':False,'HTTP_controller_evidence':False})
  patches=completion.PATCHES
- if len(patches)!=37 or len(set(patches))!=37:raise ValueError('source migration profile refused')
+ if len(patches)!=38 or len(set(patches))!=38:raise ValueError('source migration profile refused')
  hashes={'phabricator:'+name:hashlib.sha256((root/'resources/sql/autopatches'/name).read_bytes()).hexdigest()for name in patches}
  exact(data['source_restore'],{'quickstart_sha256':hashlib.sha256((root/'resources/sql/quickstart.sql').read_bytes()).hexdigest(),
-  'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,'current_table_count':546,
+  'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,'current_table_count':549,
   'restore_phase_workers_started':0,'restore_phase_network_endpoints_configured':0,
-  'patch_audit':{'source_patch_count':1574,'applied_patch_count':1574,'pending_patch_keys':[],
-   'current_patch_ledger_complete':True,'migration_source_hashes':hashes,'migrations_executed':37}})
+  'patch_audit':{'source_patch_count':1575,'applied_patch_count':1575,'pending_patch_keys':[],
+   'current_patch_ledger_complete':True,'migration_source_hashes':hashes,'migrations_executed':38}})
  if type(data['captured_native_output_bytes'])is not int or data['captured_native_output_bytes']<0:raise ValueError('output metadata refused')
  if not completion.digest(data['captured_native_output_sha256']):raise ValueError('output digest refused')
  exact(data['remaining_blocked'],['media-http-and-cookie-integration','file-object-guards','notification-producers','global-governance-completion'])

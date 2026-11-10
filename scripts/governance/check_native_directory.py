@@ -528,6 +528,9 @@ EXPECTED_SOURCES['ORG.APPROVAL.WORKBENCH']=('src/applications/people/governance/
 EXPECTED_LINKS.update({'ORG-APPROVAL-WORKBENCH-ROUTE':('ORG.ROUTES','ORG.APPROVAL.WORKBENCH'),'ORG-APPROVAL-WORKBENCH-SERVICE':('ORG.APPROVAL.WORKBENCH','NATIVE.PhorgeOrganizationService')})
 EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/applications/people/governance/controller/PhorgeOrganizationApprovalController.php'])
 
+# Existing default-OFF Project content grant classes: static scan admission only.
+EXPECTED_RUNTIME_FILES=sorted(EXPECTED_RUNTIME_FILES+['src/infrastructure/governance/content/PhorgeProjectContentGrantConfigOptions.php', 'src/infrastructure/governance/content/PhorgeProjectContentGrantPlan.php', 'src/infrastructure/governance/content/PhorgeProjectContentGrantRequest.php', 'src/infrastructure/governance/content/PhorgeProjectContentGrantSchemaSpec.php', 'src/infrastructure/governance/content/PhorgeProjectContentGrantService.php', 'src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php', 'src/infrastructure/governance/content/PhorgeProjectContentSource.php'])
+
 def validate(data, root):
     root = Path(root)
     fields(data, ('schema_version','scope','coverage','activation_blocked',

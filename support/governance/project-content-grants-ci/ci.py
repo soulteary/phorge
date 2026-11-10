@@ -1,5 +1,5 @@
 """Reviewed-recipe CI orchestration; never substitutes native authorization."""
-import argparse,hashlib,json,os,re,subprocess,sys,types,uuid
+import argparse,dis,hashlib,json,os,re,stat,subprocess,sys,types,uuid
 from pathlib import Path
 
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
@@ -89,10 +89,121 @@ PROBE=r'''$d=json_decode(file_get_contents($argv[1]),true,8,JSON_THROW_ON_ERROR)
 
 # Public diagnostics contain only fixed source labels and bounded integers.
 # No journal files, argv, exception text, native output or private identities enter it.
-DIAGNOSTIC={'stage':'entry','child_ordinal':None,'child_outcome':'not-observed','child_exit_code':None}
+DIAGNOSTIC={'stage':'entry','child_ordinal':None,'child_outcome':'not-observed','child_exit_code':None,'native_diagnostic':None}
 def stage(name):
-    DIAGNOSTIC.update(stage=name,child_ordinal=None,child_outcome='not-observed',child_exit_code=None)
+    DIAGNOSTIC.update(stage=name,child_ordinal=None,child_outcome='not-observed',child_exit_code=None,native_diagnostic=None)
+def diagnostic_json(raw):
+    def unique(pairs):
+        value={}
+        for k,v in pairs:need(k not in value);value[k]=v
+        return value
+    return json.loads(raw,object_pairs_hook=unique)
+
+# Fixed original-Journal records only; no argv, intent or raw diagnostics export.
+def prepare_child_observation(journal,phase,ordinal):
+    fd=None
+    try:
+        need(phase in ('qualification','prerequisites')and type(ordinal)is int and 1<=ordinal<=256)
+        counter='i' if phase=='qualification'else'n';need(type(getattr(journal,counter,None))is int and getattr(journal,counter)==ordinal-1)
+        path=journal.path;need(isinstance(path,Path)and path.is_absolute()and path.resolve()==path)
+        d=path.lstat();need(stat.S_ISDIR(d.st_mode)and stat.S_IMODE(d.st_mode)==0o700 and d.st_uid==os.geteuid())
+        identity=lambda x:(x.st_dev,x.st_ino,x.st_mode,x.st_uid,x.st_gid)
+        fd=os.open(path,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC);need(identity(os.fstat(fd))==identity(d))
+        for suffix in ('-intent.json','-started.json','-terminal.json','-unknown.json','.stdout.private','.stderr.private'):
+            try:os.stat(f'{ordinal:02d}'+suffix,dir_fd=fd,follow_symlinks=False)
+            except FileNotFoundError:continue
+            raise ValueError('preexisting child record')
+        return {'path':path,'fd':fd,'identity':identity(d),'phase':phase,'ordinal':ordinal}
+    except Exception:
+        if fd is not None:
+            try:os.close(fd)
+            except OSError:pass
+        return None
+
+def original_result_refusal(error,original,phase):
+    # Only the actual final need() call, not an arbitrary failure before launch.
+    expected='N05_qualification_refused_retain_no_retry' if phase=='qualification'else'N05_prerequisites_refused_retain_no_retry'
+    if type(error)is not ValueError or str(error)!=expected:return None
+    try:
+        frames=[];tb=error.__traceback__
+        while tb is not None:frames.append(tb);tb=tb.tb_next
+        need(len(frames)>=2)
+        caller,guard=frames[-2:];guard_function=original.__globals__['need']
+        last_line=max(line for _,line in dis.findlinestarts(original.__code__) if line is not None)
+        need(caller.tb_frame.f_code is original.__code__ and caller.tb_lineno==last_line and guard.tb_frame.f_code is guard_function.__code__)
+        code=caller.tb_frame.f_locals['code'];need(type(code)is int and -255<=code<=255);return code
+    except Exception:return None
+
+
+def observe_failed_child(journal,phase,ordinal,label,token=None,error=None,original=None):
+    try:
+        need(token is not None and token['phase']==phase and token['ordinal']==ordinal)
+        actual_code=original_result_refusal(error,original,phase);need(actual_code is not None)
+        need(phase in ('qualification','prerequisites') and type(ordinal)is int and 1<=ordinal<=256)
+        counter='i' if phase=='qualification' else 'n'
+        need(type(getattr(journal,counter,None))is int and getattr(journal,counter)==ordinal)
+        path=journal.path;need(isinstance(path,Path) and path==token['path']and path.is_absolute()and path.resolve()==path)
+        identity=lambda x:(x.st_dev,x.st_ino,x.st_mode,x.st_uid,x.st_gid)
+        need(identity(os.fstat(token['fd']))==token['identity']and identity(path.lstat())==token['identity'])
+        stamp=lambda v:(v.st_dev,v.st_ino,v.st_mode,v.st_uid,v.st_gid,v.st_nlink,v.st_size,v.st_mtime_ns,v.st_ctime_ns)
+        d=path.lstat();need(stat.S_ISDIR(d.st_mode)and stat.S_IMODE(d.st_mode)==0o700 and d.st_uid==os.geteuid())
+        fd=os.open(path,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+        seen=[]
+        try:
+            need(stamp(os.fstat(fd))==stamp(d));prefix=f'{ordinal:02d}'
+            def absent(name):
+                try:os.stat(name,dir_fd=fd,follow_symlinks=False)
+                except FileNotFoundError:return True
+                return False
+            need(absent(prefix+'-unknown.json'))
+            def read(name,limit):
+                a=os.stat(name,dir_fd=fd,follow_symlinks=False)
+                need(stat.S_ISREG(a.st_mode)and stat.S_IMODE(a.st_mode)==0o600 and a.st_uid==os.geteuid()and a.st_nlink==1 and 0<=a.st_size<=limit)
+                f=os.open(name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=fd)
+                try:
+                    need(stamp(os.fstat(f))==stamp(a));raw=b''
+                    while len(raw)<a.st_size:
+                        part=os.read(f,a.st_size-len(raw));need(bool(part));raw+=part
+                    need(os.read(f,1)==b''and stamp(os.fstat(f))==stamp(a));seen.append((name,stamp(a)));return raw
+                finally:os.close(f)
+            def object_record(name):
+                raw=read(name,4096)
+                v=diagnostic_json(raw);need(type(v)is dict and canon(v)==raw);return v
+            started=object_record(prefix+'-started.json');need(set(started)=={'pid'}and type(started['pid'])is int and 1<=started['pid']<=2147483647)
+            terminal=object_record(prefix+'-terminal.json');known='terminal_known' if phase=='qualification' else 'known_terminal'
+            need(set(terminal)=={known,'exit_code'}and terminal[known]is True and type(terminal['exit_code'])is int and -255<=terminal['exit_code']<=255 and terminal['exit_code']==actual_code)
+            native=None
+            if phase=='qualification' and label.startswith('native-'):
+                try:native=validate_native_failure(diagnostic_json(read(prefix+'.stdout.private',4096)))
+                except Exception:native=None
+            need(absent(prefix+'-unknown.json'))
+            for name,s in seen:need(stamp(os.stat(name,dir_fd=fd,follow_symlinks=False))==s)
+            need(stamp(os.fstat(fd))==stamp(d)and stamp(path.lstat())==stamp(d))
+        finally:os.close(fd)
+        DIAGNOSTIC.update(child_outcome='known-zero' if terminal['exit_code']==0 else 'known-nonzero',child_exit_code=terminal['exit_code'],native_diagnostic=native)
+    except Exception:
+        # Observation refusal preserves the original child exception and unknown.
+        return
+
+NATIVE_PHASES={'entry','discover','profile','native-bootstrap','before-upgrade','schema','target','service-preflight','credential-profile','native-user','native-api-context','submit-request','submit-service','readback','approve-service','deny-service'}
+NATIVE_FAMILIES={'runtime','argument','query','policy','other'}
+NATIVE_COMPONENTS={'qualification-helper','project-scope','identity-source','configuration-source','configuration-epochs','content-service','content-store','content-source','content-request','content-plan','query-driver','runtime-profile','other'}
+NATIVE_REASONS={'other','native_grant_qualification_refused','qualification_action_refused','content_grant_disabled','content_grant_target_unavailable','content_grant_native_scope_required','content_grant_admin_required','content_grant_schema_required','content_grant_identity_plan_required','content_grant_subject_ineligible','content_grant_target_refused','project_execution_profile_unsupported','project_execution_existing_scope_refused','project_execution_scope_cleanup_failed','project_execution_configuration_stack_unsupported','project_execution_configuration_unknown','project_execution_configuration_cache_stale','project_execution_configuration_control_type_refused','project_execution_configuration_scope_required','project_execution_configuration_database_not_loaded','project_execution_configuration_database_stale','project_execution_configuration_precedence_unsupported','project_execution_guard_required','project_execution_hierarchy_unsupported','project_execution_identity_plan_changed','project_execution_materialized_members_inconsistent','project_execution_source_budget','governance_native_credential_ineligible','native_runtime_library_profile_refused','native_runtime_root_or_extension_refused'}
+def validate_native_failure(v):
+    need(type(v)is dict and set(v)=={'schema','passed','phase','exceptions','execution_authorized','SQL_execution_status'})
+    need(v['schema']=='N05-native-failure-v1'and v['passed']is False and v['execution_authorized']is False and v['SQL_execution_status']=='unknown'and v['phase']in NATIVE_PHASES)
+    need(type(v['exceptions'])is list and 1<=len(v['exceptions'])<=2)
+    line=lambda n:n is None or type(n)is int and 1<=n<=100000
+    for e in v['exceptions']:
+        need(type(e)is dict and set(e)=={'family','component','line','reason','query_code','trace'})
+        need(e['family']in NATIVE_FAMILIES and e['component']in NATIVE_COMPONENTS and e['reason']in NATIVE_REASONS and line(e['line']))
+        need(e['query_code']is None or e['family']=='query'and type(e['query_code'])is int and 0<=e['query_code']<=65535)
+        need(type(e['trace'])is list and len(e['trace'])<=2)
+        for f in e['trace']:need(type(f)is dict and set(f)=={'component','line'}and f['component']in NATIVE_COMPONENTS and line(f['line']))
+    return v
+
 def instrument_journal(cls,phase):
+    need(phase in ('qualification','prerequisites'))
     original=cls.run
     def run(self,argv,cwd,timeout=60):
         label='child'
@@ -107,13 +218,18 @@ def instrument_journal(cls,phase):
         self._n05_diagnostic_ordinal=ordinal
         DIAGNOSTIC['child_ordinal']=ordinal
         DIAGNOSTIC['child_outcome']='unknown'
+        token=prepare_child_observation(self,phase,ordinal)
         try:
-            result=original(self,argv,cwd,timeout=timeout)
-        except Exception:
-            # The journal itself remains private; do not read terminal/intent/stdout.
-            raise
-        DIAGNOSTIC['child_outcome']='known-zero';DIAGNOSTIC['child_exit_code']=0
-        return result
+            try:result=original(self,argv,cwd,timeout=timeout)
+            except Exception as error:
+                observe_failed_child(self,phase,ordinal,label,token,error,original)
+                raise
+            DIAGNOSTIC['child_outcome']='known-zero';DIAGNOSTIC['child_exit_code']=0
+            return result
+        finally:
+            if token is not None:
+                try:os.close(token['fd'])
+                except OSError:pass
     cls.run=run
 
 def failure_summary(error):

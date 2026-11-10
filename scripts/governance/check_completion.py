@@ -47,7 +47,8 @@ PATCHES = '''20260907.herald.01.requeststatuskey.sql
 20261104.metamta.governancenotice.sql
 20261104.people.recoveryrestore.sql
 20261104.people.organizationparticipants.sql
-20261105.people.noticeidentityepoch.sql'''.splitlines()
+20261105.people.noticeidentityepoch.sql
+20261110.project.contentgrants.sql'''.splitlines()
 REQUIRED_CHECKS = {
  'full-current-source-quickstart-and-patch-ledger-restored',
  'completion-reader-real-select-only-grants-and-lineage-proved',
@@ -233,8 +234,7 @@ def validate(data, root=ROOT):
         'quickstart_source_table_count':500,'restore_phase_workers_started':0,
         'restore_phase_network_endpoints_configured':0}.items():
         exact(restore[key], expected, 'Restore boundary refused: '+key)
-    require(type(restore['current_table_count']) is int and restore['current_table_count'] > 0,
-            'Current table inventory refused.')
+    exact(restore['current_table_count'], 549, 'Current table inventory refused.')
     audit=restore['patch_audit']
     fields(audit,['source_patch_count','applied_patch_count','pending_patch_keys',
         'current_patch_ledger_complete','migration_source_hashes','migrations_executed'],
@@ -242,8 +242,7 @@ def validate(data, root=ROOT):
     exact(audit['pending_patch_keys'], [], 'Pending current patches refused.')
     exact(audit['current_patch_ledger_complete'], True, 'Current patches unproved.')
     exact(audit['migrations_executed'], len(PATCHES), 'Actual migration count refused.')
-    require(type(audit['source_patch_count']) is int and audit['source_patch_count'] > len(PATCHES),
-            'Source patch count refused.')
+    exact(audit['source_patch_count'], 1575, 'Source patch count refused.')
     exact(audit['applied_patch_count'],audit['source_patch_count'],'Applied patch count drift.')
     hashes=audit['migration_source_hashes']
     fields(hashes, ['phabricator:'+p for p in PATCHES], 'Reviewed migration set drift.')

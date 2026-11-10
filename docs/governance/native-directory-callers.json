@@ -880,7 +880,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
       "symbol": "PhorgeProjectExecutionCatalog",
       "kind": "scoped-native-form-envelope-classifier",
-      "sha256": "97bd3ca80e3e174620b35bf2bd83cfb7b0d98e53ee6c5851aa65271dbe2e2957",
+      "sha256": "17c2cfba1e6c44cbf81711628a2e2fb728e216f5c6436ef9cd075fb42bc3cc40",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -891,7 +891,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
       "symbol": "PhorgeProjectNativeExecutionScope",
       "kind": "native-final-effect-and-current-source-fence",
-      "sha256": "bf105b65b30101b69a6c2029e3465cc413b5c217cb1f7744010f6172e57dad9a",
+      "sha256": "9aaf3193d8af390bda4355ea15ae24ab53ce85135fddf60b664a0b62a453d21a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3309,6 +3309,34 @@
         "sha256": "50a99ddf4f25a76377ed90952b06efd6da4edaa8aa73444c2ad73927e32b3bbb"
       },
       {
+        "path": "src/infrastructure/governance/content/PhorgeProjectContentGrantConfigOptions.php",
+        "sha256": "cbf100beca8dd5d0b6de212a8936b6671c090513f8ea9d5306dce06555246a82"
+      },
+      {
+        "path": "src/infrastructure/governance/content/PhorgeProjectContentGrantPlan.php",
+        "sha256": "18f64a8d2ce7102f488c850013ec45d4a47bbe2247fdbd1f936bf0dff0034f1e"
+      },
+      {
+        "path": "src/infrastructure/governance/content/PhorgeProjectContentGrantRequest.php",
+        "sha256": "55cbd885c60f76ab42c1b30d08f254b9c3d46dd8fe502ead054acbe37cf13373"
+      },
+      {
+        "path": "src/infrastructure/governance/content/PhorgeProjectContentGrantSchemaSpec.php",
+        "sha256": "38a6946111c931345f482ba8721e8c38c9374b3ea7de0a4b9e52103eac279755"
+      },
+      {
+        "path": "src/infrastructure/governance/content/PhorgeProjectContentGrantService.php",
+        "sha256": "aacfec35cf329fdb0149cc7d0807b3c77963f05eb25c7bd8696aca7f70a9f792"
+      },
+      {
+        "path": "src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php",
+        "sha256": "983e7885bf7dcb7335437dc7b203c5b1a1605385a220a6242461a3ee43cb5612"
+      },
+      {
+        "path": "src/infrastructure/governance/content/PhorgeProjectContentSource.php",
+        "sha256": "2c6c1097f6be6f13c9fd11c984a573ea016e2d486e4b4da81ab5f5d012f010f2"
+      },
+      {
         "path": "src/infrastructure/governance/contracts/PhorgeGovernanceApprovalRequest.php",
         "sha256": "e059607a11f106dcd44f5d0568efaef8aa5c4b31b1a4227bc482d2522611be47"
       },
@@ -3338,7 +3366,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php",
-        "sha256": "97bd3ca80e3e174620b35bf2bd83cfb7b0d98e53ee6c5851aa65271dbe2e2957"
+        "sha256": "17c2cfba1e6c44cbf81711628a2e2fb728e216f5c6436ef9cd075fb42bc3cc40"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigOptions.php",
@@ -3346,7 +3374,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigSource.php",
-        "sha256": "9b6dcc2a73ff64dd367224a994f33eb75030724d2fed05ef8baf856225aaf7b8"
+        "sha256": "d8113b512a3a0d7d1ca55bdf3888afd5930cabb4ffad6e05f4234e7854789050"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectExecutionIntent.php",
@@ -3366,7 +3394,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
-        "sha256": "bf105b65b30101b69a6c2029e3465cc413b5c217cb1f7744010f6172e57dad9a"
+        "sha256": "9aaf3193d8af390bda4355ea15ae24ab53ce85135fddf60b664a0b62a453d21a"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",
