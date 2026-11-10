@@ -1,8 +1,11 @@
 """Actual native stored-shape and regression predicate; synthetic, not SQL52."""
-import json,subprocess,unittest
+import hashlib,json,subprocess,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 REL='support/governance/recovery/oauth-client-lifecycle-cases.php'
+# Exact predicate bytes from failed9c41 cases source SHA256 d8b0fcf6cffcf04364d39e10759364893feeb1eba8ce5276af257a19afecfb99.
+LEGACY_PREDICATE="$binding['sources']['schema_version']===6&&$readset['provider_schema']===3&&count($readset['sources'])===5&&\n    is_string($readset['sources']['oauth-client-lifecycle']['source_digest'])&&$readset['complete']===false&&\n    $receipt['review_state']==='submitted-blocked'&&$receipt['restoration_authorized']===false"
+LEGACY_PREDICATE_SHA256='9d51a0492d2db200f53afc076558572e1bd647c64d89bc1da05475c811298b47'
 class ProviderShape(unittest.TestCase):
  def expression(self,source):
   start=source.index("$record($binding['sources']['schema_version']===6")+len('$record(')
@@ -12,7 +15,7 @@ class ProviderShape(unittest.TestCase):
   code=r'''class Phobject{};require $argv[1];set_error_handler(function(){throw new RuntimeException('warning');});$profiles=['session'=>['web-credentials','native-authsession-rows-v1'],'conduit'=>['api-credentials','native-conduit-token-rows-v1'],'oauth-access'=>['api-credentials','native-oauth-access-token-rows-v1'],'oauth-code'=>['api-credentials','native-oauth-authorization-code-rows-v1'],'oauth-authorization'=>['api-credentials','native-oauth-client-authorization-rows-v1']];$sources=[];foreach($profiles as$n=>$p)$sources[$n]=['provider_schema'=>1,'family'=>$p[0],'scope'=>$p[1],'source_digest'=>str_repeat('a',64),'complete'=>false];$readset=['provider_schema'=>3,'scope'=>'selected-native-credential-participants-v3','mode'=>'borrowed-current-User-writer-RC-observation','availability'=>'observed-partial','sources'=>$sources,'production_observer_factory_available'=>false,'complete'=>false,'all_sources_complete'=>false,'restoration_authorized'=>false,'execution_blocked'=>true];$mode=$argv[2];if($mode==='invented'){$readset['sources']['oauth-client-lifecycle']=$readset['sources']['oauth-authorization'];unset($readset['sources']['oauth-authorization']);}elseif($mode==='missing'){unset($readset['sources']['session']);}elseif($mode==='bad-digest'){$readset['sources']['oauth-authorization']['source_digest']='bad';}elseif($mode==='unavailable'){$readset['availability']='production-observer-unavailable';foreach($readset['sources']as&$v)$v['source_digest']=null;unset($v);}$binding=['sources'=>['schema_version'=>6]];$receipt=['review_state'=>'submitted-blocked','restoration_authorized'=>false];$accepted=false;$warning=false;try{PhorgeRecoveryRestoreRequest::credentialReadSet($readset);if($readset['availability']!=='observed-partial')throw new RuntimeException('unobserved');$accepted=eval('return '.stream_get_contents(STDIN).';');}catch(Throwable$e){$warning=$e->getMessage()==='warning';}echo json_encode(['accepted'=>$accepted,'warning'=>$warning]);'''
   q=subprocess.run(['php','-r',code,str(ROOT/'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php'),mode],input=expression,capture_output=True,text=True);self.assertEqual(q.returncode,0,q.stderr);self.assertEqual(q.stderr,'');return json.loads(q.stdout)
  def test_real_valid_five_sources_pass_fixed_predicate_old_predicate_warns(self):
-  old=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+REL]).decode();current=(ROOT/REL).read_text();self.assertEqual(self.run_vector(self.expression(old)),{'accepted':False,'warning':True});self.assertEqual(self.run_vector(self.expression(current)),{'accepted':True,'warning':False})
+  self.assertEqual(hashlib.sha256(LEGACY_PREDICATE.encode()).hexdigest(),LEGACY_PREDICATE_SHA256);current=(ROOT/REL).read_text();self.assertEqual(self.run_vector(LEGACY_PREDICATE),{'accepted':False,'warning':True});self.assertEqual(self.run_vector(self.expression(current)),{'accepted':True,'warning':False})
  def test_actual_native_validator_rejects_missing_invented_bad_or_unobserved_sources(self):
   exp=self.expression((ROOT/REL).read_text())
   for mode in ('invented','missing','bad-digest','unavailable'):
