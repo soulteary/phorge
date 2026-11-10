@@ -25,10 +25,49 @@ class DescriptionAdmission(unittest.TestCase):
    manifest=ci.bind_manifest(ROOT/'support/governance/project-content-grants-ci/qualification-template.json',ROOT/'support/governance/project-content-grants-qualification','qualification',native);self.assertEqual(len(manifest['native_source_inventory']),48)
    # A native target is not the later reviewed recipe; no borrowed current-source approval.
    with self.assertRaises((ValueError,OSError)):ci.current_source(native,ci.TARGET)
- def test_real_dirty_unsigned_recipe_is_refused_without_mocking_Git(self):
-  ci=ci_module();revision=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
-  with self.assertRaises(ValueError):ci.current_source(ROOT,revision)
-  with self.assertRaises(ValueError):directory.source(ROOT,revision=revision)
+ def test_real_clean_and_dirty_recipes_are_checked_without_mocking_Git(self):
+  # These source consumers do not verify cryptographic signatures. The release
+  # verify-commit gate is separate; never infer "unsigned" from a dirty checkout.
+  revision=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
+  probe="""import importlib.util,json,subprocess,sys
+from pathlib import Path
+root=Path(sys.argv[1]);revision=sys.argv[2];expected=sys.argv[3]
+sys.path.insert(0,str(root/'scripts/governance'))
+import check_directory_transports_v1 as directory
+spec=importlib.util.spec_from_file_location('clean_clone_actual_CI',root/'support/governance/project-content-grants-ci/ci.py')
+ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(ci)
+results=[]
+for call in (lambda:ci.current_source(root,revision),lambda:directory.source(root,revision=revision)):
+ try:
+  value=call()
+ except ValueError:
+  if expected!='dirty':raise
+  results.append('refused')
+ except subprocess.CalledProcessError as error:
+  # Directory's actual dirty src/resources contract is git diff --quiet exit 1.
+  if expected!='dirty' or error.returncode!=1 or error.cmd!=['git','-C',str(root),'diff','--quiet','HEAD','--','src','resources']:raise
+  results.append('refused')
+ else:
+  if expected!='clean':raise AssertionError('dirty clone was admitted')
+  if not (value==revision or isinstance(value,dict) and len(value['pins'])==76):raise AssertionError('unexpected clean binding')
+  results.append('accepted')
+print(json.dumps(results))
+"""
+  with tempfile.TemporaryDirectory()as t:
+   root=Path(t).resolve()/'recipe'
+   subprocess.run(['git','--no-replace-objects','-c','core.hooksPath=/dev/null','clone','--shared','--no-checkout','--',str(ROOT),str(root)],check=True,capture_output=True)
+   subprocess.run(['git','--no-replace-objects','-c','core.hooksPath=/dev/null','-C',str(root),'checkout','--detach',revision],check=True,capture_output=True)
+   def check(expected):
+    status=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'status','--porcelain','--untracked-files=no'])
+    self.assertEqual(bool(status),expected=='dirty')
+    result=subprocess.run([sys.executable,'-B','-c',probe,str(root),revision,expected],check=True,capture_output=True,text=True)
+    self.assertEqual(result.stderr,'')
+    self.assertEqual(json.loads(result.stdout),['accepted','accepted']if expected=='clean'else['refused','refused'])
+   check('clean')
+   path=root/'src/applications/maniphest/storage/ManiphestTask.php';original=path.read_bytes()
+   path.write_bytes(original+b'\n// Synthetic dirty Git negative, never runtime code.\n')
+   check('dirty')
+   path.write_bytes(original);check('clean')
  def test_unknown_metadata_mutation_and_tampered_pin_refuse(self):
   for path in admission.CURRENT_METADATA:
    with self.assertRaises(ValueError):admission._normalize_metadata(path,(ROOT/path).read_bytes()+b'\n# unknown')
