@@ -86,44 +86,92 @@ def bind_manifest(template,folder,kind,root):
 # Password is read from the private owned file, never a command-line argument.
 PROBE=r'''$d=json_decode(file_get_contents($argv[1]),true,8,JSON_THROW_ON_ERROR);mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);$c=new mysqli('127.0.0.1',$d['user'],$d['password'],'',(int)$argv[2]);$r=$c->query('SELECT VERSION() version,@@server_uuid uuid')->fetch_assoc();echo json_encode(['php_version'=>PHP_VERSION,'mysql_version'=>$r['version'],'server_uuid'=>$r['uuid'],'opcache_jit'=>ini_get('opcache.jit'),'opcache_jit_buffer_size'=>ini_get('opcache.jit_buffer_size'),'opcache_enable_cli'=>ini_get('opcache.enable_cli')]);$c->close();'''
 
+# Public diagnostics contain only fixed source labels and bounded integers.
+# No journal files, argv, exception text, native output or private identities enter it.
+DIAGNOSTIC={'stage':'entry','child_ordinal':None,'child_outcome':'not-observed','child_exit_code':None}
+def stage(name):
+    DIAGNOSTIC.update(stage=name,child_ordinal=None,child_outcome='not-observed',child_exit_code=None)
+def instrument_journal(cls,phase):
+    original=cls.run
+    def run(self,argv,cwd,timeout=60):
+        label='child'
+        if len(argv)>4 and argv[1].endswith('/native.php'):
+            allowed={'empty','users','tokens','structure','readback','discover','before-upgrade','schema','target','submit-grant','submit-revoke','approve','deny-self','deny-replay'}
+            if argv[4] in allowed:label='native-'+argv[4]
+        elif len(argv)>2 and argv[1].endswith('/bin/storage') and argv[2]=='upgrade':label='standard-upgrade'
+        elif len(argv)>2 and argv[1].endswith('/bin/user') and argv[2]in('approve','empower'):label='user-'+argv[2]
+        stage(phase+'-'+label)
+        # Independent ordinal: real prerequisite Journal uses n, qualifier uses i.
+        ordinal=getattr(self,'_n05_diagnostic_ordinal',0)+1
+        self._n05_diagnostic_ordinal=ordinal
+        DIAGNOSTIC['child_ordinal']=ordinal
+        DIAGNOSTIC['child_outcome']='unknown'
+        try:
+            result=original(self,argv,cwd,timeout=timeout)
+        except Exception:
+            # The journal itself remains private; do not read terminal/intent/stdout.
+            raise
+        DIAGNOSTIC['child_outcome']='known-zero';DIAGNOSTIC['child_exit_code']=0
+        return result
+    cls.run=run
+
+def failure_summary(error):
+    allowed={'ValueError':'gate-refused','TimeoutExpired':'child-terminal-unknown','CalledProcessError':'source-command-failed','OSError':'local-operation-failed','KeyError':'required-field-missing','JSONDecodeError':'invalid-json'}
+    return {'passed':False,'error_code':allowed.get(type(error).__name__,'unclassified-failure'),**DIAGNOSTIC,'retained':True,'automatic_retry_or_cleanup':False,'SQL_execution_status':'unknown','execution_authorized':False}
+
 def execute(a):
+    stage("entry")
     need(os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('RUNNER_OS')=='Linux')
     need(re.fullmatch('[a-f0-9]{64}',a.mysql_container))
     for p in (a.prerequisites,a.qualification,a.base,a.target):need(p.is_absolute()and p.resolve()==p)
     need(not a.output.exists() and a.output.parent.resolve()==a.output.parent)
     a.output.mkdir(mode=0o700);public=a.output/'public';public.mkdir(mode=0o700)
+    stage('source-binding')
     base_tree=source(a.base,BASE);source(a.target,TARGET)
     recipe_revision=current_source(a.current,os.environ.get('GITHUB_SHA',''))
+    stage('reviewed-manifests')
     pt=bind_manifest(a.prerequisite_template,a.prerequisites,'prerequisites',a.base)
     qt=bind_manifest(a.qualification_template,a.qualification,'qualification',a.target)
     pmod=module('N05_actual_prerequisites',a.prerequisites/'provision.py',pt['source_sha256'])
     qmod=module('N05_actual_qualification',a.qualification/'qualify.py',qt['source_sha256'])
     # Reuse the real journal: native child outcomes and unknowns remain retained.
     journal=pmod.Journal(a.output/'observer-private')
+    # Preserve observer binding before instrumenting native-only journals.
+    journal.run=journal.run
+    stage('actual-service-inspect')
     rows=json.loads(journal.run(['/usr/bin/docker','inspect',a.mysql_container],a.output))
     port=select_service(rows,a.mysql_container)
     password=os.environ['N05_MYSQL_PASSWORD'];need(0<len(password)<=256 and '\x00'not in password)
     owner=uuid.uuid4().hex;cred=canon({'owner':owner,'user':'root','password':password})
     cp=a.output/'db-credential.private.json';private_new(cp,cred)
     need(str(a.php)in('/usr/bin/php','/usr/local/bin/php','/opt/homebrew/bin/php'))
+    stage('runtime-before')
     observed=runtime(json.loads(journal.run([str(a.php),'-r',PROBE,str(cp),str(port)],a.output)))
+    stage('private-profile-publication')
     receipt=canon({'schema':'Root-owned-local-MySQL-binding-v1','owner':owner,'container_id':a.mysql_container,'host_ip':'127.0.0.1','host_port':port,'server_uuid':observed['server_uuid'],'source':'actual-Root-Docker-and-SQL-observation'})
     rp=a.output/'owned-db.private.json';private_new(rp,receipt)
     pf=canon(pt);qf=canon(qt);pfr=a.output/'prerequisite-source.private.json';qfr=a.output/'qualification-source.private.json';private_new(pfr,pf);private_new(qfr,qf)
     profile={'schema':'N05-native-prerequisites-v1','owner':owner,'namespace':'n05_grants_'+owner,'base_root':str(a.base),'base_commit':BASE,'base_tree':base_tree,'target_root':str(a.target),'target_commit':TARGET,'target_tree':TREE,'php':str(a.php),'php_sha256':sha(a.php.read_bytes()),'db_port':port,'server_uuid':observed['server_uuid'],'db_credentials_path':str(cp),'db_credentials_sha256':sha(cred),'owned_db_receipt_path':str(rp),'owned_db_receipt_sha256':sha(receipt),'isolated_features_authorized':True}
     pp=a.output/'prerequisite-profile.private.json';pr=a.output/'prerequisite-review.private.json';raw=canon(profile);review=canon({'schema':'N05-prerequisites-Root-review-v1','profile_sha256':sha(raw),'scope':'new-owned-native-namespace-offline-bootstrap-only'});private_new(pp,raw);private_new(pr,review)
     pmod.ROOT_PROFILE_SHA=sha(raw);pmod.ROOT_REVIEW_SHA=sha(review);pmod.ROOT_SOURCE_FREEZE_SHA=sha(pf)
+    instrument_journal(pmod.Journal,'prerequisites')
+    stage('prerequisites-bind')
     ready=pmod.execute(pp,pr,pfr,a.output/'native-prerequisites-private')
     need(ready['native_prerequisites_observed']is True and ready['execution_authorized']is False)
+    stage('qualification-profile-publication')
     q=json.loads((a.output/'native-prerequisites-private/qualification-profile-template.private.json').read_bytes())
     q['runtime_authorized']=True;q['source_inventory_sha256']=sha(canon(qt['native_source_inventory']))
     qp=a.output/'qualification-profile.private.json';qr=a.output/'qualification-review.private.json';raw=canon(q);review=canon({'schema':'N05-native-SQL-qualification-review-v1','profile_sha256':sha(raw),'scope':'owned-native-standard-upgrade-and-grant-metadata-only'});private_new(qp,raw);private_new(qr,review)
     qmod.ROOT_PROFILE_SHA=sha(raw);qmod.ROOT_REVIEW_SHA=sha(review);qmod.FREEZE_PIN=sha(qf)
+    instrument_journal(qmod.Journal,'qualification')
+    stage('qualification-bind')
     result=qmod.execute(qp,qr,qfr,a.output/'native-qualification-private')
     need(result['executed_SQL']is True and result['execution_authorized']is False)
+    stage('runtime-after')
     after=runtime(json.loads(journal.run([str(a.php),'-r',PROBE,str(cp),str(port)],a.output)))
     need(after==observed)
     # Only this allowlisted summary directory is intended for artifact upload.
+    stage('public-summary')
     summary={'schema':'N05-CI-native-grant-qualification-v1','recipe_revision':recipe_revision,'recipe_sha256':sha(Path(__file__).read_bytes()),'baseline_revision':BASE,'target_revision':TARGET,'target_tree':TREE,'php_version':observed['php_version'],'mysql_version':observed['mysql_version'],'same_database_at_bracket_observations':True,'whole_window_identity_proved':False,'productionSchemaSpec':result['productionSchemaSpec'],'standard_native_upgrade':result['standard_native_upgrade'],'native_Project_unchanged':result['native_Project_unchanged'],'cases':result['cases'],'execution_authorized':False,'online_activation':False,'Web_MFA_qualified':False}
     private_new(public/'summary.json',canon(summary));return summary
 
@@ -134,4 +182,4 @@ if __name__=='__main__':
     try:print(json.dumps(execute(a),sort_keys=True))
     except Exception as e:
         # Deliberately exclude exception text, native diagnostics and private inputs.
-        print(json.dumps({'passed':False,'error_type':type(e).__name__,'retained':True,'automatic_retry_or_cleanup':False}));raise SystemExit(1)
+        print(json.dumps(failure_summary(e),sort_keys=True));raise SystemExit(1)

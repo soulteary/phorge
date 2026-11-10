@@ -175,7 +175,8 @@ final class PhorgeGovernanceCompletionFixture {
       '20261007.worker.scheduler.sql','20261007.worker.scheduleridentity.sql',
       '20261102.people.organization.sql','20261102.people.mediaexchange.sql',
       '20261103.people.organizationmetadata.sql','20261103.people.mediaissuer.sql','20261103.people.mediatargets.sql',
-      '20261103.people.organizationtransfer.sql','20261103.project.approvalexecution.sql','20261103.project.configepoch.sql','20261104.people.recoverystop.sql','20261104.metamta.governancenotice.sql','20261104.people.recoveryrestore.sql','20261104.people.organizationparticipants.sql','20261105.people.noticeidentityepoch.sql');
+      '20261103.people.organizationtransfer.sql','20261103.project.approvalexecution.sql','20261103.project.configepoch.sql','20261104.people.recoverystop.sql','20261104.metamta.governancenotice.sql','20261104.people.recoveryrestore.sql','20261104.people.organizationparticipants.sql','20261105.people.noticeidentityepoch.sql',
+      '20261110.project.contentgrants.sql');
     foreach ($pending as $key) {
       if (!str_starts_with($key,'phabricator:') ||
           !in_array(substr($key,12),$reviewed,true)) {

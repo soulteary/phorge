@@ -13,6 +13,11 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
   public function __debugInfo(){return array('scope'=>'native-session-insert-serialization-only');}
 
   /** Cross-source producers must not reuse a quarantined selected lease. */
+  public static function assertOAuthLifecycleWriteAvailable() {
+    if(self::$leaseActive!==null&&count(self::$leaseActive)>0){
+      throw new RuntimeException('recovery_oauth_lifecycle_selected_lease_reserved');}
+  }
+
   public static function assertConduitProducerWriterAvailable($writer) {
     if(self::$leaseActive!==null&&isset(self::$leaseActive[$writer])){
       throw new RuntimeException('recovery_conduit_session_lease_writer_reserved');}
@@ -510,8 +515,23 @@ final class PhorgeRecoverySessionProducerFence extends Phobject {
     }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
   }
 
+  private $borrowedOAuthClientSnapshots=array();
+  public function borrowedPrepareOAuthClients($subject) {
+    try {
+      $this->borrowedAssertActive();$subject=PhorgeRecoveryStopRequest::user($subject);
+      $this->leaseSubject=$subject;$this->leaseReadSessions();
+      $digest=PhorgeRecoveryNativeCaptureScope::prepareBorrowedOAuthClients(
+        $this->borrowedToken,$this->leaseWriter,$this->leaseObserver,$subject);
+      if(!is_string($digest)||preg_match('/\A[a-f0-9]{64}\z/D',$digest)!==1){throw new RuntimeException('recovery_oauth_client_plan_unknown');}
+      if(isset($this->borrowedOAuthClientSnapshots[$subject])&&$this->borrowedOAuthClientSnapshots[$subject]!==$digest){
+        throw new RuntimeException('recovery_oauth_client_plan_changed');}
+      $this->borrowedOAuthClientSnapshots[$subject]=$digest;$this->borrowedAssertActive();
+    }catch(Throwable$error){$this->leaseState='invalid';throw$error;}
+  }
+
   public function borrowedValidateBeforeOwnerEnd() {
     $this->borrowedAssertActive();
+    foreach(array_keys($this->borrowedOAuthClientSnapshots)as$subject){$this->borrowedPrepareOAuthClients($subject);}
     foreach(array_keys($this->borrowedSnapshots)as$subject){$this->borrowedCapture($subject);}
     foreach(array_keys($this->borrowedConduitSnapshots)as$subject){$this->borrowedCaptureConduit($subject);}
     foreach(array_keys($this->borrowedOAuthAccessSnapshots)as$subject){$this->borrowedCaptureOAuthAccess($subject);}

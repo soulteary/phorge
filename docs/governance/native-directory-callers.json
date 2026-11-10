@@ -748,7 +748,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-business-mail-producer",
-      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
+      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -814,7 +814,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
       "symbol": "PhorgeRecoveryNativeCaptureScope",
       "kind": "isolated-account-capture-not-recovery-authority",
-      "sha256": "3ed39e16e9c4243019404bfe3030b55aeb49666247938c24c943df182f8eb9a8",
+      "sha256": "7a98886ec80a14e45ad38619e5fd5632f213f89117d5dfc929b7222030d17a26",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -836,7 +836,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php",
       "symbol": "PhorgeRecoveryNativeAPIFacts",
       "kind": "untrusted-api-storage-decoder-no-recovery-authority",
-      "sha256": "3d111c0e2ee777c7a4db78fddb5b6b4ef2bf62fe3c6eda9851292e085ee880e0",
+      "sha256": "4b334655feb2f1985135c354e4cd093688c486b499168110fc92f3a4b9e585a4",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -902,7 +902,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-filter-before-effect-hook",
-      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
+      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1188,7 +1188,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
       "symbol": "PhorgeRecoveryRestoreService",
       "kind": "isolated-recovery-foundation-static-no-permit",
-      "sha256": "bfcb50198a53b6a4757dcb5997c4958bb45e667ff3567fef10ac94682f5a69a8",
+      "sha256": "fea4c891cd959dd191ebeff15e541fae052e4ba581e83dc2b6909d56c7afd141",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1199,7 +1199,7 @@
       "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
       "symbol": "PhorgeRecoverySessionProducerFence",
       "kind": "isolated-recovery-foundation-static-no-permit",
-      "sha256": "356bf32dbc89499e40f5fe7e90d8f9d63e63e041398ca1830ccb7ca363bc4bc9",
+      "sha256": "b6b8b6f07a848ef484da11e6c4c3cbdadbff2969b5a2364603850539500bfe85",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1804,7 +1804,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-attachment-reference-detach-producer",
-      "sha256": "3301154fe81b9b5f0f0ede5156b2255db5a34aa8bb64dfc895e3424ac8d11a84",
+      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3578,7 +3578,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAPIFacts.php",
-        "sha256": "3d111c0e2ee777c7a4db78fddb5b6b4ef2bf62fe3c6eda9851292e085ee880e0"
+        "sha256": "4b334655feb2f1985135c354e4cd093688c486b499168110fc92f3a4b9e585a4"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeAccountFacts.php",
@@ -3586,7 +3586,7 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeCaptureScope.php",
-        "sha256": "3ed39e16e9c4243019404bfe3030b55aeb49666247938c24c943df182f8eb9a8"
+        "sha256": "7a98886ec80a14e45ad38619e5fd5632f213f89117d5dfc929b7222030d17a26"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryNativeWebFacts.php",
@@ -3642,11 +3642,11 @@
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php",
-        "sha256": "bfcb50198a53b6a4757dcb5997c4958bb45e667ff3567fef10ac94682f5a69a8"
+        "sha256": "fea4c891cd959dd191ebeff15e541fae052e4ba581e83dc2b6909d56c7afd141"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php",
-        "sha256": "356bf32dbc89499e40f5fe7e90d8f9d63e63e041398ca1830ccb7ca363bc4bc9"
+        "sha256": "b6b8b6f07a848ef484da11e6c4c3cbdadbff2969b5a2364603850539500bfe85"
       },
       {
         "path": "src/infrastructure/governance/recovery/PhorgeRecoverySpacesSourceFacts.php",

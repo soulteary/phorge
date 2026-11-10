@@ -1188,6 +1188,9 @@ abstract class PhabricatorApplicationTransactionEditor
     PhabricatorLiskDAO $object,
     array $xactions) {
 
+    if($object instanceof PhabricatorOAuthServerClient){
+      PhabricatorOAuthServerDAO::assertRecoveryLifecycleWriteAvailable();
+    }
     $project_scope=PhorgeProjectNativeExecutionScope::beginEditor($this,$object,$xactions);
     try {
     $is_new = ($object->getID() === null);

@@ -12,6 +12,17 @@
     "support/governance/media-session-ci/project.py exact protected-source base/tree/overlay/inventory contract",
     "Existing media source-freshness producer and corresponding source-cohort tests, only after Root review"
   ],
+  "current_combined_source_blocked": true,
+  "current_fixture_delta": {
+    "migration": "20261110.project.contentgrants.sql",
+    "migration_sha256": "2dbbd2c1305a467c164470fd9e7b2830e32ad282fa2cc6a1ec74e8bef0d7a249",
+    "new_sha256": "8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b",
+    "old_sha256": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b",
+    "overlay8_changed_count": 2,
+    "path": "support/governance/completion/fixture.php",
+    "runtime_verified": false,
+    "selected19_changed_count": 1
+  },
   "current_snapshot_base": "0fff49b76fcb6852787e7f1408eca2a591e53ffb",
   "current_snapshot_overlay": {
     "support/governance/media-session-positive/README.md": "a3cc5c39b8e327085490621a1d0dc167d27c9e9c7e96dcb435953653bdc6938a",
@@ -24,6 +35,8 @@
     "support/governance/media-session-positive/test-guards.php": "dbe79fe6b78beed08b47cb339b2248ad45cc0fde70ecd6faa454d57f1a522e2e"
   },
   "executed": false,
+  "final_business_target_not_yet_signed": true,
+  "historical_guide": true,
   "historical_guide_is_not_current_execution_tuple": true,
   "historical_guide_path": "support/governance/project-content-grants-ci/media-C-rebind-plan.json",
   "media_freshness_passed": false,
@@ -33,7 +46,7 @@
   "media_source_tree": "16cb24dbb0992f5e81d7fd9ec279f63fe90f9c6f",
   "metadata_inverse_location": "tests/governance/test_project_content_grant_media_source_delta.py",
   "recipe_is_final_main": false,
-  "schema": "N05-CI-exact-media-C-rebind-source-plan-v2",
+  "schema": "N05-combined-source-prebusiness-signature-plan-v3",
   "signed_media19_preserved": {
     "resources/sql/autopatches/20261102.people.mediaexchange.sql": "33abbbf48a2a43035e3d3de1eb56c69bbda825819b469ecd95a6d530b8e8a980",
     "resources/sql/autopatches/20261103.people.mediaissuer.sql": "2cb870c03069cffd2be3ef801b963265f1f5d7c866c0ee80935f1ebfdaac2957",
@@ -57,11 +70,10 @@
   },
   "source_pins_path": "support/governance/media-session-positive/source-pins.json",
   "stages": [
-    "Root independently reviews exact source-only media metadata rebind to signed0fff/tree16cb24 and actual9238raw leaves.",
-    "Root signs final reviewed metadata-only candidate and rechecks fullSHA sourceCLI plus strict protected source freshness.",
-    "Run genuine isolated N05 CI with baseline4c and target799/tree797f unchanged; source-only receipts do not qualify SQL.",
-    "Record actual SQL success or retain failures; current source is not eventual combined main.",
-    "After PR140 merge, explicitly integrate/rebind new target and native inventories, then perform new actual CI; do not inherit799 target acceptance."
+    "Review exact combined source/diagnostic/fixture allowance while publication gates remain blocked.",
+    "Root signs one actual combined business source; do not inherit799/main-only runtime acceptance.",
+    "Explicitly rebind actual new runtime TARGET/TREE/native inventories/templates with original two metadata exceptions only.",
+    "Then explicitly rebind real media Git closure, exact fixtures and freshness before genuine CI; no invented or repeated provisional target."
   ],
   "target_actual_raw_sha256": {
     "resources/sql/autopatches/20261102.people.mediaexchange.sql": "33abbbf48a2a43035e3d3de1eb56c69bbda825819b469ecd95a6d530b8e8a980",

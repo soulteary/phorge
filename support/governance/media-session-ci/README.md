@@ -1,3 +1,19 @@
+# Combined N05/main source-only hold
+
+The unpublished combined candidate adds only the independently reviewed content-grants
+migration filename to completion/fixture.php. Exactly one selected19 pin changes;
+exactly two overlay hashes change (source-pins.json and its run.php hash guard).
+The real patch/source/admission tests reach the context refusal before any SQL
+connection. None of these source tests is SQL acceptance.
+
+The old snapshot BASE remains historical. Strict freshness stays blocked until
+Root signs the combined business source and explicitly rebinds the final Git
+closure. TARGET799 must reject the combined runtime; no new exceptions are added.
+Optional production features stay OFF. All accepted97 and byte-identity claims
+below refer to historical packages and do not qualify this candidate.
+
+## Historical package notes
+
 # Selected native media session CI (source candidate)
 
 The previous seventeen-file fixture/runner tree is inherited byte-for-byte. The independently reviewed local Root run completed97 checks,55 owned schemas,2 runtime users plus reader cleanup and zero native writer sessions/visible MDL/output. That selected actual evidence does not prove this new CI workflow, browser, TLS, files or the full N09/N10 scope. This author has not run Docker, SQL, network or component commands.

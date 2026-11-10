@@ -16,7 +16,7 @@ class NativeGrantCohort(unittest.TestCase):
    with self.assertRaises(ValueError):delta.reduce_production(n,raw+b'\n// unreviewed native change')
  def test_live_tooling_pins_are_real_and_inverse_preserves_all_prior_bytes(self):
   for n,pin in delta.SOURCE_INPUTS.items():
-   raw=(ROOT/n).read_bytes();prior=delta.media_source_delta().reduce_if_selected(n,raw);self.assertEqual(hashlib.sha256(prior).hexdigest(),pin,n)
+   raw=(ROOT/n).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),pin,n)
    self.assertEqual(delta.reduce_if_selected(n,raw),subprocess.check_output(['git','-C',str(ROOT),'show',BASE+':'+n]),n)
    with self.assertRaises(ValueError):delta.reduce_if_selected(n,raw+b'\n# unreviewed tooling change')
  def test_complete_cohort_refuses_missing_or_unknown_new_source(self):
@@ -37,9 +37,9 @@ if __name__=='__main__':unittest.main()
 class ExactMediaSourceRebind(unittest.TestCase):
  def test_six_current_metadata_files_restore_exact_signed_recipe_and_reject_mutation(self):
   from unittest.mock import patch
-  m=delta.media_source_delta();self.assertEqual(len(m.SOURCE_INPUTS),6)
+  m=delta.media_source_delta();self.assertEqual(len(m.SOURCE_INPUTS),8)
   for name,pin in m.SOURCE_INPUTS.items():
-   raw=(ROOT/name).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),pin);old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','0fff49b76fcb6852787e7f1408eca2a591e53ffb:'+name]);self.assertEqual(m.reduce_current(name,raw),old)
+   raw=(ROOT/name).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),pin);old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+name]);self.assertEqual(m.reduce_current(name,raw),old)
    bad=raw+b'\n# unknown metadata'
    with self.assertRaises(ValueError):m.reduce_current(name,bad)
    with patch.dict(m.SOURCE_INPUTS,{name:hashlib.sha256(bad).hexdigest()}),self.assertRaises(ValueError):m.reduce_current(name,bad)

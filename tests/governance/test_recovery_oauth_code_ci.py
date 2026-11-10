@@ -56,14 +56,21 @@ class OAuthCI(unittest.TestCase):
   # Existing count/partial changes still independently invert to signed71.
   import recovery_partial_current_schema_delta as partial
   import recovery_oauth_authorization_source_delta as authorization_delta
+  import recovery_oauth_client_lifecycle_delta as lifecycle_delta
   approved={'support/governance/media-session-ci/project.py', 'support/governance/media-session-ci/test_ci.py', 'support/governance/media-session-docker/snapshot.py', 'support/governance/recovery/partial-composition-focused.php', 'support/governance/recovery/restore-review-cases.php', 'support/governance/media-session-docker/README.md'}
   authorization_runtime={'src/applications/oauthserver/storage/PhabricatorOAuthClientAuthorization.php': '68ba2b0145c25e53206f24b565260d7d3e93b2b232f7e9382f4b720bedc4a4c3', 'src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php': 'cd1b0ad05eafa48e79f50cde12ec982dd59f5374f63f10a7c36e52da30ab5a3c', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php': '05aa84847028b1b67259bade9375d914f409921d9bed514296546e48e0e2559f', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php': '007182650c08344038520978d00256bf6e734bad741d9c5d094f9238418b2e03', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php': 'bfcb50198a53b6a4757dcb5997c4958bb45e667ff3567fef10ac94682f5a69a8', 'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': '356bf32dbc89499e40f5fe7e90d8f9d63e63e041398ca1830ccb7ca363bc4bc9', 'support/governance/native-organization/oauth-authorization-worker.php': '49ec8d298d46b0df0aae255e9fbd8a77d78a3188ab59e472c328a0027ea17b97', 'support/governance/native-organization/oauth-authorization-workers.php': 'eec44271b5b7a0e8ff164eea301c0a7da2ca760e30d82a28a10df4ab8bbda737', 'support/governance/native-organization/test-oauth-authorization-owner-mysql.php': '32265fb84af9aa6d9669fcba01bb0434401265f5f424d1d708cccc313291cc46', 'support/governance/recovery/assessment-credential-cases.php': '29bcbe84e7bc30bcecd395d635b059f1061677045652de1ec8117fd74ef1b72f', 'support/governance/recovery/oauth-authorization-cases.php': '72224fcb69389313b7979d379d411fc06d32175322f662f350f8481aaacfd992', 'support/governance/recovery/oauth-authorization-diagnostic.php': '0cfb73c1551c0745ed8f680a0737ea1948a3d7d68c672bdbb41c12d18b6ddf7b', 'support/governance/recovery/oauth-authorization-focused.php': '64bf17a51532e8c5e8421aa0c5e5d94bcec637819645e33123bcfddaa84e2d75', 'support/governance/recovery/oauth-authorization-producer.php': 'f523b78b9f9682b9d751aab96d7a4fbc9aa2a6595ec10933902416fbc83d90fe', 'support/governance/recovery/tests/assessment-oauth-authorization-owner-host.php': 'f66e1c0b385859bb908bfa58f3494d9773a7622a68b11cd2ccd8bec89656fc0a'}
   import project_content_grant_source_delta as n05_delta
   n05_delta.assert_production_cohort(ROOT)
   changed,_=n05_delta.historical_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',changed,{name:(ROOT/name).read_bytes()for name in changed})
-  self.assertEqual(set(changed),approved|set(authorization_runtime))
+  lifecycle_paths={p for p in lifecycle_delta.SOURCE_INPUTS if p.startswith(('src/','resources/','support/governance/'))}|set(lifecycle_delta.SOURCE_ADDITIONS)
+  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths)
+  for name in lifecycle_paths:
+   raw=(ROOT/name).read_bytes()
+   self.assertEqual(raw,subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','HEAD:'+name]))
+   if name in lifecycle_delta.SOURCE_ADDITIONS:self.assertEqual(hashlib.sha256(raw).hexdigest(),lifecycle_delta.SOURCE_ADDITIONS[name])
+   else:self.assertEqual(lifecycle_delta.reduce_current(name,raw),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+name]))
   for name,pin in authorization_runtime.items():
-   raw=(ROOT/name).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
+   raw=(ROOT/name).read_bytes();self.assertEqual(hashlib.sha256(lifecycle_delta.reduce_if_selected(name,raw)).hexdigest(),pin)
    self.assertEqual(raw,subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name]))
    if name in authorization_delta.SOURCE_INPUTS:
     self.assertEqual(authorization_delta.reduce_current(name,raw),subprocess.check_output(['git','-C',str(ROOT),'show','0436e865b8431b9f064fe7b8a92dcad5e6623997:'+name]))

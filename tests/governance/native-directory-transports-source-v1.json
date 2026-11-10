@@ -9,6 +9,10 @@
       "bytes": 13476,
       "sha256": "dd271ba8d3590edf2d07d77e29b824aaef475d63775759f2482f06b68ba73bf7"
     },
+    ".github/workflows/oauth-client-lifecycle-focused.yml": {
+      "bytes": 13680,
+      "sha256": "9036405ba276507a05b59e1be4cf5e2bd200d41bb0cb266daa8e93b48c3b5dce"
+    },
     "resources/sql/autopatches/20260911.differential.01.appemail.php": {
       "bytes": 1804,
       "sha256": "61ab359cfbae16c8d2c3e3f05473455af9df37bda1a13c5f5fb2f3bdac35273c"
@@ -38,8 +42,8 @@
       "sha256": "b2e03514859061b36495cc8bb5f0dbf4a615c83eabe578b95b7eb81f6e46ca9e"
     },
     "scripts/governance/check_directory_transports_v1.py": {
-      "bytes": 20812,
-      "sha256": "c2ebbae25dd0f44e27f94a392efa77e00efe6de685d73a2fbce637e31e92c752"
+      "bytes": 20868,
+      "sha256": "87e378cdfc47351c66e08b2663c2c96cb6b5c1fc0fb21fa2c6b02030c55fa6fb"
     },
     "scripts/governance/check_native_organization.py": {
       "bytes": 125030,
@@ -170,8 +174,8 @@
       "sha256": "7660ecc409446d321b4781353ac99d7130f31eed6eedcb3b1deff6e5ff31000a"
     },
     "support/governance/completion/fixture.php": {
-      "bytes": 27824,
-      "sha256": "f594f0e471e6cdd94c1ec827103c3532119fa0f9c853d8dbe7d7d2a10f7cc41b"
+      "bytes": 27868,
+      "sha256": "8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b"
     },
     "support/governance/completion/pipeline-gorge.php": {
       "bytes": 14808,
@@ -254,8 +258,8 @@
       "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
     },
     "tests/governance/test_calendar_conduit_union.py": {
-      "bytes": 12045,
-      "sha256": "29baea6eda65b2a02f132eca115d96fa1b2d9b7cf3a0657626c0ec36df2f0841"
+      "bytes": 12372,
+      "sha256": "a6bbbef2100b183823870686cfbebd1e8bdaf1764f072d8e816959a0e89f1895"
     },
     "tests/governance/test_directory_avatar_fixture.py": {
       "bytes": 4915,
@@ -294,6 +298,6 @@
       "sha256": "a4ee1ecb3a8f9bfd11b5d9ac23522131c6424352c40764b814445514f5b47cd4"
     }
   },
-  "production_git_tree_inventory_sha256": "49fbf7ab4815db3f1070735b6d398cd645cb02b8d7cebc488ed841d9bba4b658",
+  "production_git_tree_inventory_sha256": "f935583df9a7847f6988022cac54600b36c28684dce7a7bc1ef59d235883e1eb",
   "schema": "native-directory-transports-source-v1"
 }
