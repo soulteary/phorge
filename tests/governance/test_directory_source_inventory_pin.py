@@ -36,7 +36,8 @@ class DirectorySourceInventoryPin(unittest.TestCase):
         import sys
         sys.path.insert(0,str(ROOT/'scripts/governance'))
         import recovery_oauth_code_coordinator_delta as coord
-        original = json.loads(coord.source_view(gate.MANIFEST,(ROOT/gate.MANIFEST).read_bytes()))
+        from n05_r3_historical_test_view import historical_coordinator_source
+        original = json.loads(historical_coordinator_source(gate.MANIFEST,(ROOT/gate.MANIFEST).read_bytes()))
         previous = json.loads(subprocess.check_output(['git', '-C', str(ROOT), 'show', BASE + ':' + gate.MANIFEST]))
         self.assertEqual(original['pins'][PATH], {'bytes': 10627, 'sha256': '1de4e9eacef2f6844c7a91972218cc532be71d6368d75c371788b864e591a591'})
         self.assertEqual(previous['pins'][PATH], {'bytes': 9302, 'sha256': '1b7a7eccda85748728b0cef14edf88b823ae965e55ad037b5ebff0a9ef7577fb'})

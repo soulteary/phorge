@@ -34,6 +34,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   private $descriptionField;
   private $descriptionOldValue;
   private $descriptionOtherFields;
+  private $descriptionGroupID;
   private function __construct() {}
   private function __clone() {}
   public function __serialize() { throw new RuntimeException('project_execution_scope_serialization_refused'); }
@@ -573,8 +574,11 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     $this->descriptionOtherFields=self::digest($others);
   }
   public function bindDescriptionEditor($editor,$transaction) {
-    if($this->mode!=='content-description'||$this->editor!==null||get_class($editor)!==PhabricatorProjectTransactionEditor::class||
-       get_class($transaction)!==PhabricatorProjectTransaction::class){throw new RuntimeException('description_editor_binding_refused');}
+    if($this->mode!=='content-description'||$this->state!=='open'||$this->editor!==null||
+       get_class($editor)!==PhabricatorProjectTransactionEditor::class||get_class($transaction)!==PhabricatorProjectTransaction::class||
+       (new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'transactionGroupID'))->getValue($editor)!==null||
+       (new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'projectGovernanceEffectsNonce'))->getValue($editor)!==null||
+       array_key_exists('core.groupID',$transaction->getMetadata())){throw new RuntimeException('description_editor_binding_refused');}
     $this->editor=$editor;$this->descriptionTransaction=$transaction;
   }
   public function assertDescriptionTransaction($xaction) {
@@ -583,12 +587,38 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
        $xaction->getNewValue()!==$this->descriptionRequest->getDescription()||$xaction->getComment()!==null) {
       throw new RuntimeException('description_transaction_binding_refused');
     }
-    $m=$xaction->getMetadata();unset($m['core.mfa']);
-    if($m!==array('customfield:key'=>PhorgeProjectDescriptionExecutor::FIELD)||
-       ($xaction->getMetadataValue('core.mfa')!==null&&$xaction->getMetadataValue('core.mfa')!==true)){
+    $this->assertDescriptionMetadata($xaction);
+    $this->assertOpen();
+  }
+  /** Native metadata changes only after this exact editor enters effects.
+   * Read the existing private group value: never allocate one or accept a caller
+   * supplied group merely because it has the native string format.
+   */
+  private function assertDescriptionMetadata($xaction) {
+    if($this->editor===null||get_class($this->editor)!==PhabricatorProjectTransactionEditor::class||
+       !in_array($this->state,array('open','consumed'),true)){
+      throw new RuntimeException('description_native_metadata_phase_required');
+    }
+    $m=$xaction->getMetadata();$mfa=$xaction->getMetadataValue('core.mfa');unset($m['core.mfa']);
+    $group=(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'transactionGroupID'))->getValue($this->editor);
+    $nonce=(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'projectGovernanceEffectsNonce'))->getValue($this->editor);
+    if($this->state==='consumed'&&($this->effectsNonce===null||$nonce!==$this->effectsNonce)){
+      throw new RuntimeException('description_native_metadata_phase_required');
+    }
+    if($group!==null){
+      if($this->state!=='consumed'||!is_string($group)||!preg_match('/\A[a-z2-7]{32}\z/D',$group)||
+         !array_key_exists('core.groupID',$m)||$m['core.groupID']!==$group||
+         ($this->descriptionGroupID!==null&&$this->descriptionGroupID!==$group)){
+        throw new RuntimeException('description_native_group_binding_refused');
+      }
+      unset($m['core.groupID']);
+    }else if(array_key_exists('core.groupID',$m)||$this->descriptionGroupID!==null){
+      throw new RuntimeException('description_native_group_binding_refused');
+    }
+    if($m!==array('customfield:key'=>PhorgeProjectDescriptionExecutor::FIELD)||($mfa!==null&&$mfa!==true)){
       throw new RuntimeException('description_transaction_metadata_refused');
     }
-    $this->assertOpen();
+    if($group!==null){$this->descriptionGroupID=$group;}
   }
   public function getDescriptionField($xaction) {
     $this->assertDescriptionTransaction($xaction);
@@ -604,7 +634,11 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
        self::digest($this->descriptionGrantRow())!==self::digest($this->descriptionGrant)) {
       throw new RuntimeException('description_grant_source_changed');
     }
-    $this->state='consumed';
+    $nonce=(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'projectGovernanceEffectsNonce'))->getValue($this->editor);
+    if(!is_string($nonce)||!preg_match('/\A[a-f0-9]{32}\z/D',$nonce)){
+      throw new RuntimeException('description_native_metadata_phase_required');
+    }
+    $this->effectsNonce=$nonce;$this->state='consumed';
   }
   private function finishDescription(array $xactions) {
     if(count($xactions)!==1){throw new RuntimeException('description_final_closure_refused');}

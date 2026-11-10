@@ -17,20 +17,26 @@ class PartialSchemaCoordination(unittest.TestCase):
     with patch.dict(partial.SOURCE_INPUTS,{path:hashlib.sha256(bad).hexdigest()}):
      with self.assertRaises(ValueError):partial.reduce_if_selected(path,bad)
  def test_whole_current_or_old_cohort_only_and_missing_mixed_refuse(self):
+  import project_description_admission_delta as admission
+  admission.assert_current_recipe(ROOT)
+  from n05_r3_historical_test_view import checked_modules
+  historical_partial=checked_modules().partial_delta
+  current_sources={p:authorization_delta.reduce_if_selected(p,(ROOT/p).read_bytes()) for p in partial.SOURCE_INPUTS}
+  self.assertEqual({p:hashlib.sha256(raw).hexdigest() for p,raw in current_sources.items()},partial.SOURCE_INPUTS)
   with tempfile.TemporaryDirectory()as tmp:
    root=Path(tmp)
    def fill(current):
     for p in partial.SOURCE_INPUTS:
-     f=root/p;f.parent.mkdir(parents=True,exist_ok=True);f.write_bytes((ROOT/p).read_bytes()if current else partial.EDITS[p][0][1])
+     f=root/p;f.parent.mkdir(parents=True,exist_ok=True);f.write_bytes(current_sources[p]if current else partial.EDITS[p][0][1])
    read=lambda p:p.read_bytes()
-   for current in [False,True]:fill(current);partial.assert_cohort(root,read)
+   for current in [False,True]:fill(current);historical_partial.assert_cohort(root,read)
    name=next(iter(partial.SOURCE_INPUTS));(root/name).write_bytes(partial.EDITS[name][0][1])
-   with self.assertRaises(ValueError):partial.assert_cohort(root,read)
+   with self.assertRaises(ValueError):historical_partial.assert_cohort(root,read)
    (root/name).unlink()
-   with self.assertRaises(FileNotFoundError):partial.assert_cohort(root,read)
+   with self.assertRaises(FileNotFoundError):historical_partial.assert_cohort(root,read)
  def test_old_literal_maps_remain_byte_exact(self):
   for name in ['scripts/governance/check_recovery_assessment_credentials.py','scripts/governance/check_recovery_assessment_credentials_v2.py']:
    raw=(ROOT/name).read_bytes();baseline=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','08453b13afc7980ca485ecf8b4d5094769bb4438:'+name]);self.assertEqual(authorization_delta.reduce_if_selected(name,raw),baseline)
    def maps(body):return {n.targets[0].id:ast.dump(n.value,include_attributes=False)for n in ast.parse(body).body if isinstance(n,ast.Assign)and isinstance(n.value,ast.Dict)}
-   self.assertEqual(maps(historical_tooling_source(name)),maps(baseline))
+   self.assertEqual(maps(authorization_delta.reduce_if_selected(name,raw)),maps(baseline))
 if __name__=='__main__':unittest.main()

@@ -27,6 +27,53 @@ class DescriptionExecution(unittest.TestCase):
  def test_native_remarkup_event_keeps_builtin_old_null_semantics_and_mail_tag(self):
   d=php(r'''$o=new PhabricatorProject();$f=PhabricatorCustomField::getObjectField($o,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS,PhorgeProjectDescriptionExecutor::FIELD);$legacy=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_CUSTOMFIELD)->setMetadataValue('customfield:key',PhorgeProjectDescriptionExecutor::FIELD)->setOldValue('old')->setNewValue('new @synthetic');$x=(new PhabricatorProjectTransaction())->setTransactionType(PhorgeProjectDescriptionExecutor::TYPE)->setOldValue('old')->setNewValue('new @synthetic');$t=(new PhorgeProjectDescriptionTransaction())->setStorage($x);$changes=$t->newRemarkupChanges();echo json_encode(['blocks'=>$f->getApplicationTransactionRemarkupBlocks($legacy),'old'=>$changes[0]->getOldValue(),'new'=>$changes[0]->getNewValue(),'same_tags'=>$x->getMailTags()===$legacy->getMailTags(),'diff'=>$t->hasChangeDetailView()]);''')
   self.assertEqual(d,{'blocks':['new @synthetic'],'old':None,'new':'new @synthetic','same_tags':True,'diff':True})
+ def test_actual_native_group_metadata_is_bound_to_same_editor_and_effects_phase_without_SQL(self):
+  # Reflect only the guard's isolated bookkeeping. This is not a sealed executor,
+  # live identity scope, transaction lease, SQL write or production permission.
+  d=php(r'''$make=static function(){
+    $scope=(new ReflectionClass(PhorgeProjectNativeExecutionScope::class))->newInstanceWithoutConstructor();
+    $editor=new PhabricatorProjectTransactionEditor();
+    $x=(new PhabricatorProjectTransaction())->setTransactionType(PhorgeProjectDescriptionExecutor::TYPE)
+      ->setMetadataValue('customfield:key',PhorgeProjectDescriptionExecutor::FIELD)->setNewValue('synthetic');
+    foreach(['mode'=>'content-description','state'=>'open']as$k=>$v){(new ReflectionProperty(PhorgeProjectNativeExecutionScope::class,$k))->setValue($scope,$v);}
+    $scope->bindDescriptionEditor($editor,$x);return[$scope,$editor,$x];
+  };
+  $set=static function($scope,$k,$v){(new ReflectionProperty(PhorgeProjectNativeExecutionScope::class,$k))->setValue($scope,$v);};
+  $effect=static function($scope,$editor)use($set){$nonce=bin2hex(random_bytes(16));
+    (new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'projectGovernanceEffectsNonce'))->setValue($editor,$nonce);
+    $set($scope,'effectsNonce',$nonce);$set($scope,'state','consumed');};
+  $guard=new ReflectionMethod(PhorgeProjectNativeExecutionScope::class,'assertDescriptionMetadata');
+  $native_group=new ReflectionMethod(PhabricatorApplicationTransactionEditor::class,'getTransactionGroupID');
+  $refused=0;$accepts=0;
+  [$scope,$editor,$x]=$make();$guard->invoke($scope,$x);$accepts++;
+  $effect($scope,$editor);$guard->invoke($scope,$x);$accepts++; // Native internal effects precede group assignment.
+  $group=$native_group->invoke($editor);$x->setTransactionGroupID($group);$guard->invoke($scope,$x);$accepts++;
+  $x->setIsMFATransaction(true);$guard->invoke($scope,$x);$accepts++;
+  foreach(['different-group','missing-group','changed-editor','changed-nonce','wrong-phase','false-MFA','unknown-key','reset-native-group','both-groups-changed','invalid-native-group','lost-effects-nonce']as$case){
+    [$a,$e,$t]=$make();$effect($a,$e);$g=$native_group->invoke($e);$t->setTransactionGroupID($g);$guard->invoke($a,$t);
+    if($case==='different-group'){$t->setTransactionGroupID(str_repeat('a',32)===$g?str_repeat('b',32):str_repeat('a',32));}
+    elseif($case==='missing-group'){$t->setMetadata(['customfield:key'=>PhorgeProjectDescriptionExecutor::FIELD]);}
+    elseif($case==='changed-editor'){$other=new PhabricatorProjectTransactionEditor();$native_group->invoke($other);$set($a,'editor',$other);}
+    elseif($case==='changed-nonce'){(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'projectGovernanceEffectsNonce'))->setValue($e,bin2hex(random_bytes(16)));}
+    elseif($case==='wrong-phase'){$set($a,'state','open');}
+    elseif($case==='false-MFA'){$t->setIsMFATransaction(false);}
+    elseif($case==='unknown-key'){$t->setMetadataValue('core.synthetic-unknown',true);}
+    elseif($case==='reset-native-group'){(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'transactionGroupID'))->setValue($e,null);$t->setMetadata(['customfield:key'=>PhorgeProjectDescriptionExecutor::FIELD]);}
+    elseif($case==='invalid-native-group'){(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'transactionGroupID'))->setValue($e,'invalid');$t->setTransactionGroupID('invalid');}
+    elseif($case==='lost-effects-nonce'){$set($a,'effectsNonce',null);}
+    else{$other=new PhabricatorProjectTransactionEditor();$new=$native_group->invoke($other);(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'transactionGroupID'))->setValue($e,$new);$t->setTransactionGroupID($new);}
+    try{$guard->invoke($a,$t);throw new Exception('accepted');}catch(RuntimeException $expected){$refused++;}
+  }
+  foreach(['caller-group','preinitialized-editor','null-group-key']as$case){
+    $a=(new ReflectionClass(PhorgeProjectNativeExecutionScope::class))->newInstanceWithoutConstructor();$set($a,'mode','content-description');$set($a,'state','open');
+    $e=new PhabricatorProjectTransactionEditor();$t=(new PhabricatorProjectTransaction())->setMetadataValue('customfield:key',PhorgeProjectDescriptionExecutor::FIELD);
+    if($case==='preinitialized-editor'){$native_group->invoke($e);}else{$t->setTransactionGroupID($case==='null-group-key'?null:str_repeat('a',32));}
+    try{$a->bindDescriptionEditor($e,$t);throw new Exception('accepted');}catch(RuntimeException $expected){$refused++;}
+  }
+  [$a,$e,$t]=$make();$t->setTransactionGroupID($native_group->invoke($e));
+  try{$guard->invoke($a,$t);throw new Exception('early accepted');}catch(RuntimeException $expected){$refused++;}
+  echo json_encode(['guard_accepts'=>$accepts,'guard_refuses'=>$refused,'actual_native_group_getter_and_setter'=>true,'synthetic_scope_only'=>true,'SQL'=>false,'execution_authorized'=>false]);''')
+  self.assertEqual(d,{'guard_accepts':4,'guard_refuses':15,'actual_native_group_getter_and_setter':True,'synthetic_scope_only':True,'SQL':False,'execution_authorized':False})
  def test_unchanged_generic_EDITOR_and_sealed_scope_source_boundaries(self):
   rel='src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php';old=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+rel]);self.assertEqual((ROOT/rel).read_bytes(),old)
   s=(ROOT/'src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php').read_text();self.assertIn('$scope->authorizeDescription();',s);self.assertIn('description_expanded_closure_refused',s);self.assertIn('description_unplanned_project_change',s);self.assertIn('description_membership_changed',s);self.assertIn('description_dual_admin_binding_required',s)

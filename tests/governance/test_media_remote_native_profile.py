@@ -67,7 +67,17 @@ class CurrentMainIntegration(MediaRemote):
   map_path='src/__phutil_library_map__.php'
   import project_description_admission_delta as n05_delta
   n05_paths=n05_delta.assert_production_cohort(ROOT)
-  expected={name,policy}|extra|n05_paths
+  docs={
+   'src/infrastructure/governance/content/README.description-main-integration.md':'0e5143a5c4354ace055e6adb17e752f19b99fbacb752525832ab918c6d40e7f2',
+   'src/infrastructure/governance/content/README.description-executor.md':'f3bd3f62cb0d743d6b228d0b066f0eb34b7cb691601ec761ce0d581ebd0b2364',
+   'src/infrastructure/governance/content/README.description-source-inverse.md':'7993e97f144b1af281f2fdee46a077aacfdc5a4f61da5a7551dd6598e2d340d6'}
+  for path,pin in docs.items():
+   raw=(ROOT/path).read_bytes()
+   self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
+   self.assertEqual(raw,subprocess.check_output(['git','-C',str(ROOT),'show','15d4f76d9c1c12256f82e53435be038422e205a5:'+path]))
+   self.assertEqual((ROOT/path).lstat().st_mode & 0o177777,0o100644)
+   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'ls-tree','5a3d412be4496d1b739d484fc4cd778b79d80f72','--',path]),b'')
+  expected={name,policy}|extra|n05_paths|set(docs)
   if map_path in changed:expected.add(map_path)
   self.assertEqual(set(changed),expected)
   for path in authorization_delta.PRODUCTION_PATHS:
