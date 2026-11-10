@@ -1,7 +1,7 @@
 # Project description: real T3 source and recipe admission
 
-Native target is exactly15d4f76d9c1c12256f82e53435be038422e205a5,
-tree2affc55aa9e4aecd3175b8b56adf31d0a93828a3. The qualification
+Native target is exactly577ae2eb82d854753b88f2985a154e409272068a,
+treef4d5435523b65587f54465b9c5712ad0b0d8f8f8. The qualification
 inventory is48 actual Git source objects: the previous45 with four reviewed
 updates and three new description classes. Baseline prerequisite identity and
 all36 native dependency objects remain intact, including git revision and tree.

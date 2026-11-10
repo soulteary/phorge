@@ -47,7 +47,7 @@ class ExactMediaSourceRebind(unittest.TestCase):
  def test_SQL_runtime_binding_uses_T3_and_exclusions_require_current_recipe_guard(self):
   import importlib.util
   p=ROOT/'support/governance/project-content-grants-ci/ci.py';spec=importlib.util.spec_from_file_location('exact_N05_runtime_ci_source',p);ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(ci)
-  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'15d4f76d9c1c12256f82e53435be038422e205a5');self.assertEqual(ci.TREE,'2affc55aa9e4aecd3175b8b56adf31d0a93828a3');self.assertEqual(set(ci.OFFLINE_METADATA),{'scripts/governance/check_recovery_oauth_authorization_producer_v1.py','scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py'})
+  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'577ae2eb82d854753b88f2985a154e409272068a');self.assertEqual(ci.TREE,'f4d5435523b65587f54465b9c5712ad0b0d8f8f8');self.assertEqual(set(ci.OFFLINE_METADATA),{'scripts/governance/check_recovery_oauth_authorization_producer_v1.py','scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py'})
   delta.assert_current_recipe(ROOT)
 
 class StageCExactRecipeBinding(unittest.TestCase):

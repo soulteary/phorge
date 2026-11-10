@@ -8,8 +8,8 @@ profile pins and refuse before native initialization when invoked directly.
 ## Fixed lifecycle
 
 1. Verify committed recipe files and an exact reviewed metadata-recipe lock, the
-   current source admission, target `15d4f76d9c1c12256f82e53435be038422e205a5`
-   / tree `2affc55aa9e4aecd3175b8b56adf31d0a93828a3`, actual loopback-only
+   current source admission, target `577ae2eb82d854753b88f2985a154e409272068a`
+   / tree `f4d5435523b65587f54465b9c5712ad0b0d8f8f8`, actual loopback-only
    disposable MySQL 8.4.13 image and PHP 8.5.12 with CLI OPcache/JIT disabled.
 2. Reuse the real metadata recipe's fresh owned namespace, standard native base
    upgrades and two native admin accounts/tokens plus ordinary recipient and

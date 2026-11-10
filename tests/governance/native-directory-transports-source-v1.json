@@ -54,12 +54,12 @@
       "sha256": "6eb1a8e9c5eb21eac699c507d65046d6b54497eecef3223e88c3ce70483d4847"
     },
     "scripts/governance/project_description_admission_delta.py": {
-      "bytes": 225095,
-      "sha256": "a1020e5014df3fd1605aea63532bf48ebb755704712cc0991c1e829fc06a6667"
+      "bytes": 260245,
+      "sha256": "f493b02c86a134cff00d92858d40525e83eae89c4e1059bd0474a50ffa5377c0"
     },
     "scripts/governance/project_description_source_delta.py": {
       "bytes": 148224,
-      "sha256": "903cea29522e10be5471a1774118984faa70916a343a3d7d1a865c9507ea8fde"
+      "sha256": "0f2a3c40792d63f0c3d7f135decd5c2023c773c0c412b83db93d6e0712a8dccc"
     },
     "scripts/governance/project_directory_transport_failure_v1.py": {
       "bytes": 8490,
@@ -306,6 +306,6 @@
       "sha256": "73f23b9eb86b5bb4b41ac3055ba7b552d8f9f5d7bc52ec9b10687d785e1a5ac0"
     }
   },
-  "production_git_tree_inventory_sha256": "bfc20abfbc118dc29ed9ac4a958b7769f654d7f8fd13e3e1849f12f702b8ddb3",
+  "production_git_tree_inventory_sha256": "b8da066aef90d1043c7e093939a5e9cb30a7eb8600e5980848f6e92545c33034",
   "schema": "native-directory-transports-source-v1"
 }

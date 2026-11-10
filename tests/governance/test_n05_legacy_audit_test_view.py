@@ -18,7 +18,12 @@ class LegacyView(unittest.TestCase):
  def test_repair_guard_is_exact_actual_combined_target_and_test_only(self):
   self.assertEqual(view.CURRENT_REVISION,'512282be298c7996fc6370156c333d7557b1685a');self.assertEqual(len(view.REPAIR_SOURCE_PINS),9)
   for path,pin in view.REPAIR_SOURCE_PINS.items():
-   raw=(ROOT/path).read_bytes();self.assertEqual(raw,view.git_bytes(view.CURRENT_REVISION,path));self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
+   raw=(ROOT/path).read_bytes()
+   if path in view.METADATA_PATHS:prior=view.n05._normalize_metadata(path,raw)
+   elif path=='scripts/governance/check_native_directory.py':
+    self.assertEqual(raw,view.git_bytes(view.n05.TARGET,path));prior=view.git_bytes(view.CURRENT_REVISION,path)
+   else:prior=raw
+   self.assertEqual(prior,view.git_bytes(view.CURRENT_REVISION,path));self.assertEqual(hashlib.sha256(prior).hexdigest(),pin)
   source=ROOT/'scripts/governance'
   for p in source.glob('*.py'):
    for node in ast.walk(ast.parse(p.read_text())):
@@ -33,6 +38,21 @@ class LegacyView(unittest.TestCase):
    self.assertEqual(view.historical_metadata_source(path,raw),old);self.assertEqual((ROOT/path).read_bytes(),raw)
    with self.assertRaises(ValueError):view.historical_metadata_source(path,raw+b'unknown')
   with self.assertRaises(ValueError):view.historical_metadata_source('tests/unreviewed.py',b'unknown')
+ def test_new_metadata_refuses_exact_previous_current_payload_and_checker_mixed_sources(self):
+  for path in view.METADATA_PATHS:
+   current=(ROOT/path).read_bytes();previous=view.git_bytes(view.CURRENT_REVISION,path)
+   self.assertNotEqual(current,previous)
+   with self.subTest(path=path),self.assertRaises(ValueError):view.historical_metadata_source(path,previous)
+  path='scripts/governance/check_native_directory.py'
+  for mode in ('unknown','old-512','executable','missing'):
+   with self.subTest(mode=mode),tempfile.TemporaryDirectory()as td:
+    root=Path(td).resolve();self.fixture(root)
+    raw=(root/path).read_bytes()
+    if mode=='executable':(root/path).chmod(0o755)
+    elif mode=='missing':(root/path).unlink()
+    else:(root/path).write_bytes(raw+b'unknown'if mode=='unknown'else view.git_bytes(view.CURRENT_REVISION,path))
+    with self.assertRaises((ValueError,OSError)):view.verify_current_cohort(root)
+  with patch.object(view.n05,'TARGET',view.CURRENT_REVISION),self.assertRaises(ValueError):view.verify_current_cohort(ROOT)
  def test_missing_mixed_and_double_patched_metadata_cannot_become_historical(self):
   for mode in ('missing','mixed','double-patched'):
    with self.subTest(mode=mode),tempfile.TemporaryDirectory()as td:

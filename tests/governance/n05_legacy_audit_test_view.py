@@ -20,9 +20,19 @@ def git_bytes(revision,path):
 def require(value):
  if not value:raise ValueError('unreviewed N05 legacy test view')
 def verify_current_cohort(root):
- root=Path(root);n05.assert_production_cohort(root)
+ root=Path(root);n05.assert_current_recipe(root)
  for name,pin in REPAIR_SOURCE_PINS.items():
-  raw=(root/name).read_bytes();require(type(raw)is bytes and hashlib.sha256(raw).hexdigest()==pin and raw==git_bytes(CURRENT_REVISION,name))
+  raw=n05.description.checked_bytes(root/name)
+  if name in METADATA_PATHS:
+   require(name in n05.CURRENT_METADATA);prior=n05._normalize_metadata(name,raw)
+  elif name=='scripts/governance/check_native_directory.py':
+   # The one reviewed native-target checker is inside the runtime perimeter,
+   # not an offline exception. Prove its actual current native bytes first.
+   mode=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree',n05.TARGET,'--',name]).split(b' ',1)[0]
+   require(mode==b'100644'and (root/name).stat().st_mode&0o7777==0o644 and raw==git_bytes(n05.TARGET,name))
+   prior=git_bytes(CURRENT_REVISION,name)
+  else:prior=raw
+  require(type(prior)is bytes and hashlib.sha256(prior).hexdigest()==pin and prior==git_bytes(CURRENT_REVISION,name))
  for name,pin in n05.FIXTURE_METADATA_PINS.items():
   raw=(root/name).read_bytes();require(hashlib.sha256(raw).hexdigest()==pin and raw==git_bytes(CURRENT_REVISION,name))
  require(set(CURRENT_PINS)==set(CLOSED_PATHS))
@@ -48,7 +58,8 @@ def historical_metadata_source(path,raw,root=ROOT):
  require(path in METADATA_PATHS);verify_current_cohort(root)
  require(set(METADATA_CURRENT_PINS)==set(METADATA_PRIOR_PINS)==set(METADATA_PATHS))
  for name in METADATA_PATHS:
-  current=(Path(root)/name).read_bytes()
-  require(type(current)is bytes and hashlib.sha256(current).hexdigest()==METADATA_CURRENT_PINS[name] and current==git_bytes(CURRENT_REVISION,name))
+  current=n05.description.checked_bytes(Path(root)/name);require(name in n05.CURRENT_METADATA)
+  previous=n05._normalize_metadata(name,current)
+  require(type(previous)is bytes and hashlib.sha256(previous).hexdigest()==METADATA_CURRENT_PINS[name] and previous==git_bytes(CURRENT_REVISION,name))
  require(type(raw)is bytes and raw==(Path(root)/path).read_bytes())
  prior=git_bytes(METADATA_PRIOR_REVISION,path);require(hashlib.sha256(prior).hexdigest()==METADATA_PRIOR_PINS[path]);return prior
