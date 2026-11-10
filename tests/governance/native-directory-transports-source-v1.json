@@ -298,6 +298,6 @@
       "sha256": "a4ee1ecb3a8f9bfd11b5d9ac23522131c6424352c40764b814445514f5b47cd4"
     }
   },
-  "production_git_tree_inventory_sha256": "f935583df9a7847f6988022cac54600b36c28684dce7a7bc1ef59d235883e1eb",
+  "production_git_tree_inventory_sha256": "d9032eb0282befb7739b0b088b282c1d7bed25389e8d6229da6cb9011beb767c",
   "schema": "native-directory-transports-source-v1"
 }

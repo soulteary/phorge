@@ -9,7 +9,7 @@ WT=ROOT
 class Tests(unittest.TestCase):
  def test_actual_native_patch_and_schema_registration_no_SQL(self):
   script="define('N05_QUALIFICATION_LIBRARY_ONLY',true);require "+json.dumps(str(Q.HERE/'native.php'))+";qload("+json.dumps(str(WT))+");echo json_encode(qdiscover());"
-  r=subprocess.run(['php','-r',script],capture_output=True,text=True,timeout=30);self.assertEqual(r.returncode,0,r.stderr);d=json.loads(r.stdout);self.assertTrue(d['native_patch_discovered']);self.assertTrue(d['native_schema_spec_registered']);self.assertFalse(d['default_enabled']);self.assertFalse(d['execution_authorized']);self.assertEqual(d['patch_sha256'],'2dbbd2c1305a467c164470fd9e7b2830e32ad282fa2cc6a1ec74e8bef0d7a249')
+  r=subprocess.run(['php','-r',script],capture_output=True,text=True,timeout=30);self.assertEqual(r.returncode,0,r.stderr);d=json.loads(r.stdout);self.assertTrue(d['native_patch_discovered']);self.assertTrue(d['native_schema_spec_registered']);self.assertFalse(d['default_enabled']);self.assertFalse(d['execution_authorized']);self.assertEqual(d['patch_sha256'],'16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e')
  def test_defaultOFF_gate(self):
   with self.assertRaises(ValueError):Q.bind('/no/read','/no/read','/no/read')
  def test_upgrade_is_standard_native(self):

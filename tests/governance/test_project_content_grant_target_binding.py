@@ -23,9 +23,12 @@ class ActualTargetBinding(unittest.TestCase):
    subprocess.run(['/usr/bin/git','clone','--shared','--no-checkout','--',str(ROOT),str(native)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
    subprocess.run(['/usr/bin/git','-C',str(native),'checkout','--detach',CI.TARGET],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
    bound=CI.bind_manifest(path,folder,'qualification',native);self.assertEqual(bound['schema'],'N05-CI-bound-reviewed-source-v2');self.assertEqual(bound['native_git_revision'],CI.TARGET)
-  with self.assertRaises(ValueError):CI.bind_manifest(path,folder,'qualification',ROOT)
+   subprocess.run(['/usr/bin/git','-C',str(native),'checkout','--detach',CI.TARGET+'^'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
+   with self.assertRaises(ValueError):CI.bind_manifest(path,folder,'qualification',native)
+  if subprocess.check_output(['/usr/bin/git','-C',str(ROOT),'rev-parse','HEAD']).decode().strip()!=CI.TARGET:
+   with self.assertRaises(ValueError):CI.bind_manifest(path,folder,'qualification',ROOT)
   f=json.loads(path.read_bytes())
-  for key,value in [('schema','N05-CI-reviewed-source-template-v1'),('native_git_revision','79987a76658150e77fc5266fae13c2eaed934ff2'),('native_git_tree','0'*40)]:
+  for key,value in [('native_git_revision','ef7be9c5c62e1fd93e358c556706261e85558960'),('schema','N05-CI-reviewed-source-template-v1'),('native_git_revision','79987a76658150e77fc5266fae13c2eaed934ff2'),('native_git_tree','0'*40)]:
    with tempfile.TemporaryDirectory()as td:
     p=Path(td)/'template.json';p.write_text(json.dumps(dict(f,**{key:value})))
     with self.assertRaises(ValueError):CI.bind_manifest(p,folder,'qualification',ROOT)
@@ -36,6 +39,17 @@ class ActualTargetBinding(unittest.TestCase):
   with patch.object(Q.subprocess,'check_output',side_effect=[Q.TARGET.encode(),Q.TARGET_TREE.encode()]),patch.object(Q.subprocess,'run',side_effect=subprocess.CalledProcessError(1,['git'])),self.assertRaises(subprocess.CalledProcessError):Q.source_root_identity(Path('/synthetic'))
   with patch.object(Q.subprocess,'check_output',side_effect=[Q.TARGET.encode(),Q.TARGET_TREE.encode()]),patch.object(Q.subprocess,'run')as run:
    Q.source_root_identity(Path('/synthetic'));run.assert_called_once_with(['/usr/bin/git','--no-replace-objects','-C','/synthetic','diff','--quiet','HEAD'],check=True)
+ def test_signed_commentfix_target_inventory_changes_only_the_reviewed_DDL(self):
+  path=ROOT/'support/governance/project-content-grants-ci/qualification-template.json'
+  current=json.loads(path.read_bytes());previous=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','05a45fa349d7afc63a89846ad663538bf994ef38:support/governance/project-content-grants-ci/qualification-template.json']))
+  key='native_source_inventory';self.assertEqual(set(current[key]),set(previous[key]));self.assertEqual(len(current[key]),45)
+  changed={n for n in current[key]if current[key][n]!=previous[key][n]}
+  self.assertEqual(changed,{'resources/sql/autopatches/20261110.project.contentgrants.sql'})
+  self.assertEqual(current[key][next(iter(changed))]['sha256'],'16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e')
+  self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'rev-parse',CI.TARGET+'^{tree}']).decode().strip(),CI.TREE)
+  baseline='support/governance/project-content-grants-ci/prerequisites-template.json'
+  old=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','05a45fa349d7afc63a89846ad663538bf994ef38:'+baseline]));now=json.loads((ROOT/baseline).read_bytes())
+  self.assertEqual(now['native_public_source_dependencies'],old['native_public_source_dependencies']);self.assertEqual(len(now['native_public_source_dependencies']),36)
  def test_four_fixture_metadata_paths_need_complete_exact_root_and_historical_bytes(self):
   d=load('stageB_N05_delta',ROOT/'scripts/governance/project_content_grant_source_delta.py');raw={n:(ROOT/n).read_bytes()for n in d.FIXTURE_METADATA_PINS};changed,out=d.fixture_historical_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',set(raw),raw);self.assertEqual(changed,set());self.assertEqual(out,{})
   bad=dict(raw);name=next(iter(raw));bad[name]+=b'unknown'

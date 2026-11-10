@@ -50,7 +50,7 @@ class SignedSourceBinding(unittest.TestCase):
    if name!='support/governance/completion/fixture.php':self.assertEqual(actual,self.git('show',BASE+':'+name))
    else:
     self.assertEqual(pin,'8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b');self.assertEqual(actual.replace(b",\n      '20261110.project.contentgrants.sql');",b');'),self.git('show',BASE+':'+name))
-  self.assertEqual(hashlib.sha256((ROOT/'resources/sql/autopatches/20261110.project.contentgrants.sql').read_bytes()).hexdigest(),'2dbbd2c1305a467c164470fd9e7b2830e32ad282fa2cc6a1ec74e8bef0d7a249')
+  self.assertEqual(hashlib.sha256((ROOT/'resources/sql/autopatches/20261110.project.contentgrants.sql').read_bytes()).hexdigest(),'16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e')
   def overlay(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='OVERLAY'for t in n.targets))
   current=overlay((ROOT/PATH).read_bytes());self.assertEqual(len(current),8);before=overlay(self.git('show',BASE+':'+PATH));self.assertEqual(set(current),set(before));self.assertEqual({n for n in current if current[n]!=before[n]},{'support/governance/media-session-positive/source-pins.json','support/governance/media-session-positive/run.php'})
   for name,pin in current.items():self.assertEqual(hashlib.sha256((ROOT/name).read_bytes()).hexdigest(),pin)
