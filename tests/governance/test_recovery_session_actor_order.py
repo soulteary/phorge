@@ -42,5 +42,8 @@ class SessionActorOrder(unittest.TestCase):
   for line in [b"    'PhorgeRecoveryConduitProducerFence' => 'infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php',\n",b"    'PhorgeRecoveryConduitProducerFence' => 'Phobject',\n"]:
    self.assertEqual(1,reduced.count(line));reduced=reduced.replace(line,b'',1)
   self.assertEqual(hashlib.sha256(reduced).hexdigest(),a['src/__phutil_library_map__.php'])
-  relative='support/governance/native-organization/test-native-organization-mysql.php';self.assertEqual(b[relative],hashlib.sha256((ROOT/relative).read_bytes()).hexdigest());self.assertEqual(b['support/governance/recovery/session-lease-focused.php'],hashlib.sha256((ROOT/'support/governance/recovery/session-lease-focused.php').read_bytes()).hexdigest())
+  relative='support/governance/native-organization/test-native-organization-mysql.php';driver=(ROOT/relative).read_bytes();historical_driver=conduit_delta.reduce_policy_cleanup_driver(driver);self.assertNotEqual(driver,historical_driver);self.assertEqual(b[relative],hashlib.sha256(historical_driver).hexdigest());self.assertEqual(conduit_delta.reduce_policy_cleanup_driver(historical_driver),historical_driver)
+  for bad in (driver+b'unknown',driver.replace(b'governance_policy_nested_cleanup_permitted',b'governance_policy_nested_cleanup_unknown',1)):
+   with self.subTest(stage='policy-cleanup-driver'),self.assertRaises(ValueError):conduit_delta.reduce_policy_cleanup_driver(bad)
+  self.assertEqual(b['support/governance/recovery/session-lease-focused.php'],hashlib.sha256((ROOT/'support/governance/recovery/session-lease-focused.php').read_bytes()).hexdigest())
 if __name__=='__main__':unittest.main()

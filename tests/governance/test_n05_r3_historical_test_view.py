@@ -143,7 +143,13 @@ class R3HistoricalView(unittest.TestCase):
   import json,subprocess
   name=view._BATCH_PATH;stage=view._BATCH_REVIEWED_ED66
   reviewed=view._batch_stage_bytes(view.ROOT,stage)
-  self.assertEqual(reviewed,(view.ROOT/name).read_bytes())
+  actual=(view.ROOT/name).read_bytes()
+  view.current.assert_current_recipe(view.ROOT)
+  self.assertNotEqual(reviewed,actual)
+  self.assertEqual(view._policy_ack_batch_to_ed66(name,actual),reviewed)
+  for bad in (actual+b'unknown',reviewed):
+   with self.subTest(stage='policy-ack-current',mutated=bad!=reviewed),self.assertRaises(ValueError):
+    view._policy_ack_batch_to_ed66(name,bad)
   mainline=view._batch_stage_bytes(view.ROOT,view._BATCH_MAINLINE)
   self.assertNotEqual(reviewed,mainline)
   before=json.loads(mainline);after=json.loads(reviewed)

@@ -11,6 +11,36 @@ function governance_policy_nested_result(array $ready,array $result,$owner) {
     $result['primary_error_preserved']!==true||$result['unknown_not_acknowledged']!==true||$result['retry_attempted']!==false){
     throw new RuntimeException('nested_fixture_protocol_refused');}
 }
+function governance_policy_nested_snapshot_diagnostic(array $before,array $after) {
+  $domains=array('actor','audit','native','project','queue','sessions','ticket');
+  $bk=array_keys($before);$ak=array_keys($after);sort($bk);sort($ak);
+  if($bk!==$domains||$ak!==$domains){throw new RuntimeException('nested_fixture_snapshot_domains_refused');}
+  // Fixed public field names only. No row values, SQL identifiers, session IDs or credentials.
+  $allowed=array('consumedAt','dateModified','dateUpdated','editPolicy','isDisabled','nativeGroupID','sessionExpires','sessionStart','state');
+  $out=array();
+  foreach($domains as$domain){
+    if(!array_is_list($before[$domain])||!array_is_list($after[$domain])){throw new RuntimeException('nested_fixture_snapshot_shape_refused');}
+    foreach(array($before[$domain],$after[$domain])as$rows){foreach($rows as$row){
+      if(!is_array($row)){throw new RuntimeException('nested_fixture_snapshot_shape_refused');}
+      foreach($row as$value){if(!is_scalar($value)&&$value!==null){throw new RuntimeException('nested_fixture_snapshot_shape_refused');}}
+    }}
+    if($before[$domain]===$after[$domain]){continue;}
+    $changed=array();$other=false;$columns=array();
+    foreach(array_merge($before[$domain],$after[$domain])as$row){foreach(array_keys($row)as$key){$columns[$key]=true;}}
+    foreach(array_keys($columns)as$key){
+      $extract=static function($rows)use($key){return array_map(static fn($row)=>array(array_key_exists($key,$row),$row[$key]??null),$rows);};
+      if($extract($before[$domain])===$extract($after[$domain])){continue;}
+      if(in_array($key,$allowed,true)){$changed[]=$key;}else{$other=true;}
+    }
+    sort($changed);$out[$domain]=array('before_count'=>count($before[$domain]),'after_count'=>count($after[$domain]),
+      'before_sha256'=>hash('sha256',json_encode($before[$domain],JSON_THROW_ON_ERROR)),
+      'after_sha256'=>hash('sha256',json_encode($after[$domain],JSON_THROW_ON_ERROR)),
+      'changed_columns'=>$changed,'other_columns_changed'=>$other);
+  }
+  $raw=json_encode($out,JSON_THROW_ON_ERROR);
+  if(strlen($raw)>4096){throw new RuntimeException('nested_fixture_snapshot_diagnostic_bounds_refused');}
+  return $raw;
+}
 function governance_project_policy_nested_process($fixture,callable $check,array $actor,$project,$ticket) {
   $fixture->assertOwned();$ns=$fixture->getNamespace();$config=$fixture->getWriterConfig();
   $control=(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'control'))->getValue($fixture);
@@ -79,7 +109,9 @@ function governance_project_policy_nested_process($fixture,callable $check,array
   $until=microtime(true)+3;$live_transaction=false;
   do{if($observe()===array(1,1)){$live_transaction=true;break;}usleep(20000);}while(microtime(true)<$until);
   if(!$live_transaction){throw new RuntimeException('nested_fixture_quarantine_transaction_not_observed');}
-  $check($snapshot()===$before,'project-approval-native-nested-error-isolated-uncommitted-while-child-quarantined');
+  $quarantined_snapshot=$snapshot();$snapshot_equal=$quarantined_snapshot===$before;
+  $check($snapshot_equal,'project-approval-native-nested-error-isolated-uncommitted-while-child-quarantined'.
+    ($snapshot_equal?'':':'.governance_policy_nested_snapshot_diagnostic($before,$quarantined_snapshot)));
   $write('release',$owner);$until=microtime(true)+8;$terminal=null;
   do{$owned();$status=proc_get_status($process);if(!$status['running']){$terminal=$status;break;}usleep(20000);}while(microtime(true)<$until);
   if($terminal===null||$terminal['signaled']||!in_array($terminal['exitcode'],array(73,255),true)){
