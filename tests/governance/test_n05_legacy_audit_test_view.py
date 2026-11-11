@@ -1,5 +1,5 @@
 """Negative coverage for exact historical-only test views; no native SQL."""
-import ast,hashlib,subprocess,tempfile,unittest
+import shutil,ast,hashlib,subprocess,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 import n05_legacy_audit_test_view as view
@@ -7,7 +7,8 @@ ROOT=Path(__file__).resolve().parents[2]
 class LegacyView(unittest.TestCase):
  def fixture(self,root):
   for n in set(view.CLOSED_PATHS)|set(view.n05.PRODUCTION_PINS)|set(view.n05.FIXTURE_METADATA_PINS)|set(view.REPAIR_SOURCE_PINS)|set(view.METADATA_PATHS)|set(view.n05.description.CURRENT_PINS)|set(view.n05.CURRENT_METADATA)|{view.n05.MANIFEST,view.n05.BRIDGE,view.n05.PREPARATION,view.n05.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}:
-   p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes())
+   p=root/n;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/n,p,follow_symlinks=False)
+  view.verify_current_cohort(root)
  def test_six_whole_sources_equal_real_prior_Git_without_changing_runtime_files(self):
   for path in view.CLOSED_PATHS:
    raw=(ROOT/path).read_bytes()

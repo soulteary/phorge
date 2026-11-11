@@ -1,5 +1,5 @@
 """Actual source admission graph and real Git bindings; never SQL execution."""
-import copy,hashlib,importlib.util,json,subprocess,sys,tempfile,unittest
+import os,shutil,copy,hashlib,importlib.util,json,subprocess,sys,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
@@ -8,11 +8,31 @@ import project_description_admission_delta as admission
 import check_directory_transports_v1 as directory
 def ci_module():
  p=ROOT/'support/governance/project-content-grants-ci/ci.py';s=importlib.util.spec_from_file_location('actual_T3_admission_CI',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+def restore_tracked_Git_modes(root,revision):
+ # Checkout applies umask; restore only modes proven by this exact Git tree.
+ records=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'ls-tree','-rz',revision]).split(b'\0')
+ for record in filter(None,records):
+  header,name=record.split(b'\t',1);mode,kind,oid=header.split();p=root/name.decode()
+  if kind!=b'blob':raise ValueError('unexpected tracked fixture kind')
+  if mode==b'120000':
+   if not p.is_symlink() or os.fsencode(os.readlink(p))!=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'cat-file','blob',oid.decode()]):raise ValueError('unexpected tracked fixture symlink')
+  elif mode in (b'100644',b'100755'):
+   if p.is_symlink() or not p.is_file():raise ValueError('unexpected tracked fixture file')
+   p.chmod(0o644 if mode==b'100644' else 0o755)
+  else:raise ValueError('unexpected tracked fixture mode')
 class DescriptionAdmission(unittest.TestCase):
  def copy_recipe(self,root):
   paths=set(admission.CURRENT_METADATA)|set(admission.description.CURRENT_PINS)|{admission.MANIFEST,admission.BRIDGE,admission.PREPARATION,admission.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
   for p in paths:
-   target=root/p;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes((ROOT/p).read_bytes())
+   target=root/p;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/p,target,follow_symlinks=False)
+ def test_fixture_copy_preserves_source_modes_and_current_mode_mutation_refuses(self):
+  with tempfile.TemporaryDirectory()as tmp:
+   root=Path(tmp).resolve();self.copy_recipe(root)
+   for name in admission.description.CURRENT_PINS:
+    self.assertEqual((root/name).stat().st_mode&0o7777,(ROOT/name).stat().st_mode&0o7777)
+   admission.assert_current_recipe(root)
+   state=root/admission.description.NATIVE_STATE_BASELINE['path'];state.chmod(0o600)
+   with self.assertRaises(ValueError):admission.assert_current_recipe(root)
  def test_actual_current_recipe_and_full_production_inventory_pass_before_revision_binding(self):
   self.assertEqual(admission.assert_current_recipe(ROOT)['production_paths'],18)
   data=directory.source(ROOT);self.assertEqual(data,admission.expected_manifest(ROOT));self.assertEqual(len(data['pins']),76)
@@ -21,6 +41,7 @@ class DescriptionAdmission(unittest.TestCase):
   ci=ci_module();self.assertEqual(ci.TARGET,admission.TARGET)
   with tempfile.TemporaryDirectory()as t:
    native=Path(t).resolve()/'native';subprocess.run(['git','clone','--shared','--no-checkout','--',str(ROOT),str(native)],check=True,capture_output=True);subprocess.run(['git','-C',str(native),'checkout','--detach',ci.TARGET],check=True,capture_output=True)
+   restore_tracked_Git_modes(native,ci.TARGET)
    self.assertEqual(ci.source(native,ci.TARGET),ci.TREE)
    manifest=ci.bind_manifest(ROOT/'support/governance/project-content-grants-ci/qualification-template.json',ROOT/'support/governance/project-content-grants-qualification','qualification',native);self.assertEqual(len(manifest['native_source_inventory']),49)
    # A native target is not the later reviewed recipe; no borrowed current-source approval.
@@ -57,6 +78,7 @@ print(json.dumps(results))
    root=Path(t).resolve()/'recipe'
    subprocess.run(['git','--no-replace-objects','-c','core.hooksPath=/dev/null','clone','--shared','--no-checkout','--',str(ROOT),str(root)],check=True,capture_output=True)
    subprocess.run(['git','--no-replace-objects','-c','core.hooksPath=/dev/null','-C',str(root),'checkout','--detach',revision],check=True,capture_output=True)
+   restore_tracked_Git_modes(root,revision)
    def check(expected):
     status=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'status','--porcelain','--untracked-files=no'])
     self.assertEqual(bool(status),expected=='dirty')

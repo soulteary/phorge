@@ -1,3 +1,4 @@
+import shutil
 """Offline workflow and exact source-cohort controls; never run native bootstrap."""
 import hashlib,importlib.util,json,os,subprocess,tempfile,unittest
 from pathlib import Path
@@ -77,7 +78,8 @@ class ExactCICohort(unittest.TestCase):
    root=Path(td).resolve()
    names=set(d.PINS)|set(d.CURRENT_METADATA)|set(d.description.CURRENT_PINS)|{d.MANIFEST,d.BRIDGE,d.PREPARATION,'scripts/governance/project_content_grant_ci_source_delta.py'}
    for name in names:
-    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes())
+    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,p,follow_symlinks=False)
+   self.assertEqual(d.assert_cohort(root),set(d.PINS))
    path=root/'support/governance/project-content-grants-ci/prerequisites/provision.py';path.write_bytes(path.read_bytes()+b'\n# unknown')
    with self.assertRaises(ValueError):d.assert_cohort(root)
    path.unlink()

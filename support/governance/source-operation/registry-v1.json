@@ -2038,8 +2038,8 @@
         "sha256": "9f869b10ccdb90613dd8787518d94919bcde48a6eaa52edce65f20556fa2bc32"
       },
       "current": {
-        "bytes": 8104,
-        "sha256": "2dda4196f064d5c32dc63dbd07a3b9fa6312a4b5b77a52b1b58a064043cd08e9"
+        "bytes": 8154,
+        "sha256": "61220331089aba0fb11c0736500bfda91de7a1147044f2d631795e13712edae8"
       }
     },
     "tests/governance/test_project_content_grant_ci_workflow.py": {
@@ -2048,8 +2048,8 @@
         "sha256": "6931986050c27cc4eba159111ad398c70edea982896fe348a2da7f856556a8d6"
       },
       "current": {
-        "bytes": 8316,
-        "sha256": "4323d00a1c8376b0bf9883a390f4cb9f8d3dbd2e7f2035c254e04a7b5415827b"
+        "bytes": 8393,
+        "sha256": "c6463103e9ea60f2e2a445462d4bc59330aba83c3f3c78c3bcc2b6ae739ab003"
       }
     },
     "tests/governance/test_project_content_grant_source_cohort.py": {
@@ -2058,8 +2058,8 @@
         "sha256": "c220cd4fbdb92337b81fc63566cfc05cd08bd48c7dd8ac68b634bdff386130cc"
       },
       "current": {
-        "bytes": 4987,
-        "sha256": "8b27a333dbbe7129e89a8b68c473750420de3b924af69183badf180278658722"
+        "bytes": 5002,
+        "sha256": "f9b2ebb3a5310828ff90e4146021bc52e1d66c105c12d6b758ee8886e92c1658"
       }
     },
     "tests/governance/test_project_content_grant_target_binding.py": {
@@ -2078,8 +2078,8 @@
         "sha256": "3ee338d77f43985223810acfc1ca3fcc5fbc9f85f9b14139b43ed4444b779ba2"
       },
       "current": {
-        "bytes": 7823,
-        "sha256": "7ccbe47bc63ffe7c029f2f156b602fc9c17f6f4e0814c3b1b71bd9ef8ae98125"
+        "bytes": 9365,
+        "sha256": "53813e2f11c62f51aaf06c6d14ded9d4c0a75aa911e19760c798b657180e335c"
       }
     },
     "tests/governance/test_project_description_current_consumers.py": {
@@ -2088,8 +2088,8 @@
         "sha256": "17b7e5e28250ac56b3e60bde59b3027053a48594a781bf1bad5a08a9bce149fd"
       },
       "current": {
-        "bytes": 7859,
-        "sha256": "e6034f1748d318f5e44a29e0e8faf5b07f6363da49db95e45992636b1063ba7d"
+        "bytes": 9129,
+        "sha256": "36349df24c7d8e6e7f7f05ab0610d778349a889ea7294e5262e1e10b0a685ce6"
       }
     },
     "tests/governance/test_project_description_main_integration.py": {

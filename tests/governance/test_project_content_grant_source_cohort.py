@@ -1,5 +1,5 @@
 """Exact merged N05 bytes preserve prior native/tooling source cohorts."""
-import hashlib,sys,subprocess,tempfile,unittest
+import shutil,hashlib,sys,subprocess,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
@@ -24,7 +24,7 @@ class NativeGrantCohort(unittest.TestCase):
    root=Path(t).resolve()
    names=set(delta.PRODUCTION_PINS)|set(delta.CURRENT_METADATA)|{delta.MANIFEST,delta.BRIDGE,delta.PREPARATION,delta.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
    for n in names:
-    p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes())
+    p=root/n;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/n,p,follow_symlinks=False)
    delta.assert_production_cohort(root)
    n='src/infrastructure/governance/content/PhorgeProjectContentGrantService.php';p=root/n;raw=p.read_bytes();p.write_bytes(raw+b'\n// unknown')
    with self.assertRaises(ValueError):delta.assert_production_cohort(root)

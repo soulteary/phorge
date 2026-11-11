@@ -21,6 +21,18 @@ for name,call in [('cohort',lambda:admission.assert_production_cohort(root)),('a
  except (ValueError,OSError):out[name]={'accepted':False}
 print(json.dumps(out,sort_keys=True))
 '''
+def restore_tracked_Git_modes(root,revision):
+ # Checkout applies umask; restore only modes proven by this exact Git tree.
+ records=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'ls-tree','-rz',revision]).split(b'\0')
+ for record in filter(None,records):
+  header,name=record.split(b'\t',1);mode,kind,oid=header.split();p=root/name.decode()
+  if kind!=b'blob':raise ValueError('unexpected tracked fixture kind')
+  if mode==b'120000':
+   if not p.is_symlink() or os.fsencode(os.readlink(p))!=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'cat-file','blob',oid.decode()]):raise ValueError('unexpected tracked fixture symlink')
+  elif mode in (b'100644',b'100755'):
+   if p.is_symlink() or not p.is_file():raise ValueError('unexpected tracked fixture file')
+   p.chmod(0o644 if mode==b'100644' else 0o755)
+  else:raise ValueError('unexpected tracked fixture mode')
 class CurrentRecipeConsumerClosure(unittest.TestCase):
  @classmethod
  def setUpClass(cls):
@@ -28,9 +40,10 @@ class CurrentRecipeConsumerClosure(unittest.TestCase):
   subprocess.run(['git','clone','--shared','--no-checkout','--',str(ROOT),str(cls.clone)],check=True,capture_output=True)
   revision=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
   subprocess.run(['git','-C',str(cls.clone),'checkout','--detach',revision],check=True,capture_output=True)
+  restore_tracked_Git_modes(cls.clone,revision)
   changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','HEAD'],text=True).splitlines();added=subprocess.check_output(['git','-C',str(ROOT),'ls-files','--others','--exclude-standard'],text=True).splitlines()
   for name in set(changed)|set(added):
-   p=cls.clone/name;p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/name,p)
+   p=cls.clone/name;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,p,follow_symlinks=False)
  @classmethod
  def tearDownClass(cls):cls.owned.cleanup()
  def observe(self):
@@ -56,13 +69,14 @@ class CurrentRecipeConsumerClosure(unittest.TestCase):
    root=Path(tmp).resolve()/'baseline'
    subprocess.run(['git','clone','--shared','--no-checkout','--',str(ROOT),str(root)],check=True,capture_output=True)
    subprocess.run(['git','-C',str(root),'checkout','--detach','c4b2ae7cc72a91ff942f08f9b4725104f114640c'],check=True,capture_output=True)
+   restore_tracked_Git_modes(root,'c4b2ae7cc72a91ff942f08f9b4725104f114640c')
    sys.path.insert(0,str(ROOT/'scripts/governance'));import check_recovery_oauth_authorization_producer_v1 as native
    self.assertEqual(len(native.SQL_obligations(root)),20)
  def test_mixed_R3_native_to_main_projection_plus_unknown_metadata_refuses(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import project_description_admission_delta as current
   import check_recovery_oauth_authorization_producer_v1 as native
   snapshot=current.description.current_snapshot(ROOT);prior=current.description.reconstruct_main(snapshot)
-  names=set(snapshot)|{'.github/workflows/project-description-focused.yml'};saved={n:(self.clone/n).read_bytes()for n in names}
+  names=set(snapshot)|{'.github/workflows/project-description-focused.yml'};saved={n:((self.clone/n).read_bytes(),(self.clone/n).stat().st_mode&0o7777)for n in names}
   try:
    for n in snapshot:
     p=self.clone/n
@@ -72,7 +86,7 @@ class CurrentRecipeConsumerClosure(unittest.TestCase):
    with self.assertRaises((ValueError,FileNotFoundError)):current.assert_current_recipe(self.clone)
    with self.assertRaises(ValueError):native.SQL_obligations(self.clone)
   finally:
-   for n,raw in saved.items():p=self.clone/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw)
+   for n,(raw,mode) in saved.items():p=self.clone/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw);p.chmod(mode)
  def test_historical_c4_dirty_and_untracked_metadata_cannot_bypass(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import check_recovery_oauth_authorization_producer_v1 as native
   for mode in ('dirty','untracked'):
@@ -80,6 +94,7 @@ class CurrentRecipeConsumerClosure(unittest.TestCase):
     root=Path(tmp).resolve()/'baseline'
     subprocess.run(['git','clone','--shared','--no-checkout','--',str(ROOT),str(root)],check=True,capture_output=True)
     subprocess.run(['git','-C',str(root),'checkout','--detach','c4b2ae7cc72a91ff942f08f9b4725104f114640c'],check=True,capture_output=True)
+    restore_tracked_Git_modes(root,'c4b2ae7cc72a91ff942f08f9b4725104f114640c')
     p=root/('.github/workflows/atomic-feature-regressions.yml'if mode=='dirty'else '.github/workflows/unknown-description.yml')
     p.write_bytes((p.read_bytes()if p.exists()else b'')+b'\n# unknown metadata')
     with self.assertRaises(ValueError):native.SQL_obligations(root)
@@ -89,6 +104,7 @@ class CurrentRecipeConsumerClosure(unittest.TestCase):
    root=Path(tmp).resolve()/'baseline'
    subprocess.run(['git','clone','--shared','--no-checkout','--',str(ROOT),str(root)],check=True,capture_output=True)
    subprocess.run(['git','-C',str(root),'checkout','--detach','c4b2ae7cc72a91ff942f08f9b4725104f114640c'],check=True,capture_output=True)
+   restore_tracked_Git_modes(root,'c4b2ae7cc72a91ff942f08f9b4725104f114640c')
    name='bin/rebuild-library-map';subprocess.run(['git','-C',str(root),'update-index','--skip-worktree',name],check=True,capture_output=True)
    p=root/name;p.write_bytes(p.read_bytes()+b'\n# unknown executable bytes')
    self.assertEqual(subprocess.check_output(['git','-C',str(root),'status','--porcelain']),b'')
