@@ -17,10 +17,47 @@ def phase(which):
  if which=='atomic':text=text.split('# BEGIN isolated OAuth access-token SQL8',1)[1]
  else:text=text.split('      - name: Run only actual native OAuth',1)[1]
  return textwrap.dedent(text.split('        run: |\n',1)[1].split('      - uses:',1)[0])
+def historical_atomic_source(path='.github/workflows/atomic-feature-regressions.yml',raw=None):
+ # Test-only exact current Atomic -> actual20b view; runtime readers stay current.
+ import project_description_admission_delta as current
+ current.assert_current_recipe(ROOT)
+ producer='scripts/governance/check_recovery_oauth_code_producer_v1.py'
+ if path!='.github/workflows/atomic-feature-regressions.yml' or path not in current.CURRENT_METADATA:
+  raise ValueError('unreviewed Atomic historical source role')
+ if Path(code_gate.__file__).resolve()!=ROOT/producer:raise ValueError('unreviewed current producer source role')
+ if (ROOT/producer).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current producer mode')
+ producer_raw=current.description.checked_bytes(ROOT/producer)
+ registry_path='support/governance/source-operation/registry-v1.json';registry_raw=current.description.checked_bytes(ROOT/registry_path);registry_pin=current.CURRENT_METADATA[registry_path]
+ if len(registry_raw)!=registry_pin['bytes'] or hashlib.sha256(registry_raw).hexdigest()!=registry_pin['sha256']:raise ValueError('unknown current source registry')
+ registry=json.loads(registry_raw);pin=registry['successor_entries'].get(producer,{}).get('current',registry['entries'].get(producer))
+ if type(pin)is not dict:raise ValueError('unreviewed current producer source role')
+ old_producer=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+producer])
+ if producer_raw!=old_producer:raise ValueError('unknown baseline producer bytes')
+ if len(producer_raw)!=pin['bytes'] or hashlib.sha256(producer_raw).hexdigest()!=pin['sha256']:raise ValueError('unknown current producer bytes')
+ if (ROOT/path).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current Atomic source mode')
+ actual=current.description.checked_bytes(ROOT/path)
+ if raw is None:raw=actual
+ if type(raw)is not bytes or raw!=actual:raise ValueError('unknown current Atomic source bytes')
+ prior=current._normalize_metadata(path,raw)
+ expected=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+ if prior!=expected:raise ValueError('unknown Atomic historical stage')
+ return prior.decode('utf-8')
 class OAuthCI(unittest.TestCase):
+ def test_current_Atomic_history_refuses_unknown_names_bytes_and_producer_role(self):
+  from unittest.mock import patch
+  path='.github/workflows/atomic-feature-regressions.yml';raw=(ROOT/path).read_bytes()
+  old=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+  self.assertEqual(historical_atomic_source().encode(),old)
+  for name,body in [('.github/workflows/unreviewed.yml',raw),(path,raw+b'\n# unknown'),(path,raw.decode())]:
+   with self.subTest(name=name),self.assertRaises(ValueError):historical_atomic_source(name,body)
+  if raw!=old:
+   with self.assertRaises(ValueError):historical_atomic_source(path,old)
+  with patch.object(code_gate,'__file__',str(ROOT/'scripts/governance/unreviewed.py')):
+   with self.assertRaises(ValueError):historical_atomic_source()
  def test_existing_workflows_and_real_File_builder_are_unchanged(self):
   for name in ['.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/conduit-producer-focused.yml','tests/atomic/build_directory_file.py','tests/atomic/build_gorge.py','tests/atomic/paired-gorge.json']:
-   self.assertEqual((ROOT/name).read_bytes(),subprocess.check_output(['git','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
+   actual=historical_atomic_source().encode() if name=='.github/workflows/atomic-feature-regressions.yml' else (ROOT/name).read_bytes()
+   self.assertEqual(actual,subprocess.check_output(['git','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
  def test_actual_all_new_Bash_blocks_syntax_and_owned_artifact_conditions(self):
   for p in [FOCUSED]:
    s=p.read_text();blocks=re.findall(r'        run: \|\n((?:(?:          .*|)\n)*)',s)
@@ -64,11 +101,12 @@ class OAuthCI(unittest.TestCase):
   changed,_=n05_delta.historical_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',changed,{name:(ROOT/name).read_bytes()for name in changed})
   lifecycle_paths={p for p in lifecycle_delta.SOURCE_INPUTS if p.startswith(('src/','resources/','support/governance/'))}|set(lifecycle_delta.SOURCE_ADDITIONS)
   self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths)
+  lifecycle_reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
   for name in lifecycle_paths:
    raw=(ROOT/name).read_bytes()
    self.assertEqual(raw,subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','HEAD:'+name]))
    if name in lifecycle_delta.SOURCE_ADDITIONS:self.assertEqual(hashlib.sha256(raw).hexdigest(),lifecycle_delta.SOURCE_ADDITIONS[name])
-   else:self.assertEqual(lifecycle_delta.reduce_current(name,raw),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+name]))
+   else:self.assertEqual(lifecycle_delta.reduce_current(name,lifecycle_reader(ROOT/name)),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+name]))
   for name,pin in authorization_runtime.items():
    raw=(ROOT/name).read_bytes();self.assertEqual(hashlib.sha256(lifecycle_delta.reduce_if_selected(name,raw)).hexdigest(),pin)
    self.assertEqual(raw,subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name]))

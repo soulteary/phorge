@@ -222,8 +222,22 @@ class DescriptionSourceInverse(unittest.TestCase):
   with tempfile.TemporaryDirectory()as t:
    p=Path(t).resolve()/'alias';p.symlink_to(ROOT/next(iter(delta.CURRENT_PINS)))
    with self.assertRaises(ValueError):delta.checked_bytes(p)
-  for path in [delta.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py','src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php','src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php']:
+  for path in [delta.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py','src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php']:
    self.assertEqual((ROOT/path).read_bytes(),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path),path)
+  import project_description_admission_delta as current
+  path=delta.NATIVE_EDITOR_BASELINE['path'];raw=(ROOT/path).read_bytes()
+  self.assertEqual(raw,self.git_bytes(current.TARGET,path))
+  added=b"        if ($project_scope!==null && $project_scope->getMode()==='content-description') {\n          $project_scope->rollbackDescriptionEditor($this,$object);\n        } else {\n          $object->killTransaction();\n        }\n"
+  removed=b'        $object->killTransaction();\n'
+  def reviewed_inverse(value):
+   if value.count(added)!=1:raise ValueError('unreviewed generic Editor delta')
+   result=value.replace(added,removed,1)
+   if result!=self.git_bytes(delta.MAIN_BASELINE['git_revision'],path):raise ValueError('unrelated generic Editor bytes')
+   return result
+  self.assertEqual(reviewed_inverse(raw),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path))
+  for bad in (raw+b'unknown',raw.replace(b'rollbackDescriptionEditor',b'killTransaction')):
+   with self.assertRaises(ValueError):reviewed_inverse(bad)
+
  def test_preparation_success_does_not_replace_current_full_source_gate(self):
   result=delta.audit(ROOT);self.assertTrue(result['inverse_verified'])
   for flag in ['full_source_admission','runtime_qualified','can_execute','activation_authorized']:self.assertFalse(result[flag])
@@ -307,3 +321,52 @@ class TrackedSourceArtifacts(unittest.TestCase):
    cache.write_text('{"__symbol_cache_version__":12}')
    unknown=root/'src/unreviewed.php';unknown.write_bytes(b'<?php unknown');unknown.chmod(0o644)
    with self.assertRaises(ValueError):source._prepared_layout(root,expected)
+
+class EditorSourceStages(unittest.TestCase):
+ def fixture(self,root,current):
+  import shutil
+  paths=set(current.CURRENT_METADATA)|set(current.description.CURRENT_PINS)|{current.MANIFEST,current.BRIDGE,current.PREPARATION,current.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
+  for name in paths:
+   target=root/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,target)
+ def test_authenticated_current_c4_and_4c_are_distinct_exact_stages(self):
+  import project_description_admission_delta as current
+  import check_recovery_oauth_authorization_producer_v1 as actor_source
+  import recovery_oauth_client_lifecycle_delta as lifecycle
+  current.assert_current_recipe(ROOT)
+  path=delta.NATIVE_EDITOR_BASELINE['path'];raw=(ROOT/path).read_bytes()
+  c4=delta.reconstruct_native_editor(delta.current_snapshot(ROOT))
+  reader=current.native_c4_reader(ROOT,actor_source.read_source_checked)
+  self.assertNotEqual(raw,c4);self.assertEqual(reader(ROOT/path),c4)
+  self.assertTrue(lifecycle.assert_cohort(ROOT,reader))
+  historical=lifecycle.reduce_current(path,c4)
+  self.assertEqual(historical,subprocess.check_output(['git','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+path]))
+  self.assertEqual(current._normalize_production(path,raw),c4)
+  self.assertEqual(current._normalize_production(path,c4),c4)
+  self.assertEqual(current._normalize_production(path,historical),historical)
+  for stage in (raw,c4,historical):
+   self.assertEqual(current.reduce_production(path,stage),historical)
+   self.assertEqual(current.reduce_if_selected(path,stage),historical)
+  with self.assertRaises(ValueError):lifecycle.reduce_current(path,raw)
+  with self.assertRaises(ValueError):current.reduce_production(path,raw+b'unknown')
+ def test_old_payload_mixed_root_foreign_path_and_alias_are_not_current_sources(self):
+  import project_description_admission_delta as current
+  import recovery_oauth_client_lifecycle_delta as lifecycle
+  path=delta.NATIVE_EDITOR_BASELINE['path'];actual=(ROOT/path).read_bytes()
+  c4=delta.reconstruct_native_editor(delta.current_snapshot(ROOT));historical=lifecycle.reduce_current(path,c4)
+  for old in (c4,historical,actual+b'unknown'):
+   reader=current.native_c4_reader(ROOT,lambda ignored:old)
+   with self.assertRaises(ValueError):reader(ROOT/path)
+  reader=current.native_c4_reader(ROOT,Path.read_bytes)
+  with self.assertRaises(ValueError):reader(ROOT.parent/'foreign-source.php')
+  with tempfile.TemporaryDirectory()as td:
+   root=Path(td).resolve();self.fixture(root,current)
+   self.assertEqual(current.native_c4_reader(root,Path.read_bytes)(root/path),c4)
+   for bad in (c4,historical,actual+b'unknown'):
+    (root/path).write_bytes(bad)
+    with self.assertRaises(ValueError):current.native_c4_reader(root,Path.read_bytes)
+   (root/path).write_bytes(actual)
+   metadata=next(iter(current.CURRENT_METADATA));target=root/metadata;target.write_bytes(target.read_bytes()+b'unknown')
+   with self.assertRaises(ValueError):current.native_c4_reader(root,Path.read_bytes)
+  with tempfile.TemporaryDirectory()as td:
+   alias=Path(td).resolve()/'alias';alias.symlink_to(ROOT/path)
+   with self.assertRaises(ValueError):reader(alias)

@@ -12,8 +12,18 @@ BOOTSTRAP={'full-current-source-quickstart-and-patch-ledger-restored','completio
 CLEANUP={'owned-native-write-guard-disposed','owned-writer-environment-and-cache-restored','all-owned-full-native-schemas-and-principals-cleaned'}
 def SQL_obligations(root=ROOT):
  if len(SOURCE_INPUTS)<17:raise ValueError('lifecycle source profile unbound')
+ import project_description_admission_delta as current
+ import check_recovery_oauth_authorization_producer_v1 as source_io
+ root=Path(root);reader=None;historical=False
+ # A genuine clean historical root retains its original raw source semantics.
+ if root!=Path(__file__).resolve().parents[2]:
+  try:source_io.assert_historical_source(root,current)
+  except (ValueError,OSError,subprocess.CalledProcessError):pass
+  else:reader=native_source;historical=True
+ if reader is None:reader=current.native_c4_reader(root,native_source)
  for path,pin in SOURCE_INPUTS.items():
-  if hashlib.sha256(native_source(Path(root)/path)).hexdigest()!=pin:raise ValueError('lifecycle source changed')
+  if hashlib.sha256(reader(root/path)).hexdigest()!=pin:raise ValueError('lifecycle source changed')
+ if not historical:current.assert_current_recipe(root)
  return {f'oauth-client-lifecycle-{op}-{end}-{kind}'for op in OPERATIONS for end in ('commit','rollback')for kind in ('client-first-and-granted-record','native-writer-exact-record-wait','owner-terminal-writer-native-postcondition','next-store-api-binding-changed')}|{'oauth-client-lifecycle-durable-submit-five-sources','oauth-client-lifecycle-durable-replay-review-blocked','oauth-client-lifecycle-native-trust-save-invalidates-review','oauth-client-lifecycle-execute-requires-complete-sources'}
 def native_source(path):
  # Existing bounded exact native source reader; no normalization of these bytes.

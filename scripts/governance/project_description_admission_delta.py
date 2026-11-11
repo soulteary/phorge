@@ -67,13 +67,39 @@ def _normalize_metadata(path,raw):
     if sha(raw)==row['target_sha256']:return raw
     if path in legacy.HISTORICAL_PINS and sha(raw)in legacy.HISTORICAL_PINS[path]:return raw
     raise ValueError('unknown_current_description_metadata')
+def native_c4_reader(root,reader):
+    # A source-check view, never an actor, SQL profile, or historical root switch.
+    root=Path(root);assert_current_recipe(root)
+    snapshot=description.current_snapshot(root)
+    editor=description.NATIVE_EDITOR_BASELINE['path'];old=description.reconstruct_native_editor(snapshot)
+    def read(path):
+        path=Path(path)
+        need(path.is_absolute() and path.resolve()==path)
+        name=str(path.relative_to(root))
+        raw=reader(path)
+        need(type(raw)is bytes and raw==description.checked_bytes(path))
+        if name==editor:
+            need(raw==snapshot[editor]);return old
+        return raw
+    return read
+def _editor_history(raw):
+    assert_current_recipe()
+    import recovery_oauth_client_lifecycle_delta as lifecycle
+    need(type(raw)is bytes)
+    path=description.NATIVE_EDITOR_BASELINE['path']
+    if sha(raw)==lifecycle.BASE_PINS[path]:return raw
+    _exact(raw,description.NATIVE_EDITOR_BASELINE['pin'])
+    result=lifecycle.reduce_current(path,raw)
+    need(sha(result)==lifecycle.BASE_PINS[path]);return result
 def _normalize_production(path,raw):
     if path not in description.CURRENT_PINS:return raw
     if path==description.NATIVE_EDITOR_BASELINE['path']:
         if sha(raw)==description.CURRENT_PINS[path]['sha256']:
             _exact(raw,description.CURRENT_PINS[path])
             return description.reconstruct_native_editor(description.current_snapshot(ROOT))
-        _exact(raw,description.NATIVE_EDITOR_BASELINE['pin']);return raw
+        if sha(raw)==description.NATIVE_EDITOR_BASELINE['pin']['sha256']:
+            _exact(raw,description.NATIVE_EDITOR_BASELINE['pin']);return raw
+        return _editor_history(raw)
     if path==description.NATIVE_STATE_BASELINE['path']:
         if sha(raw)==description.CURRENT_PINS[path]['sha256']:
             _exact(raw,description.CURRENT_PINS[path])
@@ -98,6 +124,7 @@ def reduce_production(path,raw):
     assert_current_recipe()
     normalized=_normalize_production(path,raw)
     if normalized is None:return None
+    if path==description.NATIVE_EDITOR_BASELINE['path']:return _editor_history(normalized)
     result=legacy.reduce_production(path,normalized)
     if path in description.HISTORICAL_BASELINE['production_pins']:
         pin=description.HISTORICAL_BASELINE['production_pins'][path]
@@ -108,6 +135,7 @@ def reduce_if_selected(path,raw):
     assert_current_recipe()
     normalized=_normalize_production(path,_normalize_metadata(path,raw))
     if normalized is None:return None
+    if path==description.NATIVE_EDITOR_BASELINE['path']:return _editor_history(normalized)
     return legacy.reduce_if_selected(path,normalized)
 def _ci_cohort(root):
     ci=_old_ci
@@ -124,7 +152,9 @@ def historical_inputs(root,baseline,changed,current):
         need(set(description.CURRENT_PINS).issubset(current))
         description.validate_snapshot({p:current[p]for p in description.CURRENT_PINS})
         for path in description.CURRENT_PINS:
-            raw=reduce_production(path,current[path])
+            # The metadata-only source view stops at real c4. The caller's
+            # original lifecycle stage owns its later c4 -> historical inverse.
+            raw=_normalize_production(path,current[path]) if path==description.NATIVE_EDITOR_BASELINE['path'] else reduce_production(path,current[path])
             if raw is None:current.pop(path);changed.discard(path);continue
             current[path]=raw
             old=subprocess.run(['git','--no-replace-objects','-C',str(root),'show',baseline+':'+path],capture_output=True)

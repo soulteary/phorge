@@ -59,8 +59,9 @@ class LifecycleCoordination(unittest.TestCase):
  def test_complete_nine_file_cohort_rejects_missing_mixed_and_unknown(self):
   with tempfile.TemporaryDirectory()as td:
    root=Path(td).resolve()
+   reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
    for path in delta.PRODUCTION_PATHS:
-    p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/path).read_bytes())
+    p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(reader(ROOT/path))
    self.assertTrue(delta.assert_cohort(root,Path.read_bytes))
    for path in delta.PRODUCTION_PATHS:
     p=root/path;raw=p.read_bytes();p.write_bytes(delta.reduce_current(path,raw))
@@ -74,8 +75,9 @@ class LifecycleCoordination(unittest.TestCase):
   import check_recovery_oauth_authorization_producer_v1 as gate
   with tempfile.TemporaryDirectory()as td:
    root=Path(td).resolve()
+   reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
    for path in delta.PRODUCTION_PATHS:
-    p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/path).read_bytes())
+    p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(reader(ROOT/path))
    first=delta.PRODUCTION_PATHS[0];(root/first).unlink()
    with self.assertRaises(OSError):gate.SQL_obligations(root)
  def test_new_source_additions_are_independently_pinned(self):

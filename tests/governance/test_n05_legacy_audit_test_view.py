@@ -20,7 +20,7 @@ class LegacyView(unittest.TestCase):
   self.assertNotEqual(raw,view.historical_library_map(raw))
  def test_changed_current_tooling_cannot_use_old_payload_unknown_bytes_or_mode(self):
   changed=[name for name in view.CLOSED_PATHS if name in view.n05.CURRENT_METADATA]
-  self.assertEqual(len(changed),4)
+  self.assertEqual(len(changed),5)
   for path in changed:
    for mutation in ('old-512','unknown','mode'):
     with self.subTest(path=path,mutation=mutation),tempfile.TemporaryDirectory()as td:

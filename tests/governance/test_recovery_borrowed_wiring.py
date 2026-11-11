@@ -8,7 +8,37 @@ import check_recovery_borrowed_session as gate
 import test_recovery_session_lease_gate as previous
 def canonical_temp_base():
  return Path(tempfile.gettempdir()).resolve(strict=True)
+def historical_atomic_source(path='.github/workflows/atomic-feature-regressions.yml',raw=None):
+ # Test-only exact current Atomic -> actual20b view; runtime readers stay current.
+ import project_description_admission_delta as current
+ current.assert_current_recipe(ROOT)
+ producer='scripts/governance/check_recovery_borrowed_session.py'
+ if path!='.github/workflows/atomic-feature-regressions.yml' or path not in current.CURRENT_METADATA or producer not in current.CURRENT_METADATA:
+  raise ValueError('unreviewed Atomic historical source role')
+ if Path(gate.__file__).resolve()!=ROOT/producer:raise ValueError('unreviewed current producer source role')
+ if (ROOT/producer).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current producer mode')
+ producer_raw=current.description.checked_bytes(ROOT/producer);pin=current.CURRENT_METADATA[producer]
+ if len(producer_raw)!=pin['bytes'] or hashlib.sha256(producer_raw).hexdigest()!=pin['sha256']:raise ValueError('unknown current producer bytes')
+ if (ROOT/path).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current Atomic source mode')
+ actual=current.description.checked_bytes(ROOT/path)
+ if raw is None:raw=actual
+ if type(raw)is not bytes or raw!=actual:raise ValueError('unknown current Atomic source bytes')
+ prior=current._normalize_metadata(path,raw)
+ expected=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+ if prior!=expected:raise ValueError('unknown Atomic historical stage')
+ return prior.decode('utf-8')
 class BorrowedWiring(unittest.TestCase):
+ def test_current_Atomic_history_refuses_unknown_names_bytes_and_producer_role(self):
+  from unittest.mock import patch
+  path='.github/workflows/atomic-feature-regressions.yml';raw=(ROOT/path).read_bytes()
+  old=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+  self.assertEqual(historical_atomic_source().encode(),old)
+  for name,body in [('.github/workflows/unreviewed.yml',raw),(path,raw+b'\n# unknown'),(path,raw.decode())]:
+   with self.subTest(name=name),self.assertRaises(ValueError):historical_atomic_source(name,body)
+  if raw!=old:
+   with self.assertRaises(ValueError):historical_atomic_source(path,old)
+  with patch.object(gate,'__file__',str(ROOT/'scripts/governance/unreviewed.py')):
+   with self.assertRaises(ValueError):historical_atomic_source()
  def php(self,path,*args):
   p=subprocess.run(['php',str(ROOT/path),str(ROOT),*args],capture_output=True,text=True,timeout=12);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');return json.loads(p.stdout)
  def test_actual_native_four_role_sorting_has_distinct_admins_and_worker_order(self):
@@ -54,7 +84,7 @@ class BorrowedWiring(unittest.TestCase):
    p=subprocess.run(['php','-r',code,str(ROOT),json.dumps(f)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertNotIn('SECRET',p.stdout);d=json.loads(p.stdout)
    if f['stage']=='SECRET':self.assertIsNone(d['source_file']);self.assertIsNone(d['source_line']);self.assertIsNone(d['query_code'])
  def test_mandatory_CI_owned_real_FS_failure_never_uploads_and_original_blocks_preserved(self):
-  text=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();a=text.index('      - name: Verify fresh borrowed native Session owner');b=text.index('      - name: Verify fresh native organization approval workbench',a);block=text[a:b]
+  text=historical_atomic_source();a=text.index('      - name: Verify fresh borrowed native Session owner');b=text.index('      - name: Verify fresh native organization approval workbench',a);block=text[a:b]
   old=subprocess.check_output(['git','-C',str(ROOT),'show','8805c4aa5f533605c1e0004a6691bda458f35202:.github/workflows/atomic-feature-regressions.yml']).decode();self.assertEqual(text[:a]+text[b:],old)
   self.assertIn('if: success()',block);self.assertNotIn('continue-on-error',block);self.assertIn('sha256sum --check /tmp/atomic-maps.sha256',block);self.assertIn('--session-borrowed-owner',block);self.assertIn('check_recovery_borrowed_session.py',block)
   owned='mkdir "$RUNNER_TEMP/governance-borrowed-session-owner"'

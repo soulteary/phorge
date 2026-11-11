@@ -57,7 +57,9 @@ def historical_authorization_source(path,raw):
 def historical_lifecycle_source(path,raw):
  current.assert_current_recipe(ROOT);coordinator=checked_modules();module=coordinator.authorization_delta.lifecycle_delta
  if type(path)is not str or path not in module.SOURCE_INPUTS or type(raw)is not bytes or raw!=(ROOT/path).read_bytes():raise ValueError('unknown actual lifecycle test source')
- if path in _DOCUMENT_PATHS:
+ if path==current.description.NATIVE_EDITOR_BASELINE['path']:
+  raw=current.native_c4_reader(ROOT,Path.read_bytes)(ROOT/path)
+ elif path in _DOCUMENT_PATHS:
   raw=_historical_document_source(path,raw)
   if hashlib.sha256(raw).hexdigest()!=module.SOURCE_INPUTS[path]:raise ValueError('unknown lifecycle document stage')
  else:

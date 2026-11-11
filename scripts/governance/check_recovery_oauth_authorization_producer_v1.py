@@ -81,8 +81,8 @@ def assert_historical_source(root,current):
   else:current.description.exact(current.description.checked_bytes(path),pin)
 
 def SQL_obligations(root=ROOT):
- # Current18 files are source-check inputs, never an actor/profile projection.
- # Full current admission precedes the exact C1 current18 -> real main14 view.
+ # Current19 files are source-check inputs, never an actor/profile projection.
+ # Full current admission precedes the exact C1 current19 -> real main14 view.
  import project_description_admission_delta as current
  root=Path(root)
  map_name='src/__phutil_library_map__.php'
@@ -98,7 +98,8 @@ def SQL_obligations(root=ROOT):
   prior=current.description.reconstruct_main(snapshot)
   prior[current.description.NATIVE_EDITOR_BASELINE['path']]=current.description.reconstruct_native_editor(snapshot)
  else:assert_historical_source(root,current)
- lifecycle_delta.assert_cohort(root,read_source_checked)
+ reader=current.native_c4_reader(root,read_source_checked)if current_source else read_source_checked
+ lifecycle_delta.assert_cohort(root,reader)
  captured={}
  for relative,pin in SOURCE_INPUTS.items():
   raw=read_source_checked(Path(root)/relative)
@@ -114,6 +115,7 @@ def SQL_obligations(root=ROOT):
  if len(prefixes)!=4:raise ValueError('borrowed source obligations changed')
  durable=set(re.findall(r"'(oauth-authorization-[A-Za-z0-9-]+)'",text))
  if len(durable)!=4:raise ValueError('authorization durable source obligations changed')
+ if current_source:current.assert_current_recipe(root)
  return {p+operation+'-'+ending for p in prefixes for operation in ('insert','update')for ending in ('commit','rollback')}|durable
 def obligations(root=ROOT):return shared.BOOTSTRAP|shared.PREPARATION|shared.CLEANUP|SQL_obligations(root)
 def observer_cleanup():return {'owned_observer_removed':True,'owned_observer_SQL_sessions_absent':True,'native_writer_grants_unchanged':True,'cleanup_proved':True}
