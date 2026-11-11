@@ -1632,6 +1632,10 @@
       "bytes": 28468,
       "sha256": "3dbca7e4768572a300544a068382c47bbd658966b08472a794e97d15ed995eb6"
     },
+    "tests/governance/test_private_notifications.py": {
+      "bytes": 8116,
+      "sha256": "5391cac18db6108de6fedd26c2d22f00474d7f74ab3c50dcc97481d5e867cbc5"
+    },
     "tests/governance/test_project_content_grant_ci_workflow.py": {
       "bytes": 8316,
       "sha256": "6931986050c27cc4eba159111ad398c70edea982896fe348a2da7f856556a8d6"
@@ -2100,8 +2104,8 @@
         "sha256": "88c97d30282f4fbaea08f7949d843cdff8bd0ecbac8bdbf57aa4d17d30c19406"
       },
       "current": {
-        "bytes": 13389,
-        "sha256": "2a0800e2d27e02e75c78284679bd170e8523b384353c7fb1c173f7df6b2318cf"
+        "bytes": 18051,
+        "sha256": "c608ed34b1953d826055db14dfff891c8d5f9d767ace3b7c7a83992dc38864b3"
       }
     },
     "tests/governance/recovery_oauth_code_test_cohort.py": {
@@ -2144,6 +2148,16 @@
         "sha256": "32887fd06e8cec886a0d548b63ee4aa948feee2e36e24d6fb2ef8aa8db41eb73"
       }
     },
+    "tests/governance/test_n05_r3_historical_test_view.py": {
+      "baseline": {
+        "bytes": 7005,
+        "sha256": "dc0cd19224784582b9204456711f1c4208f0877f60d7c3c8182da899d4ca8d68"
+      },
+      "current": {
+        "bytes": 11073,
+        "sha256": "65da8678760d53801d4d810b817d1e9aebd9de97d9c8db9b18daab0e14cb8990"
+      }
+    },
     "tests/governance/test_notice_native_admin_wire_source.py": {
       "baseline": {
         "bytes": 28468,
@@ -2152,6 +2166,16 @@
       "current": {
         "bytes": 28809,
         "sha256": "b9171bceba3018dea95cc36f73018651d763266f51e72bfb98243e07a7113f26"
+      }
+    },
+    "tests/governance/test_private_notifications.py": {
+      "baseline": {
+        "bytes": 8116,
+        "sha256": "5391cac18db6108de6fedd26c2d22f00474d7f74ab3c50dcc97481d5e867cbc5"
+      },
+      "current": {
+        "bytes": 9414,
+        "sha256": "5febfac54ebb9cefdeaed9a99fd32108e7bb6943a6aaf60e02a80b75dce197e0"
       }
     },
     "tests/governance/test_project_content_grant_ci_workflow.py": {

@@ -54,8 +54,8 @@
       "sha256": "6eb1a8e9c5eb21eac699c507d65046d6b54497eecef3223e88c3ce70483d4847"
     },
     "scripts/governance/project_description_admission_delta.py": {
-      "bytes": 334093,
-      "sha256": "94d734145eb70ca9c20b31357491305b9b8fe21a4bf063a42b5c8b18b31c7b5c"
+      "bytes": 334094,
+      "sha256": "65194a2a41b7d23930a94313ad12a7e43b10aee8ff1b53e7d1e1edbdf25f97e6"
     },
     "scripts/governance/project_description_source_delta.py": {
       "bytes": 201702,
