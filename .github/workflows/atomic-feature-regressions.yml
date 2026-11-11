@@ -54,13 +54,92 @@ jobs:
       - name: Install the retained product-boundary checker dependency
         timeout-minutes: 5
         run: |
-          if [ -f /etc/apt/apt-mirrors.txt ]; then
-            printf '%s\n' 'https://archive.ubuntu.com/ubuntu' | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
-          fi
-          apt_options=(-o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
-          sudo apt-get "${apt_options[@]}" update
-          sudo apt-get "${apt_options[@]}" install -y ripgrep
-          rg --version
+          umask 077
+          test "$(uname -s)" = Linux
+          test "$(uname -m)" = x86_64
+          rg_root=$(mktemp -d "$RUNNER_TEMP/atomic-rg.XXXXXX")
+          curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
+            --connect-timeout 10 --max-time 45 --retry 1 --retry-delay 1 --retry-max-time 95 \
+            --max-filesize 2566310 --output "$rg_root/archive.tar.gz" \
+            https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz
+          python3 - "$rg_root" <<'PYRG'
+          import hashlib, io, os, stat, subprocess, sys, tarfile
+          from pathlib import Path
+          ARCHIVE_SIZE=2566310
+          ARCHIVE_SHA256='4cf9f2741e6c465ffdb7c26f38056a59e2a2544b51f7cc128ef28337eeae4d8e'
+          MEMBER='ripgrep-14.1.1-x86_64-unknown-linux-musl/rg'
+          BINARY_SIZE=6597984
+          BINARY_SHA256='f401154e2393f9002ac77e419f9ee5521c18f4f8cd3e32293972f493ba06fce7'
+          def need(value):
+              if not value:
+                  raise ValueError('Pinned ripgrep preparation refused')
+          def identity_stamp(info):
+              return (info.st_dev,info.st_ino,info.st_mode,info.st_nlink,info.st_uid,info.st_gid,info.st_size,info.st_mtime_ns,info.st_ctime_ns)
+          def install(root):
+              root=Path(root)
+              info=root.lstat()
+              need(root.is_absolute() and root.resolve(strict=True)==root and stat.S_ISDIR(info.st_mode) and stat.S_IMODE(info.st_mode)==0o700 and info.st_uid==os.getuid())
+              path=root/'archive.tar.gz'
+              fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+              try:
+                  before=os.fstat(fd)
+                  need(stat.S_ISREG(before.st_mode) and before.st_nlink==1 and before.st_uid==os.getuid() and before.st_size==ARCHIVE_SIZE)
+                  chunks=[];count=0
+                  while count<=ARCHIVE_SIZE:
+                      chunk=os.read(fd,min(65536,ARCHIVE_SIZE+1-count))
+                      if not chunk:
+                          break
+                      chunks.append(chunk);count+=len(chunk)
+                  raw=b''.join(chunks)
+                  after=os.fstat(fd)
+                  need(identity_stamp(before)==identity_stamp(after)==identity_stamp(path.lstat()) and len(raw)==ARCHIVE_SIZE and hashlib.sha256(raw).hexdigest()==ARCHIVE_SHA256)
+              finally:
+                  os.close(fd)
+              with tarfile.open(fileobj=io.BytesIO(raw),mode='r:gz') as archive:
+                  members=archive.getmembers()
+                  need(len(members)<=64)
+                  prefix=MEMBER.split('/')[0]
+                  for item in members:
+                      parts=item.name.split('/')
+                      need(all(part not in ('','.','..') for part in parts) and parts[0]==prefix and (item.isfile() or item.isdir()) and item.linkname=='')
+                  matches=[item for item in members if item.name==MEMBER]
+                  need(len(matches)==1)
+                  member=matches[0]
+                  need(member.isfile() and member.linkname=='' and member.size==BINARY_SIZE and member.mode==0o755)
+                  with archive.extractfile(member) as stream:
+                      binary=stream.read(BINARY_SIZE+1)
+                  need(len(binary)==BINARY_SIZE and hashlib.sha256(binary).hexdigest()==BINARY_SHA256)
+              folder=root/'bin';folder.mkdir(mode=0o700)
+              target=folder/'rg'
+              fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o700)
+              try:
+                  offset=0
+                  while offset<len(binary):
+                      count=os.write(fd,binary[offset:offset+65536]);need(count>0);offset+=count
+                  os.fsync(fd)
+                  need(os.fstat(fd).st_size==BINARY_SIZE and identity_stamp(target.lstat())==identity_stamp(os.fstat(fd)))
+              finally:
+                  os.close(fd)
+              return target
+          def probe(target):
+              version=subprocess.run([str(target),'--version'],capture_output=True,text=True,timeout=5)
+              need(version.returncode==0 and version.stdout.splitlines()[0]=='ripgrep 14.1.1 (rev 4649aa9700)')
+              root=target.parent.parent/'probe';root.mkdir(mode=0o700)
+              for folder in ('src','scripts','bin','webroot','resources'):
+                  (root/folder).mkdir(mode=0o700)
+              (root/'patterns').write_text('RetiredClass[A-Za-z]*\n')
+              (root/'src/.hidden.php').write_text('RetiredClassOne RetiredClassTwo\n')
+              (root/'src/excluded.php').write_text('RetiredClassIgnored\n')
+              args=[str(target),'--line-number','--no-heading','--color','never','--hidden','--only-matching','--glob','!src/excluded.php','-f','patterns','src','scripts','bin','webroot','resources']
+              found=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=5)
+              need(found.returncode==0 and found.stdout=='src/.hidden.php:1:RetiredClassOne\nsrc/.hidden.php:1:RetiredClassTwo\n' and found.stderr=='')
+              (root/'patterns').write_text('NoSuchRetiredClass\n')
+              missing=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=5)
+              need(missing.returncode==1 and missing.stdout=='' and missing.stderr=='')
+          target=install(Path(sys.argv[1]))
+          probe(target)
+          PYRG
+          printf '%s\n' "$rg_root/bin" >> "$GITHUB_PATH"
       - name: Check runner failure and isolation policy
         run: |
           php tests/atomic/test_gate.php
