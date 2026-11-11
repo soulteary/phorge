@@ -1783,8 +1783,8 @@
         "sha256": "17e27969fd817f8ac1437e304511b56e63f7c3b796af7d603e3d731162f9938b"
       },
       "current": {
-        "bytes": 69465,
-        "sha256": "4274558365d04ebfcb117e34024265883e9046a23a747dd0c1ca8e2b8b951480"
+        "bytes": 87002,
+        "sha256": "e440d8542d7113b152a8e98f1d98dc2cab0dd8c9236d5e8bb602711906cf40b1"
       }
     },
     ".github/workflows/project-content-grants-focused.yml": {
