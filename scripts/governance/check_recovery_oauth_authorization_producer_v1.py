@@ -106,7 +106,7 @@ def SQL_obligations(root=ROOT):
   if relative in prior:raw=prior[relative]
   raw=lifecycle_delta.reduce_if_selected(relative,raw)
   if relative=='support/governance/native-organization/test-native-organization-mysql.php' and hashlib.sha256(raw).hexdigest()!=pin:
-   raw=calendar_delta.reduce_calendar_wire_union(raw)
+   raw=calendar_delta.reduce_policy_cleanup_driver(raw)
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed borrowed source changed')
   captured[relative]=raw
  text=captured['support/governance/recovery/oauth-authorization-cases.php'].decode('utf-8')
