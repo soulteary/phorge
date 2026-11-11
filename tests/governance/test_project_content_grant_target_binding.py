@@ -9,7 +9,7 @@ CI=load('stageB_CI',ROOT/'support/governance/project-content-grants-ci/ci.py')
 Q=load('stageB_qualification',ROOT/'support/governance/project-content-grants-qualification/qualify.py')
 class ActualTargetBinding(unittest.TestCase):
  def test_actual_36_baseline_and48_T3_target_Git_pins_and_typed_symlinks(self):
-  for kind,key,count,revision,tree in [('prerequisites','native_public_source_dependencies',36,CI.BASE,CI.BASE_TREE),('qualification','native_source_inventory',49,CI.TARGET,CI.TREE)]:
+  for kind,key,count,revision,tree in [('prerequisites','native_public_source_dependencies',36,CI.BASE,CI.BASE_TREE),('qualification','native_source_inventory',50,CI.TARGET,CI.TREE)]:
    f=json.loads((ROOT/'support/governance/project-content-grants-ci'/(kind+'-template.json')).read_bytes());self.assertEqual(f['schema'],'N05-CI-reviewed-source-template-v2');self.assertEqual((f['native_git_revision'],f['native_git_tree']),(revision,tree));self.assertEqual(len(f[key]),count)
    for n,pin in f[key].items():
     name='scripts/sql/manage_storage.php'if kind=='qualification'and n=='bin/storage'else n

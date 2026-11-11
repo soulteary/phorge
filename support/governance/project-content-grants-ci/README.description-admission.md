@@ -1,8 +1,8 @@
 # Current native source and recipe admission
 
-Native target: `43ba912021d1fd05e04eae0b5225ad3502926e51`, tree `185bfb377cc2fc4af0a06cb8b200c830ae7e8e66`. The qualification inventory binds 49 actual native Git dependencies, including transaction State; `bin/storage` binds its resolved native script bytes. Baseline 36 dependency objects retain their full original identity fields.
+Native target: `5d05cf90e515d7d4852b45cfda0f0e516088c5d8`, tree `8c1864c1fcee7cf2f35c1c7204c79f6558880e2f`. The qualification inventory binds 49 actual native Git dependencies, including transaction State; `bin/storage` binds its resolved native script bytes. Baseline 36 dependency objects retain their full original identity fields.
 
-The current recipe validates 18 production paths and its complete metadata cohort before historical inverse projection. The original 53 metadata target fields, old reducer bytes and historical maps remain unchanged. Current metadata also binds the two real Assessment/Access consumers and six explicitly declared added files. Native source identity and recipe source identity remain separate.
+The current recipe validates 19 production paths and its complete metadata cohort before historical inverse projection. The original 53 metadata target fields, old reducer bytes and historical maps remain unchanged. Current metadata also binds the two real Assessment/Access consumers and six explicitly declared added files. Native source identity and recipe source identity remain separate.
 
 The registry is an exact successor of its actual native-anchor predecessor. Its bridge entry records the native predecessor, never the current bridge hash. Current bridge and canonical 76-input manifest are held after full forward validation; the registry itself is pinned externally by current metadata. No circular current hashes are introduced. The six runtime source exceptions are unchanged. SourceOperation validates entry and exit, explicit capabilities, root roles, ancestors and the bounded captured source graph; its path/mode inventory does not claim all leaf bytes are captured.
 
