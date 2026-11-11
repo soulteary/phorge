@@ -25,6 +25,10 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   private $cacheMissing;
   private $state='new';
   private $cleanupFailed=false;
+  // Request-local bookkeeping; not a physical transaction/session lease.
+  private $transactionOwnership='none';
+  private $transactionStateIdentity;
+  private $transactionGeneration;
   private $editor;
   private $configuration;
   private $plannedIdentities=array();
@@ -43,7 +47,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
 
   public static function isSourceConnection(AphrontDatabaseConnection $conn) {
     $ref=idx(self::$active,spl_object_id($conn)); $scope=$ref?$ref->get():null;
-    return $scope!==null && $scope->connection===$conn &&
+    return $scope!==null && $scope->connection===$conn && $scope->transactionOwnership==='owned' && $scope->matchesTransactionFrame() &&
       in_array($scope->state,array('authorizing','open','consumed'),true) && $conn->isInsideTransaction();
   }
   public static function sourceDatabase(AphrontDatabaseConnection $conn,$table) {
@@ -133,8 +137,11 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       }
       $ids=array_unique($ids); sort($ids,SORT_STRING); $scope->plannedIdentities=$ids;
       queryfx($conn,'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
-      $conn->openTransaction(); $scope->state='authorizing';
       self::$active[spl_object_id($conn)]=WeakReference::create($scope);
+      $scope->transactionOwnership='starting';
+      try { $conn->openTransaction(); }
+      catch (Throwable $error) { $scope->transactionOwnership='unknown'; throw $error; }
+      $scope->transactionOwnership='owned';$scope->captureTransactionFrame(); $scope->state='authorizing';
       foreach ($ids as $id) { PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($id,$conn); }
       $scope->snapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
       $scope->actor=$scope->freshUser($scope->snapshot);
@@ -662,10 +669,10 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       $audit['approvalID'],$this->descriptionRequest->getGrantID(),$this->object->getPHID(),$this->snapshot->getUserPHID(),'description-updated',(int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n']);
   }
   public function didCommit() {
-    if ($this->connection->isInsideTransaction() || $this->state!=='consumed') {
+    if (!$this->ownsReservation()||$this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0) || $this->state!=='consumed') {
       throw new RuntimeException('project_execution_real_commit_required');
     }
-    $this->state='committed';
+    $this->transactionOwnership='committed';$this->state='committed';
   }
   public static function assertProjectSave(PhabricatorProject $object) {
     if (!self::guardEnabled()) { return; }
@@ -922,7 +929,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   public function getSources() { return $this->sources; }
   public function getApprovalID() { return $this->approvalID; }
   public function assertOpen() {
-    if (!self::isSourceConnection($this->connection)) { throw new RuntimeException('project_execution_scope_ended'); }
+    if (!$this->ownsReservation()||$this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||!self::isSourceConnection($this->connection)) { throw new RuntimeException('project_execution_scope_ended'); }
     if ($this->configuration!==null) { $this->configuration->assertCurrent(); }
     PhorgeGovernanceNativeIdentitySource::revalidate($this->snapshot,$this->connection);
   }
@@ -930,42 +937,98 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if (!in_array($this->mode,array('propose','approve','history'),true)) {
       throw new RuntimeException('project_execution_native_editor_commit_required');
     }
-    $this->assertOpen(); $this->connection->saveTransaction(); $this->state='committed';
+    if(!$this->ownsReservation()||$this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||
+       $this->transactionFrame()!==array(1,0,0)){throw new RuntimeException('project_execution_real_commit_required');}
+    $this->assertOpen();
+    try { $this->connection->saveTransaction(); }
+    catch (Throwable $error) { $this->transactionOwnership='unknown'; throw $error; }
+    if(!$this->ownsReservation()||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0)){$this->transactionOwnership='unknown';throw new RuntimeException('project_execution_real_commit_required');}
+    $this->transactionOwnership='committed';$this->state='committed';
+  }
+  private function ownsReservation() {
+    if($this->connection===null){return false;}
+    $ref=self::$active[spl_object_id($this->connection)]??null;
+    return $ref!==null&&$ref->get()===$this;
+  }
+  private function captureTransactionFrame() {
+    $state=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($this->connection);
+    if($state===null||get_class($state)!==AphrontDatabaseTransactionState::class||$state->getDepth()!==1||
+       !is_int($state->getGeneration())||$state->getGeneration()<1){
+      $this->transactionOwnership='unknown';throw new RuntimeException('project_execution_real_commit_required');
+    }
+    $this->transactionStateIdentity=$state;$this->transactionGeneration=$state->getGeneration();
+  }
+  private function matchesTransactionFrame() {
+    if($this->connection===null||$this->transactionStateIdentity===null){return false;}
+    $state=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($this->connection);
+    return $state===$this->transactionStateIdentity&&get_class($state)===AphrontDatabaseTransactionState::class&&
+      $state->getGeneration()===$this->transactionGeneration;
+  }
+  private function transactionFrame() {
+    $state=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($this->connection);
+    if($state===null){return array(0,0,0);}
+    if(get_class($state)!==AphrontDatabaseTransactionState::class){throw new RuntimeException('project_execution_scope_cleanup_failed');}
+    return array($state->getDepth(),
+      (new ReflectionProperty(AphrontDatabaseTransactionState::class,'readLockLevel'))->getValue($state),
+      (new ReflectionProperty(AphrontDatabaseTransactionState::class,'writeLockLevel'))->getValue($state));
   }
   public function close() {
-    if ($this->state==='closed') {
-      if ($this->cleanupFailed) { throw new RuntimeException('project_execution_scope_cleanup_failed'); }
+    if($this->state==='closed'||$this->state==='quarantined'){
+      if($this->cleanupFailed){throw new RuntimeException('project_execution_scope_cleanup_failed');}
       return;
     }
-    // No connection/lock existed on entry. Only this invocation's Project
-    // connection stack and modes are owned here, including nested Error paths.
-    $this->state='closed'; $failed=false;
-    if($this->membershipEdgeEditor!==null){unset(self::$membershipEdgeWrites[$this->membershipEdgeEditor]);}
-    if ($this->connection!==null) {
-      foreach (array('read','write','transaction') as $kind) {
-        try {
-          $steps=0;
-          while ($kind==='read'?$this->connection->isReadLocking():
-              ($kind==='write'?$this->connection->isWriteLocking():$this->connection->isInsideTransaction())) {
-            if (++$steps>64) { throw new RuntimeException('project_execution_scope_cleanup_failed'); }
-            if ($kind==='read') { $this->connection->endReadLocking(); }
-            else if ($kind==='write') { $this->connection->endWriteLocking(); }
-            else { $this->connection->killTransaction(); }
+    $unknown=false;$owner=$this->ownsReservation();
+    if($this->membershipEdgeEditor!==null){
+      $entry=self::$membershipEdgeWrites[$this->membershipEdgeEditor]??null;
+      if($entry!==null&&$entry[1]->get()===$this){unset(self::$membershipEdgeWrites[$this->membershipEdgeEditor]);}
+    }
+    if($this->connection!==null){
+      if($owner&&$this->transactionOwnership==='owned'){
+        try{
+          list($depth,$read,$write)=$this->transactionFrame();
+          // Unknown/nested/replaced frames are never while-unwound. A depth-zero
+          // native Editor rollback has no ACK receipt here and stays unknown.
+          if(!$this->matchesTransactionFrame()||$depth!==1||!in_array($read,array(0,1),true)||!in_array($write,array(0,1),true)){
+            throw new RuntimeException('project_execution_scope_cleanup_failed');
           }
-        } catch (Throwable $error) { $failed=true; }
+          if($read===1){$this->connection->endReadLocking();}
+          if($write===1){$this->connection->endWriteLocking();}
+          $this->connection->killTransaction();
+          if($this->transactionFrame()!==array(0,0,0)){throw new RuntimeException('project_execution_scope_cleanup_failed');}
+          $this->transactionOwnership='rolled-back';
+        }catch(Throwable $error){$unknown=true;$this->transactionOwnership='unknown';}
+      }elseif(in_array($this->transactionOwnership,array('owned','starting','unknown'),true)){
+        $unknown=true;
       }
-      unset(self::$active[spl_object_id($this->connection)]);
+      // A known committed transaction is retired. Never touch subsequent
+      // transaction/lock state, even while our reservation remains until close.
     }
-    foreach ($this->cachePrior as $key=>$value) {
-      try {
-        if ($value===$this->cacheMissing) { $this->cache->deleteKeys(array($key)); }
-        else { $this->cache->setKey($key,$value); }
-      } catch (Throwable $error) { $failed=true; }
+    if($owner&&!$unknown&&$this->cachePrior){
+      $current=(new ReflectionProperty(PhabricatorCaches::class,'requestCache'))->getValue();
+      if($this->cache===null||$current!==$this->cache){$unknown=true;}
+      else{
+        foreach($this->cachePrior as$key=>$value){
+          if(!$this->ownsReservation()){$unknown=true;break;}
+          try{
+            if($value===$this->cacheMissing){$this->cache->deleteKeys(array($key));}
+            else{$this->cache->setKey($key,$value);}
+          }catch(Throwable $error){$unknown=true;}
+        }
+      }
     }
-    try { if ($this->fence!==null) { $this->fence->release(); } }
-    catch (Throwable $error) { $failed=true; }
-    $this->cleanupFailed=$failed;
-    if ($failed) { throw new RuntimeException('project_execution_scope_cleanup_failed'); }
+    // This fence owns a separate private SELECT-only connection, never the
+    // writer or another scope's fence. Release it independently, preserving a
+    // pending primary exception via PHP's finally/previous exception chain.
+    try{if($this->fence!==null){$this->fence->release();$this->fence=null;}}
+    catch(Throwable $error){$unknown=true;}
+    if($unknown){
+      $this->state='quarantined';$this->cleanupFailed=true;
+      // Keep an owned reservation. Even after WeakRef expiry, isset blocks
+      // this process's connection object; this is not durable quarantine.
+      throw new RuntimeException('project_execution_scope_cleanup_failed');
+    }
+    if($this->ownsReservation()){unset(self::$active[spl_object_id($this->connection)]);}
+    $this->state='closed';$this->cleanupFailed=false;
   }
   public function __destruct() { try { $this->close(); } catch (Throwable $ignored) {} }
 }

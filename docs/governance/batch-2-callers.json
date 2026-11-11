@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4468,
-    "source_snapshot_sha256": "3cdd4687358f6b97e47296091e0472c34007bc9c5d2bd1a1679bedcf0e6561fb",
+    "source_snapshot_sha256": "77396e31ff75929e6c7702044894ac38cf4469820bae02ca7d423c3293fa505a",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",

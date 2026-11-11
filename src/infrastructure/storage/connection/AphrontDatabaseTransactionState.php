@@ -6,6 +6,7 @@
 final class AphrontDatabaseTransactionState extends Phobject {
 
   private $depth           = 0;
+  private $generation      = 0;
   private $readLockLevel   = 0;
   private $writeLockLevel  = 0;
 
@@ -13,7 +14,17 @@ final class AphrontDatabaseTransactionState extends Phobject {
     return $this->depth;
   }
 
+  public function getGeneration() {
+    return $this->generation;
+  }
+
   public function increaseDepth() {
+    if ($this->depth === 0) {
+      if ($this->generation === PHP_INT_MAX) {
+        throw new OverflowException('Native transaction generation exhausted.');
+      }
+      ++$this->generation;
+    }
     return ++$this->depth;
   }
 

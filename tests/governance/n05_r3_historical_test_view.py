@@ -36,7 +36,8 @@ def historical_coordinator_source(path,raw):
  if path in original_test_view.METADATA_PATHS:raw=original_test_view.historical_metadata_source(path,raw)
  source=current.description.current_snapshot(ROOT)
  if path in source:
-  raw=current.description.reconstruct_historical(source,ROOT).get(path)
+  if path==current.description.NATIVE_STATE_BASELINE['path']:raw=current.description.reconstruct_native_state(source)
+  else:raw=current.description.reconstruct_historical(source,ROOT).get(path)
   if raw is None:raise ValueError('new native leaf has no old source')
  elif path=='docs/governance/batch-2-callers.json':raw=_historical_batch_scan_source(path,raw)
  elif path not in original_test_view.METADATA_PATHS:raw=current._normalize_metadata(path,raw)

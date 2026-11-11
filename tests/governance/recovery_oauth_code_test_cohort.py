@@ -64,8 +64,11 @@ def normalized_source_tree(root):
             continue
         if path in snapshot:
             if raw!=snapshot[path]:raise ValueError('selected source changed after batch capture')
-            if path not in historical:continue
-            raw=historical[path]
+            if path==n05_delta.description.NATIVE_STATE_BASELINE['path']:
+                raw=n05_delta.description.reconstruct_native_state(snapshot)
+            else:
+                if path not in historical:continue
+                raw=historical[path]
         raw=authorization_delta.lifecycle_delta.reduce_if_selected(path,raw)
         raw=literal_inverse(authorization_delta,path,raw)
         raw=literal_inverse(delta,path,raw)
