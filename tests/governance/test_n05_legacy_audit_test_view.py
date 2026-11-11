@@ -10,11 +10,24 @@ class LegacyView(unittest.TestCase):
    p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes())
  def test_six_whole_sources_equal_real_prior_Git_without_changing_runtime_files(self):
   for path in view.CLOSED_PATHS:
-   raw=(ROOT/path).read_bytes();self.assertEqual(raw,view.git_bytes(view.CURRENT_REVISION,path))
+   raw=(ROOT/path).read_bytes()
+   current=view.n05._normalize_metadata(path,raw) if path in view.n05.CURRENT_METADATA else raw
+   self.assertEqual(current,view.git_bytes(view.CURRENT_REVISION,path))
    self.assertEqual(view.historical_tooling_source(path),view.git_bytes(view.PRIOR_REVISION,path))
    self.assertEqual((ROOT/path).read_bytes(),raw)
   raw=(ROOT/'src/__phutil_library_map__.php').read_bytes();self.assertEqual(view.historical_library_map(raw),view.git_bytes(view.PRIOR_REVISION,'src/__phutil_library_map__.php'))
   self.assertNotEqual(raw,view.historical_library_map(raw))
+ def test_changed_current_tooling_cannot_use_old_payload_unknown_bytes_or_mode(self):
+  changed=[name for name in view.CLOSED_PATHS if name in view.n05.CURRENT_METADATA]
+  self.assertEqual(len(changed),4)
+  for path in changed:
+   for mutation in ('old-512','unknown','mode'):
+    with self.subTest(path=path,mutation=mutation),tempfile.TemporaryDirectory()as td:
+     root=Path(td).resolve();self.fixture(root);p=root/path
+     if mutation=='old-512':p.write_bytes(view.git_bytes(view.CURRENT_REVISION,path))
+     elif mutation=='unknown':p.write_bytes(p.read_bytes()+b'unknown')
+     else:p.chmod(0o755)
+     with self.assertRaises((ValueError,OSError)):view.historical_tooling_source(path,root)
  def test_repair_guard_is_exact_actual_combined_target_and_test_only(self):
   self.assertEqual(view.CURRENT_REVISION,'512282be298c7996fc6370156c333d7557b1685a');self.assertEqual(len(view.REPAIR_SOURCE_PINS),9)
   for path,pin in view.REPAIR_SOURCE_PINS.items():

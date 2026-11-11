@@ -37,11 +37,16 @@ def verify_current_cohort(root):
   raw=(root/name).read_bytes();require(hashlib.sha256(raw).hexdigest()==pin and raw==git_bytes(CURRENT_REVISION,name))
  require(set(CURRENT_PINS)==set(CLOSED_PATHS))
  for name in CLOSED_PATHS:
-  raw=(root/name).read_bytes()
-  require(type(raw)is bytes and hashlib.sha256(raw).hexdigest()==CURRENT_PINS[name] and raw==git_bytes(CURRENT_REVISION,name))
+  require((root/name).stat().st_mode&0o7777==0o644)
+  raw=n05.description.checked_bytes(root/name)
+  prior=n05._normalize_metadata(name,raw) if name in n05.CURRENT_METADATA else raw
+  require(type(prior)is bytes and hashlib.sha256(prior).hexdigest()==CURRENT_PINS[name] and prior==git_bytes(CURRENT_REVISION,name))
 def historical_tooling_source(path,root=ROOT):
  require(path in CLOSED_PATHS);verify_current_cohort(root)
- raw=(Path(root)/path).read_bytes();prior=n05.reduce_if_selected(path,raw)
+ raw=n05.description.checked_bytes(Path(root)/path)
+ current=n05._normalize_metadata(path,raw) if path in n05.CURRENT_METADATA else raw
+ require(hashlib.sha256(current).hexdigest()==CURRENT_PINS[path] and current==git_bytes(CURRENT_REVISION,path))
+ prior=n05.reduce_if_selected(path,current)
  require(prior==git_bytes(PRIOR_REVISION,path));return prior
 def historical_source_inputs(path,root=ROOT):
  tree=ast.parse(historical_tooling_source(path,root))
