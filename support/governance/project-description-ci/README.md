@@ -8,7 +8,7 @@ profile pins and refuse before native initialization when invoked directly.
 ## Fixed lifecycle
 
 1. Verify committed recipe files and an exact reviewed metadata-recipe lock, the
-   current source admission, target `577ae2eb82d854753b88f2985a154e409272068a`
+   current source admission, target `43ba912021d1fd05e04eae0b5225ad3502926e51`
    / tree `f4d5435523b65587f54465b9c5712ad0b0d8f8f8`, actual loopback-only
    disposable MySQL 8.4.13 image and PHP 8.5.12 with CLI OPcache/JIT disabled.
 2. Reuse the real metadata recipe's fresh owned namespace, standard native base
@@ -23,7 +23,7 @@ profile pins and refuse before native initialization when invoked directly.
    It does not edit any existing protected object or change flags to avoid a
    guard. The original metadata target/profile shape is unchanged.
 4. Standard target migration and original metadata grant/revoke readbacks run
-   unchanged on T3. Read the private early-fixture receipt and bind a new profile
+   unchanged on the current native target. Read the private early-fixture receipt and bind a new profile
    to its distinct Project, namespace, exact source files, database receipt,
    current configuration and genuine administrator actors.
 5. Copy the explicitly reviewed diagnostic successor PHP entry and byte-exact
@@ -31,10 +31,10 @@ profile pins and refuse before native initialization when invoked directly.
    helper directory. Replace only its single `null` profile constant with the
    SHA256 of this newly created exclusive private profile. Original tracked files retain null pins. `cases.php` and its nine business
    cases remain byte-exact; the entry adds bounded diagnostics without changing
-   profile admission or business guards. The runtime source pin binds actual T3
+   profile admission or business guards. The runtime source pin binds the actual current native target
    entry bytes, while the separately reviewed private diagnostic template is
    bound to current recipe bytes and its full template hash.
-6. Execute all nine real cases through T3's native source/editor: no grant,
+6. Execute all nine real cases through the current target's native source/editor: no grant,
    user success, trigger-induced use-audit rollback, direct unsealed transaction
    refusal, revoked grant, direct-team success, expiry, deleted credential and
    disabled account. Reobserve database identity and current source afterward.
@@ -50,17 +50,16 @@ not proof of in-recipe namespace cleanup.
 
 ## Current blocked integration
 
-This isolated package was authored against signed local T3 before the separate
-source-admission successor was frozen. `metadata-lock.json` intentionally binds
-only the existing predecessor recipe; it cannot admit the pending combined
-source. `load_shared` additionally requires the exact T3 target/tree, so the old
-T2 recipe is refused. This is a real gate, not a warning that execution ignores.
-Root must compose the independently reviewed early-fixture diff with the actual
-source-admission package and refresh its exact shared helper/template pins,
-complete metadata inverse/descriptor and this recipe lock from the **actual
-combined bytes**. No future SHA, arbitrary caller lock or null/empty bypass is
-accepted. A committed current recipe, available T3 object and full current-source
-admission must pass before the workflow can execute SQL.
+The current recipe binds the real signed native target `43ba912021d1fd05e04eae0b5225ad3502926e51`
+and tree `185bfb377cc2fc4af0a06cb8b200c830ae7e8e66`. The shared helper, native 49-dependency
+qualification template, preserved 36-dependency baseline and metadata lock are
+computed from this exact combined source. The admission bridge validates all
+18 production paths and 65 metadata paths before historical projection; its
+76-input manifest and held registry/bridge sources do not create circular hashes.
+This dirty working recipe still needs independent review, an actual signed
+recipe revision, complete current-source revision binding and media freshness.
+No future SHA, arbitrary caller lock or null/empty bypass is accepted. Positive
+source controls are not execution or SQL qualification.
 
 Host tests cover profile-pin construction, unchanged default metadata behavior,
 strict boolean selection, direct null-pin refusal and detached receipt scope

@@ -14,7 +14,7 @@ class DescriptionAdmission(unittest.TestCase):
   for p in paths:
    target=root/p;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes((ROOT/p).read_bytes())
  def test_actual_current_recipe_and_full_production_inventory_pass_before_revision_binding(self):
-  self.assertEqual(admission.assert_current_recipe(ROOT)['production_paths'],17)
+  self.assertEqual(admission.assert_current_recipe(ROOT)['production_paths'],18)
   data=directory.source(ROOT);self.assertEqual(data,admission.expected_manifest(ROOT));self.assertEqual(len(data['pins']),76)
   tree=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree','-r',admission.TARGET,'--','src','resources']);self.assertEqual(hashlib.sha256(tree).hexdigest(),data['production_git_tree_inventory_sha256'])
  def test_clean_exact_T3_native_Git_source_and_actual48_manifest_bind(self):
@@ -22,7 +22,7 @@ class DescriptionAdmission(unittest.TestCase):
   with tempfile.TemporaryDirectory()as t:
    native=Path(t).resolve()/'native';subprocess.run(['git','clone','--shared','--no-checkout','--',str(ROOT),str(native)],check=True,capture_output=True);subprocess.run(['git','-C',str(native),'checkout','--detach',ci.TARGET],check=True,capture_output=True)
    self.assertEqual(ci.source(native,ci.TARGET),ci.TREE)
-   manifest=ci.bind_manifest(ROOT/'support/governance/project-content-grants-ci/qualification-template.json',ROOT/'support/governance/project-content-grants-qualification','qualification',native);self.assertEqual(len(manifest['native_source_inventory']),48)
+   manifest=ci.bind_manifest(ROOT/'support/governance/project-content-grants-ci/qualification-template.json',ROOT/'support/governance/project-content-grants-qualification','qualification',native);self.assertEqual(len(manifest['native_source_inventory']),49)
    # A native target is not the later reviewed recipe; no borrowed current-source approval.
    with self.assertRaises((ValueError,OSError)):ci.current_source(native,ci.TARGET)
  def test_real_clean_and_dirty_recipes_are_checked_without_mocking_Git(self):

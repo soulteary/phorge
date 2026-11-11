@@ -4,11 +4,11 @@ from pathlib import Path
 
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
 BASE_TREE='69180e43fba7476257cc534c1934d544995a4443'
-TARGET='577ae2eb82d854753b88f2985a154e409272068a'
-TREE='f4d5435523b65587f54465b9c5712ad0b0d8f8f8'
+TARGET='43ba912021d1fd05e04eae0b5225ad3502926e51'
+TREE='185bfb377cc2fc4af0a06cb8b200c830ae7e8e66'
 MYSQL='mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
-REVIEWED_PINS={'prerequisites': {'native.php': {'bytes': 9741, 'sha256': '3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'}, 'provision.py': {'bytes': 11688, 'sha256': '4b93cbe03028f106d6d9cf51fef94f176b720f7e44aad52f7217541ffc87a997'}}, 'qualification': {'native.php': {'bytes': 17158, 'sha256': '68fc4a94a86140c7c0a6ef01af0d6daa3e5d5982c20c89061c8d9b64650d869d'}, 'qualify.py': {'bytes': 9451, 'sha256': '841ff0d3b7d93a573b6cf8071119b29d8f89321eb466284264bc09be419feec9'}}}
-REVIEWED_INVENTORIES={'qualification': '462a0a57b4cb3c98d9226b5455b2c30005a9588b8abd817c560a76eba2406f9f', 'prerequisites': 'dd641e2b38de82e6cf829ff6a71f891887ab2815b9171d1ba0e9c96d2259e896'}
+REVIEWED_PINS={'prerequisites': {'native.php': {'bytes': 9741, 'sha256': '3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'}, 'provision.py': {'bytes': 11688, 'sha256': '8da249dd2000b4c4d86e1a1c2bfcfd65036fe789fc1371ec168c486f34660fdd'}}, 'qualification': {'native.php': {'bytes': 17158, 'sha256': '68fc4a94a86140c7c0a6ef01af0d6daa3e5d5982c20c89061c8d9b64650d869d'}, 'qualify.py': {'bytes': 9451, 'sha256': 'fb214f9d66518d54a9515f1ea905c9bd052f3fb4500c18c16e984e1ee341958c'}}}
+REVIEWED_INVENTORIES={'qualification': 'ef47ed881f96911c3e005fcc707c88dedd6fa37647940833a7e0601e7249a334', 'prerequisites': 'dd641e2b38de82e6cf829ff6a71f891887ab2815b9171d1ba0e9c96d2259e896'}
 sha=lambda b:hashlib.sha256(b).hexdigest()
 canon=lambda d:json.dumps(d,sort_keys=True,separators=(',',':')).encode()+b'\n'
 

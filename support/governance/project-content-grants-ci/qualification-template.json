@@ -1,1 +1,214 @@
-{"kind":"qualification","native_git_revision":"577ae2eb82d854753b88f2985a154e409272068a","native_git_tree":"f4d5435523b65587f54465b9c5712ad0b0d8f8f8","native_source_inventory":{"bin/storage":{"bytes":7666,"sha256":"b284d9c290a1352956c4c9b7e16c79aa8a49a4e9a18d9b26e3775d619fa5ea8e"},"resources/sql/autopatches/20261110.project.contentgrants.sql":{"bytes":1585,"sha256":"16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e"},"scripts/init/init-script.php":{"bytes":157,"sha256":"6d3ef9bde32eb823915a4acba6a5cb2d438c532f6fa00c994bde6086a7963e29"},"scripts/init/init-setup.php":{"bytes":329,"sha256":"cfd19d97ed7f489ed6e1894bcfee9f7b62afd04a26fc230ffe0ea217e57dd27a"},"scripts/init/lib.php":{"bytes":679,"sha256":"55cef4f96bf2803e4ab0b9ad7773ca9884b39e24dd4e1b99f0aa348f17a1fce8"},"src/__phutil_library_map__.php":{"bytes":868977,"sha256":"5bc3984d6329fa968ff0a31773c22889a88c9db8bebf9bf45f4ce467faa29d00"},"src/applications/config/schema/PhabricatorConfigColumnSchema.php":{"bytes":4604,"sha256":"ddcba59aa3ad4b08638a8876876d4b3b48171d5a5bbcebc5fd08666d49ba455c"},"src/applications/config/schema/PhabricatorConfigKeySchema.php":{"bytes":2516,"sha256":"ddd84140c32c134fbc73444b9cefe784d6f5282049b72f5e16c72799c986c9fc"},"src/applications/config/schema/PhabricatorConfigSchemaSpec.php":{"bytes":12995,"sha256":"922478af31bf90b6a78ee6ab1ab02f57eea8d08c871d228e314dcd6400cdceb7"},"src/applications/config/schema/PhabricatorConfigServerSchema.php":{"bytes":1081,"sha256":"22473750db5147024de76fc80322784c9cce2d49e1198930da38e4f334736a71"},"src/applications/config/schema/PhabricatorConfigTableSchema.php":{"bytes":2795,"sha256":"180e84953f9a7de359a3887fc7da4027e50f6c8339ddd29d9e7ed228daf9d977"},"src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php":{"bytes":3054,"sha256":"58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66"},"src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php":{"bytes":16287,"sha256":"0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922"},"src/applications/project/config/PhabricatorProjectConfigOptions.php":{"bytes":5724,"sha256":"a6f43dcafd543126ca0d2006719121d911a8457c499a644de4f21d5c87597246"},"src/applications/project/customfield/PhabricatorProjectConfiguredCustomField.php":{"bytes":444,"sha256":"2c135fe63d5dc9828e0d3ed8eeb677bca605c2338cf8efc3b524d74e74d31c89"},"src/applications/project/customfield/PhabricatorProjectCustomField.php":{"bytes":413,"sha256":"f6a42083ea446db8704b69b4c575f6e7cd3dcf9273b51658503d11c0bdb15385"},"src/applications/project/customfield/PhabricatorProjectDescriptionField.php":{"bytes":544,"sha256":"78a7076fa251fb3a5942e8166b1a2996d038d38b349329058813982239ccca9d"},"src/applications/project/customfield/PhabricatorProjectStandardCustomField.php":{"bytes":571,"sha256":"68d699275f645478137649d0ba25149f3aed98549d482c871b830d52f1d17228"},"src/applications/project/storage/PhabricatorProject.php":{"bytes":29088,"sha256":"4541295ea84293294f2b461243ab150a317b337e69be8c602793297f337dd84a"},"src/applications/project/storage/PhabricatorProjectCustomFieldStorage.php":{"bytes":169,"sha256":"a0e1af0f4eda3774517926f2be556be1364c6f799d4e342002f0e8fb7c92a529"},"src/applications/project/xaction/PhorgeProjectDescriptionTransaction.php":{"bytes":2734,"sha256":"a7e28e201660210eb79e75237f767405dff922d5918aceb48d5eadff6e9f11ef"},"src/applications/search/storage/document/PhabricatorSearchDocument.php":{"bytes":2248,"sha256":"6d0f3b8bcf5b2cb100f8da717c18965aa8de3208c0bcb3d899f77f0f2d44e0f0"},"src/infrastructure/customfield/field/PhabricatorCustomField.php":{"bytes":45195,"sha256":"23de23e52c7f598ac6868bb358944eea27477e417570fa6c55e2b3304e5bcb67"},"src/infrastructure/customfield/field/PhabricatorCustomFieldList.php":{"bytes":9343,"sha256":"52cd5d6615e38755f773872f44c7319613fe67e0b86a934c781b61566e2d3354"},"src/infrastructure/customfield/standard/PhabricatorStandardCustomField.php":{"bytes":14841,"sha256":"ab1a8eada3ac9a01f515ba851b90dde4c58a9b0e10b0d9740abc854ba156d3df"},"src/infrastructure/customfield/storage/PhabricatorCustomFieldStorage.php":{"bytes":2464,"sha256":"ed4f730cdbcfea7312add17728c3db54fcb214420ee4eef90b19388fb94bcdbc"},"src/infrastructure/env/PhabricatorEnv.php":{"bytes":31694,"sha256":"8b748c8c7ffadef14705c825d54649cf35d7e13b6dcce07f17a92e839d517507"},"src/infrastructure/governance/content/PhorgeProjectContentGrantConfigOptions.php":{"bytes":877,"sha256":"cbf100beca8dd5d0b6de212a8936b6671c090513f8ea9d5306dce06555246a82"},"src/infrastructure/governance/content/PhorgeProjectContentGrantPlan.php":{"bytes":1908,"sha256":"18f64a8d2ce7102f488c850013ec45d4a47bbe2247fdbd1f936bf0dff0034f1e"},"src/infrastructure/governance/content/PhorgeProjectContentGrantRequest.php":{"bytes":2588,"sha256":"55cbd885c60f76ab42c1b30d08f254b9c3d46dd8fe502ead054acbe37cf13373"},"src/infrastructure/governance/content/PhorgeProjectContentGrantSchemaSpec.php":{"bytes":1764,"sha256":"38a6946111c931345f482ba8721e8c38c9374b3ea7de0a4b9e52103eac279755"},"src/infrastructure/governance/content/PhorgeProjectContentGrantService.php":{"bytes":2099,"sha256":"a22c5a67616c4855ca24a3af065c6a6914ca2c980701259fc8b3113e9c28095c"},"src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php":{"bytes":10197,"sha256":"983e7885bf7dcb7335437dc7b203c5b1a1605385a220a6242461a3ee43cb5612"},"src/infrastructure/governance/content/PhorgeProjectContentSource.php":{"bytes":6513,"sha256":"4d4a3647b4224177cb3106f7d545105dbcd7c8e603513f69a9adf19e91ee1a61"},"src/infrastructure/governance/content/PhorgeProjectDescriptionExecutor.php":{"bytes":3724,"sha256":"66fc38a5c4f78406c122bc200aac14a81c6782a1326fea533a183d32160ec9a4"},"src/infrastructure/governance/content/PhorgeProjectDescriptionRequest.php":{"bytes":3171,"sha256":"e97ad9110e873606ac7302e8720b91fe5e09ced7f7d24036d3b05eae7f61886c"},"src/infrastructure/governance/content/README.md":{"bytes":6096,"sha256":"a99db47ef53c78227ffbc611d9565526a914cec153140bafcabd9c5f3791acf0"},"src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php":{"bytes":17641,"sha256":"17c2cfba1e6c44cbf81711628a2e2fb728e216f5c6436ef9cd075fb42bc3cc40"},"src/infrastructure/governance/execution/PhorgeProjectExecutionConfigSource.php":{"bytes":9402,"sha256":"d8113b512a3a0d7d1ca55bdf3888afd5930cabb4ffad6e05f4234e7854789050"},"src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php":{"bytes":66178,"sha256":"a9c9ceed3c6c98d2054c92fed5dfd83295b7b5f0d063418047e63dbdab1509bb"},"src/infrastructure/governance/execution/__tests__/PhorgeProjectExecutionTestCase.php":{"bytes":21406,"sha256":"9d5f6ff7021ff3f97d9ba727741be28d816a1db6ec9e06d687b0804fa5278acd"},"src/infrastructure/storage/management/PhabricatorStorageManagementAPI.php":{"bytes":8257,"sha256":"3a0b76667f201565d87b0b9c3b4f90fe7b73cbb878f88beabf113fa5ac118c12"},"src/infrastructure/storage/management/PhabricatorStoragePatch.php":{"bytes":1754,"sha256":"d3dcd71526b9c74c1b7769fe89d6bc7b869d5edeac999a4bec90ad446a4360b4"},"src/infrastructure/storage/management/workflow/PhabricatorStorageManagementUpgradeWorkflow.php":{"bytes":4792,"sha256":"6c18e0792f5217dfd6b63834e06ae95a4b812ad47a62a49f2893e5f59fbd3081"},"src/infrastructure/storage/management/workflow/PhabricatorStorageManagementWorkflow.php":{"bytes":38929,"sha256":"d92263a80ff3ef7e7eb84934b901749dacbff4fd2290d9de2aeee178ad5188e8"},"src/infrastructure/storage/patch/PhabricatorBuiltinPatchList.php":{"bytes":23678,"sha256":"da1531e11fd352ff44e591bd83bd54bcaba963a84d521ffab3dcfb9ca3ee7bd1"},"src/infrastructure/storage/patch/PhabricatorSQLPatchList.php":{"bytes":10729,"sha256":"415413695441e6d8276d6b8a5e4db5fe5f185c4b6c9b0ffc7718d4cf7ee1bf78"},"tests/governance/test_project_content_grant_foundation.py":{"bytes":6141,"sha256":"cc4442c88518c7dd6f978cda905f8e3d29e54c7ed3e763dfa8aa983838cca9a9"}},"schema":"N05-CI-reviewed-source-template-v2","source_sha256":{"native.php":{"bytes":17158,"sha256":"68fc4a94a86140c7c0a6ef01af0d6daa3e5d5982c20c89061c8d9b64650d869d"},"qualify.py":{"bytes":9451,"sha256":"841ff0d3b7d93a573b6cf8071119b29d8f89321eb466284264bc09be419feec9"}}}
+{
+  "kind": "qualification",
+  "native_git_revision": "43ba912021d1fd05e04eae0b5225ad3502926e51",
+  "native_git_tree": "185bfb377cc2fc4af0a06cb8b200c830ae7e8e66",
+  "native_source_inventory": {
+    "bin/storage": {
+      "bytes": 7666,
+      "sha256": "b284d9c290a1352956c4c9b7e16c79aa8a49a4e9a18d9b26e3775d619fa5ea8e"
+    },
+    "resources/sql/autopatches/20261110.project.contentgrants.sql": {
+      "bytes": 1585,
+      "sha256": "16f043e830f29b246efd12c22569e66bf0d2b629f4b9dbd062ab0f30a487d27e"
+    },
+    "scripts/init/init-script.php": {
+      "bytes": 157,
+      "sha256": "6d3ef9bde32eb823915a4acba6a5cb2d438c532f6fa00c994bde6086a7963e29"
+    },
+    "scripts/init/init-setup.php": {
+      "bytes": 329,
+      "sha256": "cfd19d97ed7f489ed6e1894bcfee9f7b62afd04a26fc230ffe0ea217e57dd27a"
+    },
+    "scripts/init/lib.php": {
+      "bytes": 679,
+      "sha256": "55cef4f96bf2803e4ab0b9ad7773ca9884b39e24dd4e1b99f0aa348f17a1fce8"
+    },
+    "src/__phutil_library_map__.php": {
+      "bytes": 868977,
+      "sha256": "5bc3984d6329fa968ff0a31773c22889a88c9db8bebf9bf45f4ce467faa29d00"
+    },
+    "src/applications/config/schema/PhabricatorConfigColumnSchema.php": {
+      "bytes": 4604,
+      "sha256": "ddcba59aa3ad4b08638a8876876d4b3b48171d5a5bbcebc5fd08666d49ba455c"
+    },
+    "src/applications/config/schema/PhabricatorConfigKeySchema.php": {
+      "bytes": 2516,
+      "sha256": "ddd84140c32c134fbc73444b9cefe784d6f5282049b72f5e16c72799c986c9fc"
+    },
+    "src/applications/config/schema/PhabricatorConfigSchemaSpec.php": {
+      "bytes": 12995,
+      "sha256": "922478af31bf90b6a78ee6ab1ab02f57eea8d08c871d228e314dcd6400cdceb7"
+    },
+    "src/applications/config/schema/PhabricatorConfigServerSchema.php": {
+      "bytes": 1081,
+      "sha256": "22473750db5147024de76fc80322784c9cce2d49e1198930da38e4f334736a71"
+    },
+    "src/applications/config/schema/PhabricatorConfigTableSchema.php": {
+      "bytes": 2795,
+      "sha256": "180e84953f9a7de359a3887fc7da4027e50f6c8339ddd29d9e7ed228daf9d977"
+    },
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeActorContext.php": {
+      "bytes": 3054,
+      "sha256": "58195e75c846e10508d53aae647cac28a134e3bddb13942caa5511b79e7d8d66"
+    },
+    "src/applications/people/governance/auth/PhorgeGovernanceNativeIdentitySource.php": {
+      "bytes": 16287,
+      "sha256": "0a26b43c0462773969098d78616136a7ec0c2323d98511542d85e828f0103922"
+    },
+    "src/applications/project/config/PhabricatorProjectConfigOptions.php": {
+      "bytes": 5724,
+      "sha256": "a6f43dcafd543126ca0d2006719121d911a8457c499a644de4f21d5c87597246"
+    },
+    "src/applications/project/customfield/PhabricatorProjectConfiguredCustomField.php": {
+      "bytes": 444,
+      "sha256": "2c135fe63d5dc9828e0d3ed8eeb677bca605c2338cf8efc3b524d74e74d31c89"
+    },
+    "src/applications/project/customfield/PhabricatorProjectCustomField.php": {
+      "bytes": 413,
+      "sha256": "f6a42083ea446db8704b69b4c575f6e7cd3dcf9273b51658503d11c0bdb15385"
+    },
+    "src/applications/project/customfield/PhabricatorProjectDescriptionField.php": {
+      "bytes": 544,
+      "sha256": "78a7076fa251fb3a5942e8166b1a2996d038d38b349329058813982239ccca9d"
+    },
+    "src/applications/project/customfield/PhabricatorProjectStandardCustomField.php": {
+      "bytes": 571,
+      "sha256": "68d699275f645478137649d0ba25149f3aed98549d482c871b830d52f1d17228"
+    },
+    "src/applications/project/storage/PhabricatorProject.php": {
+      "bytes": 29088,
+      "sha256": "4541295ea84293294f2b461243ab150a317b337e69be8c602793297f337dd84a"
+    },
+    "src/applications/project/storage/PhabricatorProjectCustomFieldStorage.php": {
+      "bytes": 169,
+      "sha256": "a0e1af0f4eda3774517926f2be556be1364c6f799d4e342002f0e8fb7c92a529"
+    },
+    "src/applications/project/xaction/PhorgeProjectDescriptionTransaction.php": {
+      "bytes": 2734,
+      "sha256": "a7e28e201660210eb79e75237f767405dff922d5918aceb48d5eadff6e9f11ef"
+    },
+    "src/applications/search/storage/document/PhabricatorSearchDocument.php": {
+      "bytes": 2248,
+      "sha256": "6d0f3b8bcf5b2cb100f8da717c18965aa8de3208c0bcb3d899f77f0f2d44e0f0"
+    },
+    "src/infrastructure/customfield/field/PhabricatorCustomField.php": {
+      "bytes": 45195,
+      "sha256": "23de23e52c7f598ac6868bb358944eea27477e417570fa6c55e2b3304e5bcb67"
+    },
+    "src/infrastructure/customfield/field/PhabricatorCustomFieldList.php": {
+      "bytes": 9343,
+      "sha256": "52cd5d6615e38755f773872f44c7319613fe67e0b86a934c781b61566e2d3354"
+    },
+    "src/infrastructure/customfield/standard/PhabricatorStandardCustomField.php": {
+      "bytes": 14841,
+      "sha256": "ab1a8eada3ac9a01f515ba851b90dde4c58a9b0e10b0d9740abc854ba156d3df"
+    },
+    "src/infrastructure/customfield/storage/PhabricatorCustomFieldStorage.php": {
+      "bytes": 2464,
+      "sha256": "ed4f730cdbcfea7312add17728c3db54fcb214420ee4eef90b19388fb94bcdbc"
+    },
+    "src/infrastructure/env/PhabricatorEnv.php": {
+      "bytes": 31694,
+      "sha256": "8b748c8c7ffadef14705c825d54649cf35d7e13b6dcce07f17a92e839d517507"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectContentGrantConfigOptions.php": {
+      "bytes": 877,
+      "sha256": "cbf100beca8dd5d0b6de212a8936b6671c090513f8ea9d5306dce06555246a82"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectContentGrantPlan.php": {
+      "bytes": 1908,
+      "sha256": "18f64a8d2ce7102f488c850013ec45d4a47bbe2247fdbd1f936bf0dff0034f1e"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectContentGrantRequest.php": {
+      "bytes": 2588,
+      "sha256": "55cbd885c60f76ab42c1b30d08f254b9c3d46dd8fe502ead054acbe37cf13373"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectContentGrantSchemaSpec.php": {
+      "bytes": 1764,
+      "sha256": "38a6946111c931345f482ba8721e8c38c9374b3ea7de0a4b9e52103eac279755"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectContentGrantService.php": {
+      "bytes": 2099,
+      "sha256": "a22c5a67616c4855ca24a3af065c6a6914ca2c980701259fc8b3113e9c28095c"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php": {
+      "bytes": 10197,
+      "sha256": "983e7885bf7dcb7335437dc7b203c5b1a1605385a220a6242461a3ee43cb5612"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectContentSource.php": {
+      "bytes": 6513,
+      "sha256": "4d4a3647b4224177cb3106f7d545105dbcd7c8e603513f69a9adf19e91ee1a61"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectDescriptionExecutor.php": {
+      "bytes": 3724,
+      "sha256": "66fc38a5c4f78406c122bc200aac14a81c6782a1326fea533a183d32160ec9a4"
+    },
+    "src/infrastructure/governance/content/PhorgeProjectDescriptionRequest.php": {
+      "bytes": 3171,
+      "sha256": "e97ad9110e873606ac7302e8720b91fe5e09ced7f7d24036d3b05eae7f61886c"
+    },
+    "src/infrastructure/governance/content/README.md": {
+      "bytes": 6096,
+      "sha256": "a99db47ef53c78227ffbc611d9565526a914cec153140bafcabd9c5f3791acf0"
+    },
+    "src/infrastructure/governance/execution/PhorgeProjectExecutionCatalog.php": {
+      "bytes": 17641,
+      "sha256": "17c2cfba1e6c44cbf81711628a2e2fb728e216f5c6436ef9cd075fb42bc3cc40"
+    },
+    "src/infrastructure/governance/execution/PhorgeProjectExecutionConfigSource.php": {
+      "bytes": 9402,
+      "sha256": "d8113b512a3a0d7d1ca55bdf3888afd5930cabb4ffad6e05f4234e7854789050"
+    },
+    "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php": {
+      "bytes": 70691,
+      "sha256": "41d5621c0169f2ecb082a8ee5599a24c369cc5de6d417e18f9e88fa87eb84ef3"
+    },
+    "src/infrastructure/governance/execution/__tests__/PhorgeProjectExecutionTestCase.php": {
+      "bytes": 21406,
+      "sha256": "9d5f6ff7021ff3f97d9ba727741be28d816a1db6ec9e06d687b0804fa5278acd"
+    },
+    "src/infrastructure/storage/connection/AphrontDatabaseTransactionState.php": {
+      "bytes": 2742,
+      "sha256": "84821ea6dfdb88ed32242c05e434153b959e5c956e59bbfa587d9a1fb851a259"
+    },
+    "src/infrastructure/storage/management/PhabricatorStorageManagementAPI.php": {
+      "bytes": 8257,
+      "sha256": "3a0b76667f201565d87b0b9c3b4f90fe7b73cbb878f88beabf113fa5ac118c12"
+    },
+    "src/infrastructure/storage/management/PhabricatorStoragePatch.php": {
+      "bytes": 1754,
+      "sha256": "d3dcd71526b9c74c1b7769fe89d6bc7b869d5edeac999a4bec90ad446a4360b4"
+    },
+    "src/infrastructure/storage/management/workflow/PhabricatorStorageManagementUpgradeWorkflow.php": {
+      "bytes": 4792,
+      "sha256": "6c18e0792f5217dfd6b63834e06ae95a4b812ad47a62a49f2893e5f59fbd3081"
+    },
+    "src/infrastructure/storage/management/workflow/PhabricatorStorageManagementWorkflow.php": {
+      "bytes": 38929,
+      "sha256": "d92263a80ff3ef7e7eb84934b901749dacbff4fd2290d9de2aeee178ad5188e8"
+    },
+    "src/infrastructure/storage/patch/PhabricatorBuiltinPatchList.php": {
+      "bytes": 23678,
+      "sha256": "da1531e11fd352ff44e591bd83bd54bcaba963a84d521ffab3dcfb9ca3ee7bd1"
+    },
+    "src/infrastructure/storage/patch/PhabricatorSQLPatchList.php": {
+      "bytes": 10729,
+      "sha256": "415413695441e6d8276d6b8a5e4db5fe5f185c4b6c9b0ffc7718d4cf7ee1bf78"
+    },
+    "tests/governance/test_project_content_grant_foundation.py": {
+      "bytes": 6141,
+      "sha256": "cc4442c88518c7dd6f978cda905f8e3d29e54c7ed3e763dfa8aa983838cca9a9"
+    }
+  },
+  "schema": "N05-CI-reviewed-source-template-v2",
+  "source_sha256": {
+    "native.php": {
+      "bytes": 17158,
+      "sha256": "68fc4a94a86140c7c0a6ef01af0d6daa3e5d5982c20c89061c8d9b64650d869d"
+    },
+    "qualify.py": {
+      "bytes": 9451,
+      "sha256": "fb214f9d66518d54a9515f1ea905c9bd052f3fb4500c18c16e984e1ee341958c"
+    }
+  }
+}

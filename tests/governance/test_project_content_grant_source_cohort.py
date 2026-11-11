@@ -7,7 +7,7 @@ sys.path.insert(0,str(ROOT/'scripts/governance'))
 import project_description_admission_delta as delta
 class NativeGrantCohort(unittest.TestCase):
  def test_reviewed_native_files_restore_exact_current_main_or_new_leaf(self):
-  self.assertEqual(len(delta.assert_production_cohort(ROOT)),17)
+  self.assertEqual(len(delta.assert_production_cohort(ROOT)),18)
   for n in delta.PRODUCTION_PINS:
    raw=(ROOT/n).read_bytes();old=subprocess.run(['git','-C',str(ROOT),'show',BASE+':'+n],capture_output=True)
    restored=delta.reduce_production(n,raw)
@@ -47,7 +47,7 @@ class ExactMediaSourceRebind(unittest.TestCase):
  def test_SQL_runtime_binding_uses_T3_and_exclusions_require_current_recipe_guard(self):
   import importlib.util
   p=ROOT/'support/governance/project-content-grants-ci/ci.py';spec=importlib.util.spec_from_file_location('exact_N05_runtime_ci_source',p);ci=importlib.util.module_from_spec(spec);spec.loader.exec_module(ci)
-  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'577ae2eb82d854753b88f2985a154e409272068a');self.assertEqual(ci.TREE,'f4d5435523b65587f54465b9c5712ad0b0d8f8f8');self.assertEqual(set(ci.OFFLINE_METADATA),{'scripts/governance/check_recovery_oauth_authorization_producer_v1.py','scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py'})
+  self.assertEqual(ci.BASE,'4c2245300dc1d78d042b95190dd537eb6b1f9861');self.assertEqual(ci.TARGET,'43ba912021d1fd05e04eae0b5225ad3502926e51');self.assertEqual(ci.TREE,'185bfb377cc2fc4af0a06cb8b200c830ae7e8e66');self.assertEqual(set(ci.OFFLINE_METADATA),{'scripts/governance/check_recovery_oauth_authorization_producer_v1.py','scripts/governance/project_content_grant_source_delta.py','scripts/governance/project_content_grant_ci_source_delta.py','scripts/governance/project_description_admission_delta.py','scripts/governance/recovery_oauth_authorization_source_delta.py','scripts/governance/check_directory_transports_v1.py'})
   delta.assert_current_recipe(ROOT)
 
 class StageCExactRecipeBinding(unittest.TestCase):

@@ -81,16 +81,16 @@ def assert_historical_source(root,current):
   else:current.description.exact(current.description.checked_bytes(path),pin)
 
 def SQL_obligations(root=ROOT):
- # Current17 files are source-check inputs, never an actor/profile projection.
- # Full current admission precedes the exact C1 current17 -> real main14 view.
+ # Current18 files are source-check inputs, never an actor/profile projection.
+ # Full current admission precedes the exact C1 current18 -> real main14 view.
  import project_description_admission_delta as current
  root=Path(root)
  map_name='src/__phutil_library_map__.php'
  current_source=False
  if hashlib.sha256(read_source_checked(root/map_name)).hexdigest()==current.description.CURRENT_PINS[map_name]['sha256']:
   current_source=True
- for name in current.description.CURRENT_PINS:
-  if current.description.MAIN_BASELINE['production_pins'][name] is None and (root/name).exists():current_source=True
+ for name,pin in current.description.MAIN_BASELINE['production_pins'].items():
+  if pin is None and (root/name).exists():current_source=True
  prior={}
  if current_source:
   current.assert_current_recipe(root)

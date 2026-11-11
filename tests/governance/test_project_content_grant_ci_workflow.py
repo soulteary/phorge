@@ -41,7 +41,7 @@ class Workflow(unittest.TestCase):
   for kind,folder in folders.items():
    template=json.loads((DIR/('prerequisites-template.json'if kind=='prerequisites'else'qualification-template.json')).read_bytes())
    self.assertEqual(template['source_sha256'],ci.REVIEWED_PINS[kind]);self.assertNotIn('source_directory',template)
-   inv=template['native_public_source_dependencies'if kind=='prerequisites'else'native_source_inventory'];self.assertEqual(ci.sha(ci.canon(inv)),ci.REVIEWED_INVENTORIES[kind]);self.assertEqual(len(inv),36 if kind=='prerequisites'else 48)
+   inv=template['native_public_source_dependencies'if kind=='prerequisites'else'native_source_inventory'];self.assertEqual(ci.sha(ci.canon(inv)),ci.REVIEWED_INVENTORIES[kind]);self.assertEqual(len(inv),36 if kind=='prerequisites'else 49)
    for name,pin in ci.REVIEWED_PINS[kind].items():raw=(folder/name).read_bytes();self.assertEqual(len(raw),pin['bytes']);self.assertEqual(ci.sha(raw),pin['sha256'])
    self.assertNotIn('/Users/',json.dumps(template))
  def test_source_cleanliness_and_native_equivalence_fail_closed(self):

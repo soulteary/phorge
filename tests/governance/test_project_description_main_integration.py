@@ -10,7 +10,7 @@ class CurrentMainIntegration(unittest.TestCase):
    expected=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','HEAD:'+rel]);self.assertEqual((ROOT/rel).read_bytes(),expected)
   sys.path.insert(0,str(ROOT/'scripts/governance'))
   import project_description_admission_delta as cohort
-  self.assertEqual(len(cohort.assert_production_cohort(ROOT)),17)
+  self.assertEqual(len(cohort.assert_production_cohort(ROOT)),18)
   cohort.assert_current_recipe(ROOT)
  def test_actual_revision_cleanliness_and_no_SQL_profile_are_separate_gates(self):
   rev=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
