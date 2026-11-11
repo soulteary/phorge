@@ -95,6 +95,64 @@ class R3HistoricalView(unittest.TestCase):
      try:
       with self.subTest(path=path,mode=mode),self.assertRaises(ValueError):view._historical_document_source(path,raw,root)
      finally:target.chmod(0o644)
+ def test_reviewed_ed66_stage_is_exact_git_and_preserves_old_stage_objects(self):
+  import json,subprocess
+  name=view._BATCH_PATH;stage=view._BATCH_REVIEWED_ED66
+  reviewed=view._batch_stage_bytes(view.ROOT,stage)
+  self.assertEqual(reviewed,(view.ROOT/name).read_bytes())
+  mainline=view._batch_stage_bytes(view.ROOT,view._BATCH_MAINLINE)
+  self.assertNotEqual(reviewed,mainline)
+  before=json.loads(mainline);after=json.loads(reviewed)
+  # The exact reviewed source snapshot and one Editor candidate changed;
+  # candidate classification, consumer membership and all other fields did not.
+  old_snapshot=after['scan']['source_snapshot_sha256']
+  self.assertNotEqual(old_snapshot,before['scan']['source_snapshot_sha256'])
+  after['scan']['source_snapshot_sha256']=before['scan']['source_snapshot_sha256']
+  candidate=after['scan']['candidates'][266];prior=before['scan']['candidates'][266]
+  self.assertEqual(candidate['path'],view.current.description.NATIVE_EDITOR_BASELINE['path'])
+  self.assertNotEqual(candidate['sha256'],prior['sha256'])
+  candidate['sha256']=prior['sha256']
+  for current_match,old_match in zip(candidate['matches'],prior['matches']):
+   for i,(line,old_line)in enumerate(zip(current_match['lines'],old_match['lines'])):
+    if line!=old_line:self.assertEqual(line,old_line+4);current_match['lines'][i]=old_line
+  self.assertNotEqual(after['consumers'][39]['sha256'],before['consumers'][39]['sha256'])
+  after['consumers'][39]['sha256']=before['consumers'][39]['sha256']
+  self.assertEqual(after,before)
+  for key,value in [('revision','0'*40),('tree','0'*40),('blob','0'*40),('sha256','0'*64),('bytes',stage['bytes']+1)]:
+   wrong=dict(stage);wrong[key]=value
+   with self.subTest(key=key),self.assertRaises((ValueError,subprocess.CalledProcessError)):
+    view._batch_stage_bytes(view.ROOT,wrong)
+  for old in (mainline,view._batch_stage_bytes(view.ROOT,view._BATCH_LEGACY)):
+   with self.assertRaises(ValueError):view._historical_batch_scan_source(name,old)
+ def test_three_reviewed_lifecycle_inputs_have_exact_current_roles_and_old_git_phase(self):
+  import hashlib,subprocess
+  from unittest.mock import patch
+  module=view.checked_modules().authorization_delta.lifecycle_delta
+  self.assertEqual(set(view._LIFECYCLE_REVIEWED_ED66),{'docs/governance/batch-5-pipeline.json','docs/governance/private-notification-producers.json','scripts/governance/check_pipeline_boundaries.py'})
+  for path,stage in view._LIFECYCLE_REVIEWED_ED66.items():
+   raw=(view.ROOT/path).read_bytes()
+   prior=subprocess.check_output(['git','--no-replace-objects','-C',str(view.ROOT),'show',view.REVISION+':'+path])
+   self.assertEqual(view._historical_reviewed_lifecycle_source(path,raw),prior)
+   self.assertEqual(hashlib.sha256(prior).hexdigest(),module.SOURCE_INPUTS[path])
+   for bad in (raw+b'unknown',prior,'not bytes'):
+    with self.subTest(path=path),self.assertRaises(ValueError):view._historical_reviewed_lifecycle_source(path,bad)
+   with patch.dict(stage,{'sha256':'0'*64}),self.assertRaises(ValueError):view._historical_reviewed_lifecycle_source(path,raw)
+   with patch.object(view.current,'TARGET_TREE','0'*40),self.assertRaises(ValueError):view._historical_reviewed_lifecycle_source(path,raw)
+  with self.assertRaises(ValueError):view._historical_reviewed_lifecycle_source('docs/unknown.json',b'{}')
+  import tempfile,shutil
+  from pathlib import Path
+  from recovery_oauth_code_test_cohort import complete_source_cohort
+  with tempfile.TemporaryDirectory()as td:
+   root=Path(td).resolve();complete_source_cohort(root)
+   for path in view._LIFECYCLE_REVIEWED_ED66:
+    target=root/path;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(view.ROOT/path,target);raw=target.read_bytes()
+    for mode in (0o600,0o755,0o1644):
+     target.chmod(mode)
+     try:
+      with self.subTest(path=path,mode=mode),self.assertRaises(ValueError):view._historical_reviewed_lifecycle_source(path,raw,root)
+     finally:target.chmod(0o644)
+    target.unlink()
+    with self.assertRaises(OSError):view._historical_reviewed_lifecycle_source(path,raw,root)
  def test_no_runtime_source_imports_test_view(self):
   for p in (view.ROOT/'scripts/governance').glob('*.py'):
    self.assertNotIn(b'import n05_r3_historical_test_view',p.read_bytes())

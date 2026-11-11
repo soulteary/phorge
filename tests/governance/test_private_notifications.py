@@ -71,6 +71,20 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
         data=copy.deepcopy(self.data);del data['security_flows']['account.login']
         with self.assertRaises(ValueError):gate.validate(data)
     def test_native_envelope_requires_external_measurement_revision(self):
+        import os
+        def source_window():
+            rows={}
+            for parent,dirs,names in os.walk(ROOT,followlinks=False):
+                dirs[:]=[name for name in dirs if name!='.git']
+                for name in list(dirs):
+                    path=Path(parent)/name
+                    if path.is_symlink():dirs.remove(name);names.append(name)
+                for name in names:
+                    path=Path(parent)/name;relative=path.relative_to(ROOT).as_posix()
+                    if relative=='.git':continue
+                    rows[relative]=(path.lstat().st_mode,hashlib.sha256(os.readlink(path).encode()if path.is_symlink()else path.read_bytes()).hexdigest())
+            return rows
+        before=source_window()
         spec=importlib.util.spec_from_file_location('native_notification_template',ROOT/'tests/governance/test_native_organization.py')
         module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
         with tempfile.TemporaryDirectory()as directory:
@@ -79,12 +93,17 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
             data=module.template();data['native']['private_mail_tests']['wiki_content_publication_tests']['render_cleanup']['binary_sha256']=hashlib.sha256(render.read_bytes()).hexdigest()
             data['file_service_cleanup']['binary_sha256']=hashlib.sha256(binary.read_bytes()).hexdigest()
             receipt=private/'receipt.json';receipt.write_text(json.dumps(data))
-            base=[sys.executable,str(ROOT/'scripts/governance/check_private_notifications.py'),
+            base=[sys.executable,'-B',str(ROOT/'scripts/governance/check_private_notifications.py'),
                   '--receipt',str(receipt),'--file-binary',str(binary),'--render-binary',str(render)]
+            # Probe the same interpreter/flag prefix used by the real CLI below.
+            prefix=base[:base.index(str(ROOT/'scripts/governance/check_private_notifications.py'))]
+            flag_probe=subprocess.run(prefix+['-c','import sys; raise SystemExit(0 if sys.dont_write_bytecode else 1)'],capture_output=True,text=True)
+            self.assertEqual(flag_probe.returncode,0,'native evidence CLI must not write source bytecode')
             for expected,extra in [(0,['--measurement-source-revision','a'*40]),
                                    (1,[]),(1,['--measurement-source-revision','b'*40])]:
                 result=subprocess.run(base+extra,capture_output=True,text=True)
                 self.assertEqual(expected,result.returncode)
+                self.assertEqual(source_window(),before,'CLI must preserve all source names, modes and hashes')
                 if expected==0:
                     value=json.loads(result.stdout);self.assertEqual(934,value['native_checks'])
                     self.assertIs(value['smtp_proved'],False)

@@ -62,6 +62,8 @@ def historical_lifecycle_source(path,raw):
  elif path in _DOCUMENT_PATHS:
   raw=_historical_document_source(path,raw)
   if hashlib.sha256(raw).hexdigest()!=module.SOURCE_INPUTS[path]:raise ValueError('unknown lifecycle document stage')
+ elif path in _LIFECYCLE_REVIEWED_ED66:
+  raw=_historical_reviewed_lifecycle_source(path,raw)
  else:
   from test_recovery_oauth_client_lifecycle_coordination import current_descriptor_test_view
   raw=current_descriptor_test_view(path,raw)
@@ -97,6 +99,9 @@ def historical_D95_media_recipe_source(path,raw):
 _BATCH_PATH='docs/governance/batch-2-callers.json'
 _BATCH_LEGACY={'revision':'577ae2eb82d854753b88f2985a154e409272068a','tree':'f4d5435523b65587f54465b9c5712ad0b0d8f8f8','blob':'5046e2d1bdc8bd8baae9ab1b52c8b896fe9174ae','bytes':246053,'sha256':'4e0d826ef985254278ac050c0aabffd9b838dc132b4819eed17992d084e73d61'}
 _BATCH_MAINLINE={'revision':'8d7fac3491716a523648750ca496079562733033','tree':'ef05de55501db24fbd9936d6253291080e922e70','blob':'b1b1bc20845a9ee7d7d35be75ff73a799ccf691c','bytes':246053,'sha256':'e20d362953ab6035072e0456a93829fee1a9623bf5f8959b61ac3203da54e46c'}
+
+# Additional exact reviewed document stage; the prior two stages remain immutable.
+_BATCH_REVIEWED_ED66={'revision':'ed66a10e3a2a034bcb9ac52e120c946b20ed2f29','tree':'2a3f916d09e44fd7e132e146b5a846fbcd1b5282','blob':'a15c785e1abf90c820ea907271b67619b309ae69','bytes':246053,'sha256':'eeac1147d313aa3949735003074bf2f4d136850aadacb0656d2663736580dc89'}
 
 def _batch_git_bytes(repo,revision,tree):
  import re
@@ -142,9 +147,10 @@ def _historical_batch_scan_source(path,raw,root=ROOT):
  if actual!=raw:raise ValueError('unknown actual native batch scan')
  if current.TARGET==_BATCH_LEGACY['revision']:
   return _historical_batch_577_source(path,raw)
- # Only the independently reviewed whole8d7 document is a current-stage bridge.
- # It must ALSO be the exact document of the authenticated actual native target.
- if raw!=_batch_stage_bytes(ROOT,_BATCH_MAINLINE):raise ValueError('unknown whole current batch scan')
+ # Only these exact reviewed whole documents can bridge to the immutable
+ # 8d7 stage. Each must ALSO equal the authenticated actual native target.
+ mainline=_batch_stage_bytes(ROOT,_BATCH_MAINLINE)
+ if raw!=mainline and raw!=_batch_stage_bytes(ROOT,_BATCH_REVIEWED_ED66):raise ValueError('unknown whole current batch scan')
  return _historical_batch_577_source(path,_batch_stage_bytes(ROOT,_BATCH_LEGACY))
 
 _DOCUMENT_PATHS=frozenset(('docs/governance/batch-2-callers.json','docs/governance/native-directory-callers.json'))
@@ -156,3 +162,50 @@ def _historical_document_source(path,raw,root=ROOT):
  if path=='docs/governance/batch-2-callers.json':return _historical_batch_scan_source(path,raw,root)
  import n05_legacy_audit_test_view as original
  return original.historical_metadata_source(path,raw,root)
+
+
+# Exact current documents/checker admitted by the reviewed ed66 seven-source stage.
+# This is a test-only old-source projection, not a scanner or candidate allowance.
+_LIFECYCLE_REVIEWED_ED66={
+ 'docs/governance/batch-5-pipeline.json':{'blob':'1de82093880c9bdba858590ff07633bbdd39362c','bytes':5888,'sha256':'50af0dbef9f0fe89ea9c82554c8eca1473c26e81a5b3486e918cd803ec870e64'},
+ 'docs/governance/private-notification-producers.json':{'blob':'11c0335fff9714d4f6f88c2d93decc58a69aa5a1','bytes':16769,'sha256':'d7ec1ef3f3fac4eedcf7888c03b8cb13ebbe19fbdbe90b3c8dfcad54e8a476d4'},
+ 'scripts/governance/check_pipeline_boundaries.py':{'blob':'1058dd9d49f914f4882905da67369684f462f429','bytes':5754,'sha256':'057598ed4559dda66b9fdeefde89c88e006ddd999f9dce75c95daabdd1da65d2'},
+}
+def _reviewed_lifecycle_git_bytes(repo,revision,tree,path):
+ import re
+ if path not in _LIFECYCLE_REVIEWED_ED66 or type(revision)is not str or re.fullmatch('[a-f0-9]{40}',revision)is None or type(tree)is not str or re.fullmatch('[a-f0-9]{40}',tree)is None:raise ValueError('unreviewed lifecycle Git target')
+ def git(*args):return subprocess.check_output(['git','--no-replace-objects','-C',str(repo),*args],stderr=subprocess.DEVNULL)
+ commit=git('cat-file','commit',revision)
+ if hashlib.sha1(b'commit '+str(len(commit)).encode()+b'\0'+commit).hexdigest()!=revision or not commit.startswith(('tree '+tree+'\n').encode()):raise ValueError('unknown lifecycle commit/tree')
+ line=git('ls-tree',revision,'--',path).split(b'\t')
+ if len(line)!=2 or line[1].rstrip(b'\n').decode()!=path:raise ValueError('unknown lifecycle Git path')
+ record=line[0].split()
+ if len(record)!=3 or record[:2]!=[b'100644',b'blob']or re.fullmatch(b'[a-f0-9]{40}',record[2])is None:raise ValueError('unknown lifecycle Git mode/blob')
+ raw=git('cat-file','blob',record[2].decode())
+ if hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=record[2].decode():raise ValueError('unknown lifecycle Git blob bytes')
+ return raw,record[2].decode()
+
+def _historical_reviewed_lifecycle_source(path,raw,root=ROOT):
+ import ast,json
+ current.assert_current_recipe(root)
+ if type(path)is not str or path not in _LIFECYCLE_REVIEWED_ED66 or type(raw)is not bytes:raise ValueError('unselected reviewed lifecycle source')
+ target=Path(root)/path
+ if target.stat().st_mode&0o7777!=0o644 or raw!=current.description.checked_bytes(target):raise ValueError('unknown current lifecycle source')
+ registry=json.loads(current.description.checked_bytes(Path(root)/'support/governance/source-operation/registry-v1.json'))
+ pin=registry['successor_entries'][path]['current']if path in registry['successor_entries']else registry['entries'][path]
+ if pin!={'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}:raise ValueError('unknown lifecycle source role')
+ fields={}
+ for node in ast.parse(current.description.checked_bytes(Path(root)/current.BRIDGE)).body:
+  if isinstance(node,ast.Assign)and len(node.targets)==1 and isinstance(node.targets[0],ast.Name)and node.targets[0].id in ('TARGET','TARGET_TREE'):
+   if node.targets[0].id in fields:raise ValueError('duplicate lifecycle target')
+   fields[node.targets[0].id]=ast.literal_eval(node.value)
+ if fields!={'TARGET':current.TARGET,'TARGET_TREE':current.TARGET_TREE}:raise ValueError('unreviewed lifecycle target')
+ actual,oid=_reviewed_lifecycle_git_bytes(ROOT,current.TARGET,current.TARGET_TREE,path)
+ fixed,fixed_oid=_reviewed_lifecycle_git_bytes(ROOT,_BATCH_REVIEWED_ED66['revision'],_BATCH_REVIEWED_ED66['tree'],path)
+ stage=_LIFECYCLE_REVIEWED_ED66[path]
+ if raw!=actual or raw!=fixed or fixed_oid!=stage['blob']or len(fixed)!=stage['bytes']or hashlib.sha256(fixed).hexdigest()!=stage['sha256']:raise ValueError('unknown whole reviewed lifecycle source')
+ tree=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',REVISION+'^{tree}']).decode().strip()
+ prior,oid=_reviewed_lifecycle_git_bytes(ROOT,REVISION,tree,path)
+ expected=checked_modules().authorization_delta.lifecycle_delta.SOURCE_INPUTS[path]
+ if hashlib.sha256(prior).hexdigest()!=expected:raise ValueError('unknown historical lifecycle source phase')
+ return prior
