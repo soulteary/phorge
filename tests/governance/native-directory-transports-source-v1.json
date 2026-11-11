@@ -46,20 +46,20 @@
       "sha256": "df5dd1a3ad39d5b3c53f17343ccd15232a37bc8a37a3c3de954174c92e6f5462"
     },
     "scripts/governance/check_native_organization.py": {
-      "bytes": 125030,
-      "sha256": "0191dca0cbbf00384153a46a0ed8cadcbd5c846d1e7486a34d18d15cb5151c3a"
+      "bytes": 125897,
+      "sha256": "c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300"
     },
     "scripts/governance/probe_oauth_authorization_mysql84.php": {
       "bytes": 2795,
       "sha256": "6eb1a8e9c5eb21eac699c507d65046d6b54497eecef3223e88c3ce70483d4847"
     },
     "scripts/governance/project_description_admission_delta.py": {
-      "bytes": 334094,
-      "sha256": "0a94d8a69004d16ea17ed3f2b446a1ed4243891206969588e8d0313d980c5137"
+      "bytes": 526241,
+      "sha256": "a84c8300afe6a457989e220c7838acd17b8fe26c992986b1587b9c5cde78a162"
     },
     "scripts/governance/project_description_source_delta.py": {
       "bytes": 201702,
-      "sha256": "7afe8c16642aa4d61827dfe70a0f79cc4cf0288f99d9da564da360f285faecac"
+      "sha256": "d0b399e77c4caa45ae17d1f634f8d21d05e0a54a467a30083eead5a9bca1ccdf"
     },
     "scripts/governance/project_directory_transport_failure_v1.py": {
       "bytes": 8490,
@@ -242,8 +242,8 @@
       "sha256": "37f7bf6da26affaee1b418d0ff319cb6d6e090c9443945a66a2ac53ec4eb89d2"
     },
     "support/governance/native-organization/test-native-organization-mysql.php": {
-      "bytes": 39675,
-      "sha256": "12f3da8ac1ff4f0eda73200a28247add24066378c9295cb10f23339d6bf589c7"
+      "bytes": 39959,
+      "sha256": "3ae6699231f460351bf205fb4bc62f48668cbf56386e671fa9ade8ec224f9c02"
     },
     "support/runtime/php-version.php": {
       "bytes": 596,
@@ -306,6 +306,6 @@
       "sha256": "73f23b9eb86b5bb4b41ac3055ba7b552d8f9f5d7bc52ec9b10687d785e1a5ac0"
     }
   },
-  "production_git_tree_inventory_sha256": "c7fc9eb350ca76702428b2cc5929ffb7255db655a27d64a5da2d41d89b01f978",
+  "production_git_tree_inventory_sha256": "e716ebf69e29dfd6004c3b057236b1de19593682f50c353a2792d889d050389e",
   "schema": "native-directory-transports-source-v1"
 }

@@ -6,8 +6,8 @@ A private exact successor admits one generated profile; tracked PHP stays null.
 import argparse,hashlib,json,os,re,subprocess,types,stat
 from pathlib import Path
 HERE=Path(__file__).resolve().parent
-TARGET='ed66a10e3a2a034bcb9ac52e120c946b20ed2f29'
-TREE='2a3f916d09e44fd7e132e146b5a846fbcd1b5282'
+TARGET='9acf79c9f86d5a702fcbbdaf9f4c9ef15e0b5b93'
+TREE='6559e5b068e1f933a75143e46135561f440b5bd1'
 sha=lambda b:hashlib.sha256(b).hexdigest()
 canon=lambda d:json.dumps(d,sort_keys=True,separators=(',',':')).encode()+b'\n'
 PHASE='entry'

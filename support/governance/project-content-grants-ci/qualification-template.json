@@ -1,7 +1,7 @@
 {
   "kind": "qualification",
-  "native_git_revision": "ed66a10e3a2a034bcb9ac52e120c946b20ed2f29",
-  "native_git_tree": "2a3f916d09e44fd7e132e146b5a846fbcd1b5282",
+  "native_git_revision": "9acf79c9f86d5a702fcbbdaf9f4c9ef15e0b5b93",
+  "native_git_tree": "6559e5b068e1f933a75143e46135561f440b5bd1",
   "native_source_inventory": {
     "bin/storage": {
       "bytes": 7666,
@@ -92,8 +92,8 @@
       "sha256": "6d0f3b8bcf5b2cb100f8da717c18965aa8de3208c0bcb3d899f77f0f2d44e0f0"
     },
     "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php": {
-      "bytes": 170602,
-      "sha256": "b52470c03f5090d368c4cc0bb70ca146feaa1ece705bdb28231270ee9afeca54"
+      "bytes": 170708,
+      "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d"
     },
     "src/infrastructure/customfield/field/PhabricatorCustomField.php": {
       "bytes": 45195,
@@ -164,8 +164,8 @@
       "sha256": "d8113b512a3a0d7d1ca55bdf3888afd5930cabb4ffad6e05f4234e7854789050"
     },
     "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php": {
-      "bytes": 72728,
-      "sha256": "60d47ebb05ba2b890fa5a6ad5460dc49cddc332f4b4da08b9d0f6531c5e033fa"
+      "bytes": 74951,
+      "sha256": "8a1c169dd44ec448e5423b0d5be74d9d19a8b60e941f5809a2786a58756f6077"
     },
     "src/infrastructure/governance/execution/__tests__/PhorgeProjectExecutionTestCase.php": {
       "bytes": 21406,
@@ -212,7 +212,7 @@
     },
     "qualify.py": {
       "bytes": 9451,
-      "sha256": "4ce8d44fd229cbb2329ad2973c23a44af18902dd64446c8c0525f65b99c26776"
+      "sha256": "04aa50558fd74f60aec8bab0cdc9608e630787118ba51c773630cce7680281e8"
     }
   }
 }
