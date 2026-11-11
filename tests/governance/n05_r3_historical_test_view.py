@@ -91,20 +91,58 @@ def historical_D95_media_recipe_source(path,raw):
  prior=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','0496112f7d6706bb3d854117b7fd94a759978987:'+path])
  return historical_F4_media_recipe_source(path,prior)
 
-def _historical_batch_scan_source(path,raw,root=ROOT):
- current.assert_current_recipe(root)
- if path!='docs/governance/batch-2-callers.json' or type(raw)is not bytes:raise ValueError('unselected historical batch scan')
- target=Path(root)/path
- if target.stat().st_mode&0o7777!=0o644 or raw!=current.description.checked_bytes(target):raise ValueError('unknown actual batch scan')
- revision='577ae2eb82d854753b88f2985a154e409272068a'
- if current.TARGET!=revision:raise ValueError('unreviewed native batch scan target')
- mode=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree',revision,'--',path]).split(b' ',1)[0]
- actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',revision+':'+path])
- if mode!=b'100644' or raw!=actual:raise ValueError('unknown native batch scan')
- prior=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',REVISION+':'+path])
+_BATCH_PATH='docs/governance/batch-2-callers.json'
+_BATCH_LEGACY={'revision':'577ae2eb82d854753b88f2985a154e409272068a','tree':'f4d5435523b65587f54465b9c5712ad0b0d8f8f8','blob':'5046e2d1bdc8bd8baae9ab1b52c8b896fe9174ae','bytes':246053,'sha256':'4e0d826ef985254278ac050c0aabffd9b838dc132b4819eed17992d084e73d61'}
+_BATCH_MAINLINE={'revision':'8d7fac3491716a523648750ca496079562733033','tree':'ef05de55501db24fbd9936d6253291080e922e70','blob':'b1b1bc20845a9ee7d7d35be75ff73a799ccf691c','bytes':246053,'sha256':'e20d362953ab6035072e0456a93829fee1a9623bf5f8959b61ac3203da54e46c'}
+
+def _batch_git_bytes(repo,revision,tree):
+ import re
+ if type(revision)is not str or re.fullmatch('[a-f0-9]{40}',revision)is None or type(tree)is not str or re.fullmatch('[a-f0-9]{40}',tree)is None:raise ValueError('unreviewed native batch scan target')
+ def git(*args):return subprocess.check_output(['git','--no-replace-objects','-C',str(repo),*args],stderr=subprocess.DEVNULL)
+ commit=git('cat-file','commit',revision)
+ if hashlib.sha1(b'commit '+str(len(commit)).encode()+b'\0'+commit).hexdigest()!=revision or not commit.startswith(('tree '+tree+'\n').encode()):raise ValueError('unreviewed native batch scan commit/tree')
+ line=git('ls-tree',revision,'--',_BATCH_PATH).split(b'\t')
+ if len(line)!=2 or line[1].rstrip(b'\n').decode()!=_BATCH_PATH:raise ValueError('unknown native batch scan path')
+ record=line[0].split()
+ if len(record)!=3 or record[:2]!=[b'100644',b'blob']or re.fullmatch(b'[a-f0-9]{40}',record[2])is None:raise ValueError('unknown native batch scan mode/blob')
+ raw=git('cat-file','blob',record[2].decode())
+ if hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=record[2].decode():raise ValueError('unknown native batch scan blob bytes')
+ return raw,record[2].decode()
+
+def _batch_stage_bytes(repo,stage):
+ raw,oid=_batch_git_bytes(repo,stage['revision'],stage['tree'])
+ if oid!=stage['blob']or len(raw)!=stage['bytes']or hashlib.sha256(raw).hexdigest()!=stage['sha256']:raise ValueError('unknown fixed batch scan stage')
+ return raw
+
+def _historical_batch_577_source(path,raw,repo=ROOT):
+ if path!=_BATCH_PATH or type(raw)is not bytes or raw!=_batch_stage_bytes(repo,_BATCH_LEGACY):raise ValueError('unknown whole historical577 batch scan')
+ prior=subprocess.check_output(['git','--no-replace-objects','-C',str(repo),'show',REVISION+':'+path])
  module=checked_modules()
  if hashlib.sha256(module.authorization_delta.reduce_if_selected(path,prior)).hexdigest()!=module.SOURCE_INPUTS[path]:raise ValueError('unknown historical batch scan')
  return prior
+
+def _historical_batch_scan_source(path,raw,root=ROOT):
+ import ast
+ current.assert_current_recipe(root)
+ if path!=_BATCH_PATH or type(raw)is not bytes:raise ValueError('unselected historical batch scan')
+ target=Path(root)/path
+ if target.stat().st_mode&0o7777!=0o644 or raw!=current.description.checked_bytes(target):raise ValueError('unknown actual batch scan')
+ # Authenticate the target from actual already-forward-checked recipe source,
+ # not a caller argument or mutable module-global target override.
+ source=current.description.checked_bytes(Path(root)/current.BRIDGE);fields={}
+ for node in ast.parse(source).body:
+  if isinstance(node,ast.Assign)and len(node.targets)==1 and isinstance(node.targets[0],ast.Name)and node.targets[0].id in ('TARGET','TARGET_TREE'):
+   if node.targets[0].id in fields:raise ValueError('duplicate native batch target')
+   fields[node.targets[0].id]=ast.literal_eval(node.value)
+ if fields!={'TARGET':current.TARGET,'TARGET_TREE':current.TARGET_TREE}:raise ValueError('unreviewed native batch scan target')
+ actual,oid=_batch_git_bytes(ROOT,current.TARGET,current.TARGET_TREE)
+ if actual!=raw:raise ValueError('unknown actual native batch scan')
+ if current.TARGET==_BATCH_LEGACY['revision']:
+  return _historical_batch_577_source(path,raw)
+ # Only the independently reviewed whole8d7 document is a current-stage bridge.
+ # It must ALSO be the exact document of the authenticated actual native target.
+ if raw!=_batch_stage_bytes(ROOT,_BATCH_MAINLINE):raise ValueError('unknown whole current batch scan')
+ return _historical_batch_577_source(path,_batch_stage_bytes(ROOT,_BATCH_LEGACY))
 
 _DOCUMENT_PATHS=frozenset(('docs/governance/batch-2-callers.json','docs/governance/native-directory-callers.json'))
 def _historical_document_source(path,raw,root=ROOT):
