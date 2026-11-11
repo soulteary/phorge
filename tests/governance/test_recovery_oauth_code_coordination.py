@@ -72,7 +72,13 @@ class CodeCoordination(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('oauth_code_media_snapshot',directory/'snapshot.py');snapshot=importlib.util.module_from_spec(spec);spec.loader.exec_module(snapshot)
   with patch.dict(sys.modules,{'snapshot':snapshot}):
    spec=importlib.util.spec_from_file_location('oauth_code_media_freshness',ROOT/'support/governance/media-session-ci/freshness.py');freshness=importlib.util.module_from_spec(spec);spec.loader.exec_module(freshness)
-   self.assertEqual(snapshot.BASE,'d95b3bd2253afb6fdce615f4041920bdce5df625');self.assertEqual(len(snapshot.OVERLAY),8)
+   from test_recovery_oauth_code_media_binding import media_git_oracle,media_protected_path,_MEDIA_OVERLAY_NAMES
+   base_proof=media_git_oracle(ROOT,snapshot.BASE)
+   self.assertEqual(snapshot.ROOT_TREE,base_proof['root_tree']);self.assertEqual(set(snapshot.OVERLAY),set(_MEDIA_OVERLAY_NAMES))
+   self.assertTrue(media_protected_path('support/governance/source-operation/registry-v1.json'))
+   self.assertTrue(freshness.protected('support/governance/source-operation/registry-v1.json'))
+   for name in base_proof['entries']:
+    self.assertEqual(freshness.protected(name),media_protected_path(name),name)
    # This is a whole-current-Git source invariant, not an assertion that the
    # Atomic parser-prepared checkout is clean. The media workflow retains its
    # separate unchanged real-checkout freshness gates before any preparation.
@@ -95,6 +101,8 @@ class CodeCoordination(unittest.TestCase):
      else:target.write_bytes(value);target.chmod(mode)
     self.assertEqual(git('rev-parse','HEAD'),revision)
     self.assertEqual(git('rev-parse','HEAD^{tree}'),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',revision+'^{tree}'],env=environment,text=True).strip())
+    independent_head=media_git_oracle(clean,revision)
+    self.assertEqual({p:v for p,v in independent_head['entries'].items()if media_protected_path(p)},{p:v for p,v in base_proof['entries'].items()if media_protected_path(p)})
     self.assertTrue(freshness.verify(clean)['protected_source_equal'])
     for name in ['src/unreviewed-extra.php','support/runtime/src/parser/xhpast/bin/xhpast']:
      extra=clean/name;self.assertFalse(extra.exists());extra.write_bytes(b'owned synthetic extra, never executed')

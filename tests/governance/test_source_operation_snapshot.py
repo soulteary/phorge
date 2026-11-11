@@ -644,3 +644,185 @@ class HeldMediaPolicy(unittest.TestCase):
         loop_line=next(n.lineno for n in ast.walk(entry)if isinstance(n,ast.For)and ast.unparse(n.iter)=='admission.CURRENT_METADATA.items()')
         self.assertLess(held_line,loop_line)
         self.assertIn('_read_held_media',ast.unparse(exit));self.assertIn('admission.assert_current_recipe',ast.unparse(exit))
+
+class PreparedRolePolicy(unittest.TestCase):
+    """Unadmitted component controls, never a SourceOperation or runtime proof."""
+    @classmethod
+    def setUpClass(cls):
+        from types import MappingProxyType
+        path=ROOT/'scripts/governance/source_operation_snapshot.py'
+        tree=ast.parse(path.read_bytes())
+        names={'_need','_stamp','_read','_read_prepared','_relative_source_path','_inventory',
+               '_prepared_policy','_cache_pairs','_validate_prepared_cache','_prepared_layout',
+               'PreparedLayout','PreparedLedger','_prepared_compiler_coherence'}
+        constants={'PREPARED_SOURCE_POLICY','PREPARED_SOURCE_POLICY_SHA256','_PREPARED_KEY','_PREPARED_CACHE_PATHS','_PREPARED_INSTALLED_XHP','_PREPARED_FRESH_XHP'}
+        nodes=[n for n in tree.body if isinstance(n,(ast.FunctionDef,ast.ClassDef)) and n.name in names
+               or isinstance(n,ast.Assign) and len(n.targets)==1 and isinstance(n.targets[0],ast.Name) and n.targets[0].id in constants]
+        cls.ns={'Path':Path,'os':os,'stat':stat,'json':json,'hashlib':hashlib,'MappingProxyType':MappingProxyType,
+                'SourceOperation':__import__('source_operation_snapshot').SourceOperation}
+        exec(compile(ast.Module(body=nodes,type_ignores=[]),str(path),'exec'),cls.ns)
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory(dir=canonical_temp_base());self.addCleanup(self.temp.cleanup)
+        self.root=Path(self.temp.name).resolve();self.owner=object()
+    def write(self,path,raw,mode=0o644):
+        p=self.root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(raw);p.chmod(mode);return p
+    def cache(self,**kw):
+        row={'have':{'class':{'Example':7}},'need':[],'xmap':{'Example':['Parent']}}
+        return json.dumps({'__symbol_cache_version__':12,'0'*32:row,**kw}).encode()
+    def test_static_catalog_is_exact_independent_source_lock(self):
+        p=self.ns['_prepared_policy']();self.assertEqual(len(p['catalog']),270)
+        self.assertEqual(sum(v['bytes'] for v in p['catalog'].values()),968550)
+        self.assertEqual(p['upstream_commit'],'dca41cd15c2ac9d055ad70dbfd011130757d1f82')
+        self.assertFalse(p['signature_verified'])
+        before=self.ns['PREPARED_SOURCE_POLICY_SHA256'];self.ns['PREPARED_SOURCE_POLICY_SHA256']='0'*64
+        try:
+            with self.assertRaises(ValueError):self.ns['_prepared_policy']()
+        finally:self.ns['PREPARED_SOURCE_POLICY_SHA256']=before
+    def test_bare_layout_is_immutable_and_unknown_generated_leaf_refused(self):
+        self.write('source.php',b'<?php')
+        l=self.ns['_prepared_layout'](self.root,{'source.php':'100644'})
+        self.assertEqual(l.profile,'bare')
+        with self.assertRaises(TypeError):l.source['other']='100644'
+        with self.assertRaises(ValueError):l.profile='installed'
+        for path in ('extra.o','support/runtime/support/php-parser/lib/new.php','unexpected.zip'):
+            p=self.write(path,b'x')
+            with self.assertRaises(ValueError):self.ns['_prepared_layout'](self.root,{'source.php':'100644'})
+            p.unlink()
+    def test_partial_package_and_source_role_overlap_refused(self):
+        path=next(iter(self.ns['PREPARED_SOURCE_POLICY']['catalog']))
+        self.write(path,b'not package bytes')
+        with self.assertRaises(ValueError):self.ns['_prepared_layout'](self.root,{})
+        with self.assertRaises(ValueError):self.ns['_prepared_layout'](self.root,{path:'100644'})
+    def test_reader_modes_links_and_bounds_refused(self):
+        p=self.write('data',b'123',0o600)
+        self.assertEqual(self.ns['_read_prepared'](p,3,(0o600,0o644))[0],b'123')
+        for mode in (0o666,0o755,0o1644):
+            p.chmod(mode)
+            with self.assertRaises(ValueError):self.ns['_read_prepared'](p,3,(0o600,0o644))
+        p.chmod(0o644)
+        with self.assertRaises(ValueError):self.ns['_read_prepared'](p,2,(0o644,))
+        other=self.root/'other';os.link(p,other)
+        with self.assertRaises(ValueError):self.ns['_read_prepared'](p,3,(0o644,))
+        other.unlink();other.symlink_to(p)
+        with self.assertRaises(OSError):self.ns['_read_prepared'](other,3,(0o644,))
+    def test_cache_positive_empty_maps_and_strict_types(self):
+        validate=self.ns['_validate_prepared_cache']
+        validate(self.cache());validate(b'{"__symbol_cache_version__":12}')
+        for raw in (b'{"__symbol_cache_version__":true}',b'{"__symbol_cache_version__":12.0}',
+                    b'{"__symbol_cache_version__":12,"__symbol_cache_version__":12}',
+                    b'{"__symbol_cache_version__":12,"bad":{}}',b'['*9+b']'*9,
+                    self.cache().replace(b': 7',b': true'),self.cache().replace(b': 7',b': 1.5'),
+                    self.cache().replace(b'"have"',b'"unknown"')):
+            with self.subTest(raw=raw[:60]):
+                with self.assertRaises((ValueError,TypeError)):validate(raw)
+    def test_layout_constructor_cannot_be_issued_by_external_key(self):
+        with self.assertRaises(ValueError):self.ns['PreparedLayout'](object(),{},{},{},'bare')
+    def test_bare_ledger_exit_presence_and_owner_changes_refuse(self):
+        self.write('source.php',b'x');layout=self.ns['_prepared_layout'](self.root,{'source.php':'100644'})
+        ledger=self.ns['PreparedLedger'](self.ns['_PREPARED_KEY'],self.owner,self.root,layout)
+        ledger._verify_data()
+        with self.assertRaises(ValueError):ledger.verify_exit(object())
+        self.write('new.o',b'x')
+        with self.assertRaises(ValueError):ledger._verify_data()
+    def test_cache_ledger_midoperation_and_parent_replacement_refused(self):
+        path='src/.phutil_module_cache';p=self.write(path,self.cache(),0o600)
+        layout=self.ns['_prepared_layout'](self.root,{})
+        ledger=self.ns['PreparedLedger'](self.ns['_PREPARED_KEY'],self.owner,self.root,layout)
+        ledger._verify_data()
+        with self.assertRaises(ValueError):ledger._records={}
+        # Swap an intermediate parent but preserve the very same file inode.
+        old=self.root/'old';p.parent.rename(old);p.parent.mkdir();(old/p.name).rename(p)
+        with self.assertRaises(ValueError):ledger._verify_data()
+    def test_cache_ledger_mutation_restore_mode_and_role_presence_refused(self):
+        p=self.write('src/.phutil_module_cache',self.cache())
+        for mutation in ('restore','mode','presence'):
+            p.chmod(0o644);p.write_bytes(self.cache())
+            layout=self.ns['_prepared_layout'](self.root,{})
+            ledger=self.ns['PreparedLedger'](self.ns['_PREPARED_KEY'],self.owner,self.root,layout)
+            if mutation=='restore':p.write_bytes(b'{}');p.write_bytes(self.cache())
+            elif mutation=='mode':p.chmod(0o600)
+            else:self.write('support/runtime/src/.phutil_module_cache',self.cache())
+            with self.subTest(mutation=mutation):
+                with self.assertRaises(ValueError):ledger._verify_data()
+    def test_finite_presence_profiles_and_compiler_partial_unknown_rejected(self):
+        # Topology-only vector. Deliberately wrong vendor bytes must fail ledger.
+        for path in self.ns['PREPARED_SOURCE_POLICY']['catalog']:self.write(path,b'x')
+        layout=self.ns['_prepared_layout'](self.root,{})
+        self.assertEqual(layout.profile,'parser')
+        with self.assertRaises(ValueError):self.ns['PreparedLedger'](self.ns['_PREPARED_KEY'],self.owner,self.root,layout)
+        installed=self.write(self.ns['_PREPARED_INSTALLED_XHP'],b'observed bytes',0o755)
+        self.assertEqual(self.ns['_prepared_layout'](self.root,{}).profile,'installed')
+        for path in self.ns['_PREPARED_FRESH_XHP']:self.write(path,b'observed',0o755 if path.endswith('/xhpast') else 0o644)
+        self.assertEqual(self.ns['_prepared_layout'](self.root,{}).profile,'fresh')
+        for path in self.ns['_PREPARED_FRESH_XHP']:
+            p=self.root/path;raw=p.read_bytes();mode=stat.S_IMODE(p.stat().st_mode);p.unlink()
+            with self.subTest(missing=path):
+                with self.assertRaises(ValueError):self.ns['_prepared_layout'](self.root,{})
+            self.write(path,raw,mode)
+        installed.unlink()
+        with self.assertRaises(ValueError):self.ns['_prepared_layout'](self.root,{})
+    def test_dedicated_artifact_reader_does_not_raise_source_bound(self):
+        p=self.write('large-cache',b'x'*1100000)
+        self.assertEqual(len(self.ns['_read_prepared'](p,16777216,(0o644,))[0]),1100000)
+        with self.assertRaises(ValueError):self.ns['_read'](p)
+    def test_unentered_closed_and_fake_owner_cannot_verify_operation_ledger(self):
+        layout=self.ns['_prepared_layout'](self.root,{})
+        actual=__import__('source_operation_snapshot')
+        op=actual.open_source_operation(self.root)
+        ledger=self.ns['PreparedLedger'](self.ns['_PREPARED_KEY'],op,self.root,layout)
+        with self.assertRaises(ValueError):ledger.verify_exit(op)
+        op._state='closed'
+        with self.assertRaises(ValueError):ledger.verify_exit(op)
+        class Fake:
+            def require(self):return self
+        with self.assertRaises(ValueError):ledger.verify_exit(Fake())
+    def test_intermediate_shared_writable_directory_refused(self):
+        p=self.write('src/.phutil_module_cache',self.cache());p.parent.chmod(0o777)
+        layout=self.ns['_prepared_layout'](self.root,{})
+        with self.assertRaises(ValueError):self.ns['PreparedLedger'](self.ns['_PREPARED_KEY'],self.owner,self.root,layout)
+    def test_fresh_build_and_installed_binary_identity_coherence(self):
+        installed=self.ns['_PREPARED_INSTALLED_XHP'];build=self.ns['_PREPARED_FRESH_XHP'][0]
+        row=('observed-binary',20,'a'*64,())
+        check=self.ns['_prepared_compiler_coherence'];check({installed:row,build:row})
+        for rows in ({build:row},{installed:row,build:('observed-binary',21,'a'*64,())},
+                     {installed:row,build:('observed-binary',20,'b'*64,())}):
+            with self.assertRaises(ValueError):check(rows)
+    def test_real_source_reader_methods_have_no_prepared_fallback(self):
+        # Exact native method bodies, but an explicitly unadmitted data collaborator.
+        # This is source-reader dispatch refusal, never an issued scope proof.
+        actual=__import__('source_operation_snapshot')
+        snapshot={'source.php':(b'source bytes',())}
+        class DataOnly:
+            producer_root=self.root
+            _snapshots={self.root:snapshot}
+            def require(self,*args):return self
+        view=DataOnly()
+        self.assertEqual(actual.SourceOperation.read_source(view,self.root/'source.php'),b'source bytes')
+        for path in (next(iter(self.ns['PREPARED_SOURCE_POLICY']['catalog'])),
+                     self.ns['_PREPARED_INSTALLED_XHP'],*self.ns['_PREPARED_CACHE_PATHS']):
+            with self.subTest(path=path):
+                with self.assertRaises(ValueError):actual.SourceOperation.read_source(view,self.root/path)
+                with self.assertRaises(ValueError):actual.SourceOperation.read_producer(view,self.root/path)
+    def test_actual_exit_body_refuses_prepared_mutation_during_final_source_guard(self):
+        # Execute the actual exit body with explicit unadmitted source/context
+        # collaborators. Data checks are real; no issued scope is fabricated.
+        p=self.write('src/.phutil_module_cache',self.cache())
+        layout=self.ns['_prepared_layout'](self.root,{})
+        data=self.ns['PreparedLedger'](self.ns['_PREPARED_KEY'],self.owner,self.root,layout)
+        calls=[]
+        class IntegrityOnly:
+            def verify_exit(inner,owner):calls.append('ledger');data._verify_data()
+        def guard(root):
+            calls.append('source-guard');p.write_bytes(b'{}');p.write_bytes(self.cache())
+        tree=ast.parse((ROOT/'scripts/governance/source_operation_snapshot.py').read_bytes())
+        scope=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='SourceOperation')
+        method=next(n for n in scope.body if isinstance(n,ast.FunctionDef) and n.name=='__exit__')
+        ns={'admission':SimpleNamespace(assert_current_recipe=guard),
+            '_ACTIVE':SimpleNamespace(reset=lambda token:None)}
+        exec(compile(ast.Module(body=[method],type_ignores=[]),'<actual-exit-body>','exec'),ns)
+        owner=SimpleNamespace(require=lambda:None,_verify_ancestor_identities=lambda:None,
+            _graph_objects=(),_graph_seals={},_snapshots={self.root:{}},
+            _prepared_ledgers={self.root:IntegrityOnly()},_reset=object(),_modules={})
+        with self.assertRaises(ValueError):ns['__exit__'](owner,None,None,None)
+        self.assertEqual(calls,['ledger','source-guard','ledger'])
+        self.assertEqual(owner._state,'closed')
