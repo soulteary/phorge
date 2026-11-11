@@ -56,6 +56,8 @@ class ProjectQ2Owner(unittest.TestCase):
             if path.endswith('/PhabricatorApplicationTransactionEditor.php'):
                 after=b"""        if ($project_scope!==null && $project_scope->getMode()==='content-description') {
           $project_scope->rollbackDescriptionEditor($this,$object);
+        } elseif ($project_scope!==null) {
+          $project_scope->rollbackPolicyEditor($this,$object);
         } else {
           $object->killTransaction();
         }
@@ -92,4 +94,30 @@ class ProjectQ2Owner(unittest.TestCase):
         self.assertEqual(1,self.invoke('description-repeated-rollback')['single_native_rollback_queries_added'])
     def test_description_abort_requires_exact_object_writer_before_unknown(self):
         self.assertEqual(0,self.invoke('description-wrong-connection')['single_native_rollback_queries_added'])
+    # Real native transaction methods with explicitly synthetic, unissued scopes.
+    # The actual sealed Editor caller and unchanged approval rows require SQL CI.
+    def test_owned_policy_abort_ACK_closes_once_for_open_consumed_and_membership_modes(self):
+        for case in ('policy-rollback-success','policy-open-rollback','policy-self-join','policy-self-leave'):
+            with self.subTest(case=case):
+                value=self.invoke(case);self.assertEqual(1,value['single_native_rollback_queries_added'])
+                self.assertTrue(value['scope_cleanup_adds_no_rollback'])
+    def test_policy_abort_keeps_original_expanded_closure_or_query_exception(self):
+        for case in ('policy-primary-preserved','policy-expanded-closure-primary'):
+            with self.subTest(case=case):
+                value=self.invoke(case);self.assertTrue(value['model_primary_1644_preserved'])
+                self.assertTrue(value['model_expanded_closure_primary_preserved'])
+                self.assertTrue(value['approval_SQL_never_executed'])
+    def test_policy_abort_public_requires_real_base_Editor_caller(self):
+        self.assertEqual(0,self.invoke('policy-wrong-caller')['single_native_rollback_queries_added'])
+    def test_policy_abort_cannot_borrow_description_service_or_another_target(self):
+        for case in ('policy-description-mode','policy-wrong-mode','policy-wrong-editor','policy-wrong-object','policy-wrong-connection'):
+            with self.subTest(case=case):self.assertEqual(0,self.invoke(case)['single_native_rollback_queries_added'])
+    def test_policy_abort_rejects_foreign_committed_nested_and_stale_native_frames(self):
+        for case in ('policy-foreign-owner','policy-committed','policy-same-depth-ABA','policy-depth-zero','policy-nested','policy-state-object-replaced','policy-read-mode','policy-write-mode'):
+            with self.subTest(case=case):self.assertEqual(0,self.invoke(case)['single_native_rollback_queries_added'])
+    def test_policy_abort_unknown_ACK_or_post_ACK_ABA_never_retries(self):
+        for case in ('policy-rollback-ACK-error','policy-post-rollback-ABA','policy-repeated-rollback'):
+            with self.subTest(case=case):
+                value=self.invoke(case);self.assertEqual(1,value['single_native_rollback_queries_added'])
+                self.assertTrue(value['scope_cleanup_adds_no_rollback'])
 if __name__=='__main__':unittest.main()

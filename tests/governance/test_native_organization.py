@@ -50,6 +50,23 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_policy_unknown_nested_and_noop_evidence_cannot_be_omitted(self):
+        obligations = {
+            'project-approval-actual-native-nested-update-error-quarantines-without-savepoint-guess',
+            'project-approval-native-nested-error-isolated-uncommitted-while-child-quarantined',
+            'project-approval-native-nested-error-child-terminal-transaction-gone-and-no-commit',
+            'project-approval-noop-replay-preserves-consumed-ticket-and-owned-frame',
+        }
+        self.assertTrue(obligations <= gate.REQUIRED_CHECKS)
+        for name in obligations:
+            with self.subTest(name=name):
+                data = template()
+                data['checks'].remove(name)
+                data['check_count'] -= 1
+                with self.assertRaises(ValueError):
+                    validate(data, file_digest='b'*64)
+
+
     def test_governance_notice_cannot_drop_sources_attempt_checks_or_promote_transport(self):
         self.assertEqual(36,len(gate.GOVERNANCE_NOTICE_CHECKS))
         for name in gate.GOVERNANCE_NOTICE_CHECKS:
@@ -313,7 +330,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError): validate(data, file_digest='b'*64)
 
     def test_current_recovery_restore_profile_refuses_old_counts_and_missing_migration(self):
-        self.assertEqual(934, validate(template(), file_digest='b'*64)['check_count'])
+        self.assertEqual(936, validate(template(), file_digest='b'*64)['check_count'])
         for value in (540, True, '543', 544):
             data=template();data['source_restore']['current_table_count']=value
             with self.subTest(table_count=value), self.assertRaises(ValueError):
@@ -427,7 +444,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),934)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),936)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -528,7 +545,7 @@ class NativePolicyErrorRouteGateTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),934)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),936)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -581,7 +598,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(934,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(936,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -612,7 +629,7 @@ class NativeHTTPMeasurementGateTest(unittest.TestCase):
 class RecoveryNativeProducerGateTest(unittest.TestCase):
     def test_selected_producer_checks_and_non_authority_are_mandatory(self):
         self.assertEqual(20,len(gate.RECOVERY_NATIVE_PRODUCER_CHECKS))
-        self.assertEqual(934,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(936,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.RECOVERY_NATIVE_PRODUCER_CHECKS:
             value=template();value['checks'].remove(name);value['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(value,file_digest='b'*64)

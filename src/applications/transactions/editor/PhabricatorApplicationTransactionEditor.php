@@ -1454,6 +1454,8 @@ abstract class PhabricatorApplicationTransactionEditor
       if ($transaction_open) {
         if ($project_scope!==null && $project_scope->getMode()==='content-description') {
           $project_scope->rollbackDescriptionEditor($this,$object);
+        } elseif ($project_scope!==null) {
+          $project_scope->rollbackPolicyEditor($this,$object);
         } else {
           $object->killTransaction();
         }

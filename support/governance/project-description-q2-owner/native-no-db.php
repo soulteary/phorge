@@ -1,6 +1,6 @@
 <?php
 /** Fixed owner regression, actual native methods with a non-SQL query observer. */
-if(PHP_SAPI!=='cli'||count($argv)!==2||!in_array($argv[1],array('owned-rollback','normal-commit','committed-foreign','foreign-owner','new-cache-object','nested-unknown','commit-error','external-ended-unknown','rollback-error','fence-error','fence-with-primary','producer-profile','same-depth-replaced','state-object-replaced','service-wrong-owner','service-old-generation','service-nested','service-lock-mode','generation-storage','didCommit-old-generation','description-rollback-success','description-primary-preserved','description-wrong-editor','description-wrong-object','description-wrong-caller','description-wrong-mode','description-foreign-owner','description-committed','description-same-depth-ABA','description-depth-zero','description-nested','description-read-mode','description-write-mode','description-rollback-ACK-error','description-post-rollback-ABA','description-repeated-rollback','description-wrong-connection'),true)){fwrite(STDERR,"q2_owner_fixed_case_required\n");exit(1);}
+if(PHP_SAPI!=='cli'||count($argv)!==2||!in_array($argv[1],array('owned-rollback','normal-commit','committed-foreign','foreign-owner','new-cache-object','nested-unknown','commit-error','external-ended-unknown','rollback-error','fence-error','fence-with-primary','producer-profile','same-depth-replaced','state-object-replaced','service-wrong-owner','service-old-generation','service-nested','service-lock-mode','generation-storage','didCommit-old-generation','description-rollback-success','description-primary-preserved','description-wrong-editor','description-wrong-object','description-wrong-caller','description-wrong-mode','description-foreign-owner','description-committed','description-same-depth-ABA','description-depth-zero','description-nested','description-read-mode','description-write-mode','description-rollback-ACK-error','description-post-rollback-ABA','description-repeated-rollback','description-wrong-connection','policy-rollback-success','policy-primary-preserved','policy-wrong-editor','policy-wrong-object','policy-wrong-caller','policy-wrong-mode','policy-foreign-owner','policy-committed','policy-same-depth-ABA','policy-depth-zero','policy-nested','policy-read-mode','policy-write-mode','policy-rollback-ACK-error','policy-post-rollback-ABA','policy-repeated-rollback','policy-wrong-connection','policy-open-rollback','policy-expanded-closure-primary','policy-self-join','policy-self-leave','policy-description-mode','policy-state-object-replaced'),true)){fwrite(STDERR,"q2_owner_fixed_case_required\n");exit(1);}
 $root=dirname(__DIR__,3);require_once $root.'/support/runtime/src/__phutil_library_init__.php';phutil_load_library($root.'/src/');
 final class Q2OwnerQueryObserver extends AphrontDatabaseConnection {
  public $queries=array();public $fail=null;public $afterRollback=null;public $rollbackScope=null;public $rollbackOwnership=array();
@@ -21,6 +21,60 @@ try{
  $conn=new Q2OwnerQueryObserver();$conn->openTransaction();$scope=qo_scope($conn);$active=$oldRegistry;$active[spl_object_id($conn)]=WeakReference::create($scope);$registry->setValue(null,$active);
  $cache=new PhutilInRequestKeyValueCache();$cache->setKey('q2.synthetic','temporary');$globalCache->setValue(null,$cache);qo_set($scope,'cache',$cache);qo_set($scope,'cachePrior',array('q2.synthetic'=>'prior'));
  $case=$argv[1];$unknown=false;$foreign=false;
+ if(str_starts_with($case,'policy-')){
+  $editor=new PhabricatorProjectTransactionEditor();$object=(new PhabricatorProject())->setForcedConnection($conn);
+  qo_set($scope,'mode','execute');qo_set($scope,'editor',$editor);qo_set($scope,'object',$object);
+  $actualEditor=$editor;$actualObject=$object;$conn->rollbackScope=$scope;
+  if(in_array($case,array('policy-open-rollback','policy-expanded-closure-primary'),true)){qo_set($scope,'state','open');}
+  if($case==='policy-self-join') {qo_set($scope,'mode','self-join');}
+  if($case==='policy-self-leave') {qo_set($scope,'mode','self-leave');}
+  $generation=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($conn)->getGeneration();
+  if($case==='policy-wrong-editor'){$actualEditor=new PhabricatorProjectTransactionEditor();}
+  if($case==='policy-wrong-object'){$actualObject=(new PhabricatorProject())->setForcedConnection($conn);}
+  if($case==='policy-wrong-mode'){qo_set($scope,'mode','history');}
+  if($case==='policy-description-mode'){qo_set($scope,'mode','content-description');}
+  if($case==='policy-state-object-replaced'){$oldState=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($conn);$newState=new AphrontDatabaseTransactionState();$newState->increaseDepth();(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->setValue($conn,$newState);$oldState->decreaseDepth();}
+  if($case==='policy-foreign-owner'){$later=qo_scope($conn,'open');$active=$registry->getValue();$active[spl_object_id($conn)]=WeakReference::create($later);$registry->setValue(null,$active);}
+  if($case==='policy-committed'){$conn->saveTransaction();$scope->didCommit();}
+  if($case==='policy-same-depth-ABA'){$conn->killTransaction();$conn->openTransaction();$conn->rollbackOwnership=array();}
+  if($case==='policy-depth-zero'){$conn->killTransaction();$conn->rollbackOwnership=array();}
+  if($case==='policy-nested'){$conn->openTransaction();}
+  if($case==='policy-read-mode'){$conn->beginReadLocking();}
+  if($case==='policy-write-mode'){$conn->beginWriteLocking();}
+  if($case==='policy-rollback-ACK-error'){$conn->fail='ROLLBACK';}
+  if($case==='policy-post-rollback-ABA'){$conn->afterRollback=static function($c){$c->openTransaction();};}
+  if($case==='policy-wrong-connection'){$other=new Q2OwnerQueryObserver();$other->openTransaction();$object->setForcedConnection($other);}
+  $core=new ReflectionMethod(PhorgeProjectNativeExecutionScope::class,'rollbackPolicyOwnedFrame');
+  $before=count(array_keys($conn->queries,'ROLLBACK',true));$denied=false;$primary=false;
+  if($case==='policy-primary-preserved'||$case==='policy-expanded-closure-primary'){
+    try{try{try{throw $case==='policy-expanded-closure-primary'?new RuntimeException('project_execution_expanded_closure_unsupported'):new AphrontQueryException('synthetic unit fault only',1644);}catch(RuntimeException|AphrontQueryException $e){$core->invoke($scope,$editor,$object);throw$e;}}finally{$scope->close();}}
+    catch(Throwable $e){$primary=$case==='policy-expanded-closure-primary'?(get_class($e)===RuntimeException::class&&$e->getMessage()==='project_execution_expanded_closure_unsupported'):(get_class($e)===AphrontQueryException::class&&$e->getCode()===1644);}
+    qo_need($primary);
+  }else{
+    try{
+      if($case==='policy-wrong-caller'){$scope->rollbackPolicyEditor($editor,$object);}
+      else{$core->invoke($scope,$actualEditor,$actualObject);}
+      if($case==='policy-repeated-rollback'){$core->invoke($scope,$editor,$object);}
+    }catch(Throwable $e){$denied=true;}
+  }
+  $added=count(array_keys($conn->queries,'ROLLBACK',true))-$before;
+  $success=in_array($case,array('policy-rollback-success','policy-primary-preserved','policy-open-rollback','policy-expanded-closure-primary','policy-self-join','policy-self-leave'),true);
+  if($success){
+    qo_need(!$denied&&$added===1&&$conn->rollbackOwnership===array('unknown')&&!$conn->isInsideTransaction());
+    $now=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($conn);qo_need($now->getGeneration()===$generation);
+    $scope->close();$scope->close();qo_need(count(array_keys($conn->queries,'ROLLBACK',true))-$before===1&&qo_get($scope,'state')==='closed'&&!isset($registry->getValue()[spl_object_id($conn)])&&$cache->getKey('q2.synthetic')==='prior');
+  }else{
+    qo_need($denied&&qo_get($scope,'transactionOwnership')==='unknown');
+    $beforeClose=count($conn->queries);$closedUnknown=false;try{$scope->close();}catch(RuntimeException $e){$closedUnknown=true;}
+    qo_need($closedUnknown&&qo_get($scope,'state')==='quarantined'&&count($conn->queries)===$beforeClose);
+    if(in_array($case,array('policy-rollback-ACK-error','policy-post-rollback-ABA','policy-repeated-rollback'),true)){qo_need($added===1&&$conn->rollbackOwnership===array('unknown'));}
+    else{qo_need($added===0);}
+    if($case==='policy-foreign-owner'){qo_need($registry->getValue()[spl_object_id($conn)]->get()===$later&&$conn->isInsideTransaction());}
+    if(in_array($case,array('policy-same-depth-ABA','policy-post-rollback-ABA'),true)){qo_need($conn->isInsideTransaction());}
+    if($case==='policy-wrong-connection'){qo_need($other->isInsideTransaction()&&count(array_keys($other->queries,'ROLLBACK',true))===0);}
+  }
+  echo json_encode(array('schema'=>'N05-Q2-policy-abort-noDB-v1','case'=>$case,'passed'=>true,'result'=>array('single_native_rollback_queries_added'=>$added,'scope_cleanup_adds_no_rollback'=>true,'unknown_before_native_rollback'=>!$success||$conn->rollbackOwnership===array('unknown'),'expected_refusal'=>$success||$denied,'model_primary_1644_preserved'=>$case!=='policy-primary-preserved'||$primary,'model_expanded_closure_primary_preserved'=>$case!=='policy-expanded-closure-primary'||$primary,'approval_SQL_never_executed'=>true),'SQL'=>false,'physical_transaction_lease_proved'=>false,'actual_Editor_pipeline_executed'=>false,'actual_native_Editor_caller_positive_verified'=>false,'execution_authorized'=>false),JSON_THROW_ON_ERROR)."\n";return;
+ }
  if(str_starts_with($case,'description-')){
   $editor=new PhabricatorProjectTransactionEditor();$object=(new PhabricatorProject())->setForcedConnection($conn);
   qo_set($scope,'mode','content-description');qo_set($scope,'editor',$editor);qo_set($scope,'object',$object);

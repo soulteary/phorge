@@ -476,6 +476,9 @@ try {
   }elseif($phase==='session-producer-lease'&&($GLOBALS['governance_session_lease_cleanup']['cleanup_proved']??null)!==true){
     $cleanup_failures[]=array('stage'=>'session-lease-observer-or-physical-cleanup-unproved','error_type'=>'RuntimeException');
     // Retain this owned fixture for Root reconciliation; never drop around unknown sessions.
+  }elseif(($GLOBALS['governance_policy_nested_cleanup_permitted']??null)===false){
+    $cleanup_failures[]=array('stage'=>'policy-nested-child-or-SQL-terminal-unproved','error_type'=>'RuntimeException');
+    // Keep exact owned schemas/principals if the quarantined child is unknown.
   }elseif ($fixture !== null) {
     try { $cleanup = $fixture->cleanup(); $checks[]='all-owned-full-native-schemas-and-principals-cleaned'; }
     catch (Throwable $error) { $cleanup_error('owned-cleanup',$error); }

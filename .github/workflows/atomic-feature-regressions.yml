@@ -885,21 +885,23 @@ jobs:
           docker rm -f atomic-queue-binary atomic-file atomic-image atomic-render atomic-search atomic-meili || true
           docker network rm atomic-fixtures || true
 
-  governance-unit-tests:
-    name: Governance unit tests (PHP ${{ matrix.php }})
+  governance-unit-tests-0:
+    name: Governance unit tests (PHP ${{ matrix.php }}, shard 0/2)
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.5.12']
+        php:
+        - 8.5.12
     services:
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: atomic-regressions-only
           MYSQL_ROOT_HOST: '%'
-        ports: ['3306:3306']
+        ports:
+        - 3306:3306
         options: --health-cmd "mysqladmin ping -patomic-regressions-only" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
       ATOMIC_TEST_DISPOSABLE: '1'
@@ -914,223 +916,653 @@ jobs:
       GORGE_TEST_SEARCH_URL: http://127.0.0.1:18120
       GORGE_TEST_SEARCH_TOKEN: atomic-search-only
       PYTHONDONTWRITEBYTECODE: '1'
+      ATOMIC_UNIT_SHARD: '0'
+      ATOMIC_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - name: Governance unit / Check out exact source
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Governance unit / Set up the production PHP baseline
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
-          extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
-          tools: composer:2.11.1
-          coverage: none
-      - name: Governance unit / Install the retained product-boundary checker dependency
-        timeout-minutes: 5
-        run: |
-          umask 077
-          test "$(uname -s)" = Linux
-          test "$(uname -m)" = x86_64
-          rg_root=$(mktemp -d "$RUNNER_TEMP/atomic-rg.XXXXXX")
-          curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
-            --connect-timeout 10 --max-time 45 --retry 1 --retry-delay 1 --retry-max-time 95 \
-            --max-filesize 2566310 --output "$rg_root/archive.tar.gz" \
-            https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz
-          python3 - "$rg_root" <<'PYRG'
-          import hashlib, io, os, stat, subprocess, sys, tarfile
-          from pathlib import Path
-          ARCHIVE_SIZE=2566310
-          ARCHIVE_SHA256='4cf9f2741e6c465ffdb7c26f38056a59e2a2544b51f7cc128ef28337eeae4d8e'
-          MEMBER='ripgrep-14.1.1-x86_64-unknown-linux-musl/rg'
-          BINARY_SIZE=6597984
-          BINARY_SHA256='f401154e2393f9002ac77e419f9ee5521c18f4f8cd3e32293972f493ba06fce7'
-          def need(value):
-              if not value:
-                  raise ValueError('Pinned ripgrep preparation refused')
-          def identity_stamp(info):
-              return (info.st_dev,info.st_ino,info.st_mode,info.st_nlink,info.st_uid,info.st_gid,info.st_size,info.st_mtime_ns,info.st_ctime_ns)
-          def install(root):
-              root=Path(root)
-              info=root.lstat()
-              need(root.is_absolute() and root.resolve(strict=True)==root and stat.S_ISDIR(info.st_mode) and stat.S_IMODE(info.st_mode)==0o700 and info.st_uid==os.getuid())
-              path=root/'archive.tar.gz'
-              fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
-              try:
-                  before=os.fstat(fd)
-                  need(stat.S_ISREG(before.st_mode) and before.st_nlink==1 and before.st_uid==os.getuid() and before.st_size==ARCHIVE_SIZE)
-                  chunks=[];count=0
-                  while count<=ARCHIVE_SIZE:
-                      chunk=os.read(fd,min(65536,ARCHIVE_SIZE+1-count))
-                      if not chunk:
-                          break
-                      chunks.append(chunk);count+=len(chunk)
-                  raw=b''.join(chunks)
-                  after=os.fstat(fd)
-                  need(identity_stamp(before)==identity_stamp(after)==identity_stamp(path.lstat()) and len(raw)==ARCHIVE_SIZE and hashlib.sha256(raw).hexdigest()==ARCHIVE_SHA256)
-              finally:
-                  os.close(fd)
-              with tarfile.open(fileobj=io.BytesIO(raw),mode='r:gz') as archive:
-                  members=archive.getmembers()
-                  need(len(members)<=64)
-                  prefix=MEMBER.split('/')[0]
-                  for item in members:
-                      parts=item.name.split('/')
-                      need(all(part not in ('','.','..') for part in parts) and parts[0]==prefix and (item.isfile() or item.isdir()) and item.linkname=='')
-                  matches=[item for item in members if item.name==MEMBER]
-                  need(len(matches)==1)
-                  member=matches[0]
-                  need(member.isfile() and member.linkname=='' and member.size==BINARY_SIZE and member.mode==0o755)
-                  with archive.extractfile(member) as stream:
-                      binary=stream.read(BINARY_SIZE+1)
-                  need(len(binary)==BINARY_SIZE and hashlib.sha256(binary).hexdigest()==BINARY_SHA256)
-              folder=root/'bin';folder.mkdir(mode=0o700)
-              target=folder/'rg'
-              fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o700)
-              try:
-                  offset=0
-                  while offset<len(binary):
-                      count=os.write(fd,binary[offset:offset+65536]);need(count>0);offset+=count
-                  os.fsync(fd)
-                  need(os.fstat(fd).st_size==BINARY_SIZE and identity_stamp(target.lstat())==identity_stamp(os.fstat(fd)))
-              finally:
-                  os.close(fd)
-              return target
-          def probe(target):
-              version=subprocess.run([str(target),'--version'],capture_output=True,text=True,timeout=5)
-              need(version.returncode==0 and version.stdout.splitlines()[0]=='ripgrep 14.1.1 (rev 4649aa9700)')
-              root=target.parent.parent/'probe';root.mkdir(mode=0o700)
-              for folder in ('src','scripts','bin','webroot','resources'):
-                  (root/folder).mkdir(mode=0o700)
-              (root/'patterns').write_text('RetiredClass[A-Za-z]*\n')
-              (root/'src/.hidden.php').write_text('RetiredClassOne RetiredClassTwo\n')
-              (root/'src/excluded.php').write_text('RetiredClassIgnored\n')
-              args=[str(target),'--line-number','--no-heading','--color','never','--hidden','--only-matching','--glob','!src/excluded.php','-f','patterns','src','scripts','bin','webroot','resources']
-              found=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=5)
-              need(found.returncode==0 and found.stdout=='src/.hidden.php:1:RetiredClassOne\nsrc/.hidden.php:1:RetiredClassTwo\n' and found.stderr=='')
-              (root/'patterns').write_text('NoSuchRetiredClass\n')
-              missing=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=5)
-              need(missing.returncode==1 and missing.stdout=='' and missing.stderr=='')
-          target=install(Path(sys.argv[1]))
-          probe(target)
-          PYRG
-          printf '%s\n' "$rg_root/bin" >> "$GITHUB_PATH"
-      - name: Governance unit / Prepare bounded metadata-only source footprint diagnostics
-        id: unit-footprint
-        run: |
-          python3 - <<'PYFOOTPRINT'
-          import os
-          from pathlib import Path
-          root = Path(os.environ['RUNNER_TEMP']) / 'atomic-footprint'
-          root.mkdir(mode=0o700)
-          (root / 'records').mkdir(mode=0o700)
-          script = "import json, os, stat, subprocess, sys\nfrom pathlib import Path\nSTAGES = {'before_build','after_build','after_maps','after_verify','before_governance','after_governance'}\ndef need(ok):\n    if not ok: raise ValueError('footprint_contract_refused')\ndef safe_name(name):\n    need(type(name) is str and 0 < len(name) <= 1024 and not name.startswith('/') and all(x not in ('', '.', '..') for x in name.split('/')) and all(ord(c) >= 32 and ord(c) != 127 for c in name))\n    return name\ndef collect(root):\n    rows=[]\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    fd=os.open(root,flags)\n    def walk(parent,prefix):\n        for name in sorted(os.listdir(parent)):\n            if not prefix and name=='.git': continue\n            rel=safe_name(prefix+name)\n            st=os.stat(name,dir_fd=parent,follow_symlinks=False)\n            kind='directory' if stat.S_ISDIR(st.st_mode) else 'regular' if stat.S_ISREG(st.st_mode) else 'symlink' if stat.S_ISLNK(st.st_mode) else 'other'\n            rows.append({'path':rel,'type':kind,'mode':format(stat.S_IMODE(st.st_mode),'04o'),'size':st.st_size})\n            need(len(rows)<=20000 and type(st.st_size) is int and st.st_size>=0)\n            if kind=='directory':\n                child=os.open(name,flags,dir_fd=parent)\n                try:\n                    current=os.fstat(child)\n                    need((current.st_dev,current.st_ino)==(st.st_dev,st.st_ino))\n                    walk(child,rel+'/')\n                finally: os.close(child)\n    try: walk(fd,'')\n    finally: os.close(fd)\n    return rows\ndef expected(root):\n    env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':os.devnull,'GIT_NO_REPLACE_OBJECTS':'1'}\n    raw=subprocess.run(['git','--no-replace-objects','-C',str(root),'-c','core.hooksPath=/dev/null','ls-tree','-rz','--name-only','HEAD'],env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=30).stdout\n    need(len(raw)<=8*1024*1024 and raw.endswith(b'\\0'))\n    names=[safe_name(n.decode('utf-8','strict')) for n in raw[:-1].split(b'\\0')]\n    need(len(names)<=20000 and len(names)==len(set(names)))\n    return set(names)\ndef write_output(directory,stage,data):\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    parent=os.open(directory,flags)\n    try:\n        st=os.fstat(parent);need(st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700)\n        raw=(json.dumps(data,sort_keys=True,separators=(',',':'))+'\\n').encode()\n        need(len(raw)<=16*1024*1024)\n        fd=os.open(stage+'.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=parent)\n        try:\n            os.fchmod(fd,0o600)\n            view=memoryview(raw)\n            while view:\n                written=os.write(fd,view);need(written>0);view=view[written:]\n            os.fsync(fd)\n            done=os.fstat(fd);need(stat.S_ISREG(done.st_mode) and done.st_nlink==1 and stat.S_IMODE(done.st_mode)==0o600)\n        finally: os.close(fd)\n        final=os.stat(directory,follow_symlinks=False)\n        need((st.st_dev,st.st_ino)==(final.st_dev,final.st_ino))\n    finally:os.close(parent)\ndef main():\n    need(len(sys.argv)==2 and sys.argv[1] in STAGES)\n    stage=sys.argv[1];root=Path.cwd();rows=collect(root);names=expected(root)\n    leaves={x['path'] for x in rows if x['type']!='directory'}\n    extra=sorted(leaves-names);missing=sorted(names-leaves)\n    need(len(extra)<=4000 and len(missing)<=4000)\n    write_output(Path(os.environ['RUNNER_TEMP'])/'atomic-footprint'/'records',stage,{'schema':1,'stage':stage,'truncated':False,'rows':rows,'extra_names':extra,'missing_names':missing})\nif __name__=='__main__':\n    try:main()\n    except Exception:\n        print('atomic_footprint_diagnostic_refused',file=sys.stderr)\n        raise SystemExit(1)\n"
-          fd = os.open(root / 'collector.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
-          try:
-              with os.fdopen(fd, 'w') as stream:
-                  stream.write(script)
-          except BaseException:
-              raise
-          PYFOOTPRINT
-      - name: Governance unit / Prepare retained parsers and verify deterministic maps and product cuts
-        run: |
-          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" before_build
-          php scripts/runtime/build.php all
-          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_build
-          php bin/rebuild-library-map
-          git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
-          sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > /tmp/atomic-maps.sha256
-          php bin/rebuild-library-map
-          sha256sum --check /tmp/atomic-maps.sha256
-          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_maps
-          php scripts/runtime/verify.php
-          bash .github/scripts/check-retired-app-references.sh
-          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_verify
-      - name: Governance unit / Upload successful parser preparation source footprints early
-        uses: actions/upload-artifact@v4
-        with:
-          name: atomic-unit-prepared-pre-footprint-php-${{ matrix.php }}
-          path: |
-            ${{ runner.temp }}/atomic-footprint/records/before_build.json
-            ${{ runner.temp }}/atomic-footprint/records/after_build.json
-            ${{ runner.temp }}/atomic-footprint/records/after_maps.json
-            ${{ runner.temp }}/atomic-footprint/records/after_verify.json
-          if-no-files-found: error
-          retention-days: 3
-      - name: Governance unit / Run the complete original discovery
-        id: unit-discovery
-        run: |
-          set -o pipefail
-          mkdir -p "$RUNNER_TEMP/governance-unit-tests"
-          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" before_governance
-          set +e
-          python3 -m unittest discover -s tests/governance -p 'test_*.py' -v 2>&1 | tee "$RUNNER_TEMP/governance-unit-tests/unittest-private.log"
-          unit_exit=$?
-          set -e
-          python3 - "$RUNNER_TEMP/governance-unit-tests" "$unit_exit" <<'PYUNIT'
-          import json, re, subprocess, sys
-          from pathlib import Path
-          folder=Path(sys.argv[1]); command_exit=int(sys.argv[2])
-          rows=[]; pending=None; malformed=False
-          for line in (folder/'unittest-private.log').read_text(errors='replace').splitlines():
-              header=re.match(r'^(test_[A-Za-z0-9_]+) \(([^()]+)\)(.*)$',line)
-              if header:
-                  if pending is not None:
-                      malformed=True
-                  method, group, _=header.groups()
-                  pending=group if group.endswith('.'+method) else group+'.'+method
-              result=re.search(r'\.\.\. (ok|skipped(?: .*?)?|expected failure|unexpected success|FAIL|ERROR)\s*$',line)
-              if result and pending is not None:
-                  state=result.group(1)
-                  rows.append({'id':pending,'status':'skipped' if state.startswith('skipped') else state})
-                  pending=None
-          ids=[row['id'] for row in rows]
-          passed=command_exit==0 and bool(rows) and len(ids)==len(set(ids)) and pending is None and not malformed and all(row['status']=='ok' for row in rows)
-          summary={'schema':'atomic-governance-unit-discovery-v1','source_revision':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'command_exit':command_exit,'test_count':len(rows),'tests':rows,'skipped_ids':[row['id'] for row in rows if row['status']=='skipped'],'malformed_output':malformed or pending is not None,'passed':passed}
-          (folder/'unit-results.json').write_text(json.dumps(summary,sort_keys=True,indent=2)+'\n')
-          if not passed:
-              raise SystemExit('Governance unit discovery failed or changed its successful result coverage')
-          PYUNIT
-          exit "$unit_exit"
-      - name: Governance unit / Capture source footprint after governance even on failure
-        if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
-        run: python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_governance
-      - name: Governance unit / Upload metadata-only source footprint diagnostics
-        if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: atomic-unit-source-footprint-php-${{ matrix.php }}
-          path: ${{ runner.temp }}/atomic-footprint/records/*.json
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: Governance unit / Upload safe discovery results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: atomic-governance-unit-results-php-${{ matrix.php }}
-          path: ${{ runner.temp }}/governance-unit-tests/unit-results.json
-          if-no-files-found: error
-          retention-days: 7
-
+    - name: Governance unit / Check out exact source
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Governance unit / Set up the production PHP baseline
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
+        extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
+        tools: composer:2.11.1
+        coverage: none
+    - name: Governance unit / Install the retained product-boundary checker dependency
+      timeout-minutes: 5
+      run: |
+        umask 077
+        test "$(uname -s)" = Linux
+        test "$(uname -m)" = x86_64
+        rg_root=$(mktemp -d "$RUNNER_TEMP/atomic-rg.XXXXXX")
+        curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
+          --connect-timeout 10 --max-time 45 --retry 1 --retry-delay 1 --retry-max-time 95 \
+          --max-filesize 2566310 --output "$rg_root/archive.tar.gz" \
+          https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz
+        python3 - "$rg_root" <<'PYRG'
+        import hashlib, io, os, stat, subprocess, sys, tarfile
+        from pathlib import Path
+        ARCHIVE_SIZE=2566310
+        ARCHIVE_SHA256='4cf9f2741e6c465ffdb7c26f38056a59e2a2544b51f7cc128ef28337eeae4d8e'
+        MEMBER='ripgrep-14.1.1-x86_64-unknown-linux-musl/rg'
+        BINARY_SIZE=6597984
+        BINARY_SHA256='f401154e2393f9002ac77e419f9ee5521c18f4f8cd3e32293972f493ba06fce7'
+        def need(value):
+            if not value:
+                raise ValueError('Pinned ripgrep preparation refused')
+        def identity_stamp(info):
+            return (info.st_dev,info.st_ino,info.st_mode,info.st_nlink,info.st_uid,info.st_gid,info.st_size,info.st_mtime_ns,info.st_ctime_ns)
+        def install(root):
+            root=Path(root)
+            info=root.lstat()
+            need(root.is_absolute() and root.resolve(strict=True)==root and stat.S_ISDIR(info.st_mode) and stat.S_IMODE(info.st_mode)==0o700 and info.st_uid==os.getuid())
+            path=root/'archive.tar.gz'
+            fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+            try:
+                before=os.fstat(fd)
+                need(stat.S_ISREG(before.st_mode) and before.st_nlink==1 and before.st_uid==os.getuid() and before.st_size==ARCHIVE_SIZE)
+                chunks=[];count=0
+                while count<=ARCHIVE_SIZE:
+                    chunk=os.read(fd,min(65536,ARCHIVE_SIZE+1-count))
+                    if not chunk:
+                        break
+                    chunks.append(chunk);count+=len(chunk)
+                raw=b''.join(chunks)
+                after=os.fstat(fd)
+                need(identity_stamp(before)==identity_stamp(after)==identity_stamp(path.lstat()) and len(raw)==ARCHIVE_SIZE and hashlib.sha256(raw).hexdigest()==ARCHIVE_SHA256)
+            finally:
+                os.close(fd)
+            with tarfile.open(fileobj=io.BytesIO(raw),mode='r:gz') as archive:
+                members=archive.getmembers()
+                need(len(members)<=64)
+                prefix=MEMBER.split('/')[0]
+                for item in members:
+                    parts=item.name.split('/')
+                    need(all(part not in ('','.','..') for part in parts) and parts[0]==prefix and (item.isfile() or item.isdir()) and item.linkname=='')
+                matches=[item for item in members if item.name==MEMBER]
+                need(len(matches)==1)
+                member=matches[0]
+                need(member.isfile() and member.linkname=='' and member.size==BINARY_SIZE and member.mode==0o755)
+                with archive.extractfile(member) as stream:
+                    binary=stream.read(BINARY_SIZE+1)
+                need(len(binary)==BINARY_SIZE and hashlib.sha256(binary).hexdigest()==BINARY_SHA256)
+            folder=root/'bin';folder.mkdir(mode=0o700)
+            target=folder/'rg'
+            fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o700)
+            try:
+                offset=0
+                while offset<len(binary):
+                    count=os.write(fd,binary[offset:offset+65536]);need(count>0);offset+=count
+                os.fsync(fd)
+                need(os.fstat(fd).st_size==BINARY_SIZE and identity_stamp(target.lstat())==identity_stamp(os.fstat(fd)))
+            finally:
+                os.close(fd)
+            return target
+        def probe(target):
+            version=subprocess.run([str(target),'--version'],capture_output=True,text=True,timeout=5)
+            need(version.returncode==0 and version.stdout.splitlines()[0]=='ripgrep 14.1.1 (rev 4649aa9700)')
+            root=target.parent.parent/'probe';root.mkdir(mode=0o700)
+            for folder in ('src','scripts','bin','webroot','resources'):
+                (root/folder).mkdir(mode=0o700)
+            (root/'patterns').write_text('RetiredClass[A-Za-z]*\n')
+            (root/'src/.hidden.php').write_text('RetiredClassOne RetiredClassTwo\n')
+            (root/'src/excluded.php').write_text('RetiredClassIgnored\n')
+            args=[str(target),'--line-number','--no-heading','--color','never','--hidden','--only-matching','--glob','!src/excluded.php','-f','patterns','src','scripts','bin','webroot','resources']
+            found=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=5)
+            need(found.returncode==0 and found.stdout=='src/.hidden.php:1:RetiredClassOne\nsrc/.hidden.php:1:RetiredClassTwo\n' and found.stderr=='')
+            (root/'patterns').write_text('NoSuchRetiredClass\n')
+            missing=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=5)
+            need(missing.returncode==1 and missing.stdout=='' and missing.stderr=='')
+        target=install(Path(sys.argv[1]))
+        probe(target)
+        PYRG
+        printf '%s\n' "$rg_root/bin" >> "$GITHUB_PATH"
+    - name: Governance unit / Prepare bounded metadata-only source footprint diagnostics
+      id: unit-footprint
+      run: |
+        python3 - <<'PYFOOTPRINT'
+        import os
+        from pathlib import Path
+        root = Path(os.environ['RUNNER_TEMP']) / 'atomic-footprint'
+        root.mkdir(mode=0o700)
+        (root / 'records').mkdir(mode=0o700)
+        script = "import json, os, stat, subprocess, sys\nfrom pathlib import Path\nSTAGES = {'before_build','after_build','after_maps','after_verify','before_governance','after_governance'}\ndef need(ok):\n    if not ok: raise ValueError('footprint_contract_refused')\ndef safe_name(name):\n    need(type(name) is str and 0 < len(name) <= 1024 and not name.startswith('/') and all(x not in ('', '.', '..') for x in name.split('/')) and all(ord(c) >= 32 and ord(c) != 127 for c in name))\n    return name\ndef collect(root):\n    rows=[]\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    fd=os.open(root,flags)\n    def walk(parent,prefix):\n        for name in sorted(os.listdir(parent)):\n            if not prefix and name=='.git': continue\n            rel=safe_name(prefix+name)\n            st=os.stat(name,dir_fd=parent,follow_symlinks=False)\n            kind='directory' if stat.S_ISDIR(st.st_mode) else 'regular' if stat.S_ISREG(st.st_mode) else 'symlink' if stat.S_ISLNK(st.st_mode) else 'other'\n            rows.append({'path':rel,'type':kind,'mode':format(stat.S_IMODE(st.st_mode),'04o'),'size':st.st_size})\n            need(len(rows)<=20000 and type(st.st_size) is int and st.st_size>=0)\n            if kind=='directory':\n                child=os.open(name,flags,dir_fd=parent)\n                try:\n                    current=os.fstat(child)\n                    need((current.st_dev,current.st_ino)==(st.st_dev,st.st_ino))\n                    walk(child,rel+'/')\n                finally: os.close(child)\n    try: walk(fd,'')\n    finally: os.close(fd)\n    return rows\ndef expected(root):\n    env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':os.devnull,'GIT_NO_REPLACE_OBJECTS':'1'}\n    raw=subprocess.run(['git','--no-replace-objects','-C',str(root),'-c','core.hooksPath=/dev/null','ls-tree','-rz','--name-only','HEAD'],env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=30).stdout\n    need(len(raw)<=8*1024*1024 and raw.endswith(b'\\0'))\n    names=[safe_name(n.decode('utf-8','strict')) for n in raw[:-1].split(b'\\0')]\n    need(len(names)<=20000 and len(names)==len(set(names)))\n    return set(names)\ndef write_output(directory,stage,data):\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    parent=os.open(directory,flags)\n    try:\n        st=os.fstat(parent);need(st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700)\n        raw=(json.dumps(data,sort_keys=True,separators=(',',':'))+'\\n').encode()\n        need(len(raw)<=16*1024*1024)\n        fd=os.open(stage+'.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=parent)\n        try:\n            os.fchmod(fd,0o600)\n            view=memoryview(raw)\n            while view:\n                written=os.write(fd,view);need(written>0);view=view[written:]\n            os.fsync(fd)\n            done=os.fstat(fd);need(stat.S_ISREG(done.st_mode) and done.st_nlink==1 and stat.S_IMODE(done.st_mode)==0o600)\n        finally: os.close(fd)\n        final=os.stat(directory,follow_symlinks=False)\n        need((st.st_dev,st.st_ino)==(final.st_dev,final.st_ino))\n    finally:os.close(parent)\ndef main():\n    need(len(sys.argv)==2 and sys.argv[1] in STAGES)\n    stage=sys.argv[1];root=Path.cwd();rows=collect(root);names=expected(root)\n    leaves={x['path'] for x in rows if x['type']!='directory'}\n    extra=sorted(leaves-names);missing=sorted(names-leaves)\n    need(len(extra)<=4000 and len(missing)<=4000)\n    write_output(Path(os.environ['RUNNER_TEMP'])/'atomic-footprint'/'records',stage,{'schema':1,'stage':stage,'truncated':False,'rows':rows,'extra_names':extra,'missing_names':missing})\nif __name__=='__main__':\n    try:main()\n    except Exception:\n        print('atomic_footprint_diagnostic_refused',file=sys.stderr)\n        raise SystemExit(1)\n"
+        fd = os.open(root / 'collector.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                stream.write(script)
+        except BaseException:
+            raise
+        PYFOOTPRINT
+    - name: Governance unit / Prepare retained parsers and verify deterministic maps and product cuts
+      run: |
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" before_build
+        php scripts/runtime/build.php all
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_build
+        php bin/rebuild-library-map
+        git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
+        sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > /tmp/atomic-maps.sha256
+        php bin/rebuild-library-map
+        sha256sum --check /tmp/atomic-maps.sha256
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_maps
+        php scripts/runtime/verify.php
+        bash .github/scripts/check-retired-app-references.sh
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_verify
+    - name: Governance unit / Upload successful parser preparation source footprints early
+      uses: actions/upload-artifact@v4
+      with:
+        name: atomic-unit-shard-0-prepared-pre-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
+        path: |
+          ${{ runner.temp }}/atomic-footprint/records/before_build.json
+          ${{ runner.temp }}/atomic-footprint/records/after_build.json
+          ${{ runner.temp }}/atomic-footprint/records/after_maps.json
+          ${{ runner.temp }}/atomic-footprint/records/after_verify.json
+        if-no-files-found: error
+        retention-days: 3
+    - name: Governance unit / Execute deterministic whole-module shard
+      id: unit-discovery
+      run: |
+        mkdir -p "$RUNNER_TEMP/governance-unit-tests"
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" before_governance
+        python3 - <<'PYUNIT'
+        import hashlib,json,os,sys,unittest
+        from pathlib import Path
+        SCHEMA='atomic-governance-unit-shard-v2'
+        def need(value,label):
+            if not value:raise RuntimeError('governance_unit_shard_refused:'+label)
+        def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        def owner(module):return int.from_bytes(hashlib.sha256(module.encode()).digest()[:8],'big')%2
+        def inspect_suite(node):
+            if isinstance(node,unittest.TestSuite):
+                need(type(node) is unittest.TestSuite,'custom_suite_unsupported')
+                rows=[]
+                for child in node:rows.extend(inspect_suite(child))
+                return rows
+            need(isinstance(node,unittest.TestCase),'custom_leaf_unsupported')
+            ident=node.id();module=node.__class__.__module__
+            need(type(ident)is str and 0<len(ident)<=2048 and type(module)is str and 0<len(module)<=512 and ident.startswith(module+'.'),'test_identity')
+            return [{'id':ident,'module':module}]
+        def discover_plan(start):
+            start=Path(start).resolve();loader=unittest.TestLoader();suite=loader.discover(str(start),pattern='test_*.py')
+            need(not loader.errors,'loader_errors')
+            need(type(suite)is unittest.TestSuite,'custom_root_suite_unsupported')
+            groups=[];full=[];seen_modules=set()
+            for child in suite:
+                rows=inspect_suite(child)
+                if not rows:continue
+                modules={row['module']for row in rows}
+                need(len(modules)==1,'cross_module_wrapper_unsupported');module=next(iter(modules))
+                need(module not in seen_modules,'split_module_wrapper_unsupported');seen_modules.add(module)
+                groups.append((module,child,rows));full.extend(rows)
+            need(0<len(full)<=32768 and len({row['id']for row in full})==len(full),'full_inventory')
+            for module in list(sys.modules.values()):
+                source=getattr(module,'__file__',None)
+                if source and Path(source).resolve().is_relative_to(start):
+                    need(not callable(getattr(module,'load_tests',None)),'load_tests_hook_unsupported')
+            return groups,full
+        class RecordedResult(unittest.TextTestResult):
+            def __init__(self,*args,**kwargs):
+                super().__init__(*args,**kwargs);self.events=[];self.current={};self.protocol_errors=0
+            def startTest(self,test):
+                super().startTest(test);ident=test.id()
+                if ident in self.current:self.protocol_errors+=1
+                self.current[ident]={'id':ident,'status':'started'};self.events.append(self.current[ident])
+            def note(self,test,state):
+                row=self.current.get(test.id())
+                if row is None or row['status']!='started':self.protocol_errors+=1
+                else:row['status']=state
+            def addSuccess(self,test):self.note(test,'ok');super().addSuccess(test)
+            def addFailure(self,test,err):self.note(test,'FAIL');super().addFailure(test,err)
+            def addError(self,test,err):self.note(test,'ERROR');super().addError(test,err)
+            def addSkip(self,test,reason):self.note(test,'skipped');super().addSkip(test,reason)
+            def addExpectedFailure(self,test,err):self.note(test,'expected failure');super().addExpectedFailure(test,err)
+            def addUnexpectedSuccess(self,test):self.note(test,'unexpected success');super().addUnexpectedSuccess(test)
+            def addSubTest(self,test,subtest,err):
+                if err is not None:
+                    row=self.current.get(test.id())
+                    if row is None:self.protocol_errors+=1
+                    elif row['status']=='started':row['status']='FAIL' if issubclass(err[0],test.failureException)else'ERROR'
+                super().addSubTest(test,subtest,err)
+        def metadata():
+            import subprocess,re
+            git=lambda *args:subprocess.check_output(['/usr/bin/git','--no-replace-objects',*args],text=True).strip()
+            m={'repository':os.environ.get('GITHUB_REPOSITORY',''),'run_id':os.environ.get('GITHUB_RUN_ID',''),'run_attempt':os.environ.get('GITHUB_RUN_ATTEMPT',''),'workflow_sha':os.environ.get('GITHUB_SHA',''),'head_sha':os.environ.get('ATOMIC_EXPECTED_HEAD_SHA',''),'source_revision':git('rev-parse','HEAD'),'source_tree':git('rev-parse','HEAD^{tree}')}
+            need(re.fullmatch('[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',m['repository'])is not None,'repository')
+            for key in ('run_id','run_attempt'):need(re.fullmatch('[1-9][0-9]*',m[key])is not None,'run_identity')
+            for key in ('workflow_sha','head_sha','source_revision','source_tree'):need(re.fullmatch('[0-9a-f]{40}',m[key])is not None,'source_identity')
+            need(m['workflow_sha']==m['source_revision'],'checkout_identity')
+            return m
+        def main():
+            shard=os.environ.get('ATOMIC_UNIT_SHARD','');need(shard in ('0','1'),'shard_index');shard=int(shard)
+            folder=Path(os.environ['RUNNER_TEMP'])/'governance-unit-tests';folder.mkdir(mode=0o700,parents=True,exist_ok=True)
+            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-v1','shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
+            try:
+                groups,full=discover_plan(Path('tests/governance'));data['full']=full;data['full_digest']=digest(full)
+                selected=[suite for module,suite,rows in groups if owner(module)==shard]
+                assigned=[row['id']for row in full if owner(row['module'])==shard]
+                need(bool(assigned),'empty_shard');data['assigned']=assigned;data['assigned_digest']=digest(assigned)
+                # Execute the original whole module child suites, never flattened TestCase leaves.
+                result=unittest.TextTestRunner(verbosity=2,resultclass=RecordedResult).run(unittest.TestSuite(selected))
+                data.update({'results':result.events,'test_count':result.testsRun,'skipped_ids':[row['id']for row in result.events if row['status']=='skipped'],'protocol_errors':result.protocol_errors,'failure_count':len(result.failures),'error_count':len(result.errors)})
+                data['passed']=result.wasSuccessful() and not result.skipped and result.protocol_errors==0 and result.testsRun==len(assigned) and result.events==[{'id':ident,'status':'ok'}for ident in assigned]
+            except Exception:
+                data['refusal_stage']='discovery_or_execution_refused'
+                raise
+            finally:
+                target=folder/'unit-results.json';target.write_text(json.dumps(data,sort_keys=True,indent=2)+'\n');target.chmod(0o600)
+            need(data['passed'],'assigned_tests_failed_or_incomplete')
+        if __name__=='__main__':main()
+        PYUNIT
+    - name: Governance unit / Capture source footprint after governance even on failure
+      if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
+      run: python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_governance
+    - name: Governance unit / Upload metadata-only source footprint diagnostics
+      if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: atomic-unit-shard-0-source-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/atomic-footprint/records/*.json
+        if-no-files-found: error
+        retention-days: 3
+    - name: Governance unit / Upload safe discovery results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: atomic-governance-unit-shard-0-results-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/governance-unit-tests/unit-results.json
+        if-no-files-found: error
+        retention-days: 7
+  governance-unit-tests-1:
+    name: Governance unit tests (PHP ${{ matrix.php }}, shard 1/2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+        - 8.5.12
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: atomic-regressions-only
+          MYSQL_ROOT_HOST: '%'
+        ports:
+        - 3306:3306
+        options: --health-cmd "mysqladmin ping -patomic-regressions-only" --health-interval 5s --health-timeout 3s --health-retries 30
+    env:
+      ATOMIC_TEST_DISPOSABLE: '1'
+      GORGE_TEST_MYSQL_PORT: '3306'
+      GORGE_TEST_MYSQL_PASSWORD: atomic-regressions-only
+      GORGE_TEST_FILE_URL: http://127.0.0.1:18100
+      GORGE_TEST_FILE_TOKEN: atomic-file-only
+      GORGE_TEST_IMAGE_URL: http://127.0.0.1:18190
+      GORGE_TEST_IMAGE_TOKEN: a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3
+      GORGE_TEST_RENDER_URL: http://127.0.0.1:18140
+      GORGE_TEST_RENDER_TOKEN: atomic-render-only
+      GORGE_TEST_SEARCH_URL: http://127.0.0.1:18120
+      GORGE_TEST_SEARCH_TOKEN: atomic-search-only
+      PYTHONDONTWRITEBYTECODE: '1'
+      ATOMIC_UNIT_SHARD: '1'
+      ATOMIC_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+    - name: Governance unit / Check out exact source
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Governance unit / Set up the production PHP baseline
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        ini-values: opcache.jit=disable, opcache.jit_buffer_size=0
+        extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
+        tools: composer:2.11.1
+        coverage: none
+    - name: Governance unit / Install the retained product-boundary checker dependency
+      timeout-minutes: 5
+      run: |
+        umask 077
+        test "$(uname -s)" = Linux
+        test "$(uname -m)" = x86_64
+        rg_root=$(mktemp -d "$RUNNER_TEMP/atomic-rg.XXXXXX")
+        curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
+          --connect-timeout 10 --max-time 45 --retry 1 --retry-delay 1 --retry-max-time 95 \
+          --max-filesize 2566310 --output "$rg_root/archive.tar.gz" \
+          https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz
+        python3 - "$rg_root" <<'PYRG'
+        import hashlib, io, os, stat, subprocess, sys, tarfile
+        from pathlib import Path
+        ARCHIVE_SIZE=2566310
+        ARCHIVE_SHA256='4cf9f2741e6c465ffdb7c26f38056a59e2a2544b51f7cc128ef28337eeae4d8e'
+        MEMBER='ripgrep-14.1.1-x86_64-unknown-linux-musl/rg'
+        BINARY_SIZE=6597984
+        BINARY_SHA256='f401154e2393f9002ac77e419f9ee5521c18f4f8cd3e32293972f493ba06fce7'
+        def need(value):
+            if not value:
+                raise ValueError('Pinned ripgrep preparation refused')
+        def identity_stamp(info):
+            return (info.st_dev,info.st_ino,info.st_mode,info.st_nlink,info.st_uid,info.st_gid,info.st_size,info.st_mtime_ns,info.st_ctime_ns)
+        def install(root):
+            root=Path(root)
+            info=root.lstat()
+            need(root.is_absolute() and root.resolve(strict=True)==root and stat.S_ISDIR(info.st_mode) and stat.S_IMODE(info.st_mode)==0o700 and info.st_uid==os.getuid())
+            path=root/'archive.tar.gz'
+            fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+            try:
+                before=os.fstat(fd)
+                need(stat.S_ISREG(before.st_mode) and before.st_nlink==1 and before.st_uid==os.getuid() and before.st_size==ARCHIVE_SIZE)
+                chunks=[];count=0
+                while count<=ARCHIVE_SIZE:
+                    chunk=os.read(fd,min(65536,ARCHIVE_SIZE+1-count))
+                    if not chunk:
+                        break
+                    chunks.append(chunk);count+=len(chunk)
+                raw=b''.join(chunks)
+                after=os.fstat(fd)
+                need(identity_stamp(before)==identity_stamp(after)==identity_stamp(path.lstat()) and len(raw)==ARCHIVE_SIZE and hashlib.sha256(raw).hexdigest()==ARCHIVE_SHA256)
+            finally:
+                os.close(fd)
+            with tarfile.open(fileobj=io.BytesIO(raw),mode='r:gz') as archive:
+                members=archive.getmembers()
+                need(len(members)<=64)
+                prefix=MEMBER.split('/')[0]
+                for item in members:
+                    parts=item.name.split('/')
+                    need(all(part not in ('','.','..') for part in parts) and parts[0]==prefix and (item.isfile() or item.isdir()) and item.linkname=='')
+                matches=[item for item in members if item.name==MEMBER]
+                need(len(matches)==1)
+                member=matches[0]
+                need(member.isfile() and member.linkname=='' and member.size==BINARY_SIZE and member.mode==0o755)
+                with archive.extractfile(member) as stream:
+                    binary=stream.read(BINARY_SIZE+1)
+                need(len(binary)==BINARY_SIZE and hashlib.sha256(binary).hexdigest()==BINARY_SHA256)
+            folder=root/'bin';folder.mkdir(mode=0o700)
+            target=folder/'rg'
+            fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o700)
+            try:
+                offset=0
+                while offset<len(binary):
+                    count=os.write(fd,binary[offset:offset+65536]);need(count>0);offset+=count
+                os.fsync(fd)
+                need(os.fstat(fd).st_size==BINARY_SIZE and identity_stamp(target.lstat())==identity_stamp(os.fstat(fd)))
+            finally:
+                os.close(fd)
+            return target
+        def probe(target):
+            version=subprocess.run([str(target),'--version'],capture_output=True,text=True,timeout=5)
+            need(version.returncode==0 and version.stdout.splitlines()[0]=='ripgrep 14.1.1 (rev 4649aa9700)')
+            root=target.parent.parent/'probe';root.mkdir(mode=0o700)
+            for folder in ('src','scripts','bin','webroot','resources'):
+                (root/folder).mkdir(mode=0o700)
+            (root/'patterns').write_text('RetiredClass[A-Za-z]*\n')
+            (root/'src/.hidden.php').write_text('RetiredClassOne RetiredClassTwo\n')
+            (root/'src/excluded.php').write_text('RetiredClassIgnored\n')
+            args=[str(target),'--line-number','--no-heading','--color','never','--hidden','--only-matching','--glob','!src/excluded.php','-f','patterns','src','scripts','bin','webroot','resources']
+            found=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=5)
+            need(found.returncode==0 and found.stdout=='src/.hidden.php:1:RetiredClassOne\nsrc/.hidden.php:1:RetiredClassTwo\n' and found.stderr=='')
+            (root/'patterns').write_text('NoSuchRetiredClass\n')
+            missing=subprocess.run(args,cwd=root,capture_output=True,text=True,timeout=5)
+            need(missing.returncode==1 and missing.stdout=='' and missing.stderr=='')
+        target=install(Path(sys.argv[1]))
+        probe(target)
+        PYRG
+        printf '%s\n' "$rg_root/bin" >> "$GITHUB_PATH"
+    - name: Governance unit / Prepare bounded metadata-only source footprint diagnostics
+      id: unit-footprint
+      run: |
+        python3 - <<'PYFOOTPRINT'
+        import os
+        from pathlib import Path
+        root = Path(os.environ['RUNNER_TEMP']) / 'atomic-footprint'
+        root.mkdir(mode=0o700)
+        (root / 'records').mkdir(mode=0o700)
+        script = "import json, os, stat, subprocess, sys\nfrom pathlib import Path\nSTAGES = {'before_build','after_build','after_maps','after_verify','before_governance','after_governance'}\ndef need(ok):\n    if not ok: raise ValueError('footprint_contract_refused')\ndef safe_name(name):\n    need(type(name) is str and 0 < len(name) <= 1024 and not name.startswith('/') and all(x not in ('', '.', '..') for x in name.split('/')) and all(ord(c) >= 32 and ord(c) != 127 for c in name))\n    return name\ndef collect(root):\n    rows=[]\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    fd=os.open(root,flags)\n    def walk(parent,prefix):\n        for name in sorted(os.listdir(parent)):\n            if not prefix and name=='.git': continue\n            rel=safe_name(prefix+name)\n            st=os.stat(name,dir_fd=parent,follow_symlinks=False)\n            kind='directory' if stat.S_ISDIR(st.st_mode) else 'regular' if stat.S_ISREG(st.st_mode) else 'symlink' if stat.S_ISLNK(st.st_mode) else 'other'\n            rows.append({'path':rel,'type':kind,'mode':format(stat.S_IMODE(st.st_mode),'04o'),'size':st.st_size})\n            need(len(rows)<=20000 and type(st.st_size) is int and st.st_size>=0)\n            if kind=='directory':\n                child=os.open(name,flags,dir_fd=parent)\n                try:\n                    current=os.fstat(child)\n                    need((current.st_dev,current.st_ino)==(st.st_dev,st.st_ino))\n                    walk(child,rel+'/')\n                finally: os.close(child)\n    try: walk(fd,'')\n    finally: os.close(fd)\n    return rows\ndef expected(root):\n    env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':os.devnull,'GIT_NO_REPLACE_OBJECTS':'1'}\n    raw=subprocess.run(['git','--no-replace-objects','-C',str(root),'-c','core.hooksPath=/dev/null','ls-tree','-rz','--name-only','HEAD'],env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=30).stdout\n    need(len(raw)<=8*1024*1024 and raw.endswith(b'\\0'))\n    names=[safe_name(n.decode('utf-8','strict')) for n in raw[:-1].split(b'\\0')]\n    need(len(names)<=20000 and len(names)==len(set(names)))\n    return set(names)\ndef write_output(directory,stage,data):\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    parent=os.open(directory,flags)\n    try:\n        st=os.fstat(parent);need(st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700)\n        raw=(json.dumps(data,sort_keys=True,separators=(',',':'))+'\\n').encode()\n        need(len(raw)<=16*1024*1024)\n        fd=os.open(stage+'.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=parent)\n        try:\n            os.fchmod(fd,0o600)\n            view=memoryview(raw)\n            while view:\n                written=os.write(fd,view);need(written>0);view=view[written:]\n            os.fsync(fd)\n            done=os.fstat(fd);need(stat.S_ISREG(done.st_mode) and done.st_nlink==1 and stat.S_IMODE(done.st_mode)==0o600)\n        finally: os.close(fd)\n        final=os.stat(directory,follow_symlinks=False)\n        need((st.st_dev,st.st_ino)==(final.st_dev,final.st_ino))\n    finally:os.close(parent)\ndef main():\n    need(len(sys.argv)==2 and sys.argv[1] in STAGES)\n    stage=sys.argv[1];root=Path.cwd();rows=collect(root);names=expected(root)\n    leaves={x['path'] for x in rows if x['type']!='directory'}\n    extra=sorted(leaves-names);missing=sorted(names-leaves)\n    need(len(extra)<=4000 and len(missing)<=4000)\n    write_output(Path(os.environ['RUNNER_TEMP'])/'atomic-footprint'/'records',stage,{'schema':1,'stage':stage,'truncated':False,'rows':rows,'extra_names':extra,'missing_names':missing})\nif __name__=='__main__':\n    try:main()\n    except Exception:\n        print('atomic_footprint_diagnostic_refused',file=sys.stderr)\n        raise SystemExit(1)\n"
+        fd = os.open(root / 'collector.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                stream.write(script)
+        except BaseException:
+            raise
+        PYFOOTPRINT
+    - name: Governance unit / Prepare retained parsers and verify deterministic maps and product cuts
+      run: |
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" before_build
+        php scripts/runtime/build.php all
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_build
+        php bin/rebuild-library-map
+        git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
+        sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > /tmp/atomic-maps.sha256
+        php bin/rebuild-library-map
+        sha256sum --check /tmp/atomic-maps.sha256
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_maps
+        php scripts/runtime/verify.php
+        bash .github/scripts/check-retired-app-references.sh
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_verify
+    - name: Governance unit / Upload successful parser preparation source footprints early
+      uses: actions/upload-artifact@v4
+      with:
+        name: atomic-unit-shard-1-prepared-pre-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
+        path: |
+          ${{ runner.temp }}/atomic-footprint/records/before_build.json
+          ${{ runner.temp }}/atomic-footprint/records/after_build.json
+          ${{ runner.temp }}/atomic-footprint/records/after_maps.json
+          ${{ runner.temp }}/atomic-footprint/records/after_verify.json
+        if-no-files-found: error
+        retention-days: 3
+    - name: Governance unit / Execute deterministic whole-module shard
+      id: unit-discovery
+      run: |
+        mkdir -p "$RUNNER_TEMP/governance-unit-tests"
+        python3 "$RUNNER_TEMP/atomic-footprint/collector.py" before_governance
+        python3 - <<'PYUNIT'
+        import hashlib,json,os,sys,unittest
+        from pathlib import Path
+        SCHEMA='atomic-governance-unit-shard-v2'
+        def need(value,label):
+            if not value:raise RuntimeError('governance_unit_shard_refused:'+label)
+        def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        def owner(module):return int.from_bytes(hashlib.sha256(module.encode()).digest()[:8],'big')%2
+        def inspect_suite(node):
+            if isinstance(node,unittest.TestSuite):
+                need(type(node) is unittest.TestSuite,'custom_suite_unsupported')
+                rows=[]
+                for child in node:rows.extend(inspect_suite(child))
+                return rows
+            need(isinstance(node,unittest.TestCase),'custom_leaf_unsupported')
+            ident=node.id();module=node.__class__.__module__
+            need(type(ident)is str and 0<len(ident)<=2048 and type(module)is str and 0<len(module)<=512 and ident.startswith(module+'.'),'test_identity')
+            return [{'id':ident,'module':module}]
+        def discover_plan(start):
+            start=Path(start).resolve();loader=unittest.TestLoader();suite=loader.discover(str(start),pattern='test_*.py')
+            need(not loader.errors,'loader_errors')
+            need(type(suite)is unittest.TestSuite,'custom_root_suite_unsupported')
+            groups=[];full=[];seen_modules=set()
+            for child in suite:
+                rows=inspect_suite(child)
+                if not rows:continue
+                modules={row['module']for row in rows}
+                need(len(modules)==1,'cross_module_wrapper_unsupported');module=next(iter(modules))
+                need(module not in seen_modules,'split_module_wrapper_unsupported');seen_modules.add(module)
+                groups.append((module,child,rows));full.extend(rows)
+            need(0<len(full)<=32768 and len({row['id']for row in full})==len(full),'full_inventory')
+            for module in list(sys.modules.values()):
+                source=getattr(module,'__file__',None)
+                if source and Path(source).resolve().is_relative_to(start):
+                    need(not callable(getattr(module,'load_tests',None)),'load_tests_hook_unsupported')
+            return groups,full
+        class RecordedResult(unittest.TextTestResult):
+            def __init__(self,*args,**kwargs):
+                super().__init__(*args,**kwargs);self.events=[];self.current={};self.protocol_errors=0
+            def startTest(self,test):
+                super().startTest(test);ident=test.id()
+                if ident in self.current:self.protocol_errors+=1
+                self.current[ident]={'id':ident,'status':'started'};self.events.append(self.current[ident])
+            def note(self,test,state):
+                row=self.current.get(test.id())
+                if row is None or row['status']!='started':self.protocol_errors+=1
+                else:row['status']=state
+            def addSuccess(self,test):self.note(test,'ok');super().addSuccess(test)
+            def addFailure(self,test,err):self.note(test,'FAIL');super().addFailure(test,err)
+            def addError(self,test,err):self.note(test,'ERROR');super().addError(test,err)
+            def addSkip(self,test,reason):self.note(test,'skipped');super().addSkip(test,reason)
+            def addExpectedFailure(self,test,err):self.note(test,'expected failure');super().addExpectedFailure(test,err)
+            def addUnexpectedSuccess(self,test):self.note(test,'unexpected success');super().addUnexpectedSuccess(test)
+            def addSubTest(self,test,subtest,err):
+                if err is not None:
+                    row=self.current.get(test.id())
+                    if row is None:self.protocol_errors+=1
+                    elif row['status']=='started':row['status']='FAIL' if issubclass(err[0],test.failureException)else'ERROR'
+                super().addSubTest(test,subtest,err)
+        def metadata():
+            import subprocess,re
+            git=lambda *args:subprocess.check_output(['/usr/bin/git','--no-replace-objects',*args],text=True).strip()
+            m={'repository':os.environ.get('GITHUB_REPOSITORY',''),'run_id':os.environ.get('GITHUB_RUN_ID',''),'run_attempt':os.environ.get('GITHUB_RUN_ATTEMPT',''),'workflow_sha':os.environ.get('GITHUB_SHA',''),'head_sha':os.environ.get('ATOMIC_EXPECTED_HEAD_SHA',''),'source_revision':git('rev-parse','HEAD'),'source_tree':git('rev-parse','HEAD^{tree}')}
+            need(re.fullmatch('[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',m['repository'])is not None,'repository')
+            for key in ('run_id','run_attempt'):need(re.fullmatch('[1-9][0-9]*',m[key])is not None,'run_identity')
+            for key in ('workflow_sha','head_sha','source_revision','source_tree'):need(re.fullmatch('[0-9a-f]{40}',m[key])is not None,'source_identity')
+            need(m['workflow_sha']==m['source_revision'],'checkout_identity')
+            return m
+        def main():
+            shard=os.environ.get('ATOMIC_UNIT_SHARD','');need(shard in ('0','1'),'shard_index');shard=int(shard)
+            folder=Path(os.environ['RUNNER_TEMP'])/'governance-unit-tests';folder.mkdir(mode=0o700,parents=True,exist_ok=True)
+            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-v1','shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
+            try:
+                groups,full=discover_plan(Path('tests/governance'));data['full']=full;data['full_digest']=digest(full)
+                selected=[suite for module,suite,rows in groups if owner(module)==shard]
+                assigned=[row['id']for row in full if owner(row['module'])==shard]
+                need(bool(assigned),'empty_shard');data['assigned']=assigned;data['assigned_digest']=digest(assigned)
+                # Execute the original whole module child suites, never flattened TestCase leaves.
+                result=unittest.TextTestRunner(verbosity=2,resultclass=RecordedResult).run(unittest.TestSuite(selected))
+                data.update({'results':result.events,'test_count':result.testsRun,'skipped_ids':[row['id']for row in result.events if row['status']=='skipped'],'protocol_errors':result.protocol_errors,'failure_count':len(result.failures),'error_count':len(result.errors)})
+                data['passed']=result.wasSuccessful() and not result.skipped and result.protocol_errors==0 and result.testsRun==len(assigned) and result.events==[{'id':ident,'status':'ok'}for ident in assigned]
+            except Exception:
+                data['refusal_stage']='discovery_or_execution_refused'
+                raise
+            finally:
+                target=folder/'unit-results.json';target.write_text(json.dumps(data,sort_keys=True,indent=2)+'\n');target.chmod(0o600)
+            need(data['passed'],'assigned_tests_failed_or_incomplete')
+        if __name__=='__main__':main()
+        PYUNIT
+    - name: Governance unit / Capture source footprint after governance even on failure
+      if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
+      run: python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_governance
+    - name: Governance unit / Upload metadata-only source footprint diagnostics
+      if: ${{ always() && steps.unit-footprint.outcome == 'success' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: atomic-unit-shard-1-source-footprint-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/atomic-footprint/records/*.json
+        if-no-files-found: error
+        retention-days: 3
+    - name: Governance unit / Upload safe discovery results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: atomic-governance-unit-shard-1-results-php-${{ matrix.php }}-attempt-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/governance-unit-tests/unit-results.json
+        if-no-files-found: error
+        retention-days: 7
   native-packages-gate:
     name: Native packages (PHP 8.5.12)
-    needs: [native-packages, governance-unit-tests]
+    needs:
+    - native-packages
+    - governance-unit-tests-0
+    - governance-unit-tests-1
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Require every independent Atomic job to succeed
-        env:
-          NATIVE_RESULT: ${{ needs.native-packages.result }}
-          GOVERNANCE_UNIT_RESULT: ${{ needs.governance-unit-tests.result }}
-        run: |
-          python3 - <<'PYGATE'
-          import os
-          results={name:os.environ.get(name,'') for name in ('NATIVE_RESULT','GOVERNANCE_UNIT_RESULT')}
-          if any(result!='success' for result in results.values()):
-              raise SystemExit('Every Atomic validation job must finish successfully')
-          print('All independent Atomic validation jobs succeeded')
-          PYGATE
+    - name: Require native integration and both unit shards to succeed
+      env:
+        NATIVE_RESULT: ${{ needs.native-packages.result }}
+        GOVERNANCE_UNIT_0_RESULT: ${{ needs.governance-unit-tests-0.result }}
+        GOVERNANCE_UNIT_1_RESULT: ${{ needs.governance-unit-tests-1.result }}
+      run: |
+        python3 - <<'PYGATE'
+        import os
+        names=('NATIVE_RESULT','GOVERNANCE_UNIT_0_RESULT','GOVERNANCE_UNIT_1_RESULT')
+        if any(os.environ.get(name,'')!='success' for name in names):
+            raise SystemExit('Every Atomic validation job must finish successfully')
+        print('Native integration and both independent unit shards succeeded')
+        PYGATE
+    - name: Gate / Check out the exact source for summary lineage
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Gate / Download same-run shard 0 safe summary
+      uses: actions/download-artifact@v4
+      with:
+        name: atomic-governance-unit-shard-0-results-php-8.5.12-attempt-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/atomic-unit-gate/shard-0
+    - name: Gate / Download same-run shard 1 safe summary
+      uses: actions/download-artifact@v4
+      with:
+        name: atomic-governance-unit-shard-1-results-php-8.5.12-attempt-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/atomic-unit-gate/shard-1
+    - name: Gate / Verify full discovery and exact disjoint successful union
+      env:
+        ATOMIC_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        ATOMIC_RESULT_ROOT: ${{ runner.temp }}/atomic-unit-gate
+      run: |
+        python3 - <<'PYUNION'
+        import hashlib,json,os,re,stat,subprocess
+        from pathlib import Path
+        KEYS={'schema','metadata','partition','shard','shards','full','full_digest','assigned','assigned_digest','results','test_count','skipped_ids','protocol_errors','failure_count','error_count','refusal_stage','passed'}
+        def need(value,label):
+            if not value:raise RuntimeError('atomic_unit_union_refused:'+label)
+        def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        def owner(module):return int.from_bytes(hashlib.sha256(module.encode()).digest()[:8],'big')%2
+        def object_pairs(rows):
+            out={}
+            for k,v in rows:need(k not in out,'duplicate_JSON_key');out[k]=v
+            return out
+        def read_summary(folder):
+            need(folder.is_dir()and folder.resolve()==folder and {p.name for p in folder.iterdir()}=={'unit-results.json'},'exact_summary_file')
+            p=folder/'unit-results.json';info=p.lstat();need(stat.S_ISREG(info.st_mode)and not p.is_symlink()and 0<info.st_size<=8388608,'summary_type_size')
+            raw=p.read_bytes();need(len(raw)==info.st_size,'summary_size')
+            return json.loads(raw,object_pairs_hook=object_pairs,parse_constant=lambda value:(_ for _ in ()).throw(ValueError('nonstandard_JSON'))),hashlib.sha256(raw).hexdigest()
+        def expected_metadata():
+            git=lambda *args:subprocess.check_output(['/usr/bin/git','--no-replace-objects',*args],text=True).strip()
+            m={'repository':os.environ.get('GITHUB_REPOSITORY',''),'run_id':os.environ.get('GITHUB_RUN_ID',''),'run_attempt':os.environ.get('GITHUB_RUN_ATTEMPT',''),'workflow_sha':os.environ.get('GITHUB_SHA',''),'head_sha':os.environ.get('ATOMIC_EXPECTED_HEAD_SHA',''),'source_revision':git('rev-parse','HEAD'),'source_tree':git('rev-parse','HEAD^{tree}')}
+            need(re.fullmatch('[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',m['repository'])is not None,'repository')
+            for key in ('run_id','run_attempt'):need(re.fullmatch('[1-9][0-9]*',m[key])is not None,'run_identity')
+            for key in ('workflow_sha','head_sha','source_revision','source_tree'):need(re.fullmatch('[0-9a-f]{40}',m[key])is not None,'source_identity')
+            need(m['workflow_sha']==m['source_revision'],'checkout_identity');return m
+        def validate(data,index,metadata):
+            need(type(data)is dict and set(data)==KEYS,'closed_summary')
+            need(data['schema']=='atomic-governance-unit-shard-v2' and data['metadata']==metadata and data['partition']=='module-sha256-v1','same_run_head_attempt_source')
+            need(type(data['shard'])is int and data['shard']==index and type(data['shards'])is int and data['shards']==2,'shard_identity')
+            full=data['full'];need(type(full)is list and 0<len(full)<=32768,'full_inventory')
+            for row in full:need(type(row)is dict and set(row)=={'id','module'}and type(row['id'])is str and 0<len(row['id'])<=2048 and type(row['module'])is str and 0<len(row['module'])<=512 and row['id'].startswith(row['module']+'.'),'full_row')
+            ids=[row['id']for row in full];need(len(ids)==len(set(ids))and data['full_digest']==digest(full),'full_unique_digest')
+            assigned=[row['id']for row in full if owner(row['module'])==index]
+            need(bool(assigned)and data['assigned']==assigned and data['assigned_digest']==digest(assigned),'deterministic_assignment')
+            need(data['results']==[{'id':ident,'status':'ok'}for ident in assigned],'every_assigned_once_ok_in_original_order')
+            need(type(data['test_count'])is int and data['test_count']==len(assigned),'executed_count')
+            need(data['skipped_ids']==[]and data['passed']is True and data['refusal_stage']is None,'no_skip_or_refusal')
+            for key in ('protocol_errors','failure_count','error_count'):need(type(data[key])is int and data[key]==0,'no_errors')
+            return ids,assigned
+        def main():
+            m=expected_metadata();root=Path(os.environ['ATOMIC_RESULT_ROOT']).resolve();summaries=[];digests=[];assigned=[]
+            for index in (0,1):
+                data,h=read_summary(root/('shard-'+str(index)));ids,part=validate(data,index,m);summaries.append(data);digests.append(h);assigned.append(part)
+            need(summaries[0]['full']==summaries[1]['full'],'same_complete_discovery')
+            need(not(set(assigned[0])&set(assigned[1]))and set(assigned[0])|set(assigned[1])==set(ids),'exact_disjoint_union')
+            out={'schema':'atomic-governance-unit-union-v2','metadata':m,'full_digest':summaries[0]['full_digest'],'full':summaries[0]['full'],'test_count':len(ids),'shard_counts':[len(part)for part in assigned],'summary_sha256':digests,'skipped_ids':[],'passed':True}
+            target=root/'union-results.json';target.write_text(json.dumps(out,sort_keys=True,indent=2)+'\n');target.chmod(0o600)
+            print('Both unit shards executed their complete disjoint assignment successfully')
+        if __name__=='__main__':main()
+        PYUNION
+    - name: Gate / Upload the safe exact-union result
+      uses: actions/upload-artifact@v4
+      with:
+        name: atomic-governance-unit-union-php-8.5.12-attempt-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/atomic-unit-gate/union-results.json
+        if-no-files-found: error
+        retention-days: 7

@@ -78,6 +78,8 @@ class DescriptionExecution(unittest.TestCase):
   rel='src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php';old=subprocess.check_output(['git','-C',str(ROOT),'show','5c22ca0d0b6acab2889fac7ddda03e630f858e64:'+rel]);current=(ROOT/rel).read_bytes()
   branch=b"""        if ($project_scope!==null && $project_scope->getMode()==='content-description') {
           $project_scope->rollbackDescriptionEditor($this,$object);
+        } elseif ($project_scope!==null) {
+          $project_scope->rollbackPolicyEditor($this,$object);
         } else {
           $object->killTransaction();
         }

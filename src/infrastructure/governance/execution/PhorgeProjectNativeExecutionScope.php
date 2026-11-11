@@ -701,6 +701,42 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     $this->transactionOwnership='rolled-back';
   }
+  /** Observe only the sealed native policy Editor's own rollback ACK.
+   * The legacy Editor owns this rollback, not a later cleanup depth guess.
+   */
+  public function rollbackPolicyEditor($editor,$object) {
+    $trace=debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT|DEBUG_BACKTRACE_IGNORE_ARGS,2);
+    $frame=$trace[1]??array();
+    if(($frame['class']??null)!==PhabricatorApplicationTransactionEditor::class||
+       ($frame['function']??null)!=='applyTransactions'||($frame['object']??null)!==$editor){
+      $this->transactionOwnership='unknown';
+      throw new RuntimeException('project_native_rollback_scope_required');
+    }
+    $this->rollbackPolicyOwnedFrame($editor,$object);
+  }
+  private function rollbackPolicyOwnedFrame($editor,$object) {
+    try{
+      if(!in_array($this->mode,array('execute','self-join','self-leave'),true)||
+         get_class($editor)!==PhabricatorProjectTransactionEditor::class||
+         $this->editor!==$editor||$this->object!==$object||get_class($object)!==PhabricatorProject::class||
+         !in_array($this->state,array('open','consumed'),true)||!$this->ownsReservation()||
+         $this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||
+         $this->transactionFrame()!==array(1,0,0)||$object->establishConnection('w')!==$this->connection){
+        throw new RuntimeException('project_native_rollback_scope_required');
+      }
+    }catch(Throwable $error){$this->transactionOwnership='unknown';throw$error;}
+    $mode=$this->mode;$scope_state=$this->state;
+    // Native kill decrements depth before its SQL ACK. Lost ACK, a changed
+    // state/generation or a nested/foreign frame can never certify cleanup.
+    $this->transactionOwnership='unknown';
+    $this->connection->killTransaction();
+    if(!$this->ownsReservation()||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0)||
+       $this->transactionOwnership!=='unknown'||$this->mode!==$mode||$this->state!==$scope_state||
+       $this->editor!==$editor||$this->object!==$object||$object->establishConnection('w')!==$this->connection){
+      throw new RuntimeException('project_native_rollback_scope_required');
+    }
+    $this->transactionOwnership='rolled-back';
+  }
   public function didCommit() {
     if (!$this->ownsReservation()||$this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0) || $this->state!=='consumed') {
       throw new RuntimeException('project_execution_real_commit_required');
