@@ -71,7 +71,7 @@ class Controls(unittest.TestCase):
   write('resources-worker.json',{'prerequisite':'a'*64,'seed':'b'*64,'db':'c'*64,'worker':worker,'source_volume':'media-positive-code-'+'a'*32,'database_volume':'media-positive-db-'+'a'*32})
   write('worker-terminal-capture.json',{'worker_exit_code':0,'stdout_sha256':digest,'stderr_sha256':empty,'known_terminal':True})
   write('0001.intent.json',{'argv':['logs',worker],'pending':True,'stdin_bytes':0});write('0001.status.json',{'parent_terminal_known':True,'capture_complete':True,'exit_code':0,'stdout_sha256':digest,'stderr_sha256':empty})
-  inv={'schema':'media-positive-public-source-v1','base':freshness.snapshot.BASE,'base_object_provenance':{'root_tree':freshness.snapshot.ROOT_TREE,'git_object_hashes_verified':True},'overlay':{str(i):'a'*64 for i in range(8)},'entries':{str(i):{} for i in range(9303)},'archive_sha256':'a'*64};ib=write('public-source-inventory.json',inv)
+  inv={'schema':'media-positive-public-source-v1','base':freshness.snapshot.BASE,'base_object_provenance':{'root_tree':freshness.snapshot.ROOT_TREE,'git_object_hashes_verified':True},'overlay':{str(i):'a'*64 for i in range(8)},'entries':{str(i):{} for i in range(9312)},'archive_sha256':'a'*64};ib=write('public-source-inventory.json',inv)
   write('accepted.json',{'schema':'media-positive-selected-acceptance-v1','accepted':True,'normal_SQL_controller_only':True,'browser_TLS_or_fault_proof':False,'source_archive_sha256':'a'*64,'source_inventory_sha256':hashlib.sha256(ib).hexdigest(),'php_image':'sha256:'+'b'*64,'mysql_image':'sha256:'+'c'*64,'worker_exit':0})
   write('actual-image-prerequisite.json',{'version':'8.5.12','mysqli':True,'mbstring':True,'pcntl_exec':True,'posix_identity':True,'fsync':True,'jit':'disable','buffer':'0','cli':'0','caps':{k:('1'if k=='NoNewPrivs'else'0000000000000000')for k in ('CapEff','CapPrm','CapInh','CapAmb','CapBnd','NoNewPrivs')}})
   write('fresh-database-baseline.json',{'version':'8.4.13','uuid':'a'*8+'-'+'a'*4+'-'+'a'*4+'-'+'a'*4+'-'+'a'*12,'performance_schema':1,'mdl_enabled':1,'databases':0})
@@ -79,7 +79,7 @@ class Controls(unittest.TestCase):
   self.assertTrue(project.project(root,fresh)['strict_selected_accepted'])
   # Metadata collaborators: recompute the receipt hash to isolate the exact-count gate.
   original_entries=dict(inv['entries'])
-  for count in (9140,9178,9183,9184,9185,9200,9201,9202,9236,9237,9271,9272,9273,9274,9275,9277,9278):
+  for count in (9140,9178,9183,9184,9185,9200,9201,9202,9236,9237,9271,9272,9273,9274,9275,9277,9278,9303):
    inv['entries']={str(i):{} for i in range(count)};ib=write('public-source-inventory.json',inv)
    accepted=json.loads((root/'accepted.json').read_bytes());accepted['source_inventory_sha256']=hashlib.sha256(ib).hexdigest();write('accepted.json',accepted)
    with self.assertRaisesRegex(ValueError,'source inventory binding'):project.project(root,fresh)
