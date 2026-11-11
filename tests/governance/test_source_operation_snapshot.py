@@ -31,8 +31,9 @@ def policy_functions(path=None):
     tree=ast.parse(path.read_bytes())
     functions={'_need','_stamp','_read','_registry_object','_relative_source_path','_source_pin',
                '_authenticate_registry','_baseline_metadata','_check_historical_targets',
-               '_new_path_policy','_successor_policy','_regular_new_source'}
-    constants={'REGISTRY','BASE_ADMISSION_BLOB','BASE_ADMISSION_SHA256','BASE_ADMISSION_BYTES','BASE_ADMISSION_ZLIB_BASE64','BASE_INVENTORY_SHA256'}
+               '_new_path_policy','_successor_policy','_regular_new_source',
+               '_held_media_current_pins','_read_held_media'}
+    constants={'REGISTRY','BASE_ADMISSION_BLOB','BASE_ADMISSION_SHA256','BASE_ADMISSION_BYTES','BASE_ADMISSION_ZLIB_BASE64','BASE_INVENTORY_SHA256','MEDIA_STAGE_PREDECESSOR','MEDIA_STAGE_PREDECESSOR_SHA256'}
     nodes=[n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name in functions
            or isinstance(n,ast.Assign)and len(n.targets)==1 and isinstance(n.targets[0],ast.Name)and n.targets[0].id in constants]
     namespace={'Path':Path,'ast':ast,'os':os,'stat':stat,'json':json,'hashlib':hashlib,'subprocess':subprocess,'base64':base64,'zlib':zlib}
@@ -541,3 +542,105 @@ class AssessmentTopLevelOperation(unittest.TestCase):
                 with self.assertRaises(ValueError):assessment.SQL_obligations(fixture)
 
 if __name__=='__main__':unittest.main()
+
+class HeldMediaPolicy(unittest.TestCase):
+    """Pure fixed7/source-reader policy only; not an issued source capability."""
+    @classmethod
+    def setUpClass(cls):cls.policy=policy_functions()
+    def fixture(self):
+        import copy
+        descriptor=self.policy['MEDIA_STAGE_PREDECESSOR']
+        entries={p:{'bytes':v['bytes'],'sha256':v['sha256']}for p,v in descriptor['pins'].items()}
+        metadata=copy.deepcopy(self.policy['_baseline_metadata']())
+        return entries,metadata
+    def test_exact7_native_stage_is_actual_b9_Git_and_effective_registry(self):
+        import subprocess,json
+        descriptor=self.policy['MEDIA_STAGE_PREDECESSOR'];ref=descriptor['revision']
+        self.assertEqual(ref,'b9f16952adb7f23f5966422645a7b4598114ae44')
+        self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'rev-parse',ref+'^{tree}'],text=True).strip(),descriptor['tree'])
+        registry=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show',ref+':'+self.policy['REGISTRY']]))
+        self.assertEqual(len(descriptor['pins']),7)
+        for path,pin in descriptor['pins'].items():
+            raw=subprocess.check_output(['git','-C',str(ROOT),'show',ref+':'+path])
+            mode,kind,blob=subprocess.check_output(['git','-C',str(ROOT),'ls-tree',ref,'--',path],text=True).split('\t',1)[0].split()
+            self.assertEqual(pin,{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'git_mode':mode,'git_blob':blob})
+            effective=registry['successor_entries'][path]['current']if path in registry['successor_entries']else registry['entries'][path]
+            self.assertEqual(effective,{'bytes':pin['bytes'],'sha256':pin['sha256']})
+    def test_derived_baseline_and_successor_predecessors_both_allow_current_pin_capture(self):
+        import copy
+        entries,metadata=self.fixture();before=copy.deepcopy(entries)
+        for path in self.policy['MEDIA_STAGE_PREDECESSOR']['pins']:metadata[path].update(bytes=19,sha256=hashlib.sha256(b'new reviewed source').hexdigest())
+        actual=self.policy['_held_media_current_pins'](entries,metadata)
+        self.assertEqual(set(actual),set(self.policy['MEDIA_STAGE_PREDECESSOR']['pins']));self.assertEqual(entries,before)
+        for path,pin in actual.items():self.assertEqual(pin,{'bytes':19,'sha256':hashlib.sha256(b'new reviewed source').hexdigest()})
+        # Shape is derived effective entries, independent of baseline/successor placement.
+        placed={p:{'baseline':dict(v),'current':dict(v)}for p,v in entries.items()}
+        self.assertEqual(actual,self.policy['_held_media_current_pins']({p:r['current']for p,r in placed.items()},metadata))
+    def test_missing_changed_or_malformed_native_predecessor_refuses(self):
+        import copy
+        entries,metadata=self.fixture();path=next(iter(entries))
+        for kind in ['missing','new-current','extra-key']:
+            bad=copy.deepcopy(entries)
+            if kind=='missing':bad.pop(path)
+            elif kind=='new-current':bad[path]={'bytes':1,'sha256':'a'*64}
+            else:bad[path]['ignored']=True
+            with self.subTest(kind=kind),self.assertRaises(ValueError):self.policy['_held_media_current_pins'](bad,metadata)
+    def test_missing_bad_current_rows_refuse_without_using_old_hash(self):
+        import copy
+        entries,metadata=self.fixture();path=next(iter(entries))
+        for key,value in [('bytes',True),('bytes',0),('bytes',1048577),('sha256','bad'),('unknown',True)]:
+            bad=copy.deepcopy(metadata);bad[path][key]=value
+            with self.subTest(key=key,value=value),self.assertRaises(ValueError):self.policy['_held_media_current_pins'](entries,bad)
+        metadata.pop(path)
+        with self.assertRaises(ValueError):self.policy['_held_media_current_pins'](entries,metadata)
+    def test_descriptor_revision_tree_pin_or_eighth_leaf_tamper_refuses(self):
+        import copy
+        from unittest.mock import patch
+        entries,metadata=self.fixture()
+        for field in ['revision','tree','pin','eighth']:
+            changed=copy.deepcopy(self.policy['MEDIA_STAGE_PREDECESSOR'])
+            if field in ['revision','tree']:changed[field]='0'*40
+            elif field=='pin':changed['pins'][next(iter(changed['pins']))]['sha256']='0'*64
+            else:changed['pins']['support/governance/media-session-ci/eighth.py']=dict(next(iter(changed['pins'].values())))
+            with patch.dict(self.policy,{'MEDIA_STAGE_PREDECESSOR':changed}),self.subTest(field=field),self.assertRaises(ValueError):self.policy['_held_media_current_pins'](entries,metadata)
+    def test_extra_media_prefix_leaf_is_never_held_and_reader_never_reads_it(self):
+        from unittest.mock import patch
+        entries,metadata=self.fixture();unknown='support/governance/media-session-ci/eighth.py';metadata[unknown]=dict(metadata[next(iter(entries))])
+        self.assertNotIn(unknown,self.policy['_held_media_current_pins'](entries,metadata))
+        with patch.object(os,'lstat',side_effect=AssertionError('unknown held path read'))as read:
+            with self.assertRaises(ValueError):self.policy['_read_held_media'](ROOT,unknown,{'bytes':1,'sha256':'a'*64})
+            read.assert_not_called()
+    def test_real_current_bytes_use_current_pin_and_old_predecessor_cannot_validate_them(self):
+        entries,metadata=self.fixture();path=next(iter(entries));raw=b'current reviewed media fixture'
+        with tempfile.TemporaryDirectory(dir=canonical_temp_base())as directory:
+            root=Path(directory);file=root/path;file.parent.mkdir(parents=True);file.write_bytes(raw);file.chmod(0o644)
+            metadata[path].update(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest());pin=self.policy['_held_media_current_pins'](entries,metadata)[path]
+            self.assertEqual(self.policy['_read_held_media'](root,path,pin)[0],raw)
+            with self.assertRaises(ValueError):self.policy['_read_held_media'](root,path,entries[path])
+            with self.assertRaises(ValueError):self.policy['_read_held_media'](root,path,{'bytes':len(raw),'sha256':'0'*64})
+            file.chmod(0o600)
+            with self.assertRaises(ValueError):self.policy['_read_held_media'](root,path,pin)
+    def test_returned_mode_must_still_be_regular0644_after_precheck(self):
+        from unittest.mock import patch
+        import stat
+        path=next(iter(self.policy['MEDIA_STAGE_PREDECESSOR']['pins']));raw=b'x';pin={'bytes':1,'sha256':hashlib.sha256(raw).hexdigest()}
+        with tempfile.TemporaryDirectory(dir=canonical_temp_base())as directory:
+            root=Path(directory);file=root/path;file.parent.mkdir(parents=True);file.write_bytes(raw);file.chmod(0o644)
+            # Explicit reader-boundary collaborator, not real chmod-race proof.
+            stamp=[0]*9;stamp[4]=stat.S_IFREG|0o600
+            with patch.dict(self.policy,{'_read':lambda path:(raw,tuple(stamp))}):
+                with self.assertRaises(ValueError):self.policy['_read_held_media'](root,path,pin)
+    def test_existing_historical_targets_and_entry_exit_contract_remain_checked(self):
+        import ast,copy
+        entries,metadata=self.fixture();bad=copy.deepcopy(metadata);path=next(iter(entries));bad[path]['target_sha256']='0'*64
+        with self.assertRaises(ValueError):self.policy['_check_historical_targets'](bad,metadata)
+        tree=ast.parse((ROOT/'scripts/governance/source_operation_snapshot.py').read_bytes())
+        cls=next(n for n in tree.body if isinstance(n,ast.ClassDef)and n.name=='SourceOperation')
+        entry=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='__enter__');exit=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='__exit__')
+        text=ast.unparse(entry)
+        self.assertLess(text.index('admission.assert_current_recipe'),text.index('_authenticate_registry'))
+        self.assertLess(text.index('_successor_policy'),text.index('_held_media_current_pins'))
+        held_line=next(n.lineno for n in ast.walk(entry)if isinstance(n,ast.Call)and isinstance(n.func,ast.Name)and n.func.id=='_held_media_current_pins')
+        loop_line=next(n.lineno for n in ast.walk(entry)if isinstance(n,ast.For)and ast.unparse(n.iter)=='admission.CURRENT_METADATA.items()')
+        self.assertLess(held_line,loop_line)
+        self.assertIn('_read_held_media',ast.unparse(exit));self.assertIn('admission.assert_current_recipe',ast.unparse(exit))

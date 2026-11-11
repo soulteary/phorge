@@ -107,6 +107,32 @@ def _inventory(root):
 
 
 
+MEDIA_STAGE_PREDECESSOR={'revision': 'b9f16952adb7f23f5966422645a7b4598114ae44', 'tree': '6ad8bd35317da1f87f5c991148d6673f5f79695c', 'pins': {'support/governance/media-session-docker/snapshot.py': {'bytes': 6446, 'sha256': 'b9cea40d27a4fb2fce85d390b53cff471993a6a692d4709dfca20413dd065f3e', 'git_mode': '100644', 'git_blob': '9f2cf14a8332583172d30054c24d79b9bd11c90e'}, 'support/governance/media-session-docker/README.md': {'bytes': 11543, 'sha256': '069117e56492a2b6a3c8e704d6cbdb1d1ba218b1f938424a2fdeeb89259c52ee', 'git_mode': '100644', 'git_blob': 'd46d3e173d20d234d1b8546129ddaaf94c51874c'}, 'support/governance/media-session-ci/project.py': {'bytes': 11363, 'sha256': '0966bdb3ab17677c3dd7d1baad78eb9f692aed8477e937eda8fc32980462698c', 'git_mode': '100644', 'git_blob': 'c6e5cbb3cd4b13a22e0e9f3896d70bc20774f762'}, 'support/governance/media-session-ci/test_ci.py': {'bytes': 12866, 'sha256': '8a7074c6e19086d435492c6a4d1a52e2e402cbb83e3cb0b902ddbbe0ff4b4d4b', 'git_mode': '100644', 'git_blob': 'fc9bf512d66c856eeb77c64defcbe82d99ffd94f'}, 'support/governance/media-session-positive/source-pins.json': {'bytes': 2644, 'sha256': '5d708748e4bf47af83ae97edac0fb9f37ac89d41ce11b1d7d371fb595e24d222', 'git_mode': '100644', 'git_blob': '2e0462c5a577106f10fd4c3a1d0dd6ff3f9a2a08'}, 'support/governance/media-session-positive/run.php': {'bytes': 7527, 'sha256': 'bd3504a2212eaedafae27bbde8f6ca824086f8573d0cec95871af35a3f012f81', 'git_mode': '100644', 'git_blob': 'a0dab8602cb1d76449a7472d8fee956ad72496a5'}, 'support/governance/media-session-ci/N05-source-rebind-plan.json': {'bytes': 4001, 'sha256': 'fa67a418e188f52d5ff7af605c002d85ec313ac0dd95d71fac196ef3615c43f8', 'git_mode': '100644', 'git_blob': 'a822da97a158333c8a3ffbdf1922021087d06580'}}}
+MEDIA_STAGE_PREDECESSOR_SHA256='efa02af747a49fb55deaf485e6dce15e30bd783350aab89b333b024582bc74f2'
+
+def _held_media_current_pins(entries,metadata):
+    # Fixed native-stage predecessor DATA, never runtime Git or a prefix skip.
+    _need(type(MEDIA_STAGE_PREDECESSOR) is dict and
+          hashlib.sha256(json.dumps(MEDIA_STAGE_PREDECESSOR,sort_keys=True,separators=(',',':')).encode()).hexdigest()==MEDIA_STAGE_PREDECESSOR_SHA256)
+    _need(type(entries) is dict and type(metadata) is dict)
+    expected=MEDIA_STAGE_PREDECESSOR['pins'];_need(len(expected)==7)
+    result={}
+    for path,prior in expected.items():
+        _need(path in entries and entries[path]=={'bytes':prior['bytes'],'sha256':prior['sha256']})
+        _need(path in metadata and type(metadata[path]) is dict and
+              set(metadata[path])=={'bytes','sha256','target_bytes','target_sha256','target_zlib_base64'})
+        result[path]=_source_pin(metadata[path])
+    return result
+
+def _read_held_media(root,path,pin):
+    _need(path in MEDIA_STAGE_PREDECESSOR['pins'])
+    target=Path(root)/path;info=os.lstat(target)
+    _need(stat.S_ISREG(info.st_mode) and stat.S_IMODE(info.st_mode)==0o644)
+    raw,stamp=_read(target)
+    _need(stat.S_ISREG(stamp[4]) and stat.S_IMODE(stamp[4])==0o644)
+    _need(len(raw)==pin['bytes'] and hashlib.sha256(raw).hexdigest()==pin['sha256'])
+    return raw,stamp
+
 def _registry_object(pairs):
     result={}
     for key,value in pairs:
@@ -320,6 +346,11 @@ class SourceOperation:
             self._inventory_expected = MappingProxyType(expected)
             # Existing files require actual baseline entries; new files use current authenticated pins.
             self._entries = _successor_policy(registry['successor_entries'],registry['entries'],baseline_inventory,new_pins)
+            # Existing fixed media leaves remain native-stage predecessors in R.
+            # Full current admission above authenticates their current raw rows;
+            # capture them with those pins without writing a hash back into R.
+            self._held_media_pins=MappingProxyType(_held_media_current_pins(self._entries,admission.CURRENT_METADATA))
+            self._entries.update(self._held_media_pins)
             # Registry's own bytes are held separately, then checked against the
             # full admission row when integrated; never store a recursive selfhash.
             self._entries[REGISTRY]=registry_pin
@@ -340,7 +371,7 @@ class SourceOperation:
                 _need(_inventory(root) == self._inventory_expected)
                 captured = {}
                 for path, pin in self._entries.items():
-                    raw, stamp = (_regular_new_source(root,path,pin) if path in new_pins else _read(root/path))
+                    raw, stamp = (_read_held_media(root,path,pin) if path in self._held_media_pins else _regular_new_source(root,path,pin) if path in new_pins else _read(root/path))
                     _need(len(raw) == pin['bytes'] and hashlib.sha256(raw).hexdigest() == pin['sha256'])
                     captured[path] = (raw, stamp)
                 self._snapshots[root] = MappingProxyType(captured)
@@ -437,7 +468,7 @@ class SourceOperation:
             for root, captured in self._snapshots.items():
                 _need(_inventory(root) == self._inventory_expected)
                 for path, (before, stamp) in captured.items():
-                    raw, after = (_regular_new_source(root,path,self._new_pins[path]) if path in self._new_pins else _read(root/path))
+                    raw, after = (_read_held_media(root,path,self._held_media_pins[path]) if path in self._held_media_pins else _regular_new_source(root,path,self._new_pins[path]) if path in self._new_pins else _read(root/path))
                     _need(raw == before and after == stamp)
                 admission.assert_current_recipe(root)
             self._verify_ancestor_identities()
