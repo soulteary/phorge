@@ -59,6 +59,11 @@ def reviewed_partial_sources(root=ROOT):
  return result
 
 def reviewed_sources():
+ import project_description_admission_delta as n05_delta
+ import check_recovery_oauth_authorization_producer_v1 as actor_source
+ # Authenticate the entire current source role before feeding the original
+ # lifecycle cohort its immutable c4 Editor stage.
+ lifecycle_reader=n05_delta.native_c4_reader(ROOT,actor_source.read_source_checked)
  result=reviewed_partial_sources()
  for name,(path,parent)in ADDITIONS.items():
   if 'src/'+path in PARTIAL_SOURCE_PINS:continue
@@ -117,7 +122,7 @@ def reviewed_sources():
  for path in authorization_delta.PRODUCTION_PATHS:
   if path not in result:result[path]=authorization_delta.reduce_current(path,(ROOT/path).read_bytes())
  for path in lifecycle_delta.PRODUCTION_PATHS:
-  if path not in result:result[path]=lifecycle_delta.reduce_current(path,(ROOT/path).read_bytes())
+  if path not in result:result[path]=lifecycle_delta.reduce_current(path,lifecycle_reader(ROOT/path))
  return result
 def validate_notice_product_delta(changed,current,frozen,baseline_map):
  import project_description_admission_delta as n05_delta

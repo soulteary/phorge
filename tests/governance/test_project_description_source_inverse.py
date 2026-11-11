@@ -90,14 +90,14 @@ class DescriptionSourceInverse(unittest.TestCase):
   prior=constants(old);now=constants((ROOT/'scripts/governance/project_description_source_delta.py').read_bytes())
   for name in ('MAIN_BASELINE','HISTORICAL_BASELINE','LEGACY_REDUCER','NATIVE_STATE_BASELINE','MAIN_INVERSE_ZLIB_BASE64'):self.assertEqual(now[name],prior[name])
  def test_Editor_normalizer_uses_independent_baseline_and_q50_is_exact_one_addition(self):
-  import ast
+  import importlib.util
   bridge=ROOT/'scripts/governance/project_description_admission_delta.py'
-  node=next(n for n in ast.parse(bridge.read_bytes()).body if isinstance(n,ast.FunctionDef)and n.name=='_normalize_production')
-  namespace={'description':delta,'ROOT':ROOT,'sha':lambda b:hashlib.sha256(b).hexdigest(),'_exact':delta.exact,'zlib':zlib,'base64':base64}
-  exec(compile(ast.Module(body=[node],type_ignores=[]),'<unadmitted-normalizer-function>','exec'),namespace)
+  spec=importlib.util.spec_from_file_location('q50_actual_complete_admission',bridge)
+  admission=importlib.util.module_from_spec(spec);spec.loader.exec_module(admission)
+  admission.assert_current_recipe(ROOT)
   path=delta.NATIVE_EDITOR_BASELINE['path'];raw=(ROOT/path).read_bytes()
-  self.assertEqual(namespace['_normalize_production'](path,raw),self.git_bytes(delta.NATIVE_EDITOR_BASELINE['git_revision'],path))
-  with self.assertRaises(ValueError):namespace['_normalize_production'](path,raw+b'unknown')
+  self.assertEqual(admission._normalize_production(path,raw),self.git_bytes(delta.NATIVE_EDITOR_BASELINE['git_revision'],path))
+  with self.assertRaises(ValueError):admission._normalize_production(path,raw+b'unknown')
   name='support/governance/project-content-grants-ci/qualification-template.json';old=json.loads(self.git_bytes('5c22ca0d0b6acab2889fac7ddda03e630f858e64',name));current=json.loads((ROOT/name).read_bytes())
   inventory=current['native_source_inventory']
   self.assertEqual(set(inventory),set(old['native_source_inventory'])|{path})
@@ -303,10 +303,28 @@ if __name__=='__main__':unittest.main()
 
 class TrackedSourceArtifacts(unittest.TestCase):
  def test_bare_tracked_domain_and_fake_operation_are_exact(self):
-  names=prepared_tracked_src_names(ROOT)
-  expected=set(subprocess.check_output(['git','-C',str(ROOT),'ls-tree','-r','--name-only','HEAD','--','src'],text=True).splitlines())
-  self.assertEqual(set(names),expected)
-  with self.assertRaises(ValueError):prepared_tracked_src_names(ROOT,object())
+  # Atomic legitimately prepares ROOT; a bare-domain assertion owns a clean
+  # Git checkout instead of treating prepared artifacts as source or fake proof.
+  import stat
+  with tempfile.TemporaryDirectory()as td:
+   bare=Path(td).resolve()/'bare'
+   subprocess.run(['git','clone','--quiet','--no-hardlinks','--no-checkout',str(ROOT),str(bare)],check=True)
+   revision=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
+   subprocess.run(['git','-C',str(bare),'checkout','--quiet','--detach',revision],check=True)
+   rows=subprocess.check_output(['git','-C',str(bare),'ls-tree','-r','-z','HEAD','--','src']).split(b'\0')
+   expected=set()
+   for row in filter(None,rows):
+    header,name=row.split(b'\t',1);mode,kind,oid=header.split();path=bare/name.decode()
+    self.assertEqual(kind,b'blob');expected.add(name.decode())
+    if mode==b'120000':self.assertTrue(path.is_symlink())
+    else:
+     self.assertIn(mode,(b'100644',b'100755'));self.assertTrue(stat.S_ISREG(path.lstat().st_mode))
+     path.chmod(0o755 if mode==b'100755'else 0o644)
+   self.assertEqual(set(prepared_tracked_src_names(bare)),expected)
+   with self.assertRaises(ValueError):prepared_tracked_src_names(bare,object())
+   unknown=bare/'src/unreviewed-extra.php';unknown.write_bytes(b'<?php unknown');unknown.chmod(0o644)
+   with self.assertRaises(ValueError):prepared_tracked_src_names(bare)
+   with self.assertRaises(ValueError):prepared_tracked_src_names(bare,object())
  def test_prepared_cache_components_are_not_source_or_issued_proof(self):
   import source_operation_snapshot as source
   with tempfile.TemporaryDirectory()as td:

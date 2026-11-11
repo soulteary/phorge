@@ -271,7 +271,7 @@
     },
     {
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
-      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a"
+      "sha256": "b52470c03f5090d368c4cc0bb70ca146feaa1ece705bdb28231270ee9afeca54"
     },
     {
       "path": "src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php",
