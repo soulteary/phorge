@@ -50,6 +50,68 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_actual_nested_helper_terminal_summary_matches_strict_gate(self):
+        # Parse the actual producer's terminal literal without including or
+        # executing its SQL/process function. Only a flat scalar PHP array is
+        # permitted, so this cannot execute fixture setup or an arbitrary call.
+        helper = ROOT/'support/governance/native-execution/project-policy-nested-process.php'
+        parser = r"""
+        $src=file_get_contents($argv[1]);$pos=strrpos($src,"\n  return array(");
+        if($pos===false||!preg_match('/\A\n  return (array\(.*\));\n}\n\z/s',substr($src,$pos),$m)||strlen($m[1])>4096){exit(2);}
+        $tokens=array_values(array_filter(token_get_all('<?php return '.$m[1].';'),
+          static fn($t)=>!(is_array($t)&&in_array($t[0],array(T_OPEN_TAG,T_WHITESPACE),true))));
+        $at=0;$take=function()use(&$at,$tokens){if(!array_key_exists($at,$tokens)){exit(3);}return $tokens[$at++];};
+        $kind=function($t,$type){return is_array($t)&&$t[0]===$type;};
+        $string=function($t)use($kind){
+          if(!$kind($t,T_CONSTANT_ENCAPSED_STRING)||!preg_match("/\\A'[a-z_]{1,128}'\\z/D",$t[1])){exit(4);}
+          return substr($t[1],1,-1);
+        };
+        if(!$kind($take(),T_RETURN)||!$kind($take(),T_ARRAY)||$take()!=='('){exit(5);}
+        $value=array();
+        while(true){
+          $t=$take();if($t===')'){break;}$key=$string($t);
+          if(array_key_exists($key,$value)||!$kind($take(),T_DOUBLE_ARROW)){exit(6);}
+          $t=$take();
+          if($kind($t,T_STRING)&&in_array($t[1],array('true','false'),true)){$v=$t[1]==='true';}
+          else{$v=$string($t);}
+          $value[$key]=$v;$next=$take();
+          if($next===')'){break;}if($next!==','){exit(7);}
+        }
+        if($take()!==';'||$at!==count($tokens)){exit(8);}
+        echo json_encode($value,JSON_THROW_ON_ERROR);
+        """
+        actual = json.loads(subprocess.check_output(['php','-r',parser,str(helper)], text=True, timeout=5))
+        with tempfile.TemporaryDirectory(prefix='native-summary-parser-') as folder:
+            candidate = Path(folder)/'synthetic.php'
+            marker = Path(folder)/'owned_marker'
+            marker.write_text('must remain')
+            for expression in [
+                "array('x'=>('unlink')('"+str(marker)+"'))",
+                "array('x'=>true,'x'=>false)",
+                "array('x'=>array('y'=>true))",
+            ]:
+                with self.subTest(refused_literal=expression.split('(', 1)[0]):
+                    candidate.write_text('<?php\nfunction synthetic() {\n  return '+expression+';\n}\n')
+                    refused = subprocess.run(['php','-r',parser,str(candidate)], capture_output=True, timeout=5)
+                    self.assertNotEqual(0, refused.returncode)
+                    self.assertTrue(marker.is_file(), 'literal parsing must never execute a dynamic call')
+        data = template()
+        negative = data['native']['project_execution_tests']['negative_cases']
+        negative['nested_unknown'] = actual
+        self.assertEqual(936, validate(data, file_digest='b'*64)['check_count'])
+        self.assertEqual(7, len(actual))
+        for key, value in actual.items():
+            with self.subTest(field=key):
+                bad = copy.deepcopy(data)
+                bad['native']['project_execution_tests']['negative_cases']['nested_unknown'][key] = (
+                    not value if isinstance(value, bool) else 'unmeasured-or-all-worker-tables')
+                with self.assertRaises(ValueError):
+                    validate(bad, file_digest='b'*64)
+        missing = copy.deepcopy(data)
+        del missing['native']['project_execution_tests']['negative_cases']['nested_unknown']
+        with self.assertRaises(ValueError):
+            validate(missing, file_digest='b'*64)
+
     def test_policy_unknown_nested_and_noop_evidence_cannot_be_omitted(self):
         obligations = {
             'project-approval-actual-native-nested-update-error-quarantines-without-savepoint-guess',

@@ -170,6 +170,7 @@ class DescriptionSourceInverse(unittest.TestCase):
   self.assertEqual(actual,expected)
   row=delta.NATIVE_STATE_BASELINE;self.assertEqual(expected[row['path']],(row['git_mode'],row['git_blob']))
  def test_operation_registry_real20b_baseline_successor18_and_six_new_paths(self):
+  import project_description_admission_delta as admission
   registry=json.loads((ROOT/'support/governance/source-operation/registry-v1.json').read_bytes())
   self.assertEqual(registry['source_revision'],'20b138b4cd9a2cf61522613b4a8e5e21eca7341b')
   entries=dict(registry['entries'])
@@ -179,11 +180,15 @@ class DescriptionSourceInverse(unittest.TestCase):
   for path,row in registry['successor_entries'].items():
    self.assertEqual(row['baseline'],entries.get(path),path)
    # The bridge row is the exact signed native predecessor; current held bytes are separately admitted.
-   raw=self.git_bytes('ed66a10e3a2a034bcb9ac52e120c946b20ed2f29',path) if path=='scripts/governance/project_description_admission_delta.py' else (ROOT/path).read_bytes()
+   raw=self.git_bytes(admission.TARGET,path) if path=='scripts/governance/project_description_admission_delta.py' else (ROOT/path).read_bytes()
    self.assertEqual(row['current'],{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path)
    entries[path]=row['current']
   for path,pin in delta.CURRENT_PINS.items():self.assertEqual(entries[path],pin,path)
-  self.assertEqual(len(registry['new_paths']),6)
+  prior=json.loads(self.git_bytes('b93916d8a2beb4a9ab28ea1769692c0839cfc60b','support/governance/source-operation/registry-v1.json'))
+  new_nested={'support/governance/native-execution/project-policy-nested-process.php','support/governance/native-execution/project-policy-nested-worker.php','tests/governance/test_project_policy_nested_protocol.py'}
+  self.assertEqual(len(prior['new_paths']),6)
+  self.assertEqual(set(registry['new_paths']),set(prior['new_paths'])|new_nested)
+  self.assertEqual(len(registry['new_paths']),9)
   for path in registry['new_paths']:self.assertIsNone(self.git_bytes(registry['source_revision'],path))
  def test_complete_baseline_metadata_has_actual_git_revision_tree_and_every_pin(self):
   for metadata in [delta.MAIN_BASELINE,delta.HISTORICAL_BASELINE]:

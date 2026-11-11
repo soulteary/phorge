@@ -696,7 +696,15 @@ NATIVE.update({'producer_fence_tests': {'actual_native_producer_range_waits': Tr
                                                         'same_project_transaction_for_exact_direct_inverse_derived': True},
                              'negative_cases': {'actual_project_transaction_write_fault': True,
                                                 'external_postcommit_rollback_claim': False,
-                                                'same_transaction_rollback': True},
+                                                'same_transaction_rollback': True,
+                                                'nested_unknown': {
+                                                    'nested_error_quarantined': True,
+                                                    'owned_child_terminal': True,
+                                                    'independent_same_server_no_commit': True,
+                                                    'nested_rollback_ack_claimed': False,
+                                                    'nested_case_not_skipped': True,
+                                                    'queue_snapshot_scope': 'worker_activetask_only',
+                                                    'worker_task_data_not_measured': True}},
                              'same_native_transaction': True,
                              'whole_family_ready': False,
                              'whole_pipeline_side_effect_atomic': False}})
