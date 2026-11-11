@@ -41,6 +41,8 @@ def reduce_reviewed_calendar_wire_driver(raw):
 
 
 def reduce_reviewed_calendar_driver(raw):
+    # Preserve the historical source map after the exact current fixture inverse.
+    raw = conduit_delta.reduce_policy_cleanup_driver(raw)
     name = 'support/governance/native-organization/test-native-organization-mysql.php'
     if type(raw) is not bytes or hashlib.sha256(raw).hexdigest() != SOURCE_INPUTS[name]:
         raise ValueError('unreviewed Calendar driver delta')
@@ -84,6 +86,8 @@ def sources(root=ROOT):
     actual = {}
     for path, pin in SOURCE_INPUTS.items():
         raw = source_reader.read_source_checked(Path(root) / path)
+        if path == 'support/governance/native-organization/test-native-organization-mysql.php':
+            raw = conduit_delta.reduce_policy_cleanup_driver(raw)
         if hashlib.sha256(raw).hexdigest() != pin:
             raise ValueError('Calendar source drift')
         actual[path] = pin

@@ -232,7 +232,7 @@ class DescriptionSourceInverse(unittest.TestCase):
   import project_description_admission_delta as current
   path=delta.NATIVE_EDITOR_BASELINE['path'];raw=(ROOT/path).read_bytes()
   self.assertEqual(raw,self.git_bytes(current.TARGET,path))
-  added=b"        if ($project_scope!==null && $project_scope->getMode()==='content-description') {\n          $project_scope->rollbackDescriptionEditor($this,$object);\n        } else {\n          $object->killTransaction();\n        }\n"
+  added=b"        if ($project_scope!==null && $project_scope->getMode()==='content-description') {\n          $project_scope->rollbackDescriptionEditor($this,$object);\n        } elseif ($project_scope!==null) {\n          $project_scope->rollbackPolicyEditor($this,$object);\n        } else {\n          $object->killTransaction();\n        }\n"
   removed=b'        $object->killTransaction();\n'
   def reviewed_inverse(value):
    if value.count(added)!=1:raise ValueError('unreviewed generic Editor delta')
@@ -240,7 +240,9 @@ class DescriptionSourceInverse(unittest.TestCase):
    if result!=self.git_bytes(delta.MAIN_BASELINE['git_revision'],path):raise ValueError('unrelated generic Editor bytes')
    return result
   self.assertEqual(reviewed_inverse(raw),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path))
-  for bad in (raw+b'unknown',raw.replace(b'rollbackDescriptionEditor',b'killTransaction')):
+  for bad in (raw+b'unknown',raw.replace(b'rollbackDescriptionEditor',b'killTransaction'),
+              raw.replace(b'rollbackPolicyEditor',b'killTransaction'),
+              raw.replace(b'} elseif ($project_scope!==null) {',b'} elseif ($project_scope===null) {')):
    with self.assertRaises(ValueError):reviewed_inverse(bad)
 
  def test_preparation_success_does_not_replace_current_full_source_gate(self):

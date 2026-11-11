@@ -165,7 +165,9 @@ class CalendarConduitUnion(unittest.TestCase):
     if source in historical:
      self.assertEqual(historical[source],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(source,(ROOT/source).read_bytes())).hexdigest(),assessment.BASE_PINS[source]);historical[source]=assessment.BASE_PINS[source]
    self.assertEqual(historical,pins(git('show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+path)))
-   self.assertEqual(gate.SOURCE_INPUTS[DRIVER],hashlib.sha256((ROOT/DRIVER).read_bytes()).hexdigest())
+   import recovery_conduit_source_delta as calendar
+   # These pins describe the admitted narrow source view, not raw fixture additions.
+   self.assertEqual(gate.SOURCE_INPUTS[DRIVER],hashlib.sha256(calendar.reduce_policy_cleanup_driver((ROOT/DRIVER).read_bytes())).hexdigest())
    self.assertTrue(gate.SQL_obligations())
   self.assertEqual(worker.reduce_current(worker.PATH,(ROOT/worker.PATH).read_bytes()),git('show',MAIN+':'+worker.PATH))
  def test_OAuth_worker_source_view_accepts_only_exact_old_or_terminal_inverse(self):

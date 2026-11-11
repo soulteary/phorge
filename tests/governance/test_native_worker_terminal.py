@@ -58,7 +58,8 @@ class WorkerTerminal(unittest.TestCase):
    current=pins((ROOT/source).read_bytes())
    import recovery_conduit_source_delta as calendar
    driver='support/governance/native-organization/test-native-organization-mysql.php'
-   self.assertEqual(current[driver],hashlib.sha256((ROOT/driver).read_bytes()).hexdigest())
+   # Preserve the original map while proving the new raw fixture's exact inverse.
+   self.assertEqual(current[driver],hashlib.sha256(calendar.reduce_policy_cleanup_driver((ROOT/driver).read_bytes())).hexdigest())
    historical=dict(current);historical[driver]=hashlib.sha256(calendar.reduce_calendar_wire_union((ROOT/driver).read_bytes())).hexdigest()
    import recovery_assessment_source_delta as assessment
    compared=dict(pins(historical_tooling_source(source)))

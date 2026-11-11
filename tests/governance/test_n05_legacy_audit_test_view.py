@@ -9,6 +9,32 @@ class LegacyView(unittest.TestCase):
   for n in set(view.CLOSED_PATHS)|set(view.n05.PRODUCTION_PINS)|set(view.n05.FIXTURE_METADATA_PINS)|set(view.REPAIR_SOURCE_PINS)|set(view.METADATA_PATHS)|set(view.n05.description.CURRENT_PINS)|set(view.n05.CURRENT_METADATA)|{view.n05.MANIFEST,view.n05.BRIDGE,view.n05.PREPARATION,view.n05.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}:
    p=root/n;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/n,p,follow_symlinks=False)
   view.verify_current_cohort(root)
+ def test_native_checker_exact_current_inverse_retains_old_repair_oracle(self):
+  path='scripts/governance/check_native_organization.py'
+  self.assertIn(path,view.REPAIR_SOURCE_PINS)
+  old=view.git_bytes(view.CURRENT_REVISION,path)
+  actual=(ROOT/path).read_bytes()
+  self.assertEqual(actual,view.git_bytes(view.n05.TARGET,path))
+  self.assertNotEqual(actual,old)
+  self.assertEqual(hashlib.sha256(old).hexdigest(),view.REPAIR_SOURCE_PINS[path])
+  self.assertEqual(view.n05._normalize_metadata(path,actual),old)
+  self.assertEqual(old,view.git_bytes('b93916d8a2beb4a9ab28ea1769692c0839cfc60b',path))
+  view.verify_current_cohort(ROOT)
+  before=(dict(view.REPAIR_SOURCE_PINS),tuple(view.CLOSED_PATHS),tuple(view.METADATA_PATHS))
+  for mutation in ('old-512','unknown','missing','mode','symlink','patched-pin'):
+   with self.subTest(mutation=mutation),tempfile.TemporaryDirectory()as td:
+    root=Path(td).resolve();self.fixture(root);p=root/path
+    if mutation=='old-512':p.write_bytes(old)
+    elif mutation=='missing':p.unlink()
+    elif mutation=='mode':p.chmod(0o755)
+    elif mutation=='symlink':p.unlink();p.symlink_to(ROOT/path)
+    else:p.write_bytes(actual+b'unknown')
+    if mutation=='patched-pin':
+     with patch.dict(view.REPAIR_SOURCE_PINS,{path:hashlib.sha256(p.read_bytes()).hexdigest()}),self.assertRaises((ValueError,OSError)):
+      view.verify_current_cohort(root)
+    else:
+     with self.assertRaises((ValueError,OSError)):view.verify_current_cohort(root)
+  self.assertEqual(before,(dict(view.REPAIR_SOURCE_PINS),tuple(view.CLOSED_PATHS),tuple(view.METADATA_PATHS)))
  def test_six_whole_sources_equal_real_prior_Git_without_changing_runtime_files(self):
   for path in view.CLOSED_PATHS:
    raw=(ROOT/path).read_bytes()
@@ -33,7 +59,7 @@ class LegacyView(unittest.TestCase):
   self.assertEqual(view.CURRENT_REVISION,'512282be298c7996fc6370156c333d7557b1685a');self.assertEqual(len(view.REPAIR_SOURCE_PINS),9)
   for path,pin in view.REPAIR_SOURCE_PINS.items():
    raw=(ROOT/path).read_bytes()
-   if path in view.METADATA_PATHS:prior=view.n05._normalize_metadata(path,raw)
+   if path in set(view.METADATA_PATHS)|{'scripts/governance/check_native_organization.py'}:prior=view.n05._normalize_metadata(path,raw)
    elif path=='scripts/governance/check_native_directory.py':
     self.assertEqual(raw,view.git_bytes(view.n05.TARGET,path));prior=view.git_bytes(view.CURRENT_REVISION,path)
    else:prior=raw

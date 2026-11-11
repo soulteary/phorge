@@ -748,7 +748,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-business-mail-producer",
-      "sha256": "b52470c03f5090d368c4cc0bb70ca146feaa1ece705bdb28231270ee9afeca54",
+      "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -891,7 +891,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
       "symbol": "PhorgeProjectNativeExecutionScope",
       "kind": "native-final-effect-and-current-source-fence",
-      "sha256": "60d47ebb05ba2b890fa5a6ad5460dc49cddc332f4b4da08b9d0f6531c5e033fa",
+      "sha256": "8a1c169dd44ec448e5423b0d5be74d9d19a8b60e941f5809a2786a58756f6077",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -902,7 +902,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-filter-before-effect-hook",
-      "sha256": "b52470c03f5090d368c4cc0bb70ca146feaa1ece705bdb28231270ee9afeca54",
+      "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1804,7 +1804,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-attachment-reference-detach-producer",
-      "sha256": "b52470c03f5090d368c4cc0bb70ca146feaa1ece705bdb28231270ee9afeca54",
+      "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3402,7 +3402,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
-        "sha256": "60d47ebb05ba2b890fa5a6ad5460dc49cddc332f4b4da08b9d0f6531c5e033fa"
+        "sha256": "8a1c169dd44ec448e5423b0d5be74d9d19a8b60e941f5809a2786a58756f6077"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",

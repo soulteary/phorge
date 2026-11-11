@@ -105,7 +105,7 @@ class PrivateNotificationEvidenceTests(unittest.TestCase):
                 self.assertEqual(expected,result.returncode)
                 self.assertEqual(source_window(),before,'CLI must preserve all source names, modes and hashes')
                 if expected==0:
-                    value=json.loads(result.stdout);self.assertEqual(934,value['native_checks'])
+                    value=json.loads(result.stdout);self.assertEqual(936,value['native_checks'])
                     self.assertIs(value['smtp_proved'],False)
             index=base.index('--render-binary');without=base[:index]+base[index+2:]
             missing=subprocess.run(without+['--measurement-source-revision','a'*40],capture_output=True,text=True)

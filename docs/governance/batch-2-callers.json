@@ -842,7 +842,7 @@
       "coverage": "partial",
       "activation_blocked": true,
       "evidence_status": "static-reference-only",
-      "sha256": "b52470c03f5090d368c4cc0bb70ca146feaa1ece705bdb28231270ee9afeca54"
+      "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d"
     },
     {
       "id": "TRANSACTION.EDIT.ENGINE",
@@ -1320,7 +1320,7 @@
     ],
     "excluded_test_directory": "__tests__",
     "files_scanned": 4468,
-    "source_snapshot_sha256": "e89ce69af17e6115e7400e4e24fb0268678c29bf87f1f33a9aa113f5c79b3c7c",
+    "source_snapshot_sha256": "57d6c614e578f2040b72e28e85ff9a1bb56bf2b374eac34bdc3e2f6d9d0088cd",
     "candidates": [
       {
         "id": "CALL-e71899f6e4e06c5b",
@@ -5283,15 +5283,15 @@
       {
         "id": "CALL-f116bd8b9b12fc59",
         "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
-        "sha256": "b52470c03f5090d368c4cc0bb70ca146feaa1ece705bdb28231270ee9afeca54",
+        "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d",
         "matches": [
           {
             "pattern": "transaction_apply",
             "lines": [
               1187,
-              1531,
-              4516,
-              5006
+              1533,
+              4518,
+              5008
             ]
           },
           {
@@ -5304,7 +5304,7 @@
           {
             "pattern": "member_edge",
             "lines": [
-              2034
+              2036
             ]
           },
           {
@@ -5326,8 +5326,8 @@
               886,
               889,
               958,
-              2919,
-              2926
+              2921,
+              2928
             ]
           },
           {
@@ -5341,17 +5341,17 @@
               753,
               790,
               1123,
-              1903,
-              2176,
-              2913,
-              4048,
-              4419,
-              4959,
-              4975,
-              5464,
-              5513,
-              5531,
-              5550
+              1905,
+              2178,
+              2915,
+              4050,
+              4421,
+              4961,
+              4977,
+              5466,
+              5515,
+              5533,
+              5552
             ]
           }
         ]

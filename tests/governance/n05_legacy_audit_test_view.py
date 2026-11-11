@@ -25,6 +25,12 @@ def verify_current_cohort(root):
   raw=n05.description.checked_bytes(root/name)
   if name in METADATA_PATHS:
    require(name in n05.CURRENT_METADATA);prior=n05._normalize_metadata(name,raw)
+  elif name=='scripts/governance/check_native_organization.py':
+   # Only this reviewed native checker gained a closed whole-byte metadata
+   # inverse. Authenticate actual native bytes before reading its old view.
+   require(name in n05.CURRENT_METADATA and (root/name).stat().st_mode&0o7777==0o644
+           and raw==git_bytes(n05.TARGET,name))
+   prior=n05._normalize_metadata(name,raw)
   elif name=='scripts/governance/check_native_directory.py':
    # The one reviewed native-target checker is inside the runtime perimeter,
    # not an offline exception. Prove its actual current native bytes first.

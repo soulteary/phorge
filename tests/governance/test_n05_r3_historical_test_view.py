@@ -3,6 +3,50 @@ import pathlib,unittest
 from unittest.mock import patch
 import n05_r3_historical_test_view as view
 class R3HistoricalView(unittest.TestCase):
+ def test_reviewed_directory_snapshot_projection_retains_exact_static_semantics(self):
+  import copy,hashlib,json,runpy,subprocess
+  name='docs/governance/native-directory-callers.json';raw=(view.ROOT/name).read_bytes()
+  prior=view._policy_ack_directory_to_ed66(name,raw)
+  self.assertEqual(prior,subprocess.check_output(['git','--no-replace-objects','-C',str(view.ROOT),'show','f1c157e44a1eeca49529929f099fb5c57bcbbddc:'+name]))
+  expected=json.loads(prior);actual=json.loads(raw)
+  for row in expected['sources']+expected['scan']['files']:row['sha256']=hashlib.sha256((view.ROOT/row['path']).read_bytes()).hexdigest()
+  self.assertEqual(actual,expected)
+  checker=runpy.run_path(str(view.ROOT/'scripts/governance/check_native_directory.py'),run_name='reviewed_directory_snapshot_test')
+  self.assertEqual(checker['validate'](actual,view.ROOT),{'passed':True,'sources':167,'links':164,'runtime_files':138,'coverage':'partial','activation_blocked':True,'runtime_certified':False,'authority_proof':False})
+  for path,value in ((name,raw+b'unknown'),(name,prior),('docs/unknown.json',raw)):
+   with self.assertRaises(ValueError):view._policy_ack_directory_to_ed66(path,value)
+  with patch.dict(view._DIRECTORY_POLICY_ACK_SOURCE,{'sha256':'0'*64}),self.assertRaises(ValueError):view._policy_ack_directory_to_ed66(name,raw)
+ def test_reviewed_pipeline_and_notice_fingerprints_preserve_all_old_stages(self):
+  import hashlib,subprocess
+  old_editor=b'b52470c03f5090d368c4cc0bb70ca146feaa1ece705bdb28231270ee9afeca54'
+  new_editor=hashlib.sha256((view.ROOT/'src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php').read_bytes()).hexdigest().encode()
+  self.assertEqual(set(view._LIFECYCLE_POLICY_ACK_SOURCES),set(view._LIFECYCLE_REVIEWED_ED66))
+  for path in view._LIFECYCLE_POLICY_ACK_SOURCES:
+   old=subprocess.check_output(['git','--no-replace-objects','-C',str(view.ROOT),'show','f1c157e44a1eeca49529929f099fb5c57bcbbddc:'+path])
+   self.assertEqual(old.count(old_editor),1);new=old.replace(old_editor,new_editor,1)
+   self.assertEqual(view._policy_ack_lifecycle_to_ed66(path,new),old)
+   for value in (new+b'unknown',old):
+    with self.assertRaises(ValueError):view._policy_ack_lifecycle_to_ed66(path,value)
+  with self.assertRaises(ValueError):view._policy_ack_lifecycle_to_ed66('docs/unknown.json',new)
+  with patch.object(view,'_LIFECYCLE_POLICY_ACK_SOURCES',{}),self.assertRaises(ValueError):view._policy_ack_lifecycle_to_ed66(path,new)
+ def test_reviewed_policy_ack_caller_snapshot_is_exact_public_projection_only(self):
+  import copy,hashlib,json,runpy,subprocess
+  name='docs/governance/batch-2-callers.json';raw=(view.ROOT/name).read_bytes()
+  old=view._policy_ack_batch_to_ed66(name,raw)
+  self.assertEqual(old,subprocess.check_output(['git','--no-replace-objects','-C',str(view.ROOT),'show','f1c157e44a1eeca49529929f099fb5c57bcbbddc:'+name]))
+  prior=json.loads(old);actual=json.loads(raw);expected=copy.deepcopy(prior)
+  row=next(x for x in expected['consumers']if x['id']=='TRANSACTION.LEGACY')
+  row['sha256']=hashlib.sha256((view.ROOT/row['path']).read_bytes()).hexdigest()
+  checker=runpy.run_path(str(view.ROOT/'scripts/governance/check_callers.py'),run_name='reviewed_caller_snapshot_test')
+  expected['scan']=checker['scan_sources'](view.ROOT)
+  self.assertEqual(actual,expected)
+  self.assertEqual(checker['validate'](actual,view.ROOT,expected['scan']),{'schema_valid':True,'consumers':47,'static_links':40,'scanner_candidates':277,'unsupported_candidates':241,'activation_blocked':True,'runtime_certified':False})
+  self.assertEqual({x['id']for x in prior['scan']['candidates']},{x['id']for x in actual['scan']['candidates']})
+  for bad_path,bad in ((name,raw+b'unknown'),(name,old),('docs/unknown.json',raw),(name,raw.replace(b'"activation_blocked": true',b'"activation_blocked": false',1))):
+   with self.subTest(path=bad_path),self.assertRaises(ValueError):view._policy_ack_batch_to_ed66(bad_path,bad)
+  with patch.dict(view._BATCH_POLICY_ACK_SOURCE,{'sha256':'0'*64}),self.assertRaises(ValueError):view._policy_ack_batch_to_ed66(name,raw)
+  # The real entry still rejects stale native identity or current forward seals;
+  # this pure document projection never substitutes for those admission gates.
  def test_exact_actual_modules_load_and_unknown_pins_do_not(self):
   self.assertEqual(len(view.PINS),9);self.assertEqual(len(view.checked_modules().SOURCE_INPUTS),16)
   name=next(iter(view.PINS))

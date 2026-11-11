@@ -103,6 +103,19 @@ _BATCH_MAINLINE={'revision':'8d7fac3491716a523648750ca496079562733033','tree':'e
 # Additional exact reviewed document stage; the prior two stages remain immutable.
 _BATCH_REVIEWED_ED66={'revision':'ed66a10e3a2a034bcb9ac52e120c946b20ed2f29','tree':'2a3f916d09e44fd7e132e146b5a846fbcd1b5282','blob':'a15c785e1abf90c820ea907271b67619b309ae69','bytes':246053,'sha256':'eeac1147d313aa3949735003074bf2f4d136850aadacb0656d2663736580dc89'}
 
+_BATCH_POLICY_ACK_SOURCE={'bytes':246053,'sha256':'1ec9bba86436e227bd2c16001c88d8ece2e29adc3400b601a6cb39ea8e24e475','blob':'c18ab90c77b40ec873bb1eae261082f1060fe54b'}
+_BATCH_POLICY_ACK_SOURCE_SHA256='5073ffac4ab18d6d14998f3b8b2f6c1de49a31c4a26acec836f85001684360fd'
+
+def _policy_ack_batch_to_ed66(path,raw):
+ # Public test-data projection only. The real entry below must FIRST prove
+ # current forward admission, physical bytes/mode and actual native Git identity.
+ pin=_BATCH_POLICY_ACK_SOURCE
+ if type(pin)is not dict or hashlib.sha256(json.dumps(pin,sort_keys=True,separators=(',',':')).encode()).hexdigest()!=_BATCH_POLICY_ACK_SOURCE_SHA256:
+  raise ValueError('reviewed caller snapshot pin changed')
+ if path!=_BATCH_PATH or type(raw)is not bytes or len(raw)!=pin['bytes'] or hashlib.sha256(raw).hexdigest()!=pin['sha256'] or hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=pin['blob']:
+  raise ValueError('unknown reviewed caller snapshot')
+ return _batch_stage_bytes(ROOT,_BATCH_REVIEWED_ED66)
+
 def _batch_git_bytes(repo,revision,tree):
  import re
  if type(revision)is not str or re.fullmatch('[a-f0-9]{40}',revision)is None or type(tree)is not str or re.fullmatch('[a-f0-9]{40}',tree)is None:raise ValueError('unreviewed native batch scan target')
@@ -147,11 +160,39 @@ def _historical_batch_scan_source(path,raw,root=ROOT):
  if actual!=raw:raise ValueError('unknown actual native batch scan')
  if current.TARGET==_BATCH_LEGACY['revision']:
   return _historical_batch_577_source(path,raw)
+ # This one reviewed caller snapshot changes only the static Editor fingerprint
+ # and scanner row. Its original predecessor is the actual whole ED66 document;
+ # no caller-provided native identity or historical document field is rewritten.
+ if len(raw)==_BATCH_POLICY_ACK_SOURCE['bytes'] and hashlib.sha256(raw).hexdigest()==_BATCH_POLICY_ACK_SOURCE['sha256']:
+  raw=_policy_ack_batch_to_ed66(path,raw)
  # Only these exact reviewed whole documents can bridge to the immutable
  # 8d7 stage. Each must ALSO equal the authenticated actual native target.
  mainline=_batch_stage_bytes(ROOT,_BATCH_MAINLINE)
  if raw!=mainline and raw!=_batch_stage_bytes(ROOT,_BATCH_REVIEWED_ED66):raise ValueError('unknown whole current batch scan')
  return _historical_batch_577_source(path,_batch_stage_bytes(ROOT,_BATCH_LEGACY))
+
+_DIRECTORY_POLICY_ACK_SOURCE={'bytes':165440,'sha256':'1deb47e0184ae4cafc525de506f673ea3a6186e0f667ccfd9e973cfc6cbbb2b1','blob':'541bdd306bbbad4cf79f28c771200ff8065d27a0'}
+_DIRECTORY_POLICY_ACK_SOURCE_SHA256='f0849993c598b34d5a7c7e4a6afcbccd0295e13d7e2d6a88bfd85c0eacfabd7a'
+def _native_directory_git_bytes(repo,revision,tree):
+ import re
+ path='docs/governance/native-directory-callers.json'
+ if type(revision)is not str or re.fullmatch('[a-f0-9]{40}',revision)is None or type(tree)is not str or re.fullmatch('[a-f0-9]{40}',tree)is None:raise ValueError('unreviewed native directory document target')
+ def git(*args):return subprocess.check_output(['git','--no-replace-objects','-C',str(repo),*args],stderr=subprocess.DEVNULL)
+ commit=git('cat-file','commit',revision)
+ if hashlib.sha1(b'commit '+str(len(commit)).encode()+b'\0'+commit).hexdigest()!=revision or not commit.startswith(('tree '+tree+'\n').encode()):raise ValueError('unknown native directory commit/tree')
+ line=git('ls-tree',revision,'--',path).split(b'\t')
+ if len(line)!=2 or line[1].rstrip(b'\n').decode()!=path:raise ValueError('unknown native directory Git path')
+ record=line[0].split()
+ if len(record)!=3 or record[:2]!=[b'100644',b'blob']or re.fullmatch(b'[a-f0-9]{40}',record[2])is None:raise ValueError('unknown native directory Git mode/blob')
+ raw=git('cat-file','blob',record[2].decode())
+ if hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=record[2].decode():raise ValueError('unknown native directory Git blob')
+ return raw
+def _policy_ack_directory_to_ed66(path,raw):
+ # Exact public document projection, never current-source admission.
+ pin=_DIRECTORY_POLICY_ACK_SOURCE
+ if type(pin)is not dict or hashlib.sha256(json.dumps(pin,sort_keys=True,separators=(',',':')).encode()).hexdigest()!=_DIRECTORY_POLICY_ACK_SOURCE_SHA256:raise ValueError('reviewed directory snapshot pin changed')
+ if path!='docs/governance/native-directory-callers.json' or type(raw)is not bytes or len(raw)!=pin['bytes'] or hashlib.sha256(raw).hexdigest()!=pin['sha256'] or hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=pin['blob']:raise ValueError('unknown reviewed directory snapshot')
+ return _native_directory_git_bytes(ROOT,_BATCH_REVIEWED_ED66['revision'],_BATCH_REVIEWED_ED66['tree'])
 
 _DOCUMENT_PATHS=frozenset(('docs/governance/batch-2-callers.json','docs/governance/native-directory-callers.json'))
 def _historical_document_source(path,raw,root=ROOT):
@@ -160,6 +201,18 @@ def _historical_document_source(path,raw,root=ROOT):
  target=Path(root)/path
  if target.stat().st_mode&0o7777!=0o644 or raw!=current.description.checked_bytes(target):raise ValueError('unknown actual historical document')
  if path=='docs/governance/batch-2-callers.json':return _historical_batch_scan_source(path,raw,root)
+ import ast
+ fields={}
+ for node in ast.parse(current.description.checked_bytes(Path(root)/current.BRIDGE)).body:
+  if isinstance(node,ast.Assign)and len(node.targets)==1 and isinstance(node.targets[0],ast.Name)and node.targets[0].id in ('TARGET','TARGET_TREE'):
+   if node.targets[0].id in fields:raise ValueError('duplicate directory document target')
+   fields[node.targets[0].id]=ast.literal_eval(node.value)
+ if fields!={'TARGET':current.TARGET,'TARGET_TREE':current.TARGET_TREE}:raise ValueError('unreviewed directory document target')
+ if raw!=_native_directory_git_bytes(ROOT,current.TARGET,current.TARGET_TREE):raise ValueError('unknown actual native directory document')
+ old=_native_directory_git_bytes(ROOT,_BATCH_REVIEWED_ED66['revision'],_BATCH_REVIEWED_ED66['tree'])
+ if raw!=old and _policy_ack_directory_to_ed66(path,raw)!=old:raise ValueError('unreviewed current directory document')
+ # Existing authenticated metadata still owns its exact historical inverse.
+ # Never pass projected old bytes as if they were the current physical input.
  import n05_legacy_audit_test_view as original
  return original.historical_metadata_source(path,raw,root)
 
@@ -171,6 +224,23 @@ _LIFECYCLE_REVIEWED_ED66={
  'docs/governance/private-notification-producers.json':{'blob':'11c0335fff9714d4f6f88c2d93decc58a69aa5a1','bytes':16769,'sha256':'d7ec1ef3f3fac4eedcf7888c03b8cb13ebbe19fbdbe90b3c8dfcad54e8a476d4'},
  'scripts/governance/check_pipeline_boundaries.py':{'blob':'1058dd9d49f914f4882905da67369684f462f429','bytes':5754,'sha256':'057598ed4559dda66b9fdeefde89c88e006ddd999f9dce75c95daabdd1da65d2'},
 }
+_LIFECYCLE_POLICY_ACK_SOURCES={
+ 'docs/governance/batch-5-pipeline.json':{'bytes':5888,'sha256':'a975e8dccf17d7a12c3ee240a151b9a01627531d92df3ffa3f537d7030634b6a','blob':'78365ec0b3157e9c09cd99c8e273babc0befe683'},
+ 'docs/governance/private-notification-producers.json':{'bytes':16769,'sha256':'ab493d356f6d90bab23c0c4bf7e72400171b80b25eec4c482e653068776c8ee1','blob':'3a96ad38d4b37a08514aa03864d27965a0d92c5d'},
+ 'scripts/governance/check_pipeline_boundaries.py':{'bytes':5754,'sha256':'9e87ca2481c85f77a36eea785945cbc7007916d8ecd9d4056b5025c5d263f998','blob':'744f89b9df9ac1f6b6321acdec8550ac103bc2f9'},
+}
+_LIFECYCLE_POLICY_ACK_SOURCES_SHA256='867b7c785c9ab6bbb5ebd374767e4d9fd8b0f9d917817b10e62ccb60db9cbd2f'
+def _policy_ack_lifecycle_to_ed66(path,raw):
+ pins=_LIFECYCLE_POLICY_ACK_SOURCES
+ if type(pins)is not dict or set(pins)!=set(_LIFECYCLE_REVIEWED_ED66) or hashlib.sha256(json.dumps(pins,sort_keys=True,separators=(',',':')).encode()).hexdigest()!=_LIFECYCLE_POLICY_ACK_SOURCES_SHA256:raise ValueError('reviewed lifecycle snapshot pins changed')
+ if type(path)is not str or path not in pins or type(raw)is not bytes:raise ValueError('unselected lifecycle snapshot')
+ pin=pins[path]
+ if len(raw)!=pin['bytes'] or hashlib.sha256(raw).hexdigest()!=pin['sha256'] or hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=pin['blob']:raise ValueError('unknown reviewed lifecycle snapshot')
+ prior,oid=_reviewed_lifecycle_git_bytes(ROOT,_BATCH_REVIEWED_ED66['revision'],_BATCH_REVIEWED_ED66['tree'],path)
+ old=_LIFECYCLE_REVIEWED_ED66[path]
+ if oid!=old['blob'] or len(prior)!=old['bytes'] or hashlib.sha256(prior).hexdigest()!=old['sha256']:raise ValueError('unknown prior lifecycle snapshot')
+ return prior
+
 def _reviewed_lifecycle_git_bytes(repo,revision,tree,path):
  import re
  if path not in _LIFECYCLE_REVIEWED_ED66 or type(revision)is not str or re.fullmatch('[a-f0-9]{40}',revision)is None or type(tree)is not str or re.fullmatch('[a-f0-9]{40}',tree)is None:raise ValueError('unreviewed lifecycle Git target')
@@ -203,7 +273,11 @@ def _historical_reviewed_lifecycle_source(path,raw,root=ROOT):
  actual,oid=_reviewed_lifecycle_git_bytes(ROOT,current.TARGET,current.TARGET_TREE,path)
  fixed,fixed_oid=_reviewed_lifecycle_git_bytes(ROOT,_BATCH_REVIEWED_ED66['revision'],_BATCH_REVIEWED_ED66['tree'],path)
  stage=_LIFECYCLE_REVIEWED_ED66[path]
- if raw!=actual or raw!=fixed or fixed_oid!=stage['blob']or len(fixed)!=stage['bytes']or hashlib.sha256(fixed).hexdigest()!=stage['sha256']:raise ValueError('unknown whole reviewed lifecycle source')
+ if raw!=actual:raise ValueError('unknown whole reviewed lifecycle source')
+ # Only after actual current native identity, admit the exact reviewed source
+ # fingerprint refresh. All immutable historical stage maps remain unchanged.
+ projected=raw if raw==fixed else _policy_ack_lifecycle_to_ed66(path,raw)
+ if projected!=fixed or fixed_oid!=stage['blob']or len(fixed)!=stage['bytes']or hashlib.sha256(fixed).hexdigest()!=stage['sha256']:raise ValueError('unknown whole reviewed lifecycle source')
  tree=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',REVISION+'^{tree}']).decode().strip()
  prior,oid=_reviewed_lifecycle_git_bytes(ROOT,REVISION,tree,path)
  expected=checked_modules().authorization_delta.lifecycle_delta.SOURCE_INPUTS[path]

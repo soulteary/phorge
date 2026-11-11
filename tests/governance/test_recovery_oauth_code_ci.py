@@ -12,6 +12,33 @@ import check_recovery_oauth_code_producer_v1 as code_gate
 import test_native_organization as base_template
 ATOMIC=ROOT/'.github/workflows/atomic-feature-regressions.yml'
 FOCUSED=ROOT/'.github/workflows/oauth-code-producer-focused.yml'
+REVIEWED_POLICY_FIXTURES={
+ 'support/governance/native-organization/test-native-organization-mysql.php':{'bytes':39959,'sha256':'3ae6699231f460351bf205fb4bc62f48668cbf56386e671fa9ade8ec224f9c02'},
+ 'support/governance/native-execution/project-policy-negative-cases.php':{'bytes':9548,'sha256':'52bd347a06c32c3448730e802f61ec632ded251fd2c9161baf39ba893786a33d'},
+}
+def reviewed_policy_fixture(root,name,raw=None):
+ # These are two reviewed isolated fixtures, not a general source exception.
+ import project_description_admission_delta as current
+ def need(value):
+  if not value:raise ValueError('unreviewed native policy fixture source')
+ def pin(value):return {'bytes':len(value),'sha256':hashlib.sha256(value).hexdigest()}
+ need(name in REVIEWED_POLICY_FIXTURES)
+ current.assert_current_recipe(root)
+ path=root/name
+ need(not path.is_symlink()and path.stat().st_mode&0o7777==0o644)
+ actual=current.description.checked_bytes(path)
+ if raw is None:raw=actual
+ need(type(raw)is bytes and raw==actual and pin(raw)==REVIEWED_POLICY_FIXTURES[name])
+ git=lambda revision:subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'show',revision+':'+name])
+ need(raw==git(current.TARGET))
+ legacy=git('b93916d8a2beb4a9ab28ea1769692c0839cfc60b')
+ need(legacy==git('060ac7f2b631cc5964f28cd783082dd6e2fb1565'))
+ registry=json.loads(current.description.checked_bytes(root/'support/governance/source-operation/registry-v1.json'))
+ need(registry['entries'][name]==pin(legacy))
+ need(registry['successor_entries'][name]=={'baseline':pin(legacy),'current':pin(raw)})
+ if name in current.CURRENT_METADATA:
+  need(current._normalize_metadata(name,raw)==legacy)
+ return legacy
 def phase(which):
  text=(ATOMIC if which=='atomic'else FOCUSED).read_text()
  if which=='atomic':text=text.split('# BEGIN isolated OAuth access-token SQL8',1)[1]
@@ -100,7 +127,8 @@ class OAuthCI(unittest.TestCase):
   n05_delta.assert_production_cohort(ROOT)
   changed,_=n05_delta.historical_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',changed,{name:(ROOT/name).read_bytes()for name in changed})
   lifecycle_paths={p for p in lifecycle_delta.SOURCE_INPUTS if p.startswith(('src/','resources/','support/governance/'))}|set(lifecycle_delta.SOURCE_ADDITIONS)
-  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths)
+  for name in REVIEWED_POLICY_FIXTURES:reviewed_policy_fixture(ROOT,name)
+  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths|set(REVIEWED_POLICY_FIXTURES))
   lifecycle_reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
   for name in lifecycle_paths:
    raw=(ROOT/name).read_bytes()
@@ -123,6 +151,14 @@ class OAuthCI(unittest.TestCase):
     old=historical_D95_media_recipe_source(name,committed)
    else:old=partial.reduce_if_selected(name,committed)
    self.assertEqual(old,fixed)
+ def test_reviewed_policy_fixture_source_set_refuses_unknown_bytes_and_roles(self):
+  for name in REVIEWED_POLICY_FIXTURES:
+   raw=(ROOT/name).read_bytes()
+   self.assertEqual(reviewed_policy_fixture(ROOT,name),subprocess.check_output(['git','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
+   for unknown in (raw+b'\n',b'',bytearray(raw)):
+    with self.assertRaises(ValueError):reviewed_policy_fixture(ROOT,name,unknown)
+  for name in ('support/governance/native-execution/unknown.php','../project-policy-negative-cases.php'):
+   with self.assertRaises(ValueError):reviewed_policy_fixture(ROOT,name,b'')
  def test_yaml_dependency_is_explicit_isolated_and_precedes_controls(self):
   import yaml
   steps=yaml.safe_load(FOCUSED.read_text())['jobs']['oauth-code-owner']['steps']
