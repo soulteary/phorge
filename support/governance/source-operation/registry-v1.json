@@ -1952,8 +1952,8 @@
         "sha256": "a5df002abe18e1a97b93d9b9b071a5f1a2755ee61c5eb183d8bd513e3f78624a"
       },
       "current": {
-        "bytes": 21304,
-        "sha256": "7edeec3dcd8b2bdee50ca711aba3b07826ab468109380516a28655c20afc692e"
+        "bytes": 21306,
+        "sha256": "d2d9eea81d74c2cbff1f21f5301e6d4eab2e65eaed788c2ebb84021367fa135f"
       }
     },
     "scripts/governance/check_recovery_oauth_client_lifecycle.py": {
