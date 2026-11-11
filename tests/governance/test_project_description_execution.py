@@ -75,7 +75,14 @@ class DescriptionExecution(unittest.TestCase):
   echo json_encode(['guard_accepts'=>$accepts,'guard_refuses'=>$refused,'actual_native_group_getter_and_setter'=>true,'synthetic_scope_only'=>true,'SQL'=>false,'execution_authorized'=>false]);''')
   self.assertEqual(d,{'guard_accepts':4,'guard_refuses':15,'actual_native_group_getter_and_setter':True,'synthetic_scope_only':True,'SQL':False,'execution_authorized':False})
  def test_unchanged_generic_EDITOR_and_sealed_scope_source_boundaries(self):
-  rel='src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php';old=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+rel]);self.assertEqual((ROOT/rel).read_bytes(),old)
+  rel='src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php';old=subprocess.check_output(['git','-C',str(ROOT),'show','5c22ca0d0b6acab2889fac7ddda03e630f858e64:'+rel]);current=(ROOT/rel).read_bytes()
+  branch=b"""        if ($project_scope!==null && $project_scope->getMode()==='content-description') {
+          $project_scope->rollbackDescriptionEditor($this,$object);
+        } else {
+          $object->killTransaction();
+        }
+"""
+  self.assertEqual(1,current.count(branch));self.assertEqual(current.replace(branch,b'        $object->killTransaction();\n',1),old)
   s=(ROOT/'src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php').read_text();self.assertIn('$scope->authorizeDescription();',s);self.assertIn('description_expanded_closure_refused',s);self.assertIn('description_unplanned_project_change',s);self.assertIn('description_membership_changed',s);self.assertIn('description_dual_admin_binding_required',s)
   e=(ROOT/'src/infrastructure/governance/content/PhorgeProjectDescriptionExecutor.php').read_text();self.assertIn("getCredentialType()!=='api-token'",e);self.assertNotIn('getOmnipotentUser',e);self.assertNotIn('CAN_EDIT',e)
 if __name__=='__main__':unittest.main()

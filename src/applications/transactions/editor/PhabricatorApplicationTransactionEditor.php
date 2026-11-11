@@ -1452,7 +1452,11 @@ abstract class PhabricatorApplicationTransactionEditor
       }
 
       if ($transaction_open) {
-        $object->killTransaction();
+        if ($project_scope!==null && $project_scope->getMode()==='content-description') {
+          $project_scope->rollbackDescriptionEditor($this,$object);
+        } else {
+          $object->killTransaction();
+        }
         $transaction_open = false;
       }
 

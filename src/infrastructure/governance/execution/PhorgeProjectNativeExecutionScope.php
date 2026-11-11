@@ -668,6 +668,39 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     queryfx($this->connection,'INSERT INTO governance_contentaudit (approvalID,grantID,targetPHID,actorPHID,action,createdAt) VALUES (%s,%s,%s,%s,%s,%d)',
       $audit['approvalID'],$this->descriptionRequest->getGrantID(),$this->object->getPHID(),$this->snapshot->getUserPHID(),'description-updated',(int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n']);
   }
+  /** Acknowledge only the original sealed Editor's one owned native rollback.
+   * A depth-zero frame alone is never ACK evidence. No other SQL is admitted.
+   */
+  public function rollbackDescriptionEditor($editor,$object) {
+    $trace=debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT|DEBUG_BACKTRACE_IGNORE_ARGS,2);
+    $frame=$trace[1]??array();
+    if(($frame['class']??null)!==PhabricatorApplicationTransactionEditor::class||
+       ($frame['function']??null)!=='applyTransactions'||($frame['object']??null)!==$editor){
+      $this->transactionOwnership='unknown';
+      throw new RuntimeException('description_native_rollback_scope_required');
+    }
+    $this->rollbackDescriptionOwnedFrame($editor,$object);
+  }
+  private function rollbackDescriptionOwnedFrame($editor,$object) {
+    // Validate before any DAO lookup: never route or roll back a foreign object.
+    try{
+      if($this->mode!=='content-description'||get_class($editor)!==PhabricatorProjectTransactionEditor::class||
+         $this->editor!==$editor||$this->object!==$object||get_class($object)!==PhabricatorProject::class||
+         !in_array($this->state,array('open','consumed'),true)||!$this->ownsReservation()||
+         $this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||
+         $this->transactionFrame()!==array(1,0,0)||$object->establishConnection('w')!==$this->connection){
+        throw new RuntimeException('description_native_rollback_scope_required');
+      }
+    }catch(Throwable $error){$this->transactionOwnership='unknown';throw$error;}
+    // Native kill decrements depth BEFORE issuing ROLLBACK. Any exception,
+    // including lost ACK at depth zero, therefore remains locally unknown.
+    $this->transactionOwnership='unknown';
+    $this->connection->killTransaction();
+    if(!$this->ownsReservation()||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0)){
+      throw new RuntimeException('description_native_rollback_scope_required');
+    }
+    $this->transactionOwnership='rolled-back';
+  }
   public function didCommit() {
     if (!$this->ownsReservation()||$this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0) || $this->state!=='consumed') {
       throw new RuntimeException('project_execution_real_commit_required');

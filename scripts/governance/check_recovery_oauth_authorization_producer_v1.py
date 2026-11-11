@@ -94,7 +94,9 @@ def SQL_obligations(root=ROOT):
  prior={}
  if current_source:
   current.assert_current_recipe(root)
-  prior=current.description.reconstruct_main(current.description.current_snapshot(root))
+  snapshot=current.description.current_snapshot(root)
+  prior=current.description.reconstruct_main(snapshot)
+  prior[current.description.NATIVE_EDITOR_BASELINE['path']]=current.description.reconstruct_native_editor(snapshot)
  else:assert_historical_source(root,current)
  lifecycle_delta.assert_cohort(root,read_source_checked)
  captured={}

@@ -52,5 +52,44 @@ class ProjectQ2Owner(unittest.TestCase):
         self.assertTrue(all(result.values()))
     def test_generic_Editor_fence_and_policy_implementation_remain_unchanged(self):
         for path in ('src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php','src/infrastructure/governance/execution/PhorgeProjectExecutionProducerFence.php','src/infrastructure/governance/content/PhorgeProjectDescriptionExecutor.php'):
-            self.assertEqual((ROOT/path).read_bytes(),subprocess.check_output(['git','-C',str(ROOT),'show','577ae2eb82d854753b88f2985a154e409272068a:'+path]))
+            raw=(ROOT/path).read_bytes()
+            if path.endswith('/PhabricatorApplicationTransactionEditor.php'):
+                after=b"""        if ($project_scope!==null && $project_scope->getMode()==='content-description') {
+          $project_scope->rollbackDescriptionEditor($this,$object);
+        } else {
+          $object->killTransaction();
+        }
+"""
+                self.assertEqual(1,raw.count(after));raw=raw.replace(after,b'        $object->killTransaction();\n',1)
+            self.assertEqual(raw,subprocess.check_output(['git','-C',str(ROOT),'show','577ae2eb82d854753b88f2985a154e409272068a:'+path]))
+    # These invoke the real private rollback core with explicit unissued scopes.
+    # Public caller positive is deferred to the actual native SQL9 run.
+    def test_owned_description_abort_single_ACK_and_primary_preservation(self):
+        for case in ('description-rollback-success','description-primary-preserved'):
+            with self.subTest(case=case):
+                value=self.invoke(case);self.assertEqual(1,value['single_native_rollback_queries_added'])
+                self.assertTrue(value['scope_cleanup_adds_no_rollback']);self.assertTrue(value['model_primary_1644_preserved'])
+    def test_description_abort_public_requires_actual_native_Editor_caller(self):
+        self.assertEqual(0,self.invoke('description-wrong-caller')['single_native_rollback_queries_added'])
+    def test_description_abort_closed_editor_object_and_mode(self):
+        for case in ('description-wrong-editor','description-wrong-object','description-wrong-mode'):
+            with self.subTest(case=case):self.assertEqual(0,self.invoke(case)['single_native_rollback_queries_added'])
+    def test_description_abort_never_touches_foreign_or_committed_frames(self):
+        for case in ('description-foreign-owner','description-committed'):
+            with self.subTest(case=case):self.assertEqual(0,self.invoke(case)['single_native_rollback_queries_added'])
+    def test_description_abort_requires_original_generation_and_depth_one(self):
+        for case in ('description-same-depth-ABA','description-depth-zero','description-nested'):
+            with self.subTest(case=case):self.assertEqual(0,self.invoke(case)['single_native_rollback_queries_added'])
+    def test_description_abort_rejects_residual_lock_modes(self):
+        for case in ('description-read-mode','description-write-mode'):
+            with self.subTest(case=case):self.assertEqual(0,self.invoke(case)['single_native_rollback_queries_added'])
+    def test_description_abort_ACK_error_never_retries_or_claims_closed(self):
+        value=self.invoke('description-rollback-ACK-error');self.assertEqual(1,value['single_native_rollback_queries_added'])
+        self.assertTrue(value['scope_cleanup_adds_no_rollback'])
+    def test_description_abort_post_ACK_new_generation_is_not_owned(self):
+        self.assertEqual(1,self.invoke('description-post-rollback-ABA')['single_native_rollback_queries_added'])
+    def test_description_abort_repeated_call_adds_no_second_rollback(self):
+        self.assertEqual(1,self.invoke('description-repeated-rollback')['single_native_rollback_queries_added'])
+    def test_description_abort_requires_exact_object_writer_before_unknown(self):
+        self.assertEqual(0,self.invoke('description-wrong-connection')['single_native_rollback_queries_added'])
 if __name__=='__main__':unittest.main()

@@ -526,6 +526,27 @@ class AssessmentTopLevelOperation(unittest.TestCase):
         result=subprocess.run([sys.executable,'-B','-c',script,str(self.producer)],capture_output=True,text=True,timeout=10)
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(result.stdout,'clone_current_pass\n')
+    def test_missing_cohort_preserves_real_modes_and_never_repairs_existing_inputs(self):
+        from recovery_oauth_code_test_cohort import complete_source_cohort
+        import project_description_admission_delta as admission
+        with tempfile.TemporaryDirectory(dir=canonical_temp_base())as directory:
+            fixture=Path(directory);complete_source_cohort(fixture)
+            state=fixture/admission.description.NATIVE_STATE_BASELINE['path']
+            self.assertEqual(stat.S_IMODE(state.stat().st_mode),0o644)
+            admission.assert_current_recipe(fixture)
+            original=state.read_bytes();state.chmod(0o600)
+            complete_source_cohort(fixture)
+            self.assertEqual(stat.S_IMODE(state.stat().st_mode),0o600)
+            with self.assertRaises(ValueError):admission.assert_current_recipe(fixture)
+            state.chmod(0o644);state.write_bytes(original+b'unknown')
+            complete_source_cohort(fixture)
+            self.assertEqual(state.read_bytes(),original+b'unknown')
+            with self.assertRaises(ValueError):admission.assert_current_recipe(fixture)
+            state.unlink();destination=fixture/'uncreated-symlink-target';state.symlink_to(destination)
+            complete_source_cohort(fixture)
+            self.assertTrue(state.is_symlink());self.assertFalse(destination.exists())
+            with self.assertRaises((ValueError,OSError)):admission.assert_current_recipe(fixture)
+
     def test_minimal_fixture_preserves_original_strict_reader_and_corruption_refusal(self):
         from unittest.mock import patch
         from recovery_oauth_code_test_cohort import complete_source_cohort

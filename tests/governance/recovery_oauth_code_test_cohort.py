@@ -1,6 +1,6 @@
 """Complete synthetic source roots for exact six-file cohort guard controls."""
 from pathlib import Path
-import hashlib,sys
+import shutil,hashlib,sys
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import recovery_oauth_code_source_delta as delta
@@ -14,8 +14,8 @@ def complete_source_cohort(root):
     required=set(n05_delta.description.CURRENT_PINS)|set(n05_delta.CURRENT_METADATA)|{n05_delta.MANIFEST,n05_delta.BRIDGE,n05_delta.PREPARATION,n05_delta.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
     for name in required:
         dst=root/name
-        if not dst.exists():
-            dst.parent.mkdir(parents=True,exist_ok=True);dst.write_bytes((ROOT/name).read_bytes())
+        if not dst.exists() and not dst.is_symlink():
+            dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,dst,follow_symlinks=False)
     # This helper only supplies missing real source files. It never replaces a
     # test's existing or deliberately corrupted input.
     for path,pin in {**delta.SOURCE_INPUTS,**partial_delta.SOURCE_INPUTS,**{p:authorization_delta.BASE_PINS[p]for p in authorization_delta.PRODUCTION_PATHS}}.items():
@@ -23,9 +23,9 @@ def complete_source_cohort(root):
         if hashlib.sha256(authorization_delta.reduce_if_selected(path,source)).hexdigest()!=pin:
             raise ValueError('test source cohort changed')
         dst=root/path
-        if not dst.exists():
+        if not dst.exists() and not dst.is_symlink():
             dst.parent.mkdir(parents=True,exist_ok=True)
-            dst.write_bytes(source)
+            shutil.copy2(ROOT/path,dst,follow_symlinks=False)
 
 def normalized_source_tree(root):
     """Hash actual tracked src bytes after the exact six-file inverse to9bc."""
@@ -64,7 +64,9 @@ def normalized_source_tree(root):
             continue
         if path in snapshot:
             if raw!=snapshot[path]:raise ValueError('selected source changed after batch capture')
-            if path==n05_delta.description.NATIVE_STATE_BASELINE['path']:
+            if path==n05_delta.description.NATIVE_EDITOR_BASELINE['path']:
+                raw=n05_delta.description.reconstruct_native_editor(snapshot)
+            elif path==n05_delta.description.NATIVE_STATE_BASELINE['path']:
                 raw=n05_delta.description.reconstruct_native_state(snapshot)
             else:
                 if path not in historical:continue

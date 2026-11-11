@@ -15,9 +15,24 @@ def phase(which):
  if which=='atomic':text=text.split('# BEGIN isolated OAuth access-token SQL8',1)[1]
  else:text=text.split('      - name: Run only actual native OAuth',1)[1]
  return textwrap.dedent(text.split('        run: |\n',1)[1].split('      - uses:',1)[0])
+def historical_atomic_source(root=ROOT):
+ import project_description_admission_delta as current
+ root=Path(root).resolve();current.assert_current_recipe(root)
+ path='.github/workflows/atomic-feature-regressions.yml'
+ if path not in current.CURRENT_METADATA:raise ValueError('Atomic workflow current metadata not admitted')
+ raw=current.description.checked_bytes(root/path)
+ previous=current._normalize_metadata(path,raw)
+ expected=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+ if previous!=expected:raise ValueError('unknown Atomic workflow historical stage')
+ return previous.decode('utf-8')
 class OAuthCI(unittest.TestCase):
+ def test_fixed_20b_Atomic_stage_still_reconstructs_exact_e804_workflow(self):
+  path='.github/workflows/atomic-feature-regressions.yml'
+  raw=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path]).decode()
+  prior=re.sub(r'      # BEGIN isolated OAuth access-token SQL8[^\n]*\n.*?      # END isolated OAuth access-token SQL8\.\n','',raw,flags=re.S)
+  self.assertEqual(prior.encode(),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:'+path]))
  def test_Atomic_removing_new_block_recovers_original_workflow_and_Conduit_workflow_unchanged(self):
-  s=ATOMIC.read_text();s=re.sub(r'      # BEGIN isolated OAuth access-token SQL8[^\n]*\n.*?      # END isolated OAuth access-token SQL8\.\n','',s,flags=re.S)
+  s=historical_atomic_source();s=re.sub(r'      # BEGIN isolated OAuth access-token SQL8[^\n]*\n.*?      # END isolated OAuth access-token SQL8\.\n','',s,flags=re.S)
   self.assertEqual(s.encode(),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:.github/workflows/atomic-feature-regressions.yml']))
   path='.github/workflows/conduit-producer-focused.yml';self.assertEqual((ROOT/path).read_bytes(),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:'+path]))
  def test_actual_all_new_Bash_blocks_syntax_and_owned_artifact_conditions(self):

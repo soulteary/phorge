@@ -296,7 +296,7 @@ class SourceOperation:
         self.require()
         value = self.code_root if root is None else _root(root)
         _need(value in self._snapshots)
-        return {'production_paths': 18, 'metadata_paths': len(admission.CURRENT_METADATA),
+        return {'production_paths': 19, 'metadata_paths': len(admission.CURRENT_METADATA),
                 'full_source_revision_authorized': False, 'runtime_qualified': False}
 
     def _capture_ancestor_identities(self):
@@ -362,7 +362,7 @@ class SourceOperation:
                 _need(path in self._entries and all(row[k]==self._entries[path][k] for k in ('bytes','sha256')))
             for path,row in admission.description.CURRENT_PINS.items():
                 _need(path in self._entries and row==self._entries[path])
-            _need(len(admission.description.CURRENT_PINS)==18)
+            _need(len(admission.description.CURRENT_PINS)==19)
             for path in (admission.BRIDGE, admission.PREPARATION, admission.MANIFEST, REGISTRY):
                 raw, _ = _read(self.code_root/path)
                 self._entries[path] = {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}

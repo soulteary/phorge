@@ -50,7 +50,7 @@ class CurrentRecipeConsumerClosure(unittest.TestCase):
   p=subprocess.run([sys.executable,'-B','-c',CHILD,str(self.clone)],capture_output=True,text=True,env={**os.environ,'PYTHONDONTWRITEBYTECODE':'1'},timeout=60)
   self.assertEqual(p.returncode,0,p.stderr);return json.loads(p.stdout)
  def test_valid_actual_recipe_reaches_exact17_and_selected8_not_restore_permission(self):
-  d=self.observe();self.assertEqual(d['cohort'],{'accepted':True,'count':18});self.assertTrue(d['authorization']['accepted']);self.assertEqual(d['assessment'],{'accepted':True,'count':8});self.assertEqual(d['auth_producer'],{'accepted':True,'count':20})
+  d=self.observe();self.assertEqual(d['cohort'],{'accepted':True,'count':19});self.assertTrue(d['authorization']['accepted']);self.assertEqual(d['assessment'],{'accepted':True,'count':8});self.assertEqual(d['auth_producer'],{'accepted':True,'count':20})
  def test_every_current_metadata_mutation_refuses_all_real_consumer_entries(self):
   sys.path.insert(0,str(ROOT/'scripts/governance'));import project_description_admission_delta as admission
   self.assertIn('.github/workflows/project-description-focused.yml',admission.CURRENT_METADATA)

@@ -7,7 +7,7 @@ sys.path.insert(0,str(ROOT/'scripts/governance'))
 import project_description_admission_delta as delta
 class NativeGrantCohort(unittest.TestCase):
  def test_reviewed_native_files_restore_exact_current_main_or_new_leaf(self):
-  self.assertEqual(len(delta.assert_production_cohort(ROOT)),18)
+  self.assertEqual(len(delta.assert_production_cohort(ROOT)),19)
   for n in delta.PRODUCTION_PINS:
    raw=(ROOT/n).read_bytes();old=subprocess.run(['git','-C',str(ROOT),'show',BASE+':'+n],capture_output=True)
    restored=delta.reduce_production(n,raw)

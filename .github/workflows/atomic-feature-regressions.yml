@@ -117,20 +117,53 @@ jobs:
               else:
                   raise SystemExit(f'Disposable service on port {port} did not become ready.')
           PY
+      - name: Prepare bounded metadata-only source footprint diagnostics
+        id: atomic-footprint
+        run: |
+          python3 - <<'PYFOOTPRINT'
+          import os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'atomic-footprint'
+          root.mkdir(mode=0o700)
+          (root / 'records').mkdir(mode=0o700)
+          script = "import json, os, stat, subprocess, sys\nfrom pathlib import Path\nSTAGES = {'before_build','after_build','after_maps','after_verify','before_governance','after_governance'}\ndef need(ok):\n    if not ok: raise ValueError('footprint_contract_refused')\ndef safe_name(name):\n    need(type(name) is str and 0 < len(name) <= 1024 and not name.startswith('/') and all(x not in ('', '.', '..') for x in name.split('/')) and all(ord(c) >= 32 and ord(c) != 127 for c in name))\n    return name\ndef collect(root):\n    rows=[]\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    fd=os.open(root,flags)\n    def walk(parent,prefix):\n        for name in sorted(os.listdir(parent)):\n            if not prefix and name=='.git': continue\n            rel=safe_name(prefix+name)\n            st=os.stat(name,dir_fd=parent,follow_symlinks=False)\n            kind='directory' if stat.S_ISDIR(st.st_mode) else 'regular' if stat.S_ISREG(st.st_mode) else 'symlink' if stat.S_ISLNK(st.st_mode) else 'other'\n            rows.append({'path':rel,'type':kind,'mode':format(stat.S_IMODE(st.st_mode),'04o'),'size':st.st_size})\n            need(len(rows)<=20000 and type(st.st_size) is int and st.st_size>=0)\n            if kind=='directory':\n                child=os.open(name,flags,dir_fd=parent)\n                try:\n                    current=os.fstat(child)\n                    need((current.st_dev,current.st_ino)==(st.st_dev,st.st_ino))\n                    walk(child,rel+'/')\n                finally: os.close(child)\n    try: walk(fd,'')\n    finally: os.close(fd)\n    return rows\ndef expected(root):\n    env={'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':os.devnull,'GIT_NO_REPLACE_OBJECTS':'1'}\n    raw=subprocess.run(['git','--no-replace-objects','-C',str(root),'-c','core.hooksPath=/dev/null','ls-tree','-rz','--name-only','HEAD'],env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=30).stdout\n    need(len(raw)<=8*1024*1024 and raw.endswith(b'\\0'))\n    names=[safe_name(n.decode('utf-8','strict')) for n in raw[:-1].split(b'\\0')]\n    need(len(names)<=20000 and len(names)==len(set(names)))\n    return set(names)\ndef write_output(directory,stage,data):\n    flags=os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC\n    parent=os.open(directory,flags)\n    try:\n        st=os.fstat(parent);need(st.st_uid==os.getuid() and stat.S_IMODE(st.st_mode)==0o700)\n        raw=(json.dumps(data,sort_keys=True,separators=(',',':'))+'\\n').encode()\n        need(len(raw)<=16*1024*1024)\n        fd=os.open(stage+'.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,0o600,dir_fd=parent)\n        try:\n            os.fchmod(fd,0o600)\n            view=memoryview(raw)\n            while view:\n                written=os.write(fd,view);need(written>0);view=view[written:]\n            os.fsync(fd)\n            done=os.fstat(fd);need(stat.S_ISREG(done.st_mode) and done.st_nlink==1 and stat.S_IMODE(done.st_mode)==0o600)\n        finally: os.close(fd)\n        final=os.stat(directory,follow_symlinks=False)\n        need((st.st_dev,st.st_ino)==(final.st_dev,final.st_ino))\n    finally:os.close(parent)\ndef main():\n    need(len(sys.argv)==2 and sys.argv[1] in STAGES)\n    stage=sys.argv[1];root=Path.cwd();rows=collect(root);names=expected(root)\n    leaves={x['path'] for x in rows if x['type']!='directory'}\n    extra=sorted(leaves-names);missing=sorted(names-leaves)\n    need(len(extra)<=4000 and len(missing)<=4000)\n    write_output(Path(os.environ['RUNNER_TEMP'])/'atomic-footprint'/'records',stage,{'schema':1,'stage':stage,'truncated':False,'rows':rows,'extra_names':extra,'missing_names':missing})\nif __name__=='__main__':\n    try:main()\n    except Exception:\n        print('atomic_footprint_diagnostic_refused',file=sys.stderr)\n        raise SystemExit(1)\n"
+          fd = os.open(root / 'collector.py', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+          try:
+              with os.fdopen(fd, 'w') as stream:
+                  stream.write(script)
+          except BaseException:
+              raise
+          PYFOOTPRINT
       - name: Prepare retained parsers and verify deterministic maps and product cuts
         run: |
+          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" before_build
           php scripts/runtime/build.php all
+          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_build
           php bin/rebuild-library-map
           git diff --exit-code -- src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json
           sha256sum src/__phutil_library_map__.php support/runtime/src/__phutil_library_map__.php support/runtime/manifest.json > /tmp/atomic-maps.sha256
           php bin/rebuild-library-map
           sha256sum --check /tmp/atomic-maps.sha256
+          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_maps
           php scripts/runtime/verify.php
           bash .github/scripts/check-retired-app-references.sh
+          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_verify
+      - name: Upload successful parser preparation source footprints early
+        uses: actions/upload-artifact@v4
+        with:
+          name: atomic-prepared-pre-footprint-php-${{ matrix.php }}
+          path: |
+            ${{ runner.temp }}/atomic-footprint/records/before_build.json
+            ${{ runner.temp }}/atomic-footprint/records/after_build.json
+            ${{ runner.temp }}/atomic-footprint/records/after_maps.json
+            ${{ runner.temp }}/atomic-footprint/records/after_verify.json
+          if-no-files-found: error
+          retention-days: 3
       - name: Verify inactive governance foundations in isolated fixtures
         run: |
           mkdir -p "$RUNNER_TEMP/governance-batch-1"
           python3 scripts/governance/check_contracts.py > "$RUNNER_TEMP/governance-batch-1/contracts.json"
+          python3 "$RUNNER_TEMP/atomic-footprint/collector.py" before_governance
           python3 -m unittest discover -s tests/governance -p 'test_*.py' -v
           php tests/governance/run.php > "$RUNNER_TEMP/governance-batch-1/native.json"
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
@@ -138,6 +171,18 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           php support/governance/fixtures/test-directory-mysql.php > "$RUNNER_TEMP/governance-batch-1/directory.json"
+      - name: Capture source footprint after governance even on failure
+        if: ${{ always() && steps.atomic-footprint.outcome == 'success' }}
+        run: python3 "$RUNNER_TEMP/atomic-footprint/collector.py" after_governance
+      - name: Upload metadata-only source footprint diagnostics
+        if: ${{ always() && steps.atomic-footprint.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: atomic-source-footprint-php-${{ matrix.php }}
+          path: ${{ runner.temp }}/atomic-footprint/records/*.json
+          if-no-files-found: error
+          retention-days: 3
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

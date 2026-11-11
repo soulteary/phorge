@@ -91,6 +91,10 @@
       "bytes": 2248,
       "sha256": "6d0f3b8bcf5b2cb100f8da717c18965aa8de3208c0bcb3d899f77f0f2d44e0f0"
     },
+    "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php": {
+      "bytes": 170415,
+      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a"
+    },
     "src/infrastructure/customfield/field/PhabricatorCustomField.php": {
       "bytes": 45195,
       "sha256": "23de23e52c7f598ac6868bb358944eea27477e417570fa6c55e2b3304e5bcb67"
