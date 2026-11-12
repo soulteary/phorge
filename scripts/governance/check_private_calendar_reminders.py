@@ -41,6 +41,8 @@ def reduce_reviewed_calendar_wire_driver(raw):
 
 
 def reduce_reviewed_calendar_driver(raw):
+    # Preserve the historical source map after the exact current fixture inverse.
+    raw = conduit_delta.reduce_policy_cleanup_driver(raw)
     name = 'support/governance/native-organization/test-native-organization-mysql.php'
     if type(raw) is not bytes or hashlib.sha256(raw).hexdigest() != SOURCE_INPUTS[name]:
         raise ValueError('unreviewed Calendar driver delta')
@@ -80,16 +82,27 @@ def reduce_reviewed_private_mail_settings(raw):
 def exact(actual, expected):
     completion.exact(actual, expected, 'Calendar evidence refused')
 
-def sources(root=ROOT):
+def _source_views(root=ROOT):
     actual = {}
+    wire = {}
     for path, pin in SOURCE_INPUTS.items():
-        raw = source_reader.read_source_checked(Path(root) / path)
+        captured = source_reader.read_source_checked(Path(root) / path)
+        raw = captured
+        if path == 'support/governance/native-organization/test-native-organization-mysql.php':
+            raw = conduit_delta.reduce_policy_cleanup_driver(raw)
         if hashlib.sha256(raw).hexdigest() != pin:
             raise ValueError('Calendar source drift')
         actual[path] = pin
+        wire[path] = hashlib.sha256(captured).hexdigest()
     if len(actual) != 12 or len(CASES) != 21:
         raise ValueError('Calendar reviewed coverage changed')
-    return actual
+    return actual, wire
+
+def sources(root=ROOT):
+    return _source_views(root)[0]
+
+def wire_sources(root=ROOT):
+    return _source_views(root)[1]
 
 def obligations():
     return shared.BOOTSTRAP | shared.PREPARATION | shared.CLEANUP | CASES | {
@@ -97,7 +110,7 @@ def obligations():
 
 def summary(revision, queue_digest, root=ROOT):
     return {'profile': 'native-private-calendar-reminder-v1',
-        'source_revision': revision, 'source_inputs_sha256': sources(root),
+        'source_revision': revision, 'source_inputs_sha256': wire_sources(root),
         'executed_case_obligations': sorted(CASES),
         'actual_native_scheduler_body': True, 'native_global_lock_or_daemon_proved': False,
         'actual_native_occurrence_marks': True, 'actual_paired_taskqueue': True,

@@ -193,11 +193,18 @@ final class PhorgeInternationalizationValidator extends Phobject {
     }
     return $errors;
   }
-  public function loadExtractions($run_extractor, $quiet = false) {
+  public function loadExtractions(
+    $run_extractor,
+    $quiet = false,
+    $cache_root = null) {
     $libraries = PhutilBootloader::getInstance()->getAllLibraries();
     $phorge_root = phutil_get_library_root('phorge');
     $i18n_bin = Filesystem::resolvePath('../bin/i18n', $phorge_root);
     $extractor = new PhabricatorInternationalizationManagementExtractWorkflow();
+    if ($cache_root !== null) {
+      $extractor->setCacheRoot($cache_root);
+      $cache_root = Filesystem::resolvePath($cache_root);
+    }
     $all_json = array();
     foreach ($libraries as $lib) {
       $root = phutil_get_library_root($lib);
@@ -206,15 +213,31 @@ final class PhorgeInternationalizationValidator extends Phobject {
         // The command needs to be stated twice to avoid the linter complaining
         // about the arg not being a scalar string
         if ($quiet) {
-          execx(
-            '%R extract %s',
-            $i18n_bin,
-            $root);
+          if ($cache_root === null) {
+            execx(
+              '%R extract %s',
+              $i18n_bin,
+              $root);
+          } else {
+            execx(
+              '%R extract --cache-root %s %s',
+              $i18n_bin,
+              $cache_root,
+              $root);
+          }
         } else {
-          $err = phutil_passthru(
-            '%R extract %s',
-            $i18n_bin,
-            $root);
+          if ($cache_root === null) {
+            $err = phutil_passthru(
+              '%R extract %s',
+              $i18n_bin,
+              $root);
+          } else {
+            $err = phutil_passthru(
+              '%R extract --cache-root %s %s',
+              $i18n_bin,
+              $cache_root,
+              $root);
+          }
           if ($err) {
             throw new Exception(pht(
               'Failed to run i18n extractor: %s',

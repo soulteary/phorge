@@ -748,7 +748,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-business-mail-producer",
-      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a",
+      "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -891,7 +891,7 @@
       "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
       "symbol": "PhorgeProjectNativeExecutionScope",
       "kind": "native-final-effect-and-current-source-fence",
-      "sha256": "9aaf3193d8af390bda4355ea15ae24ab53ce85135fddf60b664a0b62a453d21a",
+      "sha256": "8a1c169dd44ec448e5423b0d5be74d9d19a8b60e941f5809a2786a58756f6077",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -902,7 +902,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-filter-before-effect-hook",
-      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a",
+      "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -1804,7 +1804,7 @@
       "path": "src/applications/transactions/editor/PhabricatorApplicationTransactionEditor.php",
       "symbol": "PhabricatorApplicationTransactionEditor",
       "kind": "native-attachment-reference-detach-producer",
-      "sha256": "4e19ba38cfe64b7f2ecf50fcda0cfae564098d69f2c81794159785fa7eafd27a",
+      "sha256": "5a9e1511d75dad3ae201af97ad86fec845afbde989dd6c382c5d0c4f9088519d",
       "coverage": "partial",
       "evidence_status": "static-reference-only",
       "activation_blocked": true,
@@ -3326,7 +3326,7 @@
       },
       {
         "path": "src/infrastructure/governance/content/PhorgeProjectContentGrantService.php",
-        "sha256": "aacfec35cf329fdb0149cc7d0807b3c77963f05eb25c7bd8696aca7f70a9f792"
+        "sha256": "a22c5a67616c4855ca24a3af065c6a6914ca2c980701259fc8b3113e9c28095c"
       },
       {
         "path": "src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php",
@@ -3334,7 +3334,15 @@
       },
       {
         "path": "src/infrastructure/governance/content/PhorgeProjectContentSource.php",
-        "sha256": "2c6c1097f6be6f13c9fd11c984a573ea016e2d486e4b4da81ab5f5d012f010f2"
+        "sha256": "4d4a3647b4224177cb3106f7d545105dbcd7c8e603513f69a9adf19e91ee1a61"
+      },
+      {
+        "path": "src/infrastructure/governance/content/PhorgeProjectDescriptionExecutor.php",
+        "sha256": "66fc38a5c4f78406c122bc200aac14a81c6782a1326fea533a183d32160ec9a4"
+      },
+      {
+        "path": "src/infrastructure/governance/content/PhorgeProjectDescriptionRequest.php",
+        "sha256": "e97ad9110e873606ac7302e8720b91fe5e09ced7f7d24036d3b05eae7f61886c"
       },
       {
         "path": "src/infrastructure/governance/contracts/PhorgeGovernanceApprovalRequest.php",
@@ -3394,7 +3402,7 @@
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectNativeExecutionScope.php",
-        "sha256": "9aaf3193d8af390bda4355ea15ae24ab53ce85135fddf60b664a0b62a453d21a"
+        "sha256": "8a1c169dd44ec448e5423b0d5be74d9d19a8b60e941f5809a2786a58756f6077"
       },
       {
         "path": "src/infrastructure/governance/execution/PhorgeProjectPolicyApprovalController.php",

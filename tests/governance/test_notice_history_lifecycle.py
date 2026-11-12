@@ -1,8 +1,12 @@
 """Execute actual new ready/release boundaries; actual fixture close uses SQL-handle seams."""
 from pathlib import Path
-import json,subprocess,unittest
-from tests.governance.test_workbench_http_writer_close import PHP as FIXTURE_HANDLES
-from tests.governance.test_notice_history_browser import BOOT as ACTUAL_NATIVE_BOOT
+import json,subprocess,unittest,importlib.util
+def _fixture_module(name):
+ path=Path(__file__).resolve().with_name(name+".py")
+ spec=importlib.util.spec_from_file_location("notice_lifecycle_"+name,path)
+ module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+FIXTURE_HANDLES=_fixture_module("test_workbench_http_writer_close").PHP
+ACTUAL_NATIVE_BOOT=_fixture_module("test_notice_history_browser").BOOT
 ROOT=Path(__file__).resolve().parents[2]
 HOLD=ROOT/'support/governance/notification/notice-wire-hold.php'
 class NoticeHistoryLifecycle(unittest.TestCase):

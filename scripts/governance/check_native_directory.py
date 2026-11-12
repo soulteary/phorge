@@ -136,6 +136,8 @@ EXPECTED_RUNTIME_FILES = ['src/applications/people/governance/approval/PhorgeGov
  'src/infrastructure/governance/consistency/PhorgeGovernanceNativeReadView.php',
  'src/infrastructure/governance/consistency/PhorgeGovernanceNativeRuntimeProfile.php',
  'src/infrastructure/governance/consistency/PhorgeGovernanceSnapshotConnection.php',
+ 'src/infrastructure/governance/content/PhorgeProjectDescriptionExecutor.php',
+ 'src/infrastructure/governance/content/PhorgeProjectDescriptionRequest.php',
  'src/infrastructure/governance/contracts/PhorgeGovernanceApprovalRequest.php',
  'src/infrastructure/governance/contracts/PhorgeGovernanceApprovalState.php',
  'src/infrastructure/governance/contracts/PhorgeGovernanceContentDecision.php',

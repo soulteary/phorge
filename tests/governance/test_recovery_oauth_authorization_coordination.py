@@ -1,3 +1,4 @@
+from n05_r3_historical_test_view import historical_authorization_source
 """Exact authorization historical inverse, not SQL or current runtime evidence."""
 import hashlib,subprocess,sys,tempfile,unittest
 from pathlib import Path
@@ -11,16 +12,17 @@ class AuthorizationCoordination(unittest.TestCase):
   for path in delta.SOURCE_INPUTS:
    old=subprocess.check_output(['git','-C',str(ROOT),'show','0436e865b8431b9f064fe7b8a92dcad5e6623997:'+path])
    current=(ROOT/path).read_bytes()
-   if path in legacy_view.METADATA_PATHS:current=legacy_view.historical_metadata_source(path,current)
-   self.assertEqual(delta.reduce_current(path,current),old)
+   self.assertEqual(historical_authorization_source(path,current),old)
    self.assertEqual(hashlib.sha256(old).hexdigest(),delta.BASE_PINS[path])
    bad=current+b'\n// unknown mutation'
-   with self.assertRaises(ValueError):delta.reduce_current(path,bad)
+   with self.assertRaises(ValueError):historical_authorization_source(path,bad)
    with patch.object(delta,'SOURCE_INPUTS',{**delta.SOURCE_INPUTS,path:hashlib.sha256(bad).hexdigest()}):
-    with self.assertRaises(ValueError):delta.reduce_current(path,bad)
+    with self.assertRaises(ValueError):historical_authorization_source(path,bad)
  def test_six_source_cohort_missing_mixed_and_unknown_refuse(self):
   with tempfile.TemporaryDirectory()as td:
-   root=Path(td)
+   root=Path(td).resolve()
+   from recovery_oauth_code_test_cohort import complete_source_cohort
+   complete_source_cohort(root)
    for path in delta.PRODUCTION_PATHS:
     p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/path).read_bytes())
    self.assertTrue(delta.assert_cohort(root,Path.read_bytes))

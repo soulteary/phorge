@@ -1,3 +1,4 @@
+import shutil
 """Offline workflow and exact source-cohort controls; never run native bootstrap."""
 import hashlib,importlib.util,json,os,subprocess,tempfile,unittest
 from pathlib import Path
@@ -41,7 +42,7 @@ class Workflow(unittest.TestCase):
   for kind,folder in folders.items():
    template=json.loads((DIR/('prerequisites-template.json'if kind=='prerequisites'else'qualification-template.json')).read_bytes())
    self.assertEqual(template['source_sha256'],ci.REVIEWED_PINS[kind]);self.assertNotIn('source_directory',template)
-   inv=template['native_public_source_dependencies'if kind=='prerequisites'else'native_source_inventory'];self.assertEqual(ci.sha(ci.canon(inv)),ci.REVIEWED_INVENTORIES[kind]);self.assertEqual(len(inv),36 if kind=='prerequisites'else 45)
+   inv=template['native_public_source_dependencies'if kind=='prerequisites'else'native_source_inventory'];self.assertEqual(ci.sha(ci.canon(inv)),ci.REVIEWED_INVENTORIES[kind]);self.assertEqual(len(inv),36 if kind=='prerequisites'else 50)
    for name,pin in ci.REVIEWED_PINS[kind].items():raw=(folder/name).read_bytes();self.assertEqual(len(raw),pin['bytes']);self.assertEqual(ci.sha(raw),pin['sha256'])
    self.assertNotIn('/Users/',json.dumps(template))
  def test_source_cleanliness_and_native_equivalence_fail_closed(self):
@@ -65,15 +66,20 @@ class Workflow(unittest.TestCase):
 if __name__=='__main__':unittest.main()
 
 class ExactCICohort(unittest.TestCase):
- def delta(self):return load('N05_exact_CI_delta',ROOT/'scripts/governance/project_content_grant_ci_source_delta.py')
+ def delta(self):
+  import sys
+  sys.path.insert(0,str(ROOT/'scripts/governance'))
+  return load('N05_current_description_CI_delta',ROOT/'scripts/governance/project_description_admission_delta.py')
  def test_workflow_and_helpers_require_complete_exact_cohort(self):
   d=self.delta();self.assertEqual(d.assert_cohort(ROOT),set(d.PINS));self.assertTrue(d.assert_workflow(d.WORKFLOW,WORKFLOW.read_bytes()))
   for path,raw in [(d.WORKFLOW,WORKFLOW.read_bytes()+b'\n# unknown'),('.github/workflows/unknown.yml',WORKFLOW.read_bytes())]:
    with self.assertRaises(ValueError):d.assert_workflow(path,raw)
   with tempfile.TemporaryDirectory()as td:
    root=Path(td).resolve()
-   for name in d.PINS:
-    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/name).read_bytes())
+   names=set(d.PINS)|set(d.CURRENT_METADATA)|set(d.description.CURRENT_PINS)|{d.MANIFEST,d.BRIDGE,d.PREPARATION,'scripts/governance/project_content_grant_ci_source_delta.py'}
+   for name in names:
+    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,p,follow_symlinks=False)
+   self.assertEqual(d.assert_cohort(root),set(d.PINS))
    path=root/'support/governance/project-content-grants-ci/prerequisites/provision.py';path.write_bytes(path.read_bytes()+b'\n# unknown')
    with self.assertRaises(ValueError):d.assert_cohort(root)
    path.unlink()

@@ -59,6 +59,11 @@ def reviewed_partial_sources(root=ROOT):
  return result
 
 def reviewed_sources():
+ import project_description_admission_delta as n05_delta
+ import check_recovery_oauth_authorization_producer_v1 as actor_source
+ # Authenticate the entire current source role before feeding the original
+ # lifecycle cohort its immutable c4 Editor stage.
+ lifecycle_reader=n05_delta.native_c4_reader(ROOT,actor_source.read_source_checked)
  result=reviewed_partial_sources()
  for name,(path,parent)in ADDITIONS.items():
   if 'src/'+path in PARTIAL_SOURCE_PINS:continue
@@ -117,11 +122,17 @@ def reviewed_sources():
  for path in authorization_delta.PRODUCTION_PATHS:
   if path not in result:result[path]=authorization_delta.reduce_current(path,(ROOT/path).read_bytes())
  for path in lifecycle_delta.PRODUCTION_PATHS:
-  if path not in result:result[path]=lifecycle_delta.reduce_current(path,(ROOT/path).read_bytes())
+  if path not in result:result[path]=lifecycle_delta.reduce_current(path,lifecycle_reader(ROOT/path))
  return result
 def validate_notice_product_delta(changed,current,frozen,baseline_map):
- import project_content_grant_source_delta as n05_delta
+ import project_description_admission_delta as n05_delta
  changed,current=n05_delta.historical_inputs(ROOT,'e5f89aac566b121f2ebb3894aa4ba76b31222c10',changed,current)
+ return validate_historical_notice_product_delta(changed,current,frozen,baseline_map)
+def validate_historical_notice_product_delta(changed,current,frozen,baseline_map):
+ import project_description_admission_delta as n05_delta
+ n05_delta.assert_current_recipe(ROOT)
+ from n05_r3_historical_test_view import checked_modules
+ code_delta=checked_modules().code_delta
  allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)|set(PRIVATE_MAIL_SETTINGS_PINS)|set(conduit_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)
  if set(changed)!=allowed or set(current)!=allowed:raise ValueError('unreviewed notice product delta')
  current={path:code_delta.reduce_if_selected(path,raw)for path,raw in current.items()}
@@ -229,16 +240,27 @@ class NativeAdminWire(unittest.TestCase):
   allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)|set(PRIVATE_MAIL_SETTINGS_PINS)|set(conduit_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)|set(__import__('project_content_grant_source_delta').PRODUCTION_PINS)
   changed=set(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only',baseline,'--','src','resources'],text=True).splitlines())
   current={path:(ROOT/path).read_bytes()for path in allowed}
+  current.update(__import__('project_description_admission_delta').description.current_snapshot(ROOT))
+  for path in __import__('project_description_admission_delta').CURRENT_METADATA:
+   if path.startswith('src/') and path.endswith('.md'):current[path]=(ROOT/path).read_bytes()
   frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
-  self.assertTrue(validate_notice_product_delta(changed,current,frozen,old_map))
+  from test_project_description_source_inverse import reviewed_i18n_sources,assert_reviewed_i18n_drift_controls
+  i18n=reviewed_i18n_sources(ROOT)
+  assert_reviewed_i18n_drift_controls(self)
+  self.assertEqual(set(changed)&set(i18n),set(i18n))
+  # Every change is covered: exact signed I18n3 above plus original closed delta.
+  self.assertTrue(validate_notice_product_delta(set(changed)-set(i18n),current,frozen,old_map))
  def test_exact_workbench_document_pin_rejects_corruption_and_other_docs(self):
   doc='src/applications/people/governance/service/README.approval-workbench.md'
   # Use the existing fixed baseline and actual validator; documentation is an
   # exact reviewed source addition, never a suffix or directory exclusion.
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
   allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)|set(PRIVATE_MAIL_SETTINGS_PINS)|set(conduit_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)|set(__import__('project_content_grant_source_delta').PRODUCTION_PINS)
-  current={path:(ROOT/path).read_bytes()for path in allowed};frozen=reviewed_sources()
+  current={path:(ROOT/path).read_bytes()for path in allowed}
+  current.update(__import__('project_description_admission_delta').description.current_snapshot(ROOT))
+  for path in __import__('project_description_admission_delta').CURRENT_METADATA:
+   if path.startswith('src/') and path.endswith('.md'):current[path]=(ROOT/path).read_bytes();frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
   self.assertEqual(WORKBENCH_CANDIDATE_SOURCE_PINS[doc],hashlib.sha256(current[doc]).hexdigest())
   self.assertTrue(validate_notice_product_delta(allowed,current,frozen,old_map))
@@ -250,6 +272,9 @@ class NativeAdminWire(unittest.TestCase):
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10';config='ac5615b1d4f19ee50df39aa4d81fa07dc0231527'
   allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)|set(PRIVATE_MAIL_SETTINGS_PINS)|set(conduit_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)|set(__import__('project_content_grant_source_delta').PRODUCTION_PINS)
   current={path:(ROOT/path).read_bytes()for path in allowed}
+  current.update(__import__('project_description_admission_delta').description.current_snapshot(ROOT))
+  for path in __import__('project_description_admission_delta').CURRENT_METADATA:
+   if path.startswith('src/') and path.endswith('.md'):current[path]=(ROOT/path).read_bytes()
   frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
   self.assertTrue(validate_notice_product_delta(allowed,current,frozen,old_map))
@@ -259,33 +284,36 @@ class NativeAdminWire(unittest.TestCase):
    bad=dict(current);bad[path]+=b'UNREVIEWED_CHANGE'
    with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad,frozen,old_map)
   # Legacy cold-mapper variants follow the exact N05 inverse; no broad source skip.
-  import project_content_grant_source_delta as n05_delta
+  import project_description_admission_delta as n05_delta
   allowed,current=n05_delta.historical_inputs(ROOT,baseline,allowed,current)
   project_map_lines=[("    '"+name+"' => '"+value+"',\n").encode()for name,pair in ADDITIONS.items()if name.startswith('PhorgeRecoveryProjectSourceFacts')for value in pair]
   unregistered=dict(current)
   for line in project_map_lines:unregistered['src/__phutil_library_map__.php']=unregistered['src/__phutil_library_map__.php'].replace(line,b'')
-  self.assertTrue(validate_notice_product_delta(allowed,unregistered,frozen,old_map))
+  self.assertTrue(validate_historical_notice_product_delta(allowed,unregistered,frozen,old_map))
   registered=dict(unregistered);registered['src/__phutil_library_map__.php']+=b''.join(project_map_lines)
-  self.assertTrue(validate_notice_product_delta(allowed,registered,frozen,old_map))
+  self.assertTrue(validate_historical_notice_product_delta(allowed,registered,frozen,old_map))
   partial=dict(unregistered);partial['src/__phutil_library_map__.php']+=project_map_lines[0]
-  with self.assertRaises(ValueError):validate_notice_product_delta(allowed,partial,frozen,old_map)
+  with self.assertRaises(ValueError):validate_historical_notice_product_delta(allowed,partial,frozen,old_map)
   file_lines=[("    '"+name+"' => '"+value+"',\n").encode()for name,pair in ADDITIONS.items()if name.startswith('PhorgeRecoveryFileSourceFacts')for value in pair]
   no_file=dict(current)
   for line in file_lines:no_file['src/__phutil_library_map__.php']=no_file['src/__phutil_library_map__.php'].replace(line,b'')
-  self.assertTrue(validate_notice_product_delta(allowed,no_file,frozen,old_map))
+  self.assertTrue(validate_historical_notice_product_delta(allowed,no_file,frozen,old_map))
   for count in (1,2,3):
    bad_file=dict(no_file);bad_file['src/__phutil_library_map__.php']+=b''.join(file_lines[:count])
-   with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad_file,frozen,old_map)
-  full_file=dict(no_file);full_file['src/__phutil_library_map__.php']+=b''.join(file_lines);self.assertTrue(validate_notice_product_delta(allowed,full_file,frozen,old_map))
+   with self.assertRaises(ValueError):validate_historical_notice_product_delta(allowed,bad_file,frozen,old_map)
+  full_file=dict(no_file);full_file['src/__phutil_library_map__.php']+=b''.join(file_lines);self.assertTrue(validate_historical_notice_product_delta(allowed,full_file,frozen,old_map))
   bad=dict(current);bad['src/__phutil_library_map__.php']+=b"    'ExtraClass' => 'extra.php',\n"
-  with self.assertRaises(ValueError):validate_notice_product_delta(allowed,bad,frozen,old_map)
+  with self.assertRaises(ValueError):validate_historical_notice_product_delta(allowed,bad,frozen,old_map)
 if __name__=='__main__':unittest.main()
 
 class SessionLeaseExactSourcePins(unittest.TestCase):
  def test_both_new_reviewed_pins_refuse_corruption_and_unknown_product(self):
   baseline='e5f89aac566b121f2ebb3894aa4ba76b31222c10'
   allowed={'src/__phutil_library_map__.php',EXTRA}|{'src/'+path for path,parent in ADDITIONS.values()}|set(WORKBENCH_CANDIDATE_SOURCE_PINS)|set(PARTIAL_SOURCE_PINS)|set(SESSION_LEASE_SOURCE_PINS)|set(BORROWED_SOURCE_PINS)|set(CALENDAR_SOURCE_PINS)|set(PRIVATE_MAIL_SETTINGS_PINS)|set(conduit_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)|set(__import__('project_content_grant_source_delta').PRODUCTION_PINS)
-  current={path:(ROOT/path).read_bytes()for path in allowed};frozen=reviewed_sources()
+  current={path:(ROOT/path).read_bytes()for path in allowed}
+  current.update(__import__('project_description_admission_delta').description.current_snapshot(ROOT))
+  for path in __import__('project_description_admission_delta').CURRENT_METADATA:
+   if path.startswith('src/') and path.endswith('.md'):current[path]=(ROOT/path).read_bytes();frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
   for path in SESSION_LEASE_SOURCE_PINS:
    bad=dict(current);bad[path]+=b'corrupt'

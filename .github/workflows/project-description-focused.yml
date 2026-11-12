@@ -1,0 +1,102 @@
+name: Focused native Project description execution SQL
+
+# Additional isolated qualification; does not replace Atomic or media freshness.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/project-description-focused.yml'
+      - 'support/governance/project-description-ci/**'
+      - 'support/governance/project-description-qualification/**'
+      - 'tests/governance/test_project_description*.py'
+      - 'src/**'
+      - 'resources/**'
+      - 'bin/**'
+      - 'scripts/**'
+      - 'externals/**'
+      - 'webroot/**'
+      - 'conf/**'
+      - 'support/runtime/**'
+      - 'support/startup/**'
+      - 'support/phame/**'
+      - 'support/preamble.proxy-https.php'
+      - 'support/governance/project-content-grants-ci/**'
+      - 'support/governance/project-content-grants-qualification/**'
+      - 'tests/governance/test_project_description*.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-content-grants:
+    name: Focused native description execution (PHP 8.5.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+    services:
+      mysql:
+        image: mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7
+        env:
+          MYSQL_ROOT_PASSWORD: n05-focused-disposable-ci-only
+          MYSQL_ROOT_HOST: '%'
+        ports: ['127.0.0.1:3306:3306']
+        options: --health-cmd "mysqladmin ping --silent" --health-interval 5s --health-timeout 3s --health-retries 30
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5.12'
+          ini-values: opcache.enable_cli=0, opcache.jit=disable, opcache.jit_buffer_size=0
+          extensions: mysqli, mbstring, curl, gd, zip, dom, xmlreader, xmlwriter
+          tools: composer:2.11.1
+          coverage: none
+      - name: Bind current source and run offline controls
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          php -r 'if (PHP_VERSION !== "8.5.12" || ini_get("opcache.jit") !== "disable" || ini_get("opcache.jit_buffer_size") !== "0" || ini_get("opcache.enable_cli") !== "0") { exit(1); }'
+          python3 -B scripts/governance/check_directory_transports_v1.py --source-only --source-revision "$GITHUB_SHA"
+          python3 -m venv "$RUNNER_TEMP/n05-controls-python"
+          "$RUNNER_TEMP/n05-controls-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.3'
+          "$RUNNER_TEMP/n05-controls-python/bin/python" -B -m unittest discover -s tests/governance -p 'test_project_description*.py' -v
+      - name: Prepare fresh exact baseline and target native dependencies
+        run: |
+          umask 077
+          git worktree add --detach "$RUNNER_TEMP/n05-native-baseline" 4c2245300dc1d78d042b95190dd537eb6b1f9861
+          git worktree add --detach "$RUNNER_TEMP/n05-native-target" 5b70e9938ac55561521bd6c5d0a7934aead22ae7
+          for native_source in "$RUNNER_TEMP/n05-native-baseline" "$RUNNER_TEMP/n05-native-target"; do
+            php "$native_source/scripts/runtime/build.php" all
+            php "$native_source/scripts/runtime/verify.php"
+            git -C "$native_source" diff --exit-code HEAD
+          done
+      - name: Run genuine isolated native provisioning and SQL qualification
+        env:
+          N05_MYSQL_CONTAINER: ${{ job.services.mysql.id }}
+          N05_MYSQL_PASSWORD: n05-focused-disposable-ci-only
+        run: |
+          umask 077
+          python3 -B support/governance/project-description-ci/ci.py \
+            --prerequisites "$GITHUB_WORKSPACE/support/governance/project-content-grants-ci/prerequisites" \
+            --qualification "$GITHUB_WORKSPACE/support/governance/project-content-grants-qualification" \
+            --base "$RUNNER_TEMP/n05-native-baseline" \
+            --target "$RUNNER_TEMP/n05-native-target" \
+            --current "$GITHUB_WORKSPACE" \
+            --prerequisite-template "$GITHUB_WORKSPACE/support/governance/project-content-grants-ci/prerequisites-template.json" \
+            --qualification-template "$GITHUB_WORKSPACE/support/governance/project-content-grants-ci/qualification-template.json" \
+            --php /usr/bin/php \
+            --mysql-container "$N05_MYSQL_CONTAINER" \
+            --output "$RUNNER_TEMP/n05-native-run"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: focused-n05-native-description-php-8.5.12
+          path: ${{ runner.temp }}/n05-native-run/public/description-summary.json
+          if-no-files-found: error
+          retention-days: 7

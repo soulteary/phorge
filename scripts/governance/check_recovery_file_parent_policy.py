@@ -4,6 +4,7 @@ from pathlib import Path
 import check_completion as completion
 import check_native_organization as native
 import check_recovery_partial_composition as shared
+import recovery_conduit_source_delta as native_driver_view
 ROOT=Path(__file__).resolve().parents[2]
 SQL={'file-parent-policy-unattached-author-root-is-unsupported',
  'file-parent-policy-native-Task-attachment-changes-endpoint-binding',
@@ -40,6 +41,8 @@ def source_obligations(root=ROOT):
  if len(SOURCE_INPUTS)!=12:raise ValueError('reviewed source set refused')
  for relative,pin in SOURCE_INPUTS.items():
   raw=read_source_checked(Path(root)/relative)
+  if relative=='support/governance/native-organization/test-native-organization-mysql.php':
+   raw=native_driver_view.reduce_policy_cleanup_driver(raw)
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed Fileparent source bytes changed')
   captured[relative]=raw
  text=captured['support/governance/recovery/file-parent-policy-cases.php'].decode('utf-8')
@@ -47,9 +50,17 @@ def source_obligations(root=ROOT):
  if len(labels)!=len(set(labels))or set(labels)!=SQL:raise ValueError('actual Fileparent case obligations changed')
  return shared.BOOTSTRAP|shared.PREPARATION|set(labels)|shared.CLEANUP
 
-def summary(revision):
+def summary(revision,root=ROOT):
+ # Source obligations retain historical pins; PHP wire receipts hash raw bytes.
+ source_obligations(root)
+ driver='support/governance/native-organization/test-native-organization-mysql.php'
+ raw=read_source_checked(Path(root)/driver)
+ prior=native_driver_view.reduce_policy_cleanup_driver(raw)
+ if hashlib.sha256(prior).hexdigest()!=SOURCE_INPUTS[driver]:raise ValueError('Fileparent wire source phase refused')
+ wire_inputs=dict(SOURCE_INPUTS);wire_inputs[driver]=hashlib.sha256(raw).hexdigest()
+ source_obligations(root)
  return {'profile':'native-File-parent-Task-policy-endpoints-v2-current-account-flags','source_revision':revision,
-  'executed_case_obligations':sorted(SQL),'source_inputs_sha256':SOURCE_INPUTS,
+  'executed_case_obligations':sorted(SQL),'source_inputs_sha256':wire_inputs,
   'native_reader_relationships':RELATIONSHIPS,'observer_closed_and_absent':True,
   'native_File_and_Task_queries_executed':True,'actual_current_account_admission_checked':True,
   'current_account_flags_bound':['isAdmin','isApproved','isDisabled','isSystemAgent','isMailingList'],
@@ -72,7 +83,7 @@ def validate(data,root=ROOT,*,source_revision,file_digest):
  service=data['file_service_cleanup'];completion.fields(service,{'kind','binary_sha256','process_stopped','private_storage_removed'},'Fileparent file cleanup shape refused')
  if type(file_digest)is not str or not re.fullmatch('[a-f0-9]{64}',file_digest):raise ValueError('independent paired binary pin required')
  for k,v in {'kind':'file','binary_sha256':file_digest,'process_stopped':True,'private_storage_removed':True}.items():exact(service[k],v)
- exact(data['native'],summary(source_revision))
+ exact(data['native'],summary(source_revision,root=root))
  exact(data['worker_cleanup'],{'private_directories_removed':0,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':0})
  exact(data['cleanup'],{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True})
  native.validate_restore(data['source_restore'],root);exact(data['remaining_blocked'],native.BLOCKERS)

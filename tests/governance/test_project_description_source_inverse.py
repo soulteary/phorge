@@ -1,0 +1,445 @@
+"""Exact production inverse preparation; never replacement source admission."""
+import hashlib,json,subprocess,sys,tempfile,unittest,zlib,base64
+from pathlib import Path
+from unittest.mock import patch
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import project_description_source_delta as delta
+
+REVIEWED_I18N_NATIVE_REVISION='67c55636a8f7b8697136288fa211f0012ec0b138'
+REVIEWED_I18N_NATIVE_TREE='f2a74aac8911b0fa39abc389a9cd1ad9ab9d149f'
+REVIEWED_I18N_NATIVE_PINS={'src/__tests__/PhorgeI18nTestCase.php': {'bytes': 8363, 'sha256': '25bf6ff12f712e03863a1314f9bf4923a36d00aaba40553ee96f06a30e0197db', 'mode': '100644', 'blob': '82ad80d5e5c52c7047c55f51bf05d732af46ab5b'}, 'src/infrastructure/internationalization/management/PhabricatorInternationalizationManagementExtractWorkflow.php': {'bytes': 10234, 'sha256': '48a8a6dcd8b6d840fe84d926167b1098f996ecdf94b3551579741d8b243a64a2', 'mode': '100644', 'blob': '2a1ef31723f33be4b2be9853f2a9d9a0cabb5adf'}, 'src/infrastructure/internationalization/management/PhorgeInternationalizationValidator.php': {'bytes': 10357, 'sha256': '68052068436f977522869d1ff127d10ee45e953de7db74af7d344690e3de28df', 'mode': '100644', 'blob': '3552b89f515bcf3a3be346f32f49cf2907f3efa7'}}
+def reviewed_i18n_sources(root):
+ # Test-only expected reference: exact signed native fix, never runtime admission.
+ import stat
+ root=Path(root).resolve(strict=True)
+ def need(value):
+  if not value:raise ValueError('reviewed i18n source refused')
+ git=lambda *args:subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),*args])
+ need(git('rev-parse',REVIEWED_I18N_NATIVE_REVISION+'^{tree}').decode().strip()==REVIEWED_I18N_NATIVE_TREE)
+ result={}
+ for name,pin in REVIEWED_I18N_NATIVE_PINS.items():
+  entry=git('ls-tree','-z',REVIEWED_I18N_NATIVE_REVISION,'--',name)
+  need(entry==('100644 blob '+pin['blob']+'\t'+name+'\0').encode())
+  reference=git('show',REVIEWED_I18N_NATIVE_REVISION+':'+name)
+  need(len(reference)==pin['bytes']and hashlib.sha256(reference).hexdigest()==pin['sha256'])
+  path=root/name;before=path.lstat()
+  need(stat.S_ISREG(before.st_mode)and stat.S_IMODE(before.st_mode)==0o644)
+  raw=delta.checked_bytes(path)
+  after=path.lstat();stamp=lambda s:(s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+  need(stamp(before)==stamp(after)and raw==reference and len(raw)==pin['bytes']and hashlib.sha256(raw).hexdigest()==pin['sha256'])
+  need(hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==pin['blob'])
+  result[name]=(pin['mode'],pin['blob'])
+ return result
+
+def assert_reviewed_i18n_drift_controls(test):
+ # Owned TempRoot with real3physical inputs; no source reader/admission replacement.
+ with tempfile.TemporaryDirectory()as temporary:
+  root=Path(temporary).resolve()
+  for name in REVIEWED_I18N_NATIVE_PINS:
+   path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((ROOT/name).read_bytes());path.chmod(0o644)
+  test.assertEqual(set(reviewed_i18n_sources(root)),set(REVIEWED_I18N_NATIVE_PINS))
+  for name in REVIEWED_I18N_NATIVE_PINS:
+   path=root/name;raw=path.read_bytes()
+   path.write_bytes(raw+b'\nunsupported-drift')
+   with test.assertRaises(ValueError):reviewed_i18n_sources(root)
+   path.write_bytes(raw);path.chmod(0o600)
+   with test.assertRaises(ValueError):reviewed_i18n_sources(root)
+   path.chmod(0o644)
+  test.assertEqual(set(reviewed_i18n_sources(root)),set(REVIEWED_I18N_NATIVE_PINS))
+def tracked_src_inventory(root):
+ import os,stat
+ root=Path(root).resolve();rows=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'ls-tree','-r','-z','HEAD','--','src']).split(b'\0');tracked={}
+ for row in filter(None,rows):
+  header,path=row.split(b'\t',1);mode,kind,oid=header.split()
+  if kind!=b'blob' or mode not in (b'100644',b'100755',b'120000'):raise ValueError('unexpected tracked source type')
+  tracked[path.decode()]=mode.decode()
+ actual={}
+ for path in (root/'src').rglob('*'):
+  info=path.lstat()
+  if stat.S_ISDIR(info.st_mode):continue
+  mode='120000'if stat.S_ISLNK(info.st_mode)else'100755'if stat.S_ISREG(info.st_mode)and info.st_mode&0o111 else'100644'if stat.S_ISREG(info.st_mode)else'invalid'
+  actual[str(path.relative_to(root))]=mode
+ if not set(tracked)<=set(actual):raise ValueError('missing tracked source')
+ for name,mode in tracked.items():
+  info=(root/name).lstat()
+  if mode=='120000':
+   if not stat.S_ISLNK(info.st_mode):raise ValueError('tracked source kind changed')
+  elif not stat.S_ISREG(info.st_mode)or stat.S_IMODE(info.st_mode)!=(0o755 if mode=='100755'else 0o644):raise ValueError('tracked source physical mode changed')
+ return tracked,set(actual)-set(tracked)
+def prepared_tracked_src_names(root,operation=None):
+ root=Path(root).resolve();tracked,extra=tracked_src_inventory(root)
+ if extra or operation is not None:import source_operation_snapshot as source
+ if operation is not None:source.require_operation(operation,root)
+ if extra:
+  source.require_operation(operation,root)
+  ledger=operation._prepared_ledgers[root]
+  if type(ledger)is not source.PreparedLedger or ledger._root!=root or ledger._owner is not operation:raise ValueError('unissued prepared ledger')
+  ledger.verify_exit(operation)
+  allowed={name for name,role in ledger._layout.artifact.items()if name.startswith('src/')and role=='symbol-cache'}
+  if extra!=allowed:raise ValueError('untracked source is not a verified cache artifact')
+ return tuple(sorted(tracked))
+from contextlib import contextmanager
+@contextmanager
+def verified_tracked_src_names(root):
+ _,extra=tracked_src_inventory(root)
+ if extra:import source_operation_snapshot as source
+ if extra:
+  with source.open_source_operation(root)as operation:
+   yield prepared_tracked_src_names(root,operation)
+ else:yield prepared_tracked_src_names(root)
+class DescriptionSourceInverse(unittest.TestCase):
+ def git_bytes(self,revision,path):
+  q=subprocess.run(['git','--no-replace-objects','-C',str(ROOT),'show',revision+':'+path],capture_output=True)
+  return None if q.returncode else q.stdout
+ def test_exact18_reconstructs_all_real_main14_and_original_historical_chain_bytes(self):
+  snapshot=delta.current_snapshot(ROOT);self.assertEqual(len(snapshot),19)
+  main=delta.reconstruct_main(snapshot);prior=delta.reconstruct_historical(snapshot,ROOT);self.assertEqual(len(main),14)
+  for path in delta.MAIN_BASELINE['production_pins']:
+   self.assertEqual(main.get(path),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path),path)
+   self.assertEqual(prior.get(path),self.git_bytes(delta.HISTORICAL_BASELINE['git_revision'],path),path)
+  self.assertEqual(set(snapshot)-{delta.NATIVE_STATE_BASELINE['path'],delta.NATIVE_EDITOR_BASELINE['path']}-set(main),{'src/applications/project/xaction/PhorgeProjectDescriptionTransaction.php','src/infrastructure/governance/content/PhorgeProjectDescriptionExecutor.php','src/infrastructure/governance/content/PhorgeProjectDescriptionRequest.php'})
+ def test_native_Editor_independent_inverse_matches_real_c4_and_refuses_unknown(self):
+  snapshot=delta.current_snapshot(ROOT);row=delta.NATIVE_EDITOR_BASELINE
+  self.assertEqual(delta.reconstruct_native_editor(snapshot),self.git_bytes(row['git_revision'],row['path']))
+  actual=subprocess.check_output(['git','-C',str(ROOT),'ls-tree',row['git_revision'],'--',row['path']]).split()
+  self.assertEqual(actual[:3],[row['git_mode'].encode(),b'blob',row['git_blob'].encode()])
+  self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'rev-parse',row['git_revision']+'^{tree}']).decode().strip(),row['git_tree'])
+  for change in ('unknown','missing'):
+   bad=dict(snapshot)
+   if change=='missing':bad.pop(row['path'])
+   else:bad[row['path']]+=b'unknown'
+   with self.assertRaises(ValueError):delta.reconstruct_native_editor(bad)
+  with patch.dict(row,{'git_blob':'0'*40}),self.assertRaises(ValueError):delta.reconstruct_native_editor(snapshot)
+ def test_native_Editor_mode_and_whole_old_inverse_literals_are_closed(self):
+  import shutil
+  with tempfile.TemporaryDirectory()as td:
+   root=Path(td).resolve()
+   for name in delta.CURRENT_PINS:
+    path=root/name;path.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,path)
+   delta.current_snapshot(root)
+   (root/delta.NATIVE_EDITOR_BASELINE['path']).chmod(0o600)
+   with self.assertRaises(ValueError):delta.current_snapshot(root)
+  old=subprocess.check_output(['git','-C',str(ROOT),'show','5c22ca0d0b6acab2889fac7ddda03e630f858e64:scripts/governance/project_description_source_delta.py'])
+  import ast
+  def constants(raw):
+   result={}
+   for node in ast.parse(raw).body:
+    if isinstance(node,ast.Assign)and len(node.targets)==1 and isinstance(node.targets[0],ast.Name):
+     try:result[node.targets[0].id]=ast.literal_eval(node.value)
+     except (ValueError,TypeError):pass
+   return result
+  prior=constants(old);now=constants((ROOT/'scripts/governance/project_description_source_delta.py').read_bytes())
+  for name in ('MAIN_BASELINE','HISTORICAL_BASELINE','LEGACY_REDUCER','NATIVE_STATE_BASELINE','MAIN_INVERSE_ZLIB_BASE64'):self.assertEqual(now[name],prior[name])
+ def test_Editor_normalizer_uses_independent_baseline_and_q50_is_exact_one_addition(self):
+  import importlib.util
+  bridge=ROOT/'scripts/governance/project_description_admission_delta.py'
+  spec=importlib.util.spec_from_file_location('q50_actual_complete_admission',bridge)
+  admission=importlib.util.module_from_spec(spec);spec.loader.exec_module(admission)
+  admission.assert_current_recipe(ROOT)
+  path=delta.NATIVE_EDITOR_BASELINE['path'];raw=(ROOT/path).read_bytes()
+  self.assertEqual(admission._normalize_production(path,raw),self.git_bytes(delta.NATIVE_EDITOR_BASELINE['git_revision'],path))
+  with self.assertRaises(ValueError):admission._normalize_production(path,raw+b'unknown')
+  name='support/governance/project-content-grants-ci/qualification-template.json';old=json.loads(self.git_bytes('5c22ca0d0b6acab2889fac7ddda03e630f858e64',name));current=json.loads((ROOT/name).read_bytes())
+  inventory=current['native_source_inventory']
+  self.assertEqual(set(inventory),set(old['native_source_inventory'])|{path})
+  self.assertEqual(len(inventory),50)
+  import importlib.util
+  ci_path=ROOT/'support/governance/project-content-grants-ci/ci.py'
+  spec=importlib.util.spec_from_file_location('q50_actual_native_authority',ci_path);authority=importlib.util.module_from_spec(spec);spec.loader.exec_module(authority)
+  def verify_declared_native(template):
+   import posixpath,re
+   revision=template['native_git_revision'];tree=template['native_git_tree']
+   self.assertEqual(revision,authority.TARGET);self.assertEqual(tree,authority.TREE)
+   self.assertRegex(revision,r'^[0-9a-f]{40}$');self.assertRegex(tree,r'^[0-9a-f]{40}$')
+   actual_tree=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',revision+'^{tree}']).decode().strip()
+   self.assertEqual(tree,actual_tree)
+   for original,pin in template['native_source_inventory'].items():
+    self.assertEqual(set(pin),{'bytes','sha256'})
+    self.assertTrue(type(original)is str and not original.startswith('/')and all(part not in ('','.','..')for part in original.split('/')))
+    name=original;seen=set()
+    for depth in range(16):
+     self.assertNotIn(name,seen);seen.add(name)
+     entry=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree','-z',revision,'--',name])
+     self.assertTrue(entry.endswith(b'\0'))
+     header,actual_name=entry[:-1].split(b'\t');mode,kind,oid=header.split()
+     self.assertEqual(actual_name,name.encode());self.assertEqual(kind,b'blob');self.assertIn(mode,(b'100644',b'100755',b'120000'))
+     native=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'cat-file','blob',oid.decode()])
+     self.assertEqual(hashlib.sha1(b'blob '+str(len(native)).encode()+b'\0'+native).hexdigest(),oid.decode())
+     if mode!=b'120000':break
+     target=native.decode();self.assertFalse(target.startswith('/'))
+     name=posixpath.normpath(posixpath.join(posixpath.dirname(name),target))
+     self.assertTrue(name and name!='..'and not name.startswith('../'))
+    else:self.fail('native dependency symlink depth exceeded')
+    self.assertEqual(pin,{'bytes':len(native),'sha256':hashlib.sha256(native).hexdigest()},original)
+  verify_declared_native(current)
+  import copy
+  wrong=copy.deepcopy(current);wrong['native_git_tree']='0'*40
+  with self.assertRaises(AssertionError):verify_declared_native(wrong)
+  wrong=copy.deepcopy(current);wrong['native_source_inventory'][path]['sha256']='0'*64
+  with self.assertRaises(AssertionError):verify_declared_native(wrong)
+ def test_native_State_inverse_is_exact_real_c4_and_old_current_or_unknown_refuse(self):
+  good=delta.current_snapshot(ROOT);row=delta.NATIVE_STATE_BASELINE
+  self.assertEqual(delta.reconstruct_native_state(good),self.git_bytes(row['git_revision'],row['path']))
+  for raw in [self.git_bytes(row['git_revision'],row['path']),b'<?php unknown']:
+   bad=dict(good);bad[row['path']]=raw
+   with self.assertRaises(ValueError):delta.reconstruct_native_state(bad)
+  with patch.dict(delta.NATIVE_STATE_BASELINE,{'git_revision':'0'*40}),self.assertRaises(ValueError):delta.reconstruct_native_state(good)
+ def test_entire_current_src_inverse_matches_real_c4_tree_including_State_mode_blob(self):
+  import os,stat
+  snapshot=delta.current_snapshot(ROOT);main=delta.reconstruct_main(snapshot);actual={}
+  with verified_tracked_src_names(ROOT)as names:
+   for name in names:
+    path=ROOT/name
+    name=str(path.relative_to(ROOT));raw=os.readlink(path).encode() if path.is_symlink() else path.read_bytes()
+    mode='120000' if path.is_symlink() else ('100755' if path.stat().st_mode&0o111 else '100644')
+    if name in snapshot:
+     if name==delta.NATIVE_EDITOR_BASELINE['path']:raw=delta.reconstruct_native_editor(snapshot)
+     elif name==delta.NATIVE_STATE_BASELINE['path']:raw=delta.reconstruct_native_state(snapshot)
+     elif name not in main:continue
+     else:raw=main[name]
+    actual[name]=(mode,hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest())
+  # Three previously reviewed documentation leaves are source, not ignored.
+  for leaf in ['README.description-executor.md','README.description-main-integration.md','README.description-source-inverse.md']:
+   name='src/infrastructure/governance/content/'+leaf
+   self.assertIsNone(self.git_bytes(delta.MAIN_BASELINE['git_revision'],name))
+   self.assertEqual((ROOT/name).read_bytes(),self.git_bytes('20b138b4cd9a2cf61522613b4a8e5e21eca7341b',name))
+   self.assertEqual(actual.pop(name)[0],'100644')
+  output=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree','-r',delta.MAIN_BASELINE['git_revision'],'--','src'],text=True)
+  expected={}
+  for line in output.splitlines():
+   info,path=line.split('\t',1);mode,kind,blob=info.split();expected[path]=(mode,blob)
+  i18n=reviewed_i18n_sources(ROOT)
+  assert_reviewed_i18n_drift_controls(self)
+  self.assertEqual(set(i18n),set(REVIEWED_I18N_NATIVE_PINS))
+  for name,row in i18n.items():
+   self.assertEqual(actual[name],row);self.assertIn(name,expected)
+   expected[name]=row
+  self.assertEqual(actual,expected)
+  row=delta.NATIVE_STATE_BASELINE;self.assertEqual(expected[row['path']],(row['git_mode'],row['git_blob']))
+ def test_operation_registry_real20b_baseline_successor18_and_six_new_paths(self):
+  import project_description_admission_delta as admission
+  registry=json.loads((ROOT/'support/governance/source-operation/registry-v1.json').read_bytes())
+  self.assertEqual(registry['source_revision'],'20b138b4cd9a2cf61522613b4a8e5e21eca7341b')
+  entries=dict(registry['entries'])
+  for path,pin in entries.items():
+   raw=self.git_bytes(registry['source_revision'],path)
+   self.assertIsNotNone(raw,path);self.assertEqual(pin,{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path)
+  for path,row in registry['successor_entries'].items():
+   self.assertEqual(row['baseline'],entries.get(path),path)
+   # The bridge row is the exact signed native predecessor; current held bytes are separately admitted.
+   raw=self.git_bytes(admission.TARGET,path) if path=='scripts/governance/project_description_admission_delta.py' else (ROOT/path).read_bytes()
+   self.assertEqual(row['current'],{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path)
+   entries[path]=row['current']
+  for path,pin in delta.CURRENT_PINS.items():self.assertEqual(entries[path],pin,path)
+  prior=json.loads(self.git_bytes('b93916d8a2beb4a9ab28ea1769692c0839cfc60b','support/governance/source-operation/registry-v1.json'))
+  new_nested={'support/governance/native-execution/project-policy-nested-process.php','support/governance/native-execution/project-policy-nested-worker.php','tests/governance/test_project_policy_nested_protocol.py'}
+  self.assertEqual(len(prior['new_paths']),6)
+  self.assertEqual(set(registry['new_paths']),set(prior['new_paths'])|new_nested)
+  self.assertEqual(len(registry['new_paths']),9)
+  for path in registry['new_paths']:self.assertIsNone(self.git_bytes(registry['source_revision'],path))
+ def test_complete_baseline_metadata_has_actual_git_revision_tree_and_every_pin(self):
+  for metadata in [delta.MAIN_BASELINE,delta.HISTORICAL_BASELINE]:
+   tree=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',metadata['git_revision']+'^{tree}'],text=True).strip();self.assertEqual(metadata['git_tree'],tree)
+   self.assertEqual(set(metadata['production_pins']),set(delta.CURRENT_PINS)-{delta.NATIVE_STATE_BASELINE['path'],delta.NATIVE_EDITOR_BASELINE['path']})
+   for path,pin in metadata['production_pins'].items():
+    raw=self.git_bytes(metadata['git_revision'],path)
+    if pin is None:self.assertIsNone(raw)
+    else:self.assertEqual(pin,{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()})
+ def test_every_missing_mutated_unknown_and_four_mixed_old_paths_refuse(self):
+  good=delta.current_snapshot(ROOT)
+  for path in good:
+   missing=dict(good);missing.pop(path)
+   with self.assertRaises(ValueError):delta.reconstruct_main(missing)
+   bad=dict(good);bad[path]+=b'unknown'
+   with self.assertRaises(ValueError):delta.reconstruct_main(bad)
+  bad=dict(good);bad['src/infrastructure/governance/content/Unknown.php']=b'<?php'
+  with self.assertRaises(ValueError):delta.reconstruct_main(bad)
+  self.assertEqual(len(delta.MAIN_INVERSE_ZLIB_BASE64),4)
+  for path in delta.MAIN_INVERSE_ZLIB_BASE64:
+   mixed=dict(good);mixed[path]=self.git_bytes(delta.MAIN_BASELINE['git_revision'],path)
+   with self.assertRaises(ValueError):delta.reconstruct_main(mixed)
+ def test_modified_current_pin_and_complete_baseline_object_refuse(self):
+  good=delta.current_snapshot(ROOT);path=next(iter(good));bad=dict(good);bad[path]+=b'unknown';fake={'bytes':len(bad[path]),'sha256':hashlib.sha256(bad[path]).hexdigest()}
+  with patch.dict(delta.CURRENT_PINS,{path:fake}),self.assertRaises(ValueError):delta.reconstruct_main(bad)
+  for field in ['git_revision','git_tree']:
+   with patch.dict(delta.MAIN_BASELINE,{field:'0'*40}),self.assertRaises(ValueError):delta.reconstruct_main(good)
+  with patch.dict(delta.LEGACY_REDUCER,{'sha256':'0'*64}),self.assertRaises(ValueError):delta.reconstruct_historical(good,ROOT)
+ def test_inverse_payload_corruption_and_unreviewed_legacy_reducer_refuse(self):
+  good=delta.current_snapshot(ROOT);path=next(iter(delta.MAIN_INVERSE_ZLIB_BASE64));changed=base64.b64encode(zlib.compress(b'unknown')).decode()
+  with patch.dict(delta.MAIN_INVERSE_ZLIB_BASE64,{path:changed}),self.assertRaises(ValueError):delta.reconstruct_main(good)
+  with tempfile.TemporaryDirectory()as t:
+   root=Path(t).resolve();p=root/delta.LEGACY_REDUCER['path'];p.parent.mkdir(parents=True);p.write_bytes((ROOT/delta.LEGACY_REDUCER['path']).read_bytes()+b'\n# unknown')
+   with self.assertRaises(ValueError):delta.reconstruct_historical(good,root)
+ def test_read_alias_refuses_and_existing_main_guards_generic_editor_are_unchanged(self):
+  with tempfile.TemporaryDirectory()as t:
+   p=Path(t).resolve()/'alias';p.symlink_to(ROOT/next(iter(delta.CURRENT_PINS)))
+   with self.assertRaises(ValueError):delta.checked_bytes(p)
+  for path in [delta.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py','src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php']:
+   self.assertEqual((ROOT/path).read_bytes(),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path),path)
+  import project_description_admission_delta as current
+  path=delta.NATIVE_EDITOR_BASELINE['path'];raw=(ROOT/path).read_bytes()
+  self.assertEqual(raw,self.git_bytes(current.TARGET,path))
+  added=b"        if ($project_scope!==null && $project_scope->getMode()==='content-description') {\n          $project_scope->rollbackDescriptionEditor($this,$object);\n        } elseif ($project_scope!==null) {\n          $project_scope->rollbackPolicyEditor($this,$object);\n        } else {\n          $object->killTransaction();\n        }\n"
+  removed=b'        $object->killTransaction();\n'
+  def reviewed_inverse(value):
+   if value.count(added)!=1:raise ValueError('unreviewed generic Editor delta')
+   result=value.replace(added,removed,1)
+   if result!=self.git_bytes(delta.MAIN_BASELINE['git_revision'],path):raise ValueError('unrelated generic Editor bytes')
+   return result
+  self.assertEqual(reviewed_inverse(raw),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path))
+  for bad in (raw+b'unknown',raw.replace(b'rollbackDescriptionEditor',b'killTransaction'),
+              raw.replace(b'rollbackPolicyEditor',b'killTransaction'),
+              raw.replace(b'} elseif ($project_scope!==null) {',b'} elseif ($project_scope===null) {')):
+   with self.assertRaises(ValueError):reviewed_inverse(bad)
+
+ def test_preparation_success_does_not_replace_current_full_source_gate(self):
+  result=delta.audit(ROOT);self.assertTrue(result['inverse_verified'])
+  for flag in ['full_source_admission','runtime_qualified','can_execute','activation_authorized']:self.assertFalse(result[flag])
+  import project_content_grant_source_delta as old
+  with self.assertRaisesRegex(ValueError,'unknown or mixed N05 production cohort'):old.assert_production_cohort(ROOT)
+  q=subprocess.run([sys.executable,'-B',str(ROOT/'scripts/governance/check_directory_transports_v1.py'),'--source-only','--source-revision',delta.MAIN_BASELINE['git_revision']],cwd=ROOT,capture_output=True)
+  self.assertNotEqual(q.returncode,0)
+
+class PrivateStateInverse(unittest.TestCase):
+ """Real graph builder on explicitly UNADMITTED test harness, never issued op."""
+ def graph(self):
+  import source_operation_snapshot as source
+  class UnadmittedGraphHarness:
+   def __init__(self):
+    self.code_root=ROOT;self._modules={};self._auxiliary_modules=[]
+   def require(self,*args):return self
+   def read_source(self,path):return Path(path).read_bytes()
+   def _admitted_root(self,*args):raise ValueError('unadmitted_graph_harness')
+   @property
+   def coordinator(self):return self._coordinator
+  harness=UnadmittedGraphHarness()
+  source.SourceOperation._build_graph(harness)
+  return harness,harness._modules['project_description_source_delta']
+ def test_real_private_graph_State_inverse_matches_actual_c4_without_constants_patch(self):
+  from types import MappingProxyType
+  harness,private=self.graph()
+  self.assertIs(type(private.CURRENT_PINS),MappingProxyType)
+  snapshot=private.current_snapshot(ROOT)
+  raw=private.reconstruct_native_state(snapshot)
+  row=delta.NATIVE_STATE_BASELINE
+  expected=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',row['git_revision']+':'+row['path']])
+  self.assertEqual(raw,expected)
+  self.assertIsNot(private.constants,delta.constants)
+  with self.assertRaises(ValueError):harness._admitted_root()
+ def test_private_frozen_constants_reject_mutation_replacement_unknown_hash_and_fake_mapping(self):
+  from collections import UserDict
+  from types import MappingProxyType
+  harness,private=self.graph();snapshot=private.current_snapshot(ROOT)
+  path=private.NATIVE_STATE_BASELINE['path']
+  with self.assertRaises(TypeError):private.CURRENT_PINS[path]['sha256']='0'*64
+  bad=dict(snapshot);bad[path]+=b'unknown'
+  with self.assertRaises(ValueError):private.reconstruct_native_state(bad)
+  for fake in (UserDict({'bytes':1,'sha256':'0'*64}),type('FakeDict',(dict,),{})({'bytes':1,'sha256':'0'*64})):
+   with self.assertRaises(ValueError):private.exact(b'x',fake)
+   with self.assertRaises(ValueError):private.canonical_constant(fake)
+  original=private.CURRENT_PINS
+  replacement={k:dict(v)for k,v in original.items()};replacement[path]['sha256']='0'*64
+  private.CURRENT_PINS=replacement
+  with self.assertRaises(ValueError):private.constants()
+  private.CURRENT_PINS=original
+  with self.assertRaises(ValueError):private.exact(bytearray(b'x'),{'bytes':1,'sha256':hashlib.sha256(b'x').hexdigest()})
+ def test_actual_admission_State_normalizer_is_exact_c4_and_keeps_old_MAIN17(self):
+  import project_description_admission_delta as admission
+  snapshot=delta.current_snapshot(ROOT);path=delta.NATIVE_STATE_BASELINE['path']
+  expected=delta.reconstruct_native_state(snapshot)
+  self.assertEqual(admission._normalize_production(path,snapshot[path]),expected)
+  self.assertEqual(admission._normalize_production(path,expected),expected)
+  with self.assertRaises(ValueError):admission._normalize_production(path,b'unknown')
+  self.assertNotIn(path,delta.MAIN_BASELINE['production_pins'])
+  self.assertEqual(len(delta.MAIN_BASELINE['production_pins']),17)
+
+if __name__=='__main__':unittest.main()
+
+class TrackedSourceArtifacts(unittest.TestCase):
+ def test_bare_tracked_domain_and_fake_operation_are_exact(self):
+  # Atomic legitimately prepares ROOT; a bare-domain assertion owns a clean
+  # Git checkout instead of treating prepared artifacts as source or fake proof.
+  import stat
+  with tempfile.TemporaryDirectory()as td:
+   bare=Path(td).resolve()/'bare'
+   subprocess.run(['git','clone','--quiet','--no-hardlinks','--no-checkout',str(ROOT),str(bare)],check=True)
+   revision=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip()
+   subprocess.run(['git','-C',str(bare),'checkout','--quiet','--detach',revision],check=True)
+   rows=subprocess.check_output(['git','-C',str(bare),'ls-tree','-r','-z','HEAD','--','src']).split(b'\0')
+   expected=set()
+   for row in filter(None,rows):
+    header,name=row.split(b'\t',1);mode,kind,oid=header.split();path=bare/name.decode()
+    self.assertEqual(kind,b'blob');expected.add(name.decode())
+    if mode==b'120000':self.assertTrue(path.is_symlink())
+    else:
+     self.assertIn(mode,(b'100644',b'100755'));self.assertTrue(stat.S_ISREG(path.lstat().st_mode))
+     path.chmod(0o755 if mode==b'100755'else 0o644)
+   self.assertEqual(set(prepared_tracked_src_names(bare)),expected)
+   with self.assertRaises(ValueError):prepared_tracked_src_names(bare,object())
+   unknown=bare/'src/unreviewed-extra.php';unknown.write_bytes(b'<?php unknown');unknown.chmod(0o644)
+   with self.assertRaises(ValueError):prepared_tracked_src_names(bare)
+   with self.assertRaises(ValueError):prepared_tracked_src_names(bare,object())
+ def test_prepared_cache_components_are_not_source_or_issued_proof(self):
+  import source_operation_snapshot as source
+  with tempfile.TemporaryDirectory()as td:
+   root=Path(td).resolve();path=root/'src/owned.php';path.parent.mkdir();path.write_bytes(b'<?php owned');path.chmod(0o644)
+   cache=root/'src/.phutil_module_cache';cache.write_text('{"__symbol_cache_version__":12}');cache.chmod(0o644)
+   expected={'src/owned.php':'100644'};layout=source._prepared_layout(root,expected)
+   self.assertEqual(dict(layout.artifact),{'src/.phutil_module_cache':'symbol-cache'})
+   owner=object();ledger=source.PreparedLedger(source._PREPARED_KEY,owner,root,layout);ledger._verify_data()
+   with self.assertRaises(ValueError):ledger.verify_exit(owner)
+   cache.write_text('{"__symbol_cache_version__":11}')
+   with self.assertRaises(ValueError):source.PreparedLedger(source._PREPARED_KEY,owner,root,source._prepared_layout(root,expected))
+   cache.write_text('{"__symbol_cache_version__":12}')
+   unknown=root/'src/unreviewed.php';unknown.write_bytes(b'<?php unknown');unknown.chmod(0o644)
+   with self.assertRaises(ValueError):source._prepared_layout(root,expected)
+
+class EditorSourceStages(unittest.TestCase):
+ def fixture(self,root,current):
+  import shutil
+  paths=set(current.CURRENT_METADATA)|set(current.description.CURRENT_PINS)|{current.MANIFEST,current.BRIDGE,current.PREPARATION,current.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
+  for name in paths:
+   target=root/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,target)
+ def test_authenticated_current_c4_and_4c_are_distinct_exact_stages(self):
+  import project_description_admission_delta as current
+  import check_recovery_oauth_authorization_producer_v1 as actor_source
+  import recovery_oauth_client_lifecycle_delta as lifecycle
+  current.assert_current_recipe(ROOT)
+  path=delta.NATIVE_EDITOR_BASELINE['path'];raw=(ROOT/path).read_bytes()
+  c4=delta.reconstruct_native_editor(delta.current_snapshot(ROOT))
+  reader=current.native_c4_reader(ROOT,actor_source.read_source_checked)
+  self.assertNotEqual(raw,c4);self.assertEqual(reader(ROOT/path),c4)
+  self.assertTrue(lifecycle.assert_cohort(ROOT,reader))
+  historical=lifecycle.reduce_current(path,c4)
+  self.assertEqual(historical,subprocess.check_output(['git','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+path]))
+  self.assertEqual(current._normalize_production(path,raw),c4)
+  self.assertEqual(current._normalize_production(path,c4),c4)
+  self.assertEqual(current._normalize_production(path,historical),historical)
+  for stage in (raw,c4,historical):
+   self.assertEqual(current.reduce_production(path,stage),historical)
+   self.assertEqual(current.reduce_if_selected(path,stage),historical)
+  with self.assertRaises(ValueError):lifecycle.reduce_current(path,raw)
+  with self.assertRaises(ValueError):current.reduce_production(path,raw+b'unknown')
+ def test_old_payload_mixed_root_foreign_path_and_alias_are_not_current_sources(self):
+  import project_description_admission_delta as current
+  import recovery_oauth_client_lifecycle_delta as lifecycle
+  path=delta.NATIVE_EDITOR_BASELINE['path'];actual=(ROOT/path).read_bytes()
+  c4=delta.reconstruct_native_editor(delta.current_snapshot(ROOT));historical=lifecycle.reduce_current(path,c4)
+  for old in (c4,historical,actual+b'unknown'):
+   reader=current.native_c4_reader(ROOT,lambda ignored:old)
+   with self.assertRaises(ValueError):reader(ROOT/path)
+  reader=current.native_c4_reader(ROOT,Path.read_bytes)
+  with self.assertRaises(ValueError):reader(ROOT.parent/'foreign-source.php')
+  with tempfile.TemporaryDirectory()as td:
+   root=Path(td).resolve();self.fixture(root,current)
+   self.assertEqual(current.native_c4_reader(root,Path.read_bytes)(root/path),c4)
+   for bad in (c4,historical,actual+b'unknown'):
+    (root/path).write_bytes(bad)
+    with self.assertRaises(ValueError):current.native_c4_reader(root,Path.read_bytes)
+   (root/path).write_bytes(actual)
+   metadata=next(iter(current.CURRENT_METADATA));target=root/metadata;target.write_bytes(target.read_bytes()+b'unknown')
+   with self.assertRaises(ValueError):current.native_c4_reader(root,Path.read_bytes)
+  with tempfile.TemporaryDirectory()as td:
+   alias=Path(td).resolve()/'alias';alias.symlink_to(ROOT/path)
+   with self.assertRaises(ValueError):reader(alias)

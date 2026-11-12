@@ -32,11 +32,16 @@ function governance_project_policy_negative_cases($fixture,callable $check,array
   $refuse(function() use ($project) { $project->save(); },
     'project_execution_direct_security_save_refused','project-approval-direct-policy-dao-write-blocked');
   $project->setEditPolicy($old);
+  $replay_before=queryfx_one($conn,'SELECT state,consumedAt,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$state['consumed_id']);
   $refuse(function() use ($editor,$project,$state) {
     $editor($state['consumed_id'])->setContinueOnNoEffect(true)->applyTransactions($project,array(
       (new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDIT_POLICY)
         ->setNewValue(PhabricatorPolicies::POLICY_USER)));
   },'project_execution_expanded_closure_unsupported','project-approval-noop-replay-is-not-a-second-native-execution');
+  $replay_after=queryfx_one($conn,'SELECT state,consumedAt,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$state['consumed_id']);
+  $check($replay_before['state']==='consumed' && $replay_before['consumedAt']!==null && $replay_before['nativeGroupID']!==null &&
+    $replay_before===$replay_after && !$conn->isInsideTransaction() && !$conn->isReadLocking() && !$conn->isWriteLocking(),
+    'project-approval-noop-replay-preserves-consumed-ticket-and-owned-frame');
   $spoof=(new PhabricatorProjectTransaction())->setTransactionType(PhabricatorTransactions::TYPE_EDIT_POLICY)
     ->setNewValue(PhabricatorPolicies::POLICY_ADMIN)->setAuthorPHID($b['viewer']->getPHID());
   $refuse(function() use ($editor,$project,$state,$spoof) {
@@ -119,42 +124,11 @@ function governance_project_policy_negative_cases($fixture,callable $check,array
     'project-approval-native-failure-rolls-back-consume-row-record-and-audit-with-no-publish');
   $check(!$conn->isInsideTransaction() && !$conn->isReadLocking(),
     'project-approval-failed-native-execution-releases-owned-locks');
-  // Throw Error only after a real native UPDATE has completed inside the
-  // native Project::save nested transaction. No query/result is substituted.
-  $profiler=PhutilServiceProfiler::getInstance();
-  $listeners_property=new ReflectionProperty(PhutilServiceProfiler::class,'listeners');
-  $prior_listeners=$listeners_property->getValue($profiler);
-  $fired=false; $wrote_before_error=false; $depth_before_error=0; $rollbacks=0;
-  $marker='UPDATE `'.$fixture->getNamespace().'_project`.`'.$rollback->getTableName().'` SET ';
-  $profiler->addListener(function($phase,$call_id,array $data) use ($conn,$rollback,$marker,&$fired,&$wrote_before_error,&$depth_before_error,&$rollbacks) {
-    if (($data['type']??null)!=='query' || !is_string($data['query']??null)) { return; }
-    if ($phase==='end' && str_starts_with($data['query'],'ROLLBACK')) { $rollbacks++; }
-    if ($phase!=='end' || $fired || !str_starts_with($data['query'],$marker)) { return; }
-    $fired=true;
-    $native_state=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($conn);
-    $depth_before_error=$native_state->getDepth();
-    $wrote_before_error=queryfx_one($conn,'SELECT editPolicy FROM %R WHERE id=%d',
-      new PhabricatorProject(),$rollback->getID())['editPolicy']===PhabricatorPolicies::POLICY_USER;
-    throw new Error('isolated-native-project-nested-error');
-  });
-  try {
-    $failed=false;
-    try {
-      $editor($id)->applyTransactions($rollback,array((new PhabricatorProjectTransaction())
-        ->setTransactionType(PhabricatorTransactions::TYPE_EDIT_POLICY)->setNewValue(PhabricatorPolicies::POLICY_USER)));
-    } catch (Error $error) {
-      if (get_class($error)!==Error::class || $error->getMessage()!=='isolated-native-project-nested-error') { throw $error; }
-      $failed=true;
-    }
-    $check($failed && $fired && $wrote_before_error && $depth_before_error>=2 && $rollbacks>=2,
-      'project-approval-actual-native-nested-update-error-drains-owned-savepoints');
-  } finally { $listeners_property->setValue($profiler,$prior_listeners); }
-  $ticket=queryfx_one($conn,'SELECT state,consumedAt,nativeGroupID FROM governance_projectapproval WHERE approvalID=%s',$id);
-  $check($ticket['state']==='approved' && $ticket['consumedAt']===null && $ticket['nativeGroupID']===null &&
-    queryfx_one($conn,'SELECT editPolicy FROM %R WHERE id=%d',new PhabricatorProject(),$rollback->getID())['editPolicy']===$a['viewer']->getPHID() &&
-    (int)queryfx_one($conn,'SELECT COUNT(*) n FROM governance_executionaudit WHERE approvalID=%s AND action=%s',$id,'executed')['n']===0 &&
-    !$conn->isInsideTransaction() && !$conn->isReadLocking() && !$conn->isWriteLocking(),
-    'project-approval-native-nested-error-restores-ticket-row-audit-and-all-owned-lock-levels');
+  // Unknown nested native frames are intentionally NOT guessed or drained.
+  // A fresh owned exec dies with those frames; the independent parent must
+  // prove terminal process, exact SQL thread absence and no commit before cleanup.
+  require_once __DIR__.'/project-policy-nested-process.php';
+  $nested=governance_project_policy_nested_process($fixture,$check,$a,$rollback,$id);
   return array('actual_project_transaction_write_fault'=>true,'same_transaction_rollback'=>true,
-    'external_postcommit_rollback_claim'=>false);
+    'external_postcommit_rollback_claim'=>false,'nested_unknown'=>$nested);
 }

@@ -12,15 +12,79 @@ import check_recovery_oauth_code_producer_v1 as code_gate
 import test_native_organization as base_template
 ATOMIC=ROOT/'.github/workflows/atomic-feature-regressions.yml'
 FOCUSED=ROOT/'.github/workflows/oauth-code-producer-focused.yml'
+REVIEWED_POLICY_FIXTURES={
+ 'support/governance/native-organization/test-native-organization-mysql.php':{'bytes':39959,'sha256':'3ae6699231f460351bf205fb4bc62f48668cbf56386e671fa9ade8ec224f9c02'},
+ 'support/governance/native-execution/project-policy-negative-cases.php':{'bytes':9548,'sha256':'52bd347a06c32c3448730e802f61ec632ded251fd2c9161baf39ba893786a33d'},
+}
+def reviewed_policy_fixture(root,name,raw=None):
+ # These are two reviewed isolated fixtures, not a general source exception.
+ import project_description_admission_delta as current
+ def need(value):
+  if not value:raise ValueError('unreviewed native policy fixture source')
+ def pin(value):return {'bytes':len(value),'sha256':hashlib.sha256(value).hexdigest()}
+ need(name in REVIEWED_POLICY_FIXTURES)
+ current.assert_current_recipe(root)
+ path=root/name
+ need(not path.is_symlink()and path.stat().st_mode&0o7777==0o644)
+ actual=current.description.checked_bytes(path)
+ if raw is None:raw=actual
+ need(type(raw)is bytes and raw==actual and pin(raw)==REVIEWED_POLICY_FIXTURES[name])
+ git=lambda revision:subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'show',revision+':'+name])
+ need(raw==git(current.TARGET))
+ legacy=git('b93916d8a2beb4a9ab28ea1769692c0839cfc60b')
+ need(legacy==git('060ac7f2b631cc5964f28cd783082dd6e2fb1565'))
+ registry=json.loads(current.description.checked_bytes(root/'support/governance/source-operation/registry-v1.json'))
+ need(registry['entries'][name]==pin(legacy))
+ need(registry['successor_entries'][name]=={'baseline':pin(legacy),'current':pin(raw)})
+ if name in current.CURRENT_METADATA:
+  need(current._normalize_metadata(name,raw)==legacy)
+ return legacy
 def phase(which):
  text=(ATOMIC if which=='atomic'else FOCUSED).read_text()
  if which=='atomic':text=text.split('# BEGIN isolated OAuth access-token SQL8',1)[1]
  else:text=text.split('      - name: Run only actual native OAuth',1)[1]
  return textwrap.dedent(text.split('        run: |\n',1)[1].split('      - uses:',1)[0])
+def historical_atomic_source(path='.github/workflows/atomic-feature-regressions.yml',raw=None):
+ # Test-only exact current Atomic -> actual20b view; runtime readers stay current.
+ import project_description_admission_delta as current
+ current.assert_current_recipe(ROOT)
+ producer='scripts/governance/check_recovery_oauth_code_producer_v1.py'
+ if path!='.github/workflows/atomic-feature-regressions.yml' or path not in current.CURRENT_METADATA:
+  raise ValueError('unreviewed Atomic historical source role')
+ if Path(code_gate.__file__).resolve()!=ROOT/producer:raise ValueError('unreviewed current producer source role')
+ if (ROOT/producer).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current producer mode')
+ producer_raw=current.description.checked_bytes(ROOT/producer)
+ registry_path='support/governance/source-operation/registry-v1.json';registry_raw=current.description.checked_bytes(ROOT/registry_path);registry_pin=current.CURRENT_METADATA[registry_path]
+ if len(registry_raw)!=registry_pin['bytes'] or hashlib.sha256(registry_raw).hexdigest()!=registry_pin['sha256']:raise ValueError('unknown current source registry')
+ registry=json.loads(registry_raw);pin=registry['successor_entries'].get(producer,{}).get('current',registry['entries'].get(producer))
+ if type(pin)is not dict:raise ValueError('unreviewed current producer source role')
+ old_producer=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+producer])
+ if producer_raw!=old_producer:raise ValueError('unknown baseline producer bytes')
+ if len(producer_raw)!=pin['bytes'] or hashlib.sha256(producer_raw).hexdigest()!=pin['sha256']:raise ValueError('unknown current producer bytes')
+ if (ROOT/path).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current Atomic source mode')
+ actual=current.description.checked_bytes(ROOT/path)
+ if raw is None:raw=actual
+ if type(raw)is not bytes or raw!=actual:raise ValueError('unknown current Atomic source bytes')
+ prior=current._normalize_metadata(path,raw)
+ expected=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+ if prior!=expected:raise ValueError('unknown Atomic historical stage')
+ return prior.decode('utf-8')
 class OAuthCI(unittest.TestCase):
+ def test_current_Atomic_history_refuses_unknown_names_bytes_and_producer_role(self):
+  from unittest.mock import patch
+  path='.github/workflows/atomic-feature-regressions.yml';raw=(ROOT/path).read_bytes()
+  old=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+  self.assertEqual(historical_atomic_source().encode(),old)
+  for name,body in [('.github/workflows/unreviewed.yml',raw),(path,raw+b'\n# unknown'),(path,raw.decode())]:
+   with self.subTest(name=name),self.assertRaises(ValueError):historical_atomic_source(name,body)
+  if raw!=old:
+   with self.assertRaises(ValueError):historical_atomic_source(path,old)
+  with patch.object(code_gate,'__file__',str(ROOT/'scripts/governance/unreviewed.py')):
+   with self.assertRaises(ValueError):historical_atomic_source()
  def test_existing_workflows_and_real_File_builder_are_unchanged(self):
   for name in ['.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/conduit-producer-focused.yml','tests/atomic/build_directory_file.py','tests/atomic/build_gorge.py','tests/atomic/paired-gorge.json']:
-   self.assertEqual((ROOT/name).read_bytes(),subprocess.check_output(['git','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
+   actual=historical_atomic_source().encode() if name=='.github/workflows/atomic-feature-regressions.yml' else (ROOT/name).read_bytes()
+   self.assertEqual(actual,subprocess.check_output(['git','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
  def test_actual_all_new_Bash_blocks_syntax_and_owned_artifact_conditions(self):
   for p in [FOCUSED]:
    s=p.read_text();blocks=re.findall(r'        run: \|\n((?:(?:          .*|)\n)*)',s)
@@ -59,16 +123,21 @@ class OAuthCI(unittest.TestCase):
   import recovery_oauth_client_lifecycle_delta as lifecycle_delta
   approved={'support/governance/media-session-ci/project.py', 'support/governance/media-session-ci/test_ci.py', 'support/governance/media-session-docker/snapshot.py', 'support/governance/recovery/partial-composition-focused.php', 'support/governance/recovery/restore-review-cases.php', 'support/governance/media-session-docker/README.md'}
   authorization_runtime={'src/applications/oauthserver/storage/PhabricatorOAuthClientAuthorization.php': '68ba2b0145c25e53206f24b565260d7d3e93b2b232f7e9382f4b720bedc4a4c3', 'src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php': 'cd1b0ad05eafa48e79f50cde12ec982dd59f5374f63f10a7c36e52da30ab5a3c', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php': '05aa84847028b1b67259bade9375d914f409921d9bed514296546e48e0e2559f', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php': '007182650c08344038520978d00256bf6e734bad741d9c5d094f9238418b2e03', 'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php': 'bfcb50198a53b6a4757dcb5997c4958bb45e667ff3567fef10ac94682f5a69a8', 'src/infrastructure/governance/recovery/PhorgeRecoverySessionProducerFence.php': '356bf32dbc89499e40f5fe7e90d8f9d63e63e041398ca1830ccb7ca363bc4bc9', 'support/governance/native-organization/oauth-authorization-worker.php': '49ec8d298d46b0df0aae255e9fbd8a77d78a3188ab59e472c328a0027ea17b97', 'support/governance/native-organization/oauth-authorization-workers.php': 'eec44271b5b7a0e8ff164eea301c0a7da2ca760e30d82a28a10df4ab8bbda737', 'support/governance/native-organization/test-oauth-authorization-owner-mysql.php': '32265fb84af9aa6d9669fcba01bb0434401265f5f424d1d708cccc313291cc46', 'support/governance/recovery/assessment-credential-cases.php': '29bcbe84e7bc30bcecd395d635b059f1061677045652de1ec8117fd74ef1b72f', 'support/governance/recovery/oauth-authorization-cases.php': '72224fcb69389313b7979d379d411fc06d32175322f662f350f8481aaacfd992', 'support/governance/recovery/oauth-authorization-diagnostic.php': '0cfb73c1551c0745ed8f680a0737ea1948a3d7d68c672bdbb41c12d18b6ddf7b', 'support/governance/recovery/oauth-authorization-focused.php': '64bf17a51532e8c5e8421aa0c5e5d94bcec637819645e33123bcfddaa84e2d75', 'support/governance/recovery/oauth-authorization-producer.php': 'f523b78b9f9682b9d751aab96d7a4fbc9aa2a6595ec10933902416fbc83d90fe', 'support/governance/recovery/tests/assessment-oauth-authorization-owner-host.php': 'f66e1c0b385859bb908bfa58f3494d9773a7622a68b11cd2ccd8bec89656fc0a'}
-  import project_content_grant_source_delta as n05_delta
+  import project_description_admission_delta as n05_delta
   n05_delta.assert_production_cohort(ROOT)
   changed,_=n05_delta.historical_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',changed,{name:(ROOT/name).read_bytes()for name in changed})
   lifecycle_paths={p for p in lifecycle_delta.SOURCE_INPUTS if p.startswith(('src/','resources/','support/governance/'))}|set(lifecycle_delta.SOURCE_ADDITIONS)
-  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths)
+  for name in REVIEWED_POLICY_FIXTURES:reviewed_policy_fixture(ROOT,name)
+  from test_project_description_source_inverse import reviewed_i18n_sources,assert_reviewed_i18n_drift_controls
+  i18n=reviewed_i18n_sources(ROOT)
+  assert_reviewed_i18n_drift_controls(self)
+  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths|set(REVIEWED_POLICY_FIXTURES)|set(i18n))
+  lifecycle_reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
   for name in lifecycle_paths:
    raw=(ROOT/name).read_bytes()
    self.assertEqual(raw,subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','HEAD:'+name]))
    if name in lifecycle_delta.SOURCE_ADDITIONS:self.assertEqual(hashlib.sha256(raw).hexdigest(),lifecycle_delta.SOURCE_ADDITIONS[name])
-   else:self.assertEqual(lifecycle_delta.reduce_current(name,raw),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+name]))
+   else:self.assertEqual(lifecycle_delta.reduce_current(name,lifecycle_reader(ROOT/name)),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+name]))
   for name,pin in authorization_runtime.items():
    raw=(ROOT/name).read_bytes();self.assertEqual(hashlib.sha256(lifecycle_delta.reduce_if_selected(name,raw)).hexdigest(),pin)
    self.assertEqual(raw,subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name]))
@@ -79,10 +148,20 @@ class OAuthCI(unittest.TestCase):
    self.assertEqual(partial.reduce_if_selected(name,(ROOT/name).read_bytes()),fixed)
    committed=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name])
    if committed!=(ROOT/name).read_bytes():
-    self.assertEqual(revision,'5665cf16663b0e44da2aed5a800835dc9cb563cf')
-    self.assertEqual(subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD^{tree}']).decode().strip(),'0edb85b33cd7554e8653c1c310d2978e8c32ef3d')
-    committed=n05_delta.media_source_delta().reduce_repair_recipe(name,committed)
-   self.assertEqual(partial.reduce_if_selected(name,committed),fixed)
+    self.assertEqual(revision,'d95b3bd2253afb6fdce615f4041920bdce5df625')
+    self.assertEqual(subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD^{tree}']).decode().strip(),'4af5ae154be5b9fd01565762edbb712450c41c34')
+    from n05_r3_historical_test_view import historical_D95_media_recipe_source
+    old=historical_D95_media_recipe_source(name,committed)
+   else:old=partial.reduce_if_selected(name,committed)
+   self.assertEqual(old,fixed)
+ def test_reviewed_policy_fixture_source_set_refuses_unknown_bytes_and_roles(self):
+  for name in REVIEWED_POLICY_FIXTURES:
+   raw=(ROOT/name).read_bytes()
+   self.assertEqual(reviewed_policy_fixture(ROOT,name),subprocess.check_output(['git','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
+   for unknown in (raw+b'\n',b'',bytearray(raw)):
+    with self.assertRaises(ValueError):reviewed_policy_fixture(ROOT,name,unknown)
+  for name in ('support/governance/native-execution/unknown.php','../project-policy-negative-cases.php'):
+   with self.assertRaises(ValueError):reviewed_policy_fixture(ROOT,name,b'')
  def test_yaml_dependency_is_explicit_isolated_and_precedes_controls(self):
   import yaml
   steps=yaml.safe_load(FOCUSED.read_text())['jobs']['oauth-code-owner']['steps']

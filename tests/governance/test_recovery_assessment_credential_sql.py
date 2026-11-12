@@ -49,11 +49,15 @@ class AssessmentCredentialSQL(unittest.TestCase):
   # commits need not be reachable in a fresh GitHub checkout; immutable pins do.
   self.assertEqual(normalized_source_tree(ROOT),'3944b8003bb59a9b67f685df67acbd2354820b1c')
   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'rev-parse','4c2245300dc1d78d042b95190dd537eb6b1f9861:resources'],text=True).strip(),'fa7bf1dc07a23696de5fb22a9564f17259ecd33d')
-  import project_content_grant_source_delta as n05_delta
+  import project_description_admission_delta as n05_delta
   n05_delta.assert_production_cohort(ROOT)
   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','4c2245300dc1d78d042b95190dd537eb6b1f9861','--','resources'],text=True).splitlines(),['resources/sql/autopatches/20261110.project.contentgrants.sql'])
   for relative,pin in {'support/governance/native-organization/test-oauth-access-owner-mysql.php':'9f0a879c8a93de3db6ac45e3d3034604ae614be808f07b6f4c88ceda7fceefed','src/__phutil_library_map__.php':'397bc1b1f86ecd09bae57c2be333ab11c79c3915eee1fff8f9f4eaf3271bc4d3'}.items():
-   self.assertEqual(hashlib.sha256((ROOT/relative).read_bytes()).hexdigest(),pin)
+   raw=(ROOT/relative).read_bytes()
+   if relative=='src/__phutil_library_map__.php':
+    n05_delta.assert_current_recipe(ROOT)
+    raw=n05_delta.description.reconstruct_main(n05_delta.description.current_snapshot(ROOT))[relative]
+   self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
   driver='support/governance/native-organization/test-native-organization-mysql.php'
   pin='adc0a4016c22c836942905c2072ded5e52975932699e58971597edb52056b42a'
   self.assertEqual(hashlib.sha256(gate.source_view(driver,(ROOT/driver).read_bytes(),pin)).hexdigest(),pin)

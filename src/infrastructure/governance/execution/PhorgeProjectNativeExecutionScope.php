@@ -25,9 +25,20 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   private $cacheMissing;
   private $state='new';
   private $cleanupFailed=false;
+  // Request-local bookkeeping; not a physical transaction/session lease.
+  private $transactionOwnership='none';
+  private $transactionStateIdentity;
+  private $transactionGeneration;
   private $editor;
   private $configuration;
   private $plannedIdentities=array();
+  private $descriptionRequest;
+  private $descriptionTransaction;
+  private $descriptionGrant;
+  private $descriptionField;
+  private $descriptionOldValue;
+  private $descriptionOtherFields;
+  private $descriptionGroupID;
   private function __construct() {}
   private function __clone() {}
   public function __serialize() { throw new RuntimeException('project_execution_scope_serialization_refused'); }
@@ -36,7 +47,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
 
   public static function isSourceConnection(AphrontDatabaseConnection $conn) {
     $ref=idx(self::$active,spl_object_id($conn)); $scope=$ref?$ref->get():null;
-    return $scope!==null && $scope->connection===$conn &&
+    return $scope!==null && $scope->connection===$conn && $scope->transactionOwnership==='owned' && $scope->matchesTransactionFrame() &&
       in_array($scope->state,array('authorizing','open','consumed'),true) && $conn->isInsideTransaction();
   }
   public static function sourceDatabase(AphrontDatabaseConnection $conn,$table) {
@@ -49,7 +60,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     if (in_array(get_class($table),array(PhorgeOrganizationUnit::class,PhorgeOrganizationMember::class),true)) {
       $ref=self::$active[spl_object_id($conn)]??null;$scope=$ref?$ref->get():null;
-      if (!$scope || $scope->mode!=='history' || $scope->snapshot===null || !$scope->snapshot->isSystemAdmin()) {
+      if (!$scope || !in_array($scope->mode,array('history','content-description'),true) || $scope->snapshot===null || ($scope->mode==='history'&&!$scope->snapshot->isSystemAdmin())) {
         throw new RuntimeException('content_grant_team_source_scope_required');
       }
       PhorgeProjectContentGrantService::assertEnabled();
@@ -70,14 +81,16 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   }
 
   public static function open(PhorgeGovernanceNativeActorContext $context,
-    PhabricatorProject $object,$new_policy,$mode,$approval_id=null,$intent=null,?PhorgeProjectContentGrantPlan $content_plan=null) {
+    PhabricatorProject $object,$new_policy,$mode,$approval_id=null,$intent=null,?PhorgeProjectContentGrantPlan $content_plan=null,?PhorgeProjectDescriptionRequest $description_request=null) {
     if (!PhorgeProjectExecutionCatalog::enabled() ||
-        !in_array($mode,array('propose','approve','execute','history','self-join','self-leave'),true) ||
+        !in_array($mode,array('propose','approve','execute','history','self-join','self-leave','content-description'),true) ||
         get_class($object)!==PhabricatorProject::class || !$object->getID() ||
         !is_string($object->getPHID()) ||
         !preg_match('/\APHID-PROJ-[a-zA-Z0-9]{20}\z/',$object->getPHID())) {
       throw new RuntimeException('project_execution_profile_unsupported');
     }
+    if(($mode==='content-description')!==($description_request!==null) || ($description_request!==null && $description_request->getTargetPHID()!==$object->getPHID())) { throw new RuntimeException('description_scope_request_required'); }
+    if($mode==='content-description'&&($approval_id!==null||$intent!==null||$content_plan!==null)){throw new RuntimeException('description_scope_controls_refused');}
     $content_participants=array();
     if ($content_plan!==null) {
       PhorgeProjectContentGrantService::assertEnabled();
@@ -104,6 +117,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     PhorgeGovernanceNativeRuntimeProfile::assertCurrent();
     $scope=new self(); $scope->connection=$conn; $scope->context=$context;
+    $scope->descriptionRequest=$description_request;
     $scope->object=$object; $scope->newPolicy=$new_policy; $scope->intent=$intent; $scope->mode=$mode; $scope->approvalID=$approval_id;
     try {
       $ids=array_merge(array($context->getUserPHID()),$intent->getMembers(),$content_participants);
@@ -123,8 +137,11 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
       }
       $ids=array_unique($ids); sort($ids,SORT_STRING); $scope->plannedIdentities=$ids;
       queryfx($conn,'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
-      $conn->openTransaction(); $scope->state='authorizing';
       self::$active[spl_object_id($conn)]=WeakReference::create($scope);
+      $scope->transactionOwnership='starting';
+      try { $conn->openTransaction(); }
+      catch (Throwable $error) { $scope->transactionOwnership='unknown'; throw $error; }
+      $scope->transactionOwnership='owned';$scope->captureTransactionFrame(); $scope->state='authorizing';
       foreach ($ids as $id) { PhorgeGovernanceNativeIdentitySource::lockIdentityPHID($id,$conn); }
       $scope->snapshot=PhorgeGovernanceNativeIdentitySource::lockCurrent($context,$conn);
       $scope->actor=$scope->freshUser($scope->snapshot);
@@ -199,6 +216,8 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
           throw new RuntimeException('project_execution_native_membership_capability_required');
         }
         $scope->lockInverseMembership();
+      } else if ($mode==='content-description') {
+        $scope->authorizeDescription();
       } else if (!$scope->snapshot->isSystemAdmin()) {
         throw PhorgeProjectPolicyRefusalException::newForReason('current-approver');
       }
@@ -394,6 +413,11 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   /** Actual base-editor hook. A credentialless actor is never an executor. */
   public static function beginEditor(PhabricatorApplicationTransactionEditor $editor,
     PhabricatorLiskDAO $object,array $xactions) {
+    foreach($xactions as$x){
+      if(get_class($x)===PhabricatorProjectTransaction::class && $x->getTransactionType()==='governance:project-description'){
+        return PhorgeProjectDescriptionExecutor::beginEditor($editor,$object,$xactions);
+      }
+    }
     $decision=PhorgeProjectExecutionCatalog::decide($editor,$object,$xactions);
     if ($decision==='native') { return null; }
     if ($editor->getIsPreview() || $editor->getIsSilent() ||
@@ -443,6 +467,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   }
   public function beforeEffects(array $xactions) {
     $this->assertOpen();
+    if($this->mode==='content-description'){$this->beforeDescriptionEffects($xactions);return;}
     if($this->isMembership()){$this->authorizeMembershipEffects($xactions);return;}
     if ($this->state!=='open' || count($xactions)!==1 ||
         get_class($xactions[0])!==PhabricatorProjectTransaction::class ||
@@ -466,6 +491,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   public function beforeCommit(array $xactions) {
     $this->assertOpen();
     if ($this->state!=='consumed') { throw new RuntimeException('project_execution_consumption_required'); }
+    if($this->mode==='content-description'){$this->finishDescription($xactions);return;}
     if($this->isMembership()){$this->finishMembership($xactions);return;}
     $rows=$this->boundedRows(new PhabricatorProject(),qsprintf($this->connection,'id=%d',$this->object->getID()),1,true);
     $row=$rows?head($rows):null;
@@ -482,11 +508,240 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     PhorgeProjectPolicyApprovalStore::forScope($this)->finishNative($this->approvalID,$xactions);
   }
+  private function descriptionRows() {
+    $storage=new PhabricatorProjectCustomFieldStorage();
+    if($storage->establishConnection('w')!==$this->connection){throw new RuntimeException('description_storage_primary_refused');}
+    $table=$storage->getTableName();
+    queryfx_one($this->connection,'SELECT id FROM %T WHERE 1=0 LOCK IN SHARE MODE',$table);
+    $engine=queryfx_one($this->connection,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s',$table);
+    if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('description_storage_engine_refused');}
+    $rows=queryfx_all($this->connection,'SELECT id,objectPHID,fieldIndex,CASE WHEN OCTET_LENGTH(fieldValue)<=65536 THEN fieldValue ELSE NULL END fieldValue,OCTET_LENGTH(fieldValue) fieldBytes FROM %T WHERE objectPHID=%s ORDER BY fieldIndex LIMIT 65 FOR UPDATE',$table,$this->object->getPHID());
+    if(count($rows)>64){throw new RuntimeException('description_storage_budget');}
+    foreach($rows as$row){if($row['fieldValue']===null||PhorgeProjectDescriptionRequest::unsigned($row['fieldBytes'])>65536){throw new RuntimeException('description_storage_budget');}}
+    return$rows;
+  }
+  private function descriptionGrantRow() {
+    PhorgeProjectContentGrantService::assertEnabled();$r=$this->descriptionRequest;$c=$this->connection;
+    foreach(array('governance_contentgrant'=>'grantID','governance_contentapproval'=>'approvalID','governance_contentaudit'=>'id')as$t=>$key){
+      queryfx_one($c,'SELECT %C FROM %T WHERE 1=0 LOCK IN SHARE MODE',$key,$t);
+      $engine=queryfx_one($c,'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=%s',$t);
+      if(!$engine||$engine['ENGINE']!=='InnoDB'){throw new RuntimeException('description_grant_schema_required');}
+    }
+    $row=queryfx_one($c,'SELECT grantID,targetPHID,operation,subjectKind,subjectID,validFrom,validUntil,revokedAt,version FROM governance_contentgrant WHERE grantID=%s LOCK IN SHARE MODE',$r->getGrantID());
+    $now=(int)queryfx_one($c,'SELECT UNIX_TIMESTAMP() n')['n'];
+    PhorgeProjectDescriptionRequest::requireGrantFields($row,$r,$this->snapshot->getUserPHID(),$now);
+    if($row['subjectKind']==='user'){
+      if($row['subjectID']!==$this->snapshot->getUserPHID()){throw new RuntimeException('description_explicit_user_required');}
+    }else if($row['subjectKind']==='business-team'){
+      $membership=PhorgeProjectContentSource::directMembership($this,$row['subjectID'],$this->snapshot->getUserPHID());
+      if($membership['observed_direct_member']!==true){throw new RuntimeException('description_direct_team_member_required');}
+      $row['membership_digest']=$membership['source_digest'];
+    }else{throw new RuntimeException('description_subject_kind_refused');}
+    // The persisted grant must be backed by the actually applied dual-admin
+    // request and its append-only grant audit, not an incoming approval flag.
+    $audit=queryfx_all($c,'SELECT approvalID,actorPHID FROM governance_contentaudit WHERE grantID=%s AND targetPHID=%s AND action=%s ORDER BY id LIMIT 2 LOCK IN SHARE MODE',$r->getGrantID(),$r->getTargetPHID(),'granted');
+    if(count($audit)!==1){throw new RuntimeException('description_grant_provenance_required');}
+    $a=queryfx_one($c,'SELECT approvalID,targetPHID,CASE WHEN OCTET_LENGTH(bindingJSON)<=65536 THEN bindingJSON ELSE NULL END bindingJSON,bindingDigest,state,CASE WHEN OCTET_LENGTH(approverBindingJSON)<=65536 THEN approverBindingJSON ELSE NULL END approverBindingJSON,appliedAt,version FROM governance_contentapproval WHERE approvalID=%s LOCK IN SHARE MODE',$audit[0]['approvalID']);
+    if(!$a||$a['state']!=='applied'||(string)$a['version']!=='2'||!is_string($a['bindingJSON'])||strlen($a['bindingJSON'])>65536||
+       !is_string($a['approverBindingJSON'])||strlen($a['approverBindingJSON'])>65536||$a['targetPHID']!==$r->getTargetPHID()){
+      throw new RuntimeException('description_applied_approval_required');
+    }
+    $b=json_decode($a['bindingJSON'],true,16,JSON_THROW_ON_ERROR);$approver=json_decode($a['approverBindingJSON'],true,16,JSON_THROW_ON_ERROR);
+    $keys=is_array($b)?array_keys($b):array();sort($keys,SORT_STRING);
+    if($keys!==array('grantExpiresAt','grantID','issuedAt','request','requester','sources','subject','ticketExpiresAt')||
+       PhorgeProjectExecutionValue::canonical($b)!==$a['bindingJSON']||PhorgeProjectExecutionValue::canonical($approver)!==$a['approverBindingJSON']){
+      throw new RuntimeException('description_approval_shape_refused');
+    }
+    $request=PhorgeProjectContentGrantRequest::stored($b['request']);
+    if(PhorgeProjectExecutionValue::digest($b)!==$a['bindingDigest']||$b['grantID']!==$r->getGrantID()||
+       $request['action']!=='grant'||$request['target_phid']!==$row['targetPHID']||$request['subject_kind']!==$row['subjectKind']||
+       $request['subject_id']!==$row['subjectID']||$b['grantExpiresAt']!==PhorgeProjectDescriptionRequest::unsigned($row['validUntil'])||
+       !PhorgeGovernanceOrganizationRequest::userID($b['requester']['userPHID']??null)||
+       !PhorgeGovernanceOrganizationRequest::userID($approver['userPHID']??null)||
+       $approver['userPHID']===$b['requester']['userPHID']||$audit[0]['actorPHID']!==$approver['userPHID']||
+       PhorgeProjectDescriptionRequest::unsigned($a['appliedAt'])!==PhorgeProjectDescriptionRequest::unsigned($row['validFrom'])) {
+      throw new RuntimeException('description_dual_admin_binding_required');
+    }
+    $row['approval_digest']=self::digest(array($a,$audit));return$row;
+  }
+  private function authorizeDescription() {
+    $this->descriptionGrant=$this->descriptionGrantRow();
+    $field=PhabricatorCustomField::getObjectField($this->object,PhabricatorCustomField::ROLE_APPLICATIONTRANSACTIONS,PhorgeProjectDescriptionExecutor::FIELD);
+    if(!$field||!$field->shouldAppearInApplicationTransactions()||
+       !$field->shouldEnableForRole(PhabricatorCustomField::ROLE_EDIT)||!$field->shouldEnableForRole(PhabricatorCustomField::ROLE_STORAGE)||
+       get_class($field->newStorageObject())!==PhabricatorProjectCustomFieldStorage::class){throw new RuntimeException('description_native_field_required');}
+    $field->setViewer($this->actor);$this->descriptionField=$field;$value=null;$others=array();
+    foreach($this->descriptionRows()as$row){
+      if($row['fieldIndex']===$field->getFieldIndex()){$value=$row['fieldValue'];}
+      else{$others[]=$row;}
+    }
+    $field->setValueFromStorage($value);$field->didSetValueFromStorage();$this->descriptionOldValue=$field->getOldValueForApplicationTransactions();
+    if(!hash_equals($this->descriptionRequest->getExpectedDigest(),self::digest($this->descriptionOldValue))){throw new RuntimeException('description_stale_value');}
+    if($this->descriptionOldValue===$this->descriptionRequest->getDescription()){throw new RuntimeException('description_no_effect');}
+    $this->descriptionOtherFields=self::digest($others);
+  }
+  public function bindDescriptionEditor($editor,$transaction) {
+    if($this->mode!=='content-description'||$this->state!=='open'||$this->editor!==null||
+       get_class($editor)!==PhabricatorProjectTransactionEditor::class||get_class($transaction)!==PhabricatorProjectTransaction::class||
+       (new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'transactionGroupID'))->getValue($editor)!==null||
+       (new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'projectGovernanceEffectsNonce'))->getValue($editor)!==null||
+       array_key_exists('core.groupID',$transaction->getMetadata())){throw new RuntimeException('description_editor_binding_refused');}
+    $this->editor=$editor;$this->descriptionTransaction=$transaction;
+  }
+  public function assertDescriptionTransaction($xaction) {
+    if($this->mode!=='content-description'||$this->descriptionRequest===null||
+       $xaction!==$this->descriptionTransaction||$xaction->getTransactionType()!==PhorgeProjectDescriptionExecutor::TYPE||
+       $xaction->getNewValue()!==$this->descriptionRequest->getDescription()||$xaction->getComment()!==null) {
+      throw new RuntimeException('description_transaction_binding_refused');
+    }
+    $this->assertDescriptionMetadata($xaction);
+    $this->assertOpen();
+  }
+  /** Native metadata changes only after this exact editor enters effects.
+   * Read the existing private group value: never allocate one or accept a caller
+   * supplied group merely because it has the native string format.
+   */
+  private function assertDescriptionMetadata($xaction) {
+    if($this->editor===null||get_class($this->editor)!==PhabricatorProjectTransactionEditor::class||
+       !in_array($this->state,array('open','consumed'),true)){
+      throw new RuntimeException('description_native_metadata_phase_required');
+    }
+    $m=$xaction->getMetadata();$mfa=$xaction->getMetadataValue('core.mfa');unset($m['core.mfa']);
+    $group=(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'transactionGroupID'))->getValue($this->editor);
+    $nonce=(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'projectGovernanceEffectsNonce'))->getValue($this->editor);
+    if($this->state==='consumed'&&($this->effectsNonce===null||$nonce!==$this->effectsNonce)){
+      throw new RuntimeException('description_native_metadata_phase_required');
+    }
+    if($group!==null){
+      if($this->state!=='consumed'||!is_string($group)||!preg_match('/\A[a-z2-7]{32}\z/D',$group)||
+         !array_key_exists('core.groupID',$m)||$m['core.groupID']!==$group||
+         ($this->descriptionGroupID!==null&&$this->descriptionGroupID!==$group)){
+        throw new RuntimeException('description_native_group_binding_refused');
+      }
+      unset($m['core.groupID']);
+    }else if(array_key_exists('core.groupID',$m)||$this->descriptionGroupID!==null){
+      throw new RuntimeException('description_native_group_binding_refused');
+    }
+    if($m!==array('customfield:key'=>PhorgeProjectDescriptionExecutor::FIELD)||($mfa!==null&&$mfa!==true)){
+      throw new RuntimeException('description_transaction_metadata_refused');
+    }
+    if($group!==null){$this->descriptionGroupID=$group;}
+  }
+  public function getDescriptionField($xaction) {
+    $this->assertDescriptionTransaction($xaction);
+    if($this->descriptionField===null||$this->descriptionField->getObject()!==$this->object){
+      throw new RuntimeException('description_field_identity_changed');
+    }
+    $this->descriptionField->setViewer($this->actor);return$this->descriptionField;
+  }
+  private function beforeDescriptionEffects(array $xactions) {
+    if(count($xactions)!==1||$this->state!=='open'){throw new RuntimeException('description_expanded_closure_refused');}
+    $this->assertDescriptionTransaction($xactions[0]);
+    if($xactions[0]->getAuthorPHID()!==$this->snapshot->getUserPHID()||
+       self::digest($this->descriptionGrantRow())!==self::digest($this->descriptionGrant)) {
+      throw new RuntimeException('description_grant_source_changed');
+    }
+    $nonce=(new ReflectionProperty(PhabricatorApplicationTransactionEditor::class,'projectGovernanceEffectsNonce'))->getValue($this->editor);
+    if(!is_string($nonce)||!preg_match('/\A[a-f0-9]{32}\z/D',$nonce)){
+      throw new RuntimeException('description_native_metadata_phase_required');
+    }
+    $this->effectsNonce=$nonce;$this->state='consumed';
+  }
+  private function finishDescription(array $xactions) {
+    if(count($xactions)!==1){throw new RuntimeException('description_final_closure_refused');}
+    $this->assertDescriptionTransaction($xactions[0]);
+    if(self::digest($this->descriptionGrantRow())!==self::digest($this->descriptionGrant)){throw new RuntimeException('description_grant_source_changed');}
+    $rows=$this->boundedRows(new PhabricatorProject(),qsprintf($this->connection,'id=%d',$this->object->getID()),1,true);$row=$rows?head($rows):null;
+    if(!$row){throw new RuntimeException('description_target_missing');}$row['dateModified']=$this->oldRow['dateModified'];
+    if(self::digest($row)!==self::digest($this->oldRow)){throw new RuntimeException('description_unplanned_project_change');}
+    $other=array();$stored=null;
+    foreach($this->descriptionRows()as$value){if($value['fieldIndex']===$this->descriptionField->getFieldIndex()){$stored=$value['fieldValue'];}else{$other[]=$value;}}
+    if(self::digest($other)!==$this->descriptionOtherFields||$stored!==$this->descriptionField->getValueForStorage()||
+       $this->descriptionField->getNewValueForApplicationTransactions()!==$this->descriptionRequest->getDescription()) {
+      throw new RuntimeException('description_storage_postcondition_failed');
+    }
+    $edges=queryfx_all($this->connection,'SELECT src,dst,type,dateCreated,seq,dataID FROM edge WHERE src=%s AND type IN (%Ld) ORDER BY type,dst LIMIT 257 LOCK IN SHARE MODE',$this->object->getPHID(),array(PhabricatorProjectProjectHasMemberEdgeType::EDGECONST,PhabricatorProjectMaterializedMemberEdgeType::EDGECONST));
+    if(self::digest($edges)!==$this->sources['members']){throw new RuntimeException('description_membership_changed');}
+    $this->requireNativeView($this->actor);
+    $audit=queryfx_one($this->connection,'SELECT approvalID FROM governance_contentaudit WHERE grantID=%s AND action=%s ORDER BY id LIMIT 1 LOCK IN SHARE MODE',$this->descriptionRequest->getGrantID(),'granted');
+    if(!$audit){throw new RuntimeException('description_audit_source_missing');}
+    queryfx($this->connection,'INSERT INTO governance_contentaudit (approvalID,grantID,targetPHID,actorPHID,action,createdAt) VALUES (%s,%s,%s,%s,%s,%d)',
+      $audit['approvalID'],$this->descriptionRequest->getGrantID(),$this->object->getPHID(),$this->snapshot->getUserPHID(),'description-updated',(int)queryfx_one($this->connection,'SELECT UNIX_TIMESTAMP() n')['n']);
+  }
+  /** Acknowledge only the original sealed Editor's one owned native rollback.
+   * A depth-zero frame alone is never ACK evidence. No other SQL is admitted.
+   */
+  public function rollbackDescriptionEditor($editor,$object) {
+    $trace=debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT|DEBUG_BACKTRACE_IGNORE_ARGS,2);
+    $frame=$trace[1]??array();
+    if(($frame['class']??null)!==PhabricatorApplicationTransactionEditor::class||
+       ($frame['function']??null)!=='applyTransactions'||($frame['object']??null)!==$editor){
+      $this->transactionOwnership='unknown';
+      throw new RuntimeException('description_native_rollback_scope_required');
+    }
+    $this->rollbackDescriptionOwnedFrame($editor,$object);
+  }
+  private function rollbackDescriptionOwnedFrame($editor,$object) {
+    // Validate before any DAO lookup: never route or roll back a foreign object.
+    try{
+      if($this->mode!=='content-description'||get_class($editor)!==PhabricatorProjectTransactionEditor::class||
+         $this->editor!==$editor||$this->object!==$object||get_class($object)!==PhabricatorProject::class||
+         !in_array($this->state,array('open','consumed'),true)||!$this->ownsReservation()||
+         $this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||
+         $this->transactionFrame()!==array(1,0,0)||$object->establishConnection('w')!==$this->connection){
+        throw new RuntimeException('description_native_rollback_scope_required');
+      }
+    }catch(Throwable $error){$this->transactionOwnership='unknown';throw$error;}
+    // Native kill decrements depth BEFORE issuing ROLLBACK. Any exception,
+    // including lost ACK at depth zero, therefore remains locally unknown.
+    $this->transactionOwnership='unknown';
+    $this->connection->killTransaction();
+    if(!$this->ownsReservation()||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0)){
+      throw new RuntimeException('description_native_rollback_scope_required');
+    }
+    $this->transactionOwnership='rolled-back';
+  }
+  /** Observe only the sealed native policy Editor's own rollback ACK.
+   * The legacy Editor owns this rollback, not a later cleanup depth guess.
+   */
+  public function rollbackPolicyEditor($editor,$object) {
+    $trace=debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT|DEBUG_BACKTRACE_IGNORE_ARGS,2);
+    $frame=$trace[1]??array();
+    if(($frame['class']??null)!==PhabricatorApplicationTransactionEditor::class||
+       ($frame['function']??null)!=='applyTransactions'||($frame['object']??null)!==$editor){
+      $this->transactionOwnership='unknown';
+      throw new RuntimeException('project_native_rollback_scope_required');
+    }
+    $this->rollbackPolicyOwnedFrame($editor,$object);
+  }
+  private function rollbackPolicyOwnedFrame($editor,$object) {
+    try{
+      if(!in_array($this->mode,array('execute','self-join','self-leave'),true)||
+         get_class($editor)!==PhabricatorProjectTransactionEditor::class||
+         $this->editor!==$editor||$this->object!==$object||get_class($object)!==PhabricatorProject::class||
+         !in_array($this->state,array('open','consumed'),true)||!$this->ownsReservation()||
+         $this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||
+         $this->transactionFrame()!==array(1,0,0)||$object->establishConnection('w')!==$this->connection){
+        throw new RuntimeException('project_native_rollback_scope_required');
+      }
+    }catch(Throwable $error){$this->transactionOwnership='unknown';throw$error;}
+    $mode=$this->mode;$scope_state=$this->state;
+    // Native kill decrements depth before its SQL ACK. Lost ACK, a changed
+    // state/generation or a nested/foreign frame can never certify cleanup.
+    $this->transactionOwnership='unknown';
+    $this->connection->killTransaction();
+    if(!$this->ownsReservation()||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0)||
+       $this->transactionOwnership!=='unknown'||$this->mode!==$mode||$this->state!==$scope_state||
+       $this->editor!==$editor||$this->object!==$object||$object->establishConnection('w')!==$this->connection){
+      throw new RuntimeException('project_native_rollback_scope_required');
+    }
+    $this->transactionOwnership='rolled-back';
+  }
   public function didCommit() {
-    if ($this->connection->isInsideTransaction() || $this->state!=='consumed') {
+    if (!$this->ownsReservation()||$this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0) || $this->state!=='consumed') {
       throw new RuntimeException('project_execution_real_commit_required');
     }
-    $this->state='committed';
+    $this->transactionOwnership='committed';$this->state='committed';
   }
   public static function assertProjectSave(PhabricatorProject $object) {
     if (!self::guardEnabled()) { return; }
@@ -505,6 +760,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     }
     if (!$changed) { return; }
     $ref=idx(self::$active,spl_object_id($conn)); $scope=$ref?$ref->get():null;
+    if($scope!==null&&$scope->mode==='content-description'){throw new RuntimeException('description_direct_security_save_refused');}
     if (!$scope || $scope->isMembership() || $scope->state!=='consumed' || $scope->object!==$object ||
         $changed!==array($scope->intent->getPolicyField()) ||
         ($scope->intent->isViewPolicy()?$object->getViewPolicy():$object->getEditPolicy())!==$scope->newPolicy) {
@@ -742,7 +998,7 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
   public function getSources() { return $this->sources; }
   public function getApprovalID() { return $this->approvalID; }
   public function assertOpen() {
-    if (!self::isSourceConnection($this->connection)) { throw new RuntimeException('project_execution_scope_ended'); }
+    if (!$this->ownsReservation()||$this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||!self::isSourceConnection($this->connection)) { throw new RuntimeException('project_execution_scope_ended'); }
     if ($this->configuration!==null) { $this->configuration->assertCurrent(); }
     PhorgeGovernanceNativeIdentitySource::revalidate($this->snapshot,$this->connection);
   }
@@ -750,42 +1006,98 @@ final class PhorgeProjectNativeExecutionScope extends Phobject {
     if (!in_array($this->mode,array('propose','approve','history'),true)) {
       throw new RuntimeException('project_execution_native_editor_commit_required');
     }
-    $this->assertOpen(); $this->connection->saveTransaction(); $this->state='committed';
+    if(!$this->ownsReservation()||$this->transactionOwnership!=='owned'||!$this->matchesTransactionFrame()||
+       $this->transactionFrame()!==array(1,0,0)){throw new RuntimeException('project_execution_real_commit_required');}
+    $this->assertOpen();
+    try { $this->connection->saveTransaction(); }
+    catch (Throwable $error) { $this->transactionOwnership='unknown'; throw $error; }
+    if(!$this->ownsReservation()||!$this->matchesTransactionFrame()||$this->transactionFrame()!==array(0,0,0)){$this->transactionOwnership='unknown';throw new RuntimeException('project_execution_real_commit_required');}
+    $this->transactionOwnership='committed';$this->state='committed';
+  }
+  private function ownsReservation() {
+    if($this->connection===null){return false;}
+    $ref=self::$active[spl_object_id($this->connection)]??null;
+    return $ref!==null&&$ref->get()===$this;
+  }
+  private function captureTransactionFrame() {
+    $state=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($this->connection);
+    if($state===null||get_class($state)!==AphrontDatabaseTransactionState::class||$state->getDepth()!==1||
+       !is_int($state->getGeneration())||$state->getGeneration()<1){
+      $this->transactionOwnership='unknown';throw new RuntimeException('project_execution_real_commit_required');
+    }
+    $this->transactionStateIdentity=$state;$this->transactionGeneration=$state->getGeneration();
+  }
+  private function matchesTransactionFrame() {
+    if($this->connection===null||$this->transactionStateIdentity===null){return false;}
+    $state=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($this->connection);
+    return $state===$this->transactionStateIdentity&&get_class($state)===AphrontDatabaseTransactionState::class&&
+      $state->getGeneration()===$this->transactionGeneration;
+  }
+  private function transactionFrame() {
+    $state=(new ReflectionProperty(AphrontDatabaseConnection::class,'transactionState'))->getValue($this->connection);
+    if($state===null){return array(0,0,0);}
+    if(get_class($state)!==AphrontDatabaseTransactionState::class){throw new RuntimeException('project_execution_scope_cleanup_failed');}
+    return array($state->getDepth(),
+      (new ReflectionProperty(AphrontDatabaseTransactionState::class,'readLockLevel'))->getValue($state),
+      (new ReflectionProperty(AphrontDatabaseTransactionState::class,'writeLockLevel'))->getValue($state));
   }
   public function close() {
-    if ($this->state==='closed') {
-      if ($this->cleanupFailed) { throw new RuntimeException('project_execution_scope_cleanup_failed'); }
+    if($this->state==='closed'||$this->state==='quarantined'){
+      if($this->cleanupFailed){throw new RuntimeException('project_execution_scope_cleanup_failed');}
       return;
     }
-    // No connection/lock existed on entry. Only this invocation's Project
-    // connection stack and modes are owned here, including nested Error paths.
-    $this->state='closed'; $failed=false;
-    if($this->membershipEdgeEditor!==null){unset(self::$membershipEdgeWrites[$this->membershipEdgeEditor]);}
-    if ($this->connection!==null) {
-      foreach (array('read','write','transaction') as $kind) {
-        try {
-          $steps=0;
-          while ($kind==='read'?$this->connection->isReadLocking():
-              ($kind==='write'?$this->connection->isWriteLocking():$this->connection->isInsideTransaction())) {
-            if (++$steps>64) { throw new RuntimeException('project_execution_scope_cleanup_failed'); }
-            if ($kind==='read') { $this->connection->endReadLocking(); }
-            else if ($kind==='write') { $this->connection->endWriteLocking(); }
-            else { $this->connection->killTransaction(); }
+    $unknown=false;$owner=$this->ownsReservation();
+    if($this->membershipEdgeEditor!==null){
+      $entry=self::$membershipEdgeWrites[$this->membershipEdgeEditor]??null;
+      if($entry!==null&&$entry[1]->get()===$this){unset(self::$membershipEdgeWrites[$this->membershipEdgeEditor]);}
+    }
+    if($this->connection!==null){
+      if($owner&&$this->transactionOwnership==='owned'){
+        try{
+          list($depth,$read,$write)=$this->transactionFrame();
+          // Unknown/nested/replaced frames are never while-unwound. A depth-zero
+          // native Editor rollback has no ACK receipt here and stays unknown.
+          if(!$this->matchesTransactionFrame()||$depth!==1||!in_array($read,array(0,1),true)||!in_array($write,array(0,1),true)){
+            throw new RuntimeException('project_execution_scope_cleanup_failed');
           }
-        } catch (Throwable $error) { $failed=true; }
+          if($read===1){$this->connection->endReadLocking();}
+          if($write===1){$this->connection->endWriteLocking();}
+          $this->connection->killTransaction();
+          if($this->transactionFrame()!==array(0,0,0)){throw new RuntimeException('project_execution_scope_cleanup_failed');}
+          $this->transactionOwnership='rolled-back';
+        }catch(Throwable $error){$unknown=true;$this->transactionOwnership='unknown';}
+      }elseif(in_array($this->transactionOwnership,array('owned','starting','unknown'),true)){
+        $unknown=true;
       }
-      unset(self::$active[spl_object_id($this->connection)]);
+      // A known committed transaction is retired. Never touch subsequent
+      // transaction/lock state, even while our reservation remains until close.
     }
-    foreach ($this->cachePrior as $key=>$value) {
-      try {
-        if ($value===$this->cacheMissing) { $this->cache->deleteKeys(array($key)); }
-        else { $this->cache->setKey($key,$value); }
-      } catch (Throwable $error) { $failed=true; }
+    if($owner&&!$unknown&&$this->cachePrior){
+      $current=(new ReflectionProperty(PhabricatorCaches::class,'requestCache'))->getValue();
+      if($this->cache===null||$current!==$this->cache){$unknown=true;}
+      else{
+        foreach($this->cachePrior as$key=>$value){
+          if(!$this->ownsReservation()){$unknown=true;break;}
+          try{
+            if($value===$this->cacheMissing){$this->cache->deleteKeys(array($key));}
+            else{$this->cache->setKey($key,$value);}
+          }catch(Throwable $error){$unknown=true;}
+        }
+      }
     }
-    try { if ($this->fence!==null) { $this->fence->release(); } }
-    catch (Throwable $error) { $failed=true; }
-    $this->cleanupFailed=$failed;
-    if ($failed) { throw new RuntimeException('project_execution_scope_cleanup_failed'); }
+    // This fence owns a separate private SELECT-only connection, never the
+    // writer or another scope's fence. Release it independently, preserving a
+    // pending primary exception via PHP's finally/previous exception chain.
+    try{if($this->fence!==null){$this->fence->release();$this->fence=null;}}
+    catch(Throwable $error){$unknown=true;}
+    if($unknown){
+      $this->state='quarantined';$this->cleanupFailed=true;
+      // Keep an owned reservation. Even after WeakRef expiry, isset blocks
+      // this process's connection object; this is not durable quarantine.
+      throw new RuntimeException('project_execution_scope_cleanup_failed');
+    }
+    if($this->ownsReservation()){unset(self::$active[spl_object_id($this->connection)]);}
+    $this->state='closed';$this->cleanupFailed=false;
   }
   public function __destruct() { try { $this->close(); } catch (Throwable $ignored) {} }
 }

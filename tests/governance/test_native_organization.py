@@ -50,6 +50,85 @@ def template():
 
 
 class NativeOrganizationEvidenceTest(unittest.TestCase):
+    def test_actual_nested_helper_terminal_summary_matches_strict_gate(self):
+        # Parse the actual producer's terminal literal without including or
+        # executing its SQL/process function. Only a flat scalar PHP array is
+        # permitted, so this cannot execute fixture setup or an arbitrary call.
+        helper = ROOT/'support/governance/native-execution/project-policy-nested-process.php'
+        parser = r"""
+        $src=file_get_contents($argv[1]);$pos=strrpos($src,"\n  return array(");
+        if($pos===false||!preg_match('/\A\n  return (array\(.*\));\n}\n\z/s',substr($src,$pos),$m)||strlen($m[1])>4096){exit(2);}
+        $tokens=array_values(array_filter(token_get_all('<?php return '.$m[1].';'),
+          static fn($t)=>!(is_array($t)&&in_array($t[0],array(T_OPEN_TAG,T_WHITESPACE),true))));
+        $at=0;$take=function()use(&$at,$tokens){if(!array_key_exists($at,$tokens)){exit(3);}return $tokens[$at++];};
+        $kind=function($t,$type){return is_array($t)&&$t[0]===$type;};
+        $string=function($t)use($kind){
+          if(!$kind($t,T_CONSTANT_ENCAPSED_STRING)||!preg_match("/\\A'[a-z_]{1,128}'\\z/D",$t[1])){exit(4);}
+          return substr($t[1],1,-1);
+        };
+        if(!$kind($take(),T_RETURN)||!$kind($take(),T_ARRAY)||$take()!=='('){exit(5);}
+        $value=array();
+        while(true){
+          $t=$take();if($t===')'){break;}$key=$string($t);
+          if(array_key_exists($key,$value)||!$kind($take(),T_DOUBLE_ARROW)){exit(6);}
+          $t=$take();
+          if($kind($t,T_STRING)&&in_array($t[1],array('true','false'),true)){$v=$t[1]==='true';}
+          else{$v=$string($t);}
+          $value[$key]=$v;$next=$take();
+          if($next===')'){break;}if($next!==','){exit(7);}
+        }
+        if($take()!==';'||$at!==count($tokens)){exit(8);}
+        echo json_encode($value,JSON_THROW_ON_ERROR);
+        """
+        actual = json.loads(subprocess.check_output(['php','-r',parser,str(helper)], text=True, timeout=5))
+        with tempfile.TemporaryDirectory(prefix='native-summary-parser-') as folder:
+            candidate = Path(folder)/'synthetic.php'
+            marker = Path(folder)/'owned_marker'
+            marker.write_text('must remain')
+            for expression in [
+                "array('x'=>('unlink')('"+str(marker)+"'))",
+                "array('x'=>true,'x'=>false)",
+                "array('x'=>array('y'=>true))",
+            ]:
+                with self.subTest(refused_literal=expression.split('(', 1)[0]):
+                    candidate.write_text('<?php\nfunction synthetic() {\n  return '+expression+';\n}\n')
+                    refused = subprocess.run(['php','-r',parser,str(candidate)], capture_output=True, timeout=5)
+                    self.assertNotEqual(0, refused.returncode)
+                    self.assertTrue(marker.is_file(), 'literal parsing must never execute a dynamic call')
+        data = template()
+        negative = data['native']['project_execution_tests']['negative_cases']
+        negative['nested_unknown'] = actual
+        self.assertEqual(936, validate(data, file_digest='b'*64)['check_count'])
+        self.assertEqual(7, len(actual))
+        for key, value in actual.items():
+            with self.subTest(field=key):
+                bad = copy.deepcopy(data)
+                bad['native']['project_execution_tests']['negative_cases']['nested_unknown'][key] = (
+                    not value if isinstance(value, bool) else 'unmeasured-or-all-worker-tables')
+                with self.assertRaises(ValueError):
+                    validate(bad, file_digest='b'*64)
+        missing = copy.deepcopy(data)
+        del missing['native']['project_execution_tests']['negative_cases']['nested_unknown']
+        with self.assertRaises(ValueError):
+            validate(missing, file_digest='b'*64)
+
+    def test_policy_unknown_nested_and_noop_evidence_cannot_be_omitted(self):
+        obligations = {
+            'project-approval-actual-native-nested-update-error-quarantines-without-savepoint-guess',
+            'project-approval-native-nested-error-isolated-uncommitted-while-child-quarantined',
+            'project-approval-native-nested-error-child-terminal-transaction-gone-and-no-commit',
+            'project-approval-noop-replay-preserves-consumed-ticket-and-owned-frame',
+        }
+        self.assertTrue(obligations <= gate.REQUIRED_CHECKS)
+        for name in obligations:
+            with self.subTest(name=name):
+                data = template()
+                data['checks'].remove(name)
+                data['check_count'] -= 1
+                with self.assertRaises(ValueError):
+                    validate(data, file_digest='b'*64)
+
+
     def test_governance_notice_cannot_drop_sources_attempt_checks_or_promote_transport(self):
         self.assertEqual(36,len(gate.GOVERNANCE_NOTICE_CHECKS))
         for name in gate.GOVERNANCE_NOTICE_CHECKS:
@@ -313,7 +392,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError): validate(data, file_digest='b'*64)
 
     def test_current_recovery_restore_profile_refuses_old_counts_and_missing_migration(self):
-        self.assertEqual(934, validate(template(), file_digest='b'*64)['check_count'])
+        self.assertEqual(936, validate(template(), file_digest='b'*64)['check_count'])
         for value in (540, True, '543', 544):
             data=template();data['source_restore']['current_table_count']=value
             with self.subTest(table_count=value), self.assertRaises(ValueError):
@@ -427,7 +506,7 @@ class NativeOrganizationEvidenceTest(unittest.TestCase):
 
     def test_all_successor_checks_are_mandatory(self):
         self.assertEqual(len(gate.NOTIFICATION_BOUNDARY_CHECKS),21)
-        self.assertEqual(len(gate.REQUIRED_CHECKS),934)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),936)
         for name in gate.NOTIFICATION_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):
@@ -528,7 +607,7 @@ class NativePolicyErrorRouteGateTest(unittest.TestCase):
 
 class NativeMeasurementGateTest(unittest.TestCase):
     def test_missing_producer_checks_or_workers_cannot_pass(self):
-        self.assertEqual(len(gate.REQUIRED_CHECKS),934)
+        self.assertEqual(len(gate.REQUIRED_CHECKS),936)
         for check in gate.MEASUREMENT_CHECKS:
             data=template();data['checks'].remove(check);data['check_count']-=1
             with self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -581,7 +660,7 @@ class NativeTokenMeasurementGateTest(unittest.TestCase):
 class StopBoundaryEvidenceTest(unittest.TestCase):
     def test_only_complete_bound_fixture_obligations_can_satisfy_summary(self):
         self.assertEqual(15,len(gate.STOP_BOUNDARY_CHECKS))
-        self.assertEqual(934,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(936,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.STOP_BOUNDARY_CHECKS:
             data=template();data['checks'].remove(name);data['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(data,file_digest='b'*64)
@@ -612,7 +691,7 @@ class NativeHTTPMeasurementGateTest(unittest.TestCase):
 class RecoveryNativeProducerGateTest(unittest.TestCase):
     def test_selected_producer_checks_and_non_authority_are_mandatory(self):
         self.assertEqual(20,len(gate.RECOVERY_NATIVE_PRODUCER_CHECKS))
-        self.assertEqual(934,validate(template(),file_digest='b'*64)['check_count'])
+        self.assertEqual(936,validate(template(),file_digest='b'*64)['check_count'])
         for name in gate.RECOVERY_NATIVE_PRODUCER_CHECKS:
             value=template();value['checks'].remove(name);value['check_count']-=1
             with self.subTest(name=name),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
@@ -624,3 +703,145 @@ class RecoveryNativeProducerGateTest(unittest.TestCase):
             with self.subTest(key=key),self.assertRaises(ValueError):validate(value,file_digest='b'*64)
         value=template();value['worker_cleanup']['workers_registered']=38
         with self.assertRaises(ValueError):validate(value,file_digest='b'*64)
+
+
+# Native policy fixture source views: pure byte projections, never execution.
+import ast as _policy_ast
+from unittest.mock import patch as _policy_patch
+sys.path.insert(0, str(ROOT/'scripts/governance'))
+import recovery_conduit_source_delta as _policy_delta
+import check_private_calendar_reminders as _policy_calendar
+import check_recovery_assessment_credentials_v2 as _policy_assessment
+import check_recovery_file_parent_policy as _policy_fileparent
+
+_POLICY_DRIVER = 'support/governance/native-organization/test-native-organization-mysql.php'
+_POLICY_CURRENT = 'f1c157e44a1eeca49529929f099fb5c57bcbbddc'
+_POLICY_PRIOR = 'b93916d8a2beb4a9ab28ea1769692c0839cfc60b'
+_POLICY_HISTORICAL = '20b138b4cd9a2cf61522613b4a8e5e21eca7341b'
+_POLICY_CALENDAR_MAIN = 'e804125e8ad0b716cbbbba59818fb140691bf4f0'
+_POLICY_CONDUIT_BASE = 'c496e2cf0ae25fb3e5153c6a1070eb53cf56b504'
+
+
+def _policy_git_bytes(ref, path=_POLICY_DRIVER):
+    return subprocess.check_output(['/usr/bin/git', '--no-replace-objects', '-C', str(ROOT), 'show', ref+':'+path])
+
+
+def _policy_literal(raw, name):
+    return _policy_ast.literal_eval(next(n.value for n in _policy_ast.parse(raw).body
+                                if isinstance(n, _policy_ast.Assign) and isinstance(n.targets[0], _policy_ast.Name)
+                                and n.targets[0].id == name))
+
+
+class NativePolicyDriverSourceViewTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.current = _policy_git_bytes(_POLICY_CURRENT)
+        cls.prior = _policy_git_bytes(_POLICY_PRIOR)
+
+    def test_exact_signed_source_driver_to_whole_prior_git_object(self):
+        self.assertEqual(39959, len(self.current))
+        self.assertEqual(_policy_delta.POLICY_CLEANUP_DRIVER_SHA256, hashlib.sha256(self.current).hexdigest())
+        self.assertEqual(39675, len(self.prior))
+        self.assertEqual(self.prior, _policy_git_bytes(_POLICY_HISTORICAL))
+        self.assertEqual(self.prior, _policy_delta.reduce_policy_cleanup_driver(self.current))
+        self.assertEqual(self.prior, _policy_delta.reduce_policy_cleanup_driver(self.prior))
+        self.assertEqual(1, self.current.count(_policy_delta.POLICY_CLEANUP_DRIVER_ADDITION))
+        self.assertEqual(self.prior, self.current.replace(_policy_delta.POLICY_CLEANUP_DRIVER_ADDITION, b'', 1))
+
+    def test_existing_calendar_and_conduit_whole_git_inverses_preserved(self):
+        for raw in (self.current, self.prior):
+            with self.subTest(size=len(raw)):
+                self.assertEqual(_policy_git_bytes(_POLICY_CALENDAR_MAIN), _policy_delta.reduce_calendar_wire_union(raw))
+                self.assertEqual(_policy_git_bytes(_POLICY_CONDUIT_BASE), _policy_delta.reduce_driver(raw))
+                self.assertEqual(_policy_git_bytes(_POLICY_CONDUIT_BASE), _policy_calendar.reduce_reviewed_calendar_wire_driver(raw))
+
+    def test_calendar_pre_guard_preserves_exact_historical_source_map(self):
+        path = 'scripts/governance/check_private_calendar_reminders.py'
+        self.assertEqual(_policy_literal(_policy_git_bytes(_POLICY_CURRENT, path), 'SOURCE_INPUTS'), _policy_calendar.SOURCE_INPUTS)
+        old = {'__file__': str(ROOT/path), '__name__': 'historical_calendar_source_view'}
+        exec(compile(_policy_git_bytes(_POLICY_CURRENT, path), str(ROOT/path), 'exec'), old)
+        expected = old['reduce_reviewed_calendar_driver'](self.prior)
+        self.assertEqual(expected, _policy_calendar.reduce_reviewed_calendar_driver(self.current))
+        self.assertEqual(_policy_calendar.CALENDAR_BASE_SOURCE_SHA256[_POLICY_DRIVER], hashlib.sha256(expected).hexdigest())
+
+    def test_assessment_adapter_retains_whole_historical_module_role(self):
+        path = 'scripts/governance/check_recovery_assessment_credentials_v2.py'
+        old = _policy_literal(_policy_git_bytes(_POLICY_CURRENT, path), 'ADAPTER_SOURCE_INPUTS')
+        self.assertEqual(old, _policy_assessment.ADAPTER_SOURCE_INPUTS)
+        module = 'scripts/governance/recovery_conduit_source_delta.py'
+        historical = _policy_git_bytes(_POLICY_HISTORICAL, module)
+        self.assertEqual(_policy_git_bytes(_POLICY_CURRENT, module), historical)
+        registry = json.loads(_policy_git_bytes(_POLICY_CURRENT, 'support/governance/source-operation/registry-v1.json'))
+        self.assertEqual(registry['entries'][module],
+                         {'bytes': len(historical), 'sha256': hashlib.sha256(historical).hexdigest()})
+        coordinator_raw = _policy_git_bytes(_POLICY_CURRENT,
+                                           'scripts/governance/recovery_oauth_code_coordinator_delta.py')
+        selected = _policy_literal(coordinator_raw, 'SOURCE_INPUTS')
+        baseline = _policy_literal(coordinator_raw, 'BASE_PINS')
+        self.assertEqual(selected[module], hashlib.sha256(historical).hexdigest())
+        reduced = historical
+        for added, removed in _policy_literal(coordinator_raw, 'EDITS')[module]:
+            self.assertEqual(1, reduced.count(added))
+            reduced = reduced.replace(added, removed, 1)
+        actual_prior = _policy_git_bytes('17f333801d67db7fa0f36b67501889cf04aceaf4', module)
+        self.assertEqual(actual_prior, reduced)
+        self.assertEqual(baseline[module], hashlib.sha256(reduced).hexdigest())
+        self.assertEqual(old[module], hashlib.sha256(reduced).hexdigest())
+        self.assertEqual(_policy_literal(_policy_git_bytes(_POLICY_CURRENT, path), 'SOURCE_INPUTS'),
+                         _policy_assessment.SOURCE_INPUTS)
+
+    def test_fileparent_source_view_preserves_all_twelve_original_pins(self):
+        path = 'scripts/governance/check_recovery_file_parent_policy.py'
+        self.assertEqual(_policy_literal(_policy_git_bytes(_POLICY_CURRENT, path), 'SOURCE_INPUTS'),
+                         _policy_fileparent.SOURCE_INPUTS)
+        self.assertEqual(12, len(_policy_fileparent.SOURCE_INPUTS))
+        expected = (_policy_fileparent.shared.BOOTSTRAP | _policy_fileparent.shared.PREPARATION |
+                    _policy_fileparent.SQL | _policy_fileparent.shared.CLEANUP)
+        self.assertEqual(expected, _policy_fileparent.source_obligations(ROOT))
+
+    def test_fileparent_refuses_unreviewed_driver_in_actual_source_obligations(self):
+        original = _policy_fileparent.read_source_checked
+        for raw in (self.current+b'\n', self.current.replace(b'<?php', b'<?pHp', 1)):
+            def reader(path):
+                return raw if path == ROOT/_POLICY_DRIVER else original(path)
+            with self.subTest(size=len(raw)), _policy_patch.object(
+                    _policy_fileparent, 'read_source_checked', side_effect=reader):
+                with self.assertRaises(ValueError):
+                    _policy_fileparent.source_obligations(ROOT)
+
+    def test_unknown_whole_bytes_or_wrong_type_are_refused(self):
+        for raw in (self.current+b'\n', self.current[:-1], self.prior+b'\n', bytearray(self.current), None,
+                    self.current.replace(b'Keep exact owned', b'Keep other owned', 1)):
+            with self.subTest(kind=type(raw).__name__):
+                with self.assertRaises(ValueError):
+                    _policy_delta.reduce_policy_cleanup_driver(raw)
+
+    def test_input_hash_alone_cannot_authorize_unrelated_change(self):
+        bad = self.current.replace(b'<?php', b'<?pHp', 1)
+        with _policy_patch.object(_policy_delta, 'POLICY_CLEANUP_DRIVER_SHA256', hashlib.sha256(bad).hexdigest()):
+            with self.assertRaisesRegex(ValueError, 'other historical driver bytes'):
+                _policy_delta.reduce_policy_cleanup_driver(bad)
+
+    def test_missing_inverse_site_is_refused_even_with_matching_input_pin(self):
+        block = _policy_delta.POLICY_CLEANUP_DRIVER_ADDITION
+        bad = self.current.replace(block, b' '*len(block), 1)
+        with _policy_patch.object(_policy_delta, 'POLICY_CLEANUP_DRIVER_SHA256', hashlib.sha256(bad).hexdigest()):
+            with self.assertRaisesRegex(ValueError, 'inverse shape'):
+                _policy_delta.reduce_policy_cleanup_driver(bad)
+
+    def test_legacy_guard_override_does_not_accept_new_unknown_bytes(self):
+        bad = self.current.replace(b'<?php', b'<?pHp', 1)
+        with _policy_patch.object(_policy_delta, 'DRIVER_SHA256', hashlib.sha256(bad).hexdigest()):
+            with self.assertRaises(ValueError):
+                _policy_delta.reduce_driver(bad)
+
+    def test_driver_adapter_preserves_original_inverse_program(self):
+        old = _policy_git_bytes(_POLICY_CURRENT, 'scripts/governance/recovery_conduit_source_delta.py').decode()
+        current = (ROOT/'scripts/governance/recovery_conduit_source_delta.py').read_text()
+        start = current.index('# Exact fixture-source projection only;')
+        end = current.index('DRIVER_SHA256=', current.index('\nDRIVER_SHA256=', start)+1)
+        # Remove only the named new projection and one explicit invocation.
+        inverse = current[:start] + current[end:]
+        inverse = inverse.replace('def reduce_calendar_wire_union(raw):\n raw=reduce_policy_cleanup_driver(raw)\n',
+                                  'def reduce_calendar_wire_union(raw):\n', 1)
+        self.assertEqual(old, inverse)

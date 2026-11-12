@@ -1,6 +1,6 @@
 <?php
 
-/** Native two-admin preparation only. No route, EDIT grant or editor bypass. */
+/** Native two-admin grant metadata. Dedicated content dispatch has no route or EDIT grant. */
 final class PhorgeProjectContentGrantService extends Phobject {
   public static function assertEnabled() {
     if (PhabricatorEnv::getEnvConfigIfExists('governance.project-content-grants.enabled',false)!==true ||
@@ -24,9 +24,10 @@ final class PhorgeProjectContentGrantService extends Phobject {
       self::assertEnabled();$scope->commitService();return $result;
     } finally { $scope->close(); }
   }
-  /** Explicit technical gate until ordinary actor + typed editor closure exists. */
+  /** Source implementation is not an actual SQL/runtime qualification receipt. */
   public static function executionStatus() {
     return array('operation'=>'project.description','can_execute'=>false,
-      'reason'=>'ordinary-native-source-and-typed-editor-seam-required');
+      'implemented_entry'=>'native-api-project-description',
+      'runtime_qualified'=>false,'reason'=>'native-sql-and-side-effect-qualification-required');
   }
 }

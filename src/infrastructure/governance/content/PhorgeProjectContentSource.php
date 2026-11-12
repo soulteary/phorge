@@ -4,7 +4,7 @@
 final class PhorgeProjectContentSource extends Phobject {
   private static function connection(PhorgeProjectNativeExecutionScope $scope) {
     PhorgeProjectContentGrantService::assertEnabled();
-    if (get_class($scope)!==PhorgeProjectNativeExecutionScope::class || $scope->getMode()!=='history') {
+    if (get_class($scope)!==PhorgeProjectNativeExecutionScope::class || !in_array($scope->getMode(),array('history','content-description'),true)) {
       throw new RuntimeException('content_grant_native_scope_required');
     }
     $scope->assertOpen();

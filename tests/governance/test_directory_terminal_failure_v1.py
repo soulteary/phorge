@@ -26,17 +26,21 @@ class TerminalTest(unittest.TestCase):
   block=block.replace('php support/governance/native-organization/test-directory-transports-v1-mysql.php --directory-transports','native')
   line=next(x for x in block.splitlines()if 'python3 -B scripts/governance/check_directory_transports_v1.py --receipt' in x)
   block=block.replace(line,line[:line.index('python3')]+"consumer > \"$RUNNER_TEMP/directory-transports-v1/accepted.pending.json\" || {")
+  def source_window():
+   return {str(path.relative_to(ROOT)):path.lstat().st_mode for path in ROOT.rglob('*') if '.git' not in path.relative_to(ROOT).parts}
+  before=source_window()
   for phase,code in [('native-exit',37),('native-stderr',1),('strict-consumer',19)]:
    with self.subTest(phase=phase),tempfile.TemporaryDirectory()as td:
     root=Path(td);(root/'directory-transports-v1').mkdir();wrapper=root/'project.py'
     # Only current Git source admission is omitted in this local shell control;
     # production CLI still performs it. Projection and bounded readers are real.
-    wrapper.write_text("import runpy,json,sys\nm=runpy.run_path("+repr(str(ROOT/'scripts/governance/project_directory_transport_failure_v1.py'))+",run_name='test_projector')\na=sys.argv\nget=lambda k:a[a.index(k)+1]\nd=m['project_terminal'](m['raw_stderr'](get('--stderr')),get('--terminal'),get('--receipt'),get('--consumer-output'))\nprint(json.dumps(d))\n")
-    setup='set -euo pipefail\numask 077\npython3(){ shift 2; command '+repr(os.sys.executable)+' '+repr(str(wrapper))+' "$@"; }\n'
+    wrapper.write_text("import runpy,json,sys\nassert sys.dont_write_bytecode, 'wrapper must preserve -B'\nm=runpy.run_path("+repr(str(ROOT/'scripts/governance/project_directory_transport_failure_v1.py'))+",run_name='test_projector')\na=sys.argv\nget=lambda k:a[a.index(k)+1]\nd=m['project_terminal'](m['raw_stderr'](get('--stderr')),get('--terminal'),get('--receipt'),get('--consumer-output'))\nprint(json.dumps(d))\n")
+    setup='set -euo pipefail\numask 077\npython3(){ shift 2; command '+repr(os.sys.executable)+' -B '+repr(str(wrapper))+' "$@"; }\n'
     setup+="native(){ printf '%s' 'SECRET_RECEIPT'; "+("printf '%s' 'SECRET_STDERR' >&2; " if phase!='strict-consumer' else '')+("/bin/bash -c 'exit 37';" if phase=='native-exit' else 'return 0;')+" }\nconsumer(){ printf '%s' 'SECRET_CONSUMER'; /bin/bash -c 'exit 19'; }\n"
     env=dict(PATH='/usr/bin:/bin',RUNNER_TEMP=str(root),GITHUB_SHA='a'*40,GITHUB_OUTPUT=str(root/'output'))
     result=subprocess.run(['/bin/bash'],input=setup+block,text=True,env=env,capture_output=True,timeout=10);self.assertEqual(result.returncode,code,result.stderr)
     safe=(root/'directory-transports-safe-failure-v1/diagnostic.json').read_text();self.assertNotIn('SECRET_',safe);d=json.loads(safe);self.assertEqual(d['terminal_classification'],phase);self.assertFalse(d['selected_matrix_accepted']);self.assertEqual((root/'output').read_text(),'safe_diagnostic_owned=true\n')
+    self.assertEqual(source_window(),before,'terminal shell must not create source bytecode or change source modes')
 
 class FixedCheckLabelTest(unittest.TestCase):
  def test_every_fixed_top_field_rejects_with_only_its_literal_label(self):

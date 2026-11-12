@@ -1,24 +1,69 @@
 """Negative coverage for exact historical-only test views; no native SQL."""
-import ast,hashlib,subprocess,tempfile,unittest
+import shutil,ast,hashlib,subprocess,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 import n05_legacy_audit_test_view as view
 ROOT=Path(__file__).resolve().parents[2]
 class LegacyView(unittest.TestCase):
  def fixture(self,root):
-  for n in set(view.CLOSED_PATHS)|set(view.n05.PRODUCTION_PINS)|set(view.n05.FIXTURE_METADATA_PINS)|set(view.REPAIR_SOURCE_PINS)|set(view.METADATA_PATHS):
-   p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/n).read_bytes())
+  for n in set(view.CLOSED_PATHS)|set(view.n05.PRODUCTION_PINS)|set(view.n05.FIXTURE_METADATA_PINS)|set(view.REPAIR_SOURCE_PINS)|set(view.METADATA_PATHS)|set(view.n05.description.CURRENT_PINS)|set(view.n05.CURRENT_METADATA)|{view.n05.MANIFEST,view.n05.BRIDGE,view.n05.PREPARATION,view.n05.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}:
+   p=root/n;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/n,p,follow_symlinks=False)
+  view.verify_current_cohort(root)
+ def test_native_checker_exact_current_inverse_retains_old_repair_oracle(self):
+  path='scripts/governance/check_native_organization.py'
+  self.assertIn(path,view.REPAIR_SOURCE_PINS)
+  old=view.git_bytes(view.CURRENT_REVISION,path)
+  actual=(ROOT/path).read_bytes()
+  self.assertEqual(actual,view.git_bytes(view.n05.TARGET,path))
+  self.assertNotEqual(actual,old)
+  self.assertEqual(hashlib.sha256(old).hexdigest(),view.REPAIR_SOURCE_PINS[path])
+  self.assertEqual(view.n05._normalize_metadata(path,actual),old)
+  self.assertEqual(old,view.git_bytes('b93916d8a2beb4a9ab28ea1769692c0839cfc60b',path))
+  view.verify_current_cohort(ROOT)
+  before=(dict(view.REPAIR_SOURCE_PINS),tuple(view.CLOSED_PATHS),tuple(view.METADATA_PATHS))
+  for mutation in ('old-512','unknown','missing','mode','symlink','patched-pin'):
+   with self.subTest(mutation=mutation),tempfile.TemporaryDirectory()as td:
+    root=Path(td).resolve();self.fixture(root);p=root/path
+    if mutation=='old-512':p.write_bytes(old)
+    elif mutation=='missing':p.unlink()
+    elif mutation=='mode':p.chmod(0o755)
+    elif mutation=='symlink':p.unlink();p.symlink_to(ROOT/path)
+    else:p.write_bytes(actual+b'unknown')
+    if mutation=='patched-pin':
+     with patch.dict(view.REPAIR_SOURCE_PINS,{path:hashlib.sha256(p.read_bytes()).hexdigest()}),self.assertRaises((ValueError,OSError)):
+      view.verify_current_cohort(root)
+    else:
+     with self.assertRaises((ValueError,OSError)):view.verify_current_cohort(root)
+  self.assertEqual(before,(dict(view.REPAIR_SOURCE_PINS),tuple(view.CLOSED_PATHS),tuple(view.METADATA_PATHS)))
  def test_six_whole_sources_equal_real_prior_Git_without_changing_runtime_files(self):
   for path in view.CLOSED_PATHS:
-   raw=(ROOT/path).read_bytes();self.assertEqual(raw,view.git_bytes(view.CURRENT_REVISION,path))
+   raw=(ROOT/path).read_bytes()
+   current=view.n05._normalize_metadata(path,raw) if path in view.n05.CURRENT_METADATA else raw
+   self.assertEqual(current,view.git_bytes(view.CURRENT_REVISION,path))
    self.assertEqual(view.historical_tooling_source(path),view.git_bytes(view.PRIOR_REVISION,path))
    self.assertEqual((ROOT/path).read_bytes(),raw)
   raw=(ROOT/'src/__phutil_library_map__.php').read_bytes();self.assertEqual(view.historical_library_map(raw),view.git_bytes(view.PRIOR_REVISION,'src/__phutil_library_map__.php'))
   self.assertNotEqual(raw,view.historical_library_map(raw))
+ def test_changed_current_tooling_cannot_use_old_payload_unknown_bytes_or_mode(self):
+  changed=[name for name in view.CLOSED_PATHS if name in view.n05.CURRENT_METADATA]
+  self.assertEqual(len(changed),5)
+  for path in changed:
+   for mutation in ('old-512','unknown','mode'):
+    with self.subTest(path=path,mutation=mutation),tempfile.TemporaryDirectory()as td:
+     root=Path(td).resolve();self.fixture(root);p=root/path
+     if mutation=='old-512':p.write_bytes(view.git_bytes(view.CURRENT_REVISION,path))
+     elif mutation=='unknown':p.write_bytes(p.read_bytes()+b'unknown')
+     else:p.chmod(0o755)
+     with self.assertRaises((ValueError,OSError)):view.historical_tooling_source(path,root)
  def test_repair_guard_is_exact_actual_combined_target_and_test_only(self):
   self.assertEqual(view.CURRENT_REVISION,'512282be298c7996fc6370156c333d7557b1685a');self.assertEqual(len(view.REPAIR_SOURCE_PINS),9)
   for path,pin in view.REPAIR_SOURCE_PINS.items():
-   raw=(ROOT/path).read_bytes();self.assertEqual(raw,view.git_bytes(view.CURRENT_REVISION,path));self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
+   raw=(ROOT/path).read_bytes()
+   if path in set(view.METADATA_PATHS)|{'scripts/governance/check_native_organization.py'}:prior=view.n05._normalize_metadata(path,raw)
+   elif path=='scripts/governance/check_native_directory.py':
+    self.assertEqual(raw,view.git_bytes(view.n05.TARGET,path));prior=view.git_bytes(view.CURRENT_REVISION,path)
+   else:prior=raw
+   self.assertEqual(prior,view.git_bytes(view.CURRENT_REVISION,path));self.assertEqual(hashlib.sha256(prior).hexdigest(),pin)
   source=ROOT/'scripts/governance'
   for p in source.glob('*.py'):
    for node in ast.walk(ast.parse(p.read_text())):
@@ -33,10 +78,25 @@ class LegacyView(unittest.TestCase):
    self.assertEqual(view.historical_metadata_source(path,raw),old);self.assertEqual((ROOT/path).read_bytes(),raw)
    with self.assertRaises(ValueError):view.historical_metadata_source(path,raw+b'unknown')
   with self.assertRaises(ValueError):view.historical_metadata_source('tests/unreviewed.py',b'unknown')
+ def test_new_metadata_refuses_exact_previous_current_payload_and_checker_mixed_sources(self):
+  for path in view.METADATA_PATHS:
+   current=(ROOT/path).read_bytes();previous=view.git_bytes(view.CURRENT_REVISION,path)
+   self.assertNotEqual(current,previous)
+   with self.subTest(path=path),self.assertRaises(ValueError):view.historical_metadata_source(path,previous)
+  path='scripts/governance/check_native_directory.py'
+  for mode in ('unknown','old-512','executable','missing'):
+   with self.subTest(mode=mode),tempfile.TemporaryDirectory()as td:
+    root=Path(td).resolve();self.fixture(root)
+    raw=(root/path).read_bytes()
+    if mode=='executable':(root/path).chmod(0o755)
+    elif mode=='missing':(root/path).unlink()
+    else:(root/path).write_bytes(raw+b'unknown'if mode=='unknown'else view.git_bytes(view.CURRENT_REVISION,path))
+    with self.assertRaises((ValueError,OSError)):view.verify_current_cohort(root)
+  with patch.object(view.n05,'TARGET',view.CURRENT_REVISION),self.assertRaises(ValueError):view.verify_current_cohort(ROOT)
  def test_missing_mixed_and_double_patched_metadata_cannot_become_historical(self):
   for mode in ('missing','mixed','double-patched'):
    with self.subTest(mode=mode),tempfile.TemporaryDirectory()as td:
-    root=Path(td);self.fixture(root);path=view.METADATA_PATHS[-1];p=root/path
+    root=Path(td).resolve();self.fixture(root);path=view.METADATA_PATHS[-1];p=root/path
     if mode=='missing':p.unlink()
     elif mode=='mixed':p.write_bytes(view.git_bytes(view.METADATA_PRIOR_REVISION,path))
     else:
@@ -49,14 +109,14 @@ class LegacyView(unittest.TestCase):
   with self.assertRaises(ValueError):view.historical_library_map((ROOT/'src/__phutil_library_map__.php').read_bytes()+b'unknown')
   path=view.CLOSED_PATHS[0]
   with tempfile.TemporaryDirectory()as td:
-   root=Path(td);self.fixture(root);raw=(root/path).read_bytes();bad=raw+b'unknown';(root/path).write_bytes(bad)
+   root=Path(td).resolve();self.fixture(root);raw=(root/path).read_bytes();bad=raw+b'unknown';(root/path).write_bytes(bad)
    with self.assertRaises(ValueError):view.historical_tooling_source(path,root)
    with patch.dict(view.CURRENT_PINS,{path:hashlib.sha256(bad).hexdigest()}),patch.dict(view.n05.SOURCE_INPUTS,{path:hashlib.sha256(bad).hexdigest()}),self.assertRaises(ValueError):view.historical_tooling_source(path,root)
  def test_missing_mixed_or_unreviewed_actual_fixture_cohort_refuses(self):
   path=view.CLOSED_PATHS[0]
   for mode in ['missing','mixed','fixture','repair-missing','repair-unknown','repair-patchpin']:
    with self.subTest(mode=mode),tempfile.TemporaryDirectory()as td:
-    root=Path(td);self.fixture(root)
+    root=Path(td).resolve();self.fixture(root)
     if mode=='missing':(root/view.CLOSED_PATHS[-1]).unlink()
     elif mode=='mixed':(root/view.CLOSED_PATHS[-1]).write_bytes(view.git_bytes(view.PRIOR_REVISION,view.CLOSED_PATHS[-1]))
     elif mode.startswith('repair-'):

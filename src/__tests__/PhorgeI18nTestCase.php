@@ -5,10 +5,50 @@ final class PhorgeI18nTestCase extends PhabricatorTestCase {
   public function testi18nValidation() {
     // A cold extraction parses every active library, rather than one unit.
     set_time_limit(120);
-    $validator = new PhorgeInternationalizationValidator();
-    $errors = $validator->validateLibraries(
-      $validator->loadExtractions(true, true));
-    $this->assertEqual(array(), $errors, pht('i18n validation errors found!'));
+    $extractor = new PhabricatorInternationalizationManagementExtractWorkflow();
+    $libraries = PhutilBootloader::getInstance()->getAllLibraries();
+    $defaults = array();
+    $snapshot = static function($path) {
+      clearstatcache(true, $path);
+      if (!Filesystem::pathExists($path)) {
+        return null;
+      }
+      $info = lstat($path);
+      return array(
+        hash_file('sha256', $path),
+        $info['dev'], $info['ino'], $info['mode'], $info['nlink'],
+        $info['uid'], $info['gid'], $info['size'],
+        $info['mtime'], $info['ctime']);
+    };
+    foreach ($libraries as $lib) {
+      foreach (array('i18n_files.json', 'i18n_strings.json') as $file) {
+        $path = $extractor->getCachePath(phutil_get_library_root($lib), $file);
+        $defaults[$path] = $snapshot($path);
+      }
+    }
+    $directory = Filesystem::createTemporaryDirectory('i18n-validation-', 0700);
+    try {
+      $validator = new PhorgeInternationalizationValidator();
+      $strings = $validator->loadExtractions(true, true, $directory);
+      $errors = $validator->validateLibraries($strings);
+      $this->assertEqual(array(), $errors, pht('i18n validation errors found!'));
+      $this->assertEqual(
+        $strings,
+        $validator->loadExtractions(false, true, $directory));
+      $extractor->setCacheRoot($directory);
+      foreach ($libraries as $lib) {
+        foreach (array('i18n_files.json', 'i18n_strings.json') as $file) {
+          $path = $extractor->getCachePath(phutil_get_library_root($lib), $file);
+          $this->assertTrue(Filesystem::pathExists($path));
+          $this->assertTrue(id(new FileList(array($directory)))->contains($path));
+        }
+      }
+      foreach ($defaults as $path => $before) {
+        $this->assertEqual($before, $snapshot($path));
+      }
+    } finally {
+      Filesystem::remove($directory);
+    }
   }
 
   public function testHistoricalTranslations() {

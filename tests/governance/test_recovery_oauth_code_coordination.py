@@ -1,3 +1,4 @@
+from n05_r3_historical_test_view import historical_coordinator_source
 """Exact public-source compatibility, never current-runtime or SQL evidence."""
 import ast,hashlib,json,os,subprocess,sys,tempfile,unittest
 from pathlib import Path
@@ -12,6 +13,18 @@ import n05_legacy_audit_test_view as legacy_view
 import check_recovery_session_lease as reader
 import check_recovery_oauth_code_producer_v1 as current
 
+def assert_exact_media_entries(test,left,right):
+ if type(left)is not dict or type(right)is not dict:test.fail('media entries must be dictionaries')
+ missing=set(right)-set(left);extra=set(left)-set(right)
+ if missing or extra:test.fail('media domain mismatch missing=%d extra=%d paths=%s'%(len(missing),len(extra),sorted(missing|extra)[:5]))
+ changed=[]
+ for path in sorted(left):
+  a=left[path];b=right[path]
+  if type(a)is not tuple or type(b)is not tuple or len(a)!=3 or len(b)!=3:test.fail('media entry shape: '+path)
+  # Complete exact equality remains the predicate; digests never replace rawbytes.
+  if a[0]!=b[0]or a[2]!=b[2]or a[1]!=b[1]:changed.append(path)
+ if changed:test.fail('media source mismatch count=%d paths=%s'%(len(changed),changed[:5]))
+
 class CodeCoordination(unittest.TestCase):
  def baseline(self):
   raw=(ROOT/'tests/governance/data/oauth-code-coordination-baseline-v1.json').read_bytes()
@@ -22,9 +35,8 @@ class CodeCoordination(unittest.TestCase):
   self.assertEqual(len(prod.SOURCE_INPUTS),6);self.assertEqual(len(coord.SOURCE_INPUTS),16)
   for path,pin in {**prod.BASE_PINS,**coord.BASE_PINS}.items():
    raw=(ROOT/path).read_bytes()
-   if path in legacy_view.METADATA_PATHS:raw=legacy_view.historical_metadata_source(path,raw)
-   self.assertEqual(hashlib.sha256(coord.source_view(path,raw)).hexdigest(),pin)
-   with self.assertRaises(ValueError):coord.source_view(path,raw+b'\n# unauthorized change')
+   self.assertEqual(hashlib.sha256(historical_coordinator_source(path,raw)).hexdigest(),pin)
+   with self.assertRaises(ValueError):historical_coordinator_source(path,raw+b'\n# unauthorized change')
  def test_literal_maps_and_inverse_tables_are_unchanged(self):
   def dictionaries(raw):
    out={}
@@ -35,10 +47,10 @@ class CodeCoordination(unittest.TestCase):
    return out
   for path in coord.SOURCE_INPUTS:
    if path.endswith('.py'):
-    raw=authorization_delta.reduce_if_selected(path,(ROOT/path).read_bytes());self.assertEqual(dictionaries(raw),dictionaries(coord.source_view(path,raw)))
+    raw=(ROOT/path).read_bytes();project_view=legacy_view.n05.reduce_if_selected(path,raw);self.assertEqual(dictionaries(project_view),dictionaries(historical_coordinator_source(path,raw)))
  def test_complete_current_or_complete_baseline_only_missing_mixed_unknown_refuse(self):
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
-   root=Path(tmp);complete_source_cohort(root);self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))
+   root=Path(tmp).resolve();complete_source_cohort(root);self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))
    for path in prod.SOURCE_INPUTS:
     p=root/path;raw=p.read_bytes();p.write_bytes(prod.reduce_current(path,raw))
     with self.assertRaises(ValueError):prod.assert_cohort(root,reader.read_source_checked)
@@ -59,7 +71,7 @@ class CodeCoordination(unittest.TestCase):
    for path in module.SOURCE_INPUTS:
     raw=(ROOT/path).read_bytes()+b'\n// unrelated';pins={**module.SOURCE_INPUTS,path:hashlib.sha256(raw).hexdigest()}
     with patch.object(module,'SOURCE_INPUTS',pins):
-     with self.assertRaises(ValueError):coord.source_view(path,raw)
+     with self.assertRaises(ValueError):historical_coordinator_source(path,raw)
  def test_full_actual_src_tree_restores_reviewed_base_not_only_changed_names(self):
   self.assertEqual(normalized_source_tree(ROOT),'3944b8003bb59a9b67f685df67acbd2354820b1c')
  def test_current_51_source_gate_keeps_raw_current_code_and_old_maps_unchanged(self):
@@ -72,7 +84,13 @@ class CodeCoordination(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('oauth_code_media_snapshot',directory/'snapshot.py');snapshot=importlib.util.module_from_spec(spec);spec.loader.exec_module(snapshot)
   with patch.dict(sys.modules,{'snapshot':snapshot}):
    spec=importlib.util.spec_from_file_location('oauth_code_media_freshness',ROOT/'support/governance/media-session-ci/freshness.py');freshness=importlib.util.module_from_spec(spec);spec.loader.exec_module(freshness)
-   self.assertEqual(snapshot.BASE,'5665cf16663b0e44da2aed5a800835dc9cb563cf');self.assertEqual(len(snapshot.OVERLAY),8)
+   from test_recovery_oauth_code_media_binding import media_git_oracle,media_protected_path,_MEDIA_OVERLAY_NAMES
+   base_proof=media_git_oracle(ROOT,snapshot.BASE)
+   self.assertEqual(snapshot.ROOT_TREE,base_proof['root_tree']);self.assertEqual(set(snapshot.OVERLAY),set(_MEDIA_OVERLAY_NAMES))
+   self.assertTrue(media_protected_path('support/governance/source-operation/registry-v1.json'))
+   self.assertTrue(freshness.protected('support/governance/source-operation/registry-v1.json'))
+   for name in base_proof['entries']:
+    self.assertEqual(freshness.protected(name),media_protected_path(name),name)
    # This is a whole-current-Git source invariant, not an assertion that the
    # Atomic parser-prepared checkout is clean. The media workflow retains its
    # separate unchanged real-checkout freshness gates before any preparation.
@@ -95,6 +113,8 @@ class CodeCoordination(unittest.TestCase):
      else:target.write_bytes(value);target.chmod(mode)
     self.assertEqual(git('rev-parse','HEAD'),revision)
     self.assertEqual(git('rev-parse','HEAD^{tree}'),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',revision+'^{tree}'],env=environment,text=True).strip())
+    independent_head=media_git_oracle(clean,revision)
+    assert_exact_media_entries(self,{p:v for p,v in independent_head['entries'].items()if media_protected_path(p)},{p:v for p,v in base_proof['entries'].items()if media_protected_path(p)})
     self.assertTrue(freshness.verify(clean)['protected_source_equal'])
     for name in ['src/unreviewed-extra.php','support/runtime/src/parser/xhpast/bin/xhpast']:
      extra=clean/name;self.assertFalse(extra.exists());extra.write_bytes(b'owned synthetic extra, never executed')
@@ -104,3 +124,37 @@ class CodeCoordination(unittest.TestCase):
     with patch.object(snapshot,'BASE','9bc725ea3643cf24b6df0e806738b55496d8b388'),patch.object(snapshot,'ROOT_TREE','3b0f19730d8175fe71c4e5c486dbb17d4d39a790'):
      with self.assertRaisesRegex(ValueError,'protected inventory changed; rebase required|protected source changed|committed protected source changed; rebase required'):freshness.verify(clean)
 if __name__=='__main__':unittest.main()
+
+class BoundedMediaEntries(unittest.TestCase):
+ def test_whole_domain_kind_mode_and_large_raw_bytes_remain_exact(self):
+  raw=b'x'*1048576;left={'a':('file',raw,0o644),'b':('symlink','a',0o777)}
+  assert_exact_media_entries(self,left,dict(left))
+  for right in [dict(left,a=('file',raw[:-1]+b'y',0o644)),dict(left,a=('file',raw,0o755)),dict(left,a=('symlink',raw,0o644)),{'a':left['a']},dict(left,c=('file',b'c',0o644))]:
+   with self.subTest(keys=sorted(right)),self.assertRaises(AssertionError)as caught:assert_exact_media_entries(self,left,right)
+   self.assertLess(len(str(caught.exception)),1024)
+ def test_many_mismatches_compare_complete_domain_but_emit_only_paths(self):
+  left={str(i):('file',b'A'*4096,0o644)for i in range(100)};right={k:('file',b'B'*4096,0o644)for k in left}
+  with self.assertRaises(AssertionError)as caught:assert_exact_media_entries(self,left,right)
+  self.assertIn('count=100',str(caught.exception));self.assertLess(len(str(caught.exception)),256)
+
+class ExactBatchHistoricalStages(unittest.TestCase):
+ def test_exact_actual_8d7_and_577_whole_blobs_and_original_REVISION(self):
+  import n05_r3_historical_test_view as view
+  old=view._batch_stage_bytes(ROOT,view._BATCH_LEGACY);main=view._batch_stage_bytes(ROOT,view._BATCH_MAINLINE)
+  self.assertNotEqual(hashlib.sha256(old).hexdigest(),hashlib.sha256(main).hexdigest())
+  prior=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',view.REVISION+':'+view._BATCH_PATH])
+  self.assertEqual(view._historical_batch_577_source(view._BATCH_PATH,old),prior)
+  for unknown in [old+b'unknown',main]:
+   with self.assertRaises(ValueError):view._historical_batch_577_source(view._BATCH_PATH,unknown)
+ def test_wrong_actual_tree_blob_pin_and_git_mode_refuse(self):
+  import n05_r3_historical_test_view as view
+  stage=view._BATCH_MAINLINE
+  with self.assertRaises(ValueError):view._batch_git_bytes(ROOT,stage['revision'],'0'*40)
+  for key,value in [('blob','0'*40),('bytes',1),('sha256','0'*64)]:
+   with self.subTest(key=key),self.assertRaises(ValueError):view._batch_stage_bytes(ROOT,dict(stage,**{key:value}))
+  real=subprocess.check_output
+  def wrong_mode(argv,*args,**kwargs):
+   result=real(argv,*args,**kwargs)
+   return result.replace(b'100644 blob ',b'100755 blob ',1)if 'ls-tree'in argv else result
+  # Explicit Git-I/O collaborator corruption, not a qualified native Git tree.
+  with patch.object(subprocess,'check_output',side_effect=wrong_mode),self.assertRaises(ValueError):view._batch_git_bytes(ROOT,stage['revision'],stage['tree'])
