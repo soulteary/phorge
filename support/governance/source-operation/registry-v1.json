@@ -1837,7 +1837,7 @@
       },
       "current": {
         "bytes": 4575,
-        "sha256": "37d71ba256d0902da7d6f6ee289d77ca547012bae2dfabb59cc3b977c4cf2371"
+        "sha256": "bb6ff3a558ffc618532df23319d1caf60e2d1b3ed904cc0bf7d228843506d32b"
       }
     },
     ".github/workflows/project-description-focused.yml": {
@@ -1847,7 +1847,7 @@
       },
       "current": {
         "bytes": 4757,
-        "sha256": "dcc5fa83b5836c2e25d06d240499a6f102a4d66341ae5a9deaf00ea2f92ef979"
+        "sha256": "2ee2ed3273254d1125d521a1aab5103f7fdfdc2f848147560182960218eac8f6"
       }
     },
     "docs/governance/batch-2-callers.json": {
@@ -1857,7 +1857,7 @@
       },
       "current": {
         "bytes": 246053,
-        "sha256": "1ec9bba86436e227bd2c16001c88d8ece2e29adc3400b601a6cb39ea8e24e475"
+        "sha256": "0ad5d1d736b5d3d4b51496b6c828cc397ec3e5826c0a007002f26985ab105a1f"
       }
     },
     "docs/governance/batch-5-pipeline.json": {
@@ -2007,7 +2007,7 @@
       },
       "current": {
         "bytes": 536258,
-        "sha256": "6aa3c910ab9b1b8e96f3ad485b14a6dbf4d3869b173b15ff3f2d21fd2198a534"
+        "sha256": "4d5ab048e419b10d373e2654f24cb7a9546a44ecc04ed17f3f9e63b66f245ed4"
       }
     },
     "scripts/governance/project_description_source_delta.py": {
@@ -2138,7 +2138,7 @@
       },
       "current": {
         "bytes": 1802,
-        "sha256": "70fc38a2b724183b58303787a164a84e0502c5b0aed4099f529ea2c6276f6331"
+        "sha256": "5c5e32e11164155003eabb4b3254dbe22f9c00db04cb56378548921bfebc926d"
       }
     },
     "support/governance/project-content-grants-ci/ci.py": {
@@ -2148,7 +2148,7 @@
       },
       "current": {
         "bytes": 24560,
-        "sha256": "c3164951f4d2ff0eba2912c5e6f804ddda28648d4292518553b8fe0a48ab61ab"
+        "sha256": "e055ee0da4bd9ed7cf4c093bc3ca66015faa3bc4949fa43e385aaffe95c67d4d"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites-template.json": {
@@ -2158,7 +2158,7 @@
       },
       "current": {
         "bytes": 9307,
-        "sha256": "217e34626c00bc57b2396ffffdb6e41babf81b0e89121fc396ca3bc036bc8982"
+        "sha256": "b2034d572a2badac46371e5732a2934d4dd93b1889cd5cf0e7e9f6a1ba413b03"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites/provision.py": {
@@ -2168,7 +2168,7 @@
       },
       "current": {
         "bytes": 11688,
-        "sha256": "b6ee361240cd39faf288a5461475c88a0dff397303c9c7773a0ed94e9f977327"
+        "sha256": "616b523e8db0af34a085aefde41e4d2e829b81da4de3f344387d4474fff1879d"
       }
     },
     "support/governance/project-content-grants-ci/qualification-template.json": {
@@ -2178,7 +2178,7 @@
       },
       "current": {
         "bytes": 9875,
-        "sha256": "bb0dd0e9e5cda2f083724dae429b2971668f4ab313bf80c9fd5ee599c81aa0ce"
+        "sha256": "324babc7c0714cd3407daeb19f0bc9ea055f1656dfad780a0bdff77e01d7a0e0"
       }
     },
     "support/governance/project-content-grants-qualification/qualify.py": {
@@ -2188,7 +2188,7 @@
       },
       "current": {
         "bytes": 9451,
-        "sha256": "4274e0dc69abcdd998f8a16911566cd9384b1ecbbe4633834d60c96f0f971c66"
+        "sha256": "fcb7d61ab81a7775660815c69e4b471899fe8f5ac1da5c11640f29803855afb8"
       }
     },
     "support/governance/project-description-ci/README.md": {
@@ -2198,7 +2198,7 @@
       },
       "current": {
         "bytes": 6104,
-        "sha256": "b7c60c6e86daaf524eec677b76e33a386699f6fd753b09525ea242542efeaed3"
+        "sha256": "a90c9a94586574261d0fe75024f0e0a3aeca829488eb4faa8b32488cff4d822c"
       }
     },
     "support/governance/project-description-ci/ci.py": {
@@ -2208,7 +2208,7 @@
       },
       "current": {
         "bytes": 15379,
-        "sha256": "4a5751fda4cb8dc61609f8f2a5b3071fb6dbb65aaaf479d8699e47f024752bdd"
+        "sha256": "f45921ebf5db587b907bb111449d523ca5a4b4366bd4f16abe1b0ab0e669f54f"
       }
     },
     "support/governance/project-description-ci/metadata-lock.json": {
@@ -2218,7 +2218,7 @@
       },
       "current": {
         "bytes": 1024,
-        "sha256": "83a37666cf659ed47f5b90af152c5914f80b935d7c00260d592f749902865a9f"
+        "sha256": "a13a66265e0bc822066893cc52accba5d007c81375918604ddb5f38631c54587"
       }
     },
     "support/governance/project-description-q2-owner/README.md": {
@@ -2251,8 +2251,8 @@
         "sha256": "88c97d30282f4fbaea08f7949d843cdff8bd0ecbac8bdbf57aa4d17d30c19406"
       },
       "current": {
-        "bytes": 24852,
-        "sha256": "95d951778ed74858b22ae38fbe8a8f91398f86cefff028984ce81cdb95ebee88"
+        "bytes": 26022,
+        "sha256": "0cf6e2b192cd51017df2da1903f9436ea4ee02b2a3f8a58662edf3ee4bfa212d"
       }
     },
     "tests/governance/recovery_oauth_code_test_cohort.py": {
@@ -2261,8 +2261,8 @@
         "sha256": "a2acdbb6a36f923e5e0c7fe25952e764a1a99c7b82e3191a2939afd3b3ca2329"
       },
       "current": {
-        "bytes": 6099,
-        "sha256": "5614946949227b8faddd1504899f6926b329cebc5cbd5b8bf47634f09f289a4c"
+        "bytes": 8690,
+        "sha256": "5df1342ad9282bd5b035ba18ef20668789ca24a7644119eacce6fde7c3df6d1d"
       }
     },
     "tests/governance/test_calendar_conduit_union.py": {
@@ -2271,8 +2271,8 @@
         "sha256": "2eaa7de843b456298026da44237b8e9390db1d545b057af50c4a09342bc45cfa"
       },
       "current": {
-        "bytes": 17127,
-        "sha256": "45d7e10908d4b68edef6c99a052adc5f8a1c7d72014a654dcc078dc5aa034b30"
+        "bytes": 17419,
+        "sha256": "ec2b28640975cfc53b78b3cc074015238b4421d49e64ea1c81dcb70a2994289c"
       }
     },
     "tests/governance/test_directory_terminal_failure_v1.py": {
@@ -2283,6 +2283,16 @@
       "current": {
         "bytes": 9048,
         "sha256": "cc2155a4460b672f61586bb7d2d34dbfcb9add6df6053abcdaeb5df7f6370f01"
+      }
+    },
+    "tests/governance/test_media_remote_native_profile.py": {
+      "baseline": {
+        "bytes": 16074,
+        "sha256": "8ccec5a8107dcbf9f0ca6e8e753538b5bd55ae0844f08397549c51024400ba64"
+      },
+      "current": {
+        "bytes": 16275,
+        "sha256": "5f329ca6a94efbea09cf7dc4c3c1d5fd4ff50d88ae266405aa96e6fa37804d69"
       }
     },
     "tests/governance/test_n05_legacy_audit_test_view.py": {
@@ -2331,8 +2341,8 @@
         "sha256": "3dbca7e4768572a300544a068382c47bbd658966b08472a794e97d15ed995eb6"
       },
       "current": {
-        "bytes": 28809,
-        "sha256": "b9171bceba3018dea95cc36f73018651d763266f51e72bfb98243e07a7113f26"
+        "bytes": 29150,
+        "sha256": "ffee031baf89885b5c5fed1bbf028b9f7ebf69821203f092508dd9c9cfc5d063"
       }
     },
     "tests/governance/test_private_calendar_sql_gate.py": {
@@ -2431,8 +2441,8 @@
         "sha256": "de1b4922733e502934f17f3decee971c3b54dac4d8bb868d9f9926d59d33fcbc"
       },
       "current": {
-        "bytes": 28126,
-        "sha256": "01c7dc4e1394f991e8bd5df318b8b647de3b37b199313871fd6f9793d6825e99"
+        "bytes": 31538,
+        "sha256": "0c041e295bd9bc703571d649cd3b3a206bd695b9bf8f621a905437b7ed936bb2"
       }
     },
     "tests/governance/test_project_policy_nested_protocol.py": {
@@ -2515,8 +2525,8 @@
         "sha256": "6c0e6761f4d40b739dfb60ffdcd15cf2dbcf8c1db6ca5268d7ff9741e93f59ae"
       },
       "current": {
-        "bytes": 26100,
-        "sha256": "6c120a56b82d81c9822242cb014a429dbd4b0cbdddf0df682177bd015d44939b"
+        "bytes": 26301,
+        "sha256": "00dea70595789371ebf3ed3e71fd84b04f5dc8dc2f534b1b9209c1e7e106b2a0"
       }
     },
     "tests/governance/test_recovery_oauth_code_coordination.py": {
