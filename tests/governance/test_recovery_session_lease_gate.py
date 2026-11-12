@@ -134,7 +134,14 @@ class SourceOperationPlumbingUnit(unittest.TestCase):
   new=ast.parse((ROOT/path).read_bytes())
   defs=lambda tree:{x.name:x for x in tree.body if isinstance(x,ast.FunctionDef)}
   a=defs(old);b=defs(new)
-  self.assertEqual(ast.dump(a['main'],include_attributes=False),ast.dump(b['main'],include_attributes=False))
+  main=copy.deepcopy(b['main']);handlers=[x for x in ast.walk(main)if isinstance(x,ast.ExceptHandler)]
+  self.assertEqual(len(handlers),1);handler=handlers[0]
+  self.assertEqual(handler.name,'error');self.assertEqual(len(handler.body),2)
+  diagnostic=ast.parse("print(json.dumps({'diagnostic':'session_lease_refusal_v1','stage':_refusal_stage(error)},sort_keys=True),file=sys.stderr)").body[0]
+  self.assertEqual(ast.dump(handler.body[0],include_attributes=False),ast.dump(diagnostic,include_attributes=False))
+  # Invert exactly this one closed diagnostic statement and exception binding.
+  del handler.body[0];handler.name=None
+  self.assertEqual(ast.dump(a['main'],include_attributes=False),ast.dump(main,include_attributes=False))
   self.assertEqual(ast.dump(a['read_source_checked'],include_attributes=False),ast.dump(b['read_source_checked'],include_attributes=False))
   original=next(ast.literal_eval(n.value)for n in old.body if isinstance(n,ast.Assign)and getattr(n.targets[0],'id',None)=='SOURCE_INPUTS')
   self.assertEqual(gate.SOURCE_INPUTS,original)
@@ -143,3 +150,28 @@ class SourceOperationPlumbingUnit(unittest.TestCase):
    call.keywords=[x for x in call.keywords if x.arg!='_source_operation']
    if isinstance(call.func,ast.Name)and call.func.id=='summary':call.args=call.args[:1]
   self.assertEqual(ast.dump(a['validate'],include_attributes=False),ast.dump(body,include_attributes=False))
+
+class SessionLeaseDiagnosticTests(unittest.TestCase):
+ """Actual predicate failures only; no admission substitution or SQL."""
+ def stage(self,call):
+  try:call()
+  except (ValueError,OSError,TypeError,KeyError,UnicodeError)as error:return gate._refusal_stage(error)
+  self.fail('expected original predicate refusal')
+ def test_actual_prepared_cache_refusal_is_redacted(self):
+  self.assertEqual(self.stage(lambda:gate.source_operation._validate_prepared_cache(b'secret-canary')),'prepared_cache')
+ def test_actual_receipt_revision_refusal(self):
+  self.assertEqual(self.stage(lambda:gate._validate_with_source_operation({},source_revision='secret-canary',file_digest='x')),'receipt')
+ def test_actual_exact_refusal_hides_values(self):
+  self.assertEqual(self.stage(lambda:gate.exact('secret-canary','other-secret')),'native_exact')
+ def test_unknown_same_named_function_is_untrusted(self):
+  def _prepared_layout():raise ValueError('secret-canary')
+  self.assertEqual(self.stage(_prepared_layout),'unclassified')
+
+ def test_actual_cli_keeps_generic_failure_and_closed_stderr(self):
+  with tempfile.TemporaryDirectory()as temp:
+   root=Path(temp).resolve();binary=root/'binary';raw=b'host synthetic paired binary; never executed';binary.write_bytes(raw);binary.chmod(0o700)
+   receipt=root/'receipt';receipt.touch(mode=0o600);receipt.write_text('{"secret-canary":')
+   result=subprocess.run([sys.executable,'-B',gate.__file__,'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',hashlib.sha256(raw).hexdigest()],capture_output=True,text=True,timeout=15)
+   self.assertEqual(result.returncode,1);self.assertEqual(result.stdout,'')
+   self.assertEqual(result.stderr,json.dumps({'diagnostic':'session_lease_refusal_v1','stage':'unclassified'},sort_keys=True)+'\nSession lease receipt refused\n')
+   self.assertNotIn('secret-canary',result.stderr);self.assertNotIn(str(root),result.stderr)

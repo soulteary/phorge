@@ -1,6 +1,6 @@
 """Strict selected native Session INSERT interval evidence, never a restore permit."""
 import recovery_oauth_code_coordinator_delta as code_coord
-import argparse,hashlib,json,os,re,stat
+import argparse,hashlib,json,os,re,stat,sys
 import recovery_worker_terminal_delta as worker_terminal
 import source_operation_snapshot as source_operation
 from pathlib import Path
@@ -85,6 +85,26 @@ def _validate_with_source_operation(data,root=ROOT,*,source_revision,file_digest
  if type(data['captured_native_output_bytes'])is not int or not 0<=data['captured_native_output_bytes']<=65536 or not completion.digest(data['captured_native_output_sha256']):raise ValueError('captured output refused')
  return {'passed':True,'scope':'selected-native-Session-INSERT-no-permit','source_revision':source_revision,'checks':len(expected),'SQL_obligations':len(SQL_obligations(root,_source_operation=_source_operation)),
   'fault_matrix_proved':False,'all_sources_complete':False,'restoration_authorized':False,'execution_blocked':True}
+def _refusal_stage(error):
+ """Fixed code-identity diagnostics only; never inspect exception text or data."""
+ stages={
+  source_operation.SourceOperation.__enter__.__code__:'source_operation_enter',
+  source_operation.SourceOperation._build_graph.__code__:'source_operation_graph',
+  source_operation._prepared_layout.__code__:'prepared_layout',
+  source_operation._validate_prepared_cache.__code__:'prepared_cache',
+  source_operation.admission.assert_current_recipe.__code__:'source_admission',
+  _validate_with_source_operation.__code__:'receipt',
+  native.validate_restore.__code__:'restore',
+  exact.__code__:'native_exact',
+ }
+ stage='unclassified';tb=error.__traceback__
+ while tb is not None:
+  code=tb.tb_frame.f_code
+  if code is source_operation.SourceOperation.__exit__.__code__:
+   return 'source_operation_exit'
+  if code in stages:stage=stages[code]
+  tb=tb.tb_next
+ return stage
 def main():
  p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);p.add_argument('--source-revision',required=True);p.add_argument('--file-binary',type=Path,required=True);p.add_argument('--file-binary-sha256',required=True);a=p.parse_args()
  try:
@@ -92,6 +112,8 @@ def main():
   def nonfinite(v):raise ValueError('nonfinite')
   data=json.loads(shared.read_checked(a.receipt),object_pairs_hook=completion.strict_object,parse_constant=nonfinite)
   result=validate(data,source_revision=a.source_revision,file_digest=a.file_binary_sha256)
- except (ValueError,OSError,TypeError,KeyError,UnicodeError):raise SystemExit('Session lease receipt refused')from None
+ except (ValueError,OSError,TypeError,KeyError,UnicodeError)as error:
+  print(json.dumps({'diagnostic':'session_lease_refusal_v1','stage':_refusal_stage(error)},sort_keys=True),file=sys.stderr)
+  raise SystemExit('Session lease receipt refused')from None
  print(json.dumps(result,sort_keys=True))
 if __name__=='__main__':main()
