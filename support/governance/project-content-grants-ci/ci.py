@@ -4,10 +4,10 @@ from pathlib import Path
 
 BASE='4c2245300dc1d78d042b95190dd537eb6b1f9861'
 BASE_TREE='69180e43fba7476257cc534c1934d544995a4443'
-TARGET='70bb0c1026b237d5e8c95c327d851eae719a29ee'
-TREE='a9f71d3ac0878c2b9c83c57b2358135348f16b1d'
+TARGET='67c55636a8f7b8697136288fa211f0012ec0b138'
+TREE='f2a74aac8911b0fa39abc389a9cd1ad9ab9d149f'
 MYSQL='mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
-REVIEWED_PINS={'prerequisites': {'native.php': {'bytes': 9741, 'sha256': '3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'}, 'provision.py': {'bytes': 11688, 'sha256': '103f043fa7970fa7ce9a7e4c82bd19c421433fdc02239dde103b6a6caa065cc3'}}, 'qualification': {'native.php': {'bytes': 17158, 'sha256': '68fc4a94a86140c7c0a6ef01af0d6daa3e5d5982c20c89061c8d9b64650d869d'}, 'qualify.py': {'bytes': 9451, 'sha256': 'c6e3cb75103b9f619684f3c8c6826f8d6c09a4d4fe7faf23b2a4c3686e819f4b'}}}
+REVIEWED_PINS={'prerequisites': {'native.php': {'bytes': 9741, 'sha256': '3fb91c6e8f51444c90305fa3ebddb607b36f52afa55df44a6e6f07a428a8fb6e'}, 'provision.py': {'bytes': 11688, 'sha256': 'b6ee361240cd39faf288a5461475c88a0dff397303c9c7773a0ed94e9f977327'}}, 'qualification': {'native.php': {'bytes': 17158, 'sha256': '68fc4a94a86140c7c0a6ef01af0d6daa3e5d5982c20c89061c8d9b64650d869d'}, 'qualify.py': {'bytes': 9451, 'sha256': '4274e0dc69abcdd998f8a16911566cd9384b1ecbbe4633834d60c96f0f971c66'}}}
 REVIEWED_INVENTORIES={'qualification': 'addd20d24c85ad1149591e8a29184a799f3cb45105c2562df88b645ccc05078c', 'prerequisites': 'dd641e2b38de82e6cf829ff6a71f891887ab2815b9171d1ba0e9c96d2259e896'}
 sha=lambda b:hashlib.sha256(b).hexdigest()
 canon=lambda d:json.dumps(d,sort_keys=True,separators=(',',':')).encode()+b'\n'

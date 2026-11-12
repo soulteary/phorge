@@ -70,7 +70,7 @@ jobs:
         run: |
           umask 077
           git worktree add --detach "$RUNNER_TEMP/n05-native-baseline" 4c2245300dc1d78d042b95190dd537eb6b1f9861
-          git worktree add --detach "$RUNNER_TEMP/n05-native-target" 70bb0c1026b237d5e8c95c327d851eae719a29ee
+          git worktree add --detach "$RUNNER_TEMP/n05-native-target" 67c55636a8f7b8697136288fa211f0012ec0b138
           for native_source in "$RUNNER_TEMP/n05-native-baseline" "$RUNNER_TEMP/n05-native-target"; do
             php "$native_source/scripts/runtime/build.php" all
             php "$native_source/scripts/runtime/verify.php"

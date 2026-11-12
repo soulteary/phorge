@@ -55,7 +55,7 @@
     },
     "scripts/governance/project_description_admission_delta.py": {
       "bytes": 536258,
-      "sha256": "6aa3c910ab9b1b8e96f3ad485b14a6dbf4d3869b173b15ff3f2d21fd2198a534"
+      "sha256": "491b653d0366c8f1c6fc9667e197b6fc15542733b69ecf61ccd000085ceefc42"
     },
     "scripts/governance/project_description_source_delta.py": {
       "bytes": 201702,
@@ -306,6 +306,6 @@
       "sha256": "73f23b9eb86b5bb4b41ac3055ba7b552d8f9f5d7bc52ec9b10687d785e1a5ac0"
     }
   },
-  "production_git_tree_inventory_sha256": "e716ebf69e29dfd6004c3b057236b1de19593682f50c353a2792d889d050389e",
+  "production_git_tree_inventory_sha256": "f1a709e43352a4c03717b8f70383e1606efa764cad46816514fae6104d67ffbe",
   "schema": "native-directory-transports-source-v1"
 }
