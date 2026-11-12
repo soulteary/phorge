@@ -269,5 +269,49 @@ echo json_encode($result);'''
         self.assertEqual(0,result.returncode,result.stderr)
         self.assertEqual({'absent':{'accepted':True,'same_exception':False},'policy':{'accepted':True,'same_exception':False},'visible':{'accepted':False,'same_exception':False},'other':{'accepted':None,'same_exception':True},'error':{'accepted':None,'same_exception':True}},json.loads(result.stdout))
 
+
+class CalendarWireSourceProvenanceTests(unittest.TestCase):
+    def test_actual_php_raw_source_map_matches_summary_without_changing_historical_pins(self):
+        code = r"require $argv[1].'/support/governance/notification/calendar-reminder-cases.php';$out=array();foreach(governance_calendar_reminder_source_inputs()as$p){$out[$p]=hash_file('sha256',$argv[1].'/'.$p);}echo json_encode($out,JSON_THROW_ON_ERROR);"
+        result = subprocess.run(['php', '-r', code, str(ROOT)], capture_output=True,
+                                text=True, check=True, timeout=10)
+        self.assertEqual('', result.stderr)
+        self.assertEqual(json.loads(result.stdout), gate.summary(REVISION, QUEUE, root=ROOT)['source_inputs_sha256'])
+        self.assertEqual(gate.SOURCE_INPUTS, gate.sources(ROOT))
+        path = 'support/governance/native-organization/test-native-organization-mysql.php'
+        self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), gate.wire_sources(ROOT)[path])
+
+    def test_exact_historical_source_root_remains_accepted_and_unknown_driver_is_rejected(self):
+        path = 'support/governance/native-organization/test-native-organization-mysql.php'
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            for name in gate.SOURCE_INPUTS:
+                dest = root / name
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                raw = (ROOT / name).read_bytes()
+                if name == path:
+                    raw = gate.conduit_delta.reduce_policy_cleanup_driver(raw)
+                dest.write_bytes(raw)
+            self.assertEqual(gate.SOURCE_INPUTS, gate.sources(root))
+            self.assertEqual(gate.SOURCE_INPUTS, gate.summary(REVISION, QUEUE, root=root)['source_inputs_sha256'])
+            (root / path).write_bytes((ROOT / path).read_bytes() + b'\n// unrelated raw source mutation\n')
+            for consumer in (gate.sources, gate.wire_sources):
+                with self.subTest(consumer=consumer.__name__), self.assertRaises(ValueError):
+                    consumer(root)
+            with self.assertRaises(ValueError):
+                gate.summary(REVISION, QUEUE, root=root)
+
+    def test_unrelated_source_mutation_cannot_be_certified_by_raw_wire_projection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            for name in gate.SOURCE_INPUTS:
+                dest = root / name
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_bytes((ROOT / name).read_bytes())
+            path = 'support/governance/notification/calendar-reminder-cases.php'
+            (root / path).write_bytes((root / path).read_bytes() + b'\n// unrelated mutation\n')
+            with self.assertRaises(ValueError):
+                gate.wire_sources(root)
+
 if __name__ == '__main__':
     unittest.main()
