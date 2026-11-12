@@ -85,6 +85,33 @@ def _validate_with_source_operation(data,root=ROOT,*,source_revision,file_digest
  if type(data['captured_native_output_bytes'])is not int or not 0<=data['captured_native_output_bytes']<=65536 or not completion.digest(data['captured_native_output_sha256']):raise ValueError('captured output refused')
  return {'passed':True,'scope':'selected-native-Session-INSERT-no-permit','source_revision':source_revision,'checks':len(expected),'SQL_obligations':len(SQL_obligations(root,_source_operation=_source_operation)),
   'fault_matrix_proved':False,'all_sources_complete':False,'restoration_authorized':False,'execution_blocked':True}
+def _prepared_layout_diagnostic(frame):
+ """Bounded source inventory metadata only, never raw names or other locals."""
+ fallback={'diagnostic':'session_layout_metadata_v1','available':False}
+ if frame.f_code is not source_operation._prepared_layout.__code__:return fallback
+ try:
+  local=frame.f_locals;found=local.get('found');expected=local.get('source_expected')
+  def mapping(value):
+   if type(value)not in (dict,source_operation.MappingProxyType)or len(value)>16384:raise ValueError('metadata refused')
+   for name,mode in value.items():
+    if type(name)is not str or not 0<len(name)<=4096 or type(mode)is not str or mode not in ('100644','100755','120000','invalid'):raise ValueError('metadata refused')
+   return value
+  found=mapping(found);expected=mapping(expected)
+  missing=set(expected)-set(found);modes={name for name in expected if name in found and expected[name]!=found[name]}
+  extra=set(found)-set(expected)
+  policy=source_operation._prepared_policy();catalog=policy['catalog'];archives=policy['archives']
+  compiled=set(source_operation._PREPARED_FRESH_XHP);installed_path=source_operation._PREPARED_INSTALLED_XHP
+  allowed=set(catalog)|set(archives)|set(source_operation._PREPARED_CACHE_PATHS)|compiled|{installed_path}
+  parser=extra&set(catalog);fresh=extra&compiled;installed=installed_path in extra
+  observed={installed_path,*(name for name in compiled if name.endswith('/xhpast'))}
+  mode_bad={name for name in extra&allowed if found[name]not in (('100644','100755')if name in observed else ('100644',))}
+  unknown=extra-allowed
+  def hashes(names):return [hashlib.sha256(name.encode('utf-8')).hexdigest()for name in sorted(names)[:64]]
+  suffix={kind:0 for kind in ('pyc','json','log','other')}
+  for name in unknown:
+   kind=next((kind for kind in ('pyc','json','log')if name.endswith('.'+kind)),'other');suffix[kind]+=1
+  return {'diagnostic':'session_layout_metadata_v1','available':True,'found_count':len(found),'expected_count':len(expected),'extra_count':len(extra),'missing_count':len(missing),'source_mode_mismatch_count':len(modes),'unknown_extra_count':len(unknown),'missing_name_sha256':hashes(missing),'source_mode_mismatch_name_sha256':hashes(modes),'unknown_extra_name_sha256':hashes(unknown),'unknown_suffix_counts':suffix,'parser_present_count':len(parser),'parser_expected_count':len(catalog),'fresh_compiler_present_count':len(fresh),'fresh_compiler_expected_count':len(compiled),'installed_binary_present':installed,'archives_present_count':len(extra&set(archives)),'artifact_role_mode_mismatch_count':len(mode_bad)}
+ except (ValueError,TypeError,KeyError,UnicodeError):return fallback
 def _refusal_stage(error):
  """Fixed code-identity diagnostics only; never inspect exception text or data."""
  stages={
@@ -100,6 +127,8 @@ def _refusal_stage(error):
  stage='unclassified';tb=error.__traceback__
  while tb is not None:
   code=tb.tb_frame.f_code
+  if code is source_operation._prepared_layout.__code__:
+   print(json.dumps(_prepared_layout_diagnostic(tb.tb_frame),sort_keys=True),file=sys.stderr)
   if code is source_operation.SourceOperation.__exit__.__code__:
    return 'source_operation_exit'
   if code in stages:stage=stages[code]

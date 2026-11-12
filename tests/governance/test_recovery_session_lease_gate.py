@@ -175,3 +175,48 @@ class SessionLeaseDiagnosticTests(unittest.TestCase):
    self.assertEqual(result.returncode,1);self.assertEqual(result.stdout,'')
    self.assertEqual(result.stderr,json.dumps({'diagnostic':'session_lease_refusal_v1','stage':'unclassified'},sort_keys=True)+'\nSession lease receipt refused\n')
    self.assertNotIn('secret-canary',result.stderr);self.assertNotIn(str(root),result.stderr)
+
+class SessionLayoutDiagnosticTests(unittest.TestCase):
+ def test_actual_private_layout_refusal_emits_only_counts_and_name_hashes(self):
+  import contextlib,io
+  with tempfile.TemporaryDirectory()as temp:
+   root=Path(temp).resolve();name='secret-canary.json';(root/name).write_text('never logged')
+   output=io.StringIO()
+   with contextlib.redirect_stderr(output):
+    try:gate.source_operation._prepared_layout(root,{})
+    except ValueError as error:self.assertEqual(gate._refusal_stage(error),'prepared_layout')
+    else:self.fail('unknown extra accepted')
+   data=json.loads(output.getvalue());self.assertTrue(data['available']);self.assertEqual(data['found_count'],1);self.assertEqual(data['expected_count'],0);self.assertEqual(data['unknown_extra_count'],1)
+   self.assertEqual(data['unknown_extra_name_sha256'],[hashlib.sha256(name.encode()).hexdigest()]);self.assertEqual(data['unknown_suffix_counts'],{'pyc':0,'json':1,'log':0,'other':0})
+   self.assertNotIn(name,output.getvalue());self.assertNotIn(str(root),output.getvalue());self.assertNotIn('never logged',output.getvalue())
+ def test_fake_same_name_frame_cannot_emit_layout_metadata(self):
+  import contextlib,io
+  def _prepared_layout():
+   found={'secret-canary':'100644'};source_expected={};raise ValueError('secret-canary')
+  output=io.StringIO()
+  with contextlib.redirect_stderr(output):
+   try:_prepared_layout()
+   except ValueError as error:self.assertEqual(gate._refusal_stage(error),'unclassified')
+  self.assertEqual(output.getvalue(),'')
+ def test_actual_layout_bad_expected_type_has_fixed_fallback(self):
+  import contextlib,io
+  with tempfile.TemporaryDirectory()as temp:
+   output=io.StringIO()
+   with contextlib.redirect_stderr(output):
+    try:gate.source_operation._prepared_layout(Path(temp).resolve(),'secret-canary')
+    except ValueError as error:self.assertEqual(gate._refusal_stage(error),'prepared_layout')
+   self.assertEqual(json.loads(output.getvalue()),{'diagnostic':'session_layout_metadata_v1','available':False})
+
+ def test_actual_partial_parser_is_admitted_category_not_unknown(self):
+  import contextlib,io
+  with tempfile.TemporaryDirectory()as temp:
+   root=Path(temp).resolve();name=next(iter(gate.source_operation._prepared_policy()['catalog']))
+   path=root/name;path.parent.mkdir(parents=True);path.write_bytes(b'metadata only; never read')
+   output=io.StringIO()
+   with contextlib.redirect_stderr(output):
+    try:gate.source_operation._prepared_layout(root,{})
+    except ValueError as error:self.assertEqual(gate._refusal_stage(error),'prepared_layout')
+    else:self.fail('partial parser accepted')
+   data=json.loads(output.getvalue());self.assertTrue(data['available']);self.assertEqual(data['parser_present_count'],1);self.assertEqual(data['parser_expected_count'],270);self.assertEqual(data['unknown_extra_count'],0)
+   self.assertEqual(data['fresh_compiler_expected_count'],5);self.assertEqual(data['fresh_compiler_present_count'],0);self.assertFalse(data['installed_binary_present']);self.assertEqual(data['artifact_role_mode_mismatch_count'],0)
+   self.assertNotIn(name,output.getvalue());self.assertNotIn(str(root),output.getvalue());self.assertNotIn('metadata only',output.getvalue())
