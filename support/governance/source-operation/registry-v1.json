@@ -1825,7 +1825,7 @@
       },
       "current": {
         "bytes": 4575,
-        "sha256": "0e215f5348c915d60b8a198f4f819d1f64b11d3e9ae510cd39aab8f7188606c0"
+        "sha256": "6840ca9a81275fd877118621a0a686ede518cf929943e330cc8e8dc6d5865625"
       }
     },
     ".github/workflows/project-description-focused.yml": {
@@ -1835,7 +1835,7 @@
       },
       "current": {
         "bytes": 4757,
-        "sha256": "0dc1017ca54ec46f011ae6694b018826ee6c5f8d2fdddc1ed5e038f2d93cd008"
+        "sha256": "5d20c7d8bc5fc53296920a8b4c119eec2f7e801408271f926022826c579c77fb"
       }
     },
     "docs/governance/batch-2-callers.json": {
@@ -1984,8 +1984,8 @@
         "sha256": "b222848a6ac45504711a8d5cefea0fc8d5c5a9363988e531f9a845edef598a5f"
       },
       "current": {
-        "bytes": 10576,
-        "sha256": "ea096268abe88cfa780b5a7f763956583f082358ddf3e78fab979ec432f57c34"
+        "bytes": 11611,
+        "sha256": "80707730cf19da897a3f73af44fef02fa926f49ceb2e9bd505be6f819f223b68"
       }
     },
     "scripts/governance/project_description_admission_delta.py": {
@@ -1995,7 +1995,7 @@
       },
       "current": {
         "bytes": 536258,
-        "sha256": "b35611382aaacb7423b53ef6696b321abeacdf60798fa00a1c3c2a7c2509f172"
+        "sha256": "7ef0428913420e92a7176db7b55ba477df9d9d9136cd088c1eeb6e76fe4c4973"
       }
     },
     "scripts/governance/project_description_source_delta.py": {
@@ -2096,7 +2096,7 @@
       },
       "current": {
         "bytes": 1802,
-        "sha256": "086b3c8d127231a011639ba2694c594b1d57f430fe4a34458e8ac8416f4d1e6e"
+        "sha256": "8171f111a18e5d24a9e503d3447a7efc30be0c1232ccd2284d98b53d5178432b"
       }
     },
     "support/governance/project-content-grants-ci/ci.py": {
@@ -2106,7 +2106,7 @@
       },
       "current": {
         "bytes": 24560,
-        "sha256": "b5dcad50b3f9d67732809a358b15f0a4ac1c0251302adbc67a74eab79c70657a"
+        "sha256": "1556a7dd5e206aa27f212b647cfd69528a85f813fd6668e16e664a2044f33abc"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites-template.json": {
@@ -2116,7 +2116,7 @@
       },
       "current": {
         "bytes": 9307,
-        "sha256": "a0ec8b3a4ce484b05c9f1e264f93cb35620565b997dd8a9c61ac2e7ef3bb9bb1"
+        "sha256": "11ec149868a3c8a10d43d49fe12bb3dbcf8cabfa8e6c328f9d2bdb7e2951b05a"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites/provision.py": {
@@ -2126,7 +2126,7 @@
       },
       "current": {
         "bytes": 11688,
-        "sha256": "2a50d4d87321d8edae0e6738207c43beb36c0bc6c8b00e70c9a83849e74054f6"
+        "sha256": "15eb446a882802f7f595c336eadf524edcd25fb8100820c226b1ef62d5ec50c0"
       }
     },
     "support/governance/project-content-grants-ci/qualification-template.json": {
@@ -2136,7 +2136,7 @@
       },
       "current": {
         "bytes": 9875,
-        "sha256": "6e864e272be7c70c9932e2e31323f6bbdfcfdd98aa7932d5c5119f9c03da9c23"
+        "sha256": "a8aeb535529dce100bc1217acbb4f0ae8e8bf359f4f3525aa25fa04df03020c5"
       }
     },
     "support/governance/project-content-grants-qualification/qualify.py": {
@@ -2146,7 +2146,7 @@
       },
       "current": {
         "bytes": 9451,
-        "sha256": "943ac809de1434af0a1ab53b13b3c8507966a3eca20940ff6727f645cb6062d5"
+        "sha256": "47d2c8a849ca8b44752a708439b2f209ce18d6eec5ef331e59fd1d13dc63f345"
       }
     },
     "support/governance/project-description-ci/README.md": {
@@ -2156,7 +2156,7 @@
       },
       "current": {
         "bytes": 6104,
-        "sha256": "ae37e30f35482bc8f0484ebee04bd7834b41624cf0bf0e244a864e29f7f5032e"
+        "sha256": "6180ef912bd73d1518d998198f12d350be1947f03e3fcccaf041ad6384e2909a"
       }
     },
     "support/governance/project-description-ci/ci.py": {
@@ -2166,7 +2166,7 @@
       },
       "current": {
         "bytes": 15379,
-        "sha256": "0c37429c3490eb3973637cf09d55e6951b92a9825dd0018ad2a8a0f9e50f00e7"
+        "sha256": "5d6b441093d86ddaab5b9aac522cd88a8cd7c4b1a9d65fcc06aa0ec27116e72b"
       }
     },
     "support/governance/project-description-ci/metadata-lock.json": {
@@ -2176,7 +2176,7 @@
       },
       "current": {
         "bytes": 1024,
-        "sha256": "d6de46c0e7988cb0e8c314d7ad02eb98f11fb1f3382295c3b0dbe3af67d316f5"
+        "sha256": "3a04958ccba191547903abadc82056570611e323e01d9f3fedc4875fa51a0457"
       }
     },
     "support/governance/project-description-q2-owner/README.md": {
@@ -2513,8 +2513,8 @@
         "sha256": "6193be0db4803fbc54f7f4e1854d49f0fecb5be2e0953e027f14d8a33ad739ea"
       },
       "current": {
-        "bytes": 12397,
-        "sha256": "7917a73d9ab884378ded41d6d0654e6166d125bf23386789a572114e5f866270"
+        "bytes": 14959,
+        "sha256": "785ea596d0d97c0676618efbc02a7dd953e66ff7c1663f1031d974afb5f26ce5"
       }
     },
     "tests/governance/test_source_operation_snapshot.py": {
