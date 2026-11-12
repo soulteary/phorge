@@ -1817,7 +1817,7 @@
       },
       "current": {
         "bytes": 4575,
-        "sha256": "8d11fcb35adea2077dea30d75ca87f25fdc77984ae0d72dda714d5adfeb4b125"
+        "sha256": "5d00848c47b41ecd636b8e0c12fbfa3b6dd8c6e270dd62f63384389a89e6a0d4"
       }
     },
     ".github/workflows/project-description-focused.yml": {
@@ -1827,7 +1827,7 @@
       },
       "current": {
         "bytes": 4757,
-        "sha256": "f1a50ba9c73de843bc85c3327730ec1036e4b3626e7bb596f16929a8e2499a9f"
+        "sha256": "cd1cd4e6a7745e73b056694e6eaf25482a12b7121f042bf781d585257f1761b9"
       }
     },
     "docs/governance/batch-2-callers.json": {
@@ -1987,7 +1987,7 @@
       },
       "current": {
         "bytes": 536258,
-        "sha256": "bf5810633aa97ae4e668770b2bd54d930be07d8e5e9540f5b7e9d8a4112b38da"
+        "sha256": "e7fd04ffff90452a1b33624545e85c067df58c647a68c9cf81e6fcc57e8d9b43"
       }
     },
     "scripts/governance/project_description_source_delta.py": {
@@ -2060,8 +2060,8 @@
     "support/governance/native-execution/project-policy-nested-process.php": {
       "baseline": null,
       "current": {
-        "bytes": 14122,
-        "sha256": "88231001d76c5a8f8843cc28719728d335d5bdcab2832e0af311729c2cad911c"
+        "bytes": 14910,
+        "sha256": "2374a98068f44b7f6335d61c14cfa09c1cd42cc3b9fda0f0ce4ec80f10232db6"
       }
     },
     "support/governance/native-execution/project-policy-nested-worker.php": {
@@ -2088,7 +2088,7 @@
       },
       "current": {
         "bytes": 1802,
-        "sha256": "a7bd4f1408549eaede67e5687df7d639a57c4328dd4ba53569f08de81720ff5d"
+        "sha256": "c89031a98bcba7f437ec5f1b06584bbb1a014c9962cf75a8fa6b2b5e464e1bb6"
       }
     },
     "support/governance/project-content-grants-ci/ci.py": {
@@ -2098,7 +2098,7 @@
       },
       "current": {
         "bytes": 24560,
-        "sha256": "78692c1f0b3d920ce613cac7b59aa1ab03abbd06248e41a074283ab618c4fda4"
+        "sha256": "2761bfc9a58e0f235ef406b2ddc4f852aa6a894fb9489df1592f249a9429da6b"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites-template.json": {
@@ -2108,7 +2108,7 @@
       },
       "current": {
         "bytes": 9307,
-        "sha256": "e8cc4f71f3877dd3513aa16fc1f54058a888bee538a1e6a09867896fe4128d5b"
+        "sha256": "37e8a79b33870b387128133c5a8d154b4ab2f739f3c1182bcdc89859372dd979"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites/provision.py": {
@@ -2118,7 +2118,7 @@
       },
       "current": {
         "bytes": 11688,
-        "sha256": "aaf8a01d6fc84645e732096ec60b52da377e7d1e34fb80150f64553dbdc79d32"
+        "sha256": "d3380e85bc0cf6e6e375a0bae4d355c4fb9c0094f44c6cec0ae0724f97d71f68"
       }
     },
     "support/governance/project-content-grants-ci/qualification-template.json": {
@@ -2128,7 +2128,7 @@
       },
       "current": {
         "bytes": 9875,
-        "sha256": "0cb44775444e0787896f4fa2a0fee309436437ce92da355a3d8e73ac08441270"
+        "sha256": "9ebb2a7cba032a232f26384b67e76acea86580000a4938cbf74705da9c301733"
       }
     },
     "support/governance/project-content-grants-qualification/qualify.py": {
@@ -2138,7 +2138,7 @@
       },
       "current": {
         "bytes": 9451,
-        "sha256": "56b273f1cab6d2194dffe9c009d95cd8e81c24553f8a8a966b5490309711d989"
+        "sha256": "5d851b8b0953a33d5cfc6bf74a10e2830a3e985a790115634ab840d780bd7811"
       }
     },
     "support/governance/project-description-ci/README.md": {
@@ -2148,7 +2148,7 @@
       },
       "current": {
         "bytes": 6104,
-        "sha256": "46c6e8c5ac13bc3cea52f961f4f8711a3faa3215218f1a8d5cf8fb689c2e1e88"
+        "sha256": "521c3b6fd1c7fa2c1ed12984c73f96f44b1c53cbec7bc9aa69c11460fc13466d"
       }
     },
     "support/governance/project-description-ci/ci.py": {
@@ -2158,7 +2158,7 @@
       },
       "current": {
         "bytes": 15379,
-        "sha256": "bc6d3ba8a0651023b4648bc65a6817281e2f8953c01d80cb840c2a8edd78580b"
+        "sha256": "5f03cc24dc107ddb971d18b95494c1f590585fdd5493a954fdd8bfa24d21becb"
       }
     },
     "support/governance/project-description-ci/metadata-lock.json": {
@@ -2168,7 +2168,7 @@
       },
       "current": {
         "bytes": 1024,
-        "sha256": "8080312b338a83b7026a938ecbca50f448d7e9ba9996dd6cbd2e87a1faea9652"
+        "sha256": "6b3696c71f5b1a2352da7e94b7d13200fe5bc7ae744740a5828fd333f931f675"
       }
     },
     "support/governance/project-description-q2-owner/README.md": {
@@ -2271,8 +2271,8 @@
         "sha256": "b159e4f9c0d0ca68afb50100a544b297171eeaed2801b18a81ffd7f2aa2f05c1"
       },
       "current": {
-        "bytes": 6213,
-        "sha256": "b7d3d8623c63af07b3baec9f9efed4aa5631c5cbf7f286d3864d92a30969d687"
+        "bytes": 8901,
+        "sha256": "dab8249424999c6812c2f25ae90f76475b13064221ed1641d32ea13ebf513b68"
       }
     },
     "tests/governance/test_notice_native_admin_wire_source.py": {
