@@ -76,8 +76,14 @@ class CalendarConduitUnion(unittest.TestCase):
   import project_description_admission_delta as n05_delta
   n05_delta.assert_production_cohort(ROOT)
   changed,reviewed=n05_delta.historical_inputs(ROOT,previous,changed,{path:(ROOT/path).read_bytes()for path in changed})
-  self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS))
-  for path in changed:self.assertEqual(assessment.reduce_current(path,reviewed[path]),git('show',previous+':'+path))
+  from test_project_description_source_inverse import reviewed_i18n_sources,assert_reviewed_i18n_drift_controls
+  i18n=reviewed_i18n_sources(ROOT)
+  assert_reviewed_i18n_drift_controls(self)
+  self.assertEqual(changed,set(assessment.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)|set(i18n))
+  for path in changed:
+   if path in i18n:
+    self.assertEqual(reviewed[path],(ROOT/path).read_bytes())
+   else:self.assertEqual(assessment.reduce_current(path,reviewed[path]),git('show',previous+':'+path))
   workflows={'.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/assessment-credential-focused.yml'}
   validate_workflow_union(git('diff','--name-only',previous,'--','.github/workflows').decode().splitlines(),workflows,lambda path:(ROOT/path).read_bytes())
   self.assertEqual(git('ls-tree',previous,'--',MEDIA_WORKFLOW),b'')

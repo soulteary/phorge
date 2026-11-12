@@ -5,6 +5,48 @@ from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import project_description_source_delta as delta
+
+REVIEWED_I18N_NATIVE_REVISION='67c55636a8f7b8697136288fa211f0012ec0b138'
+REVIEWED_I18N_NATIVE_TREE='f2a74aac8911b0fa39abc389a9cd1ad9ab9d149f'
+REVIEWED_I18N_NATIVE_PINS={'src/__tests__/PhorgeI18nTestCase.php': {'bytes': 8363, 'sha256': '25bf6ff12f712e03863a1314f9bf4923a36d00aaba40553ee96f06a30e0197db', 'mode': '100644', 'blob': '82ad80d5e5c52c7047c55f51bf05d732af46ab5b'}, 'src/infrastructure/internationalization/management/PhabricatorInternationalizationManagementExtractWorkflow.php': {'bytes': 10234, 'sha256': '48a8a6dcd8b6d840fe84d926167b1098f996ecdf94b3551579741d8b243a64a2', 'mode': '100644', 'blob': '2a1ef31723f33be4b2be9853f2a9d9a0cabb5adf'}, 'src/infrastructure/internationalization/management/PhorgeInternationalizationValidator.php': {'bytes': 10357, 'sha256': '68052068436f977522869d1ff127d10ee45e953de7db74af7d344690e3de28df', 'mode': '100644', 'blob': '3552b89f515bcf3a3be346f32f49cf2907f3efa7'}}
+def reviewed_i18n_sources(root):
+ # Test-only expected reference: exact signed native fix, never runtime admission.
+ import stat
+ root=Path(root).resolve(strict=True)
+ def need(value):
+  if not value:raise ValueError('reviewed i18n source refused')
+ git=lambda *args:subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),*args])
+ need(git('rev-parse',REVIEWED_I18N_NATIVE_REVISION+'^{tree}').decode().strip()==REVIEWED_I18N_NATIVE_TREE)
+ result={}
+ for name,pin in REVIEWED_I18N_NATIVE_PINS.items():
+  entry=git('ls-tree','-z',REVIEWED_I18N_NATIVE_REVISION,'--',name)
+  need(entry==('100644 blob '+pin['blob']+'\t'+name+'\0').encode())
+  reference=git('show',REVIEWED_I18N_NATIVE_REVISION+':'+name)
+  need(len(reference)==pin['bytes']and hashlib.sha256(reference).hexdigest()==pin['sha256'])
+  path=root/name;before=path.lstat()
+  need(stat.S_ISREG(before.st_mode)and stat.S_IMODE(before.st_mode)==0o644)
+  raw=delta.checked_bytes(path)
+  after=path.lstat();stamp=lambda s:(s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+  need(stamp(before)==stamp(after)and raw==reference and len(raw)==pin['bytes']and hashlib.sha256(raw).hexdigest()==pin['sha256'])
+  need(hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==pin['blob'])
+  result[name]=(pin['mode'],pin['blob'])
+ return result
+
+def assert_reviewed_i18n_drift_controls(test):
+ # Owned TempRoot with real3physical inputs; no source reader/admission replacement.
+ with tempfile.TemporaryDirectory()as temporary:
+  root=Path(temporary).resolve()
+  for name in REVIEWED_I18N_NATIVE_PINS:
+   path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((ROOT/name).read_bytes());path.chmod(0o644)
+  test.assertEqual(set(reviewed_i18n_sources(root)),set(REVIEWED_I18N_NATIVE_PINS))
+  for name in REVIEWED_I18N_NATIVE_PINS:
+   path=root/name;raw=path.read_bytes()
+   path.write_bytes(raw+b'\nunsupported-drift')
+   with test.assertRaises(ValueError):reviewed_i18n_sources(root)
+   path.write_bytes(raw);path.chmod(0o600)
+   with test.assertRaises(ValueError):reviewed_i18n_sources(root)
+   path.chmod(0o644)
+  test.assertEqual(set(reviewed_i18n_sources(root)),set(REVIEWED_I18N_NATIVE_PINS))
 def tracked_src_inventory(root):
  import os,stat
  root=Path(root).resolve();rows=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'ls-tree','-r','-z','HEAD','--','src']).split(b'\0');tracked={}
@@ -167,6 +209,12 @@ class DescriptionSourceInverse(unittest.TestCase):
   expected={}
   for line in output.splitlines():
    info,path=line.split('\t',1);mode,kind,blob=info.split();expected[path]=(mode,blob)
+  i18n=reviewed_i18n_sources(ROOT)
+  assert_reviewed_i18n_drift_controls(self)
+  self.assertEqual(set(i18n),set(REVIEWED_I18N_NATIVE_PINS))
+  for name,row in i18n.items():
+   self.assertEqual(actual[name],row);self.assertIn(name,expected)
+   expected[name]=row
   self.assertEqual(actual,expected)
   row=delta.NATIVE_STATE_BASELINE;self.assertEqual(expected[row['path']],(row['git_mode'],row['git_blob']))
  def test_operation_registry_real20b_baseline_successor18_and_six_new_paths(self):

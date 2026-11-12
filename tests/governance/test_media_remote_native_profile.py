@@ -79,7 +79,10 @@ class CurrentMainIntegration(MediaRemote):
    self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'ls-tree','5a3d412be4496d1b739d484fc4cd778b79d80f72','--',path]),b'')
   expected={name,policy}|extra|n05_paths|set(docs)
   if map_path in changed:expected.add(map_path)
-  self.assertEqual(set(changed),expected)
+  from test_project_description_source_inverse import reviewed_i18n_sources,assert_reviewed_i18n_drift_controls
+  i18n=reviewed_i18n_sources(ROOT)
+  assert_reviewed_i18n_drift_controls(self)
+  self.assertEqual(set(changed),expected|set(i18n))
   for path in authorization_delta.PRODUCTION_PATHS:
    self.assertEqual(authorization_delta.reduce_current(path,(ROOT/path).read_bytes()),subprocess.check_output(['git','-C',str(ROOT),'show','0436e865b8431b9f064fe7b8a92dcad5e6623997:'+path]))
   for path in conduit_delta.BASE_PINS:

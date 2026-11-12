@@ -245,7 +245,12 @@ class NativeAdminWire(unittest.TestCase):
    if path.startswith('src/') and path.endswith('.md'):current[path]=(ROOT/path).read_bytes()
   frozen=reviewed_sources()
   old_map=subprocess.check_output(['git','-C',str(ROOT),'show',baseline+':src/__phutil_library_map__.php'])
-  self.assertTrue(validate_notice_product_delta(changed,current,frozen,old_map))
+  from test_project_description_source_inverse import reviewed_i18n_sources,assert_reviewed_i18n_drift_controls
+  i18n=reviewed_i18n_sources(ROOT)
+  assert_reviewed_i18n_drift_controls(self)
+  self.assertEqual(set(changed)&set(i18n),set(i18n))
+  # Every change is covered: exact signed I18n3 above plus original closed delta.
+  self.assertTrue(validate_notice_product_delta(set(changed)-set(i18n),current,frozen,old_map))
  def test_exact_workbench_document_pin_rejects_corruption_and_other_docs(self):
   doc='src/applications/people/governance/service/README.approval-workbench.md'
   # Use the existing fixed baseline and actual validator; documentation is an

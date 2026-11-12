@@ -106,12 +106,23 @@ _BATCH_REVIEWED_ED66={'revision':'ed66a10e3a2a034bcb9ac52e120c946b20ed2f29','tre
 _BATCH_POLICY_ACK_SOURCE={'bytes':246053,'sha256':'1ec9bba86436e227bd2c16001c88d8ece2e29adc3400b601a6cb39ea8e24e475','blob':'c18ab90c77b40ec873bb1eae261082f1060fe54b'}
 _BATCH_POLICY_ACK_SOURCE_SHA256='5073ffac4ab18d6d14998f3b8b2f6c1de49a31c4a26acec836f85001684360fd'
 
+def _batch_i18n_cache_snapshot_to_policy_ack(path,raw):
+ # Test-only exact public snapshot projection; no runtime source admission.
+ if path!=_BATCH_PATH or type(raw)is not bytes:return raw
+ if len(raw)!=246053 or hashlib.sha256(raw).hexdigest()!='0ad5d1d736b5d3d4b51496b6c828cc397ec3e5826c0a007002f26985ab105a1f' or hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!='d7142b5d39c8176e1b559ce44f4eb605599c695b':return raw
+ current=b'039c92a083049ca9039886cc5a72cf1c2ec214589155fa306f4110d7313588d5';previous=b'57d6c614e578f2040b72e28e85ff9a1bb56bf2b374eac34bdc3e2f6d9d0088cd'
+ if raw.count(current)!=1:raise ValueError('reviewed I18n caller snapshot changed')
+ restored=raw.replace(current,previous,1)
+ if len(restored)!=246053 or hashlib.sha256(restored).hexdigest()!='1ec9bba86436e227bd2c16001c88d8ece2e29adc3400b601a6cb39ea8e24e475' or hashlib.sha1(b'blob '+str(len(restored)).encode()+b'\0'+restored).hexdigest()!='c18ab90c77b40ec873bb1eae261082f1060fe54b':raise ValueError('reviewed I18n caller predecessor changed')
+ return restored
+
 def _policy_ack_batch_to_ed66(path,raw):
  # Public test-data projection only. The real entry below must FIRST prove
  # current forward admission, physical bytes/mode and actual native Git identity.
  pin=_BATCH_POLICY_ACK_SOURCE
  if type(pin)is not dict or hashlib.sha256(json.dumps(pin,sort_keys=True,separators=(',',':')).encode()).hexdigest()!=_BATCH_POLICY_ACK_SOURCE_SHA256:
   raise ValueError('reviewed caller snapshot pin changed')
+ raw=_batch_i18n_cache_snapshot_to_policy_ack(path,raw)
  if path!=_BATCH_PATH or type(raw)is not bytes or len(raw)!=pin['bytes'] or hashlib.sha256(raw).hexdigest()!=pin['sha256'] or hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()!=pin['blob']:
   raise ValueError('unknown reviewed caller snapshot')
  return _batch_stage_bytes(ROOT,_BATCH_REVIEWED_ED66)
@@ -160,6 +171,7 @@ def _historical_batch_scan_source(path,raw,root=ROOT):
  if actual!=raw:raise ValueError('unknown actual native batch scan')
  if current.TARGET==_BATCH_LEGACY['revision']:
   return _historical_batch_577_source(path,raw)
+ raw=_batch_i18n_cache_snapshot_to_policy_ack(path,raw)
  # This one reviewed caller snapshot changes only the static Editor fingerprint
  # and scanner row. Its original predecessor is the actual whole ED66 document;
  # no caller-provided native identity or historical document field is rewritten.

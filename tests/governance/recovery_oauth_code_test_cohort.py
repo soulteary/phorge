@@ -27,6 +27,27 @@ def complete_source_cohort(root):
             dst.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/path,dst,follow_symlinks=False)
 
+
+I18N_HISTORICAL_REVISION='9bc725ea3643cf24b6df0e806738b55496d8b388'
+I18N_HISTORICAL_SRC_TREE='3944b8003bb59a9b67f685df67acbd2354820b1c'
+I18N_HISTORICAL_PINS={'src/__tests__/PhorgeI18nTestCase.php': {'bytes': 6736, 'sha256': '06e578c69ccf9392ee9b5cb12a180f2e126ab9481354062e06b8da0ad7e7c7ad', 'mode': '100644', 'blob': '059a4d1131563cde9f283c50c49355ec5b0f240b'}, 'src/infrastructure/internationalization/management/PhabricatorInternationalizationManagementExtractWorkflow.php': {'bytes': 9437, 'sha256': '3db40d48f67ed43a9cf6b8a00becb1efae28ad156b4ab436a01b3f29af1e8c8b', 'mode': '100644', 'blob': '75168efb31bbfbcfa1b693cf181bb398155a8890'}, 'src/infrastructure/internationalization/management/PhorgeInternationalizationValidator.php': {'bytes': 9732, 'sha256': 'd3a54aca642ddfa36570f64e687cb2bbf3423a10dd7490766f3dc12b9bc518a4', 'mode': '100644', 'blob': 'c2bfe8a81a1928b67d01937760ead89a21c0c617'}}
+def reviewed_i18n_historical_inputs(root):
+    # Test-only expected reference, never a runtime source-reader exception.
+    import subprocess
+    from test_project_description_source_inverse import reviewed_i18n_sources
+    current=reviewed_i18n_sources(root)
+    git=lambda *args:subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),*args])
+    if git('rev-parse',I18N_HISTORICAL_REVISION+':src').decode().strip()!=I18N_HISTORICAL_SRC_TREE:raise ValueError('unknown historical i18n tree')
+    if set(current)!=set(I18N_HISTORICAL_PINS):raise ValueError('unknown historical i18n set')
+    historical={}
+    for name,pin in I18N_HISTORICAL_PINS.items():
+        entry=git('ls-tree','-z',I18N_HISTORICAL_REVISION,'--',name)
+        if entry!=('100644 blob '+pin['blob']+'\t'+name+'\0').encode():raise ValueError('unknown historical i18n mode/blob')
+        raw=git('show',I18N_HISTORICAL_REVISION+':'+name)
+        if len(raw)!=pin['bytes']or hashlib.sha256(raw).hexdigest()!=pin['sha256']:raise ValueError('unknown historical i18n bytes')
+        historical[name]=raw
+    return current,historical
+
 def normalized_source_tree(root):
     """Hash actual tracked src bytes after the exact six-file inverse to9bc."""
     import os,subprocess
@@ -36,6 +57,7 @@ def normalized_source_tree(root):
     n05_delta.assert_current_recipe(root)
     snapshot=n05_delta.description.current_snapshot(root)
     historical=n05_delta.description.reconstruct_historical(snapshot,root)
+    i18n_current,i18n_historical=reviewed_i18n_historical_inputs(root)
     # Exact committed inverse modules are batch inputs, not fake runtime readers.
     for name in ('recovery_oauth_code_source_delta.py','recovery_oauth_authorization_source_delta.py','recovery_oauth_client_lifecycle_delta.py'):
         path='scripts/governance/'+name
@@ -71,6 +93,14 @@ def normalized_source_tree(root):
             else:
                 if path not in historical:continue
                 raw=historical[path]
+        if path in i18n_current:
+            import stat
+            physical=target.lstat()
+            if not stat.S_ISREG(physical.st_mode)or stat.S_IMODE(physical.st_mode)!=0o644:raise ValueError('current i18n physical mode changed after capture')
+            mode='100644'
+            blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+            if (mode,blob)!=i18n_current[path]:raise ValueError('current i18n changed after capture')
+            raw=i18n_historical[path]
         raw=authorization_delta.lifecycle_delta.reduce_if_selected(path,raw)
         raw=literal_inverse(authorization_delta,path,raw)
         raw=literal_inverse(delta,path,raw)
