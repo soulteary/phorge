@@ -106,8 +106,11 @@ function governance_project_policy_nested_process($fixture,callable $check,array
       throw new RuntimeException('nested_fixture_observer_unknown');}return array((int)$row['n'],(int)$tx['n']);};
   if($observe()!==array(1,0)){throw new RuntimeException('nested_fixture_prestate_refused');}
   $write('execute',$owner);$result=$read('result.json');governance_policy_nested_result($ready,$result,$owner);
+  // MySQL 8.4.13 trx0i_s.cc: refresh requires >100ms since last read;
+  // reads reset that clock. Poll at 200ms without extending the 3s deadline.
+  // https://github.com/mysql/mysql-server/blob/mysql-8.4.13/storage/innobase/trx/trx0i_s.cc
   $until=microtime(true)+3;$live_transaction=false;
-  do{if($observe()===array(1,1)){$live_transaction=true;break;}usleep(20000);}while(microtime(true)<$until);
+  do{if($observe()===array(1,1)){$live_transaction=true;break;}usleep(200000);}while(microtime(true)<$until);
   if(!$live_transaction){throw new RuntimeException('nested_fixture_quarantine_transaction_not_observed');}
   $quarantined_snapshot=$snapshot();$snapshot_equal=$quarantined_snapshot===$before;
   $check($snapshot_equal,'project-approval-native-nested-error-isolated-uncommitted-while-child-quarantined'.
@@ -125,9 +128,19 @@ function governance_project_policy_nested_process($fixture,callable $check,array
     $diagnostic=file_get_contents($err);
     if(!str_contains($diagnostic,'Process exited with an open transaction!')||!str_contains($diagnostic,'AphrontDatabaseTransactionState')){throw new RuntimeException('nested_fixture_destructor_error_unexpected');}
   }
-  $until=microtime(true)+3;$absent=false;
-  do{if($observe()===array(0,0)){$absent=true;break;}usleep(20000);}while(microtime(true)<$until);
-  if(!$absent||$snapshot()!==$before){throw new RuntimeException('nested_fixture_no_commit_proof_failed');}
+  $until=microtime(true)+3;$absent=false;$last_observed=null;
+  do{$last_observed=$observe();if($last_observed===array(0,0)){$absent=true;break;}usleep(200000);}while(microtime(true)<$until);
+  if(!$absent){
+    $check(false,'project-approval-native-nested-error-final-child-absence-unproved:'.
+      json_encode(array('process_count'=>$last_observed[0],'transaction_count'=>$last_observed[1]),JSON_THROW_ON_ERROR));
+    throw new RuntimeException('nested_fixture_no_commit_proof_failed');
+  }
+  $final_snapshot=$snapshot();
+  if($final_snapshot!==$before){
+    $check(false,'project-approval-native-nested-error-final-snapshot-changed:'.
+      governance_policy_nested_snapshot_diagnostic($before,$final_snapshot));
+    throw new RuntimeException('nested_fixture_no_commit_proof_failed');
+  }
   $GLOBALS['governance_policy_nested_cleanup_permitted']=true;
   $check(true,'project-approval-actual-native-nested-update-error-quarantines-without-savepoint-guess');
   $check(true,'project-approval-native-nested-error-child-terminal-transaction-gone-and-no-commit');

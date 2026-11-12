@@ -68,4 +68,52 @@ class WorkerTerminal(unittest.TestCase):
      self.assertEqual(compared[name],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(name,(ROOT/name).read_bytes())).hexdigest(),assessment.BASE_PINS[name]);compared[name]=assessment.BASE_PINS[name]
    self.assertEqual(compared,pins(subprocess.check_output(['git','-C',str(ROOT),'show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+source])))
    self.assertEqual(historical[driver],pins(subprocess.check_output(['git','-C',str(ROOT),'show','fc0369af9d84c4a5f23a7080528e70f1ce84c4e7:'+source]))[driver])
+class InnoDBObserverPollSpacing(unittest.TestCase):
+ """Model MySQL8.4.13 trx0i_s.cc last_read, not transaction permission."""
+ @staticmethod
+ def poll(interval, cached, actual, expected, process_count, external_reads=False):
+  # can_cache_be_updated uses strictly >100ms since LAST READ; each read resets.
+  last_read=0;now=0;reads=0;deadline=3000000
+  while True:
+   if external_reads and now>0:last_read=now-10000
+   if now-last_read>100000:cached=actual
+   last_read=now;reads+=1
+   observed=(process_count,cached)
+   if observed==expected:return True,now,reads
+   now+=interval
+   if now>=deadline:return False,now,reads
+ def test_final_absence_old20ms_self_starves_but200ms_refreshes_within_same3s(self):
+  old=self.poll(20000,1,0,(0,0),0)
+  new=self.poll(200000,1,0,(0,0),0)
+  self.assertEqual(old,(False,3000000,150))
+  self.assertEqual(new,(True,200000,2))
+ def test_live_transaction_old20ms_self_starves_but200ms_refreshes(self):
+  self.assertEqual(self.poll(20000,0,1,(1,1),1),(False,3000000,150))
+  self.assertEqual(self.poll(200000,0,1,(1,1),1),(True,200000,2))
+ def test_exact100ms_is_not_idle_long_enough(self):
+  self.assertEqual(self.poll(100000,1,0,(0,0),0),(False,3000000,30))
+ def test_live_or_still_open_transaction_is_never_accepted_as_absent(self):
+  for process_count,actual in ((1,1),(1,0),(0,1)):
+   with self.subTest(process_count=process_count,transaction_count=actual):
+    passed,elapsed,reads=self.poll(200000,1,actual,(0,0),process_count)
+    self.assertFalse(passed);self.assertEqual(elapsed,3000000)
+    self.assertEqual(reads,15)
+ def test_other_readers_can_keep_cache_stale_and_deadline_still_refuses(self):
+  self.assertEqual(self.poll(200000,1,0,(0,0),0,external_reads=True),
+   (False,3000000,15))
+ def test_actual_fixture_uses200ms_only_for_both_information_schema_observers(self):
+  import re
+  path=ROOT/'support/governance/native-execution/project-policy-nested-process.php'
+  source=path.read_text()
+  live=re.search(r'do\{if\(\$observe\(\)===array\(1,1\)\).*?usleep\((\d+)\);\}while\(microtime\(true\)<\$until\);',source)
+  final=re.search(r'do\{\$last_observed=\$observe\(\);if\(\$last_observed===array\(0,0\)\).*?usleep\((\d+)\);\}while\(microtime\(true\)<\$until\);',source)
+  self.assertIsNotNone(live);self.assertIsNotNone(final)
+  self.assertEqual(int(live.group(1)),200000)
+  self.assertEqual(int(final.group(1)),200000)
+  self.assertEqual(source.count('$until=microtime(true)+3;'),2)
+  self.assertIn('$until=microtime(true)+8;',source)
+  self.assertGreaterEqual(source.count('usleep(20000)'),2)
+  self.assertIn('$final_snapshot!==$before',source)
+  self.assertIn("$GLOBALS['governance_policy_nested_cleanup_permitted']=true;",source)
+
 if __name__=='__main__':unittest.main()
