@@ -9,6 +9,8 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
 
   const CACHE_VERSION = 1;
 
+  private $cacheRoot;
+
   protected function didConstruct() {
     $this
       ->setName('extract')
@@ -22,6 +24,12 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
             'wildcard' => true,
           ),
           array(
+            'name' => 'cache-root',
+            'param' => 'directory',
+            'default' => null,
+            'help' => pht('Write extraction caches to an explicit directory.'),
+          ),
+          array(
             'name' => 'clean',
             'help' => pht('Drop caches before extracting strings. Slow!'),
           ),
@@ -30,6 +38,11 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
 
   public function execute(PhutilArgumentParser $args) {
     $console = PhutilConsole::getConsole();
+
+    $cache_root = $args->getArg('cache-root');
+    if ($cache_root !== null) {
+      $this->setCacheRoot($cache_root);
+    }
 
     $paths = $args->getArg('paths');
     if (!$paths) {
@@ -322,10 +335,23 @@ final class PhabricatorInternationalizationManagementExtractWorkflow
     Filesystem::writeFile($path, $data);
   }
 
+  public function setCacheRoot($root) {
+    if (!is_string($root) || !strlen($root)) {
+      throw new InvalidArgumentException(pht('Cache directory is required.'));
+    }
+    $root = Filesystem::resolvePath($root);
+    Filesystem::assertIsDirectory($root);
+    $this->cacheRoot = rtrim($root, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+    return $this;
+  }
+
   public function getCachePath($root, $to_file) {
     // Keep generated caches outside library sources, including the maintained
     // runtime package. All libraries share the project's ignored cache tree.
-    $cache_root = phutil_get_library_root('phorge').'/.cache/i18n/';
+    $cache_root = $this->cacheRoot;
+    if ($cache_root === null) {
+      $cache_root = phutil_get_library_root('phorge').'/.cache/i18n/';
+    }
     $library_key = hash('sha256', Filesystem::resolvePath($root));
     return $cache_root.$library_key.'/'.$to_file;
   }
