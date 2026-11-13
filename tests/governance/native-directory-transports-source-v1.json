@@ -54,8 +54,8 @@
       "sha256": "6eb1a8e9c5eb21eac699c507d65046d6b54497eecef3223e88c3ce70483d4847"
     },
     "scripts/governance/project_description_admission_delta.py": {
-      "bytes": 536258,
-      "sha256": "64ff42083efa4f72e478e6ed42c5c006a1b93dd5a8fe1f158452197d81fc4068"
+      "bytes": 539143,
+      "sha256": "2872633f7c97efbaf13f4426d8d1932c7faabc6d5e499ac909870b190cb144e9"
     },
     "scripts/governance/project_description_source_delta.py": {
       "bytes": 201702,
@@ -242,8 +242,8 @@
       "sha256": "37f7bf6da26affaee1b418d0ff319cb6d6e090c9443945a66a2ac53ec4eb89d2"
     },
     "support/governance/native-organization/test-native-organization-mysql.php": {
-      "bytes": 39959,
-      "sha256": "3ae6699231f460351bf205fb4bc62f48668cbf56386e671fa9ade8ec224f9c02"
+      "bytes": 40447,
+      "sha256": "858fa9a5925bcc3506442ba2ca67ab622cc5c63d531ba87e39236d3649b48e5c"
     },
     "support/runtime/php-version.php": {
       "bytes": 596,
@@ -266,8 +266,8 @@
       "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
     },
     "tests/governance/test_calendar_conduit_union.py": {
-      "bytes": 17419,
-      "sha256": "ec2b28640975cfc53b78b3cc074015238b4421d49e64ea1c81dcb70a2994289c"
+      "bytes": 17636,
+      "sha256": "ae10956509dd20e0207897685eea9d3db51efd2b63e080b9bf66fbab0c34320e"
     },
     "tests/governance/test_directory_avatar_fixture.py": {
       "bytes": 4915,
