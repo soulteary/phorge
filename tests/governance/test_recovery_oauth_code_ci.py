@@ -52,7 +52,7 @@ def reviewed_policy_fixture(root,name,raw=None):
   need(current._normalize_metadata(name,raw)==legacy)
  return legacy
 REVIEWED_MEDIA_CLIENT_PATHS=frozenset({'support/governance/native-organization/http-fixture/client/main.go','support/governance/native-organization/http-fixture/client/main_test.go'})
-REVIEWED_REGISTRY_APPEND_PATHS=frozenset({'tests/governance/private_mail_ci/make_config.py', 'support/governance/native-organization/http-fixture/client/main_test.go', 'support/governance/recovery/tests/session-cleanup-gate-host.php', 'tests/governance/private_mail_ci/runtime.py', 'tests/governance/test_notice_history_lifecycle.py', 'tests/governance/test_recovery_file_parent_gate.py', 'tests/governance/test_recovery_session_lease_focused.py', 'support/governance/recovery/tests/conduit-driver-cleanup-host.php', 'tests/governance/test_private_calendar_wire.py', 'support/governance/recovery/tests/borrowed-driver-cleanup-host.php', 'tests/governance/test_recovery_assessment_current.py', 'support/governance/native-organization/http-fixture/client/main.go'})
+REVIEWED_REGISTRY_APPEND_PATHS=frozenset({'tests/governance/private_mail_ci/make_config.py', 'support/governance/recovery/tests/borrowed-driver-cleanup-host.php', 'tests/contract/config/notifications.php', 'tests/governance/test_recovery_file_parent_gate.py', 'support/governance/recovery/tests/conduit-driver-cleanup-host.php', 'support/governance/recovery/tests/session-cleanup-gate-host.php', 'tests/governance/private_mail_ci/runtime.py', 'tests/governance/test_private_calendar_wire.py', 'support/governance/native-organization/http-fixture/client/main.go', 'tests/governance/test_recovery_session_lease_focused.py', 'support/governance/native-organization/http-fixture/client/main_test.go', 'tests/governance/test_notice_history_lifecycle.py', 'tests/governance/test_recovery_assessment_current.py'})
 def actual20b_appended_baselines(root):
  # One actual Git object batch, not hundreds of per-row subprocesses.
  names=sorted(REVIEWED_REGISTRY_APPEND_PATHS)
@@ -72,11 +72,11 @@ def actual20b_appended_baselines(root):
  if offset!=len(raw):raise ValueError('reviewed baseline Git trailing bytes refused')
  return result
 
-def assert_reviewed_registry_baselines(entries,main_entries,actual12):
+def assert_reviewed_registry_baselines(entries,main_entries,actual13):
  # Pure test-contract check only; actual caller first authenticates current recipe.
- if type(entries)is not dict or type(main_entries)is not dict or type(actual12)is not dict or len(main_entries)!=450 or set(actual12)!=REVIEWED_REGISTRY_APPEND_PATHS or set(main_entries)&REVIEWED_REGISTRY_APPEND_PATHS:raise ValueError('reviewed baseline domains refused')
+ if type(entries)is not dict or type(main_entries)is not dict or type(actual13)is not dict or len(main_entries)!=450 or set(actual13)!=REVIEWED_REGISTRY_APPEND_PATHS or set(main_entries)&REVIEWED_REGISTRY_APPEND_PATHS:raise ValueError('reviewed baseline domains refused')
  if set(entries)!=set(main_entries)|REVIEWED_REGISTRY_APPEND_PATHS:raise ValueError('reviewed baseline exact union refused')
- if any(entries[path]!=row for path,row in main_entries.items())or any(entries[path]!=actual12[path]for path in REVIEWED_REGISTRY_APPEND_PATHS):raise ValueError('reviewed baseline original or appended bytes changed')
+ if any(entries[path]!=row for path,row in main_entries.items())or any(entries[path]!=actual13[path]for path in REVIEWED_REGISTRY_APPEND_PATHS):raise ValueError('reviewed baseline original or appended bytes changed')
 def reviewed_media_client_fixture(root,name,raw=None):
  # Test-only closed two-path role proof. Not a filename suffix/directory exception.
  import project_description_admission_delta as current
@@ -271,10 +271,10 @@ class OAuthCI(unittest.TestCase):
     with self.assertRaises(ValueError):reviewed_policy_fixture(ROOT,name,unknown)
   for name in ('support/governance/native-execution/unknown.php','../project-policy-negative-cases.php'):
    with self.assertRaises(ValueError):reviewed_policy_fixture(ROOT,name,b'')
-  # Domain/byte tampering is tested against actual main450 and actual twelve Git objects.
+  # Domain/byte tampering is tested against actual main450 and actual thirteen Git objects.
   main=json.loads(subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','7a9c45c68a3632b7163071a9668c75b3c85c1491:support/governance/source-operation/registry-v1.json']))['entries']
-  actual12=actual20b_appended_baselines(ROOT);complete={**copy.deepcopy(main),**actual12}
-  assert_reviewed_registry_baselines(complete,main,actual12)
+  actual13=actual20b_appended_baselines(ROOT);complete={**copy.deepcopy(main),**actual13}
+  assert_reviewed_registry_baselines(complete,main,actual13)
   original_name=next(iter(main));added_name=next(iter(REVIEWED_REGISTRY_APPEND_PATHS))
   mutations=[]
   missing=copy.deepcopy(complete);missing.pop(added_name);mutations.append(missing)
@@ -282,7 +282,7 @@ class OAuthCI(unittest.TestCase):
   for name in (original_name,added_name):
    changed=copy.deepcopy(complete);changed[name]['sha256']='0'*64;mutations.append(changed)
   for changed in mutations:
-   with self.assertRaises(ValueError):assert_reviewed_registry_baselines(changed,main,actual12)
+   with self.assertRaises(ValueError):assert_reviewed_registry_baselines(changed,main,actual13)
   for name in REVIEWED_MEDIA_CLIENT_PATHS:
    raw=(ROOT/name).read_bytes()
    self.assertEqual(reviewed_media_client_fixture(ROOT,name),name)
