@@ -3,6 +3,8 @@ from recovery_oauth_code_test_cohort import complete_source_cohort,normalized_so
 from pathlib import Path
 import copy,hashlib,json,subprocess,sys,tempfile,unittest
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'scripts/governance'))
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_recovery_file_parent_policy as driver_admission
 import check_recovery_assessment_credentials_v2 as gate
 import test_recovery_session_lease_gate as old
 class AssessmentCredentialSQL(unittest.TestCase):
@@ -60,5 +62,5 @@ class AssessmentCredentialSQL(unittest.TestCase):
    self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
   driver='support/governance/native-organization/test-native-organization-mysql.php'
   pin='adc0a4016c22c836942905c2072ded5e52975932699e58971597edb52056b42a'
-  self.assertEqual(hashlib.sha256(gate.source_view(driver,(ROOT/driver).read_bytes(),pin)).hexdigest(),pin)
+  self.assertEqual(hashlib.sha256(gate.source_view(driver,driver_admission.admitted_native_driver_source(ROOT,(ROOT/driver).read_bytes()),pin)).hexdigest(),pin)
 if __name__=='__main__':unittest.main()
