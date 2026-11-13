@@ -1898,7 +1898,7 @@
       },
       "current": {
         "bytes": 4575,
-        "sha256": "3de0423bac32e585f94ff98a70efb688c3268e33b1b8b17a174cb51629b47013"
+        "sha256": "20a367204e2f0970794a26c439ec72d4a538e0cad7f9a32db05f9d25ce602799"
       }
     },
     ".github/workflows/project-description-focused.yml": {
@@ -1908,7 +1908,7 @@
       },
       "current": {
         "bytes": 4757,
-        "sha256": "0bdf32ec2d00a53125bca3616e33075eca64a740ee065d9bbf91afb96cb82662"
+        "sha256": "fbca6f4f46b4eb161b50c3074d1a6bc33284665eba923fd42bca9e57f683f94c"
       }
     },
     "docs/governance/batch-2-callers.json": {
@@ -2268,7 +2268,7 @@
       },
       "current": {
         "bytes": 1802,
-        "sha256": "476adce744c1fc9fdbf9c1c8e02454881adb401d85b478a71297b696640f7f3b"
+        "sha256": "d11e7432e4dd76ff317a7eebe4cdcdceadf9f917e15d8d61c73430e4f5c73e59"
       }
     },
     "support/governance/project-content-grants-ci/ci.py": {
@@ -2278,7 +2278,7 @@
       },
       "current": {
         "bytes": 24560,
-        "sha256": "62366199b4f34bed23b401df2f6efc9a5c45822ee946420e235e2e02a86ec25b"
+        "sha256": "b7d926e1b7f47b86465aecec73996b87d0a853ec8bbd9218e66b8d3486951ec4"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites-template.json": {
@@ -2288,7 +2288,7 @@
       },
       "current": {
         "bytes": 9307,
-        "sha256": "caadb222cc32920038bf4fd5c23efc2a1bc263d77a71bfd7f746123003305389"
+        "sha256": "25b8d384b9a9fc0d14c5c90c78edc840d0946f3416ca858dd6db326c2e314e09"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites/provision.py": {
@@ -2298,7 +2298,7 @@
       },
       "current": {
         "bytes": 11688,
-        "sha256": "afa1fbcba40ee4ceb2b87bc0c3578343aca55c3ccbac178aa221c9112598c45b"
+        "sha256": "906547f4f76bebb314b7461591aa20c4389ea388888ea550b5ac35c9a9465c17"
       }
     },
     "support/governance/project-content-grants-ci/qualification-template.json": {
@@ -2308,7 +2308,7 @@
       },
       "current": {
         "bytes": 9875,
-        "sha256": "053c58e6b761b6e9d0d7b5773030da1f66a1bd4972d7bddd2e8763432d23d197"
+        "sha256": "f522f8fef47e46052ab58fd675a624e36f6ded63af4c4e6d44ac0c7c1c74bf40"
       }
     },
     "support/governance/project-content-grants-qualification/qualify.py": {
@@ -2318,7 +2318,7 @@
       },
       "current": {
         "bytes": 9451,
-        "sha256": "b6b4ffb5712726242822b013802cd23c9746d04409376562e26cd0a64b7d6734"
+        "sha256": "38cd1ade7f8144a36b864c29d22bbfdfac896e94ad4111d190188ba734d427f7"
       }
     },
     "support/governance/project-description-ci/README.md": {
@@ -2328,7 +2328,7 @@
       },
       "current": {
         "bytes": 6104,
-        "sha256": "c44c590e8feab3485a92beacd7f0d644dba1a97dcf1725b1fb856c17c09ff245"
+        "sha256": "5775630f4a56e0664cfc6d3796117b768b6b80b959f5ff8d1c43c423949bad46"
       }
     },
     "support/governance/project-description-ci/ci.py": {
@@ -2338,7 +2338,7 @@
       },
       "current": {
         "bytes": 15379,
-        "sha256": "d39cc44d663d90726df2d6c85a23d33575bf16f1b7e8f8c96c32dc4ed5788ab3"
+        "sha256": "b3c1b9614725007a6668b509eeb1c545fcdb8bf5992a0476c9793a923858782b"
       }
     },
     "support/governance/project-description-ci/metadata-lock.json": {
@@ -2348,7 +2348,7 @@
       },
       "current": {
         "bytes": 1024,
-        "sha256": "d8400b6edf0fa4cde80d597f4f9d7b458233e0da1a99504820e8936a5d49672e"
+        "sha256": "8eee9a1d55fb044afbe02d49c5a0f00f2f3df34a4e707359085bdfbf9c8edff5"
       }
     },
     "support/governance/project-description-q2-owner/README.md": {
@@ -2786,8 +2786,8 @@
         "sha256": "6c0e6761f4d40b739dfb60ffdcd15cf2dbcf8c1db6ca5268d7ff9741e93f59ae"
       },
       "current": {
-        "bytes": 38145,
-        "sha256": "02426a3dc67331701cfdf3549e736d2e6a5c9e28988ae5f3452b0519192bd16b"
+        "bytes": 40557,
+        "sha256": "aaec88835ad03bef4a246e6ebbba262f5533fddf3db02a98cea415d469ebad5f"
       }
     },
     "tests/governance/test_recovery_oauth_code_coordination.py": {

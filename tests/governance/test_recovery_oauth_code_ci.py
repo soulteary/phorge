@@ -108,10 +108,11 @@ def reviewed_media_client_fixture(root,name,raw=None):
  current.assert_current_recipe(root)
  return name
 REVIEWED_CONDUIT_CLEANUP_PATH='support/governance/recovery/tests/conduit-driver-cleanup-host.php'
-def assert_reviewed_conduit_cleanup_role(registry,legacy,raw):
- name=REVIEWED_CONDUIT_CLEANUP_PATH
+REVIEWED_CLEANUP_FIXTURE_PINS={'support/governance/recovery/tests/conduit-driver-cleanup-host.php': {'baseline': {'bytes': 3072, 'sha256': '8a9bc2f82d34436607e5e8dac77abf7deba4aae71c293710cc4783db3a5ff949'}, 'current': {'bytes': 3092, 'sha256': 'ec6488145f2a07459a70cf63e607a047466968eaa4c7b2847bb731f02a8c3c0c'}}, 'support/governance/recovery/tests/borrowed-driver-cleanup-host.php': {'baseline': {'bytes': 3009, 'sha256': 'dea1408c1aaf6ce7a82986ced736e9fd6fdc30601ae9cab5224e929acf9117df'}, 'current': {'bytes': 3029, 'sha256': 'df001641908c2c09d224a725bb1d5cfc7c48e321dab8919ac664aa149844e5d5'}}, 'support/governance/recovery/tests/session-cleanup-gate-host.php': {'baseline': {'bytes': 10667, 'sha256': 'ea6190b000afa2f96e60ea23a71a77bd02cc1df8d882e280a22bb05df84e03f5'}, 'current': {'bytes': 10687, 'sha256': '6f5d0fce90640dec303ba3a7b6fa8fd75ae34fbbb9b86e1663ad982a8ca8e873'}}}
+def assert_reviewed_conduit_cleanup_role(registry,legacy,raw,*,name=REVIEWED_CONDUIT_CLEANUP_PATH):
+ if name not in REVIEWED_CLEANUP_FIXTURE_PINS:raise ValueError('unknown cleanup fixture name')
  pin=lambda value:{'bytes':len(value),'sha256':hashlib.sha256(value).hexdigest()}
- if registry['entries'].get(name)!=pin(legacy)or registry['successor_entries'].get(name)!={'baseline':pin(legacy),'current':pin(raw)}:
+ if pin(legacy)!=REVIEWED_CLEANUP_FIXTURE_PINS[name]['baseline']or pin(raw)!=REVIEWED_CLEANUP_FIXTURE_PINS[name]['current']or registry['entries'].get(name)!=pin(legacy)or registry['successor_entries'].get(name)!={'baseline':pin(legacy),'current':pin(raw)}:
   raise ValueError('unreviewed conduit cleanup fixture role')
 
 def reviewed_conduit_cleanup_fixture(root,raw=None,*,name=REVIEWED_CONDUIT_CLEANUP_PATH):
@@ -122,7 +123,7 @@ def reviewed_conduit_cleanup_fixture(root,raw=None,*,name=REVIEWED_CONDUIT_CLEAN
  def need(value):
   if not value:raise ValueError('unreviewed conduit cleanup fixture source')
  def pin(value):return {'bytes':len(value),'sha256':hashlib.sha256(value).hexdigest()}
- need(name==REVIEWED_CONDUIT_CLEANUP_PATH)
+ need(name in REVIEWED_CLEANUP_FIXTURE_PINS)
  root=Path(root);current.assert_current_recipe(root)
  actual=read_native_driver_checked(root/name)
  if raw is None:raw=actual
@@ -131,10 +132,10 @@ def reviewed_conduit_cleanup_fixture(root,raw=None,*,name=REVIEWED_CONDUIT_CLEAN
  need(raw==git(current.TARGET))
  legacy=git('20b138b4cd9a2cf61522613b4a8e5e21eca7341b')
  need(legacy==git('7a9c45c68a3632b7163071a9668c75b3c85c1491'))
- before=b'$notice_history=false;$console_owned=false;'
- after=b'$notice_history=false;$task_browser=false;$console_owned=false;'
+ before=b'$notice_history=false;'
+ after=b'$notice_history=false;$task_browser=false;'
  need(legacy.count(before)==1 and raw==legacy.replace(before,after,1))
- need(pin(raw)=={'bytes':3092,'sha256':'ec6488145f2a07459a70cf63e607a047466968eaa4c7b2847bb731f02a8c3c0c'})
+ need(pin(legacy)==REVIEWED_CLEANUP_FIXTURE_PINS[name]['baseline']and pin(raw)==REVIEWED_CLEANUP_FIXTURE_PINS[name]['current'])
  registry_path='support/governance/source-operation/registry-v1.json'
  registry_raw=current.description.checked_bytes(root/registry_path);current._exact(registry_raw,current.CURRENT_METADATA[registry_path])
  registry=json.loads(registry_raw,object_pairs_hook=strict_object)
@@ -142,7 +143,7 @@ def reviewed_conduit_cleanup_fixture(root,raw=None,*,name=REVIEWED_CONDUIT_CLEAN
  main_registry=json.loads(subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'show','7a9c45c68a3632b7163071a9668c75b3c85c1491:'+registry_path]),object_pairs_hook=strict_object)
  assert_reviewed_registry_baselines(registry['entries'],main_registry['entries'],actual20b_appended_baselines(root))
  need(name not in current.CURRENT_METADATA)
- assert_reviewed_conduit_cleanup_role(registry,legacy,raw)
+ assert_reviewed_conduit_cleanup_role(registry,legacy,raw,name=name)
  current.assert_current_recipe(root)
  return name
 
@@ -239,7 +240,7 @@ class OAuthCI(unittest.TestCase):
   i18n=reviewed_i18n_sources(ROOT)
   assert_reviewed_i18n_drift_controls(self)
   media_clients={reviewed_media_client_fixture(ROOT,name)for name in REVIEWED_MEDIA_CLIENT_PATHS}
-  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths|set(REVIEWED_POLICY_FIXTURES)|set(i18n)|media_clients|{reviewed_conduit_cleanup_fixture(ROOT)})
+  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths|set(REVIEWED_POLICY_FIXTURES)|set(i18n)|media_clients|{reviewed_conduit_cleanup_fixture(ROOT,name=name)for name in REVIEWED_CLEANUP_FIXTURE_PINS})
   lifecycle_reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
   for name in lifecycle_paths:
    raw=(ROOT/name).read_bytes()
@@ -308,6 +309,22 @@ class OAuthCI(unittest.TestCase):
   for field in ('baseline','current'):
    altered=copy.deepcopy(registry);altered['successor_entries'][REVIEWED_CONDUIT_CLEANUP_PATH][field]['sha256']='0'*64
    with self.assertRaises(ValueError):assert_reviewed_conduit_cleanup_role(altered,legacy,cleanup)
+  # Each newly admitted fixture must independently satisfy the same real roles.
+  for name in sorted(REVIEWED_CLEANUP_FIXTURE_PINS):
+   raw=(ROOT/name).read_bytes()
+   self.assertEqual(reviewed_conduit_cleanup_fixture(ROOT,name=name),name)
+   for unknown in (raw+b'unknown',raw[:-1],b'',bytearray(raw),cleanup if name!=REVIEWED_CONDUIT_CLEANUP_PATH else (ROOT/next(iter(REVIEWED_MEDIA_CLIENT_PATHS))).read_bytes()):
+    with self.assertRaises(ValueError):reviewed_conduit_cleanup_fixture(ROOT,unknown,name=name)
+   with tempfile.TemporaryDirectory()as temporary:
+    owned=Path(temporary).resolve()/'fixture.php';owned.write_bytes(raw);owned.chmod(0o644)
+    self.assertEqual(read_native_driver_checked(owned),raw)
+    owned.chmod(0o600)
+    with self.assertRaises(ValueError):read_native_driver_checked(owned)
+   legacy=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+name])
+   assert_reviewed_conduit_cleanup_role(registry,legacy,raw,name=name)
+   for field in ('baseline','current'):
+    altered=copy.deepcopy(registry);altered['successor_entries'][name][field]['sha256']='0'*64
+    with self.assertRaises(ValueError):assert_reviewed_conduit_cleanup_role(altered,legacy,raw,name=name)
  def test_yaml_dependency_is_explicit_isolated_and_precedes_controls(self):
   import yaml
   steps=yaml.safe_load(FOCUSED.read_text())['jobs']['oauth-code-owner']['steps']
