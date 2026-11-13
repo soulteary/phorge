@@ -200,6 +200,12 @@ try{
     def test_queued_hold_has_no_manual_publication_execution(self):
         hold=(ROOT/'support/governance/notification/task-wire-hold.php').read_text()
         self.assertIn('governance_task_wire_enqueue(',hold)
+        # Exact synthetic-only native preference stage; all other hold bytes stay frozen.
+        self_mail_block="    // This synthetic author must not add a second, native self-action copy.\n    $self_key=PhabricatorEmailSelfActionsSetting::SETTINGKEY;\n    $preferences=PhabricatorUserPreferences::loadUserPreferences($users['author']);\n    (new PhabricatorUserPreferencesEditor())->setActor($users['author'])\n      ->setContentSource(PhabricatorContentSource::newForSource('console',array()))\n      ->setContinueOnNoEffect(true)->setContinueOnMissingFields(true)\n      ->applyTransactions($preferences,array($preferences->newTransaction(\n        $self_key,PhabricatorEmailSelfActionsSetting::VALUE_NO_SELF)));\n    $persisted=(new PhabricatorUserPreferences())->loadOneWhere(\n      'userPHID=%s',$users['author']->getPHID());\n    if(!$persisted||$persisted->getPreference($self_key)!==PhabricatorEmailSelfActionsSetting::VALUE_NO_SELF){\n      throw new RuntimeException('task_wire_synthetic_author_no_self_mail_not_persisted');}\n"
+        self.assertEqual(hold.count(self_mail_block),1)
+        self.assertLess(hold.index(self_mail_block),hold.index('    $enqueued=governance_task_wire_enqueue('))
+        baseline=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','9ac279d7086d30b4624b2f5f7e825a221991e1a7:support/governance/notification/task-wire-hold.php'])
+        self.assertEqual(hold.replace(self_mail_block,'',1).encode(),baseline)
         self.assertNotIn('governance_task_wire_produce(',hold)
         self.assertNotIn('executeTask(',hold)
         self.assertEqual(('allow','revoke-before-publication','revoke-after-prepare'),run_task.CASES)

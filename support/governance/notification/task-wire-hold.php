@@ -38,6 +38,18 @@ function governance_task_wire_hold($fixture,callable $check,$browser_mode=false)
       ->setIsApproved(1)->setIsEmailVerified(1)->save();
       (new PhabricatorUserEmail())->setUserPHID($user->getPHID())->setAddress($user->getUsername().'@example.invalid')->setIsPrimary(1)->setIsVerified(1)->save();
       $users[$role]=$user;}
+    // This synthetic author must not add a second, native self-action copy.
+    $self_key=PhabricatorEmailSelfActionsSetting::SETTINGKEY;
+    $preferences=PhabricatorUserPreferences::loadUserPreferences($users['author']);
+    (new PhabricatorUserPreferencesEditor())->setActor($users['author'])
+      ->setContentSource(PhabricatorContentSource::newForSource('console',array()))
+      ->setContinueOnNoEffect(true)->setContinueOnMissingFields(true)
+      ->applyTransactions($preferences,array($preferences->newTransaction(
+        $self_key,PhabricatorEmailSelfActionsSetting::VALUE_NO_SELF)));
+    $persisted=(new PhabricatorUserPreferences())->loadOneWhere(
+      'userPHID=%s',$users['author']->getPHID());
+    if(!$persisted||$persisted->getPreference($self_key)!==PhabricatorEmailSelfActionsSetting::VALUE_NO_SELF){
+      throw new RuntimeException('task_wire_synthetic_author_no_self_mail_not_persisted');}
     $enqueued=governance_task_wire_enqueue($fixture,$check,$queue,$sink,$users['author'],$users['recipient']);
     $mailer_config=$fixture->createPrivateMailerPrincipal();
     $relay_config=$fixture->createPrivateNoticeRelayPrincipal();
