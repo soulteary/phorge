@@ -81,3 +81,72 @@ func TestLogoutSelectsExactNativeDialogInsteadOfHeaderSearch(t *testing.T) {
 		t.Fatal("header search selected instead of native logout dialog")
 	}
 }
+
+func TestPrivateReadResponseRejectsStatusBytesRangeAndCacheTampering(t *testing.T) {
+	good := func() *http.Response {
+		return &http.Response{StatusCode: 206, Header: http.Header{"Cache-Control": {"private, no-store"}, "X-Content-Type-Options": {"nosniff"}, "Content-Range": {"bytes 0-1/4"}}}
+	}
+	if !privateReadMatches(good(), []byte("ab"), []byte("ab"), 206, "bytes 0-1/4") {
+		t.Fatal("valid native range refused")
+	}
+	for _, mutate := range []func(*http.Response){
+		func(r *http.Response) { r.StatusCode = 200 },
+		func(r *http.Response) { r.StatusCode = 304 },
+		func(r *http.Response) { r.Header.Set("Content-Range", "bytes 1-2/4") },
+		func(r *http.Response) { r.Header.Set("Cache-Control", "public, max-age=3600") },
+		func(r *http.Response) { r.Header.Del("X-Content-Type-Options") },
+	} {
+		r := good()
+		mutate(r)
+		if privateReadMatches(r, []byte("ab"), []byte("ab"), 206, "bytes 0-1/4") {
+			t.Fatal("unsafe range response accepted")
+		}
+	}
+	if privateReadMatches(good(), []byte("private extra bytes"), []byte("ab"), 206, "bytes 0-1/4") {
+		t.Fatal("wrong body accepted")
+	}
+	if privateReadMatches(nil, nil, nil, 200, "") {
+		t.Fatal("missing response accepted")
+	}
+	head := good()
+	if !privateReadMatches(head, nil, nil, 206, "bytes 0-1/4") || privateReadMatches(head, []byte("ab"), nil, 206, "bytes 0-1/4") {
+		t.Fatal("HEAD body contract lost")
+	}
+}
+
+func TestDeniedPrivateReadRejectsSelectedFragmentsAndResponseTampering(t *testing.T) {
+	good := func() *http.Response {
+		return &http.Response{StatusCode: 403, Header: http.Header{"Cache-Control": {"no-store"}, "X-Content-Type-Options": {"nosniff"}}}
+	}
+	full := []byte("Synthetic private body with 0123456789abcdef")
+	selected := []byte("0123456789abcdef")
+	check := func(r *http.Response, b []byte, method string) bool {
+		return deniedPrivateReadMatches(r, b, method, "unique-fixture-marker", full, selected)
+	}
+	if !check(good(), []byte("Access denied"), "GET") || !check(good(), nil, "HEAD") {
+		t.Fatal("ordinary denial refused")
+	}
+	// Two ordinary prefix bytes are not evidence of a private leak.
+	if !check(good(), []byte("Syntax error denied"), "GET") {
+		t.Fatal("ordinary text mistaken for private bytes")
+	}
+	for _, leak := range [][]byte{full, selected, selected[:8], selected[8:], []byte("unique-fixture-marker")} {
+		body := append([]byte("denied with leaked fragment:"), leak...)
+		if check(good(), body, "GET") {
+			t.Fatal("private canary or partial body fragment accepted")
+		}
+	}
+	for _, mutate := range []func(*http.Response){
+		func(r *http.Response) { r.StatusCode = 200 }, func(r *http.Response) { r.StatusCode = 206 }, func(r *http.Response) { r.StatusCode = 304 },
+		func(r *http.Response) { r.Header.Set("Content-Range", "bytes 0-1/44") }, func(r *http.Response) { r.Header.Del("Cache-Control") }, func(r *http.Response) { r.Header.Del("X-Content-Type-Options") },
+	} {
+		r := good()
+		mutate(r)
+		if check(r, []byte("denied"), "GET") {
+			t.Fatal("unsafe denial accepted")
+		}
+	}
+	if check(good(), []byte("denied"), "HEAD") || check(nil, nil, "GET") {
+		t.Fatal("HEAD body or missing response accepted")
+	}
+}
