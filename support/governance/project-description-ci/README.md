@@ -8,8 +8,8 @@ profile pins and refuse before native initialization when invoked directly.
 ## Fixed lifecycle
 
 1. Verify committed recipe files and an exact reviewed metadata-recipe lock, the
-   current source admission, target `55e3f8d9592cb596311b9ba81f91b74a7c5b5407`
-   / tree `fab56c8b275ecd6b79e1ff3be08225852f36ab88`, actual loopback-only
+   current source admission, target `6cf0bd55b479a4ca776c22026813fdf827b0c0af`
+   / tree `b3079362b1240eb5f854d63bffedfcc875543807`, actual loopback-only
    disposable MySQL 8.4.13 image and PHP 8.5.12 with CLI OPcache/JIT disabled.
 2. Reuse the real metadata recipe's fresh owned namespace, standard native base
    upgrades and two native admin accounts/tokens plus ordinary recipient and
@@ -50,8 +50,8 @@ not proof of in-recipe namespace cleanup.
 
 ## Current blocked integration
 
-The current recipe binds the real signed native target `55e3f8d9592cb596311b9ba81f91b74a7c5b5407`
-and tree `fab56c8b275ecd6b79e1ff3be08225852f36ab88`. The shared helper, native 50-dependency
+The current recipe binds the real signed native target `6cf0bd55b479a4ca776c22026813fdf827b0c0af`
+and tree `b3079362b1240eb5f854d63bffedfcc875543807`. The shared helper, native 50-dependency
 qualification template, preserved 36-dependency baseline and metadata lock are
 computed from this exact combined source. The admission bridge validates all
 19 production paths and 75 metadata paths before historical projection; its
