@@ -1,7 +1,7 @@
 {
   "kind": "qualification",
-  "native_git_revision": "5b70e9938ac55561521bd6c5d0a7934aead22ae7",
-  "native_git_tree": "217d60200ddd2cdd7c60e49ad384c5367e0a075b",
+  "native_git_revision": "55e3f8d9592cb596311b9ba81f91b74a7c5b5407",
+  "native_git_tree": "fab56c8b275ecd6b79e1ff3be08225852f36ab88",
   "native_source_inventory": {
     "bin/storage": {
       "bytes": 7666,
@@ -212,7 +212,7 @@
     },
     "qualify.py": {
       "bytes": 9451,
-      "sha256": "fcb7d61ab81a7775660815c69e4b471899fe8f5ac1da5c11640f29803855afb8"
+      "sha256": "57a8007f5213593658693ea3c9da4743f853709c0a4ff697a6f823b8bcab561f"
     }
   }
 }
