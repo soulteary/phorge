@@ -107,7 +107,7 @@ def browser_cleanup_admission(runtime, config):
     No cleanup permit follows a missing/unknown ACK or observer failure.
     """
     runtime.assert_owned()
-    runtime.write('history-queue-quiesce',runtime.owner.encode())
+    runtime.write_flag('history-queue-quiesce')
     wait_until(lambda:(runtime.directory/'history-queue-quiesced.json').is_file(),seconds=15)
     ack=runtime.read_json('history-queue-quiesced.json');proof=ack.get('queue_cleanup',{})
     if (ack.get('scope')!='owned-notice-history-queue-quiescence' or ack.get('owner')!=runtime.owner or
@@ -180,7 +180,7 @@ def _run_task_with_source_operation(config, worker, case, *, browser_hold=False,
         nonlocal sequence
         sequence+=1
         if sequence>64: raise RuntimeError('task_observation_budget')
-        runtime.write('task-command-'+str(sequence)+'.json',json.dumps({'owner':runtime.owner,'sequence':sequence,'action':action}).encode())
+        runtime.write_command(sequence,json.dumps({'owner':runtime.owner,'sequence':sequence,'action':action}).encode())
         name='task-observation-'+str(sequence)+'.json'
         wait_until(lambda:(directory/name).is_file(),fixture,10)
         value=runtime.read_json(name)
@@ -309,7 +309,7 @@ def _run_task_with_source_operation(config, worker, case, *, browser_hold=False,
                 if browser_hold:
                     if not consumer_stop_proved:raise RuntimeError('task_browser_consumers_unknown')
                     browser_cleanup_admitted=browser_cleanup_admission(runtime,config)
-                runtime.write('release',runtime.owner.encode());fixture.wait(timeout=90)
+                runtime.write_flag('release');fixture.wait(timeout=90)
             except Exception:passed=False
         if fixture is not None and fixture.poll() is not None:
             try:

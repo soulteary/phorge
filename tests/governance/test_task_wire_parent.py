@@ -128,6 +128,125 @@ try{
 }finally{foreach(scandir($d)as$f){if($f!=='.'&&$f!=='..'){unlink($d.'/'.$f);}}rmdir($d);}
 ''',ROOT/'support/governance/notification/task-wire-protocol.php')
         self.assertEqual({'checks':11,'SQL':False,'SMTP':False},result)
+        # Actual filesystem/native-PHP component: no SQL, service or issued source capability.
+        import contextlib
+        import errno
+        import secrets
+        import shutil
+        import stat
+        from unittest.mock import patch
+        import runtime as runtime_module
+        native_reader=r'''
+require $argv[1];try{$result=governance_task_wire_command($argv[2],$argv[3],1);
+echo json_encode(array('state'=>'read','action'=>$result));}
+catch(Throwable$error){echo json_encode(array('state'=>'rejected','class'=>get_class($error)));}
+'''
+        parent=Path(self.php('echo json_encode(realpath(sys_get_temp_dir()));'))
+        @contextlib.contextmanager
+        def owned_component():
+            directory=parent/('phorge-private-mail-wire-'+secrets.token_hex(12));directory.mkdir(mode=0o700);directory.chmod(0o700)
+            runtime=object.__new__(runtime_module.OwnedRuntime);runtime.directory=directory;runtime.identity=directory.stat();runtime.owner='a'*64;runtime.children=[];runtime.closed=False
+            runtime.write('owner',runtime.owner.encode())
+            try:yield runtime
+            finally:
+                current=directory.lstat()
+                self.assertEqual((current.st_dev,current.st_ino),(runtime.identity.st_dev,runtime.identity.st_ino))
+                shutil.rmtree(directory)
+        def read_actual(runtime):
+            return self.php(native_reader,ROOT/'support/governance/notification/task-wire-protocol.php',runtime.directory,runtime.owner)
+        def payload(runtime):return json.dumps({'owner':runtime.owner,'sequence':1,'action':'inspect'}).encode()
+        # Deterministic old exposure: actual generic writer has created target but not written bytes.
+        # The unchanged native reader must reject it, never mistake partial data for a command.
+        with owned_component()as runtime:
+            target=runtime.directory/'task-command-1.json';observed=[];original=runtime_module.os.fdopen
+            def before_buffered_write(fd,*args,**kwargs):
+                stream=original(fd,*args,**kwargs)
+                if target.exists()and (os.fstat(fd).st_dev,os.fstat(fd).st_ino)==(target.stat().st_dev,target.stat().st_ino):
+                    self.assertEqual(target.stat().st_size,0);observed.append(read_actual(runtime))
+                return stream
+            with patch.object(runtime_module.os,'fdopen',before_buffered_write):runtime.write(target.name,payload(runtime))
+            self.assertEqual(observed,[{'state':'rejected','class':'JsonException'}])
+            self.assertEqual(read_actual(runtime),{'state':'read','action':'inspect'})
+        # Before the REAL native no-replace rename, the destination is absent. After it, complete.
+        with owned_component()as runtime:
+            target=runtime.directory/'task-command-1.json';observed=[];rename=runtime_module._rename_noreplace
+            def before_real_rename(directory_fd,temporary,destination):
+                self.assertFalse(target.exists());observed.append(read_actual(runtime))
+                return rename(directory_fd,temporary,destination)
+            with patch.object(runtime_module,'_rename_noreplace',before_real_rename):runtime.write_command(1,payload(runtime))
+            self.assertEqual(observed,[{'state':'read','action':None}]);self.assertEqual(read_actual(runtime),{'state':'read','action':'inspect'})
+            self.assertEqual(target.read_bytes(),payload(runtime));self.assertEqual(stat.S_IMODE(target.stat().st_mode),0o600);self.assertEqual(target.stat().st_nlink,1)
+            prior=target.read_bytes()
+            with self.assertRaises(FileExistsError):runtime.write_command(1,b'replay')
+            self.assertEqual(target.read_bytes(),prior);self.assertEqual(sorted(p.name for p in runtime.directory.iterdir()),['owner','task-command-1.json'])
+        # A target created at the exact atomic-publication boundary wins; it is never replaced.
+        for kind in ('regular','symlink','hardlink'):
+            with self.subTest(kind=kind),owned_component()as runtime:
+                target=runtime.directory/'task-command-1.json';other=runtime.directory/'other';other.write_bytes(b'other-owned-component');other.chmod(0o600);rename=runtime_module._rename_noreplace
+                def competing_target(directory_fd,temporary,destination):
+                    if kind=='regular':target.write_bytes(b'competing-target');target.chmod(0o600)
+                    elif kind=='symlink':target.symlink_to(other.name)
+                    else:os.link(other,target)
+                    return rename(directory_fd,temporary,destination)
+                with patch.object(runtime_module,'_rename_noreplace',competing_target),self.assertRaises(FileExistsError):runtime.write_command(1,payload(runtime))
+                self.assertEqual(target.read_bytes(),b'competing-target'if kind=='regular'else b'other-owned-component');self.assertEqual(target.is_symlink(),kind=='symlink')
+                self.assertEqual(other.read_bytes(),b'other-owned-component');self.assertEqual((runtime.directory/'owner').read_text(),runtime.owner)
+                self.assertEqual(sorted(p.name for p in runtime.directory.iterdir()),['other','owner','task-command-1.json'])
+        # Pending inode permissions/link count remain the exact created role before publication.
+        for mutation in ('hardlink','mode'):
+            with self.subTest(pending=mutation),owned_component()as runtime:
+                target=runtime.directory/'task-command-1.json';alias=runtime.directory/'injected-alias';original=runtime_module.os.write;changed=[]
+                def mutate_pending(fd,data):
+                    count=original(fd,data)
+                    if not changed:
+                        temporary=[p for p in runtime.directory.iterdir()if p.name.startswith('.command-write-')]
+                        self.assertEqual(len(temporary),1);self.assertEqual((os.fstat(fd).st_dev,os.fstat(fd).st_ino),(temporary[0].stat().st_dev,temporary[0].stat().st_ino))
+                        if mutation=='hardlink':os.link(temporary[0],alias)
+                        else:os.fchmod(fd,0o640)
+                        changed.append(True)
+                    return count
+                with patch.object(runtime_module.os,'write',mutate_pending),self.assertRaises(ValueError):runtime.write_command(1,payload(runtime))
+                self.assertEqual(changed,[True]);self.assertFalse(target.exists());self.assertEqual((runtime.directory/'owner').read_text(),runtime.owner)
+                self.assertEqual(sorted(p.name for p in runtime.directory.iterdir()),['injected-alias','owner']if mutation=='hardlink'else['owner'])
+                if mutation=='hardlink':self.assertEqual(alias.read_bytes(),payload(runtime));self.assertEqual(alias.stat().st_nlink,1)
+        # Real partial writes must loop; write0 or chmod failure may not expose a target or temp.
+        with owned_component()as runtime:
+            original=runtime_module.os.write
+            def partial(fd,data):return original(fd,data[:2])
+            with patch.object(runtime_module.os,'write',partial):runtime.write_command(1,payload(runtime))
+            self.assertEqual(read_actual(runtime),{'state':'read','action':'inspect'})
+        for point in ('zero-write','chmod'):
+            with self.subTest(point=point),owned_component()as runtime:
+                if point=='zero-write':guard=patch.object(runtime_module.os,'write',return_value=0)
+                else:guard=patch.object(runtime_module.os,'fchmod',side_effect=OSError(errno.EIO,'synthetic chmod failure'))
+                with guard,self.assertRaises(OSError):runtime.write_command(1,payload(runtime))
+                self.assertEqual(sorted(p.name for p in runtime.directory.iterdir()),['owner']);self.assertEqual(read_actual(runtime),{'state':'read','action':None})
+        with owned_component()as runtime:
+            for sequence in (0,65,True,'1'):
+                with self.subTest(sequence=sequence),self.assertRaises(ValueError):runtime.write_command(sequence,payload(runtime))
+            with self.assertRaises(ValueError):runtime.write_command(1,b'x'*513)
+            self.assertEqual(sorted(p.name for p in runtime.directory.iterdir()),['owner'])
+        # Both live flags are invisible until complete64-byte owner publication.
+        flag_reader=r'''
+require $argv[1];governance_task_wire_parent($argv[2],$argv[3]);
+echo json_encode(array('release'=>governance_calendar_wire_read_role($argv[2],'release',lstat($argv[2]))));
+'''
+        for name in ('history-queue-quiesce','release'):
+            with self.subTest(flag=name),owned_component()as runtime:
+                target=runtime.directory/name;observed=[];rename=runtime_module._rename_noreplace
+                def before_flag(directory_fd,temporary,destination):
+                    self.assertEqual(destination,name);self.assertFalse(target.exists());observed.append(True)
+                    if name=='release':self.assertEqual(self.php(flag_reader,ROOT/'support/governance/notification/task-wire-protocol.php',runtime.directory,runtime.owner),{'release':None})
+                    return rename(directory_fd,temporary,destination)
+                with patch.object(runtime_module,'_rename_noreplace',before_flag):runtime.write_flag(name)
+                self.assertEqual(observed,[True]);self.assertEqual(target.read_bytes(),runtime.owner.encode());self.assertEqual(target.stat().st_size,64);self.assertEqual(stat.S_IMODE(target.stat().st_mode),0o600);self.assertEqual(target.stat().st_nlink,1)
+                if name=='release':self.assertEqual(self.php(flag_reader,ROOT/'support/governance/notification/task-wire-protocol.php',runtime.directory,runtime.owner),{'release':runtime.owner})
+                with self.assertRaises(FileExistsError):runtime.write_flag(name)
+                self.assertEqual(target.read_bytes(),runtime.owner.encode());self.assertEqual(sorted(p.name for p in runtime.directory.iterdir()),sorted(['owner',name]))
+        with owned_component()as runtime:
+            for name in ('owner','task-command-1.json','history-queue-quiesce-extra','../release',True):
+                with self.subTest(flag=name),self.assertRaises(ValueError):runtime.write_flag(name)
+            self.assertEqual(sorted(p.name for p in runtime.directory.iterdir()),['owner'])
 
     def test_worker_manifest_exact_bytes_revision_and_closed_shape(self):
         import hashlib

@@ -1,6 +1,6 @@
 # Current native source and recipe admission
 
-Native target: `ca30fee773b622be4b586b722a3ca6bdbdf27277`, tree `8f325df09f2118499c84c72091967a8f43c78956`. The qualification inventory binds 50 actual native Git dependencies, including transaction State; `bin/storage` binds its resolved native script bytes. Baseline 36 dependency objects retain their full original identity fields.
+Native target: `eb991c0acff230eb4e8621b4733d1c7e25eb947a`, tree `b0fc242cf73cf8d452d515e31e6e07d6d8840a41`. The qualification inventory binds 50 actual native Git dependencies, including transaction State; `bin/storage` binds its resolved native script bytes. Baseline 36 dependency objects retain their full original identity fields.
 
 The current recipe validates 19 production paths and its complete metadata cohort before historical inverse projection. The original 74 metadata target fields, old reducer bytes and historical maps remain unchanged. Current metadata also binds the two real Assessment/Access consumers and nine explicitly declared added files. Native source identity and recipe source identity remain separate.
 

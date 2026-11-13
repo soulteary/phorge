@@ -1902,7 +1902,7 @@
       },
       "current": {
         "bytes": 4575,
-        "sha256": "3bf54e7542fc700cad31b34eaa01efe6f9c9eefaed1ec0b13ebc1526ee9e256b"
+        "sha256": "88287b10cbb6a9d7bb5a59e32d1eaac04fbee2783004d434ab6497b821f55b07"
       }
     },
     ".github/workflows/project-description-focused.yml": {
@@ -1912,7 +1912,7 @@
       },
       "current": {
         "bytes": 4757,
-        "sha256": "35c7c3b2e2dd43e6ec807f1b6aaddad9ca17a73f0ce7f1b5f667413a07404198"
+        "sha256": "0dec4601a55b6031bf64a6029c61ae09989c0955a800cbfdd363c86fc228e66c"
       }
     },
     "docs/governance/batch-2-callers.json": {
@@ -2272,7 +2272,7 @@
       },
       "current": {
         "bytes": 1802,
-        "sha256": "fe0c6a941509c8efac68ebceaeeb879bc684e5a34feca7b014c3d703fadd29ff"
+        "sha256": "d30d95e3ba32991403f59ccce1d470fcb3ec7eedfeaddcf59f4c58749b287959"
       }
     },
     "support/governance/project-content-grants-ci/ci.py": {
@@ -2282,7 +2282,7 @@
       },
       "current": {
         "bytes": 24560,
-        "sha256": "e7ac2814d8e4a95a0f1be8fb5c5aa93be630496e854a1008ffd4a485328eb246"
+        "sha256": "8c6f35025b8a9c8aae03dd6ead1ae195d2b0b449d785ce5fdfee24710df56fb1"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites-template.json": {
@@ -2292,7 +2292,7 @@
       },
       "current": {
         "bytes": 9307,
-        "sha256": "1be8794e88cb08874746dce64707df03ff6a5278bb84996f6835c4bf15be4187"
+        "sha256": "18832e6973adddd7e184a9825bdc63ae95ca3bc68216ac05713519222d8781be"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites/provision.py": {
@@ -2302,7 +2302,7 @@
       },
       "current": {
         "bytes": 11688,
-        "sha256": "4123daf0c6d55b29501b35640fa6b68f7b63d09ef00561c0f84e03658703126d"
+        "sha256": "dc42879e07740d96b9c54ab2f5c64814dab6050e5d7fbb21a035097cb8834985"
       }
     },
     "support/governance/project-content-grants-ci/qualification-template.json": {
@@ -2312,7 +2312,7 @@
       },
       "current": {
         "bytes": 9875,
-        "sha256": "7d160b9f2002a41a8720aee6a1a2207fc1ab675dba7c0f59f586561cc43c1318"
+        "sha256": "6e1163e39e9b8e8ef3d30248004912d2dbc03849d52290b49b909d7f6fc16b73"
       }
     },
     "support/governance/project-content-grants-qualification/qualify.py": {
@@ -2322,7 +2322,7 @@
       },
       "current": {
         "bytes": 9451,
-        "sha256": "9ab5b18dafd5ae01a6d7a1183b30dd4aba32e50f538c60a2958131d239df2376"
+        "sha256": "b732a0e6602e0c8a1ab59788826a36dbece81de4b2481b2480230be9c3b5108f"
       }
     },
     "support/governance/project-description-ci/README.md": {
@@ -2332,7 +2332,7 @@
       },
       "current": {
         "bytes": 6104,
-        "sha256": "a5cd3055445e66b38ed5e8e4a580ba7ff03ef8fbc8856e36c43966f98bee7ea9"
+        "sha256": "bb992981016e13891882e6e376e24f2e700482ea7c65c06a7bfe879c2878edcc"
       }
     },
     "support/governance/project-description-ci/ci.py": {
@@ -2342,7 +2342,7 @@
       },
       "current": {
         "bytes": 15379,
-        "sha256": "fdf732e8f7f7485254838cf04c5559f176ef8409c87a7f63cae95896c747b574"
+        "sha256": "a03ba78f1e59dce9868cedd230a9943d289abed4fb9c000d075121998a6ff1b9"
       }
     },
     "support/governance/project-description-ci/metadata-lock.json": {
@@ -2352,7 +2352,7 @@
       },
       "current": {
         "bytes": 1024,
-        "sha256": "2187bcbab4f8de3267dd3bb42c28afe6c8ea7e5ce02222e2cdc3444e051ad5b0"
+        "sha256": "7d551f6dd6919dc70ed380e5d867be3df271d4f7c939175cdd12d6e1f0006f54"
       }
     },
     "support/governance/project-description-q2-owner/README.md": {
@@ -2442,8 +2442,8 @@
     "tests/governance/private_mail_ci/run_task.py": {
       "baseline": null,
       "current": {
-        "bytes": 27787,
-        "sha256": "2f8c7316b47fd33ebac96d7998b30d4f3c413515a5cd68298e9e63e8ff536545"
+        "bytes": 27730,
+        "sha256": "f20ced843eab6259716a069d47368a28f32fbcb178897d49d4a3bc612293f3aa"
       }
     },
     "tests/governance/private_mail_ci/runtime.py": {
@@ -2452,8 +2452,8 @@
         "sha256": "afe4c13101ee8ff942916c99e702a4d7b4030fefe5b565cba09b2890e77bc1a0"
       },
       "current": {
-        "bytes": 18590,
-        "sha256": "4af0ebcc0372ede66437753998dc3049cdd90180142feca9f1f12ca38b2bb521"
+        "bytes": 24155,
+        "sha256": "c521fb29baf53c9d6acfde59e56183a0090aca0a2c054022538a8f970f14bb1a"
       }
     },
     "tests/governance/private_mail_ci/task_browser.py": {
@@ -2878,8 +2878,8 @@
     "tests/governance/test_task_wire_parent.py": {
       "baseline": null,
       "current": {
-        "bytes": 48785,
-        "sha256": "d0cb30ea67497731cae0d5949d5816b9e4c6b5dfd92d8e19f9a3a964d171a2e3"
+        "bytes": 59113,
+        "sha256": "7fb57d86bb1f517d1f85bacae98e046109acd5c1f0fa5af402556e4b6dda0594"
       }
     }
   }
