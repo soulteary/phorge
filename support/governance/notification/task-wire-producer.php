@@ -134,15 +134,24 @@ function governance_task_wire_revoke($fixture,array $produced,PhabricatorUser $a
     $produced['task']->getOwnerPHID()!==$actor->getPHID()||$actor->getPHID()===$recipient->getPHID()){
     throw new RuntimeException('task_wire_revoke_binding_refused');}
   $task=$produced['task'];
-  (new ManiphestTransactionEditor())->setActor($actor)
-    ->setContentSource(PhabricatorContentSource::newForSource('console',array()))->setIsSilent(true)
-    ->applyTransactions($task,array((new ManiphestTransaction())
-      ->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY)->setNewValue($actor->getPHID())));
-  // Fresh request cache prevents a pre-revocation object cache becoming evidence.
+  // Keep native editor errors distinct from an expected recipient policy denial.
   $cache=new ReflectionProperty(PhabricatorCaches::class,'requestCache');$prior=$cache->getValue();
   $cache->setValue(null,new PhutilInRequestKeyValueCache());
-  try{$visible=(new ManiphestTaskQuery())->setViewer($recipient)->withPHIDs(array($task->getPHID()))->executeOne();
-    if($visible!==null){throw new RuntimeException('task_wire_native_revocation_not_proved');}
+  try{
+    $before=(new ManiphestTaskQuery())->setViewer($recipient)->withPHIDs(array($task->getPHID()))->execute();
+    if(count($before)!==1||head($before)->getPHID()!==$task->getPHID()){
+      throw new RuntimeException('task_wire_pre_revoke_visibility_not_proved');}
+    (new ManiphestTransactionEditor())->setActor($actor)
+      ->setContentSource(PhabricatorContentSource::newForSource('console',array()))->setIsSilent(true)
+      ->applyTransactions($task,array((new ManiphestTransaction())
+        ->setTransactionType(PhabricatorTransactions::TYPE_VIEW_POLICY)->setNewValue($actor->getPHID())));
+    // Query new objects after the native policy edit, without request-cache evidence.
+    $cache->setValue(null,new PhutilInRequestKeyValueCache());
+    $owned=(new ManiphestTaskQuery())->setViewer($actor)->withPHIDs(array($task->getPHID()))->execute();
+    if(count($owned)!==1||head($owned)->getPHID()!==$task->getPHID()||head($owned)->getViewPolicy()!==$actor->getPHID()){
+      throw new RuntimeException('task_wire_post_revoke_object_not_proved');}
+    $visible=(new ManiphestTaskQuery())->setViewer($recipient)->withPHIDs(array($task->getPHID()))->execute();
+    if($visible!==array()){throw new RuntimeException('task_wire_native_revocation_not_proved');}
     return array('current_task_view_denied'=>true,'SMTP_proved'=>false,'browser_proved'=>false);
   }finally{$cache->setValue(null,$prior);}
 }

@@ -37,6 +37,44 @@ echo json_encode(array('checks'=>$n,'SQL'=>false));
         source=(ROOT/'support/governance/notification/task-wire-producer.php').read_text()
         method=source[source.index('function governance_task_wire_enqueue'):source.index('function governance_task_wire_collect')]
         self.assertLess(method.index('governance_task_wire_assert_no_inherited_writes();'),method.index('PhabricatorFile::newFromFileData'))
+        # Component contract: executeOne deliberately throws; policy-filtered execute returns [].
+        result=self.php(r'''
+require $argv[1];function head($a){return reset($a);}
+class PhabricatorUser {function __construct(private $id){}function getPHID(){return $this->id;}}
+class PhorgeGovernanceNativeRuntimeProfile {static function assertCurrent(){}}
+class PhorgePrivateMailPolicy {static function enabled(){return true;}}
+class PhutilInRequestKeyValueCache {}
+class PhabricatorCaches {private static $requestCache;static function set($x){self::$requestCache=$x;}static function get(){return self::$requestCache;}}
+class Fixture {function assertOwned(){}}
+class Task {function getPHID(){return 'task';}function getOwnerPHID(){return 'actor';}function getViewPolicy(){return $GLOBALS['edited']?'actor':'users';}}
+class ManiphestTaskQuery {
+ private $viewer;function setViewer($x){$this->viewer=$x->getPHID();return $this;}function withPHIDs($x){if($x!==array('task'))throw new Exception('binding');return $this;}
+ function executeOne(){throw new Exception('executeOne_is_not_a_filtered_null_query');}
+ function execute(){$GLOBALS['queries']++;$phase=$GLOBALS['edited']?'post':'pre';$bad=$GLOBALS['bad'];
+  if($bad==='pre-missing'&&$phase==='pre')return array();
+  if($bad==='pre-foreign'&&$phase==='pre')return array(new ForeignTask());
+  if($bad==='actor-missing'&&$phase==='post'&&$this->viewer==='actor')return array();
+  if($bad==='actor-foreign'&&$phase==='post'&&$this->viewer==='actor')return array(new ForeignTask());
+  if($bad==='recipient-retained'&&$phase==='post'&&$this->viewer==='recipient')return array(new Task());
+  return $phase==='post'&&$this->viewer==='recipient'?array():array(42=>new Task());}}
+class ForeignTask extends Task {function getPHID(){return 'other';}}
+class PhabricatorContentSource {static function newForSource($a,$b){return new self;}}
+class PhabricatorTransactions {const TYPE_VIEW_POLICY='view';}
+class ManiphestTransaction {function setTransactionType($x){if($x!=='view')throw new Exception('type');return $this;}function setNewValue($x){if($x!=='actor')throw new Exception('value');return $this;}}
+class ManiphestTransactionEditor {function setActor($a){if($a->getPHID()!=='actor')throw new Exception('actor');return $this;}function setContentSource($x){return $this;}function setIsSilent($x){if($x!==true)throw new Exception('silent');return $this;}
+ function applyTransactions($task,$transactions){$GLOBALS['editor_calls']++;if($GLOBALS['bad']==='editor-error')throw new LogicException('native_editor_sentinel');$GLOBALS['edited']=true;}}
+$actor=new PhabricatorUser('actor');$recipient=new PhabricatorUser('recipient');$task=new Task();$input=array('mode'=>GovernanceTaskWireMode::QUEUED,'recipient_phid'=>'recipient','task'=>$task,'task_phid'=>'task');$checks=0;
+foreach(array('','pre-missing','pre-foreign','actor-missing','actor-foreign','recipient-retained','editor-error')as$bad){
+ $GLOBALS['bad']=$bad;$GLOBALS['edited']=false;$GLOBALS['queries']=0;$GLOBALS['editor_calls']=0;$old=new PhutilInRequestKeyValueCache();PhabricatorCaches::set($old);$error=null;
+ try{$result=governance_task_wire_revoke(new Fixture(),$input,$actor,$recipient);}catch(Throwable$e){$error=$e;}
+ if(PhabricatorCaches::get()!==$old)throw new Exception('cache_not_restored');
+ if($bad===''){if($error||$result!==array('current_task_view_denied'=>true,'SMTP_proved'=>false,'browser_proved'=>false)||$GLOBALS['queries']!==3)throw new Exception('positive');}
+ elseif($bad==='editor-error'){if(!($error instanceof LogicException)||$error->getMessage()!=='native_editor_sentinel')throw new Exception('editor_masked');}
+ else{if(!($error instanceof RuntimeException))throw new Exception('negative_accepted');if(str_starts_with($bad,'pre-')&&$GLOBALS['editor_calls']!==0)throw new Exception('edit_before_positive');}
+ $checks++;}
+echo json_encode(array('checks'=>$checks,'SQL'=>false,'native_policy_simulated'=>true));
+''',ROOT/'support/governance/notification/task-wire-producer.php')
+        self.assertEqual({'checks':7,'SQL':False,'native_policy_simulated':True},result)
 
     def test_actual_native_lineage_function_rejects_other_mail_and_duplicate_followup(self):
         result=self.php(r'''
