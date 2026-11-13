@@ -63,6 +63,28 @@ def validate_worker(value, config):
     return value
 
 
+def delivery_inspection_terminal(raw,delivery_id):
+    """GET inspection wraps the ledger result; POST execute returns it directly."""
+    if type(delivery_id)is not str or not delivery_id:raise ValueError('task_delivery_inspection_expected_identity')
+    value=json.loads(raw)
+    if type(value)is not dict or type(value.get('data'))is not dict or type(value['data'].get('result'))is not dict:
+        raise ValueError('task_delivery_inspection_shape')
+    result=value['data']['result']
+    if type(result.get('deliveryID'))is not str or not result['deliveryID']or result['deliveryID']!=delivery_id or type(result.get('state'))is not str or result['state']not in ('prepared','retry_wait','submitting','accepted','failed','unknown','expired','cancelled'):
+        raise ValueError('task_delivery_inspection_identity_or_state')
+    return result if result['state']in ('accepted','failed','unknown','expired','cancelled')else None
+
+
+def delivery_outcome_matches(result,case):
+    # Paired833 worker cancels a prepared, newly unauthorized delivery before
+    # any physical attempt; failed is not the accepted revoke-case outcome.
+    if type(result)is not dict or type(case)is not str:return False
+    if case=='allow':return result.get('state')=='accepted'
+    if case=='revoke-after-prepare':
+        return result.get('state')=='cancelled'and type(result.get('attempt'))is int and result['attempt']==0
+    return False
+
+
 def worker_environment(ready, token, mailer_origin, policy_path, worker_port, classes, relay=False):
     if classes not in (('PhabricatorApplicationTransactionPublishWorker',),('GorgeMailDeliveryWorker',),('GorgeMailSubmitWorker',)):
         raise ValueError('task_worker_class_profile')
@@ -234,11 +256,11 @@ def _run_task_with_source_operation(config, worker, case, *, browser_hold=False,
             def terminal():
                 status,raw=request(origin+'/api/mailer/delivery?deliveryID='+quote(snapshot['deliveryID'],safe=''),headers=headers)
                 if status!=200:return None
-                value=json.loads(raw)['data'];return value if value.get('state') in ('accepted','failed','unknown') else None
+                return delivery_inspection_terminal(raw,snapshot['deliveryID'])
             outcome=wait_until(terminal,submit,30)
             last=poll_observation(lambda v:len(v['mails'])==1 and v['mails'][0]['worker_lineage']['submit_archive_success'] is True)
             stop_worker(submit)
-            check(outcome['state']==('accepted' if case=='allow' else 'failed'),'physical-terminal-state')
+            check(delivery_outcome_matches(outcome,case),'physical-terminal-state')
             received=captured();check(received['total']==(1 if case=='allow' else 0),'physical-sink-count')
             if case=='allow':
                 mail_id=received['emails'][0]['id']

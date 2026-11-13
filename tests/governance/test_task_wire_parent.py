@@ -203,6 +203,33 @@ try{
         self.assertNotIn('governance_task_wire_produce(',hold)
         self.assertNotIn('executeTask(',hold)
         self.assertEqual(('allow','revoke-before-publication','revoke-after-prepare'),run_task.CASES)
+        # Paired Gorge GET /delivery uses data.result, unlike POST /execute.
+        identity='mail/synthetic/1'
+        for state in ('accepted','failed','unknown','expired','cancelled','prepared','retry_wait','submitting'):
+            result={'deliveryID':identity,'state':state}
+            raw=json.dumps({'data':{'result':result,'attempts':[],'deadline':123}}).encode()
+            self.assertEqual(run_task.delivery_inspection_terminal(raw,identity),result if state in ('accepted','failed','unknown','expired','cancelled')else None)
+        for value in ({'data':{'state':'accepted','deliveryID':identity}}, {'data':{'result':{'deliveryID':'other','state':'accepted'}}}, {'data':{'result':{'deliveryID':identity,'state':'future'}}}, {'data':{'result':None}}, [], {'data':{'result':{'deliveryID':identity,'state':True}}}):
+            with self.assertRaises(ValueError):run_task.delivery_inspection_terminal(json.dumps(value).encode(),identity)
+        for expected in ('',None,True,1):
+            with self.assertRaises(ValueError):run_task.delivery_inspection_terminal(json.dumps({'data':{'result':{'deliveryID':expected,'state':'accepted'}}}).encode(),expected)
+        for actual in ('',None,True,1):
+            with self.assertRaises(ValueError):run_task.delivery_inspection_terminal(json.dumps({'data':{'result':{'deliveryID':actual,'state':'accepted'}}}).encode(),identity)
+        for case,result,want in (
+            ('allow',{'state':'accepted','attempt':1},True),
+            ('allow',{'state':'cancelled','attempt':0},False),
+            ('revoke-after-prepare',{'state':'cancelled','attempt':0},True),
+            ('revoke-after-prepare',{'state':'failed','attempt':0},False),
+            ('revoke-after-prepare',{'state':'accepted','attempt':0},False),
+            ('revoke-after-prepare',{'state':'cancelled','attempt':1},False),
+            ('revoke-after-prepare',{'state':'cancelled','attempt':False},False),
+            ('revoke-after-prepare',{'state':'cancelled','attempt':'0'},False),
+            ('revoke-after-prepare',{'state':'cancelled'},False),
+            ('revoke-before-publication',{'state':'cancelled','attempt':0},False),
+            ('unknown',{'state':'accepted'},False)):
+            self.assertIs(run_task.delivery_outcome_matches(result,case),want)
+
+
 
     def test_current_uncommitted_harness_cannot_receive_source_admission(self):
         # Real base Git has no new helper: dirty source is deliberately blocked.
