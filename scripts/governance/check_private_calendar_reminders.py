@@ -83,12 +83,20 @@ def exact(actual, expected):
     completion.exact(actual, expected, 'Calendar evidence refused')
 
 def _source_views(root=ROOT):
+    import check_recovery_file_parent_policy as native_driver_source
+    root=Path(root)
+    current_root=root==ROOT
+    if current_root:
+        import project_description_admission_delta as current
+        current.assert_current_recipe(root)
     actual = {}
     wire = {}
     for path, pin in SOURCE_INPUTS.items():
         captured = source_reader.read_source_checked(Path(root) / path)
         raw = captured
-        if path == 'support/governance/native-organization/test-native-organization-mysql.php':
+        if path == native_driver_source.NATIVE_DRIVER_PATH:
+            if current_root or hashlib.sha256(raw).hexdigest()!=pin:
+                raw=native_driver_source.admitted_native_driver_source(root,raw)
             raw = conduit_delta.reduce_policy_cleanup_driver(raw)
         if hashlib.sha256(raw).hexdigest() != pin:
             raise ValueError('Calendar source drift')
@@ -96,6 +104,7 @@ def _source_views(root=ROOT):
         wire[path] = hashlib.sha256(captured).hexdigest()
     if len(actual) != 12 or len(CASES) != 21:
         raise ValueError('Calendar reviewed coverage changed')
+    if current_root:current.assert_current_recipe(root)
     return actual, wire
 
 def sources(root=ROOT):
