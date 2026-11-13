@@ -346,3 +346,31 @@ class OwnedRuntime:
         self.closed = True
         return {'registered_children': len(self.children), 'signaled_groups': stopped,
                 'live_children': 0, 'private_directory_removed': not self.directory.exists()}
+
+    def remove_closed_directory(self):
+        """Task-only final removal after independent source operation exit.
+
+        This method grants no source/runtime authority. It only removes this
+        exact already-stopped owned directory; other callers keep close().
+        """
+        if self.closed is not True:
+            raise ValueError('owned_runtime_not_closed')
+        self.assert_owned()
+        before=self.directory.lstat()
+        if before.st_gid!=self.identity.st_gid or (self.directory/'owner').lstat().st_nlink!=1:
+            raise ValueError('owned_directory_final_identity_changed')
+        for child in self.children:
+            if child.poll() is None or self._members(child.pid):
+                raise ValueError('owned_runtime_final_children_unknown')
+        for path in self.directory.rglob('*'):
+            info=path.lstat()
+            if path.is_symlink() or info.st_uid!=os.getuid() or not (stat.S_ISREG(info.st_mode)or stat.S_ISDIR(info.st_mode)):
+                raise ValueError('owned_final_cleanup_entry_refused')
+            if stat.S_ISREG(info.st_mode)and info.st_nlink!=1:
+                raise ValueError('owned_final_cleanup_link_refused')
+        self.assert_owned()
+        now=self.directory.lstat()
+        if (before.st_dev,before.st_ino,before.st_uid,before.st_gid,before.st_mode)!=(now.st_dev,now.st_ino,now.st_uid,now.st_gid,now.st_mode):
+            raise ValueError('owned_final_cleanup_identity_changed')
+        shutil.rmtree(self.directory)
+        return {'live_children':0,'private_directory_removed':not self.directory.exists()}
