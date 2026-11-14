@@ -151,6 +151,27 @@ func safeHeaders(h http.Header) bool {
 	return strings.Contains(strings.Join(h.Values("Cache-Control"), ","), "no-store") &&
 		strings.EqualFold(h.Get("X-Content-Type-Options"), "nosniff")
 }
+
+// Exact response verification only; these unit checks are not a wire receipt.
+func privateReadMatches(resp *http.Response, body, expected []byte, status int, contentRange string) bool {
+	return resp != nil && resp.StatusCode == status && string(body) == string(expected) &&
+		resp.Header.Get("Content-Range") == contentRange && safeHeaders(resp.Header)
+}
+
+// Bounded fixture-canary non-disclosure, not proof that every private byte is absent.
+func deniedPrivateReadMatches(resp *http.Response, body []byte, method, marker string, full, selected []byte) bool {
+	if resp == nil || resp.StatusCode != 403 || resp.Header.Get("Content-Range") != "" || !safeHeaders(resp.Header) ||
+		marker == "" || len(full) < 16 || len(selected) != 16 || (method == "HEAD" && len(body) != 0) {
+		return false
+	}
+	text := string(body)
+	for _, canary := range []string{marker, string(full), string(selected), string(selected[:8]), string(selected[8:])} {
+		if strings.Contains(text, canary) {
+			return false
+		}
+	}
+	return true
+}
 func cspDiagnostic(h http.Header, app, files string) []map[string][]string {
 	result := []map[string][]string{}
 	for _, header := range h.Values("Content-Security-Policy") {
@@ -756,6 +777,35 @@ func run(r *receipt) error {
 	if e = check(resp.StatusCode == 200 && hex.EncodeToString(digest[:]) == f.ContentHash && safeHeaders(resp.Header), "tls-authorized-private-file-real-gorge-bytes-and-no-store-nosniff"); e != nil {
 		return e
 	}
+	// Native FileDataController supports a single explicit/open-ended byte range.
+	// It currently ignores conditional validators: no-store private reads remain 200.
+	fullPrivateBody := append([]byte(nil), body...)
+	if len(fullPrivateBody) < 16 {
+		return errors.New("private_fixture_too_short")
+	}
+	privateCanaryRange := fullPrivateBody[len(fullPrivateBody)-16:]
+	for _, item := range []struct {
+		name, method string
+		headers      http.Header
+		status       int
+		contentRange string
+		want         []byte
+	}{
+		{"range-two-bytes", "GET", http.Header{"Range": {"bytes=0-1"}}, 206, fmt.Sprintf("bytes 0-1/%d", len(fullPrivateBody)), fullPrivateBody[:2]},
+		{"range-canary", "GET", http.Header{"Range": {fmt.Sprintf("bytes=%d-%d", len(fullPrivateBody)-16, len(fullPrivateBody)-1)}}, 206, fmt.Sprintf("bytes %d-%d/%d", len(fullPrivateBody)-16, len(fullPrivateBody)-1, len(fullPrivateBody)), privateCanaryRange},
+		{"range-open-ended", "GET", http.Header{"Range": {"bytes=0-"}}, 206, fmt.Sprintf("bytes 0-%d/%d", len(fullPrivateBody)-1, len(fullPrivateBody)), fullPrivateBody},
+		{"conditional-etag", "GET", http.Header{"If-None-Match": {"*"}}, 200, "", fullPrivateBody},
+		{"conditional-date", "GET", http.Header{"If-Modified-Since": {"Wed, 31 Dec 2098 23:59:59 GMT"}}, 200, "", fullPrivateBody},
+		{"head-range", "HEAD", http.Header{"Range": {"bytes=0-1"}}, 206, fmt.Sprintf("bytes 0-1/%d", len(fullPrivateBody)), nil},
+	} {
+		resp, body, e = request(item.method, f.Private, nil, item.headers)
+		if e != nil {
+			return e
+		}
+		if e = check(privateReadMatches(resp, body, item.want, item.status, item.contentRange), "tls-authorized-private-"+item.name+"-current-native-contract"); e != nil {
+			return e
+		}
+	}
 	resp, body, e = request("HEAD", f.Private, nil, nil)
 	if e != nil {
 		return e
@@ -795,6 +845,26 @@ func run(r *receipt) error {
 	}
 	if e = check(resp.StatusCode == 403, "tls-native-logout-revokes-retained-media-cookie-before-conditional-file-access"); e != nil {
 		return e
+	}
+	// Preserve the same jar and its original media credential: no reauthentication.
+	for _, item := range []struct {
+		name, method string
+		headers      http.Header
+	}{
+		{"get", "GET", nil},
+		{"head", "HEAD", nil},
+		{"range", "GET", http.Header{"Range": {"bytes=0-1"}}},
+		{"head-range", "HEAD", http.Header{"Range": {"bytes=0-1"}}},
+		{"range-canary", "GET", http.Header{"Range": {fmt.Sprintf("bytes=%d-%d", len(fullPrivateBody)-16, len(fullPrivateBody)-1)}}},
+		{"conditional-date", "GET", http.Header{"If-Modified-Since": {"Wed, 31 Dec 2098 23:59:59 GMT"}}},
+	} {
+		resp, body, e = request(item.method, f.Private, nil, item.headers)
+		if e != nil {
+			return e
+		}
+		if e = check(deniedPrivateReadMatches(resp, body, item.method, f.Marker, fullPrivateBody, privateCanaryRange), "tls-native-logout-denies-"+item.name+"-with-retained-media-cookie"); e != nil {
+			return e
+		}
 	}
 	resp, _, e = post(f.Files, "/media/session/ready/", map[string]string{"client_nonce": nonce}, false)
 	if e != nil {

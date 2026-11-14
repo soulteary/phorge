@@ -8,7 +8,16 @@ if (isset($argv[1]) && $argv[1] === '--serve') {
     fwrite(STDERR, 'Unable to listen for the notification fixture: '.$error."\n");
     exit(1);
   }
-  file_put_contents($directory.'/address', stream_socket_get_name($socket, false));
+  // Publish the complete address atomically; existence must imply full bytes.
+  $address_path = $directory.'/address';
+  $pending_path = $directory.'/address.pending';
+  $socket_address = stream_socket_get_name($socket, false);
+  if (file_put_contents($pending_path, $socket_address) !== strlen($socket_address) ||
+      !rename($pending_path, $address_path)) {
+    fwrite(STDERR, "Unable to publish the notification fixture address.\n");
+    fclose($socket);
+    exit(1);
+  }
   while ($connection = @stream_socket_accept($socket, 10)) {
     $line = fgets($connection);
     $parts = explode(' ', trim($line));
@@ -122,15 +131,24 @@ try {
   $fixture = new ExecFuture('%s %s --serve %s', PHP_BINARY, __FILE__, $directory);
   $fixture->start();
   $deadline = microtime(true) + 5;
-  while (!file_exists($directory.'/address')) {
+  $address_path = $directory.'/address';
+  while (true) {
+    clearstatcache(true, $address_path);
+    if (is_file($address_path) && !is_link($address_path)) {
+      $candidate = trim(file_get_contents($address_path));
+      if (preg_match('/\A127\.0\.0\.1:([1-9][0-9]{0,4})\z/D',
+          $candidate, $matches) && (int)$matches[1] <= 65535) {
+        $address = $candidate;
+        $port = (int)$matches[1];
+        break;
+      }
+    }
     if ($fixture->isReady() || microtime(true) >= $deadline) {
       list($exit, $stdout, $stderr) = $fixture->resolveKill();
       throw new RuntimeException('Notification fixture did not start: '.$stderr);
     }
     usleep(10000);
   }
-  $address = trim(file_get_contents($directory.'/address'));
-  $port = (int)substr($address, strrpos($address, ':') + 1);
 
   $env = PhabricatorEnv::beginScopedEnv();
   $env->overrideEnvConfig('gorge.service-policy', 'required');
@@ -166,6 +184,25 @@ try {
   $rows = config_notifications_rows($render['table']);
   config_notifications_assert(count($rows) === 5,
     'Configured active and disabled entries must remain visible.');
+  // Emit only closed diagnostic predicates if the strict healthy check fails.
+  $healthy_fields = array(
+    'version' => $rows[0][4] === 'Protocol Version 8',
+    'uptime' => $rows[0][5] === '45 s',
+    'clients' => $rows[0][6] === '2 Active / 3 Total',
+    'messages' => $rows[0][7] === '4 In / 5 Out',
+    'history' => $rows[0][8] === 'No Messages',
+  );
+  if (in_array(false, $healthy_fields, true)) {
+    $healthy_fields['connection_error'] = $rows[0][4] === 'Connection Error';
+    $healthy_fields['fixture_running'] = !$fixture->isReady();
+    $healthy_fields['probe_exact'] = $http_calls ===
+      array('http://'.$address.'/status/?instance=prod');
+    $requests_file = $directory.'/requests';
+    $healthy_fields['request_exact'] = file_exists($requests_file) &&
+      trim(file_get_contents($requests_file)) === '/status/?instance=prod';
+    fwrite(STDERR, 'notification-healthy-diagnostic '.
+      json_encode($healthy_fields)."\n");
+  }
   config_notifications_assert($rows[0][4] === 'Protocol Version 8' &&
     $rows[0][5] === '45 s' &&
     $rows[0][6] === '2 Active / 3 Total' &&

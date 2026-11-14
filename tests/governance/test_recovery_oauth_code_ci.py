@@ -28,17 +28,125 @@ def reviewed_policy_fixture(root,name,raw=None):
  need(not path.is_symlink()and path.stat().st_mode&0o7777==0o644)
  actual=current.description.checked_bytes(path)
  if raw is None:raw=actual
- need(type(raw)is bytes and raw==actual and pin(raw)==REVIEWED_POLICY_FIXTURES[name])
+ need(type(raw)is bytes and raw==actual)
  git=lambda revision:subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'show',revision+':'+name])
  need(raw==git(current.TARGET))
+ driver='support/governance/native-organization/test-native-organization-mysql.php'
+ admitted_prior=None
+ if name==driver:
+  # Keep the exact reviewed pre-N11 39959/3ae fixture as immutable evidence.
+  need(pin(git('7a9c45c68a3632b7163071a9668c75b3c85c1491'))==REVIEWED_POLICY_FIXTURES[name])
+  # This existing reader captures actual FD0644 bytes, validates current m/R
+  # source roles, then returns only the exact whole actual20b 12f PHP source.
+  from check_recovery_file_parent_policy import admitted_native_driver_source
+  admitted_prior=admitted_native_driver_source(Path(root),raw)
+ else:
+  need(pin(raw)==REVIEWED_POLICY_FIXTURES[name])
  legacy=git('b93916d8a2beb4a9ab28ea1769692c0839cfc60b')
  need(legacy==git('060ac7f2b631cc5964f28cd783082dd6e2fb1565'))
+ if name==driver:need(admitted_prior==legacy)
  registry=json.loads(current.description.checked_bytes(root/'support/governance/source-operation/registry-v1.json'))
  need(registry['entries'][name]==pin(legacy))
  need(registry['successor_entries'][name]=={'baseline':pin(legacy),'current':pin(raw)})
  if name in current.CURRENT_METADATA:
   need(current._normalize_metadata(name,raw)==legacy)
  return legacy
+REVIEWED_MEDIA_CLIENT_PATHS=frozenset({'support/governance/native-organization/http-fixture/client/main.go','support/governance/native-organization/http-fixture/client/main_test.go'})
+REVIEWED_REGISTRY_APPEND_PATHS=frozenset({'tests/governance/private_mail_ci/make_config.py', 'support/governance/recovery/tests/borrowed-driver-cleanup-host.php', 'tests/contract/config/notifications.php', 'tests/governance/test_recovery_file_parent_gate.py', 'support/governance/recovery/tests/conduit-driver-cleanup-host.php', 'support/governance/recovery/tests/session-cleanup-gate-host.php', 'tests/governance/private_mail_ci/runtime.py', 'tests/governance/test_private_calendar_wire.py', 'support/governance/native-organization/http-fixture/client/main.go', 'tests/governance/test_recovery_session_lease_focused.py', 'support/governance/native-organization/http-fixture/client/main_test.go', 'tests/governance/test_notice_history_lifecycle.py', 'tests/governance/test_recovery_assessment_current.py'})
+def actual20b_appended_baselines(root):
+ # One actual Git object batch, not hundreds of per-row subprocesses.
+ names=sorted(REVIEWED_REGISTRY_APPEND_PATHS)
+ query=''.join('20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+name+'\n'for name in names).encode()
+ raw=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'cat-file','--batch'],input=query)
+ offset=0;result={}
+ for name in names:
+  end=raw.find(b'\n',offset)
+  if end<0:raise ValueError('reviewed baseline Git header missing')
+  fields=raw[offset:end].split();offset=end+1
+  if len(fields)!=3 or fields[1]!=b'blob' or not re.fullmatch(b'[a-f0-9]{40}',fields[0]) or not fields[2].isdigit():raise ValueError('reviewed baseline Git type refused')
+  size=int(fields[2])
+  if not 0<size<=1048576 or len(raw)<offset+size+1 or raw[offset+size:offset+size+1]!=b'\n':raise ValueError('reviewed baseline Git size refused')
+  body=raw[offset:offset+size];offset+=size+1
+  if hashlib.sha1(b'blob '+str(size).encode()+b'\x00'+body).hexdigest().encode()!=fields[0]:raise ValueError('reviewed baseline Git object refused')
+  result[name]={'bytes':size,'sha256':hashlib.sha256(body).hexdigest()}
+ if offset!=len(raw):raise ValueError('reviewed baseline Git trailing bytes refused')
+ return result
+
+def assert_reviewed_registry_baselines(entries,main_entries,actual13):
+ # Pure test-contract check only; actual caller first authenticates current recipe.
+ if type(entries)is not dict or type(main_entries)is not dict or type(actual13)is not dict or len(main_entries)!=450 or set(actual13)!=REVIEWED_REGISTRY_APPEND_PATHS or set(main_entries)&REVIEWED_REGISTRY_APPEND_PATHS:raise ValueError('reviewed baseline domains refused')
+ if set(entries)!=set(main_entries)|REVIEWED_REGISTRY_APPEND_PATHS:raise ValueError('reviewed baseline exact union refused')
+ if any(entries[path]!=row for path,row in main_entries.items())or any(entries[path]!=actual13[path]for path in REVIEWED_REGISTRY_APPEND_PATHS):raise ValueError('reviewed baseline original or appended bytes changed')
+def reviewed_media_client_fixture(root,name,raw=None):
+ # Test-only closed two-path role proof. Not a filename suffix/directory exception.
+ import project_description_admission_delta as current
+ from check_recovery_file_parent_policy import read_native_driver_checked
+ from check_completion import strict_object
+ def need(value):
+  if not value:raise ValueError('unreviewed media client source role')
+ def pin(value):return {'bytes':len(value),'sha256':hashlib.sha256(value).hexdigest()}
+ need(name in REVIEWED_MEDIA_CLIENT_PATHS)
+ root=Path(root);current.assert_current_recipe(root)
+ actual=read_native_driver_checked(root/name)
+ if raw is None:raw=actual
+ need(type(raw)is bytes and raw==actual)
+ git=lambda revision:subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'show',revision+':'+name])
+ need(raw==git(current.TARGET))
+ legacy=git('20b138b4cd9a2cf61522613b4a8e5e21eca7341b')
+ need(legacy==git('7a9c45c68a3632b7163071a9668c75b3c85c1491'))
+ registry_path='support/governance/source-operation/registry-v1.json'
+ registry_raw=current.description.checked_bytes(root/registry_path)
+ current._exact(registry_raw,current.CURRENT_METADATA[registry_path])
+ registry=json.loads(registry_raw,object_pairs_hook=strict_object)
+ need(registry['schema']=='source-operation-registry-v1'and registry['source_revision']=='20b138b4cd9a2cf61522613b4a8e5e21eca7341b'and registry['source_tree']=='74ca6114980547fceb27aedf3a2464a4518fcc91')
+ need(name not in current.CURRENT_METADATA)
+ main_registry_raw=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'show','7a9c45c68a3632b7163071a9668c75b3c85c1491:'+registry_path])
+ main_registry=json.loads(main_registry_raw,object_pairs_hook=strict_object)
+ assert_reviewed_registry_baselines(registry['entries'],main_registry['entries'],actual20b_appended_baselines(root))
+ need(registry['entries'][name]==pin(legacy))
+ need(registry['successor_entries'][name]=={'baseline':pin(legacy),'current':pin(raw)})
+ current.assert_current_recipe(root)
+ return name
+REVIEWED_CONDUIT_CLEANUP_PATH='support/governance/recovery/tests/conduit-driver-cleanup-host.php'
+REVIEWED_CLEANUP_FIXTURE_PINS={'support/governance/recovery/tests/conduit-driver-cleanup-host.php': {'baseline': {'bytes': 3072, 'sha256': '8a9bc2f82d34436607e5e8dac77abf7deba4aae71c293710cc4783db3a5ff949'}, 'current': {'bytes': 3092, 'sha256': 'ec6488145f2a07459a70cf63e607a047466968eaa4c7b2847bb731f02a8c3c0c'}}, 'support/governance/recovery/tests/borrowed-driver-cleanup-host.php': {'baseline': {'bytes': 3009, 'sha256': 'dea1408c1aaf6ce7a82986ced736e9fd6fdc30601ae9cab5224e929acf9117df'}, 'current': {'bytes': 3029, 'sha256': 'df001641908c2c09d224a725bb1d5cfc7c48e321dab8919ac664aa149844e5d5'}}, 'support/governance/recovery/tests/session-cleanup-gate-host.php': {'baseline': {'bytes': 10667, 'sha256': 'ea6190b000afa2f96e60ea23a71a77bd02cc1df8d882e280a22bb05df84e03f5'}, 'current': {'bytes': 10687, 'sha256': '6f5d0fce90640dec303ba3a7b6fa8fd75ae34fbbb9b86e1663ad982a8ca8e873'}}}
+def assert_reviewed_conduit_cleanup_role(registry,legacy,raw,*,name=REVIEWED_CONDUIT_CLEANUP_PATH):
+ if name not in REVIEWED_CLEANUP_FIXTURE_PINS:raise ValueError('unknown cleanup fixture name')
+ pin=lambda value:{'bytes':len(value),'sha256':hashlib.sha256(value).hexdigest()}
+ if pin(legacy)!=REVIEWED_CLEANUP_FIXTURE_PINS[name]['baseline']or pin(raw)!=REVIEWED_CLEANUP_FIXTURE_PINS[name]['current']or registry['entries'].get(name)!=pin(legacy)or registry['successor_entries'].get(name)!={'baseline':pin(legacy),'current':pin(raw)}:
+  raise ValueError('unreviewed conduit cleanup fixture role')
+
+def reviewed_conduit_cleanup_fixture(root,raw=None,*,name=REVIEWED_CONDUIT_CLEANUP_PATH):
+ # One reviewed test fixture; no suffix/directory or runtime source exception.
+ import project_description_admission_delta as current
+ from check_recovery_file_parent_policy import read_native_driver_checked
+ from check_completion import strict_object
+ def need(value):
+  if not value:raise ValueError('unreviewed conduit cleanup fixture source')
+ def pin(value):return {'bytes':len(value),'sha256':hashlib.sha256(value).hexdigest()}
+ need(name in REVIEWED_CLEANUP_FIXTURE_PINS)
+ root=Path(root);current.assert_current_recipe(root)
+ actual=read_native_driver_checked(root/name)
+ if raw is None:raw=actual
+ need(type(raw)is bytes and raw==actual)
+ git=lambda revision:subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'show',revision+':'+name])
+ need(raw==git(current.TARGET))
+ legacy=git('20b138b4cd9a2cf61522613b4a8e5e21eca7341b')
+ need(legacy==git('7a9c45c68a3632b7163071a9668c75b3c85c1491'))
+ before=b'$notice_history=false;'
+ after=b'$notice_history=false;$task_browser=false;'
+ need(legacy.count(before)==1 and raw==legacy.replace(before,after,1))
+ need(pin(legacy)==REVIEWED_CLEANUP_FIXTURE_PINS[name]['baseline']and pin(raw)==REVIEWED_CLEANUP_FIXTURE_PINS[name]['current'])
+ registry_path='support/governance/source-operation/registry-v1.json'
+ registry_raw=current.description.checked_bytes(root/registry_path);current._exact(registry_raw,current.CURRENT_METADATA[registry_path])
+ registry=json.loads(registry_raw,object_pairs_hook=strict_object)
+ need(registry['schema']=='source-operation-registry-v1'and registry['source_revision']=='20b138b4cd9a2cf61522613b4a8e5e21eca7341b'and registry['source_tree']=='74ca6114980547fceb27aedf3a2464a4518fcc91')
+ main_registry=json.loads(subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(root),'show','7a9c45c68a3632b7163071a9668c75b3c85c1491:'+registry_path]),object_pairs_hook=strict_object)
+ assert_reviewed_registry_baselines(registry['entries'],main_registry['entries'],actual20b_appended_baselines(root))
+ need(name not in current.CURRENT_METADATA)
+ assert_reviewed_conduit_cleanup_role(registry,legacy,raw,name=name)
+ current.assert_current_recipe(root)
+ return name
+
 def phase(which):
  text=(ATOMIC if which=='atomic'else FOCUSED).read_text()
  if which=='atomic':text=text.split('# BEGIN isolated OAuth access-token SQL8',1)[1]
@@ -131,7 +239,8 @@ class OAuthCI(unittest.TestCase):
   from test_project_description_source_inverse import reviewed_i18n_sources,assert_reviewed_i18n_drift_controls
   i18n=reviewed_i18n_sources(ROOT)
   assert_reviewed_i18n_drift_controls(self)
-  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths|set(REVIEWED_POLICY_FIXTURES)|set(i18n))
+  media_clients={reviewed_media_client_fixture(ROOT,name)for name in REVIEWED_MEDIA_CLIENT_PATHS}
+  self.assertEqual(set(changed),approved|set(authorization_runtime)|lifecycle_paths|set(REVIEWED_POLICY_FIXTURES)|set(i18n)|media_clients|{reviewed_conduit_cleanup_fixture(ROOT,name=name)for name in REVIEWED_CLEANUP_FIXTURE_PINS})
   lifecycle_reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
   for name in lifecycle_paths:
    raw=(ROOT/name).read_bytes()
@@ -162,6 +271,60 @@ class OAuthCI(unittest.TestCase):
     with self.assertRaises(ValueError):reviewed_policy_fixture(ROOT,name,unknown)
   for name in ('support/governance/native-execution/unknown.php','../project-policy-negative-cases.php'):
    with self.assertRaises(ValueError):reviewed_policy_fixture(ROOT,name,b'')
+  # Domain/byte tampering is tested against actual main450 and actual thirteen Git objects.
+  main=json.loads(subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','7a9c45c68a3632b7163071a9668c75b3c85c1491:support/governance/source-operation/registry-v1.json']))['entries']
+  actual13=actual20b_appended_baselines(ROOT);complete={**copy.deepcopy(main),**actual13}
+  assert_reviewed_registry_baselines(complete,main,actual13)
+  original_name=next(iter(main));added_name=next(iter(REVIEWED_REGISTRY_APPEND_PATHS))
+  mutations=[]
+  missing=copy.deepcopy(complete);missing.pop(added_name);mutations.append(missing)
+  unknown=copy.deepcopy(complete);unknown['tests/governance/unreviewed.php']=dict(bytes=1,sha256='0'*64);mutations.append(unknown)
+  for name in (original_name,added_name):
+   changed=copy.deepcopy(complete);changed[name]['sha256']='0'*64;mutations.append(changed)
+  for changed in mutations:
+   with self.assertRaises(ValueError):assert_reviewed_registry_baselines(changed,main,actual13)
+  for name in REVIEWED_MEDIA_CLIENT_PATHS:
+   raw=(ROOT/name).read_bytes()
+   self.assertEqual(reviewed_media_client_fixture(ROOT,name),name)
+   other=next(path for path in REVIEWED_MEDIA_CLIENT_PATHS if path!=name)
+   for unknown in (raw+b'\n// unknown',raw[:-1],b'',bytearray(raw),(ROOT/other).read_bytes()):
+    with self.assertRaises(ValueError):reviewed_media_client_fixture(ROOT,name,unknown)
+  for name in ('support/governance/native-organization/http-fixture/client/unknown.go','../main.go','support/governance/native-organization/test-native-organization-mysql.php'):
+   with self.assertRaises(ValueError):reviewed_media_client_fixture(ROOT,name,b'')
+  cleanup=(ROOT/REVIEWED_CONDUIT_CLEANUP_PATH).read_bytes()
+  self.assertEqual(reviewed_conduit_cleanup_fixture(ROOT),REVIEWED_CONDUIT_CLEANUP_PATH)
+  for unknown in (cleanup+b'unknown',cleanup[:-1],b'',bytearray(cleanup),(ROOT/next(iter(REVIEWED_MEDIA_CLIENT_PATHS))).read_bytes()):
+   with self.assertRaises(ValueError):reviewed_conduit_cleanup_fixture(ROOT,unknown)
+  for unknown_name in ('../conduit-driver-cleanup-host.php','support/governance/recovery/tests/unknown.php',next(iter(REVIEWED_MEDIA_CLIENT_PATHS))):
+   with self.assertRaises(ValueError):reviewed_conduit_cleanup_fixture(ROOT,cleanup,name=unknown_name)
+  from check_recovery_file_parent_policy import read_native_driver_checked
+  with tempfile.TemporaryDirectory()as temporary:
+   owned=Path(temporary).resolve()/'fixture.php';owned.write_bytes(cleanup);owned.chmod(0o644)
+   self.assertEqual(read_native_driver_checked(owned),cleanup)
+   owned.chmod(0o600)
+   with self.assertRaises(ValueError):read_native_driver_checked(owned)
+  registry=json.loads((ROOT/'support/governance/source-operation/registry-v1.json').read_bytes())
+  legacy=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+REVIEWED_CONDUIT_CLEANUP_PATH])
+  assert_reviewed_conduit_cleanup_role(registry,legacy,cleanup)
+  for field in ('baseline','current'):
+   altered=copy.deepcopy(registry);altered['successor_entries'][REVIEWED_CONDUIT_CLEANUP_PATH][field]['sha256']='0'*64
+   with self.assertRaises(ValueError):assert_reviewed_conduit_cleanup_role(altered,legacy,cleanup)
+  # Each newly admitted fixture must independently satisfy the same real roles.
+  for name in sorted(REVIEWED_CLEANUP_FIXTURE_PINS):
+   raw=(ROOT/name).read_bytes()
+   self.assertEqual(reviewed_conduit_cleanup_fixture(ROOT,name=name),name)
+   for unknown in (raw+b'unknown',raw[:-1],b'',bytearray(raw),cleanup if name!=REVIEWED_CONDUIT_CLEANUP_PATH else (ROOT/next(iter(REVIEWED_MEDIA_CLIENT_PATHS))).read_bytes()):
+    with self.assertRaises(ValueError):reviewed_conduit_cleanup_fixture(ROOT,unknown,name=name)
+   with tempfile.TemporaryDirectory()as temporary:
+    owned=Path(temporary).resolve()/'fixture.php';owned.write_bytes(raw);owned.chmod(0o644)
+    self.assertEqual(read_native_driver_checked(owned),raw)
+    owned.chmod(0o600)
+    with self.assertRaises(ValueError):read_native_driver_checked(owned)
+   legacy=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+name])
+   assert_reviewed_conduit_cleanup_role(registry,legacy,raw,name=name)
+   for field in ('baseline','current'):
+    altered=copy.deepcopy(registry);altered['successor_entries'][name][field]['sha256']='0'*64
+    with self.assertRaises(ValueError):assert_reviewed_conduit_cleanup_role(altered,legacy,raw,name=name)
  def test_yaml_dependency_is_explicit_isolated_and_precedes_controls(self):
   import yaml
   steps=yaml.safe_load(FOCUSED.read_text())['jobs']['oauth-code-owner']['steps']

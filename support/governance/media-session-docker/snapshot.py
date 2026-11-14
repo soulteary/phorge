@@ -1,7 +1,7 @@
 """Public Git tree plus exact reviewed test overlay; never archives a worktree."""
 import hashlib,io,json,os,posixpath,re,stat,subprocess,tarfile
 from pathlib import Path
-BASE='2e645e749da49240ffa97f34556bc64cd65dd595'
+BASE='3f716e3d66dbe8645ad2041e261c3f389f6a319e'
 OVERLAY={'support/governance/media-session-positive/README.md': 'a3cc5c39b8e327085490621a1d0dc167d27c9e9c7e96dcb435953653bdc6938a', 'support/governance/media-session-positive/cases.php': 'ec93f85e5827b281e0605556f423d0837b44c5b467eed4223fb3075fb7203708', 'support/governance/media-session-positive/diagnostic.php': '7248c628ff94caabba218ae02762842311aa204d6c7792e049f17f6499f84f55', 'support/governance/media-session-positive/profile.php': '50db5b55613f03b3297bfc780301da485ba896410237e82c1b0475b6ba79d83d', 'support/governance/media-session-positive/run.php': 'bd3504a2212eaedafae27bbde8f6ca824086f8573d0cec95871af35a3f012f81', 'support/governance/media-session-positive/source-pins.json': '5d708748e4bf47af83ae97edac0fb9f37ac89d41ce11b1d7d371fb595e24d222', 'support/governance/media-session-positive/test-diagnostic.php': '0f308b02a47f1d4c56faf71e1557036014a781ac5341eae30c8785c8a8a9865e', 'support/governance/media-session-positive/test-guards.php': 'dbe79fe6b78beed08b47cb339b2248ad45cc0fde70ecd6faa454d57f1a522e2e'}
 def need(x):
  if not x:raise ValueError('source snapshot refused')
@@ -13,7 +13,7 @@ def validate_name(n):
 def validate_link(n,t):
  need(type(t)is str and t and not t.startswith('/'))
  dest=posixpath.normpath(posixpath.join(posixpath.dirname(n),t));need(dest!='..'and not dest.startswith('../'))
-ROOT_TREE='1424f20a8aa031a10b9e7939a96e8573c8ad675c'
+ROOT_TREE='275a9fc1e0092de2b98a02bc063e566b0f99744d'
 def git_environment():
  # No caller GIT_* selectors, global/system config or attributes are inherited.
  return {'PATH':os.defpath,'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_SYSTEM':'/dev/null','GIT_CONFIG_GLOBAL':'/dev/null','GIT_ATTR_NOSYSTEM':'1','GIT_NO_REPLACE_OBJECTS':'1','GIT_CONFIG_COUNT':'0','GIT_NO_LAZY_FETCH':'1','GIT_TERMINAL_PROMPT':'0'}
