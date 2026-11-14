@@ -219,42 +219,43 @@ class DescriptionSourceInverse(unittest.TestCase):
   self.assertEqual(actual,expected)
   row=delta.NATIVE_STATE_BASELINE;self.assertEqual(expected[row['path']],(row['git_mode'],row['git_blob']))
  def test_operation_registry_real20b_baseline_successor18_and_six_new_paths(self):
-  import project_description_admission_delta as admission
-  registry=json.loads(task_api.parent_bytes(ROOT,'support/governance/source-operation/registry-v1.json'))
-  self.assertEqual(registry['source_revision'],'20b138b4cd9a2cf61522613b4a8e5e21eca7341b')
-  entries=dict(registry['entries'])
-  for path,pin in entries.items():
-   raw=self.git_bytes(registry['source_revision'],path)
-   self.assertIsNotNone(raw,path);self.assertEqual(pin,{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path)
-  for path,row in registry['successor_entries'].items():
-   self.assertEqual(row['baseline'],entries.get(path),path)
-   # The bridge row is the exact signed native predecessor; current held bytes are separately admitted.
-   raw=self.git_bytes(admission.TARGET,path) if path=='scripts/governance/project_description_admission_delta.py' else task_api.parent_bytes(ROOT,path)
-   self.assertEqual(row['current'],{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path)
-   entries[path]=row['current']
-  for path,pin in delta.CURRENT_PINS.items():self.assertEqual(entries[path],pin,path)
-  prior=json.loads(self.git_bytes('b93916d8a2beb4a9ab28ea1769692c0839cfc60b','support/governance/source-operation/registry-v1.json'))
-  new_nested={'support/governance/native-execution/project-policy-nested-process.php','support/governance/native-execution/project-policy-nested-worker.php','tests/governance/test_project_policy_nested_protocol.py'}
-  self.assertEqual(len(prior['new_paths']),6)
-  old_nine=set(prior['new_paths'])|new_nested
-  self.assertEqual(len(old_nine),9)
-  main_registry=json.loads(self.git_bytes('7a9c45c68a3632b7163071a9668c75b3c85c1491','support/governance/source-operation/registry-v1.json'))
-  self.assertEqual(set(main_registry['new_paths']),old_nine)
-  n11_thirteen={'tests/governance/test_task_wire_browser_hold.py', 'support/governance/notification/task-wire-protocol.php', 'tests/governance/test_task_wire_parent.py', 'support/governance/notification/task-wire-producer.php', 'support/governance/notification/task-wire-browser.php', 'support/governance/notification/task-wire-hold.php', 'tests/governance/private_mail_ci/task_source.py', 'support/governance/notification/task-wire-acceptance.py', 'support/governance/notification/task-wire-router.php', 'tests/governance/test_task_wire_acceptance.py', 'tests/governance/private_mail_ci/run_task.py', 'support/governance/notification/README.task-wire.md', 'tests/governance/private_mail_ci/task_browser.py'}
-  self.assertEqual(set(registry['new_paths']),old_nine|n11_thirteen)
-  self.assertEqual(len(registry['new_paths']),22)
-  assert_recipe(ROOT)
-  for path in n11_thirteen:
-   self.assertIsNone(self.git_bytes('7a9c45c68a3632b7163071a9668c75b3c85c1491',path),path)
-   self.assertNotIn(path,registry['entries'])
-   current=task_api.parent_bytes(ROOT,path)
-   self.assertEqual(current,self.git_bytes(admission.TARGET,path),path)
-   pin={'bytes':len(current),'sha256':hashlib.sha256(current).hexdigest()}
-   self.assertEqual(registry['successor_entries'][path],{'baseline':None,'current':pin},path)
-   row=admission.CURRENT_METADATA[path]
-   self.assertEqual({key:row[key]for key in ('bytes','sha256')},pin,path)
-   self.assertEqual({key:value for key,value in row.items()if key.startswith('target_')},{'target_bytes':None,'target_sha256':None,'target_zlib_base64':None},path)
-  for path in registry['new_paths']:self.assertIsNone(self.git_bytes(registry['source_revision'],path))
+  with task_api.owner(ROOT)as operation:
+   import project_description_admission_delta as admission
+   registry=json.loads(task_api.parent_in(operation,ROOT,'support/governance/source-operation/registry-v1.json'))
+   self.assertEqual(registry['source_revision'],'20b138b4cd9a2cf61522613b4a8e5e21eca7341b')
+   entries=dict(registry['entries'])
+   for path,pin in entries.items():
+    raw=self.git_bytes(registry['source_revision'],path)
+    self.assertIsNotNone(raw,path);self.assertEqual(pin,{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path)
+   for path,row in registry['successor_entries'].items():
+    self.assertEqual(row['baseline'],entries.get(path),path)
+    # The bridge row is the exact signed native predecessor; current held bytes are separately admitted.
+    raw=self.git_bytes(admission.TARGET,path) if path=='scripts/governance/project_description_admission_delta.py' else task_api.parent_in(operation,ROOT,path)
+    self.assertEqual(row['current'],{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()},path)
+    entries[path]=row['current']
+   for path,pin in delta.CURRENT_PINS.items():self.assertEqual(entries[path],pin,path)
+   prior=json.loads(self.git_bytes('b93916d8a2beb4a9ab28ea1769692c0839cfc60b','support/governance/source-operation/registry-v1.json'))
+   new_nested={'support/governance/native-execution/project-policy-nested-process.php','support/governance/native-execution/project-policy-nested-worker.php','tests/governance/test_project_policy_nested_protocol.py'}
+   self.assertEqual(len(prior['new_paths']),6)
+   old_nine=set(prior['new_paths'])|new_nested
+   self.assertEqual(len(old_nine),9)
+   main_registry=json.loads(self.git_bytes('7a9c45c68a3632b7163071a9668c75b3c85c1491','support/governance/source-operation/registry-v1.json'))
+   self.assertEqual(set(main_registry['new_paths']),old_nine)
+   n11_thirteen={'tests/governance/test_task_wire_browser_hold.py', 'support/governance/notification/task-wire-protocol.php', 'tests/governance/test_task_wire_parent.py', 'support/governance/notification/task-wire-producer.php', 'support/governance/notification/task-wire-browser.php', 'support/governance/notification/task-wire-hold.php', 'tests/governance/private_mail_ci/task_source.py', 'support/governance/notification/task-wire-acceptance.py', 'support/governance/notification/task-wire-router.php', 'tests/governance/test_task_wire_acceptance.py', 'tests/governance/private_mail_ci/run_task.py', 'support/governance/notification/README.task-wire.md', 'tests/governance/private_mail_ci/task_browser.py'}
+   self.assertEqual(set(registry['new_paths']),old_nine|n11_thirteen)
+   self.assertEqual(len(registry['new_paths']),22)
+   operation._assert_current_recipe(ROOT)
+   for path in n11_thirteen:
+    self.assertIsNone(self.git_bytes('7a9c45c68a3632b7163071a9668c75b3c85c1491',path),path)
+    self.assertNotIn(path,registry['entries'])
+    current=task_api.parent_in(operation,ROOT,path)
+    self.assertEqual(current,self.git_bytes(admission.TARGET,path),path)
+    pin={'bytes':len(current),'sha256':hashlib.sha256(current).hexdigest()}
+    self.assertEqual(registry['successor_entries'][path],{'baseline':None,'current':pin},path)
+    row=admission.CURRENT_METADATA[path]
+    self.assertEqual({key:row[key]for key in ('bytes','sha256')},pin,path)
+    self.assertEqual({key:value for key,value in row.items()if key.startswith('target_')},{'target_bytes':None,'target_sha256':None,'target_zlib_base64':None},path)
+   for path in registry['new_paths']:self.assertIsNone(self.git_bytes(registry['source_revision'],path))
  def test_complete_baseline_metadata_has_actual_git_revision_tree_and_every_pin(self):
   for metadata in [delta.MAIN_BASELINE,delta.HISTORICAL_BASELINE]:
    tree=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',metadata['git_revision']+'^{tree}'],text=True).strip();self.assertEqual(metadata['git_tree'],tree)
