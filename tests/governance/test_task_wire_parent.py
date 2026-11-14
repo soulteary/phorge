@@ -471,6 +471,29 @@ echo json_encode(array('visible'=>$a,'revoked'=>$b,'foreign_refused'=>$refused))
         self.assertEqual({'retained':True,'current_visible':True,'key':'123'},value['visible'])
         self.assertEqual({'retained':True,'current_visible':False,'key':'123'},value['revoked'])
         self.assertTrue(value['foreign_refused'])
+        # Exercise the actual parent history assertions after successful native
+        # publication, including retained-but-denied before-publication revoke.
+        import ast
+        import re
+        tree=ast.parse((ROOT/'tests/governance/private_mail_ci/run_task.py').read_bytes())
+        function=next(n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name=='_run_task_with_source_operation')
+        body=next(n.body for n in function.body if isinstance(n,ast.Try)and n.finalbody)
+        start=next(i for i,n in enumerate(body)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='history'for t in n.targets))
+        end=next(i for i in range(start+1,len(body))if isinstance(body[i],ast.If)and isinstance(body[i].test,ast.Name)and body[i].test.id=='browser_hold')
+        code=compile(ast.Module(body=body[start:end],type_ignores=[]),'<actual-parent-history>','exec')
+        for case in ('allow','revoke-before-publication','revoke-after-prepare'):
+            history=value['visible']if case=='allow'else value['revoked']
+            seen=[]
+            def check(ok,name):
+                self.assertTrue(ok,name);seen.append(name)
+            exec(code,{'last':{'history':history},'case':case,'check':check,'re':re})
+            self.assertEqual(seen,['owned-native-notification-history','history-current-recipient-policy'])
+            for bad in ({**history,'retained':False},{**history,'retained':1},
+                        {**history,'key':None},{**history,'key':123},{**history,'key':'0'},
+                        {**history,'key':'123x'},{**history,'current_visible':1},
+                        {**history,'current_visible':case!='allow'}):
+                with self.subTest(case=case,bad=bad),self.assertRaises(AssertionError):
+                    exec(code,{'last':{'history':bad},'case':case,'check':check,'re':re})
 
 class TaskPureRootCoverage(unittest.TestCase):
     def test_actual_native_class_inventory_is_in_typed_Task_source_domain(self):

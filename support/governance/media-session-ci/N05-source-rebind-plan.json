@@ -13,7 +13,7 @@
     "runtime_verified": false,
     "selected19_changed_count": 1
   },
-  "current_snapshot_base": "bd220ed9bdc1167e58be4e36888e88f34133a95a",
+  "current_snapshot_base": "3f716e3d66dbe8645ad2041e261c3f389f6a319e",
   "current_snapshot_overlay": {
     "support/governance/media-session-positive/README.md": "a3cc5c39b8e327085490621a1d0dc167d27c9e9c7e96dcb435953653bdc6938a",
     "support/governance/media-session-positive/cases.php": "ec93f85e5827b281e0605556f423d0837b44c5b467eed4223fb3075fb7203708",
@@ -24,14 +24,14 @@
     "support/governance/media-session-positive/test-diagnostic.php": "0f308b02a47f1d4c56faf71e1557036014a781ac5341eae30c8785c8a8a9865e",
     "support/governance/media-session-positive/test-guards.php": "dbe79fe6b78beed08b47cb339b2248ad45cc0fde70ecd6faa454d57f1a522e2e"
   },
-  "current_snapshot_tree": "141b22dc5c7bebc49728d7df6831f724c674272e",
+  "current_snapshot_tree": "275a9fc1e0092de2b98a02bc063e566b0f99744d",
   "current_stage_overlay8_changed_count": 0,
   "current_stage_selected19_changed_count": 0,
   "historical_D95_delta_predecessor": 0,
   "historical_mediaC_guide": "support/governance/project-content-grants-ci/media-C-rebind-plan.json",
   "immutable_old_reducers_and_media_literals_preserved": true,
-  "native_runtime_target": "1b8ce23f5ff4e329b8b4ec40702ca87c9d914d1d",
-  "native_runtime_target_tree": "0fd658cb9a25608c8c13309514960caca8026588",
+  "native_runtime_target": "c7e5b9927d5c2fee5d4d9766d613e51ec400d11b",
+  "native_runtime_target_tree": "a8294f30cda758d289d142a2949981fb425043aa",
   "new_description_SQL9_executed": false,
   "online_permission_migration": false,
   "optional_features_OFF": true,
@@ -53,7 +53,7 @@
     "scripts/governance/recovery_oauth_authorization_source_delta.py",
     "scripts/governance/check_directory_transports_v1.py"
   ],
-  "runtime_exclusions_scope": "Original six reviewed offline tooling exclusions unchanged. Actual native target 1b8ce23f5ff4e329b8b4ec40702ca87c9d914d1d and the complete current production and metadata recipe must pass; no native PHP/SQL/media protection exemption added.",
+  "runtime_exclusions_scope": "Original six reviewed offline tooling exclusions unchanged. Actual native target c7e5b9927d5c2fee5d4d9766d613e51ec400d11b and the complete current production and metadata recipe must pass; no native PHP/SQL/media protection exemption added.",
   "runtime_exclusions_unchanged": true,
   "schema": "N05-CoreA-media-only-proposal-v3",
   "selected19_inherited_byteexact_from_current_snapshot": true,

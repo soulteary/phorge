@@ -1902,7 +1902,7 @@
       },
       "current": {
         "bytes": 4575,
-        "sha256": "311f5dded548138835e5a66929679dcccf294797dabd0e6ea1dfe0f4cc97ac73"
+        "sha256": "eff38e94f3eb89751d687245e9d4b48b13b41d7937f55485c88d57c37fdecddf"
       }
     },
     ".github/workflows/project-description-focused.yml": {
@@ -1912,7 +1912,7 @@
       },
       "current": {
         "bytes": 4757,
-        "sha256": "0f98b60315708f2dda4457973c66e6d3bdee124e83ded474554c70c6444bd2fc"
+        "sha256": "76cfb95b8066b5a945704ae6d93e1f908563d75fc3f6cdccf6b267bdf5810f29"
       }
     },
     "docs/governance/batch-2-callers.json": {
@@ -2272,7 +2272,7 @@
       },
       "current": {
         "bytes": 1802,
-        "sha256": "5b85a98f9964242725cf6c0895daee7b86d3638bc2a68cc6b15a55cf90e52a11"
+        "sha256": "0073ea53b316490f4da4438a4e3db3bea631098e1642de29271cd3674c3173d5"
       }
     },
     "support/governance/project-content-grants-ci/ci.py": {
@@ -2282,7 +2282,7 @@
       },
       "current": {
         "bytes": 24560,
-        "sha256": "564348e494fe7a73ad6afdbfe4640a240f5df8c5d3ad1324549b0e6092a81d3d"
+        "sha256": "f579340edd8ce894d3f0540a0ad662e3dcdb8f1feccec7c6353a3748147c474e"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites-template.json": {
@@ -2292,7 +2292,7 @@
       },
       "current": {
         "bytes": 9307,
-        "sha256": "1358180e173af384b4192e0d7e045700db2491d26564d47dbc708717c4e1bf4f"
+        "sha256": "9adda0c7483467d313641ffb1cf5fee2b3439f0c04a1079197d447e15355832a"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites/provision.py": {
@@ -2302,7 +2302,7 @@
       },
       "current": {
         "bytes": 11688,
-        "sha256": "fab97e2cc5ab9d3f511d625328f049affb02a67e81b1cebbf43adde5c2bc5871"
+        "sha256": "a71ea657dbf8bffde7e292f634664d196b3dc02f86b423ed892b8c89bd4d0b35"
       }
     },
     "support/governance/project-content-grants-ci/qualification-template.json": {
@@ -2312,7 +2312,7 @@
       },
       "current": {
         "bytes": 9875,
-        "sha256": "a38145495465afc7778348f505d55e835e3a415daeae5df01b64466d9cef4c5f"
+        "sha256": "ddd99ab85eaf18fd2807ef0edc88c6b03b10e6ee447e0f2224a645553c3069a3"
       }
     },
     "support/governance/project-content-grants-qualification/qualify.py": {
@@ -2322,7 +2322,7 @@
       },
       "current": {
         "bytes": 9451,
-        "sha256": "686209d0149977a5b39bccc2c5630a695f82303e07ab9310e0f6534bb97a8541"
+        "sha256": "1f6019c2eb52a3868b4103009b346a414c3e3c669945c438239ba0787f77c9d4"
       }
     },
     "support/governance/project-description-ci/README.md": {
@@ -2332,7 +2332,7 @@
       },
       "current": {
         "bytes": 6104,
-        "sha256": "6dfe34488c98d8c8b5fabcda35440d106da2d920947a81f39eca35f6e86d16ac"
+        "sha256": "60f51f457be853c2a4fbff0be30db925cb6eb2b9ab59f005438a383cd946ad61"
       }
     },
     "support/governance/project-description-ci/ci.py": {
@@ -2342,7 +2342,7 @@
       },
       "current": {
         "bytes": 15379,
-        "sha256": "fd8263304f9c3a879189e4f19853b5dcafdbe9970717501d7132324d7731b657"
+        "sha256": "e45b1d90971159484cb980e1d383c6deefcccbe115c8468ba9043282f2b4a899"
       }
     },
     "support/governance/project-description-ci/metadata-lock.json": {
@@ -2352,7 +2352,7 @@
       },
       "current": {
         "bytes": 1024,
-        "sha256": "5ab854266f825ec7961a092ea729a25ee99ed255dbf7b477afdb7c6cd7a2f25a"
+        "sha256": "3a0a3d56651f74c949815b5fd4c3a0029c81856121d0ae95fc386381e4b74168"
       }
     },
     "support/governance/project-description-q2-owner/README.md": {
@@ -2442,8 +2442,8 @@
     "tests/governance/private_mail_ci/run_task.py": {
       "baseline": null,
       "current": {
-        "bytes": 27718,
-        "sha256": "6fa41bb25bfa5ca6eefacf39b0cad51827b0efe1ffa748bb55c55cf2e1dc7cf7"
+        "bytes": 27756,
+        "sha256": "e6c602139df56b4dab20f9496f6f25050b6d1d21e046e96fb4485bc45824784f"
       }
     },
     "tests/governance/private_mail_ci/runtime.py": {
@@ -2878,8 +2878,8 @@
     "tests/governance/test_task_wire_parent.py": {
       "baseline": null,
       "current": {
-        "bytes": 59113,
-        "sha256": "7fb57d86bb1f517d1f85bacae98e046109acd5c1f0fa5af402556e4b6dda0594"
+        "bytes": 60977,
+        "sha256": "b2a6e913d9522f6235b9a2e980195ea45fbb28c612970b0abd5f7f8c9ddc9b48"
       }
     }
   }

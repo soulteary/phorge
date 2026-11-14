@@ -272,10 +272,11 @@ def _run_task_with_source_operation(config, worker, case, *, browser_hold=False,
                 status,raw=request(origin+'/api/mailer/execute','POST',{'deliveryID':snapshot['deliveryID'],'allowSend':True},headers)
                 check(status==200 and json.loads(raw)['data']['state']=='accepted' and captured()['total']==1,'acknowledged-duplicate-no-second-mime')
         history=last.get('history',{})
-        retained=case!='revoke-before-publication'
-        check(history.get('retained') is retained and type(history.get('current_visible')) is bool and
-              ((retained and type(history.get('key')) is str and re.fullmatch('[1-9][0-9]{0,19}',history['key']) is not None) or
-               (not retained and history.get('key') is None)),'owned-native-notification-history')
+        # The queued native feed retains its captured subscriber notification;
+        # current VIEW is checked separately and never granted by that history.
+        check(history.get('retained') is True and type(history.get('current_visible')) is bool and
+              type(history.get('key')) is str and re.fullmatch('[1-9][0-9]{0,19}',history['key']) is not None,
+              'owned-native-notification-history')
         check(history['current_visible'] is (case=='allow'),'history-current-recipient-policy')
         if browser_hold:
             # Keep only the held fixture and bounded native application server.
