@@ -4,8 +4,8 @@ from pathlib import Path
 ROOT_PROFILE_SHA=None
 ROOT_REVIEW_SHA=None
 HERE=Path(__file__).resolve().parent
-TARGET='eb991c0acff230eb4e8621b4733d1c7e25eb947a'
-TARGET_TREE='b0fc242cf73cf8d452d515e31e6e07d6d8840a41'
+TARGET='bb113c80df054976c03e0326a9650baa6b355003'
+TARGET_TREE='02d6d1cbb08c394d4c7d340c72732d04dbdb1be4'
 FREEZE_PIN=None # Root rebinds reviewed source cohort before any execution.
 def need(v):
  if not v:raise ValueError('N05_qualification_refused_retain_no_retry')

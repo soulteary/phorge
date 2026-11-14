@@ -144,7 +144,12 @@ class TaskBrowserHold(unittest.TestCase):
                         if fault=='stop' and child is server:raise RuntimeError('unadmitted stop fault')
                         child.returncode=0
                     def _members(inner,pid):return []
-                    def write(inner,name,raw):events.append(name)
+                    def write(inner,name,raw):
+                        if name=='release':self.assertEqual(raw,inner.owner.encode())
+                        events.append(name)
+                    def write_flag(inner,name):
+                        self.assertEqual(name,'release')
+                        inner.write(name,inner.owner.encode())
                     def close(inner,remove):events.append('close-'+str(remove));return {'live_children':0,'private_directory_removed':remove}
                 def cleanup(runtime,config):
                     self.assertIn('stop-server',events);self.assertIn('stop-mailer',events);events.append('queue-and-SQL0')

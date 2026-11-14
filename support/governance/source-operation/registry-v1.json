@@ -1902,7 +1902,7 @@
       },
       "current": {
         "bytes": 4575,
-        "sha256": "88287b10cbb6a9d7bb5a59e32d1eaac04fbee2783004d434ab6497b821f55b07"
+        "sha256": "a60fac817961127481a4f5735e20eef3899bfb410363e47dfe6a6ead4ddbbc84"
       }
     },
     ".github/workflows/project-description-focused.yml": {
@@ -1912,7 +1912,7 @@
       },
       "current": {
         "bytes": 4757,
-        "sha256": "0dec4601a55b6031bf64a6029c61ae09989c0955a800cbfdd363c86fc228e66c"
+        "sha256": "30dff08968a4f107406aef9c5ed230f27bb21f53fff2d78be672e23f467fae12"
       }
     },
     "docs/governance/batch-2-callers.json": {
@@ -2272,7 +2272,7 @@
       },
       "current": {
         "bytes": 1802,
-        "sha256": "d30d95e3ba32991403f59ccce1d470fcb3ec7eedfeaddcf59f4c58749b287959"
+        "sha256": "85e2474507c0b742b61c3aa6b7f120e0dd19ee10eb12cbea54157b7e6faa735a"
       }
     },
     "support/governance/project-content-grants-ci/ci.py": {
@@ -2282,7 +2282,7 @@
       },
       "current": {
         "bytes": 24560,
-        "sha256": "8c6f35025b8a9c8aae03dd6ead1ae195d2b0b449d785ce5fdfee24710df56fb1"
+        "sha256": "de0a7ef9e51a8203d422a3673556bc10589551ce6cdd23fae0f8b950f3b072b4"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites-template.json": {
@@ -2292,7 +2292,7 @@
       },
       "current": {
         "bytes": 9307,
-        "sha256": "18832e6973adddd7e184a9825bdc63ae95ca3bc68216ac05713519222d8781be"
+        "sha256": "05bf324413de32cd5372fe9e295516581d5ab199ab5d29c262d61c4db872a0e8"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites/provision.py": {
@@ -2302,7 +2302,7 @@
       },
       "current": {
         "bytes": 11688,
-        "sha256": "dc42879e07740d96b9c54ab2f5c64814dab6050e5d7fbb21a035097cb8834985"
+        "sha256": "abe0b74621fe3f75b6f47a8e4d2f5d9d068b2ba30670efd3adcd8ab64a8e69df"
       }
     },
     "support/governance/project-content-grants-ci/qualification-template.json": {
@@ -2312,7 +2312,7 @@
       },
       "current": {
         "bytes": 9875,
-        "sha256": "6e1163e39e9b8e8ef3d30248004912d2dbc03849d52290b49b909d7f6fc16b73"
+        "sha256": "455106e4e8a9cf6cc775faab61e1ad9eb6700b0e0252b099cb1f4d1197a56c77"
       }
     },
     "support/governance/project-content-grants-qualification/qualify.py": {
@@ -2322,7 +2322,7 @@
       },
       "current": {
         "bytes": 9451,
-        "sha256": "b732a0e6602e0c8a1ab59788826a36dbece81de4b2481b2480230be9c3b5108f"
+        "sha256": "808bbdd758f0b7ad06de148aed51ee65d0a6ea100b91744a8cfb04e3e7cf4da6"
       }
     },
     "support/governance/project-description-ci/README.md": {
@@ -2332,7 +2332,7 @@
       },
       "current": {
         "bytes": 6104,
-        "sha256": "bb992981016e13891882e6e376e24f2e700482ea7c65c06a7bfe879c2878edcc"
+        "sha256": "e9082666aef8c4fe869c1c90cd2b443149ad49c43e0e76836d7f1afb250ba49f"
       }
     },
     "support/governance/project-description-ci/ci.py": {
@@ -2342,7 +2342,7 @@
       },
       "current": {
         "bytes": 15379,
-        "sha256": "a03ba78f1e59dce9868cedd230a9943d289abed4fb9c000d075121998a6ff1b9"
+        "sha256": "a54fa0cdba29044a21539b52f9ea86dd3c61669ca9bd54d8341c34bbd0ab6660"
       }
     },
     "support/governance/project-description-ci/metadata-lock.json": {
@@ -2352,7 +2352,7 @@
       },
       "current": {
         "bytes": 1024,
-        "sha256": "7d551f6dd6919dc70ed380e5d867be3df271d4f7c939175cdd12d6e1f0006f54"
+        "sha256": "5fe83fc609c7280a9119eb5e9325e715a95591779a066b51aaf53a759abc1e48"
       }
     },
     "support/governance/project-description-q2-owner/README.md": {
@@ -2871,8 +2871,8 @@
     "tests/governance/test_task_wire_browser_hold.py": {
       "baseline": null,
       "current": {
-        "bytes": 17310,
-        "sha256": "6a932ac19f83c237b57abff637f45b9c5b966be42af3ca731e5b7800b76396d7"
+        "bytes": 17589,
+        "sha256": "4cfbc582aa44b063a3d98591efc84b8edce7dc75bce5d0029253d0fd1a0b2864"
       }
     },
     "tests/governance/test_task_wire_parent.py": {
