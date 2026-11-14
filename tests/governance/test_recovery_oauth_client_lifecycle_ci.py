@@ -50,9 +50,16 @@ class LifecycleReceipt(unittest.TestCase):
 class LifecycleWorkflow(unittest.TestCase):
  def test_only_exact_named_workflow_is_admitted_and_unknown_bytes_refuse(self):
   import recovery_oauth_client_lifecycle_ci_delta as delta
-  raw=WORKFLOW.read_bytes();self.assertTrue(delta.assert_workflow(delta.WORKFLOW,raw))
-  for name,body in [(delta.WORKFLOW,raw+b'\n# unknown mutation'),('.github/workflows/unknown.yml',raw)]:
-   with self.assertRaises(ValueError):delta.assert_workflow(name,body)
+  from task_inverse_test_api_v2 import owner
+  from task_ci_workflow_test_api_v2 import workflow_data_in_operation
+  with owner(ROOT)as operation:
+   view=workflow_data_in_operation(operation,ROOT,[delta.WORKFLOW]);self.assertFalse(view['source_operation_exit_verified']);raw=view['workflows'][delta.WORKFLOW]['current'];parent=view['workflows'][delta.WORKFLOW]['parent'];self.assertEqual(raw,WORKFLOW.read_bytes())
+   self.assertTrue(delta.assert_workflow(delta.WORKFLOW,parent))
+   self.assertEqual(workflow_data_in_operation(operation,ROOT,[delta.WORKFLOW],{delta.WORKFLOW:raw})['workflows'][delta.WORKFLOW]['current'],raw)
+   for name,body in [(delta.WORKFLOW,raw+b'\n# unknown mutation'),('.github/workflows/unknown.yml',raw)]:
+    with self.assertRaises(ValueError):workflow_data_in_operation(operation,ROOT,[name],{name:body})
+   with self.assertRaises(ValueError):delta.assert_workflow(delta.WORKFLOW,parent+b'\n# unknown parent mutation')
+   with self.assertRaises(ValueError):delta.assert_workflow('.github/workflows/unknown.yml',parent)
 
  def test_path_triggers_include_source_and_all_new_control_files_not_unrelated_docs(self):
   import fnmatch,yaml
@@ -61,8 +68,14 @@ class LifecycleWorkflow(unittest.TestCase):
    self.assertTrue(matches(path),path)
   self.assertFalse(matches('docs/unrelated.md'));self.assertIn('workflow_dispatch',on);self.assertEqual(workflow['permissions'],{'contents':'read'})
  def test_real_File_only_builder_exact_database_and_no_oldmatrix_substitution(self):
-  text=WORKFLOW.read_text();self.assertIn('module[\'build_file\'](',text);self.assertNotIn("module['build'](",text);self.assertIn(qualified.IMAGE,text);self.assertIn('test-oauth-client-lifecycle-mysql.php --oauth-client-lifecycle-owner',text);self.assertIn('qualify_oauth_client_lifecycle_mysql84.py',text);self.assertNotIn('secrets.',text)
+  from task_ci_workflow_test_api_v2 import workflow_data
+  name='.github/workflows/oauth-client-lifecycle-focused.yml';proof=workflow_data(ROOT,name);self.assertTrue(proof['source_operation_exit_verified']);current=proof['current'].decode();text=proof['parent'].decode();self.assertIn('module[\'build_file\'](',text);self.assertNotIn("module['build'](",text);self.assertIn(qualified.IMAGE,text);self.assertIn('test-oauth-client-lifecycle-mysql.php --oauth-client-lifecycle-owner',text);self.assertIn('qualify_oauth_client_lifecycle_mysql84.py',text);self.assertNotIn('secrets.',text)
   self.assertLess(text.index('PyYAML==6.0.3'),text.index('-p \'test_recovery_oauth_client_lifecycle*.py\''));self.assertLess(text.index('--source-only --source-revision'),text.index('php scripts/runtime/build.php all'))
+  for required in ['run_task_directory_native_v2.py','--role oauth-client-lifecycle','check_oauth_task_schema_receipt_v2.py','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"','probe_oauth_authorization_mysql84.php before','probe_oauth_authorization_mysql84.php after',qualified.IMAGE,"module['build_file'](",'tests/atomic/build_directory_file.py']:
+   self.assertIn(required,current)
+  self.assertNotIn("module['build'](",current);self.assertNotIn('secrets.',current)
+  self.assertLess(current.index('check_directory_transports_task_source_v2.py --expected-checkpoint'),current.index('php scripts/runtime/build.php all'))
+  self.assertLess(current.index('PyYAML==6.0.3'),current.index('-p \'test_recovery_oauth_client_lifecycle*.py\''))
  def test_actual_workflow_shells_parse_and_failure_artifact_is_fixed_safe_path(self):
   import yaml
   workflow=yaml.safe_load(WORKFLOW.read_text());job=workflow['jobs']['oauth-client-lifecycle-owner'];runs=[v['run']for v in job['steps']if'run'in v]
