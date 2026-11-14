@@ -58,7 +58,18 @@ class CurrentAssessment(unittest.TestCase):
   self.assertIn('.github/workflows/assessment-credential-focused.yml',paths)
   for source in ('auth','conduit','oauthserver'):self.assertIn('src/applications/'+source+'/**',paths)
   self.assertFalse(any('assessment-credential-producer-focused' in x or 'src/applications/assessment-credential/' in x for x in paths))
-  self.assertIn('test-assessment-credential-readset-mysql.php --assessment-credential-readset',run);self.assertIn('check_recovery_assessment_credentials_v2.py',run);self.assertIn('--file-binary-sha256',run);self.assertIn('sha256sum --check',run)
+  from task_ci_workflow_test_api_v2 import workflow_data
+  view=workflow_data(ROOT,'.github/workflows/assessment-credential-focused.yml')
+  self.assertEqual(path.read_bytes(),view['current'])
+  parent=yaml.safe_load(view['parent']);old_run='\n'.join(step.get('run','')for step in parent['jobs']['assessment-credential-owner']['steps'])
+  self.assertIn('test-assessment-credential-readset-mysql.php --assessment-credential-readset',old_run);self.assertIn('check_recovery_assessment_credentials_v2.py',old_run);self.assertIn('--file-binary-sha256',old_run);self.assertIn('sha256sum --check',run)
+  self.assertIn('scripts/governance/run_task_directory_native_v2.py',run);self.assertIn('--role assessment-credential',run)
+  self.assertIn('scripts/governance/check_assessment_task_schema_receipt_v2.py',run);self.assertIn('--file-sha',run)
+  self.assertIn('probe_assessment_task_mysql84.php before',run);self.assertIn('probe_assessment_task_mysql84.php after',run)
+  self.assertIn('--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"',run)
+  self.assertEqual(workflow['jobs']['assessment-credential-owner']['services']['mysql']['image'],'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7')
+  self.assertEqual({k:v for k,v in workflow.items()if k!='jobs'},{k:v for k,v in parent.items()if k!='jobs'})
+  self.assertEqual([step.get('name')for step in steps if step.get('name')!='Bind external event head and isolated PUBLIC verification home'],[step.get('name')for step in parent['jobs']['assessment-credential-owner']['steps']])
   self.assertEqual(run.count('php bin/rebuild-library-map'),2);self.assertNotIn('unittest discover',run)
   for step in steps:
    if step.get('run'):self.assertEqual(subprocess.run(['bash','-n'],input=step['run'],text=True,capture_output=True).returncode,0)
@@ -77,8 +88,8 @@ class CurrentAssessment(unittest.TestCase):
     if fail.exists():
      import shutil;shutil.rmtree(fail)
     if mode=='foreign-directory':fail.mkdir()
-    script='set -euo pipefail\npython3(){ printf "%s\\n" \'{"scope":"safe"}\'; }\n'
+    script='set -euo pipefail\npython3(){\n if [[ "$#" != 6 || "$1" != -B || "$2" != scripts/governance/project_assessment_credential_failure.py || "$3" != --receipt || "$4" != "$RUNNER_TEMP/task-assessment-credential-v2-private/capture-native-body.private.json" || "$5" != --stderr || "$6" != "$RUNNER_TEMP/assessment-credential-focused-native.private.stderr" ]]; then printf \'%s\\n\' unexpected-offline-projector-argv >&2; return 61; fi\n printf \'%s\\n\' \'{"scope":"safe"}\'\n}\n'
     if mode=='cat-fails':script+='cat(){ return 52; }\n'
     script+='(exit 37) || {\n'+block+'\n}\n'
-    r=subprocess.run(['bash','-c',script],env={**os.environ,'RUNNER_TEMP':str(d),'GITHUB_OUTPUT':str(d)},capture_output=True,text=True);self.assertEqual(r.returncode,37,r.stderr)
+    r=subprocess.run(['bash','-c',script],env={**os.environ,'RUNNER_TEMP':str(d),'GITHUB_OUTPUT':str(d)},capture_output=True,text=True);self.assertEqual(r.returncode,37,r.stderr);self.assertNotIn('unexpected-offline-projector-argv',r.stderr)
 if __name__=='__main__':unittest.main()
