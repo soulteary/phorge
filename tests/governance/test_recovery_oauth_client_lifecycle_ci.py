@@ -9,44 +9,84 @@ import qualify_oauth_client_lifecycle_mysql84 as qualified
 import project_oauth_client_lifecycle_failure as projector
 import test_native_organization as baseline
 WORKFLOW=ROOT/'.github/workflows/oauth-client-lifecycle-focused.yml'
+def _lifecycle_model_in(operation,root):
+ import source_operation_snapshot as source
+ from check_oauth_task_schema_receipt_v2 import captured_module
+ source.require_task_operation(operation,root)
+ adapter=captured_module(operation,root,'scripts/governance/oauth_task_strict_body_v2.py')
+ consumer=captured_module(operation,root,'scripts/governance/check_oauth_task_schema_receipt_v2.py')
+ context=operation._task_contexts[Path(root)];raws={name:context.current('scripts/governance/'+name+'.py')for name in adapter.PINS}
+ model=adapter.model(raws,'oauth-client-lifecycle');model['adapter']=adapter;model['raws']=raws
+ sql,expected=consumer.source_obligations(operation,Path(root),model,'oauth-client-lifecycle')
+ if len(sql)!=52 or len(expected)!=62 or len(model['operations'])!=6:raise ValueError('lifecycle_original_obligations_changed')
+ return model,sql,expected
+
+def _validate_lifecycle_contract_in(operation,model,sql,expected,receipt):
+ import source_operation_snapshot as source
+ source.require_task_operation(operation,ROOT)
+ # Synthetic positive JSON is contract DATA only. The original strict restore
+ # seam remains, reading actual current-parent sources under this real owner.
+ return model['validate'](receipt,ROOT,source_revision='a'*40,file_digest='b'*64,sql_obligations=sql,expected_obligations=expected,operation=operation)
+
+def _qualify_lifecycle_contract_in(operation,model,sql,expected,receipt,before,after):
+ observed=model['runtime'](before,after,'a'*40)
+ accepted=_validate_lifecycle_contract_in(operation,model,sql,expected,receipt)
+ return {**accepted,'database_runtime':observed}
+
 class LifecycleReceipt(unittest.TestCase):
  def identity(self,op,end):
   digest=lambda text:hashlib.sha256(text.encode()).hexdigest()
   return {'operation':op,'owner_end':end,'subject_id_digest':digest('id-'+end),'subject_phid_digest':digest('phid-'+end),'client_id_digest':digest(op+end+'client-id'),'client_phid_digest':digest(op+end+'client-phid'),'authorization_id_digest':digest(op+end+'authorization'),'before_client_digest':'a'*64,'after_client_digest':None if op=='client-cascade'else('a'*64 if op=='authorization-delete'else'b'*64),'remaining_rows':[0,0,0]if op=='client-cascade'else([0,1,1]if op=='authorization-delete'else[1,1,1]),'owner_persistent_probe':'committed-probe'if end=='commit'else'rolled-back-original','query_order':[{'phase':phase,'kind':kind}for kind in ['client','authorization','access','code']for phase in ['begin','end']]}
- def fixture(self):
-  data=baseline.template();facts={'profile':'isolated-native-oauth-client-lifecycle-v1','executed_experiments':12,'executed_case_obligations':sorted(gate.SQL_obligations()),'source_identities':[self.identity(op,end)for op in gate.OPERATIONS for end in ['commit','rollback']],'native_scope_registry_unchanged':True,'real_Store_owner_and_native_lifecycle':True,'native_query_order_observed':True,'exact_record_lock_wait_observed':True,'both_owned_native_SQL_threads_observed':True,'owned_child_exit0_proved':True,'production_observer_factory_available':False,'continuous_admin_lease_proved':False,'physical_ACK_loss_proved':False,'all_13_sources_complete':False,'permit':False,'restoration_authorized':False,'execution_blocked':True,'observer_cleanup':{'owned_observer_removed':True,'owned_observer_SQL_sessions_absent':True,'native_writer_grants_unchanged':True,'cleanup_proved':True},'both_native_identity_epochs_prewarmed':True,'source_revision':'a'*40,'default_native_User_writer':True,'forced_connection_used':False}
-  data.update(batch='native-oauth-client-lifecycle-owner',scope='owned-native-oauth-client-lifecycle-no-permit',checks=sorted(gate.obligations()),check_count=62,native=facts,worker_cleanup={'private_directories_removed':12,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':12},file_service_cleanup={'kind':'file','binary_sha256':'b'*64,'process_stopped':True,'private_storage_removed':True},successful_owned_file_service_startups=1,remaining_blocked=['all-thirteen-source-families','creator-and-absence-phantoms','unreviewed-external-writers','physical-ACK-loss','production-provider-and-activation'])
-  return data
+ def fixture(self,model,sql,expected):
+   data=baseline.template();facts={'profile':'isolated-native-oauth-client-lifecycle-v1','executed_experiments':12,'executed_case_obligations':sorted(sql),'source_identities':[self.identity(op,end)for op in model['operations'] for end in ['commit','rollback']],'native_scope_registry_unchanged':True,'real_Store_owner_and_native_lifecycle':True,'native_query_order_observed':True,'exact_record_lock_wait_observed':True,'both_owned_native_SQL_threads_observed':True,'owned_child_exit0_proved':True,'production_observer_factory_available':False,'continuous_admin_lease_proved':False,'physical_ACK_loss_proved':False,'all_13_sources_complete':False,'permit':False,'restoration_authorized':False,'execution_blocked':True,'observer_cleanup':{'owned_observer_removed':True,'owned_observer_SQL_sessions_absent':True,'native_writer_grants_unchanged':True,'cleanup_proved':True},'both_native_identity_epochs_prewarmed':True,'source_revision':'a'*40,'default_native_User_writer':True,'forced_connection_used':False}
+   data.update(batch='native-oauth-client-lifecycle-owner',scope='owned-native-oauth-client-lifecycle-no-permit',checks=sorted(expected),check_count=62,native=facts,worker_cleanup={'private_directories_removed':12,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':12},file_service_cleanup={'kind':'file','binary_sha256':'b'*64,'process_stopped':True,'private_storage_removed':True},successful_owned_file_service_startups=1,remaining_blocked=['all-thirteen-source-families','creator-and-absence-phantoms','unreviewed-external-writers','physical-ACK-loss','production-provider-and-activation'])
+   return data
  def test_strict_twelve_experiments_and_fifty_two_SQL_obligations(self):
-  result=gate.validate(self.fixture(),source_revision='a'*40,file_digest='b'*64);self.assertEqual(result['SQL_obligations'],52);self.assertEqual(result['checks'],62);self.assertFalse(result['permit']or result['runtime_authority'])
+   from task_inverse_test_api_v2 import owner
+   with owner(ROOT)as operation:
+    model,sql,expected=_lifecycle_model_in(operation,ROOT)
+    result=_validate_lifecycle_contract_in(operation,model,sql,expected,self.fixture(model,sql,expected));self.assertEqual(result['SQL_obligations'],52);self.assertEqual(result['native_experiments'],12);self.assertEqual(result['checks'],62);self.assertFalse(result['permit']or result['runtime_authority'])
  def test_missing_order_wrong_cleanup_identity_and_authority_are_rejected(self):
-  for mode in ['label','order','phase','subject','client','rows','bool','cleanup','authority','ACK','extra']:
-   data=self.fixture();row=data['native']['source_identities'][0]
-   if mode=='label':data['checks'].pop()
-   elif mode=='order':row['query_order']=row['query_order'][2:]+row['query_order'][:2]
-   elif mode=='phase':row['query_order'][0]['phase']='end'
-   elif mode=='subject':data['native']['source_identities'][2]['subject_id_digest']='f'*64
-   elif mode=='client':data['native']['source_identities'][1]['client_id_digest']=row['client_id_digest']
-   elif mode=='rows':row['remaining_rows']=[0,0,0]
-   elif mode=='bool':row['remaining_rows']=[True,1,1]
-   elif mode=='cleanup':data['worker_cleanup']['private_directories_remaining']=1
-   elif mode=='authority':data['native']['permit']=True
-   elif mode=='ACK':data['native']['physical_ACK_loss_proved']=True
-   else:row['token']='CANARY_SECRET'
-   with self.subTest(mode=mode),self.assertRaises(ValueError):gate.validate(data,source_revision='a'*40,file_digest='b'*64)
+   from task_inverse_test_api_v2 import owner
+   with owner(ROOT)as operation:
+    model,sql,expected=_lifecycle_model_in(operation,ROOT)
+    for mode in ['label','order','phase','subject','client','rows','bool','cleanup','authority','ACK','extra','restore']:
+     data=self.fixture(model,sql,expected);row=data['native']['source_identities'][0]
+     if mode=='label':data['checks'].pop()
+     elif mode=='order':row['query_order']=row['query_order'][2:]+row['query_order'][:2]
+     elif mode=='phase':row['query_order'][0]['phase']='end'
+     elif mode=='subject':data['native']['source_identities'][2]['subject_id_digest']='f'*64
+     elif mode=='client':data['native']['source_identities'][1]['client_id_digest']=row['client_id_digest']
+     elif mode=='rows':row['remaining_rows']=[0,0,0]
+     elif mode=='bool':row['remaining_rows']=[True,1,1]
+     elif mode=='cleanup':data['worker_cleanup']['private_directories_remaining']=1
+     elif mode=='authority':data['native']['permit']=True
+     elif mode=='ACK':data['native']['physical_ACK_loss_proved']=True
+     elif mode=='restore':data['source_restore']['quickstart_sha256']='0'*64
+     else:row['token']='CANARY_SECRET'
+     with self.subTest(mode=mode),self.assertRaises(ValueError):_validate_lifecycle_contract_in(operation,model,sql,expected,data)
  def test_raw_source_unknown_byte_requires_exact_pin(self):
-  # The reviewed consumer checks raw byte pins. A repinned descriptor alone
-  # remains insufficient for current-source CLI/commit qualification.
-  self.assertGreaterEqual(len(gate.SOURCE_INPUTS),17)
-  name=next(iter(gate.SOURCE_INPUTS));original=gate.native_source
-  with patch.object(gate,'native_source',side_effect=lambda p:original(p)+b'// unknown'if str(p).endswith(name)else original(p)):
-   with self.assertRaises(ValueError):gate.SQL_obligations()
+   # Real current-source boundary, not a patched legacy native_source reader.
+   from task_inverse_test_api_v2 import owner
+   from task_ci_workflow_test_api_v2 import workflow_data_in_operation
+   with owner(ROOT)as operation:
+    model,sql,expected=_lifecycle_model_in(operation,ROOT)
+    self.assertGreaterEqual(len(model['source_inputs']),17)
+    name=next(iter(model['source_inputs']));raw=operation._task_contexts[ROOT].current(name)
+    self.assertEqual(workflow_data_in_operation(operation,ROOT,[name],{name:raw})['workflows'][name]['current'],raw)
+    with self.assertRaises(ValueError):workflow_data_in_operation(operation,ROOT,[name],{name:raw+b'// unknown'})
+    poisoned=dict(model['raws']);poisoned[model['checker_name']]+=b'\n# unknown current checker bytes'
+    with self.assertRaises(ValueError):model['adapter'].model(poisoned,'oauth-client-lifecycle')
+
  def test_database_version_UUID_and_raw_receipt_remain_independent(self):
-  before={'schema':'native-oauth-authorization-mysql-runtime-v1','phase':'before','source_revision':'a'*40,'version':'8.4.13','server_uuid_sha256':'c'*64,'observed_service_image':qualified.IMAGE};after={**before,'phase':'after'}
-  self.assertEqual(qualified.qualify(self.fixture(),before,after,revision='a'*40,file_digest='b'*64)['database_runtime']['mysql_version'],'8.4.13')
-  for mutation in [{'version':'8.0.44'},{'server_uuid_sha256':'d'*64},{'observed_service_image':'mysql:8.4.13'}]:
-   with self.assertRaises(ValueError):qualified.qualify(self.fixture(),before,{**after,**mutation},revision='a'*40,file_digest='b'*64)
-  with self.assertRaises(ValueError):qualified.qualify({'passed':True},before,after,revision='a'*40,file_digest='b'*64)
+   from task_inverse_test_api_v2 import owner
+   with owner(ROOT)as operation:
+    model,sql,expected=_lifecycle_model_in(operation,ROOT)
+    before={'schema':'native-oauth-authorization-mysql-runtime-v1','phase':'before','source_revision':'a'*40,'version':'8.4.13','server_uuid_sha256':'c'*64,'observed_service_image':qualified.IMAGE};after={**before,'phase':'after'}
+    self.assertEqual(_qualify_lifecycle_contract_in(operation,model,sql,expected,self.fixture(model,sql,expected),before,after)['database_runtime']['mysql_version'],'8.4.13')
+    for mutation in [{'version':'8.0.44'},{'server_uuid_sha256':'d'*64},{'observed_service_image':'mysql:8.4.13'}]:
+     with self.assertRaises(ValueError):_qualify_lifecycle_contract_in(operation,model,sql,expected,self.fixture(model,sql,expected),before,{**after,**mutation})
+    with self.assertRaises(ValueError):_qualify_lifecycle_contract_in(operation,model,sql,expected,{'passed':True},before,after)
 class LifecycleWorkflow(unittest.TestCase):
  def test_only_exact_named_workflow_is_admitted_and_unknown_bytes_refuse(self):
   import recovery_oauth_client_lifecycle_ci_delta as delta
