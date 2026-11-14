@@ -152,47 +152,66 @@ def phase(which):
  if which=='atomic':text=text.split('# BEGIN isolated OAuth access-token SQL8',1)[1]
  else:text=text.split('      - name: Run only actual native OAuth',1)[1]
  return textwrap.dedent(text.split('        run: |\n',1)[1].split('      - uses:',1)[0])
-def historical_atomic_source(path='.github/workflows/atomic-feature-regressions.yml',raw=None):
- # Test-only exact current Atomic -> actual20b view; runtime readers stay current.
- import project_description_admission_delta as current
- current.assert_current_recipe(ROOT)
- producer='scripts/governance/check_recovery_oauth_code_producer_v1.py'
- if path!='.github/workflows/atomic-feature-regressions.yml' or path not in current.CURRENT_METADATA:
-  raise ValueError('unreviewed Atomic historical source role')
- if Path(code_gate.__file__).resolve()!=ROOT/producer:raise ValueError('unreviewed current producer source role')
- if (ROOT/producer).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current producer mode')
- producer_raw=current.description.checked_bytes(ROOT/producer)
- registry_path='support/governance/source-operation/registry-v1.json';registry_raw=current.description.checked_bytes(ROOT/registry_path);registry_pin=current.CURRENT_METADATA[registry_path]
- if len(registry_raw)!=registry_pin['bytes'] or hashlib.sha256(registry_raw).hexdigest()!=registry_pin['sha256']:raise ValueError('unknown current source registry')
- registry=json.loads(registry_raw);pin=registry['successor_entries'].get(producer,{}).get('current',registry['entries'].get(producer))
- if type(pin)is not dict:raise ValueError('unreviewed current producer source role')
- old_producer=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+producer])
- if producer_raw!=old_producer:raise ValueError('unknown baseline producer bytes')
- if len(producer_raw)!=pin['bytes'] or hashlib.sha256(producer_raw).hexdigest()!=pin['sha256']:raise ValueError('unknown current producer bytes')
- if (ROOT/path).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current Atomic source mode')
- actual=current.description.checked_bytes(ROOT/path)
- if raw is None:raw=actual
- if type(raw)is not bytes or raw!=actual:raise ValueError('unknown current Atomic source bytes')
- prior=current._normalize_metadata(path,raw)
- expected=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
- if prior!=expected:raise ValueError('unknown Atomic historical stage')
- return prior.decode('utf-8')
+from contextlib import contextmanager
+@contextmanager
+def _workflow_owner(operation=None):
+ from task_inverse_test_api_v2 import owner
+ import source_operation_snapshot as source
+ if operation is None:
+  with owner(ROOT)as actual:
+   source.require_task_operation(actual,ROOT);yield actual
+ else:
+  source.require_task_operation(operation,ROOT);yield operation
+def historical_atomic_source(path='.github/workflows/atomic-feature-regressions.yml',raw=None,*,_operation=None):
+ with _workflow_owner(_operation)as operation:
+  # Test-only exact current Atomic -> actual20b view; runtime readers stay current.
+  current=operation._modules['project_description_admission_delta']
+  current.assert_current_recipe(ROOT)
+  producer='scripts/governance/check_recovery_oauth_code_producer_v1.py'
+  if path!='.github/workflows/atomic-feature-regressions.yml' or path not in current.CURRENT_METADATA:
+   raise ValueError('unreviewed Atomic historical source role')
+  if Path(code_gate.__file__).resolve()!=ROOT/producer:raise ValueError('unreviewed current producer source role')
+  if (ROOT/producer).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current producer mode')
+  producer_raw=current.description.checked_bytes(ROOT/producer)
+  registry_path='support/governance/source-operation/registry-v1.json';registry_raw=current.description.checked_bytes(ROOT/registry_path);registry_pin=current.CURRENT_METADATA[registry_path]
+  if len(registry_raw)!=registry_pin['bytes'] or hashlib.sha256(registry_raw).hexdigest()!=registry_pin['sha256']:raise ValueError('unknown current source registry')
+  registry=json.loads(registry_raw);pin=registry['successor_entries'].get(producer,{}).get('current',registry['entries'].get(producer))
+  if type(pin)is not dict:raise ValueError('unreviewed current producer source role')
+  old_producer=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+producer])
+  if producer_raw!=old_producer:raise ValueError('unknown baseline producer bytes')
+  if len(producer_raw)!=pin['bytes'] or hashlib.sha256(producer_raw).hexdigest()!=pin['sha256']:raise ValueError('unknown current producer bytes')
+  if (ROOT/path).stat().st_mode&0o7777!=0o644:raise ValueError('unknown current Atomic source mode')
+  physical=operation._task_contexts[ROOT].current(path)
+  if raw is not None and(type(raw)is not bytes or raw!=physical):raise ValueError('unknown current Atomic source bytes')
+  actual=current.description.checked_bytes(ROOT/path)
+  raw=actual
+  if type(raw)is not bytes or raw!=actual:raise ValueError('unknown current Atomic source bytes')
+  prior=current._normalize_metadata(path,raw)
+  expected=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+  if prior!=expected:raise ValueError('unknown Atomic historical stage')
+  return prior.decode('utf-8')
 class OAuthCI(unittest.TestCase):
  def test_current_Atomic_history_refuses_unknown_names_bytes_and_producer_role(self):
-  from unittest.mock import patch
-  path='.github/workflows/atomic-feature-regressions.yml';raw=(ROOT/path).read_bytes()
-  old=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
-  self.assertEqual(historical_atomic_source().encode(),old)
-  for name,body in [('.github/workflows/unreviewed.yml',raw),(path,raw+b'\n# unknown'),(path,raw.decode())]:
-   with self.subTest(name=name),self.assertRaises(ValueError):historical_atomic_source(name,body)
-  if raw!=old:
-   with self.assertRaises(ValueError):historical_atomic_source(path,old)
-  with patch.object(code_gate,'__file__',str(ROOT/'scripts/governance/unreviewed.py')):
-   with self.assertRaises(ValueError):historical_atomic_source()
+     with _workflow_owner() as operation:
+         from unittest.mock import patch
+         path = '.github/workflows/atomic-feature-regressions.yml'
+         raw = (ROOT / path).read_bytes()
+         old = subprocess.check_output(['/usr/bin/git', '--no-replace-objects', '-C', str(ROOT), 'show', '20b138b4cd9a2cf61522613b4a8e5e21eca7341b:' + path])
+         self.assertEqual(historical_atomic_source(_operation=operation).encode(), old)
+         for (name, body) in [('.github/workflows/unreviewed.yml', raw), (path, raw + b'\n# unknown'), (path, raw.decode())]:
+             with self.subTest(name=name), self.assertRaises(ValueError):
+                 historical_atomic_source(name, body, _operation=operation)
+         if raw != old:
+             with self.assertRaises(ValueError):
+                 historical_atomic_source(path, old, _operation=operation)
+         with patch.object(code_gate, '__file__', str(ROOT / 'scripts/governance/unreviewed.py')):
+             with self.assertRaises(ValueError):
+                 historical_atomic_source(_operation=operation)
  def test_existing_workflows_and_real_File_builder_are_unchanged(self):
-  for name in ['.github/workflows/atomic-feature-regressions.yml','.github/workflows/oauth-access-producer-focused.yml','.github/workflows/conduit-producer-focused.yml','tests/atomic/build_directory_file.py','tests/atomic/build_gorge.py','tests/atomic/paired-gorge.json']:
-   actual=historical_atomic_source().encode() if name=='.github/workflows/atomic-feature-regressions.yml' else (ROOT/name).read_bytes()
-   self.assertEqual(actual,subprocess.check_output(['git','-C',str(ROOT),'show','060ac7f2b631cc5964f28cd783082dd6e2fb1565:'+name]))
+     with _workflow_owner() as operation:
+         for name in ['.github/workflows/atomic-feature-regressions.yml', '.github/workflows/oauth-access-producer-focused.yml', '.github/workflows/conduit-producer-focused.yml', 'tests/atomic/build_directory_file.py', 'tests/atomic/build_gorge.py', 'tests/atomic/paired-gorge.json']:
+             actual = historical_atomic_source(_operation=operation).encode() if name == '.github/workflows/atomic-feature-regressions.yml' else operation._task_contexts[ROOT].parent(name) if name.startswith('.github/workflows/') else (ROOT / name).read_bytes()
+             self.assertEqual(actual, subprocess.check_output(['git', '-C', str(ROOT), 'show', '060ac7f2b631cc5964f28cd783082dd6e2fb1565:' + name]))
  def test_actual_all_new_Bash_blocks_syntax_and_owned_artifact_conditions(self):
   for p in [FOCUSED]:
    s=p.read_text();blocks=re.findall(r'        run: \|\n((?:(?:          .*|)\n)*)',s)
@@ -200,19 +219,35 @@ class OAuthCI(unittest.TestCase):
     r=subprocess.run(['bash','-n'],input=textwrap.dedent(block),capture_output=True,text=True);self.assertEqual(r.returncode,0,r.stderr)
   self.assertIn('if: success()',FOCUSED.read_text());self.assertNotIn('if: always()',FOCUSED.read_text());self.assertIn("failure() && steps.oauth-code-owner.outputs.diagnostic_owned == 'true'",FOCUSED.read_text())
  def test_path_scoped_readonly_job_exact_File_builder_and_real_phase(self):
-  import yaml
-  wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));self.assertEqual(set(events),{'pull_request','workflow_dispatch'});self.assertEqual(wf['permissions'],{'contents':'read'})
-  paths=events['pull_request']['paths']
-  for name in ['.github/workflows/oauth-code-producer-focused.yml','src/applications/auth/**','src/applications/conduit/**','src/applications/oauthserver/**','tests/atomic/build_directory_file.py']:self.assertIn(name,paths)
-  job=wf['jobs']['oauth-code-owner'];self.assertEqual(job['services']['mysql']['image'],'mysql:8.0');text=FOCUSED.read_text();self.assertIn("module['build_file'](",text);self.assertNotIn("module['build'](",text);self.assertIn('tests/atomic/build_directory_file.py',text);self.assertIn('--oauth-code-producer-owner',text);self.assertIn('check_recovery_oauth_code_producer_v1.py',text);self.assertIn('project_oauth_code_failure.py',text);self.assertNotIn('secrets.',text);self.assertNotIn('workflow_run:',text);self.assertNotIn('docker push',text)
+   import yaml
+   wf=yaml.safe_load(FOCUSED.read_text());events=wf.get('on',wf.get(True));self.assertEqual(set(events),{'pull_request','workflow_dispatch'});self.assertEqual(wf['permissions'],{'contents':'read'})
+   paths=events['pull_request']['paths']
+   for name in ['.github/workflows/oauth-code-producer-focused.yml','src/applications/auth/**','src/applications/conduit/**','src/applications/oauthserver/**','tests/atomic/build_directory_file.py']:self.assertIn(name,paths)
+   from task_ci_workflow_test_api_v2 import workflow_data
+   view=workflow_data(ROOT,'.github/workflows/oauth-code-producer-focused.yml',FOCUSED.read_bytes())
+   parent=yaml.safe_load(view['parent'])
+   current_job=wf['jobs']['oauth-code-owner'];current_text=FOCUSED.read_text()
+   self.assertEqual({k:v for k,v in wf.items()if k!='jobs'},{k:v for k,v in parent.items()if k!='jobs'})
+   self.assertEqual([step.get('name')for step in current_job['steps']if step.get('name')!='Bind external event head and isolated PUBLIC verification home'],[step.get('name')for step in parent['jobs']['oauth-code-owner']['steps']])
+   self.assertEqual(current_job['services']['mysql']['image'],'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7')
+   for required in ('run_task_directory_native_v2.py','--role oauth-code','check_oauth_code_task_schema_receipt_v2.py','probe_oauth_code_task_mysql84.php before','probe_oauth_code_task_mysql84.php after','--expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"',"module['build_file'](",'tests/atomic/build_directory_file.py','project_oauth_code_failure.py'):self.assertIn(required,current_text)
+   for prohibited in ('secrets.','workflow_run:','docker push',"module['build']("):self.assertNotIn(prohibited,current_text)
+   job=parent['jobs']['oauth-code-owner'];self.assertEqual(job['services']['mysql']['image'],'mysql:8.0');text=view['parent'].decode();self.assertIn("module['build_file'](",text);self.assertNotIn("module['build'](",text);self.assertIn('tests/atomic/build_directory_file.py',text);self.assertIn('--oauth-code-producer-owner',text);self.assertIn('check_recovery_oauth_code_producer_v1.py',text);self.assertIn('project_oauth_code_failure.py',text);self.assertNotIn('secrets.',text);self.assertNotIn('workflow_run:',text);self.assertNotIn('docker push',text)
  def test_exact_named_workflow_and_unrelated_bytes_refuse(self):
-  import recovery_oauth_code_ci_delta as ci
-  raw=FOCUSED.read_bytes();ci.assert_workflow(ci.WORKFLOW,raw)
-  for path,data in [(ci.WORKFLOW,raw+b'\n# unknown edit'),('.github/workflows/unreviewed.yml',raw)]:
-   with self.assertRaises(ValueError):ci.assert_workflow(path,data)
-  for path in ci.SOURCE_INPUTS:
-   raw=(ROOT/path).read_bytes();self.assertEqual(__import__('hashlib').sha256(ci.reduce_if_selected(path,raw)).hexdigest(),ci.BASE_PINS[path])
-   with self.assertRaises(ValueError):ci.reduce_if_selected(path,raw+b'#unknown')
+   from task_inverse_test_api_v2 import owner
+   with owner(ROOT)as operation:
+    ci=operation._modules['recovery_oauth_code_ci_delta']
+    from task_ci_workflow_test_api_v2 import workflow_data_in_operation
+    physical=FOCUSED.read_bytes();proof=workflow_data_in_operation(operation,ROOT,[ci.WORKFLOW],{ci.WORKFLOW:physical});self.assertEqual(physical,proof['workflows'][ci.WORKFLOW]['current']);self.assertFalse(proof['source_operation_exit_verified'])
+    raw=operation._task_contexts[ROOT].parent(ci.WORKFLOW);ci.assert_workflow(ci.WORKFLOW,raw)
+    for path,data in [(ci.WORKFLOW,raw+b'\n# unknown edit'),('.github/workflows/unreviewed.yml',raw)]:
+     with self.assertRaises(ValueError):ci.assert_workflow(path,data)
+    for path in ci.SOURCE_INPUTS:
+     raw=operation._task_contexts[ROOT].parent(path);self.assertEqual(__import__('hashlib').sha256(ci.reduce_if_selected(path,raw)).hexdigest(),ci.BASE_PINS[path])
+     with self.assertRaises(ValueError):ci.reduce_if_selected(path,raw+b'#unknown')
+    for name,candidate in [(ci.WORKFLOW,physical+b'\n# unknown current edit'),('.github/workflows/unreviewed.yml',physical)]:
+     with self.assertRaises(ValueError):
+      workflow_data_in_operation(operation,ROOT,[name],{name:candidate})
  def test_current_committed_N01_source_revision_and_app_payload_are_real(self):
   import check_directory_transports_v1 as gate
   revision=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD']).decode().strip()
@@ -351,7 +386,13 @@ class OAuthCI(unittest.TestCase):
   self.assertTrue(schedules(['tests/governance/test_recovery_oauth_access_source.py']))
   self.assertTrue(schedules(['src/infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php']))
   self.assertFalse(schedules(['docs/unrelated-guide.md']));self.assertFalse(schedules(['tests/governance/test_unrelated_ui.py']))
- def execute(self,which,mode):
+ def execute(self,which,mode,*,_workflow_view=None):
+  if which=='focused':
+   from task_ci_workflow_test_api_v2 import workflow_data
+   from task_current_phase_shell_test_v2 import run_phase
+   view=workflow_data(ROOT,'.github/workflows/oauth-code-producer-focused.yml')if _workflow_view is None else _workflow_view
+   if view['source_operation_exit_verified']is not True:raise ValueError('unclosed_current_workflow_owner')
+   return run_phase(ROOT,'oauth-code',mode,workflow_current=view['current'],revision=view['checkpoint'])
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
    t=Path(tmp);bin=t/'tools';bin.mkdir();data=t/'runtime';data.mkdir();output=data/('governance-oauth-code-producer-owner'if which=='atomic'else'governance-oauth-code-focused');failure=data/('governance-oauth-code-producer-failure'if which=='atomic'else'oauth-code-focused-failure')
    if which=='focused':output.mkdir()
@@ -375,12 +416,16 @@ class OAuthCI(unittest.TestCase):
    body=phase(which).replace('/tmp/atomic-maps.sha256',str(maps));r=subprocess.run(['bash','-euo','pipefail','-c',body],cwd=ROOT,env=env,capture_output=True,text=True,timeout=15)
    accepted=(output/'accepted.json').exists();pending=(output/'accepted.pending.json').exists();safe=failure/'diagnostic.json';owned=marker.is_file()and'diagnostic_owned=true'in marker.read_text();result={'rc':r.returncode,'accepted':accepted,'pending':pending,'owned':owned,'safe':json.loads(safe.read_bytes())if safe.exists()else None,'stderr':r.stderr,'foreign':(failure/'foreign').read_text()if(failure/'foreign').exists()else None};return result
  def test_actual_phase_success_strict_consumer_and_pending_atomic_publication(self):
+  from task_ci_workflow_test_api_v2 import workflow_data
+  view=workflow_data(ROOT,'.github/workflows/oauth-code-producer-focused.yml')
   for which in ['focused']:
-   d=self.execute(which,'success');self.assertEqual(d['rc'],0,d['stderr']);self.assertTrue(d['accepted']);self.assertFalse(d['pending']or d['owned'])
+   d=self.execute(which,'success',_workflow_view=view);self.assertTrue(d['orchestration_only']);self.assertFalse(d['native_or_source_SQL_HMAC_qualified']);self.assertEqual(d['rc'],0,d['stderr']);self.assertTrue(d['accepted']);self.assertFalse(d['pending']or d['owned'])
  def test_actual_failure_projector_marker_cat_and_foreign_directory_preserve_native37(self):
+  from task_ci_workflow_test_api_v2 import workflow_data
+  view=workflow_data(ROOT,'.github/workflows/oauth-code-producer-focused.yml')
   for which in ['focused']:
    for mode in ['native-failure','projector-failure','marker-failure','cat-failure','foreign-failure','stderr-only']:
-    d=self.execute(which,mode);self.assertEqual(d['rc'],37,(which,mode,d));self.assertFalse(d['accepted']);self.assertNotIn('PRIVATE_TOKEN_PASSWORD_SQL',d['stderr'])
+    d=self.execute(which,mode,_workflow_view=view);self.assertTrue(d['orchestration_only']);self.assertFalse(d['native_or_source_SQL_HMAC_qualified']);self.assertEqual(d['rc'],37,(which,mode,d));self.assertFalse(d['accepted']);self.assertNotIn('PRIVATE_TOKEN_PASSWORD_SQL',d['stderr'])
     if mode in ['projector-failure','marker-failure','foreign-failure']:self.assertFalse(d['owned'])
     if mode=='foreign-failure':self.assertEqual(d['foreign'],'preserve')
     if mode in ['native-failure','stderr-only']:self.assertEqual(d['safe']['scope'],'native-oauth-code-producer-failure-v1');self.assertTrue(d['owned'])
