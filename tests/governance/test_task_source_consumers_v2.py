@@ -3,7 +3,8 @@
 Each real case uses the unchanged external10s deadline. --unit-only never claims
 normal SourceOperation/transport/freshness/runtime acceptance.
 """
-import argparse,json,os,shutil,sys,tempfile,time,unittest
+import argparse,json,os,shutil,sys,tempfile,time,unittest,stat,types
+from types import MappingProxyType
 from pathlib import Path
 sys.dont_write_bytecode=True
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'scripts/governance'))
@@ -23,6 +24,38 @@ class UnitBoundaries(unittest.TestCase):
   operation=source.open_task_source_operation(ROOT)
   with self.assertRaises(ValueError):operation.__enter__()
   self.assertEqual(operation._state,'failed')
+class LexicalPathComponent(unittest.TestCase):
+ """Lexical equivalence controls only; no operation or runtime qualification."""
+ def temporary(self):return tempfile.TemporaryDirectory(prefix='Task-lexical-component-',dir=str(Path(tempfile.gettempdir()).resolve()))
+ def test_inventory_retains_all_modes_aliases_unknown_keys(self):
+  with self.temporary()as directory:
+   root=Path(directory);(root/'.git').mkdir();(root/'.git'/'excluded').write_text('git');(root/'empty').mkdir();(root/'nested').mkdir();a=root/'plain';a.write_bytes(b'plain');a.chmod(0o644);b=root/'nested'/'exec';b.write_bytes(b'exec');b.chmod(0o755);os.link(a,root/'alias');(root/'file-link').symlink_to(a);(root/'dir-link').symlink_to(root/'nested');os.mkfifo(root/'unknown-special')
+   expected={'plain':'100644','alias':'100644','nested/exec':'100755','file-link':'120000','dir-link':'120000','unknown-special':'invalid'}
+   self.assertEqual(source._inventory(root),expected)
+ def component(self,root,parents):
+  task=source.task_admission;c=types.SimpleNamespace(root=root,_directory_scopes_root=root,_directory_scopes=MappingProxyType({p:p.is_relative_to(root)for p in parents}))
+  return c,task
+ def test_directory_stamp_known_below_root_and_ancestors_exact(self):
+  with self.temporary()as directory:
+   root=Path(directory);child=root/'child';child.mkdir();parents=(child,root,*root.parents);c,task=self.component(root,parents)
+   for p in parents:
+    raw=task.stamp(p.lstat());expected=raw if p.is_relative_to(root)else raw[:5]
+    self.assertEqual(task.TaskContext.directory_stamp(c,p),expected);self.assertEqual(task.TaskContext.directory_stamp(c,p,p.lstat()),expected)
+ def test_directory_scope_cache_is_frozen(self):
+  with self.temporary()as directory:
+   root=Path(directory);c,_=self.component(root,(root,*root.parents))
+   with self.assertRaises(TypeError):c._directory_scopes[root]=False
+ def test_unseen_path_and_changed_root_use_original_classification(self):
+  with self.temporary()as directory:
+   root=Path(directory);child=root/'unseen';child.mkdir();c,task=self.component(root,(root,*root.parents));self.assertEqual(task.TaskContext.directory_stamp(c,child),task.stamp(child.lstat()));c.root=child
+   self.assertEqual(task.TaskContext.directory_stamp(c,root),task.stamp(root.lstat())[:5])
+ def test_cached_scope_never_caches_filesystem_metadata(self):
+  with self.temporary()as directory:
+   root=Path(directory);c,task=self.component(root,(root,*root.parents));before=task.TaskContext.directory_stamp(c,root);(root/'new').mkdir();after=task.TaskContext.directory_stamp(c,root);self.assertEqual(after,task.stamp(root.lstat()));self.assertNotEqual(before,after)
+ def test_inventory_mode_contract_does_not_claim_inode_authority(self):
+  with self.temporary()as directory:
+   root=Path(directory);a=root/'a';a.write_bytes(b'one');a.chmod(0o644);first=source._inventory(root);old_inode=a.stat().st_ino;b=root/'replacement';b.write_bytes(b'one');b.chmod(0o644);os.replace(b,a);self.assertNotEqual(a.stat().st_ino,old_inode);self.assertEqual(source._inventory(root),first);a.chmod(0o755);self.assertEqual(source._inventory(root),{'a':'100755'})
+
 def mutate(root,case):
  p=root/'src/infrastructure/governance/content/PhorgeTaskContentSource.php';case=case.removeprefix('exit-')
  if case=='task-change':p.write_bytes(p.read_bytes()+b'\n// unreviewedTask\n')

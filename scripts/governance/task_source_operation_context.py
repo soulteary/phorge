@@ -3,6 +3,7 @@ No arbitrary reader callbacks, executable historical modules, DB or runtime gran
 """
 import base64,hashlib,json,os,re,stat,subprocess,zlib
 from pathlib import Path
+from types import MappingProxyType
 ROOT_SIGNER='CD85ED7465AFF2FFA2FFB686DBCDD8CBF440F8DE'
 BASE='356878fb64e33f62967e36eeff926abba285ff25'
 BASELINE='support/governance/source-operation/task-parent5903.json'
@@ -65,6 +66,8 @@ class TaskContext:
    else:
     st=path.lstat();need(stat.S_ISLNK(st.st_mode)and os.readlink(path)==pin['target']);identity=stamp(st)
    self.files[rel]=identity
+  self._directory_scopes_root=self.root
+  self._directory_scopes=MappingProxyType({path:path.is_relative_to(self.root)for path in self.directories})
   need(sha(self.current_raw[BASELINE])==BASELINE_SHA and sha(self.current_raw[INVERSE])==INVERSE_SHA)
   self.parent_pins=decode(self.current_raw[BASELINE])['entries'];self.api_inverse=decode(self.current_raw[INVERSE]);self.reduced={}
   need(set(entries)==set(self.parent_pins)|set(TASK_NEW_PINS)|{BASELINE,INVERSE,'scripts/governance/task_source_operation_context.py'}|V2_PATHS)
@@ -85,7 +88,11 @@ class TaskContext:
   for rel,pin in self.parent_pins.items():
    if pin['kind']=='symlink':need(entries[rel]==pin)
  def directory_stamp(self,path,info=None):
-  value=stamp(path.lstat()if info is None else info);return value if path.is_relative_to(self.root)else value[:5]
+  value=stamp(path.lstat()if info is None else info)
+  # Cache pure lexical scope only. Every call still obtains/checks actual stat.
+  scopes=getattr(self,'_directory_scopes',None)
+  inside=scopes[path]if scopes is not None and self.root==self._directory_scopes_root and path in scopes else path.is_relative_to(self.root)
+  return value if inside else value[:5]
  def require(self):
   self.operation._require_task_context(self);need(not self.closed)
  def current(self,relative):

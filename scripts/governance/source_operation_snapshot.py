@@ -98,12 +98,13 @@ def _inventory(root):
             path = directory / name
             if path.is_symlink():
                 dirs.remove(name); files.append(name)
+        relative_directory = directory.relative_to(root)
         for name in files:
             path = directory / name; info = os.lstat(path)
             mode = ('120000' if stat.S_ISLNK(info.st_mode) else
                     '100755' if stat.S_ISREG(info.st_mode) and info.st_mode & 0o111 else
                     '100644' if stat.S_ISREG(info.st_mode) else 'invalid')
-            found[str(path.relative_to(root))] = mode
+            found[str(relative_directory / name)] = mode
     return found
 
 
