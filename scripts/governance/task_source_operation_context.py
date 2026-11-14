@@ -59,11 +59,12 @@ def git_tree(root,expected_checkpoint):
 class TaskContext:
  def __init__(self,operation,root,entries,git_raws):
   self.operation=operation;self.root=Path(root);self.entries=entries;self.files={};self.directories={};self.current_raw={};self.closed=False
-  self._path_cache_root=self.root;paths={};file_parents={};parent_chains={}
+  self._path_cache_root=self.root;paths={};file_parents={};parent_chains={};ancestor_objects={}
   for rel,pin in entries.items():
    path=self.root/rel;paths[rel]=path
    directory=path.parent
-   if directory not in parent_chains:parent_chains[directory]=tuple(path.parents)
+   if directory not in parent_chains:
+    parent_chains[directory]=tuple(ancestor_objects.setdefault(parent,parent)for parent in path.parents)
    file_parents[rel]=parent_chains[directory]
    for parent in file_parents[rel]:
     if parent not in self.directories:
@@ -104,13 +105,14 @@ class TaskContext:
   value=stamp(path.lstat()if info is None else info)
   # Cache pure lexical scope only. Every call still obtains/checks actual stat.
   scopes=getattr(self,'_directory_scopes',None)
-  inside=scopes[path]if scopes is not None and self.root==self._directory_scopes_root and path in scopes else path.is_relative_to(self.root)
+  inside=scopes[path]if scopes is not None and (self.root is self._directory_scopes_root or self.root==self._directory_scopes_root) and path in scopes else path.is_relative_to(self.root)
   return value if inside else value[:5]
  def require(self):
   self.operation._require_task_context(self);need(not self.closed)
  def current(self,relative):
   self.require();need(relative in self.current_raw)
-  bound=getattr(self,'_path_cache_root',None)==self.root
+  cached_root=getattr(self,'_path_cache_root',None)
+  bound=cached_root is self.root or cached_root==self.root
   paths=getattr(self,'_captured_paths',None);parents=getattr(self,'_captured_file_parents',None)
   path=paths[relative]if bound and paths is not None and relative in paths else self.root/relative
   chain=parents[relative]if bound and parents is not None and relative in parents else path.parents
@@ -125,7 +127,8 @@ class TaskContext:
    for p,identity in self.directories.items():need(self.directory_stamp(p)==identity)
    for rel,pin in self.entries.items():
     paths=getattr(self,'_captured_paths',None)
-    path=paths[rel]if getattr(self,'_path_cache_root',None)==self.root and paths is not None and rel in paths else self.root/rel
+    cached_root=getattr(self,'_path_cache_root',None)
+    path=paths[rel]if (cached_root is self.root or cached_root==self.root)and paths is not None and rel in paths else self.root/rel
     need(stamp(path.lstat())==self.files[rel])
     if pin['kind']=='file':raw,_=read(path);need(raw==self.current_raw[rel])
     else:need(os.readlink(path)==pin['target'])
