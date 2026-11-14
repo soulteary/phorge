@@ -30,7 +30,7 @@ def run(root,checkpoint,directory,stdout_path,stderr_path,php,role="directory"):
    for stream in files:stream.flush();os.fsync(stream.fileno());stream.close()
  return code
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--expected-checkpoint',required=True);p.add_argument('--directory',required=True);p.add_argument('--stdout',required=True);p.add_argument('--stderr',required=True);p.add_argument('--php',default='php');p.add_argument('--role',default='directory',choices=['directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code']);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--expected-checkpoint',required=True);p.add_argument('--directory',required=True);p.add_argument('--stdout',required=True);p.add_argument('--stderr',required=True);p.add_argument('--php',default='php');p.add_argument('--role',default='directory',choices=['directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential']);a=p.parse_args()
  try:sys.exit(run(a.root,a.expected_checkpoint,a.directory,a.stdout,a.stderr,a.php,a.role))
  except BaseException as error:
   if isinstance(error,SystemExit):raise
