@@ -3,6 +3,8 @@ import hashlib,json,subprocess,sys,unittest
 from pathlib import Path
 from recovery_oauth_code_test_cohort import complete_source_cohort
 ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_recovery_file_parent_policy as driver_admission
 MAIN='fc0369af9d84c4a5f23a7080528e70f1ce84c4e7'
 WIRE='9710b9edd56b9acf99b7c79b8c7d84669f7f2559'
 DRIVER='support/governance/native-organization/test-native-organization-mysql.php'
@@ -128,7 +130,7 @@ class CalendarConduitUnion(unittest.TestCase):
   sys.path.insert(0,str(ROOT/'scripts/governance'))
   import recovery_conduit_source_delta as delta
   import check_private_calendar_reminders as calendar
-  raw=(ROOT/DRIVER).read_bytes()
+  raw=driver_admission.admitted_native_driver_source(ROOT,(ROOT/DRIVER).read_bytes())
   self.assertEqual(delta.reduce_calendar_wire_union(raw),git('show',MAIN+':'+DRIVER))
   self.assertEqual(delta.reduce_driver(raw),git('show','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504:'+DRIVER))
   self.assertEqual(calendar.reduce_reviewed_calendar_wire_driver(raw),delta.reduce_driver(raw))
@@ -173,7 +175,7 @@ class CalendarConduitUnion(unittest.TestCase):
    self.assertEqual(historical,pins(git('show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+path)))
    import recovery_conduit_source_delta as calendar
    # These pins describe the admitted narrow source view, not raw fixture additions.
-   self.assertEqual(gate.SOURCE_INPUTS[DRIVER],hashlib.sha256(calendar.reduce_policy_cleanup_driver((ROOT/DRIVER).read_bytes())).hexdigest())
+   self.assertEqual(gate.SOURCE_INPUTS[DRIVER],hashlib.sha256(calendar.reduce_policy_cleanup_driver(driver_admission.admitted_native_driver_source(ROOT,(ROOT/DRIVER).read_bytes()))).hexdigest())
    self.assertTrue(gate.SQL_obligations())
   self.assertEqual(worker.reduce_current(worker.PATH,(ROOT/worker.PATH).read_bytes()),git('show',MAIN+':'+worker.PATH))
  def test_OAuth_worker_source_view_accepts_only_exact_old_or_terminal_inverse(self):

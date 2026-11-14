@@ -97,6 +97,9 @@ def SQL_obligations(root=ROOT):
   snapshot=current.description.current_snapshot(root)
   prior=current.description.reconstruct_main(snapshot)
   prior[current.description.NATIVE_EDITOR_BASELINE['path']]=current.description.reconstruct_native_editor(snapshot)
+  import check_recovery_file_parent_policy as native_driver_source
+  driver_path=native_driver_source.NATIVE_DRIVER_PATH
+  prior[driver_path]=native_driver_source.admitted_native_driver_source(root,read_source_checked(root/driver_path))
  else:assert_historical_source(root,current)
  reader=current.native_c4_reader(root,read_source_checked)if current_source else read_source_checked
  lifecycle_delta.assert_cohort(root,reader)
