@@ -13,21 +13,24 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
   private static function assertConnection(AphrontDatabaseConnection $conn) {
     $project_scope = class_exists('PhorgeProjectNativeExecutionScope', false) &&
       PhorgeProjectNativeExecutionScope::isSourceConnection($conn);
+    $task_grant_scope=class_exists('PhorgeTaskContentGrantWriteScope',false) &&
+      PhorgeTaskContentGrantWriteScope::isSourceConnection($conn);
+    if ($project_scope && $task_grant_scope) { throw new RuntimeException('governance_mixed_native_writer_scope_refused'); }
     if (get_class($conn) !== AphrontMySQLiDatabaseConnection::class ||
         !$conn->isInsideTransaction() ||
-        (!$project_scope && ($conn !== (new PhabricatorUser())->establishConnection('w') ||
+        (!$project_scope && !$task_grant_scope && ($conn !== (new PhabricatorUser())->establishConnection('w') ||
           $conn !== (new PhabricatorAuthSession())->establishConnection('w') ||
           $conn !== (new PhabricatorUserTransaction())->establishConnection('w')))) {
       throw new RuntimeException('governance_same_native_writer_required');
     }
     $tables = array(new PhabricatorUser(), new PhabricatorAuthSession(), new PhabricatorUserTransaction());
     $epoch_table = new PhorgeGovernanceIdentityEpoch();
-    if (!$project_scope && $conn !== $epoch_table->establishConnection('w')) {
+    if (!$project_scope && !$task_grant_scope && $conn !== $epoch_table->establishConnection('w')) {
       throw new RuntimeException('governance_same_native_writer_required');
     }
     $epoch_schema = $project_scope
       ? PhorgeProjectNativeExecutionScope::sourceDatabase($conn, $epoch_table)
-      : queryfx_one($conn, 'SELECT DATABASE() n')['n'];
+      : ($task_grant_scope ? PhorgeTaskContentGrantWriteScope::sourceDatabase($conn, $epoch_table) : queryfx_one($conn, 'SELECT DATABASE() n')['n']);
     queryfx_one($conn, 'SELECT userPHID FROM %R WHERE 1=0 LOCK IN SHARE MODE', $epoch_table);
     $epoch_engine = queryfx_one($conn, 'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s', $epoch_schema, $epoch_table->getTableName());
     if (!$epoch_engine || $epoch_engine['ENGINE'] !== 'InnoDB') {
@@ -36,7 +39,7 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
     foreach ($tables as $table) {
       $schema = $project_scope
         ? PhorgeProjectNativeExecutionScope::sourceDatabase($conn, $table)
-        : queryfx_one($conn, 'SELECT DATABASE() n')['n'];
+        : ($task_grant_scope ? PhorgeTaskContentGrantWriteScope::sourceDatabase($conn, $table) : queryfx_one($conn, 'SELECT DATABASE() n')['n']);
       queryfx_one($conn, 'SELECT id FROM %R WHERE 1=0 LOCK IN SHARE MODE', $table);
       $engine = queryfx_one($conn,
         'SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=%s AND TABLE_NAME=%s',
@@ -87,6 +90,11 @@ final class PhorgeGovernanceNativeIdentitySource extends Phobject {
   }
 
   private static function initializeIssuerEpoch($user, AphrontDatabaseConnection $conn) {
+    // Task grant governance is read-only for People: never initialize a fourth table.
+    if (class_exists('PhorgeTaskContentGrantWriteScope',false) &&
+        PhorgeTaskContentGrantWriteScope::isSourceConnection($conn)) {
+      throw new RuntimeException('task_grant_existing_issuer_epoch_required');
+    }
     // Called only after the actual credential row and native account are locked
     // and validated. This is explicit metadata initialization, never a read-only
     // observation or a missing-table fallback.
