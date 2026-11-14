@@ -1,0 +1,17 @@
+{
+  "schema": "task-content-grant-migration-source-v1",
+  "sql_path": "resources/sql/autopatches/20261112.task.contentgrants.sql",
+  "sql_sha256": "632b4412c18ea61787ca6b38afc9d3c16b62f76591e9a99d624401eeac117236",
+  "database": "maniphest",
+  "created_tables": [
+    "governance_taskcontentgrant",
+    "governance_taskcontentapproval",
+    "governance_taskcontentaudit"
+  ],
+  "altered_native_Task_columns": [],
+  "config_epoch_added": [
+    "governance.task-content-grants.enabled"
+  ],
+  "flags_enabled": false,
+  "SQL_executed": false
+}
