@@ -21,6 +21,10 @@ if __name__=='__main__':
  old_admission=[t for t in tests if t.__class__.__module__=='test_project_description_admission']
  new_admission=[t for t in tests if t.__class__.__module__=='test_project_description_admission_task_v2']
  if len(old_admission)!=8 or len(new_admission)!=8 or {t._testMethodName for t in old_admission}!={t._testMethodName for t in new_admission}:raise SystemExit('Task_admission_substitution_refused')
- selected=[t for t in tests if t not in old and t not in old_consumers and t not in old_admission]
+ old_inverse=[t for t in tests if t.__class__.__module__=='test_project_description_source_inverse']
+ new_inverse=[t for t in tests if t.__class__.__module__=='test_project_description_source_inverse_task_v2']
+ key=lambda t:(t.__class__.__name__,t._testMethodName)
+ if len(old_inverse)!=20 or len(new_inverse)!=20 or {key(t)for t in old_inverse}!={key(t)for t in new_inverse}:raise SystemExit('Task_source_inverse_substitution_refused')
+ selected=[t for t in tests if t not in old and t not in old_consumers and t not in old_admission and t not in old_inverse]
  if len({t.id()for t in selected})!=len(selected):raise SystemExit('Task_duplicate_test_id_refused')
  result=unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(selected));raise SystemExit(0 if result.wasSuccessful()else 1)
