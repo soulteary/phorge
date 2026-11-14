@@ -9,6 +9,11 @@ import recovery_oauth_authorization_source_delta as authorization_delta
 import recovery_partial_current_schema_delta as partial_delta
 
 def complete_source_cohort(root):
+    import os
+    checkpoint=os.environ.get("PHORGE_TASK_TEST_CHECKPOINT")
+    if checkpoint is not None:
+        from recovery_oauth_code_task_test_cohort_v2 import complete_source_cohort as task_v2
+        return task_v2(root,checkpoint)
     root=Path(root).resolve()
     n05_delta.assert_current_recipe(ROOT)
     required=set(n05_delta.description.CURRENT_PINS)|set(n05_delta.CURRENT_METADATA)|{n05_delta.MANIFEST,n05_delta.BRIDGE,n05_delta.PREPARATION,n05_delta.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
@@ -49,6 +54,11 @@ def reviewed_i18n_historical_inputs(root):
     return current,historical
 
 def normalized_source_tree(root):
+    import os
+    checkpoint=os.environ.get("PHORGE_TASK_TEST_CHECKPOINT")
+    if checkpoint is not None:
+        from recovery_oauth_code_task_test_cohort_v2 import normalized_source_tree as task_v2
+        return task_v2(root,checkpoint)
     """Hash actual tracked src bytes after the exact six-file inverse to9bc."""
     import os,subprocess
     root=Path(root)

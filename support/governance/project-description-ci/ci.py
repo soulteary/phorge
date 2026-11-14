@@ -30,6 +30,25 @@ def load_shared(root,revision):
  for p,h in lock['files'].items():need(sha(tracked(root,p,revision))==h)
  return m
 
+def load_shared_task_v2(root,revision):
+ import sys
+ folder=str(root/'scripts/governance')
+ if folder not in sys.path:sys.path.insert(0,folder)
+ import source_operation_snapshot as source
+ with source.open_task_source_operation(root,expected_checkpoint=revision)as operation:
+  source.require_task_operation(operation,root)
+  relative='support/governance/project-content-grants-ci/ci.py';raw=operation._task_contexts[root].current(relative)
+  lock=json.loads(tracked(root,'support/governance/project-description-ci/task-metadata-lock-v2.json',revision))
+  need(set(lock)=={'schema','parent_lock_sha256','current_ci_sha256'}and lock['schema']=='Task-CI-shared-metadata-lock-v2')
+  need(sha(tracked(root,'support/governance/project-description-ci/metadata-lock.json',revision))==lock['parent_lock_sha256']and sha(raw)==lock['current_ci_sha256'])
+  old=json.loads(tracked(root,'support/governance/project-description-ci/metadata-lock.json',revision))
+  need(set(old)=={'ci_sha256','files','description_template_sha256'})
+  for path,pin in old['files'].items():need(sha(tracked(root,path,revision))==pin)
+  need(sha(tracked(root,'support/governance/project-description-qualification/native.php',revision))==old['description_template_sha256'])
+  module=types.ModuleType('Task_actual_CURRENT_shared_CI');module.__file__=str(root/relative);exec(compile(raw,module.__file__,'exec'),module.__dict__)
+  need(module.TARGET==TARGET and module.TREE==TREE)
+ return module
+
 def successor(template,pin,kind):
  need(type(pin)is str and re.fullmatch('[a-f0-9]{64}',pin))
  name={'fixture':'N05_DESCRIPTION_FIXTURE_PROFILE_SHA256','cases':'N05_DESCRIPTION_ROOT_PROFILE_SHA256'}[kind]
@@ -116,9 +135,9 @@ def execute(a):
  global PHASE,NATIVE_FAILURE
  NATIVE_FAILURE=None
  need(a.current.is_absolute()and a.current.resolve()==a.current)
- revision=os.environ.get('GITHUB_SHA','');need(re.fullmatch('[a-f0-9]{40}',revision))
+ revision=a.expected_current_revision if a.task_source_v2 else os.environ.get('GITHUB_SHA','');need(type(revision)is str and re.fullmatch('[a-f0-9]{40}',revision))
  for p in ('ci.py','fixture.php','metadata-lock.json'):tracked(a.current,'support/governance/project-description-ci/'+p,revision)
- m=load_shared(a.current,revision);m.current_source(a.current,revision)
+ m=load_shared_task_v2(a.current,revision) if a.task_source_v2 else load_shared(a.current,revision);(m.current_source_task_v2 if a.task_source_v2 else m.current_source)(a.current,revision)
  # The real shared recipe guards the exact service, runtime, fresh owned DB and
  # all original current-source/provisioning/native standard-upgrade boundaries.
  PHASE='metadata-provision-and-qualification'
@@ -152,12 +171,12 @@ def execute(a):
  profile['target_phid']=prepared['target_phid'];pp=a.output/'description-profile.private.json';raw=canon(profile);m.private_new(pp,raw)
  # This one private copied helper changes ONLY the null profile pin, not source.
  native=dc/'native.php';template=tracked(a.current,'support/governance/project-description-qualification/native.php',revision);need(sha(template)=='0451da98e73b118cb066d5ef8a73bface226b8469dc199062521271d43834434');m.private_new(native,successor(template,sha(raw),'cases'))
- m.current_source(a.current,revision)
+ (m.current_source_task_v2 if a.task_source_v2 else m.current_source)(a.current,revision)
  PHASE='native-nine-cases'
  result=result_ok(pmod.decode(native_cases(journal,[str(a.php),str(native),str(a.target),str(pp)],a.target)))
  PHASE='bracket-after'
  after=m.runtime(json.loads(journal.run([str(a.php),'-r',m.PROBE,str(a.output/'db-credential.private.json'),str(db['host_port'])],a.output)))
- need(after['server_uuid']==db['server_uuid']);m.current_source(a.current,revision)
+ need(after['server_uuid']==db['server_uuid']);(m.current_source_task_v2 if a.task_source_v2 else m.current_source)(a.current,revision)
  summary={'schema':'N05-description-CI-real-native-v1','passed':True,'recipe_revision':revision,'target_revision':TARGET,'target_tree':TREE,'php':'8.5.12','mysql':'8.4.13','native_standard_upgrade':True,'fixture_source_revision':m.BASE,'fixture_created_before_target_flags':True,'metadata_qualification':True,'description':result,'description_template_sha256':sha(template),'same_database_at_bracket_observations':True,'whole_window_identity_proved':False,'cleanup_executed':False,'owned_namespace_retained':True,'automatic_retry':False,'HTTP_verified':False,'worker_delivery_verified':False,'execution_authorized':False,'online_activation':False}
  m.private_new(a.output/'public/description-summary.json',canon(summary));return summary
 
@@ -166,7 +185,7 @@ def failure():
  if NATIVE_FAILURE is not None:result['native_failure']=NATIVE_FAILURE
  return result
 if __name__=='__main__':
- p=argparse.ArgumentParser()
+ p=argparse.ArgumentParser();p.add_argument('--task-source-v2',action='store_true');p.add_argument('--expected-current-revision')
  for n in ('prerequisites','qualification','base','target','current','prerequisite-template','qualification-template','php','output'):p.add_argument('--'+n,required=True,type=Path)
  p.add_argument('--mysql-container',required=True);a=p.parse_args()
  try:print(json.dumps(execute(a),sort_keys=True))

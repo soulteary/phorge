@@ -10,7 +10,7 @@ jobs:
     timeout-minutes: 30
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.4.13
         env:
           MYSQL_ROOT_PASSWORD: directory-transports-disposable-only
           MYSQL_ROOT_HOST: '%'
@@ -18,14 +18,26 @@ jobs:
         options: --health-cmd "mysqladmin ping -pdirectory-transports-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
       PYTHONDONTWRITEBYTECODE: '1'
+      EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Bind external event head and isolated PUBLIC verification home
+        run: |
+          umask 077
+          trust_home="$RUNNER_TEMP/task-source-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust \
+            --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" \
+            --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" \
+            --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          echo "HOME=$trust_home" >> "$GITHUB_ENV"
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5.12'
@@ -35,7 +47,7 @@ jobs:
           coverage: none
       - name: Existing retained runtime and two standard mapper passes
         run: |
-          python3 -B scripts/governance/check_directory_transports_v1.py --source-only --source-revision "$GITHUB_SHA"
+          python3 -B scripts/governance/check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"
           php -r 'exit(PHP_VERSION === "8.5.12" ? 0 : 1);'
           php scripts/runtime/build.php all
           php bin/rebuild-library-map
@@ -128,7 +140,7 @@ jobs:
         id: directory-sql
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           sha256sum --check "$RUNNER_TEMP/directory-transports-v1/verified-maps.sha256"
           git rev-parse HEAD > "$RUNNER_TEMP/directory-transports-v1/source-revision.txt"
           git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/directory-transports-v1/source-tree.txt"
@@ -138,10 +150,10 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD=directory-transports-disposable-only \
-          php support/governance/native-organization/test-directory-transports-v1-mysql.php --directory-transports > "$RUNNER_TEMP/directory-transports-v1/integration.json" 2> "$RUNNER_TEMP/directory-transports-native.private.stderr" || {
+          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --directory "$RUNNER_TEMP/task-directory-v2-private" --stdout "$RUNNER_TEMP/directory-transports-v1/integration.json" --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" || {
             native_status=$?
             if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
-              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal native-exit --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --terminal native-exit --receipt "$RUNNER_TEMP/task-directory-v2-private/capture-native-body.private.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
                 if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
                   if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
                 fi
@@ -152,7 +164,7 @@ jobs:
           test ! -s "$RUNNER_TEMP/directory-transports-native.private.stderr" || {
             native_status=$?
             if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
-              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal native-stderr --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --terminal native-stderr --receipt "$RUNNER_TEMP/task-directory-v2-private/capture-native-body.private.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
                 if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
                   if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
                 fi
@@ -160,10 +172,10 @@ jobs:
             fi
             exit "$native_status"
           }
-          python3 -B scripts/governance/check_directory_transports_v1.py --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" || {
+          python3 -B scripts/governance/check_directory_task_schema_receipt_v4.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --envelope "$RUNNER_TEMP/directory-transports-v1/integration.json" --profile "$RUNNER_TEMP/task-directory-v2-private/capture/schema-profile.private.json" --expected-profile-sha256 "$(python3 -c 'import json,os; print(json.load(open(os.environ["RUNNER_TEMP"]+"/task-directory-v2-private/capture/binding.safe.json"))["profile_sha256"])')" --file-binary "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/directory-file-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" || {
             native_status=$?
             if mkdir "$RUNNER_TEMP/directory-transports-safe-failure-v1"; then
-              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$GITHUB_SHA" --terminal strict-consumer --receipt "$RUNNER_TEMP/directory-transports-v1/integration.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
+              if python3 -B scripts/governance/project_directory_transport_failure_v1.py --stderr "$RUNNER_TEMP/directory-transports-native.private.stderr" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --terminal strict-consumer --receipt "$RUNNER_TEMP/task-directory-v2-private/capture-native-body.private.json" --consumer-output "$RUNNER_TEMP/directory-transports-v1/accepted.pending.json" > "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json"; then
                 if mv "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.pending.json" "$RUNNER_TEMP/directory-transports-safe-failure-v1/diagnostic.json"; then
                   if [ -n "${GITHUB_OUTPUT-}" ] && echo 'safe_diagnostic_owned=true' >> "$GITHUB_OUTPUT"; then :; fi
                 fi
