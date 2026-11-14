@@ -35,20 +35,21 @@ def reviewed_i18n_sources(root):
  return result
 
 def assert_reviewed_i18n_drift_controls(test):
- # Owned TempRoot with real3physical inputs; no source reader/admission replacement.
- with tempfile.TemporaryDirectory()as temporary:
-  root=Path(temporary).resolve()
-  for name in REVIEWED_I18N_NATIVE_PINS:
-   path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(task_api.parent_bytes(ROOT,name));path.chmod(0o644)
-  test.assertEqual(set(reviewed_i18n_sources(root)),set(REVIEWED_I18N_NATIVE_PINS))
-  for name in REVIEWED_I18N_NATIVE_PINS:
-   path=root/name;raw=path.read_bytes()
-   path.write_bytes(raw+b'\nunsupported-drift')
-   with test.assertRaises(ValueError):reviewed_i18n_sources(root)
-   path.write_bytes(raw);path.chmod(0o600)
-   with test.assertRaises(ValueError):reviewed_i18n_sources(root)
-   path.chmod(0o644)
-  test.assertEqual(set(reviewed_i18n_sources(root)),set(REVIEWED_I18N_NATIVE_PINS))
+ with task_api.owner(ROOT)as operation:
+  # Owned TempRoot with real3physical inputs; no source reader/admission replacement.
+  with tempfile.TemporaryDirectory()as temporary:
+   root=Path(temporary).resolve()
+   for name in REVIEWED_I18N_NATIVE_PINS:
+    path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(task_api.parent_in(operation,ROOT,name));path.chmod(0o644)
+   test.assertEqual(set(reviewed_i18n_sources(root)),set(REVIEWED_I18N_NATIVE_PINS))
+   for name in REVIEWED_I18N_NATIVE_PINS:
+    path=root/name;raw=path.read_bytes()
+    path.write_bytes(raw+b'\nunsupported-drift')
+    with test.assertRaises(ValueError):reviewed_i18n_sources(root)
+    path.write_bytes(raw);path.chmod(0o600)
+    with test.assertRaises(ValueError):reviewed_i18n_sources(root)
+    path.chmod(0o644)
+   test.assertEqual(set(reviewed_i18n_sources(root)),set(REVIEWED_I18N_NATIVE_PINS))
 def tracked_src_inventory(root):
  import os,stat
  root=Path(root).resolve();rows=subprocess.check_output(['git','--no-replace-objects','-C',str(root),'ls-tree','-r','-z','HEAD','--','src']).split(b'\0');tracked={}
@@ -201,11 +202,12 @@ class DescriptionSourceInverse(unittest.TestCase):
      else:raw=main[name]
     actual[name]=(mode,hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest())
   # Three previously reviewed documentation leaves are source, not ignored.
-  for leaf in ['README.description-executor.md','README.description-main-integration.md','README.description-source-inverse.md']:
-   name='src/infrastructure/governance/content/'+leaf
-   self.assertIsNone(self.git_bytes(delta.MAIN_BASELINE['git_revision'],name))
-   self.assertEqual(task_api.parent_bytes(ROOT,name),self.git_bytes('20b138b4cd9a2cf61522613b4a8e5e21eca7341b',name))
-   self.assertEqual(actual.pop(name)[0],'100644')
+  with task_api.owner(ROOT)as operation:
+   for leaf in ['README.description-executor.md','README.description-main-integration.md','README.description-source-inverse.md']:
+    name='src/infrastructure/governance/content/'+leaf
+    self.assertIsNone(self.git_bytes(delta.MAIN_BASELINE['git_revision'],name))
+    self.assertEqual(task_api.parent_in(operation,ROOT,name),self.git_bytes('20b138b4cd9a2cf61522613b4a8e5e21eca7341b',name))
+    self.assertEqual(actual.pop(name)[0],'100644')
   output=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree','-r',delta.MAIN_BASELINE['git_revision'],'--','src'],text=True)
   expected={}
   for line in output.splitlines():
@@ -290,26 +292,27 @@ class DescriptionSourceInverse(unittest.TestCase):
    root=Path(t).resolve();p=root/delta.LEGACY_REDUCER['path'];p.parent.mkdir(parents=True);p.write_bytes(task_api.parent_bytes(ROOT,delta.LEGACY_REDUCER['path'])+b'\n# unknown')
    with self.assertRaises(ValueError):delta.reconstruct_historical(good,root)
  def test_read_alias_refuses_and_existing_main_guards_generic_editor_are_unchanged(self):
-  with tempfile.TemporaryDirectory()as t:
-   p=Path(t).resolve()/'alias';p.symlink_to(ROOT/next(iter(delta.CURRENT_PINS)))
-   with self.assertRaises(ValueError):delta.checked_bytes(p)
-  for path in [delta.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py','src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php']:
-   self.assertEqual(task_api.parent_bytes(ROOT,path),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path),path)
-  import project_description_admission_delta as current
-  path=delta.NATIVE_EDITOR_BASELINE['path'];raw=task_api.parent_bytes(ROOT,path)
-  self.assertEqual(raw,self.git_bytes(current.TARGET,path))
-  added=b"        if ($project_scope!==null && $project_scope->getMode()==='content-description') {\n          $project_scope->rollbackDescriptionEditor($this,$object);\n        } elseif ($project_scope!==null) {\n          $project_scope->rollbackPolicyEditor($this,$object);\n        } else {\n          $object->killTransaction();\n        }\n"
-  removed=b'        $object->killTransaction();\n'
-  def reviewed_inverse(value):
-   if value.count(added)!=1:raise ValueError('unreviewed generic Editor delta')
-   result=value.replace(added,removed,1)
-   if result!=self.git_bytes(delta.MAIN_BASELINE['git_revision'],path):raise ValueError('unrelated generic Editor bytes')
-   return result
-  self.assertEqual(reviewed_inverse(raw),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path))
-  for bad in (raw+b'unknown',raw.replace(b'rollbackDescriptionEditor',b'killTransaction'),
-              raw.replace(b'rollbackPolicyEditor',b'killTransaction'),
-              raw.replace(b'} elseif ($project_scope!==null) {',b'} elseif ($project_scope===null) {')):
-   with self.assertRaises(ValueError):reviewed_inverse(bad)
+  with task_api.owner(ROOT)as operation:
+   with tempfile.TemporaryDirectory()as t:
+    p=Path(t).resolve()/'alias';p.symlink_to(ROOT/next(iter(delta.CURRENT_PINS)))
+    with self.assertRaises(ValueError):delta.checked_bytes(p)
+   for path in [delta.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py','src/infrastructure/governance/content/PhorgeProjectContentGrantStore.php']:
+    self.assertEqual(task_api.parent_in(operation,ROOT,path),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path),path)
+   import project_description_admission_delta as current
+   path=delta.NATIVE_EDITOR_BASELINE['path'];raw=task_api.parent_in(operation,ROOT,path)
+   self.assertEqual(raw,self.git_bytes(current.TARGET,path))
+   added=b"        if ($project_scope!==null && $project_scope->getMode()==='content-description') {\n          $project_scope->rollbackDescriptionEditor($this,$object);\n        } elseif ($project_scope!==null) {\n          $project_scope->rollbackPolicyEditor($this,$object);\n        } else {\n          $object->killTransaction();\n        }\n"
+   removed=b'        $object->killTransaction();\n'
+   def reviewed_inverse(value):
+    if value.count(added)!=1:raise ValueError('unreviewed generic Editor delta')
+    result=value.replace(added,removed,1)
+    if result!=self.git_bytes(delta.MAIN_BASELINE['git_revision'],path):raise ValueError('unrelated generic Editor bytes')
+    return result
+   self.assertEqual(reviewed_inverse(raw),self.git_bytes(delta.MAIN_BASELINE['git_revision'],path))
+   for bad in (raw+b'unknown',raw.replace(b'rollbackDescriptionEditor',b'killTransaction'),
+               raw.replace(b'rollbackPolicyEditor',b'killTransaction'),
+               raw.replace(b'} elseif ($project_scope!==null) {',b'} elseif ($project_scope===null) {')):
+    with self.assertRaises(ValueError):reviewed_inverse(bad)
 
  def test_preparation_success_does_not_replace_current_full_source_gate(self):
   result=task_api.audit(ROOT);self.assertTrue(result['inverse_verified'])
