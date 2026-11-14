@@ -13,7 +13,7 @@
     "runtime_verified": false,
     "selected19_changed_count": 1
   },
-  "current_snapshot_base": "d95b3bd2253afb6fdce615f4041920bdce5df625",
+  "current_snapshot_base": "dddcc902e47a8c4c9d9d0eb3bd315c0c987c46d4",
   "current_snapshot_overlay": {
     "support/governance/media-session-positive/README.md": "a3cc5c39b8e327085490621a1d0dc167d27c9e9c7e96dcb435953653bdc6938a",
     "support/governance/media-session-positive/cases.php": "ec93f85e5827b281e0605556f423d0837b44c5b467eed4223fb3075fb7203708",
@@ -24,26 +24,26 @@
     "support/governance/media-session-positive/test-diagnostic.php": "0f308b02a47f1d4c56faf71e1557036014a781ac5341eae30c8785c8a8a9865e",
     "support/governance/media-session-positive/test-guards.php": "dbe79fe6b78beed08b47cb339b2248ad45cc0fde70ecd6faa454d57f1a522e2e"
   },
-  "current_snapshot_tree": "4af5ae154be5b9fd01565762edbb712450c41c34",
+  "current_snapshot_tree": "49003341b32ddd7aa7387735a8ef23c9f8f4a84d",
   "current_stage_overlay8_changed_count": 0,
   "current_stage_selected19_changed_count": 0,
+  "historical_D95_delta_predecessor": 0,
   "historical_mediaC_guide": "support/governance/project-content-grants-ci/media-C-rebind-plan.json",
   "immutable_old_reducers_and_media_literals_preserved": true,
-  "native_runtime_target": "577ae2eb82d854753b88f2985a154e409272068a",
-  "native_runtime_target_tree": "f4d5435523b65587f54465b9c5712ad0b0d8f8f8",
+  "native_runtime_target": "bb113c80df054976c03e0326a9650baa6b355003",
+  "native_runtime_target_tree": "02d6d1cbb08c394d4c7d340c72732d04dbdb1be4",
   "new_description_SQL9_executed": false,
   "online_permission_migration": false,
   "optional_features_OFF": true,
   "overlay8_inherited_byteexact_from_current_snapshot": true,
-  "protected_delta_from_D95": 0,
-  "protected_leaf_count": 8407,
+  "protected_delta_from_CoreA": 0,
+  "protected_leaf_count": 8419,
   "publication_or_runtime_authority": false,
-  "raw_leaf_count": 9303,
+  "raw_leaf_count": 9325,
   "remaining": [
-    "Independent exact narrow D95 media inheritance source review",
-    "Root actual signed successor clean current_source/full76/strict freshness",
-    "Fresh hosted CI and actual isolated SQL9 qualification",
-    "No previous SQL or browser/SMTP result inherited"
+    "Independent fixed7 plus B/M proposal review",
+    "Actual signed mediaC current_source/full76/freshness/SourceOperation/CLI gates",
+    "Actual isolated media SQL and cleanup verification"
   ],
   "reviewed_tooling_exclusions": [
     "scripts/governance/check_recovery_oauth_authorization_producer_v1.py",
@@ -53,11 +53,11 @@
     "scripts/governance/recovery_oauth_authorization_source_delta.py",
     "scripts/governance/check_directory_transports_v1.py"
   ],
-  "runtime_exclusions_scope": "Original six reviewed offline tooling exclusions unchanged. Actual native target577 and complete17+53 current recipe must pass; no native PHP/SQL/media protection exemption added.",
+  "runtime_exclusions_scope": "Original six reviewed offline tooling exclusions unchanged. Actual native target bb113c80df054976c03e0326a9650baa6b355003 and the complete current production and metadata recipe must pass; no native PHP/SQL/media protection exemption added.",
   "runtime_exclusions_unchanged": true,
-  "schema": "N05-StageC-signed-recipe-media-rebind-v2",
+  "schema": "N05-CoreA-media-only-proposal-v3",
   "selected19_inherited_byteexact_from_current_snapshot": true,
   "source_only": true,
-  "verified_tree_count": 1691,
-  "verified_unique_blob_count": 9197
+  "verified_tree_count": 1693,
+  "verified_unique_blob_count": 9219
 }
