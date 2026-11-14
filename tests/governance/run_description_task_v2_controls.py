@@ -18,6 +18,9 @@ if __name__=='__main__':
  old_consumers=[t for t in tests if t.__class__.__module__=='test_project_description_current_consumers']
  new_consumers=[t for t in tests if t.__class__.__module__=='test_project_description_current_consumers_task_v2']
  if len(old_consumers)!=8 or len(new_consumers)!=8 or {t._testMethodName for t in old_consumers}!={t._testMethodName for t in new_consumers}:raise SystemExit('Task_current_consumer_substitution_refused')
- selected=[t for t in tests if t not in old and t not in old_consumers]
+ old_admission=[t for t in tests if t.__class__.__module__=='test_project_description_admission']
+ new_admission=[t for t in tests if t.__class__.__module__=='test_project_description_admission_task_v2']
+ if len(old_admission)!=8 or len(new_admission)!=8 or {t._testMethodName for t in old_admission}!={t._testMethodName for t in new_admission}:raise SystemExit('Task_admission_substitution_refused')
+ selected=[t for t in tests if t not in old and t not in old_consumers and t not in old_admission]
  if len({t.id()for t in selected})!=len(selected):raise SystemExit('Task_duplicate_test_id_refused')
  result=unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(selected));raise SystemExit(0 if result.wasSuccessful()else 1)
