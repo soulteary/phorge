@@ -9,11 +9,11 @@ class NativeRoleAdapterControls(unittest.TestCase):
  def test_three_actual_producers_single_before_after_and_unbound_no_bootstrap(self):
   manifest=(FOLDER/'producer-roles-v2.json').read_bytes();prefix=(FOLDER/'producer-prefix.php').read_bytes()
   with tempfile.TemporaryDirectory()as tmp:
-   for role in ('directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access'):
+   for role in ('directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code'):
     selected=adapter.role_manifest(manifest,role);original=(REFERENCE/selected['source']).read_bytes();adapted=adapter.adapt(original,prefix,selected)
     self.assertEqual(adapted.count(adapter.MARKER),1);self.assertEqual(adapted.count(b"::capture($fixture,$task_binding['profile'],'before')"),1);self.assertEqual(adapted.count(b"::capture($fixture,$task_binding['profile'],'after')"),1)
     self.assertEqual(original.count(selected['native_call_anchor'].encode()),1);self.assertEqual(adapted.count(selected['native_call_anchor'].encode()),1)
-    if role in('conduit','oauth-access'):
+    if role in('conduit','oauth-access','oauth-code'):
      self.assertLess(adapted.index(b'Task_native_role_argument_refused'),adapted.index(b"require_once dirname($native_directory,2)"))
      self.assertLess(adapted.index(b"require_once $root.'/support/runtime/bootstrap-cli.php';"),adapted.index(b'$task_outer_level=ob_get_level();ob_start();'))
      self.assertLess(adapted.index(b'$task_outer_level=ob_get_level();ob_start();'),adapted.index(b'  ob_start();\n  $capture_active = true;'))
