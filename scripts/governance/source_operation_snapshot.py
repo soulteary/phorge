@@ -99,12 +99,15 @@ def _inventory(root):
             if path.is_symlink():
                 dirs.remove(name); files.append(name)
         relative_directory = directory.relative_to(root)
+        directory_string = os.fspath(directory)
+        prefix = str(relative_directory)
+        prefix = '' if prefix == '.' else prefix + os.sep
         for name in files:
-            path = directory / name; info = os.lstat(path)
+            info = os.lstat(os.path.join(directory_string, name))
             mode = ('120000' if stat.S_ISLNK(info.st_mode) else
                     '100755' if stat.S_ISREG(info.st_mode) and info.st_mode & 0o111 else
                     '100644' if stat.S_ISREG(info.st_mode) else 'invalid')
-            found[str(relative_directory / name)] = mode
+            found[prefix + name] = mode
     return found
 
 
