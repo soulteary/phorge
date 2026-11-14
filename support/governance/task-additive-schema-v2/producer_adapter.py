@@ -1,11 +1,11 @@
-"""Closed three-role deterministic adapter. Original tracked producers stay unchanged."""
+"""Closed four-role deterministic adapter. Original tracked producers stay unchanged."""
 import hashlib,json
 MARKER=b'const N05_TASK_DIRECTORY_RUN_PROFILE_SHA256=null;'
 def need(ok):
  if ok is not True:raise ValueError('Task_native_role_adapter_refused')
 def role_manifest(raw,role):
  data=json.loads(raw);need(type(data)is dict and set(data)=={'schema','roles'}and data['schema']=='Task-native-role-adapter-v2')
- need(set(data['roles'])=={'directory','oauth-authorization','oauth-client-lifecycle'}and role in data['roles'])
+ need(set(data['roles'])=={'directory','oauth-authorization','oauth-client-lifecycle','conduit'}and role in data['roles'])
  value=data['roles'][role];need(set(value)=={'source','source_sha256','argument','native_call_anchor','mode'});return value
 
 def adapt(raw,prefix,role):
@@ -18,4 +18,17 @@ def adapt(raw,prefix,role):
  before=b"$task_binding=PhorgeTaskDirectoryRunV2::prepare($fixture,$task_run,isset($restore_progress)&&is_array($restore_progress)?$restore_progress:array());$task_before=PhorgeTaskAdditiveSchemaCaptureV2::capture($fixture,$task_binding['profile'],'before');\n"
  after=b"\n$task_after=PhorgeTaskAdditiveSchemaCaptureV2::capture($fixture,$task_binding['profile'],'after');"
  body=body.replace(anchor,before+anchor+after,1)
- return prefix+b'\n'+body
+ argument=role['argument']
+ need(type(argument)is str and argument.startswith('--')and all(c in 'abcdefghijklmnopqrstuvwxyz0123456789-'for c in argument))
+ guard=("if(array_slice($argv??array(),1)!==array('"+argument+"')){fwrite(STDERR,\"Task_native_role_argument_refused\\n\");exit(1);}"+'\n').encode()
+ if role['mode']=='conduit-Task-OFF':
+  # This producer clears all buffers in bootstrap; move only the wrapper's
+  # capture registration immediately after its original bootstrap, before its
+  # original inner capture. Other dedicated role templates remain unchanged.
+  capture_marker=b'// The original producer owns its inner native-output capture and all cleanup.'
+  need(prefix.count(capture_marker)==1)
+  prefix,capture=prefix.split(capture_marker,1);capture=capture_marker+capture
+  bootstrap=b"require_once $root.'/support/runtime/bootstrap-cli.php';"
+  need(body.count(bootstrap)==1)
+  body=body.replace(bootstrap,bootstrap+b'\n'+capture+b'\n',1)
+ return prefix+b'\n'+(guard if role['mode']=='conduit-Task-OFF'else b'')+body
