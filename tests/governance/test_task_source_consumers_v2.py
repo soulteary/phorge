@@ -56,6 +56,50 @@ class LexicalPathComponent(unittest.TestCase):
   with self.temporary()as directory:
    root=Path(directory);a=root/'a';a.write_bytes(b'one');a.chmod(0o644);first=source._inventory(root);old_inode=a.stat().st_ino;b=root/'replacement';b.write_bytes(b'one');b.chmod(0o644);os.replace(b,a);self.assertNotEqual(a.stat().st_ino,old_inode);self.assertEqual(source._inventory(root),first);a.chmod(0o755);self.assertEqual(source._inventory(root),{'a':'100755'})
 
+class CapturedPathComponent(unittest.TestCase):
+ """Path-allocation/component checks only; no actual source grant is issued."""
+ def context(self,root,names):
+  task=source.task_admission;c=types.SimpleNamespace(root=root,current_raw={},files={},directories={},_path_cache_root=root);paths={};parents={};chains={}
+  for name in names:
+   p=root/name;paths[name]=p
+   if p.parent not in chains:chains[p.parent]=tuple(p.parents)
+   parents[name]=chains[p.parent];c.current_raw[name]=p.read_bytes();c.files[name]=task.stamp(p.lstat())
+   for parent in p.parents:
+    if parent not in c.directories:c.directories[parent]=task.stamp(parent.lstat())if parent.is_relative_to(root)else task.stamp(parent.lstat())[:5]
+  c._captured_paths=MappingProxyType(paths);c._captured_file_parents=MappingProxyType(parents);c._directory_scopes_root=root;c._directory_scopes=MappingProxyType({p:p.is_relative_to(root)for p in c.directories});c.require=lambda:None;c.directory_stamp=lambda p:task.TaskContext.directory_stamp(c,p)
+  return c
+ def temporary(self):return tempfile.TemporaryDirectory(prefix='Task-captured-path-component-',dir=str(Path(tempfile.gettempdir()).resolve()))
+ def test_parent_chain_shared_and_path_maps_frozen(self):
+  with self.temporary()as directory:
+   root=Path(directory);(root/'a').write_bytes(b'a');(root/'b').write_bytes(b'b');c=self.context(root,('a','b'));self.assertIs(c._captured_file_parents['a'],c._captured_file_parents['b']);self.assertEqual(c._captured_file_parents['a'],tuple((root/'a').parents))
+   with self.assertRaises(TypeError):c._captured_paths['a']=root/'b'
+   with self.assertRaises(TypeError):c._captured_file_parents['a']=()
+ def test_current_checks_leaf_and_all_parents_on_every_read(self):
+  with self.temporary()as directory:
+   root=Path(directory);p=root/'a';p.write_bytes(b'a');c=self.context(root,('a',));self.assertEqual(source.task_admission.TaskContext.current(c,'a'),b'a');(root/'new-child').mkdir()
+   with self.assertRaises(ValueError):source.task_admission.TaskContext.current(c,'a')
+ def test_mode_and_same_body_inode_drift_still_rejected(self):
+  for change in ('mode','inode','alias'):
+   with self.temporary()as directory:
+    root=Path(directory);p=root/'a';p.write_bytes(b'a');c=self.context(root,('a',))
+    if change=='mode':p.chmod(0o755)
+    elif change=='inode':q=root/'replacement';q.write_bytes(b'a');os.replace(q,p)
+    else:os.link(p,root/'alias')
+    with self.assertRaises(ValueError):source.task_admission.TaskContext.current(c,'a')
+ def test_unknown_cache_entry_falls_back_to_original_path(self):
+  with self.temporary()as directory:
+   root=Path(directory);(root/'a').write_bytes(b'a');c=self.context(root,('a',));c._captured_paths=MappingProxyType({});c._captured_file_parents=MappingProxyType({});self.assertEqual(source.task_admission.TaskContext.current(c,'a'),b'a')
+ def test_root_change_does_not_reuse_old_path_or_chain(self):
+  with self.temporary()as directory:
+   outer=Path(directory);root=outer/'one';root.mkdir();(root/'a').write_bytes(b'a');other=outer/'two';other.mkdir();(other/'a').write_bytes(b'a');c=self.context(root,('a',));c.root=other
+   with self.assertRaises(ValueError):source.task_admission.TaskContext.current(c,'a')
+ def test_owner_requirement_runs_before_cached_read(self):
+  with self.temporary()as directory:
+   root=Path(directory);(root/'a').write_bytes(b'a');c=self.context(root,('a',))
+   def denied():raise ValueError('component owner denied')
+   c.require=denied
+   with self.assertRaisesRegex(ValueError,'component owner denied'):source.task_admission.TaskContext.current(c,'a')
+
 def mutate(root,case):
  p=root/'src/infrastructure/governance/content/PhorgeTaskContentSource.php';case=case.removeprefix('exit-')
  if case=='task-change':p.write_bytes(p.read_bytes()+b'\n// unreviewedTask\n')

@@ -290,7 +290,11 @@ class SourceOperation:
 
     def _task_parent_bytes(self, path):
         path=Path(path);_need(path.is_absolute())
-        matches=[(root,str(path.relative_to(root))) for root in self._task_contexts if path.is_relative_to(root)]
+        matches=[]
+        for root in self._task_contexts:
+            try:relative=path.relative_to(root)
+            except ValueError:continue
+            matches.append((root,str(relative)))
         _need(len(matches)==1);root,relative=matches[0]
         return self._task_contexts[root].parent(relative)
 

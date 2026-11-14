@@ -56,9 +56,13 @@ def git_tree(root,expected_checkpoint):
 class TaskContext:
  def __init__(self,operation,root,entries,git_raws):
   self.operation=operation;self.root=Path(root);self.entries=entries;self.files={};self.directories={};self.current_raw={};self.closed=False
+  self._path_cache_root=self.root;paths={};file_parents={};parent_chains={}
   for rel,pin in entries.items():
-   path=self.root/rel
-   for parent in path.parents:
+   path=self.root/rel;paths[rel]=path
+   directory=path.parent
+   if directory not in parent_chains:parent_chains[directory]=tuple(path.parents)
+   file_parents[rel]=parent_chains[directory]
+   for parent in file_parents[rel]:
     if parent not in self.directories:
      s=parent.lstat();need(stat.S_ISDIR(s.st_mode)and not parent.is_symlink());self.directories[parent]=self.directory_stamp(parent,s)
    if pin['kind']=='file':
@@ -66,6 +70,7 @@ class TaskContext:
    else:
     st=path.lstat();need(stat.S_ISLNK(st.st_mode)and os.readlink(path)==pin['target']);identity=stamp(st)
    self.files[rel]=identity
+  self._captured_paths=MappingProxyType(paths);self._captured_file_parents=MappingProxyType(file_parents)
   self._directory_scopes_root=self.root
   self._directory_scopes=MappingProxyType({path:path.is_relative_to(self.root)for path in self.directories})
   need(sha(self.current_raw[BASELINE])==BASELINE_SHA and sha(self.current_raw[INVERSE])==INVERSE_SHA)
@@ -96,9 +101,13 @@ class TaskContext:
  def require(self):
   self.operation._require_task_context(self);need(not self.closed)
  def current(self,relative):
-  self.require();need(relative in self.current_raw);path=self.root/relative
+  self.require();need(relative in self.current_raw)
+  bound=getattr(self,'_path_cache_root',None)==self.root
+  paths=getattr(self,'_captured_paths',None);parents=getattr(self,'_captured_file_parents',None)
+  path=paths[relative]if bound and paths is not None and relative in paths else self.root/relative
+  chain=parents[relative]if bound and parents is not None and relative in parents else path.parents
   need(stamp(path.lstat())==self.files[relative])
-  for p in path.parents:need(self.directory_stamp(p)==self.directories[p])
+  for p in chain:need(self.directory_stamp(p)==self.directories[p])
   return self.current_raw[relative]
  def parent(self,relative):
   self.current(relative);return self.reduced.get(relative)
@@ -107,7 +116,9 @@ class TaskContext:
   try:
    for p,identity in self.directories.items():need(self.directory_stamp(p)==identity)
    for rel,pin in self.entries.items():
-    path=self.root/rel;need(stamp(path.lstat())==self.files[rel])
+    paths=getattr(self,'_captured_paths',None)
+    path=paths[rel]if getattr(self,'_path_cache_root',None)==self.root and paths is not None and rel in paths else self.root/rel
+    need(stamp(path.lstat())==self.files[rel])
     if pin['kind']=='file':raw,_=read(path);need(raw==self.current_raw[rel])
     else:need(os.readlink(path)==pin['target'])
   finally:self.closed=True
