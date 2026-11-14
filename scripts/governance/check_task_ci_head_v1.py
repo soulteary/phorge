@@ -73,6 +73,8 @@ def verify_checkout(root,expected_head,trust_home=None):
  git('diff','--quiet',expected_head,'--');git('diff','--cached','--quiet',expected_head,'--')
  return {'exact_checkout_matches_external_event_head':True,'Root_signer_fingerprint_matched':True,'private_key_used':False,'keys_imported_or_generated':False,'public_verification_key_must_already_exist':True}
 def verify(root,event_file,event_name,expected_head,github_sha,trust_home=None):
+ # A CI caller must report the actual GitHub context, even when PR head differs.
+ if 'GITHUB_SHA'in os.environ:need(hex40(os.environ['GITHUB_SHA'])and github_sha==os.environ['GITHUB_SHA'])
  raw=read_event(event_file);result=bind_event(event_name,decode(raw),expected_head,github_sha);result.update(verify_checkout(root,expected_head,trust_home));result.update(event_file_sha256=hashlib.sha256(raw).hexdigest(),source_inventory_or_SQL_qualified=False);return result
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--prepare-public-trust',action='store_true');p.add_argument('--public-key');p.add_argument('--trust-home')
