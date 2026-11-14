@@ -28,7 +28,7 @@ def prepare(root,expected_checkpoint,directory,role='directory'):
  result=publish(root,expected_checkpoint,directory,captures,template,role);result['source_scope_exit_verified']=True;return result
 
 def publish(root,expected_checkpoint,directory,captures,template,role):
- need(role in{'directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential'}and template.count(MARKER)==1)
+ need(role in{'directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential','full-native'}and template.count(MARKER)==1)
  directory.mkdir(mode=0o700)
  pins={p:hashlib.sha256(raw).hexdigest()for p,raw in captures.items()}
  profile={"schema":"Task-directory-run-binding-v2","runtime_authorized":True,"source_root":str(root),"source_revision":expected_checkpoint,"run_id":secrets.token_hex(16),"hmac_key":secrets.token_hex(32),"source_pins":pins,"output":str(directory/"capture"),'native_role':role,'producer_template_sha256':hashlib.sha256(template).hexdigest()}
@@ -36,4 +36,4 @@ def publish(root,expected_checkpoint,directory,captures,template,role):
  replacement=("const N05_TASK_DIRECTORY_RUN_PROFILE_SHA256='"+pin+"';").encode();put(directory/"producer-bound.php",template.replace(MARKER,replacement))
  return {"schema":"Task-directory-run-prepared-v2","profile_sha256":pin,"source_revision":expected_checkpoint,"source_scope_exit_verified":False,"PHP_executed":False,"SQL_executed":False}
 if __name__=="__main__":
- p=argparse.ArgumentParser();p.add_argument("--root",required=True);p.add_argument("--expected-checkpoint",required=True);p.add_argument("--directory",required=True);p.add_argument('--role',default='directory',choices=['directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential']);a=p.parse_args();print(json.dumps(prepare(a.root,a.expected_checkpoint,a.directory,a.role),sort_keys=True))
+ p=argparse.ArgumentParser();p.add_argument("--root",required=True);p.add_argument("--expected-checkpoint",required=True);p.add_argument("--directory",required=True);p.add_argument('--role',default='directory',choices=['directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential','full-native']);a=p.parse_args();print(json.dumps(prepare(a.root,a.expected_checkpoint,a.directory,a.role),sort_keys=True))

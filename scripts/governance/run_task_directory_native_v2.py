@@ -17,6 +17,8 @@ def run(root,checkpoint,directory,stdout_path,stderr_path,php,role="directory"):
   captures,template=module.capture(operation,root,role)
   module.publish(root,checkpoint,directory,captures,template,role)
   roles=__import__("json").loads(captures["support/governance/task-additive-schema-v2/producer-roles-v2.json"]);argument=roles["roles"][role]["argument"]
+  if role=='full-native':need(argument is None);arguments=[]
+  else:need(type(argument)is str and argument.startswith('--'));arguments=[argument]
   env=dict(os.environ);env['PHORGE_TASK_DIRECTORY_RUN_PROFILE']=str(directory/'run-profile.private.json')
   # Exclusive files and bounded source window; no acceptance result before exit.
   files=[]
@@ -24,13 +26,13 @@ def run(root,checkpoint,directory,stdout_path,stderr_path,php,role="directory"):
    for path in (stdout_path,stderr_path):
     path=Path(path);need(path.parent.resolve(strict=True)==path.parent)
     fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600);files.append(os.fdopen(fd,'wb'))
-   result=subprocess.run([php,'-d','opcache.enable_cli=0','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0',str(directory/'producer-bound.php'),argument],cwd=root,env=env,stdout=files[0],stderr=files[1],timeout=1800)
+   result=subprocess.run([php,'-d','opcache.enable_cli=0','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0',str(directory/'producer-bound.php'),*arguments],cwd=root,env=env,stdout=files[0],stderr=files[1],timeout=1800)
    code=result.returncode
   finally:
    for stream in files:stream.flush();os.fsync(stream.fileno());stream.close()
  return code
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--expected-checkpoint',required=True);p.add_argument('--directory',required=True);p.add_argument('--stdout',required=True);p.add_argument('--stderr',required=True);p.add_argument('--php',default='php');p.add_argument('--role',default='directory',choices=['directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential']);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--expected-checkpoint',required=True);p.add_argument('--directory',required=True);p.add_argument('--stdout',required=True);p.add_argument('--stderr',required=True);p.add_argument('--php',default='php');p.add_argument('--role',default='directory',choices=['directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential','full-native']);a=p.parse_args()
  try:sys.exit(run(a.root,a.expected_checkpoint,a.directory,a.stdout,a.stderr,a.php,a.role))
  except BaseException as error:
   if isinstance(error,SystemExit):raise

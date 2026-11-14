@@ -1,11 +1,11 @@
-"""Closed seven-role deterministic adapter. Original tracked producers stay unchanged."""
+"""Closed eight-role deterministic adapter. Original tracked producers stay unchanged."""
 import hashlib,json
 MARKER=b'const N05_TASK_DIRECTORY_RUN_PROFILE_SHA256=null;'
 def need(ok):
  if ok is not True:raise ValueError('Task_native_role_adapter_refused')
 def role_manifest(raw,role):
  data=json.loads(raw);need(type(data)is dict and set(data)=={'schema','roles'}and data['schema']=='Task-native-role-adapter-v2')
- need(set(data['roles'])=={'directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential'}and role in data['roles'])
+ need(set(data['roles'])=={'directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential','full-native'}and role in data['roles'])
  value=data['roles'][role];need(set(value)=={'source','source_sha256','argument','native_call_anchor','mode'});return value
 
 def adapt(raw,prefix,role):
@@ -19,9 +19,13 @@ def adapt(raw,prefix,role):
  after=b"\n$task_after=PhorgeTaskAdditiveSchemaCaptureV2::capture($fixture,$task_binding['profile'],'after');"
  body=body.replace(anchor,before+anchor+after,1)
  argument=role['argument']
- need(type(argument)is str and argument.startswith('--')and all(c in 'abcdefghijklmnopqrstuvwxyz0123456789-'for c in argument))
- guard=("if(array_slice($argv??array(),1)!==array('"+argument+"')){fwrite(STDERR,\"Task_native_role_argument_refused\\n\");exit(1);}"+'\n').encode()
- if role['mode']in{'conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF'}:
+ if role['mode']=='full-native-Task-OFF':
+  need(argument is None and role['source']=='support/governance/native-organization/test-native-organization-mysql.php'and role['native_call_anchor']=='$native=governance_native_organization_cases($fixture,$check);')
+  guard=b'if(array_slice($argv??array(),1)!==array()){fwrite(STDERR,"Task_native_role_argument_refused\\n");exit(1); }\n'
+ else:
+  need(type(argument)is str and argument.startswith('--')and all(c in 'abcdefghijklmnopqrstuvwxyz0123456789-'for c in argument))
+  guard=("if(array_slice($argv??array(),1)!==array('"+argument+"')){fwrite(STDERR,\"Task_native_role_argument_refused\\n\");exit(1);}"+'\n').encode()
+ if role['mode']in{'conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','full-native-Task-OFF'}:
   # This producer clears all buffers in bootstrap; move only the wrapper's
   # capture registration immediately after its original bootstrap, before its
   # original inner capture. Other dedicated role templates remain unchanged.
@@ -31,4 +35,4 @@ def adapt(raw,prefix,role):
   bootstrap=b"require_once $root.'/support/runtime/bootstrap-cli.php';"
   need(body.count(bootstrap)==1)
   body=body.replace(bootstrap,bootstrap+b'\n'+capture+b'\n',1)
- return prefix+b'\n'+(guard if role['mode']in{'conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF'}else b'')+body
+ return prefix+b'\n'+(guard if role['mode']in{'conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','full-native-Task-OFF'}else b'')+body
