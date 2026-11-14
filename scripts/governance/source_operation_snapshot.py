@@ -515,7 +515,13 @@ class SourceOperation:
             for root, captured in self._snapshots.items():
                 self._prepared_ledgers[root].verify_exit(self)
                 for path, (before, stamp) in captured.items():
-                    raw, after = (_read_held_media(root,path,self._held_media_pins[path]) if path in self._held_media_pins else _regular_new_source(root,path,self._new_pins[path]) if path in self._new_pins else _read(root/path))
+                    if self._task_source:
+                        # Compare actual captured CURRENT bytes and identity. The
+                        # separate TaskContext exit rechecks the complete signed
+                        # current tree; historical parent pins are DATA only.
+                        raw,after=_read(root/path)
+                    else:
+                        raw, after = (_read_held_media(root,path,self._held_media_pins[path]) if path in self._held_media_pins else _regular_new_source(root,path,self._new_pins[path]) if path in self._new_pins else _read(root/path))
                     _need(raw == before and after == stamp)
                 self._assert_current_recipe(root)
             for ledger in self._prepared_ledgers.values():ledger.verify_exit(self)
