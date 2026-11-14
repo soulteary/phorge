@@ -127,7 +127,7 @@ class TaskBrowserHold(unittest.TestCase):
         function=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='_run_task_with_source_operation')
         final=next(n.finalbody for n in function.body if isinstance(n,ast.Try) and n.finalbody)
         code=compile(ast.Module(body=final,type_ignores=[]),'<actual-parent-finally>','exec')
-        for fault in ('none','stop','SQL0','timeout','early','default'):
+        for fault in ('none','stop','SQL0','timeout','early','default','default-stop'):
             with self.subTest(fault=fault):
                 directory=self.output_dir/fault;directory.mkdir(mode=0o700);events=[]
                 class Child:
@@ -141,7 +141,7 @@ class TaskBrowserHold(unittest.TestCase):
                     children=[fixture,server,mailer];owner='a'*64
                     def _stop_group(inner,child):
                         events.append('stop-'+child.name)
-                        if fault=='stop' and child is server:raise RuntimeError('unadmitted stop fault')
+                        if fault in ('stop','default-stop') and child is server:raise RuntimeError('unadmitted stop fault')
                         child.returncode=0
                     def _members(inner,pid):return []
                     def write(inner,name,raw):
@@ -160,7 +160,7 @@ class TaskBrowserHold(unittest.TestCase):
                     'file_service_cleanup':{'process_stopped':True,'private_storage_removed':True}}
                 log=directory/'fixture.log';log.write_text(json.dumps(native));log.chmod(0o600)
                 namespace={'json':json,'runtime':Runtime(),'fixture':fixture,'directory':directory,'config':{},'passed':fault not in ('timeout','early'),
-                    'native':None,'native_clean':False,'prepared':True,'cleanup':None,'browser_attempted':fault not in ('default','early'),'browser_hold':fault!='default',
+                    'native':None,'native_clean':False,'prepared':True,'cleanup':None,'browser_attempted':fault not in ('default','early'),'browser_hold':fault not in ('default','default-stop'),
                     'consumer_stop_proved':True,'browser_cleanup_admitted':False,'browser_cleanup_admission':cleanup,'private_file':run_task.private_file}
                 exec(code,namespace)
                 if fault in ('none','timeout','early','default'):
@@ -168,7 +168,7 @@ class TaskBrowserHold(unittest.TestCase):
                 else:
                     self.assertNotIn('release',events);self.assertFalse(namespace['native_clean'])
                     self.assertFalse(namespace['cleanup']['private_directory_removed'])
-                if fault in ('stop','default'):self.assertNotIn('queue-and-SQL0',events)
+                if fault in ('stop','default','default-stop'):self.assertNotIn('queue-and-SQL0',events)
                 if fault in ('timeout','early'):self.assertFalse(namespace['passed'])
     def test_actual_native_browser_transaction_guard_covers_each_writer(self):
         php=shutil.which('php');self.assertIsNotNone(php)

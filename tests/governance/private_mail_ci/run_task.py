@@ -306,8 +306,8 @@ def _run_task_with_source_operation(config, worker, case, *, browser_hold=False,
                 except Exception:passed=False;consumer_stop_proved=False
         if fixture is not None and fixture.poll() is None:
             try:
+                if not consumer_stop_proved:raise RuntimeError('task_consumers_unknown')
                 if browser_hold:
-                    if not consumer_stop_proved:raise RuntimeError('task_browser_consumers_unknown')
                     browser_cleanup_admitted=browser_cleanup_admission(runtime,config)
                 runtime.write_flag('release');fixture.wait(timeout=90)
             except Exception:passed=False
