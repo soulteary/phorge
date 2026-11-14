@@ -37,24 +37,30 @@ def _legacy():
     raw=description.checked_bytes(ROOT/description.LEGACY_REDUCER['path']);description.exact(raw,description.LEGACY_REDUCER)
     spec=importlib.util.spec_from_file_location('immutable_original_N05_admission',ROOT/description.LEGACY_REDUCER['path']);module=importlib.util.module_from_spec(spec);exec(compile(raw,str(spec.origin),'exec'),module.__dict__);return module
 legacy=_legacy()
-def expected_manifest(root=ROOT):
+def expected_manifest(root=ROOT,operation=None):
     root=Path(root);_constants();data=json.loads(_original_manifest());data['production_git_tree_inventory_sha256']=PRODUCTION_TREE_INVENTORY_SHA256
     for path in (CHECKER,BRIDGE,PREPARATION):
-        raw=description.checked_bytes(root/path)
+        raw=_admitted_bytes(operation,root,root/path)
         if path==CHECKER:_exact(raw,CURRENT_METADATA[path])
         elif path==PREPARATION:_exact(raw,PREPARATION_PIN)
         data['pins'][path]={'bytes':len(raw),'sha256':sha(raw)}
     for path,pin in CURRENT_METADATA.items():
         if path in data['pins']:data['pins'][path]={'bytes':pin['bytes'],'sha256':pin['sha256']}
     need(len(data['pins'])==76);return data
-def manifest_bytes(root=ROOT):return (json.dumps(expected_manifest(root),indent=2,sort_keys=True)+'\n').encode()
-def assert_current_recipe(root=ROOT):
-    root=Path(root);_constants();description.current_snapshot(root)
-    _exact(description.checked_bytes(root/description.LEGACY_REDUCER['path']),description.LEGACY_REDUCER)
-    _exact(description.checked_bytes(root/'scripts/governance/project_content_grant_ci_source_delta.py'),OLD_CI_PIN)
-    for path,pin in CURRENT_METADATA.items():_exact(description.checked_bytes(root/path),pin)
-    _exact(description.checked_bytes(root/PREPARATION),PREPARATION_PIN)
-    need(description.checked_bytes(root/MANIFEST)==manifest_bytes(root))
+def manifest_bytes(root=ROOT,operation=None):return (json.dumps(expected_manifest(root,operation=operation),indent=2,sort_keys=True)+'\n').encode()
+def _admitted_bytes(operation,root,path):
+    if operation is None:return description.checked_bytes(path)
+    from source_operation_snapshot import require_task_operation
+    require_task_operation(operation,root)
+    return operation._task_parent_bytes(path)
+
+def assert_current_recipe(root=ROOT,operation=None):
+    root=Path(root);_constants();description.current_snapshot(root,operation=operation)
+    _exact(_admitted_bytes(operation,root,root/description.LEGACY_REDUCER['path']),description.LEGACY_REDUCER)
+    _exact(_admitted_bytes(operation,root,root/'scripts/governance/project_content_grant_ci_source_delta.py'),OLD_CI_PIN)
+    for path,pin in CURRENT_METADATA.items():_exact(_admitted_bytes(operation,root,root/path),pin)
+    _exact(_admitted_bytes(operation,root,root/PREPARATION),PREPARATION_PIN)
+    need(_admitted_bytes(operation,root,root/MANIFEST)==manifest_bytes(root,operation=operation))
     return {'production_paths':19,'metadata_paths':len(CURRENT_METADATA),'full_source_revision_authorized':False,'runtime_qualified':False}
 def _normalize_metadata(path,raw):
     _constants()
@@ -184,7 +190,9 @@ PRODUCTION_PINS={p:v['sha256']for p,v in description.CURRENT_PINS.items()}
 SOURCE_INPUTS=dict(legacy.SOURCE_INPUTS)
 for _path in list(SOURCE_INPUTS):
     if _path in CURRENT_METADATA:SOURCE_INPUTS[_path]=CURRENT_METADATA[_path]['sha256']
-SOURCE_INPUTS[MANIFEST]=sha(manifest_bytes(ROOT))
+# Retain the original356 manifest value without evaluating changed preparation
+# before a legitimate Task scope exists. Scope entry still checks all old pins.
+SOURCE_INPUTS[MANIFEST]='768e9a8393ef77713070d9855dbf4e44c025170adbe0e015ae3d57362e616a5b'
 _ci_raw=description.checked_bytes(ROOT/'scripts/governance/project_content_grant_ci_source_delta.py');_exact(_ci_raw,OLD_CI_PIN)
 _ci_spec=importlib.util.spec_from_file_location('immutable_old_CI_source_inverse',ROOT/'scripts/governance/project_content_grant_ci_source_delta.py');_old_ci=importlib.util.module_from_spec(_ci_spec);exec(compile(_ci_raw,str(_ci_spec.origin),'exec'),_old_ci.__dict__)
 WORKFLOW=_old_ci.WORKFLOW
@@ -218,3 +226,9 @@ def media_source_delta():
     return view
 
 def __getattr__(name):return getattr(legacy,name)
+
+def historical_task_inputs(root,baseline,changed,current,expected_checkpoint):
+    # Explicit successor only; original historical_inputs/default API unchanged.
+    from source_operation_snapshot import open_task_source_operation
+    with open_task_source_operation(root,expected_checkpoint=expected_checkpoint) as operation:
+        return operation.historical_task_inputs(root,baseline,changed,current)
