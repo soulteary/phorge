@@ -309,11 +309,30 @@ class SourceOperation:
         import subprocess
         self.require(root);_need(self._task_source and type(current)is dict)
         normalized={};changed=set(changed);context=self._task_contexts[_root(root)]
+        historical_inverse_baseline_verified = False
         for relative,raw in current.items():
             _need(type(relative)is str and type(raw)is bytes and raw==context.current(relative))
             parent=context.parent(relative)
             if parent is None:changed.discard(relative)
-            else:normalized[relative]=parent
+            else:
+                # The genuine TaskContext constructor only creates differing
+                # parent DATA through its authenticated closed inverse families.
+                # No caller can nominate a path or supply an alternate reader.
+                if raw != parent:
+                    if not historical_inverse_baseline_verified:
+                        _need(type(baseline) is str and len(baseline) == 40 and
+                              all(c in '0123456789abcdef' for c in baseline))
+                        _need(subprocess.check_output(['git','--no-replace-objects','-C',str(root),
+                              'cat-file','-t',baseline]).strip() == b'commit')
+                        historical_inverse_baseline_verified = True
+                    prior = subprocess.run(['git','--no-replace-objects','-C',str(root),
+                          'show',baseline+':'+relative],capture_output=True)
+                    if prior.returncode == 0 and prior.stdout == parent:
+                        # Exact inverse DATA already equal to the actual
+                        # requested baseline is unchanged at that stage.
+                        changed.discard(relative)
+                        continue
+                normalized[relative]=parent
         # The old source-audit fixture reducer reads four physical predecessor
         # files. Task adds schema source to one of them, so prove that closed
         # cohort against CURRENT capture + typed parent DATA here before the
