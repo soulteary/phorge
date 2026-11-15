@@ -25,7 +25,7 @@ class PartialWiring(unittest.TestCase):
   self.assertIn('path: ${{ runner.temp }}/governance-recovery-partial-composition',upload)
   head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
   with tempfile.TemporaryDirectory() as temp:
-   tmp=Path(temp);target=tmp/'governance-recovery-partial-composition';foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'private-foreign');env=dict(os.environ,RUNNER_TEMP=temp,GITHUB_SHA=head,GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
+   tmp=Path(temp);target=tmp/'governance-recovery-partial-composition';foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'private-foreign');env=dict(os.environ,RUNNER_TEMP=temp,EXPECTED_SOURCE_CHECKPOINT=head,GITHUB_SHA=('0' if head[0]!='0' else '1')+head[1:],GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
    uploaded=[]
    def run():
     result=subprocess.run(['bash','-e','-o','pipefail','-c',script],cwd=ROOT,env=env,capture_output=True,text=True,timeout=10)

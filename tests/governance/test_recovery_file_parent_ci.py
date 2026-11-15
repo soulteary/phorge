@@ -11,7 +11,7 @@ class FileParentCI(unittest.TestCase):
   self.assertIn('path: ${{ runner.temp }}/governance-file-parent-policy',upload)
   head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
   with tempfile.TemporaryDirectory() as temp:
-   tmp=Path(temp);target=tmp/'governance-file-parent-policy';foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'private-foreign');env=dict(os.environ,RUNNER_TEMP=temp,GITHUB_SHA=head,GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
+   tmp=Path(temp);target=tmp/'governance-file-parent-policy';foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'private-foreign');env=dict(os.environ,RUNNER_TEMP=temp,EXPECTED_SOURCE_CHECKPOINT=head,GITHUB_SHA=('0' if head[0]!='0' else '1')+head[1:],GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
    maps=tmp/'maps.sha256';maps.write_text(subprocess.check_output(['sha256sum','src/__phutil_library_map__.php','support/runtime/src/__phutil_library_map__.php','support/runtime/manifest.json'],cwd=ROOT,text=True));script=script.replace('/tmp/atomic-maps.sha256',str(maps))
    uploaded=[]
    def run():
@@ -44,7 +44,7 @@ class FileParentCI(unittest.TestCase):
   labels=['Verify fresh native partial restoration facts after Space source facts','Verify fresh native File source facts after Task owner facts','Verify fresh native File parent-policy endpoints after File source facts','Verify fresh native organization approval workbench after File source facts']
   self.assertEqual(sorted(s.index(x) for x in labels),[s.index(x) for x in labels])
   part=s.split('Verify fresh native File parent-policy endpoints after File source facts',1)[1].split('      - uses:',1)[0]
-  for value in ('sha256sum --check /tmp/atomic-maps.sha256','verified-maps.sha256','--file-parent-policy','check_recovery_file_parent_policy.py','--file-binary "$RUNNER_TEMP/gorge-file-storage"','--source-revision "$GITHUB_SHA"','PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA"','test "$(git rev-parse HEAD)" = "$GITHUB_SHA"'):
+  for value in ('sha256sum --check /tmp/atomic-maps.sha256','verified-maps.sha256','--file-parent-policy','check_recovery_file_parent_policy.py','--file-binary "$RUNNER_TEMP/gorge-file-storage"','--source-revision "$EXPECTED_SOURCE_CHECKPOINT"','PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT"','test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"'):
    self.assertIn(value,part)
   driver=(ROOT/'support/governance/native-organization/test-native-organization-mysql.php').read_text()
   self.assertLess(driver.index("require_once $root.'/support/runtime/bootstrap-cli.php'"),driver.index("$phase==='file-parent-policy'){"))

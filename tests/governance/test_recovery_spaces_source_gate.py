@@ -71,7 +71,7 @@ foreach(['begin','body','cleanup']as$fault){$w=new SpaceSyntheticWriter();$w->fa
   workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();name='      - name: Verify fresh native Space source facts after Project source facts\n';step=workflow.split(name,1)[1].split('      - uses:',1)[0];script='\n'.join(line[10:] for line in step.splitlines() if line.startswith('          '));syntax=subprocess.run(['bash','-n'],input=script,text=True,capture_output=True);self.assertEqual(syntax.returncode,0,syntax.stderr)
   head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
   with tempfile.TemporaryDirectory() as temp:
-   tmp=Path(temp);foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'foreign-private');before=(stable_stamp(sentinel),sentinel.read_bytes());target=tmp/'governance-spaces-source-facts';env=dict(os.environ,RUNNER_TEMP=temp,GITHUB_SHA=head,GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
+   tmp=Path(temp);foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'foreign-private');before=(stable_stamp(sentinel),sentinel.read_bytes());target=tmp/'governance-spaces-source-facts';env=dict(os.environ,RUNNER_TEMP=temp,EXPECTED_SOURCE_CHECKPOINT=head,GITHUB_SHA=('0' if head[0]!='0' else '1')+head[1:],GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
    for kind in ('directory','symlink','file'):
     if kind=='directory':target.mkdir();(target/'sentinel').write_bytes(b'owned-elsewhere')
     elif kind=='symlink':target.symlink_to(foreign,target_is_directory=True)

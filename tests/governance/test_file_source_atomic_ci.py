@@ -11,7 +11,7 @@ class FileSourceAtomic(unittest.TestCase):
   workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();name='      - name: Verify fresh native File source facts after Task owner facts\n';step=workflow.split(name,1)[1].split('      - uses:',1)[0];script='\n'.join(line[10:] for line in step.splitlines() if line.startswith('          '));syntax=subprocess.run(['bash','-n'],input=script,text=True,capture_output=True);self.assertEqual(syntax.returncode,0,syntax.stderr)
   head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
   with tempfile.TemporaryDirectory() as temp:
-   tmp=Path(temp);foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'foreign-private');before=(stable_stamp(sentinel),sentinel.read_bytes());target=tmp/'governance-file-source-facts';env=dict(os.environ,RUNNER_TEMP=temp,GITHUB_SHA=head,GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
+   tmp=Path(temp);foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'foreign-private');before=(stable_stamp(sentinel),sentinel.read_bytes());target=tmp/'governance-file-source-facts';env=dict(os.environ,RUNNER_TEMP=temp,EXPECTED_SOURCE_CHECKPOINT=head,GITHUB_SHA=('0' if head[0]!='0' else '1')+head[1:],GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
    for kind in ('directory','symlink','file'):
     if kind=='directory':target.mkdir();(target/'sentinel').write_bytes(b'owned-elsewhere')
     elif kind=='symlink':target.symlink_to(foreign,target_is_directory=True)
@@ -33,7 +33,7 @@ class FileSourceAtomic(unittest.TestCase):
     php=fake/'php';php.write_text('#!/bin/sh\ncat "$FILE_CI_SYNTHETIC_RECEIPT"\n');php.chmod(0o700)
     for directory in ('governance-batch-1','governance-native-organization'):(tmp/directory).mkdir()
     for path in ('governance-batch-1/native.json','governance-native-organization/accepted.json'):(tmp/path).write_bytes(b'same-run-synthetic-reference-only')
-    env=dict(os.environ,RUNNER_TEMP=temp,GITHUB_SHA=head,GORGE_TEST_MYSQL_PASSWORD='synthetic-only',FILE_CI_SYNTHETIC_RECEIPT=str(payload),PATH=str(fake)+os.pathsep+str(Path(sys.executable).parent)+os.pathsep+os.environ['PATH']);p=subprocess.run(['bash','-e','-o','pipefail','-c',script],cwd=ROOT,env=env,capture_output=True,text=True,timeout=15)
+    env=dict(os.environ,RUNNER_TEMP=temp,EXPECTED_SOURCE_CHECKPOINT=head,GITHUB_SHA=('0' if head[0]!='0' else '1')+head[1:],GORGE_TEST_MYSQL_PASSWORD='synthetic-only',FILE_CI_SYNTHETIC_RECEIPT=str(payload),PATH=str(fake)+os.pathsep+str(Path(sys.executable).parent)+os.pathsep+os.environ['PATH']);p=subprocess.run(['bash','-e','-o','pipefail','-c',script],cwd=ROOT,env=env,capture_output=True,text=True,timeout=15)
     target=tmp/'governance-file-source-facts'
     if valid:
      self.assertEqual(p.returncode,0,p.stderr);self.assertEqual({x.name for x in target.iterdir()},{'integration.json','accepted.json','source-revision.txt','shared-native-pure.json','normal-regression-accepted.json'});accepted=json.loads((target/'accepted.json').read_text());self.assertEqual(accepted['checks'],39);self.assertFalse(accepted['restoration_authorized']);self.assertEqual(accepted['source_revision'],head)

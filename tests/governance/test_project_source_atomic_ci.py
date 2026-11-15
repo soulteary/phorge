@@ -18,13 +18,13 @@ def validate_workflow(workflow):
  need('python3 -B scripts/governance/check_api_credential_concurrency.py --receipt' in before)
  need('python3 -B scripts/governance/check_recovery_application_config.py --receipt' in before)
  need('if:' not in step and 'continue-on-error' not in step and '|| true' not in step)
- need('test "$(git rev-parse HEAD)" = "$GITHUB_SHA"' in step)
+ need('test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"' in step)
  need('umask 077' in step)
- need('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA"' in step)
+ need('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT"' in step)
  need('PHORGE_GOVERNANCE_ISOLATED_TEST=1' in step)
  need('--project-source-facts >' in step)
  need('python3 -B scripts/governance/check_recovery_project_source.py --receipt' in step)
- need('--source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"' in step)
+ need('--source-revision "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"' in step)
  need('cp "$RUNNER_TEMP/governance-batch-1/native.json"' in step)
  need('cp "$RUNNER_TEMP/governance-native-organization/accepted.json"' in step)
  need(set(re.findall(r'\$RUNNER_TEMP/governance-project-source-facts/([^"\n]+)"',step))==MEMBERS)
@@ -49,7 +49,7 @@ class ProjectSourceAtomic(unittest.TestCase):
    self.workflow.replace(NAME,NAME+'        continue-on-error: true\n'),
    self.workflow.replace('--project-source-facts >','--project-source-facts || true >'),
    self.workflow.replace('python3 -B scripts/governance/check_api_credential_concurrency.py --receipt','python3 omitted-API-gate --receipt'),
-   self.workflow.replace('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA"','PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="old-head"')]
+   self.workflow.replace('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT"','PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="old-head"')]
   for mutant in mutants:
    with self.assertRaises(ValueError):validate_workflow(mutant)
  def test_unknown_artifact_or_fake_dependency_refused(self):
@@ -57,7 +57,7 @@ class ProjectSourceAtomic(unittest.TestCase):
    self.workflow.replace(ARTIFACT+'/shared-native-pure.json',ARTIFACT+'/binary-sha256.txt'),
    self.workflow.replace(NAME,NAME+'        run-extra: docker start unwanted\n'),
    self.workflow.replace('python3 -B scripts/governance/check_recovery_application_config.py --receipt','python3 missing-config-gate --receipt'),
-   self.workflow.replace('check_recovery_project_source.py --receipt','check_recovery_project_source.py --receipt',1).replace('--source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"','--source-revision old-head > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"')]:
+   self.workflow.replace('check_recovery_project_source.py --receipt','check_recovery_project_source.py --receipt',1).replace('--source-revision "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"','--source-revision old-head > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"')]:
    with self.assertRaises(ValueError):validate_workflow(mutant)
  def test_exclusive_directory_real_prefix_preserves_foreign_paths(self):
   step=validate_workflow(self.workflow)
@@ -75,7 +75,7 @@ class ProjectSourceAtomic(unittest.TestCase):
     if kind=='directory':target.mkdir();(target/'sentinel').write_bytes(b'original')
     else:target.symlink_to(foreign,target_is_directory=True)
     before=snapshot(foreign);target_before=stable_stamp(target);own_before=snapshot(target) if kind=='directory' else None
-    env=dict(os.environ,RUNNER_TEMP=tmp,GITHUB_SHA=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip())
+    env=dict(os.environ,RUNNER_TEMP=tmp,EXPECTED_SOURCE_CHECKPOINT=(atomic_source_head := subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()),GITHUB_SHA=('0' if atomic_source_head[0]!='0' else '1')+atomic_source_head[1:])
     proc=subprocess.run(['bash','-e','-o','pipefail','-c',prefix],cwd=ROOT,env=env,capture_output=True)
     self.assertNotEqual(0,proc.returncode)
     self.assertEqual(before,snapshot(foreign));self.assertEqual(target_before,stable_stamp(target))
@@ -83,7 +83,7 @@ class ProjectSourceAtomic(unittest.TestCase):
     else:target.unlink()
    proc=subprocess.run(['bash','-e','-o','pipefail','-c',prefix],cwd=ROOT,env=env,capture_output=True)
    self.assertEqual(0,proc.returncode,proc.stderr)
-   self.assertEqual(env['GITHUB_SHA']+'\n',(target/'source-revision.txt').read_text())
+   self.assertEqual(env['EXPECTED_SOURCE_CHECKPOINT']+'\n',(target/'source-revision.txt').read_text())
  def test_directory_and_upload_mutations_refused(self):
   for old,new in [('mkdir "$RUNNER_TEMP/governance-project-source-facts"','mkdir -p "$RUNNER_TEMP/governance-project-source-facts"'),('if: success()','if: always()')]:
    before,section=self.workflow.split(NAME,1)

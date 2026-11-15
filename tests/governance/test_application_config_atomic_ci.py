@@ -13,13 +13,13 @@ def validate_workflow(workflow):
  need('python3 scripts/governance/check_private_notifications.py --receipt' in before)
  need('python3 -B scripts/governance/check_api_credential_concurrency.py --receipt' in before)
  need('if:' not in step and 'continue-on-error' not in step and '|| true' not in step)
- need('test "$(git rev-parse HEAD)" = "$GITHUB_SHA"' in step)
+ need('test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"' in step)
  need('umask 077' in step)
- need('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA"' in step)
+ need('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT"' in step)
  need('PHORGE_GOVERNANCE_ISOLATED_TEST=1' in step)
  need('--application-config-facts >' in step)
  need('python3 -B scripts/governance/check_recovery_application_config.py --receipt' in step)
- need('--source-revision "$GITHUB_SHA"' in step)
+ need('--source-revision "$EXPECTED_SOURCE_CHECKPOINT"' in step)
  need('cp "$RUNNER_TEMP/governance-batch-1/native.json"' in step)
  need('cp "$RUNNER_TEMP/governance-native-organization/accepted.json"' in step)
  need(set(re.findall(r'\$RUNNER_TEMP/governance-application-config-facts/([^"\n]+)"',step))==MEMBERS)
@@ -42,7 +42,7 @@ class ApplicationConfigAtomic(unittest.TestCase):
    self.workflow.replace(NAME,NAME+'        continue-on-error: true\n'),
    self.workflow.replace('--application-config-facts >','--application-config-facts || true >'),
    self.workflow.replace('python3 -B scripts/governance/check_api_credential_concurrency.py --receipt','python3 omitted-API-gate --receipt'),
-   self.workflow.replace('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA"','PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="old-head"')]
+   self.workflow.replace('PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT"','PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="old-head"')]
   for mutant in mutants:
    with self.assertRaises(ValueError):validate_workflow(mutant)
  def test_unknown_artifact_or_fake_dependency_refused(self):
