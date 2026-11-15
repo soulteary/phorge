@@ -44,6 +44,21 @@ def read_fixture_DATA(path,expected,mode):
   need(stamp(before)==stamp(os.fstat(fd))==stamp(path.lstat())and bytes(raw)==expected)
   return bytes(raw)
  finally:os.close(fd)
+def guard_fixture_DATA(root,rows):
+ """Every registered private DATA row remains mandatory. Normalize only its
+ filesystem-unavailable errors; never repair, skip, infer success or catch an
+ actual source-issuer exception. Preserve the original OS cause for diagnosis.
+ """
+ root=Path(root);need(type(rows)is dict)
+ try:
+  for name,(expected,mode)in rows.items():read_fixture_DATA(root/name,expected,mode)
+ except OSError as error:
+  raise ValueError('Task_private_DATA_cohort_unavailable')from error
+def requested_DATA_target(root,path,rows):
+ # Preserve the old public requested-target stat contract. This is not a
+ # substitute for the mandatory whole-cohort guard which follows it.
+ need(type(path)is str and path in rows)
+ return(Path(root)/path).lstat()
 def write_fixture_DATA(root,rows):
  """Only a new empty private DATA root; no path-based mkdir/write traversal."""
  root=Path(root);need(root.is_absolute()and root.resolve()==root and type(rows)is dict and bool(rows))
@@ -217,7 +232,7 @@ class Session:
   self.require();root=Path(root)
   if root==ROOT:return None
   need(root in self.fixtures)
-  for name,(expected,mode)in self.fixtures[root].items():read_fixture_DATA(root/name,expected,mode)
+  guard_fixture_DATA(root,self.fixtures[root])
   self.require()
  def data_snapshot(self,root=ROOT,*args,**kwargs):
   self.require_DATA(root)
@@ -227,6 +242,7 @@ class Session:
   self.require();need(type(path)is str and type(raw)is bytes);root=Path(root)
   if root==ROOT:
    return parent_row_DATA(self.context.current(path),self.parent_data(path),self.context.parent_pins[path],raw)
+  need(root in self.fixtures);requested_DATA_target(root,path,self.fixtures[root])
   self.require_DATA(root);need(raw==self.data_bytes(root/path));return raw
  def fixture_DATA(self,root,paths=None):
   self.require();root=Path(root);need(root.is_absolute()and root.resolve()==root and root!=ROOT and
