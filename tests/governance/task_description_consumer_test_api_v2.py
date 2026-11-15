@@ -1,8 +1,9 @@
 """Actual CURRENT issuer API; no reader/key/root mutation or SQL."""
-import os,re,types,subprocess
+import os,re,types,subprocess,sys
 from pathlib import Path
-import source_operation_snapshot as source
 ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import source_operation_snapshot as source
 def known_dirty_rejection(error,root,expected_checkpoint):
  # Git diff --quiet uses 1 for observed differences. No other subprocess
  # failure is an authorization refusal: preserve diagnostics by re-raising it.
