@@ -30,6 +30,15 @@ def current_helper_nodes(raw):
  nodes=[copy.deepcopy(n)for n in tree.body if isinstance(n,(ast.Assign,ast.Import,ast.ImportFrom))and not(isinstance(n,ast.ImportFrom)and n.module=='task_notice_native_source_test_api_v2')or isinstance(n,ast.FunctionDef)and n.name in HELPERS]
  need(hashlib.sha256(repr(ast_shape(ast.Module(body=nodes,type_ignores=[]))).encode()).hexdigest()==HELPER_AST_SHA256)
  return nodes
+def owned_metadata_DATA(raw,actual):
+ # One named constant only, from authenticated CURRENT source. Never thaw the
+ # graph or relax _constants: the original complete hash check still executes.
+ need(type(raw)is bytes and type(actual)in(dict,types.MappingProxyType))
+ nodes=[node for node in ast.parse(raw).body if isinstance(node,ast.Assign)and any(isinstance(target,ast.Name)and target.id=='CURRENT_METADATA'for target in node.targets)]
+ need(len(nodes)==1 and len(nodes[0].targets)==1)
+ data=ast.literal_eval(nodes[0].value)
+ need(type(data)is dict and data==actual)
+ return data
 def closed_dependency_tree(raw,expected):
  need(type(raw)is bytes and type(expected)is dict)
  tree=ast.parse(raw);removed=[]
@@ -108,6 +117,7 @@ class NoticeDATA:
  def admission_functions_DATA(self):
   self.require();name='project_description_admission_delta';actual=self.op._modules[name]
   namespace=dict(actual.__dict__);namespace['description']=self.session.admission_DATA.description
+  namespace['CURRENT_METADATA']=owned_metadata_DATA(self.context.current('scripts/governance/'+name+'.py'),actual.CURRENT_METADATA)
   namespace['__name__']='Task_CURRENT_admission_functions_parent_DATA'
   tree=ast.parse(self.context.current('scripts/governance/'+name+'.py'))
   functions=[copy.deepcopy(n)for n in tree.body if isinstance(n,ast.FunctionDef)and n.name!='assert_current_recipe']
