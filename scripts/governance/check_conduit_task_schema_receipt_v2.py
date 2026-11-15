@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Conduit-only actual native receipt + Task-OFF schema provenance. No SQL."""
-import argparse,hashlib,json,re,types
+import argparse,hashlib,json,re,types,sys
 from pathlib import Path
 import source_operation_snapshot as source
 import check_directory_transports_task_source_v2 as current_source
@@ -46,9 +46,21 @@ def accept(root,checkpoint,envelope_path,profile_path,profile_sha,runtime_before
   need(validator.profile(profile_path,profile_sha)==profile)
   result={'schema':'native-Conduit-Task-source-schema-receipt-v2','role':'conduit','native_receipt_accepted':True,'original_strict_Conduit_body':native,'source_v2':proof,'Task_additive_schema':delta,'database_runtime':runtime,'source_SQL_obligations':len(sql),'raw_envelope_sha256':hashlib.sha256(envelope_raw).hexdigest(),'runtime_artifact_sha256':{'before':hashlib.sha256(before_raw).hexdigest(),'after':hashlib.sha256(after_raw).hexdigest()},'paired_file_binary_sha256':actual_file,'source_operation_exit_verified':False,'SQL_executed_by_checker':False,'all_sources_complete':False,'restoration_authorized':False,'production_enabled':False,'permission_migration':False}
  result['source_operation_exit_verified']=True;result['source_v2']['source_operation_exit_verified']=True;return result
+
+# Only exact fixed ValueError literals from the bounded source inventory map to enums.
+REJECTION_REASONS={'Task_Conduit_receipt_refused': 'conduit_receipt_fixed_01_01', 'Task_additive_schema_proof_refused': 'conduit_receipt_fixed_02_01', 'Task_Conduit_body_refused': 'conduit_receipt_fixed_03_01', 'Task_OAuth_strict_body_v2_refused': 'conduit_receipt_fixed_04_01', 'Task_native_receipt_v2_refused': 'conduit_receipt_fixed_05_01', 'Task_directory_source_v2_refused': 'conduit_receipt_fixed_06_01', 'source parent alias refused': 'conduit_receipt_fixed_07_01', 'borrowed source obligations changed': 'conduit_receipt_fixed_07_02', 'source revision required': 'conduit_receipt_fixed_07_03', 'Conduit producer obligations refused': 'conduit_receipt_fixed_07_04', 'independent binary pin required': 'conduit_receipt_fixed_07_05', 'captured output refused': 'conduit_receipt_fixed_07_06', 'bounded owned source required': 'conduit_receipt_fixed_07_07', 'source changed during capture': 'conduit_receipt_fixed_07_08', 'reviewed borrowed source changed': 'conduit_receipt_fixed_07_09', 'independent binary mismatch': 'conduit_receipt_fixed_07_10', 'nonfinite': 'conduit_receipt_fixed_07_11', 'source short read': 'conduit_receipt_fixed_07_12', 'source parent changed': 'conduit_receipt_fixed_07_13'}
+def rejection_diagnostic(error):
+ reason=None
+ if type(error)is ValueError and type(error.args)is tuple and len(error.args)==1 and type(error.args[0])is str:
+  reason=REJECTION_REASONS.get(error.args[0])
+ return {'schema':'Conduit-receipt-rejection-v3','role':'conduit','phase':'receipt-check','actual_exit':1,'reason':reason,'native_receipt_accepted':False,'source_operation_exit_verified':False,'SQL_executed_by_checker':False,'runtime_authority':False,'cleanup':'unknown'}
+
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--root',default=str(ROOT))
  for name in('expected-checkpoint','envelope','profile','profile-sha','runtime-before','runtime-after','file-binary','file-sha'):p.add_argument('--'+name,required=True)
  a=p.parse_args()
  try:print(json.dumps(accept(a.root,a.expected_checkpoint,a.envelope,a.profile,a.profile_sha,a.runtime_before,a.runtime_after,a.file_binary,a.file_sha),sort_keys=True))
- except Exception:print('{"native_receipt_accepted":false,"source_operation_exit_verified":false,"SQL_executed_by_checker":false}');raise SystemExit(1)
+ except Exception as error:
+  print('{"native_receipt_accepted":false,"source_operation_exit_verified":false,"SQL_executed_by_checker":false}')
+  try:print(json.dumps(rejection_diagnostic(error),sort_keys=True),file=sys.stderr)
+  finally:raise SystemExit(1)
