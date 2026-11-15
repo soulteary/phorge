@@ -6,7 +6,8 @@ sys.path.insert(0,str(ROOT/'scripts/governance'))
 import check_recovery_oauth_authorization_producer_v1 as gate
 import test_native_organization as base
 from test_recovery_oauth_code_threads import PHP as THREADS
-class AuthorizationSQL(unittest.TestCase):
+from task_oauth_coordination_test_api_v2 import TaskOAuthCurrentCase
+class AuthorizationSQL(TaskOAuthCurrentCase):
  def php(self,code,value=None,*args,disabled='mysqli_init,mysqli_connect,fsockopen,stream_socket_client'):
   p=subprocess.run(['php','-d','disable_functions='+disabled,'-r',code,str(ROOT),*args],input=None if value is None else json.dumps(value),capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);return json.loads(p.stdout)
  def result(self,operation='INSERT'):
@@ -14,11 +15,11 @@ class AuthorizationSQL(unittest.TestCase):
  def identities(self):
   return [{'operation':op,'owner_end':end,'subject_id_digest':hashlib.sha256(('id-'+end).encode()).hexdigest(),'subject_phid_digest':hashlib.sha256(('phid-'+end).encode()).hexdigest(),'client_phid_digest':hashlib.sha256(('client-'+op+end).encode()).hexdigest(),'authorization_id_digest':hashlib.sha256(('row-'+op+end).encode()).hexdigest(),'old_modified':None if op=='INSERT'else 1,'new_modified':2,'owner_persistent_probe':'committed-probe'if end=='commit'else'rolled-back-original'}for op in ['INSERT','UPDATE']for end in ['commit','rollback']]
  def test_actual_twenty_obligations_raw56_and_strict30_receipt(self):
-  self.assertEqual(len(gate.SOURCE_INPUTS),56);self.assertEqual(len(gate.SQL_obligations()),20);self.assertEqual(len(gate.obligations()),30)
+  self.assertEqual(len(gate.SOURCE_INPUTS),56);self.assertEqual(len(self._task_api.auth_SQL_obligations()),20);self.assertEqual(len(self._task_api.auth_obligations()),30)
   actual=self.php("require$argv[1].'/support/governance/recovery/oauth-authorization-cases.php';echo json_encode(governance_recovery_borrowed_oauth_authorization_obligations());")
-  self.assertEqual(set(actual),gate.SQL_obligations());self.assertEqual(len(actual),20)
-  data=base.template();labels=sorted(gate.obligations());data.update(batch='native-oauth-authorization-producer-owner',scope='owned-native-oauth-authorization-producer-owner-no-permit',checks=labels,check_count=30,native=gate.summary('a'*40,self.identities()),file_service_cleanup={'kind':'file','binary_sha256':'b'*64,'process_stopped':True,'private_storage_removed':True},successful_owned_file_service_startups=1,worker_cleanup={'private_directories_removed':4,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':4})
-  self.assertEqual(gate.validate(data,source_revision='a'*40,file_digest='b'*64)['SQL_obligations'],20)
+  self.assertEqual(set(actual),self._task_api.auth_SQL_obligations());self.assertEqual(len(actual),20)
+  data=base.template();labels=sorted(self._task_api.auth_obligations());data.update(batch='native-oauth-authorization-producer-owner',scope='owned-native-oauth-authorization-producer-owner-no-permit',checks=labels,check_count=30,native=self._task_api.auth_summary('a'*40,self.identities()),file_service_cleanup={'kind':'file','binary_sha256':'b'*64,'process_stopped':True,'private_storage_removed':True},successful_owned_file_service_startups=1,worker_cleanup={'private_directories_removed':4,'owned_processes_stopped':0,'cleanup_failures':0,'private_directories_remaining':0,'live_processes_after_cleanup':0,'workers_registered':4})
+  self.assertEqual(self._task_api.auth_validate(data,source_revision='a'*40,file_digest='b'*64)['SQL_obligations'],20)
   for mutate in ['missing','wrongending','unchangedtime','booltime','childcleanup','authority','token']:
    bad=copy.deepcopy(data)
    if mutate=='missing':bad['checks'].pop();bad['check_count']=len(bad['checks'])
@@ -28,7 +29,7 @@ class AuthorizationSQL(unittest.TestCase):
    elif mutate=='childcleanup':bad['worker_cleanup']['private_directories_remaining']=1
    elif mutate=='authority':bad['native']['all_13_sources_complete']=True
    else:bad['native']['source_identities'][0]['token']='CANARY_SECRET'
-   with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+   with self.assertRaises(ValueError):self._task_api.auth_validate(bad,source_revision='a'*40,file_digest='b'*64)
  def test_actual_result_decoder_sorted_keys_and_old_new_identity_guards(self):
   code="require$argv[1].'/support/governance/recovery/oauth-authorization-producer.php';$v=json_decode(stream_get_contents(STDIN),true);try{$r=governance_oauth_authorization_native_borrowed_oauth_authorization_result($v);echo json_encode(['accepted'=>true,'result'=>$r]);}catch(Throwable$e){echo json_encode(['accepted'=>false]);}"
   for op in ['INSERT','UPDATE']:
