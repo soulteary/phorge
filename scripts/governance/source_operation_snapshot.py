@@ -306,6 +306,7 @@ class SourceOperation:
         return self._task_parent_bytes(path)
 
     def historical_task_inputs(self,root,baseline,changed,current):
+        import subprocess
         self.require(root);_need(self._task_source and type(current)is dict)
         normalized={};changed=set(changed);context=self._task_contexts[_root(root)]
         for relative,raw in current.items():
