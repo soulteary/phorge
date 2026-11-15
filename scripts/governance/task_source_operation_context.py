@@ -31,6 +31,7 @@ CI_V2_NEW_PATHS.update({'scripts/governance/project_task_bootstrap_failure_v2.py
 CI_V2_NEW_PATHS.add('tests/governance/test_source_operation_snapshot_task_v2.py')
 CI_V2_NEW_PATHS.update({'tests/governance/assessment_task_test_api_v2.py','tests/governance/task_directory_inventory_test_api_v2.py','tests/governance/test_source_snapshot_assessment_task_v2.py'})
 CI_V2_NEW_PATHS.add('tests/governance/task_notice_native_source_test_api_v2.py')
+CI_V2_NEW_PATHS.update({'tests/governance/assessment_legacy_DATA_model_v3.py','tests/governance/test_assessment_legacy_DATA_model_v3.py'})
 MAX=268435456
 
 def need(v):

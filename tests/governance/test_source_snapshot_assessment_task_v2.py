@@ -8,6 +8,7 @@ import source_operation_snapshot as source
 import check_recovery_assessment_credentials_v2 as assessment
 import project_description_admission_delta as admission
 import assessment_task_test_api_v2 as task
+from assessment_legacy_DATA_model_v3 import legacy_DATA_labels
 from recovery_oauth_code_task_test_cohort_v2 import complete_source_cohort
 
 def canonical_temp_base():return Path(tempfile.gettempdir()).resolve(strict=True)
@@ -30,8 +31,12 @@ class AssessmentTaskTopLevelV2(unittest.TestCase):
   with tempfile.TemporaryDirectory(dir=canonical_temp_base())as directory:
    fixture=Path(directory);self._minimal(fixture)
    with patch.object(source,'open_source_operation',side_effect=AssertionError('unexpected fixture operation')):
-    self.assertEqual(len(assessment.SQL_obligations(fixture)),8)
-    with patch.object(assessment,'ROOT',fixture):self.assertEqual(len(assessment.SQL_obligations(fixture)),8)
+    with self.assertRaises(ValueError):assessment.SQL_obligations(fixture)
+    projected=legacy_DATA_labels(fixture)
+    self.assertEqual(len(projected['labels']),8);self.assertIs(projected['public_default_fixture_executed'],False);self.assertIs(projected['E_is_producer_or_current_source'],False)
+    with patch.object(assessment,'ROOT',fixture):
+     with self.assertRaises(ValueError):assessment.SQL_obligations(fixture)
+     self.assertEqual(len(legacy_DATA_labels(fixture)['labels']),8)
    # Public ROOT reassignment cannot redirect either default's bound code root.
    with patch.object(assessment,'ROOT',fixture):
     with self.assertRaises(ValueError):assessment.SQL_obligations()
@@ -93,7 +98,19 @@ class AssessmentTaskTopLevelV2(unittest.TestCase):
   with tempfile.TemporaryDirectory(dir=canonical_temp_base())as directory:
    fixture=Path(directory);self._minimal(fixture)
    with patch.object(source,'open_source_operation',side_effect=AssertionError('unexpected minimal fixture operation')):
-    self.assertEqual(len(assessment.SQL_obligations(fixture)),8)
-    target=fixture/'support/governance/recovery/assessment-credential-cases.php';target.write_bytes(target.read_bytes()+b'\n# unknown')
     with self.assertRaises(ValueError):assessment.SQL_obligations(fixture)
+    projected=legacy_DATA_labels(fixture)
+    self.assertEqual(len(projected['labels']),8);self.assertIs(projected['public_default_fixture_executed'],False);self.assertIs(projected['runtime_authority'],False)
+    target=fixture/'support/governance/recovery/assessment-credential-cases.php';target.write_bytes(target.read_bytes()+b'\n# unknown')
+    error=None
+    try:legacy_DATA_labels(fixture)
+    except ValueError as caught:error=caught
+    self.assertIsNotNone(error)
+    # Prove the actual current validator rejected actual mutated E bytes,
+    # rather than a broad source/parent-row preflight equality guard.
+    names=[];trace=error.__traceback__
+    while trace is not None:
+     if trace.tb_frame.f_globals.get('__name__','').startswith('unadmitted_legacy_DATA_'):names.append(trace.tb_frame.f_code.co_name)
+     trace=trace.tb_next
+    self.assertTrue(set(names)&{'SQL_obligations','assert_cohort','source_view','reduce_if_selected'})
 if __name__=='__main__':unittest.main()
