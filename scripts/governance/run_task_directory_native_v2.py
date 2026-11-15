@@ -29,7 +29,25 @@ def run(root,checkpoint,directory,stdout_path,stderr_path,php,role="directory"):
    result=subprocess.run([php,'-d','opcache.enable_cli=0','-d','opcache.jit=disable','-d','opcache.jit_buffer_size=0',str(directory/'producer-bound.php'),*arguments],cwd=root,env=env,stdout=files[0],stderr=files[1],timeout=1800)
    code=result.returncode
   finally:
-   for stream in files:stream.flush();os.fsync(stream.fileno());stream.close()
+   sink_errors=[]
+   for stream in files:
+    try:stream.flush();os.fsync(stream.fileno())
+    except OSError as error:sink_errors.append(error)
+    try:stream.close()
+    except OSError as error:sink_errors.append(error)
+   # A diagnostic/log sink failure can never turn a known native failure into
+   # success or replace its actual nonzero exit status. Success still fails shut.
+   if sink_errors and code==0:raise sink_errors[0]
+  if type(code)is int and code!=0 and role in{'conduit','oauth-access','oauth-code','assessment-credential'}:
+   try:
+    relative='scripts/governance/project_task_bootstrap_failure_v2.py'
+    diagnostic=types.ModuleType('Task_CURRENT_failure_only_bootstrap_projection');diagnostic.__file__=str(root/relative)
+    exec(compile(context.current(relative),diagnostic.__file__,'exec'),diagnostic.__dict__)
+    diagnostic.capture_in_operation(operation,root,role,code,directory,stdout_path,stderr_path)
+   except Exception:
+    # Failure-only best effort. No raw exception/log printing, fake native body,
+    # source/schema proof, retry or acceptance; source exit remains mandatory.
+    pass
  return code
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--expected-checkpoint',required=True);p.add_argument('--directory',required=True);p.add_argument('--stdout',required=True);p.add_argument('--stderr',required=True);p.add_argument('--php',default='php');p.add_argument('--role',default='directory',choices=['directory','oauth-authorization','oauth-client-lifecycle','conduit','oauth-access','oauth-code','assessment-credential','full-native']);a=p.parse_args()

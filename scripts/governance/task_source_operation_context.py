@@ -27,6 +27,7 @@ TASK_PREUPGRADE_PARENT_PIN={'bytes': 27902, 'sha256': '00c79b823ae5d92ae6a365f7f
 CI_V2_NEW_PATHS.update({TASK_PREUPGRADE_RECIPE,'tests/governance/test_task_preupgrade_fixture_v1.py'})
 CI_V2_NEW_PATHS.update({'tests/governance/task_historical_views_test_api_v2.py', 'tests/governance/task_oauth_coordination_test_api_v2.py'})
 CI_V2_NEW_PATHS.update({'tests/governance/task_description_shard_routes_v3.py','tests/governance/test_task_description_shard_routes_v3.py'})
+CI_V2_NEW_PATHS.update({'scripts/governance/project_task_bootstrap_failure_v2.py','tests/governance/test_task_bootstrap_failure_diagnostic_v2.py'})
 MAX=268435456
 
 def need(v):

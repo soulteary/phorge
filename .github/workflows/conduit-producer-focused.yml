@@ -175,7 +175,11 @@ jobs:
           python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role conduit --directory "$RUNNER_TEMP/task-conduit-v2-private" --stdout "$RUNNER_TEMP/governance-conduit-focused/integration.json" --stderr "$RUNNER_TEMP/conduit-native.stderr.private" || {
             native_status=$?
             if mkdir "$RUNNER_TEMP/conduit-focused-failure"; then
-              if python3 -B scripts/governance/project_conduit_failure.py --receipt "$RUNNER_TEMP/task-conduit-v2-private/capture-native-body.private.json" > "$RUNNER_TEMP/conduit-focused-failure/diagnostic.pending.json"; then
+              umask 077
+              # Preserve the original fixed-schema projector first. Its exit 0
+              # may still mean unavailable; only the closed chooser can publish.
+              if python3 -B scripts/governance/project_conduit_failure.py --receipt "$RUNNER_TEMP/task-conduit-v2-private/capture-native-body.private.json" > "$RUNNER_TEMP/task-conduit-v2-private/original-projection.private.json" 2> "$RUNNER_TEMP/task-conduit-v2-private/original-projector.stderr.private"; then :; fi
+              if python3 -B scripts/governance/project_task_bootstrap_failure_v2.py --original "$RUNNER_TEMP/task-conduit-v2-private/original-projection.private.json" --bootstrap "$RUNNER_TEMP/task-conduit-v2-private/bootstrap-failure.safe.json" --role conduit --native-exit-code "$native_status" > "$RUNNER_TEMP/conduit-focused-failure/diagnostic.pending.json" 2> "$RUNNER_TEMP/task-conduit-v2-private/bootstrap-projector.stderr.private"; then
                 if mv "$RUNNER_TEMP/conduit-focused-failure/diagnostic.pending.json" "$RUNNER_TEMP/conduit-focused-failure/diagnostic.json"; then
                   if cat "$RUNNER_TEMP/conduit-focused-failure/diagnostic.json" >&2; then :; fi
                   if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi
