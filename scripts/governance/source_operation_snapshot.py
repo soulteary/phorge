@@ -313,6 +313,38 @@ class SourceOperation:
             parent=context.parent(relative)
             if parent is None:changed.discard(relative)
             else:normalized[relative]=parent
+        # The old source-audit fixture reducer reads four physical predecessor
+        # files. Task adds schema source to one of them, so prove that closed
+        # cohort against CURRENT capture + typed parent DATA here before the
+        # unchanged Description reducer. Never replace its reader or issuer.
+        legacy = self._modules['project_content_grant_source_delta']
+        fixture_pins = legacy.FIXTURE_METADATA_PINS
+        selected = set(normalized) & set(fixture_pins)
+        if selected:
+            _need(set(fixture_pins) == {
+                'support/governance/completion/fixture.php',
+                'support/governance/media-session-positive/source-pins.json',
+                'support/governance/media-session-positive/run.php',
+                'support/governance/media-session-ci/README.md'})
+            _need(type(baseline) is str and len(baseline) == 40 and
+                  all(c in '0123456789abcdef' for c in baseline))
+            _need(subprocess.check_output(['git','--no-replace-objects','-C',str(root),
+                  'cat-file','-t',baseline]).strip() == b'commit')
+            for name,pin in fixture_pins.items():
+                path = Path(root)/name
+                _need(path.resolve() == path and path.is_file())
+                physical = context.current(name)
+                parent = context.parent(name)
+                _need(type(physical) is bytes and type(parent) is bytes and
+                      hashlib.sha256(parent).hexdigest() == pin)
+            for name in selected:
+                _need(type(normalized[name]) is bytes and
+                      hashlib.sha256(normalized[name]).hexdigest() == fixture_pins[name])
+                old = subprocess.run(['git','--no-replace-objects','-C',str(root),
+                      'show',baseline+':'+name],capture_output=True)
+                _need(old.returncode == 0 and hashlib.sha256(old.stdout).hexdigest() ==
+                      legacy.FIXTURE_METADATA_BASE_PINS[name])
+                changed.discard(name); normalized.pop(name)
         return self._modules['project_description_admission_delta'].historical_inputs(root,baseline,changed,normalized)
 
     def _assert_current_recipe(self,root):
