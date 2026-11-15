@@ -18,6 +18,7 @@ CI_V2_NEW_PATHS={'tests/governance/task_description_consumer_test_api_v2.py', 's
 CI_V2_NEW_PATHS.update({'scripts/governance/probe_full_native_task_mysql84.php', 'scripts/governance/full_native_task_strict_body_v2.py', 'scripts/governance/check_full_native_task_schema_receipt_v2.py'})
 CI_V2_NEW_PATHS.add('tests/governance/task_current_phase_shell_test_v2.py')
 CI_V2_NEW_PATHS.add('tests/governance/task_atomic_access_shell_test_v2.py')
+CI_V2_NEW_PATHS.update({'scripts/governance/check_native_directory_task_source_v2.py','tests/governance/test_native_directory_task_static_v2.py'})
 MAX=268435456
 
 def need(v):
