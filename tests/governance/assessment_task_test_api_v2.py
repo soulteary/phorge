@@ -1,10 +1,11 @@
 """Explicit test-only genuine Task APIs. No production default replacement."""
-import os,re,sys
+import os,re,sys,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import source_operation_snapshot as source
 import check_recovery_assessment_credentials_v2 as assessment
+from task_description_consumer_test_api_v2 import known_dirty_rejection
 
 def checkpoint():
  value=os.environ.get('PHORGE_TASK_TEST_CHECKPOINT')
@@ -15,15 +16,24 @@ def opened(root=ROOT):return source.open_task_source_operation(root,expected_che
 def call(action,root=ROOT,*,revision=None,issued=None):
  if type(action)is not str or action not in('SQL_obligations','obligations','summary'):raise ValueError('closed_Assessment_Task_action')
  if issued is not None and type(issued)is not list:raise ValueError('actual_owner_collection_only')
- with opened(root)as operation:
-  source.require_task_operation(operation,root)
-  if issued is not None:issued.append(operation)
-  if action=='SQL_obligations':result=assessment.SQL_obligations(root,_source_operation=operation)
-  elif action=='obligations':result=assessment.obligations(root,_source_operation=operation)
-  else:
-   if type(revision)is not str or re.fullmatch('[a-f0-9]{40}',revision)is None:raise ValueError('explicit_summary_label')
-   result=assessment.summary(revision,root,_source_operation=operation)
+ try:
+  with opened(root)as operation:
+   source.require_task_operation(operation,root)
+   if issued is not None:issued.append(operation)
+   if action=='SQL_obligations':result=assessment.SQL_obligations(root,_source_operation=operation)
+   elif action=='obligations':result=assessment.obligations(root,_source_operation=operation)
+   else:
+    if type(revision)is not str or re.fullmatch('[a-f0-9]{40}',revision)is None:raise ValueError('explicit_summary_label')
+    result=assessment.summary(revision,root,_source_operation=operation)
+ except subprocess.CalledProcessError as error:
+  normalize_git_refusal(error,ROOT,checkpoint())
  return result
+
+def normalize_git_refusal(error,root,expected_checkpoint):
+ # Exact observed clean-check diff1 only; infrastructure errors stay original.
+ if known_dirty_rejection(error,Path(root),expected_checkpoint):
+  raise ValueError('Task_current_source_dirty_refused')from error
+ raise error
 
 def parent_inputs(paths):
  """Actual authorized reconstruction DATA only; never import/execute these bytes."""

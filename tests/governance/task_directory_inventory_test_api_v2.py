@@ -35,7 +35,11 @@ class DirectoryDATA:
  def legacy_reduction_DATA(self,name,raw):
   self.require();need(name=='tests/governance/native-directory-transports-source-v1.json')
   need(type(raw)is bytes and raw==self.current_data(name))
-  return self.op._modules['project_content_grant_source_delta'].reduce_if_selected(name,self.parent_data(name))
+  admission=self.op._modules['project_description_admission_delta']
+  normalized=admission._normalize_metadata(name,self.parent_data(name))
+  normalized=admission._normalize_production(name,normalized)
+  need(type(normalized)is bytes)
+  return self.op._modules['project_content_grant_source_delta'].reduce_if_selected(name,normalized)
 @contextmanager
 def directory_DATA(root):
  with owner(root)as operation:
