@@ -133,8 +133,11 @@ class Seams(ast.NodeTransformer):
   return node
 
 class DataView:
- def __init__(self,session,core):object.__setattr__(self,'_session',session);object.__setattr__(self,'_core',core)
- def __setattr__(self,name,value):setattr(self._core,name,value)
+ def __init__(self,session,core):
+  object.__setattr__(self,'_session',session);object.__setattr__(self,'_core',core)
+  object.__setattr__(self,'_mutable_fields',frozenset(core.__dict__))
+ def __setattr__(self,name,value):need(name in self._mutable_fields);setattr(self._core,name,value)
+ def __delattr__(self,name):need(name in self._mutable_fields);delattr(self._core,name)
  def __getattr__(self,name):
   if name=='fixture_DATA':return self._session.fixture_DATA
   if name=='parent_data':return self._session.parent_data
@@ -156,10 +159,18 @@ class DataView:
 
 class Session:
  def __init__(self,operation,root):
-  self.op=operation;self.root=Path(root);self.fixtures={};self.facades=[];self._validation=None;self._validation_manager=None;self._git_DATA={}
+  self.op=operation;self.root=Path(root);self.fixtures={};self.facades=[];self._validation=None;self._validation_manager=None;self._git_DATA={};self._reducers_DATA=None
   self.require();self.context=operation._task_contexts[self.root]
   self.actual=operation._modules['project_description_admission_delta']
+  self.legacy_actual=operation._modules['project_content_grant_source_delta']
   self.admission_DATA=self.facade(self.actual)
+  # Exactly two legacy-owned DATA contracts used by these current helpers.
+  # Do not copy the admission module's broad __getattr__ fallback or change its
+  # actual private graph object/readers. Every value is checked against its real
+  # captured legacy owner by require().
+  for field in ('FIXTURE_METADATA_PINS','REPLACEMENTS'):
+   setattr(self.admission_DATA,field,thaw(getattr(self.legacy_actual,field)))
+  self.facades.append((self.admission_DATA,self.legacy_actual,('FIXTURE_METADATA_PINS','REPLACEMENTS')))
   description=self.facade(self.actual.description)
   description.checked_bytes=self.data_bytes
   description.current_snapshot=self.data_snapshot
@@ -224,7 +235,7 @@ class Session:
    self.actual.MANIFEST,self.actual.BRIDGE,self.actual.PREPARATION,self.actual.description.LEGACY_REDUCER['path'],
    'scripts/governance/project_content_grant_ci_source_delta.py'}
   names.update(self.legacy_core.CLOSED_PATHS);names.update(self.legacy_core.REPAIR_SOURCE_PINS)
-  names.update(self.legacy_core.METADATA_PATHS);names.update(self.actual.FIXTURE_METADATA_PINS)
+  names.update(self.legacy_core.METADATA_PATHS);names.update(self.legacy_actual.FIXTURE_METADATA_PINS)
   names.update(self.actual.PRODUCTION_PINS)
   names.update('scripts/governance/'+n+'.py'for n in MODULE_NAMES)
   names.update(self.r3_core._DOCUMENT_PATHS);names.update(self.r3_core._LIFECYCLE_REVIEWED_ED66)
@@ -244,6 +255,8 @@ class Session:
    self._validation_manager=tempfile.TemporaryDirectory(prefix='Task-legacy-scan-DATA-')
    root=Path(self._validation_manager.name).resolve()
    names={name for name,pin in self.context.parent_pins.items()if name.startswith('src/')and pin['kind']=='file'}
+   manifest=json.loads(self.parent_data('docs/governance/native-directory-callers.json'))
+   names.update(row['path']for row in manifest['sources']+manifest['scan']['files'])
    self.fixture_DATA(root,names);self._validation=root
   return self._validation
  def close_DATA(self):
@@ -262,7 +275,46 @@ class Session:
    if name=='recovery_oauth_authorization_source_delta.py':self.authorization_ast_DATA(raw,prior)
    else:need(raw==prior and sha(raw)==pin)
   need(set(core.PINS)=={name+'.py'for name in MODULE_NAMES})
-  return self.op._modules['recovery_oauth_code_coordinator_delta']
+  return self.reducers_DATA()
+ def current_functions_DATA(self,name):
+  """Compile CURRENT functions only with fixed DATA-stage dependency roles.
+  Never executes the Git predecessor used for the separate AST comparison.
+  The actual private graph and default functions remain untouched.
+  """
+  self.require();need(name in MODULE_NAMES)
+  need(name in self._DATA_bindings);bindings=self._DATA_bindings[name]
+  relative='scripts/governance/'+name+'.py';raw=self.context.current(relative)
+  actual=self.op._modules[name];namespace=dict(actual.__dict__);namespace.update(bindings)
+  namespace['__name__']='Task_CURRENT_functions_historical_DATA_'+name
+  nodes=[copy.deepcopy(node)for node in ast.parse(raw).body if isinstance(node,ast.FunctionDef)]
+  need(bool(nodes));tree=ast.fix_missing_locations(ast.Module(body=nodes,type_ignores=[]))
+  exec(compile(tree,str(ROOT/relative)+'[CURRENT-functions-historical-DATA-only]','exec'),namespace)
+  module=types.ModuleType('Task_CURRENT_functions_historical_DATA_'+name)
+  module.__dict__.update(namespace);return module
+ def reducers_DATA(self):
+  self.require()
+  if self._reducers_DATA is None:
+   # The R3 DATA stage predates Project-description metadata. Preserve all
+   # CURRENT authorization functions/strict guard calls, but bind that one
+   # explicit DATA dependency to the actual captured Project-content reducer.
+   # This object is not a source issuer and supplies no generic fallback.
+   class LegacyDATA:
+    def assert_current_recipe(binding,root=ROOT):self.require_DATA(root)
+    def reduce_if_selected(binding,path,raw):
+     self.require();return self.legacy_actual.reduce_if_selected(path,raw)
+   self._DATA_bindings={'recovery_oauth_authorization_source_delta':{'n05_delta':LegacyDATA()}}
+   auth=self.current_functions_DATA('recovery_oauth_authorization_source_delta')
+   self._DATA_bindings['recovery_partial_current_schema_delta']={'authorization_delta':auth}
+   partial=self.current_functions_DATA('recovery_partial_current_schema_delta')
+   self._DATA_bindings['recovery_oauth_code_source_delta']={'authorization_delta':auth}
+   code=self.current_functions_DATA('recovery_oauth_code_source_delta')
+   self._DATA_bindings['recovery_oauth_code_ci_delta']={'authorization_delta':auth}
+   ci=self.current_functions_DATA('recovery_oauth_code_ci_delta')
+   self._DATA_bindings['recovery_oauth_code_coordinator_delta']={
+    'authorization_delta':auth,'partial_delta':partial,'code_delta':code,'ci_delta':ci}
+   coordinator=self.current_functions_DATA('recovery_oauth_code_coordinator_delta')
+   self._reducers_DATA=coordinator
+  return self._reducers_DATA
  def authorization_ast_DATA(self,current,prior):
   tree=ast.parse(current);old=ast.parse(prior);removed=[]
   for node in tree.body:
