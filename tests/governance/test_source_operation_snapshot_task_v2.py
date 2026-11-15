@@ -219,8 +219,13 @@ class CurrentTaskSourceOperationV2(unittest.TestCase):
         with self.changed(name,(self.producer/name).read_bytes()+b'\nunknown'):
             with self.assertRaises(ValueError):
                 with open_current_Task_v2(self.producer):pass
-        snapshot=admission.description.current_snapshot(self.producer)
-        prior=admission.description.reconstruct_main(snapshot)
+        # Capture authenticated parent DATA under a real current Task owner;
+        # exit that owner before mutating the producer for the original negative.
+        with open_current_Task_v2(self.producer) as operation:
+            source.require_task_operation(operation,self.producer)
+            description=operation._modules['project_description_admission_delta'].description
+            snapshot=description.current_snapshot(self.producer,operation=operation)
+            prior=description.reconstruct_main(snapshot)
         name='src/__phutil_library_map__.php'
         with self.changed(name,prior[name]):
             with self.assertRaises(ValueError):
