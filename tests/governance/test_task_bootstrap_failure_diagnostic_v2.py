@@ -79,15 +79,17 @@ class BootstrapDiagnosticTest(unittest.TestCase):
   raw=(ROOT/M.SELF).read_text();tree=ast.parse(raw);function=next(n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name=='capture_in_operation');body=ast.get_source_segment(raw,function)
   self.assertEqual(body.count('source.require_task_operation(operation,root)'),2)
   self.assertIn('context.current(SELF)==Path(__file__).read_bytes()',body)
-  self.assertIn('if body.exists()or body.is_symlink():return False',body)
+  self.assertIn('body_present=body.exists()or body.is_symlink()',body)
+  self.assertIn('body_raw=private(body)',body)
+  self.assertIn("value['phase']='native-body-unprojected'",body)
   self.assertIn('os.O_EXCL|os.O_NOFOLLOW',body);self.assertIn('dir_fd=dfd',body);self.assertNotIn('body.write',body)
 
  def test_conduit_failure_sink_injections_preserve_original_native_exit(self):
   workflow=(ROOT/'.github/workflows/conduit-producer-focused.yml').read_text()
-  start=workflow.index('            native_status=$?')
-  end=workflow.index('          }',start)
-  body='\n'.join(line[12:]for line in workflow[start:end].splitlines())
-  self.assertLess(body.index('project_conduit_failure.py'),body.index('project_task_bootstrap_failure_v2.py'))
+  start=workflow.index('          conduit_phase=source-preflight')
+  end=workflow.index('          test \"$(git rev-parse HEAD)',start)
+  body='\n'.join(line[10:]for line in workflow[start:end].splitlines())+'\nconduit_phase=native-command\nconduit_native_record_eligible=1\nconduit_failure \"$NATIVE\"'
+  self.assertLess(body.index('project_conduit_failure.py'),body.index('project_conduit_stage_failure_v3.py'))
   self.assertNotIn('integration.json',body);self.assertNotIn('accepted',body)
   setup=r"""
 set -e
@@ -96,7 +98,7 @@ python3(){
   *project_conduit_failure.py*)
    [ "$FAIL" != original ] || return 19
    printf '%s\n' '{"passed":false,"diagnostic_available":false}' ;;
-  *project_task_bootstrap_failure_v2.py*)
+  *project_conduit_stage_failure_v3.py*)
    [ "$FAIL" != chooser ] || return 21
    printf '%s\n' '{"schema":"Task-native-bootstrap-failure-v2","passed":false}' ;;
   *)return 99;;

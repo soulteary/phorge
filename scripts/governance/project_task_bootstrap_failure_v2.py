@@ -12,7 +12,7 @@ ERRORS=frozenset(('RuntimeException','LogicException','InvalidArgumentException'
 PHASES=frozenset(('preflight','full-native-source-restore','owned-real-gorge-file-service',
  'focused-native-conduit-producer-owner','focused-native-oauth-access-producer-owner',
  'focused-native-oauth-code-producer-owner','focused-native-assessment-credential-readset',
- 'unexpected-native-runtime-output'))
+ 'unexpected-native-runtime-output','native-body-unprojected'))
 FILES=(
  'support/governance/task-additive-schema-v2/producer-prefix.php',
  'support/governance/task-additive-schema-v2/run.php','support/governance/task-additive-schema-v2/capture.php',
@@ -111,7 +111,7 @@ def capture_in_operation(operation,root,role,exit_code,directory,stdout_path,std
  need(operation.code_root==root and operation.producer_root==root and source.ROOT==root and role in ROLES)
  context=operation._task_contexts[root];need(context.current(SELF)==Path(__file__).read_bytes())
  body=directory/'capture-native-body.private.json'
- if body.exists()or body.is_symlink():return False
+ body_present=body.exists()or body.is_symlink()
  known={name:context.current(name).count(b'\n')+1 for name in FILES if name in context.entries}
  # Missing/oversized/unsafe private logs yield unknown metadata, never a raw fallback.
  try:stdout=private(stdout_path)
@@ -122,7 +122,14 @@ def capture_in_operation(operation,root,role,exit_code,directory,stdout_path,std
  for name in context.entries:
   basename=Path(name).name;counts[basename]=counts.get(basename,0)+1
  unique=frozenset(Path(name).name for name in known if counts.get(Path(name).name)==1)
- value=project_data(role,exit_code,stdout,stderr,known,unique)
+ # An existing producer body is read-only input, never rewritten or treated as
+ # schema acceptance. Original PHP projector still runs first in the workflow.
+ if body_present:
+  try:body_raw=private(body)
+  except(ValueError,OSError):body_raw=b''
+  value=project_data(role,exit_code,body_raw,stderr,known,unique)
+  if value['phase']=='bootstrap-no-native-body':value['phase']='native-body-unprojected'
+ else:value=project_data(role,exit_code,stdout,stderr,known,unique)
  need(directory.is_absolute()and directory.resolve()==directory and directory!=root and not directory.is_relative_to(root))
  before=directory.lstat();need(stat.S_ISDIR(before.st_mode)and before.st_uid==os.geteuid()and stat.S_IMODE(before.st_mode)==0o700)
  dfd=os.open(directory,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW);fd=None;errors=[]

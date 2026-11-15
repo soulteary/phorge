@@ -159,12 +159,69 @@ jobs:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
         run: |
           umask 077
+          conduit_phase=source-preflight
+          conduit_native_record_eligible=0
+          conduit_event() {
+            # All interpolated values are fixed phase enums or shell exit codes.
+            printf '{"schema":"Conduit-failure-stage-v3","role":"conduit","phase":"%s","actual_exit":%d,"primary_phase":"%s","primary_exit":%d,"passed":false,"runtime_authority":false,"SQL_qualified":false,"cleanup":"unknown","native_or_schema_proof_claimed":false,"source_context_details_available":false,"error_class":null,"source_file":null,"source_line":null,"original_projection_available":false}\n' "$1" "$2" "$3" "$4" >&2
+          }
+          conduit_failure() {
+            primary_exit=$1
+            primary_phase=$conduit_phase
+            trap - ERR
+            # Diagnostic failures never replace the actual primary command exit.
+            private="$RUNNER_TEMP/conduit-phase-failure-private"
+            failure="$RUNNER_TEMP/conduit-focused-failure"
+            if mkdir "$private"; then :; else
+              publication_exit=$?
+              conduit_event failure-publication "$publication_exit" "$primary_phase" "$primary_exit" || :
+              exit "$primary_exit"
+            fi
+            if [ "$primary_phase" = native-command ] && [ "$conduit_native_record_eligible" = 1 ]; then
+              if python3 -B scripts/governance/project_conduit_failure.py --receipt "$RUNNER_TEMP/task-conduit-v2-private/capture-native-body.private.json" > "$private/original-projection.private.json" 2> "$private/original-projector.stderr.private"; then :; else
+                projection_exit=$?
+                conduit_event failure-projection "$projection_exit" "$primary_phase" "$primary_exit" || :
+              fi
+            fi
+            context_args=()
+            if [ "$primary_phase" = native-command ] && [ "$conduit_native_record_eligible" = 1 ]; then
+              context_args=(--original "$private/original-projection.private.json" --bootstrap "$RUNNER_TEMP/task-conduit-v2-private/bootstrap-failure.safe.json")
+            fi
+            if python3 -B scripts/governance/project_conduit_stage_failure_v3.py --phase "$primary_phase" --actual-exit "$primary_exit" --primary-phase "$primary_phase" --primary-exit "$primary_exit" "${context_args[@]}" > "$private/diagnostic.pending.json" 2> "$private/stage-projector.stderr.private"; then
+              if mkdir "$failure" && mv "$private/diagnostic.pending.json" "$failure/diagnostic.json"; then
+                if cat "$failure/diagnostic.json" >&2; then :; else
+                  publication_exit=$?
+                  conduit_event failure-publication "$publication_exit" "$primary_phase" "$primary_exit" || :
+                fi
+                if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; else
+                  publication_exit=$?
+                  conduit_event failure-publication "$publication_exit" "$primary_phase" "$primary_exit" || :
+                fi
+              else
+                publication_exit=$?
+                conduit_event failure-publication "$publication_exit" "$primary_phase" "$primary_exit" || :
+              fi
+            else
+              projection_exit=$?
+              conduit_event failure-projection "$projection_exit" "$primary_phase" "$primary_exit" || :
+            fi
+            # Always publish at least the closed primary event to the live log;
+            # broken storage/projection never causes a raw-stderr fallback.
+            conduit_event "$primary_phase" "$primary_exit" "$primary_phase" "$primary_exit" || :
+            exit "$primary_exit"
+          }
+          trap 'conduit_failure "$?"' ERR
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           sha256sum --check "$RUNNER_TEMP/governance-conduit-focused/verified-maps.sha256"
+          conduit_phase=probe-before
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
           CONDUIT_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_conduit_task_mysql84.php before "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-conduit-focused/mysql-before.pending.json"
           mv "$RUNNER_TEMP/governance-conduit-focused/mysql-before.pending.json" "$RUNNER_TEMP/governance-conduit-focused/mysql-before.json"
+          conduit_phase=native-command
+          test ! -e "$RUNNER_TEMP/task-conduit-v2-private"
+          test ! -L "$RUNNER_TEMP/task-conduit-v2-private"
+          conduit_native_record_eligible=1
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
           PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/conduit-focused-binary/gorge-file-storage" \
           PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/conduit-focused-binary/gorge-file-storage" | cut -d ' ' -f1)" \
@@ -172,28 +229,16 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
-          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role conduit --directory "$RUNNER_TEMP/task-conduit-v2-private" --stdout "$RUNNER_TEMP/governance-conduit-focused/integration.json" --stderr "$RUNNER_TEMP/conduit-native.stderr.private" || {
-            native_status=$?
-            if mkdir "$RUNNER_TEMP/conduit-focused-failure"; then
-              umask 077
-              # Preserve the original fixed-schema projector first. Its exit 0
-              # may still mean unavailable; only the closed chooser can publish.
-              if python3 -B scripts/governance/project_conduit_failure.py --receipt "$RUNNER_TEMP/task-conduit-v2-private/capture-native-body.private.json" > "$RUNNER_TEMP/task-conduit-v2-private/original-projection.private.json" 2> "$RUNNER_TEMP/task-conduit-v2-private/original-projector.stderr.private"; then :; fi
-              if python3 -B scripts/governance/project_task_bootstrap_failure_v2.py --original "$RUNNER_TEMP/task-conduit-v2-private/original-projection.private.json" --bootstrap "$RUNNER_TEMP/task-conduit-v2-private/bootstrap-failure.safe.json" --role conduit --native-exit-code "$native_status" > "$RUNNER_TEMP/conduit-focused-failure/diagnostic.pending.json" 2> "$RUNNER_TEMP/task-conduit-v2-private/bootstrap-projector.stderr.private"; then
-                if mv "$RUNNER_TEMP/conduit-focused-failure/diagnostic.pending.json" "$RUNNER_TEMP/conduit-focused-failure/diagnostic.json"; then
-                  if cat "$RUNNER_TEMP/conduit-focused-failure/diagnostic.json" >&2; then :; fi
-                  if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi
-                fi
-              fi
-            fi
-            exit "$native_status"
-          }
+          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role conduit --directory "$RUNNER_TEMP/task-conduit-v2-private" --stdout "$RUNNER_TEMP/governance-conduit-focused/integration.json" --stderr "$RUNNER_TEMP/conduit-native.stderr.private" || conduit_failure "$?"
+          conduit_phase=probe-after
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
           CONDUIT_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_conduit_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-conduit-focused/mysql-after.pending.json"
           mv "$RUNNER_TEMP/governance-conduit-focused/mysql-after.pending.json" "$RUNNER_TEMP/governance-conduit-focused/mysql-after.json"
+          conduit_phase=receipt-check
           python3 -B scripts/governance/check_conduit_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --runtime-before "$RUNNER_TEMP/governance-conduit-focused/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-conduit-focused/mysql-after.json" --envelope "$RUNNER_TEMP/governance-conduit-focused/integration.json" --profile "$RUNNER_TEMP/task-conduit-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-conduit-v2-private/capture/binding.safe.json")" --file-binary "$RUNNER_TEMP/conduit-focused-binary/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/conduit-focused-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-conduit-focused/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-conduit-focused/accepted.pending.json" "$RUNNER_TEMP/governance-conduit-focused/accepted.json"
+          trap - ERR
       - uses: actions/upload-artifact@v4
         if: success()
         with:
