@@ -33,6 +33,7 @@ CI_V2_NEW_PATHS.update({'tests/governance/assessment_task_test_api_v2.py','tests
 CI_V2_NEW_PATHS.add('tests/governance/task_notice_native_source_test_api_v2.py')
 CI_V2_NEW_PATHS.update({'tests/governance/assessment_legacy_DATA_model_v3.py','tests/governance/test_assessment_legacy_DATA_model_v3.py'})
 CI_V2_NEW_PATHS.add('tests/governance/test_assessment_legacy_DATA_boundaries_v3.py')
+CI_V2_NEW_PATHS.update({'tests/governance/task_explicit_shard_routes_v4.py','tests/governance/test_task_explicit_shard_routes_v4.py'})
 MAX=268435456
 
 def need(v):

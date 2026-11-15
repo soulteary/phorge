@@ -29,7 +29,7 @@ def union_namespace():
 
 def summary(index):
  groups,full=make();groups,full,routes=r.route_groups(groups,full);u=union_namespace();assigned=[row['id']for row in full if u['owner'](row['module'])==index]
- return {'schema':'atomic-governance-unit-shard-v3','metadata':{'synthetic':'not-a-run'},'partition':'module-sha256-description39-v1','description_routes':routes,'shard':index,'shards':2,'full':full,'full_digest':u['digest'](full),'assigned':assigned,'assigned_digest':u['digest'](assigned),'results':[{'id':ident,'status':'ok'}for ident in assigned],'test_count':len(assigned),'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':True}
+ return {'schema':'atomic-governance-unit-shard-v4','metadata':{'synthetic':'not-a-run'},'partition':'module-sha256-explicit72-v1','task_routes':routes,'shard':index,'shards':2,'full':full,'full_digest':u['digest'](full),'assigned':assigned,'assigned_digest':u['digest'](assigned),'results':[{'id':ident,'status':'ok'}for ident in assigned],'test_count':len(assigned),'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':True}
 class Controls(unittest.TestCase):
  def test_closed39_exact_original_objects_and_order(self):
   groups,full=make();before=copy.deepcopy(full);selected,rows,metadata=r.route_groups(groups,full);old={a for a,b in r.ROUTES}
@@ -78,7 +78,7 @@ class Controls(unittest.TestCase):
   for index,data in enumerate((a,b)):self.assertEqual(u['validate'](data,index,data['metadata'])[1],data['assigned'])
  def test_union_every_original_failure_gate_remains(self):
   u=union_namespace();data=summary(0)
-  mutations=[('passed',False),('skipped_ids',[data['assigned'][0]]),('protocol_errors',1),('failure_count',1),('error_count',1),('refusal_stage','failed'),('test_count',True),('test_count',len(data['assigned'])-1),('shard',True),('shards',3),('partition','module-sha256-v1'),('schema','atomic-governance-unit-shard-v2'),('results',data['results'][:-1]),('results',data['results'][::-1]),('assigned',data['assigned'][::-1]),('assigned_digest','0'*64),('full_digest','0'*64),('description_routes',{}),('metadata',{})]
+  mutations=[('passed',False),('skipped_ids',[data['assigned'][0]]),('protocol_errors',1),('failure_count',1),('error_count',1),('refusal_stage','failed'),('test_count',True),('test_count',len(data['assigned'])-1),('shard',True),('shards',3),('partition','module-sha256-v1'),('schema','atomic-governance-unit-shard-v2'),('results',data['results'][:-1]),('results',data['results'][::-1]),('assigned',data['assigned'][::-1]),('assigned_digest','0'*64),('full_digest','0'*64),('task_routes',{}),('metadata',{})]
   for key,value in mutations:
    bad=copy.deepcopy(data);bad[key]=value
    with self.subTest(key=key),self.assertRaises((RuntimeError,ValueError)):u['validate'](bad,0,data['metadata'])
@@ -113,7 +113,7 @@ class Controls(unittest.TestCase):
    self.assertIn("'[0-9a-f]{40}'",ast.unparse(function))
  def test_current_union_keeps_same_run_complete_disjoint_inventory(self):
   blocks=inline_blocks(WORKFLOW.read_text(),'PYUNION');self.assertEqual(len(blocks),1);tree=ast.parse(blocks[0]);text=ast.unparse(tree)
-  for obligation in ('expected_metadata()',"data['metadata'] == metadata","validate_routed_inventory(full, data['description_routes'])","summaries[0]['full'] == summaries[1]['full']",'exact_disjoint_union','same_complete_discovery','no_skip_or_refusal','no_errors','deterministic_assignment','every_assigned_once_ok_in_original_order'):
+  for obligation in ('expected_metadata()',"data['metadata'] == metadata","validate_routed_inventory(full, data['task_routes'])","summaries[0]['full'] == summaries[1]['full']",'exact_disjoint_union','same_complete_discovery','no_skip_or_refusal','no_errors','deterministic_assignment','every_assigned_once_ok_in_original_order'):
    self.assertIn(obligation,text)
  def test_all39_current_target_methods_resolve_directly_or_exact_existing_inheritance(self):
   modules={}
