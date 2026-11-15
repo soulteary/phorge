@@ -30,6 +30,19 @@ def current_helper_nodes(raw):
  nodes=[copy.deepcopy(n)for n in tree.body if isinstance(n,(ast.Assign,ast.Import,ast.ImportFrom))and not(isinstance(n,ast.ImportFrom)and n.module=='task_notice_native_source_test_api_v2')or isinstance(n,ast.FunctionDef)and n.name in HELPERS]
  need(hashlib.sha256(repr(ast_shape(ast.Module(body=nodes,type_ignores=[]))).encode()).hexdigest()==HELPER_AST_SHA256)
  return nodes
+def closed_dependency_tree(raw,expected):
+ need(type(raw)is bytes and type(expected)is dict)
+ tree=ast.parse(raw);removed=[]
+ for node in list(tree.body):
+  if isinstance(node,ast.ImportFrom):raise ValueError('unknown_notice_dependency_import')
+  if not isinstance(node,ast.Import):continue
+  if [(item.name,item.asname)for item in node.names]==[('hashlib',None)]:continue
+  need(len(node.names)==1)
+  item=node.names[0]
+  need(item.name in expected and item.asname==expected[item.name])
+  need(item.name not in removed);removed.append(item.name);tree.body.remove(node)
+ need(set(removed)==set(expected))
+ return tree
 class HelperSeams(ast.NodeTransformer):
  def __init__(self):self.events=[]
  def visit_Import(self,node):
@@ -61,6 +74,8 @@ class NoticeDATA:
   self.actor_DATA=types.SimpleNamespace(read_source_checked=self.read_DATA)
   self.n05=self.admission_functions_DATA()
   self.assessment_DATA=self.assessment_functions_DATA()
+  self.oauth_DATA=self.dependent_functions_DATA('recovery_oauth_source_delta')
+  self.conduit_DATA=self.dependent_functions_DATA('recovery_conduit_source_delta')
   self.helpers=self.helper_functions_DATA()
  def require(self):
   source.require_task_operation(self.op,self.root)
@@ -107,6 +122,20 @@ class NoticeDATA:
   tree.body.remove(imports[0]);namespace={'__file__':str(ROOT/name),'code_delta':self.coordinator.code_delta}
   exec(compile(ast.fix_missing_locations(tree),str(ROOT/name)+'[CURRENT-functions-DATA]','exec'),namespace)
   return types.SimpleNamespace(**namespace)
+ def dependent_functions_DATA(self,name):
+  self.require()
+  if name=='recovery_oauth_source_delta':
+   imports={'recovery_oauth_code_source_delta':'code_delta','recovery_assessment_source_delta':'assessment_delta'}
+   bindings={'code_delta':self.coordinator.code_delta,'assessment_delta':self.assessment_DATA}
+  elif name=='recovery_conduit_source_delta':
+   imports={'recovery_oauth_code_source_delta':'code_delta','recovery_oauth_source_delta':'oauth_delta'}
+   bindings={'code_delta':self.coordinator.code_delta,'oauth_delta':self.oauth_DATA}
+  else:raise ValueError('unknown_notice_dependency_role')
+  relative='scripts/governance/'+name+'.py'
+  tree=closed_dependency_tree(self.context.current(relative),imports)
+  namespace={'__file__':str(ROOT/relative),'__name__':'Task_CURRENT_functions_parent_DATA_'+name,**bindings}
+  exec(compile(ast.fix_missing_locations(tree),str(ROOT/relative)+'[CURRENT-functions-DATA]','exec'),namespace)
+  return types.SimpleNamespace(**namespace)
  def helper_functions_DATA(self):
   self.require();name='tests/governance/test_notice_native_admin_wire_source.py';raw=self.context.current(name)
   # Constants and harmless current imports; never classes, tests or __main__.
@@ -117,6 +146,7 @@ class NoticeDATA:
   seams=HelperSeams();projected=ast.fix_missing_locations(seams.visit(ast.Module(body=nodes,type_ignores=[])))
   need(len(seams.events)==20)
   exec(compile(projected,str(ROOT/name)+'[CURRENT-functions-parent-DATA]','exec'),namespace)
+  namespace['conduit_delta']=self.conduit_DATA
   namespace['code_delta']=self.coordinator.code_delta;namespace['authorization_delta']=self.coordinator.authorization_delta
   namespace['lifecycle_delta']=self.op._modules['recovery_oauth_client_lifecycle_delta']
   self.helper_seams=tuple(seams.events)
