@@ -224,7 +224,7 @@ class CurrentTaskSourceOperationV2(unittest.TestCase):
         with open_current_Task_v2(self.producer) as operation:
             source.require_task_operation(operation,self.producer)
             description=operation._modules['project_description_admission_delta'].description
-            snapshot=description.current_snapshot(self.producer,operation=operation)
+            snapshot=description.current_snapshot(self.producer)
             prior=description.reconstruct_main(snapshot)
         name='src/__phutil_library_map__.php'
         with self.changed(name,prior[name]):
