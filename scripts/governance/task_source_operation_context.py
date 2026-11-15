@@ -147,10 +147,14 @@ class TaskContext:
   for rel,pin in self.parent_pins.items():
    if pin['kind']=='symlink':need(entries[rel]==pin)
  def directory_stamp(self,path,info=None):
-  value=stamp(path.lstat()if info is None else info)
+  # os.lstat is the same non-following stat, without Path.lstat/stat wrappers.
+  value=stamp(os.lstat(path)if info is None else info)
   # Cache pure lexical scope only. Every call still obtains/checks actual stat.
   scopes=getattr(self,'_directory_scopes',None)
-  inside=scopes[path]if scopes is not None and (self.root is self._directory_scopes_root or self.root==self._directory_scopes_root) and path in scopes else path.is_relative_to(self.root)
+  if scopes is not None and (self.root is self._directory_scopes_root or self.root==self._directory_scopes_root):
+   try:inside=scopes[path]
+   except KeyError:inside=path.is_relative_to(self.root)
+  else:inside=path.is_relative_to(self.root)
   return value if inside else value[:5]
  def require(self):
   self.operation._require_task_context(self);need(not self.closed)
