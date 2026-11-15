@@ -67,10 +67,12 @@ class TaskContext:
    directory=path.parent
    if directory not in parent_chains:
     parent_chains[directory]=tuple(ancestor_objects.setdefault(parent,parent)for parent in path.parents)
+    # Previously encountered chains contain only already populated directory
+    # keys. Skip repeated pure membership queries, never filesystem checks.
+    for parent in parent_chains[directory]:
+     if parent not in self.directories:
+      s=parent.lstat();need(stat.S_ISDIR(s.st_mode)and not parent.is_symlink());self.directories[parent]=self.directory_stamp(parent,s)
    file_parents[rel]=parent_chains[directory]
-   for parent in file_parents[rel]:
-    if parent not in self.directories:
-     s=parent.lstat();need(stat.S_ISDIR(s.st_mode)and not parent.is_symlink());self.directories[parent]=self.directory_stamp(parent,s)
    if pin['kind']=='file':
     raw,identity=read(path);need(stat.S_IMODE(identity[2])==pin['mode']and len(raw)==pin['bytes']and sha(raw)==pin['sha256']);self.current_raw[rel]=raw
    else:
