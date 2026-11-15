@@ -43,6 +43,7 @@ jobs:
     env:
       PYTHONDONTWRITEBYTECODE: '1'
       EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
+      PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
         with:

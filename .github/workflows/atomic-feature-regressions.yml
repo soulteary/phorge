@@ -462,7 +462,7 @@ jobs:
       - name: Verify fresh native API credential concurrency after native regression
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir -p "$RUNNER_TEMP/governance-api-credential-concurrency"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-api-credential-concurrency/source-revision.txt"
           sha256sum "$RUNNER_TEMP/gorge-file-storage" "$RUNNER_TEMP/gorge-taskqueue" "$RUNNER_TEMP/gorge-render" | sed "s|$RUNNER_TEMP/||g" > "$RUNNER_TEMP/governance-api-credential-concurrency/binary-sha256.txt"
@@ -479,9 +479,9 @@ jobs:
           PHORGE_GOVERNANCE_GORGE_RENDER_BINARY="$RUNNER_TEMP/gorge-render" \
           PHORGE_GOVERNANCE_GORGE_RENDER_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d ' ' -f1)" \
           PHORGE_GOVERNANCE_GORGE_RENDER_SOURCE_REVISION="$GORGE_CONTRACT_REF" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --api-credential-concurrency > "$RUNNER_TEMP/governance-api-credential-concurrency/integration.json"
-          python3 -B scripts/governance/check_api_credential_concurrency.py --receipt "$RUNNER_TEMP/governance-api-credential-concurrency/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" > "$RUNNER_TEMP/governance-api-credential-concurrency/accepted.json"
+          python3 -B scripts/governance/check_api_credential_concurrency.py --receipt "$RUNNER_TEMP/governance-api-credential-concurrency/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" > "$RUNNER_TEMP/governance-api-credential-concurrency/accepted.json"
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-api-credential-concurrency/normal-regression-accepted.json"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-api-credential-concurrency/shared-native-pure.json"
       - uses: actions/upload-artifact@v4
@@ -493,7 +493,7 @@ jobs:
       - name: Verify fresh native application configuration facts after API concurrency
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir -p "$RUNNER_TEMP/governance-application-config-facts"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-application-config-facts/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-application-config-facts/shared-native-pure.json"
@@ -502,9 +502,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --application-config-facts > "$RUNNER_TEMP/governance-application-config-facts/integration.json"
-          python3 -B scripts/governance/check_recovery_application_config.py --receipt "$RUNNER_TEMP/governance-application-config-facts/integration.json" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-application-config-facts/accepted.json"
+          python3 -B scripts/governance/check_recovery_application_config.py --receipt "$RUNNER_TEMP/governance-application-config-facts/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-application-config-facts/accepted.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -514,7 +514,7 @@ jobs:
       - name: Verify fresh native Project source facts after application configuration
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-project-source-facts"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-project-source-facts/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-project-source-facts/shared-native-pure.json"
@@ -523,9 +523,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --project-source-facts > "$RUNNER_TEMP/governance-project-source-facts/integration.json"
-          python3 -B scripts/governance/check_recovery_project_source.py --receipt "$RUNNER_TEMP/governance-project-source-facts/integration.json" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"
+          python3 -B scripts/governance/check_recovery_project_source.py --receipt "$RUNNER_TEMP/governance-project-source-facts/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-project-source-facts/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
         with:
@@ -535,7 +535,7 @@ jobs:
       - name: Verify fresh native Space source facts after Project source facts
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-spaces-source-facts"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-spaces-source-facts/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-spaces-source-facts/shared-native-pure.json"
@@ -544,9 +544,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --spaces-source-facts > "$RUNNER_TEMP/governance-spaces-source-facts/integration.json"
-          python3 -B scripts/governance/check_recovery_spaces_source.py --receipt "$RUNNER_TEMP/governance-spaces-source-facts/integration.json" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-spaces-source-facts/accepted.json"
+          python3 -B scripts/governance/check_recovery_spaces_source.py --receipt "$RUNNER_TEMP/governance-spaces-source-facts/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-spaces-source-facts/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
         with:
@@ -556,7 +556,7 @@ jobs:
       - name: Verify fresh native partial restoration facts after Space source facts
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-recovery-partial-composition"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-recovery-partial-composition/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-recovery-partial-composition/shared-native-pure.json"
@@ -567,9 +567,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --recovery-partial-composition > "$RUNNER_TEMP/governance-recovery-partial-composition/integration.json"
-          python3 -B scripts/governance/check_recovery_partial_composition.py --receipt "$RUNNER_TEMP/governance-recovery-partial-composition/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json"
+          python3 -B scripts/governance/check_recovery_partial_composition.py --receipt "$RUNNER_TEMP/governance-recovery-partial-composition/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.pending.json" "$RUNNER_TEMP/governance-recovery-partial-composition/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -580,7 +580,7 @@ jobs:
       - name: Verify fresh native Task owner source facts after Space source facts
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-task-owner-source-facts"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-task-owner-source-facts/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-task-owner-source-facts/shared-native-pure.json"
@@ -589,11 +589,11 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
           PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           php support/governance/native-organization/test-native-organization-mysql.php --task-owner-source-facts > "$RUNNER_TEMP/governance-task-owner-source-facts/integration.json"
-          python3 -B scripts/governance/check_recovery_task_owner_source.py --receipt "$RUNNER_TEMP/governance-task-owner-source-facts/integration.json" --source-revision "$GITHUB_SHA" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-task-owner-source-facts/accepted.json"
+          python3 -B scripts/governance/check_recovery_task_owner_source.py --receipt "$RUNNER_TEMP/governance-task-owner-source-facts/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-task-owner-source-facts/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
         with:
@@ -603,7 +603,7 @@ jobs:
       - name: Verify fresh native File source facts after Task owner facts
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-file-source-facts"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-file-source-facts/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-file-source-facts/shared-native-pure.json"
@@ -612,11 +612,11 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
           PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           php support/governance/native-organization/test-native-organization-mysql.php --file-source-facts > "$RUNNER_TEMP/governance-file-source-facts/integration.json"
-          python3 -B scripts/governance/check_recovery_file_source.py --receipt "$RUNNER_TEMP/governance-file-source-facts/integration.json" --source-revision "$GITHUB_SHA" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-source-facts/accepted.json"
+          python3 -B scripts/governance/check_recovery_file_source.py --receipt "$RUNNER_TEMP/governance-file-source-facts/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-source-facts/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
         with:
@@ -626,7 +626,7 @@ jobs:
       - name: Verify fresh native File parent-policy endpoints after File source facts
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-file-parent-policy"
           sha256sum --check /tmp/atomic-maps.sha256
           cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-file-parent-policy/verified-maps.sha256"
@@ -639,9 +639,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --file-parent-policy > "$RUNNER_TEMP/governance-file-parent-policy/integration.json" || { native_status=$?; python3 -B scripts/governance/project_file_parent_failure.py --receipt "$RUNNER_TEMP/governance-file-parent-policy/integration.json" || true; exit "$native_status"; }
-          python3 -B scripts/governance/check_recovery_file_parent_policy.py --receipt "$RUNNER_TEMP/governance-file-parent-policy/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json"
+          python3 -B scripts/governance/check_recovery_file_parent_policy.py --receipt "$RUNNER_TEMP/governance-file-parent-policy/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json" "$RUNNER_TEMP/governance-file-parent-policy/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -652,7 +652,7 @@ jobs:
       - name: Verify fresh native Session producer lease after File source facts
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-session-producer-lease"
           sha256sum --check /tmp/atomic-maps.sha256
           cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-session-producer-lease/verified-maps.sha256"
@@ -665,9 +665,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --session-producer-lease > "$RUNNER_TEMP/governance-session-producer-lease/integration.json"
-          python3 -B scripts/governance/check_recovery_session_lease.py --receipt "$RUNNER_TEMP/governance-session-producer-lease/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-session-producer-lease/accepted.pending.json"
+          python3 -B scripts/governance/check_recovery_session_lease.py --receipt "$RUNNER_TEMP/governance-session-producer-lease/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-session-producer-lease/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-session-producer-lease/accepted.pending.json" "$RUNNER_TEMP/governance-session-producer-lease/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -679,7 +679,7 @@ jobs:
         id: borrowed-owner
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-borrowed-session-owner"
           sha256sum --check /tmp/atomic-maps.sha256
           cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-borrowed-session-owner/verified-maps.sha256"
@@ -692,9 +692,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --session-borrowed-owner > "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-borrowed-session-failure"; then if python3 -B scripts/governance/project_borrowed_failure.py --receipt "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" > "$RUNNER_TEMP/governance-borrowed-session-failure/diagnostic.json"; then cat "$RUNNER_TEMP/governance-borrowed-session-failure/diagnostic.json" >&2; echo "diagnostic_owned=true" >> "$GITHUB_OUTPUT"; fi; fi; exit "$native_status"; }
-          python3 -B scripts/governance/check_recovery_borrowed_session.py --receipt "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json"
+          python3 -B scripts/governance/check_recovery_borrowed_session.py --receipt "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json" "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -712,7 +712,7 @@ jobs:
         id: conduit-owner
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-conduit-producer-owner"
           sha256sum --check /tmp/atomic-maps.sha256
           cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-conduit-producer-owner/verified-maps.sha256"
@@ -725,7 +725,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --conduit-producer-owner > "$RUNNER_TEMP/governance-conduit-producer-owner/integration.json" || {
             native_status=$?
             if mkdir "$RUNNER_TEMP/governance-conduit-producer-failure"; then
@@ -738,7 +738,7 @@ jobs:
             fi
             exit "$native_status"
           }
-          python3 -B scripts/governance/check_recovery_conduit_producer.py --receipt "$RUNNER_TEMP/governance-conduit-producer-owner/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.pending.json"
+          python3 -B scripts/governance/check_recovery_conduit_producer.py --receipt "$RUNNER_TEMP/governance-conduit-producer-owner/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.pending.json" "$RUNNER_TEMP/governance-conduit-producer-owner/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -757,7 +757,7 @@ jobs:
         id: oauth-access-owner
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-oauth-access-producer-owner"
           sha256sum --check /tmp/atomic-maps.sha256
           cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-oauth-access-producer-owner/verified-maps.sha256"
@@ -772,7 +772,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-oauth-access-owner-mysql.php --oauth-access-producer-owner > "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" 2> "$RUNNER_TEMP/oauth-access-native.stderr.private" || {
             native_status=$?
             if mkdir "$RUNNER_TEMP/governance-oauth-access-producer-failure"; then
@@ -785,7 +785,7 @@ jobs:
             fi
             exit "$native_status"
           }
-          python3 -B scripts/governance/check_recovery_oauth_access_producer_v3.py --receipt "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json"
+          python3 -B scripts/governance/check_recovery_oauth_access_producer_v3.py --receipt "$RUNNER_TEMP/governance-oauth-access-producer-owner/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.pending.json" "$RUNNER_TEMP/governance-oauth-access-producer-owner/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -804,7 +804,7 @@ jobs:
         id: calendar-reminders
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-private-calendar-reminders"
           sha256sum --check /tmp/atomic-maps.sha256
           cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-private-calendar-reminders/verified-maps.sha256"
@@ -818,9 +818,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --calendar-reminders > "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-private-calendar-failure"; then if python3 -B scripts/governance/project_calendar_failure.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --output "$RUNNER_TEMP/governance-private-calendar-failure/diagnostic.json"; then if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi; fi; fi; exit "$native_status"; }
-          python3 -B scripts/governance/check_private_calendar_reminders.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --queue-binary "$RUNNER_TEMP/gorge-taskqueue" --queue-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json"
+          python3 -B scripts/governance/check_private_calendar_reminders.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --queue-binary "$RUNNER_TEMP/gorge-taskqueue" --queue-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json" "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -837,7 +837,7 @@ jobs:
       - name: Verify fresh native organization approval workbench after File source facts
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           mkdir "$RUNNER_TEMP/governance-organization-approval-workbench"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-organization-approval-workbench/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-organization-approval-workbench/shared-native-pure.json"
@@ -846,9 +846,9 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
           php support/governance/native-organization/test-native-organization-mysql.php --organization-approval-workbench > "$RUNNER_TEMP/governance-organization-approval-workbench/integration.json"
-          python3 -B scripts/governance/check_organization_approval_workbench.py --receipt "$RUNNER_TEMP/governance-organization-approval-workbench/integration.json" --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-organization-approval-workbench/accepted.json"
+          python3 -B scripts/governance/check_organization_approval_workbench.py --receipt "$RUNNER_TEMP/governance-organization-approval-workbench/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-organization-approval-workbench/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
         with:
@@ -936,12 +936,22 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
       ATOMIC_UNIT_SHARD: '0'
       ATOMIC_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
+      PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
     - name: Governance unit / Check out exact source
       uses: actions/checkout@v6
       with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
         persist-credentials: false
+    - name: Governance unit / Bind external event head and isolated PUBLIC verification home
+      run: |
+        umask 077
+        trust_home="$RUNNER_TEMP/task-source-public-trust"
+        python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+        python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+        echo "HOME=$trust_home" >> "$GITHUB_ENV"
     - name: Governance unit / Set up the production PHP baseline
       uses: shivammathur/setup-php@v2
       with:
@@ -1089,7 +1099,9 @@ jobs:
         python3 - <<'PYUNIT'
         import hashlib,json,os,sys,unittest
         from pathlib import Path
-        SCHEMA='atomic-governance-unit-shard-v2'
+        sys.path.insert(0,str(Path('tests/governance').resolve()))
+        from task_description_shard_routes_v3 import route_groups,route_metadata
+        SCHEMA='atomic-governance-unit-shard-v3'
         def need(value,label):
             if not value:raise RuntimeError('governance_unit_shard_refused:'+label)
         def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -1152,14 +1164,15 @@ jobs:
             need(re.fullmatch('[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',m['repository'])is not None,'repository')
             for key in ('run_id','run_attempt'):need(re.fullmatch('[1-9][0-9]*',m[key])is not None,'run_identity')
             for key in ('workflow_sha','head_sha','source_revision','source_tree'):need(re.fullmatch('[0-9a-f]{40}',m[key])is not None,'source_identity')
-            need(m['workflow_sha']==m['source_revision'],'checkout_identity')
+            need(m['source_revision']==m['head_sha'],'checkout_identity')
             return m
         def main():
             shard=os.environ.get('ATOMIC_UNIT_SHARD','');need(shard in ('0','1'),'shard_index');shard=int(shard)
             folder=Path(os.environ['RUNNER_TEMP'])/'governance-unit-tests';folder.mkdir(mode=0o700,parents=True,exist_ok=True)
-            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-v1','shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
+            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-description39-v1','description_routes':route_metadata(),'shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
             try:
-                groups,full=discover_plan(Path('tests/governance'));data['full']=full;data['full_digest']=digest(full)
+                groups,full=discover_plan(Path('tests/governance'))
+                groups,full,routes=route_groups(groups,full);data['description_routes']=routes;data['full']=full;data['full_digest']=digest(full)
                 selected=[suite for module,suite,rows in groups if owner(module)==shard]
                 assigned=[row['id']for row in full if owner(row['module'])==shard]
                 need(bool(assigned),'empty_shard');data['assigned']=assigned;data['assigned_digest']=digest(assigned)
@@ -1227,12 +1240,22 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
       ATOMIC_UNIT_SHARD: '1'
       ATOMIC_EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
+      PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
     - name: Governance unit / Check out exact source
       uses: actions/checkout@v6
       with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
         persist-credentials: false
+    - name: Governance unit / Bind external event head and isolated PUBLIC verification home
+      run: |
+        umask 077
+        trust_home="$RUNNER_TEMP/task-source-public-trust"
+        python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+        python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+        echo "HOME=$trust_home" >> "$GITHUB_ENV"
     - name: Governance unit / Set up the production PHP baseline
       uses: shivammathur/setup-php@v2
       with:
@@ -1380,7 +1403,9 @@ jobs:
         python3 - <<'PYUNIT'
         import hashlib,json,os,sys,unittest
         from pathlib import Path
-        SCHEMA='atomic-governance-unit-shard-v2'
+        sys.path.insert(0,str(Path('tests/governance').resolve()))
+        from task_description_shard_routes_v3 import route_groups,route_metadata
+        SCHEMA='atomic-governance-unit-shard-v3'
         def need(value,label):
             if not value:raise RuntimeError('governance_unit_shard_refused:'+label)
         def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -1443,14 +1468,15 @@ jobs:
             need(re.fullmatch('[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',m['repository'])is not None,'repository')
             for key in ('run_id','run_attempt'):need(re.fullmatch('[1-9][0-9]*',m[key])is not None,'run_identity')
             for key in ('workflow_sha','head_sha','source_revision','source_tree'):need(re.fullmatch('[0-9a-f]{40}',m[key])is not None,'source_identity')
-            need(m['workflow_sha']==m['source_revision'],'checkout_identity')
+            need(m['source_revision']==m['head_sha'],'checkout_identity')
             return m
         def main():
             shard=os.environ.get('ATOMIC_UNIT_SHARD','');need(shard in ('0','1'),'shard_index');shard=int(shard)
             folder=Path(os.environ['RUNNER_TEMP'])/'governance-unit-tests';folder.mkdir(mode=0o700,parents=True,exist_ok=True)
-            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-v1','shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
+            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-description39-v1','description_routes':route_metadata(),'shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
             try:
-                groups,full=discover_plan(Path('tests/governance'));data['full']=full;data['full_digest']=digest(full)
+                groups,full=discover_plan(Path('tests/governance'))
+                groups,full,routes=route_groups(groups,full);data['description_routes']=routes;data['full']=full;data['full_digest']=digest(full)
                 selected=[suite for module,suite,rows in groups if owner(module)==shard]
                 assigned=[row['id']for row in full if owner(row['module'])==shard]
                 need(bool(assigned),'empty_shard');data['assigned']=assigned;data['assigned_digest']=digest(assigned)
@@ -1511,6 +1537,7 @@ jobs:
     - name: Gate / Check out the exact source for summary lineage
       uses: actions/checkout@v6
       with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0
         persist-credentials: false
     - name: Gate / Download same-run shard 0 safe summary
@@ -1529,9 +1556,11 @@ jobs:
         ATOMIC_RESULT_ROOT: ${{ runner.temp }}/atomic-unit-gate
       run: |
         python3 - <<'PYUNION'
-        import hashlib,json,os,re,stat,subprocess
+        import hashlib,json,os,re,stat,subprocess,sys
         from pathlib import Path
-        KEYS={'schema','metadata','partition','shard','shards','full','full_digest','assigned','assigned_digest','results','test_count','skipped_ids','protocol_errors','failure_count','error_count','refusal_stage','passed'}
+        sys.path.insert(0,str(Path('tests/governance').resolve()))
+        from task_description_shard_routes_v3 import validate_routed_inventory
+        KEYS={'schema','metadata','partition','description_routes','shard','shards','full','full_digest','assigned','assigned_digest','results','test_count','skipped_ids','protocol_errors','failure_count','error_count','refusal_stage','passed'}
         def need(value,label):
             if not value:raise RuntimeError('atomic_unit_union_refused:'+label)
         def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -1551,13 +1580,14 @@ jobs:
             need(re.fullmatch('[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',m['repository'])is not None,'repository')
             for key in ('run_id','run_attempt'):need(re.fullmatch('[1-9][0-9]*',m[key])is not None,'run_identity')
             for key in ('workflow_sha','head_sha','source_revision','source_tree'):need(re.fullmatch('[0-9a-f]{40}',m[key])is not None,'source_identity')
-            need(m['workflow_sha']==m['source_revision'],'checkout_identity');return m
+            need(m['source_revision']==m['head_sha'],'checkout_identity');return m
         def validate(data,index,metadata):
             need(type(data)is dict and set(data)==KEYS,'closed_summary')
-            need(data['schema']=='atomic-governance-unit-shard-v2' and data['metadata']==metadata and data['partition']=='module-sha256-v1','same_run_head_attempt_source')
+            need(data['schema']=='atomic-governance-unit-shard-v3' and data['metadata']==metadata and data['partition']=='module-sha256-description39-v1','same_run_head_attempt_source')
             need(type(data['shard'])is int and data['shard']==index and type(data['shards'])is int and data['shards']==2,'shard_identity')
             full=data['full'];need(type(full)is list and 0<len(full)<=32768,'full_inventory')
             for row in full:need(type(row)is dict and set(row)=={'id','module'}and type(row['id'])is str and 0<len(row['id'])<=2048 and type(row['module'])is str and 0<len(row['module'])<=512 and row['id'].startswith(row['module']+'.'),'full_row')
+            validate_routed_inventory(full,data['description_routes'])
             ids=[row['id']for row in full];need(len(ids)==len(set(ids))and data['full_digest']==digest(full),'full_unique_digest')
             assigned=[row['id']for row in full if owner(row['module'])==index]
             need(bool(assigned)and data['assigned']==assigned and data['assigned_digest']==digest(assigned),'deterministic_assignment')
@@ -1572,7 +1602,7 @@ jobs:
                 data,h=read_summary(root/('shard-'+str(index)));ids,part=validate(data,index,m);summaries.append(data);digests.append(h);assigned.append(part)
             need(summaries[0]['full']==summaries[1]['full'],'same_complete_discovery')
             need(not(set(assigned[0])&set(assigned[1]))and set(assigned[0])|set(assigned[1])==set(ids),'exact_disjoint_union')
-            out={'schema':'atomic-governance-unit-union-v2','metadata':m,'full_digest':summaries[0]['full_digest'],'full':summaries[0]['full'],'test_count':len(ids),'shard_counts':[len(part)for part in assigned],'summary_sha256':digests,'skipped_ids':[],'passed':True}
+            out={'schema':'atomic-governance-unit-union-v3','description_routes':summaries[0]['description_routes'],'metadata':m,'full_digest':summaries[0]['full_digest'],'full':summaries[0]['full'],'test_count':len(ids),'shard_counts':[len(part)for part in assigned],'summary_sha256':digests,'skipped_ids':[],'passed':True}
             target=root/'union-results.json';target.write_text(json.dumps(out,sort_keys=True,indent=2)+'\n');target.chmod(0o600)
             print('Both unit shards executed their complete disjoint assignment successfully')
         if __name__=='__main__':main()
