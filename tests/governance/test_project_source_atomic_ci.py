@@ -5,6 +5,12 @@ ROOT=Path(__file__).resolve().parents[2]
 NAME='      - name: Verify fresh native Project source facts after application configuration\n'
 ARTIFACT='governance-project-source-facts'
 MEMBERS={'integration.json','accepted.json','source-revision.txt','shared-native-pure.json','normal-regression-accepted.json'}
+CURRENT_NOTIFICATION_GATE = 'python3 -B scripts/governance/check_full_native_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --consumer notifications --envelope "$RUNNER_TEMP/governance-native-organization/integration.json" --native-body "$RUNNER_TEMP/task-full-native-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-full-native-v2-private/capture/schema-profile.private.json" --runtime-before "$RUNNER_TEMP/governance-native-organization/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-native-organization/mysql-after.json" --profile-sha "$(python3 -c \'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])\' "$RUNNER_TEMP/task-full-native-v2-private/capture/binding.safe.json")" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d \' \' -f1)" --render-binary "$RUNNER_TEMP/gorge-render" --render-sha "$(sha256sum "$RUNNER_TEMP/gorge-render" | cut -d \' \' -f1)" --taskqueue-binary "$RUNNER_TEMP/gorge-taskqueue" --taskqueue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d \' \' -f1)" > "$RUNNER_TEMP/governance-native-organization/private-email-sources.json"'
+CURRENT_NOTIFICATION_REQUIRED_FLAGS = ('--root', '--expected-checkpoint', '--consumer', '--envelope', '--native-body', '--profile', '--runtime-before', '--runtime-after', '--profile-sha', '--file-binary', '--file-sha', '--render-binary', '--render-sha', '--taskqueue-binary', '--taskqueue-sha')
+def require_current_notification_gate(before):
+ lines=[line.strip()for line in before.splitlines()if 'check_full_native_task_schema_receipt_v2.py' in line and '--consumer notifications' in line]
+ if lines != [CURRENT_NOTIFICATION_GATE]:raise ValueError('current_Task_notification_predecessor_refused')
+ return before.index(CURRENT_NOTIFICATION_GATE)
 def stable_stamp(path):
  st=path.lstat()
  # Reading an owned path may update atime; it is not evidence of a write.
@@ -14,7 +20,7 @@ def validate_workflow(workflow):
   if not value:raise ValueError('Project CI contract refused')
  need(workflow.count(NAME)==1)
  before,rest=workflow.split(NAME,1);step,artifact=rest.split('      - uses:',1);artifact=artifact.split('      - name:',1)[0]
- need('python3 scripts/governance/check_private_notifications.py --receipt' in before)
+ require_current_notification_gate(before)
  need('python3 -B scripts/governance/check_api_credential_concurrency.py --receipt' in before)
  need('python3 -B scripts/governance/check_recovery_application_config.py --receipt' in before)
  need('if:' not in step and 'continue-on-error' not in step and '|| true' not in step)
@@ -88,4 +94,14 @@ class ProjectSourceAtomic(unittest.TestCase):
   for old,new in [('mkdir "$RUNNER_TEMP/governance-project-source-facts"','mkdir -p "$RUNNER_TEMP/governance-project-source-facts"'),('if: success()','if: always()')]:
    before,section=self.workflow.split(NAME,1)
    with self.assertRaises(ValueError):validate_workflow(before+NAME+section.replace(old,new,1))
+ def test_current_notification_predecessor_requires_all_versioned_inputs(self):
+     require_current_notification_gate(self.workflow)
+     for flag in CURRENT_NOTIFICATION_REQUIRED_FLAGS:
+         mutant=self.workflow.replace(CURRENT_NOTIFICATION_GATE,CURRENT_NOTIFICATION_GATE.replace(flag+' ', '--omitted-'+flag[2:]+' ',1),1)
+         with self.subTest(flag=flag),self.assertRaises(ValueError):require_current_notification_gate(mutant)
+     for suffix in (' || true','; true'):
+         mutant=self.workflow.replace(CURRENT_NOTIFICATION_GATE,CURRENT_NOTIFICATION_GATE+suffix,1)
+         with self.assertRaises(ValueError):require_current_notification_gate(mutant)
+     for changed in (CURRENT_NOTIFICATION_GATE.replace('$EXPECTED_SOURCE_CHECKPOINT','$GITHUB_SHA'),CURRENT_NOTIFICATION_GATE.replace('--consumer notifications','--consumer native')):
+         with self.assertRaises(ValueError):require_current_notification_gate(self.workflow.replace(CURRENT_NOTIFICATION_GATE,changed,1))
 if __name__=='__main__':unittest.main()
