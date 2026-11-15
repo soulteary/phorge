@@ -185,7 +185,9 @@ class NewPathPolicy(unittest.TestCase):
         calls={}
         for n in ast.walk(entry):
             if isinstance(n,ast.Call):calls.setdefault(ast.unparse(n.func),[]).append(n.lineno)
-        self.assertLess(min(calls['admission.assert_current_recipe']),min(calls['_authenticate_registry']))
+        self.assertLess(min(calls['self._assert_current_recipe']),min(calls['_authenticate_registry']))
+        helper=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='_assert_current_recipe')
+        self.assertEqual(ast.unparse(helper.body[0].value), 'admission.assert_current_recipe(root, operation=self) if self._task_source else admission.assert_current_recipe(root)')
         self.assertLess(min(calls['_authenticate_registry']),min(calls['_new_path_policy']))
 
 class CurrentSourceOperation(unittest.TestCase):
@@ -659,12 +661,14 @@ class HeldMediaPolicy(unittest.TestCase):
         cls=next(n for n in tree.body if isinstance(n,ast.ClassDef)and n.name=='SourceOperation')
         entry=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='__enter__');exit=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='__exit__')
         text=ast.unparse(entry)
-        self.assertLess(text.index('admission.assert_current_recipe'),text.index('_authenticate_registry'))
+        self.assertLess(text.index('self._assert_current_recipe'),text.index('_authenticate_registry'))
+        helper=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='_assert_current_recipe')
+        self.assertEqual(ast.unparse(helper.body[0].value), 'admission.assert_current_recipe(root, operation=self) if self._task_source else admission.assert_current_recipe(root)')
         self.assertLess(text.index('_successor_policy'),text.index('_held_media_current_pins'))
         held_line=next(n.lineno for n in ast.walk(entry)if isinstance(n,ast.Call)and isinstance(n.func,ast.Name)and n.func.id=='_held_media_current_pins')
         loop_line=next(n.lineno for n in ast.walk(entry)if isinstance(n,ast.For)and ast.unparse(n.iter)=='admission.CURRENT_METADATA.items()')
         self.assertLess(held_line,loop_line)
-        self.assertIn('_read_held_media',ast.unparse(exit));self.assertIn('admission.assert_current_recipe',ast.unparse(exit))
+        self.assertIn('_read_held_media',ast.unparse(exit));self.assertIn('self._assert_current_recipe',ast.unparse(exit))
 
 class PreparedRolePolicy(unittest.TestCase):
     """Unadmitted component controls, never a SourceOperation or runtime proof."""
@@ -843,7 +847,8 @@ class PreparedRolePolicy(unittest.TestCase):
         exec(compile(ast.Module(body=[method],type_ignores=[]),'<actual-exit-body>','exec'),ns)
         owner=SimpleNamespace(require=lambda:None,_verify_ancestor_identities=lambda:None,
             _graph_objects=(),_graph_seals={},_snapshots={self.root:{}},
-            _prepared_ledgers={self.root:IntegrityOnly()},_reset=object(),_modules={})
+            _prepared_ledgers={self.root:IntegrityOnly()},_reset=object(),_modules={},
+            _assert_current_recipe=guard,_task_contexts={})
         with self.assertRaises(ValueError):ns['__exit__'](owner,None,None,None)
         self.assertEqual(calls,['ledger','source-guard','ledger'])
         self.assertEqual(owner._state,'closed')
