@@ -43,6 +43,31 @@ class GrantSourceDATA:
   if root==ROOT:return self.actual.assert_current_recipe(root)
   need(root in self.legacy._session.fixtures)
   return self.public.assert_current_recipe(root)
+ def current_data(self,name):self.require();return self.context.current(name)
+ def complete_fixture_DATA(self,root):
+  self.require()
+  names=set(self.PRODUCTION_PINS)|set(self.CURRENT_METADATA)|set(self.PINS)|{self.MANIFEST,self.BRIDGE,self.PREPARATION,self.description.LEGACY_REDUCER['path'],'scripts/governance/project_content_grant_ci_source_delta.py'}
+  return self.write_fixture_DATA(root,names)
+ def assert_cohort(self,root=ROOT):
+  self.require();root=Path(root)
+  if root==ROOT:return self.actual.assert_cohort(root)
+  need(root in self.legacy._session.fixtures)
+  return self.public.assert_cohort(root)
+ def assert_workflow(self,path,raw):self.require();return self.actual.assert_workflow(path,raw)
+ def historical_inputs(self,root,baseline,changed,current):
+  self.require();need(Path(root)==ROOT)
+  # These caller values are explicitly historical DATA; this original reducer
+  # does not issue a source role, and unrelated DATA stays unrelated DATA.
+  return self.actual.historical_inputs(root,baseline,changed,current)
+ def fixture_historical_inputs(self,root,baseline,changed,current):
+  self.require();root=Path(root)
+  if root==ROOT:
+   need(set(current)==set(self.op._modules['project_content_grant_source_delta'].FIXTURE_METADATA_PINS)and set(changed)==set(current))
+   # Authentic CURRENT bytes, actual fixed-four parent proof and original
+   # baseline validation live inside this genuine operation, not a fake reader.
+   return self.op.historical_task_inputs(root,baseline,changed,current)
+  need(root in self.legacy._session.fixtures)
+  return self.public.legacy.fixture_historical_inputs(root,baseline,changed,current)
  def reduce_production(self,name,raw):self.require();return self.actual.reduce_production(name,raw)
  def reduce_if_selected(self,name,raw):self.require();return self.actual.reduce_if_selected(name,raw)
  def media_source_delta(self):

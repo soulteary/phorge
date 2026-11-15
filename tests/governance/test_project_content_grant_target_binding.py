@@ -2,12 +2,13 @@
 import hashlib,importlib.util,json,subprocess,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
+from project_grant_source_task_test_api_v2 import GrantSourceCurrentCase
 ROOT=Path(__file__).resolve().parents[2]
 def load(name,path):
  spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 CI=load('stageB_CI',ROOT/'support/governance/project-content-grants-ci/ci.py')
 Q=load('stageB_qualification',ROOT/'support/governance/project-content-grants-qualification/qualify.py')
-class ActualTargetBinding(unittest.TestCase):
+class ActualTargetBinding(GrantSourceCurrentCase):
  def test_actual_36_baseline_and48_T3_target_Git_pins_and_typed_symlinks(self):
   for kind,key,count,revision,tree in [('prerequisites','native_public_source_dependencies',36,CI.BASE,CI.BASE_TREE),('qualification','native_source_inventory',50,CI.TARGET,CI.TREE)]:
    f=json.loads((ROOT/'support/governance/project-content-grants-ci'/(kind+'-template.json')).read_bytes());self.assertEqual(f['schema'],'N05-CI-reviewed-source-template-v2');self.assertEqual((f['native_git_revision'],f['native_git_tree']),(revision,tree));self.assertEqual(len(f[key]),count)
@@ -19,7 +20,7 @@ class ActualTargetBinding(unittest.TestCase):
   folder=ROOT/'support/governance/project-content-grants-qualification';path=ROOT/'support/governance/project-content-grants-ci/qualification-template.json'
   # Recipe HEAD legitimately advances; qualification must use a real exact-target checkout.
   with tempfile.TemporaryDirectory()as td:
-   native=Path(td).resolve()/'native'
+   native=Path(td).resolve().resolve()/'native'
    subprocess.run(['/usr/bin/git','clone','--shared','--no-checkout','--',str(ROOT),str(native)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
    subprocess.run(['/usr/bin/git','-C',str(native),'checkout','--detach',CI.TARGET],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
    bound=CI.bind_manifest(path,folder,'qualification',native);self.assertEqual(bound['schema'],'N05-CI-bound-reviewed-source-v2');self.assertEqual(bound['native_git_revision'],CI.TARGET)
@@ -30,7 +31,7 @@ class ActualTargetBinding(unittest.TestCase):
   f=json.loads(path.read_bytes())
   for key,value in [('native_git_revision','ef7be9c5c62e1fd93e358c556706261e85558960'),('schema','N05-CI-reviewed-source-template-v1'),('native_git_revision','79987a76658150e77fc5266fae13c2eaed934ff2'),('native_git_tree','0'*40)]:
    with tempfile.TemporaryDirectory()as td:
-    p=Path(td)/'template.json';p.write_text(json.dumps(dict(f,**{key:value})))
+    p=Path(td).resolve()/'template.json';p.write_text(json.dumps(dict(f,**{key:value})))
     with self.assertRaises(ValueError):CI.bind_manifest(p,folder,'qualification',ROOT)
  def test_qualification_rejects_old_target_wrong_tree_and_dirty_source_before_SQL(self):
   for values in [(b'79987a76658150e77fc5266fae13c2eaed934ff2\n',),(Q.TARGET.encode(),b'0'*40)]:
@@ -58,12 +59,12 @@ class ActualTargetBinding(unittest.TestCase):
   path='support/governance/project-content-grants-ci/prerequisites-template.json';old=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','c4b2ae7cc72a91ff942f08f9b4725104f114640c:'+path]));now=json.loads((ROOT/path).read_bytes())
   self.assertEqual({k:now[k]for k in ['native_git_revision','native_git_tree','native_public_source_dependencies']},{k:old[k]for k in ['native_git_revision','native_git_tree','native_public_source_dependencies']})
  def test_four_fixture_metadata_paths_need_complete_exact_root_and_historical_bytes(self):
-  d=load('stageB_N05_delta',ROOT/'scripts/governance/project_content_grant_source_delta.py');raw={n:(ROOT/n).read_bytes()for n in d.FIXTURE_METADATA_PINS};changed,out=d.fixture_historical_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',set(raw),raw);self.assertEqual(changed,set());self.assertEqual(out,{})
+  d=load('stageB_N05_delta',ROOT/'scripts/governance/project_content_grant_source_delta.py');raw={n:self.d.current_data(n)for n in d.FIXTURE_METADATA_PINS};changed,out=self.d.fixture_historical_inputs(ROOT,'060ac7f2b631cc5964f28cd783082dd6e2fb1565',set(raw),raw);self.assertEqual(changed,set());self.assertEqual(out,{})
   bad=dict(raw);name=next(iter(raw));bad[name]+=b'unknown'
-  with self.assertRaises(ValueError):d.fixture_historical_inputs(ROOT,CI.BASE,set(bad),bad)
-  with self.assertRaises(ValueError):d.fixture_historical_inputs(ROOT,CI.TARGET,set(raw),raw)
+  with self.assertRaises(ValueError):self.d.fixture_historical_inputs(ROOT,CI.BASE,set(bad),bad)
+  with self.assertRaises(ValueError):self.d.fixture_historical_inputs(ROOT,CI.TARGET,set(raw),raw)
   with tempfile.TemporaryDirectory()as td:
-   root=Path(td)
-   for n,b in raw.items():p=root/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b)
+   root=Path(td).resolve()
+   self.d.write_fixture_DATA(root,set(raw))
    (root/name).write_bytes(raw[name]+b'unknown')
-   with self.assertRaises(ValueError):d.fixture_historical_inputs(root,CI.BASE,set(raw),raw)
+   with self.assertRaises(ValueError):self.d.fixture_historical_inputs(root,CI.BASE,set(raw),raw)

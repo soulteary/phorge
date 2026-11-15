@@ -3,6 +3,7 @@ import shutil
 import hashlib,importlib.util,json,os,subprocess,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
+from project_grant_source_task_test_api_v2 import GrantSourceCurrentCase
 import yaml
 ROOT=Path(__file__).resolve().parents[2]
 DIR=ROOT/'support/governance/project-content-grants-ci'
@@ -10,7 +11,7 @@ _spec=importlib.util.spec_from_file_location('N05_workflow_ci',DIR/'ci.py');ci=i
 WORKFLOW=ROOT/'.github/workflows/project-content-grants-focused.yml'
 def load(name,path):
  spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
-class Workflow(unittest.TestCase):
+class Workflow(GrantSourceCurrentCase):
  def workflow(self):return yaml.safe_load(WORKFLOW.read_text())
  def test_event_permissions_and_exact_loopback_service(self):
   w=self.workflow();events=w.get('on',w.get(True));self.assertEqual(set(events),{'pull_request','workflow_dispatch'});self.assertEqual(w['permissions'],{'contents':'read'})
@@ -46,18 +47,20 @@ class Workflow(unittest.TestCase):
    for name,pin in ci.REVIEWED_PINS[kind].items():raw=(folder/name).read_bytes();self.assertEqual(len(raw),pin['bytes']);self.assertEqual(ci.sha(raw),pin['sha256'])
    self.assertNotIn('/Users/',json.dumps(template))
  def test_source_cleanliness_and_native_equivalence_fail_closed(self):
-  root=ROOT.resolve();revision='a'*40
-  with patch.object(ci,'git',side_effect=['dirty.php']):
-   with self.assertRaises(ValueError):ci.current_source(root,revision)
-  with patch.object(ci,'git',side_effect=['','untracked.php']):
-   with self.assertRaises(ValueError):ci.current_source(root,revision)
-  with patch.object(ci,'git',side_effect=['','','b'*40]):
-   with self.assertRaises(ValueError):ci.current_source(root,revision)
-  with patch.object(ci,'git',side_effect=['','',revision]),patch.object(ci.subprocess,'run',side_effect=subprocess.CalledProcessError(1,'git')):
-   with self.assertRaises(subprocess.CalledProcessError):ci.current_source(root,revision)
-  with patch.object(ci,'git',side_effect=['','',revision]),patch.object(ci.subprocess,'run')as run:
-   self.assertEqual(ci.current_source(root,revision),revision);args=run.call_args.args[0];self.assertIn(ci.TARGET,args)
-   for path in ['src','resources','scripts','bin','support/runtime','support/startup','conf']:self.assertIn(path,args)
+  # Legacy mock-Git control on E DATA; genuine S remains separate.
+  with tempfile.TemporaryDirectory()as directory:
+   root=Path(directory).resolve();self.d.complete_fixture_DATA(root);revision='a'*40
+   with patch.object(ci,'git',side_effect=['dirty.php']):
+    with self.assertRaises(ValueError):ci.current_source(root,revision)
+   with patch.object(ci,'git',side_effect=['','untracked.php']):
+    with self.assertRaises(ValueError):ci.current_source(root,revision)
+   with patch.object(ci,'git',side_effect=['','','b'*40]):
+    with self.assertRaises(ValueError):ci.current_source(root,revision)
+   with patch.object(ci,'git',side_effect=['','',revision]),patch.object(ci.subprocess,'run',side_effect=subprocess.CalledProcessError(1,'git')):
+    with self.assertRaises(subprocess.CalledProcessError):ci.current_source(root,revision)
+   with patch.object(ci,'git',side_effect=['','',revision]),patch.object(ci.subprocess,'run')as run:
+    self.assertEqual(ci.current_source(root,revision),revision);args=run.call_args.args[0];self.assertIn(ci.TARGET,args)
+    for path in ['src','resources','scripts','bin','support/runtime','support/startup','conf']:self.assertIn(path,args)
  def test_fixed_native_command_paths_do_not_expose_credentials(self):
   p=load('N05_moved_prerequisite_argv',DIR/'prerequisites/provision.py');q=load('N05_moved_qualification_argv',ROOT/'support/governance/project-content-grants-qualification/qualify.py')
   profile={'php':'/usr/bin/php','base_root':'/owned/base','source_root':'/owned/target','owner':'a'*32,'password':'CANARY_PASSWORD'}
@@ -65,27 +68,26 @@ class Workflow(unittest.TestCase):
   for argv in [p.upgrade_argv(profile),q.upgrade_argv(profile),p.people_argv(profile,'empower','requester')]:self.assertNotIn('CANARY_PASSWORD',' '.join(argv))
 if __name__=='__main__':unittest.main()
 
-class ExactCICohort(unittest.TestCase):
+class ExactCICohort(GrantSourceCurrentCase):
  def delta(self):
   import sys
   sys.path.insert(0,str(ROOT/'scripts/governance'))
   return load('N05_current_description_CI_delta',ROOT/'scripts/governance/project_description_admission_delta.py')
  def test_workflow_and_helpers_require_complete_exact_cohort(self):
-  d=self.delta();self.assertEqual(d.assert_cohort(ROOT),set(d.PINS));self.assertTrue(d.assert_workflow(d.WORKFLOW,WORKFLOW.read_bytes()))
-  for path,raw in [(d.WORKFLOW,WORKFLOW.read_bytes()+b'\n# unknown'),('.github/workflows/unknown.yml',WORKFLOW.read_bytes())]:
+  d=self.d;self.assertEqual(d.assert_cohort(ROOT),set(d.PINS));self.assertTrue(d.assert_workflow(d.WORKFLOW,self.d.parent_data(str(WORKFLOW.relative_to(ROOT)))))
+  for path,raw in [(d.WORKFLOW,self.d.parent_data(str(WORKFLOW.relative_to(ROOT)))+b'\n# unknown'),('.github/workflows/unknown.yml',self.d.parent_data(str(WORKFLOW.relative_to(ROOT))))]:
    with self.assertRaises(ValueError):d.assert_workflow(path,raw)
   with tempfile.TemporaryDirectory()as td:
    root=Path(td).resolve()
    names=set(d.PINS)|set(d.CURRENT_METADATA)|set(d.description.CURRENT_PINS)|{d.MANIFEST,d.BRIDGE,d.PREPARATION,'scripts/governance/project_content_grant_ci_source_delta.py'}
-   for name in names:
-    p=root/name;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ROOT/name,p,follow_symlinks=False)
+   self.d.write_fixture_DATA(root,names)
    self.assertEqual(d.assert_cohort(root),set(d.PINS))
    path=root/'support/governance/project-content-grants-ci/prerequisites/provision.py';path.write_bytes(path.read_bytes()+b'\n# unknown')
    with self.assertRaises(ValueError):d.assert_cohort(root)
    path.unlink()
    with self.assertRaises((ValueError,OSError)):d.assert_cohort(root)
  def test_historical_admission_omits_only_exact_new_offline_files(self):
-  d=self.delta();current={name:(ROOT/name).read_bytes()for name in d.PINS};current['unrelated']=b'unchanged';changed,out=d.historical_inputs(ROOT,ci.BASE,set(current),current)
+  d=self.d;current={name:self.d.parent_data(name)for name in d.PINS};current['unrelated']=b'unchanged';changed,out=d.historical_inputs(ROOT,ci.BASE,set(current),current)
   self.assertEqual(changed,{'unrelated'});self.assertEqual(out,{'unrelated':b'unchanged'})
   altered=dict(current);altered[d.WORKFLOW]+=b'\n# unknown'
   with self.assertRaises(ValueError):d.historical_inputs(ROOT,ci.BASE,set(altered),altered)
