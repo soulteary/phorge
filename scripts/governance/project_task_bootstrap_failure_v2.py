@@ -59,9 +59,10 @@ def _failure(raw,role):
  if type(row)is dict and row.get('schema')=='Task-native-failure-v2':row=row.get('native_receipt')
  if type(row)is not dict or row.get('batch')!=ROLES[role]or row.get('passed')is not False or type(row.get('failure'))is not dict:return None
  return row['failure']
-def project_data(role,exit_code,stdout,stderr,known_files):
+def project_data(role,exit_code,stdout,stderr,known_files,globally_unique_basenames=frozenset()):
  need(type(role)is str and role in ROLES and type(exit_code)is int and -128<=exit_code<=255 and exit_code!=0)
  need(type(known_files)is dict and set(known_files)<=set(FILES)and all(type(v)is int and 0<v<=1000000 for v in known_files.values()))
+ need(type(globally_unique_basenames)is frozenset and all(type(name)is str and name in{Path(path).name for path in known_files}for name in globally_unique_basenames))
  out={'schema':'Task-native-bootstrap-failure-v2','passed':False,'diagnostic_available':True,
   'role':role,'phase':'bootstrap-no-native-body','error_class':'unavailable','source_file':None,
   'source_line':None,'native_exit_code':exit_code,'runtime_authority':False,'cleanup':'unknown',
@@ -83,7 +84,7 @@ def project_data(role,exit_code,stdout,stderr,known_files):
   if type(error)is str and error in ERRORS:out['error_class']=error
   relative=failure.get('source_file');selected=[]
   if type(relative)is str:
-   selected=[name for name in known_files if name==relative or(relative==Path(name).name)]
+   selected=[name for name in known_files if name==relative or(relative in globally_unique_basenames and relative==Path(name).name)]
   line=failure.get('source_line')
   if len(selected)==1 and type(line)is int and 0<line<=known_files[selected[0]]:
    out['source_file']=selected[0];out['source_line']=line
@@ -117,7 +118,11 @@ def capture_in_operation(operation,root,role,exit_code,directory,stdout_path,std
  except(ValueError,OSError):stdout=b''
  try:stderr=private(stderr_path,65536)
  except(ValueError,OSError):stderr=b''
- value=project_data(role,exit_code,stdout,stderr,known)
+ counts={}
+ for name in context.entries:
+  basename=Path(name).name;counts[basename]=counts.get(basename,0)+1
+ unique=frozenset(Path(name).name for name in known if counts.get(Path(name).name)==1)
+ value=project_data(role,exit_code,stdout,stderr,known,unique)
  need(directory.is_absolute()and directory.resolve()==directory and directory!=root and not directory.is_relative_to(root))
  before=directory.lstat();need(stat.S_ISDIR(before.st_mode)and before.st_uid==os.geteuid()and stat.S_IMODE(before.st_mode)==0o700)
  dfd=os.open(directory,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW);fd=None;errors=[]

@@ -9,7 +9,7 @@ class BootstrapDiagnosticTest(unittest.TestCase):
  def row(self,**extra):
   failure={'stage':'preflight','error_type':'RuntimeException','source_file':'bootstrap-cli.php','source_line':3};failure.update(extra)
   return json.dumps({'batch':M.ROLES['conduit'],'passed':False,'failure':failure}).encode()
- def projection(self,raw=None,stderr=b'',code=37):return M.project_data('conduit',code,self.row()if raw is None else raw,stderr,{'support/runtime/bootstrap-cli.php':10})
+ def projection(self,raw=None,stderr=b'',code=37):return M.project_data('conduit',code,self.row()if raw is None else raw,stderr,{'support/runtime/bootstrap-cli.php':10},frozenset({'bootstrap-cli.php'}))
  def owned(self,root,name,value):
   p=root/name;p.write_bytes(value if type(value)is bytes else json.dumps(value).encode());p.chmod(0o600);return p
  def test_closed_failure_metadata_original_exit_and_no_authority(self):
@@ -119,5 +119,14 @@ echo(){ [ "$FAIL" != marker ] && command echo "$@"; }
  def test_original_projection_rejects_unclosed_nested_leaks(self):
   for extra in({'message':'CANARY'},{'stage':'CANARY'},{'source_file':'/private/CANARY'},{'primary':{'message':'CANARY'}}):
    with self.subTest(extra=extra),self.assertRaises((ValueError,TypeError)):M.original_safe(dict(self.original(),**extra))
+
+ def test_basename_requires_complete_inventory_uniqueness_or_exact_relative(self):
+  files={'support/runtime/bootstrap-cli.php':10}
+  ambiguous=M.project_data('conduit',37,self.row(),b'',files)
+  self.assertIsNone(ambiguous['source_file']);self.assertIsNone(ambiguous['source_line'])
+  exact=M.project_data('conduit',37,self.row(source_file='support/runtime/bootstrap-cli.php'),b'',files)
+  self.assertEqual(exact['source_file'],'support/runtime/bootstrap-cli.php')
+  raw=(ROOT/M.SELF).read_text();self.assertIn('for name in context.entries:',raw)
+  self.assertIn('counts.get(Path(name).name)==1',raw)
 
 if __name__=='__main__':unittest.main()

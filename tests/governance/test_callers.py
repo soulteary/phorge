@@ -1,11 +1,15 @@
 """Mutation checks for a partial caller inventory, not authorization evidence."""
 import copy
+import json,sys
 import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+from task_inverse_test_api_v2 import owner
+from task_historical_views_test_api_v2 import in_operation
 SPEC = importlib.util.spec_from_file_location(
     'governance_caller_checker', ROOT / 'scripts/governance/check_callers.py')
 CHECKER = importlib.util.module_from_spec(SPEC)
@@ -15,18 +19,25 @@ SPEC.loader.exec_module(CHECKER)
 class CallerInventoryTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.original = CHECKER.load(ROOT / 'docs/governance/batch-2-callers.json')
-        cls.scan = CHECKER.scan_sources(ROOT)
+        cls._owner=owner(ROOT)
+        cls._operation=cls._owner.__enter__()
+        cls.addClassCleanup(cls._owner.__exit__,None,None,None)
+        cls._legacy,cls._r3=in_operation(cls._operation,ROOT)
+        cls.addClassCleanup(cls._legacy.close_DATA)
+        cls.validation_root=cls._legacy.validation_DATA_root()
+        cls.original=json.loads(cls._legacy.parent_data('docs/governance/batch-2-callers.json'))
+        cls.scan=CHECKER.scan_sources(cls.validation_root)
 
     def setUp(self):
+        self._legacy.parent_data('docs/governance/batch-2-callers.json')
         self.data = copy.deepcopy(self.original)
 
     def rejects(self, expected):
         with self.assertRaisesRegex(ValueError, expected):
-            CHECKER.validate(self.data, ROOT, self.scan)
+            CHECKER.validate(self.data, self.validation_root, self.scan)
 
     def test_partial_inventory_and_eight_blockers_remain_blocked(self):
-        result = CHECKER.validate(self.data, ROOT, self.scan)
+        result = CHECKER.validate(self.data, self.validation_root, self.scan)
         self.assertTrue(result['activation_blocked'])
         self.assertFalse(result['runtime_certified'])
         self.assertEqual(len(self.data['unsupported']), 8)

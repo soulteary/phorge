@@ -19,31 +19,33 @@ spec.loader.exec_module(gate)
 
 class DirectorySourceInventoryPin(unittest.TestCase):
     def test_current_source_and_only_reviewed_manifest_entry_changed(self):
-        import sys
-        sys.path.insert(0,str(ROOT/'scripts/governance'))
-        import project_description_admission_delta as n05_delta
-        raw=(ROOT/gate.MANIFEST).read_bytes();actual=json.loads(raw)
+        from task_directory_inventory_test_api_v2 import directory_DATA
         dirty=subprocess.run(['git','-C',str(ROOT),'diff','--quiet','HEAD','--','src','resources']).returncode!=0
         if dirty:
             with self.assertRaises((ValueError,subprocess.CalledProcessError)):gate.source(ROOT)
-        else:self.assertEqual(gate.source(ROOT),actual)
-        for name,pin in actual['pins'].items():
-            source=(ROOT/name).read_bytes();self.assertEqual(pin,{'bytes':len(source),'sha256':hashlib.sha256(source).hexdigest()})
-        self.assertEqual(set(actual['pins']),gate.SOURCE_FILES)
-        actual=json.loads(n05_delta.reduce_if_selected(gate.MANIFEST,raw))
-        fixed=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+gate.MANIFEST]))
-        self.assertEqual(actual,fixed)
-        import sys
-        sys.path.insert(0,str(ROOT/'scripts/governance'))
-        import recovery_oauth_code_coordinator_delta as coord
-        from n05_r3_historical_test_view import historical_coordinator_source
-        original = json.loads(historical_coordinator_source(gate.MANIFEST,(ROOT/gate.MANIFEST).read_bytes()))
-        previous = json.loads(subprocess.check_output(['git', '-C', str(ROOT), 'show', BASE + ':' + gate.MANIFEST]))
-        self.assertEqual(original['pins'][PATH], {'bytes': 10627, 'sha256': '1de4e9eacef2f6844c7a91972218cc532be71d6368d75c371788b864e591a591'})
-        self.assertEqual(previous['pins'][PATH], {'bytes': 9302, 'sha256': '1b7a7eccda85748728b0cef14edf88b823ae965e55ad037b5ebff0a9ef7577fb'})
-        previous['pins'][PATH] = original['pins'][PATH]
-        self.assertEqual(original, previous)
-
+            with self.assertRaises((ValueError,subprocess.CalledProcessError)):
+                with directory_DATA(ROOT):
+                    raise AssertionError('dirty source must not acquire a Task source window')
+            return
+        with directory_DATA(ROOT) as current:
+            import sys
+            sys.path.insert(0,str(ROOT/'scripts/governance'))
+            raw=current.current_data(gate.MANIFEST);actual=json.loads(raw)
+            self.assertEqual(current.manifest_DATA(gate.MANIFEST),actual)
+            for name,pin in actual['pins'].items():
+                source=current.parent_data(name);self.assertEqual(pin,{'bytes':len(source),'sha256':hashlib.sha256(source).hexdigest()})
+            self.assertEqual(set(actual['pins']),gate.SOURCE_FILES)
+            actual=json.loads(current.legacy_reduction_DATA(gate.MANIFEST,raw))
+            fixed=json.loads(subprocess.check_output(['git','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+gate.MANIFEST]))
+            self.assertEqual(actual,fixed)
+            import sys
+            sys.path.insert(0,str(ROOT/'scripts/governance'))
+            original = json.loads(current.r3.historical_coordinator_source(gate.MANIFEST,current.current_data(gate.MANIFEST)))
+            previous = json.loads(subprocess.check_output(['git', '-C', str(ROOT), 'show', BASE + ':' + gate.MANIFEST]))
+            self.assertEqual(original['pins'][PATH], {'bytes': 10627, 'sha256': '1de4e9eacef2f6844c7a91972218cc532be71d6368d75c371788b864e591a591'})
+            self.assertEqual(previous['pins'][PATH], {'bytes': 9302, 'sha256': '1b7a7eccda85748728b0cef14edf88b823ae965e55ad037b5ebff0a9ef7577fb'})
+            previous['pins'][PATH] = original['pins'][PATH]
+            self.assertEqual(original, previous)
     def test_calendar_mutation_and_unknown_source_still_refused_before_git(self):
         for mutation in ('calendar-bytes', 'unknown-source'):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temp:
