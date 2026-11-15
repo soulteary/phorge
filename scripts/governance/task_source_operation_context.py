@@ -19,6 +19,12 @@ CI_V2_NEW_PATHS.update({'scripts/governance/probe_full_native_task_mysql84.php',
 CI_V2_NEW_PATHS.add('tests/governance/task_current_phase_shell_test_v2.py')
 CI_V2_NEW_PATHS.add('tests/governance/task_atomic_access_shell_test_v2.py')
 CI_V2_NEW_PATHS.update({'scripts/governance/check_native_directory_task_source_v2.py','tests/governance/test_native_directory_task_static_v2.py'})
+TASK_PREUPGRADE_FIXTURE='support/governance/completion/fixture.php'
+TASK_PREUPGRADE_RECIPE='support/governance/source-operation/task-preupgrade-fixture-inverse-v1.json'
+TASK_PREUPGRADE_RECIPE_PIN={'bytes': 10929, 'sha256': '9c67f64a4dd2268cc554267a618c1078cd967e45ba978d6bfb9098eba92cb6db'}
+TASK_PREUPGRADE_CURRENT_PIN={'bytes': 37961, 'sha256': '5fcb8e63a287880f32d0ea71a744a6e63bef104469086b5441be5d16cc6353e6'}
+TASK_PREUPGRADE_PARENT_PIN={'bytes': 27902, 'sha256': '00c79b823ae5d92ae6a365f7f13de97243981d9efd5cefa827ca0ca70e1cee93'}
+CI_V2_NEW_PATHS.update({TASK_PREUPGRADE_RECIPE,'tests/governance/test_task_preupgrade_fixture_v1.py'})
 MAX=268435456
 
 def need(v):
@@ -40,6 +46,24 @@ def decode(raw):
   for k,v in items:need(k not in d);d[k]=v
   return d
  return json.loads(raw,object_pairs_hook=pairs,parse_constant=lambda _:need(False))
+def task_preupgrade_fixture_inverse(relative,raw,recipe_raw):
+ """Pure fixed DATA inverse; never executes a fixture, recipe, or source code."""
+ need(type(relative)is str and relative==TASK_PREUPGRADE_FIXTURE)
+ need(type(raw)is bytes and len(raw)==TASK_PREUPGRADE_CURRENT_PIN['bytes']and sha(raw)==TASK_PREUPGRADE_CURRENT_PIN['sha256'])
+ need(type(recipe_raw)is bytes and len(recipe_raw)==TASK_PREUPGRADE_RECIPE_PIN['bytes']and sha(recipe_raw)==TASK_PREUPGRADE_RECIPE_PIN['sha256'])
+ recipe=decode(recipe_raw)
+ need(type(recipe)is dict and set(recipe)=={'schema','path','preimage_sha256','current_sha256','edits','exact_preimage_reconstructed','not_an_admission_grant'})
+ need(recipe['schema']=='Task-preupgrade-fixture-literal-inverse-recipe-v1'and recipe['path']==TASK_PREUPGRADE_FIXTURE and recipe['preimage_sha256']==TASK_PREUPGRADE_PARENT_PIN['sha256']and recipe['current_sha256']==TASK_PREUPGRADE_CURRENT_PIN['sha256']and recipe['exact_preimage_reconstructed']is True and recipe['not_an_admission_grant']is True)
+ edits=recipe['edits'];names=('private_stage_fields','closed_versioned_methods','explicit_preTask_audit_branch')
+ need(type(edits)is list and len(edits)==len(names))
+ restored=raw
+ for edit,name in zip(edits,names):
+  need(type(edit)is dict and set(edit)=={'name','old','added'}and edit['name']==name and edit['old']==''and type(edit['added'])is str and bool(edit['added']))
+  addition=edit['added'].encode('utf-8');need(restored.count(addition)==1)
+  restored=restored.replace(addition,b'',1)
+ need(len(restored)==TASK_PREUPGRADE_PARENT_PIN['bytes']and sha(restored)==TASK_PREUPGRADE_PARENT_PIN['sha256'])
+ return restored
+
 def git_tree(root,expected_checkpoint):
  need(type(expected_checkpoint)is str and re.fullmatch('[a-f0-9]{40}',expected_checkpoint)is not None)
  env={'PATH':'/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin','HOME':str(Path.home()),'LANG':'C','GIT_NO_REPLACE_OBJECTS':'1','GIT_OPTIONAL_LOCKS':'0'}
@@ -99,7 +123,10 @@ class TaskContext:
     inverse=self.ci_inverse[rel];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(inverse['zlib_base64'],validate=True),inverse['bytes']+1);need(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(raw)==inverse['bytes']and sha(raw)==inverse['sha256'])
    elif rel in self.api_inverse:
     inverse=self.api_inverse[rel];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(inverse['zlib_base64'],validate=True),inverse['bytes']+1);need(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(raw)==inverse['bytes']and sha(raw)==inverse['sha256'])
-   elif rel in self.parent_pins:raw=self.reduce(rel,raw)
+   elif rel in self.parent_pins:
+    if rel==TASK_PREUPGRADE_FIXTURE:
+     raw=task_preupgrade_fixture_inverse(rel,raw,self.current_raw[TASK_PREUPGRADE_RECIPE])
+    raw=self.reduce(rel,raw)
    else:raw=None
    if rel in self.parent_pins:
     old=self.parent_pins[rel];need(old['kind']=='file'and raw is not None and len(raw)==old['bytes']and sha(raw)==old['sha256']);self.reduced[rel]=raw
