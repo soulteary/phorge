@@ -6,6 +6,9 @@ import ast,copy,hashlib,json,os,subprocess,sys,tempfile,unittest
 from unittest.mock import patch
 import yaml
 ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'scripts/governance'))
+import sys
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_recovery_file_parent_policy as driver_admission
 import check_recovery_assessment_credentials as historical
 import check_recovery_assessment_credentials_v2 as current
 import project_assessment_credential_failure as diagnostic
@@ -21,7 +24,9 @@ class CurrentAssessment(unittest.TestCase):
   manifest=json.loads((ROOT/'docs/governance/recovery-assessment-credential-SQL-source-v2.json').read_bytes());self.assertEqual(manifest['source_sha256'],historical_source_inputs('scripts/governance/check_recovery_assessment_credentials_v2.py'));self.assertEqual(manifest['reviewed_source_adapter_sha256'],current.ADAPTER_SOURCE_INPUTS);self.assertFalse(manifest['physical_SQL_cases_executed'])
   with self.assertRaises(ValueError):historical.SQL_obligations()
   for path in (DRIVER,WORKER):
-   body=(ROOT/path).read_bytes();old=current.source_view(path,body,current.SOURCE_INPUTS[path])
+   body=(ROOT/path).read_bytes()
+   if path==DRIVER:body=driver_admission.admitted_native_driver_source(ROOT,body)
+   old=current.source_view(path,body,current.SOURCE_INPUTS[path])
    self.assertEqual(hashlib.sha256(old).hexdigest(),{DRIVER:'adc0a4016c22c836942905c2072ded5e52975932699e58971597edb52056b42a',WORKER:'11df3cffa66837d56ffaf720a65846ed33e4aede6213893ffb5db817436f169d'}[path])
    self.assertEqual(current.source_view(path,body,current.SOURCE_INPUTS[path]),old)
    self.assertEqual(current.source_view(path,old,current.SOURCE_INPUTS[path]),old)

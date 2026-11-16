@@ -31,8 +31,15 @@ class FileParentGate(unittest.TestCase):
  def test_changed_implementation_bytes_and_case_addition_cannot_self_certify(self):
   with tempfile.TemporaryDirectory()as temp:
    root=Path(temp).resolve()
+   # Authenticate current native bytes before constructing a partial legacy tree.
+   driver=gate.NATIVE_DRIVER_PATH
+   current=gate.read_native_driver_checked(ROOT/driver)
+   prior=gate.admitted_native_driver_source(ROOT,current)
+   self.assertEqual(hashlib.sha256(prior).hexdigest(),gate.SOURCE_INPUTS[driver])
+   with self.assertRaises(ValueError):gate.admitted_native_driver_source(ROOT,current+b'unknown')
    for name in gate.SOURCE_INPUTS:
-    path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((ROOT/name).read_bytes())
+    path=root/name;path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_bytes(prior if name==driver else (ROOT/name).read_bytes())
    self.assertEqual(gate.source_obligations(root),gate.source_obligations(ROOT))
    for name in ('src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php','support/governance/recovery/file-parent-policy-cases.php'):
     path=root/name;original=path.read_bytes();path.write_bytes(original+b'\n// changed implementation or unreviewed case\n')
@@ -76,8 +83,15 @@ class FileParentGate(unittest.TestCase):
    with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
   with tempfile.TemporaryDirectory()as temp:
    root=Path(temp).resolve()
+   # Authenticate current native bytes before constructing a partial legacy tree.
+   driver=gate.NATIVE_DRIVER_PATH
+   current=gate.read_native_driver_checked(ROOT/driver)
+   prior=gate.admitted_native_driver_source(ROOT,current)
+   self.assertEqual(hashlib.sha256(prior).hexdigest(),gate.SOURCE_INPUTS[driver])
+   with self.assertRaises(ValueError):gate.admitted_native_driver_source(ROOT,current+b'unknown')
    for name in gate.SOURCE_INPUTS:
-    path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((ROOT/name).read_bytes())
+    path=root/name;path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_bytes(prior if name==driver else (ROOT/name).read_bytes())
    name='src/infrastructure/governance/recovery/PhorgeRecoveryFileSourceFacts.php';p=root/name;raw=p.read_text();self.assertIn('id,phid,isAdmin,isApproved',raw);p.write_text(raw.replace('id,phid,isAdmin,isApproved','id,phid,isApproved'))
    bad=copy.deepcopy(data);bad['native']['source_inputs_sha256'][name]=hashlib.sha256(p.read_bytes()).hexdigest()
    with self.assertRaises(ValueError):gate.validate(bad,root=root,source_revision='a'*40,file_digest='b'*64)

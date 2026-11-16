@@ -5,6 +5,9 @@ import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
+import sys
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_recovery_file_parent_policy as driver_admission
 
 class PrivateCalendarWireHostControls(unittest.TestCase):
     def invoke(self, name, count, native_factory=False):
@@ -72,7 +75,7 @@ class PrivateCalendarWireHostControls(unittest.TestCase):
         sys.path.insert(0, str(ROOT / 'scripts/governance'))
         import check_private_calendar_reminders as gate
         name = 'support/governance/native-organization/test-native-organization-mysql.php'
-        raw = (ROOT / name).read_bytes()
+        raw = driver_admission.admitted_native_driver_source(ROOT, (ROOT / name).read_bytes())
         base = subprocess.check_output(['git', '-C', str(ROOT), 'show',
             'a20b0e80a8ec79e369e43ce39a309993b6e639d6:' + name])
         self.assertEqual(base, gate.reduce_reviewed_calendar_wire_driver(raw))
@@ -98,7 +101,7 @@ class PrivateCalendarWireHostControls(unittest.TestCase):
             live_processes_after_cleanup=0, workers_registered=0), json.loads(result.stdout))
 
     def test_actual_driver_calendar_guard_retains_unknown_and_keeps_other_phases(self):
-        code = r'''$root=$argv[1];$s=file_get_contents($root.'/support/governance/native-organization/test-native-organization-mysql.php');$a=strrpos($s,'  if($borrowed_unknown){');$b=strpos($s,'  if(!$borrowed_unknown){if ($control !== null)',$a);$block=substr($s,$a,$b-$a);class CleanupFixture{function cleanup(){$GLOBALS['drops']++;return[];}}$out=[];foreach([[true,false],[true,true],[true,1],[true,null],[false,false]]as$case){[$calendar_wire,$proof]=$case;$phase='calendar-reminder-wire-hold';$borrowed_unknown=false;$native_rr=false;$media_remote=false;$workbench_http=false;$notice_history=false;$GLOBALS['governance_workbench_http_cleanup_permitted']=$proof;$fixture=new CleanupFixture();$cleanup_failures=[];$checks=[];$drops=0;eval($block);$out[]=['drops'=>$drops,'failures'=>$cleanup_failures];}echo json_encode($out);'''
+        code = r'''$task_browser=false;$root=$argv[1];$s=file_get_contents($root.'/support/governance/native-organization/test-native-organization-mysql.php');$a=strrpos($s,'  if($borrowed_unknown){');$b=strpos($s,'  if(!$borrowed_unknown){if ($control !== null)',$a);$block=substr($s,$a,$b-$a);class CleanupFixture{function cleanup(){$GLOBALS['drops']++;return[];}}$out=[];foreach([[true,false],[true,true],[true,1],[true,null],[false,false]]as$case){[$calendar_wire,$proof]=$case;$phase='calendar-reminder-wire-hold';$borrowed_unknown=false;$native_rr=false;$media_remote=false;$workbench_http=false;$notice_history=false;$GLOBALS['governance_workbench_http_cleanup_permitted']=$proof;$fixture=new CleanupFixture();$cleanup_failures=[];$checks=[];$drops=0;eval($block);$out[]=['drops'=>$drops,'failures'=>$cleanup_failures];}echo json_encode($out);'''
         result = subprocess.run(['php', '-r', code, str(ROOT)], capture_output=True,
             text=True, check=True, timeout=15)
         self.assertEqual('', result.stderr)
@@ -114,7 +117,7 @@ class PrivateCalendarWireHostControls(unittest.TestCase):
         self.assertEqual(1, source.count(guard))
         self.assertLess(source.index(guard), source.index('$fixture = null;'))
         self.assertLess(source.index(guard), source.index("$stage='owned-real-gorge-file-service';"))
-        code = r'''$s=file_get_contents($argv[1].'/support/governance/native-organization/test-native-organization-mysql.php');$a=strpos($s,'$calendar_wire=$phase===');$b=strpos($s,"$"."GLOBALS['governance_session_lease_cleanup']",$a);$init=substr($s,$a,$b-$a);$a=strrpos($s,'  if($borrowed_unknown){');$b=strpos($s,'  if(!$borrowed_unknown){if ($control !== null)',$a);$guard=substr($s,$a,$b-$a);class EarlyCleanupFixture{function cleanup(){$GLOBALS['drops']++;return[];}}$out=[];foreach(['calendar-reminder-wire-hold','calendar-reminders']as$phase){foreach(['file-start','queue-start','capture-start','password-provider','producer']as$stage){$fixture=new EarlyCleanupFixture();$borrowed_unknown=false;$native_rr=false;$media_remote=false;$notice_history=false;$cleanup_failures=[];$checks=[];$drops=0;$primary=new RuntimeException($stage);try{eval($init);throw $primary;}catch(Throwable $error){$same=$error===$primary;}finally{eval($guard);}$out[]=['phase'=>$phase,'stage'=>$stage,'drops'=>$drops,'same_primary'=>$same,'failures'=>$cleanup_failures];}}echo json_encode($out);'''
+        code = r'''$task_browser=false;$s=file_get_contents($argv[1].'/support/governance/native-organization/test-native-organization-mysql.php');$a=strpos($s,'$calendar_wire=$phase===');$b=strpos($s,"$"."GLOBALS['governance_session_lease_cleanup']",$a);$init=substr($s,$a,$b-$a);$a=strrpos($s,'  if($borrowed_unknown){');$b=strpos($s,'  if(!$borrowed_unknown){if ($control !== null)',$a);$guard=substr($s,$a,$b-$a);class EarlyCleanupFixture{function cleanup(){$GLOBALS['drops']++;return[];}}$out=[];foreach(['calendar-reminder-wire-hold','calendar-reminders']as$phase){foreach(['file-start','queue-start','capture-start','password-provider','producer']as$stage){$fixture=new EarlyCleanupFixture();$borrowed_unknown=false;$native_rr=false;$media_remote=false;$notice_history=false;$cleanup_failures=[];$checks=[];$drops=0;$primary=new RuntimeException($stage);try{eval($init);throw $primary;}catch(Throwable $error){$same=$error===$primary;}finally{eval($guard);}$out[]=['phase'=>$phase,'stage'=>$stage,'drops'=>$drops,'same_primary'=>$same,'failures'=>$cleanup_failures];}}echo json_encode($out);'''
         result = subprocess.run(['php', '-r', code, str(ROOT)], capture_output=True,
             text=True, check=True, timeout=15)
         self.assertEqual('', result.stderr)

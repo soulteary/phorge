@@ -1324,6 +1324,14 @@
       "bytes": 2114,
       "sha256": "80b03b0b29545605d8f342b4169000a4eabe0c03df0b6f776a912ae04e1eb83b"
     },
+    "support/governance/native-organization/http-fixture/client/main.go": {
+      "bytes": 29563,
+      "sha256": "2c4c961d7700119ad7a343581e544cab1e5fb581d0e475f4849a8ccaac1bb33d"
+    },
+    "support/governance/native-organization/http-fixture/client/main_test.go": {
+      "bytes": 4468,
+      "sha256": "671ea56660ae99830cee7c79f85048513c1b47e963249062a93b9d7ea6be546a"
+    },
     "support/governance/native-organization/native-cases.php": {
       "bytes": 12618,
       "sha256": "b87c5eac435b11ccb158e9922dd0a3c0a561cc8c2ad38a0ab68e6ef2891eaedc"
@@ -1544,6 +1552,18 @@
       "bytes": 14421,
       "sha256": "a884aad960a80e3fa0ecf1d7c51019ad426db4a2a6a83d7d368ec58f8a775df2"
     },
+    "support/governance/recovery/tests/borrowed-driver-cleanup-host.php": {
+      "bytes": 3009,
+      "sha256": "dea1408c1aaf6ce7a82986ced736e9fd6fdc30601ae9cab5224e929acf9117df"
+    },
+    "support/governance/recovery/tests/conduit-driver-cleanup-host.php": {
+      "bytes": 3072,
+      "sha256": "8a9bc2f82d34436607e5e8dac77abf7deba4aae71c293710cc4783db3a5ff949"
+    },
+    "support/governance/recovery/tests/session-cleanup-gate-host.php": {
+      "bytes": 10667,
+      "sha256": "ea6190b000afa2f96e60ea23a71a77bd02cc1df8d882e280a22bb05df84e03f5"
+    },
     "support/governance/revocation-measurement/consumer.py": {
       "bytes": 12718,
       "sha256": "abf79fb0e64e099e72dd3b6ad50d9d727eb758d33963f47f2923f91b754346a3"
@@ -1576,6 +1596,10 @@
       "bytes": 149,
       "sha256": "9b5378122c7b10e497f8b1b340f51ef9e5b37bf25fb873500f2d45337fca465b"
     },
+    "tests/contract/config/notifications.php": {
+      "bytes": 11094,
+      "sha256": "e3c572674e5cd1751dd6858eea8415afd15475b351f9f134a8f86ebdb551d40f"
+    },
     "tests/governance/n05_legacy_audit_test_view.py": {
       "bytes": 6632,
       "sha256": "4690bd60da38aba5c62c28fa5dbaa4343592e02ee8f93a190b0e7ff394aa5e07"
@@ -1587,6 +1611,14 @@
     "tests/governance/native-directory-transports-source-v1.json": {
       "bytes": 13967,
       "sha256": "e30042978b02d778c02718335fcfd8bb0d346b5c9dba63af53cf9665b9488590"
+    },
+    "tests/governance/private_mail_ci/make_config.py": {
+      "bytes": 1993,
+      "sha256": "f572a551e282c21cda32202bb308809ce3c08e08c41f5045a73097cfd262ca0f"
+    },
+    "tests/governance/private_mail_ci/runtime.py": {
+      "bytes": 16998,
+      "sha256": "afe4c13101ee8ff942916c99e702a4d7b4030fefe5b565cba09b2890e77bc1a0"
     },
     "tests/governance/recovery_oauth_code_test_cohort.py": {
       "bytes": 5676,
@@ -1656,6 +1688,10 @@
       "bytes": 6092,
       "sha256": "b159e4f9c0d0ca68afb50100a544b297171eeaed2801b18a81ffd7f2aa2f05c1"
     },
+    "tests/governance/test_notice_history_lifecycle.py": {
+      "bytes": 5779,
+      "sha256": "ad90d9614cbf6da5e35da7055bf4b59bbce03db5589887f28e7d1da902a34466"
+    },
     "tests/governance/test_notice_native_admin_wire_source.py": {
       "bytes": 28468,
       "sha256": "3dbca7e4768572a300544a068382c47bbd658966b08472a794e97d15ed995eb6"
@@ -1663,6 +1699,10 @@
     "tests/governance/test_private_calendar_sql_gate.py": {
       "bytes": 20750,
       "sha256": "82f95958b45fda67522ff3fb87697445abfa07b50cbe06ae386f80380cfd0ceb"
+    },
+    "tests/governance/test_private_calendar_wire.py": {
+      "bytes": 11350,
+      "sha256": "40462348154ffce987ad01b2bc5b34c0b5dfb97238d30b58cc873f71a8b0143c"
     },
     "tests/governance/test_private_notifications.py": {
       "bytes": 8116,
@@ -1724,6 +1764,10 @@
       "bytes": 9285,
       "sha256": "9b4f3ed6b12cc66e960eb1d6f843d3352364bcad5b6bd838adf7912466e7d756"
     },
+    "tests/governance/test_recovery_assessment_current.py": {
+      "bytes": 7720,
+      "sha256": "f27289849a6936d54c0d5b33a955f95bf39ae73b4515f15ab005ce4251d0fb46"
+    },
     "tests/governance/test_recovery_borrowed_session.py": {
       "bytes": 11054,
       "sha256": "f421b3252df0448bf3c580d1bbfae489f81bea48759982c61f7394a76452ac96"
@@ -1735,6 +1779,10 @@
     "tests/governance/test_recovery_conduit_wiring.py": {
       "bytes": 5376,
       "sha256": "7d8167d0e528e4dac7552f4eac1e5757d64b8d68fb5064bb8d9b319d384fbd6d"
+    },
+    "tests/governance/test_recovery_file_parent_gate.py": {
+      "bytes": 7367,
+      "sha256": "9eadcd7dd0252fe86fc807e2ba619c0baba2b2e58c95fa22502a6bbefa2aca5d"
     },
     "tests/governance/test_recovery_file_parent_policy.py": {
       "bytes": 4982,
@@ -1796,6 +1844,10 @@
       "bytes": 6357,
       "sha256": "47a79c060561c263cf610070b6df4f95fe755bcc2ca42f43c5b297ca23ff1194"
     },
+    "tests/governance/test_recovery_session_lease_focused.py": {
+      "bytes": 14863,
+      "sha256": "456786b4b8bd97a34c20b6fff329d94e854ecfcf600d686938cbc7a3efe6ef4c"
+    },
     "tests/governance/test_recovery_session_lease_gate.py": {
       "bytes": 5224,
       "sha256": "6193be0db4803fbc54f7f4e1854d49f0fecb5be2e0953e027f14d8a33ad739ea"
@@ -1809,12 +1861,25 @@
     "scripts/governance/source_operation_snapshot.py",
     "support/governance/native-execution/project-policy-nested-process.php",
     "support/governance/native-execution/project-policy-nested-worker.php",
+    "support/governance/notification/README.task-wire.md",
+    "support/governance/notification/task-wire-acceptance.py",
+    "support/governance/notification/task-wire-browser.php",
+    "support/governance/notification/task-wire-hold.php",
+    "support/governance/notification/task-wire-producer.php",
+    "support/governance/notification/task-wire-protocol.php",
+    "support/governance/notification/task-wire-router.php",
     "support/governance/project-description-q2-owner/README.md",
     "support/governance/project-description-q2-owner/native-no-db.php",
     "support/governance/source-operation/registry-v1.json",
+    "tests/governance/private_mail_ci/run_task.py",
+    "tests/governance/private_mail_ci/task_browser.py",
+    "tests/governance/private_mail_ci/task_source.py",
     "tests/governance/test_project_policy_nested_protocol.py",
     "tests/governance/test_project_q2_owner_lifecycle.py",
-    "tests/governance/test_source_operation_snapshot.py"
+    "tests/governance/test_source_operation_snapshot.py",
+    "tests/governance/test_task_wire_acceptance.py",
+    "tests/governance/test_task_wire_browser_hold.py",
+    "tests/governance/test_task_wire_parent.py"
   ],
   "schema": "source-operation-registry-v1",
   "source_revision": "20b138b4cd9a2cf61522613b4a8e5e21eca7341b",
@@ -1837,7 +1902,7 @@
       },
       "current": {
         "bytes": 4575,
-        "sha256": "bb6ff3a558ffc618532df23319d1caf60e2d1b3ed904cc0bf7d228843506d32b"
+        "sha256": "eff38e94f3eb89751d687245e9d4b48b13b41d7937f55485c88d57c37fdecddf"
       }
     },
     ".github/workflows/project-description-focused.yml": {
@@ -1847,7 +1912,7 @@
       },
       "current": {
         "bytes": 4757,
-        "sha256": "2ee2ed3273254d1125d521a1aab5103f7fdfdc2f848147560182960218eac8f6"
+        "sha256": "76cfb95b8066b5a945704ae6d93e1f908563d75fc3f6cdccf6b267bdf5810f29"
       }
     },
     "docs/governance/batch-2-callers.json": {
@@ -1916,8 +1981,8 @@
         "sha256": "98abd9223a25139ededa173b89378ec90558cda5a3b1b428ff9872bf107b7eee"
       },
       "current": {
-        "bytes": 15032,
-        "sha256": "346212f196c3c43dcff1645fbd0a5085bac97c54f8c5b9b6f6f57cf65c4f41ed"
+        "bytes": 15446,
+        "sha256": "bcdeb6e18e405fa81d7cb3ffea395b8bd523923927f20b45b897d599d4dbcd6f"
       }
     },
     "scripts/governance/check_recovery_assessment_credentials_v2.py": {
@@ -1956,8 +2021,8 @@
         "sha256": "6114595ca9411a31acb423cc2ebadfc6702a2b9c1ae40daaa1670b1fc09946fd"
       },
       "current": {
-        "bytes": 9437,
-        "sha256": "8ea16eac20af865b2063f7fa481b9447a5b6f4ef4c60fe3a3cdb346991639dc9"
+        "bytes": 14447,
+        "sha256": "239b9614af1288b053d369d5a4e62fb127a955a79f66053f281e34e9b1aad786"
       }
     },
     "scripts/governance/check_recovery_oauth_access_producer_v3.py": {
@@ -1976,8 +2041,8 @@
         "sha256": "a5df002abe18e1a97b93d9b9b071a5f1a2755ee61c5eb183d8bd513e3f78624a"
       },
       "current": {
-        "bytes": 21306,
-        "sha256": "d2d9eea81d74c2cbff1f21f5301e6d4eab2e65eaed788c2ebb84021367fa135f"
+        "bytes": 21543,
+        "sha256": "e3e271c4343815bcbf0a263de9b75428561721e8e42fc1f522a8dd9907d69c5f"
       }
     },
     "scripts/governance/check_recovery_oauth_client_lifecycle.py": {
@@ -2007,7 +2072,7 @@
       },
       "current": {
         "bytes": 536258,
-        "sha256": "4d5ab048e419b10d373e2654f24cb7a9546a44ecc04ed17f3f9e63b66f245ed4"
+        "sha256": "64ff42083efa4f72e478e6ed42c5c006a1b93dd5a8fe1f158452197d81fc4068"
       }
     },
     "scripts/governance/project_description_source_delta.py": {
@@ -2121,14 +2186,83 @@
         "sha256": "297447740ac4e933ae50f4dfe74d1245743c145d6b0f6c033822dfd2db121b99"
       }
     },
+    "support/governance/native-organization/http-fixture/client/main.go": {
+      "baseline": {
+        "bytes": 29563,
+        "sha256": "2c4c961d7700119ad7a343581e544cab1e5fb581d0e475f4849a8ccaac1bb33d"
+      },
+      "current": {
+        "bytes": 33167,
+        "sha256": "accfc6fd84710a5b881fc018ee349c45f74ee82906afbe373069739daf52266c"
+      }
+    },
+    "support/governance/native-organization/http-fixture/client/main_test.go": {
+      "baseline": {
+        "bytes": 4468,
+        "sha256": "671ea56660ae99830cee7c79f85048513c1b47e963249062a93b9d7ea6be546a"
+      },
+      "current": {
+        "bytes": 7576,
+        "sha256": "d424ed0ab9f0bd779a6649859fcef964b3065c9032bea72214606a4eeadc8931"
+      }
+    },
     "support/governance/native-organization/test-native-organization-mysql.php": {
       "baseline": {
         "bytes": 39675,
         "sha256": "12f3da8ac1ff4f0eda73200a28247add24066378c9295cb10f23339d6bf589c7"
       },
       "current": {
-        "bytes": 39959,
-        "sha256": "3ae6699231f460351bf205fb4bc62f48668cbf56386e671fa9ade8ec224f9c02"
+        "bytes": 40447,
+        "sha256": "858fa9a5925bcc3506442ba2ca67ab622cc5c63d531ba87e39236d3649b48e5c"
+      }
+    },
+    "support/governance/notification/README.task-wire.md": {
+      "baseline": null,
+      "current": {
+        "bytes": 14335,
+        "sha256": "eb6cdfc47820b01805215985d52219718ad22f86397a76d2383e0f29cd21bfca"
+      }
+    },
+    "support/governance/notification/task-wire-acceptance.py": {
+      "baseline": null,
+      "current": {
+        "bytes": 4727,
+        "sha256": "5a9307f8341093bcd86e9cc98e8f5e24e4b6da5061c8e1bb3408fc716966952c"
+      }
+    },
+    "support/governance/notification/task-wire-browser.php": {
+      "baseline": null,
+      "current": {
+        "bytes": 8624,
+        "sha256": "37b6d161c2d260a9b3a1542b0934d2eb8bc024e8904a384c532e8ba491a2599e"
+      }
+    },
+    "support/governance/notification/task-wire-hold.php": {
+      "baseline": null,
+      "current": {
+        "bytes": 13023,
+        "sha256": "716667500afaebeff251e8e2291392f802e8c5314cdbd5c1c540e508d63dee5a"
+      }
+    },
+    "support/governance/notification/task-wire-producer.php": {
+      "baseline": null,
+      "current": {
+        "bytes": 16544,
+        "sha256": "acc636bbb06a4ccbf3de05afddb32aceb084a61718d9b1e59cbd653dc7a83d33"
+      }
+    },
+    "support/governance/notification/task-wire-protocol.php": {
+      "baseline": null,
+      "current": {
+        "bytes": 6316,
+        "sha256": "d4fb32e2717a9b15ebb9a2ff45ea87c4d7f2aa2c49b00300844f4f5ae53dfcbe"
+      }
+    },
+    "support/governance/notification/task-wire-router.php": {
+      "baseline": null,
+      "current": {
+        "bytes": 5772,
+        "sha256": "3e2911965db77d8b62d15db1d87479b7c7b172c29cf307e4f9238d8836cc8cd9"
       }
     },
     "support/governance/project-content-grants-ci/README.description-admission.md": {
@@ -2138,7 +2272,7 @@
       },
       "current": {
         "bytes": 1802,
-        "sha256": "5c5e32e11164155003eabb4b3254dbe22f9c00db04cb56378548921bfebc926d"
+        "sha256": "0073ea53b316490f4da4438a4e3db3bea631098e1642de29271cd3674c3173d5"
       }
     },
     "support/governance/project-content-grants-ci/ci.py": {
@@ -2148,7 +2282,7 @@
       },
       "current": {
         "bytes": 24560,
-        "sha256": "e055ee0da4bd9ed7cf4c093bc3ca66015faa3bc4949fa43e385aaffe95c67d4d"
+        "sha256": "f579340edd8ce894d3f0540a0ad662e3dcdb8f1feccec7c6353a3748147c474e"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites-template.json": {
@@ -2158,7 +2292,7 @@
       },
       "current": {
         "bytes": 9307,
-        "sha256": "b2034d572a2badac46371e5732a2934d4dd93b1889cd5cf0e7e9f6a1ba413b03"
+        "sha256": "9adda0c7483467d313641ffb1cf5fee2b3439f0c04a1079197d447e15355832a"
       }
     },
     "support/governance/project-content-grants-ci/prerequisites/provision.py": {
@@ -2168,7 +2302,7 @@
       },
       "current": {
         "bytes": 11688,
-        "sha256": "616b523e8db0af34a085aefde41e4d2e829b81da4de3f344387d4474fff1879d"
+        "sha256": "a71ea657dbf8bffde7e292f634664d196b3dc02f86b423ed892b8c89bd4d0b35"
       }
     },
     "support/governance/project-content-grants-ci/qualification-template.json": {
@@ -2178,7 +2312,7 @@
       },
       "current": {
         "bytes": 9875,
-        "sha256": "324babc7c0714cd3407daeb19f0bc9ea055f1656dfad780a0bdff77e01d7a0e0"
+        "sha256": "ddd99ab85eaf18fd2807ef0edc88c6b03b10e6ee447e0f2224a645553c3069a3"
       }
     },
     "support/governance/project-content-grants-qualification/qualify.py": {
@@ -2188,7 +2322,7 @@
       },
       "current": {
         "bytes": 9451,
-        "sha256": "fcb7d61ab81a7775660815c69e4b471899fe8f5ac1da5c11640f29803855afb8"
+        "sha256": "1f6019c2eb52a3868b4103009b346a414c3e3c669945c438239ba0787f77c9d4"
       }
     },
     "support/governance/project-description-ci/README.md": {
@@ -2198,7 +2332,7 @@
       },
       "current": {
         "bytes": 6104,
-        "sha256": "a90c9a94586574261d0fe75024f0e0a3aeca829488eb4faa8b32488cff4d822c"
+        "sha256": "60f51f457be853c2a4fbff0be30db925cb6eb2b9ab59f005438a383cd946ad61"
       }
     },
     "support/governance/project-description-ci/ci.py": {
@@ -2208,7 +2342,7 @@
       },
       "current": {
         "bytes": 15379,
-        "sha256": "f45921ebf5db587b907bb111449d523ca5a4b4366bd4f16abe1b0ab0e669f54f"
+        "sha256": "e45b1d90971159484cb980e1d383c6deefcccbe115c8468ba9043282f2b4a899"
       }
     },
     "support/governance/project-description-ci/metadata-lock.json": {
@@ -2218,7 +2352,7 @@
       },
       "current": {
         "bytes": 1024,
-        "sha256": "a13a66265e0bc822066893cc52accba5d007c81375918604ddb5f38631c54587"
+        "sha256": "3a0a3d56651f74c949815b5fd4c3a0029c81856121d0ae95fc386381e4b74168"
       }
     },
     "support/governance/project-description-q2-owner/README.md": {
@@ -2233,6 +2367,46 @@
       "current": {
         "bytes": 25591,
         "sha256": "bb27200ab558a470a64abcbda3c5879773207376cac2eea82e1cc8d6c21a10f4"
+      }
+    },
+    "support/governance/recovery/tests/borrowed-driver-cleanup-host.php": {
+      "baseline": {
+        "bytes": 3009,
+        "sha256": "dea1408c1aaf6ce7a82986ced736e9fd6fdc30601ae9cab5224e929acf9117df"
+      },
+      "current": {
+        "bytes": 3029,
+        "sha256": "df001641908c2c09d224a725bb1d5cfc7c48e321dab8919ac664aa149844e5d5"
+      }
+    },
+    "support/governance/recovery/tests/conduit-driver-cleanup-host.php": {
+      "baseline": {
+        "bytes": 3072,
+        "sha256": "8a9bc2f82d34436607e5e8dac77abf7deba4aae71c293710cc4783db3a5ff949"
+      },
+      "current": {
+        "bytes": 3092,
+        "sha256": "ec6488145f2a07459a70cf63e607a047466968eaa4c7b2847bb731f02a8c3c0c"
+      }
+    },
+    "support/governance/recovery/tests/session-cleanup-gate-host.php": {
+      "baseline": {
+        "bytes": 10667,
+        "sha256": "ea6190b000afa2f96e60ea23a71a77bd02cc1df8d882e280a22bb05df84e03f5"
+      },
+      "current": {
+        "bytes": 10687,
+        "sha256": "6f5d0fce90640dec303ba3a7b6fa8fd75ae34fbbb9b86e1663ad982a8ca8e873"
+      }
+    },
+    "tests/contract/config/notifications.php": {
+      "baseline": {
+        "bytes": 11094,
+        "sha256": "e3c572674e5cd1751dd6858eea8415afd15475b351f9f134a8f86ebdb551d40f"
+      },
+      "current": {
+        "bytes": 12708,
+        "sha256": "4e11a2e4b0b09c25fbd9a9ab11cc0fa2c7ee8578b3fbc5e3eb928af663b793b9"
       }
     },
     "tests/governance/n05_legacy_audit_test_view.py": {
@@ -2255,6 +2429,47 @@
         "sha256": "0cf6e2b192cd51017df2da1903f9436ea4ee02b2a3f8a58662edf3ee4bfa212d"
       }
     },
+    "tests/governance/private_mail_ci/make_config.py": {
+      "baseline": {
+        "bytes": 1993,
+        "sha256": "f572a551e282c21cda32202bb308809ce3c08e08c41f5045a73097cfd262ca0f"
+      },
+      "current": {
+        "bytes": 3389,
+        "sha256": "0835efdb3f28d8a7c899ac5ff861c19d4ffdbaf655c503105e676839af902b7d"
+      }
+    },
+    "tests/governance/private_mail_ci/run_task.py": {
+      "baseline": null,
+      "current": {
+        "bytes": 27756,
+        "sha256": "e6c602139df56b4dab20f9496f6f25050b6d1d21e046e96fb4485bc45824784f"
+      }
+    },
+    "tests/governance/private_mail_ci/runtime.py": {
+      "baseline": {
+        "bytes": 16998,
+        "sha256": "afe4c13101ee8ff942916c99e702a4d7b4030fefe5b565cba09b2890e77bc1a0"
+      },
+      "current": {
+        "bytes": 24155,
+        "sha256": "c521fb29baf53c9d6acfde59e56183a0090aca0a2c054022538a8f970f14bb1a"
+      }
+    },
+    "tests/governance/private_mail_ci/task_browser.py": {
+      "baseline": null,
+      "current": {
+        "bytes": 10611,
+        "sha256": "e85711b80ebd680db3abbcf09de179dfc2c170cbf8ff31736c5b4ea9a5d259ef"
+      }
+    },
+    "tests/governance/private_mail_ci/task_source.py": {
+      "baseline": null,
+      "current": {
+        "bytes": 21116,
+        "sha256": "bb01e88e5b1cdb04d759a51a399284dbfb2712353f6e4c894bdccb32061ad6d6"
+      }
+    },
     "tests/governance/recovery_oauth_code_test_cohort.py": {
       "baseline": {
         "bytes": 5676,
@@ -2271,8 +2486,8 @@
         "sha256": "2eaa7de843b456298026da44237b8e9390db1d545b057af50c4a09342bc45cfa"
       },
       "current": {
-        "bytes": 17419,
-        "sha256": "ec2b28640975cfc53b78b3cc074015238b4421d49e64ea1c81dcb70a2994289c"
+        "bytes": 17636,
+        "sha256": "ae10956509dd20e0207897685eea9d3db51efd2b63e080b9bf66fbab0c34320e"
       }
     },
     "tests/governance/test_directory_terminal_failure_v1.py": {
@@ -2291,8 +2506,8 @@
         "sha256": "8ccec5a8107dcbf9f0ca6e8e753538b5bd55ae0844f08397549c51024400ba64"
       },
       "current": {
-        "bytes": 16275,
-        "sha256": "5f329ca6a94efbea09cf7dc4c3c1d5fd4ff50d88ae266405aa96e6fa37804d69"
+        "bytes": 16459,
+        "sha256": "f7707bf51eca67d4dad9ca9d3bd802e2058a76d1d5a47193486e8ddffa7b2ea2"
       }
     },
     "tests/governance/test_n05_legacy_audit_test_view.py": {
@@ -2331,8 +2546,18 @@
         "sha256": "b159e4f9c0d0ca68afb50100a544b297171eeaed2801b18a81ffd7f2aa2f05c1"
       },
       "current": {
-        "bytes": 8901,
-        "sha256": "dab8249424999c6812c2f25ae90f76475b13064221ed1641d32ea13ebf513b68"
+        "bytes": 9129,
+        "sha256": "c6a8b4dc7640c055ebd073a9d3cfb8c62890094d20e1e91fa5c12772a94a1393"
+      }
+    },
+    "tests/governance/test_notice_history_lifecycle.py": {
+      "baseline": {
+        "bytes": 5779,
+        "sha256": "ad90d9614cbf6da5e35da7055bf4b59bbce03db5589887f28e7d1da902a34466"
+      },
+      "current": {
+        "bytes": 6301,
+        "sha256": "b7ca8f30a354cdc6965fe0d13df4462168a2e233c1bf101cf954a6fe37cfee69"
       }
     },
     "tests/governance/test_notice_native_admin_wire_source.py": {
@@ -2351,8 +2576,18 @@
         "sha256": "82f95958b45fda67522ff3fb87697445abfa07b50cbe06ae386f80380cfd0ceb"
       },
       "current": {
-        "bytes": 23606,
-        "sha256": "d343273ff29d4859555f8d6249bb531f29a94a064125289d489b30dbe10701ae"
+        "bytes": 24487,
+        "sha256": "37403803512d30c555a1977ae065b1bdb0fdb210ac1bf2db8879120d8e6ad406"
+      }
+    },
+    "tests/governance/test_private_calendar_wire.py": {
+      "baseline": {
+        "bytes": 11350,
+        "sha256": "40462348154ffce987ad01b2bc5b34c0b5dfb97238d30b58cc873f71a8b0143c"
+      },
+      "current": {
+        "bytes": 11566,
+        "sha256": "d83ef81cf3a31d7094056aa76bafd39c7fb6d3a2a598fab048aa0514cfa84697"
       }
     },
     "tests/governance/test_private_notifications.py": {
@@ -2441,8 +2676,8 @@
         "sha256": "de1b4922733e502934f17f3decee971c3b54dac4d8bb868d9f9926d59d33fcbc"
       },
       "current": {
-        "bytes": 31538,
-        "sha256": "0c041e295bd9bc703571d649cd3b3a206bd695b9bf8f621a905437b7ed936bb2"
+        "bytes": 33280,
+        "sha256": "6bba495c78dcb7c236145b17916224a79122cf6320caf82348556b74c10ff251"
       }
     },
     "tests/governance/test_project_policy_nested_protocol.py": {
@@ -2457,6 +2692,26 @@
       "current": {
         "bytes": 9844,
         "sha256": "12e0967bbe7d04ce2844eab2e65fb7ae3d9a26bbd601823ad0c7a37f20896611"
+      }
+    },
+    "tests/governance/test_recovery_assessment_credential_sql.py": {
+      "baseline": {
+        "bytes": 8667,
+        "sha256": "92d1e2bf583506ecddf5ab7b94a99f3eef37e0451af89afb2ded01bf71b4e869"
+      },
+      "current": {
+        "bytes": 8831,
+        "sha256": "2dfd8ae95697469031c0b338ead6acb0e80d90e0ac6c3da835620975703bf51a"
+      }
+    },
+    "tests/governance/test_recovery_assessment_current.py": {
+      "baseline": {
+        "bytes": 7720,
+        "sha256": "f27289849a6936d54c0d5b33a955f95bf39ae73b4515f15ab005ce4251d0fb46"
+      },
+      "current": {
+        "bytes": 7927,
+        "sha256": "4bfcc45fc4e7e5c91792142d4033215e79f59a26889b9d259078388aa8e14ca4"
       }
     },
     "tests/governance/test_recovery_borrowed_wiring.py": {
@@ -2475,8 +2730,18 @@
         "sha256": "7d8167d0e528e4dac7552f4eac1e5757d64b8d68fb5064bb8d9b319d384fbd6d"
       },
       "current": {
-        "bytes": 12543,
-        "sha256": "6c4c28a95e7f6d798c4d755b9dab93055322c036b0cdd365d46d6cf4ed956d18"
+        "bytes": 12718,
+        "sha256": "f1d79ef2c3f37450b221fa5d4a0e77d0e97c9bb817c5ad4f3bcbc9329171036b"
+      }
+    },
+    "tests/governance/test_recovery_file_parent_gate.py": {
+      "baseline": {
+        "bytes": 7367,
+        "sha256": "9eadcd7dd0252fe86fc807e2ba619c0baba2b2e58c95fa22502a6bbefa2aca5d"
+      },
+      "current": {
+        "bytes": 8249,
+        "sha256": "79df863183c89da63a4d2878b33f4625babd8b800374877636579b03fbe007a4"
       }
     },
     "tests/governance/test_recovery_file_parent_policy.py": {
@@ -2485,8 +2750,8 @@
         "sha256": "d8ae3922692c7c85d5705bcac3b77c03b0ded17e8c6d1c9fb4fd8b0ab7354a4c"
       },
       "current": {
-        "bytes": 9957,
-        "sha256": "a15ec11ecdd1d1bc24ca18b4b939a48bd27160fdd1b447ad6e04a8a38a6e4dcc"
+        "bytes": 19012,
+        "sha256": "0a93dcd6b9883dc1d857939ccc8204e32d206033fa097c54673f23a10c859e10"
       }
     },
     "tests/governance/test_recovery_oauth_access_ci.py": {
@@ -2497,6 +2762,16 @@
       "current": {
         "bytes": 11031,
         "sha256": "3170260fec88afb0c2fae6172e9f837a477246fc7c9d9dc2293d7b585d7f10dd"
+      }
+    },
+    "tests/governance/test_recovery_oauth_access_sql.py": {
+      "baseline": {
+        "bytes": 11424,
+        "sha256": "9bb6abc6b77acba741d5e05fc55f0536ab9251930b0baba33083a26845034874"
+      },
+      "current": {
+        "bytes": 11692,
+        "sha256": "f4e95670d9f12e579615658c3dc664cca5a290b4ea91c57a113f7117c7a79190"
       }
     },
     "tests/governance/test_recovery_oauth_authorization_ci.py": {
@@ -2525,8 +2800,8 @@
         "sha256": "6c0e6761f4d40b739dfb60ffdcd15cf2dbcf8c1db6ca5268d7ff9741e93f59ae"
       },
       "current": {
-        "bytes": 26301,
-        "sha256": "00dea70595789371ebf3ed3e71fd84b04f5dc8dc2f534b1b9209c1e7e106b2a0"
+        "bytes": 40602,
+        "sha256": "2fafa029ed41093dc711bf77e0636f1683a7c6f4b16aae22023d2ccdb03adb2f"
       }
     },
     "tests/governance/test_recovery_oauth_code_coordination.py": {
@@ -2555,8 +2830,18 @@
         "sha256": "47a79c060561c263cf610070b6df4f95fe755bcc2ca42f43c5b297ca23ff1194"
       },
       "current": {
-        "bytes": 6869,
-        "sha256": "ed31125c2868e3c77cb65a5f3381ddaa4ddcb42158b75a67dcecf03dc845487a"
+        "bytes": 7156,
+        "sha256": "94f7fd047b5c858bf044b8b793d1601cf692387f890cfe1ea0ac346eae1f462c"
+      }
+    },
+    "tests/governance/test_recovery_session_lease_focused.py": {
+      "baseline": {
+        "bytes": 14863,
+        "sha256": "456786b4b8bd97a34c20b6fff329d94e854ecfcf600d686938cbc7a3efe6ef4c"
+      },
+      "current": {
+        "bytes": 14883,
+        "sha256": "40667811b20e6662d4dd256a772f16a41f0b450f16fcede9404fb078327f042a"
       }
     },
     "tests/governance/test_recovery_session_lease_gate.py": {
@@ -2574,6 +2859,27 @@
       "current": {
         "bytes": 57381,
         "sha256": "4794551478da6226db79b156c901ff41c882781730013b75a096aafcbd7258cb"
+      }
+    },
+    "tests/governance/test_task_wire_acceptance.py": {
+      "baseline": null,
+      "current": {
+        "bytes": 8058,
+        "sha256": "c066754379aa83f60c0cfd3507708664eca7d27ed151e6a1d055ade6e7e97d17"
+      }
+    },
+    "tests/governance/test_task_wire_browser_hold.py": {
+      "baseline": null,
+      "current": {
+        "bytes": 17661,
+        "sha256": "7b2dbc80a3dbfbf99ded34611371bbfb6fb619541069a9004257a92d7a51e172"
+      }
+    },
+    "tests/governance/test_task_wire_parent.py": {
+      "baseline": null,
+      "current": {
+        "bytes": 60977,
+        "sha256": "b2a6e913d9522f6235b9a2e980195ea45fbb28c612970b0abd5f7f8c9ddc9b48"
       }
     }
   }

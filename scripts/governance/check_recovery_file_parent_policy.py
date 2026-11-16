@@ -36,18 +36,97 @@ def read_source_checked(path):
    if (was.st_dev,was.st_ino,was.st_uid,was.st_gid,was.st_mode)!=(now.st_dev,now.st_ino,now.st_uid,now.st_gid,now.st_mode):raise ValueError('source parent changed')
   return bytes(body)
  finally:os.close(fd)
+def read_native_driver_checked(path):
+ path=Path(path);parents=[(p,os.lstat(p))for p in path.parents]
+ if any(not stat.S_ISDIR(v.st_mode)or stat.S_ISLNK(v.st_mode)for _,v in parents):raise ValueError('source parent alias refused')
+ stamp=lambda x:(x.st_dev,x.st_ino,x.st_uid,x.st_gid,x.st_mode,x.st_nlink,x.st_size,x.st_mtime_ns,x.st_ctime_ns)
+ fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+ try:
+  old=os.fstat(fd)
+  if not stat.S_ISREG(old.st_mode)or stat.S_IMODE(old.st_mode)!=0o644 or old.st_uid!=os.getuid()or old.st_nlink!=1 or old.st_mode&0o022 or not 0<old.st_size<=1048576:raise ValueError('bounded owned 0644 native driver required')
+  body=bytearray();remaining=old.st_size
+  while remaining:
+   chunk=os.read(fd,min(65536,remaining))
+   if not chunk:raise ValueError('source short read')
+   body.extend(chunk);remaining-=len(chunk)
+  if stamp(old)!=stamp(os.fstat(fd))or stamp(old)!=stamp(os.lstat(path)):raise ValueError('source changed during capture')
+  for p,was in parents:
+   now=os.lstat(p)
+   if (was.st_dev,was.st_ino,was.st_uid,was.st_gid,was.st_mode)!=(now.st_dev,now.st_ino,now.st_uid,now.st_gid,now.st_mode):raise ValueError('source parent changed')
+  return bytes(body)
+ finally:os.close(fd)
+# Immutable whole PHP fixture at actual20b, not executable replacement code.
+NATIVE_DRIVER_PATH='support/governance/native-organization/test-native-organization-mysql.php'
+NATIVE_DRIVER_TARGET_PIN={'bytes':39675,'sha256':'12f3da8ac1ff4f0eda73200a28247add24066378c9295cb10f23339d6bf589c7'}
+NATIVE_DRIVER_TARGET_ORIGIN={'revision':'20b138b4cd9a2cf61522613b4a8e5e21eca7341b','tree':'74ca6114980547fceb27aedf3a2464a4518fcc91','git_mode':'100644','git_blob':'7495c6bd85911fcee14ae0beed8d841d25676c4c'}
+def _native_driver_prior(raw):
+ if type(raw)is not bytes or len(raw)!=NATIVE_DRIVER_TARGET_PIN['bytes']or hashlib.sha256(raw).hexdigest()!=NATIVE_DRIVER_TARGET_PIN['sha256']:
+  raise ValueError('unknown whole native driver source phase')
+ return raw
+
+def admitted_native_driver_source(root,raw):
+ """Current physical/R/metadata role first, then exact old PHP source only.
+
+ No historical fixture is executed, and this source view grants no runtime,
+ identity, object policy, restoration or optional-feature authority.
+ """
+ import project_description_admission_delta as current
+ try:
+  root=Path(root)
+  if not root.is_absolute()or root.resolve()!=root:raise ValueError('native driver source root refused')
+  current.assert_current_recipe(root)
+  target=root/NATIVE_DRIVER_PATH
+  if type(raw)is not bytes or raw!=read_native_driver_checked(target):
+   raise ValueError('unknown physical native driver source')
+  registry_path='support/governance/source-operation/registry-v1.json'
+  registry_raw=current.description.checked_bytes(root/registry_path)
+  if registry_path not in current.CURRENT_METADATA:raise ValueError('native driver registry role missing')
+  current._exact(registry_raw,current.CURRENT_METADATA[registry_path])
+  def pairs(items):
+   result={}
+   for key,value in items:
+    if key in result:raise ValueError('duplicate native driver source role')
+    result[key]=value
+   return result
+  registry=json.loads(registry_raw,object_pairs_hook=pairs)
+  if type(registry)is not dict or registry.get('schema')!='source-operation-registry-v1'or registry.get('source_revision')!=NATIVE_DRIVER_TARGET_ORIGIN['revision']or registry.get('source_tree')!=NATIVE_DRIVER_TARGET_ORIGIN['tree']or type(registry.get('entries'))is not dict or type(registry.get('successor_entries'))is not dict:
+   raise ValueError('native driver registry origin refused')
+  pin=registry['successor_entries'][NATIVE_DRIVER_PATH]['current']if NATIVE_DRIVER_PATH in registry['successor_entries']else registry['entries'][NATIVE_DRIVER_PATH]
+  if type(pin)is not dict or set(pin)!={'bytes','sha256'}or type(pin['bytes'])is not int or type(pin['sha256'])is not str:
+   raise ValueError('native driver source role refused')
+  current._exact(raw,pin)
+  if hashlib.sha256(raw).hexdigest()==NATIVE_DRIVER_TARGET_PIN['sha256']:
+   prior=_native_driver_prior(raw)
+  else:
+   row=current.CURRENT_METADATA.get(NATIVE_DRIVER_PATH)
+   if type(row)is not dict or row.get('target_bytes')!=NATIVE_DRIVER_TARGET_PIN['bytes']or row.get('target_sha256')!=NATIVE_DRIVER_TARGET_PIN['sha256']:
+    raise ValueError('native driver current metadata role missing')
+   current._exact(raw,row)
+   prior=_native_driver_prior(current._normalize_metadata(NATIVE_DRIVER_PATH,raw))
+  current.assert_current_recipe(root)
+  return prior
+ except OSError:
+  raise ValueError('native driver source unavailable')from None
+
 def source_obligations(root=ROOT):
+ root=Path(root)
+ current_root=root==ROOT
+ if current_root:
+  import project_description_admission_delta as current
+  current.assert_current_recipe(root)
  captured={}
  if len(SOURCE_INPUTS)!=12:raise ValueError('reviewed source set refused')
  for relative,pin in SOURCE_INPUTS.items():
   raw=read_source_checked(Path(root)/relative)
-  if relative=='support/governance/native-organization/test-native-organization-mysql.php':
+  if relative==NATIVE_DRIVER_PATH:
+   raw=admitted_native_driver_source(root,raw)if current_root or hashlib.sha256(raw).hexdigest()!=SOURCE_INPUTS[relative]else raw
    raw=native_driver_view.reduce_policy_cleanup_driver(raw)
   if hashlib.sha256(raw).hexdigest()!=pin:raise ValueError('reviewed Fileparent source bytes changed')
   captured[relative]=raw
  text=captured['support/governance/recovery/file-parent-policy-cases.php'].decode('utf-8')
  labels=re.findall(r"'(file-parent-policy-[A-Za-z0-9-]+)'\);",text)
  if len(labels)!=len(set(labels))or set(labels)!=SQL:raise ValueError('actual Fileparent case obligations changed')
+ if current_root:current.assert_current_recipe(root)
  return shared.BOOTSTRAP|shared.PREPARATION|set(labels)|shared.CLEANUP
 
 def summary(revision,root=ROOT):
@@ -55,7 +134,8 @@ def summary(revision,root=ROOT):
  source_obligations(root)
  driver='support/governance/native-organization/test-native-organization-mysql.php'
  raw=read_source_checked(Path(root)/driver)
- prior=native_driver_view.reduce_policy_cleanup_driver(raw)
+ prior=admitted_native_driver_source(Path(root),raw)if Path(root)==ROOT or hashlib.sha256(raw).hexdigest()!=SOURCE_INPUTS[driver]else raw
+ prior=native_driver_view.reduce_policy_cleanup_driver(prior)
  if hashlib.sha256(prior).hexdigest()!=SOURCE_INPUTS[driver]:raise ValueError('Fileparent wire source phase refused')
  wire_inputs=dict(SOURCE_INPUTS);wire_inputs[driver]=hashlib.sha256(raw).hexdigest()
  source_obligations(root)

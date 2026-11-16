@@ -123,6 +123,30 @@ def loopback_request(url, method='GET', payload=None, headers=None):
         conn.close()
 
 
+def _rename_noreplace(directory_fd, source_leaf, destination_leaf):
+    """Native atomic publication only: an existing destination is never replaced."""
+    import ctypes
+    if (type(directory_fd) is not int or directory_fd < 0 or
+            any(type(name) is not str or not name or '/' in name or name in ('.', '..')
+                or '\x00' in name for name in (source_leaf, destination_leaf))):
+        raise ValueError('owned_atomic_rename_role_refused')
+    if sys.platform == 'linux':
+        symbol, flag = 'renameat2', 1  # Linux RENAME_NOREPLACE.
+    elif sys.platform == 'darwin':
+        symbol, flag = 'renameatx_np', 4  # Darwin SDK RENAME_EXCL.
+    else:
+        raise ValueError('owned_atomic_rename_unavailable')
+    library = ctypes.CDLL(None, use_errno=True)
+    rename = getattr(library, symbol, None)
+    if rename is None:
+        raise ValueError('owned_atomic_rename_unavailable')
+    rename.argtypes = (ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint)
+    rename.restype = ctypes.c_int
+    if rename(directory_fd, os.fsencode(source_leaf), directory_fd,
+              os.fsencode(destination_leaf), flag) != 0:
+        code = ctypes.get_errno()
+        raise OSError(code, os.strerror(code))
+
 class OwnedRuntime:
     def __init__(self, config):
         self.config = config
@@ -155,6 +179,88 @@ class OwnedRuntime:
         fd = os.open(self.directory / name, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         with os.fdopen(fd, 'wb') as stream:
             stream.write(raw)
+
+    def write_command(self, sequence, raw):
+        # Startup/owner files keep their existing writer; only live commands/owner flags need
+        # atomic visibility to the unchanged native held-FD command reader.
+        if type(sequence) is not int or not 1 <= sequence <= 64:
+            raise ValueError('owned_command_sequence_refused')
+        view = memoryview(raw)
+        if view.nbytes > 512:
+            raise ValueError('owned_command_size_refused')
+        self._publish_private_role('task-command-' + str(sequence) + '.json', view.tobytes())
+
+    def write_flag(self, name):
+        if name not in ('history-queue-quiesce', 'release'):
+            raise ValueError('owned_flag_role_refused')
+        self._publish_private_role(name, self.owner.encode())
+
+    def _publish_private_role(self, destination, data):
+        if (destination not in ('history-queue-quiesce', 'release') and
+                not re.fullmatch(r'task-command-([1-9]|[1-5][0-9]|6[0-4])\.json', destination)):
+            raise ValueError('owned_atomic_role_refused')
+        self.assert_owned()
+        directory_fd = os.open(self.directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        token = lambda s: (s.st_dev, s.st_ino, s.st_uid, s.st_gid, s.st_mode)
+        expected = token(self.identity)
+        def directory_unchanged():
+            if (token(os.fstat(directory_fd)) != expected or
+                    token(self.directory.lstat()) != expected):
+                raise ValueError('owned_command_directory_changed')
+        stamp = lambda s: (s.st_dev, s.st_ino, s.st_uid, s.st_gid, s.st_mode,
+                           s.st_nlink, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+        temporary = '.command-write-' + os.urandom(16).hex()
+        fd = None
+        created = None
+        try:
+            directory_unchanged()
+            fd = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_RDWR | os.O_NOFOLLOW,
+                         0o600, dir_fd=directory_fd)
+            created = os.fstat(fd)  # Own this exact inode even if chmod fails.
+            os.fchmod(fd, 0o600)
+            created = os.fstat(fd)
+            if (not stat.S_ISREG(created.st_mode) or created.st_nlink != 1 or
+                    stat.S_IMODE(created.st_mode) != 0o600 or
+                    (created.st_uid, created.st_gid) != (self.identity.st_uid, self.identity.st_gid)):
+                raise ValueError('owned_command_temporary_refused')
+            offset = 0
+            while offset < len(data):
+                count = os.write(fd, data[offset:])
+                if count <= 0:
+                    raise OSError('owned_command_short_write')
+                offset += count
+            os.fsync(fd)
+            complete = os.fstat(fd)
+            if (stamp(complete)[:6] != stamp(created)[:6] or
+                    stamp(complete) != stamp(os.stat(temporary, dir_fd=directory_fd, follow_symlinks=False)) or
+                    complete.st_size != len(data) or os.pread(fd, len(data) + 1, 0) != data):
+                raise ValueError('owned_command_temporary_changed')
+            directory_unchanged()
+            self.assert_owned()
+            _rename_noreplace(directory_fd, temporary, destination)
+            published = os.fstat(fd)
+            if (stamp(published)[:-1] != stamp(complete)[:-1] or
+                    stamp(published) != stamp(os.stat(destination, dir_fd=directory_fd, follow_symlinks=False)) or
+                    os.pread(fd, len(data) + 1, 0) != data):
+                raise ValueError('owned_command_publication_changed')
+            os.fsync(directory_fd)
+            directory_unchanged()
+            self.assert_owned()
+        finally:
+            try:
+                try:
+                    remaining = os.stat(temporary, dir_fd=directory_fd, follow_symlinks=False)
+                except FileNotFoundError:
+                    pass
+                else:
+                    if created is None or (remaining.st_dev, remaining.st_ino) != (created.st_dev, created.st_ino):
+                        raise ValueError('owned_command_temporary_cleanup_refused')
+                    os.unlink(temporary, dir_fd=directory_fd)
+                    os.fsync(directory_fd)
+            finally:
+                if fd is not None:
+                    os.close(fd)
+                os.close(directory_fd)
 
     def read_json(self, name):
         self.assert_owned()
@@ -346,3 +452,31 @@ class OwnedRuntime:
         self.closed = True
         return {'registered_children': len(self.children), 'signaled_groups': stopped,
                 'live_children': 0, 'private_directory_removed': not self.directory.exists()}
+
+    def remove_closed_directory(self):
+        """Task-only final removal after independent source operation exit.
+
+        This method grants no source/runtime authority. It only removes this
+        exact already-stopped owned directory; other callers keep close().
+        """
+        if self.closed is not True:
+            raise ValueError('owned_runtime_not_closed')
+        self.assert_owned()
+        before=self.directory.lstat()
+        if before.st_gid!=self.identity.st_gid or (self.directory/'owner').lstat().st_nlink!=1:
+            raise ValueError('owned_directory_final_identity_changed')
+        for child in self.children:
+            if child.poll() is None or self._members(child.pid):
+                raise ValueError('owned_runtime_final_children_unknown')
+        for path in self.directory.rglob('*'):
+            info=path.lstat()
+            if path.is_symlink() or info.st_uid!=os.getuid() or not (stat.S_ISREG(info.st_mode)or stat.S_ISDIR(info.st_mode)):
+                raise ValueError('owned_final_cleanup_entry_refused')
+            if stat.S_ISREG(info.st_mode)and info.st_nlink!=1:
+                raise ValueError('owned_final_cleanup_link_refused')
+        self.assert_owned()
+        now=self.directory.lstat()
+        if (before.st_dev,before.st_ino,before.st_uid,before.st_gid,before.st_mode)!=(now.st_dev,now.st_ino,now.st_uid,now.st_gid,now.st_mode):
+            raise ValueError('owned_final_cleanup_identity_changed')
+        shutil.rmtree(self.directory)
+        return {'live_children':0,'private_directory_removed':not self.directory.exists()}

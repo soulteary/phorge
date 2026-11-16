@@ -2,6 +2,9 @@
 from pathlib import Path
 import unittest,sys,subprocess,json,tempfile,hashlib,copy
 ROOT=Path(__file__).resolve().parents[2]
+import sys
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_recovery_file_parent_policy as driver_admission
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import check_recovery_conduit_producer as gate
 import recovery_conduit_source_delta as delta
@@ -13,7 +16,7 @@ class ConduitWiring(unittest.TestCase):
   text=(ROOT/'support/governance/native-organization/test-native-organization-mysql.php').read_text();a=text.index('$arguments=');b=text.index('$workbench_http=',a);block=text[a:b]
   for argv,want in [(['--conduit-producer-owner'],'conduit-producer-owner'),(['--conduit-producer-owner','--session-borrowed-owner'],'invalid'),(['--conduit-producer-owner','--conduit-producer-owner'],'invalid'),(['--conduit'],'invalid')]:
    code='$argv=array_merge(["driver"],json_decode($argv[1],true));'+block+'echo json_encode($phase);';p=subprocess.run(['php','-r',code,json.dumps(argv)],capture_output=True,text=True,timeout=5);self.assertEqual(0,p.returncode,p.stderr);self.assertEqual(want,json.loads(p.stdout))
-  raw=text.encode();self.assertEqual(delta.reduce_driver(raw),subprocess.check_output(['git','-C',str(ROOT),'show','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504:support/governance/native-organization/test-native-organization-mysql.php']))
+  raw=driver_admission.admitted_native_driver_source(ROOT,text.encode());self.assertEqual(delta.reduce_driver(raw),subprocess.check_output(['git','-C',str(ROOT),'show','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504:support/governance/native-organization/test-native-organization-mysql.php']))
   pin=delta.DRIVER_SHA256
   try:
    bad=raw+b'\n// unrelated driver mutation\n';delta.DRIVER_SHA256=hashlib.sha256(bad).hexdigest()

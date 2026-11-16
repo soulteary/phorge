@@ -17,7 +17,11 @@ class OAuthAccessWiring(unittest.TestCase):
   # Remove only the exact reviewed Calendar additions; recover prior Conduit driver.
   original=ROOT/'support/governance/native-organization/test-native-organization-mysql.php'
   import recovery_conduit_source_delta as calendar_delta
-  self.assertEqual(calendar_delta.reduce_calendar_wire_union(original.read_bytes()),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:'+str(original.relative_to(ROOT))]))
+  from check_recovery_file_parent_policy import admitted_native_driver_source,read_native_driver_checked
+  raw=read_native_driver_checked(original)
+  prior=admitted_native_driver_source(ROOT,raw)
+  with self.assertRaises(ValueError):admitted_native_driver_source(ROOT,raw+b'unknown')
+  self.assertEqual(calendar_delta.reduce_calendar_wire_union(prior),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:'+str(original.relative_to(ROOT))]))
  def test_actual_whole_driver_finally_unknown_before_any_generic_cleanup(self):
   for mode in ['unknown','forged-flags','early','good','old']:
    p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/oauth-access-driver-cleanup-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=5);self.assertEqual(0,p.returncode,p.stderr);d=json.loads(p.stdout)

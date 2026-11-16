@@ -4,7 +4,7 @@ require_once dirname(__DIR__,2).'/runtime/php-version.php';
 require_once dirname(__DIR__).'/completion/fixture.php';
 $root = dirname(__DIR__,3);
 $arguments=array_slice($argv ?? array(),1);
-$phases=array('--calendar-reminder-wire-hold'=>'calendar-reminder-wire-hold','--conduit-producer-owner'=>'conduit-producer-owner','--calendar-reminders'=>'calendar-reminders','--session-borrowed-owner'=>'session-borrowed-owner','--file-parent-policy'=>'file-parent-policy','--session-producer-lease'=>'session-producer-lease','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
+$phases=array('--task-mail-wire-hold'=>'task-mail-wire-hold','--task-mail-browser-wire-hold'=>'task-mail-browser-wire-hold','--calendar-reminder-wire-hold'=>'calendar-reminder-wire-hold','--conduit-producer-owner'=>'conduit-producer-owner','--calendar-reminders'=>'calendar-reminders','--session-borrowed-owner'=>'session-borrowed-owner','--file-parent-policy'=>'file-parent-policy','--session-producer-lease'=>'session-producer-lease','--recovery-partial-composition'=>'recovery-partial-composition','--organization-approval-workbench-http-hold'=>'organization-approval-workbench-http-hold','--organization-approval-workbench'=>'organization-approval-workbench','--file-source-facts'=>'file-source-facts','--task-owner-source-facts'=>'task-owner-source-facts','--spaces-source-facts'=>'spaces-source-facts','--project-source-facts'=>'project-source-facts','--application-config-facts'=>'application-config-facts','--native-user-rr-mdl-only'=>'native-user-rr-mdl-only','--api-credential-concurrency'=>'api-credential-concurrency','--recovery-organization-lifecycle-only'=>'recovery-organization-lifecycle-only','--recovery-organization-metadata-only'=>'recovery-organization-metadata-only','--recovery-organization-only'=>'recovery-organization-only','--recovery-policy-only'=>'recovery-policy-only','--legacy-sql-compatibility'=>'legacy-sql-compatibility',
   '--http-wire-remote-hold'=>'http-wire-remote-hold','--http-wire-hold'=>'http-wire-hold','--private-mail-wire-hold'=>'private-mail-wire-hold',
   '--private-mail-pending-hold'=>'private-mail-pending-hold','--governance-notice-history-wire-hold'=>'governance-notice-history-wire-hold','--governance-notice-wire-hold'=>'governance-notice-wire-hold','--notice-raw-orm-aba'=>'notice-raw-orm-aba','--notice-admin-grant'=>'notice-admin-grant','--notice-admin-grant-wire-hold'=>'notice-admin-grant-wire-hold');
 $phase=$arguments===array()?'all':
@@ -22,7 +22,10 @@ $notice_history=$phase==='governance-notice-history-wire-hold';
 $notice_wire=$phase==='governance-notice-wire-hold'||$notice_admin_wire||$notice_history;
 $credential_concurrency=$phase==='api-credential-concurrency';
 $private_mail_pending=$phase==='private-mail-pending-hold';
-$private_mail_wire=$phase==='private-mail-wire-hold'||$private_mail_pending||$notice_wire;
+$task_browser=$phase==='task-mail-browser-wire-hold';
+if($task_browser){$GLOBALS['governance_workbench_http_cleanup_permitted']=false;}
+$task_wire=$task_browser||$phase==='task-mail-wire-hold';
+$private_mail_wire=$task_wire||$phase==='private-mail-wire-hold'||$private_mail_pending||$notice_wire;
 $legacy_compatibility=$phase==='legacy-sql-compatibility';
 $media_remote=$phase==='http-wire-remote-hold';
 $wire_hold=$phase==='http-wire-hold'||$media_remote;
@@ -346,7 +349,8 @@ try {
       else{$native=governance_native_media_wire_hold($fixture,$check);}
     }elseif($private_mail_wire){
       $stage='private-native-mail-wire-fixture';
-      if($notice_admin_wire){require_once dirname(__DIR__).'/notification/notice-admin-wire-hold.php';$native=governance_notice_admin_wire_hold($fixture,$check);}
+      if($task_wire){require_once dirname(__DIR__).'/notification/task-wire-hold.php';$native=governance_task_wire_hold($fixture,$check,$task_browser);}
+      elseif($notice_admin_wire){require_once dirname(__DIR__).'/notification/notice-admin-wire-hold.php';$native=governance_notice_admin_wire_hold($fixture,$check);}
       elseif($notice_history){require_once dirname(__DIR__).'/notification/notice-history-browser.php';
         require_once dirname(__DIR__).'/notification/notice-wire-hold.php';
         $native=governance_notice_wire_hold($fixture,$check,'governance_notice_history_prepare_browser');}
@@ -470,7 +474,7 @@ try {
   }elseif(($calendar_wire??false)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){
     $cleanup_failures[]=array('stage'=>'calendar-wire-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');
     // Only the Calendar parent-stop/quiesce/independent-SQL0 release can permit cleanup.
-  }elseif(($workbench_http||$notice_history)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){
+  }elseif(($workbench_http||$notice_history||$task_browser)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){
     $cleanup_failures[]=array('stage'=>'workbench-http-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');
     // Retain ownership/schema evidence until the parent proves its server stopped.
   }elseif($phase==='session-producer-lease'&&($GLOBALS['governance_session_lease_cleanup']['cleanup_proved']??null)!==true){

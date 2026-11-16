@@ -3,6 +3,9 @@ from n05_legacy_audit_test_view import historical_tooling_source
 from pathlib import Path
 import ast,hashlib,json,subprocess,sys,tempfile,unittest
 ROOT=Path(__file__).resolve().parents[2]
+import sys
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_recovery_file_parent_policy as driver_admission
 PROGRAM=r'''
 require $argv[1].'/support/governance/native-organization/workers.php';
 $path=$argv[2];$mode=$argv[3];$nonce=str_repeat('a',64);$stat=lstat($path);
@@ -59,8 +62,8 @@ class WorkerTerminal(unittest.TestCase):
    import recovery_conduit_source_delta as calendar
    driver='support/governance/native-organization/test-native-organization-mysql.php'
    # Preserve the original map while proving the new raw fixture's exact inverse.
-   self.assertEqual(current[driver],hashlib.sha256(calendar.reduce_policy_cleanup_driver((ROOT/driver).read_bytes())).hexdigest())
-   historical=dict(current);historical[driver]=hashlib.sha256(calendar.reduce_calendar_wire_union((ROOT/driver).read_bytes())).hexdigest()
+   self.assertEqual(current[driver],hashlib.sha256(calendar.reduce_policy_cleanup_driver(driver_admission.admitted_native_driver_source(ROOT,(ROOT/driver).read_bytes()))).hexdigest())
+   historical=dict(current);historical[driver]=hashlib.sha256(calendar.reduce_calendar_wire_union(driver_admission.admitted_native_driver_source(ROOT,(ROOT/driver).read_bytes()))).hexdigest()
    import recovery_assessment_source_delta as assessment
    compared=dict(pins(historical_tooling_source(source)))
    for name,pin in assessment.SOURCE_INPUTS.items():

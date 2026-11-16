@@ -1,6 +1,6 @@
 """Execute actual new ready/release boundaries; actual fixture close uses SQL-handle seams."""
 from pathlib import Path
-import json,subprocess,unittest,importlib.util
+import json,subprocess,unittest,importlib.util,sys
 def _fixture_module(name):
  path=Path(__file__).resolve().with_name(name+".py")
  spec=importlib.util.spec_from_file_location("notice_lifecycle_"+name,path)
@@ -43,5 +43,12 @@ echo json_encode(['failed'=>$failed,'same_primary'=>$same,'close_calls'=>$calls,
   for value in (0,'0',1,'1',False,None,'0.0'):
    raw=json.dumps(value);code='[$fixture,$s]=fixture("normal");'+setup+'$GLOBALS["n"]=json_decode('+json.dumps(raw)+');$browser=[];$history_queue_quiesced=true;$GLOBALS["governance_workbench_http_cleanup_permitted"]=false;try{'+body+'$ok=true;}catch(Throwable$e){$ok=false;}echo json_encode(["ok"=>$ok,"cleanup"=>$GLOBALS["governance_workbench_http_cleanup_permitted"]]);'
    expected=type(value)is int and value==0 or type(value)is str and value=='0';self.assertEqual(self.run_php(code),{'ok':expected,'cleanup':expected})
-  driver=(ROOT/'support/governance/native-organization/test-native-organization-mysql.php').read_text()
-  self.assertIn("}elseif(($workbench_http||$notice_history)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){",driver)
+  sys.path.insert(0,str(ROOT/'scripts/governance'))
+  from check_recovery_file_parent_policy import read_native_driver_checked,admitted_native_driver_source
+  path=ROOT/'support/governance/native-organization/test-native-organization-mysql.php'
+  raw=read_native_driver_checked(path)
+  prior=admitted_native_driver_source(ROOT,raw)
+  with self.assertRaises(ValueError):admitted_native_driver_source(ROOT,raw+b'unknown')
+  driver=raw.decode('utf-8')
+  self.assertIn("}elseif(($workbench_http||$notice_history)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){",prior.decode('utf-8'))
+  self.assertIn("}elseif(($workbench_http||$notice_history||$task_browser)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){",driver)

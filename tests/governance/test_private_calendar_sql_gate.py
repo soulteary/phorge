@@ -86,6 +86,13 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
                 ('src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php', gate.reduce_reviewed_calendar_engine),
                 ('support/governance/native-organization/test-native-organization-mysql.php', gate.reduce_reviewed_calendar_driver)):
             raw = (ROOT / name).read_bytes()
+            if name == 'support/governance/native-organization/test-native-organization-mysql.php':
+                import check_recovery_file_parent_policy as driver_source
+                physical = raw
+                raw = driver_source.admitted_native_driver_source(ROOT, physical)
+                for unknown in (physical + b'\n// unreviewed current driver\n', physical[:-1]):
+                    with self.assertRaises(ValueError):
+                        driver_source.admitted_native_driver_source(ROOT, unknown)
             baseline = subprocess.check_output(['git', '-C', str(ROOT), 'show',
                 '59b623978b82964581ccc769221121a03938a2ff:' + name])
             self.assertEqual(baseline, inverse(raw))
@@ -290,7 +297,11 @@ class CalendarWireSourceProvenanceTests(unittest.TestCase):
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 raw = (ROOT / name).read_bytes()
                 if name == path:
-                    raw = gate.conduit_delta.reduce_policy_cleanup_driver(raw)
+                    # Build the historical fixture from its actual immutable Git
+                    # object, never by admitting an incomplete current root.
+                    raw = subprocess.check_output(['git', '--no-replace-objects', '-C', str(ROOT),
+                        'show', '20b138b4cd9a2cf61522613b4a8e5e21eca7341b:' + name])
+                    self.assertEqual(hashlib.sha256(raw).hexdigest(), gate.SOURCE_INPUTS[name])
                 dest.write_bytes(raw)
             self.assertEqual(gate.SOURCE_INPUTS, gate.sources(root))
             self.assertEqual(gate.SOURCE_INPUTS, gate.summary(REVISION, QUEUE, root=root)['source_inputs_sha256'])

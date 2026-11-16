@@ -3,6 +3,9 @@ from n05_legacy_audit_test_view import historical_tooling_source,historical_libr
 from pathlib import Path
 import itertools,json,subprocess,unittest,hashlib,ast
 ROOT=Path(__file__).resolve().parents[2]
+import sys
+sys.path.insert(0,str(ROOT/'scripts/governance'))
+import check_recovery_file_parent_policy as driver_admission
 class SessionActorOrder(unittest.TestCase):
  def php(self,order,mode='good'):
   p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/session-actor-order-native-host.php'),str(ROOT),json.dumps(order),mode],capture_output=True,text=True,timeout=8);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');return json.loads(p.stdout)
@@ -42,8 +45,8 @@ class SessionActorOrder(unittest.TestCase):
   for line in [b"    'PhorgeRecoveryConduitProducerFence' => 'infrastructure/governance/recovery/PhorgeRecoveryConduitProducerFence.php',\n",b"    'PhorgeRecoveryConduitProducerFence' => 'Phobject',\n"]:
    self.assertEqual(1,reduced.count(line));reduced=reduced.replace(line,b'',1)
   self.assertEqual(hashlib.sha256(reduced).hexdigest(),a['src/__phutil_library_map__.php'])
-  relative='support/governance/native-organization/test-native-organization-mysql.php';driver=(ROOT/relative).read_bytes();historical_driver=conduit_delta.reduce_policy_cleanup_driver(driver);self.assertNotEqual(driver,historical_driver);self.assertEqual(b[relative],hashlib.sha256(historical_driver).hexdigest());self.assertEqual(conduit_delta.reduce_policy_cleanup_driver(historical_driver),historical_driver)
-  for bad in (driver+b'unknown',driver.replace(b'governance_policy_nested_cleanup_permitted',b'governance_policy_nested_cleanup_unknown',1)):
-   with self.subTest(stage='policy-cleanup-driver'),self.assertRaises(ValueError):conduit_delta.reduce_policy_cleanup_driver(bad)
+  relative='support/governance/native-organization/test-native-organization-mysql.php';physical_driver=(ROOT/relative).read_bytes();driver=driver_admission.admitted_native_driver_source(ROOT,physical_driver);historical_driver=conduit_delta.reduce_policy_cleanup_driver(driver);self.assertNotEqual(physical_driver,historical_driver);self.assertEqual(b[relative],hashlib.sha256(historical_driver).hexdigest());self.assertEqual(conduit_delta.reduce_policy_cleanup_driver(historical_driver),historical_driver)
+  for bad in (physical_driver+b'unknown',physical_driver.replace(b'governance_policy_nested_cleanup_permitted',b'governance_policy_nested_cleanup_unknown',1)):
+   with self.subTest(stage='policy-cleanup-driver'),self.assertRaises(ValueError):conduit_delta.reduce_policy_cleanup_driver(driver_admission.admitted_native_driver_source(ROOT,bad))
   self.assertEqual(b['support/governance/recovery/session-lease-focused.php'],hashlib.sha256((ROOT/'support/governance/recovery/session-lease-focused.php').read_bytes()).hexdigest())
 if __name__=='__main__':unittest.main()
