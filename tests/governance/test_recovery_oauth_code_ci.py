@@ -394,14 +394,17 @@ class OAuthCI(unittest.TestCase):
       self.assertEqual(authorization_delta.reduce_current(name,raw),subprocess.check_output(['git','-C',str(ROOT),'show','0436e865b8431b9f064fe7b8a92dcad5e6623997:'+name]))
     for name in approved:
      fixed=subprocess.check_output(['git','-C',str(ROOT),'show','71c1338ea01116f6118f4ac3bd7aea024ed762f9:'+name])
-     self.assertEqual(partial.reduce_if_selected(name,(ROOT/name).read_bytes()),fixed)
+     # CURRENT bytes remain physically bound; historical reduction accepts only
+     # authenticated parent DATA supplied by this live source operation.
+     self.assertEqual((ROOT/name).read_bytes(),context.current(name))
+     self.assertEqual(partial.reduce_if_selected(name,context.parent(name)),fixed)
      committed=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:'+name])
      if committed!=(ROOT/name).read_bytes():
       self.assertEqual(revision,'d95b3bd2253afb6fdce615f4041920bdce5df625')
       self.assertEqual(subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse','HEAD^{tree}']).decode().strip(),'4af5ae154be5b9fd01565762edbb712450c41c34')
       from n05_r3_historical_test_view import historical_D95_media_recipe_source
       old=historical_D95_media_recipe_source(name,committed)
-     else:old=partial.reduce_if_selected(name,committed)
+     else:old=partial.reduce_if_selected(name,context.parent(name))
      self.assertEqual(old,fixed)
    from test_project_description_source_inverse_task_v2 import assert_reviewed_i18n_drift_controls
    assert_reviewed_i18n_drift_controls(self)
