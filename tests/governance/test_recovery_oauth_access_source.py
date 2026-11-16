@@ -1,4 +1,5 @@
 """Actual selected OAuth core/Store; explicit SQL collaborators, no SQL proof."""
+from task_source_candidate_test_api_v2 import source_candidates
 from pathlib import Path
 import sys,hashlib,copy
 import json, subprocess, unittest
@@ -50,23 +51,27 @@ echo json_encode(['class'=>get_class($x),'id_assigned'=>$x->getID()!==null,'toke
 
 class VersionedOAuthSource(unittest.TestCase):
  def test_current_and_all_historical_versions_keep_original_claims_and_pins(self):
-  sys.path.insert(0,str(ROOT/'scripts/governance'))
-  import check_recovery_borrowed_owner_source as c
-  for name,count in [('recovery-oauth-access-owner-source-v4.json',7),('recovery-conduit-owner-source-v3.json',6),('recovery-conduit-owner-source-v2.json',4),('recovery-borrowed-owner-source-v1.json',2)]:
-   data=json.loads((ROOT/'docs/governance'/name).read_text());result=c.validate(data,ROOT);self.assertEqual(result['source_inputs'],count);self.assertFalse(result['runtime_certified']);self.assertFalse(result['restoration_authorized'])
-  data=json.loads((ROOT/'docs/governance/recovery-oauth-access-owner-source-v4.json').read_text())
-  for key in ['restoration_authorized','runtime_certified','production_observer_factory_available']:
-   bad=copy.deepcopy(data);bad[key]=True
-   with self.assertRaises(ValueError):c.validate(bad,ROOT)
+  with source_candidates(ROOT)as api:
+   sys.path.insert(0,str(ROOT/'scripts/governance'))
+   for name,count in [('recovery-oauth-access-owner-source-v4.json',7),('recovery-conduit-owner-source-v3.json',6),('recovery-conduit-owner-source-v2.json',4),('recovery-borrowed-owner-source-v1.json',2)]:
+    data=json.loads(api.data_bytes(ROOT/'docs/governance'/name));result=api.validate(data,ROOT);self.assertEqual(result['source_inputs'],count);self.assertFalse(result['runtime_certified']);self.assertFalse(result['restoration_authorized'])
+   data=json.loads(api.data_bytes(ROOT/'docs/governance/recovery-oauth-access-owner-source-v4.json'))
+   for key in ['restoration_authorized','runtime_certified','production_observer_factory_available']:
+    bad=copy.deepcopy(data);bad[key]=True
+    with self.assertRaises(ValueError):api.validate(bad,ROOT)
+   with self.assertRaises(ValueError):api.validate(data,ROOT.parent)
+   with self.assertRaises(ValueError):api.data_bytes(ROOT.parent/'foreign-source')
+  with self.assertRaises(ValueError):api.validate(data,ROOT)
  def test_repin_unrelated_or_missing_native_hook_still_refuses_immutable_inverse(self):
-  sys.path.insert(0,str(ROOT/'scripts/governance'))
-  import recovery_oauth_source_delta as d
-  for path,pin in list(d.SOURCE_INPUTS.items()):
-   raw=(ROOT/path).read_bytes();before=d.reduce_current(path,raw);self.assertEqual(hashlib.sha256(before).hexdigest(),d.BASE_PINS[path])
-   for bad in [raw+b'// unrelated change\n',before]:
-    d.SOURCE_INPUTS[path]=hashlib.sha256(bad).hexdigest()
-    try:
-     with self.assertRaises(ValueError):d.reduce_current(path,bad)
-    finally:d.SOURCE_INPUTS[path]=pin
+  with source_candidates(ROOT)as api:
+   sys.path.insert(0,str(ROOT/'scripts/governance'))
+   d=api.delta('recovery_oauth_source_delta')
+   for path,pin in list(d.SOURCE_INPUTS.items()):
+    raw=api.data_bytes(ROOT/path);before=api.inverse('recovery_oauth_source_delta',path,raw);self.assertEqual(hashlib.sha256(before).hexdigest(),d.BASE_PINS[path])
+    for bad in [raw+b'// unrelated change\n',before]:
+     d.SOURCE_INPUTS[path]=hashlib.sha256(bad).hexdigest()
+     try:
+      with self.assertRaises(ValueError):api.inverse('recovery_oauth_source_delta',path,bad)
+     finally:d.SOURCE_INPUTS[path]=pin
 
 if __name__=='__main__':unittest.main()

@@ -1,3 +1,4 @@
+from task_source_candidate_test_api_v2 import source_candidates
 """Execute actual new ready/release boundaries; actual fixture close uses SQL-handle seams."""
 from pathlib import Path
 import json,subprocess,unittest,importlib.util,sys
@@ -38,17 +39,18 @@ echo json_encode(['failed'=>$failed,'same_primary'=>$same,'close_calls'=>$calls,
   v=self.run_php('[$fixture,$s]=fixture("normal");$browser=null;$GLOBALS["governance_workbench_http_cleanup_permitted"]=true;'+body+'echo json_encode(["calls"=>$s->closeCalls,"cleanup"=>$GLOBALS["governance_workbench_http_cleanup_permitted"]]);')
   self.assertEqual(v,{'calls':0,'cleanup':True})
  def test_actual_new_release_boundary_accepts_only_canonical_independent_SQL_zero(self):
-  s=HOLD.read_text();a=s.index('        if($browser!==null){\n          if($history_queue_quiesced');b=s.index('        $released=true;',a);body=s[a:b]
-  setup='class S{function bind_param(...$a){}function execute(){}function get_result(){return$this;}function fetch_assoc(){return["n"=>$GLOBALS["n"]];}function close(){}}class C{function prepare($sql){if($sql!=="SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE USER=?")throw new Exception("SQL");return new S();}}$GLOBALS["control"]=new C();'
-  for value in (0,'0',1,'1',False,None,'0.0'):
-   raw=json.dumps(value);code='[$fixture,$s]=fixture("normal");'+setup+'$GLOBALS["n"]=json_decode('+json.dumps(raw)+');$browser=[];$history_queue_quiesced=true;$GLOBALS["governance_workbench_http_cleanup_permitted"]=false;try{'+body+'$ok=true;}catch(Throwable$e){$ok=false;}echo json_encode(["ok"=>$ok,"cleanup"=>$GLOBALS["governance_workbench_http_cleanup_permitted"]]);'
-   expected=type(value)is int and value==0 or type(value)is str and value=='0';self.assertEqual(self.run_php(code),{'ok':expected,'cleanup':expected})
-  sys.path.insert(0,str(ROOT/'scripts/governance'))
-  from check_recovery_file_parent_policy import read_native_driver_checked,admitted_native_driver_source
-  path=ROOT/'support/governance/native-organization/test-native-organization-mysql.php'
-  raw=read_native_driver_checked(path)
-  prior=admitted_native_driver_source(ROOT,raw)
-  with self.assertRaises(ValueError):admitted_native_driver_source(ROOT,raw+b'unknown')
-  driver=raw.decode('utf-8')
-  self.assertIn("}elseif(($workbench_http||$notice_history)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){",prior.decode('utf-8'))
-  self.assertIn("}elseif(($workbench_http||$notice_history||$task_browser)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){",driver)
+  with source_candidates(ROOT)as api:
+   s=HOLD.read_text();a=s.index('        if($browser!==null){\n          if($history_queue_quiesced');b=s.index('        $released=true;',a);body=s[a:b]
+   setup='class S{function bind_param(...$a){}function execute(){}function get_result(){return$this;}function fetch_assoc(){return["n"=>$GLOBALS["n"]];}function close(){}}class C{function prepare($sql){if($sql!=="SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE USER=?")throw new Exception("SQL");return new S();}}$GLOBALS["control"]=new C();'
+   for value in (0,'0',1,'1',False,None,'0.0'):
+    raw=json.dumps(value);code='[$fixture,$s]=fixture("normal");'+setup+'$GLOBALS["n"]=json_decode('+json.dumps(raw)+');$browser=[];$history_queue_quiesced=true;$GLOBALS["governance_workbench_http_cleanup_permitted"]=false;try{'+body+'$ok=true;}catch(Throwable$e){$ok=false;}echo json_encode(["ok"=>$ok,"cleanup"=>$GLOBALS["governance_workbench_http_cleanup_permitted"]]);'
+    expected=type(value)is int and value==0 or type(value)is str and value=='0';self.assertEqual(self.run_php(code),{'ok':expected,'cleanup':expected})
+   sys.path.insert(0,str(ROOT/'scripts/governance'))
+   from check_recovery_file_parent_policy import read_native_driver_checked,admitted_native_driver_source
+   path=ROOT/'support/governance/native-organization/test-native-organization-mysql.php'
+   raw=read_native_driver_checked(path)
+   prior=api.driver_prior(raw)
+   with self.assertRaises(ValueError):api.driver_prior(raw+b'unknown')
+   driver=raw.decode('utf-8')
+   self.assertIn("}elseif(($workbench_http||$notice_history)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){",prior.decode('utf-8'))
+   self.assertIn("}elseif(($workbench_http||$notice_history||$task_browser)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){",driver)

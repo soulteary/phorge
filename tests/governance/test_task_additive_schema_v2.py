@@ -18,7 +18,7 @@ class TaskAdditiveSchemaVectors(unittest.TestCase):
    else:raw=b'-- synthetic source binding, not a fixture or restore\n'
    p.write_bytes(raw);p.chmod(0o644);self.pins[relative]=gate.sha(raw)
   self.profile={'schema':'Task-additive-schema-private-binding-v1','runtime_authorized':True,'mode':'directory-Task-OFF','run_id':'1'*32,'hmac_key':'4'*64,'source_root':str(self.root),'source_revision':'a'*40,'source_pins':self.pins,'namespace':'governance_native_'+'b'*16,'server_uuid':'11111111-2222-3333-4444-555555555555','fixture_nonce_sha256':'c'*64,'standard_upgrade_receipt_sha256':'d'*64,'mysql_version':'8.4.13','patch_discovery':{'full_key':'actual-API-test-vendor:20261112.task.contentgrants.sql','leaf_key':'20261112.task.contentgrants.sql','path':gate.SQL_PATH,'sha256':gate.SQL_SHA,'discovered_by':'PhabricatorSQLPatchList.buildAllPatches/getFullKey'},'parent_table_names':['app.t%04d'%n for n in range(549)],'parent_patch_keys':['old-api:k%04d'%n for n in range(1575)],'parent_migration_hashes':{'old-api:migration.sql':'e'*64}}
-  self.path=home/'profile.private.json';self.write_profile();self.native={'source_restore':{'quickstart_sha256':self.pins['resources/sql/quickstart.sql'],'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,'current_table_count':552,'restore_phase_workers_started':0,'restore_phase_network_endpoints_configured':0,'patch_audit':{'source_patch_count':1576,'applied_patch_count':1576,'pending_patch_keys':[],'current_patch_ledger_complete':True,'migration_source_hashes':{**self.profile['parent_migration_hashes'],self.profile['patch_discovery']['full_key']:gate.SQL_SHA},'migrations_executed':2}},'untouched_business_vector':['unchanged']};self.env=self.envelope()
+  self.path=home/'profile.private.json';self.write_profile();self.native={'source_restore':{'quickstart_sha256':self.pins['resources/sql/quickstart.sql'],'app_schema_count':54,'owned_schema_count':55,'quickstart_source_table_count':500,'current_table_count':552,'restore_phase_workers_started':0,'restore_phase_network_endpoints_configured':0,'patch_audit':{'source_patch_count':1576,'applied_patch_count':1576,'pending_patch_keys':[],'current_patch_ledger_complete':True,'migration_source_hashes':{**self.profile['parent_migration_hashes'],self.profile['patch_discovery']['full_key']:gate.SQL_SHA},'migrations_executed':2}},'cleanup':{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2},'untouched_business_vector':['unchanged']};self.env=self.envelope()
  def write_profile(self):
   raw=gate.encoded(self.profile);self.path.write_bytes(raw);self.path.chmod(0o600);self.pin=gate.sha(raw)
  def mac(self,value):return hmac.new(bytes.fromhex(self.profile['hmac_key']),gate.encoded(value),hashlib.sha256).hexdigest()
@@ -51,6 +51,45 @@ class TaskAdditiveSchemaVectors(unittest.TestCase):
  def test_conduit_capture_cleanup_projection_follows_MAC_acceptance(self):
   cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2};e=self.conduit_envelope(cleanup);e['native_receipt']['cleanup']['ownedAuxiliarySetupConnectionsClosed']=3
   with self.assertRaises(ValueError):gate.validate_envelope(e,self.path,self.pin,expected_mode='conduit-Task-OFF')
+ def focused_envelope(self,mode,cleanup):
+  self.profile['mode']=mode;self.write_profile();self.native['cleanup']=cleanup;e=self.envelope()
+  if mode!='directory-Task-OFF':e['schema']='Task-native-envelope-v3'
+  self.reseal(e);return e
+ def test_all_focused_roles_project_only_exact_two_capture_sockets(self):
+  modes={'directory-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF'}
+  self.assertEqual(gate.CAPTURE_CLEANUP_MODES,modes)
+  for mode in sorted(modes):
+   with self.subTest(mode=mode):
+    cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2}
+    e=self.focused_envelope(mode,cleanup);original=copy.deepcopy(e)
+    projected,proof=gate.validate_envelope(e,self.path,self.pin,expected_mode=mode)
+    self.assertEqual(e,original);self.assertEqual(projected['cleanup'],{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True})
+    self.assertEqual(proof['exact_projection']['capture_auxiliary_setup_connections'],[2,0])
+    for field,value in [('ownedSchemasRemoved',54),('ownedRuntimeUsersRemoved',1),('readerRemoved',False)]:
+     bad=copy.deepcopy(cleanup);bad[field]=value;e=self.focused_envelope(mode,bad)
+     p,_=gate.validate_envelope(e,self.path,self.pin,expected_mode=mode)
+     self.assertEqual(p['cleanup'][field],value) # unchanged old checker must reject
+ def test_each_focused_role_refuses_capture_cleanup_shape_count_or_mac_mutation(self):
+  for mode in sorted(gate.CAPTURE_CLEANUP_MODES):
+   cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2}
+   bad=[]
+   for value in (True,False,0,1,3,2.0,'2',None):
+    row=copy.deepcopy(cleanup);row['ownedAuxiliarySetupConnectionsClosed']=value;bad.append(row)
+   for field in cleanup:
+    row=copy.deepcopy(cleanup);del row[field];bad.append(row)
+   row=copy.deepcopy(cleanup);row['unexpected']=True;bad.append(row)
+   for row in bad:
+    with self.subTest(mode=mode,cleanup=row):
+     e=self.focused_envelope(mode,row)
+     with self.assertRaises(ValueError):gate.validate_envelope(e,self.path,self.pin,expected_mode=mode)
+   e=self.focused_envelope(mode,cleanup);e['native_receipt']['cleanup']['ownedAuxiliarySetupConnectionsClosed']=3
+   with self.assertRaises(ValueError):gate.validate_envelope(e,self.path,self.pin,expected_mode=mode)
+ def test_full_native_retains_capture_cleanup_for_distinct_Completion_consumer(self):
+  cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2}
+  e=self.focused_envelope('full-native-Task-OFF',cleanup)
+  projected,proof=gate.validate_envelope(e,self.path,self.pin,expected_mode='full-native-Task-OFF')
+  self.assertEqual(projected['cleanup'],cleanup)
+  self.assertNotIn('capture_auxiliary_setup_connections',proof['exact_projection'])
  def test_bound_pair_permits_only_exact_copy_projection_and_preserves_original(self):
   original=copy.deepcopy(self.env);projected,proof=self.validate();self.assertEqual(self.env,original);self.assertEqual(projected['source_restore']['current_table_count'],549);self.assertEqual(projected['source_restore']['patch_audit']['source_patch_count'],1575);self.assertEqual(projected['source_restore']['patch_audit']['migrations_executed'],1);self.assertEqual(projected['untouched_business_vector'],['unchanged']);self.assertTrue(proof['legacy_v1_validation_still_required']);self.assertFalse(proof['actual_SQL_executed_by_validator'])
  def test_explicit_OAuth_role_modes_refuse_default_or_cross_role_projection(self):

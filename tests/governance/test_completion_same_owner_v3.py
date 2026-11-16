@@ -77,6 +77,19 @@ class CompletionSameOwnerPureControls(unittest.TestCase):
    if isinstance(n,ast.FunctionDef):self.assertEqual(ast.dump(n,include_attributes=False),ast.dump(function(self.validator,n.name),include_attributes=False),n.name)
   self.assertEqual(hashlib.sha256((ROOT/'scripts/governance/check_completion.py').read_bytes()).hexdigest(),'39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649')
 
+ def test_completion_cleanup_is_never_the_focused_projection(self):
+  # The generic schema projection and Completion's exact two-socket seam must
+  # never both consume the same native cleanup field.
+  name='CAPTURE_CLEANUP_MODES'
+  def modes(module):
+   assignment=next(n for n in module.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id==name for t in n.targets))
+   value=assignment.value
+   self.assertIsInstance(value,ast.Call);self.assertEqual(ast.unparse(value.func),'frozenset');self.assertEqual(len(value.args),1)
+   return frozenset(ast.literal_eval(value.args[0]))
+  expected=modes(tree('support/governance/task-additive-schema-v2/validate.py'))
+  self.assertEqual(modes(self.validator),expected)
+  self.assertNotIn('completion-v3',expected);self.assertNotIn('full-native-Task-OFF',expected)
+
  def test_private_reader_rejects_alias_hardlink_and_empty_profile(self):
   ns=selected(self.validator,{'need','private','process_output'})
   with tempfile.TemporaryDirectory()as td:

@@ -1,4 +1,5 @@
 from n05_r3_historical_test_view import historical_coordinator_source
+from task_historical_views_test_api_v2 import bound_views
 """Exact public-source compatibility, never current-runtime or SQL evidence."""
 import ast,hashlib,json,os,subprocess,sys,tempfile,unittest
 from pathlib import Path
@@ -31,41 +32,45 @@ class CodeCoordination(unittest.TestCase):
   self.assertEqual(hashlib.sha256(raw).hexdigest(),'ade733f26c06da349a5b428dc97eaa8c5c73a4fe762ab00b72940792b6e27db3')
   d=json.loads(raw);self.assertEqual(d['base_revision'],'9bc725ea3643cf24b6df0e806738b55496d8b388');return d
  def test_all_six_and_sixteen_actual_inverses_match_independent_base_pins(self):
-  b=self.baseline();self.assertEqual(prod.BASE_PINS,b['production_base_sha256']);self.assertEqual(coord.BASE_PINS,b['historical_tooling_and_case_base_sha256'])
-  self.assertEqual(len(prod.SOURCE_INPUTS),6);self.assertEqual(len(coord.SOURCE_INPUTS),16)
-  for path,pin in {**prod.BASE_PINS,**coord.BASE_PINS}.items():
-   raw=(ROOT/path).read_bytes()
-   self.assertEqual(hashlib.sha256(historical_coordinator_source(path,raw)).hexdigest(),pin)
-   with self.assertRaises(ValueError):historical_coordinator_source(path,raw+b'\n# unauthorized change')
+  with bound_views(ROOT)as(legacy,r3):
+   b=self.baseline();self.assertEqual(prod.BASE_PINS,b['production_base_sha256']);self.assertEqual(coord.BASE_PINS,b['historical_tooling_and_case_base_sha256'])
+   self.assertEqual(len(prod.SOURCE_INPUTS),6);self.assertEqual(len(coord.SOURCE_INPUTS),16)
+   for path,pin in {**prod.BASE_PINS,**coord.BASE_PINS}.items():
+    raw=(ROOT/path).read_bytes()
+    self.assertEqual(hashlib.sha256(r3.historical_coordinator_source(path,raw)).hexdigest(),pin)
+    with self.assertRaises(ValueError):r3.historical_coordinator_source(path,raw+b'\n# unauthorized change')
  def test_literal_maps_and_inverse_tables_are_unchanged(self):
-  def dictionaries(raw):
-   out={}
-   for n in ast.parse(raw).body:
-    if isinstance(n,ast.Assign)and isinstance(n.value,ast.Dict):
-     for target in n.targets:
-      if isinstance(target,ast.Name):out[target.id]=ast.dump(n.value,include_attributes=False)
-   return out
-  for path in coord.SOURCE_INPUTS:
-   if path.endswith('.py'):
-    raw=(ROOT/path).read_bytes();project_view=legacy_view.n05.reduce_if_selected(path,raw);self.assertEqual(dictionaries(project_view),dictionaries(historical_coordinator_source(path,raw)))
+  with bound_views(ROOT)as(legacy,r3):
+   def dictionaries(raw):
+    out={}
+    for n in ast.parse(raw).body:
+     if isinstance(n,ast.Assign)and isinstance(n.value,ast.Dict):
+      for target in n.targets:
+       if isinstance(target,ast.Name):out[target.id]=ast.dump(n.value,include_attributes=False)
+    return out
+   for path in coord.SOURCE_INPUTS:
+    if path.endswith('.py'):
+     raw=(ROOT/path).read_bytes();project_view=legacy.n05.reduce_if_selected(path,raw);self.assertEqual(dictionaries(project_view),dictionaries(r3.historical_coordinator_source(path,raw)))
  def test_complete_current_or_complete_baseline_only_missing_mixed_unknown_refuse(self):
-  with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
-   root=Path(tmp).resolve();complete_source_cohort(root);self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))
-   for path in prod.SOURCE_INPUTS:
-    p=root/path;raw=p.read_bytes();p.write_bytes(prod.reduce_current(path,raw))
-    with self.assertRaises(ValueError):prod.assert_cohort(root,reader.read_source_checked)
-    p.write_bytes(raw+b'\n// not reviewed')
-    with self.assertRaises(ValueError):prod.assert_cohort(root,reader.read_source_checked)
-    p.write_bytes(raw)
-   for path in prod.SOURCE_INPUTS:
-    p=root/path;p.write_bytes(prod.reduce_current(path,p.read_bytes()))
-   for path in authorization_delta.PRODUCTION_PATHS:
-    if path not in prod.SOURCE_INPUTS:
-     p=root/path;p.write_bytes(authorization_delta.reduce_if_selected(path,p.read_bytes()))
-   self.assertFalse(prod.assert_cohort(root,reader.read_source_checked))
-   with self.assertRaises(ValueError):current.SQL_obligations(root)
-   (root/next(iter(prod.SOURCE_INPUTS))).unlink()
-   with self.assertRaises(OSError):prod.assert_cohort(root,reader.read_source_checked)
+  with bound_views(ROOT)as(legacy,r3):
+   modules=r3.checked_modules();prod=modules.code_delta;authorization_delta=modules.authorization_delta
+   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
+    root=Path(tmp).resolve();legacy.fixture_DATA(root,paths=sorted(set(prod.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)));self.assertTrue(prod.assert_cohort(root,reader.read_source_checked))
+    for path in prod.SOURCE_INPUTS:
+     p=root/path;raw=p.read_bytes();p.write_bytes(prod.reduce_current(path,raw))
+     with self.assertRaises(ValueError):prod.assert_cohort(root,reader.read_source_checked)
+     p.write_bytes(raw+b'\n// not reviewed')
+     with self.assertRaises(ValueError):prod.assert_cohort(root,reader.read_source_checked)
+     p.write_bytes(raw)
+    for path in prod.SOURCE_INPUTS:
+     p=root/path;p.write_bytes(prod.reduce_current(path,p.read_bytes()))
+    for path in authorization_delta.PRODUCTION_PATHS:
+     if path not in prod.SOURCE_INPUTS:
+      p=root/path;p.write_bytes(authorization_delta.reduce_if_selected(path,p.read_bytes()))
+    self.assertFalse(prod.assert_cohort(root,reader.read_source_checked))
+    with self.assertRaises(ValueError):current.SQL_obligations(root)
+    (root/next(iter(prod.SOURCE_INPUTS))).unlink()
+    with self.assertRaises(OSError):prod.assert_cohort(root,reader.read_source_checked)
  def test_repin_attempt_still_cannot_bless_unrelated_inverse_bytes(self):
   for module in (prod,coord):
    for path in module.SOURCE_INPUTS:
@@ -114,7 +119,25 @@ class CodeCoordination(unittest.TestCase):
     self.assertEqual(git('rev-parse','HEAD'),revision)
     self.assertEqual(git('rev-parse','HEAD^{tree}'),subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'rev-parse',revision+'^{tree}'],env=environment,text=True).strip())
     independent_head=media_git_oracle(clean,revision)
-    assert_exact_media_entries(self,{p:v for p,v in independent_head['entries'].items()if media_protected_path(p)},{p:v for p,v in base_proof['entries'].items()if media_protected_path(p)})
+    current_protected={p:v for p,v in independent_head['entries'].items()if media_protected_path(p)}
+    original_protected={p:v for p,v in base_proof['entries'].items()if media_protected_path(p)}
+    self.assertNotEqual(current_protected,original_protected)
+    # The old pinned runtime gate must still refuse this additive Task graph.
+    # Its explicit v2 successor below qualifies source only, not media runtime.
+    with self.assertRaisesRegex(ValueError,'committed protected source changed; rebase required'):
+     freshness.verify(clean)
+    # Retain a genuine positive for the old gate on its exact BASE graph,
+    # then prove extra-file rejection there without an earlier Task mismatch.
+    import shutil
+    for entry in clean.iterdir():
+     if entry.name=='.git':continue
+     if entry.is_dir()and not entry.is_symlink():shutil.rmtree(entry)
+     else:entry.unlink()
+    git('update-ref','HEAD',snapshot.BASE)
+    for name,(kind,value,mode)in base_proof['entries'].items():
+     snapshot.validate_name(name);target=clean/name;target.parent.mkdir(parents=True,exist_ok=True)
+     if kind=='symlink':snapshot.validate_link(name,value);target.symlink_to(value)
+     else:target.write_bytes(value);target.chmod(mode)
     self.assertTrue(freshness.verify(clean)['protected_source_equal'])
     for name in ['src/unreviewed-extra.php','support/runtime/src/parser/xhpast/bin/xhpast']:
      extra=clean/name;self.assertFalse(extra.exists());extra.write_bytes(b'owned synthetic extra, never executed')
@@ -123,9 +146,17 @@ class CodeCoordination(unittest.TestCase):
     # Retain the old baseline rejection against the same complete current tree.
     with patch.object(snapshot,'BASE','9bc725ea3643cf24b6df0e806738b55496d8b388'),patch.object(snapshot,'ROOT_TREE','3b0f19730d8175fe71c4e5c486dbb17d4d39a790'):
      with self.assertRaisesRegex(ValueError,'protected inventory changed; rebase required|protected source changed|committed protected source changed; rebase required'):freshness.verify(clean)
+   from task_admission_test_api_v2 import checkpoint
+   import check_media_freshness_task_source_v2 as current_source
+   admitted=current_source.verify(ROOT,checkpoint())
+   self.assertIs(admitted['source_only_passed'],True)
+   self.assertIs(admitted['source_operation_exit_verified'],True)
+   self.assertIs(admitted['runtime_SQL_or_business_qualified'],False)
+   self.assertIs(admitted['SQL_executed'],False)
 if __name__=='__main__':unittest.main()
 
 class BoundedMediaEntries(unittest.TestCase):
+
  def test_whole_domain_kind_mode_and_large_raw_bytes_remain_exact(self):
   raw=b'x'*1048576;left={'a':('file',raw,0o644),'b':('symlink','a',0o777)}
   assert_exact_media_entries(self,left,dict(left))

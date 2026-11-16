@@ -25,14 +25,18 @@ def adapt(raw,prefix,role):
  else:
   need(type(argument)is str and argument.startswith('--')and all(c in 'abcdefghijklmnopqrstuvwxyz0123456789-'for c in argument))
   guard=("if(array_slice($argv??array(),1)!==array('"+argument+"')){fwrite(STDERR,\"Task_native_role_argument_refused\\n\");exit(1);}"+'\n').encode()
- if role['mode']in{'conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','full-native-Task-OFF'}:
-  # This producer clears all buffers in bootstrap; move only the wrapper's
-  # capture registration immediately after its original bootstrap, before its
-  # original inner capture. Other dedicated role templates remain unchanged.
-  capture_marker=b'// The original producer owns its inner native-output capture and all cleanup.'
-  need(prefix.count(capture_marker)==1)
-  prefix,capture=prefix.split(capture_marker,1);capture=capture_marker+capture
-  bootstrap=b"require_once $root.'/support/runtime/bootstrap-cli.php';"
-  need(body.count(bootstrap)==1)
-  body=body.replace(bootstrap,bootstrap+b'\n'+capture+b'\n',1)
- return prefix+b'\n'+(guard if role['mode']in{'conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','full-native-Task-OFF'}else b'')+body
+ # Every retained producer uses the same bootstrap buffer reset.
+ # Require one exact bootstrap seam for every admitted fixed registry role.
+ need(role['mode'] in {'directory-Task-OFF','oauth-authorization-Task-OFF',
+  'oauth-client-lifecycle-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF',
+  'oauth-code-Task-OFF','assessment-credential-Task-OFF','full-native-Task-OFF'})
+ # This producer clears all buffers in bootstrap; move only the wrapper's
+ # capture registration immediately after its original bootstrap, before its
+ # original inner capture, including dedicated directory and OAuth templates.
+ capture_marker=b'// The original producer owns its inner native-output capture and all cleanup.'
+ need(prefix.count(capture_marker)==1)
+ prefix,capture=prefix.split(capture_marker,1);capture=capture_marker+capture
+ bootstrap=b"require_once $root.'/support/runtime/bootstrap-cli.php';"
+ need(body.count(bootstrap)==1)
+ body=body.replace(bootstrap,bootstrap+b'\n'+capture+b'\n',1)
+ return prefix+b'\n'+guard+body

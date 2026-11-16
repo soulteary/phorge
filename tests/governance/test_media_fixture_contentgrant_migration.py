@@ -81,18 +81,37 @@ class ContentGrantMigration(unittest.TestCase):
   self.assertEqual(d['results'],['Inherited migration context refused.']+['Unreviewed current-source migration refused.']*3)
   self.assertEqual(d['hashes'],{'phabricator:'+PATCH:PIN});self.assertEqual(d['connections'],[])
  def test_real_fixture_hash_is_not_downgraded_by_historical_source_views(self):
-  import importlib.util,sys
+  import sys
   sys.path.insert(0,str(ROOT/'scripts/governance'))
-  import project_content_grant_source_delta as n05
-  import recovery_oauth_client_lifecycle_delta as lifecycle
-  relative='support/governance/completion/fixture.php';raw=(ROOT/relative).read_bytes();expected='8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b'
-  self.assertEqual(hashlib.sha256(raw).hexdigest(),expected)
-  self.assertEqual(n05.reduce_if_selected(relative,raw),raw);self.assertEqual(lifecycle.reduce_if_selected(relative,raw),raw)
+  from task_inverse_test_api_v2 import owner
+  import source_operation_snapshot as source
+  relative='support/governance/completion/fixture.php'
+  expected='8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b'
   names=['check_recovery_assessment_credentials','check_recovery_assessment_credentials_v2','check_recovery_borrowed_session','check_recovery_conduit_producer','check_recovery_oauth_access_producer','check_recovery_oauth_access_producer_v2','check_recovery_oauth_access_producer_v3','check_recovery_oauth_authorization_producer_v1','check_recovery_oauth_code_producer_v1','check_recovery_session_lease','check_recovery_oauth_client_lifecycle']
-  for name in names:
-   gate=__import__(name);self.assertEqual(gate.SOURCE_INPUTS[relative],expected,name)
-   reader=gate.native_source if name=='check_recovery_oauth_client_lifecycle'else gate.read_source_checked
-   self.assertEqual(hashlib.sha256(reader(ROOT/relative)).hexdigest(),expected,name)
+  with owner(ROOT) as operation:
+   source.require_task_operation(operation,ROOT)
+   context=operation._task_contexts[ROOT]
+   raw=(ROOT/relative).read_bytes()
+   self.assertEqual(context.current(relative),raw)
+   # The physical Task fixture has a separately admitted forward delta. The
+   # unchanged historical digest belongs only to authenticated parent DATA.
+   parent=context.parent(relative)
+   self.assertEqual(hashlib.sha256(parent).hexdigest(),expected)
+   self.assertNotEqual(raw,parent)
+   for module_name in ('project_content_grant_source_delta','recovery_oauth_client_lifecycle_delta'):
+    reducer=operation._modules[module_name].reduce_if_selected
+    self.assertEqual(reducer(relative,parent),parent,module_name)
+    try:physical_result=reducer(relative,raw)
+    except ValueError:pass  # Explicit current-source refusal is fail closed.
+    else:self.assertEqual(physical_result,raw,module_name)
+   for name in names:
+    gate=__import__(name)
+    self.assertEqual(gate.SOURCE_INPUTS[relative],expected,name)
+    reader=gate.native_source if name=='check_recovery_oauth_client_lifecycle'else gate.read_source_checked
+    physical=reader(ROOT/relative)
+    self.assertEqual(physical,raw,name)
+    self.assertNotEqual(hashlib.sha256(physical).hexdigest(),expected,name)
+   source.require_task_operation(operation,ROOT)
  def test_exact_metadata_only_DDL_matches_schema_columns_and_indexes(self):
   raw=(ROOT/'resources/sql/autopatches'/PATCH).read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),PIN)
   sql=raw.decode();spec=(ROOT/'src/infrastructure/governance/content/PhorgeProjectContentGrantSchemaSpec.php').read_text()

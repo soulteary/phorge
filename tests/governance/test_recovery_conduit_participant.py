@@ -1,3 +1,4 @@
+from task_source_candidate_test_api_v2 import source_candidates
 """Actual new core with explicit native-connection SQL collaborators, never SQL proof."""
 from pathlib import Path
 import json,subprocess,unittest
@@ -71,15 +72,15 @@ class BorrowedConduitCapture(unittest.TestCase):
 
 class ConduitVersionedSource(unittest.TestCase):
  def test_v1_v2_remain_historical_and_current_v3_pins_six_exact_sources(self):
-  import sys,hashlib
-  sys.path.insert(0,str(ROOT/'scripts/governance'))
-  import check_recovery_borrowed_owner_source as gate
-  old=json.loads((ROOT/'docs/governance/recovery-borrowed-owner-source-v1.json').read_bytes())
-  new=json.loads((ROOT/'docs/governance/recovery-conduit-owner-source-v2.json').read_bytes())
-  current=json.loads((ROOT/'docs/governance/recovery-conduit-owner-source-v3.json').read_bytes())
-  self.assertEqual(2,len(old['source_sha256']));self.assertEqual(4,len(new['source_sha256']));self.assertEqual(6,len(current['source_sha256']))
-  self.assertEqual(2,gate.validate(old)['source_inputs']);self.assertEqual(4,gate.validate(new)['source_inputs'])
-  self.assertEqual(6,gate.validate(current)['source_inputs']);self.assertFalse(gate.validate(current)['runtime_certified'])
+  with source_candidates(ROOT)as api:
+   import sys,hashlib
+   sys.path.insert(0,str(ROOT/'scripts/governance'))
+   old=json.loads(api.data_bytes(ROOT/'docs/governance/recovery-borrowed-owner-source-v1.json'))
+   new=json.loads(api.data_bytes(ROOT/'docs/governance/recovery-conduit-owner-source-v2.json'))
+   current=json.loads(api.data_bytes(ROOT/'docs/governance/recovery-conduit-owner-source-v3.json'))
+   self.assertEqual(2,len(old['source_sha256']));self.assertEqual(4,len(new['source_sha256']));self.assertEqual(6,len(current['source_sha256']))
+   self.assertEqual(2,api.validate(old)['source_inputs']);self.assertEqual(4,api.validate(new)['source_inputs'])
+   self.assertEqual(6,api.validate(current)['source_inputs']);self.assertFalse(api.validate(current)['runtime_certified'])
  def test_inverse_still_refuses_unrelated_bytes_even_after_current_hash_repin(self):
   import sys,hashlib
   sys.path.insert(0,str(ROOT/'scripts/governance'));import recovery_conduit_source_delta as delta
