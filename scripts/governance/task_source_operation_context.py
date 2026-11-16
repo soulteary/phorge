@@ -38,6 +38,7 @@ CI_V2_NEW_PATHS.update({'scripts/governance/project_conduit_stage_failure_v3.py'
 CI_V2_NEW_PATHS.add('tests/governance/project_grant_source_task_test_api_v2.py')
 CI_V2_NEW_PATHS.add('tests/governance/test_conduit_receipt_rejection_v3.py')
 CI_V2_NEW_PATHS.add('tests/governance/calendar_sql_task_test_api_v2.py')
+CI_V2_NEW_PATHS.update({'support/governance/completion-task-v3/validate.py', 'scripts/governance/check_completion_task_receipt_v3.py', 'tests/governance/test_completion_same_owner_v3.py', 'support/governance/completion-task-v3/run.php', 'support/governance/completion-task-v3/capture.php', 'support/governance/completion-task-v3/prefix.php', 'scripts/governance/run_completion_task_v3.py'})
 MAX=268435456
 
 def need(v):

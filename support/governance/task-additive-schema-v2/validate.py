@@ -86,7 +86,13 @@ def validate_envelope(envelope,profile_path,expected_profile_sha,*,expected_mode
  # Copy only AFTER bound native SchemaSpec/ledger/namespace/nonce/source/MAC
  # evidence succeeds. The raw original envelope/receipt remain unchanged.
  projected=copy.deepcopy(native);restore=projected['source_restore'];restore['current_table_count']=549;audit=restore['patch_audit'];audit['source_patch_count']=1575;audit['applied_patch_count']=1575;audit['migrations_executed']-=1;del audit['migration_source_hashes'][p['patch_discovery']['full_key']]
- return projected,{'schema':'Task-additive-schema-verified-projection-v1','source_revision':p['source_revision'],'source_root':p['source_root'],'source_pins':p['source_pins'],'private_profile_sha256':expected_profile_sha,'native_profile_mode':p['mode'],'source_derived_expected_counts_only':False,'genuine_bound_capture_pair_verified':True,'native_SchemaSpec_three_tables_verified':True,'Task_OFF_empty_before_and_after_verified':True,'original_current_receipt_modified':False,'exact_projection':{'tables':[552,549],'patches':[1576,1575],'migrations_removed':1},'legacy_v1_validation_still_required':True,'actual_SQL_executed_by_validator':False,'production_authority':False}
+ # Only this bound two-capture Conduit profile projects its two owned sockets.
+ # The original strict checker still validates every original cleanup field.
+ if expected_mode=='conduit-Task-OFF':
+  cleanup=projected.get('cleanup');need(type(cleanup)is dict and set(cleanup)=={'ownedSchemasRemoved','ownedRuntimeUsersRemoved','readerRemoved','ownedAuxiliarySetupConnectionsClosed'})
+  need(type(cleanup['ownedAuxiliarySetupConnectionsClosed'])is int and cleanup['ownedAuxiliarySetupConnectionsClosed']==2)
+  del cleanup['ownedAuxiliarySetupConnectionsClosed']
+ return projected,{'schema':'Task-additive-schema-verified-projection-v1','source_revision':p['source_revision'],'source_root':p['source_root'],'source_pins':p['source_pins'],'private_profile_sha256':expected_profile_sha,'native_profile_mode':p['mode'],'source_derived_expected_counts_only':False,'genuine_bound_capture_pair_verified':True,'native_SchemaSpec_three_tables_verified':True,'Task_OFF_empty_before_and_after_verified':True,'original_current_receipt_modified':False,'exact_projection':{'tables':[552,549],'patches':[1576,1575],'migrations_removed':1,**({'capture_auxiliary_setup_connections':[2,0]}if expected_mode=='conduit-Task-OFF'else{})},'legacy_v1_validation_still_required':True,'actual_SQL_executed_by_validator':False,'production_authority':False}
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('--envelope',required=True);parser.add_argument('--profile',required=True);parser.add_argument('--expected-profile-sha256',required=True);a=parser.parse_args()
  try:

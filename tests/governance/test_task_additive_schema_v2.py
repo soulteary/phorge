@@ -30,6 +30,27 @@ class TaskAdditiveSchemaVectors(unittest.TestCase):
   for phase in('before','after'):e[phase]['mac']=self.mac(e[phase]['payload'])
   e['mac']=self.mac({k:v for k,v in e.items()if k!='mac'})
  def validate(self,e=None):return gate.validate_envelope(self.env if e is None else e,self.path,self.pin)
+ def conduit_envelope(self,cleanup):
+  self.profile['mode']='conduit-Task-OFF';self.write_profile();self.native['cleanup']=cleanup;e=self.envelope();e['schema']='Task-native-envelope-v3';self.reseal(e);return e
+ def test_conduit_projects_only_exact_two_capture_owned_socket_cleanup(self):
+  cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2};e=self.conduit_envelope(cleanup);original=copy.deepcopy(e)
+  projected,proof=gate.validate_envelope(e,self.path,self.pin,expected_mode='conduit-Task-OFF');self.assertEqual(e,original);self.assertEqual(projected['cleanup'],{k:v for k,v in cleanup.items()if k!='ownedAuxiliarySetupConnectionsClosed'});self.assertFalse(proof['actual_SQL_executed_by_validator'])
+  # This projection never repairs an original strict field: downstream exact must reject.
+  for key,bad in [('ownedSchemasRemoved',54),('ownedRuntimeUsersRemoved',1),('readerRemoved',False)]:
+   changed=copy.deepcopy(cleanup);changed[key]=bad;e=self.conduit_envelope(changed);p,_=gate.validate_envelope(e,self.path,self.pin,expected_mode='conduit-Task-OFF');self.assertEqual(p['cleanup'][key],bad)
+ def test_conduit_cleanup_projection_refuses_wrong_count_type_or_shape(self):
+  cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2}
+  bad=[]
+  for value in (True,False,0,1,3,2.0,'2',None):
+   changed=copy.deepcopy(cleanup);changed['ownedAuxiliarySetupConnectionsClosed']=value;bad.append(changed)
+  changed=copy.deepcopy(cleanup);del changed['ownedAuxiliarySetupConnectionsClosed'];bad.append(changed)
+  changed=copy.deepcopy(cleanup);changed['extra']=True;bad.append(changed)
+  for changed in bad:
+   e=self.conduit_envelope(changed)
+   with self.assertRaises(ValueError):gate.validate_envelope(e,self.path,self.pin,expected_mode='conduit-Task-OFF')
+ def test_conduit_capture_cleanup_projection_follows_MAC_acceptance(self):
+  cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2};e=self.conduit_envelope(cleanup);e['native_receipt']['cleanup']['ownedAuxiliarySetupConnectionsClosed']=3
+  with self.assertRaises(ValueError):gate.validate_envelope(e,self.path,self.pin,expected_mode='conduit-Task-OFF')
  def test_bound_pair_permits_only_exact_copy_projection_and_preserves_original(self):
   original=copy.deepcopy(self.env);projected,proof=self.validate();self.assertEqual(self.env,original);self.assertEqual(projected['source_restore']['current_table_count'],549);self.assertEqual(projected['source_restore']['patch_audit']['source_patch_count'],1575);self.assertEqual(projected['source_restore']['patch_audit']['migrations_executed'],1);self.assertEqual(projected['untouched_business_vector'],['unchanged']);self.assertTrue(proof['legacy_v1_validation_still_required']);self.assertFalse(proof['actual_SQL_executed_by_validator'])
  def test_explicit_OAuth_role_modes_refuse_default_or_cross_role_projection(self):
