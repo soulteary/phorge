@@ -14,7 +14,10 @@ class SQLReaderSeam(ast.NodeTransformer):
 def model(raws,common):
  need(type(raws)is dict and set(raws)==set(PINS));parsed={}
  for name,pin in PINS.items():
-  raw=raws[name];need(type(raw)is bytes and hashlib.sha256(raw).hexdigest()==pin);parsed[name]=ast.parse(raw)
+  raw=raws[name];need(type(raw)is bytes)
+  if name=='check_native_organization':common.native_pair_parent_DATA(raw,pin)
+  else:need(hashlib.sha256(raw).hexdigest()==pin)
+  parsed[name]=ast.parse(raw)
  completion_ns={'re':re};common.compile_functions(common.functions(parsed['check_completion'],{'require','_equal','exact','fields','digest','strict_object'}),completion_ns)
  completion=types.SimpleNamespace(**{n:completion_ns[n]for n in('exact','fields','digest','strict_object')});completion.PATCHES=common.literal(parsed['check_completion'],'PATCHES')
  native_ns={};common.compile_functions(common.functions(parsed['check_native_organization'],{'exact_tree'}),native_ns)

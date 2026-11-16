@@ -1,5 +1,5 @@
 """Owned CURRENT AST construction prototype; no issuer, native or SQL execution."""
-import ast,copy,hashlib,types
+import ast,copy,hashlib,types,os,stat
 from pathlib import Path
 import source_operation_snapshot as source
 PINS={'scripts/governance/check_native_organization.py': 'c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300', 'scripts/governance/check_private_notifications.py': '5934588782d648bf3c1da43de6fa80f2ab099bc9744218f16bb0d7bd43ff9c12', 'scripts/governance/check_completion.py': '39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649', 'support/governance/revocation-measurement/consumer.py': 'abf79fb0e64e099e72dd3b6ad50d9d727eb758d33963f47f2923f91b754346a3'}
@@ -27,8 +27,23 @@ DROP_IMPORTS=(
  "_measurement_spec = importlib.util.spec_from_file_location('n12_observation_consumer', ROOT / 'support/governance/revocation-measurement/consumer.py')",
  'measurement = importlib.util.module_from_spec(_measurement_spec)',
  '_measurement_spec.loader.exec_module(measurement)')
+def native_pair_parent_DATA(raw,expected_parent_sha):
+ # Exact CURRENT pure helper, never ambient import or historical executable code.
+ path=Path(__file__).resolve(strict=True).with_name('current_native_pair_metadata_v1.py')
+ before=path.lstat();stamp=lambda s:(s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+ if not stat.S_ISREG(before.st_mode)or before.st_nlink!=1 or stat.S_IMODE(before.st_mode)!=0o644 or before.st_size>4096:raise ValueError('current_native_pair_helper_refused')
+ fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+ try:
+  if stamp(os.fstat(fd))!=stamp(before):raise ValueError('current_native_pair_helper_refused')
+  helper=os.read(fd,4097)
+  if len(helper)!=before.st_size or stamp(os.fstat(fd))!=stamp(before)or stamp(path.lstat())!=stamp(before)or hashlib.sha256(helper).hexdigest()!='aff2a7fba2bc05b0c6acb0a3e6144a06f69a5ff87f8c88fc7593518ed319e032':raise ValueError('current_native_pair_helper_refused')
+ finally:os.close(fd)
+ namespace={'__file__':str(path),'__name__':'CURRENT_native_pair_metadata_DATA'}
+ exec(compile(helper,str(path),'exec'),namespace)
+ return namespace['parent_DATA'](raw,expected_parent_sha)
+
 def native_tree(raw):
- need(type(raw)is bytes and hashlib.sha256(raw).hexdigest()==PINS['scripts/governance/check_native_organization.py'])
+ native_pair_parent_DATA(raw,PINS['scripts/governance/check_native_organization.py'])
  tree=ast.parse(raw);nodes=[];removed=[];counts={}
  for node in tree.body:
   text=ast.unparse(node)

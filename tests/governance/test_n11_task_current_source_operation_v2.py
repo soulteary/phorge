@@ -45,11 +45,11 @@ import hashlib,ast,copy,types
 from task_inverse_test_api_v2 import owner
 import source_operation_snapshot as source
 class CurrentPairParentData(unittest.TestCase):
- CONTINUATION=frozenset(['.github/workflows/private-mail-wire.yml','scripts/governance/check_native_organization.py','support/governance/notification/wiki-render-service.php','tests/atomic/extract_native_renderer.py','tests/atomic/paired-gorge.json','tests/atomic/test_current_pair_consumers.py','deploy/acceptance/build-lock.json'])
+ CONTINUATION=frozenset(['.github/workflows/private-mail-wire.yml','scripts/governance/check_native_organization.py','support/governance/notification/wiki-render-service.php','tests/atomic/extract_native_renderer.py','tests/atomic/paired-gorge.json','tests/atomic/test_current_pair_consumers.py','deploy/acceptance/build-lock.json','scripts/governance/project_description_admission_delta.py'])
  def test_genuine_current_pair_and_exact_parent_DATA(self):
   with owner(ROOT)as operation:
    ctx=operation._task_contexts[ROOT]
-   self.assertEqual(len(ctx.ci_inverse),85)
+   self.assertEqual(len(ctx.ci_inverse),86)
    prior={k:v for k,v in ctx.ci_inverse.items()if k not in self.CONTINUATION}
    self.assertEqual(len(prior),78)
    self.assertEqual(hashlib.sha256(json.dumps(prior,sort_keys=True,separators=(',',':')).encode()).hexdigest(),'a6019af54c1f0b5bfb67e3d3a2ac5967412b6114f122aadda209f5662d5e972d')
