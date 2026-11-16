@@ -20,16 +20,18 @@ def inline_blocks(text,marker):
    end=next(j for j in range(i+1,len(rows))if rows[j].strip()==marker)
    out.append('\n'.join(row[8:]for row in rows[i+1:end])+'\n')
  return out
-def union_namespace():
+def union_namespace(route_validator=None):
  block=inline_blocks(WORKFLOW.read_text(),'PYUNION')[0]
  tree=ast.parse(block);names={'need','digest','owner','validate'};selected=[n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name in names]
  keys=next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='KEYS'for t in n.targets))
- ns={'hashlib':hashlib,'json':json,'KEYS':keys,'validate_routed_inventory':r.validate_routed_inventory}
+ # Keep the original closed39 DATA dependency for its unit controls. The real
+ # current73 dependency is exercised separately against this same CURRENT body.
+ ns={'hashlib':hashlib,'json':json,'KEYS':keys,'validate_routed_inventory':r.validate_routed_inventory if route_validator is None else route_validator}
  exec(compile(ast.Module(body=selected,type_ignores=[]),'current-owned-pure-union-validate','exec'),ns);return ns
 
 def summary(index):
  groups,full=make();groups,full,routes=r.route_groups(groups,full);u=union_namespace();assigned=[row['id']for row in full if u['owner'](row['module'])==index]
- return {'schema':'atomic-governance-unit-shard-v4','metadata':{'synthetic':'not-a-run'},'partition':'module-sha256-explicit72-v1','task_routes':routes,'shard':index,'shards':2,'full':full,'full_digest':u['digest'](full),'assigned':assigned,'assigned_digest':u['digest'](assigned),'results':[{'id':ident,'status':'ok'}for ident in assigned],'test_count':len(assigned),'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':True}
+ return {'schema':'atomic-governance-unit-shard-v5','metadata':{'synthetic':'not-a-run'},'partition':'module-sha256-explicit73-v1','task_routes':routes,'shard':index,'shards':2,'full':full,'full_digest':u['digest'](full),'assigned':assigned,'assigned_digest':u['digest'](assigned),'results':[{'id':ident,'status':'ok'}for ident in assigned],'test_count':len(assigned),'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':True}
 class Controls(unittest.TestCase):
  def test_closed39_exact_original_objects_and_order(self):
   groups,full=make();before=copy.deepcopy(full);selected,rows,metadata=r.route_groups(groups,full);old={a for a,b in r.ROUTES}
@@ -82,6 +84,21 @@ class Controls(unittest.TestCase):
   for key,value in mutations:
    bad=copy.deepcopy(data);bad[key]=value
    with self.subTest(key=key),self.assertRaises((RuntimeError,ValueError)):u['validate'](bad,0,data['metadata'])
+ def test_actual_current73_union_dependency_and_old_transport_versions_refuse(self):
+  import task_explicit_shard_routes_v5 as current
+  from test_task_explicit_shard_routes_v5 import make as current_inventory
+  groups,full=current_inventory();_,rows,routes=current.route_groups(groups,full)
+  u=union_namespace(current.validate_routed_inventory);parts=[]
+  for index in range(2):
+   data=summary(index);assigned=[row['id']for row in rows if u['owner'](row['module'])==index]
+   data.update(full=rows,full_digest=u['digest'](rows),task_routes=routes,
+    assigned=assigned,assigned_digest=u['digest'](assigned),
+    results=[{'id':ident,'status':'ok'}for ident in assigned],test_count=len(assigned))
+   self.assertEqual(u['validate'](data,index,data['metadata'])[1],assigned);parts.append(set(assigned))
+   for key,value in [('schema','atomic-governance-unit-shard-v4'),('partition','module-sha256-explicit72-v1'),('task_routes',r.route_metadata())]:
+    bad=copy.deepcopy(data);bad[key]=value
+    with self.subTest(index=index,key=key),self.assertRaises((RuntimeError,ValueError)):u['validate'](bad,index,data['metadata'])
+  self.assertFalse(parts[0]&parts[1]);self.assertEqual(parts[0]|parts[1],{row['id']for row in rows})
  def test_standalone_routes_exact_same39(self):
   groups,full=make();cases=[]
   for row in full:

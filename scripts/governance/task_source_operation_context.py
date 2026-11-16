@@ -47,6 +47,8 @@ CI_V2_NEW_PATHS.update({'tests/governance/task_native_gate_test_api_v2.py', 'tes
 
 CI_V2_NEW_PATHS.update({'tests/governance/test_full_native_task_capture_cleanup_v2.py', 'tests/governance/test_task_explicit_shard_routes_v5.py', 'tests/governance/test_task_current_source_admission_task_v2.py', 'tests/governance/task_explicit_shard_routes_v5.py'})
 
+CI_V2_NEW_PATHS.update({'tests/governance/test_api_credential_task_strict_body_v2.py', 'scripts/governance/check_api_credential_task_schema_receipt_v2.py', 'scripts/governance/api_credential_task_strict_body_v2.py'})
+
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()

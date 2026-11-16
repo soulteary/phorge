@@ -11,7 +11,7 @@ SPEC_PATH='src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpe
 NAMES=('governance_taskcontentapproval','governance_taskcontentaudit','governance_taskcontentgrant')
 CAPTURE_CLEANUP_MODES=frozenset(('directory-Task-OFF','conduit-Task-OFF',
  'oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF',
- 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF'))
+ 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF'))
 PROFILE_KEYS={'schema','runtime_authorized','mode','run_id','hmac_key','source_root','source_revision','source_pins','namespace','server_uuid','fixture_nonce_sha256','standard_upgrade_receipt_sha256','patch_discovery','parent_table_names','parent_patch_keys','parent_migration_hashes','mysql_version'}
 def need(v):
  if v is not True:raise ValueError('Task_additive_schema_proof_refused')

@@ -13,7 +13,7 @@ NAMES=('governance_taskcontentapproval','governance_taskcontentaudit','governanc
 # Full-native has a distinct Completion-v3 consumer and cleanup seam.
 CAPTURE_CLEANUP_MODES=frozenset(('directory-Task-OFF','conduit-Task-OFF',
  'oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF',
- 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF'))
+ 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF'))
 PROFILE_KEYS={'schema','runtime_authorized','mode','run_id','hmac_key','source_root','source_revision','source_pins','namespace','server_uuid','fixture_nonce_sha256','standard_upgrade_receipt_sha256','patch_discovery','parent_table_names','parent_patch_keys','parent_migration_hashes','mysql_version'}
 def need(v):
  if v is not True:raise ValueError('Task_additive_schema_proof_refused')
@@ -45,7 +45,7 @@ def expected_schema():
  'governance_taskcontentaudit':table([column('id','bigint unsigned',False,True),column('approvalID','varbinary(64)'),column('grantID','varbinary(64)'),column('targetPHID','varbinary(64)'),column('actorPHID','varbinary(64)'),column('action','varbinary(32)'),column('createdAt','bigint unsigned')],{'PRIMARY':(['id'],True),'key_approval':(['approvalID'],False),'key_grant':(['grantID'],False)})}
 def profile(path,expected_sha):
  need(hex64(expected_sha));raw=private(path);need(sha(raw)==expected_sha);p=decode(raw)
- need(type(p)is dict and set(p)==PROFILE_KEYS and p['schema']=='Task-additive-schema-private-binding-v1'and p['runtime_authorized']is True and p['mode']in{'directory-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','full-native-Task-OFF'})
+ need(type(p)is dict and set(p)==PROFILE_KEYS and p['schema']=='Task-additive-schema-private-binding-v1'and p['runtime_authorized']is True and p['mode']in{'directory-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','full-native-Task-OFF'})
  need(hex64(p['hmac_key'])and re.fullmatch('[a-f0-9]{32}',p['run_id'])is not None)
  need(re.fullmatch('[a-f0-9]{40}',p['source_revision'])is not None and re.fullmatch('governance_native_[a-f0-9]{16}',p['namespace'])is not None)
  need(re.fullmatch('[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}',p['server_uuid'])is not None and hex64(p['fixture_nonce_sha256'])and hex64(p['standard_upgrade_receipt_sha256']))
@@ -81,7 +81,7 @@ def check_capture(sealed,p,pin,phase):
 
 def validate_envelope(envelope,profile_path,expected_profile_sha,*,expected_mode="directory-Task-OFF"):
  p=profile(profile_path,expected_profile_sha)
- need(expected_mode in{"directory-Task-OFF","oauth-authorization-Task-OFF","oauth-client-lifecycle-Task-OFF","conduit-Task-OFF","oauth-access-Task-OFF","oauth-code-Task-OFF","assessment-credential-Task-OFF","full-native-Task-OFF"}and p["mode"]==expected_mode)
+ need(expected_mode in{"directory-Task-OFF","oauth-authorization-Task-OFF","oauth-client-lifecycle-Task-OFF","conduit-Task-OFF","oauth-access-Task-OFF","oauth-code-Task-OFF","assessment-credential-Task-OFF","api-credential-concurrency-Task-OFF","full-native-Task-OFF"}and p["mode"]==expected_mode)
  envelope_schema="Task-directory-native-envelope-v2"if expected_mode=="directory-Task-OFF"else"Task-native-envelope-v3"
  need(type(envelope)is dict and set(envelope)=={'schema','profile_sha256','native_receipt','before','after','mac'}and envelope['schema']==envelope_schema and envelope['profile_sha256']==expected_profile_sha and hex64(envelope['mac']))
  unsigned={k:v for k,v in envelope.items()if k!='mac'};need(hmac.compare_digest(hmac.new(bytes.fromhex(p['hmac_key']),encoded(unsigned),hashlib.sha256).hexdigest(),envelope['mac']))
