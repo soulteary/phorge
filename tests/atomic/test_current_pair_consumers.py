@@ -1,7 +1,7 @@
 """Cross-consumer current source pins; PHP guard seams never start a service."""
 import ast,json,pathlib,re,shutil,subprocess,tempfile,unittest
 ROOT=pathlib.Path(__file__).resolve().parents[2]
-OLD='55f8ba8e57b179a7dee92ad43c77038ca322f61c'
+OLD='83351b0e7eba38e50ff076ba6763ca68ebc57e1b'
 HELPER='support/governance/notification/wiki-render-service.php'
 GATE='scripts/governance/check_native_organization.py'
 def consumers(root):
@@ -17,7 +17,7 @@ def consumers(root):
     return expected
 class CurrentPairConsumers(unittest.TestCase):
     def test_current_JSON_live_helper_and_strict_collector_are_consistent(self):
-        self.assertEqual(consumers(ROOT),'83351b0e7eba38e50ff076ba6763ca68ebc57e1b')
+        self.assertEqual(consumers(ROOT),'7e0f5250c04c31a8e4a8c049b59e767499a2b193')
     def test_each_stale_live_consumer_reproduces_the_guard_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory)
