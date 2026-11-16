@@ -8,17 +8,27 @@ import source_operation_snapshot as source
 from task_inverse_test_api_v2 import owner
 class CurrentMediaBinding:
  def __init__(self,operation):
-  self.operation=operation;self.require()
+  self.operation=operation;source.require_task_operation(operation,ROOT)
   self.admission=operation._modules['project_description_admission_delta']
   self.original=operation._modules['recovery_oauth_client_lifecycle_media_provider_delta']
   self.SOURCE_INPUTS=self.original.SOURCE_INPUTS
+  self.require()
  def require(self):
   source.require_task_operation(self.operation,ROOT)
   if self.operation.code_root!=ROOT or self.operation.producer_root!=ROOT or source.ROOT!=ROOT:
    raise ValueError('media_binding_Task_source_roles_refused')
+  if self.SOURCE_INPUTS!=self.original.SOURCE_INPUTS:
+   raise ValueError('media_binding_immutable_source_pins_refused')
  def reduce_stageB(self,name,raw):
-  self.require();view=self.admission.media_source_delta()
-  result=view.reduce_stageB(name,raw)if name in view.SOURCE_INPUTS else raw
+  self.require();context=self.operation._task_contexts[ROOT]
+  if type(raw)is not bytes or raw!=context.current(name):
+   raise ValueError('media_binding_physical_current_bytes_refused')
+  # The functions execute CURRENT code. Their historical provider inputs are
+  # authenticated parent DATA, never a runtime source substitution.
+  parent=context.parent(name)
+  if type(parent)is not bytes:raise ValueError('media_binding_parent_DATA_refused')
+  view=self.admission.media_source_delta()
+  result=view.reduce_stageB(name,parent)if name in view.SOURCE_INPUTS else parent
   self.require();return result
  def reduce_current(self,name,raw):
   # Execute captured CURRENT reducers only; predecessor Git blobs are DATA.

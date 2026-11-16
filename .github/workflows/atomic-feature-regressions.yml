@@ -1110,8 +1110,8 @@ jobs:
         import hashlib,json,os,sys,unittest
         from pathlib import Path
         sys.path.insert(0,str(Path('tests/governance').resolve()))
-        from task_explicit_shard_routes_v4 import route_groups,route_metadata
-        SCHEMA='atomic-governance-unit-shard-v4'
+        from task_explicit_shard_routes_v5 import route_groups,route_metadata
+        SCHEMA='atomic-governance-unit-shard-v5'
         def need(value,label):
             if not value:raise RuntimeError('governance_unit_shard_refused:'+label)
         def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -1179,7 +1179,7 @@ jobs:
         def main():
             shard=os.environ.get('ATOMIC_UNIT_SHARD','');need(shard in ('0','1'),'shard_index');shard=int(shard)
             folder=Path(os.environ['RUNNER_TEMP'])/'governance-unit-tests';folder.mkdir(mode=0o700,parents=True,exist_ok=True)
-            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-explicit72-v1','task_routes':route_metadata(),'shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
+            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-explicit73-v1','task_routes':route_metadata(),'shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
             try:
                 groups,full=discover_plan(Path('tests/governance'))
                 groups,full,routes=route_groups(groups,full);data['task_routes']=routes;data['full']=full;data['full_digest']=digest(full)
@@ -1414,8 +1414,8 @@ jobs:
         import hashlib,json,os,sys,unittest
         from pathlib import Path
         sys.path.insert(0,str(Path('tests/governance').resolve()))
-        from task_explicit_shard_routes_v4 import route_groups,route_metadata
-        SCHEMA='atomic-governance-unit-shard-v4'
+        from task_explicit_shard_routes_v5 import route_groups,route_metadata
+        SCHEMA='atomic-governance-unit-shard-v5'
         def need(value,label):
             if not value:raise RuntimeError('governance_unit_shard_refused:'+label)
         def digest(value):return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':')).encode()).hexdigest()
@@ -1483,7 +1483,7 @@ jobs:
         def main():
             shard=os.environ.get('ATOMIC_UNIT_SHARD','');need(shard in ('0','1'),'shard_index');shard=int(shard)
             folder=Path(os.environ['RUNNER_TEMP'])/'governance-unit-tests';folder.mkdir(mode=0o700,parents=True,exist_ok=True)
-            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-explicit72-v1','task_routes':route_metadata(),'shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
+            data={'schema':SCHEMA,'metadata':metadata(),'partition':'module-sha256-explicit73-v1','task_routes':route_metadata(),'shard':shard,'shards':2,'full':[],'full_digest':'','assigned':[],'assigned_digest':'','results':[],'test_count':0,'skipped_ids':[],'protocol_errors':0,'failure_count':0,'error_count':0,'refusal_stage':None,'passed':False}
             try:
                 groups,full=discover_plan(Path('tests/governance'))
                 groups,full,routes=route_groups(groups,full);data['task_routes']=routes;data['full']=full;data['full_digest']=digest(full)
@@ -1569,7 +1569,7 @@ jobs:
         import hashlib,json,os,re,stat,subprocess,sys
         from pathlib import Path
         sys.path.insert(0,str(Path('tests/governance').resolve()))
-        from task_explicit_shard_routes_v4 import validate_routed_inventory
+        from task_explicit_shard_routes_v5 import validate_routed_inventory
         KEYS={'schema','metadata','partition','task_routes','shard','shards','full','full_digest','assigned','assigned_digest','results','test_count','skipped_ids','protocol_errors','failure_count','error_count','refusal_stage','passed'}
         def need(value,label):
             if not value:raise RuntimeError('atomic_unit_union_refused:'+label)
@@ -1593,7 +1593,7 @@ jobs:
             need(m['source_revision']==m['head_sha'],'checkout_identity');return m
         def validate(data,index,metadata):
             need(type(data)is dict and set(data)==KEYS,'closed_summary')
-            need(data['schema']=='atomic-governance-unit-shard-v4' and data['metadata']==metadata and data['partition']=='module-sha256-explicit72-v1','same_run_head_attempt_source')
+            need(data['schema']=='atomic-governance-unit-shard-v5' and data['metadata']==metadata and data['partition']=='module-sha256-explicit73-v1','same_run_head_attempt_source')
             need(type(data['shard'])is int and data['shard']==index and type(data['shards'])is int and data['shards']==2,'shard_identity')
             full=data['full'];need(type(full)is list and 0<len(full)<=32768,'full_inventory')
             for row in full:need(type(row)is dict and set(row)=={'id','module'}and type(row['id'])is str and 0<len(row['id'])<=2048 and type(row['module'])is str and 0<len(row['module'])<=512 and row['id'].startswith(row['module']+'.'),'full_row')
@@ -1612,7 +1612,7 @@ jobs:
                 data,h=read_summary(root/('shard-'+str(index)));ids,part=validate(data,index,m);summaries.append(data);digests.append(h);assigned.append(part)
             need(summaries[0]['full']==summaries[1]['full'],'same_complete_discovery')
             need(not(set(assigned[0])&set(assigned[1]))and set(assigned[0])|set(assigned[1])==set(ids),'exact_disjoint_union')
-            out={'schema':'atomic-governance-unit-union-v4','task_routes':summaries[0]['task_routes'],'metadata':m,'full_digest':summaries[0]['full_digest'],'full':summaries[0]['full'],'test_count':len(ids),'shard_counts':[len(part)for part in assigned],'summary_sha256':digests,'skipped_ids':[],'passed':True}
+            out={'schema':'atomic-governance-unit-union-v5','task_routes':summaries[0]['task_routes'],'metadata':m,'full_digest':summaries[0]['full_digest'],'full':summaries[0]['full'],'test_count':len(ids),'shard_counts':[len(part)for part in assigned],'summary_sha256':digests,'skipped_ids':[],'passed':True}
             target=root/'union-results.json';target.write_text(json.dumps(out,sort_keys=True,indent=2)+'\n');target.chmod(0o600)
             print('Both unit shards executed their complete disjoint assignment successfully')
         if __name__=='__main__':main()

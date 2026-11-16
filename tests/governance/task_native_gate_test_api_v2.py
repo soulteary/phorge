@@ -16,6 +16,10 @@ FAMILIES={
  'session':('check_recovery_session_lease',19,6,16),
  'borrowed':('check_recovery_borrowed_session',30,6,16),
  'conduit':('check_recovery_conduit_producer',37,6,16),
+ 'oauth-access':('check_recovery_oauth_access_producer_v3',50,8,18),
+ 'assessment-credential':('check_recovery_assessment_credentials_v2',220,8,18),
+ 'fileparent':('check_recovery_file_parent_policy',12,6,16),
+ 'oauth-code':('check_recovery_oauth_code_producer_v1',51,8,18),
 }
 CAPTURE=('scripts/governance/check_completion.py','scripts/governance/check_native_organization.py',
  'scripts/governance/check_recovery_partial_composition.py','scripts/governance/oauth_task_strict_body_v2.py')
@@ -33,11 +37,19 @@ class NativeGate:
   need(family in FAMILIES);self.op=operation;self.root=Path(root);self.family=family;self.guard()
   self.context=operation._task_contexts[self.root];name,count,sql,total=FAMILIES[family]
   self.profile=FAMILIES[family];self.relative='scripts/governance/'+name+'.py'
-  self.raws={p:self.context.current(p)for p in (*CAPTURE,self.relative)}
+  extra=('scripts/governance/oauth_code_task_strict_body_v2.py','scripts/governance/check_oauth_code_task_schema_receipt_v2.py')if family=='oauth-code'else()
+  self.raws={p:self.context.current(p)for p in (*CAPTURE,self.relative,*extra)}
   self.checker=self.capture_module(self.relative)
   need(type(self.checker.SOURCE_INPUTS)is dict and len(self.checker.SOURCE_INPUTS)==count)
   self.common=self.capture_module('scripts/governance/oauth_task_strict_body_v2.py')
-  self._validator=self.compile_body();self.SOURCE_INPUTS=dict(self.checker.SOURCE_INPUTS)
+  if family=='oauth-code':
+   adapter=self.capture_module('scripts/governance/oauth_code_task_strict_body_v2.py')
+   self.code_model=adapter.model({name:self.raws['scripts/governance/'+name+'.py']for name in adapter.PINS},self.common)
+   self.code_consumer=self.capture_module('scripts/governance/check_oauth_code_task_schema_receipt_v2.py')
+   self._validator=self.code_model['validate']
+  else:self._validator=self.compile_body()
+  self.SOURCE_INPUTS=dict(self.checker.SOURCE_INPUTS)
+  if family=='fileparent':self.SQL=set(self.checker.SQL);self.NATIVE_DRIVER_PATH=self.checker.NATIVE_DRIVER_PATH
   need(len(self.SQL_obligations())==sql and len(self.obligations())==total)
  def guard(self):
   source.require_task_operation(self.op,self.root)
@@ -50,6 +62,7 @@ class NativeGate:
  def capture_bytes(self,relative,raw):
   self.guard();need(relative in self.raws and type(raw)is bytes and raw==self.raws[relative]==self.context.current(relative));return raw
  def compile_body(self):
+  if self.family=='fileparent':return self.compile_fileparent_body()
   common=self.common;raw=self.raws['scripts/governance/check_native_organization.py'];tree=ast.parse(raw)
   native_ns={};common.compile_functions(common.functions(tree,{'exact_tree'}),native_ns)
   restore=common.functions(tree,{'validate_restore'})[0];restore.name='_strict_restore';restore.args.args.append(ast.arg(arg='operation'))
@@ -62,22 +75,100 @@ class NativeGate:
   need([n.value for n in ast.walk(modified)if isinstance(n,ast.Constant)]==[n.value for n in ast.walk(original)if isinstance(n,ast.Constant)])
   namespace=dict(self.checker.__dict__);namespace['_strict_restore']=restore_ns['_strict_restore'];common.compile_functions([modified],namespace)
   return namespace['_validate_with_source_operation']
+ def fileparent_read(self,path):
+  self.guard();need(self.family=='fileparent');path=Path(path)
+  need(path.is_absolute()and path.is_relative_to(self.root))
+  relative=str(path.relative_to(self.root));need(relative in self.checker.SOURCE_INPUTS)
+  result=self.context.current(relative)if relative==self.checker.NATIVE_DRIVER_PATH else self.context.parent(relative)
+  need(type(result)is bytes);self.guard();return result
+ def compile_fileparent_body(self):
+  common=self.common;native_tree=ast.parse(self.raws['scripts/governance/check_native_organization.py'])
+  native_ns={};common.compile_functions(common.functions(native_tree,{'exact_tree'}),native_ns)
+  restore=common.functions(native_tree,{'validate_restore'})[0];restore.name='_strict_restore';restore.args.args.append(ast.arg(arg='operation'))
+  reads=common.RestoreReads();restore=reads.visit(restore);need(reads.count==2)
+  namespace={'hashlib':hashlib,'completion':self.checker.completion,'exact_tree':native_ns['exact_tree'],'_captured':common._captured}
+  common.compile_functions([restore],namespace)
+  nodes=common.functions(ast.parse(self.raws[self.relative]),{'source_obligations','summary','validate'})
+  class AdmissionImport(ast.NodeTransformer):
+   def __init__(self):self.count=0
+   def visit_Import(self,node):
+    if ast.unparse(node)=='import project_description_admission_delta as current':
+     self.count+=1;return ast.Assign([ast.Name('current',ast.Store())],ast.Name('_current_admission',ast.Load()))
+    return node
+  original=copy.deepcopy(nodes);admission=AdmissionImport();seam=RestoreCall()
+  nodes=[seam.visit(admission.visit(n))for n in nodes]
+  need(admission.count==1 and seam.count==1)
+  for before,after in zip(original,nodes):
+   need(len(before.body)==len(after.body)and[n.value for n in ast.walk(before)if isinstance(n,ast.Constant)]==[n.value for n in ast.walk(after)if isinstance(n,ast.Constant)])
+   if after.name=='validate':after.args.kwonlyargs.append(ast.arg(arg='_source_operation'));after.args.kw_defaults.append(ast.Constant(None))
+  def driver_prior(root,raw):
+   self.guard();need(Path(root)==self.root);return self.driver_prior(raw)
+  body=dict(self.checker.__dict__);body.update(read_source_checked=self.fileparent_read,
+   admitted_native_driver_source=driver_prior,_strict_restore=namespace['_strict_restore'],
+   _current_admission=self.op._modules['project_description_admission_delta'])
+  common.compile_functions(nodes,body);self._fileparent_body=body
+  return body['validate']
+ def source_obligations(self,root=ROOT):
+  self.guard();need(self.family=='fileparent'and Path(root)==self.root)
+  result=self._fileparent_body['source_obligations'](self.root);self.guard();return result
  def SQL_obligations(self,root=ROOT):
   self.guard();need(Path(root)==self.root)
-  result=self.checker.SQL_obligations(self.root,_source_operation=self.op);self.guard();return result
+  result=self.code_consumer.source_obligations(self.op,self.root,self.code_model)[0]if self.family=='oauth-code'else set(self.checker.SQL)if self.family=='fileparent'else self.checker.SQL_obligations(self.root,_source_operation=self.op);self.guard();return result
  def obligations(self,root=ROOT):
   self.guard();need(Path(root)==self.root)
-  result=self.checker.obligations(self.root,_source_operation=self.op);self.guard();return result
+  result=self.code_consumer.source_obligations(self.op,self.root,self.code_model)[1]if self.family=='oauth-code'else self.source_obligations(self.root)if self.family=='fileparent'else self.checker.obligations(self.root,_source_operation=self.op);self.guard();return result
  def summary(self,revision,root=ROOT):
   self.guard();need(Path(root)==self.root)
-  result=self.checker.summary(revision,self.root,_source_operation=self.op);self.guard();return result
+  result=self._validator.__globals__['summary'](revision,sql_obligations=self.SQL_obligations())if self.family=='oauth-code'else self._fileparent_body['summary'](revision,self.root)if self.family=='fileparent'else self.checker.summary(revision,self.root,_source_operation=self.op);self.guard();return result
  def validate(self,data,root=ROOT,*,source_revision,file_digest):
   self.guard();need(Path(root)==self.root)
-  result=self._validator(data,self.root,source_revision=source_revision,file_digest=file_digest,_source_operation=self.op)
+  if self.family=='oauth-code':
+   sql,expected=self.code_consumer.source_obligations(self.op,self.root,self.code_model)
+   result=self._validator(data,self.root,source_revision=source_revision,file_digest=file_digest,sql_obligations=sql,expected_obligations=expected,operation=self.op)
+  else:result=self._validator(data,self.root,source_revision=source_revision,file_digest=file_digest,_source_operation=self.op)
   self.guard();return result
  def artifact_read(self,path,*,binary=False):
   self.guard();reader=self.checker.shared.read_checked
   result=reader(path,binary=binary)if binary else reader(path);self.guard();return result
+ def driver_prior(self,raw):
+  self.guard()
+  from task_source_candidate_test_api_v2 import CandidateDATA
+  result=CandidateDATA(self.op,self.root).driver_prior(raw);self.guard();return result
+ def fixture_DATA(self,destination):
+  """A registered parent-DATA fixture, never a producer or source owner."""
+  self.guard();need(self.family in {'session','borrowed','conduit'})
+  if not hasattr(self,'_fixture_session'):
+   from task_historical_views_test_api_v2 import in_operation
+   legacy,_=in_operation(self.op,self.root);self._fixture_session=legacy._session
+  result=self._fixture_session.fixture_DATA(Path(destination),paths=set(self.checker.SOURCE_INPUTS))
+  self.guard();return result
+ def fixture_SQL_obligations(self,destination):
+  """Original CURRENT label body on explicitly registered historical DATA.
+  It cannot issue an operation, alter a source root or qualify a native run.
+  """
+  self.guard();destination=Path(destination)
+  need(self.family in {'session','borrowed','conduit'}and hasattr(self,'_fixture_session')and
+   destination!=self.root and destination in self._fixture_session.fixtures)
+  session=self._fixture_session;session.require_DATA(destination)
+  def functions(name,bindings):
+   raw=self.context.current('scripts/governance/'+name+'.py')
+   nodes=[copy.deepcopy(n)for n in ast.parse(raw).body if isinstance(n,ast.FunctionDef)]
+   need(bool(nodes));namespace=dict(self.op._modules[name].__dict__);namespace.update(bindings)
+   self.common.compile_functions(nodes,namespace)
+   return types.SimpleNamespace(**namespace)
+  # CURRENT dependencies, with the single explicit DATA-cohort guard role.
+  # Neither the actual private graph nor the original default APIs are mutated.
+  auth=functions('recovery_oauth_authorization_source_delta',{'n05_delta':session.admission_DATA})
+  partial=functions('recovery_partial_current_schema_delta',{'authorization_delta':auth})
+  code=functions('recovery_oauth_code_source_delta',{'authorization_delta':auth})
+  ci=functions('recovery_oauth_code_ci_delta',{'authorization_delta':auth})
+  coordinator=functions('recovery_oauth_code_coordinator_delta',{
+   'authorization_delta':auth,'partial_delta':partial,'code_delta':code,'ci_delta':ci})
+  namespace=dict(self.checker.__dict__);namespace.update(code_coord=coordinator,read_source_checked=session.data_bytes)
+  nodes=self.common.functions(ast.parse(self.raws[self.relative]),{'SQL_obligations'})
+  self.common.compile_functions(nodes,namespace)
+  result=namespace['SQL_obligations'](destination)
+  session.require_DATA(destination);self.guard();return result
  def template(self,digest='b'*64):
   self.guard()
   if self.family=='session':
@@ -86,6 +177,18 @@ class NativeGate:
    nodes=self.common.functions(ast.parse(self.context.current(path)),{'template'})
    namespace={'previous':previous,'gate':self};self.common.compile_functions(nodes,namespace)
    result=namespace['template'](digest)
+  elif self.family=='fileparent':
+   import test_recovery_partial_composition_gate as predecessor
+   nodes=self.common.functions(ast.parse(self.context.current('tests/governance/test_recovery_file_parent_gate.py')),{'template'})
+   namespace={'predecessor':predecessor,'gate':self,'ROOT':self.root};self.common.compile_functions(nodes,namespace)
+   result=namespace['template'](digest)
+  elif self.family in {'oauth-access','assessment-credential','oauth-code'}:
+   result=NativeGate(self.op,self.root,'session').template(digest)
+   labels=sorted(self.obligations())
+   batch,scope=(('native-oauth-access-producer-owner','owned-native-oauth-access-producer-owner-no-permit')if self.family=='oauth-access'else('native-assessment-credential-readset','owned-native-assessment-credential-readset-no-permit'))
+   if self.family=='oauth-code':batch,scope='native-oauth-code-producer-owner','owned-native-oauth-code-producer-owner-no-permit'
+   result.update(batch=batch,scope=scope,checks=labels,check_count=len(labels),native=self.summary('a'*40))
+   if self.family=='assessment-credential':result['worker_cleanup']=dict.fromkeys(result['worker_cleanup'],0)
   else:
    module='test_recovery_borrowed_wiring'if self.family=='borrowed'else'test_recovery_conduit_wiring'
    name='BorrowedWiring'if self.family=='borrowed'else'ConduitWiring'

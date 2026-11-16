@@ -67,10 +67,17 @@ class CodeCoordination(unittest.TestCase):
     for path in authorization_delta.PRODUCTION_PATHS:
      if path not in prod.SOURCE_INPUTS:
       p=root/path;p.write_bytes(authorization_delta.reduce_if_selected(path,p.read_bytes()))
+    # Only the immutable complete baseline may change the registered DATA role.
+    # Neither a changed inverse row nor unrelated metadata can be refreshed.
+    for name in (next(iter(prod.SOURCE_INPUTS)),'scripts/governance/project_content_grant_ci_source_delta.py'):
+     candidate=root/name;prior=candidate.read_bytes();candidate.write_bytes(prior+b'\n// unknown DATA row')
+     with self.assertRaises(ValueError):legacy.admit_code_baseline_DATA(root)
+     candidate.write_bytes(prior)
+    legacy.admit_code_baseline_DATA(root)
     self.assertFalse(prod.assert_cohort(root,reader.read_source_checked))
     with self.assertRaises(ValueError):current.SQL_obligations(root)
     (root/next(iter(prod.SOURCE_INPUTS))).unlink()
-    with self.assertRaises(OSError):prod.assert_cohort(root,reader.read_source_checked)
+    with self.assertRaisesRegex(ValueError,'^Task_private_DATA_cohort_unavailable$'):prod.assert_cohort(root,reader.read_source_checked)
  def test_repin_attempt_still_cannot_bless_unrelated_inverse_bytes(self):
   for module in (prod,coord):
    for path in module.SOURCE_INPUTS:
@@ -80,8 +87,15 @@ class CodeCoordination(unittest.TestCase):
  def test_full_actual_src_tree_restores_reviewed_base_not_only_changed_names(self):
   self.assertEqual(normalized_source_tree(ROOT),'3944b8003bb59a9b67f685df67acbd2354820b1c')
  def test_current_51_source_gate_keeps_raw_current_code_and_old_maps_unchanged(self):
-  self.assertEqual(len(current.SOURCE_INPUTS),51);self.assertEqual(len(current.SQL_obligations()),8)
-  for path,pin in current.SOURCE_INPUTS.items():self.assertEqual(hashlib.sha256(authorization_delta.reduce_if_selected(path,current.read_source_checked(ROOT/path))).hexdigest(),pin)
+  from task_native_gate_test_api_v2 import current_native_gate
+  with current_native_gate(ROOT,'oauth-code')as gate:
+   self.assertEqual(gate.SOURCE_INPUTS,current.SOURCE_INPUTS)
+   self.assertEqual(len(gate.SOURCE_INPUTS),51);self.assertEqual(len(gate.SQL_obligations()),8)
+   context=gate.context;authorization=gate.op._modules['recovery_oauth_authorization_source_delta']
+   for path,pin in gate.SOURCE_INPUTS.items():
+    self.assertEqual(context.current(path),(ROOT/path).read_bytes())
+    parent=context.parent(path);self.assertIsInstance(parent,bytes)
+    self.assertEqual(hashlib.sha256(authorization.reduce_if_selected(path,parent)).hexdigest(),pin)
 
  def test_inherited_media_current_runtime_gate_is_not_reduced_to_historical_view(self):
   import importlib.util
@@ -148,11 +162,24 @@ class CodeCoordination(unittest.TestCase):
      with self.assertRaisesRegex(ValueError,'protected inventory changed; rebase required|protected source changed|committed protected source changed; rebase required'):freshness.verify(clean)
    from task_admission_test_api_v2 import checkpoint
    import check_media_freshness_task_source_v2 as current_source
-   admitted=current_source.verify(ROOT,checkpoint())
-   self.assertIs(admitted['source_only_passed'],True)
-   self.assertIs(admitted['source_operation_exit_verified'],True)
-   self.assertIs(admitted['runtime_SQL_or_business_qualified'],False)
-   self.assertIs(admitted['SQL_executed'],False)
+   from task_inverse_test_api_v2 import owner
+   with owner(ROOT)as operation:
+    context=operation._task_contexts[ROOT]
+    layout=operation._prepared_ledgers[ROOT]._layout
+    prepared={p for p in (*layout.dependency,*layout.artifact)if freshness.protected(p)}
+    expected={p for p in context.entries if freshness.protected(p)}
+    # A parser-prepared unit checkout is intentionally not clean media runtime
+    # source. Preserve rejection instead of excluding those protected inputs.
+    self.assertEqual(set(freshness.actual(ROOT)),expected|prepared)
+    if prepared:
+     with self.assertRaisesRegex(ValueError,'Task_media_source_v2_refused'):
+      current_source.verify_in_operation(operation,ROOT)
+    else:
+     admitted=current_source.verify_in_operation(operation,ROOT)
+     self.assertIs(admitted['source_only_passed'],True)
+     self.assertIs(admitted['source_operation_exit_verified'],False)
+     self.assertIs(admitted['runtime_SQL_or_business_qualified'],False)
+     self.assertIs(admitted['SQL_executed'],False)
 if __name__=='__main__':unittest.main()
 
 class BoundedMediaEntries(unittest.TestCase):

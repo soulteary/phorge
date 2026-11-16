@@ -2,7 +2,7 @@
 """Default empty-argv native envelope, original native and notification contracts.
 Read-only validation; no SQL execution, deployment or activation authority.
 """
-import argparse,hashlib,json,re,types
+import argparse,copy,hashlib,json,re,types
 from pathlib import Path
 import source_operation_snapshot as source
 import check_directory_transports_task_source_v2 as current_source
@@ -21,6 +21,22 @@ def runtime_pair(before,after,revision,profile):
   need(type(row)is dict and set(row)==fields and row['schema']=='native-full-mysql-runtime-v1'and row['phase']==phase and row['source_revision']==revision and row['version']=='8.4.13'and row['observed_service_image']==IMAGE and type(row['server_uuid_sha256'])is str and re.fullmatch('[a-f0-9]{64}',row['server_uuid_sha256'])is not None)
  expected=hashlib.sha256(profile['server_uuid'].encode()).hexdigest();need(before['server_uuid_sha256']==after['server_uuid_sha256']==expected)
  return {'actual_MySQL84_both_observations':True,'same_primary_UUID':True,'source_revision':revision,'observed_service_image':IMAGE}
+
+def project_capture_cleanup(data,delta):
+ # The schema validator has already authenticated the same two capture sockets.
+ # This seam is deliberately separate from Completion and the focused modes.
+ need(type(delta)is dict and delta.get('native_profile_mode')=='full-native-Task-OFF'
+  and delta.get('genuine_bound_capture_pair_verified')is True)
+ need(type(data)is dict)
+ cleanup=data.get('cleanup')
+ need(type(cleanup)is dict and set(cleanup)=={'ownedSchemasRemoved','ownedRuntimeUsersRemoved',
+  'readerRemoved','ownedAuxiliarySetupConnectionsClosed'})
+ count=cleanup['ownedAuxiliarySetupConnectionsClosed']
+ need(type(count)is int and count==2)
+ projected=copy.deepcopy(data)
+ del projected['cleanup']['ownedAuxiliarySetupConnectionsClosed']
+ # All three original fields are passed unchanged to the original strict body.
+ return projected
 
 def accept(root,checkpoint,consumer,envelope_path,native_body_path,profile_path,profile_sha,runtime_before,runtime_after,file_binary,file_sha,render_binary,render_sha,taskqueue_binary,taskqueue_sha):
  root=Path(root);need(consumer in('native','notifications')and type(checkpoint)is str and re.fullmatch('[a-f0-9]{40}',checkpoint)is not None and checkpoint!='0'*40)
@@ -45,6 +61,7 @@ def accept(root,checkpoint,consumer,envelope_path,native_body_path,profile_path,
    manifest=schema.decode(context.current('docs/governance/private-notification-producers.json'))
    notification=model['notification_validate'](manifest,root,operation=operation)
    need(notification['smtp_proved']is False and notification['all_producers_proved']is False and notification['activation_blocked']is True)
+  projected=project_capture_cleanup(projected,delta)
   accepted=model['native_validate'](projected,root,file_digest=binaries['file'],measurement_revision=checkpoint,render_digest=binaries['render'],operation=operation)
   need(accepted['schema_valid']is True and accepted['global_completion']is False and accepted['production_optional_features_enabled']is False and accepted['deployment_proved']is False and accepted['browser_proved']is False)
   need(schema.profile(profile_path,profile_sha)==profile)

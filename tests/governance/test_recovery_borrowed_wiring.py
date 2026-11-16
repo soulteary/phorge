@@ -1,3 +1,5 @@
+from task_native_gate_test_api_v2 import current_native_gate
+from task_admission_test_api_v2 import checkpoint
 """Actual selector/native role methods/whole finally/public receipt controls, no SQL."""
 from recovery_oauth_code_test_cohort import complete_source_cohort
 from pathlib import Path
@@ -59,22 +61,28 @@ class BorrowedWiring(unittest.TestCase):
  def template(self,digest='b'*64):
   d=previous.template(digest);labels=sorted(gate.obligations());d.update(batch='native-borrowed-session-owner',scope='owned-native-borrowed-session-owner-no-permit',checks=labels,check_count=len(labels),native=gate.summary('a'*40));return d
  def test_strict_receipt_source_cases_production_flags_cleanup_route_and_binary_tamper(self):
-  d=self.template();self.assertEqual(len(gate.SQL_obligations()),6);self.assertEqual(gate.validate(d,source_revision='a'*40,file_digest='b'*64)['checks'],16)
-  for key in ['production_observer_factory_available','business_submit_review_integration_proved','durable_review_compatible','Task_File_RR_combined','all_sources_complete','restoration_authorized','forced_connection_used']:
-   bad=copy.deepcopy(d);bad['native'][key]=True
-   with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
-  for key in ['default_native_User_writer','both_native_identity_epochs_prewarmed']:
-   bad=copy.deepcopy(d);bad['native'][key]=False
-   with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
-  for label in d['checks']:
-   bad=copy.deepcopy(d);bad['checks'].remove(label);bad['check_count']-=1
-   with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+  with current_native_gate(ROOT,'borrowed')as current:
+   gate=current
+   template=current.template
+   d=current.template();self.assertEqual(len(gate.SQL_obligations()),6);self.assertEqual(gate.validate(d,source_revision='a'*40,file_digest='b'*64)['checks'],16)
+   for key in ['production_observer_factory_available','business_submit_review_integration_proved','durable_review_compatible','Task_File_RR_combined','all_sources_complete','restoration_authorized','forced_connection_used']:
+    bad=copy.deepcopy(d);bad['native'][key]=True
+    with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+   for key in ['default_native_User_writer','both_native_identity_epochs_prewarmed']:
+    bad=copy.deepcopy(d);bad['native'][key]=False
+    with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+   for label in d['checks']:
+    bad=copy.deepcopy(d);bad['checks'].remove(label);bad['check_count']-=1
+    with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
  def test_actual_public_receipt_CLI_binary_revision_unknown_duplicate_refused(self):
-  with tempfile.TemporaryDirectory()as tmp:
-   p=Path(tmp).resolve();binary=p/'file';binary.write_bytes(b'host binary data only');binary.chmod(0o700);digest=hashlib.sha256(binary.read_bytes()).hexdigest();receipt=p/'receipt';receipt.touch(mode=0o600);body=json.dumps(self.template(digest));cmd=[sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_borrowed_session.py'),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
-   for raw,good in [(body,True),(body.replace('"passed": true','"passed": true,"passed": true',1),False),(body[:-1]+',"unknown":false}',False),(body.replace('a'*40,'c'*40),False)]:
-    receipt.write_text(raw);r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertEqual(r.returncode==0,good,r.stderr)
-   receipt.write_text(body);binary.write_bytes(b'changed');self.assertNotEqual(subprocess.run(cmd,capture_output=True,text=True,timeout=10).returncode,0)
+  with current_native_gate(ROOT,'borrowed')as current:
+   gate=current
+   template=current.template
+   with tempfile.TemporaryDirectory()as tmp:
+    p=Path(tmp).resolve();binary=p/'file';binary.write_bytes(b'host binary data only');binary.chmod(0o700);digest=hashlib.sha256(binary.read_bytes()).hexdigest();receipt=p/'receipt';receipt.touch(mode=0o600);body=json.dumps(current.template(digest));cmd=[sys.executable,'-B',str(ROOT/'tests/governance/task_native_gate_test_api_v2.py'),'--family','borrowed','--expected-checkpoint',checkpoint(),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
+    for raw,good in [(body,True),(body.replace('"passed": true','"passed": true,"passed": true',1),False),(body[:-1]+',"unknown":false}',False),(body.replace('a'*40,'c'*40),False)]:
+     receipt.write_text(raw);r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertEqual(r.returncode==0,good,r.stderr)
+    receipt.write_text(body);binary.write_bytes(b'changed');self.assertNotEqual(subprocess.run(cmd,capture_output=True,text=True,timeout=10).returncode,0)
  def test_default_writer_gate_refuses_forced_or_mismatched_models_before_store(self):
   code=r'''class LiskDAO{protected $forcedConnection;}class PhabricatorLiskDAO extends LiskDAO{private static $namespaceStack=[];}class PhabricatorUser extends PhabricatorLiskDAO{function __construct(){if($GLOBALS['mode']==='forced')$this->forcedConnection=new stdClass();}function establishConnection($mode){return$GLOBALS['w'];}}class PhabricatorAuthSession extends PhabricatorUser{function establishConnection($mode){return$GLOBALS['mode']==='route'?new AphrontMySQLiDatabaseConnection():$GLOBALS['w'];}}final class AphrontMySQLiDatabaseConnection{function isInsideTransaction(){return false;}function isReadLocking(){return false;}function isWriteLocking(){return false;}}class PhorgeRecoveryRestoreProfile{static function assertCurrent(){}}require$argv[1].'/support/governance/recovery/borrowed-session-focused.php';$GLOBALS['w']=new AphrontMySQLiDatabaseConnection();$out=[];foreach(['good','forced','route']as$mode){$GLOBALS['mode']=$mode;try{$out[]=governance_recovery_borrowed_default_writer()===$GLOBALS['w'];}catch(Throwable$e){$out[]=$e->getMessage();}}echo json_encode($out);'''
   p=subprocess.run(['php','-r',code,str(ROOT)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),[True,'borrowed_forced_writer_refused','borrowed_default_writer_unknown'])

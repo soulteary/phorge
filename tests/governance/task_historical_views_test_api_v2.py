@@ -155,6 +155,7 @@ class DataView:
  def __delattr__(self,name):need(name in self._mutable_fields);delattr(self._core,name)
  def __getattr__(self,name):
   if name=='fixture_DATA':return self._session.fixture_DATA
+  if name=='admit_code_baseline_DATA':return self._session.admit_code_baseline_DATA
   if name=='parent_data':return self._session.parent_data
   if name=='current_data':return self._session.current_data
   if name=='validation_DATA_root':return self._session.validation_DATA_root
@@ -264,6 +265,25 @@ class Session:
    rows[name]=(raw,pin['mode'])
   write_fixture_DATA(root,rows)
   self.fixtures[root]=rows;self.require_DATA(root);return root
+ def admit_code_baseline_DATA(self,root):
+  """Admit exactly the closed original code/auth baseline DATA cohort.
+  Never refresh arbitrary rows, repair a file or issue a source operation.
+  """
+  self.require();root=Path(root);need(root in self.fixtures and root!=self.root)
+  coordinator=self.modules();code=coordinator.code_delta;authorization=coordinator.authorization_delta
+  expected=dict(self.fixtures[root])
+  need(set(code.SOURCE_INPUTS)<=set(expected)and set(authorization.PRODUCTION_PATHS)<=set(expected))
+  for path in code.SOURCE_INPUTS:
+   raw,mode=expected[path];prior=code.reduce_current(path,raw)
+   need(sha(prior)==code.BASE_PINS[path]);expected[path]=(prior,mode)
+  for path in authorization.PRODUCTION_PATHS:
+   if path not in code.SOURCE_INPUTS:
+    raw,mode=expected[path];prior=authorization.reduce_if_selected(path,raw)
+    need(type(prior)is bytes);expected[path]=(prior,mode)
+  # Every unchanged row remains required as well as every closed inverse row.
+  # Read/stat/FD identity and metadata checks run before the DATA registration.
+  guard_fixture_DATA(root,expected)
+  self.fixtures[root]=expected;self.require_DATA(root);self.require()
  def validation_DATA_root(self):
   self.require()
   if self._validation is None:

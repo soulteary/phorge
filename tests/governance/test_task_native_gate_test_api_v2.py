@@ -11,11 +11,12 @@ class CurrentGateControls(unittest.TestCase):
    with self.assertRaises(ValueError):
     with current_native_gate(ROOT,'unknown'):pass
    entered.assert_not_called()
- def test_actual_three_CURRENT_bodies_retain_original_counts_and_refuse_claims(self):
+ def test_actual_closed_CURRENT_bodies_retain_original_counts_and_refuse_claims(self):
   for family in FAMILIES:
    with self.subTest(family=family),current_native_gate(ROOT,family)as gate:
     data=gate.template();good=gate.validate(data,source_revision='a'*40,file_digest='b'*64)
-    self.assertEqual((good['checks'],good['SQL_obligations']),(16,6))
+    expected={'session':(16,6),'borrowed':(16,6),'conduit':(16,6),'oauth-access':(18,8),'assessment-credential':(18,8),'fileparent':(16,6),'oauth-code':(18,8)}
+    self.assertEqual((good['checks'],good['SQL_obligations']),expected[family])
     self.assertFalse(good['restoration_authorized']);self.assertFalse(good['all_sources_complete']);self.assertTrue(good['execution_blocked'])
     for label in data['checks']:
      bad=copy.deepcopy(data);bad['checks'].remove(label);bad['check_count']-=1
@@ -38,6 +39,16 @@ class CurrentGateControls(unittest.TestCase):
    with self.assertRaises(ValueError):gate.SQL_obligations(ROOT.parent)
    with self.assertRaises(ValueError):gate.validate(data,ROOT.parent,source_revision='a'*40,file_digest='b'*64)
   with self.assertRaises(ValueError):gate.validate(data,source_revision='a'*40,file_digest='b'*64)
+ def test_registered_fixture_DATA_keeps_tamper_and_unknown_root_refusals(self):
+  with tempfile.TemporaryDirectory()as tmp,current_native_gate(ROOT,'session')as gate:
+   fixture=Path(tmp).resolve()/'fixture';gate.fixture_DATA(fixture)
+   self.assertEqual(gate.fixture_SQL_obligations(fixture),gate.SQL_obligations())
+   with self.assertRaises(ValueError):gate.fixture_SQL_obligations(Path(tmp).resolve())
+   name='support/governance/recovery/session-lease-cases.php';path=fixture/name;raw=path.read_bytes()
+   path.write_bytes(raw+b'// unreviewed fixture mutation')
+   with self.assertRaises(ValueError):gate.fixture_SQL_obligations(fixture)
+   path.write_bytes(raw)
+   self.assertEqual(gate.fixture_SQL_obligations(fixture),gate.SQL_obligations())
  def test_original_public_default_still_refuses_Task_source(self):
   with current_native_gate(ROOT,'session')as gate:original=gate.checker
   with self.assertRaises(ValueError):original.SQL_obligations(ROOT)
