@@ -17,7 +17,7 @@ def consumers(root):
     return expected
 class CurrentPairConsumers(unittest.TestCase):
     def test_current_JSON_live_helper_and_strict_collector_are_consistent(self):
-        self.assertEqual(consumers(ROOT),'7e0f5250c04c31a8e4a8c049b59e767499a2b193')
+        self.assertEqual(consumers(ROOT),'16318f87a017f82c28f3011b362364cf24b73ef8')
     def test_each_stale_live_consumer_reproduces_the_guard_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory)

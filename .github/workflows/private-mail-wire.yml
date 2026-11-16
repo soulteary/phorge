@@ -30,7 +30,7 @@ jobs:
         options: --health-cmd "mysqladmin ping -pprivate-wire-disposable-only" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
       # Reviewed immutable source-only test pair; testing does not authorize its release.
-      GORGE_MAIL_WIRE_REF: 7e0f5250c04c31a8e4a8c049b59e767499a2b193
+      GORGE_MAIL_WIRE_REF: 16318f87a017f82c28f3011b362364cf24b73ef8
       OWLMAIL_WIRE_REF: 39e3ced315a027f6e5938146387179fa683fe7b1
       ATOMIC_TEST_DISPOSABLE: '1'
       GORGE_TEST_MYSQL_PASSWORD: private-wire-disposable-only
@@ -61,7 +61,7 @@ jobs:
           python-version: '3.13'
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.27.3'
+          go-version: '1.27.4'
           cache: false
       - uses: shivammathur/setup-php@v2
         with:

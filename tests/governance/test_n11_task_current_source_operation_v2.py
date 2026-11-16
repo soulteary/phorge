@@ -1,4 +1,4 @@
-"""Negative owner/CLI and local output DATA only; real signed admission pending."""
+"""Owner/CLI negatives plus genuine current source admission; no runtime grant."""
 import importlib.util,json,os,subprocess,sys,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -40,4 +40,71 @@ class NegativeControls(unittest.TestCase):
    with patch.object(entry.os,'write',side_effect=OSError('owned write fault')),patch.object(entry.os,'close',side_effect=fault_close):
     with self.assertRaises(BaseExceptionGroup)as caught:entry.write_exclusive(target,{})
    self.assertEqual(len(closed),2);self.assertEqual(len(caught.exception.exceptions),3);self.assertEqual(str(caught.exception.exceptions[0]),'owned write fault')
+
+import hashlib,ast,copy,types
+from task_inverse_test_api_v2 import owner
+import source_operation_snapshot as source
+class CurrentPairParentData(unittest.TestCase):
+ CONTINUATION=frozenset(['.github/workflows/private-mail-wire.yml','scripts/governance/check_native_organization.py','support/governance/notification/wiki-render-service.php','tests/atomic/extract_native_renderer.py','tests/atomic/paired-gorge.json','tests/atomic/test_current_pair_consumers.py','deploy/acceptance/build-lock.json'])
+ def test_genuine_current_pair_and_exact_parent_DATA(self):
+  with owner(ROOT)as operation:
+   ctx=operation._task_contexts[ROOT]
+   self.assertEqual(len(ctx.ci_inverse),85)
+   prior={k:v for k,v in ctx.ci_inverse.items()if k not in self.CONTINUATION}
+   self.assertEqual(len(prior),78)
+   self.assertEqual(hashlib.sha256(json.dumps(prior,sort_keys=True,separators=(',',':')).encode()).hexdigest(),'a6019af54c1f0b5bfb67e3d3a2ac5967412b6114f122aadda209f5662d5e972d')
+   for name in self.CONTINUATION:
+    self.assertEqual(ctx.current(name),(ROOT/name).read_bytes())
+    raw=ctx.parent(name);pin=ctx.parent_pins[name]
+    self.assertEqual(len(raw),pin['bytes']);self.assertEqual(hashlib.sha256(raw).hexdigest(),pin['sha256'])
+   # Parent bytes authenticate historical inputs only. Live paired bodies stay
+   # CURRENT and are never replaced by these historical DATA rows.
+   current=json.loads(ctx.current('tests/atomic/paired-gorge.json'))['revision']
+   self.assertNotEqual(current,'83351b0e7eba38e50ff076ba6763ca68ebc57e1b')
+   self.assertIn(current.encode(),ctx.current('support/governance/notification/wiki-render-service.php'))
+   self.assertIn(b'83351b0e7eba38e50ff076ba6763ca68ebc57e1b',ctx.parent('tests/atomic/paired-gorge.json'))
+ def test_original_current_admission_refuses_changed_parent_DATA(self):
+  with owner(ROOT)as operation:
+   ctx=operation._task_contexts[ROOT];path='scripts/governance/task_source_operation_context.py';tree=ast.parse(ctx.current(path))
+   cls=next(n for n in tree.body if isinstance(n,ast.ClassDef)and n.name=='TaskContext');init=next(n for n in cls.body if isinstance(n,ast.FunctionDef)and n.name=='__init__')
+   # Compile only the three unchanged CURRENT admission statements. This is
+   # a DATA negative control, never a replacement source owner or SQL grant.
+   start=next(i for i,n in enumerate(init.body)if isinstance(n,ast.Expr)and 'CI_INVERSE_SHA'in ast.unparse(n))
+   body=copy.deepcopy(init.body[start:start+3]);self.assertEqual(len(body),3)
+   function=ast.FunctionDef(name='admit_DATA',args=ast.arguments(posonlyargs=[],args=[ast.arg(arg='self')],kwonlyargs=[],kw_defaults=[],defaults=[]),body=body,decorator_list=[])
+   ns={k:getattr(source.task_admission,k)for k in ['need','sha','decode','CI_INVERSE','CI_INVERSE_SHA']};exec(compile(ast.fix_missing_locations(ast.Module(body=[function],type_ignores=[])),str(ROOT/path),'exec'),ns)
+   ns['admit_DATA'](types.SimpleNamespace(current_raw=dict(ctx.current_raw)))
+   original=json.loads(ctx.current(ns['CI_INVERSE']))
+   mutations=[]
+   bad=copy.deepcopy(original);bad['files'].pop(next(iter(self.CONTINUATION)));mutations.append(bad)
+   bad=copy.deepcopy(original);bad['files']['unreviewed/extra']=next(iter(bad['files'].values()));mutations.append(bad)
+   bad=copy.deepcopy(original);bad['files'][next(iter(self.CONTINUATION))]['sha256']='0'*64;mutations.append(bad)
+   bad=copy.deepcopy(original);bad['files'][next(iter(self.CONTINUATION))]['bytes']=True;mutations.append(bad)
+   for bad in mutations:
+    rows=dict(ctx.current_raw);rows[ns['CI_INVERSE']]=(json.dumps(bad,sort_keys=True)+'\n').encode()
+    with self.assertRaises(ValueError):ns['admit_DATA'](types.SimpleNamespace(current_raw=rows))
+
+   # Exercise the real CURRENT physical-file mode/length/hash statements on an
+   # owned temporary file. This is not full source-entry qualification.
+   loop=next(n for n in init.body if isinstance(n,ast.For)and ast.unparse(n.iter)=='entries.items()')
+   branch=next(n for n in loop.body if isinstance(n,ast.If)and ast.unparse(n.test)=="pin['kind'] == 'file'")
+   physical=ast.FunctionDef(name='physical_DATA',args=ast.arguments(posonlyargs=[],args=[ast.arg(arg=x)for x in ['self','path','pin','rel']],kwonlyargs=[],kw_defaults=[],defaults=[]),body=copy.deepcopy(branch.body),decorator_list=[])
+   ns.update({k:getattr(source.task_admission,k)for k in ['read','stat']});exec(compile(ast.fix_missing_locations(ast.Module(body=[physical],type_ignores=[])),str(ROOT/path),'exec'),ns)
+   rel='tests/atomic/paired-gorge.json';pin=ctx.entries[rel]
+   with tempfile.TemporaryDirectory()as temporary:
+    target=Path(temporary)/'current-pair';target.write_bytes(ctx.current(rel));target.chmod(pin['mode'])
+    ns['physical_DATA'](types.SimpleNamespace(current_raw={}),target,pin,rel)
+    target.write_bytes(ctx.current(rel)+b'\n')
+    with self.assertRaises(ValueError):ns['physical_DATA'](types.SimpleNamespace(current_raw={}),target,pin,rel)
+
+ def test_active_cross_repository_builder_uses_patched_toolchain(self):
+  with owner(ROOT)as operation:
+   ctx=operation._task_contexts[ROOT]
+   workflow=ctx.current('.github/workflows/private-mail-wire.yml').decode()
+   self.assertEqual(workflow.count("go-version: '1.27.4'"),1)
+   self.assertNotIn("go-version: '1.27.3'",workflow)
+   lock=json.loads(ctx.current('deploy/acceptance/build-lock.json'))
+   self.assertEqual(lock['images']['go'],'docker.io/library/golang@sha256:70bd7ddea8b6cbe5d6943cde279d6b67feb10cc924fb9100d1d8757c1575b280')
+   self.assertEqual(lock['images']['alpine'],'docker.io/library/alpine@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8')
+
 if __name__=='__main__':unittest.main()

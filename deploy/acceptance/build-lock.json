@@ -4,7 +4,7 @@
   "debianSnapshot": "20261028T000000Z",
   "images": {
     "php": "docker.io/library/php@sha256:4cc63b3d4e05c40da73e7af5d39364ca2678ac07208919497bda3bbab975be95",
-    "go": "docker.io/library/golang@sha256:d530cf60723abf1ffae0cd16bb546b379ec0550d2f3815e5b16ed69dbc00fba4",
+    "go": "docker.io/library/golang@sha256:70bd7ddea8b6cbe5d6943cde279d6b67feb10cc924fb9100d1d8757c1575b280",
     "alpine": "docker.io/library/alpine@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8",
     "mysql": "docker.io/library/mysql@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b",
     "s3": "ghcr.io/soulteary/otterio@sha256:9caee7b58a029ba7aa7556ea446184316585485b29c58e2889e07634c470b225",
