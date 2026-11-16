@@ -1,5 +1,5 @@
 """CURRENT metadata/AST and owned-filesystem controls; no source/SQL grant."""
-import ast,base64,zlib,copy,hashlib,importlib.util,json,os,pathlib,stat,sys,tempfile,types,unittest
+import ast,base64,zlib,copy,hashlib,importlib.util,json,os,pathlib,stat,subprocess,sys,tempfile,types,unittest
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 REFERENCE=pathlib.Path(os.environ.get('PHORGE_PAIR_TEST_SOURCE_ROOT',str(ROOT))).resolve()
 sys.path.insert(0,str(REFERENCE/'scripts/governance'))
@@ -46,7 +46,10 @@ class MetadataControls(unittest.TestCase):
    helper.unlink();helper.symlink_to(ROOT/'scripts/governance/current_native_pair_metadata_v1.py')
    with self.assertRaises(ValueError):run(self.raw,self.helper.PARENT_SHA)
  def test_description_current_metadata_inverse_preserves_old_chain(self):
-  path=ROOT/'scripts/governance/project_description_admission_delta.py';tree=ast.parse(path.read_bytes());original=ast.parse((REFERENCE/'scripts/governance/project_description_admission_delta.py').read_bytes())
+  path=ROOT/'scripts/governance/project_description_admission_delta.py';tree=ast.parse(path.read_bytes())
+  # Immutable pre-continuation syntax is DATA, never imported or executed.
+  prior=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(REFERENCE),'show','b37a73ac5ce7a83c396182fdea4f1f962f6263e2:scripts/governance/project_description_admission_delta.py'],timeout=10)
+  self.assertEqual(len(prior),540144);self.assertEqual(hashlib.sha256(prior).hexdigest(),'8385588a2cfd4f395a4f4ac6e79319bb6901100765452c311346eabbdc20ba7a');original=ast.parse(prior)
   def literal(name):return next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(x,ast.Name)and x.id==name for x in n.targets))
   functions=[copy.deepcopy(n)for n in tree.body if isinstance(n,ast.FunctionDef)and n.name in ['_constants','_exact','_target_bytes','_normalize_metadata','native_pair_parent_DATA','_admitted_bytes']]
   native='scripts/governance/check_native_organization.py';ns={'__file__':str(path),'Path':pathlib.Path,'os':os,'stat':stat,'hashlib':hashlib,'sha':lambda raw:hashlib.sha256(raw).hexdigest(),'json':json,'zlib':zlib,'base64':base64,'CURRENT_METADATA':literal('CURRENT_METADATA'),'METADATA_CONSTANTS_SHA256':literal('METADATA_CONSTANTS_SHA256'),'MANIFEST':literal('MANIFEST'),'legacy':types.SimpleNamespace(HISTORICAL_PINS={})}
