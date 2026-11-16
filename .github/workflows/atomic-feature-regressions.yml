@@ -980,6 +980,8 @@ jobs:
       # END isolated OAuth access-token SQL8.
       - name: Verify actual private Calendar reminder scheduler and current-policy egress
         id: calendar-reminders
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
@@ -988,6 +990,14 @@ jobs:
           cp /tmp/atomic-maps.sha256 "$RUNNER_TEMP/governance-private-calendar-reminders/verified-maps.sha256"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-private-calendar-reminders/source-revision.txt"
           sha256sum "$RUNNER_TEMP/gorge-file-storage" "$RUNNER_TEMP/gorge-taskqueue" | sed "s|$RUNNER_TEMP/||g" > "$RUNNER_TEMP/governance-private-calendar-reminders/binary-sha256.txt"
+          trust_home="$RUNNER_TEMP/calendar-reminders-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          export HOME="$trust_home"
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php before "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-before.pending.json"
+          mv "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-before.pending.json" "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-before.json"
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
           PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
           PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
@@ -997,8 +1007,12 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
-          php support/governance/native-organization/test-native-organization-mysql.php --calendar-reminders > "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-private-calendar-failure"; then if python3 -B scripts/governance/project_calendar_failure.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --output "$RUNNER_TEMP/governance-private-calendar-failure/diagnostic.json"; then if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi; fi; fi; exit "$native_status"; }
-          python3 -B scripts/governance/check_private_calendar_reminders.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --queue-binary "$RUNNER_TEMP/gorge-taskqueue" --queue-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json"
+          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role calendar-reminders --directory "$RUNNER_TEMP/task-calendar-reminders-v2-private" --stdout "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --stderr "$RUNNER_TEMP/calendar-reminders.stderr.private" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-private-calendar-failure"; then if python3 -B scripts/governance/project_calendar_failure_task_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --receipt "$RUNNER_TEMP/task-calendar-reminders-v2-private/capture-native-body.private.json" --output "$RUNNER_TEMP/governance-private-calendar-failure/diagnostic.json"; then if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi; fi; fi; exit "$native_status"; }
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-after.pending.json"
+          mv "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-after.pending.json" "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-after.json"
+          python3 -B scripts/governance/check_calendar_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --envelope "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --native-body "$RUNNER_TEMP/task-calendar-reminders-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-calendar-reminders-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-calendar-reminders-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-private-calendar-reminders/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" --queue-binary "$RUNNER_TEMP/gorge-taskqueue" --queue-sha "$(sha256sum "$RUNNER_TEMP/gorge-taskqueue" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.pending.json" "$RUNNER_TEMP/governance-private-calendar-reminders/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()

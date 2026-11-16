@@ -15,6 +15,8 @@ sys.path.insert(0, str(ROOT / 'scripts/governance'))
 import project_calendar_failure as diagnostic
 
 SECRET = 'SYNTHETIC_SECRET_SQL_BODY_EMAIL_ARGS_CREDENTIAL'
+LEGACY_FAILURE_COMMAND = '          php support/governance/native-organization/test-native-organization-mysql.php --calendar-reminders > "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-private-calendar-failure"; then if python3 -B scripts/governance/project_calendar_failure.py --receipt "$RUNNER_TEMP/governance-private-calendar-reminders/integration.json" --output "$RUNNER_TEMP/governance-private-calendar-failure/diagnostic.json"; then if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi; fi; fi; exit "$native_status"; }'
+
 TASK_DIAGNOSTIC = ROOT / 'tests/governance/calendar_failure_task_test_api_v2.py'
 
 def current_diagnostic_suffix(line):
@@ -226,7 +228,7 @@ class CalendarFailureDiagnostic(unittest.TestCase):
 
     def test_failure_shell_preserves_original_status_and_marks_only_new_owned_artifact(self):
         workflow = (ROOT / '.github/workflows/atomic-feature-regressions.yml').read_text()
-        line = next(row for row in workflow.splitlines() if '--calendar-reminders >' in row)
+        line = LEGACY_FAILURE_COMMAND  # Original diagnostic DATA path remains tested.
         suffix = current_diagnostic_suffix(line)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp).resolve(); foreign = root / 'foreign'; foreign.mkdir(mode=0o700)
@@ -257,7 +259,7 @@ class CalendarFailureDiagnostic(unittest.TestCase):
 
     def test_marker_sink_failure_or_missing_variable_cannot_mask_original_native_status(self):
         workflow = (ROOT / '.github/workflows/atomic-feature-regressions.yml').read_text()
-        line = next(row for row in workflow.splitlines() if '--calendar-reminders >' in row)
+        line = LEGACY_FAILURE_COMMAND  # Original diagnostic DATA path remains tested.
         suffix = current_diagnostic_suffix(line)
         for mode in ('directory', 'readonly-file', 'unset', 'empty', 'not-directory'):
             # root can legitimately write an ordinary mode0400 file. The other
@@ -290,7 +292,7 @@ class CalendarFailureDiagnostic(unittest.TestCase):
 
     def test_success_path_never_enters_diagnostic_suffix_and_unknown_arguments_do_not_echo(self):
         workflow = (ROOT / '.github/workflows/atomic-feature-regressions.yml').read_text()
-        line = next(row for row in workflow.splitlines() if '--calendar-reminders >' in row)
+        line = LEGACY_FAILURE_COMMAND  # Original diagnostic DATA path remains tested.
         with tempfile.TemporaryDirectory() as tmp:
             runner = Path(tmp).resolve()
             result = subprocess.run(['bash', '-c', 'set -eu; (exit 0) ' + line[line.index('|| {'):]],
@@ -306,12 +308,20 @@ class CalendarFailureDiagnostic(unittest.TestCase):
         self.assertIn('path: ${{ runner.temp }}/governance-private-calendar-failure/diagnostic.json', workflow)
         self.assertNotIn('path: ${{ runner.temp }}/governance-private-calendar-failure\n', workflow)
         block = workflow[workflow.index('      - name: Verify actual private Calendar reminder'):workflow.index('      - name: Verify fresh native organization approval workbench')]
-        self.assertIn('check_private_calendar_reminders.py --receipt', block)
+        self.assertIn('check_calendar_task_schema_receipt_v2.py --root', block); self.assertIn('project_calendar_failure_task_v2.py --root', block)
         self.assertIn('if: success()', block)
         self.assertIn('accepted.pending.json', block)
         self.assertIn('exit "$native_status"', block)
         self.assertNotIn('cat "$RUNNER_TEMP/governance-private-calendar-failure', block)
         self.assertNotIn('continue-on-error', block)
+
+    def test_current_calendar_workflow_closed_dual_binary_orchestration(self):
+        # Synthetic shell transport only; Root separately qualifies actual
+        # new projector CLI with a genuine live source owner after signing.
+        import task_calendar_workflow_shell_test_api_v2 as shell
+        workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text()
+        shell.assert_shell(self,ROOT,workflow,'calendar-reminders')
+        shell.assert_mutations(self,workflow,'calendar-reminders')
 
 
 if __name__ == '__main__':
