@@ -11,7 +11,7 @@ SPEC_PATH='src/infrastructure/governance/content/PhorgeTaskContentGrantSchemaSpe
 NAMES=('governance_taskcontentapproval','governance_taskcontentaudit','governance_taskcontentgrant')
 CAPTURE_CLEANUP_MODES=frozenset(('directory-Task-OFF','conduit-Task-OFF',
  'oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF',
- 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF','file-parent-policy-Task-OFF','session-producer-lease-Task-OFF','session-borrowed-owner-Task-OFF','organization-approval-workbench-Task-OFF'))
+ 'oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF','file-parent-policy-Task-OFF','session-producer-lease-Task-OFF','session-borrowed-owner-Task-OFF','organization-approval-workbench-Task-OFF','calendar-reminders-Task-OFF'))
 CAPTURE_NATIVE_AUXILIARY={
  'task-owner-source-facts-Task-OFF':(8,6),
  'file-source-facts-Task-OFF':(12,10)}

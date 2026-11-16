@@ -21,6 +21,13 @@
       "source": "support/governance/native-organization/test-assessment-credential-readset-mysql.php",
       "source_sha256": "950734a3367468e5fc343e6dcc38157cbf9be0877544341968234a1fddd65c56"
     },
+    "calendar-reminders": {
+      "argument": "--calendar-reminders",
+      "mode": "calendar-reminders-Task-OFF",
+      "native_call_anchor": "$native=governance_calendar_reminder_cases($fixture,$check);",
+      "source": "support/governance/native-organization/test-native-organization-mysql.php",
+      "source_sha256": "858fa9a5925bcc3506442ba2ca67ab622cc5c63d531ba87e39236d3649b48e5c"
+    },
     "conduit": {
       "argument": "--conduit-producer-owner",
       "mode": "conduit-Task-OFF",

@@ -79,7 +79,7 @@ class TaskAdditiveSchemaVectors(unittest.TestCase):
    for key,bad in [('ownedSchemasRemoved',54),('ownedRuntimeUsersRemoved',1),('readerRemoved',False)]:
     row={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':total};row[key]=bad;e=self.focused_envelope(mode,row);out,_=gate.validate_envelope(e,self.path,self.pin,expected_mode=mode);self.assertEqual(out['cleanup'][key],bad)
  def test_all_focused_roles_project_only_exact_two_capture_sockets(self):
-  modes={'directory-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF','file-parent-policy-Task-OFF','session-producer-lease-Task-OFF','session-borrowed-owner-Task-OFF','organization-approval-workbench-Task-OFF'}
+  modes={'directory-Task-OFF','conduit-Task-OFF','oauth-access-Task-OFF','oauth-code-Task-OFF','oauth-authorization-Task-OFF','oauth-client-lifecycle-Task-OFF','assessment-credential-Task-OFF','api-credential-concurrency-Task-OFF','application-config-facts-Task-OFF','project-source-facts-Task-OFF','spaces-source-facts-Task-OFF','recovery-partial-composition-Task-OFF','file-parent-policy-Task-OFF','session-producer-lease-Task-OFF','session-borrowed-owner-Task-OFF','organization-approval-workbench-Task-OFF','calendar-reminders-Task-OFF'}
   self.assertEqual(gate.CAPTURE_CLEANUP_MODES,modes)
   for mode in sorted(modes):
    with self.subTest(mode=mode):
