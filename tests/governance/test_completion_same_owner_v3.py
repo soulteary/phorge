@@ -152,6 +152,32 @@ $completion_primary_exit=PRIMARY;$task_outer_level=ob_get_level();ob_start();
      self.assertEqual(actual.returncode,primary or 1)
      self.assertNotIn('synthetic',actual.stderr);self.assertNotIn('unused',actual.stderr)
 
+ def test_completion_capture_cleanup_exact_projection_keeps_raw_and_original_assertions(self):
+  ns=selected(self.consumer,{'need','project_completion_capture_cleanup'})
+  native={'cleanup':{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2},'untouched':['synthetic']};proof={'native_profile_mode':'completion-v3','exact_projection':{'migrations_removed':1},'actual_SQL_executed_by_validator':False};original=copy.deepcopy((native,proof))
+  projected,delta=ns['project_completion_capture_cleanup'](native,proof)
+  self.assertEqual((native,proof),original);self.assertEqual(projected['cleanup'],{'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True});self.assertEqual(delta['exact_projection']['capture_auxiliary_setup_connections'],[2,0]);self.assertFalse(delta['actual_SQL_executed_by_validator'])
+  old=selected(tree('scripts/governance/check_completion.py'),{'require','_equal','exact'})
+  for key,value in [('ownedSchemasRemoved',54),('ownedRuntimeUsersRemoved',1),('readerRemoved',False)]:
+   changed=copy.deepcopy(native);changed['cleanup'][key]=value;p,_=ns['project_completion_capture_cleanup'](changed,proof)
+   with self.assertRaises(ValueError):old['exact'](p['cleanup'],projected['cleanup'],'synthetic')
+ def test_completion_capture_cleanup_rejects_missing_extra_wrong_count_type_and_role(self):
+  ns=selected(self.consumer,{'need','project_completion_capture_cleanup'});cleanup={'ownedSchemasRemoved':55,'ownedRuntimeUsersRemoved':2,'readerRemoved':True,'ownedAuxiliarySetupConnectionsClosed':2};proof={'native_profile_mode':'completion-v3','exact_projection':{}}
+  bad=[]
+  for value in (True,False,0,1,3,2.0,'2',None):
+   item=copy.deepcopy(cleanup);item['ownedAuxiliarySetupConnectionsClosed']=value;bad.append(item)
+  for key in cleanup:
+   item=copy.deepcopy(cleanup);del item[key];bad.append(item)
+  item=copy.deepcopy(cleanup);item['unknown']=True;bad.append(item)
+  for item in bad:
+   with self.assertRaises(ValueError):ns['project_completion_capture_cleanup']({'cleanup':item},proof)
+  for mode in ('conduit-Task-OFF','directory-Task-OFF','full-native-Task-OFF',None):
+   with self.assertRaises(ValueError):ns['project_completion_capture_cleanup']({'cleanup':cleanup},{'native_profile_mode':mode,'exact_projection':{}})
+ def test_completion_cleanup_projection_is_after_bound_schema_and_before_original_strict_consumer(self):
+  node=function(self.consumer,'validate_DATA_in_operation');text=ast.unparse(node)
+  self.assertEqual(sum(isinstance(n,ast.Call)and isinstance(n.func,ast.Name)and n.func.id=='project_completion_capture_cleanup'for n in ast.walk(node)),1)
+  self.assertLess(text.index('validator.validate_envelope('),text.index('project_completion_capture_cleanup('));self.assertLess(text.index("native == envelope['native_receipt']"),text.index('project_completion_capture_cleanup('));self.assertLess(text.index('project_completion_capture_cleanup('),text.index('original.validate('))
+
  def test_deadlines_JIT_and_source_calls_are_not_relaxed(self):
   actual=ast.unparse(function(self.controller,'run_in_operation'));probe=ast.unparse(function(self.consumer,'probe_in_operation'))
   self.assertIn('timeout=1800',actual);self.assertIn('timeout=15',probe)

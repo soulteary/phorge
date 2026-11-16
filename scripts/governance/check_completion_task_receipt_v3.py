@@ -1,5 +1,5 @@
 """Dedicated strict Completion source/schema consumer; no SQL or activation."""
-import argparse,hashlib,json,re,types,os,subprocess
+import argparse,copy,hashlib,json,re,types,os,subprocess
 from pathlib import Path
 import source_operation_snapshot as source
 ROOT=Path(__file__).resolve().parents[2]
@@ -26,6 +26,18 @@ def runtime_pair(before,after,checkpoint,profile):
   need(type(row['server_uuid_sha256'])is str and re.fullmatch('[a-f0-9]{64}',row['server_uuid_sha256'])is not None)
  need(before['server_uuid_sha256']==after['server_uuid_sha256']==hashlib.sha256(profile['server_uuid'].encode()).hexdigest())
  return {'same_primary_UUID':True,'actual_before_after_version':'8.4.13','observed_service_image':IMAGE}
+
+def project_completion_capture_cleanup(projected,proof):
+ # DATA projection only: source/process authority remains with run_and_accept.
+ need(type(projected)is dict and type(proof)is dict and proof.get('native_profile_mode')=='completion-v3')
+ cleanup=projected.get('cleanup')
+ need(type(cleanup)is dict and set(cleanup)=={'ownedSchemasRemoved','ownedRuntimeUsersRemoved','readerRemoved','ownedAuxiliarySetupConnectionsClosed'})
+ need(type(cleanup['ownedAuxiliarySetupConnectionsClosed'])is int and cleanup['ownedAuxiliarySetupConnectionsClosed']==2)
+ result=copy.deepcopy(projected);delta=copy.deepcopy(proof)
+ del result['cleanup']['ownedAuxiliarySetupConnectionsClosed']
+ need(type(delta.get('exact_projection'))is dict and 'capture_auxiliary_setup_connections'not in delta['exact_projection'])
+ delta['exact_projection']['capture_auxiliary_setup_connections']=[2,0]
+ return result,delta
 
 def validate_DATA_in_operation(operation,root,checkpoint,envelope_path,native_body_path,profile_path,profile_sha,run_profile_path,runtime_before,runtime_after,file_binary,file_sha,taskqueue_binary,taskqueue_sha):
  root=Path(root);need(root==ROOT and re.fullmatch('[a-f0-9]{40}',checkpoint)is not None and checkpoint!='0'*40)
@@ -61,7 +73,7 @@ def validate_DATA_in_operation(operation,root,checkpoint,envelope_path,native_bo
  actual_file=checker.file_binary_digest(file_binary,file_sha);actual_taskqueue=checker.file_binary_digest(taskqueue_binary,taskqueue_sha)
  need(native['file_service_cleanup']['binary_sha256']==actual_file and native['gorge_publication']['service']['binary_sha256']==actual_taskqueue)
  need(hashlib.sha256(context.current('scripts/governance/check_completion.py')).hexdigest()==COMPLETION_SHA)
- original=captured(operation,root,'scripts/governance/check_completion.py');accepted=original.validate(projected,root)
+ original=captured(operation,root,'scripts/governance/check_completion.py');projected,delta=project_completion_capture_cleanup(projected,delta);accepted=original.validate(projected,root)
  need(accepted['schema_valid']is True and accepted['global_completion']is False and accepted['can_execute']is False)
  need(validator.profile(profile_path,profile_sha)==profile and read_private(run_profile_path)==run_raw and read_private(envelope_path)==raw and read_private(native_body_path)==native_raw)
  for (path,empty),observed in readset.items():need((validator.process_output(path)if empty else validator.private(path))==observed)
