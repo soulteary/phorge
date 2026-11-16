@@ -3,6 +3,50 @@ from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import freshness,prepare,project
+CURRENT_DRIVER = 'python3 -B scripts/governance/run_media_task_selected_v2.py --execute --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --config "$RUNNER_TEMP/media-positive-images/config.private.json" --output "$RUNNER_TEMP/media-positive-run" > "$RUNNER_TEMP/media-current-driver.private.json"'
+CURRENT_PROJECTOR = 'python3 -B scripts/governance/project_media_task_selected_v2.py --input "$RUNNER_TEMP/media-current-driver.private.json" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > media-positive-safe/selected-safe.json'
+CURRENT_HEAD = 'python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"'
+CURRENT_PUBLIC = 'python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"'
+def require_current_workflow(s):
+ def need(value):
+  if value is not True:raise ValueError('media_current_workflow_contract_refused')
+ need(s.count('        run: |')==5 and s.count('timeout-minutes: 30')==1)
+ for command in (CURRENT_PUBLIC,CURRENT_HEAD,CURRENT_DRIVER,CURRENT_PROJECTOR):
+  need([x.strip()for x in s.splitlines()if command.split(' ',3)[2]in x and ('--prepare-public-trust'in x if command==CURRENT_PUBLIC else '--root'in x if command==CURRENT_HEAD else True)]==[command])
+ need(s.index(CURRENT_PUBLIC)<s.index(CURRENT_HEAD)<s.index(CURRENT_DRIVER)<s.index(CURRENT_PROJECTOR))
+ need('EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}'in s)
+ need('ref: ${{ github.event.pull_request.head.sha || github.sha }}'in s)
+ need('fetch-depth: 0'in s and 'persist-credentials: false'in s and 'contents: read'in s)
+ need('          export HOME="$RUNNER_TEMP/media-current-source-verifier"'in s)
+ need('        id: selected'in s and 'SELECTED_DRIVER_OUTCOME: ${{ steps.selected.outcome }}'in s)
+ need('if test "$SELECTED_DRIVER_OUTCOME" = success; then'in s)
+ need(s.count('\n        if:')==2 and s.count('          set -euo pipefail')==5)
+ selected=s.split('        id: selected\n',1)[1].split('      - name:',1)[0]
+ expected_selected='        run: |\n          set -euo pipefail\n          umask 077\n          export HOME="$RUNNER_TEMP/media-current-source-verifier"\n          '+CURRENT_DRIVER+'\n'
+ need(selected==expected_selected)
+ need(s.count('if: always()')==2 and 'continue-on-error'not in s and '|| true'not in s and '; true'not in s)
+ need(s.count(' pull ')==2 and prepare.PHP in s and prepare.MYSQL in s)
+ pulls=[x.strip()for x in s.splitlines()if ' pull 'in x]
+ expected=['env -i PATH=/usr/bin:/bin /usr/bin/docker --config "$RUNNER_TEMP/media-positive-pull-config" --host unix:///var/run/docker.sock pull '+image for image in (prepare.PHP,prepare.MYSQL)]
+ need(pulls==expected)
+ need('services:'not in s and '--publish'not in s and 'path: $'not in s)
+ need(s.count('path: media-positive-safe/selected-safe.json')==1 and 'if-no-files-found: error'in s)
+ need('"cleanup_verified":False'in s and '"source_operation_exit_verified":False'in s and '"selected_SQL_accepted":False'in s)
+ need('freshness.py'not in s and 'media-session-docker/run.py'not in s)
+ return True
+def require_current_cleanup_boundary(raw,legacy):
+ import ast
+ if hashlib.sha256(legacy).hexdigest()!='8d84b9744560fba48aaa4634aa095e53e8f441a1138d39ede280326b67eb4209':raise ValueError('original_media_deadline_refused')
+ tree=ast.parse(raw);outer=[n for n in tree.body if isinstance(n,ast.FunctionDef)and n.name=='execute']
+ if len(outer)!=1:raise ValueError('media_execute_shape_refused')
+ calls=[n for n in ast.walk(outer[0])if isinstance(n,ast.Call)and ast.unparse(n.func)=='legacy.execute']
+ if len(calls)!=1 or ast.unparse(calls[0])!='legacy.execute(config_path, output, True)':raise ValueError('success_cleanup_not_required')
+ observers=[n for n in ast.walk(outer[0])if isinstance(n,ast.FunctionDef)and n.name=='current_SQL_cleanup']
+ if len(observers)!=1:raise ValueError('cleanup_observer_missing')
+ calls=[n for n in ast.walk(observers[0])if isinstance(n,ast.Call)and ast.unparse(n.func)=='j.call']
+ if len(calls)!=1 or [(k.arg,ast.literal_eval(k.value))for k in calls[0].keywords]!=[('timeout',5)]:raise ValueError('cleanup_observer_deadline_refused')
+ if raw.count(b'microtime(true)+600')!=1:raise ValueError('worker_marker_deadline_refused')
+ return True
 class Controls(unittest.TestCase):
  def setUp(self):self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name).resolve()
  def tearDown(self):self.tmp.cleanup()
@@ -110,13 +154,27 @@ class Controls(unittest.TestCase):
      if not following.startswith('          '):break
      body.append(following[10:])
     blocks.append('\n'.join(body)+'\n')
-  self.assertEqual(len(blocks),4)
+  self.assertEqual(len(blocks),5)
   for body in blocks:
    p=subprocess.run(['bash','-n'],input=body,capture_output=True,text=True,timeout=5);self.assertEqual(p.returncode,0,p.stderr)
  def test_workflow_fixed_indexes_permissions_and_safe_artifact(self):
   root=Path(__file__).resolve().parents[3];s=(root/'.github/workflows/native-media-session-positive-sql.yml').read_text()
-  self.assertIn('fetch-depth: 0',s);self.assertIn('persist-credentials: false',s);self.assertIn('contents: read',s)
-  self.assertEqual(s.count(' pull '),2);self.assertIn(prepare.PHP,s);self.assertIn(prepare.MYSQL,s);self.assertIn('--cleanup-on-success',s)
-  self.assertNotIn('services:',s);self.assertNotIn('--publish',s);self.assertEqual(s.count('path: media-positive-safe/selected-safe.json'),1)
-  self.assertNotIn('path: $',s);self.assertIn("python3 -B support/governance/media-session-ci/freshness.py",s)
+  self.assertTrue(require_current_workflow(s))
+  raw=(root/'scripts/governance/run_media_task_selected_v2.py').read_bytes();legacy=(root/'support/governance/media-session-docker/run.py').read_bytes()
+  self.assertTrue(require_current_cleanup_boundary(raw,legacy))
+  for mutant in (raw.replace(b'legacy.execute(config_path,output,True)',b'legacy.execute(config_path,output,False)'),raw.replace(b'timeout=5)',b'timeout=10)'),raw.replace(b'microtime(true)+600',b'microtime(true)+900')):
+   with self.assertRaises(ValueError):require_current_cleanup_boundary(mutant,legacy)
+ def test_current_workflow_rejects_binding_omission_failure_masks_and_raw_upload(self):
+  import re
+  root=Path(__file__).resolve().parents[3];s=(root/'.github/workflows/native-media-session-positive-sql.yml').read_text();require_current_workflow(s)
+  for command in (CURRENT_PUBLIC,CURRENT_HEAD,CURRENT_DRIVER,CURRENT_PROJECTOR):
+   for flag in re.findall(r'(?<!\S)--[a-z][a-z-]*',command):
+    mutant=s.replace(command,command.replace(flag+' ','--omitted-'+flag[2:]+' ',1),1)
+    # A valueless --execute is followed by a space too, and is mandatory.
+    with self.subTest(flag=flag),self.assertRaises(ValueError):require_current_workflow(mutant)
+   for changed in (command+' || true',command+'; true',command.replace('$EXPECTED_SOURCE_CHECKPOINT','$GITHUB_SHA')):
+    if changed==command:continue
+    with self.assertRaises(ValueError):require_current_workflow(s.replace(command,changed,1))
+  for old,new in [('        id: selected\n','        id: selected\n        if: false\n'),('          set -euo pipefail','          set +e'),('timeout-minutes: 30','timeout-minutes: 60'),('steps.selected.outcome','steps.preparation.outcome'),('path: media-positive-safe/selected-safe.json','path: ${{ runner.temp }}/media-positive-run'),('if: always()','if: success()'),(prepare.PHP,prepare.PHP[:-1]+'0'),('"cleanup_verified":False','"cleanup_verified":True')]:
+   with self.subTest(old=old),self.assertRaises(ValueError):require_current_workflow(s.replace(old,new,1))
 if __name__=='__main__':unittest.main()

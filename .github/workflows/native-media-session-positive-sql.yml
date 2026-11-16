@@ -9,6 +9,8 @@ on:
       - 'webroot/**'
       - 'support/runtime/**'
       - 'support/governance/**'
+      - 'scripts/governance/**'
+      - 'tests/governance/**'
       - '.github/workflows/native-media-session-positive-sql.yml'
   workflow_dispatch:
 permissions:
@@ -19,21 +21,30 @@ jobs:
     timeout-minutes: 30
     env:
       PYTHONDONTWRITEBYTECODE: '1'
+      EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Bind external event head and isolated PUBLIC verifier
+        run: |
+          set -euo pipefail
+          umask 077
+          trust_home="$RUNNER_TEMP/media-current-source-verifier"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5.12'
           ini-values: opcache.jit=disable, opcache.jit_buffer_size=0, opcache.enable_cli=0
           extensions: mysqli, mbstring, posix, pcntl
           coverage: none
-      - name: Pure controls and protected current source freshness
+      - name: Retain original guards and test CURRENT archive and runtime controls
         run: |
           set -euo pipefail
           python3 -B -m unittest discover -s support/governance/media-session-docker -p 'test_*.py'
@@ -41,7 +52,8 @@ jobs:
           php support/governance/media-session-docker/test_helper.php
           php support/governance/media-session-positive/test-guards.php
           php support/governance/media-session-positive/test-diagnostic.php
-          python3 -B support/governance/media-session-ci/freshness.py
+          python3 -B -m unittest discover -s tests/governance -p 'test_media_current_archive_owner_v2.py'
+          python3 -B -m unittest discover -s tests/governance -p 'test_media_task_runtime_v2.py'
       - name: Pull only the two fixed public runtime indexes
         run: |
           set -euo pipefail
@@ -55,15 +67,21 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 -B support/governance/media-session-ci/freshness.py > "$RUNNER_TEMP/media-positive-current-source.json"
-          python3 -B support/governance/media-session-docker/run.py --execute --config "$RUNNER_TEMP/media-positive-images/config.private.json" --output "$RUNNER_TEMP/media-positive-run" --cleanup-on-success
-      - name: Safe failure or success projection only
+          export HOME="$RUNNER_TEMP/media-current-source-verifier"
+          python3 -B scripts/governance/run_media_task_selected_v2.py --execute --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --config "$RUNNER_TEMP/media-positive-images/config.private.json" --output "$RUNNER_TEMP/media-positive-run" > "$RUNNER_TEMP/media-current-driver.private.json"
+      - name: Safe failure or success projection as DATA only
         if: always()
+        env:
+          SELECTED_DRIVER_OUTCOME: ${{ steps.selected.outcome }}
         run: |
           set -euo pipefail
           umask 077
           mkdir -m 700 media-positive-safe
-          python3 -B support/governance/media-session-ci/project.py --run "$RUNNER_TEMP/media-positive-run" --output media-positive-safe/selected-safe.json --freshness "$RUNNER_TEMP/media-positive-current-source.json"
+          if test "$SELECTED_DRIVER_OUTCOME" = success; then
+            python3 -B scripts/governance/project_media_task_selected_v2.py --input "$RUNNER_TEMP/media-current-driver.private.json" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > media-positive-safe/selected-safe.json
+          else
+            python3 -c 'import json; print(json.dumps({"schema":"media-Task-current-selected-driver-failure-v2","selected_SQL_accepted":False,"source_operation_exit_verified":False,"cleanup_verified":False,"browser_TLS_or_file_authorization_proved":False,"production_changed":False}))' > media-positive-safe/selected-safe.json
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
