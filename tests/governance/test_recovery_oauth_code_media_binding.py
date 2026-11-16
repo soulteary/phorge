@@ -4,18 +4,26 @@ import ast,hashlib,importlib.util,json,subprocess,sys,unittest
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/governance'))
-import recovery_oauth_client_lifecycle_media_provider_delta as original_media_binding
-import project_description_admission_delta as current_admission
-def reduce_stageB(name,raw):
- view=current_admission.media_source_delta()
- return view.reduce_stageB(name,raw)if name in view.SOURCE_INPUTS else raw
+import source_operation_snapshot as source
+from task_inverse_test_api_v2 import owner
 class CurrentMediaBinding:
- SOURCE_INPUTS=original_media_binding.SOURCE_INPUTS
- @staticmethod
- def reduce_current(name,raw):
-  # Exact current Stage C bytes first return to signed Stage B, then historical provider.
-  return original_media_binding.reduce_current(name,reduce_stageB(name,raw))
-media_binding=CurrentMediaBinding()
+ def __init__(self,operation):
+  self.operation=operation;self.require()
+  self.admission=operation._modules['project_description_admission_delta']
+  self.original=operation._modules['recovery_oauth_client_lifecycle_media_provider_delta']
+  self.SOURCE_INPUTS=self.original.SOURCE_INPUTS
+ def require(self):
+  source.require_task_operation(self.operation,ROOT)
+  if self.operation.code_root!=ROOT or self.operation.producer_root!=ROOT or source.ROOT!=ROOT:
+   raise ValueError('media_binding_Task_source_roles_refused')
+ def reduce_stageB(self,name,raw):
+  self.require();view=self.admission.media_source_delta()
+  result=view.reduce_stageB(name,raw)if name in view.SOURCE_INPUTS else raw
+  self.require();return result
+ def reduce_current(self,name,raw):
+  # Execute captured CURRENT reducers only; predecessor Git blobs are DATA.
+  result=self.original.reduce_current(name,self.reduce_stageB(name,raw))
+  self.require();return result
 BASE='cc39f46941cb8f06eb3e7648f5da38db79be83dc'
 TREE='1fe79ccc366ce45e863bf7fa3ac5d1b7b03a7a5a'
 PATH='support/governance/media-session-docker/snapshot.py'
@@ -96,11 +104,17 @@ def legacy_exact_media_seven(candidate):
  return candidate
 
 class SignedSourceBinding(unittest.TestCase):
+ @classmethod
+ def setUpClass(cls):
+  cls._owner=owner(ROOT);cls._operation=cls._owner.__enter__()
+  cls.addClassCleanup(cls._owner.__exit__,None,None,None)
+  cls.media_binding=CurrentMediaBinding(cls._operation)
+ def setUp(self):self.media_binding.require()
  def git(self,*args):return subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),*args])
  def test_exact_literal_sites_restore_signed_source_bytes(self):
   for name in METADATA:
-   raw=(ROOT/name).read_bytes();self.assertEqual(media_binding.reduce_current(name,raw),self.git('show',BASE+':'+name))
-   with self.assertRaises(ValueError):media_binding.reduce_current(name,raw+b'\n# unknown edit')
+   raw=(ROOT/name).read_bytes();self.assertEqual(self.media_binding.reduce_current(name,raw),self.git('show',BASE+':'+name))
+   with self.assertRaises(ValueError):self.media_binding.reduce_current(name,raw+b'\n# unknown edit')
   self.assertEqual(self.git('rev-parse',BASE+'^{tree}').decode().strip(),TREE)
   # Exact legacy branch remains tested on its complete real historical payload,
   # not on whichever future BASE the current snapshot happens to declare.
@@ -109,15 +123,15 @@ class SignedSourceBinding(unittest.TestCase):
    text=legacy[name][1].decode('utf-8')
    self.assertEqual(text.count(_MEDIA_LEGACY_BASE),1);self.assertEqual(text.count(_MEDIA_LEGACY_TREE),1)
  def test_all_current_metadata_and_hook_inverses_restore_exact_signed_S1(self):
-  self.assertEqual(len(media_binding.SOURCE_INPUTS),10)
-  for name in media_binding.SOURCE_INPUTS:
-   raw=(ROOT/name).read_bytes();self.assertEqual(media_binding.reduce_current(name,raw),self.git('show',BASE+':'+name))
+  self.assertEqual(len(self.media_binding.SOURCE_INPUTS),10)
+  for name in self.media_binding.SOURCE_INPUTS:
+   raw=(ROOT/name).read_bytes();self.assertEqual(self.media_binding.reduce_current(name,raw),self.git('show',BASE+':'+name))
    bad=raw+b'\n# unknown metadata edit'
-   with self.assertRaises(ValueError):media_binding.reduce_current(name,bad)
-   with patch.object(media_binding,'SOURCE_INPUTS',{**media_binding.SOURCE_INPUTS,name:hashlib.sha256(bad).hexdigest()}):
-    with self.assertRaises(ValueError):media_binding.reduce_current(name,bad)
+   with self.assertRaises(ValueError):self.media_binding.reduce_current(name,bad)
+   with patch.object(self.media_binding,'SOURCE_INPUTS',{**self.media_binding.SOURCE_INPUTS,name:hashlib.sha256(bad).hexdigest()}):
+    with self.assertRaises(ValueError):self.media_binding.reduce_current(name,bad)
  def test_snapshot_changes_only_base_and_tree_not_any_object_or_IO_guard(self):
-  current=reduce_stageB(PATH,(ROOT/PATH).read_bytes());old=self.git('show',BASE+':'+PATH)
+  current=self.media_binding.reduce_stageB(PATH,(ROOT/PATH).read_bytes());old=self.git('show',BASE+':'+PATH)
   def overlay(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='OVERLAY'for t in n.targets))
   now=overlay(current);before=overlay(old);restored=current.replace(BASE.encode(),b'2d3aa2db8a89185d81fbdb235f5a26c347da5551').replace(TREE.encode(),b'6a4fd9d008ce2fc16d2c259a1145e798bc20ae7e')
   for name in now:
@@ -128,7 +142,10 @@ class SignedSourceBinding(unittest.TestCase):
   self.assertEqual(hashlib.sha256(raw).hexdigest(),'5d708748e4bf47af83ae97edac0fb9f37ac89d41ce11b1d7d371fb595e24d222')
   previous=json.loads(self.git('show',BASE+':'+rel));self.assertEqual(set(pins),set(previous));self.assertEqual({n for n in pins if pins[n]!=previous[n]},{'support/governance/completion/fixture.php'})
   for name,pin in pins.items():
-   actual=(ROOT/name).read_bytes();self.assertEqual(hashlib.sha256(actual).hexdigest(),pin)
+   context=self._operation._task_contexts[ROOT];physical=(ROOT/name).read_bytes()
+   self.assertEqual(context.current(name),physical)
+   actual=context.parent(name);self.assertIsInstance(actual,bytes)
+   self.assertEqual(hashlib.sha256(actual).hexdigest(),pin)
    if name!='support/governance/completion/fixture.php':self.assertEqual(actual,self.git('show',BASE+':'+name))
    else:
     self.assertEqual(pin,'8c69fdbc292b6b42f7764c0258e1edb671190d97f9977cf6aee57eac9e5ae09b');self.assertEqual(actual.replace(b",\n      '20261110.project.contentgrants.sql');",b');'),self.git('show',BASE+':'+name))
@@ -149,11 +166,10 @@ class SignedSourceBinding(unittest.TestCase):
   paths=self.git('ls-tree','-r','--name-only',BASE,'--','support/governance/media-session-ci','support/governance/media-session-docker','support/governance/media-session-positive').decode().splitlines();self.assertGreaterEqual(len(paths),17)
   for name in paths:
    raw=(ROOT/name).read_bytes()
-   if name in media_binding.SOURCE_INPUTS:raw=media_binding.reduce_current(name,raw)
+   if name in self.media_binding.SOURCE_INPUTS:raw=self.media_binding.reduce_current(name,raw)
    self.assertEqual(raw,self.git('show',BASE+':'+name),name)
  def test_previous_signed_recipe_literals_are_exact_test_only_and_unknown_refused(self):
-  import project_content_grant_source_delta as n05
-  m=n05.media_source_delta()
+  m=self._operation._modules['project_content_grant_source_delta'].media_source_delta()
   self.assertEqual(set(m.PREVIOUS_RECIPE_BYTES),set(m.SOURCE_INPUTS))
   for path,raw in m.PREVIOUS_RECIPE_BYTES.items():
    actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','3e02336621298f5877e30e05690f57e9a499bdda:'+path])
@@ -161,8 +177,7 @@ class SignedSourceBinding(unittest.TestCase):
    self.assertEqual(m.reduce_previous_recipe(path,raw),m.BASE_BYTES[path])
    with self.assertRaises(ValueError):m.reduce_previous_recipe(path,raw+b'unknown')
  def test_repair_signed_recipe_predecessor_is_exact_and_unknown_refused(self):
-  import project_content_grant_source_delta as n05
-  m=n05.media_source_delta();self.assertEqual(set(m.REPAIR_RECIPE_BYTES),set(m.SOURCE_INPUTS))
+  m=self._operation._modules['project_content_grant_source_delta'].media_source_delta();self.assertEqual(set(m.REPAIR_RECIPE_BYTES),set(m.SOURCE_INPUTS))
   for path,raw in m.REPAIR_RECIPE_BYTES.items():
    actual=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','5665cf16663b0e44da2aed5a800835dc9cb563cf:'+path]);self.assertEqual(raw,actual)
    self.assertEqual(m.reduce_repair_recipe(path,raw),m.BASE_BYTES[path])

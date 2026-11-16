@@ -6,6 +6,8 @@ sys.path.insert(0,str(ROOT/'scripts/governance'))
 import check_recovery_file_parent_policy as driver_admission
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import check_private_calendar_reminders as calendar_delta
+from task_inverse_test_api_v2 import owner
+from test_calendar_conduit_union import _current_native_driver_prior
 LOADER=r'''$root=$argv[1];function phutil_register_library_map($map){foreach($map['class']as$c=>$p){$GLOBALS['paths'][$c]=$GLOBALS['base'].'/'.$p;}}foreach(['/support/runtime/src','/src']as$s){$GLOBALS['base']=$root.$s;require$root.$s.'/__phutil_library_map__.php';}spl_autoload_register(function($c){if(isset($GLOBALS['paths'][$c]))require_once$GLOBALS['paths'][$c];});require_once$root.'/support/runtime/src/utils/utils.php';require$root.'/support/governance/native-organization/media-remote-profile.php';'''
 class MediaRemote(unittest.TestCase):
  def php(self,code,*args):
@@ -29,11 +31,12 @@ if __name__=='__main__':unittest.main()
 class LegacySourceInverse(unittest.TestCase):
  def previous(self,name):return subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+name]).decode()
  def test_existing_localhost_driver_and_fixture_recover_exact_prior_bytes(self):
-  name='support/governance/native-organization/test-native-organization-mysql.php';s=calendar_delta.reduce_reviewed_calendar_driver(driver_admission.admitted_native_driver_source(ROOT,(ROOT/name).read_bytes())).decode();s=s.replace("'--http-wire-remote-hold'=>'http-wire-remote-hold',",'').replace("$media_remote=$phase==='http-wire-remote-hold';\n$wire_hold=$phase==='http-wire-hold'||$media_remote;","$wire_hold=$phase==='http-wire-hold';");s=s.replace("require_once __DIR__.'/media-wire-fixture.php';\n      if($media_remote){require_once __DIR__.'/media-remote-profile.php';$native=governance_native_media_wire_hold($fixture,$check,governance_media_remote_profile());}\n      else{$native=governance_native_media_wire_hold($fixture,$check);}","require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);").replace("  }elseif(($media_remote??false)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){\n    $cleanup_failures[]=array('stage'=>'media-remote-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');\n    // Retain this exact remote-only fixture until independent writerSQL0.\n",'');self.assertEqual(s,self.previous(name))
-  name='support/governance/native-organization/media-wire-fixture.php';s=(ROOT/name).read_text().replace('function governance_native_media_wire_hold($fixture,callable $check,?array $remote=null){','function governance_native_media_wire_hold($fixture,callable $check){');s=s.replace("\n  if($remote!==null){governance_media_remote_validate_profile($remote);$app=$remote['app_origin'];$files=$remote['file_origin'];}",'')
-  a=s.index("  if($remote!==null){$router['remote_origin_profile']");b=s.index('  $ready=array(',a);s=s[:a]+s[b:];s=s.replace("  $router=array(","  $write('router.json',array(").replace("'gorge_image_uri'=>$image_uri,'gorge_image_token'=>$image_token);","'gorge_image_uri'=>$image_uri,'gorge_image_token'=>$image_token));")
-  a=s.index("  if($remote!==null){$ready['remote_origin_profile']");b=s.index("  $check(true,'wire-fixture-private-parent-manifest",a);s=s[:a]+s[b:];s=s.replace("  $ready=array(","  $write('fixture-ready.json',array(").replace("'browser_session_preseeded'=>false,'otp_tested'=>false);","'browser_session_preseeded'=>false,'otp_tested'=>false));")
-  s=s.replace("file_get_contents($release)===$owner){\n      if($remote!==null){governance_media_remote_release_after_SQL_zero($fixture);}\n      $released=true;break;}","file_get_contents($release)===$owner){$released=true;break;}");self.assertEqual(s,self.previous(name))
+  with owner(ROOT)as operation:
+   name='support/governance/native-organization/test-native-organization-mysql.php';s=calendar_delta.reduce_reviewed_calendar_driver(_current_native_driver_prior(operation,ROOT,(ROOT/name).read_bytes())).decode();s=s.replace("'--http-wire-remote-hold'=>'http-wire-remote-hold',",'').replace("$media_remote=$phase==='http-wire-remote-hold';\n$wire_hold=$phase==='http-wire-hold'||$media_remote;","$wire_hold=$phase==='http-wire-hold';");s=s.replace("require_once __DIR__.'/media-wire-fixture.php';\n      if($media_remote){require_once __DIR__.'/media-remote-profile.php';$native=governance_native_media_wire_hold($fixture,$check,governance_media_remote_profile());}\n      else{$native=governance_native_media_wire_hold($fixture,$check);}","require_once __DIR__.'/media-wire-fixture.php';$native=governance_native_media_wire_hold($fixture,$check);").replace("  }elseif(($media_remote??false)&&($GLOBALS['governance_workbench_http_cleanup_permitted']??null)!==true){\n    $cleanup_failures[]=array('stage'=>'media-remote-parent-or-live-writer-cleanup-unproved','error_type'=>'RuntimeException');\n    // Retain this exact remote-only fixture until independent writerSQL0.\n",'');self.assertEqual(s,self.previous(name))
+   name='support/governance/native-organization/media-wire-fixture.php';s=(ROOT/name).read_text().replace('function governance_native_media_wire_hold($fixture,callable $check,?array $remote=null){','function governance_native_media_wire_hold($fixture,callable $check){');s=s.replace("\n  if($remote!==null){governance_media_remote_validate_profile($remote);$app=$remote['app_origin'];$files=$remote['file_origin'];}",'')
+   a=s.index("  if($remote!==null){$router['remote_origin_profile']");b=s.index('  $ready=array(',a);s=s[:a]+s[b:];s=s.replace("  $router=array(","  $write('router.json',array(").replace("'gorge_image_uri'=>$image_uri,'gorge_image_token'=>$image_token);","'gorge_image_uri'=>$image_uri,'gorge_image_token'=>$image_token));")
+   a=s.index("  if($remote!==null){$ready['remote_origin_profile']");b=s.index("  $check(true,'wire-fixture-private-parent-manifest",a);s=s[:a]+s[b:];s=s.replace("  $ready=array(","  $write('fixture-ready.json',array(").replace("'browser_session_preseeded'=>false,'otp_tested'=>false);","'browser_session_preseeded'=>false,'otp_tested'=>false));")
+   s=s.replace("file_get_contents($release)===$owner){\n      if($remote!==null){governance_media_remote_release_after_SQL_zero($fixture);}\n      $released=true;break;}","file_get_contents($release)===$owner){$released=true;break;}");self.assertEqual(s,self.previous(name))
  def test_existing_localhost_router_recovers_exact_prior_bytes(self):
   name='support/governance/native-organization/http-fixture/router.php';s=(ROOT/name).read_text();s=s.replace("  $remote=$config['remote_origin_profile']??null;\n  if($remote!==null){unset($config['remote_origin_profile']);}\n",'').replace("\n  if($remote!==null){require_once dirname(__DIR__).'/media-remote-profile.php';governance_media_remote_validate_profile($remote);}",'');s=s.replace("  if($remote!==null){\n    if($app!==$remote['app_origin']||$files!==$remote['file_origin']){throw new RuntimeException('owned_http_remote_origins_refused');}\n  }elseif(","  if(");self.assertEqual(s,self.previous(name))
  def test_actual_driver_remote_guard_retains_false_or_truthy_unknown(self):
@@ -48,51 +51,60 @@ class CurrentMainIntegration(MediaRemote):
   code=r'''class QueryFailure{function bind_param(...$v){}function execute(){throw new RuntimeException('query_primary');}function close(){$GLOBALS['statement_closed']=true;}}class FailureControl{function prepare($sql){if($sql!=='SELECT COUNT(*) n FROM information_schema.PROCESSLIST WHERE USER=?')throw new RuntimeException('wrong_query');return new QueryFailure();}}class OwnedConfig{function getWriterConfig(){return['user'=>'gov_c_writer_aaaaaaaaaaaa'];}}$control=new FailureControl();$statement_closed=false;$GLOBALS['governance_workbench_http_cleanup_permitted']=false;try{governance_media_remote_release_after_SQL_zero(new OwnedConfig());}catch(Throwable$e){$error=$e->getMessage();}echo json_encode([$error,$statement_closed,$GLOBALS['governance_workbench_http_cleanup_permitted']]);'''
   self.assertEqual(self.php(code),['query_primary',True,False])
  def test_strict_maps_pin_current_union_and_preserve_main_production(self):
-  import ast,hashlib
-  driver='support/governance/native-organization/test-native-organization-mysql.php'
-  for suffix,count in [('file_parent_policy',12),('session_lease',19),('borrowed_session',30)]:
-   p=ROOT/f'scripts/governance/check_recovery_{suffix}.py';tree=ast.parse(p.read_text())
-   inputs=next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
-   self.assertEqual(len(inputs),count)
-   for name,pin in inputs.items():
-    import recovery_worker_terminal_delta as worker_terminal
-    import recovery_oauth_code_source_delta as code_delta
-    self.assertEqual(hashlib.sha256(worker_terminal.reduce_if_selected(name,code_delta.reduce_if_selected(name,(ROOT/name).read_bytes()))).hexdigest(),pin,name)
-  changed=subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72','--','src','resources'],text=True).splitlines()
-  name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
-  policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
-  import recovery_conduit_source_delta as conduit_delta
-  import recovery_assessment_source_delta as assessment_delta
-  import recovery_oauth_authorization_source_delta as authorization_delta
-  import recovery_oauth_client_lifecycle_delta as lifecycle_delta
-  extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)
-  map_path='src/__phutil_library_map__.php'
-  import project_description_admission_delta as n05_delta
-  n05_paths=n05_delta.assert_production_cohort(ROOT)
-  docs={
-   'src/infrastructure/governance/content/README.description-main-integration.md':'0e5143a5c4354ace055e6adb17e752f19b99fbacb752525832ab918c6d40e7f2',
-   'src/infrastructure/governance/content/README.description-executor.md':'f3bd3f62cb0d743d6b228d0b066f0eb34b7cb691601ec761ce0d581ebd0b2364',
-   'src/infrastructure/governance/content/README.description-source-inverse.md':'7993e97f144b1af281f2fdee46a077aacfdc5a4f61da5a7551dd6598e2d340d6'}
-  for path,pin in docs.items():
-   raw=(ROOT/path).read_bytes()
-   self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
-   self.assertEqual(raw,subprocess.check_output(['git','-C',str(ROOT),'show','15d4f76d9c1c12256f82e53435be038422e205a5:'+path]))
-   self.assertEqual((ROOT/path).lstat().st_mode & 0o177777,0o100644)
-   self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'ls-tree','5a3d412be4496d1b739d484fc4cd778b79d80f72','--',path]),b'')
-  expected={name,policy}|extra|n05_paths|set(docs)
-  if map_path in changed:expected.add(map_path)
-  from test_project_description_source_inverse import reviewed_i18n_sources,assert_reviewed_i18n_drift_controls
-  i18n=reviewed_i18n_sources(ROOT)
-  assert_reviewed_i18n_drift_controls(self)
-  self.assertEqual(set(changed),expected|set(i18n))
-  for path in authorization_delta.PRODUCTION_PATHS:
-   self.assertEqual(authorization_delta.reduce_current(path,(ROOT/path).read_bytes()),subprocess.check_output(['git','-C',str(ROOT),'show','0436e865b8431b9f064fe7b8a92dcad5e6623997:'+path]))
-  for path in conduit_delta.BASE_PINS:
-   self.assertEqual(conduit_delta.reduce_owner(path,(ROOT/path).read_bytes()),subprocess.check_output(['git','-C',str(ROOT),'show','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504:'+path]))
-  # Only the exact separately reviewed Calendar addition is allowed. Its
-  # inverse must recover the original product bytes; every other path remains
-  # excluded rather than making the historical source check a blanket pass.
-  old=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+name])
-  self.assertEqual(calendar_delta.reduce_reviewed_calendar_engine((ROOT/name).read_bytes()),old)
-  prior=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+policy])
-  self.assertEqual(calendar_delta.reduce_reviewed_private_mail_settings((ROOT/policy).read_bytes()),prior)
+  with owner(ROOT)as operation:
+   context=operation._task_contexts[ROOT]
+   import ast,hashlib
+   driver='support/governance/native-organization/test-native-organization-mysql.php'
+   for suffix,count in [('file_parent_policy',12),('session_lease',19),('borrowed_session',30)]:
+    p=ROOT/f'scripts/governance/check_recovery_{suffix}.py';tree=ast.parse(p.read_text())
+    inputs=next(ast.literal_eval(n.value)for n in tree.body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
+    self.assertEqual(len(inputs),count)
+    for name,pin in inputs.items():
+     worker_terminal=operation._modules['recovery_worker_terminal_delta']
+     code_delta=operation._modules['recovery_oauth_code_source_delta']
+     self.assertEqual(hashlib.sha256(worker_terminal.reduce_if_selected(name,code_delta.reduce_if_selected(name,context.parent(name)))).hexdigest(),pin,name)
+   # Preserve the complete historical union on authenticated parent DATA;
+   # independently account for the exact admitted Task forward delta.
+   parent='5903d98b14926401f0be49cb0a9d6168026a2642'
+   changed=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72',parent,'--','src','resources'],text=True).splitlines()
+   physical_changed=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'diff','--name-only','5a3d412be4496d1b739d484fc4cd778b79d80f72','HEAD','--','src','resources'],text=True).splitlines()
+   task_delta={path for path,pin in context.entries.items()if path.startswith(('src/','resources/'))and pin!=context.parent_pins.get(path)}
+   self.assertTrue(task_delta)
+   self.assertEqual(set(physical_changed),set(changed)|task_delta)
+   name='src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php'
+   policy='src/infrastructure/governance/notification/PhorgePrivateMailPolicy.php'
+   conduit_delta=operation._modules['recovery_conduit_source_delta']
+   assessment_delta=operation._modules['recovery_assessment_source_delta']
+   authorization_delta=operation._modules['recovery_oauth_authorization_source_delta']
+   lifecycle_delta=operation._modules['recovery_oauth_client_lifecycle_delta']
+   extra=set(conduit_delta.SOURCE_INPUTS)|set(assessment_delta.SOURCE_INPUTS)|set(code_delta.SOURCE_INPUTS)|set(authorization_delta.PRODUCTION_PATHS)|set(lifecycle_delta.PRODUCTION_PATHS)
+   map_path='src/__phutil_library_map__.php'
+   n05_delta=operation._modules['project_description_admission_delta']
+   n05_paths=n05_delta.assert_production_cohort(ROOT)
+   docs={
+    'src/infrastructure/governance/content/README.description-main-integration.md':'0e5143a5c4354ace055e6adb17e752f19b99fbacb752525832ab918c6d40e7f2',
+    'src/infrastructure/governance/content/README.description-executor.md':'f3bd3f62cb0d743d6b228d0b066f0eb34b7cb691601ec761ce0d581ebd0b2364',
+    'src/infrastructure/governance/content/README.description-source-inverse.md':'7993e97f144b1af281f2fdee46a077aacfdc5a4f61da5a7551dd6598e2d340d6'}
+   for path,pin in docs.items():
+    raw=context.parent(path)
+    self.assertEqual(hashlib.sha256(raw).hexdigest(),pin)
+    self.assertEqual(raw,subprocess.check_output(['git','-C',str(ROOT),'show','15d4f76d9c1c12256f82e53435be038422e205a5:'+path]))
+    self.assertEqual((ROOT/path).lstat().st_mode & 0o177777,0o100644)
+    self.assertEqual(subprocess.check_output(['git','-C',str(ROOT),'ls-tree','5a3d412be4496d1b739d484fc4cd778b79d80f72','--',path]),b'')
+   expected={name,policy}|extra|n05_paths|set(docs)
+   if map_path in changed:expected.add(map_path)
+   from test_project_description_source_inverse import reviewed_i18n_sources,assert_reviewed_i18n_drift_controls
+   i18n=reviewed_i18n_sources(ROOT)
+   assert_reviewed_i18n_drift_controls(self)
+   self.assertEqual(set(changed),expected|set(i18n))
+   for path in authorization_delta.PRODUCTION_PATHS:
+    self.assertEqual(authorization_delta.reduce_current(path,context.parent(path)),subprocess.check_output(['git','-C',str(ROOT),'show','0436e865b8431b9f064fe7b8a92dcad5e6623997:'+path]))
+   for path in conduit_delta.BASE_PINS:
+    self.assertEqual(conduit_delta.reduce_owner(path,context.parent(path)),subprocess.check_output(['git','-C',str(ROOT),'show','c496e2cf0ae25fb3e5153c6a1070eb53cf56b504:'+path]))
+   # Only the exact separately reviewed Calendar addition is allowed. Its
+   # inverse must recover the original product bytes; every other path remains
+   # excluded rather than making the historical source check a blanket pass.
+   old=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+name])
+   self.assertEqual(calendar_delta.reduce_reviewed_calendar_engine(context.parent(name)),old)
+   prior=subprocess.check_output(['git','-C',str(ROOT),'show','5a3d412be4496d1b739d484fc4cd778b79d80f72:'+policy])
+   self.assertEqual(calendar_delta.reduce_reviewed_private_mail_settings((ROOT/policy).read_bytes()),prior)
