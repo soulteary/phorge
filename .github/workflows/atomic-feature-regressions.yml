@@ -732,6 +732,8 @@ jobs:
           path: ${{ runner.temp }}/governance-file-source-facts
           if-no-files-found: error
       - name: Verify fresh native File parent-policy endpoints after File source facts
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
@@ -741,15 +743,27 @@ jobs:
           git rev-parse HEAD > "$RUNNER_TEMP/governance-file-parent-policy/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-file-parent-policy/shared-native-pure.json"
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-file-parent-policy/normal-regression-accepted.json"
+          trust_home="$RUNNER_TEMP/file-parent-policy-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          export HOME="$trust_home"
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php before "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-file-parent-policy/mysql-before.pending.json"
+          mv "$RUNNER_TEMP/governance-file-parent-policy/mysql-before.pending.json" "$RUNNER_TEMP/governance-file-parent-policy/mysql-before.json"
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
-          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
-          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
-          php support/governance/native-organization/test-native-organization-mysql.php --file-parent-policy > "$RUNNER_TEMP/governance-file-parent-policy/integration.json" || { native_status=$?; python3 -B scripts/governance/project_file_parent_failure.py --receipt "$RUNNER_TEMP/governance-file-parent-policy/integration.json" || true; exit "$native_status"; }
-          python3 -B scripts/governance/check_recovery_file_parent_policy.py --receipt "$RUNNER_TEMP/governance-file-parent-policy/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json"
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role file-parent-policy --directory "$RUNNER_TEMP/task-file-parent-policy-v2-private" --stdout "$RUNNER_TEMP/governance-file-parent-policy/integration.json" --stderr "$RUNNER_TEMP/file-parent-policy.stderr.private" || { native_status=$?; python3 -B scripts/governance/project_file_parent_failure.py --receipt "$RUNNER_TEMP/task-file-parent-policy-v2-private/capture-native-body.private.json" || true; exit "$native_status"; }
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-file-parent-policy/mysql-after.pending.json"
+          mv "$RUNNER_TEMP/governance-file-parent-policy/mysql-after.pending.json" "$RUNNER_TEMP/governance-file-parent-policy/mysql-after.json"
+          python3 -B scripts/governance/check_paired_session_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role file-parent-policy --envelope "$RUNNER_TEMP/governance-file-parent-policy/integration.json" --native-body "$RUNNER_TEMP/task-file-parent-policy-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-file-parent-policy-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-file-parent-policy-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-file-parent-policy/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-file-parent-policy/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-file-parent-policy/accepted.pending.json" "$RUNNER_TEMP/governance-file-parent-policy/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -758,6 +772,8 @@ jobs:
           path: ${{ runner.temp }}/governance-file-parent-policy
           if-no-files-found: error
       - name: Verify fresh native Session producer lease after File source facts
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
@@ -767,15 +783,27 @@ jobs:
           git rev-parse HEAD > "$RUNNER_TEMP/governance-session-producer-lease/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-session-producer-lease/shared-native-pure.json"
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-session-producer-lease/normal-regression-accepted.json"
+          trust_home="$RUNNER_TEMP/session-producer-lease-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          export HOME="$trust_home"
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php before "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-session-producer-lease/mysql-before.pending.json"
+          mv "$RUNNER_TEMP/governance-session-producer-lease/mysql-before.pending.json" "$RUNNER_TEMP/governance-session-producer-lease/mysql-before.json"
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
-          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
-          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
-          php support/governance/native-organization/test-native-organization-mysql.php --session-producer-lease > "$RUNNER_TEMP/governance-session-producer-lease/integration.json"
-          python3 -B scripts/governance/check_recovery_session_lease.py --receipt "$RUNNER_TEMP/governance-session-producer-lease/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-session-producer-lease/accepted.pending.json"
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role session-producer-lease --directory "$RUNNER_TEMP/task-session-producer-lease-v2-private" --stdout "$RUNNER_TEMP/governance-session-producer-lease/integration.json" --stderr "$RUNNER_TEMP/session-producer-lease.stderr.private"
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-session-producer-lease/mysql-after.pending.json"
+          mv "$RUNNER_TEMP/governance-session-producer-lease/mysql-after.pending.json" "$RUNNER_TEMP/governance-session-producer-lease/mysql-after.json"
+          python3 -B scripts/governance/check_paired_session_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role session-producer-lease --envelope "$RUNNER_TEMP/governance-session-producer-lease/integration.json" --native-body "$RUNNER_TEMP/task-session-producer-lease-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-session-producer-lease-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-session-producer-lease-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-session-producer-lease/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-session-producer-lease/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-session-producer-lease/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-session-producer-lease/accepted.pending.json" "$RUNNER_TEMP/governance-session-producer-lease/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -785,6 +813,8 @@ jobs:
           if-no-files-found: error
       - name: Verify fresh borrowed native Session owner after Session producer lease
         id: borrowed-owner
+        env:
+          MYSQL_CONTAINER: ${{ job.services.mysql.id }}
         run: |
           umask 077
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
@@ -794,15 +824,27 @@ jobs:
           git rev-parse HEAD > "$RUNNER_TEMP/governance-borrowed-session-owner/source-revision.txt"
           cp "$RUNNER_TEMP/governance-batch-1/native.json" "$RUNNER_TEMP/governance-borrowed-session-owner/shared-native-pure.json"
           cp "$RUNNER_TEMP/governance-native-organization/accepted.json" "$RUNNER_TEMP/governance-borrowed-session-owner/normal-regression-accepted.json"
+          trust_home="$RUNNER_TEMP/session-borrowed-owner-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          export HOME="$trust_home"
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php before "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-before.pending.json"
+          mv "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-before.pending.json" "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-before.json"
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
-          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
-          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
-          php support/governance/native-organization/test-native-organization-mysql.php --session-borrowed-owner > "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-borrowed-session-failure"; then if python3 -B scripts/governance/project_borrowed_failure.py --receipt "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" > "$RUNNER_TEMP/governance-borrowed-session-failure/diagnostic.json"; then cat "$RUNNER_TEMP/governance-borrowed-session-failure/diagnostic.json" >&2; echo "diagnostic_owned=true" >> "$GITHUB_OUTPUT"; fi; fi; exit "$native_status"; }
-          python3 -B scripts/governance/check_recovery_borrowed_session.py --receipt "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" --source-revision "$EXPECTED_SOURCE_CHECKPOINT" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json"
+          PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/gorge-file-storage" \
+          PHORGE_GOVERNANCE_GORGE_FILE_SHA256="$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" \
+          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role session-borrowed-owner --directory "$RUNNER_TEMP/task-session-borrowed-owner-v2-private" --stdout "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" --stderr "$RUNNER_TEMP/session-borrowed-owner.stderr.private" || { native_status=$?; if mkdir "$RUNNER_TEMP/governance-borrowed-session-failure"; then if python3 -B scripts/governance/project_borrowed_failure.py --receipt "$RUNNER_TEMP/task-session-borrowed-owner-v2-private/capture-native-body.private.json" > "$RUNNER_TEMP/governance-borrowed-session-failure/diagnostic.json"; then cat "$RUNNER_TEMP/governance-borrowed-session-failure/diagnostic.json" >&2; echo "diagnostic_owned=true" >> "$GITHUB_OUTPUT"; fi; fi; exit "$native_status"; }
+          mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
+          test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
+          FULL_NATIVE_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_full_native_task_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-after.pending.json"
+          mv "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-after.pending.json" "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-after.json"
+          python3 -B scripts/governance/check_paired_session_facts_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role session-borrowed-owner --envelope "$RUNNER_TEMP/governance-borrowed-session-owner/integration.json" --native-body "$RUNNER_TEMP/task-session-borrowed-owner-v2-private/capture-native-body.private.json" --profile "$RUNNER_TEMP/task-session-borrowed-owner-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-session-borrowed-owner-v2-private/capture/binding.safe.json")" --runtime-before "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-borrowed-session-owner/mysql-after.json" --file-binary "$RUNNER_TEMP/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.pending.json" "$RUNNER_TEMP/governance-borrowed-session-owner/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
@@ -964,6 +1006,7 @@ jobs:
           path: ${{ runner.temp }}/governance-organization-approval-workbench
           if-no-files-found: error
       - name: Verify deterministic historical push-event grouping
+        id: push-groups
         run: |
           mkdir -p "$RUNNER_TEMP/push-groups-migration"
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
@@ -972,7 +1015,7 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
           python3 support/governance/migrations/push-groups-wrapper.py --profile push-groups-regression > "$RUNNER_TEMP/push-groups-migration/receipt.json"
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.push-groups.outcome != 'skipped' && steps.push-groups.outcome != ''
         with:
           name: push-groups-migration-php-${{ matrix.php }}
           path: ${{ runner.temp }}/push-groups-migration

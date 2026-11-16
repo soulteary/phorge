@@ -53,6 +53,8 @@ CI_V2_NEW_PATHS.update({'scripts/governance/project_media_task_selected_v2.py', 
 
 CI_V2_NEW_PATHS.update({'scripts/governance/paired_session_facts_task_strict_body_v2.py', 'scripts/governance/check_paired_session_facts_task_schema_receipt_v2.py', 'tests/governance/test_paired_session_facts_task_strict_body_v2.py'})
 
+CI_V2_NEW_PATHS.update({'tests/governance/test_task_paired_failure_transport_v2.py', 'tests/governance/test_push_groups_upload_causality_v2.py', 'tests/governance/task_three_paired_workflow_shell_test_api_v2.py'})
+
 def need(v):
  if v is not True:raise ValueError('task_SourceOperation_admission_refused')
 def sha(raw):return hashlib.sha256(raw).hexdigest()

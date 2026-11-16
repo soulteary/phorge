@@ -111,6 +111,12 @@ class BorrowedWiring(unittest.TestCase):
      # Actual workflow success-only condition is coupled to this whole run status.
      upload=r.returncode==0 and 'if: success()'in block;self.assertEqual(upload,mode=='good')
 
+ def test_current_paired_workflow_shell_failure_and_owner_guards(self):
+  # Synthetic orchestration only; the original historical test remains above.
+  import task_three_paired_workflow_shell_test_api_v2 as shell
+  workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text()
+  shell.assert_shell(self,ROOT,workflow,'session-borrowed-owner');shell.assert_mutations(self,workflow,'session-borrowed-owner')
+
  def test_fresh_selected_process_loads_actual_native_factory_definition(self):
   code="require_once$argv[1].'/support/governance/recovery/borrowed-session-focused.php';$r=new ReflectionFunction('governance_native_request');echo json_encode(['file'=>realpath($r->getFileName()),'parameters'=>array_map(static fn($p)=>(string)$p->getType(),$r->getParameters()),'SQL_executed'=>false]);"
   p=subprocess.run(['php','-r',code,str(ROOT)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);d=json.loads(p.stdout);self.assertEqual(d['file'],str(ROOT/'support/governance/native-organization/native-cases.php'));self.assertEqual(d['parameters'],['PhabricatorUser','PhabricatorAuthSessionEngine']);self.assertFalse(d['SQL_executed'])
