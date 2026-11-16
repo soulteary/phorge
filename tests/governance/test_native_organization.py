@@ -1,3 +1,5 @@
+from task_native_gate_test_api_v2 import current_native_gate
+from task_admission_test_api_v2 import checkpoint
 """Mutation tests for the native evidence gate, not runtime permission proof."""
 import copy
 import hashlib
@@ -791,13 +793,14 @@ class NativePolicyDriverSourceViewTest(unittest.TestCase):
                          _policy_assessment.SOURCE_INPUTS)
 
     def test_fileparent_source_view_preserves_all_twelve_original_pins(self):
-        path = 'scripts/governance/check_recovery_file_parent_policy.py'
-        self.assertEqual(_policy_literal(_policy_git_bytes(_POLICY_CURRENT, path), 'SOURCE_INPUTS'),
-                         _policy_fileparent.SOURCE_INPUTS)
-        self.assertEqual(12, len(_policy_fileparent.SOURCE_INPUTS))
-        expected = (_policy_fileparent.shared.BOOTSTRAP | _policy_fileparent.shared.PREPARATION |
-                    _policy_fileparent.SQL | _policy_fileparent.shared.CLEANUP)
-        self.assertEqual(expected, _policy_fileparent.source_obligations(ROOT))
+        with current_native_gate(ROOT,'fileparent')as current_gate:
+            path = 'scripts/governance/check_recovery_file_parent_policy.py'
+            self.assertEqual(_policy_literal(_policy_git_bytes(_POLICY_CURRENT, path), 'SOURCE_INPUTS'),
+                             _policy_fileparent.SOURCE_INPUTS)
+            self.assertEqual(12, len(_policy_fileparent.SOURCE_INPUTS))
+            expected = (_policy_fileparent.shared.BOOTSTRAP | _policy_fileparent.shared.PREPARATION |
+                        _policy_fileparent.SQL | _policy_fileparent.shared.CLEANUP)
+            self.assertEqual(expected, current_gate.source_obligations(ROOT))
 
     def test_fileparent_refuses_unreviewed_driver_in_actual_source_obligations(self):
         original = _policy_fileparent.read_source_checked

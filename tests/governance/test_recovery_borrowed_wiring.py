@@ -1,3 +1,5 @@
+from task_native_gate_test_api_v2 import current_native_gate
+from task_admission_test_api_v2 import checkpoint
 """Actual selector/native role methods/whole finally/public receipt controls, no SQL."""
 from recovery_oauth_code_test_cohort import complete_source_cohort
 from pathlib import Path
@@ -29,16 +31,17 @@ def historical_atomic_source(path='.github/workflows/atomic-feature-regressions.
  return prior.decode('utf-8')
 class BorrowedWiring(unittest.TestCase):
  def test_current_Atomic_history_refuses_unknown_names_bytes_and_producer_role(self):
-  from unittest.mock import patch
-  path='.github/workflows/atomic-feature-regressions.yml';raw=(ROOT/path).read_bytes()
-  old=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
-  self.assertEqual(historical_atomic_source().encode(),old)
-  for name,body in [('.github/workflows/unreviewed.yml',raw),(path,raw+b'\n# unknown'),(path,raw.decode())]:
-   with self.subTest(name=name),self.assertRaises(ValueError):historical_atomic_source(name,body)
-  if raw!=old:
-   with self.assertRaises(ValueError):historical_atomic_source(path,old)
-  with patch.object(gate,'__file__',str(ROOT/'scripts/governance/unreviewed.py')):
-   with self.assertRaises(ValueError):historical_atomic_source()
+  with current_native_gate(ROOT,'borrowed')as current:
+   from unittest.mock import patch
+   path='.github/workflows/atomic-feature-regressions.yml';raw=(ROOT/path).read_bytes()
+   old=subprocess.check_output(['/usr/bin/git','--no-replace-objects','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+path])
+   self.assertEqual(current.atomic_history().encode(),old)
+   for name,body in [('.github/workflows/unreviewed.yml',raw),(path,raw+b'\n# unknown'),(path,raw.decode())]:
+    with self.subTest(name=name),self.assertRaises(ValueError):current.atomic_history(name,body)
+   if raw!=old:
+    with self.assertRaises(ValueError):current.atomic_history(path,old)
+   with patch.object(gate,'__file__',str(ROOT/'scripts/governance/unreviewed.py')):
+    with self.assertRaises(ValueError):current.atomic_history()
  def php(self,path,*args):
   p=subprocess.run(['php',str(ROOT/path),str(ROOT),*args],capture_output=True,text=True,timeout=12);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(p.stderr,'');return json.loads(p.stdout)
  def test_actual_native_four_role_sorting_has_distinct_admins_and_worker_order(self):
@@ -59,22 +62,28 @@ class BorrowedWiring(unittest.TestCase):
  def template(self,digest='b'*64):
   d=previous.template(digest);labels=sorted(gate.obligations());d.update(batch='native-borrowed-session-owner',scope='owned-native-borrowed-session-owner-no-permit',checks=labels,check_count=len(labels),native=gate.summary('a'*40));return d
  def test_strict_receipt_source_cases_production_flags_cleanup_route_and_binary_tamper(self):
-  d=self.template();self.assertEqual(len(gate.SQL_obligations()),6);self.assertEqual(gate.validate(d,source_revision='a'*40,file_digest='b'*64)['checks'],16)
-  for key in ['production_observer_factory_available','business_submit_review_integration_proved','durable_review_compatible','Task_File_RR_combined','all_sources_complete','restoration_authorized','forced_connection_used']:
-   bad=copy.deepcopy(d);bad['native'][key]=True
-   with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
-  for key in ['default_native_User_writer','both_native_identity_epochs_prewarmed']:
-   bad=copy.deepcopy(d);bad['native'][key]=False
-   with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
-  for label in d['checks']:
-   bad=copy.deepcopy(d);bad['checks'].remove(label);bad['check_count']-=1
-   with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+  with current_native_gate(ROOT,'borrowed')as current:
+   gate=current
+   template=current.template
+   d=current.template();self.assertEqual(len(gate.SQL_obligations()),6);self.assertEqual(gate.validate(d,source_revision='a'*40,file_digest='b'*64)['checks'],16)
+   for key in ['production_observer_factory_available','business_submit_review_integration_proved','durable_review_compatible','Task_File_RR_combined','all_sources_complete','restoration_authorized','forced_connection_used']:
+    bad=copy.deepcopy(d);bad['native'][key]=True
+    with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+   for key in ['default_native_User_writer','both_native_identity_epochs_prewarmed']:
+    bad=copy.deepcopy(d);bad['native'][key]=False
+    with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
+   for label in d['checks']:
+    bad=copy.deepcopy(d);bad['checks'].remove(label);bad['check_count']-=1
+    with self.assertRaises(ValueError):gate.validate(bad,source_revision='a'*40,file_digest='b'*64)
  def test_actual_public_receipt_CLI_binary_revision_unknown_duplicate_refused(self):
-  with tempfile.TemporaryDirectory()as tmp:
-   p=Path(tmp).resolve();binary=p/'file';binary.write_bytes(b'host binary data only');binary.chmod(0o700);digest=hashlib.sha256(binary.read_bytes()).hexdigest();receipt=p/'receipt';receipt.touch(mode=0o600);body=json.dumps(self.template(digest));cmd=[sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_borrowed_session.py'),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
-   for raw,good in [(body,True),(body.replace('"passed": true','"passed": true,"passed": true',1),False),(body[:-1]+',"unknown":false}',False),(body.replace('a'*40,'c'*40),False)]:
-    receipt.write_text(raw);r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertEqual(r.returncode==0,good,r.stderr)
-   receipt.write_text(body);binary.write_bytes(b'changed');self.assertNotEqual(subprocess.run(cmd,capture_output=True,text=True,timeout=10).returncode,0)
+  with current_native_gate(ROOT,'borrowed')as current:
+   gate=current
+   template=current.template
+   with tempfile.TemporaryDirectory()as tmp:
+    p=Path(tmp).resolve();binary=p/'file';binary.write_bytes(b'host binary data only');binary.chmod(0o700);digest=hashlib.sha256(binary.read_bytes()).hexdigest();receipt=p/'receipt';receipt.touch(mode=0o600);body=json.dumps(current.template(digest));cmd=[sys.executable,'-B',str(ROOT/'tests/governance/task_native_gate_test_api_v2.py'),'--family','borrowed','--expected-checkpoint',checkpoint(),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
+    for raw,good in [(body,True),(body.replace('"passed": true','"passed": true,"passed": true',1),False),(body[:-1]+',"unknown":false}',False),(body.replace('a'*40,'c'*40),False)]:
+     receipt.write_text(raw);r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertEqual(r.returncode==0,good,r.stderr)
+    receipt.write_text(body);binary.write_bytes(b'changed');self.assertNotEqual(subprocess.run(cmd,capture_output=True,text=True,timeout=10).returncode,0)
  def test_default_writer_gate_refuses_forced_or_mismatched_models_before_store(self):
   code=r'''class LiskDAO{protected $forcedConnection;}class PhabricatorLiskDAO extends LiskDAO{private static $namespaceStack=[];}class PhabricatorUser extends PhabricatorLiskDAO{function __construct(){if($GLOBALS['mode']==='forced')$this->forcedConnection=new stdClass();}function establishConnection($mode){return$GLOBALS['w'];}}class PhabricatorAuthSession extends PhabricatorUser{function establishConnection($mode){return$GLOBALS['mode']==='route'?new AphrontMySQLiDatabaseConnection():$GLOBALS['w'];}}final class AphrontMySQLiDatabaseConnection{function isInsideTransaction(){return false;}function isReadLocking(){return false;}function isWriteLocking(){return false;}}class PhorgeRecoveryRestoreProfile{static function assertCurrent(){}}require$argv[1].'/support/governance/recovery/borrowed-session-focused.php';$GLOBALS['w']=new AphrontMySQLiDatabaseConnection();$out=[];foreach(['good','forced','route']as$mode){$GLOBALS['mode']=$mode;try{$out[]=governance_recovery_borrowed_default_writer()===$GLOBALS['w'];}catch(Throwable$e){$out[]=$e->getMessage();}}echo json_encode($out);'''
   p=subprocess.run(['php','-r',code,str(ROOT)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),[True,'borrowed_forced_writer_refused','borrowed_default_writer_unknown'])
@@ -84,37 +93,43 @@ class BorrowedWiring(unittest.TestCase):
    p=subprocess.run(['php','-r',code,str(ROOT),json.dumps(f)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertNotIn('SECRET',p.stdout);d=json.loads(p.stdout)
    if f['stage']=='SECRET':self.assertIsNone(d['source_file']);self.assertIsNone(d['source_line']);self.assertIsNone(d['query_code'])
  def test_mandatory_CI_owned_real_FS_failure_never_uploads_and_original_blocks_preserved(self):
-  text=historical_atomic_source();a=text.index('      - name: Verify fresh borrowed native Session owner');b=text.index('      - name: Verify fresh native organization approval workbench',a);block=text[a:b]
-  old=subprocess.check_output(['git','-C',str(ROOT),'show','8805c4aa5f533605c1e0004a6691bda458f35202:.github/workflows/atomic-feature-regressions.yml']).decode();self.assertEqual(text[:a]+text[b:],old)
-  self.assertIn('if: success()',block);self.assertNotIn('continue-on-error',block);self.assertIn('sha256sum --check /tmp/atomic-maps.sha256',block);self.assertIn('--session-borrowed-owner',block);self.assertIn('check_recovery_borrowed_session.py',block)
-  owned='mkdir "$RUNNER_TEMP/governance-borrowed-session-owner"'
-  with tempfile.TemporaryDirectory()as tmp:
-   base=Path(tmp).resolve();root=base/'runner';root.mkdir();foreign=base/'foreign';foreign.mkdir();(foreign/'secret').write_text('private foreign')
-   for mode in ['foreign-directory','foreign-symlink','native-fail','checker-fail','good']:
-    dest=root/'governance-borrowed-session-owner'
-    if dest.is_symlink():dest.unlink()
-    elif dest.exists():import shutil;shutil.rmtree(dest)
-    if mode=='foreign-directory':dest.mkdir();(dest/'secret').write_text('private foreign')
-    elif mode=='foreign-symlink':dest.symlink_to(foreign,target_is_directory=True)
-    status='false'if mode in ['native-fail','checker-fail']else'true';script='set -eu\numask 077\n'+owned+'\n'+status+'\n';r=subprocess.run(['bash','-c',script],env={'RUNNER_TEMP':str(root),'PATH':'/usr/bin:/bin'},capture_output=True)
-    self.assertEqual(r.returncode==0,mode=='good');self.assertEqual((foreign/'secret').read_text(),'private foreign')
-    # Actual workflow success-only condition is coupled to this whole run status.
-    upload=r.returncode==0 and 'if: success()'in block;self.assertEqual(upload,mode=='good')
+  with current_native_gate(ROOT,'borrowed')as current:
+   text=current.atomic_history();a=text.index('      - name: Verify fresh borrowed native Session owner');b=text.index('      - name: Verify fresh native organization approval workbench',a);block=text[a:b]
+   old=subprocess.check_output(['git','-C',str(ROOT),'show','8805c4aa5f533605c1e0004a6691bda458f35202:.github/workflows/atomic-feature-regressions.yml']).decode();self.assertEqual(text[:a]+text[b:],old)
+   self.assertIn('if: success()',block);self.assertNotIn('continue-on-error',block);self.assertIn('sha256sum --check /tmp/atomic-maps.sha256',block);self.assertIn('--session-borrowed-owner',block);self.assertIn('check_recovery_borrowed_session.py',block)
+   owned='mkdir "$RUNNER_TEMP/governance-borrowed-session-owner"'
+   with tempfile.TemporaryDirectory()as tmp:
+    base=Path(tmp).resolve();root=base/'runner';root.mkdir();foreign=base/'foreign';foreign.mkdir();(foreign/'secret').write_text('private foreign')
+    for mode in ['foreign-directory','foreign-symlink','native-fail','checker-fail','good']:
+     dest=root/'governance-borrowed-session-owner'
+     if dest.is_symlink():dest.unlink()
+     elif dest.exists():import shutil;shutil.rmtree(dest)
+     if mode=='foreign-directory':dest.mkdir();(dest/'secret').write_text('private foreign')
+     elif mode=='foreign-symlink':dest.symlink_to(foreign,target_is_directory=True)
+     status='false'if mode in ['native-fail','checker-fail']else'true';script='set -eu\numask 077\n'+owned+'\n'+status+'\n';r=subprocess.run(['bash','-c',script],env={'RUNNER_TEMP':str(root),'PATH':'/usr/bin:/bin'},capture_output=True)
+     self.assertEqual(r.returncode==0,mode=='good');self.assertEqual((foreign/'secret').read_text(),'private foreign')
+     # Actual workflow success-only condition is coupled to this whole run status.
+     upload=r.returncode==0 and 'if: success()'in block;self.assertEqual(upload,mode=='good')
+
+ def test_current_paired_workflow_shell_failure_and_owner_guards(self):
+  # Synthetic orchestration only; the original historical test remains above.
+  import task_three_paired_workflow_shell_test_api_v2 as shell
+  workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text()
+  shell.assert_shell(self,ROOT,workflow,'session-borrowed-owner');shell.assert_mutations(self,workflow,'session-borrowed-owner')
 
  def test_fresh_selected_process_loads_actual_native_factory_definition(self):
   code="require_once$argv[1].'/support/governance/recovery/borrowed-session-focused.php';$r=new ReflectionFunction('governance_native_request');echo json_encode(['file'=>realpath($r->getFileName()),'parameters'=>array_map(static fn($p)=>(string)$p->getType(),$r->getParameters()),'SQL_executed'=>false]);"
   p=subprocess.run(['php','-r',code,str(ROOT)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);d=json.loads(p.stdout);self.assertEqual(d['file'],str(ROOT/'support/governance/native-organization/native-cases.php'));self.assertEqual(d['parameters'],['PhabricatorUser','PhabricatorAuthSessionEngine']);self.assertFalse(d['SQL_executed'])
 
  def test_actual_source_pins_reject_one_changed_dependency_before_obligations(self):
-  import shutil
-  with tempfile.TemporaryDirectory(dir=canonical_temp_base())as tmp:
-   root=Path(tmp).resolve(strict=True)
-   for relative in gate.SOURCE_INPUTS:
-    dst=root/relative;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/relative,dst)
-   complete_source_cohort(root)
-   self.assertEqual(len(gate.SQL_obligations(root)),6)
-   path=root/'support/governance/recovery/project-source-focused.php';path.write_bytes(path.read_bytes()+b'\n// corruption negative control\n')
-   with self.assertRaisesRegex(ValueError,'reviewed borrowed source changed'):gate.SQL_obligations(root)
+  with current_native_gate(ROOT,'borrowed')as current:
+   import shutil
+   with tempfile.TemporaryDirectory(dir=canonical_temp_base())as tmp:
+    root=Path(tmp).resolve(strict=True)
+    current.fixture_DATA(root)
+    self.assertEqual(len(current.fixture_SQL_obligations(root)),6)
+    path=root/'support/governance/recovery/project-source-focused.php';path.write_bytes(path.read_bytes()+b'\n// corruption negative control\n')
+    with self.assertRaisesRegex(ValueError,'^Task_historical_DATA_view_refused$'):current.fixture_SQL_obligations(root)
 
  def test_actual_native_transaction_prewarm_preserves_both_failures_and_ownership(self):
   for mode,queries,primary,dual in [('good',['START TRANSACTION','COMMIT'],False,False),('primary',['START TRANSACTION','ROLLBACK'],True,False),('dual',['START TRANSACTION','ROLLBACK'],False,True),('begin',['START TRANSACTION'],True,False),('commit',['START TRANSACTION','COMMIT'],True,False),('unowned',[],False,False),('depth',['START TRANSACTION','SAVEPOINT AphrontDatabaseTransactionState_1'],True,False)]:

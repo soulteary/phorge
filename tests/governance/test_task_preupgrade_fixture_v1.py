@@ -1,0 +1,37 @@
+"""Pre-Task fixture library/source boundaries only; no live SQL qualification."""
+import hashlib,json,re,subprocess,unittest
+from pathlib import Path
+from test_project_description_execution import php
+ROOT=Path(__file__).resolve().parents[2]
+FIXTURE='support/governance/completion/fixture.php'
+BASE='e9e5aafe19aab24fb02497e438c02baaa971ede7'
+def source():return(ROOT/FIXTURE).read_text()
+def body(text,start,end):return text[text.index(start):text.index(end,text.index(start))]
+class TaskPreupgradeFixture(unittest.TestCase):
+ def test_default_create_and_original_standard_migration_engine_unchanged(self):
+  old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show',BASE+':'+FIXTURE]).decode();new=source()
+  self.assertEqual(body(new,'  public function create() {','  private function createPrincipal'),body(old,'  public function create() {','  private function createPrincipal'))
+  self.assertEqual(body(new,'  private function applyPendingPatches','  public function assertOwned'),body(old,'  private function applyPendingPatches','  public function assertOwned'))
+  self.assertEqual(body(new,'  public function cleanup() {','\n}\n'),body(old,'  public function cleanup() {','\n}\n'))
+ def test_exact_native_patch_provider_registration_without_database(self):
+  result=php(r"require 'support/governance/completion/fixture.php';$f=(new ReflectionClass(PhorgeGovernanceCompletionFixture::class))->newInstanceWithoutConstructor();(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'root'))->setValue($f,getcwd());$m=new ReflectionMethod(PhorgeGovernanceCompletionFixture::class,'taskMetadataPatchV1');echo json_encode([$m->invoke($f,PhabricatorSQLPatchList::buildAllPatches()),(new ReflectionProperty(LiskDAO::class,'connections'))->getValue()]);")
+  self.assertEqual(result,['phabricator:20261112.task.contentgrants.sql',[]])
+ def test_unknown_patch_key_name_type_and_dead_role_refuse_before_SQL(self):
+  result=php(r"require 'support/governance/completion/fixture.php';$f=(new ReflectionClass(PhorgeGovernanceCompletionFixture::class))->newInstanceWithoutConstructor();(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'root'))->setValue($f,getcwd());$m=new ReflectionMethod(PhorgeGovernanceCompletionFixture::class,'taskMetadataPatchV1');$all=PhabricatorSQLPatchList::buildAllPatches();$key='phabricator:20261112.task.contentgrants.sql';$cases=[];$x=$all;unset($x[$key]);$cases[]=$x;foreach(['fullKey'=>'foreign:20261112.task.contentgrants.sql','key'=>'unknown.sql','name'=>getcwd().'/resources/sql/autopatches/unknown.sql','type'=>'php','dead'=>true]as$field=>$value){$x=$all;$x[$key]=clone$all[$key];(new ReflectionProperty(PhabricatorStoragePatch::class,$field))->setValue($x[$key],$value);$cases[]=$x;}$bad=0;foreach($cases as$x){try{$m->invoke($f,$x);}catch(RuntimeException$e){if($e->getMessage()==='task_metadata_bootstrap_patch_refused')$bad++;}}echo json_encode([$bad,(new ReflectionProperty(LiskDAO::class,'connections'))->getValue()]);")
+  self.assertEqual(result,[6,[]])
+ def test_unknown_stage_and_duplicate_upgrade_refuse_before_any_SQL(self):
+  result=php(r"require 'support/governance/completion/fixture.php';$f=(new ReflectionClass(PhorgeGovernanceCompletionFixture::class))->newInstanceWithoutConstructor();$state=new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'taskMetadataStageV1');$bad=0;foreach([null,'creating-before','applying','failed','migrated']as$value){$state->setValue($f,$value);try{$f->applyTaskMetadataPatchV1();}catch(RuntimeException$e){if($e->getMessage()==='task_metadata_bootstrap_stage_refused')$bad++;}}foreach([null,'creating-before','applying','failed','unknown']as$value){$state->setValue($f,$value);try{$f->getTaskMetadataBootstrapFactsV1();}catch(RuntimeException$e){if($e->getMessage()==='task_metadata_bootstrap_stage_refused')$bad++;}}echo json_encode([$bad,(new ReflectionProperty(LiskDAO::class,'connections'))->getValue()]);")
+  self.assertEqual(result,[10,[]])
+ def test_create_entry_cannot_adopt_initialized_fixture_or_stage(self):
+  result=php(r"require 'support/governance/completion/fixture.php';$bad=0;foreach(['taskMetadataStageV1'=>'before','base'=>new stdClass(),'namespace'=>'governance_native_'.str_repeat('a',16)]as$key=>$value){$f=(new ReflectionClass(PhorgeGovernanceCompletionFixture::class))->newInstanceWithoutConstructor();(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,$key))->setValue($f,$value);try{$f->createBeforeTaskMetadataPatchV1();}catch(RuntimeException$e){if($e->getMessage()==='task_metadata_bootstrap_fresh_fixture_required')$bad++;}}echo json_encode([$bad,(new ReflectionProperty(LiskDAO::class,'connections'))->getValue()]);")
+  self.assertEqual(result,[3,[]])
+ def test_real_normal_constructor_is_fresh_without_connection_or_SQL(self):
+  result=php(r"require 'support/governance/completion/fixture.php';$old=getenv('PHORGE_GOVERNANCE_ISOLATED_TEST');putenv('PHORGE_GOVERNANCE_ISOLATED_TEST=1');try{$control=mysqli_init();if(get_class($control)!==mysqli::class)throw new Exception('real mysqli required');$f=new PhorgeGovernanceCompletionFixture($control,getcwd(),'127.0.0.1',3306);$m=new ReflectionMethod(PhorgeGovernanceCompletionFixture::class,'assertTaskMetadataFreshV1');$m->invoke($f);$base=(new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,'base'))->getValue($f);$good=get_class($base)===PhorgeGovernanceNativeFixture::class;$bad=0;foreach(['sourceHash'=>'attempted','namespace'=>'attempted','baseline'=>[],'patchAudit'=>[],'ownerNonce'=>'attempted','createdDatabases'=>['attempted'],'createdUsers'=>['attempted'],'tables'=>['attempted'=>[]],'connections'=>['attempted'=>null],'configs'=>['attempted'=>[]],'auxiliarySetupThreads'=>['attempted'=>1]]as$key=>$value){$p=new ReflectionProperty(PhorgeGovernanceCompletionFixture::class,$key);$prior=$p->getValue($f);$p->setValue($f,$value);try{$m->invoke($f);}catch(RuntimeException$e){if($e->getMessage()==='task_metadata_bootstrap_fresh_fixture_required')$bad++;}finally{$p->setValue($f,$prior);}}$m->invoke($f);echo json_encode([$good,$bad,(new ReflectionProperty(LiskDAO::class,'connections'))->getValue()]);}finally{putenv($old===false?'PHORGE_GOVERNANCE_ISOLATED_TEST':'PHORGE_GOVERNANCE_ISOLATED_TEST='.$old);}")
+  self.assertEqual(result,[True,11,[]])
+ def test_closed_versioned_public_methods_accept_no_arbitrary_patch_list(self):
+  result=php(r"require 'support/governance/completion/fixture.php';$n=[];foreach(['createBeforeTaskMetadataPatchV1','applyTaskMetadataPatchV1','getTaskMetadataBootstrapFactsV1']as$name){$m=new ReflectionMethod(PhorgeGovernanceCompletionFixture::class,$name);$n[$name]=[$m->isPublic(),$m->getNumberOfParameters()];}echo json_encode([$n,(new ReflectionProperty(LiskDAO::class,'connections'))->getValue()]);")
+  self.assertEqual(result,[{n:[True,0]for n in('createBeforeTaskMetadataPatchV1','applyTaskMetadataPatchV1','getTaskMetadataBootstrapFactsV1')},[]])
+ def test_pre_stage_and_final_stage_never_claim_body_or_production_authority(self):
+  text=source();self.assertIn("'current_patch_ledger_complete'=>false",text);self.assertIn("'Task_body_execution_proved'=>false",text);self.assertIn("'runtime_authority'=>false",text);self.assertIn("'production_activation'=>false",text)
+  self.assertIn("$remaining !== array($key)",text);self.assertIn("$remaining !== array()",text);self.assertIn("$this->taskMetadataStageV1='failed'",text)
+if __name__=='__main__':unittest.main()

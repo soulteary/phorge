@@ -53,24 +53,30 @@ class WorkerTerminal(unittest.TestCase):
    with self.assertRaises(ValueError):delta.reduce_current(delta.PATH,bad)
   finally:delta.CURRENT_SHA256=prior
  def test_historical_maps_remain_exact_and_current_SQL_obligation_views_accept_only_narrow_delta(self):
-  sys.path.insert(0,str(ROOT/'scripts/governance'))
-  for module in ['check_recovery_session_lease','check_recovery_borrowed_session','check_recovery_conduit_producer']:
-   gate=__import__(module);self.assertTrue(gate.SQL_obligations())
-   source='scripts/governance/'+module+'.py'
-   def pins(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
-   current=pins((ROOT/source).read_bytes())
-   import recovery_conduit_source_delta as calendar
-   driver='support/governance/native-organization/test-native-organization-mysql.php'
-   # Preserve the original map while proving the new raw fixture's exact inverse.
-   self.assertEqual(current[driver],hashlib.sha256(calendar.reduce_policy_cleanup_driver(driver_admission.admitted_native_driver_source(ROOT,(ROOT/driver).read_bytes()))).hexdigest())
-   historical=dict(current);historical[driver]=hashlib.sha256(calendar.reduce_calendar_wire_union(driver_admission.admitted_native_driver_source(ROOT,(ROOT/driver).read_bytes()))).hexdigest()
-   import recovery_assessment_source_delta as assessment
-   compared=dict(pins(historical_tooling_source(source)))
-   for name,pin in assessment.SOURCE_INPUTS.items():
-    if name in compared:
-     self.assertEqual(compared[name],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(name,(ROOT/name).read_bytes())).hexdigest(),assessment.BASE_PINS[name]);compared[name]=assessment.BASE_PINS[name]
-   self.assertEqual(compared,pins(subprocess.check_output(['git','-C',str(ROOT),'show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+source])))
-   self.assertEqual(historical[driver],pins(subprocess.check_output(['git','-C',str(ROOT),'show','fc0369af9d84c4a5f23a7080528e70f1ce84c4e7:'+source]))[driver])
+  from task_inverse_test_api_v2 import owner
+  from task_historical_views_test_api_v2 import in_operation
+  from test_calendar_conduit_union import _current_native_driver_prior
+  with owner(ROOT)as operation:
+   context=operation._task_contexts[ROOT]
+   legacy,r3=in_operation(operation,ROOT)
+   sys.path.insert(0,str(ROOT/'scripts/governance'))
+   for module in ['check_recovery_session_lease','check_recovery_borrowed_session','check_recovery_conduit_producer']:
+    gate=__import__(module);self.assertTrue(gate.SQL_obligations(ROOT,_source_operation=operation))
+    source='scripts/governance/'+module+'.py'
+    def pins(raw):return next(ast.literal_eval(n.value)for n in ast.parse(raw).body if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='SOURCE_INPUTS'for t in n.targets))
+    current=pins((ROOT/source).read_bytes())
+    calendar=operation._modules['recovery_conduit_source_delta']
+    driver='support/governance/native-organization/test-native-organization-mysql.php'
+    # Preserve the original map while proving the new raw fixture's exact inverse.
+    self.assertEqual(current[driver],hashlib.sha256(calendar.reduce_policy_cleanup_driver(_current_native_driver_prior(operation,ROOT,(ROOT/driver).read_bytes()))).hexdigest())
+    historical=dict(current);historical[driver]=hashlib.sha256(calendar.reduce_calendar_wire_union(_current_native_driver_prior(operation,ROOT,(ROOT/driver).read_bytes()))).hexdigest()
+    assessment=operation._modules['recovery_assessment_source_delta']
+    compared=dict(pins(legacy.historical_tooling_source(source)))
+    for name,pin in assessment.SOURCE_INPUTS.items():
+     if name in compared:
+      self.assertEqual(compared[name],pin);self.assertEqual(hashlib.sha256(assessment.reduce_current(name,context.parent(name))).hexdigest(),assessment.BASE_PINS[name]);compared[name]=assessment.BASE_PINS[name]
+    self.assertEqual(compared,pins(subprocess.check_output(['git','-C',str(ROOT),'show','732dd79049f017becc8b05d1c3fd0852ed00ff44:'+source])))
+    self.assertEqual(historical[driver],pins(subprocess.check_output(['git','-C',str(ROOT),'show','fc0369af9d84c4a5f23a7080528e70f1ce84c4e7:'+source]))[driver])
 class InnoDBObserverPollSpacing(unittest.TestCase):
  """Model MySQL8.4.13 trx0i_s.cc last_read, not transaction permission."""
  @staticmethod

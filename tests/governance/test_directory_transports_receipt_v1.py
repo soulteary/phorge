@@ -91,7 +91,12 @@ class ReceiptTest(unittest.TestCase):
             with p.open('wb')as f:f.truncate(8*1024*1024+1)
             with self.assertRaises(ValueError):gate.read_json(p)
     def test_real_source_inventory_pins_match_and_tampered_payload_refuses(self):
-        manifest=gate.source(ROOT)
+        from task_directory_inventory_test_api_v2 import directory_DATA
+        with directory_DATA(ROOT) as current:
+            manifest=current.manifest_DATA(gate.MANIFEST)
+            self.assertTrue(current.proof['source_only_passed'])
+            self.assertFalse(current.proof['runtime_SQL_or_business_qualified'])
+            self.assertFalse(current.proof['original_v1_CLI_or_76_test_suite_executed'])
         with tempfile.TemporaryDirectory()as directory:
             temp=Path(directory);(temp/gate.MANIFEST).parent.mkdir(parents=True);(temp/gate.MANIFEST).write_text(json.dumps(manifest))
             first=next(iter(manifest['pins']));f=temp/first;f.parent.mkdir(parents=True,exist_ok=True);f.write_bytes(b'TAMPER')

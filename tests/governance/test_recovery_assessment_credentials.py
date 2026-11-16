@@ -1,4 +1,5 @@
 """Actual Store/Assessment/participant controls; explicit SQL collaborators, no DB."""
+from task_source_candidate_test_api_v2 import source_candidates
 import copy,hashlib,json,subprocess,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
@@ -52,22 +53,22 @@ echo json_encode(['native_context'=>get_class($context),'credential_type'=>$cont
   code="require$argv[1].'/support/runtime/src/object/Phobject.php';require$argv[1].'/src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php';$out=[];foreach(json_decode(stream_get_contents(STDIN),true)as$x){try{$out[]=PhorgeRecoveryRestoreRequest::sourceVersion($x);}catch(Throwable$e){$out[]=false;}}echo json_encode($out);"
   p=subprocess.run(['php','-r',code,str(ROOT)],input=json.dumps([legacy,smuggle]),capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),[3,False])
  def test_versioned_source_candidate_and_exact_inverse_do_not_allow_repin_escape(self):
-  import sys,tempfile
-  sys.path.insert(0,str(ROOT/'scripts/governance'))
-  import recovery_assessment_source_delta as delta,check_recovery_borrowed_owner_source as gate
-  source=json.loads((ROOT/'docs/governance/recovery-assessment-native-credential-source-v5.json').read_text());self.assertEqual(gate.validate(source)['source_inputs'],9)
-  # Independently captured immutable 1722 blob pins; no local-only Git object
-  # is needed, and changing the adapter's own baseline cannot bless a mutation.
-  baseline={'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php':'b2978b1bca3eea757c4be7e4fdbf84038fb61493e23f2cf39b1421162d6ebc04','src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php':'dcf6226ee57ed303273a231e4c81f2505751e60a0e5a4c3701d2d703d7d45403','src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php':'876eafed1c36c11006242587906419561b1688657f6494d90a2a25a0e29489cf'}
-  self.assertEqual(delta.BASE_PINS,baseline)
-  for path,pin in delta.SOURCE_INPUTS.items():
-   raw=(ROOT/path).read_bytes();old=delta.reduce_current(path,raw);self.assertEqual(hashlib.sha256(old).hexdigest(),baseline[path])
-   for bad in [raw+b'// unrelated source delta',raw.replace(b'false',b'true',1)]:
-    delta.SOURCE_INPUTS[path]=hashlib.sha256(bad).hexdigest()
-    try:
-     with self.assertRaises(ValueError):delta.reduce_current(path,bad)
-    finally:delta.SOURCE_INPUTS[path]=pin
-  for flag in ['runtime_certified','physical_SQL_cases_executed','production_observer_factory_available','business_submit_review_integration_proved','all_sources_complete','restoration_authorized']:
-   bad=copy.deepcopy(source);bad[flag]=True
-   with self.assertRaises(ValueError):gate.validate(bad)
+  with source_candidates(ROOT)as api:
+   import sys,tempfile
+   sys.path.insert(0,str(ROOT/'scripts/governance'))
+   source=json.loads(api.data_bytes(ROOT/'docs/governance/recovery-assessment-native-credential-source-v5.json'));self.assertEqual(api.validate(source)['source_inputs'],9);delta=api.delta('recovery_assessment_source_delta')
+   # Independently captured immutable 1722 blob pins; no local-only Git object
+   # is needed, and changing the adapter's own baseline cannot bless a mutation.
+   baseline={'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreService.php':'b2978b1bca3eea757c4be7e4fdbf84038fb61493e23f2cf39b1421162d6ebc04','src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php':'dcf6226ee57ed303273a231e4c81f2505751e60a0e5a4c3701d2d703d7d45403','src/infrastructure/governance/recovery/PhorgeRecoveryRestoreRequest.php':'876eafed1c36c11006242587906419561b1688657f6494d90a2a25a0e29489cf'}
+   self.assertEqual(delta.BASE_PINS,baseline)
+   for path,pin in delta.SOURCE_INPUTS.items():
+    raw=api.data_bytes(ROOT/path);old=api.inverse('recovery_assessment_source_delta',path,raw);self.assertEqual(hashlib.sha256(old).hexdigest(),baseline[path])
+    for bad in [raw+b'// unrelated source delta',raw.replace(b'false',b'true',1)]:
+     delta.SOURCE_INPUTS[path]=hashlib.sha256(bad).hexdigest()
+     try:
+      with self.assertRaises(ValueError):api.inverse('recovery_assessment_source_delta',path,bad)
+     finally:delta.SOURCE_INPUTS[path]=pin
+   for flag in ['runtime_certified','physical_SQL_cases_executed','production_observer_factory_available','business_submit_review_integration_proved','all_sources_complete','restoration_authorized']:
+    bad=copy.deepcopy(source);bad[flag]=True
+    with self.assertRaises(ValueError):api.validate(bad)
 if __name__=='__main__':unittest.main()

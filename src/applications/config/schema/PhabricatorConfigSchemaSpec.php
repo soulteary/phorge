@@ -117,11 +117,7 @@ abstract class PhabricatorConfigSchemaSpec extends Phobject {
 
     $table = $this->newTable($table_name);
 
-    if (PhabricatorSearchDocument::isInnoDBFulltextEngineAvailable()) {
-      $fulltext_engine = 'InnoDB';
-    } else {
-      $fulltext_engine = 'MyISAM';
-    }
+    $fulltext_engine = null;
 
     foreach ($columns as $name => $type) {
       if ($type === null) {
@@ -149,6 +145,11 @@ abstract class PhabricatorConfigSchemaSpec extends Phobject {
       switch ($type) {
         case 'fulltext':
         case 'fulltext?':
+          if ($fulltext_engine === null) {
+            $fulltext_engine = PhabricatorSearchDocument::isInnoDBFulltextEngineAvailable()
+              ? 'InnoDB'
+              : 'MyISAM';
+          }
           $table->setEngine($fulltext_engine);
           break;
       }

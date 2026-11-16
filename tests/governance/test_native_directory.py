@@ -1,5 +1,9 @@
 """Static inventory mutation tests, not native authorization acceptance."""
 import copy
+import hashlib
+import json
+import os
+import sys
 import importlib.util
 from pathlib import Path
 import shutil
@@ -13,12 +17,75 @@ CHECKER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(CHECKER)
 
 class NativeDirectoryInventoryTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # One real current source window first. The subsequent parent fixture
+        # is DATA for the unchanged CURRENT checker, never an issued source.
+        sys.path.insert(0, str(ROOT / 'scripts/governance'))
+        from task_inverse_test_api_v2 import owner
+        import source_operation_snapshot as source
+        import check_native_directory_task_source_v2 as current_gate
+        def need(value):
+            if value is not True:
+                raise ValueError('native_directory_parent_DATA_fixture_refused')
+        with owner(ROOT) as operation:
+            source.require_task_operation(operation, ROOT)
+            proof = current_gate.verify_in_operation(operation, ROOT)
+            need(proof['current_source_entry_verified'] is True and
+                 proof['source_operation_exit_verified'] is False and
+                 proof['authority_proof'] is False and
+                 proof['runtime_certified'] is False and
+                 proof['activation_blocked'] is True)
+            context = operation._task_contexts[ROOT]
+            need(Path(CHECKER.__file__).resolve() == ROOT / current_gate.GATE)
+            need(hashlib.sha256(context.current(current_gate.GATE)).hexdigest() ==
+                 current_gate.GATE_SHA)
+            manifest_raw = context.current(current_gate.MANIFEST)
+            need(hashlib.sha256(manifest_raw).hexdigest() == current_gate.MANIFEST_SHA)
+            need(context.parent(current_gate.MANIFEST) == manifest_raw)
+            manifest = json.loads(manifest_raw, object_pairs_hook=CHECKER.unique_object)
+            paths = set(CHECKER.EXPECTED_RUNTIME_FILES)
+            paths.update(row['path'] for row in manifest['sources'])
+            snapshot = {}
+            for name in sorted(paths):
+                need(type(name) is str and not Path(name).is_absolute() and
+                     '..' not in Path(name).parts and Path(name).as_posix() == name)
+                current = context.current(name)
+                parent = context.parent(name)
+                need(type(current) is bytes and type(parent) is bytes)
+                snapshot[name] = parent
+            for row in manifest['sources'] + manifest['scan']['files']:
+                need(hashlib.sha256(snapshot[row['path']]).hexdigest() == row['sha256'])
+            snapshot[current_gate.MANIFEST] = manifest_raw
+        # Nothing is materialized, and no successful exit is claimed, until the
+        # genuine owner has completed its actual identity/entry/exit checks.
+        proof['source_operation_exit_verified'] = True
+        owned = tempfile.TemporaryDirectory(prefix='native-directory-parent-DATA-')
+        cls.addClassCleanup(owned.cleanup)
+        fixture_root = Path(owned.name).resolve(strict=True)
+        os.chmod(fixture_root, 0o700)
+        for name, raw in snapshot.items():
+            destination = fixture_root / name
+            destination.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            mode = 0o600 if name == current_gate.MANIFEST else 0o644
+            fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                         os.O_NOFOLLOW, mode)
+            os.fchmod(fd, mode)
+            with os.fdopen(fd, 'wb') as stream:
+                stream.write(raw)
+                stream.flush()
+                os.fsync(stream.fileno())
+        CHECKER.validate(CHECKER.load(fixture_root / current_gate.MANIFEST), fixture_root)
+        cls._legacy_fixture_root = fixture_root
+        cls._current_Task_static_proof = proof
+        cls._legacy_fixture_SourceOperation_granted = False
+
     def setUp(self):
-        self.data = CHECKER.load(ROOT / 'docs/governance/native-directory-callers.json')
+        self.data = CHECKER.load(self._legacy_fixture_root / 'docs/governance/native-directory-callers.json')
 
     def reject(self, data, reason):
         with self.assertRaisesRegex(ValueError, reason):
-            CHECKER.validate(data, ROOT)
+            CHECKER.validate(data, self._legacy_fixture_root)
 
     def fixture(self, directory):
         root = Path(directory)
@@ -27,11 +94,23 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
         for raw in paths:
             path = root / raw
             path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(ROOT / raw, path)
+            shutil.copyfile(self._legacy_fixture_root / raw, path)
         return root
 
     def test_inventory_is_partial_not_authority_or_activation(self):
-        result = CHECKER.validate(self.data, ROOT)
+        proof = self._current_Task_static_proof
+        self.assertTrue(proof['current_source_entry_verified'])
+        self.assertTrue(proof['source_operation_exit_verified'])
+        self.assertTrue(proof['original_parent_manifest_inventory']['passed'])
+        self.assertFalse(proof['runtime_certified'])
+        self.assertFalse(proof['authority_proof'])
+        self.assertTrue(proof['activation_blocked'])
+        self.assertFalse(proof['additional_Task_behavior_certified'])
+        self.assertFalse(self._legacy_fixture_SourceOperation_granted)
+        self.assertEqual(proof['original_parent_manifest_inventory']['runtime_files'], 138)
+        self.assertEqual(len(proof['additional_Task_runtime_files']), 13)
+        self.assertEqual(proof['current_runtime_files'], 151)
+        result = CHECKER.validate(self.data, self._legacy_fixture_root)
         self.assertTrue(result['passed'])
         self.assertFalse(result['runtime_certified'])
         self.assertFalse(result['authority_proof'])
@@ -124,11 +203,11 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
         self.assertIn(identity,CHECKER.EXPECTED_SOURCES)
         data=copy.deepcopy(self.data)
         data['sources']=[row for row in data['sources'] if row['id']!=identity]
-        with self.assertRaises(ValueError):CHECKER.validate(data,ROOT)
+        with self.assertRaises(ValueError):CHECKER.validate(data,self._legacy_fixture_root)
         for identity in ('NATIVE-LINK-27','NATIVE-LINK-28'):
             data=copy.deepcopy(self.data)
             data['links']=[row for row in data['links'] if row['id']!=identity]
-            with self.subTest(identity=identity),self.assertRaises(ValueError):CHECKER.validate(data,ROOT)
+            with self.subTest(identity=identity),self.assertRaises(ValueError):CHECKER.validate(data,self._legacy_fixture_root)
 
     def test_fixed_tokenizer_metadata_pipeline_is_explicit(self):
         required={'TYPEAHEAD.BASE','TOKENIZER.CONTROL','CLIENT.TOKENIZER.BEHAVIOR','CLIENT.PREFAB'}
@@ -137,12 +216,12 @@ class NativeDirectoryInventoryTest(unittest.TestCase):
             data=copy.deepcopy(self.data)
             data['sources']=[row for row in data['sources'] if row['id']!=identity]
             with self.subTest(identity=identity),self.assertRaises(ValueError):
-                CHECKER.validate(data,ROOT)
+                CHECKER.validate(data,self._legacy_fixture_root)
         for identity in ('NATIVE-LINK-22','NATIVE-LINK-23','NATIVE-LINK-24','NATIVE-LINK-25'):
             data=copy.deepcopy(self.data)
             data['links']=[row for row in data['links'] if row['id']!=identity]
             with self.subTest(identity=identity),self.assertRaises(ValueError):
-                CHECKER.validate(data,ROOT)
+                CHECKER.validate(data,self._legacy_fixture_root)
 
     def test_issuer_dependencies_survive_explicit_directory_link_merge(self):
         expected = {

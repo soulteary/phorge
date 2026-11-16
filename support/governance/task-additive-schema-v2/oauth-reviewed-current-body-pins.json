@@ -1,0 +1,10 @@
+{
+  "check_completion": "39956a43c26607ac5ebb761ec25f686b2314326511a082f80efe4bf3a2258649",
+  "check_native_organization": "c2c614ab497e6590c13455bd1b495f9f9230c62acd066884b738d460023be300",
+  "check_recovery_partial_composition": "76930e99b57cb3a4488817fa88865f9b8a17df9c2cf8c501367f8779abb3e0ca",
+  "check_recovery_file_parent_policy": "239b9614af1288b053d369d5a4e62fb127a955a79f66053f281e34e9b1aad786",
+  "check_recovery_oauth_authorization_producer_v1": "e3e271c4343815bcbf0a263de9b75428561721e8e42fc1f522a8dd9907d69c5f",
+  "check_recovery_oauth_client_lifecycle": "a5f6e98e1bea0ae6365bd412d8cf3f1cc5313901969cdcf72d616d2957cd4e25",
+  "qualify_oauth_authorization_mysql84": "d24bbde68146aa9972ac7a901048551e7eda56493162dc47294034c6e236303f",
+  "qualify_oauth_client_lifecycle_mysql84": "bccd536fbb401e601380893e73582e255657e476922bf91a0cdf51aa16f772f5"
+}

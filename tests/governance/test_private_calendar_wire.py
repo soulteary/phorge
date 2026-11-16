@@ -1,3 +1,4 @@
+from task_source_candidate_test_api_v2 import source_candidates
 """Actual test-only binding, owned publication and cleanup controls; no SQL."""
 import json
 from pathlib import Path
@@ -70,25 +71,26 @@ class PrivateCalendarWireHostControls(unittest.TestCase):
         self.assertIs(False, value['actual_service_stop'])
 
     def test_fixed_driver_phase_and_exact_baseline_inverse_refuse_other_changes(self):
-        import hashlib
-        import sys
-        sys.path.insert(0, str(ROOT / 'scripts/governance'))
-        import check_private_calendar_reminders as gate
-        name = 'support/governance/native-organization/test-native-organization-mysql.php'
-        raw = driver_admission.admitted_native_driver_source(ROOT, (ROOT / name).read_bytes())
-        base = subprocess.check_output(['git', '-C', str(ROOT), 'show',
-            'a20b0e80a8ec79e369e43ce39a309993b6e639d6:' + name])
-        self.assertEqual(base, gate.reduce_reviewed_calendar_wire_driver(raw))
-        for changed in (raw + b'\n// unrelated driver change\n',
-                        raw.replace(b'($calendar_wire??false)&&', b'true&&', 1),
-                        raw.replace(b"require_once __DIR__.'/workers.php';", b'', 1)):
-            pin = gate.SOURCE_INPUTS[name]
-            try:
-                gate.SOURCE_INPUTS[name] = hashlib.sha256(changed).hexdigest()
-                with self.assertRaises(ValueError):
-                    gate.reduce_reviewed_calendar_wire_driver(changed)
-            finally:
-                gate.SOURCE_INPUTS[name] = pin
+        with source_candidates(ROOT)as api:
+            import hashlib
+            import sys
+            sys.path.insert(0, str(ROOT / 'scripts/governance'))
+            import check_private_calendar_reminders as gate
+            name = 'support/governance/native-organization/test-native-organization-mysql.php'
+            raw = api.driver_prior((ROOT / name).read_bytes())
+            base = subprocess.check_output(['git', '-C', str(ROOT), 'show',
+                'a20b0e80a8ec79e369e43ce39a309993b6e639d6:' + name])
+            self.assertEqual(base, gate.reduce_reviewed_calendar_wire_driver(raw))
+            for changed in (raw + b'\n// unrelated driver change\n',
+                            raw.replace(b'($calendar_wire??false)&&', b'true&&', 1),
+                            raw.replace(b"require_once __DIR__.'/workers.php';", b'', 1)):
+                pin = gate.SOURCE_INPUTS[name]
+                try:
+                    gate.SOURCE_INPUTS[name] = hashlib.sha256(changed).hexdigest()
+                    with self.assertRaises(ValueError):
+                        gate.reduce_reviewed_calendar_wire_driver(changed)
+                finally:
+                    gate.SOURCE_INPUTS[name] = pin
 
     def test_actual_empty_native_worker_registry_has_six_exact_zero_fields(self):
         result = subprocess.run(['php', '-r',

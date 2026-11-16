@@ -1,5 +1,8 @@
 """Actual fixed driver selection/whole cleanup and strict synthetic receipts; no SQL."""
-from n05_legacy_audit_test_view import historical_source_inputs
+from task_historical_views_test_api_v2 import bound_views
+from task_native_gate_test_api_v2 import current_native_gate
+from task_admission_test_api_v2 import checkpoint
+from test_calendar_conduit_union import _current_native_driver_prior
 from pathlib import Path
 import unittest,sys,subprocess,json,tempfile,hashlib,copy
 ROOT=Path(__file__).resolve().parents[2]
@@ -8,8 +11,13 @@ import check_recovery_oauth_access_producer_v3 as gate
 
 import test_recovery_session_lease_gate as previous
 class OAuthAccessWiring(unittest.TestCase):
+ @classmethod
+ def setUpClass(cls):
+  cls._source=current_native_gate(ROOT,'oauth-access');cls.current=cls._source.__enter__()
+  cls.addClassCleanup(cls._source.__exit__,None,None,None)
+ def setUp(self):self.current.guard()
  def template(self,digest='b'*64):
-  d=previous.template(digest);labels=sorted(gate.obligations());d.update(batch='native-oauth-access-producer-owner',scope='owned-native-oauth-access-producer-owner-no-permit',checks=labels,check_count=len(labels),native=gate.summary('a'*40));return d
+  return self.current.template(digest)
  def test_actual_driver_selector_and_exact_prior_driver_inverse(self):
   text=(ROOT/'support/governance/native-organization/test-oauth-access-owner-mysql.php').read_text();a=text.index('$arguments=');b=text.index('$workbench_http=',a);block=text[a:b]
   for argv,want in [(['--oauth-access-producer-owner'],'oauth-access-producer-owner'),(['--oauth-access-producer-owner','--session-borrowed-owner'],'invalid'),(['--oauth-access-producer-owner','--oauth-access-producer-owner'],'invalid'),(['--conduit'],'invalid')]:
@@ -19,7 +27,7 @@ class OAuthAccessWiring(unittest.TestCase):
   import recovery_conduit_source_delta as calendar_delta
   from check_recovery_file_parent_policy import admitted_native_driver_source,read_native_driver_checked
   raw=read_native_driver_checked(original)
-  prior=admitted_native_driver_source(ROOT,raw)
+  prior=_current_native_driver_prior(self.current.op,ROOT,raw)
   with self.assertRaises(ValueError):admitted_native_driver_source(ROOT,raw+b'unknown')
   self.assertEqual(calendar_delta.reduce_calendar_wire_union(prior),subprocess.check_output(['git','-C',str(ROOT),'show','e804125e8ad0b716cbbbba59818fb140691bf4f0:'+str(original.relative_to(ROOT))]))
  def test_actual_whole_driver_finally_unknown_before_any_generic_cleanup(self):
@@ -29,16 +37,19 @@ class OAuthAccessWiring(unittest.TestCase):
    else:self.assertEqual(1,d['drops']);self.assertEqual(1,d['control_closes'])
   source=(ROOT/'support/governance/native-organization/test-oauth-access-owner-mysql.php').read_text();self.assertLess(source.index("$GLOBALS['governance_recovery_oauth_access_cleanup_proved']=$phase!=="),source.index('$fixture = null;'))
  def test_source_derived_8_SQL_18_total_48_sources_and_strict_tamper(self):
-  d=self.template();v=gate.validate(d,source_revision='a'*40,file_digest='b'*64);self.assertEqual((8,18,50),(v['SQL_obligations'],v['checks'],v['source_inputs']))
+  d=self.template();v=self.current.validate(d,source_revision='a'*40,file_digest='b'*64);self.assertEqual((8,18,50),(v['SQL_obligations'],v['checks'],v['source_inputs']))
   for mutate in [lambda b:b['checks'].pop(),lambda b:b['native'].__setitem__('all_sources_complete',True),lambda b:b['native'].__setitem__('continuous_admin_lease_proved',True),lambda b:b['native'].__setitem__('source_revision','c'*40),lambda b:b['native']['observer_cleanup'].__setitem__('cleanup_proved',False),lambda b:b['file_service_cleanup'].__setitem__('process_stopped',False),lambda b:b.__setitem__('unknown',False)]:
    b=copy.deepcopy(d);mutate(b)
-   with self.assertRaises(ValueError):gate.validate(b,source_revision='a'*40,file_digest='b'*64)
+   with self.assertRaises(ValueError):self.current.validate(b,source_revision='a'*40,file_digest='b'*64)
  def test_actual_public_CLI_requires_independent_binary_and_rejects_duplicate_receipt(self):
   with tempfile.TemporaryDirectory(dir=Path(tempfile.gettempdir()).resolve())as tmp:
-   p=Path(tmp);binary=p/'file-data';binary.write_bytes(b'binary data only; never executed');binary.chmod(0o700);digest=hashlib.sha256(binary.read_bytes()).hexdigest();receipt=p/'receipt';receipt.touch(mode=0o600);body=json.dumps(self.template(digest));cmd=[sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_oauth_access_producer_v3.py'),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
+   p=Path(tmp);binary=p/'file-data';binary.write_bytes(b'binary data only; never executed');binary.chmod(0o700);digest=hashlib.sha256(binary.read_bytes()).hexdigest();receipt=p/'receipt';receipt.touch(mode=0o600);body=json.dumps(self.template(digest));cmd=[sys.executable,'-B',str(ROOT/'tests/governance/task_native_gate_test_api_v2.py'),'--family','oauth-access','--expected-checkpoint',checkpoint(),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
    for raw,good in [(body,True),(body.replace('"passed": true','"passed": true,"passed": true',1),False),(body[:-1]+',"unknown":false}',False)]:
     receipt.write_text(raw);r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertEqual(good,r.returncode==0,r.stderr)
-   receipt.write_text(body);binary.write_bytes(b'changed');r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertNotEqual(0,r.returncode)
+   receipt.write_text(body)
+   legacy=[sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_oauth_access_producer_v3.py'),'--receipt',str(receipt),'--source-revision','a'*40,'--file-binary',str(binary),'--file-binary-sha256',digest]
+   self.assertNotEqual(subprocess.run(legacy,capture_output=True,text=True,timeout=10).returncode,0)
+   binary.write_bytes(b'changed');r=subprocess.run(cmd,capture_output=True,text=True,timeout=10);self.assertNotEqual(0,r.returncode)
  def test_actual_worker_unknown_does_not_explicitly_rollback_close_or_replace_primary(self):
   for mode in ['failed','retained','good','old']:
    p=subprocess.run(['php',str(ROOT/'support/governance/recovery/tests/oauth-access-worker-cleanup-host.php'),str(ROOT),mode],capture_output=True,text=True,timeout=5);self.assertEqual(0,p.returncode,p.stderr);d=json.loads(p.stdout)
@@ -58,7 +69,8 @@ echo json_encode(['failed'=>$failed,'owned'=>$f->owned,'registered'=>count($GLOB
    self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(json.loads(p.stdout),{'failed':True,'owned':1,'registered':0})
  def test_data_source_manifest_matches_versioned_consumer_without_execution_claim(self):
   manifest=json.loads((ROOT/'docs/governance/recovery-oauth-access-SQL-source-v3.json').read_text())
-  self.assertEqual(manifest['source_sha256'],historical_source_inputs('scripts/governance/check_recovery_oauth_access_producer_v3.py'))
+  with bound_views(ROOT)as (legacy,_):
+   self.assertEqual(manifest['source_sha256'],legacy.historical_source_inputs('scripts/governance/check_recovery_oauth_access_producer_v3.py'))
   for key in ['runtime_certified','physical_SQL_cases_executed','all_13_sources_complete','permit','restoration_authorized']:
    self.assertIs(manifest[key],False)
  def test_actual_native_factory_and_SQL_writer_route_are_distinct(self):

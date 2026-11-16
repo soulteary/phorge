@@ -64,6 +64,14 @@ def current_source(root,revision):
     subprocess.run(['/usr/bin/git','--no-replace-objects','-C',str(root),'diff','--exit-code',TARGET,'HEAD','--',*RUNTIME_PATHS,*(':(exclude)'+p for p in OFFLINE_METADATA)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     return revision
 
+def current_source_task_v2(root,revision):
+    clean(root)
+    import sys
+    folder=str(root/'scripts/governance')
+    if folder not in sys.path:sys.path.insert(0,folder)
+    import task_ci_native_source_v2
+    return task_ci_native_source_v2.verify(root,revision,TARGET)
+
 def bind_manifest(template,folder,kind,root):
     need(kind in REVIEWED_PINS)
     f=json.loads(template.read_bytes())
@@ -251,7 +259,7 @@ def execute(a,*,description_fixture=False):
     a.output.mkdir(mode=0o700);public=a.output/'public';public.mkdir(mode=0o700)
     stage('source-binding')
     base_tree=source(a.base,BASE);source(a.target,TARGET)
-    recipe_revision=current_source(a.current,os.environ.get('GITHUB_SHA',''))
+    recipe_revision=current_source_task_v2(a.current,a.expected_current_revision) if a.task_source_v2 else current_source(a.current,os.environ.get('GITHUB_SHA',''))
     stage('reviewed-manifests')
     pt=bind_manifest(a.prerequisite_template,a.prerequisites,'prerequisites',a.base)
     qt=bind_manifest(a.qualification_template,a.qualification,'qualification',a.target)
@@ -301,7 +309,7 @@ def execute(a,*,description_fixture=False):
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for n in ('prerequisites','qualification','base','target','current','prerequisite-template','qualification-template','php','output'):p.add_argument('--'+n,required=True,type=Path)
-    p.add_argument('--mysql-container',required=True);a=p.parse_args()
+    p.add_argument('--mysql-container',required=True);p.add_argument('--task-source-v2',action='store_true');p.add_argument('--expected-current-revision');a=p.parse_args()
     try:print(json.dumps(execute(a),sort_keys=True))
     except Exception as e:
         # Deliberately exclude exception text, native diagnostics and private inputs.

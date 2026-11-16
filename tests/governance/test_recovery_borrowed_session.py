@@ -1,3 +1,5 @@
+from task_source_candidate_test_api_v2 import source_candidates
+from task_admission_test_api_v2 import checkpoint
 """Real store/participant code with explicit host SQL collaborators; no physical proof."""
 from recovery_oauth_code_test_cohort import complete_source_cohort
 from pathlib import Path
@@ -29,30 +31,29 @@ class BorrowedSession(unittest.TestCase):
   self.assertIn("private static $borrowedObserver;",service);self.assertIn("recovery_restore_execution_provider_unavailable",(ROOT/'src/infrastructure/governance/recovery/PhorgeRecoveryRestoreAssessment.php').read_text())
 
  def test_explicit_two_path_source_candidate_rejects_hash_drift_or_runtime_claims(self):
-  import hashlib,copy
-  import test_notice_native_admin_wire_source as source
-  data=json.loads((ROOT/'docs/governance/recovery-borrowed-owner-source-v1.json').read_text());self.assertEqual(data['source_sha256'],source.BORROWED_SOURCE_PINS);self.assertEqual(len(data['source_sha256']),2)
-  for path,pin in data['source_sha256'].items():
-   import recovery_conduit_source_delta as conduit_delta
-   self.assertEqual(hashlib.sha256(conduit_delta.reduce_owner(path,(ROOT/path).read_bytes())).hexdigest(),pin)
-  import check_recovery_borrowed_owner_source as gate
-  self.assertTrue(gate.validate(data)['schema_valid'])
-  for key in ['runtime_certified','physical_SQL_cases_executed','production_observer_factory_available','business_submit_review_integration_proved','all_sources_complete','restoration_authorized']:
-   bad=copy.deepcopy(data);bad[key]=True
-   with self.assertRaises(ValueError):gate.validate(bad)
-  bad=copy.deepcopy(data);bad['unknown']=False
-  with self.assertRaises(ValueError):gate.validate(bad)
-  import tempfile
-  with tempfile.TemporaryDirectory()as tmp:
-   fresh=Path(tmp).resolve()
-   for path in gate.SOURCE_INPUTS:
-    p=fresh/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((ROOT/path).read_bytes())
-   complete_source_cohort(fresh)
-   gate.validate(data,fresh)
-   for path in gate.SOURCE_INPUTS:
-    p=fresh/path;raw=p.read_bytes();p.write_bytes(raw+b'CORRUPTION')
-    with self.assertRaisesRegex(ValueError,'source bytes changed|mixed or unreviewed OAuth code cohort|mixed or unknown authorization source cohort'):gate.validate(data,fresh)
-    p.write_bytes(raw)
+  with source_candidates(ROOT)as api:
+   import hashlib,copy
+   import test_notice_native_admin_wire_source as source
+   data=json.loads(api.data_bytes(ROOT/'docs/governance/recovery-borrowed-owner-source-v1.json'));self.assertEqual(data['source_sha256'],source.BORROWED_SOURCE_PINS);self.assertEqual(len(data['source_sha256']),2)
+   for path,pin in data['source_sha256'].items():
+    import recovery_conduit_source_delta as conduit_delta
+    self.assertEqual(hashlib.sha256(api.inverse('recovery_conduit_source_delta',path,api.data_bytes(ROOT/path))).hexdigest(),pin)
+   import check_recovery_borrowed_owner_source as gate
+   self.assertTrue(api.validate(data)['schema_valid'])
+   for key in ['runtime_certified','physical_SQL_cases_executed','production_observer_factory_available','business_submit_review_integration_proved','all_sources_complete','restoration_authorized']:
+    bad=copy.deepcopy(data);bad[key]=True
+    with self.assertRaises(ValueError):api.validate(bad)
+   bad=copy.deepcopy(data);bad['unknown']=False
+   with self.assertRaises(ValueError):api.validate(bad)
+   import tempfile
+   with tempfile.TemporaryDirectory()as tmp:
+    fresh=Path(tmp).resolve()
+    api.fixture_DATA(fresh)
+    api.fixture_validate(data,fresh)
+    for path in gate.SOURCE_INPUTS:
+     p=fresh/path;raw=p.read_bytes();p.write_bytes(raw+b'CORRUPTION')
+     with self.assertRaisesRegex(ValueError,'^Task_historical_DATA_view_refused$'):api.fixture_validate(data,fresh)
+     p.write_bytes(raw)
  def test_six_physical_cases_call_real_store_and_native_worker_but_are_not_host_pass_claims(self):
   code="require$argv[1].'/support/governance/recovery/borrowed-session-cases.php';echo json_encode(governance_recovery_borrowed_session_obligations());"
   p=subprocess.run(['php','-r',code,str(ROOT)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,0,p.stderr);labels=json.loads(p.stdout);self.assertEqual(len(labels),6);self.assertEqual(len(set(labels)),6)
@@ -78,8 +79,11 @@ class BorrowedSession(unittest.TestCase):
   original=(ROOT/'docs/governance/recovery-borrowed-owner-source-v1.json').read_text()
   with tempfile.TemporaryDirectory()as tmp:
    path=Path(tmp).resolve()/'source.json';path.touch(mode=0o600)
+   path.write_text(original)
+   legacy=[sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_borrowed_owner_source.py'),'--source-artifact',str(path)]
+   self.assertNotEqual(subprocess.run(legacy,capture_output=True,text=True,timeout=10).returncode,0)
    for body,good in [(original,True),(original.replace('"runtime_certified": false','"runtime_certified": true'),False),(original.replace('"execution_blocked": true','"execution_blocked": true, "execution_blocked": true'),False)]:
-    path.write_text(body);p=subprocess.run([sys.executable,'-B',str(ROOT/'scripts/governance/check_recovery_borrowed_owner_source.py'),'--source-artifact',str(path)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode==0,good,p.stderr)
+    path.write_text(body);p=subprocess.run([sys.executable,'-B',str(ROOT/'tests/governance/task_source_candidate_test_api_v2.py'),'--expected-checkpoint',checkpoint(),'--source-artifact',str(path)],capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode==0,good,p.stderr)
     if good:self.assertFalse(json.loads(p.stdout)['runtime_certified'])
 
  def test_caught_budget_failure_poisoned_participant_still_blocks_owner_commit(self):

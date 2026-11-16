@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = ROOT / 'scripts/governance'
 sys.path.insert(0, str(SCRIPTS))
 import check_private_calendar_reminders as gate
+from calendar_sql_task_test_api_v2 import CalendarTaskCase
 
 spec = importlib.util.spec_from_file_location('calendar_native_template', ROOT / 'tests/governance/test_native_organization.py')
 native_template = importlib.util.module_from_spec(spec)
@@ -21,7 +22,7 @@ REVISION = 'a' * 40
 FILE = 'b' * 64
 QUEUE = 'c' * 64
 
-def template():
+def template(gate=gate):
     data = native_template.template()
     data.update(batch='native-private-calendar-reminders', scope='owned-native-calendar-reminders-no-SMTP',
         native=gate.summary(REVISION, QUEUE), checks=sorted(gate.obligations()), check_count=len(gate.obligations()),
@@ -31,9 +32,9 @@ def template():
         cleanup={'ownedSchemasRemoved': 55, 'ownedRuntimeUsersRemoved': 2, 'readerRemoved': True})
     return data
 
-class CalendarSQLGateTests(unittest.TestCase):
+class CalendarSQLGateTests(CalendarTaskCase):
     def validate(self, data, revision=REVISION, file=FILE, queue=QUEUE):
-        return gate.validate(data, source_revision=revision, file_digest=file, queue_digest=queue)
+        return self.calendar.gate.validate(data, source_revision=revision, file_digest=file, queue_digest=queue)
 
     def test_actual_source_function_defines_exact_twenty_one_obligations_and_twelve_sources(self):
         result = subprocess.run(['php', '-r',
@@ -42,9 +43,9 @@ class CalendarSQLGateTests(unittest.TestCase):
             capture_output=True, text=True, check=True, timeout=10)
         self.assertEqual('', result.stderr)
         cases, sources = json.loads(result.stdout)
-        self.assertEqual(set(cases), gate.CASES)
-        self.assertEqual(set(sources), set(gate.SOURCE_INPUTS))
-        self.assertEqual(12, len(gate.sources()))
+        self.assertEqual(set(cases), self.calendar.gate.CASES)
+        self.assertEqual(set(sources), set(self.calendar.gate.SOURCE_INPUTS))
+        self.assertEqual(12, len(self.calendar.gate.sources()))
 
     def test_actual_scoped_configuration_disables_unrelated_media_hooks_and_restores_parent(self):
         code = r"""require $argv[1].'/support/runtime/src/init/init-library.php';phutil_load_library($argv[1].'/src/');
@@ -83,30 +84,30 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
 
     def test_historical_source_inverses_reject_unrelated_changes_even_if_pin_refreshed(self):
         for name, inverse in (
-                ('src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php', gate.reduce_reviewed_calendar_engine),
-                ('support/governance/native-organization/test-native-organization-mysql.php', gate.reduce_reviewed_calendar_driver)):
+                ('src/applications/calendar/notifications/PhabricatorCalendarNotificationEngine.php', self.calendar.gate.reduce_reviewed_calendar_engine),
+                ('support/governance/native-organization/test-native-organization-mysql.php', self.calendar.gate.reduce_reviewed_calendar_driver)):
             raw = (ROOT / name).read_bytes()
             if name == 'support/governance/native-organization/test-native-organization-mysql.php':
                 import check_recovery_file_parent_policy as driver_source
                 physical = raw
-                raw = driver_source.admitted_native_driver_source(ROOT, physical)
+                raw = self.calendar.admitted_native_driver_source(ROOT, physical)
                 for unknown in (physical + b'\n// unreviewed current driver\n', physical[:-1]):
                     with self.assertRaises(ValueError):
-                        driver_source.admitted_native_driver_source(ROOT, unknown)
+                        self.calendar.admitted_native_driver_source(ROOT, unknown)
             baseline = subprocess.check_output(['git', '-C', str(ROOT), 'show',
                 '59b623978b82964581ccc769221121a03938a2ff:' + name])
             self.assertEqual(baseline, inverse(raw))
             changed = raw + b'\n// unrelated source change\n'
             with self.subTest(name=name), self.assertRaises(ValueError): inverse(changed)
-            prior = gate.SOURCE_INPUTS[name]
+            prior = self.calendar.gate.SOURCE_INPUTS[name]
             try:
-                gate.SOURCE_INPUTS[name] = hashlib.sha256(changed).hexdigest()
+                self.calendar.gate.SOURCE_INPUTS[name] = hashlib.sha256(changed).hexdigest()
                 with self.assertRaises(ValueError): inverse(changed)
             finally:
-                gate.SOURCE_INPUTS[name] = prior
+                self.calendar.gate.SOURCE_INPUTS[name] = prior
 
     def test_exact_synthetic_receipt_accepts_only_narrow_scope(self):
-        value = self.validate(template())
+        value = self.validate(template(self.calendar.gate))
         self.assertEqual(32, value['checks'])
         self.assertEqual(21, value['calendar_obligations'])
         self.assertTrue(value['activation_blocked'])
@@ -116,7 +117,7 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
 
     def test_no_missing_duplicate_extra_or_boolean_checks(self):
         for action in ('missing', 'duplicate', 'extra', 'bool'):
-            data = template()
+            data = template(self.calendar.gate)
             if action == 'missing': data['checks'].pop()
             if action == 'duplicate': data['checks'][0] = data['checks'][1]
             if action == 'extra': data['checks'].append('imagined-SMTP-pass')
@@ -127,13 +128,13 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
     def test_revision_and_independent_service_digests_must_match(self):
         for kwargs in ({'revision': 'd' * 40}, {'file': 'd' * 64}, {'queue': 'd' * 64},
                        {'revision': 'main'}, {'file': None}, {'queue': True}):
-            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError): self.validate(template(), **kwargs)
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError): self.validate(template(self.calendar.gate), **kwargs)
 
     def test_source_pins_and_profile_cannot_be_substituted(self):
         for action in ('pin', 'missing-pin', 'profile', 'obligation'):
-            data = template()
-            if action == 'pin': data['native']['source_inputs_sha256'][next(iter(gate.SOURCE_INPUTS))] = 'd' * 64
-            if action == 'missing-pin': data['native']['source_inputs_sha256'].pop(next(iter(gate.SOURCE_INPUTS)))
+            data = template(self.calendar.gate)
+            if action == 'pin': data['native']['source_inputs_sha256'][next(iter(self.calendar.gate.SOURCE_INPUTS))] = 'd' * 64
+            if action == 'missing-pin': data['native']['source_inputs_sha256'].pop(next(iter(self.calendar.gate.SOURCE_INPUTS)))
             if action == 'profile': data['native']['profile'] = 'all-calendar-production'
             if action == 'obligation': data['native']['executed_case_obligations'].pop()
             with self.subTest(action=action), self.assertRaises(ValueError): self.validate(data)
@@ -141,14 +142,14 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
     def test_host_only_proof_cannot_promote_daemon_physical_or_complete_flags(self):
         for key in ('native_global_lock_or_daemon_proved', 'physical_SMTP_or_browser_proved',
                     'ephemeral_ghost_delivery_supported', 'all_calendar_producer_paths_complete', 'activation_blocked'):
-            data = template(); data['native'][key] = not data['native'][key]
+            data = template(self.calendar.gate); data['native'][key] = not data['native'][key]
             with self.subTest(key=key), self.assertRaises(ValueError): self.validate(data)
 
     def test_process_storage_schema_or_reader_cleanup_failure_refuses(self):
         for section, key in (('native', 'queue_cleanup'), ('file_service_cleanup', 'process_stopped'),
                              ('file_service_cleanup', 'private_storage_removed'), ('cleanup', 'readerRemoved'),
                              ('worker_cleanup', 'live_processes_after_cleanup')):
-            data = template()
+            data = template(self.calendar.gate)
             if section == 'native': data[section][key]['process_stopped'] = False
             elif section == 'worker_cleanup': data[section][key] = 1
             else: data[section][key] = False
@@ -161,11 +162,11 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
             queue = private / 'queue'; queue.touch(mode=0o700); queue.write_bytes(b'synthetic-queue-digest-input')
             file_digest = hashlib.sha256(file.read_bytes()).hexdigest()
             queue_digest = hashlib.sha256(queue.read_bytes()).hexdigest()
-            data = template()
+            data = template(self.calendar.gate)
             data['file_service_cleanup']['binary_sha256'] = file_digest
             data['native']['queue_cleanup']['binary_sha256'] = queue_digest
             receipt = private / 'receipt.json'; receipt.touch(mode=0o600)
-            command = [sys.executable, '-B', str(SCRIPTS / 'check_private_calendar_reminders.py'),
+            command = [sys.executable, '-B', str(self.calendar.cli_path(SCRIPTS / 'check_private_calendar_reminders.py')),
                 '--receipt', str(receipt), '--source-revision', REVISION,
                 '--file-binary', str(file), '--file-binary-sha256', file_digest,
                 '--queue-binary', str(queue), '--queue-binary-sha256', queue_digest]
@@ -187,7 +188,7 @@ echo json_encode(array('before'=>$before,'during'=>$during,'after'=>$after,'adde
         for key, value in (('php_version', '8.5.8'), ('passed', False), ('native_permission_axes_changed', True),
                            ('production_optional_features_enabled', True), ('production_deployment', True),
                            ('terminal_failure_cleanup_rollbacks', 1), ('check_count', True)):
-            data = template(); data[key] = value
+            data = template(self.calendar.gate); data[key] = value
             with self.subTest(key=key), self.assertRaises(ValueError): self.validate(data)
 
 class NativeCalendarFactoryEntry(unittest.TestCase):
@@ -277,22 +278,22 @@ echo json_encode($result);'''
         self.assertEqual({'absent':{'accepted':True,'same_exception':False},'policy':{'accepted':True,'same_exception':False},'visible':{'accepted':False,'same_exception':False},'other':{'accepted':None,'same_exception':True},'error':{'accepted':None,'same_exception':True}},json.loads(result.stdout))
 
 
-class CalendarWireSourceProvenanceTests(unittest.TestCase):
+class CalendarWireSourceProvenanceTests(CalendarTaskCase):
     def test_actual_php_raw_source_map_matches_summary_without_changing_historical_pins(self):
         code = r"require $argv[1].'/support/governance/notification/calendar-reminder-cases.php';$out=array();foreach(governance_calendar_reminder_source_inputs()as$p){$out[$p]=hash_file('sha256',$argv[1].'/'.$p);}echo json_encode($out,JSON_THROW_ON_ERROR);"
         result = subprocess.run(['php', '-r', code, str(ROOT)], capture_output=True,
                                 text=True, check=True, timeout=10)
         self.assertEqual('', result.stderr)
-        self.assertEqual(json.loads(result.stdout), gate.summary(REVISION, QUEUE, root=ROOT)['source_inputs_sha256'])
-        self.assertEqual(gate.SOURCE_INPUTS, gate.sources(ROOT))
+        self.assertEqual(json.loads(result.stdout), self.calendar.gate.summary(REVISION, QUEUE, root=ROOT)['source_inputs_sha256'])
+        self.assertEqual(self.calendar.gate.SOURCE_INPUTS, self.calendar.gate.sources(ROOT))
         path = 'support/governance/native-organization/test-native-organization-mysql.php'
-        self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), gate.wire_sources(ROOT)[path])
+        self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), self.calendar.gate.wire_sources(ROOT)[path])
 
     def test_exact_historical_source_root_remains_accepted_and_unknown_driver_is_rejected(self):
         path = 'support/governance/native-organization/test-native-organization-mysql.php'
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp).resolve()
-            for name in gate.SOURCE_INPUTS:
+            for name in self.calendar.gate.SOURCE_INPUTS:
                 dest = root / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 raw = (ROOT / name).read_bytes()
@@ -301,28 +302,28 @@ class CalendarWireSourceProvenanceTests(unittest.TestCase):
                     # object, never by admitting an incomplete current root.
                     raw = subprocess.check_output(['git', '--no-replace-objects', '-C', str(ROOT),
                         'show', '20b138b4cd9a2cf61522613b4a8e5e21eca7341b:' + name])
-                    self.assertEqual(hashlib.sha256(raw).hexdigest(), gate.SOURCE_INPUTS[name])
+                    self.assertEqual(hashlib.sha256(raw).hexdigest(), self.calendar.gate.SOURCE_INPUTS[name])
                 dest.write_bytes(raw)
-            self.assertEqual(gate.SOURCE_INPUTS, gate.sources(root))
-            self.assertEqual(gate.SOURCE_INPUTS, gate.summary(REVISION, QUEUE, root=root)['source_inputs_sha256'])
+            self.assertEqual(self.calendar.gate.SOURCE_INPUTS, self.calendar.gate.sources(root))
+            self.assertEqual(self.calendar.gate.SOURCE_INPUTS, self.calendar.gate.summary(REVISION, QUEUE, root=root)['source_inputs_sha256'])
             (root / path).write_bytes((ROOT / path).read_bytes() + b'\n// unrelated raw source mutation\n')
-            for consumer in (gate.sources, gate.wire_sources):
+            for consumer in (self.calendar.gate.sources, self.calendar.gate.wire_sources):
                 with self.subTest(consumer=consumer.__name__), self.assertRaises(ValueError):
                     consumer(root)
             with self.assertRaises(ValueError):
-                gate.summary(REVISION, QUEUE, root=root)
+                self.calendar.gate.summary(REVISION, QUEUE, root=root)
 
     def test_unrelated_source_mutation_cannot_be_certified_by_raw_wire_projection(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp).resolve()
-            for name in gate.SOURCE_INPUTS:
+            for name in self.calendar.gate.SOURCE_INPUTS:
                 dest = root / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_bytes((ROOT / name).read_bytes())
             path = 'support/governance/notification/calendar-reminder-cases.php'
             (root / path).write_bytes((root / path).read_bytes() + b'\n// unrelated mutation\n')
             with self.assertRaises(ValueError):
-                gate.wire_sources(root)
+                self.calendar.gate.wire_sources(root)
 
 if __name__ == '__main__':
     unittest.main()

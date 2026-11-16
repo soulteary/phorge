@@ -47,9 +47,13 @@ def checked_bytes(path,limit=1048576):
     finally:os.close(fd)
 def exact(raw,pin):
     refuse(type(raw)is bytes and type(pin)in(dict,MappingProxyType) and len(raw)==pin['bytes'] and sha(raw)==pin['sha256'])
-def current_snapshot(root=ROOT):
+def current_snapshot(root=ROOT,operation=None):
     constants();root=Path(root);refuse(root.is_absolute() and root.resolve()==root)
-    result={p:checked_bytes(root/p)for p in CURRENT_PINS}
+    if operation is not None:
+        from source_operation_snapshot import require_task_operation
+        require_task_operation(operation,root)
+        result={p:operation._task_parent_bytes(root/p)for p in CURRENT_PINS}
+    else:result={p:checked_bytes(root/p)for p in CURRENT_PINS}
     refuse(stat.S_IMODE((root/NATIVE_STATE_BASELINE['path']).lstat().st_mode)==0o644)
     refuse(stat.S_IMODE((root/NATIVE_EDITOR_BASELINE['path']).lstat().st_mode)==0o644)
     validate_snapshot(result);return result

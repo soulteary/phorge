@@ -20,6 +20,8 @@ final class PhorgeGovernanceCompletionFixture {
   private $patchAudit;
   private $ownerNonce;
   private $auxiliarySetupThreads = array();
+  private $taskMetadataStageV1;
+  private $taskMetadataServerUUIDV1;
 
   public function __construct(mysqli $control, $root, $host, $port) {
     if (PHP_SAPI !== 'cli' || getenv('PHORGE_GOVERNANCE_ISOLATED_TEST') !== '1' ||
@@ -31,6 +33,196 @@ final class PhorgeGovernanceCompletionFixture {
     $this->host = $host;
     $this->port = $port;
     $this->base = new PhorgeGovernanceNativeFixture($control, $host, $port);
+  }
+
+  /** Pure freshness predicate; no connection or SQL is attempted here. */
+  private function assertTaskMetadataFreshV1() {
+    if (!($this->control instanceof mysqli) || get_class($this->control)!==mysqli::class ||
+        !($this->base instanceof PhorgeGovernanceNativeFixture) ||
+        get_class($this->base)!==PhorgeGovernanceNativeFixture::class ||
+        $this->taskMetadataStageV1!==null || $this->taskMetadataServerUUIDV1!==null ||
+        $this->namespace!==null || $this->sourceHash!==null ||
+        $this->baseline!==null || $this->patchAudit!==null || $this->ownerNonce!==null ||
+        $this->createdDatabases!==array() || $this->createdUsers!==array() ||
+        $this->tables!==array() || $this->connections!==array() ||
+        $this->configs!==array() || $this->auxiliarySetupThreads!==array() ||
+        $this->base->getDefinitionHashes()!==array(
+          'quickstartSHA256'=>null,'sourceDefinitionHashes'=>array())) {
+      throw new RuntimeException('task_metadata_bootstrap_fresh_fixture_required');
+    }
+  }
+
+  /** Explicit isolated pre-Task bootstrap; create() keeps its original default. */
+  public function createBeforeTaskMetadataPatchV1() {
+    $this->assertTaskMetadataFreshV1();
+    if (PHP_VERSION !== '8.5.12' ||
+        ini_get('opcache.jit') !== 'disable' ||
+        ini_get('opcache.jit_buffer_size') !== '0' ||
+        ini_get('opcache.enable_cli') !== '0') {
+      throw new RuntimeException('task_metadata_bootstrap_entry_refused');
+    }
+    $observed = $this->control->query('SELECT VERSION() version,@@server_uuid uuid')->fetch_assoc();
+    if (!$observed || $observed['version'] !== '8.4.13' ||
+        !preg_match('/\A[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\z/D',$observed['uuid'])) {
+      throw new RuntimeException('task_metadata_bootstrap_database_refused');
+    }
+    $this->taskMetadataServerUUIDV1 = $observed['uuid'];
+    $this->taskMetadataStageV1 = 'creating-before';
+    try {
+      $this->create();
+      $this->taskMetadataStageV1 = 'before';
+      $this->getTaskMetadataBootstrapFactsV1();
+      return $this;
+    } catch (Throwable $error) {
+      $this->taskMetadataStageV1 = 'failed';
+      throw $error;
+    }
+  }
+
+  private function taskMetadataPatchV1(array $patches) {
+    $key = 'phabricator:20261112.task.contentgrants.sql';
+    $path = $this->root.'/resources/sql/autopatches/20261112.task.contentgrants.sql';
+    if (realpath($this->root) !== $this->root || count($patches) !== 1576 ||
+        !isset($patches[$key]) || $patches[$key]->getFullKey() !== $key ||
+        $patches[$key]->getKey() !== '20261112.task.contentgrants.sql' ||
+        $patches[$key]->getType() !== 'sql' || $patches[$key]->isDead() ||
+        $patches[$key]->getName() !== $path || realpath($path) !== $path ||
+        is_link($path) || hash_file('sha256',$path) !==
+          '632b4412c18ea61787ca6b38afc9d3c16b62f76591e9a99d624401eeac117236') {
+      throw new RuntimeException('task_metadata_bootstrap_patch_refused');
+    }
+    return $key;
+  }
+
+  private function taskMetadataLedgerV1(array $patches) {
+    $this->assertOwned();
+    $rows = $this->getAdmin()->query('SELECT patch FROM '.
+      $this->table('meta_data','patch_status'))->fetch_all(MYSQLI_ASSOC);
+    $applied = array_fill_keys(array_column($rows,'patch'),true);
+    $pending = array();
+    foreach ($patches as $key=>$patch) {
+      if (!$patch->isDead() && !isset($applied[$key])) { $pending[]=$key; }
+    }
+    return array($applied,$pending);
+  }
+
+  private function refreshTaskMetadataCatalogV1() {
+    $this->assertOwned();
+    foreach (array_keys($this->tables) as $app) {
+      if ($app === 'governance') { continue; }
+      $rows = $this->control->query('SHOW TABLES FROM `'.$this->namespace.'_'.$app.'`')->fetch_all(MYSQLI_NUM);
+      $this->tables[$app] = array_fill_keys(array_column($rows,0),true);
+    }
+  }
+
+  private function auditBeforeTaskMetadataPatchV1(array $patches,array $applied) {
+    if ($this->taskMetadataStageV1 !== 'creating-before') {
+      throw new RuntimeException('task_metadata_bootstrap_stage_refused');
+    }
+    $key=$this->taskMetadataPatchV1($patches);
+    if (isset($applied[$key])) {
+      throw new RuntimeException('task_metadata_bootstrap_already_applied');
+    }
+    $pending=array();
+    foreach ($patches as $name=>$patch) {
+      if (!$patch->isDead() && !isset($applied[$name]) && $name !== $key) { $pending[]=$name; }
+    }
+    $this->patchAudit=array('source_patch_count'=>count($patches),
+      'applied_patch_count'=>count($applied),'pending_patch_keys'=>array($key),
+      'current_patch_ledger_complete'=>false,
+      'bootstrap_mode'=>'Task-metadata-before-upgrade-v1',
+      'deliberately_deferred_patch_keys'=>array($key));
+    if ($pending) { $this->applyPendingPatches($patches,$applied,$pending); }
+    $this->refreshTaskMetadataCatalogV1();
+    list($actual,$remaining)=$this->taskMetadataLedgerV1($patches);
+    if ($remaining !== array($key) || isset($actual[$key]) ||
+        $this->getSummary()['current_table_count'] !== 549) {
+      throw new RuntimeException('task_metadata_bootstrap_parent_ledger_refused');
+    }
+    $this->patchAudit['applied_patch_count']=count($actual);
+    $this->patchAudit['migrations_executed']=count($pending);
+  }
+
+  /** Only the exact deferred patch may run, once; no retry after partial DDL. */
+  public function applyTaskMetadataPatchV1() {
+    if ($this->taskMetadataStageV1 !== 'before') {
+      throw new RuntimeException('task_metadata_bootstrap_stage_refused');
+    }
+    $this->getTaskMetadataBootstrapFactsV1();
+    $patches=PhabricatorSQLPatchList::buildAllPatches();
+    $key=$this->taskMetadataPatchV1($patches);
+    list($applied,$pending)=$this->taskMetadataLedgerV1($patches);
+    if ($pending !== array($key)) {
+      throw new RuntimeException('task_metadata_bootstrap_pending_refused');
+    }
+    $this->taskMetadataStageV1='applying';
+    try {
+      // Unchanged native migration engine; it marks only after actual execution.
+      $this->applyPendingPatches($patches,$applied,array($key));
+      $this->refreshTaskMetadataCatalogV1();
+      list($actual,$remaining)=$this->taskMetadataLedgerV1($patches);
+      if ($remaining !== array() || !isset($actual[$key]) ||
+          $this->getSummary()['current_table_count'] !== 552) {
+        throw new RuntimeException('task_metadata_bootstrap_final_ledger_refused');
+      }
+      $this->patchAudit['applied_patch_count']=count($actual);
+      $this->patchAudit['pending_patch_keys']=array();
+      $this->patchAudit['current_patch_ledger_complete']=true;
+      $this->patchAudit['migrations_executed']++;
+      $this->patchAudit['deliberately_deferred_patch_keys']=array();
+      $this->taskMetadataStageV1='migrated';
+      return $this->getTaskMetadataBootstrapFactsV1();
+    } catch (Throwable $error) {
+      $this->taskMetadataStageV1='failed';
+      throw $error;
+    }
+  }
+
+  /** Observed private facts only; this does not approve actors or Task editing. */
+  public function getTaskMetadataBootstrapFactsV1() {
+    if (!in_array($this->taskMetadataStageV1,array('before','migrated'),true)) {
+      throw new RuntimeException('task_metadata_bootstrap_stage_refused');
+    }
+    $this->assertOwned();$admin=$this->getAdmin();
+    $identity=$admin->query('SELECT VERSION() version,@@server_uuid uuid')->fetch_assoc();
+    if (!$identity || $identity['version'] !== '8.4.13' ||
+        $identity['uuid'] !== $this->taskMetadataServerUUIDV1) {
+      throw new RuntimeException('task_metadata_bootstrap_database_refused');
+    }
+    $patches=PhabricatorSQLPatchList::buildAllPatches();
+    $key=$this->taskMetadataPatchV1($patches);
+    list($applied,$pending)=$this->taskMetadataLedgerV1($patches);
+    $before=$this->taskMetadataStageV1==='before';
+    $this->refreshTaskMetadataCatalogV1();
+    if ($this->getSummary()['current_table_count'] !== ($before ? 549 : 552)) {
+      throw new RuntimeException('task_metadata_bootstrap_table_count_refused');
+    }
+    if ($pending !== ($before ? array($key) : array()) ||
+        isset($applied[$key]) === $before) {
+      throw new RuntimeException('task_metadata_bootstrap_ledger_refused');
+    }
+    foreach (array('governance_taskcontentgrant','governance_taskcontentapproval','governance_taskcontentaudit') as $table) {
+      $result=$admin->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='".$this->namespace."_maniphest' AND TABLE_NAME='".$table."'")->fetch_all(MYSQLI_ASSOC);
+      if (count($result) !== ($before ? 0 : 1)) {
+        throw new RuntimeException('task_metadata_bootstrap_tables_refused');
+      }
+    }
+    $epoch=$admin->query('SELECT epoch FROM '.$this->table('config','governance_configepoch')." WHERE namespace='default' AND configKey='governance.task-content-grants.enabled'")->fetch_all(MYSQLI_ASSOC);
+    if (($before && $epoch !== array()) ||
+        (!$before && (count($epoch)!==1 || (string)$epoch[0]['epoch']!=='1'))) {
+      throw new RuntimeException('task_metadata_bootstrap_epoch_refused');
+    }
+    $guard=$admin->query('SELECT SHA2(CAST(owner_nonce AS BINARY),256) nonce_sha FROM '.$this->table('governance','fixture_guard').' WHERE id=1')->fetch_assoc();
+    if (!$guard || !preg_match('/\A[a-f0-9]{64}\z/D',$guard['nonce_sha'])) {
+      throw new RuntimeException('task_metadata_bootstrap_guard_refused');
+    }
+    return array('schema'=>'Task-metadata-bootstrap-observed-facts-v1',
+      'stage'=>$this->taskMetadataStageV1,'namespace'=>$this->namespace,
+      'server_uuid'=>$identity['uuid'],'mysql_version'=>$identity['version'],
+      'fixture_nonce_sha256'=>$guard['nonce_sha'],'quickstart_sha256'=>$this->sourceHash,
+      'source_restore'=>$this->getSummary(),'Task_patch_applied'=>!$before,
+      'Task_body_execution_proved'=>false,'runtime_authority'=>false,
+      'production_activation'=>false);
   }
 
   public function create() {
@@ -139,6 +331,10 @@ final class PhorgeGovernanceCompletionFixture {
     $applied = array_fill_keys(array_column($rows,'patch'),true);
     $pending = array();
     $patches = PhabricatorSQLPatchList::buildAllPatches();
+    if ($this->taskMetadataStageV1 === 'creating-before') {
+      $this->auditBeforeTaskMetadataPatchV1($patches,$applied);
+      return;
+    }
     foreach ($patches as $key => $patch) {
       if (!$patch->isDead() && !isset($applied[$key])) { $pending[] = $key; }
     }
@@ -176,7 +372,7 @@ final class PhorgeGovernanceCompletionFixture {
       '20261102.people.organization.sql','20261102.people.mediaexchange.sql',
       '20261103.people.organizationmetadata.sql','20261103.people.mediaissuer.sql','20261103.people.mediatargets.sql',
       '20261103.people.organizationtransfer.sql','20261103.project.approvalexecution.sql','20261103.project.configepoch.sql','20261104.people.recoverystop.sql','20261104.metamta.governancenotice.sql','20261104.people.recoveryrestore.sql','20261104.people.organizationparticipants.sql','20261105.people.noticeidentityepoch.sql',
-      '20261110.project.contentgrants.sql');
+      '20261110.project.contentgrants.sql','20261112.task.contentgrants.sql');
     foreach ($pending as $key) {
       if (!str_starts_with($key,'phabricator:') ||
           !in_array(substr($key,12),$reviewed,true)) {

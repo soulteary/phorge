@@ -34,7 +34,7 @@ class RuntimeTests(unittest.TestCase):
     def test_wrong_actual_runtime_stops_before_native_migration(self):
         with tempfile.TemporaryDirectory()as td:
             root=Path(td).resolve();out=root/'new-run';cid='a'*64
-            a=argparse.Namespace(mysql_container=cid,prerequisites=root,qualification=root,base=root,target=root,current=root,output=out,php=Path('/usr/bin/php'),prerequisite_template=root/'p',qualification_template=root/'q')
+            a=argparse.Namespace(task_source_v2=False,expected_current_revision=None,mysql_container=cid,prerequisites=root,qualification=root,base=root,target=root,current=root,output=out,php=Path('/usr/bin/php'),prerequisite_template=root/'p',qualification_template=root/'q')
             rows=[dict(Id=cid,State={'Running':True},Config={'Image':ci.MYSQL},HostConfig={'PortBindings':{'3306/tcp':[{'HostIp':'127.0.0.1','HostPort':'3306'}]}},NetworkSettings={'Ports':{'3306/tcp':[{'HostIp':'127.0.0.1','HostPort':'3306'}],'33060/tcp':None}})]
             bad=self.state();bad['php_version']='8.5.8'
             j=Mock();j.run.side_effect=[json.dumps(rows).encode(),json.dumps(bad).encode()]

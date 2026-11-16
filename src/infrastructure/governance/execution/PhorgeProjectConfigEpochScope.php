@@ -53,6 +53,8 @@ final class PhorgeProjectConfigEpochScope extends Phobject {
     $expected=array('["id"]','["phid"]','["namespace","configKey"]'); sort($expected,SORT_STRING);
     if ($actual!==$expected) { throw new RuntimeException('configuration_generation_unique_profile_unsupported'); }
   }
+  /** Closed union for native config producers; Project capture remains unchanged. */
+  public static function producerConfigurationKeys() { return PhorgeTaskContentGrantConfiguration::keys(); }
   /** Use actual native column collations, never ad-hoc lowercase/space trimming. */
   private static function trackedKeys(AphrontDatabaseConnection $conn,array $identity) {
     if (!is_string($identity['namespace']??null) || !is_string($identity['configKey']??null)) { return array(); }
@@ -77,7 +79,7 @@ final class PhorgeProjectConfigEpochScope extends Phobject {
     };
     if (!$compare('namespace',$identity['namespace'],'default')) { return array(); }
     $keys=array();
-    foreach (PhorgeProjectExecutionCatalog::configurationKeys() as $key) {
+    foreach (self::producerConfigurationKeys() as $key) {
       if ($compare('configKey',$identity['configKey'],$key)) { $keys[]=$key; }
     }
     return $keys;

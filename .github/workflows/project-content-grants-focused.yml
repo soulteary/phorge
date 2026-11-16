@@ -42,11 +42,24 @@ jobs:
         options: --health-cmd "mysqladmin ping --silent" --health-interval 5s --health-timeout 3s --health-retries 30
     env:
       PYTHONDONTWRITEBYTECODE: '1'
+      EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
+      PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Bind external event head and isolated PUBLIC verification home
+        run: |
+          umask 077
+          trust_home="$RUNNER_TEMP/task-source-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust \
+            --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" \
+            --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" \
+            --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          echo "HOME=$trust_home" >> "$GITHUB_ENV"
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5.12'
@@ -57,9 +70,9 @@ jobs:
       - name: Bind current source and run offline controls
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           php -r 'if (PHP_VERSION !== "8.5.12" || ini_get("opcache.jit") !== "disable" || ini_get("opcache.jit_buffer_size") !== "0" || ini_get("opcache.enable_cli") !== "0") { exit(1); }'
-          python3 -B scripts/governance/check_directory_transports_v1.py --source-only --source-revision "$GITHUB_SHA"
+          python3 -B scripts/governance/check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT"
           python3 -m venv "$RUNNER_TEMP/n05-controls-python"
           "$RUNNER_TEMP/n05-controls-python/bin/python" -m pip --disable-pip-version-check install --only-binary=:all: 'PyYAML==6.0.3'
           "$RUNNER_TEMP/n05-controls-python/bin/python" -B -m unittest discover -s tests/governance -p 'test_project_content_grant*.py' -v
@@ -80,6 +93,7 @@ jobs:
         run: |
           umask 077
           python3 -B support/governance/project-content-grants-ci/ci.py \
+            --task-source-v2 --expected-current-revision "$EXPECTED_SOURCE_CHECKPOINT" \
             --prerequisites "$GITHUB_WORKSPACE/support/governance/project-content-grants-ci/prerequisites" \
             --qualification "$GITHUB_WORKSPACE/support/governance/project-content-grants-qualification" \
             --base "$RUNNER_TEMP/n05-native-baseline" \

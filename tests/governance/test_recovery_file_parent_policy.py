@@ -1,3 +1,5 @@
+from task_native_gate_test_api_v2 import current_native_gate
+from task_admission_test_api_v2 import checkpoint
 """Actual bounded consumer with explicit collaborators; no SQL/snapshot proof."""
 import json
 from pathlib import Path
@@ -102,52 +104,55 @@ class FileParentWireSourceRoles(unittest.TestCase):
         return data
 
     def test_current_raw_wire_and_historical_obligation_hashes_are_distinct_roles(self):
-        import hashlib
-        gate = self.gate
-        driver = 'support/governance/native-organization/test-native-organization-mysql.php'
-        old = dict(gate.SOURCE_INPUTS)
-        raw = gate.read_source_checked(ROOT / driver)
-        prior = gate.admitted_native_driver_source(ROOT, raw)
-        self.assertNotEqual(raw, prior)
-        self.assertEqual(hashlib.sha256(prior).hexdigest(), old[driver])
-        summary = gate.summary('a' * 40, root=ROOT)
-        expected = dict(old)
-        expected[driver] = hashlib.sha256(raw).hexdigest()
-        self.assertEqual(summary['source_inputs_sha256'], expected)
-        self.assertEqual(gate.SOURCE_INPUTS, old)
-        self.assertEqual(len(gate.source_obligations(ROOT)), 16)
+        with current_native_gate(ROOT,'fileparent')as current_gate:
+            import hashlib
+            gate = self.gate
+            driver = 'support/governance/native-organization/test-native-organization-mysql.php'
+            old = dict(gate.SOURCE_INPUTS)
+            raw = gate.read_source_checked(ROOT / driver)
+            prior = current_gate.driver_prior(raw)
+            self.assertNotEqual(raw, prior)
+            self.assertEqual(hashlib.sha256(prior).hexdigest(), old[driver])
+            summary = current_gate.summary('a' * 40, root=ROOT)
+            expected = dict(old)
+            expected[driver] = hashlib.sha256(raw).hexdigest()
+            self.assertEqual(summary['source_inputs_sha256'], expected)
+            self.assertEqual(gate.SOURCE_INPUTS, old)
+            self.assertEqual(len(current_gate.source_obligations(ROOT)), 16)
 
     def test_real_historical_driver_root_keeps_original_pin_and_explicit_root(self):
-        import hashlib, tempfile
-        gate = self.gate
-        driver = 'support/governance/native-organization/test-native-organization-mysql.php'
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory).resolve()
-            self.copied_sources(root)
-            historical = subprocess.check_output(['git', '--no-replace-objects', '-C', str(ROOT),
-                'show', '20b138b4cd9a2cf61522613b4a8e5e21eca7341b:' + driver])
-            self.assertEqual(hashlib.sha256(historical).hexdigest(), gate.SOURCE_INPUTS[driver])
-            (root / driver).write_bytes(historical)
-            observed = gate.summary('b' * 40, root=root)
-            self.assertEqual(observed['source_inputs_sha256'], gate.SOURCE_INPUTS)
-            self.assertEqual(len(gate.source_obligations(root)), 16)
-            current = self.receipt()
-            # This rejects at native wire equality, before missing restore inputs.
-            with self.assertRaisesRegex(ValueError, '^Fileparent evidence refused$'):
-                gate.validate(current, root=root, source_revision='a' * 40, file_digest='b' * 64)
+        with current_native_gate(ROOT,'fileparent')as current_gate:
+            import hashlib, tempfile
+            gate = self.gate
+            driver = 'support/governance/native-organization/test-native-organization-mysql.php'
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory).resolve()
+                self.copied_sources(root)
+                historical = subprocess.check_output(['git', '--no-replace-objects', '-C', str(ROOT),
+                    'show', '20b138b4cd9a2cf61522613b4a8e5e21eca7341b:' + driver])
+                self.assertEqual(hashlib.sha256(historical).hexdigest(), gate.SOURCE_INPUTS[driver])
+                (root / driver).write_bytes(historical)
+                observed = gate.summary('b' * 40, root=root)
+                self.assertEqual(observed['source_inputs_sha256'], gate.SOURCE_INPUTS)
+                self.assertEqual(len(gate.source_obligations(root)), 16)
+                current = current_gate.template()
+                # This rejects at native wire equality, before missing restore inputs.
+                with self.assertRaisesRegex(ValueError, '^Fileparent evidence refused$'):
+                    gate.validate(current, root=root, source_revision='a' * 40, file_digest='b' * 64)
 
     def test_raw_wire_receipt_accepts_current_but_never_normalized_or_self_reported_digest(self):
-        import copy
-        gate = self.gate
-        data = self.receipt()
-        self.assertTrue(gate.validate(data, root=ROOT, source_revision='a' * 40,
-            file_digest='b' * 64)['passed'])
-        driver = 'support/governance/native-organization/test-native-organization-mysql.php'
-        for digest in (gate.SOURCE_INPUTS[driver], '0' * 64):
-            bad = copy.deepcopy(data)
-            bad['native']['source_inputs_sha256'][driver] = digest
-            with self.assertRaisesRegex(ValueError, '^Fileparent evidence refused$'):
-                gate.validate(bad, root=ROOT, source_revision='a' * 40, file_digest='b' * 64)
+        with current_native_gate(ROOT,'fileparent')as current_gate:
+            import copy
+            gate = self.gate
+            data = current_gate.template()
+            self.assertTrue(current_gate.validate(data, root=ROOT, source_revision='a' * 40,
+                file_digest='b' * 64)['passed'])
+            driver = 'support/governance/native-organization/test-native-organization-mysql.php'
+            for digest in (gate.SOURCE_INPUTS[driver], '0' * 64):
+                bad = copy.deepcopy(data)
+                bad['native']['source_inputs_sha256'][driver] = digest
+                with self.assertRaisesRegex(ValueError, '^Fileparent evidence refused$'):
+                    current_gate.validate(bad, root=ROOT, source_revision='a' * 40, file_digest='b' * 64)
 
     def test_unknown_driver_other_source_and_unsafe_mode_refuse_before_wire_summary(self):
         import tempfile
@@ -193,12 +198,13 @@ class NativeDriverSourceViews(unittest.TestCase):
         for bad in (b'{}',raw+b'unknown',raw[:-1],bytearray(raw),'PHP source'):
             with self.subTest(kind=type(bad).__name__),self.assertRaises(ValueError):module._native_driver_prior(bad)
     def test_actual_current_fixture_requires_exact_forward_role(self):
-        module=self.module();name=module.NATIVE_DRIVER_PATH;actual=(ROOT/name).read_bytes()
-        old=subprocess.check_output(['/usr/bin/git','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+name])
-        self.assertNotEqual(actual,old)
-        self.assertEqual(module.admitted_native_driver_source(ROOT,actual),old)
-        for raw in (old,actual+b'unknown'):
-            with self.subTest(length=len(raw)),self.assertRaises(ValueError):module.admitted_native_driver_source(ROOT,raw)
+        with current_native_gate(ROOT,'fileparent')as current_gate:
+            module=self.module();name=module.NATIVE_DRIVER_PATH;actual=(ROOT/name).read_bytes()
+            old=subprocess.check_output(['/usr/bin/git','-C',str(ROOT),'show','20b138b4cd9a2cf61522613b4a8e5e21eca7341b:'+name])
+            self.assertNotEqual(actual,old)
+            self.assertEqual(current_gate.driver_prior(actual),old)
+            for raw in (old,actual+b'unknown'):
+                with self.subTest(length=len(raw)),self.assertRaises(ValueError):current_gate.driver_prior(raw)
     def test_source_parent_alias_and_untrusted_current_root_are_refused(self):
         import tempfile
         module=self.module()

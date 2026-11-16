@@ -16,14 +16,23 @@ def restore():
    'migration_source_hashes':{'phabricator:'+n:hashlib.sha256((ROOT/'resources/sql/autopatches'/n).read_bytes()).hexdigest()for n in completion.PATCHES}}}
 
 class CurrentRestoreProfile(unittest.TestCase):
- def test_actual_native_catalog_and_quickstart_ledger_have_exact38_pending(self):
+ def test_actual_current_Task_catalog_v2_projects_exact38_parent_pending(self):
   code='require "support/runtime/src/__phutil_library_init__.php";phutil_load_library("src");$p=PhabricatorSQLPatchList::buildAllPatches();$r=[];foreach($p as $k=>$v){$r[$k]=$v->isDead();}echo json_encode($r);'
   proc=subprocess.run(['php','-r',code],cwd=ROOT,capture_output=True,text=True,timeout=30)
-  self.assertEqual(proc.returncode,0,proc.stderr);catalog=json.loads(proc.stdout);self.assertEqual(len(catalog),1575)
+  self.assertEqual(proc.returncode,0,proc.stderr);catalog=json.loads(proc.stdout);self.assertEqual(len(catalog),1576)
   raw=(ROOT/'resources/sql/quickstart.sql').read_text();ledger=raw.split('INSERT INTO `patch_status` VALUES\n',1)[1].split(';',1)[0]
   applied=set(re.findall(r"\('([^']+)'",ledger));self.assertEqual(len(applied),1537)
   pending={k for k,dead in catalog.items()if not dead and k not in applied}
-  self.assertEqual(pending,{'phabricator:'+n for n in completion.PATCHES});self.assertEqual(len(pending),38)
+  # Current Task catalog evidence is distinct from the old native restore profile.
+  task='phabricator:20261112.task.contentgrants.sql'
+  self.assertFalse(catalog[task]);self.assertNotIn(task,applied)
+  self.assertEqual(hashlib.sha256((ROOT/'resources/sql/autopatches/20261112.task.contentgrants.sql').read_bytes()).hexdigest(),'632b4412c18ea61787ca6b38afc9d3c16b62f76591e9a99d624401eeac117236')
+  parent_pending={'phabricator:'+n for n in completion.PATCHES}
+  self.assertEqual(len(parent_pending),38);self.assertNotIn(task,parent_pending)
+  self.assertEqual(pending,parent_pending|{task});self.assertEqual(len(pending),39)
+  parent_catalog=dict(catalog);del parent_catalog[task]
+  self.assertEqual(len(parent_catalog),1575)
+  self.assertEqual({k for k,dead in parent_catalog.items()if not dead and k not in applied},parent_pending)
   self.assertFalse(catalog['phabricator:'+NEW]);self.assertNotIn('phabricator:'+NEW,applied)
  def test_current_source_DDL_exactly_accounts_for549_tables(self):
   quick=(ROOT/'resources/sql/quickstart.sql').read_text();self.assertEqual(len(re.findall(r'\bCREATE TABLE\b',quick,re.I)),500)

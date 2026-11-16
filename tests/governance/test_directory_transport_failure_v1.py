@@ -58,7 +58,7 @@ class SafeFailureTest(unittest.TestCase):
 class WorkflowExitTest(unittest.TestCase):
     def run_handler(self, output_kind, corrected=True):
         source=(ROOT/'.github/workflows/native-directory-transports-v1.yml').read_text()
-        start=source.index(' || {\n',source.index('php support/governance/native-organization/test-directory-transports-v1-mysql.php'))
+        start=source.index(' || {\n',source.index('python3 -B scripts/governance/run_task_directory_native_v2.py'))
         end=source.index('\n          }\n          test ! -s',start)+len('\n          }')
         handler=source[start+len(' || '):end]
         guarded="if [ -n \"${GITHUB_OUTPUT-}\" ] && echo 'safe_diagnostic_owned=true' >> \"$GITHUB_OUTPUT\"; then :; fi"
@@ -68,9 +68,9 @@ class WorkflowExitTest(unittest.TestCase):
         # Only the successful diagnostic projector is a collaborator. The exact
         # handler, native37, set-euo, real filesystem and append fault are real.
         # No PHP matrix, SQL or actual projector success is claimed here.
-        script="set -euo pipefail\numask 077\npython3(){ printf '%s\\n' '{\"diagnostic_only\":true}'; }\nnative37(){ /bin/bash -c 'exit 37'; }\nnative37 || "+handler+"\n"
+        script="set -euo pipefail\numask 077\npython3(){ [ \"$#\" -eq 12 ] && [ \"$1\" = -B ] && [ \"$2\" = scripts/governance/project_directory_transport_failure_v1.py ] && [ \"$3\" = --stderr ] && [ \"$5\" = --source-revision ] && [ \"$6\" = \"$EXPECTED_SOURCE_CHECKPOINT\" ] && [ \"$7\" = --terminal ] && [ \"$8\" = native-exit ] && [ \"$9\" = --receipt ] && [ \"${11}\" = --consumer-output ] || return 96; printf '%s\\n' '{\"diagnostic_only\":true}'; }\nnative37(){ /bin/bash -c 'exit 37'; }\nnative37 || "+handler+"\n"
         with tempfile.TemporaryDirectory()as directory:
-            root=Path(directory);env={'PATH':'/usr/bin:/bin','RUNNER_TEMP':str(root),'GITHUB_SHA':'0'*40}
+            root=Path(directory);env={'PATH':'/usr/bin:/bin','RUNNER_TEMP':str(root),'GITHUB_SHA':'a'*40,'EXPECTED_SOURCE_CHECKPOINT':'a'*40}
             out=root/'output'
             if output_kind=='directory':out.mkdir();env['GITHUB_OUTPUT']=str(out)
             elif output_kind=='valid':env['GITHUB_OUTPUT']=str(out)

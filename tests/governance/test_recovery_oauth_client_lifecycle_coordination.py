@@ -29,37 +29,39 @@ def current_descriptor_test_view(path,raw):
   raise ValueError('unreviewed descriptor test metadata')
  return old
 
-class LifecycleCoordination(unittest.TestCase):
+from task_oauth_coordination_test_api_v2 import TaskOAuthCurrentCase
+class LifecycleCoordination(TaskOAuthCurrentCase):
  def test_all_nine_whole_byte_inverses_match_real_main_blobs(self):
   self.assertEqual(len(delta.PRODUCTION_PATHS),9)
   for path in delta.SOURCE_INPUTS:
    raw=(ROOT/path).read_bytes()
    old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','4c2245300dc1d78d042b95190dd537eb6b1f9861:'+path])
-   self.assertEqual(historical_lifecycle_source(path,raw),old)
+   self.assertEqual(self._r3.historical_lifecycle_source(path,raw),old)
    self.assertEqual(hashlib.sha256(old).hexdigest(),delta.BASE_PINS[path])
    bad=raw+b'\n// unreviewed lifecycle edit\n'
-   with self.assertRaises(ValueError):historical_lifecycle_source(path,bad)
+   with self.assertRaises(ValueError):self._r3.historical_lifecycle_source(path,bad)
    with patch.object(delta,'SOURCE_INPUTS',{**delta.SOURCE_INPUTS,path:hashlib.sha256(bad).hexdigest()}):
-    with self.assertRaises(ValueError):historical_lifecycle_source(path,bad)
+    with self.assertRaises(ValueError):self._r3.historical_lifecycle_source(path,bad)
  def test_current_descriptor_view_is_exact_and_never_changes_the_real_inventory(self):
   path='tests/governance/native-directory-transports-source-v1.json';raw=(ROOT/path).read_bytes()
   old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','05a45fa349d7afc63a89846ad663538bf994ef38:'+path])
-  self.assertEqual(current_descriptor_test_view(path,raw),old)
+  self.assertEqual(self._r3.current_descriptor_test_view(path,raw),old)
   self.assertEqual(hashlib.sha256(subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'ls-tree','-r','512282be298c7996fc6370156c333d7557b1685a','--','src','resources'])).hexdigest(),'4281e6dd202c327a7b619847eb147b10d06ae6311663e2f478a3934524128686')
-  with self.assertRaises(ValueError):current_descriptor_test_view(path,raw+b'unknown')
-  with patch.dict(n05_delta.SOURCE_INPUTS,{path:hashlib.sha256(raw+b'unknown').hexdigest()}),self.assertRaises(ValueError):current_descriptor_test_view(path,raw+b'unknown')
-  with self.assertRaises(ValueError):current_descriptor_test_view(path,old)
+  with self.assertRaises(ValueError):self._r3.current_descriptor_test_view(path,raw+b'unknown')
+  with patch.dict(n05_delta.SOURCE_INPUTS,{path:hashlib.sha256(raw+b'unknown').hexdigest()}),self.assertRaises(ValueError):self._r3.current_descriptor_test_view(path,raw+b'unknown')
+  with self.assertRaises(ValueError):self._r3.current_descriptor_test_view(path,old)
  def test_current_code_CI_test_view_is_exact_signed_recipe_and_unknown_refused(self):
   path='tests/governance/test_recovery_oauth_code_ci.py';raw=(ROOT/path).read_bytes()
   old=subprocess.check_output(['git','--no-replace-objects','-C',str(ROOT),'show','3e02336621298f5877e30e05690f57e9a499bdda:'+path])
-  self.assertEqual(PREVIOUS_RECIPE_CODE_CI,old);self.assertEqual(current_descriptor_test_view(path,raw),old)
-  with self.assertRaises(ValueError):current_descriptor_test_view(path,raw+b'unknown')
-  with patch.dict(n05_delta.SOURCE_INPUTS,{path:hashlib.sha256(raw+b'unknown').hexdigest()}),self.assertRaises(ValueError):current_descriptor_test_view(path,raw+b'unknown')
-  with self.assertRaises(ValueError):current_descriptor_test_view(path,old)
+  self.assertEqual(PREVIOUS_RECIPE_CODE_CI,old);self.assertEqual(self._r3.current_descriptor_test_view(path,raw),old)
+  with self.assertRaises(ValueError):self._r3.current_descriptor_test_view(path,raw+b'unknown')
+  with patch.dict(n05_delta.SOURCE_INPUTS,{path:hashlib.sha256(raw+b'unknown').hexdigest()}),self.assertRaises(ValueError):self._r3.current_descriptor_test_view(path,raw+b'unknown')
+  with self.assertRaises(ValueError):self._r3.current_descriptor_test_view(path,old)
  def test_complete_nine_file_cohort_rejects_missing_mixed_and_unknown(self):
   with tempfile.TemporaryDirectory()as td:
    root=Path(td).resolve()
-   reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
+   self._task_api.fixture_DATA(root)
+   reader=self._task_api.native_reader
    for path in delta.PRODUCTION_PATHS:
     p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(reader(ROOT/path))
    self.assertTrue(delta.assert_cohort(root,Path.read_bytes))
@@ -75,11 +77,12 @@ class LifecycleCoordination(unittest.TestCase):
   import check_recovery_oauth_authorization_producer_v1 as gate
   with tempfile.TemporaryDirectory()as td:
    root=Path(td).resolve()
-   reader=n05_delta.native_c4_reader(ROOT,Path.read_bytes)
+   self._task_api.fixture_DATA(root)
+   reader=self._task_api.native_reader
    for path in delta.PRODUCTION_PATHS:
     p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(reader(ROOT/path))
    first=delta.PRODUCTION_PATHS[0];(root/first).unlink()
-   with self.assertRaises(OSError):gate.SQL_obligations(root)
+   with self.assertRaises(OSError):self._task_api.fixture_lifecycle_SQL_obligations(root)
  def test_new_source_additions_are_independently_pinned(self):
   self.assertEqual(len(delta.SOURCE_ADDITIONS),12)
   for path,pin in delta.SOURCE_ADDITIONS.items():

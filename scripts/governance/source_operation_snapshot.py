@@ -19,6 +19,7 @@ from types import MappingProxyType, ModuleType
 import weakref
 
 import project_description_admission_delta as admission
+import task_source_operation_context as task_admission
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = 'support/governance/source-operation/registry-v1.json'
@@ -97,12 +98,16 @@ def _inventory(root):
             path = directory / name
             if path.is_symlink():
                 dirs.remove(name); files.append(name)
+        relative_directory = directory.relative_to(root)
+        directory_string = os.fspath(directory)
+        prefix = str(relative_directory)
+        prefix = '' if prefix == '.' else prefix + os.sep
         for name in files:
-            path = directory / name; info = os.lstat(path)
+            info = os.lstat(os.path.join(directory_string, name))
             mode = ('120000' if stat.S_ISLNK(info.st_mode) else
                     '100755' if stat.S_ISREG(info.st_mode) and info.st_mode & 0o111 else
                     '100644' if stat.S_ISREG(info.st_mode) else 'invalid')
-            found[str(path.relative_to(root))] = mode
+            found[prefix + name] = mode
     return found
 
 
@@ -238,11 +243,14 @@ class _CoordinatorView:
     def assert_cohort(self, root, reader):
         op=self._operation;op.require(root)
         _need(getattr(reader,'__self__',None) is op and getattr(reader,'__func__',None) is SourceOperation.read_producer)
-        return self._module.assert_cohort(root,reader)
+        return self._module.assert_cohort(root,op._read_task_parent_producer if op._task_source else reader)
     def source_view(self, path, raw):
         op=self._operation;op.require()
         _need(type(path) is str and type(raw) is bytes)
         _need(raw == op.read_producer(op.producer_root/path))
+        if op._task_source:
+            raw=op._task_parent_bytes(op.producer_root/path)
+            if raw is None:return None
         return self._module.source_view(path,raw)
 
 class _WorkerView:
@@ -267,12 +275,100 @@ class _CalendarView:
         return self._module.reduce_calendar_wire_union(raw)
 
 class SourceOperation:
-    def __init__(self, key, producer_root):
+    def __init__(self, key, producer_root, task_source=False, expected_checkpoint=None):
         _need(key is _KEY)
         self._roots = (_root(ROOT), _root(producer_root))
         self._state = 'new'; self._modules = {}; self._snapshots = {}; self._auxiliary_modules = []
         self._prepared_ledgers = {}
+        self._task_source = task_source; self._task_contexts = {}; self._task_expected_checkpoint=expected_checkpoint
         _ISSUED.add(self)
+
+    def _require_task_context(self, context):
+        _need(type(self) is SourceOperation and self in _ISSUED and self._task_source
+              and self._state in ('capturing','active') and self._thread == threading.get_ident()
+              and self._task is _task() and _ACTIVE.get() is self._token_identity
+              and type(context) is task_admission.TaskContext
+              and self._task_contexts.get(context.root) is context)
+        return self
+
+    def _task_parent_bytes(self, path):
+        path=Path(path);_need(path.is_absolute())
+        matches=[]
+        for root in self._task_contexts:
+            try:relative=path.relative_to(root)
+            except ValueError:continue
+            matches.append((root,str(relative)))
+        _need(len(matches)==1);root,relative=matches[0]
+        return self._task_contexts[root].parent(relative)
+
+    def _read_task_parent_producer(self,path):
+        self.require(self.producer_root);path=Path(path);_need(path.is_relative_to(self.producer_root))
+        return self._task_parent_bytes(path)
+
+    def historical_task_inputs(self,root,baseline,changed,current):
+        import subprocess
+        self.require(root);_need(self._task_source and type(current)is dict)
+        normalized={};changed=set(changed);context=self._task_contexts[_root(root)]
+        historical_inverse_baseline_verified = False
+        for relative,raw in current.items():
+            _need(type(relative)is str and type(raw)is bytes and raw==context.current(relative))
+            parent=context.parent(relative)
+            if parent is None:changed.discard(relative)
+            else:
+                # The genuine TaskContext constructor only creates differing
+                # parent DATA through its authenticated closed inverse families.
+                # No caller can nominate a path or supply an alternate reader.
+                if raw != parent:
+                    if not historical_inverse_baseline_verified:
+                        _need(type(baseline) is str and len(baseline) == 40 and
+                              all(c in '0123456789abcdef' for c in baseline))
+                        _need(subprocess.check_output(['git','--no-replace-objects','-C',str(root),
+                              'cat-file','-t',baseline]).strip() == b'commit')
+                        historical_inverse_baseline_verified = True
+                    prior = subprocess.run(['git','--no-replace-objects','-C',str(root),
+                          'show',baseline+':'+relative],capture_output=True)
+                    if prior.returncode == 0 and prior.stdout == parent:
+                        # Exact inverse DATA already equal to the actual
+                        # requested baseline is unchanged at that stage.
+                        changed.discard(relative)
+                        continue
+                normalized[relative]=parent
+        # The old source-audit fixture reducer reads four physical predecessor
+        # files. Task adds schema source to one of them, so prove that closed
+        # cohort against CURRENT capture + typed parent DATA here before the
+        # unchanged Description reducer. Never replace its reader or issuer.
+        legacy = self._modules['project_content_grant_source_delta']
+        fixture_pins = legacy.FIXTURE_METADATA_PINS
+        selected = set(normalized) & set(fixture_pins)
+        if selected:
+            _need(set(fixture_pins) == {
+                'support/governance/completion/fixture.php',
+                'support/governance/media-session-positive/source-pins.json',
+                'support/governance/media-session-positive/run.php',
+                'support/governance/media-session-ci/README.md'})
+            _need(type(baseline) is str and len(baseline) == 40 and
+                  all(c in '0123456789abcdef' for c in baseline))
+            _need(subprocess.check_output(['git','--no-replace-objects','-C',str(root),
+                  'cat-file','-t',baseline]).strip() == b'commit')
+            for name,pin in fixture_pins.items():
+                path = Path(root)/name
+                _need(path.resolve() == path and path.is_file())
+                physical = context.current(name)
+                parent = context.parent(name)
+                _need(type(physical) is bytes and type(parent) is bytes and
+                      hashlib.sha256(parent).hexdigest() == pin)
+            for name in selected:
+                _need(type(normalized[name]) is bytes and
+                      hashlib.sha256(normalized[name]).hexdigest() == fixture_pins[name])
+                old = subprocess.run(['git','--no-replace-objects','-C',str(root),
+                      'show',baseline+':'+name],capture_output=True)
+                _need(old.returncode == 0 and hashlib.sha256(old.stdout).hexdigest() ==
+                      legacy.FIXTURE_METADATA_BASE_PINS[name])
+                changed.discard(name); normalized.pop(name)
+        return self._modules['project_description_admission_delta'].historical_inputs(root,baseline,changed,normalized)
+
+    def _assert_current_recipe(self,root):
+        return admission.assert_current_recipe(root,operation=self) if self._task_source else admission.assert_current_recipe(root)
 
     @property
     def code_root(self): return self._roots[0]
@@ -323,9 +419,12 @@ class SourceOperation:
         self._token_identity = object(); self._reset = _ACTIVE.set(self._token_identity)
         try:
             self._ancestor_identities=self._capture_ancestor_identities()
+            if self._task_source:
+                self._state = 'capturing'
+                self._task_contexts = task_admission.capture_current(self,self._roots)
             # No registry field is trusted before actual current admission and external selfpin.
             for root in dict.fromkeys((self.code_root,self.producer_root)):
-                admission.assert_current_recipe(root)
+                self._assert_current_recipe(root)
             registry_bytes, _ = _read(self.code_root / REGISTRY)
             registry_pin=_authenticate_registry(registry_bytes,admission.CURRENT_METADATA)
             self._registry_bytes = registry_bytes
@@ -344,6 +443,8 @@ class SourceOperation:
                                       admission.description.CURRENT_PINS,baseline_metadata)
             baseline_inventory=dict(expected)
             for path in new_pins:expected[path]='100644'
+            if self._task_source:
+                expected={p:('120000' if row['kind']=='symlink' else '100755' if row['mode']==0o755 else '100644') for p,row in self._task_contexts[self.code_root].entries.items()}
             self._inventory_expected = MappingProxyType(expected)
             # Existing files require actual baseline entries; new files use current authenticated pins.
             self._entries = _successor_policy(registry['successor_entries'],registry['entries'],baseline_inventory,new_pins)
@@ -364,16 +465,19 @@ class SourceOperation:
                 _need(path in self._entries and row==self._entries[path])
             _need(len(admission.description.CURRENT_PINS)==19)
             for path in (admission.BRIDGE, admission.PREPARATION, admission.MANIFEST, REGISTRY):
-                raw, _ = _read(self.code_root/path)
+                raw = self._task_parent_bytes(self.code_root/path) if self._task_source else _read(self.code_root/path)[0]
                 self._entries[path] = {'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
             _need(all(path in self._entries for path in new_pins))
             for root in dict.fromkeys((self.code_root, self.producer_root)):
-                admission.assert_current_recipe(root)
+                self._assert_current_recipe(root)
                 layout = _prepared_layout(root,self._inventory_expected)
                 captured = {}
                 for path, pin in self._entries.items():
-                    raw, stamp = (_read_held_media(root,path,pin) if path in self._held_media_pins else _regular_new_source(root,path,pin) if path in new_pins else _read(root/path))
-                    _need(len(raw) == pin['bytes'] and hashlib.sha256(raw).hexdigest() == pin['sha256'])
+                    if self._task_source:
+                        raw=self._task_contexts[root].current(path);stamp=_stamp(os.lstat(root/path));checked=self._task_contexts[root].parent(path)
+                    else:
+                        raw,stamp=(_read_held_media(root,path,pin) if path in self._held_media_pins else _regular_new_source(root,path,pin) if path in new_pins else _read(root/path));checked=raw
+                    _need(type(checked)is bytes and len(checked) == pin['bytes'] and hashlib.sha256(checked).hexdigest() == pin['sha256'])
                     captured[path] = (raw, stamp)
                 self._snapshots[root] = MappingProxyType(captured)
                 self._prepared_ledgers[root] = PreparedLedger(_PREPARED_KEY,self,root,layout)
@@ -421,7 +525,7 @@ class SourceOperation:
             module.__dict__['__builtins__'] = {**vars(builtins), '__import__': private_import}
             self._modules[name] = module
             exec(compile(raw, module.__file__, 'exec'), module.__dict__)
-            if name == 'project_description_source_delta': module.checked_bytes = self.read_source
+            if name == 'project_description_source_delta': module.checked_bytes = self._task_parent_bytes if self._task_source else self.read_source
             if name == 'project_description_admission_delta':
                 module._constants = self.require
                 module.assert_current_recipe = self._admitted_root
@@ -471,16 +575,23 @@ class SourceOperation:
             for root, captured in self._snapshots.items():
                 self._prepared_ledgers[root].verify_exit(self)
                 for path, (before, stamp) in captured.items():
-                    raw, after = (_read_held_media(root,path,self._held_media_pins[path]) if path in self._held_media_pins else _regular_new_source(root,path,self._new_pins[path]) if path in self._new_pins else _read(root/path))
+                    if self._task_source:
+                        # Compare actual captured CURRENT bytes and identity. The
+                        # separate TaskContext exit rechecks the complete signed
+                        # current tree; historical parent pins are DATA only.
+                        raw,after=_read(root/path)
+                    else:
+                        raw, after = (_read_held_media(root,path,self._held_media_pins[path]) if path in self._held_media_pins else _regular_new_source(root,path,self._new_pins[path]) if path in self._new_pins else _read(root/path))
                     _need(raw == before and after == stamp)
-                admission.assert_current_recipe(root)
+                self._assert_current_recipe(root)
             for ledger in self._prepared_ledgers.values():ledger.verify_exit(self)
             self._verify_ancestor_identities()
+            for context in self._task_contexts.values():context.exit()
         except BaseException as caught:
             failure = caught
         finally:
             self._state = 'closed'; _ACTIVE.reset(self._reset)
-            self._modules.clear(); self._snapshots.clear(); self._prepared_ledgers.clear()
+            self._modules.clear(); self._snapshots.clear(); self._prepared_ledgers.clear(); self._task_contexts.clear()
         if error is not None:
             if failure is not None: error.add_note('source_operation_exit_refused')
             return False
@@ -488,7 +599,17 @@ class SourceOperation:
         return False
 
 def open_source_operation(root=ROOT):
-    return SourceOperation(_KEY, root)
+    # Original entry semantics retained; no automatic Task/env migration.
+    return SourceOperation(_KEY,root)
+
+def open_task_source_operation(root=ROOT,expected_checkpoint=None):
+    # Exact Root-reviewed checkpoint is explicit, never inferred from HEAD.
+    return SourceOperation(_KEY,root,task_source=True,expected_checkpoint=expected_checkpoint)
+
+def require_task_operation(value,root):
+    _need(type(value)is SourceOperation and value in _ISSUED and value._task_source)
+    context=value._task_contexts.get(_root(root));_need(context is not None)
+    return value._require_task_context(context)
 
 def require_operation(value, root):
     _need(type(value) is SourceOperation and value in _ISSUED)

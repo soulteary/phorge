@@ -2,6 +2,7 @@
 import copy, importlib.util,json,subprocess,sys,tempfile,unittest,re,os,stat
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
+from task_paired_workflow_shell_test_api_v2 import assert_shell,assert_mutations
 sys.path.insert(0,str(ROOT/'scripts/governance'))
 import check_recovery_spaces_source as gate
 spec=importlib.util.spec_from_file_location('project_native_template',ROOT/'tests/governance/test_native_organization.py')
@@ -68,18 +69,7 @@ foreach(['begin','body','cleanup']as$fault){$w=new SpaceSyntheticWriter();$w->fa
   source=(ROOT/'support/governance/recovery/spaces-source-focused.php').read_text();self.assertIn('$defaultsAfter===$defaultsBefore',source);self.assertIn('governance_spaces_fixture_counts($fixture)===$beforeRejected',source);self.assertIn("unset($GLOBALS['governance_spaces_editor_failure'])",source);self.assertIn("$restricted=$create(PhabricatorPolicies::POLICY_ADMIN",source)
 
  def test_actual_CI_shell_exclusive_paths_and_native_failure_stop(self):
-  workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text();name='      - name: Verify fresh native Space source facts after Project source facts\n';step=workflow.split(name,1)[1].split('      - uses:',1)[0];script='\n'.join(line[10:] for line in step.splitlines() if line.startswith('          '));syntax=subprocess.run(['bash','-n'],input=script,text=True,capture_output=True);self.assertEqual(syntax.returncode,0,syntax.stderr)
-  head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
-  with tempfile.TemporaryDirectory() as temp:
-   tmp=Path(temp);foreign=tmp/'foreign';foreign.mkdir();sentinel=foreign/'sentinel';sentinel.write_bytes(b'foreign-private');before=(stable_stamp(sentinel),sentinel.read_bytes());target=tmp/'governance-spaces-source-facts';env=dict(os.environ,RUNNER_TEMP=temp,GITHUB_SHA=head,GORGE_TEST_MYSQL_PASSWORD='synthetic-only')
-   for kind in ('directory','symlink','file'):
-    if kind=='directory':target.mkdir();(target/'sentinel').write_bytes(b'owned-elsewhere')
-    elif kind=='symlink':target.symlink_to(foreign,target_is_directory=True)
-    else:target.write_bytes(b'owned-elsewhere')
-    identity=stable_stamp(target);p=subprocess.run(['bash','-e','-o','pipefail','-c',script],cwd=ROOT,env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(p.returncode,0);self.assertEqual(stable_stamp(target),identity);self.assertEqual((stable_stamp(sentinel),sentinel.read_bytes()),before)
-    if kind=='directory':self.assertEqual((target/'sentinel').read_bytes(),b'owned-elsewhere');(target/'sentinel').unlink();target.rmdir()
-    else:target.unlink()
-   for directory in ('governance-batch-1','governance-native-organization'):(tmp/directory).mkdir()
-   (tmp/'governance-batch-1/native.json').write_bytes(b'synthetic-reference-only');(tmp/'governance-native-organization/accepted.json').write_bytes(b'synthetic-reference-only')
-   fake=tmp/'commands';fake.mkdir();php=fake/'php';php.write_text('#!/bin/sh\nexit 42\n');php.chmod(0o700);env['PATH']=str(fake)+os.pathsep+env['PATH']
-   p=subprocess.run(['bash','-e','-o','pipefail','-c',script],cwd=ROOT,env=env,capture_output=True,text=True,timeout=10);self.assertEqual(p.returncode,42,p.stderr);self.assertEqual((target/'source-revision.txt').read_text(),head+'\n');self.assertFalse((target/'accepted.json').exists());self.assertEqual((target/'shared-native-pure.json').read_bytes(),b'synthetic-reference-only');self.assertEqual(stat.S_IMODE(target.stat().st_mode),0o700)
+  """Actual current Space shell with closed stubs; no SQL/source authority."""
+  workflow=(ROOT/'.github/workflows/atomic-feature-regressions.yml').read_text()
+  assert_shell(self,ROOT,workflow,'spaces-source-facts')
+  assert_mutations(self,workflow,'spaces-source-facts')

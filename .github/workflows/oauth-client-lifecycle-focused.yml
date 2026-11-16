@@ -54,11 +54,24 @@ jobs:
     env:
       GORGE_TEST_MYSQL_PASSWORD: oauth-client-lifecycle-focused-disposable-only
       PYTHONDONTWRITEBYTECODE: '1'
+      EXPECTED_SOURCE_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
+      PHORGE_TASK_TEST_CHECKPOINT: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Bind external event head and isolated PUBLIC verification home
+        run: |
+          umask 077
+          trust_home="$RUNNER_TEMP/task-source-public-trust"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --prepare-public-trust \
+            --public-key "$GITHUB_WORKSPACE/support/governance/source-operation/ci-source-verifier.asc" --trust-home "$trust_home"
+          python3 -B scripts/governance/check_task_ci_head_v1.py --root "$GITHUB_WORKSPACE" \
+            --event-file "$GITHUB_EVENT_PATH" --event-name "$GITHUB_EVENT_NAME" \
+            --expected-head "$EXPECTED_SOURCE_CHECKPOINT" --github-sha "$GITHUB_SHA" --trust-home "$trust_home"
+          echo "HOME=$trust_home" >> "$GITHUB_ENV"
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5.12'
@@ -69,12 +82,12 @@ jobs:
       - name: Own fresh focused output and require the reviewed pair
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           php -r 'if (PHP_VERSION !== "8.5.12" || ini_get("opcache.jit") !== "disable" || (int)ini_get("opcache.jit_buffer_size") !== 0) { exit(1); }'
           mkdir "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused" "$RUNNER_TEMP/oauth-client-lifecycle-focused-binary"
           git rev-parse HEAD > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/source-revision.txt"
           git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/source-tree.txt"
-          python3 -B scripts/governance/check_directory_transports_v1.py --source-only --source-revision "$GITHUB_SHA" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/source-admission.json"
+          python3 -B scripts/governance/check_directory_transports_task_source_v2.py --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/source-admission.json"
           revision=$(python3 tests/atomic/check_pair.py --print-revision)
           echo "GORGE_CONTRACT_REF=$revision" >> "$GITHUB_ENV"
       - name: Provision isolated offline-control Python dependencies
@@ -161,11 +174,11 @@ jobs:
           MYSQL_CONTAINER: ${{ job.services.mysql.id }}
         run: |
           umask 077
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_CHECKPOINT"
           sha256sum --check "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/verified-maps.sha256"
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
-          AUTHZ_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_oauth_authorization_mysql84.php before "$GITHUB_SHA" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-before.pending.json"
+          AUTHZ_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_oauth_authorization_mysql84.php before "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-before.pending.json"
           mv "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-before.pending.json" "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-before.json"
           PHORGE_GOVERNANCE_ISOLATED_TEST=1 \
           PHORGE_GOVERNANCE_GORGE_FILE_BINARY="$RUNNER_TEMP/oauth-client-lifecycle-focused-binary/gorge-file-storage" \
@@ -173,11 +186,11 @@ jobs:
           PHORGE_GOVERNANCE_FIXTURE_DSN='mysql:host=127.0.0.1;port=3306;dbname=governance_fixture_bootstrap;charset=utf8mb4' \
           PHORGE_GOVERNANCE_FIXTURE_USER=root \
           PHORGE_GOVERNANCE_FIXTURE_PASSWORD="$GORGE_TEST_MYSQL_PASSWORD" \
-          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$GITHUB_SHA" \
-          php -d opcache.enable_cli=0 -d opcache.jit=disable -d opcache.jit_buffer_size=0 support/governance/native-organization/test-oauth-client-lifecycle-mysql.php --oauth-client-lifecycle-owner > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/integration.json" 2> "$RUNNER_TEMP/oauth-client-lifecycle-native.stderr.private" || {
+          PHORGE_GOVERNANCE_MEASUREMENT_SOURCE_REVISION="$EXPECTED_SOURCE_CHECKPOINT" \
+          python3 -B scripts/governance/run_task_directory_native_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role oauth-client-lifecycle --directory "$RUNNER_TEMP/task-oauth-client-lifecycle-v2-private" --stdout "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/integration.json" --stderr "$RUNNER_TEMP/oauth-client-lifecycle-native.stderr.private" || {
             native_status=$?
             if mkdir "$RUNNER_TEMP/oauth-client-lifecycle-focused-failure"; then
-              if python3 -B scripts/governance/project_oauth_client_lifecycle_failure.py --receipt "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/integration.json" --stderr "$RUNNER_TEMP/oauth-client-lifecycle-native.stderr.private" > "$RUNNER_TEMP/oauth-client-lifecycle-focused-failure/diagnostic.pending.json"; then
+              if python3 -B scripts/governance/project_oauth_client_lifecycle_failure.py --receipt "$RUNNER_TEMP/task-oauth-client-lifecycle-v2-private/capture-native-body.private.json" --stderr "$RUNNER_TEMP/oauth-client-lifecycle-native.stderr.private" > "$RUNNER_TEMP/oauth-client-lifecycle-focused-failure/diagnostic.pending.json"; then
                 if mv "$RUNNER_TEMP/oauth-client-lifecycle-focused-failure/diagnostic.pending.json" "$RUNNER_TEMP/oauth-client-lifecycle-focused-failure/diagnostic.json"; then
                   if cat "$RUNNER_TEMP/oauth-client-lifecycle-focused-failure/diagnostic.json" >&2; then :; fi
                   if [ -n "${GITHUB_OUTPUT-}" ] && echo "diagnostic_owned=true" >> "${GITHUB_OUTPUT-}"; then :; fi
@@ -188,9 +201,9 @@ jobs:
           }
           mysql_image=$(docker inspect "$MYSQL_CONTAINER" --format '{{.Config.Image}}')
           test "$mysql_image" = 'mysql:8.4.13@sha256:a0225d1ea6631c8bc2385dc4c2faba17bbf1834ecf369e1659a9a382bd8d5dd7'
-          AUTHZ_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_oauth_authorization_mysql84.php after "$GITHUB_SHA" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.pending.json"
+          AUTHZ_MYSQL_OBSERVED_IMAGE="$mysql_image" php scripts/governance/probe_oauth_authorization_mysql84.php after "$EXPECTED_SOURCE_CHECKPOINT" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.pending.json"
           mv "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.pending.json" "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.json"
-          python3 -B scripts/governance/qualify_oauth_client_lifecycle_mysql84.py --runtime-before "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.json" --receipt "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/integration.json" --source-revision "$GITHUB_SHA" --file-binary "$RUNNER_TEMP/oauth-client-lifecycle-focused-binary/gorge-file-storage" --file-binary-sha256 "$(sha256sum "$RUNNER_TEMP/oauth-client-lifecycle-focused-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/accepted.pending.json"
+          python3 -B scripts/governance/check_oauth_task_schema_receipt_v2.py --root "$GITHUB_WORKSPACE" --expected-checkpoint "$EXPECTED_SOURCE_CHECKPOINT" --role oauth-client-lifecycle --runtime-before "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-before.json" --runtime-after "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/mysql-after.json" --envelope "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/integration.json" --profile "$RUNNER_TEMP/task-oauth-client-lifecycle-v2-private/capture/schema-profile.private.json" --profile-sha "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["profile_sha256"])' "$RUNNER_TEMP/task-oauth-client-lifecycle-v2-private/capture/binding.safe.json")" --file-binary "$RUNNER_TEMP/oauth-client-lifecycle-focused-binary/gorge-file-storage" --file-sha "$(sha256sum "$RUNNER_TEMP/oauth-client-lifecycle-focused-binary/gorge-file-storage" | cut -d ' ' -f1)" > "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/accepted.pending.json"
           mv "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/accepted.pending.json" "$RUNNER_TEMP/governance-oauth-client-lifecycle-focused/accepted.json"
       - uses: actions/upload-artifact@v4
         if: success()
